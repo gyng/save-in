@@ -194,10 +194,10 @@
     "message": "ブラウザのダウンロード"
   },
   "o_lBrowserDownloadsHelp": {
-    "message": "必要に応じて、Web ページまたはブラウザによって開始されたダウンロードを追跡またはルーティングします。 Save In または別の拡張機能によって開始されたダウンロードは除外されます。"
+    "message": "必要に応じて、Web ページまたはブラウザーによって開始されたダウンロードを追跡またはルーティングします。Save In または別の拡張機能によって開始されたダウンロードは除外されます。"
   },
   "o_cTrackBrowserDownloads": {
-    "message": "通常のブラウザのダウンロードを Save In 履歴に含める"
+    "message": "通常のブラウザーのダウンロードを Save In 履歴に含める"
   },
   "o_cTrackBrowserDownloadsHelp": {
     "message": "所有権を取得せずに、Save In 履歴に一致するダウンロードを記録します。これらは再試行されず、Save In プロンプトや通知もトリガーされません。"
@@ -230,7 +230,7 @@
     "message": "1 行に 1 つの WebExtension 一致パターンを入力します。除外は、上記の一致する URL をオーバーライドし、履歴追跡とルーティングの両方に適用されます。"
   },
   "o_lBrowserDownloadVariables": {
-    "message": "ブラウザのダウンロードでは、URL、提案されたファイル名、現在時刻、カウンタ、UUID、および MIME 変数のみが提供されます。ページ タイトル、ページ URL、リンク テキスト、選択範囲、メニュー メタデータ、およびキー修飾子は使用できません。"
+    "message": "ブラウザーのダウンロードでは、URL、提案されたファイル名、現在時刻、カウンター、UUID、MIME 変数のみを使用できます。ページタイトル、ページ URL、リンクテキスト、選択範囲、メニューメタデータ、修飾キーは使用できません。"
   },
   "o_sRenameAndRouteDownloads": {
     "message": "ルーティングと名前変更"
@@ -962,7 +962,7 @@
     "message": "すべてのパスに一致します。クエリパラメーターと明示的なポートは照合できません。"
   },
   "html_trackAndRouteBrowserDownloads": {
-    "message": "ブラウザーのダウンロードを追跡およびルートする"
+    "message": "ブラウザーのダウンロードを追跡してルーティング"
   },
   "html_writeOneClausePerLine": {
     "message": "1 行に 1 つの句を記述します。"
@@ -2244,8 +2244,8 @@
     "message": "ルーティングルールをテスト"
   },
   "routeDebuggerUseSource": { "message": "使用" },
-  "routeDebuggerLatestDownload": { "message": "Latest download" },
-  "routeDebuggerUseSampleDownload": { "message": "Sample download" },
+  "routeDebuggerLatestDownload": { "message": "最新" },
+  "routeDebuggerUseSampleDownload": { "message": "例" },
   "routeDebuggerFilename": {
     "message": "ファイル名"
   },
@@ -2291,7 +2291,7 @@
     }
   },
   "routeDebuggerExpanded": {
-    "message": "展開結果"
+    "message": "展開後のパス"
   },
   "routeDebuggerFinalPath": {
     "message": "最終パス"
@@ -2306,13 +2306,13 @@
     }
   },
   "routeDebuggerSelected": {
-    "message": "選択済み"
+    "message": "使用"
   },
   "routeDebuggerAlsoMatches": {
-    "message": "これも一致"
+    "message": "一致（未使用）"
   },
   "routeDebuggerDidNotMatch": {
-    "message": "一致しません"
+    "message": "条件を満たしていません"
   },
   "routeDebuggerRunning": {
     "message": "ルーティングルールをテスト中…"

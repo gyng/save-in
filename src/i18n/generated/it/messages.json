@@ -2227,8 +2227,8 @@
     "message": "Test delle regole di routing"
   },
   "routeDebuggerUseSource": { "message": "Usa" },
-  "routeDebuggerLatestDownload": { "message": "Latest download" },
-  "routeDebuggerUseSampleDownload": { "message": "Sample download" },
+  "routeDebuggerLatestDownload": { "message": "Più recente" },
+  "routeDebuggerUseSampleDownload": { "message": "Esempio" },
   "routeDebuggerFilename": {
     "message": "Nome file"
   },
@@ -2274,7 +2274,7 @@
     }
   },
   "routeDebuggerExpanded": {
-    "message": "Risultato espanso"
+    "message": "Percorso espanso"
   },
   "routeDebuggerFinalPath": {
     "message": "Percorso finale"
@@ -2289,13 +2289,13 @@
     }
   },
   "routeDebuggerSelected": {
-    "message": "Selezionato"
+    "message": "Usata"
   },
   "routeDebuggerAlsoMatches": {
-    "message": "Corrisponde anche"
+    "message": "Corrisponde, non usata"
   },
   "routeDebuggerDidNotMatch": {
-    "message": "Non corrisponde"
+    "message": "Condizioni non soddisfatte"
   },
   "routeDebuggerRunning": {
     "message": "Verifica delle regole di routing…"

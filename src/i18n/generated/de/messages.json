@@ -301,7 +301,7 @@
     "message": "Nehmen Sie normale Browser-Downloads in den Save In-Verlauf auf"
   },
   "o_cTrackBrowserDownloadsHelp": {
-    "message": "Zeichnet übereinstimmende Downloads im Save In-Verlauf auf, ohne das Eigentum an ihnen zu übernehmen. Sie werden nicht wiederholt und lösen keine Save In-Eingabeaufforderungen oder -Benachrichtigungen aus."
+    "message": "Zeichnet übereinstimmende Downloads im Save In-Verlauf auf, ohne sie zu übernehmen. Save In versucht sie nicht erneut und zeigt dafür keine Eingabeaufforderungen oder Benachrichtigungen an."
   },
   "o_cRouteBrowserDownloads": {
     "message": "Verwenden Sie Routing-Regeln für Browser-Downloads"
@@ -349,7 +349,7 @@
     "message": "Zugriffstasten für Kontextmenüs"
   },
   "o_sMoreOptions": {
-    "message": "Erweitert"
+    "message": "Aufgelöster Pfad"
   },
   "o_sHistory": {
     "message": "Verlauf"
@@ -1063,7 +1063,7 @@
     "message": "Entspricht jedem Pfad. Abfrageparameter und explizite Ports können nicht abgeglichen werden."
   },
   "html_trackAndRouteBrowserDownloads": {
-    "message": "Verfolgen und leiten Sie Browser-Downloads weiter"
+    "message": "Browser-Downloads verfolgen und weiterleiten"
   },
   "html_writeOneClausePerLine": {
     "message": "Schreiben Sie einen Satz pro Zeile."
@@ -2142,8 +2142,8 @@
     "message": "Routing-Regeln testen"
   },
   "routeDebuggerUseSource": { "message": "Verwenden" },
-  "routeDebuggerLatestDownload": { "message": "Latest download" },
-  "routeDebuggerUseSampleDownload": { "message": "Sample download" },
+  "routeDebuggerLatestDownload": { "message": "Neueste" },
+  "routeDebuggerUseSampleDownload": { "message": "Beispiel" },
   "routeDebuggerFilename": {
     "message": "Dateiname"
   },
@@ -2204,13 +2204,13 @@
     }
   },
   "routeDebuggerSelected": {
-    "message": "Ausgewählt"
+    "message": "Verwendet"
   },
   "routeDebuggerAlsoMatches": {
-    "message": "Stimmt ebenfalls überein"
+    "message": "Stimmt überein, nicht verwendet"
   },
   "routeDebuggerDidNotMatch": {
-    "message": "Stimmt nicht überein"
+    "message": "Bedingungen nicht erfüllt"
   },
   "routeDebuggerRunning": {
     "message": "Routing-Regeln werden getestet…"

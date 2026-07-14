@@ -249,11 +249,12 @@ const intentionallySharedEnglishKeys = new Set([
   "translationCredits",
 ]);
 for (const [key, canonical] of Object.entries(english)) {
-  if (
-    !intentionallySharedEnglishKeys.has(key) &&
-    generatedCatalogs.every(({ catalog }) => catalog[key]?.message === canonical.message)
-  ) {
+  if (intentionallySharedEnglishKeys.has(key)) continue;
+  const generatedMessages = generatedCatalogs.map(({ catalog }) => catalog[key]?.message);
+  if (generatedMessages.every((message) => message === canonical.message)) {
     report(`all generated locales: untranslated key ${key}`);
+  } else if (generatedMessages.every((message) => message === generatedMessages[0])) {
+    report(`all generated locales: shared stale or untranslated value for ${key}`);
   }
 }
 

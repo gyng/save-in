@@ -288,7 +288,7 @@
     "message": "Rutningsregler"
   },
   "o_sBrowserDownloads": {
-    "message": "Nedladdningar av webbläsare"
+    "message": "Webbläsarnedladdningar"
   },
   "o_lBrowserDownloadsHelp": {
     "message": "Spåra eller dirigera eventuellt nedladdningar som startats av webbsidor eller webbläsaren. Nedladdningar som startas av Save In eller annat tillägg är uteslutna."
@@ -297,7 +297,7 @@
     "message": "Inkludera vanliga webbläsarnedladdningar i historiken Save In"
   },
   "o_cTrackBrowserDownloadsHelp": {
-    "message": "Registrerar matchande nedladdningar i historiken Save In utan att ta äganderätten till dem. De testas inte igen och utlöser inte Save In uppmaningar eller meddelanden."
+    "message": "Registrerar matchande nedladdningar i Save In-historiken utan att ta över dem. Save In försöker inte hämta dem igen och visar inga uppmaningar eller aviseringar för dem."
   },
   "o_cRouteBrowserDownloads": {
     "message": "Använd routningsregler för webbläsarnedladdningar"
@@ -309,7 +309,7 @@
     "message": "Experimentellt omdirigera matchande nedladdningar på Firefox"
   },
   "o_cRouteBrowserDownloadsFirefoxHelp": {
-    "message": "Firefox saknar inbyggd filnamnsroutning, så Save In avbryter varje matchande nedladdning och startar en ersättningsnedladdning. Detta kan misslyckas för POST-begäranden, URL:er som löper ut, anpassade rubriker eller autentiserade nedladdningar."
+    "message": "Firefox saknar inbyggd filnamnsroutning, så Save In avbryter varje matchande nedladdning och startar en ersättningsnedladdning. Detta kan misslyckas för POST-begäranden, URL:er som löper ut, anpassade HTTP-huvuden eller autentiserade nedladdningar."
   },
   "o_lFirefoxFilenameApiBug": {
     "message": "Mozilla bugg 1245652"
@@ -327,7 +327,7 @@
     "message": "Ange ett WebExtension-matchningsmönster per rad. Undantag åsidosätter de matchande URL:erna ovan och gäller både historikspårning och routning."
   },
   "o_lBrowserDownloadVariables": {
-    "message": "Webbläsarnedladdningar tillhandahåller endast URL, föreslagna filnamn, aktuell tid, räknare, UUID och MIME-variabler. Sidrubrik, sidadress, länktext, urval, menymetadata och nyckelmodifierare är inte tillgängliga."
+    "message": "Webbläsarnedladdningar tillhandahåller endast URL, föreslaget filnamn, aktuell tid, räknare, UUID och MIME-variabler. Sidrubrik, sidadress, länktext, markering, menymetadata och modifieringstangenter är inte tillgängliga."
   },
   "o_sRenameAndRouteDownloads": {
     "message": "Routning och namnbyte"
@@ -1059,7 +1059,7 @@
     "message": "Matchar alla sökvägar. Frågeparametrar och explicita portar kan inte matchas."
   },
   "html_trackAndRouteBrowserDownloads": {
-    "message": "Spåra och dirigera webbläsarnedladdningar"
+    "message": "Spåra och routa webbläsarnedladdningar"
   },
   "html_writeOneClausePerLine": {
     "message": "Skriv en sats per rad."
@@ -2138,8 +2138,8 @@
     "message": "Testa dirigeringsregler"
   },
   "routeDebuggerUseSource": { "message": "Använd" },
-  "routeDebuggerLatestDownload": { "message": "Latest download" },
-  "routeDebuggerUseSampleDownload": { "message": "Sample download" },
+  "routeDebuggerLatestDownload": { "message": "Senaste" },
+  "routeDebuggerUseSampleDownload": { "message": "Exempel" },
   "routeDebuggerFilename": {
     "message": "Filnamn"
   },
@@ -2185,7 +2185,7 @@
     }
   },
   "routeDebuggerExpanded": {
-    "message": "Expanderat resultat"
+    "message": "Expanderad sökväg"
   },
   "routeDebuggerFinalPath": {
     "message": "Slutlig sökväg"
@@ -2200,13 +2200,13 @@
     }
   },
   "routeDebuggerSelected": {
-    "message": "Vald"
+    "message": "Använd"
   },
   "routeDebuggerAlsoMatches": {
-    "message": "Matchar också"
+    "message": "Matchar, används inte"
   },
   "routeDebuggerDidNotMatch": {
-    "message": "Matchar inte"
+    "message": "Villkoren är inte uppfyllda"
   },
   "routeDebuggerRunning": {
     "message": "Testar dirigeringsregler…"

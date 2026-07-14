@@ -230,7 +230,7 @@
     "message": "WebExtension 일치 패턴을 한 줄에 하나씩 입력하세요. 제외는 위의 일치 URL을 재정의하고 내역 추적 및 라우팅에 모두 적용됩니다."
   },
   "o_lBrowserDownloadVariables": {
-    "message": "브라우저 다운로드는 URL, 제안된 파일 이름, 현재 시간, 카운터, UUID 및 MIME 변수만 제공합니다. 페이지 제목, 페이지 URL, 링크 텍스트, 선택 항목, 메뉴 메타데이터 및 키 수정자를 사용할 수 없습니다."
+    "message": "브라우저 다운로드는 URL, 제안된 파일 이름, 현재 시간, 카운터, UUID 및 MIME 변수만 제공합니다. 페이지 제목, 페이지 URL, 링크 텍스트, 선택 항목, 메뉴 메타데이터 및 보조 키는 사용할 수 없습니다."
   },
   "o_sRenameAndRouteDownloads": {
     "message": "라우팅 및 이름 바꾸기"
@@ -2244,8 +2244,8 @@
     "message": "라우팅 규칙 테스트"
   },
   "routeDebuggerUseSource": { "message": "사용" },
-  "routeDebuggerLatestDownload": { "message": "Latest download" },
-  "routeDebuggerUseSampleDownload": { "message": "Sample download" },
+  "routeDebuggerLatestDownload": { "message": "최신" },
+  "routeDebuggerUseSampleDownload": { "message": "예시" },
   "routeDebuggerFilename": {
     "message": "파일 이름"
   },
@@ -2291,7 +2291,7 @@
     }
   },
   "routeDebuggerExpanded": {
-    "message": "확장 결과"
+    "message": "확장된 경로"
   },
   "routeDebuggerFinalPath": {
     "message": "최종 경로"
@@ -2306,13 +2306,13 @@
     }
   },
   "routeDebuggerSelected": {
-    "message": "선택됨"
+    "message": "사용됨"
   },
   "routeDebuggerAlsoMatches": {
-    "message": "추가로 일치"
+    "message": "일치하지만 사용되지 않음"
   },
   "routeDebuggerDidNotMatch": {
-    "message": "일치하지 않음"
+    "message": "조건이 충족되지 않음"
   },
   "routeDebuggerRunning": {
     "message": "라우팅 규칙 테스트 중…"

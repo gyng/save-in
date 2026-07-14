@@ -230,7 +230,7 @@
     "message": "每行輸入一個 WebExtension 比對模式。排除項目會優先於上方相符的 URL，並同時套用於記錄追蹤和路由。"
   },
   "o_lBrowserDownloadVariables": {
-    "message": "瀏覽器下載僅提供 URL、建議的檔案名稱、目前時間、計數器、UUID 和 MIME 變數。頁面標題、頁面 URL、連結文字、選擇、選單元資料和按鍵修飾符不可用。"
+    "message": "瀏覽器下載僅提供 URL、建議的檔案名稱、目前時間、計數器、UUID 和 MIME 變數。頁面標題、頁面 URL、連結文字、選取的文字、選單中繼資料和輔助按鍵無法使用。"
   },
   "o_sRenameAndRouteDownloads": {
     "message": "路由和重新命名"
@@ -2244,8 +2244,8 @@
     "message": "測試路由規則"
   },
   "routeDebuggerUseSource": { "message": "使用" },
-  "routeDebuggerLatestDownload": { "message": "Latest download" },
-  "routeDebuggerUseSampleDownload": { "message": "Sample download" },
+  "routeDebuggerLatestDownload": { "message": "最新" },
+  "routeDebuggerUseSampleDownload": { "message": "範例" },
   "routeDebuggerFilename": {
     "message": "檔案名稱"
   },
@@ -2291,7 +2291,7 @@
     }
   },
   "routeDebuggerExpanded": {
-    "message": "展開結果"
+    "message": "展開後的路徑"
   },
   "routeDebuggerFinalPath": {
     "message": "最終路徑"
@@ -2306,13 +2306,13 @@
     }
   },
   "routeDebuggerSelected": {
-    "message": "已選取"
+    "message": "已使用"
   },
   "routeDebuggerAlsoMatches": {
-    "message": "也符合"
+    "message": "相符但未使用"
   },
   "routeDebuggerDidNotMatch": {
-    "message": "不符合"
+    "message": "條件未滿足"
   },
   "routeDebuggerRunning": {
     "message": "正在測試路由規則…"

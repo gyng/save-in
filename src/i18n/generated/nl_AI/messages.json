@@ -309,7 +309,7 @@
     "message": "Gebruik routeringsregels voor browserdownloads"
   },
   "o_cRouteBrowserDownloadsHelp": {
-    "message": "Indien ondersteund, kunnen overeenkomende regels de naam van browserdownloads wijzigen of deze in submappen plaatsen. Ongeëvenaarde downloads blijven ongewijzigd."
+    "message": "Indien ondersteund, kunnen overeenkomende regels de naam van browserdownloads wijzigen of deze in submappen plaatsen. Downloads zonder overeenkomst blijven ongewijzigd."
   },
   "o_cRouteBrowserDownloadsFirefox": {
     "message": "Experimenteel overeenkomende downloads omleiden in Firefox"
@@ -333,7 +333,7 @@
     "message": "Voer één WebExtension-overeenkomstpatroon per regel in. Uitsluitingen overschrijven de bovenstaande overeenkomende URL's en zijn van toepassing op zowel het bijhouden van de geschiedenis als op routering."
   },
   "o_lBrowserDownloadVariables": {
-    "message": "Browserdownloads bieden alleen de URL, voorgestelde bestandsnaam, huidige tijd, teller, UUID en MIME-variabelen. Paginatitel, pagina-URL, linktekst, selectie, menumetagegevens en sleutelmodificatoren zijn niet beschikbaar."
+    "message": "Browserdownloads bieden alleen de URL, voorgestelde bestandsnaam, huidige tijd, teller, UUID en MIME-variabelen. Paginatitel, pagina-URL, linktekst, selectie, menumetagegevens en modificatietoetsen zijn niet beschikbaar."
   },
   "o_sRenameAndRouteDownloads": {
     "message": "Routeren en hernoemen"
@@ -2144,8 +2144,8 @@
     "message": "Routeringsregels testen"
   },
   "routeDebuggerUseSource": { "message": "Gebruiken" },
-  "routeDebuggerLatestDownload": { "message": "Latest download" },
-  "routeDebuggerUseSampleDownload": { "message": "Sample download" },
+  "routeDebuggerLatestDownload": { "message": "Meest recente" },
+  "routeDebuggerUseSampleDownload": { "message": "Voorbeeld" },
   "routeDebuggerFilename": {
     "message": "Bestandsnaam"
   },
@@ -2191,7 +2191,7 @@
     }
   },
   "routeDebuggerExpanded": {
-    "message": "Uitgevouwen resultaat"
+    "message": "Uitgevouwen pad"
   },
   "routeDebuggerFinalPath": {
     "message": "Definitief pad"
@@ -2206,13 +2206,13 @@
     }
   },
   "routeDebuggerSelected": {
-    "message": "Geselecteerd"
+    "message": "Gebruikt"
   },
   "routeDebuggerAlsoMatches": {
-    "message": "Komt ook overeen"
+    "message": "Komt overeen, niet gebruikt"
   },
   "routeDebuggerDidNotMatch": {
-    "message": "Komt niet overeen"
+    "message": "Niet aan de voorwaarden voldaan"
   },
   "routeDebuggerRunning": {
     "message": "Routeringsregels testen…"

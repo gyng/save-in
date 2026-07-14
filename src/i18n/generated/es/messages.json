@@ -299,13 +299,13 @@
     "message": "Incluir descargas normales del navegador en el historial Save In"
   },
   "o_cTrackBrowserDownloadsHelp": {
-    "message": "Registros que coinciden con las descargas en el historial Save In sin tomar posesión de ellas. No se reintentan y no activan mensajes ni notificaciones Save In."
+    "message": "Registra las descargas coincidentes en el historial de Save In sin asumir su control. Save In no vuelve a intentarlas ni muestra avisos o notificaciones."
   },
   "o_cRouteBrowserDownloads": {
     "message": "Utilice reglas de enrutamiento para descargas del navegador"
   },
   "o_cRouteBrowserDownloadsHelp": {
-    "message": "Cuando son compatibles, las reglas de coincidencia pueden cambiar el nombre de las descargas del navegador o colocarlas en subcarpetas. Las descargas inigualables no se modifican."
+    "message": "Cuando son compatibles, las reglas de coincidencia pueden cambiar el nombre de las descargas del navegador o colocarlas en subcarpetas. Las descargas sin coincidencia no se modifican."
   },
   "o_cRouteBrowserDownloadsFirefox": {
     "message": "Redirigir experimentalmente descargas coincidentes en Firefox"
@@ -329,7 +329,7 @@
     "message": "Introduzca un patrón de coincidencia de WebExtension por línea. Las exclusiones anulan las URL coincidentes anteriores y se aplican tanto al seguimiento del historial como al enrutamiento."
   },
   "o_lBrowserDownloadVariables": {
-    "message": "Las descargas del navegador solo proporcionan la URL, el nombre de archivo propuesto, la hora actual, el contador, el UUID y las variables MIME. El título de la página, la URL de la página, el texto del enlace, la selección, los metadatos del menú y los modificadores de clave no están disponibles."
+    "message": "Las descargas del navegador solo proporcionan la URL, el nombre de archivo propuesto, la hora actual, el contador, el UUID y las variables MIME. El título de la página, la URL de la página, el texto del enlace, la selección, los metadatos del menú y las teclas modificadoras no están disponibles."
   },
   "o_sRenameAndRouteDownloads": {
     "message": "Enrutamiento y cambio de nombre"
@@ -1061,7 +1061,7 @@
     "message": "Coincide con cualquier ruta. No se pueden hacer coincidir los parámetros de consulta ni los puertos explícitos."
   },
   "html_trackAndRouteBrowserDownloads": {
-    "message": "Seguimiento y ruta de descargas del navegador"
+    "message": "Rastrear y enrutar las descargas del navegador"
   },
   "html_writeOneClausePerLine": {
     "message": "Escribe una cláusula por línea."
@@ -2142,8 +2142,8 @@
     "message": "Probar reglas de enrutamiento"
   },
   "routeDebuggerUseSource": { "message": "Usar" },
-  "routeDebuggerLatestDownload": { "message": "Latest download" },
-  "routeDebuggerUseSampleDownload": { "message": "Sample download" },
+  "routeDebuggerLatestDownload": { "message": "Más reciente" },
+  "routeDebuggerUseSampleDownload": { "message": "Ejemplo" },
   "routeDebuggerFilename": {
     "message": "Nombre del archivo"
   },
@@ -2189,7 +2189,7 @@
     }
   },
   "routeDebuggerExpanded": {
-    "message": "Resultado expandido"
+    "message": "Ruta expandida"
   },
   "routeDebuggerFinalPath": {
     "message": "Ruta final"
@@ -2204,13 +2204,13 @@
     }
   },
   "routeDebuggerSelected": {
-    "message": "Seleccionada"
+    "message": "Usada"
   },
   "routeDebuggerAlsoMatches": {
-    "message": "También coincide"
+    "message": "Coincide, no se usa"
   },
   "routeDebuggerDidNotMatch": {
-    "message": "No coincide"
+    "message": "No se cumplen las condiciones"
   },
   "routeDebuggerRunning": {
     "message": "Probando las reglas de enrutamiento…"

@@ -1085,7 +1085,7 @@
     "message": "Correspond à tous les chemins. Les paramètres de requête et les ports explicites ne peuvent pas être comparés."
   },
   "html_trackAndRouteBrowserDownloads": {
-    "message": "Téléchargements du navigateur de suivi et d'itinéraire"
+    "message": "Suivre et router les téléchargements du navigateur"
   },
   "html_writeOneClausePerLine": {
     "message": "Écrivez une clause par ligne."
@@ -2165,8 +2165,8 @@
     "message": "Tester les règles de routage"
   },
   "routeDebuggerUseSource": { "message": "Utiliser" },
-  "routeDebuggerLatestDownload": { "message": "Latest download" },
-  "routeDebuggerUseSampleDownload": { "message": "Sample download" },
+  "routeDebuggerLatestDownload": { "message": "Le plus récent" },
+  "routeDebuggerUseSampleDownload": { "message": "Exemple" },
   "routeDebuggerFilename": {
     "message": "Nom du fichier"
   },
@@ -2212,7 +2212,7 @@
     }
   },
   "routeDebuggerExpanded": {
-    "message": "Résultat développé"
+    "message": "Chemin développé"
   },
   "routeDebuggerFinalPath": {
     "message": "Chemin final"
@@ -2227,13 +2227,13 @@
     }
   },
   "routeDebuggerSelected": {
-    "message": "Sélectionnée"
+    "message": "Utilisée"
   },
   "routeDebuggerAlsoMatches": {
-    "message": "Correspond également"
+    "message": "Correspond, non utilisée"
   },
   "routeDebuggerDidNotMatch": {
-    "message": "Ne correspond pas"
+    "message": "Conditions non remplies"
   },
   "routeDebuggerRunning": {
     "message": "Test des règles de routage…"

@@ -194,7 +194,7 @@
     "message": "浏览器下载"
   },
   "o_lBrowserDownloadsHelp": {
-    "message": "可选择跟踪或路由由网页或浏览器启动的下载。由 Save In 或其他扩展启动的下载被排除在外。"
+    "message": "可选择跟踪或路由由网页或浏览器启动的下载。由 Save In 或其他扩展程序启动的下载除外。"
   },
   "o_cTrackBrowserDownloads": {
     "message": "将普通浏览器下载包含在 Save In 历史记录中"
@@ -230,7 +230,7 @@
     "message": "每行输入一个 WebExtension 匹配模式。排除会覆盖上面的匹配 URL，并适用于历史记录跟踪和路由。"
   },
   "o_lBrowserDownloadVariables": {
-    "message": "浏览器下载仅提供 URL、建议的文件名、当前时间、计数器、UUID 和 MIME 变量。页面标题、页面 URL、链接文本、选择、菜单元数据和按键修饰符不可用。"
+    "message": "浏览器下载仅提供 URL、建议的文件名、当前时间、计数器、UUID 和 MIME 变量。页面标题、页面 URL、链接文本、选中的文本、菜单元数据和修饰键不可用。"
   },
   "o_sRenameAndRouteDownloads": {
     "message": "路由和重命名"
@@ -2244,8 +2244,8 @@
     "message": "测试路由规则"
   },
   "routeDebuggerUseSource": { "message": "使用" },
-  "routeDebuggerLatestDownload": { "message": "Latest download" },
-  "routeDebuggerUseSampleDownload": { "message": "Sample download" },
+  "routeDebuggerLatestDownload": { "message": "最新" },
+  "routeDebuggerUseSampleDownload": { "message": "示例" },
   "routeDebuggerFilename": {
     "message": "文件名"
   },
@@ -2291,7 +2291,7 @@
     }
   },
   "routeDebuggerExpanded": {
-    "message": "展开结果"
+    "message": "展开后的路径"
   },
   "routeDebuggerFinalPath": {
     "message": "最终路径"
@@ -2306,13 +2306,13 @@
     }
   },
   "routeDebuggerSelected": {
-    "message": "已选择"
+    "message": "已使用"
   },
   "routeDebuggerAlsoMatches": {
-    "message": "也匹配"
+    "message": "匹配但未使用"
   },
   "routeDebuggerDidNotMatch": {
-    "message": "不匹配"
+    "message": "条件未满足"
   },
   "routeDebuggerRunning": {
     "message": "正在测试路由规则…"

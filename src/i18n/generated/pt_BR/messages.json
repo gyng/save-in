@@ -309,13 +309,13 @@
     "message": "Use regras de roteamento para downloads do navegador"
   },
   "o_cRouteBrowserDownloadsHelp": {
-    "message": "Quando suportadas, as regras correspondentes podem renomear downloads do navegador ou colocá-los em subpastas. Os downloads incomparáveis permanecem inalterados."
+    "message": "Quando suportadas, as regras correspondentes podem renomear downloads do navegador ou colocá-los em subpastas. Os downloads sem correspondência permanecem inalterados."
   },
   "o_cRouteBrowserDownloadsFirefox": {
     "message": "Redirecione experimentalmente downloads correspondentes no Firefox"
   },
   "o_cRouteBrowserDownloadsFirefoxHelp": {
-    "message": "Firefox não possui roteamento de nome de arquivo nativo, então Save In cancela cada download correspondente e inicia uma substituição. Isso pode falhar em solicitações POST, URLs expirados, cabeçalhos personalizados ou downloads autenticados."
+    "message": "Firefox não possui roteamento de nome de arquivo nativo, então Save In cancela cada download correspondente e inicia uma substituição. Isso pode falhar em solicitações POST, URLs expiradas, cabeçalhos personalizados ou downloads autenticados."
   },
   "o_lFirefoxFilenameApiBug": {
     "message": "Bug Mozilla 1245652"
@@ -1065,7 +1065,7 @@
     "message": "Corresponde a todos os caminhos. Parâmetros de consulta e portas explícitas não podem ser usados na correspondência."
   },
   "html_trackAndRouteBrowserDownloads": {
-    "message": "Rastreie e direcione downloads do navegador"
+    "message": "Rastrear e rotear downloads do navegador"
   },
   "html_writeOneClausePerLine": {
     "message": "Escreva uma cláusula por linha."
@@ -2144,8 +2144,8 @@
     "message": "Testar regras de roteamento"
   },
   "routeDebuggerUseSource": { "message": "Usar" },
-  "routeDebuggerLatestDownload": { "message": "Latest download" },
-  "routeDebuggerUseSampleDownload": { "message": "Sample download" },
+  "routeDebuggerLatestDownload": { "message": "Mais recente" },
+  "routeDebuggerUseSampleDownload": { "message": "Exemplo" },
   "routeDebuggerFilename": {
     "message": "Nome do arquivo"
   },
@@ -2191,7 +2191,7 @@
     }
   },
   "routeDebuggerExpanded": {
-    "message": "Resultado expandido"
+    "message": "Caminho expandido"
   },
   "routeDebuggerFinalPath": {
     "message": "Caminho final"
@@ -2206,13 +2206,13 @@
     }
   },
   "routeDebuggerSelected": {
-    "message": "Selecionada"
+    "message": "Usada"
   },
   "routeDebuggerAlsoMatches": {
-    "message": "Também corresponde"
+    "message": "Corresponde, não usada"
   },
   "routeDebuggerDidNotMatch": {
-    "message": "Não corresponde"
+    "message": "Condições não atendidas"
   },
   "routeDebuggerRunning": {
     "message": "Testando regras de roteamento…"
