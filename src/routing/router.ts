@@ -52,15 +52,22 @@ export type RuleTrace = {
   }>;
 };
 
-export const traceRules = async (rules: RoutingRule[], info: RoutingInfo): Promise<RuleTrace> => {
-  const matchedDestinations = rules.map((rule) => matchRule(rule, info));
+export const traceRules = async (
+  rules: RoutingRule[],
+  info: RoutingInfo,
+  isEligible: (rule: RoutingRule) => boolean = () => true,
+): Promise<RuleTrace> => {
+  const eligibility = rules.map(isEligible);
+  const matchedDestinations = rules.map((rule, index) =>
+    eligibility[index] ? matchRule(rule, info) : false,
+  );
   const traced = rules.map((rule, index) => {
     const clauses = rule
       .filter((clause) => clause.type === RULE_TYPES.MATCHER)
       .map((clause) => ({
         name: clause.name,
         pattern: String(clause.value),
-        matched: Boolean(clause.matcher(info, info)),
+        matched: eligibility[index] ? Boolean(clause.matcher(info, info)) : false,
       }));
     const destination = rule.find((clause) => clause.type === RULE_TYPES.DESTINATION)?.value ?? "";
     return {

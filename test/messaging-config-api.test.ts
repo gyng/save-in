@@ -124,14 +124,18 @@ describe("config API", () => {
       ),
     ).toBe(true);
     await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
-    expect(router.traceRules).toHaveBeenCalledWith(expect.any(Array), {
-      context: "AUTO",
-      pageUrl: "https://example.test/gallery",
-      sourceUrl: "https://cdn.test/cat.png",
-      url: "https://cdn.test/cat.png",
-      sourceKind: "image",
-      mediaType: "image",
-    });
+    expect(router.traceRules).toHaveBeenCalledWith(
+      expect.any(Array),
+      {
+        context: "AUTO",
+        pageUrl: "https://example.test/gallery",
+        sourceUrl: "https://cdn.test/cat.png",
+        url: "https://cdn.test/cat.png",
+        sourceKind: "image",
+        mediaType: "image",
+      },
+      expect.any(Function),
+    );
     expect(sendResponse.mock.calls[0]![0]!.body).toMatchObject({
       automaticTrace: { selectedRule: 1, destination: "Images" },
     });

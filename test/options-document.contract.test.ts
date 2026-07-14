@@ -146,6 +146,19 @@ test("keeps editor controls connected to their stable labels", () => {
   requireIds(document, ["paths-editor-label", "rules-text-label", "paths-text-actions"]);
 });
 
+test("keeps routing validation feedback available in both editor modes", () => {
+  const document = documentForOptions();
+  const errors = document.querySelector("#error-filenamePatterns");
+
+  expect(errors?.closest('[role="tabpanel"]')).toBeNull();
+  expect(document.querySelector("#filenamePatterns")?.getAttribute("aria-describedby")).toContain(
+    "error-filenamePatterns",
+  );
+  expect(document.querySelector("#rules-visual")?.getAttribute("aria-describedby")).toContain(
+    "error-filenamePatterns",
+  );
+});
+
 test("keeps route debugger inputs out of persisted option handling", () => {
   const document = documentForOptions();
   for (const id of [

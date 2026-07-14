@@ -40,7 +40,10 @@ import { OffscreenClient } from "../platform/offscreen-client.ts";
 import { ExternalDownloadRejections } from "./external-download-rejections.ts";
 import { getMessage } from "../platform/localization.ts";
 import { createSourcePanelCopy } from "../shared/source-panel-copy.ts";
-import { matchAutomaticRoutingRule } from "../automation/automatic-routing.ts";
+import {
+  isEligibleAutomaticRoutingRule,
+  matchAutomaticRoutingRule,
+} from "../automation/automatic-routing.ts";
 import { PAGE_SOURCE_KINDS } from "../shared/page-source.ts";
 import { INTEGRATION_GRAMMARS } from "./integration-grammars.ts";
 import {
@@ -253,14 +256,18 @@ export const Messaging = {
       }
       if (body.automaticCandidate) {
         const candidate = body.automaticCandidate;
-        result.automaticTrace = await traceRules(parsed.rules, {
-          context: AUTOMATIC_CONTEXT,
-          pageUrl: candidate.pageUrl,
-          sourceUrl: candidate.sourceUrl,
-          url: candidate.sourceUrl,
-          sourceKind: candidate.sourceKind,
-          mediaType: candidate.sourceKind,
-        });
+        result.automaticTrace = await traceRules(
+          parsed.rules,
+          {
+            context: AUTOMATIC_CONTEXT,
+            pageUrl: candidate.pageUrl,
+            sourceUrl: candidate.sourceUrl,
+            url: candidate.sourceUrl,
+            sourceKind: candidate.sourceKind,
+            mediaType: candidate.sourceKind,
+          },
+          isEligibleAutomaticRoutingRule,
+        );
       }
     }
 

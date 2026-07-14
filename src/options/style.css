@@ -2428,13 +2428,13 @@ summary {
   box-shadow: inset 3px 0 var(--blue50);
 }
 
-.routing-ide #rules-text-editor > .error-notification {
+.routing-ide > #error-filenamePatterns {
   margin: 0;
   border-width: 0 0 1px;
   border-radius: 0;
 }
 
-.routing-ide #rules-text-editor > .error-notification:empty {
+.routing-ide > #error-filenamePatterns:empty {
   display: none;
 }
 

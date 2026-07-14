@@ -10,7 +10,7 @@ import type {
   RuleErrorLocation,
   RoutingRule,
 } from "./rule-types.ts";
-import { automaticRuleClauseIssues } from "./automatic-rule.ts";
+import { automaticRuleClauseIssues, isAutomaticRuleClauses } from "./automatic-rule.ts";
 
 const errorLocation = (span: SourceSpan): RuleErrorLocation => ({
   start: span.start.offset,
@@ -261,6 +261,7 @@ export const parseRulesCollecting = (
     if (!laterEntry) continue;
     const laterRule = laterEntry.rule;
     const shadowed = parsedRules.slice(0, index).some(({ rule: earlier }) => {
+      if (isAutomaticRuleClauses(earlier) !== isAutomaticRuleClauses(laterRule)) return false;
       const earlierMatchers = earlier.filter((clause) => clause.type === RULE_TYPES.MATCHER);
       const laterMatchers = laterRule.filter((clause) => clause.type === RULE_TYPES.MATCHER);
       return earlierMatchers.every((earlierClause) =>

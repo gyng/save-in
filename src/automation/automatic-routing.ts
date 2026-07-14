@@ -20,6 +20,9 @@ export type AutomaticRoutingMatch = {
   destination: string;
 };
 
+export const isEligibleAutomaticRoutingRule = (rule: RoutingRule): boolean =>
+  isAutomaticRuleClauses(rule) && automaticRuleClauseIssues(rule).length === 0;
+
 const candidateInfo = (candidate: AutomaticRoutingCandidate): RoutingInfo => ({
   context: AUTOMATIC_CONTEXT,
   mediaType: candidate.sourceKind,
@@ -35,7 +38,7 @@ export const matchAutomaticRoutingRule = (
 ): AutomaticRoutingMatch | null => {
   const info = candidateInfo(candidate);
   for (const rule of rules) {
-    if (!isAutomaticRuleClauses(rule) || automaticRuleClauseIssues(rule).length > 0) continue;
+    if (!isEligibleAutomaticRoutingRule(rule)) continue;
     const destination = matchRule(rule, info);
     if (destination) return { rule, destination };
   }
