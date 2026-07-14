@@ -1,0 +1,36 @@
+:is(.unsaved-changes-dialog, .reset-settings-dialog) {
+  width: min(420px, calc(100vw - 2 * var(--space-5)));
+  padding: var(--space-5);
+}
+
+:is(.unsaved-changes-dialog, .reset-settings-dialog) h2 {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-lg);
+  font-weight: 600;
+}
+
+:is(.unsaved-changes-dialog, .reset-settings-dialog) p {
+  margin: 0 0 var(--space-5);
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.button-danger,
+.danger-button {
+  color: var(--color-on-accent);
+  border-color: var(--color-danger);
+  background: var(--color-danger);
+}
+
+.button-danger:hover,
+.button-danger:active,
+.danger-button:hover,
+.danger-button:active {
+  border-color: var(--color-danger-active);
+  background: var(--color-danger-active);
+}

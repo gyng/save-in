@@ -13,11 +13,17 @@ a:active {
 }
 
 a.external {
-  padding-right: calc(16px + var(--space-1));
+  --external-icon-edge: right;
+
+  padding-inline-end: calc(16px + var(--space-1));
   background-image: url(i/open-in-new-16.svg);
   background-size: 16px 16px;
-  background-position: right center;
+  background-position: var(--external-icon-edge) center;
   background-repeat: no-repeat;
+}
+
+a.external:dir(rtl) {
+  --external-icon-edge: left;
 }
 
 html {

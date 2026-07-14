@@ -1,0 +1,66 @@
+.source-automation {
+  margin-top: var(--space-6);
+  margin-bottom: var(--space-6);
+}
+
+.auto-download-options {
+  display: grid;
+  gap: var(--space-3);
+  max-width: 48rem;
+  margin-top: var(--space-3);
+}
+
+.auto-download-master {
+  margin: 0;
+  font-weight: 600;
+}
+
+.dependent-options {
+  display: grid;
+  gap: var(--space-3);
+  margin-inline-start: var(--space-4);
+  transition: opacity 120ms ease;
+}
+
+.auto-download-options:has(#autoDownloadEnabled:not(:checked)) .auto-download-dependent,
+.browser-download-filter-group:has(#browserDownloadFiltersEnabled:not(:checked))
+  .browser-download-filter-options {
+  opacity: 0.55;
+}
+
+@media (max-width: 640px) {
+  .dependent-options {
+    margin-inline-start: var(--space-2);
+  }
+}
+
+.auto-download-limit {
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--panel-border);
+}
+
+.auto-download-limit input {
+  width: 7rem;
+  box-sizing: border-box;
+}
+
+.auto-download-limit-help {
+  grid-column: 1 / -1;
+}
+
+.auto-download-rules {
+  max-width: 48rem;
+  margin-top: var(--space-5);
+}
+
+.auto-download-rules h4,
+.auto-download-routing-help {
+  max-width: 68ch;
+}
+
+.auto-download-routing-help {
+  margin: 0 0 var(--space-3);
+  border-inline-start: 3px solid var(--color-info);
+  color: var(--color-text-muted);
+  line-height: 1.45;
+}

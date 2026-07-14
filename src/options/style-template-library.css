@@ -1,0 +1,216 @@
+.tab-panel input[type="search"],
+.tab-panel input[type="text"],
+.tab-panel select,
+.variables-preview-list,
+.history-columns-menu {
+  border-radius: var(--radius);
+}
+
+.history-export-menu,
+.history-more-menu {
+  position: relative;
+  margin: 0;
+}
+
+.menu-trigger {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--control-height);
+  box-sizing: border-box;
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  font-size: var(--text-base);
+  font-weight: 500;
+  line-height: 1;
+  list-style: none;
+}
+
+.menu-trigger::-webkit-details-marker {
+  display: none;
+}
+
+.history-export-options,
+.history-more-options {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + var(--space-1));
+  inset-inline-end: 0;
+  display: grid;
+  min-width: 180px;
+  padding: var(--space-1);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  background: var(--floating-bg);
+  box-shadow: var(--floating-shadow);
+}
+
+.history-export-options button {
+  border: 0;
+  text-align: start;
+}
+
+.history-more-options button {
+  white-space: nowrap;
+}
+
+.rule-template-category + .rule-template-category {
+  margin-top: var(--space-5);
+}
+
+.rule-template-category > h3 {
+  margin: 0 0 var(--space-2);
+}
+
+.rule-template-category-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  gap: var(--space-3);
+}
+
+.rule-template {
+  display: flex;
+  align-items: flex-start;
+  min-width: 0;
+  overflow: hidden;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+}
+
+.rule-template-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.rule-template-rule {
+  display: block;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  margin: 2px 0 0;
+  padding: 0;
+  border: 0;
+  color: var(--color-text-muted);
+  background: none;
+  font-size: var(--text-sm);
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+.template-feedback {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 var(--space-4) var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius);
+  color: var(--success-fg);
+  background: color-mix(in srgb, var(--color-success) 10%, transparent);
+}
+
+.template-feedback[hidden] {
+  display: none;
+}
+
+.template-feedback button {
+  margin-inline-start: auto;
+  padding: var(--space-1) var(--space-2);
+}
+
+.rule-template-name {
+  font-weight: 600;
+  font-size: var(--text-base);
+}
+
+.rule-template-desc {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.rule-template-add {
+  flex: none;
+  min-width: 60px;
+  padding: 4px 10px;
+}
+
+.inline-template-library {
+  display: grid;
+  gap: var(--space-2);
+  margin: var(--space-2) 0 0;
+}
+
+.inline-template-library > .editor-field-label {
+  margin: 0;
+}
+
+.inline-template-picker {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.inline-template-picker .rule-template-filter {
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  margin: 0;
+}
+
+.rule-template-typeahead-add {
+  min-width: 60px;
+}
+
+.inline-template-library .template-feedback {
+  margin: 0;
+}
+
+.reference-dialog {
+  width: min(1000px, calc(100vw - 2 * var(--space-5)));
+  height: min(760px, calc(100dvh - 2 * var(--space-5)));
+  padding: 0;
+  overflow: hidden;
+}
+
+.reference-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.reference-dialog-tabs {
+  display: flex;
+  gap: var(--space-1);
+  padding: 0 var(--space-4);
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.reference-dialog-filter-label {
+  display: block;
+  padding: var(--space-3) var(--space-4) 0;
+}
+
+.reference-dialog-filter-label .reference-dialog-filter {
+  width: min(28rem, 100%);
+  max-width: none;
+  box-sizing: border-box;
+  padding: var(--space-2) var(--space-3);
+}
+
+.reference-dialog-body {
+  height: calc(100% - 144px);
+  box-sizing: border-box;
+  overflow: auto;
+  padding: 0 var(--space-4) var(--space-4);
+}
+
+.reference-dialog .options-reference-panel {
+  max-width: none;
+  margin: 0;
+  padding: var(--space-4) 0 0;
+}

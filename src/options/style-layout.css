@@ -26,7 +26,7 @@
   z-index: 10;
 }
 
-:is(.tablist .tab, .editor-tab, .reference-dialog-tabs [role="tab"]) {
+:where(.tablist .tab, .editor-tab, .reference-dialog-tabs [role="tab"]) {
   appearance: none;
   border: none;
   border-bottom: 2px solid transparent;
@@ -65,17 +65,17 @@
   padding: var(--space-1) var(--space-3);
 }
 
-:is(.tablist .tab, .editor-tab, .reference-dialog-tabs [role="tab"]):hover {
+:where(.tablist .tab, .editor-tab, .reference-dialog-tabs [role="tab"]):hover {
   color: var(--link-color);
   background-color: var(--hover-bg);
 }
 
-:is(.tablist .tab, .editor-tab, .reference-dialog-tabs [role="tab"])[aria-selected="true"] {
+:where(.tablist .tab, .editor-tab, .reference-dialog-tabs [role="tab"])[aria-selected="true"] {
   color: var(--link-color);
   border-bottom-color: var(--link-color);
 }
 
-:is(.tablist .tab, .editor-tab, .reference-dialog-tabs [role="tab"]):focus-visible {
+:where(.tablist .tab, .editor-tab, .reference-dialog-tabs [role="tab"]):focus-visible {
   outline: none;
   box-shadow: var(--focus-ring);
 }
@@ -107,7 +107,7 @@
 .option-search-results {
   position: absolute;
   top: calc(100% + var(--space-1));
-  right: 0;
+  inset-inline-end: 0;
   box-sizing: border-box;
   width: min(32rem, calc(100vw - 2 * var(--space-3)));
   min-width: 100%;
@@ -129,7 +129,7 @@
   border: 0;
   border-radius: calc(var(--radius) - 2px);
   background: transparent;
-  text-align: left;
+  text-align: start;
   line-height: 1.25;
 }
 
@@ -232,7 +232,7 @@
   gap: var(--space-5);
   position: sticky;
   top: 56px;
-  max-height: calc(100vh - 130px);
+  max-height: calc(100dvh - 130px);
 }
 
 .paths-editor > .preview-column {
@@ -272,7 +272,7 @@ summary {
   position: absolute;
   z-index: 20;
   top: 100%;
-  left: 0;
+  inset-inline-start: 0;
   width: 100%;
   box-sizing: border-box;
   max-height: min(360px, 55vh);
@@ -308,7 +308,7 @@ summary {
   font-size: var(--text-xs);
   font-weight: 600;
   letter-spacing: 0.04em;
-  text-align: left;
+  text-align: start;
   text-transform: uppercase;
 }
 
@@ -347,7 +347,7 @@ summary {
   border: 0;
   background: none;
   color: inherit;
-  text-align: left;
+  text-align: start;
   cursor: pointer;
 }
 

@@ -13,6 +13,11 @@ same tokens, atoms, and precedence contract. The Page Sources drawer runs in a
 shadow root, so it owns a compact copy of the semantic color contract while
 deliberately using smaller density tokens.
 
+Ownership files stay intentionally bounded: split a file by workflow or
+component before it exceeds the mechanical line limit. The small `overrides`
+files are a migration boundary for cross-owner precedence, not a destination
+for new feature styling.
+
 Cascade layers are the supported ownership boundary for the declared Firefox
 121 and Chrome 123 minimums. Keep selectors local to their feature file and put
 cross-feature precedence in the layer order instead of escalating specificity.
@@ -173,6 +178,19 @@ a second pattern beside an equivalent setting.
 
 - Use the content breakpoints at 760px, 640px, and 520px. Add a new breakpoint
   only when a demonstrated layout constraint cannot use one of these.
+- Prefer a named inline-size container for an owned workspace. Reserve viewport
+  media queries for shell-level behavior and surfaces whose available size is
+  genuinely the viewport.
+- Use logical properties, `text-align: start/end`, and inline/block terminology.
+  Document localization sets both `lang` and `dir`; components must work without
+  a separate RTL override sheet.
+- Use `dvh` for viewport-height constraints so dialogs and full-height surfaces
+  follow browser chrome changes. Static `vh` is rejected by the CSS policy.
+- Use `:where()` for deliberately low-specificity shared atoms. Native CSS
+  nesting is appropriate for a short set of states or pseudo-elements owned by
+  one selector, but keep nesting shallow and readable.
+- Gate progressive declarations with a feature query for every feature they
+  rely on. Unsupported enhancements must fall back to a complete static state.
 - Two-column workspaces collapse before either column violates its minimum
   usable width.
 - Fixed offsets must not position translated status or help text. Prefer grid or

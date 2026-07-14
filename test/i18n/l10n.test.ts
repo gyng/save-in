@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import {
   documentLanguage,
+  documentDirection,
   hardenLinks,
   initializeLocalizedDocument,
   localizeString,
@@ -48,6 +49,18 @@ describe("l10n", () => {
 
     setDocumentLanguage("sv_AI", "en-US");
     expect(document.documentElement.lang).toBe("sv");
+    expect(document.documentElement.dir).toBe("ltr");
+  });
+
+  it("sets writing direction from the locale script", () => {
+    expect(documentDirection("ar")).toBe("rtl");
+    expect(documentDirection("he-IL")).toBe("rtl");
+    expect(documentDirection("zh-Hant-TW")).toBe("ltr");
+    expect(documentDirection("not a locale")).toBe("ltr");
+
+    setDocumentLanguage("", "ar");
+    expect(document.documentElement.lang).toBe("ar");
+    expect(document.documentElement.dir).toBe("rtl");
   });
 
   test("selects the stored locale before revealing the localized document", async () => {

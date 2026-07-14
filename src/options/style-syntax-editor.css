@@ -1,0 +1,425 @@
+#export-target {
+  width: 100%;
+}
+
+/* First-party autocomplete dropdown (autocomplete.js) */
+.syntax-editor {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  margin: var(--space-2) 0;
+  overflow: hidden;
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius);
+  background: var(--input-background);
+  transition:
+    box-shadow 0.12s ease,
+    border-color 0.12s ease;
+}
+
+.syntax-editor[hidden] {
+  display: none;
+}
+
+.syntax-editor:focus-within {
+  border-color: var(--color-focus);
+  box-shadow: var(--focus-ring);
+}
+
+.syntax-editor:has(textarea:disabled) {
+  border-color: var(--color-border);
+  background: var(--panel-bg);
+  opacity: 0.62;
+}
+
+.syntax-editor-gutter-viewport {
+  flex: 0 0 3.6rem;
+  overflow: hidden;
+  border-inline-end: 1px solid var(--panel-border);
+  background: var(--syntax-gutter-bg);
+  color: var(--color-text-muted);
+  user-select: none;
+}
+
+.syntax-editor:has(textarea:disabled) .syntax-editor-gutter-viewport {
+  background: transparent;
+}
+
+textarea.syntax-editor-input:disabled {
+  caret-color: transparent;
+  cursor: not-allowed;
+}
+
+.syntax-editor-gutter {
+  box-sizing: border-box;
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-1);
+  font-family: var(--font-mono);
+  font-size: var(--text-base);
+  line-height: var(--leading-code);
+  text-align: end;
+  will-change: transform;
+}
+
+.syntax-editor-line-number {
+  position: relative;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  width: 1.55em;
+  height: 1.6em;
+  margin-inline-start: auto;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  cursor: text;
+}
+
+.syntax-editor-line-number.has-diagnostic {
+  border-color: var(--syntax-error);
+  color: var(--syntax-error);
+  background: var(--syntax-error-soft);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.syntax-editor-line-number.has-diagnostic-warning {
+  border-color: var(--syntax-warning);
+  color: var(--syntax-warning);
+  background: var(--syntax-warning-soft);
+}
+
+.syntax-editor-stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+}
+
+textarea.syntax-editor-input {
+  position: relative;
+  z-index: 2;
+  display: block;
+  width: 100%;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: transparent;
+  caret-color: var(--color-text);
+  line-height: var(--leading-code);
+  white-space: pre;
+  -webkit-text-fill-color: transparent;
+}
+
+textarea.syntax-editor-input:focus-visible {
+  border-color: transparent;
+  box-shadow: none;
+}
+
+textarea.syntax-editor-input::placeholder {
+  color: var(--color-text-muted);
+  -webkit-text-fill-color: var(--color-text-muted);
+}
+
+.syntax-editor-overlay {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  inset-inline-start: 0;
+  box-sizing: border-box;
+  min-width: 100%;
+  min-height: 100%;
+  margin: 0;
+  padding: var(--space-2);
+  border: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-base);
+  line-height: var(--leading-code);
+  white-space: pre;
+  color: var(--color-text);
+  pointer-events: none;
+  will-change: transform;
+}
+
+.visual-editor-row,
+.visual-editor-card {
+  position: relative;
+}
+
+.visual-editor-row.is-dirty-row::before,
+.visual-editor-card.is-dirty-row::before {
+  content: "";
+  position: absolute;
+  z-index: 4;
+  top: 0;
+  bottom: 0;
+  inset-inline-start: 0;
+  width: 3px;
+  border-radius: var(--radius) 0 0 var(--radius);
+  background: var(--color-accent);
+  pointer-events: none;
+}
+
+.syntax-token-nesting,
+.syntax-token-capture,
+.syntax-token-metadata {
+  color: var(--syntax-variable);
+  font-weight: 600;
+}
+
+.syntax-token-matcher {
+  color: var(--syntax-keyword);
+  font-weight: 600;
+}
+
+.syntax-token-variable {
+  color: var(--syntax-variable);
+  font-weight: 600;
+}
+
+.syntax-token-destination {
+  color: var(--syntax-destination);
+  font-weight: 600;
+}
+
+.syntax-token-destination-value {
+  color: var(--syntax-value);
+}
+
+.syntax-token-comment,
+.syntax-token-comment-delimiter {
+  color: var(--syntax-comment);
+  font-style: italic;
+}
+
+.syntax-token-separator,
+.syntax-token-punctuation {
+  color: var(--syntax-punctuation);
+  font-weight: 700;
+}
+
+.syntax-token-flags,
+.syntax-token-capture-value {
+  color: var(--syntax-warning);
+}
+
+.syntax-token-regex {
+  color: var(--syntax-regex);
+}
+
+.syntax-token-invalid {
+  color: var(--syntax-error);
+}
+
+.syntax-diagnostic {
+  text-decoration-line: underline;
+  text-decoration-style: wavy;
+  text-decoration-thickness: 1.5px;
+  text-decoration-skip-ink: none;
+  text-underline-offset: 3px;
+}
+
+.syntax-diagnostic-error {
+  text-decoration-color: var(--syntax-error);
+}
+
+.syntax-diagnostic-warning {
+  text-decoration-color: var(--syntax-warning);
+}
+
+.syntax-editor-end-marker {
+  display: inline-block;
+  width: 0;
+}
+
+.syntax-editor-tooltip {
+  position: fixed;
+  z-index: 120;
+  max-width: min(32rem, calc(100vw - 24px));
+  padding: var(--space-2);
+  border: 1px solid color-mix(in srgb, var(--syntax-error) 44%, var(--panel-border));
+  border-radius: var(--radius);
+  background: var(--floating-bg);
+  box-shadow: var(--floating-shadow);
+  font-size: var(--text-base);
+  line-height: 1.4;
+  pointer-events: none;
+}
+
+.syntax-editor-tooltip-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-2);
+  align-items: baseline;
+  color: var(--syntax-error);
+}
+
+.syntax-editor-tooltip-item + .syntax-editor-tooltip-item {
+  margin-top: var(--space-1);
+  padding-top: var(--space-1);
+  border-top: 1px solid var(--panel-border);
+}
+
+.syntax-editor-tooltip-warning {
+  color: var(--syntax-warning);
+}
+
+.syntax-editor-tooltip-location {
+  padding: 1px var(--space-1);
+  border-radius: var(--radius-sm);
+  background: var(--syntax-error-soft);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.syntax-editor-tooltip-warning .syntax-editor-tooltip-location {
+  background: var(--syntax-warning-soft);
+}
+
+.syntax-editor-tooltip-message {
+  color: var(--color-text);
+  white-space: pre-wrap;
+}
+
+.syntax-editor-character-probe {
+  position: fixed;
+  visibility: hidden;
+  font-family: var(--font-mono);
+  font-size: var(--text-base);
+  white-space: pre;
+}
+
+.autocomplete-dropdown {
+  position: absolute;
+  z-index: 100;
+  margin: 0;
+  padding: var(--space-1);
+  list-style: none;
+  min-width: 14em;
+  max-height: 16em;
+  overflow-y: auto;
+  /* Theme-aware surface (the old --background-color token never existed, so
+     this box used to render white-on-white text in dark mode) */
+  background: var(--floating-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  box-shadow: var(--floating-shadow);
+  font-family: var(--font-mono);
+  font-size: var(--text-base);
+}
+
+.autocomplete-dropdown li {
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.autocomplete-dropdown .autocomplete-group {
+  padding-top: var(--space-2);
+  color: var(--color-text-muted);
+  cursor: default;
+  font-family: var(--font-stack);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.autocomplete-dropdown .autocomplete-group:hover {
+  background: transparent;
+}
+
+.autocomplete-dropdown li:hover {
+  background: var(--hover-bg-strong);
+}
+
+/* Keyboard selection is the strong cue and outranks hover so the two never
+   disagree when the pointer rests on a different row */
+.autocomplete-dropdown li.selected {
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+/* Editable select controls use a first-party listbox rather than native
+   datalists so their filtering, keyboard behavior, and floating surface match. */
+.typeahead-input {
+  --typeahead-chevron-start: calc(100% - 11px);
+  --typeahead-chevron-end: calc(100% - 7px);
+
+  padding-inline-end: calc(var(--space-3) + 12px);
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--color-text-muted) 50%),
+    linear-gradient(135deg, var(--color-text-muted) 50%, transparent 50%);
+  background-position:
+    var(--typeahead-chevron-start) 50%,
+    var(--typeahead-chevron-end) 50%;
+  background-size: 4px 4px;
+  background-repeat: no-repeat;
+}
+
+.typeahead-input:dir(rtl) {
+  --typeahead-chevron-start: 11px;
+  --typeahead-chevron-end: 7px;
+}
+
+.typeahead-dropdown {
+  position: fixed;
+  z-index: 110;
+  box-sizing: border-box;
+  display: grid;
+  gap: 2px;
+  max-height: min(20rem, calc(100dvh - 16px));
+  overflow-y: auto;
+  padding: var(--space-1);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  background: var(--floating-bg);
+  box-shadow: var(--floating-shadow);
+}
+
+.typeahead-dropdown[hidden] {
+  display: none;
+}
+
+.typeahead-option {
+  display: grid;
+  gap: 1px;
+  width: 100%;
+  min-height: 0;
+  padding: 6px var(--space-2);
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  background: transparent;
+  text-align: start;
+}
+
+.typeahead-option:hover {
+  background: var(--hover-bg);
+}
+
+.typeahead-option[aria-selected="true"] {
+  color: var(--link-color);
+  background: color-mix(in srgb, var(--link-color) 10%, transparent);
+}
+
+.typeahead-option-label {
+  overflow: hidden;
+  font-size: var(--text-base);
+  font-weight: 600;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.typeahead-option-description {
+  overflow: hidden;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: 400;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

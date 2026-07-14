@@ -235,7 +235,7 @@
   position: absolute;
   z-index: 20;
   top: calc(100% + var(--space-1));
-  right: 0;
+  inset-inline-end: 0;
   display: grid;
   min-width: 170px;
   padding: var(--space-1);
@@ -253,7 +253,7 @@
   color: var(--color-text);
   background: transparent;
   font-size: var(--text-base);
-  text-align: left;
+  text-align: start;
   opacity: 1;
 }
 
@@ -339,7 +339,7 @@
 }
 
 .rule-clause-fixed-name {
-  padding-left: var(--space-2);
+  padding-inline-start: var(--space-2);
   color: var(--color-text-muted);
   font-family: var(--font-mono);
   font-size: var(--text-base);
@@ -468,7 +468,7 @@
   position: absolute;
   z-index: 20;
   top: calc(100% + var(--space-1));
-  left: 0;
+  inset-inline-start: 0;
   display: grid;
   min-width: 220px;
   padding: var(--space-1);
@@ -482,7 +482,7 @@
   justify-content: flex-start;
   border-color: transparent;
   background: transparent;
-  text-align: left;
+  text-align: start;
 }
 
 .rule-editor-help {

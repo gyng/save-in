@@ -1,0 +1,170 @@
+.click-to-save-controls > label {
+  flex: 0 1 7.5rem;
+  min-width: 0;
+  margin: 0;
+}
+
+.click-to-save-controls > legend.visually-hidden {
+  width: 1px;
+}
+
+.click-to-save-controls > label:has(#clickToSaveButton) {
+  flex-basis: 9rem;
+}
+
+.click-to-save-controls > button {
+  flex: none;
+}
+
+.click-to-save-controls select {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.click-to-save-controls > .caption-line,
+.click-to-save-controls > #click-to-save-warning,
+.click-to-save-controls > #clickToSaveStatus {
+  flex-basis: 100%;
+  max-width: 100%;
+}
+
+.click-to-save-controls:has(:disabled) {
+  opacity: 0.48;
+}
+
+#clickToSaveStatus:empty {
+  display: none;
+}
+
+.editor-dirty-status {
+  flex: 0 1 auto;
+  margin-inline-start: auto;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  line-height: 1.35;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.mono-input {
+  font-family: var(--font-mono);
+}
+
+.inline-guide {
+  max-width: var(--content-max-width);
+  margin-top: var(--space-3);
+}
+
+.inline-guide > summary {
+  width: fit-content;
+  color: var(--link-color);
+}
+
+.inline-guide summary,
+.inline-guide .caption {
+  font-size: var(--text-base);
+}
+
+.inline-guide > .guide-body {
+  margin-top: var(--space-2);
+  padding-inline-start: var(--space-3);
+  border-inline-start: 2px solid var(--panel-border);
+  font-size: var(--text-base);
+}
+
+.guide-body > :first-child {
+  margin-top: 0;
+}
+
+.guide-body > :last-child {
+  margin-bottom: 0;
+}
+
+.guide-steps {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 var(--space-4);
+  margin: var(--space-3) 0;
+}
+
+.guide-step {
+  min-width: 0;
+  padding: var(--space-3) 0;
+  border-top: 1px solid var(--panel-border);
+}
+
+.guide-step strong,
+.guide-command-grid strong {
+  display: block;
+  margin-bottom: var(--space-1);
+  font-size: var(--text-base);
+}
+
+.guide-step pre,
+.guide-command-grid pre,
+.guide-more pre,
+.agent-prompt-guide pre {
+  max-width: 100%;
+  box-sizing: border-box;
+  margin: var(--space-1) 0;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.agent-prompt-guide pre {
+  font-family: var(--font-stack);
+  font-size: inherit;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.guide-more,
+.agent-prompt-guide {
+  margin-top: var(--space-2);
+}
+
+.guide-syntax {
+  margin: var(--space-2) 0;
+}
+
+.guide-syntax > div {
+  display: grid;
+  grid-template-columns: minmax(8rem, auto) 1fr;
+  gap: var(--space-3);
+  padding: var(--space-1) 0;
+}
+
+.guide-syntax dt,
+.guide-syntax dd {
+  margin: 0;
+}
+
+.guide-rules {
+  padding-inline-start: var(--space-5);
+  margin: 0;
+}
+
+.guide-command-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+}
+
+.guide-command-grid pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.edge-case-guide {
+  margin-bottom: var(--space-5);
+}
+
+@media (max-width: 640px) {
+  .guide-steps {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

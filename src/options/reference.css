@@ -123,7 +123,7 @@ body:has(.reference-header) {
 .reference-table th,
 .reference-table td {
   padding: var(--space-2) var(--space-3);
-  text-align: left;
+  text-align: start;
   vertical-align: top;
 }
 

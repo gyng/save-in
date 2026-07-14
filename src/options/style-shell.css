@@ -2,7 +2,7 @@
    per tab panel (.tab-panel > *) instead of on the whole form */
 body {
   margin: 0;
-  min-height: 100vh;
+  min-height: 100dvh;
   box-sizing: border-box;
   font-family: inherit;
   font-size: inherit;
@@ -47,7 +47,7 @@ body:not(#settings-page) {
   display: inline-flex;
   align-items: center;
   gap: 1px;
-  margin-left: 0;
+  margin-inline-start: 0;
   padding: 2px;
   border: 1px solid var(--panel-border);
   border-radius: var(--radius);
@@ -76,9 +76,9 @@ body:not(#settings-page) {
   align-self: baseline;
   color: var(--color-text-muted);
   white-space: nowrap;
-  margin-left: var(--space-1);
-  padding-left: var(--space-3);
-  border-left: 1px solid var(--color-border);
+  margin-inline-start: var(--space-1);
+  padding-inline-start: var(--space-3);
+  border-inline-start: 1px solid var(--color-border);
   font-size: var(--text-sm);
 }
 
@@ -91,7 +91,7 @@ body:not(#settings-page) {
   position: absolute;
   z-index: 40;
   top: calc(100% + var(--space-1));
-  left: 4.5rem;
+  inset-inline-start: 4.5rem;
   width: min(26rem, calc(100vw - 2 * var(--space-5)));
   box-sizing: border-box;
   padding: var(--space-2) var(--space-3);
@@ -141,7 +141,7 @@ body:not(#settings-page) {
 .saved-change-undo {
   position: absolute;
   bottom: -1px;
-  left: calc(100% + var(--space-1));
+  inset-inline-start: calc(100% + var(--space-1));
   z-index: 41;
   min-height: 0;
   margin: 0;
@@ -162,7 +162,7 @@ body:not(#settings-page) {
   align-items: baseline;
   gap: var(--space-2);
   min-width: 0;
-  margin-left: auto;
+  margin-inline-start: auto;
 }
 
 .language-selector {
@@ -199,7 +199,7 @@ body:not(#settings-page) {
   width: 18px;
   height: 18px;
   vertical-align: text-bottom;
-  margin-right: var(--space-2);
+  margin-inline-end: var(--space-2);
   align-self: center;
   filter: var(--app-icon-filter);
 }
@@ -211,8 +211,8 @@ body:not(#settings-page) {
 }
 
 .version-label {
-  margin-left: var(--space-2);
-  margin-right: var(--space-1);
+  margin-inline-start: var(--space-2);
+  margin-inline-end: var(--space-1);
   color: var(--color-text-muted);
   font-size: var(--text-xs);
 }
@@ -227,7 +227,7 @@ body:not(#settings-page) {
 .nav-resources {
   position: relative;
   display: inline-block;
-  margin-left: var(--space-2);
+  margin-inline-start: var(--space-2);
 }
 
 .nav-resources-menu {
@@ -258,7 +258,7 @@ body:not(#settings-page) {
   color: var(--link-color);
   font-size: inherit;
   line-height: var(--leading-ui);
-  text-align: left;
+  text-align: start;
 }
 
 .nav-resources-menu > :is(a, button):hover {
@@ -267,8 +267,8 @@ body:not(#settings-page) {
 }
 
 .nav-resources-menu > a.external {
-  padding-right: calc(20px + var(--space-2));
-  background-position: right var(--space-2) center;
+  padding-inline-end: calc(20px + var(--space-2));
+  background-position: var(--external-icon-edge) var(--space-2) center;
 }
 
 .app-dialog {
@@ -286,7 +286,7 @@ body:not(#settings-page) {
 
 .about-dialog {
   width: min(780px, calc(100vw - 2 * var(--space-5)));
-  max-height: calc(100vh - 2 * var(--space-5));
+  max-height: calc(100dvh - 2 * var(--space-5));
   padding: var(--space-5);
 }
 
@@ -351,7 +351,7 @@ body:not(#settings-page) {
 .about-close {
   position: absolute;
   top: var(--space-3);
-  right: var(--space-3);
+  inset-inline-end: var(--space-3);
   font-size: var(--text-xl);
 }
 

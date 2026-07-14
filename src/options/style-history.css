@@ -110,7 +110,7 @@
 }
 
 .history-table th {
-  text-align: left;
+  text-align: start;
   font-size: var(--text-xs);
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -153,10 +153,10 @@
 
 .history-empty-message {
   position: sticky;
-  left: 0;
+  inset-inline-start: 0;
   display: block;
   box-sizing: border-box;
-  width: 100cqw;
+  width: 100cqi;
   padding-inline: var(--space-3);
 }
 
@@ -175,7 +175,7 @@
   width: 24px;
   height: 24px;
   padding: 0;
-  margin-left: var(--space-1);
+  margin-inline-start: var(--space-1);
   border: none;
   background: none;
   font-size: var(--text-sm);
@@ -185,7 +185,7 @@
 }
 
 .history-cancel {
-  margin-left: var(--space-1);
+  margin-inline-start: var(--space-1);
   padding: 2px 6px;
   border: 1px solid var(--error-border);
   border-radius: var(--radius-sm);
@@ -213,7 +213,7 @@
   position: absolute;
   z-index: 20;
   top: calc(100% + var(--space-1));
-  right: 0;
+  inset-inline-end: 0;
   display: grid;
   min-width: 180px;
   max-height: 320px;
@@ -233,7 +233,7 @@
 .history-download-id {
   color: var(--color-text-muted);
   font-variant-numeric: tabular-nums;
-  text-align: right;
+  text-align: end;
 }
 
 .history-table td.history-variables {

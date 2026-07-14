@@ -21,14 +21,37 @@ const styleLayers = [
   ["tokens", ["style-tokens.css"]],
   ["base", ["style-base.css"]],
   ["shell", ["style-shell.css"]],
-  ["components", ["style-components.css"]],
+  [
+    "components",
+    ["style-components.css", "style-workflows.css", "style-status.css", "style-syntax-editor.css"],
+  ],
   ["layout", ["style-layout.css"]],
-  ["editors", ["style-rule-editor.css", "style-route-debugger.css", "style-editor-tools.css"]],
+  [
+    "editors",
+    [
+      "style-rule-editor.css",
+      "style-route-debugger.css",
+      "style-template-library.css",
+      "style-option-tools.css",
+      "style-editor-actions.css",
+      "style-path-editor.css",
+      "style-menu-preview.css",
+    ],
+  ],
   ["advanced", ["style-advanced.css"]],
   ["history", ["style-history.css"]],
   ["welcome", []],
   ["reference", []],
-  ["overrides", ["style-overrides.css"]],
+  [
+    "overrides",
+    [
+      "style-responsive-overrides.css",
+      "style-source-overrides.css",
+      "style-automation-overrides.css",
+      "style-editor-reference-overrides.css",
+      "style-dialog-overrides.css",
+    ],
+  ],
   ["utilities", ["style-utilities.css"]],
 ];
 const styleEntry = fs.readFileSync(styleEntryPath, "utf8");
@@ -144,6 +167,45 @@ for (const file of styles) {
   if (/@scope\b/.test(source)) {
     violations.push(`${relative} uses @scope before the declared Firefox minimum supports it`);
   }
+
+  const lineCount = source.split("\n").length - 1;
+  if (lineCount > 550) {
+    violations.push(
+      `${relative} has ${lineCount} lines; split ownership files before they exceed 550`,
+    );
+  }
+
+  const physicalDirection =
+    /^\s*(?:(?:margin|padding|border)-(?:left|right)(?:-width)?|left|right)\s*:|^\s*text-align\s*:\s*(?:left|right)\b/gm;
+  for (const match of source.matchAll(physicalDirection)) {
+    const line = source.slice(0, match.index).split("\n").length;
+    violations.push(`${relative}:${line} uses a physical direction; use a flow-relative property`);
+  }
+
+  for (const match of source.matchAll(/\b100vh\b/g)) {
+    const line = source.slice(0, match.index).split("\n").length;
+    violations.push(`${relative}:${line} uses static viewport height; use a dynamic viewport unit`);
+  }
+}
+
+const componentStyle = fs.readFileSync(
+  path.join(root, "src", "options", "style-components.css"),
+  "utf8",
+);
+if (
+  !componentStyle.includes(
+    "@supports (interpolate-size: allow-keywords) and selector(details::details-content)",
+  )
+) {
+  violations.push("intrinsic disclosure animation must test every progressive CSS feature it uses");
+}
+
+const routeDebuggerStyle = fs.readFileSync(
+  path.join(root, "src", "options", "style-route-debugger.css"),
+  "utf8",
+);
+if (/@media\s*\(max-width:/.test(routeDebuggerStyle)) {
+  violations.push("route debugger responsiveness must follow its routing-workspace container");
 }
 
 const allowedBreakpoints = new Set([520, 640, 760]);

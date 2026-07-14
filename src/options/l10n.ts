@@ -15,6 +15,19 @@ type InitializeLocalizedDocumentPorts = {
 const nativeGetMessage: GetMessage = (key) => chrome.i18n.getMessage(key);
 
 const LANGUAGE_TAG = /^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/;
+const RTL_SCRIPTS = new Set([
+  "Adlm",
+  "Arab",
+  "Hebr",
+  "Mand",
+  "Mend",
+  "Nkoo",
+  "Rohg",
+  "Samr",
+  "Syrc",
+  "Thaa",
+  "Yezi",
+]);
 
 export const documentLanguage = (selectedLocale: unknown, browserLocale: unknown): string => {
   const source = isSelectableLocale(selectedLocale) ? selectedLocale : browserLocale;
@@ -23,12 +36,22 @@ export const documentLanguage = (selectedLocale: unknown, browserLocale: unknown
   return LANGUAGE_TAG.test(normalized) ? normalized : "en";
 };
 
+export const documentDirection = (language: string): "ltr" | "rtl" => {
+  try {
+    return RTL_SCRIPTS.has(new Intl.Locale(language).maximize().script ?? "") ? "rtl" : "ltr";
+  } catch {
+    return "ltr";
+  }
+};
+
 export const setDocumentLanguage = (
   selectedLocale: unknown,
   browserLocale: unknown,
   root: HTMLElement = document.documentElement,
 ): void => {
-  root.lang = documentLanguage(selectedLocale, browserLocale);
+  const language = documentLanguage(selectedLocale, browserLocale);
+  root.lang = language;
+  root.dir = documentDirection(language);
 };
 
 export const initializeLocalizedDocument = async (

@@ -63,7 +63,7 @@
 }
 
 .advanced-checkbox-option > .advanced-option-help {
-  margin-left: calc(1em + var(--space-2));
+  margin-inline-start: calc(1em + var(--space-2));
 }
 
 .background-fetch-options {
@@ -72,9 +72,9 @@
 }
 
 .fetch-credentials-option {
-  margin-left: var(--space-4);
-  padding-left: var(--space-3);
-  border-left: 2px solid var(--panel-border);
+  margin-inline-start: var(--space-4);
+  padding-inline-start: var(--space-3);
+  border-inline-start: 2px solid var(--panel-border);
 }
 
 .fetch-credentials-option:has(input:disabled) label {

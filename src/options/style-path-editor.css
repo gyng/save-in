@@ -1,0 +1,192 @@
+.visual-editor-toolbar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: 0;
+}
+
+.path-editor-row {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  border-radius: var(--radius);
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent 0,
+    transparent 19px,
+    color-mix(in srgb, var(--panel-border) 60%, transparent) 19px,
+    color-mix(in srgb, var(--panel-border) 60%, transparent) 20px
+  );
+  background-size: calc(var(--row-depth) * 20px) 100%;
+  background-repeat: no-repeat;
+}
+
+.path-editor-alias-toggle {
+  flex: none;
+  padding: 3px 6px;
+  font-size: var(--text-base);
+  line-height: 1.2;
+}
+
+.path-editor-access-key {
+  display: inline-flex;
+  flex: none;
+  align-items: baseline;
+  gap: var(--space-1);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  line-height: 1;
+  margin-inline-start: 2px;
+}
+
+.path-editor-access-key-label {
+  white-space: nowrap;
+  user-select: none;
+}
+
+.path-editor-access-key > .path-editor-access-key-input {
+  box-sizing: border-box;
+  width: 30px;
+  min-width: 30px;
+  height: 26px;
+  margin: 0;
+  padding: 2px;
+  font-family: var(--font-mono);
+  line-height: 1.2;
+  text-align: center;
+  text-transform: none;
+  vertical-align: baseline;
+}
+
+.path-editor-help {
+  margin-top: var(--space-2);
+}
+
+.path-editor-help p {
+  margin: 2px 0;
+  font-size: inherit;
+  line-height: 1.35;
+}
+
+.path-editor-row:hover {
+  background-color: var(--hover-bg);
+}
+
+.path-editor-row.is-preview-selected {
+  border-color: color-mix(in srgb, var(--color-selection) 58%, var(--panel-border));
+  background: color-mix(in srgb, var(--color-selection) 7%, var(--page-bg));
+  box-shadow: inset 3px 0 0 var(--color-selection);
+}
+
+.path-editor-indent {
+  flex: none;
+  align-self: stretch;
+}
+
+.path-editor-dir {
+  flex: 1 1 auto;
+  /* Let the input shrink below its intrinsic width so the row (5 fixed control
+     buttons + handle) doesn't overflow a narrow editor column */
+  min-width: 0;
+}
+
+.path-editor-alias {
+  flex: 0 0 0;
+  width: 0;
+  min-width: 0;
+  padding-inline-end: 0;
+  padding-inline-start: 0;
+  border-inline-end-width: 0;
+  border-inline-start-width: 0;
+  opacity: 0;
+  transition:
+    flex-basis 90ms ease-out,
+    width 90ms ease-out,
+    padding 90ms ease-out,
+    opacity 70ms ease-out;
+}
+
+.path-editor-alias.is-open {
+  flex: 0 1 130px;
+  width: 130px;
+  padding-inline-end: 5px;
+  padding-inline-start: 5px;
+  border-inline-end-width: 1px;
+  border-inline-start-width: 1px;
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .path-editor-alias {
+    transition: none;
+  }
+}
+
+.tab-panel .path-editor-row input[type="text"] {
+  max-width: none;
+}
+
+/* Render a separator row as a centred label on a hairline rule */
+.path-editor-separator {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  user-select: none;
+}
+
+.path-editor-separator::before,
+.path-editor-separator::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background-color: var(--panel-border);
+}
+
+/* Row controls read as quiet icon buttons, not full boxed buttons */
+.visual-editor-control {
+  min-width: 24px;
+  padding: 4px 6px;
+  font-size: var(--text-xs);
+  line-height: 1;
+  border: none;
+  background-color: transparent;
+  color: var(--color-text-muted);
+  border-radius: 3px;
+  opacity: 0.75;
+}
+
+.visual-editor-control:hover {
+  background-color: var(--hover-bg);
+  color: inherit;
+  opacity: 1;
+}
+
+.visual-editor-row-actions {
+  display: flex;
+  flex: none;
+  align-items: baseline;
+  gap: 2px;
+  margin-inline-start: auto;
+}
+
+.visual-editor-control:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+.path-editor-undo {
+  margin-top: var(--space-1);
+}
+
+.tab-heading-hidden {
+  display: none;
+}
