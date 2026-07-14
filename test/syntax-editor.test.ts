@@ -271,13 +271,17 @@ describe("syntax editor surface", () => {
     const gutter = document.querySelector<HTMLElement>(".syntax-editor-gutter")!;
     const second = gutter.querySelector<HTMLElement>('[data-line="2"]')!;
     second.dispatchEvent(new MouseEvent("mousemove", { bubbles: true }));
-    expect(document.querySelector<HTMLElement>('[role="tooltip"]')!.hidden).toBe(true);
+    const tooltip = document.querySelector<HTMLElement>('[role="tooltip"]')!;
+    expect(tooltip.textContent).toContain("Second");
+    second.dispatchEvent(new MouseEvent("mouseleave", { bubbles: true }));
+    expect(tooltip.hidden).toBe(true);
 
     textarea.setSelectionRange(5, 5);
     textarea.dispatchEvent(new MouseEvent("click"));
-    expect(document.querySelector<HTMLElement>('[role="tooltip"]')!.textContent).toContain(
-      "Second",
-    );
+    second.dispatchEvent(new MouseEvent("mousemove", { bubbles: true }));
+    expect(tooltip.textContent).toContain("Second");
+    second.dispatchEvent(new MouseEvent("mouseleave", { bubbles: true }));
+    expect(tooltip.hidden).toBe(false);
     textarea.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
 
     setSyntaxEditorDiagnostics(textarea, []);
