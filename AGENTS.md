@@ -187,6 +187,9 @@ browsers before reporting it as confirmed.
 - `npm run lint`: run the strict TypeScript projects, architecture, CSS, i18n,
   and release-package policy checks; stage and lint the bundle; then run
   oxlint and formatting checks.
+- `npm run lint:css`: run Biome's recommended correctness rules against CSS
+  only. Oxfmt remains the formatter, and `check:css` continues to enforce this
+  repository's custom CSS policies.
 - `npm run lint:type-aware`: run the zero-baseline `oxlint-tsgolint` rules.
   Keep this check green when changing TypeScript, and add type-aware rules only
   after fixing their existing findings so lint does not accumulate a warning
