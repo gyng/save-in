@@ -259,10 +259,17 @@ const launch = async ({ extensionDir = ROOT } = {}) => {
       try {
         return await connectedRdp.evaluate(tabConsole, text, timeoutMs);
       } catch (error) {
-        // Firefox replaces a tab's console actor when location.reload() swaps
-        // documents while retaining the same tab actor. Reconnect so a fresh
-        // watcher reports the replacement target instead of its stale cache.
         if (!String(error).includes("noSuchActor")) throw error;
+        let switchedConsole;
+        try {
+          switchedConsole = await connectedRdp.refreshTabConsoleActor(urlSubstr, tabConsole);
+        } catch {
+          // Firefox 121-128 does not expose target-switch watcher events.
+          // Retain the full reconnect as the compatibility fallback.
+        }
+        if (switchedConsole) {
+          return connectedRdp.evaluate(switchedConsole, text, timeoutMs);
+        }
         connectedRdp.close();
         connectedRdp = await connectWithRetry(port);
         const refreshedAddon = await connectedRdp.findAddonActor(ADDON_ID);

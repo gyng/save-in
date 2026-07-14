@@ -196,6 +196,56 @@ describe("FirefoxRdp frame target discovery", () => {
     await expect(discovered).resolves.toMatchObject({ consoleActor: "console-actor" });
     expect(client.eventWaiters).toHaveLength(0);
   });
+
+  test("refreshes a reloaded tab from its watcher event without reconnecting", async () => {
+    const sock = makeSocket();
+    const client = new FirefoxRdp(sock);
+    client.tabConsoleActors.set("tab-actor", "stale-console");
+    client.descriptorWatchers.set("tab-actor", "watcher-actor");
+    client.watcherDescriptors.set("watcher-actor", "tab-actor");
+    client.watcherTargetMatches.set(
+      "watcher-actor",
+      (target: Record<string, unknown>) =>
+        typeof target.url === "string" && target.url.includes("options.html"),
+    );
+
+    const refreshed = client.refreshTabConsoleActor("options.html", "stale-console");
+    sock.emit(
+      "data",
+      frame({
+        from: "root",
+        tabs: [{ actor: "tab-actor", url: "moz-extension://save-in/options.html" }],
+      }),
+    );
+    await vi.waitFor(() => expect(client.eventWaiters).toHaveLength(1));
+    sock.emit(
+      "data",
+      frame({
+        from: "watcher-actor",
+        type: "target-available-form",
+        target: {
+          url: "https://example.com/embedded-frame",
+          consoleActor: "frame-console",
+        },
+      }),
+    );
+    expect(client.tabConsoleActors.get("tab-actor")).toBe("stale-console");
+    expect(client.eventWaiters).toHaveLength(1);
+    sock.emit(
+      "data",
+      frame({
+        from: "watcher-actor",
+        type: "target-available-form",
+        target: {
+          url: "moz-extension://save-in/options.html",
+          consoleActor: "fresh-console",
+        },
+      }),
+    );
+
+    await expect(refreshed).resolves.toBe("fresh-console");
+    expect(client.tabConsoleActors.get("tab-actor")).toBe("fresh-console");
+  });
 });
 
 describe("FirefoxRdp evaluate", () => {

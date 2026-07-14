@@ -64,6 +64,12 @@ class FirefoxRdp {
     this.eventBacklog = [];
     /** @type {Map<string, string>} */
     this.tabConsoleActors = new Map();
+    /** @type {Map<string, string>} */
+    this.descriptorWatchers = new Map();
+    /** @type {Map<string, string>} */
+    this.watcherDescriptors = new Map();
+    /** @type {Map<string, (target: RdpPacket) => boolean>} */
+    this.watcherTargetMatches = new Map();
     socket.on("data", (data) => {
       this.buffer = Buffer.concat([this.buffer, Buffer.from(data)]);
       this.drain();
@@ -123,6 +129,18 @@ class FirefoxRdp {
   /** @param {RdpPacket} packet */
   dispatch(packet) {
     if (process.env.RDP_DEBUG) console.error("RDP <-", JSON.stringify(packet));
+    if (
+      packet.type === "target-available-form" &&
+      typeof packet.from === "string" &&
+      isRdpPacket(packet.target) &&
+      typeof packet.target.consoleActor === "string"
+    ) {
+      const descriptor = this.watcherDescriptors.get(packet.from);
+      const matches = this.watcherTargetMatches.get(packet.from);
+      if (descriptor && matches?.(packet.target)) {
+        this.tabConsoleActors.set(descriptor, packet.target.consoleActor);
+      }
+    }
     const waiterIdx = this.eventWaiters.findIndex((w) => w.predicate(packet));
     if (waiterIdx !== -1) {
       const waiter = this.eventWaiters.splice(waiterIdx, 1)[0];
@@ -318,6 +336,9 @@ class FirefoxRdp {
       "getWatcher",
     );
     const watcher = requireString(watcherResponse, "actor", "getWatcher");
+    this.descriptorWatchers.set(descriptorActor, watcher);
+    this.watcherDescriptors.set(watcher, descriptorActor);
+    this.watcherTargetMatches.set(watcher, matches);
 
     // Register before watchTargets: Firefox may announce the target before it
     // acknowledges the request. The timeout remains a failure bound, not a
@@ -387,6 +408,48 @@ class FirefoxRdp {
     }
     this.tabConsoleActors.set(tabActor, target.consoleActor);
     return target.consoleActor;
+  }
+
+  /**
+   * @param {string} urlSubstr
+   * @param {string} staleActor
+   * @param {number} [timeoutMs]
+   */
+  async refreshTabConsoleActor(urlSubstr, staleActor, timeoutMs = 2000) {
+    const response = requirePacket(
+      await this.request({ to: "root", type: "listTabs" }),
+      "listTabs",
+    );
+    const tabs = Array.isArray(response.tabs) ? response.tabs.filter(isRdpPacket) : [];
+    const tab = tabs.find(
+      (candidate) => typeof candidate.url === "string" && candidate.url.includes(urlSubstr),
+    );
+    if (!tab) throw new Error(`No tab matching "${urlSubstr}" after target switch`);
+    const tabActor = requireString(tab, "actor", "listTabs");
+    const current = this.tabConsoleActors.get(tabActor);
+    if (current && current !== staleActor) return current;
+
+    const watcher = this.descriptorWatchers.get(tabActor);
+    if (!watcher) throw new Error(`No watcher for reloaded tab "${urlSubstr}"`);
+    const packet = requirePacket(
+      await this.waitForEvent(
+        (candidate) =>
+          candidate.type === "target-available-form" &&
+          candidate.from === watcher &&
+          isRdpPacket(candidate.target) &&
+          typeof candidate.target.url === "string" &&
+          candidate.target.url.includes(urlSubstr) &&
+          typeof candidate.target.consoleActor === "string" &&
+          candidate.target.consoleActor !== staleActor,
+        timeoutMs,
+      ),
+      "target switch",
+    );
+    const target = requirePacket(
+      isRdpPacket(packet.target) ? packet.target : undefined,
+      "target switch",
+    );
+    return requireString(target, "consoleActor", "target switch");
   }
 
   // Evaluates in the extension background context; returns the string value.
@@ -460,6 +523,10 @@ class FirefoxRdp {
       }
     }
     this.queues.clear();
+    this.tabConsoleActors.clear();
+    this.descriptorWatchers.clear();
+    this.watcherDescriptors.clear();
+    this.watcherTargetMatches.clear();
     this.socket.destroy();
   }
 }
