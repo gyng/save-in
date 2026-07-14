@@ -3284,7 +3284,7 @@
     "description": "Button that moves from Page Sources to the shared routing-rule editor. Used in src/options/options.html."
   },
   "autoDownloadRoutingHelp": {
-    "message": "Match automatic downloads with page and source conditions. The first matching automation rule chooses where each source is saved.",
-    "description": "Explains how automation rules match automatic page-source downloads and select their destination. Used in src/options/options.html."
+    "message": "Use context: auto with page and source conditions to match automatic downloads. The first matching rule sets the save location.",
+    "description": "Briefly explains the context, page, and source conditions that match automatic page-source downloads. Used in src/options/options.html."
   }
 }
