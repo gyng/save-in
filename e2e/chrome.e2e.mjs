@@ -188,7 +188,6 @@ beforeAll(async () => {
       logPath: browserLogPath,
     } = launched);
     DOWNLOADS = launched.downloadDir || path.join(PROFILE_DIR, "downloads");
-    await cdp.openTab(PORT, `chrome-extension://${extensionId}/src/options/options.html`);
     await poll(
       async () => {
         const state = JSON.parse(

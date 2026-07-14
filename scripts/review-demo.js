@@ -544,11 +544,14 @@ const main = async () => {
     const { proc, extensionId, port, downloadDir } = browser;
     const exited = new Promise((resolve) => proc.once("exit", resolve));
 
-    // The options page must exist before evalInServiceWorker can wake the
-    // worker, so: open it, seed the config, then reload it to pick the
-    // seeded values up
-    await cdp.openTab(port, `chrome-extension://${extensionId}/src/options/options.html`);
     const optionsTarget = `${extensionId}/src/options/options.html`;
+    // Fresh installs open Options themselves. Reuse that first-run tab, with
+    // an explicit fallback for hosts that do not dispatch the install event.
+    await waitFor(
+      async () => (await cdp.listTargets(port)).some(({ url }) => url.includes(optionsTarget)),
+      "first-install options page",
+      3000,
+    ).catch(() => cdp.openTab(port, `chrome-extension://${extensionId}/src/options/options.html`));
     await waitFor(
       () =>
         cdp.evalInTarget(

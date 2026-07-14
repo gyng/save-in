@@ -154,6 +154,9 @@ type OnUpdated = (
   changeInfo: Parameters<Parameters<typeof browser.tabs.onUpdated.addListener>[0]>[1],
   tab?: browser.tabs.Tab,
 ) => void | Promise<void>;
+type OnInstalled = (
+  details: Parameters<Parameters<typeof browser.runtime.onInstalled.addListener>[0]>[0],
+) => void | Promise<void>;
 
 const capturedOnActivated = (): OnActivated => {
   const listener = vi.mocked(global.browser.tabs.onActivated.addListener).mock.calls[0]?.[0];
@@ -170,6 +173,12 @@ const capturedOnUpdated = (): OnUpdated => {
       undefined,
       tab === undefined ? [tabId, changeInfo] : [tabId, changeInfo, tab],
     );
+};
+
+const capturedOnInstalled = (): OnInstalled => {
+  const listener = vi.mocked(global.browser.runtime.onInstalled.addListener).mock.calls[0]?.[0];
+  if (!listener) throw new Error("runtime install listener was not registered");
+  return listener;
 };
 
 const capturedActionClick = () => {
@@ -229,11 +238,24 @@ describe("startup", () => {
     expect(global.browser.tabs.onUpdated.addListener).toHaveBeenCalledTimes(1);
     expect(global.browser.action.onClicked.addListener).toHaveBeenCalledTimes(1);
     expect(global.browser.commands.onCommand.addListener).toHaveBeenCalledTimes(1);
+    expect(global.browser.runtime.onInstalled.addListener).toHaveBeenCalledTimes(1);
 
     expect(Runtime.init).toEqual(expect.any(Function));
     expect(Runtime.reset).toEqual(expect.any(Function));
     expect(Runtime.ready).toEqual(expect.any(Promise));
     await Runtime.ready;
+  });
+
+  test("opens setup on first install without interrupting extension updates", async () => {
+    await setupGlobals();
+    await importIndex();
+    const installed = capturedOnInstalled();
+
+    await installed({ reason: "update", previousVersion: "3.9.0", temporary: false });
+    expect(global.browser.runtime.openOptionsPage).not.toHaveBeenCalled();
+
+    await installed({ reason: "install", temporary: false });
+    expect(global.browser.runtime.openOptionsPage).toHaveBeenCalledOnce();
   });
 
   test("runtime.reset re-runs init and replaces runtime.ready", async () => {

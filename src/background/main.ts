@@ -128,6 +128,12 @@ export const start = () => {
   addDownloadListener();
   addTabMenuListener();
   addTabHighlightListener();
+  webExtensionApi.runtime.onInstalled.addListener((details) => {
+    if (details.reason !== "install") return undefined;
+    return runBackgroundTask("first-install options failed", () =>
+      webExtensionApi.runtime.openOptionsPage(),
+    );
+  });
   const toggleSources = (tab: CurrentTab): Promise<void> | undefined => {
     const tabId = tab.id;
     if (tabId != null)
