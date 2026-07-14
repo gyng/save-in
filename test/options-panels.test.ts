@@ -378,6 +378,12 @@ describe("reset options", () => {
 
   test("does nothing when confirmation is declined", async () => {
     document.body.innerHTML = '<button id="reset"></button>';
+    Object.defineProperty(HTMLDialogElement.prototype, "showModal", {
+      configurable: true,
+      value: vi.fn(function (this: HTMLDialogElement) {
+        this.setAttribute("open", "");
+      }),
+    });
     setupResetOptions({
       restoreOptions: vi.fn(),
       updateErrors: vi.fn(),
@@ -385,12 +391,25 @@ describe("reset options", () => {
       localize: () => "",
     });
     document.querySelector<HTMLButtonElement>("#reset")!.click();
-    const dialog = document.querySelector<HTMLDialogElement>(".reset-settings-dialog")!;
+    let dialog = document.querySelector<HTMLDialogElement>(".reset-settings-dialog")!;
     expect(dialog.getAttribute("aria-describedby")).toBe("reset-settings-description");
-    dialog.dispatchEvent(new Event("cancel", { cancelable: true }));
+    dialog.querySelector<HTMLButtonElement>("button")!.click();
     await Promise.resolve();
     expect(browser.storage.local.clear).not.toHaveBeenCalled();
     expect(document.querySelector(".reset-settings-dialog")).toBeNull();
+
+    Reflect.deleteProperty(HTMLDialogElement.prototype, "showModal");
+    document.querySelector<HTMLButtonElement>("#reset")!.click();
+    dialog = document.querySelector<HTMLDialogElement>(".reset-settings-dialog")!;
+    expect(dialog.open).toBe(true);
+    const cancel = new Event("cancel", { cancelable: true });
+    dialog.dispatchEvent(cancel);
+    expect(cancel.defaultPrevented).toBe(true);
+    await Promise.resolve();
+
+    document.querySelector<HTMLButtonElement>("#reset")!.click();
+    document.querySelector<HTMLButtonElement>(".reset-settings-confirm")!.click();
+    await vi.waitFor(() => expect(browser.storage.local.remove).toHaveBeenCalledWith(["paths"]));
   });
 
   test("reports a reset failure without restoring stale controls", async () => {
