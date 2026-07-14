@@ -72,20 +72,7 @@ export const createManualEditorState = (unsavedLabel: string | (() => string)) =
     saveStatus.setAttribute("role", "status");
     saveStatus.hidden = true;
     actionRows[0]!.insertBefore(saveStatus, statuses[0]!);
-    const editor: ManualEditor = {
-      textarea,
-      saved: textarea.value,
-      sync: undefined as never,
-      statuses,
-      saveStatus,
-      valid: true,
-      saving: false,
-      validationPending: false,
-      revision: 0,
-    };
-    editors.push(editor);
-
-    editor.sync = () => {
+    const sync = () => {
       const dirty = textarea.value !== editor.saved;
       buttons.forEach((button) => {
         const isApply = button.hasAttribute("data-apply");
@@ -103,6 +90,18 @@ export const createManualEditorState = (unsavedLabel: string | (() => string)) =
       });
       syncDirtyRows(editor.saved, textarea.value);
     };
+    const editor: ManualEditor = {
+      textarea,
+      saved: textarea.value,
+      sync,
+      statuses,
+      saveStatus,
+      valid: true,
+      saving: false,
+      validationPending: false,
+      revision: 0,
+    };
+    editors.push(editor);
 
     textarea.addEventListener("input", () => {
       editor.revision += 1;
