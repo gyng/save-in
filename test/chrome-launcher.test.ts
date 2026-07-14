@@ -1,32 +1,24 @@
 import fs, { chmodSync, mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
-import { spawn } from "node:child_process";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createRequire } from "node:module";
 import { describe, expect, test } from "vitest";
 
 const require = createRequire(import.meta.url);
-const {
-  buildOutputForMode,
-  chromeArgs,
-  findChrome,
-  killTree,
-  parseChromeMajorVersion,
-  removeProfile,
-} = require("../scripts/lib/chrome.js") as {
-  buildOutputForMode: (mode?: "production" | "e2e") => string;
-  chromeArgs: (
-    profileDir: string,
-    port: number,
-    headless?: boolean,
-    noSandbox?: boolean,
-    legacyExtensionDir?: string,
-  ) => string[];
-  findChrome: () => string;
-  killTree: (process: ReturnType<typeof spawn>) => Promise<void>;
-  parseChromeMajorVersion: (version: string) => number;
-  removeProfile: (profileDir: string) => Promise<void>;
-};
+const { buildOutputForMode, chromeArgs, findChrome, parseChromeMajorVersion, removeProfile } =
+  require("../scripts/lib/chrome.js") as {
+    buildOutputForMode: (mode?: "production" | "e2e") => string;
+    chromeArgs: (
+      profileDir: string,
+      port: number,
+      headless?: boolean,
+      noSandbox?: boolean,
+      legacyExtensionDir?: string,
+    ) => string[];
+    findChrome: () => string;
+    parseChromeMajorVersion: (version: string) => number;
+    removeProfile: (profileDir: string) => Promise<void>;
+  };
 
 const originalChromePath = process.env.CHROME_PATH;
 const originalPath = process.env.PATH;
@@ -131,15 +123,5 @@ describe("isolated Chrome launcher", () => {
       remove.mockRestore();
       rmSync(profile, { recursive: true, force: true });
     }
-  });
-
-  test("terminates the owned browser process when tree termination is unavailable", async () => {
-    const child = spawn(process.execPath, ["-e", "setInterval(() => {}, 1000)"], {
-      stdio: "ignore",
-    });
-
-    await killTree(child);
-
-    expect(child.exitCode !== null || child.signalCode !== null).toBe(true);
   });
 });

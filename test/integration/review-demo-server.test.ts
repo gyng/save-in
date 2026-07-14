@@ -38,6 +38,31 @@ describe("review demo server over HTTP", () => {
     }
   });
 
+  test("continues cleanup and aggregates a browser termination failure", async () => {
+    const server = createDemoServer();
+    await listenOnLoopback(server);
+    const proc = {};
+    const terminationFailure = new Error("could not stop browser");
+    const killTree = vi.fn(async () => {
+      throw terminationFailure;
+    });
+    const removeProfile = vi.fn(async () => undefined);
+
+    try {
+      await expect(
+        cleanupReviewSession(
+          { browser: { proc, profileDir: "review-profile-failed-cleanup" }, server },
+          { killTree, removeProfile },
+        ),
+      ).rejects.toMatchObject({ errors: [terminationFailure] });
+
+      expect(removeProfile).toHaveBeenCalledWith("review-profile-failed-cleanup");
+      expect(server.listening).toBe(false);
+    } finally {
+      await closeServer(server);
+    }
+  });
+
   test("serves the late-discovered image as an actual WebP", async () => {
     const server = createDemoServer();
     const { port } = await listenOnLoopback(server);

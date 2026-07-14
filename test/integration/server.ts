@@ -1,6 +1,6 @@
 import type { AddressInfo, Server } from "node:net";
 
-export const listenOnLoopback = (server: Server): Promise<AddressInfo> =>
+export const listenOnLoopback = (server: Server, port = 0): Promise<AddressInfo> =>
   new Promise((resolve, reject) => {
     const removeListeners = () => {
       server.off("error", onError);
@@ -22,7 +22,7 @@ export const listenOnLoopback = (server: Server): Promise<AddressInfo> =>
 
     server.once("error", onError);
     server.once("listening", onListening);
-    server.listen(0, "127.0.0.1");
+    server.listen(port, "127.0.0.1");
   });
 
 export const closeServer = (server: Server): Promise<void> => {

@@ -43,6 +43,10 @@ describe("redirect-aware extension fetches over HTTP", () => {
 
   test("falls back to a body-cancelled GET when the server rejects HEAD", async () => {
     const methods: string[] = [];
+    let closeFinalResponse!: (writableEnded: boolean) => void;
+    const finalResponseClosed = new Promise<boolean>((resolve) => {
+      closeFinalResponse = resolve;
+    });
     let origin = "";
     origin = await listen((request, response) => {
       methods.push(`${request.method} ${request.url}`);
@@ -56,8 +60,9 @@ describe("redirect-aware extension fetches over HTTP", () => {
         response.end();
         return;
       }
+      response.once("close", () => closeFinalResponse(response.writableEnded));
       response.writeHead(200, { "Content-Type": "application/octet-stream" });
-      response.end("download bytes");
+      response.write("download prefix");
     });
 
     const result = await resolveHead({ url: `${origin}/start` });
@@ -67,6 +72,7 @@ describe("redirect-aware extension fetches over HTTP", () => {
       finalUrl: `${origin}/final.bin`,
     });
     expect(methods).toEqual(["HEAD /start", "GET /start", "GET /final.bin"]);
+    await expect(finalResponseClosed).resolves.toBe(false);
   });
 
   test("rejects a redirect loop instead of hanging", async () => {
@@ -87,5 +93,28 @@ describe("redirect-aware extension fetches over HTTP", () => {
     await expect(fetchFollowingRedirects(`${origin}/slow`, {}, 25)).rejects.toMatchObject({
       name: "TimeoutError",
     });
+  });
+
+  test("forwards a caller abort after the HTTP request has started", async () => {
+    let markRequestStarted!: () => void;
+    const requestStarted = new Promise<void>((resolve) => {
+      markRequestStarted = resolve;
+    });
+    let markConnectionClosed!: () => void;
+    const connectionClosed = new Promise<void>((resolve) => {
+      markConnectionClosed = resolve;
+    });
+    const origin = await listen((_request, response) => {
+      markRequestStarted();
+      response.once("close", markConnectionClosed);
+    });
+    const caller = new AbortController();
+    const pending = fetchFollowingRedirects(`${origin}/abort`, { signal: caller.signal }, 1000);
+
+    await requestStarted;
+    caller.abort(new DOMException("caller stopped", "AbortError"));
+
+    await expect(pending).rejects.toMatchObject({ name: "AbortError", message: "caller stopped" });
+    await connectionClosed;
   });
 });
