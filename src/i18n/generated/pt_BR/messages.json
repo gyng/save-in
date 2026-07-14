@@ -2095,9 +2095,6 @@
   "routeDebuggerTitle": {
     "message": "Testar regras de roteamento"
   },
-  "routeDebuggerDescription": {
-    "message": "Test your current routing rules with download details."
-  },
   "routeDebuggerUseSource": { "message": "Use" },
   "routeDebuggerLatestDownload": { "message": "Latest download" },
   "routeDebuggerUseSampleDownload": { "message": "Sample download" },

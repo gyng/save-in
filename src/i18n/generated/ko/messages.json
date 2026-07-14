@@ -2195,9 +2195,6 @@
   "routeDebuggerTitle": {
     "message": "라우팅 규칙 테스트"
   },
-  "routeDebuggerDescription": {
-    "message": "Test your current routing rules with download details."
-  },
   "routeDebuggerUseSource": { "message": "Use" },
   "routeDebuggerLatestDownload": { "message": "Latest download" },
   "routeDebuggerUseSampleDownload": { "message": "Sample download" },

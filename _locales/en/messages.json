@@ -2947,10 +2947,6 @@
     "message": "Route debugger",
     "description": "Heading for the routing rules test workbench. Used in src/options/options.html."
   },
-  "routeDebuggerDescription": {
-    "message": "Test your current routing rules with download details.",
-    "description": "Description of the routing rules debugger. Used in src/options/options.html."
-  },
   "routeDebuggerFileData": {
     "message": "File",
     "description": "Heading for file-related test data in the route debugger. Used in src/options/options.html."
