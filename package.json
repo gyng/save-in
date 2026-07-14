@@ -29,10 +29,12 @@
     "review": "node scripts/review-demo.js",
     "screenshots:store": "node scripts/generate-store-screenshots.js",
     "reload": "node scripts/reload.js",
-    "test": "vitest run",
+    "test": "vitest run --config vitest.unit.config.mjs",
+    "test:all": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:fuzz": "vitest run --config vitest.fuzz.config.mjs",
-    "test:watch": "vitest",
+    "test:integration": "vitest run --config vitest.integration.config.mjs",
+    "test:watch": "vitest --config vitest.unit.config.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.browser.json && tsc --noEmit -p tsconfig.chrome.json && tsc --noEmit -p tsconfig.worker.json && tsc --noEmit -p tsconfig.tools.json && tsc --noEmit -p tsconfig.dev-tools.json && tsc --noEmit -p tsconfig.e2e.json && tsc --noEmit -p tsconfig.test.json"
   },
   "devDependencies": {

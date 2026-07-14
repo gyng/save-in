@@ -27,7 +27,7 @@ jobs:
         run: npm run lint
       - name: Typecheck
         run: npm run typecheck
-      - name: Unit tests and coverage
+      - name: Unit and integration tests with coverage
         run: npm run test:coverage
       - name: Short property fuzz
         env:

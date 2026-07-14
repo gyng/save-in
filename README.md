@@ -81,7 +81,7 @@ ready-to-use recipes.
 3. Develop
 4. `npm run fmt:check` and/or `npm run fmt`
 5. `npm run lint` and/or `npm run lint:fix`
-6. `npm test` and/or `npm run test:watch`; `npm run test:fuzz` runs a ten-second property fuzz of the parser, routing, filename, and webhook boundaries. Set a longer budget with `node scripts/with-env.js FUZZ_TIME_MS=60000 -- npm run test:fuzz`; failures print a replayable property, seed, and shrink path.
+6. `npm test` and/or `npm run test:watch`; `npm run test:integration` adds tests that require loopback listeners or child processes, and `npm run test:all` runs both suites. `npm run test:fuzz` runs a ten-second property fuzz of the parser, routing, filename, and webhook boundaries; see the [fuzzing guide](docs/FUZZING.md). Set a longer budget with `node scripts/with-env.js FUZZ_TIME_MS=60000 -- npm run test:fuzz`; failures print a replayable property and seed, plus a shrink path when available.
 7. `npm run e2e` runs Chrome and Firefox in parallel (`e2e:chrome` / `e2e:firefox` remain available separately). Browser failures retain diagnostics in `dist/e2e-artifacts`.
 
 ## Deployment
