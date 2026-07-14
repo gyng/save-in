@@ -1,9 +1,15 @@
 // @vitest-environment jsdom
 import { setupIntegrationPanel } from "../../src/options/integration-panel.ts";
+import { initializeLocalization } from "../../src/platform/localization.ts";
 import { webExtensionApi } from "../../src/platform/web-extension-api.ts";
 import { MESSAGE_TYPES } from "../../src/shared/constants.ts";
 
 const dispatchRestore = () => document.dispatchEvent(new Event("options-restored"));
+
+beforeEach(async () => {
+  await initializeLocalization("test-native-messages");
+  vi.mocked(webExtensionApi.i18n.getMessage).mockReturnValue("");
+});
 
 const rejection = (
   senderId: string,
