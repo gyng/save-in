@@ -221,6 +221,14 @@ test("returns to the pending welcome guide after explaining permissions", async 
   expect(storage.remove).not.toHaveBeenCalled();
   about.close();
   expect(document.activeElement).toBe(permissions);
+
+  about.setAttribute("open", "");
+  expect(() => permissions.click()).not.toThrow();
+  about.removeAttribute("open");
+
+  permissions.click();
+  document.querySelector("#welcome-dialog")!.remove();
+  about.close();
 });
 
 test("dismisses from the keyboard but does not show for other or unreadable state", async () => {
