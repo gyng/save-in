@@ -707,15 +707,28 @@ into: captures/:$1:/:$2:`,
       expect(trace.finalPath).toBe("archive/2026/cat.jpg");
     });
 
-    test("does not interpolate malformed current-tab fields", async () => {
+    test.each([
+      ["an absent tab", null],
+      ["malformed fields", { title: 42, incognito: "yes" }],
+    ])("does not interpolate %s", async (_description, tab) => {
       const rules = router.parseRules("filename: .*\ninto: preview/:pagetitle:");
 
       const trace = await router.traceRules(rules, {
         filename: "cat.jpg",
-        currentTab: { title: 42, incognito: "yes" },
+        currentTab: tab,
       });
 
       expect(trace.expandedDestination).toBe("preview/");
+    });
+
+    test("preserves valid tab fields while expanding the title", async () => {
+      const rules = router.parseRules("filename: .*\ninto: preview/:pagetitle:");
+      const trace = await router.traceRules(rules, {
+        filename: "cat.jpg",
+        currentTab: { title: "Private tab", incognito: true },
+      });
+
+      expect(trace.expandedDestination).toBe("preview/Private tab");
     });
 
     test("reports filename overflow against the active truncation setting", async () => {
