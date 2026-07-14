@@ -2173,6 +2173,14 @@
   "routeDebuggerNoMatch": {
     "message": "Er komt geen routeringsregel overeen."
   },
+  "routeDebuggerOneRuleMatched": {
+    "message": "Er kwam $COUNT$ regel overeen.",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "routeDebuggerRulesMatched": {
+    "message": "Er kwamen $COUNT$ regels overeen.",
+    "placeholders": { "count": { "content": "$1", "example": "2" } }
+  },
   "routeDebuggerMatched": {
     "message": "Regel $NUMBER$ komt overeen.",
     "placeholders": {
@@ -2181,9 +2189,6 @@
         "example": "2"
       }
     }
-  },
-  "routeDebuggerTemplate": {
-    "message": "Sjabloon"
   },
   "routeDebuggerExpanded": {
     "message": "Uitgevouwen resultaat"

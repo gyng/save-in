@@ -2273,6 +2273,14 @@
   "routeDebuggerNoMatch": {
     "message": "没有匹配的路由规则。"
   },
+  "routeDebuggerOneRuleMatched": {
+    "message": "$COUNT$ 条规则匹配。",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "routeDebuggerRulesMatched": {
+    "message": "$COUNT$ 条规则匹配。",
+    "placeholders": { "count": { "content": "$1", "example": "2" } }
+  },
   "routeDebuggerMatched": {
     "message": "规则 $NUMBER$ 匹配。",
     "placeholders": {
@@ -2281,9 +2289,6 @@
         "example": "2"
       }
     }
-  },
-  "routeDebuggerTemplate": {
-    "message": "模板"
   },
   "routeDebuggerExpanded": {
     "message": "展开结果"

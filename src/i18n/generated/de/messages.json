@@ -2171,6 +2171,14 @@
   "routeDebuggerNoMatch": {
     "message": "Keine Routing-Regel stimmt überein."
   },
+  "routeDebuggerOneRuleMatched": {
+    "message": "$COUNT$ Regel stimmte überein.",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "routeDebuggerRulesMatched": {
+    "message": "$COUNT$ Regeln stimmten überein.",
+    "placeholders": { "count": { "content": "$1", "example": "2" } }
+  },
   "routeDebuggerMatched": {
     "message": "Regel $NUMBER$ stimmt überein.",
     "placeholders": {
@@ -2179,9 +2187,6 @@
         "example": "2"
       }
     }
-  },
-  "routeDebuggerTemplate": {
-    "message": "Vorlage"
   },
   "routeDebuggerExpanded": {
     "message": "Erweitert"

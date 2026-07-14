@@ -2194,6 +2194,14 @@
   "routeDebuggerNoMatch": {
     "message": "Aucune règle de routage ne correspond."
   },
+  "routeDebuggerOneRuleMatched": {
+    "message": "$COUNT$ règle correspond.",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "routeDebuggerRulesMatched": {
+    "message": "$COUNT$ règles correspondent.",
+    "placeholders": { "count": { "content": "$1", "example": "2" } }
+  },
   "routeDebuggerMatched": {
     "message": "La règle $NUMBER$ correspond.",
     "placeholders": {
@@ -2202,9 +2210,6 @@
         "example": "2"
       }
     }
-  },
-  "routeDebuggerTemplate": {
-    "message": "Modèle"
   },
   "routeDebuggerExpanded": {
     "message": "Résultat développé"

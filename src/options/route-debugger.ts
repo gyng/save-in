@@ -281,16 +281,23 @@ export const setupRouteDebugger = (): void => {
   const renderTrace = (trace: RouteDebuggerTrace): void => {
     setState(trace.selectedRule === null ? "no-match" : "matched");
     const resultFragment = document.createDocumentFragment();
-    if (trace.selectedRule === null) {
-      const message = document.createElement("div");
-      message.className = "route-debugger-message route-debugger-no-match";
-      appendText(
-        message,
-        "route-debugger-message-title",
-        localize("routeDebuggerNoMatch", "No routing rule matched."),
-      );
-      resultFragment.append(message);
-    }
+    const matchedRuleCount = trace.rules.filter((rule) => rule.matched).length;
+    const message = document.createElement("div");
+    message.className = "route-debugger-message route-debugger-match-summary";
+    appendText(
+      message,
+      "route-debugger-message-title",
+      matchedRuleCount === 0
+        ? localize("routeDebuggerNoMatch", "No routing rule matched.")
+        : matchedRuleCount === 1
+          ? localize("routeDebuggerOneRuleMatched", "1 rule matched.", matchedRuleCount)
+          : localize(
+              "routeDebuggerRulesMatched",
+              `${matchedRuleCount} rules matched.`,
+              matchedRuleCount,
+            ),
+    );
+    resultFragment.append(message);
 
     const rules = document.createElement("div");
     rules.className = "route-debugger-rule-list";

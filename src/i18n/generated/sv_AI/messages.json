@@ -2167,6 +2167,14 @@
   "routeDebuggerNoMatch": {
     "message": "Ingen dirigeringsregel matchar."
   },
+  "routeDebuggerOneRuleMatched": {
+    "message": "$COUNT$ regel matchade.",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "routeDebuggerRulesMatched": {
+    "message": "$COUNT$ regler matchade.",
+    "placeholders": { "count": { "content": "$1", "example": "2" } }
+  },
   "routeDebuggerMatched": {
     "message": "Regel $NUMBER$ matchar.",
     "placeholders": {
@@ -2175,9 +2183,6 @@
         "example": "2"
       }
     }
-  },
-  "routeDebuggerTemplate": {
-    "message": "Mall"
   },
   "routeDebuggerExpanded": {
     "message": "Expanderat resultat"

@@ -2171,6 +2171,14 @@
   "routeDebuggerNoMatch": {
     "message": "Ninguna regla de enrutamiento coincide."
   },
+  "routeDebuggerOneRuleMatched": {
+    "message": "$COUNT$ regla coincidió.",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "routeDebuggerRulesMatched": {
+    "message": "$COUNT$ reglas coincidieron.",
+    "placeholders": { "count": { "content": "$1", "example": "2" } }
+  },
   "routeDebuggerMatched": {
     "message": "La regla $NUMBER$ coincide.",
     "placeholders": {
@@ -2179,9 +2187,6 @@
         "example": "2"
       }
     }
-  },
-  "routeDebuggerTemplate": {
-    "message": "Plantilla"
   },
   "routeDebuggerExpanded": {
     "message": "Resultado expandido"

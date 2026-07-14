@@ -2173,6 +2173,14 @@
   "routeDebuggerNoMatch": {
     "message": "Nenhuma regra de roteamento corresponde."
   },
+  "routeDebuggerOneRuleMatched": {
+    "message": "$COUNT$ regra correspondeu.",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "routeDebuggerRulesMatched": {
+    "message": "$COUNT$ regras corresponderam.",
+    "placeholders": { "count": { "content": "$1", "example": "2" } }
+  },
   "routeDebuggerMatched": {
     "message": "A regra $NUMBER$ corresponde.",
     "placeholders": {
@@ -2181,9 +2189,6 @@
         "example": "2"
       }
     }
-  },
-  "routeDebuggerTemplate": {
-    "message": "Modelo"
   },
   "routeDebuggerExpanded": {
     "message": "Resultado expandido"

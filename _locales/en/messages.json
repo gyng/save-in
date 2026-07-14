@@ -3051,6 +3051,26 @@
     "message": "No routing rule matched.",
     "description": "Route debugger outcome when no rule matches. Used in src/options/route-debugger.ts."
   },
+  "routeDebuggerOneRuleMatched": {
+    "message": "$COUNT$ rule matched.",
+    "description": "Route debugger summary when exactly one rule matches. Used in src/options/route-debugger.ts.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
+  },
+  "routeDebuggerRulesMatched": {
+    "message": "$COUNT$ rules matched.",
+    "description": "Route debugger summary when multiple rules match. Used in src/options/route-debugger.ts.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
   "routeDebuggerMatched": {
     "message": "Rule $NUMBER$ matched.",
     "description": "Route debugger outcome naming the selected matching rule. Used in src/options/route-debugger.ts.",
@@ -3060,10 +3080,6 @@
         "example": "2"
       }
     }
-  },
-  "routeDebuggerTemplate": {
-    "message": "Template",
-    "description": "Route debugger pipeline label for the configured destination. Used in src/options/route-debugger.ts."
   },
   "routeDebuggerExpanded": {
     "message": "Expanded path",

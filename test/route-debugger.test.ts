@@ -162,6 +162,9 @@ test("shows production rule and clause decisions and jumps back to their source"
 
   const result = document.querySelector<HTMLElement>("#route-debugger-result")!;
   await vi.waitFor(() => expect(result.dataset.state).toBe("matched"));
+  expect(result.querySelector(".route-debugger-match-summary")?.textContent).toBe(
+    "1 rule matched.",
+  );
   expect(result.textContent).toContain("pdf/report.pdf");
   const ruleCards = result.querySelectorAll<HTMLDetailsElement>(".route-debugger-rule");
   expect(ruleCards).toHaveLength(2);
@@ -553,6 +556,9 @@ test("renders blocking errors while ignoring warnings", async () => {
       "no-match",
     ),
   );
+  expect(document.querySelector(".route-debugger-match-summary")?.textContent).toBe(
+    "No routing rule matched.",
+  );
 });
 
 test("renders selected, also-matching, and missed rules without a destination pipeline", async () => {
@@ -603,6 +609,9 @@ test("renders selected, also-matching, and missed rules without a destination pi
     ),
   );
   expect(document.body.textContent).toContain("Matched, not used");
+  expect(document.querySelector(".route-debugger-match-summary")?.textContent).toBe(
+    "2 rules matched.",
+  );
   expect(document.body.textContent).toContain("Used");
   expect(document.body.textContent).toContain("Conditions not met");
   expect(document.querySelector(".route-debugger-pipeline")).not.toBeNull();
