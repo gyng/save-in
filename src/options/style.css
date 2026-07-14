@@ -2686,7 +2686,7 @@ summary {
   text-align: center;
 }
 
-.rule-editor-toolbar {
+.visual-editor-toolbar.rule-editor-toolbar {
   margin-top: var(--space-4);
 }
 
