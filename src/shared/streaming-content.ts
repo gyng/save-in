@@ -9,11 +9,11 @@ const abortError = (signal: AbortSignal): unknown =>
 const runAbortable = async <T>(signal: AbortSignal | undefined, operation: () => Promise<T>) => {
   if (!signal) return operation();
   if (signal.aborted) throw abortError(signal);
-  let rejectOnAbort!: (reason: unknown) => void;
+  let rejectOnAbort: ((reason: unknown) => void) | undefined;
   const aborted = new Promise<never>((_resolve, reject) => {
     rejectOnAbort = reject;
   });
-  const onAbort = () => rejectOnAbort(abortError(signal));
+  const onAbort = () => rejectOnAbort?.(abortError(signal));
   signal.addEventListener("abort", onAbort, { once: true });
   try {
     return await Promise.race([operation(), aborted]);
@@ -39,7 +39,7 @@ export const readResponseContent = async (
   if (response.body) {
     const reader = response.body.getReader();
     const cancelPendingRead = () => {
-      void reader.cancel(abortError(signal!)).catch(() => {});
+      if (signal) void reader.cancel(abortError(signal)).catch(() => {});
     };
     signal?.addEventListener("abort", cancelPendingRead, { once: true });
     try {
