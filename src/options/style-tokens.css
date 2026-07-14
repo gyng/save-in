@@ -1,0 +1,137 @@
+:root {
+  /* Native OS UI font on every platform */
+  --font-stack:
+    -apple-system, BlinkMacSystemFont, "avenir next", avenir, "segoe ui", "helvetica neue",
+    "Adwaita Sans", Cantarell, Ubuntu, roboto, noto, helvetica, arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "Consolas", "Liberation Mono", monospace;
+
+  /* 4px spacing scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  /* Type scale */
+  --text-xs: 12px;
+  --text-sm: 13px;
+  --text-base: 15px;
+  --text-lg: 17px;
+  --text-xl: 22px;
+  --leading-ui: 1.3;
+  --leading-copy: 1.5;
+  --leading-code: 1.6;
+
+  /* Shape, control, and layout */
+  --radius: 4px;
+  --radius-sm: calc(var(--radius) - 1px);
+  --radius-dialog: calc(var(--radius) * 2);
+  --control-height: 34px;
+  --compact-row-height: 32px;
+  --content-max-width: 760px;
+
+  /*
+   * Theme palette. light-dark() is supported by the declared Firefox/Chrome
+   * minimums and keeps explicit/system themes on one authoritative value set.
+   * Components consume the semantic roles below, not these palette tokens.
+   */
+  --blue40: light-dark(#45a1ff, #86bdec);
+  --blue50: light-dark(#0a84ff, #5b9fdf);
+  --blue60: light-dark(#0060df, #2f79bc);
+  --blue70: light-dark(#003eaa, #276aa6);
+  --grey20: #ededf0;
+  --grey30: #d7d7db;
+  --grey40: #b1b1b3;
+  --grey50: #737373;
+  --grey60: #4a4a4f;
+  --grey70: #38383d;
+  --grey-90: #0c0c0d;
+  --yellow50: light-dark(#ffe900, #d6a62a);
+  --red50: light-dark(#ff0039, #c5525f);
+  --green60: light-dark(#12bc00, #62b75a);
+  --purple50: light-dark(#9400ff, #765eb8);
+
+  /* Semantic roles shared by every options/reference component. */
+  --color-accent: var(--blue60);
+  --color-accent-active: var(--blue70);
+  --color-focus: var(--blue50);
+  --color-selection: var(--blue50);
+  --color-info: var(--blue50);
+  --color-validation: var(--red50);
+  --color-success: var(--green60);
+  --color-warning: var(--yellow50);
+  --color-on-warning: var(--grey-90);
+  --color-danger: light-dark(#c5002f, #b84f5d);
+  --color-danger-active: light-dark(#a40027, #9f414e);
+  --color-on-accent: #ffffff;
+  --color-border: light-dark(var(--grey30), var(--grey60));
+  --color-control-border: light-dark(#939395, var(--grey50));
+  --color-surface-page: light-dark(#ffffff, #2a2a2e);
+  --color-surface-raised: light-dark(var(--grey20), var(--grey70));
+  --color-surface-floating: var(--color-surface-page);
+  --color-text: light-dark(var(--grey-90), #ffffff);
+  --color-text-muted: light-dark(#66666b, var(--grey40));
+  --badge-bg: light-dark(var(--grey30), var(--grey60));
+  --badge-fg: light-dark(var(--grey-90), #ffffff);
+  --color-kind-other: light-dark(#57606a, #626b75);
+  --color-kind-image: light-dark(#8250df, #7057b5);
+  --color-kind-video: light-dark(#0969da, #2f79bc);
+  --color-kind-audio: light-dark(#b45309, #986020);
+  --color-kind-stream: light-dark(#087f5b, #3f7f62);
+  --color-kind-document: light-dark(#cf222e, #a64b55);
+  --success-fg: light-dark(#087a00, #7bcf6a);
+  --warning-fg: light-dark(#8a5400, #e5b85c);
+  --error-fg: light-dark(#a3122a, #ef9aa5);
+  --error-bg: light-dark(#fdecef, rgba(197, 82, 95, 0.16));
+  --error-border: light-dark(#f1c0ca, rgba(197, 82, 95, 0.48));
+
+  /* Compatibility aliases remain semantic while existing components migrate. */
+  --control-border: var(--color-control-border);
+  --input-background: light-dark(transparent, #474749);
+  --link-color: light-dark(var(--color-accent), #73afe8);
+  --link-color-active: light-dark(var(--color-accent-active), #96c8f5);
+  --page-bg: var(--color-surface-page);
+  --panel-bg: var(--color-surface-raised);
+  --panel-border: var(--color-border);
+  --floating-bg: var(--color-surface-floating);
+  --hover-bg: light-dark(rgba(0, 0, 0, 0.05), rgba(255, 255, 255, 0.07));
+  --hover-bg-strong: light-dark(rgba(0, 0, 0, 0.12), rgba(255, 255, 255, 0.14));
+  --chip-bg: light-dark(rgba(0, 0, 0, 0.06), rgba(255, 255, 255, 0.1));
+  --disabled-control-color: light-dark(var(--grey50), var(--grey40));
+  --app-icon-filter: light-dark(none, brightness(0) invert(1));
+
+  /* Elevation and overlays */
+  --focus-ring: 0 0 0 2px var(--color-focus);
+  --floating-shadow: 0 8px 24px rgba(20, 30, 50, 0.16);
+  --dialog-shadow: 0 16px 48px rgba(0, 0, 0, 0.28);
+  --preview-shadow: 0 2px 4px rgba(20, 30, 50, 0.06), 0 8px 24px rgba(20, 30, 50, 0.08);
+  --backdrop-bg: rgba(0, 0, 0, 0.38);
+  --party-start: #ff4d6d;
+  --party-end: #55d6ff;
+  --party-reduced: #ffcc3d;
+
+  /* Syntax roles */
+  --syntax-comment: light-dark(#68707c, #a7adb8);
+  --syntax-keyword: light-dark(#0759a5, #72b7ff);
+  --syntax-variable: light-dark(#7749aa, #d3a6ff);
+  --syntax-destination: light-dark(#18724a, #78d8a5);
+  --syntax-regex: light-dark(#9a3f17, #ff9b72);
+  --syntax-value: light-dark(#087879, #71d6d2);
+  --syntax-punctuation: light-dark(#68707c, #a7adb8);
+  --syntax-error: light-dark(#c9253d, #ff788b);
+  --syntax-warning: light-dark(#9a6200, #f0bd62);
+  --syntax-gutter-bg: light-dark(#f4f6f8, #323237);
+  --syntax-error-soft: light-dark(rgba(201, 37, 61, 0.09), rgba(255, 120, 139, 0.12));
+  --syntax-warning-soft: light-dark(rgba(154, 98, 0, 0.1), rgba(240, 189, 98, 0.12));
+
+  color-scheme: light dark;
+}
+
+:root[data-theme="light"] {
+  color-scheme: only light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: only dark;
+}

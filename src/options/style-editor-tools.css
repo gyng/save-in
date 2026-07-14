@@ -1,0 +1,765 @@
+.tab-panel input[type="search"],
+.tab-panel input[type="text"],
+.tab-panel select,
+.variables-preview-list,
+.history-columns-menu {
+  border-radius: var(--radius);
+}
+
+.history-export-menu,
+.history-more-menu {
+  position: relative;
+  margin: 0;
+}
+
+.menu-trigger {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--control-height);
+  box-sizing: border-box;
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  font-size: var(--text-base);
+  font-weight: 500;
+  line-height: 1;
+  list-style: none;
+}
+
+.menu-trigger::-webkit-details-marker {
+  display: none;
+}
+
+.history-export-options,
+.history-more-options {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + var(--space-1));
+  right: 0;
+  display: grid;
+  min-width: 180px;
+  padding: var(--space-1);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  background: var(--floating-bg);
+  box-shadow: var(--floating-shadow);
+}
+
+.history-export-options button {
+  border: 0;
+  text-align: left;
+}
+
+.history-more-options button {
+  white-space: nowrap;
+}
+
+.rule-template-category + .rule-template-category {
+  margin-top: var(--space-5);
+}
+
+.rule-template-category > h3 {
+  margin: 0 0 var(--space-2);
+}
+
+.rule-template-category-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  gap: var(--space-3);
+}
+
+.rule-template {
+  display: flex;
+  align-items: flex-start;
+  min-width: 0;
+  overflow: hidden;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+}
+
+.rule-template-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.rule-template-rule {
+  display: block;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  margin: 2px 0 0;
+  padding: 0;
+  border: 0;
+  color: var(--color-text-muted);
+  background: none;
+  font-size: var(--text-sm);
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+.template-feedback {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 var(--space-4) var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius);
+  color: var(--success-fg);
+  background: color-mix(in srgb, var(--color-success) 10%, transparent);
+}
+
+.template-feedback[hidden] {
+  display: none;
+}
+
+.template-feedback button {
+  margin-left: auto;
+  padding: var(--space-1) var(--space-2);
+}
+
+.rule-template-name {
+  font-weight: 600;
+  font-size: var(--text-base);
+}
+
+.rule-template-desc {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.rule-template-add {
+  flex: none;
+  min-width: 60px;
+  padding: 4px 10px;
+}
+
+.inline-template-library {
+  display: grid;
+  gap: var(--space-2);
+  margin: var(--space-2) 0 0;
+}
+
+.inline-template-library > .editor-field-label {
+  margin: 0;
+}
+
+.inline-template-picker {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.inline-template-picker .rule-template-filter {
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  margin: 0;
+}
+
+.rule-template-typeahead-add {
+  min-width: 60px;
+}
+
+.inline-template-library .template-feedback {
+  margin: 0;
+}
+
+.reference-dialog {
+  width: min(1000px, calc(100vw - 2 * var(--space-5)));
+  height: min(760px, calc(100vh - 2 * var(--space-5)));
+  padding: 0;
+  overflow: hidden;
+}
+
+.reference-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.reference-dialog-tabs {
+  display: flex;
+  gap: var(--space-1);
+  padding: 0 var(--space-4);
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.reference-dialog-filter-label {
+  display: block;
+  padding: var(--space-3) var(--space-4) 0;
+}
+
+.reference-dialog-filter-label .reference-dialog-filter {
+  width: min(28rem, 100%);
+  max-width: none;
+  box-sizing: border-box;
+  padding: var(--space-2) var(--space-3);
+}
+
+.reference-dialog-body {
+  height: calc(100% - 144px);
+  box-sizing: border-box;
+  overflow: auto;
+  padding: 0 var(--space-4) var(--space-4);
+}
+
+.reference-dialog .options-reference-panel {
+  max-width: none;
+  margin: 0;
+  padding: var(--space-4) 0 0;
+}
+
+button:disabled {
+  opacity: 0.55;
+}
+
+.notification-options,
+.shortcut-file-options {
+  display: grid;
+  gap: var(--space-3);
+  max-width: 48rem;
+}
+
+.tab-panel .notification-options,
+.tab-panel .shortcut-file-options {
+  margin-top: var(--space-3);
+}
+
+.option-choice-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-2);
+}
+
+.option-choice-grid > label {
+  min-width: 0;
+  margin: 0;
+}
+
+.option-subcontrol {
+  display: grid;
+  grid-template-columns: max-content minmax(10rem, max-content) minmax(12rem, 1fr);
+  align-items: baseline;
+  gap: var(--space-2) var(--space-3);
+}
+
+.option-subcontrol > label {
+  margin: 0;
+  font-weight: 600;
+}
+
+.option-subcontrol.is-disabled {
+  opacity: 0.55;
+}
+
+.unit-control {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-1);
+}
+
+.unit-control input {
+  width: 7rem;
+}
+
+.shortcut-format-control {
+  padding-top: 0;
+  border-top: 0;
+}
+
+#shortcut-format-preview {
+  color: var(--color-text-muted);
+}
+
+.option-subgroup {
+  margin-top: var(--space-2);
+}
+
+.option-subgroup > h3 {
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-base);
+}
+
+#click-to-save-warning {
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 760px) {
+  .option-subcontrol {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Compact Text/Visual tab-list layout; the tab atom is shared above. */
+.editor-tabs {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-1);
+  width: 100%;
+  margin: var(--space-3) 0;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.editor-actions {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.editor-actions > *,
+.visual-editor-toolbar > *,
+.editor-save-actions > * {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.discard-button {
+  padding-inline: var(--space-4);
+  color: var(--color-text);
+}
+
+/* Supporting actions stay left; Discard and Apply move as one unit. */
+.editor-save-actions {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  gap: var(--space-2);
+  margin-left: auto;
+}
+
+/* Reference links that sit inline in editor toolbars. */
+.toolbar-link {
+  font-size: var(--text-base);
+  white-space: nowrap;
+}
+
+.button-primary,
+.apply-button {
+  padding-inline: var(--space-5);
+  font-weight: 500;
+  color: var(--color-on-accent);
+  background-color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.button-primary:hover,
+.apply-button:hover {
+  background-color: var(--color-accent-active);
+  border-color: var(--color-accent-active);
+}
+
+.button-primary:disabled,
+.apply-button:disabled {
+  color: var(--color-text-muted);
+  background-color: transparent;
+  border-color: var(--color-border);
+  opacity: 1;
+}
+
+.discard-button:not(:disabled):hover {
+  color: var(--error-fg);
+  border-color: var(--color-validation);
+  background-color: transparent;
+}
+
+.discard-button:disabled {
+  opacity: 1;
+  color: var(--color-text-muted);
+  border-color: var(--color-border);
+}
+
+.visual-editor-handle {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  color: var(--color-text-muted);
+  cursor: grab;
+  user-select: none;
+  border: 0;
+  background: transparent;
+}
+
+.path-editor-row:hover .path-editor-handle,
+.path-editor-row:focus-within .path-editor-handle {
+  color: var(--color-text);
+}
+
+.visual-editor-handle:active {
+  cursor: grabbing;
+}
+
+/* Briefly highlight a row jumped to from the menu preview */
+@keyframes path-editor-flash {
+  from {
+    background-color: color-mix(in srgb, var(--color-selection) 35%, transparent);
+  }
+  to {
+    background-color: transparent;
+  }
+}
+
+.path-editor-row-flash {
+  animation: path-editor-flash 1.2s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .path-editor-row-flash {
+    animation: none;
+    outline: 2px solid var(--link-color);
+  }
+}
+
+.path-editor-drop-indicator {
+  position: absolute;
+  z-index: 1;
+  right: 6px;
+  bottom: -11px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  font-size: var(--text-sm);
+  line-height: 16px;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.path-editor-row.dragging {
+  opacity: 0.5;
+}
+
+.path-editor-row.drag-before {
+  box-shadow: 0 -2px 0 var(--color-selection);
+}
+
+.path-editor-row.drag-after {
+  box-shadow: 0 2px 0 var(--color-selection);
+}
+
+.path-editor-row.drag-inside {
+  outline: 2px solid var(--color-selection);
+  background-color: color-mix(in srgb, var(--color-selection) 14%, var(--page-bg));
+}
+
+.path-editor-row.drag-inside .path-editor-drop-indicator {
+  top: 50%;
+  bottom: auto;
+  transform: translateY(-50%);
+}
+
+.path-editor-row.drag-before .path-editor-drop-indicator {
+  top: -9px;
+  bottom: auto;
+}
+
+.visual-editor-toolbar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: 0;
+}
+
+.path-editor-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  border-radius: var(--radius);
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent 0,
+    transparent 19px,
+    color-mix(in srgb, var(--panel-border) 60%, transparent) 19px,
+    color-mix(in srgb, var(--panel-border) 60%, transparent) 20px
+  );
+  background-size: calc(var(--row-depth) * 20px) 100%;
+  background-repeat: no-repeat;
+}
+
+.path-editor-alias-toggle {
+  flex: none;
+  padding: 3px 6px;
+  font-size: var(--text-base);
+  line-height: 1.2;
+}
+
+.path-editor-help {
+  margin-top: var(--space-2);
+}
+
+.path-editor-help p {
+  margin: 2px 0;
+  font-size: inherit;
+  line-height: 1.35;
+}
+
+.path-editor-row:hover {
+  background-color: var(--hover-bg);
+}
+
+.path-editor-row.is-preview-selected {
+  border-color: color-mix(in srgb, var(--color-selection) 58%, var(--panel-border));
+  background: color-mix(in srgb, var(--color-selection) 7%, var(--page-bg));
+  box-shadow: inset 3px 0 0 var(--color-selection);
+}
+
+.path-editor-indent {
+  flex: none;
+  align-self: stretch;
+}
+
+.path-editor-dir {
+  flex: 1 1 auto;
+  /* Let the input shrink below its intrinsic width so the row (5 fixed control
+     buttons + handle) doesn't overflow a narrow editor column */
+  min-width: 0;
+}
+
+.path-editor-alias {
+  flex: 0 0 0;
+  width: 0;
+  min-width: 0;
+  padding-right: 0;
+  padding-left: 0;
+  border-right-width: 0;
+  border-left-width: 0;
+  opacity: 0;
+  transition:
+    flex-basis 90ms ease-out,
+    width 90ms ease-out,
+    padding 90ms ease-out,
+    opacity 70ms ease-out;
+}
+
+.path-editor-alias.is-open {
+  flex: 0 1 130px;
+  width: 130px;
+  padding-right: 5px;
+  padding-left: 5px;
+  border-right-width: 1px;
+  border-left-width: 1px;
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .path-editor-alias {
+    transition: none;
+  }
+}
+
+.tab-panel .path-editor-row input[type="text"] {
+  max-width: none;
+}
+
+/* Render a separator row as a centred label on a hairline rule */
+.path-editor-separator {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  user-select: none;
+}
+
+.path-editor-separator::before,
+.path-editor-separator::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background-color: var(--panel-border);
+}
+
+/* Row controls read as quiet icon buttons, not full boxed buttons */
+.visual-editor-control {
+  min-width: 24px;
+  padding: 4px 6px;
+  font-size: var(--text-xs);
+  line-height: 1;
+  border: none;
+  background-color: transparent;
+  color: var(--color-text-muted);
+  border-radius: 3px;
+  opacity: 0.75;
+}
+
+.visual-editor-control:hover {
+  background-color: var(--hover-bg);
+  color: inherit;
+  opacity: 1;
+}
+
+.visual-editor-row-actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 1px;
+  margin-left: auto;
+}
+
+.visual-editor-control:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+.path-editor-undo {
+  margin-top: var(--space-1);
+}
+
+.tab-heading-hidden {
+  display: none;
+}
+
+/* Live context-menu tree preview (below the paths textarea) */
+.menu-preview {
+  margin-top: var(--space-2);
+}
+
+.menu-preview-tree ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* Reads like a real context menu: floating panel with a soft shadow and
+   rounded, highlight-on-hover rows */
+.menu-preview-tree > ul {
+  display: inline-block;
+  min-width: 220px;
+  max-width: 100%;
+  padding: var(--space-1);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  background-color: var(--page-bg);
+  box-shadow: var(--preview-shadow);
+  font-size: var(--text-base);
+}
+
+/* Nested submenus indent with a faint guide line */
+.menu-preview-tree li ul {
+  margin: 2px 0 2px var(--space-3);
+  padding-left: var(--space-2);
+  border-left: 1px solid var(--panel-border);
+}
+
+.menu-preview-tree li ul:empty {
+  display: none;
+}
+
+.menu-preview-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  padding: 4px var(--space-2);
+  border-radius: var(--radius);
+  cursor: default;
+}
+
+/* Rows that jump to their editor line are clickable */
+.menu-preview-row[role="button"] {
+  cursor: pointer;
+}
+
+.menu-preview-row[role="button"]:hover {
+  background-color: var(--panel-bg);
+}
+
+.menu-preview-row[role="button"]:focus-visible {
+  outline: 2px solid var(--link-color);
+  outline-offset: -1px;
+}
+
+.menu-preview-row.is-source-selected {
+  color: var(--color-text);
+  background: color-mix(in srgb, var(--color-selection) 14%, var(--page-bg));
+  box-shadow: inset 3px 0 0 var(--color-selection);
+}
+
+.menu-preview-separator.is-source-selected {
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--color-selection) 10%, var(--page-bg));
+  box-shadow: inset 3px 0 0 var(--color-selection);
+}
+
+.menu-preview-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.menu-preview-dir {
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.menu-preview-lastused .menu-preview-title {
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.menu-preview-separator hr {
+  /* Base hr is width: 100%, which overflows once side margins apply */
+  width: auto;
+  margin: var(--space-1);
+  border: none;
+  border-top: 1px solid var(--panel-border);
+  background: none;
+}
+
+/* Invalid path: a red, clickable row (jumps to the editor); the full message is
+   the row's tooltip */
+.menu-preview-error > .menu-preview-row {
+  gap: var(--space-1);
+  color: var(--error-fg);
+  background-color: var(--error-bg);
+  cursor: pointer;
+}
+
+.menu-preview-error > .menu-preview-row::before {
+  content: "";
+  flex: none;
+  align-self: center;
+  width: 13px;
+  height: 13px;
+  background-color: var(--color-validation);
+  -webkit-mask: url(i/warning-16.svg) center / contain no-repeat;
+  mask: url(i/warning-16.svg) center / contain no-repeat;
+}
+
+.menu-preview-error > .menu-preview-row:hover {
+  outline: 1px solid var(--error-border);
+}
+
+.menu-preview-error .menu-preview-title {
+  color: var(--error-fg);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.menu-preview-error:focus-visible {
+  outline: 2px solid var(--color-validation);
+  outline-offset: 1px;
+  border-radius: var(--radius);
+}

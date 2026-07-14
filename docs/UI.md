@@ -4,11 +4,21 @@ Save In uses a refined native-utility interface: compact enough for browser
 settings and in-page tools, but calm, legible, and explicit about state. New UI
 must extend this system rather than introduce a separate visual language.
 
-The options and reference surfaces are styled by `src/options/style.css` and
-`src/options/reference.css`; feature-owned layout such as the first-run welcome
-flow may live beside them, but must consume the same tokens and atoms. The Page
-Sources drawer runs in a shadow root, so it owns a compact copy of the semantic
-color contract while deliberately using smaller density tokens.
+The options and reference surfaces load the ordered cascade declared by
+`src/options/style.css`. Tokens, base rules, shell, components, editor features,
+Advanced, History, responsive overrides, and utilities live in matching
+`style-*.css` ownership files. Page-specific entry sheets import `reference.css`
+and the first-run welcome flow into their declared layers, so they consume the
+same tokens, atoms, and precedence contract. The Page Sources drawer runs in a
+shadow root, so it owns a compact copy of the semantic color contract while
+deliberately using smaller density tokens.
+
+Cascade layers are the supported ownership boundary for the declared Firefox
+121 and Chrome 123 minimums. Keep selectors local to their feature file and put
+cross-feature precedence in the layer order instead of escalating specificity.
+CSS `@scope` is a future simplification for component-local element selectors,
+but it must not carry essential styling until the minimum Firefox version is
+deliberately raised to a release that supports it.
 
 ## Hierarchy
 
@@ -82,6 +92,17 @@ or feedback.
 - Route debugger is a plain testing workflow: heading and Run test, result,
   variables, and rule explanation. It should not introduce a competing card
   system.
+- Route debugger variables use one two-column field rhythm, collapsing to one
+  column at narrow widths. Every field owns one column, labels sit above
+  equal-height controls, and inputs fill their column instead of inheriting
+  generic width caps.
+- Visual routing cards keep the stable rule number and expose the optional rule
+  name as a quiet inline field. Names remain leading `//` comments in rule text
+  so imports, exports, Text mode, and older profiles keep one routing grammar.
+- Long routing vocabularies use compact typeahead controls instead of expanded
+  lists. Matcher suggestions are alphabetical, destination fields complete
+  variables at the caret, and the inline template picker keeps detailed cards
+  in the reference dialog rather than stretching the routing workspace.
 - Page Sources settings describe the real drawer. Its static preview must expose
   the same header actions and vocabulary as the shipped drawer.
 - History is a dense data organism. Filters, menu triggers, statuses, table, and

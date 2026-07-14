@@ -1,0 +1,482 @@
+/* ── In-tab hierarchy: subsection headings get vertical rhythm ─────── */
+
+/* h3 subsections within a panel are separated from the block above; the
+   first one (right after the hidden section h2) sits flush to the tab bar */
+.tab-panel h3 {
+  margin-top: var(--space-6);
+}
+
+.tab-heading-hidden + h3,
+.tab-panel > h3:first-child,
+.tab-panel > .column > h3:first-child {
+  margin-top: 0;
+}
+
+/* Dynamic tab: the last-download routing test stays in the left column
+   (aligned with the rules editor) instead of spanning the wide column */
+.last-download-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  width: 100%;
+  max-width: none;
+}
+
+.last-download-row .last-download-info,
+.last-download-row .last-download-table {
+  width: 100%;
+}
+
+/* Host-permission banner (permissions-banner.js): shown only when <all_urls> is
+   missing, so click-to-save and the Referer feature would silently fail */
+.host-permission-banner {
+  margin: 0 0 var(--space-4);
+}
+
+.host-permission-text {
+  flex: 1;
+}
+
+.host-permission-grant {
+  flex: none;
+  cursor: pointer;
+}
+
+@media (max-width: 640px) {
+  .top-nav {
+    align-items: flex-start;
+    padding-inline: var(--space-3);
+  }
+
+  .save-status {
+    white-space: normal;
+  }
+
+  .top-nav-tools {
+    width: 100%;
+    flex-wrap: wrap;
+    margin-left: 0;
+  }
+
+  .option-search {
+    order: 10;
+    flex-basis: 100%;
+    width: 100%;
+    margin: var(--space-1) 0 0;
+  }
+
+  .reference-launcher-actions {
+    order: 9;
+    max-width: 100%;
+    margin-left: 0;
+    overflow-x: auto;
+  }
+
+  .reference-dialog {
+    width: calc(100vw - 2 * var(--space-3));
+    height: calc(100vh - 2 * var(--space-3));
+  }
+
+  .nav-resources-menu {
+    right: 0;
+    left: auto;
+    max-width: calc(100vw - 2 * var(--space-3));
+  }
+
+  #options {
+    padding-inline: var(--space-3);
+  }
+
+  .tablist {
+    width: calc(100% + 2 * var(--space-3));
+    margin-inline: calc(-1 * var(--space-3));
+    padding-inline: var(--space-3);
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: thin;
+  }
+
+  .tablist .tab {
+    flex: 0 0 auto;
+  }
+
+  .tablist::-webkit-scrollbar {
+    height: var(--space-1);
+  }
+
+  .tablist::-webkit-scrollbar-thumb {
+    border-radius: var(--radius);
+    background: var(--color-control-border);
+  }
+
+  .advanced-section {
+    scroll-margin-top: calc(var(--control-height) + var(--space-4));
+  }
+
+  .advanced-section-nav {
+    column-gap: var(--space-3);
+  }
+
+  .fetch-credentials-option {
+    margin-left: var(--space-2);
+    padding-left: var(--space-2);
+  }
+
+  .counter-control .dev-api-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .counter-control .dev-api-label {
+    grid-column: 1 / -1;
+  }
+
+  .tab-panel .counter-control #counter-value {
+    width: 100%;
+    max-width: none;
+  }
+
+  #history-list {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  .history-table {
+    min-width: 760px;
+  }
+
+  .history-facet {
+    flex: 1 1 10rem;
+    align-items: center;
+  }
+
+  .history-facet select {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .history-query-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .history-query-row .history-filter {
+    flex-basis: auto;
+    width: 100%;
+    max-width: none;
+  }
+
+  .history-table-tools {
+    flex-wrap: wrap;
+  }
+
+  .history-custom-date-range input[type="date"] {
+    flex: 1 1 10rem;
+  }
+
+  .editor-actions,
+  .visual-editor-toolbar {
+    flex-wrap: wrap;
+  }
+
+  .rule-clause-row,
+  .rule-clause-capture,
+  .rule-clause-destination {
+    grid-template-columns: 28px minmax(0, 1fr) auto;
+  }
+
+  .rule-clause-row .rule-clause-marker {
+    align-self: start;
+    grid-column: 1;
+    grid-row: 1;
+    margin-top: 4px;
+  }
+
+  .rule-clause-row .rule-clause-name,
+  .rule-clause-row .rule-clause-fixed-name {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .rule-clause-value {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .rule-clause-row .rule-clause-flag {
+    grid-column: 3;
+    grid-row: 2;
+  }
+
+  .rule-clause-row [data-rule-action="delete-clause"] {
+    grid-column: 3;
+    grid-row: 1;
+  }
+}
+
+.source-panel-intro {
+  max-width: 72ch;
+  margin: 0;
+}
+
+@media (max-width: 640px) {
+  .paths-editor {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .paths-editor .preview-column,
+  .rules-editor .preview-column {
+    position: static;
+    max-height: none;
+  }
+
+  .source-panel-overview {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.source-panel-intro .section-lead {
+  margin: 0 0 var(--space-2);
+}
+
+.source-panel-intro .section-note {
+  margin: 0;
+  color: var(--color-text-muted);
+  line-height: 1.45;
+}
+
+.source-panel-settings,
+.source-shortcut-settings {
+  margin-top: var(--space-5);
+}
+
+.option-group-heading {
+  margin-bottom: var(--space-2);
+  color: var(--color-text);
+  font-size: var(--text-base);
+  font-weight: 600;
+}
+
+.source-shortcut-controls {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.source-shortcut-controls > label {
+  margin: 0;
+}
+
+.source-shortcut-controls select,
+.source-shortcut-controls input[type="text"] {
+  min-height: var(--control-height);
+  box-sizing: border-box;
+}
+
+.source-shortcut-controls button,
+.click-to-save-controls button,
+.history-query-row .history-filter,
+.history-facets button,
+.history-table-tools summary {
+  min-height: var(--control-height);
+  box-sizing: border-box;
+  padding-block: var(--space-1);
+}
+
+.history-feedback:not(:empty) {
+  margin: var(--space-2) 0;
+}
+
+.history-feedback button {
+  margin-left: var(--space-2);
+}
+
+.source-shortcut-settings .source-shortcut-controls select {
+  width: auto;
+  min-width: 7.5rem;
+}
+
+.source-shortcut-controls #sourcePanelShortcutKey {
+  width: 7rem;
+  max-width: 7rem;
+}
+
+.shortcut-plus {
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+#sourcePanelShortcutStatus:not(:empty),
+#clickToSaveStatus:not(:empty) {
+  flex-basis: 100%;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.source-shortcut-settings > .caption-line {
+  max-width: 68ch;
+  color: var(--color-text-muted);
+  line-height: 1.4;
+}
+
+.source-automation {
+  margin-top: var(--space-6);
+  margin-bottom: var(--space-6);
+}
+
+.auto-download-options {
+  display: grid;
+  gap: var(--space-3);
+  max-width: 48rem;
+  margin-top: var(--space-3);
+}
+
+.auto-download-master {
+  margin: 0;
+  font-weight: 600;
+}
+
+.dependent-options {
+  display: grid;
+  gap: var(--space-3);
+  margin-left: var(--space-4);
+  transition: opacity 120ms ease;
+}
+
+.auto-download-options:has(#autoDownloadEnabled:not(:checked)) .auto-download-dependent,
+.browser-download-filter-group:has(#browserDownloadFiltersEnabled:not(:checked))
+  .browser-download-filter-options {
+  opacity: 0.55;
+}
+
+@media (max-width: 640px) {
+  .dependent-options {
+    margin-left: var(--space-2);
+  }
+}
+
+.auto-download-limit {
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--panel-border);
+}
+
+.auto-download-limit input {
+  width: 7rem;
+  box-sizing: border-box;
+}
+
+.auto-download-limit-help {
+  grid-column: 1 / -1;
+}
+
+.auto-download-rules {
+  max-width: 48rem;
+  margin-top: var(--space-5);
+}
+
+.auto-download-rules h4,
+.auto-download-routing-help {
+  max-width: 68ch;
+}
+
+.auto-download-routing-help {
+  margin: 0 0 var(--space-3);
+  border-left: 3px solid var(--color-info);
+  color: var(--color-text-muted);
+  line-height: 1.45;
+}
+
+[data-manual="true"] {
+  display: block;
+  margin-bottom: 0;
+}
+
+#path-editor-rows {
+  margin-bottom: var(--space-4);
+}
+
+.editor-action-help {
+  flex: 1 1 7rem;
+  min-width: 6rem;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  line-height: 1.35;
+}
+
+.editor-reference-links {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.variables-preview-filter {
+  display: block;
+  width: calc(100% - 2 * var(--space-2));
+  max-width: none;
+  box-sizing: border-box;
+  margin: var(--space-2);
+}
+
+.clause-preview {
+  margin: 0;
+}
+
+.reference-sections {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.clause-preview-filter {
+  width: calc(100% - 2 * var(--space-2));
+  max-width: none;
+  box-sizing: border-box;
+  margin: var(--space-2);
+}
+
+.clause-preview-description {
+  font-family: inherit;
+}
+
+:is(.unsaved-changes-dialog, .reset-settings-dialog) {
+  width: min(420px, calc(100vw - 2 * var(--space-5)));
+  padding: var(--space-5);
+}
+
+:is(.unsaved-changes-dialog, .reset-settings-dialog) h2 {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-lg);
+  font-weight: 600;
+}
+
+:is(.unsaved-changes-dialog, .reset-settings-dialog) p {
+  margin: 0 0 var(--space-5);
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.button-danger,
+.danger-button {
+  color: var(--color-on-accent);
+  border-color: var(--color-danger);
+  background: var(--color-danger);
+}
+
+.button-danger:hover,
+.button-danger:active,
+.danger-button:hover,
+.danger-button:active {
+  border-color: var(--color-danger-active);
+  background: var(--color-danger-active);
+}

@@ -1,0 +1,134 @@
+a {
+  cursor: pointer;
+  color: var(--link-color);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+a:active {
+  color: var(--link-color-active);
+}
+
+a.external {
+  padding-right: calc(16px + var(--space-1));
+  background-image: url(i/open-in-new-16.svg);
+  background-size: 16px 16px;
+  background-position: right center;
+  background-repeat: no-repeat;
+}
+
+html {
+  font-family: var(--font-stack);
+  font-size: var(--text-base);
+  line-height: var(--leading-ui);
+  min-width: 400px;
+  min-height: 1%; /* Firefox options page height hack */
+  /* Always reserve the vertical scrollbar gutter so switching between
+     short and tall tabs does not shift the layout horizontally */
+  scrollbar-gutter: stable;
+  overflow-y: scroll;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: var(--color-text);
+}
+
+input:disabled,
+textarea:disabled,
+select:disabled,
+button:disabled {
+  color: var(--disabled-control-color);
+}
+
+/* Shared form-control atom. Feature sections only add layout and intent. */
+input[type="text"]:focus-visible,
+input[type="number"]:focus-visible,
+input[type="search"]:focus-visible,
+input[type="date"]:focus-visible,
+input[type="datetime-local"]:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+button:focus-visible {
+  outline: none;
+  border-color: var(--color-focus);
+  box-shadow: var(--focus-ring);
+}
+
+input[type="text"],
+input[type="number"],
+input[type="search"],
+input[type="date"],
+input[type="datetime-local"],
+select {
+  min-height: var(--control-height);
+  box-sizing: border-box;
+  padding: var(--space-1) var(--space-2);
+  background-color: var(--input-background);
+  font-size: var(--text-base);
+}
+
+input[type="text"],
+input[type="number"],
+input[type="search"],
+input[type="date"],
+input[type="datetime-local"],
+textarea,
+select {
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius);
+  transition:
+    box-shadow 0.12s ease,
+    border-color 0.12s ease;
+}
+
+textarea {
+  margin: var(--space-2) 0;
+  padding: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-base);
+}
+
+td {
+  padding: 0 var(--space-2);
+  line-height: var(--leading-code);
+}
+
+/* Shared button atom. Compact and icon controls explicitly override this box. */
+button,
+.button {
+  min-height: var(--control-height);
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius);
+  background-color: transparent;
+  font-size: var(--text-base);
+  font-weight: 400;
+  cursor: pointer;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
+  transition:
+    background-color 0.12s ease,
+    box-shadow 0.12s ease;
+}
+
+button:hover,
+.button:hover {
+  background-color: var(--hover-bg);
+}
+
+button:active,
+.button:active {
+  background-color: var(--hover-bg-strong);
+}
+
+button:disabled:hover {
+  background-color: transparent;
+}

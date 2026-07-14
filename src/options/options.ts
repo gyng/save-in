@@ -101,11 +101,11 @@ const renderVariablesTable = () => {
   if (!latestInterpolatedVariables) {
     return;
   }
-  const tableBody = document.querySelector("#variables-body");
+  const tableBody = document.querySelector<HTMLElement>("#variables-body");
   if (!tableBody) {
     return;
   }
-  tableBody.classList.toggle("hide");
+  tableBody.hidden = !tableBody.hidden;
   tableBody.innerHTML = "";
 
   const variables = latestInterpolatedVariables;
@@ -388,7 +388,8 @@ const updateErrors = () => {
         }
       }
 
-      document.querySelector("#rules-applied-row")?.classList.toggle("hide", !hasLastDownload);
+      const rulesAppliedRow = document.querySelector<HTMLElement>("#rules-applied-row");
+      if (rulesAppliedRow) rulesAppliedRow.hidden = !hasLastDownload;
 
       // Routing result
       if (lastDlMatch) {
@@ -400,7 +401,8 @@ const updateErrors = () => {
 
       // Variables
       if (hasLastDownload) {
-        document.querySelector("#variables-table-row")?.classList.toggle("hide", !hasLastDownload);
+        const variablesTableRow = document.querySelector<HTMLElement>("#variables-table-row");
+        if (variablesTableRow) variablesTableRow.hidden = !hasLastDownload;
       }
       // The #see-variables-btn click handler is bound once below; updateErrors
       // only refreshes the data it reads. Binding here would leak a listener on
@@ -411,7 +413,8 @@ const updateErrors = () => {
       const captures = body.routeInfo.captures;
       const hasCaptureMatches = Array.isArray(captures);
 
-      document.querySelector("#capture-group-rows")?.classList.toggle("hide", !hasCaptureMatches);
+      const captureGroupRows = document.querySelector<HTMLElement>("#capture-group-rows");
+      if (captureGroupRows) captureGroupRows.hidden = !hasCaptureMatches;
 
       if (hasCaptureMatches && lastDlCapture) {
         lastDlCapture.textContent = "";
@@ -556,11 +559,11 @@ const addHelp = (el: Element) => {
       return;
     }
 
-    if (targetEl && !targetEl.classList.contains("show")) {
+    if (targetEl.hidden) {
       el.scrollIntoView();
     }
-    targetEl.classList.toggle("show");
-    el.setAttribute("aria-expanded", targetEl.classList.contains("show") ? "true" : "false");
+    targetEl.hidden = !targetEl.hidden;
+    el.setAttribute("aria-expanded", targetEl.hidden ? "false" : "true");
   });
 };
 

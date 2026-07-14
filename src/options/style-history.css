@@ -1,0 +1,519 @@
+/* ── History tab ──────────────────────────────────────────────────── */
+
+/* History count sits left, the action button right */
+
+.history-table {
+  table-layout: fixed;
+  border-collapse: collapse;
+  width: 100%;
+  margin-top: var(--space-2);
+  font-size: var(--text-base);
+}
+
+.history-facets {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+
+.history-query-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  max-width: none;
+}
+
+.history-query-row .history-filter {
+  flex: 1 1 24rem;
+  max-width: 38rem;
+}
+
+#history-count {
+  min-width: 8rem;
+  min-height: 1.4em;
+  white-space: nowrap;
+}
+
+.history-table-tools {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.history-table-tools > details > summary {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--control-height);
+  box-sizing: border-box;
+  line-height: 1;
+}
+
+.history-clear-filters-inactive {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.history-custom-date-range {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  background: var(--panel-bg);
+}
+
+.history-custom-date-range[hidden] {
+  display: none;
+}
+
+.history-custom-date-range > label,
+#history-custom-date-label {
+  margin: 0;
+  font-size: var(--text-base);
+}
+
+#history-custom-date-label {
+  flex: 1 1 100%;
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.history-date-error {
+  flex: 1 1 100%;
+  color: var(--error-fg);
+  font-size: var(--text-sm);
+}
+
+.history-active-filters {
+  min-height: 1.4em;
+  margin-top: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.history-facet {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.history-facet > label {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-base);
+}
+
+.history-table th {
+  text-align: left;
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+  font-weight: 600;
+  padding: 0 var(--space-3) var(--space-1) 0;
+  border-bottom: 1px solid var(--panel-border);
+  white-space: nowrap;
+}
+
+.history-table th.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.history-table th.sortable:hover {
+  color: var(--link-color);
+}
+
+.history-table th.sorted {
+  color: var(--link-color);
+}
+
+.history-table td {
+  padding: var(--space-2) var(--space-3) var(--space-2) 0;
+  border-bottom: 1px solid var(--panel-border);
+  vertical-align: top;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.history-table .history-empty-row td {
+  height: 7rem;
+  color: var(--color-text-muted);
+  text-align: center;
+  vertical-align: middle;
+  white-space: normal;
+}
+
+.history-empty-message {
+  position: sticky;
+  left: 0;
+  display: block;
+  box-sizing: border-box;
+  width: 100cqw;
+  padding-inline: var(--space-3);
+}
+
+.history-time {
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.history-status {
+  white-space: nowrap;
+}
+
+.history-open {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  margin-left: var(--space-1);
+  border: none;
+  background: none;
+  font-size: var(--text-sm);
+  line-height: 1;
+  vertical-align: middle;
+  opacity: 0.7;
+}
+
+.history-cancel {
+  margin-left: var(--space-1);
+  padding: 2px 6px;
+  border: 1px solid var(--error-border);
+  border-radius: var(--radius-sm);
+  color: var(--error-fg);
+  background: var(--error-bg);
+  font-size: var(--text-sm);
+  line-height: 1.4;
+}
+
+.history-open svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linejoin: round;
+}
+
+.history-columns {
+  position: relative;
+  margin: 0 0 0 auto;
+}
+
+.history-columns-menu {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + var(--space-1));
+  right: 0;
+  display: grid;
+  min-width: 180px;
+  max-height: 320px;
+  overflow-y: auto;
+  padding: var(--space-2);
+  border: 1px solid var(--panel-border);
+  background: var(--floating-bg);
+  box-shadow: var(--floating-shadow);
+}
+
+.history-columns-menu label {
+  padding: var(--space-1) var(--space-2);
+  margin: 0;
+}
+
+.history-index,
+.history-download-id {
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.history-table td.history-variables {
+  white-space: normal;
+}
+
+.history-variable-list {
+  display: grid;
+  gap: 3px;
+  margin: 0;
+}
+
+.history-variable-list > div {
+  display: grid;
+  grid-template-columns: minmax(5rem, auto) minmax(0, 1fr);
+  gap: var(--space-2);
+  align-items: baseline;
+}
+
+.history-variable-list dt,
+.history-variable-list dd {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.history-variable-list dt {
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+
+.history-full-path {
+  overflow: hidden;
+  font-family: var(--font-mono);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.source-panel-overview {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 420px);
+  align-items: start;
+  gap: var(--space-5);
+  margin-bottom: var(--space-5);
+}
+
+.source-panel-demo {
+  width: 100%;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  background: var(--page-bg);
+  box-shadow: var(--floating-shadow);
+}
+
+.source-panel-demo-header,
+.source-panel-demo-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 6px 10px 3px;
+}
+
+.source-panel-demo-header {
+  justify-content: space-between;
+  min-height: var(--control-height);
+  box-sizing: border-box;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.source-panel-demo-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.source-panel-demo-actions > span {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  color: var(--color-text-muted);
+  border-radius: var(--radius-sm);
+}
+
+.source-panel-demo svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.source-panel-demo-search {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: var(--space-2) var(--space-3);
+  min-height: var(--control-height);
+  box-sizing: border-box;
+  padding: 6px 8px;
+  color: var(--color-text-muted);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+}
+
+.source-panel-demo-facets {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 4px;
+  padding: 0 var(--space-3) var(--space-2);
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.source-panel-demo-facets span {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  padding: 2px 6px;
+  border: 1px solid var(--panel-border);
+  border-radius: 999px;
+  font-size: var(--text-sm);
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+.source-panel-demo-facets b {
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.source-panel-demo-facets .active {
+  color: var(--color-on-accent);
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+}
+
+.source-panel-demo-row {
+  min-height: 44px;
+  box-sizing: border-box;
+  padding: 3px 10px;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.source-panel-demo-row:last-child {
+  border-bottom: 0;
+}
+
+.source-panel-demo-details {
+  display: grid;
+  min-width: 0;
+  gap: 1px;
+  line-height: 1.25;
+}
+
+.source-panel-demo-details strong,
+.source-panel-demo-details small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.source-panel-demo-row small {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.source-panel-demo-thumb {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, var(--color-info), var(--color-kind-image));
+}
+
+.video-thumb {
+  color: var(--color-on-accent);
+  background: var(--color-kind-other);
+}
+
+.stream-thumb {
+  color: var(--color-on-accent);
+  background: linear-gradient(135deg, var(--color-kind-image), var(--color-info));
+  font-size: var(--text-lg);
+  font-weight: 700;
+}
+
+.history-open:hover {
+  background: none;
+  opacity: 1;
+}
+
+.history-size {
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.history-type {
+  text-transform: capitalize;
+}
+
+.status-pill,
+.routed-chip {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.routed-chip {
+  color: var(--link-color);
+  background-color: color-mix(in srgb, var(--link-color) 10%, transparent);
+}
+
+/* The history table spans the full tab width (it has many columns); its
+   action row (filter, count, clear) spans the same width so the count and
+   Clear button align flush with the table's right edge */
+.tab-panel > #history-list,
+.tab-panel > .history-query-row,
+.tab-panel > .history-facets,
+.tab-panel > .history-table-tools {
+  max-width: none;
+}
+
+.history-pager {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+
+.history-pager button {
+  padding: 4px 12px;
+}
+
+.history-pager-label {
+  font-variant-numeric: tabular-nums;
+}
+
+.status-badge {
+  padding: 1px 8px;
+}
+
+.status-badge.status-ok {
+  color: var(--success-fg);
+  background-color: color-mix(in srgb, var(--color-success) 14%, transparent);
+}
+
+.status-badge.status-pending {
+  color: var(--color-text-muted);
+  background-color: color-mix(in srgb, var(--color-text-muted) 14%, transparent);
+}
+
+.status-badge.status-fail {
+  color: var(--error-fg);
+  background-color: color-mix(in srgb, var(--color-validation) 12%, transparent);
+  text-transform: capitalize;
+}
+
+.history-file {
+  font-family: var(--font-mono);
+}
+
+.history-folder {
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+}
+
+.history-url a {
+  font-family: var(--font-mono);
+}

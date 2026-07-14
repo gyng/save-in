@@ -26,6 +26,13 @@ Bundle output is bare, scope-hoisted `esm` for background, options, and
 offscreen classic contexts, and `iife` for isolated content and reference-page
 scripts.
 
+Options CSS is rooted at `src/options/style.css`, which declares the supported
+cascade-layer order and imports ownership-oriented `style-*.css` files. Keep
+feature rules with their owner, preserve the declared layer order, and use the
+final utilities layer for cross-feature state such as `[hidden]`. `@scope` is
+documented as a future migration in `docs/UI.md`; do not use it for essential
+styling while Firefox 121 remains supported.
+
 **Build, ship, and browser tests target the staged bundle** in
 `dist/bundled-pkg`. `npm run typecheck` covers source and the TypeScript test
 suite with `exactOptionalPropertyTypes` and `noUncheckedIndexedAccess`.

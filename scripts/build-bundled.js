@@ -35,15 +35,32 @@ const bundleFiles = [
   "reference-page.js",
   "reference-page.js.map",
 ];
+const optionStyleFiles = [
+  "reference.css",
+  "style.css",
+  "style-advanced.css",
+  "style-base.css",
+  "style-components.css",
+  "style-editor-tools.css",
+  "style-history.css",
+  "style-layout.css",
+  "style-overrides.css",
+  "style-reference.css",
+  "style-route-debugger.css",
+  "style-rule-editor.css",
+  "style-shell.css",
+  "style-tokens.css",
+  "style-utilities.css",
+  "style-welcome.css",
+  "welcome-dialog.css",
+];
 const runtimeAssetDirectories = ["src/i18n/generated", "src/options/assets", "src/options/i"];
 const runtimeAssetFiles = [
   "src/offscreen.html",
   "src/options/clauselist.html",
   "src/options/favicon.png",
   "src/options/options.html",
-  "src/options/reference.css",
-  "src/options/style.css",
-  "src/options/welcome-dialog.css",
+  ...optionStyleFiles.map((file) => `src/options/${file}`),
 ];
 
 const stageBundledPackage = () => {

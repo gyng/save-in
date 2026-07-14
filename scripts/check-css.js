@@ -10,9 +10,48 @@ const styles = fs
   .map((entry) => path.join(root, "src", "options", entry.name));
 
 const violations = [];
-const mainStylePath = path.join(root, "src", "options", "style.css");
+const styleEntryPath = path.join(root, "src", "options", "style.css");
+const tokenStylePath = path.join(root, "src", "options", "style-tokens.css");
 const sourcePanelPath = path.join(root, "src", "content", "source-panel.ts");
 const sourcePanelStylePath = path.join(root, "src", "content", "source-panel-style.ts");
+/** @type {Array<[string, string[]]>} */
+const styleLayers = [
+  ["tokens", ["style-tokens.css"]],
+  ["base", ["style-base.css"]],
+  ["shell", ["style-shell.css"]],
+  ["components", ["style-components.css"]],
+  ["layout", ["style-layout.css"]],
+  ["editors", ["style-rule-editor.css", "style-route-debugger.css", "style-editor-tools.css"]],
+  ["advanced", ["style-advanced.css"]],
+  ["history", ["style-history.css"]],
+  ["welcome", []],
+  ["reference", []],
+  ["overrides", ["style-overrides.css"]],
+  ["utilities", ["style-utilities.css"]],
+];
+const styleEntry = fs.readFileSync(styleEntryPath, "utf8");
+const layerNames = styleLayers.map(([layer]) => layer);
+const expectedStyleEntry = `${[
+  `@layer ${layerNames.join(", ")};`,
+  ...styleLayers.flatMap(([layer, files]) =>
+    files.map((file) => `@import url("${file}") layer(${layer});`),
+  ),
+].join("\n")}\n`;
+if (styleEntry !== expectedStyleEntry) {
+  violations.push("src/options/style.css must preserve the declared ownership layer order");
+}
+
+/** @type {Array<[string, string, string]>} */
+const pageStyleLayers = [
+  ["style-welcome.css", "welcome-dialog.css", "welcome"],
+  ["style-reference.css", "reference.css", "reference"],
+];
+for (const [entry, file, layer] of pageStyleLayers) {
+  const source = fs.readFileSync(path.join(root, "src", "options", entry), "utf8");
+  if (source !== `@import url("${file}") layer(${layer});\n`) {
+    violations.push(`src/options/${entry} must import ${file} into the ${layer} layer`);
+  }
+}
 
 const definitions = new Set();
 const uses = new Map();
@@ -57,25 +96,35 @@ for (const file of styles) {
   }
 }
 
-const mainStyle = fs.readFileSync(mainStylePath, "utf8");
-const rootTokenBoundary = mainStyle.indexOf("\n}");
+const tokenStyle = fs.readFileSync(tokenStylePath, "utf8");
+const rootTokenBoundary = tokenStyle.indexOf("\n}");
 for (const file of styles) {
   const source = fs.readFileSync(file, "utf8");
   const relative = path.relative(root, file);
   for (const match of source.matchAll(/#[0-9a-f]{3,8}\b|rgba?\(/gi)) {
-    if (file === mainStylePath && match.index < rootTokenBoundary) continue;
+    if (file === tokenStylePath && match.index < rootTokenBoundary) continue;
     const line = source.slice(0, match.index).split("\n").length;
     violations.push(`${relative}:${line} uses a raw color outside the root token palette`);
   }
-}
+  const componentStart = file === tokenStylePath ? rootTokenBoundary + 2 : 0;
+  const componentStyles = source.slice(componentStart);
+  for (const match of componentStyles.matchAll(
+    /var\(--(?:blue|grey|red|green|yellow|purple)[\w-]*/g,
+  )) {
+    const index = componentStart + match.index;
+    const line = source.slice(0, index).split("\n").length;
+    violations.push(`${relative}:${line} consumes a palette token directly`);
+  }
 
-const componentStyles = mainStyle.slice(rootTokenBoundary + 2);
-for (const match of componentStyles.matchAll(
-  /var\(--(?:blue|grey|red|green|yellow|purple)[\w-]*/g,
-)) {
-  const index = rootTokenBoundary + 2 + match.index;
-  const line = mainStyle.slice(0, index).split("\n").length;
-  violations.push(`src/options/style.css:${line} consumes a palette token directly`);
+  if (/biome-ignore-all\s+lint\/style\/noDescendingSpecificity/.test(source)) {
+    violations.push(`${relative} suppresses the stylesheet-wide specificity contract`);
+  }
+  if (/(?:^|[}\s,])\.(?:hide|show)(?:[\s,{:.#]|$)/m.test(source)) {
+    violations.push(`${relative} uses presentation-only hide/show classes; use hidden state`);
+  }
+  if (/@scope\b/.test(source)) {
+    violations.push(`${relative} uses @scope before the declared Firefox minimum supports it`);
+  }
 }
 
 const allowedBreakpoints = new Set([520, 640, 760]);
@@ -138,7 +187,9 @@ const sharedSemanticRoles = [
   "--color-kind-document",
 ];
 for (const role of sharedSemanticRoles) {
-  if (!mainStyle.includes(`${role}:`)) violations.push(`src/options/style.css is missing ${role}`);
+  if (!tokenStyle.includes(`${role}:`)) {
+    violations.push(`src/options/style-tokens.css is missing ${role}`);
+  }
   if (!sourcePanelStyle.includes(`${role}:`)) {
     violations.push(`src/content/source-panel-style.ts is missing shared role ${role}`);
   }

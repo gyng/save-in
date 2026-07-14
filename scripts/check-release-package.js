@@ -254,9 +254,27 @@ for (const name of [
   "options.js",
   "offscreen.js",
   "src/options/options.html",
+  "src/options/style.css",
+  "src/options/style-reference.css",
+  "src/options/style-welcome.css",
   "src/options/welcome-dialog.css",
 ]) {
   check(fs.existsSync(path.join(stageRoot, name)), `staged package is missing ${name}`);
+}
+const stagedOptionsRoot = path.join(stageRoot, "src/options");
+const stagedStyles = fs.existsSync(stagedOptionsRoot)
+  ? fs.readdirSync(stagedOptionsRoot).filter((name) => name.endsWith(".css"))
+  : [];
+for (const style of stagedStyles) {
+  const source = fs.readFileSync(path.join(stagedOptionsRoot, style), "utf8");
+  for (const match of source.matchAll(/@import url\("([^"]+\.css)"\)/g)) {
+    const importedStyle = match[1];
+    if (!importedStyle) continue;
+    check(
+      fs.existsSync(path.join(stagedOptionsRoot, importedStyle)),
+      `staged package is missing ${style} import ${importedStyle}`,
+    );
+  }
 }
 const firefoxBackground = fs.existsSync(path.join(stageRoot, "background.js"))
   ? fs.readFileSync(path.join(stageRoot, "background.js"), "utf8")

@@ -4,8 +4,8 @@
     <meta charset="utf-8" />
     <title>__MSG_html_settingsSaveIn__</title>
     <link href="style.css" rel="stylesheet" />
-    <link href="welcome-dialog.css" rel="stylesheet" />
-    <link href="reference.css" rel="stylesheet" />
+    <link href="style-welcome.css" rel="stylesheet" />
+    <link href="style-reference.css" rel="stylesheet" />
     <link rel="icon" type="image/png" href="./favicon.png" />
   </head>
 
@@ -1144,13 +1144,13 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                               __MSG_o_lRoutingNoMatches__
                             </td>
                           </tr>
-                          <tr class="hide" id="capture-group-rows">
+                          <tr id="capture-group-rows" hidden>
                             <th scope="row" class="last-download-label">
                               __MSG_o_lRoutingCaptureGroups__
                             </th>
                             <td class="last-download-value" id="last-dl-capture"></td>
                           </tr>
-                          <tr class="hide" id="variables-table-row">
+                          <tr id="variables-table-row" hidden>
                             <th scope="row" class="last-download-label">
                               __MSG_o_lRoutingVariables__
                             </th>
@@ -1159,7 +1159,7 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                                 __MSG_o_lRoutingVariablesClickToSee__
                               </button>
                               <table id="variables-table">
-                                <tbody class="hide" id="variables-body"></tbody>
+                                <tbody id="variables-body" hidden></tbody>
                               </table>
                             </td>
                           </tr>
