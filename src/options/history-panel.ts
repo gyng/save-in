@@ -187,7 +187,12 @@ const stopHistoryProgress = () => {
 
 const pollHistoryProgress = () => {
   const cells = document.querySelectorAll(".history-progress[data-download-id]");
-  if (cells.length === 0 || !webExtensionApi.downloads || !webExtensionApi.downloads.search) {
+  if (cells.length === 0) {
+    if (document.querySelector(".history-cancel")) void renderHistory();
+    else stopHistoryProgress();
+    return;
+  }
+  if (!webExtensionApi.downloads || !webExtensionApi.downloads.search) {
     stopHistoryProgress();
     return;
   }
@@ -219,7 +224,7 @@ const pollHistoryProgress = () => {
         }
       });
       if (anyFinished) {
-        renderHistoryTable();
+        void renderHistory();
       } else if (!anyInProgress) {
         stopHistoryProgress();
       }
@@ -229,9 +234,10 @@ const pollHistoryProgress = () => {
 
 const startHistoryProgress = () => {
   stopHistoryProgress();
-  if (document.querySelector(".history-progress[data-download-id]")) {
+  const hasNativeProgress = document.querySelector(".history-progress[data-download-id]");
+  if (hasNativeProgress || document.querySelector(".history-cancel")) {
     historyProgressTimer = setInterval(pollHistoryProgress, 1000);
-    pollHistoryProgress();
+    if (hasNativeProgress) pollHistoryProgress();
   }
 };
 

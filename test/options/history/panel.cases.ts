@@ -506,23 +506,64 @@ describe("history filter controls", () => {
     expect(historyRuntime.search).toHaveBeenCalledTimes(callsAfterRemoval);
   });
 
-  test("re-renders finished progress and contains polling failures", async () => {
+  test("refreshes durable history when native progress finishes", async () => {
     vi.useFakeTimers();
     historyRuntime.entries = [
       { id: "h-pending", status: "pending", downloadId: 7, finalFullPath: "large.iso" },
     ];
-    historyRuntime.search.mockResolvedValueOnce([
+    let resolveSearch: (items: Array<Record<string, unknown>>) => void = () => {};
+    historyRuntime.search.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveSearch = resolve;
+        }),
+    );
+    const { renderHistory } = historyPanel;
+    await renderHistory();
+
+    historyRuntime.entries = [
+      {
+        id: "h-pending",
+        status: "complete",
+        downloadId: 7,
+        fileSize: 100,
+        finalFullPath: "large.iso",
+      },
+    ];
+    resolveSearch([
       { id: null, state: "in_progress" },
       { id: 7, state: "complete", bytesReceived: 100, totalBytes: 100 },
     ]);
+    await vi.runAllTimersAsync();
+
+    expect(historyRuntime.sendMessage).toHaveBeenCalledTimes(2);
+    expect(document.querySelector(".status-badge")?.textContent).toBe("Saved");
+    expect(document.querySelector(".history-progress")).toBeNull();
+    expect(document.querySelector(".history-cancel")).toBeNull();
+  });
+
+  test("refreshes pending history before a native download id is available", async () => {
+    vi.useFakeTimers();
+    historyRuntime.entries = [{ id: "h-pending", status: "pending", finalFullPath: "instant.txt" }];
     const { renderHistory } = historyPanel;
     await renderHistory();
-    await vi.runAllTicks();
-    expect(document.querySelector(".history-progress")).not.toBeNull();
+    expect(document.querySelector(".history-progress")).toBeNull();
+    expect(document.querySelector(".history-cancel")).not.toBeNull();
 
-    historyRuntime.search.mockRejectedValueOnce(new Error("downloads unavailable"));
+    historyRuntime.entries = [
+      {
+        id: "h-pending",
+        status: "complete",
+        downloadId: 8,
+        fileSize: 20,
+        finalFullPath: "instant.txt",
+      },
+    ];
     await vi.advanceTimersByTimeAsync(1000);
-    expect(historyRuntime.search).toHaveBeenCalledTimes(2);
+
+    expect(historyRuntime.sendMessage).toHaveBeenCalledTimes(2);
+    expect(document.querySelector(".status-badge")?.textContent).toBe("Saved");
+    expect(document.querySelector(".history-cancel")).toBeNull();
   });
 
   test("contains an immediately rejected progress poll", async () => {
