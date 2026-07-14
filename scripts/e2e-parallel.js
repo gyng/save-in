@@ -58,7 +58,7 @@ try {
   releaseDirectoryLock(stagingLock);
 }
 
-const suites = ["e2e/chrome.e2e.mjs", "e2e/firefox.e2e.mjs"];
+const suites = ["test/e2e/chrome.e2e.mjs", "test/e2e/firefox.e2e.mjs"];
 /** @type {import("node:child_process").ChildProcess[]} */
 const children = [];
 /** @param {string} suite */

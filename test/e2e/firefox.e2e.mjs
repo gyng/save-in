@@ -8,7 +8,7 @@ import fs from "fs";
 import http from "http";
 import path from "path";
 
-import firefox from "../scripts/lib/firefox.js";
+import firefox from "../../scripts/lib/firefox.js";
 import { inBackgroundContext } from "./background-context.mjs";
 import {
   runAutomaticRetryScenario,
@@ -617,7 +617,7 @@ test("a separately installed extension negotiates, authorizes, and routes a down
   const root = await session.rdp.getRoot();
   await session.rdp.installTemporaryAddon(
     root.addonsActor,
-    path.resolve("e2e", "fixtures", "external-caller"),
+    path.resolve("test", "e2e", "fixtures", "external-caller"),
   );
   const callerActor = await session.rdp.findAddonActor(callerId);
   const callerConsole = await session.rdp.getConsoleActor(callerActor);

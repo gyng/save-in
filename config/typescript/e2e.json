@@ -1,4 +1,4 @@
 {
   "extends": "./tools.json",
-  "include": ["../../e2e/**/*.mjs"]
+  "include": ["../../test/e2e/**/*.mjs"]
 }

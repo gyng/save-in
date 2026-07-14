@@ -128,7 +128,7 @@ requireText(
   "Unexpected content panel shadow mode",
   "staging must verify content-panel shadow mode",
 );
-for (const name of ["e2e/chrome.e2e.mjs", "e2e/firefox.e2e.mjs"]) {
+for (const name of ["test/e2e/chrome.e2e.mjs", "test/e2e/firefox.e2e.mjs"]) {
   forbidText(name, "__SAVE_IN_E2E__", "harness must use the command bridge");
   forbidText(name, "runtime: window", "harness must not expose Window as runtime");
   forbidText(

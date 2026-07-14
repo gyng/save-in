@@ -7,8 +7,8 @@ import fs from "fs";
 import http from "http";
 import path from "path";
 
-import cdp from "../scripts/lib/cdp.js";
-import chrome from "../scripts/lib/chrome.js";
+import cdp from "../../scripts/lib/cdp.js";
+import chrome from "../../scripts/lib/chrome.js";
 import { inBackgroundContext } from "./background-context.mjs";
 import {
   runAutomaticRetryScenario,
@@ -1108,7 +1108,7 @@ test("message-driven downloads work and never inherit a stale route", async () =
 });
 
 test("a separately installed extension negotiates, authorizes, and routes a download", async () => {
-  const callerDir = path.resolve("e2e", "fixtures", "external-caller");
+  const callerDir = path.resolve("test", "e2e", "fixtures", "external-caller");
   const callerId = await cdp.loadUnpacked(PORT, callerDir);
   const callerUrl = `chrome-extension://${callerId}/control.html`;
   await cdp.openTab(PORT, callerUrl);

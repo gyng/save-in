@@ -1,8 +1,8 @@
 # Test organization
 
 Tests live under the directory that owns the behavior they verify. The main directories mirror
-the production source areas; `contracts`, `tooling`, `integration`, `fuzz`, and `support` cover
-repository-level concerns that do not belong to one runtime module.
+the production source areas; `contracts`, `tooling`, `integration`, `e2e`, `fuzz`, and `support`
+cover repository-level concerns that do not belong to one runtime module.
 
 File suffixes define how Vitest treats each file:
 
@@ -16,6 +16,6 @@ Put `// @vitest-environment jsdom` on the runnable `*.test.ts` boundary, not its
 files. Keep feature-specific fixtures beside their tests; `support` is reserved for global Vitest
 and WebExtension host setup.
 
-The unit configuration discovers `test/**/*.test.ts` and excludes `integration`. Fuzz and
-integration tests use their dedicated configurations. Run `npm run check:test-layout` after moving
-or adding test files.
+The unit configuration discovers `test/**/*.test.ts` and excludes `integration`. Fuzz,
+integration, and end-to-end tests use their dedicated configurations. Run
+`npm run check:test-layout` after moving or adding test files.

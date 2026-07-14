@@ -69,17 +69,7 @@ async function main() {
   fs.mkdirSync(stage, { recursive: true });
   fs.mkdirSync(artifacts, { recursive: true });
 
-  for (const dir of [
-    ".github",
-    "config",
-    "src",
-    "scripts",
-    "test",
-    "e2e",
-    "types",
-    "icons",
-    "_locales",
-  ]) {
+  for (const dir of [".github", "config", "src", "scripts", "test", "types", "icons", "_locales"]) {
     fs.cpSync(path.join(root, dir), path.join(stage, dir), { recursive: true });
   }
 
@@ -144,8 +134,8 @@ async function main() {
       ".oxlintrc.json",
       ".github/workflows/ci.yml",
       "CHANGELOG.md",
-      "e2e/chrome.e2e.mjs",
-      "e2e/firefox.e2e.mjs",
+      "test/e2e/chrome.e2e.mjs",
+      "test/e2e/firefox.e2e.mjs",
       "config/rolldown.config.mjs",
       "config/typescript/chrome.json",
       "config/typescript/dev-tools.json",

@@ -6,7 +6,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: "node",
-    include: ["e2e/**/*.e2e.mjs"],
+    include: ["test/e2e/**/*.e2e.mjs"],
     fileParallelism: false,
     testTimeout: 90_000,
     hookTimeout: 180_000,

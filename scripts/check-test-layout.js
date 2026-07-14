@@ -12,6 +12,7 @@ const allowedOwners = new Set([
   "content",
   "contracts",
   "downloads",
+  "e2e",
   "fuzz",
   "i18n",
   "integration",
@@ -30,6 +31,7 @@ const listFiles = (directory) =>
     return entry.isDirectory() ? listFiles(file) : [file];
   });
 
+/** @param {string} file */
 const relative = (file) => path.relative(root, file).replaceAll(path.sep, "/");
 const errors = [];
 const rootEntries = fs.readdirSync(testRoot, { withFileTypes: true });
@@ -56,7 +58,9 @@ for (const file of files) {
     errors.push(`${relative(file)}: put the environment annotation on its .test.ts importer`);
   }
   for (const match of source.matchAll(/(?:from\s+|import\s*)["'](\.[^"']+)["']/g)) {
-    const imported = path.resolve(path.dirname(file), match[1]);
+    const specifier = match[1];
+    if (!specifier) continue;
+    const imported = path.resolve(path.dirname(file), specifier);
     if (caseFiles.has(imported)) caseImporters.get(imported)?.push(file);
   }
 }
