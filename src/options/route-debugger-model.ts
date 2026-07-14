@@ -1,4 +1,5 @@
 import { parseRoutingRuleAst } from "../routing/rule-syntax.ts";
+import type { PageSourceKind } from "../shared/page-source.ts";
 import type { ValidationInfo } from "../shared/message-protocol.ts";
 import { isStringKeyedRecord } from "../shared/message-protocol.ts";
 
@@ -39,6 +40,12 @@ export type RouteDebuggerFields = {
   linkText?: string | undefined;
   selectionText?: string | undefined;
   mediaType?: string | undefined;
+  sourceKind?: PageSourceKind | "" | undefined;
+  menuIndex?: string | undefined;
+  comment?: string | undefined;
+  now?: string | undefined;
+  counter?: string | undefined;
+  sha256?: string | undefined;
 };
 
 export type RouteSourceSummary = {
@@ -176,6 +183,18 @@ export const routeDebuggerInfo = (fields: RouteDebuggerFields): ValidationInfo =
   if (fields.linkText) info.linkText = fields.linkText;
   if (fields.selectionText) info.selectionText = fields.selectionText;
   if (fields.mediaType) info.mediaType = fields.mediaType;
+  if (fields.sourceKind) info.sourceKind = fields.sourceKind;
+  if (fields.menuIndex) info.menuIndex = fields.menuIndex;
+  if (fields.comment) info.comment = fields.comment;
+  if (fields.now) {
+    const now = new Date(fields.now);
+    if (Number.isFinite(now.getTime())) info.now = now;
+  }
+  if (fields.counter) {
+    const counter = Number(fields.counter);
+    if (Number.isFinite(counter)) info.counter = counter;
+  }
+  if (fields.sha256) info.sha256 = fields.sha256;
   return info;
 };
 

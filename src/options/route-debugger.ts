@@ -18,6 +18,14 @@ const localize = (key: string, fallback: string, substitutions?: MessageSubstitu
 const element = <T extends HTMLElement>(selector: string): T | null =>
   document.querySelector<T>(selector);
 
+const localDateTimeValue = (value: string | undefined): string => {
+  if (!value) return "";
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return "";
+  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
+  return local.toISOString().slice(0, 19);
+};
+
 const fieldsFromInfo = (info: WireDownloadInfo): RouteDebuggerFields => ({
   filename: info.filename || info.initialFilename || info.resolvedFilename || "",
   sourceUrl: info.sourceUrl || info.url || "",
@@ -30,6 +38,12 @@ const fieldsFromInfo = (info: WireDownloadInfo): RouteDebuggerFields => ({
   linkText: info.linkText || "",
   selectionText: info.selectionText || "",
   mediaType: info.mediaType || "",
+  sourceKind: info.sourceKind || "",
+  menuIndex: info.menuIndex || "",
+  comment: info.comment || "",
+  now: localDateTimeValue(info.now),
+  counter: info.counter == null ? "" : String(info.counter),
+  sha256: info.sha256 || "",
 });
 
 const SAMPLE_DOWNLOAD: RouteDebuggerFields = {
@@ -44,6 +58,12 @@ const SAMPLE_DOWNLOAD: RouteDebuggerFields = {
   linkText: "",
   selectionText: "",
   mediaType: "",
+  sourceKind: "",
+  menuIndex: "",
+  comment: "",
+  now: "",
+  counter: "",
+  sha256: "",
 };
 
 const appendText = (parent: HTMLElement, className: string, text: string): HTMLElement => {
@@ -74,6 +94,12 @@ export const setupRouteDebugger = (): void => {
   const linkText = element<HTMLInputElement>("#route-debugger-link-text");
   const selectionText = element<HTMLInputElement>("#route-debugger-selection-text");
   const mediaType = element<HTMLSelectElement>("#route-debugger-media-type");
+  const sourceKind = element<HTMLSelectElement>("#route-debugger-source-kind");
+  const menuIndex = element<HTMLInputElement>("#route-debugger-menu-index");
+  const comment = element<HTMLInputElement>("#route-debugger-comment");
+  const now = element<HTMLInputElement>("#route-debugger-now");
+  const counter = element<HTMLInputElement>("#route-debugger-counter");
+  const sha256 = element<HTMLInputElement>("#route-debugger-sha256");
   if (
     !textarea ||
     !form ||
@@ -93,7 +119,13 @@ export const setupRouteDebugger = (): void => {
     !frameUrl ||
     !linkText ||
     !selectionText ||
-    !mediaType
+    !mediaType ||
+    !sourceKind ||
+    !menuIndex ||
+    !comment ||
+    !now ||
+    !counter ||
+    !sha256
   ) {
     return;
   }
@@ -110,6 +142,12 @@ export const setupRouteDebugger = (): void => {
     linkText,
     selectionText,
     mediaType,
+    sourceKind,
+    menuIndex,
+    comment,
+    now,
+    counter,
+    sha256,
   };
   let lastDownloadInfo: WireDownloadInfo | null = null;
   let generation = 0;
@@ -128,6 +166,12 @@ export const setupRouteDebugger = (): void => {
     linkText: linkText.value.trim(),
     selectionText: selectionText.value.trim(),
     mediaType: mediaType.value,
+    sourceKind: sourceKind.value as RouteDebuggerFields["sourceKind"],
+    menuIndex: menuIndex.value.trim(),
+    comment: comment.value.trim(),
+    now: now.value,
+    counter: counter.value.trim(),
+    sha256: sha256.value.trim(),
   });
 
   const writeFields = (fields: RouteDebuggerFields): void => {
@@ -147,6 +191,15 @@ export const setupRouteDebugger = (): void => {
     mediaType.value = [...mediaType.options].some((option) => option.value === nextMediaType)
       ? nextMediaType
       : "";
+    const nextSourceKind = fields.sourceKind || "";
+    sourceKind.value = [...sourceKind.options].some((option) => option.value === nextSourceKind)
+      ? nextSourceKind
+      : "";
+    menuIndex.value = fields.menuIndex || "";
+    comment.value = fields.comment || "";
+    now.value = fields.now || "";
+    counter.value = fields.counter || "";
+    sha256.value = fields.sha256 || "";
   };
 
   const setState = (state: string): void => {
@@ -419,6 +472,12 @@ export const setupRouteDebugger = (): void => {
       linkText: "",
       selectionText: "",
       mediaType: "",
+      sourceKind: "",
+      menuIndex: "",
+      comment: "",
+      now: "",
+      counter: "",
+      sha256: "",
     });
     clearResult();
     filename.focus();

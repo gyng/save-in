@@ -2963,6 +2963,38 @@
     "message": "Page text",
     "description": "Heading for page text test data in the route debugger. Used in src/options/options.html."
   },
+  "routeDebuggerRoutingData": {
+    "message": "Routing context",
+    "description": "Heading for routing context test data in the route debugger. Used in src/options/options.html."
+  },
+  "routeDebuggerSourceKind": {
+    "message": "Source kind",
+    "description": "Label for the route debugger page-source kind selector. Used in src/options/options.html."
+  },
+  "routeDebuggerAnySourceKind": {
+    "message": "Any source kind",
+    "description": "Empty source-kind choice in the route debugger. Used in src/options/options.html."
+  },
+  "routeDebuggerMenuIndex": {
+    "message": "Menu index",
+    "description": "Label for the selected menu position in the route debugger. Used in src/options/options.html."
+  },
+  "routeDebuggerMenuComment": {
+    "message": "Menu comment",
+    "description": "Label for the selected menu comment in the route debugger. Used in src/options/options.html."
+  },
+  "routeDebuggerRuntimeData": {
+    "message": "Runtime values",
+    "description": "Heading for runtime variable inputs in the route debugger. Used in src/options/options.html."
+  },
+  "routeDebuggerDateTime": {
+    "message": "Date and time",
+    "description": "Label for the route debugger date and time input. Used in src/options/options.html."
+  },
+  "routeDebuggerSha256": {
+    "message": "SHA-256",
+    "description": "Label for the route debugger SHA-256 input. Used in src/options/options.html."
+  },
   "routeDebuggerLatestDownload": {
     "message": "Latest",
     "description": "Button that fills the route debugger with the most recent download. Used in src/options/options.html."

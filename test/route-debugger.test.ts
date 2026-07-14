@@ -18,6 +18,12 @@ const renderWorkbench = (): void => {
       <input id="route-debugger-link-text">
       <input id="route-debugger-selection-text">
       <select id="route-debugger-media-type"><option value=""></option><option value="image">Image</option></select>
+      <select id="route-debugger-source-kind"><option value=""></option><option value="image">Image</option></select>
+      <input id="route-debugger-menu-index">
+      <input id="route-debugger-comment">
+      <input id="route-debugger-now" type="datetime-local">
+      <input id="route-debugger-counter" type="number">
+      <input id="route-debugger-sha256">
       <button id="route-debugger-run" type="button">Run test</button>
     </div>
     <button id="route-debugger-clear" type="button">Clear</button>

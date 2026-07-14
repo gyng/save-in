@@ -2737,14 +2737,8 @@ summary {
 .route-debugger-field-group {
   min-width: 0;
   margin: 0;
-  padding: var(--space-3) 0 0;
+  padding: 0;
   border: 0;
-  border-top: 1px solid var(--panel-border);
-}
-
-.route-debugger-field-group:first-child {
-  padding-top: 0;
-  border-top: 0;
 }
 
 .route-debugger-field-group > legend {
@@ -2766,7 +2760,20 @@ summary {
 }
 
 .route-debugger-page-fields .route-debugger-field-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.route-debugger-context-fields .route-debugger-field-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.route-debugger-runtime-fields .route-debugger-field-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.route-debugger-field-selection,
+.route-debugger-field-wide {
+  grid-column: 1 / -1;
 }
 
 .route-debugger-field {
@@ -2864,7 +2871,6 @@ summary {
   gap: 0;
   margin: 0;
   padding: var(--space-2) var(--space-3);
-  border-top: 1px solid var(--panel-border);
 }
 
 .route-debugger-pipeline > div {
@@ -2874,10 +2880,6 @@ summary {
   min-width: 0;
   gap: var(--space-3);
   padding: var(--space-1) 0;
-}
-
-.route-debugger-pipeline > div + div {
-  border-top: 1px solid color-mix(in srgb, var(--panel-border) 65%, transparent);
 }
 
 .route-debugger-pipeline dt {
@@ -2899,13 +2901,12 @@ summary {
 
 .route-debugger-rule-list {
   display: grid;
-  gap: 0;
+  gap: var(--space-1);
   padding: 0 var(--space-3) var(--space-3);
 }
 
 .route-debugger-rule {
   border: 0;
-  border-top: 1px solid var(--panel-border);
   background: transparent;
 }
 
@@ -3020,10 +3021,6 @@ summary {
   list-style: none;
 }
 
-.route-debugger-clauses > li + li {
-  border-top: 1px solid color-mix(in srgb, var(--panel-border) 65%, transparent);
-}
-
 .route-debugger-clause {
   display: grid;
   grid-template-columns: 18px minmax(0, 1fr);
@@ -3061,8 +3058,6 @@ summary {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: start;
-  border-top: 1px solid var(--panel-border);
-  border-bottom: 1px solid var(--panel-border);
 }
 
 .route-debugger-variables {
@@ -3108,7 +3103,6 @@ summary {
 .route-debugger-last-download {
   display: block;
   margin: 0;
-  border-top: 1px solid var(--panel-border);
 }
 
 .route-debugger-last-download > summary {
@@ -3149,6 +3143,11 @@ summary {
   }
 
   .route-debugger-page-fields .route-debugger-field-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .route-debugger-context-fields .route-debugger-field-grid,
+  .route-debugger-runtime-fields .route-debugger-field-grid {
     grid-template-columns: minmax(0, 1fr);
   }
 

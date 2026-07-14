@@ -1766,6 +1766,30 @@
   "routeDebuggerPageData": {
     "message": "Page text"
   },
+  "routeDebuggerRoutingData": {
+    "message": "Routing context"
+  },
+  "routeDebuggerSourceKind": {
+    "message": "Source kind"
+  },
+  "routeDebuggerAnySourceKind": {
+    "message": "Any source kind"
+  },
+  "routeDebuggerMenuIndex": {
+    "message": "Menu index"
+  },
+  "routeDebuggerMenuComment": {
+    "message": "Menu comment"
+  },
+  "routeDebuggerRuntimeData": {
+    "message": "Runtime values"
+  },
+  "routeDebuggerDateTime": {
+    "message": "Date and time"
+  },
+  "routeDebuggerSha256": {
+    "message": "SHA-256"
+  },
   "routeDebuggerRuleDestination": {
     "message": "Saves to $PATH$",
     "placeholders": {

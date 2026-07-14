@@ -359,14 +359,13 @@ export const transformers: TransformerRegistry = {
     // counter advances exactly once; the options-page preview peeks instead.
     [SPECIAL_DIRS.COUNTER]:
       async opts => {
+        if (opts.counter != null) return stringSegment(opts.counter);
         if (opts.preview) {
           return stringSegment((await routingPorts.peekCounter()) + 1);
         }
-        if (opts.counter == null) {
-          opts.counter = opts.currentTab?.incognito
-            ? await routingPorts.nextPrivateCounter()
-            : await routingPorts.nextCounter();
-        }
+        opts.counter = opts.currentTab?.incognito
+          ? await routingPorts.nextPrivateCounter()
+          : await routingPorts.nextCounter();
         return stringSegment(opts.counter);
       },
     // A fresh random v4 UUID (crypto.randomUUID is available in the SW, the
@@ -376,15 +375,15 @@ export const transformers: TransformerRegistry = {
     // Async: the server's Content-Type from a HEAD request (see resolveMime).
     // The options-page preview skips the network and shows nothing.
     [SPECIAL_DIRS.MIME]:
-      async opts => stringSegment(opts.preview ? resolvedHeadPreview(opts)?.contentType : await resolveMime(opts)),
+      async opts => stringSegment(opts.preview ? resolvedHeadPreview(opts)?.contentType || normalizeMimeType(opts.mime) : await resolveMime(opts)),
     [SPECIAL_DIRS.CONTENT_TYPE]:
-      async opts => stringSegment(opts.preview ? resolvedHeadPreview(opts)?.contentType : await resolveMime(opts)),
+      async opts => stringSegment(opts.preview ? resolvedHeadPreview(opts)?.contentType || normalizeMimeType(opts.mime) : await resolveMime(opts)),
     // The extension derived from that Content-Type ("image/jpeg" -> "jpg") —
     // useful for naming extensionless CDN/query-suffix URLs (#126/#135/#43)
     [SPECIAL_DIRS.MIME_EXT]:
       async opts =>
         stringSegment(
-          opts.preview ? mimeToExtension(resolvedHeadPreview(opts)?.contentType) : mimeToExtension(await resolveMime(opts)),
+          opts.preview ? mimeToExtension(normalizeMimeType(resolvedHeadPreview(opts)?.contentType || opts.mime)) : mimeToExtension(await resolveMime(opts)),
         ),
     // Async: SHA-256 of the file's content (fetches the bytes once — see
     // resolveContent). The short form is convenient for filenames; the full

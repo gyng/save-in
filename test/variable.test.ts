@@ -474,6 +474,14 @@ describe(":counter: (async, persistent)", () => {
     expect(Counter.peekCounter).toHaveBeenCalled();
   });
 
+  test("preview mode uses an explicit debugger counter", async () => {
+    const out = (
+      await Variable.applyVariables(new Path.Path("n-:counter:"), { preview: true, counter: 9 })
+    ).finalize();
+    expect(out).toBe("n-9");
+    expect(Counter.peekCounter).not.toHaveBeenCalled();
+  });
+
   test("private browsing uses the memory-only counter", async () => {
     const nextPrivateCounter = vi.fn(() => Promise.resolve(73));
     configureRoutingPorts({ nextPrivateCounter });
@@ -636,6 +644,18 @@ describe(":mime: / :contenttype: / :mimeext: (async HEAD)", () => {
     ).finalize();
     expect(global.fetch).not.toHaveBeenCalled();
     expect(out).toBe("_"); // empty in preview -> replacement char
+  });
+
+  test("preview mode uses debugger-provided content metadata", async () => {
+    global.fetch = vi.fn() as any;
+    const out = (
+      await Variable.applyVariables(new Path.Path(":mime:/:mimeext:"), {
+        mime: "IMAGE/PNG; charset=utf-8",
+        preview: true,
+      })
+    ).finalize();
+    expect(global.fetch).not.toHaveBeenCalled();
+    expect(out).toBe("image_png/png");
   });
 
   test("preview mode reuses resolved file metadata from the completed download", async () => {

@@ -984,11 +984,81 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                               spellcheck="false"
                             />
                           </label>
-                          <label class="route-debugger-field">
+                          <label class="route-debugger-field route-debugger-field-selection">
                             <span>__MSG_routeDebuggerSelectionText__</span>
                             <input
                               type="text"
                               id="route-debugger-selection-text"
+                              data-no-autosave
+                              spellcheck="false"
+                            />
+                          </label>
+                        </div>
+                      </fieldset>
+                      <fieldset class="route-debugger-field-group route-debugger-context-fields">
+                        <legend>__MSG_routeDebuggerRoutingData__</legend>
+                        <div class="route-debugger-field-grid">
+                          <label class="route-debugger-field">
+                            <span>__MSG_routeDebuggerSourceKind__</span>
+                            <select id="route-debugger-source-kind" data-no-autosave>
+                              <option value="">__MSG_routeDebuggerAnySourceKind__</option>
+                              <option value="image">__MSG_html_image__</option>
+                              <option value="video">__MSG_html_video__</option>
+                              <option value="audio">__MSG_sourcePanelKindAudio__</option>
+                              <option value="stream">__MSG_sourcePanelKindPlaylist__</option>
+                              <option value="document">__MSG_sourcePanelKindDocument__</option>
+                              <option value="link">__MSG_html_link__</option>
+                            </select>
+                          </label>
+                          <label class="route-debugger-field">
+                            <span>__MSG_routeDebuggerMenuIndex__</span>
+                            <input
+                              type="text"
+                              id="route-debugger-menu-index"
+                              data-no-autosave
+                              spellcheck="false"
+                            />
+                          </label>
+                          <label class="route-debugger-field route-debugger-field-wide">
+                            <span>__MSG_routeDebuggerMenuComment__</span>
+                            <input
+                              type="text"
+                              id="route-debugger-comment"
+                              data-no-autosave
+                              spellcheck="false"
+                            />
+                          </label>
+                        </div>
+                      </fieldset>
+                      <fieldset class="route-debugger-field-group route-debugger-runtime-fields">
+                        <legend>__MSG_routeDebuggerRuntimeData__</legend>
+                        <div class="route-debugger-field-grid">
+                          <label class="route-debugger-field">
+                            <span>__MSG_routeDebuggerDateTime__</span>
+                            <input
+                              type="datetime-local"
+                              id="route-debugger-now"
+                              step="1"
+                              data-no-autosave
+                            />
+                          </label>
+                          <label class="route-debugger-field">
+                            <span>__MSG_html_counterValue__</span>
+                            <input
+                              type="number"
+                              id="route-debugger-counter"
+                              min="0"
+                              step="1"
+                              data-no-autosave
+                            />
+                          </label>
+                          <label class="route-debugger-field">
+                            <span>__MSG_routeDebuggerSha256__</span>
+                            <input
+                              type="text"
+                              id="route-debugger-sha256"
+                              placeholder="ba7816bf8f01…"
+                              data-technical-literal
                               data-no-autosave
                               spellcheck="false"
                             />

@@ -140,6 +140,12 @@ test("normalizes debugger fields into the routing engine input aliases", () => {
       linkText: "Quarterly report",
       selectionText: "Q2",
       mediaType: "image",
+      sourceKind: "document",
+      menuIndex: "2",
+      comment: "Reports",
+      now: "2026-07-15T12:30:00",
+      counter: "7",
+      sha256: "ba7816bf8f01",
     }),
   ).toEqual({
     filename: "report.pdf",
@@ -156,6 +162,12 @@ test("normalizes debugger fields into the routing engine input aliases", () => {
     linkText: "Quarterly report",
     selectionText: "Q2",
     mediaType: "image",
+    sourceKind: "document",
+    menuIndex: "2",
+    comment: "Reports",
+    now: new Date("2026-07-15T12:30:00"),
+    counter: 7,
+    sha256: "ba7816bf8f01",
   });
 });
 
