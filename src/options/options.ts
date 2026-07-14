@@ -910,7 +910,6 @@ const renderMenuPreview = (container: Element, tree: MenuPreviewTree) => {
       if (entry.raw) {
         row.setAttribute("role", "button");
         row.setAttribute("tabindex", "0");
-        row.title = getMessage("validationJumpToIssue") || "Jump to this issue";
         const jump = () => jumpToError("#paths", entry.raw, entry.sourceIndex);
         row.addEventListener("click", jump);
         row.addEventListener("keydown", (e) => {
