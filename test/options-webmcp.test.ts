@@ -325,6 +325,19 @@ describe("buildTools", () => {
     });
     await expect(
       byName.save_in_validate_config.execute({
+        filenamePatterns: "into: x",
+        automaticCandidate: {
+          pageUrl: "https://page.test",
+          sourceUrl: "https://source.test",
+          sourceKind: "image",
+          suggestedFilename: 42,
+        },
+      }),
+    ).resolves.toMatchObject({
+      errors: [{ field: "automaticCandidate.suggestedFilename", message: "Expected a string" }],
+    });
+    await expect(
+      byName.save_in_validate_config.execute({
         automaticCandidate: {
           pageUrl: "https://page.test",
           sourceUrl: "https://source.test",
@@ -515,7 +528,7 @@ describe("options-page registration", () => {
         ),
       },
     };
-    const onConfigApplied = vi.fn(() => Promise.resolve());
+    const onConfigApplied = vi.fn(() => Promise.reject(new Error("page refresh failed")));
 
     vi.resetModules();
     const { setupWebMcpStatus } = await import("../src/options/webmcp.ts");
