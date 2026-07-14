@@ -2972,8 +2972,8 @@
     "description": "Label for choosing which download details populate the route debugger. Used in src/options/options.html."
   },
   "routeDebuggerUseSampleDownload": {
-    "message": "Sample",
-    "description": "Button that fills the route debugger with built-in sample download details. Used in src/options/options.html."
+    "message": "Example",
+    "description": "Button that fills the route debugger with built-in example download details. Used in src/options/options.html."
   },
   "routeDebuggerFilename": {
     "message": "Filename",
@@ -3120,8 +3120,8 @@
     "description": "Empty media type choice in the route debugger. Used in src/options/options.html."
   },
   "routeDebuggerEvaluation": {
-    "message": "Rule evaluation",
-    "description": "Heading above the route debugger rule trace. Used in src/options/route-debugger.ts."
+    "message": "Rules",
+    "description": "Expandable heading above the route debugger rule trace. Used in src/options/options.html."
   },
   "routeDebuggerFirstMatch": {
     "message": "Rules run top to bottom; the first match wins.",

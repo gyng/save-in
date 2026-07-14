@@ -58,6 +58,7 @@ export const setupRouteDebugger = (): void => {
   const textarea = element<HTMLTextAreaElement>("#filenamePatterns");
   const form = element<HTMLElement>("#route-debugger-form");
   const result = element<HTMLElement>("#route-debugger-result");
+  const rulesResult = element<HTMLElement>("#route-debugger-rules");
   const runButton = element<HTMLButtonElement>("#route-debugger-run");
   const useLastButton = element<HTMLButtonElement>("#route-debugger-use-last");
   const useSampleButton = element<HTMLButtonElement>("#route-debugger-use-sample");
@@ -73,11 +74,11 @@ export const setupRouteDebugger = (): void => {
   const linkText = element<HTMLInputElement>("#route-debugger-link-text");
   const selectionText = element<HTMLInputElement>("#route-debugger-selection-text");
   const mediaType = element<HTMLSelectElement>("#route-debugger-media-type");
-  const disclosure = element<HTMLDetailsElement>(".route-debugger-disclosure");
   if (
     !textarea ||
     !form ||
     !result ||
+    !rulesResult ||
     !runButton ||
     !useLastButton ||
     !useSampleButton ||
@@ -155,6 +156,7 @@ export const setupRouteDebugger = (): void => {
   const clearResult = (): void => {
     setState("empty");
     result.replaceChildren();
+    rulesResult.replaceChildren();
   };
 
   const renderMessage = (state: string, title: string): void => {
@@ -163,6 +165,7 @@ export const setupRouteDebugger = (): void => {
     message.className = "route-debugger-message";
     appendText(message, "route-debugger-message-title", title);
     result.replaceChildren(message);
+    rulesResult.replaceChildren();
   };
 
   const jumpToSource = (
@@ -187,7 +190,7 @@ export const setupRouteDebugger = (): void => {
 
   const renderTrace = (trace: RouteDebuggerTrace): void => {
     setState(trace.selectedRule === null ? "no-match" : "matched");
-    const fragment = document.createDocumentFragment();
+    const resultFragment = document.createDocumentFragment();
     const outcome = document.createElement("div");
     outcome.className = "route-debugger-outcome";
     const outcomeCopy = document.createElement("div");
@@ -204,7 +207,7 @@ export const setupRouteDebugger = (): void => {
           ),
     );
     outcome.append(outcomeCopy);
-    fragment.append(outcome);
+    resultFragment.append(outcome);
 
     if (trace.destination) {
       const pipeline = document.createElement("dl");
@@ -226,26 +229,11 @@ export const setupRouteDebugger = (): void => {
         stage.append(term, description);
         pipeline.append(stage);
       });
-      fragment.append(pipeline);
+      resultFragment.append(pipeline);
     }
 
     const rules = document.createElement("div");
-    rules.className = "route-debugger-rules";
-    const traceHeading = document.createElement("div");
-    traceHeading.className = "route-debugger-trace-heading";
-    const traceHeadingCopy = document.createElement("div");
-    appendText(
-      traceHeadingCopy,
-      "route-debugger-trace-title",
-      localize("routeDebuggerEvaluation", "Rule evaluation"),
-    );
-    appendText(
-      traceHeadingCopy,
-      "route-debugger-trace-description",
-      localize("routeDebuggerFirstMatch", "Rules run top to bottom; the first match wins."),
-    );
-    traceHeading.append(traceHeadingCopy);
-    rules.append(traceHeading);
+    rules.className = "route-debugger-rule-list";
     trace.rules.forEach((rule) => {
       const selected = trace.selectedRule === rule.index;
       const card = document.createElement("details");
@@ -345,15 +333,15 @@ export const setupRouteDebugger = (): void => {
       card.append(clauses);
       rules.append(card);
     });
-    fragment.append(rules);
-    result.replaceChildren(fragment);
+    result.replaceChildren(resultFragment);
+    rulesResult.replaceChildren(rules);
   };
 
   const run = async (): Promise<void> => {
     const mine = ++generation;
     hasRun = true;
     runButton.disabled = true;
-    const hasTrace = result.querySelector(".route-debugger-rules") !== null;
+    const hasTrace = rulesResult.childElementCount > 0;
     result.dataset.busy = "true";
     result.setAttribute("aria-busy", "true");
     if (!hasTrace) renderMessage("running", localize("routeDebuggerRunning", "Testing routes…"));
@@ -409,7 +397,6 @@ export const setupRouteDebugger = (): void => {
   };
 
   runButton.addEventListener("click", () => {
-    if (disclosure) disclosure.open = true;
     void run();
   });
   clearButton.addEventListener("click", () => {
@@ -449,7 +436,6 @@ export const setupRouteDebugger = (): void => {
     void run();
   });
   useLastButton.addEventListener("click", () => {
-    if (disclosure) disclosure.open = true;
     if (!lastDownloadInfo) {
       renderMessage(
         "empty",
@@ -461,7 +447,6 @@ export const setupRouteDebugger = (): void => {
     void run();
   });
   useSampleButton.addEventListener("click", () => {
-    if (disclosure) disclosure.open = true;
     writeFields(SAMPLE_DOWNLOAD);
     void run();
   });

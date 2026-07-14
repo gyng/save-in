@@ -2687,22 +2687,11 @@ summary {
   margin: var(--space-2) 0 0;
 }
 
-.route-debugger {
-  overflow: hidden;
-  margin-top: var(--space-2);
-  border: 1px solid var(--panel-border);
-  border-radius: var(--radius);
-  background: var(--page-bg);
-}
-
 .route-debugger-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--space-3);
-  padding: var(--space-3);
-  border-bottom: 1px solid var(--panel-border);
-  background: var(--panel-bg);
 }
 
 .route-debugger-intro {
@@ -2714,14 +2703,8 @@ summary {
   margin: 0;
 }
 
-.route-debugger-header-actions {
-  display: flex;
-  align-items: center;
+.route-debugger-header > button {
   flex: none;
-  gap: var(--space-2);
-}
-
-.route-debugger-header-actions > button {
   margin: 0;
   white-space: nowrap;
 }
@@ -2743,7 +2726,7 @@ summary {
 }
 
 #route-debugger-form {
-  padding: var(--space-3);
+  padding: var(--space-3) 0 0;
 }
 
 .route-debugger-fields {
@@ -2810,12 +2793,14 @@ summary {
 
 .route-debugger-result {
   position: relative;
-  border-top: 1px solid var(--panel-border);
+  overflow: hidden;
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
   background: var(--page-bg);
 }
 
 .route-debugger-result:empty {
-  border-top: 0;
+  display: none;
 }
 
 .route-debugger-result[data-busy="true"]::before {
@@ -2842,7 +2827,7 @@ summary {
 .route-debugger-message {
   display: grid;
   gap: 2px;
-  padding: var(--space-4);
+  padding: var(--space-3);
   color: var(--color-text-muted);
 }
 
@@ -2860,14 +2845,6 @@ summary {
 .route-debugger-outcome {
   display: flex;
   padding: var(--space-3);
-  border-bottom: 1px solid var(--panel-border);
-  box-shadow: inset 3px 0 var(--success-fg);
-  background: color-mix(in srgb, var(--green60) 5%, var(--page-bg));
-}
-
-.route-debugger-result[data-state="no-match"] .route-debugger-outcome {
-  box-shadow: inset 3px 0 var(--syntax-error);
-  background: color-mix(in srgb, var(--syntax-error) 6%, var(--page-bg));
 }
 
 .route-debugger-outcome-copy {
@@ -2887,7 +2864,7 @@ summary {
   gap: 0;
   margin: 0;
   padding: var(--space-2) var(--space-3);
-  border-bottom: 1px solid var(--panel-border);
+  border-top: 1px solid var(--panel-border);
 }
 
 .route-debugger-pipeline > div {
@@ -2920,35 +2897,10 @@ summary {
   overflow-wrap: anywhere;
 }
 
-.route-debugger-rules {
+.route-debugger-rule-list {
   display: grid;
   gap: 0;
-  padding: var(--space-3);
-}
-
-.route-debugger-trace-heading {
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
-  gap: var(--space-3);
-  padding: 0 0 var(--space-2);
-}
-
-.route-debugger-trace-title,
-.route-debugger-trace-description {
-  display: block;
-}
-
-.route-debugger-trace-title {
-  color: var(--color-text);
-  font-size: var(--text-sm);
-  font-weight: 700;
-}
-
-.route-debugger-trace-description {
-  margin-top: 2px;
-  color: var(--color-text-muted);
-  font-size: 11px;
+  padding: 0 var(--space-3) var(--space-3);
 }
 
 .route-debugger-rule {
@@ -2958,8 +2910,7 @@ summary {
 }
 
 .route-debugger-rule.is-selected {
-  box-shadow: inset 3px 0 var(--success-fg);
-  background: color-mix(in srgb, var(--green60) 4%, transparent);
+  box-shadow: inset 2px 0 var(--success-fg);
 }
 
 .route-debugger-rule > summary {
@@ -3103,42 +3054,58 @@ summary {
 
 .route-debugger-shell {
   display: grid;
+  gap: var(--space-3);
+}
+
+.route-debugger-variables-header {
+  display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: start;
-  gap: var(--space-2);
+  border-top: 1px solid var(--panel-border);
+  border-bottom: 1px solid var(--panel-border);
 }
 
-.route-debugger-toolbar {
-  display: flex;
-  align-items: center;
-  z-index: 1;
-  grid-column: 2;
-  grid-row: 1;
-  gap: var(--space-2);
-}
-
-.route-debugger-toolbar > button {
-  margin: 0;
-  white-space: nowrap;
-}
-
-.route-debugger-disclosure {
+.route-debugger-variables {
+  z-index: 0;
   grid-column: 1 / -1;
   grid-row: 1;
   min-width: 0;
 }
 
-.route-debugger-disclosure > summary {
+.route-debugger-source-picker {
+  z-index: 1;
+  grid-column: 2;
+  grid-row: 1;
+  padding: var(--space-2) 0;
+}
+
+.route-debugger-variables > summary,
+.route-debugger-rules-disclosure > summary {
   width: fit-content;
-  padding: var(--space-1) 0;
+  padding: var(--space-2) 0;
   color: var(--link-color);
 }
 
-.route-debugger-disclosure[open] > summary {
-  border-bottom: 0;
+.route-debugger-variable-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-bottom: var(--space-3);
 }
 
-.route-debugger .route-debugger-last-download {
+.route-debugger-variable-actions > button {
+  margin: 0;
+}
+
+.route-debugger-rules-disclosure {
+  min-width: 0;
+}
+
+.route-debugger-rules-help {
+  margin: 0;
+  padding: 0 var(--space-3) var(--space-2);
+}
+
+.route-debugger-last-download {
   display: block;
   margin: 0;
   border-top: 1px solid var(--panel-border);
@@ -3195,14 +3162,6 @@ summary {
     align-items: flex-start;
     flex-direction: column;
     gap: 0;
-  }
-
-  .route-debugger-header-actions {
-    width: 100%;
-  }
-
-  .route-debugger-header-actions > button {
-    flex: 1 1 auto;
   }
 
   .route-debugger-rule-header {

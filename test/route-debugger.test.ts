@@ -6,7 +6,6 @@ import { MESSAGE_TYPES } from "../src/shared/constants.ts";
 const renderWorkbench = (): void => {
   document.body.innerHTML = `
     <textarea id="filenamePatterns">fileext: png\ninto: images/\n\nfileext: pdf\npagedomain: example\\.com\ninto: pdf/:filename:</textarea>
-    <details class="route-debugger-disclosure" open></details>
     <div id="route-debugger-form">
       <input id="route-debugger-filename" value="report.pdf">
       <input id="route-debugger-source-url" value="https://cdn.example/report.pdf">
@@ -24,7 +23,10 @@ const renderWorkbench = (): void => {
     <button id="route-debugger-clear" type="button">Clear</button>
     <button id="route-debugger-use-last" type="button">Use last download</button>
     <button id="route-debugger-use-sample" type="button">Use sample download</button>
-    <div id="route-debugger-result"></div>`;
+    <div id="route-debugger-result"></div>
+    <details class="route-debugger-rules-disclosure">
+      <div id="route-debugger-rules"></div>
+    </details>`;
 };
 
 const checkResponse = (lastDownload: unknown = null) => ({
@@ -115,7 +117,9 @@ test("shows production rule and clause decisions and jumps back to their source"
   const result = document.querySelector<HTMLElement>("#route-debugger-result")!;
   await vi.waitFor(() => expect(result.dataset.state).toBe("matched"));
   expect(result.textContent).toContain("pdf/report.pdf");
-  const ruleCards = result.querySelectorAll<HTMLDetailsElement>(".route-debugger-rule");
+  expect(result.querySelector(".route-debugger-rule")).toBeNull();
+  const rulesResult = document.querySelector<HTMLElement>("#route-debugger-rules")!;
+  const ruleCards = rulesResult.querySelectorAll<HTMLDetailsElement>(".route-debugger-rule");
   expect(ruleCards).toHaveLength(2);
   expect(ruleCards[0]?.open).toBe(false);
   expect(ruleCards[1]?.open).toBe(true);
@@ -132,7 +136,7 @@ test("shows production rule and clause decisions and jumps back to their source"
     ?.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", ctrlKey: true, bubbles: true }));
   await vi.waitFor(() => expect(validationCount()).toBe(beforeShortcut + 1));
 
-  const pageDomainClause = result.querySelector<HTMLButtonElement>(
+  const pageDomainClause = rulesResult.querySelector<HTMLButtonElement>(
     '[data-clause-name="pagedomain"]',
   );
   expect(pageDomainClause).toBeDefined();
@@ -243,25 +247,6 @@ test("prefills the sample when no latest download is available", async () => {
   );
 });
 
-test("opens the debugger when an always-visible test action runs", async () => {
-  renderWorkbench();
-  const disclosure = document.querySelector<HTMLDetailsElement>(".route-debugger-disclosure")!;
-  disclosure.open = false;
-  vi.spyOn(webExtensionApi.runtime, "sendMessage").mockImplementation(async (message: any) =>
-    message.type === MESSAGE_TYPES.CHECK_ROUTES
-      ? checkResponse()
-      : {
-          type: MESSAGE_TYPES.VALIDATE_RESULT,
-          body: { version: 1, ruleErrors: [], ruleTrace: noMatchTrace },
-        },
-  );
-
-  setupRouteDebugger();
-  document.querySelector<HTMLButtonElement>("#route-debugger-run")!.click();
-
-  expect(disclosure.open).toBe(true);
-});
-
 test("prefills the latest download and can switch back to the sample", async () => {
   renderWorkbench();
   vi.spyOn(webExtensionApi.runtime, "sendMessage").mockImplementation(async (message: any) =>
@@ -286,6 +271,35 @@ test("prefills the latest download and can switch back to the sample", async () 
       "report.pdf",
     ),
   );
+});
+
+test("keeps the rule trace collapsed when test actions run", async () => {
+  renderWorkbench();
+  const disclosure = document.querySelector<HTMLDetailsElement>(
+    ".route-debugger-rules-disclosure",
+  )!;
+  vi.spyOn(webExtensionApi.runtime, "sendMessage").mockImplementation(async (message: any) =>
+    message.type === MESSAGE_TYPES.CHECK_ROUTES
+      ? checkResponse({ info: { filename: "latest.jpg" } })
+      : {
+          type: MESSAGE_TYPES.VALIDATE_RESULT,
+          body: { version: 1, ruleErrors: [], ruleTrace: noMatchTrace },
+        },
+  );
+
+  setupRouteDebugger();
+  const useLast = document.querySelector<HTMLButtonElement>("#route-debugger-use-last")!;
+  await vi.waitFor(() => expect(useLast.disabled).toBe(false));
+
+  for (const selector of [
+    "#route-debugger-run",
+    "#route-debugger-use-last",
+    "#route-debugger-use-sample",
+  ]) {
+    disclosure.open = false;
+    document.querySelector<HTMLButtonElement>(selector)!.click();
+    expect(disclosure.open, selector).toBe(false);
+  }
 });
 
 test("uses legacy last-download filename and URL fallbacks and normalizes unknown selects", async () => {

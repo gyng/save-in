@@ -195,11 +195,40 @@ test("keeps route debugger inputs out of persisted option handling", () => {
   }
 });
 
-test("keeps the route debugger available without opening it by default", () => {
+test("keeps the route debugger in its simple testing order", () => {
   const document = documentForOptions();
-  const summary = document.querySelector("#route-debugger-title");
-  const disclosure = summary?.closest("details");
+  const debuggerShell = document.querySelector(".route-debugger-shell");
+  const orderedSelectors = [
+    "#route-debugger-title",
+    "#route-debugger-run",
+    "#route-debugger-result",
+    ".route-debugger-variables",
+    ".route-debugger-rules-disclosure",
+  ];
+  const orderedElements = orderedSelectors.map((selector) =>
+    debuggerShell?.querySelector(selector),
+  );
 
-  expect(disclosure?.hasAttribute("open")).toBe(false);
-  expect(disclosure?.querySelector("#route-debugger-form")).not.toBeNull();
+  expect(orderedElements.every(Boolean)).toBe(true);
+  expect(
+    orderedElements.every(
+      (element, index) =>
+        index === 0 ||
+        Boolean(
+          orderedElements[index - 1]!.compareDocumentPosition(element!) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+        ),
+    ),
+  ).toBe(true);
+  expect(document.querySelector(".route-debugger-variables")?.hasAttribute("open")).toBe(false);
+  expect(document.querySelector(".route-debugger-variables #route-debugger-form")).not.toBeNull();
+  expect(
+    document.querySelector(".route-debugger-variables-header #route-debugger-use-last"),
+  ).not.toBeNull();
+  expect(
+    document.querySelector(".route-debugger-variables-header #route-debugger-use-sample"),
+  ).not.toBeNull();
+  expect(
+    document.querySelector(".route-debugger-rules-disclosure #route-debugger-rules"),
+  ).not.toBeNull();
 });

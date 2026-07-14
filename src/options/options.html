@@ -833,21 +833,32 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
               </div>
             </div>
 
-            <div class="routing-tool route-debugger-shell">
-              <details class="route-debugger-disclosure">
-                <summary id="route-debugger-title">__MSG_routeDebuggerTitle__</summary>
-                <section class="route-debugger" aria-labelledby="route-debugger-title">
-                  <header class="route-debugger-header">
-                    <div class="route-debugger-intro">
-                      <p>__MSG_routeDebuggerDescription__</p>
-                      <p class="caption">__MSG_routeDebuggerUnsavedNote__</p>
-                    </div>
-                    <div class="route-debugger-header-actions">
-                      <button type="button" class="button" id="route-debugger-clear">
-                        __MSG_routeDebuggerClear__
-                      </button>
-                    </div>
-                  </header>
+            <section
+              class="routing-tool route-debugger-shell"
+              aria-labelledby="route-debugger-title"
+            >
+              <header class="route-debugger-header">
+                <div class="route-debugger-intro">
+                  <div class="editor-field-label" id="route-debugger-title">
+                    __MSG_routeDebuggerTitle__
+                  </div>
+                  <p class="caption">__MSG_routeDebuggerDescription__</p>
+                  <p class="caption">__MSG_routeDebuggerUnsavedNote__</p>
+                </div>
+                <button type="button" class="apply-button" id="route-debugger-run">
+                  __MSG_routeDebuggerRun__
+                </button>
+              </header>
+              <div
+                class="route-debugger-result"
+                id="route-debugger-result"
+                role="region"
+                aria-labelledby="route-debugger-title"
+                aria-live="polite"
+              ></div>
+              <div class="route-debugger-variables-header">
+                <details class="route-debugger-variables">
+                  <summary>__MSG_o_lRoutingVariables__</summary>
                   <div
                     id="route-debugger-form"
                     role="group"
@@ -986,13 +997,11 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                       </fieldset>
                     </div>
                   </div>
-                  <div
-                    class="route-debugger-result"
-                    id="route-debugger-result"
-                    role="region"
-                    aria-labelledby="route-debugger-title"
-                    aria-live="polite"
-                  ></div>
+                  <div class="route-debugger-variable-actions">
+                    <button type="button" class="button" id="route-debugger-clear">
+                      __MSG_routeDebuggerClear__
+                    </button>
+                  </div>
                   <details class="last-download-row route-debugger-last-download">
                     <summary>__MSG_o_lRoutingLastDownload__</summary>
                     <div class="info-row last-download-info">
@@ -1037,9 +1046,7 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                       </table>
                     </div>
                   </details>
-                </section>
-              </details>
-              <div class="route-debugger-toolbar">
+                </details>
                 <div
                   class="route-debugger-source-picker"
                   role="group"
@@ -1053,11 +1060,13 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                     __MSG_routeDebuggerUseSampleDownload__
                   </button>
                 </div>
-                <button type="button" class="apply-button" id="route-debugger-run">
-                  __MSG_routeDebuggerRun__
-                </button>
               </div>
-            </div>
+              <details class="route-debugger-rules-disclosure">
+                <summary>__MSG_routeDebuggerEvaluation__</summary>
+                <p class="caption route-debugger-rules-help">__MSG_routeDebuggerFirstMatch__</p>
+                <div id="route-debugger-rules"></div>
+              </details>
+            </section>
 
             <div class="routing-post-options">
               <label>
