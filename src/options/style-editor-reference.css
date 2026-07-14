@@ -32,6 +32,7 @@
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
+  /* Overlay scrollbars ignore scrollbar-gutter, so keep values clear of the painted track. */
   padding-inline-end: var(--space-3);
   scrollbar-gutter: stable;
   scrollbar-width: thin;
