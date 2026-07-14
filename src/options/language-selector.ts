@@ -19,11 +19,19 @@ export const setupLanguageSelector = (ports: LanguageSelectorPorts = defaultPort
   const select = document.querySelector<HTMLSelectElement>("#uiLocale");
   const error = document.querySelector<HTMLElement>("#language-error");
   if (!select || !error) return;
+  const container = select.closest<HTMLElement>(".language-selector");
+  const originalContainerWidth = container?.style.width ?? "";
+  const originalContainerHeight = container?.style.height ?? "";
 
   select.addEventListener("change", async () => {
+    const bounds = select.getBoundingClientRect();
+    if (container && bounds.width > 0 && bounds.height > 0) {
+      container.style.width = `${bounds.width}px`;
+      container.style.height = `${bounds.height}px`;
+    }
     select.disabled = true;
     select.blur();
-    select.classList.add("language-switching");
+    select.hidden = true;
     error.hidden = true;
     try {
       assertApplySucceeded(await ports.apply(select.value));
@@ -32,8 +40,12 @@ export const setupLanguageSelector = (ports: LanguageSelectorPorts = defaultPort
       error.textContent =
         ports.getMessage("o_lLanguageChangeFailed") || "Could not change the language. Try again.";
       error.hidden = false;
-      select.classList.remove("language-switching");
+      select.hidden = false;
       select.disabled = false;
+      if (container) {
+        container.style.width = originalContainerWidth;
+        container.style.height = originalContainerHeight;
+      }
       select.focus();
     }
   });

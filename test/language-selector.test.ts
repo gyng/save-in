@@ -3,7 +3,9 @@ import { setupLanguageSelector } from "../src/options/language-selector.ts";
 
 const render = () => {
   document.body.innerHTML = `
-    <select id="uiLocale"><option value="">Default language</option><option value="fr">Français (AI)</option></select>
+    <div class="language-selector">
+      <select id="uiLocale"><option value="">Default language</option><option value="fr">Français (AI)</option></select>
+    </div>
     <span id="language-error" hidden></span>`;
 };
 
@@ -17,14 +19,17 @@ test("saves the selected locale and reloads after acknowledgement", async () => 
   setupLanguageSelector({ apply, reload, getMessage: vi.fn() });
 
   const select = document.querySelector<HTMLSelectElement>("#uiLocale")!;
+  vi.spyOn(select, "getBoundingClientRect").mockReturnValue({ width: 180, height: 30 } as DOMRect);
   select.value = "fr";
   select.dispatchEvent(new Event("change"));
   expect(select.disabled).toBe(true);
-  expect(select.classList).toContain("language-switching");
+  expect(select.hidden).toBe(true);
+  expect(document.querySelector<HTMLElement>(".language-selector")!.style.width).toBe("180px");
+  expect(document.querySelector<HTMLElement>(".language-selector")!.style.height).toBe("30px");
   await vi.waitFor(() => expect(reload).toHaveBeenCalledOnce());
 
   expect(apply).toHaveBeenCalledWith("fr");
-  expect(select.classList).toContain("language-switching");
+  expect(select.hidden).toBe(true);
 });
 
 test("keeps the page usable and reports a rejected locale change", async () => {
@@ -38,12 +43,16 @@ test("keeps the page usable and reports a rejected locale change", async () => {
   });
 
   const select = document.querySelector<HTMLSelectElement>("#uiLocale")!;
+  vi.spyOn(select, "getBoundingClientRect").mockReturnValue({ width: 180, height: 30 } as DOMRect);
   select.dispatchEvent(new Event("change"));
   const error = document.querySelector<HTMLElement>("#language-error")!;
   await vi.waitFor(() => expect(error.hidden).toBe(false));
 
   expect(select.disabled).toBe(false);
-  expect(select.classList).not.toContain("language-switching");
+  expect(select.hidden).toBe(false);
+  expect(document.querySelector<HTMLElement>(".language-selector")!.style.width).toBe("");
+  expect(document.querySelector<HTMLElement>(".language-selector")!.style.height).toBe("");
+  expect(document.activeElement).toBe(select);
   expect(error.textContent).toBe("Language change failed");
 });
 
