@@ -133,7 +133,10 @@ export const renderVariablesPreview = async () => {
           table.appendChild(row);
         });
       });
-      container.appendChild(table);
+      const scroll = document.createElement("div");
+      scroll.className = "variables-preview-scroll";
+      scroll.appendChild(table);
+      container.appendChild(scroll);
 
       const rows = [...table.querySelectorAll<HTMLElement>(".variables-preview-row")];
       const applyFilter = () => {
