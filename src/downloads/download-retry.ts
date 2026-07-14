@@ -75,10 +75,11 @@ export const retryViaFetch = async (
   let offscreenRequestId: string | undefined;
   try {
     const content = await fetchUrlForDownload(url, privateContext, controller.signal, requestId);
-    blobUrl = content.downloadUrl;
+    const downloadUrl = content.downloadUrl;
+    blobUrl = downloadUrl;
     offscreenRequestId = content.offscreenRequestId;
-    runtime.pendingRetryFilenames.set(blobUrl, filename);
-    expected = services.notifier.expectDownload(blobUrl, { privateContext });
+    runtime.pendingRetryFilenames.set(downloadUrl, filename);
+    expected = services.notifier.expectDownload(downloadUrl, { privateContext });
     await Promise.all(
       privateContext
         ? []
@@ -93,12 +94,12 @@ export const retryViaFetch = async (
               sessionWriteState,
               extensionSessionStorage,
               FINAL_FILENAMES_SESSION_KEY,
-              (m) => enqueueFilename(m, blobUrl!, filename),
+              (m) => enqueueFilename(m, downloadUrl, filename),
             ),
           ],
     );
     const downloadOptions: Parameters<typeof webExtensionApi.downloads.download>[0] = {
-      url: blobUrl,
+      url: downloadUrl,
       filename,
       conflictAction: record.conflictAction,
     };
@@ -140,12 +141,13 @@ export const retryViaFetch = async (
   } finally {
     if (record.historyEntryId) ActiveTransfers.finish(record.historyEntryId, controller);
     else ActiveTransfers.release(controller);
-    if (blobUrl) {
+    const cleanupUrl = blobUrl;
+    if (cleanupUrl) {
       const filenameListenerWillConsume =
         newId != null && WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion;
-      if (!filenameListenerWillConsume) runtime.pendingRetryFilenames.delete(blobUrl);
+      if (!filenameListenerWillConsume) runtime.pendingRetryFilenames.delete(cleanupUrl);
     }
-    if (blobUrl && !privateContext) {
+    if (cleanupUrl && !privateContext) {
       const cleanup: Promise<unknown>[] = [
         updateSession<number>(
           sessionWriteState,
@@ -165,7 +167,7 @@ export const retryViaFetch = async (
             sessionWriteState,
             extensionSessionStorage,
             FINAL_FILENAMES_SESSION_KEY,
-            (m) => removeFilename(m, blobUrl!, filename),
+            (m) => removeFilename(m, cleanupUrl, filename),
           ),
         );
       }
