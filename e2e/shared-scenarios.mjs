@@ -181,7 +181,15 @@ export const runSymlinkDestinationScenario = async ({
               return JSON.stringify(match);
             }
             if (Date.now() >= deadline) return JSON.stringify(null);
-            await new Promise((resolve) => setTimeout(resolve, 100));
+            await new Promise((resolve) => {
+              const channel = new MessageChannel();
+              channel.port1.onmessage = () => {
+                channel.port1.close();
+                channel.port2.close();
+                resolve();
+              };
+              channel.port2.postMessage(null);
+            });
           }
         })()`),
       );

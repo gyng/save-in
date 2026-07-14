@@ -32,9 +32,8 @@ const reloadExtension = async (extensionId) => {
   // again is reliable and leaves ordinary web tabs untouched.
   await cdp.loadUnpacked(PORT, chrome.DIST);
 
-  // loadUnpacked closes extension-owned tabs. Restore them only after Chrome
-  // has registered the fresh context so they cannot become blocked pages.
-  await cdp.sleep(250);
+  // loadUnpacked acknowledges only after Chrome registers the fresh context;
+  // extension-owned tabs can be restored immediately from that signal.
   for (const page of extensionPages) {
     await cdp.openTab(PORT, page.url);
   }

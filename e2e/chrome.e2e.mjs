@@ -46,6 +46,31 @@ const evalOptions = (expr) => cdp.evalInTarget(PORT, "options.html", expr);
 const evalSW = (expr) => evalOptions(inBackgroundContext(expr));
 /** @param {string} expr @returns {Promise<any>} */
 const evalWorker = (expr) => cdp.evalInServiceWorker(PORT, extensionId, expr);
+/** @param {string} key @param {unknown} expected @param {number} [timeoutMs] */
+const localStorageValue = (key, expected, timeoutMs = 5000) => `new Promise((resolve, reject) => {
+  const key = ${JSON.stringify(key)};
+  const expected = ${JSON.stringify(expected)};
+  const timeout = AbortSignal.timeout(${timeoutMs});
+  let settled = false;
+  const finish = (callback) => {
+    if (settled) return;
+    settled = true;
+    chrome.storage.onChanged.removeListener(onChanged);
+    timeout.removeEventListener("abort", onTimeout);
+    callback();
+  };
+  const onChanged = (changes, area) => {
+    if (area === "local" && Object.is(changes[key]?.newValue, expected)) {
+      finish(() => resolve(expected));
+    }
+  };
+  const onTimeout = () => finish(() => reject(new Error("Timed out waiting for storage key: " + key)));
+  chrome.storage.onChanged.addListener(onChanged);
+  timeout.addEventListener("abort", onTimeout, { once: true });
+  chrome.storage.local.get(key).then((stored) => {
+    if (Object.is(stored[key], expected)) finish(() => resolve(expected));
+  }, (error) => finish(() => reject(error)));
+})`;
 /** @param {string} name */
 const artifactName = (name) =>
   name
@@ -682,27 +707,35 @@ test("the paths editor applies changes while drafts stay local", async () => {
     await evalOptions(`(async () => {
       const ta = document.querySelector("#paths");
       const apply = document.querySelector('[data-apply="paths"]');
-      const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+      const waitForEnabled = (button, label) => {
+        if (!button.disabled) return Promise.resolve();
+        return new Promise((resolve, reject) => {
+          const timeout = AbortSignal.timeout(3000);
+          const observer = new MutationObserver(() => {
+            if (!button.disabled) finish(resolve);
+          });
+          const finish = (callback) => {
+            observer.disconnect();
+            timeout.removeEventListener("abort", onTimeout);
+            callback();
+          };
+          const onTimeout = () => finish(() => reject(new Error(label + " timeout")));
+          timeout.addEventListener("abort", onTimeout, { once: true });
+          observer.observe(button, { attributes: true, attributeFilter: ["disabled"] });
+          if (!button.disabled) finish(resolve);
+        });
+      };
 
       ta.value = "baseline";
       ta.dispatchEvent(new InputEvent("input", { bubbles: true }));
-      const validationDeadline = Date.now() + 3000;
-      while (apply.disabled && Date.now() < validationDeadline) await wait(25);
-      if (apply.disabled) throw new Error("paths validation timeout");
+      await waitForEnabled(apply, "paths validation");
+      const baselineStored = ${localStorageValue("paths", "baseline", 3000)};
       apply.click();
-      const saveDeadline = Date.now() + 3000;
-      let stored = await browser.storage.local.get("paths");
-      while (stored.paths !== "baseline" && Date.now() < saveDeadline) {
-        await wait(25);
-        stored = await browser.storage.local.get("paths");
-      }
-      if (stored.paths !== "baseline") throw new Error("paths save timeout");
+      await baselineStored;
 
       ta.value = "baseline\\nunsaved";
       ta.dispatchEvent(new InputEvent("input", { bubbles: true }));
-      const dirtyValidationDeadline = Date.now() + 3000;
-      while (apply.disabled && Date.now() < dirtyValidationDeadline) await wait(25);
-      if (apply.disabled) throw new Error("draft validation timeout");
+      await waitForEnabled(apply, "draft validation");
       const storedDraft = await browser.storage.local.get("paths");
 
       return JSON.stringify({ value: ta.value, storedPaths: storedDraft.paths });
@@ -1054,15 +1087,11 @@ test("options page autosave persists to storage and survives a restart", async (
   try {
     await evalOptions(`(async () => {
       const cb = document.querySelector("#promptOnShift");
+      const stored = ${localStorageValue("promptOnShift", false)};
       cb.checked = false;
       cb.dispatchEvent(new Event("change", { bubbles: true }));
-      const deadline = Date.now() + 5000;
-      for (;;) {
-        const stored = await chrome.storage.local.get("promptOnShift");
-        if (stored.promptOnShift === false) return "toggled";
-        if (Date.now() >= deadline) throw new Error("autosave timeout");
-        await new Promise((resolve) => setTimeout(resolve, 50));
-      }
+      await stored;
+      return "toggled";
     })()`);
 
     // Persisted to storage.local (not just the in-memory option)...
@@ -1079,15 +1108,11 @@ test("options page autosave persists to storage and survives a restart", async (
   } finally {
     await evalOptions(`(async () => {
       const cb = document.querySelector("#promptOnShift");
+      const stored = ${localStorageValue("promptOnShift", true)};
       cb.checked = true;
       cb.dispatchEvent(new Event("change", { bubbles: true }));
-      const deadline = Date.now() + 5000;
-      for (;;) {
-        const stored = await chrome.storage.local.get("promptOnShift");
-        if (stored.promptOnShift === true) return "restored";
-        if (Date.now() >= deadline) throw new Error("autosave restore timeout");
-        await new Promise((resolve) => setTimeout(resolve, 50));
-      }
+      await stored;
+      return "restored";
     })()`);
     await evalSW(`api.reset().then(() => "reset")`);
   }

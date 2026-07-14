@@ -167,15 +167,31 @@ class Cdp {
   }
 }
 
-/** @param {number} ms */
-const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
+const nextTurn = () => new Promise((resolve) => setImmediate(resolve));
 
-/** @param {number} port @param {number} [attempts] */
-const connectBrowser = async (port, attempts = 5) => {
-  /** @type {unknown} */
-  let lastError = new Error("CDP connection failed");
-  for (let attempt = 0; attempt < attempts; attempt += 1) {
+/**
+ * @template T
+ * @param {() => Promise<T>} operation
+ * @param {number} timeoutMs
+ * @param {string} message
+ * @returns {Promise<T>}
+ */
+const retryUntil = async (operation, timeoutMs, message) => {
+  const deadline = Date.now() + timeoutMs;
+  for (;;) {
     try {
+      return await operation();
+    } catch (error) {
+      if (Date.now() >= deadline) throw new Error(message, { cause: error });
+      await nextTurn();
+    }
+  }
+};
+
+/** @param {number} port */
+const connectBrowser = (port) =>
+  retryUntil(
+    async () => {
       // Refresh the browser endpoint on every attempt; Chrome can replace it
       // while finishing startup.
       const version = await getJson(port, "/json/version");
@@ -183,13 +199,10 @@ const connectBrowser = async (port, attempts = 5) => {
         throw new Error("CDP version endpoint did not include a WebSocket debugger URL");
       }
       return await Cdp.connect(version.webSocketDebuggerUrl);
-    } catch (error) {
-      lastError = error;
-      await sleep(200);
-    }
-  }
-  throw lastError;
-};
+    },
+    5000,
+    "CDP connection failed",
+  );
 
 /** @param {unknown} value @returns {value is CdpTarget} */
 const isCdpTarget = (value) =>
@@ -222,15 +235,17 @@ const extensionIdFromTargets = (targets, expectedResource = "background.sw.js") 
   return undefined;
 };
 
-/** @param {number} port @param {number} [attempts] */
-const waitForExtensionId = async (port, attempts = 30) => {
-  for (let attempt = 0; attempt < attempts; attempt += 1) {
-    const extensionId = extensionIdFromTargets(await listTargets(port));
-    if (extensionId) return extensionId;
-    await sleep(500);
-  }
-  throw new Error("Chrome did not expose the unpacked extension background target");
-};
+/** @param {number} port */
+const waitForExtensionId = (port) =>
+  retryUntil(
+    async () => {
+      const extensionId = extensionIdFromTargets(await listTargets(port));
+      if (!extensionId) throw new Error("extension target is not available");
+      return extensionId;
+    },
+    15000,
+    "Chrome did not expose the unpacked extension background target",
+  );
 
 // Evaluates an expression in the first live target whose URL contains
 // urlSubstr. Skips targets whose extension context has been invalidated.
@@ -264,7 +279,7 @@ const evalInTarget = async (port, urlSubstr, expression) => {
         cdp?.close();
       }
     }
-    if (attempt < 2) await sleep(100);
+    if (attempt < 2) await nextTurn();
   }
   throw lastError;
 };
@@ -413,10 +428,10 @@ const captureScreenshot = async (port, urlSubstr, options = {}) => {
       ],
     });
     await page.send("Runtime.evaluate", {
-      // rAF runs before paint. The short timer lets Chrome commit that frame so
-      // a newly foregrounded tab cannot produce partially black tiles.
+      // The second animation frame runs after Chrome had a rendering
+      // opportunity for the first, avoiding partially black foreground tiles.
       expression:
-        "document.fonts.ready.then(() => new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve, 100))))",
+        "document.fonts.ready.then(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))))",
       awaitPromise: true,
     });
     const { data } = await page.send(
@@ -481,18 +496,15 @@ const reloadTargets = async (port, urlSubstr) => {
   return count;
 };
 
-/** @param {number} port @param {number} [attempts] */
-const waitForCdp = async (port, attempts = 30) => {
-  for (let i = 0; i < attempts; i += 1) {
-    try {
+/** @param {number} port */
+const waitForCdp = (port) =>
+  retryUntil(
+    async () => {
       await getJson(port, "/json/version");
-      return;
-    } catch (e) {
-      await sleep(500);
-    }
-  }
-  throw new Error(`Chrome did not open CDP port ${port}`);
-};
+    },
+    15000,
+    `Chrome did not open CDP port ${port}`,
+  );
 
 module.exports = {
   Cdp,
@@ -510,7 +522,6 @@ module.exports = {
   loadUnpacked,
   stopServiceWorker,
   reloadTargets,
-  sleep,
   waitForCdp,
   waitForExtensionId,
 };

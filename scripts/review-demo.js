@@ -122,12 +122,12 @@ const DEMO_PAGE = `<!doctype html>
     </p>
     <script>fetch('/master.m3u8').catch(() => {});</script>
     <script>
-      setTimeout(() => {
+      window.addEventListener('load', () => requestAnimationFrame(() => {
         const link = document.createElement('a');
         link.href = '/late-image.webp';
         link.textContent = 'dynamically detected image';
         document.body.append(' · ', link);
-      }, 1500);
+      }), { once: true });
     </script>
   </body>
 </html>`;
@@ -264,7 +264,7 @@ const waitFor = async (callback, description, timeoutMs = 10_000) => {
     } catch (error) {
       lastError = error;
     }
-    await cdp.sleep(100);
+    await new Promise((resolve) => setImmediate(resolve));
   }
   throw new Error(`Timed out waiting for ${description}`, { cause: lastError });
 };
@@ -394,7 +394,6 @@ const reloadReviewSession = async (port, demoPort) => {
   // Chrome may close extension-owned tabs while re-registering an unpacked
   // extension. Reopen Options when necessary, and reload the demo page so its
   // content script belongs to the new extension context.
-  await cdp.sleep(250);
   let optionsTabs = await cdp.reloadTargets(port, "options.html");
   if (optionsTabs === 0) {
     await cdp.openTab(port, `chrome-extension://${extensionId}/src/options/options.html`);

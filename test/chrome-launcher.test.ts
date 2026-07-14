@@ -1,4 +1,4 @@
-import { chmodSync, mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import fs, { chmodSync, mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { spawn } from "node:child_process";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -101,9 +101,35 @@ describe("isolated Chrome launcher", () => {
     mkdirSync(join(profile, "downloads"));
     writeFileSync(join(profile, "downloads", "fixture.txt"), "fixture");
 
-    await removeProfile(profile);
+    const timer = vi.spyOn(globalThis, "setTimeout");
 
-    expect(() => writeFileSync(join(profile, "still-there.txt"), "no")).toThrow();
+    try {
+      await removeProfile(profile);
+      expect(() => writeFileSync(join(profile, "still-there.txt"), "no")).toThrow();
+      expect(timer).not.toHaveBeenCalled();
+    } finally {
+      timer.mockRestore();
+    }
+  });
+
+  test("retries profile removal on later event-loop turns without a settling timer", async () => {
+    const profile = mkdtempSync(join(tmpdir(), "save-in-chrome-cleanup-race-"));
+    const realRmSync = fs.rmSync;
+    const remove = vi.spyOn(fs, "rmSync").mockImplementationOnce((target, options) => {
+      realRmSync(target, options);
+      mkdirSync(profile);
+    });
+    const timer = vi.spyOn(globalThis, "setTimeout");
+
+    try {
+      await removeProfile(profile);
+      expect(remove).toHaveBeenCalledTimes(2);
+      expect(timer).not.toHaveBeenCalled();
+    } finally {
+      timer.mockRestore();
+      remove.mockRestore();
+      rmSync(profile, { recursive: true, force: true });
+    }
   });
 
   test("terminates the owned browser process when tree termination is unavailable", async () => {

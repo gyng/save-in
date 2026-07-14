@@ -42,7 +42,7 @@ const waitFor = async (callback, description, timeoutMs = 10_000) => {
     } catch (error) {
       lastError = error;
     }
-    await cdp.sleep(100);
+    await new Promise((resolve) => setImmediate(resolve));
   }
   throw new Error(`Timed out waiting for ${description}`, { cause: lastError });
 };
@@ -295,7 +295,17 @@ const main = async () => {
         ),
       "Page Sources panel",
     );
-    await cdp.sleep(1500);
+    await waitFor(
+      () =>
+        cdp.evalInTarget(
+          port,
+          demoTarget,
+          `[...document.querySelector("#save-in-source-panel").shadowRoot
+            .querySelectorAll(".source-link .name")]
+            .some((node) => node.textContent?.includes("late-image.webp"))`,
+        ),
+      "late Page Sources discovery",
+    );
     await cdp.evalInTarget(port, demoTarget, "scrollTo(0, 0); document.activeElement?.blur()");
     await capture(port, demoTarget, outputDir, SCREENSHOTS[2]);
 

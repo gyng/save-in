@@ -1,12 +1,12 @@
 /**
  * @template T
  * @param {() => T | Promise<T>} check
- * @param {{timeoutMs?: number, intervalMs?: number, description?: string, ignoreErrors?: boolean}} [options]
+ * @param {{timeoutMs?: number, description?: string, ignoreErrors?: boolean}} [options]
  * @returns {Promise<T>}
  */
 export const poll = async (
   check,
-  { timeoutMs = 8000, intervalMs = 100, description = "condition", ignoreErrors = true } = {},
+  { timeoutMs = 8000, description = "condition", ignoreErrors = true } = {},
 ) => {
   const deadline = Date.now() + timeoutMs;
   let lastError;
@@ -26,7 +26,7 @@ export const poll = async (
         : "";
       throw new Error(`Timed out waiting for ${description}${detail}`);
     }
-    await new Promise((resolve) => setTimeout(resolve, intervalMs));
+    await new Promise((resolve) => setImmediate(resolve));
   }
 };
 

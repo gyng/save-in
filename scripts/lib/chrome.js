@@ -8,6 +8,7 @@
 const fs = require("fs");
 const path = require("path");
 const os = require("os");
+const { once } = require("events");
 const { spawn, execFileSync } = require("child_process");
 
 const cdp = require("./cdp");
@@ -93,8 +94,9 @@ const stageBuild = (mode = "production") => {
 };
 
 /** @param {import("node:child_process").ChildProcess | null | undefined} proc */
-const killTree = (proc) => {
-  if (!proc || !proc.pid) return Promise.resolve();
+const killTree = async (proc) => {
+  if (!proc?.pid || proc.exitCode !== null || proc.signalCode !== null) return;
+  const exited = once(proc, "exit", { signal: AbortSignal.timeout(10000) });
   if (process.platform === "win32") {
     try {
       execFileSync("taskkill", ["/pid", String(proc.pid), "/T", "/F"], { stdio: "ignore" });
@@ -108,36 +110,34 @@ const killTree = (proc) => {
         // already gone
       }
     }
-    if (proc.exitCode !== null) return Promise.resolve();
-    return new Promise((resolve) => {
-      proc.once("exit", resolve);
-      setTimeout(resolve, 3000).unref();
-    });
-  }
-  return new Promise((resolve) => {
-    proc.once("exit", resolve);
+  } else {
     try {
       proc.kill();
     } catch (e) {
-      resolve(undefined);
+      // already gone; the child still emits exit when its status is collected
     }
-    setTimeout(resolve, 3000).unref();
-  });
+  }
+  await exited;
 };
 
 /** @param {string | undefined} profileDir */
 const removeProfile = async (profileDir) => {
   if (!profileDir) return;
-  for (let attempt = 0; attempt < 6; attempt += 1) {
+  const deadline = Date.now() + 10000;
+  let lastError;
+  while (Date.now() < deadline) {
     try {
       fs.rmSync(profileDir, { recursive: true, force: true });
-      if (!fs.existsSync(profileDir)) return;
+      lastError = undefined;
     } catch (error) {
-      // Chrome children can briefly retain cache files after taskkill returns.
+      lastError = error;
     }
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    if (!fs.existsSync(profileDir)) return;
+    await new Promise((resolve) => setImmediate(resolve));
   }
-  throw new Error(`Unable to remove disposable Chrome profile: ${profileDir}`);
+  throw new Error(`Unable to remove disposable Chrome profile: ${profileDir}`, {
+    cause: lastError,
+  });
 };
 
 /** @param {string} baseProfileDir @param {string | undefined} downloadDir @param {boolean} [unique] */
