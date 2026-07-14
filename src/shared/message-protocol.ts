@@ -634,10 +634,10 @@ const isMessageBodyValid = (message: Record<string, unknown> & { type: string })
 };
 
 export const isInternalMessage = (value: unknown): value is InternalMessage =>
-  hasType(value) && isInternalMessageType(value.type) && isMessageBodyValid(value);
+  hasType(value) && isMessageBodyValid(value) && isInternalMessageType(value.type);
 
 export const isExternalMessage = (value: unknown): value is ExternalMessage =>
-  hasType(value) && isExternalMessageType(value.type) && isMessageBodyValid(value);
+  hasType(value) && isMessageBodyValid(value) && isExternalMessageType(value.type);
 
 export const getMessageType = (value: unknown): string | undefined =>
   hasType(value) ? value.type : undefined;
