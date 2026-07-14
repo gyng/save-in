@@ -18,6 +18,7 @@ const referenceMarkup = ({ filter = true }: { filter?: boolean } = {}) => `
     <div class="reference-dialog-descriptions">
       <p id="reference-dialog-description-variables" data-reference-description="options-reference-variables">Variables are used in folder and filename patterns.</p>
       <p id="reference-dialog-description-clauses" data-reference-description="options-reference-clauses" hidden>Routing rules use clauses to decide which downloads to move or rename.</p>
+      <p id="reference-dialog-description-templates" data-reference-description="options-reference-templates" hidden>Templates provide ready-made routing rules you can add and customize.</p>
     </div>
     ${filter ? '<input class="reference-dialog-filter">' : ""}
     <section id="options-reference-variables" role="tabpanel">
@@ -105,8 +106,10 @@ test("enhances inline variable and clause references in the main option tabs", a
     .querySelector<HTMLElement>("[data-reference-tab='options-reference-templates']")!
     .click();
   expect(filter.placeholder).toBe("Translated<html_filterRoutingTemplates>");
-  expect(document.querySelector<HTMLElement>(".reference-dialog-descriptions")?.hidden).toBe(true);
-  expect(filter.hasAttribute("aria-describedby")).toBe(false);
+  expect(
+    document.querySelector<HTMLElement>("#reference-dialog-description-templates")?.hidden,
+  ).toBe(false);
+  expect(filter.getAttribute("aria-describedby")).toBe("reference-dialog-description-templates");
 
   document.querySelector<HTMLElement>("[data-reference-tab='missing-panel']")!.click();
   [...document.querySelectorAll<HTMLElement>("[data-reference-tab]")].at(-1)!.click();

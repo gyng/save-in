@@ -1589,6 +1589,9 @@
   "html_clausesAreOnlyUsedInRuleDefinitionsForRouting": {
     "message": "Routeringsregels gebruiken clausules om te bepalen welke downloads worden verplaatst of hernoemd."
   },
+  "html_templatesProvideReadyMadeRoutingRulesYouCanAddAndCustomize": {
+    "message": "Sjablonen bieden kant-en-klare routeringsregels die u kunt toevoegen en aanpassen."
+  },
   "html_firefox": {
     "message": "(Alleen Firefox)."
   },

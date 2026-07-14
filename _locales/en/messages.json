@@ -739,6 +739,10 @@
     "message": "Routing rules use clauses to decide which downloads to move or rename.",
     "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
   },
+  "html_templatesProvideReadyMadeRoutingRulesYouCanAddAndCustomize": {
+    "message": "Templates provide ready-made routing rules you can add and customize.",
+    "description": "Help text above the template library in the reference dialog. Used in src/options/options.html."
+  },
   "html_firefox": {
     "message": "(Firefox only).",
     "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."

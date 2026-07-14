@@ -551,6 +551,9 @@
   "html_clausesAreOnlyUsedInRuleDefinitionsForRouting": {
     "message": "Le regole di routing utilizzano clausole per decidere quali download spostare o rinominare."
   },
+  "html_templatesProvideReadyMadeRoutingRulesYouCanAddAndCustomize": {
+    "message": "I modelli offrono regole di routing pronte da aggiungere e personalizzare."
+  },
   "html_firefox": {
     "message": "(Solo Firefox)."
   },

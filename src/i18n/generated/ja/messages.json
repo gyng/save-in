@@ -1486,6 +1486,9 @@
   "html_clausesAreOnlyUsedInRuleDefinitionsForRouting": {
     "message": "ルーティング ルールは、句を使用して、どのダウンロードを移動または名前変更するかを決定します。"
   },
+  "html_templatesProvideReadyMadeRoutingRulesYouCanAddAndCustomize": {
+    "message": "テンプレートには、追加してカスタマイズできる既製のルーティング ルールが用意されています。"
+  },
   "html_firefox": {
     "message": "(Firefoxのみ)。"
   },

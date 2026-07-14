@@ -1585,6 +1585,9 @@
   "html_clausesAreOnlyUsedInRuleDefinitionsForRouting": {
     "message": "Las reglas de enrutamiento utilizan cláusulas para decidir qué descargas mover o cambiar de nombre."
   },
+  "html_templatesProvideReadyMadeRoutingRulesYouCanAddAndCustomize": {
+    "message": "Las plantillas ofrecen reglas de enrutamiento listas para añadir y personalizar."
+  },
   "html_firefox": {
     "message": "(Solo Firefox)."
   },

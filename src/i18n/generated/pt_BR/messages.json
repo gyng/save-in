@@ -1589,6 +1589,9 @@
   "html_clausesAreOnlyUsedInRuleDefinitionsForRouting": {
     "message": "As regras de roteamento usam cláusulas para decidir quais downloads serão movidos ou renomeados."
   },
+  "html_templatesProvideReadyMadeRoutingRulesYouCanAddAndCustomize": {
+    "message": "Os modelos oferecem regras de roteamento prontas para adicionar e personalizar."
+  },
   "html_firefox": {
     "message": "(somente Firefox)."
   },

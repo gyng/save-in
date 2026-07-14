@@ -1486,6 +1486,9 @@
   "html_clausesAreOnlyUsedInRuleDefinitionsForRouting": {
     "message": "路由規則使用子句來決定要移動或重新命名哪些下載。"
   },
+  "html_templatesProvideReadyMadeRoutingRulesYouCanAddAndCustomize": {
+    "message": "範本提供可新增及自訂的現成路由規則。"
+  },
   "html_firefox": {
     "message": "（僅限 Firefox）。"
   },

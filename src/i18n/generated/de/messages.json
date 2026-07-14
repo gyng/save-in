@@ -1589,6 +1589,9 @@
   "html_clausesAreOnlyUsedInRuleDefinitionsForRouting": {
     "message": "Routing-Regeln verwenden Klauseln, um zu entscheiden, welche Downloads verschoben oder umbenannt werden sollen."
   },
+  "html_templatesProvideReadyMadeRoutingRulesYouCanAddAndCustomize": {
+    "message": "Vorlagen enthalten vorgefertigte Routing-Regeln, die Sie hinzufügen und anpassen können."
+  },
   "html_firefox": {
     "message": "(nur Firefox)."
   },

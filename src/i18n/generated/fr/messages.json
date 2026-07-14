@@ -1609,6 +1609,9 @@
   "html_clausesAreOnlyUsedInRuleDefinitionsForRouting": {
     "message": "Les règles de routage utilisent des clauses pour décider quels téléchargements déplacer ou renommer."
   },
+  "html_templatesProvideReadyMadeRoutingRulesYouCanAddAndCustomize": {
+    "message": "Les modèles proposent des règles de routage prêtes à ajouter et à personnaliser."
+  },
   "html_firefox": {
     "message": "(Firefox uniquement)."
   },

@@ -1486,6 +1486,9 @@
   "html_clausesAreOnlyUsedInRuleDefinitionsForRouting": {
     "message": "라우팅 규칙은 절을 사용하여 이동하거나 이름을 바꿀 다운로드를 결정합니다."
   },
+  "html_templatesProvideReadyMadeRoutingRulesYouCanAddAndCustomize": {
+    "message": "템플릿은 추가하고 맞춤 설정할 수 있는 미리 만들어진 라우팅 규칙을 제공합니다."
+  },
   "html_firefox": {
     "message": "(Firefox에만 해당)."
   },

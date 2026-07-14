@@ -1610,6 +1610,9 @@
   "html_clausesAreOnlyUsedInRuleDefinitionsForRouting": {
     "message": "Routningsregler använder villkor för att avgöra vilka nedladdningar som ska flyttas eller byta namn."
   },
+  "html_templatesProvideReadyMadeRoutingRulesYouCanAddAndCustomize": {
+    "message": "Mallar innehåller färdiga routningsregler som du kan lägga till och anpassa."
+  },
   "html_firefox": {
     "message": "(endast Firefox)."
   },
