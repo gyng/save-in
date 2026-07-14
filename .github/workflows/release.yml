@@ -99,5 +99,5 @@ jobs:
               --draft \
               --verify-tag \
               --generate-notes \
-            --title "Save In ${GITHUB_REF_NAME#v}"
+              --title "Save In ${GITHUB_REF_NAME#v}"
           fi

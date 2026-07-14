@@ -158,9 +158,10 @@ Tools exist only while the options page is open and the browser provides WebMCP.
 Webhooks are an optional, user-configured notification for Save In downloads.
 They are disabled by default. A webhook is sent once after the browser accepts a
 non-private download started by a direct Save In command. Ordinary browser
-downloads, external Download API requests, private-window activity, failed
-preparations, and rejected downloads do not trigger one. Webhook failure never
-changes the download result, and Save In does not retry delivery.
+downloads, automatic Page Sources saves, external Download API requests,
+private-window activity, failed preparations, and rejected downloads do not
+trigger one. Webhook failure never changes the download result, and Save In
+does not retry delivery.
 
 The endpoint must be a direct HTTPS URL without embedded username/password
 credentials or a fragment. Save In sends a `POST` with `Content-Type:

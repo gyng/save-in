@@ -175,6 +175,50 @@ const seedShowcase = (port, optionsTarget) =>
     }).then(() => chrome.runtime.sendMessage({ type: "OPTIONS_LOADED" })).then(() => "seeded")`,
   );
 
+/** @param {number} port @param {string} demoTarget */
+const polishPageSourcesForListing = (port, demoTarget) =>
+  cdp.evalInTarget(
+    port,
+    demoTarget,
+    `(() => {
+      const root = document.querySelector("#save-in-source-panel")?.shadowRoot;
+      if (!root) throw new Error("Page Sources panel missing");
+      const featured = new Map([
+        ["/demo-photo.avif", {
+          name: "miso-in-the-garden.avif",
+          url: "https://media.field-notes.example/miso-in-the-garden.avif"
+        }],
+        ["/demo.mp4", {
+          name: "garden-moments.mp4",
+          url: "https://media.field-notes.example/garden-moments.mp4",
+          size: "18.4 MB"
+        }]
+      ]);
+      let updated = 0;
+      root.querySelectorAll(".source-link").forEach((link) => {
+        const pathname = new URL(link.href).pathname;
+        const replacement = featured.get(pathname) || {
+          name: link.querySelector(".name")?.textContent,
+          url: "https://field-notes.example" + pathname
+        };
+        const name = link.querySelector(".name");
+        const url = link.querySelector(".url");
+        const size = link.querySelector(".source-size");
+        if (name && replacement.name) name.textContent = replacement.name;
+        if (url) {
+          url.textContent = replacement.url;
+          url.title = replacement.url;
+        }
+        if (size && replacement.size) size.textContent = replacement.size;
+        else if (size && size.textContent?.toLowerCase().includes("unknown")) {
+          size.textContent = 24 + updated * 3 + " KB";
+        }
+        updated += 1;
+      });
+      return updated;
+    })()`,
+  );
+
 const main = async () => {
   if (process.argv.includes("--help")) {
     process.stdout.write(
@@ -314,6 +358,7 @@ const main = async () => {
         ),
       "showcase Page Sources discovery",
     );
+    await polishPageSourcesForListing(port, demoTarget);
     await cdp.evalInTarget(port, demoTarget, "scrollTo(0, 0); document.activeElement?.blur()");
     await capture(port, demoTarget, outputDir, SCREENSHOTS[2]);
 

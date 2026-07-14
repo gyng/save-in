@@ -97,6 +97,9 @@ protocol, availability, and trust model.
    `e2e:firefox` remain available separately. Browser failures retain
    diagnostics in `dist/e2e-artifacts`.
 
+Run `npm run clean` to remove generated bundles, browser profiles, coverage
+reports, and packaged artifacts while keeping installed dependencies.
+
 ## Deployment
 
 `npm run build` creates the shared Manifest V3 ZIP in `web-ext-artifacts` for

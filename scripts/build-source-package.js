@@ -157,7 +157,6 @@ async function main() {
       ".oxlintrc.json",
       ".github/workflows/ci.yml",
       "assets/README.md",
-      "assets/icons/notification-info.svg",
       "CHANGELOG.md",
       "e2e/chrome.e2e.mjs",
       "e2e/firefox.e2e.mjs",

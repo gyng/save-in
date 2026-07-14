@@ -14,6 +14,10 @@ Keep store data-use answers aligned with `PRIVACY.md`: Save In processes website
 content and browsing activity locally for direct saves, explicitly configured
 automatic saves, and history; sends neither to the developer; and executes no
 remote code.
+When WebMCP is available, disclose that a compatible in-browser agent can read
+the complete saved configuration and invoke Save In tools only while Options is
+open. Save In adds no separate consent prompt; the browser or agent controls
+access, confirmation, and its handling of returned data.
 
 Chrome's listing should disclose that Incognito activity is excluded from Save
 In history and diagnostics, while Chrome may show an Incognito save in its
