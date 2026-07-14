@@ -12,8 +12,9 @@ import { toRootDomain } from "../shared/domain.ts";
 export { toRootDomain } from "../shared/domain.ts";
 
 type HeadResult = HeadMetadata;
+type TransformerInfo = RoutingDownloadInfo & { now: Date };
 type Transformer = (
-  opts: RoutingDownloadInfo,
+  opts: TransformerInfo,
   token?: PathSegment,
   index?: number,
   tokens?: PathSegment[],
@@ -23,6 +24,12 @@ type TransformableSpecialDirectory = Exclude<SpecialDirectory, typeof SPECIAL_DI
 type TransformerRegistry = Record<string, Transformer> &
   Record<TransformableSpecialDirectory, Transformer>;
 const PATH_SEGMENT_TYPE_VALUES = Object.values(PATH_SEGMENT_TYPES);
+
+function ensureTransformerInfo(opts: RoutingDownloadInfo): asserts opts is TransformerInfo {
+  if (!(opts.now instanceof Date) || !Number.isFinite(opts.now.getTime())) {
+    opts.now = new Date();
+  }
+}
 
 const isPathSegment = (value: unknown): value is PathSegment =>
   isStringKeyedRecord(value) &&
@@ -254,10 +261,11 @@ export const resolveContent = (opts: RoutingDownloadInfo) => {
   }
   if (opts.contentFetchDisabled) return Promise.resolve(null);
   const requestId = crypto.randomUUID();
-  opts.contentPromise = opts.url
+  const url = opts.url;
+  opts.contentPromise = url
     ? Promise.resolve(opts.onContentFetchStart?.(requestId)).then(() =>
         routingPorts.resolveContent(
-          opts.url!,
+          url,
           opts.currentTab?.incognito === true,
           opts.abortSignal,
           requestId,
@@ -298,33 +306,33 @@ export const transformers: TransformerRegistry = {
     [SPECIAL_DIRS.SOURCE_URL]:
       opts => stringSegment(opts.sourceUrl),
     [SPECIAL_DIRS.DATE]:
-      opts => stringSegment(toDateString(opts.now!)),
+      opts => stringSegment(toDateString(opts.now)),
     [SPECIAL_DIRS.ISO8601_DATE]:
-      opts => stringSegment(toISODateString(opts.now!)),
+      opts => stringSegment(toISODateString(opts.now)),
     [SPECIAL_DIRS.UNIX_DATE]:
-      opts => stringSegment(Math.floor(opts.now!.getTime() / 1000)),
+      opts => stringSegment(Math.floor(opts.now.getTime() / 1000)),
     [SPECIAL_DIRS.YEAR]:
-      opts => stringSegment(opts.now!.getFullYear()),
+      opts => stringSegment(opts.now.getFullYear()),
     [SPECIAL_DIRS.MONTH]:
-      opts => stringSegment(padDateComponent(opts.now!.getMonth() + 1)),
+      opts => stringSegment(padDateComponent(opts.now.getMonth() + 1)),
     [SPECIAL_DIRS.DAY]:
-      opts => stringSegment(padDateComponent(opts.now!.getDate())),
+      opts => stringSegment(padDateComponent(opts.now.getDate())),
     [SPECIAL_DIRS.HOUR]:
-      opts => stringSegment(padDateComponent(opts.now!.getHours())),
+      opts => stringSegment(padDateComponent(opts.now.getHours())),
     [SPECIAL_DIRS.MINUTE]:
-      opts => stringSegment(padDateComponent(opts.now!.getMinutes())),
+      opts => stringSegment(padDateComponent(opts.now.getMinutes())),
     [SPECIAL_DIRS.SECOND]:
-      opts => stringSegment(padDateComponent(opts.now!.getSeconds())),
+      opts => stringSegment(padDateComponent(opts.now.getSeconds())),
     [SPECIAL_DIRS.WEEKDAY]:
-      opts => stringSegment(WEEKDAY_NAMES[opts.now!.getDay()]),
+      opts => stringSegment(WEEKDAY_NAMES[opts.now.getDay()]),
     [SPECIAL_DIRS.MONTH_NAME]:
-      opts => stringSegment(MONTH_NAMES[opts.now!.getMonth()]),
+      opts => stringSegment(MONTH_NAMES[opts.now.getMonth()]),
     [SPECIAL_DIRS.AM_PM]:
-      opts => stringSegment(opts.now!.getHours() < 12 ? "am" : "pm"),
+      opts => stringSegment(opts.now.getHours() < 12 ? "am" : "pm"),
     [SPECIAL_DIRS.ISO_WEEK]:
-      opts => stringSegment(padDateComponent(toISOWeek(opts.now!))),
+      opts => stringSegment(padDateComponent(toISOWeek(opts.now))),
     [SPECIAL_DIRS.WEEK]:
-      opts => stringSegment(padDateComponent(toISOWeek(opts.now!))),
+      opts => stringSegment(padDateComponent(toISOWeek(opts.now))),
     [SPECIAL_DIRS.PAGE_TITLE]:
       opts => stringSegment((opts.currentTab && opts.currentTab.title) || ""),
     [SPECIAL_DIRS.PAGE_TITLE_SLUG]:
@@ -408,6 +416,7 @@ export const applyVariables = async <P extends object>(
 ): Promise<P> => {
   const tokens = Reflect.get(path, "buf");
   if (!Array.isArray(tokens) || !tokens.every(isPathSegment)) return path;
+  ensureTransformerInfo(opts);
   const resolved = await Promise.all(
     tokens.map((token, index, allTokens) => {
       if (token.type === PATH_SEGMENT_TYPES.VARIABLE) {
