@@ -14,11 +14,14 @@
   --space-6: 32px;
 
   /* Type scale */
+  --text-xs: 12px;
   --text-sm: 13px;
   --text-base: 15px;
-  --text-md: var(--text-base);
   --text-lg: 17px;
   --text-xl: 22px;
+  --leading-ui: 1.3;
+  --leading-copy: 1.5;
+  --leading-code: 1.6;
 
   --radius: 4px;
   --radius-sm: calc(var(--radius) - 1px);
@@ -209,7 +212,7 @@ a.external {
 html {
   font-family: var(--font-stack);
   font-size: var(--text-base);
-  line-height: 1.3;
+  line-height: var(--leading-ui);
   min-width: 400px;
   min-height: 1%; /* Firefox options page height hack */
   /* Always reserve the vertical scrollbar gutter so switching between
@@ -283,7 +286,7 @@ body:not(#settings-page) {
   border: 0;
   background: transparent;
   color: var(--color-text-muted);
-  font-size: var(--text-md);
+  font-size: var(--text-base);
 }
 
 .reference-launcher-tabs [role="tab"]:hover,
@@ -360,7 +363,7 @@ body:not(#settings-page) {
   overflow-wrap: anywhere;
   color: var(--color-text-muted);
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: var(--text-xs);
 }
 
 .saved-change-undo {
@@ -443,12 +446,12 @@ body:not(#settings-page) {
   margin-left: var(--space-2);
   margin-right: var(--space-1);
   color: var(--color-text-muted);
-  font-size: 12px;
+  font-size: var(--text-xs);
 }
 
 .nav-resources > summary {
   color: var(--link-color);
-  font-size: var(--text-md);
+  font-size: var(--text-base);
   font-weight: 500;
   cursor: pointer;
 }
@@ -511,13 +514,13 @@ body:not(#settings-page) {
   max-width: 62ch;
   margin-inline: auto;
   font-size: var(--text-base);
-  line-height: 1.55;
+  line-height: var(--leading-copy);
 }
 
 .privacy-content h1 {
   margin: 0 var(--space-6) var(--space-1) 0;
   font-size: var(--text-xl);
-  font-weight: 650;
+  font-weight: 600;
   line-height: 1.2;
   letter-spacing: -0.015em;
 }
@@ -554,7 +557,7 @@ body:not(#settings-page) {
   height: 32px;
   padding: 0;
   border: 0;
-  font-size: 22px;
+  font-size: var(--text-xl);
 }
 
 .about-layout {
@@ -615,7 +618,7 @@ body:not(#settings-page) {
 
 .about-build-info dt {
   color: var(--color-text-muted);
-  font-size: 11px;
+  font-size: var(--text-xs);
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -744,7 +747,7 @@ code {
 h2 {
   width: 100%;
   font-size: var(--text-xl);
-  font-weight: 300;
+  font-weight: 600;
   margin: 0 0 var(--space-4);
 }
 
@@ -779,7 +782,7 @@ h5 {
 
 .section-lead {
   font-size: var(--text-base);
-  line-height: 1.5;
+  line-height: var(--leading-copy);
 }
 
 hr {
@@ -799,7 +802,7 @@ label {
    flowing (and wrapping mid-sentence) as one inline paragraph */
 label {
   display: block;
-  font-size: var(--text-md);
+  font-size: var(--text-base);
   padding: 2px 0;
   -moz-user-select: none;
   -webkit-user-select: none;
@@ -882,7 +885,7 @@ input[type="text"] {
 .editor-field-label {
   display: block;
   margin: 0.35rem 0;
-  font-size: var(--text-md);
+  font-size: var(--text-base);
   font-weight: 600;
 }
 
@@ -893,13 +896,13 @@ input[type="text"] {
 }
 
 .rule-builder-row > label > span {
-  font-size: var(--text-md);
+  font-size: var(--text-base);
   color: var(--color-text-muted);
 }
 
 textarea {
   font-family: var(--font-mono);
-  font-size: var(--text-md);
+  font-size: var(--text-base);
   padding: var(--space-2);
   margin: var(--space-2) 0;
 }
@@ -916,7 +919,7 @@ button {
   padding: 8px;
   border: solid 1px var(--control-border);
   background-color: transparent;
-  font-size: var(--text-md);
+  font-size: var(--text-base);
   font-weight: 400;
   -moz-user-select: none;
   -webkit-user-select: none;
@@ -1105,6 +1108,7 @@ button:active {
 .caption {
   font-size: var(--text-sm);
   font-weight: 400;
+  line-height: 1.4;
 }
 
 /* Checkbox option rows are a 2-column grid — [checkbox] [body] — so help text
@@ -1189,7 +1193,7 @@ label:has(> input[type="checkbox"]) > .caption-line {
 }
 
 .save-dialog-conditions-label {
-  font-size: var(--text-md);
+  font-size: var(--text-base);
 }
 
 .inline-control-label {
@@ -1448,7 +1452,7 @@ fieldset.click-to-save-controls {
   margin: 0;
   padding: 0;
   border-spacing: 0;
-  font-size: var(--text-md);
+  font-size: var(--text-base);
 }
 
 .last-download-table tbody {
@@ -1556,7 +1560,7 @@ input.key {
 
 .match-row-result {
   margin-left: 8px;
-  font-family: monospace;
+  font-family: var(--font-mono);
 }
 
 #export-target {
@@ -1601,8 +1605,8 @@ input.key {
   box-sizing: border-box;
   padding: var(--space-2) var(--space-2) var(--space-2) var(--space-1);
   font-family: var(--font-mono);
-  font-size: var(--text-md);
-  line-height: 1.6;
+  font-size: var(--text-base);
+  line-height: var(--leading-code);
   text-align: right;
   will-change: transform;
 }
@@ -1624,7 +1628,7 @@ input.key {
   border-color: var(--syntax-error);
   color: var(--syntax-error);
   background: var(--syntax-error-soft);
-  font-weight: 750;
+  font-weight: 700;
   cursor: pointer;
 }
 
@@ -1652,7 +1656,7 @@ textarea.syntax-editor-input {
   background: transparent;
   color: transparent;
   caret-color: var(--color-text);
-  line-height: 1.6;
+  line-height: var(--leading-code);
   white-space: pre;
   -webkit-text-fill-color: transparent;
 }
@@ -1679,8 +1683,8 @@ textarea.syntax-editor-input::placeholder {
   padding: var(--space-2);
   border: 0;
   font-family: var(--font-mono);
-  font-size: var(--text-md);
-  line-height: 1.6;
+  font-size: var(--text-base);
+  line-height: var(--leading-code);
   white-space: pre;
   color: var(--color-text);
   pointer-events: none;
@@ -1697,8 +1701,8 @@ textarea.syntax-editor-input::placeholder {
   box-sizing: border-box;
   padding: var(--space-2);
   font-family: var(--font-mono);
-  font-size: var(--text-md);
-  line-height: 1.6;
+  font-size: var(--text-base);
+  line-height: var(--leading-code);
   white-space: pre;
   pointer-events: none;
   will-change: transform;
@@ -1715,7 +1719,7 @@ textarea.syntax-editor-input::placeholder {
   border-radius: var(--radius-sm);
   color: color-mix(in srgb, var(--syntax-error) 72%, var(--color-text-muted));
   background: color-mix(in srgb, var(--syntax-error-soft) 72%, transparent);
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-style: italic;
   opacity: 0.82;
 }
@@ -1746,22 +1750,22 @@ textarea.syntax-editor-input::placeholder {
 .syntax-token-capture,
 .syntax-token-metadata {
   color: var(--syntax-variable);
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .syntax-token-matcher {
   color: var(--syntax-keyword);
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .syntax-token-variable {
   color: var(--syntax-variable);
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .syntax-token-destination {
   color: var(--syntax-destination);
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .syntax-token-destination-value {
@@ -1823,7 +1827,7 @@ textarea.syntax-editor-input::placeholder {
   border-radius: var(--radius);
   background: var(--floating-bg);
   box-shadow: var(--floating-shadow);
-  font-size: var(--text-md);
+  font-size: var(--text-base);
   line-height: 1.4;
   pointer-events: none;
 }
@@ -1851,7 +1855,7 @@ textarea.syntax-editor-input::placeholder {
   border-radius: var(--radius-sm);
   background: var(--syntax-error-soft);
   font-family: var(--font-mono);
-  font-weight: 750;
+  font-weight: 700;
   letter-spacing: 0.01em;
 }
 
@@ -1868,7 +1872,7 @@ textarea.syntax-editor-input::placeholder {
   position: fixed;
   visibility: hidden;
   font-family: var(--font-mono);
-  font-size: var(--text-md);
+  font-size: var(--text-base);
   white-space: pre;
 }
 
@@ -1888,7 +1892,7 @@ textarea.syntax-editor-input::placeholder {
   border-radius: var(--radius);
   box-shadow: var(--floating-shadow);
   font-family: var(--font-mono);
-  font-size: var(--text-md);
+  font-size: var(--text-base);
 }
 
 .autocomplete-dropdown li {
@@ -1902,9 +1906,9 @@ textarea.syntax-editor-input::placeholder {
   padding-top: var(--space-2);
   color: var(--color-text-muted);
   cursor: default;
-  font-family: system-ui;
+  font-family: var(--font-stack);
   font-size: var(--text-sm);
-  font-weight: 650;
+  font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
@@ -1959,7 +1963,7 @@ textarea.syntax-editor-input::placeholder {
   background: transparent;
   padding: var(--space-2) var(--space-3);
   margin-bottom: -1px;
-  font-size: var(--text-md);
+  font-size: var(--text-base);
   font-weight: 500;
   color: var(--color-text-muted);
   cursor: pointer;
@@ -2005,7 +2009,7 @@ textarea.syntax-editor-input::placeholder {
   width: 100%;
   max-width: none;
   padding: var(--space-2) var(--space-3);
-  font-size: var(--text-md);
+  font-size: var(--text-base);
 }
 
 .option-search:focus-within {
@@ -2053,7 +2057,7 @@ textarea.syntax-editor-input::placeholder {
 
 .option-search-result-label {
   overflow: hidden;
-  font-size: var(--text-md);
+  font-size: var(--text-base);
   font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2062,7 +2066,7 @@ textarea.syntax-editor-input::placeholder {
 .option-search-result-location {
   overflow: hidden;
   color: var(--color-text-muted);
-  font-size: 11px;
+  font-size: var(--text-xs);
   font-weight: 400;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2159,7 +2163,7 @@ summary {
   cursor: pointer;
   user-select: none;
   font-weight: 600;
-  font-size: var(--text-md);
+  font-size: var(--text-base);
   padding: var(--space-1) 0;
 }
 
@@ -2195,7 +2199,7 @@ summary {
 .variables-preview-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 12px;
+  font-size: var(--text-sm);
 }
 
 .variables-preview-table td {
@@ -2213,8 +2217,8 @@ summary {
 .variables-preview-group th {
   padding: var(--space-2) var(--space-3) var(--space-1);
   color: var(--color-text-muted);
-  font-size: 10px;
-  font-weight: 650;
+  font-size: var(--text-xs);
+  font-weight: 600;
   letter-spacing: 0.04em;
   text-align: left;
   text-transform: uppercase;
@@ -2240,7 +2244,7 @@ summary {
 .variables-preview-table code {
   background: none;
   padding: 0;
-  font-size: 12px;
+  font-size: inherit;
 }
 
 .variables-preview-value {
@@ -2468,7 +2472,7 @@ summary {
 .rule-editor-identity h4 {
   flex: none;
   margin: 0;
-  font-size: var(--text-md);
+  font-size: var(--text-base);
 }
 
 .rule-editor-meta {
@@ -2481,7 +2485,7 @@ summary {
 .rule-editor-auto-badge {
   flex: none;
   color: var(--blue70);
-  font-size: 11px;
+  font-size: var(--text-sm);
 }
 
 .rule-editor-card-body {
@@ -2497,7 +2501,7 @@ summary {
   color: var(--color-text-muted);
   border-color: transparent;
   background: transparent;
-  font-size: 14px;
+  font-size: var(--text-base);
 }
 
 .rule-editor-card-actions {
@@ -2582,7 +2586,7 @@ summary {
   color: var(--syntax-keyword);
   background: color-mix(in srgb, var(--syntax-keyword) 10%, transparent);
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: var(--text-xs);
   font-weight: 700;
   text-transform: uppercase;
 }
@@ -2590,14 +2594,14 @@ summary {
 .rule-clause-destination .rule-clause-marker {
   color: var(--syntax-variable);
   background: color-mix(in srgb, var(--syntax-variable) 10%, transparent);
-  font-size: 15px;
+  font-size: var(--text-base);
 }
 
 .rule-clause-fixed-name {
   padding-left: var(--space-2);
   color: var(--color-text-muted);
   font-family: var(--font-mono);
-  font-size: var(--text-md);
+  font-size: var(--text-base);
 }
 
 .tab-panel .rule-clause-row input[type="text"],
@@ -2615,7 +2619,7 @@ summary {
   border-radius: var(--radius);
   color: var(--color-text-muted);
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: var(--text-sm);
   line-height: 1;
   white-space: nowrap;
   cursor: pointer;
@@ -2652,7 +2656,7 @@ summary {
 .rule-editor-unsupported {
   margin: var(--space-3) var(--space-3) var(--space-2);
   color: var(--error-fg);
-  font-size: var(--text-md);
+  font-size: var(--text-base);
 }
 
 .rule-editor-source-preview {
@@ -2663,7 +2667,7 @@ summary {
   color: var(--color-text-muted);
   background: var(--input-background);
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: var(--text-sm);
   white-space: pre-wrap;
 }
 
@@ -2786,7 +2790,7 @@ summary {
   margin-bottom: var(--space-1);
   color: var(--color-text-muted);
   font-size: var(--text-sm);
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .route-debugger-field input,
@@ -2840,7 +2844,7 @@ summary {
 
 .route-debugger-message-title {
   color: var(--color-text);
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .route-debugger-result[data-state="error"] .route-debugger-message,
@@ -2884,8 +2888,8 @@ summary {
 
 .route-debugger-pipeline dt {
   color: var(--color-text-muted);
-  font-size: var(--text-md);
-  font-weight: 650;
+  font-size: var(--text-base);
+  font-weight: 600;
 }
 
 .route-debugger-pipeline dd {
@@ -2899,7 +2903,7 @@ summary {
   border-radius: 0;
   background: transparent;
   font-family: var(--font-mono);
-  font-size: var(--text-md);
+  font-size: var(--text-base);
   overflow-wrap: anywhere;
 }
 
@@ -2980,7 +2984,7 @@ summary {
 
 .route-debugger-rule-destination {
   color: var(--syntax-destination);
-  font-size: 11px;
+  font-size: var(--text-sm);
   font-weight: 400;
   overflow-wrap: anywhere;
 }
@@ -2994,14 +2998,14 @@ summary {
 
 .route-debugger-rule-count {
   color: var(--color-text-muted);
-  font-size: 11px;
+  font-size: var(--text-xs);
   white-space: nowrap;
 }
 
 .route-debugger-rule-badge {
   color: var(--color-text-muted);
-  font-size: 11px;
-  font-weight: 650;
+  font-size: var(--text-sm);
+  font-weight: 600;
 }
 
 .route-debugger-rule.is-selected .route-debugger-rule-badge {
@@ -3016,7 +3020,7 @@ summary {
   border-radius: var(--radius-sm);
   color: var(--link-color);
   background: var(--page-bg);
-  font-size: 11px;
+  font-size: var(--text-sm);
 }
 
 .route-debugger-clauses {
@@ -3035,7 +3039,7 @@ summary {
 
 .route-debugger-clause-mark {
   color: var(--success-fg);
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .route-debugger-clause.is-miss .route-debugger-clause-mark {
@@ -3043,8 +3047,22 @@ summary {
 }
 
 .route-debugger-clause-decision {
+  display: grid;
   min-width: 0;
+  gap: 2px;
   overflow-wrap: anywhere;
+}
+
+.route-debugger-clause-expression {
+  width: fit-content;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  font-size: inherit;
+}
+
+.route-debugger-clause-attempt {
+  color: var(--color-text-muted);
 }
 
 .routing-tool {
@@ -3305,7 +3323,7 @@ summary {
   border: 0;
   color: var(--color-text-muted);
   background: none;
-  font-size: 11px;
+  font-size: var(--text-sm);
   line-height: 1.45;
   white-space: pre;
   scrollbar-width: thin;
@@ -3333,7 +3351,7 @@ summary {
 
 .rule-template-name {
   font-weight: 600;
-  font-size: var(--text-md);
+  font-size: var(--text-base);
 }
 
 .rule-template-desc {
@@ -3518,7 +3536,7 @@ button:disabled {
 
 .option-subgroup > h3 {
   margin: 0 0 var(--space-3);
-  font-size: var(--text-md);
+  font-size: var(--text-base);
 }
 
 .warning-text:not(:empty),
@@ -3559,7 +3577,7 @@ button:disabled:hover {
 
 .editor-tab {
   padding: var(--space-1) var(--space-3);
-  font-size: var(--text-md);
+  font-size: var(--text-base);
   font-weight: 500;
   border: none;
   border-bottom: 2px solid transparent;
@@ -3603,7 +3621,7 @@ button:disabled:hover {
 
 /* Reference links that sit inline in editor toolbars. */
 .toolbar-link {
-  font-size: var(--text-md);
+  font-size: var(--text-base);
   white-space: nowrap;
 }
 
@@ -3750,7 +3768,7 @@ button:disabled:hover {
   border-radius: 3px;
   background: var(--color-accent);
   color: var(--color-on-accent);
-  font-size: 10px;
+  font-size: var(--text-sm);
   line-height: 16px;
   pointer-events: none;
   white-space: nowrap;
@@ -3759,7 +3777,7 @@ button:disabled:hover {
 .path-editor-alias-toggle {
   flex: none;
   padding: 3px 6px;
-  font-size: var(--text-md);
+  font-size: var(--text-base);
   line-height: 1.2;
 }
 
@@ -3856,7 +3874,7 @@ button:disabled:hover {
 .visual-editor-control {
   min-width: 24px;
   padding: 4px 6px;
-  font-size: 12px;
+  font-size: var(--text-xs);
   line-height: 1;
   border: none;
   background-color: transparent;
@@ -3913,7 +3931,7 @@ select {
   box-sizing: border-box;
   padding: var(--space-1) var(--space-2);
   background-color: var(--input-background);
-  font-size: var(--text-md);
+  font-size: var(--text-base);
 }
 
 input[type="text"],
@@ -3952,7 +3970,7 @@ select {
   box-shadow:
     0 2px 4px rgba(20, 30, 50, 0.06),
     0 8px 24px rgba(20, 30, 50, 0.08);
-  font-size: var(--text-md);
+  font-size: var(--text-base);
 }
 
 /* Nested submenus indent with a faint guide line */
@@ -4008,7 +4026,7 @@ select {
 .menu-preview-dir {
   color: var(--color-text-muted);
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: var(--text-sm);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -4055,7 +4073,7 @@ select {
 .menu-preview-error .menu-preview-title {
   color: var(--error-fg);
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: var(--text-sm);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -4177,7 +4195,7 @@ select {
   border: 1px solid var(--panel-border);
   border-radius: var(--radius);
   background: var(--page-bg);
-  font-size: 12px;
+  font-size: var(--text-sm);
 }
 
 .webhook-status {
@@ -4379,7 +4397,7 @@ select {
 
 .external-api-details > summary {
   color: var(--color-text-muted);
-  font-size: var(--text-md);
+  font-size: var(--text-base);
   font-weight: 600;
   cursor: pointer;
 }
@@ -4460,12 +4478,12 @@ select {
 .dev-api-label {
   flex: 0 0 7em;
   color: var(--color-text-muted);
-  font-size: var(--text-md);
+  font-size: var(--text-base);
 }
 
 .dev-api-value {
   font-family: var(--font-mono);
-  font-size: var(--text-md);
+  font-size: var(--text-base);
   word-break: break-all;
 }
 
@@ -4484,7 +4502,7 @@ code.click-to-copy {
   border: 1px solid var(--panel-border);
   border-radius: var(--radius);
   background-color: var(--page-bg);
-  font-size: 12px;
+  font-size: var(--text-sm);
   cursor: pointer;
 }
 
@@ -4497,7 +4515,7 @@ code.click-to-copy {
   border-collapse: collapse;
   width: 100%;
   margin-top: var(--space-2);
-  font-size: var(--text-md);
+  font-size: var(--text-base);
 }
 
 .history-facets {
@@ -4565,7 +4583,7 @@ code.click-to-copy {
 .history-custom-date-range > label,
 #history-custom-date-label {
   margin: 0;
-  font-size: var(--text-md);
+  font-size: var(--text-base);
 }
 
 #history-custom-date-label {
@@ -4596,12 +4614,12 @@ code.click-to-copy {
 .history-facet > label {
   margin: 0;
   color: var(--color-text-muted);
-  font-size: var(--text-md);
+  font-size: var(--text-base);
 }
 
 .history-table th {
   text-align: left;
-  font-size: 11px;
+  font-size: var(--text-xs);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--color-text-muted);
@@ -4659,7 +4677,7 @@ code.click-to-copy {
   margin-left: var(--space-1);
   border: none;
   background: none;
-  font-size: 13px;
+  font-size: var(--text-sm);
   line-height: 1;
   vertical-align: middle;
   opacity: 0.7;
@@ -4672,7 +4690,7 @@ code.click-to-copy {
   border-radius: var(--radius-sm);
   color: var(--error-fg);
   background: var(--error-bg);
-  font-size: 11px;
+  font-size: var(--text-sm);
   line-height: 1.4;
 }
 
@@ -4756,7 +4774,7 @@ code.click-to-copy {
 .history-variable-list dt {
   color: var(--color-text-muted);
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: var(--text-xs);
 }
 
 .history-full-path {
@@ -4857,7 +4875,7 @@ code.click-to-copy {
 }
 
 .source-panel-demo-facets b {
-  font-size: 0.9em;
+  font-size: var(--text-xs);
   font-variant-numeric: tabular-nums;
 }
 
@@ -4937,7 +4955,7 @@ code.click-to-copy {
   display: inline-block;
   padding: 1px 7px;
   border-radius: 999px;
-  font-size: 11px;
+  font-size: var(--text-sm);
   color: var(--link-color);
   background-color: color-mix(in srgb, var(--link-color) 10%, transparent);
 }
@@ -4971,7 +4989,7 @@ code.click-to-copy {
   display: inline-block;
   padding: 1px 8px;
   border-radius: 999px;
-  font-size: 11px;
+  font-size: var(--text-sm);
   font-weight: 600;
   white-space: nowrap;
 }
@@ -5193,7 +5211,7 @@ code.click-to-copy {
   border-radius: var(--radius);
   background: var(--color-accent);
   box-shadow: var(--floating-shadow);
-  font-size: 11px;
+  font-size: var(--text-sm);
   font-weight: 500;
   white-space: nowrap;
 }
@@ -5259,7 +5277,7 @@ code.click-to-copy {
 .option-group-heading {
   margin-bottom: var(--space-2);
   color: var(--color-text);
-  font-size: var(--text-md);
+  font-size: var(--text-base);
   font-weight: 600;
 }
 

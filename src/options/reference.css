@@ -52,7 +52,7 @@ body:has(.reference-header) {
   padding: var(--space-2) var(--space-3);
   border: 1px solid var(--panel-border);
   border-radius: var(--radius);
-  font-size: 14px;
+  font-size: var(--text-base);
 }
 
 .reference-search-label .reference-search:focus-visible,
@@ -120,7 +120,7 @@ body:has(.reference-header) {
   box-shadow: 0 3px 6px -4px color-mix(in srgb, var(--color-text) 18%, transparent);
   color: inherit;
   font-size: var(--text-sm);
-  font-weight: 650;
+  font-weight: 600;
   letter-spacing: 0.02em;
 }
 
