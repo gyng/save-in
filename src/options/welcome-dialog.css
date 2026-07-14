@@ -1,6 +1,6 @@
 .welcome-dialog {
   box-sizing: border-box;
-  width: min(680px, calc(100vw - 2 * var(--space-5)));
+  width: min(760px, calc(100vw - 2 * var(--space-5)));
   max-height: calc(100vh - 2 * var(--space-5));
   padding: 0;
   overflow: auto;
@@ -109,9 +109,13 @@
 
 .welcome-actions {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: var(--space-2);
   justify-content: flex-end;
+}
+
+.welcome-actions > button {
+  white-space: nowrap;
 }
 
 .welcome-action-status {
@@ -148,6 +152,8 @@
   }
 
   .welcome-actions {
+    display: grid;
+    grid-template-columns: 1fr;
     justify-content: flex-end;
   }
 }
