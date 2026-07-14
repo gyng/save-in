@@ -13,6 +13,20 @@
   margin: 0 0 var(--space-5);
 }
 
+.unsaved-changes-dialog h2 {
+  margin-bottom: var(--space-3);
+}
+
+.unsaved-changes-dialog p {
+  margin: 0;
+  font-size: var(--text-base);
+  line-height: var(--leading-copy);
+}
+
+.unsaved-changes-dialog .dialog-actions {
+  margin-top: var(--space-4);
+}
+
 .dialog-actions {
   display: flex;
   justify-content: flex-end;
