@@ -28,6 +28,7 @@ import {
   toWireDownloadState,
   type WireDownloadState,
 } from "../shared/message-protocol.ts";
+import { isStringKeyedRecord } from "../shared/util.ts";
 
 const historyPort = downloadPorts.history;
 const logPort = downloadPorts.log;
@@ -67,8 +68,8 @@ export type DeferredRouteRecovery = {
 export type DeferredRouteMap = Record<string, DeferredRouteRecovery | DeferredRouteRecovery[]>;
 
 const normalizeDeferredRoute = (value: unknown): DeferredRouteRecovery | null => {
-  if (value == null || typeof value !== "object" || Array.isArray(value)) return null;
-  const candidate = value as Record<string, unknown>;
+  if (!isStringKeyedRecord(value)) return null;
+  const candidate = value;
   const state = candidate.state;
   if (candidate.version !== 1 || typeof candidate.id !== "string" || !isWireDownloadState(state)) {
     return null;

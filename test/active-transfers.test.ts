@@ -98,6 +98,9 @@ test("recovers only normalized durable transfer records and removes the snapshot
       nullish: null,
       array: [],
       missingTimestamp: { requestId: "bad" },
+      nonFiniteTimestamp: { requestId: "bad", updatedAt: Number.POSITIVE_INFINITY },
+      invalidDownloadId: { requestId: "req-2", downloadId: Number.NaN, updatedAt: 12 },
+      fractionalDownloadId: { downloadId: 4.5, updatedAt: 13 },
     },
   });
   vi.mocked(browser.storage.session.remove).mockResolvedValue();
@@ -105,6 +108,8 @@ test("recovers only normalized durable transfer records and removes the snapshot
   await expect(ActiveTransfers.recover()).resolves.toEqual({
     complete: { requestId: "req", downloadId: 4, updatedAt: 10 },
     minimal: { updatedAt: 11 },
+    invalidDownloadId: { requestId: "req-2", updatedAt: 12 },
+    fractionalDownloadId: { updatedAt: 13 },
   });
   expect(browser.storage.session.remove).toHaveBeenCalledWith(ACTIVE_TRANSFERS_SESSION_KEY);
 });

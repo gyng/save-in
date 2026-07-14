@@ -14,6 +14,7 @@ import { downloadsState, sessionWriteState } from "./state.ts";
 import { hydrateDownloads, mergeDownload } from "./download-state.ts";
 import { OffscreenClient } from "../platform/offscreen-client.ts";
 import { downloadPorts } from "./ports.ts";
+import { isStringKeyedRecord } from "../shared/util.ts";
 
 const PENDING_RECOVERY_GRACE_MS = 10000;
 
@@ -28,8 +29,8 @@ type NotificationRecovery = {
 let recovery: Promise<void> | null = null;
 
 const normalizeRecovery = (value: unknown): NotificationRecovery | null => {
-  if (value == null || typeof value !== "object" || Array.isArray(value)) return null;
-  const candidate = value as Record<string, unknown>;
+  if (!isStringKeyedRecord(value)) return null;
+  const candidate = value;
   if (
     candidate.version !== 1 ||
     typeof candidate.token !== "string" ||

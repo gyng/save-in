@@ -1,6 +1,6 @@
 import { webExtensionApi } from "../platform/web-extension-api.ts";
 import { getMessage } from "../platform/localization.ts";
-import { withUrl } from "../shared/util.ts";
+import { isStringKeyedRecord, withUrl } from "../shared/util.ts";
 import { isPageSourceKind, PAGE_SOURCE_KINDS } from "../shared/page-source.ts";
 
 type WebMcpMessage = { type: string; body?: unknown };
@@ -37,7 +37,7 @@ const prepareInput = (
   value: unknown,
 ): { input: Record<string, unknown> } | { error: WebMcpInputError } => {
   if (typeof value === "undefined") return { input: {} };
-  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+  if (!isStringKeyedRecord(value)) {
     return { error: { field: "$", message: "Expected an object" } };
   }
   try {
@@ -49,7 +49,7 @@ const prepareInput = (
   } catch {
     return { error: { field: "$", message: "Expected a JSON-compatible object" } };
   }
-  return { input: value as Record<string, unknown> };
+  return { input: value };
 };
 
 const unavailableError = () => ({
@@ -245,40 +245,24 @@ export const SaveInWebMCP = {
             firstUnknownProperty(input, VALIDATE_PROPERTIES) ||
             firstInvalidOptionalString(input, ["paths", "filenamePatterns"]);
           if (error) return inputError(error.field, error.message);
-          if (
-            input &&
-            typeof input.info !== "undefined" &&
-            (typeof input.info !== "object" || input.info === null || Array.isArray(input.info))
-          ) {
+          if (typeof input.info !== "undefined" && !isStringKeyedRecord(input.info)) {
             return inputError("info", "Expected an object");
           }
-          if (input.info) {
-            const unknownInfo = firstUnknownProperty(
-              input.info as Record<string, unknown>,
-              TRACE_PROPERTIES,
-            );
+          if (isStringKeyedRecord(input.info)) {
+            const unknownInfo = firstUnknownProperty(input.info, TRACE_PROPERTIES);
             if (unknownInfo) return inputError(`info.${unknownInfo.field}`, unknownInfo.message);
-            const infoError = firstInvalidOptionalString(
-              input.info as Record<string, unknown>,
-              TRACE_STRING_FIELDS,
-            );
+            const infoError = firstInvalidOptionalString(input.info, TRACE_STRING_FIELDS);
             if (infoError) return inputError(`info.${infoError.field}`, infoError.message);
-            const currentTab = Reflect.get(input.info, "currentTab");
-            if (
-              typeof currentTab !== "undefined" &&
-              (typeof currentTab !== "object" || currentTab === null || Array.isArray(currentTab))
-            ) {
+            const currentTab = input.info.currentTab;
+            if (typeof currentTab !== "undefined" && !isStringKeyedRecord(currentTab)) {
               return inputError("info.currentTab", "Expected an object");
             }
-            if (currentTab) {
-              const unknownTab = firstUnknownProperty(
-                currentTab as Record<string, unknown>,
-                TRACE_CURRENT_TAB_PROPERTIES,
-              );
+            if (isStringKeyedRecord(currentTab)) {
+              const unknownTab = firstUnknownProperty(currentTab, TRACE_CURRENT_TAB_PROPERTIES);
               if (unknownTab)
                 return inputError(`info.currentTab.${unknownTab.field}`, unknownTab.message);
               const tabError = firstInvalidOptionalString(
-                currentTab as Record<string, unknown>,
+                currentTab,
                 TRACE_CURRENT_TAB_STRING_FIELDS,
               );
               if (tabError)
@@ -287,12 +271,11 @@ export const SaveInWebMCP = {
           }
           const candidate = input.automaticCandidate;
           if (typeof candidate !== "undefined") {
-            if (typeof candidate !== "object" || candidate === null || Array.isArray(candidate)) {
+            if (!isStringKeyedRecord(candidate)) {
               return inputError("automaticCandidate", "Expected an object");
             }
-            const candidateRecord = candidate as Record<string, unknown>;
             const unknownCandidate = firstUnknownProperty(
-              candidateRecord,
+              candidate,
               AUTOMATIC_CANDIDATE_PROPERTIES,
             );
             if (unknownCandidate) {
@@ -302,11 +285,11 @@ export const SaveInWebMCP = {
               );
             }
             for (const field of ["pageUrl", "sourceUrl", "sourceKind"] as const) {
-              if (typeof candidateRecord[field] !== "string" || candidateRecord[field] === "") {
+              if (typeof candidate[field] !== "string" || candidate[field] === "") {
                 return inputError(`automaticCandidate.${field}`, "Expected a non-empty string");
               }
             }
-            if (!isPageSourceKind(candidateRecord.sourceKind)) {
+            if (!isPageSourceKind(candidate.sourceKind)) {
               return inputError("automaticCandidate.sourceKind", "Unknown source kind");
             }
             if (!hasOwn(input, "filenamePatterns")) {
@@ -338,11 +321,7 @@ export const SaveInWebMCP = {
         execute: (input) => {
           const unknown = firstUnknownProperty(input, APPLY_PROPERTIES);
           if (unknown) return inputError(unknown.field, unknown.message);
-          if (
-            typeof input.config !== "object" ||
-            input.config === null ||
-            Array.isArray(input.config)
-          ) {
+          if (!isStringKeyedRecord(input.config)) {
             return inputError("config", "Expected an object");
           }
           if (Object.keys(input.config).length === 0) {
@@ -453,8 +432,8 @@ export const setupWebMcpStatus = (localize: typeof getMessage = getMessage): voi
   const statusEl = document.getElementById("webmcp-status");
 
   if (ctx && typeof ctx.registerTool === "function" && webExtensionApi) {
-    const count = SaveInWebMCP.buildTools(
-      webExtensionApi.runtime.sendMessage.bind(webExtensionApi.runtime) as WebMcpSend,
+    const count = SaveInWebMCP.buildTools((message) =>
+      webExtensionApi.runtime.sendMessage(message),
     ).length;
     if (statusEl) statusEl.textContent = localize("webMcpStatusRegistering") || "Registering…";
     void SaveInWebMCP.register(ctx, (message: WebMcpMessage) =>

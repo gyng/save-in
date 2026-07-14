@@ -9,6 +9,9 @@ import type { PersistenceFailure } from "./persistence-diagnostics.ts";
 import type { ExternalDownloadRejection } from "./external-download-rejection-types.ts";
 import type { SourcePanelCopy } from "./source-panel-copy.ts";
 import { isPageSourceKind, type PageSourceKind } from "./page-source.ts";
+import { isStringKeyedRecord } from "./util.ts";
+
+export { isStringKeyedRecord } from "./util.ts";
 
 export type WireCurrentTab = {
   id?: number | undefined;
@@ -447,9 +450,6 @@ const isExternalMessageType = (value: string): value is ExternalMessage["type"] 
 
 const hasType = (value: unknown): value is Record<string, unknown> & { type: string } =>
   typeof value === "object" && value !== null && typeof Reflect.get(value, "type") === "string";
-
-export const isStringKeyedRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null && !Array.isArray(value);
 
 const hasNoBody = (message: Record<string, unknown>): boolean =>
   !("body" in message) || typeof message.body === "undefined";

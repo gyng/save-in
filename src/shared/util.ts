@@ -17,6 +17,9 @@ export const isStringMember = <Value extends string>(
 ): candidate is Value =>
   typeof candidate === "string" && values.some((value) => value === candidate);
 
+export const isStringKeyedRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
 // Empty lines must disappear before callers turn the result into regular
 // expressions; otherwise an empty pattern matches every URL.
 export const splitLines = (raw: string | null | undefined): string[] =>

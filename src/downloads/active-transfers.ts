@@ -3,6 +3,7 @@ import { extensionSessionStorage } from "../platform/storage-areas.ts";
 import { getSession, updateSession } from "../shared/session-state.ts";
 import type { SessionWriteState } from "../shared/session-state.ts";
 import { ACTIVE_TRANSFERS_SESSION_KEY } from "../shared/storage-keys.ts";
+import { isStringKeyedRecord } from "../shared/util.ts";
 
 export type ActiveTransferRecord = {
   requestId?: string;
@@ -34,21 +35,21 @@ const syncKeepalive = () => {
 };
 
 const storedRecords = (value: unknown): Record<string, ActiveTransferRecord> => {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  if (!isStringKeyedRecord(value)) return {};
   return Object.fromEntries(
     Object.entries(value).flatMap(([id, candidate]) => {
-      if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) return [];
-      const requestId = Reflect.get(candidate, "requestId");
-      const downloadId = Reflect.get(candidate, "downloadId");
-      const updatedAt = Reflect.get(candidate, "updatedAt");
-      if (typeof updatedAt !== "number") return [];
+      if (!isStringKeyedRecord(candidate)) return [];
+      const { requestId, downloadId, updatedAt } = candidate;
+      if (typeof updatedAt !== "number" || !Number.isFinite(updatedAt)) return [];
+      const validDownloadId =
+        typeof downloadId === "number" && Number.isSafeInteger(downloadId) && downloadId >= 0;
       return [
         [
           id,
           {
             updatedAt,
             ...(typeof requestId === "string" ? { requestId } : {}),
-            ...(typeof downloadId === "number" ? { downloadId } : {}),
+            ...(validDownloadId ? { downloadId } : {}),
           },
         ],
       ];
