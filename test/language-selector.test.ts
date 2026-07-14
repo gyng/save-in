@@ -19,9 +19,12 @@ test("saves the selected locale and reloads after acknowledgement", async () => 
   const select = document.querySelector<HTMLSelectElement>("#uiLocale")!;
   select.value = "fr";
   select.dispatchEvent(new Event("change"));
+  expect(select.disabled).toBe(true);
+  expect(select.classList).toContain("language-switching");
   await vi.waitFor(() => expect(reload).toHaveBeenCalledOnce());
 
   expect(apply).toHaveBeenCalledWith("fr");
+  expect(select.classList).toContain("language-switching");
 });
 
 test("keeps the page usable and reports a rejected locale change", async () => {
@@ -40,6 +43,7 @@ test("keeps the page usable and reports a rejected locale change", async () => {
   await vi.waitFor(() => expect(error.hidden).toBe(false));
 
   expect(select.disabled).toBe(false);
+  expect(select.classList).not.toContain("language-switching");
   expect(error.textContent).toBe("Language change failed");
 });
 

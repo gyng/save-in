@@ -22,6 +22,8 @@ export const setupLanguageSelector = (ports: LanguageSelectorPorts = defaultPort
 
   select.addEventListener("change", async () => {
     select.disabled = true;
+    select.blur();
+    select.classList.add("language-switching");
     error.hidden = true;
     try {
       assertApplySucceeded(await ports.apply(select.value));
@@ -30,7 +32,9 @@ export const setupLanguageSelector = (ports: LanguageSelectorPorts = defaultPort
       error.textContent =
         ports.getMessage("o_lLanguageChangeFailed") || "Could not change the language. Try again.";
       error.hidden = false;
+      select.classList.remove("language-switching");
       select.disabled = false;
+      select.focus();
     }
   });
 };

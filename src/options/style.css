@@ -443,6 +443,10 @@ body:not(#settings-page) {
   font-size: var(--text-sm);
 }
 
+.language-selector select.language-switching {
+  visibility: hidden;
+}
+
 .save-status span {
   font-size: inherit;
 }
