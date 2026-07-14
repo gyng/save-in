@@ -1300,64 +1300,6 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
         <label><input type="checkbox" id="sourcePanelLinks" /> __MSG_o_cSourcePanelLinks__</label>
       </fieldset>
 
-      <section class="source-automation" aria-labelledby="auto-download-heading">
-        <h3 class="section-task-heading" id="auto-download-heading">__MSG_autoDownloadHeading__</h3>
-        <p class="section-lead" id="auto-download-help">__MSG_autoDownloadHelp__</p>
-
-        <fieldset class="option-group auto-download-options">
-          <legend class="visually-hidden">__MSG_autoDownloadHeading__</legend>
-          <label class="auto-download-master">
-            <input type="checkbox" id="autoDownloadEnabled" aria-describedby="auto-download-help" />
-            __MSG_autoDownloadEnabled__
-          </label>
-
-          <div class="auto-download-dependent">
-            <div class="option-choice-grid auto-download-choice-grid">
-              <label>
-                <input type="checkbox" id="autoDownloadLive" />
-                __MSG_autoDownloadLive__
-              </label>
-              <label>
-                <input type="checkbox" id="autoDownloadPrivate" />
-                __MSG_autoDownloadPrivate__
-              </label>
-            </div>
-
-            <div class="option-subcontrol auto-download-limit">
-              <label for="autoDownloadMaxPerPage">__MSG_autoDownloadLimit__</label>
-              <span class="unit-control">
-                <input
-                  type="number"
-                  id="autoDownloadMaxPerPage"
-                  min="1"
-                  max="500"
-                  step="1"
-                  inputmode="numeric"
-                  aria-describedby="auto-download-limit-help"
-                />
-              </span>
-              <span class="caption auto-download-limit-help" id="auto-download-limit-help"
-                >__MSG_autoDownloadLimitHelp__</span
-              >
-            </div>
-          </div>
-        </fieldset>
-
-        <div class="option-subgroup auto-download-rules">
-          <h4>__MSG_autoDownloadRulesHeading__</h4>
-          <p class="info-row auto-download-routing-help" id="auto-download-routing-help">
-            __MSG_autoDownloadRoutingHelp__
-          </p>
-          <button
-            type="button"
-            id="auto-download-manage-rules"
-            aria-describedby="auto-download-routing-help"
-          >
-            __MSG_autoDownloadManageRules__
-          </button>
-        </div>
-      </section>
-
       <fieldset class="option-group source-shortcut-settings">
         <legend class="option-group-heading">__MSG_o_lSourcePanelShortcut__</legend>
         <div class="source-shortcut-controls">
@@ -1416,6 +1358,64 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
           __MSG_o_lSourcePanelShortcutHelp__ __MSG_o_lSourcePanelShortcutResetHelp__
         </div>
       </fieldset>
+
+      <section class="source-automation" aria-labelledby="auto-download-heading">
+        <h3 class="section-task-heading" id="auto-download-heading">__MSG_autoDownloadHeading__</h3>
+        <p class="section-lead" id="auto-download-help">__MSG_autoDownloadHelp__</p>
+
+        <fieldset class="option-group auto-download-options">
+          <legend class="visually-hidden">__MSG_autoDownloadHeading__</legend>
+          <label class="auto-download-master">
+            <input type="checkbox" id="autoDownloadEnabled" aria-describedby="auto-download-help" />
+            __MSG_autoDownloadEnabled__
+          </label>
+
+          <div class="auto-download-dependent">
+            <div class="option-choice-grid auto-download-choice-grid">
+              <label>
+                <input type="checkbox" id="autoDownloadLive" />
+                __MSG_autoDownloadLive__
+              </label>
+              <label>
+                <input type="checkbox" id="autoDownloadPrivate" />
+                __MSG_autoDownloadPrivate__
+              </label>
+            </div>
+
+            <div class="option-subcontrol auto-download-limit">
+              <label for="autoDownloadMaxPerPage">__MSG_autoDownloadLimit__</label>
+              <span class="unit-control">
+                <input
+                  type="number"
+                  id="autoDownloadMaxPerPage"
+                  min="1"
+                  max="500"
+                  step="1"
+                  inputmode="numeric"
+                  aria-describedby="auto-download-limit-help"
+                />
+              </span>
+              <span class="caption auto-download-limit-help" id="auto-download-limit-help"
+                >__MSG_autoDownloadLimitHelp__</span
+              >
+            </div>
+          </div>
+        </fieldset>
+
+        <div class="option-subgroup auto-download-rules">
+          <h4>__MSG_autoDownloadRulesHeading__</h4>
+          <p class="info-row auto-download-routing-help" id="auto-download-routing-help">
+            __MSG_autoDownloadRoutingHelp__
+          </p>
+          <button
+            type="button"
+            id="auto-download-manage-rules"
+            aria-describedby="auto-download-routing-help"
+          >
+            __MSG_autoDownloadManageRules__
+          </button>
+        </div>
+      </section>
 
       <hr />
 
