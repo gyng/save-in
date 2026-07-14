@@ -21,6 +21,7 @@ import { renderVariablesPreview, setupVariablesPreview } from "./variables-previ
 import { setupResetOptions } from "./reset-options.ts";
 import { buildTree, getMenuTreeEntries } from "../menus/menu-tree.ts";
 import type { MenuTree } from "../menus/menu-tree.ts";
+import { resolveMenuAccessKey } from "../menus/access-key.ts";
 import { splitLines } from "../shared/util.ts";
 import { MESSAGE_TYPES } from "../shared/constants.ts";
 import { setupShortcutOptions } from "./shortcut-options.ts";
@@ -889,6 +890,21 @@ const renderMenuPreview = (container: Element, tree: MenuPreviewTree) => {
         row.appendChild(dir);
       }
 
+      const numberedItems = document.querySelector<HTMLInputElement>("#enableNumberedItems");
+      const accessKey = numberedItems?.checked
+        ? resolveMenuAccessKey(entry.number, entry.accessKeyOverride)
+        : null;
+      if (accessKey !== null) {
+        const key = document.createElement("kbd");
+        key.className = "menu-preview-access-key";
+        key.textContent = `&${accessKey}`;
+        key.setAttribute(
+          "aria-label",
+          `${getMessage("o_sContextMenu") || "Context menu access key"}: ${accessKey}`,
+        );
+        row.appendChild(key);
+      }
+
       // Any row jumps to its line in the editor (the row only, so clicking a
       // nested child jumps to the child, not its parent)
       if (entry.raw) {
@@ -957,10 +973,10 @@ const updateMenuPreview = () => {
     return;
   }
 
-  // The Last Used slot in the preview follows its checkbox
-  document
-    .querySelector("#enableLastLocation")
-    ?.addEventListener("change", () => updateMenuPreview());
+  // Menu-only settings redraw their matching affordances immediately.
+  ["#enableLastLocation", "#enableNumberedItems"].forEach((selector) => {
+    document.querySelector(selector)?.addEventListener("change", () => updateMenuPreview());
+  });
 
   textarea.addEventListener("path-editor-row-selected", (event) => {
     if (!(event instanceof CustomEvent)) return;

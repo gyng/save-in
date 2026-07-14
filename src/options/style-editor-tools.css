@@ -733,6 +733,21 @@ button:disabled {
   white-space: nowrap;
 }
 
+.menu-preview-access-key {
+  flex: none;
+  align-self: center;
+  margin-left: auto;
+  padding: 1px 5px;
+  border: 1px solid var(--panel-border);
+  border-radius: 4px;
+  background-color: var(--panel-bg);
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  line-height: 1.2;
+}
+
 .menu-preview-lastused .menu-preview-title {
   color: var(--color-text-muted);
   font-style: italic;

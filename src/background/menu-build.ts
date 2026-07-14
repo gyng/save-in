@@ -13,6 +13,7 @@ import { isStringKeyedRecord } from "../shared/util.ts";
 import { backgroundRuntime } from "./runtime.ts";
 import type { MenuTree } from "../menus/menu-tree.ts";
 import { MENU_IDS } from "../menus/menu-ids.ts";
+import { resolveMenuAccessKey } from "../menus/access-key.ts";
 
 export { MENU_IDS } from "../menus/menu-ids.ts";
 
@@ -96,10 +97,9 @@ export const makeSeparator = (
 };
 
 export const setAccesskey = (str: string, key: string | number, override?: string) => {
-  const keyUsed = override != null ? override : key;
-  const accessKey = String(keyUsed);
+  const accessKey = resolveMenuAccessKey(key, override);
   const escapeAmpersands = (value: string) => value.replaceAll("&", "&&");
-  if ([...accessKey].length !== 1 || accessKey === "&") return escapeAmpersands(str);
+  if (accessKey === null) return escapeAmpersands(str);
 
   const matchIndex = str.toLowerCase().indexOf(accessKey.toLowerCase());
   if (matchIndex === -1) return `${escapeAmpersands(str)} (&${accessKey})`;
