@@ -1361,7 +1361,7 @@
   },
   "o_lManualEditorSaveHelp": {
     "message": "Changes in this editor are saved when you select Apply.",
-    "description": "Help text for manually saved editors. Used in src/options/options.html and src/options/path-editor.ts."
+    "description": "Dirty-state help shown beside Apply in text and visual editors. Used in src/options/options.html."
   },
   "o_lPathEditorDragHelp": {
     "message": "Drag by the dotted handle. Drop above or below a row to place it at the same level, or onto the row to nest it inside.",

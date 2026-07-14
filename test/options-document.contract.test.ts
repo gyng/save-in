@@ -159,6 +159,24 @@ test("keeps routing validation feedback available in both editor modes", () => {
   );
 });
 
+test("keeps manual-save guidance beside Apply in both visual editors", () => {
+  const document = documentForOptions();
+
+  for (const [editor, field] of [
+    ["#paths-visual", "paths"],
+    ["#rules-visual", "filenamePatterns"],
+  ]) {
+    const help = document.querySelector(
+      `${editor} .visual-editor-toolbar > [data-manual-help-for="${field}"]`,
+    );
+    expect(help?.textContent?.trim()).toBe("__MSG_o_lManualEditorSaveHelp__");
+  }
+
+  expect(document.querySelector(".rule-editor-help")?.hasAttribute("data-manual-help-for")).toBe(
+    false,
+  );
+});
+
 test("keeps route debugger inputs out of persisted option handling", () => {
   const document = documentForOptions();
   for (const id of [

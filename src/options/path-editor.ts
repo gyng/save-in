@@ -162,11 +162,6 @@ const PathEditorHelpers = {
     visualHelp.className = "caption path-editor-help";
     const helpLines: Array<readonly [string, string]> = [
       [
-        getMessage("o_lManualEditorSaveHelp") ||
-          "Changes in this editor are saved when you select Apply.",
-        "manual-save-help",
-      ],
-      [
         getMessage("o_lPathEditorDragHelp") ||
           "Drag by the dotted handle. Drop above or below a row to place it at the same level, or onto the row to nest it inside.",
         "",
@@ -176,7 +171,6 @@ const PathEditorHelpers = {
       const line = document.createElement("p");
       line.textContent = copy;
       line.className = className;
-      if (className === "manual-save-help") line.dataset.manualHelpFor = "paths";
       visualHelp.append(line);
     });
     (document.querySelector(".path-editor-toolbar") ?? container).after(visualHelp);

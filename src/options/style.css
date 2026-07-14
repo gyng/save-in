@@ -3697,6 +3697,7 @@ button:disabled:hover {
 }
 
 .visual-editor-toolbar {
+  position: relative;
   display: flex;
   align-items: center;
   flex-wrap: wrap;
@@ -5162,7 +5163,7 @@ code.click-to-copy {
   line-height: 1.35;
 }
 
-.editor-actions > .manual-save-help {
+:is(.editor-actions, .visual-editor-toolbar) > .manual-save-help {
   display: none;
   position: absolute;
   z-index: 5;
@@ -5180,7 +5181,7 @@ code.click-to-copy {
   white-space: nowrap;
 }
 
-.editor-actions > .manual-save-help::before {
+:is(.editor-actions, .visual-editor-toolbar) > .manual-save-help::before {
   content: "";
   position: absolute;
   right: 2.25rem;
@@ -5190,13 +5191,14 @@ code.click-to-copy {
   border-left: 7px solid transparent;
 }
 
-.editor-actions:has(.editor-dirty-status:not([hidden])) > .manual-save-help {
+:is(.editor-actions, .visual-editor-toolbar):has(.editor-dirty-status:not([hidden]))
+  > .manual-save-help {
   display: block;
   animation: editor-dirty-nudge 480ms ease-out both;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .editor-actions > .manual-save-help {
+  :is(.editor-actions, .visual-editor-toolbar) > .manual-save-help {
     animation: none;
   }
 }
@@ -5388,10 +5390,6 @@ code.click-to-copy {
 
 #path-editor-rows {
   margin-bottom: var(--space-4);
-}
-
-.path-editor-help .manual-save-help {
-  margin: var(--space-1) 0 var(--space-2);
 }
 
 .editor-action-help {

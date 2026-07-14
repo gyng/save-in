@@ -132,7 +132,6 @@ describe("visual editor", () => {
       Promise.resolve({ body: { items: [], errors: [] } }),
     );
     vi.mocked(browser.i18n.getMessage).mockImplementation((key) => {
-      if (key === "o_lManualEditorSaveHelp") return "Localized Apply guidance";
       if (key === "o_lPathEditorDragHelp") return "Localized drag guidance";
       return "";
     });
@@ -149,12 +148,6 @@ describe("visual editor", () => {
   const rows = () => document.querySelectorAll<HTMLElement>(".path-editor-row");
   const controls = (row: number, title: string) =>
     rows()[row]!.querySelector<HTMLElement>(`[title="${title}"]`)!;
-
-  test("binds visual-editor save guidance to the paths field", () => {
-    const helper = document.querySelector<HTMLElement>(".path-editor-help .manual-save-help");
-
-    expect(helper?.dataset.manualHelpFor).toBe("paths");
-  });
 
   test("renders one row per line, separators included", () => {
     expect(rows()).toHaveLength(3);
@@ -304,7 +297,7 @@ describe("visual editor", () => {
     expect(textarea().value).toBe("a\n>b // (alias: B)\n---");
   });
 
-  test("uses fallback help and row labels when translations and paths are empty", () => {
+  test("uses fallback drag help and row labels when translations and paths are empty", () => {
     vi.mocked(browser.i18n.getMessage).mockReturnValue("");
     document.body.innerHTML = `
       <textarea id="paths">// comment only</textarea>
@@ -313,9 +306,6 @@ describe("visual editor", () => {
     new PathEditor().setupVisualEditor();
     vi.advanceTimersByTime(1500);
 
-    expect(document.querySelector(".path-editor-help")?.textContent).toContain(
-      "Changes in this editor are saved",
-    );
     expect(document.querySelector(".path-editor-help")?.textContent).toContain(
       "Drag by the dotted handle",
     );
