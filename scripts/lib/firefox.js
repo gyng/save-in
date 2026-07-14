@@ -11,7 +11,10 @@ const { once } = require("events");
 const { spawn, execFileSync } = require("child_process");
 
 const { FirefoxRdp } = require("./firefox-rdp");
+const { FirefoxBidi } = require("./firefox-bidi");
 const {
+  FIREFOX_BIDI_PORT_COUNT,
+  FIREFOX_BIDI_PORT_START,
   FIREFOX_E2E_PORT_COUNT,
   FIREFOX_E2E_PORT_START,
   findAvailablePort,
@@ -200,8 +203,17 @@ const launch = async ({ extensionDir = ROOT } = {}) => {
   const { profileDir, downloadDir } = makeProfile(path.join(os.tmpdir(), "save-in-ff-e2e"));
 
   const port = await findAvailablePort(FIREFOX_E2E_PORT_START, FIREFOX_E2E_PORT_COUNT);
+  const bidiPort = await findAvailablePort(FIREFOX_BIDI_PORT_START, FIREFOX_BIDI_PORT_COUNT);
 
-  const args = ["-profile", profileDir, "-no-remote", "-start-debugger-server", String(port)];
+  const args = [
+    "-profile",
+    profileDir,
+    "-no-remote",
+    "-start-debugger-server",
+    String(port),
+    "--remote-debugging-port",
+    String(bidiPort),
+  ];
   if (process.env.HEADLESS) {
     args.push("-headless");
   }
@@ -214,6 +226,8 @@ const launch = async ({ extensionDir = ROOT } = {}) => {
   fs.closeSync(log);
   /** @type {InstanceType<typeof FirefoxRdp> | undefined} */
   let rdp;
+  /** @type {InstanceType<typeof FirefoxBidi> | undefined} */
+  let bidi;
   try {
     rdp = await connectWithRetry(port);
     let connectedRdp = rdp;
@@ -260,6 +274,7 @@ const launch = async ({ extensionDir = ROOT } = {}) => {
     };
 
     await openOptionsAndWaitForReady();
+    bidi = await FirefoxBidi.connect(bidiPort);
 
     /** @param {string} text @param {number} [timeoutMs] */
     const evaluate = (text, timeoutMs) => connectedRdp.evaluate(consoleActor, text, timeoutMs);
@@ -340,6 +355,7 @@ const launch = async ({ extensionDir = ROOT } = {}) => {
     };
 
     const cleanup = async () => {
+      bidi?.close();
       connectedRdp.close();
       await stopFirefox(proc, profileDir);
       await removeProfile(profileDir);
@@ -354,12 +370,15 @@ const launch = async ({ extensionDir = ROOT } = {}) => {
       evaluateInTab,
       reloadAddon,
       reloadBackgroundPage,
+      bidi,
+      bidiPort,
       profileDir,
       downloadDir,
       logPath,
       cleanup,
     };
   } catch (error) {
+    bidi?.close();
     rdp?.close();
     let cleanupError;
     try {

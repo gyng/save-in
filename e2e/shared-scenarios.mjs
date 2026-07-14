@@ -115,6 +115,417 @@ export const runPrivateContextScenario = async ({ evaluate, waitForDownloads, fi
 };
 
 /**
+ * Exercises content-script and browser-owned activity in a real private
+ * window: an ordinary download must remain untouched, automatic saving must
+ * honor its private opt-in, and neither path may enter extension persistence.
+ *
+ * @param {{
+ *   evaluate: (expression: string) => Promise<any>,
+ *   openPrivatePage: (url: string) => Promise<{tabId: number, target: string, close: () => Promise<void>}>,
+ *   evaluatePrivatePage: (target: string, expression: string) => Promise<any>,
+ *   waitForFile: (relativePath: string) => Promise<string>,
+ *   filenamePrefix: string,
+ * }} adapters
+ */
+export const runPrivateBrowserActivityScenario = async ({
+  evaluate,
+  openPrivatePage,
+  evaluatePrivatePage,
+  waitForFile,
+  filenamePrefix,
+}) => {
+  const nativeName = `${filenamePrefix}-native.bin`;
+  const initialName = `${filenamePrefix}-initial.png`;
+  const lateName = `${filenamePrefix}-late.png`;
+  const image = Buffer.from(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+    "base64",
+  );
+  /** @type {(() => void) | undefined} */
+  let nativeRequestResolve;
+  /** @type {Promise<void>} */
+  const nativeRequest = new Promise((resolve) => {
+    nativeRequestResolve = () => resolve();
+  });
+  const server = http.createServer((req, res) => {
+    if (req.url === `/${nativeName}`) {
+      nativeRequestResolve?.();
+      res.writeHead(200, {
+        "Content-Type": "application/octet-stream",
+        "Content-Disposition": `attachment; filename="${nativeName}"`,
+      });
+      res.end("private ordinary content");
+      return;
+    }
+    if (req.url?.endsWith(".png")) {
+      res.writeHead(200, { "Content-Type": "image/png", "Content-Length": image.length });
+      res.end(image);
+      return;
+    }
+    res.writeHead(200, { "Content-Type": "text/html" });
+    res.end(`<!doctype html><title>Private E2E</title>
+      <a id="native" href="/${nativeName}">ordinary private download</a>
+      <img id="initial" src="/${initialName}" alt="initial private source">`);
+  });
+  const port = await listenLocal(server);
+  const target = `127.0.0.1:${port}/private-browser`;
+  const pageUrl = `http://${target}`;
+  const optionKeys = [
+    "trackBrowserDownloads",
+    "routeBrowserDownloads",
+    "routeBrowserDownloadsFirefox",
+    "browserDownloadFilter",
+    "autoDownloadEnabled",
+    "autoDownloadLive",
+    "autoDownloadPrivate",
+    "autoDownloadMaxPerPage",
+    "sourcePanelEnabled",
+    "filenamePatterns",
+  ];
+  const before = JSON.parse(
+    await evaluate(`Promise.all([
+      browser.storage.local.get(${JSON.stringify(optionKeys)}), api.history(), api.logs()
+    ]).then(([options, history, log]) => JSON.stringify({ options, history, log }))`),
+  );
+  const missingKeys = optionKeys.filter((key) => !(key in before.options));
+  /** @type {{tabId: number, target: string, close: () => Promise<void>} | undefined} */
+  let privatePage;
+
+  try {
+    await evaluate(`browser.storage.local.set({
+      trackBrowserDownloads: true,
+      routeBrowserDownloads: true,
+      routeBrowserDownloadsFirefox: true,
+      browserDownloadFilter: "*://127.0.0.1/*",
+      autoDownloadEnabled: true,
+      autoDownloadLive: true,
+      autoDownloadPrivate: false,
+      autoDownloadMaxPerPage: 2,
+      sourcePanelEnabled: true,
+      filenamePatterns: ${JSON.stringify(
+        `context: ^browser$
+sourceurl: ${filenamePrefix}-native\\.bin$
+into: e2e/private-ordinary-should-not-route/:filename:
+
+context: ^auto$
+pageurl: ^http://127\\.0\\.0\\.1:${port}/private-browser$
+sourcekind: ^image$
+sourceurl: ${filenamePrefix}-(?:initial|late)\\.png$
+into: e2e/private-auto/:filename:`,
+      )},
+    }).then(() => api.reset())`);
+    privatePage = await openPrivatePage(pageUrl);
+    await evaluate(`browser.tabs.sendMessage(${privatePage.tabId}, {
+      type: "SET_SOURCE_PANEL", body: { open: true }
+    }).then(() => true)`);
+    await evaluatePrivatePage(
+      privatePage.target,
+      `new Promise((resolve, reject) => {
+        const timeout = AbortSignal.timeout(8000);
+        const check = () => {
+          if (document.querySelector("#save-in-source-panel")?.shadowRoot) resolve(true);
+          else if (timeout.aborted) reject(new Error("Private content script did not become ready"));
+          else requestAnimationFrame(check);
+        };
+        check();
+      })`,
+    );
+    const beforeOptIn = JSON.parse(
+      await evaluate(`browser.downloads.search({}).then((items) => JSON.stringify(items.filter(
+        (item) => item.url === "http://127.0.0.1:${port}/${initialName}"
+      )))`),
+    );
+    expect(beforeOptIn).toHaveLength(0);
+
+    await evaluatePrivatePage(privatePage.target, `document.querySelector("#native").click()`);
+    await new Promise((resolve, reject) => {
+      const timeout = AbortSignal.timeout(8000);
+      timeout.addEventListener(
+        "abort",
+        () => reject(new Error("Private ordinary download request did not start")),
+        { once: true },
+      );
+      nativeRequest.then(resolve, reject);
+    });
+
+    // Reset acknowledgement makes the background observe the opt-in before
+    // a fresh private document discovers its initial candidates.
+    await evaluate(`api.setOptions({ autoDownloadPrivate: true })`);
+    await evaluate(`browser.tabs.reload(${privatePage.tabId}).then(() => new Promise((resolve, reject) => {
+      const timeout = AbortSignal.timeout(8000);
+      const check = async () => {
+        const tab = await browser.tabs.get(${privatePage.tabId});
+        if (tab.status === "complete") resolve(true);
+        else if (timeout.aborted) reject(new Error("Private fixture did not reload"));
+        else {
+          const channel = new MessageChannel();
+          channel.port1.onmessage = () => {
+            channel.port1.close();
+            channel.port2.close();
+            void check();
+          };
+          channel.port2.postMessage(null);
+        }
+      };
+      void check();
+    }))`);
+    await evaluatePrivatePage(
+      privatePage.target,
+      `(() => {
+        const image = document.createElement("img");
+        image.src = "/${lateName}";
+        document.body.append(image);
+        return true;
+      })()`,
+    );
+    const initialPath = await waitForFile(path.join("e2e", "private-auto", initialName));
+    const latePath = await waitForFile(path.join("e2e", "private-auto", lateName));
+    expect(fs.readFileSync(initialPath)).toEqual(image);
+    expect(fs.readFileSync(latePath)).toEqual(image);
+
+    const after = JSON.parse(
+      await evaluate(`Promise.all([api.history(), api.logs()])
+        .then(([history, log]) => JSON.stringify({ history, log }))`),
+    );
+    const privateNames = [nativeName, initialName, lateName];
+    expect(
+      after.history.filter((/** @type {any} */ entry) =>
+        privateNames.some((name) => JSON.stringify(entry).includes(name)),
+      ),
+    ).toEqual([]);
+    expect(
+      after.log.filter((/** @type {any} */ entry) =>
+        privateNames.some((name) => JSON.stringify(entry).includes(name)),
+      ),
+    ).toEqual([]);
+  } finally {
+    try {
+      await privatePage?.close();
+      await evaluate(`Promise.all([
+        browser.storage.local.set(${JSON.stringify(before.options)}),
+        browser.storage.local.remove(${JSON.stringify(missingKeys)}),
+      ]).then(() => api.reset())`);
+    } finally {
+      await closeLocal(server);
+    }
+  }
+};
+
+/**
+ * Uses a separately installed extension to exercise the real external-message
+ * boundary, including browser-authenticated sender authorization.
+ *
+ * @param {{
+ *   evaluate: (expression: string) => Promise<any>,
+ *   sendExternal: (message: Record<string, unknown>) => Promise<any>,
+ *   callerId: string,
+ *   waitForDownloads: (filename: string) => Promise<any[]>,
+ *   filename: string,
+ * }} adapters
+ */
+export const runExternalExtensionScenario = async ({
+  evaluate,
+  sendExternal,
+  callerId,
+  waitForDownloads,
+  filename,
+}) => {
+  const body = `external extension content: ${filename}`;
+  const server = http.createServer((_req, res) => {
+    res.writeHead(200, { "Content-Type": "application/octet-stream" });
+    res.end(body);
+  });
+  const port = await listenLocal(server);
+  const url = `http://127.0.0.1:${port}/${filename}`;
+  const optionKeys = ["externalDownloadAllowlist", "filenamePatterns"];
+  const previous = JSON.parse(
+    await evaluate(`browser.storage.local.get(${JSON.stringify(optionKeys)})
+      .then((stored) => JSON.stringify(stored))`),
+  );
+  const missingKeys = optionKeys.filter((key) => !(key in previous));
+
+  try {
+    const pong = await sendExternal({ type: "PING" });
+    expect(pong).toMatchObject({ type: "PONG", body: { version: 1 } });
+    expect(pong.body.capabilities).toContain("download");
+
+    const unauthorized = await sendExternal({
+      type: "DOWNLOAD",
+      body: { url, info: { suggestedFilename: filename } },
+    });
+    expect(unauthorized).toMatchObject({
+      type: "DOWNLOAD",
+      body: { status: "ERROR", error: "UNAUTHORIZED", version: 1 },
+    });
+    const rejection = JSON.parse(
+      await evaluate(`browser.runtime.sendMessage({ type: "EXTERNAL_DOWNLOAD_REJECTIONS_GET" })
+        .then((response) => JSON.stringify(response.body.rejections.find(
+          (entry) => entry.senderId === ${JSON.stringify(callerId)}
+        )))`),
+    );
+    expect(rejection).toMatchObject({ senderId: callerId, attempts: 1 });
+
+    await evaluate(`browser.storage.local.set({
+      externalDownloadAllowlist: ${JSON.stringify(callerId)},
+      filenamePatterns: "comment: ^external-e2e$\\ninto: e2e/external/:filename:",
+    }).then(() => api.reset())`);
+    const accepted = await sendExternal({
+      type: "DOWNLOAD",
+      body: {
+        url,
+        comment: "external-e2e",
+        info: { suggestedFilename: filename, pageUrl: "https://caller.example/" },
+      },
+    });
+    expect(accepted).toEqual({
+      type: "DOWNLOAD",
+      body: { status: "OK", version: 1, url },
+    });
+    const downloads = await waitForDownloads(filename);
+    const complete = downloads.find((row) => row.state === "complete");
+    expect(complete?.filename).toMatch(/e2e[\\/]external[\\/]/);
+    expect(fs.readFileSync(complete.filename, "utf8")).toBe(body);
+  } finally {
+    try {
+      await evaluate(`Promise.all([
+        browser.storage.local.set(${JSON.stringify(previous)}),
+        browser.storage.local.remove(${JSON.stringify(missingKeys)}),
+        browser.runtime.sendMessage({
+          type: "EXTERNAL_DOWNLOAD_REJECTION_CLEAR",
+          body: { senderId: ${JSON.stringify(callerId)} },
+        }),
+      ]).then(() => api.reset())`);
+    } finally {
+      await closeLocal(server);
+    }
+  }
+};
+
+/**
+ * Cancels a real stalled acquisition through the History protocol and proves
+ * that both the network request and durable transfer state are released.
+ *
+ * @param {{evaluate: (expression: string) => Promise<any>, filename: string}} adapters
+ */
+export const runHistoryCancellationScenario = async ({ evaluate, filename }) => {
+  /** @type {import("node:http").ServerResponse | undefined} */
+  let pendingResponse;
+  /** @type {(() => void) | undefined} */
+  let requestStartedResolve;
+  /** @type {(() => void) | undefined} */
+  let requestClosedResolve;
+  /** @type {Promise<void>} */
+  const requestStarted = new Promise((resolve) => {
+    requestStartedResolve = () => resolve();
+  });
+  /** @type {Promise<void>} */
+  const requestClosed = new Promise((resolve) => {
+    requestClosedResolve = () => resolve();
+  });
+  const server = http.createServer((_req, res) => {
+    pendingResponse = res;
+    res.once("close", () => requestClosedResolve?.());
+    requestStartedResolve?.();
+  });
+  const port = await listenLocal(server);
+  const url = `http://127.0.0.1:${port}/${filename}`;
+  const previous = JSON.parse(
+    await evaluate(`Promise.all([
+      api.getOption("fetchViaFetch"), api.getOption("filenamePatterns")
+    ]).then(([fetchViaFetch, filenamePatterns]) =>
+      JSON.stringify({ fetchViaFetch, filenamePatterns }))`),
+  );
+
+  try {
+    await evaluate(`api.setOptions({ fetchViaFetch: true, filenamePatterns: "" })
+      .then(() => { void api.startDownload({
+        url: ${JSON.stringify(url)},
+        suggestedFilename: ${JSON.stringify(filename)},
+        pageUrl: "https://cancel.example/",
+      }); return "started"; })`);
+    await requestStarted;
+    const historyId = await evaluate(`new Promise((resolve, reject) => {
+      const timeout = AbortSignal.timeout(8000);
+      const check = async () => {
+        const entry = (await api.history()).findLast((row) => row.url === ${JSON.stringify(url)});
+        const active = await browser.storage.session.get("siActiveTransfers");
+        if (entry?.status === "pending" && active.siActiveTransfers?.[entry.id]) {
+          resolve(entry.id);
+          return;
+        }
+        if (timeout.aborted) {
+          reject(new Error("Timed out waiting for cancellable History entry"));
+          return;
+        }
+        const channel = new MessageChannel();
+        channel.port1.onmessage = () => {
+          channel.port1.close();
+          channel.port2.close();
+          void check();
+        };
+        channel.port2.postMessage(null);
+      };
+      void check();
+    })`);
+    const response = JSON.parse(
+      await evaluate(`browser.runtime.sendMessage({
+        type: "HISTORY_CANCEL", body: { historyId: ${JSON.stringify(historyId)} }
+      }).then(JSON.stringify)`),
+    );
+    expect(response).toEqual({ type: "HISTORY_CANCEL", body: { canceled: true } });
+    /** @type {Promise<void>} */
+    const requestClosedWithinDeadline = new Promise((resolve, reject) => {
+      const timeout = AbortSignal.timeout(8000);
+      timeout.addEventListener(
+        "abort",
+        () => reject(new Error("Canceled History request did not close")),
+        { once: true },
+      );
+      requestClosed.then(resolve, reject);
+    });
+    await requestClosedWithinDeadline;
+
+    const terminal = JSON.parse(
+      await evaluate(`new Promise((resolve, reject) => {
+        const timeout = AbortSignal.timeout(8000);
+        const check = async () => {
+          const [history, session, downloads] = await Promise.all([
+            api.history(),
+            browser.storage.session.get("siActiveTransfers"),
+            browser.downloads.search({}),
+          ]);
+          const entry = history.findLast((row) => row.id === ${JSON.stringify(historyId)});
+          const matchingDownloads = downloads.filter((row) => row.url === ${JSON.stringify(url)});
+          if (entry?.status === "USER_CANCELED" &&
+              Object.keys(session.siActiveTransfers || {}).length === 0 &&
+              matchingDownloads.length === 0) {
+            resolve(JSON.stringify(entry));
+            return;
+          }
+          if (timeout.aborted) {
+            reject(new Error("Timed out waiting for History cancellation cleanup"));
+            return;
+          }
+          const channel = new MessageChannel();
+          channel.port1.onmessage = () => {
+            channel.port1.close();
+            channel.port2.close();
+            void check();
+          };
+          channel.port2.postMessage(null);
+        };
+        void check();
+      })`),
+    );
+    expect(terminal.status).toBe("USER_CANCELED");
+  } finally {
+    pendingResponse?.destroy();
+    await evaluate(`api.setOptions(${JSON.stringify(previous)})`);
+    await closeLocal(server);
+  }
+};
+
+/**
  * Starts a real background fetch, restarts the background while it is in
  * flight, and verifies cold-start recovery clears the durable transfer record.
  *
@@ -421,6 +832,72 @@ export const runContextMenuScenario = async ({ evaluate, waitForDownloads }) => 
     /e2e[\\/]context-menu[\\/]context-menu-smoke\.selection\.txt$/,
   );
   expect(fs.readFileSync(downloads[0].filename, "utf8")).toBe("context menu content");
+};
+
+/**
+ * Dispatches the production tab-strip handler with a real browser tab and
+ * verifies the selected-tab shortcut reaches the download pipeline.
+ *
+ * @param {{
+ *   evaluate: (expression: string) => Promise<any>,
+ *   waitForDownloads: (filename: string) => Promise<any[]>,
+ *   filename: string,
+ * }} adapters
+ */
+export const runTabStripScenario = async ({ evaluate, waitForDownloads, filename }) => {
+  const server = http.createServer((_req, res) => {
+    res.writeHead(200, { "Content-Type": "text/html" });
+    res.end(`<!doctype html><title>${filename}</title>`);
+  });
+  const port = await listenLocal(server);
+  const url = `http://127.0.0.1:${port}/${filename}`;
+  const previous = JSON.parse(
+    await evaluate(`Promise.all([
+      api.getOption("shortcutTab"), api.getOption("shortcutType")
+    ]).then(([shortcutTab, shortcutType]) => JSON.stringify({ shortcutTab, shortcutType }))`),
+  );
+  let tabId;
+
+  try {
+    const tab = JSON.parse(
+      await evaluate(`browser.tabs.create({ url: ${JSON.stringify(url)} }).then((created) =>
+        new Promise((resolve, reject) => {
+          const timeout = AbortSignal.timeout(8000);
+          const check = async () => {
+            const current = await browser.tabs.get(created.id);
+            if (current.status === "complete") resolve(JSON.stringify(current));
+            else if (timeout.aborted) reject(new Error("Tab-strip fixture did not load"));
+            else {
+              const channel = new MessageChannel();
+              channel.port1.onmessage = () => {
+                channel.port1.close();
+                channel.port2.close();
+                void check();
+              };
+              channel.port2.postMessage(null);
+            }
+          };
+          void check();
+        }))`),
+    );
+    tabId = tab.id;
+    await evaluate(`api.setOptions({ shortcutTab: true, shortcutType: "HTML_REDIRECT" })
+      .then(() => api.clickTabMenu({
+        info: { menuItemId: "save-in-SI-selected-tab" },
+        tab: ${JSON.stringify(tab)},
+      }))`);
+    const downloads = await waitForDownloads(filename);
+    const complete = downloads.find((row) => row.state === "complete");
+    expect(complete).toBeTruthy();
+    expect(fs.readFileSync(complete.filename, "utf8")).toContain(url);
+  } finally {
+    try {
+      await evaluate(`api.setOptions(${JSON.stringify(previous)})
+        .then(() => ${tabId == null ? "undefined" : `browser.tabs.remove(${tabId}).catch(() => {})`})`);
+    } finally {
+      await closeLocal(server);
+    }
+  }
 };
 
 /**

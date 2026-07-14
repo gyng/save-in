@@ -17,7 +17,16 @@
  *   },
  *   "Target.createTarget": {params: {url: string}, result: {targetId: string}},
  *   "Target.closeTarget": {params: {targetId: string}, result: {success?: boolean}},
- *   "Extensions.loadUnpacked": {params: {path: string}, result: {id: string}},
+ *   "Target.getTargets": {
+ *     params: {filter?: Array<{type: string}>},
+ *     result: {targetInfos: Array<{targetId: string, type: string, url: string}>}
+ *   },
+ *   "Extensions.loadUnpacked": {
+ *     params: {path: string, enableInIncognito?: boolean}, result: {id: string}
+ *   },
+ *   "Extensions.triggerAction": {
+ *     params: {id: string, targetId: string}, result: Record<string, unknown>
+ *   },
  *   "Emulation.setDeviceMetricsOverride": {
  *     params: {
  *       width: number, height: number, deviceScaleFactor: number, mobile: boolean,
@@ -449,12 +458,34 @@ const captureScreenshot = async (port, urlSubstr, options = {}) => {
   }
 };
 
-/** @param {number} port @param {string} path */
-const loadUnpacked = async (port, path) => {
+/**
+ * @param {number} port
+ * @param {string} path
+ * @param {{enableInIncognito?: boolean}} [options]
+ */
+const loadUnpacked = async (port, path, options = {}) => {
   const browser = await connectBrowser(port);
   try {
-    const { id } = await browser.send("Extensions.loadUnpacked", { path });
+    const { id } = await browser.send("Extensions.loadUnpacked", { path, ...options });
     return id;
+  } finally {
+    browser.close();
+  }
+};
+
+/** @param {number} port @param {string} extensionId @param {string} urlSubstr */
+const triggerAction = async (port, extensionId, urlSubstr) => {
+  const browser = await connectBrowser(port);
+  try {
+    const { targetInfos } = await browser.send("Target.getTargets", {
+      filter: [{ type: "tab" }],
+    });
+    const target = targetInfos.find((candidate) => candidate.url.includes(urlSubstr));
+    if (!target) throw new Error(`No tab target matching "${urlSubstr}"`);
+    await browser.send("Extensions.triggerAction", {
+      id: extensionId,
+      targetId: target.targetId,
+    });
   } finally {
     browser.close();
   }
@@ -520,6 +551,7 @@ module.exports = {
   setViewport,
   captureScreenshot,
   loadUnpacked,
+  triggerAction,
   stopServiceWorker,
   reloadTargets,
   waitForCdp,

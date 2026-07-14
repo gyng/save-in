@@ -76,10 +76,12 @@ pins deliberately during workflow maintenance.
 ## Browser-owned surface checks
 
 E2E covers the bundled extension, downloads, routing, notifications, options
-keyboard/layout behavior, Page Sources, and Chrome service-worker restarts.
-CDP and Firefox RDP cannot reliably operate browser context menus, native Save
-As windows, or OS notification actions. Before publishing, manually check
-current Chrome and Firefox:
+keyboard/layout behavior, Page Sources discovery and manual saves, toolbar
+activation, History cancellation, external-extension authorization, webhook
+delivery, private-window isolation, and both background lifecycles. CDP and
+Firefox RDP still cannot reliably select browser context-menu items, operate
+native Save As windows, or invoke OS notification actions. Before publishing,
+manually check current Chrome and Firefox:
 
 1. Save an image and link from the context menu; verify the destination and
    Last used location.
@@ -97,10 +99,10 @@ current Chrome and Firefox:
 7. Create the same destination symlink inside each browser's download folder.
    Verify Firefox reaches the target and Chrome reports a failed download
    without writing outside its download folder.
-8. In Chrome Incognito and Firefox Private Browsing, perform a Save In download
-   and an ordinary browser download. Verify neither enters Save In history or
-   the debug log, and ordinary-download routing does not rename the private
-   browser download.
+8. Spot-check the automated private-window contract in Chrome Incognito and
+   Firefox Private Browsing: perform a Save In download and an ordinary browser
+   download. Verify neither enters Save In history or the debug log, and the
+   browser-owned filename remains unchanged.
 
 For a final spot-check, verify Referer behavior in both browsers on a site that
 requires it, such as a pixiv media download, and open options-page dialogs that

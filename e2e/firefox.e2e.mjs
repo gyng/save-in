@@ -14,13 +14,17 @@ import {
   runAutomaticRetryScenario,
   runContentDispositionScenario,
   runContextMenuScenario,
+  runExternalExtensionScenario,
   runFailedDownloadLogScenario,
+  runHistoryCancellationScenario,
   runInterruptedTransferRecoveryScenario,
   runLegacyProfileRoutingScenario,
+  runPrivateBrowserActivityScenario,
   runPrivateContextScenario,
   runRoutingScenario,
   runShortcutScenario,
   runSymlinkDestinationScenario,
+  runTabStripScenario,
 } from "./shared-scenarios.mjs";
 import { runTemplateLibraryScenario } from "./template-library-scenario.mjs";
 import { runRoutingVisualEditorScenario } from "./routing-visual-editor-scenario.mjs";
@@ -347,6 +351,13 @@ test("event-page cold start recovers an interrupted in-flight fetch", async () =
   });
 });
 
+test("History cancels an in-flight acquisition and clears durable state", async () => {
+  await runHistoryCancellationScenario({
+    evaluate: evalBackground,
+    filename: "cancel-firefox.bin",
+  });
+});
+
 test("download completes through the real pipeline", async () => {
   await evalBackground(
     `api.startDownload({
@@ -364,6 +375,14 @@ test("download completes through the real pipeline", async () => {
 
 test("production context-menu handler completes a selection save", async () => {
   await runContextMenuScenario({ evaluate: evalBackground, waitForDownloads });
+});
+
+test("production tab-strip handler saves the selected real tab", async () => {
+  await runTabStripScenario({
+    evaluate: evalBackground,
+    waitForDownloads,
+    filename: "tab-strip-firefox",
+  });
 });
 
 test("private context-menu saves leave no extension history or session state", async () => {
@@ -386,6 +405,37 @@ test("private context-menu saves leave no extension history or session state", a
   } finally {
     await evalBackground(`browser.windows.remove(${privateWindowId})`);
   }
+});
+
+test("real Private Browsing activity stays out of routing, history, and automatic saves until opted in", async () => {
+  await runPrivateBrowserActivityScenario({
+    evaluate: evalBackground,
+    openPrivatePage: async (url) => {
+      const opened = JSON.parse(
+        await evalBackground(`browser.windows.create({ incognito: true, url: ${JSON.stringify(url)} })
+          .then((window) => JSON.stringify({ windowId: window.id }))`),
+      );
+      const tab = JSON.parse(await evalBackground(`(${waitForTabExpression("/private-browser")})`));
+      return {
+        tabId: tab.id,
+        target: `127.0.0.1:${new URL(tab.url).port}/private-browser`,
+        close: () =>
+          evalBackground(`browser.windows.remove(${opened.windowId})`).then(() => undefined),
+      };
+    },
+    evaluatePrivatePage: (target, expression) => session.evaluateInTab(target, expression),
+    waitForFile: async (relativePath) => {
+      const fullPath = path.join(session.downloadDir, relativePath);
+      await poll(
+        () => (fs.existsSync(fullPath) && fs.statSync(fullPath).size > 0 ? fullPath : null),
+        {
+          description: `Firefox private file ${relativePath}`,
+        },
+      );
+      return fullPath;
+    },
+    filenamePrefix: "private-firefox-real",
+  });
 });
 
 test("Save In filenames match live Firefox Content-Disposition behavior", async () => {
@@ -562,6 +612,34 @@ test("message-driven downloads work and never inherit a stale route", async () =
   expect(downloads[0].filename).not.toMatch(/stale-message/);
 });
 
+test("a separately installed extension negotiates, authorizes, and routes a download", async () => {
+  const callerId = "save-in-e2e-caller@example.invalid";
+  const root = await session.rdp.getRoot();
+  await session.rdp.installTemporaryAddon(
+    root.addonsActor,
+    path.resolve("e2e", "fixtures", "external-caller"),
+  );
+  const callerActor = await session.rdp.findAddonActor(callerId);
+  const callerConsole = await session.rdp.getConsoleActor(callerActor);
+
+  await runExternalExtensionScenario({
+    evaluate: evalBackground,
+    sendExternal: (message) =>
+      session.rdp
+        .evaluate(
+          callerConsole,
+          `browser.runtime.sendMessage(
+            "{72d92df5-2aa0-4b06-b807-aa21767545cd}",
+            ${JSON.stringify(message)}
+          ).then((response) => JSON.stringify(response))`,
+        )
+        .then(JSON.parse),
+    callerId,
+    waitForDownloads,
+    filename: "external-firefox.bin",
+  });
+});
+
 test("a template added in Options persists and routes a matching download", async () => {
   await runTemplateLibraryScenario({
     evaluate: evalBackground,
@@ -596,12 +674,23 @@ test("a failed download is retried automatically via background fetch", async ()
 });
 
 test("ordinary browser downloads can be tracked and experimentally rerouted on Firefox", async () => {
+  /** @type {import("node:http").ServerResponse | undefined} */
+  let heldNativeResponse;
+  let nativeRequests = 0;
   const server = http.createServer((req, res) => {
     if (req.url === "/native-ff.bin") {
+      nativeRequests += 1;
       res.writeHead(200, {
         "Content-Type": "application/octet-stream",
         "Content-Disposition": 'attachment; filename="native-ff.bin"',
       });
+      // Keep the browser-owned request in flight until Firefox's experimental
+      // route cancels it. The routed replacement is the second request.
+      if (nativeRequests === 1) {
+        heldNativeResponse = res;
+        res.write("ordinary firefox download");
+        return;
+      }
       res.end("ordinary firefox download");
       return;
     }
@@ -641,6 +730,7 @@ test("ordinary browser downloads can be tracked and experimentally rerouted on F
     );
     expect(observed.at(-1)).toMatchObject({ status: "complete", info: { context: "browser" } });
   } finally {
+    heldNativeResponse?.destroy();
     await evalBackground(`browser.storage.local.set({
       trackBrowserDownloads: false,
       routeBrowserDownloadsFirefox: false,
@@ -651,7 +741,7 @@ test("ordinary browser downloads can be tracked and experimentally rerouted on F
   }
 });
 
-test("page-generated alt+click cannot trigger a content-script download", async () => {
+test("click-to-save rejects synthetic input and accepts a trusted alt+click", async () => {
   const { server, port } = await startPageServer();
   const pageUrl = `http://127.0.0.1:${port}/`;
   const targetUrl = `127.0.0.1:${port}`;
@@ -691,6 +781,28 @@ test("page-generated alt+click cannot trigger a content-script download", async 
       ),
     );
     expect(downloads).toHaveLength(0);
+
+    await evalBackground(`browser.tabs.query({}).then((tabs) => {
+      const tab = tabs.find((candidate) => candidate.url?.includes(${JSON.stringify(targetUrl)}));
+      if (tab?.id == null) throw new Error("click-to-save fixture tab missing");
+      return browser.tabs.update(tab.id, { active: true });
+    })`);
+    const point = JSON.parse(
+      await session.evaluateInTab(
+        targetUrl,
+        `(() => {
+          const rect = document.getElementById("img").getBoundingClientRect();
+          return JSON.stringify({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
+        })()`,
+      ),
+    );
+    await session.bidi.altClick(targetUrl, point.x, point.y);
+
+    const trustedDownloads = await waitForDownloads("pic.png");
+    expect(trustedDownloads.some((/** @type {any} */ item) => item.state === "complete")).toBe(
+      true,
+    );
+    expect(fs.readFileSync(trustedDownloads.at(-1).filename)).toEqual(PNG);
   } finally {
     try {
       await evalBackground(`browser.storage.local
@@ -845,6 +957,18 @@ test("Page Sources discovers, updates live, and restores across tabs", async () 
     );
 
     expect(await sourceNames(firstTarget)).toEqual(["second.png", "first.png"]);
+
+    await session.evaluateInTab(
+      firstTarget,
+      `(() => {
+        const rows = [...document.querySelector("#save-in-source-panel").shadowRoot
+          .querySelectorAll(".row")];
+        const row = rows.find((candidate) => candidate.querySelector(".name")?.textContent === "first.png");
+        row?.querySelector(".actions button:nth-child(2)")?.click();
+        return Boolean(row);
+      })()`,
+    );
+    expect(await waitForDownloadUrl(`http://localhost:${port}/first.png`)).toMatch(/first\.png$/);
 
     await session.evaluateInTab(
       firstTarget,

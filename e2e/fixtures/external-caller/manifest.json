@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Save In E2E external caller",
+  "version": "1.0.0",
+  "background": {
+    "scripts": ["caller.js"],
+    "service_worker": "caller.js"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "save-in-e2e-caller@example.invalid"
+    }
+  }
+}

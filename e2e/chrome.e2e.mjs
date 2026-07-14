@@ -14,13 +14,17 @@ import {
   runAutomaticRetryScenario,
   runContentDispositionScenario,
   runContextMenuScenario,
+  runExternalExtensionScenario,
   runFailedDownloadLogScenario,
+  runHistoryCancellationScenario,
   runInterruptedTransferRecoveryScenario,
   runLegacyProfileRoutingScenario,
+  runPrivateBrowserActivityScenario,
   runPrivateContextScenario,
   runRoutingScenario,
   runShortcutScenario,
   runSymlinkDestinationScenario,
+  runTabStripScenario,
 } from "./shared-scenarios.mjs";
 import { runTemplateLibraryScenario } from "./template-library-scenario.mjs";
 import { runRoutingVisualEditorScenario } from "./routing-visual-editor-scenario.mjs";
@@ -622,6 +626,13 @@ test("cold start recovers an interrupted in-flight fetch", async () => {
   });
 });
 
+test("History cancels an in-flight acquisition and clears durable state", async () => {
+  await runHistoryCancellationScenario({
+    evaluate: evalSW,
+    filename: "cancel-chrome.bin",
+  });
+});
+
 test("options-save reset message round-trips", async () => {
   const response = await evalOptions(
     `new Promise((res) => chrome.runtime.sendMessage({ type: "OPTIONS_LOADED" }, (r) => res(JSON.stringify(r))))`,
@@ -679,11 +690,81 @@ test("production context-menu handler completes a selection save", async () => {
   await runContextMenuScenario({ evaluate: evalSW, waitForDownloads });
 });
 
+test("production tab-strip handler saves the selected real tab", async () => {
+  await runTabStripScenario({
+    evaluate: evalSW,
+    waitForDownloads,
+    filename: "tab-strip-chrome",
+  });
+});
+
 test("private context-menu saves leave no extension history or session state", async () => {
   await runPrivateContextScenario({
     evaluate: evalSW,
     waitForDownloads,
     filename: "private-chrome",
+  });
+});
+
+test("real Incognito activity stays out of routing, history, and automatic saves until opted in", async () => {
+  // Chrome's CDP loader owns this ephemeral install, including its Incognito
+  // grant. Reloading it closes the old extension-page control target.
+  extensionId = await cdp.loadUnpacked(
+    PORT,
+    path.resolve(process.env.EXT_DIR || "dist/bundled-pkg"),
+    { enableInIncognito: true },
+  );
+  await cdp.openTab(PORT, `chrome-extension://${extensionId}/src/options/options.html`);
+  await poll(
+    async () =>
+      (await evalOptions(
+        `document.readyState === "complete" && chrome.runtime.id === ${JSON.stringify(extensionId)}`,
+      )) === true
+        ? true
+        : null,
+    { description: "Chrome extension reload after Incognito access change" },
+  );
+  await evalSW(`api.ready().then(() => true)`);
+
+  await runPrivateBrowserActivityScenario({
+    evaluate: evalSW,
+    openPrivatePage: async (url) => {
+      const opened = JSON.parse(
+        await evalSW(`browser.windows.create({ incognito: true, url: ${JSON.stringify(url)} })
+          .then((window) => JSON.stringify({ windowId: window.id }))`),
+      );
+      const tab = JSON.parse(
+        await evalSW(`new Promise((resolve, reject) => {
+          const timeout = AbortSignal.timeout(8000);
+          const check = async () => {
+            const [tab] = await browser.tabs.query({ windowId: ${opened.windowId} });
+            if (tab?.id != null && tab.status === "complete") {
+              resolve(JSON.stringify({ id: tab.id, url: tab.url }));
+            } else if (timeout.aborted) reject(new Error("Incognito tab did not load"));
+            else requestAnimationFrame(check);
+          };
+          void check();
+        })`),
+      );
+      const target = `127.0.0.1:${new URL(tab.url).port}/private-browser`;
+      return {
+        tabId: tab.id,
+        target,
+        close: () => evalSW(`browser.windows.remove(${opened.windowId})`).then(() => undefined),
+      };
+    },
+    evaluatePrivatePage: (target, expression) => cdp.evalInTarget(PORT, target, expression),
+    waitForFile: async (relativePath) => {
+      const fullPath = path.join(DOWNLOADS, relativePath);
+      await poll(
+        () => (fs.existsSync(fullPath) && fs.statSync(fullPath).size > 0 ? fullPath : null),
+        {
+          description: `Chrome private file ${relativePath}`,
+        },
+      );
+      return fullPath;
+    },
+    filenamePrefix: "private-chrome-real",
   });
 });
 
@@ -1026,6 +1107,36 @@ test("message-driven downloads work and never inherit a stale route", async () =
   expect(rows[0].filename).not.toMatch(/routed/);
 });
 
+test("a separately installed extension negotiates, authorizes, and routes a download", async () => {
+  const callerDir = path.resolve("e2e", "fixtures", "external-caller");
+  const callerId = await cdp.loadUnpacked(PORT, callerDir);
+  const callerUrl = `chrome-extension://${callerId}/control.html`;
+  await cdp.openTab(PORT, callerUrl);
+  await poll(
+    async () =>
+      (await cdp.evalInTarget(PORT, callerId, "document.readyState === 'complete'")) === true
+        ? true
+        : null,
+    { description: "external caller extension page" },
+  );
+
+  await runExternalExtensionScenario({
+    evaluate: evalSW,
+    sendExternal: (message) =>
+      cdp
+        .evalInTarget(
+          PORT,
+          callerId,
+          `chrome.runtime.sendMessage(${JSON.stringify(extensionId)}, ${JSON.stringify(message)})
+            .then((response) => JSON.stringify(response))`,
+        )
+        .then(JSON.parse),
+    callerId,
+    waitForDownloads,
+    filename: "external-chrome.bin",
+  });
+});
+
 test("fetchViaFetch downloads via an offscreen document (Chrome MV3)", async () => {
   await evalSW(`browser.storage.local.set({ filenamePatterns: "", fetchViaFetch: true })
       .then(() => api.reset())
@@ -1273,6 +1384,89 @@ test(":sha256: and :sha256full: hash and save from a single fetch (Chrome MV3)",
     expect(hits).toBe(1);
   } finally {
     await closeLocal(server);
+  }
+});
+
+test("a bundled direct save delivers the configured webhook payload once", async () => {
+  const keys = [
+    "webhookEnabled",
+    "webhookUrl",
+    "webhookIncludePageUrl",
+    "webhookIncludePageTitle",
+    "webhookIncludeSelectionText",
+  ];
+  const previous = JSON.parse(
+    await evalSW(`browser.storage.local.get(${JSON.stringify(keys)})
+      .then((stored) => JSON.stringify(stored))`),
+  );
+  const missing = keys.filter((key) => !(key in previous));
+
+  try {
+    await evalSW(`api.setOptions({
+      webhookEnabled: true,
+      webhookUrl: "https://webhook.invalid/save?token=secret",
+      webhookIncludePageUrl: true,
+      webhookIncludePageTitle: false,
+      webhookIncludeSelectionText: false,
+    })`);
+    await evalWorker(`(() => {
+      globalThis.__saveInE2EOriginalFetch = globalThis.fetch;
+      globalThis.__saveInE2EWebhookCalls = [];
+      globalThis.fetch = async (input, init = {}) => {
+        globalThis.__saveInE2EWebhookCalls.push({
+          input: String(input),
+          method: init.method,
+          headers: init.headers,
+          body: init.body,
+          credentials: init.credentials,
+          cache: init.cache,
+          redirect: init.redirect,
+          referrerPolicy: init.referrerPolicy,
+        });
+        return { ok: true, status: 204 };
+      };
+      return true;
+    })()`);
+    await evalSW(`api.startDownload({
+      content: "webhook e2e content",
+      suggestedFilename: "webhook-e2e.txt",
+      pageUrl: "https://page.example/webhook-source",
+    }).then(() => "started")`);
+    await waitForDownloads("webhook-e2e");
+    const calls = await poll(
+      async () => {
+        const rows = JSON.parse(
+          await evalWorker(`JSON.stringify(globalThis.__saveInE2EWebhookCalls || [])`),
+        );
+        return rows.length === 1 ? rows : null;
+      },
+      { description: "webhook delivery" },
+    );
+    expect(calls[0]).toMatchObject({
+      input: "https://webhook.invalid/save?token=secret",
+      method: "POST",
+      credentials: "omit",
+      cache: "no-store",
+      redirect: "error",
+      referrerPolicy: "no-referrer",
+    });
+    expect(JSON.parse(calls[0].body)).toMatchObject({
+      version: 1,
+      event: "save",
+      url: "https://page.example/webhook-source",
+      pageUrl: "https://page.example/webhook-source",
+    });
+  } finally {
+    await evalWorker(`(() => {
+      if (globalThis.__saveInE2EOriginalFetch) globalThis.fetch = globalThis.__saveInE2EOriginalFetch;
+      delete globalThis.__saveInE2EOriginalFetch;
+      delete globalThis.__saveInE2EWebhookCalls;
+      return true;
+    })()`).catch(() => {});
+    await evalSW(`Promise.all([
+      browser.storage.local.set(${JSON.stringify(previous)}),
+      browser.storage.local.remove(${JSON.stringify(missing)}),
+    ]).then(() => api.reset())`);
   }
 });
 
@@ -1650,10 +1844,10 @@ test("Page Sources discovers, updates live, and restores across tabs", async () 
     await evalSW(`browser.tabs.query({}).then(async (tabs) => {
       const tab = tabs.find((candidate) => candidate.url?.includes(${JSON.stringify(firstPath)}));
       if (!tab?.id) throw new Error("Page Sources fixture tab missing");
-      await browser.storage.session.set({ sourcePanelOpen: true });
-      await browser.tabs.sendMessage(tab.id, { type: "SET_SOURCE_PANEL", body: { open: true } });
-      return "opened";
+      await browser.tabs.update(tab.id, { active: true });
+      return "activated";
     })`);
+    await cdp.triggerAction(PORT, extensionId, firstPath);
     await poll(
       async () =>
         (await evalPage(firstPath, "!!document.querySelector('#save-in-source-panel')?.shadowRoot"))
@@ -1662,6 +1856,18 @@ test("Page Sources discovers, updates live, and restores across tabs", async () 
       { description: "Page Sources panel open" },
     );
     expect(await sourceNames(firstPath)).toEqual(["second.png", "first.png"]);
+
+    await evalPage(
+      firstPath,
+      `(() => {
+        const rows = [...document.querySelector("#save-in-source-panel").shadowRoot
+          .querySelectorAll(".row")];
+        const row = rows.find((candidate) => candidate.querySelector(".name")?.textContent === "first.png");
+        row?.querySelector(".actions button:nth-child(2)")?.click();
+        return Boolean(row);
+      })()`,
+    );
+    expect(await waitForDownloadUrl(`http://127.0.0.1:${port}/first.png`)).toMatch(/first\.png$/);
 
     await evalPage(
       firstPath,

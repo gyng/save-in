@@ -28,6 +28,11 @@ const installBackgroundHelpers = () => {
         if (response?.body?.status === "OK") return response.body;
         throw new Error(response?.body?.message || "E2E context-menu command failed");
       }),
+    clickTabMenu: (/** @type {any} */ body) =>
+      send({ type: "SAVE_IN_E2E_TAB_MENU_CLICK", body }).then((/** @type {any} */ response) => {
+        if (response?.body?.status === "OK") return response.body;
+        throw new Error(response?.body?.message || "E2E tab-menu command failed");
+      }),
     notificationCalls: (/** @type {"get" | "reset"} */ action) =>
       send({ type: "SAVE_IN_E2E_NOTIFICATION_CALLS", body: { action } }).then(
         (/** @type {any} */ response) => {

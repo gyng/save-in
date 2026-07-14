@@ -7,10 +7,12 @@ import { Path } from "../routing/path.ts";
 import type { CurrentTab } from "../platform/current-tab.ts";
 import { backgroundRuntime } from "./runtime.ts";
 import { handleContextMenuClick, type ContextMenuClickInfo } from "./menu-click.ts";
+import { handleTabMenuClick, type HostTab, type TabMenuClickInfo } from "./menu-tabs.ts";
 
 export const BACKGROUND_E2E_COMMAND = "SAVE_IN_E2E_START_DOWNLOAD";
 export const BACKGROUND_E2E_CONTEXT_MENU_COMMAND = "SAVE_IN_E2E_CONTEXT_MENU_CLICK";
 export const BACKGROUND_E2E_NOTIFICATION_COMMAND = "SAVE_IN_E2E_NOTIFICATION_CALLS";
+export const BACKGROUND_E2E_TAB_MENU_COMMAND = "SAVE_IN_E2E_TAB_MENU_CLICK";
 
 type BackgroundE2EDownload = {
   path?: string;
@@ -40,6 +42,11 @@ type BackgroundE2ENotificationRequest = {
   body: { action: "get" | "reset" };
 };
 
+type BackgroundE2ETabMenuRequest = {
+  type: typeof BACKGROUND_E2E_TAB_MENU_COMMAND;
+  body: { info: TabMenuClickInfo; tab: HostTab };
+};
+
 export type BackgroundE2ENotificationCall = {
   id: string;
   title?: string;
@@ -59,6 +66,11 @@ type BackgroundE2EContextMenuResponse = {
 type BackgroundE2ENotificationResponse = {
   type: typeof BACKGROUND_E2E_NOTIFICATION_COMMAND;
   body: { status: "OK"; calls: BackgroundE2ENotificationCall[] };
+};
+
+type BackgroundE2ETabMenuResponse = {
+  type: typeof BACKGROUND_E2E_TAB_MENU_COMMAND;
+  body: { status: "OK" } | { status: "ERROR"; message: string };
 };
 
 const notificationCalls: BackgroundE2ENotificationCall[] = [];
@@ -126,6 +138,18 @@ const isBackgroundE2ENotificationCommand = (
   value.type === BACKGROUND_E2E_NOTIFICATION_COMMAND &&
   isRecord(value.body) &&
   (value.body.action === "get" || value.body.action === "reset");
+
+const isBackgroundE2ETabMenuCommand = (value: unknown): value is BackgroundE2ETabMenuRequest =>
+  isRecord(value) &&
+  value.type === BACKGROUND_E2E_TAB_MENU_COMMAND &&
+  isRecord(value.body) &&
+  isRecord(value.body.info) &&
+  (typeof value.body.info.menuItemId === "string" ||
+    typeof value.body.info.menuItemId === "number") &&
+  isRecord(value.body.tab) &&
+  typeof value.body.tab.id === "number" &&
+  typeof value.body.tab.index === "number" &&
+  typeof value.body.tab.windowId === "number";
 
 const resolveDownloadUrl = (request: BackgroundE2EDownload): string => {
   if (request.shortcutUrl) {
@@ -195,6 +219,22 @@ export const handleBackgroundE2ENotificationCommand = (
   };
 };
 
+export const handleBackgroundE2ETabMenuCommand = async (
+  rawRequest: unknown,
+  dispatch: typeof handleTabMenuClick = handleTabMenuClick,
+): Promise<BackgroundE2ETabMenuResponse | null> => {
+  if (!isBackgroundE2ETabMenuCommand(rawRequest)) return null;
+  try {
+    await dispatch(rawRequest.body.info, rawRequest.body.tab);
+    return { type: BACKGROUND_E2E_TAB_MENU_COMMAND, body: { status: "OK" } };
+  } catch (error) {
+    return {
+      type: BACKGROUND_E2E_TAB_MENU_COMMAND,
+      body: { status: "ERROR", message: error instanceof Error ? error.message : String(error) },
+    };
+  }
+};
+
 export const installBackgroundE2ENotificationObserver = (): void => {
   if (notificationObserverInstalled) return;
   notificationObserverInstalled = true;
@@ -221,6 +261,10 @@ export const registerBackgroundE2ECommand = (): void => {
     }
     if (isBackgroundE2EContextMenuCommand(rawRequest)) {
       void handleBackgroundE2EContextMenuCommand(rawRequest).then(sendResponse);
+      return true;
+    }
+    if (isBackgroundE2ETabMenuCommand(rawRequest)) {
+      void handleBackgroundE2ETabMenuCommand(rawRequest).then(sendResponse);
       return true;
     }
     if (!isBackgroundE2ECommand(rawRequest)) return;

@@ -16,7 +16,12 @@ import { backgroundRuntime } from "./runtime.ts";
 import { runBackgroundTask } from "./event-task.ts";
 import { isDownloadableTab } from "./downloadable-tab.ts";
 
-type HostTab = Parameters<Parameters<typeof webExtensionApi.tabs.onUpdated.addListener>[0]>[2];
+export type HostTab = Parameters<
+  Parameters<typeof webExtensionApi.tabs.onUpdated.addListener>[0]
+>[2];
+export type TabMenuClickInfo = Parameters<
+  Parameters<typeof webExtensionApi.contextMenus.onClicked.addListener>[0]
+>[0];
 
 export const addTabMenus = () => {
   if (!options.tabEnabled || !WEB_EXTENSION_CAPABILITIES.tabContextMenus) {
@@ -79,113 +84,113 @@ export const addTabHighlightListener = () => {
   );
 };
 
-export const addTabMenuListener = () => {
+export const handleTabMenuClick = async (
+  info: TabMenuClickInfo,
+  fromTab?: HostTab,
+): Promise<void> => {
   const ids = Object.values(MENU_IDS.TABSTRIP);
+  if (!ids.some((id) => id === info.menuItemId) || !fromTab) return;
 
-  webExtensionApi.contextMenus.onClicked.addListener((info, fromTab) =>
-    runBackgroundTask("tab-strip menu click failed", async () => {
-      if (!ids.some((id) => id === info.menuItemId) || !fromTab) {
-        return;
+  // MV3 service workers restart between events: wait for options
+  // and menus to be reinitialised before handling the click
+  if (backgroundRuntime.ready) await backgroundRuntime.ready;
+
+  let filter: (tab: HostTab) => boolean = () => true;
+  let query: Parameters<typeof webExtensionApi.tabs.query>[0] = {
+    windowId: fromTab.windowId,
+    windowType: "normal",
+  };
+
+  switch (info.menuItemId) {
+    case MENU_IDS.TABSTRIP.SELECTED_TAB:
+      filter = (t) => t.id === fromTab.id;
+      break;
+    case MENU_IDS.TABSTRIP.SELECTED_MULTIPLE_TABS:
+      query = Object.assign(query, { highlighted: true });
+      break;
+    case MENU_IDS.TABSTRIP.TO_RIGHT:
+    case MENU_IDS.TABSTRIP.TO_RIGHT_MATCH:
+      filter = (t) => t.index >= fromTab.index;
+      break;
+    case MENU_IDS.TABSTRIP.OPENED_FROM_TAB:
+      query = Object.assign(query, { openerTabId: fromTab.id });
+      break;
+  }
+
+  try {
+    const tabs = (await webExtensionApi.tabs.query(query)).filter(isDownloadableTab).filter(filter);
+
+    // Keep the event handler alive and bound concurrency without relying on
+    // timers, which non-persistent MV3/event-page backgrounds may discard.
+    for (const t of tabs) {
+      let url = t.url;
+      let suggestedFilename = null;
+
+      if (options.shortcutTab) {
+        url = Shortcut.makeShortcut(options.shortcutType, url, t.title || t.url);
+
+        suggestedFilename = Shortcut.suggestShortcutFilename(
+          options.shortcutType,
+          DOWNLOAD_TYPES.TAB,
+          info,
+          t.title,
+          options.truncateLength,
+        );
       }
 
-      // MV3 service workers restart between events: wait for options
-      // and menus to be reinitialised before handling the click
-      if (backgroundRuntime.ready) {
-        await backgroundRuntime.ready;
-      }
+      const modifiersValue: unknown = Reflect.get(info, "modifiers");
 
-      let filter: (tab: HostTab) => boolean = () => true;
-      let query: Parameters<typeof webExtensionApi.tabs.query>[0] = {
-        windowId: fromTab.windowId,
-        windowType: "normal",
+      const opts: DownloadInfo = {
+        currentTab: t, // Global,
+        linkText: t.title,
+        now: new Date(),
+        pageUrl: t.url,
+        selectionText: info.selectionText,
+        selectedUrl: t.url,
+        webhookEligible: true,
+        sourceUrl: t.url,
+        url, // Changes based off context
+        suggestedFilename,
+        context: DOWNLOAD_TYPES.TAB,
+        menuIndex: null,
+        comment: null,
+        modifiers: Array.isArray(modifiersValue)
+          ? modifiersValue.filter((value): value is string => typeof value === "string")
+          : undefined,
       };
 
-      switch (info.menuItemId) {
-        case MENU_IDS.TABSTRIP.SELECTED_TAB:
-          filter = (t) => t.id === fromTab.id;
-          break;
-        case MENU_IDS.TABSTRIP.SELECTED_MULTIPLE_TABS:
-          query = Object.assign(query, { highlighted: true });
-          break;
-        case MENU_IDS.TABSTRIP.TO_RIGHT:
-        case MENU_IDS.TABSTRIP.TO_RIGHT_MATCH:
-          filter = (t) => t.index >= fromTab.index;
-          break;
-        case MENU_IDS.TABSTRIP.OPENED_FROM_TAB:
-          query = Object.assign(query, { openerTabId: fromTab.id });
-          break;
-      }
+      // keeps track of state of the final path
+      const state = {
+        path: new Path("."),
+        scratch: {},
+        info: opts,
+        needRouteMatch: info.menuItemId === MENU_IDS.TABSTRIP.TO_RIGHT_MATCH,
+      };
 
-      try {
-        const tabs = (await webExtensionApi.tabs.query(query)).filter(isDownloadableTab).filter(filter);
+      // Download.launch reports whether the browser accepted the save.
+      const result = await Download.launch(state);
 
-        // Keep the event handler alive and bound concurrency without relying on
-        // timers, which non-persistent MV3/event-page backgrounds may discard.
-        for (const t of tabs) {
-          let url = t.url;
-          let suggestedFilename = null;
-
-          if (options.shortcutTab) {
-            url = Shortcut.makeShortcut(options.shortcutType, url, t.title || t.url);
-
-            suggestedFilename = Shortcut.suggestShortcutFilename(
-              options.shortcutType,
-              DOWNLOAD_TYPES.TAB,
-              info,
-              t.title,
-              options.truncateLength,
-            );
-          }
-
-          const modifiersValue: unknown = Reflect.get(info, "modifiers");
-
-          const opts: DownloadInfo = {
-            currentTab: t, // Global,
-            linkText: t.title,
-            now: new Date(),
-            pageUrl: t.url,
-            selectionText: info.selectionText,
-            selectedUrl: t.url,
-            webhookEligible: true,
-            sourceUrl: t.url,
-            url, // Changes based off context
-            suggestedFilename,
-            context: DOWNLOAD_TYPES.TAB,
-            menuIndex: null,
-            comment: null,
-            modifiers: Array.isArray(modifiersValue)
-              ? modifiersValue.filter((value): value is string => typeof value === "string")
-              : undefined,
-          };
-
-          // keeps track of state of the final path
-          const state = {
-            path: new Path("."),
-            scratch: {},
-            info: opts,
-            needRouteMatch: info.menuItemId === MENU_IDS.TABSTRIP.TO_RIGHT_MATCH,
-          };
-
-          // Download.launch reports whether the browser accepted the save.
-          const result = await Download.launch(state);
-
-          if (options.closeTabOnSave && result.status === "started") {
-            const tabId = t.id;
-            if (tabId == null) continue;
-            try {
-              await webExtensionApi.tabs.remove(tabId);
-            } catch (error) {
-              // The tab may have been closed manually while its save was starting;
-              // that must not prevent later tabs in the batch from being saved.
-              Log.add("saved tab close failed", String(error));
-            }
-          }
+      if (options.closeTabOnSave && result.status === "started") {
+        const tabId = t.id;
+        if (tabId == null) continue;
+        try {
+          await webExtensionApi.tabs.remove(tabId);
+        } catch (error) {
+          // The tab may have been closed manually while its save was starting;
+          // that must not prevent later tabs in the batch from being saved.
+          await Log.add("saved tab close failed", String(error));
         }
-      } catch (error) {
-        // Download.launch reports per-item failures; this catches tab query and
-        // batch orchestration failures that occur outside the download pipeline.
-        Log.add("tab-strip save failed", String(error));
       }
-    }),
+    }
+  } catch (error) {
+    // Download.launch reports per-item failures; this catches tab query and
+    // batch orchestration failures that occur outside the download pipeline.
+    await Log.add("tab-strip save failed", String(error));
+  }
+};
+
+export const addTabMenuListener = () => {
+  webExtensionApi.contextMenus.onClicked.addListener((info, fromTab) =>
+    runBackgroundTask("tab-strip menu click failed", () => handleTabMenuClick(info, fromTab)),
   );
 };

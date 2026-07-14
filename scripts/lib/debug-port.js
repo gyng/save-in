@@ -6,6 +6,8 @@ const CHROME_E2E_PORT_START = 9600;
 const CHROME_E2E_PORT_COUNT = 200;
 const FIREFOX_E2E_PORT_START = 9380;
 const FIREFOX_E2E_PORT_COUNT = 200;
+const FIREFOX_BIDI_PORT_START = 9080;
+const FIREFOX_BIDI_PORT_COUNT = 200;
 
 /** @param {number} port @param {string} host @returns {Promise<boolean>} */
 const canBind = (port, host) =>
@@ -58,5 +60,7 @@ module.exports = {
   CHROME_E2E_PORT_START,
   FIREFOX_E2E_PORT_COUNT,
   FIREFOX_E2E_PORT_START,
+  FIREFOX_BIDI_PORT_COUNT,
+  FIREFOX_BIDI_PORT_START,
   findAvailablePort,
 };
