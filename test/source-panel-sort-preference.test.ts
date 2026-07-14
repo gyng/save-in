@@ -52,4 +52,21 @@ describe("Page Sources sort preference", () => {
     getSourcePanelHostForTesting()!.remove();
     expect(openPanel().value).toBe("size-desc");
   });
+
+  test("does not overwrite a sort changed before storage responds", () => {
+    let respond: ((stored: Record<string, unknown>) => void) | undefined;
+    vi.spyOn(global.chrome.storage.local, "get").mockImplementation(((
+      _key: string,
+      callback: (stored: Record<string, unknown>) => void,
+    ) => {
+      respond = callback;
+    }) as any);
+    const sort = openPanel();
+    sort.value = "name-asc";
+    sort.dispatchEvent(new Event("change"));
+
+    respond!({ [SOURCE_PANEL_SORT_STORAGE_KEY]: "size-desc" });
+
+    expect(sort.value).toBe("name-asc");
+  });
 });

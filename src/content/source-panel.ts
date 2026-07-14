@@ -227,9 +227,7 @@ export const toggleSourcePanel = (
   let panelSendDownload = sendDownload;
 
   const host = document.createElement("aside");
-  const previousFocus =
-    document.activeElement instanceof HTMLElement ? document.activeElement : null;
-  if (previousFocus) panelPreviousFocus.set(host, previousFocus);
+  panelPreviousFocus.set(host, document.activeElement as HTMLElement);
   host.id = PANEL_HOST_ID;
   host.dataset.theme = resolvedPanelTheme(panelOptions.theme);
   const exposeShadowForTests = SAVE_IN_CONTENT_E2E === true;
@@ -267,7 +265,7 @@ export const toggleSourcePanel = (
     const startWidth = host.getBoundingClientRect().width;
     const startHeight = host.getBoundingClientRect().height;
     const move = (moveEvent: PointerEvent) => {
-      const dock = host.dataset.dock || "right";
+      const dock = host.dataset.dock!;
       if (dock === "right" || dock === "left") {
         const delta = dock === "right" ? startX - moveEvent.clientX : moveEvent.clientX - startX;
         host.style.width = `${Math.min(window.innerWidth * 0.92, Math.max(280, startWidth + delta))}px`;
@@ -411,10 +409,10 @@ export const toggleSourcePanel = (
     filter.setAttribute("aria-label", copy.filterLabel);
     sort.setAttribute("aria-label", copy.sortLabel);
     [...sort.options].forEach((option, index) => {
-      const key = sortOptions[index]?.[1];
-      if (key) option.textContent = copy.sort[key];
+      const key = sortOptions[index]![1];
+      option.textContent = copy.sort[key];
     });
-    const dock = host.dataset.dock || "right";
+    const dock = host.dataset.dock!;
     dockButton.title = formatSourcePanelCopy(
       copy.dockPositionTemplate,
       SOURCE_PANEL_COPY_VALUE_SLOT,
@@ -479,11 +477,8 @@ export const toggleSourcePanel = (
                   !(entry.target instanceof HTMLMediaElement))
               )
                 return;
-              const source = pendingPreviewSources.get(entry.target);
-              if (source) {
-                entry.target.src = source;
-                pendingPreviewSources.delete(entry.target);
-              }
+              entry.target.src = pendingPreviewSources.get(entry.target)!;
+              pendingPreviewSources.delete(entry.target);
               observer.unobserve(entry.target);
             });
           },
@@ -665,7 +660,7 @@ export const toggleSourcePanel = (
       return;
     }
     copyUrls.disabled = false;
-    list.querySelectorAll(":scope > .empty").forEach((empty) => empty.remove());
+    list.querySelectorAll(".empty").forEach((empty) => empty.remove());
     let rowIndex = 0;
     const placeRow = (row: HTMLElement) => {
       const current = list.children[rowIndex] || null;
@@ -748,14 +743,10 @@ export const toggleSourcePanel = (
       const url = document.createElement("div");
       const meta = document.createElement("div");
       name.className = "name";
-      try {
-        const parsed = new URL(source.url);
-        name.textContent = decodeURIComponent(
-          parsed.pathname.split("/").filter(Boolean).at(-1) || parsed.hostname || source.kind,
-        );
-      } catch {
-        name.textContent = source.kind;
-      }
+      const parsed = new URL(source.url);
+      name.textContent = decodeURIComponent(
+        parsed.pathname.split("/").filter(Boolean).at(-1) || parsed.hostname,
+      );
       url.className = "url";
       url.textContent = source.url;
       if (!hasRichTooltip) url.title = source.url;
@@ -801,7 +792,7 @@ export const toggleSourcePanel = (
         const detectedAt = formatSourcePanelCopy(
           copy.detectedAtTemplate,
           SOURCE_PANEL_COPY_VALUE_SLOT,
-          formatters.date.format(new Date(source.detectedAt || Date.now())),
+          formatters.date.format(new Date(source.detectedAt!)),
         );
         detected.setAttribute("aria-label", detectedAt);
         if (!hasRichTooltip) detected.title = detectedAt;
@@ -923,8 +914,7 @@ export const toggleSourcePanel = (
           return;
         }
         if (!hasRichTooltip) return;
-        richTooltip = createSourceTooltip(source);
-        if (!richTooltip) return;
+        richTooltip = createSourceTooltip(source)!;
         const tooltipId = `source-tooltip-${source.detectedOrder}`;
         richTooltip.id = tooltipId;
         sourceLink.setAttribute("aria-describedby", tooltipId);
@@ -941,7 +931,7 @@ export const toggleSourcePanel = (
             { width: window.innerWidth, height: window.innerHeight },
             host.classList.contains("floating")
               ? "floating"
-              : ((host.dataset.dock || "right") as "right" | "bottom" | "left" | "top"),
+              : (host.dataset.dock as "right" | "bottom" | "left" | "top"),
           );
           richTooltip.dataset.side = position.side;
           richTooltip.style.left = `${position.left - panelBounds.left}px`;
@@ -1025,11 +1015,7 @@ export const toggleSourcePanel = (
       placeRow(row);
     });
     while (list.children.length > rowIndex) {
-      const last = list.lastElementChild;
-      if (!(last instanceof HTMLElement)) {
-        last?.remove();
-        continue;
-      }
+      const last = list.lastElementChild as HTMLElement;
       const cached = cachedRows.get(last);
       if (cached) deactivateAndRemove(cached);
       else last.remove();
@@ -1120,11 +1106,11 @@ export const toggleSourcePanel = (
     )
       return;
     mutations.forEach((mutation) => {
-      if (!(mutation.target instanceof Element)) return;
+      const target = mutation.target as Element;
       const affectsStylesheet =
         panelOptions.includeBackgrounds !== false &&
-        (mutation.target.closest("style") ||
-          mutation.target.matches('link[rel~="stylesheet"]') ||
+        (target.closest("style") ||
+          target.matches('link[rel~="stylesheet"]') ||
           [...mutation.addedNodes, ...mutation.removedNodes].some(
             (node) =>
               node instanceof Element &&
@@ -1132,7 +1118,7 @@ export const toggleSourcePanel = (
                 Boolean(node.querySelector('style, link[rel~="stylesheet"]'))),
           ));
       const affectsBase =
-        mutation.target.matches("base") ||
+        target.matches("base") ||
         [...mutation.addedNodes, ...mutation.removedNodes].some(
           (node) =>
             node instanceof Element &&
@@ -1143,7 +1129,7 @@ export const toggleSourcePanel = (
         return;
       }
       if (mutation.type === "attributes") {
-        queueRoot(mutation.target);
+        queueRoot(target);
         return;
       }
       mutation.removedNodes.forEach((node) => {
@@ -1152,7 +1138,7 @@ export const toggleSourcePanel = (
       mutation.addedNodes.forEach((node) => {
         if (node instanceof Element) queueRoot(node);
       });
-      if (mutation.target.matches("video, audio, picture")) queueRoot(mutation.target);
+      if (target.matches("video, audio, picture")) queueRoot(target);
     });
     scheduleRefresh();
   });

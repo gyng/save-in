@@ -61,6 +61,113 @@ describe("Page Sources panel interactions", () => {
     expect(impostor.isConnected).toBe(true);
   });
 
+  test("does not open when the panel is disabled", () => {
+    expect(toggleSourcePanel(vi.fn(), { enabled: false })).toBe(false);
+    expect(getSourcePanelHostForTesting()).toBeNull();
+  });
+
+  test("ignores a second close while the exit transition is active", () => {
+    vi.useFakeTimers();
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    const close =
+      getSourcePanelHostForTesting()!.shadowRoot!.querySelector<HTMLButtonElement>(".close")!;
+
+    close.click();
+    close.click();
+
+    expect(getSourcePanelHostForTesting()?.classList).toContain("closing");
+  });
+
+  test("normalizes generated and invalid locales for panel formatting", () => {
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false, locale: "fr_AI" });
+    expect(getSourcePanelHostForTesting()).not.toBeNull();
+    setSourcePanelOpen(false, vi.fn(), { includeBackgrounds: false, live: false });
+    getSourcePanelHostForTesting()?.remove();
+
+    toggleSourcePanel(vi.fn(), {
+      includeBackgrounds: false,
+      live: false,
+      locale: "invalid_locale_value",
+    });
+    expect(getSourcePanelHostForTesting()).not.toBeNull();
+  });
+
+  test("resizes every dock orientation and drags a floating panel", () => {
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    const host = getSourcePanelHostForTesting()!;
+    vi.spyOn(host, "getBoundingClientRect").mockReturnValue({
+      left: 80,
+      top: 60,
+      right: 480,
+      bottom: 360,
+      width: 400,
+      height: 300,
+      x: 80,
+      y: 60,
+      toJSON: () => ({}),
+    });
+    const shadow = host.shadowRoot!;
+    const resize = shadow.querySelector<HTMLElement>(".resize")!;
+    resize.setPointerCapture = vi.fn();
+    const pointer = (type: string, x: number, y: number, target?: Element) => {
+      const event = new Event(type, { bubbles: true });
+      Object.defineProperties(event, {
+        pointerId: { value: 1 },
+        clientX: { value: x },
+        clientY: { value: y },
+        button: { value: 0 },
+      });
+      (target || resize).dispatchEvent(event);
+    };
+
+    pointer("pointerdown", 400, 300);
+    pointer("pointermove", 300, 300);
+    pointer("pointerup", 300, 300);
+    expect(host.style.width).not.toBe("");
+
+    shadow.querySelector<HTMLButtonElement>(".dock")!.click();
+    pointer("pointerdown", 400, 300);
+    pointer("pointermove", 400, 200);
+    pointer("pointerup", 400, 200);
+    expect(host.style.height).not.toBe("");
+
+    shadow.querySelector<HTMLButtonElement>(".dock")!.click();
+    pointer("pointerdown", 300, 300);
+    pointer("pointermove", 380, 300);
+    pointer("pointerup", 380, 300);
+    expect(host.style.width).not.toBe("");
+
+    shadow.querySelector<HTMLButtonElement>(".dock")!.click();
+    pointer("pointerdown", 400, 200);
+    pointer("pointermove", 400, 280);
+    pointer("pointerup", 400, 280);
+    expect(host.style.height).not.toBe("");
+
+    shadow.querySelector<HTMLButtonElement>(".popout")!.click();
+    const header = shadow.querySelector<HTMLElement>("header")!;
+    header.setPointerCapture = vi.fn();
+    pointer("pointerdown", 100, 100, header);
+    pointer("pointermove", 180, 160, header);
+    pointer("pointerup", 180, 160, header);
+    expect(host.style.left).not.toBe("");
+    expect(host.style.top).not.toBe("");
+
+    shadow.querySelector<HTMLButtonElement>(".popout")!.click();
+    expect(host.classList).not.toContain("floating");
+  });
+
+  test("ignores panel dragging from controls and while docked", () => {
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
+    const header = shadow.querySelector<HTMLElement>("header")!;
+    header.dispatchEvent(new MouseEvent("pointerdown", { bubbles: true, button: 0 }));
+    shadow.querySelector<HTMLButtonElement>(".popout")!.click();
+    shadow
+      .querySelector<HTMLButtonElement>(".close")!
+      .dispatchEvent(new MouseEvent("pointerdown", { bubbles: true, button: 0 }));
+    expect(getSourcePanelHostForTesting()).not.toBeNull();
+  });
+
   test("copies only URLs in the active text and type filters", async () => {
     vi.useFakeTimers();
     document.body.innerHTML = `
@@ -85,6 +192,77 @@ describe("Page Sources panel interactions", () => {
     await Promise.resolve();
 
     expect(writeText).toHaveBeenCalledWith("http://localhost/cat.jpg");
+  });
+
+  test("restores copy controls after success and reports clipboard failure", async () => {
+    vi.useFakeTimers();
+    document.body.innerHTML = `<img src="cat.jpg">`;
+    const writeText = vi.fn().mockResolvedValueOnce(undefined).mockRejectedValueOnce(new Error());
+    Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText } });
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    const copy =
+      getSourcePanelHostForTesting()!.shadowRoot!.querySelector<HTMLButtonElement>(".copy-urls")!;
+
+    copy.click();
+    await vi.advanceTimersByTimeAsync(0);
+    vi.advanceTimersByTime(1200);
+    expect(copy.title).toContain("Copy");
+    copy.click();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(copy.title).toContain("failed");
+  });
+
+  test("handles row keyboard, alternate-save, locate, sort, and escape boundaries", () => {
+    vi.useFakeTimers();
+    document.body.innerHTML = `<img id="cat" src="cat.jpg"><a href="paper.pdf">paper</a>`;
+    const sendDownload = vi.fn();
+    const onSaveIntent = vi.fn();
+    toggleSourcePanel(sendDownload, {
+      includeBackgrounds: false,
+      live: false,
+      onSaveIntent,
+    });
+    const host = getSourcePanelHostForTesting()!;
+    const shadow = host.shadowRoot!;
+    const imageRow = shadow.querySelector<HTMLElement>('.row[data-kind="image"]')!;
+    const source = document.querySelector<HTMLElement>("#cat")!;
+    source.scrollIntoView = vi.fn();
+    imageRow.querySelector<HTMLButtonElement>(".actions button")!.click();
+    vi.advanceTimersByTime(1600);
+    expect(source.style.outline).toBe("");
+
+    imageRow.dispatchEvent(
+      new MouseEvent("click", { bubbles: true, cancelable: true, button: 0, altKey: true }),
+    );
+    expect(sendDownload).toHaveBeenCalledOnce();
+    imageRow.dispatchEvent(
+      new MouseEvent("pointerdown", { bubbles: true, button: 1, altKey: true }),
+    );
+    imageRow.dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, key: "x", altKey: true }));
+    expect(onSaveIntent).not.toHaveBeenCalled();
+
+    const save = imageRow.querySelector<HTMLButtonElement>(".actions button:last-child")!;
+    save.dispatchEvent(new MouseEvent("pointerdown", { bubbles: true, button: 1 }));
+    save.dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, key: "x" }));
+    save.dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, key: " " }));
+    expect(onSaveIntent).toHaveBeenCalledOnce();
+
+    const link = imageRow.querySelector<HTMLAnchorElement>(".source-link")!;
+    const locate = imageRow.querySelector<HTMLButtonElement>(".actions button")!;
+    link.dispatchEvent(new FocusEvent("focusin", { bubbles: true }));
+    link.dispatchEvent(new FocusEvent("focusout", { bubbles: true, relatedTarget: locate }));
+    expect(shadow.querySelector(".media-tooltip")).not.toBeNull();
+
+    const sort = shadow.querySelector<HTMLSelectElement>("select")!;
+    sort.value = "invalid";
+    sort.dispatchEvent(new Event("change"));
+    shadow.querySelector<HTMLElement>(".panel")!.dispatchEvent(
+      new KeyboardEvent("keydown", {
+        key: "Escape",
+        bubbles: true,
+      }),
+    );
+    expect(host.classList).toContain("closing");
   });
 
   test("keeps the panel mounted for its short exit transition before removing it", () => {
@@ -162,6 +340,24 @@ describe("Page Sources panel interactions", () => {
     expect(sort.value).toBe("name-asc");
     expect(host.dataset.dock).toBe("bottom");
     expect(shadow.querySelector(".source-link img")).toBeNull();
+  });
+
+  test("applies replacement copy to every static panel control", () => {
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    const copy = createSourcePanelCopy((key) => `New ${key}`);
+
+    expect(
+      replaceSourcePanel(vi.fn(), { includeBackgrounds: false, live: false, copy, locale: "de" }),
+    ).toBe(true);
+
+    const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
+    expect(shadow.querySelector("h2")?.textContent).toBe(copy.title);
+    expect(shadow.querySelector<HTMLInputElement>('input[type="search"]')?.placeholder).toBe(
+      copy.filterSources,
+    );
+    expect(shadow.querySelector(".copy-urls")?.getAttribute("aria-label")).toBe(
+      copy.copyFilteredUrlsLabel,
+    );
   });
 
   test("applies and live-updates the Page Sources theme override", () => {
@@ -325,7 +521,39 @@ describe("Page Sources panel interactions", () => {
       { unobserve } as unknown as IntersectionObserver,
     );
 
+    intersectionCallback!(
+      [
+        { isIntersecting: false, target: video },
+        { isIntersecting: true, target: document.createElement("div") },
+      ] as unknown as IntersectionObserverEntry[],
+      { unobserve } as unknown as IntersectionObserver,
+    );
+
     expect(video.src).toBe("http://localhost/movie.mp4");
+  });
+
+  test("re-observes an unchanged cached preview after a list render", () => {
+    const observe = vi.fn();
+    class IntersectionObserverStub {
+      observe = observe;
+      disconnect = vi.fn();
+      unobserve = vi.fn();
+      takeRecords = vi.fn(() => []);
+      root = null;
+      rootMargin = "";
+      thresholds = [];
+    }
+    vi.stubGlobal("IntersectionObserver", IntersectionObserverStub);
+    document.body.innerHTML = `<img src="cat.jpg">`;
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    const sort =
+      getSourcePanelHostForTesting()!.shadowRoot!.querySelector<HTMLSelectElement>("select")!;
+    observe.mockClear();
+
+    sort.value = "name-asc";
+    sort.dispatchEvent(new Event("change"));
+
+    expect(observe).toHaveBeenCalled();
   });
 
   test("does not preload unselected responsive-image candidates", () => {
@@ -418,6 +646,60 @@ describe("Page Sources panel interactions", () => {
     ).not.toContain("http://localhost/shared.jpg");
   });
 
+  test("coalesces nested, disconnected, and text-only live mutations", async () => {
+    vi.useFakeTimers();
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: true });
+    const parent = document.createElement("div");
+    const child = document.createElement("img");
+    child.src = "nested.jpg";
+    parent.append(child);
+    document.body.append(parent);
+    child.setAttribute("src", "nested-updated.jpg");
+
+    const movedChild = document.createElement("img");
+    movedChild.src = "moved.jpg";
+    document.body.append(movedChild);
+    const wrapper = document.createElement("section");
+    wrapper.append(movedChild);
+    document.body.append(wrapper);
+
+    const disconnected = document.createElement("img");
+    disconnected.src = "gone.jpg";
+    document.body.append(disconnected);
+    disconnected.remove();
+    const text = document.createTextNode("temporary");
+    document.body.append(text);
+    text.remove();
+
+    await Promise.resolve();
+    vi.advanceTimersByTime(200);
+
+    const urls = [
+      ...getSourcePanelHostForTesting()!.shadowRoot!.querySelectorAll<HTMLAnchorElement>(
+        ".source-link",
+      ),
+    ].map(({ href }) => href);
+    expect(urls).toContain("http://localhost/nested-updated.jpg");
+    expect(urls).toContain("http://localhost/moved.jpg");
+    expect(urls).not.toContain("http://localhost/gone.jpg");
+  });
+
+  test("removes background candidates under a deleted ancestor", async () => {
+    vi.useFakeTimers();
+    document.body.innerHTML = `<section id="group"><div style="background-image:url(poster.jpg)"></div></section>`;
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: true, live: true });
+    vi.advanceTimersByTime(0);
+    expect(
+      getSourcePanelHostForTesting()!.shadowRoot!.querySelector(".source-link"),
+    ).not.toBeNull();
+
+    document.querySelector("#group")!.remove();
+    await Promise.resolve();
+    vi.advanceTimersByTime(200);
+
+    expect(getSourcePanelHostForTesting()!.shadowRoot!.querySelector(".source-link")).toBeNull();
+  });
+
   test("incrementally reconciles responsive picture source-list changes", async () => {
     vi.useFakeTimers();
     document.body.innerHTML = `
@@ -500,6 +782,84 @@ describe("Page Sources panel interactions", () => {
     ).toBe("http://localhost/poster.jpg");
   });
 
+  test("cancels a multi-chunk background scan when the panel closes", () => {
+    vi.useFakeTimers();
+    const idleCallbacks: IdleRequestCallback[] = [];
+    vi.stubGlobal("requestIdleCallback", (callback: IdleRequestCallback) => {
+      idleCallbacks.push(callback);
+      return idleCallbacks.length;
+    });
+    const cancelIdleCallback = vi.fn();
+    vi.stubGlobal("cancelIdleCallback", cancelIdleCallback);
+    document.body.innerHTML = Array.from(
+      { length: 51 },
+      (_, index) => `<div style="background-image:url(${index}.jpg)"></div>`,
+    ).join("");
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: true, live: false });
+
+    idleCallbacks.shift()!({ didTimeout: false, timeRemaining: () => 0 } as IdleDeadline);
+    setSourcePanelOpen(false, vi.fn(), { includeBackgrounds: true, live: false });
+    vi.advanceTimersByTime(90);
+
+    expect(cancelIdleCallback).toHaveBeenCalled();
+  });
+
+  test("cancels a timer-backed background scan when the panel closes", () => {
+    vi.useFakeTimers();
+    document.body.innerHTML = `<div style="background-image:url(poster.jpg)"></div>`;
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: true, live: false });
+    setSourcePanelOpen(false, vi.fn(), { includeBackgrounds: true, live: false });
+    vi.advanceTimersByTime(90);
+    expect(getSourcePanelHostForTesting()).toBeNull();
+  });
+
+  test("cancels a timer-backed scan when background discovery is disabled", () => {
+    vi.useFakeTimers();
+    document.body.innerHTML = `<div style="background-image:url(poster.jpg)"></div>`;
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: true, live: false });
+
+    replaceSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    vi.advanceTimersByTime(0);
+
+    expect(getSourcePanelHostForTesting()!.shadowRoot!.querySelector(".source-link")).toBeNull();
+  });
+
+  test("drops a stale background chunk after discovery is reconfigured", () => {
+    const idleCallbacks: IdleRequestCallback[] = [];
+    vi.stubGlobal("requestIdleCallback", (callback: IdleRequestCallback) => {
+      idleCallbacks.push(callback);
+      return idleCallbacks.length;
+    });
+    vi.stubGlobal("cancelIdleCallback", vi.fn());
+    document.body.innerHTML = `<div style="background-image:url(poster.jpg)"></div>`;
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: true, live: false });
+    const stale = idleCallbacks[0]!;
+    document.querySelector("div")!.remove();
+    replaceSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+
+    stale({ didTimeout: false, timeRemaining: () => 50 } as IdleDeadline);
+
+    expect(getSourcePanelHostForTesting()!.shadowRoot!.querySelector(".source-link")).toBeNull();
+  });
+
+  test("restarts an active background scan after a live page mutation", async () => {
+    vi.useFakeTimers();
+    const idleCallbacks: IdleRequestCallback[] = [];
+    vi.stubGlobal("requestIdleCallback", (callback: IdleRequestCallback) => {
+      idleCallbacks.push(callback);
+      return idleCallbacks.length;
+    });
+    vi.stubGlobal("cancelIdleCallback", vi.fn());
+    document.body.innerHTML = `<div id="poster"></div>`;
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: true, live: true });
+
+    document.querySelector<HTMLElement>("#poster")!.style.backgroundImage = "url(poster.jpg)";
+    await Promise.resolve();
+    vi.advanceTimersByTime(200);
+
+    expect(idleCallbacks.length).toBeGreaterThan(1);
+  });
+
   test("re-resolves relative sources after the document base changes", async () => {
     vi.useFakeTimers();
     document.head.innerHTML = `<base href="http://localhost/one/">`;
@@ -561,6 +921,36 @@ describe("Page Sources panel interactions", () => {
     ).toBe("https://cdn.test/new.m3u8");
   });
 
+  test("falls back across unsupported PerformanceObserver signatures", () => {
+    const observe = vi
+      .fn()
+      .mockImplementationOnce(() => {
+        throw new Error("buffered type unsupported");
+      })
+      .mockImplementationOnce(() => {
+        throw new Error("resource entries unsupported");
+      });
+    class PerformanceObserverStub {
+      observe = observe;
+      disconnect = vi.fn();
+      takeRecords = vi.fn(() => []);
+    }
+    vi.stubGlobal("PerformanceObserver", PerformanceObserverStub);
+
+    expect(() =>
+      toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: true }),
+    ).not.toThrow();
+    expect(observe).toHaveBeenCalledTimes(2);
+  });
+
+  test("runs without PerformanceObserver support", () => {
+    vi.stubGlobal("PerformanceObserver", undefined);
+
+    expect(() =>
+      toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: true }),
+    ).not.toThrow();
+  });
+
   test("preserves an active row and tooltip when late resource metadata arrives", () => {
     let performanceCallback: PerformanceObserverCallback | undefined;
     class PerformanceObserverStub {
@@ -601,6 +991,131 @@ describe("Page Sources panel interactions", () => {
 
     expect(shadow.querySelector(".row")).toBe(row);
     expect(shadow.querySelector(".media-tooltip")).toBe(tooltip);
+  });
+
+  test("updates background-source bytes and ignores unchanged resource metadata", () => {
+    vi.useFakeTimers();
+    let performanceCallback: PerformanceObserverCallback | undefined;
+    class PerformanceObserverStub {
+      constructor(callback: PerformanceObserverCallback) {
+        performanceCallback = callback;
+      }
+      observe = vi.fn();
+      disconnect = vi.fn();
+      takeRecords = vi.fn(() => []);
+    }
+    vi.stubGlobal("PerformanceObserver", PerformanceObserverStub);
+    document.body.innerHTML = `<div style="background-image:url(https://cdn.test/poster.jpg)"></div>`;
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: true, live: true, resourceHints: false });
+    vi.advanceTimersByTime(0);
+
+    performanceCallback!(
+      {
+        getEntries: () => [
+          { name: "https://cdn.test/poster.jpg", encodedBodySize: 0, transferSize: 2048 },
+        ],
+      } as unknown as PerformanceObserverEntryList,
+      {} as PerformanceObserver,
+    );
+    performanceCallback!(
+      {
+        getEntries: () => [
+          { name: "https://cdn.test/poster.jpg", encodedBodySize: 0, transferSize: 2048 },
+        ],
+      } as unknown as PerformanceObserverEntryList,
+      {} as PerformanceObserver,
+    );
+
+    expect(
+      getSourcePanelHostForTesting()!.shadowRoot!.querySelector(".source-size")?.textContent,
+    ).toBe("2 KB");
+  });
+
+  test("ignores unchanged foreground resource metadata", () => {
+    let performanceCallback: PerformanceObserverCallback | undefined;
+    vi.spyOn(performance, "getEntriesByType").mockReturnValue([
+      { name: "http://localhost/cat.jpg", encodedBodySize: 2048 },
+    ] as unknown as PerformanceEntry[]);
+    class PerformanceObserverStub {
+      constructor(callback: PerformanceObserverCallback) {
+        performanceCallback = callback;
+      }
+      observe = vi.fn();
+      disconnect = vi.fn();
+      takeRecords = vi.fn(() => []);
+    }
+    vi.stubGlobal("PerformanceObserver", PerformanceObserverStub);
+    document.body.innerHTML = `<img src="cat.jpg">`;
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: true, resourceHints: false });
+
+    performanceCallback!(
+      {
+        getEntries: () => [{ name: "http://localhost/cat.jpg", encodedBodySize: 2048 }],
+      } as unknown as PerformanceObserverEntryList,
+      {} as PerformanceObserver,
+    );
+
+    expect(
+      getSourcePanelHostForTesting()!.shadowRoot!.querySelector(".source-size")?.textContent,
+    ).toBe("2 KB");
+  });
+
+  test("handles resource entries unrelated to current sources", () => {
+    vi.useFakeTimers();
+    let performanceCallback: PerformanceObserverCallback | undefined;
+    class PerformanceObserverStub {
+      constructor(callback: PerformanceObserverCallback) {
+        performanceCallback = callback;
+      }
+      observe = vi.fn();
+      disconnect = vi.fn();
+      takeRecords = vi.fn(() => []);
+    }
+    vi.stubGlobal("PerformanceObserver", PerformanceObserverStub);
+    document.body.innerHTML = `<img src="cat.jpg"><div style="background-image:url(poster.jpg)"></div>`;
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: true, live: true, resourceHints: false });
+    vi.advanceTimersByTime(0);
+
+    performanceCallback!(
+      {
+        getEntries: () => [{ name: "https://cdn.test/unrelated.js" }],
+      } as unknown as PerformanceObserverEntryList,
+      {} as PerformanceObserver,
+    );
+
+    expect(
+      getSourcePanelHostForTesting()!.shadowRoot!.querySelector(".source-link"),
+    ).not.toBeNull();
+  });
+
+  test("prefers encoded background size over transfer size", () => {
+    vi.useFakeTimers();
+    let performanceCallback: PerformanceObserverCallback | undefined;
+    class PerformanceObserverStub {
+      constructor(callback: PerformanceObserverCallback) {
+        performanceCallback = callback;
+      }
+      observe = vi.fn();
+      disconnect = vi.fn();
+      takeRecords = vi.fn(() => []);
+    }
+    vi.stubGlobal("PerformanceObserver", PerformanceObserverStub);
+    document.body.innerHTML = `<div style="background-image:url(https://cdn.test/poster.jpg)"></div>`;
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: true, live: true, resourceHints: false });
+    vi.advanceTimersByTime(0);
+
+    performanceCallback!(
+      {
+        getEntries: () => [
+          { name: "https://cdn.test/poster.jpg", encodedBodySize: 4096, transferSize: 2048 },
+        ],
+      } as unknown as PerformanceObserverEntryList,
+      {} as PerformanceObserver,
+    );
+
+    expect(
+      getSourcePanelHostForTesting()!.shadowRoot!.querySelector(".source-size")?.textContent,
+    ).toBe("4 KB");
   });
 
   test("gives every header action an accessible name", () => {
@@ -714,6 +1229,138 @@ describe("Page Sources panel interactions", () => {
     expect(rowLink.querySelector("[aria-label]")).not.toBeNull();
   });
 
+  test("updates image and video metadata after their previews load", () => {
+    document.body.innerHTML = `<img src="photo.jpg"><video src="movie.mp4"></video>`;
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
+    const image = shadow.querySelector<HTMLImageElement>('.row[data-kind="image"] img')!;
+    Object.defineProperties(image, {
+      naturalWidth: { value: 640 },
+      naturalHeight: { value: 480 },
+    });
+    image.dispatchEvent(new Event("load"));
+    const video = shadow.querySelector<HTMLVideoElement>('.row[data-kind="video"] video')!;
+    Object.defineProperties(video, {
+      duration: { value: 12.4 },
+      videoWidth: { value: 1920 },
+      videoHeight: { value: 1080 },
+    });
+    video.dispatchEvent(new Event("loadedmetadata"));
+
+    expect(shadow.querySelector('.row[data-kind="image"] .meta')?.textContent).toContain("640×480");
+    expect(shadow.querySelector('.row[data-kind="video"] .meta')?.textContent).toContain("12s");
+  });
+
+  test("formats every source-size weight and optional media detail", () => {
+    vi.spyOn(performance, "getEntriesByType").mockReturnValue([
+      { name: "http://localhost/small.jpg", encodedBodySize: 512 },
+      { name: "http://localhost/medium.jpg", encodedBodySize: 2 * 1024 * 1024 },
+      { name: "http://localhost/large.jpg", encodedBodySize: 12 * 1024 * 1024 },
+    ] as unknown as PerformanceEntry[]);
+    document.body.innerHTML = `<img src="small.jpg"><img src="medium.jpg"><img src="large.jpg"><video src="unknown.mp4"></video>`;
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
+    expect(
+      [...shadow.querySelectorAll<HTMLElement>(".source-size")].map(
+        ({ dataset }) => dataset.sizeWeight,
+      ),
+    ).toEqual(expect.arrayContaining(["regular", "medium", "bold"]));
+    const video = shadow.querySelector<HTMLVideoElement>('.row[data-kind="video"] video')!;
+    Object.defineProperties(video, {
+      duration: { value: Number.POSITIVE_INFINITY },
+      videoWidth: { value: 0 },
+    });
+    video.dispatchEvent(new Event("loadedmetadata"));
+    expect(shadow.querySelector('.row[data-kind="video"] .meta')?.textContent).not.toContain("×");
+  });
+
+  test("renders audio and host-only link fallbacks", () => {
+    document.body.innerHTML = `<audio src="sound.mp3"></audio><a href="https://example.test/">host</a>`;
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
+
+    expect(shadow.querySelector('.row[data-kind="audio"] .audio')?.textContent).toBe("♪");
+    expect(
+      [...shadow.querySelectorAll<HTMLElement>(".name")].map(({ textContent }) => textContent),
+    ).toContain("example.test");
+  });
+
+  test("does not highlight non-HTML source elements", () => {
+    document.body.innerHTML = `<svg><a href="https://example.test/vector.svg">vector</a></svg>`;
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    const row = getSourcePanelHostForTesting()!.shadowRoot!.querySelector<HTMLElement>(".row")!;
+
+    row.querySelector<HTMLButtonElement>(".actions button")!.click();
+    row.dispatchEvent(new MouseEvent("mouseenter"));
+    setSourcePanelOpen(false, vi.fn(), { includeBackgrounds: false, live: false });
+
+    expect(document.querySelector("svg a")?.getAttribute("style")).toBeNull();
+  });
+
+  test("positions and retires rich tooltips with ResizeObserver", () => {
+    const callbacks: ResizeObserverCallback[] = [];
+    class ResizeObserverStub {
+      constructor(callback: ResizeObserverCallback) {
+        callbacks.push(callback);
+      }
+      observe = vi.fn();
+      disconnect = vi.fn();
+      unobserve = vi.fn();
+    }
+    vi.stubGlobal("ResizeObserver", ResizeObserverStub);
+    const play = vi.spyOn(HTMLMediaElement.prototype, "play").mockRejectedValue(new Error());
+    vi.spyOn(HTMLMediaElement.prototype, "pause").mockImplementation(() => {});
+    document.body.innerHTML = `<video src="movie.mp4"></video><a href="paper.pdf">paper</a>`;
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    const host = getSourcePanelHostForTesting()!;
+    const shadow = host.shadowRoot!;
+    shadow.querySelector<HTMLButtonElement>(".popout")!.click();
+    const videoRow = shadow.querySelector<HTMLElement>('.row[data-kind="video"]')!;
+    videoRow.dispatchEvent(new MouseEvent("mouseenter"));
+    const tooltip = shadow.querySelector<HTMLElement>(".media-tooltip")!;
+    callbacks[0]!([], {} as ResizeObserver);
+    tooltip.querySelector("video")?.dispatchEvent(new Event("loadedmetadata"));
+    videoRow.dispatchEvent(new MouseEvent("mouseleave"));
+    callbacks[0]!([], {} as ResizeObserver);
+
+    const documentRow = shadow.querySelector<HTMLElement>('.row[data-kind="document"]')!;
+    documentRow.dispatchEvent(new MouseEvent("mouseenter"));
+    expect(shadow.querySelectorAll(".media-tooltip")).toHaveLength(0);
+    expect(play).toHaveBeenCalled();
+  });
+
+  test("removes an injected empty marker when sources are rendered", () => {
+    document.body.innerHTML = `<img src="cat.jpg">`;
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
+    const marker = document.createElement("div");
+    marker.className = "empty";
+    shadow.querySelector(".list")!.prepend(marker);
+    const foreign = document.createElement("span");
+    shadow.querySelector(".list")!.append(foreign);
+
+    shadow.querySelector<HTMLButtonElement>(".facet")!.click();
+
+    expect(marker.isConnected).toBe(false);
+    expect(foreign.isConnected).toBe(false);
+  });
+
+  test("closes when replacement options disable the panel", () => {
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+
+    expect(replaceSourcePanel(vi.fn(), { enabled: false })).toBe(false);
+    expect(getSourcePanelHostForTesting()?.classList).toContain("closing");
+  });
+
+  test("returns stable state for replace and set-open no-ops", () => {
+    expect(replaceSourcePanel(vi.fn())).toBe(false);
+    expect(setSourcePanelOpen(false, vi.fn())).toBe(false);
+    expect(toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false })).toBe(true);
+    expect(setSourcePanelOpen(true, vi.fn())).toBe(true);
+    expect(setSourcePanelOpen(false, vi.fn())).toBe(false);
+    expect(setSourcePanelOpen(false, vi.fn())).toBe(false);
+  });
+
   test("shows and removes a rich tooltip without competing native titles", () => {
     document.body.innerHTML = `<img src="large.jpg">`;
     toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
@@ -800,5 +1447,25 @@ describe("Page Sources panel interactions", () => {
     await vi.waitFor(() =>
       expect(writeText).toHaveBeenCalledWith('yt-dlp "https://cdn.test/movie.mp4"'),
     );
+  });
+
+  test("restores the yt-dlp action after success and reports copy failure", async () => {
+    vi.useFakeTimers();
+    const writeText = vi.fn().mockResolvedValueOnce(undefined).mockRejectedValueOnce(new Error());
+    Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText } });
+    document.body.innerHTML = `<video src="https://cdn.test/movie.mp4"></video>`;
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    const action =
+      getSourcePanelHostForTesting()!.shadowRoot!.querySelector<HTMLButtonElement>(
+        ".actions button[title]",
+      )!;
+
+    action.click();
+    await vi.advanceTimersByTimeAsync(0);
+    vi.advanceTimersByTime(1200);
+    expect(action.textContent).toContain("yt-dlp");
+    action.click();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(action.textContent).toContain("failed");
   });
 });
