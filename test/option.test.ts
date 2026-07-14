@@ -406,13 +406,14 @@ describe("OptionsManagement", () => {
           info: expect.objectContaining({
             filename: "photo.png",
             filenamePatterns: [ruleA, ruleB],
+            now: expect.any(Date),
           }),
         }),
       );
       expect(mocks.Path).toHaveBeenCalledWith("routed/dir");
       expect(mocks.applyVariables).toHaveBeenCalledWith(
         expect.objectContaining({ routingMatches: "routed/dir" }),
-        expect.objectContaining({ filename: "photo.png" }),
+        expect.objectContaining({ filename: "photo.png", now: expect.any(Date) }),
       );
 
       expect(mocks.router.matchRule).toHaveBeenNthCalledWith(
@@ -445,14 +446,20 @@ describe("OptionsManagement", () => {
       });
       mocks.applyVariables.mockImplementation(() => ({ finalize: () => "x" }));
 
+      const now = new Date("2026-07-14T00:00:00.000Z");
       const state = {
-        info: { filename: "sanitized_.png", initialFilename: "café.png", url: "https://x/f.png" },
+        info: {
+          filename: "sanitized_.png",
+          initialFilename: "café.png",
+          url: "https://x/f.png",
+          now,
+        },
       };
 
       await previewRoutes(state);
 
       expect(mocks.Download.getRoutingMatches).toHaveBeenCalledWith(
-        expect.objectContaining({ info: expect.objectContaining({ filename: "café.png" }) }),
+        expect.objectContaining({ info: expect.objectContaining({ filename: "café.png", now }) }),
       );
     });
 

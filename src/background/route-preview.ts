@@ -17,6 +17,7 @@ export const previewRoutes = async (state?: RoutePreviewState | null): Promise<R
   const info = {
     ...state.info,
     filenamePatterns: options.filenamePatterns,
+    now: state.info.now instanceof Date ? state.info.now : new Date(),
     resolvedFilename: state.info.filename,
     // Preserve the original unsanitized name for established filename: rules;
     // actualfileext: reads resolvedFilename when the browser supplied one.

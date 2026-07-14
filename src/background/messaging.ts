@@ -135,7 +135,10 @@ export const Messaging = {
     if (lastState) {
       const keys = Object.keys(transformers);
       // Preview only: :counter: peeks instead of consuming a value
-      const previewInfo = Object.assign({}, lastState.info, { preview: true });
+      const previewInfo = Object.assign({}, lastState.info, {
+        now: lastState.info.now instanceof Date ? lastState.info.now : new Date(),
+        preview: true,
+      });
       const values = await Promise.all(
         keys.map((val) =>
           applyVariables(new Path(val), previewInfo).then((path: { finalize: () => string }) =>

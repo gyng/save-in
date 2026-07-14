@@ -247,7 +247,6 @@ const evalInTarget = async (port, urlSubstr, expression) => {
       let cdp;
       try {
         cdp = await Cdp.connect(target.webSocketDebuggerUrl);
-        await cdp.send("Runtime.enable", {}, 3000);
         const result = await cdp.send("Runtime.evaluate", {
           expression,
           awaitPromise: true,
@@ -336,6 +335,22 @@ const dispatchInput = async (port, urlSubstr, events) => {
 const openTab = async (port, url) => {
   const browser = await connectBrowser(port);
   try {
+    return await browser.send("Target.createTarget", { url });
+  } finally {
+    browser.close();
+  }
+};
+
+/** @param {number} port @param {string} urlSubstr @param {string} url */
+const replaceTab = async (port, urlSubstr, url) => {
+  const targets = (await listTargets(port)).filter(
+    (target) => target.type === "page" && target.url.includes(urlSubstr),
+  );
+  const browser = await connectBrowser(port);
+  try {
+    for (const target of targets) {
+      await browser.send("Target.closeTarget", { targetId: target.id });
+    }
     return await browser.send("Target.createTarget", { url });
   } finally {
     browser.close();
@@ -457,7 +472,6 @@ const reloadTargets = async (port, urlSubstr) => {
   for (const t of targets) {
     const c = await Cdp.connect(t.webSocketDebuggerUrl);
     try {
-      await c.send("Page.enable");
       await c.send("Page.reload", { ignoreCache: true });
       count += 1;
     } finally {
@@ -490,6 +504,7 @@ module.exports = {
   evalInServiceWorker,
   dispatchInput,
   openTab,
+  replaceTab,
   setViewport,
   captureScreenshot,
   loadUnpacked,

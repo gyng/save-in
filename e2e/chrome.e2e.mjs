@@ -759,7 +759,18 @@ test("a template added in Options persists and routes a matching download", asyn
 });
 
 test("visual routing edits persist and connect to the debugger", async () => {
-  await runRoutingVisualEditorScenario({ evaluate: evalSW, evaluateOptions: evalOptions });
+  await runRoutingVisualEditorScenario({
+    evaluate: evalSW,
+    evaluateOptions: evalOptions,
+    // Repeated CDP attachments can leave a reloaded Chrome extension page
+    // unevaluable even after Page.reload acknowledges the navigation.
+    reloadOptions: () =>
+      cdp.replaceTab(
+        PORT,
+        "options.html",
+        `chrome-extension://${extensionId}/src/options/options.html`,
+      ),
+  });
 });
 
 test(":counter: advances once per download and persists in storage", async () => {

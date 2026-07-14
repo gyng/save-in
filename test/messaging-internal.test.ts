@@ -277,7 +277,7 @@ describe("onMessage CHECK_ROUTES", () => {
     // interpolation runs in preview mode (a copy of info with preview:true)
     expect(Variable.applyVariables).toHaveBeenCalledWith(
       expect.any(Path),
-      expect.objectContaining({ filename: "f.png", preview: true }),
+      expect.objectContaining({ filename: "f.png", now: expect.any(Date), preview: true }),
     );
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.CHECK_ROUTES_RESPONSE,

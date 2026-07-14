@@ -23,9 +23,14 @@ const EDITED_RULE_SOURCE = VISUAL_RULE_SOURCE.replace("\\.jpg$", EDITED_MATCHER)
  * @param {{
  *   evaluate: (expression: string) => Promise<any>,
  *   evaluateOptions: (expression: string) => Promise<any>,
+ *   reloadOptions?: () => Promise<any>,
  * }} adapters
  */
-export const runRoutingVisualEditorScenario = async ({ evaluate, evaluateOptions }) => {
+export const runRoutingVisualEditorScenario = async ({
+  evaluate,
+  evaluateOptions,
+  reloadOptions = () => evaluateOptions(`location.reload()`),
+}) => {
   const previousConfig = JSON.parse(
     await evaluate(
       `browser.storage.local.get("filenamePatterns").then((value) => JSON.stringify(value))`,
@@ -35,7 +40,7 @@ export const runRoutingVisualEditorScenario = async ({ evaluate, evaluateOptions
 
   try {
     await evaluate(`api.setOptions({ filenamePatterns: ${JSON.stringify(VISUAL_RULE_SOURCE)} })`);
-    await evaluateOptions(`location.reload()`);
+    await reloadOptions();
     await poll(
       async () =>
         (await evaluateOptions(`(() => {
@@ -113,7 +118,7 @@ export const runRoutingVisualEditorScenario = async ({ evaluate, evaluateOptions
     );
     expect(persisted).toBe(EDITED_RULE_SOURCE);
 
-    await evaluateOptions(`location.reload()`);
+    await reloadOptions();
     const restored = await poll(
       async () => {
         const state = JSON.parse(
@@ -187,7 +192,8 @@ export const runRoutingVisualEditorScenario = async ({ evaluate, evaluateOptions
       const previous = ${JSON.stringify(previousMode)};
       if (previous === null) localStorage.removeItem("saveInRulesEditorMode");
       else localStorage.setItem("saveInRulesEditorMode", previous);
-      location.reload();
+      return true;
     })()`);
+    await reloadOptions();
   }
 };
