@@ -6,6 +6,7 @@ import {
   options,
   Log,
   SaveHistory,
+  Runtime,
   loadNotification,
   adoptedIds,
   setupGlobals,
@@ -370,6 +371,217 @@ describe("download lifecycle notifications", () => {
     vi.runAllTimers();
     expect(global.browser.notifications.clear).toHaveBeenCalledWith("7");
   });
+
+  test("contains Firefox replacement cleanup and terminal failures", async () => {
+    browserState.current = "FIREFOX";
+    options.routeBrowserDownloadsFirefox = true;
+    options.browserDownloadFilter = "*://example.com/*";
+    const { BrowserDownloadRouting } = await import("../src/downloads/browser-downloads.ts");
+    vi.spyOn(BrowserDownloadRouting, "route").mockResolvedValue("sorted/native.bin");
+    const { SaveHistory: history } = await import("../src/background/history.ts");
+    vi.spyOn(history, "add").mockReturnValue("h-reroute");
+    vi.spyOn(history, "setStatus").mockResolvedValue(undefined);
+    vi.mocked(global.browser.downloads.erase).mockRejectedValueOnce(new Error("erase failed"));
+    vi.mocked(global.browser.downloads.download).mockResolvedValueOnce(99);
+
+    await onCreated({
+      id: 46,
+      filename: "C:\\Downloads\\native.bin",
+      url: "https://example.com/native.bin",
+    });
+    expect(global.browser.downloads.download).toHaveBeenCalledOnce();
+    vi.advanceTimersByTime(10000);
+
+    vi.mocked(global.browser.downloads.cancel).mockRejectedValueOnce(new Error("cancel failed"));
+    await onCreated({
+      id: 47,
+      filename: "C:\\Downloads\\other.bin",
+      url: "https://example.com/other.bin",
+    });
+    expect(history.setStatus).toHaveBeenCalledWith("h-reroute", "FIREFOX_REROUTE_FAILED");
+    expect(Log.add).toHaveBeenCalledWith(
+      "Firefox browser download reroute failed",
+      expect.stringContaining("cancel failed"),
+    );
+  });
+
+  test("tracks an ordinary browser download without a history id", async () => {
+    options.trackBrowserDownloads = true;
+    const { SaveHistory: history } = await import("../src/background/history.ts");
+    vi.spyOn(history, "add").mockReturnValue(null);
+
+    await onCreated({
+      id: 43,
+      filename: "C:\\Downloads\\browser.zip",
+      url: "https://example.com/browser.zip",
+    });
+
+    expect(sessionStore.siDownloads[43]).not.toHaveProperty("historyEntryId");
+  });
+
+  test("records tracked completion size and tolerates a failed size lookup", async () => {
+    const { SaveHistory: history } = await import("../src/background/history.ts");
+    vi.spyOn(history, "setStatus").mockResolvedValue(undefined);
+    Notifier.expectDownload("https://x/sized.png", { historyEntryId: "h-sized" });
+    await onCreated({
+      id: 70,
+      byExtensionId: "save-in",
+      filename: "/dl/sized.png",
+      url: "https://x/sized.png",
+    });
+    await onChanged({ id: 70, state: { current: "complete", previous: "in_progress" } });
+    expect(history.setStatus).toHaveBeenCalledWith("h-sized", "complete", 70, 2048);
+
+    Notifier.expectDownload("https://x/unknown.png", { historyEntryId: "h-unknown" });
+    await onCreated({
+      id: 71,
+      byExtensionId: "save-in",
+      filename: "/dl/unknown.png",
+      url: "https://x/unknown.png",
+    });
+    vi.mocked(global.browser.downloads.search).mockRejectedValueOnce(new Error("search failed"));
+    await onChanged({ id: 71, state: { current: "complete", previous: "in_progress" } });
+    expect(history.setStatus).toHaveBeenCalledWith("h-unknown", "complete", 71);
+
+    Notifier.expectDownload("https://x/fallback.png", { historyEntryId: "h-fallback" });
+    await onCreated({
+      id: 73,
+      byExtensionId: "save-in",
+      filename: "/dl/fallback.png",
+      url: "https://x/fallback.png",
+    });
+    vi.mocked(global.browser.downloads.search).mockResolvedValueOnce([
+      { id: 73, fileSize: 0, totalBytes: 512 } as any,
+    ]);
+    await onChanged({ id: 73, state: { current: "complete", previous: "in_progress" } });
+    expect(history.setStatus).toHaveBeenCalledWith("h-fallback", "complete", 73, 512);
+
+    Notifier.expectDownload("https://x/empty.png", { historyEntryId: "h-empty" });
+    await onCreated({
+      id: 74,
+      byExtensionId: "save-in",
+      filename: "/dl/empty.png",
+      url: "https://x/empty.png",
+    });
+    vi.mocked(global.browser.downloads.search).mockResolvedValueOnce([]);
+    await onChanged({ id: 74, state: { current: "complete", previous: "in_progress" } });
+    expect(history.setStatus).toHaveBeenCalledWith("h-empty", "complete", 74, undefined);
+  });
+
+  test("updates and fails an observed browser-download history row", async () => {
+    options.trackBrowserDownloads = true;
+    const { SaveHistory: history } = await import("../src/background/history.ts");
+    vi.spyOn(history, "add").mockReturnValue("h-observed");
+    vi.spyOn(history, "patch").mockResolvedValue(undefined);
+    vi.spyOn(history, "setStatus").mockResolvedValue(undefined);
+    await onCreated({
+      id: 72,
+      filename: "/dl/original.zip",
+      url: "https://x/observed.zip",
+    });
+
+    await onChanged({ id: 72, filename: { current: "/dl/renamed.zip" } });
+    expect(history.patch).toHaveBeenCalledWith("h-observed", {
+      finalFullPath: "/dl/renamed.zip",
+    });
+    await onChanged({ id: 72, error: { current: "NETWORK_FAILED" } });
+    expect(history.setStatus).toHaveBeenCalledWith("h-observed", "NETWORK_FAILED", 72, undefined);
+    await onChanged({ id: 72, filename: { current: "/dl/ignored.zip" } });
+    expect(history.patch).not.toHaveBeenCalledWith("h-observed", {
+      finalFullPath: "/dl/ignored.zip",
+    });
+  });
+
+  test("waits through rejected startup readiness for both download events", async () => {
+    Runtime.ready = Promise.reject(new Error("startup failed"));
+    await onCreated({ id: 80, byExtensionId: "other", filename: "other" });
+    Runtime.ready = Promise.reject(new Error("startup failed again"));
+    await onChanged({ id: 80, state: { current: "complete" } });
+    Runtime.ready = undefined;
+  });
+
+  test("contains rejected registered event tasks", async () => {
+    vi.spyOn(Notifier, "onDownloadCreated").mockRejectedValueOnce(new Error("created failed"));
+    vi.spyOn(Notifier, "onDownloadChanged").mockRejectedValueOnce(new Error("changed failed"));
+    vi.spyOn(Notifier, "onNotificationClicked").mockImplementationOnce(() =>
+      Promise.reject(new Error("click failed")),
+    );
+    const [created] = vi.mocked(global.browser.downloads.onCreated.addListener).mock.calls[0]!;
+    const [changed] = vi.mocked(global.browser.downloads.onChanged.addListener).mock.calls[0]!;
+    const [clicked] = vi.mocked(global.browser.notifications.onClicked.addListener).mock.calls[0]!;
+
+    created({ id: 90 } as any);
+    changed({ id: 90 });
+    clicked("90");
+    await vi.waitFor(() => expect(Log.add).toHaveBeenCalledTimes(3));
+  });
+
+  test("Firefox skips a replacement when routing returns no filename", async () => {
+    browserState.current = "FIREFOX";
+    options.routeBrowserDownloadsFirefox = true;
+    options.browserDownloadFilter = "*://example.com/*";
+    const { BrowserDownloadRouting } = await import("../src/downloads/browser-downloads.ts");
+    vi.spyOn(BrowserDownloadRouting, "route").mockResolvedValue(null);
+
+    await onCreated({
+      id: 91,
+      filename: "/dl/native.bin",
+      url: "https://example.com/native.bin",
+    });
+
+    expect(global.browser.downloads.cancel).not.toHaveBeenCalled();
+  });
+
+  test("Firefox replacement tolerates history being disabled", async () => {
+    browserState.current = "FIREFOX";
+    options.routeBrowserDownloadsFirefox = true;
+    options.browserDownloadFilter = "*://example.com/*";
+    const { BrowserDownloadRouting } = await import("../src/downloads/browser-downloads.ts");
+    vi.spyOn(BrowserDownloadRouting, "route").mockResolvedValue("sorted/native.bin");
+    const { SaveHistory: history } = await import("../src/background/history.ts");
+    vi.spyOn(history, "add").mockReturnValue(null);
+    vi.mocked(global.browser.downloads.download).mockResolvedValueOnce(99);
+
+    await onCreated({
+      id: 92,
+      filename: "/dl/native.bin",
+      url: "https://example.com/native.bin",
+    });
+
+    expect(global.browser.downloads.download).toHaveBeenCalledOnce();
+  });
+
+  test("records observed downloads with missing and fallback byte sizes", async () => {
+    options.trackBrowserDownloads = true;
+    const { SaveHistory: history } = await import("../src/background/history.ts");
+    vi.spyOn(history, "add").mockReturnValue("h-bytes");
+    vi.spyOn(history, "setStatus").mockResolvedValue(undefined);
+
+    await onCreated({ id: 93, filename: "/dl/a", url: "https://x/a" });
+    vi.mocked(global.browser.downloads.search).mockResolvedValueOnce([
+      { id: 93, fileSize: 0, totalBytes: 512 } as any,
+    ]);
+    await onChanged({ id: 93, state: { current: "complete" } });
+    expect(history.setStatus).toHaveBeenCalledWith("h-bytes", "complete", 93, 512);
+
+    await onCreated({ id: 94, filename: "/dl/b", url: "https://x/b" });
+    vi.mocked(global.browser.downloads.search).mockResolvedValueOnce([]);
+    await onChanged({ id: 94, state: { current: "complete" } });
+    expect(history.setStatus).toHaveBeenCalledWith("h-bytes", "complete", 94, undefined);
+  });
+
+  test("records a generic observed Firefox interruption", async () => {
+    browserState.current = "FIREFOX";
+    options.trackBrowserDownloads = true;
+    const { SaveHistory: history } = await import("../src/background/history.ts");
+    vi.spyOn(history, "add").mockReturnValue("h-firefox");
+    vi.spyOn(history, "setStatus").mockResolvedValue(undefined);
+    await onCreated({ id: 95, filename: "/dl/a", url: "https://x/a" });
+
+    await onChanged({ id: 95, state: { current: "interrupted" } });
+
+    expect(history.setStatus).toHaveBeenCalledWith("h-firefox", "failed", 95, undefined);
+  });
 });
 
 describe("listener registration", () => {
@@ -392,5 +604,16 @@ describe("listener registration", () => {
     const [onCreated] = vi.mocked(global.browser.downloads.onCreated.addListener).mock.calls[0]!;
     await expect(onCreated({ id: 7 } as browser.downloads.DownloadItem)).resolves.toBeUndefined();
     expect(Log.add).toHaveBeenCalledWith("download created event failed", "Error: broken event");
+  });
+
+  test("tolerates hosts without download or notification events", async () => {
+    vi.resetModules();
+    setupGlobals({}, () => []);
+    await loadNotification();
+    const { registerNotifier } = await import("../src/downloads/notification.ts");
+    (global.browser.downloads as any).onCreated = undefined;
+    (global.browser.notifications as any).onClicked = undefined;
+
+    expect(() => registerNotifier()).not.toThrow();
   });
 });

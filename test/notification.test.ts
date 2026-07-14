@@ -186,6 +186,32 @@ describe("createExtensionNotification", () => {
     );
   });
 
+  test("contains create and clear failures while replacing an active clear timer", async () => {
+    vi.useFakeTimers();
+    setOptions({ notifyDuration: 100 });
+    const { configureDownloadPorts } = await import("../src/downloads/ports.ts");
+    configureDownloadPorts({
+      runtime: { debug: false },
+      history: {
+        add: () => null,
+        patch: () => Promise.resolve(),
+        setDownloadId: () => Promise.resolve(),
+        setStatus: () => Promise.resolve(),
+      },
+      log: { add: vi.fn() },
+      retry: () => Promise.resolve(false),
+    });
+    vi.mocked(global.browser.notifications.create).mockRejectedValue(new Error("create failed"));
+    vi.mocked(global.browser.notifications.clear).mockRejectedValue(new Error("clear failed"));
+
+    await notification.reportExternalDownloadRejection("blocked-extension");
+    await notification.reportExternalDownloadRejection("blocked-extension");
+    await vi.advanceTimersByTimeAsync(100);
+
+    expect(global.browser.notifications.create).toHaveBeenCalledTimes(2);
+    expect(global.browser.notifications.clear).toHaveBeenCalledOnce();
+  });
+
   test("opens options when the rejected-download notification is clicked", async () => {
     global.browser.runtime.openOptionsPage = vi.fn(() => Promise.resolve());
 

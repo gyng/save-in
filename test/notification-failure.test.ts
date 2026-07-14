@@ -27,6 +27,20 @@ describe("reportFailure", () => {
     );
   });
 
+  test("uses localized fallbacks when failure details are empty", async () => {
+    vi.useFakeTimers();
+    await loadNotification();
+    Object.assign(options, { notifyOnFailure: true, notifyDuration: 0 });
+
+    Notifier.reportFailure("", undefined);
+    vi.advanceTimersByTime(250);
+
+    expect(global.browser.notifications.create).toHaveBeenCalledWith(
+      "save-in-not-download-failure",
+      expect.objectContaining({ message: "Translated<genericUnknownError>" }),
+    );
+  });
+
   test("stays silent when notifyOnFailure is off", async () => {
     await loadNotification();
     Object.assign(options, { notifyOnFailure: false });
@@ -94,6 +108,26 @@ describe("expectDownload", () => {
       filename: "/dl/ours.png",
     });
     expect(adoptedIds(sessionStore)).toEqual([2]);
+  });
+
+  test("matches an expected redirect by final URL and ignores duplicate cancellation", async () => {
+    vi.resetModules();
+    const sessionStore = {};
+    setupGlobals(sessionStore, () => []);
+    await loadNotification();
+    const expected = Notifier.expectDownload("https://x/final.png");
+    Notifier.cancelExpectedDownload(expected);
+    Notifier.cancelExpectedDownload(expected);
+    Notifier.expectDownload("https://x/final.png");
+
+    await Notifier.onDownloadCreated({
+      id: 3,
+      byExtensionId: "save-in",
+      url: "https://x/request.png",
+      finalUrl: "https://x/final.png",
+      filename: "/dl/final.png",
+    });
+    expect(adoptedIds(sessionStore)).toEqual([3]);
   });
 });
 

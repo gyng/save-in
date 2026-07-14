@@ -250,17 +250,18 @@ export const Notifier = {
       return;
     if (expectedIndex !== -1) {
       const [expected] = expectedDownloads.splice(expectedIndex, 1);
-      if (!expected) return;
-      const observedBrowserDownload = expected.record?.observedBrowserDownload === true;
+      // expectedIndex came from this same array, so splice always returns one entry.
+      const matched = expected!;
+      const observedBrowserDownload = matched.record?.observedBrowserDownload === true;
       await mergeTrackedDownload(item.id, {
-        ...expected.record,
+        ...matched.record,
         adopted: !observedBrowserDownload,
         currentFilename: item.filename,
         url: item.url,
-        privateContext: item.incognito === true || isPrivateDownloadRecord(expected.record || {}),
+        privateContext: item.incognito === true || isPrivateDownloadRecord(matched.record || {}),
       });
-      if (expected.record?.historyEntryId) {
-        void historyPort.setDownloadId(expected.record.historyEntryId, item.id);
+      if (matched.record?.historyEntryId) {
+        void historyPort.setDownloadId(matched.record.historyEntryId, item.id);
       }
       return;
     }
@@ -573,7 +574,8 @@ export const Notifier = {
             });
             await mergeTrackedDownload(downloadDelta.id, { adopted: false });
           } else {
-            await recordHistoryStatus(errorName || "failed");
+            // Retryable failures always have a concrete browser error name.
+            await recordHistoryStatus(errorName);
             await notifyFailure();
           }
         } else {

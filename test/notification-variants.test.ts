@@ -55,6 +55,39 @@ describe("notification variants", () => {
     expect(global.browser.notifications.create).not.toHaveBeenCalled();
   });
 
+  test("contains a rejected failure Save As prompt", async () => {
+    await install({ notifyOnFailure: false, promptOnFailure: true, notifyDuration: 1000 });
+    await startTracked({ id: 7, filename: "/dl/pic.png", url: "https://x/p.png" });
+    vi.mocked(global.browser.downloads.download).mockRejectedValueOnce(new Error("prompt failed"));
+
+    await onChanged({ id: 7, error: { current: "NETWORK_FAILED" } });
+
+    expect(Log.add).toHaveBeenCalledWith(
+      "failure Save As download failed",
+      expect.stringContaining("prompt failed"),
+    );
+  });
+
+  test("contains offscreen blob release failures", async () => {
+    await install({ notifyOnSuccess: false, notifyOnFailure: false });
+    const { OffscreenClient } = await import("../src/platform/offscreen-client.ts");
+    vi.spyOn(OffscreenClient, "release").mockRejectedValue(new Error("release failed"));
+    Notifier.expectDownload("https://x/p.png", { offscreenRequestId: "offscreen-1" });
+    await onCreated({
+      id: 7,
+      byExtensionId: "save-in",
+      filename: "/dl/pic.png",
+      url: "https://x/p.png",
+    });
+
+    await onChanged({ id: 7, state: { current: "complete", previous: "in_progress" } });
+
+    expect(Log.add).toHaveBeenCalledWith(
+      "offscreen blob release failed",
+      expect.stringContaining("release failed"),
+    );
+  });
+
   test("promptOnFailure keeps a Firefox private download off the record", async () => {
     await install({ notifyOnFailure: false, promptOnFailure: true, notifyDuration: 1000 });
     browserState.current = "FIREFOX";
