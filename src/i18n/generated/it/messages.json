@@ -2434,7 +2434,7 @@
     "message": "Testo"
   },
   "autoDownloadAddRule": {
-    "message": "Aggiungi regola"
+    "message": "Aggiungi regola di automazione"
   },
   "autoDownloadGrammar": {
     "message": "Sintassi delle regole"
@@ -2483,5 +2483,20 @@
   },
   "autoDownloadNewRule": {
     "message": "Nuova regola"
+  },
+  "ruleAutomaticMissingPage": {
+    "message": "Le regole automatiche per le sorgenti richiedono una condizione per la pagina"
+  },
+  "ruleAutomaticMissingSource": {
+    "message": "Le regole automatiche per le sorgenti richiedono una condizione per la sorgente"
+  },
+  "autoDownloadRoutingBadge": {
+    "message": "Sorgente automatica"
+  },
+  "autoDownloadManageRules": {
+    "message": "Apri le regole di routing"
+  },
+  "autoDownloadRoutingHelp": {
+    "message": "Le regole automatiche si trovano insieme alle regole di routing e usano context: auto. Ognuna richiede condizioni per la pagina e la sorgente."
   }
 }
