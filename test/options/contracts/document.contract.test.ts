@@ -316,7 +316,8 @@ test("keeps the debugger before fallback behavior", () => {
   const fallback = document.querySelector(".routing-post-options");
   const debuggerShell = document.querySelector(".route-debugger-shell");
 
-  expect(fallback?.querySelector("legend")?.textContent?.trim()).toBe(
+  const noMatchGroup = fallback?.querySelector("[aria-labelledby='routing-no-match-heading']");
+  expect(noMatchGroup?.querySelector("#routing-no-match-heading")?.textContent?.trim()).toBe(
     "__MSG_routingNoMatchBehavior__",
   );
   if (!fallback || !debuggerShell) throw new Error("Missing routing fallback or debugger group");

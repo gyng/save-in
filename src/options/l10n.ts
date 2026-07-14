@@ -8,6 +8,7 @@ type GetMessage = (key: string) => string;
 type InitializeLocalizedDocumentPorts = {
   root: HTMLElement;
   localeControl: HTMLSelectElement | null;
+  reveal?: boolean;
   initialize(locale: unknown): Promise<void>;
   localize(): void;
 };
@@ -67,7 +68,7 @@ export const initializeLocalizedDocument = async (
     await ports.initialize(selectedLocale);
     ports.localize();
   } finally {
-    ports.root.classList.remove("localization-pending");
+    if (ports.reveal !== false) ports.root.classList.remove("localization-pending");
   }
 };
 

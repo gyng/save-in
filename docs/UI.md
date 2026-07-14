@@ -71,7 +71,9 @@ or feedback.
   Menu triggers share the same box, weight, and focus treatment.
 - Editor validation uses one contract: exact text/gutter marking, a precise
   summary after the editor, and a red/warning visual row. Do not render prose
-  inside editable code lines.
+  inside editable code lines. Keep the summary collapsed unless at least one
+  channel contains visible feedback; empty channel wrappers must not reserve
+  space.
 - Feedback is one of: field validation, inline status, page banner, or transient
   confirmation. Use the matching semantic variant and ARIA role.
 - Editor action rows keep supporting links/help left and Discard/Apply together
@@ -80,7 +82,8 @@ or feedback.
 ### Organisms
 
 - The app shell owns identity, resources, language, search, save state, and main
-  navigation.
+  navigation. Keep it hidden through localization and the initial stored-option
+  restore so editors render their real content before the first visible frame.
 - Save locations and Routing rules are sibling editor workspaces and must share
   editor tabs, validation, action rows, previews, and responsive behavior.
 - Routing rules has one visible primary creation action. Automation rules and

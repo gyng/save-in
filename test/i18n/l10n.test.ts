@@ -118,6 +118,20 @@ describe("l10n", () => {
     expect(document.documentElement.classList).not.toContain("localization-pending");
   });
 
+  test("can defer the reveal until the caller finishes page initialization", async () => {
+    document.documentElement.classList.add("localization-pending");
+
+    await initializeLocalizedDocument("en", "en-US", {
+      root: document.documentElement,
+      localeControl: null,
+      reveal: false,
+      initialize: () => Promise.resolve(),
+      localize: vi.fn(),
+    });
+
+    expect(document.documentElement.classList).toContain("localization-pending");
+  });
+
   test("opens external links separately without exposing the options window", () => {
     document.body.innerHTML = `
       <a id="external" class="external" href="https://example.com">external</a>

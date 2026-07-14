@@ -1124,7 +1124,7 @@ export const setupOptionsPage = bootstrapOptionsPage({
     setupDefaultDownloadsFolderLinks,
     setupVariablesPreview,
     setupDebugLogPanel,
-    () => void restoreOptions(),
+    () => restoreOptions(),
   ],
   configureRuntime: () => optionsRuntime.configure(),
   addMessageListener: (listener) => webExtensionApi.runtime.onMessage.addListener(listener),

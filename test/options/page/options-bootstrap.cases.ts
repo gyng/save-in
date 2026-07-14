@@ -37,4 +37,33 @@ describe("options bootstrap", () => {
     expect(readyB).toHaveBeenCalledTimes(1);
     expect(startBrowserDetection).toHaveBeenCalledTimes(1);
   });
+
+  test("reports when asynchronous initial restoration is complete", async () => {
+    let finishRestore!: () => void;
+    const restore = vi.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          finishRestore = resolve;
+        }),
+    );
+    const onReady = bootstrapOptionsPage({
+      document,
+      ready: [restore],
+      configureRuntime: vi.fn(),
+      addMessageListener: vi.fn(),
+      onDownloaded: vi.fn(),
+      startBrowserDetection: vi.fn(),
+    });
+
+    const completion = onReady();
+    let complete = false;
+    void completion.then(() => (complete = true));
+    await Promise.resolve();
+    expect(complete).toBe(false);
+
+    finishRestore();
+    await completion;
+    expect(complete).toBe(true);
+    expect(onReady()).toBe(completion);
+  });
 });

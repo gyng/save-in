@@ -51,48 +51,55 @@ const applyWelcomePreset = async (paths: string): Promise<void> => {
 document.addEventListener(
   "DOMContentLoaded",
   async () => {
+    const root = document.documentElement;
     const stored = await webExtensionApi.storage.local
       .get(["uiLocale", "uiTheme"])
       .catch(() => ({}));
     applyUiTheme(Reflect.get(stored, "uiTheme"));
     const uiLocale = Reflect.get(stored, "uiLocale");
-    await initializeLocalizedDocument(
-      uiLocale,
-      typeof webExtensionApi.i18n.getUILanguage === "function"
-        ? webExtensionApi.i18n.getUILanguage()
-        : "",
-      {
-        root: document.documentElement,
-        localeControl: document.querySelector<HTMLSelectElement>("#uiLocale"),
-        initialize: initializeLocalization,
-        localize: () => localizeDocument(getMessage),
-      },
-    );
-    setHistoryLocalizer(getMessage);
-    void renderHistory();
-    setupSyntaxEditors();
-    setupRouteDebugger();
-    setupRuleVisualEditor();
-    setupOptionsPage();
-    void setupPermissionsBanner();
-    setupPathEditor();
-    setupRuleBuilder();
-    setupOptionsReferences();
-    setupTabs({
-      confirmPendingChanges,
-      label: getMessage("html_settingsSaveIn") || "Save In settings",
-      onGuardError: (error) => {
-        const message = getMessage("o_lSaveFailed") || "Could not save changes";
-        window.alert(`${message}\n${String(error)}`);
-      },
-    });
-    setupOptionSearch();
-    setupSourceShortcut();
-    setupWebMcpStatus(getMessage, syncOptionsPageAfterWebMcpApply);
-    setupPrivacyDialog();
-    setupAboutDialog(() => showWelcomeDialog(undefined, undefined, false, applyWelcomePreset));
-    setupLanguageSelector();
-    void setupWelcomeDialog(undefined, undefined, applyWelcomePreset);
+    try {
+      await initializeLocalizedDocument(
+        uiLocale,
+        typeof webExtensionApi.i18n.getUILanguage === "function"
+          ? webExtensionApi.i18n.getUILanguage()
+          : "",
+        {
+          root,
+          localeControl: document.querySelector<HTMLSelectElement>("#uiLocale"),
+          reveal: false,
+          initialize: initializeLocalization,
+          localize: () => localizeDocument(getMessage),
+        },
+      );
+      setHistoryLocalizer(getMessage);
+      void renderHistory();
+      setupSyntaxEditors();
+      setupRouteDebugger();
+      setupRuleVisualEditor();
+      const optionsReady = setupOptionsPage();
+      void setupPermissionsBanner();
+      setupPathEditor();
+      setupRuleBuilder();
+      setupOptionsReferences();
+      setupTabs({
+        confirmPendingChanges,
+        label: getMessage("html_settingsSaveIn") || "Save In settings",
+        onGuardError: (error) => {
+          const message = getMessage("o_lSaveFailed") || "Could not save changes";
+          window.alert(`${message}\n${String(error)}`);
+        },
+      });
+      setupOptionSearch();
+      setupSourceShortcut();
+      setupWebMcpStatus(getMessage, syncOptionsPageAfterWebMcpApply);
+      setupPrivacyDialog();
+      setupAboutDialog(() => showWelcomeDialog(undefined, undefined, false, applyWelcomePreset));
+      setupLanguageSelector();
+      void setupWelcomeDialog(undefined, undefined, applyWelcomePreset);
+      await optionsReady;
+    } finally {
+      root.classList.remove("localization-pending");
+    }
   },
   { once: true },
 );
