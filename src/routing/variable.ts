@@ -1,4 +1,4 @@
-import { withUrl as parseUrl } from "../shared/util.ts";
+import { isStringKeyedRecord, isStringMember, withUrl as parseUrl } from "../shared/util.ts";
 import { EXTENSION_REGEX, getFilenameFromUrl } from "./filename.ts";
 import { SPECIAL_DIRS, PATH_SEGMENT_TYPES } from "../shared/constants.ts";
 import { stringSegment, type PathSegment } from "./path.ts";
@@ -12,13 +12,23 @@ import { toRootDomain } from "../shared/domain.ts";
 export { toRootDomain } from "../shared/domain.ts";
 
 type HeadResult = HeadMetadata;
-type VariablePath = { buf?: PathSegment[] | null };
 type Transformer = (
   opts: RoutingDownloadInfo,
   token?: PathSegment,
   index?: number,
   tokens?: PathSegment[],
 ) => PathSegment | Promise<PathSegment>;
+type SpecialDirectory = (typeof SPECIAL_DIRS)[keyof typeof SPECIAL_DIRS];
+type TransformableSpecialDirectory = Exclude<SpecialDirectory, typeof SPECIAL_DIRS.SEPARATOR>;
+type TransformerRegistry = Record<string, Transformer> &
+  Record<TransformableSpecialDirectory, Transformer>;
+const PATH_SEGMENT_TYPE_VALUES = Object.values(PATH_SEGMENT_TYPES);
+
+const isPathSegment = (value: unknown): value is PathSegment =>
+  isStringKeyedRecord(value) &&
+  typeof value.val === "string" &&
+  typeof value.toString === "function" &&
+  (typeof value.type === "undefined" || isStringMember(PATH_SEGMENT_TYPE_VALUES, value.type));
 
 export const normalizeMimeType = (value: string | null | undefined): string =>
   ((value || "").split(";")[0] || "").trim().toLocaleLowerCase();
@@ -265,10 +275,10 @@ const resolveSha256 = async (opts: RoutingDownloadInfo): Promise<string> => {
   return opts.sha256;
 };
 
-// Transformers are called as (info, token, index, tokens); most only
-// need the info bag, hence the cast to the full signature
+// Transformers are called as (info, token, index, tokens); contextual typing
+// lets handlers omit unused trailing parameters while checking every variable.
 /* prettier-ignore */
-export const transformers = ({
+export const transformers: TransformerRegistry = {
     [SPECIAL_DIRS.FILENAME]:
       opts => stringSegment(opts.filename),
     [SPECIAL_DIRS.FILE_EXTENSION]:
@@ -353,7 +363,7 @@ export const transformers = ({
           return stringSegment((await routingPorts.peekCounter()) + 1);
         }
         if (opts.counter == null) {
-          opts.counter = (opts.currentTab as { incognito?: boolean } | null | undefined)?.incognito
+          opts.counter = opts.currentTab?.incognito
             ? await routingPorts.nextPrivateCounter()
             : await routingPorts.nextCounter();
         }
@@ -388,28 +398,28 @@ export const transformers = ({
       async opts => stringSegment(opts.preview ? resolvedHeadPreview(opts)?.finalUrl : (await resolveHead(opts)).finalUrl),
     [SPECIAL_DIRS.REDIRECT_URL]:
       async opts => stringSegment(opts.preview ? resolvedHeadPreview(opts)?.finalUrl : (await resolveHead(opts)).finalUrl)
-  }) as Record<string, Transformer>;
+  };
 
 // Async so a transformer may await (e.g. a :counter: read-modify-write or a
 // :mime: HEAD request). Sync transformers resolve instantly through
 // Promise.all, so paths built only from today's variables are byte-identical.
-export const applyVariables = async <P extends object>(path: P, opts: RoutingDownloadInfo = {}) => {
-  const variablePath = path as P & VariablePath;
-  return Object.assign(path, {
-    buf:
-      variablePath.buf &&
-      (await Promise.all(
-        variablePath.buf.map((t, i, arr) => {
-          if (t.type === PATH_SEGMENT_TYPES.VARIABLE) {
-            const transformer = transformers[t.val];
-            if (transformer) {
-              // info, token, index, tokens
-              return transformer(opts, t, i, arr);
-            }
-          }
-
-          return t;
-        }),
-      )),
-  });
+export const applyVariables = async <P extends object>(
+  path: P,
+  opts: RoutingDownloadInfo = {},
+): Promise<P> => {
+  const tokens = Reflect.get(path, "buf");
+  if (!Array.isArray(tokens) || !tokens.every(isPathSegment)) return path;
+  const resolved = await Promise.all(
+    tokens.map((token, index, allTokens) => {
+      if (token.type === PATH_SEGMENT_TYPES.VARIABLE) {
+        const transformer = transformers[token.val];
+        if (transformer) {
+          return transformer(opts, token, index, allTokens);
+        }
+      }
+      return token;
+    }),
+  );
+  Reflect.set(path, "buf", resolved);
+  return path;
 };

@@ -27,7 +27,7 @@ const specialDirs = new Map(
 if (!specialDirs.size) throw new Error("Could not read SPECIAL_DIRS members");
 
 const transformerBlock = variableSource.match(
-  /export const transformers = \(\{(?<body>[\s\S]*?)\n\s*\}\) as Record<string, Transformer>;/,
+  /export const transformers(?:\s*:\s*TransformerRegistry)?\s*=\s*\{(?<body>[\s\S]*?)\n\s*\};/,
 )?.groups?.body;
 if (!transformerBlock) throw new Error("Could not find transformers");
 

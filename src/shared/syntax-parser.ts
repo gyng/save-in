@@ -173,6 +173,8 @@ export const sequence =
       values.push(result.value);
       offset = result.offset;
     }
+    // The loop appends one value per parser in the same order. TypeScript
+    // cannot derive that variadic tuple relationship from a mutable array.
     return success(state, state.offset, offset, values as SequenceValues<Parsers>);
   };
 
@@ -184,6 +186,8 @@ export const choice =
     let best: ParseFailure | null = null;
     for (const parser of parsers) {
       const result = parser(state);
+      // Each alternative's success value is one member of the inferred union;
+      // the generic loop widens the individual parser to SyntaxParser<unknown>.
       if (result.ok) return result as ParseSuccess<ParserValue<Parsers[number]>>;
       if (result.offset !== state.offset) return result;
       best = result;

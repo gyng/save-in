@@ -340,6 +340,13 @@ describe("variables", () => {
       expect(result.buf).toBeUndefined();
     });
 
+    test("leaves malformed path buffers alone", async () => {
+      const input = { buf: "not-a-path-buffer" };
+
+      await expect(Variable.applyVariables(input, info)).resolves.toBe(input);
+      expect(input.buf).toBe("not-a-path-buffer");
+    });
+
     test("normalizes missing inputs for URL and filename-derived variables", async () => {
       const input = new Path.Path(
         ":fileext:/:actualfileext:/:sourcedomain:/:pagedomain:/:sourcerootdomain:/:pagerootdomain:/:sourcepath:/:tld:/:naivefilename:/:naivefileext:/:urlfileext:/:pagetitlesnake:",

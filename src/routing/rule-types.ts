@@ -79,5 +79,5 @@ export type DestinationClause = {
 };
 export type RuleClause = MatcherClause | CaptureClause | DestinationClause;
 
-declare const validatedRoutingRule: unique symbol;
-export type RoutingRule = RuleClause[] & { readonly [validatedRoutingRule]: true };
+declare const parsedRoutingRule: unique symbol;
+export type RoutingRule = RuleClause[] & { readonly [parsedRoutingRule]: true };

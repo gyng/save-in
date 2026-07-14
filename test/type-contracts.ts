@@ -101,7 +101,7 @@ const destinationClause: DestinationClause = {
   value: "images",
   type: RULE_TYPES.DESTINATION,
 };
-// Only the parser may promote a structurally valid clause array into a validated rule.
+// Only the parser may promote a structurally valid clause array into a parsed rule.
 // @ts-expect-error unvalidated arrays do not satisfy the RoutingRule brand
 const unvalidatedRoutingRule: RoutingRule = [matcherClause, destinationClause];
 void unvalidatedRoutingRule;

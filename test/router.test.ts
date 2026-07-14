@@ -707,6 +707,17 @@ into: captures/:$1:/:$2:`,
       expect(trace.finalPath).toBe("archive/2026/cat.jpg");
     });
 
+    test("does not interpolate malformed current-tab fields", async () => {
+      const rules = router.parseRules("filename: .*\ninto: preview/:pagetitle:");
+
+      const trace = await router.traceRules(rules, {
+        filename: "cat.jpg",
+        currentTab: { title: 42, incognito: "yes" },
+      });
+
+      expect(trace.expandedDestination).toBe("preview/");
+    });
+
     test("reports filename overflow against the active truncation setting", async () => {
       const previous = options.truncateLength;
       const filename = `${"a".repeat(246)}.txt`;

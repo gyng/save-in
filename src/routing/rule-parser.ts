@@ -72,6 +72,9 @@ const captureGroupCount = (regex: RegExp): number => {
 
 const isPlainMatchAll = (regex: RegExp): boolean => /^(?:\.\*|\^\.\*\$)$/.test(regex.source);
 
+const isMatcherName = (name: string): name is keyof typeof matcherFunctions =>
+  Object.hasOwn(matcherFunctions, name);
+
 const parseSemanticRule = (
   rule: RoutingRuleNode,
   errors: RuleError[] = [],
@@ -137,9 +140,7 @@ const parseSemanticRule = (
       );
       return false;
     }
-    const factory = Object.hasOwn(matcherFunctions, name)
-      ? matcherFunctions[name as keyof typeof matcherFunctions]
-      : undefined;
+    const factory = isMatcherName(name) ? matcherFunctions[name] : undefined;
     if (!factory) {
       appendError(errors, routingPorts.getMessage("ruleUnknownMatcher"), `${name}:`, line.nameSpan);
       return false;
@@ -261,8 +262,8 @@ const parseSemanticRule = (
       return false;
     }
   }
-  // Whole-rule cardinality and capture references cannot be expressed by the
-  // clause union; issue the brand only after those invariants have been checked.
+  // Fatal whole-rule cardinality and capture-target invariants cannot be
+  // expressed by the clause union; issue the parser brand only after checking them.
   return valid as RoutingRule;
 };
 

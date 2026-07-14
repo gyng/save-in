@@ -6,6 +6,7 @@ import { matchRule } from "./rule-matcher.ts";
 import type { RoutingDownloadInfo, RoutingInfo, RoutingRule } from "./rule-types.ts";
 import { routingPorts } from "./ports.ts";
 import { applyVariables } from "./variable.ts";
+import { isStringKeyedRecord } from "../shared/util.ts";
 
 export type * from "./rule-types.ts";
 export { matcherFunctions } from "./matchers.ts";
@@ -52,6 +53,15 @@ export type RuleTrace = {
   }>;
 };
 
+const normalizeTraceCurrentTab = (value: unknown): RoutingDownloadInfo["currentTab"] => {
+  if (value === null) return null;
+  if (!isStringKeyedRecord(value)) return undefined;
+  return {
+    ...(typeof value.title === "string" ? { title: value.title } : {}),
+    ...(typeof value.incognito === "boolean" ? { incognito: value.incognito } : {}),
+  };
+};
+
 export const traceRules = async (
   rules: RoutingRule[],
   info: RoutingInfo,
@@ -85,7 +95,8 @@ export const traceRules = async (
   const sourceUrl = info.sourceUrl || info.srcUrl;
   const downloadUrl = info.url || sourceUrl || info.linkUrl || info.pageUrl;
   const traceInfo: RoutingDownloadInfo = {
-    ...(info as RoutingDownloadInfo),
+    ...info,
+    currentTab: normalizeTraceCurrentTab(info.currentTab),
     url: downloadUrl,
     sourceUrl,
     now: info.now instanceof Date ? info.now : new Date(),
