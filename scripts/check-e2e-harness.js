@@ -16,13 +16,13 @@ const budgets = [
     file: "test/e2e/chrome.e2e.mjs",
     label: "raw Chrome background evaluations",
     pattern: /\bevalSW\(/g,
-    maximum: 61,
+    maximum: 57,
   },
   {
     file: "test/e2e/firefox.e2e.mjs",
     label: "raw Firefox background evaluations",
     pattern: /\bevalBackground\(/g,
-    maximum: 41,
+    maximum: 38,
   },
   {
     file: "test/e2e/firefox.e2e.mjs",

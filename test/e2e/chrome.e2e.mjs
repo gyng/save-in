@@ -11,6 +11,12 @@ import cdp from "../../scripts/lib/cdp.js";
 import chrome from "../../scripts/lib/chrome.js";
 import { inBackgroundContext } from "./background-context.mjs";
 import { registerSharedBrowserCases } from "./cases/shared-browser.cases.mjs";
+import {
+  decodeDownloadEntries,
+  decodeHistoryEntries,
+  decodeTabEntry,
+  decodeWindowReference,
+} from "./control-codecs.mjs";
 import { createE2EControlClient, createRecoveringControlTransport } from "./control-client.mjs";
 import {
   runContentDispositionScenario,
@@ -25,13 +31,13 @@ import {
   beginResourceScope,
   closeLocal,
   createLazyPageEvaluator,
+  evaluateJson,
   listenLocal,
   poll,
   requireValue,
 } from "./helpers.mjs";
 
 /** @typedef {import("./control-protocol.mjs").DownloadEntry} DownloadEntry */
-/** @typedef {import("./control-protocol.mjs").HistoryEntry} HistoryEntry */
 
 const PROFILE = path.join(chrome.ROOT, "dist", "e2e-profile");
 const ARTIFACTS = process.env.E2E_ARTIFACT_DIR
@@ -771,12 +777,15 @@ test("real Incognito activity stays out of routing, history, and automatic saves
   await runPrivateBrowserActivityScenario({
     evaluate: evalSW,
     openPrivatePage: async (url) => {
-      const opened = JSON.parse(
-        await evalSW(`browser.windows.create({ incognito: true, url: ${JSON.stringify(url)} })
-          .then((window) => JSON.stringify({ windowId: window.id }))`),
+      const opened = await evaluateJson(
+        evalSW,
+        `browser.windows.create({ incognito: true, url: ${JSON.stringify(url)} })
+          .then((window) => JSON.stringify({ windowId: window.id }))`,
+        decodeWindowReference,
       );
-      const tab = JSON.parse(
-        await evalSW(`new Promise((resolve, reject) => {
+      const tab = await evaluateJson(
+        evalSW,
+        `new Promise((resolve, reject) => {
           const timeout = AbortSignal.timeout(8000);
           const check = async () => {
             const [tab] = await browser.tabs.query({ windowId: ${opened.windowId} });
@@ -786,13 +795,18 @@ test("real Incognito activity stays out of routing, history, and automatic saves
             else requestAnimationFrame(check);
           };
           void check();
-        })`),
+        })`,
+        (value) => decodeTabEntry(value, "private Chrome tab"),
       );
-      const target = `127.0.0.1:${new URL(tab.url).port}/private-browser`;
+      const tabId = requireValue(tab.id, "Private Chrome tab has no id");
+      const tabUrl = requireValue(tab.url, "Private Chrome tab has no URL");
+      const target = `127.0.0.1:${new URL(tabUrl).port}/private-browser`;
       return {
-        tabId: tab.id,
+        tabId,
         target,
-        close: () => evalSW(`browser.windows.remove(${opened.windowId})`).then(() => undefined),
+        close: async () => {
+          await evalSW(`browser.windows.remove(${opened.windowId})`);
+        },
       };
     },
     evaluatePrivatePage: (target, expression) => cdp.evalInTarget(PORT, target, expression),
@@ -911,20 +925,19 @@ test("ordinary browser downloads can be routed and tracked without adoption", as
 
     const rows = await waitForDownloads("browser-routed.*native\\.bin");
     expect(rows.some((row) => row.state === "complete")).toBe(true);
-    const observed = JSON.parse(
+    const observed = requireValue(
       await poll(
         async () => {
-          const json = await evalSW(
-            `api.history().then((entries) => JSON.stringify(entries.filter((entry) => entry.info?.context === "browser")))`,
+          const entries = await evaluateJson(
+            evalSW,
+            `api.history().then((items) => JSON.stringify(items.filter((entry) => entry.info?.context === "browser")))`,
+            (value) => decodeHistoryEntries(value, "ordinary browser download history"),
           );
-          return /** @type {HistoryEntry[]} */ (JSON.parse(json)).some(
-            (entry) => entry.status === "complete",
-          )
-            ? json
-            : null;
+          return entries.some((entry) => entry.status === "complete") ? entries : null;
         },
         { description: "ordinary browser download history" },
       ),
+      "Ordinary browser download history was not observed",
     );
     expect(observed.at(-1)).toMatchObject({
       status: "complete",
@@ -1748,11 +1761,11 @@ into: e2e/automatic-chrome/:filename:`,
     await cdp.openTab(PORT, pageUrl);
     const initial = await poll(
       async () => {
-        const rows = /** @type {DownloadEntry[]} */ (
-          JSON.parse(
-            await evalSW(`browser.downloads.search({ filenameRegex: "automatic-chrome" })
-            .then((items) => JSON.stringify(items.map(({ state, filename, url }) => ({ state, filename, url }))))`),
-          )
+        const rows = await evaluateJson(
+          evalSW,
+          `browser.downloads.search({ filenameRegex: "automatic-chrome" })
+            .then((items) => JSON.stringify(items.map(({ id, state, filename, url }) => ({ id, state, filename, url }))))`,
+          (value) => decodeDownloadEntries(value, "automatic Chrome downloads"),
         );
         return rows.filter((row) => row.state === "complete").length === 2 ? rows : null;
       },

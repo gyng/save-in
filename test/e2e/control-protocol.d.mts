@@ -2,6 +2,79 @@ export type StorageAreaName = "local" | "session";
 export type StorageKeys = string | string[] | Record<string, unknown> | null;
 export type StorageRecord = Record<string, unknown>;
 
+export interface E2EOptionValues {
+  contentClickToSaveCombo: number;
+  fallbackFetch: boolean;
+  filenamePatterns: string;
+  notifyDuration: number;
+  notifyOnFailure: boolean;
+  notifyOnLinkPreferred: boolean;
+  notifyOnRuleMatch: boolean;
+  notifyOnSuccess: boolean;
+  paths: string;
+  promptOnShift: boolean;
+  selection: boolean;
+}
+
+export type E2EOptionName = keyof E2EOptionValues;
+export type OptionsPatch = Partial<E2EOptionValues>;
+
+export interface StartDownloadBody {
+  content?: string;
+  url?: string;
+  shortcutUrl?: string;
+  suggestedFilename: string;
+  pageUrl?: string;
+  path?: string;
+  modifiers?: string[];
+}
+
+export interface MenuClickInfo {
+  menuItemId: string | number;
+  selectionText?: string;
+  pageUrl?: string;
+  linkUrl?: string;
+  srcUrl?: string;
+  frameUrl?: string;
+  mediaType?: string;
+  linkText?: string;
+  modifiers?: string[];
+}
+
+export interface ContextMenuClickBody {
+  info: MenuClickInfo;
+  tab?: TabEntry;
+}
+
+export interface TabMenuTab extends TabEntry {
+  id: number;
+  index: number;
+  windowId: number;
+}
+
+export interface TabMenuClickBody {
+  info: MenuClickInfo;
+  tab: TabMenuTab;
+}
+
+export type RuntimeMessage =
+  | { type: "WAKE_WARM" }
+  | { type: "OPTIONS_LOADED" }
+  | { type: "OPTIONS" }
+  | { type: "HISTORY_GET" }
+  | { type: "SAVE_IN_E2E_START_DOWNLOAD"; body: StartDownloadBody }
+  | { type: "SAVE_IN_E2E_CONTEXT_MENU_CLICK"; body: ContextMenuClickBody }
+  | { type: "SAVE_IN_E2E_TAB_MENU_CLICK"; body: TabMenuClickBody }
+  | { type: "SAVE_IN_E2E_NOTIFICATION_CALLS"; body: { action: "get" | "reset" } }
+  | { type: "APPLY_CONFIG"; body: { config: Record<string, unknown> } };
+
+export type BackgroundRuntimeMessage =
+  | RuntimeMessage
+  | {
+      type: "DOWNLOAD";
+      body: { url?: string; info?: Record<string, unknown>; comment?: string };
+    };
+
 export interface DownloadSummary {
   state: string;
   filename: string;
@@ -30,16 +103,20 @@ export interface HistoryEntry {
 
 export interface TabEntry {
   id?: number;
+  index?: number;
+  windowId?: number;
   url?: string;
   title?: string;
   active?: boolean;
   status?: string;
+  incognito?: boolean;
   [key: string]: unknown;
 }
 
 export interface NotificationCall {
   id: string;
-  message: string;
+  title?: string;
+  message?: string;
   [key: string]: unknown;
 }
 
@@ -50,7 +127,7 @@ export interface DnrRule {
 
 export interface RuntimeResponse {
   type?: string;
-  body: Record<string, unknown>;
+  body?: Record<string, unknown>;
 }
 
 export interface InspectResult {
@@ -68,12 +145,12 @@ export interface InspectResult {
 }
 
 export type ControlRequest =
-  | { operation: "runtime.send"; message: Record<string, unknown> }
+  | { operation: "runtime.send"; message: RuntimeMessage }
   | { operation: "storage.get"; area: StorageAreaName; keys?: StorageKeys }
   | { operation: "storage.set"; area: StorageAreaName; values: StorageRecord }
   | { operation: "storage.remove"; area: StorageAreaName; keys: string | string[] }
   | { operation: "storage.clear"; area: StorageAreaName }
-  | { operation: "downloads.search"; query?: Record<string, unknown> }
+  | { operation: "downloads.search"; query?: chrome.downloads.DownloadQuery }
   | {
       operation: "downloads.wait";
       filenameRegex?: string;
@@ -82,17 +159,17 @@ export type ControlRequest =
       timeoutMs?: number;
     }
   | { operation: "downloads.cancel"; id: number }
-  | { operation: "downloads.erase"; query?: Record<string, unknown> }
-  | { operation: "tabs.query"; query?: Record<string, unknown> }
-  | { operation: "tabs.create"; properties: Record<string, unknown> }
-  | { operation: "tabs.update"; id: number; properties: Record<string, unknown> }
+  | { operation: "downloads.erase"; query?: chrome.downloads.DownloadQuery }
+  | { operation: "tabs.query"; query?: chrome.tabs.QueryInfo }
+  | { operation: "tabs.create"; properties: chrome.tabs.CreateProperties }
+  | { operation: "tabs.update"; id: number; properties: chrome.tabs.UpdateProperties }
   | { operation: "tabs.reload"; id: number }
   | { operation: "tabs.remove"; ids: number | number[] }
   | { operation: "tabs.sendMessage"; id: number; message: Record<string, unknown> }
   | { operation: "notifications.getAll" }
   | { operation: "notifications.clear"; id: string }
   | { operation: "dnr.getSessionRules" }
-  | { operation: "dnr.updateSessionRules"; update: Record<string, unknown> }
+  | { operation: "dnr.updateSessionRules"; update: chrome.declarativeNetRequest.UpdateRuleOptions }
   | { operation: "offscreen.hasDocument" }
   | { operation: "logs.get" }
   | {

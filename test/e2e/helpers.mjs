@@ -96,6 +96,25 @@ export const requireValue = (value, message) => {
 };
 
 /**
+ * Evaluates an expression that deliberately returns JSON, then validates the
+ * parsed value before it crosses back into typed test code.
+ *
+ * @template Value
+ * @param {(expression: string) => Promise<unknown>} evaluate
+ * @param {string} expression
+ * @param {(value: unknown) => Value} decode
+ * @returns {Promise<Value>}
+ */
+export const evaluateJson = async (evaluate, expression, decode) => {
+  const serialized = await evaluate(expression);
+  if (typeof serialized !== "string") {
+    throw new Error(`E2E JSON evaluation returned ${typeof serialized} instead of a string`);
+  }
+  const parsed = /** @type {unknown} */ (JSON.parse(serialized));
+  return decode(parsed);
+};
+
+/**
  * Keeps a long-lived browser page out of the per-case reset path. The page is
  * refreshed at most once, immediately before a case first drives it.
  *

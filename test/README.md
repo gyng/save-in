@@ -33,9 +33,11 @@ Cross-browser setup, cleanup, browser state, and event waits go through
 `script.callFunction` on Firefox, passing values as structured arguments to a fixed dispatcher in
 the Options page. `test/e2e/control-protocol.d.mts` defines the request/result relationship, so
 operation names and returned downloads, logs, tabs, rules, history, and capability data remain
-strictly checked at their call sites. Runtime commands then cross the real `runtime.sendMessage`
-boundary and wake the background normally. Keep deliberately untyped direct page evaluation for
-DOM-local assertions and lifecycle-specific diagnostics only. `npm run check:e2e-harness` enforces
+strictly checked at their call sites and decoded again when they cross the browser boundary.
+Runtime commands then cross the real `runtime.sendMessage` boundary and wake the background
+normally. New or migrated structured JSON from a raw evaluator uses `evaluateJson` with a runtime
+decoder. Keep deliberately untyped direct page evaluation for DOM-local assertions, scalar
+observations, and lifecycle-specific diagnostics only. `npm run check:e2e-harness` enforces
 declining ceilings on those remaining raw background evaluations; lower the relevant ceiling
 whenever one is migrated.
 

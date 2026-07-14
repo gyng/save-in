@@ -11,6 +11,7 @@ import path from "path";
 import firefox from "../../scripts/lib/firefox.js";
 import { inBackgroundContext } from "./background-context.mjs";
 import { registerSharedBrowserCases } from "./cases/shared-browser.cases.mjs";
+import { decodeDownloadEntries, decodeTabEntry, decodeWindowReference } from "./control-codecs.mjs";
 import { createE2EControlClient, createRecoveringControlTransport } from "./control-client.mjs";
 import {
   runContentDispositionScenario,
@@ -25,6 +26,7 @@ import {
   beginResourceScope,
   closeLocal,
   createLazyPageEvaluator,
+  evaluateJson,
   listenLocal,
   poll,
   requireValue,
@@ -463,16 +465,25 @@ test("real Private Browsing activity stays out of routing, history, and automati
   await runPrivateBrowserActivityScenario({
     evaluate: evalBackground,
     openPrivatePage: async (url) => {
-      const opened = JSON.parse(
-        await evalBackground(`browser.windows.create({ incognito: true, url: ${JSON.stringify(url)} })
-          .then((window) => JSON.stringify({ windowId: window.id }))`),
+      const opened = await evaluateJson(
+        evalBackground,
+        `browser.windows.create({ incognito: true, url: ${JSON.stringify(url)} })
+          .then((window) => JSON.stringify({ windowId: window.id }))`,
+        decodeWindowReference,
       );
-      const tab = JSON.parse(await evalBackground(`(${waitForTabExpression("/private-browser")})`));
+      const tab = await evaluateJson(
+        evalBackground,
+        `(${waitForTabExpression("/private-browser")})`,
+        (value) => decodeTabEntry(value, "private Firefox tab"),
+      );
+      const tabId = requireValue(tab.id, "Private Firefox tab has no id");
+      const tabUrl = requireValue(tab.url, "Private Firefox tab has no URL");
       return {
-        tabId: tab.id,
-        target: `127.0.0.1:${new URL(tab.url).port}/private-browser`,
-        close: () =>
-          evalBackground(`browser.windows.remove(${opened.windowId})`).then(() => undefined),
+        tabId,
+        target: `127.0.0.1:${new URL(tabUrl).port}/private-browser`,
+        close: async () => {
+          await evalBackground(`browser.windows.remove(${opened.windowId})`);
+        },
       };
     },
     evaluatePrivatePage: (target, expression) => session.evaluateInTab(target, expression),
@@ -849,12 +860,12 @@ into: e2e/automatic-firefox/:filename:`,
     await evalBackground(waitForTabExpression(target));
     const initial = await poll(
       async () => {
-        const rows = /** @type {DownloadEntry[]} */ (
-          JSON.parse(
-            await evalBackground(`browser.downloads.search({})
+        const rows = await evaluateJson(
+          evalBackground,
+          `browser.downloads.search({})
             .then((items) => JSON.stringify(items.filter((item) => item.filename.includes("automatic-firefox"))
-              .map(({ state, filename, url }) => ({ state, filename, url }))))`),
-          )
+              .map(({ id, state, filename, url }) => ({ id, state, filename, url }))))`,
+          (value) => decodeDownloadEntries(value, "automatic Firefox downloads"),
         );
         return rows.filter((row) => row.state === "complete").length === 2 ? rows : null;
       },

@@ -8,7 +8,7 @@ describe("structured E2E control client", () => {
     const calls: Array<{ declaration: string; args: unknown[] | undefined }> = [];
     const callFunction = vi.fn(async (declaration: string, args?: unknown[]) => {
       calls.push({ declaration, args });
-      return JSON.stringify({ ok: true, value: { type: "OK" } });
+      return JSON.stringify({ ok: true, value: true });
     });
     const client = createE2EControlClient({ callFunction });
     const value = 'folder/"quoted"/${notExecutable}';
@@ -40,7 +40,11 @@ describe("structured E2E control client", () => {
     const client = createE2EControlClient({
       callFunction: async (_declaration, args) => {
         requests.push(args?.[0]);
-        return JSON.stringify({ ok: true, value: { type: "OK" } });
+        const request = args?.[0] as { operation?: string } | undefined;
+        return JSON.stringify({
+          ok: true,
+          value: request?.operation === "storage.set" ? true : { type: "OK" },
+        });
       },
     });
 
@@ -104,8 +108,30 @@ describe("structured E2E control client", () => {
         }),
     });
 
-    await expect(client.background.clickContextMenu({ info: {} })).rejects.toThrow(
-      "menu dispatch failed",
-    );
+    await expect(
+      client.background.clickContextMenu({ info: { menuItemId: "save-in-0" }, tab: {} }),
+    ).rejects.toThrow("menu dispatch failed");
+  });
+
+  test("rejects malformed operation results at the protocol boundary", async () => {
+    const client = createE2EControlClient({
+      callFunction: async () =>
+        JSON.stringify({
+          ok: true,
+          value: [{ id: "not-a-number", state: "complete", filename: "bad.txt", url: "data:" }],
+        }),
+    });
+
+    await expect(client.downloads.search()).rejects.toThrow("Invalid E2E downloads.search result");
+  });
+
+  test("rejects malformed typed runtime payloads", async () => {
+    const values = [{ body: { paths: 42 } }, { body: { entries: [{ status: 500 }] } }];
+    const client = createE2EControlClient({
+      callFunction: async () => JSON.stringify({ ok: true, value: values.shift() }),
+    });
+
+    await expect(client.options.get("paths")).rejects.toThrow("Invalid E2E option value for paths");
+    await expect(client.history.get()).rejects.toThrow("Invalid E2E history entries");
   });
 });

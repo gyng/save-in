@@ -1,10 +1,22 @@
+import {
+  decodeControlResult,
+  decodeHistoryEntries,
+  decodeNotificationCalls,
+  decodeOptionValue,
+} from "./control-codecs.mjs";
+
 /** @typedef {import("./control-protocol.mjs").ControlOperation} ControlOperation */
 /** @typedef {import("./control-protocol.mjs").ControlRequest} ControlRequest */
 /** @typedef {import("./control-protocol.mjs").ControlResultMap} ControlResultMap */
+/** @typedef {import("./control-protocol.mjs").ContextMenuClickBody} ContextMenuClickBody */
 /** @typedef {import("./control-protocol.mjs").DownloadEntry} DownloadEntry */
-/** @typedef {import("./control-protocol.mjs").HistoryEntry} HistoryEntry */
+/** @typedef {import("./control-protocol.mjs").E2EOptionName} E2EOptionName */
+/** @typedef {import("./control-protocol.mjs").E2EOptionValues} E2EOptionValues */
 /** @typedef {import("./control-protocol.mjs").LogEntry} LogEntry */
-/** @typedef {import("./control-protocol.mjs").NotificationCall} NotificationCall */
+/** @typedef {import("./control-protocol.mjs").OptionsPatch} OptionsPatch */
+/** @typedef {import("./control-protocol.mjs").RuntimeMessage} RuntimeMessage */
+/** @typedef {import("./control-protocol.mjs").StartDownloadBody} StartDownloadBody */
+/** @typedef {import("./control-protocol.mjs").TabMenuClickBody} TabMenuClickBody */
 
 /**
  * Runs in the extension Options page. Keep this function self-contained: CDP
@@ -24,7 +36,7 @@ const dispatchControlRequest = async (serializedRequest) => {
   const browserApi = /** @type {typeof chrome} */ (
     /** @type {unknown} */ (Reflect.get(globalThis, "browser") || chromeApi)
   );
-  /** @param {Record<string, unknown>} message */
+  /** @param {RuntimeMessage} message */
   const send = (message) => browserApi.runtime.sendMessage(message);
   /** @param {unknown} value */
   const succeed = (value) => JSON.stringify({ ok: true, value: value ?? null });
@@ -381,7 +393,7 @@ export const createE2EControlClient = ({ callFunction }) => {
       if (typeof details.stack === "string") error.stack = details.stack;
       throw error;
     }
-    return /** @type {ControlResultMap[Operation]} */ (response.value);
+    return decodeControlResult(request.operation, response.value);
   };
 
   /** @param {"local" | "session"} name */
@@ -395,12 +407,14 @@ export const createE2EControlClient = ({ callFunction }) => {
     clear: () => call({ operation: "storage.clear", area: name }),
   });
 
-  /** @param {Record<string, unknown>} message @param {string} fallback */
+  /** @param {RuntimeMessage} message @param {string} fallback */
   const command = async (message, fallback) => {
     const response = await call({ operation: "runtime.send", message });
-    if (response?.body?.status !== "OK") {
+    if (!isRecord(response.body) || response.body.status !== "OK") {
       throw new Error(
-        typeof response?.body?.message === "string" ? response.body.message : fallback,
+        isRecord(response.body) && typeof response.body.message === "string"
+          ? response.body.message
+          : fallback,
       );
     }
     return response.body;
@@ -410,29 +424,29 @@ export const createE2EControlClient = ({ callFunction }) => {
     call,
     metrics: () => ({ structuredCalls: calls }),
     runtime: {
-      /** @param {Record<string, unknown>} message @param {number} [timeoutMs] */
+      /** @param {RuntimeMessage} message @param {number} [timeoutMs] */
       send: (message, timeoutMs) => call({ operation: "runtime.send", message }, timeoutMs),
       ready: () => call({ operation: "runtime.send", message: { type: "WAKE_WARM" } }),
       reset: () => call({ operation: "runtime.send", message: { type: "OPTIONS_LOADED" } }),
     },
     storage: { local: area("local"), session: area("session") },
     downloads: {
-      /** @param {Record<string, unknown>} [query] */
+      /** @param {chrome.downloads.DownloadQuery} [query] */
       search: (query = {}) => call({ operation: "downloads.search", query }),
       /** @param {{filenameRegex?: string, filenameIncludes?: string, url?: string, timeoutMs?: number}} match */
       wait: (match) =>
         call({ operation: "downloads.wait", ...match }, (match.timeoutMs ?? 8000) + 2000),
       /** @param {number} id */
       cancel: (id) => call({ operation: "downloads.cancel", id }),
-      /** @param {Record<string, unknown>} [query] */
+      /** @param {chrome.downloads.DownloadQuery} [query] */
       erase: (query = {}) => call({ operation: "downloads.erase", query }),
     },
     tabs: {
-      /** @param {Record<string, unknown>} [query] */
+      /** @param {chrome.tabs.QueryInfo} [query] */
       query: (query = {}) => call({ operation: "tabs.query", query }),
-      /** @param {Record<string, unknown>} properties */
+      /** @param {chrome.tabs.CreateProperties} properties */
       create: (properties) => call({ operation: "tabs.create", properties }),
-      /** @param {number} id @param {Record<string, unknown>} properties */
+      /** @param {number} id @param {chrome.tabs.UpdateProperties} properties */
       update: (id, properties) => call({ operation: "tabs.update", id, properties }),
       /** @param {number} id */
       reload: (id) => call({ operation: "tabs.reload", id }),
@@ -448,7 +462,7 @@ export const createE2EControlClient = ({ callFunction }) => {
     },
     dnr: {
       getSessionRules: () => call({ operation: "dnr.getSessionRules" }),
-      /** @param {Record<string, unknown>} update */
+      /** @param {chrome.declarativeNetRequest.UpdateRuleOptions} update */
       updateSessionRules: (update) => call({ operation: "dnr.updateSessionRules", update }),
     },
     offscreen: { hasDocument: () => call({ operation: "offscreen.hasDocument" }) },
@@ -471,12 +485,16 @@ export const createE2EControlClient = ({ callFunction }) => {
     options: {
       all: async () => {
         const response = await call({ operation: "runtime.send", message: { type: "OPTIONS" } });
+        if (!isRecord(response.body)) throw new Error("E2E options response is invalid");
         return response.body;
       },
-      /** @param {string} name */
-      get: async (name) =>
-        (await call({ operation: "runtime.send", message: { type: "OPTIONS" } })).body[name],
-      /** @param {Record<string, unknown>} values */
+      /** @template {E2EOptionName} Name @param {Name} name @returns {Promise<E2EOptionValues[Name]>} */
+      get: async (name) => {
+        const response = await call({ operation: "runtime.send", message: { type: "OPTIONS" } });
+        if (!isRecord(response.body)) throw new Error("E2E options response is invalid");
+        return decodeOptionValue(name, response.body[name]);
+      },
+      /** @param {OptionsPatch} values */
       set: async (values) => {
         await call({ operation: "storage.set", area: "local", values });
         await call({ operation: "runtime.send", message: { type: "OPTIONS_LOADED" } });
@@ -488,14 +506,14 @@ export const createE2EControlClient = ({ callFunction }) => {
           operation: "runtime.send",
           message: { type: "HISTORY_GET" },
         });
-        if (!Array.isArray(response.body.entries)) {
+        if (!isRecord(response.body) || !Array.isArray(response.body.entries)) {
           throw new Error("E2E history response is invalid");
         }
-        return /** @type {HistoryEntry[]} */ (response.body.entries);
+        return decodeHistoryEntries(response.body.entries);
       },
     },
     background: {
-      /** @param {Record<string, unknown>} body */
+      /** @param {StartDownloadBody} body */
       startDownload: async (body) => {
         const response = await command(
           { type: "SAVE_IN_E2E_START_DOWNLOAD", body },
@@ -503,13 +521,13 @@ export const createE2EControlClient = ({ callFunction }) => {
         );
         return response.result;
       },
-      /** @param {Record<string, unknown>} body */
+      /** @param {ContextMenuClickBody} body */
       clickContextMenu: (body) =>
         command(
           { type: "SAVE_IN_E2E_CONTEXT_MENU_CLICK", body },
           "E2E context-menu command failed",
         ),
-      /** @param {Record<string, unknown>} body */
+      /** @param {TabMenuClickBody} body */
       clickTabMenu: (body) =>
         command({ type: "SAVE_IN_E2E_TAB_MENU_CLICK", body }, "E2E tab-menu command failed"),
       /** @param {"get" | "reset"} action */
@@ -518,10 +536,10 @@ export const createE2EControlClient = ({ callFunction }) => {
           operation: "runtime.send",
           message: { type: "SAVE_IN_E2E_NOTIFICATION_CALLS", body: { action } },
         });
-        if (!Array.isArray(response.body.calls)) {
+        if (!isRecord(response.body) || !Array.isArray(response.body.calls)) {
           throw new Error("E2E notification calls response is invalid");
         }
-        return /** @type {NotificationCall[]} */ (response.body.calls);
+        return decodeNotificationCalls(response.body.calls);
       },
       /** @param {Record<string, unknown>} config */
       applyConfig: async (config) =>
