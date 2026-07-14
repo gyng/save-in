@@ -68,9 +68,10 @@ export const localHistoryDate = (iso?: string): string => {
   const match = DATE_ONLY.exec(iso);
   if (match) {
     const [, yearText, monthText, dayText] = match;
-    const year = Number(yearText!);
-    const month = Number(monthText!);
-    const day = Number(dayText!);
+    if (yearText === undefined || monthText === undefined || dayText === undefined) return "";
+    const year = Number(yearText);
+    const month = Number(monthText);
+    const day = Number(dayText);
     const leapYear = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
     const daysInMonth = [31, leapYear ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month - 1];
     return day >= 1 && daysInMonth !== undefined && day <= daysInMonth ? iso : "";
