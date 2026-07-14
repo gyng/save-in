@@ -161,15 +161,16 @@ const parseSemanticRule = (
     );
     return false;
   }
-  for (const variable of findUnknownPathVariables(destination.value)) {
+  const unknownVariables = findUnknownPathVariables(destination.value);
+  for (const variable of unknownVariables) {
     appendError(
       errors,
       routingPorts.getMessage("ruleUnknownDestinationVariable"),
       variable.value,
       spanWithin(destinationNode!.valueSpan, variable.start, variable.value.length),
-      true,
     );
   }
+  if (unknownVariables.length > 0) return false;
   if (
     destination.value.match(/:\$\d+:/) &&
     !valid.some((clause) => clause.type === RULE_TYPES.CAPTURE)

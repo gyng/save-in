@@ -549,21 +549,20 @@ describe("filename rewrite and routing", () => {
       expect(diagnostics.filenamePatterns.length).toBe(1);
     });
 
-    test("warns about unknown destination variables without rejecting the rule", () => {
+    test("rejects an unknown destination variable at its exact location", () => {
       const result = router.parseRulesCollecting(
-        "fileext: pdf\ninto: pdfs/:dwedekday:-:naivefilename:",
+        "fileext: pdf\ninto: pdfs/:weekday:-:naivefildeddname:",
       );
 
-      expect(result.rules).toHaveLength(1);
+      expect(result.rules).toEqual([]);
       expect(result.errors).toContainEqual({
         message: "ruleUnknownDestinationVariable",
-        error: ":dwedekday:",
-        warning: true,
+        error: ":naivefildeddname:",
         location: {
-          start: 24,
-          end: 35,
+          start: 34,
+          end: 52,
           line: 2,
-          column: 11,
+          column: 21,
         },
       });
     });
