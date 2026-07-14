@@ -1,6 +1,7 @@
 import type { UiTheme } from "../config/content-options.ts";
 import type { SourcePanelCopy } from "../shared/source-panel-copy.ts";
 import type { PageSourceKind } from "../shared/page-source.ts";
+import { isStringMember } from "../shared/util.ts";
 
 export type { PageSourceKind } from "../shared/page-source.ts";
 export type PageSource = {
@@ -109,7 +110,7 @@ export const SOURCE_SORTS = [
 ] as const;
 export type SourceSort = (typeof SOURCE_SORTS)[number];
 export const isSourceSort = (value: unknown): value is SourceSort =>
-  typeof value === "string" && SOURCE_SORTS.includes(value as SourceSort);
+  isStringMember(SOURCE_SORTS, value);
 const compareDetection = (a: PageSource, b: PageSource): number =>
   (a.detectedAt || 0) - (b.detectedAt || 0) || (a.detectedOrder || 0) - (b.detectedOrder || 0);
 

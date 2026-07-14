@@ -1,13 +1,13 @@
 import { CLICK_TYPES, type ClickType } from "../shared/constants.ts";
 import { isSelectableLocale, type SelectableLocale } from "../shared/generated-locales.ts";
+import { isStringMember } from "../shared/util.ts";
 
 export const isClickType = (value: unknown): value is ClickType =>
-  typeof value === "string" && Object.values(CLICK_TYPES).includes(value as ClickType);
+  isStringMember(Object.values(CLICK_TYPES), value);
 
 export const UI_THEMES = ["system", "dark", "light"] as const;
 export type UiTheme = (typeof UI_THEMES)[number];
-export const isUiTheme = (value: unknown): value is UiTheme =>
-  typeof value === "string" && UI_THEMES.includes(value as UiTheme);
+export const isUiTheme = (value: unknown): value is UiTheme => isStringMember(UI_THEMES, value);
 
 const CONTENT_CLICK_COMBO_KEY_CODES: Record<string, number> = {
   alt: 18,
@@ -88,7 +88,7 @@ export const CONTENT_OPTION_KEYS = Object.keys(CONTENT_OPTION_DEFAULTS) as Conte
 export const CONTENT_STORAGE_KEYS = [...CONTENT_OPTION_KEYS, "filenamePatterns"] as const;
 
 export const isContentOptionName = (value: string): value is ContentOptionName =>
-  CONTENT_OPTION_KEYS.includes(value as ContentOptionName);
+  isStringMember(CONTENT_OPTION_KEYS, value);
 
 export const isAutoDownloadLimit = (value: unknown): value is string | number => {
   if ((typeof value !== "string" && typeof value !== "number") || String(value).trim() === "")

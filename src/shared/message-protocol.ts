@@ -398,39 +398,52 @@ export const sendInternalMessage = <Request extends InternalMessage>(
   request: Request,
 ): Promise<ResponseFor<Request>> => runtime.sendMessage(request) as Promise<ResponseFor<Request>>;
 
-export const INTERNAL_MESSAGE_TYPES = new Set<InternalMessage["type"]>([
-  MESSAGE_TYPES.WAKE_WARM,
-  MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
-  MESSAGE_TYPES.SOURCE_PANEL_READY,
-  MESSAGE_TYPES.SOURCE_PANEL_STATE,
-  MESSAGE_TYPES.SOURCE_PANEL_COPY,
-  MESSAGE_TYPES.HISTORY_GET,
-  MESSAGE_TYPES.HISTORY_CLEAR,
-  MESSAGE_TYPES.HISTORY_CANCEL,
-  MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTIONS_GET,
-  MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTION_CLEAR,
-  MESSAGE_TYPES.OPTIONS_LOADED,
-  MESSAGE_TYPES.OPTIONS,
-  MESSAGE_TYPES.OPTIONS_SCHEMA,
-  MESSAGE_TYPES.GET_KEYWORDS,
-  MESSAGE_TYPES.GET_GRAMMARS,
-  MESSAGE_TYPES.PREVIEW_MENUS,
-  MESSAGE_TYPES.CHECK_ROUTES,
-  MESSAGE_TYPES.PING,
-  MESSAGE_TYPES.GET_SCHEMA,
-  MESSAGE_TYPES.VALIDATE,
-  MESSAGE_TYPES.APPLY_CONFIG,
-  MESSAGE_TYPES.DOWNLOAD,
-]);
+const INTERNAL_MESSAGE_TYPE_MAP = {
+  [MESSAGE_TYPES.WAKE_WARM]: true,
+  [MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE]: true,
+  [MESSAGE_TYPES.SOURCE_PANEL_READY]: true,
+  [MESSAGE_TYPES.SOURCE_PANEL_STATE]: true,
+  [MESSAGE_TYPES.SOURCE_PANEL_COPY]: true,
+  [MESSAGE_TYPES.HISTORY_GET]: true,
+  [MESSAGE_TYPES.HISTORY_CLEAR]: true,
+  [MESSAGE_TYPES.HISTORY_CANCEL]: true,
+  [MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTIONS_GET]: true,
+  [MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTION_CLEAR]: true,
+  [MESSAGE_TYPES.OPTIONS_LOADED]: true,
+  [MESSAGE_TYPES.OPTIONS]: true,
+  [MESSAGE_TYPES.OPTIONS_SCHEMA]: true,
+  [MESSAGE_TYPES.GET_KEYWORDS]: true,
+  [MESSAGE_TYPES.GET_GRAMMARS]: true,
+  [MESSAGE_TYPES.PREVIEW_MENUS]: true,
+  [MESSAGE_TYPES.CHECK_ROUTES]: true,
+  [MESSAGE_TYPES.PING]: true,
+  [MESSAGE_TYPES.GET_SCHEMA]: true,
+  [MESSAGE_TYPES.VALIDATE]: true,
+  [MESSAGE_TYPES.APPLY_CONFIG]: true,
+  [MESSAGE_TYPES.DOWNLOAD]: true,
+} as const satisfies Record<InternalMessage["type"], true>;
 
-export const EXTERNAL_MESSAGE_TYPES = new Set<ExternalMessage["type"]>([
-  MESSAGE_TYPES.PING,
-  MESSAGE_TYPES.GET_SCHEMA,
-  MESSAGE_TYPES.GET_KEYWORDS,
-  MESSAGE_TYPES.GET_GRAMMARS,
-  MESSAGE_TYPES.VALIDATE,
-  MESSAGE_TYPES.DOWNLOAD,
-]);
+const EXTERNAL_MESSAGE_TYPE_MAP = {
+  [MESSAGE_TYPES.PING]: true,
+  [MESSAGE_TYPES.GET_SCHEMA]: true,
+  [MESSAGE_TYPES.GET_KEYWORDS]: true,
+  [MESSAGE_TYPES.GET_GRAMMARS]: true,
+  [MESSAGE_TYPES.VALIDATE]: true,
+  [MESSAGE_TYPES.DOWNLOAD]: true,
+} as const satisfies Record<ExternalMessage["type"], true>;
+
+export const INTERNAL_MESSAGE_TYPES: ReadonlySet<string> = new Set(
+  Object.keys(INTERNAL_MESSAGE_TYPE_MAP),
+);
+export const EXTERNAL_MESSAGE_TYPES: ReadonlySet<string> = new Set(
+  Object.keys(EXTERNAL_MESSAGE_TYPE_MAP),
+);
+
+const isInternalMessageType = (value: string): value is InternalMessage["type"] =>
+  Object.hasOwn(INTERNAL_MESSAGE_TYPE_MAP, value);
+
+const isExternalMessageType = (value: string): value is ExternalMessage["type"] =>
+  Object.hasOwn(EXTERNAL_MESSAGE_TYPE_MAP, value);
 
 const hasType = (value: unknown): value is Record<string, unknown> & { type: string } =>
   typeof value === "object" && value !== null && typeof Reflect.get(value, "type") === "string";
@@ -546,9 +559,7 @@ const hasOptionalBody = (
   validate: (body: unknown) => boolean,
 ): boolean => !("body" in message) || typeof message.body === "undefined" || validate(message.body);
 
-const isMessageBodyValid = (
-  message: Record<string, unknown> & { type: InternalMessage["type"] },
-): boolean => {
+const isMessageBodyValid = (message: Record<string, unknown> & { type: string }): boolean => {
   switch (message.type) {
     case MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE:
       return (
@@ -619,17 +630,14 @@ const isMessageBodyValid = (
     case MESSAGE_TYPES.GET_SCHEMA:
       return hasNoBody(message);
   }
+  return false;
 };
 
 export const isInternalMessage = (value: unknown): value is InternalMessage =>
-  hasType(value) &&
-  INTERNAL_MESSAGE_TYPES.has(value.type as InternalMessage["type"]) &&
-  isMessageBodyValid(value as Record<string, unknown> & { type: InternalMessage["type"] });
+  hasType(value) && isInternalMessageType(value.type) && isMessageBodyValid(value);
 
 export const isExternalMessage = (value: unknown): value is ExternalMessage =>
-  hasType(value) &&
-  EXTERNAL_MESSAGE_TYPES.has(value.type as ExternalMessage["type"]) &&
-  isMessageBodyValid(value as Record<string, unknown> & { type: InternalMessage["type"] });
+  hasType(value) && isExternalMessageType(value.type) && isMessageBodyValid(value);
 
 export const getMessageType = (value: unknown): string | undefined =>
   hasType(value) ? value.type : undefined;

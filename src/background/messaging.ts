@@ -725,7 +725,7 @@ export const registerMessaging = () => {
           type,
           body: {
             status: MESSAGE_TYPES.ERROR,
-            error: EXTERNAL_MESSAGE_TYPES.has(type as ExternalMessage["type"])
+            error: EXTERNAL_MESSAGE_TYPES.has(type)
               ? Messaging.API_ERRORS.BAD_REQUEST
               : Messaging.API_ERRORS.UNKNOWN_TYPE,
             version: Messaging.API_VERSION,

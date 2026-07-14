@@ -1,4 +1,12 @@
 import type { HistoryEntry } from "../shared/history-types.ts";
+import { isStringMember } from "../shared/util.ts";
+
+const HISTORY_MECHANISMS = [
+  "downloads-api",
+  "fetch-downloads-api",
+  "browser-download",
+  "firefox-replacement",
+] as const satisfies readonly NonNullable<HistoryEntry["mechanism"]>[];
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
   value != null && typeof value === "object" && !Array.isArray(value);
@@ -54,13 +62,8 @@ export const normalizeHistoryEntry = (value: unknown): HistoryEntry | null => {
   for (const key of ["routed", "observedBrowserDownload"] as const) {
     if (typeof value[key] === "boolean") entry[key] = value[key];
   }
-  if (
-    typeof value.mechanism === "string" &&
-    ["downloads-api", "fetch-downloads-api", "browser-download", "firefox-replacement"].includes(
-      value.mechanism,
-    )
-  ) {
-    entry.mechanism = value.mechanism as NonNullable<HistoryEntry["mechanism"]>;
+  if (isStringMember(HISTORY_MECHANISMS, value.mechanism)) {
+    entry.mechanism = value.mechanism;
   }
   if (typeof value.downloadId === "number" && Number.isSafeInteger(value.downloadId)) {
     entry.downloadId = value.downloadId;

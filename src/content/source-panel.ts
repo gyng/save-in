@@ -613,9 +613,10 @@ export const toggleSourcePanel = (
   };
   const render = () => {
     previewObserver?.disconnect();
+    const sourceSort = isSourceSort(sort.value) ? sort.value : "relevance";
     const sources = sortPageSources(
       filterPageSources(allSources, filter.value, activeKind),
-      sort.value as SourceSort,
+      sourceSort,
     );
     visibleSources = sources;
     title.textContent = copy.title;

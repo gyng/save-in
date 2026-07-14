@@ -19,6 +19,7 @@ import {
   defaultOptions,
 } from "./option-defaults.ts";
 import { validateWebhookUrl } from "../shared/webhook.ts";
+import { isStringMember } from "../shared/util.ts";
 
 export { defaultOptions };
 
@@ -128,7 +129,7 @@ export const OPTION_KEYS = defineOptions([
         ? CONFLICT_ACTION.UNIQUIFY
         : v,
     validate: (value: unknown): value is ConflictAction =>
-      typeof value === "string" && Object.values(CONFLICT_ACTION).includes(value as ConflictAction),
+      isStringMember(Object.values(CONFLICT_ACTION), value),
     default: OPTION_DEFAULTS.conflictAction,
   },
   ...CONTENT_FEATURE_OPTION_DEFINITIONS,

@@ -11,6 +11,12 @@ export function withUrl<T>(str: string, cb: (url: URL) => T, ...fallback: [] | [
   }
 }
 
+export const isStringMember = <Value extends string>(
+  values: readonly Value[],
+  candidate: unknown,
+): candidate is Value =>
+  typeof candidate === "string" && values.some((value) => value === candidate);
+
 // Empty lines must disappear before callers turn the result into regular
 // expressions; otherwise an empty pattern matches every URL.
 export const splitLines = (raw: string | null | undefined): string[] =>

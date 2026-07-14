@@ -21,14 +21,25 @@ type LocalizationPorts = {
   loadCatalog(path: string): Promise<unknown>;
 };
 
+const isPlaceholder = (value: unknown): value is Placeholder =>
+  isStringKeyedRecord(value) &&
+  typeof value.content === "string" &&
+  (typeof value.example === "undefined" || typeof value.example === "string");
+
+const isMessageDefinition = (value: unknown): value is MessageDefinition =>
+  isStringKeyedRecord(value) &&
+  typeof value.message === "string" &&
+  (typeof value.description === "undefined" || typeof value.description === "string") &&
+  (typeof value.placeholders === "undefined" ||
+    (isStringKeyedRecord(value.placeholders) &&
+      Object.values(value.placeholders).every(isPlaceholder)));
+
+const isMessageCatalog = (value: unknown): value is MessageCatalog =>
+  isStringKeyedRecord(value) && Object.values(value).every(isMessageDefinition);
+
 const parseCatalog = (value: unknown): MessageCatalog => {
-  if (!isStringKeyedRecord(value)) throw new Error("Invalid message catalog");
-  for (const definition of Object.values(value)) {
-    if (!isStringKeyedRecord(definition) || typeof definition.message !== "string") {
-      throw new Error("Invalid message definition");
-    }
-  }
-  return value as MessageCatalog;
+  if (!isMessageCatalog(value)) throw new Error("Invalid message catalog");
+  return value;
 };
 
 const formatMessage = (definition: MessageDefinition, substitutions?: Substitutions): string => {

@@ -105,19 +105,24 @@ test("ignores unsupported locale identifiers without loading extension resources
   expect(loadCatalog).not.toHaveBeenCalled();
 });
 
-test.each([null, [], { greeting: null }, { greeting: { message: 7 } }])(
-  "rejects malformed canonical catalogs and keeps native messages for %j",
-  async (catalog) => {
-    const localization = createLocalization({
-      nativeGetMessage: (key) => `native:${key}`,
-      loadCatalog: vi.fn(async () => catalog),
-    });
+test.each([
+  null,
+  [],
+  { greeting: null },
+  { greeting: { message: 7 } },
+  { greeting: { message: "Hello", description: 7 } },
+  { greeting: { message: "Hello", placeholders: [] } },
+  { greeting: { message: "Hello", placeholders: { name: { content: 7 } } } },
+])("rejects malformed canonical catalogs and keeps native messages for %j", async (catalog) => {
+  const localization = createLocalization({
+    nativeGetMessage: (key) => `native:${key}`,
+    loadCatalog: vi.fn(async () => catalog),
+  });
 
-    await localization.initialize("en");
+  await localization.initialize("en");
 
-    expect(localization.getMessage("greeting")).toBe("native:greeting");
-  },
-);
+  expect(localization.getMessage("greeting")).toBe("native:greeting");
+});
 
 test("preserves unknown placeholders and normalizes missing and numeric replacements", async () => {
   const localization = createLocalization({

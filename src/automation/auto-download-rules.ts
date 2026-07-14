@@ -7,6 +7,7 @@ import {
 import { toRootDomain } from "../shared/domain.ts";
 import type { PageSourceKind } from "../shared/page-source.ts";
 import type { SourceSpan } from "../shared/syntax-parser.ts";
+import { isStringMember } from "../shared/util.ts";
 
 export const AUTO_DOWNLOAD_PAGE_MATCHERS = ["pageurl", "pagedomain", "pagerootdomain"] as const;
 export const AUTO_DOWNLOAD_SOURCE_MATCHERS = [
@@ -79,11 +80,10 @@ const errorFor = (
 ): AutoDownloadRuleError => ({ code, message, error, location: sourceLocation(span) });
 
 const isMatcherName = (name: string): name is AutoDownloadMatcherName =>
-  AUTO_DOWNLOAD_MATCHERS.includes(name as AutoDownloadMatcherName);
-const isPageMatcher = (name: string): boolean =>
-  AUTO_DOWNLOAD_PAGE_MATCHERS.includes(name as (typeof AUTO_DOWNLOAD_PAGE_MATCHERS)[number]);
+  isStringMember(AUTO_DOWNLOAD_MATCHERS, name);
+const isPageMatcher = (name: string): boolean => isStringMember(AUTO_DOWNLOAD_PAGE_MATCHERS, name);
 const isSourceMatcher = (name: string): boolean =>
-  AUTO_DOWNLOAD_SOURCE_MATCHERS.includes(name as (typeof AUTO_DOWNLOAD_SOURCE_MATCHERS)[number]);
+  isStringMember(AUTO_DOWNLOAD_SOURCE_MATCHERS, name);
 const isMatchAll = (pattern: string): boolean =>
   [".*", "^.*$", ".+", "^.+$"].includes(pattern.trim());
 
