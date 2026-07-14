@@ -301,4 +301,60 @@ describe("SaveHistory", () => {
       }),
     ]);
   });
+
+  test("reports and rethrows a history read failure", async () => {
+    global.browser.storage.local.get = vi.fn(() => Promise.reject(new Error("read denied")));
+
+    await expect(SaveHistory.get()).rejects.toThrow("read denied");
+    expect(getPersistenceDiagnostics()).toEqual([
+      expect.objectContaining({ operation: "read", key: HISTORY_KEY }),
+    ]);
+  });
+
+  test("skips migration when a newer write already normalized the latest value", async () => {
+    const legacy = [{ timestamp: "2024-01-02", url: "https://old" }];
+    const normalized = [{ timestamp: "2024-01-02T00:00:00.000Z", url: "https://new" }];
+    global.browser.storage.local.get = vi
+      .fn()
+      .mockResolvedValueOnce({ [HISTORY_KEY]: legacy })
+      .mockResolvedValueOnce({ [HISTORY_KEY]: normalized });
+
+    await SaveHistory.get();
+
+    expect(global.browser.storage.local.set).not.toHaveBeenCalled();
+  });
+
+  test("contains a failed legacy migration write", async () => {
+    store[HISTORY_KEY] = [{ timestamp: "2024-01-02", url: "https://old" }];
+    global.browser.storage.local.set = vi.fn(() => Promise.reject(new Error("migration denied")));
+
+    await expect(SaveHistory.get()).resolves.toEqual([
+      expect.objectContaining({ timestamp: expect.stringContaining("T") }),
+    ]);
+    expect(getPersistenceDiagnostics()).toEqual([
+      expect.objectContaining({ operation: "migrate", key: HISTORY_KEY }),
+    ]);
+  });
+
+  test("clear rejects its caller but leaves the queue usable after remove fails", async () => {
+    global.browser.storage.local.remove = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("remove denied"))
+      .mockResolvedValueOnce(undefined);
+
+    await expect(SaveHistory.clear()).rejects.toThrow("remove denied");
+    await expect(SaveHistory.clear()).resolves.toBeUndefined();
+    await flushWrites();
+    expect(getPersistenceDiagnostics()).toEqual([
+      expect.objectContaining({ operation: "remove", key: HISTORY_KEY }),
+    ]);
+  });
+
+  test("clear recovers from an already rejected write queue", async () => {
+    SaveHistory.writeQueue = Promise.reject(new Error("earlier write failed"));
+
+    await expect(SaveHistory.clear()).resolves.toBeUndefined();
+
+    expect(global.browser.storage.local.remove).toHaveBeenCalledWith(HISTORY_KEY);
+  });
 });

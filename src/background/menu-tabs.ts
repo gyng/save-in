@@ -93,7 +93,7 @@ export const addTabMenuListener = () => {
         await backgroundRuntime.ready;
       }
 
-      let filter: (tab: HostTab) => boolean = () => false;
+      let filter: (tab: HostTab) => boolean = () => true;
       let query: Parameters<typeof webExtensionApi.tabs.query>[0] = {
         windowId: fromTab.windowId,
         windowType: "normal",
@@ -104,7 +104,6 @@ export const addTabMenuListener = () => {
           filter = (t) => t.id === fromTab.id;
           break;
         case MENU_IDS.TABSTRIP.SELECTED_MULTIPLE_TABS:
-          filter = () => true;
           query = Object.assign(query, { highlighted: true });
           break;
         case MENU_IDS.TABSTRIP.TO_RIGHT:
@@ -112,10 +111,7 @@ export const addTabMenuListener = () => {
           filter = (t) => t.index >= fromTab.index;
           break;
         case MENU_IDS.TABSTRIP.OPENED_FROM_TAB:
-          filter = () => true;
           query = Object.assign(query, { openerTabId: fromTab.id });
-          break;
-        default:
           break;
       }
 
@@ -123,7 +119,7 @@ export const addTabMenuListener = () => {
         const tabs = (await webExtensionApi.tabs.query(query))
           .filter(
             (tab): tab is HostTab & { url: string } =>
-              Boolean(tab.url) && !/^(about|chrome):/.test(tab.url || ""),
+              Boolean(tab.url) && !/^(about|chrome):/.test(tab.url!),
           )
           .filter(filter);
 

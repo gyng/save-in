@@ -4,8 +4,9 @@ export const matchPatternToRegExp = (pattern: string): RegExp | null => {
   const escapeRegExp = (value: string): string => value.replace(/[.+?^${}()|[\]\\]/g, "\\$&");
   const parts = pattern.match(/^(\*|https?|file|ftp):\/\/([^/]*)(\/.*)$/);
   if (!parts) return null;
-  const [, rawScheme, rawHost, rawPath] = parts;
-  if (rawScheme === undefined || rawHost === undefined || rawPath === undefined) return null;
+  const rawScheme = parts[1]!;
+  const rawHost = parts[2]!;
+  const rawPath = parts[3]!;
   const scheme = rawScheme === "*" ? "https?" : rawScheme;
   const host =
     rawHost === "*"
@@ -19,10 +20,4 @@ export const matchPatternToRegExp = (pattern: string): RegExp | null => {
 };
 
 export const matchesAnyPattern = (url: string, patterns: string): boolean =>
-  splitLines(patterns).some((pattern) => {
-    try {
-      return matchPatternToRegExp(pattern)?.test(url) === true;
-    } catch {
-      return false;
-    }
-  });
+  splitLines(patterns).some((pattern) => matchPatternToRegExp(pattern)?.test(url) === true);

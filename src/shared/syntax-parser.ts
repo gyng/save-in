@@ -186,7 +186,7 @@ export const choice =
       const result = parser(state);
       if (result.ok) return result as ParseSuccess<ParserValue<Parsers[number]>>;
       if (result.offset !== state.offset) return result;
-      if (!best || result.offset >= best.offset) best = result;
+      best = result;
     }
     return best ?? failure(state, "alternative");
   };

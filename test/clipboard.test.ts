@@ -24,3 +24,29 @@ test("click-to-copy delegates the element text", async () => {
 
   await vi.waitFor(() => expect(copy).toHaveBeenCalledWith(":filename:"));
 });
+
+test("click-to-copy contains clipboard failures and normalizes missing text", async () => {
+  const element = document.createElement("code");
+  Object.defineProperty(element, "textContent", { configurable: true, value: null });
+  const copy = vi.fn(() => Promise.reject(new Error("denied")));
+  addClickToCopy(element, copy);
+
+  element.click();
+
+  await vi.waitFor(() => expect(copy).toHaveBeenCalledWith(""));
+});
+
+test("automatically wires marked copy targets", async () => {
+  vi.resetModules();
+  document.body.innerHTML = '<code class="click-to-copy">automatic</code>';
+  const writeText = vi.fn(() => Promise.resolve());
+  Object.defineProperty(navigator, "clipboard", {
+    configurable: true,
+    value: { writeText },
+  });
+
+  await import("../src/options/click-to-copy.ts");
+  document.querySelector<HTMLElement>(".click-to-copy")!.click();
+
+  await vi.waitFor(() => expect(writeText).toHaveBeenCalledWith("automatic"));
+});

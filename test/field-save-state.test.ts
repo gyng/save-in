@@ -44,4 +44,15 @@ describe("per-field save state", () => {
     expect(state.anySaving()).toBe(false);
     expect(state.hasUnsaved()).toBe(true);
   });
+
+  test("clears dirty and in-flight state together", () => {
+    const state = createFieldSaveState();
+    state.markDirty("dirty");
+    state.begin("saving");
+
+    state.clear();
+
+    expect(state.hasUnsaved()).toBe(false);
+    expect(state.anySaving()).toBe(false);
+  });
 });

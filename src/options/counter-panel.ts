@@ -4,7 +4,7 @@ import { webExtensionApi } from "../platform/web-extension-api.ts";
 export const refreshCounterPanel = () =>
   webExtensionApi.storage.local.get(COUNTER_KEY).then((res) => {
     const valueEl = document.querySelector<HTMLInputElement>("#counter-value");
-    if (valueEl) valueEl.value = String((res && res[COUNTER_KEY]) || 0);
+    if (valueEl) valueEl.value = String(res[COUNTER_KEY] || 0);
   });
 
 export const parseCounterValue = (value: string): number | null => {

@@ -36,4 +36,12 @@ describe("respondAsync", () => {
       body: { status: "ERROR", error: "INTERNAL_ERROR" },
     });
   });
+
+  it("does not require an error-reporting callback", async () => {
+    const sendResponse = vi.fn();
+
+    respondAsync("CHECK_ROUTES", Promise.reject(new Error("failed")), sendResponse);
+
+    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalledOnce());
+  });
 });

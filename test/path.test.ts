@@ -233,6 +233,11 @@ describe("sanitizeFilename", () => {
     expect(Path.getFilenameDiagnostics(unicodeExtension, 12).exceedsLimit).toBe(false);
   });
 
+  test("falls back to ordinary truncation without a usable extension budget", () => {
+    expect(Path.sanitizeFilename("extensionless", 5, false, true)).toBe("exten");
+    expect(Path.sanitizeFilename("a.verylong", 3, false, true)).toBe("a.v");
+  });
+
   test("uses a safe stem when the extension fits but the first stem code point does not", () => {
     expect(Path.sanitizeFilename("界界界.txt", 5, true, true)).toBe("_.txt");
   });
@@ -321,6 +326,12 @@ describe("Path.validate", () => {
     expect(p.validate()).toEqual({ valid: false });
   });
 
+  test("an empty buffer is invalid", () => {
+    const p = new Path.Path("a");
+    p.buf = [];
+    expect(p.validate()).toEqual({ valid: false });
+  });
+
   test("'.'-prefixed paths are valid", () => {
     expect(new Path.Path("./sub").validate()).toEqual({ valid: true });
   });
@@ -366,6 +377,23 @@ describe("sanitizeBufStrings", () => {
     const seg = { type: undefined, val: "anything" };
     const out = Path.sanitizeBufStrings([seg]);
     expect(out[0]!).toBe(seg);
+  });
+
+  test("sanitizes strings according to their component position", () => {
+    const leadingDot = Path.stringSegment(".");
+    expect(Path.sanitizeBufStrings([leadingDot])[0]).toBe(leadingDot);
+    expect(Path.sanitizeBufStrings([Path.stringSegment(".hidden")])[0]?.val).toBe("_hidden");
+    expect(
+      Path.sanitizeBufStrings([
+        Path.stringSegment("folder"),
+        { type: PATH_SEGMENT_TYPES.SEPARATOR, val: "/" },
+        Path.stringSegment(".hidden"),
+      ])[2]?.val,
+    ).toBe("_hidden");
+    expect(
+      Path.sanitizeBufStrings([Path.stringSegment("prefix"), Path.stringSegment(".suffix")])[1]
+        ?.val,
+    ).toBe(".suffix");
   });
 });
 

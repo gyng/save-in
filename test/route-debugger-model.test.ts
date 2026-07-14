@@ -107,6 +107,25 @@ test("maps active trace rows past disabled source rules", () => {
   expect(summarizeRouteSource(source)).toEqual({ lines: 6, rules: 2, matchers: 2 });
 });
 
+test("leaves unmatched trace rows and clauses without source locations", () => {
+  const mapped = mapRouteTraceToSource("fileext: png\ninto: images/", {
+    ...trace,
+    rules: [
+      {
+        ...trace.rules[0]!,
+        clauses: [
+          ...trace.rules[0]!.clauses,
+          { name: "pagedomain", pattern: "example", matched: false },
+        ],
+      },
+      trace.rules[1]!,
+    ],
+  });
+
+  expect(mapped.rules[0]?.clauses[1]?.source).toBeUndefined();
+  expect(mapped.rules[1]?.source).toBeUndefined();
+});
+
 test("normalizes debugger fields into the routing engine input aliases", () => {
   expect(
     routeDebuggerInfo({

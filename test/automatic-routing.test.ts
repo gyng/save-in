@@ -3,6 +3,7 @@ import {
   matchAutomaticRoutingRule,
 } from "../src/automation/automatic-routing.ts";
 import { parseRulesCollecting } from "../src/routing/rule-parser.ts";
+import { isAutomaticRuleClauses } from "../src/routing/automatic-rule.ts";
 
 const candidate = {
   pageUrl: "https://gallery.example.test/post/42",
@@ -39,6 +40,11 @@ into: unsafe/
 `);
       expect(matchAutomaticRoutingRule(parsed.rules, candidate)).toBeNull();
     }
+  });
+
+  test("rejects malformed automatic-context expressions without throwing", () => {
+    expect(isAutomaticRuleClauses([{ name: "context", value: "auto[" }])).toBe(false);
+    expect(isAutomaticRuleClauses([{ name: "context", value: "^auto$", flags: "i" }])).toBe(true);
   });
 
   test.each([

@@ -1,7 +1,8 @@
+// @vitest-environment jsdom
 // Options-page host-permission banner: detect a missing <all_urls> grant and
 // offer a one-click request. The shared host is replaced here so
 // it's defined per test.
-import { PermissionsBanner } from "../src/options/permissions-banner.ts";
+import { PermissionsBanner, setupPermissionsBanner } from "../src/options/permissions-banner.ts";
 
 const makeEl = () => {
   const listeners: Record<string, any> = {};
@@ -104,5 +105,29 @@ describe("PermissionsBanner.init", () => {
     await PermissionsBanner.init(makeEl(), makeEl());
     expect(global.browser.permissions.onAdded.addListener).toHaveBeenCalled();
     expect(global.browser.permissions.onRemoved.addListener).toHaveBeenCalled();
+  });
+
+  test("works when request and permission-change events are unavailable", async () => {
+    (global.browser as any).permissions = {
+      contains: vi.fn(() => Promise.resolve(false)),
+    };
+    const banner = makeEl();
+    const button = makeEl();
+
+    await PermissionsBanner.init(banner, button);
+    button.click();
+
+    expect(banner.hidden).toBe(false);
+  });
+
+  test("wires the options-page banner elements", async () => {
+    document.body.innerHTML = `
+      <div id="host-permission-banner"></div>
+      <button id="host-permission-grant"></button>`;
+    withPerms(true);
+
+    await setupPermissionsBanner();
+
+    expect(document.querySelector<HTMLElement>("#host-permission-banner")!.hidden).toBe(true);
   });
 });

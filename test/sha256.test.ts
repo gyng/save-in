@@ -26,3 +26,21 @@ test("does not allow updates after finalization", () => {
 
   expect(() => hash.update(encode("d"))).toThrow("finalized");
 });
+
+test("fills a buffered block across updates and caches the digest", () => {
+  const hash = new Sha256();
+  hash.update(encode("a".repeat(10)));
+  hash.update(encode("b".repeat(54)));
+
+  const first = hash.hex();
+
+  expect(hash.hex()).toBe(first);
+  expect(first).toHaveLength(64);
+});
+
+test("uses a second final block when padding does not fit", () => {
+  const hash = new Sha256();
+  hash.update(encode("a".repeat(56)));
+
+  expect(hash.hex()).toBe("b35439a4ac6f0948b6d6f9e3c6af0f5f590ce20f1bde7090ef7970686ec6738a");
+});

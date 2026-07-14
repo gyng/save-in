@@ -42,6 +42,41 @@ describe("counter panel", () => {
     await refreshCounterPanel();
     expect(document.querySelector<HTMLInputElement>("#counter-value")?.value).toBe("8");
   });
+
+  test("validates edits and supports the keyboard without writing malformed values", async () => {
+    document.body.innerHTML =
+      '<input id="counter-value"><button id="counter-set"></button><button id="counter-reset"></button>';
+    vi.mocked(browser.storage.local.get).mockResolvedValue({});
+    vi.mocked(browser.storage.local.set).mockResolvedValue();
+    setupCounterPanel();
+    const input = document.querySelector<HTMLInputElement>("#counter-value")!;
+    const reportValidity = vi.spyOn(input, "reportValidity").mockReturnValue(false);
+    await vi.waitFor(() => expect(input.value).toBe("0"));
+
+    input.value = "-1";
+    input.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    expect(browser.storage.local.set).not.toHaveBeenCalled();
+    input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+    expect(reportValidity).toHaveBeenCalledOnce();
+    expect(input.validationMessage).toContain("whole number");
+
+    input.value = "9";
+    input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+    await vi.waitFor(() =>
+      expect(browser.storage.local.set).toHaveBeenCalledWith({ [COUNTER_KEY]: 9 }),
+    );
+    expect(input.validationMessage).toBe("");
+  });
+
+  test("does nothing until all controls exist and tolerates a refresh without an input", async () => {
+    document.body.innerHTML = '<input id="counter-value">';
+    setupCounterPanel();
+    expect(browser.storage.local.get).not.toHaveBeenCalled();
+
+    document.body.innerHTML = "";
+    vi.mocked(browser.storage.local.get).mockResolvedValue({});
+    await expect(refreshCounterPanel()).resolves.toBeUndefined();
+  });
 });
 
 describe("debug log panel", () => {
@@ -66,6 +101,30 @@ describe("debug log panel", () => {
     );
   });
 
+  test("ignores refreshes without a log field and non-array storage", async () => {
+    document.body.innerHTML = "";
+    await expect(updateDebugLog()).resolves.toBeUndefined();
+
+    document.body.innerHTML = '<textarea id="debug-log"></textarea>';
+    vi.mocked(browser.storage.session.get).mockResolvedValue({ [LOG_STORAGE_KEY]: "invalid" });
+    await updateDebugLog();
+    expect(document.querySelector<HTMLTextAreaElement>("#debug-log")!.value).toBe("");
+  });
+
+  test("formats null fields and contains a failed clear", async () => {
+    vi.mocked(browser.storage.session.get).mockResolvedValue({
+      [LOG_STORAGE_KEY]: [{ at: null, message: 7, data: false }],
+    });
+    vi.mocked(browser.storage.session.remove).mockRejectedValue(new Error("denied"));
+    setupDebugLogPanel();
+    await vi.waitFor(() =>
+      expect(document.querySelector<HTMLTextAreaElement>("#debug-log")!.value).toBe("7  false"),
+    );
+
+    document.querySelector<HTMLButtonElement>("#debug-log-clear")!.click();
+    await vi.waitFor(() => expect(browser.storage.session.remove).toHaveBeenCalled());
+  });
+
   test("refreshes after clearing and tolerates unavailable session storage", async () => {
     vi.mocked(browser.storage.session.get)
       .mockResolvedValueOnce({ [LOG_STORAGE_KEY]: [{ message: "old" }] })
@@ -82,6 +141,18 @@ describe("debug log panel", () => {
       ),
     );
     expect(browser.storage.session.remove).toHaveBeenCalledWith(LOG_STORAGE_KEY);
+  });
+
+  test("refreshes from the explicit refresh button", async () => {
+    vi.mocked(browser.storage.session.get).mockResolvedValue({
+      [LOG_STORAGE_KEY]: [{ message: "fresh" }],
+    });
+    setupDebugLogPanel();
+    vi.mocked(browser.storage.session.get).mockClear();
+
+    document.querySelector<HTMLButtonElement>("#debug-log-refresh")!.click();
+
+    await vi.waitFor(() => expect(browser.storage.session.get).toHaveBeenCalledOnce());
   });
 });
 
@@ -238,5 +309,30 @@ describe("reset options", () => {
     });
     document.querySelector<HTMLButtonElement>("#reset")!.click();
     expect(browser.storage.local.clear).not.toHaveBeenCalled();
+  });
+
+  test("reports a reset failure without restoring stale controls", async () => {
+    document.body.innerHTML = '<button id="reset"></button>';
+    vi.mocked(browser.storage.local.remove).mockRejectedValueOnce(new Error("storage denied"));
+    const restoreOptions = vi.fn();
+    const hostWindow = {
+      confirm: vi.fn(() => true),
+      alert: vi.fn(),
+    } as unknown as Window;
+    setupResetOptions({
+      restoreOptions,
+      updateErrors: vi.fn(),
+      getOptionNames: () => Promise.resolve(["paths"]),
+      window: hostWindow,
+    });
+
+    document.querySelector<HTMLButtonElement>("#reset")!.click();
+
+    await vi.waitFor(() =>
+      expect(hostWindow.alert).toHaveBeenCalledWith(
+        "Failed to reset settings: Error: storage denied",
+      ),
+    );
+    expect(restoreOptions).not.toHaveBeenCalled();
   });
 });

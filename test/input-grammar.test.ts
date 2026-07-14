@@ -101,6 +101,18 @@ describe("directory-line grammar", () => {
     });
   });
 
+  test("canonically repairs an invalid persisted line", () => {
+    const invalid = parsePathLineAst("old\npath").ast;
+    expect(invalid.cst.valid).toBe(false);
+
+    expect(
+      serializeDirectoryLine(
+        updateDirectoryLine(invalid, { depth: 2, path: "archive", comment: "repaired" }),
+      ),
+    ).toBe(">>archive // repaired");
+    expect(serializeDirectoryLine(updateDirectoryLine(invalid, {}))).toBe("");
+  });
+
   test.each(["", "   ", ">>>", "> // comment only"])(
     "reports a missing directory in %j",
     (source) => {
@@ -226,6 +238,10 @@ describe("routing-rule grammar", () => {
     expect(validateRoutingRuleSyntax("sourceurl: ok\nnot a clause\ninto: saved")).toEqual(
       parsed.issues,
     );
+
+    expect(parseRoutingRuleAst("filename/[ : jpg").issues).toEqual([
+      expect.objectContaining({ code: "bad-clause", column: 10 }),
+    ]);
   });
 
   test("preserves legacy whole-document whitespace normalization", () => {

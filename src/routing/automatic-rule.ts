@@ -18,10 +18,10 @@ type PatternClause = {
   flags?: string | undefined;
 };
 
-const patternParts = (clause: PatternClause): { source: string; flags: string } =>
+const patternParts = (clause: PatternClause): { source: string; flags: string | undefined } =>
   clause.value instanceof RegExp
     ? { source: clause.value.source, flags: clause.value.flags }
-    : { source: clause.value, flags: clause.flags ?? "" };
+    : { source: clause.value, flags: clause.flags };
 
 export const isAutomaticContextClause = (clause: PatternClause): boolean => {
   if (clause.name !== "context") return false;

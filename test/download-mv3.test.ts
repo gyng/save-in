@@ -11,7 +11,12 @@ global.TextEncoder = global.TextEncoder || TextEncoder;
 
 import { Download } from "../src/downloads/download.ts";
 import { OffscreenClient } from "../src/platform/offscreen-client.ts";
-import { makeUrlFromBlob, resolveContent } from "../src/downloads/content-fetch.ts";
+import {
+  fetchUrlForDownload,
+  makeUrlFromBlob,
+  resolveContent,
+} from "../src/downloads/content-fetch.ts";
+import { RefererRules } from "../src/downloads/referer-rules.ts";
 
 const decodeDataUrl = (url: string) => {
   const [meta, b64] = url.split(",");
@@ -198,6 +203,13 @@ describe("offscreen document fetch (Chrome MV3)", () => {
     await expect(OffscreenClient.fetch("https://x/a", "omit")).resolves.toBe("blob:offscreen-url");
   });
 
+  test("preserves a create failure when no racing document appeared", async () => {
+    global.chrome.runtime.getContexts = vi.fn(() => Promise.resolve([])) as any;
+    global.chrome.offscreen.createDocument = vi.fn(() => Promise.reject(new Error("denied")));
+
+    await expect(OffscreenClient.ensure()).rejects.toThrow("denied");
+  });
+
   test("deduplicates concurrent offscreen-document creation", async () => {
     let resolvePending!: () => void;
     const pending = new Promise<void>((resolve) => {
@@ -222,6 +234,13 @@ describe("offscreen document fetch (Chrome MV3)", () => {
   test("rejects when the offscreen fetch reports an error", async () => {
     global.chrome.runtime.sendMessage = vi.fn(() => Promise.resolve({ error: "HTTP 403" }));
     await expect(OffscreenClient.fetch("https://x/a", "omit")).rejects.toThrow("HTTP 403");
+  });
+
+  test("uses a generic error for an empty offscreen response", async () => {
+    global.chrome.runtime.sendMessage = vi.fn(() => Promise.resolve({}));
+    await expect(OffscreenClient.fetch("https://x/a", "omit")).rejects.toThrow(
+      "offscreen fetch failed",
+    );
   });
 
   test("resolveContent fetches once via offscreen, returning hash + download URL", async () => {
@@ -301,6 +320,109 @@ describe("offscreen document fetch (Chrome MV3)", () => {
       downloadUrl: "blob:offscreen-url",
       offscreenRequestId: expect.any(String),
     });
+  });
+
+  test("uses the direct fetch path with cancellation and Referer protection", async () => {
+    URL.createObjectURL = vi.fn(() => "blob:direct");
+    const controller = new AbortController();
+    const fetcher = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(new Response("content", { status: 200 }));
+    const withReferer = vi
+      .spyOn(RefererRules, "withReferer")
+      .mockImplementation(async (_url, _referer, operation) => operation());
+
+    await expect(
+      resolveContent(
+        "https://x/direct",
+        false,
+        controller.signal,
+        "direct-request",
+        "https://x/page",
+      ),
+    ).resolves.toMatchObject({ downloadUrl: "blob:direct", ownedObjectUrl: "blob:direct" });
+    expect(fetcher).toHaveBeenCalledWith(
+      "https://x/direct",
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
+    expect(withReferer).toHaveBeenCalled();
+  });
+
+  test("returns null for a direct HTTP failure", async () => {
+    URL.createObjectURL = vi.fn(() => "blob:unused");
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response("denied", { status: 403 }));
+
+    await expect(resolveContent("https://x/denied")).resolves.toBeNull();
+  });
+
+  test("fetches a download directly as a data URL with Referer protection", async () => {
+    (global.chrome as any).offscreen = undefined;
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response("download", { status: 200 }));
+    const withReferer = vi
+      .spyOn(RefererRules, "withReferer")
+      .mockImplementation(async (_url, _referer, operation) => operation());
+
+    const controller = new AbortController();
+    const content = await fetchUrlForDownload(
+      "https://x/download",
+      false,
+      controller.signal,
+      "download-request",
+      "https://x/page",
+    );
+
+    expect(content.downloadUrl).toMatch(/^data:/);
+    expect(content).not.toHaveProperty("ownedObjectUrl");
+    expect(withReferer).toHaveBeenCalled();
+  });
+
+  test("fetches an offscreen download without an AbortSignal", async () => {
+    global.chrome.runtime.sendMessage = vi.fn(() =>
+      Promise.resolve({ blobUrl: "blob:offscreen-download" }),
+    );
+
+    await expect(
+      fetchUrlForDownload("https://x/offscreen", false, undefined, "offscreen-download"),
+    ).resolves.toEqual({
+      sha256: "",
+      downloadUrl: "blob:offscreen-download",
+      offscreenRequestId: "offscreen-download",
+    });
+  });
+
+  test("contains cancel failure while reporting an abort without a host reason", async () => {
+    vi.spyOn(OffscreenClient, "cancel").mockRejectedValueOnce(new Error("cancel failed"));
+    const signal = {
+      aborted: true,
+      reason: undefined,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    } as unknown as AbortSignal;
+
+    await expect(
+      OffscreenClient.fetchContent("https://x/a", "omit", { signal, requestId: "no-reason" }),
+    ).rejects.toMatchObject({ name: "AbortError" });
+  });
+
+  test("contains release failure when an abort races an offscreen response", async () => {
+    let abortReads = 0;
+    const signal = {
+      get aborted() {
+        abortReads += 1;
+        return abortReads >= 3;
+      },
+      reason: undefined,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    } as unknown as AbortSignal;
+    vi.spyOn(OffscreenClient, "release").mockRejectedValueOnce(new Error("release failed"));
+    global.chrome.runtime.sendMessage = vi.fn(() =>
+      Promise.resolve({ blobUrl: "blob:late-response" }),
+    );
+
+    await expect(
+      OffscreenClient.fetchContent("https://x/a", "omit", { signal, requestId: "late" }),
+    ).rejects.toMatchObject({ name: "AbortError" });
   });
 });
 

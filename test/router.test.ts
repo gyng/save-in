@@ -128,6 +128,13 @@ describe("filename rewrite and routing", () => {
       setCurrentTab({ title: "some title" });
     });
 
+    test("pagetitle does not fall back when an explicit tab is absent", () => {
+      const matcher = router.matcherFunctions.pagetitle(/.*/);
+
+      expect(matcher({ currentTab: null })).toBeNull();
+      expect(matcher({ currentTab: {} })).toBeNull();
+    });
+
     test("debug matching does not emit private routing metadata", () => {
       const logDebug = vi.fn();
       configureRoutingPorts({ isDebug: () => true, logDebug });
@@ -314,6 +321,24 @@ describe("filename rewrite and routing", () => {
       expect(expectMatch(router.matcherFunctions.naivefilename(/cat\.jpg/)(normalized))[0]).toBe(
         "cat.jpg",
       );
+    });
+
+    test("domain and MIME matchers reject absent normalized values", () => {
+      expect(router.matcherFunctions.pagerootdomain(/.*/)({ pageUrl: "file:///tmp/a" })).toBeNull();
+      expect(router.matcherFunctions.mime(/.*/)({})).toBe(false);
+    });
+
+    test("URL and actual extension matchers cover every source fallback", () => {
+      const urlExtension = router.matcherFunctions.urlfileext(/^jpg$/);
+      expect(urlExtension({ sourceUrl: "https://x/source.jpg" })).toBeTruthy();
+      expect(urlExtension({ srcUrl: "https://x/src.jpg" })).toBeTruthy();
+      expect(urlExtension({ linkUrl: "https://x/link.jpg" })).toBeTruthy();
+      expect(urlExtension({ pageUrl: "https://x/page.jpg" })).toBeTruthy();
+      expect(urlExtension({})).toBe(false);
+      expect(
+        router.matcherFunctions.urlfileext(/^$/)({ url: "https://x/no-extension" }),
+      ).toBeTruthy();
+      expect(router.matcherFunctions.actualfileext(/.*/)({})).toBe(false);
     });
 
     test("context matches case-insensitively", () => {
@@ -648,6 +673,31 @@ describe("filename rewrite and routing", () => {
       } finally {
         options.truncateLength = previous;
       }
+    });
+
+    test("traces a defensive matcher-only rule without inventing a destination", async () => {
+      const matcherOnly = [
+        {
+          type: constants.RULE_TYPES.MATCHER,
+          name: "filename",
+          value: ".*",
+          matcher: () => ["file"] as unknown as RegExpMatchArray,
+        },
+      ] as unknown as RoutingRule;
+
+      const trace = await router.traceRules([matcherOnly], { filename: "file.txt" });
+
+      expect(trace.destination).toBeNull();
+      expect(trace.sanitizedDestination).toBeNull();
+      expect(trace.rules[0]?.destination).toBe("");
+    });
+
+    test("ignores a non-string capture declaration from a stale caller", () => {
+      const rule = [
+        { type: constants.RULE_TYPES.CAPTURE, name: "capture", value: 42 },
+      ] as unknown as RoutingRule;
+
+      expect(router.getCaptureMatches(rule, {})).toBeNull();
     });
   });
 

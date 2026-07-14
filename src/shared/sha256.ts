@@ -77,18 +77,18 @@ export class Sha256 {
     for (let index = 0; index < 16; index += 1) {
       const position = offset + index * 4;
       words[index] =
-        (((chunk[position] ?? 0) << 24) |
-          ((chunk[position + 1] ?? 0) << 16) |
-          ((chunk[position + 2] ?? 0) << 8) |
-          (chunk[position + 3] ?? 0)) >>>
+        ((chunk[position]! << 24) |
+          (chunk[position + 1]! << 16) |
+          (chunk[position + 2]! << 8) |
+          chunk[position + 3]!) >>>
         0;
     }
     for (let index = 16; index < 64; index += 1) {
-      const before15 = words[index - 15] ?? 0;
-      const before2 = words[index - 2] ?? 0;
+      const before15 = words[index - 15]!;
+      const before2 = words[index - 2]!;
       const sigma0 = rotateRight(before15, 7) ^ rotateRight(before15, 18) ^ (before15 >>> 3);
       const sigma1 = rotateRight(before2, 17) ^ rotateRight(before2, 19) ^ (before2 >>> 10);
-      words[index] = ((words[index - 16] ?? 0) + sigma0 + (words[index - 7] ?? 0) + sigma1) >>> 0;
+      words[index] = (words[index - 16]! + sigma0 + words[index - 7]! + sigma1) >>> 0;
     }
 
     let [a, b, c, d, e, f, g, h] = this.#state;

@@ -290,7 +290,7 @@ export const updateDirectoryLine = (
               text: "",
             },
       );
-    } else if (update.comment) {
+    } else {
       const separator = node.cst.pathTrailingTrivia.raw ? "" : " ";
       edits.push({
         span: sourceSpan(node.raw, node.raw.length, node.raw.length),

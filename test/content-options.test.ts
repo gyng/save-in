@@ -4,6 +4,7 @@ import {
   resolveContentOptions,
 } from "../src/config/content-options.ts";
 import { OPTION_KEYS } from "../src/config/option-schema.ts";
+import { CONTENT_FEATURE_OPTION_DEFINITIONS } from "../src/config/content-option-schema.ts";
 
 test("content option definitions stay aligned with the background schema", () => {
   const schema = new Map(OPTION_KEYS.map((definition) => [definition.name, definition.default]));
@@ -11,6 +12,27 @@ test("content option definitions stay aligned with the background schema", () =>
   CONTENT_OPTION_KEYS.forEach((name) => {
     expect(schema.get(name)).toBe(CONTENT_OPTION_DEFAULTS[name]);
   });
+});
+
+test("content schema normalizes legacy automatic rules and shortcut keycodes", () => {
+  const automatic = CONTENT_FEATURE_OPTION_DEFINITIONS.find(
+    ({ name }) => name === "autoDownloadRules",
+  )! as Extract<(typeof CONTENT_FEATURE_OPTION_DEFINITIONS)[number], { name: "autoDownloadRules" }>;
+  const combo = CONTENT_FEATURE_OPTION_DEFINITIONS.find(
+    ({ name }) => name === "contentClickToSaveCombo",
+  )! as Extract<
+    (typeof CONTENT_FEATURE_OPTION_DEFINITIONS)[number],
+    { name: "contentClickToSaveCombo" }
+  >;
+
+  expect("onSave" in automatic && automatic.onSave("  pageurl: example  ")).toBe(
+    "pageurl: example",
+  );
+  expect(
+    "onLoad" in automatic &&
+      automatic.onLoad("pageurl: example\nsourcekind: image\ninto: automatic/").length,
+  ).toBe(1);
+  expect("onLoad" in combo && combo.onLoad(18)).toBe(18);
 });
 
 test("normalizes malformed values and preserves legacy numeric shortcut keycodes", () => {
@@ -27,6 +49,7 @@ test("normalizes malformed values and preserves legacy numeric shortcut keycodes
     contentClickToSaveCombo: 18,
     sourcePanelEnabled: true,
   });
+  expect(resolveContentOptions("invalid")).toEqual(CONTENT_OPTION_DEFAULTS);
 });
 
 test("falls back safely when a stored shortcut string contains unknown keys", () => {
@@ -47,6 +70,10 @@ test("falls back safely when a stored shortcut string contains unknown keys", ()
   expect(resolveContentOptions({ contentClickToSaveCombo: "90" }).contentClickToSaveCombo).toBe(
     "90",
   );
+  expect(
+    resolveContentOptions({ contentClickToSaveCombo: Number.POSITIVE_INFINITY })
+      .contentClickToSaveCombo,
+  ).toBe(CONTENT_OPTION_DEFAULTS.contentClickToSaveCombo);
 
   const comboDefinition = OPTION_KEYS.find(({ name }) => name === "contentClickToSaveCombo")!;
   expect("validate" in comboDefinition && comboDefinition.validate("garbage")).toBe(false);

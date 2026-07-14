@@ -120,6 +120,15 @@ describe("webhook payload", () => {
 });
 
 describe("webhook delivery", () => {
+  test("rejects an unsafe endpoint before starting a request", async () => {
+    const fetcher = vi.fn();
+
+    await expect(
+      postWebhook("http://hooks.example/save", createTestWebhookPayload(), { fetcher }),
+    ).rejects.toThrow("HTTPS");
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
   test("posts JSON without credentials, referrer, redirects, or response-body reads", async () => {
     const response = { ok: true, status: 204, text: vi.fn() };
     const fetcher = vi.fn(async () => response);

@@ -334,6 +334,25 @@ describe("menu creation", () => {
         enabled: true,
       });
     });
+
+    test("retains last-used state when persistence is temporarily unavailable", async () => {
+      vi.mocked(global.browser.storage.local.set).mockRejectedValueOnce(new Error("quota"));
+
+      await expect(
+        menu.setLastUsed("offline", { title: "Offline folder" }),
+      ).resolves.toBeUndefined();
+
+      expect(menu.menuState.lastUsedPath).toBe("offline");
+      expect(menu.menuState.lastUsedMeta).toEqual({ title: "Offline folder" });
+    });
+  });
+
+  test("uses readable source-panel copy when localization is unavailable", () => {
+    vi.mocked(global.browser.i18n.getMessage).mockReturnValueOnce("");
+
+    menu.addSourcePanel(["page"]);
+
+    expect(created().at(-1)?.title).toBe("Toggle Page Sources");
   });
 
   describe("addPaths", () => {
@@ -577,6 +596,18 @@ describe("menu creation", () => {
       expect(global.browser.contextMenus.update).toHaveBeenCalledTimes(1);
     });
 
+    test("contains failed initialization and menu-title updates", async () => {
+      backgroundRuntime.ready = Promise.reject(new Error("startup failed"));
+      vi.mocked(global.browser.contextMenus.update).mockRejectedValueOnce(new Error("menu gone"));
+
+      await highlightListener({ tabIds: [4, 8] });
+      expect(global.browser.contextMenus.update).not.toHaveBeenCalled();
+
+      backgroundRuntime.ready = Promise.resolve();
+      await highlightListener({ tabIds: [4, 8] });
+      expect(global.browser.contextMenus.update).toHaveBeenCalledOnce();
+    });
+
     test("does nothing when tab menus are disabled", () => {
       options.tabEnabled = false;
 
@@ -712,6 +743,12 @@ describe("buildTree", () => {
         error: "<invalid>",
         parentId: menu.IDS.ROOT,
       },
+    ]);
+  });
+
+  test("reports a syntactically missing nested path", () => {
+    expect(menu.buildTree([">"]).errors).toEqual([
+      expect.objectContaining({ error: ">", message: "Invalid path" }),
     ]);
   });
 

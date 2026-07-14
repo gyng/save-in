@@ -27,6 +27,15 @@ describe("persistence diagnostics", () => {
     expect(failures[0]!.at).toMatch(/^\d{4}-\d{2}-\d{2}T/);
   });
 
+  test("bounds individual diagnostic errors", () => {
+    recordPersistenceFailure(
+      { area: "session", operation: "migrate", key: "legacy" },
+      "x".repeat(501),
+    );
+
+    expect(getPersistenceDiagnostics()[0]!.error).toBe(`${"x".repeat(500)}…`);
+  });
+
   test("session failures remain non-fatal but are observable", async () => {
     const storage = {
       get: vi.fn(() => Promise.reject(new Error("read denied"))),

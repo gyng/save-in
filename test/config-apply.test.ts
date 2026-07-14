@@ -66,3 +66,15 @@ test("rejects unsafe automatic rules before writing configuration", async () => 
   expect(storage.set).not.toHaveBeenCalled();
   expect(reset).not.toHaveBeenCalled();
 });
+
+test("continues serialized writes after an earlier write rejected", async () => {
+  const storage = { get: vi.fn(), set: vi.fn(() => Promise.resolve()) };
+  const reset = vi.fn(() => Promise.resolve());
+  const state = { queue: Promise.reject(new Error("previous write failed")) as Promise<unknown> };
+
+  await expect(
+    applyConfigSerialized(state, storage, { paths: "images" }, undefined, reset),
+  ).resolves.toEqual({ applied: { paths: "images" }, rejected: [] });
+  expect(storage.set).toHaveBeenCalledWith({ paths: "images" });
+  expect(reset).toHaveBeenCalledOnce();
+});

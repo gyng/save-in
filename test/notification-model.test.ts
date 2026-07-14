@@ -18,6 +18,7 @@ describe("notification model", () => {
     expect(getDownloadFailure({ error: { current: "NETWORK_FAILED" } }, true)).toEqual({
       current: "NETWORK_FAILED",
     });
+    expect(getDownloadFailure({}, true)).toBe(false);
   });
 
   test.each([
@@ -41,6 +42,7 @@ describe("notification model", () => {
   test("defines retry policy and failure reasons", () => {
     expect(isRetryableDownloadFailure({ current: "SERVER_UNREACHABLE" })).toBe(true);
     expect(isRetryableDownloadFailure({ current: "FILE_FAILED" })).toBe(false);
+    expect(isRetryableDownloadFailure({})).toBe(false);
     expect(isRetryableDownloadFailure("SERVER_FAILED")).toBe(false);
     expect(downloadFailureReason({ current: "NETWORK_FAILED" })).toBe("NETWORK_FAILED");
     expect(downloadFailureReason("SERVER_FAILED")).toBe("SERVER_FAILED");

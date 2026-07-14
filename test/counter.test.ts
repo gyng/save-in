@@ -60,6 +60,13 @@ describe("Counter", () => {
     expect(await peekCounter(browser.storage.local)).toBe(1);
   });
 
+  test("a private counter starts from persisted state after a worker restart", async () => {
+    await browser.storage.local.set({ "save-in-counter": 7 });
+
+    expect(await nextPrivateCounter(writes, browser.storage.local)).toBe(8);
+    expect(browser.storage.local.set).toHaveBeenCalledOnce();
+  });
+
   test("a regular counter advances past values used privately", async () => {
     expect(await nextCounter(writes, browser.storage.local)).toBe(1);
     expect(await nextPrivateCounter(writes, browser.storage.local)).toBe(2);

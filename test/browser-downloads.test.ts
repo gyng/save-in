@@ -1,6 +1,7 @@
 import { Path } from "../src/routing/path.ts";
 import { matchRules, parseRules } from "../src/routing/router.ts";
 import {
+  BrowserDownloadRouting,
   createBrowserDownloadState,
   isOrdinaryBrowserDownload,
   isReroutableBrowserDownload,
@@ -20,6 +21,13 @@ test("Firefox replacement routing accepts only HTTP(S) downloads", () => {
   expect(isReroutableBrowserDownload({ url: "https://example.com/a", filename: "a" })).toBe(true);
   expect(isReroutableBrowserDownload({ url: "blob:private", filename: "a" })).toBe(false);
   expect(isReroutableBrowserDownload({ url: "data:text/plain,x", filename: "a" })).toBe(false);
+  expect(isReroutableBrowserDownload({ url: "not a URL", filename: "a" })).toBe(false);
+});
+
+test("the unconfigured browser-download router leaves downloads untouched", async () => {
+  await expect(
+    BrowserDownloadRouting.route({ url: "https://example.test/file", filename: "file" }),
+  ).resolves.toBeNull();
 });
 
 describe("browser download URL filter", () => {
@@ -83,6 +91,30 @@ describe("browser download routing", () => {
 
     const rules = parseRules("fileext: jpg\ninto: matched/:filename:");
     expect(matchRules(rules, state.info)).toBe("matched/:filename:");
+  });
+
+  test("normalizes final URLs, metadata, and degenerate filenames", () => {
+    const state = createBrowserDownloadState({
+      url: "https://example.test/original",
+      finalUrl: "https://cdn.example.test/final",
+      filename: "\\",
+      mime: "IMAGE/PNG; charset=binary",
+      referrer: "https://example.test/page",
+    });
+
+    expect(state.info).toMatchObject({
+      url: "https://cdn.example.test/final",
+      sourceUrl: "https://cdn.example.test/final",
+      filename: "\\",
+      mime: "image/png",
+      referrerUrl: "https://example.test/page",
+    });
+    expect(
+      createBrowserDownloadState({
+        url: "https://example.test/fallback-name",
+        filename: "",
+      }).info.filename,
+    ).toBe("fallback-name");
   });
 
   test("leaves unmatched downloads untouched", async () => {

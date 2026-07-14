@@ -19,3 +19,24 @@ test.each([
   await expect(result).resolves.toBe(expected);
   expect(document.querySelector("dialog")).toBeNull();
 });
+
+test("keeps editing when the modal is canceled", async () => {
+  const showModal = vi.fn();
+  Object.defineProperty(HTMLDialogElement.prototype, "showModal", {
+    configurable: true,
+    value: showModal,
+  });
+  try {
+    const result = showUnsavedChangesDialog("Keep these edits?");
+    const dialog = document.querySelector("dialog")!;
+    const cancel = new Event("cancel", { cancelable: true });
+
+    dialog.dispatchEvent(cancel);
+
+    expect(cancel.defaultPrevented).toBe(true);
+    expect(showModal).toHaveBeenCalledOnce();
+    await expect(result).resolves.toBe("keep");
+  } finally {
+    Reflect.deleteProperty(HTMLDialogElement.prototype, "showModal");
+  }
+});

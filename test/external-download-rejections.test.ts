@@ -66,3 +66,60 @@ test("clears one approved caller without removing other rejections", async () =>
 
   expect((await rejections.get()).map(({ senderId }) => senderId)).toEqual(["keep-extension"]);
 });
+
+test("contains storage failures and ignores an unidentified caller", async () => {
+  const storage = {
+    get: vi.fn(() => Promise.reject(new Error("read denied"))),
+    set: vi.fn(() => Promise.reject(new Error("write denied"))),
+  };
+  const rejections = createExternalDownloadRejections(storage);
+
+  await expect(rejections.record("", {})).resolves.toBeUndefined();
+  await expect(rejections.record("blocked", {})).resolves.toBeUndefined();
+  await expect(rejections.get()).resolves.toEqual([]);
+
+  expect(storage.set).toHaveBeenCalledWith({
+    externalDownloadRejections: [
+      expect.objectContaining({ senderId: "blocked", requestType: "unknown" }),
+    ],
+  });
+});
+
+test("recovers its queue after request metadata construction fails", async () => {
+  const storage = createStorage();
+  const now = vi
+    .fn<() => Date>()
+    .mockImplementationOnce(() => {
+      throw new Error("clock failed");
+    })
+    .mockReturnValue(new Date("2026-07-14T00:00:00.000Z"));
+  const rejections = createExternalDownloadRejections(storage, now);
+
+  await expect(rejections.record("first", {})).rejects.toThrow("clock failed");
+  await expect(rejections.get()).resolves.toEqual([]);
+  await expect(rejections.record("second", {})).resolves.toBeUndefined();
+  await expect(rejections.get()).resolves.toEqual([
+    expect.objectContaining({ senderId: "second", requestType: "unknown" }),
+  ]);
+});
+
+test("saturates the rejection attempt count", async () => {
+  const storage = createStorage({
+    externalDownloadRejections: [
+      {
+        senderId: "persistent",
+        attempts: Number.MAX_SAFE_INTEGER,
+        lastRejectedAt: "2026-07-13T00:00:00.000Z",
+        requestType: "url",
+      },
+    ],
+  });
+  const rejections = createExternalDownloadRejections(
+    storage,
+    () => new Date("2026-07-14T00:00:00.000Z"),
+  );
+
+  await rejections.record("persistent", { url: "https://example.test" });
+
+  expect((await rejections.get())[0]?.attempts).toBe(Number.MAX_SAFE_INTEGER);
+});

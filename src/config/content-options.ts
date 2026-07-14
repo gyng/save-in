@@ -23,6 +23,7 @@ const CONTENT_CLICK_COMBO_KEY_CODES: Record<string, number> = {
   super: 91,
 };
 const DEFAULT_CONTENT_CLICK_COMBO = "Alt";
+const DEFAULT_CONTENT_CLICK_COMBO_KEY_CODE = CONTENT_CLICK_COMBO_KEY_CODES.alt!;
 
 const contentClickComboParts = (value: string | number): string[] | null => {
   if (typeof value === "number") return Number.isFinite(value) ? [String(value)] : null;
@@ -50,8 +51,7 @@ export const contentClickComboToKeyCodes = (
   // button-only. The normalizer uses the same parser, but this also keeps the
   // exported input helper safe when called directly.
   if (parts === null) {
-    const fallback = CONTENT_CLICK_COMBO_KEY_CODES[DEFAULT_CONTENT_CLICK_COMBO.toLocaleLowerCase()];
-    return fallback === undefined ? [] : [fallback];
+    return [DEFAULT_CONTENT_CLICK_COMBO_KEY_CODE];
   }
   return parts
     .map((part) => CONTENT_CLICK_COMBO_KEY_CODES[part] ?? Number(part))

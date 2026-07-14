@@ -51,3 +51,33 @@ test("clears stale popover accessibility state after the change is dismissed", (
   expect(status.hasAttribute("aria-describedby")).toBe(false);
   expect(status.hasAttribute("tabindex")).toBe(false);
 });
+
+test("summarizes multiple value shapes and uses a retryable fallback for unknown failures", async () => {
+  document.body.innerHTML = `
+    <div class="save-status"><span id="lastSavedAt">never</span></div>`;
+  markSavedNow(
+    [
+      { name: "emptyValue", before: null, after: "" },
+      { name: "structuredValue", before: { enabled: true }, after: "x".repeat(60) },
+    ],
+    () => {
+      throw "denied";
+    },
+  );
+
+  const popover = document.querySelector<HTMLElement>(".saved-change-popover")!;
+  expect(popover.textContent).toContain("2 settings updated");
+  expect(popover.textContent).toContain("None → None");
+  expect(popover.textContent).toContain('{"enabled":true}');
+  expect(popover.textContent).toContain("…");
+  const undo = document.querySelector<HTMLButtonElement>(".saved-change-undo")!;
+  undo.click();
+  await vi.waitFor(() => expect(undo.disabled).toBe(false));
+  expect(undo.textContent).toBe("Undo failed — select to retry");
+});
+
+test("does nothing when the page has no saved-time indicator", () => {
+  document.body.innerHTML = '<div class="save-status"></div>';
+  markSavedNow([{ name: "prompt", before: false, after: true }]);
+  expect(document.querySelector(".saved-change-popover")).toBeNull();
+});

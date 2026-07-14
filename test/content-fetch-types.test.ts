@@ -33,6 +33,7 @@ describe("offscreen message runtime validation", () => {
     [],
     { type: "OFFSCREEN_FETCH", url: 42 },
     { type: "OTHER", url: "https://x/image.png" },
+    { type: "OFFSCREEN_FETCH", url: "https://x/image.png", requestId: 42 },
     { type: "OFFSCREEN_FETCH", url: "https://x/image.png", maxBytes: -1 },
     { type: "OFFSCREEN_FETCH", url: "https://x/image.png", maxBytes: Number.NaN },
     { type: "OFFSCREEN_FETCH", url: "https://x/image.png", credentials: "same-origin" },

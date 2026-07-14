@@ -88,6 +88,12 @@ describe("addTabMenuListener tabstrip downloads", () => {
     expect(state.path.raw).toBe(".");
   });
 
+  test("preserves modifier metadata from tab-strip clicks", async () => {
+    await listener({ menuItemId: Menus.IDS.TABSTRIP.SELECTED_TAB, modifiers: ["Shift"] }, fromTab);
+
+    expect(downloads()[0]!.info.modifiers).toEqual(["Shift"]);
+  });
+
   test("SELECTED_TAB includes an explicitly selected pinned tab", async () => {
     (global.browser.tabs as any).query = vi.fn((query: { pinned?: boolean }) =>
       Promise.resolve(
@@ -222,6 +228,18 @@ describe("addTabMenuListener tabstrip downloads", () => {
     expect(global.browser.tabs.remove).not.toHaveBeenCalled();
   });
 
+  test("closeTabOnSave skips a host tab without an id", async () => {
+    options.closeTabOnSave = true;
+    (global.browser.tabs as any).query = vi.fn(() =>
+      Promise.resolve([{ index: 0, url: "https://no-id.test/", title: "No id" }]),
+    );
+
+    await listener({ menuItemId: Menus.IDS.TABSTRIP.SELECTED_MULTIPLE_TABS }, fromTab);
+
+    expect(downloads()).toHaveLength(1);
+    expect(global.browser.tabs.remove).not.toHaveBeenCalled();
+  });
+
   test("a tab-close failure does not abort the remaining batch", async () => {
     options.closeTabOnSave = true;
     vi.mocked(global.browser.tabs.remove).mockRejectedValueOnce(new Error("tab already closed"));
@@ -230,5 +248,14 @@ describe("addTabMenuListener tabstrip downloads", () => {
 
     expect(downloads().map((s: any) => s.info.currentTab.id)).toEqual([1, 2]);
     expect(global.browser.tabs.remove).toHaveBeenCalledTimes(2);
+  });
+
+  test("contains a tab query failure", async () => {
+    vi.mocked(global.browser.tabs.query).mockRejectedValueOnce(new Error("window closed"));
+
+    await expect(
+      listener({ menuItemId: Menus.IDS.TABSTRIP.SELECTED_TAB }, fromTab),
+    ).resolves.toBeUndefined();
+    expect(downloads()).toHaveLength(0);
   });
 });

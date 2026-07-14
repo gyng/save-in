@@ -67,6 +67,9 @@ describe("matchPatternToRegExp", () => {
     const subdomains = RequestHeaders.matchPatternToRegExp("*://*.example.com/*")!;
     expect(subdomains.test("https://example.com/x")).toBe(true);
     expect(subdomains.test("https://a.example.com/x")).toBe(true);
+    expect(RequestHeaders.matchPatternToRegExp("file:///*")?.test("file:///tmp/image.png")).toBe(
+      true,
+    );
   });
 
   test("ignores explicit ports as WebExtension match patterns do", () => {
@@ -133,6 +136,16 @@ describe("getDownloadHeaders", () => {
     expect(
       RequestHeaders.getDownloadHeaders({
         info: { url: "https://example.com/a", pageUrl: state.info.pageUrl },
+      }),
+    ).toBeUndefined();
+    expect(
+      RequestHeaders.getDownloadHeaders({
+        info: { url: state.info.url, pageUrl: "ftp://example.com/private" },
+      }),
+    ).toBeUndefined();
+    expect(
+      RequestHeaders.getDownloadHeaders({
+        info: { url: state.info.url, pageUrl: "not a URL" },
       }),
     ).toBeUndefined();
   });

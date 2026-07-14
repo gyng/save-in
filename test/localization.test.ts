@@ -1,4 +1,8 @@
-import { createLocalization } from "../src/platform/localization.ts";
+import {
+  createLocalization,
+  getMessage,
+  initializeLocalization,
+} from "../src/platform/localization.ts";
 
 const english = {
   greeting: { message: "Hello" },
@@ -99,4 +103,52 @@ test("ignores unsupported locale identifiers without loading extension resources
   await localization.initialize("../../remote");
 
   expect(loadCatalog).not.toHaveBeenCalled();
+});
+
+test.each([null, [], { greeting: null }, { greeting: { message: 7 } }])(
+  "rejects malformed canonical catalogs and keeps native messages for %j",
+  async (catalog) => {
+    const localization = createLocalization({
+      nativeGetMessage: (key) => `native:${key}`,
+      loadCatalog: vi.fn(async () => catalog),
+    });
+
+    await localization.initialize("en");
+
+    expect(localization.getMessage("greeting")).toBe("native:greeting");
+  },
+);
+
+test("preserves unknown placeholders and normalizes missing and numeric replacements", async () => {
+  const localization = createLocalization({
+    nativeGetMessage: (key) => key,
+    loadCatalog: vi.fn(async () => ({
+      count: {
+        message: "$COUNT$ / $MISSING$ / $SECOND$",
+        placeholders: {
+          count: { content: "$1" },
+          second: { content: "$2" },
+        },
+      },
+    })),
+  });
+  await localization.initialize("en");
+
+  expect(localization.getMessage("count", 3)).toBe("3 / $MISSING$ / ");
+  expect(localization.getMessage("count")).toBe(" / $MISSING$ / ");
+});
+
+test("loads the browser-owned catalog and falls back when its response fails", async () => {
+  const fetchMock = vi
+    .spyOn(globalThis, "fetch")
+    .mockResolvedValueOnce({ ok: true, json: async () => english } as Response)
+    .mockResolvedValueOnce({ ok: false } as Response);
+
+  await initializeLocalization("en");
+  expect(getMessage("greeting")).toBe("Hello");
+  await initializeLocalization("en");
+  expect(getMessage("greeting")).toBe("Translated<greeting>");
+  expect(getMessage("count", 5)).toBe("Translated<count>");
+  expect(browser.i18n.getMessage).toHaveBeenLastCalledWith("count", "5");
+  expect(fetchMock).toHaveBeenCalledTimes(2);
 });

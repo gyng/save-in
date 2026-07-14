@@ -42,3 +42,54 @@ test("keeps the page usable and reports a rejected locale change", async () => {
   expect(select.disabled).toBe(false);
   expect(error.textContent).toBe("Language change failed");
 });
+
+test("does nothing without both selector controls", () => {
+  document.body.innerHTML = '<select id="uiLocale"></select>';
+  expect(() =>
+    setupLanguageSelector({ apply: vi.fn(), reload: vi.fn(), getMessage: vi.fn() }),
+  ).not.toThrow();
+});
+
+test("uses fallback error copy when localization is unavailable", async () => {
+  render();
+  setupLanguageSelector({
+    apply: vi.fn(() => Promise.reject(new Error("failed"))),
+    reload: vi.fn(),
+    getMessage: () => "",
+  });
+
+  document.querySelector<HTMLSelectElement>("#uiLocale")!.dispatchEvent(new Event("change"));
+
+  await vi.waitFor(() =>
+    expect(document.querySelector("#language-error")?.textContent).toBe(
+      "Could not change the language. Try again.",
+    ),
+  );
+});
+
+test("default ports save through the runtime and surface a rejected acknowledgement", async () => {
+  render();
+  vi.mocked(browser.runtime.sendMessage).mockResolvedValue({
+    type: "APPLY_CONFIG_RESULT",
+    body: {
+      version: 1,
+      applied: {},
+      rejected: [{ name: "uiLocale", reason: "unsupported" }],
+    },
+  });
+  setupLanguageSelector();
+  const select = document.querySelector<HTMLSelectElement>("#uiLocale")!;
+  select.value = "fr";
+
+  select.dispatchEvent(new Event("change"));
+
+  await vi.waitFor(() =>
+    expect(browser.runtime.sendMessage).toHaveBeenCalledWith({
+      type: "APPLY_CONFIG",
+      body: { config: { uiLocale: "fr" } },
+    }),
+  );
+  await vi.waitFor(() =>
+    expect(document.querySelector<HTMLElement>("#language-error")!.hidden).toBe(false),
+  );
+});

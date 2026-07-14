@@ -17,7 +17,6 @@ export const createLatestTaskRunner = <T>(run: (value: T) => Promise<void>) => {
     if (active) return;
     active = drain().finally(() => {
       active = null;
-      if (pending) start();
     });
   };
   const idle = async (): Promise<void> => {

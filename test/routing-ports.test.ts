@@ -12,6 +12,9 @@ test("routing port defaults are safe before a browser adapter is configured", as
   await expect(routingPorts.nextCounter()).rejects.toThrow(
     "Routing counter has not been configured",
   );
+  await expect(routingPorts.nextPrivateCounter()).rejects.toThrow(
+    "Private routing counter has not been configured",
+  );
   await expect(routingPorts.peekCounter()).rejects.toThrow(
     "Routing counter has not been configured",
   );

@@ -10,6 +10,7 @@ type LanguageSelectorPorts = {
 
 const defaultPorts: LanguageSelectorPorts = {
   apply: (uiLocale) => optionsRuntime.apply({ uiLocale }),
+  /* v8 ignore next -- navigation is owned by the real options-page browser context. */
   reload: () => location.reload(),
   getMessage,
 };

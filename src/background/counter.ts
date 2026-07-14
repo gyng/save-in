@@ -30,7 +30,7 @@ export const nextPrivateCounter = (
 ): Promise<number> => {
   const result = writes.queue.then(async () => {
     const persisted = await peekCounter(storage);
-    const value = Math.max(writes.privateValue || 0, persisted) + 1;
+    const value = Math.max(writes.privateValue ?? persisted, persisted) + 1;
     writes.privateValue = value;
     return value;
   });

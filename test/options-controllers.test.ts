@@ -141,6 +141,21 @@ describe("settings transfer", () => {
     );
   });
 
+  test("allows export wiring without an output field", async () => {
+    document.body.innerHTML = '<button id="settings-export"></button>';
+    const getStored = vi.fn(async () => ({ enabled: true }));
+    setupSettingsTransfer({
+      getSchema: () => Promise.resolve({ keys: [{ name: "enabled" }] }),
+      getStored,
+      apply: vi.fn(),
+      restore: restore(),
+    });
+
+    document.querySelector<HTMLButtonElement>("#settings-export")!.click();
+
+    await vi.waitFor(() => expect(getStored).toHaveBeenCalledWith(["enabled"]));
+  });
+
   test.each([
     ["schema", () => Promise.reject(new Error("schema unavailable")), vi.fn()],
     [
@@ -178,6 +193,22 @@ describe("settings transfer", () => {
     await vi.waitFor(() => expect(alert).toHaveBeenCalledWith("Settings loaded."));
     expect(apply).toHaveBeenCalledWith({ enabled: true });
     expect(restoreSettings).toHaveBeenCalledOnce();
+  });
+
+  test("cancels import without parsing or applying settings", async () => {
+    importMarkup();
+    vi.spyOn(window, "prompt").mockReturnValue(null);
+    const apply = vi.fn();
+    setupSettingsTransfer({
+      getSchema: () => Promise.resolve({ keys: [] }),
+      getStored: vi.fn(),
+      apply,
+      restore: restore(),
+    });
+
+    document.querySelector<HTMLButtonElement>("#settings-import")!.click();
+    await vi.waitFor(() => expect(window.prompt).toHaveBeenCalledOnce());
+    expect(apply).not.toHaveBeenCalled();
   });
 
   test("reports partial imports after restoring the accepted values", async () => {

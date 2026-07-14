@@ -14,8 +14,10 @@ test("preview links navigate to their option by click or keyboard", () => {
 
   preview.click();
   preview.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+  preview.dispatchEvent(new KeyboardEvent("keydown", { key: " ", bubbles: true }));
+  preview.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
 
-  expect(navigate).toHaveBeenCalledTimes(2);
+  expect(navigate).toHaveBeenCalledTimes(3);
   expect((navigate.mock.calls[0]![0] as CustomEvent).detail.target).toBe(target);
   document.removeEventListener("save-in:navigate-option", navigate);
 });

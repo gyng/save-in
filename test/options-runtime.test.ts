@@ -20,14 +20,30 @@ describe("options runtime adapter", () => {
 
     await Promise.all([runtime.getSchema(), runtime.getSchema()]);
     await runtime.apply({ paths: "." }, { paths: "images" });
+    await runtime.apply({ links: true });
     runtime.configure();
 
-    expect(sendMessage).toHaveBeenCalledTimes(2);
-    expect(sendMessage).toHaveBeenLastCalledWith({
+    expect(sendMessage).toHaveBeenCalledTimes(3);
+    expect(sendMessage).toHaveBeenNthCalledWith(2, {
       type: "APPLY_CONFIG",
       body: { config: { paths: "." }, expected: { paths: "images" } },
     });
+    expect(sendMessage).toHaveBeenNthCalledWith(3, {
+      type: "APPLY_CONFIG",
+      body: { config: { links: true } },
+    });
     await expect(routingPorts.peekCounter()).resolves.toBe(7);
+  });
+
+  test("normalizes an invalid persisted counter after configuration", async () => {
+    const api = {
+      runtime: { sendMessage: vi.fn() },
+      i18n: { getMessage: (key: string) => key },
+      storage: { local: { get: vi.fn(() => Promise.resolve({ [COUNTER_KEY]: -1 })) } },
+    } satisfies OptionsRuntimeApi;
+    createOptionsRuntime(api).configure();
+
+    await expect(routingPorts.peekCounter()).resolves.toBe(0);
   });
 
   test("retries schema loading after a transient background failure", async () => {
@@ -63,6 +79,16 @@ describe("options runtime adapter", () => {
 
     await expect(runtime.getSchema()).rejects.toThrow("Invalid option schema");
     await expect(runtime.getSchema()).resolves.toEqual(schema);
+  });
+
+  test("rejects a primitive schema response", async () => {
+    const api = {
+      runtime: { sendMessage: vi.fn().mockResolvedValue("invalid") },
+      i18n: { getMessage: (key: string) => key },
+      storage: { local: { get: vi.fn() } },
+    } satisfies OptionsRuntimeApi;
+
+    await expect(createOptionsRuntime(api).getSchema()).rejects.toThrow("Invalid option schema");
   });
 
   test("rejects non-primitive option defaults at the message boundary", async () => {

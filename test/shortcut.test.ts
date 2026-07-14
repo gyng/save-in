@@ -284,6 +284,15 @@ describe("suggestShortcutFilename", () => {
         100,
       ),
     ).toBe("shortcut.url");
+    expect(
+      shortcut.suggestShortcutFilename(
+        SHORTCUT_TYPES.WINDOWS,
+        DOWNLOAD_TYPES.PAGE,
+        {},
+        undefined,
+        100,
+      ),
+    ).toBe("shortcut.url");
   });
 
   test("sanitizes the completed filename while preserving its extension", () => {
@@ -315,6 +324,11 @@ describe("shortcut mime types (#161)", () => {
   test("HTML redirects are served as text/html so browsers keep .html", () => {
     shortcut.makeShortcut(SHORTCUT_TYPES.HTML_REDIRECT, "https://x/");
     expect(vi.mocked(Download.makeObjectUrl)).toHaveBeenCalledWith(expect.any(String), "text/html");
+  });
+
+  test("unknown shortcut types use plain text", () => {
+    shortcut.makeShortcut(undefined, "https://x/");
+    expect(vi.mocked(Download.makeObjectUrl)).toHaveBeenCalledWith("https://x/", "text/plain");
   });
 
   test(".url and .desktop shortcuts use octet-stream so browsers keep the extension", () => {

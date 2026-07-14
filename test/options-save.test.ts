@@ -68,6 +68,33 @@ test("collects only the explicitly scoped editor", () => {
   expect(collectOptionConfig(schema, "paths")).toEqual({ paths: "cats" });
 });
 
+test("collects checkbox and value controls while ignoring incompatible elements", () => {
+  document.body.innerHTML = `
+    <input id="enabled" type="checkbox" checked>
+    <select id="mode"><option value="fast" selected>Fast</option></select>
+    <div id="ignored">not a control</div>`;
+  const schema = {
+    keys: [
+      { name: "enabled", type: "BOOL" },
+      { name: "mode", type: "VALUE" },
+      { name: "ignored", type: "VALUE" },
+      { name: "missing", type: "BOOL" },
+    ],
+    types: { BOOL: "BOOL", VALUE: "VALUE" },
+  };
+
+  expect(collectOptionConfig(schema)).toEqual({ enabled: true, mode: "fast" });
+});
+
+test("uses stable fallback labels for malformed rejection text", () => {
+  expect(() =>
+    assertApplySucceeded({
+      type: "APPLY_CONFIG_RESULT",
+      body: { version: 1, applied: {}, rejected: [{ name: "", reason: "" }] },
+    }),
+  ).toThrow("option: rejected");
+});
+
 test("returns the normalized applied value", () => {
   expect(
     getAppliedValue(
@@ -84,4 +111,5 @@ test("returns the normalized applied value", () => {
       "paths",
     ),
   ).toBeUndefined();
+  expect(getAppliedValue(undefined, "paths")).toBeUndefined();
 });

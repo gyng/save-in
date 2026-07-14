@@ -33,9 +33,11 @@ describe("download ports", () => {
     const log = { add: vi.fn() };
     const retry = vi.fn(() => Promise.resolve(true));
 
-    configureDownloadPorts({ runtime: { debug: true }, history, log, retry });
+    const lastDownloadState = { info: { filename: "saved.png" } } as never;
+    configureDownloadPorts({ runtime: { debug: true, lastDownloadState }, history, log, retry });
 
     expect(capturedRuntime.debug).toBe(true);
+    expect(capturedRuntime.lastDownloadState).toBe(lastDownloadState);
     expect(capturedHistory.add({})).toBe("history-id");
     capturedLog.add("configured");
     expect(log.add).toHaveBeenCalledWith("configured");

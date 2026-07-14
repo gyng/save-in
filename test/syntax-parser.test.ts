@@ -74,6 +74,40 @@ describe("syntax parser combinators", () => {
     );
   });
 
+  test("handles empty alternatives and zero-width repetition safely", () => {
+    expect(parseSyntax(choice(), "value")).toEqual(
+      expect.objectContaining({
+        ok: false,
+        diagnostic: expect.objectContaining({ expected: "alternative" }),
+      }),
+    );
+    expect(parseSyntax(repeat(optional(literal("x"))), "value")).toEqual(
+      expect.objectContaining({ ok: true, value: [], offset: 0 }),
+    );
+  });
+
+  test("propagates committed optional failures and invalid parser ranges", () => {
+    const committedFailure: SyntaxParser<string> = (state) => ({
+      ok: false,
+      offset: state.offset + 1,
+      diagnostic: {
+        code: "expected",
+        expected: "committed token",
+        position: { offset: state.offset + 1, line: 1, column: state.offset + 1 },
+      },
+    });
+
+    expect(parseSyntax(optional(committedFailure), "value")).toEqual(
+      expect.objectContaining({ ok: false, offset: 1 }),
+    );
+    expect(parseSyntax(rest("remaining text"), "value", { offset: 2, limit: 1 })).toEqual(
+      expect.objectContaining({
+        ok: false,
+        diagnostic: expect.objectContaining({ expected: "remaining text" }),
+      }),
+    );
+  });
+
   test("supports recursive grammars with explicit full-input validation", () => {
     const expression: SyntaxParser<string> = lazy(() =>
       choice(

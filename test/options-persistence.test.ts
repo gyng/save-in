@@ -86,4 +86,23 @@ describe("options persistence", () => {
 
     expect(apply).toHaveBeenCalledWith({ paths: "captured" }, undefined);
   });
+
+  test("saves a collected configuration without a field scope", async () => {
+    const apply = vi.fn(() => Promise.resolve(acknowledgement({ links: false })));
+    const persistence = createOptionsPersistence({
+      getSchema: () => Promise.resolve(schema),
+      getStored: vi.fn(),
+      apply,
+      collect: vi.fn(() => ({ links: false })),
+      assertApplied: assertApplySucceeded,
+      markSaved: vi.fn(),
+      assertUndoSafe: vi.fn(),
+      onRestore: vi.fn(),
+    });
+
+    await persistence.save();
+
+    expect(apply).toHaveBeenCalledWith({ links: false }, undefined);
+    expect(persistence.lastKnown.links).toBe(false);
+  });
 });

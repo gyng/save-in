@@ -174,3 +174,89 @@ test("scopes Firefox rules to its moz-extension origin", async () => {
     removeRuleIds: [REFERER_SESSION_RULE_ID],
   });
 });
+
+test("runs directly and skips stale cleanup on an unsupported host", async () => {
+  setCurrentBrowser(BROWSERS.UNKNOWN);
+  const operation = vi.fn(async () => "direct");
+
+  expect(RefererRules.canUse()).toBe(false);
+  await expect(
+    RefererRules.withReferer("https://cdn.example/a", "https://example/a", operation),
+  ).resolves.toBe("direct");
+  await RefererRules.cleanupStaleRule();
+
+  expect(operation).toHaveBeenCalledOnce();
+  expect(updateSessionRules()).not.toHaveBeenCalled();
+  expect(firefoxUpdateSessionRules()).not.toHaveBeenCalled();
+});
+
+test("rejects rules when the extension origin cannot be established", () => {
+  const chromeId = chrome.runtime.id;
+  Reflect.set(chrome.runtime, "id", "");
+  expect(RefererRules.canUse()).toBe(false);
+  expect(() => RefererRules.buildRule("https://cdn.example/a", "https://example/a")).toThrow(
+    "origin is unavailable",
+  );
+  Reflect.set(chrome.runtime, "id", chromeId);
+
+  setCurrentBrowser(BROWSERS.FIREFOX);
+  vi.mocked(browser.runtime.getURL).mockImplementation(() => {
+    throw new Error("context invalidated");
+  });
+  expect(RefererRules.canUse()).toBe(false);
+  vi.mocked(browser.runtime.getURL).mockImplementation(
+    (path) => `moz-extension://save-in-test/${path}`,
+  );
+});
+
+test("rejects rules on unknown and incomplete extension hosts", () => {
+  setCurrentBrowser(BROWSERS.UNKNOWN);
+  expect(() => RefererRules.buildRule("https://cdn.example/a", "https://example/a")).toThrow(
+    "origin is unavailable",
+  );
+
+  setCurrentBrowser(BROWSERS.CHROME);
+  const chromeRuntime = chrome.runtime;
+  Object.defineProperty(chrome, "runtime", { configurable: true, value: undefined });
+  expect(() => RefererRules.buildRule("https://cdn.example/a", "https://example/a")).toThrow(
+    "origin is unavailable",
+  );
+  Object.defineProperty(chrome, "runtime", { configurable: true, value: chromeRuntime });
+
+  setCurrentBrowser(BROWSERS.FIREFOX);
+  const firefoxRuntime = browser.runtime;
+  Object.defineProperty(browser, "runtime", {
+    configurable: true,
+    value: { ...firefoxRuntime, getURL: undefined },
+  });
+  expect(RefererRules.canUse()).toBe(false);
+  Object.defineProperty(browser, "runtime", { configurable: true, value: firefoxRuntime });
+
+  vi.mocked(browser.runtime.getURL).mockReturnValueOnce("data:text/plain,extension");
+  expect(RefererRules.canUse()).toBe(false);
+});
+
+test("falls back safely if DNR disappears after protected work is queued", async () => {
+  const dnr = chrome.declarativeNetRequest;
+  const cleanup = RefererRules.cleanupStaleRule();
+  Object.defineProperty(chrome, "declarativeNetRequest", {
+    configurable: true,
+    value: undefined,
+  });
+  await expect(cleanup).resolves.toBeUndefined();
+  Object.defineProperty(chrome, "declarativeNetRequest", { configurable: true, value: dnr });
+
+  const operation = vi.fn(async () => "direct");
+  const protectedWork = RefererRules.withReferer(
+    "https://cdn.example/a",
+    "https://example/a",
+    operation,
+  );
+  Object.defineProperty(chrome, "declarativeNetRequest", {
+    configurable: true,
+    value: undefined,
+  });
+  await expect(protectedWork).resolves.toBe("direct");
+  Object.defineProperty(chrome, "declarativeNetRequest", { configurable: true, value: dnr });
+  expect(operation).toHaveBeenCalledOnce();
+});

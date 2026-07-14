@@ -36,7 +36,9 @@ export const buildSuccessNotificationTitle = (
 ): string => [label, formatNotificationFileSize(bytes), mime].filter(Boolean).join(" · ");
 
 export const isRetryableDownloadFailure = (failure: DownloadFailure): boolean =>
-  typeof failure === "object" && /^(NETWORK_|SERVER_)/.test(failure.current || "");
+  typeof failure === "object" &&
+  typeof failure.current === "string" &&
+  /^(NETWORK_|SERVER_)/.test(failure.current);
 
 export const downloadFailureReason = (failure: DownloadFailure): string | undefined =>
   typeof failure === "string" ? failure : typeof failure === "object" ? failure.current : undefined;

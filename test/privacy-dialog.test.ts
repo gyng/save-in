@@ -67,3 +67,24 @@ test("offers the canonical document when loading fails", async () => {
   );
   vi.unstubAllGlobals();
 });
+
+test("contains unsuccessful responses and only starts one packaged-policy request", async () => {
+  const dialog = setupMarkup();
+  const fetch = vi.fn().mockResolvedValue({ ok: false, status: 503 });
+  vi.stubGlobal("fetch", fetch);
+  setupPrivacyDialog();
+  const open = document.querySelector<HTMLButtonElement>("#privacy-open")!;
+  open.click();
+  open.click();
+
+  await vi.waitFor(() => expect(document.querySelector("#privacy-content a")).not.toBeNull());
+  expect(fetch).toHaveBeenCalledOnce();
+  expect(dialog.showModal).toHaveBeenCalledTimes(2);
+  expect(document.querySelector("#privacy-content")?.hasAttribute("aria-busy")).toBe(false);
+  vi.unstubAllGlobals();
+});
+
+test("does nothing when required dialog controls are absent", () => {
+  document.body.innerHTML = '<button id="privacy-open">Privacy</button>';
+  expect(setupPrivacyDialog()).toBeUndefined();
+});

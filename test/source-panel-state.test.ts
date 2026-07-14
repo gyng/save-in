@@ -72,4 +72,32 @@ describe("shared Page Sources open state", () => {
       body: { open: false },
     });
   });
+
+  test("uses worker-local state when session storage is unavailable", async () => {
+    (global.browser as any).storage.session = undefined;
+    const { setSourcePanelOpenState, syncSourcePanelToTab } =
+      await import("../src/background/source-panel-state.ts");
+
+    await setSourcePanelOpenState(true);
+    await syncSourcePanelToTab(12);
+
+    expect(global.browser.tabs.sendMessage).toHaveBeenCalledWith(12, {
+      type: "SET_SOURCE_PANEL",
+      body: { open: true },
+    });
+  });
+
+  test("falls back to worker-local state when session reads fail", async () => {
+    (global.browser as any).storage.session.get = vi.fn(() => Promise.reject(new Error("denied")));
+    const { setSourcePanelOpenState, syncSourcePanelToTab } =
+      await import("../src/background/source-panel-state.ts");
+
+    await setSourcePanelOpenState(true);
+    await syncSourcePanelToTab(13);
+
+    expect(global.browser.tabs.sendMessage).toHaveBeenCalledWith(13, {
+      type: "SET_SOURCE_PANEL",
+      body: { open: true },
+    });
+  });
 });

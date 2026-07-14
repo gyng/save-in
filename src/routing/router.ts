@@ -93,8 +93,8 @@ export const traceRules = async (
   };
   const expandedPath = destination ? await applyVariables(new Path(destination), traceInfo) : null;
   const expandedDestination = expandedPath?.toString() ?? null;
-  const sanitizedDestination =
-    expandedPath?.finalize({ finalComponentIsFilename: !/\/\s*$/.test(destination || "") }) ?? null;
+  const finalComponentIsFilename = typeof destination === "string" && !/\/\s*$/.test(destination);
+  const sanitizedDestination = expandedPath?.finalize({ finalComponentIsFilename }) ?? null;
   return {
     initialFilename: info.initialFilename,
     actualFilename: info.filename,

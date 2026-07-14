@@ -32,6 +32,21 @@ describe("state service instances", () => {
     expect(second.queues).not.toBe(first.queues);
   });
 
+  test("contains an updater failure and releases its per-key queue", async () => {
+    const writes = { queues: new Map<string, Promise<unknown>>() };
+    const storage = {
+      get: vi.fn(() => Promise.resolve({ value: 1 })),
+      set: vi.fn(() => Promise.resolve()),
+    };
+
+    await expect(
+      updateSession(writes, storage, "value", () => {
+        throw new Error("invalid persisted value");
+      }),
+    ).resolves.toBeUndefined();
+    await vi.waitFor(() => expect(writes.queues.has("value")).toBe(false));
+  });
+
   test("session writes serialize per key without blocking unrelated keys", async () => {
     const writes = { queues: new Map<string, Promise<unknown>>() };
     let releaseSlow!: () => void;
@@ -241,5 +256,27 @@ describe("state service instances", () => {
     expect(state.records).toHaveLength(51);
     expect(state.records.has(1)).toBe(true);
     expect(state.records.get(51)).toEqual({ adopted: true });
+  });
+
+  test("caps the oldest inactive records in memory and persisted session state", async () => {
+    const records = new Map(
+      Array.from({ length: 55 }, (_, index) => [index + 1, { filename: `${index}.txt` }] as const),
+    );
+    const state = { records, hydration: null };
+    const writes = { queues: new Map<string, Promise<unknown>>() };
+    const persisted = Object.fromEntries(records);
+    const storage = {
+      get: vi.fn(() => Promise.resolve({ siDownloads: persisted })),
+      set: vi.fn<(value: Record<string, any>) => Promise<void>>().mockResolvedValue(),
+    };
+
+    await mergeDownload(state, writes, storage, 56, { filename: "new.txt" });
+
+    expect(state.records).toHaveLength(50);
+    expect(state.records.has(1)).toBe(false);
+    const stored = vi.mocked(storage.set).mock.calls[0]![0].siDownloads;
+    expect(Object.keys(stored)).toHaveLength(50);
+    expect(stored[1]).toBeUndefined();
+    expect(stored[56]).toEqual({ filename: "new.txt" });
   });
 });

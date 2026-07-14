@@ -320,6 +320,30 @@ describe("OptionsManagement", () => {
       const key = OptionsManagement.OPTION_KEYS.find((k) => k.name === name)! as SaveKey;
       expect(key.onSave(input)).toBe(expected);
     });
+
+    test("validates nonnegative numeric settings at their schema boundary", () => {
+      const key = OptionsManagement.OPTION_KEYS.find(
+        ({ name }) => name === "notifyDuration",
+      )! as SaveKey & { validate(value: unknown): boolean };
+
+      expect(key.validate(true)).toBe(false);
+      expect(key.validate(" ")).toBe(false);
+      expect(key.validate("12")).toBe(true);
+    });
+
+    test("validates locale options and preserves legacy shortcut types on load", () => {
+      const locale = OptionsManagement.OPTION_KEYS.find(({ name }) => name === "uiLocale")! as {
+        validate(value: unknown): boolean;
+      };
+      const shortcut = OptionsManagement.OPTION_KEYS.find(
+        ({ name }) => name === "shortcutType",
+      )! as LoadKey;
+
+      expect(locale.validate(7)).toBe(false);
+      expect(locale.validate("")).toBe(true);
+      expect(locale.validate("fr")).toBe(true);
+      expect(shortcut.onLoad("HTML_REDIRECT")).toBe("HTML_REDIRECT");
+    });
   });
 
   test("loads legacy numeric strings and fractional numbers as whole values", async () => {
@@ -456,6 +480,23 @@ describe("OptionsManagement", () => {
       );
       expect(result.captures).toBeNull();
     });
+
+    test("tolerates an unnormalized rule value and an unmatched route", async () => {
+      OptionsManagement.setOption("filenamePatterns", "legacy value" as never);
+      mocks.Download.getRoutingMatches.mockReturnValue(false);
+      mocks.Path.mockImplementation(function fakePath(
+        this: { routingMatches: unknown },
+        routingMatches: unknown,
+      ) {
+        this.routingMatches = routingMatches;
+      });
+      mocks.applyVariables.mockImplementation(() => ({ finalize: vi.fn(() => "fallback") }));
+
+      await expect(previewRoutes({ info: { pageUrl: "https://example.test" } })).resolves.toEqual({
+        path: "fallback",
+        captures: null,
+      });
+    });
   });
 
   describe("loadOptions", () => {
@@ -508,6 +549,21 @@ describe("OptionsManagement", () => {
         filenamePatterns: migrated,
         autoDownloadRules: "",
       });
+    });
+
+    test("loads a migrated automatic rule when cleanup persistence fails", async () => {
+      mocks.router.parseRules.mockImplementation((value: string) => value);
+      global.browser.storage.local.get = vi.fn(() =>
+        Promise.resolve({
+          autoDownloadRules: "pageurl: example\\.com\nsourcekind: image\ninto: gallery/",
+          [PATH_TRUNCATION_MIGRATION_STORAGE_KEY]: PATH_TRUNCATION_MIGRATION_VERSION,
+        }),
+      );
+      global.browser.storage.local.set = vi.fn(() => Promise.reject(new Error("quota")));
+
+      await expect(OptionsManagement.loadOptions()).resolves.toEqual(
+        expect.objectContaining({ filenamePatterns: expect.stringContaining("context: ^auto$") }),
+      );
     });
 
     test("sanitizes a forbidden stored replacementChar (#221)", async () => {

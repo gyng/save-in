@@ -21,3 +21,7 @@ test("renders an actionable error and clears it accessibly", () => {
   expect(container.textContent).toBe("");
   expect(container.getAttribute("role")).toBe("status");
 });
+
+test("does nothing when the feedback container is absent", () => {
+  expect(() => renderHistoryFeedback(null, { message: "Ignored" })).not.toThrow();
+});

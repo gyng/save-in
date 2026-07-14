@@ -59,3 +59,41 @@ test.each([
     chromeHidden,
   );
 });
+
+test("closes from the backdrop and celebrates every fifth mascot click", () => {
+  document.body.innerHTML = `
+    <button id="about-open">About</button>
+    <dialog id="about-dialog">
+      <button class="about-close">Close</button>
+      <button class="about-mascot-button">Mascot</button>
+    </dialog>`;
+  const dialog = document.querySelector<HTMLDialogElement>("dialog")!;
+  dialog.close = vi.fn();
+  setupAboutDialog();
+  const mascot = document.querySelector<HTMLButtonElement>(".about-mascot-button")!;
+
+  for (let index = 0; index < 4; index += 1) mascot.click();
+  expect(mascot.classList.contains("is-celebrating")).toBe(false);
+  mascot.click();
+  expect(mascot.classList.contains("is-celebrating")).toBe(true);
+  dialog.dispatchEvent(new Event("close"));
+  expect(mascot.classList.contains("is-celebrating")).toBe(false);
+  dialog.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+  expect(dialog.close).toHaveBeenCalledOnce();
+});
+
+test("tolerates partial markup and reports unavailable version metadata", () => {
+  document.body.innerHTML = '<button id="about-open">About</button>';
+  expect(setupAboutDialog()).toBeUndefined();
+
+  vi.spyOn(webExtensionApi.runtime, "getManifest").mockReturnValue({ version: "" } as any);
+  document.body.innerHTML = `
+    <button id="about-open">About</button>
+    <dialog id="about-dialog">
+      <button class="about-close">Close</button>
+      <span id="about-version"></span>
+    </dialog>`;
+  setCurrentBrowser(BROWSERS.CHROME);
+  setupAboutDialog();
+  expect(document.querySelector("#about-version")?.textContent).toBe("Unavailable");
+});
