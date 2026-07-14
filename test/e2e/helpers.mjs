@@ -1,19 +1,21 @@
 /**
  * @template T
  * @param {() => T | Promise<T>} check
- * @param {{timeoutMs?: number, description?: string, ignoreErrors?: boolean}} [options]
+ * @param {{timeoutMs?: number, description?: string, ignoreErrors?: boolean, intervalMs?: number}} [options]
  * @returns {Promise<T>}
  */
 export const poll = async (
   check,
-  { timeoutMs = 8000, description = "condition", ignoreErrors = true } = {},
+  { timeoutMs = 8000, description = "condition", ignoreErrors = true, intervalMs = 25 } = {},
 ) => {
   const deadline = Date.now() + timeoutMs;
   let lastError;
+  let lastValue;
 
   for (;;) {
     try {
       const value = await check();
+      lastValue = value;
       if (value) return value;
     } catch (error) {
       if (!ignoreErrors) throw error;
@@ -21,13 +23,61 @@ export const poll = async (
     }
 
     if (Date.now() >= deadline) {
+      const observed = lastValue === undefined ? "" : `; last value: ${JSON.stringify(lastValue)}`;
       const detail = lastError
-        ? `: ${lastError instanceof Error ? lastError.message : String(lastError)}`
+        ? `; last error: ${lastError instanceof Error ? lastError.message : String(lastError)}`
         : "";
-      throw new Error(`Timed out waiting for ${description}${detail}`);
+      throw new Error(`Timed out waiting for ${description}${observed}${detail}`);
     }
-    await new Promise((resolve) => setImmediate(resolve));
+    await new Promise((resolve) => setTimeout(resolve, intervalMs));
   }
+};
+
+/** @type {E2EResourceScope | undefined} */
+let activeScope;
+
+export class E2EResourceScope {
+  constructor() {
+    /** @type {Array<{label: string, cleanup: () => void | Promise<void>}>} */
+    this.cleanups = [];
+    this.disposed = false;
+  }
+
+  /** @param {string} label @param {() => void | Promise<void>} cleanup */
+  defer(label, cleanup) {
+    if (this.disposed) throw new Error(`Cannot register ${label} on a disposed E2E scope`);
+    const entry = { label, cleanup };
+    this.cleanups.push(entry);
+    return () => {
+      const index = this.cleanups.indexOf(entry);
+      if (index >= 0) this.cleanups.splice(index, 1);
+    };
+  }
+
+  async dispose() {
+    if (this.disposed) return;
+    this.disposed = true;
+    /** @type {unknown[]} */
+    const failures = [];
+    for (const { label, cleanup } of this.cleanups.toReversed()) {
+      try {
+        await cleanup();
+      } catch (error) {
+        failures.push(new Error(`Unable to clean up ${label}`, { cause: error }));
+      }
+    }
+    this.cleanups.length = 0;
+    if (activeScope === this) activeScope = undefined;
+    if (failures.length) throw new AggregateError(failures, "E2E resource cleanup failed");
+  }
+}
+
+export const beginResourceScope = () => {
+  if (activeScope && !activeScope.disposed) {
+    throw new Error("The previous E2E resource scope was not disposed");
+  }
+  activeScope = new E2EResourceScope();
+  return activeScope;
 };
 
 /**
@@ -79,15 +129,37 @@ export const waitForDownloadExpression = ({
   })`;
 };
 
-export const nextBrowserTaskExpression = `new Promise((resolve) => {
-  const channel = new MessageChannel();
-  channel.port1.onmessage = () => {
-    channel.port1.close();
-    channel.port2.close();
-    resolve();
-  };
-  channel.port2.postMessage(null);
-})`;
+/**
+ * @param {"history" | "logs"} collection
+ * @param {string} predicate
+ * @param {number} [timeoutMs]
+ */
+export const waitForApiEntriesExpression = (collection, predicate, timeoutMs = 8000) =>
+  `new Promise((resolve, reject) => {
+    const timeout = AbortSignal.timeout(${timeoutMs});
+    let settled = false;
+    let lastEntries = [];
+    const finish = (callback) => {
+      if (settled) return;
+      settled = true;
+      browser.storage.onChanged.removeListener(onChanged);
+      timeout.removeEventListener("abort", onTimeout);
+      callback();
+    };
+    const fail = (error) => finish(() => reject(error));
+    const check = async () => {
+      const entries = await api.${collection}();
+      lastEntries = entries.filter(${predicate});
+      if (lastEntries.length) finish(() => resolve(JSON.stringify(lastEntries)));
+    };
+    const onChanged = () => void check().catch(fail);
+    const onTimeout = () => fail(new Error(
+      "Timed out waiting for ${collection}: " + JSON.stringify(lastEntries)
+    ));
+    browser.storage.onChanged.addListener(onChanged);
+    timeout.addEventListener("abort", onTimeout, { once: true });
+    void check().catch(fail);
+  })`;
 
 /** @param {string} urlIncludes @param {number} [timeoutMs] */
 export const waitForTabExpression = (urlIncludes, timeoutMs = 8000) =>
@@ -129,6 +201,7 @@ export const listenLocal = (server) =>
         reject(new Error("Local test server did not bind to a TCP port"));
         return;
       }
+      activeScope?.defer(`local server on port ${address.port}`, () => closeLocal(server));
       resolve(address.port);
     });
   });
@@ -136,5 +209,9 @@ export const listenLocal = (server) =>
 /** @param {import("node:http").Server} server @returns {Promise<void>} */
 export const closeLocal = (server) =>
   new Promise((resolve, reject) => {
+    if (!server.listening) {
+      resolve();
+      return;
+    }
     server.close((error) => (error ? reject(error) : resolve()));
   });

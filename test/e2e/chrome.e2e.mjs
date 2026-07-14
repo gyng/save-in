@@ -1,6 +1,6 @@
 // Chrome MV3 end-to-end suite: launches an isolated Chrome, loads the
 // staged unpacked build over CDP, and drives the real extension. Tests in
-// this file are sequential and build on each other's state.
+// this file are sequential but restore a steady-state baseline after each case.
 
 import crypto from "crypto";
 import fs from "fs";
@@ -10,25 +10,23 @@ import path from "path";
 import cdp from "../../scripts/lib/cdp.js";
 import chrome from "../../scripts/lib/chrome.js";
 import { inBackgroundContext } from "./background-context.mjs";
+import { registerSharedBrowserCases } from "./cases/shared-browser.cases.mjs";
 import {
-  runAutomaticRetryScenario,
   runContentDispositionScenario,
-  runContextMenuScenario,
   runExternalExtensionScenario,
-  runFailedDownloadLogScenario,
-  runHistoryCancellationScenario,
   runInterruptedTransferRecoveryScenario,
-  runLegacyProfileRoutingScenario,
   runPrivateBrowserActivityScenario,
   runPrivateContextScenario,
-  runRoutingScenario,
-  runShortcutScenario,
-  runSymlinkDestinationScenario,
-  runTabStripScenario,
 } from "./shared-scenarios.mjs";
-import { runTemplateLibraryScenario } from "./template-library-scenario.mjs";
-import { runRoutingVisualEditorScenario } from "./routing-visual-editor-scenario.mjs";
-import { closeLocal, listenLocal, poll, waitForDownloadExpression } from "./helpers.mjs";
+import { createHarnessSession } from "./harness-session.mjs";
+import {
+  beginResourceScope,
+  closeLocal,
+  listenLocal,
+  poll,
+  waitForApiEntriesExpression,
+  waitForDownloadExpression,
+} from "./helpers.mjs";
 
 const PROFILE = path.join(chrome.ROOT, "dist", "e2e-profile");
 const ARTIFACTS = process.env.E2E_ARTIFACT_DIR
@@ -42,7 +40,14 @@ let PORT = 0;
 let DOWNLOADS = "";
 let PROFILE_DIR = "";
 let browserLogPath = "";
+let browserPath = "";
+let browserVersion = "";
 let suiteFailed = false;
+/** @type {import("./helpers.mjs").E2EResourceScope | undefined} */
+let resourceScope;
+/** @type {ReturnType<typeof createHarnessSession> | undefined} */
+let harness;
+const FIRST_INSTALL_TEST = "first install starts with a focused welcome";
 
 /** @param {string} expr @returns {Promise<any>} */
 const evalOptions = (expr) => cdp.evalInTarget(PORT, "options.html", expr);
@@ -84,12 +89,18 @@ const artifactName = (name) =>
     .replace(/(^-|-$)/g, "")
     .toLowerCase();
 
-/** @param {string} testName */
-const captureFailureArtifacts = async (testName) => {
+/** @param {string} testName @param {number | undefined} durationMs */
+const captureFailureArtifacts = async (testName, durationMs) => {
   const prefix = path.join(ARTIFACTS, `chrome-failure-${artifactName(testName)}`);
   fs.mkdirSync(ARTIFACTS, { recursive: true });
   /** @type {Record<string, any>} */
-  const report = { testName, capturedAt: new Date().toISOString() };
+  const report = {
+    testName,
+    durationMs,
+    capturedAt: new Date().toISOString(),
+    runId: process.env.E2E_RUN_ID,
+    browser: { executable: browserPath, version: browserVersion },
+  };
   try {
     report.targets = await cdp.listTargets(PORT);
     report.options = JSON.parse(
@@ -99,9 +110,9 @@ const captureFailureArtifacts = async (testName) => {
         active: document.activeElement?.outerHTML,
         viewport: { width: innerWidth, height: innerHeight },
         document: { width: document.documentElement.scrollWidth, height: document.documentElement.scrollHeight },
-        html: document.documentElement.outerHTML,
       })`),
     );
+    fs.writeFileSync(`${prefix}.html`, await evalOptions(`document.documentElement.outerHTML`));
     const activeUrl = await evalSW(
       `browser.tabs.query({ active: true, currentWindow: true }).then(([tab]) => tab?.url || "")`,
     );
@@ -128,6 +139,7 @@ const captureFailureArtifacts = async (testName) => {
   } catch (error) {
     report.backgroundCaptureError = String(error);
   }
+  report.browserLogTail = browserLogPath ? chrome.logTail(browserLogPath) : "";
   fs.writeFileSync(`${prefix}.json`, JSON.stringify(report, null, 2));
 };
 
@@ -169,16 +181,8 @@ const downloadUsingBrowserFilename = async (url) => {
 };
 
 /** @param {string} predicate @param {number} [deadlineMs] @returns {Promise<any[]>} */
-const waitForLog = (predicate, deadlineMs = 8000) =>
-  poll(
-    async () => {
-      const entries = JSON.parse(
-        await evalSW(`api.logs().then((log) => JSON.stringify(log.filter(${predicate})))`),
-      );
-      return entries.length ? entries : null;
-    },
-    { timeoutMs: deadlineMs, description: "matching debug-log entry" },
-  );
+const waitForLog = async (predicate, deadlineMs = 8000) =>
+  JSON.parse(await evalSW(waitForApiEntriesExpression("logs", predicate, deadlineMs)));
 
 beforeAll(async () => {
   try {
@@ -192,6 +196,8 @@ beforeAll(async () => {
       port: PORT,
       profileDir: PROFILE_DIR,
       logPath: browserLogPath,
+      browserPath,
+      browserVersion,
     } = launched);
     DOWNLOADS = launched.downloadDir || path.join(PROFILE_DIR, "downloads");
     await poll(
@@ -221,10 +227,33 @@ beforeAll(async () => {
       notifyOnRuleMatch: false,
       notifyOnLinkPreferred: false,
     }).then(() => api.reset()).then(() => "notifications suppressed")`);
+    harness = createHarnessSession({
+      evaluateBackground: evalSW,
+      downloadDir: () => DOWNLOADS,
+      reloadOptions: async () => {
+        const reloaded = await cdp.reloadTargets(PORT, "options.html");
+        if (reloaded === 0) {
+          await cdp.openTab(PORT, `chrome-extension://${extensionId}/src/options/options.html`);
+        }
+        await poll(
+          async () =>
+            (await evalOptions(`document.readyState === "complete" && Boolean(chrome.runtime?.id)`))
+              ? true
+              : null,
+          { description: "reloaded Chrome options page", ignoreErrors: true },
+        );
+      },
+    });
   } catch (error) {
     suiteFailed = true;
     throw error;
   }
+});
+
+beforeEach(async () => {
+  resourceScope = beginResourceScope();
+  if (!harness) throw new Error("Chrome E2E harness was not initialized");
+  await harness.beginCase();
 });
 
 afterAll(async () => {
@@ -247,16 +276,32 @@ afterAll(async () => {
 });
 
 afterEach(async ({ task }) => {
+  /** @type {unknown[]} */
+  const cleanupErrors = [];
   if (task.result?.state === "fail") {
     suiteFailed = true;
     try {
-      await captureFailureArtifacts(task.name);
+      await captureFailureArtifacts(task.name, task.result?.duration);
     } catch (error) {
       process.stderr.write(
         `Unable to capture Chrome failure artifacts: ${error instanceof Error ? error.stack || error.message : String(error)}\n`,
       );
     }
   }
+  try {
+    await resourceScope?.dispose();
+  } catch (error) {
+    cleanupErrors.push(error);
+  }
+  try {
+    await harness?.endCase({
+      preserveLocal: task.name === FIRST_INSTALL_TEST && task.result?.state !== "fail",
+    });
+  } catch (error) {
+    cleanupErrors.push(error);
+  }
+  if (cleanupErrors.length)
+    throw new AggregateError(cleanupErrors, "Chrome E2E case cleanup failed");
 });
 
 test("first install starts with a focused welcome", async () => {
@@ -398,7 +443,7 @@ test("options can select a generated locale and return to the browser default", 
       globalThis.__saveInE2eLocaleMarker = ${JSON.stringify(marker)};
       const select = document.querySelector("#uiLocale");
       select.value = ${JSON.stringify(locale)};
-      select.dispatchEvent(new Event("change"));
+      select.dispatchEvent(new InputEvent("input", { bubbles: true }));
     })()`);
     await poll(
       async () => {
@@ -626,13 +671,6 @@ test("cold start recovers an interrupted in-flight fetch", async () => {
   });
 });
 
-test("History cancels an in-flight acquisition and clears durable state", async () => {
-  await runHistoryCancellationScenario({
-    evaluate: evalSW,
-    filename: "cancel-chrome.bin",
-  });
-});
-
 test("options-save reset message round-trips", async () => {
   const response = await evalOptions(
     `new Promise((res) => chrome.runtime.sendMessage({ type: "OPTIONS_LOADED" }, (r) => res(JSON.stringify(r))))`,
@@ -684,18 +722,6 @@ test("download completes through the real pipeline with session tracking", async
 
   const file = path.join(DOWNLOADS, "e2e", "smoke.txt");
   expect(fs.readFileSync(file, "utf8")).toBe("e2e smoke test content");
-});
-
-test("production context-menu handler completes a selection save", async () => {
-  await runContextMenuScenario({ evaluate: evalSW, waitForDownloads });
-});
-
-test("production tab-strip handler saves the selected real tab", async () => {
-  await runTabStripScenario({
-    evaluate: evalSW,
-    waitForDownloads,
-    filename: "tab-strip-chrome",
-  });
 });
 
 test("private context-menu saves leave no extension history or session state", async () => {
@@ -969,56 +995,6 @@ test("changing paths is visible after background reinitialisation", async () => 
       .then((response) => JSON.stringify(response.body.paths.split("\\n").length))`,
   );
   expect(JSON.parse(pathCount)).toBe(5);
-});
-
-test("routing rules rename and route the download", async () => {
-  await runRoutingScenario({ evaluate: evalSW, waitForDownloads, content: "routed content" });
-
-  const file = path.join(DOWNLOADS, "e2e", "routed", "renamed-routeme.txt");
-  expect(fs.readFileSync(file, "utf8")).toBe("routed content");
-});
-
-test("a 3.7 profile keeps its custom folder and repairs an extensionless filename", async () => {
-  await runLegacyProfileRoutingScenario({
-    evaluate: evalSW,
-    waitForDownloads,
-    filename: "legacy-profile-chrome",
-  });
-});
-
-test("Chrome safely rejects a configured symlink destination", async () => {
-  await runSymlinkDestinationScenario({
-    evaluate: evalSW,
-    waitForDownloads,
-    downloadDir: DOWNLOADS,
-    filename: "symlink-chrome.txt",
-    supported: false,
-  });
-});
-
-test("a template added in Options persists and routes a matching download", async () => {
-  await runTemplateLibraryScenario({
-    evaluate: evalSW,
-    evaluateOptions: evalOptions,
-    waitForDownloads,
-    filename: "template-library-chrome",
-    content: "chrome template library e2e",
-  });
-});
-
-test("visual routing edits persist and connect to the debugger", async () => {
-  await runRoutingVisualEditorScenario({
-    evaluate: evalSW,
-    evaluateOptions: evalOptions,
-    // Repeated CDP attachments can leave a reloaded Chrome extension page
-    // unevaluable even after Page.reload acknowledges the navigation.
-    reloadOptions: () =>
-      cdp.replaceTab(
-        PORT,
-        "options.html",
-        `chrome-extension://${extensionId}/src/options/options.html`,
-      ),
-  });
 });
 
 test(":counter: advances once per download and persists in storage", async () => {
@@ -1534,34 +1510,6 @@ test("removing option keys restores live defaults before reset acknowledgement",
   }
 });
 
-test("shortcut files download with redirect content", async () => {
-  await runShortcutScenario({ evaluate: evalSW, waitForDownloads });
-});
-
-test("failed downloads are recorded in the debug log", async () => {
-  await runFailedDownloadLogScenario({
-    evaluate: evalSW,
-    waitForLog,
-    filename: "si-unreachable.bin",
-  });
-  const requested = JSON.parse(
-    await evalSW(
-      `api.logs().then((log) => JSON.stringify(
-        log.filter((e) => e.message === "download requested" && String(e.data).includes("si-unreachable"))
-      ))`,
-    ),
-  );
-  expect(requested.length).toBeGreaterThanOrEqual(1);
-});
-
-test("a failed download is retried automatically via background fetch", async () => {
-  await runAutomaticRetryScenario({
-    evaluate: evalSW,
-    waitForDownloads,
-    filename: "flaky-chrome.bin",
-  });
-});
-
 test("alt+click on a real page saves the image through the content script", async () => {
   // Serve a page with an image so the content script has something real
   const png = Buffer.from(
@@ -1822,8 +1770,12 @@ test("Page Sources discovers, updates live, and restores across tabs", async () 
   const sourceNames = (pathPart) =>
     evalPage(
       pathPart,
-      `JSON.stringify([...document.querySelector("#save-in-source-panel").shadowRoot
-        .querySelectorAll(".source-link .name")].map((node) => node.textContent))`,
+      `JSON.stringify((() => {
+        const root = document.querySelector("#save-in-source-panel")?.shadowRoot;
+        return root
+          ? [...root.querySelectorAll(".source-link .name")].map((node) => node.textContent)
+          : [];
+      })())`,
     ).then(JSON.parse);
 
   try {
@@ -1913,6 +1865,36 @@ test("Page Sources discovers, updates live, and restores across tabs", async () 
     ]).then(() => api.reset()).then(() => "cleaned")`);
     await closeLocal(server);
   }
+});
+
+registerSharedBrowserCases({
+  evaluate: evalSW,
+  evaluateOptions: evalOptions,
+  waitForDownloads,
+  waitForLog,
+  downloadDir: () => DOWNLOADS,
+  browserLabel: "chrome",
+  routingContent: "routed content",
+  symlinkSupported: false,
+  failedDownloadFilename: "si-unreachable.bin",
+  afterFailedDownload: async () => {
+    const requested = JSON.parse(
+      await evalSW(
+        `api.logs().then((log) => JSON.stringify(
+          log.filter((entry) => entry.message === "download requested" && String(entry.data).includes("si-unreachable"))
+        ))`,
+      ),
+    );
+    expect(requested.length).toBeGreaterThanOrEqual(1);
+  },
+  // Repeated CDP attachments can leave a reloaded Chrome extension page
+  // unevaluable even after Page.reload acknowledges the navigation.
+  reloadOptions: () =>
+    cdp.replaceTab(
+      PORT,
+      "options.html",
+      `chrome-extension://${extensionId}/src/options/options.html`,
+    ),
 });
 
 test("history and the debug log record a self-contained download", async () => {

@@ -8,12 +8,16 @@
 const fs = require("fs");
 const path = require("path");
 const os = require("os");
-const { once } = require("events");
 const { spawn, execFileSync } = require("child_process");
 
 const cdp = require("./cdp");
-const { CHROME_E2E_PORT_COUNT, CHROME_E2E_PORT_START, findAvailablePort } = require("./debug-port");
+const {
+  CHROME_E2E_PORT_COUNT,
+  CHROME_E2E_PORT_START,
+  reserveAvailablePort,
+} = require("./debug-port");
 const { currentE2ERunId } = require("./e2e-run-id");
+const { terminateProcessTree } = require("./process-tree");
 
 const ROOT = path.join(__dirname, "..", "..");
 const ARTIFACTS = process.env.E2E_ARTIFACT_DIR
@@ -78,8 +82,11 @@ const parseChromeMajorVersion = (version) => {
 };
 
 /** @param {string} chromePath */
-const getChromeMajorVersion = (chromePath) =>
-  parseChromeMajorVersion(execFileSync(chromePath, ["--version"], { encoding: "utf8" }));
+const getChromeVersion = (chromePath) =>
+  execFileSync(chromePath, ["--version"], { encoding: "utf8" }).trim();
+
+/** @param {string} chromePath */
+const getChromeMajorVersion = (chromePath) => parseChromeMajorVersion(getChromeVersion(chromePath));
 
 /** @param {"production" | "e2e"} [mode] */
 const stageBuild = (mode = "production") => {
@@ -95,29 +102,7 @@ const stageBuild = (mode = "production") => {
 
 /** @param {import("node:child_process").ChildProcess | null | undefined} proc */
 const killTree = async (proc) => {
-  if (!proc?.pid || proc.exitCode !== null || proc.signalCode !== null) return;
-  const exited = once(proc, "exit", { signal: AbortSignal.timeout(10000) });
-  if (process.platform === "win32") {
-    try {
-      execFileSync("taskkill", ["/pid", String(proc.pid), "/T", "/F"], { stdio: "ignore" });
-    } catch (e) {
-      // Nested automation sandboxes can deny taskkill even for our child.
-    }
-    if (proc.exitCode === null) {
-      try {
-        proc.kill();
-      } catch (e) {
-        // already gone
-      }
-    }
-  } else {
-    try {
-      proc.kill();
-    } catch (e) {
-      // already gone; the child still emits exit when its status is collected
-    }
-  }
-  await exited;
+  await terminateProcessTree(proc, { detached: process.platform !== "win32" });
 };
 
 /** @param {string | undefined} profileDir */
@@ -241,11 +226,15 @@ const launch = async ({
     ));
   }
 
-  const port =
-    requestedPort ?? (await findAvailablePort(CHROME_E2E_PORT_START, CHROME_E2E_PORT_COUNT));
-
   const chromePath = findChrome();
-  const chromeMajorVersion = getChromeMajorVersion(chromePath);
+  const chromeVersion = getChromeVersion(chromePath);
+  const chromeMajorVersion = parseChromeMajorVersion(chromeVersion);
+  const portLease =
+    requestedPort === undefined
+      ? await reserveAvailablePort(CHROME_E2E_PORT_START, CHROME_E2E_PORT_COUNT)
+      : undefined;
+  const port = requestedPort ?? portLease?.port;
+  if (port === undefined) throw new Error("Chrome debug-port allocation failed");
   const legacyExtensionDir = chromeMajorVersion < 137 ? extensionDir : undefined;
   const args = chromeArgs(
     resolvedProfile,
@@ -257,7 +246,10 @@ const launch = async ({
   fs.mkdirSync(ARTIFACTS, { recursive: true });
   const logPath = path.join(ARTIFACTS, `chrome-${port}.log`);
   const log = fs.openSync(logPath, "w");
-  const proc = spawn(chromePath, args, { stdio: ["ignore", log, log], detached: false });
+  const proc = spawn(chromePath, args, {
+    stdio: ["ignore", log, log],
+    detached: process.platform !== "win32",
+  });
   fs.closeSync(log);
   try {
     await cdp.waitForCdp(port);
@@ -269,6 +261,16 @@ const launch = async ({
     // command succeeds. Verify the endpoint remains usable before handing the
     // process to a suite, so startup errors include the browser log.
     await cdp.listTargets(port);
+    portLease?.release();
+    process.stdout.write(`Chrome E2E: ${chromeVersion} (${chromePath}), CDP ${port}\n`);
+    fs.writeFileSync(
+      path.join(ARTIFACTS, "chrome-environment.json"),
+      JSON.stringify(
+        { browser: "chrome", version: chromeVersion, executable: chromePath, port },
+        null,
+        2,
+      ),
+    );
     return {
       proc,
       extensionId,
@@ -276,8 +278,11 @@ const launch = async ({
       profileDir: resolvedProfile,
       downloadDir: resolvedDownloads,
       logPath,
+      browserPath: chromePath,
+      browserVersion: chromeVersion,
     };
   } catch (error) {
+    portLease?.release();
     // beforeAll cannot clean up a session that launch() never returned.
     // Make startup failure atomic so retries don't accumulate browser trees
     // and eventually fail for unrelated resource/port reasons.
@@ -302,6 +307,7 @@ module.exports = {
   findChrome,
   findChromeOnPath,
   getChromeMajorVersion,
+  getChromeVersion,
   parseChromeMajorVersion,
   stageBuild,
   chromeArgs,

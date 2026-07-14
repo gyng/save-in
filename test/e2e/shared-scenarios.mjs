@@ -8,7 +8,7 @@ import {
   CONTENT_DISPOSITION_CASES,
   startContentDispositionServer,
 } from "./content-disposition-cases.mjs";
-import { closeLocal, listenLocal } from "./helpers.mjs";
+import { closeLocal, listenLocal, waitForApiEntriesExpression } from "./helpers.mjs";
 
 /**
  * @param {{
@@ -761,30 +761,15 @@ export const runSymlinkDestinationScenario = async ({
       path: "e2e/release-symlink",
     }).then(() => "started")`);
     if (!supported) {
-      const rejected = JSON.parse(
-        await evaluate(`(async () => {
-          const deadline = Date.now() + 8000;
-          for (;;) {
-            const rows = await api.history();
-            const match = rows.findLast(
-              (row) => row.finalFullPath === ${JSON.stringify(`e2e/release-symlink/${filename}`)},
-            );
-            if (match?.status === "USER_CANCELED") {
-              return JSON.stringify(match);
-            }
-            if (Date.now() >= deadline) return JSON.stringify(null);
-            await new Promise((resolve) => {
-              const channel = new MessageChannel();
-              channel.port1.onmessage = () => {
-                channel.port1.close();
-                channel.port2.close();
-                resolve();
-              };
-              channel.port2.postMessage(null);
-            });
-          }
-        })()`),
+      const matches = JSON.parse(
+        await evaluate(
+          waitForApiEntriesExpression(
+            "history",
+            `(row) => row.finalFullPath === ${JSON.stringify(`e2e/release-symlink/${filename}`)} && row.status === "USER_CANCELED"`,
+          ),
+        ),
       );
+      const rejected = matches.at(-1);
       expect(rejected).toMatchObject({
         finalFullPath: `e2e/release-symlink/${filename}`,
         status: "USER_CANCELED",

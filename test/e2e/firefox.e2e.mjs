@@ -1,7 +1,7 @@
 // Firefox end-to-end suite: throwaway profile, temporary install over RDP
 // (the about:debugging mechanism), evaluated in the extension's background
-// event page and an extension-page control client. Tests are sequential and
-// build on each other's state.
+// event page and an extension-page control client. Tests are sequential but
+// restore a steady-state baseline after each case.
 
 import crypto from "crypto";
 import fs from "fs";
@@ -10,29 +10,21 @@ import path from "path";
 
 import firefox from "../../scripts/lib/firefox.js";
 import { inBackgroundContext } from "./background-context.mjs";
+import { registerSharedBrowserCases } from "./cases/shared-browser.cases.mjs";
 import {
-  runAutomaticRetryScenario,
   runContentDispositionScenario,
-  runContextMenuScenario,
   runExternalExtensionScenario,
-  runFailedDownloadLogScenario,
-  runHistoryCancellationScenario,
   runInterruptedTransferRecoveryScenario,
-  runLegacyProfileRoutingScenario,
   runPrivateBrowserActivityScenario,
   runPrivateContextScenario,
-  runRoutingScenario,
-  runShortcutScenario,
-  runSymlinkDestinationScenario,
-  runTabStripScenario,
 } from "./shared-scenarios.mjs";
-import { runTemplateLibraryScenario } from "./template-library-scenario.mjs";
-import { runRoutingVisualEditorScenario } from "./routing-visual-editor-scenario.mjs";
+import { createHarnessSession } from "./harness-session.mjs";
 import {
+  beginResourceScope,
   closeLocal,
   listenLocal,
-  nextBrowserTaskExpression,
   poll,
+  waitForApiEntriesExpression,
   waitForDownloadExpression,
   waitForTabExpression,
 } from "./helpers.mjs";
@@ -40,6 +32,11 @@ import {
 /** @type {Awaited<ReturnType<typeof firefox.launch>>} */
 let session;
 let suiteFailed = false;
+/** @type {import("./helpers.mjs").E2EResourceScope | undefined} */
+let resourceScope;
+/** @type {ReturnType<typeof createHarnessSession> | undefined} */
+let harness;
+const FIRST_INSTALL_TEST = "first install starts with a focused welcome";
 const ARTIFACTS = process.env.E2E_ARTIFACT_DIR
   ? path.resolve(process.env.E2E_ARTIFACT_DIR)
   : path.resolve("dist", "e2e-artifacts");
@@ -56,11 +53,20 @@ const artifactName = (name) =>
     .replace(/(^-|-$)/g, "")
     .toLowerCase();
 
-/** @param {string} testName */
-const captureFailureArtifacts = async (testName) => {
+/** @param {string} testName @param {number | undefined} durationMs */
+const captureFailureArtifacts = async (testName, durationMs) => {
   fs.mkdirSync(ARTIFACTS, { recursive: true });
   /** @type {Record<string, any>} */
-  const report = { testName, capturedAt: new Date().toISOString() };
+  const report = {
+    testName,
+    durationMs,
+    capturedAt: new Date().toISOString(),
+    runId: process.env.E2E_RUN_ID,
+    browser: {
+      executable: session?.browserPath,
+      version: session?.browserVersion,
+    },
+  };
   try {
     report.background = JSON.parse(
       await evalBackground(`Promise.all([
@@ -70,6 +76,23 @@ const captureFailureArtifacts = async (testName) => {
     );
   } catch (error) {
     report.backgroundCaptureError = String(error);
+  }
+  try {
+    if (session?.bidi) {
+      fs.writeFileSync(
+        path.join(ARTIFACTS, `firefox-failure-${artifactName(testName)}.png`),
+        Buffer.from(await session.bidi.captureScreenshot("src/options/options.html"), "base64"),
+      );
+    }
+  } catch (error) {
+    report.screenshotCaptureError = String(error);
+  }
+  try {
+    report.browserLogTail = session?.logPath
+      ? fs.readFileSync(session.logPath, "utf8").slice(-12000).trim()
+      : "";
+  } catch (error) {
+    report.browserLogError = String(error);
   }
   fs.writeFileSync(
     path.join(ARTIFACTS, `firefox-failure-${artifactName(testName)}.json`),
@@ -102,14 +125,7 @@ const downloadUsingBrowserFilename = async (url) => {
 const waitForLog = async (predicate, deadlineMs = 8000) =>
   JSON.parse(
     await evalBackground(
-      `(async () => {
-        const deadline = Date.now() + ${deadlineMs};
-        for (;;) {
-          const matches = (await api.logs()).filter(${predicate});
-          if (matches.length || Date.now() >= deadline) return JSON.stringify(matches);
-          await ${nextBrowserTaskExpression};
-        }
-      })()`,
+      waitForApiEntriesExpression("logs", predicate, deadlineMs),
       deadlineMs + 2000,
     ),
   );
@@ -160,10 +176,44 @@ beforeAll(async () => {
       notifyOnRuleMatch: false,
       notifyOnLinkPreferred: false,
     }).then(() => api.reset()).then(() => "notifications suppressed")`);
+    harness = createHarnessSession({
+      evaluateBackground: evalBackground,
+      evaluateControl: (expression, timeoutMs) => session.evaluate(expression, timeoutMs),
+      resetRuntime: () => evalBackground(`api.reset().then(() => true)`),
+      downloadDir: () => session.downloadDir,
+      reloadOptions: async () => {
+        const tabId = await session.evaluate(
+          `browser.tabs.query({}).then((tabs) => tabs.find((tab) =>
+            tab.url?.startsWith(browser.runtime.getURL("src/options/options.html")))?.id)`,
+        );
+        if (tabId === undefined) {
+          await session.evaluate(
+            `browser.tabs.create({ url: browser.runtime.getURL("src/options/options.html") })`,
+          );
+        } else {
+          await session.evaluate(`browser.tabs.reload(${JSON.stringify(tabId)})`);
+        }
+        await poll(
+          async () =>
+            (await evalOptions(
+              `document.readyState === "complete" && Boolean(browser.runtime?.id)`,
+            ))
+              ? true
+              : null,
+          { description: "reloaded Firefox options page", ignoreErrors: true },
+        );
+      },
+    });
   } catch (error) {
     suiteFailed = true;
     throw error;
   }
+});
+
+beforeEach(async () => {
+  resourceScope = beginResourceScope();
+  if (!harness) throw new Error("Firefox E2E harness was not initialized");
+  await harness.beginCase();
 });
 
 afterAll(async () => {
@@ -181,15 +231,32 @@ afterAll(async () => {
 });
 
 afterEach(async ({ task }) => {
+  /** @type {unknown[]} */
+  const cleanupErrors = [];
   if (task.result?.state === "fail") {
     suiteFailed = true;
     try {
-      await captureFailureArtifacts(task.name);
+      await captureFailureArtifacts(task.name, task.result?.duration);
     } catch (error) {
       process.stderr.write(
         `Unable to capture Firefox failure artifacts: ${error instanceof Error ? error.stack || error.message : String(error)}\n`,
       );
     }
+  }
+  try {
+    await resourceScope?.dispose();
+  } catch (error) {
+    cleanupErrors.push(error);
+  }
+  try {
+    await harness?.endCase({
+      preserveLocal: task.name === FIRST_INSTALL_TEST && task.result?.state !== "fail",
+    });
+  } catch (error) {
+    cleanupErrors.push(error);
+  }
+  if (cleanupErrors.length) {
+    throw new AggregateError(cleanupErrors, "Firefox E2E case cleanup failed");
   }
 });
 
@@ -351,13 +418,6 @@ test("event-page cold start recovers an interrupted in-flight fetch", async () =
   });
 });
 
-test("History cancels an in-flight acquisition and clears durable state", async () => {
-  await runHistoryCancellationScenario({
-    evaluate: evalBackground,
-    filename: "cancel-firefox.bin",
-  });
-});
-
 test("download completes through the real pipeline", async () => {
   await evalBackground(
     `api.startDownload({
@@ -371,18 +431,6 @@ test("download completes through the real pipeline", async () => {
   expect(downloads).toHaveLength(1);
   expect(downloads[0].state).toBe("complete");
   expect(fs.readFileSync(downloads[0].filename, "utf8")).toBe("firefox e2e content");
-});
-
-test("production context-menu handler completes a selection save", async () => {
-  await runContextMenuScenario({ evaluate: evalBackground, waitForDownloads });
-});
-
-test("production tab-strip handler saves the selected real tab", async () => {
-  await runTabStripScenario({
-    evaluate: evalBackground,
-    waitForDownloads,
-    filename: "tab-strip-firefox",
-  });
 });
 
 test("private context-menu saves leave no extension history or session state", async () => {
@@ -559,31 +607,6 @@ test("downloads receive the configured Referer header", async () => {
   }
 });
 
-test("routing rules rename and route the download", async () => {
-  await runRoutingScenario({
-    evaluate: evalBackground,
-    waitForDownloads,
-    content: "ff routed content",
-  });
-});
-
-test("a 3.7 profile keeps its custom folder and repairs an extensionless filename", async () => {
-  await runLegacyProfileRoutingScenario({
-    evaluate: evalBackground,
-    waitForDownloads,
-    filename: "legacy-profile-firefox",
-  });
-});
-
-test("a configured symlink destination reaches its target", async () => {
-  await runSymlinkDestinationScenario({
-    evaluate: evalBackground,
-    waitForDownloads,
-    downloadDir: session.downloadDir,
-    filename: "symlink-firefox.txt",
-  });
-});
-
 test("message-driven downloads work and never inherit a stale route", async () => {
   // Establish the stale-state precondition locally so this regression remains
   // meaningful when the test is isolated or reordered.
@@ -640,39 +663,6 @@ test("a separately installed extension negotiates, authorizes, and routes a down
   });
 });
 
-test("a template added in Options persists and routes a matching download", async () => {
-  await runTemplateLibraryScenario({
-    evaluate: evalBackground,
-    evaluateOptions: (expression) => session.evaluateInTab("src/options/options.html", expression),
-    waitForDownloads,
-    filename: "template-library-firefox",
-    content: "firefox template library e2e",
-  });
-});
-
-test("visual routing edits persist and connect to the debugger", async () => {
-  await runRoutingVisualEditorScenario({
-    evaluate: evalBackground,
-    evaluateOptions: (expression) => session.evaluateInTab("src/options/options.html", expression),
-  });
-});
-
-test("shortcut files keep their extension and redirect content", async () => {
-  await runShortcutScenario({ evaluate: evalBackground, waitForDownloads });
-});
-
-test("failed downloads are recorded in the debug log", async () => {
-  await runFailedDownloadLogScenario({ evaluate: evalBackground, waitForLog });
-});
-
-test("a failed download is retried automatically via background fetch", async () => {
-  await runAutomaticRetryScenario({
-    evaluate: evalBackground,
-    waitForDownloads,
-    filename: "flaky-firefox.bin",
-  });
-});
-
 test("ordinary browser downloads can be tracked and experimentally rerouted on Firefox", async () => {
   /** @type {import("node:http").ServerResponse | undefined} */
   let heldNativeResponse;
@@ -718,15 +708,12 @@ test("ordinary browser downloads can be tracked and experimentally rerouted on F
       true,
     );
     const observed = JSON.parse(
-      await evalBackground(`(async () => {
-        const deadline = Date.now() + 8000;
-        for (;;) {
-          const entries = (await api.history()).filter((entry) => entry.info?.context === "browser");
-          if (entries.some((entry) => entry.status === "complete")) return JSON.stringify(entries);
-          if (Date.now() >= deadline) return JSON.stringify(entries);
-          await ${nextBrowserTaskExpression};
-        }
-      })()`),
+      await evalBackground(
+        waitForApiEntriesExpression(
+          "history",
+          `(entry) => entry.info?.context === "browser" && entry.status === "complete"`,
+        ),
+      ),
     );
     expect(observed.at(-1)).toMatchObject({ status: "complete", info: { context: "browser" } });
   } finally {
@@ -1013,6 +1000,17 @@ test("Page Sources discovers, updates live, and restores across tabs", async () 
     ]).then(() => api.reset()).then(() => "cleaned")`);
     await closeLocal(server);
   }
+});
+
+registerSharedBrowserCases({
+  evaluate: evalBackground,
+  evaluateOptions: (expression) => session.evaluateInTab("src/options/options.html", expression),
+  waitForDownloads,
+  waitForLog,
+  downloadDir: () => session.downloadDir,
+  browserLabel: "firefox",
+  routingContent: "ff routed content",
+  symlinkSupported: true,
 });
 
 test("history and the debug log record a self-contained download", async () => {

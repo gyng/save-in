@@ -1,0 +1,147 @@
+import fs from "node:fs";
+
+import { expect, test } from "vitest";
+
+import {
+  runAutomaticRetryScenario,
+  runContextMenuScenario,
+  runFailedDownloadLogScenario,
+  runHistoryCancellationScenario,
+  runLegacyProfileRoutingScenario,
+  runRoutingScenario,
+  runShortcutScenario,
+  runSymlinkDestinationScenario,
+  runTabStripScenario,
+} from "../shared-scenarios.mjs";
+import { runTemplateLibraryScenario } from "../template-library-scenario.mjs";
+import { runRoutingVisualEditorScenario } from "../routing-visual-editor-scenario.mjs";
+
+/**
+ * Registers platform-neutral browser cases without creating another Vitest
+ * file or browser process. Browser entrypoints provide only the protocol and
+ * capability differences.
+ *
+ * @param {{
+ *   evaluate: (expression: string) => Promise<any>,
+ *   evaluateOptions: (expression: string) => Promise<any>,
+ *   waitForDownloads: (filename: string, timeoutMs?: number) => Promise<any[]>,
+ *   waitForLog: (predicate: string, timeoutMs?: number) => Promise<any[]>,
+ *   downloadDir: () => string,
+ *   browserLabel: "chrome" | "firefox",
+ *   routingContent: string,
+ *   symlinkSupported: boolean,
+ *   failedDownloadFilename?: string,
+ *   afterFailedDownload?: () => Promise<void>,
+ *   reloadOptions?: () => Promise<any>,
+ * }} adapters
+ */
+export const registerSharedBrowserCases = (adapters) => {
+  const {
+    evaluate,
+    evaluateOptions,
+    waitForDownloads,
+    waitForLog,
+    downloadDir,
+    browserLabel,
+    routingContent,
+    symlinkSupported,
+    failedDownloadFilename,
+    afterFailedDownload,
+    reloadOptions,
+  } = adapters;
+
+  test("History cancels an in-flight acquisition and clears durable state", async () => {
+    await runHistoryCancellationScenario({
+      evaluate,
+      filename: `cancel-${browserLabel}.bin`,
+    });
+  });
+
+  test("production context-menu handler completes a selection save", async () => {
+    await runContextMenuScenario({ evaluate, waitForDownloads });
+  });
+
+  test("production tab-strip handler saves the selected real tab", async () => {
+    await runTabStripScenario({
+      evaluate,
+      waitForDownloads,
+      filename: `tab-strip-${browserLabel}.txt`,
+    });
+  });
+
+  test("routing rules rename and route the download", async () => {
+    const downloads = await runRoutingScenario({
+      evaluate,
+      waitForDownloads,
+      content: routingContent,
+    });
+    expect(fs.readFileSync(downloads[0].filename, "utf8")).toBe(routingContent);
+  });
+
+  test("a 3.7 profile keeps its custom folder and repairs an extensionless filename", async () => {
+    await runLegacyProfileRoutingScenario({
+      evaluate,
+      waitForDownloads,
+      filename: `legacy-profile-${browserLabel}`,
+    });
+  });
+
+  test(
+    symlinkSupported
+      ? "a configured symlink destination reaches its target"
+      : "Chrome safely rejects a configured symlink destination",
+    async () => {
+      await runSymlinkDestinationScenario({
+        evaluate,
+        waitForDownloads,
+        downloadDir: downloadDir(),
+        filename: `symlink-${browserLabel}.txt`,
+        supported: symlinkSupported,
+      });
+    },
+  );
+
+  test("a template added in Options persists and routes a matching download", async () => {
+    await runTemplateLibraryScenario({
+      evaluate,
+      evaluateOptions,
+      waitForDownloads,
+      filename: `template-library-${browserLabel}`,
+      content: `${browserLabel} template library e2e`,
+    });
+  });
+
+  test("visual routing edits persist and connect to the debugger", async () => {
+    await runRoutingVisualEditorScenario({
+      evaluate,
+      evaluateOptions,
+      ...(reloadOptions ? { reloadOptions } : {}),
+    });
+  });
+
+  test(
+    browserLabel === "chrome"
+      ? "shortcut files download with redirect content"
+      : "shortcut files keep their extension and redirect content",
+    async () => {
+      await runShortcutScenario({ evaluate, waitForDownloads });
+    },
+  );
+
+  test("failed downloads are recorded in the debug log", async () => {
+    await runFailedDownloadLogScenario({
+      evaluate,
+      waitForLog,
+      ...(failedDownloadFilename ? { filename: failedDownloadFilename } : {}),
+    });
+    await afterFailedDownload?.();
+  });
+
+  test("a failed download is retried automatically via background fetch", async () => {
+    await runAutomaticRetryScenario({
+      evaluate,
+      waitForDownloads,
+      filename: `flaky-${browserLabel}.bin`,
+    });
+  });
+};

@@ -59,7 +59,7 @@ class FirefoxBidi {
       } catch (error) {
         lastError = error;
         socket?.close();
-        await new Promise((resolve) => setImmediate(resolve));
+        await new Promise((resolve) => setTimeout(resolve, 25));
       }
     }
     throw new Error(`Firefox did not expose WebDriver BiDi on port ${port}`, { cause: lastError });
@@ -126,6 +126,16 @@ class FirefoxBidi {
         },
       ],
     });
+  }
+
+  /** @param {string} urlSubstr */
+  async captureScreenshot(urlSubstr) {
+    const context = await this.findContext(urlSubstr);
+    const result = await this.send("browsingContext.captureScreenshot", { context });
+    if (typeof result?.data !== "string") {
+      throw new Error("Firefox BiDi screenshot did not return image data");
+    }
+    return result.data;
   }
 
   close() {

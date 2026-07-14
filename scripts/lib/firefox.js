@@ -7,7 +7,6 @@
 const fs = require("fs");
 const path = require("path");
 const os = require("os");
-const { once } = require("events");
 const { spawn, execFileSync } = require("child_process");
 
 const { FirefoxRdp } = require("./firefox-rdp");
@@ -17,9 +16,10 @@ const {
   FIREFOX_BIDI_PORT_START,
   FIREFOX_E2E_PORT_COUNT,
   FIREFOX_E2E_PORT_START,
-  findAvailablePort,
+  reserveAvailablePort,
 } = require("./debug-port");
 const { currentE2ERunId } = require("./e2e-run-id");
+const { terminateProcessTree } = require("./process-tree");
 
 // EXT_DIR (repo-relative) overrides the loaded package, e.g. to run the e2e
 // against the bundled build (dist/bundled-pkg) instead of the repo root.
@@ -44,9 +44,7 @@ const retryUntil = async (operation, timeoutMs, message) => {
       return await operation();
     } catch (error) {
       if (Date.now() >= deadline) throw new Error(message, { cause: error });
-      // Failed socket/protocol operations already yield to the event loop. An
-      // immediate turn lets Firefox publish the observable state we retry.
-      await new Promise((resolve) => setImmediate(resolve));
+      await new Promise((resolve) => setTimeout(resolve, 25));
     }
   }
 };
@@ -86,23 +84,9 @@ const findFirefox = () => {
   return found;
 };
 
-/** @param {number | undefined} pid */
-const killTree = (pid) => {
-  if (pid === undefined) return;
-  if (process.platform === "win32") {
-    try {
-      execFileSync("taskkill", ["/pid", String(pid), "/T", "/F"], { stdio: "ignore" });
-    } catch (e) {
-      // already gone
-    }
-  } else {
-    try {
-      process.kill(pid);
-    } catch (e) {
-      // already gone
-    }
-  }
-};
+/** @param {string} firefoxPath */
+const getFirefoxVersion = (firefoxPath) =>
+  execFileSync(firefoxPath, ["--version"], { encoding: "utf8" }).trim();
 
 /** @param {string} profileDir */
 const killProfileProcesses = (profileDir) => {
@@ -125,13 +109,8 @@ const killProfileProcesses = (profileDir) => {
  * @param {string} profileDir
  */
 const stopFirefox = async (proc, profileDir) => {
-  const running = proc.exitCode === null && proc.signalCode === null;
-  const exited = running
-    ? once(proc, "exit", { signal: AbortSignal.timeout(10000) })
-    : Promise.resolve();
-  killTree(proc.pid);
+  await terminateProcessTree(proc, { detached: process.platform !== "win32" });
   killProfileProcesses(profileDir);
-  await exited;
 };
 
 /** @param {string} baseProfileDir */
@@ -201,9 +180,19 @@ const connectWithRetry = (port) =>
 /** @param {{extensionDir?: string}} [settings] */
 const launch = async ({ extensionDir = ROOT } = {}) => {
   const { profileDir, downloadDir } = makeProfile(path.join(os.tmpdir(), "save-in-ff-e2e"));
+  const firefoxPath = findFirefox();
+  const firefoxVersion = getFirefoxVersion(firefoxPath);
 
-  const port = await findAvailablePort(FIREFOX_E2E_PORT_START, FIREFOX_E2E_PORT_COUNT);
-  const bidiPort = await findAvailablePort(FIREFOX_BIDI_PORT_START, FIREFOX_BIDI_PORT_COUNT);
+  const portLease = await reserveAvailablePort(FIREFOX_E2E_PORT_START, FIREFOX_E2E_PORT_COUNT);
+  let bidiLease;
+  try {
+    bidiLease = await reserveAvailablePort(FIREFOX_BIDI_PORT_START, FIREFOX_BIDI_PORT_COUNT);
+  } catch (error) {
+    portLease.release();
+    throw error;
+  }
+  const port = portLease.port;
+  const bidiPort = bidiLease.port;
 
   const args = [
     "-profile",
@@ -222,7 +211,10 @@ const launch = async ({ extensionDir = ROOT } = {}) => {
   fs.mkdirSync(ARTIFACTS, { recursive: true });
   const logPath = path.join(ARTIFACTS, `firefox-${port}.log`);
   const log = fs.openSync(logPath, "w");
-  const proc = spawn(findFirefox(), args, { stdio: ["ignore", log, log] });
+  const proc = spawn(firefoxPath, args, {
+    stdio: ["ignore", log, log],
+    detached: process.platform !== "win32",
+  });
   fs.closeSync(log);
   /** @type {InstanceType<typeof FirefoxRdp> | undefined} */
   let rdp;
@@ -275,6 +267,25 @@ const launch = async ({ extensionDir = ROOT } = {}) => {
 
     await openOptionsAndWaitForReady();
     bidi = await FirefoxBidi.connect(bidiPort);
+    portLease.release();
+    bidiLease.release();
+    process.stdout.write(
+      `Firefox E2E: ${firefoxVersion} (${firefoxPath}), RDP ${port}, BiDi ${bidiPort}\n`,
+    );
+    fs.writeFileSync(
+      path.join(ARTIFACTS, "firefox-environment.json"),
+      JSON.stringify(
+        {
+          browser: "firefox",
+          version: firefoxVersion,
+          executable: firefoxPath,
+          rdpPort: port,
+          bidiPort,
+        },
+        null,
+        2,
+      ),
+    );
 
     /** @param {string} text @param {number} [timeoutMs] */
     const evaluate = (text, timeoutMs) => connectedRdp.evaluate(consoleActor, text, timeoutMs);
@@ -375,9 +386,13 @@ const launch = async ({ extensionDir = ROOT } = {}) => {
       profileDir,
       downloadDir,
       logPath,
+      browserPath: firefoxPath,
+      browserVersion: firefoxVersion,
       cleanup,
     };
   } catch (error) {
+    portLease.release();
+    bidiLease.release();
     bidi?.close();
     rdp?.close();
     let cleanupError;
@@ -408,4 +423,12 @@ const launch = async ({ extensionDir = ROOT } = {}) => {
   }
 };
 
-module.exports = { ROOT, findFirefox, findFirefoxOnPath, launch, makeProfile, removeProfile };
+module.exports = {
+  ROOT,
+  findFirefox,
+  findFirefoxOnPath,
+  getFirefoxVersion,
+  launch,
+  makeProfile,
+  removeProfile,
+};

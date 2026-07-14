@@ -10,5 +10,6 @@ export default defineConfig({
     fileParallelism: false,
     testTimeout: 90_000,
     hookTimeout: 180_000,
+    retry: Math.max(0, Number.parseInt(process.env.E2E_RETRY || "0", 10) || 0),
   },
 });

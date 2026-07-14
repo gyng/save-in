@@ -80,6 +80,10 @@ jobs:
           cache: npm
       - name: Install pinned dependencies
         run: npm ci
+      - name: Record browser versions
+        run: |
+          google-chrome --version
+          firefox --version
       - name: Chrome and Firefox e2e
         run: HEADLESS=1 npm run e2e
       - name: Preserve browser diagnostics on failure

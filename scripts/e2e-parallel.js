@@ -1,9 +1,10 @@
 // @ts-check
 
-const fs = require("fs");
-const os = require("os");
-const path = require("path");
-const { execFileSync, spawn } = require("child_process");
+const fs = require("node:fs");
+const os = require("node:os");
+const path = require("node:path");
+const crypto = require("node:crypto");
+const { execFileSync, spawn } = require("node:child_process");
 const {
   acquireDirectoryLock,
   pruneArtifactRuns,
@@ -11,6 +12,7 @@ const {
   releaseDirectoryLock,
   removeOwnedProfiles,
 } = require("./lib/e2e-cleanup");
+const { terminateProcessTree } = require("./lib/process-tree");
 
 const root = path.join(__dirname, "..");
 const vitest = path.join(root, "node_modules", "vitest", "vitest.mjs");
@@ -22,56 +24,104 @@ const stagedRun = path.join(runDir, "bundled-pkg");
 const stagingLockDir = path.join(root, "dist", "e2e-staging.lock");
 const runId = `${process.pid}-${Date.now()}`;
 const runArtifacts = path.join(artifacts, `run-${runId}`);
-const serial = process.argv.slice(2).includes("--serial");
-/** @type {NodeJS.ProcessEnv} */
-const e2eEnv = {
-  ...process.env,
-  E2E_ARTIFACT_DIR: path.relative(root, runArtifacts),
-  E2E_RUN_ID: runId,
+const suiteByBrowser = {
+  chrome: "test/e2e/chrome.e2e.mjs",
+  firefox: "test/e2e/firefox.e2e.mjs",
 };
-if (process.env.HEADED === "1" || process.env.HEADLESS === "0") {
-  delete e2eEnv.HEADLESS;
-} else {
-  e2eEnv.HEADLESS = process.env.HEADLESS || "1";
-}
 
-// Keep diagnostics bounded without deleting a concurrently running suite's
-// files. CI uploads this directory from its disposable workspace on failure.
-fs.mkdirSync(runArtifacts, { recursive: true });
-fs.writeFileSync(path.join(runArtifacts, ".active"), String(process.pid));
-pruneArtifactRuns(artifacts);
-pruneRunDirectories(runRoot);
+/** @param {string} directory */
+const hashDirectory = (directory) => {
+  const hash = crypto.createHash("sha256");
+  /** @param {string} current */
+  const visit = (current) => {
+    for (const entry of fs
+      .readdirSync(current, { withFileTypes: true })
+      .toSorted((a, b) => a.name.localeCompare(b.name))) {
+      const absolute = path.join(current, entry.name);
+      const relative = path.relative(directory, absolute).replaceAll(path.sep, "/");
+      hash.update(relative);
+      hash.update("\0");
+      if (entry.isDirectory()) visit(absolute);
+      else hash.update(fs.readFileSync(absolute));
+      hash.update("\0");
+    }
+  };
+  visit(directory);
+  return hash.digest("hex");
+};
 
-const stagingLock = acquireDirectoryLock(stagingLockDir);
-try {
-  execFileSync(process.execPath, [path.join(__dirname, "build-bundled.js"), "--mode=e2e"], {
-    cwd: root,
-    env: e2eEnv,
-    stdio: "inherit",
-  });
+/** @param {string[]} argv */
+const parseArguments = (argv) => {
+  /** @type {"all" | "chrome" | "firefox"} */
+  let browser = "all";
+  let serial = false;
+  let headed = false;
+  /** @type {string[]} */
+  const vitestArgs = [];
+  for (let index = 0; index < argv.length; index += 1) {
+    const argument = argv[index];
+    if (argument === "--serial") serial = true;
+    else if (argument === "--headed") headed = true;
+    else if (argument === "--browser") {
+      const value = argv[++index];
+      if (value !== "chrome" && value !== "firefox" && value !== "all") {
+        throw new Error(`Unsupported E2E browser: ${value ?? "missing"}`);
+      }
+      browser = value;
+    } else if (argument?.startsWith("--browser=")) {
+      const value = argument.slice("--browser=".length);
+      if (value !== "chrome" && value !== "firefox" && value !== "all") {
+        throw new Error(`Unsupported E2E browser: ${value}`);
+      }
+      browser = value;
+    } else if (argument === "--test-name") {
+      const value = argv[++index];
+      if (!value) throw new Error("--test-name requires a pattern");
+      vitestArgs.push("-t", value);
+    } else if (argument === "--") {
+      vitestArgs.push(...argv.slice(index + 1));
+      break;
+    } else if (argument) vitestArgs.push(argument);
+  }
+  return { browser, serial, headed, vitestArgs };
+};
 
-  // Browsers load this immutable per-run copy; the lock serializes concurrent
-  // E2E builds and snapshots while store/dev builds use separate directories.
-  fs.mkdirSync(runDir, { recursive: true });
-  fs.cpSync(path.join(root, "dist", "bundled-pkg-e2e"), stagedRun, { recursive: true });
-} finally {
-  releaseDirectoryLock(stagingLock);
-}
-
-const suites = ["test/e2e/chrome.e2e.mjs", "test/e2e/firefox.e2e.mjs"];
 /** @type {import("node:child_process").ChildProcess[]} */
 const children = [];
-/** @param {string} suite */
-const startSuite = (suite) => {
-  const child = spawn(process.execPath, [vitest, "run", "--config", config, suite], {
+/** @type {NodeJS.Signals | undefined} */
+let interruptedSignal;
+
+const terminateChildren = async () => {
+  const results = await Promise.allSettled(
+    children.map((child) =>
+      terminateProcessTree(child, { detached: process.platform !== "win32" }),
+    ),
+  );
+  const errors = results.flatMap((result) => (result.status === "rejected" ? [result.reason] : []));
+  if (errors.length) throw new AggregateError(errors, "Unable to terminate E2E suite processes");
+};
+
+/** @param {NodeJS.Signals} signal */
+const stop = (signal) => {
+  interruptedSignal ||= signal;
+  void terminateChildren().catch((error) => console.error(error));
+};
+process.once("SIGINT", () => stop("SIGINT"));
+process.once("SIGTERM", () => stop("SIGTERM"));
+
+/**
+ * @param {string} suite
+ * @param {NodeJS.ProcessEnv} env
+ * @param {string[]} vitestArgs
+ */
+const startSuite = (suite, env, vitestArgs) => {
+  const child = spawn(process.execPath, [vitest, "run", "--config", config, suite, ...vitestArgs], {
     cwd: root,
-    env: { ...e2eEnv, EXT_DIR: path.relative(root, stagedRun) },
+    env,
     stdio: "inherit",
     detached: process.platform !== "win32",
   });
-  // Attach completion handlers immediately. A fast startup failure can exit
-  // before all suites have spawned; registering later would miss the event and
-  // let Node exit with cleanup still pending.
+  children.push(child);
   const done = new Promise((resolve) => {
     child.once("error", () => resolve(1));
     child.once("exit", (code, signal) => resolve(code ?? (signal ? 1 : 0)));
@@ -79,71 +129,115 @@ const startSuite = (suite) => {
   return { child, done };
 };
 
-/** @type {NodeJS.Signals | undefined} */
-let interruptedSignal;
-/** @param {import("node:child_process").ChildProcess} child */
-const terminate = (child) => {
-  if (!child.pid) return;
-  try {
-    if (process.platform === "win32") {
-      execFileSync("taskkill", ["/pid", String(child.pid), "/T", "/F"], { stdio: "ignore" });
-    } else {
-      process.kill(-child.pid, "SIGTERM");
-    }
-  } catch (error) {
-    // The suite may have completed while interruption was being handled.
-  }
-};
-/** @param {NodeJS.Signals} signal */
-const stop = (signal) => {
-  interruptedSignal ||= signal;
-  children.forEach(terminate);
-};
-process.once("SIGINT", () => stop("SIGINT"));
-process.once("SIGTERM", () => stop("SIGTERM"));
-
 const main = async () => {
-  /** @type {number[]} */
-  const codes = [];
-  if (serial) {
-    for (const suite of suites) {
-      const run = startSuite(suite);
-      children.push(run.child);
-      const code = await run.done;
-      codes.push(code);
-      if (code !== 0) break;
-    }
+  const options = parseArguments(process.argv.slice(2));
+  const suites =
+    options.browser === "all" ? Object.values(suiteByBrowser) : [suiteByBrowser[options.browser]];
+  /** @type {NodeJS.ProcessEnv} */
+  const e2eEnv = {
+    ...process.env,
+    E2E_ARTIFACT_DIR: path.relative(root, runArtifacts),
+    E2E_RUN_ID: runId,
+  };
+  if (options.headed || process.env.HEADED === "1" || process.env.HEADLESS === "0") {
+    delete e2eEnv.HEADLESS;
   } else {
-    const runs = suites.map(startSuite);
-    children.push(...runs.map(({ child }) => child));
-    codes.push(...(await Promise.all(runs.map(({ done }) => done))));
+    e2eEnv.HEADLESS = process.env.HEADLESS || "1";
   }
-  children.forEach(terminate);
+
   /** @type {unknown[]} */
   const cleanupErrors = [];
+  /** @type {number[]} */
+  const codes = [];
+  let completed = false;
+  fs.mkdirSync(runArtifacts, { recursive: true });
+  fs.writeFileSync(path.join(runArtifacts, ".active"), String(process.pid));
+  const runMetadata = {
+    runId,
+    startedAt: new Date().toISOString(),
+    node: process.version,
+    platform: `${process.platform}-${process.arch}`,
+    browsers: options.browser,
+    headed: !e2eEnv.HEADLESS,
+    suites,
+    vitestArgs: options.vitestArgs,
+    extensionSha256: "pending",
+  };
+  const writeRunMetadata = () =>
+    fs.writeFileSync(path.join(runArtifacts, "run.json"), JSON.stringify(runMetadata, null, 2));
+  writeRunMetadata();
+
   try {
-    await removeOwnedProfiles([runId], {
-      chromeRoot: path.join(root, "dist"),
-      firefoxRoot: os.tmpdir(),
-    });
-  } catch (error) {
-    cleanupErrors.push(error);
+    pruneArtifactRuns(artifacts);
+    pruneRunDirectories(runRoot);
+    const stagingLock = acquireDirectoryLock(stagingLockDir);
+    try {
+      execFileSync(process.execPath, [path.join(__dirname, "build-bundled.js"), "--mode=e2e"], {
+        cwd: root,
+        env: e2eEnv,
+        stdio: "inherit",
+      });
+      fs.mkdirSync(runDir, { recursive: true });
+      fs.cpSync(path.join(root, "dist", "bundled-pkg-e2e"), stagedRun, { recursive: true });
+      runMetadata.extensionSha256 = hashDirectory(stagedRun);
+      writeRunMetadata();
+    } finally {
+      releaseDirectoryLock(stagingLock);
+    }
+
+    const childEnv = { ...e2eEnv, EXT_DIR: path.relative(root, stagedRun) };
+    if (options.serial) {
+      for (const suite of suites) {
+        const code = await startSuite(suite, childEnv, options.vitestArgs).done;
+        codes.push(/** @type {number} */ (code));
+        if (code !== 0) break;
+      }
+    } else {
+      const runs = suites.map((suite) => startSuite(suite, childEnv, options.vitestArgs));
+      codes.push(...(await Promise.all(runs.map(({ done }) => done))).map(Number));
+    }
+    completed = true;
+  } finally {
+    try {
+      await terminateChildren();
+    } catch (error) {
+      cleanupErrors.push(error);
+    }
+    try {
+      await removeOwnedProfiles([runId], {
+        chromeRoot: path.join(root, "dist"),
+        firefoxRoot: os.tmpdir(),
+      });
+    } catch (error) {
+      cleanupErrors.push(error);
+    }
+    try {
+      fs.rmSync(runDir, { recursive: true, force: true });
+    } catch (error) {
+      cleanupErrors.push(error);
+    }
+    fs.rmSync(path.join(runArtifacts, ".active"), { force: true });
+    if (
+      completed &&
+      codes.every((code) => code === 0) &&
+      cleanupErrors.length === 0 &&
+      fs.existsSync(runArtifacts)
+    ) {
+      fs.rmSync(runArtifacts, { recursive: true, force: true });
+    }
   }
-  try {
-    fs.rmSync(runDir, { recursive: true, force: true });
-  } catch (error) {
-    cleanupErrors.push(error);
-  }
-  fs.rmSync(path.join(runArtifacts, ".active"), { force: true });
-  if (fs.existsSync(runArtifacts) && fs.readdirSync(runArtifacts).length === 0) {
-    fs.rmSync(runArtifacts, { recursive: true, force: true });
-  }
+
   for (const error of cleanupErrors) console.error(error);
-  process.exitCode = Boolean(interruptedSignal) || codes.some((code) => code !== 0) ? 1 : 0;
-  if (cleanupErrors.length) process.exitCode = 1;
+  if (interruptedSignal || codes.some((code) => code !== 0) || cleanupErrors.length) {
+    process.exitCode = 1;
+  }
 };
 
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+if (require.main === module) {
+  main().catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+  });
+}
+
+module.exports = { parseArguments };
