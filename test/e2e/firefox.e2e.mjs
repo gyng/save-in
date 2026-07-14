@@ -11,7 +11,7 @@ import path from "path";
 import firefox from "../../scripts/lib/firefox.js";
 import { inBackgroundContext } from "./background-context.mjs";
 import { registerSharedBrowserCases } from "./cases/shared-browser.cases.mjs";
-import { createE2EControlClient } from "./control-client.mjs";
+import { createE2EControlClient, createRecoveringControlTransport } from "./control-client.mjs";
 import {
   runContentDispositionScenario,
   runExternalExtensionScenario,
@@ -42,10 +42,6 @@ const FIRST_INSTALL_TEST = "first install starts with a focused welcome";
 const ARTIFACTS = process.env.E2E_ARTIFACT_DIR
   ? path.resolve(process.env.E2E_ARTIFACT_DIR)
   : path.resolve("dist", "e2e-artifacts");
-const control = createE2EControlClient({
-  callFunction: (functionDeclaration, args, timeoutMs) =>
-    session.bidi.callFunction("src/options/options.html", functionDeclaration, args, timeoutMs),
-});
 
 /** @param {string} expr @param {number} [timeoutMs] */
 const rawEvalOptions = (expr, timeoutMs) =>
@@ -76,6 +72,13 @@ const reloadOptionsPage = async () => {
     { description: "reloaded Firefox options page", ignoreErrors: true },
   );
 };
+const control = createE2EControlClient({
+  callFunction: createRecoveringControlTransport({
+    callFunction: (functionDeclaration, args, timeoutMs) =>
+      session.bidi.callFunction("src/options/options.html", functionDeclaration, args, timeoutMs),
+    recover: reloadOptionsPage,
+  }),
+});
 const optionsPage = createLazyPageEvaluator({
   evaluate: rawEvalOptions,
   prepare: reloadOptionsPage,
@@ -317,6 +320,13 @@ test("background event page initialises cleanly", async () => {
   expect(
     (await control.logs.get()).some((/** @type {any} */ entry) => entry.message === "init failed"),
   ).toBe(false);
+});
+
+test("structured control restores a missing Options target", async () => {
+  await session.bidi.closeContext("src/options/options.html");
+
+  expect(await control.runtime.ready()).toEqual({ type: "OK" });
+  expect(await rawEvalOptions(`document.readyState`)).toBe("complete");
 });
 
 test("options page autosaves through Firefox host APIs", async () => {

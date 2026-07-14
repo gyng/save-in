@@ -1,4 +1,7 @@
-import { createE2EControlClient } from "../e2e/control-client.mjs";
+import {
+  createE2EControlClient,
+  createRecoveringControlTransport,
+} from "../e2e/control-client.mjs";
 
 describe("structured E2E control client", () => {
   test("passes data as arguments instead of interpolating executable expressions", async () => {
@@ -54,5 +57,55 @@ describe("structured E2E control client", () => {
         message: { type: "OPTIONS_LOADED" },
       },
     ]);
+  });
+
+  test("restores a missing control page before retrying discovery", async () => {
+    const missing = new Error('No target matching "options.html"');
+    Object.assign(missing, { code: "E2E_CONTROL_TARGET_MISSING" });
+    const callFunction = vi.fn().mockRejectedValueOnce(missing).mockResolvedValueOnce("ready");
+    const recover = vi.fn(async () => undefined);
+    const call = createRecoveringControlTransport({ callFunction, recover });
+
+    await expect(call("function () {}", [{ id: 1 }])).resolves.toBe("ready");
+    expect(recover).toHaveBeenCalledOnce();
+    expect(callFunction).toHaveBeenCalledTimes(2);
+  });
+
+  test("does not retry an ambiguous transport failure", async () => {
+    const failure = new Error("CDP timeout: Runtime.callFunctionOn");
+    const callFunction = vi.fn().mockRejectedValue(failure);
+    const recover = vi.fn(async () => undefined);
+    const call = createRecoveringControlTransport({ callFunction, recover });
+
+    await expect(call("function () {}", [])).rejects.toBe(failure);
+    expect(recover).not.toHaveBeenCalled();
+    expect(callFunction).toHaveBeenCalledOnce();
+  });
+
+  test("does not infer a missing control page from browser-thrown error text", async () => {
+    const failure = new Error('No target matching "options.html"');
+    const callFunction = vi.fn().mockRejectedValue(failure);
+    const recover = vi.fn(async () => undefined);
+    const call = createRecoveringControlTransport({ callFunction, recover });
+
+    await expect(call("function () {}", [])).rejects.toBe(failure);
+    expect(recover).not.toHaveBeenCalled();
+  });
+
+  test("surfaces background menu command failures immediately", async () => {
+    const client = createE2EControlClient({
+      callFunction: async () =>
+        JSON.stringify({
+          ok: true,
+          value: {
+            type: "SAVE_IN_E2E_CONTEXT_MENU_CLICK",
+            body: { status: "ERROR", message: "menu dispatch failed" },
+          },
+        }),
+    });
+
+    await expect(client.background.clickContextMenu({ info: {} })).rejects.toThrow(
+      "menu dispatch failed",
+    );
   });
 });

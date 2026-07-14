@@ -289,6 +289,47 @@ const dispatchControlRequest = async (serializedRequest) => {
 
 const CONTROL_FUNCTION = dispatchControlRequest.toString();
 
+/** @param {unknown} error */
+const isMissingControlPage = (error) =>
+  error instanceof Error &&
+  /** @type {Error & {code?: string}} */ (error).code === "E2E_CONTROL_TARGET_MISSING";
+
+/**
+ * Restores the extension control page only when target discovery proved that
+ * dispatch never started. Other transport errors are ambiguous and must not be
+ * retried because the browser may already have completed a side effect.
+ *
+ * @param {{
+ *   callFunction: (
+ *     functionDeclaration: string,
+ *     args?: unknown[],
+ *     timeoutMs?: number,
+ *   ) => Promise<unknown>,
+ *   recover: () => Promise<void>,
+ *   isMissing?: (error: unknown) => boolean,
+ * }} adapter
+ */
+export const createRecoveringControlTransport = ({
+  callFunction,
+  recover,
+  isMissing = isMissingControlPage,
+}) => {
+  /**
+   * @param {string} functionDeclaration
+   * @param {unknown[]} [args]
+   * @param {number} [timeoutMs]
+   */
+  return async (functionDeclaration, args, timeoutMs) => {
+    try {
+      return await callFunction(functionDeclaration, args, timeoutMs);
+    } catch (error) {
+      if (!isMissing(error)) throw error;
+      await recover();
+      return callFunction(functionDeclaration, args, timeoutMs);
+    }
+  };
+};
+
 /**
  * @param {{
  *   callFunction: (
@@ -326,6 +367,15 @@ export const createE2EControlClient = ({ callFunction }) => {
     remove: (keys) => call({ operation: "storage.remove", area: name, keys }),
     clear: () => call({ operation: "storage.clear", area: name }),
   });
+
+  /** @param {Record<string, unknown>} message @param {string} fallback */
+  const command = async (message, fallback) => {
+    const response = await call({ operation: "runtime.send", message });
+    if (response?.body?.status !== "OK") {
+      throw new Error(response?.body?.message || fallback);
+    }
+    return response.body;
+  };
 
   return {
     call,
@@ -404,27 +454,21 @@ export const createE2EControlClient = ({ callFunction }) => {
     background: {
       /** @param {Record<string, unknown>} body */
       startDownload: async (body) => {
-        const response = await call({
-          operation: "runtime.send",
-          message: { type: "SAVE_IN_E2E_START_DOWNLOAD", body },
-        });
-        if (response?.body?.status !== "OK") {
-          throw new Error(response?.body?.message || "E2E download command failed");
-        }
-        return response.body.result;
+        const response = await command(
+          { type: "SAVE_IN_E2E_START_DOWNLOAD", body },
+          "E2E download command failed",
+        );
+        return response.result;
       },
       /** @param {Record<string, unknown>} body */
       clickContextMenu: (body) =>
-        call({
-          operation: "runtime.send",
-          message: { type: "SAVE_IN_E2E_CONTEXT_MENU_CLICK", body },
-        }),
+        command(
+          { type: "SAVE_IN_E2E_CONTEXT_MENU_CLICK", body },
+          "E2E context-menu command failed",
+        ),
       /** @param {Record<string, unknown>} body */
       clickTabMenu: (body) =>
-        call({
-          operation: "runtime.send",
-          message: { type: "SAVE_IN_E2E_TAB_MENU_CLICK", body },
-        }),
+        command({ type: "SAVE_IN_E2E_TAB_MENU_CLICK", body }, "E2E tab-menu command failed"),
       /** @param {"get" | "reset"} action */
       notificationCalls: async (action) =>
         (

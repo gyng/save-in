@@ -328,15 +328,31 @@ const callFunctionInTarget = async (
   let lastError = null;
   for (let attempt = 0; attempt < 3; attempt += 1) {
     const targets = (await listTargets(port)).filter((target) => target.url.includes(urlSubstr));
-    if (targets.length === 0) lastError = new Error(`No target matching "${urlSubstr}"`);
+    if (targets.length === 0) {
+      lastError = Object.assign(new Error(`No target matching "${urlSubstr}"`), {
+        code: "E2E_CONTROL_TARGET_MISSING",
+      });
+    }
     for (const target of targets) {
       /** @type {Cdp | undefined} */
       let client;
+      /** @type {string | undefined} */
+      let objectId;
       try {
         client = await Cdp.connect(target.webSocketDebuggerUrl);
         const root = await client.send("Runtime.evaluate", { expression: "globalThis" }, timeoutMs);
-        const objectId = root.result.objectId;
+        objectId = root.result.objectId;
         if (!objectId) throw new Error("CDP did not return the page global object");
+      } catch (error) {
+        lastError = error;
+        client?.close();
+        continue;
+      }
+
+      try {
+        // Do not retry after dispatch. A timeout or disconnect can happen after
+        // the browser completed a side effect, so repeating the call could
+        // create a second download/tab or apply a mutation twice.
         const result = await client.send(
           "Runtime.callFunctionOn",
           {
@@ -349,13 +365,9 @@ const callFunctionInTarget = async (
           timeoutMs,
         );
         if (!result.exceptionDetails) return result.result.value;
-        lastError = new Error(
-          result.exceptionDetails.exception?.description || "function call failed",
-        );
-      } catch (error) {
-        lastError = error;
+        throw new Error(result.exceptionDetails.exception?.description || "function call failed");
       } finally {
-        client?.close();
+        client.close();
       }
     }
     if (attempt < 2) await nextTurn();

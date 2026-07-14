@@ -1,13 +1,20 @@
 import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
-const { Cdp, extensionIdFromTargets, getJson, listTargets, waitForCdp } =
+const { Cdp, callFunctionInTarget, extensionIdFromTargets, getJson, listTargets, waitForCdp } =
   require("../../scripts/lib/cdp.js") as {
     Cdp: new (socket: FakeSocket) => {
       send: (method: string, params?: object, timeoutMs?: number) => Promise<unknown>;
       close: () => void;
     };
     getJson: (port: number, path: string, timeoutMs?: number) => Promise<unknown>;
+    callFunctionInTarget: (
+      port: number,
+      urlSubstr: string,
+      functionDeclaration: string,
+      args?: unknown[],
+      timeoutMs?: number,
+    ) => Promise<unknown>;
     listTargets: (
       port: number,
     ) => Promise<Array<{ id: string; type: string; url: string; webSocketDebuggerUrl: string }>>;
@@ -102,6 +109,53 @@ describe("CDP transport", () => {
     } finally {
       timer.mockRestore();
     }
+  });
+
+  test("does not repeat a side-effecting call after an ambiguous disconnect", async () => {
+    let sockets = 0;
+    let dispatches = 0;
+    class ConnectableSocket extends FakeSocket {
+      constructor() {
+        super();
+        sockets += 1;
+        this.send.mockImplementation((message) => {
+          const packet = JSON.parse(message) as { id: number; method: string };
+          if (packet.method === "Runtime.evaluate") {
+            this.emit("message", {
+              data: JSON.stringify({ id: packet.id, result: { result: { objectId: "root" } } }),
+            });
+            return;
+          }
+          if (packet.method === "Runtime.callFunctionOn") {
+            dispatches += 1;
+            this.emit("close");
+          }
+        });
+        queueMicrotask(() => this.emit("open"));
+      }
+    }
+    vi.stubGlobal("WebSocket", ConnectableSocket);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: () =>
+          Promise.resolve([
+            {
+              id: "options",
+              type: "page",
+              url: "chrome-extension://save-in/options.html",
+              webSocketDebuggerUrl: "ws://options",
+            },
+          ]),
+      }),
+    );
+
+    await expect(
+      callFunctionInTarget(9555, "options.html", "function () { return true; }", [], 100),
+    ).rejects.toThrow("CDP connection closed");
+    expect(dispatches).toBe(1);
+    expect(sockets).toBe(1);
   });
 });
 

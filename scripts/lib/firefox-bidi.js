@@ -92,7 +92,9 @@ class FirefoxBidi {
       }
       if (Array.isArray(context?.children)) pending.push(...context.children);
     }
-    throw new Error(`No Firefox BiDi context matching "${urlSubstr}"`);
+    throw Object.assign(new Error(`No Firefox BiDi context matching "${urlSubstr}"`), {
+      code: "E2E_CONTROL_TARGET_MISSING",
+    });
   }
 
   /**
@@ -129,6 +131,12 @@ class FirefoxBidi {
       );
     }
     return remote.value;
+  }
+
+  /** @param {string} urlSubstr */
+  async closeContext(urlSubstr) {
+    const context = await this.findContext(urlSubstr);
+    return this.send("browsingContext.close", { context });
   }
 
   /** @param {string} urlSubstr @param {number} x @param {number} y */
