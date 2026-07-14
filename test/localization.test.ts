@@ -113,6 +113,7 @@ test.each([
   { greeting: { message: "Hello", description: 7 } },
   { greeting: { message: "Hello", placeholders: [] } },
   { greeting: { message: "Hello", placeholders: { name: { content: 7 } } } },
+  { greeting: { message: "Hello", placeholders: { name: { content: "$1", example: 7 } } } },
 ])("rejects malformed canonical catalogs and keeps native messages for %j", async (catalog) => {
   const localization = createLocalization({
     nativeGetMessage: (key) => `native:${key}`,
@@ -155,5 +156,7 @@ test("loads the browser-owned catalog and falls back when its response fails", a
   expect(getMessage("greeting")).toBe("Translated<greeting>");
   expect(getMessage("count", 5)).toBe("Translated<count>");
   expect(browser.i18n.getMessage).toHaveBeenLastCalledWith("count", "5");
+  expect(getMessage("items", ["one", "two"])).toBe("Translated<items>");
+  expect(browser.i18n.getMessage).toHaveBeenLastCalledWith("items", ["one", "two"]);
   expect(fetchMock).toHaveBeenCalledTimes(2);
 });
