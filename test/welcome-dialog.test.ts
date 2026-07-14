@@ -13,6 +13,7 @@ const pageFixture = () => {
   document.body.innerHTML = `
     <span id="lastSavedAt">Never</span>
     <button id="about-open" type="button">About</button>
+    <dialog id="about-dialog"></dialog>
     <button id="paths-mode-visual" type="button">Visual</button>
     <div id="path-editor-rows"><input class="path-editor-dir" /></div>
   `;
@@ -205,15 +206,21 @@ test("contains sparse customization and status markup", async () => {
   expect(document.querySelector("#welcome-dialog")).not.toBeNull();
 });
 
-test("opens the permission explanation through the existing About action", async () => {
+test("returns to the pending welcome guide after explaining permissions", async () => {
   const storage = storageFixture();
-  const about = document.querySelector<HTMLButtonElement>("#about-open")!;
-  const click = vi.spyOn(about, "click");
+  const about = document.querySelector<HTMLDialogElement>("#about-dialog")!;
   await setupWelcomeDialog(storage, localize);
 
-  document.querySelector<HTMLButtonElement>(`[data-welcome-action="permissions"]`)?.click();
+  const permissions = document.querySelector<HTMLButtonElement>(
+    `[data-welcome-action="permissions"]`,
+  )!;
+  permissions.click();
 
-  expect(click).toHaveBeenCalledOnce();
+  expect(about.open).toBe(true);
+  expect(document.querySelector<HTMLDialogElement>("#welcome-dialog")?.open).toBe(true);
+  expect(storage.remove).not.toHaveBeenCalled();
+  about.close();
+  expect(document.activeElement).toBe(permissions);
 });
 
 test("dismisses from the keyboard but does not show for other or unreadable state", async () => {

@@ -39,8 +39,10 @@ const ARTIFACTS = process.env.E2E_ARTIFACT_DIR
   : path.resolve("dist", "e2e-artifacts");
 
 /** @param {string} expr @param {number} [timeoutMs] */
-const evalBackground = (expr, timeoutMs) =>
-  session.evaluateInTab("src/options/options.html", inBackgroundContext(expr), timeoutMs);
+const evalOptions = (expr, timeoutMs) =>
+  session.evaluateInTab("src/options/options.html", expr, timeoutMs);
+/** @param {string} expr @param {number} [timeoutMs] */
+const evalBackground = (expr, timeoutMs) => evalOptions(inBackgroundContext(expr), timeoutMs);
 /** @param {string} name */
 const artifactName = (name) =>
   name
@@ -183,6 +185,39 @@ afterEach(async ({ task }) => {
       );
     }
   }
+});
+
+test("first install starts with a focused welcome", async () => {
+  const welcome = await poll(
+    async () => {
+      const state = JSON.parse(
+        await evalOptions(`browser.storage.local.get("welcomePendingVersion").then((stored) =>
+          JSON.stringify({
+            open: document.querySelector("#welcome-dialog")?.open === true,
+            focused: document.activeElement === document.querySelector(".welcome-accept"),
+            pending: stored.welcomePendingVersion,
+          }))`),
+      );
+      return state.open && state.focused ? state : null;
+    },
+    { description: "Firefox first-install welcome dialog" },
+  );
+  expect(welcome.pending).toBe(1);
+
+  await evalOptions(`document.querySelector(".welcome-accept").click()`);
+  await poll(
+    async () => {
+      const state = JSON.parse(
+        await evalOptions(`browser.storage.local.get("welcomePendingVersion").then((stored) =>
+          JSON.stringify({
+            dismissed: !document.querySelector("#welcome-dialog"),
+            pending: stored.welcomePendingVersion,
+          }))`),
+      );
+      return state.dismissed && state.pending === undefined ? state : null;
+    },
+    { description: "Firefox welcome dismissal" },
+  );
 });
 
 test("background event page initialises cleanly", async () => {

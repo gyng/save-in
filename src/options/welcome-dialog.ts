@@ -39,7 +39,7 @@ const confirmEmptyPreset = (localize: Localize): Promise<boolean> =>
     description.id = "welcome-preset-confirm-description";
     description.textContent =
       localize("welcomeEmptyConfirmDescription") ||
-      "The empty preset replaces your current folder configuration and keeps only the browser Downloads destination.";
+      "This replaces your current folder configuration and keeps only the browser Downloads destination.";
     const actions = document.createElement("div");
     actions.className = "dialog-actions";
     const keep = document.createElement("button");
@@ -48,7 +48,7 @@ const confirmEmptyPreset = (localize: Localize): Promise<boolean> =>
     const replace = document.createElement("button");
     replace.type = "button";
     replace.className = "button-danger danger-button";
-    replace.textContent = localize("welcomeUseEmptyPreset") || "Use empty preset";
+    replace.textContent = localize("welcomeUseEmptyPreset") || "Use Downloads only";
     actions.append(keep, replace);
     dialog.append(title, description, actions);
     document.body.append(dialog);
@@ -88,11 +88,11 @@ const createWelcomeDialog = (localize: Localize): HTMLDialogElement => {
       "The toolbar button opens Page Sources for finding media on the current page.",
     permissions: localize("welcomePermissions") || "Why these permissions?",
     customize: localize("welcomeCustomizeFolders") || "Customize folders",
-    empty: localize("welcomeUseEmptyPreset") || "Use empty preset",
-    accept: localize("welcomeUseStarterFolders") || "Start using Save In",
+    empty: localize("welcomeUseEmptyPreset") || "Use Downloads only",
+    accept: localize("welcomeUseStarterFolders") || "Keep starter folders",
     emptyFailed:
       localize("welcomeEmptyPresetFailed") ||
-      "Could not apply the empty preset. Your starter folders are unchanged.",
+      "Could not switch to Downloads only. Your folders are unchanged.",
   };
   const dialog = document.createElement("dialog");
   dialog.id = "welcome-dialog";
@@ -165,10 +165,6 @@ const createWelcomeDialog = (localize: Localize): HTMLDialogElement => {
 };
 
 const followWelcomeAction = (action: WelcomeAction): void => {
-  if (action === "permissions") {
-    document.querySelector<HTMLButtonElement>("#about-open")?.click();
-    return;
-  }
   if (action !== "customize") return;
   document.querySelector<HTMLButtonElement>("#paths-mode-visual")?.click();
   const firstPath = document.querySelector<HTMLInputElement>("#path-editor-rows .path-editor-dir");
@@ -180,6 +176,20 @@ const followWelcomeAction = (action: WelcomeAction): void => {
     firstPath.scrollIntoView({ block: "center", behavior: "smooth" });
     firstPath.focus();
   }
+};
+
+const showPermissionExplanation = (welcomeDialog: HTMLDialogElement): void => {
+  const aboutDialog = document.querySelector<HTMLDialogElement>("#about-dialog");
+  if (!aboutDialog || aboutDialog.open || typeof aboutDialog.showModal !== "function") return;
+  const returnFocus = welcomeDialog.querySelector<HTMLButtonElement>(".welcome-permissions");
+  aboutDialog.addEventListener(
+    "close",
+    () => {
+      if (welcomeDialog.isConnected && welcomeDialog.open) returnFocus?.focus();
+    },
+    { once: true },
+  );
+  aboutDialog.showModal();
 };
 
 export const showWelcomeDialog = (
@@ -246,7 +256,8 @@ export const showWelcomeDialog = (
         ? event.target.closest<HTMLButtonElement>("[data-welcome-action]")
         : null;
     const action = actionTarget?.dataset.welcomeAction;
-    if (action === "empty") void useEmptyPreset();
+    if (action === "permissions") showPermissionExplanation(dialog);
+    else if (action === "empty") void useEmptyPreset();
     else if (isWelcomeAction(action)) close(action);
     else if (event.target === dialog && !applyingPreset) close("dismiss");
   });

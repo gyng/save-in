@@ -274,6 +274,34 @@ test("first install starts with a focused welcome", async () => {
   });
   expect(welcome.steps).toHaveLength(3);
 
+  await evalOptions(`document.querySelector(".welcome-permissions").click()`);
+  const permissions = await poll(
+    async () => {
+      const state = JSON.parse(
+        await evalOptions(`chrome.storage.local.get("welcomePendingVersion").then((stored) =>
+          JSON.stringify({
+            aboutOpen: document.querySelector("#about-dialog")?.open === true,
+            welcomeOpen: document.querySelector("#welcome-dialog")?.open === true,
+            pending: stored.welcomePendingVersion,
+          }))`),
+      );
+      return state.aboutOpen && state.welcomeOpen ? state : null;
+    },
+    { description: "permission explanation over welcome" },
+  );
+  expect(permissions.pending).toBe(1);
+  await evalOptions(`document.querySelector("#about-dialog .about-close").click()`);
+  await poll(
+    async () =>
+      (await evalOptions(
+        `document.querySelector("#welcome-dialog")?.open === true &&
+          document.activeElement === document.querySelector(".welcome-permissions")`,
+      )) === true
+        ? true
+        : null,
+    { description: "welcome focus after permission explanation" },
+  );
+
   await evalOptions(`document.querySelector(".welcome-accept").click()`);
   await poll(
     async () => {
