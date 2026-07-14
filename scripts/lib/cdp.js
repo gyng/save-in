@@ -236,32 +236,36 @@ const waitForExtensionId = async (port, attempts = 30) => {
 // urlSubstr. Skips targets whose extension context has been invalidated.
 /** @param {number} port @param {string} urlSubstr @param {string} expression @returns {Promise<any>} */
 const evalInTarget = async (port, urlSubstr, expression) => {
-  const targets = (await listTargets(port)).filter((t) => t.url.includes(urlSubstr));
-  if (targets.length === 0) {
-    throw new Error(`No target matching "${urlSubstr}"`);
-  }
-
   let lastError = null;
-  for (const target of targets) {
-    /** @type {Cdp | undefined} */
-    let cdp;
-    try {
-      cdp = await Cdp.connect(target.webSocketDebuggerUrl);
-      await cdp.send("Runtime.enable", {}, 3000);
-      const result = await cdp.send("Runtime.evaluate", {
-        expression,
-        awaitPromise: true,
-        returnByValue: true,
-      });
-      if (!result.exceptionDetails) {
-        return result.result.value;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    // A document reload can leave its old WebSocket in /json briefly. Refresh
+    // the target list between attempts instead of retrying a dead endpoint.
+    const targets = (await listTargets(port)).filter((t) => t.url.includes(urlSubstr));
+    if (targets.length === 0) lastError = new Error(`No target matching "${urlSubstr}"`);
+    for (const target of targets) {
+      /** @type {Cdp | undefined} */
+      let cdp;
+      try {
+        cdp = await Cdp.connect(target.webSocketDebuggerUrl);
+        await cdp.send("Runtime.enable", {}, 3000);
+        const result = await cdp.send("Runtime.evaluate", {
+          expression,
+          awaitPromise: true,
+          returnByValue: true,
+        });
+        if (!result.exceptionDetails) {
+          return result.result.value;
+        }
+        lastError = new Error(
+          result.exceptionDetails.exception?.description || "evaluation failed",
+        );
+      } catch (error) {
+        lastError = error;
+      } finally {
+        cdp?.close();
       }
-      lastError = new Error(result.exceptionDetails.exception?.description || "evaluation failed");
-    } catch (error) {
-      lastError = error;
-    } finally {
-      cdp?.close();
     }
+    if (attempt < 2) await sleep(100);
   }
   throw lastError;
 };

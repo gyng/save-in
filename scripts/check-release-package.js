@@ -243,6 +243,13 @@ for (const name of [
 ]) {
   check(fs.existsSync(path.join(stageRoot, name)), `staged package is missing ${name}`);
 }
+const firefoxBackground = fs.existsSync(path.join(stageRoot, "background.js"))
+  ? fs.readFileSync(path.join(stageRoot, "background.js"), "utf8")
+  : "";
+check(
+  !/^(?:const|let|class|function) location\b/m.test(firefoxBackground),
+  "Firefox background bundle must not redeclare the non-configurable window.location global",
+);
 
 const finish = async () => {
   const configUrl = pathToFileURL(path.join(root, "vitest.config.mjs")).href;
@@ -256,13 +263,7 @@ const finish = async () => {
     "explicit Vitest worker limits must override defaults with a floor",
   );
   const coverageExclude = vitestConfig.test?.coverage?.exclude || [];
-  for (const excluded of [
-    "src/entries/**",
-    "src/background/main.ts",
-    "src/content/source-panel.ts",
-    "src/downloads/notification.ts",
-    "src/options/options.ts",
-  ]) {
+  for (const excluded of ["src/entries/**", "src/options/options.ts"]) {
     check(coverageExclude.includes(excluded), `Vitest coverage must exclude ${excluded}`);
   }
   check(

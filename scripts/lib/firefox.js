@@ -211,22 +211,25 @@ const launch = async () => {
 
       // Send the readiness probe from an extension page. A background context's
       // runtime.sendMessage does not loop back to its own onMessage listener.
+      let lastProbe = "options target was not attachable";
       for (let i = 0; i < 20; i += 1) {
-        let ready = false;
         try {
           const tabConsole = await connectedRdp.getTabConsoleActor("src/options/options.html");
-          ready =
-            (await connectedRdp.evaluate(
-              tabConsole,
-              'browser.runtime.sendMessage({ type: "WAKE_WARM" }).then((response) => response?.type === "OK", () => false)',
-            )) === true;
-        } catch {
+          lastProbe = await connectedRdp.evaluate(
+            tabConsole,
+            `browser.runtime.sendMessage({ type: "WAKE_WARM" })
+              .then((response) => JSON.stringify({ response }))
+              .catch((error) => JSON.stringify({ error: String(error) }))`,
+          );
+          const probe = JSON.parse(lastProbe);
+          if (probe?.response?.type === "OK") return;
+        } catch (error) {
           // The options target may not be attachable until its first document loads.
+          lastProbe = error instanceof Error ? error.message : String(error);
         }
-        if (ready === true) return;
         await sleep(500);
       }
-      throw new Error("background page never became ready");
+      throw new Error(`background page never became ready (last probe: ${lastProbe})`);
     };
 
     await openOptionsAndWaitForReady();
@@ -239,7 +242,20 @@ const launch = async () => {
     /** @param {string} urlSubstr @param {string} text @param {number} [timeoutMs] */
     const evaluateInTab = async (urlSubstr, text, timeoutMs) => {
       const tabConsole = await connectedRdp.getTabConsoleActor(urlSubstr);
-      return connectedRdp.evaluate(tabConsole, text, timeoutMs);
+      try {
+        return await connectedRdp.evaluate(tabConsole, text, timeoutMs);
+      } catch (error) {
+        // Firefox replaces a tab's console actor when location.reload() swaps
+        // documents while retaining the same tab actor. Reconnect so a fresh
+        // watcher reports the replacement target instead of its stale cache.
+        if (!String(error).includes("noSuchActor")) throw error;
+        connectedRdp.close();
+        connectedRdp = await connectWithRetry(port);
+        const refreshedAddon = await connectedRdp.findAddonActor(ADDON_ID);
+        consoleActor = await connectedRdp.getConsoleActor(refreshedAddon);
+        const refreshedConsole = await connectedRdp.getTabConsoleActor(urlSubstr);
+        return connectedRdp.evaluate(refreshedConsole, text, timeoutMs);
+      }
     };
 
     const reloadAddon = async () => {

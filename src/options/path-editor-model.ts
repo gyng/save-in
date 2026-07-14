@@ -33,7 +33,9 @@ export const getPathEnabled = (node: DirectoryLineNode): boolean =>
 
 export const setPathEnabled = (node: DirectoryLineNode, enabled: boolean): DirectoryLineNode => {
   const updated = updateDirectoryMetadata(node, "disabled", enabled ? "" : "true");
-  return enabled && updated.comment === null ? parsePathLineAst(updated.raw.trimEnd()).ast : updated;
+  return enabled && updated.comment === null
+    ? parsePathLineAst(updated.raw.trimEnd()).ast
+    : updated;
 };
 
 export const getPathSourceRange = (

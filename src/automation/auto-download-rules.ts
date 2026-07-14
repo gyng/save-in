@@ -64,7 +64,7 @@ export type AutoDownloadRuleError = {
   location: { start: number; end: number; line: number; column: number };
 };
 
-const location = (span: SourceSpan): AutoDownloadRuleError["location"] => ({
+const sourceLocation = (span: SourceSpan): AutoDownloadRuleError["location"] => ({
   start: span.start.offset,
   end: span.end.offset,
   line: span.start.line,
@@ -76,7 +76,7 @@ const errorFor = (
   message: string,
   error: string,
   span: SourceSpan,
-): AutoDownloadRuleError => ({ code, message, error, location: location(span) });
+): AutoDownloadRuleError => ({ code, message, error, location: sourceLocation(span) });
 
 const isMatcherName = (name: string): name is AutoDownloadMatcherName =>
   AUTO_DOWNLOAD_MATCHERS.includes(name as AutoDownloadMatcherName);

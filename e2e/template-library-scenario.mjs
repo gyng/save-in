@@ -31,10 +31,18 @@ export const runTemplateLibraryScenario = async ({
   );
 
   try {
+    await evaluateOptions(`(() => {
+      document.querySelector("#tab-section-dynamic-downloads")?.click();
+      document.querySelector("#rules-mode-text")?.click();
+      const rules = document.querySelector("#filenamePatterns");
+      if (!(rules instanceof HTMLTextAreaElement)) return false;
+      rules.focus();
+      return true;
+    })()`);
     await poll(
       async () =>
         (await evaluateOptions(`(() => {
-          const rows = [...document.querySelectorAll(".rule-template")];
+          const rows = [...document.querySelectorAll(".inline-template-library .rule-template")];
           const row = rows.find((candidate) =>
             candidate.querySelector(".rule-template-rule")?.textContent?.includes(${JSON.stringify(PDF_TEMPLATE_MATCHER)})
           );
