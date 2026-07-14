@@ -149,7 +149,23 @@ export const runRoutingVisualEditorScenario = async ({
       secondEnabled: false,
     });
 
+    const hasLastDownload =
+      (await evaluateOptions(`browser.runtime.sendMessage({ type: "CHECK_ROUTES" }).then(
+        (response) => response?.body?.lastDownload != null,
+      )`)) === true;
+    if (hasLastDownload) {
+      await poll(
+        async () =>
+          (await evaluateOptions(`(() => {
+            const useLast = document.querySelector("#route-debugger-use-last");
+            return useLast instanceof HTMLButtonElement && !useLast.disabled;
+          })()`)) === true || null,
+        { description: "route debugger last-download initialization" },
+      );
+    }
+
     await evaluateOptions(`(() => {
+      document.querySelector("#route-debugger-clear")?.click();
       const filename = document.querySelector("#route-debugger-filename");
       const mime = document.querySelector("#route-debugger-mime");
       if (!(filename instanceof HTMLInputElement) || !(mime instanceof HTMLInputElement)) {

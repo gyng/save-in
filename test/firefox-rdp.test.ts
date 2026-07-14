@@ -140,6 +140,9 @@ describe("FirefoxRdp reloadAddon", () => {
     const sock = makeSocket();
     const client = new FirefoxRdp(sock);
     client.tabConsoleActors.set("tab-actor", "console-actor");
+    client.descriptorWatchers.set("descriptor-actor", "watcher-actor");
+    client.watcherDescriptors.set("watcher-actor", "descriptor-actor");
+    client.watcherTargetMatches.set("watcher-actor", () => true);
 
     const reloaded = client.reloadAddon("save-in@example");
     sock.emit(
@@ -156,6 +159,9 @@ describe("FirefoxRdp reloadAddon", () => {
 
     await expect(reloaded).resolves.toBeUndefined();
     expect(client.tabConsoleActors).toHaveLength(0);
+    expect(client.descriptorWatchers).toHaveLength(0);
+    expect(client.watcherDescriptors).toHaveLength(0);
+    expect(client.watcherTargetMatches).toHaveLength(0);
   });
 });
 
@@ -245,6 +251,28 @@ describe("FirefoxRdp frame target discovery", () => {
 
     await expect(refreshed).resolves.toBe("fresh-console");
     expect(client.tabConsoleActors.get("tab-actor")).toBe("fresh-console");
+  });
+
+  test("captures a fresh background console registered before page reload", async () => {
+    const sock = makeSocket();
+    const client = new FirefoxRdp(sock);
+    expect(client.waitForBackgroundConsoleActor("addon-actor", "stale-console")).toBeNull();
+    client.descriptorWatchers.set("addon-actor", "watcher-actor");
+
+    const refreshed = client.waitForBackgroundConsoleActor("addon-actor", "stale-console");
+    sock.emit(
+      "data",
+      frame({
+        from: "watcher-actor",
+        type: "target-available-form",
+        target: {
+          url: "moz-extension://save-in/_generated_background_page.html",
+          consoleActor: "fresh-console",
+        },
+      }),
+    );
+
+    await expect(refreshed).resolves.toBe("fresh-console");
   });
 });
 

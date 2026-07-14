@@ -295,6 +295,37 @@ const launch = async ({ extensionDir = ROOT } = {}) => {
       );
     };
 
+    const reloadBackgroundPage = async () => {
+      const staleConsoleActor = consoleActor;
+      const switchedConsole = connectedRdp.waitForBackgroundConsoleActor(
+        addonActor,
+        staleConsoleActor,
+      );
+      try {
+        await connectedRdp.evaluate(
+          staleConsoleActor,
+          `(() => { location.reload(); return true; })()`,
+          5000,
+        );
+      } catch (error) {
+        const message = String(error);
+        if (!/RDP (?:event )?timeout|Evaluation cancelled|noSuchActor/.test(message)) throw error;
+      }
+      consoleActor = switchedConsole
+        ? await switchedConsole
+        : await retryUntil(
+            async () => {
+              const candidate = await connectedRdp.getConsoleActor(addonActor);
+              if (candidate === staleConsoleActor)
+                throw new Error("Background target is still stale");
+              return candidate;
+            },
+            10000,
+            "Firefox event-page reload did not expose a fresh background page",
+          );
+      await openOptionsAndWaitForReady();
+    };
+
     const cleanup = async () => {
       connectedRdp.close();
       await stopFirefox(proc, profileDir);
@@ -309,6 +340,7 @@ const launch = async ({ extensionDir = ROOT } = {}) => {
       evaluate,
       evaluateInTab,
       reloadAddon,
+      reloadBackgroundPage,
       profileDir,
       downloadDir,
       logPath,

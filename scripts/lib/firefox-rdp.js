@@ -291,6 +291,13 @@ class FirefoxRdp {
     return requireString(addon, "actor", "listAddons");
   }
 
+  clearTargetActors() {
+    this.tabConsoleActors.clear();
+    this.descriptorWatchers.clear();
+    this.watcherDescriptors.clear();
+    this.watcherTargetMatches.clear();
+  }
+
   /** @param {string} addonId */
   async reloadAddon(addonId) {
     const actor = await this.findAddonActor(addonId);
@@ -302,7 +309,7 @@ class FirefoxRdp {
       throw new Error("Firefox add-on actor does not support reload");
     }
     requirePacket(await this.request({ to: actor, type: "reload" }, 60000), "reload");
-    this.tabConsoleActors.clear();
+    this.clearTargetActors();
   }
 
   // Finds the frame target a descriptor actor (addon or tab) exposes.
@@ -452,6 +459,34 @@ class FirefoxRdp {
     return requireString(target, "consoleActor", "target switch");
   }
 
+  /**
+   * @param {string} addonActor
+   * @param {string} staleActor
+   * @param {number} [timeoutMs]
+   * @returns {Promise<string> | null}
+   */
+  waitForBackgroundConsoleActor(addonActor, staleActor, timeoutMs = 10000) {
+    const watcher = this.descriptorWatchers.get(addonActor);
+    if (!watcher) return null;
+    return this.waitForEvent(
+      (candidate) =>
+        candidate.type === "target-available-form" &&
+        candidate.from === watcher &&
+        isRdpPacket(candidate.target) &&
+        typeof candidate.target.url === "string" &&
+        candidate.target.url.includes("_generated_background_page") &&
+        typeof candidate.target.consoleActor === "string" &&
+        candidate.target.consoleActor !== staleActor,
+      timeoutMs,
+    ).then((packet) => {
+      const target = requirePacket(
+        packet && isRdpPacket(packet.target) ? packet.target : undefined,
+        "background target switch",
+      );
+      return requireString(target, "consoleActor", "background target switch");
+    });
+  }
+
   // Evaluates in the extension background context; returns the string value.
   // Wrap complex results with JSON.stringify inside the expression. The
   // expression is wrapped in a top-level await so promises resolve to values
@@ -464,12 +499,15 @@ class FirefoxRdp {
    */
   async evaluate(consoleActor, text, timeoutMs = 30000) {
     const request = requirePacket(
-      await this.request({
-        to: consoleActor,
-        type: "evaluateJSAsync",
-        text: `(async () => (${text}))()`,
-        mapped: { await: true },
-      }),
+      await this.request(
+        {
+          to: consoleActor,
+          type: "evaluateJSAsync",
+          text: `(async () => (${text}))()`,
+          mapped: { await: true },
+        },
+        timeoutMs,
+      ),
       "evaluateJSAsync",
     );
     const resultID = requireString(request, "resultID", "evaluateJSAsync");

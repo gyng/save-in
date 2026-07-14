@@ -261,7 +261,7 @@ test("event-page reload hydrates persisted options before replying", async () =>
     await evalBackground(
       `browser.storage.local.set({ promptOnShift: ${JSON.stringify(persisted)} })`,
     );
-    await session.reloadAddon();
+    await session.reloadBackgroundPage();
     expect(await evalBackground(`api.getOption("promptOnShift")`)).toBe(persisted);
   } finally {
     await evalBackground(`api.setOptions({ promptOnShift: ${JSON.stringify(original)} })`).catch(
