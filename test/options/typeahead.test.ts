@@ -3,7 +3,7 @@
 import { attachTypeahead } from "../../src/options/typeahead.ts";
 
 const items = [
-  { value: "images", label: "Images", description: "Route image files" },
+  { value: "images", label: "Images", description: "Route image files", meta: "photo.jpg" },
   { value: "documents", label: "Documents", description: "PDF and office files" },
   { value: "archives", label: "Archives", description: "Compressed downloads" },
 ];
@@ -28,6 +28,7 @@ describe("typeahead dropdown", () => {
     expect(input.getAttribute("role")).toBe("combobox");
     expect(input.getAttribute("aria-expanded")).toBe("true");
     expect(dropdown?.querySelectorAll('[role="option"]')).toHaveLength(3);
+    expect(dropdown?.querySelector(".typeahead-option-meta")?.textContent).toBe("photo.jpg");
 
     input.value = "office";
     input.dispatchEvent(new InputEvent("input", { bubbles: true }));
@@ -65,6 +66,25 @@ describe("typeahead dropdown", () => {
     expect(input.getAttribute("aria-expanded")).toBe("true");
     document.body.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
     expect(input.getAttribute("aria-expanded")).toBe("false");
+  });
+
+  test("supports type-to-select without editing a read-only value", () => {
+    const input = document.querySelector<HTMLInputElement>("#picker")!;
+    const selected = vi.fn();
+    input.value = "images";
+    input.readOnly = true;
+    attachTypeahead(input, { items, onSelect: selected });
+
+    input.focus();
+    input.dispatchEvent(new KeyboardEvent("keydown", { key: "d", bubbles: true }));
+    expect(input.value).toBe("images");
+    expect(input.getAttribute("aria-activedescendant")).toBe("typeahead-picker-option-1");
+
+    input.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true }),
+    );
+    expect(input.value).toBe("documents");
+    expect(selected).toHaveBeenCalledWith(items[1]);
   });
 
   test("cleanup removes the floating listbox and combobox relationship", () => {

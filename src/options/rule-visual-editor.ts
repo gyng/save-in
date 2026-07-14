@@ -22,6 +22,7 @@ import { isAutomaticRuleClauses } from "../routing/automatic-rule.ts";
 import { completeDirectorySyntax } from "./syntax-editor-model.ts";
 import { bindTabInteractions, syncTabSelection } from "./tab-controls.ts";
 import { attachTypeahead } from "./typeahead.ts";
+import { matcherDescription, matcherTestValue } from "./matcher-descriptions.ts";
 import {
   clearValidationFields,
   EDITOR_VALIDATION_EVENT,
@@ -231,6 +232,7 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
     input.className = "rule-clause-name visual-editor-control-field";
     input.name = "routing-matcher";
     input.value = clause.name;
+    input.readOnly = true;
     input.setAttribute("autocomplete", "off");
     input.spellcheck = false;
     input.setAttribute(
@@ -260,9 +262,12 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
           matcherSuggestions.map((matcher) => ({
             value: matcher,
             label: matcher,
+            description: matcherDescription(matcher),
+            meta: matcherTestValue(matcher),
           })),
         onSelect: (item) => updateMatcher(item.value),
-        preferredWidth: 320,
+        preferredWidth: 360,
+        variant: "reference",
       }),
     );
     return input;

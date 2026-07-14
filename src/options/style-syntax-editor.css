@@ -361,6 +361,10 @@ textarea.syntax-editor-input::placeholder {
   --typeahead-chevron-end: 7px;
 }
 
+.typeahead-input[readonly] {
+  cursor: default;
+}
+
 .typeahead-dropdown {
   position: fixed;
   z-index: var(--z-listbox);
@@ -424,4 +428,59 @@ textarea.syntax-editor-input::placeholder {
   line-height: 1.35;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.typeahead-option-meta {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: 400;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.typeahead-dropdown-reference {
+  gap: 0;
+  padding: 0;
+  scrollbar-gutter: stable;
+}
+
+.typeahead-dropdown-reference .typeahead-option {
+  grid-template-columns: minmax(7rem, 45%) minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  gap: 1px var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--panel-border);
+  border-radius: 0;
+}
+
+.typeahead-dropdown-reference .typeahead-option:last-child {
+  border-bottom: 0;
+}
+
+.typeahead-dropdown-reference .typeahead-option-label {
+  grid-column: 1;
+  grid-row: 1;
+  align-self: start;
+  color: var(--syntax-keyword);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+}
+
+.typeahead-dropdown-reference .typeahead-option-meta {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: end;
+  max-width: 100%;
+}
+
+.typeahead-dropdown-reference .typeahead-option-description {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  overflow-wrap: anywhere;
+  text-overflow: clip;
+  white-space: normal;
 }

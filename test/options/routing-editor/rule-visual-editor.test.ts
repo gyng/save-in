@@ -31,6 +31,9 @@ describe("routing visual editor", () => {
         </details>
       </div>
       <button type="button" id="auto-download-manage-rules">Open routing rules</button>
+      <input id="route-debugger-filename" value="report.pdf">
+      <input id="route-debugger-source-url" value="https://cdn.example/report.pdf">
+      <select id="route-debugger-context"><option value="link" selected>Link</option></select>
     `;
   });
 
@@ -247,17 +250,25 @@ describe("routing visual editor", () => {
 
     const matcher = element<HTMLInputElement>(".rule-clause-name");
     matcher.focus();
+    expect(matcher.readOnly).toBe(true);
     expect(matcher.getAttribute("role")).toBe("combobox");
     const matcherDropdown = document.getElementById(matcher.getAttribute("aria-controls")!);
-    expect(matcherDropdown?.style.width).toBe("320px");
+    expect(matcherDropdown?.style.width).toBe("360px");
+    expect(matcherDropdown?.classList).toContain("typeahead-dropdown-reference");
     const matcherOptions = [
       ...(matcherDropdown?.querySelectorAll<HTMLButtonElement>('[role="option"]') ?? []),
     ];
-    expect(matcherOptions.map((option) => option.textContent)).toEqual([
-      "context",
-      "filename",
-      "sourceurl",
-    ]);
+    expect(
+      matcherOptions.map((option) => option.querySelector(".typeahead-option-label")?.textContent),
+    ).toEqual(["context", "filename", "sourceurl"]);
+    expect(
+      matcherOptions.map(
+        (option) => option.querySelector(".typeahead-option-description")?.textContent,
+      ),
+    ).toEqual(["Match how the save started", "Match the resolved filename", "Match the file URL"]);
+    expect(
+      matcherOptions.map((option) => option.querySelector(".typeahead-option-meta")?.textContent),
+    ).toEqual(["link", "report.pdf", "https://cdn.example/report.pdf"]);
     matcherOptions[0]!.click();
     expect(element<HTMLTextAreaElement>("#filenamePatterns").value).toContain("context/i:");
 

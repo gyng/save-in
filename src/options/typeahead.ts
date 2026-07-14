@@ -2,6 +2,7 @@ export type TypeaheadItem = {
   value: string;
   label: string;
   description?: string;
+  meta?: string;
   searchText?: string;
 };
 
@@ -10,6 +11,7 @@ type TypeaheadOptions = {
   onSelect: (item: TypeaheadItem) => void;
   preferredWidth?: number;
   maxResults?: number;
+  variant?: "reference";
 };
 
 let typeaheadSequence = 0;
@@ -26,7 +28,7 @@ const matchingItems = (
     .filter((item) => {
       if (terms.length === 0) return true;
       const searchable = normalized(
-        `${item.label} ${item.description ?? ""} ${item.searchText ?? ""}`,
+        `${item.label} ${item.description ?? ""} ${item.meta ?? ""} ${item.searchText ?? ""}`,
       );
       return terms.every((term) => searchable.includes(term));
     })
@@ -43,6 +45,7 @@ export const attachTypeahead = (
   const listboxId = `typeahead-${input.id || ++typeaheadSequence}`;
   listbox.id = listboxId;
   listbox.className = "typeahead-dropdown";
+  if (options.variant) listbox.classList.add(`typeahead-dropdown-${options.variant}`);
   listbox.setAttribute("role", "listbox");
   listbox.hidden = true;
   document.body.append(listbox);
@@ -56,11 +59,16 @@ export const attachTypeahead = (
 
   let active = -1;
   let visibleItems: readonly TypeaheadItem[] = [];
+  let keyboardSearch = "";
+  let keyboardSearchTimer: number | null = null;
 
   const availableItems = (): readonly TypeaheadItem[] =>
     typeof options.items === "function" ? options.items() : options.items;
 
   const close = (): void => {
+    if (keyboardSearchTimer !== null) window.clearTimeout(keyboardSearchTimer);
+    keyboardSearch = "";
+    keyboardSearchTimer = null;
     listbox.hidden = true;
     listbox.replaceChildren();
     visibleItems = [];
@@ -127,6 +135,13 @@ export const attachTypeahead = (
       label.className = "typeahead-option-label";
       label.textContent = item.label;
       row.append(label);
+      if (item.meta) {
+        const meta = document.createElement("span");
+        meta.className = "typeahead-option-meta";
+        meta.textContent = item.meta;
+        meta.title = item.meta;
+        row.append(meta);
+      }
       if (item.description) {
         const description = document.createElement("small");
         description.className = "typeahead-option-description";
@@ -171,6 +186,29 @@ export const attachTypeahead = (
         close();
       } else if (event.key === "Tab") {
         close();
+      } else if (
+        input.readOnly &&
+        event.key.length === 1 &&
+        !event.altKey &&
+        !event.ctrlKey &&
+        !event.metaKey
+      ) {
+        event.preventDefault();
+        if (listbox.hidden) render(true);
+        const key = normalized(event.key);
+        let nextSearch = `${keyboardSearch}${key}`;
+        let match = visibleItems.findIndex((item) => normalized(item.label).startsWith(nextSearch));
+        if (match < 0) {
+          nextSearch = key;
+          match = visibleItems.findIndex((item) => normalized(item.label).startsWith(nextSearch));
+        }
+        keyboardSearch = nextSearch;
+        if (match >= 0) setActive(match);
+        if (keyboardSearchTimer !== null) window.clearTimeout(keyboardSearchTimer);
+        keyboardSearchTimer = window.setTimeout(() => {
+          keyboardSearch = "";
+          keyboardSearchTimer = null;
+        }, 700);
       }
     },
     listenerOptions,
@@ -189,6 +227,7 @@ export const attachTypeahead = (
   document.addEventListener("scroll", position, { capture: true, signal: controller.signal });
 
   return () => {
+    if (keyboardSearchTimer !== null) window.clearTimeout(keyboardSearchTimer);
     controller.abort();
     listbox.remove();
     input.classList.remove("typeahead-input");
