@@ -10,6 +10,11 @@ const requireIds = (document: Document, ids: string[]) => {
   ).toEqual([]);
 };
 
+test("keeps the options page hidden until localization completes", () => {
+  const document = documentForOptions();
+  expect(document.documentElement.classList).toContain("localization-pending");
+});
+
 test("keeps stable controls for each options workflow", () => {
   const document = documentForOptions();
   requireIds(document, [

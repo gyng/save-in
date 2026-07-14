@@ -2,6 +2,7 @@
 import {
   documentLanguage,
   hardenLinks,
+  initializeLocalizedDocument,
   localizeString,
   localizeDocument,
   setDocumentLanguage,
@@ -47,6 +48,53 @@ describe("l10n", () => {
 
     setDocumentLanguage("sv_AI", "en-US");
     expect(document.documentElement.lang).toBe("sv");
+  });
+
+  test("selects the stored locale before revealing the localized document", async () => {
+    document.body.innerHTML = `
+      <select id="locale">
+        <option value="">Browser default</option>
+        <option value="fr">Français</option>
+      </select>`;
+    document.documentElement.classList.add("localization-pending");
+    const select = document.querySelector<HTMLSelectElement>("#locale")!;
+    let finishCatalogLoad!: () => void;
+    const catalogLoaded = new Promise<void>((resolve) => {
+      finishCatalogLoad = resolve;
+    });
+    const localize = vi.fn();
+
+    const initialized = initializeLocalizedDocument("fr", "en-US", {
+      root: document.documentElement,
+      localeControl: select,
+      initialize: () => catalogLoaded,
+      localize,
+    });
+
+    expect(select.value).toBe("fr");
+    expect(document.documentElement.lang).toBe("fr");
+    expect(document.documentElement.classList).toContain("localization-pending");
+    expect(localize).not.toHaveBeenCalled();
+
+    finishCatalogLoad();
+    await initialized;
+    expect(localize).toHaveBeenCalledOnce();
+    expect(document.documentElement.classList).not.toContain("localization-pending");
+  });
+
+  test("reveals the document when localization initialization fails", async () => {
+    document.documentElement.classList.add("localization-pending");
+
+    await expect(
+      initializeLocalizedDocument("invalid", "en-US", {
+        root: document.documentElement,
+        localeControl: null,
+        initialize: () => Promise.reject(new Error("catalog unavailable")),
+        localize: vi.fn(),
+      }),
+    ).rejects.toThrow("catalog unavailable");
+
+    expect(document.documentElement.classList).not.toContain("localization-pending");
   });
 
   test("opens external links separately without exposing the options window", () => {

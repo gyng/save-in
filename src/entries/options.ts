@@ -7,7 +7,7 @@
 
 // <head> scripts
 import "../platform/web-extension-api.ts";
-import { localizeDocument, setDocumentLanguage } from "../options/l10n.ts";
+import { initializeLocalizedDocument, localizeDocument } from "../options/l10n.ts";
 import { getMessage, initializeLocalization } from "../platform/localization.ts";
 import { webExtensionApi } from "../platform/web-extension-api.ts";
 import "../platform/chrome-detector.ts";
@@ -56,14 +56,18 @@ document.addEventListener(
       .catch(() => ({}));
     applyUiTheme(Reflect.get(stored, "uiTheme"));
     const uiLocale = Reflect.get(stored, "uiLocale");
-    await initializeLocalization(uiLocale);
-    setDocumentLanguage(
+    await initializeLocalizedDocument(
       uiLocale,
       typeof webExtensionApi.i18n.getUILanguage === "function"
         ? webExtensionApi.i18n.getUILanguage()
         : "",
+      {
+        root: document.documentElement,
+        localeControl: document.querySelector<HTMLSelectElement>("#uiLocale"),
+        initialize: initializeLocalization,
+        localize: () => localizeDocument(getMessage),
+      },
     );
-    localizeDocument(getMessage);
     setHistoryLocalizer(getMessage);
     void renderHistory();
     setupSyntaxEditors();

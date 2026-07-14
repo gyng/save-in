@@ -24,14 +24,18 @@ describe("review demo server over HTTP", () => {
     const killTree = vi.fn(async () => undefined);
     const removeProfile = vi.fn(async () => undefined);
 
-    await cleanupReviewSession(
-      { browser: { proc, profileDir: "review-profile-unique" }, server },
-      { killTree, removeProfile },
-    );
+    try {
+      await cleanupReviewSession(
+        { browser: { proc, profileDir: "review-profile-unique" }, server },
+        { killTree, removeProfile },
+      );
 
-    expect(killTree).toHaveBeenCalledWith(proc);
-    expect(removeProfile).toHaveBeenCalledWith("review-profile-unique");
-    expect(server.listening).toBe(false);
+      expect(killTree).toHaveBeenCalledWith(proc);
+      expect(removeProfile).toHaveBeenCalledWith("review-profile-unique");
+      expect(server.listening).toBe(false);
+    } finally {
+      await closeServer(server);
+    }
   });
 
   test("serves the late-discovered image as an actual WebP", async () => {

@@ -5,6 +5,13 @@ import { isSelectableLocale } from "../shared/generated-locales.ts";
 
 type GetMessage = (key: string) => string;
 
+type InitializeLocalizedDocumentPorts = {
+  root: HTMLElement;
+  localeControl: HTMLSelectElement | null;
+  initialize(locale: unknown): Promise<void>;
+  localize(): void;
+};
+
 const nativeGetMessage: GetMessage = (key) => chrome.i18n.getMessage(key);
 
 const LANGUAGE_TAG = /^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/;
@@ -22,6 +29,23 @@ export const setDocumentLanguage = (
   root: HTMLElement = document.documentElement,
 ): void => {
   root.lang = documentLanguage(selectedLocale, browserLocale);
+};
+
+export const initializeLocalizedDocument = async (
+  selectedLocale: unknown,
+  browserLocale: unknown,
+  ports: InitializeLocalizedDocumentPorts,
+): Promise<void> => {
+  try {
+    if (ports.localeControl) {
+      ports.localeControl.value = isSelectableLocale(selectedLocale) ? selectedLocale : "";
+    }
+    setDocumentLanguage(selectedLocale, browserLocale, ports.root);
+    await ports.initialize(selectedLocale);
+    ports.localize();
+  } finally {
+    ports.root.classList.remove("localization-pending");
+  }
 };
 
 export const localizeString = (str: string, getMessage: GetMessage = nativeGetMessage): string =>

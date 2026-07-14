@@ -282,6 +282,14 @@ body:not(#settings-page) {
   padding: var(--space-4) var(--space-5);
 }
 
+.localization-pending {
+  background: var(--page-bg);
+}
+
+.localization-pending body {
+  visibility: hidden;
+}
+
 .top-nav {
   display: flex;
   justify-content: space-between;
