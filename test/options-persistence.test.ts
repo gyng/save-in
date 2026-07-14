@@ -63,6 +63,26 @@ describe("options persistence", () => {
     expect(persistence.lastKnown.paths).toBe(".");
   });
 
+  test("adopts externally applied values and reports changes from the known snapshot", async () => {
+    const persistence = createOptionsPersistence({
+      getSchema: () => Promise.resolve(schema),
+      getStored: vi.fn(() => Promise.resolve({ paths: ".", links: true })),
+      apply: vi.fn(async () => acknowledgement({})),
+      collect: vi.fn(),
+      assertApplied: assertApplySucceeded,
+      markSaved: vi.fn(),
+      assertUndoSafe: vi.fn(),
+      onRestore: vi.fn(),
+    });
+    await persistence.restore();
+
+    expect(persistence.acceptExternal({ paths: "agent", links: false })).toEqual([
+      { name: "paths", before: ".", after: "agent" },
+      { name: "links", before: true, after: false },
+    ]);
+    expect(persistence.lastKnown).toEqual({ paths: "agent", links: false });
+  });
+
   test("captures a scoped value before asynchronous schema resolution", async () => {
     let resolveSchema!: (value: typeof schema) => void;
     const schemaReady = new Promise<typeof schema>((resolve) => {

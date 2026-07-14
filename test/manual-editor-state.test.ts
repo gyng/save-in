@@ -237,6 +237,56 @@ describe("manual editor state", () => {
     expect(document.querySelector<HTMLElement>(".editor-save-status")!.hidden).toBe(true);
   });
 
+  test("preserves a draft while adopting an externally applied Discard baseline", () => {
+    const state = createManualEditorState("Unsaved changes");
+    state.setup("paths");
+    const textarea = document.querySelector("textarea")!;
+    const applied = vi.fn();
+    textarea.addEventListener("options-value-applied", applied);
+    textarea.value = "local draft";
+    textarea.dispatchEvent(new InputEvent("input"));
+
+    expect(state.applyExternalBaseline("paths", "agent baseline")).toBe(true);
+
+    expect(textarea.value).toBe("local draft");
+    expect(state.anyDirty()).toBe(true);
+    expect(applied).not.toHaveBeenCalled();
+    expect(state.discard("paths")).toBe(true);
+    expect(textarea.value).toBe("agent baseline");
+    expect(state.anyDirty()).toBe(false);
+  });
+
+  test("updates a clean editor when adopting an externally applied baseline", () => {
+    const state = createManualEditorState("Unsaved changes");
+    state.setup("paths");
+    const textarea = document.querySelector("textarea")!;
+    const applied = vi.fn();
+    textarea.addEventListener("options-value-applied", applied);
+
+    expect(state.applyExternalBaseline("paths", "agent baseline")).toBe(true);
+
+    expect(textarea.value).toBe("agent baseline");
+    expect(state.anyDirty()).toBe(false);
+    expect((applied.mock.calls[0]![0] as CustomEvent).detail).toBe("agent baseline");
+  });
+
+  test("invalidates an older in-flight save when an external baseline wins", () => {
+    const state = createManualEditorState("Unsaved changes");
+    state.setup("paths");
+    const textarea = document.querySelector("textarea")!;
+    textarea.value = "submitted draft";
+    textarea.dispatchEvent(new InputEvent("input"));
+    const revision = state.revision("paths");
+    state.setSaving("paths", true, "Saving…");
+
+    expect(state.applyExternalBaseline("paths", "agent baseline")).toBe(true);
+    expect(state.markSaved("paths", "Saved", "submitted draft", revision)).toBe(false);
+
+    expect(textarea.value).toBe("submitted draft");
+    expect(state.discard("paths")).toBe(true);
+    expect(textarea.value).toBe("agent baseline");
+  });
+
   test("reports whether an editor can currently be saved", () => {
     const state = createManualEditorState("Unsaved changes");
     state.setup("paths");
@@ -290,6 +340,7 @@ describe("manual editor state", () => {
     expect(state.setValidationUnavailable("missing")).toBe(false);
     expect(state.setSaving("missing", true)).toBe(false);
     expect(state.markSaved("missing")).toBe(false);
+    expect(state.applyExternalBaseline("missing", "value")).toBe(false);
     expect(state.canSave("missing")).toBe(false);
     expect(state.revision("missing")).toBeUndefined();
   });

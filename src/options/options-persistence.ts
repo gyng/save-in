@@ -63,5 +63,13 @@ export const createOptionsPersistence = (ports: OptionsPersistencePorts) => {
     return response;
   };
 
-  return { lastKnown, restore, save };
+  const acceptExternal = (applied: JsonRecord): SavedChange[] => {
+    const changes = Object.entries(applied)
+      .filter(([name, after]) => JSON.stringify(lastKnown[name]) !== JSON.stringify(after))
+      .map(([name, after]) => ({ name, before: lastKnown[name], after }));
+    Object.assign(lastKnown, applied);
+    return changes;
+  };
+
+  return { lastKnown, restore, save, acceptExternal };
 };

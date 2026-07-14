@@ -224,6 +224,27 @@ export const createManualEditorState = (unsavedLabel: string | (() => string)) =
     return true;
   };
 
+  const applyExternalBaseline = (id: string, appliedValue: unknown) => {
+    const editor = find(id);
+    if (!editor || typeof appliedValue !== "string") return false;
+    const preserveDraft = editor.textarea.value !== editor.saved;
+
+    // This persisted value is newer than any save already in flight. Invalidate
+    // that save's revision while retaining the user's visible draft.
+    editor.revision += 1;
+    editor.saved = appliedValue;
+    editor.saving = false;
+    editor.saveStatus.hidden = true;
+    if (!preserveDraft) {
+      editor.textarea.value = appliedValue;
+      editor.textarea.dispatchEvent(
+        new CustomEvent("options-value-applied", { bubbles: true, detail: appliedValue }),
+      );
+    }
+    editor.sync();
+    return true;
+  };
+
   const anyDirty = () => editors.some((editor) => editor.textarea.value !== editor.saved);
   const anySaving = () => editors.some((editor) => editor.saving);
   const dirtyIds = () =>
@@ -260,5 +281,6 @@ export const createManualEditorState = (unsavedLabel: string | (() => string)) =
     setValidationUnavailable,
     setSaving,
     markSaved,
+    applyExternalBaseline,
   };
 };

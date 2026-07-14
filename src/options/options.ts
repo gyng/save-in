@@ -450,37 +450,36 @@ const OPTION_FIELD_DISPLAY_TRANSFORMS = {
   contentClickToSaveCombo: (v: unknown) => normalizeKeyComboForDisplay(v as string | number),
 };
 
+const setOptionFieldValue = (
+  option: OptionSchema["keys"][number],
+  storedValue: unknown,
+  schema: OptionSchema,
+): boolean => {
+  const el = document.getElementById(option.name);
+  if (!el) return false;
+
+  const transform =
+    OPTION_FIELD_DISPLAY_TRANSFORMS[option.name as keyof typeof OPTION_FIELD_DISPLAY_TRANSFORMS] ||
+    ((value: unknown) => value);
+  const value = typeof storedValue === "undefined" ? option.default : transform(storedValue);
+  if (option.type === schema.types.BOOL && el instanceof HTMLInputElement) {
+    el.checked = Boolean(value);
+    return true;
+  }
+  if (
+    option.type === schema.types.VALUE &&
+    (el instanceof HTMLInputElement ||
+      el instanceof HTMLTextAreaElement ||
+      el instanceof HTMLSelectElement)
+  ) {
+    el.value = String(value);
+    return true;
+  }
+  return false;
+};
+
 const restoreOptionsHandler = (result: JsonRecord, schema: OptionSchema) => {
-  // Zip result -> schema
-  const schemaWithValues = schema.keys.map((o) => Object.assign({}, o, { value: result[o.name] }));
-
-  schemaWithValues.forEach((o) => {
-    const el = document.getElementById(o.name);
-    if (!el) {
-      return;
-    }
-
-    const fn =
-      OPTION_FIELD_DISPLAY_TRANSFORMS[o.name as keyof typeof OPTION_FIELD_DISPLAY_TRANSFORMS] ||
-      ((x: unknown) => x);
-    const val = typeof o.value === "undefined" ? o.default : fn(o.value);
-
-    const propMap = {
-      [schema.types.BOOL]: "checked",
-      [schema.types.VALUE]: "value",
-    };
-    const property = propMap[o.type];
-    if (property === "checked" && el instanceof HTMLInputElement) {
-      el.checked = Boolean(val);
-    } else if (
-      property === "value" &&
-      (el instanceof HTMLInputElement ||
-        el instanceof HTMLTextAreaElement ||
-        el instanceof HTMLSelectElement)
-    ) {
-      el.value = String(val);
-    }
-  });
+  schema.keys.forEach((option) => setOptionFieldValue(option, result[option.name], schema));
 
   applyUiTheme(document.querySelector<HTMLSelectElement>("#uiTheme")?.value);
 
@@ -508,29 +507,28 @@ const restoreOptions = () => optionsPersistence.restore();
 export const syncOptionsPageAfterWebMcpApply = async (
   applied: Record<string, unknown>,
 ): Promise<void> => {
-  // Never replace a draft or race an in-flight save. The newly persisted
-  // values will become the baseline on the next restore or page load.
-  if (
-    Object.keys(applied).length === 0 ||
-    fieldSaveState.hasUnsaved() ||
-    manualEditorState.anyDirty() ||
-    fieldSaveState.anySaving() ||
-    manualEditorState.anySaving()
-  ) {
-    return;
-  }
+  if (Object.keys(applied).length === 0) return;
 
-  const changes = Object.entries(applied)
-    .filter(
-      ([name, after]) =>
-        JSON.stringify(optionsPersistence.lastKnown[name]) !== JSON.stringify(after),
-    )
-    .map(([name, after]) => ({
-      name,
-      before: optionsPersistence.lastKnown[name],
-      after,
-    }));
-  await restoreOptions();
+  const schema = await getOptionsSchema();
+  const changes = optionsPersistence.acceptExternal(applied);
+  schema.keys.forEach((option) => {
+    if (!Object.hasOwn(applied, option.name)) return;
+    const value = applied[option.name];
+    if (manualEditorState.applyExternalBaseline(option.name, value)) return;
+    if (fieldSaveState.status(option.name)) {
+      // Keep this field's local draft authoritative and invalidate any older
+      // in-flight completion. Other applied controls can still refresh.
+      fieldSaveState.markDirty(option.name);
+      return;
+    }
+    setOptionFieldValue(option, value, schema);
+  });
+
+  applyUiTheme(document.querySelector<HTMLSelectElement>("#uiTheme")?.value);
+  updateErrors();
+  updateMenuPreview();
+  updateOptionDependencies();
+  document.dispatchEvent(new Event("options-restored"));
   markSavedNow(changes);
 };
 const saveOptions = (e?: Event, scope?: string, scopeValue?: unknown): Promise<unknown> => {
