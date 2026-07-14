@@ -106,4 +106,25 @@ describe("options runtime adapter", () => {
 
     await expect(createOptionsRuntime(api).getSchema()).rejects.toThrow("Invalid option schema");
   });
+
+  test.each([
+    {
+      keys: [{ name: "paths", type: "UNKNOWN", default: "." }],
+      types: { BOOL: "BOOL", VALUE: "VALUE" },
+    },
+    {
+      keys: [{ name: "limit", type: "VALUE", default: Number.NaN }],
+      types: { BOOL: "BOOL", VALUE: "VALUE" },
+    },
+    { keys: [], types: { BOOL: "", VALUE: "VALUE" } },
+    { keys: [], types: { BOOL: "OPTION", VALUE: "OPTION" } },
+  ])("rejects a schema that cannot safely drive option controls %#", async (body) => {
+    const api = {
+      runtime: { sendMessage: vi.fn().mockResolvedValue({ body }) },
+      i18n: { getMessage: (key: string) => key },
+      storage: { local: { get: vi.fn() } },
+    } satisfies OptionsRuntimeApi;
+
+    await expect(createOptionsRuntime(api).getSchema()).rejects.toThrow("Invalid option schema");
+  });
 });

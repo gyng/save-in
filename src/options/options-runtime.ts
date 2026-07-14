@@ -19,21 +19,31 @@ export type OptionsRuntimeApi = {
   };
 };
 
-const isOptionSchemaKey = (value: unknown): value is OptionSchema["keys"][number] =>
+const isOptionSchemaTypes = (value: unknown): value is OptionSchema["types"] =>
+  isStringKeyedRecord(value) &&
+  typeof value.BOOL === "string" &&
+  value.BOOL.length > 0 &&
+  typeof value.VALUE === "string" &&
+  value.VALUE.length > 0 &&
+  value.BOOL !== value.VALUE;
+
+const isOptionSchemaKey = (
+  value: unknown,
+  types: OptionSchema["types"],
+): value is OptionSchema["keys"][number] =>
   isStringKeyedRecord(value) &&
   typeof value.name === "string" &&
-  typeof value.type === "string" &&
+  (value.type === types.BOOL || value.type === types.VALUE) &&
   (typeof value.default === "string" ||
-    typeof value.default === "number" ||
+    (typeof value.default === "number" && Number.isFinite(value.default)) ||
     typeof value.default === "boolean");
 
-const isOptionSchema = (value: unknown): value is OptionSchema =>
-  isStringKeyedRecord(value) &&
-  Array.isArray(value.keys) &&
-  value.keys.every(isOptionSchemaKey) &&
-  isStringKeyedRecord(value.types) &&
-  typeof value.types.BOOL === "string" &&
-  typeof value.types.VALUE === "string";
+const isOptionSchema = (value: unknown): value is OptionSchema => {
+  if (!isStringKeyedRecord(value) || !Array.isArray(value.keys)) return false;
+  const types = value.types;
+  if (!isOptionSchemaTypes(types)) return false;
+  return value.keys.every((key) => isOptionSchemaKey(key, types));
+};
 
 export const createOptionsRuntime = (api: OptionsRuntimeApi) => {
   let schema: Promise<OptionSchema> | undefined;
