@@ -1,35 +1,9 @@
 import { EXTENSION_REGEX, getFilenameFromUrl } from "../routing/filename.ts";
 import { toRootDomain } from "../shared/domain.ts";
+import { referenceDescription } from "./reference-descriptions.ts";
 
-const MATCHER_DESCRIPTIONS: Record<string, string> = {
-  context: "Match how the save started",
-  menuindex: "Match the selected menu position",
-  comment: "Match menu-item metadata",
-  linktext: "Match visible link text",
-  selectiontext: "Match selected page text",
-  pageurl: "Match the page URL",
-  pagedomain: "Match the page hostname",
-  pagerootdomain: "Match the page root domain",
-  pagetitle: "Match the page title",
-  frameurl: "Match the frame URL",
-  referrerurl: "Match the referrer URL",
-  referrerdomain: "Match the referrer hostname",
-  sourceurl: "Match the file URL",
-  sourcedomain: "Match the file hostname",
-  sourcerootdomain: "Match the file root domain",
-  sourcekind: "Match the discovered page-source kind",
-  filename: "Match the resolved filename",
-  naivefilename: "Match the URL-derived filename",
-  fileext: "Match the URL-derived extension",
-  urlfileext: "Match the URL-derived extension",
-  actualfileext: "Match the resolved extension",
-  mediatype: "Match image, video, or audio",
-  mime: "Match the MIME content type",
-  contenttype: "Match the MIME content type",
-};
-
-export const matcherDescription = (matcher: string): string =>
-  MATCHER_DESCRIPTIONS[matcher.toLocaleLowerCase()] ?? "Match this download property";
+export const matcherDescription = (matcher: string, root: ParentNode = document): string =>
+  referenceDescription("clauses", `${matcher.toLocaleLowerCase()}:`, root);
 
 const testFieldValue = (root: ParentNode, id: string): string =>
   root.querySelector<HTMLInputElement | HTMLSelectElement>(`#${id}`)?.value.trim() ?? "";

@@ -34,6 +34,13 @@ describe("routing visual editor", () => {
       <input id="route-debugger-filename" value="report.pdf">
       <input id="route-debugger-source-url" value="https://cdn.example/report.pdf">
       <select id="route-debugger-context"><option value="link" selected>Link</option></select>
+      <section id="options-reference-clauses">
+        <table><tbody>
+          <tr><td><code>context:</code></td><td>page</td><td>Matches how the save started.</td></tr>
+          <tr><td><code>filename:</code></td><td>file.jpg</td><td>Matches the resolved filename.</td></tr>
+          <tr><td><code>sourceurl:</code></td><td>https://example/file.jpg</td><td>Matches the source URL.</td></tr>
+        </tbody></table>
+      </section>
     `;
   });
 
@@ -265,7 +272,11 @@ describe("routing visual editor", () => {
       matcherOptions.map(
         (option) => option.querySelector(".typeahead-option-description")?.textContent,
       ),
-    ).toEqual(["Match how the save started", "Match the resolved filename", "Match the file URL"]);
+    ).toEqual([
+      "Matches how the save started.",
+      "Matches the resolved filename.",
+      "Matches the source URL.",
+    ]);
     expect(
       matcherOptions.map((option) => option.querySelector(".typeahead-option-meta")?.textContent),
     ).toEqual(["link", "report.pdf", "https://cdn.example/report.pdf"]);

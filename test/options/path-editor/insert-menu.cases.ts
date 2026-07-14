@@ -75,17 +75,33 @@ describe("path editor insert menu", () => {
       body: { matchers: ["mystery", 4, "pageurl"] },
     } as never);
     document.body.innerHTML = `<textarea id="paths"></textarea>
+      <input id="route-debugger-page-url" value="https://news.example/article">
       <details id="menu" open data-insert-target="paths">
         <input class="clause-preview-filter">
         <table class="clause-preview-table"><tbody></tbody></table>
-      </details>`;
+      </details>
+      <section id="options-reference-clauses">
+        <table><tbody><tr>
+          <td><code>pageurl:</code></td><td>https://example/page</td>
+          <td>Localized page URL matcher help</td>
+        </tr></tbody></table>
+      </section>`;
     const insert = vi.fn();
     setupPathInsertMenu("#menu", insert);
     await vi.waitFor(() =>
       expect(document.querySelector('[data-insert-line="mystery: "]')).not.toBeNull(),
     );
 
-    expect(document.body.textContent).toContain("Match this download property");
+    expect(document.body.textContent).toContain("Runtime rule matcher");
+    const pageUrlRow = document
+      .querySelector('[data-insert-line="pageurl: "]')
+      ?.closest<HTMLTableRowElement>("tr");
+    expect(pageUrlRow?.querySelector(".variables-preview-value")?.textContent).toBe(
+      "https://news.example/article",
+    );
+    expect(pageUrlRow?.querySelector(".clause-preview-description")?.textContent).toBe(
+      "Localized page URL matcher help",
+    );
     const filter = input();
     filter.value = "mystery";
     filter.dispatchEvent(new InputEvent("input", { bubbles: true }));

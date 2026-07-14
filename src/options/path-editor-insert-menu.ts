@@ -2,7 +2,8 @@ import { webExtensionApi } from "../platform/web-extension-api.ts";
 import { MESSAGE_TYPES } from "../shared/constants.ts";
 import { sendInternalMessage } from "../shared/message-protocol.ts";
 import { compareClauses, CLAUSE_GROUPS, clauseGroup } from "./vocabulary-groups.ts";
-import { matcherDescription } from "./matcher-descriptions.ts";
+import { matcherTestValue } from "./matcher-descriptions.ts";
+import { referenceDescription } from "./reference-descriptions.ts";
 
 export const setupPathInsertMenu = (
   menuSelector: string,
@@ -36,11 +37,6 @@ export const setupPathInsertMenu = (
 
   if (!clauseFilter) return;
   const clauseBody = menu.querySelector<HTMLTableSectionElement>(".clause-preview-table tbody");
-  const specialDescriptions: Record<string, string> = {
-    into: "Set the destination path",
-    capture: "Choose regex capture source",
-    capturegroups: "Choose continuous regex capture groups",
-  };
   const clauseButtons: HTMLButtonElement[] = [];
 
   const renderClauses = (matchers: string[]) => {
@@ -64,7 +60,7 @@ export const setupPathInsertMenu = (
 
       grouped.forEach((clause) => {
         const row = document.createElement("tr");
-        row.className = "variables-preview-row insertable";
+        row.className = "variables-preview-row variables-preview-reference-row insertable";
         const syntaxCell = document.createElement("td");
         const button = document.createElement("button");
         button.type = "button";
@@ -75,10 +71,16 @@ export const setupPathInsertMenu = (
         syntax.textContent = `${clause}:`;
         button.append(syntax);
         syntaxCell.append(button);
+        const currentValue = document.createElement("td");
+        currentValue.className = "variables-preview-value";
+        const testValue = matcherTestValue(clause);
+        currentValue.textContent = testValue;
+        currentValue.title = testValue;
         const description = document.createElement("td");
         description.className = "variables-preview-value clause-preview-description";
-        description.textContent = specialDescriptions[clause] ?? matcherDescription(clause);
-        row.append(syntaxCell, description);
+        description.colSpan = 2;
+        description.textContent = referenceDescription("clauses", `${clause}:`);
+        row.append(syntaxCell, currentValue, description);
         clauseBody.append(row);
         button.addEventListener("click", () => {
           const line = button.dataset.insertLine;

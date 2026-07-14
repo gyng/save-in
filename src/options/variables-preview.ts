@@ -9,6 +9,7 @@ import {
   variableExample,
   variableGroup,
 } from "./vocabulary-groups.ts";
+import { referenceDescription } from "./reference-descriptions.ts";
 
 const stringRecord = (value: unknown): Record<string, string> => {
   if (typeof value !== "object" || value === null || Array.isArray(value)) return {};
@@ -100,7 +101,7 @@ export const renderVariablesPreview = async () => {
 
         groupedVariables.forEach((variable) => {
           const row = document.createElement("tr");
-          row.className = "variables-preview-row";
+          row.className = "variables-preview-row variables-preview-reference-row";
           const nameCell = document.createElement("td");
           const name = document.createElement("code");
           name.textContent = variable;
@@ -130,6 +131,11 @@ export const renderVariablesPreview = async () => {
               ? "Calculated only when this variable is used in a download"
               : "Example — no live value yet");
           row.appendChild(valueCell);
+          const descriptionCell = document.createElement("td");
+          descriptionCell.className = "variables-preview-description";
+          descriptionCell.colSpan = 2;
+          descriptionCell.textContent = referenceDescription("variables", variable);
+          row.appendChild(descriptionCell);
           table.appendChild(row);
         });
       });

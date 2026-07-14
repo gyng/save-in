@@ -18,12 +18,18 @@ beforeEach(() => {
     <select id="route-debugger-source-kind"><option value="image" selected>Image</option></select>
     <input id="route-debugger-menu-index" value="documents">
     <input id="route-debugger-comment" value="work files">
+    <section id="options-reference-clauses">
+      <table><tbody><tr>
+        <td><code>filename:</code></td><td>example.jpg</td>
+        <td>Localized resolved filename help</td>
+      </tr></tbody></table>
+    </section>
   `;
 });
 
 test("describes matcher help and falls back for custom matchers", () => {
-  expect(matcherDescription("filename")).toBe("Match the resolved filename");
-  expect(matcherDescription("custom")).toBe("Match this download property");
+  expect(matcherDescription("filename")).toBe("Localized resolved filename help");
+  expect(matcherDescription("custom")).toBe("Translated<referenceRuntimeRuleMatcher>");
 });
 
 test.each([

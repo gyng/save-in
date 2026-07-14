@@ -344,6 +344,52 @@ summary {
   width: 45%;
 }
 
+.variables-preview-reference-row {
+  display: grid;
+  grid-template-columns: minmax(7rem, 45%) minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  gap: 1px var(--space-3);
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.variables-preview-reference-row > td {
+  height: auto;
+  width: auto;
+  max-width: none;
+  padding: 0;
+  border-bottom: 0;
+}
+
+.variables-preview-reference-row > td:first-child {
+  grid-column: 1;
+  grid-row: 1;
+  width: auto;
+}
+
+.variables-preview-reference-row > .variables-preview-value:not(.clause-preview-description) {
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+  text-align: end;
+}
+
+.variables-preview-description,
+.variables-preview-reference-row > .clause-preview-description {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  overflow-wrap: anywhere;
+  color: var(--color-text-muted);
+  font-family: var(--font-stack);
+  font-size: var(--text-sm);
+  white-space: normal;
+}
+
+.variables-preview-table tr:last-child.variables-preview-reference-row {
+  border-bottom: 0;
+}
+
 .variables-preview-table code {
   background: none;
   padding: 0;

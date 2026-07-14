@@ -215,6 +215,12 @@ describe("variables preview", () => {
       <textarea id="paths"></textarea>
       <section class="variables-preview" data-insert-target="paths">
         <div class="variables-preview-list"></div>
+      </section>
+      <section id="options-reference-variables">
+        <table><tbody><tr>
+          <td><code>:url:</code></td><td>https://example/file.jpg</td>
+          <td>Localized source URL description</td>
+        </tr></tbody></table>
       </section>`;
     vi.mocked(browser.runtime.sendMessage)
       .mockResolvedValueOnce({ body: { variables: [":url:", 7, ":title:"] } })
@@ -229,7 +235,24 @@ describe("variables preview", () => {
         ".variables-preview-row:not(.variables-preview-command)",
       ),
     ];
-    expect(rows.map((row) => row.textContent)).toEqual([":title:example", ":url:https://x/"]);
+    expect(
+      rows.map((row) => ({
+        name: row.querySelector("code")?.textContent,
+        value: row.querySelector(".variables-preview-value")?.textContent,
+        description: row.querySelector(".variables-preview-description")?.textContent,
+      })),
+    ).toEqual([
+      {
+        name: ":title:",
+        value: "example",
+        description: "Translated<referenceRuntimeVariable>",
+      },
+      {
+        name: ":url:",
+        value: "https://x/",
+        description: "Localized source URL description",
+      },
+    ]);
     const buttons = [
       ...document.querySelectorAll<HTMLButtonElement>(
         ".variables-preview-row:not(.variables-preview-command) .variables-preview-insert",
