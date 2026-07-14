@@ -180,7 +180,7 @@ export const progressCell = (item: DownloadProgress | null | undefined) => {
 
 // Human-readable byte count (SI units, matching the download notification)
 export const formatBytes = (n: number | null | undefined): string => {
-  if (n == null || n < 0) {
+  if (n == null || !Number.isFinite(n) || n < 0) {
     return "";
   }
   if (n < 1000) {

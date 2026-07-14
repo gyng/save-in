@@ -235,6 +235,8 @@ describe("history row flatteners", () => {
   test("formatBytes uses SI units", () => {
     expect(formatBytes(null)).toBe("");
     expect(formatBytes(-1)).toBe("");
+    expect(formatBytes(Number.NaN)).toBe("");
+    expect(formatBytes(Number.POSITIVE_INFINITY)).toBe("");
     expect(formatBytes(512)).toBe("512 B");
     expect(formatBytes(1500)).toBe("1.5 KB");
     expect(formatBytes(2_500_000)).toBe("2.5 MB");
