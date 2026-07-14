@@ -1,6 +1,7 @@
 import {
   CONTENT_OPTION_DEFAULTS,
   CONTENT_OPTION_KEYS,
+  contentClickComboToKeyCodes,
   resolveContentOptions,
 } from "../src/config/content-options.ts";
 import { OPTION_KEYS } from "../src/config/option-schema.ts";
@@ -82,6 +83,16 @@ test("falls back safely when a stored shortcut string contains unknown keys", ()
   expect("validate" in comboDefinition && comboDefinition.validate("garbage")).toBe(false);
   expect("validate" in comboDefinition && comboDefinition.validate("Ctrl+Shift")).toBe(true);
 });
+
+test.each([-1, 0, 1.5, "-1", "0", "1.5", "toString"])(
+  "rejects malformed legacy shortcut key code %j",
+  (value) => {
+    expect(resolveContentOptions({ contentClickToSaveCombo: value }).contentClickToSaveCombo).toBe(
+      CONTENT_OPTION_DEFAULTS.contentClickToSaveCombo,
+    );
+    expect(contentClickComboToKeyCodes(value)).toEqual([18]);
+  },
+);
 
 test("normalizes interface locale and theme overrides", () => {
   expect(resolveContentOptions({}).uiLocale).toBe("");

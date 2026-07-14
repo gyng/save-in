@@ -23,16 +23,23 @@ const CONTENT_CLICK_COMBO_KEY_CODES: Record<string, number> = {
   super: 91,
 };
 const DEFAULT_CONTENT_CLICK_COMBO = "Alt";
-const DEFAULT_CONTENT_CLICK_COMBO_KEY_CODE = CONTENT_CLICK_COMBO_KEY_CODES.alt!;
+const DEFAULT_CONTENT_CLICK_COMBO_KEY_CODE = 18;
+
+const isPositiveKeyCode = (value: string | number): boolean => {
+  if (typeof value === "string" && value.trim() === "") return false;
+  const keyCode = Number(value);
+  return Number.isSafeInteger(keyCode) && keyCode > 0;
+};
 
 const contentClickComboParts = (value: string | number): string[] | null => {
-  if (typeof value === "number") return Number.isFinite(value) ? [String(value)] : null;
+  if (typeof value === "number") return isPositiveKeyCode(value) ? [String(value)] : null;
   const normalized = value.trim();
   if (!normalized || normalized.toLocaleLowerCase() === "none") return [];
   const parts = normalized.split("+").map((part) => part.trim().toLocaleLowerCase());
   return parts.every(
     (part) =>
-      Boolean(part) && (part in CONTENT_CLICK_COMBO_KEY_CODES || Number.isFinite(Number(part))),
+      Boolean(part) &&
+      (Object.hasOwn(CONTENT_CLICK_COMBO_KEY_CODES, part) || isPositiveKeyCode(part)),
   )
     ? parts
     : null;
@@ -54,7 +61,12 @@ export const contentClickComboToKeyCodes = (
     return [DEFAULT_CONTENT_CLICK_COMBO_KEY_CODE];
   }
   return parts
-    .map((part) => CONTENT_CLICK_COMBO_KEY_CODES[part] ?? Number(part))
+    .map((part) => {
+      const namedKeyCode = CONTENT_CLICK_COMBO_KEY_CODES[part];
+      return Object.hasOwn(CONTENT_CLICK_COMBO_KEY_CODES, part) && typeof namedKeyCode === "number"
+        ? namedKeyCode
+        : Number(part);
+    })
     .filter((keyCode) => keyCode > 0);
 };
 
