@@ -705,14 +705,17 @@ describe("Page Sources panel interactions", () => {
     vi.stubGlobal("MutationObserver", StubMutationObserver);
     toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: true });
 
-    const mutation = {
-      type: "childList",
-      target: document,
-      addedNodes: [],
-      removedNodes: [],
-    } as unknown as MutationRecord;
+    const mutations = ["childList", "attributes"].map(
+      (type) =>
+        ({
+          type,
+          target: document,
+          addedNodes: [],
+          removedNodes: [],
+        }) as unknown as MutationRecord,
+    );
     expect(mutationCallback).toBeTypeOf("function");
-    expect(() => mutationCallback?.([mutation], {} as MutationObserver)).not.toThrow();
+    expect(() => mutationCallback?.(mutations, {} as MutationObserver)).not.toThrow();
   });
 
   test("removes background candidates under a deleted ancestor", async () => {
