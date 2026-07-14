@@ -779,6 +779,14 @@ describe(":mime: / :contenttype: / :mimeext: (async HEAD)", () => {
     ).finalize();
     expect(out).toBe("image_avif/https___cdn.test_image.avif");
     expect(global.fetch).not.toHaveBeenCalled();
+
+    const mimeFallback = (
+      await Variable.applyVariables(new Path.Path(":contenttype:"), {
+        preview: true,
+        mime: "text/plain; charset=utf-8",
+      })
+    ).finalize();
+    expect(mimeFallback).toBe("text_plain");
   });
 
   test("mimeToExtension maps common types and falls back to the subtype", () => {

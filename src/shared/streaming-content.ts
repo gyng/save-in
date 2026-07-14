@@ -23,7 +23,7 @@ export const readResponseContent = async (
   if (response.body) {
     const reader = response.body.getReader();
     const cancelPendingRead = () => {
-      if (signal) void reader.cancel(abortError(signal)).catch(() => {});
+      void reader.cancel(abortError(signal!)).catch(() => {});
     };
     signal?.addEventListener("abort", cancelPendingRead, { once: true });
     try {

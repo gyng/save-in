@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { vi } from "vitest";
-import { DEFAULT_SOURCE_PANEL_COPY } from "../src/shared/source-panel-copy.ts";
+import { DEFAULT_SOURCE_PANEL_COPY, isSourcePanelCopy } from "../src/shared/source-panel-copy.ts";
 
 const ClickToSave = (await import("../src/content/content.ts")).default;
 
@@ -588,6 +588,7 @@ describe("content.js initialisation", () => {
   });
 
   test("falls back when translated Page Sources copy is invalid", async () => {
+    expect(isSourcePanelCopy(null)).toBe(false);
     let runtimeListener: ((message: any) => void) | undefined;
     vi.resetModules();
     global.chrome.runtime.sendMessage = vi.fn((message, callback) => {

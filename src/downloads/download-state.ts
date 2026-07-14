@@ -143,8 +143,7 @@ export const mergeDownload = (
     const records = normalizeDownloadRecords(stored);
     if (merged.privateContext) delete records[downloadId];
     else {
-      const persisted = normalizeDownloadRecord(merged);
-      if (persisted) records[downloadId] = persisted;
+      records[downloadId] = normalizeDownloadRecord(merged)!;
     }
     capDownloads(records);
     return preserveDownloadStorageShape(stored, records);
