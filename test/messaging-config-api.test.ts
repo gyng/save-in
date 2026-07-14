@@ -27,6 +27,13 @@ describe("config API", () => {
     });
   });
 
+  test("GET_SCHEMA supplies an empty description for an undocumented option", () => {
+    Reflect.deleteProperty(OptionsManagement.OPTION_DESCRIPTIONS, "paths");
+    const sendResponse = vi.fn();
+    onMessageExternal({ type: MESSAGE_TYPES.GET_SCHEMA }, {}, sendResponse);
+    expect(sendResponse.mock.calls[0]![0]!.body.options[1].description).toBe("");
+  });
+
   test("exposes vocabulary and parser grammars to external integrations", () => {
     const vocabularyResponse = vi.fn();
     onMessageExternal({ type: MESSAGE_TYPES.GET_KEYWORDS }, {}, vocabularyResponse);
@@ -150,6 +157,16 @@ describe("config API", () => {
     expect(sendResponse).toHaveBeenCalledWith(
       expect.objectContaining({ type: MESSAGE_TYPES.VALIDATE_RESULT }),
     );
+  });
+
+  test("VALIDATE accepts an omitted body as an empty dry run", async () => {
+    const sendResponse = vi.fn();
+    expect(onMessage({ type: MESSAGE_TYPES.VALIDATE }, {}, sendResponse)).toBe(true);
+    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.VALIDATE_RESULT,
+      body: { version: 1 },
+    });
   });
 
   test("APPLY_CONFIG applies known keys, rejects unknown ones, and resets", async () => {
@@ -297,6 +314,16 @@ describe("config API", () => {
 
     expect(global.browser.storage.local.set).not.toHaveBeenCalled();
     expect(sendResponse).not.toHaveBeenCalled();
+  });
+
+  test("APPLY_CONFIG accepts an omitted body as an empty update", async () => {
+    const sendResponse = vi.fn();
+    expect(onMessage({ type: MESSAGE_TYPES.APPLY_CONFIG }, {}, sendResponse)).toBe(true);
+    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.APPLY_CONFIG_RESULT,
+      body: { version: 1, applied: {}, rejected: [] },
+    });
   });
 
   test("APPLY_CONFIG is NOT reachable from external extensions", () => {

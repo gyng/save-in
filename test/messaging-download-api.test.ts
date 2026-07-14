@@ -44,6 +44,21 @@ describe("handleDownloadMessage", () => {
     );
   });
 
+  test("rejects an omitted body as a missing URL", () => {
+    const sendResponse = vi.fn();
+    onMessage({ type: MESSAGE_TYPES.DOWNLOAD }, {}, sendResponse);
+    expect(Download.renameAndDownload).not.toHaveBeenCalled();
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.DOWNLOAD,
+      body: {
+        status: MESSAGE_TYPES.ERROR,
+        error: "BAD_REQUEST",
+        message: expect.any(String),
+        version: 1,
+      },
+    });
+  });
+
   test("downloads with defaults when no previous download state exists", async () => {
     const sendResponse = vi.fn();
     expect(onMessage(request(), {}, sendResponse)).toBe(true);
@@ -305,6 +320,7 @@ into: automatic/:pagedomain:/
   test.each([
     ["the feature is disabled", () => (options.autoDownloadEnabled = false)],
     ["no rule matches", () => (options.filenamePatterns = [])],
+    ["stored rules are malformed", () => (options.filenamePatterns = null as any)],
     ["the sender is private", () => undefined],
   ])("skips when %s", async (_label, arrange) => {
     configure();
@@ -324,6 +340,26 @@ into: automatic/:pagedomain:/
       body: { status: "skipped" },
     });
   });
+
+  test.each(["not a URL", "ftp://cdn.test/file.png"])(
+    "skips a non-HTTP source URL: %s",
+    async (sourceUrl) => {
+      configure();
+      const sendResponse = vi.fn();
+      onMessage(
+        { ...request, body: { ...request.body, sourceUrl } },
+        { tab: { id: 7, url: request.body.pageUrl } },
+        sendResponse,
+      );
+
+      await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+      expect(Download.renameAndDownload).not.toHaveBeenCalled();
+      expect(sendResponse).toHaveBeenCalledWith({
+        type: MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
+        body: { status: "skipped" },
+      });
+    },
+  );
 
   test("allows private automatic saves only when explicitly enabled", async () => {
     configure();

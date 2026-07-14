@@ -8,6 +8,8 @@ import {
   Path,
   backgroundRuntime,
   SaveHistory,
+  ActiveTransfers,
+  OffscreenClient,
   ExternalDownloadRejections,
   SourcePanelState,
   RoutePreview,
@@ -53,6 +55,105 @@ describe("onMessage", () => {
     await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
     expect(SaveHistory.clear).toHaveBeenCalledOnce();
     expect(sendResponse).toHaveBeenCalledWith({ type: MESSAGE_TYPES.OK });
+  });
+
+  test("HISTORY_CANCEL aborts offscreen and active browser transfers", async () => {
+    vi.mocked(ActiveTransfers.get).mockReturnValue({
+      requestId: "request-1",
+      downloadId: 17,
+      updatedAt: 1,
+    });
+    vi.mocked(ActiveTransfers.cancel).mockReturnValue(true);
+    vi.mocked(OffscreenClient.canUse).mockReturnValue(true);
+    vi.mocked(OffscreenClient.cancel).mockRejectedValue(new Error("already released"));
+    vi.mocked(global.browser.downloads.search).mockResolvedValue([
+      { id: 17, state: "in_progress" } as any,
+    ]);
+    const sendResponse = vi.fn();
+
+    expect(
+      onMessage(
+        { type: MESSAGE_TYPES.HISTORY_CANCEL, body: { historyId: "history-1" } },
+        {},
+        sendResponse,
+      ),
+    ).toBe(true);
+    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+
+    expect(OffscreenClient.cancel).toHaveBeenCalledWith("request-1");
+    expect(global.browser.downloads.cancel).toHaveBeenCalledWith(17);
+    expect(SaveHistory.setStatus).toHaveBeenCalledWith("history-1", "USER_CANCELED", 17);
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.HISTORY_CANCEL,
+      body: { canceled: true },
+    });
+  });
+
+  test("HISTORY_CANCEL uses a stored download id without overwriting completion", async () => {
+    vi.mocked(SaveHistory.get).mockResolvedValue([
+      { id: "history-2", url: "https://x.test/file", downloadId: 23 },
+    ]);
+    vi.mocked(global.browser.downloads.search).mockResolvedValue([
+      { id: 23, state: "complete" } as any,
+    ]);
+    const sendResponse = vi.fn();
+
+    onMessage(
+      { type: MESSAGE_TYPES.HISTORY_CANCEL, body: { historyId: "history-2" } },
+      {},
+      sendResponse,
+    );
+    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+
+    expect(global.browser.downloads.cancel).toHaveBeenCalledWith(23);
+    expect(SaveHistory.setStatus).not.toHaveBeenCalled();
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.HISTORY_CANCEL,
+      body: { canceled: true },
+    });
+  });
+
+  test("HISTORY_CANCEL records an active transfer when no browser download exists", async () => {
+    vi.mocked(ActiveTransfers.get).mockReturnValue({ updatedAt: 1 });
+    vi.mocked(ActiveTransfers.cancel).mockReturnValue(true);
+    const sendResponse = vi.fn();
+
+    onMessage(
+      { type: MESSAGE_TYPES.HISTORY_CANCEL, body: { historyId: "history-3" } },
+      {},
+      sendResponse,
+    );
+    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+
+    expect(SaveHistory.setStatus).toHaveBeenCalledWith("history-3", "USER_CANCELED", undefined);
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.HISTORY_CANCEL,
+      body: { canceled: true },
+    });
+  });
+
+  test("HISTORY_CANCEL tolerates a browser cancellation race and an empty id", async () => {
+    vi.mocked(SaveHistory.get).mockResolvedValue([
+      { id: "history-4", url: "https://x.test/file", downloadId: 29 },
+    ]);
+    vi.mocked(global.browser.downloads.cancel).mockRejectedValue(new Error("already complete"));
+    const racedResponse = vi.fn();
+    onMessage(
+      { type: MESSAGE_TYPES.HISTORY_CANCEL, body: { historyId: "history-4" } },
+      {},
+      racedResponse,
+    );
+    await vi.waitFor(() => expect(racedResponse).toHaveBeenCalled());
+    expect(racedResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.HISTORY_CANCEL,
+      body: { canceled: false },
+    });
+
+    vi.mocked(SaveHistory.get).mockClear();
+    const emptyResponse = vi.fn();
+    onMessage({ type: MESSAGE_TYPES.HISTORY_CANCEL, body: { historyId: "" } }, {}, emptyResponse);
+    await vi.waitFor(() => expect(emptyResponse).toHaveBeenCalled());
+    expect(SaveHistory.get).not.toHaveBeenCalled();
   });
 
   test("lists and clears rejected external download callers", async () => {
@@ -101,6 +202,34 @@ describe("onMessage", () => {
     await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
     expect(SourcePanelState.syncSourcePanelToTab).toHaveBeenCalledWith(12);
     expect(sendResponse).toHaveBeenCalledWith({ type: MESSAGE_TYPES.OK });
+  });
+
+  test("SOURCE_PANEL_READY tolerates a sender without a tab", async () => {
+    const sendResponse = vi.fn();
+    expect(onMessage({ type: MESSAGE_TYPES.SOURCE_PANEL_READY }, {}, sendResponse)).toBe(true);
+    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    expect(SourcePanelState.syncSourcePanelToTab).not.toHaveBeenCalled();
+    expect(sendResponse).toHaveBeenCalledWith({ type: MESSAGE_TYPES.OK });
+  });
+
+  test("SOURCE_PANEL_COPY localizes once per selected locale", () => {
+    options.uiLocale = undefined as any;
+    const defaultResponse = vi.fn();
+    onMessage({ type: MESSAGE_TYPES.SOURCE_PANEL_COPY }, {}, defaultResponse);
+    expect(defaultResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.SOURCE_PANEL_COPY,
+      body: expect.objectContaining({ title: expect.any(String), save: expect.any(String) }),
+    });
+
+    options.uiLocale = "de";
+    const firstResponse = vi.fn();
+    onMessage({ type: MESSAGE_TYPES.SOURCE_PANEL_COPY }, {}, firstResponse);
+    const localizationCalls = vi.mocked(global.browser.i18n.getMessage).mock.calls.length;
+
+    const cachedResponse = vi.fn();
+    onMessage({ type: MESSAGE_TYPES.SOURCE_PANEL_COPY }, {}, cachedResponse);
+    expect(global.browser.i18n.getMessage).toHaveBeenCalledTimes(localizationCalls);
+    expect(cachedResponse).toHaveBeenCalledWith(firstResponse.mock.calls[0]![0]);
   });
 
   test("SOURCE_PANEL_STATE persists content-script close state", async () => {
@@ -243,6 +372,22 @@ describe("onMessage", () => {
     onMessage({ type: "SOMETHING_ELSE" }, {}, sendResponse);
     expect(sendResponse).not.toHaveBeenCalled();
   });
+
+  test("a ready-handler string rejection returns a protocol error", async () => {
+    backgroundRuntime.ready = Promise.reject("startup failed");
+    const sendResponse = vi.fn();
+
+    expect(onMessage({ type: MESSAGE_TYPES.OPTIONS }, {}, sendResponse)).toBe(true);
+    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.OPTIONS,
+      body: {
+        status: MESSAGE_TYPES.ERROR,
+        error: "INTERNAL_ERROR",
+        message: "Save In could not complete the request",
+      },
+    });
+  });
 });
 
 describe("onMessage CHECK_ROUTES", () => {
@@ -310,7 +455,8 @@ describe("onMessage CHECK_ROUTES", () => {
   });
 
   test("falls back to window.lastDownloadState without a state in the body", async () => {
-    const lastState = { info: { filename: "last.png" } };
+    const now = new Date("2026-07-14T00:00:00.000Z");
+    const lastState = { info: { filename: "last.png", now } };
     backgroundRuntime.lastDownloadState = lastState as any;
     const sendResponse = vi.fn();
 
@@ -318,10 +464,14 @@ describe("onMessage CHECK_ROUTES", () => {
     await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
 
     expect(RoutePreview.previewRoutes).toHaveBeenCalledWith(lastState);
+    expect(Variable.applyVariables).toHaveBeenCalledWith(
+      expect.any(Path),
+      expect.objectContaining({ now }),
+    );
     expect(sendResponse).toHaveBeenCalledWith(
       expect.objectContaining({
         body: expect.objectContaining({
-          lastDownload: { info: { filename: "last.png" } },
+          lastDownload: { info: { filename: "last.png", now: now.toISOString() } },
           interpolatedVariables: { ":date:": "interp::date:", ":year:": "interp::year:" },
         }),
       }),

@@ -121,6 +121,19 @@ describe("external DOWNLOAD API v1", () => {
     });
   });
 
+  test("records an empty request body from an extension that is not allowed", async () => {
+    const sendResponse = vi.fn();
+    expect(
+      onMessageExternal(
+        { type: MESSAGE_TYPES.DOWNLOAD },
+        { id: "untrusted-extension" },
+        sendResponse,
+      ),
+    ).toBe(true);
+    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    expect(ExternalDownloadRejections.record).toHaveBeenCalledWith("untrusted-extension", {});
+  });
+
   test("does not persist private rejected requests", async () => {
     const sendResponse = vi.fn();
     onMessageExternal(
@@ -156,6 +169,12 @@ describe("external DOWNLOAD API v1", () => {
       type: "WAT",
       body: { status: MESSAGE_TYPES.ERROR, error: "UNKNOWN_TYPE", version: 1 },
     });
+  });
+
+  test("a malformed external value without a type cannot be correlated", () => {
+    const sendResponse = vi.fn();
+    onMessageExternal({ body: {} }, {}, sendResponse);
+    expect(sendResponse).not.toHaveBeenCalled();
   });
 
   test("a known external message with a malformed body returns BAD_REQUEST", () => {
