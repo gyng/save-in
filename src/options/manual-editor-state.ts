@@ -46,8 +46,7 @@ export const createManualEditorState = (unsavedLabel: string | (() => string)) =
           .filter((row): row is HTMLElement => row !== null),
       ),
     ];
-    const firstActionRow = actionRows[0];
-    if (!firstActionRow) return;
+    const firstActionRow = actionRows[0]!;
     const visualSurfaces = buttons
       .map((button) => button.closest<HTMLElement>("#paths-visual, #rules-visual"))
       .filter((surface, index, surfaces): surface is HTMLElement =>
@@ -77,8 +76,7 @@ export const createManualEditorState = (unsavedLabel: string | (() => string)) =
       row.insertBefore(status, row.querySelector(`[data-discard="${id}"]`));
       return status;
     });
-    const firstStatus = statuses[0];
-    if (!firstStatus) return;
+    const firstStatus = statuses[0]!;
     const saveStatus = document.createElement("span");
     saveStatus.className = "editor-save-status";
     saveStatus.setAttribute("role", "status");
