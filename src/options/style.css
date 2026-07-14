@@ -1984,7 +1984,10 @@ textarea.syntax-editor-input::placeholder {
 
 .tablist {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
   gap: var(--space-1);
   /* Full-bleed bar: escape the form's horizontal padding */
   width: calc(100% + 2 * var(--space-5));
@@ -2019,6 +2022,19 @@ textarea.syntax-editor-input::placeholder {
 .tablist .tab,
 .reference-dialog-tabs [role="tab"] {
   padding: var(--space-2) var(--space-3);
+}
+
+.tablist .tab {
+  flex: 0 0 auto;
+}
+
+.tablist::-webkit-scrollbar {
+  height: var(--space-1);
+}
+
+.tablist::-webkit-scrollbar-thumb {
+  border-radius: var(--radius);
+  background: var(--color-control-border);
 }
 
 .editor-tab {
@@ -2350,6 +2366,7 @@ summary {
 /* Rules editor sits left, with compact references to its right. */
 .tab-panel > .wide-column {
   max-width: 1200px;
+  container: routing-workspace / inline-size;
 }
 
 /* Prose/controls in the wide Dynamic column stay readable; only the
@@ -2438,13 +2455,18 @@ summary {
 }
 
 .rule-editor-enabled-label {
+  display: inline-grid;
+  place-items: center;
   align-self: center;
+  width: var(--text-base);
+  height: var(--text-base);
   padding: 0;
-  line-height: 1;
+  line-height: 0;
 }
 
 .rule-editor-enabled-label input {
   margin: 0;
+  transform: translateY(2px);
 }
 
 .rule-editor-enabled-label:has(input:checked) {
@@ -2463,7 +2485,7 @@ summary {
 
 .rule-editor-identity {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   flex: 1 1 auto;
   min-width: 0;
   gap: var(--space-2);
@@ -3276,6 +3298,40 @@ summary {
   }
 }
 
+@container routing-workspace (max-width: 760px) {
+  .rules-editor {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .rules-editor-main {
+    min-width: 0;
+  }
+
+  .routing-reference-column {
+    display: none;
+  }
+
+  .route-debugger-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .routing-editor-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .route-debugger-rule-header {
+    align-items: flex-start;
+  }
+
+  .route-debugger-rule-meta {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+}
+
 @media (max-width: 520px) {
   .route-debugger-field-grid,
   .route-debugger-file-fields .route-debugger-field-grid {
@@ -3655,15 +3711,18 @@ button:disabled {
 }
 
 .editor-actions > *,
-.visual-editor-toolbar > * {
+.visual-editor-toolbar > *,
+.editor-save-actions > * {
   margin-top: 0;
   margin-bottom: 0;
 }
 
-/* + Add / toolbar stays left; the save controls (Discard, then Apply)
-   float together to the right of the editor */
-.editor-actions .discard-button,
-.visual-editor-toolbar .discard-button {
+/* Supporting actions stay left; Discard and Apply move as one unit. */
+.editor-save-actions {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  gap: var(--space-2);
   margin-left: auto;
 }
 

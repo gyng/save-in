@@ -437,9 +437,7 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
     enabled.addEventListener("change", () =>
       commit(setRoutingRuleEnabled(textarea.value, rule.index, enabled.checked)),
     );
-    const enabledText = document.createElement("span");
-    enabledText.textContent = localize("visualEditorEnabled", "Enabled");
-    enabledLabel.append(enabled, enabledText);
+    enabledLabel.append(enabled);
     const actions = document.createElement("details");
     actions.className = "visual-editor-row-actions rule-editor-card-actions";
     const actionsTrigger = document.createElement("summary");

@@ -202,7 +202,8 @@ describe("routing visual editor", () => {
   test("gives repeated rule controls contextual accessible names", () => {
     setupRuleVisualEditor({ matchers: ["filename", "sourceurl"] });
 
-    expect(element<HTMLElement>(".rule-editor-enabled-label").textContent).toContain("Enabled");
+    expect(element<HTMLElement>(".rule-editor-enabled-label").textContent).toBe("");
+    expect(element<HTMLElement>(".rule-editor-enabled-label").querySelector("span")).toBeNull();
     expect(element<HTMLInputElement>(".rule-editor-enabled").getAttribute("aria-label")).toBe(
       "Rule 1 enabled",
     );
