@@ -263,7 +263,13 @@ describe("routing visual editor", () => {
     document.dispatchEvent(
       new CustomEvent("route-debugger-source-selected", { detail: { ruleIndex: 1, line: 4 } }),
     );
+    const selectedCard = element<HTMLElement>(
+      '.rule-editor-card[data-rule-index="1"].is-debug-selected',
+    );
     expect(document.querySelectorAll(".rule-editor-card.is-debug-selected")).toHaveLength(1);
+    expect(document.activeElement).toBe(
+      selectedCard.querySelector<HTMLSelectElement>(".rule-clause-name"),
+    );
   });
 
   test("edits matcher, capture, destination, and card controls", () => {

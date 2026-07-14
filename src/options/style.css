@@ -61,6 +61,7 @@
   --color-validation: var(--red50);
   --color-success: var(--green60);
   --color-warning: var(--yellow50);
+  --color-on-warning: var(--grey-90);
   --color-danger: light-dark(#c5002f, #b84f5d);
   --color-danger-active: light-dark(#a40027, #9f414e);
   --color-on-accent: #ffffff;
@@ -1185,6 +1186,11 @@ input[type="text"] {
   line-height: 1.4;
 }
 
+.caption a {
+  text-decoration: underline;
+  text-underline-offset: 0.12em;
+}
+
 /* Checkbox option rows are a 2-column grid — [checkbox] [body] — so help text
    and sub-options line up under the label text automatically. The control
    column is `auto` (sized to the real checkbox), so there is no hardcoded indent
@@ -1588,6 +1594,7 @@ fieldset.click-to-save-controls {
 }
 
 .warning.badge {
+  color: var(--color-on-warning);
   background-color: var(--color-warning);
 }
 

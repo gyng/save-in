@@ -471,9 +471,14 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
     card
       .querySelectorAll(".rule-clause-row.is-active")
       .forEach((item) => item.classList.remove("is-active"));
-    card
-      .querySelector<HTMLElement>(`.rule-clause-row[data-line="${line}"]`)
-      ?.classList.add("is-active");
+    const activeClause = card.querySelector<HTMLElement>(`.rule-clause-row[data-line="${line}"]`);
+    activeClause?.classList.add("is-active");
+    const focusScope = activeClause ?? card.querySelector<HTMLElement>(".rule-editor-card-body");
+    focusScope
+      ?.querySelector<HTMLElement>(
+        "select:not([disabled]), input:not([disabled]), textarea:not([disabled]), button:not([disabled])",
+      )
+      ?.focus({ preventScroll: true });
     card.scrollIntoView?.({ block: "nearest", behavior: "smooth" });
   });
 
