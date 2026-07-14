@@ -31,8 +31,8 @@ export type ResourceTimingByUrl = ReadonlyMap<string, PerformanceResourceTiming>
 
 export const urlsFromCss = (value: string): string[] =>
   [...value.matchAll(/url\((?:"([^"]+)"|'([^']+)'|([^)'"\s]+))\)/g)].flatMap((match) => {
-    const url = match[1] || match[2] || match[3];
-    return url === undefined ? [] : [url];
+    const url = (match[1] || match[2] || match[3])!;
+    return [url];
   });
 
 const isAsciiWhitespace = (value: string | undefined): boolean =>

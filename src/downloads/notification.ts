@@ -244,8 +244,7 @@ export const Notifier = {
     if (item.incognito && !isPrivateDownloadRecord(expectedDownloads[expectedIndex]?.record || {}))
       return;
     if (expectedIndex !== -1) {
-      const matched = expectedDownloads[expectedIndex];
-      if (!matched) return;
+      const matched = expectedDownloads[expectedIndex]!;
       expectedDownloads.splice(expectedIndex, 1);
       const observedBrowserDownload = matched.record?.observedBrowserDownload === true;
       await mergeTrackedDownload(item.id, {

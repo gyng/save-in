@@ -78,6 +78,14 @@ describe("addDownloadListener", () => {
     expect(Download.renameAndDownload).not.toHaveBeenCalled();
   });
 
+  test("ignores stale path menu identifiers", async () => {
+    await listener({
+      menuItemId: "save-in-999",
+      linkUrl: "https://example.com/stale.png",
+    });
+    expect(Download.renameAndDownload).not.toHaveBeenCalled();
+  });
+
   test("waits for init (Runtime.ready) before handling a download click", async () => {
     let resolveReady!: (value?: unknown) => void;
     Runtime.ready = new Promise((res) => {
