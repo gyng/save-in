@@ -159,6 +159,45 @@ describe("FirefoxRdp reloadAddon", () => {
   });
 });
 
+describe("FirefoxRdp frame target discovery", () => {
+  test("resolves from the matching watcher event without a collection delay", async () => {
+    const sock = makeSocket();
+    const client = new FirefoxRdp(sock);
+    const discovered = client.watchFrameTarget(
+      "descriptor-actor",
+      (target: Record<string, unknown>) => target.url === "moz-extension://save-in/options.html",
+    );
+
+    sock.emit(
+      "data",
+      frame({
+        from: "descriptor-actor",
+        error: "unrecognizedPacketType",
+        message: "getTarget is unavailable",
+      }),
+    );
+    await vi.waitFor(() => expect(sock.write).toHaveBeenCalledTimes(2));
+    sock.emit("data", frame({ from: "descriptor-actor", actor: "watcher-actor" }));
+    await vi.waitFor(() => expect(sock.write).toHaveBeenCalledTimes(3));
+
+    sock.emit(
+      "data",
+      frame({
+        from: "watcher-actor",
+        type: "target-available-form",
+        target: {
+          url: "moz-extension://save-in/options.html",
+          consoleActor: "console-actor",
+        },
+      }),
+    );
+    sock.emit("data", frame({ from: "watcher-actor", watching: true }));
+
+    await expect(discovered).resolves.toMatchObject({ consoleActor: "console-actor" });
+    expect(client.eventWaiters).toHaveLength(0);
+  });
+});
+
 describe("FirefoxRdp evaluate", () => {
   test("rejects a malformed asynchronous evaluation acknowledgement", async () => {
     const sock = makeSocket();

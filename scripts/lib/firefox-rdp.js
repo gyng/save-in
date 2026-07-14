@@ -287,18 +287,23 @@ class FirefoxRdp {
     this.tabConsoleActors.clear();
   }
 
-  // Collects the frame targets a descriptor actor (addon or tab) exposes.
+  // Finds the frame target a descriptor actor (addon or tab) exposes.
   // Firefox < 129 answers getTarget directly; >= 129 needs a watcher and
   // emits target-available-form events.
-  /** @param {string} descriptorActor */
-  async watchFrameTargets(descriptorActor) {
+  /**
+   * @param {string} descriptorActor
+   * @param {(target: RdpPacket) => boolean} matches
+   */
+  async watchFrameTarget(descriptorActor, matches) {
     try {
       const response = requirePacket(
         await this.request({ to: descriptorActor, type: "getTarget" }),
         "getTarget",
       );
+      // The legacy descriptor API returns its single definitive target, so no
+      // watcher-side disambiguation is needed on Firefox 121–128.
       if (isRdpPacket(response.form) && typeof response.form.consoleActor === "string") {
-        return [response.form];
+        return response.form;
       }
     } catch (e) {
       if (!String(e instanceof Error ? e.message : e).includes("unrecognizedPacketType")) throw e;
@@ -314,48 +319,36 @@ class FirefoxRdp {
     );
     const watcher = requireString(watcherResponse, "actor", "getWatcher");
 
-    /** @type {RdpPacket[]} */
-    const targets = [];
-    // A short-lived collector: matches target-available-form events for this
-    // watcher, then deregisters after the collection window so it can't keep
-    // intercepting events from tabs opened by later tests
-    let collecting = true;
-    /** @param {RdpPacket} p */
-    const collector = (p) => {
-      if (!collecting) return false;
-      if (p.type === "target-available-form" && p.from === watcher && isRdpPacket(p.target)) {
-        targets.push(p.target);
-        this.eventWaiters.push({ predicate: collector, resolve: () => {} });
-        return true;
-      }
-      return false;
-    };
-    this.eventWaiters.push({ predicate: collector, resolve: () => {} });
-
-    await this.request({ to: watcher, type: "watchTargets", targetType: "frame" });
-    await new Promise((res) => setTimeout(res, 2000));
-    collecting = false;
-    this.eventWaiters = this.eventWaiters.filter((w) => w.predicate !== collector);
-
-    return targets;
+    // Register before watchTargets: Firefox may announce the target before it
+    // acknowledges the request. The timeout remains a failure bound, not a
+    // mandatory collection delay on every fresh document.
+    const targetEvent = this.waitForEvent(
+      (packet) =>
+        packet.type === "target-available-form" &&
+        packet.from === watcher &&
+        isRdpPacket(packet.target) &&
+        matches(packet.target),
+      2000,
+    );
+    const [, packet] = await Promise.all([
+      this.request({ to: watcher, type: "watchTargets", targetType: "frame" }),
+      targetEvent,
+    ]);
+    const event = requirePacket(packet, "watchTargets");
+    if (!isRdpPacket(event.target)) throw new Error("watchTargets did not return a target");
+    return event.target;
   }
 
   /** @param {string} addonActor */
   async getConsoleActor(addonActor) {
-    const targets = await this.watchFrameTargets(addonActor);
-    // Several frame targets can arrive (background page, options page, ...):
-    // prefer the generated background page
-    const background = targets.find(
-      (target) =>
-        typeof target.url === "string" && target.url.includes("_generated_background_page"),
+    const target = await this.watchFrameTarget(
+      addonActor,
+      (candidate) =>
+        typeof candidate.url === "string" &&
+        candidate.url.includes("_generated_background_page") &&
+        typeof candidate.consoleActor === "string",
     );
-    const target =
-      background || targets.find((candidate) => typeof candidate.consoleActor === "string");
-    if (!target || typeof target.consoleActor !== "string") {
-      throw new Error(
-        `No background target found (saw: ${targets.map((candidate) => String(candidate.url || "")).join(", ")})`,
-      );
-    }
+    if (typeof target.consoleActor !== "string") throw new Error("No background target found");
     return target.consoleActor;
   }
 
@@ -382,14 +375,14 @@ class FirefoxRdp {
     const cached = this.tabConsoleActors.get(tabActor);
     if (cached) return cached;
 
-    const targets = await this.watchFrameTargets(tabActor);
-    const target = targets.find(
+    const target = await this.watchFrameTarget(
+      tabActor,
       (candidate) =>
         typeof candidate.url === "string" &&
         candidate.url.includes(urlSubstr) &&
         typeof candidate.consoleActor === "string",
     );
-    if (!target || typeof target.consoleActor !== "string") {
+    if (typeof target.consoleActor !== "string") {
       throw new Error(`No console actor for tab "${urlSubstr}"`);
     }
     this.tabConsoleActors.set(tabActor, target.consoleActor);

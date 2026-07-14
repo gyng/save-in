@@ -145,7 +145,9 @@ const removeProfile = async (profileDir) => {
   for (let i = 0; i < 5; i += 1) {
     // taskkill can return while a child is completing its final profile write;
     // removing immediately may succeed only for Firefox to recreate the tree.
-    await sleep(1500);
+    // POSIX permits an immediate optimistic removal; retain the settling delay
+    // for Windows and after a failed/recreated first attempt.
+    if (process.platform === "win32" || i > 0) await sleep(1500);
     try {
       fs.rmSync(profileDir, { recursive: true, force: true });
       await sleep(100);
@@ -158,12 +160,12 @@ const removeProfile = async (profileDir) => {
 };
 
 /** @param {number} port @param {number} [attempts] */
-const connectWithRetry = async (port, attempts = 30) => {
+const connectWithRetry = async (port, attempts = 150) => {
   for (let i = 0; i < attempts; i += 1) {
     try {
       return await FirefoxRdp.connect(port);
     } catch (e) {
-      await sleep(1000);
+      await sleep(200);
     }
   }
   throw new Error(`Firefox did not open RDP port ${port}`);
@@ -192,9 +194,20 @@ const launch = async () => {
     let connectedRdp = rdp;
     const root = await connectedRdp.getRoot();
     await connectedRdp.installTemporaryAddon(root.addonsActor, ROOT);
-    await sleep(2000);
-
-    const addonActor = await connectedRdp.findAddonActor(ADDON_ID);
+    let addonActor;
+    let addonError;
+    for (let attempt = 0; attempt < 100; attempt += 1) {
+      try {
+        addonActor = await connectedRdp.findAddonActor(ADDON_ID);
+        break;
+      } catch (error) {
+        addonError = error;
+        await sleep(100);
+      }
+    }
+    if (!addonActor) {
+      throw new Error("Firefox did not expose the temporary add-on", { cause: addonError });
+    }
     let consoleActor = await connectedRdp.getConsoleActor(addonActor);
 
     const openOptionsAndWaitForReady = async () => {
@@ -212,7 +225,8 @@ const launch = async () => {
       // Send the readiness probe from an extension page. A background context's
       // runtime.sendMessage does not loop back to its own onMessage listener.
       let lastProbe = "options target was not attachable";
-      for (let i = 0; i < 20; i += 1) {
+      const deadline = Date.now() + 10000;
+      for (;;) {
         try {
           const tabConsole = await connectedRdp.getTabConsoleActor("src/options/options.html");
           lastProbe = await connectedRdp.evaluate(
@@ -227,7 +241,8 @@ const launch = async () => {
           // The options target may not be attachable until its first document loads.
           lastProbe = error instanceof Error ? error.message : String(error);
         }
-        await sleep(500);
+        if (Date.now() >= deadline) break;
+        await sleep(100);
       }
       throw new Error(`background page never became ready (last probe: ${lastProbe})`);
     };
@@ -263,8 +278,8 @@ const launch = async () => {
       connectedRdp.close();
       connectedRdp = await connectWithRetry(port);
       let lastError;
-      for (let attempt = 0; attempt < 10; attempt += 1) {
-        await sleep(500);
+      const deadline = Date.now() + 10000;
+      for (;;) {
         try {
           const candidateAddonActor = await connectedRdp.findAddonActor(ADDON_ID);
           const candidateConsoleActor = await connectedRdp.getConsoleActor(candidateAddonActor);
@@ -273,6 +288,8 @@ const launch = async () => {
           return;
         } catch (error) {
           lastError = error;
+          if (Date.now() >= deadline) break;
+          await sleep(100);
         }
       }
       throw new Error("Firefox add-on reload did not expose a fresh background page", {
