@@ -30,11 +30,13 @@ export type SourcePanelOptions = {
 export type ResourceTimingByUrl = ReadonlyMap<string, PerformanceResourceTiming>;
 
 export const urlsFromCss = (value: string): string[] =>
-  [...value.matchAll(/url\((?:"([^"]+)"|'([^']+)'|([^)'"\s]+))\)/g)].map(
-    (match) => match[1] || match[2] || match[3]!,
-  );
+  [...value.matchAll(/url\((?:"([^"]+)"|'([^']+)'|([^)'"\s]+))\)/g)].flatMap((match) => {
+    const url = match[1] || match[2] || match[3];
+    return url === undefined ? [] : [url];
+  });
 
-const isAsciiWhitespace = (value: string): boolean => /[\t\n\f\r ]/.test(value);
+const isAsciiWhitespace = (value: string | undefined): boolean =>
+  value !== undefined && /[\t\n\f\r ]/.test(value);
 
 // Mirrors the URL-token boundaries in the HTML srcset parser. In particular,
 // commas inside a non-whitespace URL (such as a data URL) are not separators.
@@ -44,13 +46,13 @@ export const urlsFromSrcset = (input: string): string[] => {
   while (position < input.length) {
     while (
       position < input.length &&
-      (isAsciiWhitespace(input[position]!) || input[position] === ",")
+      (isAsciiWhitespace(input[position]) || input[position] === ",")
     )
       position += 1;
     if (position >= input.length) break;
 
     const start = position;
-    while (position < input.length && !isAsciiWhitespace(input[position]!)) position += 1;
+    while (position < input.length && !isAsciiWhitespace(input[position])) position += 1;
     let url = input.slice(start, position);
     if (url.endsWith(",")) {
       url = url.replace(/,+$/, "");
