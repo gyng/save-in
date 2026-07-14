@@ -214,6 +214,24 @@ describe("visual editor", () => {
     expect(textarea().value).toBe("a\n>b // (alias: B)\n---");
   });
 
+  test("suppresses an automatic key for an explicit empty override", () => {
+    textarea().value = "a // (key: )";
+    textarea().dispatchEvent(new InputEvent("input", { bubbles: true }));
+    vi.advanceTimersByTime(500);
+
+    expect(element<HTMLInputElement>(".path-editor-access-key-input").placeholder).toBe("");
+  });
+
+  test("leaves the tenth automatic access key empty", () => {
+    textarea().value = Array.from({ length: 10 }, (_, index) => `folder-${index + 1}`).join("\n");
+    textarea().dispatchEvent(new InputEvent("input", { bubbles: true }));
+    vi.advanceTimersByTime(500);
+
+    const keys = document.querySelectorAll<HTMLInputElement>(".path-editor-access-key-input");
+    expect(keys).toHaveLength(10);
+    expect(keys[9]!.placeholder).toBe("");
+  });
+
   test("marks, replaces, and clears visual path validation", () => {
     rows()[2]!.classList.add("has-validation-warning");
     rows()[1]!.querySelector(".path-editor-dir")?.setAttribute("aria-describedby", "path-help");

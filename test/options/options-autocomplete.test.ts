@@ -103,6 +103,12 @@ describe("attachAutocomplete", () => {
     expect(document.querySelectorAll(".autocomplete-dropdown")).toHaveLength(1);
   });
 
+  test("cleanup is idempotent", () => {
+    cleanup();
+    cleanup();
+    expect(document.querySelector(".autocomplete-dropdown")).toBeNull();
+  });
+
   test("arrow keys cycle the selection", () => {
     type("a/:d");
     key("ArrowDown");

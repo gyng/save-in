@@ -115,6 +115,7 @@ describe("path editor model", () => {
   });
 
   test("normalizes keyboard reordering and promotes children when a parent is deleted", () => {
+    expect(edit("parent\n>child", (nodes) => reorderPathNode(nodes, 0, 1))).toBe("parent\n>child");
     expect(edit("a\n>b\nc", (nodes) => reorderPathNode(nodes, 1, 0))).toBe("b\na\nc");
     expect(edit("parent\n>child\n>>grandchild\nsibling", (nodes) => deletePathNode(nodes, 0))).toBe(
       "child\n>grandchild\nsibling",

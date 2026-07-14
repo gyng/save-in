@@ -383,6 +383,7 @@ export const attachAutocomplete = (
     cleaned = true;
     controller.abort();
     dropdown.remove();
+    /* v8 ignore next -- A first cleanup owns the map entry; replacement cleans it before installing another. */
     if (autocompleteCleanups.get(textarea) === cleanup) {
       autocompleteCleanups.delete(textarea);
       textarea.removeAttribute("role");

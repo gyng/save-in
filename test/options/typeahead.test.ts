@@ -104,4 +104,86 @@ describe("typeahead dropdown", () => {
     expect(dropdown.style.width).toBe("304px");
     expect(dropdown.style.maxHeight).toBe("min(20rem, 12px)");
   });
+
+  test("handles dynamic results, stale rows, and every keyboard boundary", () => {
+    const input = document.querySelector<HTMLInputElement>("#picker")!;
+    let available = [
+      { value: "plain", label: "Plain", searchText: "needle" },
+      { value: "other", label: "Other", description: "Second result" },
+    ];
+    const selected = vi.fn();
+    vi.spyOn(input, "getBoundingClientRect").mockReturnValue({
+      top: 80,
+      bottom: 100,
+      left: 180,
+      width: 20,
+    } as DOMRect);
+    vi.spyOn(window, "innerWidth", "get").mockReturnValue(220);
+    vi.spyOn(window, "innerHeight", "get").mockReturnValue(110);
+    attachTypeahead(input, {
+      items: () => available,
+      onSelect: selected,
+      preferredWidth: 80,
+      maxResults: 2,
+    });
+    const listbox = document.getElementById(input.getAttribute("aria-controls")!)!;
+
+    window.dispatchEvent(new Event("resize"));
+    input.focus();
+    expect(listbox.style.top).toBe("104px");
+    input.click();
+
+    input.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true, cancelable: true }),
+    );
+    input.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true, cancelable: true }),
+    );
+    input.dispatchEvent(new KeyboardEvent("keydown", { key: "x", bubbles: true }));
+    input.dispatchEvent(new KeyboardEvent("keydown", { key: "Tab", bubbles: true }));
+    expect(input.getAttribute("aria-expanded")).toBe("false");
+
+    input.value = "needle";
+    input.dispatchEvent(new InputEvent("input", { bubbles: true }));
+    const staleRow = listbox.querySelector<HTMLButtonElement>('[role="option"]')!;
+    const press = new MouseEvent("mousedown", { bubbles: true, cancelable: true });
+    staleRow.dispatchEvent(press);
+    expect(press.defaultPrevented).toBe(true);
+    input.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
+
+    input.value = "no match";
+    input.dispatchEvent(new InputEvent("input", { bubbles: true }));
+    staleRow.click();
+    expect(selected).not.toHaveBeenCalled();
+
+    input.value = "";
+    input.click();
+    listbox.replaceChildren();
+    input.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true, cancelable: true }),
+    );
+    expect(input.getAttribute("aria-expanded")).toBe("false");
+
+    available = [];
+    input.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true, cancelable: true }),
+    );
+    expect(input.getAttribute("aria-expanded")).toBe("false");
+  });
+
+  test("selects a row by pointer without closing on an inside press", () => {
+    const input = document.querySelector<HTMLInputElement>("#picker")!;
+    const selected = vi.fn();
+    attachTypeahead(input, { items, onSelect: selected });
+    input.focus();
+    const listbox = document.getElementById(input.getAttribute("aria-controls")!)!;
+    const row = listbox.querySelector<HTMLButtonElement>('[role="option"]')!;
+
+    row.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, cancelable: true }));
+    expect(input.getAttribute("aria-expanded")).toBe("true");
+    row.click();
+
+    expect(selected).toHaveBeenCalledWith(items[0]);
+    expect(input.value).toBe("images");
+  });
 });

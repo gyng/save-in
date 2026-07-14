@@ -596,6 +596,26 @@ describe("history filter controls", () => {
     downloads.search = search;
   });
 
+  test("stops progress polling after its pending controls are removed", async () => {
+    vi.useFakeTimers();
+    historyRuntime.entries = [
+      { id: "h-pending", status: "pending", downloadId: 7, finalFullPath: "large.iso" },
+    ];
+    historyRuntime.search.mockResolvedValue([
+      { id: 7, state: "in_progress", bytesReceived: 50, totalBytes: 100 },
+    ]);
+    const { renderHistory } = historyPanel;
+    await renderHistory();
+    await vi.runAllTicks();
+
+    document.querySelector(".history-progress")?.remove();
+    document.querySelector(".history-cancel")?.remove();
+    const calls = historyRuntime.search.mock.calls.length;
+    await vi.advanceTimersByTimeAsync(2000);
+
+    expect(historyRuntime.search).toHaveBeenCalledTimes(calls);
+  });
+
   test("contains invalid history responses", async () => {
     historyRuntime.sendMessage.mockResolvedValueOnce({ type: "HISTORY_GET", body: {} });
     const { renderHistory } = historyPanel;

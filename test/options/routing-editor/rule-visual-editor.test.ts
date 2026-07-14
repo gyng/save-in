@@ -249,11 +249,16 @@ describe("routing visual editor", () => {
     matcher.focus();
     expect(matcher.getAttribute("role")).toBe("combobox");
     const matcherDropdown = document.getElementById(matcher.getAttribute("aria-controls")!);
-    expect(
-      [...(matcherDropdown?.querySelectorAll<HTMLElement>('[role="option"]') ?? [])].map(
-        (option) => option.textContent,
-      ),
-    ).toEqual(["context", "filename", "sourceurl"]);
+    const matcherOptions = [
+      ...(matcherDropdown?.querySelectorAll<HTMLButtonElement>('[role="option"]') ?? []),
+    ];
+    expect(matcherOptions.map((option) => option.textContent)).toEqual([
+      "context",
+      "filename",
+      "sourceurl",
+    ]);
+    matcherOptions[0]!.click();
+    expect(element<HTMLTextAreaElement>("#filenamePatterns").value).toContain("context/i:");
 
     const destination = element<HTMLInputElement>(".rule-clause-destination .rule-clause-value");
     destination.value = "docs/:d";

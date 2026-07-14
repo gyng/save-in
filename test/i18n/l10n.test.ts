@@ -56,6 +56,7 @@ describe("l10n", () => {
     expect(documentDirection("ar")).toBe("rtl");
     expect(documentDirection("he-IL")).toBe("rtl");
     expect(documentDirection("zh-Hant-TW")).toBe("ltr");
+    expect(documentDirection("zxx")).toBe("ltr");
     expect(documentDirection("not a locale")).toBe("ltr");
 
     setDocumentLanguage("", "ar");

@@ -41,6 +41,7 @@ export const normalizePathHierarchy = (
 
 const pathSubtreeEnd = (nodes: readonly DirectoryLineNode[], start: number): number => {
   const root = nodes[start];
+  /* v8 ignore next -- Application callers pass dense arrays produced by pathLinesToNodes. */
   if (!root) return start;
   let end = start + 1;
   while (end < nodes.length) {
@@ -80,6 +81,7 @@ export const reorderPathNode = (
   let targetStart = destination;
   while (targetStart > 0) {
     const target = nodes[targetStart];
+    /* v8 ignore next -- Application callers pass dense arrays produced by pathLinesToNodes. */
     if (!target || target.depth <= sourceDepth) break;
     targetStart -= 1;
   }

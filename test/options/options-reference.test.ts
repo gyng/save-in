@@ -172,11 +172,12 @@ test("tolerates missing optional reference controls and panels", async () => {
 
 test("uses readable filter placeholders when localization is unavailable", async () => {
   document.body.innerHTML = `${referenceMarkup()}
-    <a href="#" data-reference-tab="options-reference-orphan">Orphan</a>`;
+    <a href="#" data-reference-tab="options-reference-orphan">Orphan</a>
+    <a href="#" data-reference-tab="options-reference-unlisted">Unlisted</a>`;
   const dialog = document.querySelector("#reference-dialog")!;
   dialog.insertAdjacentHTML(
     "beforeend",
-    '<button role="tab" data-reference-tab>Incomplete</button><section id="options-reference-orphan" role="tabpanel"></section>',
+    '<button role="tab" data-reference-tab="options-reference-orphan">Orphan tab</button><button role="tab" data-reference-tab>Incomplete</button><section id="options-reference-orphan" role="tabpanel"></section><section id="options-reference-unlisted" role="tabpanel"></section>',
   );
   vi.mocked(browser.i18n.getMessage).mockReturnValue("");
   vi.mocked(browser.runtime.sendMessage).mockResolvedValue({
@@ -195,6 +196,10 @@ test("uses readable filter placeholders when localization is unavailable", async
     );
   }
   document.querySelector<HTMLElement>("[data-reference-tab='options-reference-orphan']")!.click();
+  expect(document.querySelector(".reference-dialog-filter")?.hasAttribute("aria-describedby")).toBe(
+    false,
+  );
+  document.querySelector<HTMLElement>("[data-reference-tab='options-reference-unlisted']")!.click();
   document.querySelector<HTMLElement>("body > [data-reference-tab='']")!.click();
   dialog.querySelector<HTMLButtonElement>("[role='tab'][data-reference-tab='']")!.click();
 });
