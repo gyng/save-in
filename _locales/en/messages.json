@@ -2101,6 +2101,14 @@
     "message": "Context menus",
     "description": "Text in the options page. Used in src/options/options.html."
   },
+  "html_downloadRequestHeaders": {
+    "message": "Download request headers",
+    "description": "Plain-language name for the declarativeNetRequestWithHostAccess permission in the About dialog. Used in src/options/options.html."
+  },
+  "html_temporarilyAddsThePageUrlAsRefererOnChrome": {
+    "message": "On Chrome, temporarily adds the page URL as the Referer for exact Save In requests when a site requires it.",
+    "description": "About-dialog rationale for the declarativeNetRequestWithHostAccess permission. Used in src/options/options.html."
+  },
   "html_documentation": {
     "message": "Documentation",
     "description": "Text in the options page. Used in src/options/options.html."

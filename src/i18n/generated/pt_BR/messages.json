@@ -2309,5 +2309,9 @@
     "message": "As regras automáticas são gerenciadas com as regras de roteamento e usam context: auto. Cada uma precisa de condições de página e fonte."
   },
   "html_openInFirefoxAddons": { "message": "Abrir nos complementos do Firefox" },
-  "html_openInChromeWebStore": { "message": "Abrir na Chrome Web Store" }
+  "html_openInChromeWebStore": { "message": "Abrir na Chrome Web Store" },
+  "html_downloadRequestHeaders": { "message": "Cabeçalhos das solicitações de download" },
+  "html_temporarilyAddsThePageUrlAsRefererOnChrome": {
+    "message": "No Chrome, adiciona temporariamente a URL da página como Referer às solicitações exatas do Save In quando um site exige isso."
+  }
 }

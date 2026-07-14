@@ -2299,5 +2299,9 @@
     "message": "Automatiska regler hanteras tillsammans med routningsreglerna och använder context: auto. Varje regel behöver sid- och källvillkor."
   },
   "html_openInFirefoxAddons": { "message": "Öppna i Firefox Add-ons" },
-  "html_openInChromeWebStore": { "message": "Öppna i Chrome Web Store" }
+  "html_openInChromeWebStore": { "message": "Öppna i Chrome Web Store" },
+  "html_downloadRequestHeaders": { "message": "Huvuden för hämtningsbegäranden" },
+  "html_temporarilyAddsThePageUrlAsRefererOnChrome": {
+    "message": "I Chrome läggs sidans URL till tillfälligt som Referer för exakta Save In-begäranden när en webbplats kräver det."
+  }
 }

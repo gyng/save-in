@@ -2500,5 +2500,9 @@
     "message": "Le regole automatiche si trovano insieme alle regole di routing e usano context: auto. Ognuna richiede condizioni per la pagina e la sorgente."
   },
   "html_openInFirefoxAddons": { "message": "Apri in Firefox Add-ons" },
-  "html_openInChromeWebStore": { "message": "Apri nel Chrome Web Store" }
+  "html_openInChromeWebStore": { "message": "Apri nel Chrome Web Store" },
+  "html_downloadRequestHeaders": { "message": "Intestazioni delle richieste di download" },
+  "html_temporarilyAddsThePageUrlAsRefererOnChrome": {
+    "message": "In Chrome, aggiunge temporaneamente l'URL della pagina come Referer alle richieste esatte di Save In quando un sito lo richiede."
+  }
 }

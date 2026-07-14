@@ -2311,5 +2311,9 @@
     "message": "Automatische regels worden samen met uw routeringsregels beheerd en gebruiken context: auto. Elke regel heeft pagina- en bronvoorwaarden nodig."
   },
   "html_openInFirefoxAddons": { "message": "Openen in Firefox Add-ons" },
-  "html_openInChromeWebStore": { "message": "Openen in de Chrome Web Store" }
+  "html_openInChromeWebStore": { "message": "Openen in de Chrome Web Store" },
+  "html_downloadRequestHeaders": { "message": "Headers van downloadverzoeken" },
+  "html_temporarilyAddsThePageUrlAsRefererOnChrome": {
+    "message": "Voegt in Chrome tijdelijk de pagina-URL als Referer toe aan exact overeenkomende Save In-verzoeken wanneer een site dit vereist."
+  }
 }

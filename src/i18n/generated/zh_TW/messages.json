@@ -2403,5 +2403,9 @@
     "message": "自動規則與路由規則一起管理，並使用 context: auto。每項規則都需要頁面條件和來源條件。"
   },
   "html_openInFirefoxAddons": { "message": "在 Firefox Add-ons 中開啟" },
-  "html_openInChromeWebStore": { "message": "在 Chrome Web Store 中開啟" }
+  "html_openInChromeWebStore": { "message": "在 Chrome Web Store 中開啟" },
+  "html_downloadRequestHeaders": { "message": "下載要求標頭" },
+  "html_temporarilyAddsThePageUrlAsRefererOnChrome": {
+    "message": "在 Chrome 中，網站需要時，會暫時為完全符合的 Save In 要求加入頁面 URL 作為 Referer。"
+  }
 }

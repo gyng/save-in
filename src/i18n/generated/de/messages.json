@@ -2307,5 +2307,9 @@
     "message": "Automatische Regeln werden zusammen mit Ihren Routing-Regeln verwaltet und verwenden context: auto. Jede benötigt Seiten- und Quellenbedingungen."
   },
   "html_openInFirefoxAddons": { "message": "In Firefox Add-ons öffnen" },
-  "html_openInChromeWebStore": { "message": "Im Chrome Web Store öffnen" }
+  "html_openInChromeWebStore": { "message": "Im Chrome Web Store öffnen" },
+  "html_downloadRequestHeaders": { "message": "Header von Download-Anfragen" },
+  "html_temporarilyAddsThePageUrlAsRefererOnChrome": {
+    "message": "Fügt in Chrome vorübergehend die Seiten-URL als Referer zu genau passenden Save In-Anfragen hinzu, wenn eine Website dies erfordert."
+  }
 }

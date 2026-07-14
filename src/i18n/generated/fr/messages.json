@@ -2334,5 +2334,9 @@
     "message": "Les règles automatiques sont gérées avec vos règles de routage et utilisent context: auto. Chacune nécessite des conditions de page et de source."
   },
   "html_openInFirefoxAddons": { "message": "Ouvrir dans Firefox Add-ons" },
-  "html_openInChromeWebStore": { "message": "Ouvrir dans le Chrome Web Store" }
+  "html_openInChromeWebStore": { "message": "Ouvrir dans le Chrome Web Store" },
+  "html_downloadRequestHeaders": { "message": "En-têtes des requêtes de téléchargement" },
+  "html_temporarilyAddsThePageUrlAsRefererOnChrome": {
+    "message": "Dans Chrome, ajoute temporairement l’URL de la page en tant que Referer aux requêtes Save In exactes lorsqu’un site l’exige."
+  }
 }
