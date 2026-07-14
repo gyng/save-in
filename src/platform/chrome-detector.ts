@@ -1,4 +1,5 @@
 import { webExtensionApi } from "./web-extension-api.ts";
+import { isStringKeyedRecord } from "../shared/util.ts";
 
 export const BROWSERS = {
   CHROME: "CHROME",
@@ -64,11 +65,14 @@ export const setCurrentBrowser = (currentBrowser: string) => {
 const getBrowserInfoValue: unknown = Reflect.get(webExtensionApi?.runtime ?? {}, "getBrowserInfo");
 const getBrowserInfo =
   typeof getBrowserInfoValue === "function"
-    ? (): Promise<{ version: string }> =>
-        Reflect.apply(getBrowserInfoValue, webExtensionApi.runtime, []) as Promise<{
-          version: string;
-        }>
+    ? async (): Promise<unknown> => Reflect.apply(getBrowserInfoValue, webExtensionApi.runtime, [])
     : null;
+
+const browserVersion = (value: unknown): number | undefined => {
+  if (!isStringKeyedRecord(value) || typeof value.version !== "string") return undefined;
+  const parsed = Number.parseFloat(value.version);
+  return Number.isFinite(parsed) ? parsed : undefined;
+};
 
 if (!webExtensionApi) {
   setCurrentBrowser(BROWSERS.UNKNOWN);
@@ -79,7 +83,7 @@ if (!webExtensionApi) {
 
   getBrowserInfo()
     .then((res) => {
-      CURRENT_BROWSER_VERSION = parseFloat(res.version);
+      CURRENT_BROWSER_VERSION = browserVersion(res);
     })
     .catch(() => {});
 } else {
