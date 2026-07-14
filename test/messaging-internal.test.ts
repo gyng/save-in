@@ -36,6 +36,52 @@ describe("onMessage", () => {
     expect(sendResponse).toHaveBeenCalledWith({ type: MESSAGE_TYPES.OK });
   });
 
+  test.each([
+    ["saved", "saved"],
+    [42, 42],
+    [Number.NaN, "."],
+  ])("GET_CONFIG normalizes stored value option %#", async (stored, expected) => {
+    vi.mocked(global.browser.storage.local.get).mockResolvedValueOnce({
+      prompt: false,
+      paths: stored,
+    });
+    const sendResponse = vi.fn();
+
+    expect(onMessage({ type: MESSAGE_TYPES.GET_CONFIG }, {}, sendResponse)).toBe(true);
+    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    expect(sendResponse.mock.calls[0]![0]!.body.config.paths).toBe(expected);
+  });
+
+  test("omits automatic filenames when a candidate URL has no filename", async () => {
+    const sendResponse = vi.fn();
+    expect(
+      onMessage(
+        {
+          type: MESSAGE_TYPES.VALIDATE,
+          body: {
+            filenamePatterns: "context: ^auto$",
+            automaticCandidate: {
+              pageUrl: "https://example.test/gallery",
+              sourceUrl: "https://cdn.test/",
+              sourceKind: "image",
+            },
+          },
+        },
+        {},
+        sendResponse,
+      ),
+    ).toBe(true);
+    await vi.waitFor(() => expect(router.traceRules).toHaveBeenCalled());
+    expect(router.traceRules.mock.calls[0]![1]).toEqual({
+      context: "AUTO",
+      pageUrl: "https://example.test/gallery",
+      sourceUrl: "https://cdn.test/",
+      url: "https://cdn.test/",
+      sourceKind: "image",
+      mediaType: "image",
+    });
+  });
+
   test("HISTORY_GET returns normalized history from its background owner", async () => {
     vi.mocked(SaveHistory.get).mockResolvedValue([{ id: "h1", url: "https://x.test/a" }]);
     const sendResponse = vi.fn();
