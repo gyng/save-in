@@ -1241,6 +1241,27 @@
   "html_noneApproved": {
     "message": "Geen goedgekeurde extensies"
   },
+  "externalApprovedCountOne": {
+    "message": "$COUNT$ goedgekeurde extensie",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "externalApprovedCountMany": {
+    "message": "$COUNT$ goedgekeurde extensies",
+    "placeholders": { "count": { "content": "$1", "example": "3" } }
+  },
+  "externalRemoveApproval": { "message": "Verwijderen" },
+  "externalRemoveApprovalFor": {
+    "message": "Goedkeuring voor $ID$ verwijderen",
+    "placeholders": { "id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" } }
+  },
+  "externalApprovalRemoved": {
+    "message": "$ID$ is niet langer goedgekeurd.",
+    "placeholders": { "id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" } }
+  },
+  "externalApprovalAdded": {
+    "message": "$ID$ is nu goedgekeurd.",
+    "placeholders": { "id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" } }
+  },
   "html_oneExtensionIdPerLine": {
     "message": "Eén extensie-ID per regel"
   },

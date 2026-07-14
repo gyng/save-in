@@ -1138,6 +1138,27 @@
   "html_noneApproved": {
     "message": "未核准任何擴充功能"
   },
+  "externalApprovedCountOne": {
+    "message": "已核准 $COUNT$ 個擴充功能",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "externalApprovedCountMany": {
+    "message": "已核准 $COUNT$ 個擴充功能",
+    "placeholders": { "count": { "content": "$1", "example": "3" } }
+  },
+  "externalRemoveApproval": { "message": "移除" },
+  "externalRemoveApprovalFor": {
+    "message": "移除 $ID$ 的核准",
+    "placeholders": { "id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" } }
+  },
+  "externalApprovalRemoved": {
+    "message": "$ID$ 已不再獲核准。",
+    "placeholders": { "id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" } }
+  },
+  "externalApprovalAdded": {
+    "message": "$ID$ 現已獲核准。",
+    "placeholders": { "id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" } }
+  },
   "html_oneExtensionIdPerLine": {
     "message": "每行一個擴充功能 ID"
   },

@@ -185,6 +185,71 @@ test("manages approved extension IDs without exposing the raw editor", async () 
   );
 });
 
+test("localizes approved extension counts, actions, and announcements", async () => {
+  document.body.innerHTML = `
+    <input id="external-extension-id-draft" />
+    <button id="external-extension-id-add" type="button">Zulassen</button>
+    <span id="external-approved-count">Keine zugelassen</span>
+    <div id="external-approved-list"></div>
+    <div id="external-approved-empty"></div>
+    <div id="external-approved-status"></div>
+    <textarea id="externalDownloadAllowlist">alpha-extension</textarea>
+    <section id="external-download-rejections" hidden>
+      <div id="external-download-rejection-list"></div>
+    </section>`;
+  vi.mocked(webExtensionApi.i18n.getMessage).mockImplementation((key, substitutions) => {
+    const value = Array.isArray(substitutions) ? substitutions[0] : substitutions;
+    const messages: Record<string, string> = {
+      externalApprovedCountOne: `${value} zugelassene Erweiterung`,
+      externalApprovedCountMany: `${value} zugelassene Erweiterungen`,
+      externalRemoveApproval: "Entfernen",
+      externalRemoveApprovalFor: `Zulassung für ${value} entfernen`,
+      externalApprovalRemoved: `${value} ist nicht mehr zugelassen.`,
+      externalApprovalAdded: `${value} ist jetzt zugelassen.`,
+    };
+    return messages[key] || "";
+  });
+  vi.spyOn(webExtensionApi.runtime, "sendMessage").mockResolvedValue({
+    type: MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTIONS_GET,
+    body: { rejections: [] },
+  });
+
+  setupIntegrationPanel();
+  dispatchRestore();
+  await vi.waitFor(() =>
+    expect(document.querySelector("#external-approved-count")?.textContent).toBe(
+      "1 zugelassene Erweiterung",
+    ),
+  );
+
+  const firstRemove = document.querySelector<HTMLButtonElement>(".external-approved-remove")!;
+  expect(firstRemove.textContent).toBe("Entfernen");
+  expect(firstRemove.getAttribute("aria-label")).toBe("Zulassung für alpha-extension entfernen");
+  firstRemove.click();
+  expect(document.querySelector("#external-approved-count")?.textContent).toBe("Keine zugelassen");
+  expect(document.querySelector("#external-approved-status")?.textContent).toBe(
+    "alpha-extension ist nicht mehr zugelassen.",
+  );
+
+  const draft = document.querySelector<HTMLInputElement>("#external-extension-id-draft")!;
+  draft.value = "beta-extension";
+  draft.dispatchEvent(new InputEvent("input", { bubbles: true }));
+  document.querySelector<HTMLButtonElement>("#external-extension-id-add")!.click();
+  expect(document.querySelector("#external-approved-count")?.textContent).toBe(
+    "1 zugelassene Erweiterung",
+  );
+  expect(document.querySelector("#external-approved-status")?.textContent).toBe(
+    "beta-extension ist jetzt zugelassen.",
+  );
+
+  draft.value = "gamma-extension";
+  draft.dispatchEvent(new InputEvent("input", { bubbles: true }));
+  document.querySelector<HTMLButtonElement>("#external-extension-id-add")!.click();
+  expect(document.querySelector("#external-approved-count")?.textContent).toBe(
+    "2 zugelassene Erweiterungen",
+  );
+});
+
 test("tolerates an integration document without optional surfaces", async () => {
   document.body.innerHTML = "";
   setupIntegrationPanel();
@@ -255,7 +320,9 @@ test("manages empty, duplicate, and keyboard-approved allowlist drafts", async (
   draft.dispatchEvent(
     new KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true }),
   );
-  expect(document.querySelector("#external-approved-count")?.textContent).toBe("1");
+  expect(document.querySelector("#external-approved-count")?.textContent).toBe(
+    "1 approved extension",
+  );
 
   draft.value = "keyboard-extension";
   draft.dispatchEvent(new InputEvent("input", { bubbles: true }));

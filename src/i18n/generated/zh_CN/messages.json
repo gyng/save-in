@@ -1138,6 +1138,27 @@
   "html_noneApproved": {
     "message": "无已批准的扩展程序"
   },
+  "externalApprovedCountOne": {
+    "message": "已批准 $COUNT$ 个扩展程序",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "externalApprovedCountMany": {
+    "message": "已批准 $COUNT$ 个扩展程序",
+    "placeholders": { "count": { "content": "$1", "example": "3" } }
+  },
+  "externalRemoveApproval": { "message": "移除" },
+  "externalRemoveApprovalFor": {
+    "message": "移除对 $ID$ 的批准",
+    "placeholders": { "id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" } }
+  },
+  "externalApprovalRemoved": {
+    "message": "$ID$ 已不再获批准。",
+    "placeholders": { "id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" } }
+  },
+  "externalApprovalAdded": {
+    "message": "$ID$ 现已获批准。",
+    "placeholders": { "id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" } }
+  },
   "html_oneExtensionIdPerLine": {
     "message": "每行一个扩展程序 ID"
   },

@@ -1,4 +1,5 @@
 import { webExtensionApi } from "../platform/web-extension-api.ts";
+import { getMessage } from "../platform/localization.ts";
 import { MESSAGE_TYPES } from "../shared/constants.ts";
 import { sendInternalMessage } from "../shared/message-protocol.ts";
 import type { ExternalDownloadRejection } from "../shared/external-download-rejection-types.ts";
@@ -75,6 +76,11 @@ const setAllowedExtensionIds = (textarea: HTMLTextAreaElement, ids: string[]): v
   textarea.dispatchEvent(new Event("input", { bubbles: true }));
 };
 
+const approvedCountLabel = (count: number): string =>
+  count === 1
+    ? getMessage("externalApprovedCountOne", count) || `${count} approved extension`
+    : getMessage("externalApprovedCountMany", count) || `${count} approved extensions`;
+
 const setupApprovedExtensions = () => {
   const textarea = document.querySelector<HTMLTextAreaElement>("#externalDownloadAllowlist");
   const draft = document.querySelector<HTMLInputElement>("#external-extension-id-draft");
@@ -105,14 +111,20 @@ const setupApprovedExtensions = () => {
       const remove = document.createElement("button");
       remove.type = "button";
       remove.className = "button external-approved-remove";
-      remove.textContent = "Remove";
-      remove.setAttribute("aria-label", `Remove ${id}`);
+      remove.textContent = getMessage("externalRemoveApproval") || "Remove";
+      remove.setAttribute(
+        "aria-label",
+        getMessage("externalRemoveApprovalFor", id) || `Remove approval for ${id}`,
+      );
       remove.addEventListener("click", () => {
         setAllowedExtensionIds(
           textarea,
           allowedExtensionIds(textarea.value).filter((candidate) => candidate !== id),
         );
-        if (status) status.textContent = `Removed ${id}.`;
+        if (status) {
+          status.textContent =
+            getMessage("externalApprovalRemoved", id) || `${id} is no longer approved.`;
+        }
       });
 
       row.append(code, remove);
@@ -120,7 +132,7 @@ const setupApprovedExtensions = () => {
     });
 
     empty.hidden = ids.length > 0;
-    count.textContent = ids.length === 0 ? noneApprovedLabel : String(ids.length);
+    count.textContent = ids.length === 0 ? noneApprovedLabel : approvedCountLabel(ids.length);
     refreshAddState();
   };
 
@@ -130,7 +142,10 @@ const setupApprovedExtensions = () => {
     if (!candidate || ids.includes(candidate)) return;
     setAllowedExtensionIds(textarea, [...ids, candidate]);
     draft.value = "";
-    if (status) status.textContent = `Allowed ${candidate}.`;
+    if (status) {
+      status.textContent =
+        getMessage("externalApprovalAdded", candidate) || `${candidate} is now approved.`;
+    }
     refreshAddState();
     draft.focus();
   });

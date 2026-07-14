@@ -1138,6 +1138,27 @@
   "html_noneApproved": {
     "message": "승인된 확장 프로그램 없음"
   },
+  "externalApprovedCountOne": {
+    "message": "승인된 확장 프로그램 $COUNT$개",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "externalApprovedCountMany": {
+    "message": "승인된 확장 프로그램 $COUNT$개",
+    "placeholders": { "count": { "content": "$1", "example": "3" } }
+  },
+  "externalRemoveApproval": { "message": "제거" },
+  "externalRemoveApprovalFor": {
+    "message": "$ID$ 승인 제거",
+    "placeholders": { "id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" } }
+  },
+  "externalApprovalRemoved": {
+    "message": "$ID$ 확장 프로그램의 승인이 취소되었습니다.",
+    "placeholders": { "id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" } }
+  },
+  "externalApprovalAdded": {
+    "message": "$ID$ 확장 프로그램이 승인되었습니다.",
+    "placeholders": { "id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" } }
+  },
   "html_oneExtensionIdPerLine": {
     "message": "한 줄에 하나의 확장 프로그램 ID"
   },

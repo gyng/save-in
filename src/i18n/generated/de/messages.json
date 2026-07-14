@@ -1239,6 +1239,27 @@
   "html_noneApproved": {
     "message": "Keine genehmigt"
   },
+  "externalApprovedCountOne": {
+    "message": "$COUNT$ zugelassene Erweiterung",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "externalApprovedCountMany": {
+    "message": "$COUNT$ zugelassene Erweiterungen",
+    "placeholders": { "count": { "content": "$1", "example": "3" } }
+  },
+  "externalRemoveApproval": { "message": "Entfernen" },
+  "externalRemoveApprovalFor": {
+    "message": "Zulassung für $ID$ entfernen",
+    "placeholders": { "id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" } }
+  },
+  "externalApprovalRemoved": {
+    "message": "$ID$ ist nicht mehr zugelassen.",
+    "placeholders": { "id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" } }
+  },
+  "externalApprovalAdded": {
+    "message": "$ID$ ist jetzt zugelassen.",
+    "placeholders": { "id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" } }
+  },
   "html_oneExtensionIdPerLine": {
     "message": "Eine Erweiterungs-ID pro Zeile"
   },

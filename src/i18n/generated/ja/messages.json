@@ -1138,6 +1138,27 @@
   "html_noneApproved": {
     "message": "承認済みなし"
   },
+  "externalApprovedCountOne": {
+    "message": "承認済みの拡張機能 $COUNT$ 件",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "externalApprovedCountMany": {
+    "message": "承認済みの拡張機能 $COUNT$ 件",
+    "placeholders": { "count": { "content": "$1", "example": "3" } }
+  },
+  "externalRemoveApproval": { "message": "削除" },
+  "externalRemoveApprovalFor": {
+    "message": "$ID$ の承認を削除",
+    "placeholders": { "id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" } }
+  },
+  "externalApprovalRemoved": {
+    "message": "$ID$ の承認が解除されました。",
+    "placeholders": { "id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" } }
+  },
+  "externalApprovalAdded": {
+    "message": "$ID$ が承認されました。",
+    "placeholders": { "id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" } }
+  },
   "html_oneExtensionIdPerLine": {
     "message": "1 行に 1 つの拡張機能 ID"
   },

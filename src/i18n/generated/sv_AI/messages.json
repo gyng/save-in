@@ -1235,6 +1235,54 @@
   "html_noneApproved": {
     "message": "Inga godkända tillägg"
   },
+  "externalApprovedCountOne": {
+    "message": "$COUNT$ godkänt tillägg",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
+  },
+  "externalApprovedCountMany": {
+    "message": "$COUNT$ godkända tillägg",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "externalRemoveApproval": {
+    "message": "Ta bort"
+  },
+  "externalRemoveApprovalFor": {
+    "message": "Ta bort godkännandet för $ID$",
+    "placeholders": {
+      "id": {
+        "content": "$1",
+        "example": "abcdefghijklmnopabcdefghijklmnop"
+      }
+    }
+  },
+  "externalApprovalRemoved": {
+    "message": "$ID$ är inte längre godkänt.",
+    "placeholders": {
+      "id": {
+        "content": "$1",
+        "example": "abcdefghijklmnopabcdefghijklmnop"
+      }
+    }
+  },
+  "externalApprovalAdded": {
+    "message": "$ID$ är nu godkänt.",
+    "placeholders": {
+      "id": {
+        "content": "$1",
+        "example": "abcdefghijklmnopabcdefghijklmnop"
+      }
+    }
+  },
   "html_oneExtensionIdPerLine": {
     "message": "Ett tilläggs-ID per rad"
   },

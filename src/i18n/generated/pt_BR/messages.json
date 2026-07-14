@@ -1241,6 +1241,27 @@
   "html_noneApproved": {
     "message": "Nenhuma aprovada"
   },
+  "externalApprovedCountOne": {
+    "message": "$COUNT$ extensão aprovada",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "externalApprovedCountMany": {
+    "message": "$COUNT$ extensões aprovadas",
+    "placeholders": { "count": { "content": "$1", "example": "3" } }
+  },
+  "externalRemoveApproval": { "message": "Remover" },
+  "externalRemoveApprovalFor": {
+    "message": "Remover a aprovação de $ID$",
+    "placeholders": { "id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" } }
+  },
+  "externalApprovalRemoved": {
+    "message": "$ID$ não está mais aprovada.",
+    "placeholders": { "id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" } }
+  },
+  "externalApprovalAdded": {
+    "message": "$ID$ agora está aprovada.",
+    "placeholders": { "id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" } }
+  },
   "html_oneExtensionIdPerLine": {
     "message": "Um ID de extensão por linha"
   },

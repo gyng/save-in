@@ -2009,6 +2009,60 @@
     "message": "None approved",
     "description": "Text in the options page. Used in src/options/options.html."
   },
+  "externalApprovedCountOne": {
+    "message": "$COUNT$ approved extension",
+    "description": "Singular count of extensions approved to start downloads. Used in src/options/integration-panel.ts.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
+  },
+  "externalApprovedCountMany": {
+    "message": "$COUNT$ approved extensions",
+    "description": "Plural count of extensions approved to start downloads. Used in src/options/integration-panel.ts.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "externalRemoveApproval": {
+    "message": "Remove",
+    "description": "Button that removes an extension from the external-download approval list. Used in src/options/integration-panel.ts."
+  },
+  "externalRemoveApprovalFor": {
+    "message": "Remove approval for $ID$",
+    "description": "Accessible name for removing one extension from the external-download approval list. Used in src/options/integration-panel.ts.",
+    "placeholders": {
+      "id": {
+        "content": "$1",
+        "example": "abcdefghijklmnopabcdefghijklmnop"
+      }
+    }
+  },
+  "externalApprovalRemoved": {
+    "message": "$ID$ is no longer approved.",
+    "description": "Confirmation after removing an extension from the external-download approval list. Used in src/options/integration-panel.ts.",
+    "placeholders": {
+      "id": {
+        "content": "$1",
+        "example": "abcdefghijklmnopabcdefghijklmnop"
+      }
+    }
+  },
+  "externalApprovalAdded": {
+    "message": "$ID$ is now approved.",
+    "description": "Confirmation after adding an extension to the external-download approval list. Used in src/options/integration-panel.ts.",
+    "placeholders": {
+      "id": {
+        "content": "$1",
+        "example": "abcdefghijklmnopabcdefghijklmnop"
+      }
+    }
+  },
   "html_oneExtensionIdPerLine": {
     "message": "One extension ID per line",
     "description": "Text in the options page. Used in src/options/options.html."

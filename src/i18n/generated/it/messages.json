@@ -1499,6 +1499,27 @@
   "html_noneApproved": {
     "message": "Nessuna approvata"
   },
+  "externalApprovedCountOne": {
+    "message": "$COUNT$ estensione approvata",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "externalApprovedCountMany": {
+    "message": "$COUNT$ estensioni approvate",
+    "placeholders": { "count": { "content": "$1", "example": "3" } }
+  },
+  "externalRemoveApproval": { "message": "Rimuovi" },
+  "externalRemoveApprovalFor": {
+    "message": "Rimuovi l’autorizzazione per $ID$",
+    "placeholders": { "id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" } }
+  },
+  "externalApprovalRemoved": {
+    "message": "$ID$ non è più autorizzata.",
+    "placeholders": { "id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" } }
+  },
+  "externalApprovalAdded": {
+    "message": "$ID$ è ora autorizzata.",
+    "placeholders": { "id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" } }
+  },
   "html_oneExtensionIdPerLine": {
     "message": "Un ID estensione per riga"
   },
