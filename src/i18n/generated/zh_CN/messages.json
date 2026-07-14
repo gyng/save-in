@@ -128,7 +128,7 @@
     "message": "未知匹配器"
   },
   "ruleUnknownDestinationVariable": {
-    "message": "Destination variable is not supported"
+    "message": "Path variable is not supported"
   },
   "ruleInvalidRegex": {
     "message": "正则表达式无效"

@@ -231,7 +231,7 @@
     "message": "Onbekende matcher"
   },
   "ruleUnknownDestinationVariable": {
-    "message": "Destination variable is not supported"
+    "message": "Path variable is not supported"
   },
   "ruleInvalidRegex": {
     "message": "Ongeldige reguliere expressie"

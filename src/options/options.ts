@@ -41,7 +41,10 @@ import { isStringKeyedRecord, sendInternalMessage } from "../shared/message-prot
 import { applyUiTheme, setupUiThemeControl } from "./theme.ts";
 import { getPathSourceRange } from "./path-editor-model.ts";
 import { setSyntaxEditorDiagnostics } from "./syntax-editor.ts";
-import { validationErrorsToDiagnostics } from "./syntax-editor-model.ts";
+import {
+  directoryValidationLocation,
+  validationErrorsToDiagnostics,
+} from "./syntax-editor-model.ts";
 
 const setupLastDownloadState = () => {
   document.querySelector("#last-dl-url")?.classList.add("is-empty");
@@ -51,6 +54,7 @@ type ValidationError = {
   message: string;
   error: string;
   warning?: boolean;
+  sourceRange?: { start: number; end: number };
   location?: {
     start: number;
     end: number;
@@ -66,6 +70,10 @@ const isValidationError = (value: unknown): value is ValidationError =>
   typeof value.message === "string" &&
   typeof value.error === "string" &&
   (typeof value.warning === "undefined" || typeof value.warning === "boolean") &&
+  (typeof value.sourceRange === "undefined" ||
+    (isStringKeyedRecord(value.sourceRange) &&
+      typeof value.sourceRange.start === "number" &&
+      typeof value.sourceRange.end === "number")) &&
   (typeof value.location === "undefined" ||
     (isStringKeyedRecord(value.location) &&
       typeof value.location.start === "number" &&
@@ -193,11 +201,20 @@ const renderErrorRow = (err: ValidationError, textareaId: string) => {
   r.setAttribute("tabindex", "0");
   r.title = "Jump to this error";
 
-  if (err.location) {
-    const location = document.createElement("span");
-    location.className = "error-location";
-    location.textContent = `L${err.location.line}:${err.location.column + 1}`;
-    r.appendChild(location);
+  const sourceIndex =
+    "sourceIndex" in err && typeof err.sourceIndex === "number" ? err.sourceIndex : undefined;
+  const textarea = document.querySelector(textareaId);
+  const location =
+    err.location ??
+    (textarea instanceof HTMLTextAreaElement && sourceIndex !== undefined
+      ? (directoryValidationLocation(textarea.value, sourceIndex, err.sourceRange) ?? undefined)
+      : undefined);
+
+  if (location) {
+    const locationBadge = document.createElement("span");
+    locationBadge.className = "error-location";
+    locationBadge.textContent = `L${location.line}:${location.column + 1}`;
+    r.appendChild(locationBadge);
   }
 
   const message = document.createElement("span");
@@ -212,9 +229,7 @@ const renderErrorRow = (err: ValidationError, textareaId: string) => {
     r.appendChild(error);
   }
 
-  const sourceIndex =
-    "sourceIndex" in err && typeof err.sourceIndex === "number" ? err.sourceIndex : undefined;
-  const jump = () => jumpToError(textareaId, err.error, sourceIndex, err.location);
+  const jump = () => jumpToError(textareaId, err.error, sourceIndex, location);
   r.addEventListener("click", jump);
   r.addEventListener("keydown", (e) => {
     if (e.key === "Enter" || e.key === " ") {

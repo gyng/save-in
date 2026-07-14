@@ -746,6 +746,18 @@ describe("buildTree", () => {
     ]);
   });
 
+  test("reports the exact range of an unknown path variable", () => {
+    expect(menu.buildTree(["docs/:year:/:modnthname:"]).errors).toEqual([
+      {
+        sourceIndex: 0,
+        message: "Translated<ruleUnknownDestinationVariable>",
+        error: ":modnthname:",
+        sourceRange: { start: 12, end: 24 },
+        parentId: menu.IDS.ROOT,
+      },
+    ]);
+  });
+
   test("reports a syntactically missing nested path", () => {
     expect(menu.buildTree([">"]).errors).toEqual([
       expect.objectContaining({ error: ">", message: "Invalid path" }),

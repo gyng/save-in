@@ -251,7 +251,7 @@
     "message": "Critère inconnu"
   },
   "ruleUnknownDestinationVariable": {
-    "message": "Destination variable is not supported"
+    "message": "Path variable is not supported"
   },
   "ruleInvalidRegex": {
     "message": "Expression régulière invalide"

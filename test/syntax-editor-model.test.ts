@@ -2,12 +2,22 @@ import {
   analyzeSyntax,
   completeDirectorySyntax,
   completeRoutingSyntax,
+  directoryValidationLocation,
   validationErrorsToDiagnostics,
 } from "../src/options/syntax-editor-model.ts";
 
 const tokenText = (source: string, start: number, end: number) => source.slice(start, end);
 
 describe("syntax editor model", () => {
+  test("maps a path-relative validation range to an exact source location", () => {
+    expect(
+      directoryValidationLocation("first\n\n  docs/:year:/:modnthname:  ", 1, {
+        start: 12,
+        end: 24,
+      }),
+    ).toEqual({ start: 21, end: 33, line: 3, column: 14 });
+  });
+
   test("highlights directory grammar tokens and locates invalid lines", () => {
     const source = "  >> images/:date: // note (alias: Images)\n// missing";
     const snapshot = analyzeSyntax("directories", source);
@@ -170,6 +180,25 @@ describe("syntax editor model", () => {
         line: 3,
         column: 2,
         message: "Invalid path: second",
+        severity: "error",
+      },
+    ]);
+    expect(
+      validationErrorsToDiagnostics("directories", "docs/:year:/:modnthname:", [
+        {
+          sourceIndex: 0,
+          message: "Path variable is not supported",
+          error: ":modnthname:",
+          sourceRange: { start: 12, end: 24 },
+        },
+      ]),
+    ).toEqual([
+      {
+        start: 12,
+        end: 24,
+        line: 1,
+        column: 12,
+        message: "Path variable is not supported: :modnthname:",
         severity: "error",
       },
     ]);

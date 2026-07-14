@@ -150,8 +150,8 @@
     "description": "Error message for an unknown matcher. Used in src/routing/rule-parser.ts."
   },
   "ruleUnknownDestinationVariable": {
-    "message": "Destination variable is not supported",
-    "description": "Warning for an unknown colon-wrapped variable in an into destination. Used in src/routing/rule-parser.ts."
+    "message": "Path variable is not supported",
+    "description": "Validation message for an unknown colon-wrapped variable in a save path or routing destination. Used in src/routing/path.ts and src/routing/rule-parser.ts."
   },
   "ruleInvalidRegex": {
     "message": "Pattern or flags are not a valid regular expression",

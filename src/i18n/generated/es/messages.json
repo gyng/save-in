@@ -227,7 +227,7 @@
     "message": "Comparador desconocido"
   },
   "ruleUnknownDestinationVariable": {
-    "message": "Destination variable is not supported"
+    "message": "Path variable is not supported"
   },
   "ruleInvalidRegex": {
     "message": "Expresión regular no válida"

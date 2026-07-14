@@ -61,6 +61,7 @@ export type EditorValidationError = {
   readonly error: string;
   readonly warning?: boolean;
   readonly sourceIndex?: number;
+  readonly sourceRange?: { readonly start: number; readonly end: number };
   readonly location?: {
     readonly start: number;
     readonly end: number;
@@ -283,6 +284,24 @@ const directorySourceRange = (
   return null;
 };
 
+export const directoryValidationLocation = (
+  source: string,
+  sourceIndex: number,
+  sourceRange?: { readonly start: number; readonly end: number },
+): { start: number; end: number; line: number; column: number } | null => {
+  const lineRange = directorySourceRange(source, sourceIndex);
+  if (!lineRange) return null;
+  const start = lineRange.start + (sourceRange?.start ?? 0);
+  const end = sourceRange ? lineRange.start + sourceRange.end : lineRange.end;
+  const lineStart = source.lastIndexOf("\n", Math.max(0, start - 1)) + 1;
+  return {
+    start,
+    end,
+    line: source.slice(0, start).split("\n").length,
+    column: start - lineStart,
+  };
+};
+
 export const validationErrorsToDiagnostics = (
   language: SyntaxEditorLanguage,
   source: string,
@@ -293,19 +312,22 @@ export const validationErrorsToDiagnostics = (
       language === "directories"
         ? error.sourceIndex === undefined
           ? null
-          : directorySourceRange(source, error.sourceIndex)
+          : directoryValidationLocation(source, error.sourceIndex, error.sourceRange)
         : error.location
           ? { start: error.location.start, end: error.location.end }
           : null;
     if (!range) return [];
-    const line = source.slice(0, range.start).split("\n").length;
-    const lineStart = source.lastIndexOf("\n", Math.max(0, range.start - 1)) + 1;
+    const line = "line" in range ? range.line : source.slice(0, range.start).split("\n").length;
+    const column =
+      "column" in range
+        ? range.column
+        : range.start - (source.lastIndexOf("\n", Math.max(0, range.start - 1)) + 1);
     return [
       {
         start: range.start,
         end: range.end,
         line,
-        column: range.start - lineStart,
+        column,
         message: error.error ? `${error.message}: ${error.error}` : error.message,
         severity: error.warning ? "warning" : "error",
       },

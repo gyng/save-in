@@ -21,7 +21,12 @@ export type ParsedPath = {
   depth: number;
   meta: MenuMeta;
   parsedDir: string;
-  validation: { valid: boolean; message?: string | undefined };
+  validation: {
+    valid: boolean;
+    message?: string | undefined;
+    error?: string | undefined;
+    sourceRange?: { start: number; end: number } | undefined;
+  };
 };
 export type MenuTreeItem =
   | { kind: "separator"; sourceIndex: number; id: string; parentId: string }
@@ -42,6 +47,7 @@ export type MenuTreeError = {
   sourceIndex: number;
   message: string;
   error: string;
+  sourceRange?: { start: number; end: number } | undefined;
   parentId?: string | undefined;
 };
 export type MenuTree = { items: MenuTreeItem[]; errors: MenuTreeError[] };
@@ -83,13 +89,23 @@ export const parsePath = (dir: string): ParsedPath => {
   const parsedDir = ast.path.value;
   const comment = ast.comment?.value ?? "";
   const meta = Object.fromEntries(ast.metadata.map((entry) => [entry.key, entry.value]));
+  const validation = issues.length ? { valid: false } : new Path(parsedDir).validate();
   return {
     raw: dir,
     comment,
     depth,
     meta,
     parsedDir,
-    validation: issues.length ? { valid: false } : new Path(parsedDir).validate(),
+    validation:
+      validation.sourceRange === undefined
+        ? validation
+        : {
+            ...validation,
+            sourceRange: {
+              start: ast.path.span.start.offset + validation.sourceRange.start,
+              end: ast.path.span.start.offset + validation.sourceRange.end,
+            },
+          },
   };
 };
 
@@ -131,7 +147,8 @@ export const buildTree = (pathsArray: string[]): MenuTree => {
       errors.push({
         sourceIndex: index,
         message: validation.message || "Invalid path",
-        error: dir,
+        error: validation.error || dir,
+        ...(validation.sourceRange ? { sourceRange: validation.sourceRange } : {}),
         parentId,
       });
       return;

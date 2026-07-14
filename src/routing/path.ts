@@ -7,6 +7,7 @@ import {
 import { options } from "../config/options-data.ts";
 import { routingPorts } from "./ports.ts";
 import { EXTENSION_REGEX } from "./filename.ts";
+import { findUnknownPathVariables } from "./path-variables.ts";
 
 const specialDirVariables = Object.values(SPECIAL_DIRS);
 const specialDirRegexp = new RegExp(`(${specialDirVariables.join("|")})`);
@@ -27,7 +28,12 @@ type SplitPathInput = {
 };
 
 export type PathInput = string | SplitPathInput | null | undefined;
-export type PathValidation = { valid: boolean; message?: string };
+export type PathValidation = {
+  valid: boolean;
+  message?: string;
+  error?: string;
+  sourceRange?: { start: number; end: number };
+};
 export type FilenameDiagnostics = {
   utf8Bytes: number;
   limitBytes: number;
@@ -279,6 +285,18 @@ export class Path {
         valid: false,
         message: routingPorts.getMessage("rulePathStartsWithDot"),
       };
+    }
+
+    if (typeof this.raw === "string") {
+      const unknownVariable = findUnknownPathVariables(this.raw)[0];
+      if (unknownVariable) {
+        return {
+          valid: false,
+          message: routingPorts.getMessage("ruleUnknownDestinationVariable"),
+          error: unknownVariable.value,
+          sourceRange: { start: unknownVariable.start, end: unknownVariable.end },
+        };
+      }
     }
 
     for (const item of this.buf) {
