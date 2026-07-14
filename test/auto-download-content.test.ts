@@ -11,7 +11,12 @@ into: automatic/
 
 const settle = async () => {
   await Promise.resolve();
-  await new Promise((resolve) => setTimeout(resolve, 0));
+  await Promise.resolve();
+};
+
+const flushLiveScan = async () => {
+  await settle();
+  await vi.advanceTimersByTimeAsync(200);
 };
 
 describe("automatic source discovery", () => {
@@ -57,6 +62,7 @@ describe("automatic source discovery", () => {
   });
 
   test("discovers live insertions once and processes them sequentially", async () => {
+    vi.useFakeTimers();
     const releases: Array<() => void> = [];
     const send = vi.fn(
       () =>
@@ -71,8 +77,7 @@ describe("automatic source discovery", () => {
       "beforeend",
       '<img src="https://cdn.test/one.png"><img src="https://cdn.test/two.jpg">',
     );
-    await settle();
-    await new Promise((resolve) => setTimeout(resolve, 250));
+    await flushLiveScan();
 
     expect(send).toHaveBeenCalledTimes(1);
     releases.shift()?.();
@@ -82,17 +87,18 @@ describe("automatic source discovery", () => {
     await controller.idle();
 
     document.body.append(document.querySelector("img")!);
-    await new Promise((resolve) => setTimeout(resolve, 250));
+    await flushLiveScan();
     expect(send).toHaveBeenCalledTimes(2);
     controller.stop();
   });
 
   test("does not observe later insertions when live discovery is off", async () => {
+    vi.useFakeTimers();
     const send = vi.fn(() => Promise.resolve("started" as const));
     const controller = setupAutoDownloadDiscovery({ rules, live: false, maxPerPage: 20, send });
     await controller.idle();
     document.body.innerHTML = '<img src="https://cdn.test/later.png">';
-    await new Promise((resolve) => setTimeout(resolve, 250));
+    await vi.advanceTimersByTimeAsync(250);
     expect(send).not.toHaveBeenCalled();
     controller.stop();
   });
@@ -180,11 +186,11 @@ describe("automatic source discovery", () => {
   });
 
   test("ignores mutations that add no discoverable elements", async () => {
+    vi.useFakeTimers();
     const send = vi.fn(() => Promise.resolve("started" as const));
     const controller = setupAutoDownloadDiscovery({ rules, live: true, maxPerPage: 20, send });
     document.body.append(document.createTextNode("text only"));
-    await settle();
-    await new Promise((resolve) => setTimeout(resolve, 250));
+    await flushLiveScan();
 
     expect(send).not.toHaveBeenCalled();
     controller.stop();
