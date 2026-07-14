@@ -69,6 +69,21 @@ test("contains permission failures and rejected webhook responses", async () => 
   expect(log.add).toHaveBeenCalledWith("webhook rejected", { status: 429 });
 });
 
+test("rejects malformed data-permission responses", async () => {
+  const log = { add: vi.fn() };
+  vi.mocked(browser.permissions.getAll).mockResolvedValueOnce({
+    permissions: [],
+    origins: [],
+    data_collection: ["browsingActivity", "websiteActivity", "websiteContent", 7],
+  } as never);
+  const fetchMock = vi.spyOn(globalThis, "fetch");
+
+  await deliverSaveWebhook(configuration(), plan({ selectedUrl: "https://cdn.example/a" }), log);
+
+  expect(log.add).toHaveBeenCalledWith("webhook skipped: data permission not granted");
+  expect(fetchMock).not.toHaveBeenCalled();
+});
+
 test("uses the in-product switch when the host has no data-permission API", async () => {
   const permissions = browser.permissions;
   Object.defineProperty(browser, "permissions", { configurable: true, value: undefined });

@@ -1,5 +1,6 @@
 import type { SaveInOptions } from "../config/option-schema.ts";
 import { webExtensionApi } from "../platform/web-extension-api.ts";
+import { isStringKeyedRecord } from "../shared/util.ts";
 import {
   createSaveWebhookPayload,
   getWebhookDataTypes,
@@ -9,14 +10,6 @@ import {
   type WebhookFieldSelection,
 } from "../shared/webhook.ts";
 import type { DownloadPlan } from "./download-types.ts";
-
-type DataCollectionPermissions = {
-  data_collection?: string[] | undefined;
-};
-
-type DataCollectionPermissionsApi = {
-  getAll(): Promise<DataCollectionPermissions>;
-};
 
 const fieldSelection = (configuration: SaveInOptions): WebhookFieldSelection => ({
   includePageUrl: configuration.webhookIncludePageUrl,
@@ -32,16 +25,24 @@ const selectedUrl = (plan: DownloadPlan): string | undefined => {
 };
 
 const hasDataCollectionConsent = async (types: WebhookDataType[]): Promise<boolean> => {
-  const permissions = webExtensionApi.permissions as unknown as
-    | DataCollectionPermissionsApi
-    | undefined;
-  if (!permissions?.getAll) return true;
+  const permissions: unknown = webExtensionApi.permissions;
+  if (!isStringKeyedRecord(permissions)) return true;
+  const getAll = permissions.getAll;
+  if (typeof getAll !== "function") return true;
   try {
-    const granted = await permissions.getAll();
+    const granted: unknown = await Reflect.apply(getAll, permissions, []);
     // Chrome and Firefox before 140 do not expose built-in data permissions;
     // the in-product webhook switch is their consent/control boundary.
-    if (!Array.isArray(granted.data_collection)) return true;
-    return types.every((type) => granted.data_collection?.includes(type));
+    if (!isStringKeyedRecord(granted)) return false;
+    const dataCollection = granted.data_collection;
+    if (typeof dataCollection === "undefined") return true;
+    if (
+      !Array.isArray(dataCollection) ||
+      !dataCollection.every((value): value is string => typeof value === "string")
+    ) {
+      return false;
+    }
+    return types.every((type) => dataCollection.includes(type));
   } catch {
     return false;
   }
