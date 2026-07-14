@@ -1662,7 +1662,7 @@
     "description": "Text in the options page. Used in src/options/options.html."
   },
   "html_andItsSubdomainsUse": {
-    "message": "and its subdomains. Use",
+    "message": "Matches HTTPS downloads from example.com and its subdomains.",
     "description": "Text in the options page. Used in src/options/options.html."
   },
   "html_andLaterGroupsIn": {
@@ -1698,7 +1698,7 @@
     "description": "Text in the options page. Used in src/options/options.html."
   },
   "html_enterOneUrlLikeBrowserMatchPatternPerLine": {
-    "message": "Enter one URL-like browser match pattern per line. It has a scheme, host, and path:",
+    "message": "Add one WebExtension match pattern per line. These are not regular expressions. Each pattern uses a scheme, host, and path.",
     "description": "Text in the options page. Used in src/options/options.html."
   },
   "html_everyMatcherInARuleMustMatch": {
@@ -1722,15 +1722,15 @@
     "description": "Text in the options page. Used in src/options/options.html."
   },
   "html_forExample2": {
-    "message": ". For example,",
+    "message": "Pattern format",
     "description": "Text in the options page. Used in src/options/options.html."
   },
   "html_forHttpAndHttpsAndEndWith": {
-    "message": "for HTTP and HTTPS, and end with",
+    "message": "Matches HTTP and HTTPS.",
     "description": "Text in the options page. Used in src/options/options.html."
   },
   "html_howDoDownloadUrlFiltersWork": {
-    "message": "How do download URL filters work?",
+    "message": "How URL filters match downloads",
     "description": "Text in the options page. Used in src/options/options.html."
   },
   "html_howRoutingRulesWork": {
@@ -1738,7 +1738,7 @@
     "description": "Text in the options page. Used in src/options/options.html."
   },
   "html_matchesHttpsFileUrlsOn": {
-    "message": "matches HTTPS file URLs on",
+    "message": "Example",
     "description": "Text in the options page. Used in src/options/options.html."
   },
   "html_moveAndRenameMatchingFiles": {
@@ -1770,7 +1770,7 @@
     "description": "Text in the options page. Used in src/options/options.html."
   },
   "html_toIncludeEveryPathThisIsNotARegular": {
-    "message": "to include every path. This is not a regular expression, and it cannot match query parameters or an explicit port.",
+    "message": "Matches every path. Query parameters and explicit ports cannot be matched.",
     "description": "Text in the options page. Used in src/options/options.html."
   },
   "html_trackAndRouteBrowserDownloads": {

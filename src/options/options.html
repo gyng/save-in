@@ -565,19 +565,35 @@ Briefly explain the structure, check that every line follows this syntax, then p
           </label>
         </div>
 
+        <div class="caption caption-line">__MSG_o_lBrowserDownloadVariables__</div>
+
         <details class="inline-guide">
           <summary>__MSG_html_howDoDownloadUrlFiltersWork__</summary>
-          <div class="caption caption-line">
-            __MSG_html_enterOneUrlLikeBrowserMatchPatternPerLine__
-            <code>&lt;scheme&gt;://&lt;host&gt;/&lt;path&gt;</code>__MSG_html_forExample2__
-            <code>https://*.example.com/files/*</code> __MSG_html_matchesHttpsFileUrlsOn__
-            <code>example.com</code> __MSG_html_andItsSubdomainsUse__
-            <code>*://</code> __MSG_html_forHttpAndHttpsAndEndWith__
-            <code>/*</code> __MSG_html_toIncludeEveryPathThisIsNotARegular__
+          <div class="guide-body">
+            <p>__MSG_html_enterOneUrlLikeBrowserMatchPatternPerLine__</p>
+            <dl class="guide-syntax">
+              <div>
+                <dt>__MSG_html_forExample2__</dt>
+                <dd><code>&lt;scheme&gt;://&lt;host&gt;/&lt;path&gt;</code></dd>
+              </div>
+              <div>
+                <dt>__MSG_html_matchesHttpsFileUrlsOn__</dt>
+                <dd>
+                  <code>https://*.example.com/files/*</code><br />
+                  __MSG_html_andItsSubdomainsUse__
+                </dd>
+              </div>
+              <div>
+                <dt><code>*://</code></dt>
+                <dd>__MSG_html_forHttpAndHttpsAndEndWith__</dd>
+              </div>
+              <div>
+                <dt><code>/*</code></dt>
+                <dd>__MSG_html_toIncludeEveryPathThisIsNotARegular__</dd>
+              </div>
+            </dl>
           </div>
         </details>
-
-        <div class="caption caption-line">__MSG_o_lBrowserDownloadVariables__</div>
 
         <label>
           <input type="checkbox" id="trackBrowserDownloads" />
