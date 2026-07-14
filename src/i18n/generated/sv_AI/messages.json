@@ -2015,18 +2015,15 @@
   "o_lPathEditorDragHelp": {
     "message": "Dra i det prickade handtaget. Släpp raden ovanför eller nedanför en annan rad för att placera den på samma nivå, eller på raden för att nästla den inuti."
   },
-  "routeIdeDescription": {
-    "message": "Skriv, granska och testa dirigeringsregler innan du tillämpar dem."
-  },
   "routeDebuggerTitle": {
     "message": "Testa dirigeringsregler"
   },
   "routeDebuggerDescription": {
-    "message": "Testa de aktuella dirigeringsreglerna med exempeldata för en hämtning."
+    "message": "Test your current routing rules with download details."
   },
-  "routeDebuggerUseLastDownload": {
-    "message": "Använd den senaste hämtningen"
-  },
+  "routeDebuggerUseSource": { "message": "Use" },
+  "routeDebuggerLatestDownload": { "message": "Latest download" },
+  "routeDebuggerUseSampleDownload": { "message": "Sample download" },
   "routeDebuggerFilename": {
     "message": "Filnamn"
   },
@@ -2108,9 +2105,6 @@
   "routeDebuggerNoLastDownload": {
     "message": "Det finns ingen aktuell hämtning."
   },
-  "routeDebuggerEmpty": {
-    "message": "Ange hämtningsuppgifter och testa sedan de aktuella reglerna."
-  },
   "routeDebuggerClear": {
     "message": "Rensa"
   },
@@ -2137,26 +2131,6 @@
   },
   "routeDebuggerAnyMediaType": {
     "message": "Alla medietyper"
-  },
-  "routeDebuggerShortcut": {
-    "message": "Tryck på Ctrl/⌘+Retur för att köra testet."
-  },
-  "routeIdeStats": {
-    "message": "Regler: $RULES$ · Villkor: $MATCHERS$ · Rader: $LINES$",
-    "placeholders": {
-      "rules": {
-        "content": "$1",
-        "example": "3"
-      },
-      "matchers": {
-        "content": "$2",
-        "example": "6"
-      },
-      "lines": {
-        "content": "$3",
-        "example": "12"
-      }
-    }
   },
   "routeDebuggerEvaluation": {
     "message": "Regelutvärdering"

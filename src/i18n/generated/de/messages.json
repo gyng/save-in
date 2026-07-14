@@ -2019,18 +2019,15 @@
   "o_lPathEditorDragHelp": {
     "message": "Ziehen Sie eine Zeile am gepunkteten Griff. Legen Sie sie oberhalb oder unterhalb einer Zeile ab, um sie auf derselben Ebene zu platzieren, oder direkt auf einer Zeile, um sie dieser unterzuordnen."
   },
-  "routeIdeDescription": {
-    "message": "Routing-Regeln schreiben, prüfen und testen, bevor sie übernommen werden."
-  },
   "routeDebuggerTitle": {
     "message": "Routing-Regeln testen"
   },
   "routeDebuggerDescription": {
-    "message": "Aktuelle Routing-Regeln mit Beispieldaten eines Downloads testen."
+    "message": "Test your current routing rules with download details."
   },
-  "routeDebuggerUseLastDownload": {
-    "message": "Neuesten Download verwenden"
-  },
+  "routeDebuggerUseSource": { "message": "Use" },
+  "routeDebuggerLatestDownload": { "message": "Latest download" },
+  "routeDebuggerUseSampleDownload": { "message": "Sample download" },
   "routeDebuggerFilename": {
     "message": "Dateiname"
   },
@@ -2112,9 +2109,6 @@
   "routeDebuggerNoLastDownload": {
     "message": "Es ist kein aktueller Download verfügbar."
   },
-  "routeDebuggerEmpty": {
-    "message": "Geben Sie Download-Daten ein und testen Sie dann die aktuellen Regeln."
-  },
   "routeDebuggerClear": {
     "message": "Leeren"
   },
@@ -2141,26 +2135,6 @@
   },
   "routeDebuggerAnyMediaType": {
     "message": "Beliebiger Medientyp"
-  },
-  "routeDebuggerShortcut": {
-    "message": "Mit Strg/⌘+Eingabe wird der Test ausgeführt."
-  },
-  "routeIdeStats": {
-    "message": "Regeln: $RULES$ · Bedingungen: $MATCHERS$ · Zeilen: $LINES$",
-    "placeholders": {
-      "rules": {
-        "content": "$1",
-        "example": "3"
-      },
-      "matchers": {
-        "content": "$2",
-        "example": "6"
-      },
-      "lines": {
-        "content": "$3",
-        "example": "12"
-      }
-    }
   },
   "routeDebuggerEvaluation": {
     "message": "Regelauswertung"

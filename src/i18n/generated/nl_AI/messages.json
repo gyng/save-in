@@ -2021,18 +2021,15 @@
   "o_lPathEditorDragHelp": {
     "message": "Sleep aan de gestippelde greep. Zet de rij boven of onder een andere rij neer om hem op hetzelfde niveau te plaatsen, of op de rij om hem daarin te nesten."
   },
-  "routeIdeDescription": {
-    "message": "Schrijf, controleer en test routeringsregels voordat u ze toepast."
-  },
   "routeDebuggerTitle": {
     "message": "Routeringsregels testen"
   },
   "routeDebuggerDescription": {
-    "message": "Test uw huidige routeringsregels met voorbeeldgegevens van een download."
+    "message": "Test your current routing rules with download details."
   },
-  "routeDebuggerUseLastDownload": {
-    "message": "Meest recente download gebruiken"
-  },
+  "routeDebuggerUseSource": { "message": "Use" },
+  "routeDebuggerLatestDownload": { "message": "Latest download" },
+  "routeDebuggerUseSampleDownload": { "message": "Sample download" },
   "routeDebuggerFilename": {
     "message": "Bestandsnaam"
   },
@@ -2114,9 +2111,6 @@
   "routeDebuggerNoLastDownload": {
     "message": "Er is geen recente download beschikbaar."
   },
-  "routeDebuggerEmpty": {
-    "message": "Voer downloadgegevens in en test vervolgens de huidige regels."
-  },
   "routeDebuggerClear": {
     "message": "Wissen"
   },
@@ -2143,26 +2137,6 @@
   },
   "routeDebuggerAnyMediaType": {
     "message": "Elk mediatype"
-  },
-  "routeDebuggerShortcut": {
-    "message": "Druk op Ctrl/⌘+Enter om de test uit te voeren."
-  },
-  "routeIdeStats": {
-    "message": "Regels: $RULES$ · Voorwaarden: $MATCHERS$ · Regels tekst: $LINES$",
-    "placeholders": {
-      "rules": {
-        "content": "$1",
-        "example": "3"
-      },
-      "matchers": {
-        "content": "$2",
-        "example": "6"
-      },
-      "lines": {
-        "content": "$3",
-        "example": "12"
-      }
-    }
   },
   "routeDebuggerEvaluation": {
     "message": "Regelevaluatie"

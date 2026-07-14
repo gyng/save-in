@@ -177,6 +177,9 @@
               >__MSG_html_add__ <code>//</code> __MSG_html_atTheEndForACommentStartWith__
               <code>&gt;</code> __MSG_html_toCreateNestedSubmenusUsingOne__
               <code>&gt;</code> __MSG_html_perLevel__
+              <a href="#" data-reference-tab="options-reference-variables"
+                >__MSG_o_lRoutingVariables__</a
+              >
             </span>
             <button type="button" class="discard-button" data-discard="paths" disabled>
               __MSG_o_bDiscard__
@@ -306,7 +309,7 @@ Briefly explain the structure, check that every line follows this syntax, then p
               <button type="button" id="path-editor-add-dir">+ __MSG_o_bAddDirectory__</button>
               <button type="button" id="path-editor-add-sep">+ __MSG_o_bAddSeparator__</button>
               <a class="toolbar-link" href="#" data-reference-tab="options-reference-variables"
-                >__MSG_o_lVariableList__</a
+                >__MSG_o_lRoutingVariables__</a
               >
               <button type="button" class="discard-button" data-discard="paths" disabled>
                 __MSG_o_bDiscard__
@@ -688,11 +691,6 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                 <div class="editor-field-label" id="rules-text-label">
                   __MSG_o_sDynamicDownloads__
                 </div>
-                <span
-                  class="caption routing-ide-stats"
-                  id="route-ide-stats"
-                  aria-live="polite"
-                ></span>
               </div>
               <div
                 class="editor-tabs routing-editor-tabs"
@@ -738,7 +736,17 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                   aria-describedby="error-filenamePatterns"
                 ></textarea>
                 <div class="editor-actions routing-ide-actions">
-                  <span class="caption editor-action-help">__MSG_routeIdeDescription__</span>
+                  <span class="editor-action-help editor-reference-links">
+                    <a class="toolbar-link" href="#" data-reference-tab="options-reference-clauses"
+                      >__MSG_o_lClauses__</a
+                    >
+                    <a
+                      class="toolbar-link"
+                      href="#"
+                      data-reference-tab="options-reference-variables"
+                      >__MSG_o_lRoutingVariables__</a
+                    >
+                  </span>
                   <button
                     type="button"
                     class="discard-button"
@@ -769,10 +777,10 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                     + __MSG_autoDownloadAddRule__
                   </button>
                   <a class="toolbar-link" href="#" data-reference-tab="options-reference-clauses"
-                    >__MSG_o_lClauseList__</a
+                    >__MSG_o_lClauses__</a
                   >
                   <a class="toolbar-link" href="#" data-reference-tab="options-reference-variables"
-                    >__MSG_o_lVariableList__</a
+                    >__MSG_o_lRoutingVariables__</a
                   >
                   <button
                     type="button"
@@ -835,9 +843,19 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                     <button type="button" class="button" id="route-debugger-clear">
                       __MSG_routeDebuggerClear__
                     </button>
-                    <button type="button" class="button" id="route-debugger-use-last" disabled>
-                      __MSG_routeDebuggerUseLastDownload__
-                    </button>
+                    <div
+                      class="route-debugger-source-picker"
+                      role="group"
+                      aria-label="__MSG_routeDebuggerUseSource__"
+                    >
+                      <span class="caption">__MSG_routeDebuggerUseSource__</span>
+                      <button type="button" class="button" id="route-debugger-use-last" disabled>
+                        __MSG_routeDebuggerLatestDownload__
+                      </button>
+                      <button type="button" class="button" id="route-debugger-use-sample">
+                        __MSG_routeDebuggerUseSampleDownload__
+                      </button>
+                    </div>
                   </div>
                 </header>
                 <div id="route-debugger-form" role="group" aria-label="__MSG_routeDebuggerTitle__">
@@ -966,9 +984,6 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                   <div class="route-debugger-actions">
                     <div class="route-debugger-note">
                       <span class="caption">__MSG_routeDebuggerUnsavedNote__</span>
-                      <span class="caption route-debugger-shortcut"
-                        >__MSG_routeDebuggerShortcut__</span
-                      >
                     </div>
                     <button type="button" class="apply-button" id="route-debugger-run">
                       __MSG_routeDebuggerRun__

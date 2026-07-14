@@ -2857,10 +2857,6 @@
     "message": "Webhook data updated.",
     "description": "Status after the selected webhook payload fields are saved. Used in src/options/webhook-panel.ts."
   },
-  "routeIdeDescription": {
-    "message": "Write, inspect, and test routing rules before applying them.",
-    "description": "Description below the routing rules editor heading. Used in src/options/options.html."
-  },
   "routeVisualEditorMode": {
     "message": "Routing rule editor mode",
     "description": "Accessible label for the Text and Visual routing editor tabs. Used in src/options/options.html."
@@ -2952,12 +2948,20 @@
     "description": "Heading for the routing rules test workbench. Used in src/options/options.html."
   },
   "routeDebuggerDescription": {
-    "message": "Test your current routing rules with sample download details.",
+    "message": "Test your current routing rules with download details.",
     "description": "Description of the routing rules debugger. Used in src/options/options.html."
   },
-  "routeDebuggerUseLastDownload": {
-    "message": "Use latest download",
+  "routeDebuggerLatestDownload": {
+    "message": "Latest download",
     "description": "Button that fills the route debugger with the most recent download. Used in src/options/options.html."
+  },
+  "routeDebuggerUseSource": {
+    "message": "Use",
+    "description": "Label for choosing which download details populate the route debugger. Used in src/options/options.html."
+  },
+  "routeDebuggerUseSampleDownload": {
+    "message": "Sample download",
+    "description": "Button that fills the route debugger with built-in sample download details. Used in src/options/options.html."
   },
   "routeDebuggerFilename": {
     "message": "Filename",
@@ -3061,10 +3065,6 @@
     "message": "No recent download is available.",
     "description": "Route debugger status when no recent download can populate its inputs. Used in src/options/route-debugger.ts."
   },
-  "routeDebuggerEmpty": {
-    "message": "Enter download details, then run the current rules.",
-    "description": "Initial instruction in the route debugger result area. Used in src/options/route-debugger.ts."
-  },
   "routeDebuggerClear": {
     "message": "Clear",
     "description": "Button that clears all route debugger test data. Used in src/options/options.html."
@@ -3100,28 +3100,6 @@
   "routeDebuggerAnyMediaType": {
     "message": "Any media type",
     "description": "Empty media type choice in the route debugger. Used in src/options/options.html."
-  },
-  "routeDebuggerShortcut": {
-    "message": "Ctrl/⌘+Enter runs the test.",
-    "description": "Keyboard shortcut hint in the route debugger. Used in src/options/options.html."
-  },
-  "routeIdeStats": {
-    "message": "Rules $RULES$ · Matchers $MATCHERS$ · Lines $LINES$",
-    "description": "Compact routing source summary in the IDE header. Used in src/options/route-debugger.ts.",
-    "placeholders": {
-      "rules": {
-        "content": "$1",
-        "example": "3"
-      },
-      "matchers": {
-        "content": "$2",
-        "example": "6"
-      },
-      "lines": {
-        "content": "$3",
-        "example": "12"
-      }
-    }
   },
   "routeDebuggerEvaluation": {
     "message": "Rule evaluation",

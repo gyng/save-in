@@ -2121,18 +2121,15 @@
   "o_lPathEditorDragHelp": {
     "message": "拖动点状手柄。将其放在某一行的上方或下方可置于同一级别，放在该行上则会嵌套到其中。"
   },
-  "routeIdeDescription": {
-    "message": "在应用前编写、检查和测试路由规则。"
-  },
   "routeDebuggerTitle": {
     "message": "测试路由规则"
   },
   "routeDebuggerDescription": {
-    "message": "使用示例下载信息测试当前的路由规则。"
+    "message": "Test your current routing rules with download details."
   },
-  "routeDebuggerUseLastDownload": {
-    "message": "使用最近的下载"
-  },
+  "routeDebuggerUseSource": { "message": "Use" },
+  "routeDebuggerLatestDownload": { "message": "Latest download" },
+  "routeDebuggerUseSampleDownload": { "message": "Sample download" },
   "routeDebuggerFilename": {
     "message": "文件名"
   },
@@ -2214,9 +2211,6 @@
   "routeDebuggerNoLastDownload": {
     "message": "没有可用的最近下载。"
   },
-  "routeDebuggerEmpty": {
-    "message": "请输入下载信息，然后测试当前规则。"
-  },
   "routeDebuggerClear": {
     "message": "清除"
   },
@@ -2243,26 +2237,6 @@
   },
   "routeDebuggerAnyMediaType": {
     "message": "任意媒体类型"
-  },
-  "routeDebuggerShortcut": {
-    "message": "按 Ctrl/⌘+Enter 运行测试。"
-  },
-  "routeIdeStats": {
-    "message": "规则 $RULES$ · 条件 $MATCHERS$ · 行数 $LINES$",
-    "placeholders": {
-      "rules": {
-        "content": "$1",
-        "example": "3"
-      },
-      "matchers": {
-        "content": "$2",
-        "example": "6"
-      },
-      "lines": {
-        "content": "$3",
-        "example": "12"
-      }
-    }
   },
   "routeDebuggerEvaluation": {
     "message": "规则评估"

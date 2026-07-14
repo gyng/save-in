@@ -6,7 +6,6 @@ import {
   mapRouteTraceToSource,
   parseRouteDebuggerTrace,
   routeDebuggerInfo,
-  summarizeRouteSource,
   type RouteDebuggerFields,
   type RouteDebuggerTrace,
 } from "./route-debugger-model.ts";
@@ -33,6 +32,20 @@ const fieldsFromInfo = (info: WireDownloadInfo): RouteDebuggerFields => ({
   mediaType: info.mediaType || "",
 });
 
+const SAMPLE_DOWNLOAD: RouteDebuggerFields = {
+  filename: "report.pdf",
+  sourceUrl: "https://cdn.example/report.pdf",
+  pageUrl: "https://example.com/reports",
+  mime: "application/pdf",
+  context: "",
+  pageTitle: "",
+  referrerUrl: "",
+  frameUrl: "",
+  linkText: "",
+  selectionText: "",
+  mediaType: "",
+};
+
 const appendText = (parent: HTMLElement, className: string, text: string): HTMLElement => {
   const child = document.createElement("span");
   child.className = className;
@@ -47,8 +60,8 @@ export const setupRouteDebugger = (): void => {
   const result = element<HTMLElement>("#route-debugger-result");
   const runButton = element<HTMLButtonElement>("#route-debugger-run");
   const useLastButton = element<HTMLButtonElement>("#route-debugger-use-last");
+  const useSampleButton = element<HTMLButtonElement>("#route-debugger-use-sample");
   const clearButton = element<HTMLButtonElement>("#route-debugger-clear");
-  const sourceStats = element<HTMLElement>("#route-ide-stats");
   const filename = element<HTMLInputElement>("#route-debugger-filename");
   const sourceUrl = element<HTMLInputElement>("#route-debugger-source-url");
   const pageUrl = element<HTMLInputElement>("#route-debugger-page-url");
@@ -67,8 +80,8 @@ export const setupRouteDebugger = (): void => {
     !result ||
     !runButton ||
     !useLastButton ||
+    !useSampleButton ||
     !clearButton ||
-    !sourceStats ||
     !filename ||
     !sourceUrl ||
     !pageUrl ||
@@ -144,17 +157,13 @@ export const setupRouteDebugger = (): void => {
     );
   };
 
-  const updateSourceStats = (): void => {
-    const summary = summarizeRouteSource(textarea.value);
-    sourceStats.textContent = localize(
-      "routeIdeStats",
-      `Rules ${summary.rules} · Matchers ${summary.matchers} · Lines ${summary.lines}`,
-      [summary.rules, summary.matchers, summary.lines],
-    );
-  };
-
   const setState = (state: string): void => {
     result.dataset.state = state;
+  };
+
+  const clearResult = (): void => {
+    setState("empty");
+    result.replaceChildren();
   };
 
   const renderMessage = (state: string, title: string): void => {
@@ -426,10 +435,7 @@ export const setupRouteDebugger = (): void => {
       selectionText: "",
       mediaType: "",
     });
-    renderMessage(
-      "empty",
-      localize("routeDebuggerEmpty", "Enter download details, then run the current rules."),
-    );
+    clearResult();
     filename.focus();
   });
   form.addEventListener("keydown", (event) => {
@@ -438,16 +444,12 @@ export const setupRouteDebugger = (): void => {
     void run();
   });
   Object.values(controls).forEach((control) => control.addEventListener("input", scheduleRerun));
-  textarea.addEventListener("input", () => {
-    updateSourceStats();
-    scheduleRerun();
-  });
+  textarea.addEventListener("input", scheduleRerun);
   textarea.addEventListener("keydown", (event) => {
     if (event.key !== "Enter" || (!event.ctrlKey && !event.metaKey) || event.isComposing) return;
     event.preventDefault();
     void run();
   });
-  document.addEventListener("options-restored", updateSourceStats);
   useLastButton.addEventListener("click", () => {
     if (!lastDownloadInfo) {
       renderMessage(
@@ -459,18 +461,20 @@ export const setupRouteDebugger = (): void => {
     writeFields(fieldsFromInfo(lastDownloadInfo));
     void run();
   });
+  useSampleButton.addEventListener("click", () => {
+    writeFields(SAMPLE_DOWNLOAD);
+    void run();
+  });
 
-  renderMessage(
-    "empty",
-    localize("routeDebuggerEmpty", "Enter download details, then run the current rules."),
-  );
-  updateSourceStats();
+  clearResult();
   useLastButton.disabled = true;
+  writeFields(SAMPLE_DOWNLOAD);
   void sendInternalMessage(webExtensionApi.runtime, { type: MESSAGE_TYPES.CHECK_ROUTES })
     .then((response) => {
       if (!("lastDownload" in response.body)) return;
       lastDownloadInfo = response.body.lastDownload?.info ?? null;
       useLastButton.disabled = lastDownloadInfo === null;
+      writeFields(lastDownloadInfo ? fieldsFromInfo(lastDownloadInfo) : SAMPLE_DOWNLOAD);
     })
     .catch(() => {});
 };

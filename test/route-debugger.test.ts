@@ -5,7 +5,6 @@ import { MESSAGE_TYPES } from "../src/shared/constants.ts";
 
 const renderWorkbench = (): void => {
   document.body.innerHTML = `
-    <span id="route-ide-stats"></span>
     <textarea id="filenamePatterns">fileext: png\ninto: images/\n\nfileext: pdf\npagedomain: example\\.com\ninto: pdf/:filename:</textarea>
     <div id="route-debugger-form">
       <input id="route-debugger-filename" value="report.pdf">
@@ -25,6 +24,7 @@ const renderWorkbench = (): void => {
     </div>
     <button id="route-debugger-clear" type="button">Clear</button>
     <button id="route-debugger-use-last" type="button">Use last download</button>
+    <button id="route-debugger-use-sample" type="button">Use sample download</button>
     <div id="route-debugger-result"></div>`;
 };
 
@@ -229,6 +229,48 @@ test("loads the last download into the test bench", async () => {
 test("returns before wiring an incomplete workbench", () => {
   document.body.innerHTML = '<textarea id="filenamePatterns"></textarea>';
   expect(() => setupRouteDebugger()).not.toThrow();
+});
+
+test("prefills the sample when no latest download is available", async () => {
+  renderWorkbench();
+  vi.spyOn(webExtensionApi.runtime, "sendMessage").mockResolvedValue(checkResponse());
+
+  setupRouteDebugger();
+
+  expect(document.querySelector<HTMLInputElement>("#route-debugger-filename")!.value).toBe(
+    "report.pdf",
+  );
+  await vi.waitFor(() =>
+    expect(document.querySelector<HTMLButtonElement>("#route-debugger-use-last")!.disabled).toBe(
+      true,
+    ),
+  );
+});
+
+test("prefills the latest download and can switch back to the sample", async () => {
+  renderWorkbench();
+  vi.spyOn(webExtensionApi.runtime, "sendMessage").mockImplementation(async (message: any) =>
+    message.type === MESSAGE_TYPES.CHECK_ROUTES
+      ? checkResponse({ info: { filename: "latest.jpg" } })
+      : {
+          type: MESSAGE_TYPES.VALIDATE_RESULT,
+          body: { version: 1, ruleErrors: [], ruleTrace: noMatchTrace },
+        },
+  );
+
+  setupRouteDebugger();
+
+  await vi.waitFor(() =>
+    expect(document.querySelector<HTMLInputElement>("#route-debugger-filename")!.value).toBe(
+      "latest.jpg",
+    ),
+  );
+  document.querySelector<HTMLButtonElement>("#route-debugger-use-sample")!.click();
+  await vi.waitFor(() =>
+    expect(document.querySelector<HTMLInputElement>("#route-debugger-filename")!.value).toBe(
+      "report.pdf",
+    ),
+  );
 });
 
 test("uses legacy last-download filename and URL fallbacks and normalizes unknown selects", async () => {

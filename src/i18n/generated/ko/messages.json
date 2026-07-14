@@ -2121,18 +2121,15 @@
   "o_lPathEditorDragHelp": {
     "message": "점으로 된 핸들을 끌어 이동합니다. 행의 위나 아래에 놓으면 같은 단계에 배치되고, 행 위에 놓으면 그 안에 중첩됩니다."
   },
-  "routeIdeDescription": {
-    "message": "적용하기 전에 라우팅 규칙을 작성하고 검토하고 테스트합니다."
-  },
   "routeDebuggerTitle": {
     "message": "라우팅 규칙 테스트"
   },
   "routeDebuggerDescription": {
-    "message": "샘플 다운로드 정보로 현재 라우팅 규칙을 테스트합니다."
+    "message": "Test your current routing rules with download details."
   },
-  "routeDebuggerUseLastDownload": {
-    "message": "최근 다운로드 사용"
-  },
+  "routeDebuggerUseSource": { "message": "Use" },
+  "routeDebuggerLatestDownload": { "message": "Latest download" },
+  "routeDebuggerUseSampleDownload": { "message": "Sample download" },
   "routeDebuggerFilename": {
     "message": "파일 이름"
   },
@@ -2214,9 +2211,6 @@
   "routeDebuggerNoLastDownload": {
     "message": "사용할 수 있는 최근 다운로드가 없습니다."
   },
-  "routeDebuggerEmpty": {
-    "message": "다운로드 정보를 입력한 다음 현재 규칙을 테스트하세요."
-  },
   "routeDebuggerClear": {
     "message": "지우기"
   },
@@ -2243,26 +2237,6 @@
   },
   "routeDebuggerAnyMediaType": {
     "message": "모든 미디어 유형"
-  },
-  "routeDebuggerShortcut": {
-    "message": "Ctrl/⌘+Enter를 눌러 테스트를 실행합니다."
-  },
-  "routeIdeStats": {
-    "message": "규칙 $RULES$ · 조건 $MATCHERS$ · 줄 $LINES$",
-    "placeholders": {
-      "rules": {
-        "content": "$1",
-        "example": "3"
-      },
-      "matchers": {
-        "content": "$2",
-        "example": "6"
-      },
-      "lines": {
-        "content": "$3",
-        "example": "12"
-      }
-    }
   },
   "routeDebuggerEvaluation": {
     "message": "규칙 평가"

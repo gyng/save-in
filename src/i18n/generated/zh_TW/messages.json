@@ -2121,18 +2121,15 @@
   "o_lPathEditorDragHelp": {
     "message": "拖曳點狀控點。放在某列的上方或下方可置於同一層級，放在該列上則會巢狀置於其中。"
   },
-  "routeIdeDescription": {
-    "message": "套用前先編寫、檢查及測試路由規則。"
-  },
   "routeDebuggerTitle": {
     "message": "測試路由規則"
   },
   "routeDebuggerDescription": {
-    "message": "使用範例下載資料測試目前的路由規則。"
+    "message": "Test your current routing rules with download details."
   },
-  "routeDebuggerUseLastDownload": {
-    "message": "使用最近的下載項目"
-  },
+  "routeDebuggerUseSource": { "message": "Use" },
+  "routeDebuggerLatestDownload": { "message": "Latest download" },
+  "routeDebuggerUseSampleDownload": { "message": "Sample download" },
   "routeDebuggerFilename": {
     "message": "檔案名稱"
   },
@@ -2214,9 +2211,6 @@
   "routeDebuggerNoLastDownload": {
     "message": "沒有可用的最近下載項目。"
   },
-  "routeDebuggerEmpty": {
-    "message": "請輸入下載資料，然後測試目前的規則。"
-  },
   "routeDebuggerClear": {
     "message": "清除"
   },
@@ -2243,26 +2237,6 @@
   },
   "routeDebuggerAnyMediaType": {
     "message": "任何媒體類型"
-  },
-  "routeDebuggerShortcut": {
-    "message": "按 Ctrl/⌘+Enter 執行測試。"
-  },
-  "routeIdeStats": {
-    "message": "規則 $RULES$ · 條件 $MATCHERS$ · 行數 $LINES$",
-    "placeholders": {
-      "rules": {
-        "content": "$1",
-        "example": "3"
-      },
-      "matchers": {
-        "content": "$2",
-        "example": "6"
-      },
-      "lines": {
-        "content": "$3",
-        "example": "12"
-      }
-    }
   },
   "routeDebuggerEvaluation": {
     "message": "規則評估"

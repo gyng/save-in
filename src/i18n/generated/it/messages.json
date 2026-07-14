@@ -2157,9 +2157,6 @@
   "webhookFieldsSaved": {
     "message": "Dati del webhook aggiornati."
   },
-  "routeIdeDescription": {
-    "message": "Scrivi, esamina e verifica le regole di routing prima di applicarle."
-  },
   "routeVisualEditorMode": {
     "message": "Modalità dell'editor delle regole di routing"
   },
@@ -2230,11 +2227,11 @@
     "message": "Test delle regole di routing"
   },
   "routeDebuggerDescription": {
-    "message": "Verifica le regole di routing attuali con dati di download di esempio."
+    "message": "Test your current routing rules with download details."
   },
-  "routeDebuggerUseLastDownload": {
-    "message": "Usa il download più recente"
-  },
+  "routeDebuggerUseSource": { "message": "Use" },
+  "routeDebuggerLatestDownload": { "message": "Latest download" },
+  "routeDebuggerUseSampleDownload": { "message": "Sample download" },
   "routeDebuggerFilename": {
     "message": "Nome file"
   },
@@ -2316,9 +2313,6 @@
   "routeDebuggerNoLastDownload": {
     "message": "Non è disponibile alcun download recente."
   },
-  "routeDebuggerEmpty": {
-    "message": "Inserisci i dati del download, quindi verifica le regole attuali."
-  },
   "routeDebuggerClear": {
     "message": "Cancella"
   },
@@ -2345,26 +2339,6 @@
   },
   "routeDebuggerAnyMediaType": {
     "message": "Qualsiasi tipo di contenuto multimediale"
-  },
-  "routeDebuggerShortcut": {
-    "message": "Ctrl/⌘+Invio avvia il test."
-  },
-  "routeIdeStats": {
-    "message": "Regole: $RULES$ · Criteri: $MATCHERS$ · Righe: $LINES$",
-    "placeholders": {
-      "rules": {
-        "content": "$1",
-        "example": "3"
-      },
-      "matchers": {
-        "content": "$2",
-        "example": "6"
-      },
-      "lines": {
-        "content": "$3",
-        "example": "12"
-      }
-    }
   },
   "routeDebuggerEvaluation": {
     "message": "Valutazione delle regole"

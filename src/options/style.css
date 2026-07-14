@@ -2395,12 +2395,6 @@ summary {
   margin-bottom: 0;
 }
 
-.routing-ide-stats {
-  flex: none;
-  color: var(--color-text-muted);
-  white-space: nowrap;
-}
-
 .routing-ide-actions {
   min-height: var(--control-height);
 }
@@ -2681,11 +2675,28 @@ summary {
 
 .route-debugger-header-actions {
   display: flex;
+  align-items: center;
   flex: none;
   gap: var(--space-2);
 }
 
 .route-debugger-header-actions > button {
+  margin: 0;
+  white-space: nowrap;
+}
+
+.route-debugger-source-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.route-debugger-source-picker > span {
+  margin-right: var(--space-1);
+  color: var(--color-text-muted);
+}
+
+.route-debugger-source-picker > button {
   margin: 0;
   white-space: nowrap;
 }
@@ -2764,11 +2775,6 @@ summary {
 .route-debugger-note {
   display: grid;
   gap: 2px;
-}
-
-.route-debugger-shortcut {
-  font-family: var(--font-mono);
-  font-size: 11px;
 }
 
 .route-debugger-result {
@@ -3110,12 +3116,8 @@ summary {
   border-bottom: 0;
 }
 
-.routing-tool-content,
-.routing-tool > .last-download-info,
 .routing-tool > .route-debugger {
   margin-top: var(--space-2);
-  padding-left: var(--space-3);
-  border-left: 2px solid var(--panel-border);
 }
 
 .route-debugger .route-debugger-last-download {
@@ -5438,6 +5440,12 @@ code.click-to-copy {
   color: var(--color-text-muted);
   font-size: var(--text-sm);
   line-height: 1.35;
+}
+
+.editor-reference-links {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
 }
 
 .variables-preview-filter {

@@ -2019,18 +2019,15 @@
   "o_lPathEditorDragHelp": {
     "message": "Arrastra una fila por el tirador de puntos. Suéltala encima o debajo de otra fila para colocarla en el mismo nivel, o sobre la fila para anidarla dentro."
   },
-  "routeIdeDescription": {
-    "message": "Escriba, revise y pruebe las reglas de enrutamiento antes de aplicarlas."
-  },
   "routeDebuggerTitle": {
     "message": "Probar reglas de enrutamiento"
   },
   "routeDebuggerDescription": {
-    "message": "Pruebe sus reglas de enrutamiento actuales con datos de descarga de ejemplo."
+    "message": "Test your current routing rules with download details."
   },
-  "routeDebuggerUseLastDownload": {
-    "message": "Usar la descarga más reciente"
-  },
+  "routeDebuggerUseSource": { "message": "Use" },
+  "routeDebuggerLatestDownload": { "message": "Latest download" },
+  "routeDebuggerUseSampleDownload": { "message": "Sample download" },
   "routeDebuggerFilename": {
     "message": "Nombre del archivo"
   },
@@ -2112,9 +2109,6 @@
   "routeDebuggerNoLastDownload": {
     "message": "No hay ninguna descarga reciente disponible."
   },
-  "routeDebuggerEmpty": {
-    "message": "Introduzca los datos de descarga y, después, pruebe las reglas actuales."
-  },
   "routeDebuggerClear": {
     "message": "Borrar"
   },
@@ -2141,26 +2135,6 @@
   },
   "routeDebuggerAnyMediaType": {
     "message": "Cualquier tipo de medio"
-  },
-  "routeDebuggerShortcut": {
-    "message": "Pulse Ctrl/⌘+Intro para realizar la prueba."
-  },
-  "routeIdeStats": {
-    "message": "Reglas: $RULES$ · Condiciones: $MATCHERS$ · Líneas: $LINES$",
-    "placeholders": {
-      "rules": {
-        "content": "$1",
-        "example": "3"
-      },
-      "matchers": {
-        "content": "$2",
-        "example": "6"
-      },
-      "lines": {
-        "content": "$3",
-        "example": "12"
-      }
-    }
   },
   "routeDebuggerEvaluation": {
     "message": "Evaluación de reglas"

@@ -2121,18 +2121,15 @@
   "o_lPathEditorDragHelp": {
     "message": "点線のハンドルをドラッグします。行の上または下にドロップすると同じ階層に配置され、行の上にドロップするとその内側に入れ子になります。"
   },
-  "routeIdeDescription": {
-    "message": "適用する前に、ルーティングルールを作成、確認、テストできます。"
-  },
   "routeDebuggerTitle": {
     "message": "ルーティングルールをテスト"
   },
   "routeDebuggerDescription": {
-    "message": "現在のルーティングルールをサンプルのダウンロード情報でテストします。"
+    "message": "Test your current routing rules with download details."
   },
-  "routeDebuggerUseLastDownload": {
-    "message": "最新のダウンロードを使用"
-  },
+  "routeDebuggerUseSource": { "message": "Use" },
+  "routeDebuggerLatestDownload": { "message": "Latest download" },
+  "routeDebuggerUseSampleDownload": { "message": "Sample download" },
   "routeDebuggerFilename": {
     "message": "ファイル名"
   },
@@ -2214,9 +2211,6 @@
   "routeDebuggerNoLastDownload": {
     "message": "最近のダウンロードはありません。"
   },
-  "routeDebuggerEmpty": {
-    "message": "ダウンロード情報を入力してから、現在のルールをテストしてください。"
-  },
   "routeDebuggerClear": {
     "message": "クリア"
   },
@@ -2243,26 +2237,6 @@
   },
   "routeDebuggerAnyMediaType": {
     "message": "すべてのメディアタイプ"
-  },
-  "routeDebuggerShortcut": {
-    "message": "Ctrl/⌘+Enter でテストを実行します。"
-  },
-  "routeIdeStats": {
-    "message": "ルール $RULES$ · 条件 $MATCHERS$ · 行 $LINES$",
-    "placeholders": {
-      "rules": {
-        "content": "$1",
-        "example": "3"
-      },
-      "matchers": {
-        "content": "$2",
-        "example": "6"
-      },
-      "lines": {
-        "content": "$3",
-        "example": "12"
-      }
-    }
   },
   "routeDebuggerEvaluation": {
     "message": "ルールの評価"
