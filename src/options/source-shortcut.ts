@@ -28,6 +28,12 @@ const isShortcutKey = (key: string): boolean =>
 type ShortcutLocalizer = (key: string, fallback: string) => string;
 const englishShortcutMessage: ShortcutLocalizer = (_key, fallback) => fallback;
 
+const invokeCommandMethod = (method: unknown, args: unknown[]): Promise<unknown> =>
+  Promise.resolve().then(() => {
+    if (typeof method !== "function") throw new TypeError("Command method is unavailable");
+    return Reflect.apply(method, webExtensionApi.commands, args);
+  });
+
 export const validateSourceShortcut = (
   shortcut: string,
   localize: ShortcutLocalizer = englishShortcutMessage,
@@ -131,10 +137,7 @@ export const setupSourceShortcut = () => {
       apply.disabled = false;
       return;
     }
-    const update = Reflect.apply(updateValue, webExtensionApi.commands, [
-      { name: COMMAND, shortcut },
-    ]) as Promise<void>;
-    void update
+    void invokeCommandMethod(updateValue, [{ name: COMMAND, shortcut }])
       .then(() => load())
       .then((retained) => {
         if (retained.toLocaleLowerCase() !== shortcut.toLocaleLowerCase()) {
@@ -157,10 +160,7 @@ export const setupSourceShortcut = () => {
       );
       return;
     }
-    const resetShortcut = Reflect.apply(resetValue, webExtensionApi.commands, [
-      COMMAND,
-    ]) as Promise<void>;
-    void resetShortcut
+    void invokeCommandMethod(resetValue, [COMMAND])
       .then(() => load())
       .then(() => announce(getMessage("o_lShortcutReset") || "Shortcut reset."))
       .catch((error) => announce(String(error), true));

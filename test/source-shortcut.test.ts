@@ -206,6 +206,25 @@ describe("Page Sources shortcut control", () => {
     await vi.waitFor(() => expect(status.textContent).toContain("reset failed"));
   });
 
+  test("contains synchronous command API failures and non-promise results", async () => {
+    global.browser.commands.update = vi.fn(() => {
+      throw new Error("synchronous update failure");
+    });
+    global.browser.commands.reset = vi.fn(() => undefined as never);
+    setupSourceShortcut();
+    const input = document.querySelector<HTMLInputElement>("#sourcePanelShortcutKey")!;
+    const status = document.querySelector<HTMLElement>("#sourcePanelShortcutStatus")!;
+    await vi.waitFor(() => expect(input.value).toBe("Y"));
+
+    input.value = "S";
+    input.dispatchEvent(new InputEvent("input"));
+    document.querySelector<HTMLButtonElement>("#sourcePanelShortcutApply")!.click();
+    await vi.waitFor(() => expect(status.textContent).toContain("synchronous update failure"));
+
+    document.querySelector<HTMLButtonElement>("#sourcePanelShortcutReset")!.click();
+    await vi.waitFor(() => expect(status.textContent).toBe("Translated<o_lShortcutReset>"));
+  });
+
   test("uses English fallbacks when localized shortcut copy is unavailable", async () => {
     vi.mocked(browser.i18n.getMessage).mockReturnValue("");
     (global.browser as any).commands = {
