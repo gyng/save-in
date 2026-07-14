@@ -26,7 +26,6 @@ const DEFAULT_CONTENT_CLICK_COMBO = "Alt";
 const DEFAULT_CONTENT_CLICK_COMBO_KEY_CODE = 18;
 
 const isPositiveKeyCode = (value: string | number): boolean => {
-  if (typeof value === "string" && value.trim() === "") return false;
   const keyCode = Number(value);
   return Number.isSafeInteger(keyCode) && keyCode > 0;
 };
