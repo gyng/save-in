@@ -437,6 +437,13 @@ describe("filename rewrite and routing", () => {
       expect(diagnostics.filenamePatterns.at(-1)?.error).toBe("disabled must be true or false");
     });
 
+    test("rejects duplicate disabled controls", () => {
+      expect(
+        router.parseRules("filename: \\.pdf$\ninto: documents\ndisabled: false\ndisabled: true"),
+      ).toEqual([]);
+      expect(diagnostics.filenamePatterns.at(-1)?.error).toBe("disabled may appear only once");
+    });
+
     test("bad clause syntax is reported", () => {
       const rules = router.parseRules("not a clause\ninto: x");
       expect(rules).toEqual([]);
@@ -472,6 +479,24 @@ describe("filename rewrite and routing", () => {
     test("rejects unsupported or duplicate matcher flags", () => {
       expect(router.parseRules("filename/ii: cat\ninto: cats")).toEqual([]);
       expect(diagnostics.filenamePatterns[0]!.error).toContain("flags");
+    });
+
+    test("reports the flag span for an unsupported single matcher flag", () => {
+      expect(router.parseRules("filename/z: cat\ninto: cats")).toEqual([]);
+      expect(diagnostics.filenamePatterns[0]).toEqual(
+        expect.objectContaining({
+          error: expect.stringContaining("invalid regex flags: z"),
+          location: expect.objectContaining({ line: 1 }),
+        }),
+      );
+    });
+
+    test.each([
+      ["context: ^auto$\nsourcekind: image\ninto: files", "pageurl:"],
+      ["context: ^auto$\npageurl: example\ninto: files", "sourceurl:"],
+    ])("reports incomplete automatic routing constraints", (source, error) => {
+      expect(router.parseRules(source)).toEqual([]);
+      expect(diagnostics.filenamePatterns.at(-1)?.error).toBe(error);
     });
 
     test("warns when a later rule duplicates an earlier rule's matchers", () => {
@@ -597,6 +622,17 @@ describe("filename rewrite and routing", () => {
       expect(router.matchRules(rules, { sourceUrl: "https://example.test/dog" })).toBe(
         "animals/dog",
       );
+    });
+
+    test("counts named captures while ignoring escaped, class, and lookbehind parentheses", () => {
+      const { rules, errors } = router.parseRulesCollecting(
+        String.raw`sourceurl: [()](?<named>a)\((?<=a)(b)
+capturegroups: sourceurl
+into: captures/:$1:/:$2:`,
+      );
+
+      expect(rules).toHaveLength(1);
+      expect(errors).toEqual([]);
     });
 
     test("sticky matcher flags are deterministic across evaluations", async () => {

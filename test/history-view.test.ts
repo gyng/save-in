@@ -8,6 +8,7 @@ import {
   historyCsv,
   historyTsv,
   HISTORY_COLUMNS,
+  localizeHistoryColumns,
   historyRow,
   historyStatus,
   historyType,
@@ -21,6 +22,11 @@ import {
 
 test("missing legacy timestamps render as blank", () => {
   expect(formatHistoryTime()).toBe("");
+  expect(formatHistoryTime("not-a-date")).toBe("not-a-date");
+  expect(relativeHistoryTime()).toBe("");
+  expect(relativeHistoryTime("not-a-date")).toBe("");
+  expect(localHistoryDate()).toBe("");
+  expect(localHistoryDate("not-a-date")).toBe("");
 });
 
 test("date-only legacy timestamps retain their calendar date in every timezone", () => {
@@ -43,6 +49,16 @@ test("history timestamps use ISO text and relative labels", () => {
   expect(relativeHistoryTime("2024-01-01T11:59:00Z", Date.parse("2024-01-01T12:00:00Z"))).toContain(
     "minute",
   );
+  const noon = Date.parse("2024-01-01T12:00:00Z");
+  expect(relativeHistoryTime("2024-01-01T11:59:45Z", noon)).toContain("second");
+  expect(relativeHistoryTime("2024-01-01T09:00:00Z", noon)).toContain("hour");
+  expect(relativeHistoryTime("2023-12-29T00:00:00Z", noon)).toContain("day");
+});
+
+test("history timestamps preserve negative timezone offsets", () => {
+  const timezone = vi.spyOn(Date.prototype, "getTimezoneOffset").mockReturnValue(90);
+  expect(formatHistoryTime("2024-01-01T00:00:00Z").endsWith("-01:30")).toBe(true);
+  timezone.mockRestore();
 });
 
 test("CSV export includes all flattened history fields and escapes values", () => {
@@ -96,9 +112,21 @@ test("history columns show row numbers and hide Source by default", () => {
   expect(HISTORY_COLUMNS.find(({ key }) => key === "variables")?.defaultVisible).toBe(false);
 });
 
+test("history column localization falls back field by field", () => {
+  const localized = localizeHistoryColumns((key) =>
+    key === "historyColumnFile" ? "Localized file" : "",
+  );
+  const fallback = localizeHistoryColumns(() => "");
+  expect(localized.find(({ key }) => key === "file")?.label).toBe("Localized file");
+  expect(localized.find(({ key }) => key === "time")?.label).toBe("Initiated");
+  expect(fallback.find(({ key }) => key === "file")?.label).toBe("File");
+  expect(fallback.find(({ key }) => key === "index")?.label).toBe("#");
+});
+
 describe("history row flatteners", () => {
   test("filename / folder split a full path", () => {
     expect(historyFilename("a/b/c.png")).toBe("c.png");
+    expect(historyFilename("a/b/")).toBe("a/b/");
     expect(historyFilename("")).toBe("(unnamed)");
     expect(historyFolder("a/b/c.png")).toBe("a/b");
     expect(historyFolder("c.png")).toBe(".");
@@ -117,6 +145,7 @@ describe("history row flatteners", () => {
     expect(historyStatus({})).toBe("complete");
     expect(statusLabel("complete")).toBe("Saved");
     expect(statusLabel("pending")).toBe("Saving…");
+    expect(statusLabel("failed")).toBe("Failed");
     expect(statusLabel("NETWORK_FAILED")).toBe("network failed");
     expect(statusClass("complete")).toBe("status-ok");
     expect(statusClass("pending")).toBe("status-pending");
@@ -158,6 +187,45 @@ describe("history row flatteners", () => {
     expect(row.time).toBe("2024-01-01T00:00:00Z");
     expect(row.menuItem).toBe("Research");
     expect(row.variables).toBe("filename=paper.pdf · pagetitle=Example");
+  });
+
+  test("normalizes legacy and browser-owned row fallbacks", () => {
+    expect(
+      historyRow({
+        id: "history-1",
+        url: "https://download.test/file",
+        observedBrowserDownload: true,
+        mechanism: "unknown" as never,
+        menu: { path: "fallback/path" },
+      }),
+    ).toMatchObject({
+      historyId: "history-1",
+      source: "Browser",
+      mechanism: "Browser download",
+      url: "https://download.test/file",
+      downloadId: null,
+      size: null,
+      menuItem: "fallback/path",
+    });
+    expect(
+      historyRow({
+        id: 2 as never,
+        info: { context: "browser", pageUrl: "https://page.test" },
+        menu: {},
+      }),
+    ).toMatchObject({
+      historyId: null,
+      source: "Browser",
+      mechanism: "Browser download",
+      url: "https://page.test",
+      menuItem: "",
+    });
+    expect(
+      historyRow({ mechanism: "firefox-replacement", menu: { id: "fallback-id" } }),
+    ).toMatchObject({
+      mechanism: "Firefox replacement",
+      menuItem: "fallback-id",
+    });
   });
 
   test("formatBytes uses SI units", () => {
@@ -235,6 +303,7 @@ describe("paginateHistory", () => {
     expect(paginateHistory(faceted, { sourceFilter: "browser" }).matchCount).toBe(1);
     expect(paginateHistory(faceted, { sourceFilter: "save-in" }).matchCount).toBe(3);
     expect(paginateHistory(faceted, { statusFilter: "failed" }).matchCount).toBe(2);
+    expect(paginateHistory(faceted, { statusFilter: "pending" }).matchCount).toBe(0);
     expect(paginateHistory(faceted, { typeFilter: "image" }).matchCount).toBe(1);
   });
 

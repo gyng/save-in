@@ -15,7 +15,7 @@ export const historyFilename = (fullPath?: string): string => {
   if (!fullPath) {
     return "(unnamed)";
   }
-  const parts = String(fullPath).split("/");
+  const parts = fullPath.split("/");
   return parts[parts.length - 1] || fullPath;
 };
 
@@ -23,7 +23,7 @@ export const historyFolder = (fullPath?: string): string => {
   if (!fullPath) {
     return "";
   }
-  const idx = String(fullPath).lastIndexOf("/");
+  const idx = fullPath.lastIndexOf("/");
   return idx === -1 ? "." : fullPath.slice(0, idx);
 };
 
@@ -31,19 +31,15 @@ export const formatHistoryTime = (iso?: string): string => {
   if (!iso) {
     return "";
   }
-  try {
-    const date = new Date(iso);
-    if (!Number.isFinite(date.getTime())) {
-      return iso;
-    }
-    const pad = (value: number, length = 2): string => String(value).padStart(length, "0");
-    const offsetMinutes = -date.getTimezoneOffset();
-    const offsetSign = offsetMinutes >= 0 ? "+" : "-";
-    const offset = Math.abs(offsetMinutes);
-    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}.${pad(date.getMilliseconds(), 3)}${offsetSign}${pad(Math.floor(offset / 60))}:${pad(offset % 60)}`;
-  } catch (e) {
-    return iso || "";
+  const date = new Date(iso);
+  if (!Number.isFinite(date.getTime())) {
+    return iso;
   }
+  const pad = (value: number, length = 2): string => String(value).padStart(length, "0");
+  const offsetMinutes = -date.getTimezoneOffset();
+  const offsetSign = offsetMinutes >= 0 ? "+" : "-";
+  const offset = Math.abs(offsetMinutes);
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}.${pad(date.getMilliseconds(), 3)}${offsetSign}${pad(Math.floor(offset / 60))}:${pad(offset % 60)}`;
 };
 
 export const relativeHistoryTime = (iso?: string, now = Date.now()): string => {

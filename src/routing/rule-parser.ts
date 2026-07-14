@@ -36,12 +36,7 @@ const appendError = (
 
 const appendSyntaxErrors = (issues: RuleSyntaxIssue[], errors: RuleError[]): void => {
   issues.forEach((issue) => {
-    appendError(
-      errors,
-      routingPorts.getMessage("ruleBadClause"),
-      issue.source || "invalid line syntax",
-      issue.span,
-    );
+    appendError(errors, routingPorts.getMessage("ruleBadClause"), issue.source, issue.span);
   });
 };
 
@@ -54,7 +49,7 @@ const captureGroupCount = (regex: RegExp): number => {
     else if (source[i] === "[") inClass = true;
     else if (source[i] === "]") inClass = false;
     else if (!inClass && source[i] === "(" && source[i + 1] !== "?") groups += 1;
-    else if (!inClass && source.slice(i, i + 3) === "(?<" && !/[=!]/.test(source[i + 3] || ""))
+    else if (!inClass && source.slice(i, i + 3) === "(?<" && !/[=!]/.test(source[i + 3]!))
       groups += 1;
   }
   return groups;
@@ -123,7 +118,7 @@ const parseSemanticRule = (
         errors,
         routingPorts.getMessage("ruleInvalidRegex"),
         flags ? `invalid regex flags: ${flags} (${error})` : `${error}`,
-        flags ? (line.flagsSpan ?? line.valueSpan) : line.valueSpan,
+        flags ? line.flagsSpan! : line.valueSpan,
       );
       return false;
     }
@@ -159,7 +154,7 @@ const parseSemanticRule = (
       errors,
       routingPorts.getMessage("ruleMissingCapture"),
       destination.value,
-      destinationNode?.valueSpan ?? rule.span,
+      destinationNode!.valueSpan,
     );
   if (!valid.some((clause) => clause.type === RULE_TYPES.MATCHER)) {
     appendError(
@@ -175,7 +170,7 @@ const parseSemanticRule = (
       errors,
       routingPorts.getMessage("ruleExtraInto"),
       JSON.stringify(lines.map((line) => line.raw)),
-      destinationNodes[1]?.span ?? rule.span,
+      destinationNodes[1]!.span,
     );
     return false;
   }
@@ -188,14 +183,13 @@ const parseSemanticRule = (
       errors,
       routingPorts.getMessage("ruleMultipleCapture"),
       JSON.stringify(lines.map((line) => line.raw)),
-      captureNodes[1]?.span ?? rule.span,
+      captureNodes[1]!.span,
     );
     return false;
   }
   if (captures.length === 1) {
-    const capture = captures[0];
-    if (!capture) return false;
-    const captureNode = captureNodes[0];
+    const capture = captures[0]!;
+    const captureNode = captureNodes[0]!;
     const names = capture.value.split(",").map((name) => name.trim().toLowerCase());
     const matcherCandidates = names.map((name) =>
       valid.filter((clause) => clause.type === RULE_TYPES.MATCHER && clause.name === name),
@@ -203,13 +197,13 @@ const parseSemanticRule = (
     const capturedMatchers = matcherCandidates.map((matches) => matches[0]);
     let missing = false;
     names.forEach((name, index) => {
-      const candidates = matcherCandidates[index] || [];
+      const candidates = matcherCandidates[index]!;
       if (!capturedMatchers[index] || (capture.name === "capturegroups" && candidates.length > 1)) {
         appendError(
           errors,
           routingPorts.getMessage("ruleCaptureMissingMatcher"),
           `${capture.name}: ${name}`,
-          captureNode?.valueSpan ?? rule.span,
+          captureNode.valueSpan,
         );
         missing = true;
       } else if (capture.name === "capture" && candidates.length > 1) {
@@ -217,7 +211,7 @@ const parseSemanticRule = (
           errors,
           routingPorts.getMessage("ruleCaptureAmbiguousMatcher"),
           `capture: ${name}`,
-          captureNode?.valueSpan ?? rule.span,
+          captureNode.valueSpan,
           true,
         );
       }
@@ -236,7 +230,7 @@ const parseSemanticRule = (
         errors,
         routingPorts.getMessage("ruleMissingCapture"),
         destination.value,
-        destinationNode?.valueSpan ?? rule.span,
+        destinationNode!.valueSpan,
       );
       return false;
     }
@@ -257,8 +251,7 @@ export const parseRulesCollecting = (
     .filter((entry): entry is { ast: RoutingRuleNode; rule: RoutingRule } => Boolean(entry.rule));
   const rules = parsedRules.map((entry) => entry.rule);
   for (let index = 1; index < parsedRules.length; index += 1) {
-    const laterEntry = parsedRules[index];
-    if (!laterEntry) continue;
+    const laterEntry = parsedRules[index]!;
     const laterRule = laterEntry.rule;
     const shadowed = parsedRules.slice(0, index).some(({ rule: earlier }) => {
       if (isAutomaticRuleClauses(earlier) !== isAutomaticRuleClauses(laterRule)) return false;
