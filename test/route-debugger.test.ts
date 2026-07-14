@@ -29,8 +29,7 @@ const renderWorkbench = (): void => {
     <button id="route-debugger-clear" type="button">Clear</button>
     <button id="route-debugger-use-last" type="button">Use last download</button>
     <button id="route-debugger-use-sample" type="button">Use sample download</button>
-    <div id="route-debugger-result"></div>
-    <div id="route-debugger-rules"></div>`;
+    <div id="route-debugger-result"></div>`;
 };
 
 const checkResponse = (lastDownload: unknown = null) => ({
@@ -164,14 +163,20 @@ test("shows production rule and clause decisions and jumps back to their source"
   const result = document.querySelector<HTMLElement>("#route-debugger-result")!;
   await vi.waitFor(() => expect(result.dataset.state).toBe("matched"));
   expect(result.textContent).toContain("pdf/report.pdf");
-  expect(result.querySelector(".route-debugger-rule")).toBeNull();
-  const rulesResult = document.querySelector<HTMLElement>("#route-debugger-rules")!;
-  const ruleCards = rulesResult.querySelectorAll<HTMLDetailsElement>(".route-debugger-rule");
+  const ruleCards = result.querySelectorAll<HTMLDetailsElement>(".route-debugger-rule");
   expect(ruleCards).toHaveLength(2);
   expect(ruleCards[0]?.open).toBe(false);
   expect(ruleCards[1]?.open).toBe(true);
-  expect(rulesResult.textContent).toContain("Tested “pdf” from Source URL — matched.");
-  expect(rulesResult.textContent).toContain("Tested “pdf” from Source URL — did not match.");
+  expect(ruleCards[1]?.textContent).toContain("Rule 2 matched.");
+  expect(ruleCards[1]?.textContent).toContain("Saves to pdf/:filename:");
+  expect(ruleCards[1]?.querySelector(".route-debugger-pipeline")?.textContent).toContain(
+    "Expanded pathpdf/report.pdf",
+  );
+  expect(ruleCards[1]?.querySelector(".route-debugger-pipeline")?.textContent).toContain(
+    "Final pathpdf/report.pdf",
+  );
+  expect(result.textContent).toContain("Tested “pdf” from Source URL — matched.");
+  expect(result.textContent).toContain("Tested “pdf” from Source URL — did not match.");
   expect(browser.i18n.getMessage).toHaveBeenCalledWith(
     "routeDebuggerAttemptMissing",
     expect.anything(),
@@ -211,7 +216,7 @@ test("shows production rule and clause decisions and jumps back to their source"
     ?.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", ctrlKey: true, bubbles: true }));
   await vi.waitFor(() => expect(validationCount()).toBe(beforeShortcut + 1));
 
-  const pageDomainClause = rulesResult.querySelector<HTMLButtonElement>(
+  const pageDomainClause = result.querySelector<HTMLButtonElement>(
     '[data-clause-name="pagedomain"]',
   );
   expect(pageDomainClause).toBeDefined();

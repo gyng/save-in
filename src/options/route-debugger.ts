@@ -119,7 +119,6 @@ export const setupRouteDebugger = (): void => {
   const textarea = element<HTMLTextAreaElement>("#filenamePatterns");
   const form = element<HTMLElement>("#route-debugger-form");
   const result = element<HTMLElement>("#route-debugger-result");
-  const rulesResult = element<HTMLElement>("#route-debugger-rules");
   const runButton = element<HTMLButtonElement>("#route-debugger-run");
   const useLastButton = element<HTMLButtonElement>("#route-debugger-use-last");
   const useSampleButton = element<HTMLButtonElement>("#route-debugger-use-sample");
@@ -145,7 +144,6 @@ export const setupRouteDebugger = (): void => {
     !textarea ||
     !form ||
     !result ||
-    !rulesResult ||
     !runButton ||
     !useLastButton ||
     !useSampleButton ||
@@ -250,7 +248,6 @@ export const setupRouteDebugger = (): void => {
   const clearResult = (): void => {
     setState("empty");
     result.replaceChildren();
-    rulesResult.replaceChildren();
   };
 
   const renderMessage = (state: string, title: string): void => {
@@ -259,7 +256,6 @@ export const setupRouteDebugger = (): void => {
     message.className = "route-debugger-message";
     appendText(message, "route-debugger-message-title", title);
     result.replaceChildren(message);
-    rulesResult.replaceChildren();
   };
 
   const jumpToSource = (
@@ -285,45 +281,15 @@ export const setupRouteDebugger = (): void => {
   const renderTrace = (trace: RouteDebuggerTrace): void => {
     setState(trace.selectedRule === null ? "no-match" : "matched");
     const resultFragment = document.createDocumentFragment();
-    const outcome = document.createElement("div");
-    outcome.className = "route-debugger-outcome";
-    const outcomeCopy = document.createElement("div");
-    outcomeCopy.className = "route-debugger-outcome-copy";
-    appendText(
-      outcomeCopy,
-      "route-debugger-outcome-label",
-      trace.selectedRule === null
-        ? localize("routeDebuggerNoMatch", "No routing rule matched.")
-        : localize(
-            "routeDebuggerMatched",
-            `Rule ${trace.selectedRule} matched.`,
-            trace.selectedRule,
-          ),
-    );
-    outcome.append(outcomeCopy);
-    resultFragment.append(outcome);
-
-    if (trace.destination) {
-      const pipeline = document.createElement("dl");
-      pipeline.className = "route-debugger-pipeline";
-      const stages: Array<[string, string | null]> = [
-        [localize("routeDebuggerTemplate", "Template"), trace.destination],
-        [localize("routeDebuggerExpanded", "Expanded path"), trace.expandedDestination],
-        [localize("routeDebuggerFinalPath", "Final path"), trace.finalPath],
-      ];
-      stages.forEach(([label, value]) => {
-        if (value === null) return;
-        const stage = document.createElement("div");
-        const term = document.createElement("dt");
-        term.textContent = label;
-        const description = document.createElement("dd");
-        const code = document.createElement("code");
-        code.textContent = value;
-        description.append(code);
-        stage.append(term, description);
-        pipeline.append(stage);
-      });
-      resultFragment.append(pipeline);
+    if (trace.selectedRule === null) {
+      const message = document.createElement("div");
+      message.className = "route-debugger-message route-debugger-no-match";
+      appendText(
+        message,
+        "route-debugger-message-title",
+        localize("routeDebuggerNoMatch", "No routing rule matched."),
+      );
+      resultFragment.append(message);
     }
 
     const rules = document.createElement("div");
@@ -341,7 +307,9 @@ export const setupRouteDebugger = (): void => {
       titleGroup.className = "route-debugger-rule-title-group";
       const title = document.createElement("span");
       title.className = "route-debugger-rule-title";
-      title.textContent = localize("routeDebuggerRule", `Rule ${rule.index}`, rule.index);
+      title.textContent = selected
+        ? localize("routeDebuggerMatched", `Rule ${rule.index} matched.`, rule.index)
+        : localize("routeDebuggerRule", `Rule ${rule.index}`, rule.index);
       const destination = document.createElement("code");
       destination.className = "route-debugger-rule-destination";
       destination.dataset.path = rule.destination;
@@ -389,6 +357,28 @@ export const setupRouteDebugger = (): void => {
       }
       header.append(titleGroup, meta);
       card.append(header);
+
+      if (selected && trace.destination) {
+        const pipeline = document.createElement("dl");
+        pipeline.className = "route-debugger-pipeline";
+        const stages: Array<[string, string | null]> = [
+          [localize("routeDebuggerExpanded", "Expanded path"), trace.expandedDestination],
+          [localize("routeDebuggerFinalPath", "Final path"), trace.finalPath],
+        ];
+        stages.forEach(([label, value]) => {
+          if (value === null) return;
+          const stage = document.createElement("div");
+          const term = document.createElement("dt");
+          term.textContent = label;
+          const description = document.createElement("dd");
+          const code = document.createElement("code");
+          code.textContent = value;
+          description.append(code);
+          stage.append(term, description);
+          pipeline.append(stage);
+        });
+        card.append(pipeline);
+      }
 
       const clauses = document.createElement("ul");
       clauses.className = "route-debugger-clauses";
@@ -466,15 +456,15 @@ export const setupRouteDebugger = (): void => {
       card.append(clauses);
       rules.append(card);
     });
+    resultFragment.append(rules);
     result.replaceChildren(resultFragment);
-    rulesResult.replaceChildren(rules);
   };
 
   const run = async (): Promise<void> => {
     const mine = ++generation;
     hasRun = true;
     runButton.disabled = true;
-    const hasTrace = rulesResult.childElementCount > 0;
+    const hasTrace = result.querySelector(".route-debugger-rule") !== null;
     result.dataset.busy = "true";
     result.setAttribute("aria-busy", "true");
     if (!hasTrace) renderMessage("running", localize("routeDebuggerRunning", "Testing routes…"));

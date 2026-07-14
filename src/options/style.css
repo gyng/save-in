@@ -2885,23 +2885,6 @@ summary {
   background: var(--error-bg);
 }
 
-.route-debugger-outcome {
-  display: flex;
-  padding: var(--space-3);
-}
-
-.route-debugger-outcome-copy {
-  display: flex;
-  align-items: baseline;
-  min-width: 0;
-  gap: var(--space-3);
-}
-
-.route-debugger-outcome-label {
-  flex: none;
-  font-weight: 700;
-}
-
 .route-debugger-pipeline {
   display: grid;
   gap: 0;
@@ -2942,7 +2925,7 @@ summary {
 .route-debugger-rule-list {
   display: grid;
   gap: var(--space-1);
-  padding: 0 var(--space-3) var(--space-3);
+  padding: var(--space-2);
 }
 
 .route-debugger-rule {
@@ -2952,6 +2935,12 @@ summary {
 
 .route-debugger-rule.is-selected {
   box-shadow: inset 2px 0 var(--success-fg);
+}
+
+.route-debugger-rule > .route-debugger-pipeline {
+  margin: 0 var(--space-2);
+  padding: var(--space-2) 0 var(--space-2) calc(var(--space-2) + 14px);
+  border-top: 1px solid var(--panel-border);
 }
 
 .route-debugger-rule > summary {
@@ -3195,8 +3184,7 @@ summary {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .route-debugger-header,
-  .route-debugger-outcome-copy {
+  .route-debugger-header {
     align-items: stretch;
     flex-direction: column;
   }
