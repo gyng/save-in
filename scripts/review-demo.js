@@ -18,6 +18,12 @@ const DEMO_PHOTO = fs.readFileSync(
   path.join(chrome.ROOT, "docs", "store-assets", "demo-photo.avif"),
 );
 
+const REVIEW_TITLE = "Save In review";
+const setReviewTerminalTitle = () => {
+  process.title = REVIEW_TITLE;
+  if (process.stdout.isTTY) process.stdout.write(`\u001B]0;${REVIEW_TITLE}\u0007`);
+};
+
 const reviewTimestamp = () => `[${new Date().toLocaleTimeString()}]`;
 /** @param {typeof console.log} output @param {unknown[]} values */
 const writeReviewMessage = (output, values) => {
@@ -399,6 +405,7 @@ const reloadReviewSession = async (port, demoPort) => {
 };
 
 const main = async () => {
+  setReviewTerminalTitle();
   chrome.stageBuild();
   const { port: demoPort, server } = await startDemoServerSession();
   /** @type {Awaited<ReturnType<typeof chrome.launch>> | undefined} */
