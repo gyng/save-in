@@ -343,9 +343,12 @@ export const setupRouteDebugger = (): void => {
       titleGroup.className = "route-debugger-rule-title-group";
       const title = document.createElement("span");
       title.className = "route-debugger-rule-title";
-      title.textContent = selected
-        ? localize("routeDebuggerMatched", `Rule ${rule.index} matched.`, rule.index)
-        : localize("routeDebuggerRule", `Rule ${rule.index}`, rule.index);
+      const ruleLabel = localize("routeDebuggerRule", `Rule ${rule.index}`, rule.index);
+      title.textContent = rule.name || ruleLabel;
+      const titleLine = document.createElement("span");
+      titleLine.className = "route-debugger-rule-title-line";
+      titleLine.append(title);
+      if (rule.name) appendText(titleLine, "route-debugger-rule-index", ruleLabel);
       const destination = document.createElement("code");
       destination.className = "route-debugger-rule-destination";
       destination.dataset.path = rule.destination;
@@ -354,7 +357,7 @@ export const setupRouteDebugger = (): void => {
         `Saves to ${rule.destination}`,
         rule.destination,
       );
-      titleGroup.append(title, destination);
+      titleGroup.append(titleLine, destination);
       const meta = document.createElement("span");
       meta.className = "route-debugger-rule-meta";
       const matchedClauses = rule.clauses.filter((clause) => clause.matched).length;
@@ -396,11 +399,11 @@ export const setupRouteDebugger = (): void => {
       }
       header.append(titleGroup, meta);
       card.append(header);
-      if (sourceLink) card.append(sourceLink);
 
+      let pipeline: HTMLDListElement | null = null;
       if (selected && trace.destination) {
-        const pipeline = document.createElement("dl");
-        pipeline.className = "route-debugger-pipeline";
+        const routePipeline = document.createElement("dl");
+        routePipeline.className = "route-debugger-pipeline";
         const stages: Array<[string, string | null]> = [
           [localize("routeDebuggerExpanded", "Expanded path"), trace.expandedDestination],
           [localize("routeDebuggerFinalPath", "Final path"), trace.finalPath],
@@ -415,9 +418,16 @@ export const setupRouteDebugger = (): void => {
           code.textContent = value;
           description.append(code);
           stage.append(term, description);
-          pipeline.append(stage);
+          routePipeline.append(stage);
         });
-        card.append(pipeline);
+        pipeline = routePipeline;
+      }
+      if (pipeline || sourceLink) {
+        const output = document.createElement("div");
+        output.className = "route-debugger-rule-output";
+        if (pipeline) output.append(pipeline);
+        if (sourceLink) output.append(sourceLink);
+        card.append(output);
       }
 
       const clauses = document.createElement("ul");

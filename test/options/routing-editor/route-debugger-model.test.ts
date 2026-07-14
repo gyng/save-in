@@ -51,6 +51,20 @@ test("accepts a complete route trace received from the background", () => {
   expect(parseRouteDebuggerTrace(trace)).toEqual(trace);
 });
 
+test("accepts an optional rule name and rejects malformed names", () => {
+  const named = {
+    ...trace,
+    rules: [{ ...trace.rules[0], name: "Images" }],
+  };
+  expect(parseRouteDebuggerTrace(named)?.rules[0]?.name).toBe("Images");
+  expect(
+    parseRouteDebuggerTrace({
+      ...named,
+      rules: [{ ...named.rules[0], name: 7 }],
+    }),
+  ).toBeNull();
+});
+
 test.each([
   null,
   { ...trace, selectedRule: "2" },
@@ -131,6 +145,7 @@ test("maps production trace rows back to grammar source locations", () => {
     "fileext: png",
     "into: images/",
     "",
+    "// Work PDFs",
     "fileext: pdf",
     "pagedomain: example\\.com",
     "into: pdf/:filename:",
@@ -140,8 +155,9 @@ test("maps production trace rows back to grammar source locations", () => {
 
   expect(mapped.rules[0]?.source).toMatchObject({ line: 1, start: 0 });
   expect(mapped.rules[0]?.clauses[0]?.source).toMatchObject({ line: 1, start: 0 });
-  expect(mapped.rules[1]?.source).toMatchObject({ line: 4 });
-  expect(mapped.rules[1]?.clauses.map((clause) => clause.source?.line)).toEqual([4, 5]);
+  expect(mapped.rules[1]?.name).toBe("Work PDFs");
+  expect(mapped.rules[1]?.source).toMatchObject({ line: 5 });
+  expect(mapped.rules[1]?.clauses.map((clause) => clause.source?.line)).toEqual([5, 6]);
   expect(source.slice(mapped.rules[1]?.source?.start, mapped.rules[1]?.source?.end)).toContain(
     "into: pdf/:filename:",
   );

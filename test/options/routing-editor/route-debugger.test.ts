@@ -131,6 +131,7 @@ test("shows production rule and clause decisions and jumps back to their source"
                 },
                 {
                   index: 2,
+                  name: "Work PDFs",
                   matched: true,
                   destination: "pdf/:filename:",
                   clauses: [
@@ -174,14 +175,15 @@ test("shows production rule and clause decisions and jumps back to their source"
   expect(ruleCards).toHaveLength(2);
   expect(result.querySelector("summary button")).toBeNull();
   const sourceLink = ruleCards[1]?.querySelector<HTMLButtonElement>(
-    ":scope > .route-debugger-source-link",
+    ":scope .route-debugger-source-link",
   );
   expect(sourceLink?.textContent).toBe("Edit");
   expect(sourceLink?.getAttribute("aria-label")).toBeNull();
   expect(sourceLink?.title).toBe("Go to line 4");
   expect(ruleCards[0]?.open).toBe(false);
   expect(ruleCards[1]?.open).toBe(true);
-  expect(ruleCards[1]?.textContent).toContain("Rule 2 matched.");
+  expect(ruleCards[1]?.querySelector(".route-debugger-rule-title")?.textContent).toBe("Work PDFs");
+  expect(ruleCards[1]?.querySelector(".route-debugger-rule-index")?.textContent).toBe("Rule 2");
   expect(ruleCards[1]?.textContent).toContain("Saves to pdf/:filename:");
   expect(ruleCards[1]?.querySelector(".route-debugger-pipeline")?.textContent).toContain(
     "Expanded pathpdf/report.pdf",

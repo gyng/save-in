@@ -2,6 +2,7 @@ import { parseRoutingRuleAst } from "../routing/rule-syntax.ts";
 import type { PageSourceKind } from "../shared/page-source.ts";
 import type { ValidationInfo } from "../shared/message-protocol.ts";
 import { isStringKeyedRecord } from "../shared/message-protocol.ts";
+import { parseVisualRoutingRules } from "./rule-visual-editor-model.ts";
 
 export type RouteDebuggerClause = {
   name: string;
@@ -21,6 +22,7 @@ export type RouteDebuggerAttempt = {
 
 export type RouteDebuggerRule = {
   index: number;
+  name?: string | undefined;
   sourceIndex?: number | undefined;
   matched: boolean;
   destination: string;
@@ -118,6 +120,7 @@ export const parseRouteDebuggerTrace = (value: unknown): RouteDebuggerTrace | nu
     if (
       !isStringKeyedRecord(candidate) ||
       !isPositiveSafeInteger(candidate.index) ||
+      !(typeof candidate.name === "undefined" || typeof candidate.name === "string") ||
       typeof candidate.matched !== "boolean" ||
       typeof candidate.destination !== "string" ||
       !Array.isArray(candidate.clauses)
@@ -146,6 +149,7 @@ export const parseRouteDebuggerTrace = (value: unknown): RouteDebuggerTrace | nu
     }
     rules.push({
       index: candidate.index,
+      ...(typeof candidate.name === "string" ? { name: candidate.name } : {}),
       matched: candidate.matched,
       destination: candidate.destination,
       clauses,
@@ -166,6 +170,9 @@ export const mapRouteTraceToSource = (
   source: string,
   trace: RouteDebuggerTrace,
 ): RouteDebuggerTrace => {
+  const sourceRuleNames = parseVisualRoutingRules(source)
+    .rules.filter((rule) => rule.enabled)
+    .map((rule) => rule.comment);
   const sourceRules = parseRoutingRuleAst(source)
     .ast.rules.map((rule, sourceIndex) => ({ rule, sourceIndex }))
     .filter(
@@ -178,12 +185,14 @@ export const mapRouteTraceToSource = (
     ...trace,
     rules: trace.rules.map((rule) => {
       const sourceEntry = sourceRules[rule.index - 1];
+      const sourceRuleName = sourceRuleNames[rule.index - 1];
       const sourceRule = sourceEntry?.rule;
       const matcherClauses = sourceRule?.clauses.filter(
         (clause) => clause.clauseKind === "matcher" && clause.name !== "disabled",
       );
       return {
         ...rule,
+        ...(sourceRuleName ? { name: sourceRuleName } : {}),
         ...(sourceEntry ? { sourceIndex: sourceEntry.sourceIndex } : {}),
         ...(sourceRule
           ? {
