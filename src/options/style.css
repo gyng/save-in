@@ -4069,7 +4069,7 @@ button:disabled {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2) var(--space-4);
-  margin: calc(-1 * var(--space-2)) 0 var(--space-6);
+  margin: var(--space-3) 0 var(--space-6);
   font-size: var(--text-sm);
 }
 
@@ -4126,13 +4126,6 @@ button:disabled {
 .webhook-fields label {
   margin: 0;
   padding: 0;
-}
-
-.webhook-disclosure {
-  padding: var(--space-3);
-  border-left: 3px solid var(--color-info);
-  background: color-mix(in srgb, var(--color-info) 9%, var(--page-bg));
-  line-height: 1.45;
 }
 
 .webhook-preview-details > summary {
