@@ -186,6 +186,10 @@ browsers before reporting it as confirmed.
   both and enforces the configured source thresholds.
 - `npm run lint`: run architecture, CSS, i18n, and release-package policy
   checks; stage and lint the bundle; then run oxlint and formatting checks.
+- `npm run lint:type-aware`: run the zero-baseline `oxlint-tsgolint` rules.
+  Keep this check green when changing TypeScript, and add type-aware rules only
+  after fixing their existing findings so lint does not accumulate a warning
+  backlog.
 - `npm run typecheck`: check Firefox, Chrome, the DOM-free worker, tooling,
   e2e drivers, and the source/test project.
 - `npm run test:fuzz`: run the replayable property fuzz suite for one second.
