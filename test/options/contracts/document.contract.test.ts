@@ -311,7 +311,7 @@ test("keeps one primary routing-rule creation path with secondary choices", () =
   expect(document.querySelector("#rule-builder-matcher")).toBeNull();
 });
 
-test("groups fallback behavior with rules before the debugger", () => {
+test("keeps the debugger before fallback behavior", () => {
   const document = documentForOptions();
   const fallback = document.querySelector(".routing-post-options");
   const debuggerShell = document.querySelector(".route-debugger-shell");
@@ -321,7 +321,7 @@ test("groups fallback behavior with rules before the debugger", () => {
   );
   if (!fallback || !debuggerShell) throw new Error("Missing routing fallback or debugger group");
   expect(
-    Boolean(fallback.compareDocumentPosition(debuggerShell) & Node.DOCUMENT_POSITION_FOLLOWING),
+    Boolean(debuggerShell.compareDocumentPosition(fallback) & Node.DOCUMENT_POSITION_FOLLOWING),
   ).toBe(true);
 });
 

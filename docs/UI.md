@@ -91,7 +91,8 @@ or feedback.
   columns so rows scan vertically. Put lower-frequency rule operations in a
   labelled per-rule menu, and give repeated controls rule/condition-specific
   accessible names.
-- Keep no-match behavior with the routing rules, before the debugger. Desktop
+- Keep the debugger directly after the routing editor so authoring flows into
+  testing. Put the global no-match fallback after the debugger. Desktop
   references are a secondary column with collapsed disclosures; omit that
   column at narrow widths rather than creating a nested scrolling surface.
 - Route debugger is a plain testing workflow: heading and Run test, result,
