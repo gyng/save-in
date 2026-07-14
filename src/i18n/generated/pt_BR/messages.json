@@ -981,7 +981,7 @@
     "message": "Avançado: use grupos de captura"
   },
   "html_andItsSubdomainsUse": {
-    "message": "e seus subdomínios. Usar"
+    "message": "Corresponde a downloads HTTPS de example.com e seus subdomínios."
   },
   "html_andLaterGroupsIn": {
     "message": "e grupos posteriores em"
@@ -1008,7 +1008,7 @@
     "message": "Os destinos são relativos à pasta selecionada. Os valores correspondentes são expressões regulares; veja o"
   },
   "html_enterOneUrlLikeBrowserMatchPatternPerLine": {
-    "message": "Insira um padrão de correspondência de navegador semelhante a URL por linha. Possui um esquema, host e caminho:"
+    "message": "Adicione um padrão de correspondência WebExtension por linha. Eles não são expressões regulares. Cada padrão usa um esquema, host e caminho."
   },
   "html_everyMatcherInARuleMustMatch": {
     "message": "Todos os comparadores de uma regra devem corresponder."
@@ -1026,19 +1026,19 @@
     "message": "Filtrar modelos"
   },
   "html_forExample2": {
-    "message": ". Por exemplo,"
+    "message": "Formato do padrão"
   },
   "html_forHttpAndHttpsAndEndWith": {
-    "message": "para HTTP e HTTPS e termina com"
+    "message": "Corresponde a HTTP e HTTPS."
   },
   "html_howDoDownloadUrlFiltersWork": {
-    "message": "Como funcionam os filtros de URL de download?"
+    "message": "Como os filtros de URL correspondem aos downloads"
   },
   "html_howRoutingRulesWork": {
     "message": "Como funcionam as regras de roteamento"
   },
   "html_matchesHttpsFileUrlsOn": {
-    "message": "corresponde aos URLs dos arquivos HTTPS em"
+    "message": "Exemplo"
   },
   "html_moveAndRenameMatchingFiles": {
     "message": "Mover e renomear arquivos correspondentes"
@@ -1062,7 +1062,7 @@
     "message": ", então use"
   },
   "html_toIncludeEveryPathThisIsNotARegular": {
-    "message": "para incluir todos os caminhos. Esta não é uma expressão regular e não pode corresponder a parâmetros de consulta ou a uma porta explícita."
+    "message": "Corresponde a todos os caminhos. Parâmetros de consulta e portas explícitas não podem ser usados na correspondência."
   },
   "html_trackAndRouteBrowserDownloads": {
     "message": "Rastreie e direcione downloads do navegador"

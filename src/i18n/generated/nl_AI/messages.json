@@ -981,7 +981,7 @@
     "message": "Geavanceerd: gebruik capture-groepen"
   },
   "html_andItsSubdomainsUse": {
-    "message": "en zijn subdomeinen. Gebruik"
+    "message": "Komt overeen met HTTPS-downloads van example.com en de subdomeinen ervan."
   },
   "html_andLaterGroupsIn": {
     "message": ", en later groepen erin"
@@ -1008,7 +1008,7 @@
     "message": "Bestemmingen zijn relatief ten opzichte van de map die u hebt geselecteerd. Matcher-waarden zijn reguliere expressies; zie de"
   },
   "html_enterOneUrlLikeBrowserMatchPatternPerLine": {
-    "message": "Voer één URL-achtig browserovereenkomstpatroon per regel in. Het heeft een schema, host en pad:"
+    "message": "Voeg per regel één WebExtension-overeenkomstpatroon toe. Dit zijn geen reguliere expressies. Elk patroon gebruikt een schema, host en pad."
   },
   "html_everyMatcherInARuleMustMatch": {
     "message": "Elke matcher in een regel moet matchen."
@@ -1026,19 +1026,19 @@
     "message": "Sjablonen filteren"
   },
   "html_forExample2": {
-    "message": ". Bijvoorbeeld"
+    "message": "Patroonnotatie"
   },
   "html_forHttpAndHttpsAndEndWith": {
-    "message": "voor HTTP en HTTPS, en eindig met"
+    "message": "Komt overeen met HTTP en HTTPS."
   },
   "html_howDoDownloadUrlFiltersWork": {
-    "message": "Hoe werken download-URL-filters?"
+    "message": "Hoe URL-filters downloads vinden"
   },
   "html_howRoutingRulesWork": {
     "message": "Hoe routeringsregels werken"
   },
   "html_matchesHttpsFileUrlsOn": {
-    "message": "komt overeen met HTTPS-bestands-URL's aan"
+    "message": "Voorbeeld"
   },
   "html_moveAndRenameMatchingFiles": {
     "message": "Verplaats overeenkomende bestanden en hernoem ze"
@@ -1062,7 +1062,7 @@
     "message": ", gebruik dan"
   },
   "html_toIncludeEveryPathThisIsNotARegular": {
-    "message": "om elk pad te omvatten. Dit is geen reguliere expressie en kan niet overeenkomen met queryparameters of een expliciete poort."
+    "message": "Komt overeen met elk pad. Queryparameters en expliciete poorten kunnen niet worden vergeleken."
   },
   "html_trackAndRouteBrowserDownloads": {
     "message": "Volg en routeer browserdownloads"

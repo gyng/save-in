@@ -1239,7 +1239,7 @@
     "message": "Avanzato: utilizza i gruppi di acquisizione"
   },
   "html_andItsSubdomainsUse": {
-    "message": "e i suoi sottodomini. Utilizzo"
+    "message": "Corrisponde ai download HTTPS da example.com e dai suoi sottodomini."
   },
   "html_andLaterGroupsIn": {
     "message": ", e successivamente gruppi in"
@@ -1266,7 +1266,7 @@
     "message": "Le destinazioni sono relative alla cartella selezionata. I valori di corrispondenza sono espressioni regolari; vedere il"
   },
   "html_enterOneUrlLikeBrowserMatchPatternPerLine": {
-    "message": "Inserisci un pattern di corrispondenza URL WebExtension per riga. Ogni pattern contiene schema, host e percorso:"
+    "message": "Aggiungi un pattern di corrispondenza WebExtension per riga. Non sono espressioni regolari. Ogni pattern usa uno schema, un host e un percorso."
   },
   "html_everyMatcherInARuleMustMatch": {
     "message": "Tutti i criteri di una regola devono corrispondere."
@@ -1284,19 +1284,19 @@
     "message": "Filtra modelli"
   },
   "html_forExample2": {
-    "message": ". Per esempio,"
+    "message": "Formato del pattern"
   },
   "html_forHttpAndHttpsAndEndWith": {
-    "message": "per HTTP e HTTPS e termina con"
+    "message": "Corrisponde a HTTP e HTTPS."
   },
   "html_howDoDownloadUrlFiltersWork": {
-    "message": "Come funzionano i filtri degli URL di download?"
+    "message": "Come i filtri URL abbinano i download"
   },
   "html_howRoutingRulesWork": {
     "message": "Come funzionano le regole di routing"
   },
   "html_matchesHttpsFileUrlsOn": {
-    "message": "corrisponde agli URL di file HTTPS su"
+    "message": "Esempio"
   },
   "html_moveAndRenameMatchingFiles": {
     "message": "Sposta e rinomina i file corrispondenti"
@@ -1320,7 +1320,7 @@
     "message": ", quindi usa"
   },
   "html_toIncludeEveryPathThisIsNotARegular": {
-    "message": "per includere ogni percorso. Questa non è un'espressione regolare e non può corrispondere a parametri di query o a una porta esplicita."
+    "message": "Corrisponde a ogni percorso. I parametri di query e le porte esplicite non possono essere abbinati."
   },
   "html_trackAndRouteBrowserDownloads": {
     "message": "Tieni traccia e instrada i download del browser"

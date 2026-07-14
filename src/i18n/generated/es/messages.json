@@ -977,7 +977,7 @@
     "message": "Avanzado: usar grupos de captura"
   },
   "html_andItsSubdomainsUse": {
-    "message": "y sus subdominios. uso"
+    "message": "Coincide con descargas HTTPS de example.com y sus subdominios."
   },
   "html_andLaterGroupsIn": {
     "message": ", y grupos posteriores en"
@@ -1004,7 +1004,7 @@
     "message": "Los destinos son relativos a la carpeta que seleccionó. Los valores coincidentes son expresiones regulares; ver el"
   },
   "html_enterOneUrlLikeBrowserMatchPatternPerLine": {
-    "message": "Ingrese un patrón de coincidencia de navegador similar a una URL por línea. Tiene un esquema, host y ruta:"
+    "message": "Añade un patrón de coincidencia de WebExtension por línea. No son expresiones regulares. Cada patrón usa un esquema, un host y una ruta."
   },
   "html_everyMatcherInARuleMustMatch": {
     "message": "Todos los comparadores de una regla deben coincidir."
@@ -1022,19 +1022,19 @@
     "message": "Plantillas de filtro"
   },
   "html_forExample2": {
-    "message": ". Por ejemplo,"
+    "message": "Formato del patrón"
   },
   "html_forHttpAndHttpsAndEndWith": {
-    "message": "para HTTP y HTTPS, y termina con"
+    "message": "Coincide con HTTP y HTTPS."
   },
   "html_howDoDownloadUrlFiltersWork": {
-    "message": "¿Cómo funcionan los filtros de URL de descarga?"
+    "message": "Cómo coinciden los filtros de URL con las descargas"
   },
   "html_howRoutingRulesWork": {
     "message": "Cómo funcionan las reglas de enrutamiento"
   },
   "html_matchesHttpsFileUrlsOn": {
-    "message": "coincide con las URL de archivos HTTPS en"
+    "message": "Ejemplo"
   },
   "html_moveAndRenameMatchingFiles": {
     "message": "Mover y cambiar el nombre de archivos coincidentes"
@@ -1058,7 +1058,7 @@
     "message": ", luego usa"
   },
   "html_toIncludeEveryPathThisIsNotARegular": {
-    "message": "para incluir todos los caminos. Esta no es una expresión regular y no puede coincidir con los parámetros de consulta ni con un puerto explícito."
+    "message": "Coincide con cualquier ruta. No se pueden hacer coincidir los parámetros de consulta ni los puertos explícitos."
   },
   "html_trackAndRouteBrowserDownloads": {
     "message": "Seguimiento y ruta de descargas del navegador"

@@ -975,7 +975,7 @@
     "message": "Avancerat: använd fångstgrupper"
   },
   "html_andItsSubdomainsUse": {
-    "message": "och dess underdomäner. Använd"
+    "message": "Matchar HTTPS-hämtningar från example.com och dess underdomäner."
   },
   "html_andLaterGroupsIn": {
     "message": ", och senare grupper i"
@@ -1002,7 +1002,7 @@
     "message": "Destinationerna är relativa till den mapp du valde. Matchningsvärden är reguljära uttryck; se"
   },
   "html_enterOneUrlLikeBrowserMatchPatternPerLine": {
-    "message": "Ange ett URL-liknande matchningsmönster för webbläsaren per rad. Det har ett schema, en värd och en sökväg:"
+    "message": "Lägg till ett WebExtension-matchningsmönster per rad. De är inte reguljära uttryck. Varje mönster använder ett schema, en värd och en sökväg."
   },
   "html_everyMatcherInARuleMustMatch": {
     "message": "Varje matchare i en regel måste matcha."
@@ -1020,19 +1020,19 @@
     "message": "Filtermallar"
   },
   "html_forExample2": {
-    "message": ". Till exempel,"
+    "message": "Mönsterformat"
   },
   "html_forHttpAndHttpsAndEndWith": {
-    "message": "för HTTP och HTTPS, och slutar med"
+    "message": "Matchar HTTP och HTTPS."
   },
   "html_howDoDownloadUrlFiltersWork": {
-    "message": "Hur fungerar nedladdnings-URL-filter?"
+    "message": "Så matchar URL-filter hämtningar"
   },
   "html_howRoutingRulesWork": {
     "message": "Så fungerar routningsregler"
   },
   "html_matchesHttpsFileUrlsOn": {
-    "message": "matchar URL:er för HTTPS-filer på"
+    "message": "Exempel"
   },
   "html_moveAndRenameMatchingFiles": {
     "message": "Flytta och byt namn på matchande filer"
@@ -1056,7 +1056,7 @@
     "message": ", använd sedan"
   },
   "html_toIncludeEveryPathThisIsNotARegular": {
-    "message": "att inkludera varje väg. Detta är inte ett reguljärt uttryck och det kan inte matcha frågeparametrar eller en explicit port."
+    "message": "Matchar alla sökvägar. Frågeparametrar och explicita portar kan inte matchas."
   },
   "html_trackAndRouteBrowserDownloads": {
     "message": "Spåra och dirigera webbläsarnedladdningar"

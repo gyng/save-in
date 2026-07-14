@@ -878,7 +878,7 @@
     "message": "高级：使用捕获组"
   },
   "html_andItsSubdomainsUse": {
-    "message": "及其子域。使用"
+    "message": "匹配来自 example.com 及其子域的 HTTPS 下载。"
   },
   "html_andLaterGroupsIn": {
     "message": "，以及后来的组"
@@ -905,7 +905,7 @@
     "message": "保存位置是相对于所选文件夹的路径。匹配器值是正则表达式；请参阅"
   },
   "html_enterOneUrlLikeBrowserMatchPatternPerLine": {
-    "message": "每行输入一个类似 URL 的浏览器匹配模式。它有一个方案、主机和路径："
+    "message": "每行添加一个 WebExtension 匹配模式。这些不是正则表达式。每个模式由协议、主机和路径组成。"
   },
   "html_everyMatcherInARuleMustMatch": {
     "message": "规则中的每个匹配器都必须匹配。"
@@ -923,19 +923,19 @@
     "message": "过滤器模板"
   },
   "html_forExample2": {
-    "message": "。例如，"
+    "message": "模式格式"
   },
   "html_forHttpAndHttpsAndEndWith": {
-    "message": "对于 HTTP 和 HTTPS，并以"
+    "message": "匹配 HTTP 和 HTTPS。"
   },
   "html_howDoDownloadUrlFiltersWork": {
-    "message": "下载 URL 过滤器如何工作？"
+    "message": "URL 过滤器如何匹配下载"
   },
   "html_howRoutingRulesWork": {
     "message": "路由规则如何工作"
   },
   "html_matchesHttpsFileUrlsOn": {
-    "message": "匹配 HTTPS 文件 URL"
+    "message": "示例"
   },
   "html_moveAndRenameMatchingFiles": {
     "message": "移动并重命名匹配的文件"
@@ -959,7 +959,7 @@
     "message": "，然后使用"
   },
   "html_toIncludeEveryPathThisIsNotARegular": {
-    "message": "包括每条路径。这不是正则表达式，它无法匹配查询参数或显式端口。"
+    "message": "匹配所有路径。无法匹配查询参数和显式端口。"
   },
   "html_trackAndRouteBrowserDownloads": {
     "message": "跟踪和路由浏览器下载"

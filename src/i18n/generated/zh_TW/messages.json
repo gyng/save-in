@@ -878,7 +878,7 @@
     "message": "進階：使用擷取群組"
   },
   "html_andItsSubdomainsUse": {
-    "message": "及其子網域。使用"
+    "message": "比對來自 example.com 及其子網域的 HTTPS 下載。"
   },
   "html_andLaterGroupsIn": {
     "message": "，以及後來的組"
@@ -905,7 +905,7 @@
     "message": "儲存位置是相對於所選資料夾的路徑。比對器值是規則運算式；請參閱"
   },
   "html_enterOneUrlLikeBrowserMatchPatternPerLine": {
-    "message": "每行輸入一個類似 URL 的瀏覽器比對模式。模式包含通訊協定、主機和路徑："
+    "message": "每行新增一個 WebExtension 比對模式。這些不是正規表示式。每個模式由通訊協定、主機和路徑組成。"
   },
   "html_everyMatcherInARuleMustMatch": {
     "message": "規則中的每個比對器都必須相符。"
@@ -923,19 +923,19 @@
     "message": "過濾器模板"
   },
   "html_forExample2": {
-    "message": "。例如，"
+    "message": "模式格式"
   },
   "html_forHttpAndHttpsAndEndWith": {
-    "message": "對於 HTTP 和 HTTPS，並以"
+    "message": "比對 HTTP 和 HTTPS。"
   },
   "html_howDoDownloadUrlFiltersWork": {
-    "message": "下載 URL 過濾器如何運作？"
+    "message": "URL 篩選器如何比對下載"
   },
   "html_howRoutingRulesWork": {
     "message": "路由規則如何運作"
   },
   "html_matchesHttpsFileUrlsOn": {
-    "message": "比對以下網站的 HTTPS 檔案 URL"
+    "message": "範例"
   },
   "html_moveAndRenameMatchingFiles": {
     "message": "移動並重新命名相符的檔案"
@@ -959,7 +959,7 @@
     "message": "，然後使用"
   },
   "html_toIncludeEveryPathThisIsNotARegular": {
-    "message": "即可包含所有路徑。這不是規則運算式，無法比對查詢參數或明確指定的連接埠。"
+    "message": "比對所有路徑。無法比對查詢參數和明確指定的連接埠。"
   },
   "html_trackAndRouteBrowserDownloads": {
     "message": "追蹤和路由瀏覽器下載"

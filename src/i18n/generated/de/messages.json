@@ -979,7 +979,7 @@
     "message": "Erweitert: Capture-Gruppen verwenden"
   },
   "html_andItsSubdomainsUse": {
-    "message": "und seine Subdomains. Benutzen"
+    "message": "Entspricht HTTPS-Downloads von example.com und seinen Subdomains."
   },
   "html_andLaterGroupsIn": {
     "message": ", und später Gruppen in"
@@ -1006,7 +1006,7 @@
     "message": "Ziele sind relativ zu dem von Ihnen ausgewählten Ordner. Matcher-Werte sind reguläre Ausdrücke; siehe die"
   },
   "html_enterOneUrlLikeBrowserMatchPatternPerLine": {
-    "message": "Geben Sie pro Zeile ein URL-ähnliches Browser-Übereinstimmungsmuster ein. Es hat ein Schema, einen Host und einen Pfad:"
+    "message": "Fügen Sie pro Zeile ein WebExtension-Muster hinzu. Dies sind keine regulären Ausdrücke. Jedes Muster besteht aus Schema, Host und Pfad."
   },
   "html_everyMatcherInARuleMustMatch": {
     "message": "Jeder Matcher in einer Regel muss übereinstimmen."
@@ -1024,19 +1024,19 @@
     "message": "Filtervorlagen"
   },
   "html_forExample2": {
-    "message": ". Zum Beispiel,"
+    "message": "Musterformat"
   },
   "html_forHttpAndHttpsAndEndWith": {
-    "message": "für HTTP und HTTPS und enden mit"
+    "message": "Entspricht HTTP und HTTPS."
   },
   "html_howDoDownloadUrlFiltersWork": {
-    "message": "Wie funktionieren Download-URL-Filter?"
+    "message": "So werden Downloads mit URL-Filtern abgeglichen"
   },
   "html_howRoutingRulesWork": {
     "message": "So funktionieren Routing-Regeln"
   },
   "html_matchesHttpsFileUrlsOn": {
-    "message": "stimmt mit HTTPS-Datei-URLs überein"
+    "message": "Beispiel"
   },
   "html_moveAndRenameMatchingFiles": {
     "message": "Übereinstimmende Dateien verschieben und umbenennen"
@@ -1060,7 +1060,7 @@
     "message": ", dann verwenden"
   },
   "html_toIncludeEveryPathThisIsNotARegular": {
-    "message": "jeden Weg einzubeziehen. Dies ist kein regulärer Ausdruck und er kann weder mit Abfrageparametern noch mit einem expliziten Port übereinstimmen."
+    "message": "Entspricht jedem Pfad. Abfrageparameter und explizite Ports können nicht abgeglichen werden."
   },
   "html_trackAndRouteBrowserDownloads": {
     "message": "Verfolgen und leiten Sie Browser-Downloads weiter"

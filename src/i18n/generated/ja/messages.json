@@ -878,7 +878,7 @@
     "message": "詳細: キャプチャ グループを使用する"
   },
   "html_andItsSubdomainsUse": {
-    "message": "およびそのサブドメイン。使用する"
+    "message": "example.com とそのサブドメインからの HTTPS ダウンロードに一致します。"
   },
   "html_andLaterGroupsIn": {
     "message": "、およびその後のグループ"
@@ -905,7 +905,7 @@
     "message": "保存先は選択したフォルダーからの相対パスです。マッチャーの値には正規表現を使用します。詳しくは"
   },
   "html_enterOneUrlLikeBrowserMatchPatternPerLine": {
-    "message": "URL に似たブラウザ一致パターンを 1 行に 1 つ入力します。スキーム、ホスト、パスがあります。"
+    "message": "1 行に 1 つの WebExtension マッチパターンを追加します。正規表現ではありません。各パターンはスキーム、ホスト、パスで構成されます。"
   },
   "html_everyMatcherInARuleMustMatch": {
     "message": "ルール内のすべてのマッチャーが一致する必要があります。"
@@ -923,19 +923,19 @@
     "message": "フィルターテンプレート"
   },
   "html_forExample2": {
-    "message": "。たとえば、"
+    "message": "パターン形式"
   },
   "html_forHttpAndHttpsAndEndWith": {
-    "message": "HTTP および HTTPS の場合は次で終わります"
+    "message": "HTTP と HTTPS に一致します。"
   },
   "html_howDoDownloadUrlFiltersWork": {
-    "message": "ダウンロード URL フィルターはどのように機能しますか?"
+    "message": "URL フィルターでダウンロードを照合する方法"
   },
   "html_howRoutingRulesWork": {
     "message": "ルーティング ルールの仕組み"
   },
   "html_matchesHttpsFileUrlsOn": {
-    "message": "の HTTPS ファイル URL に一致します"
+    "message": "例"
   },
   "html_moveAndRenameMatchingFiles": {
     "message": "一致するファイルを移動して名前を変更する"
@@ -959,7 +959,7 @@
     "message": "、次に使用します"
   },
   "html_toIncludeEveryPathThisIsNotARegular": {
-    "message": "すべてのパスを含めます。これは正規表現ではないため、クエリ パラメータや明示的なポートと一致することはできません。"
+    "message": "すべてのパスに一致します。クエリパラメーターと明示的なポートは照合できません。"
   },
   "html_trackAndRouteBrowserDownloads": {
     "message": "ブラウザーのダウンロードを追跡およびルートする"

@@ -878,7 +878,7 @@
     "message": "고급: 캡처 그룹 사용"
   },
   "html_andItsSubdomainsUse": {
-    "message": "그리고 그 하위 도메인. 사용"
+    "message": "example.com 및 하위 도메인의 HTTPS 다운로드와 일치합니다."
   },
   "html_andLaterGroupsIn": {
     "message": "및 이후 그룹"
@@ -905,7 +905,7 @@
     "message": "저장 위치는 선택한 폴더를 기준으로 한 상대 경로입니다. 매처 값에는 정규식을 사용합니다. 자세한 내용은"
   },
   "html_enterOneUrlLikeBrowserMatchPatternPerLine": {
-    "message": "URL과 유사한 브라우저 일치 패턴을 한 줄에 하나씩 입력하세요. 여기에는 구성표, 호스트 및 경로가 있습니다."
+    "message": "한 줄에 WebExtension 일치 패턴을 하나씩 추가하세요. 정규식이 아닙니다. 각 패턴은 스킴, 호스트, 경로로 구성됩니다."
   },
   "html_everyMatcherInARuleMustMatch": {
     "message": "규칙의 모든 매처가 일치해야 합니다."
@@ -923,19 +923,19 @@
     "message": "템플릿 필터링"
   },
   "html_forExample2": {
-    "message": ". 예를 들어,"
+    "message": "패턴 형식"
   },
   "html_forHttpAndHttpsAndEndWith": {
-    "message": "HTTP 및 HTTPS의 경우 다음으로 끝납니다."
+    "message": "HTTP와 HTTPS에 일치합니다."
   },
   "html_howDoDownloadUrlFiltersWork": {
-    "message": "다운로드 URL 필터는 어떻게 작동하나요?"
+    "message": "URL 필터로 다운로드를 일치시키는 방법"
   },
   "html_howRoutingRulesWork": {
     "message": "라우팅 규칙의 작동 방식"
   },
   "html_matchesHttpsFileUrlsOn": {
-    "message": "의 HTTPS 파일 URL과 일치합니다."
+    "message": "예"
   },
   "html_moveAndRenameMatchingFiles": {
     "message": "일치하는 파일 이동 및 이름 바꾸기"
@@ -959,7 +959,7 @@
     "message": ", 그런 다음 사용"
   },
   "html_toIncludeEveryPathThisIsNotARegular": {
-    "message": "모든 경로를 포함합니다. 이는 정규식이 아니며 쿼리 매개변수나 명시적 포트와 일치할 수 없습니다."
+    "message": "모든 경로에 일치합니다. 쿼리 매개변수와 명시적 포트는 일치시킬 수 없습니다."
   },
   "html_trackAndRouteBrowserDownloads": {
     "message": "브라우저 다운로드 추적 및 라우팅"
