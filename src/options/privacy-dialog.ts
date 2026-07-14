@@ -86,6 +86,7 @@ export const setupPrivacyDialog = () => {
   const close = dialog?.querySelector<HTMLButtonElement>(".privacy-close");
   const content = dialog?.querySelector<HTMLElement>("#privacy-content");
   if (!dialog || !open || !close || !content) return;
+  let returnFocusTarget: HTMLElement = open;
 
   // The runtime package stages this canonical file, so policy edits cannot drift
   // from a separately maintained in-app copy.
@@ -114,11 +115,18 @@ export const setupPrivacyDialog = () => {
   };
 
   open.addEventListener("click", () => {
-    open.closest("details")?.removeAttribute("open");
+    const parentDetails = open.closest("details");
+    returnFocusTarget = parentDetails?.querySelector<HTMLElement>("summary") ?? open;
+    parentDetails?.removeAttribute("open");
     dialog.showModal();
     void load();
   });
   close.addEventListener("click", () => dialog.close());
+  dialog.addEventListener("close", () => {
+    if (returnFocusTarget.isConnected && !document.querySelector("dialog[open]")) {
+      returnFocusTarget.focus();
+    }
+  });
   dialog.addEventListener("click", (event) => {
     if (event.target === dialog) dialog.close();
   });

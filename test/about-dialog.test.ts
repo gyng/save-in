@@ -7,16 +7,25 @@ afterEach(() => setCurrentBrowser(BROWSERS.UNKNOWN));
 
 test("opens and closes the About dialog", () => {
   document.body.innerHTML = `
-    <button id="about-open">About</button>
+    <details open>
+      <summary>Help & resources</summary>
+      <button id="about-open">About</button>
+    </details>
     <dialog id="about-dialog"><button class="about-close">Close</button></dialog>`;
   const dialog = document.querySelector<HTMLDialogElement>("dialog")!;
   dialog.showModal = vi.fn(() => dialog.setAttribute("open", ""));
-  dialog.close = vi.fn(() => dialog.removeAttribute("open"));
+  dialog.close = vi.fn(() => {
+    dialog.removeAttribute("open");
+    dialog.dispatchEvent(new Event("close"));
+  });
   setupAboutDialog();
   document.querySelector<HTMLButtonElement>("#about-open")!.click();
   expect(dialog.showModal).toHaveBeenCalledOnce();
-  document.querySelector<HTMLButtonElement>(".about-close")!.click();
+  const close = document.querySelector<HTMLButtonElement>(".about-close")!;
+  close.focus();
+  close.click();
   expect(dialog.close).toHaveBeenCalledOnce();
+  expect(document.activeElement).toBe(document.querySelector("summary"));
 });
 
 test("opens the welcome guide from About", () => {

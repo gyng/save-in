@@ -12,8 +12,11 @@ export const setupAboutDialog = (openWelcome: () => boolean = () => showWelcomeD
   const open = document.querySelector<HTMLButtonElement>("#about-open");
   const close = dialog?.querySelector<HTMLButtonElement>(".about-close");
   if (!dialog || !open || !close) return;
+  let returnFocusTarget: HTMLElement = open;
   open.addEventListener("click", () => {
-    open.closest("details")?.removeAttribute("open");
+    const parentDetails = open.closest("details");
+    returnFocusTarget = parentDetails?.querySelector<HTMLElement>("summary") ?? open;
+    parentDetails?.removeAttribute("open");
     dialog.showModal();
   });
   close.addEventListener("click", () => dialog.close());
@@ -45,7 +48,12 @@ export const setupAboutDialog = (openWelcome: () => boolean = () => showWelcomeD
     mascotClicks = 0;
     mascot?.classList.remove("is-celebrating");
   };
-  dialog.addEventListener("close", stopCelebration);
+  dialog.addEventListener("close", () => {
+    stopCelebration();
+    if (returnFocusTarget.isConnected && !document.querySelector("dialog[open]")) {
+      returnFocusTarget.focus();
+    }
+  });
   mascot?.addEventListener("click", () => {
     mascotClicks += 1;
     if (mascotClicks < 5) return;

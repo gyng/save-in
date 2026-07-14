@@ -3,14 +3,20 @@ import { setupPrivacyDialog } from "../src/options/privacy-dialog.ts";
 
 const setupMarkup = () => {
   document.body.innerHTML = `
-    <button id="privacy-open">Privacy policy</button>
+    <details open>
+      <summary>Help & resources</summary>
+      <button id="privacy-open">Privacy policy</button>
+    </details>
     <dialog id="privacy-dialog" aria-label="Privacy policy">
       <button class="privacy-close">Close</button>
       <article id="privacy-content"></article>
     </dialog>`;
   const dialog = document.querySelector<HTMLDialogElement>("dialog")!;
   dialog.showModal = vi.fn(() => dialog.setAttribute("open", ""));
-  dialog.close = vi.fn(() => dialog.removeAttribute("open"));
+  dialog.close = vi.fn(() => {
+    dialog.removeAttribute("open");
+    dialog.dispatchEvent(new Event("close"));
+  });
   return dialog;
 };
 
@@ -47,8 +53,12 @@ test("closes the privacy modal from its close button and backdrop", () => {
   );
   setupPrivacyDialog();
 
-  document.querySelector<HTMLButtonElement>(".privacy-close")!.click();
+  document.querySelector<HTMLButtonElement>("#privacy-open")!.click();
+  const close = document.querySelector<HTMLButtonElement>(".privacy-close")!;
+  close.focus();
+  close.click();
   expect(dialog.close).toHaveBeenCalledOnce();
+  expect(document.activeElement).toBe(document.querySelector("summary"));
   dialog.dispatchEvent(new MouseEvent("click", { bubbles: true }));
   expect(dialog.close).toHaveBeenCalledTimes(2);
   vi.unstubAllGlobals();
