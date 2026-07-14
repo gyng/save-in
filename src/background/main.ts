@@ -11,7 +11,12 @@ import { extensionSessionStorage } from "../platform/storage-areas.ts";
 import { restoreLastUsed } from "./menu-build.ts";
 import { addDownloadListener } from "./menu-click.ts";
 import { addTabHighlightListener, addTabMenuListener } from "./menu-tabs.ts";
-import { LAST_USED_META_STORAGE_KEY, LAST_USED_PATH_STORAGE_KEY } from "../shared/storage-keys.ts";
+import {
+  LAST_USED_META_STORAGE_KEY,
+  LAST_USED_PATH_STORAGE_KEY,
+  WELCOME_PENDING_STORAGE_KEY,
+  WELCOME_VERSION,
+} from "../shared/storage-keys.ts";
 import { Log } from "./log.ts";
 import { currentTab, setCurrentTab, type CurrentTab } from "../platform/current-tab.ts";
 import { configureRoutingPorts } from "../routing/ports.ts";
@@ -130,9 +135,12 @@ export const start = () => {
   addTabHighlightListener();
   webExtensionApi.runtime.onInstalled.addListener((details) => {
     if (details.reason !== "install") return undefined;
-    return runBackgroundTask("first-install options failed", () =>
-      webExtensionApi.runtime.openOptionsPage(),
-    );
+    return runBackgroundTask("first-install options failed", async () => {
+      await webExtensionApi.storage.local
+        .set({ [WELCOME_PENDING_STORAGE_KEY]: WELCOME_VERSION })
+        .catch(() => {});
+      await webExtensionApi.runtime.openOptionsPage();
+    });
   });
   const toggleSources = (tab: CurrentTab): Promise<void> | undefined => {
     const tabId = tab.id;

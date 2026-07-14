@@ -39,6 +39,7 @@ import { applyUiTheme } from "../options/theme.ts";
 import { setupSyntaxEditors } from "../options/syntax-editor.ts";
 import { setupRouteDebugger } from "../options/route-debugger.ts";
 import { setupRuleVisualEditor } from "../options/rule-visual-editor.ts";
+import { setupWelcomeDialog } from "../options/welcome-dialog.ts";
 
 document.addEventListener(
   "DOMContentLoaded",
@@ -72,6 +73,7 @@ document.addEventListener(
     setupPrivacyDialog();
     setupAboutDialog();
     setupLanguageSelector();
+    void setupWelcomeDialog();
   },
   { once: true },
 );

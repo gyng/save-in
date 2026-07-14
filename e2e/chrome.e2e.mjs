@@ -253,6 +253,43 @@ afterEach(async ({ task }) => {
   }
 });
 
+test("first install starts with a focused welcome", async () => {
+  const welcome = await poll(
+    async () => {
+      const state = JSON.parse(
+        await evalOptions(`JSON.stringify({
+          open: document.querySelector("#welcome-dialog")?.open === true,
+          title: document.querySelector("#welcome-title")?.textContent,
+          steps: [...document.querySelectorAll(".welcome-steps li")].map((item) => item.textContent),
+          status: document.querySelector("#lastSavedAt")?.textContent,
+        })`),
+      );
+      return state.open ? state : null;
+    },
+    { description: "first-install welcome dialog" },
+  );
+  expect(welcome).toMatchObject({
+    title: "Welcome to Save In",
+    status: "Using starter settings",
+  });
+  expect(welcome.steps).toHaveLength(3);
+
+  await evalOptions(`document.querySelector(".welcome-accept").click()`);
+  await poll(
+    async () => {
+      const state = JSON.parse(
+        await evalOptions(`browser.storage.local.get("welcomePendingVersion").then((stored) =>
+          JSON.stringify({
+            dismissed: !document.querySelector("#welcome-dialog"),
+            pending: stored.welcomePendingVersion,
+          }))`),
+      );
+      return state.dismissed && state.pending === undefined ? state : null;
+    },
+    { description: "welcome dismissal" },
+  );
+});
+
 test("service worker initialises cleanly", async () => {
   const state = JSON.parse(await evalSW(`api.inspect().then((state) => JSON.stringify(state))`));
   const noObjectUrl = await evalWorker(`typeof URL.createObjectURL !== "function"`);

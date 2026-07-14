@@ -15,3 +15,5 @@ export const SOURCE_PANEL_SORT_STORAGE_KEY = "sourcePanelSort";
 export const EXTERNAL_DOWNLOAD_REJECTIONS_STORAGE_KEY = "externalDownloadRejections";
 export const PATH_TRUNCATION_MIGRATION_STORAGE_KEY = "pathTruncationMigrationVersion";
 export const PATH_TRUNCATION_MIGRATION_VERSION = 2;
+export const WELCOME_PENDING_STORAGE_KEY = "welcomePendingVersion";
+export const WELCOME_VERSION = 1;

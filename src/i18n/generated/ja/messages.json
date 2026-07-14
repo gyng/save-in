@@ -2490,5 +2490,23 @@
     "message": "サイトで必要な場合に、対象の Save In リクエストへページ URL を Referer として一時的に追加します。"
   },
   "matchPatternInvalid": { "message": "無効な WebExtension マッチパターン" },
-  "regularExpressionInvalid": { "message": "無効な正規表現" }
+  "regularExpressionInvalid": { "message": "無効な正規表現" },
+  "welcomeReady": { "message": "Ready to save" },
+  "welcomeTitle": { "message": "Welcome to Save In" },
+  "welcomeIntro": {
+    "message": "Save In is ready. Use the right-click menu to save images, links, selected text, media, and pages into folders you choose."
+  },
+  "welcomeStepRightClick": { "message": "Right-click something you want to save." },
+  "welcomeStepChooseSaveIn": { "message": "Choose Save In… from the menu." },
+  "welcomeStepPickFolder": { "message": "Pick a starter folder." },
+  "welcomeStarterNote": {
+    "message": "Starter folders are active now. You can customize them at any time."
+  },
+  "welcomeToolbarNote": {
+    "message": "The toolbar button opens Page Sources for finding media on the current page."
+  },
+  "welcomePermissions": { "message": "Why these permissions?" },
+  "welcomeCustomizeFolders": { "message": "Customize folders" },
+  "welcomeUseStarterFolders": { "message": "Use starter folders" },
+  "welcomeUsingStarterSettings": { "message": "Using starter settings" }
 }

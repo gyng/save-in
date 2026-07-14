@@ -54,6 +54,7 @@ vi.mock("../src/downloads/active-transfers.ts", () => ({
 
 import type { CurrentTab } from "../src/platform/current-tab.ts";
 import type { SaveInOptions } from "../src/config/option-schema.ts";
+import { WELCOME_PENDING_STORAGE_KEY, WELCOME_VERSION } from "../src/shared/storage-keys.ts";
 import { browserTab, installHostProperty } from "./webextension-test-helpers.ts";
 
 // background-main.ts, menu-build.ts, option.ts and log.ts are all real modules, freshly
@@ -246,16 +247,24 @@ describe("startup", () => {
     await Runtime.ready;
   });
 
-  test("opens setup on first install without interrupting extension updates", async () => {
+  test("opens setup with pending welcome state only on first install", async () => {
     await setupGlobals();
     await importIndex();
     const installed = capturedOnInstalled();
 
     await installed({ reason: "update", previousVersion: "3.9.0", temporary: false });
     expect(global.browser.runtime.openOptionsPage).not.toHaveBeenCalled();
+    expect(global.browser.storage.local.set).not.toHaveBeenCalled();
 
     await installed({ reason: "install", temporary: false });
+    expect(global.browser.storage.local.set).toHaveBeenCalledWith({
+      [WELCOME_PENDING_STORAGE_KEY]: WELCOME_VERSION,
+    });
     expect(global.browser.runtime.openOptionsPage).toHaveBeenCalledOnce();
+
+    vi.mocked(global.browser.storage.local.set).mockRejectedValueOnce(new Error("storage failed"));
+    await installed({ reason: "install", temporary: false });
+    expect(global.browser.runtime.openOptionsPage).toHaveBeenCalledTimes(2);
   });
 
   test("runtime.reset re-runs init and replaces runtime.ready", async () => {

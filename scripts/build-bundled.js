@@ -42,6 +42,7 @@ const runtimeAssetFiles = [
   "src/options/options.html",
   "src/options/reference.css",
   "src/options/style.css",
+  "src/options/welcome-dialog.css",
 ];
 
 // 1. Build the bundles without going through a platform shell. Rolldown does

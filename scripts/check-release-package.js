@@ -255,6 +255,7 @@ for (const name of [
   "options.js",
   "offscreen.js",
   "src/options/options.html",
+  "src/options/welcome-dialog.css",
 ]) {
   check(fs.existsSync(path.join(stageRoot, name)), `staged package is missing ${name}`);
 }

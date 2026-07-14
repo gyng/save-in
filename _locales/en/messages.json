@@ -3394,5 +3394,53 @@
   "autoDownloadRoutingHelp": {
     "message": "Use context: auto with page and source conditions to match automatic downloads. The first matching rule sets the save location.",
     "description": "Briefly explains the context, page, and source conditions that match automatic page-source downloads. Used in src/options/options.html."
+  },
+  "welcomeReady": {
+    "message": "Ready to save",
+    "description": "Short first-install status above the welcome heading. Used in src/options/welcome-dialog.ts."
+  },
+  "welcomeTitle": {
+    "message": "Welcome to Save In",
+    "description": "Heading for the first-install welcome dialog. Used in src/options/welcome-dialog.ts."
+  },
+  "welcomeIntro": {
+    "message": "Save In is ready. Use the right-click menu to save images, links, selected text, media, and pages into folders you choose.",
+    "description": "Introduction to the main Save In workflow on first install. Used in src/options/welcome-dialog.ts."
+  },
+  "welcomeStepRightClick": {
+    "message": "Right-click something you want to save.",
+    "description": "First step in the first-install workflow. Used in src/options/welcome-dialog.ts."
+  },
+  "welcomeStepChooseSaveIn": {
+    "message": "Choose Save In… from the menu.",
+    "description": "Second step in the first-install workflow. Used in src/options/welcome-dialog.ts."
+  },
+  "welcomeStepPickFolder": {
+    "message": "Pick a starter folder.",
+    "description": "Third step in the first-install workflow. Used in src/options/welcome-dialog.ts."
+  },
+  "welcomeStarterNote": {
+    "message": "Starter folders are active now. You can customize them at any time.",
+    "description": "Explains that fresh-install folder defaults already work. Used in src/options/welcome-dialog.ts."
+  },
+  "welcomeToolbarNote": {
+    "message": "The toolbar button opens Page Sources for finding media on the current page.",
+    "description": "Explains the extension toolbar button on first install. Used in src/options/welcome-dialog.ts."
+  },
+  "welcomePermissions": {
+    "message": "Why these permissions?",
+    "description": "Button that opens the permission explanation from the welcome dialog. Used in src/options/welcome-dialog.ts."
+  },
+  "welcomeCustomizeFolders": {
+    "message": "Customize folders",
+    "description": "Secondary welcome action that moves focus to the folder editor. Used in src/options/welcome-dialog.ts."
+  },
+  "welcomeUseStarterFolders": {
+    "message": "Use starter folders",
+    "description": "Primary welcome action that keeps the working default folders. Used in src/options/welcome-dialog.ts."
+  },
+  "welcomeUsingStarterSettings": {
+    "message": "Using starter settings",
+    "description": "Fresh-install save status shown while the welcome dialog is open. Used in src/options/welcome-dialog.ts."
   }
 }
