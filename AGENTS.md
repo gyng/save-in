@@ -188,7 +188,7 @@ browsers before reporting it as confirmed.
   checks; stage and lint the bundle; then run oxlint and formatting checks.
 - `npm run typecheck`: check Firefox, Chrome, the DOM-free worker, tooling,
   e2e drivers, and the source/test project.
-- `npm run test:fuzz`: run the replayable property fuzz suite for ten seconds.
+- `npm run test:fuzz`: run the replayable property fuzz suite for one second.
   Override `FUZZ_TIME_MS` for longer runs; failures print `FUZZ_PROPERTY`,
   `FUZZ_SEED`, and `FUZZ_PATH` values for exact replay. See the
   [fuzzing guide](docs/FUZZING.md) for campaign and replay details.

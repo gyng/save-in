@@ -1,6 +1,6 @@
 # Fuzzing
 
-Run the bounded property suite with `npm run test:fuzz`. It spends ten seconds
+Run the bounded property suite with `npm run test:fuzz`. It spends one second
 across directory parsing and edits, routing syntax and semantics, filename
 safety, and webhook URL policy. Set `FUZZ_TIME_MS` for a longer campaign.
 

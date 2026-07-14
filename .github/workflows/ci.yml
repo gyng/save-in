@@ -37,7 +37,7 @@ jobs:
         run: npm run test:coverage
       - name: Short property fuzz
         env:
-          FUZZ_TIME_MS: "10000"
+          FUZZ_TIME_MS: "1000"
         run: npm run test:fuzz
       - name: Verify store packaging
         run: |

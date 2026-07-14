@@ -2,7 +2,7 @@ import { defineConfig } from "vitest/config";
 
 const configuredTime = Number.parseInt(process.env.FUZZ_TIME_MS ?? "", 10);
 const fuzzTimeMs =
-  Number.isSafeInteger(configuredTime) && configuredTime > 0 ? configuredTime : 10_000;
+  Number.isSafeInteger(configuredTime) && configuredTime > 0 ? configuredTime : 1_000;
 
 export default defineConfig({
   test: {

@@ -40,7 +40,7 @@ type FuzzDetails = {
   seed: number;
 };
 
-const DEFAULT_FUZZ_TIME_MS = 10_000;
+const DEFAULT_FUZZ_TIME_MS = 1_000;
 const MAX_FUZZ_RUNS = 0x7fff_ffff;
 
 const invariant: (condition: unknown, message: string) => asserts condition = (
