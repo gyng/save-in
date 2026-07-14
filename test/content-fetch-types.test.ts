@@ -18,6 +18,9 @@ describe("offscreen message runtime validation", () => {
         credentials: "omit",
       }),
     ).toBe(true);
+    expect(
+      isOffscreenFetchRequest({ type: "OFFSCREEN_FETCH", url: "https://x/empty", maxBytes: 0 }),
+    ).toBe(true);
     expect(isOffscreenFetchResponse({ blobUrl: "blob:https://x/id", hash: "abcd" })).toBe(true);
     expect(isOffscreenFetchResponse({ error: "fetch failed" })).toBe(true);
     expect(isOffscreenFetchCancelRequest({ type: "OFFSCREEN_FETCH_CANCEL", requestId: "r1" })).toBe(
@@ -35,6 +38,12 @@ describe("offscreen message runtime validation", () => {
     { type: "OTHER", url: "https://x/image.png" },
     { type: "OFFSCREEN_FETCH", url: "https://x/image.png", requestId: 42 },
     { type: "OFFSCREEN_FETCH", url: "https://x/image.png", maxBytes: -1 },
+    { type: "OFFSCREEN_FETCH", url: "https://x/image.png", maxBytes: 1.5 },
+    {
+      type: "OFFSCREEN_FETCH",
+      url: "https://x/image.png",
+      maxBytes: Number.MAX_SAFE_INTEGER + 1,
+    },
     { type: "OFFSCREEN_FETCH", url: "https://x/image.png", maxBytes: Number.NaN },
     { type: "OFFSCREEN_FETCH", url: "https://x/image.png", credentials: "same-origin" },
   ])("rejects malformed fetch request %#", (value) => {

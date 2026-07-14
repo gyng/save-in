@@ -49,7 +49,9 @@ export const isOffscreenFetchRequest = (value: unknown): value is OffscreenFetch
     value.credentials === "include" ||
     value.credentials === "omit") &&
   (typeof value.maxBytes === "undefined" ||
-    (typeof value.maxBytes === "number" && Number.isFinite(value.maxBytes) && value.maxBytes >= 0));
+    (typeof value.maxBytes === "number" &&
+      Number.isSafeInteger(value.maxBytes) &&
+      value.maxBytes >= 0));
 
 export const isOffscreenFetchCancelRequest = (
   value: unknown,
