@@ -620,13 +620,13 @@
     "message": "Referer がない場合は、ページ URL を Referer として使用します"
   },
   "o_cSetRefererHeaderHelp": {
-    "message": "一部のサイト（pixiv.net など）は、HTTP Referer ヘッダーのないダウンロードを拒否します。Firefox はページ URL を直接送信します。Chrome は一致するファイルを Save In 経由で取得し、保存中は各ファイルをメモリに保持します。サイトで必要な場合を除き、オフのままにしてください。"
+    "message": "ウェブサイトではファイルを開けるのに Save In ではダウンロードできない、403 やアクセス拒否が表示される、またはエラーページが保存される場合に有効にしてください。影響を受けるファイルホストだけを下に追加してください。ページ URL がそのホストに送信されます。Chrome では、保存中に一致する各ファイルもメモリに保持されます。"
   },
   "o_cSetRefererHeaderFilter": {
     "message": "対象サイトに Referer を設定"
   },
   "o_cSetRefererHeaderFilterHelp": {
-    "message": "1 行に 1 つのマッチパターンを入力します（例：*://i.pximg.net/*）。URL がいずれかのパターンに一致するダウンロードにだけ Referer を設定します。"
+    "message": "ページ URL ではなく、失敗したファイルの URL パターンを入力してください。1 行につき 1 つのマッチパターンを使用します（例: *://i.pximg.net/*）。"
   },
   "o_cImportSettings": {
     "message": "インポート設定"

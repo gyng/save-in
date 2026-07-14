@@ -743,13 +743,13 @@
     "message": "Utiliser l’URL de la page comme Referer s’il est absent"
   },
   "o_cSetRefererHeaderHelp": {
-    "message": "Certains sites (par exemple pixiv.net) refusent les téléchargements sans en-tête HTTP Referer. Firefox envoie directement l’URL de la page. Chrome récupère les fichiers correspondants via Save In et conserve chaque fichier en mémoire pendant l’enregistrement. Laissez cette option désactivée sauf si un site en a besoin."
+    "message": "Activez cette option si un fichier s’ouvre depuis son site web, mais que Save In ne parvient pas à le télécharger, signale une erreur 403 ou Accès refusé, ou enregistre une page d’erreur. Ajoutez ci-dessous uniquement les hôtes de fichiers concernés. L’URL de la page leur sera envoyée ; dans Chrome, Save In conserve également chaque fichier correspondant en mémoire pendant l’enregistrement."
   },
   "o_cSetRefererHeaderFilter": {
     "message": "Définir Referer pour ces sites"
   },
   "o_cSetRefererHeaderFilterHelp": {
-    "message": "Un motif de correspondance par ligne, par exemple *://i.pximg.net/*. Referer n’est défini que pour les téléchargements dont l’URL correspond à l’un de ces motifs."
+    "message": "Saisissez le motif d’URL du fichier en échec, et non l’URL de la page. Utilisez un motif de correspondance par ligne, par exemple *://i.pximg.net/*."
   },
   "o_cImportSettings": {
     "message": "Paramètres d'importation"

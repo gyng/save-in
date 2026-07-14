@@ -717,13 +717,13 @@
     "message": "Använd sidans URL när Referer saknas"
   },
   "o_cSetRefererHeaderHelp": {
-    "message": "Vissa webbplatser (t.ex. pixiv.net) avvisar nedladdningar utan ett HTTP Referer-huvud. Firefox skickar sidans URL direkt. Chrome hämtar matchande filer via Save In och behåller varje fil i minnet under tiden den sparas. Låt alternativet vara avstängt om inte en webbplats behöver det."
+    "message": "Aktivera detta om en fil kan öppnas från webbplatsen men Save In inte kan hämta den, rapporterar 403 eller Åtkomst nekad, eller sparar en felsida. Lägg bara till de berörda filvärdarna nedan. Sidans URL skickas då till dessa värdar; i Chrome håller Save In även varje matchande fil i minnet medan den sparas."
   },
   "o_cSetRefererHeaderFilter": {
     "message": "Ange Referer för dessa webbplatser"
   },
   "o_cSetRefererHeaderFilterHelp": {
-    "message": "Ett matchningsmönster per rad, t.ex. *://i.pximg.net/*. Referer anges endast för nedladdningar vars URL matchar något av dessa mönster."
+    "message": "Ange URL-mönstret för filen som misslyckades, inte sidans URL. Använd ett matchningsmönster per rad, till exempel *://i.pximg.net/*."
   },
   "o_cImportSettings": {
     "message": "Importera inställningar"

@@ -5309,7 +5309,8 @@ code.click-to-copy {
   transition: opacity 120ms ease;
 }
 
-.auto-download-options:has(#autoDownloadEnabled:not(:checked)) .auto-download-dependent {
+.auto-download-options:has(#autoDownloadEnabled:not(:checked)) .auto-download-dependent,
+.referer-option-group:has(#setRefererHeader:not(:checked)) .referer-options {
   opacity: 0.55;
 }
 

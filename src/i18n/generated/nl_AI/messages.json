@@ -723,13 +723,13 @@
     "message": "Ontbrekende Referer vervangen door de pagina-URL"
   },
   "o_cSetRefererHeaderHelp": {
-    "message": "Sommige sites (bijvoorbeeld pixiv.net) weigeren downloads zonder een HTTP Referer-header. Firefox verzendt de pagina-URL rechtstreeks. Chrome haalt overeenkomende bestanden op via Save In en houdt elk bestand tijdens het opslaan in het geheugen. Laat dit uitgeschakeld tenzij een site het nodig heeft."
+    "message": "Schakel dit in als een bestand vanaf de website wordt geopend, maar Save In het niet kan downloaden, 403 of Toegang geweigerd meldt, of een foutpagina opslaat. Voeg hieronder alleen de betrokken bestandshosts toe. Hiermee wordt de pagina-URL naar die hosts gestuurd; in Chrome houdt Save In elk overeenkomend bestand tijdens het opslaan ook in het geheugen."
   },
   "o_cSetRefererHeaderFilter": {
     "message": "Referer instellen voor deze sites"
   },
   "o_cSetRefererHeaderFilterHelp": {
-    "message": "Eén matchpatroon per regel, bijvoorbeeld *://i.pximg.net/*. Referer wordt alleen ingesteld voor downloads waarvan de URL met een van deze patronen overeenkomt."
+    "message": "Voer het URL-patroon van het mislukte bestand in, niet de pagina-URL. Gebruik één overeenkomstpatroon per regel, bijvoorbeeld *://i.pximg.net/*."
   },
   "o_cImportSettings": {
     "message": "Instellingen importeren"

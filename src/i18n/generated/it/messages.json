@@ -912,13 +912,13 @@
     "message": "Usa l'URL della pagina come Referer quando manca"
   },
   "o_cSetRefererHeaderHelp": {
-    "message": "Alcuni siti rifiutano i download privi dell'intestazione HTTP Referer. Per i download corrispondenti, Firefox aggiunge l'URL della pagina come Referer. Chrome recupera invece il file tramite Save In e lo conserva temporaneamente in memoria durante il salvataggio. Attiva questa opzione soltanto per i siti che la richiedono."
+    "message": "Attiva questa opzione se un file si apre dal suo sito web, ma Save In non riesce a scaricarlo, segnala 403 o Accesso negato oppure salva una pagina di errore. Aggiungi qui sotto solo gli host dei file interessati. In questo modo l'URL della pagina viene inviato a tali host; in Chrome, Save In conserva inoltre ogni file corrispondente in memoria durante il salvataggio."
   },
   "o_cSetRefererHeaderFilter": {
     "message": "Imposta Referer per questi siti"
   },
   "o_cSetRefererHeaderFilterHelp": {
-    "message": "Inserisci un pattern di corrispondenza per riga, ad esempio *://i.pximg.net/*. Il Referer viene impostato soltanto per i download il cui URL corrisponde a uno dei pattern."
+    "message": "Inserisci il pattern URL del file non riuscito, non l'URL della pagina. Usa un pattern di corrispondenza per riga, ad esempio *://i.pximg.net/*."
   },
   "o_cImportSettings": {
     "message": "Importa impostazioni"

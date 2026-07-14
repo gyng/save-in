@@ -620,13 +620,13 @@
     "message": "缺失時使用頁面 URL 作為 Referer"
   },
   "o_cSetRefererHeaderHelp": {
-    "message": "部分網站（例如 pixiv.net）會拒絕缺少 HTTP Referer 標頭的下載。Firefox 會直接傳送頁面 URL。Chrome 會透過 Save In 擷取符合條件的檔案，並在儲存期間將每個檔案保留在記憶體中。除非網站需要，否則請保持關閉。"
+    "message": "如果檔案能從其網站開啟，但 Save In 無法下載、回報 403 或拒絕存取，或儲存了錯誤頁面，請啟用此選項。請僅在下方新增受影響的檔案主機。這會將頁面 URL 傳送給這些主機；在 Chrome 中，Save In 還會在儲存期間將每個符合條件的檔案保留在記憶體中。"
   },
   "o_cSetRefererHeaderFilter": {
     "message": "為這些網站設定 Referer"
   },
   "o_cSetRefererHeaderFilterHelp": {
-    "message": "每行輸入一個比對模式，例如 *://i.pximg.net/*。只有 URL 符合其中一個模式的下載才會設定 Referer。"
+    "message": "請輸入失敗檔案的 URL 模式，而不是頁面 URL。每行使用一個比對模式，例如 *://i.pximg.net/*。"
   },
   "o_cImportSettings": {
     "message": "導入設定"

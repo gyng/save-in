@@ -721,13 +721,13 @@
     "message": "Fehlenden Referer durch die Seiten-URL ersetzen"
   },
   "o_cSetRefererHeaderHelp": {
-    "message": "Einige Websites (z. B. pixiv.net) lehnen Downloads ohne HTTP-Referer-Header ab. Firefox sendet die Seiten-URL direkt. Chrome ruft passende Dateien über Save In ab und hält jede Datei beim Speichern im Arbeitsspeicher. Deaktiviert lassen, sofern eine Website dies nicht benötigt."
+    "message": "Schalten Sie diese Option ein, wenn eine Datei auf ihrer Website geöffnet werden kann, Save In sie aber nicht herunterlädt, 403 oder „Zugriff verweigert“ meldet oder eine Fehlerseite speichert. Fügen Sie unten nur die betroffenen Datei-Hosts hinzu. Dadurch wird die Seiten-URL an diese Hosts gesendet; in Chrome hält Save In außerdem jede passende Datei während des Speicherns im Arbeitsspeicher."
   },
   "o_cSetRefererHeaderFilter": {
     "message": "Referer für diese Websites setzen"
   },
   "o_cSetRefererHeaderFilterHelp": {
-    "message": "Ein Übereinstimmungsmuster pro Zeile, z. B. *://i.pximg.net/*. Referer wird nur bei Downloads gesetzt, deren URL einem dieser Muster entspricht."
+    "message": "Geben Sie das URL-Muster der fehlgeschlagenen Datei ein, nicht die Seiten-URL. Verwenden Sie ein Übereinstimmungsmuster pro Zeile, z. B. *://i.pximg.net/*."
   },
   "o_cImportSettings": {
     "message": "Einstellungen importieren"

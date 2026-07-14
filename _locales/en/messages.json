@@ -1220,7 +1220,7 @@
     "description": "Option control label or related help text. Used in src/options/options.html."
   },
   "o_cSetRefererHeaderHelp": {
-    "message": "Some sites reject downloads that do not include an HTTP Referer header. For matching downloads, Firefox adds the page URL as the Referer. Chrome instead fetches the file through Save In, temporarily holding it in memory before saving. Turn this on only for sites that require it.",
+    "message": "Turn this on if a file opens from its website but Save In fails to download it, reports 403 or Access denied, or saves an error page. Add only the affected file hosts below. This sends the page URL to those hosts; on Chrome, Save In also holds each matching file in memory while saving.",
     "description": "Option control label or related help text. Used in src/options/options.html."
   },
   "o_cSetRefererHeaderFilter": {
@@ -1228,7 +1228,7 @@
     "description": "Option control label or related help text. Used in src/options/options.html."
   },
   "o_cSetRefererHeaderFilterHelp": {
-    "message": "One match pattern per line, e.g. *://i.pximg.net/*. The Referer is only set for downloads whose URL matches one of these.",
+    "message": "Enter the failed file's URL pattern, not the page URL. Use one match pattern per line, for example *://i.pximg.net/*.",
     "description": "Option control label or related help text. Used in src/options/options.html."
   },
   "o_cImportSettings": {

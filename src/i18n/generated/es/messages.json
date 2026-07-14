@@ -719,13 +719,13 @@
     "message": "Usar la URL de la página como Referer si falta"
   },
   "o_cSetRefererHeaderHelp": {
-    "message": "Algunos sitios (por ejemplo, pixiv.net) rechazan las descargas sin una cabecera HTTP Referer. Firefox envía directamente la URL de la página. Chrome obtiene los archivos coincidentes mediante Save In y mantiene cada archivo en memoria mientras lo guarda. Déjelo desactivado salvo que un sitio lo necesite."
+    "message": "Activa esta opción si un archivo se abre desde su sitio web, pero Save In no puede descargarlo, muestra 403 o Acceso denegado, o guarda una página de error. Añade abajo solo los hosts de archivo afectados. Esto envía la URL de la página a esos hosts; en Chrome, Save In también mantiene cada archivo coincidente en memoria mientras lo guarda."
   },
   "o_cSetRefererHeaderFilter": {
     "message": "Establecer Referer para estos sitios"
   },
   "o_cSetRefererHeaderFilterHelp": {
-    "message": "Un patrón de coincidencia por línea, por ejemplo, *://i.pximg.net/*. Referer solo se establece para las descargas cuya URL coincide con uno de estos patrones."
+    "message": "Introduce el patrón de URL del archivo que falló, no la URL de la página. Usa un patrón de coincidencia por línea, por ejemplo *://i.pximg.net/*."
   },
   "o_cImportSettings": {
     "message": "Importar configuración"

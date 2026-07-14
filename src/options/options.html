@@ -1738,28 +1738,34 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
         <div class="caption caption-line">__MSG_o_cIncludeFetchCredentialsHelp__</div>
       </label>
 
-      <div>
-        <label>
-          <input type="checkbox" id="setRefererHeader" />
-          __MSG_o_cSetRefererHeader__
-        </label>
-        <div class="caption caption-line">__MSG_o_cSetRefererHeaderHelp__</div>
-        <label class="caption-line">
-          <div>__MSG_o_cSetRefererHeaderFilter__</div>
-          <textarea
-            class="full-width"
-            id="setRefererHeaderFilter"
-            rows="3"
-            placeholder=""
-            spellcheck="false"
-          ></textarea>
-        </label>
-        <div class="caption caption-line">
-          __MSG_o_cSetRefererHeaderFilterHelp__
-          <a
-            href="https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Match_patterns"
-            >__MSG_html_mdnMatchPatterns__</a
-          >
+      <div class="referer-option-group">
+          <label>
+            <input
+              type="checkbox"
+              id="setRefererHeader"
+              aria-controls="referer-options"
+            />
+            __MSG_o_cSetRefererHeader__
+          </label>
+        <div id="referer-options" class="dependent-options referer-options">
+          <div class="caption caption-line">__MSG_o_cSetRefererHeaderHelp__</div>
+          <label class="caption-line">
+            <div>__MSG_o_cSetRefererHeaderFilter__</div>
+            <textarea
+              class="full-width"
+              id="setRefererHeaderFilter"
+              rows="3"
+              placeholder=""
+              spellcheck="false"
+            ></textarea>
+          </label>
+          <div class="caption caption-line">
+            __MSG_o_cSetRefererHeaderFilterHelp__
+            <a
+              href="https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Match_patterns"
+              >__MSG_html_mdnMatchPatterns__</a
+            >
+          </div>
         </div>
       </div>
 
