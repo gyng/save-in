@@ -165,9 +165,7 @@ test("uses readable filter placeholders when localization is unavailable", async
     ["clauses", "Filter clauses"],
     ["templates", "Filter routing templates"],
   ] as const) {
-    document
-      .querySelector<HTMLElement>(`body > [data-reference-tab$='-${tab}']`)!
-      .click();
+    document.querySelector<HTMLElement>(`body > [data-reference-tab$='-${tab}']`)!.click();
     expect(document.querySelector<HTMLInputElement>(".reference-dialog-filter")!.placeholder).toBe(
       placeholder,
     );

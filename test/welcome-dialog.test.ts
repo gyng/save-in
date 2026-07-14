@@ -113,7 +113,9 @@ test("uses readable fallbacks and contains missing dialog APIs and storage failu
   const dialog = document.querySelector<HTMLDialogElement>("#welcome-dialog")!;
   expect(dialog.querySelector("h1")?.textContent).toBe("Welcome to Save In");
   expect(dialog.hasAttribute("open")).toBe(true);
-  dialog.querySelector(".welcome-content")?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+  dialog
+    .querySelector(".welcome-content")
+    ?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
   dialog.dispatchEvent(new MouseEvent("click", { bubbles: true }));
   expect(document.querySelector("#welcome-dialog")).toBeNull();
   dialog.dispatchEvent(new Event("close"));

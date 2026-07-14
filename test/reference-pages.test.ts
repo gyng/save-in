@@ -218,9 +218,10 @@ describe("reference controller", () => {
     setupReferencePage(document, copy, () => "");
 
     expect(document.querySelector("caption")?.textContent).toBe("Reference");
-    expect(
-      [...document.querySelectorAll("thead th")].map((cell) => cell.textContent),
-    ).toEqual(["Syntax", "Meaning"]);
+    expect([...document.querySelectorAll("thead th")].map((cell) => cell.textContent)).toEqual([
+      "Syntax",
+      "Meaning",
+    ]);
     expect(document.querySelector(".reference-count")?.textContent).toBe("2 results");
     const search = document.querySelector<HTMLInputElement>(".reference-search")!;
     search.value = "date";
