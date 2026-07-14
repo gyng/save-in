@@ -20,11 +20,23 @@ const DEMO_PHOTO = fs.readFileSync(
 );
 
 const REVIEW_TITLE = "Save In review";
-/** @param {boolean} working */
-const setReviewTerminalTitle = (working) => {
-  const title = `${working ? "😓" : "✅"} ${REVIEW_TITLE}`;
+let reviewTerminalWorking = true;
+let reviewTerminalFocused = true;
+const renderReviewTerminalTitle = () => {
+  const marker = reviewTerminalWorking ? "😓" : reviewTerminalFocused ? "" : "🟢";
+  const title = `${marker ? `${marker} ` : ""}${REVIEW_TITLE}`;
   process.title = title;
   if (process.stdout.isTTY) process.stdout.write(`\u001B]0;${title}\u0007`);
+};
+/** @param {boolean} working */
+const setReviewTerminalTitle = (working) => {
+  reviewTerminalWorking = working;
+  renderReviewTerminalTitle();
+};
+/** @param {boolean} focused */
+const setReviewTerminalFocused = (focused) => {
+  reviewTerminalFocused = focused;
+  renderReviewTerminalTitle();
 };
 
 const reviewTimestamp = () => `[${new Date().toLocaleTimeString()}]`;
@@ -354,14 +366,28 @@ const cleanupReviewBrowsers = async (firefoxSessions, cleanupChromeSession) => {
   if (failures.length) throw new AggregateError(failures, "Review session cleanup failed");
 };
 
+const TERMINAL_FOCUS_IN = "\u001B[I";
+const TERMINAL_FOCUS_OUT = "\u001B[O";
+
 /**
- * @param {{enableHotReload: () => void, openFirefox: () => void, reload: () => void, stop: () => void}} actions
+ * @param {{enableHotReload: () => void, openFirefox: () => void, reload: () => void, setTerminalFocused: (focused: boolean) => void, stop: () => void}} actions
  * @returns {(input: string) => void}
  */
 const createReviewKeyHandler =
-  ({ enableHotReload, openFirefox, reload, stop }) =>
+  ({ enableHotReload, openFirefox, reload, setTerminalFocused, stop }) =>
   (input) => {
-    for (const key of input) {
+    let keys = input;
+    if (keys.includes(TERMINAL_FOCUS_OUT)) {
+      setTerminalFocused(false);
+      keys = keys.replaceAll(TERMINAL_FOCUS_OUT, "");
+    }
+    if (keys.includes(TERMINAL_FOCUS_IN)) {
+      setTerminalFocused(true);
+      keys = keys.replaceAll(TERMINAL_FOCUS_IN, "");
+    }
+    if (keys) setTerminalFocused(true);
+
+    for (const key of keys) {
       if (key === "\u0003") {
         stop();
         return;
@@ -379,7 +405,7 @@ const createReviewKeyHandler =
   };
 
 /**
- * @param {{enableHotReload: () => void, openFirefox: () => void, reload: () => void, stop: () => void}} actions
+ * @param {{enableHotReload: () => void, openFirefox: () => void, reload: () => void, setTerminalFocused: (focused: boolean) => void, stop: () => void}} actions
  * @returns {(() => void) | undefined}
  */
 const installReviewControls = (actions) => {
@@ -395,8 +421,11 @@ const installReviewControls = (actions) => {
   input.setRawMode(true);
   input.resume();
   input.on("data", onData);
+  const focusReportingEnabled = Boolean(process.stdout.isTTY);
+  if (focusReportingEnabled) process.stdout.write("\u001B[?1004h");
 
   return () => {
+    if (focusReportingEnabled) process.stdout.write("\u001B[?1004l");
     input.off("data", onData);
     if (input.isRaw) {
       input.setRawMode(false);
@@ -632,6 +661,7 @@ const main = async () => {
       },
       openFirefox,
       reload: requestReload,
+      setTerminalFocused: setReviewTerminalFocused,
       stop: () => stop(130),
     });
     if (installedControls) {

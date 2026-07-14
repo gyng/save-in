@@ -18,6 +18,7 @@ const { cleanupReviewSession, createDemoServer, createReviewKeyHandler } =
       enableHotReload: () => void;
       openFirefox: () => void;
       reload: () => void;
+      setTerminalFocused: (focused: boolean) => void;
       stop: () => void;
     }) => (input: string) => void;
   };
@@ -44,8 +45,15 @@ describe("review demo server", () => {
     const enableHotReload = vi.fn();
     const openFirefox = vi.fn();
     const reload = vi.fn();
+    const setTerminalFocused = vi.fn();
     const stop = vi.fn();
-    const handleKey = createReviewKeyHandler({ enableHotReload, openFirefox, reload, stop });
+    const handleKey = createReviewKeyHandler({
+      enableHotReload,
+      openFirefox,
+      reload,
+      setTerminalFocused,
+      stop,
+    });
 
     handleKey("rxR");
 
@@ -59,8 +67,15 @@ describe("review demo server", () => {
     const enableHotReload = vi.fn();
     const openFirefox = vi.fn();
     const reload = vi.fn();
+    const setTerminalFocused = vi.fn();
     const stop = vi.fn();
-    const handleKey = createReviewKeyHandler({ enableHotReload, openFirefox, reload, stop });
+    const handleKey = createReviewKeyHandler({
+      enableHotReload,
+      openFirefox,
+      reload,
+      setTerminalFocused,
+      stop,
+    });
 
     handleKey("hH");
 
@@ -74,8 +89,15 @@ describe("review demo server", () => {
     const enableHotReload = vi.fn();
     const openFirefox = vi.fn();
     const reload = vi.fn();
+    const setTerminalFocused = vi.fn();
     const stop = vi.fn();
-    const handleKey = createReviewKeyHandler({ enableHotReload, openFirefox, reload, stop });
+    const handleKey = createReviewKeyHandler({
+      enableHotReload,
+      openFirefox,
+      reload,
+      setTerminalFocused,
+      stop,
+    });
 
     handleKey("fF");
 
@@ -85,12 +107,44 @@ describe("review demo server", () => {
     expect(stop).not.toHaveBeenCalled();
   });
 
+  test("tracks terminal focus and treats keyboard input as active", () => {
+    const enableHotReload = vi.fn();
+    const openFirefox = vi.fn();
+    const reload = vi.fn();
+    const setTerminalFocused = vi.fn();
+    const stop = vi.fn();
+    const handleKey = createReviewKeyHandler({
+      enableHotReload,
+      openFirefox,
+      reload,
+      setTerminalFocused,
+      stop,
+    });
+
+    handleKey("\u001B[O");
+    handleKey("\u001B[I");
+    handleKey("x");
+
+    expect(setTerminalFocused.mock.calls).toEqual([[false], [true], [true]]);
+    expect(enableHotReload).not.toHaveBeenCalled();
+    expect(openFirefox).not.toHaveBeenCalled();
+    expect(reload).not.toHaveBeenCalled();
+    expect(stop).not.toHaveBeenCalled();
+  });
+
   test("stops on Ctrl+C without processing later input", () => {
     const enableHotReload = vi.fn();
     const openFirefox = vi.fn();
     const reload = vi.fn();
+    const setTerminalFocused = vi.fn();
     const stop = vi.fn();
-    const handleKey = createReviewKeyHandler({ enableHotReload, openFirefox, reload, stop });
+    const handleKey = createReviewKeyHandler({
+      enableHotReload,
+      openFirefox,
+      reload,
+      setTerminalFocused,
+      stop,
+    });
 
     handleKey(`r\u0003f`);
 
