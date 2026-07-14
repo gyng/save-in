@@ -549,6 +549,9 @@ export const isWireDownloadState = (value: unknown): value is WireDownloadState 
   hasOptionalString(value, "route") &&
   (typeof value.routeIsFolder === "undefined" || typeof value.routeIsFolder === "boolean");
 
+const isApiVersion = (value: unknown): value is number =>
+  typeof value === "number" && Number.isSafeInteger(value) && value > 0;
+
 const isDownloadBody = (value: unknown): value is DownloadRequestBody => {
   if (!isStringKeyedRecord(value)) {
     return false;
@@ -557,8 +560,7 @@ const isDownloadBody = (value: unknown): value is DownloadRequestBody => {
     hasOptionalString(value, "url") &&
     (typeof value.target === "undefined" || value.target === "activeTab") &&
     hasOptionalString(value, "comment") &&
-    (typeof value.version === "undefined" ||
-      (typeof value.version === "number" && Number.isFinite(value.version))) &&
+    (typeof value.version === "undefined" || isApiVersion(value.version)) &&
     (typeof value.info === "undefined" || isDownloadInfo(value.info))
   );
 };
