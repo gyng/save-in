@@ -81,6 +81,21 @@ export const beginResourceScope = () => {
 };
 
 /**
+ * Converts a prior assertion or poll contract into a value TypeScript can
+ * safely narrow, while retaining a useful runtime failure if that contract
+ * regresses.
+ *
+ * @template Value
+ * @param {Value | null | undefined} value
+ * @param {string} message
+ * @returns {Value}
+ */
+export const requireValue = (value, message) => {
+  if (value == null) throw new Error(message);
+  return value;
+};
+
+/**
  * Keeps a long-lived browser page out of the per-case reset path. The page is
  * refreshed at most once, immediately before a case first drives it.
  *

@@ -3,7 +3,9 @@ import http from "node:http";
 
 import { expect } from "vitest";
 
-import { closeLocal, listenLocal } from "./helpers.mjs";
+import { closeLocal, listenLocal, requireValue } from "./helpers.mjs";
+
+/** @typedef {import("./control-protocol.mjs").DownloadSummary} DownloadSummary */
 
 const PDF_TEMPLATE_MATCHER = "mime: ^application/pdf$";
 const PDF_TEMPLATE_DESTINATION = "into: documents/:filename:";
@@ -12,7 +14,7 @@ const PDF_TEMPLATE_DESTINATION = "into: documents/:filename:";
  * @param {{
  *   evaluate: (expression: string) => Promise<any>,
  *   evaluateOptions: (expression: string) => Promise<any>,
- *   waitForDownloads: (filename: string) => Promise<any[]>,
+ *   waitForDownloads: (filename: string) => Promise<DownloadSummary[]>,
  *   filename: string,
  *   content: string,
  * }} adapters
@@ -143,9 +145,10 @@ export const runTemplateLibraryScenario = async ({
         pageUrl: "http://127.0.0.1:${port}/",
       }).then(() => "started")`);
       const downloads = await waitForDownloads(filename);
-      const completed = downloads.find((entry) => entry.state === "complete");
-
-      expect(completed).toBeDefined();
+      const completed = requireValue(
+        downloads.find((entry) => entry.state === "complete"),
+        "Template-library download did not complete",
+      );
       const routedName = completed.filename.replaceAll("\\", "/").split("/documents/")[1];
       expect([filename, `${filename}.pdf`]).toContain(routedName);
       expect(fs.readFileSync(completed.filename, "utf8")).toBe(content);

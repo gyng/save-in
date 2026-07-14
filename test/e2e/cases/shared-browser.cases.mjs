@@ -15,6 +15,10 @@ import {
 } from "../shared-scenarios.mjs";
 import { runTemplateLibraryScenario } from "../template-library-scenario.mjs";
 import { runRoutingVisualEditorScenario } from "../routing-visual-editor-scenario.mjs";
+import { requireValue } from "../helpers.mjs";
+
+/** @typedef {import("../control-protocol.mjs").DownloadSummary} DownloadSummary */
+/** @typedef {import("../control-protocol.mjs").LogEntry} LogEntry */
 
 /**
  * Registers platform-neutral browser cases without creating another Vitest
@@ -25,8 +29,8 @@ import { runRoutingVisualEditorScenario } from "../routing-visual-editor-scenari
  *   control: ReturnType<typeof import("../control-client.mjs").createE2EControlClient>,
  *   evaluate: (expression: string) => Promise<any>,
  *   evaluateOptions: (expression: string) => Promise<any>,
- *   waitForDownloads: (filename: string, timeoutMs?: number) => Promise<any[]>,
- *   waitForLog: (baseline: number, messages: string[], timeoutMs?: number) => Promise<any[]>,
+ *   waitForDownloads: (filename: string, timeoutMs?: number) => Promise<DownloadSummary[]>,
+ *   waitForLog: (baseline: number, messages: string[], timeoutMs?: number) => Promise<LogEntry[]>,
  *   downloadDir: () => string,
  *   browserLabel: "chrome" | "firefox",
  *   routingContent: string,
@@ -77,7 +81,8 @@ export const registerSharedBrowserCases = (adapters) => {
       waitForDownloads,
       content: routingContent,
     });
-    expect(fs.readFileSync(downloads[0].filename, "utf8")).toBe(routingContent);
+    const completed = requireValue(downloads[0], "Routed download was not captured");
+    expect(fs.readFileSync(completed.filename, "utf8")).toBe(routingContent);
   });
 
   test("a 3.7 profile keeps its custom folder and repairs an extensionless filename", async () => {

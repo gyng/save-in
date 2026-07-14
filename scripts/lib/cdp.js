@@ -316,7 +316,7 @@ const evalInTarget = async (port, urlSubstr, expression) => {
  * @param {string} functionDeclaration
  * @param {unknown[]} [args]
  * @param {number} [timeoutMs]
- * @returns {Promise<any>}
+ * @returns {Promise<unknown>}
  */
 const callFunctionInTarget = async (
   port,

@@ -27,7 +27,11 @@ import {
   createLazyPageEvaluator,
   listenLocal,
   poll,
+  requireValue,
 } from "./helpers.mjs";
+
+/** @typedef {import("./control-protocol.mjs").DownloadEntry} DownloadEntry */
+/** @typedef {import("./control-protocol.mjs").HistoryEntry} HistoryEntry */
 
 const PROFILE = path.join(chrome.ROOT, "dist", "e2e-profile");
 const ARTIFACTS = process.env.E2E_ARTIFACT_DIR
@@ -123,7 +127,7 @@ const artifactName = (name) =>
 const captureFailureArtifacts = async (testName, durationMs) => {
   const prefix = path.join(ARTIFACTS, `chrome-failure-${artifactName(testName)}`);
   fs.mkdirSync(ARTIFACTS, { recursive: true });
-  /** @type {Record<string, any>} */
+  /** @type {Record<string, unknown>} */
   const report = {
     testName,
     durationMs,
@@ -143,9 +147,7 @@ const captureFailureArtifacts = async (testName, durationMs) => {
       })`),
     );
     fs.writeFileSync(`${prefix}.html`, await evalOptions(`document.documentElement.outerHTML`));
-    const [activeTab] = /** @type {any[]} */ (
-      await control.tabs.query({ active: true, currentWindow: true })
-    );
+    const [activeTab] = await control.tabs.query({ active: true, currentWindow: true });
     const activeUrl = activeTab?.url || "";
     report.activeUrl = activeUrl;
     if (activeUrl) {
@@ -196,16 +198,16 @@ const startSourcePanelServer = async () => {
   return { server, port: await listenLocal(server) };
 };
 
-/** @param {string} regex @param {number} [deadlineMs] @returns {Promise<any[]>} */
+/** @param {string} regex @param {number} [deadlineMs] @returns {Promise<DownloadEntry[]>} */
 const waitForDownloads = async (regex, deadlineMs = 8000) =>
-  /** @type {any[]} */ (
-    await control.downloads.wait({ filenameRegex: regex, timeoutMs: deadlineMs })
-  );
+  control.downloads.wait({ filenameRegex: regex, timeoutMs: deadlineMs });
 
 /** @param {string} url @returns {Promise<string>} */
 const waitForDownloadUrl = async (url) => {
-  const rows = /** @type {any[]} */ (await control.downloads.wait({ url }));
-  return path.basename(rows.at(-1).filename);
+  const rows = await control.downloads.wait({ url });
+  return path.basename(
+    requireValue(rows.at(-1), `No completed download found for ${url}`).filename,
+  );
 };
 
 /** @param {string} url @returns {Promise<string>} */
@@ -216,7 +218,7 @@ const downloadUsingBrowserFilename = async (url) => {
 
 /** @param {number} baseline @param {string[]} messages @param {number} [deadlineMs] */
 const waitForLog = async (baseline, messages, deadlineMs = 8000) =>
-  /** @type {any[]} */ (await control.logs.wait({ baseline, messages, timeoutMs: deadlineMs }));
+  control.logs.wait({ baseline, messages, timeoutMs: deadlineMs });
 
 beforeAll(async () => {
   try {
@@ -445,9 +447,7 @@ test("service worker initialises cleanly", async () => {
   expect(state.promptConflictAction).toBe("uniquify");
   // Running in a real service worker, with the MV3 fallbacks in play
   expect(noObjectUrl).toBe(true);
-  expect(
-    (await control.logs.get()).some((/** @type {any} */ entry) => entry.message === "init failed"),
-  ).toBe(false);
+  expect((await control.logs.get()).some((entry) => entry.message === "init failed")).toBe(false);
 });
 
 test("structured control restores a missing Options target", async () => {
@@ -675,7 +675,7 @@ test("cold start removes a stale Referer session rule", async () => {
   });
   expect(await cdp.stopServiceWorker(PORT, extensionId)).toBe(true);
   await control.options.all();
-  const remaining = (await control.dnr.getSessionRules()).map((/** @type {any} */ rule) => rule.id);
+  const remaining = (await control.dnr.getSessionRules()).map((rule) => rule.id);
   expect(remaining).not.toContain(66_000_001);
 });
 
@@ -835,21 +835,25 @@ test("success notifications are created by the real download listener", async ()
       pageUrl: "https://example.com/",
     });
     const downloads = await waitForDownloads("notification-e2e");
-    const download = downloads.find((row) => row.state === "complete");
-    expect(download?.id).toEqual(expect.any(Number));
+    const download = requireValue(
+      downloads.find((row) => row.state === "complete"),
+      "Notification download did not complete",
+    );
+    expect(download.id).toEqual(expect.any(Number));
     const notificationId = String(download.id);
 
     const notification = await poll(
       async () => {
         const calls = await control.background.notificationCalls("get");
-        return calls.find((/** @type {any} */ call) => call.id === notificationId) || null;
+        return calls.find((call) => call.id === notificationId) || null;
       },
       { description: "success notification for notification-e2e" },
     );
+    if (!notification) throw new Error("Success notification call was not captured");
     expect(notification.message).toContain("notification-e2e");
     const failures = (await control.logs.get())
       .slice(beforeLog)
-      .filter((/** @type {any} */ entry) => entry.message === "notification create failed");
+      .filter((entry) => entry.message === "notification create failed");
     expect(failures).toEqual([]);
   } finally {
     await Promise.all(
@@ -913,7 +917,9 @@ test("ordinary browser downloads can be routed and tracked without adoption", as
           const json = await evalSW(
             `api.history().then((entries) => JSON.stringify(entries.filter((entry) => entry.info?.context === "browser")))`,
           );
-          return JSON.parse(json).some((/** @type {any} */ entry) => entry.status === "complete")
+          return /** @type {HistoryEntry[]} */ (JSON.parse(json)).some(
+            (entry) => entry.status === "complete",
+          )
             ? json
             : null;
         },
@@ -1104,11 +1110,12 @@ test("message-driven downloads work and never inherit a stale route", async () =
 
   const rows = await waitForDownloads("msg-download");
   expect(rows).toHaveLength(1);
-  expect(rows[0].state).toBe("complete");
+  const download = requireValue(rows[0], "Message download was not captured");
+  expect(download.state).toBe("complete");
   // The download kept its own filename and did NOT land under the rule's
   // routed/renamed- destination
-  expect(rows[0].filename).toMatch(/msg-download\.txt$/);
-  expect(rows[0].filename).not.toMatch(/routed/);
+  expect(download.filename).toMatch(/msg-download\.txt$/);
+  expect(download.filename).not.toMatch(/routed/);
 });
 
 test("a separately installed extension negotiates, authorizes, and routes a download", async () => {
@@ -1196,8 +1203,10 @@ test("Referer-protected downloads use a scoped DNR offscreen fetch", async () =>
         suggestedFilename: "referer-protected-chrome.txt",
       }))`);
     const rows = await waitForDownloads("referer-protected-chrome");
-    const done = rows.find((row) => row.state === "complete");
-    expect(done).toBeTruthy();
+    const done = requireValue(
+      rows.find((row) => row.state === "complete"),
+      "Referer-protected Chrome download did not complete",
+    );
     expect(receivedRequests.map(({ method }) => method)).toEqual(["HEAD", "GET"]);
     expect(receivedRequests.every(({ referer }) => referer === expectedReferer)).toBe(true);
     expect(done.filename).toContain(`referer-protected-chrome-webp-${expectedHash}`);
@@ -1376,8 +1385,10 @@ test(":sha256: and :sha256full: hash and save from a single fetch (Chrome MV3)",
     );
 
     const rows = await waitForDownloads(expectedHash, 10000);
-    const done = rows.find((r) => r.state === "complete");
-    expect(done).toBeTruthy();
+    const done = requireValue(
+      rows.find((row) => row.state === "complete"),
+      "Hashed Chrome download did not complete",
+    );
 
     // Both content-hash forms appear in the saved path and the bytes are intact...
     expect(done.filename).toContain(expectedShortHash);
@@ -1679,8 +1690,9 @@ test("alt+click on a real page saves the image through the content script", asyn
     }
 
     expect(download).toHaveLength(1);
-    expect(download[0].state).toBe("complete");
-    expect(fs.readFileSync(download[0].filename)).toEqual(png);
+    const completed = requireValue(download[0], "Automatic Chrome download was not captured");
+    expect(completed.state).toBe("complete");
+    expect(fs.readFileSync(completed.filename)).toEqual(png);
   } finally {
     try {
       await evalSW(`browser.storage.local
@@ -1736,22 +1748,21 @@ into: e2e/automatic-chrome/:filename:`,
     await cdp.openTab(PORT, pageUrl);
     const initial = await poll(
       async () => {
-        const rows = JSON.parse(
-          await evalSW(`browser.downloads.search({ filenameRegex: "automatic-chrome" })
+        const rows = /** @type {DownloadEntry[]} */ (
+          JSON.parse(
+            await evalSW(`browser.downloads.search({ filenameRegex: "automatic-chrome" })
             .then((items) => JSON.stringify(items.map(({ state, filename, url }) => ({ state, filename, url }))))`),
+          )
         );
-        return rows.filter((/** @type {any} */ row) => row.state === "complete").length === 2
-          ? rows
-          : null;
+        return rows.filter((row) => row.state === "complete").length === 2 ? rows : null;
       },
       { timeoutMs: 10000, description: "initial automatic Page Sources downloads" },
     );
-    expect(initial.filter((/** @type {any} */ row) => row.state === "complete")).toHaveLength(2);
-    expect(
-      initial.every(
-        (/** @type {any} */ row) => !row.filename.includes("ordinary-should-not-match"),
-      ),
-    ).toBe(true);
+    const completed = requireValue(initial, "Initial automatic Chrome downloads were not captured");
+    expect(completed.filter((row) => row.state === "complete")).toHaveLength(2);
+    expect(completed.every((row) => !row.filename.includes("ordinary-should-not-match"))).toBe(
+      true,
+    );
 
     await cdp.evalInTarget(
       PORT,

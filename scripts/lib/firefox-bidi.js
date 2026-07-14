@@ -4,7 +4,36 @@
 // remains the extension/tab evaluation channel; BiDi supplies the browser's
 // native input source that DOM-dispatched events cannot emulate.
 
-/** @typedef {{resolve: (value: any) => void, reject: (error: unknown) => void, timer: NodeJS.Timeout}} Pending */
+/** @typedef {{context: string, url?: string, children?: BidiContext[]}} BidiContext */
+/** @typedef {{resolve: (value: unknown) => void, reject: (error: unknown) => void, timer: NodeJS.Timeout}} Pending */
+/**
+ * @typedef {{
+ *   "session.new": {params: Record<string, unknown>, result: Record<string, unknown>},
+ *   "browsingContext.getTree": {
+ *     params: {maxDepth: number}, result: {contexts: BidiContext[]}
+ *   },
+ *   "script.callFunction": {
+ *     params: Record<string, unknown>,
+ *     result: {
+ *       type: string,
+ *       result?: {type: string, value?: string},
+ *       exceptionDetails?: {text?: string}
+ *     }
+ *   },
+ *   "browsingContext.close": {
+ *     params: {context: string}, result: Record<string, unknown>
+ *   },
+ *   "input.performActions": {
+ *     params: Record<string, unknown>, result: Record<string, unknown>
+ *   },
+ *   "browsingContext.captureScreenshot": {
+ *     params: {context: string}, result: {data: string}
+ *   }
+ * }} BidiCommandMap
+ */
+
+/** @param {unknown} value @returns {value is Record<string, unknown>} */
+const isRecord = (value) => typeof value === "object" && value !== null && !Array.isArray(value);
 
 class FirefoxBidi {
   /** @param {WebSocket} socket */
@@ -14,15 +43,22 @@ class FirefoxBidi {
     /** @type {Map<number, Pending>} */
     this.pending = new Map();
     socket.addEventListener("message", (event) => {
-      /** @type {any} */
-      const packet = JSON.parse(String(event.data));
-      if (typeof packet?.id !== "number") return;
+      const packet = /** @type {unknown} */ (JSON.parse(String(event.data)));
+      if (!isRecord(packet) || typeof packet.id !== "number") return;
       const pending = this.pending.get(packet.id);
       if (!pending) return;
       this.pending.delete(packet.id);
       clearTimeout(pending.timer);
       if (packet.type === "success") pending.resolve(packet.result);
-      else pending.reject(new Error(packet.message || packet.error || "WebDriver BiDi error"));
+      else {
+        const message =
+          typeof packet.message === "string"
+            ? packet.message
+            : typeof packet.error === "string"
+              ? packet.error
+              : "WebDriver BiDi error";
+        pending.reject(new Error(message));
+      }
     });
     const fail = () => this.failPending(new Error("WebDriver BiDi connection closed"));
     socket.addEventListener("close", fail);
@@ -65,7 +101,13 @@ class FirefoxBidi {
     throw new Error(`Firefox did not expose WebDriver BiDi on port ${port}`, { cause: lastError });
   }
 
-  /** @param {string} method @param {Record<string, unknown>} params @param {number} [timeoutMs] */
+  /**
+   * @template {keyof BidiCommandMap} Method
+   * @param {Method} method
+   * @param {BidiCommandMap[Method]["params"]} params
+   * @param {number} [timeoutMs]
+   * @returns {Promise<BidiCommandMap[Method]["result"]>}
+   */
   send(method, params, timeoutMs = 15000) {
     this.id += 1;
     const id = this.id;
@@ -75,7 +117,11 @@ class FirefoxBidi {
         reject(new Error(`WebDriver BiDi timeout: ${method}`));
       }, timeoutMs);
       timer.unref();
-      this.pending.set(id, { resolve, reject, timer });
+      this.pending.set(id, {
+        resolve: (value) => resolve(/** @type {BidiCommandMap[Method]["result"]} */ (value)),
+        reject,
+        timer,
+      });
       this.socket.send(JSON.stringify({ id, method, params }));
     });
   }
@@ -83,8 +129,7 @@ class FirefoxBidi {
   /** @param {string} urlSubstr */
   async findContext(urlSubstr) {
     const result = await this.send("browsingContext.getTree", { maxDepth: 8 });
-    /** @type {any[]} */
-    const pending = [...(Array.isArray(result?.contexts) ? result.contexts : [])];
+    const pending = [...result.contexts];
     while (pending.length) {
       const context = pending.shift();
       if (typeof context?.url === "string" && context.url.includes(urlSubstr)) {

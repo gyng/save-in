@@ -1,57 +1,64 @@
+/** @typedef {import("./control-protocol.mjs").HistoryEntry} HistoryEntry */
+/** @typedef {import("./control-protocol.mjs").LogEntry} LogEntry */
+/** @typedef {import("./control-protocol.mjs").NotificationCall} NotificationCall */
+/** @typedef {import("./control-protocol.mjs").RuntimeResponse} RuntimeResponse */
+
 const installBackgroundHelpers = () => {
-  const chromeApi = /** @type {any} */ (Reflect.get(globalThis, "chrome"));
-  const browserApi = /** @type {any} */ (Reflect.get(globalThis, "browser") || chromeApi);
-  /** @param {any} message */
-  const send = (message) => browserApi.runtime.sendMessage(message);
+  const chromeApi = /** @type {typeof chrome} */ (Reflect.get(globalThis, "chrome"));
+  const browserApi = /** @type {typeof chrome} */ (
+    /** @type {unknown} */ (Reflect.get(globalThis, "browser") || chromeApi)
+  );
+  /** @param {Record<string, unknown>} message */
+  const send = (message) =>
+    /** @type {Promise<RuntimeResponse>} */ (browserApi.runtime.sendMessage(message));
+  /** @param {Record<string, unknown>} message @param {string} fallback */
+  const command = async (message, fallback) => {
+    const response = await send(message);
+    if (response.body.status !== "OK") {
+      throw new Error(typeof response.body.message === "string" ? response.body.message : fallback);
+    }
+    return response.body;
+  };
   const api = {
     ready: () => send({ type: "WAKE_WARM" }),
     reset: () => send({ type: "OPTIONS_LOADED" }),
-    logs: () =>
-      browserApi.storage.session
-        .get("si-log")
-        .then((/** @type {any} */ stored) =>
-          Array.isArray(stored["si-log"]) ? stored["si-log"] : [],
-        ),
-    history: () =>
-      send({ type: "HISTORY_GET" }).then((/** @type {any} */ response) => response.body.entries),
-    getOption: (/** @type {string} */ name) =>
-      send({ type: "OPTIONS" }).then((/** @type {any} */ response) => response.body[name]),
-    setOptions: (/** @type {Record<string, any>} */ values) =>
+    logs: async () => {
+      const stored = await browserApi.storage.session.get("si-log");
+      return Array.isArray(stored["si-log"]) ? /** @type {LogEntry[]} */ (stored["si-log"]) : [];
+    },
+    history: async () => {
+      const response = await send({ type: "HISTORY_GET" });
+      if (!Array.isArray(response.body.entries)) throw new Error("E2E history response is invalid");
+      return /** @type {HistoryEntry[]} */ (response.body.entries);
+    },
+    getOption: async (/** @type {string} */ name) => (await send({ type: "OPTIONS" })).body[name],
+    setOptions: (/** @type {Record<string, unknown>} */ values) =>
       browserApi.storage.local.set(values).then(() => api.reset()),
-    startDownload: (/** @type {any} */ body) =>
-      send({ type: "SAVE_IN_E2E_START_DOWNLOAD", body }).then((/** @type {any} */ response) => {
-        if (response?.body?.status === "OK") return response.body.result;
-        throw new Error(response?.body?.message || "E2E download command failed");
-      }),
-    clickContextMenu: (/** @type {any} */ body) =>
-      send({ type: "SAVE_IN_E2E_CONTEXT_MENU_CLICK", body }).then((/** @type {any} */ response) => {
-        if (response?.body?.status === "OK") return response.body;
-        throw new Error(response?.body?.message || "E2E context-menu command failed");
-      }),
-    clickTabMenu: (/** @type {any} */ body) =>
-      send({ type: "SAVE_IN_E2E_TAB_MENU_CLICK", body }).then((/** @type {any} */ response) => {
-        if (response?.body?.status === "OK") return response.body;
-        throw new Error(response?.body?.message || "E2E tab-menu command failed");
-      }),
-    notificationCalls: (/** @type {"get" | "reset"} */ action) =>
-      send({ type: "SAVE_IN_E2E_NOTIFICATION_CALLS", body: { action } }).then(
-        (/** @type {any} */ response) => {
-          if (response?.body?.status === "OK") return response.body.calls;
-          throw new Error(response?.body?.message || "E2E notification command failed");
-        },
-      ),
+    startDownload: async (/** @type {Record<string, unknown>} */ body) =>
+      (await command({ type: "SAVE_IN_E2E_START_DOWNLOAD", body }, "E2E download command failed"))
+        .result,
+    clickContextMenu: (/** @type {Record<string, unknown>} */ body) =>
+      command({ type: "SAVE_IN_E2E_CONTEXT_MENU_CLICK", body }, "E2E context-menu command failed"),
+    clickTabMenu: (/** @type {Record<string, unknown>} */ body) =>
+      command({ type: "SAVE_IN_E2E_TAB_MENU_CLICK", body }, "E2E tab-menu command failed"),
+    notificationCalls: async (/** @type {"get" | "reset"} */ action) => {
+      const response = await command(
+        { type: "SAVE_IN_E2E_NOTIFICATION_CALLS", body: { action } },
+        "E2E notification command failed",
+      );
+      if (!Array.isArray(response.calls)) throw new Error("E2E notification response is invalid");
+      return /** @type {NotificationCall[]} */ (response.calls);
+    },
     resetCounter: () => browserApi.storage.local.set({ "save-in-counter": 0 }),
     peekCounter: () =>
-      browserApi.storage.local.get("save-in-counter").then((/** @type {any} */ stored) => {
+      browserApi.storage.local.get("save-in-counter").then((stored) => {
         const value = Number(stored["save-in-counter"]);
         return Number.isSafeInteger(value) && value >= 0 ? value : 0;
       }),
-    applyConfig: (/** @type {Record<string, any>} */ config) =>
-      send({ type: "APPLY_CONFIG", body: { config } }).then(
-        (/** @type {any} */ response) => response.body,
-      ),
+    applyConfig: async (/** @type {Record<string, unknown>} */ config) =>
+      (await send({ type: "APPLY_CONFIG", body: { config } })).body,
     downloadMessage: (
-      /** @type {{content?: BlobPart, url?: string, info?: any, comment?: string}} */ {
+      /** @type {{content?: BlobPart, url?: string, info?: Record<string, unknown>, comment?: string}} */ {
         content,
         url,
         info,
@@ -66,10 +73,10 @@ const installBackgroundHelpers = () => {
           info,
           comment,
         },
-      }).then((/** @type {any} */ response) => response.body);
+      }).then((response) => response.body);
     },
     inspect: async () => {
-      const firefox = typeof browserApi.runtime.getBrowserInfo === "function";
+      const firefox = typeof Reflect.get(browserApi.runtime, "getBrowserInfo") === "function";
       const contextTypes = chromeApi?.contextMenus?.ContextType;
       return {
         browser: firefox ? "FIREFOX" : "CHROME",

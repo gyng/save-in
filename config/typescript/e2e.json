@@ -1,4 +1,7 @@
 {
   "extends": "./tools.json",
+  "compilerOptions": {
+    "types": ["node", "vitest/globals", "chrome"]
+  },
   "include": ["../../test/e2e/**/*.mjs"]
 }

@@ -27,9 +27,12 @@ import {
   createLazyPageEvaluator,
   listenLocal,
   poll,
+  requireValue,
   waitForApiEntriesExpression,
   waitForTabExpression,
 } from "./helpers.mjs";
+
+/** @typedef {import("./control-protocol.mjs").DownloadEntry} DownloadEntry */
 
 /** @type {Awaited<ReturnType<typeof firefox.launch>>} */
 let session;
@@ -94,7 +97,7 @@ const artifactName = (name) =>
 /** @param {string} testName @param {number | undefined} durationMs */
 const captureFailureArtifacts = async (testName, durationMs) => {
   fs.mkdirSync(ARTIFACTS, { recursive: true });
-  /** @type {Record<string, any>} */
+  /** @type {Record<string, unknown>} */
   const report = {
     testName,
     durationMs,
@@ -140,16 +143,16 @@ const captureFailureArtifacts = async (testName, durationMs) => {
   );
 };
 
-/** @param {string} filenamePart @param {number} [deadlineMs] @returns {Promise<any[]>} */
+/** @param {string} filenamePart @param {number} [deadlineMs] @returns {Promise<DownloadEntry[]>} */
 const waitForDownloads = async (filenamePart, deadlineMs = 8000) =>
-  /** @type {any[]} */ (
-    await control.downloads.wait({ filenameIncludes: filenamePart, timeoutMs: deadlineMs })
-  );
+  control.downloads.wait({ filenameIncludes: filenamePart, timeoutMs: deadlineMs });
 
 /** @param {string} url @returns {Promise<string>} */
 const waitForDownloadUrl = async (url) => {
-  const rows = /** @type {any[]} */ (await control.downloads.wait({ url }));
-  return path.basename(rows.at(-1).filename);
+  const rows = await control.downloads.wait({ url });
+  return path.basename(
+    requireValue(rows.at(-1), `No completed download found for ${url}`).filename,
+  );
 };
 
 /** @param {string} url @returns {Promise<string>} */
@@ -160,7 +163,7 @@ const downloadUsingBrowserFilename = async (url) => {
 
 /** @param {number} baseline @param {string[]} messages @param {number} [deadlineMs] */
 const waitForLog = async (baseline, messages, deadlineMs = 8000) =>
-  /** @type {any[]} */ (await control.logs.wait({ baseline, messages, timeoutMs: deadlineMs }));
+  control.logs.wait({ baseline, messages, timeoutMs: deadlineMs });
 
 // 1x1 transparent PNG
 const PNG = Buffer.from(
@@ -317,9 +320,7 @@ test("background event page initialises cleanly", async () => {
   expect(state.promptConflictAction).toBe("prompt");
   // Event pages keep a real DOM (unlike Chrome's service worker)...
   expect(state.hasObjectUrl).toBe(true);
-  expect(
-    (await control.logs.get()).some((/** @type {any} */ entry) => entry.message === "init failed"),
-  ).toBe(false);
+  expect((await control.logs.get()).some((entry) => entry.message === "init failed")).toBe(false);
 });
 
 test("structured control restores a missing Options target", async () => {
@@ -410,7 +411,7 @@ test("event-page cold start removes a stale Referer session rule", async () => {
     ],
   });
   await session.reloadBackgroundPage();
-  const remaining = (await control.dnr.getSessionRules()).map((/** @type {any} */ rule) => rule.id);
+  const remaining = (await control.dnr.getSessionRules()).map((rule) => rule.id);
   expect(remaining).not.toContain(66_000_001);
 });
 
@@ -431,8 +432,9 @@ test("download completes through the real pipeline", async () => {
   const downloads = await waitForDownloads("ff-smoke");
 
   expect(downloads).toHaveLength(1);
-  expect(downloads[0].state).toBe("complete");
-  expect(fs.readFileSync(downloads[0].filename, "utf8")).toBe("firefox e2e content");
+  const completed = requireValue(downloads[0], "Firefox smoke download was not captured");
+  expect(completed.state).toBe("complete");
+  expect(fs.readFileSync(completed.filename, "utf8")).toBe("firefox e2e content");
 });
 
 test("private context-menu saves leave no extension history or session state", async () => {
@@ -513,21 +515,25 @@ test("success notifications are created by the real download listener", async ()
       pageUrl: "https://example.com/",
     });
     const downloads = await waitForDownloads("ff-notification-e2e");
-    const download = downloads.find((row) => row.state === "complete");
-    expect(download?.id).toEqual(expect.any(Number));
+    const download = requireValue(
+      downloads.find((row) => row.state === "complete"),
+      "Firefox notification download did not complete",
+    );
+    expect(download.id).toEqual(expect.any(Number));
     const notificationId = String(download.id);
 
     const notification = await poll(
       async () => {
         const calls = await control.background.notificationCalls("get");
-        return calls.find((/** @type {any} */ call) => call.id === notificationId) || null;
+        return calls.find((call) => call.id === notificationId) || null;
       },
       { description: "success notification for ff-notification-e2e" },
     );
+    if (!notification) throw new Error("Success notification call was not captured");
     expect(notification.message).toContain("ff-notification-e2e");
     const failures = (await control.logs.get())
       .slice(beforeLog)
-      .filter((/** @type {any} */ entry) => entry.message === "notification create failed");
+      .filter((entry) => entry.message === "notification create failed");
     expect(failures).toEqual([]);
   } finally {
     await Promise.all(
@@ -583,8 +589,10 @@ test("downloads receive the configured Referer header", async () => {
         suggestedFilename: "referer-probe-firefox.txt",
       }))`);
     const rows = await waitForDownloads("referer-protected-firefox");
-    const done = rows.find((/** @type {any} */ row) => row.state === "complete");
-    expect(done).toBeTruthy();
+    const done = requireValue(
+      rows.find((row) => row.state === "complete"),
+      "Referer-protected Firefox download did not complete",
+    );
     expect(receivedRequests.map(({ method }) => method)).toEqual(["HEAD", "GET"]);
     expect(receivedRequests.every(({ referer: observed }) => observed === referer)).toBe(true);
     expect(done.filename).toContain(`referer-protected-firefox-webp-${expectedHash}`);
@@ -627,9 +635,10 @@ test("message-driven downloads work and never inherit a stale route", async () =
   );
   const downloads = await waitForDownloads("ff-msg-download");
   expect(downloads).toHaveLength(1);
-  expect(downloads.map((/** @type {any} */ x) => x.state)).toEqual(["complete"]);
-  expect(downloads[0].filename).toMatch(/ff-msg-download\.txt$/);
-  expect(downloads[0].filename).not.toMatch(/stale-message/);
+  expect(downloads.map((x) => x.state)).toEqual(["complete"]);
+  const completed = requireValue(downloads[0], "Firefox message download was not captured");
+  expect(completed.filename).toMatch(/ff-msg-download\.txt$/);
+  expect(completed.filename).not.toMatch(/stale-message/);
 });
 
 test("a separately installed extension negotiates, authorizes, and routes a download", async () => {
@@ -700,10 +709,8 @@ test("ordinary browser downloads can be tracked and experimentally rerouted on F
     await session.evaluateInTab(target, `document.querySelector("#native").click()`);
 
     const rows = await waitForDownloads("browser-routed");
-    expect(rows.some((/** @type {any} */ row) => row.state === "complete")).toBe(true);
-    expect(rows.some((/** @type {any} */ row) => row.filename.includes("browser-routed"))).toBe(
-      true,
-    );
+    expect(rows.some((row) => row.state === "complete")).toBe(true);
+    expect(rows.some((row) => row.filename.includes("browser-routed"))).toBe(true);
     const observed = JSON.parse(
       await evalBackground(
         waitForApiEntriesExpression(
@@ -783,10 +790,9 @@ test("click-to-save rejects synthetic input and accepts a trusted alt+click", as
     await session.bidi.altClick(targetUrl, point.x, point.y);
 
     const trustedDownloads = await waitForDownloads("pic.png");
-    expect(trustedDownloads.some((/** @type {any} */ item) => item.state === "complete")).toBe(
-      true,
-    );
-    expect(fs.readFileSync(trustedDownloads.at(-1).filename)).toEqual(PNG);
+    expect(trustedDownloads.some((item) => item.state === "complete")).toBe(true);
+    const trusted = requireValue(trustedDownloads.at(-1), "Trusted Firefox download was missing");
+    expect(fs.readFileSync(trusted.filename)).toEqual(PNG);
   } finally {
     try {
       await evalBackground(`browser.storage.local
@@ -843,23 +849,25 @@ into: e2e/automatic-firefox/:filename:`,
     await evalBackground(waitForTabExpression(target));
     const initial = await poll(
       async () => {
-        const rows = JSON.parse(
-          await evalBackground(`browser.downloads.search({})
+        const rows = /** @type {DownloadEntry[]} */ (
+          JSON.parse(
+            await evalBackground(`browser.downloads.search({})
             .then((items) => JSON.stringify(items.filter((item) => item.filename.includes("automatic-firefox"))
               .map(({ state, filename, url }) => ({ state, filename, url }))))`),
+          )
         );
-        return rows.filter((/** @type {any} */ row) => row.state === "complete").length === 2
-          ? rows
-          : null;
+        return rows.filter((row) => row.state === "complete").length === 2 ? rows : null;
       },
       { timeoutMs: 10000, description: "initial Firefox automatic Page Sources downloads" },
     );
-    expect(initial.filter((/** @type {any} */ row) => row.state === "complete")).toHaveLength(2);
-    expect(
-      initial.every(
-        (/** @type {any} */ row) => !row.filename.includes("ordinary-should-not-match"),
-      ),
-    ).toBe(true);
+    const completed = requireValue(
+      initial,
+      "Initial automatic Firefox downloads were not captured",
+    );
+    expect(completed.filter((row) => row.state === "complete")).toHaveLength(2);
+    expect(completed.every((row) => !row.filename.includes("ordinary-should-not-match"))).toBe(
+      true,
+    );
 
     await session.evaluateInTab(
       target,

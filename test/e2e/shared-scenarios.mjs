@@ -8,7 +8,11 @@ import {
   CONTENT_DISPOSITION_CASES,
   startContentDispositionServer,
 } from "./content-disposition-cases.mjs";
-import { closeLocal, listenLocal, waitForApiEntriesExpression } from "./helpers.mjs";
+import { closeLocal, listenLocal, requireValue, waitForApiEntriesExpression } from "./helpers.mjs";
+
+/** @typedef {import("./control-protocol.mjs").DownloadSummary} DownloadSummary */
+/** @typedef {import("./control-protocol.mjs").HistoryEntry} HistoryEntry */
+/** @typedef {import("./control-protocol.mjs").LogEntry} LogEntry */
 
 /**
  * @param {{
@@ -49,7 +53,7 @@ export const runContentDispositionScenario = async ({
  *
  * @param {{
  *   evaluate: (expression: string) => Promise<any>,
- *   waitForDownloads: (filename: string) => Promise<any[]>,
+ *   waitForDownloads: (filename: string) => Promise<DownloadSummary[]>,
  *   filename: string,
  * }} adapters
  */
@@ -88,8 +92,9 @@ export const runPrivateContextScenario = async ({ evaluate, waitForDownloads, fi
 
     const downloads = await waitForDownloads(filename);
     expect(downloads).toHaveLength(1);
-    expect(downloads[0].state).toBe("complete");
-    expect(fs.readFileSync(downloads[0].filename, "utf8")).toBe("private context content");
+    const completed = requireValue(downloads[0], "Private-context download was not captured");
+    expect(completed.state).toBe("complete");
+    expect(fs.readFileSync(completed.filename, "utf8")).toBe("private context content");
 
     const after = JSON.parse(
       await evaluate(`Promise.all([
@@ -283,18 +288,20 @@ into: e2e/private-auto/:filename:`,
     expect(fs.readFileSync(initialPath)).toEqual(image);
     expect(fs.readFileSync(latePath)).toEqual(image);
 
-    const after = JSON.parse(
-      await evaluate(`Promise.all([api.history(), api.logs()])
-        .then(([history, log]) => JSON.stringify({ history, log }))`),
+    const after = /** @type {{history: HistoryEntry[], log: LogEntry[]}} */ (
+      JSON.parse(
+        await evaluate(`Promise.all([api.history(), api.logs()])
+          .then(([history, log]) => JSON.stringify({ history, log }))`),
+      )
     );
     const privateNames = [nativeName, initialName, lateName];
     expect(
-      after.history.filter((/** @type {any} */ entry) =>
+      after.history.filter((entry) =>
         privateNames.some((name) => JSON.stringify(entry).includes(name)),
       ),
     ).toEqual([]);
     expect(
-      after.log.filter((/** @type {any} */ entry) =>
+      after.log.filter((entry) =>
         privateNames.some((name) => JSON.stringify(entry).includes(name)),
       ),
     ).toEqual([]);
@@ -319,7 +326,7 @@ into: e2e/private-auto/:filename:`,
  *   evaluate: (expression: string) => Promise<any>,
  *   sendExternal: (message: Record<string, unknown>) => Promise<any>,
  *   callerId: string,
- *   waitForDownloads: (filename: string) => Promise<any[]>,
+ *   waitForDownloads: (filename: string) => Promise<DownloadSummary[]>,
  *   filename: string,
  * }} adapters
  */
@@ -382,8 +389,11 @@ export const runExternalExtensionScenario = async ({
       body: { status: "OK", version: 1, url },
     });
     const downloads = await waitForDownloads(filename);
-    const complete = downloads.find((row) => row.state === "complete");
-    expect(complete?.filename).toMatch(/e2e[\\/]external[\\/]/);
+    const complete = requireValue(
+      downloads.find((row) => row.state === "complete"),
+      "External-extension download did not complete",
+    );
+    expect(complete.filename).toMatch(/e2e[\\/]external[\\/]/);
     expect(fs.readFileSync(complete.filename, "utf8")).toBe(body);
   } finally {
     try {
@@ -638,7 +648,7 @@ export const runInterruptedTransferRecoveryScenario = async ({
 /**
  * @param {{
  *   control: ReturnType<typeof import("./control-client.mjs").createE2EControlClient>,
- *   waitForDownloads: (filename: string) => Promise<any[]>,
+ *   waitForDownloads: (filename: string) => Promise<DownloadSummary[]>,
  *   content: string,
  * }} adapters
  */
@@ -663,7 +673,7 @@ export const runRoutingScenario = async ({ control, waitForDownloads, content })
  *
  * @param {{
  *   control: ReturnType<typeof import("./control-client.mjs").createE2EControlClient>,
- *   waitForDownloads: (filename: string) => Promise<any[]>,
+ *   waitForDownloads: (filename: string) => Promise<DownloadSummary[]>,
  *   filename: string,
  * }} adapters
  */
@@ -703,11 +713,12 @@ export const runLegacyProfileRoutingScenario = async ({ control, waitForDownload
     });
     const downloads = await waitForDownloads(`${filename}.png`);
     expect(downloads).toHaveLength(1);
-    expect(downloads[0].state).toBe("complete");
-    expect(downloads[0].filename).toMatch(
+    const completed = requireValue(downloads[0], "Legacy-profile download was not captured");
+    expect(completed.state).toBe("complete");
+    expect(completed.filename).toMatch(
       new RegExp(`e2e[\\\\/]legacy-custom[\\\\/]${filename}\\.png$`),
     );
-    expect(fs.readFileSync(downloads[0].filename)).toEqual(body);
+    expect(fs.readFileSync(completed.filename)).toEqual(body);
   } finally {
     try {
       await Promise.all([
@@ -724,7 +735,7 @@ export const runLegacyProfileRoutingScenario = async ({ control, waitForDownload
 /**
  * @param {{
  *   evaluate: (expression: string) => Promise<any>,
- *   waitForDownloads: (filename: string) => Promise<any[]>,
+ *   waitForDownloads: (filename: string) => Promise<DownloadSummary[]>,
  *   downloadDir: string,
  *   filename: string,
  *   supported?: boolean,
@@ -771,8 +782,9 @@ export const runSymlinkDestinationScenario = async ({
     }
     const downloads = await waitForDownloads(filename);
     expect(downloads).toHaveLength(1);
-    expect(downloads[0].state).toBe("complete");
-    expect(fs.realpathSync(path.dirname(downloads[0].filename))).toBe(fs.realpathSync(target));
+    const completed = requireValue(downloads[0], "Symlink download was not captured");
+    expect(completed.state).toBe("complete");
+    expect(fs.realpathSync(path.dirname(completed.filename))).toBe(fs.realpathSync(target));
     expect(fs.readFileSync(path.join(target, filename), "utf8")).toBe("symlink destination smoke");
   } finally {
     fs.rmSync(link, { recursive: true, force: true });
@@ -787,7 +799,7 @@ export const runSymlinkDestinationScenario = async ({
  *
  * @param {{
  *   control: ReturnType<typeof import("./control-client.mjs").createE2EControlClient>,
- *   waitForDownloads: (filename: string) => Promise<any[]>,
+ *   waitForDownloads: (filename: string) => Promise<DownloadSummary[]>,
  * }} adapters
  */
 export const runContextMenuScenario = async ({ control, waitForDownloads }) => {
@@ -803,11 +815,12 @@ export const runContextMenuScenario = async ({ control, waitForDownloads }) => {
 
   const downloads = await waitForDownloads("context-menu-smoke");
   expect(downloads).toHaveLength(1);
-  expect(downloads[0].state).toBe("complete");
-  expect(downloads[0].filename).toMatch(
+  const completed = requireValue(downloads[0], "Context-menu download was not captured");
+  expect(completed.state).toBe("complete");
+  expect(completed.filename).toMatch(
     /e2e[\\/]context-menu[\\/]context-menu-smoke\.selection\.txt$/,
   );
-  expect(fs.readFileSync(downloads[0].filename, "utf8")).toBe("context menu content");
+  expect(fs.readFileSync(completed.filename, "utf8")).toBe("context menu content");
 };
 
 /**
@@ -816,7 +829,7 @@ export const runContextMenuScenario = async ({ control, waitForDownloads }) => {
  *
  * @param {{
  *   evaluate: (expression: string) => Promise<any>,
- *   waitForDownloads: (filename: string) => Promise<any[]>,
+ *   waitForDownloads: (filename: string) => Promise<DownloadSummary[]>,
  *   filename: string,
  * }} adapters
  */
@@ -863,8 +876,10 @@ export const runTabStripScenario = async ({ evaluate, waitForDownloads, filename
         tab: ${JSON.stringify(tab)},
       }))`);
     const downloads = await waitForDownloads(filename);
-    const complete = downloads.find((row) => row.state === "complete");
-    expect(complete).toBeTruthy();
+    const complete = requireValue(
+      downloads.find((row) => row.state === "complete"),
+      "Tab-strip download did not complete",
+    );
     expect(fs.readFileSync(complete.filename, "utf8")).toContain(url);
   } finally {
     try {
@@ -879,7 +894,7 @@ export const runTabStripScenario = async ({ evaluate, waitForDownloads, filename
 /**
  * @param {{
  *   control: ReturnType<typeof import("./control-client.mjs").createE2EControlClient>,
- *   waitForDownloads: (filename: string) => Promise<any[]>,
+ *   waitForDownloads: (filename: string) => Promise<DownloadSummary[]>,
  * }} adapters
  */
 export const runShortcutScenario = async ({ control, waitForDownloads }) => {
@@ -890,9 +905,10 @@ export const runShortcutScenario = async ({ control, waitForDownloads }) => {
   });
   const downloads = await waitForDownloads("page-shortcut");
   expect(downloads).toHaveLength(1);
-  expect(downloads[0].state).toBe("complete");
-  expect(downloads[0].filename.endsWith("page-shortcut.html")).toBe(true);
-  expect(fs.readFileSync(downloads[0].filename, "utf8")).toContain(
+  const completed = requireValue(downloads[0], "Shortcut download was not captured");
+  expect(completed.state).toBe("complete");
+  expect(completed.filename.endsWith("page-shortcut.html")).toBe(true);
+  expect(fs.readFileSync(completed.filename, "utf8")).toContain(
     'window.location.href = "https://example.com/target"',
   );
 };
@@ -900,7 +916,7 @@ export const runShortcutScenario = async ({ control, waitForDownloads }) => {
 /**
  * @param {{
  *   control: ReturnType<typeof import("./control-client.mjs").createE2EControlClient>,
- *   waitForLog: (baseline: number, messages: string[]) => Promise<any[]>,
+ *   waitForLog: (baseline: number, messages: string[]) => Promise<LogEntry[]>,
  *   filename?: string,
  * }} adapters
  */
@@ -922,7 +938,7 @@ export const runFailedDownloadLogScenario = async ({
 /**
  * @param {{
  *   control: ReturnType<typeof import("./control-client.mjs").createE2EControlClient>,
- *   waitForDownloads: (filename: string, deadlineMs?: number) => Promise<any[]>,
+ *   waitForDownloads: (filename: string, deadlineMs?: number) => Promise<DownloadSummary[]>,
  *   filename: string,
  * }} adapters
  */
@@ -953,8 +969,10 @@ export const runAutomaticRetryScenario = async ({ control, waitForDownloads, fil
     });
 
     const rows = await waitForDownloads(filename, 10000);
-    const completed = rows.find((row) => row.state === "complete");
-    expect(completed).toBeTruthy();
+    const completed = requireValue(
+      rows.find((row) => row.state === "complete"),
+      "Automatic retry download did not complete",
+    );
     expect(fs.readFileSync(completed.filename, "utf8")).toBe(body);
     expect(hits).toBeGreaterThanOrEqual(2);
   } finally {

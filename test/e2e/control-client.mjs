@@ -1,3 +1,11 @@
+/** @typedef {import("./control-protocol.mjs").ControlOperation} ControlOperation */
+/** @typedef {import("./control-protocol.mjs").ControlRequest} ControlRequest */
+/** @typedef {import("./control-protocol.mjs").ControlResultMap} ControlResultMap */
+/** @typedef {import("./control-protocol.mjs").DownloadEntry} DownloadEntry */
+/** @typedef {import("./control-protocol.mjs").HistoryEntry} HistoryEntry */
+/** @typedef {import("./control-protocol.mjs").LogEntry} LogEntry */
+/** @typedef {import("./control-protocol.mjs").NotificationCall} NotificationCall */
+
 /**
  * Runs in the extension Options page. Keep this function self-contained: CDP
  * and BiDi serialize it into the target realm and pass only JSON arguments.
@@ -5,26 +13,34 @@
  * @param {string} serializedRequest
  */
 const dispatchControlRequest = async (serializedRequest) => {
-  const request = JSON.parse(serializedRequest);
-  const chromeApi = /** @type {any} */ (Reflect.get(globalThis, "chrome"));
-  const browserApi = /** @type {any} */ (Reflect.get(globalThis, "browser") || chromeApi);
-  /** @param {any} message */
+  /** @param {unknown} value @returns {value is Record<string, unknown>} */
+  const isRecord = (value) => typeof value === "object" && value !== null && !Array.isArray(value);
+  const parsedRequest = /** @type {unknown} */ (JSON.parse(serializedRequest));
+  if (!isRecord(parsedRequest) || typeof parsedRequest.operation !== "string") {
+    throw new Error("Invalid E2E control request");
+  }
+  const request = /** @type {ControlRequest} */ (parsedRequest);
+  const chromeApi = /** @type {typeof chrome} */ (Reflect.get(globalThis, "chrome"));
+  const browserApi = /** @type {typeof chrome} */ (
+    /** @type {unknown} */ (Reflect.get(globalThis, "browser") || chromeApi)
+  );
+  /** @param {Record<string, unknown>} message */
   const send = (message) => browserApi.runtime.sendMessage(message);
-  /** @param {any} value */
+  /** @param {unknown} value */
   const succeed = (value) => JSON.stringify({ ok: true, value: value ?? null });
-  /** @param {any} error */
+  /** @param {unknown} error */
   const fail = (error) =>
     JSON.stringify({
       ok: false,
       error: {
-        message: String(error?.message || error),
-        stack: typeof error?.stack === "string" ? error.stack : undefined,
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
       },
     });
 
-  /** @param {string} area */
+  /** @param {import("./control-protocol.mjs").StorageAreaName} area */
   const storageArea = (area) => {
-    const selected = browserApi.storage?.[area];
+    const selected = area === "local" ? browserApi.storage?.local : browserApi.storage?.session;
     if (!selected) throw new Error(`Storage area is unavailable: ${area}`);
     return selected;
   };
@@ -34,9 +50,9 @@ const dispatchControlRequest = async (serializedRequest) => {
     new Promise((resolve, reject) => {
       const timeout = AbortSignal.timeout(timeoutMs);
       let settled = false;
-      /** @type {any[]} */
+      /** @type {DownloadEntry[]} */
       let lastRows = [];
-      /** @param {any} entry */
+      /** @param {chrome.downloads.DownloadItem} entry */
       const matches = (entry) =>
         filenameRegex
           ? new RegExp(filenameRegex).test(entry.filename)
@@ -53,13 +69,13 @@ const dispatchControlRequest = async (serializedRequest) => {
       };
       const check = async () => {
         const rows = (await browserApi.downloads.search({})).filter(matches);
-        lastRows = rows.map((/** @type {any} */ { id, state, filename, url: rowUrl }) => ({
+        lastRows = rows.map(({ id, state, filename, url: rowUrl }) => ({
           id,
           state,
           filename,
           url: rowUrl,
         }));
-        if (lastRows.some((/** @type {any} */ entry) => entry.state === "complete")) {
+        if (lastRows.some((entry) => entry.state === "complete")) {
           finish(() => resolve(lastRows));
         }
       };
@@ -77,7 +93,7 @@ const dispatchControlRequest = async (serializedRequest) => {
 
   const readLogs = async () => {
     const stored = await browserApi.storage.session.get("si-log");
-    return Array.isArray(stored["si-log"]) ? stored["si-log"] : [];
+    return Array.isArray(stored["si-log"]) ? /** @type {LogEntry[]} */ (stored["si-log"]) : [];
   };
 
   /** @param {{baseline?: number, messages: string[], timeoutMs?: number}} match */
@@ -85,7 +101,7 @@ const dispatchControlRequest = async (serializedRequest) => {
     new Promise((resolve, reject) => {
       const timeout = AbortSignal.timeout(timeoutMs);
       let settled = false;
-      /** @type {any[]} */
+      /** @type {LogEntry[]} */
       let lastEntries = [];
       /** @param {() => void} callback */
       const finish = (callback) => {
@@ -102,7 +118,7 @@ const dispatchControlRequest = async (serializedRequest) => {
           finish(() => resolve(entries));
         }
       };
-      /** @param {Record<string, any>} changes @param {string} area */
+      /** @param {Record<string, chrome.storage.StorageChange>} changes @param {string} area */
       const onChanged = (changes, area) => {
         if (area === "session" && changes["si-log"]) {
           void check().catch((error) => finish(() => reject(error)));
@@ -121,7 +137,7 @@ const dispatchControlRequest = async (serializedRequest) => {
   const resetCase = async (snapshot) => {
     /** @type {string[]} */
     const failures = [];
-    /** @param {string} label @param {() => Promise<any>} operation */
+    /** @param {string} label @param {() => Promise<unknown>} operation */
     const attempt = async (label, operation) => {
       try {
         await operation();
@@ -138,9 +154,8 @@ const dispatchControlRequest = async (serializedRequest) => {
           browserApi.tabs.getCurrent(),
           browserApi.tabs.query({}),
         ]);
-        const keep =
-          current?.id ?? tabs.find((/** @type {any} */ tab) => tab.url?.startsWith(optionsUrl))?.id;
-        const remove = tabs.flatMap((/** @type {any} */ tab) =>
+        const keep = current?.id ?? tabs.find((tab) => tab.url?.startsWith(optionsUrl))?.id;
+        const remove = tabs.flatMap((tab) =>
           tab.id !== undefined && tab.id !== keep ? [tab.id] : [],
         );
         if (remove.length) await browserApi.tabs.remove(remove);
@@ -149,10 +164,8 @@ const dispatchControlRequest = async (serializedRequest) => {
         const downloads = await browserApi.downloads.search({});
         await Promise.all(
           downloads
-            .filter((/** @type {any} */ download) => download.state === "in_progress")
-            .map((/** @type {any} */ download) =>
-              browserApi.downloads.cancel(download.id).catch(() => {}),
-            ),
+            .filter((download) => download.state === "in_progress")
+            .map((download) => browserApi.downloads.cancel(download.id).catch(() => {})),
         );
         await browserApi.downloads.erase({});
       }),
@@ -168,7 +181,7 @@ const dispatchControlRequest = async (serializedRequest) => {
         const rules = await browserApi.declarativeNetRequest.getSessionRules();
         if (rules.length) {
           await browserApi.declarativeNetRequest.updateSessionRules({
-            removeRuleIds: rules.map((/** @type {any} */ rule) => rule.id),
+            removeRuleIds: rules.map((rule) => rule.id),
           });
         }
       }),
@@ -231,7 +244,9 @@ const dispatchControlRequest = async (serializedRequest) => {
         result = await browserApi.tabs.reload(request.id);
         break;
       case "tabs.remove":
-        result = await browserApi.tabs.remove(request.ids);
+        result = await browserApi.tabs.remove(
+          Array.isArray(request.ids) ? request.ids : [request.ids],
+        );
         break;
       case "tabs.sendMessage":
         result = await browserApi.tabs.sendMessage(request.id, request.message);
@@ -261,7 +276,7 @@ const dispatchControlRequest = async (serializedRequest) => {
         result = await resetCase(request.snapshot);
         break;
       case "inspect": {
-        const firefox = typeof browserApi.runtime.getBrowserInfo === "function";
+        const firefox = typeof Reflect.get(browserApi.runtime, "getBrowserInfo") === "function";
         const contextTypes = chromeApi?.contextMenus?.ContextType;
         result = {
           browser: firefox ? "FIREFOX" : "CHROME",
@@ -279,7 +294,7 @@ const dispatchControlRequest = async (serializedRequest) => {
         break;
       }
       default:
-        throw new Error(`Unsupported E2E control operation: ${request.operation}`);
+        throw new Error(`Unsupported E2E control operation: ${parsedRequest.operation}`);
     }
     return succeed(result);
   } catch (error) {
@@ -288,6 +303,9 @@ const dispatchControlRequest = async (serializedRequest) => {
 };
 
 const CONTROL_FUNCTION = dispatchControlRequest.toString();
+
+/** @param {unknown} value @returns {value is Record<string, unknown>} */
+const isRecord = (value) => typeof value === "object" && value !== null && !Array.isArray(value);
 
 /** @param {unknown} error */
 const isMissingControlPage = (error) =>
@@ -341,20 +359,29 @@ export const createRecoveringControlTransport = ({
  */
 export const createE2EControlClient = ({ callFunction }) => {
   let calls = 0;
-  /** @param {Record<string, unknown>} request @param {number} [timeoutMs] */
+  /**
+   * @template {ControlOperation} Operation
+   * @param {Extract<ControlRequest, {operation: Operation}>} request
+   * @param {number} [timeoutMs]
+   * @returns {Promise<ControlResultMap[Operation]>}
+   */
   const call = async (request, timeoutMs) => {
     calls += 1;
     const serialized = await callFunction(CONTROL_FUNCTION, [request], timeoutMs);
     if (typeof serialized !== "string") {
       throw new Error(`E2E control returned a non-string response: ${typeof serialized}`);
     }
-    const response = JSON.parse(serialized);
-    if (!response?.ok) {
-      const error = new Error(response?.error?.message || "E2E control operation failed");
-      if (response?.error?.stack) error.stack = response.error.stack;
+    const response = /** @type {unknown} */ (JSON.parse(serialized));
+    if (!isRecord(response)) throw new Error("E2E control returned an invalid response");
+    if (response.ok !== true) {
+      const details = isRecord(response.error) ? response.error : {};
+      const message =
+        typeof details.message === "string" ? details.message : "E2E control operation failed";
+      const error = new Error(message);
+      if (typeof details.stack === "string") error.stack = details.stack;
       throw error;
     }
-    return response.value;
+    return /** @type {ControlResultMap[Operation]} */ (response.value);
   };
 
   /** @param {"local" | "session"} name */
@@ -372,7 +399,9 @@ export const createE2EControlClient = ({ callFunction }) => {
   const command = async (message, fallback) => {
     const response = await call({ operation: "runtime.send", message });
     if (response?.body?.status !== "OK") {
-      throw new Error(response?.body?.message || fallback);
+      throw new Error(
+        typeof response?.body?.message === "string" ? response.body.message : fallback,
+      );
     }
     return response.body;
   };
@@ -431,7 +460,13 @@ export const createE2EControlClient = ({ callFunction }) => {
     inspect: () => call({ operation: "inspect" }),
     harness: {
       /** @param {Record<string, unknown> | undefined} snapshot */
-      resetCase: (snapshot) => call({ operation: "harness.resetCase", snapshot }, 15000),
+      resetCase: (snapshot) =>
+        call(
+          snapshot
+            ? { operation: "harness.resetCase", snapshot }
+            : { operation: "harness.resetCase" },
+          15000,
+        ),
     },
     options: {
       all: async () => {
@@ -448,8 +483,16 @@ export const createE2EControlClient = ({ callFunction }) => {
       },
     },
     history: {
-      get: async () =>
-        (await call({ operation: "runtime.send", message: { type: "HISTORY_GET" } })).body.entries,
+      get: async () => {
+        const response = await call({
+          operation: "runtime.send",
+          message: { type: "HISTORY_GET" },
+        });
+        if (!Array.isArray(response.body.entries)) {
+          throw new Error("E2E history response is invalid");
+        }
+        return /** @type {HistoryEntry[]} */ (response.body.entries);
+      },
     },
     background: {
       /** @param {Record<string, unknown>} body */
@@ -470,13 +513,16 @@ export const createE2EControlClient = ({ callFunction }) => {
       clickTabMenu: (body) =>
         command({ type: "SAVE_IN_E2E_TAB_MENU_CLICK", body }, "E2E tab-menu command failed"),
       /** @param {"get" | "reset"} action */
-      notificationCalls: async (action) =>
-        (
-          await call({
-            operation: "runtime.send",
-            message: { type: "SAVE_IN_E2E_NOTIFICATION_CALLS", body: { action } },
-          })
-        ).body.calls,
+      notificationCalls: async (action) => {
+        const response = await call({
+          operation: "runtime.send",
+          message: { type: "SAVE_IN_E2E_NOTIFICATION_CALLS", body: { action } },
+        });
+        if (!Array.isArray(response.body.calls)) {
+          throw new Error("E2E notification calls response is invalid");
+        }
+        return /** @type {NotificationCall[]} */ (response.body.calls);
+      },
       /** @param {Record<string, unknown>} config */
       applyConfig: async (config) =>
         (
