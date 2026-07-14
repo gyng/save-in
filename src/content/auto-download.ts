@@ -5,6 +5,7 @@ import {
 import { collectPageSourceCandidates } from "./source-panel-model.ts";
 import { parseRulesCollecting } from "../routing/rule-parser.ts";
 import { isAutomaticRuleClauses } from "../routing/automatic-rule.ts";
+import { normalizeAutoDownloadLimit } from "../config/content-options.ts";
 
 export type AutoDownloadSendResult = "started" | "skipped" | "failed";
 export type AutoDownloadDiscoveryOptions = {
@@ -39,7 +40,7 @@ export const setupAutoDownloadDiscovery = (
   const seen = new Set<string>();
   const queue: AutomaticRoutingCandidate[] = [];
   const idleWaiters = new Set<() => void>();
-  const maxPerPage = Math.max(1, Math.floor(options.maxPerPage));
+  const maxPerPage = normalizeAutoDownloadLimit(options.maxPerPage);
   let stopped = false;
   let draining = false;
   let limitNotified = false;

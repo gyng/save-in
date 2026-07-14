@@ -126,6 +126,31 @@ describe("automatic source discovery", () => {
     controller.stop();
   });
 
+  test.each([Number.NaN, Number.POSITIVE_INFINITY])(
+    "uses the validated default when the page limit is %s",
+    async (maxPerPage) => {
+      document.body.innerHTML = Array.from(
+        { length: 21 },
+        (_, index) => `<img src="https://cdn.test/${index}.png">`,
+      ).join("");
+      const send = vi.fn(() => Promise.resolve("started" as const));
+      const limitReached = vi.fn();
+      const controller = setupAutoDownloadDiscovery({
+        rules,
+        live: false,
+        maxPerPage,
+        send,
+        onLimitReached: limitReached,
+      });
+
+      await controller.idle();
+
+      expect(send).toHaveBeenCalledTimes(20);
+      expect(limitReached).toHaveBeenCalledOnce();
+      controller.stop();
+    },
+  );
+
   test("stopping cancels observation and prevents queued sends", async () => {
     document.body.innerHTML = `
       <img src="https://cdn.test/one.png">
