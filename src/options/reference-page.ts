@@ -184,24 +184,6 @@ export const enhanceReferenceTables = (root: ParentNode) => {
       while (first.firstChild) th.appendChild(first.firstChild);
       first.replaceWith(th);
     });
-    const labels = [...table.tHead!.rows[0]!.cells].map((cell) => cell.textContent.trim());
-    dataRows.forEach((row) => {
-      [...row.cells].forEach((cell, index) => {
-        if (!cell.querySelector(":scope > .reference-cell-content")) {
-          const content = table.ownerDocument.createElement("span");
-          content.className = "reference-cell-content";
-          while (cell.firstChild) content.append(cell.firstChild);
-          cell.append(content);
-        }
-        cell.dataset.referenceLabel = labels[index] || "";
-      });
-    });
-    if (!table.parentElement?.classList.contains("reference-table-scroll")) {
-      const scroller = table.ownerDocument.createElement("div");
-      scroller.className = "reference-table-scroll";
-      table.before(scroller);
-      scroller.append(table);
-    }
   });
 };
 

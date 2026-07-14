@@ -119,7 +119,7 @@ const renderVariablesTable = () => {
     addClickToCopy(nameEl);
 
     const interpolatedEl = document.createElement("td");
-    interpolatedEl.classList.add("last-download-value");
+    interpolatedEl.style.fontFamily = "monospace";
     interpolatedEl.textContent = val ?? "";
 
     variableRow.appendChild(nameEl);
@@ -504,35 +504,6 @@ const optionsPersistence = createOptionsPersistence({
 });
 
 const restoreOptions = () => optionsPersistence.restore();
-
-export const syncOptionsPageAfterWebMcpApply = async (
-  applied: Record<string, unknown>,
-): Promise<void> => {
-  // Never replace a draft or race an in-flight save. The newly persisted
-  // values will become the baseline on the next restore or page load.
-  if (
-    Object.keys(applied).length === 0 ||
-    fieldSaveState.hasUnsaved() ||
-    manualEditorState.anyDirty() ||
-    fieldSaveState.anySaving() ||
-    manualEditorState.anySaving()
-  ) {
-    return;
-  }
-
-  const changes = Object.entries(applied)
-    .filter(
-      ([name, after]) =>
-        JSON.stringify(optionsPersistence.lastKnown[name]) !== JSON.stringify(after),
-    )
-    .map(([name, after]) => ({
-      name,
-      before: optionsPersistence.lastKnown[name],
-      after,
-    }));
-  await restoreOptions();
-  markSavedNow(changes);
-};
 const saveOptions = (e?: Event, scope?: string, scopeValue?: unknown): Promise<unknown> => {
   e?.preventDefault();
   return optionsPersistence.save(scope, scopeValue);
