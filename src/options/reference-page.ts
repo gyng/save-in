@@ -170,7 +170,8 @@ export const enhanceReferenceTables = (root: ParentNode, localize: GetMessage = 
     let headerRow = table.tHead?.rows[0];
     if (!headerRow) {
       const head = table.tHead ?? table.createTHead();
-      headerRow = head.insertRow();
+      const createdHeaderRow = head.insertRow();
+      headerRow = createdHeaderRow;
       const columnCount = Math.max(...dataRows.map((dataRow) => dataRow.cells.length));
       const syntax = localize("referenceColumnSyntax") || "Syntax";
       const meaning = localize("referenceColumnMeaning") || "Meaning";
@@ -182,7 +183,7 @@ export const enhanceReferenceTables = (root: ParentNode, localize: GetMessage = 
         const th = table.ownerDocument.createElement("th");
         th.scope = "col";
         th.textContent = label;
-        headerRow.appendChild(th);
+        createdHeaderRow.appendChild(th);
       });
     }
     rows.forEach((row) => {
