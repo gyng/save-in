@@ -119,7 +119,9 @@ export const addTabMenuListener = () => {
         const tabs = (await webExtensionApi.tabs.query(query))
           .filter(
             (tab): tab is HostTab & { url: string } =>
-              Boolean(tab.url) && !/^(about|chrome):/.test(tab.url!),
+              typeof tab.url === "string" &&
+              tab.url.length > 0 &&
+              !/^(about|chrome):/.test(tab.url),
           )
           .filter(filter);
 
@@ -141,6 +143,8 @@ export const addTabMenuListener = () => {
             );
           }
 
+          const modifiersValue: unknown = Reflect.get(info, "modifiers");
+
           const opts: DownloadInfo = {
             currentTab: t, // Global,
             linkText: t.title,
@@ -155,8 +159,8 @@ export const addTabMenuListener = () => {
             context: DOWNLOAD_TYPES.TAB,
             menuIndex: null,
             comment: null,
-            modifiers: Array.isArray(Reflect.get(info, "modifiers"))
-              ? (Reflect.get(info, "modifiers") as string[])
+            modifiers: Array.isArray(modifiersValue)
+              ? modifiersValue.filter((value): value is string => typeof value === "string")
               : undefined,
           };
 

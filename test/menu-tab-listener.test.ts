@@ -94,6 +94,15 @@ describe("addTabMenuListener tabstrip downloads", () => {
     expect(downloads()[0]!.info.modifiers).toEqual(["Shift"]);
   });
 
+  test("filters malformed modifier metadata from tab-strip clicks", async () => {
+    await listener(
+      { menuItemId: Menus.IDS.TABSTRIP.SELECTED_TAB, modifiers: ["Shift", 7, "Ctrl"] },
+      fromTab,
+    );
+
+    expect(downloads()[0]!.info.modifiers).toEqual(["Shift", "Ctrl"]);
+  });
+
   test("SELECTED_TAB includes an explicitly selected pinned tab", async () => {
     (global.browser.tabs as any).query = vi.fn((query: { pinned?: boolean }) =>
       Promise.resolve(
