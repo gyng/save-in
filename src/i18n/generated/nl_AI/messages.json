@@ -2309,5 +2309,7 @@
   "autoDownloadManageRules": { "message": "Routeringsregels openen" },
   "autoDownloadRoutingHelp": {
     "message": "Automatische regels worden samen met uw routeringsregels beheerd en gebruiken context: auto. Elke regel heeft pagina- en bronvoorwaarden nodig."
-  }
+  },
+  "html_openInFirefoxAddons": { "message": "Openen in Firefox Add-ons" },
+  "html_openInChromeWebStore": { "message": "Openen in de Chrome Web Store" }
 }

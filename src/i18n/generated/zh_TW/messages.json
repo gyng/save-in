@@ -2401,5 +2401,7 @@
   "autoDownloadManageRules": { "message": "開啟路由規則" },
   "autoDownloadRoutingHelp": {
     "message": "自動規則與路由規則一起管理，並使用 context: auto。每項規則都需要頁面條件和來源條件。"
-  }
+  },
+  "html_openInFirefoxAddons": { "message": "在 Firefox Add-ons 中開啟" },
+  "html_openInChromeWebStore": { "message": "在 Chrome Web Store 中開啟" }
 }

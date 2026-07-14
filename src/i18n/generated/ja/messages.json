@@ -2401,5 +2401,7 @@
   "autoDownloadManageRules": { "message": "ルーティングルールを開く" },
   "autoDownloadRoutingHelp": {
     "message": "自動ルールは振り分けルールと一緒に管理され、context: auto を使用します。各ルールにはページ条件とソース条件が必要です。"
-  }
+  },
+  "html_openInFirefoxAddons": { "message": "Firefox Add-ons で開く" },
+  "html_openInChromeWebStore": { "message": "Chrome Web Store で開く" }
 }

@@ -2307,5 +2307,7 @@
   "autoDownloadManageRules": { "message": "Abrir regras de roteamento" },
   "autoDownloadRoutingHelp": {
     "message": "As regras automáticas são gerenciadas com as regras de roteamento e usam context: auto. Cada uma precisa de condições de página e fonte."
-  }
+  },
+  "html_openInFirefoxAddons": { "message": "Abrir nos complementos do Firefox" },
+  "html_openInChromeWebStore": { "message": "Abrir na Chrome Web Store" }
 }

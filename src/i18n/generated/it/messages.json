@@ -2498,5 +2498,7 @@
   },
   "autoDownloadRoutingHelp": {
     "message": "Le regole automatiche si trovano insieme alle regole di routing e usano context: auto. Ognuna richiede condizioni per la pagina e la sorgente."
-  }
+  },
+  "html_openInFirefoxAddons": { "message": "Apri in Firefox Add-ons" },
+  "html_openInChromeWebStore": { "message": "Apri nel Chrome Web Store" }
 }

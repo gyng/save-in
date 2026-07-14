@@ -2057,6 +2057,14 @@
     "message": "Ask the community",
     "description": "Text in the options page. Used in src/options/options.html."
   },
+  "html_openInFirefoxAddons": {
+    "message": "Open in Firefox Add-ons",
+    "description": "Link from About to the Firefox Add-ons listing, shown only in Firefox. Used in src/options/options.html."
+  },
+  "html_openInChromeWebStore": {
+    "message": "Open in Chrome Web Store",
+    "description": "Link from About to the Chrome Web Store listing, shown only in Chrome. Used in src/options/options.html."
+  },
   "html_aVeryDiligentOrganizer": {
     "message": "A very diligent organizer",
     "description": "Text in the options page. Used in src/options/options.html."

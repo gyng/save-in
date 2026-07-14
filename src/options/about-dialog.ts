@@ -1,4 +1,10 @@
 import { webExtensionApi } from "../platform/web-extension-api.ts";
+import { BROWSERS, CURRENT_BROWSER } from "../platform/chrome-detector.ts";
+
+const STORE_LINK_IDS = {
+  [BROWSERS.CHROME]: "about-store-chrome",
+  [BROWSERS.FIREFOX]: "about-store-firefox",
+} as const;
 
 export const setupAboutDialog = () => {
   const dialog = document.querySelector<HTMLDialogElement>("#about-dialog");
@@ -17,6 +23,14 @@ export const setupAboutDialog = () => {
   const version = webExtensionApi.runtime.getManifest().version;
   const versionEl = dialog.querySelector<HTMLElement>("#about-version");
   if (versionEl) versionEl.textContent = version ? `v${version}` : "Unavailable";
+
+  const storeLinks = dialog.querySelectorAll<HTMLAnchorElement>("[data-about-store]");
+  storeLinks.forEach((link) => (link.hidden = true));
+  const storeLinkId = Reflect.get(STORE_LINK_IDS, CURRENT_BROWSER) as string | undefined;
+  if (storeLinkId) {
+    const storeLink = dialog.querySelector<HTMLAnchorElement>(`#${storeLinkId}`);
+    if (storeLink) storeLink.hidden = false;
+  }
 
   const mascot = dialog.querySelector<HTMLButtonElement>(".about-mascot-button");
   let mascotClicks = 0;

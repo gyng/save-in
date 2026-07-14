@@ -2401,5 +2401,7 @@
   "autoDownloadManageRules": { "message": "라우팅 규칙 열기" },
   "autoDownloadRoutingHelp": {
     "message": "자동 규칙은 라우팅 규칙과 함께 관리되며 context: auto를 사용합니다. 각 규칙에는 페이지 및 소스 조건이 필요합니다."
-  }
+  },
+  "html_openInFirefoxAddons": { "message": "Firefox Add-ons에서 열기" },
+  "html_openInChromeWebStore": { "message": "Chrome Web Store에서 열기" }
 }

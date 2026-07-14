@@ -2332,5 +2332,7 @@
   "autoDownloadManageRules": { "message": "Ouvrir les règles de routage" },
   "autoDownloadRoutingHelp": {
     "message": "Les règles automatiques sont gérées avec vos règles de routage et utilisent context: auto. Chacune nécessite des conditions de page et de source."
-  }
+  },
+  "html_openInFirefoxAddons": { "message": "Ouvrir dans Firefox Add-ons" },
+  "html_openInChromeWebStore": { "message": "Ouvrir dans le Chrome Web Store" }
 }

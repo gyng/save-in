@@ -2297,5 +2297,7 @@
   "autoDownloadManageRules": { "message": "Öppna dirigeringsregler" },
   "autoDownloadRoutingHelp": {
     "message": "Automatiska regler hanteras tillsammans med routningsreglerna och använder context: auto. Varje regel behöver sid- och källvillkor."
-  }
+  },
+  "html_openInFirefoxAddons": { "message": "Öppna i Firefox Add-ons" },
+  "html_openInChromeWebStore": { "message": "Öppna i Chrome Web Store" }
 }

@@ -2305,5 +2305,7 @@
   "autoDownloadManageRules": { "message": "Abrir reglas de enrutamiento" },
   "autoDownloadRoutingHelp": {
     "message": "Las reglas automáticas se administran junto con las reglas de enrutamiento y usan context: auto. Cada una necesita condiciones de página y fuente."
-  }
+  },
+  "html_openInFirefoxAddons": { "message": "Abrir en Complementos para Firefox" },
+  "html_openInChromeWebStore": { "message": "Abrir en Chrome Web Store" }
 }
