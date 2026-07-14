@@ -438,30 +438,14 @@ test("a configured symlink destination reaches its target", async () => {
   });
 });
 
-test("a template added in Options persists and routes a matching download", async () => {
-  await runTemplateLibraryScenario({
-    evaluate: evalBackground,
-    evaluateOptions: (expression) => session.evaluateInTab("src/options/options.html", expression),
-    waitForDownloads,
-    filename: "template-library-firefox",
-    content: "firefox template library e2e",
-  });
-});
-
-test("visual routing edits persist and connect to the debugger", async () => {
-  await runRoutingVisualEditorScenario({
-    evaluate: evalBackground,
-    evaluateOptions: (expression) => session.evaluateInTab("src/options/options.html", expression),
-  });
-});
-
 test("message-driven downloads work and never inherit a stale route", async () => {
   // Establish the stale-state precondition locally so this regression remains
   // meaningful when the test is isolated or reordered.
+  const staleRoute = "filename: routeme\ninto: stale-message/renamed-:filename:";
   await evalBackground(
     `browser.storage.local.set({
-      filenamePatterns: "filename: routeme\\ninto: routed/renamed-:filename:",
-    }).then(() => api.reset())`,
+      filenamePatterns: ${JSON.stringify(staleRoute)},
+    }).then(() => api.reset()).then(() => "stale route loaded")`,
   );
 
   await evalBackground(
@@ -479,7 +463,24 @@ test("message-driven downloads work and never inherit a stale route", async () =
   expect(downloads).toHaveLength(1);
   expect(downloads.map((/** @type {any} */ x) => x.state)).toEqual(["complete"]);
   expect(downloads[0].filename).toMatch(/ff-msg-download\.txt$/);
-  expect(downloads[0].filename).not.toMatch(/routed/);
+  expect(downloads[0].filename).not.toMatch(/stale-message/);
+});
+
+test("a template added in Options persists and routes a matching download", async () => {
+  await runTemplateLibraryScenario({
+    evaluate: evalBackground,
+    evaluateOptions: (expression) => session.evaluateInTab("src/options/options.html", expression),
+    waitForDownloads,
+    filename: "template-library-firefox",
+    content: "firefox template library e2e",
+  });
+});
+
+test("visual routing edits persist and connect to the debugger", async () => {
+  await runRoutingVisualEditorScenario({
+    evaluate: evalBackground,
+    evaluateOptions: (expression) => session.evaluateInTab("src/options/options.html", expression),
+  });
 });
 
 test("shortcut files keep their extension and redirect content", async () => {

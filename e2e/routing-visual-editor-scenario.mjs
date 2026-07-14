@@ -209,6 +209,5 @@ export const runRoutingVisualEditorScenario = async ({
       else localStorage.setItem("saveInRulesEditorMode", previous);
       return true;
     })()`);
-    await reloadOptions();
   }
 };
