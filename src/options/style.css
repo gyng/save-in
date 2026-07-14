@@ -5464,6 +5464,10 @@ code.click-to-copy {
   box-sizing: border-box;
 }
 
+.auto-download-limit-help {
+  grid-column: 1 / -1;
+}
+
 .auto-download-rules {
   max-width: 48rem;
   margin-top: var(--space-5);
