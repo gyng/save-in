@@ -132,13 +132,15 @@ export const setupOptionSearch = (): void => {
   };
   const setActive = (next: number) => {
     const options = [...results.querySelectorAll<HTMLElement>("[role=option]")];
+    if (options.length === 0) return close();
     active = (next + options.length) % options.length;
     options.forEach((option, index) =>
       option.setAttribute("aria-selected", String(index === active)),
     );
     const activeOption = options[active];
-    input.setAttribute("aria-activedescendant", activeOption!.id);
-    activeOption!.scrollIntoView?.({ block: "nearest" });
+    if (!activeOption) return close();
+    input.setAttribute("aria-activedescendant", activeOption.id);
+    activeOption.scrollIntoView?.({ block: "nearest" });
   };
 
   input.addEventListener("input", render);
@@ -162,7 +164,8 @@ export const setupOptionSearch = (): void => {
     } else if (event.key === "Enter" && visibleEntries.length > 0) {
       event.preventDefault();
       const entry = visibleEntries[active];
-      choose(entry!);
+      if (entry) choose(entry);
+      else close();
     } else if (event.key === "Escape") close();
   });
   input.addEventListener("blur", () => {

@@ -221,6 +221,21 @@ describe("options search", () => {
     input.dispatchEvent(new KeyboardEvent("keydown", { key: "x", bubbles: true }));
   });
 
+  test("contains result DOM removal before keyboard navigation", () => {
+    setupOptionSearch();
+    const input = document.getElementById("option-search") as HTMLInputElement;
+    const results = document.getElementById("option-search-results") as HTMLElement;
+    input.value = "notification";
+    input.dispatchEvent(new InputEvent("input"));
+    results.replaceChildren();
+
+    expect(() =>
+      input.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true })),
+    ).not.toThrow();
+    expect(results.hidden).toBe(true);
+    expect(input.hasAttribute("aria-activedescendant")).toBe(false);
+  });
+
   test("cancels pending blur closure on refocus and replaces repeated blur timers", async () => {
     vi.useFakeTimers();
     setupOptionSearch();
