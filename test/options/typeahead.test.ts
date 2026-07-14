@@ -14,6 +14,7 @@ describe("typeahead dropdown", () => {
   });
 
   afterEach(() => {
+    vi.restoreAllMocks();
     document.body.innerHTML = "";
   });
 
@@ -76,5 +77,31 @@ describe("typeahead dropdown", () => {
     expect(document.getElementById(controls)).toBeNull();
     expect(input.hasAttribute("role")).toBe(false);
     expect(input.hasAttribute("aria-controls")).toBe(false);
+  });
+
+  test("keeps the scrollable results below the input within the viewport", () => {
+    const input = document.querySelector<HTMLInputElement>("#picker")!;
+    vi.spyOn(window, "innerWidth", "get").mockReturnValue(320);
+    vi.spyOn(window, "innerHeight", "get").mockReturnValue(240);
+    vi.spyOn(input, "getBoundingClientRect").mockReturnValue({
+      x: 24,
+      y: 180,
+      top: 180,
+      right: 144,
+      bottom: 216,
+      left: 24,
+      width: 120,
+      height: 36,
+      toJSON: () => ({}),
+    });
+    attachTypeahead(input, { items, onSelect: vi.fn(), preferredWidth: 440 });
+    const dropdown = document.getElementById(input.getAttribute("aria-controls")!)!;
+    Object.defineProperty(dropdown, "offsetHeight", { configurable: true, value: 160 });
+
+    input.focus();
+
+    expect(dropdown.style.top).toBe("220px");
+    expect(dropdown.style.width).toBe("304px");
+    expect(dropdown.style.maxHeight).toBe("min(20rem, 12px)");
   });
 });

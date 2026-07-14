@@ -367,6 +367,7 @@ textarea.syntax-editor-input::placeholder {
   display: grid;
   gap: 2px;
   max-height: min(20rem, calc(100dvh - 16px));
+  overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
   padding: var(--space-1);
@@ -382,8 +383,10 @@ textarea.syntax-editor-input::placeholder {
 
 .typeahead-option {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 1px;
   width: 100%;
+  min-width: 0;
   min-height: 0;
   padding: 6px var(--space-2);
   border: 0;
@@ -403,6 +406,7 @@ textarea.syntax-editor-input::placeholder {
 }
 
 .typeahead-option-label {
+  min-width: 0;
   overflow: hidden;
   font-size: var(--text-base);
   font-weight: 600;
@@ -412,6 +416,7 @@ textarea.syntax-editor-input::placeholder {
 }
 
 .typeahead-option-description {
+  min-width: 0;
   overflow: hidden;
   color: var(--color-text-muted);
   font-size: var(--text-sm);

@@ -83,9 +83,8 @@ export const attachTypeahead = (
     listbox.style.left = `${left}px`;
     listbox.style.top = "0";
     const below = rect.bottom + 4;
-    const above = rect.top - listbox.offsetHeight - 4;
-    const top = below + listbox.offsetHeight <= window.innerHeight || above < edge ? below : above;
-    listbox.style.top = `${Math.max(edge, top)}px`;
+    listbox.style.maxHeight = `min(20rem, ${Math.max(0, window.innerHeight - below - edge)}px)`;
+    listbox.style.top = `${Math.max(edge, below)}px`;
   };
 
   const setActive = (next: number): void => {
@@ -94,6 +93,7 @@ export const attachTypeahead = (
     active = (next + rows.length) % rows.length;
     rows.forEach((row, index) => row.setAttribute("aria-selected", String(index === active)));
     const selected = rows[active];
+    /* v8 ignore next -- A non-empty row list and modulo index always select a row. */
     if (!selected) return;
     input.setAttribute("aria-activedescendant", selected.id);
     selected.scrollIntoView?.({ block: "nearest" });
