@@ -25,7 +25,8 @@
 
 /* Nested submenus indent with a faint guide line */
 .menu-preview-tree li ul {
-  margin: 2px 0 2px var(--space-3);
+  margin-block: 2px;
+  margin-inline: var(--space-3) 0;
   padding-inline-start: var(--space-2);
   border-inline-start: 1px solid var(--panel-border);
 }

@@ -16,6 +16,28 @@ const optionsDocumentPath = path.join(root, "src", "options", "options.html");
 const clauseListDocumentPath = path.join(root, "src", "options", "clauselist.html");
 const sourcePanelPath = path.join(root, "src", "content", "source-panel.ts");
 const sourcePanelStylePath = path.join(root, "src", "content", "source-panel.css");
+
+/**
+ * @param {string} value
+ * @returns {string[]}
+ */
+const splitTopLevelWhitespace = (value) => {
+  const parts = [];
+  let depth = 0;
+  let start = 0;
+  for (let index = 0; index < value.length; index += 1) {
+    const character = value[index];
+    if (character === "(") depth += 1;
+    else if (character === ")") depth -= 1;
+    else if (/\s/.test(character) && depth === 0) {
+      if (start < index) parts.push(value.slice(start, index));
+      start = index + 1;
+    }
+  }
+  if (start < value.length) parts.push(value.slice(start));
+  return parts.filter(Boolean);
+};
+
 /** @type {Array<[string, string[]]>} */
 const styleLayers = [
   ["tokens", ["style-tokens.css"]],
@@ -41,6 +63,7 @@ const styleLayers = [
     "editors",
     [
       "style-rule-editor.css",
+      "style-rule-editor-create.css",
       "style-route-debugger.css",
       "style-route-debugger-responsive.css",
       "style-template-library.css",
@@ -52,7 +75,10 @@ const styleLayers = [
       "style-editor-responsive.css",
     ],
   ],
-  ["advanced", ["style-advanced.css", "style-advanced-responsive.css"]],
+  [
+    "advanced",
+    ["style-advanced.css", "style-advanced-integrations.css", "style-advanced-responsive.css"],
+  ],
   ["history", ["style-history.css", "style-history-responsive.css"]],
   ["welcome", []],
   ["reference", []],
@@ -204,6 +230,21 @@ for (const file of styles) {
     violations.push(`${relative}:${line} uses a physical direction; use a flow-relative property`);
   }
 
+  for (const match of source.matchAll(/^\s*(margin|padding|border-radius)\s*:\s*([^;]+);/gm)) {
+    const property = match[1] || "";
+    const values = splitTopLevelWhitespace((match[2] || "").trim());
+    if (values.length !== 4) continue;
+    const hasPhysicalInlineDirection =
+      property === "border-radius"
+        ? values[0] !== values[1] || values[2] !== values[3]
+        : values[1] !== values[3];
+    if (!hasPhysicalInlineDirection) continue;
+    const line = source.slice(0, match.index).split("\n").length;
+    violations.push(
+      `${relative}:${line} uses an inline-asymmetric ${property} shorthand; use logical longhands`,
+    );
+  }
+
   for (const match of source.matchAll(/\b\d+(?:\.\d+)?vh\b/g)) {
     const line = source.slice(0, match.index).split("\n").length;
     violations.push(`${relative}:${line} uses static viewport height; use a dynamic viewport unit`);
@@ -222,6 +263,9 @@ for (const file of styles) {
   }
 
   for (const match of source.matchAll(/[^{}]+\{[^{}]*overflow(?:-y)?\s*:\s*auto;[^{}]*\}/g)) {
+    if (file === path.join(root, "src", "options", "style-base.css") && match[0].includes("html")) {
+      continue;
+    }
     if (match[0].includes("overscroll-behavior:")) continue;
     const line = source.slice(0, match.index).split("\n").length;
     violations.push(`${relative}:${line} allows a nested scroll surface to chain to its parent`);
@@ -242,6 +286,9 @@ if (!baseStyle.includes("accent-color: var(--color-accent);")) {
 }
 if (/html\s*\{[^}]*min-height:\s*1%/.test(baseStyle)) {
   violations.push("src/options/style-base.css retains an obsolete embedded-options height hack");
+}
+if (!/html\s*\{[^}]*overflow-y:\s*auto;/.test(baseStyle)) {
+  violations.push("src/options/style-base.css must pair its stable gutter with automatic overflow");
 }
 
 const accessibilityStyle = fs.readFileSync(
@@ -298,6 +345,20 @@ if (!utilityStyle.includes(".visually-hidden") || !utilityStyle.includes("clip-p
   violations.push("visually hidden content must use the shared modern clipping utility");
 }
 
+const templateLibraryStyle = fs.readFileSync(
+  path.join(root, "src", "options", "style-template-library.css"),
+  "utf8",
+);
+if (
+  !templateLibraryStyle.includes(".reference-dialog[open]") ||
+  !templateLibraryStyle.includes("minmax(0, 1fr)")
+) {
+  violations.push("the reference dialog must size its scrolling body through an intrinsic grid");
+}
+if (/height:\s*calc\(100%\s*-\s*\d+px\)/.test(templateLibraryStyle)) {
+  violations.push("the reference dialog must not subtract a fixed header height");
+}
+
 const ruleEditorStyle = fs.readFileSync(
   path.join(root, "src", "options", "style-rule-editor.css"),
   "utf8",
@@ -335,6 +396,22 @@ for (const selector of obsoleteSelectors) {
 }
 
 const sourcePanelStyle = fs.readFileSync(sourcePanelStylePath, "utf8");
+for (const match of sourcePanelStyle.matchAll(
+  /^\s*(margin|padding|border-radius)\s*:\s*([^;]+);/gm,
+)) {
+  const property = match[1] || "";
+  const values = splitTopLevelWhitespace((match[2] || "").trim());
+  if (values.length !== 4) continue;
+  const hasPhysicalInlineDirection =
+    property === "border-radius"
+      ? values[0] !== values[1] || values[2] !== values[3]
+      : values[1] !== values[3];
+  if (!hasPhysicalInlineDirection) continue;
+  const line = sourcePanelStyle.slice(0, match.index).split("\n").length;
+  violations.push(
+    `src/content/source-panel.css:${line} uses an inline-asymmetric ${property} shorthand; use logical longhands`,
+  );
+}
 for (const match of sourcePanelStyle.matchAll(/word-break\s*:\s*break-all/g)) {
   const line = sourcePanelStyle.slice(0, match.index).split("\n").length;
   violations.push(
@@ -358,6 +435,9 @@ for (const contract of [
   "--source-panel-motion-transform: translateX(-8px);",
   "--source-panel-motion-transform: translateY(8px);",
   "--source-panel-motion-transform: translateY(-8px);",
+  "--source-panel-floating-left: clamp(",
+  "--source-panel-floating-top: clamp(",
+  "100dvw",
   "@media (prefers-contrast: more)",
   "@media (forced-colors: active)",
 ]) {

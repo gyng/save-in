@@ -153,10 +153,16 @@
 }
 
 .reference-dialog {
-  width: min(1000px, calc(100vw - 2 * var(--space-5)));
-  height: min(760px, calc(100dvh - 2 * var(--space-5)));
+  --dialog-inline-size: 1000px;
+
+  block-size: min(760px, calc(100dvb - 2 * var(--dialog-block-gutter)));
   padding: 0;
   overflow: hidden;
+}
+
+.reference-dialog[open] {
+  display: grid;
+  grid-template-rows: auto auto auto auto auto minmax(0, 1fr);
 }
 
 .reference-dialog-header {
@@ -186,7 +192,7 @@
 }
 
 .reference-dialog-body {
-  height: calc(100% - 144px);
+  min-block-size: 0;
   overflow: auto;
   overscroll-behavior: contain;
   scrollbar-gutter: stable;

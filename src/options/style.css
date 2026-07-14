@@ -15,6 +15,7 @@
 @import url("style-layout.css") layer(layout);
 @import url("style-layout-responsive.css") layer(layout);
 @import url("style-rule-editor.css") layer(editors);
+@import url("style-rule-editor-create.css") layer(editors);
 @import url("style-route-debugger.css") layer(editors);
 @import url("style-route-debugger-responsive.css") layer(editors);
 @import url("style-template-library.css") layer(editors);
@@ -25,6 +26,7 @@
 @import url("style-editor-reference.css") layer(editors);
 @import url("style-editor-responsive.css") layer(editors);
 @import url("style-advanced.css") layer(advanced);
+@import url("style-advanced-integrations.css") layer(advanced);
 @import url("style-advanced-responsive.css") layer(advanced);
 @import url("style-history.css") layer(history);
 @import url("style-history-responsive.css") layer(history);

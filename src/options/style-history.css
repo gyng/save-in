@@ -115,7 +115,8 @@
   letter-spacing: 0.06em;
   color: var(--color-text-muted);
   font-weight: 600;
-  padding: 0 var(--space-3) var(--space-1) 0;
+  padding-block: 0 var(--space-1);
+  padding-inline: 0 var(--space-3);
   border-bottom: 1px solid var(--panel-border);
   white-space: nowrap;
 }
@@ -134,7 +135,8 @@
 }
 
 .history-table td {
-  padding: var(--space-2) var(--space-3) var(--space-2) 0;
+  padding-block: var(--space-2);
+  padding-inline: 0 var(--space-3);
   border-bottom: 1px solid var(--panel-border);
   vertical-align: top;
   overflow: hidden;
@@ -212,7 +214,8 @@
 
 .history-columns {
   position: relative;
-  margin: 0 0 0 auto;
+  margin-block: 0;
+  margin-inline-start: auto;
 }
 
 .history-columns-menu {

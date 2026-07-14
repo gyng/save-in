@@ -35,7 +35,7 @@ html {
      short and tall tabs does not shift the layout horizontally */
   scrollbar-gutter: stable;
   scroll-padding-block-start: var(--sticky-header-offset);
-  overflow-y: scroll;
+  overflow-y: auto;
 }
 
 *,

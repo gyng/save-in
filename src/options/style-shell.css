@@ -270,6 +270,13 @@ body:not(#settings-page) {
 }
 
 .app-dialog {
+  --dialog-inline-size: 32rem;
+  --dialog-inline-gutter: min(var(--space-5), 4dvi);
+  --dialog-block-gutter: min(var(--space-5), 4dvb);
+
+  inline-size: min(var(--dialog-inline-size), calc(100dvi - 2 * var(--dialog-inline-gutter)));
+  max-block-size: calc(100dvb - 2 * var(--dialog-block-gutter));
+  overscroll-behavior: contain;
   color: var(--color-text);
   border: 1px solid var(--panel-border);
   border-radius: var(--radius-dialog);
@@ -277,22 +284,26 @@ body:not(#settings-page) {
   box-shadow: var(--dialog-shadow);
 }
 
+.app-dialog:not(.reference-dialog) {
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
 .app-dialog::backdrop {
   background: var(--backdrop-bg);
 }
 
 .about-dialog {
-  width: min(780px, calc(100vw - 2 * var(--space-5)));
-  max-height: calc(100dvh - 2 * var(--space-5));
+  --dialog-inline-size: 780px;
+
   padding: var(--space-5);
 }
 
 .privacy-dialog {
-  width: min(680px, calc(100vw - 2 * var(--space-5)));
-  max-height: min(680px, 80dvh);
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  scrollbar-gutter: stable;
+  --dialog-inline-size: 680px;
+
+  max-block-size: min(680px, 80dvb);
 }
 
 .privacy-content {
@@ -303,7 +314,8 @@ body:not(#settings-page) {
 }
 
 .privacy-content h1 {
-  margin: 0 var(--space-6) var(--space-1) 0;
+  margin-block: 0 var(--space-1);
+  margin-inline: 0 var(--space-6);
   font-size: var(--text-xl);
   font-weight: 600;
   line-height: 1.2;

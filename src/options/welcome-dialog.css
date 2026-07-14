@@ -1,10 +1,7 @@
 .welcome-dialog {
-  width: min(760px, calc(100vw - 2 * var(--space-5)));
-  max-height: calc(100dvh - 2 * var(--space-5));
+  --dialog-inline-size: 760px;
+
   padding: 0;
-  overflow: auto;
-  overscroll-behavior: contain;
-  scrollbar-gutter: stable;
 }
 
 .welcome-content {
@@ -120,7 +117,8 @@
 }
 
 .welcome-preset-confirm {
-  width: min(440px, calc(100vw - 2 * var(--space-5)));
+  --dialog-inline-size: 440px;
+
   padding: var(--space-5);
 }
 

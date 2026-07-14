@@ -51,7 +51,8 @@ textarea.syntax-editor-input:disabled {
 }
 
 .syntax-editor-gutter {
-  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-1);
+  padding-block: var(--space-2);
+  padding-inline: var(--space-1) var(--space-2);
   font-family: var(--font-mono);
   font-size: var(--text-base);
   line-height: var(--leading-code);
@@ -151,7 +152,8 @@ textarea.syntax-editor-input::placeholder {
   bottom: 0;
   inset-inline-start: 0;
   width: 3px;
-  border-radius: var(--radius) 0 0 var(--radius);
+  border-start-start-radius: var(--radius);
+  border-end-start-radius: var(--radius);
   background: var(--color-accent);
   pointer-events: none;
 }

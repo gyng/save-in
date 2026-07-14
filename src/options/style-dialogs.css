@@ -1,5 +1,6 @@
 :is(.unsaved-changes-dialog, .reset-settings-dialog) {
-  width: min(420px, calc(100vw - 2 * var(--space-5)));
+  --dialog-inline-size: 420px;
+
   padding: var(--space-5);
 }
 

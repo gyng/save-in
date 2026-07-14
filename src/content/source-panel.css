@@ -5,6 +5,10 @@
  */
 :host {
   --source-panel-motion-transform: translateX(8px);
+  --source-panel-inline-gutter: min(16px, 4dvw);
+  --source-panel-block-gutter: min(16px, 4dvh);
+  --source-panel-floating-left: clamp(var(--source-panel-inline-gutter), 10dvw, 80px);
+  --source-panel-floating-top: clamp(var(--source-panel-block-gutter), 10dvh, 80px);
   --font-stack: system-ui, sans-serif;
   --text-xs: 12px;
   --text-base: 14px;
@@ -44,7 +48,7 @@
   z-index: 2147483647;
   isolation: isolate;
   inset: 0 0 0 auto;
-  width: min(360px, 92vw);
+  width: min(360px, 92dvw);
   color: var(--color-text);
   accent-color: var(--color-accent);
   color-scheme: light dark;
@@ -102,20 +106,27 @@
   --source-panel-motion-transform: translateY(8px);
 
   inset: auto 0 0;
-  width: 100vw;
+  width: 100dvw;
   height: min(42dvh, 520px);
 }
 :host(.dock-top) {
   --source-panel-motion-transform: translateY(-8px);
 
   inset: 0 0 auto;
-  width: 100vw;
+  width: 100dvw;
   height: min(42dvh, 520px);
 }
 :host(.floating) {
-  inset: 80px auto auto 80px;
-  width: min(520px, calc(100vw - 32px));
-  height: min(70dvh, 620px);
+  inset: var(--source-panel-floating-top) auto auto var(--source-panel-floating-left);
+  width: min(
+    520px,
+    calc(100dvw - var(--source-panel-floating-left) - var(--source-panel-inline-gutter))
+  );
+  height: min(
+    620px,
+    70dvh,
+    calc(100dvh - var(--source-panel-floating-top) - var(--source-panel-block-gutter))
+  );
 }
 
 .panel {
@@ -382,7 +393,8 @@ video,
   align-items: center;
   gap: 3px;
   max-width: 48%;
-  padding: 1px 5px 1px 4px;
+  padding-block: 1px;
+  padding-inline: 4px 5px;
   color: var(--color-on-accent);
   border-radius: 999px;
   background: var(--color-kind);
@@ -445,7 +457,8 @@ video,
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
-  margin: 1px 5px 3px 42px;
+  margin-block: 1px 3px;
+  margin-inline: 42px 5px;
 }
 .actions button {
   min-height: var(--compact-control-size);

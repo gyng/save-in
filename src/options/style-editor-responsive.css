@@ -57,7 +57,7 @@
 
 @media (max-width: 640px) {
   .reference-dialog {
-    width: calc(100vw - 2 * var(--space-3));
-    height: calc(100dvh - 2 * var(--space-3));
+    inline-size: calc(100dvi - 2 * var(--space-3));
+    block-size: calc(100dvb - 2 * var(--space-3));
   }
 }
