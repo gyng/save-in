@@ -2,6 +2,7 @@ import {
   parseRoutingRuleAst,
   type RoutingClauseNode,
   type RoutingLineNode,
+  type RoutingTriviaNode,
   type RuleSyntaxIssue,
 } from "../routing/rule-syntax.ts";
 
@@ -61,14 +62,14 @@ const lineNodesWithin = (lines: RoutingLineNode[], start: number, end: number): 
 const attachedCommentNodes = (
   lines: RoutingLineNode[],
   firstLineStart: number,
-): RoutingLineNode[] => {
+): Array<RoutingTriviaNode & { kind: "comment" }> => {
   const firstIndex = lines.findIndex((line) => line.cst.line.span.start.offset === firstLineStart);
   if (firstIndex < 1) return [];
-  const comments: RoutingLineNode[] = [];
+  const comments: Array<RoutingTriviaNode & { kind: "comment" }> = [];
   for (let index = firstIndex - 1; index >= 0; index -= 1) {
     const line = lines[index];
     if (!line || line.kind !== "comment") break;
-    comments.unshift(line);
+    comments.unshift(line as RoutingTriviaNode & { kind: "comment" });
   }
   return comments;
 };
@@ -81,14 +82,11 @@ const parseWithUnits = (source: string) => {
       rule.span.start.offset,
       rule.span.end.offset,
     );
-    const firstLine = ruleLines[0];
-    const lastLine = ruleLines.at(-1);
-    const attached = firstLine
-      ? attachedCommentNodes(parsed.ast.lines, firstLine.cst.line.span.start.offset)
-      : [];
-    const start =
-      attached[0]?.cst.line.span.start.offset ?? firstLine?.cst.line.span.start.offset ?? 0;
-    const end = lastLine?.cst.line.span.end.offset ?? rule.span.end.offset;
+    const firstLine = ruleLines[0]!;
+    const lastLine = ruleLines.at(-1)!;
+    const attached = attachedCommentNodes(parsed.ast.lines, firstLine.cst.line.span.start.offset);
+    const start = attached[0]?.cst.line.span.start.offset ?? firstLine.cst.line.span.start.offset;
+    const end = lastLine.cst.line.span.end.offset;
     return {
       start,
       end,
@@ -135,7 +133,7 @@ export const parseVisualRoutingRules = (source: string): VisualRoutingDocument =
         index,
         line: sourceLine(source, unit.rule.span.start.offset),
         comment: unit.attached
-          .map((line) => (line.kind === "comment" ? line.cst.content?.raw.trim() : ""))
+          .map((line) => line.cst.content!.raw.trim())
           .filter(Boolean)
           .join(" · "),
         enabled: controls.every((control) => control.value.trim().toLowerCase() !== "true"),
@@ -202,8 +200,7 @@ export const setRoutingRuleEnabled = (
       value: "true",
     });
   }
-  const last = unit.rule.clauses.at(-1);
-  if (!last) return source;
+  const last = unit.rule.clauses.at(-1)!;
   const newline = newlineFor(source);
   const offset = last.span.end.offset;
   return `${source.slice(0, offset)}${newline}disabled: true${source.slice(offset)}`;
@@ -267,9 +264,7 @@ export const addRoutingClause = (
     const offset = before.cst.line.span.start.offset;
     return `${source.slice(0, offset)}${line}${newline}${source.slice(offset)}`;
   }
-  const needsNewline =
-    unit.end > unit.start && !source.slice(unit.start, unit.end).endsWith(newline);
-  return `${source.slice(0, unit.end)}${needsNewline ? newline : ""}${line}${source.slice(unit.end)}`;
+  return `${source.slice(0, unit.end)}${newline}${line}${source.slice(unit.end)}`;
 };
 
 export const deleteRoutingClause = (
@@ -282,9 +277,9 @@ export const deleteRoutingClause = (
   if (!clause) throw new RangeError(`Routing clause ${clauseIndex + 1} does not exist.`);
   let start = clause.cst.line.span.start.offset;
   let end = clause.cst.terminator.span.end.offset;
-  if (end === start || (end === clause.cst.line.span.end.offset && start > unit.start)) {
+  if (end === clause.cst.line.span.end.offset && start > unit.start) {
     const newline = newlineFor(source);
-    if (source.slice(start - newline.length, start) === newline) start -= newline.length;
+    start -= newline.length;
   }
   return `${source.slice(0, start)}${source.slice(end)}`;
 };
@@ -343,15 +338,14 @@ export const moveRoutingRule = (source: string, from: number, to: number): strin
   const { units } = editableRule(source, from);
   if (to < 0 || to >= units.length) throw new RangeError(`Routing rule ${to + 1} does not exist.`);
   if (from === to) return source;
-  const first = units[0];
-  const last = units.at(-1);
-  if (!first || !last) return source;
+  const first = units[0]!;
+  const last = units.at(-1)!;
   const separators = units
     .slice(0, -1)
     .map((unit, index) => source.slice(unit.end, units[index + 1]!.start));
   const ordered = [...units];
   const [moved] = ordered.splice(from, 1);
-  if (moved) ordered.splice(to, 0, moved);
+  ordered.splice(to, 0, moved!);
   const body = ordered.map((unit, index) => `${unit.content}${separators[index] ?? ""}`).join("");
   return `${source.slice(0, first.start)}${body}${source.slice(last.end)}`;
 };

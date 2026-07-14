@@ -82,6 +82,19 @@ describe("routing visual editor model", () => {
     );
   });
 
+  test("updates a matcher name, flags, and unpadded value in one lossless patch", () => {
+    expect(
+      updateRoutingClause("filename/i: jpg\ninto: images", 0, 0, {
+        name: "fileext",
+        caseInsensitive: false,
+        value: "png",
+      }),
+    ).toBe("fileext: png\ninto: images");
+    expect(updateRoutingClause("filename: jpg\ninto: images", 0, 0, { name: "fileext" })).toBe(
+      "fileext: jpg\ninto: images",
+    );
+  });
+
   test("inserts a matcher immediately before capture and destination clauses", () => {
     expect(
       addRoutingClause(source, 1, {
@@ -99,8 +112,18 @@ describe("routing visual editor model", () => {
     );
   });
 
+  test("appends a clause when an incomplete rule has no capture or destination", () => {
+    expect(addRoutingClause("filename: jpg", 0, { name: "context", value: "image" })).toBe(
+      "filename: jpg\ncontext: image",
+    );
+  });
+
   test("deletes one clause line without disturbing comments or other rules", () => {
     expect(deleteRoutingClause(source, 1, 1)).toBe(source.replace("capturegroups: fileext\n", ""));
+  });
+
+  test("deletes a final clause by consuming its preceding newline", () => {
+    expect(deleteRoutingClause("filename: jpg\ninto: images", 0, 1)).toBe("filename: jpg");
   });
 
   test("adds a canonical rule after the existing document", () => {
@@ -127,6 +150,25 @@ describe("routing visual editor model", () => {
     );
   });
 
+  test.each([
+    ["", ""],
+    ["filename: jpg\ninto: images", "\n\n"],
+    ["filename: jpg\ninto: images\n", "\n"],
+    ["filename: jpg\ninto: images\n\n", ""],
+  ])("adds canonical and automatic rules after separator form %j", (prefix, separator) => {
+    expect(
+      addRoutingRule(prefix, {
+        name: "fileext",
+        value: "pdf",
+        destination: "documents",
+        caseInsensitive: true,
+      }),
+    ).toBe(`${prefix}${separator}fileext/i: pdf\ninto: documents\n`);
+    expect(
+      addAutomaticRoutingRule(prefix).startsWith(`${prefix}${separator}context: ^auto$\n`),
+    ).toBe(true);
+  });
+
   test("duplicates a rule with its attached comment", () => {
     const duplicated = duplicateRoutingRule(source, 0);
     expect(duplicated.match(/\/\/ Images from the CDN/g)).toHaveLength(2);
@@ -138,6 +180,13 @@ describe("routing visual editor model", () => {
   test("deletes a rule and its attached comment with one separator", () => {
     expect(deleteRoutingRule(source, 0)).toBe(
       "fileext: pdf\ncapturegroups: fileext\ninto: documents/:filename:",
+    );
+  });
+
+  test("deletes a sole rule or the final rule", () => {
+    expect(deleteRoutingRule("filename: jpg\ninto: images", 0)).toBe("");
+    expect(deleteRoutingRule(source, 1)).toBe(
+      "// Images from the CDN\n  sourceurl/i: cdn\\.example\\.com  \ninto: images/:filename:",
     );
   });
 
@@ -155,6 +204,15 @@ describe("routing visual editor model", () => {
     );
   });
 
+  test("rejects invalid model indexes and treats a same-position move as a no-op", () => {
+    expect(() => updateRoutingClause(source, 0, 99, { value: "x" })).toThrow(/Routing clause 100/);
+    expect(() => deleteRoutingClause(source, 0, 99)).toThrow(/Routing clause 100/);
+    expect(() => duplicateRoutingRule(source, 99)).toThrow(/Routing rule 100/);
+    expect(() => moveRoutingRule(source, 0, -1)).toThrow(/Routing rule 0/);
+    expect(() => moveRoutingRule(source, 0, 2)).toThrow(/Routing rule 3/);
+    expect(moveRoutingRule(source, 0, 0)).toBe(source);
+  });
+
   test("marks malformed rule blocks as read-only and refuses destructive edits", () => {
     const malformed = "filename: jpg\nnot a clause\ninto: images/:filename:";
     const document = parseVisualRoutingRules(malformed);
@@ -164,6 +222,24 @@ describe("routing visual editor model", () => {
     expect(() => updateRoutingClause(malformed, 0, 0, { value: "png" })).toThrow(
       /Edit this rule in Text mode/,
     );
+  });
+
+  test.each([
+    "filename/x: jpg\ninto: images",
+    "disabled: maybe\nfilename: jpg\ninto: images",
+    "disabled/i: false\nfilename: jpg\ninto: images",
+    "disabled: false\ndisabled: true\nfilename: jpg\ninto: images",
+  ])("marks unsupported visual control syntax as read-only", (unsupported) => {
+    expect(parseVisualRoutingRules(unsupported).rules[0]?.editable).toBe(false);
+    expect(() => setRoutingRuleEnabled(unsupported, 0, false)).toThrow(/Text mode/);
+  });
+
+  test("updates an existing disabled control and removes a trailing control", () => {
+    const disabled = "filename: jpg\ninto: images\ndisabled: false";
+    expect(setRoutingRuleEnabled(disabled, 0, false)).toBe(
+      "filename: jpg\ninto: images\ndisabled: true",
+    );
+    expect(setRoutingRuleEnabled(disabled, 0, true)).toBe("filename: jpg\ninto: images");
   });
 
   test("keeps CRLF endings when inserting clauses and rules", () => {

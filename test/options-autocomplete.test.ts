@@ -152,6 +152,56 @@ describe("attachAutocomplete", () => {
     key("Enter");
     expect(textarea.value).toBe("");
   });
+
+  test("ignores stale option events after the completion has closed", () => {
+    type("a/:d");
+    const staleOption = dropdown().querySelector<HTMLElement>('[role="option"]')!;
+    type("plain");
+    staleOption.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, cancelable: true }));
+    expect(textarea.value).toBe("plain");
+  });
+
+  test("contains non-keyboard events and empty explicit completions", () => {
+    textarea.dispatchEvent(new Event("keydown", { bubbles: true }));
+    expect(textarea.value).toBe("");
+
+    document.body.innerHTML = '<textarea id="empty"></textarea>';
+    const empty = document.querySelector("textarea")!;
+    attachAutocomplete(empty, () => ({ suggestions: [], start: 0, end: 0, suffix: "" }));
+    empty.dispatchEvent(
+      new KeyboardEvent("keydown", { key: " ", ctrlKey: true, cancelable: true }),
+    );
+    empty.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", cancelable: true }));
+    empty.dispatchEvent(new KeyboardEvent("keydown", { key: "a", cancelable: true }));
+    expect(empty.value).toBe("");
+  });
+
+  test("keeps explicit completion closed when the provider has no result", () => {
+    document.body.innerHTML = '<textarea id="none"></textarea>';
+    const none = document.querySelector("textarea")!;
+    attachAutocomplete(none, () => null);
+    none.dispatchEvent(new KeyboardEvent("keydown", { key: " ", metaKey: true, cancelable: true }));
+    expect(none.getAttribute("aria-expanded")).toBe("false");
+  });
+
+  test("uses fallback IDs and caret positions and flips a clipped menu above", () => {
+    document.body.innerHTML = "<textarea></textarea>";
+    const anonymous = document.querySelector("textarea")!;
+    Object.defineProperty(anonymous, "selectionStart", { configurable: true, value: null });
+    anonymous.getBoundingClientRect = () =>
+      ({ left: 0, top: 100, right: 100, bottom: 120, width: 100, height: 20 }) as DOMRect;
+    Object.defineProperty(document.documentElement, "clientHeight", {
+      configurable: true,
+      value: 110,
+    });
+    attachAutocomplete(anonymous, [pathVariableStrategy(VARIABLES)]);
+    const menu = document.querySelector<HTMLElement>(".autocomplete-dropdown")!;
+    Object.defineProperty(menu, "offsetHeight", { configurable: true, value: 20 });
+    anonymous.value = ":d";
+    anonymous.dispatchEvent(new InputEvent("input", { bubbles: true }));
+    expect(anonymous.getAttribute("aria-controls")).toBe("autocomplete-0");
+    expect(menu.style.top).toBe("80px");
+  });
 });
 
 describe("setupRoutingAutocomplete wiring", () => {
@@ -204,4 +254,25 @@ describe("setupRoutingAutocomplete wiring", () => {
     expect(textarea.getAttribute("aria-expanded")).toBe("true");
     expect(dropdown.querySelectorAll('[role="option"]')).toHaveLength(3);
   });
+
+  test("attaches directory completion to the paths textarea", () => {
+    document.body.innerHTML = '<textarea id="paths"></textarea>';
+    setupRoutingAutocomplete({ matchers: [], variables: [":date:"] });
+    const textarea = document.querySelector("textarea")!;
+    textarea.value = ":d";
+    textarea.selectionStart = 2;
+    textarea.dispatchEvent(new InputEvent("input", { bubbles: true }));
+    expect(document.querySelector('[role="option"]')?.textContent).toBe(":date:");
+  });
+
+  test.each([{ body: {} }, { body: { matchers: [] } }, { body: { matchers: [], variables: [] } }])(
+    "contains and normalizes keyword response %j during module startup",
+    async (response) => {
+      vi.resetModules();
+      vi.mocked(browser.runtime.sendMessage).mockResolvedValueOnce(response as never);
+      await import("../src/options/autocomplete.ts");
+      await vi.waitFor(() => expect(browser.runtime.sendMessage).toHaveBeenCalled());
+      expect(document.querySelector(".autocomplete-dropdown")).toBeNull();
+    },
+  );
 });

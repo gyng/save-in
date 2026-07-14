@@ -238,10 +238,7 @@ export const attachAutocomplete = (
   };
 
   const render = () => {
-    if (!current) {
-      return;
-    }
-    const state = current;
+    const state = current!;
     dropdown.innerHTML = "";
     let previousGroup = "";
     state.suggestions.forEach((name, i) => {

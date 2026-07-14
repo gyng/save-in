@@ -52,6 +52,38 @@ describe("syntax editor model", () => {
     ]);
   });
 
+  test("highlights blank, separator, plain, comment, and capture syntax", () => {
+    const directories = "\n---\nplain\n// note";
+    const directorySnapshot = analyzeSyntax("directories", directories);
+    expect(
+      directorySnapshot.tokens.map(({ kind, start, end }) => [
+        kind,
+        tokenText(directories, start, end),
+      ]),
+    ).toEqual(
+      expect.arrayContaining([
+        ["separator", "---"],
+        ["path", "plain"],
+        ["comment-delimiter", "//"],
+        ["comment", " note"],
+      ]),
+    );
+
+    const routing = "// note\n//\ncapture: filename\ninto: :filename:";
+    const routingSnapshot = analyzeSyntax("routing", routing);
+    expect(
+      routingSnapshot.tokens.map(({ kind, start, end }) => [kind, tokenText(routing, start, end)]),
+    ).toEqual(
+      expect.arrayContaining([
+        ["comment-delimiter", "//"],
+        ["comment", " note"],
+        ["capture", "capture"],
+        ["capture-value", "filename"],
+        ["destination-value", ":filename:"],
+      ]),
+    );
+  });
+
   test("uses grammar context for directory and routing completions", () => {
     const variables = [":date:", ":day:", ":filename:"];
     const matchers = ["into", "capturegroups", "fileext", "filename"];
@@ -89,6 +121,43 @@ describe("syntax editor model", () => {
     );
   });
 
+  test("rejects completion outside grammar slots and filters explicit capture values", () => {
+    const variables = [":date:", ":day:"];
+    const matchers = ["into", "capturegroups", "fileext", "filename"];
+    const vocabulary = { matchers, variables };
+
+    expect(completeDirectorySyntax("  >> :da", 1, variables)).toBeNull();
+    expect(completeDirectorySyntax("plain", 5, variables)).toBeNull();
+    expect(completeDirectorySyntax(":zz", 3, variables)).toBeNull();
+    expect(completeDirectorySyntax("first\n:da\nlast", 9, variables)?.suggestions).toEqual([
+      ":date:",
+      ":day:",
+    ]);
+
+    expect(completeRoutingSyntax("// fil", 6, vocabulary)).toBeNull();
+    expect(completeRoutingSyntax("fi-", 3, vocabulary)).toBeNull();
+    expect(completeRoutingSyntax("zzz", 3, vocabulary)).toBeNull();
+    expect(completeRoutingSyntax("  fil", 5, vocabulary)).toEqual({
+      start: 2,
+      end: 5,
+      suggestions: ["fileext", "filename"],
+      suffix: ": ",
+    });
+    expect(completeRoutingSyntax("capture:", 8, vocabulary)).toBeNull();
+    expect(completeRoutingSyntax("capture:", 8, vocabulary, true)?.suggestions).toEqual([
+      "fileext",
+      "filename",
+    ]);
+    expect(completeRoutingSyntax("capture: nope", 13, vocabulary)).toBeNull();
+    expect(completeRoutingSyntax("capture: fileext, fil", 21, vocabulary)?.suggestions).toEqual([
+      "fileext",
+      "filename",
+    ]);
+    expect(completeRoutingSyntax("filename: fil", 8, vocabulary)?.suggestions).toEqual([
+      "filename",
+    ]);
+  });
+
   test("turns path indexes and routing locations into editor diagnostics", () => {
     expect(
       validationErrorsToDiagnostics("directories", "  first\n\n  second  ", [
@@ -121,6 +190,34 @@ describe("syntax editor model", () => {
         column: 10,
         message: "Invalid regular expression: SyntaxError",
         severity: "warning",
+      },
+    ]);
+  });
+
+  test("drops unlocatable validation errors and preserves message-only errors", () => {
+    expect(
+      validationErrorsToDiagnostics("directories", "first", [
+        { message: "Missing index", error: "" },
+        { message: "Past end", error: "", sourceIndex: 4 },
+      ]),
+    ).toEqual([]);
+    expect(
+      validationErrorsToDiagnostics("routing", "filename: x", [
+        { message: "No location", error: "" },
+        {
+          message: "Invalid matcher",
+          error: "",
+          location: { start: 0, end: 8, line: 1, column: 0 },
+        },
+      ]),
+    ).toEqual([
+      {
+        start: 0,
+        end: 8,
+        line: 1,
+        column: 0,
+        message: "Invalid matcher",
+        severity: "error",
       },
     ]);
   });

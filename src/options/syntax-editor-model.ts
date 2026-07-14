@@ -96,27 +96,19 @@ const addVariableTokens = (
   tokens: SyntaxToken[],
 ): void => {
   for (const match of source.slice(start, end).matchAll(/:[a-zA-Z0-9$]+:/g)) {
-    const offset = start + (match.index ?? 0);
+    const offset = start + match.index;
     tokens.push(token("variable", offset, offset + match[0].length));
   }
 };
 
 const visibleDiagnosticRange = (
-  source: string,
   start: number,
   end: number,
   line: SyntaxLine,
 ): { start: number; end: number } => {
   if (end > start) return { start, end };
-  if (line.end > line.start) {
-    const bounded = Math.min(Math.max(start, line.start), line.end - 1);
-    return { start: bounded, end: bounded + 1 };
-  }
-  if (source.length > 0) {
-    const bounded = Math.min(start, source.length - 1);
-    return { start: bounded, end: bounded + 1 };
-  }
-  return { start: 0, end: 0 };
+  const bounded = Math.min(Math.max(start, line.start), line.end - 1);
+  return { start: bounded, end: bounded + 1 };
 };
 
 const directorySnapshot = (source: string, lines: readonly SyntaxLine[]): SyntaxSnapshot => {
@@ -174,7 +166,6 @@ const directorySnapshot = (source: string, lines: readonly SyntaxLine[]): Syntax
     }
     parsed.issues.forEach(() => {
       const range = visibleDiagnosticRange(
-        source,
         absolute(ast.path.span.start.offset),
         absolute(ast.path.span.end.offset),
         line,
@@ -237,20 +228,14 @@ const routingSnapshot = (source: string, lines: readonly SyntaxLine[]): SyntaxSn
     if (line.kind === "clause") {
       addRoutingClauseTokens(source, line, tokens);
     } else if (line.kind === "comment") {
-      if (line.cst.delimiter) {
-        tokens.push(
-          token(
-            "comment-delimiter",
-            line.cst.delimiter.span.start.offset,
-            line.cst.delimiter.span.end.offset,
-          ),
-        );
-      }
-      if (line.cst.content) {
-        tokens.push(
-          token("comment", line.cst.content.span.start.offset, line.cst.content.span.end.offset),
-        );
-      }
+      tokens.push(
+        token(
+          "comment-delimiter",
+          line.cst.delimiter!.span.start.offset,
+          line.cst.delimiter!.span.end.offset,
+        ),
+        token("comment", line.cst.content!.span.start.offset, line.cst.content!.span.end.offset),
+      );
     } else if (line.kind === "invalid") {
       tokens.push(
         token("invalid", line.cst.content.span.start.offset, line.cst.content.span.end.offset),
@@ -258,13 +243,8 @@ const routingSnapshot = (source: string, lines: readonly SyntaxLine[]): SyntaxSn
     }
   }
   const diagnostics = parsed.issues.map((issue) => {
-    const line = lines[issue.line - 1] ?? lines[0] ?? { number: 1, start: 0, end: 0 };
-    const range = visibleDiagnosticRange(
-      source,
-      issue.span.start.offset,
-      issue.span.end.offset,
-      line,
-    );
+    const line = lines[issue.line - 1]!;
+    const range = visibleDiagnosticRange(issue.span.start.offset, issue.span.end.offset, line);
     return {
       ...range,
       line: issue.line,
@@ -399,8 +379,7 @@ const captureMatcherCompletion = (
   explicit: boolean,
 ): SyntaxCompletion | null => {
   const before = source.slice(valueStart, caret);
-  const match = before.match(/(?:^|,\s*)([a-z]*)$/i);
-  const prefix = match?.[1];
+  const prefix = before.match(/(?:^|,\s*)([a-z]*)$/i)?.[1];
   if (prefix === undefined || (!prefix && !explicit)) return null;
   const suggestions = matchers.filter((name) =>
     name.toLocaleLowerCase().startsWith(prefix.toLocaleLowerCase()),

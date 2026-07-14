@@ -51,6 +51,16 @@ describe("suggestFor", () => {
     ]);
     expect(result!.suggestions).toEqual([":date:", ":day:"]);
   });
+
+  test("skips a matching strategy that does not expose a completion term", () => {
+    const incomplete = {
+      match: /plain$/,
+      suggest: vi.fn(() => ["unused"]),
+      insert: (_prefix: string, name: string) => name,
+    };
+    expect(suggestFor("plain", [incomplete, pathVariableStrategy(VARIABLES)])).toBeNull();
+    expect(incomplete.suggest).not.toHaveBeenCalled();
+  });
 });
 
 describe("applySuggestion", () => {
@@ -70,5 +80,23 @@ describe("applySuggestion", () => {
 
     expect(applied.value).toBe("fileext: ");
     expect(applied.caret).toBe(9);
+  });
+
+  test("applies a router variable and a strategy without a prefix capture", () => {
+    const routerValue = "filename: x\ninto: :d";
+    const routerResult = suggestFor(routerValue, [routerVariableStrategy(VARIABLES)])!;
+    expect(applySuggestion(routerValue, routerValue.length, routerResult, ":date:")).toEqual({
+      value: "filename: x\ninto: :date:",
+      caret: 24,
+    });
+
+    const strategy = {
+      match: /(x)(y)$/,
+      suggest: () => ["z"],
+      insert: (prefix: string, name: string) => `${prefix}${name}`,
+    };
+    const result = suggestFor("xy", [strategy])!;
+    Reflect.deleteProperty(result.match, "1");
+    expect(applySuggestion("xy", 2, result, "z")).toEqual({ value: "z", caret: 1 });
   });
 });
