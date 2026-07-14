@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import {
   createSyntaxEditor,
+  renderSyntaxHighlight,
   setSyntaxEditorDiagnostics,
   setupSyntaxEditors,
 } from "../src/options/syntax-editor.ts";
@@ -43,6 +44,18 @@ describe("syntax editor surface", () => {
     expect(label.querySelector("pre")).toBeNull();
     expect(textarea.parentElement).toBe(label);
     expect(document.querySelector('[role="tooltip"]')).toBeNull();
+  });
+
+  test("renders read-only routing highlights without editor chrome", () => {
+    const source = "filename/i: \\.png$\ninto: images/:date:";
+    const target = document.createElement("pre");
+
+    renderSyntaxHighlight(target, "routing", source);
+
+    expect(target.textContent).toBe(source);
+    expect(target.querySelector(".syntax-token-matcher")?.textContent).toBe("filename");
+    expect(target.querySelector(".syntax-token-variable")?.textContent).toBe(":date:");
+    expect(target.querySelector(".syntax-editor-end-marker")).toBeNull();
   });
 
   test("renders diagnostics, caret feedback, and gutter navigation without hover tooltips", () => {

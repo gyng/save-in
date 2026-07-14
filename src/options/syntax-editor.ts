@@ -96,6 +96,7 @@ const renderOverlay = (
   overlay: HTMLElement,
   snapshot: SyntaxSnapshot,
   externalDiagnostics: readonly SyntaxEditorDiagnostic[],
+  includeEndMarker = true,
 ): readonly SyntaxEditorDiagnostic[] => {
   const diagnostics = boundedDiagnostics(snapshot.source, [
     ...snapshot.diagnostics,
@@ -138,12 +139,22 @@ const renderOverlay = (
     }
     fragment.append(span);
   }
-  const endMarker = document.createElement("span");
-  endMarker.className = "syntax-editor-end-marker";
-  endMarker.textContent = "\u200b";
-  fragment.append(endMarker);
+  if (includeEndMarker) {
+    const endMarker = document.createElement("span");
+    endMarker.className = "syntax-editor-end-marker";
+    endMarker.textContent = "\u200b";
+    fragment.append(endMarker);
+  }
   overlay.replaceChildren(fragment);
   return diagnostics;
+};
+
+export const renderSyntaxHighlight = (
+  target: HTMLElement,
+  language: SyntaxEditorLanguage,
+  source: string,
+): void => {
+  renderOverlay(target, analyzeSyntax(language, source), [], false);
 };
 
 const renderGutter = (

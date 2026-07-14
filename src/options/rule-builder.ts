@@ -11,6 +11,7 @@ import { PathEditor } from "./path-editor.ts";
 import { sortClauses } from "./vocabulary-groups.ts";
 import { getMessage } from "../platform/localization.ts";
 import { localizeRuleTemplates } from "./rule-templates.ts";
+import { renderSyntaxHighlight } from "./syntax-editor.ts";
 
 export { RULE_TEMPLATES } from "./rule-templates.ts";
 
@@ -162,7 +163,7 @@ export const RuleBuilder = {
         // same grammar users see in the rules editor.
         const ruleEl = document.createElement("pre");
         ruleEl.className = "rule-template-rule";
-        ruleEl.textContent = tpl.rule;
+        renderSyntaxHighlight(ruleEl, "routing", tpl.rule);
         body.appendChild(ruleEl);
 
         const add = document.createElement("button");

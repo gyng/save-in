@@ -145,6 +145,7 @@ describe("template list rendering", () => {
     expect(
       [...document.querySelectorAll(".rule-template-rule")].map((node) => node.textContent),
     ).toEqual(RULE_TEMPLATES.map(({ rule }) => rule));
+    expect(document.querySelector(".rule-template-rule .syntax-token-matcher")).not.toBeNull();
 
     const firstAdd = rows[0]?.querySelector<HTMLButtonElement>("button");
     if (!firstAdd) {
