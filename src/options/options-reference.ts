@@ -8,6 +8,8 @@ import { webExtensionApi } from "../platform/web-extension-api.ts";
 import { addClickToCopy } from "./click-to-copy.ts";
 import { MESSAGE_TYPES } from "../shared/constants.ts";
 import { sendInternalMessage } from "../shared/message-protocol.ts";
+import { bindTabInteractions, syncTabSelection } from "./tab-controls.ts";
+import { getMessage } from "../platform/localization.ts";
 
 type ReferenceKind = "variables" | "clauses";
 
@@ -45,18 +47,25 @@ export const setupOptionsReferences = () => {
 
   const dialog = document.querySelector<HTMLDialogElement>("#reference-dialog");
   const filter = document.querySelector<HTMLInputElement>(".reference-dialog-filter");
-  const tabs = [...document.querySelectorAll<HTMLElement>("[data-reference-tab]")];
+  const dialogTabs = [...(dialog?.querySelectorAll<HTMLElement>("[data-reference-tab]") ?? [])];
+  const launchers = [...document.querySelectorAll<HTMLElement>("[data-reference-tab]")].filter(
+    (control) => !dialog?.contains(control),
+  );
   const panels = [...document.querySelectorAll<HTMLElement>("#reference-dialog [role='tabpanel']")];
   let opener: HTMLElement | null = null;
-  const selectReference = (id: string) => {
+  const selectReference = (id: string, focusFilter: boolean) => {
     const selected = document.querySelector<HTMLElement>(`#${id}`);
     if (!dialog || !selected || !panels.includes(selected)) return;
-    panels.forEach((panel) => (panel.hidden = panel !== selected));
-    tabs.forEach((tab) =>
-      tab.setAttribute("aria-selected", String(tab.dataset.referenceTab === id)),
-    );
-    const label = id.replace("options-reference-", "");
-    filter?.setAttribute("placeholder", `Filter ${label}`);
+    const selectedIndex = dialogTabs.findIndex((tab) => tab.dataset.referenceTab === id);
+    if (selectedIndex < 0) return;
+    syncTabSelection(dialogTabs, panels, selectedIndex);
+    const filterCopy = {
+      "options-reference-variables": getMessage("html_filterVariables") || "Filter variables",
+      "options-reference-clauses": getMessage("html_filterClauses") || "Filter clauses",
+      "options-reference-templates":
+        getMessage("html_filterRoutingTemplates") || "Filter routing templates",
+    }[id];
+    if (filterCopy) filter?.setAttribute("placeholder", filterCopy);
     if (filter) {
       filter.value = "";
       filter.dispatchEvent(new InputEvent("input", { bubbles: true }));
@@ -66,14 +75,20 @@ export const setupOptionsReferences = () => {
       if (typeof dialog.showModal === "function") dialog.showModal();
       else dialog.setAttribute("open", "");
     }
-    filter?.focus();
+    if (focusFilter) filter?.focus();
   };
 
-  tabs.forEach((link) => {
-    link.addEventListener("click", (event) => {
+  launchers.forEach((launcher) => {
+    launcher.addEventListener("click", (event) => {
       event.preventDefault();
-      if (link.dataset.referenceTab) selectReference(link.dataset.referenceTab);
+      if (launcher.dataset.referenceTab) selectReference(launcher.dataset.referenceTab, true);
     });
+  });
+  bindTabInteractions(dialogTabs, (index, focus) => {
+    const tab = dialogTabs[index];
+    if (!tab?.dataset.referenceTab) return;
+    selectReference(tab.dataset.referenceTab, false);
+    if (focus) tab.focus();
   });
   filter?.addEventListener("input", () => {
     const active = panels.find((panel) => !panel.hidden);
@@ -86,7 +101,10 @@ export const setupOptionsReferences = () => {
     if (event.target === dialog) dialog.close();
   });
   dialog?.addEventListener("close", () => {
-    tabs.forEach((tab) => tab.setAttribute("aria-selected", "false"));
+    dialogTabs.forEach((tab, index) => {
+      tab.setAttribute("aria-selected", "false");
+      tab.tabIndex = index === 0 ? 0 : -1;
+    });
     opener?.focus();
   });
 };

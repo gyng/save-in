@@ -12,7 +12,7 @@ import { copyText, type CopyText } from "./clipboard.ts";
 
 type ReferenceKind = "variables" | "clauses";
 type RuntimeVocabulary = { variables: string[]; matchers: string[] };
-type GetMessage = (key: string) => string;
+type GetMessage = (key: string, substitutions?: string | number | (string | number)[]) => string;
 
 const referenceSyntax = (row: HTMLTableRowElement) =>
   row.querySelector("code")?.textContent?.trim() || "";
@@ -137,7 +137,7 @@ export const filterReferenceRows = (root: ParentNode, query: string): number => 
   return visible;
 };
 
-export const enhanceReferenceTables = (root: ParentNode) => {
+export const enhanceReferenceTables = (root: ParentNode, localize: GetMessage = getMessage) => {
   root.querySelectorAll<HTMLTableElement>("table").forEach((table) => {
     table.classList.add("reference-table");
     const rows = [
@@ -158,7 +158,10 @@ export const enhanceReferenceTables = (root: ParentNode) => {
           .forEach((code) => code.replaceWith(code.textContent!));
       });
     }
-    const sectionTitle = table.previousElementSibling?.textContent?.trim() || "Reference";
+    const sectionTitle =
+      table.previousElementSibling?.textContent?.trim() ||
+      localize("referenceCaption") ||
+      "Reference";
     if (!table.caption) {
       const caption = table.ownerDocument.createElement("caption");
       caption.textContent = sectionTitle;
@@ -168,7 +171,12 @@ export const enhanceReferenceTables = (root: ParentNode) => {
       const head = table.createTHead();
       const row = head.insertRow();
       const columnCount = Math.max(...dataRows.map((dataRow) => dataRow.cells.length));
-      const labels = columnCount >= 3 ? ["Syntax", "Example", "Meaning"] : ["Syntax", "Meaning"];
+      const syntax = localize("referenceColumnSyntax") || "Syntax";
+      const meaning = localize("referenceColumnMeaning") || "Meaning";
+      const labels =
+        columnCount >= 3
+          ? [syntax, localize("referenceColumnExample") || "Example", meaning]
+          : [syntax, meaning];
       labels.forEach((label) => {
         const th = table.ownerDocument.createElement("th");
         th.scope = "col";
@@ -184,20 +192,48 @@ export const enhanceReferenceTables = (root: ParentNode) => {
       while (first.firstChild) th.appendChild(first.firstChild);
       first.replaceWith(th);
     });
+    const labels = [...table.tHead!.rows[0]!.cells].map((cell) => cell.textContent.trim());
+    dataRows.forEach((row) => {
+      [...row.cells].forEach((cell, index) => {
+        if (!cell.querySelector(":scope > .reference-cell-content")) {
+          const content = table.ownerDocument.createElement("span");
+          content.className = "reference-cell-content";
+          while (cell.firstChild) content.append(cell.firstChild);
+          cell.append(content);
+        }
+        cell.dataset.referenceLabel = labels[index] || "";
+      });
+    });
+    if (!table.parentElement?.classList.contains("reference-table-scroll")) {
+      const scroller = table.ownerDocument.createElement("div");
+      scroller.className = "reference-table-scroll";
+      table.before(scroller);
+      scroller.append(table);
+    }
   });
 };
 
-export const setupReferencePage = (root: Document = document, copy: CopyText = copyText) => {
+export const setupReferencePage = (
+  root: Document = document,
+  copy: CopyText = copyText,
+  localize: GetMessage = getMessage,
+) => {
   const referenceRoot = root.querySelector("#help-clause-list") || root;
   const kind: ReferenceKind = root.querySelector("#help-clause-list") ? "clauses" : "variables";
   groupReferenceRows(referenceRoot, kind);
-  enhanceReferenceTables(root);
+  enhanceReferenceTables(root, localize);
   const search = root.querySelector<HTMLInputElement>(".reference-search");
   const count = root.querySelector<HTMLElement>(".reference-count");
   const status = root.querySelector<HTMLElement>(".reference-copy-status");
   const updateFilter = () => {
     const visible = filterReferenceRows(referenceRoot, search?.value || "");
-    if (count) count.textContent = `${visible} ${visible === 1 ? "result" : "results"}`;
+    if (count) {
+      count.textContent =
+        (visible === 1
+          ? localize("referenceResult", visible)
+          : localize("referenceResults", visible)) ||
+        `${visible} ${visible === 1 ? "result" : "results"}`;
+    }
   };
 
   void loadRuntimeVocabulary().then((vocabulary) => {
@@ -206,7 +242,7 @@ export const setupReferencePage = (root: Document = document, copy: CopyText = c
       kind === "variables" ? vocabulary.variables : vocabulary.matchers.map((x) => `${x}:`);
     syncReferenceVocabulary(referenceRoot, kind, terms);
     groupReferenceRows(referenceRoot, kind);
-    enhanceReferenceTables(root);
+    enhanceReferenceTables(root, localize);
     updateFilter();
   });
   search?.addEventListener("input", updateFilter);
@@ -215,7 +251,8 @@ export const setupReferencePage = (root: Document = document, copy: CopyText = c
   root.querySelectorAll<HTMLElement>(".click-to-copy").forEach((token) => {
     token.tabIndex = 0;
     token.setAttribute("role", "button");
-    token.setAttribute("aria-label", `Copy ${token.textContent?.trim() || "value"}`);
+    const value = token.textContent?.trim() || "value";
+    token.setAttribute("aria-label", localize("referenceCopyValue", value) || `Copy ${value}`);
   });
 
   const activate = async (target: EventTarget | null) => {
@@ -225,7 +262,9 @@ export const setupReferencePage = (root: Document = document, copy: CopyText = c
     await copy(value);
     token.classList.add("copied");
     window.setTimeout(() => token.classList.remove("copied"), 1000);
-    if (status) status.textContent = `Copied ${value}`;
+    if (status) {
+      status.textContent = localize("referenceCopiedValue", value) || `Copied ${value}`;
+    }
   };
   root.addEventListener("click", (event) => void activate(event.target));
   root.addEventListener("keydown", (event) => {

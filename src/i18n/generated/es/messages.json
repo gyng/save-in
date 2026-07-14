@@ -2395,6 +2395,29 @@
   },
   "matchPatternInvalid": { "message": "Patrón de WebExtension no válido" },
   "regularExpressionInvalid": { "message": "Expresión regular no válida" },
+  "validationJumpToIssue": { "message": "Ir a este problema" },
+  "optionsKeepEditing": { "message": "Seguir editando" },
+  "optionsDiscardChanges": { "message": "Descartar cambios" },
+  "referenceCaption": { "message": "Referencia" },
+  "referenceColumnSyntax": { "message": "Sintaxis" },
+  "referenceColumnExample": { "message": "Ejemplo" },
+  "referenceColumnMeaning": { "message": "Significado" },
+  "referenceResult": {
+    "message": "$COUNT$ resultado",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "referenceResults": {
+    "message": "$COUNT$ resultados",
+    "placeholders": { "count": { "content": "$1", "example": "12" } }
+  },
+  "referenceCopyValue": {
+    "message": "Copiar $VALUE$",
+    "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
+  },
+  "referenceCopiedValue": {
+    "message": "Se copió $VALUE$",
+    "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
+  },
   "welcomeReady": { "message": "Listo para guardar" },
   "welcomeTitle": { "message": "Te damos la bienvenida a Save In" },
   "welcomeIntro": {

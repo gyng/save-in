@@ -120,7 +120,7 @@ const renderVariablesTable = () => {
     addClickToCopy(nameEl);
 
     const interpolatedEl = document.createElement("td");
-    interpolatedEl.style.fontFamily = "monospace";
+    interpolatedEl.classList.add("last-download-value");
     interpolatedEl.textContent = val ?? "";
 
     variableRow.appendChild(nameEl);
@@ -201,7 +201,7 @@ const renderErrorRow = (err: ValidationError, textareaId: string) => {
   r.className = "error-row";
   r.setAttribute("role", "button");
   r.setAttribute("tabindex", "0");
-  r.title = "Jump to this error";
+  r.title = getMessage("validationJumpToIssue") || "Jump to this issue";
 
   const sourceIndex =
     "sourceIndex" in err && typeof err.sourceIndex === "number" ? err.sourceIndex : undefined;
@@ -886,7 +886,7 @@ const renderMenuPreview = (container: Element, tree: MenuPreviewTree) => {
       if (entry.raw) {
         row.setAttribute("role", "button");
         row.setAttribute("tabindex", "0");
-        row.title = "Jump to this line";
+        row.title = getMessage("validationJumpToIssue") || "Jump to this issue";
         const jump = () => jumpToError("#paths", entry.raw, entry.sourceIndex);
         row.addEventListener("click", jump);
         row.addEventListener("keydown", (e) => {

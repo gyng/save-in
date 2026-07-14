@@ -3,6 +3,8 @@
 // or its id, so the page degrades to a single scrolling form if this script
 // is absent or errors. The selected tab is remembered in localStorage.
 
+import { bindTabInteractions, syncTabSelection } from "./tab-controls.ts";
+
 const TAB_STORAGE_KEY = "si-options-tab";
 const LEGACY_POSITION_KEYS = [
   "section-downloads",
@@ -130,15 +132,7 @@ export const setupTabs = ({ confirmPendingChanges, onGuardError }: TabsOptions =
     if (!section || !tabs[index] || !panels[index]) return;
     currentIndex = index;
 
-    tabs.forEach((tab, i) => {
-      const selected = i === index;
-      tab.classList.toggle("active", selected);
-      tab.setAttribute("aria-selected", selected ? "true" : "false");
-      tab.tabIndex = selected ? 0 : -1;
-      const panel = panels[i]!;
-      panel.classList.toggle("active", selected);
-      panel.hidden = !selected;
-    });
+    syncTabSelection(tabs, panels, index);
     try {
       localStorage.setItem(TAB_STORAGE_KEY, section.key);
     } catch (e) {
@@ -190,23 +184,8 @@ export const setupTabs = ({ confirmPendingChanges, onGuardError }: TabsOptions =
     afterActivate?.();
   };
 
-  tabs.forEach((tab, index) => {
-    tab.addEventListener("click", () => select(index));
-    tab.addEventListener("keydown", (e) => {
-      if (!["ArrowRight", "ArrowLeft", "Home", "End"].includes(e.key)) {
-        return;
-      }
-      e.preventDefault();
-      const next =
-        e.key === "Home"
-          ? 0
-          : e.key === "End"
-            ? tabs.length - 1
-            : (index + (e.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
-      select(next, true);
-    });
-    tablist.appendChild(tab);
-  });
+  bindTabInteractions(tabs, (index, focus) => select(index, focus));
+  tabs.forEach((tab) => tablist.appendChild(tab));
 
   form.prepend(tablist);
   panels.forEach((panel) => form.appendChild(panel));

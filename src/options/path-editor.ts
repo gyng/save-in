@@ -9,6 +9,7 @@
 import { SPECIAL_DIRS } from "../shared/constants.ts";
 import { getMessage } from "../platform/localization.ts";
 import { setupPathInsertMenu } from "./path-editor-insert-menu.ts";
+import { bindTabInteractions, syncTabSelection } from "./tab-controls.ts";
 import {
   getPathAlias,
   getPathEnabled,
@@ -23,7 +24,9 @@ import {
   type DirectoryLineUpdate,
 } from "./path-editor-model.ts";
 import {
+  clearValidationFields,
   EDITOR_VALIDATION_EVENT,
+  markValidationField,
   validationFeedbackFromEvent,
   validationFeedbackLabel,
   type EditorValidationFeedback,
@@ -86,35 +89,23 @@ const PathEditorHelpers = {
     const textButton = document.querySelector<HTMLElement>("#paths-mode-text");
     const visualButton = document.querySelector<HTMLElement>("#paths-mode-visual");
     const pathsTextarea = document.querySelector<HTMLElement>("#paths");
-    const textEditorSurface =
-      pathsTextarea?.closest<HTMLElement>(".syntax-editor") ?? pathsTextarea;
-    const textElements = [
-      document.querySelector("#paths-text-help"),
-      document.querySelector("#paths-text-actions"),
-      textEditorSurface,
-    ] as (HTMLElement | null)[];
-    const textDescription = document.querySelector<HTMLElement>("#paths-editor-description");
-    if (textDescription) textElements.push(textDescription);
+    const textContainer = document.querySelector<HTMLElement>("#paths-text-editor");
     const visualContainer = document.querySelector<HTMLElement>("#paths-visual");
-    if (!textButton || !visualButton || !visualContainer || textElements.some((el) => !el)) {
+    if (!textButton || !visualButton || !textContainer || !visualContainer || !pathsTextarea) {
       return;
     }
-    const visibleTextElements = textElements as HTMLElement[];
 
     const select = (visual: boolean): void => {
-      textButton.classList.toggle("active", !visual);
-      visualButton.classList.toggle("active", visual);
-      textButton.setAttribute("aria-selected", visual ? "false" : "true");
-      visualButton.setAttribute("aria-selected", visual ? "true" : "false");
-      visibleTextElements.forEach((el) => {
-        el.hidden = visual;
-      });
-      pathsTextarea?.dispatchEvent(
+      syncTabSelection(
+        [textButton, visualButton],
+        [textContainer, visualContainer],
+        visual ? 1 : 0,
+      );
+      pathsTextarea.dispatchEvent(
         new CustomEvent("syntax-editor-visibility", {
           detail: { visible: !visual },
         }),
       );
-      visualContainer.hidden = !visual;
       if (visual && typeof owner.rebuildVisual === "function") {
         owner.rebuildVisual();
       }
@@ -125,8 +116,10 @@ const PathEditorHelpers = {
       }
     };
 
-    textButton.addEventListener("click", () => select(false));
-    visualButton.addEventListener("click", () => select(true));
+    bindTabInteractions([textButton, visualButton], (index, focus) => {
+      select(index === 1);
+      if (focus) [textButton, visualButton][index]?.focus();
+    });
     let visual = true;
     try {
       visual = localStorage.getItem("saveInPathsEditorMode") !== "text";
@@ -162,9 +155,7 @@ const PathEditorHelpers = {
             delete row.dataset.validationMessage;
           }
         });
-      container.querySelectorAll<HTMLElement>('[aria-invalid="true"]').forEach((field) => {
-        field.removeAttribute("aria-invalid");
-      });
+      clearValidationFields(container);
     };
 
     const applyValidationAppearance = (): void => {
@@ -180,7 +171,7 @@ const PathEditorHelpers = {
         row.dataset.validationMessage = label;
         row.title = label;
         if (!error.warning) {
-          row.querySelector<HTMLElement>(".path-editor-dir")?.setAttribute("aria-invalid", "true");
+          markValidationField(row.querySelector<HTMLElement>(".path-editor-dir"), "error-paths");
         }
       });
     };

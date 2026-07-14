@@ -2395,6 +2395,29 @@
   },
   "matchPatternInvalid": { "message": "Ungültiges WebExtension-Muster" },
   "regularExpressionInvalid": { "message": "Ungültiger regulärer Ausdruck" },
+  "validationJumpToIssue": { "message": "Zu diesem Problem springen" },
+  "optionsKeepEditing": { "message": "Weiter bearbeiten" },
+  "optionsDiscardChanges": { "message": "Änderungen verwerfen" },
+  "referenceCaption": { "message": "Referenz" },
+  "referenceColumnSyntax": { "message": "Syntax" },
+  "referenceColumnExample": { "message": "Beispiel" },
+  "referenceColumnMeaning": { "message": "Bedeutung" },
+  "referenceResult": {
+    "message": "$COUNT$ Ergebnis",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "referenceResults": {
+    "message": "$COUNT$ Ergebnisse",
+    "placeholders": { "count": { "content": "$1", "example": "12" } }
+  },
+  "referenceCopyValue": {
+    "message": "$VALUE$ kopieren",
+    "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
+  },
+  "referenceCopiedValue": {
+    "message": "$VALUE$ kopiert",
+    "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
+  },
   "welcomeReady": { "message": "Bereit zum Speichern" },
   "welcomeTitle": { "message": "Willkommen bei Save In" },
   "welcomeIntro": {

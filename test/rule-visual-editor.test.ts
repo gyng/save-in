@@ -115,6 +115,9 @@ describe("routing visual editor", () => {
     expect(card.classList).not.toContain("has-validation-warning");
     expect(row.title).toContain(":naivefidlename:");
     expect(row.querySelector("input")?.getAttribute("aria-invalid")).toBe("true");
+    expect(row.querySelector("input")?.getAttribute("aria-describedby")).toBe(
+      "error-filenamePatterns",
+    );
 
     textarea.dispatchEvent(
       new CustomEvent(EDITOR_VALIDATION_EVENT, {
@@ -145,6 +148,7 @@ describe("routing visual editor", () => {
 
     expect(row.classList).not.toContain("has-validation-error");
     expect(row.querySelector("input")?.hasAttribute("aria-invalid")).toBe(false);
+    expect(row.querySelector("input")?.hasAttribute("aria-describedby")).toBe(false);
     expect(card.classList).toContain("has-validation-warning");
     expect(card.title).toBe("Rule warning\nSecond warning: detail");
 

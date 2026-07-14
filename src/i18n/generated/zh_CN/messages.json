@@ -2491,6 +2491,29 @@
   },
   "matchPatternInvalid": { "message": "无效的 WebExtension 匹配模式" },
   "regularExpressionInvalid": { "message": "无效的正则表达式" },
+  "validationJumpToIssue": { "message": "跳转到此问题" },
+  "optionsKeepEditing": { "message": "继续编辑" },
+  "optionsDiscardChanges": { "message": "放弃更改" },
+  "referenceCaption": { "message": "参考" },
+  "referenceColumnSyntax": { "message": "语法" },
+  "referenceColumnExample": { "message": "示例" },
+  "referenceColumnMeaning": { "message": "含义" },
+  "referenceResult": {
+    "message": "$COUNT$ 个结果",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "referenceResults": {
+    "message": "$COUNT$ 个结果",
+    "placeholders": { "count": { "content": "$1", "example": "12" } }
+  },
+  "referenceCopyValue": {
+    "message": "复制 $VALUE$",
+    "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
+  },
+  "referenceCopiedValue": {
+    "message": "已复制 $VALUE$",
+    "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
+  },
   "welcomeReady": { "message": "可以开始保存" },
   "welcomeTitle": { "message": "欢迎使用 Save In" },
   "welcomeIntro": {

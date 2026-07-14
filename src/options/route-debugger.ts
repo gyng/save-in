@@ -479,32 +479,44 @@ export const setupRouteDebugger = (): void => {
     result.setAttribute("aria-busy", "true");
     if (!hasTrace) renderMessage("running", localize("routeDebuggerRunning", "Testing routes…"));
     try {
-      const response = await sendInternalMessage(webExtensionApi.runtime, {
-        type: MESSAGE_TYPES.VALIDATE,
-        body: {
-          filenamePatterns: textarea.value,
-          info: routeDebuggerInfo(readFields()),
-        },
-      });
-      if (mine !== generation) return;
-      if (!("version" in response.body)) {
-        throw new Error(response.body.message || response.body.error);
+      const requestValidation = async () => {
+        const response = await sendInternalMessage(webExtensionApi.runtime, {
+          type: MESSAGE_TYPES.VALIDATE,
+          body: {
+            filenamePatterns: textarea.value,
+            info: routeDebuggerInfo(readFields()),
+          },
+        });
+        if (!("version" in response.body)) {
+          throw new Error(response.body.message || response.body.error);
+        }
+        const errors = response.body.ruleErrors?.filter((error) => !error.warning) ?? [];
+        if (errors.length > 0) return { errors, trace: null };
+        const trace = parseRouteDebuggerTrace(response.body.ruleTrace);
+        if (!trace) throw new Error("Invalid route debugger trace");
+        return { errors, trace };
+      };
+      let validation: Awaited<ReturnType<typeof requestValidation>>;
+      try {
+        validation = await requestValidation();
+      } catch {
+        // VALIDATE is read-only. A freshly reloaded MV3 background can miss or
+        // interrupt the first request while it finishes waking, so retry once.
+        validation = await requestValidation();
       }
-      const errors = response.body.ruleErrors?.filter((error) => !error.warning) ?? [];
-      if (errors.length > 0) {
+      if (mine !== generation) return;
+      if (validation.errors.length > 0) {
         renderMessage(
           "invalid",
           localize(
             "routeDebuggerFixErrors",
-            `Fix ${errors.length} routing error(s) before testing.`,
-            errors.length,
+            `Fix ${validation.errors.length} routing error(s) before testing.`,
+            validation.errors.length,
           ),
         );
         return;
       }
-      const parsed = parseRouteDebuggerTrace(response.body.ruleTrace);
-      if (!parsed) throw new Error("Invalid route debugger trace");
-      renderTrace(mapRouteTraceToSource(textarea.value, parsed));
+      renderTrace(mapRouteTraceToSource(textarea.value, validation.trace!));
     } catch {
       if (mine !== generation) return;
       renderMessage(

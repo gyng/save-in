@@ -2491,6 +2491,29 @@
   },
   "matchPatternInvalid": { "message": "無効な WebExtension マッチパターン" },
   "regularExpressionInvalid": { "message": "無効な正規表現" },
+  "validationJumpToIssue": { "message": "この問題に移動" },
+  "optionsKeepEditing": { "message": "編集を続ける" },
+  "optionsDiscardChanges": { "message": "変更を破棄" },
+  "referenceCaption": { "message": "リファレンス" },
+  "referenceColumnSyntax": { "message": "構文" },
+  "referenceColumnExample": { "message": "例" },
+  "referenceColumnMeaning": { "message": "意味" },
+  "referenceResult": {
+    "message": "$COUNT$ 件",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "referenceResults": {
+    "message": "$COUNT$ 件",
+    "placeholders": { "count": { "content": "$1", "example": "12" } }
+  },
+  "referenceCopyValue": {
+    "message": "$VALUE$ をコピー",
+    "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
+  },
+  "referenceCopiedValue": {
+    "message": "$VALUE$ をコピーしました",
+    "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
+  },
   "welcomeReady": { "message": "保存の準備ができました" },
   "welcomeTitle": { "message": "Save In へようこそ" },
   "welcomeIntro": {

@@ -17,8 +17,11 @@ import {
 } from "./rule-visual-editor-model.ts";
 import { sortClauses } from "./vocabulary-groups.ts";
 import { isAutomaticRuleClauses } from "../routing/automatic-rule.ts";
+import { bindTabInteractions, syncTabSelection } from "./tab-controls.ts";
 import {
+  clearValidationFields,
   EDITOR_VALIDATION_EVENT,
+  markValidationField,
   validationFeedbackFromEvent,
   validationFeedbackLabel,
   type EditorValidationFeedback,
@@ -103,9 +106,7 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
           delete element.dataset.validationMessage;
         }
       });
-    cards.querySelectorAll<HTMLElement>('[aria-invalid="true"]').forEach((field) => {
-      field.removeAttribute("aria-invalid");
-    });
+    clearValidationFields(cards);
   };
 
   const applyValidationAppearance = (): void => {
@@ -128,23 +129,17 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
       target.dataset.validationMessage = messages;
       target.title = messages;
       if (!error.warning) {
-        row
-          ?.querySelector<HTMLElement>(".rule-clause-value, .rule-clause-name")
-          ?.setAttribute("aria-invalid", "true");
+        markValidationField(
+          row?.querySelector<HTMLElement>(".rule-clause-value, .rule-clause-name") ?? null,
+          "error-filenamePatterns",
+        );
       }
     });
   };
 
   const setMode = (nextVisual: boolean): void => {
     visual = nextVisual;
-    textButton.classList.toggle("active", !visual);
-    visualButton.classList.toggle("active", visual);
-    textButton.setAttribute("aria-selected", visual ? "false" : "true");
-    visualButton.setAttribute("aria-selected", visual ? "true" : "false");
-    textButton.tabIndex = visual ? -1 : 0;
-    visualButton.tabIndex = visual ? 0 : -1;
-    textEditor.hidden = visual;
-    visualEditor.hidden = !visual;
+    syncTabSelection([textButton, visualButton], [textEditor, visualEditor], visual ? 1 : 0);
     textarea.dispatchEvent(
       new CustomEvent("syntax-editor-visibility", { detail: { visible: !visual } }),
     );
@@ -424,24 +419,10 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
     textarea.dispatchEvent(new Event("visual-editor-rendered"));
   };
 
-  textButton.addEventListener("click", () => setMode(false));
-  visualButton.addEventListener("click", () => setMode(true));
-  const onModeKeydown = (event: KeyboardEvent): void => {
-    if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"].includes(event.key)) {
-      return;
-    }
-    event.preventDefault();
-    const nextVisual =
-      event.key === "End"
-        ? true
-        : event.key === "Home"
-          ? false
-          : event.currentTarget === textButton;
-    setMode(nextVisual);
-    (nextVisual ? visualButton : textButton).focus();
-  };
-  textButton.addEventListener("keydown", onModeKeydown);
-  visualButton.addEventListener("keydown", onModeKeydown);
+  bindTabInteractions([textButton, visualButton], (index, focus) => {
+    setMode(index === 1);
+    if (focus) [textButton, visualButton][index]?.focus();
+  });
   addRule?.addEventListener("click", () =>
     commit(
       addRoutingRule(textarea.value, { name: "filename", value: ".*", destination: ":filename:" }),

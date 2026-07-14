@@ -10,6 +10,11 @@ const referenceMarkup = ({ filter = true }: { filter?: boolean } = {}) => `
   <a href="#" data-reference-tab>Empty</a>
   <dialog id="reference-dialog">
     <button class="reference-dialog-close"></button>
+    <div role="tablist">
+      <button role="tab" data-reference-tab="options-reference-variables" aria-controls="options-reference-variables">Variables</button>
+      <button role="tab" data-reference-tab="options-reference-clauses" aria-controls="options-reference-clauses">Clauses</button>
+      <button role="tab" data-reference-tab="options-reference-templates" aria-controls="options-reference-templates">Templates</button>
+    </div>
     ${filter ? '<input class="reference-dialog-filter">' : ""}
     <section id="options-reference-variables" role="tabpanel">
       <span class="reference-loading-status visually-hidden">Loading variables</span>
@@ -54,7 +59,7 @@ test("enhances inline variable and clause references in the main option tabs", a
   const filter = document.querySelector<HTMLInputElement>(".reference-dialog-filter")!;
   expect(dialog.hasAttribute("open")).toBe(true);
   expect(document.querySelector<HTMLElement>("#options-reference-variables")!.hidden).toBe(false);
-  expect(filter.placeholder).toBe("Filter variables");
+  expect(filter.placeholder).toBe("Translated<html_filterVariables>");
 
   filter.value = "missing";
   filter.dispatchEvent(new InputEvent("input", { bubbles: true }));
@@ -64,13 +69,23 @@ test("enhances inline variable and clause references in the main option tabs", a
     )!.hidden,
   ).toBe(true);
 
+  const variableTab = dialog.querySelector<HTMLElement>(
+    "[role='tab'][data-reference-tab='options-reference-variables']",
+  )!;
+  variableTab.focus();
+  variableTab.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+  expect(document.activeElement).toBe(
+    dialog.querySelector("[role='tab'][data-reference-tab='options-reference-clauses']"),
+  );
+  expect(document.querySelector<HTMLElement>("#options-reference-clauses")!.hidden).toBe(false);
+
   document.querySelector<HTMLElement>("[data-reference-tab='options-reference-clauses']")!.click();
-  expect(filter.placeholder).toBe("Filter clauses");
+  expect(filter.placeholder).toBe("Translated<html_filterClauses>");
   expect(filter.value).toBe("");
   document
     .querySelector<HTMLElement>("[data-reference-tab='options-reference-templates']")!
     .click();
-  expect(filter.placeholder).toBe("Filter templates");
+  expect(filter.placeholder).toBe("Translated<html_filterRoutingTemplates>");
 
   document.querySelector<HTMLElement>("[data-reference-tab='missing-panel']")!.click();
   [...document.querySelectorAll<HTMLElement>("[data-reference-tab]")].at(-1)!.click();
@@ -84,8 +99,13 @@ test("enhances inline variable and clause references in the main option tabs", a
   dialog.dispatchEvent(new Event("close"));
   expect(document.activeElement).toBe(opener);
   expect(
-    [...document.querySelectorAll<HTMLElement>("[data-reference-tab]")].every(
+    [...dialog.querySelectorAll<HTMLElement>("[role='tab']")].every(
       (tab) => tab.getAttribute("aria-selected") === "false",
+    ),
+  ).toBe(true);
+  expect(
+    [...document.querySelectorAll<HTMLElement>("body > [data-reference-tab]")].every(
+      (launcher) => !launcher.hasAttribute("aria-selected"),
     ),
   ).toBe(true);
 });

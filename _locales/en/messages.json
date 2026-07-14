@@ -3395,6 +3395,62 @@
     "message": "Use context: auto with page and source conditions to match automatic downloads. The first matching rule sets the save location.",
     "description": "Briefly explains the context, page, and source conditions that match automatic page-source downloads. Used in src/options/options.html."
   },
+  "optionsKeepEditing": {
+    "message": "Keep editing",
+    "description": "Button that closes the unsaved-changes dialog without discarding edits. Used in src/options/unsaved-changes-dialog.ts."
+  },
+  "validationJumpToIssue": {
+    "message": "Jump to this issue",
+    "description": "Tooltip for validation and preview rows that move focus to the relevant editor text. Used in src/options/options.ts."
+  },
+  "optionsDiscardChanges": {
+    "message": "Discard changes",
+    "description": "Button that confirms discarding editor changes. Used in src/options/unsaved-changes-dialog.ts."
+  },
+  "referenceCaption": {
+    "message": "Reference",
+    "description": "Fallback accessible caption for a variable or clause reference table. Used in src/options/reference-page.ts."
+  },
+  "referenceColumnSyntax": {
+    "message": "Syntax",
+    "description": "Column heading for syntax in variable and clause reference tables. Used in src/options/reference-page.ts."
+  },
+  "referenceColumnExample": {
+    "message": "Example",
+    "description": "Column heading for examples in variable reference tables. Used in src/options/reference-page.ts."
+  },
+  "referenceColumnMeaning": {
+    "message": "Meaning",
+    "description": "Column heading for explanations in variable and clause reference tables. Used in src/options/reference-page.ts."
+  },
+  "referenceResult": {
+    "message": "$COUNT$ result",
+    "description": "Singular result count below a filtered reference table. Used in src/options/reference-page.ts.",
+    "placeholders": {
+      "count": { "content": "$1", "example": "1" }
+    }
+  },
+  "referenceResults": {
+    "message": "$COUNT$ results",
+    "description": "Plural result count below a filtered reference table. Used in src/options/reference-page.ts.",
+    "placeholders": {
+      "count": { "content": "$1", "example": "12" }
+    }
+  },
+  "referenceCopyValue": {
+    "message": "Copy $VALUE$",
+    "description": "Accessible action for copying a token from a reference table. Used in src/options/reference-page.ts.",
+    "placeholders": {
+      "value": { "content": "$1", "example": ":filename:" }
+    }
+  },
+  "referenceCopiedValue": {
+    "message": "Copied $VALUE$",
+    "description": "Status after copying a token from a reference table. Used in src/options/reference-page.ts.",
+    "placeholders": {
+      "value": { "content": "$1", "example": ":filename:" }
+    }
+  },
   "welcomeReady": {
     "message": "Ready to save",
     "description": "Short first-install status above the welcome heading. Used in src/options/welcome-dialog.ts."

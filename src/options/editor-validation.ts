@@ -33,3 +33,26 @@ export const validationFeedbackFromEvent = (event: Event): readonly EditorValida
 
 export const validationFeedbackLabel = (error: EditorValidationFeedback): string =>
   error.error ? `${error.message}: ${error.error}` : error.message;
+
+export const clearValidationFields = (root: ParentNode): void => {
+  root.querySelectorAll<HTMLElement>('[aria-invalid="true"]').forEach((field) => {
+    field.removeAttribute("aria-invalid");
+  });
+  root.querySelectorAll<HTMLElement>("[data-validation-described-by]").forEach((field) => {
+    const previous = field.dataset.validationDescribedBy;
+    if (previous) field.setAttribute("aria-describedby", previous);
+    else field.removeAttribute("aria-describedby");
+    delete field.dataset.validationDescribedBy;
+  });
+};
+
+export const markValidationField = (field: HTMLElement | null, summaryId: string): void => {
+  if (!field) return;
+  const previous = field.getAttribute("aria-describedby") || "";
+  field.dataset.validationDescribedBy = previous;
+  field.setAttribute("aria-invalid", "true");
+  field.setAttribute(
+    "aria-describedby",
+    [...new Set([...previous.split(/\s+/).filter(Boolean), summaryId])].join(" "),
+  );
+};

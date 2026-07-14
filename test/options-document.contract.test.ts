@@ -146,16 +146,48 @@ test("keeps editor controls connected to their stable labels", () => {
   requireIds(document, ["paths-editor-label", "rules-text-label", "paths-text-actions"]);
 });
 
-test("places routing validation feedback directly after the text editor", () => {
+test("shares validation feedback after both routing editor panels", () => {
   const document = documentForOptions();
   const errors = document.querySelector("#error-filenamePatterns");
 
-  expect(errors?.parentElement?.id).toBe("rules-text-editor");
-  expect(document.querySelector("#filenamePatterns")?.nextElementSibling).toBe(errors);
+  expect(document.querySelector("#rules-text-editor")?.contains(errors)).toBe(false);
+  expect(document.querySelector("#rules-visual")?.contains(errors)).toBe(false);
+  expect(errors?.previousElementSibling?.id).toBe("rules-visual");
   expect(document.querySelector("#filenamePatterns")?.getAttribute("aria-describedby")).toContain(
     "error-filenamePatterns",
   );
-  expect(document.querySelector("#rules-visual")?.hasAttribute("aria-describedby")).toBe(false);
+  expect(document.querySelector("#rules-visual")?.getAttribute("aria-describedby")).toContain(
+    "error-filenamePatterns",
+  );
+});
+
+test("shares validation feedback after both save-location editor panels", () => {
+  const document = documentForOptions();
+  const errors = document.querySelector("#error-paths");
+
+  expect(document.querySelector("#paths-text-editor")?.contains(errors)).toBe(false);
+  expect(document.querySelector("#paths-visual")?.contains(errors)).toBe(false);
+  expect(errors?.previousElementSibling?.id).toBe("paths-visual");
+  expect(document.querySelector("#paths")?.getAttribute("aria-describedby")).toContain(
+    "error-paths",
+  );
+  expect(document.querySelector("#paths-visual")?.getAttribute("aria-describedby")).toContain(
+    "error-paths",
+  );
+});
+
+test("connects every tab to a labelled tab panel without treating launchers as tabs", () => {
+  const document = documentForOptions();
+
+  for (const tab of document.querySelectorAll<HTMLElement>("[role='tab']")) {
+    const panelId = tab.getAttribute("aria-controls");
+    const panel = panelId ? document.getElementById(panelId) : null;
+    expect(panel?.getAttribute("role"), tab.id || tab.textContent || "tab").toBe("tabpanel");
+    expect(panel?.getAttribute("aria-labelledby"), panelId || "tabpanel").toBe(tab.id);
+  }
+
+  expect(document.querySelector(".reference-launcher-actions [role='tab']")).toBeNull();
+  expect(document.querySelector(".reference-launcher-actions")?.getAttribute("role")).toBeNull();
 });
 
 test("keeps manual-save guidance beside Apply in both visual editors", () => {

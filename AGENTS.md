@@ -260,6 +260,8 @@ vitest specifics (`test/*.test.ts`, typed; `tsc` covers them):
 - Make new UI feel native to the existing app. Reuse the spacing, typography, controls,
   disclosures, borders, and feedback patterns of adjacent settings before adding component-specific
   variants; verify new states alongside the surrounding page in both themes and at narrow widths.
+  Follow the hierarchy, interaction contracts, responsive rules, and anti-drift checklist in
+  [docs/UI.md](docs/UI.md); update that contract before introducing a legitimate new variant.
 - Keep terminology consistent across settings, menus, notifications, help text, and
   accessibility labels. Give translators enough context in message descriptions when a label
   is ambiguous, preserve placeholders exactly, and write complete strings that allow languages

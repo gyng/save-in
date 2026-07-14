@@ -349,7 +349,7 @@ const renderHistoryTable = () => {
     const status = document.createElement("td");
     status.className = "history-status";
     const badge = document.createElement("span");
-    badge.className = `status-badge ${statusClass(r.status)}`;
+    badge.className = `status-pill status-badge ${statusClass(r.status)}`;
     badge.textContent = statusLabel(r.status);
     badge.title = r.status;
     status.appendChild(badge);
@@ -412,7 +412,7 @@ const renderHistoryTable = () => {
     routed.className = "history-routed";
     if (r.routed) {
       const chip = document.createElement("span");
-      chip.className = "routed-chip";
+      chip.className = "status-pill routed-chip";
       chip.textContent = "renamed";
       chip.title = "A routing/rename rule was applied";
       routed.appendChild(chip);

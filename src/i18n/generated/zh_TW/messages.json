@@ -2491,6 +2491,29 @@
   },
   "matchPatternInvalid": { "message": "無效的 WebExtension 比對模式" },
   "regularExpressionInvalid": { "message": "無效的規則運算式" },
+  "validationJumpToIssue": { "message": "跳至此問題" },
+  "optionsKeepEditing": { "message": "繼續編輯" },
+  "optionsDiscardChanges": { "message": "捨棄變更" },
+  "referenceCaption": { "message": "參考" },
+  "referenceColumnSyntax": { "message": "語法" },
+  "referenceColumnExample": { "message": "範例" },
+  "referenceColumnMeaning": { "message": "含義" },
+  "referenceResult": {
+    "message": "$COUNT$ 筆結果",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "referenceResults": {
+    "message": "$COUNT$ 筆結果",
+    "placeholders": { "count": { "content": "$1", "example": "12" } }
+  },
+  "referenceCopyValue": {
+    "message": "複製 $VALUE$",
+    "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
+  },
+  "referenceCopiedValue": {
+    "message": "已複製 $VALUE$",
+    "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
+  },
   "welcomeReady": { "message": "可以開始儲存" },
   "welcomeTitle": { "message": "歡迎使用 Save In" },
   "welcomeIntro": {

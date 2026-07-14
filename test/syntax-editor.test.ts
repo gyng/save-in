@@ -175,7 +175,7 @@ describe("syntax editor surface", () => {
     );
   });
 
-  test("shows line-end diagnostics only while the caret intersects the error", () => {
+  test("keeps diagnostic prose out of editable code lines", () => {
     document.body.innerHTML = '<textarea id="paths">first\nsecond</textarea>';
     const textarea = document.querySelector("textarea")!;
     createSyntaxEditor(textarea, "directories");
@@ -189,40 +189,15 @@ describe("syntax editor surface", () => {
         severity: "error",
       },
     ]);
-    const inline = () => document.querySelector<HTMLElement>(".syntax-editor-inline-diagnostic");
-
-    expect(inline()).toBeNull();
 
     textarea.focus();
     textarea.setSelectionRange(8, 8);
     textarea.dispatchEvent(new Event("select"));
-    expect(inline()?.textContent).toContain("Bad destination");
-    expect(
-      document.querySelectorAll<HTMLElement>(".syntax-editor-inline-row")[1]!.style.paddingLeft,
-    ).toBe("8ch");
-    expect(inline()!.style.marginLeft).toBe("");
-
-    setSyntaxEditorDiagnostics(textarea, [
-      {
-        start: 7,
-        end: 10,
-        line: 2,
-        column: 1,
-        message: "Unusual destination",
-        severity: "warning",
-      },
-    ]);
-    expect(inline()?.classList.contains("syntax-editor-inline-warning")).toBe(true);
-
-    textarea.setSelectionRange(11, 11);
-    textarea.dispatchEvent(new Event("select"));
-    expect(inline()).toBeNull();
-
-    textarea.setSelectionRange(8, 8);
-    textarea.dispatchEvent(new Event("select"));
-    expect(inline()).not.toBeNull();
-    textarea.blur();
-    expect(inline()).toBeNull();
+    expect(document.querySelector(".syntax-editor-inline-diagnostic")).toBeNull();
+    expect(document.querySelector(".syntax-editor-inline-row")).toBeNull();
+    expect(document.querySelector<HTMLElement>(".syntax-editor-tooltip")?.textContent).toContain(
+      "Bad destination",
+    );
   });
 
   test("handles caret, keyboard, visibility, and scroll states", () => {

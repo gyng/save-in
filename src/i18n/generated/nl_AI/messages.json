@@ -2399,6 +2399,29 @@
   },
   "matchPatternInvalid": { "message": "Ongeldig WebExtension-matchpatroon" },
   "regularExpressionInvalid": { "message": "Ongeldige reguliere expressie" },
+  "validationJumpToIssue": { "message": "Naar dit probleem gaan" },
+  "optionsKeepEditing": { "message": "Doorgaan met bewerken" },
+  "optionsDiscardChanges": { "message": "Wijzigingen verwerpen" },
+  "referenceCaption": { "message": "Referentie" },
+  "referenceColumnSyntax": { "message": "Syntaxis" },
+  "referenceColumnExample": { "message": "Voorbeeld" },
+  "referenceColumnMeaning": { "message": "Betekenis" },
+  "referenceResult": {
+    "message": "$COUNT$ resultaat",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "referenceResults": {
+    "message": "$COUNT$ resultaten",
+    "placeholders": { "count": { "content": "$1", "example": "12" } }
+  },
+  "referenceCopyValue": {
+    "message": "$VALUE$ kopiëren",
+    "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
+  },
+  "referenceCopiedValue": {
+    "message": "$VALUE$ gekopieerd",
+    "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
+  },
   "welcomeReady": { "message": "Klaar om op te slaan" },
   "welcomeTitle": { "message": "Welkom bij Save In" },
   "welcomeIntro": {

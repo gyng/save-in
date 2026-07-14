@@ -2387,6 +2387,29 @@
   },
   "matchPatternInvalid": { "message": "Ogiltigt WebExtension-matchningsmönster" },
   "regularExpressionInvalid": { "message": "Ogiltigt reguljärt uttryck" },
+  "validationJumpToIssue": { "message": "Gå till det här problemet" },
+  "optionsKeepEditing": { "message": "Fortsätt redigera" },
+  "optionsDiscardChanges": { "message": "Ignorera ändringar" },
+  "referenceCaption": { "message": "Referens" },
+  "referenceColumnSyntax": { "message": "Syntax" },
+  "referenceColumnExample": { "message": "Exempel" },
+  "referenceColumnMeaning": { "message": "Betydelse" },
+  "referenceResult": {
+    "message": "$COUNT$ resultat",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "referenceResults": {
+    "message": "$COUNT$ resultat",
+    "placeholders": { "count": { "content": "$1", "example": "12" } }
+  },
+  "referenceCopyValue": {
+    "message": "Kopiera $VALUE$",
+    "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
+  },
+  "referenceCopiedValue": {
+    "message": "$VALUE$ har kopierats",
+    "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
+  },
   "welcomeReady": { "message": "Klar att spara" },
   "welcomeTitle": { "message": "Välkommen till Save In" },
   "welcomeIntro": {

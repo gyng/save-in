@@ -2491,6 +2491,29 @@
   },
   "matchPatternInvalid": { "message": "잘못된 WebExtension 일치 패턴" },
   "regularExpressionInvalid": { "message": "잘못된 정규식" },
+  "validationJumpToIssue": { "message": "이 문제로 이동" },
+  "optionsKeepEditing": { "message": "계속 편집" },
+  "optionsDiscardChanges": { "message": "변경 사항 버리기" },
+  "referenceCaption": { "message": "참조" },
+  "referenceColumnSyntax": { "message": "구문" },
+  "referenceColumnExample": { "message": "예" },
+  "referenceColumnMeaning": { "message": "의미" },
+  "referenceResult": {
+    "message": "결과 $COUNT$개",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "referenceResults": {
+    "message": "결과 $COUNT$개",
+    "placeholders": { "count": { "content": "$1", "example": "12" } }
+  },
+  "referenceCopyValue": {
+    "message": "$VALUE$ 복사",
+    "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
+  },
+  "referenceCopiedValue": {
+    "message": "$VALUE$ 복사됨",
+    "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
+  },
   "welcomeReady": { "message": "저장할 준비가 되었습니다" },
   "welcomeTitle": { "message": "Save In에 오신 것을 환영합니다" },
   "welcomeIntro": {

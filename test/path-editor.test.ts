@@ -174,6 +174,9 @@ describe("visual editor", () => {
     expect(rows()[2]!.classList).not.toContain("has-validation-warning");
     expect(rows()[1]!.title).toContain(":modnthname:");
     expect(rows()[1]!.querySelector(".path-editor-dir")?.getAttribute("aria-invalid")).toBe("true");
+    expect(rows()[1]!.querySelector(".path-editor-dir")?.getAttribute("aria-describedby")).toBe(
+      "error-paths",
+    );
 
     textarea().dispatchEvent(
       new CustomEvent(EDITOR_VALIDATION_EVENT, {
@@ -193,6 +196,9 @@ describe("visual editor", () => {
     expect(rows()[1]!.classList).not.toContain("has-validation-error");
     expect(rows()[1]!.hasAttribute("title")).toBe(false);
     expect(rows()[1]!.querySelector(".path-editor-dir")?.hasAttribute("aria-invalid")).toBe(false);
+    expect(rows()[1]!.querySelector(".path-editor-dir")?.hasAttribute("aria-describedby")).toBe(
+      false,
+    );
     expect(rows()[0]!.classList).toContain("has-validation-warning");
     expect(rows()[0]!.title).toBe("Warning only");
     expect(rows()[0]!.querySelector(".path-editor-dir")?.hasAttribute("aria-invalid")).toBe(false);
@@ -413,11 +419,13 @@ describe("text/visual mode toggle", () => {
     document.body.innerHTML = `
       <button type="button" class="editor-tab active" id="paths-mode-text">Text</button>
       <button type="button" class="editor-tab" id="paths-mode-visual">Visual</button>
-      <div id="paths-editor-description">One relative directory per line.</div>
-      <div id="paths-text-help"></div>
-      <div id="paths-text-actions"><details id="paths-insert-menu"></details></div>
-      <div class="manual-save-help"></div>
-      <textarea id="paths">a</textarea>
+      <div id="paths-text-editor">
+        <div id="paths-editor-description">One relative directory per line.</div>
+        <div id="paths-text-help"></div>
+        <div id="paths-text-actions"><details id="paths-insert-menu"></details></div>
+        <div class="manual-save-help"></div>
+        <textarea id="paths">a</textarea>
+      </div>
       <div id="error-paths"></div>
       <div id="paths-visual" hidden></div>
     `;
@@ -433,10 +441,7 @@ describe("text/visual mode toggle", () => {
   test("switching to visual hides the text inputs and rebuilds the rows", () => {
     element<HTMLElement>("#paths-mode-visual").click();
 
-    expect(element<HTMLElement>("#paths").hidden).toBe(true);
-    expect(element<HTMLElement>("#paths-text-actions").hidden).toBe(true);
-    expect(element<HTMLElement>("#paths-text-help").hidden).toBe(true);
-    expect(element<HTMLElement>("#paths-editor-description").hidden).toBe(true);
+    expect(element<HTMLElement>("#paths-text-editor").hidden).toBe(true);
     expect(element<HTMLElement>("#paths-visual").hidden).toBe(false);
     expect(element<HTMLElement>("#error-paths").hidden).toBe(false);
     expect(element("#paths-mode-visual").getAttribute("aria-selected")).toBe("true");
@@ -453,8 +458,7 @@ describe("text/visual mode toggle", () => {
     element<HTMLElement>("#paths-mode-visual").click();
     element<HTMLElement>("#paths-mode-text").click();
 
-    expect(element<HTMLElement>("#paths").hidden).toBe(false);
-    expect(element<HTMLElement>("#paths-editor-description").hidden).toBe(false);
+    expect(element<HTMLElement>("#paths-text-editor").hidden).toBe(false);
     expect(element<HTMLElement>("#paths-visual").hidden).toBe(true);
     expect(element("#paths-mode-text").getAttribute("aria-selected")).toBe("true");
   });
@@ -465,6 +469,19 @@ describe("text/visual mode toggle", () => {
 
     editor.setupModeToggle();
     expect(element<HTMLElement>("#paths-visual").hidden).toBe(true);
+  });
+
+  test("switches tabs with the standard keyboard pattern", () => {
+    const visual = element<HTMLButtonElement>("#paths-mode-visual");
+    visual.dispatchEvent(new KeyboardEvent("keydown", { key: "Home", bubbles: true }));
+    expect(document.activeElement).toBe(element("#paths-mode-text"));
+    expect(element<HTMLElement>("#paths-text-editor").hidden).toBe(false);
+
+    element<HTMLButtonElement>("#paths-mode-text").dispatchEvent(
+      new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }),
+    );
+    expect(document.activeElement).toBe(visual);
+    expect(element<HTMLElement>("#paths-visual").hidden).toBe(false);
   });
 
   test("instances keep rebuild callbacks isolated", () => {
@@ -484,8 +501,8 @@ describe("text/visual mode toggle", () => {
 
     document.body.innerHTML = `
       <button id="paths-mode-text"></button><button id="paths-mode-visual"></button>
-      <div id="paths-text-help"></div><div id="paths-text-actions"></div>
-      <textarea id="paths"></textarea><div id="paths-visual"></div>`;
+      <div id="paths-text-editor"><textarea id="paths"></textarea></div>
+      <div id="paths-visual"></div>`;
     vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
       throw new Error("blocked");
     });
@@ -508,10 +525,12 @@ describe("text/visual mode with syntax editor", () => {
     document.body.innerHTML = `
       <button type="button" id="paths-mode-text">Text</button>
       <button type="button" id="paths-mode-visual">Visual</button>
-      <div id="paths-text-help"></div>
-      <div id="paths-text-actions"></div>
-      <div id="paths-editor-description"></div>
-      <textarea id="paths">a</textarea>
+      <div id="paths-text-editor">
+        <div id="paths-text-help"></div>
+        <div id="paths-text-actions"></div>
+        <div id="paths-editor-description"></div>
+        <textarea id="paths">a</textarea>
+      </div>
       <div id="paths-visual" hidden></div>
     `;
     const textarea = element<HTMLTextAreaElement>("#paths");
@@ -521,7 +540,7 @@ describe("text/visual mode with syntax editor", () => {
     ]);
     const editor = new PathEditor();
     editor.setupModeToggle();
-    const editorSurface = textarea.closest<HTMLElement>('[data-language="directories"]')!;
+    const textPanel = element<HTMLElement>("#paths-text-editor");
     const tooltip = document.querySelector<HTMLElement>('[role="tooltip"]')!;
 
     textarea.setSelectionRange(0, 0);
@@ -529,11 +548,11 @@ describe("text/visual mode with syntax editor", () => {
     expect(tooltip.hidden).toBe(false);
 
     element<HTMLElement>("#paths-mode-visual").click();
-    expect(editorSurface.hidden).toBe(true);
+    expect(textPanel.hidden).toBe(true);
     expect(tooltip.hidden).toBe(true);
 
     element<HTMLElement>("#paths-mode-text").click();
-    expect(editorSurface.hidden).toBe(false);
+    expect(textPanel.hidden).toBe(false);
   });
 });
 

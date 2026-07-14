@@ -1,25 +1,32 @@
+import { getMessage } from "../platform/localization.ts";
+
 export type UnsavedChangesChoice = "discard" | "keep";
 
-export const showUnsavedChangesDialog = (message: string): Promise<UnsavedChangesChoice> =>
+type GetMessage = (key: string) => string;
+
+export const showUnsavedChangesDialog = (
+  message: string,
+  localize: GetMessage = getMessage,
+): Promise<UnsavedChangesChoice> =>
   new Promise((resolve) => {
     const dialog = document.createElement("dialog");
-    dialog.className = "unsaved-changes-dialog";
+    dialog.className = "app-dialog unsaved-changes-dialog";
     dialog.setAttribute("aria-labelledby", "unsaved-changes-title");
 
     const title = document.createElement("h2");
     title.id = "unsaved-changes-title";
-    title.textContent = "Unsaved changes";
+    title.textContent = localize("optionsEditorUnsaved") || "Unsaved changes";
     const body = document.createElement("p");
     body.textContent = message;
     const actions = document.createElement("div");
     actions.className = "dialog-actions";
     const keep = document.createElement("button");
     keep.type = "button";
-    keep.textContent = "Keep editing";
+    keep.textContent = localize("optionsKeepEditing") || "Keep editing";
     const discard = document.createElement("button");
     discard.type = "button";
-    discard.className = "danger-button";
-    discard.textContent = "Discard changes";
+    discard.className = "button-danger danger-button";
+    discard.textContent = localize("optionsDiscardChanges") || "Discard changes";
     actions.append(keep, discard);
     dialog.append(title, body, actions);
     document.body.appendChild(dialog);

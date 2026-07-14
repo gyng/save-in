@@ -480,6 +480,28 @@ test.each([
   );
 });
 
+test("retries one transient validation failure", async () => {
+  renderWorkbench();
+  let validations = 0;
+  vi.spyOn(webExtensionApi.runtime, "sendMessage").mockImplementation(async (message: any) => {
+    if (message.type === MESSAGE_TYPES.CHECK_ROUTES) return checkResponse();
+    validations += 1;
+    if (validations === 1) throw new Error("background waking");
+    return {
+      type: MESSAGE_TYPES.VALIDATE_RESULT,
+      body: { version: 1, ruleErrors: [], ruleTrace: noMatchTrace },
+    };
+  });
+  setupRouteDebugger();
+  document.querySelector<HTMLButtonElement>("#route-debugger-run")!.click();
+  await vi.waitFor(() =>
+    expect(document.querySelector<HTMLElement>("#route-debugger-result")?.dataset.state).toBe(
+      "no-match",
+    ),
+  );
+  expect(validations).toBe(2);
+});
+
 test("renders blocking errors while ignoring warnings", async () => {
   renderWorkbench();
   let blocking = true;

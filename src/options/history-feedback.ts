@@ -12,7 +12,7 @@ export const renderHistoryFeedback = (
   if (!container) return;
   container.replaceChildren();
   container.hidden = !message;
-  container.classList.toggle("history-feedback-error", error);
+  container.classList.toggle("feedback-error", error);
   container.setAttribute("role", error ? "alert" : "status");
   if (!message) return;
   container.append(message);

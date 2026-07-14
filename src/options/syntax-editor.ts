@@ -193,31 +193,6 @@ const renderGutter = (
   gutter.replaceChildren(fragment);
 };
 
-const renderInlineDiagnostics = (
-  layer: HTMLElement,
-  snapshot: SyntaxSnapshot,
-  activeDiagnostics: readonly SyntaxEditorDiagnostic[],
-): void => {
-  const fragment = document.createDocumentFragment();
-  snapshot.lines.forEach((line) => {
-    const row = document.createElement("span");
-    row.className = "syntax-editor-inline-row";
-    const lineDiagnostics = diagnosticsForLine(activeDiagnostics, line);
-    if (lineDiagnostics.length > 0) {
-      const severity = lineDiagnostics.some((diagnostic) => diagnostic.severity === "error")
-        ? "error"
-        : "warning";
-      const message = document.createElement("span");
-      message.className = `syntax-editor-inline-diagnostic syntax-editor-inline-${severity}`;
-      row.style.paddingLeft = `${displayColumns(snapshot.source.slice(line.start, line.end)) + 2}ch`;
-      message.textContent = lineDiagnostics.map(diagnosticLabel).join(" · ");
-      row.append(message);
-    }
-    fragment.append(row);
-  });
-  layer.replaceChildren(fragment);
-};
-
 export const createSyntaxEditor = (
   textarea: HTMLTextAreaElement,
   language: SyntaxEditorLanguage,
@@ -239,9 +214,6 @@ export const createSyntaxEditor = (
   const overlay = document.createElement("pre");
   overlay.className = "syntax-editor-overlay";
   overlay.setAttribute("aria-hidden", "true");
-  const inlineDiagnostics = document.createElement("div");
-  inlineDiagnostics.className = "syntax-editor-inline-diagnostics";
-  inlineDiagnostics.setAttribute("aria-hidden", "true");
   const tooltip = document.createElement("div");
   tooltip.className = "syntax-editor-tooltip";
   tooltip.setAttribute("role", "tooltip");
@@ -252,7 +224,6 @@ export const createSyntaxEditor = (
   if (!parent) throw new Error("Syntax editor textarea must be connected");
   parent.insertBefore(shell, textarea);
   stage.append(overlay);
-  if (language === "directories") stage.append(inlineDiagnostics);
   stage.append(textarea);
   shell.append(gutterViewport, stage);
   textarea.classList.add("syntax-editor-input");
@@ -271,11 +242,6 @@ export const createSyntaxEditor = (
       ),
     );
 
-  const diagnosticsAtCaret = (): readonly SyntaxEditorDiagnostic[] =>
-    document.activeElement === textarea && textarea.selectionStart === textarea.selectionEnd
-      ? diagnosticsAtOffset(textarea.selectionStart)
-      : [];
-
   const diagnosticsAtSelection = (): readonly SyntaxEditorDiagnostic[] =>
     textarea.selectionStart === textarea.selectionEnd
       ? diagnosticsAtOffset(textarea.selectionStart)
@@ -283,7 +249,6 @@ export const createSyntaxEditor = (
 
   const syncScroll = () => {
     overlay.style.transform = `translate(${-textarea.scrollLeft}px, ${-textarea.scrollTop}px)`;
-    inlineDiagnostics.style.transform = `translate(${-textarea.scrollLeft}px, ${-textarea.scrollTop}px)`;
     gutter.style.transform = `translateY(${-textarea.scrollTop}px)`;
   };
 
@@ -291,7 +256,6 @@ export const createSyntaxEditor = (
     snapshot = analyzeSyntax(language, textarea.value);
     renderedDiagnostics = renderOverlay(overlay, snapshot, externalDiagnostics);
     renderGutter(gutter, snapshot, renderedDiagnostics);
-    renderInlineDiagnostics(inlineDiagnostics, snapshot, diagnosticsAtCaret());
     syncScroll();
   };
 
@@ -375,7 +339,6 @@ export const createSyntaxEditor = (
 
   const showTooltipForCaret = () => {
     const diagnostics = diagnosticsAtSelection();
-    renderInlineDiagnostics(inlineDiagnostics, snapshot, diagnosticsAtCaret());
     if (diagnostics.length === 0) {
       hideTooltip();
       return;
@@ -415,7 +378,6 @@ export const createSyntaxEditor = (
     if (!Number.isFinite(start)) return;
     textarea.focus();
     textarea.setSelectionRange(start, start);
-    renderInlineDiagnostics(inlineDiagnostics, snapshot, diagnosticsAtCaret());
     const line = lineAtOffset(start);
     const rect = target.getBoundingClientRect();
     showTooltip(diagnosticsForLine(renderedDiagnostics, line), rect.right + 8, rect.top, true);
@@ -431,7 +393,6 @@ export const createSyntaxEditor = (
 
   const onBlur = () => {
     hideTooltip();
-    renderInlineDiagnostics(inlineDiagnostics, snapshot, []);
   };
 
   const controller: SyntaxEditorController = {

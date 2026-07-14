@@ -15,6 +15,22 @@ const parse = (name: string) =>
     "text/html",
   );
 
+const referenceMessage = (key: string, substitutions?: string | number | (string | number)[]) => {
+  const value = Array.isArray(substitutions) ? substitutions[0] : substitutions;
+  return (
+    {
+      referenceCaption: "Reference",
+      referenceColumnSyntax: "Syntax",
+      referenceColumnExample: "Example",
+      referenceColumnMeaning: "Meaning",
+      referenceResult: `${value} result`,
+      referenceResults: `${value} results`,
+      referenceCopyValue: `Copy ${value}`,
+      referenceCopiedValue: `Copied ${value}`,
+    }[key] || ""
+  );
+};
+
 describe("clauselist reference surface", () => {
   const name = "clauselist";
   test("has semantic search and copy-status controls", () => {
@@ -28,6 +44,7 @@ describe("clauselist reference surface", () => {
     setupReferencePage(
       document,
       vi.fn(async () => {}),
+      referenceMessage,
     );
     for (const table of document.querySelectorAll("table")) {
       expect(table.querySelector("caption")).not.toBeNull();
@@ -65,6 +82,7 @@ describe("reference controller", () => {
     setupReferencePage(
       document,
       vi.fn(async () => {}),
+      referenceMessage,
     );
     const token = document.querySelector<HTMLElement>(".click-to-copy")!;
     expect(token.tabIndex).toBe(0);
@@ -149,7 +167,7 @@ describe("reference controller", () => {
       body: { variables: [":date:", ":runtime:"], matchers: ["filename"] },
     });
     const copy = vi.fn(() => Promise.resolve());
-    setupReferencePage(document, copy);
+    setupReferencePage(document, copy, referenceMessage);
     await vi.waitFor(() => expect(document.body.textContent).toContain(":runtime:"));
     const search = document.querySelector<HTMLInputElement>(".reference-search")!;
     search.value = ":runtime:";
@@ -183,7 +201,7 @@ describe("reference controller", () => {
     </tbody></table>`;
     vi.mocked(browser.runtime.sendMessage).mockRejectedValueOnce(new Error("offline"));
     const copy = vi.fn(() => Promise.resolve());
-    setupReferencePage(document, copy);
+    setupReferencePage(document, copy, referenceMessage);
 
     const emptyToken = document.querySelector<HTMLElement>(".click-to-copy")!;
     expect(emptyToken.getAttribute("aria-label")).toBe("Copy value");
@@ -204,6 +222,7 @@ describe("reference controller", () => {
     setupReferencePage(
       document,
       vi.fn(() => Promise.resolve()),
+      referenceMessage,
     );
     await vi.waitFor(() => expect(document.body.textContent).toContain("runtime:"));
     expect(document.body.textContent).toContain("capture:");
@@ -218,6 +237,7 @@ describe("reference controller", () => {
     setupReferencePage(
       document,
       vi.fn(() => Promise.resolve()),
+      referenceMessage,
     );
     await Promise.resolve();
     expect(document.body.textContent).toContain(":date:");
