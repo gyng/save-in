@@ -521,6 +521,10 @@ describe("Page Sources panel interactions", () => {
       [{ isIntersecting: true, target: video } as unknown as IntersectionObserverEntry],
       { unobserve } as unknown as IntersectionObserver,
     );
+    intersectionCallback!(
+      [{ isIntersecting: true, target: video } as unknown as IntersectionObserverEntry],
+      { unobserve } as unknown as IntersectionObserver,
+    );
 
     intersectionCallback!(
       [

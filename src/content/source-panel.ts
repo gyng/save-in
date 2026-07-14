@@ -465,7 +465,12 @@ export const toggleSourcePanel = (
                   !(entry.target instanceof HTMLMediaElement))
               )
                 return;
-              entry.target.src = pendingPreviewSources.get(entry.target)!;
+              const source = pendingPreviewSources.get(entry.target);
+              if (source === undefined) {
+                observer.unobserve(entry.target);
+                return;
+              }
+              entry.target.src = source;
               pendingPreviewSources.delete(entry.target);
               observer.unobserve(entry.target);
             });
