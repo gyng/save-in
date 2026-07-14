@@ -2418,7 +2418,9 @@
     "message": "$VALUE$ kopiert",
     "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
   },
-  "o_cBrowserDownloadFiltersEnabled": { "message": "Browser-Downloads anhand der URL begrenzen" },
+  "o_cBrowserDownloadFiltersEnabled": {
+    "message": "Browser-Downloads anhand der URL begrenzen"
+  },
   "welcomeReady": { "message": "Bereit zum Speichern" },
   "welcomeTitle": { "message": "Willkommen bei Save In" },
   "welcomeIntro": {

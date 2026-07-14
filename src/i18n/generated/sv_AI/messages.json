@@ -2410,7 +2410,9 @@
     "message": "$VALUE$ har kopierats",
     "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
   },
-  "o_cBrowserDownloadFiltersEnabled": { "message": "Begränsa webbläsarhämtningar utifrån URL" },
+  "o_cBrowserDownloadFiltersEnabled": {
+    "message": "Begränsa webbläsarhämtningar utifrån URL"
+  },
   "welcomeReady": { "message": "Klar att spara" },
   "welcomeTitle": { "message": "Välkommen till Save In" },
   "welcomeIntro": {

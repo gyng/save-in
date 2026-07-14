@@ -2422,7 +2422,9 @@
     "message": "$VALUE$ gekopieerd",
     "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
   },
-  "o_cBrowserDownloadFiltersEnabled": { "message": "Browserdownloads beperken op basis van URL" },
+  "o_cBrowserDownloadFiltersEnabled": {
+    "message": "Browserdownloads beperken op basis van URL"
+  },
   "welcomeReady": { "message": "Klaar om op te slaan" },
   "welcomeTitle": { "message": "Welkom bij Save In" },
   "welcomeIntro": {

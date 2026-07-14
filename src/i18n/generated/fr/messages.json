@@ -2445,7 +2445,9 @@
     "message": "$VALUE$ copié",
     "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
   },
-  "o_cBrowserDownloadFiltersEnabled": { "message": "Limiter les téléchargements du navigateur par URL" },
+  "o_cBrowserDownloadFiltersEnabled": {
+    "message": "Limiter les téléchargements du navigateur par URL"
+  },
   "welcomeReady": { "message": "Prêt à enregistrer" },
   "welcomeTitle": { "message": "Bienvenue dans Save In" },
   "welcomeIntro": {
