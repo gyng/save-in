@@ -1,5 +1,6 @@
 import { RULE_TYPES } from "../shared/constants.ts";
 import type {
+  CaptureClause,
   MatcherAttempt,
   MatcherClause,
   MatcherResult,
@@ -16,6 +17,11 @@ export type EvaluatedMatcherClause = {
 export type RuleEvaluation = {
   destination: string | false;
   clauses: EvaluatedMatcherClause[];
+};
+
+type CaptureMatcherResults = {
+  declaration: CaptureClause;
+  matches: RegExpMatchArray[];
 };
 
 const evaluateMatcherClause = (
@@ -36,7 +42,7 @@ const evaluateMatcherClauses = (rule: RoutingRule, info: RoutingInfo): Evaluated
 const getCaptureMatcherResults = (
   rule: RoutingRule,
   evaluatedClauses: EvaluatedMatcherClause[],
-): RegExpMatchArray[] | null => {
+): CaptureMatcherResults | null => {
   const declaration = rule.find((clause) => clause.type === RULE_TYPES.CAPTURE);
   if (!declaration) return null;
   if (typeof declaration.value !== "string") return null;
@@ -49,7 +55,7 @@ const getCaptureMatcherResults = (
     const result = evaluatedClauses.find((evaluated) => evaluated.clause === clause)?.result;
     if (result) captured.push(result);
   }
-  return captured.length === names.length ? captured : null;
+  return captured.length === names.length ? { declaration, matches: captured } : null;
 };
 
 const flattenCaptureGroups = (matches: RegExpMatchArray[]): (string | undefined)[] => [
@@ -57,17 +63,15 @@ const flattenCaptureGroups = (matches: RegExpMatchArray[]): (string | undefined)
   ...matches.flatMap((match) => match.slice(1)),
 ];
 
+const captureValues = ({ declaration, matches }: CaptureMatcherResults): (string | undefined)[] =>
+  declaration.name === "capturegroups" ? flattenCaptureGroups(matches) : matches.flat();
+
 export const getCaptureMatches = (
   rule: RoutingRule,
   info: RoutingInfo,
 ): (string | undefined)[] | null => {
-  const matches = getCaptureMatcherResults(rule, evaluateMatcherClauses(rule, info));
-  const declaration = rule.find((clause) => clause.type === RULE_TYPES.CAPTURE);
-  return matches
-    ? declaration!.name === "capturegroups"
-      ? flattenCaptureGroups(matches)
-      : matches.flat()
-    : null;
+  const capture = getCaptureMatcherResults(rule, evaluateMatcherClauses(rule, info));
+  return capture ? captureValues(capture) : null;
 };
 
 export const evaluateRule = (rule: RoutingRule, info: RoutingInfo): RuleEvaluation => {
@@ -78,13 +82,8 @@ export const evaluateRule = (rule: RoutingRule, info: RoutingInfo): RuleEvaluati
     return { destination: false, clauses };
   }
   let destination = destinationClause.value;
-  const matches = getCaptureMatcherResults(rule, clauses);
-  const declaration = rule.find((clause) => clause.type === RULE_TYPES.CAPTURE);
-  const captured = matches
-    ? declaration!.name === "capturegroups"
-      ? flattenCaptureGroups(matches)
-      : matches.flat()
-    : null;
+  const capture = getCaptureMatcherResults(rule, clauses);
+  const captured = capture ? captureValues(capture) : null;
   if (captured) {
     destination = destination.replace(
       /:\$(\d+):/g,
