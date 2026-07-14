@@ -178,8 +178,10 @@ browsers before reporting it as confirmed.
 
 ## Iteration workflow
 
-- `npm test`, `npm run test:watch`, and `npm run test:coverage`: unit tests;
-  coverage enforces the configured source thresholds.
+- `npm test` and `npm run test:watch`: sandbox-safe unit tests.
+  `npm run test:integration` runs tests that require loopback listeners or child
+  processes; `npm run test:all` runs both. `npm run test:coverage` also runs
+  both and enforces the configured source thresholds.
 - `npm run lint`: run architecture, CSS, i18n, and release-package policy
   checks; stage and lint the bundle; then run oxlint and formatting checks.
 - `npm run typecheck`: check Firefox, Chrome, the DOM-free worker, tooling,
@@ -306,7 +308,7 @@ vitest specifics (`test/*.test.ts`, typed; `tsc` covers them):
 Read [docs/RELEASE.md](docs/RELEASE.md) when preparing a release or changing
 release automation, provenance, screenshots, or browser-owned checks.
 
-1. `npm test && npm run lint && npm run typecheck && npm run e2e`
+1. `npm run test:all && npm run lint && npm run typecheck && npm run e2e`
 2. Bump version in `manifest.json` and `package.json`.
 3. Run `npm run build` and `npm run build:source`. Upload the same runtime ZIP
    to both stores and attach the source ZIP in AMO.
