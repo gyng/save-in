@@ -66,7 +66,14 @@ export type RouteSourceSummary = {
 const nullableString = (value: unknown): value is string | null =>
   value === null || typeof value === "string";
 
-const ATTEMPT_STATUSES = new Set(["matched", "not-matched", "missing", "invalid"]);
+const isPositiveSafeInteger = (value: unknown): value is number =>
+  typeof value === "number" && Number.isSafeInteger(value) && value > 0;
+
+const isAttemptStatus = (value: unknown): value is RouteDebuggerAttempt["status"] =>
+  value === "matched" || value === "not-matched" || value === "missing" || value === "invalid";
+
+const isNullableStringArray = (value: unknown): value is Array<string | null> =>
+  Array.isArray(value) && value.every(nullableString);
 
 const parseAttempts = (value: unknown): RouteDebuggerAttempt[] | null => {
   if (!Array.isArray(value)) return null;
@@ -76,24 +83,18 @@ const parseAttempts = (value: unknown): RouteDebuggerAttempt[] | null => {
       !isStringKeyedRecord(attempt) ||
       typeof attempt.source !== "string" ||
       !nullableString(attempt.value) ||
-      typeof attempt.status !== "string" ||
-      !ATTEMPT_STATUSES.has(attempt.status) ||
+      !isAttemptStatus(attempt.status) ||
       !(typeof attempt.matchedText === "undefined" || typeof attempt.matchedText === "string") ||
-      !(
-        typeof attempt.captures === "undefined" ||
-        (Array.isArray(attempt.captures) && attempt.captures.every(nullableString))
-      )
+      !(typeof attempt.captures === "undefined" || isNullableStringArray(attempt.captures))
     ) {
       return null;
     }
     attempts.push({
       source: attempt.source,
       value: attempt.value,
-      status: attempt.status as RouteDebuggerAttempt["status"],
+      status: attempt.status,
       ...(typeof attempt.matchedText === "string" ? { matchedText: attempt.matchedText } : {}),
-      ...(Array.isArray(attempt.captures)
-        ? { captures: attempt.captures as Array<string | null> }
-        : {}),
+      ...(isNullableStringArray(attempt.captures) ? { captures: attempt.captures } : {}),
     });
   }
   return attempts;
@@ -102,7 +103,7 @@ const parseAttempts = (value: unknown): RouteDebuggerAttempt[] | null => {
 export const parseRouteDebuggerTrace = (value: unknown): RouteDebuggerTrace | null => {
   if (
     !isStringKeyedRecord(value) ||
-    !(value.selectedRule === null || typeof value.selectedRule === "number") ||
+    !(value.selectedRule === null || isPositiveSafeInteger(value.selectedRule)) ||
     !nullableString(value.destination) ||
     !nullableString(value.expandedDestination) ||
     !nullableString(value.sanitizedDestination) ||
@@ -116,7 +117,7 @@ export const parseRouteDebuggerTrace = (value: unknown): RouteDebuggerTrace | nu
   for (const candidate of value.rules) {
     if (
       !isStringKeyedRecord(candidate) ||
-      typeof candidate.index !== "number" ||
+      !isPositiveSafeInteger(candidate.index) ||
       typeof candidate.matched !== "boolean" ||
       typeof candidate.destination !== "string" ||
       !Array.isArray(candidate.clauses)
