@@ -47,8 +47,8 @@ or feedback.
 
 - An option row contains one control, a concise label, and optional muted help.
 - Controls enabled by a parent option live in the shared indented
-  `dependent-options` group; disabling the parent dims the group as well as
-  disabling its controls.
+  `dependent-options` group. Disable and visually mute the unavailable controls,
+  but keep explanatory help readable at normal help-text opacity.
 - A tab list always has associated `tabpanel` elements, roving `tabindex`, and
   Left/Right/Up/Down/Home/End keyboard navigation. A control that opens a dialog
   is a button, not a tab.
@@ -80,6 +80,42 @@ or feedback.
 - Dialogs use the `app-dialog` shell for backdrop, elevation, radius, and
   surface. Close controls and action rows use the shared atoms; size and
   internal layout may vary by task.
+
+## Advanced settings contract
+
+Advanced is a collection of uncommon settings, not permission to create a flat
+or visually separate interface. Preserve these rules as the tab grows:
+
+- Group settings by user outcome. Keep the local section navigation in the same
+  order as the sections, use stable fragment targets, and add a new top-level
+  group only when an existing group cannot describe the outcome.
+- Use the standard option-row reading order: concise label, control, then muted
+  help. Put help outside the `label` and connect it with `aria-describedby` so
+  instructions do not become part of the control's accessible name.
+- Show dependency structure through indentation and a shared border treatment.
+  A dependent control is available whenever any parent workflow can use it; do
+  not tie it to only one of several valid parent paths.
+- Keep explanatory copy readable when a parent setting is off. Disabled controls
+  and their labels may use the disabled semantic color, but help must still
+  explain how and why the option becomes available.
+- Put each external integration in the same neutral bordered section. Feature
+  identity must not introduce a tinted card or competing component system.
+  Surface current state as a live semantic status; do not use a static default
+  badge where the setting can change.
+- Keep the primary setup path visible and move tool names, protocol details, and
+  other developer-only material into a disclosure. Monospace alone is enough for
+  plain identifiers and snippets; a code-block background is not automatic.
+- Anything presented as click-to-copy is a keyboard-operable control with button
+  semantics, visible focus, a localized accessible name, and live confirmation.
+- Action rows must wrap without fixed translated-text offsets. Check backup,
+  reset, and similar multi-button rows with a long locale as well as English.
+- At narrow widths, keep the main tab list to one horizontally scrollable row and
+  reveal the active tab after activation or resize. Do not let wrapped tabs
+  consume multiple rows above the active panel.
+
+When changing Advanced, verify the section hierarchy, dependency states, and all
+integration cards together. A locally polished row is not complete if it creates
+a second pattern beside an equivalent setting.
 
 ## Interaction and accessibility contracts
 
@@ -119,7 +155,8 @@ Before merging a UI change:
 
 1. Identify the token, atom, molecule, and organism being changed.
 2. Reuse an existing variant or update the shared contract first.
-3. Verify light, dark, 1280px, 768px, and 480px states.
+3. Verify light, dark, 1280px, 768px, and 480px states, plus one long-string
+   locale for wrapping and overflow.
 4. Verify keyboard order, visible focus, accessible names, and error feedback.
 5. Check the adjacent Save In surface, not only the changed component.
 6. Update this document and the mechanical contract when adding a legitimate
