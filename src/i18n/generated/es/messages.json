@@ -2172,11 +2172,15 @@
     "message": "Ninguna regla de enrutamiento coincide."
   },
   "routeDebuggerOneRuleMatched": {
-    "message": "$COUNT$ regla coincidió.",
+    "message": "$COUNT$ regla coincidió y se utilizó.",
     "placeholders": { "count": { "content": "$1", "example": "1" } }
   },
-  "routeDebuggerRulesMatched": {
-    "message": "$COUNT$ reglas coincidieron.",
+  "routeDebuggerOneLaterRuleMatches": {
+    "message": "Se usó 1 regla; $COUNT$ regla posterior también coincide.",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "routeDebuggerLaterRulesMatch": {
+    "message": "Se usó 1 regla; $COUNT$ reglas posteriores también coinciden.",
     "placeholders": { "count": { "content": "$1", "example": "2" } }
   },
   "routeDebuggerMatched": {

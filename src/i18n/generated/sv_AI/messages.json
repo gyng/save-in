@@ -2168,11 +2168,15 @@
     "message": "Ingen dirigeringsregel matchar."
   },
   "routeDebuggerOneRuleMatched": {
-    "message": "$COUNT$ regel matchade.",
+    "message": "$COUNT$ regel matchade och användes.",
     "placeholders": { "count": { "content": "$1", "example": "1" } }
   },
-  "routeDebuggerRulesMatched": {
-    "message": "$COUNT$ regler matchade.",
+  "routeDebuggerOneLaterRuleMatches": {
+    "message": "1 regel användes; $COUNT$ senare regel matchar också.",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "routeDebuggerLaterRulesMatch": {
+    "message": "1 regel användes; $COUNT$ senare regler matchar också.",
     "placeholders": { "count": { "content": "$1", "example": "2" } }
   },
   "routeDebuggerMatched": {

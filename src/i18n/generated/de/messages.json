@@ -2172,11 +2172,15 @@
     "message": "Keine Routing-Regel stimmt überein."
   },
   "routeDebuggerOneRuleMatched": {
-    "message": "$COUNT$ Regel stimmte überein.",
+    "message": "$COUNT$ Regel stimmte überein und wurde verwendet.",
     "placeholders": { "count": { "content": "$1", "example": "1" } }
   },
-  "routeDebuggerRulesMatched": {
-    "message": "$COUNT$ Regeln stimmten überein.",
+  "routeDebuggerOneLaterRuleMatches": {
+    "message": "1 Regel verwendet; $COUNT$ spätere Regel stimmt ebenfalls überein.",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "routeDebuggerLaterRulesMatch": {
+    "message": "1 Regel verwendet; $COUNT$ spätere Regeln stimmen ebenfalls überein.",
     "placeholders": { "count": { "content": "$1", "example": "2" } }
   },
   "routeDebuggerMatched": {

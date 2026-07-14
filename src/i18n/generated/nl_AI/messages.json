@@ -2174,11 +2174,15 @@
     "message": "Er komt geen routeringsregel overeen."
   },
   "routeDebuggerOneRuleMatched": {
-    "message": "Er kwam $COUNT$ regel overeen.",
+    "message": "$COUNT$ regel kwam overeen en werd gebruikt.",
     "placeholders": { "count": { "content": "$1", "example": "1" } }
   },
-  "routeDebuggerRulesMatched": {
-    "message": "Er kwamen $COUNT$ regels overeen.",
+  "routeDebuggerOneLaterRuleMatches": {
+    "message": "1 regel gebruikt; $COUNT$ latere regel komt ook overeen.",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "routeDebuggerLaterRulesMatch": {
+    "message": "1 regel gebruikt; $COUNT$ latere regels komen ook overeen.",
     "placeholders": { "count": { "content": "$1", "example": "2" } }
   },
   "routeDebuggerMatched": {

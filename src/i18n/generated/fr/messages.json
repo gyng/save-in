@@ -2195,11 +2195,15 @@
     "message": "Aucune règle de routage ne correspond."
   },
   "routeDebuggerOneRuleMatched": {
-    "message": "$COUNT$ règle correspond.",
+    "message": "$COUNT$ règle correspond et a été utilisée.",
     "placeholders": { "count": { "content": "$1", "example": "1" } }
   },
-  "routeDebuggerRulesMatched": {
-    "message": "$COUNT$ règles correspondent.",
+  "routeDebuggerOneLaterRuleMatches": {
+    "message": "1 règle utilisée ; $COUNT$ règle suivante correspond également.",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "routeDebuggerLaterRulesMatch": {
+    "message": "1 règle utilisée ; $COUNT$ règles suivantes correspondent également.",
     "placeholders": { "count": { "content": "$1", "example": "2" } }
   },
   "routeDebuggerMatched": {

@@ -2257,11 +2257,15 @@
     "message": "Nessuna regola di routing corrisponde."
   },
   "routeDebuggerOneRuleMatched": {
-    "message": "$COUNT$ regola corrisponde.",
+    "message": "$COUNT$ regola corrisponde ed è stata usata.",
     "placeholders": { "count": { "content": "$1", "example": "1" } }
   },
-  "routeDebuggerRulesMatched": {
-    "message": "$COUNT$ regole corrispondono.",
+  "routeDebuggerOneLaterRuleMatches": {
+    "message": "1 regola usata; anche $COUNT$ regola successiva corrisponde.",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "routeDebuggerLaterRulesMatch": {
+    "message": "1 regola usata; anche $COUNT$ regole successive corrispondono.",
     "placeholders": { "count": { "content": "$1", "example": "2" } }
   },
   "routeDebuggerMatched": {

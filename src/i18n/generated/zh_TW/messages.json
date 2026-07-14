@@ -2274,11 +2274,15 @@
     "message": "沒有符合的路由規則。"
   },
   "routeDebuggerOneRuleMatched": {
-    "message": "$COUNT$ 個規則相符。",
+    "message": "$COUNT$ 個規則相符並已使用。",
     "placeholders": { "count": { "content": "$1", "example": "1" } }
   },
-  "routeDebuggerRulesMatched": {
-    "message": "$COUNT$ 個規則相符。",
+  "routeDebuggerOneLaterRuleMatches": {
+    "message": "已使用 1 個規則；後面的 $COUNT$ 個規則也相符。",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "routeDebuggerLaterRulesMatch": {
+    "message": "已使用 1 個規則；後面的 $COUNT$ 個規則也相符。",
     "placeholders": { "count": { "content": "$1", "example": "2" } }
   },
   "routeDebuggerMatched": {

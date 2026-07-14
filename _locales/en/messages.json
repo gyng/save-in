@@ -3052,8 +3052,8 @@
     "description": "Route debugger outcome when no rule matches. Used in src/options/route-debugger.ts."
   },
   "routeDebuggerOneRuleMatched": {
-    "message": "$COUNT$ rule matched.",
-    "description": "Route debugger summary when exactly one rule matches. Used in src/options/route-debugger.ts.",
+    "message": "$COUNT$ rule matched and was used.",
+    "description": "Route debugger summary when exactly one rule matches and is selected. Used in src/options/route-debugger.ts.",
     "placeholders": {
       "count": {
         "content": "$1",
@@ -3061,9 +3061,19 @@
       }
     }
   },
-  "routeDebuggerRulesMatched": {
-    "message": "$COUNT$ rules matched.",
-    "description": "Route debugger summary when multiple rules match. Used in src/options/route-debugger.ts.",
+  "routeDebuggerOneLaterRuleMatches": {
+    "message": "1 rule used; $COUNT$ later rule also matches.",
+    "description": "Route debugger summary when one later rule also matches but is not selected. Used in src/options/route-debugger.ts.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
+  },
+  "routeDebuggerLaterRulesMatch": {
+    "message": "1 rule used; $COUNT$ later rules also match.",
+    "description": "Route debugger summary when multiple later rules also match but are not selected. Used in src/options/route-debugger.ts.",
     "placeholders": {
       "count": {
         "content": "$1",

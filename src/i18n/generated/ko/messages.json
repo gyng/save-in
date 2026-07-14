@@ -2274,11 +2274,15 @@
     "message": "일치하는 라우팅 규칙이 없습니다."
   },
   "routeDebuggerOneRuleMatched": {
-    "message": "$COUNT$개의 규칙이 일치했습니다.",
+    "message": "$COUNT$개의 규칙이 일치하여 사용되었습니다.",
     "placeholders": { "count": { "content": "$1", "example": "1" } }
   },
-  "routeDebuggerRulesMatched": {
-    "message": "$COUNT$개의 규칙이 일치했습니다.",
+  "routeDebuggerOneLaterRuleMatches": {
+    "message": "1개의 규칙을 사용했습니다. 이후 $COUNT$개의 규칙도 일치합니다.",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "routeDebuggerLaterRulesMatch": {
+    "message": "1개의 규칙을 사용했습니다. 이후 $COUNT$개의 규칙도 일치합니다.",
     "placeholders": { "count": { "content": "$1", "example": "2" } }
   },
   "routeDebuggerMatched": {

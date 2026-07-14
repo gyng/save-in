@@ -2274,11 +2274,15 @@
     "message": "没有匹配的路由规则。"
   },
   "routeDebuggerOneRuleMatched": {
-    "message": "$COUNT$ 条规则匹配。",
+    "message": "$COUNT$ 条规则匹配并已使用。",
     "placeholders": { "count": { "content": "$1", "example": "1" } }
   },
-  "routeDebuggerRulesMatched": {
-    "message": "$COUNT$ 条规则匹配。",
+  "routeDebuggerOneLaterRuleMatches": {
+    "message": "已使用 1 条规则；后面的 $COUNT$ 条规则也匹配。",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "routeDebuggerLaterRulesMatch": {
+    "message": "已使用 1 条规则；后面的 $COUNT$ 条规则也匹配。",
     "placeholders": { "count": { "content": "$1", "example": "2" } }
   },
   "routeDebuggerMatched": {

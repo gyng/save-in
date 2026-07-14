@@ -2274,11 +2274,15 @@
     "message": "一致するルーティングルールはありません。"
   },
   "routeDebuggerOneRuleMatched": {
-    "message": "$COUNT$ 件のルールが一致しました。",
+    "message": "$COUNT$ 件のルールが一致し、使用されました。",
     "placeholders": { "count": { "content": "$1", "example": "1" } }
   },
-  "routeDebuggerRulesMatched": {
-    "message": "$COUNT$ 件のルールが一致しました。",
+  "routeDebuggerOneLaterRuleMatches": {
+    "message": "1 件のルールを使用しました。後続の $COUNT$ 件のルールも一致します。",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "routeDebuggerLaterRulesMatch": {
+    "message": "1 件のルールを使用しました。後続の $COUNT$ 件のルールも一致します。",
     "placeholders": { "count": { "content": "$1", "example": "2" } }
   },
   "routeDebuggerMatched": {

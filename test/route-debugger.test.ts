@@ -163,7 +163,7 @@ test("shows production rule and clause decisions and jumps back to their source"
   const result = document.querySelector<HTMLElement>("#route-debugger-result")!;
   await vi.waitFor(() => expect(result.dataset.state).toBe("matched"));
   expect(result.querySelector(".route-debugger-match-summary")?.textContent).toBe(
-    "1 rule matched.",
+    "1 rule matched and was used.",
   );
   expect(result.textContent).toContain("pdf/report.pdf");
   const ruleCards = result.querySelectorAll<HTMLDetailsElement>(".route-debugger-rule");
@@ -612,7 +612,7 @@ test("renders selected, also-matching, and missed rules without a destination pi
   );
   expect(document.body.textContent).toContain("Matched, not used");
   expect(document.querySelector(".route-debugger-match-summary")?.textContent).toBe(
-    "2 rules matched.",
+    "1 rule used; 1 later rule also matches.",
   );
   expect(document.body.textContent).toContain("Used");
   expect(document.body.textContent).toContain("Conditions not met");

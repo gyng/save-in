@@ -2174,11 +2174,15 @@
     "message": "Nenhuma regra de roteamento corresponde."
   },
   "routeDebuggerOneRuleMatched": {
-    "message": "$COUNT$ regra correspondeu.",
+    "message": "$COUNT$ regra correspondeu e foi usada.",
     "placeholders": { "count": { "content": "$1", "example": "1" } }
   },
-  "routeDebuggerRulesMatched": {
-    "message": "$COUNT$ regras corresponderam.",
+  "routeDebuggerOneLaterRuleMatches": {
+    "message": "1 regra usada; $COUNT$ regra posterior também corresponde.",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "routeDebuggerLaterRulesMatch": {
+    "message": "1 regra usada; $COUNT$ regras posteriores também correspondem.",
     "placeholders": { "count": { "content": "$1", "example": "2" } }
   },
   "routeDebuggerMatched": {
