@@ -17,6 +17,7 @@ vi.mock("../src/platform/chrome-detector.ts", () => ({
 }));
 
 import * as menuBuild from "../src/background/menu-build.ts";
+import type { MenuContext } from "../src/background/menu-build.ts";
 import * as menuTabs from "../src/background/menu-tabs.ts";
 import * as menuTree from "../src/menus/menu-tree.ts";
 import { SPECIAL_DIRS, MEDIA_TYPES } from "../src/shared/constants.ts";
@@ -29,7 +30,7 @@ const menu = {
   ...menuBuild,
   ...menuTabs,
   ...menuTree,
-  addPaths: (paths: string[], contexts: string[]) =>
+  addPaths: (paths: string[], contexts: MenuContext[]) =>
     menuBuild.renderPathTree(menuTree.buildTree(paths), contexts),
   IDS: menuBuild.MENU_IDS,
   pathMappings: menuBuild.menuState.pathMappings,

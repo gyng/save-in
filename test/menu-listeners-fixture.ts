@@ -10,6 +10,7 @@
 
 import { DOWNLOAD_TYPES } from "../src/shared/constants.ts";
 import type { CurrentTab } from "../src/platform/current-tab.ts";
+import type { MenuContext } from "../src/background/menu-build.ts";
 
 type MenusFixture = typeof import("../src/background/menu-build.ts") &
   typeof import("../src/background/menu-click.ts") &
@@ -17,7 +18,7 @@ type MenusFixture = typeof import("../src/background/menu-build.ts") &
     IDS: typeof import("../src/background/menu-build.ts").MENU_IDS;
     state: typeof import("../src/background/menu-build.ts").menuState;
     pathMappings: typeof import("../src/background/menu-build.ts").menuState.pathMappings;
-    addPaths: (paths: string[], contexts: string[]) => void;
+    addPaths: (paths: string[], contexts: MenuContext[]) => void;
   };
 // Browser listener mocks intentionally accept partial event payloads: each test
 // supplies only the host fields relevant to the branch it exercises.
@@ -106,7 +107,7 @@ const importMenus = async () => {
     ...menuBuild,
     ...menuClick,
     ...menuTabs,
-    addPaths: (paths: string[], contexts: string[]) =>
+    addPaths: (paths: string[], contexts: MenuContext[]) =>
       menuBuild.renderPathTree(menuTree.buildTree(paths), contexts),
     IDS: menuBuild.MENU_IDS,
     state: menuBuild.menuState,

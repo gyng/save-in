@@ -15,6 +15,7 @@ import {
   clearPathMappings,
   makeSeparator,
   renderPathTree,
+  type MenuContext,
 } from "./menu-build.ts";
 import { addTabMenus } from "./menu-tabs.ts";
 
@@ -22,12 +23,12 @@ export const rebuildMenus = async (): Promise<void> => {
   await webExtensionApi.contextMenus.removeAll();
   clearPathMappings();
 
-  let downloadContexts: string[] = options.links ? [...MEDIA_TYPES, "link"] : [...MEDIA_TYPES];
-  downloadContexts = options.selection ? downloadContexts.concat(["selection"]) : downloadContexts;
-  downloadContexts = options.page ? downloadContexts.concat(["page"]) : downloadContexts;
-  const actionContexts = downloadContexts.includes("page")
+  let downloadContexts: MenuContext[] = options.links ? [...MEDIA_TYPES, "link"] : [...MEDIA_TYPES];
+  downloadContexts = options.selection ? [...downloadContexts, "selection"] : downloadContexts;
+  downloadContexts = options.page ? [...downloadContexts, "page"] : downloadContexts;
+  const actionContexts: MenuContext[] = downloadContexts.includes("page")
     ? downloadContexts
-    : downloadContexts.concat(["page"]);
+    : [...downloadContexts, "page"];
 
   addTabMenus();
   addRoot(actionContexts);

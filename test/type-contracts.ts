@@ -2,6 +2,7 @@
 import { expectTypeOf } from "vitest";
 
 import type { CounterWriteState } from "../src/background/counter.ts";
+import { makeSeparator, type MenuContext } from "../src/background/menu-build.ts";
 import { handleContextMenuClick } from "../src/background/menu-click.ts";
 import type { SaveInOptions } from "../src/config/option-schema.ts";
 import type { UiTheme } from "../src/config/content-options.ts";
@@ -55,6 +56,10 @@ expectTypeOf<DownloadsState["records"]>().toEqualTypeOf<Map<number, DownloadReco
 expectTypeOf<DownloadsState["hydration"]>().toEqualTypeOf<Promise<void> | null>();
 expectTypeOf<Path["buf"]>().toEqualTypeOf<PathSegment[]>();
 expectTypeOf(handleContextMenuClick({ menuItemId: "save-in-0" })).toEqualTypeOf<Promise<void>>();
+const validMenuContexts: MenuContext[] = ["link", "selection"];
+makeSeparator(validMenuContexts, "type-contract-separator");
+// @ts-expect-error context menu builders reject arbitrary browser context strings
+makeSeparator(["not-a-browser-context"], "invalid-type-contract-separator");
 expectTypeOf(withUrl("invalid", (url) => url.hostname)).toEqualTypeOf<string | null>();
 expectTypeOf(withUrl("invalid", (url) => url.hostname, undefined)).toEqualTypeOf<string | null>();
 expectTypeOf(withUrl("invalid", (url) => url.hostname, false)).toEqualTypeOf<string | boolean>();

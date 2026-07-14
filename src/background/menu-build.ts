@@ -19,11 +19,10 @@ export { MENU_IDS } from "../menus/menu-ids.ts";
 type MenuContexts = NonNullable<
   Parameters<typeof webExtensionApi.contextMenus.create>[0]["contexts"]
 >;
-type MenuContext = MenuContexts[number];
-const asMenuContexts = (contexts: readonly string[]): MenuContexts => {
-  const normalized = contexts.filter((context): context is MenuContext => context.length > 0);
-  const [first = "all" as MenuContext, ...rest] = normalized;
-  return [first, ...rest] as MenuContexts;
+export type MenuContext = MenuContexts[number];
+const asMenuContexts = (contexts: readonly MenuContext[]): MenuContexts => {
+  const [first, ...rest] = contexts;
+  return first === undefined ? ["all"] : [first, ...rest];
 };
 type LastUsedMeta = { comment?: string; menuIndex?: string; title?: string };
 type MenuPathMapping = {
@@ -84,7 +83,7 @@ export const restoreLastUsed = (stored: unknown) => {
 };
 
 export const makeSeparator = (
-  contexts: string[],
+  contexts: readonly MenuContext[],
   id: string,
   parentId: string = MENU_IDS.ROOT,
 ): void => {
@@ -110,7 +109,7 @@ export const setAccesskey = (str: string, key: string | number, override?: strin
   )}${escapeAmpersands(str.slice(matchIndex + accessKey.length))}`;
 };
 
-export const addRoot = (contexts: string[]) => {
+export const addRoot = (contexts: readonly MenuContext[]) => {
   webExtensionApi.contextMenus.create({
     id: MENU_IDS.ROOT,
     title: setAccesskey(getMessage("contextMenuRoot"), options.keyRoot),
@@ -118,7 +117,7 @@ export const addRoot = (contexts: string[]) => {
   });
 };
 
-export const addRouteExclusive = (contexts: string[]) => {
+export const addRouteExclusive = (contexts: readonly MenuContext[]) => {
   webExtensionApi.contextMenus.create({
     id: MENU_IDS.ROUTE_EXCLUSIVE,
     title: setAccesskey(getMessage("contextMenuExclusive"), options.keyRoot),
@@ -127,7 +126,7 @@ export const addRouteExclusive = (contexts: string[]) => {
   });
 };
 
-export const addSelectionType = (contexts: readonly string[]) => {
+export const addSelectionType = (contexts: readonly MenuContext[]) => {
   if (contexts.includes("link")) {
     webExtensionApi.contextMenus.create({
       id: MENU_IDS.CONTEXT.MEDIA_LINK,
@@ -167,7 +166,7 @@ export const addSelectionType = (contexts: readonly string[]) => {
   }
 };
 
-export const addOptions = (contexts: string[]) => {
+export const addOptions = (contexts: readonly MenuContext[]) => {
   webExtensionApi.contextMenus.create({
     id: MENU_IDS.OPTIONS,
     title: getMessage("contextMenuItemOptions"),
@@ -176,7 +175,7 @@ export const addOptions = (contexts: string[]) => {
   });
 };
 
-export const addSourcePanel = (contexts: string[]) => {
+export const addSourcePanel = (contexts: readonly MenuContext[]) => {
   webExtensionApi.contextMenus.create({
     id: MENU_IDS.TOGGLE_SOURCE_PANEL,
     title: getMessage("contextMenuToggleSourcePanel") || "Toggle Page Sources",
@@ -185,7 +184,7 @@ export const addSourcePanel = (contexts: string[]) => {
   });
 };
 
-export const addShowDefaultFolder = (contexts: string[]) => {
+export const addShowDefaultFolder = (contexts: readonly MenuContext[]) => {
   webExtensionApi.contextMenus.create({
     id: MENU_IDS.SHOW_DEFAULT_FOLDER,
     title: getMessage("contextMenuShowDefaultFolder"),
@@ -194,7 +193,7 @@ export const addShowDefaultFolder = (contexts: string[]) => {
   });
 };
 
-export const addLastUsed = (contexts: string[]) => {
+export const addLastUsed = (contexts: readonly MenuContext[]) => {
   const lastUsedTitle =
     menuState.lastUsedMeta?.title || menuState.lastUsedPath || getMessage("contextMenuLastUsed");
   const lastUsedMenuOptions = {
@@ -240,7 +239,7 @@ export const clearPathMappings = () => {
   }
 };
 
-export const renderPathTree = ({ items, errors }: MenuTree, contexts: string[]) => {
+export const renderPathTree = ({ items, errors }: MenuTree, contexts: readonly MenuContext[]) => {
   errors.forEach((error) => {
     backgroundRuntime.optionErrors.paths.push(error);
   });
