@@ -2884,7 +2884,7 @@ summary {
 
 .route-debugger-pipeline dt {
   color: var(--color-text-muted);
-  font-size: var(--text-sm);
+  font-size: var(--text-md);
   font-weight: 650;
 }
 
@@ -2895,7 +2895,11 @@ summary {
 
 .route-debugger-pipeline code {
   display: block;
-  font-size: 12px;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  font-family: var(--font-mono);
+  font-size: var(--text-md);
   overflow-wrap: anywhere;
 }
 
