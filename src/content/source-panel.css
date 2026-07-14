@@ -4,6 +4,7 @@
  * src/options/style.css; scripts/check-css.js guards the shared contract.
  */
 :host {
+  --source-panel-motion-transform: translateX(8px);
   --font-stack: system-ui, sans-serif;
   --text-xs: 12px;
   --text-base: 14px;
@@ -73,7 +74,7 @@
 @keyframes source-panel-in {
   from {
     opacity: 0;
-    transform: translateX(8px);
+    transform: var(--source-panel-motion-transform);
   }
   to {
     opacity: 1;
@@ -88,19 +89,25 @@
   }
   to {
     opacity: 0;
-    transform: translateX(8px);
+    transform: var(--source-panel-motion-transform);
   }
 }
 
 :host(.dock-left) {
+  --source-panel-motion-transform: translateX(-8px);
+
   inset: 0 auto 0 0;
 }
 :host(.dock-bottom) {
+  --source-panel-motion-transform: translateY(8px);
+
   inset: auto 0 0;
   width: 100vw;
   height: min(42dvh, 520px);
 }
 :host(.dock-top) {
+  --source-panel-motion-transform: translateY(-8px);
+
   inset: 0 0 auto;
   width: 100vw;
   height: min(42dvh, 520px);
@@ -281,6 +288,7 @@ select:focus-visible {
 .list {
   overflow: auto;
   overscroll-behavior: contain;
+  scrollbar-gutter: stable;
   padding: 0 7px 8px;
 }
 .row {

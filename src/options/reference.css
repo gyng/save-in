@@ -111,14 +111,6 @@ body:has(.reference-header) {
   background: none;
 }
 
-.reference-table caption {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-}
-
 .reference-table th,
 .reference-table td {
   padding: var(--space-2) var(--space-3);

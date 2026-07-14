@@ -31,7 +31,6 @@ html {
   font-family: var(--font-stack);
   font-size: var(--text-base);
   line-height: var(--leading-ui);
-  min-height: 1%; /* Firefox options page height hack */
   /* Always reserve the vertical scrollbar gutter so switching between
      short and tall tabs does not shift the layout horizontally */
   scrollbar-gutter: stable;
@@ -128,8 +127,6 @@ button,
   font-size: var(--text-base);
   font-weight: 400;
   cursor: pointer;
-  -moz-user-select: none;
-  -webkit-user-select: none;
   user-select: none;
   transition:
     background-color var(--motion-duration-fast) ease,

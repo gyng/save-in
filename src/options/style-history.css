@@ -225,6 +225,7 @@
   max-height: 320px;
   overflow-y: auto;
   overscroll-behavior: contain;
+  scrollbar-gutter: stable;
   padding: var(--space-2);
   border: 1px solid var(--panel-border);
   background: var(--floating-bg);

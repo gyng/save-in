@@ -20,11 +20,15 @@ const sourcePanelStylePath = path.join(root, "src", "content", "source-panel.css
 const styleLayers = [
   ["tokens", ["style-tokens.css"]],
   ["base", ["style-base.css"]],
-  ["shell", ["style-shell.css", "style-shell-responsive.css", "style-dialogs.css"]],
+  [
+    "shell",
+    ["style-shell.css", "style-about.css", "style-shell-responsive.css", "style-dialogs.css"],
+  ],
   [
     "components",
     [
       "style-components.css",
+      "style-option-rows.css",
       "style-workflows.css",
       "style-status.css",
       "style-syntax-editor.css",
@@ -38,6 +42,7 @@ const styleLayers = [
     [
       "style-rule-editor.css",
       "style-route-debugger.css",
+      "style-route-debugger-responsive.css",
       "style-template-library.css",
       "style-option-tools.css",
       "style-editor-actions.css",
@@ -170,6 +175,16 @@ for (const file of styles) {
     violations.push(`${relative} uses @scope before the declared Firefox minimum supports it`);
   }
 
+  for (const match of source.matchAll(/-(?:moz|webkit)-user-select\s*:/g)) {
+    const line = source.slice(0, match.index).split("\n").length;
+    violations.push(`${relative}:${line} uses an obsolete prefixed user-select declaration`);
+  }
+
+  for (const match of source.matchAll(/\bclip\s*:\s*rect\(/g)) {
+    const line = source.slice(0, match.index).split("\n").length;
+    violations.push(`${relative}:${line} uses deprecated clip; use the visually-hidden utility`);
+  }
+
   for (const match of source.matchAll(/word-break\s*:\s*break-all/g)) {
     const line = source.slice(0, match.index).split("\n").length;
     violations.push(`${relative}:${line} breaks words eagerly; use overflow-wrap: anywhere`);
@@ -225,6 +240,9 @@ if (!/body\s*\{[^}]*isolation:\s*isolate;/.test(shellStyle)) {
 if (!baseStyle.includes("accent-color: var(--color-accent);")) {
   violations.push("src/options/style-base.css must apply the semantic accent to native controls");
 }
+if (/html\s*\{[^}]*min-height:\s*1%/.test(baseStyle)) {
+  violations.push("src/options/style-base.css retains an obsolete embedded-options height hack");
+}
 
 const accessibilityStyle = fs.readFileSync(
   path.join(root, "src", "options", "style-accessibility.css"),
@@ -258,6 +276,26 @@ const routeDebuggerStyle = fs.readFileSync(
 );
 if (/@media\s*\(max-width:/.test(routeDebuggerStyle)) {
   violations.push("route debugger responsiveness must follow its routing-workspace container");
+}
+const routeDebuggerResponsiveStyle = fs.readFileSync(
+  path.join(root, "src", "options", "style-route-debugger-responsive.css"),
+  "utf8",
+);
+if (!routeDebuggerResponsiveStyle.includes("@container routing-workspace")) {
+  violations.push("route debugger responsive rules must follow the routing-workspace container");
+}
+
+const layoutStyle = fs.readFileSync(path.join(root, "src", "options", "style-layout.css"), "utf8");
+if (!/\.preview-column\s*\{[^}]*top:\s*var\(--sticky-header-offset\)/.test(layoutStyle)) {
+  violations.push("sticky preview columns must use the shared sticky-header offset");
+}
+
+const utilityStyle = fs.readFileSync(
+  path.join(root, "src", "options", "style-utilities.css"),
+  "utf8",
+);
+if (!utilityStyle.includes(".visually-hidden") || !utilityStyle.includes("clip-path: inset(50%)")) {
+  violations.push("visually hidden content must use the shared modern clipping utility");
 }
 
 const ruleEditorStyle = fs.readFileSync(
@@ -316,6 +354,10 @@ for (const contract of [
   "box-sizing: border-box;",
   "accent-color: var(--color-accent);",
   "overscroll-behavior: contain;",
+  "scrollbar-gutter: stable;",
+  "--source-panel-motion-transform: translateX(-8px);",
+  "--source-panel-motion-transform: translateY(8px);",
+  "--source-panel-motion-transform: translateY(-8px);",
   "@media (prefers-contrast: more)",
   "@media (forced-colors: active)",
 ]) {

@@ -189,6 +189,7 @@
   height: calc(100% - 144px);
   overflow: auto;
   overscroll-behavior: contain;
+  scrollbar-gutter: stable;
   padding: 0 var(--space-4) var(--space-4);
 }
 

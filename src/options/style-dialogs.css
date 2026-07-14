@@ -23,15 +23,15 @@
   line-height: var(--leading-copy);
 }
 
-.unsaved-changes-dialog .dialog-actions {
-  margin-top: var(--space-4);
-}
-
 .dialog-actions {
   display: flex;
   justify-content: flex-end;
   gap: var(--space-2);
   margin: 0;
+}
+
+.unsaved-changes-dialog .dialog-actions {
+  margin-top: var(--space-4);
 }
 
 .button-danger,

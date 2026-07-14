@@ -98,6 +98,7 @@
   max-height: 20rem;
   overflow-y: auto;
   overscroll-behavior: contain;
+  scrollbar-gutter: stable;
   padding: 4px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
@@ -252,8 +253,10 @@
   flex-direction: column;
   gap: var(--space-5);
   position: sticky;
-  top: 56px;
-  max-height: calc(100dvh - 130px);
+  top: var(--sticky-header-offset);
+  max-height: calc(
+    100dvh - var(--sticky-header-offset) - var(--space-6) - var(--space-6) - var(--space-2)
+  );
 }
 
 .paths-editor > .preview-column {
@@ -298,6 +301,7 @@ summary {
   max-height: min(360px, 55dvh);
   overflow-y: auto;
   overscroll-behavior: contain;
+  scrollbar-gutter: stable;
   border: 1px solid var(--panel-border);
   border-radius: var(--radius);
   background: var(--floating-bg);

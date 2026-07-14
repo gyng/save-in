@@ -296,6 +296,7 @@ textarea.syntax-editor-input::placeholder {
   max-height: 16em;
   overflow-y: auto;
   overscroll-behavior: contain;
+  scrollbar-gutter: stable;
   /* Theme-aware surface (the old --background-color token never existed, so
      this box used to render white-on-white text in dark mode) */
   background: var(--floating-bg);
@@ -374,6 +375,7 @@ textarea.syntax-editor-input::placeholder {
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
+  scrollbar-gutter: stable;
   padding: var(--space-1);
   border: 1px solid var(--panel-border);
   border-radius: var(--radius);
@@ -445,7 +447,6 @@ textarea.syntax-editor-input::placeholder {
 .typeahead-dropdown-reference {
   gap: 0;
   padding: 0;
-  scrollbar-gutter: stable;
 }
 
 .typeahead-dropdown-reference .typeahead-option {
