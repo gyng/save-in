@@ -94,6 +94,47 @@ describe("syntax editor model", () => {
     );
   });
 
+  test("highlights and validates WebExtension match-pattern lists", () => {
+    const source = "  *://*.example.com/files/*  \nnot a pattern\n\nfile:///*";
+    const snapshot = analyzeSyntax("match-patterns", source);
+    const byKind = (kind: string) =>
+      snapshot.tokens
+        .filter((candidate) => candidate.kind === kind)
+        .map(({ start, end }) => tokenText(source, start, end));
+
+    expect(byKind("matcher")).toEqual(["*", "file"]);
+    expect(byKind("punctuation")).toEqual(["://", "://"]);
+    expect(byKind("destination-value")).toEqual(["*.example.com"]);
+    expect(byKind("regex")).toEqual(["/files/*", "/*"]);
+    expect(byKind("invalid")).toEqual(["not a pattern"]);
+    expect(snapshot.diagnostics).toEqual([
+      {
+        start: 30,
+        end: 43,
+        line: 2,
+        column: 0,
+        message: "matchPatternInvalid",
+        severity: "error",
+      },
+    ]);
+  });
+
+  test("highlights each regular expression and locates invalid lines", () => {
+    const source = " example\\.com \n  (  \n/files/";
+    const snapshot = analyzeSyntax("regular-expressions", source);
+
+    expect(
+      snapshot.tokens.map(({ kind, start, end }) => [kind, tokenText(source, start, end)]),
+    ).toEqual([
+      ["regex", "example\\.com"],
+      ["regex", "/files/"],
+      ["invalid", "("],
+    ]);
+    expect(snapshot.diagnostics).toEqual([
+      expect.objectContaining({ line: 2, column: 2, message: "regularExpressionInvalid" }),
+    ]);
+  });
+
   test("uses grammar context for directory and routing completions", () => {
     const variables = [":date:", ":day:", ":filename:"];
     const matchers = ["into", "capturegroups", "fileext", "filename"];

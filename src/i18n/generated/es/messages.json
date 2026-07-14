@@ -2392,5 +2392,7 @@
   "html_downloadRequestHeaders": { "message": "Encabezados de las solicitudes de descarga" },
   "html_temporarilyAddsThePageUrlAsRefererForExactSaveInRequests": {
     "message": "Añade temporalmente la URL de la página como Referer a las solicitudes exactas de Save In cuando un sitio lo requiere."
-  }
+  },
+  "matchPatternInvalid": { "message": "Patrón de WebExtension no válido" },
+  "regularExpressionInvalid": { "message": "Expresión regular no válida" }
 }

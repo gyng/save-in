@@ -17,9 +17,20 @@ export type SyntaxEditorController = {
 const controllers = new WeakMap<HTMLTextAreaElement, SyntaxEditorController>();
 const pendingDiagnostics = new WeakMap<HTMLTextAreaElement, readonly SyntaxEditorDiagnostic[]>();
 
-const LOCALIZED_DIAGNOSTIC_KEYS = new Set(["html_required", "ruleBadClause"]);
-const diagnosticText = (message: string): string =>
-  LOCALIZED_DIAGNOSTIC_KEYS.has(message) ? getMessage(message) || message : message;
+const diagnosticText = (message: string): string => {
+  switch (message) {
+    case "html_required":
+      return getMessage("html_required") || message;
+    case "matchPatternInvalid":
+      return getMessage("matchPatternInvalid") || message;
+    case "regularExpressionInvalid":
+      return getMessage("regularExpressionInvalid") || message;
+    case "ruleBadClause":
+      return getMessage("ruleBadClause") || message;
+    default:
+      return message;
+  }
+};
 
 const diagnosticLabel = (diagnostic: SyntaxEditorDiagnostic): string =>
   `L${diagnostic.line}: ${diagnosticText(diagnostic.message)}`;
@@ -443,6 +454,7 @@ export const createSyntaxEditor = (
       textarea.removeEventListener("select", showTooltipForCaret);
       textarea.removeEventListener("keydown", onKeyDown);
       textarea.removeEventListener("syntax-editor-visibility", onVisibilityChange);
+      document.removeEventListener("options-restored", refresh);
       gutter.removeEventListener("click", onGutterClick);
       gutter.removeEventListener("mousemove", onGutterPointerMove);
       gutter.removeEventListener("mouseleave", hideHoverTooltip);
@@ -464,6 +476,7 @@ export const createSyntaxEditor = (
   textarea.addEventListener("select", showTooltipForCaret);
   textarea.addEventListener("keydown", onKeyDown);
   textarea.addEventListener("syntax-editor-visibility", onVisibilityChange);
+  document.addEventListener("options-restored", refresh);
   gutter.addEventListener("click", onGutterClick);
   gutter.addEventListener("mousemove", onGutterPointerMove);
   gutter.addEventListener("mouseleave", hideHoverTooltip);
@@ -481,9 +494,17 @@ export const setSyntaxEditorDiagnostics = (
 
 export const setupSyntaxEditors = (): SyntaxEditorController[] => {
   const result: SyntaxEditorController[] = [];
-  const paths = document.querySelector<HTMLTextAreaElement>("#paths");
-  if (paths) result.push(createSyntaxEditor(paths, "directories"));
-  const rules = document.querySelector<HTMLTextAreaElement>("#filenamePatterns");
-  if (rules) result.push(createSyntaxEditor(rules, "routing"));
+  const editors: ReadonlyArray<readonly [string, SyntaxEditorLanguage]> = [
+    ["#paths", "directories"],
+    ["#filenamePatterns", "routing"],
+    ["#preferLinksFilter", "regular-expressions"],
+    ["#browserDownloadFilter", "match-patterns"],
+    ["#browserDownloadExcludeFilter", "match-patterns"],
+    ["#setRefererHeaderFilter", "match-patterns"],
+  ];
+  editors.forEach(([selector, language]) => {
+    const textarea = document.querySelector<HTMLTextAreaElement>(selector);
+    if (textarea) result.push(createSyntaxEditor(textarea, language));
+  });
   return result;
 };

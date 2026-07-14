@@ -2419,5 +2419,7 @@
   "html_downloadRequestHeaders": { "message": "En-têtes des requêtes de téléchargement" },
   "html_temporarilyAddsThePageUrlAsRefererForExactSaveInRequests": {
     "message": "Ajoute temporairement l’URL de la page en tant que Referer aux requêtes Save In exactes lorsqu’un site l’exige."
-  }
+  },
+  "matchPatternInvalid": { "message": "Motif WebExtension non valide" },
+  "regularExpressionInvalid": { "message": "Expression régulière non valide" }
 }

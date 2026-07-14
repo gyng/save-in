@@ -1,7 +1,7 @@
 import { options } from "../config/options-data.ts";
 import { WEB_EXTENSION_CAPABILITIES } from "../platform/chrome-detector.ts";
 import { matchPatternToRegExp } from "../shared/match-pattern.ts";
-import { splitLines } from "../shared/util.ts";
+import { parsePatternList } from "../shared/pattern-list.ts";
 import { RefererRules } from "./referer-rules.ts";
 import type { DownloadInfo } from "./download-types.ts";
 
@@ -26,13 +26,16 @@ export const RequestHeaders = {
   matchPatternToRegExp,
 
   matchesRefererFilter: (url: string): boolean =>
-    splitLines(options.setRefererHeaderFilter).some((pattern) => {
+    parsePatternList(options.setRefererHeaderFilter, (pattern) => {
       try {
-        return RequestHeaders.matchPatternToRegExp(pattern)?.test(url) === true;
-      } catch {
-        return false;
+        return (
+          RequestHeaders.matchPatternToRegExp(pattern) ??
+          new Error("Invalid WebExtension match pattern")
+        );
+      } catch (error) {
+        return error instanceof Error ? error : new Error(String(error));
       }
-    }),
+    }).entries.some(({ value }) => value.test(url)),
 
   getReferer: (state: RefererState): string | undefined => {
     if (!options.setRefererHeader) return undefined;

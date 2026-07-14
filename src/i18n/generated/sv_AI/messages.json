@@ -2384,5 +2384,7 @@
   "html_downloadRequestHeaders": { "message": "Huvuden för hämtningsbegäranden" },
   "html_temporarilyAddsThePageUrlAsRefererForExactSaveInRequests": {
     "message": "Sidans URL läggs till tillfälligt som Referer för exakta Save In-begäranden när en webbplats kräver det."
-  }
+  },
+  "matchPatternInvalid": { "message": "Ogiltigt WebExtension-matchningsmönster" },
+  "regularExpressionInvalid": { "message": "Ogiltigt reguljärt uttryck" }
 }

@@ -2392,5 +2392,7 @@
   "html_downloadRequestHeaders": { "message": "Header von Download-Anfragen" },
   "html_temporarilyAddsThePageUrlAsRefererForExactSaveInRequests": {
     "message": "Fügt vorübergehend die Seiten-URL als Referer zu genau passenden Save In-Anfragen hinzu, wenn eine Website dies erfordert."
-  }
+  },
+  "matchPatternInvalid": { "message": "Ungültiges WebExtension-Muster" },
+  "regularExpressionInvalid": { "message": "Ungültiger regulärer Ausdruck" }
 }

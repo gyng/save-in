@@ -1303,6 +1303,14 @@
     "message": "No validation errors",
     "description": "Label, status, or help text in the options interface. Used in src/options/options.ts."
   },
+  "matchPatternInvalid": {
+    "message": "Invalid WebExtension match pattern",
+    "description": "Inline editor diagnostic for malformed URL match patterns. Used in src/options/syntax-editor-model.ts."
+  },
+  "regularExpressionInvalid": {
+    "message": "Invalid regular expression",
+    "description": "Inline editor diagnostic for malformed regular expressions. Used in src/options/syntax-editor-model.ts."
+  },
   "notificationLinkPreferred": {
     "message": "Downloaded the link target instead",
     "description": "Notification title when link was downloaded over a source. Used in src/background/menu-click.ts."

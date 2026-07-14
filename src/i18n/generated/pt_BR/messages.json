@@ -2394,5 +2394,7 @@
   "html_downloadRequestHeaders": { "message": "Cabeçalhos das solicitações de download" },
   "html_temporarilyAddsThePageUrlAsRefererForExactSaveInRequests": {
     "message": "Adiciona temporariamente a URL da página como Referer às solicitações exatas do Save In quando um site exige isso."
-  }
+  },
+  "matchPatternInvalid": { "message": "Padrão de correspondência WebExtension inválido" },
+  "regularExpressionInvalid": { "message": "Expressão regular inválida" }
 }

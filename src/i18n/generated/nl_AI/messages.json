@@ -2396,5 +2396,7 @@
   "html_downloadRequestHeaders": { "message": "Headers van downloadverzoeken" },
   "html_temporarilyAddsThePageUrlAsRefererForExactSaveInRequests": {
     "message": "Voegt tijdelijk de pagina-URL als Referer toe aan exact overeenkomende Save In-verzoeken wanneer een site dit vereist."
-  }
+  },
+  "matchPatternInvalid": { "message": "Ongeldig WebExtension-matchpatroon" },
+  "regularExpressionInvalid": { "message": "Ongeldige reguliere expressie" }
 }

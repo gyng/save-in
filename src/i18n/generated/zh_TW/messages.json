@@ -2488,5 +2488,7 @@
   "html_downloadRequestHeaders": { "message": "下載要求標頭" },
   "html_temporarilyAddsThePageUrlAsRefererForExactSaveInRequests": {
     "message": "網站需要時，會暫時為完全符合的 Save In 要求加入頁面 URL 作為 Referer。"
-  }
+  },
+  "matchPatternInvalid": { "message": "無效的 WebExtension 比對模式" },
+  "regularExpressionInvalid": { "message": "無效的規則運算式" }
 }

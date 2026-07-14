@@ -2488,5 +2488,7 @@
   "html_downloadRequestHeaders": { "message": "ダウンロードリクエストのヘッダー" },
   "html_temporarilyAddsThePageUrlAsRefererForExactSaveInRequests": {
     "message": "サイトで必要な場合に、対象の Save In リクエストへページ URL を Referer として一時的に追加します。"
-  }
+  },
+  "matchPatternInvalid": { "message": "無効な WebExtension マッチパターン" },
+  "regularExpressionInvalid": { "message": "無効な正規表現" }
 }

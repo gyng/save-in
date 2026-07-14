@@ -1,7 +1,13 @@
 import { parsePathLineAst } from "../config/path-syntax.ts";
 import { parseRoutingRuleAst, type RoutingLineNode } from "../routing/rule-syntax.ts";
+import { parseMatchPatternList } from "../shared/match-pattern.ts";
+import { parseRegularExpressionList, type PatternListIssue } from "../shared/pattern-list.ts";
 
-export type SyntaxEditorLanguage = "directories" | "routing";
+export type SyntaxEditorLanguage =
+  | "directories"
+  | "routing"
+  | "match-patterns"
+  | "regular-expressions";
 
 export type SyntaxTokenKind =
   | "nesting"
@@ -257,11 +263,70 @@ const routingSnapshot = (source: string, lines: readonly SyntaxLine[]): SyntaxSn
   return { source, lines, tokens, diagnostics };
 };
 
+const patternDiagnostics = (
+  issues: readonly PatternListIssue[],
+  message: string,
+): SyntaxEditorDiagnostic[] =>
+  issues.map((issue) => ({
+    start: issue.start,
+    end: issue.end,
+    line: issue.line,
+    column: issue.column,
+    message,
+    severity: "error",
+  }));
+
+const matchPatternSnapshot = (source: string, lines: readonly SyntaxLine[]): SyntaxSnapshot => {
+  const parsed = parseMatchPatternList(source);
+  const tokens: SyntaxToken[] = [];
+  parsed.entries.forEach((entry) => {
+    const { scheme, host, path } = entry.value;
+    const separatorStart = entry.start + scheme.length;
+    const hostStart = separatorStart + 3;
+    const pathStart = hostStart + host.length;
+    tokens.push(
+      token("matcher", entry.start, separatorStart),
+      token("punctuation", separatorStart, hostStart),
+    );
+    if (host) tokens.push(token("destination-value", hostStart, pathStart));
+    tokens.push(token("regex", pathStart, pathStart + path.length));
+  });
+  parsed.issues.forEach((issue) => tokens.push(token("invalid", issue.start, issue.end)));
+  return {
+    source,
+    lines,
+    tokens,
+    diagnostics: patternDiagnostics(parsed.issues, "matchPatternInvalid"),
+  };
+};
+
+const regularExpressionSnapshot = (
+  source: string,
+  lines: readonly SyntaxLine[],
+): SyntaxSnapshot => {
+  const parsed = parseRegularExpressionList(source);
+  const tokens = parsed.entries.map((entry) => token("regex", entry.start, entry.end));
+  parsed.issues.forEach((issue) => tokens.push(token("invalid", issue.start, issue.end)));
+  return {
+    source,
+    lines,
+    tokens,
+    diagnostics: patternDiagnostics(parsed.issues, "regularExpressionInvalid"),
+  };
+};
+
 export const analyzeSyntax = (language: SyntaxEditorLanguage, source: string): SyntaxSnapshot => {
   const lines = sourceLines(source);
-  return language === "directories"
-    ? directorySnapshot(source, lines)
-    : routingSnapshot(source, lines);
+  switch (language) {
+    case "directories":
+      return directorySnapshot(source, lines);
+    case "routing":
+      return routingSnapshot(source, lines);
+    case "match-patterns":
+      return matchPatternSnapshot(source, lines);
+    case "regular-expressions":
+      return regularExpressionSnapshot(source, lines);
+  }
 };
 
 const directorySourceRange = (

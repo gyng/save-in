@@ -58,6 +58,18 @@ describe("syntax editor surface", () => {
     expect(target.querySelector(".syntax-editor-end-marker")).toBeNull();
   });
 
+  test("refreshes highlighting after stored options are restored", () => {
+    document.body.innerHTML = '<textarea id="filter"></textarea>';
+    const textarea = document.querySelector("textarea")!;
+    createSyntaxEditor(textarea, "match-patterns");
+
+    textarea.value = "https://example.com/*";
+    document.dispatchEvent(new Event("options-restored"));
+
+    expect(document.querySelector(".syntax-editor-overlay")?.textContent).toContain(textarea.value);
+    expect(document.querySelector(".syntax-token-matcher")?.textContent).toBe("https");
+  });
+
   test("renders diagnostics, caret feedback, and gutter navigation without hover tooltips", () => {
     document.body.innerHTML = '<textarea id="paths">first\nsecond</textarea>';
     const textarea = document.querySelector("textarea")!;
@@ -131,14 +143,25 @@ describe("syntax editor surface", () => {
     expect(tooltip.textContent).toContain("L2");
   });
 
-  test("sets up both option editors once and rejects a disconnected textarea", () => {
+  test("sets up all option syntax editors once and rejects a disconnected textarea", () => {
     document.body.innerHTML = [
       '<textarea id="paths">one</textarea>',
       '<textarea id="filenamePatterns">into: images</textarea>',
+      '<textarea id="preferLinksFilter">example\\.com</textarea>',
+      '<textarea id="browserDownloadFilter">*://example.com/*</textarea>',
+      '<textarea id="browserDownloadExcludeFilter"></textarea>',
+      '<textarea id="setRefererHeaderFilter">https://example.com/*</textarea>',
     ].join("");
 
     const editors = setupSyntaxEditors();
-    expect(editors).toHaveLength(2);
+    expect(editors.map(({ language }) => language)).toEqual([
+      "directories",
+      "routing",
+      "regular-expressions",
+      "match-patterns",
+      "match-patterns",
+      "match-patterns",
+    ]);
     expect(createSyntaxEditor(editors[0]!.textarea, "directories")).toBe(editors[0]);
     expect(setupSyntaxEditors()).toEqual(editors);
 

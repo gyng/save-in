@@ -9,7 +9,7 @@ import { toggleSourcePanelForTab } from "./source-panel-state.ts";
 import { menuState, setAccesskey, setLastUsed } from "./menu-build.ts";
 import { MENU_IDS } from "../menus/menu-ids.ts";
 import { DOWNLOAD_TYPES, isMediaType } from "../shared/constants.ts";
-import { splitLines } from "../shared/util.ts";
+import { parseRegularExpressionList } from "../shared/pattern-list.ts";
 import { Path, sanitizeFilename, truncateIfLongerThan } from "../routing/path.ts";
 import { Download } from "../downloads/download.ts";
 import { EXTENSION_NOTIFICATION_STREAMS, Notifier } from "../downloads/notification.ts";
@@ -88,20 +88,11 @@ export const resolveClickTarget = (
       }
 
       if (clickOptions.preferLinksFilterEnabled && clickOptions.preferLinksFilter) {
-        let overrideUrls = false;
-        try {
-          // splitLines drops empty lines: an empty pattern would compile to
-          // `new RegExp("")` and match every page
-          splitLines(clickOptions.preferLinksFilter)
-            .map((s) => new RegExp(s))
-            .forEach((re) => {
-              if (info.pageUrl?.match(re) != null) {
-                overrideUrls = true;
-              }
-            });
-        } catch (err) {
-          result.badPatternError = err;
-        }
+        const parsed = parseRegularExpressionList(clickOptions.preferLinksFilter);
+        const overrideUrls =
+          parsed.issues.length === 0 &&
+          parsed.entries.some(({ value }) => info.pageUrl?.match(value) != null);
+        result.badPatternError = parsed.issues[0]?.error ?? null;
 
         if (overrideUrls) {
           result.downloadType = DOWNLOAD_TYPES.LINK;

@@ -2488,5 +2488,7 @@
   "html_downloadRequestHeaders": { "message": "다운로드 요청 헤더" },
   "html_temporarilyAddsThePageUrlAsRefererForExactSaveInRequests": {
     "message": "사이트에 필요한 경우 정확히 일치하는 Save In 요청에 페이지 URL을 Referer로 일시적으로 추가합니다."
-  }
+  },
+  "matchPatternInvalid": { "message": "잘못된 WebExtension 일치 패턴" },
+  "regularExpressionInvalid": { "message": "잘못된 정규식" }
 }
