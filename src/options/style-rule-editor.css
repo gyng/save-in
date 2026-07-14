@@ -23,7 +23,8 @@
 }
 
 .routing-reference-column {
-  position: static;
+  position: sticky;
+  top: 56px;
   max-height: none;
 }
 
