@@ -55,7 +55,7 @@ export type WireDownloadInfo = {
 export type ValidationInfo = Omit<WireDownloadInfo, "now"> & {
   srcUrl?: string | undefined;
   linkUrl?: string | undefined;
-  now?: Date | undefined;
+  now?: string | undefined;
 };
 
 export type WireDownloadState = {
@@ -511,7 +511,7 @@ const isValidationInfo = (value: unknown): value is ValidationInfo =>
     typeof value.contentFetchDisabled === "boolean") &&
   (typeof value.counter === "undefined" || isRoutingCounter(value.counter)) &&
   (typeof value.now === "undefined" ||
-    (value.now instanceof Date && Number.isFinite(value.now.getTime()))) &&
+    (typeof value.now === "string" && Number.isFinite(new Date(value.now).getTime()))) &&
   (typeof value.currentTab === "undefined" ||
     value.currentTab === null ||
     isWireCurrentTab(value.currentTab));

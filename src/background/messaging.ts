@@ -321,10 +321,15 @@ export const Messaging = {
       }
       result.ruleErrors = parsed.errors;
       if (body.info && typeof body.info === "object" && !Array.isArray(body.info)) {
+        const { now, ...wireInfo } = body.info;
+        const normalizedInfo = {
+          ...wireInfo,
+          ...(now ? { now: new Date(now) } : {}),
+        };
         const traceInfo =
           external && !Object.hasOwn(body.info, "currentTab")
-            ? { ...body.info, currentTab: null }
-            : body.info;
+            ? { ...normalizedInfo, currentTab: null }
+            : normalizedInfo;
         result.ruleTrace = await traceRules(parsed.rules, traceInfo);
       }
       if (body.automaticCandidate) {

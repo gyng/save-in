@@ -228,7 +228,7 @@ test("normalizes debugger fields into the routing engine input aliases", () => {
     sourceKind: "document",
     menuIndex: "2",
     comment: "Reports",
-    now: new Date("2026-07-15T12:30:00"),
+    now: new Date("2026-07-15T12:30:00").toISOString(),
     counter: 7,
     sha256: "ba7816bf8f01",
   });

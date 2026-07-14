@@ -15,6 +15,14 @@ test("keeps the options page hidden until localization completes", () => {
   expect(document.documentElement.classList).toContain("localization-pending");
 });
 
+test("uses one main landmark for the settings workflow", () => {
+  const document = documentForOptions();
+  const main = document.querySelector("main");
+
+  expect(document.querySelectorAll("main")).toHaveLength(1);
+  expect(main?.contains(document.getElementById("options"))).toBe(true);
+});
+
 test("keeps stable controls for each options workflow", () => {
   const document = documentForOptions();
   requireIds(document, [
@@ -190,6 +198,7 @@ test("shares validation feedback after both routing editor panels", () => {
   expect(document.querySelector("#rules-visual")?.getAttribute("aria-describedby")).toContain(
     "error-filenamePatterns",
   );
+  expect(errors?.getAttribute("role")).toBe("status");
 });
 
 test("shares validation feedback after both save-location editor panels", () => {
@@ -205,6 +214,7 @@ test("shares validation feedback after both save-location editor panels", () => 
   expect(document.querySelector("#paths-visual")?.getAttribute("aria-describedby")).toContain(
     "error-paths",
   );
+  expect(errors?.getAttribute("role")).toBe("status");
 });
 
 test("connects every tab to a labelled tab panel without treating launchers as tabs", () => {

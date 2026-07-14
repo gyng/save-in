@@ -125,6 +125,32 @@ describe("config API", () => {
     expect(sendResponse.mock.calls[0]![0]!.body.ruleTrace).toEqual({ selectedRule: 1 });
   });
 
+  test("VALIDATE restores a serialized test time before tracing", async () => {
+    const rules = [{ name: "into", value: ":date:-:filename:", type: "DESTINATION" }] as any;
+    vi.mocked(router.parseRulesCollecting).mockReturnValue({ rules, errors: [] });
+    vi.mocked(router.traceRules).mockResolvedValue({ selectedRule: 1 } as any);
+    const sendResponse = vi.fn();
+
+    expect(
+      onMessage(
+        {
+          type: MESSAGE_TYPES.VALIDATE,
+          body: {
+            filenamePatterns: "x",
+            info: { filename: "cat.jpg", now: "2026-07-15T12:30:00.000Z" },
+          },
+        },
+        {},
+        sendResponse,
+      ),
+    ).toBe(true);
+    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    expect(router.traceRules).toHaveBeenCalledWith(rules, {
+      filename: "cat.jpg",
+      now: new Date("2026-07-15T12:30:00.000Z"),
+    });
+  });
+
   test("external VALIDATE never falls back to the tracked browser tab", async () => {
     const rules = [[{ name: "into", value: "images", type: "DESTINATION" }]] as any;
     vi.mocked(router.parseRulesCollecting).mockReturnValue({ rules, errors: [] });

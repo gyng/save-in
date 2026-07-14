@@ -239,7 +239,7 @@ export const routeDebuggerInfo = (fields: RouteDebuggerFields): ValidationInfo =
   if (fields.comment) info.comment = fields.comment;
   if (fields.now) {
     const now = new Date(fields.now);
-    if (Number.isFinite(now.getTime())) info.now = now;
+    if (Number.isFinite(now.getTime())) info.now = now.toISOString();
   }
   if (fields.counter) {
     const counter = Number(fields.counter);

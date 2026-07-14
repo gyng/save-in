@@ -48,7 +48,7 @@ describe("message protocol runtime validation", () => {
             modifiers: ["Shift"],
             preview: true,
             counter: 2,
-            now: new Date("2026-01-02T03:04:05.000Z"),
+            now: "2026-01-02T03:04:05.000Z",
             context: "media",
             menuIndex: "2",
             currentTab: { title: "Quarterly report", incognito: false },
@@ -243,6 +243,15 @@ describe("message protocol runtime validation", () => {
       }),
     ).toBe(true);
     expect(isInternalMessage({ type: MESSAGE_TYPES.VALIDATE })).toBe(true);
+    expect(
+      isInternalMessage({
+        type: MESSAGE_TYPES.VALIDATE,
+        body: { info: { now: "2026-07-15T12:30:00.000Z" } },
+      }),
+    ).toBe(true);
+    expect(
+      isInternalMessage({ type: MESSAGE_TYPES.VALIDATE, body: { info: { now: "not-a-date" } } }),
+    ).toBe(false);
     expect(isInternalMessage({ type: MESSAGE_TYPES.APPLY_CONFIG, body: undefined })).toBe(true);
     expect(isInternalMessage({ type: MESSAGE_TYPES.DOWNLOAD })).toBe(true);
     expect(isInternalMessage({ type: MESSAGE_TYPES.DOWNLOAD, body: null })).toBe(false);
