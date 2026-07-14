@@ -348,23 +348,21 @@ describe("variables preview", () => {
 
 describe("reset options", () => {
   test("removes only schema options, preserving history and other extension data", async () => {
-    document.body.innerHTML = '<button id="reset"></button><span id="lastSavedAt"></span>';
+    document.body.innerHTML =
+      '<button id="reset"></button><div id="settings-reset-status"></div><span id="lastSavedAt"></span>';
     vi.mocked(browser.storage.local.remove).mockResolvedValue();
     vi.mocked(browser.runtime.sendMessage).mockResolvedValue({ type: "OK" });
     const restoreOptions = vi.fn();
     const updateErrors = vi.fn();
-    const hostWindow = {
-      confirm: vi.fn(() => true),
-      alert: vi.fn(),
-    } as unknown as Window;
     setupResetOptions({
       restoreOptions,
       updateErrors,
       getOptionNames: () => Promise.resolve(["paths", "prompt"]),
-      window: hostWindow,
+      localize: () => "",
     });
 
     document.querySelector<HTMLButtonElement>("#reset")!.click();
+    document.querySelector<HTMLButtonElement>(".reset-settings-confirm")!.click();
     await vi.waitFor(() =>
       expect(browser.storage.local.remove).toHaveBeenCalledWith(["paths", "prompt"]),
     );
@@ -372,44 +370,49 @@ describe("reset options", () => {
     expect(browser.runtime.sendMessage).toHaveBeenCalledWith({ type: "OPTIONS_LOADED" });
     expect(restoreOptions).toHaveBeenCalled();
     expect(updateErrors).toHaveBeenCalled();
-    expect(hostWindow.alert).toHaveBeenCalledWith("Settings have been reset to defaults.");
+    const status = document.querySelector<HTMLElement>("#settings-reset-status")!;
+    expect(status.textContent).toBe("Default settings restored.");
+    expect(status.classList).toContain("feedback-success");
+    expect(status.getAttribute("role")).toBe("status");
   });
 
-  test("does nothing when confirmation is declined", () => {
+  test("does nothing when confirmation is declined", async () => {
     document.body.innerHTML = '<button id="reset"></button>';
-    const hostWindow = { confirm: vi.fn(() => false) } as unknown as Window;
     setupResetOptions({
       restoreOptions: vi.fn(),
       updateErrors: vi.fn(),
       getOptionNames: () => Promise.resolve(["paths"]),
-      window: hostWindow,
+      localize: () => "",
     });
     document.querySelector<HTMLButtonElement>("#reset")!.click();
+    const dialog = document.querySelector<HTMLDialogElement>(".reset-settings-dialog")!;
+    expect(dialog.getAttribute("aria-describedby")).toBe("reset-settings-description");
+    dialog.dispatchEvent(new Event("cancel", { cancelable: true }));
+    await Promise.resolve();
     expect(browser.storage.local.clear).not.toHaveBeenCalled();
+    expect(document.querySelector(".reset-settings-dialog")).toBeNull();
   });
 
   test("reports a reset failure without restoring stale controls", async () => {
-    document.body.innerHTML = '<button id="reset"></button>';
+    document.body.innerHTML = '<button id="reset"></button><div id="settings-reset-status"></div>';
     vi.mocked(browser.storage.local.remove).mockRejectedValueOnce(new Error("storage denied"));
     const restoreOptions = vi.fn();
-    const hostWindow = {
-      confirm: vi.fn(() => true),
-      alert: vi.fn(),
-    } as unknown as Window;
     setupResetOptions({
       restoreOptions,
       updateErrors: vi.fn(),
       getOptionNames: () => Promise.resolve(["paths"]),
-      window: hostWindow,
+      localize: () => "",
     });
 
     document.querySelector<HTMLButtonElement>("#reset")!.click();
+    document.querySelector<HTMLButtonElement>(".reset-settings-confirm")!.click();
 
     await vi.waitFor(() =>
-      expect(hostWindow.alert).toHaveBeenCalledWith(
-        "Failed to reset settings: Error: storage denied",
+      expect(document.querySelector("#settings-reset-status")?.textContent).toBe(
+        "Could not restore default settings.",
       ),
     );
+    expect(document.querySelector("#settings-reset-status")?.classList).toContain("feedback-error");
     expect(restoreOptions).not.toHaveBeenCalled();
   });
 });

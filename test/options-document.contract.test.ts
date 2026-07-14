@@ -133,6 +133,11 @@ test("keeps stable history controls and export commands", () => {
       (id) => document.getElementById(id)?.getAttribute("data-runtime-control") === "true",
     ),
   ).toBe(true);
+  for (const id of ["history-date-from", "history-date-to"]) {
+    expect(document.getElementById(id)?.getAttribute("aria-describedby")).toContain(
+      "history-date-error",
+    );
+  }
 });
 
 test("keeps stable Page Sources controls", () => {
@@ -281,4 +286,10 @@ test("keeps the route debugger in its simple testing order", () => {
     document.querySelector(".route-debugger-variables-header #route-debugger-use-sample"),
   ).not.toBeNull();
   expect(document.querySelector("#route-debugger-rules")).toBeNull();
+});
+
+test("limits route debugger announcements to its result summary", () => {
+  const document = documentForOptions();
+  const result = document.querySelector("#route-debugger-result");
+  expect(result?.hasAttribute("aria-live")).toBe(false);
 });

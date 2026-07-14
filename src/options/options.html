@@ -899,7 +899,6 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                 id="route-debugger-result"
                 role="region"
                 aria-labelledby="route-debugger-title"
-                aria-live="polite"
               ></div>
               <div class="route-debugger-variables-header">
                 <details class="route-debugger-variables">
@@ -1670,10 +1669,20 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
       >
         <span id="history-custom-date-label">__MSG_o_lHistoryCustomRange__</span>
         <label for="history-date-from">__MSG_o_lHistoryStartDate__</label>
-        <input id="history-date-from" type="date" data-runtime-control="true" />
+        <input
+          id="history-date-from"
+          type="date"
+          data-runtime-control="true"
+          aria-describedby="history-date-error"
+        />
         <span aria-hidden="true">–</span>
         <label for="history-date-to">__MSG_o_lHistoryEndDate__</label>
-        <input id="history-date-to" type="date" data-runtime-control="true" />
+        <input
+          id="history-date-to"
+          type="date"
+          data-runtime-control="true"
+          aria-describedby="history-date-error"
+        />
         <span id="history-date-error" class="history-date-error" role="alert" hidden></span>
       </div>
       <div id="history-active-filters" class="history-active-filters" aria-live="polite"></div>
@@ -1821,10 +1830,17 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
         <button type="button" id="settings-export" class="button settings-export-button">
           __MSG_o_cExportSettings__
         </button>
-        <button type="button" id="reset" class="button settings-reset-button">
+        <button type="button" id="reset" class="button-danger danger-button settings-reset-button">
           __MSG_o_cRestoreDefaults__
         </button>
       </div>
+      <div
+        id="settings-reset-status"
+        class="feedback feedback-inline settings-reset-status"
+        role="status"
+        aria-live="polite"
+        hidden
+      ></div>
 
       <textarea id="export-target" hidden spellcheck="false"></textarea>
 
@@ -1896,7 +1912,7 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
           </p>
           <p
             id="external-approved-status"
-            class="caption external-approved-status"
+            class="feedback feedback-success feedback-inline external-approved-status"
             role="status"
           ></p>
 

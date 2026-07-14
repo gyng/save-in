@@ -162,9 +162,10 @@ test("shows production rule and clause decisions and jumps back to their source"
 
   const result = document.querySelector<HTMLElement>("#route-debugger-result")!;
   await vi.waitFor(() => expect(result.dataset.state).toBe("matched"));
-  expect(result.querySelector(".route-debugger-match-summary")?.textContent).toBe(
-    "1 rule matched and was used.",
-  );
+  const summary = result.querySelector(".route-debugger-match-summary");
+  expect(summary?.textContent).toBe("1 rule matched and was used.");
+  expect(summary?.getAttribute("role")).toBe("status");
+  expect(summary?.getAttribute("aria-live")).toBe("polite");
   expect(result.textContent).toContain("pdf/report.pdf");
   const ruleCards = result.querySelectorAll<HTMLDetailsElement>(".route-debugger-rule");
   expect(ruleCards).toHaveLength(2);
@@ -617,6 +618,9 @@ test("renders selected, also-matching, and missed rules without a destination pi
   expect(document.body.textContent).toContain("Used");
   expect(document.body.textContent).toContain("Conditions not met");
   expect(document.querySelector(".route-debugger-pipeline")).not.toBeNull();
+  const clauseRows = [...document.querySelectorAll<HTMLElement>(".route-debugger-clause")];
+  expect(clauseRows.some((row) => row.tagName === "BUTTON")).toBe(true);
+  expect(clauseRows.some((row) => row.tagName === "DIV")).toBe(true);
 });
 
 test("ignores stale validation completion after clearing", async () => {

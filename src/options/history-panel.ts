@@ -128,6 +128,11 @@ const updateHistoryFilterUi = () => {
   const message = valid ? "" : "Start date must be before end date.";
   from?.setCustomValidity(message);
   to?.setCustomValidity(message);
+  for (const input of [from, to]) {
+    if (!input) continue;
+    if (valid) input.removeAttribute("aria-invalid");
+    else input.setAttribute("aria-invalid", "true");
+  }
   const error = document.querySelector<HTMLElement>("#history-date-error");
   if (error) {
     error.hidden = valid;

@@ -919,7 +919,7 @@ details {
 }
 
 li {
-  margin-bottom: 4px;
+  margin-bottom: var(--space-1);
 }
 
 input[type="number"],
@@ -946,7 +946,7 @@ input[type="text"] {
 }
 
 .save {
-  margin-top: 32px;
+  margin-top: var(--space-6);
 }
 
 .help {
@@ -1103,8 +1103,8 @@ input[type="text"] {
   display: none;
   border: 1px solid var(--panel-border);
   background-color: var(--panel-bg);
-  padding: 8px 12px 8px 12px;
-  margin: 8px 0 16px 0;
+  padding: var(--space-2) var(--space-3);
+  margin: var(--space-2) 0 var(--space-4);
 }
 
 .hide {
@@ -1139,8 +1139,8 @@ input[type="text"] {
 }
 
 .box {
-  margin: 16px 0;
-  padding: 4px;
+  margin: var(--space-4) 0;
+  padding: var(--space-1);
   width: 100%;
   background-color: var(--chip-bg);
 }
@@ -1195,7 +1195,7 @@ label:has(> input[type="checkbox"]) > .caption-line {
    align with the row's left edge (the old hardcoded indent left them detached
    from their own input). */
 .caption-line {
-  margin-top: 4px;
+  margin-top: var(--space-1);
 }
 
 .behavior-group {
@@ -1256,8 +1256,8 @@ label:has(> input[type="checkbox"]) > .caption-line {
 }
 
 .badge {
-  padding: 4px;
-  border-radius: 4px;
+  padding: var(--space-1);
+  border-radius: var(--radius);
   font-weight: 700;
   color: var(--badge-fg);
   background-color: var(--badge-bg);
@@ -5390,18 +5390,18 @@ code.click-to-copy {
   font-family: inherit;
 }
 
-.unsaved-changes-dialog {
+:is(.unsaved-changes-dialog, .reset-settings-dialog) {
   width: min(420px, calc(100vw - 2 * var(--space-5)));
   padding: var(--space-5);
 }
 
-.unsaved-changes-dialog h2 {
+:is(.unsaved-changes-dialog, .reset-settings-dialog) h2 {
   margin: 0 0 var(--space-2);
   font-size: var(--text-lg);
   font-weight: 600;
 }
 
-.unsaved-changes-dialog p {
+:is(.unsaved-changes-dialog, .reset-settings-dialog) p {
   margin: 0 0 var(--space-5);
 }
 

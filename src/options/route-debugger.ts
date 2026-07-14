@@ -254,6 +254,9 @@ export const setupRouteDebugger = (): void => {
     setState(state);
     const message = document.createElement("div");
     message.className = "route-debugger-message";
+    message.setAttribute("role", state === "error" || state === "invalid" ? "alert" : "status");
+    message.setAttribute("aria-live", "polite");
+    message.setAttribute("aria-atomic", "true");
     appendText(message, "route-debugger-message-title", title);
     result.replaceChildren(message);
   };
@@ -285,6 +288,9 @@ export const setupRouteDebugger = (): void => {
     const laterMatchCount = Math.max(0, matchedRuleCount - 1);
     const message = document.createElement("div");
     message.className = "route-debugger-message route-debugger-match-summary";
+    message.setAttribute("role", "status");
+    message.setAttribute("aria-live", "polite");
+    message.setAttribute("aria-atomic", "true");
     appendText(
       message,
       "route-debugger-message-title",
@@ -403,18 +409,18 @@ export const setupRouteDebugger = (): void => {
       clauses.className = "route-debugger-clauses";
       rule.clauses.forEach((clause) => {
         const item = document.createElement("li");
-        const clauseButton = document.createElement("button");
-        clauseButton.type = "button";
-        clauseButton.className = "route-debugger-clause";
-        clauseButton.dataset.clauseName = clause.name;
-        clauseButton.classList.toggle("is-match", clause.matched);
-        clauseButton.classList.toggle("is-miss", !clause.matched);
+        const clauseRow = document.createElement(clause.source ? "button" : "div");
+        if (clauseRow instanceof HTMLButtonElement) clauseRow.type = "button";
+        clauseRow.className = "route-debugger-clause";
+        clauseRow.dataset.clauseName = clause.name;
+        clauseRow.classList.toggle("is-match", clause.matched);
+        clauseRow.classList.toggle("is-miss", !clause.matched);
         if (clause.source) {
-          clauseButton.addEventListener("click", () =>
+          clauseRow.addEventListener("click", () =>
             jumpToSource(clause.source!, rule.sourceIndex!),
           );
         }
-        appendText(clauseButton, "route-debugger-clause-mark", clause.matched ? "✓" : "×");
+        appendText(clauseRow, "route-debugger-clause-mark", clause.matched ? "✓" : "×");
         const decision = document.createElement("span");
         decision.className = "route-debugger-clause-decision";
         if (clause.attempts && clause.attempts.length > 0) {
@@ -468,8 +474,8 @@ export const setupRouteDebugger = (): void => {
                 ),
           );
         }
-        clauseButton.append(decision);
-        item.append(clauseButton);
+        clauseRow.append(decision);
+        item.append(clauseRow);
         clauses.append(item);
       });
       card.append(clauses);

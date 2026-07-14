@@ -29,7 +29,8 @@ const markup = () => `
   </select>
   <button id="history-clear-filters" class="history-clear-filters-inactive" disabled>Clear filters</button>
   <div id="history-custom-date-range" hidden>
-    <input id="history-date-from" type="date"><input id="history-date-to" type="date">
+    <input id="history-date-from" type="date" aria-describedby="history-date-error">
+    <input id="history-date-to" type="date" aria-describedby="history-date-error">
     <span id="history-date-error" hidden></span>
   </div>
   <div id="history-active-filters"></div>
@@ -79,7 +80,17 @@ describe("history filter controls", () => {
     to.dispatchEvent(new Event("change"));
 
     expect(from.validationMessage).toContain("before end date");
-    expect(document.querySelector<HTMLElement>("#history-date-error")!.hidden).toBe(false);
+    const error = document.querySelector<HTMLElement>("#history-date-error")!;
+    expect(error.hidden).toBe(false);
+    expect(from.getAttribute("aria-invalid")).toBe("true");
+    expect(to.getAttribute("aria-invalid")).toBe("true");
+    expect(from.getAttribute("aria-describedby")).toContain("history-date-error");
+
+    to.value = "2024-07-20";
+    to.dispatchEvent(new Event("change"));
+    expect(error.hidden).toBe(true);
+    expect(from.hasAttribute("aria-invalid")).toBe(false);
+    expect(to.hasAttribute("aria-invalid")).toBe(false);
   });
 
   test("shows preset boundaries and switches to Custom when either date is edited", () => {

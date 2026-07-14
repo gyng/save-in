@@ -198,10 +198,18 @@ const main = async () => {
     const { extensionId, port } = session;
     const optionsTarget = `${extensionId}/src/options/options.html`;
 
-    await cdp.openTab(port, `chrome-extension://${optionsTarget}`);
     await waitFor(
       () => cdp.evalInTarget(port, optionsTarget, "document.readyState === 'complete'"),
-      "options page",
+      "first-install options page",
+    );
+    await cdp.evalInTarget(
+      port,
+      optionsTarget,
+      `document.querySelector(".welcome-accept")?.click(); "welcome dismissed"`,
+    );
+    await waitFor(
+      () => cdp.evalInTarget(port, optionsTarget, '!document.querySelector("#welcome-dialog")'),
+      "welcome dialog dismissal",
     );
     await waitFor(
       () =>
@@ -263,7 +271,7 @@ const main = async () => {
     await cdp.evalInTarget(
       port,
       optionsTarget,
-      `document.querySelector(".route-debugger")?.scrollIntoView({ block: "start" });
+      `document.querySelector(".route-debugger-shell")?.scrollIntoView({ block: "start" });
        scrollBy(0, -112);
        document.activeElement?.blur();`,
     );
@@ -302,9 +310,9 @@ const main = async () => {
           demoTarget,
           `[...document.querySelector("#save-in-source-panel").shadowRoot
             .querySelectorAll(".source-link .name")]
-            .some((node) => node.textContent?.includes("late-image.webp"))`,
+            .some((node) => node.textContent?.includes("demo-photo.avif"))`,
         ),
-      "late Page Sources discovery",
+      "showcase Page Sources discovery",
     );
     await cdp.evalInTarget(port, demoTarget, "scrollTo(0, 0); document.activeElement?.blur()");
     await capture(port, demoTarget, outputDir, SCREENSHOTS[2]);
