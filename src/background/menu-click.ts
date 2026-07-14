@@ -220,13 +220,14 @@ export const handleContextMenuClick = async (
         menuIndex = menuState.lastUsedMeta.menuIndex;
       }
     } else {
-      saveIntoPath = menuInfo.parsedDir;
-      const title = menuInfo.title || saveIntoPath;
+      const mappedMenu = menuInfo!;
+      saveIntoPath = mappedMenu.parsedDir;
+      const title = mappedMenu.title || saveIntoPath;
       selectedLocation = {
         path: saveIntoPath,
         meta: {
-          comment: menuInfo.comment,
-          menuIndex: menuInfo.menuIndex,
+          comment: mappedMenu.comment,
+          menuIndex: mappedMenu.menuIndex,
           title,
         },
         title,

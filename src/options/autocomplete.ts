@@ -335,8 +335,7 @@ export const attachAutocomplete = (
       render(current);
     } else if (key === "Enter" || key === "Tab") {
       e.preventDefault();
-      const suggestion = current.suggestions[current.selected];
-      if (suggestion !== undefined) accept(suggestion);
+      accept(current.suggestions[current.selected]!);
     } else if (key === "Escape") {
       close();
     }
