@@ -159,13 +159,32 @@ describe("visual editor", () => {
   test("toggles a row with disabled metadata", () => {
     const enabled = rows()[0]!.querySelector<HTMLInputElement>(".path-editor-enabled")!;
     expect(enabled.checked).toBe(true);
+    expect(rows()[0]!.querySelector<HTMLButtonElement>(".path-editor-alias-toggle")!.hidden).toBe(
+      false,
+    );
 
     enabled.click();
     expect(textarea().value).toBe("a // (disabled: true)\n>b // (alias: B)\n---");
     expect(rows()[0]!.classList).toContain("is-disabled");
+    expect(rows()[0]!.querySelector<HTMLButtonElement>(".path-editor-alias-toggle")!.hidden).toBe(
+      true,
+    );
 
     rows()[0]!.querySelector<HTMLInputElement>(".path-editor-enabled")!.click();
     expect(textarea().value).toBe("a\n>b // (alias: B)\n---");
+    expect(rows()[0]!.querySelector<HTMLButtonElement>(".path-editor-alias-toggle")!.hidden).toBe(
+      false,
+    );
+  });
+
+  test("keeps an existing alias visible when its row is disabled", () => {
+    rows()[1]!.querySelector<HTMLInputElement>(".path-editor-enabled")!.click();
+
+    const alias = rows()[1]!.querySelector<HTMLInputElement>(".path-editor-alias")!;
+    const toggle = rows()[1]!.querySelector<HTMLButtonElement>(".path-editor-alias-toggle")!;
+    expect(alias.value).toBe("B");
+    expect(alias.classList).toContain("is-open");
+    expect(toggle.hidden).toBe(false);
   });
 
   test("notifies preview consumers when a row is selected", () => {

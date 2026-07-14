@@ -393,6 +393,7 @@ const PathEditorHelpers = {
           aliasToggle.type = "button";
           aliasToggle.className = "path-editor-alias-toggle";
           aliasToggle.textContent = "Alias";
+          aliasToggle.hidden = !enabled.checked && !aliasOpen;
           aliasToggle.setAttribute("aria-expanded", String(aliasOpen));
           aliasToggle.addEventListener("click", () => {
             const open = !alias.classList.contains("is-open");
