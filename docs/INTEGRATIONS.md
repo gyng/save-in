@@ -6,6 +6,9 @@ The [Integrations wiki](https://github.com/gyng/save-in/wiki/Integrations) is
 the user-facing guide and recipe collection; if its protocol details differ,
 this document is authoritative.
 
+For the in-product setup workflow, safety controls, matching semantics, and
+legacy-setting migration, see [Automatic source saves](AUTOMATIC-SOURCE-SAVES.md).
+
 External Download API v1 remains backward compatible within the declared
 version. Callers should negotiate capabilities with `PING` and ignore unknown
 response fields. The same-extension config messages are internal and may gain
@@ -108,6 +111,10 @@ const response = await browser.runtime.sendMessage(SAVE_IN_ID, {
 ```
 
 Check for the `vocabulary`, `grammar`, and `automatic_routing_validation` capabilities before using these additive API v1 features. Older callers can ignore the new capability and response fields.
+
+`autoDownloadRules` remains accepted as a legacy configuration field. The
+extension migrates valid stored legacy rules into `filenamePatterns`; new tools
+and generated configurations should write unified routing rules directly.
 
 ## WebMCP
 

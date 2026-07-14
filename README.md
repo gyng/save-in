@@ -24,6 +24,12 @@ Rich path variables — dates, page/source parts, `:counter:`, `:uuid:`, and `:m
 
 Dynamic Downloads rules can match normalized MIME types (`mime:` / `contenttype:`), referrer URLs and hostnames, and page or source root domains.
 
+Page Sources can automatically save newly discovered matching media. Automatic
+saves are off by default and use guarded Dynamic Downloads rules with an
+explicit `context: ^auto$`, a page condition, and a source condition. Rules are
+created in the shared Visual routing editor and remain subject to private-window
+and per-page safety limits. See [Automatic source saves](docs/AUTOMATIC-SOURCE-SAVES.md).
+
 Optionally include matching ordinary browser downloads in local history. Chrome
 can apply Dynamic Downloads rules before saving; Firefox offers a separately
 labelled experimental cancel-and-redownload mode for matching HTTP(S) downloads.

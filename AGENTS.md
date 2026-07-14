@@ -40,6 +40,19 @@ Execution contexts:
 - **Options page** (`src/options/*`): talks to the background exclusively
   via `runtime.sendMessage` (never `getBackgroundPage()`, which MV3 lacks).
 
+Automatic Page Sources saves reuse the normal `filenamePatterns` routing
+language and editor. Eligibility is deliberately narrower than ordinary
+routing: `routing/automatic-rule.ts` recognizes only rules with an explicit
+`context` pattern for the synthetic `AUTO` context, plus at least one page
+matcher and one source matcher. `automation/automatic-routing.ts` ignores all
+other routing rules and selects the first eligible match. The content script
+discovers previewable HTTP(S) sources and sends candidates to the background;
+the background repeats rule matching before launching the download. Global
+enable/live/private/per-page controls remain content options. The legacy
+`autoDownloadRules` schema entry stays readable for imports and stored-profile
+migration, but valid legacy rules are converted into `filenamePatterns` at the
+configuration boundary. Do not add a second automation-rule grammar or editor.
+
 Ordinary browser downloads are an explicit opt-in integration. Both browsers
 can record matching page/browser-owned downloads in Save In history without
 adopting them for retries, prompts, or notifications. Chrome can additionally

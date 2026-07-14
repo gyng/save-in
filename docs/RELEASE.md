@@ -11,8 +11,9 @@ Use the [store descriptions](STORE-DESCRIPTIONS.md) as the canonical English
 listing copy and store-facing release note; update its version and review date
 for each release.
 Keep store data-use answers aligned with `PRIVACY.md`: Save In processes website
-content and browsing activity locally for user-requested saves and history,
-sends neither to the developer, and executes no remote code.
+content and browsing activity locally for direct saves, explicitly configured
+automatic saves, and history; sends neither to the developer; and executes no
+remote code.
 
 Chrome's listing should disclose that Incognito activity is excluded from Save
 In history and diagnostics, while Chrome may show an Incognito save in its
@@ -80,10 +81,13 @@ current Chrome and Firefox:
 5. Check options and Page Sources at normal and narrow widths in System, Dark,
    and Light modes, including focus indicators and a forced theme opposite the
    operating-system preference.
-6. Create the same destination symlink inside each browser's download folder.
+6. Add and enable a guarded automatic-source rule on the review demo page.
+   Verify initial and late-discovered matches use its destination, the per-page
+   limit stops additional saves, and a broad ordinary rule does not trigger.
+7. Create the same destination symlink inside each browser's download folder.
    Verify Firefox reaches the target and Chrome reports a failed download
    without writing outside its download folder.
-7. In Chrome Incognito and Firefox Private Browsing, perform a Save In download
+8. In Chrome Incognito and Firefox Private Browsing, perform a Save In download
    and an ordinary browser download. Verify neither enters Save In history or
    the debug log, and ordinary-download routing does not rename the private
    browser download.

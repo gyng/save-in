@@ -11,6 +11,10 @@ support and makes complex download organization easier while preserving existing
   notifications, history, retries, and private-browsing safeguards.
 - Expanded routing and renaming with many new variables, safer filename
   handling, Page Sources, and more dependable click-to-save behavior.
+- Added opt-in automatic saving for discovered Page Sources through guarded
+  `context: ^auto$` routing rules, with live/private controls and a per-page
+  limit. The shared Visual routing editor creates and identifies these rules;
+  valid settings from the earlier dedicated rule field migrate automatically.
 - Added explicitly approved external integrations and validated configuration
   tools without adding remote code or broader interception permissions.
 - Unified both browser releases into one readable, reproducible package backed
@@ -58,6 +62,9 @@ support and makes complex download organization easier while preserving existing
   language selector, and wrapped external-link icons retain a fixed size
 - Page Sources now follows the selected interface language. Its localized copy
   is resolved lazily and cached without adding translation work to page scanning
+- Page Sources can save newly discovered matching resources automatically.
+  Automatic rules share the normal routing editor and grammar, require explicit
+  page and source conditions, and cannot be triggered by broad ordinary rules.
 - CSV and TSV history exports neutralize formula-leading cells before they are
   opened in spreadsheet applications
 - New path variables: `:counter:` (atomic, persistent, per-download counter with

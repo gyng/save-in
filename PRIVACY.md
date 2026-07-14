@@ -15,10 +15,11 @@ remains in memory.
 
 ## How does Save In use the information?
 
-Save In uses this information only for user-requested saving, routing, renaming,
-status, history, and retries.
+Save In uses this information only for user-requested or explicitly configured
+automatic saving, routing, renaming, status, history, and retries.
 
-On the user's command, Save In contacts the selected resource server and its
+On the user's command, or when an enabled site-scoped automatic rule matches a
+newly discovered page source, Save In contacts the resource server and its
 redirects to inspect or download the resource. Direct downloads use the browser's
 normal credentials. Non-private extension Fetch and HEAD requests include
 applicable site credentials by default; this can be disabled under Advanced
@@ -56,8 +57,9 @@ Private Browsing session.
 
 Save In sends no user data to the developer, analytics providers, advertisers,
 data brokers, or other unrelated parties. Necessary download requests go only
-to hosts selected by the user and their redirects. Optional webhook requests go
-only to the exact HTTPS endpoint configured by the user.
+to hosts selected directly by the user or matched by their enabled automatic
+rules, and to those hosts' redirects. Optional webhook requests go only to the
+exact HTTPS endpoint configured by the user.
 
 Local data remains until the user clears it or uninstalls Save In; temporary
 transfer state is removed when no longer needed.
