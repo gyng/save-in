@@ -46,6 +46,7 @@ import {
   validationErrorsToDiagnostics,
 } from "./syntax-editor-model.ts";
 import { dispatchEditorValidation } from "./editor-validation.ts";
+import { createDeferredPageReload } from "./deferred-page-reload.ts";
 
 const setupLastDownloadState = () => {
   document.querySelector("#last-dl-url")?.classList.add("is-empty");
@@ -530,6 +531,7 @@ export const syncOptionsPageAfterWebMcpApply = async (
   updateOptionDependencies();
   document.dispatchEvent(new Event("options-restored"));
   markSavedNow(changes);
+  if (changes.some(({ name }) => name === "uiLocale")) localePageReload.request();
 };
 const saveOptions = (e?: Event, scope?: string, scopeValue?: unknown): Promise<unknown> => {
   e?.preventDefault();
@@ -631,6 +633,14 @@ const manualEditorState = createManualEditorState(
 const setupManualEditor = manualEditorState.setup;
 const refreshManualEditorBaselines = manualEditorState.refreshBaselines;
 const anyManualEditorDirty = manualEditorState.anyDirty;
+const localePageReload = createDeferredPageReload({
+  isBlocked: () =>
+    fieldSaveState.hasUnsaved() ||
+    fieldSaveState.anySaving() ||
+    manualEditorState.anyDirty() ||
+    manualEditorState.anySaving(),
+  reload: () => location.reload(),
+});
 
 const showManualSaveError = (id: string, error: unknown) => {
   const panel = document.querySelector(`#error-${id}`);
