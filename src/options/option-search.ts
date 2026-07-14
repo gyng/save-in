@@ -137,8 +137,7 @@ export const setupOptionSearch = (): void => {
     options.forEach((option, index) =>
       option.setAttribute("aria-selected", String(index === active)),
     );
-    const activeOption = options[active];
-    if (!activeOption) return close();
+    const activeOption = options[active]!;
     input.setAttribute("aria-activedescendant", activeOption.id);
     activeOption.scrollIntoView?.({ block: "nearest" });
   };

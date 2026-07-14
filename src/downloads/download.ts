@@ -377,7 +377,7 @@ export const Download = {
         // HEAD is best-effort; acquisition still proceeds with the resolved name.
       }
     }
-    const resolvedFilename = state.info.filename || initialFilename;
+    const resolvedFilename = state.info.filename!;
     state.info.filename = resolvedFilename;
 
     const filenamePatterns = Array.isArray(options.filenamePatterns)
@@ -732,9 +732,7 @@ export const Download = {
       }
     };
     state.info.onContentFetchStart = (requestId) => {
-      const preliminaryPath =
-        state.info.filename ?? state.info.suggestedFilename ?? state.info.url ?? "";
-      ensureHistoryEntry(state, preliminaryPath);
+      ensureHistoryEntry(state, state.info.filename!);
       registerTransfer(requestId);
       // Make an open options page render the cancellable preparation row.
       emitDownloaded(state);
