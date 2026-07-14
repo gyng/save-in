@@ -6,8 +6,22 @@ type LogEntry = { at?: unknown; message?: unknown; data?: unknown };
 const isLogEntry = (value: unknown): value is LogEntry =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
-const formatPart = (value: unknown): string =>
-  typeof value === "string" ? value : value == null ? "" : JSON.stringify(value);
+const formatPart = (value: unknown): string => {
+  if (typeof value === "string") return value;
+  if (value == null) return "";
+  try {
+    const serialized: unknown = JSON.stringify(value);
+    if (typeof serialized === "string") return serialized;
+  } catch {
+    // Legacy or externally modified session data can contain values that JSON
+    // cannot encode; keep one bad field from hiding the rest of the log.
+  }
+  try {
+    return String(value);
+  } catch {
+    return "[unprintable]";
+  }
+};
 
 export const updateDebugLog = async () => {
   const el = document.querySelector<HTMLTextAreaElement>("#debug-log");

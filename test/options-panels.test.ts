@@ -113,6 +113,20 @@ describe("debug log panel", () => {
     );
   });
 
+  test("contains values that JSON serialization cannot represent", async () => {
+    const circular: Record<string, unknown> = {};
+    circular.self = circular;
+    vi.mocked(browser.storage.session.get).mockResolvedValue({
+      [LOG_STORAGE_KEY]: [{ at: "now", message: 7n, data: circular }],
+    });
+
+    await updateDebugLog();
+
+    expect(document.querySelector<HTMLTextAreaElement>("#debug-log")!.value).toBe(
+      "now  7  [object Object]",
+    );
+  });
+
   test("ignores refreshes without a log field and non-array storage", async () => {
     document.body.innerHTML = "";
     await expect(updateDebugLog()).resolves.toBeUndefined();
