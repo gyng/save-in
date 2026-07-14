@@ -377,6 +377,8 @@ export const Download = {
         // HEAD is best-effort; acquisition still proceeds with the resolved name.
       }
     }
+    const resolvedFilename = state.info.filename || initialFilename;
+    state.info.filename = resolvedFilename;
 
     const filenamePatterns = Array.isArray(options.filenamePatterns)
       ? options.filenamePatterns
@@ -394,7 +396,7 @@ export const Download = {
     if (
       options.appendMimeExtension !== false &&
       usesActualFileExtension &&
-      !EXTENSION_REGEX.test(state.info.filename!)
+      !EXTENSION_REGEX.test(resolvedFilename)
     ) {
       const extension = mimeToExtension(await resolveMime(state.info));
       if (extension) {
@@ -438,7 +440,7 @@ export const Download = {
       const tentative =
         state.route && !state.routeIsFolder
           ? state.route.finalize({ finalComponentIsFilename: true })
-          : sanitizeFilename(state.info.filename!, options.truncateLength, true, true);
+          : sanitizeFilename(resolvedFilename, options.truncateLength, true, true);
       if (tentative && !EXTENSION_REGEX.test(tentative)) {
         const ext = mimeToExtension(await resolveMime(state.info));
         if (ext) {
@@ -730,7 +732,8 @@ export const Download = {
       }
     };
     state.info.onContentFetchStart = (requestId) => {
-      const preliminaryPath = state.info.filename!;
+      const preliminaryPath =
+        state.info.filename ?? state.info.suggestedFilename ?? state.info.url ?? "";
       ensureHistoryEntry(state, preliminaryPath);
       registerTransfer(requestId);
       // Make an open options page render the cancellable preparation row.
