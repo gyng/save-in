@@ -75,6 +75,25 @@ describe("redirect-aware extension fetches over HTTP", () => {
     await expect(finalResponseClosed).resolves.toBe(false);
   });
 
+  test("falls back to GET when the HEAD connection drops", async () => {
+    const methods: string[] = [];
+    const origin = await listen((request, response) => {
+      methods.push(`${request.method} ${request.url}`);
+      if (request.method === "HEAD") {
+        request.socket.destroy();
+        return;
+      }
+      response.writeHead(200, { "Content-Type": "text/plain" });
+      response.end("download bytes");
+    });
+
+    await expect(resolveHead({ url: `${origin}/file.txt` })).resolves.toEqual({
+      contentType: "text/plain",
+      finalUrl: `${origin}/file.txt`,
+    });
+    expect(methods).toEqual(["HEAD /file.txt", "GET /file.txt"]);
+  });
+
   test("rejects a redirect loop instead of hanging", async () => {
     let origin = "";
     origin = await listen((_request, response) => {
