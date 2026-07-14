@@ -1,9 +1,28 @@
 // Substitutes __MSG_key__ placeholders in the options document with i18n
 // messages. First-party replacement for webextensions-lib-l10n.
 
+import { isSelectableLocale } from "../shared/generated-locales.ts";
+
 type GetMessage = (key: string) => string;
 
 const nativeGetMessage: GetMessage = (key) => chrome.i18n.getMessage(key);
+
+const LANGUAGE_TAG = /^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/;
+
+export const documentLanguage = (selectedLocale: unknown, browserLocale: unknown): string => {
+  const source = isSelectableLocale(selectedLocale) ? selectedLocale : browserLocale;
+  const normalized =
+    typeof source === "string" ? source.trim().replace(/_AI$/, "").replaceAll("_", "-") : "";
+  return LANGUAGE_TAG.test(normalized) ? normalized : "en";
+};
+
+export const setDocumentLanguage = (
+  selectedLocale: unknown,
+  browserLocale: unknown,
+  root: HTMLElement = document.documentElement,
+): void => {
+  root.lang = documentLanguage(selectedLocale, browserLocale);
+};
 
 export const localizeString = (str: string, getMessage: GetMessage = nativeGetMessage): string =>
   str.replace(/__MSG_(.+?)__/g, (match, key) => getMessage(key) || match);

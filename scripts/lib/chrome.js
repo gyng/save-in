@@ -72,7 +72,7 @@ function findChromeOnPath(pathValue = process.env.PATH, platform = process.platf
 
 /** @param {string} version */
 const parseChromeMajorVersion = (version) => {
-  const match = version.match(/(?:Chrome|Chromium)\s+(\d+)\./i);
+  const match = version.match(/(?:Chrome|Chromium)(?: for Testing)?\s+(\d+)\./i);
   if (!match?.[1]) throw new Error(`Unable to determine Chrome version from: ${version.trim()}`);
   return Number(match[1]);
 };

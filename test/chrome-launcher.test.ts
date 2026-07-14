@@ -82,6 +82,7 @@ describe("isolated Chrome launcher", () => {
 
   test("parses the Chrome major version used to choose an extension loading strategy", () => {
     expect(parseChromeMajorVersion("Google Chrome 150.0.7871.114")).toBe(150);
+    expect(parseChromeMajorVersion("Google Chrome for Testing 149.0.7827.55")).toBe(149);
     expect(() => parseChromeMajorVersion("not Chrome")).toThrow(
       "Unable to determine Chrome version",
     );

@@ -1,5 +1,11 @@
 // @vitest-environment jsdom
-import { hardenLinks, localizeString, localizeDocument } from "../src/options/l10n.ts";
+import {
+  documentLanguage,
+  hardenLinks,
+  localizeString,
+  localizeDocument,
+  setDocumentLanguage,
+} from "../src/options/l10n.ts";
 
 describe("l10n", () => {
   beforeEach(() => {
@@ -29,6 +35,17 @@ describe("l10n", () => {
     expect(document.getElementById("t")?.textContent).toBe("Hello");
     expect(document.getElementById("i")?.getAttribute("placeholder")).toBe("save-in");
     expect(document.getElementById("plain")?.textContent).toBe("untouched");
+  });
+
+  test("uses the selected locale or browser language for document semantics", () => {
+    expect(documentLanguage("fr", "en-US")).toBe("fr");
+    expect(documentLanguage("pt_BR", "en-US")).toBe("pt-BR");
+    expect(documentLanguage("nl_AI", "en-US")).toBe("nl");
+    expect(documentLanguage("", "zh-Hant-TW")).toBe("zh-Hant-TW");
+    expect(documentLanguage("unknown", "not a locale")).toBe("en");
+
+    setDocumentLanguage("sv_AI", "en-US");
+    expect(document.documentElement.lang).toBe("sv");
   });
 
   test("opens external links separately without exposing the options window", () => {

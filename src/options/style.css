@@ -3232,6 +3232,20 @@ summary {
     gap: 2px;
   }
 
+  .route-debugger-rule-header {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .route-debugger-rule-title-group,
+  .route-debugger-rule-meta {
+    grid-column: 2;
+  }
+
+  .route-debugger-rule-meta {
+    justify-content: flex-start;
+  }
+
   .rule-editor-card-header {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
