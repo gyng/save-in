@@ -1,13 +1,14 @@
-import { chmodSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, test } from "vitest";
 
 const require = createRequire(import.meta.url);
-const { findFirefox, makeProfile } = require("../scripts/lib/firefox.js") as {
+const { findFirefox, makeProfile, removeProfile } = require("../scripts/lib/firefox.js") as {
   findFirefox: () => string;
   makeProfile: (baseProfileDir: string) => { profileDir: string; downloadDir: string };
+  removeProfile: (profileDir: string) => Promise<void>;
 };
 
 const originalFirefoxPath = process.env.FIREFOX_PATH;
@@ -47,6 +48,22 @@ describe("isolated Firefox launcher", () => {
       const { profileDir } = makeProfile(join(root, "save-in-ff-e2e"));
       expect(profileDir).toMatch(/save-in-ff-e2e-runner-123-\d+-[a-f\d]+$/);
     } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  test("removes a disposable profile without a settling timer", async () => {
+    const root = mkdtempSync(join(tmpdir(), "save-in-firefox-cleanup-"));
+    const profile = join(root, "profile");
+    writeFileSync(profile, "profile data");
+    const timer = vi.spyOn(globalThis, "setTimeout");
+
+    try {
+      await removeProfile(root);
+      expect(existsSync(root)).toBe(false);
+      expect(timer).not.toHaveBeenCalled();
+    } finally {
+      timer.mockRestore();
       rmSync(root, { recursive: true, force: true });
     }
   });

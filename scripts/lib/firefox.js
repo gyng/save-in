@@ -7,6 +7,7 @@
 const fs = require("fs");
 const path = require("path");
 const os = require("os");
+const { once } = require("events");
 const { spawn, execFileSync } = require("child_process");
 
 const { FirefoxRdp } = require("./firefox-rdp");
@@ -26,11 +27,26 @@ const ARTIFACTS = process.env.E2E_ARTIFACT_DIR
 const ROOT = process.env.EXT_DIR ? path.join(REPO, process.env.EXT_DIR) : REPO;
 const ADDON_ID = "{72d92df5-2aa0-4b06-b807-aa21767545cd}"; // manifest.json gecko id
 
-/** @param {number} ms */
-const sleep = (ms) =>
-  new Promise((res) => {
-    setTimeout(res, ms);
-  });
+/**
+ * @template T
+ * @param {() => Promise<T>} operation
+ * @param {number} timeoutMs
+ * @param {string} message
+ * @returns {Promise<T>}
+ */
+const retryUntil = async (operation, timeoutMs, message) => {
+  const deadline = Date.now() + timeoutMs;
+  for (;;) {
+    try {
+      return await operation();
+    } catch (error) {
+      if (Date.now() >= deadline) throw new Error(message, { cause: error });
+      // Failed socket/protocol operations already yield to the event loop. An
+      // immediate turn lets Firefox publish the observable state we retry.
+      await new Promise((resolve) => setImmediate(resolve));
+    }
+  }
+};
 
 /** @param {string | undefined} [pathValue] @param {NodeJS.Platform} [platform] */
 const findFirefoxOnPath = (pathValue = process.env.PATH, platform = process.platform) => {
@@ -101,6 +117,20 @@ const killProfileProcesses = (profileDir) => {
   }
 };
 
+/**
+ * @param {import("node:child_process").ChildProcess} proc
+ * @param {string} profileDir
+ */
+const stopFirefox = async (proc, profileDir) => {
+  const running = proc.exitCode === null && proc.signalCode === null;
+  const exited = running
+    ? once(proc, "exit", { signal: AbortSignal.timeout(10000) })
+    : Promise.resolve();
+  killTree(proc.pid);
+  killProfileProcesses(profileDir);
+  await exited;
+};
+
 /** @param {string} baseProfileDir */
 const makeProfile = (baseProfileDir) => {
   const owner = currentE2ERunId();
@@ -142,34 +172,15 @@ const makeProfile = (baseProfileDir) => {
 
 /** @param {string} profileDir */
 const removeProfile = async (profileDir) => {
-  for (let i = 0; i < 5; i += 1) {
-    // taskkill can return while a child is completing its final profile write;
-    // removing immediately may succeed only for Firefox to recreate the tree.
-    // POSIX permits an immediate optimistic removal; retain the settling delay
-    // for Windows and after a failed/recreated first attempt.
-    if (process.platform === "win32" || i > 0) await sleep(1500);
-    try {
-      fs.rmSync(profileDir, { recursive: true, force: true });
-      await sleep(100);
-      if (!fs.existsSync(profileDir)) return;
-    } catch (e) {
-      // Firefox may still be releasing files after its process tree exits.
-    }
+  fs.rmSync(profileDir, { recursive: true, force: true });
+  if (fs.existsSync(profileDir)) {
+    throw new Error(`Unable to remove disposable Firefox profile: ${profileDir}`);
   }
-  throw new Error(`Unable to remove disposable Firefox profile: ${profileDir}`);
 };
 
-/** @param {number} port @param {number} [attempts] */
-const connectWithRetry = async (port, attempts = 150) => {
-  for (let i = 0; i < attempts; i += 1) {
-    try {
-      return await FirefoxRdp.connect(port);
-    } catch (e) {
-      await sleep(200);
-    }
-  }
-  throw new Error(`Firefox did not open RDP port ${port}`);
-};
+/** @param {number} port */
+const connectWithRetry = (port) =>
+  retryUntil(() => FirefoxRdp.connect(port), 30000, `Firefox did not open RDP port ${port}`);
 
 const launch = async () => {
   const { profileDir, downloadDir } = makeProfile(path.join(os.tmpdir(), "save-in-ff-e2e"));
@@ -194,20 +205,11 @@ const launch = async () => {
     let connectedRdp = rdp;
     const root = await connectedRdp.getRoot();
     await connectedRdp.installTemporaryAddon(root.addonsActor, ROOT);
-    let addonActor;
-    let addonError;
-    for (let attempt = 0; attempt < 100; attempt += 1) {
-      try {
-        addonActor = await connectedRdp.findAddonActor(ADDON_ID);
-        break;
-      } catch (error) {
-        addonError = error;
-        await sleep(100);
-      }
-    }
-    if (!addonActor) {
-      throw new Error("Firefox did not expose the temporary add-on", { cause: addonError });
-    }
+    const addonActor = await retryUntil(
+      () => connectedRdp.findAddonActor(ADDON_ID),
+      10000,
+      "Firefox did not expose the temporary add-on",
+    );
     let consoleActor = await connectedRdp.getConsoleActor(addonActor);
 
     const openOptionsAndWaitForReady = async () => {
@@ -225,9 +227,8 @@ const launch = async () => {
       // Send the readiness probe from an extension page. A background context's
       // runtime.sendMessage does not loop back to its own onMessage listener.
       let lastProbe = "options target was not attachable";
-      const deadline = Date.now() + 10000;
-      for (;;) {
-        try {
+      await retryUntil(
+        async () => {
           const tabConsole = await connectedRdp.getTabConsoleActor("src/options/options.html");
           lastProbe = await connectedRdp.evaluate(
             tabConsole,
@@ -237,14 +238,11 @@ const launch = async () => {
           );
           const probe = JSON.parse(lastProbe);
           if (probe?.response?.type === "OK") return;
-        } catch (error) {
-          // The options target may not be attachable until its first document loads.
-          lastProbe = error instanceof Error ? error.message : String(error);
-        }
-        if (Date.now() >= deadline) break;
-        await sleep(100);
-      }
-      throw new Error(`background page never became ready (last probe: ${lastProbe})`);
+          throw new Error(`background readiness probe returned ${lastProbe}`);
+        },
+        10000,
+        "background page never became ready",
+      );
     };
 
     await openOptionsAndWaitForReady();
@@ -277,30 +275,21 @@ const launch = async () => {
       await connectedRdp.reloadAddon(ADDON_ID);
       connectedRdp.close();
       connectedRdp = await connectWithRetry(port);
-      let lastError;
-      const deadline = Date.now() + 10000;
-      for (;;) {
-        try {
+      await retryUntil(
+        async () => {
           const candidateAddonActor = await connectedRdp.findAddonActor(ADDON_ID);
           const candidateConsoleActor = await connectedRdp.getConsoleActor(candidateAddonActor);
           consoleActor = candidateConsoleActor;
           await openOptionsAndWaitForReady();
-          return;
-        } catch (error) {
-          lastError = error;
-          if (Date.now() >= deadline) break;
-          await sleep(100);
-        }
-      }
-      throw new Error("Firefox add-on reload did not expose a fresh background page", {
-        cause: lastError,
-      });
+        },
+        10000,
+        "Firefox add-on reload did not expose a fresh background page",
+      );
     };
 
     const cleanup = async () => {
       connectedRdp.close();
-      killTree(proc.pid);
-      killProfileProcesses(profileDir);
+      await stopFirefox(proc, profileDir);
       await removeProfile(profileDir);
     };
 
@@ -319,10 +308,9 @@ const launch = async () => {
     };
   } catch (error) {
     rdp?.close();
-    killTree(proc.pid);
-    killProfileProcesses(profileDir);
     let cleanupError;
     try {
+      await stopFirefox(proc, profileDir);
       await removeProfile(profileDir);
     } catch (failure) {
       cleanupError = failure;
