@@ -77,4 +77,27 @@ describe("pattern list grammar", () => {
       expect.objectContaining({ line: 2, source: "(", error: expect.any(Error) }),
     );
   });
+
+  test("normalizes non-Error regular expression failures", () => {
+    const NativeRegExp = globalThis.RegExp;
+    class ThrowingRegExp extends NativeRegExp {
+      constructor(pattern?: string | RegExp, flags?: string) {
+        if (pattern === "throw-non-error") throw "constructor rejected the pattern";
+        super(pattern, flags);
+      }
+    }
+    vi.stubGlobal("RegExp", ThrowingRegExp);
+    const result = (() => {
+      try {
+        return parseRegularExpressionList("throw-non-error");
+      } finally {
+        vi.unstubAllGlobals();
+      }
+    })();
+
+    expect(result.entries).toEqual([]);
+    expect(result.issues[0]?.error).toEqual(
+      expect.objectContaining({ message: "constructor rejected the pattern" }),
+    );
+  });
 });
