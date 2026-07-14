@@ -2121,9 +2121,6 @@
   "routeIdeDescription": {
     "message": "적용하기 전에 라우팅 규칙을 작성하고 검토하고 테스트합니다."
   },
-  "routeIdeBadge": {
-    "message": "문법 인식"
-  },
   "routeDebuggerTitle": {
     "message": "라우팅 규칙 테스트"
   },

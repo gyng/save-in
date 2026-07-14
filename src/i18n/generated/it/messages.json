@@ -2157,9 +2157,6 @@
   "routeIdeDescription": {
     "message": "Scrivi, esamina e verifica le regole di routing prima di applicarle."
   },
-  "routeIdeBadge": {
-    "message": "Basato sulla grammatica"
-  },
   "routeVisualEditorMode": {
     "message": "Modalità dell'editor delle regole di routing"
   },

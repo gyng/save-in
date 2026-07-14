@@ -2019,9 +2019,6 @@
   "routeIdeDescription": {
     "message": "Escriba, revise y pruebe las reglas de enrutamiento antes de aplicarlas."
   },
-  "routeIdeBadge": {
-    "message": "Reconoce la gramática"
-  },
   "routeDebuggerTitle": {
     "message": "Probar reglas de enrutamiento"
   },

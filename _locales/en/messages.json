@@ -2857,10 +2857,6 @@
     "message": "Write, inspect, and test routing rules before applying them.",
     "description": "Description below the routing rules editor heading. Used in src/options/options.html."
   },
-  "routeIdeBadge": {
-    "message": "Grammar-aware",
-    "description": "Compact badge describing the routing rules editor. Used in src/options/options.html."
-  },
   "routeVisualEditorMode": {
     "message": "Routing rule editor mode",
     "description": "Accessible label for the Text and Visual routing editor tabs. Used in src/options/options.html."

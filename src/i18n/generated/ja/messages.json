@@ -2121,9 +2121,6 @@
   "routeIdeDescription": {
     "message": "適用する前に、ルーティングルールを作成、確認、テストできます。"
   },
-  "routeIdeBadge": {
-    "message": "文法対応"
-  },
   "routeDebuggerTitle": {
     "message": "ルーティングルールをテスト"
   },

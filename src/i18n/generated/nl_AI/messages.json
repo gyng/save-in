@@ -2021,9 +2021,6 @@
   "routeIdeDescription": {
     "message": "Schrijf, controleer en test routeringsregels voordat u ze toepast."
   },
-  "routeIdeBadge": {
-    "message": "Grammaticabewust"
-  },
   "routeDebuggerTitle": {
     "message": "Routeringsregels testen"
   },

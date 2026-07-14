@@ -2021,9 +2021,6 @@
   "routeIdeDescription": {
     "message": "Escreva, revise e teste as regras de roteamento antes de aplicá-las."
   },
-  "routeIdeBadge": {
-    "message": "Reconhece a gramática"
-  },
   "routeDebuggerTitle": {
     "message": "Testar regras de roteamento"
   },

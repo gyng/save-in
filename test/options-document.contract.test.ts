@@ -177,3 +177,12 @@ test("keeps route debugger inputs out of persisted option handling", () => {
     expect(document.getElementById(id)?.hasAttribute("data-no-autosave"), id).toBe(true);
   }
 });
+
+test("keeps the route debugger available without opening it by default", () => {
+  const document = documentForOptions();
+  const summary = document.querySelector("#route-debugger-title");
+  const disclosure = summary?.closest("details");
+
+  expect(disclosure?.hasAttribute("open")).toBe(false);
+  expect(disclosure?.querySelector("#route-debugger-form")).not.toBeNull();
+});

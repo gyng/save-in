@@ -2019,9 +2019,6 @@
   "routeIdeDescription": {
     "message": "Routing-Regeln schreiben, prüfen und testen, bevor sie übernommen werden."
   },
-  "routeIdeBadge": {
-    "message": "Grammatikbasiert"
-  },
   "routeDebuggerTitle": {
     "message": "Routing-Regeln testen"
   },

@@ -2121,9 +2121,6 @@
   "routeIdeDescription": {
     "message": "套用前先編寫、檢查及測試路由規則。"
   },
-  "routeIdeBadge": {
-    "message": "支援語法"
-  },
   "routeDebuggerTitle": {
     "message": "測試路由規則"
   },

@@ -2042,9 +2042,6 @@
   "routeIdeDescription": {
     "message": "Rédigez, examinez et testez les règles de routage avant de les appliquer."
   },
-  "routeIdeBadge": {
-    "message": "Prend en compte la grammaire"
-  },
   "routeDebuggerTitle": {
     "message": "Tester les règles de routage"
   },
