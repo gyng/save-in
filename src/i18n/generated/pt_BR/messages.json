@@ -1757,6 +1757,53 @@
   "webhookFieldsSaved": {
     "message": "Dados do webhook atualizados."
   },
+  "routeDebuggerFileData": {
+    "message": "File"
+  },
+  "routeDebuggerUrlData": {
+    "message": "URLs"
+  },
+  "routeDebuggerPageData": {
+    "message": "Page text"
+  },
+  "routeDebuggerRuleDestination": {
+    "message": "Saves to $PATH$",
+    "placeholders": {
+      "path": {
+        "content": "$1",
+        "example": "images/:filename:"
+      }
+    }
+  },
+  "routeDebuggerEditRule": {
+    "message": "Edit"
+  },
+  "routeDebuggerConditionMatched": {
+    "message": "$FIELD$ matches $PATTERN$",
+    "placeholders": {
+      "field": {
+        "content": "$1",
+        "example": "fileext"
+      },
+      "pattern": {
+        "content": "$2",
+        "example": "pdf"
+      }
+    }
+  },
+  "routeDebuggerConditionDidNotMatch": {
+    "message": "$FIELD$ does not match $PATTERN$",
+    "placeholders": {
+      "field": {
+        "content": "$1",
+        "example": "fileext"
+      },
+      "pattern": {
+        "content": "$2",
+        "example": "png"
+      }
+    }
+  },
   "html_without": {
     "message": "sem"
   },
@@ -2113,9 +2160,6 @@
   },
   "routeDebuggerClear": {
     "message": "Limpar"
-  },
-  "routeDebuggerMoreData": {
-    "message": "Mais dados de teste"
   },
   "routeDebuggerPageTitle": {
     "message": "Título da página"

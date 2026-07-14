@@ -73,7 +73,7 @@ export const setupRouteDebugger = (): void => {
   const linkText = element<HTMLInputElement>("#route-debugger-link-text");
   const selectionText = element<HTMLInputElement>("#route-debugger-selection-text");
   const mediaType = element<HTMLSelectElement>("#route-debugger-media-type");
-  const moreData = element<HTMLDetailsElement>(".route-debugger-more");
+  const disclosure = element<HTMLDetailsElement>(".route-debugger-disclosure");
   if (
     !textarea ||
     !form ||
@@ -92,8 +92,7 @@ export const setupRouteDebugger = (): void => {
     !frameUrl ||
     !linkText ||
     !selectionText ||
-    !mediaType ||
-    !moreData
+    !mediaType
   ) {
     return;
   }
@@ -147,14 +146,6 @@ export const setupRouteDebugger = (): void => {
     mediaType.value = [...mediaType.options].some((option) => option.value === nextMediaType)
       ? nextMediaType
       : "";
-    moreData.open = Boolean(
-      fields.pageTitle ||
-      fields.referrerUrl ||
-      fields.frameUrl ||
-      fields.linkText ||
-      fields.selectionText ||
-      fields.mediaType,
-    );
   };
 
   const setState = (state: string): void => {
@@ -212,12 +203,6 @@ export const setupRouteDebugger = (): void => {
             trace.selectedRule,
           ),
     );
-    if (trace.finalPath) {
-      const finalPath = document.createElement("code");
-      finalPath.className = "route-debugger-final-path";
-      finalPath.textContent = trace.finalPath;
-      outcomeCopy.append(finalPath);
-    }
     outcome.append(outcomeCopy);
     fragment.append(outcome);
 
@@ -226,7 +211,7 @@ export const setupRouteDebugger = (): void => {
       pipeline.className = "route-debugger-pipeline";
       const stages: Array<[string, string | null]> = [
         [localize("routeDebuggerTemplate", "Template"), trace.destination],
-        [localize("routeDebuggerExpanded", "Expanded"), trace.expandedDestination],
+        [localize("routeDebuggerExpanded", "Expanded path"), trace.expandedDestination],
         [localize("routeDebuggerFinalPath", "Final path"), trace.finalPath],
       ];
       stages.forEach(([label, value]) => {
@@ -277,7 +262,12 @@ export const setupRouteDebugger = (): void => {
       title.textContent = localize("routeDebuggerRule", `Rule ${rule.index}`, rule.index);
       const destination = document.createElement("code");
       destination.className = "route-debugger-rule-destination";
-      destination.textContent = `into: ${rule.destination}`;
+      destination.dataset.path = rule.destination;
+      destination.textContent = localize(
+        "routeDebuggerRuleDestination",
+        `Saves to ${rule.destination}`,
+        rule.destination,
+      );
       titleGroup.append(title, destination);
       const meta = document.createElement("span");
       meta.className = "route-debugger-rule-meta";
@@ -285,24 +275,25 @@ export const setupRouteDebugger = (): void => {
       appendText(
         meta,
         "route-debugger-rule-count",
-        localize("routeDebuggerMatcherCount", `Matched ${matchedClauses}/${rule.clauses.length}`, [
-          matchedClauses,
-          rule.clauses.length,
-        ]),
+        localize(
+          "routeDebuggerMatcherCount",
+          `${matchedClauses} of ${rule.clauses.length} conditions met`,
+          [matchedClauses, rule.clauses.length],
+        ),
       );
       const badge = document.createElement("span");
       badge.className = "route-debugger-rule-badge";
       badge.textContent = selected
-        ? localize("routeDebuggerSelected", "Selected")
+        ? localize("routeDebuggerSelected", "Used")
         : rule.matched
-          ? localize("routeDebuggerAlsoMatches", "Also matches")
-          : localize("routeDebuggerDidNotMatch", "Did not match");
+          ? localize("routeDebuggerAlsoMatches", "Matched, not used")
+          : localize("routeDebuggerDidNotMatch", "Conditions not met");
       meta.append(badge);
       if (rule.source) {
         const sourceLink = document.createElement("button");
         sourceLink.type = "button";
         sourceLink.className = "route-debugger-source-link";
-        sourceLink.textContent = `L${rule.source.line}`;
+        sourceLink.textContent = localize("routeDebuggerEditRule", "Edit");
         sourceLink.setAttribute(
           "aria-label",
           localize("routeDebuggerGoToLine", `Go to line ${rule.source.line}`, rule.source.line),
@@ -324,6 +315,7 @@ export const setupRouteDebugger = (): void => {
         const clauseButton = document.createElement("button");
         clauseButton.type = "button";
         clauseButton.className = "route-debugger-clause";
+        clauseButton.dataset.clauseName = clause.name;
         clauseButton.classList.toggle("is-match", clause.matched);
         clauseButton.classList.toggle("is-miss", !clause.matched);
         if (clause.source) {
@@ -332,16 +324,21 @@ export const setupRouteDebugger = (): void => {
           );
         }
         appendText(clauseButton, "route-debugger-clause-mark", clause.matched ? "✓" : "×");
-        const name = document.createElement("code");
-        name.className = "route-debugger-clause-name";
-        name.textContent = `${clause.name}:`;
-        const pattern = document.createElement("code");
-        pattern.className = "route-debugger-clause-pattern";
-        pattern.textContent = clause.pattern;
-        clauseButton.append(name, pattern);
-        if (clause.source) {
-          appendText(clauseButton, "route-debugger-clause-line", `L${clause.source.line}`);
-        }
+        appendText(
+          clauseButton,
+          "route-debugger-clause-decision",
+          clause.matched
+            ? localize(
+                "routeDebuggerConditionMatched",
+                `${clause.name} matches ${clause.pattern}`,
+                [clause.name, clause.pattern],
+              )
+            : localize(
+                "routeDebuggerConditionDidNotMatch",
+                `${clause.name} does not match ${clause.pattern}`,
+                [clause.name, clause.pattern],
+              ),
+        );
         item.append(clauseButton);
         clauses.append(item);
       });
@@ -412,6 +409,7 @@ export const setupRouteDebugger = (): void => {
   };
 
   runButton.addEventListener("click", () => {
+    if (disclosure) disclosure.open = true;
     void run();
   });
   clearButton.addEventListener("click", () => {
@@ -451,6 +449,7 @@ export const setupRouteDebugger = (): void => {
     void run();
   });
   useLastButton.addEventListener("click", () => {
+    if (disclosure) disclosure.open = true;
     if (!lastDownloadInfo) {
       renderMessage(
         "empty",
@@ -462,6 +461,7 @@ export const setupRouteDebugger = (): void => {
     void run();
   });
   useSampleButton.addEventListener("click", () => {
+    if (disclosure) disclosure.open = true;
     writeFields(SAMPLE_DOWNLOAD);
     void run();
   });

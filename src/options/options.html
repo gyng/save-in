@@ -833,213 +833,231 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
               </div>
             </div>
 
-            <details class="routing-tool route-debugger-disclosure">
-              <summary id="route-debugger-title">__MSG_routeDebuggerTitle__</summary>
-              <section class="route-debugger" aria-labelledby="route-debugger-title">
-                <header class="route-debugger-header">
-                  <p class="caption">__MSG_routeDebuggerDescription__</p>
-                  <div class="route-debugger-header-actions">
-                    <button type="button" class="button" id="route-debugger-clear">
-                      __MSG_routeDebuggerClear__
-                    </button>
-                    <div
-                      class="route-debugger-source-picker"
-                      role="group"
-                      aria-label="__MSG_routeDebuggerUseSource__"
-                    >
-                      <span class="caption">__MSG_routeDebuggerUseSource__</span>
-                      <button type="button" class="button" id="route-debugger-use-last" disabled>
-                        __MSG_routeDebuggerLatestDownload__
-                      </button>
-                      <button type="button" class="button" id="route-debugger-use-sample">
-                        __MSG_routeDebuggerUseSampleDownload__
+            <div class="routing-tool route-debugger-shell">
+              <details class="route-debugger-disclosure">
+                <summary id="route-debugger-title">__MSG_routeDebuggerTitle__</summary>
+                <section class="route-debugger" aria-labelledby="route-debugger-title">
+                  <header class="route-debugger-header">
+                    <div class="route-debugger-intro">
+                      <p>__MSG_routeDebuggerDescription__</p>
+                      <p class="caption">__MSG_routeDebuggerUnsavedNote__</p>
+                    </div>
+                    <div class="route-debugger-header-actions">
+                      <button type="button" class="button" id="route-debugger-clear">
+                        __MSG_routeDebuggerClear__
                       </button>
                     </div>
+                  </header>
+                  <div
+                    id="route-debugger-form"
+                    role="group"
+                    aria-label="__MSG_routeDebuggerTitle__"
+                  >
+                    <div class="route-debugger-fields">
+                      <fieldset class="route-debugger-field-group route-debugger-file-fields">
+                        <legend>__MSG_routeDebuggerFileData__</legend>
+                        <div class="route-debugger-field-grid">
+                          <label class="route-debugger-field">
+                            <span>__MSG_routeDebuggerFilename__</span>
+                            <input
+                              type="text"
+                              id="route-debugger-filename"
+                              placeholder="report.pdf"
+                              data-technical-literal
+                              data-no-autosave
+                              spellcheck="false"
+                            />
+                          </label>
+                          <label class="route-debugger-field">
+                            <span>__MSG_routeDebuggerContentType__</span>
+                            <input
+                              type="text"
+                              id="route-debugger-mime"
+                              placeholder="application/pdf"
+                              data-technical-literal
+                              data-no-autosave
+                              spellcheck="false"
+                            />
+                          </label>
+                          <label class="route-debugger-field">
+                            <span>__MSG_routeDebuggerContext__</span>
+                            <select id="route-debugger-context" data-no-autosave>
+                              <option value="">__MSG_routeDebuggerAnyContext__</option>
+                              <option value="link">__MSG_html_link__</option>
+                              <option value="image">__MSG_html_image__</option>
+                              <option value="video">__MSG_html_video__</option>
+                              <option value="audio">__MSG_sourcePanelKindAudio__</option>
+                              <option value="page">__MSG_contextMenuContextPage__</option>
+                              <option value="selection">__MSG_contextMenuContextSelection__</option>
+                              <option value="AUTO">__MSG_autoDownloadRoutingBadge__</option>
+                            </select>
+                          </label>
+                          <label class="route-debugger-field">
+                            <span>__MSG_routeDebuggerMediaType__</span>
+                            <select id="route-debugger-media-type" data-no-autosave>
+                              <option value="">__MSG_routeDebuggerAnyMediaType__</option>
+                              <option value="image">__MSG_html_image__</option>
+                              <option value="video">__MSG_html_video__</option>
+                              <option value="audio">__MSG_sourcePanelKindAudio__</option>
+                            </select>
+                          </label>
+                        </div>
+                      </fieldset>
+                      <fieldset class="route-debugger-field-group route-debugger-url-fields">
+                        <legend>__MSG_routeDebuggerUrlData__</legend>
+                        <div class="route-debugger-field-grid">
+                          <label class="route-debugger-field">
+                            <span>__MSG_routeDebuggerSourceUrl__</span>
+                            <input
+                              type="text"
+                              id="route-debugger-source-url"
+                              placeholder="https://cdn.example.com/report.pdf"
+                              data-technical-literal
+                              data-no-autosave
+                              spellcheck="false"
+                            />
+                          </label>
+                          <label class="route-debugger-field">
+                            <span>__MSG_routeDebuggerPageUrl__</span>
+                            <input
+                              type="text"
+                              id="route-debugger-page-url"
+                              placeholder="https://example.com/reports"
+                              data-technical-literal
+                              data-no-autosave
+                              spellcheck="false"
+                            />
+                          </label>
+                          <label class="route-debugger-field">
+                            <span>__MSG_routeDebuggerReferrerUrl__</span>
+                            <input
+                              type="text"
+                              id="route-debugger-referrer-url"
+                              placeholder="https://example.com/previous"
+                              data-technical-literal
+                              data-no-autosave
+                              spellcheck="false"
+                            />
+                          </label>
+                          <label class="route-debugger-field">
+                            <span>__MSG_routeDebuggerFrameUrl__</span>
+                            <input
+                              type="text"
+                              id="route-debugger-frame-url"
+                              placeholder="https://example.com/embed"
+                              data-technical-literal
+                              data-no-autosave
+                              spellcheck="false"
+                            />
+                          </label>
+                        </div>
+                      </fieldset>
+                      <fieldset class="route-debugger-field-group route-debugger-page-fields">
+                        <legend>__MSG_routeDebuggerPageData__</legend>
+                        <div class="route-debugger-field-grid">
+                          <label class="route-debugger-field">
+                            <span>__MSG_routeDebuggerPageTitle__</span>
+                            <input
+                              type="text"
+                              id="route-debugger-page-title"
+                              data-no-autosave
+                              spellcheck="false"
+                            />
+                          </label>
+                          <label class="route-debugger-field">
+                            <span>__MSG_routeDebuggerLinkText__</span>
+                            <input
+                              type="text"
+                              id="route-debugger-link-text"
+                              data-no-autosave
+                              spellcheck="false"
+                            />
+                          </label>
+                          <label class="route-debugger-field">
+                            <span>__MSG_routeDebuggerSelectionText__</span>
+                            <input
+                              type="text"
+                              id="route-debugger-selection-text"
+                              data-no-autosave
+                              spellcheck="false"
+                            />
+                          </label>
+                        </div>
+                      </fieldset>
+                    </div>
                   </div>
-                </header>
-                <div id="route-debugger-form" role="group" aria-label="__MSG_routeDebuggerTitle__">
-                  <div class="route-debugger-fields">
-                    <label class="route-debugger-field route-debugger-field-filename">
-                      <span>__MSG_routeDebuggerFilename__</span>
-                      <input
-                        type="text"
-                        id="route-debugger-filename"
-                        placeholder="report.pdf"
-                        data-technical-literal
-                        data-no-autosave
-                        spellcheck="false"
-                      />
-                    </label>
-                    <label class="route-debugger-field route-debugger-field-source">
-                      <span>__MSG_routeDebuggerSourceUrl__</span>
-                      <input
-                        type="text"
-                        id="route-debugger-source-url"
-                        placeholder="https://cdn.example.com/report.pdf"
-                        data-technical-literal
-                        data-no-autosave
-                        spellcheck="false"
-                      />
-                    </label>
-                    <label class="route-debugger-field route-debugger-field-page">
-                      <span>__MSG_routeDebuggerPageUrl__</span>
-                      <input
-                        type="text"
-                        id="route-debugger-page-url"
-                        placeholder="https://example.com/reports"
-                        data-technical-literal
-                        data-no-autosave
-                        spellcheck="false"
-                      />
-                    </label>
-                    <label class="route-debugger-field">
-                      <span>__MSG_routeDebuggerContentType__</span>
-                      <input
-                        type="text"
-                        id="route-debugger-mime"
-                        placeholder="application/pdf"
-                        data-technical-literal
-                        data-no-autosave
-                        spellcheck="false"
-                      />
-                    </label>
-                    <label class="route-debugger-field">
-                      <span>__MSG_routeDebuggerContext__</span>
-                      <select id="route-debugger-context" data-no-autosave>
-                        <option value="">__MSG_routeDebuggerAnyContext__</option>
-                        <option value="link">__MSG_html_link__</option>
-                        <option value="image">__MSG_html_image__</option>
-                        <option value="video">__MSG_html_video__</option>
-                        <option value="audio">__MSG_sourcePanelKindAudio__</option>
-                        <option value="page">__MSG_contextMenuContextPage__</option>
-                        <option value="selection">__MSG_contextMenuContextSelection__</option>
-                        <option value="AUTO">__MSG_autoDownloadRoutingBadge__</option>
-                      </select>
-                    </label>
-                  </div>
-                  <details class="route-debugger-more">
-                    <summary>__MSG_routeDebuggerMoreData__</summary>
-                    <div class="route-debugger-more-fields">
-                      <label class="route-debugger-field">
-                        <span>__MSG_routeDebuggerPageTitle__</span>
-                        <input
-                          type="text"
-                          id="route-debugger-page-title"
-                          data-no-autosave
-                          spellcheck="false"
-                        />
-                      </label>
-                      <label class="route-debugger-field">
-                        <span>__MSG_routeDebuggerReferrerUrl__</span>
-                        <input
-                          type="text"
-                          id="route-debugger-referrer-url"
-                          placeholder="https://example.com/previous"
-                          data-technical-literal
-                          data-no-autosave
-                          spellcheck="false"
-                        />
-                      </label>
-                      <label class="route-debugger-field">
-                        <span>__MSG_routeDebuggerFrameUrl__</span>
-                        <input
-                          type="text"
-                          id="route-debugger-frame-url"
-                          placeholder="https://example.com/embed"
-                          data-technical-literal
-                          data-no-autosave
-                          spellcheck="false"
-                        />
-                      </label>
-                      <label class="route-debugger-field">
-                        <span>__MSG_routeDebuggerLinkText__</span>
-                        <input
-                          type="text"
-                          id="route-debugger-link-text"
-                          data-no-autosave
-                          spellcheck="false"
-                        />
-                      </label>
-                      <label class="route-debugger-field">
-                        <span>__MSG_routeDebuggerSelectionText__</span>
-                        <input
-                          type="text"
-                          id="route-debugger-selection-text"
-                          data-no-autosave
-                          spellcheck="false"
-                        />
-                      </label>
-                      <label class="route-debugger-field">
-                        <span>__MSG_routeDebuggerMediaType__</span>
-                        <select id="route-debugger-media-type" data-no-autosave>
-                          <option value="">__MSG_routeDebuggerAnyMediaType__</option>
-                          <option value="image">__MSG_html_image__</option>
-                          <option value="video">__MSG_html_video__</option>
-                          <option value="audio">__MSG_sourcePanelKindAudio__</option>
-                        </select>
-                      </label>
+                  <div
+                    class="route-debugger-result"
+                    id="route-debugger-result"
+                    role="region"
+                    aria-labelledby="route-debugger-title"
+                    aria-live="polite"
+                  ></div>
+                  <details class="last-download-row route-debugger-last-download">
+                    <summary>__MSG_o_lRoutingLastDownload__</summary>
+                    <div class="info-row last-download-info">
+                      <table class="last-download-table">
+                        <tbody>
+                          <tr>
+                            <th scope="row" class="last-download-label">
+                              __MSG_historyColumnUrl__
+                            </th>
+                            <td class="last-download-url" id="last-dl-url">
+                              __MSG_o_lRoutingLastDownloadEmpty__
+                            </td>
+                          </tr>
+                          <tr id="rules-applied-row">
+                            <th scope="row" class="last-download-label">
+                              __MSG_o_lRoutingRenamedTo__
+                            </th>
+                            <td class="last-download-value" id="last-dl-match">
+                              __MSG_o_lRoutingNoMatches__
+                            </td>
+                          </tr>
+                          <tr class="hide" id="capture-group-rows">
+                            <th scope="row" class="last-download-label">
+                              __MSG_o_lRoutingCaptureGroups__
+                            </th>
+                            <td class="last-download-value" id="last-dl-capture"></td>
+                          </tr>
+                          <tr class="hide" id="variables-table-row">
+                            <th scope="row" class="last-download-label">
+                              __MSG_o_lRoutingVariables__
+                            </th>
+                            <td>
+                              <button type="button" class="button" id="see-variables-btn">
+                                __MSG_o_lRoutingVariablesClickToSee__
+                              </button>
+                              <table id="variables-table">
+                                <tbody class="hide" id="variables-body"></tbody>
+                              </table>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
                     </div>
                   </details>
-                  <div class="route-debugger-actions">
-                    <div class="route-debugger-note">
-                      <span class="caption">__MSG_routeDebuggerUnsavedNote__</span>
-                    </div>
-                    <button type="button" class="apply-button" id="route-debugger-run">
-                      __MSG_routeDebuggerRun__
-                    </button>
-                  </div>
-                </div>
+                </section>
+              </details>
+              <div class="route-debugger-toolbar">
                 <div
-                  class="route-debugger-result"
-                  id="route-debugger-result"
-                  role="region"
-                  aria-labelledby="route-debugger-title"
-                  aria-live="polite"
-                ></div>
-                <details class="last-download-row route-debugger-last-download">
-                  <summary>__MSG_o_lRoutingLastDownload__</summary>
-                  <div class="info-row last-download-info">
-                    <table class="last-download-table">
-                      <tbody>
-                        <tr>
-                          <th scope="row" class="last-download-label">__MSG_historyColumnUrl__</th>
-                          <td class="last-download-url" id="last-dl-url">
-                            __MSG_o_lRoutingLastDownloadEmpty__
-                          </td>
-                        </tr>
-                        <tr id="rules-applied-row">
-                          <th scope="row" class="last-download-label">
-                            __MSG_o_lRoutingRenamedTo__
-                          </th>
-                          <td class="last-download-value" id="last-dl-match">
-                            __MSG_o_lRoutingNoMatches__
-                          </td>
-                        </tr>
-                        <tr class="hide" id="capture-group-rows">
-                          <th scope="row" class="last-download-label">
-                            __MSG_o_lRoutingCaptureGroups__
-                          </th>
-                          <td class="last-download-value" id="last-dl-capture"></td>
-                        </tr>
-                        <tr class="hide" id="variables-table-row">
-                          <th scope="row" class="last-download-label">
-                            __MSG_o_lRoutingVariables__
-                          </th>
-                          <td>
-                            <button type="button" class="button" id="see-variables-btn">
-                              __MSG_o_lRoutingVariablesClickToSee__
-                            </button>
-                            <table id="variables-table">
-                              <tbody class="hide" id="variables-body"></tbody>
-                            </table>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </details>
-              </section>
-            </details>
+                  class="route-debugger-source-picker"
+                  role="group"
+                  aria-label="__MSG_routeDebuggerUseSource__"
+                >
+                  <span class="caption">__MSG_routeDebuggerUseSource__</span>
+                  <button type="button" class="button" id="route-debugger-use-last" disabled>
+                    __MSG_routeDebuggerLatestDownload__
+                  </button>
+                  <button type="button" class="button" id="route-debugger-use-sample">
+                    __MSG_routeDebuggerUseSampleDownload__
+                  </button>
+                </div>
+                <button type="button" class="apply-button" id="route-debugger-run">
+                  __MSG_routeDebuggerRun__
+                </button>
+              </div>
+            </div>
 
             <div class="routing-post-options">
               <label>

@@ -2689,17 +2689,28 @@ summary {
 
 .route-debugger {
   overflow: hidden;
+  margin-top: var(--space-2);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  background: var(--page-bg);
 }
 
 .route-debugger-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: var(--space-3);
-  padding: var(--space-3) var(--space-3) 0;
+  padding: var(--space-3);
+  border-bottom: 1px solid var(--panel-border);
+  background: var(--panel-bg);
 }
 
-.route-debugger-header .caption {
+.route-debugger-intro {
+  display: grid;
+  gap: 2px;
+}
+
+.route-debugger-intro > p {
   margin: 0;
 }
 
@@ -2737,8 +2748,42 @@ summary {
 
 .route-debugger-fields {
   display: grid;
-  grid-template-columns: minmax(130px, 1fr) minmax(190px, 1.6fr) minmax(130px, 1fr);
+  gap: var(--space-3);
+}
+
+.route-debugger-field-group {
+  min-width: 0;
+  margin: 0;
+  padding: var(--space-3) 0 0;
+  border: 0;
+  border-top: 1px solid var(--panel-border);
+}
+
+.route-debugger-field-group:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.route-debugger-field-group > legend {
+  margin-bottom: var(--space-2);
+  padding: 0;
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.route-debugger-field-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-2) var(--space-3);
+}
+
+.route-debugger-file-fields .route-debugger-field-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.route-debugger-page-fields .route-debugger-field-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .route-debugger-field {
@@ -2760,57 +2805,13 @@ summary {
   min-width: 0;
   box-sizing: border-box;
   margin: 0;
-  font-family: var(--font-mono);
-  font-size: 12px;
-}
-
-.route-debugger-field-source,
-.route-debugger-field-page {
-  grid-column: span 2;
-}
-
-.route-debugger-more {
-  margin: var(--space-3) 0 0;
-  border-top: 1px solid var(--panel-border);
-}
-
-.route-debugger-more > summary {
-  width: fit-content;
-  padding: var(--space-2) 0 0;
-  color: var(--link-color);
-  font-size: var(--text-sm);
-}
-
-.route-debugger-more-fields {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-2) var(--space-3);
-  margin-top: var(--space-2);
-  padding-top: var(--space-2);
-}
-
-.route-debugger-actions {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-  margin-top: var(--space-3);
-}
-
-.route-debugger-actions > button {
-  flex: none;
-  margin: 0;
-}
-
-.route-debugger-note {
-  display: grid;
-  gap: 2px;
+  font: inherit;
 }
 
 .route-debugger-result {
   position: relative;
   border-top: 1px solid var(--panel-border);
-  background: color-mix(in srgb, var(--syntax-gutter-bg) 58%, var(--page-bg));
+  background: var(--page-bg);
 }
 
 .route-debugger-result:empty {
@@ -2858,14 +2859,14 @@ summary {
 
 .route-debugger-outcome {
   display: flex;
-  padding: var(--space-3) var(--space-4);
-  border-left: 4px solid var(--success-fg);
+  padding: var(--space-3);
   border-bottom: 1px solid var(--panel-border);
-  background: color-mix(in srgb, var(--green60) 7%, var(--page-bg));
+  box-shadow: inset 3px 0 var(--success-fg);
+  background: color-mix(in srgb, var(--green60) 5%, var(--page-bg));
 }
 
 .route-debugger-result[data-state="no-match"] .route-debugger-outcome {
-  border-left-color: var(--syntax-error);
+  box-shadow: inset 3px 0 var(--syntax-error);
   background: color-mix(in srgb, var(--syntax-error) 6%, var(--page-bg));
 }
 
@@ -2881,45 +2882,31 @@ summary {
   font-weight: 700;
 }
 
-.route-debugger-final-path {
-  overflow: hidden;
-  color: var(--syntax-destination);
-  font-size: var(--text-sm);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .route-debugger-pipeline {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
   margin: 0;
-  padding: var(--space-3) var(--space-4);
+  padding: var(--space-2) var(--space-3);
   border-bottom: 1px solid var(--panel-border);
 }
 
 .route-debugger-pipeline > div {
-  position: relative;
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  align-items: baseline;
   min-width: 0;
-  padding: 0 var(--space-4);
-  border-left: 1px solid var(--panel-border);
+  gap: var(--space-3);
+  padding: var(--space-1) 0;
 }
 
-.route-debugger-pipeline > div:first-child {
-  padding-left: 0;
-  border-left: 0;
-}
-
-.route-debugger-pipeline > div:last-child {
-  padding-right: 0;
+.route-debugger-pipeline > div + div {
+  border-top: 1px solid color-mix(in srgb, var(--panel-border) 65%, transparent);
 }
 
 .route-debugger-pipeline dt {
-  margin-bottom: 3px;
   color: var(--color-text-muted);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-size: var(--text-sm);
+  font-weight: 650;
 }
 
 .route-debugger-pipeline dd {
@@ -2929,15 +2916,13 @@ summary {
 
 .route-debugger-pipeline code {
   display: block;
-  overflow: hidden;
   font-size: 12px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 .route-debugger-rules {
   display: grid;
-  gap: var(--space-2);
+  gap: 0;
   padding: var(--space-3);
 }
 
@@ -2946,7 +2931,7 @@ summary {
   align-items: end;
   justify-content: space-between;
   gap: var(--space-3);
-  padding: 0 var(--space-1) var(--space-1);
+  padding: 0 0 var(--space-2);
 }
 
 .route-debugger-trace-title,
@@ -2967,15 +2952,14 @@ summary {
 }
 
 .route-debugger-rule {
-  overflow: hidden;
-  border: 1px solid var(--panel-border);
-  border-radius: var(--radius);
-  background: var(--page-bg);
+  border: 0;
+  border-top: 1px solid var(--panel-border);
+  background: transparent;
 }
 
 .route-debugger-rule.is-selected {
-  border-color: color-mix(in srgb, var(--success-fg) 58%, var(--panel-border));
   box-shadow: inset 3px 0 var(--success-fg);
+  background: color-mix(in srgb, var(--green60) 4%, transparent);
 }
 
 .route-debugger-rule > summary {
@@ -3003,8 +2987,7 @@ summary {
 .route-debugger-rule-header {
   justify-content: space-between;
   gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
-  background: color-mix(in srgb, var(--panel-bg) 64%, var(--page-bg));
+  padding: var(--space-2);
 }
 
 .route-debugger-rule-header::before {
@@ -3028,8 +3011,7 @@ summary {
 }
 
 .route-debugger-rule-title {
-  font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-weight: 700;
 }
 
@@ -3041,12 +3023,10 @@ summary {
 }
 
 .route-debugger-rule-destination {
-  overflow: hidden;
   color: var(--syntax-destination);
   font-size: 11px;
   font-weight: 400;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 .route-debugger-rule-meta {
@@ -3058,8 +3038,7 @@ summary {
 
 .route-debugger-rule-count {
   color: var(--color-text-muted);
-  font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 11px;
   white-space: nowrap;
 }
 
@@ -3081,8 +3060,7 @@ summary {
   border-radius: var(--radius-sm);
   color: var(--link-color);
   background: var(--page-bg);
-  font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .route-debugger-clauses {
@@ -3097,11 +3075,10 @@ summary {
 
 .route-debugger-clause {
   display: grid;
-  grid-template-columns: 18px minmax(85px, auto) minmax(0, 1fr) auto;
+  grid-template-columns: 18px minmax(0, 1fr);
   gap: var(--space-2);
-  padding: 6px var(--space-3);
-  font-family: var(--font-mono);
-  font-size: 12px;
+  padding: 6px var(--space-2) 6px calc(var(--space-2) + 14px);
+  font-size: var(--text-sm);
 }
 
 .route-debugger-clause-mark {
@@ -3113,21 +3090,9 @@ summary {
   color: var(--syntax-error);
 }
 
-.route-debugger-clause-name {
-  color: var(--syntax-keyword);
-  font-weight: 650;
-}
-
-.route-debugger-clause-pattern {
-  overflow: hidden;
-  color: var(--syntax-regex);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.route-debugger-clause-line {
-  color: var(--color-text-muted);
-  font-size: 11px;
+.route-debugger-clause-decision {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .routing-tool {
@@ -3136,18 +3101,41 @@ summary {
   background: transparent;
 }
 
-.routing-tool > summary {
+.route-debugger-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--space-2);
+}
+
+.route-debugger-toolbar {
+  display: flex;
+  align-items: center;
+  z-index: 1;
+  grid-column: 2;
+  grid-row: 1;
+  gap: var(--space-2);
+}
+
+.route-debugger-toolbar > button {
+  margin: 0;
+  white-space: nowrap;
+}
+
+.route-debugger-disclosure {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  min-width: 0;
+}
+
+.route-debugger-disclosure > summary {
   width: fit-content;
   padding: var(--space-1) 0;
   color: var(--link-color);
 }
 
-.routing-tool[open] > summary {
+.route-debugger-disclosure[open] > summary {
   border-bottom: 0;
-}
-
-.routing-tool > .route-debugger {
-  margin-top: var(--space-2);
 }
 
 .route-debugger .route-debugger-last-download {
@@ -3189,21 +3177,15 @@ summary {
     min-width: 0;
   }
 
-  .route-debugger-fields {
-    grid-template-columns: minmax(0, 1fr);
+  .route-debugger-file-fields .route-debugger-field-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .route-debugger-field-source,
-  .route-debugger-field-page {
-    grid-column: auto;
-  }
-
-  .route-debugger-more-fields {
+  .route-debugger-page-fields .route-debugger-field-grid {
     grid-template-columns: minmax(0, 1fr);
   }
 
   .route-debugger-header,
-  .route-debugger-actions,
   .route-debugger-outcome-copy {
     align-items: stretch;
     flex-direction: column;
@@ -3231,21 +3213,23 @@ summary {
     flex-wrap: wrap;
     justify-content: flex-end;
   }
-
-  .route-debugger-pipeline {
-    grid-template-columns: minmax(0, 1fr);
-    gap: var(--space-2);
-  }
-
-  .route-debugger-pipeline > div,
-  .route-debugger-pipeline > div:first-child,
-  .route-debugger-pipeline > div:last-child {
-    padding: 0;
-    border: 0;
-  }
 }
 
 @media (max-width: 520px) {
+  .route-debugger-field-grid,
+  .route-debugger-file-fields .route-debugger-field-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .route-debugger-source-picker > span {
+    display: none;
+  }
+
+  .route-debugger-pipeline > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+  }
+
   .rule-editor-card-header {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;

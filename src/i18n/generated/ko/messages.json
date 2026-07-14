@@ -1654,6 +1654,53 @@
   "webhookFieldsSaved": {
     "message": "웹후크 데이터를 업데이트했습니다."
   },
+  "routeDebuggerFileData": {
+    "message": "File"
+  },
+  "routeDebuggerUrlData": {
+    "message": "URLs"
+  },
+  "routeDebuggerPageData": {
+    "message": "Page text"
+  },
+  "routeDebuggerRuleDestination": {
+    "message": "Saves to $PATH$",
+    "placeholders": {
+      "path": {
+        "content": "$1",
+        "example": "images/:filename:"
+      }
+    }
+  },
+  "routeDebuggerEditRule": {
+    "message": "Edit"
+  },
+  "routeDebuggerConditionMatched": {
+    "message": "$FIELD$ matches $PATTERN$",
+    "placeholders": {
+      "field": {
+        "content": "$1",
+        "example": "fileext"
+      },
+      "pattern": {
+        "content": "$2",
+        "example": "pdf"
+      }
+    }
+  },
+  "routeDebuggerConditionDidNotMatch": {
+    "message": "$FIELD$ does not match $PATTERN$",
+    "placeholders": {
+      "field": {
+        "content": "$1",
+        "example": "fileext"
+      },
+      "pattern": {
+        "content": "$2",
+        "example": "png"
+      }
+    }
+  },
   "html_without": {
     "message": "파일 이름은"
   },
@@ -2213,9 +2260,6 @@
   },
   "routeDebuggerClear": {
     "message": "지우기"
-  },
-  "routeDebuggerMoreData": {
-    "message": "추가 테스트 데이터"
   },
   "routeDebuggerPageTitle": {
     "message": "페이지 제목"

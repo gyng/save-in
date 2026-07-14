@@ -2951,8 +2951,20 @@
     "message": "Test your current routing rules with download details.",
     "description": "Description of the routing rules debugger. Used in src/options/options.html."
   },
+  "routeDebuggerFileData": {
+    "message": "File",
+    "description": "Heading for file-related test data in the route debugger. Used in src/options/options.html."
+  },
+  "routeDebuggerUrlData": {
+    "message": "URLs",
+    "description": "Heading for URL test data in the route debugger. Used in src/options/options.html."
+  },
+  "routeDebuggerPageData": {
+    "message": "Page text",
+    "description": "Heading for page text test data in the route debugger. Used in src/options/options.html."
+  },
   "routeDebuggerLatestDownload": {
-    "message": "Latest download",
+    "message": "Latest",
     "description": "Button that fills the route debugger with the most recent download. Used in src/options/options.html."
   },
   "routeDebuggerUseSource": {
@@ -2960,7 +2972,7 @@
     "description": "Label for choosing which download details populate the route debugger. Used in src/options/options.html."
   },
   "routeDebuggerUseSampleDownload": {
-    "message": "Sample download",
+    "message": "Sample",
     "description": "Button that fills the route debugger with built-in sample download details. Used in src/options/options.html."
   },
   "routeDebuggerFilename": {
@@ -3014,7 +3026,7 @@
     "description": "Route debugger pipeline label for the configured destination. Used in src/options/route-debugger.ts."
   },
   "routeDebuggerExpanded": {
-    "message": "Expanded",
+    "message": "Expanded path",
     "description": "Route debugger pipeline label after variables are expanded. Used in src/options/route-debugger.ts."
   },
   "routeDebuggerFinalPath": {
@@ -3031,16 +3043,26 @@
       }
     }
   },
+  "routeDebuggerRuleDestination": {
+    "message": "Saves to $PATH$",
+    "description": "Plain-language destination shown below a route debugger rule. Used in src/options/route-debugger.ts.",
+    "placeholders": {
+      "path": {
+        "content": "$1",
+        "example": "images/:filename:"
+      }
+    }
+  },
   "routeDebuggerSelected": {
-    "message": "Selected",
+    "message": "Used",
     "description": "Badge on the route chosen by the debugger. Used in src/options/route-debugger.ts."
   },
   "routeDebuggerAlsoMatches": {
-    "message": "Also matches",
+    "message": "Matched, not used",
     "description": "Badge on a later matching route that was not selected. Used in src/options/route-debugger.ts."
   },
   "routeDebuggerDidNotMatch": {
-    "message": "Did not match",
+    "message": "Conditions not met",
     "description": "Badge on a route whose matchers failed. Used in src/options/route-debugger.ts."
   },
   "routeDebuggerRunning": {
@@ -3068,10 +3090,6 @@
   "routeDebuggerClear": {
     "message": "Clear",
     "description": "Button that clears all route debugger test data. Used in src/options/options.html."
-  },
-  "routeDebuggerMoreData": {
-    "message": "More test data",
-    "description": "Expandable heading for less common route debugger inputs. Used in src/options/options.html."
   },
   "routeDebuggerPageTitle": {
     "message": "Page title",
@@ -3110,7 +3128,7 @@
     "description": "Explanation of route selection order in the debugger. Used in src/options/route-debugger.ts."
   },
   "routeDebuggerMatcherCount": {
-    "message": "Matched $MATCHED$/$TOTAL$",
+    "message": "$MATCHED$ of $TOTAL$ conditions met",
     "description": "Compact pass count for one rule in the route debugger. Used in src/options/route-debugger.ts.",
     "placeholders": {
       "matched": {
@@ -3130,6 +3148,38 @@
       "line": {
         "content": "$1",
         "example": "8"
+      }
+    }
+  },
+  "routeDebuggerEditRule": {
+    "message": "Edit",
+    "description": "Button that opens a route debugger rule in the editor. Used in src/options/route-debugger.ts."
+  },
+  "routeDebuggerConditionMatched": {
+    "message": "$FIELD$ matches $PATTERN$",
+    "description": "Plain-language route debugger condition that matched. Used in src/options/route-debugger.ts.",
+    "placeholders": {
+      "field": {
+        "content": "$1",
+        "example": "fileext"
+      },
+      "pattern": {
+        "content": "$2",
+        "example": "pdf"
+      }
+    }
+  },
+  "routeDebuggerConditionDidNotMatch": {
+    "message": "$FIELD$ does not match $PATTERN$",
+    "description": "Plain-language route debugger condition that did not match. Used in src/options/route-debugger.ts.",
+    "placeholders": {
+      "field": {
+        "content": "$1",
+        "example": "fileext"
+      },
+      "pattern": {
+        "content": "$2",
+        "example": "png"
       }
     }
   },

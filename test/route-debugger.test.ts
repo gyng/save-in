@@ -6,20 +6,19 @@ import { MESSAGE_TYPES } from "../src/shared/constants.ts";
 const renderWorkbench = (): void => {
   document.body.innerHTML = `
     <textarea id="filenamePatterns">fileext: png\ninto: images/\n\nfileext: pdf\npagedomain: example\\.com\ninto: pdf/:filename:</textarea>
+    <details class="route-debugger-disclosure" open></details>
     <div id="route-debugger-form">
       <input id="route-debugger-filename" value="report.pdf">
       <input id="route-debugger-source-url" value="https://cdn.example/report.pdf">
       <input id="route-debugger-page-url" value="https://example.com/reports">
       <input id="route-debugger-mime" value="application/pdf">
       <select id="route-debugger-context"><option value=""></option><option value="link">Link</option></select>
-      <details class="route-debugger-more">
-        <input id="route-debugger-page-title">
-        <input id="route-debugger-referrer-url">
-        <input id="route-debugger-frame-url">
-        <input id="route-debugger-link-text">
-        <input id="route-debugger-selection-text">
-        <select id="route-debugger-media-type"><option value=""></option><option value="image">Image</option></select>
-      </details>
+      <input id="route-debugger-page-title">
+      <input id="route-debugger-referrer-url">
+      <input id="route-debugger-frame-url">
+      <input id="route-debugger-link-text">
+      <input id="route-debugger-selection-text">
+      <select id="route-debugger-media-type"><option value=""></option><option value="image">Image</option></select>
       <button id="route-debugger-run" type="button">Run test</button>
     </div>
     <button id="route-debugger-clear" type="button">Clear</button>
@@ -120,9 +119,9 @@ test("shows production rule and clause decisions and jumps back to their source"
   expect(ruleCards).toHaveLength(2);
   expect(ruleCards[0]?.open).toBe(false);
   expect(ruleCards[1]?.open).toBe(true);
-  expect(ruleCards[1]?.querySelector(".route-debugger-rule-destination")?.textContent).toBe(
-    "into: pdf/:filename:",
-  );
+  expect(
+    ruleCards[1]?.querySelector<HTMLElement>(".route-debugger-rule-destination")?.dataset.path,
+  ).toBe("pdf/:filename:");
 
   const validationCount = () =>
     sendMessage.mock.calls.filter(([message]: any[]) => message.type === MESSAGE_TYPES.VALIDATE)
@@ -133,9 +132,9 @@ test("shows production rule and clause decisions and jumps back to their source"
     ?.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", ctrlKey: true, bubbles: true }));
   await vi.waitFor(() => expect(validationCount()).toBe(beforeShortcut + 1));
 
-  const pageDomainClause = [
-    ...result.querySelectorAll<HTMLButtonElement>(".route-debugger-rule li button"),
-  ].find((button) => button.querySelector("code")?.textContent === "pagedomain:");
+  const pageDomainClause = result.querySelector<HTMLButtonElement>(
+    '[data-clause-name="pagedomain"]',
+  );
   expect(pageDomainClause).toBeDefined();
   pageDomainClause!.click();
   const source = document.querySelector<HTMLTextAreaElement>("#filenamePatterns")!;
@@ -215,12 +214,9 @@ test("loads the last download into the test bench", async () => {
   expect(document.querySelector<HTMLInputElement>("#route-debugger-page-title")?.value).toBe(
     "Photo gallery",
   );
-  expect(document.querySelector<HTMLDetailsElement>(".route-debugger-more")?.open).toBe(true);
-
   document.querySelector<HTMLButtonElement>("#route-debugger-clear")?.click();
   expect(document.querySelector<HTMLInputElement>("#route-debugger-filename")?.value).toBe("");
   expect(document.querySelector<HTMLInputElement>("#route-debugger-page-title")?.value).toBe("");
-  expect(document.querySelector<HTMLDetailsElement>(".route-debugger-more")?.open).toBe(false);
   expect(document.querySelector<HTMLElement>("#route-debugger-result")?.dataset.state).toBe(
     "empty",
   );
@@ -245,6 +241,25 @@ test("prefills the sample when no latest download is available", async () => {
       true,
     ),
   );
+});
+
+test("opens the debugger when an always-visible test action runs", async () => {
+  renderWorkbench();
+  const disclosure = document.querySelector<HTMLDetailsElement>(".route-debugger-disclosure")!;
+  disclosure.open = false;
+  vi.spyOn(webExtensionApi.runtime, "sendMessage").mockImplementation(async (message: any) =>
+    message.type === MESSAGE_TYPES.CHECK_ROUTES
+      ? checkResponse()
+      : {
+          type: MESSAGE_TYPES.VALIDATE_RESULT,
+          body: { version: 1, ruleErrors: [], ruleTrace: noMatchTrace },
+        },
+  );
+
+  setupRouteDebugger();
+  document.querySelector<HTMLButtonElement>("#route-debugger-run")!.click();
+
+  expect(disclosure.open).toBe(true);
 });
 
 test("prefills the latest download and can switch back to the sample", async () => {
@@ -308,7 +323,6 @@ test("uses legacy last-download filename and URL fallbacks and normalizes unknow
   );
   expect(document.querySelector<HTMLSelectElement>("#route-debugger-context")!.value).toBe("");
   expect(document.querySelector<HTMLSelectElement>("#route-debugger-media-type")!.value).toBe("");
-  expect(document.querySelector<HTMLDetailsElement>(".route-debugger-more")!.open).toBe(true);
 });
 
 test("falls through to resolved filenames and empty last-download fields", async () => {
@@ -487,9 +501,9 @@ test("renders selected, also-matching, and missed rules without a destination pi
       "matched",
     ),
   );
-  expect(document.body.textContent).toContain("Also matches");
-  expect(document.body.textContent).toContain("Selected");
-  expect(document.body.textContent).toContain("Did not match");
+  expect(document.body.textContent).toContain("Matched, not used");
+  expect(document.body.textContent).toContain("Used");
+  expect(document.body.textContent).toContain("Conditions not met");
   expect(document.querySelector(".route-debugger-pipeline")).not.toBeNull();
 });
 
