@@ -118,19 +118,36 @@ describe("browser detection at load time", () => {
     expect(mod.CURRENT_BROWSER_VERSION).toBeUndefined();
   });
 
-  test.each([null, {}, { version: 7 }, { version: "not-a-version" }])(
-    "leaves the version unset when getBrowserInfo returns malformed data",
-    async (browserInfo) => {
-      global.browser = originalBrowser;
-      (global.browser.runtime as any).getBrowserInfo = vi.fn(() => Promise.resolve(browserInfo));
-      vi.resetModules();
+  test.each([
+    null,
+    {},
+    { version: 7 },
+    { version: "not-a-version" },
+    { version: "121garbage" },
+    { version: "-1.0" },
+    { version: "9007199254740992.0" },
+  ])("leaves the version unset when getBrowserInfo returns malformed data", async (browserInfo) => {
+    global.browser = originalBrowser;
+    (global.browser.runtime as any).getBrowserInfo = vi.fn(() => Promise.resolve(browserInfo));
+    vi.resetModules();
 
-      const mod = await import("../src/platform/chrome-detector.ts");
+    const mod = await import("../src/platform/chrome-detector.ts");
 
-      await vi.waitFor(() => expect(global.browser.runtime.getBrowserInfo).toHaveBeenCalled());
-      expect(mod.CURRENT_BROWSER_VERSION).toBeUndefined();
-    },
-  );
+    await vi.waitFor(() => expect(global.browser.runtime.getBrowserInfo).toHaveBeenCalled());
+    expect(mod.CURRENT_BROWSER_VERSION).toBeUndefined();
+  });
+
+  test("accepts an alphanumeric Gecko prerelease version", async () => {
+    global.browser = originalBrowser;
+    (global.browser.runtime as any).getBrowserInfo = vi.fn(() =>
+      Promise.resolve({ name: "Firefox Nightly", version: "147.0a1" }),
+    );
+    vi.resetModules();
+
+    const mod = await import("../src/platform/chrome-detector.ts");
+
+    await vi.waitFor(() => expect(mod.CURRENT_BROWSER_VERSION).toBe(147));
+  });
 
   test("assumes CHROME when browser exists without getBrowserInfo", async () => {
     global.browser = originalBrowser;

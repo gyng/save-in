@@ -70,8 +70,11 @@ const getBrowserInfo =
 
 const browserVersion = (value: unknown): number | undefined => {
   if (!isStringKeyedRecord(value) || typeof value.version !== "string") return undefined;
-  const parsed = Number.parseFloat(value.version);
-  return Number.isFinite(parsed) ? parsed : undefined;
+  const majorText = /^(\d+)(?:\.[0-9A-Za-z]+)*$/.exec(value.version)?.[1];
+  if (majorText === undefined) return undefined;
+
+  const major = Number(majorText);
+  return Number.isSafeInteger(major) ? major : undefined;
 };
 
 if (!webExtensionApi) {
