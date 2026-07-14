@@ -166,6 +166,19 @@ const makeProfile = (baseProfileDir) => {
     .map(([k, v]) => `user_pref(${JSON.stringify(k)}, ${JSON.stringify(v)});`)
     .join("\n");
   fs.writeFileSync(path.join(profileDir, "user.js"), userJs);
+  // Temporary add-ons otherwise depend on a developer profile's hidden
+  // private-browsing grant. Seed Firefox's legacy import boundary before the
+  // permission store starts so the disposable profile can exercise PB paths.
+  fs.writeFileSync(
+    path.join(profileDir, "extension-preferences.json"),
+    JSON.stringify({
+      [ADDON_ID]: {
+        permissions: ["internal:privateBrowsingAllowed"],
+        origins: [],
+        data_collection: [],
+      },
+    }),
+  );
 
   return { profileDir, downloadDir };
 };

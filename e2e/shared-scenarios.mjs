@@ -39,7 +39,188 @@ export const runContentDispositionScenario = async ({
       expect.soft(await waitForDownloadUrl(saveInUrl), fixture.id).toBe(nativeFilename);
     }
   } finally {
-    server.close();
+    await closeLocal(server);
+  }
+};
+
+/**
+ * Drives a private context-menu save through the production pipeline and
+ * verifies that private activity never reaches extension persistence.
+ *
+ * @param {{
+ *   evaluate: (expression: string) => Promise<any>,
+ *   waitForDownloads: (filename: string) => Promise<any[]>,
+ *   filename: string,
+ * }} adapters
+ */
+export const runPrivateContextScenario = async ({ evaluate, waitForDownloads, filename }) => {
+  const server = http.createServer((_req, res) => {
+    res.writeHead(200, { "Content-Type": "text/plain" });
+    res.end("private context content");
+  });
+  const port = await listenLocal(server);
+  const privateUrl = `http://127.0.0.1:${port}/${filename}.txt`;
+  const snapshot = JSON.parse(
+    await evaluate(`Promise.all([
+      browser.storage.local.get(["paths", "save-in-history", "save-in-last-used-path", "save-in-last-used-meta"]),
+      browser.storage.session.get(null),
+      api.logs(),
+    ]).then(([local, session, log]) => JSON.stringify({ local, session, log }))`),
+  );
+
+  try {
+    await evaluate(`browser.storage.local.set({ paths: "e2e/private" })
+      .then(() => api.reset())
+      .then(() => api.clickContextMenu({
+        info: {
+          menuItemId: "save-in-0",
+          mediaType: "image",
+          srcUrl: ${JSON.stringify(privateUrl)},
+          pageUrl: "https://private.example/",
+        },
+        tab: {
+          id: 91,
+          title: ${JSON.stringify(filename)},
+          url: "https://private.example/",
+          incognito: true,
+        },
+      })).then(() => "clicked")`);
+
+    const downloads = await waitForDownloads(filename);
+    expect(downloads).toHaveLength(1);
+    expect(downloads[0].state).toBe("complete");
+    expect(fs.readFileSync(downloads[0].filename, "utf8")).toBe("private context content");
+
+    const after = JSON.parse(
+      await evaluate(`Promise.all([
+        browser.storage.local.get(["save-in-history", "save-in-last-used-path", "save-in-last-used-meta"]),
+        browser.storage.session.get(null),
+        api.logs(),
+      ]).then(([local, session, log]) => JSON.stringify({ local, session, log }))`),
+    );
+    expect(after.local["save-in-history"]).toEqual(snapshot.local["save-in-history"]);
+    expect(after.local["save-in-last-used-path"]).toEqual(snapshot.local["save-in-last-used-path"]);
+    expect(after.local["save-in-last-used-meta"]).toEqual(snapshot.local["save-in-last-used-meta"]);
+    expect(after.log).toEqual(snapshot.log);
+    expect(Object.keys(after.session.siActiveTransfers || {})).toHaveLength(0);
+  } finally {
+    const hadPaths = Object.hasOwn(snapshot.local, "paths");
+    try {
+      await evaluate(`${hadPaths ? `browser.storage.local.set({ paths: ${JSON.stringify(snapshot.local.paths)} })` : 'browser.storage.local.remove("paths")'}
+        .then(() => api.reset()).then(() => "restored")`);
+    } finally {
+      await closeLocal(server);
+    }
+  }
+};
+
+/**
+ * Starts a real background fetch, restarts the background while it is in
+ * flight, and verifies cold-start recovery clears the durable transfer record.
+ *
+ * @param {{
+ *   evaluate: (expression: string) => Promise<any>,
+ *   restartBackground: () => Promise<void>,
+ *   filename: string,
+ * }} adapters
+ */
+export const runInterruptedTransferRecoveryScenario = async ({
+  evaluate,
+  restartBackground,
+  filename,
+}) => {
+  /** @type {import("node:http").ServerResponse | undefined} */
+  let pendingResponse;
+  /** @type {(() => void) | undefined} */
+  let requestStartedResolve;
+  /** @type {Promise<void>} */
+  const requestStarted = new Promise((resolve) => {
+    requestStartedResolve = () => resolve();
+  });
+  const server = http.createServer((_req, res) => {
+    pendingResponse = res;
+    requestStartedResolve?.();
+  });
+  const port = await listenLocal(server);
+  const url = `http://127.0.0.1:${port}/${filename}`;
+  const previousFetchViaFetch = await evaluate(`api.getOption("fetchViaFetch")`);
+
+  try {
+    await evaluate(`api.setOptions({ fetchViaFetch: true, filenamePatterns: "" })
+      .then(() => { void api.startDownload({
+        url: ${JSON.stringify(url)},
+        suggestedFilename: ${JSON.stringify(filename)},
+        pageUrl: "https://restart.example/",
+      }); return "started"; })`);
+    await requestStarted;
+    const active = JSON.parse(
+      await evaluate(`new Promise((resolve, reject) => {
+        const timeout = AbortSignal.timeout(8000);
+        let settled = false;
+        const finish = (callback) => {
+          if (settled) return;
+          settled = true;
+          browser.storage.onChanged.removeListener(onChanged);
+          timeout.removeEventListener("abort", onTimeout);
+          callback();
+        };
+        const check = async () => {
+          const stored = await browser.storage.session.get("siActiveTransfers");
+          const records = stored.siActiveTransfers || {};
+          if (Object.keys(records).length === 1) {
+            finish(() => resolve(JSON.stringify(records)));
+          }
+        };
+        const onChanged = (_changes, area) => {
+          if (area === "session") void check().catch((error) => finish(() => reject(error)));
+        };
+        const onTimeout = () => finish(() => reject(
+          new Error("Timed out waiting for durable active-transfer state")
+        ));
+        browser.storage.onChanged.addListener(onChanged);
+        timeout.addEventListener("abort", onTimeout, { once: true });
+        void check().catch((error) => finish(() => reject(error)));
+      })`),
+    );
+    expect(Object.keys(active)).toHaveLength(1);
+
+    await restartBackground();
+    pendingResponse?.end("response after background restart");
+
+    const recovered = JSON.parse(
+      await evaluate(`new Promise((resolve, reject) => {
+        const timeout = AbortSignal.timeout(8000);
+        const check = async () => {
+          const [history, session] = await Promise.all([
+            api.history(),
+            browser.storage.session.get("siActiveTransfers"),
+          ]);
+          const entry = history.findLast((row) => row.url === ${JSON.stringify(url)});
+          if (entry?.status === "DOWNLOAD_PREPARATION_INTERRUPTED" &&
+              Object.keys(session.siActiveTransfers || {}).length === 0) {
+            resolve(JSON.stringify(entry));
+            return;
+          }
+          if (timeout.aborted) {
+            reject(new Error("Timed out waiting for interrupted-transfer recovery"));
+            return;
+          }
+          const channel = new MessageChannel();
+          channel.port1.onmessage = () => {
+            channel.port1.close();
+            channel.port2.close();
+            void check();
+          };
+          channel.port2.postMessage(null);
+        };
+        void check();
+      })`),
+    );
+    expect(recovered.status).toBe("DOWNLOAD_PREPARATION_INTERRUPTED");
+  } finally {
+    pendingResponse?.destroy();
+    await evaluate(`api.setOptions({ fetchViaFetch: ${JSON.stringify(previousFetchViaFetch)} })`);
+    await closeLocal(server);
   }
 };
 

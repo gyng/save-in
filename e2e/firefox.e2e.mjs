@@ -15,7 +15,9 @@ import {
   runContentDispositionScenario,
   runContextMenuScenario,
   runFailedDownloadLogScenario,
+  runInterruptedTransferRecoveryScenario,
   runLegacyProfileRoutingScenario,
+  runPrivateContextScenario,
   runRoutingScenario,
   runShortcutScenario,
   runSymlinkDestinationScenario,
@@ -308,6 +310,43 @@ test("event-page reload hydrates persisted options before replying", async () =>
   }
 });
 
+test("event-page cold start removes a stale Referer session rule", async () => {
+  await evalBackground(`browser.declarativeNetRequest.updateSessionRules({
+    removeRuleIds: [66000001],
+    addRules: [{
+      id: 66000001,
+      priority: 1,
+      action: {
+        type: "modifyHeaders",
+        requestHeaders: [{
+          header: "Referer",
+          operation: "set",
+          value: "https://stale.example/",
+        }],
+      },
+      condition: {
+        urlFilter: "|http://127.0.0.1/",
+        resourceTypes: ["xmlhttprequest"],
+      },
+    }],
+  }).then(() => true)`);
+  await session.reloadBackgroundPage();
+  const remaining = JSON.parse(
+    await evalBackground(
+      `browser.declarativeNetRequest.getSessionRules().then((rules) => JSON.stringify(rules.map(({ id }) => id)))`,
+    ),
+  );
+  expect(remaining).not.toContain(66_000_001);
+});
+
+test("event-page cold start recovers an interrupted in-flight fetch", async () => {
+  await runInterruptedTransferRecoveryScenario({
+    evaluate: evalBackground,
+    restartBackground: () => session.reloadBackgroundPage(),
+    filename: "interrupted-firefox.bin",
+  });
+});
+
 test("download completes through the real pipeline", async () => {
   await evalBackground(
     `api.startDownload({
@@ -325,6 +364,28 @@ test("download completes through the real pipeline", async () => {
 
 test("production context-menu handler completes a selection save", async () => {
   await runContextMenuScenario({ evaluate: evalBackground, waitForDownloads });
+});
+
+test("private context-menu saves leave no extension history or session state", async () => {
+  const privateWindowId = Number(
+    await evalBackground(`browser.windows.create({ incognito: true, url: "about:blank" })
+      .then((window) => window.id)`),
+  );
+  try {
+    await runPrivateContextScenario({
+      evaluate: evalBackground,
+      waitForDownloads: async (filename) => {
+        const privatePath = path.join(session.downloadDir, "e2e", "private", `${filename}.txt`);
+        await poll(() => (fs.existsSync(privatePath) ? true : null), {
+          description: "Firefox private download file",
+        });
+        return [{ state: "complete", filename: privatePath }];
+      },
+      filename: "private-firefox",
+    });
+  } finally {
+    await evalBackground(`browser.windows.remove(${privateWindowId})`);
+  }
 });
 
 test("Save In filenames match live Firefox Content-Disposition behavior", async () => {
@@ -586,7 +647,7 @@ test("ordinary browser downloads can be tracked and experimentally rerouted on F
       browserDownloadFilter: "",
       filenamePatterns: "",
     }).then(() => api.reset())`);
-    server.close();
+    await closeLocal(server);
   }
 });
 
@@ -644,8 +705,95 @@ test("page-generated alt+click cannot trigger a content-script download", async 
           .filter((id) => id != null)))
         .then(() => api.reset())`);
     } finally {
-      server.close();
+      await closeLocal(server);
     }
+  }
+});
+
+test("automatic Page Sources routes initial and live matches and enforces the visit limit", async () => {
+  const { server, port } = await startSourcePanelServer();
+  const target = `localhost:${port}/automatic-sources`;
+  const pageUrl = `http://${target}`;
+  const previous = JSON.parse(
+    await evalBackground(`browser.storage.local.get([
+      "autoDownloadEnabled", "autoDownloadLive", "autoDownloadMaxPerPage", "filenamePatterns"
+    ]).then((stored) => JSON.stringify(stored))`),
+  );
+  const automaticKeys = [
+    "autoDownloadEnabled",
+    "autoDownloadLive",
+    "autoDownloadMaxPerPage",
+    "filenamePatterns",
+  ];
+  const missingAutomaticKeys = automaticKeys.filter((key) => !(key in previous));
+
+  try {
+    await evalBackground(`browser.storage.local.set({
+      autoDownloadEnabled: true,
+      autoDownloadLive: true,
+      autoDownloadMaxPerPage: 3,
+      filenamePatterns: ${JSON.stringify(
+        `url: .*
+into: e2e/ordinary-should-not-match/
+
+context: ^auto$
+pageurl: ^http://localhost:${port}/automatic-sources$
+sourcekind: ^image$
+sourceurl: \\.png$
+into: e2e/automatic-firefox/:filename:`,
+      )},
+    }).then(() => api.reset()).then(() => "enabled")`);
+    await evalBackground(`browser.tabs.create({ url: ${JSON.stringify(pageUrl)} })`);
+    await evalBackground(waitForTabExpression(target));
+    const initial = await poll(
+      async () => {
+        const rows = JSON.parse(
+          await evalBackground(`browser.downloads.search({})
+            .then((items) => JSON.stringify(items.filter((item) => item.filename.includes("automatic-firefox"))
+              .map(({ state, filename, url }) => ({ state, filename, url }))))`),
+        );
+        return rows.filter((/** @type {any} */ row) => row.state === "complete").length === 2
+          ? rows
+          : null;
+      },
+      { timeoutMs: 10000, description: "initial Firefox automatic Page Sources downloads" },
+    );
+    expect(initial.filter((/** @type {any} */ row) => row.state === "complete")).toHaveLength(2);
+    expect(
+      initial.every(
+        (/** @type {any} */ row) => !row.filename.includes("ordinary-should-not-match"),
+      ),
+    ).toBe(true);
+
+    await session.evaluateInTab(
+      target,
+      `(() => {
+        for (const name of ["late.png", "over-limit.png"]) {
+          const image = document.createElement("img");
+          image.src = "/" + name;
+          document.body.append(image);
+        }
+        return true;
+      })()`,
+    );
+    await waitForDownloadUrl(`http://localhost:${port}/late.png`);
+    const rows = JSON.parse(
+      await evalBackground(`browser.downloads.search({}).then((items) => JSON.stringify(items.filter(
+        (item) => item.url === "http://localhost:${port}/over-limit.png"
+      )))`),
+    );
+    expect(rows).toHaveLength(0);
+  } finally {
+    await evalBackground(`Promise.all([
+      browser.storage.local.set(${JSON.stringify(previous)}),
+      browser.storage.local.remove(${JSON.stringify(missingAutomaticKeys)}),
+    ])
+      .then(() => browser.tabs.query({}))
+      .then((tabs) => browser.tabs.remove(tabs.filter((tab) =>
+        tab.url?.includes(${JSON.stringify(target)})
+      ).map((tab) => tab.id).filter((id) => id != null)))
+      .then(() => api.reset())`);
+    await closeLocal(server);
   }
 });
 
@@ -739,7 +887,7 @@ test("Page Sources discovers, updates live, and restores across tabs", async () 
         tab.url?.includes(${JSON.stringify(`:${port}/sources-`)})
       ).map((tab) => tab.id).filter((id) => id != null))),
     ]).then(() => api.reset()).then(() => "cleaned")`);
-    server.close();
+    await closeLocal(server);
   }
 });
 
