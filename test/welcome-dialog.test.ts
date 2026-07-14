@@ -123,7 +123,7 @@ test("contains unavailable and repeated empty-preset actions", async () => {
   const dialog = document.querySelector<HTMLDialogElement>("#welcome-dialog")!;
   const empty = dialog.querySelector<HTMLButtonElement>(".welcome-empty")!;
   empty.click();
-  empty.click();
+  empty.dispatchEvent(new MouseEvent("click", { bubbles: true }));
   dialog.dispatchEvent(new MouseEvent("click", { bubbles: true }));
   dialog.dispatchEvent(new Event("cancel", { cancelable: true }));
   expect(applyPreset).toHaveBeenCalledOnce();

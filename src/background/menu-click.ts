@@ -220,7 +220,6 @@ export const handleContextMenuClick = async (
         menuIndex = menuState.lastUsedMeta.menuIndex;
       }
     } else {
-      if (!menuInfo) return;
       saveIntoPath = menuInfo.parsedDir;
       const title = menuInfo.title || saveIntoPath;
       selectedLocation = {

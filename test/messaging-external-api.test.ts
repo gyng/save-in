@@ -198,6 +198,48 @@ describe("external DOWNLOAD API v1", () => {
     expect(capabilities).toEqual(expect.arrayContaining(["schema", "validate"]));
     expect(capabilities).not.toContain("apply_config");
   });
+
+  test("rate-limits repeated validation requests per caller", () => {
+    const sender = { id: "rate-limit-boundary" };
+    for (let index = 0; index < 20; index += 1) {
+      onMessageExternal({ type: MESSAGE_TYPES.VALIDATE }, sender, vi.fn());
+    }
+    const sendResponse = vi.fn();
+
+    onMessageExternal({ type: MESSAGE_TYPES.VALIDATE }, sender, sendResponse);
+
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.VALIDATE,
+      body: {
+        status: MESSAGE_TYPES.ERROR,
+        error: "RATE_LIMITED",
+        message: "Too many validation requests",
+        version: 1,
+      },
+    });
+  });
+
+  test("rejects oversized WebMCP validation before parsing", () => {
+    const sendResponse = vi.fn();
+
+    onMessage(
+      {
+        type: MESSAGE_TYPES.VALIDATE,
+        body: { filenamePatterns: "x".repeat(32_769), validationSource: "webmcp" },
+      },
+      { id: "webmcp-boundary" },
+      sendResponse,
+    );
+
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.VALIDATE,
+      body: {
+        status: MESSAGE_TYPES.ERROR,
+        error: "BAD_REQUEST",
+        message: "Validation rules are too large",
+      },
+    });
+  });
 });
 
 // Scriptable / AI-assisted config API (#89, docs/INTEGRATIONS.md §4)
