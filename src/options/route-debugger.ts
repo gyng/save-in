@@ -157,24 +157,23 @@ export const setupRouteDebugger = (): void => {
     result.dataset.state = state;
   };
 
-  const renderMessage = (state: string, title: string, detail = ""): void => {
+  const renderMessage = (state: string, title: string): void => {
     setState(state);
     const message = document.createElement("div");
     message.className = "route-debugger-message";
     appendText(message, "route-debugger-message-title", title);
-    if (detail) appendText(message, "route-debugger-message-detail", detail);
     result.replaceChildren(message);
   };
 
   const jumpToSource = (
-    source: { start: number; end: number; line?: number },
+    source: { start: number; end: number; line: number },
     ruleIndex: number,
   ): void => {
     document.dispatchEvent(
       new CustomEvent("route-debugger-source-selected", {
         detail: {
           ruleIndex,
-          line: source.line ?? textarea.value.slice(0, source.start).split("\n").length,
+          line: source.line,
         },
       }),
     );
@@ -302,7 +301,7 @@ export const setupRouteDebugger = (): void => {
         sourceLink.addEventListener("click", (event) => {
           event.preventDefault();
           event.stopPropagation();
-          jumpToSource(rule.source!, rule.sourceIndex ?? rule.index - 1);
+          jumpToSource(rule.source!, rule.sourceIndex!);
         });
         meta.append(sourceLink);
       }
@@ -320,7 +319,7 @@ export const setupRouteDebugger = (): void => {
         clauseButton.classList.toggle("is-miss", !clause.matched);
         if (clause.source) {
           clauseButton.addEventListener("click", () =>
-            jumpToSource(clause.source!, rule.sourceIndex ?? rule.index - 1),
+            jumpToSource(clause.source!, rule.sourceIndex!),
           );
         }
         appendText(clauseButton, "route-debugger-clause-mark", clause.matched ? "✓" : "×");
