@@ -244,9 +244,9 @@ export const Notifier = {
     if (item.incognito && !isPrivateDownloadRecord(expectedDownloads[expectedIndex]?.record || {}))
       return;
     if (expectedIndex !== -1) {
-      const [expected] = expectedDownloads.splice(expectedIndex, 1);
-      // expectedIndex came from this same array, so splice always returns one entry.
-      const matched = expected!;
+      const matched = expectedDownloads[expectedIndex];
+      if (!matched) return;
+      expectedDownloads.splice(expectedIndex, 1);
       const observedBrowserDownload = matched.record?.observedBrowserDownload === true;
       await mergeTrackedDownload(item.id, {
         ...matched.record,
