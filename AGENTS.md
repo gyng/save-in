@@ -294,8 +294,8 @@ vitest specifics (`test/*.test.ts`, typed; `tsc` covers them):
   Stage only task-related changes when the worktree contains unrelated edits.
 - No extension runtime dependencies. Build tooling targets Node ≥ 24 and uses
   JSZip only to canonicalize `web-ext` archives for reproducible bytes.
-- Editable SVG masters live under `assets/icons/` and are included only in the
-  Mozilla source attachment. Regenerated runtime rasters belong under `icons/`.
+- Editable SVG icon sources and regenerated runtime rasters live under `icons/`.
+  Shipped icon files must be referenced explicitly by the manifest or runtime.
 - Comments explain _constraints_ (why something must be this way — usually
   an MV3/cross-browser rule), not what the code does.
 - Version lives in `manifest.json` and `package.json` — bump together.

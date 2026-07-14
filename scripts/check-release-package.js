@@ -206,7 +206,6 @@ check(
 
 const sourceBuild = read("scripts/build-source-package.js");
 for (const required of [
-  '"assets/README.md"',
   '"e2e"',
   '"CHANGELOG.md"',
   '"tsconfig.worker.json"',

@@ -69,17 +69,7 @@ async function main() {
   fs.mkdirSync(stage, { recursive: true });
   fs.mkdirSync(artifacts, { recursive: true });
 
-  for (const dir of [
-    ".github",
-    "assets",
-    "src",
-    "scripts",
-    "test",
-    "e2e",
-    "types",
-    "icons",
-    "_locales",
-  ]) {
+  for (const dir of [".github", "src", "scripts", "test", "e2e", "types", "icons", "_locales"]) {
     fs.cpSync(path.join(root, dir), path.join(stage, dir), { recursive: true });
   }
 
@@ -156,7 +146,6 @@ async function main() {
       ".oxfmtrc.json",
       ".oxlintrc.json",
       ".github/workflows/ci.yml",
-      "assets/README.md",
       "CHANGELOG.md",
       "e2e/chrome.e2e.mjs",
       "e2e/firefox.e2e.mjs",
