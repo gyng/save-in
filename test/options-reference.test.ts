@@ -152,7 +152,7 @@ test("uses readable filter placeholders when localization is unavailable", async
   const dialog = document.querySelector("#reference-dialog")!;
   dialog.insertAdjacentHTML(
     "beforeend",
-    '<button role="tab">Incomplete</button><section id="options-reference-orphan" role="tabpanel"></section>',
+    '<button role="tab" data-reference-tab>Incomplete</button><section id="options-reference-orphan" role="tabpanel"></section>',
   );
   vi.mocked(browser.i18n.getMessage).mockReturnValue("");
   vi.mocked(browser.runtime.sendMessage).mockResolvedValue({
@@ -174,7 +174,7 @@ test("uses readable filter placeholders when localization is unavailable", async
   }
   document.querySelector<HTMLElement>("[data-reference-tab='options-reference-orphan']")!.click();
   document.querySelector<HTMLElement>("body > [data-reference-tab='']")!.click();
-  dialog.querySelector<HTMLButtonElement>("[role='tab']:not([data-reference-tab])")!.click();
+  dialog.querySelector<HTMLButtonElement>("[role='tab'][data-reference-tab='']")!.click();
 });
 
 test("does not restore focus when the opener is not an HTML element", () => {
