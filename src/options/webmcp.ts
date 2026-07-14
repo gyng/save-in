@@ -1,6 +1,7 @@
 import { webExtensionApi } from "../platform/web-extension-api.ts";
 import { getMessage } from "../platform/localization.ts";
 import { withUrl } from "../shared/util.ts";
+import { isPageSourceKind, PAGE_SOURCE_KINDS } from "../shared/page-source.ts";
 
 type WebMcpInput = Record<string, unknown> | null | undefined;
 type WebMcpMessage = { type: string; body?: unknown };
@@ -83,9 +84,18 @@ const firstUnknownProperty = (
 };
 
 const NO_PROPERTIES = new Set<string>();
-const VALIDATE_PROPERTIES = new Set(["paths", "filenamePatterns", "info"]);
+const VALIDATE_PROPERTIES = new Set(["paths", "filenamePatterns", "info", "automaticCandidate"]);
 const APPLY_PROPERTIES = new Set(["config"]);
-const DOWNLOAD_PROPERTIES = new Set(["url", "pageUrl", "comment"]);
+const DOWNLOAD_PROPERTIES = new Set([
+  "url",
+  "pageUrl",
+  "comment",
+  "suggestedFilename",
+  "mime",
+  "mediaType",
+  "sourceKind",
+]);
+const AUTOMATIC_CANDIDATE_PROPERTIES = new Set(["pageUrl", "sourceUrl", "sourceKind"]);
 const TRACE_STRING_FIELDS = [
   "srcUrl",
   "url",
@@ -153,7 +163,7 @@ export const SaveInWebMCP = {
       {
         name: "save_in_list_vocabulary",
         description:
-          "List the :variables: (e.g. :sourcedomain:, :date:, :counter: — used in paths and filenames) and the clause matchers (fileext, filename, pageurl, into, capture, ... — used in Dynamic Downloads routing rules). Returns { variables, matchers }. Call this to translate a plain-language request into the config syntax.",
+          "List path variables, routing matchers, automatic-source matchers, and source kinds. Use this to translate a request into supported config vocabulary.",
         inputSchema: { type: "object", properties: {}, additionalProperties: false },
         annotations: { readOnlyHint: true, untrustedContentHint: false },
         execute: (input: WebMcpInput) => {
@@ -164,14 +174,38 @@ export const SaveInWebMCP = {
         },
       },
       {
+        name: "save_in_get_grammars",
+        description:
+          "Return the EBNF, semantic constraints, option name, and examples for each editable Save In language.",
+        inputSchema: { type: "object", properties: {}, additionalProperties: false },
+        annotations: { readOnlyHint: true, untrustedContentHint: false },
+        execute: (input: WebMcpInput) => {
+          const unknown = firstUnknownProperty(input, NO_PROPERTIES);
+          return unknown
+            ? inputError(unknown.field, unknown.message)
+            : send({ type: "GET_GRAMMARS" });
+        },
+      },
+      {
         name: "save_in_validate_config",
         description:
-          "Dry-run Save In directory paths and/or routing rules. Returns errors and a menu preview without saving. Call this before save_in_apply_config for paths/filenamePatterns.",
+          "Dry-run directory and routing rules without saving. Optionally trace unified automatic routing against a sample page source.",
         inputSchema: {
           type: "object",
           properties: {
             paths: { type: "string", description: "Directory menu structure, one path per line" },
             filenamePatterns: { type: "string", description: "Routing / rename rules" },
+            automaticCandidate: {
+              type: "object",
+              description: "Sample page source for a context: ^auto$ routing trace",
+              properties: {
+                pageUrl: { type: "string" },
+                sourceUrl: { type: "string" },
+                sourceKind: { type: "string", enum: [...PAGE_SOURCE_KINDS] },
+              },
+              additionalProperties: false,
+              required: ["pageUrl", "sourceUrl", "sourceKind"],
+            },
             info: {
               type: "object",
               description:
@@ -250,6 +284,34 @@ export const SaveInWebMCP = {
                 return inputError(`info.currentTab.${tabError.field}`, tabError.message);
             }
           }
+          const candidate = input?.automaticCandidate;
+          if (typeof candidate !== "undefined") {
+            if (typeof candidate !== "object" || candidate === null || Array.isArray(candidate)) {
+              return inputError("automaticCandidate", "Expected an object");
+            }
+            const candidateRecord = candidate as Record<string, unknown>;
+            const unknownCandidate = firstUnknownProperty(
+              candidateRecord,
+              AUTOMATIC_CANDIDATE_PROPERTIES,
+            );
+            if (unknownCandidate) {
+              return inputError(
+                `automaticCandidate.${unknownCandidate.field}`,
+                unknownCandidate.message,
+              );
+            }
+            for (const field of ["pageUrl", "sourceUrl", "sourceKind"] as const) {
+              if (typeof candidateRecord[field] !== "string" || candidateRecord[field] === "") {
+                return inputError(`automaticCandidate.${field}`, "Expected a non-empty string");
+              }
+            }
+            if (!isPageSourceKind(candidateRecord.sourceKind)) {
+              return inputError("automaticCandidate.sourceKind", "Unknown source kind");
+            }
+            if (!hasOwn(input!, "filenamePatterns")) {
+              return inputError("automaticCandidate", "Provide filenamePatterns to trace");
+            }
+          }
           if (!input || (!hasOwn(input, "paths") && !hasOwn(input, "filenamePatterns"))) {
             return inputError("$", "Provide paths or filenamePatterns");
           }
@@ -302,6 +364,10 @@ export const SaveInWebMCP = {
             },
             pageUrl: { type: "string", description: "The page the URL came from" },
             comment: { type: "string", description: "Free text, targetable in routing rules" },
+            suggestedFilename: { type: "string", description: "Preferred source filename" },
+            mime: { type: "string", description: "Source MIME type" },
+            mediaType: { type: "string", description: "Browser media category" },
+            sourceKind: { type: "string", enum: [...PAGE_SOURCE_KINDS] },
           },
           additionalProperties: false,
           required: ["url"],
@@ -313,8 +379,18 @@ export const SaveInWebMCP = {
           if (!input || typeof input.url !== "string" || input.url.trim() === "") {
             return inputError("url", "Expected a non-empty string");
           }
-          const error = firstInvalidOptionalString(input, ["pageUrl", "comment"]);
+          const error = firstInvalidOptionalString(input, [
+            "pageUrl",
+            "comment",
+            "suggestedFilename",
+            "mime",
+            "mediaType",
+            "sourceKind",
+          ]);
           if (error) return inputError(error.field, error.message);
+          if (typeof input.sourceKind !== "undefined" && !isPageSourceKind(input.sourceKind)) {
+            return inputError("sourceKind", "Unknown source kind");
+          }
           const url = input.url.trim();
           if (!isValidDownloadUrl(url)) {
             return inputError("url", "Use an http, https, ftp, data, or blob URL");
@@ -324,7 +400,14 @@ export const SaveInWebMCP = {
             type: "DOWNLOAD",
             body: {
               url,
-              info: { pageUrl: pageUrl || undefined, srcUrl: url },
+              info: {
+                pageUrl: pageUrl || undefined,
+                srcUrl: url,
+                suggestedFilename: input.suggestedFilename,
+                mime: input.mime,
+                mediaType: input.mediaType,
+                sourceKind: input.sourceKind,
+              },
               comment: input.comment,
             },
           });

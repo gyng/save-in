@@ -41,6 +41,13 @@ import { ExternalDownloadRejections } from "./external-download-rejections.ts";
 import { getMessage } from "../platform/localization.ts";
 import { createSourcePanelCopy } from "../shared/source-panel-copy.ts";
 import { matchAutoDownloadRule } from "../automation/auto-download-rules.ts";
+import { PAGE_SOURCE_KINDS } from "../shared/page-source.ts";
+import { INTEGRATION_GRAMMARS } from "./integration-grammars.ts";
+import {
+  AUTOMATIC_CONTEXT,
+  AUTOMATIC_PAGE_MATCHERS,
+  AUTOMATIC_SOURCE_MATCHERS,
+} from "../routing/automatic-rule.ts";
 
 export type MessageSender = { id?: string | undefined; tab?: CurrentTab | undefined };
 type ProtocolSendResponse<Request extends InternalMessage> = SendResponse<ResponseFor<Request>>;
@@ -60,7 +67,10 @@ export const Messaging = {
     "comment", // body.comment is targetable in routing rules
     "info", // body.info fields: pageUrl, srcUrl, selectionText, menuIndex, ...
     "schema", // { type: "GET_SCHEMA" } -> the option schema (read-only)
-    "validate", // { type: "VALIDATE", body: { paths?, filenamePatterns? } } (read-only)
+    "vocabulary", // GET_KEYWORDS includes routing and automatic-routing vocabulary
+    "grammar", // GET_GRAMMARS returns the supported EBNF and semantic constraints
+    "validate", // VALIDATE dry-runs both editable grammars (read-only)
+    "automatic_routing_validation", // routing rules can include an automatic-source trace
     "sender_allowlist", // DOWNLOAD requires the browser-authenticated sender.id to be allowed
     // apply_config (mutating) is intentionally NOT advertised: it is reachable
     // only from same-extension callers, not onMessageExternal
@@ -180,6 +190,41 @@ export const Messaging = {
     });
   },
 
+  handleGetKeywords: (
+    _request: MessageOf<typeof MESSAGE_TYPES.GET_KEYWORDS>,
+    _sender: MessageSender,
+    sendResponse: ProtocolSendResponse<MessageOf<typeof MESSAGE_TYPES.GET_KEYWORDS>>,
+  ): void => {
+    sendResponse({
+      type: MESSAGE_TYPES.KEYWORD_LIST,
+      body: {
+        matchers: Object.keys(matcherFunctions),
+        variables: Object.keys(transformers),
+        automaticMatchers: [...AUTOMATIC_PAGE_MATCHERS, ...AUTOMATIC_SOURCE_MATCHERS],
+        automaticContext: AUTOMATIC_CONTEXT,
+        sourceKinds: [...PAGE_SOURCE_KINDS],
+      },
+    });
+  },
+
+  handleGetGrammars: (
+    _request: MessageOf<typeof MESSAGE_TYPES.GET_GRAMMARS>,
+    _sender: MessageSender,
+    sendResponse: ProtocolSendResponse<MessageOf<typeof MESSAGE_TYPES.GET_GRAMMARS>>,
+  ): void => {
+    sendResponse({
+      type: MESSAGE_TYPES.GRAMMAR_LIST,
+      body: {
+        version: Messaging.API_VERSION,
+        grammars: INTEGRATION_GRAMMARS.map((grammar) => ({
+          ...grammar,
+          semantics: [...grammar.semantics],
+          examples: [...grammar.examples],
+        })),
+      },
+    });
+  },
+
   // Read-only: dry-run the two grammars and return structured errors + a menu
   // preview, without saving anything. Powers an agent's generate→validate→fix
   // loop and the options-page "paste config" affordance. Safe externally.
@@ -205,6 +250,17 @@ export const Messaging = {
       result.ruleErrors = parsed.errors;
       if (body.info && typeof body.info === "object" && !Array.isArray(body.info)) {
         result.ruleTrace = await traceRules(parsed.rules, body.info);
+      }
+      if (body.automaticCandidate) {
+        const candidate = body.automaticCandidate;
+        result.automaticTrace = await traceRules(parsed.rules, {
+          context: AUTOMATIC_CONTEXT,
+          pageUrl: candidate.pageUrl,
+          sourceUrl: candidate.sourceUrl,
+          url: candidate.sourceUrl,
+          sourceKind: candidate.sourceKind,
+          mediaType: candidate.sourceKind,
+        });
       }
     }
 
@@ -326,6 +382,9 @@ export const Messaging = {
         comment: info.comment,
         modifiers: info.modifiers,
         suggestedFilename: info.suggestedFilename,
+        mime: info.mime,
+        mediaType: info.mediaType,
+        sourceKind: info.sourceKind,
         url,
         context: DOWNLOAD_TYPES.CLICK,
       };
@@ -561,12 +620,8 @@ const internalHandlers = {
       },
     });
   },
-  [MESSAGE_TYPES.GET_KEYWORDS]: (_request, _sender, sendResponse) => {
-    sendResponse({
-      type: MESSAGE_TYPES.KEYWORD_LIST,
-      body: { matchers: Object.keys(matcherFunctions), variables: Object.keys(transformers) },
-    });
-  },
+  [MESSAGE_TYPES.GET_KEYWORDS]: Messaging.handleGetKeywords,
+  [MESSAGE_TYPES.GET_GRAMMARS]: Messaging.handleGetGrammars,
   [MESSAGE_TYPES.PREVIEW_MENUS]: (request, _sender, sendResponse) => {
     const pathsArray = splitLines(request.body?.paths || "");
     sendResponse({ type: MESSAGE_TYPES.MENU_PREVIEW, body: buildTree(pathsArray) });
@@ -583,6 +638,8 @@ const internalHandlers = {
 const externalHandlers = {
   [MESSAGE_TYPES.PING]: Messaging.handlePing,
   [MESSAGE_TYPES.GET_SCHEMA]: Messaging.handleGetSchema,
+  [MESSAGE_TYPES.GET_KEYWORDS]: Messaging.handleGetKeywords,
+  [MESSAGE_TYPES.GET_GRAMMARS]: Messaging.handleGetGrammars,
   [MESSAGE_TYPES.VALIDATE]: Messaging.handleValidate,
   [MESSAGE_TYPES.DOWNLOAD]: (request, sender, sendResponse) => {
     if (!Messaging.isExternalDownloadAllowed(sender)) {

@@ -166,6 +166,20 @@ export type WireOptionSchemaKey = {
   default: string | number | boolean;
 };
 
+export type WireIntegrationGrammar = {
+  id: "directories" | "routing";
+  option: "paths" | "filenamePatterns";
+  ebnf: string;
+  semantics: string[];
+  examples: string[];
+};
+
+export type AutomaticRoutingValidationCandidate = {
+  pageUrl: string;
+  sourceUrl: string;
+  sourceKind: PageSourceKind;
+};
+
 export type ProtocolErrorResponse<Type extends string> = Response<
   Type,
   { status: typeof MESSAGE_TYPES.ERROR; error: string; message?: string | undefined }
@@ -222,7 +236,17 @@ export type InternalResponseMap = {
   >;
   [MESSAGE_TYPES.GET_KEYWORDS]: Response<
     typeof MESSAGE_TYPES.KEYWORD_LIST,
-    { matchers: string[]; variables: string[] }
+    {
+      matchers: string[];
+      variables: string[];
+      automaticMatchers: string[];
+      automaticContext: string;
+      sourceKinds: PageSourceKind[];
+    }
+  >;
+  [MESSAGE_TYPES.GET_GRAMMARS]: Response<
+    typeof MESSAGE_TYPES.GRAMMAR_LIST,
+    { version: number; grammars: WireIntegrationGrammar[] }
   >;
   [MESSAGE_TYPES.PREVIEW_MENUS]: Response<typeof MESSAGE_TYPES.MENU_PREVIEW, MenuTree>;
   [MESSAGE_TYPES.CHECK_ROUTES]: Response<
@@ -254,6 +278,7 @@ export type InternalResponseMap = {
       pathErrors?: MenuTreeError[] | undefined;
       ruleErrors?: RuleError[] | undefined;
       ruleTrace?: unknown;
+      automaticTrace?: unknown;
     }
   >;
   [MESSAGE_TYPES.APPLY_CONFIG]: Response<
@@ -282,6 +307,9 @@ export type DownloadRequestBody = {
         | "comment"
         | "modifiers"
         | "suggestedFilename"
+        | "mime"
+        | "mediaType"
+        | "sourceKind"
       > & { srcUrl?: string | undefined })
     | undefined;
   comment?: string | undefined;
@@ -312,6 +340,7 @@ export type InternalMessage =
   | Message<typeof MESSAGE_TYPES.OPTIONS>
   | Message<typeof MESSAGE_TYPES.OPTIONS_SCHEMA>
   | Message<typeof MESSAGE_TYPES.GET_KEYWORDS>
+  | Message<typeof MESSAGE_TYPES.GET_GRAMMARS>
   | OptionalBodyMessage<typeof MESSAGE_TYPES.PREVIEW_MENUS, { paths?: string }>
   | OptionalBodyMessage<typeof MESSAGE_TYPES.CHECK_ROUTES, { state?: WireDownloadState }>
   | Message<typeof MESSAGE_TYPES.PING>
@@ -322,6 +351,7 @@ export type InternalMessage =
         paths?: string;
         filenamePatterns?: string;
         info?: ValidationInfo;
+        automaticCandidate?: AutomaticRoutingValidationCandidate;
       }
     >
   | OptionalBodyMessage<
@@ -334,6 +364,8 @@ export type ExternalMessage = Extract<
   InternalMessage,
   | { type: typeof MESSAGE_TYPES.PING }
   | { type: typeof MESSAGE_TYPES.GET_SCHEMA }
+  | { type: typeof MESSAGE_TYPES.GET_KEYWORDS }
+  | { type: typeof MESSAGE_TYPES.GET_GRAMMARS }
   | { type: typeof MESSAGE_TYPES.VALIDATE }
   | { type: typeof MESSAGE_TYPES.DOWNLOAD }
 >;
@@ -381,6 +413,7 @@ export const INTERNAL_MESSAGE_TYPES = new Set<InternalMessage["type"]>([
   MESSAGE_TYPES.OPTIONS,
   MESSAGE_TYPES.OPTIONS_SCHEMA,
   MESSAGE_TYPES.GET_KEYWORDS,
+  MESSAGE_TYPES.GET_GRAMMARS,
   MESSAGE_TYPES.PREVIEW_MENUS,
   MESSAGE_TYPES.CHECK_ROUTES,
   MESSAGE_TYPES.PING,
@@ -393,6 +426,8 @@ export const INTERNAL_MESSAGE_TYPES = new Set<InternalMessage["type"]>([
 export const EXTERNAL_MESSAGE_TYPES = new Set<ExternalMessage["type"]>([
   MESSAGE_TYPES.PING,
   MESSAGE_TYPES.GET_SCHEMA,
+  MESSAGE_TYPES.GET_KEYWORDS,
+  MESSAGE_TYPES.GET_GRAMMARS,
   MESSAGE_TYPES.VALIDATE,
   MESSAGE_TYPES.DOWNLOAD,
 ]);
@@ -417,9 +452,16 @@ const isDownloadInfo = (value: unknown): boolean => {
     return false;
   }
   return (
-    ["pageUrl", "srcUrl", "selectionText", "linkText", "suggestedFilename"].every((key) =>
-      hasOptionalString(value, key),
-    ) &&
+    [
+      "pageUrl",
+      "srcUrl",
+      "selectionText",
+      "linkText",
+      "suggestedFilename",
+      "mime",
+      "mediaType",
+    ].every((key) => hasOptionalString(value, key)) &&
+    (typeof value.sourceKind === "undefined" || isPageSourceKind(value.sourceKind)) &&
     ["menuIndex", "comment"].every((key) => hasOptionalNullableString(value, key)) &&
     (typeof value.modifiers === "undefined" ||
       (Array.isArray(value.modifiers) && value.modifiers.every((item) => typeof item === "string")))
@@ -453,6 +495,14 @@ const isValidationInfo = (value: unknown): value is ValidationInfo =>
   (typeof value.currentTab === "undefined" ||
     value.currentTab === null ||
     isWireCurrentTab(value.currentTab));
+
+const isAutomaticRoutingValidationCandidate = (
+  value: unknown,
+): value is AutomaticRoutingValidationCandidate =>
+  isStringKeyedRecord(value) &&
+  typeof value.pageUrl === "string" &&
+  typeof value.sourceUrl === "string" &&
+  isPageSourceKind(value.sourceKind);
 
 const isWireDownloadInfo = (value: unknown): value is WireDownloadInfo =>
   isStringKeyedRecord(value) &&
@@ -528,7 +578,9 @@ const isMessageBodyValid = (message: Record<string, unknown>): boolean => {
           isStringKeyedRecord(body) &&
           hasOptionalString(body, "paths") &&
           hasOptionalString(body, "filenamePatterns") &&
-          (typeof body.info === "undefined" || isValidationInfo(body.info)),
+          (typeof body.info === "undefined" || isValidationInfo(body.info)) &&
+          (typeof body.automaticCandidate === "undefined" ||
+            isAutomaticRoutingValidationCandidate(body.automaticCandidate)),
       );
     case MESSAGE_TYPES.APPLY_CONFIG:
       return hasOptionalBody(
@@ -564,6 +616,7 @@ const isMessageBodyValid = (message: Record<string, unknown>): boolean => {
     case MESSAGE_TYPES.OPTIONS:
     case MESSAGE_TYPES.OPTIONS_SCHEMA:
     case MESSAGE_TYPES.GET_KEYWORDS:
+    case MESSAGE_TYPES.GET_GRAMMARS:
     case MESSAGE_TYPES.PING:
     case MESSAGE_TYPES.GET_SCHEMA:
       return hasNoBody(message);

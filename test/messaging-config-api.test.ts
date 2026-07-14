@@ -27,6 +27,33 @@ describe("config API", () => {
     });
   });
 
+  test("exposes vocabulary and parser grammars to external integrations", () => {
+    const vocabularyResponse = vi.fn();
+    onMessageExternal({ type: MESSAGE_TYPES.GET_KEYWORDS }, {}, vocabularyResponse);
+    expect(vocabularyResponse.mock.calls[0]![0]!.body).toMatchObject({
+      matchers: expect.any(Array),
+      variables: [":date:", ":year:"],
+      automaticMatchers: expect.arrayContaining(["pagedomain", "sourcekind", "mediatype"]),
+      automaticContext: "AUTO",
+      sourceKinds: expect.arrayContaining(["image", "document", "link"]),
+    });
+
+    const grammarResponse = vi.fn();
+    onMessageExternal({ type: MESSAGE_TYPES.GET_GRAMMARS }, {}, grammarResponse);
+    const response = grammarResponse.mock.calls[0]![0]!;
+    expect(response.type).toBe(MESSAGE_TYPES.GRAMMAR_LIST);
+    expect(response.body.version).toBe(1);
+    expect(response.body.grammars.map((grammar: { id: string }) => grammar.id)).toEqual([
+      "directories",
+      "routing",
+    ]);
+    expect(response.body.grammars[1]).toMatchObject({
+      option: "filenamePatterns",
+      ebnf: expect.stringContaining("routing-document"),
+      examples: expect.arrayContaining([expect.stringContaining("context: ^auto$")]),
+    });
+  });
+
   test("VALIDATE dry-runs paths and rules and returns errors + preview", async () => {
     vi.mocked(router.parseRulesCollecting).mockReturnValue({
       rules: [],
@@ -65,6 +92,49 @@ describe("config API", () => {
     await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
     expect(router.traceRules).toHaveBeenCalledWith(rules, info);
     expect(sendResponse.mock.calls[0]![0]!.body.ruleTrace).toEqual({ selectedRule: 1 });
+  });
+
+  test("VALIDATE parses and traces unified automatic routing rules", async () => {
+    const filenamePatterns = [
+      "context: ^auto$",
+      "pagedomain: ^example\\.test$",
+      "sourcekind: ^image$",
+      "into: Images",
+    ].join("\n");
+    vi.mocked(router.traceRules).mockResolvedValue({
+      selectedRule: 1,
+      destination: "Images",
+    } as any);
+    const sendResponse = vi.fn();
+    expect(
+      onMessageExternal(
+        {
+          type: MESSAGE_TYPES.VALIDATE,
+          body: {
+            filenamePatterns,
+            automaticCandidate: {
+              pageUrl: "https://example.test/gallery",
+              sourceUrl: "https://cdn.test/cat.png",
+              sourceKind: "image",
+            },
+          },
+        },
+        {},
+        sendResponse,
+      ),
+    ).toBe(true);
+    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    expect(router.traceRules).toHaveBeenCalledWith(expect.any(Array), {
+      context: "AUTO",
+      pageUrl: "https://example.test/gallery",
+      sourceUrl: "https://cdn.test/cat.png",
+      url: "https://cdn.test/cat.png",
+      sourceKind: "image",
+      mediaType: "image",
+    });
+    expect(sendResponse.mock.calls[0]![0]!.body).toMatchObject({
+      automaticTrace: { selectedRule: 1, destination: "Images" },
+    });
   });
 
   test("VALIDATE is exposed on the internal listener too", async () => {

@@ -27,7 +27,7 @@ The options page shows the ID for the installed build. External callers must use
 
 Only other extensions can call `runtime.sendMessage(extensionId, …)`; ordinary web pages and userscripts do not automatically gain cross-extension messaging privileges.
 
-Before an extension can start a download, paste its exact runtime ID under **Advanced → External integrations → Approved extensions** and select **Allow**. This is the calling extension's ID, not Save In's destination ID; an integration can display its own `runtime.id` to help the user configure it. Approved IDs are shown as removable rows, with the legacy line editor available under **Advanced: edit IDs as text** for bulk changes. The allowlist is empty by default. `PING`, `GET_SCHEMA`, and `VALIDATE` remain available for discovery, but `DOWNLOAD` returns `UNAUTHORIZED` until the caller is explicitly allowed. A caller can check for the `sender_allowlist` capability to detect this policy.
+Before an extension can start a download, paste its exact runtime ID under **Advanced → External integrations → Approved extensions** and select **Allow**. This is the calling extension's ID, not Save In's destination ID; an integration can display its own `runtime.id` to help the user configure it. Approved IDs are shown as removable rows, with the legacy line editor available under **Advanced: edit IDs as text** for bulk changes. The allowlist is empty by default. `PING`, `GET_SCHEMA`, `GET_KEYWORDS`, `GET_GRAMMARS`, and `VALIDATE` remain available for discovery, but `DOWNLOAD` returns `UNAUTHORIZED` until the caller is explicitly allowed. A caller can check for the `sender_allowlist` capability to detect this policy.
 
 Discover capabilities first:
 
@@ -49,6 +49,10 @@ const response = await browser.runtime.sendMessage(SAVE_IN_ID, {
       pageUrl: "https://example.com/gallery",
       srcUrl: "https://example.com/photo.jpg",
       selectionText: "optional",
+      suggestedFilename: "photo.jpg",
+      mime: "image/jpeg",
+      mediaType: "image",
+      sourceKind: "image",
     },
   },
 });
@@ -78,11 +82,32 @@ There is no `externally_connectable` declaration, so web pages cannot call Save 
 ## Config messages
 
 - `GET_SCHEMA` returns option names, types, defaults, and descriptions.
-- `VALIDATE` dry-runs `paths` and/or `filenamePatterns` and returns structured errors and a menu preview.
-- `GET_KEYWORDS` returns the registered variables and matcher clauses.
+- `GET_KEYWORDS` returns path variables, routing matchers, automatic-routing matchers and context, and supported source kinds.
+- `GET_GRAMMARS` returns the EBNF, semantic constraints, option name, and examples for the directory and unified routing languages.
+- `VALIDATE` dry-runs `paths` and/or `filenamePatterns`. It returns structured errors, a menu preview, and optional sample traces without saving.
 - `APPLY_CONFIG` validates and persists a partial configuration. It is same-extension only and unavailable through `onMessageExternal`.
 
 Unknown options and type mismatches are rejected. Omitted options remain unchanged. Use the default from `GET_SCHEMA` to restore one setting.
+
+Automatic source rules live in `filenamePatterns` and use the same routing AST, matcher vocabulary, validation, and debugger as ordinary routing. They are identified by a `context` clause matching `AUTO` and must include both a page constraint and a source constraint. To validate and trace one against representative input:
+
+```js
+const response = await browser.runtime.sendMessage(SAVE_IN_ID, {
+  type: "VALIDATE",
+  body: {
+    filenamePatterns:
+      "context: ^auto$\npagedomain: ^example\\.com$\nsourcekind: ^image$\ninto: Images",
+    automaticCandidate: {
+      pageUrl: "https://example.com/gallery",
+      sourceUrl: "https://cdn.example.com/photo.jpg",
+      sourceKind: "image",
+    },
+  },
+});
+// body.ruleErrors is [] and body.automaticTrace.selectedRule is 1.
+```
+
+Check for the `vocabulary`, `grammar`, and `automatic_routing_validation` capabilities before using these additive API v1 features. Older callers can ignore the new capability and response fields.
 
 ## WebMCP
 
@@ -90,13 +115,14 @@ WebMCP is an experimental browser API currently distributed through a Chrome
 origin trial. Its API and availability may change; see the
 [Chrome WebMCP documentation](https://developer.chrome.com/docs/ai/webmcp).
 When a compatible in-browser WebMCP context is available, the open options page
-registers five tools:
+registers six tools:
 
 | Tool | Mutation | Purpose |
 | --- | --- | --- |
 | `save_in_get_schema` | No | Read option schema and current values |
-| `save_in_list_vocabulary` | No | Read variables and matchers |
-| `save_in_validate_config` | No | Dry-run paths/rules and optional sample data |
+| `save_in_list_vocabulary` | No | Read variables, matchers, and source kinds |
+| `save_in_get_grammars` | No | Read the two supported config grammars |
+| `save_in_validate_config` | No | Dry-run paths/rules and optional sample matches |
 | `save_in_apply_config` | Yes | Validate and apply a partial configuration |
 | `save_in_download` | Yes | Start one routed download |
 
@@ -104,9 +130,10 @@ Recommended agent flow:
 
 1. `save_in_get_schema`
 2. `save_in_list_vocabulary`
-3. `save_in_validate_config`
-4. Correct every reported error
-5. `save_in_apply_config`
+3. `save_in_get_grammars`
+4. `save_in_validate_config`
+5. Correct every reported error
+6. `save_in_apply_config`
 
 Tools exist only while the options page is open and the browser provides WebMCP. Inputs may contain untrusted page data; tool annotations distinguish read-only and mutating operations.
 

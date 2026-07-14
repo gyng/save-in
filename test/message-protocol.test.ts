@@ -53,12 +53,34 @@ describe("message protocol runtime validation", () => {
         },
       }),
     ).toBe(true);
+    expect(isExternalMessage({ type: MESSAGE_TYPES.GET_KEYWORDS })).toBe(true);
+    expect(isExternalMessage({ type: MESSAGE_TYPES.GET_GRAMMARS })).toBe(true);
+    expect(
+      isExternalMessage({
+        type: MESSAGE_TYPES.VALIDATE,
+        body: {
+          filenamePatterns:
+            "context: ^auto$\npagedomain: example\\.test\nsourcekind: image\ninto: Images",
+          automaticCandidate: {
+            pageUrl: "https://example.test/",
+            sourceUrl: "https://cdn.test/a.png",
+            sourceKind: "image",
+          },
+        },
+      }),
+    ).toBe(true);
     expect(
       isExternalMessage({
         type: MESSAGE_TYPES.DOWNLOAD,
         body: {
           url: "https://x/image.png",
-          info: { pageUrl: "https://x/", suggestedFilename: "image.png" },
+          info: {
+            pageUrl: "https://x/",
+            suggestedFilename: "image.png",
+            mime: "image/png",
+            mediaType: "image",
+            sourceKind: "image",
+          },
           version: 1,
         },
       }),
@@ -87,6 +109,16 @@ describe("message protocol runtime validation", () => {
     { type: MESSAGE_TYPES.VALIDATE, body: { info: { counter: Number.NaN } } },
     { type: MESSAGE_TYPES.VALIDATE, body: { info: { now: "today" } } },
     { type: MESSAGE_TYPES.VALIDATE, body: { info: { currentTab: { title: 42 } } } },
+    {
+      type: MESSAGE_TYPES.VALIDATE,
+      body: {
+        automaticCandidate: {
+          pageUrl: "https://x/",
+          sourceUrl: "https://x/a",
+          sourceKind: "script",
+        },
+      },
+    },
     { type: MESSAGE_TYPES.APPLY_CONFIG, body: { config: [] } },
     { type: MESSAGE_TYPES.APPLY_CONFIG, body: { config: {}, expected: [] } },
     { type: MESSAGE_TYPES.DOWNLOAD, body: { url: 1 } },
@@ -94,6 +126,7 @@ describe("message protocol runtime validation", () => {
     { type: MESSAGE_TYPES.DOWNLOAD, body: { version: Number.NaN } },
     { type: MESSAGE_TYPES.DOWNLOAD, body: { target: "currentTab" } },
     { type: MESSAGE_TYPES.DOWNLOAD, body: { target: 1 } },
+    { type: MESSAGE_TYPES.DOWNLOAD, body: { info: { sourceKind: "script" } } },
     {
       type: MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
       body: { pageUrl: "https://x/", sourceUrl: "https://x/a.png", sourceKind: "script" },

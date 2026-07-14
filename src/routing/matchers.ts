@@ -102,6 +102,7 @@ export const matcherFunctions = {
       logMatch(match, regex, info);
       return match;
     },
+  sourcekind: makeInfoMatcherFactory("sourceKind"),
   menuindex:
     (regex) =>
     (info, { menuIndex } = EMPTY_INFO) => {

@@ -7,6 +7,7 @@ type SaveInTool = ReturnType<typeof SaveInWebMCP.buildTools>[number];
 type SaveInToolName =
   | "save_in_apply_config"
   | "save_in_download"
+  | "save_in_get_grammars"
   | "save_in_get_schema"
   | "save_in_list_vocabulary"
   | "save_in_validate_config";
@@ -27,6 +28,7 @@ describe("buildTools", () => {
     expect(Object.keys(byName).toSorted()).toEqual([
       "save_in_apply_config",
       "save_in_download",
+      "save_in_get_grammars",
       "save_in_get_schema",
       "save_in_list_vocabulary",
       "save_in_validate_config",
@@ -88,6 +90,9 @@ describe("buildTools", () => {
     byName.save_in_list_vocabulary.execute({});
     expect(send).toHaveBeenCalledWith({ type: "GET_KEYWORDS" });
 
+    byName.save_in_get_grammars.execute({});
+    expect(send).toHaveBeenCalledWith({ type: "GET_GRAMMARS" });
+
     byName.save_in_validate_config.execute({ paths: "dogs" });
     expect(send).toHaveBeenCalledWith({ type: "VALIDATE", body: { paths: "dogs" } });
 
@@ -106,8 +111,39 @@ describe("buildTools", () => {
       type: "DOWNLOAD",
       body: {
         url: "https://x/a.png",
-        info: { pageUrl: "https://x/", srcUrl: "https://x/a.png" },
+        info: {
+          pageUrl: "https://x/",
+          srcUrl: "https://x/a.png",
+          suggestedFilename: undefined,
+          mime: undefined,
+          mediaType: undefined,
+          sourceKind: undefined,
+        },
         comment: "c",
+      },
+    });
+  });
+
+  test("validates and forwards automatic-source rules with a sample candidate", async () => {
+    const { send, byName } = toolsByName();
+    const automaticCandidate = {
+      pageUrl: "https://example.test/gallery",
+      sourceUrl: "https://cdn.test/cat.png",
+      sourceKind: "image",
+    };
+
+    await byName.save_in_validate_config.execute({
+      filenamePatterns:
+        "context: ^auto$\npagedomain: example\\.test\nsourcekind: image\ninto: Images",
+      automaticCandidate,
+    });
+
+    expect(send).toHaveBeenCalledWith({
+      type: "VALIDATE",
+      body: {
+        filenamePatterns:
+          "context: ^auto$\npagedomain: example\\.test\nsourcekind: image\ninto: Images",
+        automaticCandidate,
       },
     });
   });
@@ -143,6 +179,10 @@ describe("buildTools", () => {
       errors: [{ field: "surprise", message: "Unknown property" }],
     });
     await expect(byName.save_in_list_vocabulary.execute({ surprise: true })).resolves.toEqual({
+      status: "ERROR",
+      errors: [{ field: "surprise", message: "Unknown property" }],
+    });
+    await expect(byName.save_in_get_grammars.execute({ surprise: true })).resolves.toEqual({
       status: "ERROR",
       errors: [{ field: "surprise", message: "Unknown property" }],
     });
@@ -186,6 +226,18 @@ describe("buildTools", () => {
       status: "ERROR",
       errors: [{ field: "$", message: "Provide paths or filenamePatterns" }],
     });
+    await expect(
+      byName.save_in_validate_config.execute({
+        automaticCandidate: {
+          pageUrl: "https://example.test/",
+          sourceUrl: "https://cdn.test/a.js",
+          sourceKind: "script",
+        },
+      }),
+    ).resolves.toEqual({
+      status: "ERROR",
+      errors: [{ field: "automaticCandidate.sourceKind", message: "Unknown source kind" }],
+    });
     await expect(byName.save_in_download.execute({ url: "" })).resolves.toEqual({
       status: "ERROR",
       errors: [{ field: "url", message: "Expected a non-empty string" }],
@@ -220,7 +272,14 @@ describe("buildTools", () => {
       type: "DOWNLOAD",
       body: {
         url: "https://x/a.png",
-        info: { pageUrl: "https://x/page", srcUrl: "https://x/a.png" },
+        info: {
+          pageUrl: "https://x/page",
+          srcUrl: "https://x/a.png",
+          suggestedFilename: undefined,
+          mime: undefined,
+          mediaType: undefined,
+          sourceKind: undefined,
+        },
         comment: undefined,
       },
     });
@@ -273,8 +332,8 @@ describe("buildTools", () => {
 
   test("register reports successful registrations and isolates failures", async () => {
     const registerTool = vi.fn(() => Promise.resolve());
-    await expect(SaveInWebMCP.register({ registerTool }, vi.fn())).resolves.toBe(5);
-    expect(registerTool).toHaveBeenCalledTimes(5);
+    await expect(SaveInWebMCP.register({ registerTool }, vi.fn())).resolves.toBe(6);
+    expect(registerTool).toHaveBeenCalledTimes(6);
 
     const throwing = {
       registerTool: vi.fn((tool: { name: string }) => {
@@ -286,7 +345,7 @@ describe("buildTools", () => {
           : Promise.resolve();
       }),
     };
-    await expect(SaveInWebMCP.register(throwing, vi.fn())).resolves.toBe(3);
+    await expect(SaveInWebMCP.register(throwing, vi.fn())).resolves.toBe(4);
   });
 });
 
@@ -309,10 +368,10 @@ describe("options-page registration", () => {
     const { setupWebMcpStatus } = await import("../src/options/webmcp.ts");
     setupWebMcpStatus(() => "");
 
-    expect(registerTool).toHaveBeenCalledTimes(5);
+    expect(registerTool).toHaveBeenCalledTimes(6);
     await vi.waitFor(() =>
       expect(document.getElementById("webmcp-status")?.textContent).toBe(
-        "Active — 5 tools registered",
+        "Active — 6 tools registered",
       ),
     );
   });
@@ -334,7 +393,7 @@ describe("options-page registration", () => {
 
     await vi.waitFor(() =>
       expect(document.getElementById("webmcp-status")?.textContent).toBe(
-        "Limited — 4 of 5 tools registered",
+        "Limited — 5 of 6 tools registered",
       ),
     );
   });

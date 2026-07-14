@@ -9,7 +9,7 @@ import {
   trackedTab,
   setupGlobals,
 } from "./messaging-fixture.ts";
-import { parseAutoDownloadRules } from "../src/automation/auto-download-rules.ts";
+import { parseRulesCollecting } from "../src/routing/rule-parser.ts";
 import { options } from "../src/config/options-data.ts";
 
 beforeEach(() => setupGlobals());
@@ -98,6 +98,28 @@ describe("handleDownloadMessage", () => {
 
     const state = vi.mocked(Download.renameAndDownload).mock.calls[0]![0]!;
     expect(state.info.suggestedFilename).toBe("caller-name.png");
+  });
+
+  test("preserves source metadata supplied by an integration", () => {
+    onMessage(
+      request({
+        info: {
+          srcUrl: "https://x/file.png",
+          mime: "image/png",
+          mediaType: "image",
+          sourceKind: "image",
+        },
+      }),
+      {},
+      vi.fn(),
+    );
+
+    const state = vi.mocked(Download.renameAndDownload).mock.calls[0]![0]!;
+    expect(state.info).toMatchObject({
+      mime: "image/png",
+      mediaType: "image",
+      sourceKind: "image",
+    });
   });
 
   test("reuses the last path and routing metadata, never filenames or routes", () => {
@@ -240,7 +262,8 @@ describe("automatic page-source downloads", () => {
   const configure = () => {
     options.autoDownloadEnabled = true;
     options.autoDownloadPrivate = false;
-    options.autoDownloadRules = parseAutoDownloadRules(`
+    options.filenamePatterns = parseRulesCollecting(`
+context: ^auto$
 pageurl: ^https://example\\.test/gallery/
 sourcekind: image
 sourceurl: /original/
@@ -281,7 +304,7 @@ into: automatic/:pagedomain:/
 
   test.each([
     ["the feature is disabled", () => (options.autoDownloadEnabled = false)],
-    ["no rule matches", () => (options.autoDownloadRules = [])],
+    ["no rule matches", () => (options.filenamePatterns = [])],
     ["the sender is private", () => undefined],
   ])("skips when %s", async (_label, arrange) => {
     configure();

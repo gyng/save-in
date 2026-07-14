@@ -190,6 +190,20 @@ describe("onMessage", () => {
       body: {
         matchers: Object.keys(router.matcherFunctions),
         variables: [":date:", ":year:"],
+        automaticMatchers: [
+          "pageurl",
+          "pagedomain",
+          "pagerootdomain",
+          "sourceurl",
+          "sourcedomain",
+          "sourcerootdomain",
+          "sourcekind",
+          "mediatype",
+          "fileext",
+          "urlfileext",
+        ],
+        automaticContext: "AUTO",
+        sourceKinds: ["image", "video", "audio", "stream", "document", "link"],
       },
     });
   });
