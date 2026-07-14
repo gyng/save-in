@@ -1625,6 +1625,7 @@ input.key {
   color: var(--syntax-error);
   background: var(--syntax-error-soft);
   font-weight: 750;
+  cursor: help;
 }
 
 .syntax-editor-line-number.has-diagnostic-warning {
@@ -1722,6 +1723,23 @@ textarea.syntax-editor-input::placeholder {
 .syntax-editor-inline-warning {
   color: color-mix(in srgb, var(--syntax-warning) 76%, var(--color-text-muted));
   background: color-mix(in srgb, var(--syntax-warning-soft) 72%, transparent);
+}
+
+.manual-editor-surface {
+  position: relative;
+}
+
+.manual-editor-surface.is-dirty::before {
+  content: "";
+  position: absolute;
+  z-index: 4;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 3px;
+  border-radius: var(--radius) 0 0 var(--radius);
+  background: var(--color-accent);
+  pointer-events: none;
 }
 
 .syntax-token-nesting,

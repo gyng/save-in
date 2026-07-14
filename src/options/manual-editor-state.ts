@@ -27,6 +27,13 @@ export const createManualEditorState = (unsavedLabel: string | (() => string)) =
     }
 
     const actionRows = [...new Set(buttons.map((button) => button.parentElement).filter(Boolean))];
+    const dirtySurfaces = [
+      textarea.closest<HTMLElement>(".syntax-editor"),
+      ...buttons.map((button) => button.closest<HTMLElement>("#paths-visual, #rules-visual")),
+    ].filter((surface, index, surfaces): surface is HTMLElement =>
+      Boolean(surface && surfaces.indexOf(surface) === index),
+    );
+    dirtySurfaces.forEach((surface) => surface.classList.add("manual-editor-surface"));
     const statuses = actionRows.map((row) => {
       const status = document.createElement("span");
       status.className = "editor-dirty-status";
@@ -70,6 +77,7 @@ export const createManualEditorState = (unsavedLabel: string | (() => string)) =
       helpers.forEach((helper) => {
         helper.hidden = !dirty;
       });
+      dirtySurfaces.forEach((surface) => surface.classList.toggle("is-dirty", dirty));
     };
 
     textarea.addEventListener("input", () => {

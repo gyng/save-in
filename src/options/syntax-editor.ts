@@ -174,20 +174,20 @@ const renderGutter = (
 const renderInlineDiagnostics = (
   layer: HTMLElement,
   snapshot: SyntaxSnapshot,
-  diagnostics: readonly SyntaxEditorDiagnostic[],
+  activeDiagnostics: readonly SyntaxEditorDiagnostic[],
 ): void => {
   const fragment = document.createDocumentFragment();
   snapshot.lines.forEach((line) => {
     const row = document.createElement("span");
     row.className = "syntax-editor-inline-row";
-    const lineDiagnostics = diagnosticsForLine(diagnostics, line);
+    const lineDiagnostics = diagnosticsForLine(activeDiagnostics, line);
     if (lineDiagnostics.length > 0) {
       const severity = lineDiagnostics.some((diagnostic) => diagnostic.severity === "error")
         ? "error"
         : "warning";
       const message = document.createElement("span");
       message.className = `syntax-editor-inline-diagnostic syntax-editor-inline-${severity}`;
-      message.style.marginLeft = `${displayColumns(snapshot.source.slice(line.start, line.end)) + 2}ch`;
+      row.style.paddingLeft = `${displayColumns(snapshot.source.slice(line.start, line.end)) + 2}ch`;
       message.textContent = lineDiagnostics.map(diagnosticLabel).join(" · ");
       row.append(message);
     }
@@ -229,9 +229,7 @@ export const createSyntaxEditor = (
   const parent = textarea.parentNode;
   if (!parent) throw new Error("Syntax editor textarea must be connected");
   parent.insertBefore(shell, textarea);
-  stage.append(overlay);
-  if (language === "directories") stage.append(inlineDiagnostics);
-  stage.append(textarea);
+  stage.append(overlay, inlineDiagnostics, textarea);
   shell.append(gutterViewport, stage);
   textarea.classList.add("syntax-editor-input");
   textarea.setAttribute("wrap", "off");
@@ -241,6 +239,23 @@ export const createSyntaxEditor = (
   let renderedDiagnostics: readonly SyntaxEditorDiagnostic[] = [];
   let characterWidth = 0;
   let tooltipPinned = false;
+
+  const diagnosticsAtOffset = (offset: number): readonly SyntaxEditorDiagnostic[] =>
+    uniqueDiagnostics(
+      renderedDiagnostics.filter(
+        (diagnostic) => diagnostic.start <= offset && diagnostic.end > offset,
+      ),
+    );
+
+  const diagnosticsAtCaret = (): readonly SyntaxEditorDiagnostic[] =>
+    document.activeElement === textarea && textarea.selectionStart === textarea.selectionEnd
+      ? diagnosticsAtOffset(textarea.selectionStart)
+      : [];
+
+  const diagnosticsAtSelection = (): readonly SyntaxEditorDiagnostic[] =>
+    textarea.selectionStart === textarea.selectionEnd
+      ? diagnosticsAtOffset(textarea.selectionStart)
+      : [];
 
   const syncScroll = () => {
     overlay.style.transform = `translate(${-textarea.scrollLeft}px, ${-textarea.scrollTop}px)`;
@@ -252,7 +267,7 @@ export const createSyntaxEditor = (
     snapshot = analyzeSyntax(language, textarea.value);
     renderedDiagnostics = renderOverlay(overlay, snapshot, externalDiagnostics);
     renderGutter(gutter, snapshot, renderedDiagnostics);
-    renderInlineDiagnostics(inlineDiagnostics, snapshot, renderedDiagnostics);
+    renderInlineDiagnostics(inlineDiagnostics, snapshot, diagnosticsAtCaret());
     syncScroll();
   };
 
@@ -335,17 +350,14 @@ export const createSyntaxEditor = (
     snapshot.lines.find((line) => offset >= line.start && offset <= line.end)!;
 
   const showTooltipForCaret = () => {
-    if (textarea.selectionStart !== textarea.selectionEnd) {
+    const diagnostics = diagnosticsAtSelection();
+    renderInlineDiagnostics(inlineDiagnostics, snapshot, diagnosticsAtCaret());
+    if (diagnostics.length === 0) {
       hideTooltip();
       return;
     }
     const offset = textarea.selectionStart;
     const line = lineAtOffset(offset);
-    const diagnostics = diagnosticsForLine(renderedDiagnostics, line);
-    if (diagnostics.length === 0) {
-      hideTooltip();
-      return;
-    }
     const { rect, lineHeight, paddingTop, paddingLeft } = editorMetrics();
     const lineIndex = line.number - 1;
     const column = displayColumns(snapshot.source.slice(line.start, Math.min(offset, line.end)));
@@ -407,7 +419,10 @@ export const createSyntaxEditor = (
     if (!Number.isFinite(start)) return;
     textarea.focus();
     textarea.setSelectionRange(start, start);
-    showTooltipForCaret();
+    renderInlineDiagnostics(inlineDiagnostics, snapshot, diagnosticsAtCaret());
+    const line = lineAtOffset(start);
+    const rect = target.getBoundingClientRect();
+    showTooltip(diagnosticsForLine(renderedDiagnostics, line), rect.right + 8, rect.top, true);
   };
 
   const onKeyDown = (event: KeyboardEvent) => {
@@ -416,6 +431,11 @@ export const createSyntaxEditor = (
 
   const onVisibilityChange = (event: Event) => {
     if ((event as CustomEvent<{ visible?: boolean }>).detail?.visible === false) hideTooltip();
+  };
+
+  const onBlur = () => {
+    hideTooltip();
+    renderInlineDiagnostics(inlineDiagnostics, snapshot, []);
   };
 
   const controller: SyntaxEditorController = {
@@ -433,7 +453,8 @@ export const createSyntaxEditor = (
       textarea.removeEventListener("scroll", syncScroll);
       textarea.removeEventListener("mousemove", onPointerMove);
       textarea.removeEventListener("mouseleave", hideHoverTooltip);
-      textarea.removeEventListener("blur", hideTooltip);
+      textarea.removeEventListener("blur", onBlur);
+      textarea.removeEventListener("focus", showTooltipForCaret);
       textarea.removeEventListener("click", showTooltipForCaret);
       textarea.removeEventListener("keyup", showTooltipForCaret);
       textarea.removeEventListener("select", showTooltipForCaret);
@@ -455,7 +476,8 @@ export const createSyntaxEditor = (
   textarea.addEventListener("scroll", syncScroll, { passive: true });
   textarea.addEventListener("mousemove", onPointerMove);
   textarea.addEventListener("mouseleave", hideHoverTooltip);
-  textarea.addEventListener("blur", hideTooltip);
+  textarea.addEventListener("blur", onBlur);
+  textarea.addEventListener("focus", showTooltipForCaret);
   textarea.addEventListener("click", showTooltipForCaret);
   textarea.addEventListener("keyup", showTooltipForCaret);
   textarea.addEventListener("select", showTooltipForCaret);

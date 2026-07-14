@@ -36,6 +36,31 @@ describe("manual editor state", () => {
     expect(state.anyDirty()).toBe(false);
   });
 
+  test("marks the paired text and visual surfaces while the editor is dirty", () => {
+    document.body.innerHTML = `
+      <div class="syntax-editor"><textarea id="paths">saved</textarea></div>
+      <div id="paths-visual">
+        <div><button data-discard="paths">Discard</button><button data-apply="paths">Apply</button></div>
+      </div>`;
+    const state = createManualEditorState("Unsaved changes");
+    state.setup("paths");
+    const textarea = document.querySelector("textarea")!;
+    const textSurface = document.querySelector<HTMLElement>(".syntax-editor")!;
+    const visualSurface = document.querySelector<HTMLElement>("#paths-visual")!;
+
+    expect(textSurface.classList).not.toContain("is-dirty");
+    expect(visualSurface.classList).not.toContain("is-dirty");
+
+    textarea.value = "changed";
+    textarea.dispatchEvent(new InputEvent("input"));
+    expect(textSurface.classList).toContain("is-dirty");
+    expect(visualSurface.classList).toContain("is-dirty");
+
+    state.refreshBaselines();
+    expect(textSurface.classList).not.toContain("is-dirty");
+    expect(visualSurface.classList).not.toContain("is-dirty");
+  });
+
   test("discard restores the saved baseline through the existing input contract", () => {
     const state = createManualEditorState("Unsaved changes");
     state.setup("paths");
