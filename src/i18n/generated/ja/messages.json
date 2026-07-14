@@ -128,7 +128,7 @@
     "message": "不明なマッチャー"
   },
   "ruleUnknownDestinationVariable": {
-    "message": "Path variable is not supported"
+    "message": "パス変数はサポートされていません"
   },
   "ruleInvalidRegex": {
     "message": "無効な正規表現です"
@@ -1655,40 +1655,40 @@
     "message": "Webhook のデータを更新しました。"
   },
   "routeDebuggerFileData": {
-    "message": "File"
+    "message": "ファイル"
   },
   "routeDebuggerUrlData": {
-    "message": "URLs"
+    "message": "URL"
   },
   "routeDebuggerPageData": {
-    "message": "Page text"
+    "message": "ページテキスト"
   },
   "routeDebuggerRoutingData": {
-    "message": "Routing context"
+    "message": "ルーティングコンテキスト"
   },
   "routeDebuggerSourceKind": {
-    "message": "Source kind"
+    "message": "ソースの種類"
   },
   "routeDebuggerAnySourceKind": {
-    "message": "Any source kind"
+    "message": "任意のソースの種類"
   },
   "routeDebuggerMenuIndex": {
-    "message": "Menu index"
+    "message": "メニューインデックス"
   },
   "routeDebuggerMenuComment": {
-    "message": "Menu comment"
+    "message": "メニューコメント"
   },
   "routeDebuggerRuntimeData": {
-    "message": "Runtime values"
+    "message": "実行時の値"
   },
   "routeDebuggerDateTime": {
-    "message": "Date and time"
+    "message": "日時"
   },
   "routeDebuggerSha256": {
     "message": "SHA-256"
   },
   "routeDebuggerRuleDestination": {
-    "message": "Saves to $PATH$",
+    "message": "$PATH$ に保存",
     "placeholders": {
       "path": {
         "content": "$1",
@@ -1697,10 +1697,10 @@
     }
   },
   "routeDebuggerEditRule": {
-    "message": "Edit"
+    "message": "編集"
   },
   "routeDebuggerAttemptMatched": {
-    "message": "Tested “$VALUE$” from $SOURCE$ — matched.",
+    "message": "$SOURCE$ の「$VALUE$」をテストしました — 一致しました。",
     "placeholders": {
       "value": {
         "content": "$1",
@@ -1713,7 +1713,7 @@
     }
   },
   "routeDebuggerAttemptDidNotMatch": {
-    "message": "Tested “$VALUE$” from $SOURCE$ — did not match.",
+    "message": "$SOURCE$ の「$VALUE$」をテストしました — 一致しませんでした。",
     "placeholders": {
       "value": {
         "content": "$1",
@@ -1726,7 +1726,7 @@
     }
   },
   "routeDebuggerAttemptMissing": {
-    "message": "No value was available from $SOURCE$.",
+    "message": "$SOURCE$ から値を取得できませんでした。",
     "placeholders": {
       "source": {
         "content": "$1",
@@ -1735,7 +1735,7 @@
     }
   },
   "routeDebuggerAttemptInvalid": {
-    "message": "Could not read a valid value from $SOURCE$: “$VALUE$”.",
+    "message": "$SOURCE$ から有効な値を読み取れませんでした：「$VALUE$」。",
     "placeholders": {
       "source": {
         "content": "$1",
@@ -1748,7 +1748,7 @@
     }
   },
   "routeDebuggerConditionMatched": {
-    "message": "$FIELD$ matches $PATTERN$",
+    "message": "$FIELD$ が $PATTERN$ に一致",
     "placeholders": {
       "field": {
         "content": "$1",
@@ -1761,7 +1761,7 @@
     }
   },
   "routeDebuggerConditionDidNotMatch": {
-    "message": "$FIELD$ does not match $PATTERN$",
+    "message": "$FIELD$ が $PATTERN$ に一致しない",
     "placeholders": {
       "field": {
         "content": "$1",
@@ -2243,7 +2243,7 @@
   "routeDebuggerTitle": {
     "message": "ルーティングルールをテスト"
   },
-  "routeDebuggerUseSource": { "message": "Use" },
+  "routeDebuggerUseSource": { "message": "使用" },
   "routeDebuggerLatestDownload": { "message": "Latest download" },
   "routeDebuggerUseSampleDownload": { "message": "Sample download" },
   "routeDebuggerFilename": {
@@ -2491,22 +2491,22 @@
   },
   "matchPatternInvalid": { "message": "無効な WebExtension マッチパターン" },
   "regularExpressionInvalid": { "message": "無効な正規表現" },
-  "welcomeReady": { "message": "Ready to save" },
-  "welcomeTitle": { "message": "Welcome to Save In" },
+  "welcomeReady": { "message": "保存の準備ができました" },
+  "welcomeTitle": { "message": "Save In へようこそ" },
   "welcomeIntro": {
-    "message": "Save In is ready. Use the right-click menu to save images, links, selected text, media, and pages into folders you choose."
+    "message": "Save In の準備ができました。右クリックメニューを使って、画像、リンク、選択したテキスト、メディア、ページを選択したフォルダーに保存できます。"
   },
-  "welcomeStepRightClick": { "message": "Right-click something you want to save." },
-  "welcomeStepChooseSaveIn": { "message": "Choose Save In… from the menu." },
-  "welcomeStepPickFolder": { "message": "Pick a starter folder." },
+  "welcomeStepRightClick": { "message": "保存したい項目を右クリックします。" },
+  "welcomeStepChooseSaveIn": { "message": "メニューから Save In… を選択します。" },
+  "welcomeStepPickFolder": { "message": "初期フォルダーを選択します。" },
   "welcomeStarterNote": {
-    "message": "Starter folders are active now. You can customize them at any time."
+    "message": "初期フォルダーはすでに有効です。いつでもカスタマイズできます。"
   },
   "welcomeToolbarNote": {
-    "message": "The toolbar button opens Page Sources for finding media on the current page."
+    "message": "ツールバーボタンからページソースを開き、現在のページにあるメディアを検索できます。"
   },
-  "welcomePermissions": { "message": "Why these permissions?" },
-  "welcomeCustomizeFolders": { "message": "Customize folders" },
-  "welcomeUseStarterFolders": { "message": "Use starter folders" },
-  "welcomeUsingStarterSettings": { "message": "Using starter settings" }
+  "welcomePermissions": { "message": "これらの権限が必要な理由" },
+  "welcomeCustomizeFolders": { "message": "フォルダーをカスタマイズ" },
+  "welcomeUseStarterFolders": { "message": "初期フォルダーを使用" },
+  "welcomeUsingStarterSettings": { "message": "初期設定を使用中" }
 }

@@ -128,7 +128,7 @@
     "message": "未知的比對器"
   },
   "ruleUnknownDestinationVariable": {
-    "message": "Path variable is not supported"
+    "message": "不支援此路徑變數"
   },
   "ruleInvalidRegex": {
     "message": "正規表示式無效"
@@ -1655,40 +1655,40 @@
     "message": "Webhook 資料已更新。"
   },
   "routeDebuggerFileData": {
-    "message": "File"
+    "message": "檔案"
   },
   "routeDebuggerUrlData": {
-    "message": "URLs"
+    "message": "URL"
   },
   "routeDebuggerPageData": {
-    "message": "Page text"
+    "message": "頁面文字"
   },
   "routeDebuggerRoutingData": {
-    "message": "Routing context"
+    "message": "路由情境"
   },
   "routeDebuggerSourceKind": {
-    "message": "Source kind"
+    "message": "來源類型"
   },
   "routeDebuggerAnySourceKind": {
-    "message": "Any source kind"
+    "message": "任何來源類型"
   },
   "routeDebuggerMenuIndex": {
-    "message": "Menu index"
+    "message": "選單索引"
   },
   "routeDebuggerMenuComment": {
-    "message": "Menu comment"
+    "message": "選單註解"
   },
   "routeDebuggerRuntimeData": {
-    "message": "Runtime values"
+    "message": "執行階段值"
   },
   "routeDebuggerDateTime": {
-    "message": "Date and time"
+    "message": "日期和時間"
   },
   "routeDebuggerSha256": {
     "message": "SHA-256"
   },
   "routeDebuggerRuleDestination": {
-    "message": "Saves to $PATH$",
+    "message": "儲存至 $PATH$",
     "placeholders": {
       "path": {
         "content": "$1",
@@ -1697,10 +1697,10 @@
     }
   },
   "routeDebuggerEditRule": {
-    "message": "Edit"
+    "message": "編輯"
   },
   "routeDebuggerAttemptMatched": {
-    "message": "Tested “$VALUE$” from $SOURCE$ — matched.",
+    "message": "已測試來自 $SOURCE$ 的「$VALUE$」— 相符。",
     "placeholders": {
       "value": {
         "content": "$1",
@@ -1713,7 +1713,7 @@
     }
   },
   "routeDebuggerAttemptDidNotMatch": {
-    "message": "Tested “$VALUE$” from $SOURCE$ — did not match.",
+    "message": "已測試來自 $SOURCE$ 的「$VALUE$」— 不相符。",
     "placeholders": {
       "value": {
         "content": "$1",
@@ -1726,7 +1726,7 @@
     }
   },
   "routeDebuggerAttemptMissing": {
-    "message": "No value was available from $SOURCE$.",
+    "message": "無法從 $SOURCE$ 取得值。",
     "placeholders": {
       "source": {
         "content": "$1",
@@ -1735,7 +1735,7 @@
     }
   },
   "routeDebuggerAttemptInvalid": {
-    "message": "Could not read a valid value from $SOURCE$: “$VALUE$”.",
+    "message": "無法從 $SOURCE$ 讀取有效值：「$VALUE$」。",
     "placeholders": {
       "source": {
         "content": "$1",
@@ -1748,7 +1748,7 @@
     }
   },
   "routeDebuggerConditionMatched": {
-    "message": "$FIELD$ matches $PATTERN$",
+    "message": "$FIELD$ 與 $PATTERN$ 相符",
     "placeholders": {
       "field": {
         "content": "$1",
@@ -1761,7 +1761,7 @@
     }
   },
   "routeDebuggerConditionDidNotMatch": {
-    "message": "$FIELD$ does not match $PATTERN$",
+    "message": "$FIELD$ 與 $PATTERN$ 不相符",
     "placeholders": {
       "field": {
         "content": "$1",
@@ -2243,7 +2243,7 @@
   "routeDebuggerTitle": {
     "message": "測試路由規則"
   },
-  "routeDebuggerUseSource": { "message": "Use" },
+  "routeDebuggerUseSource": { "message": "使用" },
   "routeDebuggerLatestDownload": { "message": "Latest download" },
   "routeDebuggerUseSampleDownload": { "message": "Sample download" },
   "routeDebuggerFilename": {
@@ -2491,22 +2491,22 @@
   },
   "matchPatternInvalid": { "message": "無效的 WebExtension 比對模式" },
   "regularExpressionInvalid": { "message": "無效的規則運算式" },
-  "welcomeReady": { "message": "Ready to save" },
-  "welcomeTitle": { "message": "Welcome to Save In" },
+  "welcomeReady": { "message": "可以開始儲存" },
+  "welcomeTitle": { "message": "歡迎使用 Save In" },
   "welcomeIntro": {
-    "message": "Save In is ready. Use the right-click menu to save images, links, selected text, media, and pages into folders you choose."
+    "message": "Save In 已準備就緒。使用右鍵選單可將圖片、連結、選取的文字、媒體和頁面儲存到您選擇的資料夾。"
   },
-  "welcomeStepRightClick": { "message": "Right-click something you want to save." },
-  "welcomeStepChooseSaveIn": { "message": "Choose Save In… from the menu." },
-  "welcomeStepPickFolder": { "message": "Pick a starter folder." },
+  "welcomeStepRightClick": { "message": "在要儲存的內容上按一下滑鼠右鍵。" },
+  "welcomeStepChooseSaveIn": { "message": "從選單中選擇 Save In…。" },
+  "welcomeStepPickFolder": { "message": "選擇一個初始資料夾。" },
   "welcomeStarterNote": {
-    "message": "Starter folders are active now. You can customize them at any time."
+    "message": "初始資料夾現已啟用。您可以隨時自訂。"
   },
   "welcomeToolbarNote": {
-    "message": "The toolbar button opens Page Sources for finding media on the current page."
+    "message": "工具列按鈕會開啟「頁面來源」，用來尋找目前頁面上的媒體。"
   },
-  "welcomePermissions": { "message": "Why these permissions?" },
-  "welcomeCustomizeFolders": { "message": "Customize folders" },
-  "welcomeUseStarterFolders": { "message": "Use starter folders" },
-  "welcomeUsingStarterSettings": { "message": "Using starter settings" }
+  "welcomePermissions": { "message": "為什麼需要這些權限？" },
+  "welcomeCustomizeFolders": { "message": "自訂資料夾" },
+  "welcomeUseStarterFolders": { "message": "使用初始資料夾" },
+  "welcomeUsingStarterSettings": { "message": "正在使用初始設定" }
 }

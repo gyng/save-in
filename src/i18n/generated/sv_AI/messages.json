@@ -225,7 +225,7 @@
     "message": "Okänd matchare"
   },
   "ruleUnknownDestinationVariable": {
-    "message": "Path variable is not supported"
+    "message": "Sökvägsvariabeln stöds inte"
   },
   "ruleInvalidRegex": {
     "message": "Ogiltigt reguljärt uttryck"
@@ -1752,40 +1752,40 @@
     "message": "Webhookdata uppdaterade."
   },
   "routeDebuggerFileData": {
-    "message": "File"
+    "message": "Fil"
   },
   "routeDebuggerUrlData": {
-    "message": "URLs"
+    "message": "URL:er"
   },
   "routeDebuggerPageData": {
-    "message": "Page text"
+    "message": "Sidtext"
   },
   "routeDebuggerRoutingData": {
-    "message": "Routing context"
+    "message": "Routningskontext"
   },
   "routeDebuggerSourceKind": {
-    "message": "Source kind"
+    "message": "Källtyp"
   },
   "routeDebuggerAnySourceKind": {
-    "message": "Any source kind"
+    "message": "Valfri källtyp"
   },
   "routeDebuggerMenuIndex": {
-    "message": "Menu index"
+    "message": "Menyindex"
   },
   "routeDebuggerMenuComment": {
-    "message": "Menu comment"
+    "message": "Menykommentar"
   },
   "routeDebuggerRuntimeData": {
-    "message": "Runtime values"
+    "message": "Körningsvärden"
   },
   "routeDebuggerDateTime": {
-    "message": "Date and time"
+    "message": "Datum och tid"
   },
   "routeDebuggerSha256": {
     "message": "SHA-256"
   },
   "routeDebuggerRuleDestination": {
-    "message": "Saves to $PATH$",
+    "message": "Sparar i $PATH$",
     "placeholders": {
       "path": {
         "content": "$1",
@@ -1794,10 +1794,10 @@
     }
   },
   "routeDebuggerEditRule": {
-    "message": "Edit"
+    "message": "Redigera"
   },
   "routeDebuggerAttemptMatched": {
-    "message": "Tested “$VALUE$” from $SOURCE$ — matched.",
+    "message": "Testade “$VALUE$” från $SOURCE$ — matchade.",
     "placeholders": {
       "value": {
         "content": "$1",
@@ -1810,7 +1810,7 @@
     }
   },
   "routeDebuggerAttemptDidNotMatch": {
-    "message": "Tested “$VALUE$” from $SOURCE$ — did not match.",
+    "message": "Testade “$VALUE$” från $SOURCE$ — matchade inte.",
     "placeholders": {
       "value": {
         "content": "$1",
@@ -1823,7 +1823,7 @@
     }
   },
   "routeDebuggerAttemptMissing": {
-    "message": "No value was available from $SOURCE$.",
+    "message": "Inget värde var tillgängligt från $SOURCE$.",
     "placeholders": {
       "source": {
         "content": "$1",
@@ -1832,7 +1832,7 @@
     }
   },
   "routeDebuggerAttemptInvalid": {
-    "message": "Could not read a valid value from $SOURCE$: “$VALUE$”.",
+    "message": "Kunde inte läsa ett giltigt värde från $SOURCE$: “$VALUE$”.",
     "placeholders": {
       "source": {
         "content": "$1",
@@ -1845,7 +1845,7 @@
     }
   },
   "routeDebuggerConditionMatched": {
-    "message": "$FIELD$ matches $PATTERN$",
+    "message": "$FIELD$ matchar $PATTERN$",
     "placeholders": {
       "field": {
         "content": "$1",
@@ -1858,7 +1858,7 @@
     }
   },
   "routeDebuggerConditionDidNotMatch": {
-    "message": "$FIELD$ does not match $PATTERN$",
+    "message": "$FIELD$ matchar inte $PATTERN$",
     "placeholders": {
       "field": {
         "content": "$1",
@@ -2137,7 +2137,7 @@
   "routeDebuggerTitle": {
     "message": "Testa dirigeringsregler"
   },
-  "routeDebuggerUseSource": { "message": "Use" },
+  "routeDebuggerUseSource": { "message": "Använd" },
   "routeDebuggerLatestDownload": { "message": "Latest download" },
   "routeDebuggerUseSampleDownload": { "message": "Sample download" },
   "routeDebuggerFilename": {
@@ -2387,22 +2387,22 @@
   },
   "matchPatternInvalid": { "message": "Ogiltigt WebExtension-matchningsmönster" },
   "regularExpressionInvalid": { "message": "Ogiltigt reguljärt uttryck" },
-  "welcomeReady": { "message": "Ready to save" },
-  "welcomeTitle": { "message": "Welcome to Save In" },
+  "welcomeReady": { "message": "Klar att spara" },
+  "welcomeTitle": { "message": "Välkommen till Save In" },
   "welcomeIntro": {
-    "message": "Save In is ready. Use the right-click menu to save images, links, selected text, media, and pages into folders you choose."
+    "message": "Save In är klart. Använd högerklicksmenyn för att spara bilder, länkar, markerad text, media och sidor i mappar du väljer."
   },
-  "welcomeStepRightClick": { "message": "Right-click something you want to save." },
-  "welcomeStepChooseSaveIn": { "message": "Choose Save In… from the menu." },
-  "welcomeStepPickFolder": { "message": "Pick a starter folder." },
+  "welcomeStepRightClick": { "message": "Högerklicka på något du vill spara." },
+  "welcomeStepChooseSaveIn": { "message": "Välj Save In… i menyn." },
+  "welcomeStepPickFolder": { "message": "Välj en startmapp." },
   "welcomeStarterNote": {
-    "message": "Starter folders are active now. You can customize them at any time."
+    "message": "Startmapparna är nu aktiva. Du kan anpassa dem när som helst."
   },
   "welcomeToolbarNote": {
-    "message": "The toolbar button opens Page Sources for finding media on the current page."
+    "message": "Verktygsfältsknappen öppnar Sidkällor för att hitta media på den aktuella sidan."
   },
-  "welcomePermissions": { "message": "Why these permissions?" },
-  "welcomeCustomizeFolders": { "message": "Customize folders" },
-  "welcomeUseStarterFolders": { "message": "Use starter folders" },
-  "welcomeUsingStarterSettings": { "message": "Using starter settings" }
+  "welcomePermissions": { "message": "Varför behövs dessa behörigheter?" },
+  "welcomeCustomizeFolders": { "message": "Anpassa mappar" },
+  "welcomeUseStarterFolders": { "message": "Använd startmappar" },
+  "welcomeUsingStarterSettings": { "message": "Använder startinställningar" }
 }

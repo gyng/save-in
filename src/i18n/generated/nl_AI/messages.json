@@ -231,7 +231,7 @@
     "message": "Onbekende matcher"
   },
   "ruleUnknownDestinationVariable": {
-    "message": "Path variable is not supported"
+    "message": "Padvariabele wordt niet ondersteund"
   },
   "ruleInvalidRegex": {
     "message": "Ongeldige reguliere expressie"
@@ -1758,40 +1758,40 @@
     "message": "Webhookgegevens bijgewerkt."
   },
   "routeDebuggerFileData": {
-    "message": "File"
+    "message": "Bestand"
   },
   "routeDebuggerUrlData": {
-    "message": "URLs"
+    "message": "URL’s"
   },
   "routeDebuggerPageData": {
-    "message": "Page text"
+    "message": "Paginatekst"
   },
   "routeDebuggerRoutingData": {
-    "message": "Routing context"
+    "message": "Routeringscontext"
   },
   "routeDebuggerSourceKind": {
-    "message": "Source kind"
+    "message": "Brontype"
   },
   "routeDebuggerAnySourceKind": {
-    "message": "Any source kind"
+    "message": "Elk brontype"
   },
   "routeDebuggerMenuIndex": {
-    "message": "Menu index"
+    "message": "Menu-index"
   },
   "routeDebuggerMenuComment": {
-    "message": "Menu comment"
+    "message": "Menuopmerking"
   },
   "routeDebuggerRuntimeData": {
-    "message": "Runtime values"
+    "message": "Runtimewaarden"
   },
   "routeDebuggerDateTime": {
-    "message": "Date and time"
+    "message": "Datum en tijd"
   },
   "routeDebuggerSha256": {
     "message": "SHA-256"
   },
   "routeDebuggerRuleDestination": {
-    "message": "Saves to $PATH$",
+    "message": "Slaat op in $PATH$",
     "placeholders": {
       "path": {
         "content": "$1",
@@ -1800,10 +1800,10 @@
     }
   },
   "routeDebuggerEditRule": {
-    "message": "Edit"
+    "message": "Bewerken"
   },
   "routeDebuggerAttemptMatched": {
-    "message": "Tested “$VALUE$” from $SOURCE$ — matched.",
+    "message": "“$VALUE$” uit $SOURCE$ getest — komt overeen.",
     "placeholders": {
       "value": {
         "content": "$1",
@@ -1816,7 +1816,7 @@
     }
   },
   "routeDebuggerAttemptDidNotMatch": {
-    "message": "Tested “$VALUE$” from $SOURCE$ — did not match.",
+    "message": "“$VALUE$” uit $SOURCE$ getest — komt niet overeen.",
     "placeholders": {
       "value": {
         "content": "$1",
@@ -1829,7 +1829,7 @@
     }
   },
   "routeDebuggerAttemptMissing": {
-    "message": "No value was available from $SOURCE$.",
+    "message": "Er was geen waarde beschikbaar uit $SOURCE$.",
     "placeholders": {
       "source": {
         "content": "$1",
@@ -1838,7 +1838,7 @@
     }
   },
   "routeDebuggerAttemptInvalid": {
-    "message": "Could not read a valid value from $SOURCE$: “$VALUE$”.",
+    "message": "Kon geen geldige waarde lezen uit $SOURCE$: “$VALUE$”.",
     "placeholders": {
       "source": {
         "content": "$1",
@@ -1851,7 +1851,7 @@
     }
   },
   "routeDebuggerConditionMatched": {
-    "message": "$FIELD$ matches $PATTERN$",
+    "message": "$FIELD$ komt overeen met $PATTERN$",
     "placeholders": {
       "field": {
         "content": "$1",
@@ -1864,7 +1864,7 @@
     }
   },
   "routeDebuggerConditionDidNotMatch": {
-    "message": "$FIELD$ does not match $PATTERN$",
+    "message": "$FIELD$ komt niet overeen met $PATTERN$",
     "placeholders": {
       "field": {
         "content": "$1",
@@ -2143,7 +2143,7 @@
   "routeDebuggerTitle": {
     "message": "Routeringsregels testen"
   },
-  "routeDebuggerUseSource": { "message": "Use" },
+  "routeDebuggerUseSource": { "message": "Gebruiken" },
   "routeDebuggerLatestDownload": { "message": "Latest download" },
   "routeDebuggerUseSampleDownload": { "message": "Sample download" },
   "routeDebuggerFilename": {
@@ -2399,22 +2399,22 @@
   },
   "matchPatternInvalid": { "message": "Ongeldig WebExtension-matchpatroon" },
   "regularExpressionInvalid": { "message": "Ongeldige reguliere expressie" },
-  "welcomeReady": { "message": "Ready to save" },
-  "welcomeTitle": { "message": "Welcome to Save In" },
+  "welcomeReady": { "message": "Klaar om op te slaan" },
+  "welcomeTitle": { "message": "Welkom bij Save In" },
   "welcomeIntro": {
-    "message": "Save In is ready. Use the right-click menu to save images, links, selected text, media, and pages into folders you choose."
+    "message": "Save In is klaar. Gebruik het rechtermuisknopmenu om afbeeldingen, links, geselecteerde tekst, media en pagina’s op te slaan in mappen die je kiest."
   },
-  "welcomeStepRightClick": { "message": "Right-click something you want to save." },
-  "welcomeStepChooseSaveIn": { "message": "Choose Save In… from the menu." },
-  "welcomeStepPickFolder": { "message": "Pick a starter folder." },
+  "welcomeStepRightClick": { "message": "Klik met de rechtermuisknop op iets dat je wilt opslaan." },
+  "welcomeStepChooseSaveIn": { "message": "Kies Save In… in het menu." },
+  "welcomeStepPickFolder": { "message": "Kies een startmap." },
   "welcomeStarterNote": {
-    "message": "Starter folders are active now. You can customize them at any time."
+    "message": "De startmappen zijn nu actief. Je kunt ze op elk moment aanpassen."
   },
   "welcomeToolbarNote": {
-    "message": "The toolbar button opens Page Sources for finding media on the current page."
+    "message": "De werkbalkknop opent Paginabronnen om media op de huidige pagina te vinden."
   },
-  "welcomePermissions": { "message": "Why these permissions?" },
-  "welcomeCustomizeFolders": { "message": "Customize folders" },
-  "welcomeUseStarterFolders": { "message": "Use starter folders" },
-  "welcomeUsingStarterSettings": { "message": "Using starter settings" }
+  "welcomePermissions": { "message": "Waarom zijn deze machtigingen nodig?" },
+  "welcomeCustomizeFolders": { "message": "Mappen aanpassen" },
+  "welcomeUseStarterFolders": { "message": "Startmappen gebruiken" },
+  "welcomeUsingStarterSettings": { "message": "Startinstellingen worden gebruikt" }
 }

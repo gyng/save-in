@@ -144,12 +144,15 @@ const keyboardTokenKeys = [
 ];
 const keyboardTokenPattern = /\b(?:Alt|Shift|Ctrl|Command|MacCtrl|None|F12|PageDown)\b/g;
 const generatedRoot = path.join(root, "src", "i18n", "generated");
+/** @type {{locale:string, catalog:Record<string, any>}[]} */
+const generatedCatalogs = [];
 for (const entry of fs.readdirSync(generatedRoot, { withFileTypes: true })) {
   if (!entry.isDirectory()) continue;
   const locale = entry.name;
   const catalogSource = fs.readFileSync(path.join(generatedRoot, locale, "messages.json"), "utf8");
   checkDuplicateCatalogKeys(locale, catalogSource);
   const catalog = JSON.parse(catalogSource);
+  generatedCatalogs.push({ locale, catalog });
   checkSchema(locale, catalog);
   for (const key of Object.keys(catalog))
     if (!english[key]) report(`${locale}: unknown key ${key}`);
@@ -198,6 +201,24 @@ for (const entry of fs.readdirSync(generatedRoot, { withFileTypes: true })) {
       if (!catalog[key]?.message.includes(token))
         report(`${locale}.${key}: missing keyboard token ${token}`);
     }
+  }
+}
+
+const intentionallySharedEnglishKeys = new Set([
+  ...literalMessageKeys,
+  "contextMenuRoot",
+  "extensionName",
+  "historyColumnUrl",
+  "o_lGithub",
+  "routeDebuggerSha256",
+  "translationCredits",
+]);
+for (const [key, canonical] of Object.entries(english)) {
+  if (
+    !intentionallySharedEnglishKeys.has(key) &&
+    generatedCatalogs.every(({ catalog }) => catalog[key]?.message === canonical.message)
+  ) {
+    report(`all generated locales: untranslated key ${key}`);
   }
 }
 

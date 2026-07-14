@@ -231,7 +231,7 @@
     "message": "Comparador desconhecido"
   },
   "ruleUnknownDestinationVariable": {
-    "message": "Path variable is not supported"
+    "message": "A variável de caminho não é compatível"
   },
   "ruleInvalidRegex": {
     "message": "Expressão regular inválida"
@@ -1758,40 +1758,40 @@
     "message": "Dados do webhook atualizados."
   },
   "routeDebuggerFileData": {
-    "message": "File"
+    "message": "Arquivo"
   },
   "routeDebuggerUrlData": {
     "message": "URLs"
   },
   "routeDebuggerPageData": {
-    "message": "Page text"
+    "message": "Texto da página"
   },
   "routeDebuggerRoutingData": {
-    "message": "Routing context"
+    "message": "Contexto de roteamento"
   },
   "routeDebuggerSourceKind": {
-    "message": "Source kind"
+    "message": "Tipo de origem"
   },
   "routeDebuggerAnySourceKind": {
-    "message": "Any source kind"
+    "message": "Qualquer tipo de origem"
   },
   "routeDebuggerMenuIndex": {
-    "message": "Menu index"
+    "message": "Índice do menu"
   },
   "routeDebuggerMenuComment": {
-    "message": "Menu comment"
+    "message": "Comentário do menu"
   },
   "routeDebuggerRuntimeData": {
-    "message": "Runtime values"
+    "message": "Valores de execução"
   },
   "routeDebuggerDateTime": {
-    "message": "Date and time"
+    "message": "Data e hora"
   },
   "routeDebuggerSha256": {
     "message": "SHA-256"
   },
   "routeDebuggerRuleDestination": {
-    "message": "Saves to $PATH$",
+    "message": "Salva em $PATH$",
     "placeholders": {
       "path": {
         "content": "$1",
@@ -1800,10 +1800,10 @@
     }
   },
   "routeDebuggerEditRule": {
-    "message": "Edit"
+    "message": "Editar"
   },
   "routeDebuggerAttemptMatched": {
-    "message": "Tested “$VALUE$” from $SOURCE$ — matched.",
+    "message": "“$VALUE$” de $SOURCE$ foi testado — correspondeu.",
     "placeholders": {
       "value": {
         "content": "$1",
@@ -1816,7 +1816,7 @@
     }
   },
   "routeDebuggerAttemptDidNotMatch": {
-    "message": "Tested “$VALUE$” from $SOURCE$ — did not match.",
+    "message": "“$VALUE$” de $SOURCE$ foi testado — não correspondeu.",
     "placeholders": {
       "value": {
         "content": "$1",
@@ -1829,7 +1829,7 @@
     }
   },
   "routeDebuggerAttemptMissing": {
-    "message": "No value was available from $SOURCE$.",
+    "message": "Nenhum valor estava disponível em $SOURCE$.",
     "placeholders": {
       "source": {
         "content": "$1",
@@ -1838,7 +1838,7 @@
     }
   },
   "routeDebuggerAttemptInvalid": {
-    "message": "Could not read a valid value from $SOURCE$: “$VALUE$”.",
+    "message": "Não foi possível ler um valor válido de $SOURCE$: “$VALUE$”.",
     "placeholders": {
       "source": {
         "content": "$1",
@@ -1851,7 +1851,7 @@
     }
   },
   "routeDebuggerConditionMatched": {
-    "message": "$FIELD$ matches $PATTERN$",
+    "message": "$FIELD$ corresponde a $PATTERN$",
     "placeholders": {
       "field": {
         "content": "$1",
@@ -1864,7 +1864,7 @@
     }
   },
   "routeDebuggerConditionDidNotMatch": {
-    "message": "$FIELD$ does not match $PATTERN$",
+    "message": "$FIELD$ não corresponde a $PATTERN$",
     "placeholders": {
       "field": {
         "content": "$1",
@@ -2143,7 +2143,7 @@
   "routeDebuggerTitle": {
     "message": "Testar regras de roteamento"
   },
-  "routeDebuggerUseSource": { "message": "Use" },
+  "routeDebuggerUseSource": { "message": "Usar" },
   "routeDebuggerLatestDownload": { "message": "Latest download" },
   "routeDebuggerUseSampleDownload": { "message": "Sample download" },
   "routeDebuggerFilename": {
@@ -2397,22 +2397,22 @@
   },
   "matchPatternInvalid": { "message": "Padrão de correspondência WebExtension inválido" },
   "regularExpressionInvalid": { "message": "Expressão regular inválida" },
-  "welcomeReady": { "message": "Ready to save" },
-  "welcomeTitle": { "message": "Welcome to Save In" },
+  "welcomeReady": { "message": "Pronto para salvar" },
+  "welcomeTitle": { "message": "Boas-vindas ao Save In" },
   "welcomeIntro": {
-    "message": "Save In is ready. Use the right-click menu to save images, links, selected text, media, and pages into folders you choose."
+    "message": "O Save In está pronto. Use o menu de contexto para salvar imagens, links, texto selecionado, mídia e páginas nas pastas que você escolher."
   },
-  "welcomeStepRightClick": { "message": "Right-click something you want to save." },
-  "welcomeStepChooseSaveIn": { "message": "Choose Save In… from the menu." },
-  "welcomeStepPickFolder": { "message": "Pick a starter folder." },
+  "welcomeStepRightClick": { "message": "Clique com o botão direito em algo que você deseja salvar." },
+  "welcomeStepChooseSaveIn": { "message": "Escolha Save In… no menu." },
+  "welcomeStepPickFolder": { "message": "Escolha uma pasta inicial." },
   "welcomeStarterNote": {
-    "message": "Starter folders are active now. You can customize them at any time."
+    "message": "As pastas iniciais já estão ativas. Você pode personalizá-las a qualquer momento."
   },
   "welcomeToolbarNote": {
-    "message": "The toolbar button opens Page Sources for finding media on the current page."
+    "message": "O botão da barra de ferramentas abre as Fontes da página para encontrar mídia na página atual."
   },
-  "welcomePermissions": { "message": "Why these permissions?" },
-  "welcomeCustomizeFolders": { "message": "Customize folders" },
-  "welcomeUseStarterFolders": { "message": "Use starter folders" },
-  "welcomeUsingStarterSettings": { "message": "Using starter settings" }
+  "welcomePermissions": { "message": "Por que estas permissões são necessárias?" },
+  "welcomeCustomizeFolders": { "message": "Personalizar pastas" },
+  "welcomeUseStarterFolders": { "message": "Usar pastas iniciais" },
+  "welcomeUsingStarterSettings": { "message": "Usando as configurações iniciais" }
 }

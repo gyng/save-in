@@ -128,7 +128,7 @@
     "message": "알 수 없는 매처"
   },
   "ruleUnknownDestinationVariable": {
-    "message": "Path variable is not supported"
+    "message": "경로 변수가 지원되지 않습니다"
   },
   "ruleInvalidRegex": {
     "message": "잘못된 정규 표현식"
@@ -1655,40 +1655,40 @@
     "message": "웹후크 데이터를 업데이트했습니다."
   },
   "routeDebuggerFileData": {
-    "message": "File"
+    "message": "파일"
   },
   "routeDebuggerUrlData": {
-    "message": "URLs"
+    "message": "URL"
   },
   "routeDebuggerPageData": {
-    "message": "Page text"
+    "message": "페이지 텍스트"
   },
   "routeDebuggerRoutingData": {
-    "message": "Routing context"
+    "message": "라우팅 컨텍스트"
   },
   "routeDebuggerSourceKind": {
-    "message": "Source kind"
+    "message": "소스 종류"
   },
   "routeDebuggerAnySourceKind": {
-    "message": "Any source kind"
+    "message": "모든 소스 종류"
   },
   "routeDebuggerMenuIndex": {
-    "message": "Menu index"
+    "message": "메뉴 인덱스"
   },
   "routeDebuggerMenuComment": {
-    "message": "Menu comment"
+    "message": "메뉴 설명"
   },
   "routeDebuggerRuntimeData": {
-    "message": "Runtime values"
+    "message": "런타임 값"
   },
   "routeDebuggerDateTime": {
-    "message": "Date and time"
+    "message": "날짜 및 시간"
   },
   "routeDebuggerSha256": {
     "message": "SHA-256"
   },
   "routeDebuggerRuleDestination": {
-    "message": "Saves to $PATH$",
+    "message": "$PATH$에 저장",
     "placeholders": {
       "path": {
         "content": "$1",
@@ -1697,10 +1697,10 @@
     }
   },
   "routeDebuggerEditRule": {
-    "message": "Edit"
+    "message": "편집"
   },
   "routeDebuggerAttemptMatched": {
-    "message": "Tested “$VALUE$” from $SOURCE$ — matched.",
+    "message": "$SOURCE$의 “$VALUE$” 값을 테스트함 — 일치함.",
     "placeholders": {
       "value": {
         "content": "$1",
@@ -1713,7 +1713,7 @@
     }
   },
   "routeDebuggerAttemptDidNotMatch": {
-    "message": "Tested “$VALUE$” from $SOURCE$ — did not match.",
+    "message": "$SOURCE$의 “$VALUE$” 값을 테스트함 — 일치하지 않음.",
     "placeholders": {
       "value": {
         "content": "$1",
@@ -1726,7 +1726,7 @@
     }
   },
   "routeDebuggerAttemptMissing": {
-    "message": "No value was available from $SOURCE$.",
+    "message": "$SOURCE$에서 사용할 수 있는 값이 없습니다.",
     "placeholders": {
       "source": {
         "content": "$1",
@@ -1735,7 +1735,7 @@
     }
   },
   "routeDebuggerAttemptInvalid": {
-    "message": "Could not read a valid value from $SOURCE$: “$VALUE$”.",
+    "message": "$SOURCE$에서 유효한 값을 읽을 수 없습니다: “$VALUE$”.",
     "placeholders": {
       "source": {
         "content": "$1",
@@ -1748,7 +1748,7 @@
     }
   },
   "routeDebuggerConditionMatched": {
-    "message": "$FIELD$ matches $PATTERN$",
+    "message": "$FIELD$: $PATTERN$ 패턴과 일치",
     "placeholders": {
       "field": {
         "content": "$1",
@@ -1761,7 +1761,7 @@
     }
   },
   "routeDebuggerConditionDidNotMatch": {
-    "message": "$FIELD$ does not match $PATTERN$",
+    "message": "$FIELD$: $PATTERN$ 패턴과 일치하지 않음",
     "placeholders": {
       "field": {
         "content": "$1",
@@ -2243,7 +2243,7 @@
   "routeDebuggerTitle": {
     "message": "라우팅 규칙 테스트"
   },
-  "routeDebuggerUseSource": { "message": "Use" },
+  "routeDebuggerUseSource": { "message": "사용" },
   "routeDebuggerLatestDownload": { "message": "Latest download" },
   "routeDebuggerUseSampleDownload": { "message": "Sample download" },
   "routeDebuggerFilename": {
@@ -2491,22 +2491,22 @@
   },
   "matchPatternInvalid": { "message": "잘못된 WebExtension 일치 패턴" },
   "regularExpressionInvalid": { "message": "잘못된 정규식" },
-  "welcomeReady": { "message": "Ready to save" },
-  "welcomeTitle": { "message": "Welcome to Save In" },
+  "welcomeReady": { "message": "저장할 준비가 되었습니다" },
+  "welcomeTitle": { "message": "Save In에 오신 것을 환영합니다" },
   "welcomeIntro": {
-    "message": "Save In is ready. Use the right-click menu to save images, links, selected text, media, and pages into folders you choose."
+    "message": "Save In을 사용할 준비가 되었습니다. 오른쪽 클릭 메뉴를 사용하여 이미지, 링크, 선택한 텍스트, 미디어 및 페이지를 원하는 폴더에 저장하세요."
   },
-  "welcomeStepRightClick": { "message": "Right-click something you want to save." },
-  "welcomeStepChooseSaveIn": { "message": "Choose Save In… from the menu." },
-  "welcomeStepPickFolder": { "message": "Pick a starter folder." },
+  "welcomeStepRightClick": { "message": "저장할 항목을 마우스 오른쪽 버튼으로 클릭하세요." },
+  "welcomeStepChooseSaveIn": { "message": "메뉴에서 Save In…을 선택하세요." },
+  "welcomeStepPickFolder": { "message": "시작 폴더를 선택하세요." },
   "welcomeStarterNote": {
-    "message": "Starter folders are active now. You can customize them at any time."
+    "message": "시작 폴더가 현재 활성화되어 있습니다. 언제든지 맞춤 설정할 수 있습니다."
   },
   "welcomeToolbarNote": {
-    "message": "The toolbar button opens Page Sources for finding media on the current page."
+    "message": "도구 모음 버튼을 누르면 페이지 소스가 열리고 현재 페이지의 미디어를 찾을 수 있습니다."
   },
-  "welcomePermissions": { "message": "Why these permissions?" },
-  "welcomeCustomizeFolders": { "message": "Customize folders" },
-  "welcomeUseStarterFolders": { "message": "Use starter folders" },
-  "welcomeUsingStarterSettings": { "message": "Using starter settings" }
+  "welcomePermissions": { "message": "이 권한이 필요한 이유" },
+  "welcomeCustomizeFolders": { "message": "폴더 맞춤 설정" },
+  "welcomeUseStarterFolders": { "message": "시작 폴더 사용" },
+  "welcomeUsingStarterSettings": { "message": "시작 설정 사용 중" }
 }

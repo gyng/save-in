@@ -111,7 +111,7 @@
     "message": "Criterio di corrispondenza sconosciuto"
   },
   "ruleUnknownDestinationVariable": {
-    "message": "Path variable is not supported"
+    "message": "La variabile di percorso non è supportata"
   },
   "ruleInvalidRegex": {
     "message": "Espressione regolare non valida"
@@ -2226,7 +2226,7 @@
   "routeDebuggerTitle": {
     "message": "Test delle regole di routing"
   },
-  "routeDebuggerUseSource": { "message": "Use" },
+  "routeDebuggerUseSource": { "message": "Usa" },
   "routeDebuggerLatestDownload": { "message": "Latest download" },
   "routeDebuggerUseSampleDownload": { "message": "Sample download" },
   "routeDebuggerFilename": {
@@ -2360,37 +2360,37 @@
     "message": "File"
   },
   "routeDebuggerUrlData": {
-    "message": "URLs"
+    "message": "URL"
   },
   "routeDebuggerPageData": {
-    "message": "Page text"
+    "message": "Testo della pagina"
   },
   "routeDebuggerRoutingData": {
-    "message": "Routing context"
+    "message": "Contesto di instradamento"
   },
   "routeDebuggerSourceKind": {
-    "message": "Source kind"
+    "message": "Tipo di origine"
   },
   "routeDebuggerAnySourceKind": {
-    "message": "Any source kind"
+    "message": "Qualsiasi tipo di origine"
   },
   "routeDebuggerMenuIndex": {
-    "message": "Menu index"
+    "message": "Indice del menu"
   },
   "routeDebuggerMenuComment": {
-    "message": "Menu comment"
+    "message": "Commento del menu"
   },
   "routeDebuggerRuntimeData": {
-    "message": "Runtime values"
+    "message": "Valori di runtime"
   },
   "routeDebuggerDateTime": {
-    "message": "Date and time"
+    "message": "Data e ora"
   },
   "routeDebuggerSha256": {
     "message": "SHA-256"
   },
   "routeDebuggerRuleDestination": {
-    "message": "Saves to $PATH$",
+    "message": "Salva in $PATH$",
     "placeholders": {
       "path": {
         "content": "$1",
@@ -2399,10 +2399,10 @@
     }
   },
   "routeDebuggerEditRule": {
-    "message": "Edit"
+    "message": "Modifica"
   },
   "routeDebuggerAttemptMatched": {
-    "message": "Tested “$VALUE$” from $SOURCE$ — matched.",
+    "message": "Testato “$VALUE$” da $SOURCE$ — corrispondenza trovata.",
     "placeholders": {
       "value": {
         "content": "$1",
@@ -2415,7 +2415,7 @@
     }
   },
   "routeDebuggerAttemptDidNotMatch": {
-    "message": "Tested “$VALUE$” from $SOURCE$ — did not match.",
+    "message": "Testato “$VALUE$” da $SOURCE$ — nessuna corrispondenza.",
     "placeholders": {
       "value": {
         "content": "$1",
@@ -2428,7 +2428,7 @@
     }
   },
   "routeDebuggerAttemptMissing": {
-    "message": "No value was available from $SOURCE$.",
+    "message": "Nessun valore disponibile da $SOURCE$.",
     "placeholders": {
       "source": {
         "content": "$1",
@@ -2437,7 +2437,7 @@
     }
   },
   "routeDebuggerAttemptInvalid": {
-    "message": "Could not read a valid value from $SOURCE$: “$VALUE$”.",
+    "message": "Impossibile leggere un valore valido da $SOURCE$: “$VALUE$”.",
     "placeholders": {
       "source": {
         "content": "$1",
@@ -2450,7 +2450,7 @@
     }
   },
   "routeDebuggerConditionMatched": {
-    "message": "$FIELD$ matches $PATTERN$",
+    "message": "$FIELD$ corrisponde a $PATTERN$",
     "placeholders": {
       "field": {
         "content": "$1",
@@ -2463,7 +2463,7 @@
     }
   },
   "routeDebuggerConditionDidNotMatch": {
-    "message": "$FIELD$ does not match $PATTERN$",
+    "message": "$FIELD$ non corrisponde a $PATTERN$",
     "placeholders": {
       "field": {
         "content": "$1",
@@ -2588,22 +2588,22 @@
   },
   "matchPatternInvalid": { "message": "Pattern WebExtension non valido" },
   "regularExpressionInvalid": { "message": "Espressione regolare non valida" },
-  "welcomeReady": { "message": "Ready to save" },
-  "welcomeTitle": { "message": "Welcome to Save In" },
+  "welcomeReady": { "message": "Pronto per salvare" },
+  "welcomeTitle": { "message": "Benvenuto in Save In" },
   "welcomeIntro": {
-    "message": "Save In is ready. Use the right-click menu to save images, links, selected text, media, and pages into folders you choose."
+    "message": "Save In è pronto. Usa il menu contestuale per salvare immagini, link, testo selezionato, contenuti multimediali e pagine nelle cartelle che preferisci."
   },
-  "welcomeStepRightClick": { "message": "Right-click something you want to save." },
-  "welcomeStepChooseSaveIn": { "message": "Choose Save In… from the menu." },
-  "welcomeStepPickFolder": { "message": "Pick a starter folder." },
+  "welcomeStepRightClick": { "message": "Fai clic con il pulsante destro su qualcosa che vuoi salvare." },
+  "welcomeStepChooseSaveIn": { "message": "Scegli Save In… dal menu." },
+  "welcomeStepPickFolder": { "message": "Scegli una cartella iniziale." },
   "welcomeStarterNote": {
-    "message": "Starter folders are active now. You can customize them at any time."
+    "message": "Le cartelle iniziali sono ora attive. Puoi personalizzarle in qualsiasi momento."
   },
   "welcomeToolbarNote": {
-    "message": "The toolbar button opens Page Sources for finding media on the current page."
+    "message": "Il pulsante della barra degli strumenti apre le sorgenti della pagina per trovare i contenuti multimediali nella pagina attuale."
   },
-  "welcomePermissions": { "message": "Why these permissions?" },
-  "welcomeCustomizeFolders": { "message": "Customize folders" },
-  "welcomeUseStarterFolders": { "message": "Use starter folders" },
-  "welcomeUsingStarterSettings": { "message": "Using starter settings" }
+  "welcomePermissions": { "message": "Perché sono necessarie queste autorizzazioni?" },
+  "welcomeCustomizeFolders": { "message": "Personalizza cartelle" },
+  "welcomeUseStarterFolders": { "message": "Usa cartelle iniziali" },
+  "welcomeUsingStarterSettings": { "message": "Uso delle impostazioni iniziali" }
 }
