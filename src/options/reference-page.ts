@@ -26,8 +26,8 @@ export const syncReferenceVocabulary = (
   const rows = [
     ...root.querySelectorAll<HTMLTableRowElement>("tbody tr:not(.reference-group-row), table > tr"),
   ];
-  if (!rows.length) return;
-  const target = rows[0]!.parentElement!;
+  const target = rows[0]?.parentElement;
+  if (!target) return;
   const bySyntax = new Map(rows.map((row) => [referenceSyntax(row), row]));
   const required = new Set(runtimeTerms);
   if (kind === "variables") required.add(":$1:");
@@ -89,7 +89,7 @@ export const groupReferenceRows = (root: ParentNode, kind: ReferenceKind) => {
           ? compareVariables(aSyntax, bSyntax)
           : compareClauses(aSyntax, bSyntax);
       })
-      .forEach((row) => row.parentElement!.append(row));
+      .forEach((row) => row.parentElement?.append(row));
     let lastGroup = "";
     [...table.querySelectorAll<HTMLTableRowElement>(":scope > tbody > tr, :scope > tr")].forEach(
       (row) => {
@@ -155,7 +155,7 @@ export const enhanceReferenceTables = (root: ParentNode, localize: GetMessage = 
       dataRows.forEach((row) => {
         row.cells[1]
           ?.querySelectorAll("code")
-          .forEach((code) => code.replaceWith(code.textContent!));
+          .forEach((code) => code.replaceWith(code.textContent ?? ""));
       });
     }
     const sectionTitle =

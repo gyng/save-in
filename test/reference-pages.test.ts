@@ -124,6 +124,15 @@ describe("reference controller", () => {
     expect(document.body.textContent).toContain("Runtime rule matcher");
   });
 
+  test("ignores reference rows without a table parent", () => {
+    const orphan = document.createElement("tr");
+    const root = {
+      querySelectorAll: () => [orphan],
+    } as unknown as ParentNode;
+
+    expect(() => syncReferenceVocabulary(root, "variables", [":date:"])).not.toThrow();
+  });
+
   test("filters grouped tables and their containing sections", () => {
     document.body.innerHTML = `<section class="reference-section"><table><tbody>
       <tr><td><code>:date:</code></td><td>Date</td></tr>
