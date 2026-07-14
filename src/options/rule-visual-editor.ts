@@ -262,6 +262,7 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
             label: matcher,
           })),
         onSelect: (item) => updateMatcher(item.value),
+        preferredWidth: 320,
       }),
     );
     return input;

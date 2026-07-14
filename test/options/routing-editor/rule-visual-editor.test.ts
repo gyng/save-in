@@ -249,6 +249,7 @@ describe("routing visual editor", () => {
     matcher.focus();
     expect(matcher.getAttribute("role")).toBe("combobox");
     const matcherDropdown = document.getElementById(matcher.getAttribute("aria-controls")!);
+    expect(matcherDropdown?.style.width).toBe("320px");
     const matcherOptions = [
       ...(matcherDropdown?.querySelectorAll<HTMLButtonElement>('[role="option"]') ?? []),
     ];
