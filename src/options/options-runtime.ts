@@ -3,7 +3,7 @@ import { getMessage } from "../platform/localization.ts";
 import { configureRoutingPorts } from "../routing/ports.ts";
 import { COUNTER_KEY } from "../shared/storage-keys.ts";
 import { MESSAGE_TYPES } from "../shared/constants.ts";
-import { sendInternalMessage } from "../shared/message-protocol.ts";
+import { isStringKeyedRecord, sendInternalMessage } from "../shared/message-protocol.ts";
 import type { ApplyConfigResponse } from "../shared/message-protocol.ts";
 import type { OptionSchema } from "./options-persistence.ts";
 
@@ -19,6 +19,22 @@ export type OptionsRuntimeApi = {
   };
 };
 
+const isOptionSchemaKey = (value: unknown): value is OptionSchema["keys"][number] =>
+  isStringKeyedRecord(value) &&
+  typeof value.name === "string" &&
+  typeof value.type === "string" &&
+  (typeof value.default === "string" ||
+    typeof value.default === "number" ||
+    typeof value.default === "boolean");
+
+const isOptionSchema = (value: unknown): value is OptionSchema =>
+  isStringKeyedRecord(value) &&
+  Array.isArray(value.keys) &&
+  value.keys.every(isOptionSchemaKey) &&
+  isStringKeyedRecord(value.types) &&
+  typeof value.types.BOOL === "string" &&
+  typeof value.types.VALUE === "string";
+
 export const createOptionsRuntime = (api: OptionsRuntimeApi) => {
   let schema: Promise<OptionSchema> | undefined;
 
@@ -26,34 +42,11 @@ export const createOptionsRuntime = (api: OptionsRuntimeApi) => {
     const response: unknown = await sendInternalMessage(api.runtime, {
       type: MESSAGE_TYPES.OPTIONS_SCHEMA,
     });
-    const body =
-      response != null && typeof response === "object" ? Reflect.get(response, "body") : undefined;
-    if (
-      body == null ||
-      typeof body !== "object" ||
-      !Array.isArray(Reflect.get(body, "keys")) ||
-      Reflect.get(body, "types") == null ||
-      typeof Reflect.get(body, "types") !== "object"
-    ) {
+    const body = isStringKeyedRecord(response) ? response.body : undefined;
+    if (!isOptionSchema(body)) {
       throw new Error("Invalid option schema response");
     }
-    const keys = Reflect.get(body, "keys") as unknown[];
-    const types = Reflect.get(body, "types") as Record<string, unknown>;
-    if (
-      !keys.every(
-        (key) =>
-          key != null &&
-          typeof key === "object" &&
-          typeof Reflect.get(key, "name") === "string" &&
-          typeof Reflect.get(key, "type") === "string" &&
-          ["string", "number", "boolean"].includes(typeof Reflect.get(key, "default")),
-      ) ||
-      typeof types.BOOL !== "string" ||
-      typeof types.VALUE !== "string"
-    ) {
-      throw new Error("Invalid option schema response");
-    }
-    return body as OptionSchema;
+    return body;
   };
 
   return {

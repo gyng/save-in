@@ -82,11 +82,15 @@ for (const [name, expected] of Object.entries({
   forceConsistentCasingInFileNames: true,
   noFallthroughCasesInSwitch: true,
   noImplicitReturns: true,
+  erasableSyntaxOnly: true,
+  noUncheckedSideEffectImports: true,
   exactOptionalPropertyTypes: true,
   noUncheckedIndexedAccess: true,
   noImplicitOverride: true,
   noUnusedLocals: true,
   noUnusedParameters: true,
+  allowUnreachableCode: false,
+  allowUnusedLabels: false,
 })) {
   check(
     baseOptions[name] === expected,
@@ -122,7 +126,11 @@ check(
     tools.compilerOptions?.noUncheckedIndexedAccess === true &&
     tools.compilerOptions?.noImplicitOverride === true &&
     tools.compilerOptions?.noUnusedLocals === true &&
-    tools.compilerOptions?.noUnusedParameters === true,
+    tools.compilerOptions?.noUnusedParameters === true &&
+    tools.compilerOptions?.erasableSyntaxOnly === true &&
+    tools.compilerOptions?.noUncheckedSideEffectImports === true &&
+    tools.compilerOptions?.allowUnreachableCode === false &&
+    tools.compilerOptions?.allowUnusedLabels === false,
   "tooling config must strictly check JavaScript without emitting",
 );
 check(

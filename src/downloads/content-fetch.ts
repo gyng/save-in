@@ -9,7 +9,10 @@ export const HASH_FETCH_TIMEOUT_MS = 30000;
 
 export const makeUrlFromBlob = (blob: BlobContent): Promise<string> => {
   if (typeof URL.createObjectURL === "function") {
-    return Promise.resolve(URL.createObjectURL(blob as Blob));
+    if (!(blob instanceof Blob)) {
+      return Promise.reject(new TypeError("Object URL creation requires a Blob"));
+    }
+    return Promise.resolve(URL.createObjectURL(blob));
   }
 
   return blob.arrayBuffer().then((buf) => {

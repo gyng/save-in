@@ -128,6 +128,18 @@ describe("makeUrlFromBlob", () => {
     const blob = new NodeBlob(["x"]);
     await expect(makeUrlFromBlob(blob)).resolves.toBe("blob:fake-object-url");
   });
+
+  test("rejects blob-like values before calling the DOM object URL API", async () => {
+    URL.createObjectURL = vi.fn(() => "blob:fake-object-url");
+    const blobLike = {
+      type: "text/plain",
+      size: 1,
+      arrayBuffer: async () => new ArrayBuffer(1),
+    };
+
+    await expect(makeUrlFromBlob(blobLike)).rejects.toThrow("Object URL creation requires a Blob");
+    expect(URL.createObjectURL).not.toHaveBeenCalled();
+  });
 });
 
 describe("offscreen document fetch (Chrome MV3)", () => {

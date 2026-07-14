@@ -48,7 +48,7 @@ export const readResponseContent = async (
       ? await response.arrayBuffer()
       : await response.blob!().then((blob) => blob.arrayBuffer());
     const chunk = new Uint8Array(buffer);
-    chunks.push(chunk.buffer as ArrayBuffer);
+    chunks.push(chunk.buffer);
     sha256?.update(chunk);
   }
 

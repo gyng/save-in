@@ -7,11 +7,7 @@ export type ContentFetchResult = {
   offscreenRequestId?: string;
 };
 
-export type BlobContent = {
-  type: string;
-  size: number;
-  arrayBuffer: () => Promise<ArrayBuffer>;
-};
+export type BlobContent = Pick<Blob, "type" | "size" | "arrayBuffer">;
 
 export type OffscreenFetchRequest = {
   type: typeof MESSAGE_TYPES.OFFSCREEN_FETCH;

@@ -7,7 +7,7 @@ import type {
 export type JsonRecord = Record<string, unknown>;
 
 export type OptionSchema = {
-  keys: Array<JsonRecord & WireOptionSchemaKey>;
+  keys: WireOptionSchemaKey[];
   types: { BOOL: string; VALUE: string };
 };
 

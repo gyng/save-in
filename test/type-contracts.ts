@@ -30,6 +30,7 @@ import type {
   WireDownloadState,
 } from "../src/shared/message-protocol.ts";
 import type { SessionWriteState } from "../src/shared/session-state.ts";
+import { withUrl } from "../src/shared/util.ts";
 
 expectTypeOf<DownloadPlan>().toHaveProperty("state").toEqualTypeOf<DownloadPipelineState>();
 expectTypeOf<AcquiredDownload>().toEqualTypeOf<{
@@ -51,6 +52,9 @@ expectTypeOf<SessionWriteState["queues"]>().toEqualTypeOf<Map<string, Promise<un
 expectTypeOf<DownloadsState["records"]>().toEqualTypeOf<Map<number, DownloadRecord>>();
 expectTypeOf<DownloadsState["hydration"]>().toEqualTypeOf<Promise<void> | null>();
 expectTypeOf(handleContextMenuClick({ menuItemId: "save-in-0" })).toEqualTypeOf<Promise<void>>();
+expectTypeOf(withUrl("invalid", (url) => url.hostname)).toEqualTypeOf<string | null>();
+expectTypeOf(withUrl("invalid", (url) => url.hostname, undefined)).toEqualTypeOf<string | null>();
+expectTypeOf(withUrl("invalid", (url) => url.hostname, false)).toEqualTypeOf<string | boolean>();
 
 type CheckRoutesRequest = Extract<InternalMessage, { type: "CHECK_ROUTES" }>;
 type CheckRoutesSuccess = Extract<

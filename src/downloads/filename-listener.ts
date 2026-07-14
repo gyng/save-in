@@ -76,7 +76,7 @@ const normalizeDeferredRoute = (value: unknown): DeferredRouteRecovery | null =>
   return {
     version: 1,
     id: candidate.id,
-    state: state as WireDownloadState,
+    state,
     ...(typeof candidate.pathTemplateRaw === "string"
       ? { pathTemplateRaw: candidate.pathTemplateRaw }
       : {}),
