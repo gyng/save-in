@@ -23,7 +23,7 @@ import {
   formatSourcePanelCopy,
 } from "../shared/source-panel-copy.ts";
 import { SOURCE_PANEL_SORT_STORAGE_KEY } from "../shared/storage-keys.ts";
-import { SOURCE_PANEL_CSS } from "./source-panel-style.ts";
+import SOURCE_PANEL_CSS from "./source-panel.css";
 
 declare const SAVE_IN_CONTENT_E2E: boolean;
 

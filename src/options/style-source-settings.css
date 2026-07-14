@@ -112,8 +112,8 @@
 .source-panel-demo-actions > span {
   display: grid;
   place-items: center;
-  width: 30px;
-  height: 30px;
+  width: var(--compact-control-size);
+  height: var(--compact-control-size);
   color: var(--color-text-muted);
   border-radius: var(--radius-sm);
 }

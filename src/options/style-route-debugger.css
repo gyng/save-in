@@ -259,7 +259,7 @@
   border-bottom: 4px solid transparent;
   border-inline-start: 6px solid var(--color-text-muted);
   content: "";
-  transition: transform 120ms ease;
+  transition: transform var(--motion-duration-fast) ease;
 }
 
 .route-debugger-rule[open] > .route-debugger-rule-header::before {
@@ -518,9 +518,5 @@
   .route-debugger-result[data-busy="true"]::before {
     animation: none;
     width: 100%;
-  }
-
-  .route-debugger-rule-header::before {
-    transition: none;
   }
 }

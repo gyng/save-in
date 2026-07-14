@@ -37,9 +37,9 @@
   color: var(--color-text-muted);
   cursor: pointer;
   transition:
-    color 0.12s ease,
-    border-color 0.12s ease,
-    background-color 0.12s ease;
+    color var(--motion-duration-fast) ease,
+    border-color var(--motion-duration-fast) ease,
+    background-color var(--motion-duration-fast) ease;
 }
 
 .tablist .tab,
@@ -121,7 +121,7 @@
   display: grid;
   gap: 1px;
   width: 100%;
-  min-height: 0;
+  min-height: var(--compact-control-size);
   padding: 6px var(--space-2);
   border: 0;
   border-radius: calc(var(--radius) - 2px);

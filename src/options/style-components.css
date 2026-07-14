@@ -125,9 +125,9 @@ details {
     overflow: clip;
     opacity: 0;
     transition:
-      block-size 90ms ease-out,
-      opacity 70ms ease-out,
-      content-visibility 90ms allow-discrete;
+      block-size var(--motion-duration-quick) ease-out,
+      opacity var(--motion-duration-instant) ease-out,
+      content-visibility var(--motion-duration-quick) allow-discrete;
   }
 
   #settings-page details[open]:not(.nav-resources, .menu-preview)::details-content {
@@ -137,10 +137,6 @@ details {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  #settings-page details::details-content {
-    transition: none;
-  }
-
   .saved {
     animation: none;
   }

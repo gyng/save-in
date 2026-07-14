@@ -31,11 +31,11 @@ html {
   font-family: var(--font-stack);
   font-size: var(--text-base);
   line-height: var(--leading-ui);
-  min-width: 400px;
   min-height: 1%; /* Firefox options page height hack */
   /* Always reserve the vertical scrollbar gutter so switching between
      short and tall tabs does not shift the layout horizontally */
   scrollbar-gutter: stable;
+  scroll-padding-block-start: var(--sticky-header-offset);
   overflow-y: scroll;
 }
 
@@ -101,8 +101,8 @@ select {
   border: 1px solid var(--control-border);
   border-radius: var(--radius);
   transition:
-    box-shadow 0.12s ease,
-    border-color 0.12s ease;
+    box-shadow var(--motion-duration-fast) ease,
+    border-color var(--motion-duration-fast) ease;
 }
 
 textarea {
@@ -132,8 +132,8 @@ button,
   -webkit-user-select: none;
   user-select: none;
   transition:
-    background-color 0.12s ease,
-    box-shadow 0.12s ease;
+    background-color var(--motion-duration-fast) ease,
+    box-shadow var(--motion-duration-fast) ease;
 }
 
 button:hover,

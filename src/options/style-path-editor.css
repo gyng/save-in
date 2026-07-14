@@ -40,9 +40,9 @@
 }
 
 .path-editor-access-key > .path-editor-access-key-input {
-  width: 30px;
-  min-width: 30px;
-  height: 26px;
+  width: var(--compact-control-size);
+  min-width: var(--compact-control-size);
+  height: var(--compact-control-size);
   margin: 0;
   padding: 2px;
   font-family: var(--font-mono);
@@ -94,10 +94,10 @@
   border-inline-start-width: 0;
   opacity: 0;
   transition:
-    flex-basis 90ms ease-out,
-    width 90ms ease-out,
-    padding 90ms ease-out,
-    opacity 70ms ease-out;
+    flex-basis var(--motion-duration-quick) ease-out,
+    width var(--motion-duration-quick) ease-out,
+    padding var(--motion-duration-quick) ease-out,
+    opacity var(--motion-duration-instant) ease-out;
 }
 
 .path-editor-alias.is-open {
@@ -108,12 +108,6 @@
   border-inline-end-width: 1px;
   border-inline-start-width: 1px;
   opacity: 1;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .path-editor-alias {
-    transition: none;
-  }
 }
 
 .tab-panel .path-editor-row input[type="text"] {

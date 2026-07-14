@@ -15,7 +15,7 @@ const tokenStylePath = path.join(root, "src", "options", "style-tokens.css");
 const optionsDocumentPath = path.join(root, "src", "options", "options.html");
 const clauseListDocumentPath = path.join(root, "src", "options", "clauselist.html");
 const sourcePanelPath = path.join(root, "src", "content", "source-panel.ts");
-const sourcePanelStylePath = path.join(root, "src", "content", "source-panel-style.ts");
+const sourcePanelStylePath = path.join(root, "src", "content", "source-panel.css");
 /** @type {Array<[string, string[]]>} */
 const styleLayers = [
   ["tokens", ["style-tokens.css"]],
@@ -170,6 +170,11 @@ for (const file of styles) {
     violations.push(`${relative} uses @scope before the declared Firefox minimum supports it`);
   }
 
+  for (const match of source.matchAll(/word-break\s*:\s*break-all/g)) {
+    const line = source.slice(0, match.index).split("\n").length;
+    violations.push(`${relative}:${line} breaks words eagerly; use overflow-wrap: anywhere`);
+  }
+
   const lineCount = source.split("\n").length - 1;
   if (lineCount > 550) {
     violations.push(
@@ -227,6 +232,12 @@ const accessibilityStyle = fs.readFileSync(
 );
 if (!accessibilityStyle.includes("@media (forced-colors: active)")) {
   violations.push("options focus and selected states need forced-colors fallbacks");
+}
+if (!accessibilityStyle.includes("@media (prefers-contrast: more)")) {
+  violations.push("options controls need an increased-contrast preference fallback");
+}
+if (!accessibilityStyle.includes("@media (prefers-reduced-motion: reduce)")) {
+  violations.push("options transitions need a shared reduced-motion preference fallback");
 }
 
 const componentStyle = fs.readFileSync(
@@ -286,23 +297,30 @@ for (const selector of obsoleteSelectors) {
 }
 
 const sourcePanelStyle = fs.readFileSync(sourcePanelStylePath, "utf8");
+for (const match of sourcePanelStyle.matchAll(/word-break\s*:\s*break-all/g)) {
+  const line = sourcePanelStyle.slice(0, match.index).split("\n").length;
+  violations.push(
+    `src/content/source-panel.css:${line} breaks words eagerly; use overflow-wrap: anywhere`,
+  );
+}
 for (const match of sourcePanelStyle.matchAll(/\b\d+(?:\.\d+)?vh\b/g)) {
   const line = sourcePanelStyle.slice(0, match.index).split("\n").length;
-  violations.push(`src/content/source-panel-style.ts:${line} uses static viewport height`);
+  violations.push(`src/content/source-panel.css:${line} uses static viewport height`);
 }
 for (const match of sourcePanelStyle.matchAll(/z-index\s*:\s*(\d+)/g)) {
   if (match[1] === "2147483647") continue;
   const line = sourcePanelStyle.slice(0, match.index).split("\n").length;
-  violations.push(`src/content/source-panel-style.ts:${line} uses a numeric local z-index`);
+  violations.push(`src/content/source-panel.css:${line} uses a numeric local z-index`);
 }
 for (const contract of [
   "box-sizing: border-box;",
   "accent-color: var(--color-accent);",
   "overscroll-behavior: contain;",
+  "@media (prefers-contrast: more)",
   "@media (forced-colors: active)",
 ]) {
   if (!sourcePanelStyle.includes(contract)) {
-    violations.push(`src/content/source-panel-style.ts is missing ${contract}`);
+    violations.push(`src/content/source-panel.css is missing ${contract}`);
   }
 }
 for (const match of sourcePanelStyle.matchAll(/#[0-9a-f]{3,8}\b|rgba?\(/gi)) {
@@ -311,9 +329,10 @@ for (const match of sourcePanelStyle.matchAll(/#[0-9a-f]{3,8}\b|rgba?\(/gi)) {
   const lineSource = sourcePanelStyle.slice(lineStart, lineEnd < 0 ? undefined : lineEnd);
   if (/--[\w-]+\s*:/.test(lineSource)) continue;
   const line = sourcePanelStyle.slice(0, match.index).split("\n").length;
-  violations.push(`src/content/source-panel-style.ts:${line} uses a raw component color`);
+  violations.push(`src/content/source-panel.css:${line} uses a raw component color`);
 }
 const sharedSemanticRoles = [
+  "--compact-control-size",
   "--text-xs",
   "--text-base",
   "--text-lg",
@@ -340,12 +359,12 @@ for (const role of sharedSemanticRoles) {
     violations.push(`src/options/style-tokens.css is missing ${role}`);
   }
   if (!sourcePanelStyle.includes(`${role}:`)) {
-    violations.push(`src/content/source-panel-style.ts is missing shared role ${role}`);
+    violations.push(`src/content/source-panel.css is missing shared role ${role}`);
   }
 }
 
 const sourcePanel = fs.readFileSync(sourcePanelPath, "utf8");
-if (!sourcePanel.includes('import { SOURCE_PANEL_CSS } from "./source-panel-style.ts";')) {
+if (!sourcePanel.includes('import SOURCE_PANEL_CSS from "./source-panel.css";')) {
   violations.push("src/content/source-panel.ts must import the owned Page Sources stylesheet");
 }
 if (/style\.textContent\s*=\s*`/.test(sourcePanel)) {

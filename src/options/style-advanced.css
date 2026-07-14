@@ -13,7 +13,7 @@
 
 .advanced-section {
   width: min(var(--content-max-width), 100%);
-  scroll-margin-top: calc(var(--control-height) + var(--space-5));
+  scroll-margin-top: var(--sticky-header-offset);
 }
 
 .advanced-section + .advanced-section {
@@ -395,7 +395,7 @@
 .dev-api-value {
   font-family: var(--font-mono);
   font-size: var(--text-base);
-  word-break: break-all;
+  overflow-wrap: anywhere;
 }
 
 .external-api-details {

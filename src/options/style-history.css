@@ -170,8 +170,8 @@
 .history-open {
   display: inline-grid;
   place-items: center;
-  width: 24px;
-  height: 24px;
+  width: var(--compact-control-size);
+  height: var(--compact-control-size);
   padding: 0;
   margin-inline-start: var(--space-1);
   border: none;

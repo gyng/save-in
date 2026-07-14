@@ -1,8 +1,4 @@
 @container options-panel (max-width: 640px) {
-  .advanced-section {
-    scroll-margin-top: calc(var(--control-height) + var(--space-4));
-  }
-
   .advanced-section-nav {
     column-gap: var(--space-3);
   }

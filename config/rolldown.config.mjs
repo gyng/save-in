@@ -63,6 +63,9 @@ export default defineConfig([
   // private and, unlike esm, emits no top-level `export` statements
   {
     input: "src/content/content.ts",
+    moduleTypes: {
+      ".css": "text",
+    },
     transform: {
       define: {
         SAVE_IN_CONTENT_E2E: JSON.stringify(e2eBuild),

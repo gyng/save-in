@@ -45,7 +45,7 @@
 }
 
 .last-download-value {
-  word-break: break-all;
+  overflow-wrap: anywhere;
 }
 
 .settings-transfer-actions,

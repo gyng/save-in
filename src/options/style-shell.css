@@ -171,7 +171,7 @@ body:not(#settings-page) {
 }
 
 .language-selector select {
-  min-height: 30px;
+  min-height: var(--compact-control-size);
   max-width: 210px;
   padding-block: 2px;
   font-size: var(--text-sm);
@@ -248,7 +248,7 @@ body:not(#settings-page) {
   display: flex;
   align-items: center;
   width: 100%;
-  min-height: 30px;
+  min-height: var(--compact-control-size);
   padding: var(--space-1) var(--space-2);
   border: 0;
   border-radius: var(--radius-sm);

@@ -31,6 +31,13 @@
   --compact-control-size: 32px;
   --compact-row-height: 32px;
   --content-max-width: 760px;
+  --sticky-header-offset: calc(var(--control-height) + var(--space-5));
+
+  /* Motion durations become zero from the accessibility layer. Components
+     keep transitions declarative without maintaining separate media rules. */
+  --motion-duration-fast: 120ms;
+  --motion-duration-quick: 90ms;
+  --motion-duration-instant: 70ms;
 
   /* Stacking contracts. Components choose a semantic role instead of
      escalating arbitrary numbers when overlays meet. */

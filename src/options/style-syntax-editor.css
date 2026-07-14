@@ -13,8 +13,8 @@
   border-radius: var(--radius);
   background: var(--input-background);
   transition:
-    box-shadow 0.12s ease,
-    border-color 0.12s ease;
+    box-shadow var(--motion-duration-fast) ease,
+    border-color var(--motion-duration-fast) ease;
 }
 
 .syntax-editor[hidden] {
@@ -391,7 +391,7 @@ textarea.syntax-editor-input::placeholder {
   gap: 1px;
   width: 100%;
   min-width: 0;
-  min-height: 0;
+  min-height: var(--compact-control-size);
   padding: 6px var(--space-2);
   border: 0;
   border-radius: var(--radius-sm);

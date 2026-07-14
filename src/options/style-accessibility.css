@@ -1,3 +1,35 @@
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-duration-fast: 0ms;
+    --motion-duration-quick: 0ms;
+    --motion-duration-instant: 0ms;
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --color-text-muted: color-mix(in srgb, var(--color-text) 82%, transparent);
+    --color-border: color-mix(in srgb, var(--color-text) 55%, transparent);
+    --color-control-border: color-mix(in srgb, var(--color-text) 75%, transparent);
+  }
+
+  :where(
+    button,
+    input,
+    select,
+    textarea,
+    summary,
+    a,
+    [role="button"],
+    [role="tab"],
+    [tabindex]
+  ):focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+    box-shadow: none;
+  }
+}
+
 @media (forced-colors: active) {
   :where(
     button,
