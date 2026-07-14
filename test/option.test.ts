@@ -329,6 +329,9 @@ describe("OptionsManagement", () => {
       expect(key.validate(true)).toBe(false);
       expect(key.validate(" ")).toBe(false);
       expect(key.validate("12")).toBe(true);
+      expect(key.validate(Number.MAX_SAFE_INTEGER)).toBe(true);
+      expect(key.validate(Number.MAX_SAFE_INTEGER + 1)).toBe(false);
+      expect(key.validate("1e100")).toBe(false);
     });
 
     test("validates locale options and preserves legacy shortcut types on load", () => {
@@ -631,6 +634,20 @@ describe("OptionsManagement", () => {
       expect(resolved.conflictAction).toBe("uniquify");
       expect(resolved.contentClickToSaveButton).toBe("LEFT_CLICK");
       expect(resolved.shortcutType).toBe("HTML_REDIRECT");
+      expect(resolved.notifyDuration).toBe(7000);
+      expect(resolved.truncateLength).toBe(240);
+    });
+
+    test("falls back from whole-number settings outside the safe integer range", async () => {
+      global.browser.storage.local.get = vi.fn(() =>
+        Promise.resolve({
+          notifyDuration: Number.MAX_SAFE_INTEGER + 1,
+          truncateLength: "1e100",
+        }),
+      );
+
+      const resolved = await OptionsManagement.loadOptions();
+
       expect(resolved.notifyDuration).toBe(7000);
       expect(resolved.truncateLength).toBe(240);
     });

@@ -111,12 +111,12 @@ type WidenDefault<Value> = Value extends boolean
 type LoadedOptionValue<Definition extends OptionKey> = RuntimeOptionValue<Definition>;
 
 const normalizeWholeNumber = (value: string | number): number => Math.round(Number(value));
-const isNonnegativeNumber = (value: unknown): value is string | number => {
+const isNonnegativeSafeWholeNumber = (value: unknown): value is string | number => {
   if ((typeof value !== "number" && typeof value !== "string") || String(value).trim() === "") {
     return false;
   }
   const number = Number(value);
-  return Number.isFinite(number) && number >= 0;
+  return number >= 0 && Number.isSafeInteger(Math.round(number));
 };
 
 export const OPTION_KEYS = defineOptions([
@@ -177,7 +177,7 @@ export const OPTION_KEYS = defineOptions([
     type: OPTION_TYPES.VALUE,
     onLoad: normalizeWholeNumber,
     onSave: normalizeWholeNumber,
-    validate: isNonnegativeNumber,
+    validate: isNonnegativeSafeWholeNumber,
     default: OPTION_DEFAULTS.notifyDuration,
   },
   {
@@ -248,7 +248,7 @@ export const OPTION_KEYS = defineOptions([
     type: OPTION_TYPES.VALUE,
     onLoad: normalizeWholeNumber,
     onSave: normalizeWholeNumber,
-    validate: isNonnegativeNumber,
+    validate: isNonnegativeSafeWholeNumber,
     default: OPTION_DEFAULTS.truncateLength,
   },
   {
