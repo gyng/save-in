@@ -74,9 +74,9 @@ download manager. Save In still excludes private activity from its own history,
 restart state, debug log, and webhooks.
 
 Automatic source matching itself does not use Declarative Net Request and does
-not add another permission. Chrome's optional Referer feature may independently
-use a temporary, exact `declarativeNetRequestWithHostAccess` rule while fetching
-protected metadata or content.
+not add another permission. The optional Referer feature may independently use
+a temporary, exact `declarativeNetRequestWithHostAccess` rule while Save In
+fetches protected metadata or content in either browser.
 
 ## Existing settings
 

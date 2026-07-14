@@ -2336,7 +2336,7 @@
   "html_openInFirefoxAddons": { "message": "Ouvrir dans Firefox Add-ons" },
   "html_openInChromeWebStore": { "message": "Ouvrir dans le Chrome Web Store" },
   "html_downloadRequestHeaders": { "message": "En-têtes des requêtes de téléchargement" },
-  "html_temporarilyAddsThePageUrlAsRefererOnChrome": {
-    "message": "Dans Chrome, ajoute temporairement l’URL de la page en tant que Referer aux requêtes Save In exactes lorsqu’un site l’exige."
+  "html_temporarilyAddsThePageUrlAsRefererForExactSaveInRequests": {
+    "message": "Ajoute temporairement l’URL de la page en tant que Referer aux requêtes Save In exactes lorsqu’un site l’exige."
   }
 }

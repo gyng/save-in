@@ -31,11 +31,11 @@ support and makes complex download organization easier while preserving existing
   alt+click saves work reliably on Chrome (thanks @rudolphos, #230)
 - Download notifications and filenames now survive the background
   terminating mid-download (session storage tracking)
-- The "Set Referer header" option uses Firefox's native downloads headers;
-  Chrome does not support it. Empty or invalid filter lines no longer break
-  the context menu (#222). Protected Firefox downloads bypass extension HEAD
-  and Fetch requests so redirects keep the browser's native request context
-  (#193); the preset now also covers MangaDex image hosts (#218).
+- The "Set Referer header" option protects matching metadata and content
+  requests with temporary exact rules in both browsers. Firefox keeps its
+  native direct download when possible; Chrome saves the protected content as
+  a local Blob. Empty or invalid filter lines no longer break the context menu
+  (#222), and the preset now also covers MangaDex image hosts (#218).
 - Click-to-save now falls back to the link under the cursor (respects the
   "links" option), so alt+click on PDF/file links works (#226)
 - Page titles in filenames come from the tab that was clicked, fixing wrong

@@ -2405,7 +2405,7 @@
   "html_openInFirefoxAddons": { "message": "Firefox Add-ons에서 열기" },
   "html_openInChromeWebStore": { "message": "Chrome Web Store에서 열기" },
   "html_downloadRequestHeaders": { "message": "다운로드 요청 헤더" },
-  "html_temporarilyAddsThePageUrlAsRefererOnChrome": {
-    "message": "Chrome에서는 사이트에 필요한 경우 정확히 일치하는 Save In 요청에 페이지 URL을 Referer로 일시적으로 추가합니다."
+  "html_temporarilyAddsThePageUrlAsRefererForExactSaveInRequests": {
+    "message": "사이트에 필요한 경우 정확히 일치하는 Save In 요청에 페이지 URL을 Referer로 일시적으로 추가합니다."
   }
 }

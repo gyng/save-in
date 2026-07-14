@@ -2405,7 +2405,7 @@
   "html_openInFirefoxAddons": { "message": "Firefox Add-ons で開く" },
   "html_openInChromeWebStore": { "message": "Chrome Web Store で開く" },
   "html_downloadRequestHeaders": { "message": "ダウンロードリクエストのヘッダー" },
-  "html_temporarilyAddsThePageUrlAsRefererOnChrome": {
-    "message": "Chrome では、サイトで必要な場合に、対象の Save In リクエストへページ URL を Referer として一時的に追加します。"
+  "html_temporarilyAddsThePageUrlAsRefererForExactSaveInRequests": {
+    "message": "サイトで必要な場合に、対象の Save In リクエストへページ URL を Referer として一時的に追加します。"
   }
 }

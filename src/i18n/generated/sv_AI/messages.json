@@ -2301,7 +2301,7 @@
   "html_openInFirefoxAddons": { "message": "Öppna i Firefox Add-ons" },
   "html_openInChromeWebStore": { "message": "Öppna i Chrome Web Store" },
   "html_downloadRequestHeaders": { "message": "Huvuden för hämtningsbegäranden" },
-  "html_temporarilyAddsThePageUrlAsRefererOnChrome": {
-    "message": "I Chrome läggs sidans URL till tillfälligt som Referer för exakta Save In-begäranden när en webbplats kräver det."
+  "html_temporarilyAddsThePageUrlAsRefererForExactSaveInRequests": {
+    "message": "Sidans URL läggs till tillfälligt som Referer för exakta Save In-begäranden när en webbplats kräver det."
   }
 }

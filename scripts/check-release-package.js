@@ -37,6 +37,10 @@ check(
   "manifest must not request cookie access",
 );
 check(
+  (manifest.permissions || []).includes("declarativeNetRequestWithHostAccess"),
+  "manifest must request scoped request-header access for the Referer feature",
+);
+check(
   JSON.stringify(manifest.commands?.["toggle-source-panel"]?.suggested_key) ===
     JSON.stringify({ default: "Ctrl+Shift+Y", mac: "Command+Shift+Y" }),
   "Page Sources must keep its cross-platform default shortcut",
@@ -224,7 +228,7 @@ for (const fact of [
 }
 check(
   /temporary,\s+exact declarativeNetRequest rule/i.test(docs),
-  "documentation must describe the scoped Chrome Referer path",
+  "documentation must describe the scoped cross-browser Referer path",
 );
 
 const stageRoot = path.join(root, "dist", "bundled-pkg");

@@ -2405,7 +2405,7 @@
   "html_openInFirefoxAddons": { "message": "在 Firefox Add-ons 中開啟" },
   "html_openInChromeWebStore": { "message": "在 Chrome Web Store 中開啟" },
   "html_downloadRequestHeaders": { "message": "下載要求標頭" },
-  "html_temporarilyAddsThePageUrlAsRefererOnChrome": {
-    "message": "在 Chrome 中，網站需要時，會暫時為完全符合的 Save In 要求加入頁面 URL 作為 Referer。"
+  "html_temporarilyAddsThePageUrlAsRefererForExactSaveInRequests": {
+    "message": "網站需要時，會暫時為完全符合的 Save In 要求加入頁面 URL 作為 Referer。"
   }
 }
