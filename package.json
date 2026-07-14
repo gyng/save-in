@@ -29,7 +29,7 @@
     "e2e:firefox:headed": "node scripts/build-bundled.js --mode=e2e && node scripts/with-env.js EXT_DIR=dist/bundled-pkg-e2e -- vitest run --config config/vitest/e2e.mjs e2e/firefox.e2e.mjs",
     "fmt": "oxfmt",
     "fmt:check": "oxfmt --check",
-    "lint": "npm run stage:bundled && npm run lint:staged",
+    "lint": "npm run typecheck && npm run stage:bundled && npm run lint:staged",
     "lint:staged": "npm run check:architecture && npm run check:css && npm run check:i18n && npm run check:reference && npm run check:release-package:staged && web-ext lint --source-dir dist/bundled-pkg -i \"src/**\" && oxlint --report-unused-disable-directives-severity=error && npm run lint:type-aware && oxfmt --check",
     "lint:fix": "oxlint --fix && oxfmt",
     "lint:type-aware": "oxlint --type-aware -A all -D typescript/no-for-in-array -D typescript/no-implied-eval -D typescript/no-meaningless-void-operator",
