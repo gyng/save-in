@@ -72,7 +72,7 @@ export const normalizeHistoryEntry = (value: unknown): HistoryEntry | null => {
   }
   if (
     typeof value.fileSize === "number" &&
-    Number.isFinite(value.fileSize) &&
+    Number.isSafeInteger(value.fileSize) &&
     value.fileSize >= 0
   ) {
     entry.fileSize = value.fileSize;

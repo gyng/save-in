@@ -81,8 +81,21 @@ describe("history normalization", () => {
           downloadId: -1,
           fileSize: -1,
         },
+        {
+          id: "invalid-byte-counts",
+          fileSize: 1.5,
+        },
+        {
+          id: "unsafe-byte-count",
+          fileSize: Number.MAX_SAFE_INTEGER + 1,
+        },
       ]),
-    ).toEqual([{ id: "invalid-shapes" }, { id: "negative-numbers" }]);
+    ).toEqual([
+      { id: "invalid-shapes" },
+      { id: "negative-numbers" },
+      { id: "invalid-byte-counts" },
+      { id: "unsafe-byte-count" },
+    ]);
   });
 
   test("leaves invalid and already-qualified timestamps unchanged", () => {
