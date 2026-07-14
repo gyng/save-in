@@ -98,6 +98,38 @@ describe("history filter controls", () => {
     expect(preset.value).toBe("custom");
   });
 
+  test("summarizes every facet and partial custom date range", () => {
+    const source = document.querySelector<HTMLSelectElement>("#history-source-filter")!;
+    const status = document.querySelector<HTMLSelectElement>("#history-status-filter")!;
+    const preset = document.querySelector<HTMLSelectElement>("#history-date-preset")!;
+    const from = document.querySelector<HTMLInputElement>("#history-date-from")!;
+    const to = document.querySelector<HTMLInputElement>("#history-date-to")!;
+    source.value = "browser";
+    source.dispatchEvent(new Event("change"));
+    status.value = "failed";
+    status.dispatchEvent(new Event("change"));
+    preset.value = "custom";
+    preset.dispatchEvent(new Event("change"));
+    expect(document.querySelector("#history-active-filters")?.textContent).toContain(
+      "Custom date range",
+    );
+
+    from.value = "2024-07-01";
+    from.dispatchEvent(new Event("change"));
+    expect(document.querySelector("#history-active-filters")?.textContent).toContain(
+      "Since 2024-07-01",
+    );
+    from.value = "";
+    from.dispatchEvent(new Event("change"));
+    to.value = "2024-07-12";
+    to.dispatchEvent(new Event("change"));
+
+    const summary = document.querySelector("#history-active-filters")?.textContent;
+    expect(summary).toContain("Browser");
+    expect(summary).toContain("Failed");
+    expect(summary).toContain("Through 2024-07-12");
+  });
+
   test("switches the preset to custom when a date is edited", () => {
     const preset = document.querySelector<HTMLSelectElement>("#history-date-preset")!;
     preset.value = "7-days";
@@ -139,6 +171,34 @@ describe("history filter controls", () => {
     expect(document.querySelectorAll("#history-list th").length).toBeGreaterThan(0);
     expect(document.querySelector("#history-list .history-empty-row")).not.toBeNull();
     expect(historyRuntime.sendMessage).toHaveBeenCalledWith({ type: "HISTORY_GET" });
+  });
+
+  test("reports an empty filtered result and toggles sortable headings", async () => {
+    historyRuntime.entries = [
+      {
+        id: "h-one",
+        initiatedAt: "2024-07-01T00:00:00.000Z",
+        finalFullPath: "photo.png",
+      },
+    ];
+    const { renderHistory } = await import("../src/options/history-panel.ts");
+    await renderHistory();
+    const time = document.querySelector<HTMLTableCellElement>(".history-time-heading")!;
+    time.click();
+    expect(time.isConnected).toBe(false);
+    document.querySelector<HTMLTableCellElement>(".history-time-heading")!.click();
+    const status = document.querySelector<HTMLTableCellElement>(".history-status-heading")!;
+    status.click();
+    document.querySelector<HTMLTableCellElement>(".history-status-heading")!.click();
+    document.querySelector<HTMLTableCellElement>(".history-time-heading")!.click();
+
+    const search = document.querySelector<HTMLInputElement>("#history-filter")!;
+    search.value = "missing";
+    search.dispatchEvent(new Event("input"));
+    expect(document.querySelector("#history-count")?.textContent).toBe("0 of 1 results");
+    expect(document.querySelector(".history-empty-row")?.textContent).toContain(
+      "No history matches",
+    );
   });
 
   test("clears history through the serialized background owner", async () => {
@@ -237,6 +297,25 @@ describe("history filter controls", () => {
     );
   });
 
+  test("explains when show-in-folder is unavailable", async () => {
+    historyRuntime.entries = [
+      { id: "h-complete", status: "complete", downloadId: 42, finalFullPath: "done.png" },
+    ];
+    const { renderHistory } = await import("../src/options/history-panel.ts");
+    const { webExtensionApi } = await import("../src/platform/web-extension-api.ts");
+    const downloads = webExtensionApi.downloads!;
+    const show = downloads.show;
+    Reflect.deleteProperty(downloads, "show");
+    await renderHistory();
+
+    document.querySelector<HTMLButtonElement>('[aria-label="Show in folder"]')!.click();
+
+    expect(document.querySelector("#history-feedback")?.textContent).toContain(
+      "browser no longer knows",
+    );
+    downloads.show = show;
+  });
+
   test("persists column choices and never allows every column to be hidden", async () => {
     const checkboxes = [
       ...document.querySelectorAll<HTMLInputElement>("#history-column-options input"),
@@ -259,6 +338,107 @@ describe("history filter controls", () => {
 
     expect(onlyVisible.checked).toBe(true);
     expect(JSON.parse(localStorage.getItem("si-history-columns")!)).toEqual(["index"]);
+
+    const hidden = [
+      ...document.querySelectorAll<HTMLInputElement>("#history-column-options input"),
+    ].find((checkbox) => !checkbox.checked)!;
+    hidden.click();
+    expect(hidden.checked).toBe(true);
+  });
+
+  test("renders and localizes every optional history column", async () => {
+    const allColumns = [
+      "index",
+      "time",
+      "source",
+      "mechanism",
+      "status",
+      "size",
+      "type",
+      "routed",
+      "file",
+      "folder",
+      "url",
+      "fullPath",
+      "downloadId",
+      "menuItem",
+      "variables",
+    ];
+    localStorage.setItem("si-history-columns", JSON.stringify(allColumns));
+    vi.resetModules();
+    document.body.innerHTML = markup();
+    historyRuntime.entries = [
+      {
+        id: "h-full",
+        status: "complete",
+        initiatedAt: "2024-07-01T00:00:00.000Z",
+        finalFullPath: "folder/photo.png",
+        fileSize: 1234,
+        downloadId: 42,
+        routed: true,
+        mechanism: "fetch-downloads-api",
+        info: { context: "media", sourceUrl: "https://example.test/photo.png" },
+        menu: { title: "Images" },
+        variables: { year: "2024", empty: "" },
+      },
+      { id: "h-null", finalFullPath: "plain.txt" },
+    ];
+    const { renderHistory, setHistoryLocalizer } = await import("../src/options/history-panel.ts");
+    setHistoryLocalizer((key) => (key === "historyColumnSource" ? "Localized source" : ""));
+    await renderHistory();
+
+    expect(document.querySelector(".history-source-heading")?.textContent).toBe("Localized source");
+    expect(document.querySelector(".history-size")?.textContent).toBe("1.2 KB");
+    expect(document.querySelector(".routed-chip")).not.toBeNull();
+    expect(document.querySelector<HTMLAnchorElement>(".history-url a")?.href).toBe(
+      "https://example.test/photo.png",
+    );
+    expect(document.querySelector(".history-full-path")?.textContent).toBe("folder/photo.png");
+    expect(document.querySelector(".history-download-id")?.textContent).toBe("42");
+    expect(document.querySelectorAll(".history-download-id")[1]?.textContent).toBe("");
+    expect(document.querySelector(".history-menu-item")?.textContent).toBe("Images");
+    expect(document.querySelector(".history-variable-list")?.textContent).toContain(":year:2024");
+
+    const sourceOption = [
+      ...document.querySelectorAll<HTMLInputElement>("#history-column-options input"),
+    ].find((checkbox) => !checkbox.checked);
+    sourceOption?.click();
+  });
+
+  test("uses a stored single-column view and pages through large history", async () => {
+    localStorage.setItem("si-history-columns", JSON.stringify(["index"]));
+    vi.resetModules();
+    document.body.innerHTML = markup();
+    historyRuntime.entries = Array.from({ length: 51 }, (_, index) => ({
+      id: `h-${index}`,
+      finalFullPath: `${index}.txt`,
+    }));
+    const { renderHistory } = await import("../src/options/history-panel.ts");
+    await renderHistory();
+    expect(document.querySelectorAll("#history-list td[data-column]")).toHaveLength(50);
+
+    const older = [...document.querySelectorAll<HTMLButtonElement>(".history-pager button")].find(
+      (button) => button.textContent?.includes("Older"),
+    )!;
+    older.click();
+    expect(document.querySelector(".history-pager-label")?.textContent).toBe("Page 2 of 2");
+    const newer = [...document.querySelectorAll<HTMLButtonElement>(".history-pager button")].find(
+      (button) => button.textContent?.includes("Newer"),
+    )!;
+    newer.click();
+    expect(document.querySelector(".history-pager-label")?.textContent).toBe("Page 1 of 2");
+  });
+
+  test("renders without the index column or column option controls", async () => {
+    localStorage.setItem("si-history-columns", JSON.stringify(["file"]));
+    vi.resetModules();
+    document.body.innerHTML = '<div id="history-list"></div><input id="history-date-from">';
+    historyRuntime.entries = [{ id: "h-file", finalFullPath: "only.txt" }];
+    const { renderHistory } = await import("../src/options/history-panel.ts");
+    await renderHistory();
+
+    expect(document.querySelector(".history-index")).toBeNull();
+    expect(document.querySelector(".history-file")?.textContent).toBe("only.txt");
   });
 
   test.each([
@@ -306,5 +486,155 @@ describe("history filter controls", () => {
 
     await vi.advanceTimersByTimeAsync(1000);
     expect(historyRuntime.search).toHaveBeenCalledTimes(callsAfterRemoval);
+  });
+
+  test("re-renders finished progress and contains polling failures", async () => {
+    vi.useFakeTimers();
+    historyRuntime.entries = [
+      { id: "h-pending", status: "pending", downloadId: 7, finalFullPath: "large.iso" },
+    ];
+    historyRuntime.search.mockResolvedValueOnce([
+      { id: null, state: "in_progress" },
+      { id: 7, state: "complete", bytesReceived: 100, totalBytes: 100 },
+    ]);
+    const { renderHistory } = await import("../src/options/history-panel.ts");
+    await renderHistory();
+    await vi.runAllTicks();
+    expect(document.querySelector(".history-progress")).not.toBeNull();
+
+    historyRuntime.search.mockRejectedValueOnce(new Error("downloads unavailable"));
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(historyRuntime.search).toHaveBeenCalledTimes(2);
+  });
+
+  test("contains an immediately rejected progress poll", async () => {
+    vi.useFakeTimers();
+    historyRuntime.entries = [
+      { id: "h-pending", status: "pending", downloadId: 7, finalFullPath: "large.iso" },
+    ];
+    historyRuntime.search.mockRejectedValueOnce(new Error("downloads unavailable"));
+    const { renderHistory } = await import("../src/options/history-panel.ts");
+    await renderHistory();
+    await vi.runAllTicks();
+
+    expect(historyRuntime.search).toHaveBeenCalledOnce();
+  });
+
+  test("stops progress polling when downloads search is unavailable", async () => {
+    vi.useFakeTimers();
+    historyRuntime.entries = [
+      { id: "h-pending", status: "pending", downloadId: 7, finalFullPath: "large.iso" },
+    ];
+    const { renderHistory } = await import("../src/options/history-panel.ts");
+    const { webExtensionApi } = await import("../src/platform/web-extension-api.ts");
+    const downloads = webExtensionApi.downloads!;
+    const search = downloads.search;
+    Reflect.deleteProperty(downloads, "search");
+    await renderHistory();
+    await vi.runAllTicks();
+
+    expect(historyRuntime.search).not.toHaveBeenCalled();
+    downloads.search = search;
+  });
+
+  test("contains invalid history responses", async () => {
+    historyRuntime.sendMessage.mockResolvedValueOnce({ type: "HISTORY_GET", body: {} });
+    const { renderHistory } = await import("../src/options/history-panel.ts");
+
+    await renderHistory();
+
+    expect(document.querySelector("#history-feedback")?.getAttribute("role")).toBe("alert");
+  });
+
+  test("imports safely without history markup or valid stored preferences", async () => {
+    localStorage.setItem("si-history-columns", "not json");
+    vi.resetModules();
+    document.body.innerHTML = "";
+    const { renderHistory } = await import("../src/options/history-panel.ts");
+    await expect(renderHistory()).resolves.toBeUndefined();
+  });
+
+  test("ignores a stored column list with no recognized columns", async () => {
+    localStorage.setItem("si-history-columns", JSON.stringify(["unknown"]));
+    vi.resetModules();
+    document.body.innerHTML = markup();
+    await import("../src/options/history-panel.ts");
+
+    expect(
+      [...document.querySelectorAll<HTMLInputElement>("#history-column-options input")].filter(
+        (checkbox) => checkbox.checked,
+      ).length,
+    ).toBeGreaterThan(1);
+  });
+
+  test("tolerates filter controls removed after their listeners were bound", async () => {
+    const source = document.querySelector<HTMLSelectElement>("#history-source-filter")!;
+    source.value = "browser";
+    source.dispatchEvent(new Event("change"));
+    source.remove();
+    document.querySelector("#history-status-filter")?.remove();
+    document.querySelector("#history-type-filter")?.remove();
+    document.querySelector("#history-date-to")?.remove();
+    document.querySelector("#history-clear-filters")?.remove();
+    document.querySelector("#history-active-filters")?.remove();
+    document.querySelector("#history-custom-date-range")?.remove();
+    document.querySelector("#history-date-error")?.remove();
+    document.querySelector("#history-count")?.remove();
+    const { renderHistory } = await import("../src/options/history-panel.ts");
+
+    await expect(renderHistory()).resolves.toBeUndefined();
+  });
+
+  test("tolerates dependent date and clear controls being removed", () => {
+    const preset = document.querySelector<HTMLSelectElement>("#history-date-preset")!;
+    const from = document.querySelector<HTMLInputElement>("#history-date-from")!;
+    from.remove();
+    document.querySelector("#history-date-to")?.remove();
+    preset.value = "7-days";
+    preset.dispatchEvent(new Event("change"));
+    preset.remove();
+    from.value = "2024-07-01";
+    from.dispatchEvent(new Event("change"));
+
+    document.querySelector("#history-type-filter")?.remove();
+    document.querySelector<HTMLButtonElement>("#history-clear-filters")!.click();
+    expect(document.querySelector("#history-active-filters")?.textContent).toBe("");
+  });
+
+  test("does not clear history when confirmation is declined", () => {
+    vi.spyOn(window, "confirm").mockReturnValue(false);
+    document.querySelector<HTMLButtonElement>("#history-clear")!.click();
+    expect(historyRuntime.sendMessage).not.toHaveBeenCalledWith({ type: "HISTORY_CLEAR" });
+  });
+
+  test("treats a non-OK clear response as a failure", async () => {
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+    historyRuntime.sendMessage.mockResolvedValueOnce({ type: "HISTORY_CLEAR", body: {} });
+    document.querySelector<HTMLButtonElement>("#history-clear")!.click();
+    await vi.waitFor(() =>
+      expect(document.querySelector("#history-feedback")?.textContent).toContain(
+        "Could not clear history",
+      ),
+    );
+  });
+
+  test("retries clearing after the clear button is removed", async () => {
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+    historyRuntime.sendMessage.mockRejectedValue(new Error("storage unavailable"));
+    document.querySelector<HTMLButtonElement>("#history-clear")!.click();
+    await vi.waitFor(() =>
+      expect(document.querySelector("#history-feedback button")).not.toBeNull(),
+    );
+    document.querySelector("#history-clear")?.remove();
+
+    document.querySelector<HTMLButtonElement>("#history-feedback button")!.click();
+
+    await vi.waitFor(() =>
+      expect(
+        historyRuntime.sendMessage.mock.calls.filter(
+          ([message]) => message.type === "HISTORY_CLEAR",
+        ),
+      ).toHaveLength(2),
+    );
   });
 });

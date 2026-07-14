@@ -280,9 +280,7 @@ const renderHistoryTable = () => {
       const th = document.createElement("th");
       th.classList.add(`history-${col.key}-heading`);
       th.textContent = col.label;
-      if (col.width) {
-        th.style.width = col.width;
-      }
+      th.style.width = col.width;
       if (col.sortable) {
         th.classList.add("sortable");
         if (historyState.sort.key === col.key) {
