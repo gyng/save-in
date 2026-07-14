@@ -39,20 +39,56 @@ export const normalizePathHierarchy = (
   return normalized;
 };
 
+const pathSubtreeEnd = (nodes: readonly DirectoryLineNode[], start: number): number => {
+  const root = nodes[start];
+  if (!root) return start;
+  let end = start + 1;
+  while (end < nodes.length) {
+    const node = nodes[end];
+    if (!node || node.depth <= root.depth) break;
+    end += 1;
+  }
+  return end;
+};
+
 export const reorderPathNode = (
   nodes: readonly DirectoryLineNode[],
   from: number,
   destination: number,
 ): DirectoryLineNode[] => {
-  if (from === destination || !nodes[from] || destination < 0 || destination >= nodes.length) {
+  const moved = nodes[from];
+  if (from === destination || !moved || destination < 0 || destination >= nodes.length) {
     return [...nodes];
   }
-  const reordered = [...nodes];
-  const [moved] = reordered.splice(from, 1);
-  /* v8 ignore next -- The range guard guarantees an item at from. */
-  if (!moved) return reordered;
-  reordered.splice(destination, 0, moved);
-  return normalizePathHierarchy(reordered);
+  const sourceEnd = pathSubtreeEnd(nodes, from);
+  const source = nodes.slice(from, sourceEnd);
+  if (destination > from) {
+    // An adjacent destination can be inside the selected parent's subtree;
+    // skip past it so moving the parent never silently reparents its children.
+    const targetStart = Math.max(destination, sourceEnd);
+    if (targetStart >= nodes.length) return [...nodes];
+    const targetEnd = pathSubtreeEnd(nodes, targetStart);
+    return normalizePathHierarchy([
+      ...nodes.slice(0, from),
+      ...nodes.slice(sourceEnd, targetEnd),
+      ...source,
+      ...nodes.slice(targetEnd),
+    ]);
+  }
+
+  const sourceDepth = moved.depth;
+  let targetStart = destination;
+  while (targetStart > 0) {
+    const target = nodes[targetStart];
+    if (!target || target.depth <= sourceDepth) break;
+    targetStart -= 1;
+  }
+  return normalizePathHierarchy([
+    ...nodes.slice(0, targetStart),
+    ...source,
+    ...nodes.slice(targetStart, from),
+    ...nodes.slice(sourceEnd),
+  ]);
 };
 
 export const dropPathNode = (
@@ -65,20 +101,20 @@ export const dropPathNode = (
   const moved = nodes[from];
   if (!target || !moved || from === targetIndex) return [...nodes];
 
-  const reordered = [...nodes];
-  reordered.splice(from, 1);
-  const adjustedTarget = from < targetIndex ? targetIndex - 1 : targetIndex;
+  const sourceEnd = pathSubtreeEnd(nodes, from);
+  if (targetIndex > from && targetIndex < sourceEnd) return [...nodes];
+  const source = nodes.slice(from, sourceEnd);
+
+  const reordered = [...nodes.slice(0, from), ...nodes.slice(sourceEnd)];
   const currentTargetIndex = reordered.indexOf(target);
-  const destination =
-    placement === "inside"
-      ? currentTargetIndex + 1
-      : adjustedTarget + (placement === "after" ? 1 : 0);
+  const destination = placement === "inside" ? currentTargetIndex + 1 : currentTargetIndex;
+  const insertAt = placement === "after" ? pathSubtreeEnd(reordered, destination) : destination;
+  const destinationDepth = placement === "inside" ? target.depth + 1 : target.depth;
+  const depthOffset = destinationDepth - moved.depth;
   reordered.splice(
-    destination,
+    insertAt,
     0,
-    updateDirectoryLine(moved, {
-      depth: placement === "inside" ? target.depth + 1 : target.depth,
-    }),
+    ...source.map((node) => updateDirectoryLine(node, { depth: node.depth + depthOffset })),
   );
   return normalizePathHierarchy(reordered);
 };

@@ -381,10 +381,10 @@ describe("visual editor", () => {
 
   test("move controls reorder rows in both directions", () => {
     controls(0, "move down").click();
-    expect(textarea().value).toBe("b // (alias: B)\na\n---");
+    expect(textarea().value).toBe("---\na\n>b // (alias: B)");
 
     controls(1, "move up").click();
-    expect(textarea().value).toBe("a\nb // (alias: B)\n---");
+    expect(textarea().value).toBe("a\n>b // (alias: B)\n---");
   });
 
   test("contains stale row controls and same-row drops after a rebuild", () => {

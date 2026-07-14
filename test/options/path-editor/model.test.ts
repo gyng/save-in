@@ -99,7 +99,7 @@ describe("path editor model", () => {
       "inside",
       "group\n>child\n>>grandchild\n>>>sibling",
     ],
-    ["parent\n>child\nsibling", 0, 2, "after", "child\nsibling\nparent"],
+    ["parent\n>child\nsibling", 0, 2, "after", "sibling\nparent\n>child"],
   ] as const)(
     "moves path rows without producing invalid hierarchy %#",
     (text, from, target, placement, expected) => {
@@ -109,6 +109,7 @@ describe("path editor model", () => {
 
   test("treats invalid and same-row moves as no-ops", () => {
     expect(edit("a\nb\nc", (nodes) => dropPathNode(nodes, 1, 1, "inside"))).toBe("a\nb\nc");
+    expect(edit("a\n>b\nc", (nodes) => dropPathNode(nodes, 0, 1, "inside"))).toBe("a\n>b\nc");
     expect(edit("a\nb\nc", (nodes) => reorderPathNode(nodes, 0, -1))).toBe("a\nb\nc");
     expect(edit("a\nb\nc", (nodes) => deletePathNode(nodes, 9))).toBe("a\nb\nc");
   });
@@ -118,5 +119,23 @@ describe("path editor model", () => {
     expect(edit("parent\n>child\n>>grandchild\nsibling", (nodes) => deletePathNode(nodes, 0))).toBe(
       "child\n>grandchild\nsibling",
     );
+  });
+
+  test.each([
+    [
+      "downloads\nprojects\n>client-assets\narchive",
+      0,
+      1,
+      "projects\n>client-assets\ndownloads\narchive",
+    ],
+    ["parent\n>child\n>>grandchild\nsibling", 0, 1, "sibling\nparent\n>child\n>>grandchild"],
+    [
+      "projects\n>client-assets\ndownloads\narchive",
+      2,
+      1,
+      "downloads\nprojects\n>client-assets\narchive",
+    ],
+  ])("moves a parent with its descendants %#", (text, from, destination, expected) => {
+    expect(edit(text, (nodes) => reorderPathNode(nodes, from, destination))).toBe(expected);
   });
 });
