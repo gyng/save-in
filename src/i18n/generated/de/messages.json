@@ -18,11 +18,11 @@
   "html_matchesTheMimeContentType": {
     "message": "Stimmt mit dem ermittelten MIME Content-Type überein. Save In kann Server-Header anfordern."
   },
-  "html_matchesTheReferrerHostname": {
-    "message": "Stimmt mit dem Hostnamen der verweisenden Seite überein, wenn der Browser ihn bereitstellt."
+  "html_referrerDomainMatcherDescription": {
+    "message": "Entspricht dem Referrer-Hostnamen; andernfalls wird der Seiten-Hostname verwendet."
   },
-  "html_matchesTheReferrerUrl": {
-    "message": "Stimmt mit der URL der verweisenden Seite überein, wenn der Browser sie bereitstellt."
+  "html_referrerUrlMatcherDescription": {
+    "message": "Entspricht der Referrer-URL; andernfalls wird die Seiten-URL verwendet."
   },
   "html_matchesTheRootHostname": {
     "message": "Stimmt mit dem Hostnamen ohne Subdomains überein."
@@ -1424,9 +1424,6 @@
   "html_amOrPmLocalTime": {
     "message": "am oder pm (Ortszeit)"
   },
-  "html_attributeOfElement": {
-    "message": "Attribut des Elements"
-  },
   "html_currentDate": {
     "message": "Aktuelles Datum"
   },
@@ -1490,8 +1487,8 @@
   "html_standard": {
     "message": "Standard"
   },
-  "html_textOfTheLinkOr": {
-    "message": "Text des Links oder"
+  "html_linkTextVariableDescription": {
+    "message": "Linktext, sofern vom Browser bereitgestellt; beim Speichern von Tabs wird der Tabtitel verwendet."
   },
   "html_theCurrentlySelectedTextOnThePage": {
     "message": "Der aktuell ausgewählte Text auf der Seite"
@@ -1583,17 +1580,11 @@
   "html_whenBothVariablesAreUsed": {
     "message": "wenn beide Variablen verwendet werden."
   },
-  "html_attribute": {
-    "message": "des Elements."
-  },
   "html_clausesAreOnlyUsedInRuleDefinitionsForRouting": {
     "message": "Routing-Regeln verwenden Klauseln, um zu entscheiden, welche Downloads verschoben oder umbenannt werden sollen."
   },
   "html_templatesProvideReadyMadeRoutingRulesYouCanAddAndCustomize": {
     "message": "Vorlagen enthalten vorgefertigte Routing-Regeln, die Sie hinzufügen und anpassen können."
-  },
-  "html_firefox": {
-    "message": "(nur Firefox)."
   },
   "html_forCaseInsensitiveMatching": {
     "message": "für den Vergleich ohne Berücksichtigung der Groß-/Kleinschreibung."
@@ -1619,8 +1610,8 @@
   "html_matchesTheFinalFilename": {
     "message": "Entspricht dem endgültigen Dateinamen."
   },
-  "html_matchesTheLinkTextOrElement": {
-    "message": "Entspricht dem Linktext oder dem Attribut"
+  "html_linkTextMatcherDescription": {
+    "message": "Entspricht dem Linktext, sofern vom Browser bereitgestellt; beim Speichern von Tabs wird der Tabtitel verwendet."
   },
   "html_matchesTheMediaType": {
     "message": "Entspricht dem Medientyp:"
@@ -1634,17 +1625,17 @@
   "html_matchesThePageHostname": {
     "message": "Entspricht dem Hostnamen der Seite."
   },
-  "html_matchesTheResolvedFilenameExtensionAfterContentDisposition": {
-    "message": "Entspricht der aufgelösten Dateinamenerweiterung, einschließlich Content-Disposition."
+  "html_actualFileExtensionMatcherDescription": {
+    "message": "Entspricht der ermittelten Erweiterung aus Dateiname oder MIME-Typ."
   },
   "html_matchesTheSelectionText": {
     "message": "Entspricht dem ausgewählten Text."
   },
-  "html_matchesTheSourceHostnameForMedia": {
-    "message": "Entspricht dem Hostnamen der Medienquelle."
+  "html_sourceDomainMatcherDescription": {
+    "message": "Entspricht dem Hostnamen der gespeicherten Quelle."
   },
-  "html_matchesTheSourceUrlForMedia": {
-    "message": "Entspricht der Medienquellen-URL."
+  "html_sourceUrlMatcherDescription": {
+    "message": "Entspricht der URL der gespeicherten Quelle."
   },
   "html_matchesTheUrlDerivedExtensionLegacyNameUse": {
     "message": "Entspricht der von der URL abgeleiteten Erweiterung (veralteter Name). Verwenden Sie"
@@ -1652,8 +1643,8 @@
   "html_matchesTheUrlOfTheCurrentFrame": {
     "message": "Entspricht der aktuellen Frame-URL."
   },
-  "html_matchesWhatIsClicked": {
-    "message": "Entspricht dem, was angeklickt wurde:"
+  "html_contextMatcherDescription": {
+    "message": "Entspricht dem Start des Speichervorgangs: media, link, selection, page, click, auto, browser oder tab. Das Speichern von Tabs erfordert Firefox oder Chrome 150+."
   },
   "html_or": {
     "message": ", oder"

@@ -18,11 +18,11 @@
   "html_matchesTheMimeContentType": {
     "message": "解決済みの MIME Content-Type と照合します。Save In がサーバーヘッダーを要求する場合があります。"
   },
-  "html_matchesTheReferrerHostname": {
-    "message": "ブラウザーから提供された場合、参照元ページのホスト名と照合します。"
+  "html_referrerDomainMatcherDescription": {
+    "message": "参照元のホスト名と一致します。ない場合はページのホスト名を使用します。"
   },
-  "html_matchesTheReferrerUrl": {
-    "message": "ブラウザーから提供された場合、参照元ページの URL と照合します。"
+  "html_referrerUrlMatcherDescription": {
+    "message": "参照元の URL と一致します。ない場合はページの URL を使用します。"
   },
   "html_matchesTheRootHostname": {
     "message": "サブドメインを除いたホスト名と照合します。"
@@ -1321,9 +1321,6 @@
   "html_amOrPmLocalTime": {
     "message": "午前または午後 (現地時間)"
   },
-  "html_attributeOfElement": {
-    "message": "要素の属性"
-  },
   "html_currentDate": {
     "message": "現在の日付"
   },
@@ -1387,8 +1384,8 @@
   "html_standard": {
     "message": "標準"
   },
-  "html_textOfTheLinkOr": {
-    "message": "リンクのテキスト、または"
+  "html_linkTextVariableDescription": {
+    "message": "ブラウザーから提供される場合のリンクテキスト。タブの保存ではタブのタイトルが使用されます。"
   },
   "html_theCurrentlySelectedTextOnThePage": {
     "message": "ページ上で現在選択されているテキスト"
@@ -1480,17 +1477,11 @@
   "html_whenBothVariablesAreUsed": {
     "message": "両方の変数が使用される場合。"
   },
-  "html_attribute": {
-    "message": "属性に一致します。"
-  },
   "html_clausesAreOnlyUsedInRuleDefinitionsForRouting": {
     "message": "ルーティング ルールは、句を使用して、どのダウンロードを移動または名前変更するかを決定します。"
   },
   "html_templatesProvideReadyMadeRoutingRulesYouCanAddAndCustomize": {
     "message": "テンプレートには、追加してカスタマイズできる既製のルーティング ルールが用意されています。"
-  },
-  "html_firefox": {
-    "message": "(Firefoxのみ)。"
   },
   "html_forCaseInsensitiveMatching": {
     "message": "大文字と小文字を区別しないマッチングの場合。"
@@ -1516,8 +1507,8 @@
   "html_matchesTheFinalFilename": {
     "message": "最終的なファイル名と一致します。"
   },
-  "html_matchesTheLinkTextOrElement": {
-    "message": "リンクテキストまたは要素の"
+  "html_linkTextMatcherDescription": {
+    "message": "ブラウザーから提供されるリンクテキストと一致します。タブの保存ではタブのタイトルが使用されます。"
   },
   "html_matchesTheMediaType": {
     "message": "メディア タイプと一致します:"
@@ -1531,17 +1522,17 @@
   "html_matchesThePageHostname": {
     "message": "ページのホスト名と一致します。"
   },
-  "html_matchesTheResolvedFilenameExtensionAfterContentDisposition": {
-    "message": "Content-Disposition など、解決されたファイル名拡張子と一致します。"
+  "html_actualFileExtensionMatcherDescription": {
+    "message": "ファイル名または MIME タイプから解決された拡張子と一致します。"
   },
   "html_matchesTheSelectionText": {
     "message": "選択したテキストと一致します。"
   },
-  "html_matchesTheSourceHostnameForMedia": {
-    "message": "メディア ソースのホスト名と一致します。"
+  "html_sourceDomainMatcherDescription": {
+    "message": "保存対象ソースのホスト名と一致します。"
   },
-  "html_matchesTheSourceUrlForMedia": {
-    "message": "メディア ソース URL と一致します。"
+  "html_sourceUrlMatcherDescription": {
+    "message": "保存対象ソースの URL と一致します。"
   },
   "html_matchesTheUrlDerivedExtensionLegacyNameUse": {
     "message": "URL 由来の拡張子 (従来の名前) と一致します。使用する"
@@ -1549,8 +1540,8 @@
   "html_matchesTheUrlOfTheCurrentFrame": {
     "message": "現在のフレーム URL と一致します。"
   },
-  "html_matchesWhatIsClicked": {
-    "message": "クリックされた内容と一致します:"
+  "html_contextMatcherDescription": {
+    "message": "保存の開始方法と一致します: media、link、selection、page、click、auto、browser、または tab。タブの保存には Firefox または Chrome 150 以降が必要です。"
   },
   "html_or": {
     "message": "、または"

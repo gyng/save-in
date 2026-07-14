@@ -519,10 +519,6 @@
     "message": "am or pm (local time)",
     "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
-  "html_attributeOfElement": {
-    "message": "attribute of element",
-    "description": "Text in the filename-variable reference. Used in src/options/options.html."
-  },
   "html_currentDate": {
     "message": "Current date",
     "description": "Text in the filename-variable reference. Used in src/options/options.html."
@@ -607,9 +603,9 @@
     "message": "Standard",
     "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
-  "html_textOfTheLinkOr": {
-    "message": "Text of the link, or",
-    "description": "Text in the filename-variable reference. Used in src/options/options.html."
+  "html_linkTextVariableDescription": {
+    "message": "Link text when the browser provides it; tab saves use the tab title.",
+    "description": "Description of the link-text filename variable, including its availability and tab-save fallback. Used in src/options/options.html."
   },
   "html_theCurrentlySelectedTextOnThePage": {
     "message": "The currently selected text on the page",
@@ -731,10 +727,6 @@
     "message": "when both variables are used.",
     "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
-  "html_attribute": {
-    "message": "attribute.",
-    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
-  },
   "html_clausesAreOnlyUsedInRuleDefinitionsForRouting": {
     "message": "Routing rules use clauses to decide which downloads to move or rename.",
     "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
@@ -742,10 +734,6 @@
   "html_templatesProvideReadyMadeRoutingRulesYouCanAddAndCustomize": {
     "message": "Templates provide ready-made routing rules you can add and customize.",
     "description": "Help text above the template library in the reference dialog. Used in src/options/options.html."
-  },
-  "html_firefox": {
-    "message": "(Firefox only).",
-    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_forCaseInsensitiveMatching": {
     "message": "for case-insensitive matching.",
@@ -779,9 +767,9 @@
     "message": "Matches the final filename.",
     "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
   },
-  "html_matchesTheLinkTextOrElement": {
-    "message": "Matches the link text or the element's",
-    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
+  "html_linkTextMatcherDescription": {
+    "message": "Matches link text when the browser provides it; tab saves use the tab title.",
+    "description": "Description of the linktext routing matcher, including its availability and tab-save fallback. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_matchesTheMediaType": {
     "message": "Matches the media type:",
@@ -803,33 +791,33 @@
     "message": "Matches the page hostname.",
     "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
   },
-  "html_matchesTheReferrerHostname": {
-    "message": "Matches the referring page hostname when the browser provides it.",
-    "description": "Referrer-domain matcher guidance in the routing-clause reference. Used in src/options/clauselist.html."
+  "html_referrerDomainMatcherDescription": {
+    "message": "Matches the referrer hostname, falling back to the page hostname.",
+    "description": "Description of the referrerdomain routing matcher and its page-hostname fallback. Used in src/options/clauselist.html and src/options/options.html."
   },
-  "html_matchesTheReferrerUrl": {
-    "message": "Matches the referring page URL when the browser provides it.",
-    "description": "Referrer-URL matcher guidance in the routing-clause reference. Used in src/options/clauselist.html."
+  "html_referrerUrlMatcherDescription": {
+    "message": "Matches the referrer URL, falling back to the page URL.",
+    "description": "Description of the referrerurl routing matcher and its page-URL fallback. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_matchesTheRootHostname": {
     "message": "Matches the hostname without subdomains.",
     "description": "Root-domain matcher guidance in the routing-clause reference. Used in src/options/clauselist.html."
   },
-  "html_matchesTheResolvedFilenameExtensionAfterContentDisposition": {
-    "message": "Matches the resolved filename extension, including Content-Disposition.",
-    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
+  "html_actualFileExtensionMatcherDescription": {
+    "message": "Matches the resolved extension from the filename or MIME type.",
+    "description": "Description of the actualfileext routing matcher and its MIME-derived fallback. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_matchesTheSelectionText": {
     "message": "Matches the selected text.",
     "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
   },
-  "html_matchesTheSourceHostnameForMedia": {
-    "message": "Matches the media source hostname.",
-    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
+  "html_sourceDomainMatcherDescription": {
+    "message": "Matches the saved source hostname.",
+    "description": "Description of the sourcedomain routing matcher. Used in src/options/clauselist.html and src/options/options.html."
   },
-  "html_matchesTheSourceUrlForMedia": {
-    "message": "Matches the media source URL.",
-    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
+  "html_sourceUrlMatcherDescription": {
+    "message": "Matches the saved source URL.",
+    "description": "Description of the sourceurl routing matcher. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_matchesTheUrlDerivedExtensionLegacyNameUse": {
     "message": "Matches the URL-derived extension (legacy name). Use",
@@ -839,9 +827,9 @@
     "message": "Matches the current frame URL.",
     "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
   },
-  "html_matchesWhatIsClicked": {
-    "message": "Matches what was clicked:",
-    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
+  "html_contextMatcherDescription": {
+    "message": "Matches how the save started: media, link, selection, page, click, auto, browser, or tab. Tab saves require Firefox or Chrome 150+.",
+    "description": "Description of the cross-browser context routing matcher, its values, and tab-save browser requirement. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_or": {
     "message": ", or",

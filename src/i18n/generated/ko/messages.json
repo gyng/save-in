@@ -18,11 +18,11 @@
   "html_matchesTheMimeContentType": {
     "message": "확인된 MIME Content-Type과 일치시킵니다. Save In이 서버 헤더를 요청할 수 있습니다."
   },
-  "html_matchesTheReferrerHostname": {
-    "message": "브라우저에서 제공하는 경우 참조 페이지의 호스트 이름과 일치시킵니다."
+  "html_referrerDomainMatcherDescription": {
+    "message": "리퍼러 호스트 이름과 일치하며, 없으면 페이지 호스트 이름을 사용합니다."
   },
-  "html_matchesTheReferrerUrl": {
-    "message": "브라우저에서 제공하는 경우 참조 페이지의 URL과 일치시킵니다."
+  "html_referrerUrlMatcherDescription": {
+    "message": "리퍼러 URL과 일치하며, 없으면 페이지 URL을 사용합니다."
   },
   "html_matchesTheRootHostname": {
     "message": "하위 도메인을 제외한 호스트 이름과 일치시킵니다."
@@ -1321,9 +1321,6 @@
   "html_amOrPmLocalTime": {
     "message": "오전 또는 오후(현지 시간)"
   },
-  "html_attributeOfElement": {
-    "message": "요소의 속성"
-  },
   "html_currentDate": {
     "message": "현재 날짜"
   },
@@ -1387,8 +1384,8 @@
   "html_standard": {
     "message": "표준"
   },
-  "html_textOfTheLinkOr": {
-    "message": "링크 텍스트 또는"
+  "html_linkTextVariableDescription": {
+    "message": "브라우저에서 제공하는 링크 텍스트입니다. 탭 저장에는 탭 제목을 사용합니다."
   },
   "html_theCurrentlySelectedTextOnThePage": {
     "message": "페이지에서 현재 선택된 텍스트"
@@ -1480,17 +1477,11 @@
   "html_whenBothVariablesAreUsed": {
     "message": "변수를 함께 사용하면 두 값이 동시에 계산됩니다."
   },
-  "html_attribute": {
-    "message": "속성과 일치합니다."
-  },
   "html_clausesAreOnlyUsedInRuleDefinitionsForRouting": {
     "message": "라우팅 규칙은 절을 사용하여 이동하거나 이름을 바꿀 다운로드를 결정합니다."
   },
   "html_templatesProvideReadyMadeRoutingRulesYouCanAddAndCustomize": {
     "message": "템플릿은 추가하고 맞춤 설정할 수 있는 미리 만들어진 라우팅 규칙을 제공합니다."
-  },
-  "html_firefox": {
-    "message": "(Firefox에만 해당)."
   },
   "html_forCaseInsensitiveMatching": {
     "message": "대소문자를 구분하지 않는 일치를 위해."
@@ -1516,8 +1507,8 @@
   "html_matchesTheFinalFilename": {
     "message": "최종 파일 이름과 일치합니다."
   },
-  "html_matchesTheLinkTextOrElement": {
-    "message": "링크 텍스트 또는 요소의"
+  "html_linkTextMatcherDescription": {
+    "message": "브라우저에서 제공하는 링크 텍스트와 일치합니다. 탭 저장에는 탭 제목을 사용합니다."
   },
   "html_matchesTheMediaType": {
     "message": "미디어 유형과 일치합니다:"
@@ -1531,17 +1522,17 @@
   "html_matchesThePageHostname": {
     "message": "페이지 호스트 이름과 일치합니다."
   },
-  "html_matchesTheResolvedFilenameExtensionAfterContentDisposition": {
-    "message": "Content-Disposition를 포함하여 확인된 파일 이름 확장자와 일치합니다."
+  "html_actualFileExtensionMatcherDescription": {
+    "message": "파일 이름 또는 MIME 형식에서 확인된 확장자와 일치합니다."
   },
   "html_matchesTheSelectionText": {
     "message": "선택한 텍스트와 일치합니다."
   },
-  "html_matchesTheSourceHostnameForMedia": {
-    "message": "미디어 소스 호스트 이름과 일치합니다."
+  "html_sourceDomainMatcherDescription": {
+    "message": "저장할 소스의 호스트 이름과 일치합니다."
   },
-  "html_matchesTheSourceUrlForMedia": {
-    "message": "미디어 소스 URL과 일치합니다."
+  "html_sourceUrlMatcherDescription": {
+    "message": "저장할 소스의 URL과 일치합니다."
   },
   "html_matchesTheUrlDerivedExtensionLegacyNameUse": {
     "message": "URL에서 파생된 확장자와 일치합니다(이전 이름). 새 규칙에서는"
@@ -1549,8 +1540,8 @@
   "html_matchesTheUrlOfTheCurrentFrame": {
     "message": "현재 프레임 URL과 일치합니다."
   },
-  "html_matchesWhatIsClicked": {
-    "message": "클릭한 것과 일치합니다:"
+  "html_contextMatcherDescription": {
+    "message": "저장이 시작된 방식과 일치합니다: media, link, selection, page, click, auto, browser 또는 tab. 탭 저장에는 Firefox 또는 Chrome 150 이상이 필요합니다."
   },
   "html_or": {
     "message": ", 또는"

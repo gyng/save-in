@@ -18,11 +18,11 @@
   "html_matchesTheMimeContentType": {
     "message": "符合解析後的 MIME Content-Type。Save In 可能會要求伺服器標頭。"
   },
-  "html_matchesTheReferrerHostname": {
-    "message": "瀏覽器提供參照頁面的主機名稱時進行比對。"
+  "html_referrerDomainMatcherDescription": {
+    "message": "比對參照來源的主機名稱；若無，則使用頁面主機名稱。"
   },
-  "html_matchesTheReferrerUrl": {
-    "message": "瀏覽器提供參照頁面的 URL 時進行比對。"
+  "html_referrerUrlMatcherDescription": {
+    "message": "比對參照來源 URL；若無，則使用頁面 URL。"
   },
   "html_matchesTheRootHostname": {
     "message": "符合不含子網域的主機名稱。"
@@ -1321,9 +1321,6 @@
   "html_amOrPmLocalTime": {
     "message": "上午或下午（當地時間）"
   },
-  "html_attributeOfElement": {
-    "message": "元素的屬性"
-  },
   "html_currentDate": {
     "message": "目前日期"
   },
@@ -1387,8 +1384,8 @@
   "html_standard": {
     "message": "標準型"
   },
-  "html_textOfTheLinkOr": {
-    "message": "連結文字，或"
+  "html_linkTextVariableDescription": {
+    "message": "瀏覽器提供的連結文字；儲存分頁時使用分頁標題。"
   },
   "html_theCurrentlySelectedTextOnThePage": {
     "message": "頁面上目前選取的文字"
@@ -1480,17 +1477,11 @@
   "html_whenBothVariablesAreUsed": {
     "message": "一併計算。"
   },
-  "html_attribute": {
-    "message": "屬性。"
-  },
   "html_clausesAreOnlyUsedInRuleDefinitionsForRouting": {
     "message": "路由規則使用子句來決定要移動或重新命名哪些下載。"
   },
   "html_templatesProvideReadyMadeRoutingRulesYouCanAddAndCustomize": {
     "message": "範本提供可新增及自訂的現成路由規則。"
-  },
-  "html_firefox": {
-    "message": "（僅限 Firefox）。"
   },
   "html_forCaseInsensitiveMatching": {
     "message": "以進行不區分大小寫的比對。"
@@ -1516,8 +1507,8 @@
   "html_matchesTheFinalFilename": {
     "message": "比對最終檔名。"
   },
-  "html_matchesTheLinkTextOrElement": {
-    "message": "比對連結文字或元素的"
+  "html_linkTextMatcherDescription": {
+    "message": "比對瀏覽器提供的連結文字；儲存分頁時使用分頁標題。"
   },
   "html_matchesTheMediaType": {
     "message": "比對媒體類型："
@@ -1531,17 +1522,17 @@
   "html_matchesThePageHostname": {
     "message": "符合頁面主機名稱。"
   },
-  "html_matchesTheResolvedFilenameExtensionAfterContentDisposition": {
-    "message": "比對解析後的副檔名，包含 Content-Disposition。"
+  "html_actualFileExtensionMatcherDescription": {
+    "message": "比對從檔案名稱或 MIME 類型解析出的副檔名。"
   },
   "html_matchesTheSelectionText": {
     "message": "比對選取的文字。"
   },
-  "html_matchesTheSourceHostnameForMedia": {
-    "message": "符合媒體來源主機名稱。"
+  "html_sourceDomainMatcherDescription": {
+    "message": "比對所儲存來源的主機名稱。"
   },
-  "html_matchesTheSourceUrlForMedia": {
-    "message": "比對媒體來源 URL。"
+  "html_sourceUrlMatcherDescription": {
+    "message": "比對所儲存來源的 URL。"
   },
   "html_matchesTheUrlDerivedExtensionLegacyNameUse": {
     "message": "符合源自 URL 的副檔名（舊名稱）。使用"
@@ -1549,8 +1540,8 @@
   "html_matchesTheUrlOfTheCurrentFrame": {
     "message": "符合目前框架 URL。"
   },
-  "html_matchesWhatIsClicked": {
-    "message": "比對點選的內容："
+  "html_contextMatcherDescription": {
+    "message": "比對儲存的啟動方式：media、link、selection、page、click、auto、browser 或 tab。儲存分頁需要 Firefox 或 Chrome 150+。"
   },
   "html_or": {
     "message": ", 或"

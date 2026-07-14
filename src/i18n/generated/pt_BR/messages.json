@@ -18,11 +18,11 @@
   "html_matchesTheMimeContentType": {
     "message": "Corresponde ao MIME Content-Type determinado. O Save In pode solicitar os cabeçalhos do servidor."
   },
-  "html_matchesTheReferrerHostname": {
-    "message": "Corresponde ao nome do host da página de referência quando fornecido pelo navegador."
+  "html_referrerDomainMatcherDescription": {
+    "message": "Corresponde ao nome do host de referência; se ausente, usa o nome do host da página."
   },
-  "html_matchesTheReferrerUrl": {
-    "message": "Corresponde à URL da página de referência quando fornecida pelo navegador."
+  "html_referrerUrlMatcherDescription": {
+    "message": "Corresponde à URL de referência; se ausente, usa a URL da página."
   },
   "html_matchesTheRootHostname": {
     "message": "Corresponde ao nome do host sem subdomínios."
@@ -1424,9 +1424,6 @@
   "html_amOrPmLocalTime": {
     "message": "am ou pm (horário local)"
   },
-  "html_attributeOfElement": {
-    "message": "atributo do elemento"
-  },
   "html_currentDate": {
     "message": "Data atual"
   },
@@ -1490,8 +1487,8 @@
   "html_standard": {
     "message": "Padrão"
   },
-  "html_textOfTheLinkOr": {
-    "message": "Texto do link ou"
+  "html_linkTextVariableDescription": {
+    "message": "Texto do link quando fornecido pelo navegador; ao salvar abas, o título da aba é usado."
   },
   "html_theCurrentlySelectedTextOnThePage": {
     "message": "O texto atualmente selecionado na página"
@@ -1583,17 +1580,11 @@
   "html_whenBothVariablesAreUsed": {
     "message": "quando ambas as variáveis são usadas."
   },
-  "html_attribute": {
-    "message": "do elemento."
-  },
   "html_clausesAreOnlyUsedInRuleDefinitionsForRouting": {
     "message": "As regras de roteamento usam cláusulas para decidir quais downloads serão movidos ou renomeados."
   },
   "html_templatesProvideReadyMadeRoutingRulesYouCanAddAndCustomize": {
     "message": "Os modelos oferecem regras de roteamento prontas para adicionar e personalizar."
-  },
-  "html_firefox": {
-    "message": "(somente Firefox)."
   },
   "html_forCaseInsensitiveMatching": {
     "message": "para correspondência sem distinção entre maiúsculas e minúsculas."
@@ -1619,8 +1610,8 @@
   "html_matchesTheFinalFilename": {
     "message": "Corresponde ao nome do arquivo final."
   },
-  "html_matchesTheLinkTextOrElement": {
-    "message": "Corresponde ao texto do link ou ao atributo"
+  "html_linkTextMatcherDescription": {
+    "message": "Corresponde ao texto do link quando fornecido pelo navegador; ao salvar abas, o título da aba é usado."
   },
   "html_matchesTheMediaType": {
     "message": "Corresponde ao tipo de mídia:"
@@ -1634,17 +1625,17 @@
   "html_matchesThePageHostname": {
     "message": "Corresponde ao nome do host da página."
   },
-  "html_matchesTheResolvedFilenameExtensionAfterContentDisposition": {
-    "message": "Corresponde à extensão de nome de arquivo resolvida, incluindo Content-Disposition."
+  "html_actualFileExtensionMatcherDescription": {
+    "message": "Corresponde à extensão resolvida a partir do nome do arquivo ou do tipo MIME."
   },
   "html_matchesTheSelectionText": {
     "message": "Corresponde ao texto selecionado."
   },
-  "html_matchesTheSourceHostnameForMedia": {
-    "message": "Corresponde ao nome do host da fonte de mídia."
+  "html_sourceDomainMatcherDescription": {
+    "message": "Corresponde ao nome do host da fonte salva."
   },
-  "html_matchesTheSourceUrlForMedia": {
-    "message": "Corresponde ao URL da fonte de mídia."
+  "html_sourceUrlMatcherDescription": {
+    "message": "Corresponde à URL da fonte salva."
   },
   "html_matchesTheUrlDerivedExtensionLegacyNameUse": {
     "message": "Corresponde à extensão derivada de URL (nome legado). Use"
@@ -1652,8 +1643,8 @@
   "html_matchesTheUrlOfTheCurrentFrame": {
     "message": "Corresponde ao URL do quadro atual."
   },
-  "html_matchesWhatIsClicked": {
-    "message": "Corresponde ao que foi clicado:"
+  "html_contextMatcherDescription": {
+    "message": "Corresponde a como o salvamento foi iniciado: media, link, selection, page, click, auto, browser ou tab. Salvar abas requer Firefox ou Chrome 150+."
   },
   "html_or": {
     "message": ", ou"

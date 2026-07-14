@@ -18,11 +18,11 @@
   "html_matchesTheMimeContentType": {
     "message": "匹配解析后的 MIME Content-Type。Save In 可能会请求服务器标头。"
   },
-  "html_matchesTheReferrerHostname": {
-    "message": "当浏览器提供引荐页面的主机名时进行匹配。"
+  "html_referrerDomainMatcherDescription": {
+    "message": "匹配引荐来源的主机名；如果没有，则使用页面主机名。"
   },
-  "html_matchesTheReferrerUrl": {
-    "message": "当浏览器提供引荐页面的 URL 时进行匹配。"
+  "html_referrerUrlMatcherDescription": {
+    "message": "匹配引荐来源 URL；如果没有，则使用页面 URL。"
   },
   "html_matchesTheRootHostname": {
     "message": "匹配不含子域名的主机名。"
@@ -1321,9 +1321,6 @@
   "html_amOrPmLocalTime": {
     "message": "上午或下午（当地时间）"
   },
-  "html_attributeOfElement": {
-    "message": "元素的属性"
-  },
   "html_currentDate": {
     "message": "当前日期"
   },
@@ -1387,8 +1384,8 @@
   "html_standard": {
     "message": "标准"
   },
-  "html_textOfTheLinkOr": {
-    "message": "链接的文本，或"
+  "html_linkTextVariableDescription": {
+    "message": "浏览器提供的链接文本；保存标签页时使用标签页标题。"
   },
   "html_theCurrentlySelectedTextOnThePage": {
     "message": "页面上当前选定的文本"
@@ -1480,17 +1477,11 @@
   "html_whenBothVariablesAreUsed": {
     "message": "一起计算。"
   },
-  "html_attribute": {
-    "message": "属性。"
-  },
   "html_clausesAreOnlyUsedInRuleDefinitionsForRouting": {
     "message": "路由规则使用子句来决定要移动或重命名哪些下载。"
   },
   "html_templatesProvideReadyMadeRoutingRulesYouCanAddAndCustomize": {
     "message": "模板提供可添加和自定义的现成路由规则。"
-  },
-  "html_firefox": {
-    "message": "（仅限 Firefox）。"
   },
   "html_forCaseInsensitiveMatching": {
     "message": "用于不区分大小写的匹配。"
@@ -1516,8 +1507,8 @@
   "html_matchesTheFinalFilename": {
     "message": "匹配最终文件名。"
   },
-  "html_matchesTheLinkTextOrElement": {
-    "message": "匹配链接文本或元素的"
+  "html_linkTextMatcherDescription": {
+    "message": "匹配浏览器提供的链接文本；保存标签页时使用标签页标题。"
   },
   "html_matchesTheMediaType": {
     "message": "匹配媒体类型："
@@ -1531,17 +1522,17 @@
   "html_matchesThePageHostname": {
     "message": "匹配页面主机名。"
   },
-  "html_matchesTheResolvedFilenameExtensionAfterContentDisposition": {
-    "message": "匹配已解析的文件扩展名，包括 Content-Disposition。"
+  "html_actualFileExtensionMatcherDescription": {
+    "message": "匹配从文件名或 MIME 类型解析出的扩展名。"
   },
   "html_matchesTheSelectionText": {
     "message": "匹配选定的文本。"
   },
-  "html_matchesTheSourceHostnameForMedia": {
-    "message": "匹配媒体源主机名。"
+  "html_sourceDomainMatcherDescription": {
+    "message": "匹配所保存来源的主机名。"
   },
-  "html_matchesTheSourceUrlForMedia": {
-    "message": "匹配媒体源 URL。"
+  "html_sourceUrlMatcherDescription": {
+    "message": "匹配所保存来源的 URL。"
   },
   "html_matchesTheUrlDerivedExtensionLegacyNameUse": {
     "message": "匹配源自 URL 的扩展名（旧名称）。使用"
@@ -1549,8 +1540,8 @@
   "html_matchesTheUrlOfTheCurrentFrame": {
     "message": "匹配当前框架 URL。"
   },
-  "html_matchesWhatIsClicked": {
-    "message": "匹配点击的内容："
+  "html_contextMatcherDescription": {
+    "message": "匹配保存的启动方式：media、link、selection、page、click、auto、browser 或 tab。保存标签页需要 Firefox 或 Chrome 150+。"
   },
   "html_or": {
     "message": ", 或"

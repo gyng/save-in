@@ -18,11 +18,11 @@
   "html_matchesTheMimeContentType": {
     "message": "Coincide con el MIME Content-Type determinado. Save In puede solicitar los encabezados del servidor."
   },
-  "html_matchesTheReferrerHostname": {
-    "message": "Coincide con el nombre de host de la página de referencia cuando el navegador lo proporciona."
+  "html_referrerDomainMatcherDescription": {
+    "message": "Coincide con el nombre de host de referencia; si falta, usa el nombre de host de la página."
   },
-  "html_matchesTheReferrerUrl": {
-    "message": "Coincide con la URL de la página de referencia cuando el navegador la proporciona."
+  "html_referrerUrlMatcherDescription": {
+    "message": "Coincide con la URL de referencia; si falta, usa la URL de la página."
   },
   "html_matchesTheRootHostname": {
     "message": "Coincide con el nombre de host sin subdominios."
@@ -1420,9 +1420,6 @@
   "html_amOrPmLocalTime": {
     "message": "am o pm (hora local)"
   },
-  "html_attributeOfElement": {
-    "message": "atributo del elemento"
-  },
   "html_currentDate": {
     "message": "fecha actual"
   },
@@ -1486,8 +1483,8 @@
   "html_standard": {
     "message": "Estándar"
   },
-  "html_textOfTheLinkOr": {
-    "message": "Texto del enlace, o"
+  "html_linkTextVariableDescription": {
+    "message": "Texto del enlace cuando el navegador lo proporciona; al guardar pestañas se usa el título de la pestaña."
   },
   "html_theCurrentlySelectedTextOnThePage": {
     "message": "El texto seleccionado actualmente en la página"
@@ -1579,17 +1576,11 @@
   "html_whenBothVariablesAreUsed": {
     "message": "cuando se utilizan ambas variables."
   },
-  "html_attribute": {
-    "message": "del elemento."
-  },
   "html_clausesAreOnlyUsedInRuleDefinitionsForRouting": {
     "message": "Las reglas de enrutamiento utilizan cláusulas para decidir qué descargas mover o cambiar de nombre."
   },
   "html_templatesProvideReadyMadeRoutingRulesYouCanAddAndCustomize": {
     "message": "Las plantillas ofrecen reglas de enrutamiento listas para añadir y personalizar."
-  },
-  "html_firefox": {
-    "message": "(Solo Firefox)."
   },
   "html_forCaseInsensitiveMatching": {
     "message": "para coincidencias que no distinguen entre mayúsculas y minúsculas."
@@ -1615,8 +1606,8 @@
   "html_matchesTheFinalFilename": {
     "message": "Coincide con el nombre del archivo final."
   },
-  "html_matchesTheLinkTextOrElement": {
-    "message": "Coincide con el texto del enlace o con el atributo"
+  "html_linkTextMatcherDescription": {
+    "message": "Coincide con el texto del enlace cuando el navegador lo proporciona; al guardar pestañas se usa el título de la pestaña."
   },
   "html_matchesTheMediaType": {
     "message": "Coincide con el tipo de medio:"
@@ -1630,17 +1621,17 @@
   "html_matchesThePageHostname": {
     "message": "Coincide con el nombre de host de la página."
   },
-  "html_matchesTheResolvedFilenameExtensionAfterContentDisposition": {
-    "message": "Coincide con la extensión del nombre de archivo resuelto, incluido Content-Disposition."
+  "html_actualFileExtensionMatcherDescription": {
+    "message": "Coincide con la extensión resuelta a partir del nombre de archivo o del tipo MIME."
   },
   "html_matchesTheSelectionText": {
     "message": "Coincide con el texto seleccionado."
   },
-  "html_matchesTheSourceHostnameForMedia": {
-    "message": "Coincide con el nombre de host de la fuente de medios."
+  "html_sourceDomainMatcherDescription": {
+    "message": "Coincide con el nombre de host de la fuente guardada."
   },
-  "html_matchesTheSourceUrlForMedia": {
-    "message": "Coincide con la URL de la fuente de medios."
+  "html_sourceUrlMatcherDescription": {
+    "message": "Coincide con la URL de la fuente guardada."
   },
   "html_matchesTheUrlDerivedExtensionLegacyNameUse": {
     "message": "Coincide con la extensión derivada de la URL (nombre heredado). Use"
@@ -1648,8 +1639,8 @@
   "html_matchesTheUrlOfTheCurrentFrame": {
     "message": "Coincide con la URL del marco actual."
   },
-  "html_matchesWhatIsClicked": {
-    "message": "Coincide con el elemento en el que se hizo clic:"
+  "html_contextMatcherDescription": {
+    "message": "Coincide con la forma en que se inició el guardado: media, link, selection, page, click, auto, browser o tab. Guardar pestañas requiere Firefox o Chrome 150+."
   },
   "html_or": {
     "message": ", o"

@@ -386,9 +386,6 @@
   "html_amOrPmLocalTime": {
     "message": "am o pm (ora locale)"
   },
-  "html_attributeOfElement": {
-    "message": "attributo dell'elemento"
-  },
   "html_currentDate": {
     "message": "Data corrente"
   },
@@ -452,8 +449,8 @@
   "html_standard": {
     "message": "Standard"
   },
-  "html_textOfTheLinkOr": {
-    "message": "Testo del collegamento, o"
+  "html_linkTextVariableDescription": {
+    "message": "Testo del collegamento quando fornito dal browser; per il salvataggio delle schede viene usato il titolo della scheda."
   },
   "html_theCurrentlySelectedTextOnThePage": {
     "message": "Il testo attualmente selezionato sulla pagina"
@@ -545,17 +542,11 @@
   "html_whenBothVariablesAreUsed": {
     "message": "quando vengono utilizzate entrambe le variabili."
   },
-  "html_attribute": {
-    "message": "attributo."
-  },
   "html_clausesAreOnlyUsedInRuleDefinitionsForRouting": {
     "message": "Le regole di routing utilizzano clausole per decidere quali download spostare o rinominare."
   },
   "html_templatesProvideReadyMadeRoutingRulesYouCanAddAndCustomize": {
     "message": "I modelli offrono regole di routing pronte da aggiungere e personalizzare."
-  },
-  "html_firefox": {
-    "message": "(Solo Firefox)."
   },
   "html_forCaseInsensitiveMatching": {
     "message": "per la corrispondenza senza distinzione tra maiuscole e minuscole."
@@ -581,8 +572,8 @@
   "html_matchesTheFinalFilename": {
     "message": "Corrisponde al nome file finale."
   },
-  "html_matchesTheLinkTextOrElement": {
-    "message": "Corrisponde al testo del collegamento o a quello dell'elemento"
+  "html_linkTextMatcherDescription": {
+    "message": "Corrisponde al testo del collegamento quando fornito dal browser; per il salvataggio delle schede viene usato il titolo della scheda."
   },
   "html_matchesTheMediaType": {
     "message": "Corrisponde al tipo di contenuto multimediale:"
@@ -599,26 +590,26 @@
   "html_matchesThePageHostname": {
     "message": "Corrisponde al nome host della pagina."
   },
-  "html_matchesTheReferrerHostname": {
-    "message": "Corrisponde al nome host della pagina di riferimento quando il browser lo fornisce."
+  "html_referrerDomainMatcherDescription": {
+    "message": "Corrisponde al nome host del referrer o, se assente, al nome host della pagina."
   },
-  "html_matchesTheReferrerUrl": {
-    "message": "Corrisponde all'URL della pagina di provenienza, quando fornito dal browser."
+  "html_referrerUrlMatcherDescription": {
+    "message": "Corrisponde all’URL del referrer o, se assente, all’URL della pagina."
   },
   "html_matchesTheRootHostname": {
     "message": "Corrisponde al nome host senza sottodomini."
   },
-  "html_matchesTheResolvedFilenameExtensionAfterContentDisposition": {
-    "message": "Corrisponde all'estensione del nome file risolta, incluso Content-Disposition."
+  "html_actualFileExtensionMatcherDescription": {
+    "message": "Corrisponde all’estensione risolta dal nome file o dal tipo MIME."
   },
   "html_matchesTheSelectionText": {
     "message": "Corrisponde al testo selezionato."
   },
-  "html_matchesTheSourceHostnameForMedia": {
-    "message": "Corrisponde al nome host della sorgente multimediale."
+  "html_sourceDomainMatcherDescription": {
+    "message": "Corrisponde al nome host della sorgente salvata."
   },
-  "html_matchesTheSourceUrlForMedia": {
-    "message": "Corrisponde all'URL della sorgente multimediale."
+  "html_sourceUrlMatcherDescription": {
+    "message": "Corrisponde all’URL della sorgente salvata."
   },
   "html_matchesTheUrlDerivedExtensionLegacyNameUse": {
     "message": "Corrisponde all'estensione derivata da URL (nome legacy). Usa"
@@ -626,8 +617,8 @@
   "html_matchesTheUrlOfTheCurrentFrame": {
     "message": "Corrisponde all'URL del frame corrente."
   },
-  "html_matchesWhatIsClicked": {
-    "message": "Corrisponde a ciò che è stato cliccato:"
+  "html_contextMatcherDescription": {
+    "message": "Corrisponde al modo in cui è iniziato il salvataggio: media, link, selection, page, click, auto, browser o tab. Il salvataggio delle schede richiede Firefox o Chrome 150+."
   },
   "html_or": {
     "message": ", oppure"

@@ -18,11 +18,11 @@
   "html_matchesTheMimeContentType": {
     "message": "Komt overeen met het vastgestelde MIME Content-Type. Save In kan serverheaders opvragen."
   },
-  "html_matchesTheReferrerHostname": {
-    "message": "Komt overeen met de hostnaam van de verwijzende pagina wanneer de browser deze verstrekt."
+  "html_referrerDomainMatcherDescription": {
+    "message": "Komt overeen met de verwijzende hostnaam; anders wordt de hostnaam van de pagina gebruikt."
   },
-  "html_matchesTheReferrerUrl": {
-    "message": "Komt overeen met de URL van de verwijzende pagina wanneer de browser deze verstrekt."
+  "html_referrerUrlMatcherDescription": {
+    "message": "Komt overeen met de verwijzende URL; anders wordt de URL van de pagina gebruikt."
   },
   "html_matchesTheRootHostname": {
     "message": "Komt overeen met de hostnaam zonder subdomeinen."
@@ -1424,9 +1424,6 @@
   "html_amOrPmLocalTime": {
     "message": "am of pm (lokale tijd)"
   },
-  "html_attributeOfElement": {
-    "message": "attribuut van element"
-  },
   "html_currentDate": {
     "message": "Huidige datum"
   },
@@ -1490,8 +1487,8 @@
   "html_standard": {
     "message": "Standaard"
   },
-  "html_textOfTheLinkOr": {
-    "message": "Tekst van de link, of"
+  "html_linkTextVariableDescription": {
+    "message": "Linktekst wanneer de browser die verstrekt; bij het opslaan van tabbladen wordt de tabtitel gebruikt."
   },
   "html_theCurrentlySelectedTextOnThePage": {
     "message": "De momenteel geselecteerde tekst op de pagina"
@@ -1583,17 +1580,11 @@
   "html_whenBothVariablesAreUsed": {
     "message": "wanneer beide variabelen worden gebruikt."
   },
-  "html_attribute": {
-    "message": "van het element."
-  },
   "html_clausesAreOnlyUsedInRuleDefinitionsForRouting": {
     "message": "Routeringsregels gebruiken clausules om te bepalen welke downloads worden verplaatst of hernoemd."
   },
   "html_templatesProvideReadyMadeRoutingRulesYouCanAddAndCustomize": {
     "message": "Sjablonen bieden kant-en-klare routeringsregels die u kunt toevoegen en aanpassen."
-  },
-  "html_firefox": {
-    "message": "(Alleen Firefox)."
   },
   "html_forCaseInsensitiveMatching": {
     "message": "voor hoofdletterongevoelige overeenkomsten."
@@ -1619,8 +1610,8 @@
   "html_matchesTheFinalFilename": {
     "message": "Komt overeen met de uiteindelijke bestandsnaam."
   },
-  "html_matchesTheLinkTextOrElement": {
-    "message": "Komt overeen met de linktekst of het attribuut"
+  "html_linkTextMatcherDescription": {
+    "message": "Komt overeen met de linktekst wanneer de browser die verstrekt; bij het opslaan van tabbladen wordt de tabtitel gebruikt."
   },
   "html_matchesTheMediaType": {
     "message": "Komt overeen met het mediatype:"
@@ -1634,17 +1625,17 @@
   "html_matchesThePageHostname": {
     "message": "Komt overeen met de hostnaam van de pagina."
   },
-  "html_matchesTheResolvedFilenameExtensionAfterContentDisposition": {
-    "message": "Komt overeen met de opgeloste bestandsnaamextensie, inclusief Content-Disposition."
+  "html_actualFileExtensionMatcherDescription": {
+    "message": "Komt overeen met de bepaalde extensie uit de bestandsnaam of het MIME-type."
   },
   "html_matchesTheSelectionText": {
     "message": "Komt overeen met de geselecteerde tekst."
   },
-  "html_matchesTheSourceHostnameForMedia": {
-    "message": "Komt overeen met de hostnaam van de mediabron."
+  "html_sourceDomainMatcherDescription": {
+    "message": "Komt overeen met de hostnaam van de opgeslagen bron."
   },
-  "html_matchesTheSourceUrlForMedia": {
-    "message": "Komt overeen met de URL van de mediabron."
+  "html_sourceUrlMatcherDescription": {
+    "message": "Komt overeen met de URL van de opgeslagen bron."
   },
   "html_matchesTheUrlDerivedExtensionLegacyNameUse": {
     "message": "Komt overeen met de van de URL afkomstige extensie (verouderde naam). Gebruik"
@@ -1652,8 +1643,8 @@
   "html_matchesTheUrlOfTheCurrentFrame": {
     "message": "Komt overeen met de huidige frame-URL."
   },
-  "html_matchesWhatIsClicked": {
-    "message": "Komt overeen met waarop is geklikt:"
+  "html_contextMatcherDescription": {
+    "message": "Komt overeen met hoe het opslaan is gestart: media, link, selection, page, click, auto, browser of tab. Voor het opslaan van tabbladen is Firefox of Chrome 150+ vereist."
   },
   "html_or": {
     "message": ", of"

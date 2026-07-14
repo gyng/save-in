@@ -18,11 +18,11 @@
   "html_matchesTheMimeContentType": {
     "message": "Matchar fastställt MIME Content-Type. Save In kan begära serverhuvuden."
   },
-  "html_matchesTheReferrerHostname": {
-    "message": "Matchar den hänvisande sidans värdnamn när webbläsaren tillhandahåller det."
+  "html_referrerDomainMatcherDescription": {
+    "message": "Matchar hänvisarens värdnamn; annars används sidans värdnamn."
   },
-  "html_matchesTheReferrerUrl": {
-    "message": "Matchar den hänvisande sidans URL när webbläsaren tillhandahåller den."
+  "html_referrerUrlMatcherDescription": {
+    "message": "Matchar hänvisarens URL; annars används sidans URL."
   },
   "html_matchesTheRootHostname": {
     "message": "Matchar värdnamnet utan underdomäner."
@@ -1445,9 +1445,6 @@
   "html_amOrPmLocalTime": {
     "message": "am eller pm (lokal tid)"
   },
-  "html_attributeOfElement": {
-    "message": "elementets attribut"
-  },
   "html_currentDate": {
     "message": "Aktuellt datum"
   },
@@ -1511,8 +1508,8 @@
   "html_standard": {
     "message": "Standard"
   },
-  "html_textOfTheLinkOr": {
-    "message": "Text till länken, eller"
+  "html_linkTextVariableDescription": {
+    "message": "Länktext när webbläsaren tillhandahåller den; när flikar sparas används flikens titel."
   },
   "html_theCurrentlySelectedTextOnThePage": {
     "message": "Den för närvarande markerade texten på sidan"
@@ -1604,17 +1601,11 @@
   "html_whenBothVariablesAreUsed": {
     "message": "när båda variablerna används."
   },
-  "html_attribute": {
-    "message": "attribut."
-  },
   "html_clausesAreOnlyUsedInRuleDefinitionsForRouting": {
     "message": "Routningsregler använder villkor för att avgöra vilka nedladdningar som ska flyttas eller byta namn."
   },
   "html_templatesProvideReadyMadeRoutingRulesYouCanAddAndCustomize": {
     "message": "Mallar innehåller färdiga routningsregler som du kan lägga till och anpassa."
-  },
-  "html_firefox": {
-    "message": "(endast Firefox)."
   },
   "html_forCaseInsensitiveMatching": {
     "message": "för skiftlägesokänslig matchning."
@@ -1640,8 +1631,8 @@
   "html_matchesTheFinalFilename": {
     "message": "Matchar det slutliga filnamnet."
   },
-  "html_matchesTheLinkTextOrElement": {
-    "message": "Matchar länktexten eller elementets"
+  "html_linkTextMatcherDescription": {
+    "message": "Matchar länktexten när webbläsaren tillhandahåller den; när flikar sparas används flikens titel."
   },
   "html_matchesTheMediaType": {
     "message": "Matchar mediatypen:"
@@ -1655,17 +1646,17 @@
   "html_matchesThePageHostname": {
     "message": "Matchar sidans värdnamn."
   },
-  "html_matchesTheResolvedFilenameExtensionAfterContentDisposition": {
-    "message": "Matchar det lösta filnamnstillägget, inklusive Content-Disposition."
+  "html_actualFileExtensionMatcherDescription": {
+    "message": "Matchar det lösta tillägget från filnamnet eller MIME-typen."
   },
   "html_matchesTheSelectionText": {
     "message": "Matchar den markerade texten."
   },
-  "html_matchesTheSourceHostnameForMedia": {
-    "message": "Matchar mediekällans värdnamn."
+  "html_sourceDomainMatcherDescription": {
+    "message": "Matchar den sparade källans värdnamn."
   },
-  "html_matchesTheSourceUrlForMedia": {
-    "message": "Matchar mediekällans URL."
+  "html_sourceUrlMatcherDescription": {
+    "message": "Matchar den sparade källans URL."
   },
   "html_matchesTheUrlDerivedExtensionLegacyNameUse": {
     "message": "Matchar det URL-härledda tillägget (äldre namn). Använd"
@@ -1673,8 +1664,8 @@
   "html_matchesTheUrlOfTheCurrentFrame": {
     "message": "Matchar den aktuella ramens URL."
   },
-  "html_matchesWhatIsClicked": {
-    "message": "Matchar det som klickades på:"
+  "html_contextMatcherDescription": {
+    "message": "Matchar hur sparandet startades: media, link, selection, page, click, auto, browser eller tab. För att spara flikar krävs Firefox eller Chrome 150+."
   },
   "html_or": {
     "message": ", eller"

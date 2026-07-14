@@ -18,11 +18,11 @@
   "html_matchesTheMimeContentType": {
     "message": "Correspond au Content-Type MIME déterminé. Save In peut demander les en-têtes du serveur."
   },
-  "html_matchesTheReferrerHostname": {
-    "message": "Correspond au nom d’hôte de la page de provenance lorsque le navigateur le fournit."
+  "html_referrerDomainMatcherDescription": {
+    "message": "Correspond au nom d’hôte référent ou, à défaut, au nom d’hôte de la page."
   },
-  "html_matchesTheReferrerUrl": {
-    "message": "Correspond à l’URL de la page de provenance lorsque le navigateur la fournit."
+  "html_referrerUrlMatcherDescription": {
+    "message": "Correspond à l’URL référente ou, à défaut, à l’URL de la page."
   },
   "html_matchesTheRootHostname": {
     "message": "Correspond au nom d’hôte sans les sous-domaines."
@@ -1444,9 +1444,6 @@
   "html_amOrPmLocalTime": {
     "message": "am ou pm (heure locale)"
   },
-  "html_attributeOfElement": {
-    "message": "attribut de l'élément"
-  },
   "html_currentDate": {
     "message": "Date actuelle"
   },
@@ -1510,8 +1507,8 @@
   "html_standard": {
     "message": "Standard"
   },
-  "html_textOfTheLinkOr": {
-    "message": "Texte du lien, ou"
+  "html_linkTextVariableDescription": {
+    "message": "Texte du lien lorsque le navigateur le fournit ; l’enregistrement d’un onglet utilise son titre."
   },
   "html_theCurrentlySelectedTextOnThePage": {
     "message": "Le texte actuellement sélectionné sur la page"
@@ -1603,17 +1600,11 @@
   "html_whenBothVariablesAreUsed": {
     "message": "lorsque les deux variables sont utilisées."
   },
-  "html_attribute": {
-    "message": "de l’élément."
-  },
   "html_clausesAreOnlyUsedInRuleDefinitionsForRouting": {
     "message": "Les règles de routage utilisent des clauses pour décider quels téléchargements déplacer ou renommer."
   },
   "html_templatesProvideReadyMadeRoutingRulesYouCanAddAndCustomize": {
     "message": "Les modèles proposent des règles de routage prêtes à ajouter et à personnaliser."
-  },
-  "html_firefox": {
-    "message": "(Firefox uniquement)."
   },
   "html_forCaseInsensitiveMatching": {
     "message": "pour une correspondance insensible à la casse."
@@ -1639,8 +1630,8 @@
   "html_matchesTheFinalFilename": {
     "message": "Correspond au nom de fichier final."
   },
-  "html_matchesTheLinkTextOrElement": {
-    "message": "Correspond au texte du lien ou à l’attribut"
+  "html_linkTextMatcherDescription": {
+    "message": "Correspond au texte du lien lorsque le navigateur le fournit ; l’enregistrement d’un onglet utilise son titre."
   },
   "html_matchesTheMediaType": {
     "message": "Correspond au type de média :"
@@ -1654,17 +1645,17 @@
   "html_matchesThePageHostname": {
     "message": "Correspond au nom d'hôte de la page."
   },
-  "html_matchesTheResolvedFilenameExtensionAfterContentDisposition": {
-    "message": "Correspond à l'extension du nom de fichier résolu, y compris Content-Disposition."
+  "html_actualFileExtensionMatcherDescription": {
+    "message": "Correspond à l’extension résolue à partir du nom de fichier ou du type MIME."
   },
   "html_matchesTheSelectionText": {
     "message": "Correspond au texte sélectionné."
   },
-  "html_matchesTheSourceHostnameForMedia": {
-    "message": "Correspond au nom d'hôte de la source multimédia."
+  "html_sourceDomainMatcherDescription": {
+    "message": "Correspond au nom d’hôte de la source enregistrée."
   },
-  "html_matchesTheSourceUrlForMedia": {
-    "message": "Correspond à l'URL de la source multimédia."
+  "html_sourceUrlMatcherDescription": {
+    "message": "Correspond à l’URL de la source enregistrée."
   },
   "html_matchesTheUrlDerivedExtensionLegacyNameUse": {
     "message": "Correspond à l’extension dérivée de l’URL (ancien nom). Utilisez"
@@ -1672,8 +1663,8 @@
   "html_matchesTheUrlOfTheCurrentFrame": {
     "message": "Correspond à l'URL du cadre actuel."
   },
-  "html_matchesWhatIsClicked": {
-    "message": "Correspond à ce qui a été cliqué :"
+  "html_contextMatcherDescription": {
+    "message": "Correspond à la façon dont l’enregistrement a commencé : media, link, selection, page, click, auto, browser ou tab. L’enregistrement d’onglets nécessite Firefox ou Chrome 150+."
   },
   "html_or": {
     "message": ", ou"
