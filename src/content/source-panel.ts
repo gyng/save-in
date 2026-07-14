@@ -1100,11 +1100,11 @@ export const toggleSourcePanel = (
     )
       return;
     mutations.forEach((mutation) => {
-      const target = mutation.target as Element;
+      const target = mutation.target instanceof Element ? mutation.target : null;
       const affectsStylesheet =
         panelOptions.includeBackgrounds !== false &&
-        (target.closest("style") ||
-          target.matches('link[rel~="stylesheet"]') ||
+        (Boolean(target?.closest("style")) ||
+          target?.matches('link[rel~="stylesheet"]') === true ||
           [...mutation.addedNodes, ...mutation.removedNodes].some(
             (node) =>
               node instanceof Element &&
@@ -1112,7 +1112,7 @@ export const toggleSourcePanel = (
                 Boolean(node.querySelector('style, link[rel~="stylesheet"]'))),
           ));
       const affectsBase =
-        target.matches("base") ||
+        target?.matches("base") === true ||
         [...mutation.addedNodes, ...mutation.removedNodes].some(
           (node) =>
             node instanceof Element &&
@@ -1123,7 +1123,7 @@ export const toggleSourcePanel = (
         return;
       }
       if (mutation.type === "attributes") {
-        queueRoot(target);
+        if (target) queueRoot(target);
         return;
       }
       mutation.removedNodes.forEach((node) => {
@@ -1132,7 +1132,7 @@ export const toggleSourcePanel = (
       mutation.addedNodes.forEach((node) => {
         if (node instanceof Element) queueRoot(node);
       });
-      if (target.matches("video, audio, picture")) queueRoot(target);
+      if (target?.matches("video, audio, picture")) queueRoot(target);
     });
     scheduleRefresh();
   });

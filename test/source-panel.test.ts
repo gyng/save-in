@@ -689,6 +689,32 @@ describe("Page Sources panel interactions", () => {
     expect(urls).not.toContain("http://localhost/gone.jpg");
   });
 
+  test("contains live mutations whose target is not an element", () => {
+    let mutationCallback: MutationCallback | undefined;
+    class StubMutationObserver {
+      constructor(callback: MutationCallback) {
+        mutationCallback = callback;
+      }
+
+      observe() {}
+      disconnect() {}
+      takeRecords() {
+        return [];
+      }
+    }
+    vi.stubGlobal("MutationObserver", StubMutationObserver);
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: true });
+
+    const mutation = {
+      type: "childList",
+      target: document,
+      addedNodes: [],
+      removedNodes: [],
+    } as unknown as MutationRecord;
+    expect(mutationCallback).toBeTypeOf("function");
+    expect(() => mutationCallback?.([mutation], {} as MutationObserver)).not.toThrow();
+  });
+
   test("removes background candidates under a deleted ancestor", async () => {
     vi.useFakeTimers();
     document.body.innerHTML = `<section id="group"><div style="background-image:url(poster.jpg)"></div></section>`;
