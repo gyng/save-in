@@ -136,7 +136,7 @@ describe("visual editor", () => {
       return "";
     });
     new PathEditor().setupVisualEditor();
-    vi.advanceTimersByTime(1500); // initial rebuild after options restore
+    document.dispatchEvent(new Event("options-restored"));
   });
 
   afterEach(() => {
@@ -323,7 +323,7 @@ describe("visual editor", () => {
       <div id="path-editor-rows"></div>
     `;
     new PathEditor().setupVisualEditor();
-    vi.advanceTimersByTime(1500);
+    document.dispatchEvent(new Event("options-restored"));
 
     expect(document.querySelector(".path-editor-help")?.textContent).toContain(
       "Drag by the dotted handle",
@@ -499,7 +499,7 @@ describe("visual editor drag and drop", () => {
     `;
     global.browser.runtime.sendMessage = vi.fn(() => Promise.resolve({}));
     new PathEditor().setupVisualEditor();
-    vi.advanceTimersByTime(1500);
+    document.dispatchEvent(new Event("options-restored"));
   });
 
   afterEach(() => {

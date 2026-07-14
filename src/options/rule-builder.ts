@@ -247,9 +247,8 @@ export const RuleBuilder = {
       });
 
       textarea.addEventListener("input", () => syncs.forEach((fn) => fn()));
-      // restoreOptions fills the textarea programmatically (no input event);
-      // re-check the Added states once options have had a chance to load
-      window.setTimeout(() => syncs.forEach((fn) => fn()), 1000);
+      // restoreOptions fills the textarea programmatically (no input event).
+      document.addEventListener("options-restored", () => syncs.forEach((fn) => fn()));
     });
   },
 };

@@ -164,7 +164,7 @@ describe("template list rendering", () => {
 
     // Programmatic fill, as restoreOptions does (no input event)
     textarea.value = RULE_TEMPLATES[1]!.rule;
-    vi.advanceTimersByTime(1500);
+    document.dispatchEvent(new Event("options-restored"));
 
     const adds = document.querySelectorAll<HTMLButtonElement>(".rule-template button");
     expect(adds[1]!.disabled).toBe(true);

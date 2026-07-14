@@ -534,8 +534,8 @@ const PathEditorHelpers = {
       }, 300);
     });
 
-    // restoreOptions fills the textarea programmatically (no input event)
-    window.setTimeout(rebuild, 1000);
+    // restoreOptions fills the textarea programmatically (no input event).
+    document.addEventListener("options-restored", rebuild);
   },
 };
 
