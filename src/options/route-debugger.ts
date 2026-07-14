@@ -12,6 +12,13 @@ import {
 
 type MessageSubstitutions = string | number | Array<string | number>;
 
+const noop = (): void => {};
+let refreshLatestDownloadFromEvent = noop;
+
+export const refreshRouteDebuggerLatestDownload = (): void => {
+  refreshLatestDownloadFromEvent();
+};
+
 const localize = (key: string, fallback: string, substitutions?: MessageSubstitutions): string =>
   getMessage(key, substitutions) || fallback;
 
@@ -116,6 +123,7 @@ const matcherSourceLabel = (source: string): string => {
 };
 
 export const setupRouteDebugger = (): void => {
+  refreshLatestDownloadFromEvent = noop;
   const textarea = element<HTMLTextAreaElement>("#filenamePatterns");
   const form = element<HTMLElement>("#route-debugger-form");
   const result = element<HTMLElement>("#route-debugger-result");
@@ -632,9 +640,7 @@ export const setupRouteDebugger = (): void => {
       .catch(() => {});
   };
 
-  webExtensionApi.runtime.onMessage.addListener((message: { type?: string }) => {
-    if (message.type === MESSAGE_TYPES.DOWNLOADED) refreshLatestDownload(false);
-  });
+  refreshLatestDownloadFromEvent = () => refreshLatestDownload(false);
 
   clearResult();
   useLastButton.disabled = true;

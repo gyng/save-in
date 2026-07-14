@@ -47,6 +47,7 @@ import {
 } from "./syntax-editor-model.ts";
 import { dispatchEditorValidation } from "./editor-validation.ts";
 import { createDeferredPageReload } from "./deferred-page-reload.ts";
+import { refreshRouteDebuggerLatestDownload } from "./route-debugger.ts";
 
 const setupLastDownloadState = () => {
   document.querySelector("#last-dl-url")?.classList.add("is-empty");
@@ -1112,6 +1113,7 @@ export const setupOptionsPage = bootstrapOptionsPage({
     renderVariablesPreview();
     updateDebugLog();
     refreshCounterPanel();
+    refreshRouteDebuggerLatestDownload();
   },
   startBrowserDetection: waitForBrowserDetection,
 });

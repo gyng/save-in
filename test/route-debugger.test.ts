@@ -1,5 +1,8 @@
 // @vitest-environment jsdom
-import { setupRouteDebugger } from "../src/options/route-debugger.ts";
+import {
+  refreshRouteDebuggerLatestDownload,
+  setupRouteDebugger,
+} from "../src/options/route-debugger.ts";
 import { webExtensionApi } from "../src/platform/web-extension-api.ts";
 import { MESSAGE_TYPES } from "../src/shared/constants.ts";
 
@@ -337,9 +340,7 @@ test("enables Latest when a download arrives without replacing the current test 
       sourceUrl: "https://images.example/new-photo.jpg",
     },
   };
-  const listener = vi.mocked(webExtensionApi.runtime.onMessage.addListener).mock.calls.at(-1)?.[0];
-  expect(listener).toBeDefined();
-  listener!({ type: MESSAGE_TYPES.DOWNLOADED }, {}, vi.fn());
+  refreshRouteDebuggerLatestDownload();
 
   await vi.waitFor(() => expect(useLast.disabled).toBe(false));
   expect(document.querySelector<HTMLInputElement>("#route-debugger-filename")?.value).toBe(
@@ -354,6 +355,7 @@ test("enables Latest when a download arrives without replacing the current test 
 test("returns before wiring an incomplete workbench", () => {
   document.body.innerHTML = '<textarea id="filenamePatterns"></textarea>';
   expect(() => setupRouteDebugger()).not.toThrow();
+  expect(() => refreshRouteDebuggerLatestDownload()).not.toThrow();
 });
 
 test("prefills the sample when no latest download is available", async () => {
@@ -513,8 +515,8 @@ test("shows a no-last-download message and contains unavailable history lookup",
 });
 
 test.each([
-  { body: { message: "bad request" } },
-  { body: { error: "bad request" } },
+  { body: { status: MESSAGE_TYPES.ERROR, message: "bad request" } },
+  { body: { status: MESSAGE_TYPES.ERROR, error: "bad request" } },
   { body: { version: 1, ruleErrors: [], ruleTrace: {} } },
 ])("reports unavailable debugger response %#", async (validateResponse) => {
   renderWorkbench();
@@ -605,6 +607,7 @@ test("renders blocking errors while ignoring warnings", async () => {
 
 test("renders selected, also-matching, and missed rules without a destination pipeline", async () => {
   renderWorkbench();
+  let includeSecondLaterMatch = false;
   vi.spyOn(webExtensionApi.runtime, "sendMessage").mockImplementation(async (message: any) =>
     message.type === MESSAGE_TYPES.CHECK_ROUTES
       ? checkResponse()
@@ -632,10 +635,20 @@ test("renders selected, also-matching, and missed rules without a destination pi
                   destination: "second",
                   clauses: [{ name: "filename", pattern: "pdf", matched: true }],
                 },
+                ...(includeSecondLaterMatch
+                  ? [
+                      {
+                        index: 3,
+                        matched: true,
+                        destination: "third",
+                        clauses: [{ name: "filename", pattern: "pdf", matched: true }],
+                      },
+                    ]
+                  : []),
                 {
-                  index: 3,
+                  index: 4,
                   matched: false,
-                  destination: "third",
+                  destination: "fourth",
                   clauses: [{ name: "filename", pattern: "png", matched: false }],
                 },
               ],
@@ -660,6 +673,14 @@ test("renders selected, also-matching, and missed rules without a destination pi
   const clauseRows = [...document.querySelectorAll<HTMLElement>(".route-debugger-clause")];
   expect(clauseRows.some((row) => row.tagName === "BUTTON")).toBe(true);
   expect(clauseRows.some((row) => row.tagName === "DIV")).toBe(true);
+
+  includeSecondLaterMatch = true;
+  document.querySelector<HTMLButtonElement>("#route-debugger-run")!.click();
+  await vi.waitFor(() =>
+    expect(document.querySelector(".route-debugger-match-summary")?.textContent).toBe(
+      "1 rule used; 2 later rules also match.",
+    ),
+  );
 });
 
 test("ignores stale validation completion after clearing", async () => {
