@@ -5470,12 +5470,13 @@ code.click-to-copy {
 }
 
 .auto-download-rules h4,
-.auto-download-rules p {
+.auto-download-routing-help {
   max-width: 68ch;
 }
 
-.auto-download-rules p {
+.auto-download-routing-help {
   margin: 0 0 var(--space-3);
+  border-left: 3px solid var(--blue50);
   color: var(--color-text-muted);
   line-height: 1.45;
 }
