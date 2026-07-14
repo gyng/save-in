@@ -19,18 +19,21 @@ const NAMED_KEYS = new Set([
   "left",
   "right",
 ]);
+const normalizeCommandToken = (value: string): string => value.toLowerCase();
 
 const isShortcutKey = (key: string): boolean =>
   /^[a-z0-9]$/i.test(key) ||
   /^f(?:[1-9]|1[0-2])$/i.test(key) ||
-  NAMED_KEYS.has(key.toLocaleLowerCase());
+  NAMED_KEYS.has(normalizeCommandToken(key));
 
 type ShortcutLocalizer = (key: string, fallback: string) => string;
 const englishShortcutMessage: ShortcutLocalizer = (_key, fallback) => fallback;
 
-const invokeCommandMethod = (method: unknown, args: unknown[]): Promise<unknown> =>
+type CommandMethod = (...args: unknown[]) => unknown;
+const isCommandMethod = (value: unknown): value is CommandMethod => typeof value === "function";
+const invokeCommandMethod = (method: CommandMethod, args: unknown[]): Promise<unknown> =>
   Promise.resolve().then(() => {
-    return Reflect.apply(method as (...args: never[]) => unknown, webExtensionApi.commands, args);
+    return Reflect.apply(method, webExtensionApi.commands, args);
   });
 
 export const validateSourceShortcut = (
@@ -42,21 +45,23 @@ export const validateSourceShortcut = (
   const parts = value.split("+").map((part) => part.trim());
   if (parts.some((part) => !part))
     return localize("o_lShortcutFormat", "Use a format like Ctrl+Shift+G.");
-  const modifiers = parts.filter((part) => MODIFIERS.has(part.toLocaleLowerCase()));
-  const keys = parts.filter((part) => !MODIFIERS.has(part.toLocaleLowerCase()));
-  if (!modifiers.some((part) => PRIMARY_MODIFIERS.has(part.toLocaleLowerCase()))) {
+  const normalizedParts = parts.map((part) => [part, normalizeCommandToken(part)] as const);
+  const modifiers = normalizedParts.filter(([, part]) => MODIFIERS.has(part));
+  const keys = normalizedParts.filter(([, part]) => !MODIFIERS.has(part));
+  if (!modifiers.some(([, part]) => PRIMARY_MODIFIERS.has(part))) {
     return localize(
       "o_lShortcutPrimaryModifier",
       "Include Ctrl, Alt, Command, or MacCtrl as a modifier.",
     );
   }
-  if (keys.length === 0) return localize("o_lShortcutAddKey", "Add a key after the modifier.");
+  const [keyEntry] = keys;
+  if (!keyEntry) return localize("o_lShortcutAddKey", "Add a key after the modifier.");
   if (keys.length > 1) return localize("o_lShortcutOneKey", "Use one key with your modifiers.");
-  const key = keys[0]!;
+  const [key] = keyEntry;
   if (!isShortcutKey(key)) {
     return localize("o_lShortcutValidKey", "Choose a valid key, such as Y, 5, F12, or PageDown.");
   }
-  if (new Set(parts.map((part) => part.toLocaleLowerCase())).size !== parts.length) {
+  if (new Set(normalizedParts.map(([, part]) => part)).size !== parts.length) {
     return localize("o_lShortcutNoRepeats", "Do not repeat keys or modifiers.");
   }
   return "";
@@ -94,10 +99,10 @@ export const setupSourceShortcut = () => {
   };
   const showShortcut = (shortcut: string) => {
     const parts = shortcut.split("+").filter(Boolean);
-    const key = parts.find((part) => !MODIFIERS.has(part.toLocaleLowerCase())) || "";
-    const modifiers = parts.filter((part) => MODIFIERS.has(part.toLocaleLowerCase()));
+    const key = parts.find((part) => !MODIFIERS.has(normalizeCommandToken(part))) || "";
+    const modifiers = parts.filter((part) => MODIFIERS.has(normalizeCommandToken(part)));
     modifier.value =
-      modifiers.find((part) => PRIMARY_MODIFIERS.has(part.toLocaleLowerCase())) || "Ctrl";
+      modifiers.find((part) => PRIMARY_MODIFIERS.has(normalizeCommandToken(part))) || "Ctrl";
     modifier2.value = modifiers.find((part) => part !== modifier.value) || "";
     input.value = key;
     syncPlatformModifiers();
@@ -127,7 +132,7 @@ export const setupSourceShortcut = () => {
     if (!validate()) return;
     apply.disabled = true;
     const updateValue: unknown = Reflect.get(webExtensionApi.commands, "update");
-    if (typeof updateValue !== "function") {
+    if (!isCommandMethod(updateValue)) {
       announce(
         getMessage("o_lShortcutChangeUnsupported") ||
           "This browser does not support changing shortcuts here.",
@@ -139,7 +144,7 @@ export const setupSourceShortcut = () => {
     void invokeCommandMethod(updateValue, [{ name: COMMAND, shortcut }])
       .then(() => load())
       .then((retained) => {
-        if (retained.toLocaleLowerCase() !== shortcut.toLocaleLowerCase()) {
+        if (normalizeCommandToken(retained) !== normalizeCommandToken(shortcut)) {
           throw new Error(
             getMessage("o_lShortcutRejected") ||
               "The browser did not accept this shortcut. It may be reserved or in use.",
@@ -151,7 +156,7 @@ export const setupSourceShortcut = () => {
   });
   reset.addEventListener("click", () => {
     const resetValue: unknown = Reflect.get(webExtensionApi.commands, "reset");
-    if (typeof resetValue !== "function") {
+    if (!isCommandMethod(resetValue)) {
       announce(
         getMessage("o_lShortcutResetUnsupported") ||
           "This browser does not support resetting shortcuts here.",

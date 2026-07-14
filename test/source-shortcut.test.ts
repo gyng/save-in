@@ -87,6 +87,15 @@ describe("Page Sources shortcut control", () => {
     expect(validateSourceShortcut("Ctrl+Ctrl+Y")).toContain("repeat");
   });
 
+  test("normalizes command tokens independently of the UI locale", () => {
+    vi.spyOn(String.prototype, "toLocaleLowerCase").mockImplementation(() => {
+      throw new Error("locale-sensitive casing must not be used");
+    });
+
+    expect(validateSourceShortcut("CTRL+PAGEDOWN")).toBe("");
+    expect(validateSourceShortcut("CTRL+ctrl+Y")).toContain("repeat");
+  });
+
   test("shows inline validation and only enables Apply for a valid change", async () => {
     setupSourceShortcut();
     const input = document.querySelector<HTMLInputElement>("#sourcePanelShortcutKey")!;
