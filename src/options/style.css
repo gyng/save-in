@@ -2574,7 +2574,6 @@ summary {
 .tab-panel .rule-clause-row select {
   width: 100%;
   max-width: none;
-  font-family: var(--font-mono);
 }
 
 .rule-clause-flag {
@@ -2587,6 +2586,7 @@ summary {
   color: var(--color-text-muted);
   font-family: var(--font-mono);
   font-size: 11px;
+  line-height: 1;
   white-space: nowrap;
   cursor: pointer;
 }
@@ -3817,7 +3817,6 @@ button:disabled:hover {
   /* Let the input shrink below its intrinsic width so the row (5 fixed control
      buttons + handle) doesn't overflow a narrow editor column */
   min-width: 0;
-  font-family: var(--font-mono);
 }
 
 .path-editor-alias {

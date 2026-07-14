@@ -276,7 +276,7 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
     ).replace("$NUMBER$", String(rule.index + 1));
     const meta = document.createElement("span");
     meta.className = "caption rule-editor-meta";
-    meta.textContent = rule.comment ? `L${rule.line} · ${rule.comment}` : `L${rule.line}`;
+    meta.textContent = rule.comment;
     identity.append(title, meta);
     if (isAutomaticRuleClauses(rule.clauses)) {
       const badge = document.createElement("span");
@@ -320,7 +320,7 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
     remove.disabled = !rule.editable;
     remove.addEventListener("click", () => commit(deleteRoutingRule(textarea.value, rule.index)));
     actions.append(up, down, duplicate, remove);
-    header.append(identity, enabledLabel, actions);
+    header.append(enabledLabel, identity, actions);
     card.append(header);
 
     if (!rule.editable) {
