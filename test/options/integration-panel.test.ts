@@ -223,7 +223,7 @@ test("completes and contains API handshakes without result fields", async () => 
 test("manages empty, duplicate, and keyboard-approved allowlist drafts", async () => {
   document.body.innerHTML = `<input id="external-extension-id-draft">
     <button id="external-extension-id-add">Allow</button>
-    <span id="external-approved-count"></span>
+    <span id="external-approved-count">Keine genehmigt</span>
     <div id="external-approved-list"></div><div id="external-approved-empty"></div>
     <textarea id="externalDownloadAllowlist"></textarea>
     <section id="external-download-rejections"><div id="external-download-rejection-list"></div></section>`;
@@ -234,7 +234,7 @@ test("manages empty, duplicate, and keyboard-approved allowlist drafts", async (
   setupIntegrationPanel();
   dispatchRestore();
   await vi.waitFor(() =>
-    expect(document.querySelector("#external-approved-count")?.textContent).toBe("None approved"),
+    expect(document.querySelector("#external-approved-count")?.textContent).toBe("Keine genehmigt"),
   );
 
   const draft = document.querySelector<HTMLInputElement>("#external-extension-id-draft")!;
@@ -249,14 +249,14 @@ test("manages empty, duplicate, and keyboard-approved allowlist drafts", async (
   draft.dispatchEvent(
     new KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true }),
   );
-  expect(document.querySelector("#external-approved-count")?.textContent).toBe("1 approved");
+  expect(document.querySelector("#external-approved-count")?.textContent).toBe("1");
 
   draft.value = "keyboard-extension";
   draft.dispatchEvent(new InputEvent("input", { bubbles: true }));
   expect(add.disabled).toBe(true);
   add.dispatchEvent(new MouseEvent("click", { bubbles: true }));
   document.querySelector<HTMLButtonElement>(".external-approved-remove")!.click();
-  expect(document.querySelector("#external-approved-count")?.textContent).toBe("None approved");
+  expect(document.querySelector("#external-approved-count")?.textContent).toBe("Keine genehmigt");
 });
 
 test("renders every rejected-request label and keeps the panel for remaining callers", async () => {

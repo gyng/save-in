@@ -6,6 +6,16 @@ export const setupOutsideDismiss = (
     const target = event.target;
     if (details.open && target instanceof Node && !details.contains(target)) details.open = false;
   });
+  document.addEventListener("keydown", (event) => {
+    if (!details.open || event.key !== "Escape") return;
+    event.preventDefault();
+    details.open = false;
+    const trigger = details.querySelector<HTMLElement>("summary");
+    trigger?.focus();
+    requestAnimationFrame(() => {
+      if (!details.open) trigger?.focus();
+    });
+  });
 };
 
 document

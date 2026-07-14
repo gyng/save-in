@@ -313,11 +313,14 @@ const renderHistoryTable = () => {
     const emptyRow = document.createElement("tr");
     emptyRow.className = "history-empty-row";
     const empty = document.createElement("td");
+    const message = document.createElement("span");
+    message.className = "history-empty-message";
     empty.colSpan = visibleHistoryColumns.size;
-    empty.textContent =
+    message.textContent =
       total === 0
         ? localize("historyEmptyNoDownloads") || "No downloads saved yet."
         : localize("historyEmptyNoMatches") || "No history matches these filters.";
+    empty.appendChild(message);
     emptyRow.appendChild(empty);
     table.appendChild(emptyRow);
   }

@@ -470,6 +470,10 @@
   max-width: none;
 }
 
+#history-list {
+  container-type: inline-size;
+}
+
 .history-pager {
   display: flex;
   align-items: center;

@@ -35,6 +35,26 @@ test("closes an open history more menu when clicking outside", () => {
   expect(details.open).toBe(false);
 });
 
+test("closes an open menu with Escape and restores focus to its trigger", () => {
+  document.body.innerHTML = `
+    <details class="history-export-menu" open>
+      <summary>Export</summary>
+      <button type="button">CSV</button>
+    </details>`;
+  const details = document.querySelector("details") as HTMLDetailsElement;
+  const summary = details.querySelector("summary") as HTMLElement;
+  const action = details.querySelector("button") as HTMLButtonElement;
+  setupOutsideDismiss(details);
+  action.focus();
+
+  action.dispatchEvent(
+    new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }),
+  );
+
+  expect(details.open).toBe(false);
+  expect(document.activeElement).toBe(summary);
+});
+
 test("supports the default resources target and an absent target", () => {
   document.body.innerHTML =
     '<details class="nav-resources" open></details><button>Outside</button>';

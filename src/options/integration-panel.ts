@@ -82,6 +82,7 @@ const setupApprovedExtensions = () => {
   const count = document.querySelector<HTMLElement>("#external-approved-count");
   const status = document.querySelector<HTMLElement>("#external-approved-status");
   if (!textarea || !draft || !add || !list || !empty || !count) return;
+  const noneApprovedLabel = count.textContent?.trim() || "None approved";
 
   const refreshAddState = () => {
     const candidate = draft.value.trim();
@@ -117,7 +118,7 @@ const setupApprovedExtensions = () => {
     });
 
     empty.hidden = ids.length > 0;
-    count.textContent = ids.length === 0 ? "None approved" : `${ids.length} approved`;
+    count.textContent = ids.length === 0 ? noneApprovedLabel : String(ids.length);
     refreshAddState();
   };
 
