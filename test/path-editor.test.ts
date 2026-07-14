@@ -3,7 +3,7 @@
 // round-trip the textarea syntax losslessly, and the visual editor must
 // serialize every edit back to the textarea (the source of truth).
 
-import { PathEditor } from "../src/options/path-editor.ts";
+import { PathEditor, setupPathEditor } from "../src/options/path-editor.ts";
 import { createSyntaxEditor, setSyntaxEditorDiagnostics } from "../src/options/syntax-editor.ts";
 
 const element = <T extends Element>(selector: string): T => {
@@ -100,6 +100,18 @@ describe("insertAtCursor / insertLine", () => {
     PathEditor.insertLine(textarea, "---");
     expect(textarea.value).toBe("---");
   });
+
+  test("uses the browser undo command when insertText succeeds", () => {
+    const execCommand = vi.fn(() => true);
+    Object.defineProperty(document, "execCommand", { configurable: true, value: execCommand });
+    textarea.value = "abc";
+
+    PathEditor.insertText(textarea, "x", 1, 2);
+
+    expect(execCommand).toHaveBeenCalledWith("insertText", false, "x");
+    expect(inputs).toBe(0);
+    Reflect.deleteProperty(document, "execCommand");
+  });
 });
 
 describe("visual editor", () => {
@@ -188,6 +200,11 @@ describe("visual editor", () => {
     expect(textarea().value).toBe("b // (alias: B)\na\n---");
   });
 
+  test("moving a row up reorders the lines", () => {
+    controls(1, "move up").click();
+    expect(textarea().value).toBe("b // (alias: B)\na\n---");
+  });
+
   test("deleting a row removes its line", () => {
     controls(2, "delete").click();
     expect(textarea().value).toBe("a\n>b // (alias: B)");
@@ -252,6 +269,69 @@ describe("visual editor", () => {
     handle.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp", altKey: true }));
     expect(textarea().value).toBe("b // (alias: B)\na\n---");
     expect(controls(0, "outdent").getAttribute("aria-label")).toBe("Outdent B");
+  });
+
+  test("keyboard nesting, enabled state, and directory edits commit", () => {
+    rows()[0]!
+      .querySelector<HTMLElement>(".path-editor-handle")!
+      .dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", altKey: true }));
+    let handle = rows()[2]!.querySelector<HTMLElement>(".path-editor-handle")!;
+    handle.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", altKey: true }));
+    expect(textarea().value).toContain(">---");
+
+    handle = rows()[2]!.querySelector<HTMLElement>(".path-editor-handle")!;
+    handle.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowLeft", altKey: true }));
+    handle = rows()[1]!.querySelector<HTMLElement>(".path-editor-handle")!;
+    handle.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", altKey: true }));
+    handle.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown" }));
+
+    const enabled = rows()[0]!.querySelector<HTMLInputElement>(".path-editor-enabled")!;
+    enabled.checked = false;
+    enabled.dispatchEvent(new Event("change"));
+    expect(textarea().value).toContain("(disabled: true)");
+
+    const dir = rows()[0]!.querySelector<HTMLInputElement>(".path-editor-dir")!;
+    dir.value = "renamed";
+    dir.dispatchEvent(new InputEvent("input"));
+    expect(textarea().value).toContain("renamed");
+  });
+
+  test("keyboard reordering ignores the outer boundaries", () => {
+    const first = rows()[0]!.querySelector<HTMLElement>(".path-editor-handle")!;
+    first.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp", altKey: true }));
+    const last = rows()[2]!.querySelector<HTMLElement>(".path-editor-handle")!;
+    last.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", altKey: true }));
+    expect(textarea().value).toBe("a\n>b // (alias: B)\n---");
+  });
+
+  test("uses fallback help and row labels when translations and paths are empty", () => {
+    vi.mocked(browser.i18n.getMessage).mockReturnValue("");
+    document.body.innerHTML = `
+      <textarea id="paths">// comment only</textarea>
+      <div id="path-editor-rows"></div>
+    `;
+    new PathEditor().setupVisualEditor();
+    vi.advanceTimersByTime(1500);
+
+    expect(document.querySelector(".path-editor-help")?.textContent).toContain(
+      "Changes in this editor are saved",
+    );
+    expect(document.querySelector(".path-editor-help")?.textContent).toContain(
+      "Drag by the dotted handle",
+    );
+    expect(document.querySelector(".path-editor-handle")?.getAttribute("aria-label")).toContain(
+      "row 1",
+    );
+  });
+
+  test("undo before deletion and repeated external edits are harmless", () => {
+    element<HTMLButtonElement>(".path-editor-undo").click();
+    textarea().value = "first";
+    textarea().dispatchEvent(new InputEvent("input", { bubbles: true }));
+    textarea().value = "second";
+    textarea().dispatchEvent(new InputEvent("input", { bubbles: true }));
+    vi.advanceTimersByTime(500);
+    expect(rows()[0]!.querySelector<HTMLInputElement>(".path-editor-dir")!.value).toBe("second");
   });
 
   test("typing in the textarea rebuilds the rows (debounced)", () => {
@@ -333,6 +413,24 @@ describe("text/visual mode toggle", () => {
 
     expect(editor.rebuildVisual).toHaveBeenCalledOnce();
     expect(other.rebuildVisual).not.toHaveBeenCalled();
+  });
+
+  test("returns safely for incomplete markup and unavailable local storage", () => {
+    document.body.innerHTML = '<textarea id="paths"></textarea>';
+    expect(() => new PathEditor().setupModeToggle()).not.toThrow();
+
+    document.body.innerHTML = `
+      <button id="paths-mode-text"></button><button id="paths-mode-visual"></button>
+      <div id="paths-text-help"></div><div id="paths-text-actions"></div>
+      <textarea id="paths"></textarea><div id="paths-visual"></div>`;
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
+      throw new Error("blocked");
+    });
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+      throw new Error("blocked");
+    });
+    expect(() => new PathEditor().setupModeToggle()).not.toThrow();
+    element<HTMLElement>("#paths-mode-text").click();
   });
 });
 
@@ -438,6 +536,29 @@ describe("visual editor drag and drop", () => {
     expect(element<HTMLTextAreaElement>("#paths").value).toBe("a\n>b\n>c");
   });
 
+  test("the upper drop zone inserts before the target", () => {
+    const rows = document.querySelectorAll<HTMLElement>(".path-editor-row");
+    vi.spyOn(rows[1]!, "getBoundingClientRect").mockReturnValue({
+      top: 100,
+      bottom: 160,
+      height: 60,
+      left: 0,
+      right: 300,
+      width: 300,
+      x: 0,
+      y: 100,
+      toJSON: () => ({}),
+    });
+    rows[2]!.querySelector(".path-editor-handle")!.dispatchEvent(dragEvent("dragstart", 0));
+    rows[1]!.dispatchEvent(dragEvent("dragover", 0, 105));
+    expect(rows[1]!.querySelector(".path-editor-drop-indicator")?.textContent).toContain(
+      "Insert before",
+    );
+    rows[1]!.dispatchEvent(dragEvent("drop", 0, 105));
+
+    expect(element<HTMLTextAreaElement>("#paths").value).toBe("a\nc\nb");
+  });
+
   test("horizontal movement on the same row has no effect", () => {
     const rows = document.querySelectorAll(".path-editor-row");
     rows[1]!.querySelector(".path-editor-handle")!.dispatchEvent(dragEvent("dragstart", 100));
@@ -502,6 +623,41 @@ describe("visual editor drag and drop", () => {
 
     expect(textarea.value).toBe("child\nsibling\nparent");
   });
+
+  test("drag lifecycle supports Firefox data transfer and clears indicators", () => {
+    const rows = document.querySelectorAll<HTMLElement>(".path-editor-row");
+    const handle = rows[0]!.querySelector<HTMLElement>(".path-editor-handle")!;
+    const dataTransfer = { setData: vi.fn(), effectAllowed: "" };
+    const start = dragEvent("dragstart", 0);
+    Object.defineProperty(start, "dataTransfer", { value: dataTransfer });
+    handle.dispatchEvent(start);
+    expect(dataTransfer.setData).toHaveBeenCalledWith("text/plain", "0");
+    expect(dataTransfer.effectAllowed).toBe("move");
+
+    rows[1]!.dispatchEvent(dragEvent("dragover", 0, 0));
+    expect(rows[1]!.querySelector(".path-editor-drop-indicator")).not.toBeNull();
+    rows[1]!.dispatchEvent(dragEvent("dragover", 0, 0));
+    handle.dispatchEvent(new Event("dragend"));
+    expect(rows[1]!.querySelector(".path-editor-drop-indicator")).toBeNull();
+
+    handle.dispatchEvent(start);
+    rows[1]!.dispatchEvent(dragEvent("dragover", 0, 0));
+    rows[1]!.dispatchEvent(dragEvent("dragleave", 0));
+    expect(rows[1]!.querySelector(".path-editor-drop-indicator")).toBeNull();
+  });
+
+  test("dragover without an active drag leaves the row unchanged", () => {
+    const row = document.querySelectorAll<HTMLElement>(".path-editor-row")[0]!;
+    const event = dragEvent("dragover", 0, 0);
+    row.dispatchEvent(event);
+    expect(event.defaultPrevented).toBe(false);
+    expect(row.querySelector(".path-editor-drop-indicator")).toBeNull();
+  });
+});
+
+test("top-level path editor setup tolerates absent option markup", () => {
+  document.body.innerHTML = "";
+  expect(() => setupPathEditor()).not.toThrow();
 });
 
 describe("insert menu targets its editor via data-insert-target", () => {

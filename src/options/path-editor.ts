@@ -55,14 +55,14 @@ const PathEditorHelpers = {
   },
 
   insertAtCursor: (textarea: HTMLTextAreaElement, text: string): void => {
-    const start = textarea.selectionStart != null ? textarea.selectionStart : textarea.value.length;
-    const end = textarea.selectionEnd != null ? textarea.selectionEnd : start;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
     PathEditorHelpers.insertText(textarea, text, start, end);
   },
 
   // Inserts a whole line after the line the cursor is on
   insertLine: (textarea: HTMLTextAreaElement, line: string): void => {
-    const start = textarea.selectionStart != null ? textarea.selectionStart : textarea.value.length;
+    const start = textarea.selectionStart;
     let lineEnd = textarea.value.indexOf("\n", start);
     if (lineEnd === -1) {
       lineEnd = textarea.value.length;
@@ -143,8 +143,7 @@ const PathEditorHelpers = {
     let committing = false;
     let deletedNodes: DirectoryLineNode[] | null = null;
     const updateNode = (index: number, update: DirectoryLineUpdate): void => {
-      const node = nodes[index];
-      if (node) nodes[index] = PathEditorHelpers.updateLine(node, update);
+      nodes[index] = PathEditorHelpers.updateLine(nodes[index]!, update);
     };
     const normalizeHierarchy = () => {
       nodes.forEach((node, index) => {
@@ -277,8 +276,8 @@ const PathEditorHelpers = {
           const destination = event.key === "ArrowUp" ? index - 1 : index + 1;
           if (destination < 0 || destination >= nodes.length) return;
           event.preventDefault();
-          const [moved] = nodes.splice(index, 1);
-          if (moved) nodes.splice(destination, 0, moved);
+          const moved = nodes.splice(index, 1)[0]!;
+          nodes.splice(destination, 0, moved);
           normalizeHierarchy();
           commit();
           rebuild();
@@ -297,8 +296,7 @@ const PathEditorHelpers = {
           `${getMessage("visualEditorEnabled") || "Enabled"}: ${rowName}`,
         );
         enabled.addEventListener("change", () => {
-          const current = nodes[index];
-          if (current) nodes[index] = PathEditorHelpers.setEnabled(current, enabled.checked);
+          nodes[index] = PathEditorHelpers.setEnabled(nodes[index]!, enabled.checked);
           commit();
           rebuild();
         });
@@ -345,20 +343,18 @@ const PathEditorHelpers = {
             dropInside = false;
             return;
           }
-          const target = nodes[index];
-          const [moved] = nodes.splice(dragFrom, 1);
+          const target = nodes[index]!;
+          const moved = nodes.splice(dragFrom, 1)[0]!;
           const adjustedTarget = dragFrom < index ? index - 1 : index;
-          const targetIndex = target ? nodes.indexOf(target) : -1;
+          const targetIndex = nodes.indexOf(target);
           const destination = dropInside ? targetIndex + 1 : adjustedTarget + (dropAfter ? 1 : 0);
-          if (moved) {
-            nodes.splice(
-              destination,
-              0,
-              PathEditorHelpers.updateLine(moved, {
-                depth: dropInside ? (target?.depth ?? 0) + 1 : (target?.depth ?? 0),
-              }),
-            );
-          }
+          nodes.splice(
+            destination,
+            0,
+            PathEditorHelpers.updateLine(moved, {
+              depth: dropInside ? target.depth + 1 : target.depth,
+            }),
+          );
           normalizeHierarchy();
           dragFrom = null;
           dropInside = false;
@@ -399,8 +395,7 @@ const PathEditorHelpers = {
           alias.setAttribute("aria-hidden", String(!aliasOpen));
           alias.setAttribute("aria-label", `Display name for directory ${index + 1}`);
           alias.addEventListener("input", () => {
-            const current = nodes[index];
-            if (current) nodes[index] = PathEditorHelpers.setAlias(current, alias.value);
+            nodes[index] = PathEditorHelpers.setAlias(nodes[index]!, alias.value);
             commit();
           });
           const aliasToggle = document.createElement("button");
@@ -435,29 +430,23 @@ const PathEditorHelpers = {
             "▶",
             "indent",
             () => {
-              if (index > 0 && node.depth < nodes[index - 1]!.depth + 1) {
-                updateNode(index, { depth: node.depth + 1 });
-              }
+              updateNode(index, { depth: node.depth + 1 });
             },
           ],
           [
             "▲",
             "move up",
             () => {
-              if (index > 0) {
-                const moved = nodes.splice(index, 1)[0];
-                if (moved) nodes.splice(index - 1, 0, moved);
-              }
+              const moved = nodes.splice(index, 1)[0]!;
+              nodes.splice(index - 1, 0, moved);
             },
           ],
           [
             "▼",
             "move down",
             () => {
-              if (index < nodes.length - 1) {
-                const moved = nodes.splice(index, 1)[0];
-                if (moved) nodes.splice(index + 1, 0, moved);
-              }
+              const moved = nodes.splice(index, 1)[0]!;
+              nodes.splice(index + 1, 0, moved);
             },
           ],
           [
