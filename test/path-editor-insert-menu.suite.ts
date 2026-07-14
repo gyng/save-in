@@ -1,4 +1,4 @@
-// @vitest-environment jsdom
+// Path editor DOM suite; its aggregator supplies the jsdom environment.
 import { setupPathInsertMenu } from "../src/options/path-editor-insert-menu.ts";
 
 const input = (selector = ".clause-preview-filter") =>

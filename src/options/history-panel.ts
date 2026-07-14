@@ -66,15 +66,18 @@ export const setHistoryLocalizer = (getLocalizedMessage: (key: string) => string
 };
 const historyColumns = () => localizeHistoryColumns(localize);
 const historyColumnOptionLabels = new Map<string, Text>();
-let visibleHistoryColumns = new Set<string>(defaultHistoryColumns);
-try {
-  const storedColumns = JSON.parse(localStorage.getItem(HISTORY_COLUMNS_KEY) || "null");
-  const valid = new Set(HISTORY_COLUMNS.map(({ key }) => key));
-  if (Array.isArray(storedColumns)) {
-    const selected = storedColumns.filter((key): key is string => valid.has(key));
-    if (selected.length) visibleHistoryColumns = new Set(selected);
-  }
-} catch {}
+const loadVisibleHistoryColumns = (): Set<string> => {
+  try {
+    const storedColumns = JSON.parse(localStorage.getItem(HISTORY_COLUMNS_KEY) || "null");
+    const valid = new Set(HISTORY_COLUMNS.map(({ key }) => key));
+    if (Array.isArray(storedColumns)) {
+      const selected = storedColumns.filter((key): key is string => valid.has(key));
+      if (selected.length) return new Set(selected);
+    }
+  } catch {}
+  return new Set(defaultHistoryColumns);
+};
+let visibleHistoryColumns = loadVisibleHistoryColumns();
 const HISTORY_PAGE_SIZE = 50;
 
 const historyDateIsValid = () =>
@@ -551,13 +554,6 @@ export const renderHistory = async () => {
     });
   }
 };
-const historyFilterInput = document.querySelector<HTMLInputElement>("#history-filter");
-historyFilterInput?.addEventListener("input", () => {
-  historyState.filter = historyFilterInput.value;
-  historyState.page = 0;
-  renderHistoryTable();
-});
-
 const bindHistoryFacet = (id: string, update: (value: string) => void) => {
   document
     .querySelector<HTMLInputElement | HTMLSelectElement>(id)
@@ -574,80 +570,11 @@ const bindHistoryFacet = (id: string, update: (value: string) => void) => {
       renderHistoryTable();
     });
 };
-
-bindHistoryFacet("#history-source-filter", (value) => (historyState.sourceFilter = value));
-bindHistoryFacet("#history-status-filter", (value) => (historyState.statusFilter = value));
-bindHistoryFacet("#history-type-filter", (value) => (historyState.typeFilter = value));
-bindHistoryFacet("#history-date-preset", (value) => {
-  historyState.datePreset = value;
-  const range = historyDateRange(value);
-  historyState.dateFrom = range.from;
-  historyState.dateTo = range.to;
-  const from = document.querySelector<HTMLInputElement>("#history-date-from");
-  const to = document.querySelector<HTMLInputElement>("#history-date-to");
-  if (from) from.value = historyState.dateFrom;
-  if (to) to.value = historyState.dateTo;
-});
 const selectCustomHistoryRange = () => {
   historyState.datePreset = "custom";
   const preset = document.querySelector<HTMLSelectElement>("#history-date-preset");
   if (preset) preset.value = "custom";
 };
-bindHistoryFacet("#history-date-from", (value) => {
-  historyState.dateFrom = value;
-  selectCustomHistoryRange();
-});
-bindHistoryFacet("#history-date-to", (value) => {
-  historyState.dateTo = value;
-  selectCustomHistoryRange();
-});
-
-document.querySelector("#history-clear-filters")?.addEventListener("click", () => {
-  historyState.filter = "";
-  historyState.sourceFilter = "";
-  historyState.statusFilter = "";
-  historyState.typeFilter = "";
-  historyState.datePreset = "any";
-  historyState.dateFrom = "";
-  historyState.dateTo = "";
-  historyState.page = 0;
-  const values: Record<string, string> = {
-    "history-filter": "",
-    "history-source-filter": "",
-    "history-status-filter": "",
-    "history-type-filter": "",
-    "history-date-preset": "any",
-    "history-date-from": "",
-    "history-date-to": "",
-  };
-  Object.entries(values).forEach(([id, value]) => {
-    const control = document.querySelector<HTMLInputElement | HTMLSelectElement>(`#${id}`);
-    if (control) control.value = value;
-  });
-  renderHistoryTable();
-});
-
-const columnOptions = document.querySelector("#history-column-options");
-HISTORY_COLUMNS.forEach(({ key, label }) => {
-  if (!columnOptions) return;
-  const option = document.createElement("label");
-  const checkbox = document.createElement("input");
-  checkbox.type = "checkbox";
-  checkbox.name = "history-column";
-  checkbox.value = key;
-  checkbox.checked = visibleHistoryColumns.has(key);
-  checkbox.addEventListener("change", () => {
-    if (checkbox.checked) visibleHistoryColumns.add(key);
-    else if (visibleHistoryColumns.size > 1) visibleHistoryColumns.delete(key);
-    else checkbox.checked = true;
-    localStorage.setItem(HISTORY_COLUMNS_KEY, JSON.stringify([...visibleHistoryColumns]));
-    renderHistoryTable();
-  });
-  const labelNode = document.createTextNode(label);
-  historyColumnOptionLabels.set(key, labelNode);
-  option.append(checkbox, labelNode);
-  columnOptions.appendChild(option);
-});
 
 const downloadHistoryExport = (format: "json" | "csv" | "tsv") => {
   const content =
@@ -672,16 +599,6 @@ const downloadHistoryExport = (format: "json" | "csv" | "tsv") => {
   link.click();
   URL.revokeObjectURL(url);
 };
-document
-  .querySelector("#history-export-json")
-  ?.addEventListener("click", () => downloadHistoryExport("json"));
-document
-  .querySelector("#history-export-csv")
-  ?.addEventListener("click", () => downloadHistoryExport("csv"));
-document
-  .querySelector("#history-export-tsv")
-  ?.addEventListener("click", () => downloadHistoryExport("tsv"));
-
 const removeHistory = async () => {
   const clearButton = document.querySelector<HTMLButtonElement>("#history-clear");
   if (clearButton) clearButton.disabled = true;
@@ -706,4 +623,99 @@ const removeHistory = async () => {
 const clearHistory = () => {
   if (window.confirm("Delete all saved history? This cannot be undone.")) void removeHistory();
 };
-document.querySelector("#history-clear")?.addEventListener("click", clearHistory);
+
+export const setupHistoryPanel = (): void => {
+  stopHistoryProgress();
+  Object.assign(historyState, createHistoryPanelState());
+  visibleHistoryColumns = loadVisibleHistoryColumns();
+  historyColumnOptionLabels.clear();
+
+  const historyFilterInput = document.querySelector<HTMLInputElement>("#history-filter");
+  historyFilterInput?.addEventListener("input", () => {
+    historyState.filter = historyFilterInput.value;
+    historyState.page = 0;
+    renderHistoryTable();
+  });
+
+  bindHistoryFacet("#history-source-filter", (value) => (historyState.sourceFilter = value));
+  bindHistoryFacet("#history-status-filter", (value) => (historyState.statusFilter = value));
+  bindHistoryFacet("#history-type-filter", (value) => (historyState.typeFilter = value));
+  bindHistoryFacet("#history-date-preset", (value) => {
+    historyState.datePreset = value;
+    const range = historyDateRange(value);
+    historyState.dateFrom = range.from;
+    historyState.dateTo = range.to;
+    const from = document.querySelector<HTMLInputElement>("#history-date-from");
+    const to = document.querySelector<HTMLInputElement>("#history-date-to");
+    if (from) from.value = historyState.dateFrom;
+    if (to) to.value = historyState.dateTo;
+  });
+  bindHistoryFacet("#history-date-from", (value) => {
+    historyState.dateFrom = value;
+    selectCustomHistoryRange();
+  });
+  bindHistoryFacet("#history-date-to", (value) => {
+    historyState.dateTo = value;
+    selectCustomHistoryRange();
+  });
+
+  document.querySelector("#history-clear-filters")?.addEventListener("click", () => {
+    historyState.filter = "";
+    historyState.sourceFilter = "";
+    historyState.statusFilter = "";
+    historyState.typeFilter = "";
+    historyState.datePreset = "any";
+    historyState.dateFrom = "";
+    historyState.dateTo = "";
+    historyState.page = 0;
+    const values: Record<string, string> = {
+      "history-filter": "",
+      "history-source-filter": "",
+      "history-status-filter": "",
+      "history-type-filter": "",
+      "history-date-preset": "any",
+      "history-date-from": "",
+      "history-date-to": "",
+    };
+    Object.entries(values).forEach(([id, value]) => {
+      const control = document.querySelector<HTMLInputElement | HTMLSelectElement>(`#${id}`);
+      if (control) control.value = value;
+    });
+    renderHistoryTable();
+  });
+
+  const columnOptions = document.querySelector("#history-column-options");
+  HISTORY_COLUMNS.forEach(({ key, label }) => {
+    if (!columnOptions) return;
+    const option = document.createElement("label");
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.name = "history-column";
+    checkbox.value = key;
+    checkbox.checked = visibleHistoryColumns.has(key);
+    checkbox.addEventListener("change", () => {
+      if (checkbox.checked) visibleHistoryColumns.add(key);
+      else if (visibleHistoryColumns.size > 1) visibleHistoryColumns.delete(key);
+      else checkbox.checked = true;
+      localStorage.setItem(HISTORY_COLUMNS_KEY, JSON.stringify([...visibleHistoryColumns]));
+      renderHistoryTable();
+    });
+    const labelNode = document.createTextNode(label);
+    historyColumnOptionLabels.set(key, labelNode);
+    option.append(checkbox, labelNode);
+    columnOptions.appendChild(option);
+  });
+
+  document
+    .querySelector("#history-export-json")
+    ?.addEventListener("click", () => downloadHistoryExport("json"));
+  document
+    .querySelector("#history-export-csv")
+    ?.addEventListener("click", () => downloadHistoryExport("csv"));
+  document
+    .querySelector("#history-export-tsv")
+    ?.addEventListener("click", () => downloadHistoryExport("tsv"));
+  document.querySelector("#history-clear")?.addEventListener("click", clearHistory);
+};
+
+setupHistoryPanel();

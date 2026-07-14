@@ -1,4 +1,4 @@
-// @vitest-environment jsdom
+// Options UI micro-suite; its aggregator supplies the jsdom environment.
 import { setupAboutDialog } from "../src/options/about-dialog.ts";
 
 test("closes the Help and resources dropdown before opening About", () => {

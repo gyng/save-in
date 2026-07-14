@@ -1,4 +1,4 @@
-// @vitest-environment jsdom
+// Options UI micro-suite; its aggregator supplies the jsdom environment.
 import { bootstrapOptionsPage } from "../src/options/options-bootstrap.ts";
 
 describe("options bootstrap", () => {

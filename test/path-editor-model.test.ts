@@ -1,15 +1,24 @@
 import {
+  deletePathNode,
+  dropPathNode,
   getPathAlias,
   getPathEnabled,
   getPathSourceRange,
+  pathNodesToLines,
   parseDirectoryLine,
   pathLinesToNodes,
+  reorderPathNode,
   serializeDirectoryLine,
   setPathAlias,
   setPathEnabled,
 } from "../src/options/path-editor-model.ts";
 
 describe("path editor model", () => {
+  const edit = (
+    text: string,
+    update: (nodes: ReturnType<typeof pathLinesToNodes>) => ReturnType<typeof pathLinesToNodes>,
+  ) => pathNodesToLines(update(pathLinesToNodes(text))).join("\n");
+
   test("parses and serializes lossless directory AST nodes", () => {
     const node = parseDirectoryLine(">>i/cats // cute (alias: Cats)");
     expect(node).toEqual(
@@ -64,5 +73,37 @@ describe("path editor model", () => {
     expect(getPathSourceRange(text, 1)).toEqual({ start: 12, end: 18 });
     expect(getPathSourceRange(text, 2)).toEqual({ start: 21, end: 33 });
     expect(getPathSourceRange(text, 3)).toBeNull();
+  });
+
+  test.each([
+    ["a\nb\nc", 0, 2, "after", "b\nc\na"],
+    ["a\n>b\nc", 2, 1, "after", "a\n>b\n>c"],
+    ["a\nb\nc", 2, 1, "before", "a\nc\nb"],
+    ["a\nb\nc", 2, 0, "inside", "a\n>c\nb"],
+    [
+      "group\n>child\n>>grandchild\nsibling",
+      3,
+      2,
+      "inside",
+      "group\n>child\n>>grandchild\n>>>sibling",
+    ],
+    ["parent\n>child\nsibling", 0, 2, "after", "child\nsibling\nparent"],
+  ] as const)(
+    "moves path rows without producing invalid hierarchy %#",
+    (text, from, target, placement, expected) => {
+      expect(edit(text, (nodes) => dropPathNode(nodes, from, target, placement))).toBe(expected);
+    },
+  );
+
+  test("treats invalid and same-row moves as no-ops", () => {
+    expect(edit("a\nb\nc", (nodes) => dropPathNode(nodes, 1, 1, "inside"))).toBe("a\nb\nc");
+    expect(edit("a\nb\nc", (nodes) => reorderPathNode(nodes, 0, -1))).toBe("a\nb\nc");
+  });
+
+  test("normalizes keyboard reordering and promotes children when a parent is deleted", () => {
+    expect(edit("a\n>b\nc", (nodes) => reorderPathNode(nodes, 1, 0))).toBe("b\na\nc");
+    expect(edit("parent\n>child\n>>grandchild\nsibling", (nodes) => deletePathNode(nodes, 0))).toBe(
+      "child\n>grandchild\nsibling",
+    );
   });
 });

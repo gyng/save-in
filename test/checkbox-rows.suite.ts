@@ -1,4 +1,4 @@
-// @vitest-environment jsdom
+// Options UI micro-suite; its aggregator supplies the jsdom environment.
 import { setupCheckboxRows } from "../src/options/checkbox-rows.ts";
 
 test("groups a checkbox title separately from its help text", () => {

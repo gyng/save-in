@@ -1,4 +1,4 @@
-// @vitest-environment jsdom
+// Options UI micro-suite; its aggregator supplies the jsdom environment.
 import { applyUiTheme, setupUiThemeControl } from "../src/options/theme.ts";
 
 test("applies valid options-page themes and safely defaults malformed values", () => {

@@ -11,12 +11,15 @@ import { getMessage } from "../platform/localization.ts";
 import { setupPathInsertMenu } from "./path-editor-insert-menu.ts";
 import { bindTabInteractions, syncTabSelection } from "./tab-controls.ts";
 import {
+  deletePathNode,
+  dropPathNode,
   getPathAlias,
   getPathEnabled,
   parseDirectoryLine,
   pathLinesToNodes,
   pathNodesToLines,
   serializeDirectoryLine,
+  reorderPathNode,
   setPathAlias,
   setPathEnabled,
   updateDirectoryLine,
@@ -179,14 +182,6 @@ const PathEditorHelpers = {
       const current = nodes[index];
       if (current) nodes[index] = PathEditorHelpers.updateLine(current, update);
     };
-    const normalizeHierarchy = () => {
-      nodes.forEach((node, index) => {
-        const previousDepth = nodes[index - 1]?.depth ?? 0;
-        updateNode(index, {
-          depth: index === 0 ? 0 : Math.min(node.depth, previousDepth + 1),
-        });
-      });
-    };
     const undo = document.createElement("button");
     undo.type = "button";
     undo.className = "path-editor-undo";
@@ -309,10 +304,7 @@ const PathEditorHelpers = {
           const destination = event.key === "ArrowUp" ? index - 1 : index + 1;
           if (destination < 0 || destination >= nodes.length) return;
           event.preventDefault();
-          const [moved] = nodes.splice(index, 1);
-          if (!moved) return;
-          nodes.splice(destination, 0, moved);
-          normalizeHierarchy();
+          nodes = reorderPathNode(nodes, index, destination);
           commit();
           rebuild();
           container.querySelectorAll<HTMLElement>(".path-editor-handle")[destination]?.focus();
@@ -377,21 +369,12 @@ const PathEditorHelpers = {
             dropInside = false;
             return;
           }
-          const target = nodes[index];
-          if (!target) return;
-          const [moved] = nodes.splice(dragFrom, 1);
-          if (!moved) return;
-          const adjustedTarget = dragFrom < index ? index - 1 : index;
-          const targetIndex = nodes.indexOf(target);
-          const destination = dropInside ? targetIndex + 1 : adjustedTarget + (dropAfter ? 1 : 0);
-          nodes.splice(
-            destination,
-            0,
-            PathEditorHelpers.updateLine(moved, {
-              depth: dropInside ? target.depth + 1 : target.depth,
-            }),
+          nodes = dropPathNode(
+            nodes,
+            dragFrom,
+            index,
+            dropInside ? "inside" : dropAfter ? "after" : "before",
           );
-          normalizeHierarchy();
           dragFrom = null;
           dropInside = false;
           commit();
@@ -477,16 +460,14 @@ const PathEditorHelpers = {
             "▲",
             "move up",
             () => {
-              const [moved] = nodes.splice(index, 1);
-              if (moved) nodes.splice(index - 1, 0, moved);
+              nodes = reorderPathNode(nodes, index, index - 1);
             },
           ],
           [
             "▼",
             "move down",
             () => {
-              const [moved] = nodes.splice(index, 1);
-              if (moved) nodes.splice(index + 1, 0, moved);
+              nodes = reorderPathNode(nodes, index, index + 1);
             },
           ],
           [
@@ -494,13 +475,7 @@ const PathEditorHelpers = {
             "delete",
             () => {
               deletedNodes = nodes.slice();
-              const deletedDepth = node.depth;
-              nodes.splice(index, 1);
-              for (let child = index; child < nodes.length; child++) {
-                const childNode = nodes[child];
-                if (!childNode || childNode.depth <= deletedDepth) break;
-                updateNode(child, { depth: childNode.depth - 1 });
-              }
+              nodes = deletePathNode(nodes, index);
               undo.hidden = false;
             },
           ],
@@ -525,7 +500,6 @@ const PathEditorHelpers = {
           if (title === "move down") button.disabled = index === nodes.length - 1;
           button.addEventListener("click", () => {
             action();
-            if (title === "move up" || title === "move down") normalizeHierarchy();
             commit();
             rebuild();
           });

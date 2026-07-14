@@ -1,4 +1,4 @@
-// @vitest-environment jsdom
+// Options UI micro-suite; its aggregator supplies the jsdom environment.
 import { linkOptionPreview } from "../src/options/option-navigation.ts";
 
 test("preview links navigate to their option by click or keyboard", () => {

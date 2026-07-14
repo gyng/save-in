@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 
 const historyRuntime = vi.hoisted(() => ({
   entries: [] as Array<Record<string, unknown>>,
@@ -39,9 +39,14 @@ const markup = () => `
   <button id="history-export-json"></button><button id="history-export-csv"></button>
   <button id="history-export-tsv"></button><button id="history-clear"></button>`;
 
+let historyPanel: typeof import("../src/options/history-panel.ts");
+
 describe("history filter controls", () => {
-  beforeEach(async () => {
-    vi.resetModules();
+  beforeAll(async () => {
+    historyPanel = await import("../src/options/history-panel.ts");
+  });
+
+  beforeEach(() => {
     historyRuntime.sendMessage
       .mockReset()
       .mockImplementation(async (message: { type: string }) =>
@@ -58,7 +63,8 @@ describe("history filter controls", () => {
     vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:history-export");
     vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {});
     document.body.innerHTML = markup();
-    await import("../src/options/history-panel.ts");
+    historyPanel.setHistoryLocalizer(() => "");
+    historyPanel.setupHistoryPanel();
   });
 
   afterEach(() => {
@@ -175,7 +181,7 @@ describe("history filter controls", () => {
   });
 
   test("keeps table headers and an empty-state row when history has no entries", async () => {
-    const { renderHistory } = await import("../src/options/history-panel.ts");
+    const { renderHistory } = historyPanel;
     await renderHistory();
     await vi.waitFor(() => expect(document.querySelector("#history-list table")).not.toBeNull());
 
@@ -192,7 +198,7 @@ describe("history filter controls", () => {
         finalFullPath: "photo.png",
       },
     ];
-    const { renderHistory } = await import("../src/options/history-panel.ts");
+    const { renderHistory } = historyPanel;
     await renderHistory();
     const time = document.querySelector<HTMLTableCellElement>(".history-time-heading")!;
     time.click();
@@ -224,7 +230,7 @@ describe("history filter controls", () => {
   test("offers a retry when loading fails and clears the error after recovery", async () => {
     historyRuntime.entries = [{ id: "h-recovered", finalFullPath: "recovered.png" }];
     historyRuntime.sendMessage.mockRejectedValueOnce(new Error("worker unavailable"));
-    const { renderHistory } = await import("../src/options/history-panel.ts");
+    const { renderHistory } = historyPanel;
 
     await renderHistory();
 
@@ -264,7 +270,7 @@ describe("history filter controls", () => {
 
   test("cancels a pending preparation before it has a browser download ID", async () => {
     historyRuntime.entries = [{ id: "h-large", status: "pending", finalFullPath: "large.iso" }];
-    const { renderHistory } = await import("../src/options/history-panel.ts");
+    const { renderHistory } = historyPanel;
     await renderHistory();
 
     document.querySelector<HTMLButtonElement>(".history-cancel")!.click();
@@ -279,7 +285,7 @@ describe("history filter controls", () => {
 
   test("restores cancellation when the background request fails", async () => {
     historyRuntime.entries = [{ id: "h-large", status: "pending", finalFullPath: "large.iso" }];
-    const { renderHistory } = await import("../src/options/history-panel.ts");
+    const { renderHistory } = historyPanel;
     await renderHistory();
     historyRuntime.sendMessage.mockRejectedValueOnce(new Error("worker stopped"));
     const cancel = document.querySelector<HTMLButtonElement>(".history-cancel")!;
@@ -293,7 +299,7 @@ describe("history filter controls", () => {
     historyRuntime.entries = [
       { id: "h-complete", status: "complete", downloadId: 42, finalFullPath: "done.png" },
     ];
-    const { renderHistory } = await import("../src/options/history-panel.ts");
+    const { renderHistory } = historyPanel;
     await renderHistory();
     const open = document.querySelector<HTMLButtonElement>('[aria-label="Show in folder"]')!;
 
@@ -312,7 +318,7 @@ describe("history filter controls", () => {
     historyRuntime.entries = [
       { id: "h-complete", status: "complete", downloadId: 42, finalFullPath: "done.png" },
     ];
-    const { renderHistory } = await import("../src/options/history-panel.ts");
+    const { renderHistory } = historyPanel;
     const { webExtensionApi } = await import("../src/platform/web-extension-api.ts");
     const downloads = webExtensionApi.downloads!;
     const show = downloads.show;
@@ -341,9 +347,8 @@ describe("history filter controls", () => {
     expect(stored).not.toContain("index");
 
     localStorage.setItem("si-history-columns", JSON.stringify(["index"]));
-    vi.resetModules();
     document.body.innerHTML = markup();
-    await import("../src/options/history-panel.ts");
+    historyPanel.setupHistoryPanel();
     const onlyVisible = document.querySelector<HTMLInputElement>("#history-column-options input")!;
     expect(onlyVisible.checked).toBe(true);
 
@@ -378,8 +383,8 @@ describe("history filter controls", () => {
       "variables",
     ];
     localStorage.setItem("si-history-columns", JSON.stringify(allColumns));
-    vi.resetModules();
     document.body.innerHTML = markup();
+    historyPanel.setupHistoryPanel();
     historyRuntime.entries = [
       {
         id: "h-full",
@@ -396,7 +401,7 @@ describe("history filter controls", () => {
       },
       { id: "h-null", finalFullPath: "plain.txt" },
     ];
-    const { renderHistory, setHistoryLocalizer } = await import("../src/options/history-panel.ts");
+    const { renderHistory, setHistoryLocalizer } = historyPanel;
     setHistoryLocalizer((key) => (key === "historyColumnSource" ? "Localized source" : ""));
     await renderHistory();
 
@@ -420,13 +425,13 @@ describe("history filter controls", () => {
 
   test("uses a stored single-column view and pages through large history", async () => {
     localStorage.setItem("si-history-columns", JSON.stringify(["index"]));
-    vi.resetModules();
     document.body.innerHTML = markup();
+    historyPanel.setupHistoryPanel();
     historyRuntime.entries = Array.from({ length: 51 }, (_, index) => ({
       id: `h-${index}`,
       finalFullPath: `${index}.txt`,
     }));
-    const { renderHistory } = await import("../src/options/history-panel.ts");
+    const { renderHistory } = historyPanel;
     await renderHistory();
     expect(document.querySelectorAll("#history-list td[data-column]")).toHaveLength(50);
 
@@ -444,10 +449,10 @@ describe("history filter controls", () => {
 
   test("renders without the index column or column option controls", async () => {
     localStorage.setItem("si-history-columns", JSON.stringify(["file"]));
-    vi.resetModules();
     document.body.innerHTML = '<div id="history-list"></div><input id="history-date-from">';
+    historyPanel.setupHistoryPanel();
     historyRuntime.entries = [{ id: "h-file", finalFullPath: "only.txt" }];
-    const { renderHistory } = await import("../src/options/history-panel.ts");
+    const { renderHistory } = historyPanel;
     await renderHistory();
 
     expect(document.querySelector(".history-index")).toBeNull();
@@ -460,7 +465,7 @@ describe("history filter controls", () => {
     ["tsv", "text/tab-separated-values"],
   ])("exports the current history as %s", async (format, contentType) => {
     historyRuntime.entries = [{ id: "h-export", finalFullPath: "folder/photo.png" }];
-    const { renderHistory } = await import("../src/options/history-panel.ts");
+    const { renderHistory } = historyPanel;
     await renderHistory();
     const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
 
@@ -484,7 +489,7 @@ describe("history filter controls", () => {
     historyRuntime.search.mockResolvedValueOnce([
       { id: 7, state: "in_progress", bytesReceived: 50, totalBytes: 100 },
     ]);
-    const { renderHistory } = await import("../src/options/history-panel.ts");
+    const { renderHistory } = historyPanel;
 
     await renderHistory();
     await vi.runAllTicks();
@@ -510,7 +515,7 @@ describe("history filter controls", () => {
       { id: null, state: "in_progress" },
       { id: 7, state: "complete", bytesReceived: 100, totalBytes: 100 },
     ]);
-    const { renderHistory } = await import("../src/options/history-panel.ts");
+    const { renderHistory } = historyPanel;
     await renderHistory();
     await vi.runAllTicks();
     expect(document.querySelector(".history-progress")).not.toBeNull();
@@ -526,7 +531,7 @@ describe("history filter controls", () => {
       { id: "h-pending", status: "pending", downloadId: 7, finalFullPath: "large.iso" },
     ];
     historyRuntime.search.mockRejectedValueOnce(new Error("downloads unavailable"));
-    const { renderHistory } = await import("../src/options/history-panel.ts");
+    const { renderHistory } = historyPanel;
     await renderHistory();
     await vi.runAllTicks();
 
@@ -538,7 +543,7 @@ describe("history filter controls", () => {
     historyRuntime.entries = [
       { id: "h-pending", status: "pending", downloadId: 7, finalFullPath: "large.iso" },
     ];
-    const { renderHistory } = await import("../src/options/history-panel.ts");
+    const { renderHistory } = historyPanel;
     const { webExtensionApi } = await import("../src/platform/web-extension-api.ts");
     const downloads = webExtensionApi.downloads!;
     const search = downloads.search;
@@ -552,7 +557,7 @@ describe("history filter controls", () => {
 
   test("contains invalid history responses", async () => {
     historyRuntime.sendMessage.mockResolvedValueOnce({ type: "HISTORY_GET", body: {} });
-    const { renderHistory } = await import("../src/options/history-panel.ts");
+    const { renderHistory } = historyPanel;
 
     await renderHistory();
 
@@ -574,7 +579,7 @@ describe("history filter controls", () => {
         ],
       },
     });
-    const { renderHistory } = await import("../src/options/history-panel.ts");
+    const { renderHistory } = historyPanel;
 
     await renderHistory();
 
@@ -586,17 +591,16 @@ describe("history filter controls", () => {
 
   test("imports safely without history markup or valid stored preferences", async () => {
     localStorage.setItem("si-history-columns", "not json");
-    vi.resetModules();
     document.body.innerHTML = "";
-    const { renderHistory } = await import("../src/options/history-panel.ts");
+    historyPanel.setupHistoryPanel();
+    const { renderHistory } = historyPanel;
     await expect(renderHistory()).resolves.toBeUndefined();
   });
 
   test("ignores a stored column list with no recognized columns", async () => {
     localStorage.setItem("si-history-columns", JSON.stringify(["unknown"]));
-    vi.resetModules();
     document.body.innerHTML = markup();
-    await import("../src/options/history-panel.ts");
+    historyPanel.setupHistoryPanel();
 
     expect(
       [...document.querySelectorAll<HTMLInputElement>("#history-column-options input")].filter(
@@ -618,7 +622,7 @@ describe("history filter controls", () => {
     document.querySelector("#history-custom-date-range")?.remove();
     document.querySelector("#history-date-error")?.remove();
     document.querySelector("#history-count")?.remove();
-    const { renderHistory } = await import("../src/options/history-panel.ts");
+    const { renderHistory } = historyPanel;
 
     await expect(renderHistory()).resolves.toBeUndefined();
   });
