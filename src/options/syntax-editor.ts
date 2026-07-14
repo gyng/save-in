@@ -240,7 +240,6 @@ export const createSyntaxEditor = (
   let snapshot = analyzeSyntax(language, textarea.value);
   let renderedDiagnostics: readonly SyntaxEditorDiagnostic[] = [];
   let characterWidth = 0;
-  let tooltipPinned = false;
 
   const diagnosticsAtOffset = (offset: number): readonly SyntaxEditorDiagnostic[] =>
     uniqueDiagnostics(
@@ -294,20 +293,14 @@ export const createSyntaxEditor = (
   };
 
   const hideTooltip = () => {
-    tooltipPinned = false;
     tooltip.hidden = true;
     tooltip.replaceChildren();
-  };
-
-  const hideHoverTooltip = () => {
-    if (!tooltipPinned) hideTooltip();
   };
 
   const showTooltip = (
     diagnostics: readonly SyntaxEditorDiagnostic[],
     anchorX: number,
     anchorTop: number,
-    pinned = false,
   ) => {
     const visibleDiagnostics = uniqueDiagnostics(diagnostics);
     if (visibleDiagnostics.length === 0) {
@@ -329,7 +322,6 @@ export const createSyntaxEditor = (
     });
     tooltip.replaceChildren(fragment);
     tooltip.hidden = false;
-    tooltipPinned = pinned;
     const viewportWidth = document.documentElement.clientWidth || window.innerWidth;
     const width = tooltip.getBoundingClientRect().width;
     const left = Math.max(8, Math.min(anchorX, viewportWidth - width - 8));
@@ -367,51 +359,7 @@ export const createSyntaxEditor = (
       diagnostics,
       rect.left + paddingLeft + column * measureCharacterWidth() - textarea.scrollLeft,
       rect.top + paddingTop + lineIndex * lineHeight - textarea.scrollTop,
-      true,
     );
-  };
-
-  const onPointerMove = (event: MouseEvent) => {
-    if (tooltipPinned) return;
-    const { rect, lineHeight, paddingTop, paddingLeft } = editorMetrics();
-    const lineIndex = Math.floor(
-      (event.clientY - rect.top - paddingTop + textarea.scrollTop) / lineHeight,
-    );
-    const line = snapshot.lines[lineIndex];
-    if (!line) {
-      hideTooltip();
-      return;
-    }
-    const column = Math.max(
-      0,
-      Math.floor(
-        (event.clientX - rect.left - paddingLeft + textarea.scrollLeft) / measureCharacterWidth(),
-      ),
-    );
-    const offset = Math.min(line.start + column, line.end);
-    const diagnostics = renderedDiagnostics.filter(
-      (diagnostic) => diagnostic.start <= offset && diagnostic.end > offset,
-    );
-    if (diagnostics.length === 0) {
-      hideTooltip();
-      return;
-    }
-    showTooltip(diagnostics, event.clientX + 12, event.clientY);
-  };
-
-  const onGutterPointerMove = (event: MouseEvent) => {
-    if (tooltipPinned) return;
-    const target = event.target;
-    if (!(target instanceof HTMLElement)) return;
-    const lineNumber = Number(target.dataset.line);
-    const line = snapshot.lines[lineNumber - 1];
-    if (!line) {
-      hideTooltip();
-      return;
-    }
-    const diagnostics = diagnosticsForLine(renderedDiagnostics, line);
-    const rect = target.getBoundingClientRect();
-    showTooltip(diagnostics, rect.right + 8, rect.top);
   };
 
   const onGutterClick = (event: MouseEvent) => {
@@ -424,7 +372,7 @@ export const createSyntaxEditor = (
     renderInlineDiagnostics(inlineDiagnostics, snapshot, diagnosticsAtCaret());
     const line = lineAtOffset(start);
     const rect = target.getBoundingClientRect();
-    showTooltip(diagnosticsForLine(renderedDiagnostics, line), rect.right + 8, rect.top, true);
+    showTooltip(diagnosticsForLine(renderedDiagnostics, line), rect.right + 8, rect.top);
   };
 
   const onKeyDown = (event: KeyboardEvent) => {
@@ -453,8 +401,6 @@ export const createSyntaxEditor = (
       textarea.removeEventListener("input", onInput);
       textarea.removeEventListener("options-value-applied", onInput);
       textarea.removeEventListener("scroll", syncScroll);
-      textarea.removeEventListener("mousemove", onPointerMove);
-      textarea.removeEventListener("mouseleave", hideHoverTooltip);
       textarea.removeEventListener("blur", onBlur);
       textarea.removeEventListener("focus", showTooltipForCaret);
       textarea.removeEventListener("click", showTooltipForCaret);
@@ -463,8 +409,6 @@ export const createSyntaxEditor = (
       textarea.removeEventListener("keydown", onKeyDown);
       textarea.removeEventListener("syntax-editor-visibility", onVisibilityChange);
       gutter.removeEventListener("click", onGutterClick);
-      gutter.removeEventListener("mousemove", onGutterPointerMove);
-      gutter.removeEventListener("mouseleave", hideHoverTooltip);
       textarea.classList.remove("syntax-editor-input");
       textarea.removeAttribute("wrap");
       shell.replaceWith(textarea);
@@ -476,8 +420,6 @@ export const createSyntaxEditor = (
   textarea.addEventListener("input", onInput);
   textarea.addEventListener("options-value-applied", onInput);
   textarea.addEventListener("scroll", syncScroll, { passive: true });
-  textarea.addEventListener("mousemove", onPointerMove);
-  textarea.addEventListener("mouseleave", hideHoverTooltip);
   textarea.addEventListener("blur", onBlur);
   textarea.addEventListener("focus", showTooltipForCaret);
   textarea.addEventListener("click", showTooltipForCaret);
@@ -486,8 +428,6 @@ export const createSyntaxEditor = (
   textarea.addEventListener("keydown", onKeyDown);
   textarea.addEventListener("syntax-editor-visibility", onVisibilityChange);
   gutter.addEventListener("click", onGutterClick);
-  gutter.addEventListener("mousemove", onGutterPointerMove);
-  gutter.addEventListener("mouseleave", hideHoverTooltip);
   refresh();
   return controller;
 };

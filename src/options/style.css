@@ -1625,7 +1625,7 @@ input.key {
   color: var(--syntax-error);
   background: var(--syntax-error-soft);
   font-weight: 750;
-  cursor: help;
+  cursor: pointer;
 }
 
 .syntax-editor-line-number.has-diagnostic-warning {
