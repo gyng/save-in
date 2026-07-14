@@ -1,4 +1,4 @@
-import { RULE_TYPES } from "../shared/constants.ts";
+import { RULE_TYPES, SPECIAL_DIRS } from "../shared/constants.ts";
 import { matcherFunctions } from "./matchers.ts";
 import { routingPorts } from "./ports.ts";
 import { parseRoutingRuleAst, type RoutingRuleNode, type RuleSyntaxIssue } from "./rule-syntax.ts";
@@ -17,6 +17,21 @@ const errorLocation = (span: SourceSpan): RuleErrorLocation => ({
   end: span.end.offset,
   line: span.start.line,
   column: span.start.column,
+});
+
+const knownDestinationVariables = new Set<string>(Object.values(SPECIAL_DIRS));
+
+const spanWithin = (span: SourceSpan, start: number, length: number): SourceSpan => ({
+  start: {
+    offset: span.start.offset + start,
+    line: span.start.line,
+    column: span.start.column + start,
+  },
+  end: {
+    offset: span.start.offset + start + length,
+    line: span.start.line,
+    column: span.start.column + start + length,
+  },
 });
 
 const appendError = (
@@ -145,6 +160,17 @@ const parseSemanticRule = (
       destinationNode?.valueSpan ?? rule.span,
     );
     return false;
+  }
+  for (const match of destination.value.matchAll(/:[A-Za-z][A-Za-z0-9_]*:/g)) {
+    const variable = match[0];
+    if (knownDestinationVariables.has(variable)) continue;
+    appendError(
+      errors,
+      routingPorts.getMessage("ruleUnknownDestinationVariable"),
+      variable,
+      spanWithin(destinationNode!.valueSpan, match.index, variable.length),
+      true,
+    );
   }
   if (
     destination.value.match(/:\$\d+:/) &&

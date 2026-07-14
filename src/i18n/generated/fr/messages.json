@@ -250,6 +250,9 @@
   "ruleUnknownMatcher": {
     "message": "Critère inconnu"
   },
+  "ruleUnknownDestinationVariable": {
+    "message": "Destination variable is not supported"
+  },
   "ruleInvalidRegex": {
     "message": "Expression régulière invalide"
   },

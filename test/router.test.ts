@@ -549,6 +549,25 @@ describe("filename rewrite and routing", () => {
       expect(diagnostics.filenamePatterns.length).toBe(1);
     });
 
+    test("warns about unknown destination variables without rejecting the rule", () => {
+      const result = router.parseRulesCollecting(
+        "fileext: pdf\ninto: pdfs/:dwedekday:-:naivefilename:",
+      );
+
+      expect(result.rules).toHaveLength(1);
+      expect(result.errors).toContainEqual({
+        message: "ruleUnknownDestinationVariable",
+        error: ":dwedekday:",
+        warning: true,
+        location: {
+          start: 24,
+          end: 35,
+          line: 2,
+          column: 11,
+        },
+      });
+    });
+
     test("multiple into clauses are rejected", () => {
       const rules = router.parseRules("sourceurl: a\ninto: x\ninto: y");
       expect(rules).toEqual([]);

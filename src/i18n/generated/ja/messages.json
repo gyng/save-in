@@ -127,6 +127,9 @@
   "ruleUnknownMatcher": {
     "message": "不明なマッチャー"
   },
+  "ruleUnknownDestinationVariable": {
+    "message": "Destination variable is not supported"
+  },
   "ruleInvalidRegex": {
     "message": "無効な正規表現です"
   },

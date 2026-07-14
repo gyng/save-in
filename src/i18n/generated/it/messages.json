@@ -110,6 +110,9 @@
   "ruleUnknownMatcher": {
     "message": "Criterio di corrispondenza sconosciuto"
   },
+  "ruleUnknownDestinationVariable": {
+    "message": "Destination variable is not supported"
+  },
   "ruleInvalidRegex": {
     "message": "Espressione regolare non valida"
   },

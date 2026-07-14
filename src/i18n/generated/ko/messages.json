@@ -127,6 +127,9 @@
   "ruleUnknownMatcher": {
     "message": "알 수 없는 매처"
   },
+  "ruleUnknownDestinationVariable": {
+    "message": "Destination variable is not supported"
+  },
   "ruleInvalidRegex": {
     "message": "잘못된 정규 표현식"
   },

@@ -224,6 +224,9 @@
   "ruleUnknownMatcher": {
     "message": "Okänd matchare"
   },
+  "ruleUnknownDestinationVariable": {
+    "message": "Destination variable is not supported"
+  },
   "ruleInvalidRegex": {
     "message": "Ogiltigt reguljärt uttryck"
   },

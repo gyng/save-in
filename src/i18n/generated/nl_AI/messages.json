@@ -230,6 +230,9 @@
   "ruleUnknownMatcher": {
     "message": "Onbekende matcher"
   },
+  "ruleUnknownDestinationVariable": {
+    "message": "Destination variable is not supported"
+  },
   "ruleInvalidRegex": {
     "message": "Ongeldige reguliere expressie"
   },

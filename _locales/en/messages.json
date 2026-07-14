@@ -149,6 +149,10 @@
     "message": "Matcher name is not supported",
     "description": "Error message for an unknown matcher. Used in src/routing/rule-parser.ts."
   },
+  "ruleUnknownDestinationVariable": {
+    "message": "Destination variable is not supported",
+    "description": "Warning for an unknown colon-wrapped variable in an into destination. Used in src/routing/rule-parser.ts."
+  },
   "ruleInvalidRegex": {
     "message": "Pattern or flags are not a valid regular expression",
     "description": "Error message for a rule with invalid regex. Used in src/routing/rule-parser.ts."
