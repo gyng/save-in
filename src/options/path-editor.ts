@@ -470,7 +470,7 @@ const PathEditorHelpers = {
           });
           accessKeyControl.append(accessKeyMarker, accessKey);
           rowEl.append(alias);
-          actions.append(accessKeyControl, aliasToggle);
+          actions.append(aliasToggle, accessKeyControl);
         }
 
         const controls: [string, string, () => void][] = [

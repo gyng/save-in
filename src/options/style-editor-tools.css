@@ -638,7 +638,7 @@ button:disabled {
   display: flex;
   flex: none;
   align-items: baseline;
-  gap: 1px;
+  gap: 2px;
   margin-left: auto;
 }
 
