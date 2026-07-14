@@ -123,7 +123,7 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
     textarea.focus();
     textarea.setSelectionRange(
       offset,
-      Math.min(textarea.value.length, offset + (lines[line - 1]?.length ?? 0)),
+      Math.min(textarea.value.length, offset + lines[line - 1]!.length),
     );
   };
 
@@ -238,7 +238,7 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
     card.classList.add("rule-editor-card-unsupported");
     const warning = document.createElement("div");
     warning.className = "rule-editor-unsupported";
-    const issueLine = rule.issues[0]?.line ?? rule.line;
+    const issueLine = rule.issues[0]!.line;
     warning.textContent = localize(
       "routeVisualUnsupported",
       `This rule has syntax Visual mode cannot safely edit near line ${issueLine}.`,
@@ -385,9 +385,7 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
         ? true
         : event.key === "Home"
           ? false
-          : ["ArrowRight", "ArrowDown"].includes(event.key)
-            ? event.currentTarget === textButton
-            : event.currentTarget !== textButton;
+          : event.currentTarget === textButton;
     setMode(nextVisual);
     (nextVisual ? visualButton : textButton).focus();
   };
@@ -414,14 +412,15 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
   document.addEventListener("options-restored", render);
   document.addEventListener("route-debugger-source-selected", (event) => {
     if (!(event instanceof CustomEvent) || !visual) return;
-    const ruleIndex = Number(Reflect.get(event.detail ?? {}, "ruleIndex"));
+    const detail = event.detail ?? {};
+    const ruleIndex = Number(Reflect.get(detail, "ruleIndex"));
     const card = cards.querySelector<HTMLElement>(`[data-rule-index="${ruleIndex}"]`);
     if (!card) return;
     cards
       .querySelectorAll(".rule-editor-card.is-debug-selected")
       .forEach((item) => item.classList.remove("is-debug-selected"));
     card.classList.add("is-debug-selected");
-    const line = Number(Reflect.get(event.detail ?? {}, "line"));
+    const line = Number(Reflect.get(detail, "line"));
     card
       .querySelectorAll(".rule-clause-row.is-active")
       .forEach((item) => item.classList.remove("is-active"));

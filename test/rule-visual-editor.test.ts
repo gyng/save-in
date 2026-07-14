@@ -30,6 +30,8 @@ describe("routing visual editor", () => {
   });
 
   afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
     document.body.innerHTML = "";
     localStorage.removeItem("saveInRulesEditorMode");
   });
@@ -172,5 +174,180 @@ describe("routing visual editor", () => {
       new CustomEvent("route-debugger-source-selected", { detail: { ruleIndex: 1, line: 4 } }),
     );
     expect(document.querySelectorAll(".rule-editor-card.is-debug-selected")).toHaveLength(1);
+  });
+
+  test("edits matcher, capture, destination, and card controls", () => {
+    element<HTMLTextAreaElement>("#filenamePatterns").value = [
+      "// Documents",
+      "filename/i: pdf",
+      "capturegroups: filename",
+      "into: documents/:filename:",
+      "",
+      "sourceurl: cdn",
+      "into: images/:filename:",
+    ].join("\n");
+    setupRuleVisualEditor({ matchers: ["filename", "sourceurl"] });
+    const textarea = element<HTMLTextAreaElement>("#filenamePatterns");
+    expect(document.querySelector(".rule-editor-meta")?.textContent).toContain("Documents");
+    expect(
+      [...document.querySelectorAll(".rule-clause-marker")].map((node) => node.textContent),
+    ).toContain("$");
+
+    const firstRow = element<HTMLElement>(".rule-clause-row");
+    firstRow.click();
+    expect(firstRow.classList).toContain("is-active");
+    const secondRow = document.querySelectorAll<HTMLElement>(".rule-clause-row")[1]!;
+    secondRow.click();
+    expect(firstRow.classList).not.toContain("is-active");
+    const select = element<HTMLSelectElement>(".rule-clause-name");
+    select.dispatchEvent(new Event("change"));
+    select.value = "sourceurl";
+    select.dispatchEvent(new Event("change"));
+    expect(textarea.value).toContain("sourceurl/i: pdf");
+
+    const insensitive = element<HTMLInputElement>(".rule-clause-flag input");
+    insensitive.checked = false;
+    insensitive.dispatchEvent(new Event("change"));
+    expect(textarea.value).toContain("sourceurl: pdf");
+
+    element<HTMLButtonElement>(".rule-editor-add-condition").click();
+    expect(textarea.value).toContain("sourceurl: .*");
+    element<HTMLButtonElement>(
+      '[data-rule-index="0"] .rule-clause-capture [data-rule-action="delete-clause"]',
+    ).click();
+    expect(textarea.value).not.toContain("capturegroups:");
+    element<HTMLButtonElement>('[data-rule-index="1"] [data-rule-action="up"]').click();
+    expect(
+      element<HTMLElement>('[data-rule-index="0"] .rule-editor-meta').textContent,
+    ).not.toContain("Documents");
+  });
+
+  test("renders an empty localized editor without optional actions", () => {
+    element<HTMLTextAreaElement>("#filenamePatterns").value = "";
+    element("#rule-editor-add").remove();
+    element("#rule-editor-add-auto").remove();
+    const manage = element<HTMLButtonElement>("#auto-download-manage-rules");
+    setupRuleVisualEditor({ matchers: [], localize: (key) => key });
+    expect(element(".rule-editor-empty").textContent).toBe("routeVisualEmpty");
+
+    manage.click();
+    const navigateTarget = vi.fn();
+    document.addEventListener("save-in:navigate-option", navigateTarget, { once: true });
+    manage.click();
+    expect((navigateTarget.mock.calls[0]![0] as CustomEvent).detail.target).toBe(
+      element("#rules-mode-visual"),
+    );
+    element<HTMLButtonElement>("#rules-mode-text").dispatchEvent(
+      new KeyboardEvent("keydown", { key: "x", bubbles: true }),
+    );
+    element<HTMLButtonElement>("#rules-mode-text").dispatchEvent(
+      new KeyboardEvent("keydown", { key: "End", bubbles: true }),
+    );
+    element<HTMLButtonElement>("#rules-mode-visual").dispatchEvent(
+      new KeyboardEvent("keydown", { key: "ArrowLeft", bubbles: true }),
+    );
+    expect(element<HTMLElement>("#rules-text-editor").hidden).toBe(false);
+  });
+
+  test("supports matcher-only rules and a fallback condition name", () => {
+    element<HTMLTextAreaElement>("#filenamePatterns").value = "filename: jpg";
+    setupRuleVisualEditor({ matchers: [] });
+    element<HTMLButtonElement>(".rule-editor-add-condition").click();
+    expect(element<HTMLTextAreaElement>("#filenamePatterns").value).toBe(
+      "filename: jpg\nfilename: .*",
+    );
+  });
+
+  test("debounces external text edits only while Visual mode is active", () => {
+    vi.useFakeTimers();
+    setupRuleVisualEditor({ matchers: ["filename"] });
+    const textarea = element<HTMLTextAreaElement>("#filenamePatterns");
+    textarea.value = "filename: png\ninto: png";
+    textarea.dispatchEvent(new InputEvent("input"));
+    textarea.value = "filename: gif\ninto: gif";
+    textarea.dispatchEvent(new InputEvent("input"));
+    vi.advanceTimersByTime(180);
+    expect(element<HTMLInputElement>(".rule-clause-value").value).toBe("gif");
+
+    element<HTMLButtonElement>("#rules-mode-text").click();
+    textarea.value = "filename: webp\ninto: webp";
+    textarea.dispatchEvent(new InputEvent("input"));
+    vi.advanceTimersByTime(180);
+    expect(element<HTMLElement>("#rules-visual").hidden).toBe(true);
+  });
+
+  test("contains unavailable local storage", () => {
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
+      throw new Error("blocked");
+    });
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+      throw new Error("blocked");
+    });
+    expect(() => setupRuleVisualEditor({ matchers: ["filename"] })).not.toThrow();
+  });
+
+  test("ignores irrelevant debugger selections and highlights matching clauses", () => {
+    setupRuleVisualEditor({ matchers: ["filename"] });
+    document.dispatchEvent(new Event("route-debugger-source-selected"));
+    document.dispatchEvent(new CustomEvent("route-debugger-source-selected"));
+    document.dispatchEvent(
+      new CustomEvent("route-debugger-source-selected", { detail: { ruleIndex: 99, line: 1 } }),
+    );
+    element<HTMLButtonElement>("#rules-mode-text").click();
+    document.dispatchEvent(
+      new CustomEvent("route-debugger-source-selected", { detail: { ruleIndex: 0, line: 1 } }),
+    );
+    element<HTMLButtonElement>("#rules-mode-visual").click();
+    document.dispatchEvent(
+      new CustomEvent("route-debugger-source-selected", { detail: { ruleIndex: 0 } }),
+    );
+    document.dispatchEvent(
+      new CustomEvent("route-debugger-source-selected", { detail: { ruleIndex: 0, line: 99 } }),
+    );
+    expect(element(".rule-editor-card").classList).toContain("is-debug-selected");
+  });
+
+  test.each([{ body: {} }, { body: { matchers: [] } }])(
+    "keeps default matchers for runtime response %#",
+    async (response) => {
+      vi.mocked(browser.runtime.sendMessage).mockResolvedValueOnce(response as never);
+      setupRuleVisualEditor();
+      await Promise.resolve();
+      expect(document.querySelectorAll(".rule-clause-name option").length).toBeGreaterThan(1);
+    },
+  );
+
+  test("loads runtime matchers and contains lookup failures", async () => {
+    vi.mocked(browser.runtime.sendMessage)
+      .mockResolvedValueOnce({ body: { matchers: ["sourcekind"] } } as never)
+      .mockRejectedValueOnce(new Error("offline"));
+    setupRuleVisualEditor();
+    await vi.waitFor(() =>
+      expect(element<HTMLSelectElement>(".rule-clause-name").options).toHaveLength(2),
+    );
+
+    const restoredMarkup = document.body.innerHTML;
+    document.body.innerHTML = restoredMarkup;
+    setupRuleVisualEditor();
+    await Promise.resolve();
+  });
+
+  test("does not rebuild a Text-mode editor after runtime matcher loading", async () => {
+    localStorage.setItem("saveInRulesEditorMode", "text");
+    let resolve!: (value: unknown) => void;
+    vi.mocked(browser.runtime.sendMessage).mockReturnValueOnce(
+      new Promise((done) => {
+        resolve = done;
+      }) as never,
+    );
+    setupRuleVisualEditor();
+    resolve({ body: { matchers: ["sourcekind"] } });
+    await Promise.resolve();
+    expect(element<HTMLElement>("#rules-visual").hidden).toBe(true);
+  });
+
+  test("returns before wiring an incomplete editor", () => {
+    document.body.innerHTML = '<textarea id="filenamePatterns"></textarea>';
+    expect(() => setupRuleVisualEditor({ matchers: [] })).not.toThrow();
   });
 });
