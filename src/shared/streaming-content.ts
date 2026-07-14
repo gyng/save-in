@@ -38,10 +38,14 @@ export const readResponseContent = async (
 
   if (response.body) {
     const reader = response.body.getReader();
-    const cancelPendingRead = () => {
-      void reader.cancel(abortError(signal!)).catch(() => {});
-    };
-    signal?.addEventListener("abort", cancelPendingRead, { once: true });
+    const activeSignal = signal;
+    const cancelPendingRead = activeSignal
+      ? () => {
+          void reader.cancel(abortError(activeSignal)).catch(() => {});
+        }
+      : undefined;
+    if (cancelPendingRead)
+      activeSignal?.addEventListener("abort", cancelPendingRead, { once: true });
     try {
       while (true) {
         if (signal?.aborted) throw abortError(signal);
@@ -56,7 +60,7 @@ export const readResponseContent = async (
       await reader.cancel(error).catch(() => {});
       throw error;
     } finally {
-      signal?.removeEventListener("abort", cancelPendingRead);
+      if (cancelPendingRead) activeSignal?.removeEventListener("abort", cancelPendingRead);
       reader.releaseLock();
     }
   } else {
