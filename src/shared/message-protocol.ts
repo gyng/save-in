@@ -452,17 +452,13 @@ const isDownloadInfo = (value: unknown): boolean => {
     return false;
   }
   return (
-    [
-      "pageUrl",
-      "srcUrl",
-      "selectionText",
-      "linkText",
-      "suggestedFilename",
-      "mime",
-      "mediaType",
-    ].every((key) => hasOptionalString(value, key)) &&
+    ["pageUrl", "srcUrl", "selectionText", "linkText", "mime", "mediaType"].every((key) =>
+      hasOptionalString(value, key),
+    ) &&
     (typeof value.sourceKind === "undefined" || isPageSourceKind(value.sourceKind)) &&
-    ["menuIndex", "comment"].every((key) => hasOptionalNullableString(value, key)) &&
+    ["suggestedFilename", "menuIndex", "comment"].every((key) =>
+      hasOptionalNullableString(value, key),
+    ) &&
     (typeof value.modifiers === "undefined" ||
       (Array.isArray(value.modifiers) && value.modifiers.every((item) => typeof item === "string")))
   );
@@ -550,7 +546,9 @@ const hasOptionalBody = (
   validate: (body: unknown) => boolean,
 ): boolean => !("body" in message) || typeof message.body === "undefined" || validate(message.body);
 
-const isMessageBodyValid = (message: Record<string, unknown>): boolean => {
+const isMessageBodyValid = (
+  message: Record<string, unknown> & { type: InternalMessage["type"] },
+): boolean => {
   switch (message.type) {
     case MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE:
       return (
@@ -620,20 +618,18 @@ const isMessageBodyValid = (message: Record<string, unknown>): boolean => {
     case MESSAGE_TYPES.PING:
     case MESSAGE_TYPES.GET_SCHEMA:
       return hasNoBody(message);
-    default:
-      return false;
   }
 };
 
 export const isInternalMessage = (value: unknown): value is InternalMessage =>
   hasType(value) &&
   INTERNAL_MESSAGE_TYPES.has(value.type as InternalMessage["type"]) &&
-  isMessageBodyValid(value);
+  isMessageBodyValid(value as Record<string, unknown> & { type: InternalMessage["type"] });
 
 export const isExternalMessage = (value: unknown): value is ExternalMessage =>
   hasType(value) &&
   EXTERNAL_MESSAGE_TYPES.has(value.type as ExternalMessage["type"]) &&
-  isMessageBodyValid(value);
+  isMessageBodyValid(value as Record<string, unknown> & { type: InternalMessage["type"] });
 
 export const getMessageType = (value: unknown): string | undefined =>
   hasType(value) ? value.type : undefined;
