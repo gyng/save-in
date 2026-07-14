@@ -113,6 +113,12 @@ describe("message protocol runtime validation", () => {
     { type: MESSAGE_TYPES.VALIDATE, body: { info: { modifiers: ["Shift", 1] } } },
     { type: MESSAGE_TYPES.VALIDATE, body: { info: { preview: "yes" } } },
     { type: MESSAGE_TYPES.VALIDATE, body: { info: { counter: Number.NaN } } },
+    { type: MESSAGE_TYPES.VALIDATE, body: { info: { counter: -1 } } },
+    { type: MESSAGE_TYPES.VALIDATE, body: { info: { counter: 1.5 } } },
+    {
+      type: MESSAGE_TYPES.VALIDATE,
+      body: { info: { counter: Number.MAX_SAFE_INTEGER + 1 } },
+    },
     { type: MESSAGE_TYPES.VALIDATE, body: { info: { now: "today" } } },
     { type: MESSAGE_TYPES.VALIDATE, body: { info: { currentTab: { title: 42 } } } },
     {
@@ -357,16 +363,23 @@ describe("message protocol runtime validation", () => {
       },
     });
 
-    expect(
-      toWireDownloadState({
-        path: {} as never,
-        scratch: {},
-        info: {
-          counter: Number.NaN,
-          currentTab: { id: undefined, title: undefined, url: "https://x/", incognito: undefined },
-        },
-      }),
-    ).toEqual({ info: { currentTab: { url: "https://x/" } } });
+    for (const counter of [Number.NaN, -1, 1.5, Number.MAX_SAFE_INTEGER + 1]) {
+      expect(
+        toWireDownloadState({
+          path: {} as never,
+          scratch: {},
+          info: {
+            counter,
+            currentTab: {
+              id: undefined,
+              title: undefined,
+              url: "https://x/",
+              incognito: undefined,
+            },
+          },
+        }),
+      ).toEqual({ info: { currentTab: { url: "https://x/" } } });
+    }
     expect(toWireDownloadState({ path: {} as never, scratch: {}, info: {} })).toEqual({ info: {} });
   });
 
@@ -429,6 +442,9 @@ describe("message protocol runtime validation", () => {
     { info: { modifiers: [2] } },
     { info: { preview: "yes" } },
     { info: { counter: Number.NaN } },
+    { info: { counter: -1 } },
+    { info: { counter: 1.5 } },
+    { info: { counter: Number.MAX_SAFE_INTEGER + 1 } },
     { info: { now: 2 } },
     { info: { currentTab: { id: 1.5 } } },
     { info: { currentTab: { incognito: "yes" } } },

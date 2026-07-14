@@ -241,6 +241,22 @@ test("omits blank debugger fields", () => {
   ).toEqual({});
 });
 
+test.each(["-1", "1.5", "9007199254740992"])(
+  "omits an invalid routing counter value (%s)",
+  (counter) => {
+    expect(
+      routeDebuggerInfo({
+        filename: "",
+        sourceUrl: "",
+        pageUrl: "",
+        mime: "",
+        context: "",
+        counter,
+      }),
+    ).toEqual({});
+  },
+);
+
 test("summarizes the grammar structure for the IDE status bar", () => {
   expect(
     summarizeRouteSource(

@@ -87,6 +87,9 @@ const WIRE_INFO_STRING_FIELDS = [
   "sha256",
 ] as const satisfies readonly (keyof WireDownloadInfo)[];
 
+const isRoutingCounter = (value: unknown): value is number =>
+  typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
+
 export const toWireDownloadState = (state: DownloadPipelineState): WireDownloadState => {
   const info: WireDownloadInfo = {};
   for (const key of WIRE_INFO_STRING_FIELDS) {
@@ -103,7 +106,7 @@ export const toWireDownloadState = (state: DownloadPipelineState): WireDownloadS
   if (typeof state.info.contentFetchDisabled === "boolean") {
     info.contentFetchDisabled = state.info.contentFetchDisabled;
   }
-  if (typeof state.info.counter === "number" && Number.isFinite(state.info.counter)) {
+  if (isRoutingCounter(state.info.counter)) {
     info.counter = state.info.counter;
   }
   if (state.info.now instanceof Date && Number.isFinite(state.info.now.getTime())) {
@@ -504,8 +507,7 @@ const isValidationInfo = (value: unknown): value is ValidationInfo =>
   (typeof value.preview === "undefined" || typeof value.preview === "boolean") &&
   (typeof value.contentFetchDisabled === "undefined" ||
     typeof value.contentFetchDisabled === "boolean") &&
-  (typeof value.counter === "undefined" ||
-    (typeof value.counter === "number" && Number.isFinite(value.counter))) &&
+  (typeof value.counter === "undefined" || isRoutingCounter(value.counter)) &&
   (typeof value.now === "undefined" ||
     (value.now instanceof Date && Number.isFinite(value.now.getTime()))) &&
   (typeof value.currentTab === "undefined" ||
@@ -534,8 +536,7 @@ const isWireDownloadInfo = (value: unknown): value is WireDownloadInfo =>
   (typeof value.preview === "undefined" || typeof value.preview === "boolean") &&
   (typeof value.contentFetchDisabled === "undefined" ||
     typeof value.contentFetchDisabled === "boolean") &&
-  (typeof value.counter === "undefined" ||
-    (typeof value.counter === "number" && Number.isFinite(value.counter))) &&
+  (typeof value.counter === "undefined" || isRoutingCounter(value.counter)) &&
   hasOptionalString(value, "now") &&
   (typeof value.currentTab === "undefined" ||
     value.currentTab === null ||

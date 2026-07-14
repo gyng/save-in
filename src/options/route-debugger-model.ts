@@ -242,7 +242,7 @@ export const routeDebuggerInfo = (fields: RouteDebuggerFields): ValidationInfo =
   }
   if (fields.counter) {
     const counter = Number(fields.counter);
-    if (Number.isFinite(counter)) info.counter = counter;
+    if (Number.isSafeInteger(counter) && counter >= 0) info.counter = counter;
   }
   if (fields.sha256) info.sha256 = fields.sha256;
   return info;
