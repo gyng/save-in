@@ -6,7 +6,7 @@ import { getMessage } from "../platform/localization.ts";
 import { downloadsState, sessionWriteState } from "./state.ts";
 import { getDownload, mergeDownload } from "./download-state.ts";
 import { isPrivateDownloadRecord } from "./download-state.ts";
-import type { DownloadRecord, PrivateDownloadContext } from "./download-state.ts";
+import type { DownloadRecord, DownloadRecordUpdate } from "./download-state.ts";
 import { getSession, normalizeSessionCounter, updateSession } from "../shared/session-state.ts";
 import { options } from "../config/options-data.ts";
 import { PENDING_DOWNLOADS_SESSION_KEY } from "../shared/storage-keys.ts";
@@ -142,10 +142,8 @@ type ExpectedDownload = {
 const expectedDownloads: ExpectedDownload[] = [];
 
 // Recovery of adopted and pending records is owned by notification-recovery.ts.
-const mergeTrackedDownload = (
-  downloadId: number,
-  partial: Partial<DownloadRecord> & PrivateDownloadContext,
-) => mergeDownload(downloadsState, sessionWriteState, extensionSessionStorage, downloadId, partial);
+const mergeTrackedDownload = (downloadId: number, partial: DownloadRecordUpdate) =>
+  mergeDownload(downloadsState, sessionWriteState, extensionSessionStorage, downloadId, partial);
 
 const getTrackedDownload = (downloadId: number) =>
   getDownload(downloadsState, extensionSessionStorage, downloadId);
@@ -206,10 +204,7 @@ export const Notifier = {
   // global at event time, after awaiting init.
   // Call before webExtensionApi.downloads.download() so onDownloadCreated knows
   // the next created download is ours
-  expectDownload: (
-    url?: string,
-    record?: Partial<DownloadRecord> & PrivateDownloadContext,
-  ): ExpectedDownload => {
+  expectDownload: (url?: string, record?: DownloadRecordUpdate): ExpectedDownload => {
     const expected = { url, record };
     expectedDownloads.push(expected);
     return expected;

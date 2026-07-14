@@ -1,3 +1,5 @@
+import { isStringKeyedRecord } from "./util.ts";
+
 export type SourcePanelLocalize = (key: string, substitutions?: string | string[]) => string;
 
 export type SourcePanelCopy = {
@@ -124,3 +126,17 @@ export const createSourcePanelCopy = (localize: SourcePanelLocalize): SourcePane
 export const SOURCE_PANEL_COPY_VALUE_SLOT = VALUE_SLOT;
 export const SOURCE_PANEL_COPY_URL_SLOT = URL_SLOT;
 export const DEFAULT_SOURCE_PANEL_COPY = createSourcePanelCopy(() => "");
+
+const matchesStringShape = (value: unknown, shape: unknown): boolean => {
+  if (typeof shape === "string") return typeof value === "string";
+  if (!isStringKeyedRecord(value) || !isStringKeyedRecord(shape)) return false;
+  return Object.entries(shape).every(([key, nestedShape]) =>
+    matchesStringShape(value[key], nestedShape),
+  );
+};
+
+// Content scripts can receive responses from a stale background instance after
+// an extension update. Validate every field used by the panel instead of
+// promoting a partially checked structured-clone value to SourcePanelCopy.
+export const isSourcePanelCopy = (value: unknown): value is SourcePanelCopy =>
+  matchesStringShape(value, DEFAULT_SOURCE_PANEL_COPY);

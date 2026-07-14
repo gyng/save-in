@@ -30,6 +30,7 @@ import type {
   WireDownloadState,
 } from "../src/shared/message-protocol.ts";
 import type { SessionWriteState } from "../src/shared/session-state.ts";
+import { readResponseContent } from "../src/shared/streaming-content.ts";
 import { withUrl } from "../src/shared/util.ts";
 
 expectTypeOf<DownloadPlan>().toHaveProperty("state").toEqualTypeOf<DownloadPipelineState>();
@@ -89,6 +90,10 @@ expectTypeOf<NonNullable<MessageOf<typeof MESSAGE_TYPES.VALIDATE>["body"]>["info
 // @ts-expect-error content promises are owned by the download pipeline
 const invalidValidationInfo: ValidationInfo = { contentPromise: Promise.resolve(null) };
 void invalidValidationInfo;
+
+// A bodyless response must provide a typed fallback reader.
+// @ts-expect-error neither arrayBuffer nor blob is available
+void readResponseContent({ body: null, headers: new Headers() }, false);
 
 const matcherClause: MatcherClause = {
   name: "filename",

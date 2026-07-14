@@ -592,7 +592,10 @@ describe("content.js initialisation", () => {
     vi.resetModules();
     global.chrome.runtime.sendMessage = vi.fn((message, callback) => {
       if (message.type === "SOURCE_PANEL_COPY") {
-        callback?.({ type: "SOURCE_PANEL_COPY", body: { title: 7 } });
+        callback?.({
+          type: "SOURCE_PANEL_COPY",
+          body: { ...DEFAULT_SOURCE_PANEL_COPY, copiedUrlsTemplate: 7 },
+        });
       } else callback?.();
     }) as any;
     global.chrome.runtime.onMessage.addListener = vi.fn((listener) => {

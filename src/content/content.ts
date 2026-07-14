@@ -18,6 +18,7 @@ import {
 import {
   DEFAULT_SOURCE_PANEL_COPY,
   createSourcePanelCopy,
+  isSourcePanelCopy,
   type SourcePanelCopy,
 } from "../shared/source-panel-copy.ts";
 import { setupAutoDownloadDiscovery, type AutoDownloadSendResult } from "./auto-download.ts";
@@ -150,7 +151,17 @@ const sendRuntimeDownload = (
   }
 };
 
-const setupClickToSave = (options: ContentOptions) => {
+type ResolvedClickToSaveOptions = Pick<
+  ResolvedContentOptions,
+  "contentClickToSaveCombo" | "contentClickToSaveButton" | "links"
+>;
+type ResolvedAutoDownloadOptions = Pick<
+  ResolvedContentOptions,
+  "autoDownloadLive" | "autoDownloadMaxPerPage"
+> & { filenamePatterns: string };
+type ResolvedContentScriptOptions = ResolvedContentOptions & ResolvedAutoDownloadOptions;
+
+const setupClickToSave = (options: ResolvedClickToSaveOptions) => {
   const controller = new AbortController();
   const listenerOptions = { capture: true, signal: controller.signal };
   const shortcutOptions = {
@@ -212,10 +223,10 @@ const setupClickToSave = (options: ContentOptions) => {
     "mousedown",
     (e) => {
       if (
-        ClickToSave.isMouseButtonActive(shortcutOptions.button!, e.buttons) &&
+        ClickToSave.isMouseButtonActive(shortcutOptions.button, e.buttons) &&
         ClickToSave.isKeyboardComboActive(shortcutOptions.combo, active)
       ) {
-        const source = ClickToSave.findSource(e, options.links!);
+        const source = ClickToSave.findSource(e, options.links);
 
         if (source) {
           e.preventDefault();
@@ -238,7 +249,7 @@ const setupClickToSave = (options: ContentOptions) => {
   };
 };
 
-const setupAutoDownload = (options: ContentOptions) => {
+const setupAutoDownload = (options: ResolvedAutoDownloadOptions) => {
   const controller = new AbortController();
   const retryTimers = new Set<number>();
   const pendingResolvers = new Set<(result: AutoDownloadSendResult) => void>();
@@ -279,9 +290,9 @@ const setupAutoDownload = (options: ContentOptions) => {
     });
 
   const discovery = setupAutoDownloadDiscovery({
-    rules: options.filenamePatterns!,
-    live: options.autoDownloadLive !== false,
-    maxPerPage: options.autoDownloadMaxPerPage!,
+    rules: options.filenamePatterns,
+    live: options.autoDownloadLive,
+    maxPerPage: options.autoDownloadMaxPerPage,
     send,
   });
   return () => {
@@ -294,7 +305,10 @@ const setupAutoDownload = (options: ContentOptions) => {
   };
 };
 
-let currentOptions: ContentOptions = { ...CONTENT_OPTION_DEFAULTS };
+let currentOptions: ResolvedContentScriptOptions = {
+  ...CONTENT_OPTION_DEFAULTS,
+  filenamePatterns: "",
+};
 let removeClickToSave: (() => void) | null = null;
 let removeAutoDownload: (() => void) | null = null;
 let receivedInitialOptions = false;
@@ -349,7 +363,7 @@ const applyOptions = (next: ContentOptions) => {
   if (autoDownloadOptionsChanged) {
     removeAutoDownload?.();
     removeAutoDownload =
-      currentOptions.autoDownloadEnabled && currentOptions.filenamePatterns?.trim()
+      currentOptions.autoDownloadEnabled && currentOptions.filenamePatterns.trim()
         ? setupAutoDownload(currentOptions)
         : null;
   }
@@ -421,14 +435,6 @@ try {
   const resolvedPanelCopies = new Map<string, SourcePanelCopy>();
   const nativePanelCopy = () =>
     createSourcePanelCopy((key, substitutions) => chrome.i18n.getMessage(key, substitutions));
-  const isSourcePanelCopy = (value: unknown): value is SourcePanelCopy =>
-    Boolean(
-      value &&
-      typeof value === "object" &&
-      typeof Reflect.get(value, "title") === "string" &&
-      typeof Reflect.get(value, "filterSources") === "string" &&
-      typeof Reflect.get(value, "kinds") === "object",
-    );
   const loadPanelCopy = (locale: string): Promise<SourcePanelCopy> => {
     const cached = resolvedPanelCopies.get(locale);
     if (cached) return Promise.resolve(cached);
@@ -469,7 +475,7 @@ try {
     locale:
       locale ||
       (typeof chrome.i18n.getUILanguage === "function" ? chrome.i18n.getUILanguage() : ""),
-    theme: currentOptions.uiTheme!,
+    theme: currentOptions.uiTheme,
     onSaveIntent: warmBackground,
     onOpenChange: (open: boolean) => {
       sourcePanelIsOpen = open;

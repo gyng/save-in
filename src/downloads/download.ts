@@ -3,7 +3,7 @@ import { getMessage } from "../platform/localization.ts";
 
 import { downloadsState, sessionWriteState } from "./state.ts";
 import { getDownload, mergeDownload } from "./download-state.ts";
-import type { DownloadRecord, PrivateDownloadContext } from "./download-state.ts";
+import type { DownloadRecordUpdate } from "./download-state.ts";
 import { DOWNLOAD_TYPES } from "../shared/constants.ts";
 import { normalizeSessionCounter, updateSession } from "../shared/session-state.ts";
 import { RequestHeaders } from "./headers.ts";
@@ -64,10 +64,8 @@ const logPort = downloadPorts.log;
 const historyPort = downloadPorts.history;
 const backgroundRuntime = downloadPorts.runtime;
 
-const mergeStartedDownload = (
-  downloadId: number,
-  partial: Partial<DownloadRecord> & PrivateDownloadContext,
-) => mergeDownload(downloadsState, sessionWriteState, extensionSessionStorage, downloadId, partial);
+const mergeStartedDownload = (downloadId: number, partial: DownloadRecordUpdate) =>
+  mergeDownload(downloadsState, sessionWriteState, extensionSessionStorage, downloadId, partial);
 
 const getStartedDownload = (downloadId: number) =>
   getDownload(downloadsState, extensionSessionStorage, downloadId);

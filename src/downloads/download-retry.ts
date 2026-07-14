@@ -10,7 +10,7 @@ import { ActiveTransfers } from "./active-transfers.ts";
 import { OffscreenClient } from "../platform/offscreen-client.ts";
 import { getDownload, mergeDownload } from "./download-state.ts";
 import { isPrivateDownloadRecord } from "./download-state.ts";
-import type { DownloadRecord, PrivateDownloadContext } from "./download-state.ts";
+import type { DownloadRecordUpdate } from "./download-state.ts";
 import {
   FINAL_FILENAMES_SESSION_KEY,
   PENDING_DOWNLOADS_SESSION_KEY,
@@ -25,7 +25,7 @@ export type RetryRuntime = {
 
 export type RetryServices = {
   notifier: {
-    expectDownload(url: string, record?: Partial<DownloadRecord> & PrivateDownloadContext): unknown;
+    expectDownload(url: string, record?: DownloadRecordUpdate): unknown;
     cancelExpectedDownload(expected: unknown): void;
   };
   log: {
@@ -33,10 +33,8 @@ export type RetryServices = {
   };
 };
 
-const rememberStartedDownload = (
-  downloadId: number,
-  partial: Partial<DownloadRecord> & PrivateDownloadContext,
-) => mergeDownload(downloadsState, sessionWriteState, extensionSessionStorage, downloadId, partial);
+const rememberStartedDownload = (downloadId: number, partial: DownloadRecordUpdate) =>
+  mergeDownload(downloadsState, sessionWriteState, extensionSessionStorage, downloadId, partial);
 
 export const retryViaFetch = async (
   runtime: RetryRuntime,

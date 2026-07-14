@@ -122,6 +122,25 @@ describe("state service instances", () => {
     expect(persisted[8]).toEqual({ url: "https://public.example/file", adopted: true });
   });
 
+  test("does not serialize a false runtime privacy marker", async () => {
+    const state = { records: new Map(), hydration: null };
+    const writes = { queues: new Map<string, Promise<unknown>>() };
+    const storage = {
+      get: vi.fn(() => Promise.resolve({})),
+      set: vi.fn<(value: Record<string, any>) => Promise<void>>().mockResolvedValue(),
+    };
+
+    await mergeDownload(state, writes, storage, 7, {
+      url: "https://public.example/file",
+      privateContext: false,
+    });
+
+    expect(state.records.get(7)).toMatchObject({ privateContext: false });
+    expect(vi.mocked(storage.set).mock.calls[0]![0].siDownloads[7]).toEqual({
+      url: "https://public.example/file",
+    });
+  });
+
   test("download hydration ignores malformed ids and record shapes", async () => {
     const state = { records: new Map(), hydration: null };
     const storage = {

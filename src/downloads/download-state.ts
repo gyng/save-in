@@ -19,12 +19,16 @@ export type DownloadRecord = {
   adopted?: boolean | undefined;
   historyEntryId?: string | undefined;
   offscreenRequestId?: string | undefined;
+  // Runtime-only privacy state. This is deliberately omitted from the
+  // persisted record type and serializer below.
+  privateContext?: boolean | undefined;
 };
 
-export type PrivateDownloadContext = { privateContext?: boolean | undefined };
+type PersistedDownloadRecord = Omit<DownloadRecord, "privateContext">;
+export type DownloadRecordUpdate = Partial<DownloadRecord>;
 
 export const isPrivateDownloadRecord = (record: Partial<DownloadRecord>): boolean =>
-  (record as Partial<DownloadRecord> & PrivateDownloadContext).privateContext === true;
+  record.privateContext === true;
 
 export type DownloadsState = {
   records: Map<number, DownloadRecord>;
@@ -34,9 +38,9 @@ export type DownloadsState = {
 const isObject = (value: unknown): value is Record<string, unknown> =>
   value != null && typeof value === "object" && !Array.isArray(value);
 
-const normalizeDownloadRecord = (value: unknown): DownloadRecord | null => {
+const normalizeDownloadRecord = (value: unknown): PersistedDownloadRecord | null => {
   if (!isObject(value)) return null;
-  const record: DownloadRecord = {};
+  const record: PersistedDownloadRecord = {};
   const strings = [
     "url",
     "pageUrl",
@@ -71,31 +75,27 @@ const normalizeDownloadRecord = (value: unknown): DownloadRecord | null => {
 const unwrapDownloadRecords = (value: unknown): unknown =>
   isObject(value) && value.version === 1 && isObject(value.records) ? value.records : value;
 
-const normalizeDownloadRecords = (value: unknown): Record<string, DownloadRecord> =>
+const normalizeDownloadRecords = (value: unknown): Record<string, PersistedDownloadRecord> =>
   Object.fromEntries(storedDownloadEntries(value).map(([id, record]) => [id, record]));
 
 const preserveDownloadStorageShape = (
   stored: unknown,
-  records: Record<string, DownloadRecord>,
+  records: Record<string, PersistedDownloadRecord>,
 ): unknown =>
   isObject(stored) && stored.version === 1 && isObject(stored.records)
     ? { version: 1, records }
     : records;
 
-const storedDownloadEntries = (value: unknown): Array<[number, DownloadRecord]> => {
+const storedDownloadEntries = (value: unknown): Array<[number, PersistedDownloadRecord]> => {
   const records = unwrapDownloadRecords(value);
   if (!isObject(records)) return [];
-  const entries = Object.entries(records)
-    .filter(
-      (entry): entry is [string, DownloadRecord] =>
-        /^(0|[1-9]\d*)$/.test(entry[0]) &&
-        Number.isSafeInteger(Number(entry[0])) &&
-        normalizeDownloadRecord(entry[1]) != null,
-    )
-    .map(([id, record]): [number, DownloadRecord] => [
-      Number(id),
-      normalizeDownloadRecord(record)!,
-    ]);
+  const entries = Object.entries(records).flatMap(
+    ([id, candidate]): Array<[number, PersistedDownloadRecord]> => {
+      if (!/^(0|[1-9]\d*)$/.test(id) || !Number.isSafeInteger(Number(id))) return [];
+      const record = normalizeDownloadRecord(candidate);
+      return record ? [[Number(id), record]] : [];
+    },
+  );
   const active = entries.filter(([, record]) => record.adopted || record.observedBrowserDownload);
   const inactive = entries.filter(
     ([, record]) => !record.adopted && !record.observedBrowserDownload,
@@ -114,7 +114,7 @@ export const hydrateDownloads = (state: DownloadsState, storage: StorageReader |
   return state.hydration;
 };
 
-const capDownloads = (records: Record<string, DownloadRecord>) => {
+const capDownloads = (records: Record<string, PersistedDownloadRecord>) => {
   const inactiveKeys = Object.keys(records).filter(
     (key) => !records[key]?.adopted && !records[key]?.observedBrowserDownload,
   );
@@ -129,7 +129,7 @@ export const mergeDownload = (
   sessionWrites: SessionWriteState,
   storage: StorageWriter | undefined,
   downloadId: number,
-  partial: Partial<DownloadRecord> & PrivateDownloadContext,
+  partial: DownloadRecordUpdate,
 ) => {
   const merged = Object.assign({}, state.records.get(downloadId), partial);
   state.records.set(downloadId, merged);
@@ -142,7 +142,10 @@ export const mergeDownload = (
   return updateSession<unknown>(sessionWrites, storage, DOWNLOADS_SESSION_KEY, (stored) => {
     const records = normalizeDownloadRecords(stored);
     if (merged.privateContext) delete records[downloadId];
-    else Object.assign(records, { [downloadId]: merged });
+    else {
+      const persisted = normalizeDownloadRecord(merged);
+      if (persisted) records[downloadId] = persisted;
+    }
     capDownloads(records);
     return preserveDownloadStorageShape(stored, records);
   });

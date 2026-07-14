@@ -1,7 +1,7 @@
 import { Sha256 } from "./sha256.ts";
 
 type StreamableResponse = Pick<Response, "body" | "headers"> &
-  Partial<Pick<Response, "arrayBuffer" | "blob">>;
+  (Pick<Response, "arrayBuffer"> | Pick<Response, "blob">);
 
 const abortError = (signal: AbortSignal): unknown =>
   signal.reason ?? new DOMException("The operation was aborted", "AbortError");
@@ -23,7 +23,7 @@ export const readResponseContent = async (
   if (response.body) {
     const reader = response.body.getReader();
     const cancelPendingRead = () => {
-      void reader.cancel(abortError(signal!)).catch(() => {});
+      if (signal) void reader.cancel(abortError(signal)).catch(() => {});
     };
     signal?.addEventListener("abort", cancelPendingRead, { once: true });
     try {
@@ -44,9 +44,10 @@ export const readResponseContent = async (
       reader.releaseLock();
     }
   } else {
-    const buffer = response.arrayBuffer
-      ? await response.arrayBuffer()
-      : await response.blob!().then((blob) => blob.arrayBuffer());
+    const buffer =
+      "arrayBuffer" in response
+        ? await response.arrayBuffer()
+        : await response.blob().then((blob) => blob.arrayBuffer());
     const chunk = new Uint8Array(buffer);
     chunks.push(chunk.buffer);
     sha256?.update(chunk);
