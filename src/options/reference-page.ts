@@ -27,6 +27,7 @@ export const syncReferenceVocabulary = (
     ...root.querySelectorAll<HTMLTableRowElement>("tbody tr:not(.reference-group-row), table > tr"),
   ];
   if (!rows.length) return;
+  const target = rows[0]!.parentElement!;
   const bySyntax = new Map(rows.map((row) => [referenceSyntax(row), row]));
   const required = new Set(runtimeTerms);
   if (kind === "variables") required.add(":$1:");
@@ -39,8 +40,6 @@ export const syncReferenceVocabulary = (
     if (!required.has(referenceSyntax(row))) row.remove();
   });
 
-  const target = rows[0]?.parentElement;
-  if (!target) return;
   for (const syntax of required) {
     if (bySyntax.has(syntax)) continue;
     const row = target.ownerDocument.createElement("tr");
@@ -90,12 +89,11 @@ export const groupReferenceRows = (root: ParentNode, kind: ReferenceKind) => {
           ? compareVariables(aSyntax, bSyntax)
           : compareClauses(aSyntax, bSyntax);
       })
-      .forEach((row) => row.parentElement?.append(row));
+      .forEach((row) => row.parentElement!.append(row));
     let lastGroup = "";
     [...table.querySelectorAll<HTMLTableRowElement>(":scope > tbody > tr, :scope > tr")].forEach(
       (row) => {
-        if (row.classList.contains("reference-group-row")) return;
-        const syntax = row.querySelector("code")?.textContent?.trim() || "";
+        const syntax = referenceSyntax(row);
         const group = kind === "variables" ? variableGroup(syntax) : clauseGroup(syntax);
         if (group === lastGroup) return;
         lastGroup = group;
@@ -118,7 +116,7 @@ export const filterReferenceRows = (root: ParentNode, query: string): number => 
   root
     .querySelectorAll<HTMLTableRowElement>("tbody tr:not(.reference-group-row)")
     .forEach((row) => {
-      const matches = !needle || (row.textContent || "").toLocaleLowerCase().includes(needle);
+      const matches = !needle || row.textContent.toLocaleLowerCase().includes(needle);
       row.hidden = !matches;
       if (matches) visible += 1;
     });
@@ -157,7 +155,7 @@ export const enhanceReferenceTables = (root: ParentNode) => {
       dataRows.forEach((row) => {
         row.cells[1]
           ?.querySelectorAll("code")
-          .forEach((code) => code.replaceWith(code.textContent || ""));
+          .forEach((code) => code.replaceWith(code.textContent!));
       });
     }
     const sectionTitle = table.previousElementSibling?.textContent?.trim() || "Reference";
