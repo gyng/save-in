@@ -142,6 +142,8 @@ const setupGlobals = async ({
   );
   installHostProperty(global.browser.tabs, "onActivated", { addListener: vi.fn() });
   installHostProperty(global.browser.tabs, "onUpdated", { addListener: vi.fn() });
+  installHostProperty(global.browser, "action", { onClicked: { addListener: vi.fn() } });
+  installHostProperty(global.browser, "commands", { onCommand: { addListener: vi.fn() } });
 };
 
 type OnActivated = (
@@ -170,6 +172,18 @@ const capturedOnUpdated = (): OnUpdated => {
     );
 };
 
+const capturedActionClick = () => {
+  const listener = vi.mocked(global.browser.action.onClicked.addListener).mock.calls[0]?.[0];
+  if (!listener) throw new Error("action listener was not registered");
+  return listener;
+};
+
+const capturedCommand = () => {
+  const listener = vi.mocked(global.browser.commands.onCommand.addListener).mock.calls[0]?.[0];
+  if (!listener) throw new Error("command listener was not registered");
+  return listener;
+};
+
 const mockTab = browserTab;
 
 // The entry calls start() synchronously. Re-import after resetModules and call
@@ -185,6 +199,25 @@ beforeEach(() => {
 });
 
 describe("startup", () => {
+  test("wires download and routing ports to background-owned services", async () => {
+    await setupGlobals();
+    const { configureBackgroundPorts } = await import("../src/background/main.ts");
+    const { routingPorts } = await import("../src/routing/ports.ts");
+    const consoleLog = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    configureBackgroundPorts();
+    expect(routingPorts.getCurrentTab()).toBeNull();
+    expect(routingPorts.isDebug()).toBe(false);
+    const error = { message: "Invalid rule", error: "bad rule" };
+    routingPorts.recordRuleErrors([error]);
+    expect(Runtime.optionErrors.filenamePatterns).toEqual([error]);
+    routingPorts.logDebug("route", 1);
+    expect(consoleLog).toHaveBeenCalledWith("route", 1);
+    await expect(routingPorts.nextCounter()).resolves.toBe(1);
+    await expect(routingPorts.nextPrivateCounter()).resolves.toBe(2);
+    await expect(routingPorts.peekCounter()).resolves.toBe(0);
+  });
+
   test("registers event listeners synchronously on startup (MV3 requirement)", async () => {
     await setupGlobals();
     await importIndex();
@@ -194,6 +227,8 @@ describe("startup", () => {
     expect(Menus.addTabHighlightListener).toHaveBeenCalledTimes(1);
     expect(global.browser.tabs.onActivated.addListener).toHaveBeenCalledTimes(1);
     expect(global.browser.tabs.onUpdated.addListener).toHaveBeenCalledTimes(1);
+    expect(global.browser.action.onClicked.addListener).toHaveBeenCalledTimes(1);
+    expect(global.browser.commands.onCommand.addListener).toHaveBeenCalledTimes(1);
 
     expect(Runtime.init).toEqual(expect.any(Function));
     expect(Runtime.reset).toEqual(expect.any(Function));
@@ -229,9 +264,79 @@ describe("startup", () => {
     expect(activeTransferMocks.recover).toHaveBeenCalledTimes(1);
     expect(global.browser.contextMenus.removeAll).toHaveBeenCalledTimes(2);
   });
+
+  test("runtime.reset initializes safely before start", async () => {
+    await setupGlobals();
+    await import("../src/background/main.ts");
+
+    await expect(Runtime.reset()).resolves.toBeUndefined();
+    expect(OptionsManagement.loadOptions).toHaveBeenCalledTimes(1);
+  });
+
+  test("runtime.reset recovers after an earlier ready promise rejected", async () => {
+    await setupGlobals();
+    await import("../src/background/main.ts");
+    Runtime.ready = Promise.reject(new Error("previous init"));
+
+    await expect(Runtime.reset()).resolves.toBeUndefined();
+    expect(OptionsManagement.loadOptions).toHaveBeenCalledTimes(1);
+  });
+
+  test("action and command listeners toggle Page Sources when a tab is available", async () => {
+    await setupGlobals({ tabsQueryResult: [mockTab({ id: 6 })] });
+    await importIndex();
+    await Runtime.ready;
+
+    const actionClick = capturedActionClick();
+    await actionClick(mockTab({ id: 7 }));
+    expect(sourcePanelMocks.toggle).toHaveBeenCalledWith(7);
+    expect(actionClick(mockTab({ id: undefined }))).toBeUndefined();
+
+    const command = capturedCommand();
+    expect(command("unrelated", mockTab())).toBeUndefined();
+    await command(Menus.MENU_IDS.TOGGLE_SOURCE_PANEL, mockTab());
+    expect(sourcePanelMocks.toggle).toHaveBeenCalledWith(6);
+
+    vi.mocked(global.browser.tabs.query).mockResolvedValueOnce([]);
+    await command(Menus.MENU_IDS.TOGGLE_SOURCE_PANEL, mockTab());
+    expect(sourcePanelMocks.toggle).toHaveBeenCalledTimes(2);
+  });
 });
 
 describe("init", () => {
+  test("cleans interrupted transfers and contains stale-resource cleanup failures", async () => {
+    await setupGlobals();
+    const { OffscreenClient } = await import("../src/platform/offscreen-client.ts");
+    const { RefererRules } = await import("../src/downloads/referer-rules.ts");
+    const { SaveHistory } = await import("../src/background/history.ts");
+    vi.spyOn(RefererRules, "cleanupStaleRule").mockRejectedValueOnce(new Error("stale rule"));
+    vi.spyOn(OffscreenClient, "canUse").mockReturnValueOnce(true).mockReturnValueOnce(false);
+    const cancelOffscreen = vi
+      .spyOn(OffscreenClient, "cancel")
+      .mockRejectedValueOnce(new Error("gone"));
+    const cancelDownload = vi
+      .mocked(global.browser.downloads.cancel)
+      .mockRejectedValueOnce(new Error("gone"));
+    const setStatus = vi.spyOn(SaveHistory, "setStatus").mockResolvedValue(undefined);
+    activeTransferMocks.recover.mockResolvedValueOnce({
+      first: { requestId: "request-1", downloadId: 7 },
+      second: { requestId: "request-2", downloadId: null },
+      third: {},
+    });
+
+    await importIndex();
+    await Runtime.ready;
+
+    expect(Log.add).toHaveBeenCalledWith(
+      "Referer session rule cleanup failed",
+      "Error: stale rule",
+    );
+    expect(cancelOffscreen).toHaveBeenCalledWith("request-1");
+    expect(cancelDownload).toHaveBeenCalledWith(7);
+    expect(setStatus).toHaveBeenCalledTimes(3);
+    expect(setStatus).toHaveBeenCalledWith("first", "DOWNLOAD_PREPARATION_INTERRUPTED", 7);
+  });
+
   test("loads options, then builds the full menu", async () => {
     await setupGlobals();
     await importIndex();

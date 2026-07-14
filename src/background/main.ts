@@ -29,6 +29,11 @@ import { rebuildMenus } from "./menu-rebuild.ts";
 import { MENU_IDS } from "../menus/menu-ids.ts";
 import { RefererRules } from "../downloads/referer-rules.ts";
 
+const seedCurrentTab = (candidate: CurrentTab): void => {
+  if (candidate.active === false) return;
+  setCurrentTab(candidate);
+};
+
 export const configureBackgroundPorts = () => {
   configureDownloadPorts({
     runtime: backgroundRuntime,
@@ -162,7 +167,7 @@ export const start = () => {
         const candidate = tab || (await webExtensionApi.tabs.get(tabId));
         // A background tab can update before the startup active-tab query
         // resolves. It must not become the global fallback for unrelated saves.
-        if (candidate.active !== false) setCurrentTab(candidate);
+        seedCurrentTab(candidate);
       } else if (currentTab.id === tabId && changeInfo.title) {
         // Mutating a property of the shared tab object (not reassigning the binding)
         currentTab.title = changeInfo.title;
