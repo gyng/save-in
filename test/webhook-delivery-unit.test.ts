@@ -69,13 +69,16 @@ test("contains permission failures and rejected webhook responses", async () => 
   expect(log.add).toHaveBeenCalledWith("webhook rejected", { status: 429 });
 });
 
-test("rejects malformed data-permission responses", async () => {
-  const log = { add: vi.fn() };
-  vi.mocked(browser.permissions.getAll).mockResolvedValueOnce({
+test.each([
+  null,
+  {
     permissions: [],
     origins: [],
     data_collection: ["browsingActivity", "websiteActivity", "websiteContent", 7],
-  } as never);
+  },
+])("rejects malformed data-permission responses", async (permissions) => {
+  const log = { add: vi.fn() };
+  vi.mocked(browser.permissions.getAll).mockResolvedValueOnce(permissions as never);
   const fetchMock = vi.spyOn(globalThis, "fetch");
 
   await deliverSaveWebhook(configuration(), plan({ selectedUrl: "https://cdn.example/a" }), log);
@@ -84,20 +87,23 @@ test("rejects malformed data-permission responses", async () => {
   expect(fetchMock).not.toHaveBeenCalled();
 });
 
-test("uses the in-product switch when the host has no data-permission API", async () => {
-  const permissions = browser.permissions;
-  Object.defineProperty(browser, "permissions", { configurable: true, value: undefined });
-  const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue({ ok: true } as Response);
-  try {
-    await deliverSaveWebhook(configuration(), plan({ selectedUrl: "https://cdn.example/a" }), {
-      add: vi.fn(),
-    });
-  } finally {
-    Object.defineProperty(browser, "permissions", { configurable: true, value: permissions });
-  }
+test.each([undefined, {}])(
+  "uses the in-product switch when the host has no data-permission API",
+  async (hostPermissions) => {
+    const permissions = browser.permissions;
+    Object.defineProperty(browser, "permissions", { configurable: true, value: hostPermissions });
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue({ ok: true } as Response);
+    try {
+      await deliverSaveWebhook(configuration(), plan({ selectedUrl: "https://cdn.example/a" }), {
+        add: vi.fn(),
+      });
+    } finally {
+      Object.defineProperty(browser, "permissions", { configurable: true, value: permissions });
+    }
 
-  expect(fetchMock).toHaveBeenCalledOnce();
-});
+    expect(fetchMock).toHaveBeenCalledOnce();
+  },
+);
 
 test("rejects invalid endpoints and absent public URLs before requesting permission", async () => {
   const invalid = configuration();
