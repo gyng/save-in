@@ -2407,18 +2407,13 @@ summary {
 
 .rule-editor-cards {
   display: grid;
-  gap: 0;
-  border-top: 1px solid var(--panel-border);
-  border-bottom: 1px solid var(--panel-border);
+  gap: var(--space-2);
 }
 
 .visual-editor-card {
-  border-bottom: 1px solid var(--panel-border);
-  background: transparent;
-}
-
-.visual-editor-card:last-child {
-  border-bottom: 0;
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--panel-bg) 24%, var(--page-bg));
 }
 
 .visual-editor-card-header {
@@ -2427,7 +2422,7 @@ summary {
   justify-content: space-between;
   gap: var(--space-2);
   min-height: 34px;
-  padding: var(--space-2) var(--space-1);
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-3);
 }
 
 .rule-editor-card.is-debug-selected {
@@ -2499,7 +2494,7 @@ summary {
 .rule-editor-card-body {
   display: grid;
   gap: 1px;
-  padding: 0 var(--space-1) var(--space-2);
+  padding: 0 var(--space-2) var(--space-2) var(--space-3);
 }
 
 .rule-editor-card-actions .visual-editor-control {
@@ -2692,7 +2687,7 @@ summary {
 }
 
 .rule-editor-toolbar {
-  margin-top: var(--space-3);
+  margin-top: var(--space-4);
 }
 
 .rule-editor-help {
