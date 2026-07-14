@@ -1592,6 +1592,21 @@ input.key {
   box-shadow: var(--focus-ring);
 }
 
+.syntax-editor:has(textarea:disabled) {
+  border-color: var(--color-border);
+  background: var(--panel-bg);
+  opacity: 0.62;
+}
+
+.syntax-editor:has(textarea:disabled) .syntax-editor-gutter-viewport {
+  background: transparent;
+}
+
+textarea.syntax-editor-input:disabled {
+  caret-color: transparent;
+  cursor: not-allowed;
+}
+
 .syntax-editor-gutter-viewport {
   flex: 0 0 3.6rem;
   overflow: hidden;
