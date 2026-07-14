@@ -220,6 +220,15 @@ describe("createExtensionNotification", () => {
     expect(global.browser.runtime.openOptionsPage).toHaveBeenCalledOnce();
   });
 
+  test.each(["legacy", "", "-1", "1.5", "1e2", "01", "9007199254740992"])(
+    "ignores malformed download notification id %j",
+    async (notificationId) => {
+      await notification.onNotificationClicked(notificationId);
+
+      expect(global.browser.downloads.show).not.toHaveBeenCalled();
+    },
+  );
+
   test("restarts auto-clear timing when a stream is updated", () => {
     vi.useFakeTimers();
     setOptions({ notifyDuration: 500 });

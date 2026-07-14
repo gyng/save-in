@@ -373,7 +373,10 @@ export const Notifier = {
     }
 
     // notification ID should be set to download ID on download creation
-    return webExtensionApi.downloads.show(Number(notId));
+    if (!/^(0|[1-9]\d*)$/.test(notId)) return;
+    const downloadId = Number(notId);
+    if (!Number.isSafeInteger(downloadId)) return;
+    return webExtensionApi.downloads.show(downloadId);
   },
 
   onDownloadChanged: async (downloadDelta: HostDownloadDelta) => {
