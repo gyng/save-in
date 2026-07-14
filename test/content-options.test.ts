@@ -56,6 +56,7 @@ test("falls back safely when a stored shortcut string contains unknown keys", ()
 test("normalizes interface locale and theme overrides", () => {
   expect(resolveContentOptions({}).uiLocale).toBe("");
   expect(resolveContentOptions({ uiLocale: "fr" }).uiLocale).toBe("fr");
+  expect(resolveContentOptions({ uiLocale: "it" }).uiLocale).toBe("it");
   expect(resolveContentOptions({ uiLocale: "unknown" }).uiLocale).toBe("");
   expect(resolveContentOptions({ uiLocale: true }).uiLocale).toBe("");
 

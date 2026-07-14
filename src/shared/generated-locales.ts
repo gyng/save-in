@@ -2,6 +2,7 @@ export const GENERATED_LOCALES = [
   { locale: "de", label: "Deutsch (AI)" },
   { locale: "es", label: "Español (AI)" },
   { locale: "fr", label: "Français (AI)" },
+  { locale: "it", label: "Italiano (AI)" },
   { locale: "nl_AI", label: "Nederlands (AI)" },
   { locale: "pt_BR", label: "Português (Brasil) (AI)" },
   { locale: "sv_AI", label: "Svenska (AI)" },
