@@ -793,6 +793,39 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
               </div>
             </section>
 
+            <div class="rule-builder" role="group" aria-labelledby="rule-builder-label">
+              <div class="editor-field-label" id="rule-builder-label">__MSG_o_lRuleBuilder__</div>
+              <div class="rule-builder-row">
+                <label>
+                  <span>__MSG_o_lMatcher__</span>
+                  <select id="rule-builder-matcher"></select>
+                </label>
+                <label>
+                  <span>__MSG_o_lPattern__</span>
+                  <input
+                    type="text"
+                    id="rule-builder-pattern"
+                    placeholder="jpg|png"
+                    spellcheck="false"
+                  />
+                </label>
+              </div>
+              <div class="rule-builder-row">
+                <label>
+                  <span>__MSG_o_lDestinationInto__</span>
+                  <input
+                    type="text"
+                    id="rule-builder-into"
+                    placeholder="images/:pagedomain:/:filename:"
+                    spellcheck="false"
+                  />
+                </label>
+                <button type="button" class="apply-button" id="rule-builder-add" disabled>
+                  __MSG_html_add2__
+                </button>
+              </div>
+            </div>
+
             <details class="routing-tool route-debugger-disclosure">
               <summary id="route-debugger-title">__MSG_routeDebuggerTitle__</summary>
               <section class="route-debugger" aria-labelledby="route-debugger-title">
@@ -949,81 +982,49 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                   aria-labelledby="route-debugger-title"
                   aria-live="polite"
                 ></div>
+                <details class="last-download-row route-debugger-last-download">
+                  <summary>__MSG_o_lRoutingLastDownload__</summary>
+                  <div class="info-row last-download-info">
+                    <table class="last-download-table">
+                      <tbody>
+                        <tr>
+                          <th scope="row" class="last-download-label">__MSG_historyColumnUrl__</th>
+                          <td class="last-download-url" id="last-dl-url">
+                            __MSG_o_lRoutingLastDownloadEmpty__
+                          </td>
+                        </tr>
+                        <tr id="rules-applied-row">
+                          <th scope="row" class="last-download-label">
+                            __MSG_o_lRoutingRenamedTo__
+                          </th>
+                          <td class="last-download-value" id="last-dl-match">
+                            __MSG_o_lRoutingNoMatches__
+                          </td>
+                        </tr>
+                        <tr class="hide" id="capture-group-rows">
+                          <th scope="row" class="last-download-label">
+                            __MSG_o_lRoutingCaptureGroups__
+                          </th>
+                          <td class="last-download-value" id="last-dl-capture"></td>
+                        </tr>
+                        <tr class="hide" id="variables-table-row">
+                          <th scope="row" class="last-download-label">
+                            __MSG_o_lRoutingVariables__
+                          </th>
+                          <td>
+                            <button type="button" class="button" id="see-variables-btn">
+                              __MSG_o_lRoutingVariablesClickToSee__
+                            </button>
+                            <table id="variables-table">
+                              <tbody class="hide" id="variables-body"></tbody>
+                            </table>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </details>
               </section>
-            </details>
-
-            <details class="rule-builder routing-tool">
-              <summary id="rule-builder-label">__MSG_o_lRuleBuilder__</summary>
-              <div class="routing-tool-content">
-                <div class="rule-builder-row">
-                  <label>
-                    <span>__MSG_o_lMatcher__</span>
-                    <select id="rule-builder-matcher"></select>
-                  </label>
-                  <label>
-                    <span>__MSG_o_lPattern__</span>
-                    <input
-                      type="text"
-                      id="rule-builder-pattern"
-                      placeholder="jpg|png"
-                      spellcheck="false"
-                    />
-                  </label>
-                </div>
-                <div class="rule-builder-row">
-                  <label>
-                    <span>__MSG_o_lDestinationInto__</span>
-                    <input
-                      type="text"
-                      id="rule-builder-into"
-                      placeholder="images/:pagedomain:/:filename:"
-                      spellcheck="false"
-                    />
-                  </label>
-                  <button type="button" class="apply-button" id="rule-builder-add" disabled>
-                    __MSG_html_add2__
-                  </button>
-                </div>
-              </div>
-            </details>
-
-            <details class="last-download-row routing-tool">
-              <summary>__MSG_o_lRoutingLastDownload__</summary>
-              <div class="info-row last-download-info">
-                <table class="last-download-table">
-                  <tbody>
-                    <tr>
-                      <th scope="row" class="last-download-label">__MSG_historyColumnUrl__</th>
-                      <td class="last-download-url" id="last-dl-url">
-                        __MSG_o_lRoutingLastDownloadEmpty__
-                      </td>
-                    </tr>
-                    <tr id="rules-applied-row">
-                      <th scope="row" class="last-download-label">__MSG_o_lRoutingRenamedTo__</th>
-                      <td class="last-download-value" id="last-dl-match">
-                        __MSG_o_lRoutingNoMatches__
-                      </td>
-                    </tr>
-                    <tr class="hide" id="capture-group-rows">
-                      <th scope="row" class="last-download-label">
-                        __MSG_o_lRoutingCaptureGroups__
-                      </th>
-                      <td class="last-download-value" id="last-dl-capture"></td>
-                    </tr>
-                    <tr class="hide" id="variables-table-row">
-                      <th scope="row" class="last-download-label">__MSG_o_lRoutingVariables__</th>
-                      <td>
-                        <button type="button" class="button" id="see-variables-btn">
-                          __MSG_o_lRoutingVariablesClickToSee__
-                        </button>
-                        <table id="variables-table">
-                          <tbody class="hide" id="variables-body"></tbody>
-                        </table>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
             </details>
 
             <div class="routing-post-options">

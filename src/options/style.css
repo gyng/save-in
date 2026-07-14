@@ -3093,9 +3093,24 @@ summary {
   border-left: 2px solid var(--panel-border);
 }
 
-.rules-editor-main > .last-download-row.routing-tool {
+.route-debugger .route-debugger-last-download {
   display: block;
-  align-items: initial;
+  margin: 0;
+  border-top: 1px solid var(--panel-border);
+}
+
+.route-debugger-last-download > summary {
+  width: fit-content;
+  padding: var(--space-2) var(--space-3);
+  color: var(--link-color);
+}
+
+.route-debugger-last-download > .last-download-info {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0 var(--space-3) var(--space-3);
+  border: 0;
+  background: transparent;
 }
 
 .routing-post-options {
