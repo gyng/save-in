@@ -317,9 +317,20 @@ test("keeps the debugger before fallback behavior", () => {
   const debuggerShell = document.querySelector(".route-debugger-shell");
 
   const noMatchGroup = fallback?.querySelector("[aria-labelledby='routing-no-match-heading']");
+  expect(document.querySelector("#rules-text-label")?.tagName).toBe("H4");
+  expect(document.querySelector("#route-debugger-title")?.tagName).toBe("H4");
+  expect(document.querySelector("#routing-reference-heading")?.tagName).toBe("H4");
   expect(noMatchGroup?.querySelector("#routing-no-match-heading")?.textContent?.trim()).toBe(
     "__MSG_routingNoMatchBehavior__",
   );
+  expect(noMatchGroup?.querySelector("#routeSkipUnmatched")).not.toBeNull();
+  expect(noMatchGroup?.querySelector("#routeFailurePrompt")).not.toBeNull();
+  const menuGroup = fallback?.querySelector("[aria-labelledby='routing-menu-mode-heading']");
+  expect(menuGroup?.querySelector("#routing-menu-mode-heading")?.textContent?.trim()).toBe(
+    "Context menus",
+  );
+  expect(menuGroup?.querySelector("#routeHideFolderChoices")).not.toBeNull();
+  expect(fallback?.querySelector("#routeExclusive")).toBeNull();
   if (!fallback || !debuggerShell) throw new Error("Missing routing fallback or debugger group");
   expect(
     Boolean(debuggerShell.compareDocumentPosition(fallback) & Node.DOCUMENT_POSITION_FOLLOWING),

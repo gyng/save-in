@@ -62,6 +62,11 @@ export const setupOptionDependencies = () => {
       parent: "browserDownloadFiltersEnabled",
       children: ["browserDownloadFilter", "browserDownloadExcludeFilter"],
     },
+    {
+      parent: "routeSkipUnmatched",
+      children: ["routeFailurePrompt"],
+      when: () => !checked("routeSkipUnmatched"),
+    },
     { parent: "links", children: ["preferLinks"] },
     {
       parent: "preferLinks",

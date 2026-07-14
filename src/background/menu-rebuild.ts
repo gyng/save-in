@@ -33,7 +33,7 @@ export const rebuildMenus = async (): Promise<void> => {
   addTabMenus();
   addRoot(actionContexts);
 
-  if (options.routeExclusive) {
+  if (options.routeHideFolderChoices) {
     addRouteExclusive(downloadContexts);
     makeSeparator(downloadContexts, MENU_IDS.SEPARATOR.ACTIONS);
     addSourcePanel(actionContexts);

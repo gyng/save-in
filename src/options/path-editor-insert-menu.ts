@@ -2,6 +2,7 @@ import { webExtensionApi } from "../platform/web-extension-api.ts";
 import { MESSAGE_TYPES } from "../shared/constants.ts";
 import { sendInternalMessage } from "../shared/message-protocol.ts";
 import { compareClauses, CLAUSE_GROUPS, clauseGroup } from "./vocabulary-groups.ts";
+import { matcherDescription } from "./matcher-descriptions.ts";
 
 export const setupPathInsertMenu = (
   menuSelector: string,
@@ -35,34 +36,10 @@ export const setupPathInsertMenu = (
 
   if (!clauseFilter) return;
   const clauseBody = menu.querySelector<HTMLTableSectionElement>(".clause-preview-table tbody");
-  const descriptions: Record<string, string> = {
+  const specialDescriptions: Record<string, string> = {
     into: "Set the destination path",
     capture: "Choose regex capture source",
     capturegroups: "Choose continuous regex capture groups",
-    context: "Match how the save started",
-    menuindex: "Match the selected menu position",
-    comment: "Match menu-item metadata",
-    linktext: "Match visible link text",
-    selectiontext: "Match selected page text",
-    pageurl: "Match the page URL",
-    pagedomain: "Match the page hostname",
-    pagerootdomain: "Match the page root domain",
-    pagetitle: "Match the page title",
-    frameurl: "Match the frame URL",
-    referrerurl: "Match the referrer URL",
-    referrerdomain: "Match the referrer hostname",
-    sourceurl: "Match the file URL",
-    sourcedomain: "Match the file hostname",
-    sourcerootdomain: "Match the file root domain",
-    sourcekind: "Match the discovered page-source kind",
-    filename: "Match the resolved filename",
-    naivefilename: "Match the URL-derived filename",
-    fileext: "Match the URL-derived extension",
-    urlfileext: "Match the URL-derived extension",
-    actualfileext: "Match the resolved extension",
-    mediatype: "Match image, video, or audio",
-    mime: "Match the MIME content type",
-    contenttype: "Match the MIME content type",
   };
   const clauseButtons: HTMLButtonElement[] = [];
 
@@ -100,7 +77,7 @@ export const setupPathInsertMenu = (
         syntaxCell.append(button);
         const description = document.createElement("td");
         description.className = "variables-preview-value clause-preview-description";
-        description.textContent = descriptions[clause] || "Match this download property";
+        description.textContent = specialDescriptions[clause] ?? matcherDescription(clause);
         row.append(syntaxCell, description);
         clauseBody.append(row);
         button.addEventListener("click", () => {

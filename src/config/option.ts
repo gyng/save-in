@@ -81,8 +81,11 @@ export const OptionsManagement: OptionsManagementApi = {
     promptOnFailure: "Re-prompt with Save As when a download fails.",
     promptOnShift: "Open Save As when Shift is held on click.",
     replacementChar: "Replaces filesystem-forbidden characters (blank = delete them).",
-    routeExclusive: "Only save via routing rules; disables the directory submenu.",
+    routeExclusive:
+      "Legacy combined routing-only mode; migrated to separate menu and unmatched-file options.",
     routeFailurePrompt: "Open Save As when no routing rule matches.",
+    routeHideFolderChoices: "Hide folder choices from the Save In context menu.",
+    routeSkipUnmatched: "Do not save a file when no routing rule matches.",
     selection: "Enable saving selected text as a .txt file.",
     shortcutLink: "Save links as shortcut files instead of downloading.",
     shortcutMedia: "Save media as shortcut files instead of downloading.",
@@ -178,6 +181,16 @@ export const OptionsManagement: OptionsManagementApi = {
             normalizeOption(optionType, storedOptions[optionType.name]),
           ]),
         ) as SaveInOptions;
+        const shouldMigrateExclusive = storedOptions.routeExclusive === true;
+        if (shouldMigrateExclusive) {
+          nextOptions.routeExclusive = false;
+          if (typeof storedOptions.routeHideFolderChoices !== "boolean") {
+            nextOptions.routeHideFolderChoices = true;
+          }
+          if (typeof storedOptions.routeSkipUnmatched !== "boolean") {
+            nextOptions.routeSkipUnmatched = true;
+          }
+        }
         const legacyAutomaticSource =
           typeof storedOptions.autoDownloadRules === "string"
             ? storedOptions.autoDownloadRules.trim()
@@ -213,6 +226,14 @@ export const OptionsManagement: OptionsManagementApi = {
                 autoDownloadRules: "",
               })
             : Promise.resolve();
+        const persistExclusiveMigration = () =>
+          shouldMigrateExclusive
+            ? webExtensionApi.storage.local.set({
+                routeExclusive: false,
+                routeHideFolderChoices: nextOptions.routeHideFolderChoices,
+                routeSkipUnmatched: nextOptions.routeSkipUnmatched,
+              })
+            : Promise.resolve();
 
         const migrationVersion = storedOptions[PATH_TRUNCATION_MIGRATION_STORAGE_KEY];
         if (
@@ -221,7 +242,7 @@ export const OptionsManagement: OptionsManagementApi = {
           migrationVersion >= PATH_TRUNCATION_MIGRATION_VERSION
         ) {
           const committed = commit();
-          return persistAutomaticMigration().then(
+          return Promise.all([persistAutomaticMigration(), persistExclusiveMigration()]).then(
             () => committed,
             () => committed,
           );
@@ -235,6 +256,7 @@ export const OptionsManagement: OptionsManagementApi = {
         // load instead of letting a quota/storage failure block background startup.
         return Promise.all([
           persistAutomaticMigration(),
+          persistExclusiveMigration(),
           webExtensionApi.storage.local.set({
             truncateLength: nextOptions.truncateLength,
             [PATH_TRUNCATION_MIGRATION_STORAGE_KEY]: PATH_TRUNCATION_MIGRATION_VERSION,

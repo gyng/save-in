@@ -421,7 +421,7 @@ export const Download = {
       state.routeIsFolder = /\/\s*$/.test(routeMatches);
       state.route = await applyVariables(new Path(routeMatches), state.info);
     }
-    const routeRequired = state.needRouteMatch || options.routeExclusive;
+    const routeRequired = state.needRouteMatch || options.routeSkipUnmatched;
     const deferRouteRequirement =
       routeRequired &&
       WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion &&
@@ -772,7 +772,7 @@ export const Download = {
       if (url && Download.generatedObjectUrls.delete(url)) URL.revokeObjectURL(url);
       await historyPort.setStatus(state.scratch.historyEntryId, "RULE_NO_MATCH");
       finishPreparation();
-      if ((state.needRouteMatch || options.routeExclusive) && options.notifyOnFailure) {
+      if ((state.needRouteMatch || options.routeSkipUnmatched) && options.notifyOnFailure) {
         Notifier.createExtensionNotification(
           getMessage("notificationRuleMatchFailedExclusiveTitle"),
           getMessage("notificationRuleMatchFailedExclusiveMessage", [requireDownloadUrl(state)]),

@@ -145,6 +145,8 @@ beforeEach(() => {
     promptOnShift: false,
     routeFailurePrompt: false,
     routeExclusive: false,
+    routeHideFolderChoices: false,
+    routeSkipUnmatched: false,
     notifyOnRuleMatch: false,
     notifyOnFailure: false,
     conflictAction: "uniquify",

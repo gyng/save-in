@@ -157,6 +157,44 @@ describe("OptionsManagement", () => {
       expect(global.browser.storage.local.set).not.toHaveBeenCalled();
     });
 
+    test("splits the legacy routing-only setting without changing its behavior", async () => {
+      global.browser.storage.local.get = vi.fn(() =>
+        Promise.resolve({
+          routeExclusive: true,
+          [PATH_TRUNCATION_MIGRATION_STORAGE_KEY]: PATH_TRUNCATION_MIGRATION_VERSION,
+        }),
+      );
+      global.browser.storage.local.set = vi.fn(() => Promise.resolve());
+
+      const resolved = await OptionsManagement.loadOptions();
+
+      expect(resolved.routeExclusive).toBe(false);
+      expect(resolved.routeHideFolderChoices).toBe(true);
+      expect(resolved.routeSkipUnmatched).toBe(true);
+      expect(global.browser.storage.local.set).toHaveBeenCalledWith({
+        routeExclusive: false,
+        routeHideFolderChoices: true,
+        routeSkipUnmatched: true,
+      });
+    });
+
+    test("preserves explicit split routing behavior during legacy cleanup", async () => {
+      global.browser.storage.local.get = vi.fn(() =>
+        Promise.resolve({
+          routeExclusive: true,
+          routeHideFolderChoices: false,
+          routeSkipUnmatched: true,
+          [PATH_TRUNCATION_MIGRATION_STORAGE_KEY]: PATH_TRUNCATION_MIGRATION_VERSION,
+        }),
+      );
+      global.browser.storage.local.set = vi.fn(() => Promise.resolve());
+
+      const resolved = await OptionsManagement.loadOptions();
+
+      expect(resolved.routeHideFolderChoices).toBe(false);
+      expect(resolved.routeSkipUnmatched).toBe(true);
+    });
+
     test("automatically records the UTF-8 byte migration for a legacy truncation setting", async () => {
       global.browser.storage.local.get = vi.fn(() => Promise.resolve({ truncateLength: 999 }));
       global.browser.storage.local.set = vi.fn(() => Promise.resolve());

@@ -16,7 +16,24 @@ type ConfigStorage = {
 const equalStoredValue = (left: unknown, right: unknown): boolean =>
   JSON.stringify(left) === JSON.stringify(right);
 
-const validateConfig = (config: Record<string, unknown>): ConfigApplyResult => {
+const expandLegacyRouteExclusive = (config: Record<string, unknown>): Record<string, unknown> => {
+  if (
+    typeof config.routeExclusive !== "boolean" ||
+    Object.hasOwn(config, "routeHideFolderChoices") ||
+    Object.hasOwn(config, "routeSkipUnmatched")
+  ) {
+    return config;
+  }
+  return {
+    ...config,
+    routeExclusive: false,
+    routeHideFolderChoices: config.routeExclusive,
+    routeSkipUnmatched: config.routeExclusive,
+  };
+};
+
+const validateConfig = (rawConfig: Record<string, unknown>): ConfigApplyResult => {
+  const config = expandLegacyRouteExclusive(rawConfig);
   const applied: Record<string, unknown> = {};
   const rejected: ConfigApplyResult["rejected"] = [];
 

@@ -727,9 +727,9 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
           <div class="rules-editor-main">
             <section class="routing-ide" aria-labelledby="rules-text-label">
               <div class="routing-editor-heading">
-                <div class="editor-field-label" id="rules-text-label">
+                <h4 class="editor-field-label" id="rules-text-label">
                   __MSG_o_sDynamicDownloads__
-                </div>
+                </h4>
               </div>
               <div
                 class="editor-tabs routing-editor-tabs"
@@ -879,9 +879,9 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
             >
               <header class="route-debugger-header">
                 <div class="route-debugger-intro">
-                  <div class="editor-field-label" id="route-debugger-title">
+                  <h4 class="editor-field-label" id="route-debugger-title">
                     __MSG_routeDebuggerTitle__
-                  </div>
+                  </h4>
                   <p class="caption">__MSG_routeDebuggerUnsavedNote__</p>
                 </div>
                 <button type="button" class="button-primary apply-button" id="route-debugger-run">
@@ -1180,15 +1180,19 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                   <input type="checkbox" id="routeFailurePrompt" />
                   __MSG_o_cOpenDialogIfNoRulesMatch__
                 </label>
+                <label>
+                  <input type="checkbox" id="routeSkipUnmatched" />
+                  __MSG_o_cExclusiveModeHelp__
+                </label>
               </section>
 
               <section class="option-group" aria-labelledby="routing-menu-mode-heading">
                 <h4 class="option-group-heading" id="routing-menu-mode-heading">
-                  __MSG_o_sDynamicDownloads__
+                  __MSG_html_contextMenus__
                 </h4>
                 <label>
-                  <input type="checkbox" id="routeExclusive" /> __MSG_o_cExclusiveMode__
-                  <div class="caption caption-line">__MSG_o_cExclusiveModeHelp__</div>
+                  <input type="checkbox" id="routeHideFolderChoices" />
+                  __MSG_o_cExclusiveMode__
                 </label>
               </section>
             </div>
@@ -1198,9 +1202,9 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
             class="preview-column routing-reference-column"
             aria-labelledby="routing-reference-heading"
           >
-            <div class="editor-field-label" id="routing-reference-heading">
+            <h4 class="editor-field-label" id="routing-reference-heading">
               __MSG_html_references__
-            </div>
+            </h4>
             <div class="reference-sections" aria-label="__MSG_html_insertionReferences__">
               <details class="variables-preview" data-insert-target="filenamePatterns">
                 <summary>__MSG_o_lLiveVariables__</summary>

@@ -32,6 +32,8 @@ export const OPTION_DEFAULTS = {
   replacementChar: "_",
   routeExclusive: false,
   routeFailurePrompt: false,
+  routeHideFolderChoices: false,
+  routeSkipUnmatched: false,
   selection: true,
   shortcutLink: false,
   shortcutMedia: false,

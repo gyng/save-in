@@ -12,7 +12,7 @@
 
 .rules-editor {
   display: grid;
-  grid-template-columns: minmax(440px, 2.4fr) minmax(240px, 1fr);
+  grid-template-columns: minmax(340px, 2fr) minmax(260px, 1fr);
   gap: var(--space-5);
   align-items: flex-start;
   width: 100%;
@@ -83,8 +83,8 @@
   display: inline-grid;
   place-items: center;
   flex: none;
-  width: 18px;
-  height: 28px;
+  width: var(--compact-control-size);
+  height: var(--compact-control-size);
   color: var(--color-text-muted);
   font-size: var(--text-lg);
   line-height: 1;
@@ -127,8 +127,8 @@
   display: inline-grid;
   place-items: center;
   align-self: center;
-  width: var(--text-base);
-  height: var(--text-base);
+  width: var(--compact-control-size);
+  height: var(--compact-control-size);
   padding: 0;
   line-height: 0;
 }
@@ -149,13 +149,14 @@
 
 .rule-editor-card-body {
   display: grid;
-  grid-template-columns: 30px minmax(112px, 0.38fr) minmax(150px, 1fr) 36px 30px;
+  grid-template-columns:
+    var(--compact-control-size) minmax(112px, 0.38fr) minmax(150px, 1fr) 36px
+    var(--compact-control-size);
   gap: 1px var(--space-2);
   padding: 0 var(--space-2) var(--space-2) var(--space-3);
 }
 
-.rule-editor-card.is-disabled .rule-editor-card-body,
-.path-editor-row.is-disabled > :not(.visual-editor-enabled) {
+.rule-editor-card.is-disabled .rule-editor-card-body {
   opacity: 0.55;
 }
 
@@ -167,7 +168,7 @@
   gap: var(--space-2);
 }
 
-.rule-editor-identity h4 {
+.rule-editor-identity h5 {
   flex: none;
   margin: 0;
   font-size: var(--text-base);
@@ -177,12 +178,12 @@
   flex: 1 1 10rem;
   min-width: 5rem;
   max-width: 22rem;
-  height: 28px;
+  height: var(--compact-control-size);
   margin: 0;
   padding: 3px var(--space-1);
-  color: var(--color-text-muted);
-  border-color: transparent;
-  background: transparent;
+  color: var(--color-text);
+  border-color: color-mix(in srgb, var(--control-border) 72%, transparent);
+  background: color-mix(in srgb, var(--input-background) 72%, transparent);
   font-size: var(--text-sm);
 }
 
@@ -191,6 +192,10 @@
   color: var(--color-text);
   border-color: var(--panel-border);
   background: var(--input-background);
+}
+
+.rule-editor-name::placeholder {
+  color: var(--color-text-muted);
 }
 
 .rule-editor-auto-badge {
@@ -202,8 +207,8 @@
 .rule-editor-actions-trigger {
   display: inline-grid;
   place-items: center;
-  width: 30px;
-  height: 30px;
+  width: var(--compact-control-size);
+  height: var(--compact-control-size);
   padding: 0;
   color: var(--color-text-muted);
   border-color: transparent;
@@ -355,7 +360,7 @@
   display: inline-flex;
   align-items: center;
   gap: 2px;
-  min-height: 28px;
+  min-height: var(--compact-control-size);
   padding: 0 var(--space-1);
   border-radius: var(--radius);
   color: var(--color-text-muted);

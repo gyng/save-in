@@ -147,7 +147,7 @@ describe("renameAndDownload: MIME extension append (§8.1)", () => {
   test("makes a MIME-derived extension available before exclusive routing", async () => {
     setCurrentBrowser("CHROME");
     options.appendMimeExtension = true;
-    options.routeExclusive = true;
+    options.routeSkipUnmatched = true;
     options.filenamePatterns = [routingRule("actualfileext")];
     vi.spyOn(Variable, "resolveMime").mockResolvedValue("application/pdf");
     vi.spyOn(Variable, "mimeToExtension").mockReturnValue("pdf");

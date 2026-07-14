@@ -28,6 +28,7 @@
   --radius-sm: calc(var(--radius) - 1px);
   --radius-dialog: calc(var(--radius) * 2);
   --control-height: 34px;
+  --compact-control-size: 32px;
   --compact-row-height: 32px;
   --content-max-width: 760px;
 

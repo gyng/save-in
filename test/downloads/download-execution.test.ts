@@ -285,9 +285,9 @@ describe("renameAndDownload: notification triggers", () => {
     expect(Notifier.createExtensionNotification).not.toHaveBeenCalled();
   });
 
-  test("notifies failure when routeExclusive+notifyOnFailure are enabled and no route matched", async () => {
+  test("notifies failure when unmatched files are skipped and no route matched", async () => {
     setCurrentBrowser("CHROME");
-    options.routeExclusive = true;
+    options.routeSkipUnmatched = true;
     options.notifyOnFailure = true;
 
     const state = makeState();
@@ -302,9 +302,9 @@ describe("renameAndDownload: notification triggers", () => {
     expect(global.browser.downloads.download).not.toHaveBeenCalled();
   });
 
-  test("does not notify failure when routeExclusive is disabled", async () => {
+  test("does not notify failure when unmatched files are allowed", async () => {
     setCurrentBrowser("CHROME");
-    options.routeExclusive = false;
+    options.routeSkipUnmatched = false;
     options.notifyOnFailure = true;
 
     await Download.renameAndDownload(makeState());
@@ -433,7 +433,7 @@ describe("onDeterminingFilename listener: sync path", () => {
 
   test("defers an exclusive actual-filename rule until Chrome resolves the filename", async () => {
     setCurrentBrowser("CHROME");
-    options.routeExclusive = true;
+    options.routeSkipUnmatched = true;
     options.filenamePatterns = [routingRule("actualfileext")];
     vi.mocked(router.matchRules).mockImplementation((_rules, info) =>
       info.filename === "server-name.pdf" ? "pdf/:filename:" : null,
@@ -471,7 +471,7 @@ describe("onDeterminingFilename listener: sync path", () => {
   test("resolves MIME only when Chrome's final filename loses its extension", async () => {
     setCurrentBrowser("CHROME");
     options.appendMimeExtension = true;
-    options.routeExclusive = true;
+    options.routeSkipUnmatched = true;
     options.filenamePatterns = [routingRule("actualfileext")];
     vi.spyOn(Variable, "resolveMime").mockResolvedValue("application/pdf");
     vi.spyOn(Variable, "mimeToExtension").mockReturnValue("pdf");
@@ -541,7 +541,7 @@ describe("onDeterminingFilename listener: sync path", () => {
 
   test("preserves deferred exclusive rejection across a service-worker restart", async () => {
     setCurrentBrowser("CHROME");
-    options.routeExclusive = true;
+    options.routeSkipUnmatched = true;
     options.filenamePatterns = [routingRule("actualfileext")];
     vi.mocked(router.matchRules).mockImplementation((_rules, info) =>
       info.filename === "file.pdf" ? "pdf/:filename:" : null,
@@ -633,7 +633,7 @@ describe("onDeterminingFilename listener: sync path", () => {
     "fails closed when exclusive routing has only $label",
     async ({ incognito, persistedFilename }) => {
       setCurrentBrowser("CHROME");
-      options.routeExclusive = true;
+      options.routeSkipUnmatched = true;
       const url = "https://example.com/unrecoverable-download";
       if (persistedFilename) sessionStore.siFinalFilenames = { [url]: "downloads/server-name.exe" };
       const cancel = vi.fn(() => Promise.resolve());
@@ -663,7 +663,7 @@ describe("onDeterminingFilename listener: sync path", () => {
 
   test("cancels a deferred exclusive download when the resolved filename still misses", async () => {
     setCurrentBrowser("CHROME");
-    options.routeExclusive = true;
+    options.routeSkipUnmatched = true;
     options.notifyOnFailure = true;
     options.filenamePatterns = [routingRule("actualfileext")];
     vi.mocked(router.matchRules).mockImplementation((_rules, info) =>

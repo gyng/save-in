@@ -125,6 +125,8 @@ const setupMenuCreationMocks = () => {
     enableNumberedItems: false,
     tabEnabled: true,
     routeExclusive: false,
+    routeHideFolderChoices: false,
+    routeSkipUnmatched: false,
     links: true,
     selection: true,
     page: true,
@@ -498,7 +500,7 @@ describe("menu creation", () => {
       menu.addPaths(["old/path"], ["link"]);
       expect(menu.pathMappings["save-in-0"]?.parsedDir).toBe("old/path");
       vi.mocked(global.browser.contextMenus.create).mockClear();
-      options.routeExclusive = true;
+      options.routeHideFolderChoices = true;
 
       await rebuildMenus();
 

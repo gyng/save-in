@@ -53,6 +53,7 @@ button,
 input,
 select,
 textarea {
+  box-sizing: border-box;
   font: inherit;
   color: var(--color-text);
 }

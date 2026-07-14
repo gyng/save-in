@@ -1060,12 +1060,12 @@
     "description": "Option control label or related help text. Used in src/options/options.html."
   },
   "o_cExclusiveMode": {
-    "message": "Use routing rules instead of folder choices",
-    "description": "Checkbox that replaces context-menu folder choices with routing-rule-only saving. Used in src/options/options.html."
+    "message": "Hide folder choices",
+    "description": "Checkbox that replaces context-menu folder choices with one routing action. Used in src/options/options.html."
   },
   "o_cExclusiveModeHelp": {
-    "message": "Files are not saved when no routing rule matches",
-    "description": "Help below the routing-rule-only checkbox explaining what happens to unmatched files. Used in src/options/options.html."
+    "message": "Do not save the file",
+    "description": "Checkbox that skips a download when no routing rule matches. Used in src/options/options.html."
   },
   "o_cNotifySuccess": {
     "message": "Notify when a download succeeds",

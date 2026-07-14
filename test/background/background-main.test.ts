@@ -116,6 +116,8 @@ const setupGlobals = async ({
       selection: true,
       page: true,
       routeExclusive: false,
+      routeHideFolderChoices: false,
+      routeSkipUnmatched: false,
       enableLastLocation: true,
       notifyOnSuccess: true,
       notifyOnFailure: true,
@@ -412,8 +414,8 @@ describe("init", () => {
     expect(Menus.addShowDefaultFolder).toHaveBeenCalledWith(["image", "video", "audio"]);
   });
 
-  test("routeExclusive keeps Page Sources available under the root", async () => {
-    await setupGlobals({ options: { routeExclusive: true } });
+  test("hiding folder choices keeps Page Sources available under the root", async () => {
+    await setupGlobals({ options: { routeHideFolderChoices: true } });
     await importIndex();
     await Runtime.ready;
 

@@ -12,7 +12,7 @@
   }
 
   .rule-editor-card-body {
-    grid-template-columns: 28px minmax(0, 1fr) auto;
+    grid-template-columns: var(--compact-control-size) minmax(0, 1fr) auto;
   }
 
   .rule-clause-row .rule-clause-marker {
@@ -41,6 +41,17 @@
   .rule-clause-row [data-rule-action="delete-clause"] {
     grid-column: 3;
     grid-row: 1;
+  }
+}
+
+@container routing-workspace (max-width: 520px) {
+  .rule-editor-card-header {
+    display: grid;
+    grid-template-columns: auto auto minmax(0, 1fr) auto;
+  }
+
+  .rule-editor-card-actions {
+    grid-column: 4;
   }
 }
 

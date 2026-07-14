@@ -78,3 +78,48 @@ test("continues serialized writes after an earlier write rejected", async () => 
   expect(storage.set).toHaveBeenCalledWith({ paths: "images" });
   expect(reset).toHaveBeenCalledOnce();
 });
+
+test("expands the legacy combined routing mode at the configuration boundary", async () => {
+  const storage = { get: vi.fn(), set: vi.fn(() => Promise.resolve()) };
+  const reset = vi.fn(() => Promise.resolve());
+
+  const result = await applyConfigSerialized(
+    { queue: Promise.resolve() },
+    storage,
+    { routeExclusive: true },
+    undefined,
+    reset,
+  );
+
+  expect(result).toEqual({
+    applied: {
+      routeExclusive: false,
+      routeHideFolderChoices: true,
+      routeSkipUnmatched: true,
+    },
+    rejected: [],
+  });
+  expect(storage.set).toHaveBeenCalledWith(result.applied);
+});
+
+test("does not overwrite explicit split routing behavior", async () => {
+  const storage = { get: vi.fn(), set: vi.fn(() => Promise.resolve()) };
+
+  const result = await applyConfigSerialized(
+    { queue: Promise.resolve() },
+    storage,
+    {
+      routeExclusive: false,
+      routeHideFolderChoices: true,
+      routeSkipUnmatched: false,
+    },
+    undefined,
+    vi.fn(() => Promise.resolve()),
+  );
+
+  expect(result.applied).toEqual({
+    routeExclusive: false,
+    routeHideFolderChoices: true,
+    routeSkipUnmatched: false,
+  });
+});

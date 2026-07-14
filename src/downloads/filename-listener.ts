@@ -374,7 +374,7 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
           return;
         }
 
-        if (initiatedBySaveIn && options.routeExclusive) {
+        if (initiatedBySaveIn && options.routeSkipUnmatched) {
           await rejectDeferredRoute({
             path: new Path(""),
             scratch: {},

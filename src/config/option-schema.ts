@@ -231,6 +231,16 @@ export const OPTION_KEYS = defineOptions([
     type: OPTION_TYPES.BOOL,
     default: OPTION_DEFAULTS.routeFailurePrompt,
   },
+  {
+    name: "routeHideFolderChoices",
+    type: OPTION_TYPES.BOOL,
+    default: OPTION_DEFAULTS.routeHideFolderChoices,
+  },
+  {
+    name: "routeSkipUnmatched",
+    type: OPTION_TYPES.BOOL,
+    default: OPTION_DEFAULTS.routeSkipUnmatched,
+  },
   { name: "selection", type: OPTION_TYPES.BOOL, default: OPTION_DEFAULTS.selection },
   { name: "shortcutLink", type: OPTION_TYPES.BOOL, default: OPTION_DEFAULTS.shortcutLink },
   { name: "shortcutMedia", type: OPTION_TYPES.BOOL, default: OPTION_DEFAULTS.shortcutMedia },

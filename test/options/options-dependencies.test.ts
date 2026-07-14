@@ -24,7 +24,9 @@ describe("option dependencies", () => {
       <input type="checkbox" id="links">
       <input type="checkbox" id="preferLinks">
       <input type="checkbox" id="preferLinksFilterEnabled">
-      <textarea id="preferLinksFilter"></textarea>`;
+      <textarea id="preferLinksFilter"></textarea>
+      <input type="checkbox" id="routeSkipUnmatched">
+      <input type="checkbox" id="routeFailurePrompt">`;
   });
 
   test("disables children until their parent feature is enabled", () => {
@@ -119,6 +121,24 @@ describe("option dependencies", () => {
     update();
 
     expect(close.disabled).toBe(true);
+  });
+
+  test("disables the no-match prompt while unmatched files are skipped", () => {
+    setupOptionDependencies();
+    const skip = document.querySelector("#routeSkipUnmatched") as HTMLInputElement;
+    const prompt = document.querySelector("#routeFailurePrompt") as HTMLInputElement;
+
+    expect(prompt.disabled).toBe(false);
+    prompt.checked = true;
+    skip.checked = true;
+    skip.dispatchEvent(new Event("change"));
+
+    expect(prompt.disabled).toBe(true);
+    expect(prompt.checked).toBe(true);
+
+    skip.checked = false;
+    skip.dispatchEvent(new Event("change"));
+    expect(prompt.disabled).toBe(false);
   });
 
   test("does not treat a checkbox id on the wrong element type as enabled", () => {
