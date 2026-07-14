@@ -23,12 +23,9 @@ describe("external validation safeguards", () => {
     /(a|aa)+$/,
     /^(a+)\1$/,
     /^(?<part>a+)\k<part>$/,
-  ])(
-    "rejects regexes with unsafe repetition %#",
-    (regex) => {
-      expect(isSafeExternalRegex(regex)).toBe(false);
-    },
-  );
+  ])("rejects regexes with unsafe repetition %#", (regex) => {
+    expect(isSafeExternalRegex(regex)).toBe(false);
+  });
 
   test("rejects oversized external validation fields before parsing", () => {
     expect(externalValidationRequestError(undefined)).toBeNull();
@@ -44,9 +41,9 @@ describe("external validation safeguards", () => {
     expect(externalValidationRequestError({ info: { contexts: Array(33).fill("link") } })).toBe(
       "Validation sample fields are too large",
     );
-    expect(
-      externalValidationRequestError({ info: { contexts: ["x".repeat(4_097)] } }),
-    ).toBe("Validation sample fields are too large");
+    expect(externalValidationRequestError({ info: { contexts: ["x".repeat(4_097)] } })).toBe(
+      "Validation sample fields are too large",
+    );
     expect(
       externalValidationRequestError({ info: { currentTab: { title: "x".repeat(4_097) } } }),
     ).toBe("Validation sample fields are too large");
@@ -82,9 +79,9 @@ describe("external validation safeguards", () => {
 
   test("bounds adversarial validation object graphs", () => {
     expect(externalValidationRequestError({ extra: [1, "small"] } as never)).toBeNull();
-    expect(
-      externalValidationRequestError({ extra: Array(1_025).fill(null) } as never),
-    ).toBe("Validation request is too large");
+    expect(externalValidationRequestError({ extra: Array(1_025).fill(null) } as never)).toBe(
+      "Validation request is too large",
+    );
     expect(
       externalValidationRequestError({
         extra: Object.fromEntries(Array.from({ length: 1_025 }, (_, index) => [`k${index}`, null])),
@@ -121,9 +118,7 @@ describe("external validation safeguards", () => {
         ],
       ] as never),
     ).toBe(true);
-    expect(hasUnsafeExternalRegex([[{ type: "DESTINATION", value: "safe" }]] as never)).toBe(
-      false,
-    );
+    expect(hasUnsafeExternalRegex([[{ type: "DESTINATION", value: "safe" }]] as never)).toBe(false);
   });
 
   test("limits bursts per browser-authenticated sender ID", () => {
