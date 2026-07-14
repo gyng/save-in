@@ -61,9 +61,22 @@ const localDateValue = (date: Date): string =>
     date.getDate(),
   ).padStart(2, "0")}`;
 
+const DATE_ONLY = /^(\d{4})-(\d{2})-(\d{2})$/;
+
 export const localHistoryDate = (iso?: string): string => {
-  if (/^\d{4}-\d{2}-\d{2}$/.test(iso || "")) return iso!;
-  const date = new Date(iso || "");
+  if (!iso) return "";
+  const match = DATE_ONLY.exec(iso);
+  if (match) {
+    const [, yearText, monthText, dayText] = match;
+    if (!yearText || !monthText || !dayText) return "";
+    const year = Number(yearText);
+    const month = Number(monthText);
+    const day = Number(dayText);
+    const leapYear = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+    const daysInMonth = [31, leapYear ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month - 1];
+    return day >= 1 && daysInMonth !== undefined && day <= daysInMonth ? iso : "";
+  }
+  const date = new Date(iso);
   return Number.isNaN(date.getTime()) ? "" : localDateValue(date);
 };
 

@@ -31,6 +31,8 @@ test("missing legacy timestamps render as blank", () => {
 
 test("date-only legacy timestamps retain their calendar date in every timezone", () => {
   expect(localHistoryDate("2024-01-02")).toBe("2024-01-02");
+  expect(localHistoryDate("2024-02-30")).toBe("");
+  expect(localHistoryDate("2024-13-01")).toBe("");
 });
 
 test("history timestamps use ISO text and relative labels", () => {
