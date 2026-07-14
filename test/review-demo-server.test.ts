@@ -16,6 +16,7 @@ const { cleanupReviewSession, createDemoServer, createReviewKeyHandler } =
     createDemoServer: () => import("node:http").Server;
     createReviewKeyHandler: (actions: {
       enableHotReload: () => void;
+      openFirefox: () => void;
       reload: () => void;
       stop: () => void;
     }) => (input: string) => void;
@@ -41,39 +42,60 @@ describe("review demo server", () => {
 
   test("reloads on r or R and ignores unrelated input", () => {
     const enableHotReload = vi.fn();
+    const openFirefox = vi.fn();
     const reload = vi.fn();
     const stop = vi.fn();
-    const handleKey = createReviewKeyHandler({ enableHotReload, reload, stop });
+    const handleKey = createReviewKeyHandler({ enableHotReload, openFirefox, reload, stop });
 
     handleKey("rxR");
 
     expect(reload).toHaveBeenCalledTimes(2);
     expect(enableHotReload).not.toHaveBeenCalled();
+    expect(openFirefox).not.toHaveBeenCalled();
     expect(stop).not.toHaveBeenCalled();
   });
 
   test("enables hot reload on h or H", () => {
     const enableHotReload = vi.fn();
+    const openFirefox = vi.fn();
     const reload = vi.fn();
     const stop = vi.fn();
-    const handleKey = createReviewKeyHandler({ enableHotReload, reload, stop });
+    const handleKey = createReviewKeyHandler({ enableHotReload, openFirefox, reload, stop });
 
     handleKey("hH");
 
     expect(enableHotReload).toHaveBeenCalledTimes(2);
+    expect(openFirefox).not.toHaveBeenCalled();
+    expect(reload).not.toHaveBeenCalled();
+    expect(stop).not.toHaveBeenCalled();
+  });
+
+  test("opens Firefox on f or F", () => {
+    const enableHotReload = vi.fn();
+    const openFirefox = vi.fn();
+    const reload = vi.fn();
+    const stop = vi.fn();
+    const handleKey = createReviewKeyHandler({ enableHotReload, openFirefox, reload, stop });
+
+    handleKey("fF");
+
+    expect(openFirefox).toHaveBeenCalledTimes(2);
+    expect(enableHotReload).not.toHaveBeenCalled();
     expect(reload).not.toHaveBeenCalled();
     expect(stop).not.toHaveBeenCalled();
   });
 
   test("stops on Ctrl+C without processing later input", () => {
     const enableHotReload = vi.fn();
+    const openFirefox = vi.fn();
     const reload = vi.fn();
     const stop = vi.fn();
-    const handleKey = createReviewKeyHandler({ enableHotReload, reload, stop });
+    const handleKey = createReviewKeyHandler({ enableHotReload, openFirefox, reload, stop });
 
-    handleKey(`r\u0003r`);
+    handleKey(`r\u0003f`);
 
     expect(reload).toHaveBeenCalledOnce();
+    expect(openFirefox).not.toHaveBeenCalled();
     expect(stop).toHaveBeenCalledOnce();
   });
 

@@ -12,6 +12,7 @@ const path = require("path");
 
 const cdp = require("./lib/cdp");
 const chrome = require("./lib/chrome");
+const firefox = require("./lib/firefox");
 
 const PROFILE = path.join(chrome.ROOT, "dist", "review-profile");
 const DEMO_PHOTO = fs.readFileSync(
@@ -19,9 +20,11 @@ const DEMO_PHOTO = fs.readFileSync(
 );
 
 const REVIEW_TITLE = "Save In review";
-const setReviewTerminalTitle = () => {
-  process.title = REVIEW_TITLE;
-  if (process.stdout.isTTY) process.stdout.write(`\u001B]0;${REVIEW_TITLE}\u0007`);
+/** @param {boolean} working */
+const setReviewTerminalTitle = (working) => {
+  const title = `${working ? "😓" : "✅"} ${REVIEW_TITLE}`;
+  process.title = title;
+  if (process.stdout.isTTY) process.stdout.write(`\u001B]0;${title}\u0007`);
 };
 
 const reviewTimestamp = () => `[${new Date().toLocaleTimeString()}]`;
@@ -57,6 +60,24 @@ const SHOWCASE_PATHS = [
 // Routes any PDF link into pdfs/<weekday>-<name>; shows up in the options
 // page routing section and fires on the demo page's PDF link
 const SHOWCASE_RULES = ["fileext: pdf", "into: pdfs/:weekday:-:naivefilename:"].join("\n");
+
+const SHOWCASE_CONFIG = {
+  paths: SHOWCASE_PATHS,
+  filenamePatterns: SHOWCASE_RULES,
+  links: true,
+  selection: true,
+  page: true,
+  enableLastLocation: true,
+  contentClickToSave: true,
+  notifyOnSuccess: true,
+  notifyOnRuleMatch: true,
+  sourcePanelEnabled: true,
+  sourcePanelBackgrounds: true,
+  sourcePanelLive: true,
+  sourcePanelPreviews: true,
+  sourcePanelResourceHints: true,
+  sourcePanelLinks: true,
+};
 
 /** @param {string} label @param {string} color */
 const svg = (label, color) =>
@@ -312,11 +333,33 @@ const cleanupReviewSession = async (
 };
 
 /**
- * @param {{enableHotReload: () => void, reload: () => void, stop: () => void}} actions
+ * @param {Set<{cleanup: () => Promise<void>}>} firefoxSessions
+ * @param {() => Promise<void>} cleanupChromeSession
+ */
+const cleanupReviewBrowsers = async (firefoxSessions, cleanupChromeSession) => {
+  /** @type {unknown[]} */
+  const failures = [];
+  for (const session of firefoxSessions) {
+    try {
+      await session.cleanup();
+    } catch (error) {
+      failures.push(error);
+    }
+  }
+  try {
+    await cleanupChromeSession();
+  } catch (error) {
+    failures.push(error);
+  }
+  if (failures.length) throw new AggregateError(failures, "Review session cleanup failed");
+};
+
+/**
+ * @param {{enableHotReload: () => void, openFirefox: () => void, reload: () => void, stop: () => void}} actions
  * @returns {(input: string) => void}
  */
 const createReviewKeyHandler =
-  ({ enableHotReload, reload, stop }) =>
+  ({ enableHotReload, openFirefox, reload, stop }) =>
   (input) => {
     for (const key of input) {
       if (key === "\u0003") {
@@ -326,6 +369,9 @@ const createReviewKeyHandler =
       if (key.toLowerCase() === "h") {
         enableHotReload();
       }
+      if (key.toLowerCase() === "f") {
+        openFirefox();
+      }
       if (key.toLowerCase() === "r") {
         reload();
       }
@@ -333,7 +379,7 @@ const createReviewKeyHandler =
   };
 
 /**
- * @param {{enableHotReload: () => void, reload: () => void, stop: () => void}} actions
+ * @param {{enableHotReload: () => void, openFirefox: () => void, reload: () => void, stop: () => void}} actions
  * @returns {(() => void) | undefined}
  */
 const installReviewControls = (actions) => {
@@ -403,8 +449,33 @@ const reloadReviewSession = async (port, demoPort) => {
   return { extensionId, optionsTabs, demoTabs };
 };
 
+/** @param {number} demoPort */
+const launchFirefoxReview = async (demoPort) => {
+  chrome.stageBuild();
+  const browser = await firefox.launch({ extensionDir: chrome.DIST });
+  try {
+    await browser.evaluateInTab(
+      "src/options/options.html",
+      `browser.storage.local.set(${JSON.stringify(SHOWCASE_CONFIG)})
+        .then(() => browser.runtime.sendMessage({ type: "OPTIONS_LOADED" }))
+        .then(() => "seeded")`,
+    );
+    await browser.evaluate(`(async () => {
+      const optionsUrl = browser.runtime.getURL("src/options/options.html");
+      const optionsTab = (await browser.tabs.query({})).find((tab) => tab.url === optionsUrl);
+      if (optionsTab?.id) await browser.tabs.reload(optionsTab.id);
+      await browser.tabs.create({ url: ${JSON.stringify(`http://127.0.0.1:${demoPort}/`)} });
+      return true;
+    })()`);
+    return browser;
+  } catch (error) {
+    await browser.cleanup();
+    throw error;
+  }
+};
+
 const main = async () => {
-  setReviewTerminalTitle();
+  setReviewTerminalTitle(true);
   chrome.stageBuild();
   const { port: demoPort, server } = await startDemoServerSession();
   /** @type {Awaited<ReturnType<typeof chrome.launch>> | undefined} */
@@ -415,6 +486,25 @@ const main = async () => {
   let hotReloadEnabled = false;
   let stopping = false;
   let exitCode = 0;
+  let activeReviewWork = 0;
+  /** @type {Awaited<ReturnType<typeof firefox.launch>> | undefined} */
+  let activeFirefox;
+  /** @type {Promise<void> | undefined} */
+  let firefoxLaunch;
+  /** @type {Set<Awaited<ReturnType<typeof firefox.launch>>>} */
+  const firefoxSessions = new Set();
+
+  const beginReviewWork = () => {
+    activeReviewWork += 1;
+    setReviewTerminalTitle(true);
+    let finished = false;
+    return () => {
+      if (finished) return;
+      finished = true;
+      activeReviewWork -= 1;
+      if (activeReviewWork === 0) setReviewTerminalTitle(false);
+    };
+  };
 
   try {
     reviewLog("Launching Chrome (throwaway review profile)...");
@@ -443,23 +533,9 @@ const main = async () => {
     await cdp.evalInTarget(
       port,
       optionsTarget,
-      `chrome.storage.local.set({
-      paths: ${JSON.stringify(SHOWCASE_PATHS)},
-      filenamePatterns: ${JSON.stringify(SHOWCASE_RULES)},
-      links: true,
-      selection: true,
-      page: true,
-      enableLastLocation: true,
-      contentClickToSave: true,
-      notifyOnSuccess: true,
-      notifyOnRuleMatch: true,
-      sourcePanelEnabled: true,
-      sourcePanelBackgrounds: true,
-      sourcePanelLive: true,
-      sourcePanelPreviews: true,
-      sourcePanelResourceHints: true,
-      sourcePanelLinks: true,
-    }).then(() => chrome.runtime.sendMessage({ type: "OPTIONS_LOADED" })).then(() => "seeded")`,
+      `chrome.storage.local.set(${JSON.stringify(SHOWCASE_CONFIG)})
+        .then(() => chrome.runtime.sendMessage({ type: "OPTIONS_LOADED" }))
+        .then(() => "seeded")`,
     );
     await cdp.evalInTarget(port, optionsTarget, "location.reload()");
     await cdp.openTab(port, `http://127.0.0.1:${demoPort}/`);
@@ -473,6 +549,7 @@ const main = async () => {
       }
 
       reloading = true;
+      const finishReviewWork = beginReviewWork();
       void (async () => {
         try {
           do {
@@ -491,6 +568,40 @@ const main = async () => {
           } while (pendingReload);
         } finally {
           reloading = false;
+          finishReviewWork();
+        }
+      })();
+    };
+
+    const openFirefox = () => {
+      if (firefoxLaunch) {
+        reviewLog("Firefox is already starting.");
+        return;
+      }
+      if (activeFirefox) {
+        reviewLog("Firefox is already open.");
+        return;
+      }
+
+      const finishReviewWork = beginReviewWork();
+      firefoxLaunch = (async () => {
+        try {
+          reviewLog("\nLaunching Firefox (throwaway review profile)...");
+          const session = await launchFirefoxReview(demoPort);
+          firefoxSessions.add(session);
+          activeFirefox = session;
+          session.proc.once("exit", () => {
+            if (activeFirefox === session) activeFirefox = undefined;
+            reviewLog("Firefox closed");
+          });
+          reviewLog(`Firefox loaded. Downloads land in: ${session.downloadDir}`);
+        } catch (error) {
+          reviewError(
+            `Firefox launch failed: ${error instanceof Error ? error.message : String(error)}`,
+          );
+        } finally {
+          firefoxLaunch = undefined;
+          finishReviewWork();
         }
       })();
     };
@@ -519,6 +630,7 @@ const main = async () => {
           "\nHot reload enabled. Watching source, icons, locales, manifest, and bundle config.",
         );
       },
+      openFirefox,
       reload: requestReload,
       stop: () => stop(130),
     });
@@ -537,8 +649,9 @@ Two tabs are open:
   2. Demo page — follow the numbered checklist on the page (nested menus,
      aliases, :variables:, PDF routing rule, alt+click, selection/page save).
 
-${installedControls ? "Press h to enable hot reload, r to reload once, or Ctrl+C to exit." : "Close the Chrome window to exit."}`);
+${installedControls ? "Press [f] to open Firefox, [h] to enable hot reload, [r] to reload Chrome, or Ctrl+C to exit." : "Close the Chrome window to exit."}`);
 
+    setReviewTerminalTitle(false);
     await exited;
     cleanupControls();
     reviewLog("Chrome closed");
@@ -547,7 +660,8 @@ ${installedControls ? "Press h to enable hot reload, r to reload once, or Ctrl+C
     cleanupHotReload();
     cleanupControls();
     removeSignalHandlers();
-    await cleanupReviewSession({ browser, server });
+    if (firefoxLaunch) await firefoxLaunch;
+    await cleanupReviewBrowsers(firefoxSessions, () => cleanupReviewSession({ browser, server }));
   }
 };
 

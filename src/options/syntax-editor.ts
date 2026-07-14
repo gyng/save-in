@@ -229,7 +229,9 @@ export const createSyntaxEditor = (
   const parent = textarea.parentNode;
   if (!parent) throw new Error("Syntax editor textarea must be connected");
   parent.insertBefore(shell, textarea);
-  stage.append(overlay, inlineDiagnostics, textarea);
+  stage.append(overlay);
+  if (language === "directories") stage.append(inlineDiagnostics);
+  stage.append(textarea);
   shell.append(gutterViewport, stage);
   textarea.classList.add("syntax-editor-input");
   textarea.setAttribute("wrap", "off");

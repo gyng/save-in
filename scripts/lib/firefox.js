@@ -182,7 +182,8 @@ const removeProfile = async (profileDir) => {
 const connectWithRetry = (port) =>
   retryUntil(() => FirefoxRdp.connect(port), 30000, `Firefox did not open RDP port ${port}`);
 
-const launch = async () => {
+/** @param {{extensionDir?: string}} [settings] */
+const launch = async ({ extensionDir = ROOT } = {}) => {
   const { profileDir, downloadDir } = makeProfile(path.join(os.tmpdir(), "save-in-ff-e2e"));
 
   const port = await findAvailablePort(FIREFOX_E2E_PORT_START, FIREFOX_E2E_PORT_COUNT);
@@ -204,7 +205,7 @@ const launch = async () => {
     rdp = await connectWithRetry(port);
     let connectedRdp = rdp;
     const root = await connectedRdp.getRoot();
-    await connectedRdp.installTemporaryAddon(root.addonsActor, ROOT);
+    await connectedRdp.installTemporaryAddon(root.addonsActor, extensionDir);
     const addonActor = await retryUntil(
       () => connectedRdp.findAddonActor(ADDON_ID),
       10000,
