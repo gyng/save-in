@@ -113,7 +113,7 @@ export function getFilenameFromContentDispositionHeader(
       let [, index, quot, part] = match;
       if (index === undefined || quot === undefined || part === undefined) continue;
       const n = parseInt(index, 10);
-      if (n in matches) {
+      if (Object.hasOwn(matches, n)) {
         // Ignore anything after the invalid second filename*0.
         if (n === 0) break;
         continue;
@@ -122,11 +122,12 @@ export function getFilenameFromContentDispositionHeader(
     }
     let parts = [];
     for (let n = 0; n < matches.length; ++n) {
-      if (!(n in matches)) {
+      const continuation = Object.hasOwn(matches, n) ? matches[n] : undefined;
+      if (!continuation) {
         // Numbers must be consecutive. Truncate when there is a hole.
         break;
       }
-      let [quot, part] = matches[n]!;
+      let [quot, part] = continuation;
       part = rfc2616unquote(part);
       if (quot) {
         part = unescape(part);

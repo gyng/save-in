@@ -77,6 +77,23 @@ describe("vendored content-disposition parser", () => {
     expect(parse('attachment; filename*0="foo"; filename*1="bar.txt"')).toBe("foobar.txt");
   });
 
+  test("ignores inherited array entries when a continuation starts after zero", () => {
+    let filename: string;
+    // eslint-disable-next-line no-extend-native -- deliberately simulate a polluted prototype
+    Object.defineProperty(Array.prototype, "0", {
+      configurable: true,
+      value: ["", '"polluted"'],
+      writable: true,
+    });
+    try {
+      filename = parse('attachment; filename*1="tail.txt"');
+    } finally {
+      delete (Array.prototype as unknown[])[0];
+    }
+
+    expect(filename).toBe("");
+  });
+
   test("no filename yields an empty string", () => {
     expect(parse("inline")).toBe("");
   });
