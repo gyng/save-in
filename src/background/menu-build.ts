@@ -1,5 +1,6 @@
 import { webExtensionApi } from "../platform/web-extension-api.ts";
 import { getMessage } from "../platform/localization.ts";
+import { BROWSERS, CURRENT_BROWSER } from "../platform/chrome-detector.ts";
 
 // Context menu construction: parses the paths option into a menu tree
 // (`buildTree`, pure) and renders it with webExtensionApi.contextMenus.create.
@@ -107,6 +108,24 @@ export const setAccesskey = (str: string, key: string | number, override?: strin
     matchIndex,
     matchIndex + accessKey.length,
   )}${escapeAmpersands(str.slice(matchIndex + accessKey.length))}`;
+};
+
+export const setMenuAccesskey = (
+  str: string,
+  key: string | number,
+  override?: string,
+  currentBrowser = CURRENT_BROWSER,
+) => {
+  if (currentBrowser !== BROWSERS.CHROME) return setAccesskey(str, key, override);
+
+  const keyUsed = override != null ? override : key;
+  const accessKey = String(keyUsed);
+  const escapedTitle = str.replaceAll("&", "&&");
+  if ([...accessKey].length !== 1 || accessKey === "&") return escapedTitle;
+
+  // Chrome consumes the ampersand mnemonic marker and may hide underlines.
+  // Keeping the mnemonic at the start leaves its key visible on every OS.
+  return `&${accessKey} · ${escapedTitle}`;
 };
 
 export const addRoot = (contexts: readonly MenuContext[]) => {
@@ -259,7 +278,7 @@ export const renderPathTree = ({ items, errors }: MenuTree, contexts: readonly M
 
     webExtensionApi.contextMenus.create({
       id: item.id,
-      title: setAccesskey(
+      title: setMenuAccesskey(
         item.title,
         options.enableNumberedItems ? item.number : "",
         options.enableNumberedItems ? item.accessKeyOverride : "",

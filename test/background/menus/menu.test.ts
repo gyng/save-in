@@ -200,6 +200,22 @@ describe("menu creation", () => {
     test("matches access keys without changing title case", () => {
       expect(menu.setAccesskey("Cats", "c")).toBe("&Cats");
     });
+
+    test("puts Chrome access keys first so their labels stay visible", () => {
+      expect(menu.setMenuAccesskey("dogs", 1, undefined, "CHROME")).toBe("&1 · dogs");
+      expect(menu.setMenuAccesskey("dogs", 1, "g", "CHROME")).toBe("&g · dogs");
+    });
+
+    test("keeps Firefox access keys in their established title position", () => {
+      expect(menu.setMenuAccesskey("dogs", 1, undefined, "FIREFOX")).toBe("dogs (&1)");
+      expect(menu.setMenuAccesskey("dogs", 1, "g", "FIREFOX")).toBe("do&gs");
+    });
+
+    test("escapes literal ampersands in Chrome access-key titles", () => {
+      expect(menu.setMenuAccesskey("Cats & Dogs", 1, undefined, "CHROME")).toBe(
+        "&1 · Cats && Dogs",
+      );
+    });
   });
 
   describe("static menu items", () => {
@@ -433,12 +449,12 @@ describe("menu creation", () => {
       });
     });
 
-    test("numbers items with access keys when enableNumberedItems is on", () => {
+    test("numbers Chrome items with visible leading access keys when enabled", () => {
       options.enableNumberedItems = true;
 
       menu.addPaths(["dogs", "cats"], ["link"]);
 
-      expect(created().map((c) => c.title)).toEqual(["dogs (&1)", "cats (&2)"]);
+      expect(created().map((c) => c.title)).toEqual(["&1 · dogs", "&2 · cats"]);
     });
 
     test("does not reuse the first mnemonic for item ten", () => {
@@ -457,7 +473,7 @@ describe("menu creation", () => {
 
       menu.addPaths(["dogs // (key: g)"], ["link"]);
 
-      expect(created()[0]!.title).toBe("do&gs");
+      expect(created()[0]!.title).toBe("&g · dogs");
     });
 
     test("plain titles when enableNumberedItems is off", () => {
