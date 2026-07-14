@@ -500,23 +500,30 @@ button:disabled {
 .path-editor-access-key {
   display: inline-flex;
   flex: none;
-  align-items: center;
-  gap: 2px;
+  align-items: baseline;
+  gap: var(--space-1);
   color: var(--color-text-muted);
-  font-family: var(--font-mono);
   font-size: var(--text-sm);
+  line-height: 1;
 }
 
-.path-editor-access-key-marker {
+.path-editor-access-key-label {
+  white-space: nowrap;
   user-select: none;
 }
 
 .path-editor-access-key-input {
-  width: 28px;
-  min-width: 28px;
-  padding: 3px 2px;
+  box-sizing: border-box;
+  width: 30px;
+  min-width: 30px;
+  height: 26px;
+  margin: 0;
+  padding: 2px;
+  font-family: var(--font-mono);
+  line-height: 1.2;
   text-align: center;
   text-transform: none;
+  vertical-align: baseline;
 }
 
 .path-editor-help {

@@ -442,23 +442,24 @@ const PathEditorHelpers = {
             }
           });
 
-          const accessKeyLabel = getMessage("html_assignAnAccessKey") || "Assign an access key";
+          const accessKeyLabel = getMessage("html_key") || "Key";
+          const accessKeyAssignment =
+            getMessage("html_assignAnAccessKey") || "Assign an access key";
           const accessKeyControl = document.createElement("label");
           accessKeyControl.className = "path-editor-access-key";
-          accessKeyControl.title = accessKeyLabel;
+          accessKeyControl.title = accessKeyAssignment;
           const accessKeyMarker = document.createElement("span");
-          accessKeyMarker.className = "path-editor-access-key-marker";
-          accessKeyMarker.textContent = "&";
+          accessKeyMarker.className = "path-editor-access-key-label";
+          accessKeyMarker.textContent = accessKeyLabel;
           accessKeyMarker.setAttribute("aria-hidden", "true");
           const accessKey = document.createElement("input");
           accessKey.type = "text";
           accessKey.className = "path-editor-access-key-input";
           accessKey.name = "path-access-key";
           accessKey.value = PathEditorHelpers.getAccessKey(node);
-          accessKey.placeholder = "—";
           accessKey.maxLength = 1;
           accessKey.spellcheck = false;
-          accessKey.setAttribute("aria-label", `${accessKeyLabel}: ${rowName}`);
+          accessKey.setAttribute("aria-label", `${accessKeyAssignment}: ${rowName}`);
           accessKey.addEventListener("input", () => {
             const current = nodes[index];
             if (!current) return;
