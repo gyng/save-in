@@ -19,18 +19,27 @@ describe("options search", () => {
 
   afterEach(() => vi.useRealTimers());
 
-  test("indexes wrapping and explicit labels with their section", () => {
+  test("indexes labels with their tab and heading path", () => {
     expect(
-      optionSearchEntries(document.getElementById("options")!).map(({ label, section }) => ({
+      optionSearchEntries(document.getElementById("options")!).map(({ label, path }) => ({
         label,
-        section,
+        path,
       })),
     ).toEqual([
-      { label: "External integrations", section: "Downloads" },
-      { label: "WebMCP Experimental", section: "Downloads" },
-      { label: "Open save dialog", section: "Downloads" },
-      { label: "Notification duration", section: "Downloads" },
-      { label: "Short title", section: "Downloads" },
+      { label: "External integrations", path: ["Downloads"] },
+      { label: "WebMCP Experimental", path: ["Downloads", "External integrations"] },
+      {
+        label: "Open save dialog",
+        path: ["Downloads", "External integrations", "WebMCP Experimental"],
+      },
+      {
+        label: "Notification duration",
+        path: ["Downloads", "External integrations", "WebMCP Experimental"],
+      },
+      {
+        label: "Short title",
+        path: ["Downloads", "External integrations", "WebMCP Experimental"],
+      },
     ]);
   });
 
@@ -39,7 +48,9 @@ describe("options search", () => {
     panel.insertAdjacentHTML(
       "beforeend",
       `<h3> </h3>
+       <div id="labelled-name">Labelled by heading</div>
        <input id="aria-only" aria-label="Accessible only">
+       <textarea id="labelled-only" aria-labelledby="labelled-name"></textarea>
        <input id="excluded" data-option-search="false" aria-label="Excluded">`,
     );
     const additional = document.createElement("button");
@@ -58,9 +69,10 @@ describe("options search", () => {
     ]);
     expect(entries).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ label: "Accessible only", section: "Downloads" }),
-        expect.objectContaining({ label: "Language selector", section: "" }),
-        expect.objectContaining({ label: "Orphan", section: "" }),
+        expect.objectContaining({ label: "Accessible only", path: expect.any(Array) }),
+        expect.objectContaining({ label: "Labelled by heading", path: expect.any(Array) }),
+        expect.objectContaining({ label: "Language selector", path: [] }),
+        expect.objectContaining({ label: "Orphan", path: [] }),
       ]),
     );
     expect(entries.some(({ control }) => control.id === "excluded")).toBe(false);
@@ -74,13 +86,49 @@ describe("options search", () => {
     input.value = "webmcp";
     input.dispatchEvent(new InputEvent("input"));
 
-    expect(document.querySelectorAll('[role="option"]')).toHaveLength(1);
+    expect(document.querySelectorAll('[role="option"]')).toHaveLength(4);
     expect(document.querySelector(".option-search-result-label")?.textContent).toBe(
       "WebMCP Experimental",
+    );
+    expect(document.querySelector(".option-search-result-location")?.textContent).toBe(
+      "Downloads › External integrations",
     );
     input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
     expect((navigate.mock.calls[0]![0]! as CustomEvent).detail.target.tagName).toBe("H4");
     expect((navigate.mock.calls[0]![0]! as CustomEvent).detail.target.tabIndex).toBe(-1);
+  });
+
+  test("searches full paths, compacts displayed breadcrumbs, and navigates indexed actions", () => {
+    document.querySelector(".tab-panel")?.insertAdjacentHTML(
+      "beforeend",
+      `<section>
+        <h5>Maintenance tools</h5>
+        <button id="settings-export" data-option-search="true">Export settings</button>
+        <button id="webhook-test" data-option-search="true" data-option-search-target="duration" disabled>Test webhook</button>
+      </section>`,
+    );
+    const navigate = vi.fn();
+    document.addEventListener("save-in:navigate-option", navigate);
+    setupOptionSearch();
+    const input = document.getElementById("option-search") as HTMLInputElement;
+
+    input.value = "export settings";
+    input.dispatchEvent(new InputEvent("input"));
+    expect(document.querySelector(".option-search-result-label")?.textContent).toBe(
+      "Export settings",
+    );
+    const location = document.querySelector<HTMLElement>(".option-search-result-location")!;
+    expect(location.textContent).toBe("Downloads › WebMCP Experimental › Maintenance tools");
+    expect(location.title).toBe(
+      "Downloads › External integrations › WebMCP Experimental › Maintenance tools",
+    );
+    input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+    expect((navigate.mock.calls[0]![0] as CustomEvent).detail.target.id).toBe("settings-export");
+
+    input.value = "test webhook";
+    input.dispatchEvent(new InputEvent("input"));
+    input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+    expect((navigate.mock.calls[1]![0] as CustomEvent).detail.target.id).toBe("duration");
   });
 
   test("keeps the runtime search control outside the persisted form", () => {

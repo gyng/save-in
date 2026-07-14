@@ -318,6 +318,44 @@ test("first install starts with a focused welcome", async () => {
   );
 });
 
+test("option search shows detailed locations and navigates indexed actions", async () => {
+  await evalOptions(`document.querySelector(".welcome-accept")?.click()`);
+  const result = JSON.parse(
+    await evalOptions(`JSON.stringify((() => {
+      const input = document.querySelector("#option-search");
+      input.value = "test webhook";
+      input.dispatchEvent(new InputEvent("input", { bubbles: true }));
+      const option = document.querySelector("#option-search-results [role=option]");
+      const location = option?.querySelector(".option-search-result-location");
+      return {
+        label: option?.querySelector(".option-search-result-label")?.textContent,
+        location: location?.textContent,
+        fullLocation: location?.title,
+        inputWidth: input.getBoundingClientRect().width,
+        resultsWidth: document.querySelector("#option-search-results").getBoundingClientRect().width,
+      };
+    })())`),
+  );
+  expect(result).toMatchObject({
+    label: "Send test",
+    location: "Advanced › External integrations › Webhooks",
+    fullLocation: "Advanced › External integrations › Webhooks",
+  });
+  expect(result.resultsWidth).toBeGreaterThan(result.inputWidth);
+
+  await evalOptions(`document.querySelector("#option-search-results [role=option]").click()`);
+  await poll(
+    async () =>
+      (await evalOptions(
+        `document.activeElement === document.querySelector("#webhookUrl") &&
+          document.querySelector('[role=tab][aria-selected="true"]')?.textContent === "Advanced"`,
+      )) === true
+        ? true
+        : null,
+    { description: "search action navigation" },
+  );
+});
+
 test("service worker initialises cleanly", async () => {
   const state = JSON.parse(await evalSW(`api.inspect().then((state) => JSON.stringify(state))`));
   const noObjectUrl = await evalWorker(`typeof URL.createObjectURL !== "function"`);

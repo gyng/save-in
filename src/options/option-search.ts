@@ -1,6 +1,72 @@
 import { getMessage } from "../platform/localization.ts";
 
-type SearchEntry = { control: HTMLElement; label: string; section: string };
+type SearchEntry = {
+  control: HTMLElement;
+  label: string;
+  path: string[];
+  target: HTMLElement;
+};
+
+const normalizedText = (value: string | null | undefined): string =>
+  value?.replace(/\s+/g, " ").trim() || "";
+
+const labelledByText = (control: HTMLElement): string => {
+  const ids = control.getAttribute("aria-labelledby")?.split(/\s+/).filter(Boolean) || [];
+  return normalizedText(
+    ids
+      .map((id) => control.ownerDocument.getElementById(id)?.textContent)
+      .filter(Boolean)
+      .join(" "),
+  );
+};
+
+const headingPath = (target: HTMLElement, panel: HTMLElement): string[] => {
+  const headings = [...panel.querySelectorAll<HTMLElement>("h3, h4, h5")];
+  const levels = new Map<number, string>();
+  for (const heading of headings) {
+    if (!(heading.compareDocumentPosition(target) & Node.DOCUMENT_POSITION_FOLLOWING)) continue;
+    const scope = heading.closest<HTMLElement>(
+      "details, dialog, fieldset, section:not(.tab-panel), [data-behavior-group], [data-option-search-group]",
+    );
+    if (scope && !scope.contains(target)) continue;
+    const name = normalizedText(heading.textContent);
+    if (!name) continue;
+    const level = Number(heading.tagName.slice(1));
+    [...levels.keys()].filter((key) => key >= level).forEach((key) => levels.delete(key));
+    levels.set(level, name);
+  }
+  return [...levels.entries()].toSorted(([left], [right]) => left - right).map(([, name]) => name);
+};
+
+const fieldsetPath = (target: HTMLElement, panel: HTMLElement): string[] => {
+  const path: string[] = [];
+  let current = target.parentElement;
+  while (current && current !== panel) {
+    if (current instanceof HTMLFieldSetElement) {
+      const legend = current.querySelector<HTMLElement>(":scope > legend");
+      const name = normalizedText(legend?.textContent);
+      if (name) path.unshift(name);
+    }
+    current = current.parentElement;
+  }
+  return path;
+};
+
+const uniquePath = (segments: readonly string[], label: string): string[] => {
+  const seen = new Set<string>();
+  const labelKey = label.toLocaleLowerCase();
+  return segments.filter((segment) => {
+    const key = segment.toLocaleLowerCase();
+    if (!segment || key === labelKey || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+};
+
+const displayedPath = (path: readonly string[]): string[] => {
+  const first = path[0];
+  return path.length > 3 && first !== undefined ? [first, ...path.slice(-2)] : [...path];
+};
 
 export const optionSearchEntries = (
   form: HTMLElement,
@@ -12,36 +78,53 @@ export const optionSearchEntries = (
       label,
     ]),
   );
-  const sectionFor = (target: HTMLElement) => {
+  const pathFor = (target: HTMLElement, label: string) => {
     const panel = target.closest<HTMLElement>(".tab-panel");
-    const tab = panel ? document.querySelector<HTMLElement>(`[aria-controls="${panel.id}"]`) : null;
-    return tab?.textContent?.trim() || "";
+    if (!panel) return [];
+    const tab = form.ownerDocument.querySelector<HTMLElement>(`[aria-controls="${panel.id}"]`);
+    return uniquePath(
+      [
+        normalizedText(tab?.textContent),
+        ...headingPath(target, panel),
+        ...fieldsetPath(target, panel),
+      ],
+      label,
+    );
   };
   return [
-    ...form.querySelectorAll<HTMLElement>("h3, h4, input[id], select[id], textarea[id]"),
+    ...form.querySelectorAll<HTMLElement>(
+      'h3, h4, h5, input[id], select[id], textarea[id], button[id][data-option-search="true"]',
+    ),
     ...additionalControls,
   ].flatMap((control) => {
-    if (control.matches("h3, h4")) {
-      const name = control.textContent?.replace(/\s+/g, " ").trim();
+    if (control.matches("h3, h4, h5")) {
+      const name = normalizedText(control.textContent);
       if (!name) return [];
       control.tabIndex = -1;
-      return [{ control, label: name, section: sectionFor(control) }];
+      return [{ control, label: name, path: pathFor(control, name), target: control }];
     }
     if (control.dataset.optionSearch === "false" || control.id === "option-search") return [];
     const label = explicitLabels.get(control.id);
     const wrappingLabel = control.closest("label");
     const labelElement = label || wrappingLabel;
     const shortLabel = labelElement?.querySelector<HTMLElement>(":scope > .opt-title");
-    const labelText =
-      shortLabel?.textContent?.trim() || labelElement?.textContent?.replace(/\s+/g, " ").trim();
-    const accessibleName = control.getAttribute("aria-label")?.trim();
-    const name = labelText || accessibleName;
+    const accessibleName =
+      normalizedText(control.getAttribute("aria-label")) || labelledByText(control);
+    const labelText = normalizedText(shortLabel?.textContent || labelElement?.textContent);
+    const actionText =
+      control instanceof HTMLButtonElement ? normalizedText(control.textContent) : "";
+    const name = accessibleName || labelText || actionText;
     if (!name) return [];
+    const explicitTarget = control.dataset.optionSearchTarget;
+    const target = explicitTarget
+      ? form.ownerDocument.getElementById(explicitTarget) || control
+      : control;
     return [
       {
         control,
         label: name,
-        section: sectionFor(control),
+        path: pathFor(control, name),
+        target,
       },
     ];
   });
@@ -97,7 +180,7 @@ export const setupOptionSearch = (): void => {
     close();
     input.value = "";
     document.dispatchEvent(
-      new CustomEvent("save-in:navigate-option", { detail: { target: entry.control } }),
+      new CustomEvent("save-in:navigate-option", { detail: { target: entry.target } }),
     );
   };
   const render = () => {
@@ -105,8 +188,23 @@ export const setupOptionSearch = (): void => {
     results.replaceChildren();
     active = -1;
     if (!query) return close();
+    const terms = query.split(/\s+/);
     visibleEntries = entries
-      .filter(({ label, section }) => `${label} ${section}`.toLocaleLowerCase().includes(query))
+      .map((entry, index) => {
+        const label = entry.label.toLocaleLowerCase();
+        const searchable = `${label} ${entry.path.join(" ")}`.toLocaleLowerCase();
+        return {
+          entry,
+          index,
+          labelMatch: label.includes(query)
+            ? terms.length + 1
+            : terms.filter((term) => label.includes(term)).length,
+          matches: terms.every((term) => searchable.includes(term)),
+        };
+      })
+      .filter(({ matches }) => matches)
+      .toSorted((left, right) => right.labelMatch - left.labelMatch || left.index - right.index)
+      .map(({ entry }) => entry)
       .slice(0, 12);
     visibleEntries.forEach((entry, index) => {
       const option = document.createElement("button");
@@ -117,10 +215,14 @@ export const setupOptionSearch = (): void => {
       const label = document.createElement("span");
       label.className = "option-search-result-label";
       label.textContent = entry.label;
-      const section = document.createElement("small");
-      section.className = "option-search-result-location";
-      section.textContent = entry.section;
-      option.append(label, section);
+      option.append(label);
+      if (entry.path.length > 0) {
+        const location = document.createElement("small");
+        location.className = "option-search-result-location";
+        location.textContent = displayedPath(entry.path).join(" › ");
+        location.title = entry.path.join(" › ");
+        option.append(location);
+      }
       option.addEventListener("mousedown", (event) => event.preventDefault());
       option.addEventListener("click", () => choose(entry));
       results.appendChild(option);
@@ -137,7 +239,8 @@ export const setupOptionSearch = (): void => {
     options.forEach((option, index) =>
       option.setAttribute("aria-selected", String(index === active)),
     );
-    const activeOption = options[active]!;
+    const activeOption = options[active];
+    if (!activeOption) return close();
     input.setAttribute("aria-activedescendant", activeOption.id);
     activeOption.scrollIntoView?.({ block: "nearest" });
   };
