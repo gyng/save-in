@@ -599,8 +599,12 @@ describe("filename rewrite and routing", () => {
       expect(router.getCaptureMatches(rules[0]!, info)).toBe(null);
     });
 
-    test("getCaptureMatches when the captured matcher does not match", () => {
+    test("getCaptureMatches returns only matched capture values", () => {
       const rules = router.parseRules("sourceurl: (dog)\ncapture: sourceurl\ninto: :$1:");
+      expect(router.getCaptureMatches(rules[0]!, { sourceUrl: "http://dog.com/" })).toEqual([
+        "dog",
+        "dog",
+      ]);
       expect(router.getCaptureMatches(rules[0]!, { sourceUrl: "http://cat.com/" })).toBe(null);
     });
 

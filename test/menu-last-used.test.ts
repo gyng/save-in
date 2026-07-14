@@ -17,6 +17,12 @@ describe("Menus last-used state", () => {
     expect(Menus.state.lastUsedPath).toBe("a/b");
     expect(Menus.state.lastUsedMeta).toEqual({ comment: "c" });
 
+    Menus.restoreLastUsed({
+      lastUsedPath: "other/file",
+      lastUsedMeta: { menuIndex: "2", title: "Saved file" },
+    } as unknown as Parameters<MenusFixture["restoreLastUsed"]>[0]);
+    expect(Menus.state.lastUsedMeta).toEqual({ menuIndex: "2", title: "Saved file" });
+
     Menus.restoreLastUsed(undefined as unknown as Parameters<MenusFixture["restoreLastUsed"]>[0]);
     expect(Menus.state.lastUsedPath).toBeNull();
     expect(Menus.state.lastUsedMeta).toBeNull();

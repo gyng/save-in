@@ -64,7 +64,7 @@ export const getCaptureMatches = (
   const matches = getCaptureMatcherResults(rule, evaluateMatcherClauses(rule, info));
   const declaration = rule.find((clause) => clause.type === RULE_TYPES.CAPTURE);
   return matches
-    ? declaration?.name === "capturegroups"
+    ? declaration!.name === "capturegroups"
       ? flattenCaptureGroups(matches)
       : matches.flat()
     : null;
@@ -81,7 +81,7 @@ export const evaluateRule = (rule: RoutingRule, info: RoutingInfo): RuleEvaluati
   const matches = getCaptureMatcherResults(rule, clauses);
   const declaration = rule.find((clause) => clause.type === RULE_TYPES.CAPTURE);
   const captured = matches
-    ? declaration?.name === "capturegroups"
+    ? declaration!.name === "capturegroups"
       ? flattenCaptureGroups(matches)
       : matches.flat()
     : null;

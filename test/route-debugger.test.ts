@@ -67,6 +67,27 @@ beforeEach(() => {
 test("shows production rule and clause decisions and jumps back to their source", async () => {
   renderWorkbench();
   vi.mocked(browser.i18n.getMessage).mockReturnValue("");
+  const labeledAttempts = [
+    "url",
+    "srcUrl",
+    "linkUrl",
+    "pageUrl",
+    "referrerUrl",
+    "frameUrl",
+    "resolvedFilename",
+    "filename",
+    "mimeExtension",
+    "mime",
+    "resolvedContentType",
+    "context",
+    "currentTabTitle",
+    "linkText",
+    "selectionText",
+    "mediaType",
+    "sourceKind",
+    "menuIndex",
+    "comment",
+  ].map((source) => ({ source, value: null, status: "missing" as const }));
   const sendMessage = vi
     .spyOn(webExtensionApi.runtime, "sendMessage")
     .mockImplementation(async (message: any) => {
@@ -124,6 +145,8 @@ test("shows production rule and clause decisions and jumps back to their source"
                           status: "matched",
                           matchedText: "pdf",
                         },
+                        ...labeledAttempts,
+                        { source: "customSource", value: "bad", status: "invalid" },
                       ],
                     },
                     { name: "pagedomain", pattern: "example\\.com", matched: true },
@@ -151,6 +174,32 @@ test("shows production rule and clause decisions and jumps back to their source"
   expect(ruleCards[1]?.open).toBe(true);
   expect(rulesResult.textContent).toContain("Tested “pdf” from Source URL — matched.");
   expect(rulesResult.textContent).toContain("Tested “pdf” from Source URL — did not match.");
+  expect(browser.i18n.getMessage).toHaveBeenCalledWith(
+    "routeDebuggerAttemptMissing",
+    expect.anything(),
+  );
+  expect(browser.i18n.getMessage).toHaveBeenCalledWith(
+    "routeDebuggerAttemptInvalid",
+    expect.anything(),
+  );
+  for (const key of [
+    "routeDebuggerSourceUrl",
+    "routeDebuggerPageUrl",
+    "routeDebuggerReferrerUrl",
+    "routeDebuggerFrameUrl",
+    "routeDebuggerFilename",
+    "routeDebuggerContentType",
+    "routeDebuggerContext",
+    "routeDebuggerPageTitle",
+    "routeDebuggerLinkText",
+    "routeDebuggerSelectionText",
+    "routeDebuggerMediaType",
+    "routeDebuggerSourceKind",
+    "routeDebuggerMenuIndex",
+    "routeDebuggerMenuComment",
+  ]) {
+    expect(browser.i18n.getMessage).toHaveBeenCalledWith(key);
+  }
   expect(
     ruleCards[1]?.querySelector<HTMLElement>(".route-debugger-rule-destination")?.dataset.path,
   ).toBe("pdf/:filename:");
@@ -381,7 +430,9 @@ test("falls through to resolved filenames and empty last-download fields", async
   renderWorkbench();
   vi.spyOn(webExtensionApi.runtime, "sendMessage").mockImplementation(async (message: any) =>
     message.type === MESSAGE_TYPES.CHECK_ROUTES
-      ? checkResponse({ info: { resolvedFilename: "resolved.bin", now: "not-a-date" } })
+      ? checkResponse({
+          info: { resolvedFilename: "resolved.bin", sourceKind: "unknown", now: "not-a-date" },
+        })
       : {
           type: MESSAGE_TYPES.VALIDATE_RESULT,
           body: { version: 1, ruleErrors: [], ruleTrace: noMatchTrace },
@@ -396,6 +447,7 @@ test("falls through to resolved filenames and empty last-download fields", async
       "resolved.bin",
     ),
   );
+  expect(document.querySelector<HTMLSelectElement>("#route-debugger-source-kind")!.value).toBe("");
   expect(document.querySelector<HTMLInputElement>("#route-debugger-now")!.value).toBe("");
 });
 

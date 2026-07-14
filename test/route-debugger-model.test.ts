@@ -22,7 +22,16 @@ const trace: RouteDebuggerTrace = {
           name: "fileext",
           pattern: "png",
           matched: false,
-          attempts: [{ source: "sourceUrl", value: "jpg", status: "not-matched" }],
+          attempts: [
+            {
+              source: "sourceUrl",
+              value: "jpg",
+              status: "not-matched",
+              matchedText: "jpg",
+              captures: [null, "jpg"],
+            },
+            { source: "filename", value: null, status: "missing" },
+          ],
         },
       ],
     },
@@ -84,6 +93,30 @@ test.each([
   },
 ])("rejects malformed route trace fields", (value) => {
   expect(parseRouteDebuggerTrace(value)).toBeNull();
+});
+
+test.each([
+  "not-an-array",
+  [null],
+  [{ source: 7, value: "jpg", status: "matched" }],
+  [{ source: "sourceUrl", value: 7, status: "matched" }],
+  [{ source: "sourceUrl", value: "jpg", status: 7 }],
+  [{ source: "sourceUrl", value: "jpg", status: "unknown" }],
+  [{ source: "sourceUrl", value: "jpg", status: "matched", matchedText: 7 }],
+  [{ source: "sourceUrl", value: "jpg", status: "matched", captures: "jpg" }],
+  [{ source: "sourceUrl", value: "jpg", status: "matched", captures: [7] }],
+])("rejects malformed matcher attempts", (attempts) => {
+  expect(
+    parseRouteDebuggerTrace({
+      ...trace,
+      rules: [
+        {
+          ...trace.rules[0],
+          clauses: [{ ...trace.rules[0]!.clauses[0], attempts }],
+        },
+      ],
+    }),
+  ).toBeNull();
 });
 
 test("maps production trace rows back to grammar source locations", () => {
