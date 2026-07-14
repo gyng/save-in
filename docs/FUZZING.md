@@ -4,8 +4,9 @@ Run the bounded property suite with `npm run test:fuzz`. It spends ten seconds
 across directory parsing and edits, routing syntax and semantics, filename
 safety, and webhook URL policy. Set `FUZZ_TIME_MS` for a longer campaign.
 
-Failures report `FUZZ_PROPERTY`, `FUZZ_SEED`, and `FUZZ_PATH`. Pass those values
-back through `scripts/with-env.js` to replay the minimized counterexample.
+Failures report `FUZZ_PROPERTY` and `FUZZ_SEED`, plus `FUZZ_PATH` when a shrink
+path is available. Pass the reported values back through `scripts/with-env.js`
+to replay the minimized counterexample.
 
 ## Campaign record
 

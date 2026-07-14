@@ -1,19 +1,22 @@
 # Save In integrations
 
 This document is the source-controlled contract for the shipped external
-Download API, internal configuration messages, and experimental WebMCP tools.
-The [Integrations wiki](https://github.com/gyng/save-in/wiki/Integrations) is
-the user-facing guide and recipe collection; if its protocol details differ,
-this document is authoritative.
+Download API, externally available read-only configuration discovery and
+validation messages, same-extension configuration tools, and experimental
+WebMCP tools. The
+[Integrations wiki](https://github.com/gyng/save-in/wiki/Integrations) is the
+user-facing guide and recipe collection; if its protocol details differ, this
+document is authoritative.
 
 For the in-product setup workflow, safety controls, matching semantics, and
 legacy-setting migration, see [Automatic source saves](AUTOMATIC-SOURCE-SAVES.md).
 
-External Download API v1 remains backward compatible within the declared
+External Download API v1, including its externally exposed read-only discovery
+and validation messages, remains backward compatible within the declared
 version. Callers should negotiate capabilities with `PING` and ignore unknown
-response fields. The same-extension config messages are internal and may gain
-fields as the options schema evolves. WebMCP is experimental and may change
-with the browser API.
+response fields. The same-extension `GET_CONFIG` and `APPLY_CONFIG` messages
+are internal and may gain fields as the options schema evolves. WebMCP is
+experimental and may change with the browser API.
 
 Copy-and-paste recipes are available for [Foxy Gestures](https://github.com/gyng/save-in/wiki/Integrations#foxy-gestures), [Gesturefy](https://github.com/gyng/save-in/wiki/Integrations#gesturefy), and [Tridactyl](https://github.com/gyng/save-in/wiki/Integrations#tridactyl). Extension authors should use the separate [extension integration guide](https://github.com/gyng/save-in/wiki/Extension-integration-guide).
 
