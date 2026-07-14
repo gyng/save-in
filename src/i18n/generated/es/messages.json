@@ -596,10 +596,10 @@
     "message": "Preguntar dónde guardar cuando no coincidan reglas de enrutamiento"
   },
   "o_cExclusiveMode": {
-    "message": "Requerir una regla de enrutamiento coincidente"
+    "message": "Usar reglas de enrutamiento en lugar de elegir carpetas"
   },
   "o_cExclusiveModeHelp": {
-    "message": "Oculta el submenú de carpetas y guarda en una ruta relativa a la carpeta de descargas predeterminada"
+    "message": "Los archivos no se guardan si ninguna regla de enrutamiento coincide"
   },
   "o_cNotifySuccess": {
     "message": "Notificar cuando una descarga se realice correctamente"

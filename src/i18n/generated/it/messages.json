@@ -792,10 +792,10 @@
     "message": "Chiedi dove salvare quando nessuna regola di routing corrisponde"
   },
   "o_cExclusiveMode": {
-    "message": "Richiedi una regola di routing corrispondente"
+    "message": "Usa le regole di routing invece di scegliere le cartelle"
   },
   "o_cExclusiveModeHelp": {
-    "message": "Nasconde il sottomenu delle cartelle e salva i file rispetto alla cartella di download predefinita"
+    "message": "I file non vengono salvati se nessuna regola di routing corrisponde"
   },
   "o_cNotifySuccess": {
     "message": "Avvisa quando il download ha esito positivo"

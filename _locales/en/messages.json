@@ -1061,11 +1061,11 @@
   },
   "o_cExclusiveMode": {
     "message": "Use routing rules instead of folder choices",
-    "description": "Option control label or related help text. Used in src/options/options.html."
+    "description": "Checkbox that replaces context-menu folder choices with routing-rule-only saving. Used in src/options/options.html."
   },
   "o_cExclusiveModeHelp": {
     "message": "Files are not saved when no routing rule matches",
-    "description": "Option control label or related help text. Used in src/options/options.html."
+    "description": "Help below the routing-rule-only checkbox explaining what happens to unmatched files. Used in src/options/options.html."
   },
   "o_cNotifySuccess": {
     "message": "Notify when a download succeeds",

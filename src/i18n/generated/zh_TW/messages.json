@@ -497,10 +497,10 @@
     "message": "沒有路由規則相符時詢問儲存位置"
   },
   "o_cExclusiveMode": {
-    "message": "需要符合的路由規則"
+    "message": "使用路由規則而非選擇資料夾"
   },
   "o_cExclusiveModeHelp": {
-    "message": "隱藏資料夾子選單，並以預設下載資料夾為基準儲存"
+    "message": "沒有符合的路由規則時，檔案不會儲存"
   },
   "o_cNotifySuccess": {
     "message": "下載成功時顯示通知"

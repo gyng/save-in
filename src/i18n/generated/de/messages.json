@@ -600,10 +600,10 @@
     "message": "Nach dem Speicherort fragen, wenn keine Routing-Regel zutrifft"
   },
   "o_cExclusiveMode": {
-    "message": "Passende Routing-Regel voraussetzen"
+    "message": "Routing-Regeln statt Ordnerauswahl verwenden"
   },
   "o_cExclusiveModeHelp": {
-    "message": "Blendet das Ordner-Untermenü aus und speichert relativ zum Standard-Download-Ordner"
+    "message": "Dateien werden nicht gespeichert, wenn keine Routing-Regel zutrifft"
   },
   "o_cNotifySuccess": {
     "message": "Benachrichtigen, wenn ein Download erfolgreich ist"

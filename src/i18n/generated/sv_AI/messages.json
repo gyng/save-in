@@ -594,10 +594,10 @@
     "message": "Fråga var du ska spara när inga ruttregler matchar"
   },
   "o_cExclusiveMode": {
-    "message": "Kräv en matchande routningsregel"
+    "message": "Använd routningsregler i stället för mappval"
   },
   "o_cExclusiveModeHelp": {
-    "message": "Döljer mappundermenyn och sparar i förhållande till standardnedladdningsmappen"
+    "message": "Filer sparas inte när ingen routningsregel matchar"
   },
   "o_cNotifySuccess": {
     "message": "Meddela när en nedladdning lyckas"

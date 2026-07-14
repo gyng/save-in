@@ -600,10 +600,10 @@
     "message": "Vraag waar u wilt opslaan als er geen routeringsregels overeenkomen"
   },
   "o_cExclusiveMode": {
-    "message": "Een overeenkomende routeringsregel vereisen"
+    "message": "Routeringsregels gebruiken in plaats van mappen kiezen"
   },
   "o_cExclusiveModeHelp": {
-    "message": "Verbergt het mapsubmenu en slaat op ten opzichte van de standaarddownloadmap"
+    "message": "Bestanden worden niet opgeslagen als geen routeringsregel overeenkomt"
   },
   "o_cNotifySuccess": {
     "message": "Melden wanneer een download slaagt"

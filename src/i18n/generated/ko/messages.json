@@ -497,10 +497,10 @@
     "message": "일치하는 라우팅 규칙이 없을 때 저장할 위치 묻기"
   },
   "o_cExclusiveMode": {
-    "message": "일치하는 라우팅 규칙이 필요합니다."
+    "message": "폴더 선택 대신 라우팅 규칙 사용"
   },
   "o_cExclusiveModeHelp": {
-    "message": "폴더 하위 메뉴를 숨기고 기본 다운로드 폴더를 기준으로 저장합니다."
+    "message": "일치하는 라우팅 규칙이 없으면 파일이 저장되지 않습니다."
   },
   "o_cNotifySuccess": {
     "message": "다운로드가 성공하면 알림"

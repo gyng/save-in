@@ -600,10 +600,10 @@
     "message": "Perguntar onde salvar quando nenhuma regra de roteamento corresponder"
   },
   "o_cExclusiveMode": {
-    "message": "Exigir uma regra de roteamento correspondente"
+    "message": "Usar regras de roteamento em vez de escolher pastas"
   },
   "o_cExclusiveModeHelp": {
-    "message": "Oculta o submenu da pasta e salva em relação à pasta padrão de downloads"
+    "message": "Os arquivos não são salvos quando nenhuma regra de roteamento corresponde"
   },
   "o_cNotifySuccess": {
     "message": "Notificar quando um download for bem-sucedido"

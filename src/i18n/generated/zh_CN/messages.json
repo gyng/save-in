@@ -497,10 +497,10 @@
     "message": "当没有路由规则匹配时询问保存在哪里"
   },
   "o_cExclusiveMode": {
-    "message": "需要匹配的路由规则"
+    "message": "使用路由规则，而不是选择文件夹"
   },
   "o_cExclusiveModeHelp": {
-    "message": "隐藏文件夹子菜单并相对于默认下载文件夹保存"
+    "message": "没有匹配的路由规则时，文件不会保存"
   },
   "o_cNotifySuccess": {
     "message": "下载成功时通知"
