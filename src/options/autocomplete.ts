@@ -204,16 +204,15 @@ export const attachAutocomplete = (
         : null;
     }
     const result = source(textarea.value, caret, explicit);
-    return result
-      ? {
-          suggestions: result.suggestions,
-          selected: 0,
-          apply: (name) => ({
-            value: `${textarea.value.slice(0, result.start)}${name}${result.suffix}${textarea.value.slice(result.end)}`,
-            caret: result.start + name.length + result.suffix.length,
-          }),
-        }
-      : null;
+    if (!result || result.suggestions.length === 0) return null;
+    return {
+      suggestions: result.suggestions,
+      selected: 0,
+      apply: (name) => ({
+        value: `${textarea.value.slice(0, result.start)}${name}${result.suffix}${textarea.value.slice(result.end)}`,
+        caret: result.start + name.length + result.suffix.length,
+      }),
+    };
   };
 
   const close = () => {
@@ -237,8 +236,7 @@ export const attachAutocomplete = (
     textarea.focus();
   };
 
-  const render = () => {
-    const state = current!;
+  const render = (state: ActiveCompletion) => {
     dropdown.innerHTML = "";
     let previousGroup = "";
     state.suggestions.forEach((name, i) => {
@@ -301,7 +299,7 @@ export const attachAutocomplete = (
     const result = completionAtCaret(false);
     if (result) {
       current = result;
-      render();
+      render(result);
     } else {
       close();
     }
@@ -311,14 +309,14 @@ export const attachAutocomplete = (
     if (!(e instanceof KeyboardEvent)) {
       return;
     }
-    const key = (e as KeyboardEvent).key;
+    const key = e.key;
 
     if ((e.ctrlKey || e.metaKey) && key === " ") {
       const result = completionAtCaret(true);
       if (result) {
         e.preventDefault();
         current = result;
-        render();
+        render(result);
       }
       return;
     }
@@ -330,11 +328,11 @@ export const attachAutocomplete = (
       const count = current.suggestions.length;
       const delta = key === "ArrowDown" ? 1 : -1;
       current.selected = (current.selected + delta + count) % count;
-      render();
+      render(current);
     } else if (key === "Home" || key === "End") {
       e.preventDefault();
       current.selected = key === "Home" ? 0 : current.suggestions.length - 1;
-      render();
+      render(current);
     } else if (key === "Enter" || key === "Tab") {
       e.preventDefault();
       const suggestion = current.suggestions[current.selected];

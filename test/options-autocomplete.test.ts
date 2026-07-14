@@ -174,6 +174,7 @@ describe("attachAutocomplete", () => {
     empty.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", cancelable: true }));
     empty.dispatchEvent(new KeyboardEvent("keydown", { key: "a", cancelable: true }));
     expect(empty.value).toBe("");
+    expect(empty.getAttribute("aria-expanded")).toBe("false");
   });
 
   test("keeps explicit completion closed when the provider has no result", () => {
