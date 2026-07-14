@@ -19,6 +19,7 @@ import type {
   RuleClause,
   RoutingRule,
 } from "../src/routing/router.ts";
+import type { Path, PathSegment } from "../src/routing/path.ts";
 import { MESSAGE_TYPES, RULE_TYPES } from "../src/shared/constants.ts";
 import type { ClickType, RuleType } from "../src/shared/constants.ts";
 import type { SelectableLocale } from "../src/shared/generated-locales.ts";
@@ -52,6 +53,7 @@ expectTypeOf<CounterWriteState["queue"]>().toEqualTypeOf<Promise<unknown>>();
 expectTypeOf<SessionWriteState["queues"]>().toEqualTypeOf<Map<string, Promise<unknown>>>();
 expectTypeOf<DownloadsState["records"]>().toEqualTypeOf<Map<number, DownloadRecord>>();
 expectTypeOf<DownloadsState["hydration"]>().toEqualTypeOf<Promise<void> | null>();
+expectTypeOf<Path["buf"]>().toEqualTypeOf<PathSegment[]>();
 expectTypeOf(handleContextMenuClick({ menuItemId: "save-in-0" })).toEqualTypeOf<Promise<void>>();
 expectTypeOf(withUrl("invalid", (url) => url.hostname)).toEqualTypeOf<string | null>();
 expectTypeOf(withUrl("invalid", (url) => url.hostname, undefined)).toEqualTypeOf<string | null>();

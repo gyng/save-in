@@ -322,7 +322,7 @@ describe("Path.finalize component semantics", () => {
 describe("Path.validate", () => {
   test("a missing buffer is invalid", () => {
     const p = new Path.Path("a");
-    p.buf = null;
+    Reflect.set(p, "buf", null);
     expect(p.validate()).toEqual({ valid: false });
   });
 

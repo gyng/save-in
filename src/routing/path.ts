@@ -215,7 +215,7 @@ export function parsePathStr(pathInput: PathInput = "") {
 export class Path {
   raw: PathInput;
   rawbuf: PathSegment[];
-  buf: PathSegment[] | null;
+  buf: PathSegment[];
 
   constructor(value?: PathInput) {
     const buf = parsePathStr(value);
@@ -224,11 +224,11 @@ export class Path {
     this.buf = buf;
   }
 
-  toString() {
-    return this.buf!.join("");
+  toString(): string {
+    return this.buf.join("");
   }
 
-  finalize(finalizeOptions: PathFinalizeOptions = {}) {
+  finalize(finalizeOptions: PathFinalizeOptions = {}): string {
     const completed: PathSegment[] = [];
     let component = "";
     const flush = () => {
@@ -237,7 +237,7 @@ export class Path {
       component = "";
     };
 
-    for (const item of this.buf!) {
+    for (const item of this.buf) {
       if (item.type === PATH_SEGMENT_TYPES.SEPARATOR) {
         flush();
         completed.push(separatorSegment());
