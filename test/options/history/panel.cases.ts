@@ -36,8 +36,14 @@ const markup = () => `
   <div id="history-active-filters"></div>
   <div id="history-feedback"></div><div id="history-list"></div>
   <div id="history-column-options"></div>
-  <button id="history-export-json"></button><button id="history-export-csv"></button>
-  <button id="history-export-tsv"></button><button id="history-clear"></button>`;
+  <details class="history-export-menu" data-history-requires-entries>
+    <summary>Export</summary>
+    <button id="history-export-json"></button><button id="history-export-csv"></button>
+    <button id="history-export-tsv"></button>
+  </details>
+  <details class="history-more-menu" data-history-requires-entries>
+    <summary>More</summary><button id="history-clear"></button>
+  </details>`;
 
 let historyPanel: typeof import("../../../src/options/history-panel.ts");
 
@@ -187,6 +193,14 @@ describe("history filter controls", () => {
 
     expect(document.querySelectorAll("#history-list th").length).toBeGreaterThan(0);
     expect(document.querySelector("#history-list .history-empty-row")).not.toBeNull();
+    expect(document.querySelector("#history-list .history-empty-title")?.textContent).toContain(
+      "No downloads saved yet",
+    );
+    expect(
+      [...document.querySelectorAll<HTMLElement>("[data-history-requires-entries]")].every(
+        (menu) => menu.inert && menu.getAttribute("aria-disabled") === "true",
+      ),
+    ).toBe(true);
     expect(historyRuntime.sendMessage).toHaveBeenCalledWith({ type: "HISTORY_GET" });
   });
 
@@ -200,6 +214,11 @@ describe("history filter controls", () => {
     ];
     const { renderHistory } = historyPanel;
     await renderHistory();
+    expect(
+      [...document.querySelectorAll<HTMLElement>("[data-history-requires-entries]")].every(
+        (menu) => !menu.inert && !menu.hasAttribute("aria-disabled"),
+      ),
+    ).toBe(true);
     const time = document.querySelector<HTMLTableCellElement>(".history-time-heading")!;
     time.click();
     expect(time.isConnected).toBe(false);

@@ -241,6 +241,14 @@ const startHistoryProgress = () => {
   }
 };
 
+const updateHistoryActionAvailability = (hasEntries: boolean): void => {
+  document.querySelectorAll<HTMLElement>("[data-history-requires-entries]").forEach((control) => {
+    control.inert = !hasEntries;
+    if (hasEntries) control.removeAttribute("aria-disabled");
+    else control.setAttribute("aria-disabled", "true");
+  });
+};
+
 const renderHistoryTable = () => {
   const container = document.querySelector("#history-list");
   const countEl = document.querySelector("#history-count");
@@ -263,6 +271,7 @@ const renderHistoryTable = () => {
   });
   historyState.page = page; // paginate clamped it into range
   updateHistoryFilterUi();
+  updateHistoryActionAvailability(total > 0);
 
   if (countEl) {
     const filtered = Boolean(
@@ -320,8 +329,8 @@ const renderHistoryTable = () => {
     const emptyRow = document.createElement("tr");
     emptyRow.className = "history-empty-row";
     const empty = document.createElement("td");
-    const message = document.createElement("span");
-    message.className = "history-empty-message";
+    const message = document.createElement("strong");
+    message.className = "history-empty-title";
     empty.colSpan = visibleHistoryColumns.size;
     message.textContent =
       total === 0
@@ -640,6 +649,7 @@ export const setupHistoryPanel = (): void => {
   Object.assign(historyState, createHistoryPanelState());
   visibleHistoryColumns = loadVisibleHistoryColumns();
   historyColumnOptionLabels.clear();
+  updateHistoryActionAvailability(false);
 
   const historyFilterInput = document.querySelector<HTMLInputElement>("#history-filter");
   historyFilterInput?.addEventListener("input", () => {

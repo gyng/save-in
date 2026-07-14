@@ -84,7 +84,7 @@
 
 .route-debugger-field input,
 .route-debugger-field select {
-  width: 100%;
+  width: auto;
   min-width: 0;
   max-width: none;
   margin: 0;
@@ -236,7 +236,7 @@
 .route-debugger-clause {
   display: flex;
   align-items: center;
-  width: 100%;
+  min-width: 0;
   margin: 0;
   border: 0;
   border-radius: 0;
@@ -292,14 +292,17 @@
 
 .route-debugger-rule-meta {
   display: flex;
-  align-items: center;
-  flex: none;
+  align-items: baseline;
+  flex: 0 1 auto;
+  min-width: 0;
   gap: var(--space-2);
+  justify-content: flex-end;
 }
 
 .route-debugger-rule-count {
   color: var(--color-text-muted);
   font-size: var(--text-xs);
+  line-height: var(--leading-ui);
   white-space: nowrap;
 }
 
@@ -307,6 +310,7 @@
   color: var(--color-text-muted);
   font-size: var(--text-sm);
   font-weight: 600;
+  line-height: var(--leading-ui);
 }
 
 .route-debugger-rule.is-selected .route-debugger-rule-badge {

@@ -2175,9 +2175,6 @@
   "routingNoMatchBehavior": {
     "message": "Quando nessuna regola corrisponde"
   },
-  "routeVisualHelp": {
-    "message": "Le regole vengono valutate dall'alto verso il basso. Tutte le condizioni devono corrispondere; viene eseguita la prima regola corrispondente."
-  },
   "visualEditorEnabled": {
     "message": "Attiva"
   },

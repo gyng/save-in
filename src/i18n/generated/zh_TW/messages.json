@@ -2400,9 +2400,6 @@
   "routingNoMatchBehavior": {
     "message": "沒有規則相符時"
   },
-  "routeVisualHelp": {
-    "message": "規則會由上而下檢查。規則中的所有條件都必須符合；系統會執行第一個符合的規則。"
-  },
   "routeTextEmptyExample": {
     "message": "// example\nfileext: pdf\ninto: documents/:filename:"
   },

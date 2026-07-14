@@ -2321,9 +2321,6 @@
   "routingNoMatchBehavior": {
     "message": "När ingen regel matchar"
   },
-  "routeVisualHelp": {
-    "message": "Regler kontrolleras uppifrån och ned. Alla villkor i en regel måste matcha; den första matchande regeln körs."
-  },
   "routeTextEmptyExample": {
     "message": "// example\nfileext: pdf\ninto: documents/:filename:"
   },

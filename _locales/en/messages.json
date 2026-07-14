@@ -2919,10 +2919,6 @@
     "message": "When no rule matches",
     "description": "Heading for routing behavior used when no rule matches. Used in src/options/options.html."
   },
-  "routeVisualHelp": {
-    "message": "Rules run from top to bottom. Every condition in a rule must match; the first matching rule runs.",
-    "description": "Ordering and matching guidance below the visual routing editor. Used in src/options/options.html."
-  },
   "routeTextEmptyExample": {
     "message": "// example\nfileext: pdf\ninto: documents/:filename:",
     "description": "Literal routing syntax shown as the empty Text editor placeholder. Used in src/options/options.html."

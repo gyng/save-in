@@ -143,19 +143,27 @@
 }
 
 .history-table .history-empty-row td {
-  height: 7rem;
+  height: 9rem;
   color: var(--color-text-muted);
   text-align: center;
   vertical-align: middle;
   white-space: normal;
 }
 
-.history-empty-message {
+.history-empty-title {
   position: sticky;
   inset-inline-start: 0;
   display: block;
   width: 100cqi;
   padding-inline: var(--space-3);
+  color: var(--color-text);
+  font-size: var(--text-base);
+  font-weight: 600;
+}
+
+.history-table-tools > details[inert] > .menu-trigger {
+  color: var(--disabled-control-color);
+  cursor: default;
 }
 
 .history-time {

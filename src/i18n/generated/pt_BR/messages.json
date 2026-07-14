@@ -2300,9 +2300,6 @@
   "routingNoMatchBehavior": {
     "message": "Quando nenhuma regra corresponder"
   },
-  "routeVisualHelp": {
-    "message": "As regras são avaliadas de cima para baixo. Todas as condições de uma regra devem corresponder; a primeira regra correspondente é executada."
-  },
   "routeTextEmptyExample": {
     "message": "// example\nfileext: pdf\ninto: documents/:filename:"
   },

@@ -862,7 +862,6 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                     </button>
                   </div>
                 </div>
-                <p class="caption rule-editor-help">__MSG_routeVisualHelp__</p>
               </div>
               <div
                 class="error-notification editor-validation-summary"
@@ -1712,7 +1711,7 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
           <summary class="menu-trigger">__MSG_html_columns__</summary>
           <div class="history-columns-menu" id="history-column-options"></div>
         </details>
-        <details class="history-export-menu">
+        <details class="history-export-menu" data-history-requires-entries>
           <summary class="menu-trigger">__MSG_html_export__</summary>
           <div class="history-export-options">
             <button type="button" id="history-export-json">__MSG_html_jsonCompleteData__</button>
@@ -1720,7 +1719,7 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
             <button type="button" id="history-export-tsv">TSV</button>
           </div>
         </details>
-        <details class="history-more-menu">
+        <details class="history-more-menu" data-history-requires-entries>
           <summary class="menu-trigger">__MSG_html_more__</summary>
           <div class="history-more-options">
             <button type="button" id="history-clear" class="button-danger danger-button">

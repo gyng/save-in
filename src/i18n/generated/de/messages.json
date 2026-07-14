@@ -2304,9 +2304,6 @@
   "routingNoMatchBehavior": {
     "message": "Wenn keine Regel zutrifft"
   },
-  "routeVisualHelp": {
-    "message": "Regeln werden von oben nach unten geprüft. Jede Bedingung einer Regel muss zutreffen; die erste passende Regel wird ausgeführt."
-  },
   "routeTextEmptyExample": {
     "message": "// example\nfileext: pdf\ninto: documents/:filename:"
   },

@@ -2400,9 +2400,6 @@
   "routingNoMatchBehavior": {
     "message": "どのルールにも一致しない場合"
   },
-  "routeVisualHelp": {
-    "message": "ルールは上から順に評価されます。ルール内のすべての条件が一致する必要があり、最初に一致したルールが実行されます。"
-  },
   "routeTextEmptyExample": {
     "message": "// example\nfileext: pdf\ninto: documents/:filename:"
   },
