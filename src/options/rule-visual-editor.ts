@@ -4,6 +4,7 @@ import { MESSAGE_TYPES } from "../shared/constants.ts";
 import { sendInternalMessage } from "../shared/message-protocol.ts";
 import {
   addRoutingClause,
+  addAutomaticRoutingRule,
   addRoutingRule,
   deleteRoutingClause,
   deleteRoutingRule,
@@ -15,6 +16,7 @@ import {
   type VisualRoutingRule,
 } from "./rule-visual-editor-model.ts";
 import { sortClauses } from "./vocabulary-groups.ts";
+import { isAutomaticRuleClauses } from "../routing/automatic-rule.ts";
 
 const DEFAULT_MATCHERS = [
   "context",
@@ -32,6 +34,7 @@ const DEFAULT_MATCHERS = [
   "sourceurl",
   "sourcedomain",
   "sourcerootdomain",
+  "sourcekind",
   "filename",
   "naivefilename",
   "fileext",
@@ -68,6 +71,10 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
   const visualEditor = document.querySelector<HTMLElement>("#rules-visual");
   const cards = document.querySelector<HTMLElement>("#rule-editor-cards");
   const addRule = document.querySelector<HTMLButtonElement>("#rule-editor-add");
+  const addAutomaticRule = document.querySelector<HTMLButtonElement>("#rule-editor-add-auto");
+  const manageAutomaticRules = document.querySelector<HTMLButtonElement>(
+    "#auto-download-manage-rules",
+  );
   if (!textarea || !textButton || !visualButton || !textEditor || !visualEditor || !cards) return;
 
   const localize = (key: string, fallback: string, substitutions?: MessageSubstitutions): string =>
@@ -271,6 +278,12 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
     meta.className = "caption rule-editor-meta";
     meta.textContent = rule.comment ? `L${rule.line} · ${rule.comment}` : `L${rule.line}`;
     identity.append(title, meta);
+    if (isAutomaticRuleClauses(rule.clauses)) {
+      const badge = document.createElement("span");
+      badge.className = "rule-editor-auto-badge";
+      badge.textContent = localize("autoDownloadRoutingBadge", "Automatic source");
+      identity.append(badge);
+    }
     const enabledLabel = document.createElement("label");
     enabledLabel.className = "visual-editor-enabled rule-editor-enabled-label";
     const enabled = document.createElement("input");
@@ -385,6 +398,14 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
       addRoutingRule(textarea.value, { name: "filename", value: ".*", destination: ":filename:" }),
     ),
   );
+  addAutomaticRule?.addEventListener("click", () =>
+    commit(addAutomaticRoutingRule(textarea.value)),
+  );
+  manageAutomaticRules?.addEventListener("click", () => {
+    setMode(true);
+    const target = addAutomaticRule ?? visualButton;
+    document.dispatchEvent(new CustomEvent("save-in:navigate-option", { detail: { target } }));
+  });
   textarea.addEventListener("input", () => {
     if (committing || !visual) return;
     window.clearTimeout(rebuildTimer);

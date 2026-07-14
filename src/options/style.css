@@ -2556,6 +2556,18 @@ summary {
   white-space: nowrap;
 }
 
+.rule-editor-auto-badge {
+  flex: none;
+  padding: 2px 7px;
+  color: var(--blue70);
+  border: 1px solid color-mix(in srgb, var(--blue50) 42%, var(--panel-border));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--blue50) 9%, var(--page-bg));
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+}
+
 .rule-editor-card-body {
   display: grid;
   gap: 1px;
@@ -2725,6 +2737,12 @@ summary {
 
 .rule-editor-toolbar {
   margin-top: var(--space-3);
+}
+
+.rule-editor-add-auto {
+  color: var(--blue70);
+  border-color: color-mix(in srgb, var(--blue50) 48%, var(--panel-border));
+  background: color-mix(in srgb, var(--blue50) 8%, var(--page-bg));
 }
 
 .rule-editor-help {
@@ -5429,8 +5447,7 @@ code.click-to-copy {
 }
 
 .auto-download-header h3,
-.auto-download-header p,
-.auto-rule-editor-header p {
+.auto-download-header p {
   margin: 0;
 }
 
@@ -5493,219 +5510,42 @@ code.click-to-copy {
   margin: var(--space-2) var(--space-4) var(--space-3);
 }
 
-.auto-rule-editor {
+.auto-routing-handoff {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
   margin: 0 var(--space-4) var(--space-4);
-  overflow: hidden;
-  border: 1px solid var(--panel-border);
-  border-radius: var(--radius);
-  background: var(--page-bg);
-}
-
-.auto-rule-editor-header {
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
-  gap: var(--space-3);
   padding: var(--space-3);
-  border-bottom: 1px solid var(--panel-border);
-  background: color-mix(in srgb, var(--panel-bg) 60%, var(--page-bg));
-}
-
-.auto-rule-editor-header strong {
-  display: block;
-  margin-bottom: 2px;
-  font-size: var(--text-md);
-}
-
-.auto-rule-tabs {
-  flex: none;
-  margin: 0;
-  padding: 0;
-}
-
-.auto-rules-visual {
-  padding: var(--space-3);
-  background:
-    linear-gradient(color-mix(in srgb, var(--panel-bg) 40%, transparent), transparent 140px),
-    var(--page-bg);
-}
-
-.auto-rule-cards {
-  display: grid;
-  gap: var(--space-3);
-}
-
-.auto-rule-card {
-  overflow: hidden;
   border: 1px solid var(--panel-border);
   border-radius: var(--radius-sm);
-  background: var(--page-bg);
-  box-shadow: 0 2px 8px color-mix(in srgb, var(--grey-90) 8%, transparent);
+  background: color-mix(in srgb, var(--panel-bg) 54%, var(--page-bg));
 }
 
-.auto-rule-card.is-disabled {
-  opacity: 0.72;
+.auto-routing-handoff p {
+  max-width: 72ch;
+  margin: 2px 0 var(--space-1);
 }
 
-.auto-rule-card > header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
-  border-bottom: 1px solid var(--panel-border);
-  background: color-mix(in srgb, var(--blue50) 7%, var(--panel-bg));
-}
-
-.auto-rule-enabled {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  margin: 0;
-  font-weight: 600;
-}
-
-.auto-rule-actions {
-  display: inline-flex;
-  gap: var(--space-1);
-}
-
-.auto-rule-icon-button {
-  display: grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  padding: 0;
-}
-
-.auto-rule-body {
-  display: grid;
-  gap: var(--space-3);
-  padding: var(--space-3);
-}
-
-.auto-rule-name,
-.auto-rule-destination {
-  display: grid;
-  grid-template-columns: 7.5rem minmax(0, 1fr);
-  align-items: center;
-  gap: var(--space-2);
-  margin: 0;
-  font-weight: 600;
-}
-
-.auto-rule-name input,
-.auto-rule-destination input {
-  width: 100%;
-  min-height: var(--control-height);
-  box-sizing: border-box;
-}
-
-.auto-rule-conditions {
-  display: grid;
-  gap: var(--space-1);
-}
-
-.auto-rule-condition {
-  display: grid;
-  grid-template-columns: minmax(9rem, 0.75fr) minmax(12rem, 1.5fr) auto 28px;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-1);
-  border-radius: var(--radius-sm);
-}
-
-.auto-rule-condition:focus-within {
-  background: color-mix(in srgb, var(--blue50) 7%, transparent);
-}
-
-.auto-rule-condition select,
-.auto-rule-condition > input[type="text"] {
-  width: 100%;
-  min-height: 32px;
-  box-sizing: border-box;
-  font-family: var(--font-mono);
+.auto-routing-handoff code {
+  color: var(--blue70);
   font-size: var(--text-sm);
 }
 
-.auto-rule-ignore-case {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  margin: 0;
-  color: var(--color-text-muted);
-  white-space: nowrap;
-}
-
-.auto-rule-add,
-.auto-rule-add-condition {
-  border-style: dashed;
-  background: transparent;
-}
-
-.auto-rule-add {
-  width: 100%;
-  margin-top: var(--space-3);
-}
-
-.auto-rule-add-condition {
-  justify-self: start;
-  margin: var(--space-1);
-}
-
-.auto-rule-empty,
-.auto-rule-visual-warning {
-  padding: var(--space-5);
-  color: var(--color-text-muted);
-  border: 1px dashed var(--panel-border);
-  border-radius: var(--radius-sm);
-  text-align: center;
-}
-
-.auto-rule-visual-warning {
-  color: var(--error-fg);
-  border-color: var(--error-border);
-  background: var(--error-bg);
-}
-
-#auto-rules-text > .syntax-editor,
-#auto-rules-text > textarea {
-  margin: 0;
-  border: 0;
-  border-bottom: 1px solid var(--panel-border);
-  border-radius: 0;
-}
-
-.auto-download-grammar {
-  margin: 0;
-  padding: var(--space-2) var(--space-3);
-  border-bottom: 1px solid var(--panel-border);
-  background: color-mix(in srgb, var(--panel-bg) 45%, var(--page-bg));
-}
-
-.auto-download-grammar pre {
-  margin-bottom: 0;
-}
-
-.auto-rule-editor > .error-notification {
-  margin: 0;
-  border-width: 0 0 1px;
-  border-radius: 0;
-}
-
-.auto-rule-editor > .error-notification:empty {
-  display: none;
-}
-
-.auto-rule-editor-actions {
-  margin: 0;
-  padding: var(--space-2) var(--space-3);
-  background: color-mix(in srgb, var(--panel-bg) 48%, var(--page-bg));
+.auto-routing-mark {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  color: var(--color-on-accent);
+  border-radius: 50%;
+  background: var(--blue60);
+  font-size: 20px;
+  font-weight: 700;
 }
 
 @media (max-width: 720px) {
-  .auto-download-header,
-  .auto-rule-editor-header {
+  .auto-download-header {
     align-items: stretch;
     flex-direction: column;
   }
@@ -5718,18 +5558,12 @@ code.click-to-copy {
     grid-template-columns: 1fr;
   }
 
-  .auto-rule-condition {
-    grid-template-columns: minmax(0, 1fr) auto 28px;
+  .auto-routing-handoff {
+    grid-template-columns: auto minmax(0, 1fr);
   }
 
-  .auto-rule-condition > input[type="text"] {
+  .auto-routing-handoff > button {
     grid-column: 1 / -1;
-    grid-row: 2;
-  }
-
-  .auto-rule-name,
-  .auto-rule-destination {
-    grid-template-columns: 1fr;
   }
 }
 

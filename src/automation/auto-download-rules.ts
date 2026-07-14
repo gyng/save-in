@@ -284,3 +284,25 @@ export const serializeAutoDownloadRules = (rules: readonly EditableAutoDownloadR
       ].join("\n"),
     )
     .join("\n\n");
+
+export const migrateLegacyAutoDownloadRules = (
+  source: string,
+): { routingSource: string; errors: AutoDownloadRuleError[] } => {
+  const parsed = parseAutoDownloadRules(source);
+  if (parsed.errors.length > 0) return { routingSource: "", errors: parsed.errors };
+  const routingSource = parsed.rules
+    .map((rule) =>
+      [
+        ...(rule.name ? [`// ${escapeControlValue(rule.name)}`] : []),
+        "context: ^auto$",
+        ...rule.matchers.map(
+          (matcher) =>
+            `${matcher.name}${matcher.flags ? `/${matcher.flags}` : ""}: ${matcher.pattern}`,
+        ),
+        `into: ${rule.destination}`,
+        ...(!rule.enabled ? ["disabled: true"] : []),
+      ].join("\n"),
+    )
+    .join("\n\n");
+  return { routingSource, errors: [] };
+};

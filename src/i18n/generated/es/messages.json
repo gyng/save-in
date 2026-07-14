@@ -2272,7 +2272,7 @@
   "autoDownloadEditorMode": { "message": "Modo del editor de reglas de automatización" },
   "autoDownloadVisual": { "message": "Visual" },
   "autoDownloadText": { "message": "Texto" },
-  "autoDownloadAddRule": { "message": "Añadir regla" },
+  "autoDownloadAddRule": { "message": "Añadir regla de automatización" },
   "autoDownloadGrammar": { "message": "Sintaxis de las reglas" },
   "autoDownloadCondition": { "message": "Condición" },
   "autoDownloadPattern": { "message": "Patrón" },
@@ -2294,5 +2294,16 @@
   "autoDownloadRuleName": { "message": "Nombre de la regla" },
   "autoDownloadAddCondition": { "message": "Añadir condición" },
   "autoDownloadDestination": { "message": "Guardar en" },
-  "autoDownloadNewRule": { "message": "Nueva regla" }
+  "autoDownloadNewRule": { "message": "Nueva regla" },
+  "ruleAutomaticMissingPage": {
+    "message": "Las reglas automáticas de fuentes necesitan una condición de página"
+  },
+  "ruleAutomaticMissingSource": {
+    "message": "Las reglas automáticas de fuentes necesitan una condición de fuente"
+  },
+  "autoDownloadRoutingBadge": { "message": "Fuente automática" },
+  "autoDownloadManageRules": { "message": "Abrir reglas de enrutamiento" },
+  "autoDownloadRoutingHelp": {
+    "message": "Las reglas automáticas se administran junto con las reglas de enrutamiento y usan context: auto. Cada una necesita condiciones de página y fuente."
+  }
 }

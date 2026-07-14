@@ -2374,7 +2374,7 @@
   "autoDownloadEditorMode": { "message": "自動化ルールエディターのモード" },
   "autoDownloadVisual": { "message": "ビジュアル" },
   "autoDownloadText": { "message": "テキスト" },
-  "autoDownloadAddRule": { "message": "ルールを追加" },
+  "autoDownloadAddRule": { "message": "自動化ルールを追加" },
   "autoDownloadGrammar": { "message": "ルールの構文" },
   "autoDownloadCondition": { "message": "条件" },
   "autoDownloadPattern": { "message": "パターン" },
@@ -2394,5 +2394,12 @@
   "autoDownloadRuleName": { "message": "ルール名" },
   "autoDownloadAddCondition": { "message": "条件を追加" },
   "autoDownloadDestination": { "message": "保存先" },
-  "autoDownloadNewRule": { "message": "新しいルール" }
+  "autoDownloadNewRule": { "message": "新しいルール" },
+  "ruleAutomaticMissingPage": { "message": "ソースの自動保存ルールにはページ条件が必要です" },
+  "ruleAutomaticMissingSource": { "message": "ソースの自動保存ルールにはソース条件が必要です" },
+  "autoDownloadRoutingBadge": { "message": "ソースを自動保存" },
+  "autoDownloadManageRules": { "message": "ルーティングルールを開く" },
+  "autoDownloadRoutingHelp": {
+    "message": "自動ルールは振り分けルールと一緒に管理され、context: auto を使用します。各ルールにはページ条件とソース条件が必要です。"
+  }
 }

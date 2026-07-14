@@ -38,6 +38,7 @@ const MATCHER_PATTERN_PLACEHOLDERS: Record<string, string> = {
   pageurl: "example\\.com/gallery",
   selectiontext: "invoice|receipt",
   sourceurl: "/images/|/media/",
+  sourcekind: "image|video|audio|stream|document|link",
 };
 
 export const RuleBuilder = {

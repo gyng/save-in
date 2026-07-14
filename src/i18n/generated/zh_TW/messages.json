@@ -2374,7 +2374,7 @@
   "autoDownloadEditorMode": { "message": "自動化規則編輯器模式" },
   "autoDownloadVisual": { "message": "視覺化" },
   "autoDownloadText": { "message": "文字" },
-  "autoDownloadAddRule": { "message": "新增規則" },
+  "autoDownloadAddRule": { "message": "新增自動化規則" },
   "autoDownloadGrammar": { "message": "規則語法" },
   "autoDownloadCondition": { "message": "條件" },
   "autoDownloadPattern": { "message": "模式" },
@@ -2394,5 +2394,12 @@
   "autoDownloadRuleName": { "message": "規則名稱" },
   "autoDownloadAddCondition": { "message": "新增條件" },
   "autoDownloadDestination": { "message": "儲存至" },
-  "autoDownloadNewRule": { "message": "新規則" }
+  "autoDownloadNewRule": { "message": "新規則" },
+  "ruleAutomaticMissingPage": { "message": "自動來源規則需要頁面條件" },
+  "ruleAutomaticMissingSource": { "message": "自動來源規則需要來源條件" },
+  "autoDownloadRoutingBadge": { "message": "自動來源" },
+  "autoDownloadManageRules": { "message": "開啟路由規則" },
+  "autoDownloadRoutingHelp": {
+    "message": "自動規則與路由規則一起管理，並使用 context: auto。每項規則都需要頁面條件和來源條件。"
+  }
 }

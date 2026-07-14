@@ -305,6 +305,25 @@ export const addRoutingRule = (source: string, rule: NewRoutingRule): string => 
   return `${source}${separator}${canonicalRule(rule, newline)}${newline}`;
 };
 
+export const addAutomaticRoutingRule = (source: string): string => {
+  const newline = newlineFor(source);
+  const separator =
+    source.length === 0
+      ? ""
+      : source.endsWith(`${newline}${newline}`)
+        ? ""
+        : source.endsWith(newline)
+          ? newline
+          : `${newline}${newline}`;
+  return `${source}${separator}${[
+    "context: ^auto$",
+    "pageurl: ^https://example\\.com/",
+    "sourcekind: ^image$",
+    "into: automatic/:pagedomain:/",
+    "disabled: true",
+  ].join(newline)}${newline}`;
+};
+
 export const duplicateRoutingRule = (source: string, ruleIndex: number): string => {
   const { unit } = editableRule(source, ruleIndex);
   const newline = newlineFor(source);

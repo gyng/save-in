@@ -41,7 +41,8 @@ test("orders clauses by routing workflow within each task group", () => {
     "linktext",
     "selectiontext",
   ]);
-  expect(sortClauses(["actualfileext", "mediatype", "filename", "fileext"])).toEqual([
+  expect(sortClauses(["actualfileext", "sourcekind", "mediatype", "filename", "fileext"])).toEqual([
+    "sourcekind",
     "filename",
     "fileext",
     "actualfileext",

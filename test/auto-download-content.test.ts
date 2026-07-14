@@ -2,6 +2,7 @@
 import { setupAutoDownloadDiscovery } from "../src/content/auto-download.ts";
 
 const rules = `
+context: ^auto$
 pageurl: ^http://localhost/
 sourcekind: image
 sourceurl/i: \\.(?:png|jpg)(?:[?#].*)?$
@@ -36,6 +37,22 @@ describe("automatic source discovery", () => {
       sourceUrl: "https://cdn.test/cat.png",
       sourceKind: "image",
     });
+    controller.stop();
+  });
+
+  test("keeps valid automation active when an unrelated routing rule is invalid", async () => {
+    document.body.innerHTML = '<img src="https://cdn.test/cat.png">';
+    const send = vi.fn(() => Promise.resolve("started" as const));
+    const controller = setupAutoDownloadDiscovery({
+      rules: `filename: \\.pdf$\n\n${rules}`,
+      live: false,
+      maxPerPage: 20,
+      send,
+    });
+
+    await controller.idle();
+
+    expect(send).toHaveBeenCalledOnce();
     controller.stop();
   });
 

@@ -49,6 +49,7 @@ export const setupPathInsertMenu = (
     sourceurl: "Match the file URL",
     sourcedomain: "Match the file hostname",
     sourcerootdomain: "Match the file root domain",
+    sourcekind: "Match the discovered page-source kind",
     filename: "Match the resolved filename",
     naivefilename: "Match the URL-derived filename",
     fileext: "Match the URL-derived extension",

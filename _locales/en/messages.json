@@ -113,6 +113,14 @@
     "message": "Add at least one matcher clause",
     "description": "Error message for missing matcher in rule. Used in src/routing/rule-parser.ts."
   },
+  "ruleAutomaticMissingPage": {
+    "message": "Automatic source rules need a page condition",
+    "description": "Validation error requiring automatic source routing rules to be limited to a page or site. Used in src/routing/rule-parser.ts."
+  },
+  "ruleAutomaticMissingSource": {
+    "message": "Automatic source rules need a source condition",
+    "description": "Validation error requiring automatic source routing rules to select a source URL, kind, domain, or extension. Used in src/routing/rule-parser.ts."
+  },
   "ruleCaptureMissingMatcher": {
     "message": "Capture clause does not target a matcher",
     "description": "Error message for capture targeting missing matcher. Used in src/routing/rule-parser.ts."
@@ -3184,7 +3192,7 @@
     "description": "Tab label for the text automatic-source rule editor. Used in src/options/options.html."
   },
   "autoDownloadAddRule": {
-    "message": "Add rule",
+    "message": "Add automation rule",
     "description": "Button label for adding a guarded automatic-source rule. Used in src/options/options.html."
   },
   "autoDownloadGrammar": {
@@ -3250,5 +3258,17 @@
   "autoDownloadNewRule": {
     "message": "New rule",
     "description": "Default editable name for a newly added automatic source rule. Used in src/options/auto-download-rule-editor.ts."
+  },
+  "autoDownloadRoutingBadge": {
+    "message": "Automatic source",
+    "description": "Badge on routing rule cards that can trigger automatic page-source saving. Used in src/options/rule-visual-editor.ts."
+  },
+  "autoDownloadManageRules": {
+    "message": "Open routing rules",
+    "description": "Button that moves from Page Sources to the shared routing-rule editor. Used in src/options/options.html."
+  },
+  "autoDownloadRoutingHelp": {
+    "message": "Automatic rules live with your routing rules and use context: auto. Each one needs page and source conditions.",
+    "description": "Explains where automatic source rules are managed and their required safety conditions. Used in src/options/options.html."
   }
 }

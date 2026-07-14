@@ -15,6 +15,8 @@ import {
   PATH_TRUNCATION_MIGRATION_STORAGE_KEY,
   PATH_TRUNCATION_MIGRATION_VERSION,
 } from "../shared/storage-keys.ts";
+import { migrateLegacyAutoDownloadRules } from "../automation/auto-download-rules.ts";
+import { parseRules } from "../routing/router.ts";
 
 export interface OptionsManagementApi {
   OPTION_TYPES: typeof OPTION_TYPES;
@@ -41,9 +43,10 @@ export const OptionsManagement: OptionsManagementApi = {
     contentClickToSaveCombo:
       "Modifiers to hold for click-to-save; legacy raw keyCodes remain supported.",
     contentClickToSaveButton: "Mouse button for click-to-save.",
-    autoDownloadEnabled: "Automatically save page sources that match explicit automation rules.",
+    autoDownloadEnabled:
+      "Automatically save page sources that match routing rules with context: auto.",
     autoDownloadRules:
-      "Site-scoped automatic source rules (page/source matchers followed by an into destination).",
+      "Legacy automatic-source rule field; valid stored rules migrate into filenamePatterns.",
     autoDownloadLive: "Watch for matching sources added after the page initially loads.",
     autoDownloadPrivate: "Allow automatic source saving in private browsing windows.",
     autoDownloadMaxPerPage: "Maximum automatic saves allowed during one page visit.",
@@ -58,7 +61,8 @@ export const OptionsManagement: OptionsManagementApi = {
     uiLocale: "Options, menu, and notification language (blank = browser default).",
     enableLastLocation: "Show a 'last used' item at the top of the menu.",
     enableNumberedItems: "Add number-key access keys to submenu items.",
-    filenamePatterns: "Routing/rename rules (matcher / capture / into blocks).",
+    filenamePatterns:
+      "Routing/rename rules, including guarded automatic-source rules with context: auto.",
     keyLastUsed: "Access key for the 'last used' menu item.",
     keyRoot: "Access key for the root 'Save In' menu.",
     links: "Enable saving of links.",
@@ -172,6 +176,26 @@ export const OptionsManagement: OptionsManagementApi = {
             normalizeOption(optionType, storedOptions[optionType.name]),
           ]),
         ) as SaveInOptions;
+        const legacyAutomaticSource =
+          typeof storedOptions.autoDownloadRules === "string"
+            ? storedOptions.autoDownloadRules.trim()
+            : "";
+        const migratedAutomatic = legacyAutomaticSource
+          ? migrateLegacyAutoDownloadRules(legacyAutomaticSource)
+          : { routingSource: "", errors: [] };
+        const existingRoutingSource =
+          typeof storedOptions.filenamePatterns === "string"
+            ? storedOptions.filenamePatterns.trim()
+            : "";
+        const migratedRoutingSource = [existingRoutingSource, migratedAutomatic.routingSource]
+          .filter(Boolean)
+          .join("\n\n");
+        const shouldMigrateAutomatic =
+          Boolean(legacyAutomaticSource) && migratedAutomatic.errors.length === 0;
+        if (shouldMigrateAutomatic) {
+          nextOptions.filenamePatterns = parseRules(migratedRoutingSource);
+          nextOptions.autoDownloadRules = [];
+        }
         const commit = () => {
           // Commit a complete snapshot only after every stored value has been
           // normalized. Keys removed by reset therefore return to their defaults,
@@ -180,13 +204,25 @@ export const OptionsManagement: OptionsManagementApi = {
           return options;
         };
 
+        const persistAutomaticMigration = () =>
+          shouldMigrateAutomatic
+            ? webExtensionApi.storage.local.set({
+                filenamePatterns: migratedRoutingSource,
+                autoDownloadRules: "",
+              })
+            : Promise.resolve();
+
         const migrationVersion = storedOptions[PATH_TRUNCATION_MIGRATION_STORAGE_KEY];
         if (
           typeof migrationVersion === "number" &&
           Number.isFinite(migrationVersion) &&
           migrationVersion >= PATH_TRUNCATION_MIGRATION_VERSION
         ) {
-          return commit();
+          const committed = commit();
+          return persistAutomaticMigration().then(
+            () => committed,
+            () => committed,
+          );
         }
 
         // v1 counted UTF-16 code units and could exceed byte-limited filesystems.
@@ -195,15 +231,16 @@ export const OptionsManagement: OptionsManagementApi = {
         const committed = commit();
         // The migration is idempotent: retry a failed marker write on the next
         // load instead of letting a quota/storage failure block background startup.
-        return webExtensionApi.storage.local
-          .set({
+        return Promise.all([
+          persistAutomaticMigration(),
+          webExtensionApi.storage.local.set({
             truncateLength: nextOptions.truncateLength,
             [PATH_TRUNCATION_MIGRATION_STORAGE_KEY]: PATH_TRUNCATION_MIGRATION_VERSION,
-          })
-          .then(
-            () => committed,
-            () => committed,
-          );
+          }),
+        ]).then(
+          () => committed,
+          () => committed,
+        );
       }),
 };
 

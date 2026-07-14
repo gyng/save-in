@@ -324,6 +324,12 @@ describe("filename rewrite and routing", () => {
       );
     });
 
+    test("sourcekind matches discovered page-source kinds", () => {
+      const matcher = router.matcherFunctions.sourcekind(new RegExp("^image$"));
+      expect(expectMatch(matcher({ ...info, sourceKind: "image" }))[0]!).toBe("image");
+      expect(matcher({ ...info, sourceKind: "video" })).toBeNull();
+    });
+
     test("menuindex", () => {
       const matcher = router.matcherFunctions.menuindex(new RegExp("^2$"));
       expect(expectMatch(matcher(info, { menuIndex: "2" }))[0]!).toBe("2");

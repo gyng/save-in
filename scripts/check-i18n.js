@@ -42,6 +42,32 @@ for (const file of [path.join(root, "manifest.json"), ...sourceFiles]) {
   }
 }
 
+// Profiles can keep an options page alive across an extension update. Retain
+// the removed dedicated automation editor's dynamic labels for that stale UI.
+const retainedCompatibilityKeys = [
+  "autoDownloadAddCondition",
+  "autoDownloadCondition",
+  "autoDownloadDeleteCondition",
+  "autoDownloadDeleteRule",
+  "autoDownloadDestination",
+  "autoDownloadEditorMode",
+  "autoDownloadEmpty",
+  "autoDownloadGrammar",
+  "autoDownloadIgnoreCase",
+  "autoDownloadIgnoreCaseHelp",
+  "autoDownloadMoveDown",
+  "autoDownloadMoveUp",
+  "autoDownloadNewRule",
+  "autoDownloadPattern",
+  "autoDownloadRule",
+  "autoDownloadRuleName",
+  "autoDownloadRulesHelp",
+  "autoDownloadText",
+  "autoDownloadVisual",
+  "autoDownloadVisualInvalid",
+];
+retainedCompatibilityKeys.forEach((key) => runtimeKeys.add(key));
+
 const allowedMessageFields = new Set(["description", "message", "placeholders"]);
 const allowedPlaceholderFields = new Set(["content", "example"]);
 /** @param {string} label @param {Record<string, any>} catalog */

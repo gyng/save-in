@@ -480,6 +480,36 @@ describe("OptionsManagement", () => {
       expect(resolved.conflictAction).toBe("overwrite");
     });
 
+    test("moves legacy automatic rules into the shared routing rule list", async () => {
+      mocks.router.parseRules.mockImplementation((value: string) => value);
+      global.browser.storage.local.get = vi.fn(() =>
+        Promise.resolve({
+          filenamePatterns: "filename: pdf\ninto: documents/",
+          autoDownloadRules:
+            "name: Gallery\npageurl: example\\.com\nsourcekind: image\ninto: gallery/",
+          [PATH_TRUNCATION_MIGRATION_STORAGE_KEY]: PATH_TRUNCATION_MIGRATION_VERSION,
+        }),
+      );
+
+      const resolved = await OptionsManagement.loadOptions();
+
+      const migrated = [
+        "filename: pdf",
+        "into: documents/",
+        "",
+        "// Gallery",
+        "context: ^auto$",
+        "pageurl: example\\.com",
+        "sourcekind: image",
+        "into: gallery/",
+      ].join("\n");
+      expect(resolved.filenamePatterns).toBe(migrated);
+      expect(global.browser.storage.local.set).toHaveBeenCalledWith({
+        filenamePatterns: migrated,
+        autoDownloadRules: "",
+      });
+    });
+
     test("sanitizes a forbidden stored replacementChar (#221)", async () => {
       global.browser.storage.local.get = vi.fn(() => Promise.resolve({ replacementChar: "/" }));
       const resolved = await OptionsManagement.loadOptions();

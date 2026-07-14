@@ -7,6 +7,7 @@ import {
 import {
   CONTENT_OPTION_DEFAULTS,
   CONTENT_OPTION_KEYS,
+  CONTENT_STORAGE_KEYS,
   contentClickComboToKeyCodes,
   normalizeContentOption,
   resolveContentOptions,
@@ -20,7 +21,7 @@ import {
   type SourcePanelCopy,
 } from "../shared/source-panel-copy.ts";
 import { setupAutoDownloadDiscovery, type AutoDownloadSendResult } from "./auto-download.ts";
-import type { AutoDownloadCandidate } from "../automation/auto-download-rules.ts";
+import type { AutomaticRoutingCandidate } from "../automation/automatic-routing.ts";
 
 // Runs in every page. Uses callback-style chrome.* APIs: available in both
 // Chrome and Firefox content scripts (no polyfill is loaded here). try/catch
@@ -242,7 +243,10 @@ const setupAutoDownload = (options: ContentOptions) => {
   const controller = new AbortController();
   const retryTimers = new Set<number>();
   const pendingResolvers = new Set<(result: AutoDownloadSendResult) => void>();
-  const send = (candidate: AutoDownloadCandidate, retries = 2): Promise<AutoDownloadSendResult> =>
+  const send = (
+    candidate: AutomaticRoutingCandidate,
+    retries = 2,
+  ): Promise<AutoDownloadSendResult> =>
     new Promise((resolve) => {
       if (controller.signal.aborted) {
         resolve("skipped");
@@ -276,7 +280,7 @@ const setupAutoDownload = (options: ContentOptions) => {
     });
 
   const discovery = setupAutoDownloadDiscovery({
-    rules: options.autoDownloadRules || "",
+    rules: options.filenamePatterns || "",
     live: options.autoDownloadLive !== false,
     maxPerPage: options.autoDownloadMaxPerPage || CONTENT_OPTION_DEFAULTS.autoDownloadMaxPerPage,
     send,
@@ -324,7 +328,7 @@ const applyOptions = (next: ContentOptions) => {
   const autoDownloadOptionsChanged = (
     [
       "autoDownloadEnabled",
-      "autoDownloadRules",
+      "filenamePatterns",
       "autoDownloadLive",
       "autoDownloadPrivate",
       "autoDownloadMaxPerPage",
@@ -346,7 +350,7 @@ const applyOptions = (next: ContentOptions) => {
   if (autoDownloadOptionsChanged) {
     removeAutoDownload?.();
     removeAutoDownload =
-      currentOptions.autoDownloadEnabled && currentOptions.autoDownloadRules?.trim()
+      currentOptions.autoDownloadEnabled && currentOptions.filenamePatterns?.trim()
         ? setupAutoDownload(currentOptions)
         : null;
   }
@@ -376,12 +380,17 @@ try {
         if (change) setContentOption(changed, key, normalizeContentOption(key, change.newValue));
       }
     });
+    if ("filenamePatterns" in changes) {
+      if (!receivedInitialOptions) changedDuringRead.add("filenamePatterns");
+      const value = changes.filenamePatterns?.newValue;
+      changed.filenamePatterns = typeof value === "string" ? value : "";
+    }
     if (Object.keys(changed).length > 0) {
       applyOptions(changed);
     }
   });
 
-  chrome.storage.local.get(CONTENT_OPTION_KEYS, (stored) => {
+  chrome.storage.local.get([...CONTENT_STORAGE_KEYS], (stored) => {
     // Reading lastError suppresses Chrome's unchecked-error log if an update
     // invalidated this long-lived content-script context during the read.
     void chrome.runtime.lastError;
@@ -390,6 +399,10 @@ try {
     CONTENT_OPTION_KEYS.forEach((key) => {
       if (!changedDuringRead.has(key)) setContentOption(unchangedSnapshot, key, snapshot[key]);
     });
+    if (!changedDuringRead.has("filenamePatterns")) {
+      unchangedSnapshot.filenamePatterns =
+        typeof stored.filenamePatterns === "string" ? stored.filenamePatterns : "";
+    }
     applyOptions(unchangedSnapshot);
     receivedInitialOptions = true;
     announceSourcePanelReady();

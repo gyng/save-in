@@ -2274,7 +2274,7 @@
   "autoDownloadEditorMode": { "message": "Modo do editor de regras de automação" },
   "autoDownloadVisual": { "message": "Visual" },
   "autoDownloadText": { "message": "Texto" },
-  "autoDownloadAddRule": { "message": "Adicionar regra" },
+  "autoDownloadAddRule": { "message": "Adicionar regra de automação" },
   "autoDownloadGrammar": { "message": "Sintaxe das regras" },
   "autoDownloadCondition": { "message": "Condição" },
   "autoDownloadPattern": { "message": "Padrão" },
@@ -2296,5 +2296,16 @@
   "autoDownloadRuleName": { "message": "Nome da regra" },
   "autoDownloadAddCondition": { "message": "Adicionar condição" },
   "autoDownloadDestination": { "message": "Salvar em" },
-  "autoDownloadNewRule": { "message": "Nova regra" }
+  "autoDownloadNewRule": { "message": "Nova regra" },
+  "ruleAutomaticMissingPage": {
+    "message": "As regras automáticas de fontes precisam de uma condição de página"
+  },
+  "ruleAutomaticMissingSource": {
+    "message": "As regras automáticas de fontes precisam de uma condição de fonte"
+  },
+  "autoDownloadRoutingBadge": { "message": "Fonte automática" },
+  "autoDownloadManageRules": { "message": "Abrir regras de roteamento" },
+  "autoDownloadRoutingHelp": {
+    "message": "As regras automáticas são gerenciadas com as regras de roteamento e usam context: auto. Cada uma precisa de condições de página e fonte."
+  }
 }

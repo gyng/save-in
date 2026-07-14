@@ -2374,7 +2374,7 @@
   "autoDownloadEditorMode": { "message": "自动化规则编辑器模式" },
   "autoDownloadVisual": { "message": "可视化" },
   "autoDownloadText": { "message": "文本" },
-  "autoDownloadAddRule": { "message": "添加规则" },
+  "autoDownloadAddRule": { "message": "添加自动化规则" },
   "autoDownloadGrammar": { "message": "规则语法" },
   "autoDownloadCondition": { "message": "条件" },
   "autoDownloadPattern": { "message": "模式" },
@@ -2394,5 +2394,12 @@
   "autoDownloadRuleName": { "message": "规则名称" },
   "autoDownloadAddCondition": { "message": "添加条件" },
   "autoDownloadDestination": { "message": "保存到" },
-  "autoDownloadNewRule": { "message": "新规则" }
+  "autoDownloadNewRule": { "message": "新规则" },
+  "ruleAutomaticMissingPage": { "message": "自动资源规则需要页面条件" },
+  "ruleAutomaticMissingSource": { "message": "自动资源规则需要资源条件" },
+  "autoDownloadRoutingBadge": { "message": "自动资源" },
+  "autoDownloadManageRules": { "message": "打开路由规则" },
+  "autoDownloadRoutingHelp": {
+    "message": "自动规则与路由规则一起管理，并使用 context: auto。每条规则都需要页面条件和来源条件。"
+  }
 }

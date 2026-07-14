@@ -2272,7 +2272,7 @@
   "autoDownloadEditorMode": { "message": "Ansicht des Automatisierungsregel-Editors" },
   "autoDownloadVisual": { "message": "Visuell" },
   "autoDownloadText": { "message": "Text" },
-  "autoDownloadAddRule": { "message": "Regel hinzufügen" },
+  "autoDownloadAddRule": { "message": "Automatisierungsregel hinzufügen" },
   "autoDownloadGrammar": { "message": "Regelsyntax" },
   "autoDownloadCondition": { "message": "Bedingung" },
   "autoDownloadPattern": { "message": "Muster" },
@@ -2294,5 +2294,16 @@
   "autoDownloadRuleName": { "message": "Regelname" },
   "autoDownloadAddCondition": { "message": "Bedingung hinzufügen" },
   "autoDownloadDestination": { "message": "Speichern unter" },
-  "autoDownloadNewRule": { "message": "Neue Regel" }
+  "autoDownloadNewRule": { "message": "Neue Regel" },
+  "ruleAutomaticMissingPage": {
+    "message": "Automatische Quellregeln benötigen eine Seitenbedingung"
+  },
+  "ruleAutomaticMissingSource": {
+    "message": "Automatische Quellregeln benötigen eine Quellenbedingung"
+  },
+  "autoDownloadRoutingBadge": { "message": "Automatische Quelle" },
+  "autoDownloadManageRules": { "message": "Routing-Regeln öffnen" },
+  "autoDownloadRoutingHelp": {
+    "message": "Automatische Regeln werden zusammen mit Ihren Routing-Regeln verwaltet und verwenden context: auto. Jede benötigt Seiten- und Quellenbedingungen."
+  }
 }

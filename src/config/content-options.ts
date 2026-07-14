@@ -82,9 +82,10 @@ export const CONTENT_OPTION_DEFAULTS = {
 
 export type ContentOptionName = keyof typeof CONTENT_OPTION_DEFAULTS;
 export type ResolvedContentOptions = typeof CONTENT_OPTION_DEFAULTS;
-export type ContentOptions = Partial<ResolvedContentOptions>;
+export type ContentOptions = Partial<ResolvedContentOptions> & { filenamePatterns?: string };
 
 export const CONTENT_OPTION_KEYS = Object.keys(CONTENT_OPTION_DEFAULTS) as ContentOptionName[];
+export const CONTENT_STORAGE_KEYS = [...CONTENT_OPTION_KEYS, "filenamePatterns"] as const;
 
 export const isContentOptionName = (value: string): value is ContentOptionName =>
   CONTENT_OPTION_KEYS.includes(value as ContentOptionName);

@@ -2276,7 +2276,7 @@
   "autoDownloadEditorMode": { "message": "Modus van editor voor automatiseringsregels" },
   "autoDownloadVisual": { "message": "Visueel" },
   "autoDownloadText": { "message": "Tekst" },
-  "autoDownloadAddRule": { "message": "Regel toevoegen" },
+  "autoDownloadAddRule": { "message": "Automatiseringsregel toevoegen" },
   "autoDownloadGrammar": { "message": "Regelsyntaxis" },
   "autoDownloadCondition": { "message": "Voorwaarde" },
   "autoDownloadPattern": { "message": "Patroon" },
@@ -2298,5 +2298,16 @@
   "autoDownloadRuleName": { "message": "Regelnaam" },
   "autoDownloadAddCondition": { "message": "Voorwaarde toevoegen" },
   "autoDownloadDestination": { "message": "Opslaan in" },
-  "autoDownloadNewRule": { "message": "Nieuwe regel" }
+  "autoDownloadNewRule": { "message": "Nieuwe regel" },
+  "ruleAutomaticMissingPage": {
+    "message": "Automatische bronregels hebben een paginavoorwaarde nodig"
+  },
+  "ruleAutomaticMissingSource": {
+    "message": "Automatische bronregels hebben een bronvoorwaarde nodig"
+  },
+  "autoDownloadRoutingBadge": { "message": "Automatische bron" },
+  "autoDownloadManageRules": { "message": "Routeringsregels openen" },
+  "autoDownloadRoutingHelp": {
+    "message": "Automatische regels worden samen met uw routeringsregels beheerd en gebruiken context: auto. Elke regel heeft pagina- en bronvoorwaarden nodig."
+  }
 }

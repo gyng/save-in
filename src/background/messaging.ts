@@ -40,7 +40,7 @@ import { OffscreenClient } from "../platform/offscreen-client.ts";
 import { ExternalDownloadRejections } from "./external-download-rejections.ts";
 import { getMessage } from "../platform/localization.ts";
 import { createSourcePanelCopy } from "../shared/source-panel-copy.ts";
-import { matchAutoDownloadRule } from "../automation/auto-download-rules.ts";
+import { matchAutomaticRoutingRule } from "../automation/automatic-routing.ts";
 import { PAGE_SOURCE_KINDS } from "../shared/page-source.ts";
 import { INTEGRATION_GRAMMARS } from "./integration-grammars.ts";
 import {
@@ -482,20 +482,20 @@ export const Messaging = {
       skip();
       return;
     }
-    const rules = Array.isArray(options.autoDownloadRules) ? options.autoDownloadRules : [];
-    const rule = matchAutoDownloadRule(rules, {
+    const rules = Array.isArray(options.filenamePatterns) ? options.filenamePatterns : [];
+    const match = matchAutomaticRoutingRule(rules, {
       pageUrl: senderTab.url,
       sourceUrl,
       sourceKind: request.body.sourceKind,
     });
-    if (!rule) {
+    if (!match) {
       skip();
       return;
     }
 
     const result = await Download.launch({
       path: new Path("."),
-      scratch: { routeTemplateRaw: rule.destination },
+      scratch: { routeTemplateRaw: match.destination },
       info: {
         currentTab: senderTab,
         now: new Date(),

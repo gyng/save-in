@@ -1,5 +1,6 @@
 import {
   addRoutingClause,
+  addAutomaticRoutingRule,
   addRoutingRule,
   deleteRoutingClause,
   deleteRoutingRule,
@@ -111,6 +112,18 @@ describe("routing visual editor model", () => {
       }),
     ).toBe(
       "filename: jpg\ninto: images/:filename:\n\nmime: ^application/pdf$\ninto: documents/:filename:\n",
+    );
+  });
+
+  test("adds a disabled, guarded automatic-source rule", () => {
+    expect(addAutomaticRoutingRule("filename: jpg\ninto: images/:filename:\n")).toContain(
+      [
+        "context: ^auto$",
+        "pageurl: ^https://example\\.com/",
+        "sourcekind: ^image$",
+        "into: automatic/:pagedomain:/",
+        "disabled: true",
+      ].join("\n"),
     );
   });
 

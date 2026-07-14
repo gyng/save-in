@@ -10,6 +10,7 @@ import type {
   RuleErrorLocation,
   RoutingRule,
 } from "./rule-types.ts";
+import { automaticRuleClauseIssues } from "./automatic-rule.ts";
 
 const errorLocation = (span: SourceSpan): RuleErrorLocation => ({
   start: span.start.offset,
@@ -90,6 +91,17 @@ const parseSemanticRule = (
     if (value === "true") return false;
   }
   const lines = rule.clauses.filter((line) => line.name !== "disabled");
+  const automaticIssues = automaticRuleClauseIssues(lines);
+  automaticIssues.forEach((issue) =>
+    appendError(
+      errors,
+      issue === "page"
+        ? routingPorts.getMessage("ruleAutomaticMissingPage")
+        : routingPorts.getMessage("ruleAutomaticMissingSource"),
+      issue === "page" ? "pageurl:" : "sourceurl:",
+      rule.span,
+    ),
+  );
   const clauses: (RuleClause | false)[] = lines.map((line) => {
     const { name, flags, value: rawValue } = line;
     if (name === "into") {
@@ -125,7 +137,7 @@ const parseSemanticRule = (
     return { name, value, type: RULE_TYPES.MATCHER, matcher: factory(value) };
   });
   const valid = clauses.filter((clause): clause is RuleClause => clause !== false);
-  if (valid.length !== clauses.length) return false;
+  if (valid.length !== clauses.length || automaticIssues.length > 0) return false;
   const destinations = valid.filter((clause) => clause.type === RULE_TYPES.DESTINATION);
   const destinationNodes = lines.filter((line) => line.name === "into");
   const destination = destinations[0];

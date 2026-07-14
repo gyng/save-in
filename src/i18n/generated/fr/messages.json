@@ -2299,7 +2299,7 @@
   "autoDownloadEditorMode": { "message": "Mode de l’éditeur de règles d’automatisation" },
   "autoDownloadVisual": { "message": "Visuel" },
   "autoDownloadText": { "message": "Texte" },
-  "autoDownloadAddRule": { "message": "Ajouter une règle" },
+  "autoDownloadAddRule": { "message": "Ajouter une règle d’automatisation" },
   "autoDownloadGrammar": { "message": "Syntaxe des règles" },
   "autoDownloadCondition": { "message": "Condition" },
   "autoDownloadPattern": { "message": "Motif" },
@@ -2321,5 +2321,16 @@
   "autoDownloadRuleName": { "message": "Nom de la règle" },
   "autoDownloadAddCondition": { "message": "Ajouter une condition" },
   "autoDownloadDestination": { "message": "Enregistrer dans" },
-  "autoDownloadNewRule": { "message": "Nouvelle règle" }
+  "autoDownloadNewRule": { "message": "Nouvelle règle" },
+  "ruleAutomaticMissingPage": {
+    "message": "Les règles de sources automatiques nécessitent une condition de page"
+  },
+  "ruleAutomaticMissingSource": {
+    "message": "Les règles de sources automatiques nécessitent une condition de source"
+  },
+  "autoDownloadRoutingBadge": { "message": "Source automatique" },
+  "autoDownloadManageRules": { "message": "Ouvrir les règles de routage" },
+  "autoDownloadRoutingHelp": {
+    "message": "Les règles automatiques sont gérées avec vos règles de routage et utilisent context: auto. Chacune nécessite des conditions de page et de source."
+  }
 }

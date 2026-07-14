@@ -111,6 +111,7 @@ const CLAUSE_ORDER = [
   "fileext",
   "urlfileext",
   "actualfileext",
+  "sourcekind",
   "mediatype",
   "mime",
   "contenttype",

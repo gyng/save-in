@@ -2374,7 +2374,7 @@
   "autoDownloadEditorMode": { "message": "자동화 규칙 편집기 모드" },
   "autoDownloadVisual": { "message": "시각적" },
   "autoDownloadText": { "message": "텍스트" },
-  "autoDownloadAddRule": { "message": "규칙 추가" },
+  "autoDownloadAddRule": { "message": "자동화 규칙 추가" },
   "autoDownloadGrammar": { "message": "규칙 구문" },
   "autoDownloadCondition": { "message": "조건" },
   "autoDownloadPattern": { "message": "패턴" },
@@ -2394,5 +2394,12 @@
   "autoDownloadRuleName": { "message": "규칙 이름" },
   "autoDownloadAddCondition": { "message": "조건 추가" },
   "autoDownloadDestination": { "message": "저장 위치" },
-  "autoDownloadNewRule": { "message": "새 규칙" }
+  "autoDownloadNewRule": { "message": "새 규칙" },
+  "ruleAutomaticMissingPage": { "message": "소스 자동 저장 규칙에는 페이지 조건이 필요합니다" },
+  "ruleAutomaticMissingSource": { "message": "소스 자동 저장 규칙에는 소스 조건이 필요합니다" },
+  "autoDownloadRoutingBadge": { "message": "소스 자동 저장" },
+  "autoDownloadManageRules": { "message": "라우팅 규칙 열기" },
+  "autoDownloadRoutingHelp": {
+    "message": "자동 규칙은 라우팅 규칙과 함께 관리되며 context: auto를 사용합니다. 각 규칙에는 페이지 및 소스 조건이 필요합니다."
+  }
 }

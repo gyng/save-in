@@ -1,5 +1,6 @@
 import {
   matchAutoDownloadRule,
+  migrateLegacyAutoDownloadRules,
   parseAutoDownloadRules,
   serializeAutoDownloadRules,
 } from "../src/automation/auto-download-rules.ts";
@@ -125,5 +126,23 @@ into: dangerous/
     ).toBe(
       "name: Gallery images\ndisabled: true\npageurl/i: ^https://example\\.com/\nsourcekind: image\ninto: gallery/",
     );
+  });
+
+  test("migrates legacy automatic rules into guarded routing rules", () => {
+    expect(
+      migrateLegacyAutoDownloadRules(
+        "name: Gallery images\ndisabled: true\npageurl: example\\.com\nsourcekind: image\ninto: gallery/",
+      ),
+    ).toEqual({
+      errors: [],
+      routingSource: [
+        "// Gallery images",
+        "context: ^auto$",
+        "pageurl: example\\.com",
+        "sourcekind: image",
+        "into: gallery/",
+        "disabled: true",
+      ].join("\n"),
+    });
   });
 });

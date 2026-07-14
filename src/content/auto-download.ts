@@ -1,16 +1,17 @@
 import {
-  matchAutoDownloadRule,
-  parseAutoDownloadRules,
-  type AutoDownloadCandidate,
-} from "../automation/auto-download-rules.ts";
+  matchAutomaticRoutingRule,
+  type AutomaticRoutingCandidate,
+} from "../automation/automatic-routing.ts";
 import { collectPageSourceCandidates } from "./source-panel-model.ts";
+import { parseRulesCollecting } from "../routing/rule-parser.ts";
+import { isAutomaticRuleClauses } from "../routing/automatic-rule.ts";
 
 export type AutoDownloadSendResult = "started" | "skipped" | "failed";
 export type AutoDownloadDiscoveryOptions = {
   rules: string;
   live: boolean;
   maxPerPage: number;
-  send: (candidate: AutoDownloadCandidate) => Promise<AutoDownloadSendResult>;
+  send: (candidate: AutomaticRoutingCandidate) => Promise<AutoDownloadSendResult>;
   onLimitReached?: (() => void) | undefined;
 };
 export type AutoDownloadDiscovery = {
@@ -33,9 +34,10 @@ const automaticUrl = (value: string): string | null => {
 export const setupAutoDownloadDiscovery = (
   options: AutoDownloadDiscoveryOptions,
 ): AutoDownloadDiscovery => {
-  const parsed = parseAutoDownloadRules(options.rules);
+  const parsed = parseRulesCollecting(options.rules);
+  const automaticRules = parsed.rules.filter(isAutomaticRuleClauses);
   const seen = new Set<string>();
-  const queue: AutoDownloadCandidate[] = [];
+  const queue: AutomaticRoutingCandidate[] = [];
   const idleWaiters = new Set<() => void>();
   const maxPerPage = Math.max(1, Math.floor(options.maxPerPage));
   let stopped = false;
@@ -69,7 +71,7 @@ export const setupAutoDownloadDiscovery = (
   };
 
   const scan = (root: ParentNode = document) => {
-    if (stopped || parsed.errors.length > 0 || parsed.rules.length === 0) return;
+    if (stopped || automaticRules.length === 0) return;
     const pageUrl = `${window.location}`;
     const candidates = collectPageSourceCandidates(root, {
       includeBackgrounds: false,
@@ -81,7 +83,7 @@ export const setupAutoDownloadDiscovery = (
       const sourceUrl = automaticUrl(source.url);
       if (!sourceUrl || seen.has(sourceUrl)) continue;
       const candidate = { pageUrl, sourceUrl, sourceKind: source.kind };
-      if (!matchAutoDownloadRule(parsed.rules, candidate)) continue;
+      if (!matchAutomaticRoutingRule(automaticRules, candidate)) continue;
       if (seen.size >= maxPerPage) {
         if (!limitNotified) {
           limitNotified = true;
@@ -107,7 +109,7 @@ export const setupAutoDownloadDiscovery = (
     refreshTimer = window.setTimeout(() => scan(document), 200);
   });
 
-  if (options.live && parsed.errors.length === 0 && parsed.rules.length > 0) {
+  if (options.live && automaticRules.length > 0) {
     observer.observe(document.documentElement, {
       childList: true,
       subtree: true,

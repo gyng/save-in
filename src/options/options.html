@@ -661,7 +661,7 @@ Goal: [describe which downloads to match and where they should be saved]
 Save In syntax:
 - Write one clause per line and separate rules with a blank line.
 - Every matcher in one rule must match. Matcher values are JavaScript regular expressions.
-- Common matchers include filename:, actualfileext:, mime:, sourceurl:, sourcedomain:, sourcerootdomain:, pageurl:, pagedomain:, pagerootdomain:, referrerurl:, referrerdomain:, pagetitle:, context:, and mediatype:.
+- Common matchers include filename:, actualfileext:, mime:, sourceurl:, sourcedomain:, sourcerootdomain:, sourcekind:, pageurl:, pagedomain:, pagerootdomain:, referrerurl:, referrerdomain:, pagetitle:, context:, and mediatype:.
 - Add /i to a matcher name for case-insensitive matching, for example filename/i: \.pdf$.
 - Every rule must contain exactly one into: clause. Its value is a relative destination or filename template.
 - End into: with / to move the file while preserving its resolved filename.
@@ -762,6 +762,9 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                 <div id="rule-editor-cards" class="rule-editor-cards"></div>
                 <div class="visual-editor-toolbar rule-editor-toolbar">
                   <button type="button" id="rule-editor-add">+ __MSG_routeVisualAddRule__</button>
+                  <button type="button" id="rule-editor-add-auto" class="rule-editor-add-auto">
+                    + __MSG_autoDownloadAddRule__
+                  </button>
                   <a class="toolbar-link" href="#" data-reference-tab="options-reference-clauses"
                     >__MSG_o_lClauseList__</a
                   >
@@ -857,6 +860,7 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                       <option value="audio">__MSG_sourcePanelKindAudio__</option>
                       <option value="page">__MSG_contextMenuContextPage__</option>
                       <option value="selection">__MSG_contextMenuContextSelection__</option>
+                      <option value="AUTO">__MSG_autoDownloadRoutingBadge__</option>
                     </select>
                   </label>
                 </div>
@@ -1330,85 +1334,16 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
         </div>
         <p class="caption auto-download-limit-help">__MSG_autoDownloadLimitHelp__</p>
 
-        <div class="auto-rule-editor">
-          <header class="auto-rule-editor-header">
-            <div>
-              <strong id="auto-rule-editor-label">__MSG_autoDownloadRulesHeading__</strong>
-              <p class="caption">__MSG_autoDownloadRulesHelp__</p>
-            </div>
-            <div
-              class="editor-tabs auto-rule-tabs"
-              role="tablist"
-              aria-label="__MSG_autoDownloadEditorMode__"
-            >
-              <button
-                type="button"
-                class="editor-tab active"
-                id="auto-rules-mode-visual"
-                role="tab"
-                aria-selected="true"
-                aria-controls="auto-rules-visual"
-              >
-                __MSG_autoDownloadVisual__
-              </button>
-              <button
-                type="button"
-                class="editor-tab"
-                id="auto-rules-mode-text"
-                role="tab"
-                aria-selected="false"
-                aria-controls="auto-rules-text"
-              >
-                __MSG_autoDownloadText__
-              </button>
-            </div>
-          </header>
-
-          <div id="auto-rules-visual" class="auto-rules-visual">
-            <div id="auto-rule-cards" class="auto-rule-cards"></div>
-            <button type="button" id="auto-rule-add" class="auto-rule-add">
-              + __MSG_autoDownloadAddRule__
-            </button>
+        <div class="auto-routing-handoff">
+          <span class="auto-routing-mark" aria-hidden="true">→</span>
+          <div>
+            <strong>__MSG_autoDownloadRulesHeading__</strong>
+            <p class="caption">__MSG_autoDownloadRoutingHelp__</p>
+            <code>context: ^auto$</code>
           </div>
-
-          <div id="auto-rules-text" hidden>
-            <textarea
-              id="autoDownloadRules"
-              data-manual="true"
-              data-technical-literal
-              rows="11"
-              spellcheck="false"
-              aria-labelledby="auto-rule-editor-label"
-              aria-describedby="error-autoDownloadRules auto-download-grammar-help"
-              placeholder="pageurl: ^https://example\\.com/gallery/&#10;sourcekind: image&#10;sourceurl/i: \\.(?:jpg|png)$&#10;into: galleries/:pagedomain:/"
-            ></textarea>
-            <details class="auto-download-grammar" id="auto-download-grammar-help">
-              <summary>__MSG_autoDownloadGrammar__</summary>
-              <pre>
-pageurl/i: ^https://example\.com/gallery/
-sourcekind: image
-sourceurl/i: \.(?:jpe?g|png)(?:[?#].*)?$
-into: galleries/:pagedomain:/</pre>
-            </details>
-          </div>
-
-          <div
-            class="error-notification"
-            id="error-autoDownloadRules"
-            aria-live="polite"
-            aria-atomic="true"
-          ></div>
-          <div class="editor-actions auto-rule-editor-actions">
-            <button type="button" class="discard-button" data-discard="autoDownloadRules" disabled>
-              __MSG_o_bDiscard__
-            </button>
-            <button type="button" class="apply-button" data-apply="autoDownloadRules" disabled>
-              __MSG_o_bApply__
-            </button>
-            <span class="caption manual-save-help" data-manual-help-for="autoDownloadRules"
-              >__MSG_o_lManualEditorSaveHelp__</span
-            >
-          </div>
+          <button type="button" id="auto-download-manage-rules">
+            __MSG_autoDownloadManageRules__
+          </button>
         </div>
       </section>
 
@@ -2507,6 +2442,18 @@ into: galleries/:pagedomain:/</pre>
                 <td>
                   <span class="badge">Firefox</span> __MSG_html_matchesTheLinkTextOrElement__
                   <code>title</code> __MSG_html_attribute__
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <code class="click-to-copy">sourcekind:</code>
+                </td>
+                <td>
+                  <code>image|video|audio|stream|document|link</code>
+                </td>
+                <td>
+                  __MSG_autoDownloadRoutingBadge__: <code>image</code>, <code>video</code>,
+                  <code>audio</code>, <code>stream</code>, <code>document</code>, <code>link</code>
                 </td>
               </tr>
               <tr>

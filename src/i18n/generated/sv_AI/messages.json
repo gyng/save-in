@@ -2268,7 +2268,7 @@
   "autoDownloadEditorMode": { "message": "Läge för redigeraren av automatiseringsregler" },
   "autoDownloadVisual": { "message": "Visuellt" },
   "autoDownloadText": { "message": "Text" },
-  "autoDownloadAddRule": { "message": "Lägg till regel" },
+  "autoDownloadAddRule": { "message": "Lägg till automatiseringsregel" },
   "autoDownloadGrammar": { "message": "Regelsyntax" },
   "autoDownloadCondition": { "message": "Villkor" },
   "autoDownloadPattern": { "message": "Mönster" },
@@ -2290,5 +2290,12 @@
   "autoDownloadRuleName": { "message": "Regelnamn" },
   "autoDownloadAddCondition": { "message": "Lägg till villkor" },
   "autoDownloadDestination": { "message": "Spara i" },
-  "autoDownloadNewRule": { "message": "Ny regel" }
+  "autoDownloadNewRule": { "message": "Ny regel" },
+  "ruleAutomaticMissingPage": { "message": "Automatiska källregler behöver ett sidvillkor" },
+  "ruleAutomaticMissingSource": { "message": "Automatiska källregler behöver ett källvillkor" },
+  "autoDownloadRoutingBadge": { "message": "Automatisk källa" },
+  "autoDownloadManageRules": { "message": "Öppna dirigeringsregler" },
+  "autoDownloadRoutingHelp": {
+    "message": "Automatiska regler hanteras tillsammans med routningsreglerna och använder context: auto. Varje regel behöver sid- och källvillkor."
+  }
 }

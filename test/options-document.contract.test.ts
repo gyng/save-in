@@ -122,10 +122,8 @@ test("keeps stable Page Sources controls", () => {
     "autoDownloadLive",
     "autoDownloadPrivate",
     "autoDownloadMaxPerPage",
-    "autoDownloadRules",
-    "auto-rules-mode-visual",
-    "auto-rules-mode-text",
-    "auto-rule-add",
+    "auto-download-manage-rules",
+    "rule-editor-add-auto",
     "sourcePanelShortcutModifier",
     "sourcePanelShortcutModifier2",
     "sourcePanelShortcutKey",
@@ -133,7 +131,7 @@ test("keeps stable Page Sources controls", () => {
   expect(document.querySelector("#sourcePanelShortcutKey")?.getAttribute("list")).toBe(
     "sourcePanelShortcutKeys",
   );
-  expect(document.querySelector("#autoDownloadRules")?.getAttribute("data-manual")).toBe("true");
+  expect(document.querySelector("#autoDownloadRules")).toBeNull();
   expect(document.querySelector("#autoDownloadMaxPerPage")?.getAttribute("max")).toBe("500");
 });
 

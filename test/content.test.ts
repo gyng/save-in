@@ -203,8 +203,8 @@ describe("content.js initialisation", () => {
       autoDownloadEnabled: true,
       autoDownloadLive: false,
       autoDownloadMaxPerPage: 20,
-      autoDownloadRules:
-        "pageurl: ^http://localhost/\nsourcekind: image\nsourceurl: automatic\\.png$\ninto: automatic/",
+      filenamePatterns:
+        "context: ^auto$\npageurl: ^http://localhost/\nsourcekind: image\nsourceurl: automatic\\.png$\ninto: automatic/",
     });
 
     await vi.waitFor(() =>
@@ -226,8 +226,8 @@ describe("content.js initialisation", () => {
     document.body.innerHTML = '<img src="https://cdn.test/automatic.png">';
     await importContentWithOptions({
       autoDownloadEnabled: false,
-      autoDownloadRules:
-        "pageurl: ^http://localhost/\nsourcekind: image\nsourceurl: automatic\\.png$\ninto: automatic/",
+      filenamePatterns:
+        "context: ^auto$\npageurl: ^http://localhost/\nsourcekind: image\nsourceurl: automatic\\.png$\ninto: automatic/",
     });
 
     expect(global.chrome.runtime.sendMessage).not.toHaveBeenCalledWith(

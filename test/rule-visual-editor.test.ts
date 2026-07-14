@@ -23,7 +23,9 @@ describe("routing visual editor", () => {
       <div id="rules-visual" hidden>
         <div id="rule-editor-cards"></div>
         <button type="button" id="rule-editor-add">Add rule</button>
+        <button type="button" id="rule-editor-add-auto">Add automatic source rule</button>
       </div>
+      <button type="button" id="auto-download-manage-rules">Open routing rules</button>
     `;
   });
 
@@ -116,6 +118,33 @@ describe("routing visual editor", () => {
     element<HTMLButtonElement>('[data-rule-action="down"]').click();
     element<HTMLButtonElement>('[data-rule-action="delete"]').click();
     expect(document.querySelectorAll(".rule-editor-card")).toHaveLength(2);
+  });
+
+  test("creates and identifies a guarded automatic-source rule", () => {
+    setupRuleVisualEditor({ matchers: ["context", "pageurl", "sourcekind"] });
+    element<HTMLButtonElement>("#rule-editor-add-auto").click();
+
+    const source = element<HTMLTextAreaElement>("#filenamePatterns").value;
+    expect(source).toContain("context: ^auto$");
+    expect(source).toContain("pageurl: ^https://example\\.com/");
+    expect(source).toContain("sourcekind: ^image$");
+    expect(source).toContain("disabled: true");
+    expect(document.querySelectorAll(".rule-editor-auto-badge")).toHaveLength(1);
+  });
+
+  test("opens the shared editor in Visual mode from Page Sources", () => {
+    localStorage.setItem("saveInRulesEditorMode", "text");
+    const navigate = vi.fn();
+    document.addEventListener("save-in:navigate-option", navigate, { once: true });
+    setupRuleVisualEditor({ matchers: ["context", "pageurl", "sourcekind"] });
+
+    element<HTMLButtonElement>("#auto-download-manage-rules").click();
+
+    expect(element<HTMLElement>("#rules-visual").hidden).toBe(false);
+    expect(navigate).toHaveBeenCalledOnce();
+    expect((navigate.mock.calls[0]![0] as CustomEvent).detail.target).toBe(
+      element("#rule-editor-add-auto"),
+    );
   });
 
   test("renders malformed rules read-only and offers a direct Text-mode escape", () => {
