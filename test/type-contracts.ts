@@ -1,4 +1,4 @@
-// Compile-only assertions. tsconfig.test.json owns these contracts; Vitest does not execute them.
+// Compile-only assertions. config/typescript/test.json owns these contracts; Vitest does not execute them.
 import { expectTypeOf } from "vitest";
 
 import type { CounterWriteState } from "../src/background/counter.ts";

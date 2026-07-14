@@ -64,13 +64,13 @@ check(
 
 const typecheck = packageJson.scripts?.typecheck || "";
 for (const config of [
-  "tsconfig.browser.json",
-  "tsconfig.chrome.json",
-  "tsconfig.worker.json",
-  "tsconfig.tools.json",
-  "tsconfig.dev-tools.json",
-  "tsconfig.e2e.json",
-  "tsconfig.test.json",
+  "config/typescript/browser.json",
+  "config/typescript/chrome.json",
+  "config/typescript/worker.json",
+  "config/typescript/tools.json",
+  "config/typescript/dev-tools.json",
+  "config/typescript/e2e.json",
+  "config/typescript/test.json",
 ]) {
   check(typecheck.includes(config), `package.json: typecheck must include ${config}`);
 }
@@ -98,25 +98,25 @@ for (const [name, expected] of Object.entries({
   );
 }
 check(!("allowJs" in baseOptions), "tsconfig.json: allowJs belongs only in tooling/test configs");
-const worker = readJson("tsconfig.worker.json");
+const worker = readJson("config/typescript/worker.json");
 check(
   JSON.stringify(worker.compilerOptions?.lib) === JSON.stringify(["es2023", "webworker"]),
   "worker config must remain DOM-free",
 );
 check(
-  worker.include?.includes("src/entries/background.ts"),
+  worker.include?.includes("../../src/entries/background.ts"),
   "worker config must check background entry",
 );
 check(
-  readJson("tsconfig.browser.json").exclude?.includes("types/host-chrome.d.ts"),
+  readJson("config/typescript/browser.json").exclude?.includes("../../types/host-chrome.d.ts"),
   "Firefox host check must exclude Chrome declarations",
 );
 check(
-  readJson("tsconfig.chrome.json").exclude?.includes("types/host-firefox.d.ts"),
+  readJson("config/typescript/chrome.json").exclude?.includes("../../types/host-firefox.d.ts"),
   "Chrome host check must exclude Firefox declarations",
 );
 
-const tools = readJson("tsconfig.tools.json");
+const tools = readJson("config/typescript/tools.json");
 check(
   tools.compilerOptions?.allowJs === true &&
     tools.compilerOptions?.checkJs === true &&
@@ -134,19 +134,19 @@ check(
   "tooling config must strictly check JavaScript without emitting",
 );
 check(
-  tools.include?.includes("scripts/**/*.js"),
+  tools.include?.includes("../../scripts/**/*.js"),
   "tooling config must check every repository script",
 );
 for (const script of fs.globSync("scripts/**/*.js", { cwd: root })) {
   check(read(script).startsWith("// @ts-check"), `${script}: missing // @ts-check`);
 }
 check(
-  readJson("tsconfig.dev-tools.json").extends === "./tsconfig.tools.json" &&
-    readJson("tsconfig.e2e.json").extends === "./tsconfig.tools.json",
+  readJson("config/typescript/dev-tools.json").extends === "./tools.json" &&
+    readJson("config/typescript/e2e.json").extends === "./tools.json",
   "dev and E2E tooling configs must extend the strict tooling config",
 );
 check(
-  readJson("tsconfig.test.json").include?.includes("test/**/*.ts"),
+  readJson("config/typescript/test.json").include?.includes("../../test/**/*.ts"),
   "test config must include the complete TypeScript suite",
 );
 
@@ -197,8 +197,8 @@ contains("scripts/package-runtime.js", '"save-in-{version}.zip"');
 contains("scripts/build-source-package.js", "assertPackageVersion(root)");
 contains("scripts/build-source-package.js", "verifyArchive");
 contains("scripts/build-source-package.js", "canonicalizeZip");
-contains("rolldown.config.mjs", 'process.env.SAVE_IN_BUILD_MODE === "e2e"');
-excludes("rolldown.config.mjs", "SAVE_IN_E2E");
+contains("config/rolldown.config.mjs", 'process.env.SAVE_IN_BUILD_MODE === "e2e"');
+excludes("config/rolldown.config.mjs", "SAVE_IN_E2E");
 check(
   packageJson.scripts?.["build:bundled"]?.includes("scripts/package-runtime.js"),
   "package.json: bundled build must create the runtime archive",
@@ -206,14 +206,15 @@ check(
 
 const sourceBuild = read("scripts/build-source-package.js");
 for (const required of [
+  '"config"',
   '"e2e"',
   '"CHANGELOG.md"',
-  '"tsconfig.worker.json"',
-  '"tsconfig.tools.json"',
-  '"tsconfig.dev-tools.json"',
-  '"tsconfig.e2e.json"',
-  '"tsconfig.test.json"',
-  '"vitest.fuzz.config.mjs"',
+  '"config/typescript/worker.json"',
+  '"config/typescript/tools.json"',
+  '"config/typescript/dev-tools.json"',
+  '"config/typescript/e2e.json"',
+  '"config/typescript/test.json"',
+  '"config/vitest/fuzz.mjs"',
   '"!.gitignore"',
   '"!.oxlintrc.json"',
   '"!.oxfmtrc.json"',
@@ -266,7 +267,7 @@ check(
 );
 
 const finish = async () => {
-  const configUrl = pathToFileURL(path.join(root, "vitest.config.mjs")).href;
+  const configUrl = pathToFileURL(path.join(root, "config", "vitest", "base.mjs")).href;
   const { default: vitestConfig, resolveMaxWorkers } = await import(configUrl);
   check(resolveMaxWorkers({ cores: 32 }) === 28, "Vitest must reserve four local CPUs");
   check(resolveMaxWorkers({ cores: 2 }) === 1, "local Vitest workers need a floor");

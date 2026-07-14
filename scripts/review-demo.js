@@ -451,7 +451,7 @@ const installHotReload = (reload) => {
   for (const dir of ["src", "icons", "_locales"]) {
     watchers.push(fs.watch(path.join(chrome.ROOT, dir), { recursive: true }, queueReload));
   }
-  for (const file of ["manifest.json", "rolldown.config.mjs"]) {
+  for (const file of ["manifest.json", "config/rolldown.config.mjs"]) {
     watchers.push(fs.watch(path.join(chrome.ROOT, file), queueReload));
   }
 

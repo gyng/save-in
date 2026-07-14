@@ -1,4 +1,4 @@
-import baseConfig from "./vitest.config.mjs";
+import baseConfig from "./base.mjs";
 
 export default {
   ...baseConfig,

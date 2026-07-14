@@ -7,7 +7,7 @@ Firefox (AMO) and Chrome (Web Store).
 ## Architecture
 
 **The code is ESM + TypeScript, shipped as readable, non-minified bundles.**
-`rolldown.config.mjs` transpiles and scope-hoists each target into one file under
+`config/rolldown.config.mjs` transpiles and scope-hoists each target into one file under
 `dist/bundled/`. Production entries live in `src/entries/` for background,
 options, offscreen, and reference-page targets; the content script is bundled
 directly from `src/content/content.ts`. `background.e2e.ts` imports the

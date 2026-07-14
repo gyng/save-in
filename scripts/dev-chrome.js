@@ -95,7 +95,7 @@ const main = async () => {
     for (const dir of ["src", "icons", "_locales"]) {
       fs.watch(path.join(chrome.ROOT, dir), { recursive: true }, reload);
     }
-    for (const file of ["manifest.json", "rolldown.config.mjs"]) {
+    for (const file of ["manifest.json", "config/rolldown.config.mjs"]) {
       fs.watch(path.join(chrome.ROOT, file), reload);
     }
     console.log("Watching source, icons, locales, manifest, and bundle config...");

@@ -57,7 +57,7 @@ const rebuild = () => {
 for (const dir of ["src", "icons", "_locales"]) {
   fs.watch(path.join(root, dir), { recursive: true }, rebuild);
 }
-for (const file of ["manifest.json", "rolldown.config.mjs"]) {
+for (const file of ["manifest.json", "config/rolldown.config.mjs"]) {
   fs.watch(path.join(root, file), rebuild);
 }
 

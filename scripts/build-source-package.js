@@ -69,7 +69,17 @@ async function main() {
   fs.mkdirSync(stage, { recursive: true });
   fs.mkdirSync(artifacts, { recursive: true });
 
-  for (const dir of [".github", "src", "scripts", "test", "e2e", "types", "icons", "_locales"]) {
+  for (const dir of [
+    ".github",
+    "config",
+    "src",
+    "scripts",
+    "test",
+    "e2e",
+    "types",
+    "icons",
+    "_locales",
+  ]) {
     fs.cpSync(path.join(root, dir), path.join(stage, dir), { recursive: true });
   }
 
@@ -87,20 +97,7 @@ async function main() {
     "manifest.json",
     "package-lock.json",
     "package.json",
-    "rolldown.config.mjs",
-    "tsconfig.browser.json",
-    "tsconfig.chrome.json",
-    "tsconfig.dev-tools.json",
-    "tsconfig.e2e.json",
     "tsconfig.json",
-    "tsconfig.test.json",
-    "tsconfig.tools.json",
-    "tsconfig.worker.json",
-    "vitest.config.mjs",
-    "vitest.e2e.config.mjs",
-    "vitest.fuzz.config.mjs",
-    "vitest.integration.config.mjs",
-    "vitest.unit.config.mjs",
   ];
   for (const file of files) {
     const destination = path.join(stage, file);
@@ -149,15 +146,16 @@ async function main() {
       "CHANGELOG.md",
       "e2e/chrome.e2e.mjs",
       "e2e/firefox.e2e.mjs",
-      "tsconfig.chrome.json",
-      "tsconfig.dev-tools.json",
-      "tsconfig.e2e.json",
-      "tsconfig.test.json",
-      "tsconfig.tools.json",
-      "tsconfig.worker.json",
-      "vitest.fuzz.config.mjs",
-      "vitest.integration.config.mjs",
-      "vitest.unit.config.mjs",
+      "config/rolldown.config.mjs",
+      "config/typescript/chrome.json",
+      "config/typescript/dev-tools.json",
+      "config/typescript/e2e.json",
+      "config/typescript/test.json",
+      "config/typescript/tools.json",
+      "config/typescript/worker.json",
+      "config/vitest/fuzz.mjs",
+      "config/vitest/integration.mjs",
+      "config/vitest/unit.mjs",
     ],
     ["docs/"],
   );

@@ -22,23 +22,5 @@
     "noFallthroughCasesInSwitch": true,
     "noImplicitReturns": true
   },
-  "include": [
-    "scripts/**/*.js",
-    "scripts/build-bundled.js",
-    "scripts/build-source-package.js",
-    "scripts/check-import-cycles.js",
-    "scripts/check-css.js",
-    "scripts/check-i18n.js",
-    "scripts/check-release-package.js",
-    "scripts/prepare-release.js",
-    "scripts/lib/architecture-checks.js",
-    "scripts/lib/canonicalize-zip.js",
-    "scripts/lib/package-metadata.js",
-    "scripts/package-runtime.js",
-    "scripts/with-env.js",
-    "rolldown.config.mjs",
-    "vitest.config.mjs",
-    "vitest.e2e.config.mjs",
-    "vitest.fuzz.config.mjs"
-  ]
+  "include": ["../../scripts/**/*.js", "../rolldown.config.mjs", "../vitest/*.mjs"]
 }

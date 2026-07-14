@@ -85,7 +85,11 @@ const requireText = (name, required, rule) => {
   if (!found) report(path.join(root, name), rule);
 };
 
-forbidText("rolldown.config.mjs", "self.window = self", "must not emulate Window in workers");
+forbidText(
+  "config/rolldown.config.mjs",
+  "self.window = self",
+  "must not emulate Window in workers",
+);
 forbidText(
   "src/background/runtime.ts",
   'Symbol.for("save-in.backgroundRuntime")',
@@ -109,9 +113,13 @@ forbidText(
   "globalThis",
   "E2E controls must not be exposed on the browser global",
 );
-forbidText("rolldown.config.mjs", "SAVE_IN_E2E", "must use the explicit build mode contract");
+forbidText(
+  "config/rolldown.config.mjs",
+  "SAVE_IN_E2E",
+  "must use the explicit build mode contract",
+);
 requireText(
-  "rolldown.config.mjs",
+  "config/rolldown.config.mjs",
   "SAVE_IN_CONTENT_E2E",
   "must retain explicit content-panel E2E gating",
 );

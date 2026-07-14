@@ -14,7 +14,7 @@ const {
 
 const root = path.join(__dirname, "..");
 const vitest = path.join(root, "node_modules", "vitest", "vitest.mjs");
-const config = "vitest.e2e.config.mjs";
+const config = "config/vitest/e2e.mjs";
 const artifacts = path.join(root, "dist", "e2e-artifacts");
 const runRoot = path.join(root, "dist", "e2e-runs");
 const runDir = path.join(runRoot, String(process.pid));

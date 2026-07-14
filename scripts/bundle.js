@@ -12,7 +12,7 @@ async function main() {
   process.env.SAVE_IN_BUILD_MODE = buildMode;
   const [{ build }, configModule] = await Promise.all([
     import("rolldown"),
-    import(pathToFileURL(path.join(root, "rolldown.config.mjs")).href),
+    import(pathToFileURL(path.join(root, "config", "rolldown.config.mjs")).href),
   ]);
   const configs = Array.isArray(configModule.default)
     ? configModule.default

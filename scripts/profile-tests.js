@@ -20,7 +20,7 @@ const run = spawnSync(
     vitest,
     "run",
     "--config",
-    "vitest.unit.config.mjs",
+    "config/vitest/unit.mjs",
     ...process.argv.slice(2),
     "--reporter=json",
     `--outputFile=${output}`,
