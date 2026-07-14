@@ -176,10 +176,31 @@ describe("page source collection", () => {
         encodedBodySize: 0,
         transferSize: 0,
       } as PerformanceResourceTiming,
+      {
+        name: "https://cdn.test/invalid-primary.m3u8",
+        encodedBodySize: -1,
+        transferSize: 4096,
+      } as PerformanceResourceTiming,
+      {
+        name: "https://cdn.test/fractional.mpd",
+        encodedBodySize: 1.5,
+        transferSize: 0,
+      } as PerformanceResourceTiming,
+      {
+        name: "https://cdn.test/unsafe.mpd",
+        encodedBodySize: Number.MAX_SAFE_INTEGER + 1,
+        transferSize: 1024,
+      } as PerformanceResourceTiming,
       { name: "javascript:unsafe.m3u8" } as PerformanceResourceTiming,
     ];
     const timing = resourceTimingByUrl(entries);
-    expect(collectResourceHintSources(timing).map(({ bytes }) => bytes)).toEqual([2048, undefined]);
+    expect(collectResourceHintSources(timing).map(({ bytes }) => bytes)).toEqual([
+      2048,
+      undefined,
+      4096,
+      undefined,
+      1024,
+    ]);
 
     const element = document.createElement("div");
     element.style.backgroundImage = `url("https://cdn.test/double.png"), url(https://cdn.test/plain.png), url("javascript:bad")`;
@@ -266,6 +287,10 @@ test("builds a quoted yt-dlp command for a manifest URL", () => {
 
 test("formats available Resource Timing sizes compactly", () => {
   expect(formatSourceBytes()).toBe("size unknown");
+  expect(formatSourceBytes(-1)).toBe("size unknown");
+  expect(formatSourceBytes(1.5)).toBe("size unknown");
+  expect(formatSourceBytes(Number.POSITIVE_INFINITY)).toBe("size unknown");
+  expect(formatSourceBytes(Number.MAX_SAFE_INTEGER + 1)).toBe("size unknown");
   expect(formatSourceBytes(900)).toBe("900 B");
   expect(formatSourceBytes(2048)).toBe("2 KB");
   expect(formatSourceBytes(1572864)).toBe("1.5 MB");

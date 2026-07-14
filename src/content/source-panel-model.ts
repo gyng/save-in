@@ -81,11 +81,17 @@ const absoluteUrl = (value: string): string | null => {
 };
 
 export const ytDlpCommand = (url: string): string => `yt-dlp "${url.replaceAll('"', '\\"')}"`;
+const resourceBytes = (...values: unknown[]): number | undefined =>
+  values.find(
+    (value): value is number =>
+      typeof value === "number" && Number.isSafeInteger(value) && value > 0,
+  );
 export const formatSourceBytes = (bytes?: number): string => {
-  if (!bytes) return "size unknown";
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  const validBytes = resourceBytes(bytes);
+  if (validBytes === undefined) return "size unknown";
+  if (validBytes < 1024) return `${validBytes} B`;
+  if (validBytes < 1024 * 1024) return `${Math.round(validBytes / 1024)} KB`;
+  return `${(validBytes / (1024 * 1024)).toFixed(1)} MB`;
 };
 
 export const filterPageSources = (
@@ -286,7 +292,7 @@ export const collectResourceHintSources = (
               url,
               kind: "stream" as const,
               element,
-              bytes: entry.encodedBodySize || entry.transferSize || undefined,
+              bytes: resourceBytes(entry.encodedBodySize, entry.transferSize),
             },
           ]
         : [];
@@ -318,7 +324,7 @@ export const collectBackgroundSourceCandidates = (
         url,
         kind: "image",
         element,
-        bytes: timing?.encodedBodySize || timing?.transferSize || undefined,
+        bytes: resourceBytes(timing?.encodedBodySize, timing?.transferSize),
       });
     });
   }
@@ -344,7 +350,7 @@ export const collectPageSourceCandidates = (
         url,
         kind,
         element,
-        bytes: timing?.encodedBodySize || timing?.transferSize || undefined,
+        bytes: resourceBytes(timing?.encodedBodySize, timing?.transferSize),
         previewable,
       });
     }
