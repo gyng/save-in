@@ -256,6 +256,7 @@ describe("Page Sources panel interactions", () => {
     const sort = shadow.querySelector<HTMLSelectElement>("select")!;
     sort.value = "invalid";
     sort.dispatchEvent(new Event("change"));
+    shadow.querySelector<HTMLButtonElement>(".facet")!.click();
     shadow.querySelector<HTMLElement>(".panel")!.dispatchEvent(
       new KeyboardEvent("keydown", {
         key: "Escape",
