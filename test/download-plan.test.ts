@@ -6,6 +6,7 @@ import {
   downloaded,
   getFilenameFromContentDispositionHeader,
   makeState,
+  OffscreenClient,
   options,
   Path,
   router,
@@ -93,6 +94,17 @@ describe("finalizeFullPath", () => {
     };
 
     expect(Download.finalizeFullPath(state)).toBe("abs/dir/route-file.txt");
+  });
+
+  test("keeps a folder route when no resolved filename is available", () => {
+    const state = makeState({
+      path: new Path.Path("downloads"),
+      route: new Path.Path("images/"),
+      routeIsFolder: true,
+      info: { filename: undefined },
+    });
+
+    expect(Download.finalizeFullPath(state)).toBe("downloads/images");
   });
 });
 
@@ -183,6 +195,20 @@ describe("renameAndDownload: MIME extension append (§8.1)", () => {
     expect(Download.finalizeFullPath(state)).toMatch(/photo\.png$/);
   });
 
+  test("leaves an extensionless name unchanged when MIME has no known extension", async () => {
+    setCurrentBrowser("CHROME");
+    options.appendMimeExtension = true;
+    options.filenamePatterns = [routingRule("actualfileext")];
+    vi.spyOn(Variable, "resolveMime").mockResolvedValue("application/x-unknown");
+    vi.spyOn(Variable, "mimeToExtension").mockReturnValue("");
+
+    const state = makeState({ info: { url: "https://cdn.example.com/download/12345" } });
+    await Download.renameAndDownload(state);
+
+    expect(state.info.mimeExtension).toBeUndefined();
+    expect(Download.finalizeFullPath(state)).toMatch(/12345$/);
+  });
+
   test("skips MIME extension lookup for an existing long extension", async () => {
     setCurrentBrowser("CHROME");
     options.appendMimeExtension = true;
@@ -250,6 +276,14 @@ describe("renameAndDownload: initial filename resolution", () => {
     ).rejects.toThrow("Download URL is required");
   });
 
+  test("tolerates a Path with no raw template", async () => {
+    const state = makeState({ path: new Path.Path(null) });
+
+    await Download.resolveDownloadPlan(state);
+
+    expect(state.scratch.pathTemplateRaw).toBeUndefined();
+  });
+
   test("prefers info.suggestedFilename over the URL-derived filename", async () => {
     setCurrentBrowser("CHROME");
     const state = makeState({ info: { suggestedFilename: "suggested.txt" } });
@@ -288,6 +322,7 @@ describe("renameAndDownload: needRouteMatch", () => {
   test("revokes content acquired during planning when route-exclusive skips", async () => {
     setCurrentBrowser("CHROME");
     vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {});
+    vi.spyOn(OffscreenClient, "release").mockResolvedValue(undefined);
     const state = makeState({
       needRouteMatch: true,
       info: {
@@ -295,6 +330,7 @@ describe("renameAndDownload: needRouteMatch", () => {
           sha256: "hash",
           downloadUrl: "blob:unused-content",
           ownedObjectUrl: "blob:unused-content",
+          offscreenRequestId: "unused-request",
         }),
       },
     });
@@ -302,7 +338,42 @@ describe("renameAndDownload: needRouteMatch", () => {
     await expect(Download.renameAndDownload(state)).resolves.toEqual({ status: "skipped" });
 
     expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:unused-content");
+    expect(OffscreenClient.release).toHaveBeenCalledWith("unused-request");
     expect(state.info.contentPromise).toBeUndefined();
+  });
+
+  test("tolerates missing object-URL cleanup support when a route is skipped", async () => {
+    setCurrentBrowser("CHROME");
+    const revokeObjectURL = URL.revokeObjectURL;
+    (URL as any).revokeObjectURL = undefined;
+    const state = makeState({
+      needRouteMatch: true,
+      info: {
+        contentPromise: Promise.resolve({
+          downloadUrl: "blob:unused-without-cleanup-api",
+          ownedObjectUrl: "blob:unused-without-cleanup-api",
+        }),
+      },
+    });
+
+    try {
+      await expect(Download.renameAndDownload(state)).resolves.toEqual({ status: "skipped" });
+    } finally {
+      URL.revokeObjectURL = revokeObjectURL;
+    }
+  });
+
+  test("revokes a generated URL when exclusive routing finds no match", async () => {
+    setCurrentBrowser("CHROME");
+    vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:exclusive-route-miss");
+    vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {});
+    const url = Download.makeObjectUrl("content");
+    const state = makeState({ needRouteMatch: true, info: { url } });
+
+    await expect(Download.renameAndDownload(state)).resolves.toEqual({ status: "skipped" });
+
+    expect(Download.generatedObjectUrls.has(url)).toBe(false);
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith(url);
   });
 
   test("cleans pending state and generated URLs when planning throws", async () => {

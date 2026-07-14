@@ -38,6 +38,22 @@ describe("renameAndDownload: shared :sha256: fetch reuse", () => {
     expect(global.browser.downloads.download).not.toHaveBeenCalled();
   });
 
+  test("holds one private preparation controller when history is disabled", async () => {
+    vi.mocked(SaveHistory.add).mockReturnValue(null);
+    const hold = vi.spyOn(ActiveTransfers, "hold");
+    const release = vi.spyOn(ActiveTransfers, "release");
+    vi.spyOn(Variable, "applyVariables").mockImplementationOnce(async (path, info) => {
+      await info?.onContentFetchStart?.("private-request");
+      return path as any;
+    });
+    const state = makeState({ info: { currentTab: { incognito: true } } });
+
+    await Download.renameAndDownload(state);
+
+    expect(hold).toHaveBeenCalledOnce();
+    expect(release).toHaveBeenCalledOnce();
+  });
+
   test("reuses the already-fetched download URL instead of fetching the file again", async () => {
     setCurrentBrowser("CHROME");
     const state = makeState({
@@ -61,6 +77,26 @@ describe("renameAndDownload: shared :sha256: fetch reuse", () => {
 
     await Download.renameAndDownload(state);
 
+    expect(global.browser.downloads.download).toHaveBeenCalledWith(
+      expect.objectContaining({ url: state.info.url }),
+    );
+  });
+
+  test("releases an unusable object URL from shared content", async () => {
+    setCurrentBrowser("CHROME");
+    vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {});
+    const state = makeState({
+      info: {
+        contentPromise: Promise.resolve({
+          downloadUrl: "",
+          ownedObjectUrl: "blob:unusable-content",
+        }),
+      },
+    });
+
+    await Download.renameAndDownload(state);
+
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:unusable-content");
     expect(global.browser.downloads.download).toHaveBeenCalledWith(
       expect.objectContaining({ url: state.info.url }),
     );
@@ -374,5 +410,39 @@ describe("renameAndDownload: fetchViaFetch", () => {
       OffscreenClient.canUse = origCanUse;
       OffscreenClient.fetchContent = origFetch;
     }
+  });
+
+  test("records a private fetch failure without exposing its URL in the shared log", async () => {
+    setCurrentBrowser("CHROME");
+    options.fetchViaFetch = true;
+    vi.mocked(SaveHistory.add).mockReturnValue(null);
+    vi.spyOn(OffscreenClient, "canUse").mockReturnValue(false);
+    global.fetch = vi.fn(() => Promise.reject(new Error("private fetch failed"))) as any;
+    const state = makeState({ info: { currentTab: { incognito: true } } });
+
+    await Download.renameAndDownload(state);
+
+    expect(Log.add).toHaveBeenCalledWith(
+      "fetch download failed",
+      expect.stringContaining("private fetch failed"),
+      { privateContext: true },
+    );
+  });
+
+  test("labels a private offscreen fetch failure", async () => {
+    setCurrentBrowser("CHROME");
+    options.fetchViaFetch = true;
+    vi.mocked(SaveHistory.add).mockReturnValue(null);
+    vi.spyOn(OffscreenClient, "canUse").mockReturnValue(true);
+    vi.spyOn(OffscreenClient, "fetchContent").mockRejectedValue(new Error("offscreen failed"));
+    const state = makeState({ info: { currentTab: { incognito: true } } });
+
+    await Download.renameAndDownload(state);
+
+    expect(Log.add).toHaveBeenCalledWith(
+      "offscreen fetch failed",
+      expect.stringContaining("offscreen failed"),
+      { privateContext: true },
+    );
   });
 });

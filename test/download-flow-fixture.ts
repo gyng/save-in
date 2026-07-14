@@ -79,6 +79,7 @@ Object.assign(hostBrowser, {
 // grab the same singleton instances it binds to.
 const { Download, registerDownloadListener } = await import("../src/downloads/download.ts");
 const { ActiveTransfers } = await import("../src/downloads/active-transfers.ts");
+const { BrowserDownloadRouting } = await import("../src/downloads/browser-downloads.ts");
 const { options } = await import("../src/config/options-data.ts");
 const router = await import("../src/routing/router.ts");
 const Variable = await import("../src/routing/variable.ts");
@@ -198,6 +199,7 @@ beforeEach(() => {
   // getMessage is never asserted; it only needs to echo the key
   (global.browser.i18n as any).getMessage = (key: string) => key;
   (global.browser.downloads as any).download = vi.fn(() => Promise.resolve(101));
+  (global.browser.downloads as any).cancel = vi.fn(() => Promise.resolve());
 
   global.fetch = vi.fn(() =>
     Promise.resolve({ headers: { has: () => false, get: () => null } }),
@@ -225,6 +227,7 @@ const fixtureSessionState = SessionState;
 
 export {
   ActiveTransfers,
+  BrowserDownloadRouting,
   fixtureBackgroundRuntime as backgroundRuntime,
   capturedDownloadChangedListener,
   capturedListener,

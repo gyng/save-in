@@ -1,6 +1,7 @@
 // Focused execution coverage extracted from the pipeline suite.
 import {
   backgroundRuntime,
+  ActiveTransfers,
   capturedDownloadChangedListener,
   capturedListener,
   Download,
@@ -11,6 +12,7 @@ import {
   Log,
   makeState,
   Notifier,
+  OffscreenClient,
   options,
   Path,
   router,
@@ -89,6 +91,101 @@ describe("renameAndDownload: browserDownload", () => {
     expect(Log.add).toHaveBeenCalledWith("downloads.download failed", "Error: disk full");
     await vi.waitFor(() => expect(sessionStore.siPendingDownloads).toBe(0));
     expect([...Download.pendingStates.values()].flat()).not.toContain(state);
+  });
+
+  test("releases offscreen content after a terminal browser rejection", async () => {
+    setCurrentBrowser("CHROME");
+    options.fallbackFetch = false;
+    vi.spyOn(OffscreenClient, "release").mockRejectedValue(new Error("worker stopped"));
+    vi.mocked(global.browser.downloads.download).mockRejectedValue(new Error("disk full"));
+    const state = makeState();
+    const plan = Download.createDownloadPlan(state);
+
+    await expect(
+      Download.executeBrowserDownload(plan, {
+        url: "blob:offscreen-content",
+        source: "fetched",
+        offscreenRequestId: "offscreen-request",
+      }),
+    ).resolves.toEqual({ status: "failed" });
+
+    expect(OffscreenClient.release).toHaveBeenCalledWith("offscreen-request");
+  });
+
+  test("uses the source URL when an empty-path browser download fails", async () => {
+    setCurrentBrowser("CHROME");
+    options.fallbackFetch = false;
+    vi.mocked(global.browser.downloads.download).mockRejectedValue(new Error("disk full"));
+    const state = makeState();
+    const plan = {
+      state,
+      finalFullPath: "",
+      prompt: false,
+      historyEntryId: "h-test",
+    };
+
+    await expect(
+      Download.executeBrowserDownload(plan, { url: state.info.url, source: "direct" }),
+    ).resolves.toEqual({ status: "failed" });
+
+    expect(Notifier.reportFailure).toHaveBeenCalledWith(
+      state.info.url,
+      expect.stringContaining("disk full"),
+    );
+  });
+
+  test("cancels a browser download when preparation is aborted as it starts", async () => {
+    setCurrentBrowser("CHROME");
+    vi.mocked(global.browser.downloads.cancel).mockRejectedValue(new Error("already stopped"));
+    vi.mocked(global.browser.downloads.download).mockImplementation(async () => {
+      expect(ActiveTransfers.cancel("h-test")).toBe(true);
+      return 101;
+    });
+    const state = makeState();
+
+    await expect(Download.renameAndDownload(state)).resolves.toEqual({ status: "skipped" });
+
+    expect(global.browser.downloads.cancel).toHaveBeenCalledWith(101);
+    expect(SaveHistory.setStatus).toHaveBeenCalledWith("h-test", "USER_CANCELED", 101);
+  });
+
+  test("rejects before browser setup when acquisition is already aborted", async () => {
+    const state = makeState();
+    const plan = Download.createDownloadPlan(state);
+    const signal = { aborted: true, reason: undefined } as AbortSignal;
+
+    await expect(
+      Download.executeBrowserDownload(plan, { url: state.info.url, source: "direct" }, signal),
+    ).rejects.toMatchObject({ name: "AbortError" });
+
+    expect(Notifier.expectDownload).not.toHaveBeenCalled();
+    expect(global.browser.downloads.download).not.toHaveBeenCalled();
+  });
+
+  test("treats an invalid acquired URL as ineligible for HTTP fallback", async () => {
+    setCurrentBrowser("CHROME");
+    const state = makeState({ info: { url: "not a URL" } });
+    const plan = Download.createDownloadPlan(state);
+
+    await expect(
+      Download.executeBrowserDownload(plan, { url: "not a URL", source: "direct" }),
+    ).resolves.toEqual({ status: "started", downloadId: 101 });
+
+    expect(downloadState.records.get(101)?.allowOriginalUrlFallback).toBe(false);
+  });
+
+  test("contains a browser rejection caused by cancellation", async () => {
+    setCurrentBrowser("CHROME");
+    vi.mocked(global.browser.downloads.download).mockImplementation(async () => {
+      expect(ActiveTransfers.cancel("h-test")).toBe(true);
+      throw new Error("aborted by browser");
+    });
+    const state = makeState();
+
+    await expect(Download.renameAndDownload(state)).resolves.toEqual({ status: "skipped" });
+
+    expect(SaveHistory.setStatus).toHaveBeenCalledWith("h-test", "USER_CANCELED");
+    expect(Notifier.reportFailure).not.toHaveBeenCalled();
   });
 
   test("does not fetch-retry a generated object URL after browser rejection", async () => {
@@ -793,6 +890,26 @@ describe("Download.launch (fire-and-forget with a user-facing failure)", () => {
       Download.renameAndDownload = orig;
     }
   });
+
+  test("keeps a private launch failure out of the shared log", async () => {
+    vi.spyOn(Download, "renameAndDownload").mockRejectedValue(new Error("private failure"));
+
+    await Download.launch(
+      makeState({
+        info: { currentTab: { incognito: true }, suggestedFilename: undefined, url: undefined },
+      }),
+    );
+
+    expect(Log.add).toHaveBeenCalledWith(
+      "renameAndDownload failed",
+      expect.stringContaining("private failure"),
+      { privateContext: true },
+    );
+    expect(Notifier.reportFailure).toHaveBeenCalledWith(
+      "",
+      expect.stringContaining("private failure"),
+    );
+  });
 });
 
 describe("terminal browserDownload failure surfaces to the user", () => {
@@ -841,6 +958,7 @@ describe("owned object URL lifecycle", () => {
 describe("private browsing persistence", () => {
   test("keeps private save metadata out of local and session storage", async () => {
     setCurrentBrowser("CHROME");
+    vi.mocked(SaveHistory.add).mockReturnValue(null);
     const state = makeState({ info: { currentTab: { incognito: true } } });
 
     await Download.renameAndDownload(state);
@@ -855,6 +973,7 @@ describe("private browsing persistence", () => {
       privateContext: true,
       adopted: true,
     });
+    expect(SaveHistory.setDownloadId).not.toHaveBeenCalled();
     expect(Log.add).not.toHaveBeenCalledWith("download requested", expect.anything());
     expect(downloaded).not.toHaveBeenCalled();
     expect(backgroundRuntime.lastDownloadState).toBeUndefined();

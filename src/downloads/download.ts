@@ -89,8 +89,7 @@ const addDownloadLog = (
     ? logPort.add(message, data, { privateContext: true })
     : logPort.add(message, data);
 
-const isHttpDownloadUrl = (value: string | undefined): boolean => {
-  if (!value) return false;
+const isHttpDownloadUrl = (value: string): boolean => {
   try {
     const protocol = new URL(value).protocol;
     return protocol === "https:" || protocol === "http:";
@@ -247,8 +246,7 @@ export const Download = {
     const bytes = new TextEncoder().encode(content);
     let binary = "";
     for (let i = 0; i < bytes.length; i += 1) {
-      const byte = bytes[i];
-      if (byte !== undefined) binary += String.fromCharCode(byte);
+      binary += String.fromCharCode(bytes[i]!);
     }
     return `data:${mime};charset=utf-8;base64,${btoa(binary)}`;
   },
@@ -289,11 +287,9 @@ export const Download = {
     if (finalFilename) {
       if (finalFilenameIsRoutePath) {
         const components = finalFilename.split("/");
-        const filename = components.pop();
-        if (filename != null) {
-          components.push(sanitizeFilename(filename, options.truncateLength, true, true));
-          finalFilename = components.join("/");
-        }
+        const filename = components.pop()!;
+        components.push(sanitizeFilename(filename, options.truncateLength, true, true));
+        finalFilename = components.join("/");
       } else {
         // Server-, URL-, and browser-derived names are one untrusted component.
         // Only explicit route paths may introduce destination subdirectories.
@@ -320,7 +316,7 @@ export const Download = {
     const filenamePatterns = Array.isArray(options.filenamePatterns)
       ? options.filenamePatterns
       : [];
-    if (!filenamePatterns || filenamePatterns.length === 0) {
+    if (filenamePatterns.length === 0) {
       return null;
     }
 
@@ -335,7 +331,7 @@ export const Download = {
   launch: (state: DownloadPipelineState): Promise<DownloadLaunchResult> =>
     Download.renameAndDownload(state).catch((e) => {
       addDownloadLog(state, "renameAndDownload failed", String(e));
-      const name = (state && state.info && (state.info.suggestedFilename || state.info.url)) || "";
+      const name = state.info.suggestedFilename || state.info.url || "";
       Notifier.reportFailure(name, String(e));
       return { status: "failed" as const };
     }),
@@ -400,7 +396,7 @@ export const Download = {
     if (
       options.appendMimeExtension !== false &&
       usesActualFileExtension &&
-      !EXTENSION_REGEX.test(state.info.filename || "")
+      !EXTENSION_REGEX.test(state.info.filename!)
     ) {
       const extension = mimeToExtension(await resolveMime(state.info));
       if (extension) {
@@ -420,7 +416,7 @@ export const Download = {
       state.path = new Path(".");
     state.path = await applyVariables(state.path, state.info);
     if (routeMatches) {
-      state.routeIsFolder = typeof routeMatches === "string" && /\/\s*$/.test(routeMatches);
+      state.routeIsFolder = /\/\s*$/.test(routeMatches);
       state.route = await applyVariables(new Path(routeMatches), state.info);
     }
     const routeRequired = state.needRouteMatch || options.routeExclusive;
@@ -444,9 +440,7 @@ export const Download = {
       const tentative =
         state.route && !state.routeIsFolder
           ? state.route.finalize({ finalComponentIsFilename: true })
-          : typeof state.info.filename === "string"
-            ? sanitizeFilename(state.info.filename, options.truncateLength, true, true)
-            : undefined;
+          : sanitizeFilename(state.info.filename!, options.truncateLength, true, true);
       if (tentative && !EXTENSION_REGEX.test(tentative)) {
         const ext = mimeToExtension(await resolveMime(state.info));
         if (ext) {
@@ -562,7 +556,7 @@ export const Download = {
       acquired.source === "direct" || acquired.source === "fetch-fallback-direct"
         ? RequestHeaders.getDownloadHeaders(state)
         : undefined;
-    const allowOriginalUrlFallback = !headers && isHttpDownloadUrl(state.info.url);
+    const allowOriginalUrlFallback = !headers && isHttpDownloadUrl(requireDownloadUrl(state));
     const deferredRouteRecovery = state.scratch.deferredRouteRequirement
       ? createDeferredRouteRecovery(state)
       : undefined;
@@ -678,7 +672,7 @@ export const Download = {
       } else {
         Download.forgetPendingState(state);
         await historyPort.setStatus(historyEntryId, "DOWNLOAD_API_FAILED");
-        Notifier.reportFailure(finalFullPath || state.info.url || "", String(e));
+        Notifier.reportFailure(finalFullPath || requireDownloadUrl(state), String(e));
         return { status: "failed" };
       }
     } finally {
@@ -738,7 +732,7 @@ export const Download = {
       }
     };
     state.info.onContentFetchStart = (requestId) => {
-      const preliminaryPath = state.info.filename || getFilenameFromUrl(state.info.url || "");
+      const preliminaryPath = state.info.filename!;
       ensureHistoryEntry(state, preliminaryPath);
       registerTransfer(requestId);
       // Make an open options page render the cancellable preparation row.
@@ -776,7 +770,7 @@ export const Download = {
       if ((state.needRouteMatch || options.routeExclusive) && options.notifyOnFailure) {
         Notifier.createExtensionNotification(
           getMessage("notificationRuleMatchFailedExclusiveTitle"),
-          getMessage("notificationRuleMatchFailedExclusiveMessage", [state.info.url ?? ""]),
+          getMessage("notificationRuleMatchFailedExclusiveMessage", [requireDownloadUrl(state)]),
           true,
           EXTENSION_NOTIFICATION_STREAMS.ROUTE_MISS,
         );
@@ -805,7 +799,7 @@ export const Download = {
       }
       await historyPort.setStatus(plan.historyEntryId, "DOWNLOAD_PREPARATION_FAILED");
       addDownloadLog(state, "download preparation failed", String(error));
-      Notifier.reportFailure(plan.finalFullPath || state.info.url || "", String(error));
+      Notifier.reportFailure(plan.finalFullPath || requireDownloadUrl(state), String(error));
       finishPreparation();
       return { status: "failed" };
     }

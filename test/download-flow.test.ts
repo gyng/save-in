@@ -1,11 +1,13 @@
 // End-to-end smoke coverage for the explicit resolve/acquire/download pipeline.
 import {
   capturedListener,
+  BrowserDownloadRouting,
   Download,
   downloadState,
   makeState,
   Notifier,
   options,
+  Path,
   SaveHistory,
   setCurrentBrowser,
 } from "./download-flow-fixture.ts";
@@ -19,6 +21,27 @@ describe("pipeline stages", () => {
     expect(SaveHistory.add).toHaveBeenCalledWith(expect.any(Object), {
       privateContext: true,
     });
+  });
+
+  test("updates an existing history row when planning is repeated", () => {
+    const state = makeState();
+    Download.createDownloadPlan(state);
+    Download.createDownloadPlan(state);
+
+    expect(SaveHistory.add).toHaveBeenCalledOnce();
+    expect(SaveHistory.patch).toHaveBeenCalledWith(
+      "h-test",
+      expect.objectContaining({ finalFullPath: "downloads" }),
+    );
+  });
+
+  test("registers the ordinary browser-download routing adapter", async () => {
+    await expect(
+      BrowserDownloadRouting.route({
+        url: "https://example.test/file.png",
+        filename: "file.png",
+      }),
+    ).resolves.toBeNull();
   });
 
   test("runs RESOLVE, ACQUIRE, and DOWNLOAD in order with explicit values", async () => {
@@ -72,6 +95,26 @@ describe("pipeline stages", () => {
     expect(SaveHistory.setStatus).toHaveBeenCalledWith("h-test", "DOWNLOAD_PREPARATION_FAILED");
     expect(Notifier.reportFailure).toHaveBeenCalledWith(
       "downloads/file.png",
+      expect.stringContaining("content unavailable"),
+    );
+  });
+
+  test("revokes a generated URL when acquisition fails", async () => {
+    vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:failed-acquisition");
+    vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {});
+    vi.mocked(Path.sanitizeFilename).mockReturnValue(null as any);
+    const url = Download.makeObjectUrl("content");
+    const state = makeState({
+      path: { finalize: () => null },
+      info: { url, contentPromise: Promise.reject(new Error("content unavailable")) },
+    });
+
+    await expect(Download.renameAndDownload(state)).resolves.toEqual({ status: "failed" });
+
+    expect(Download.generatedObjectUrls.has(url)).toBe(false);
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith(url);
+    expect(Notifier.reportFailure).toHaveBeenCalledWith(
+      url,
       expect.stringContaining("content unavailable"),
     );
   });
