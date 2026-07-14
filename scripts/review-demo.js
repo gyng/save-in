@@ -18,6 +18,25 @@ const DEMO_PHOTO = fs.readFileSync(
   path.join(chrome.ROOT, "docs", "store-assets", "demo-photo.avif"),
 );
 
+const reviewTimestamp = () => `[${new Date().toLocaleTimeString()}]`;
+/** @param {typeof console.log} output @param {unknown[]} values */
+const writeReviewMessage = (output, values) => {
+  let prefix = reviewTimestamp();
+  const first = values[0];
+  if (typeof first === "string") {
+    const leadingLineBreaks = first.match(/^\n+/)?.[0] ?? "";
+    if (leadingLineBreaks) {
+      prefix = `${leadingLineBreaks}${prefix}`;
+      values = [first.slice(leadingLineBreaks.length), ...values.slice(1)];
+    }
+  }
+  output(prefix, ...values);
+};
+/** @param {...unknown} values */
+const reviewLog = (...values) => writeReviewMessage(console.log, values);
+/** @param {...unknown} values */
+const reviewError = (...values) => writeReviewMessage(console.error, values);
+
 const SHOWCASE_PATHS = [
   ".",
   "images // (alias: Images)",
@@ -392,7 +411,7 @@ const main = async () => {
   let exitCode = 0;
 
   try {
-    console.log("Launching Chrome (throwaway review profile)...");
+    reviewLog("Launching Chrome (throwaway review profile)...");
     browser = await chrome.launch({
       profileDir: PROFILE,
       fresh: true,
@@ -452,14 +471,14 @@ const main = async () => {
         try {
           do {
             pendingReload = false;
-            console.log("\nRestaging and reloading the review extension...");
+            reviewLog("\nRestaging and reloading the review extension...");
             try {
               const result = await reloadReviewSession(port, demoPort);
-              console.log(
+              reviewLog(
                 `Reloaded ${result.extensionId} (${result.optionsTabs} options tab, ${result.demoTabs} demo tab).`,
               );
             } catch (error) {
-              console.error(
+              reviewError(
                 `Reload failed: ${error instanceof Error ? error.message : String(error)}`,
               );
             }
@@ -490,7 +509,7 @@ const main = async () => {
         if (hotReloadEnabled) return;
         cleanupHotReload = installHotReload(requestReload);
         hotReloadEnabled = true;
-        console.log(
+        reviewLog(
           "\nHot reload enabled. Watching source, icons, locales, manifest, and bundle config.",
         );
       },
@@ -501,7 +520,7 @@ const main = async () => {
       cleanupControls = installedControls;
     }
 
-    console.log(`
+    reviewLog(`
 Extension loaded: ${extensionId}
 Downloads land in: ${downloadDir}
 
@@ -516,7 +535,7 @@ ${installedControls ? "Press h to enable hot reload, r to reload once, or Ctrl+C
 
     await exited;
     cleanupControls();
-    console.log("Chrome closed");
+    reviewLog("Chrome closed");
     return exitCode;
   } finally {
     cleanupHotReload();
@@ -532,7 +551,7 @@ if (require.main === module) {
       process.exitCode = exitCode;
     },
     (error) => {
-      console.error(error);
+      reviewError(error);
       process.exitCode = 1;
     },
   );
