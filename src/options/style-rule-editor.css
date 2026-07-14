@@ -262,15 +262,16 @@
 }
 
 .rule-editor-card-action-menu .danger-button {
-  color: var(--color-on-accent);
-  border-color: var(--color-danger);
-  background: var(--color-danger);
+  color: var(--color-danger);
+  border-color: transparent;
+  background: transparent;
 }
 
 .rule-editor-card-action-menu .danger-button:hover,
 .rule-editor-card-action-menu .danger-button:active {
-  border-color: var(--color-danger-active);
-  background: var(--color-danger-active);
+  color: var(--color-danger-active);
+  border-color: transparent;
+  background: transparent;
 }
 
 .rule-clause-row {
