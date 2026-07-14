@@ -13,6 +13,8 @@ import { isPageSourceKind } from "../shared/page-source.ts";
 
 type MessageSubstitutions = string | number | Array<string | number>;
 
+const RUNNING_MESSAGE_DELAY_MS = 150;
+
 const noop = (): void => {};
 let refreshLatestDownloadFromEvent = noop;
 
@@ -501,10 +503,16 @@ export const setupRouteDebugger = (): void => {
     const mine = ++generation;
     hasRun = true;
     runButton.disabled = true;
-    const hasTrace = result.querySelector(".route-debugger-rule") !== null;
+    const hasResult = result.childElementCount > 0;
     result.dataset.busy = "true";
     result.setAttribute("aria-busy", "true");
-    if (!hasTrace) renderMessage("running", localize("routeDebuggerRunning", "Testing routes…"));
+    const runningMessageTimer = hasResult
+      ? null
+      : window.setTimeout(() => {
+          if (mine === generation) {
+            renderMessage("running", localize("routeDebuggerRunning", "Testing routes…"));
+          }
+        }, RUNNING_MESSAGE_DELAY_MS);
     try {
       const requestValidation = async () => {
         const response = await sendInternalMessage(webExtensionApi.runtime, {
@@ -558,6 +566,7 @@ export const setupRouteDebugger = (): void => {
         localize("routeDebuggerUnavailable", "Could not run the route debugger."),
       );
     } finally {
+      if (runningMessageTimer !== null) window.clearTimeout(runningMessageTimer);
       if (mine === generation) {
         runButton.disabled = false;
         delete result.dataset.busy;

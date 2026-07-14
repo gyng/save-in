@@ -363,6 +363,34 @@ test("returns before wiring an incomplete workbench", () => {
   expect(() => refreshRouteDebuggerLatestDownload()).not.toThrow();
 });
 
+test("does not flash the pending result for a fast rule test", async () => {
+  vi.useFakeTimers();
+  renderWorkbench();
+  let resolveValidation!: (value: unknown) => void;
+  vi.spyOn(webExtensionApi.runtime, "sendMessage").mockImplementation((message: any) => {
+    if (message.type === MESSAGE_TYPES.CHECK_ROUTES) return Promise.resolve(checkResponse());
+    return new Promise((resolve) => {
+      resolveValidation = resolve;
+    });
+  });
+
+  setupRouteDebugger();
+  document.querySelector<HTMLButtonElement>("#route-debugger-run")!.click();
+
+  const result = document.querySelector<HTMLElement>("#route-debugger-result")!;
+  expect(result.dataset.state).toBe("empty");
+  expect(result.childElementCount).toBe(0);
+
+  resolveValidation({
+    type: MESSAGE_TYPES.VALIDATE_RESULT,
+    body: { version: 1, ruleErrors: [], ruleTrace: noMatchTrace },
+  });
+  await vi.runAllTimersAsync();
+
+  expect(result.dataset.state).toBe("no-match");
+  expect(result.textContent).toBe("No routing rule matched.");
+});
+
 test("prefills the sample when no latest download is available", async () => {
   renderWorkbench();
   vi.spyOn(webExtensionApi.runtime, "sendMessage").mockResolvedValue(checkResponse());
