@@ -19,11 +19,11 @@ export const setupPathInsertMenu = (
   };
   const lineButtons = [...menu.querySelectorAll<HTMLElement>("[data-insert-line]")];
   lineButtons
-    .toSorted((a, b) => compareClauses(a.dataset.insertLine || "", b.dataset.insertLine || ""))
-    .forEach((button) => button.parentElement?.append(button));
+    .toSorted((a, b) => compareClauses(a.dataset.insertLine!, b.dataset.insertLine!))
+    .forEach((button) => button.parentElement!.append(button));
   lineButtons.forEach((button) => {
     button.addEventListener("click", () => {
-      insertLine(textarea, button.dataset.insertLine ?? "");
+      insertLine(textarea, button.dataset.insertLine!);
       closeMenu();
     });
   });
@@ -99,7 +99,7 @@ export const setupPathInsertMenu = (
         row.append(syntaxCell, description);
         clauseBody.append(row);
         button.addEventListener("click", () => {
-          insertLine(textarea, button.dataset.insertLine ?? "");
+          insertLine(textarea, button.dataset.insertLine!);
           closeMenu();
         });
         clauseButtons.push(button);
@@ -113,9 +113,9 @@ export const setupPathInsertMenu = (
     buttons.forEach((button) => {
       const row = button.closest<HTMLTableRowElement>("tr");
       if (row) {
-        row.hidden = Boolean(query) && !row.textContent?.toLocaleLowerCase().includes(query);
+        row.hidden = Boolean(query) && !row.textContent.toLocaleLowerCase().includes(query);
       } else {
-        button.hidden = Boolean(query) && !button.textContent?.toLocaleLowerCase().includes(query);
+        button.hidden = Boolean(query) && !button.textContent.toLocaleLowerCase().includes(query);
       }
     });
     clauseBody
