@@ -384,6 +384,15 @@ describe("message protocol runtime validation", () => {
         }),
       ).toEqual({ info: { currentTab: { url: "https://x/" } } });
     }
+    for (const id of [Number.NaN, -1, 1.5, Number.MAX_SAFE_INTEGER + 1]) {
+      expect(
+        toWireDownloadState({
+          path: {} as never,
+          scratch: {},
+          info: { currentTab: { id, title: "Page" } },
+        }),
+      ).toEqual({ info: { currentTab: { title: "Page" } } });
+    }
     expect(toWireDownloadState({ path: {} as never, scratch: {}, info: {} })).toEqual({ info: {} });
   });
 
@@ -411,6 +420,11 @@ describe("message protocol runtime validation", () => {
         },
       }),
     ).toEqual({ info: { currentTab: {} } });
+    for (const id of [Number.NaN, -1, 1.5, Number.MAX_SAFE_INTEGER + 1]) {
+      expect(fromWireDownloadState({ info: { currentTab: { id, title: "Page" } } })).toEqual({
+        info: { currentTab: { title: "Page" } },
+      });
+    }
     expect(fromWireDownloadState({ info: {} })).toEqual({ info: {} });
   });
 
@@ -450,7 +464,10 @@ describe("message protocol runtime validation", () => {
     { info: { counter: 1.5 } },
     { info: { counter: Number.MAX_SAFE_INTEGER + 1 } },
     { info: { now: 2 } },
+    { info: { currentTab: { id: Number.NaN } } },
+    { info: { currentTab: { id: -1 } } },
     { info: { currentTab: { id: 1.5 } } },
+    { info: { currentTab: { id: Number.MAX_SAFE_INTEGER + 1 } } },
     { info: { currentTab: { incognito: "yes" } } },
     { info: {}, path: 2 },
     { info: {}, route: 2 },

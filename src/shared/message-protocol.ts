@@ -89,6 +89,8 @@ const WIRE_INFO_STRING_FIELDS = [
 
 const isRoutingCounter = (value: unknown): value is number =>
   typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
+const isBrowserTabId = (value: unknown): value is number =>
+  typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
 
 export const toWireDownloadState = (state: DownloadPipelineState): WireDownloadState => {
   const info: WireDownloadInfo = {};
@@ -117,7 +119,7 @@ export const toWireDownloadState = (state: DownloadPipelineState): WireDownloadS
     info.currentTab = null;
   } else if (tab) {
     const currentTab: WireCurrentTab = {};
-    if (typeof tab.id === "number") currentTab.id = tab.id;
+    if (isBrowserTabId(tab.id)) currentTab.id = tab.id;
     if (typeof tab.title === "string") currentTab.title = tab.title;
     if (typeof tab.url === "string") currentTab.url = tab.url;
     if (typeof tab.incognito === "boolean") currentTab.incognito = tab.incognito;
@@ -140,7 +142,7 @@ export const fromWireDownloadState = (state: WireDownloadState): { info: Downloa
     currentTab = null;
   } else if (wireCurrentTab) {
     const tab: NonNullable<DownloadInfo["currentTab"]> = {};
-    if (typeof wireCurrentTab.id === "number") tab.id = wireCurrentTab.id;
+    if (isBrowserTabId(wireCurrentTab.id)) tab.id = wireCurrentTab.id;
     if (typeof wireCurrentTab.title === "string") tab.title = wireCurrentTab.title;
     if (typeof wireCurrentTab.url === "string") tab.url = wireCurrentTab.url;
     if (typeof wireCurrentTab.incognito === "boolean") tab.incognito = wireCurrentTab.incognito;
@@ -490,8 +492,7 @@ const isDownloadInfo = (value: unknown): boolean => {
 const isWireCurrentTab = (value: unknown): boolean =>
   isStringKeyedRecord(value) &&
   ["title", "url"].every((key) => hasOptionalString(value, key)) &&
-  (typeof value.id === "undefined" ||
-    (typeof value.id === "number" && Number.isSafeInteger(value.id))) &&
+  (typeof value.id === "undefined" || isBrowserTabId(value.id)) &&
   (typeof value.incognito === "undefined" || typeof value.incognito === "boolean");
 
 const isValidationInfo = (value: unknown): value is ValidationInfo =>
