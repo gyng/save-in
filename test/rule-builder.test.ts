@@ -119,6 +119,20 @@ describe("guided input", () => {
       ),
     );
   });
+
+  test("ignores guided controls attached to the wrong element types", () => {
+    document.body.innerHTML = `
+      <div id="filenamePatterns"></div>
+      <div id="rule-builder-matcher"></div>
+      <div id="rule-builder-pattern"></div>
+      <div id="rule-builder-into"></div>
+      <div id="rule-builder-add"></div>`;
+    const sendMessage = vi.fn();
+    global.browser.runtime.sendMessage = sendMessage;
+
+    expect(RuleBuilder.setupGuidedInput()).toBeUndefined();
+    expect(sendMessage).not.toHaveBeenCalled();
+  });
 });
 
 describe("template list rendering", () => {
@@ -238,6 +252,13 @@ describe("template list rendering", () => {
     expect(RuleBuilder.renderTemplates()).toBeUndefined();
     document.body.innerHTML = '<textarea id="filenamePatterns"></textarea>';
     expect(RuleBuilder.renderTemplates()).toBeUndefined();
+  });
+
+  test("ignores a template library paired with a non-textarea rules element", () => {
+    document.body.innerHTML = '<div id="filenamePatterns"></div><div id="rule-templates"></div>';
+
+    expect(RuleBuilder.renderTemplates()).toBeUndefined();
+    expect(document.querySelector(".rule-template")).toBeNull();
   });
 
   test("the feedback action closes the reference and navigates to the rules editor", () => {

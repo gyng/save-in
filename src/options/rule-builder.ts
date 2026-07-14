@@ -53,12 +53,18 @@ export const RuleBuilder = {
   },
 
   setupGuidedInput: () => {
-    const textarea = document.querySelector("#filenamePatterns") as HTMLTextAreaElement;
-    const matcher = document.querySelector("#rule-builder-matcher") as HTMLSelectElement;
-    const pattern = document.querySelector("#rule-builder-pattern") as HTMLInputElement;
-    const into = document.querySelector("#rule-builder-into") as HTMLInputElement;
-    const add = document.querySelector("#rule-builder-add") as HTMLButtonElement;
-    if (!textarea || !matcher || !pattern || !into || !add) {
+    const textarea = document.getElementById("filenamePatterns");
+    const matcher = document.getElementById("rule-builder-matcher");
+    const pattern = document.getElementById("rule-builder-pattern");
+    const into = document.getElementById("rule-builder-into");
+    const add = document.getElementById("rule-builder-add");
+    if (
+      !(textarea instanceof HTMLTextAreaElement) ||
+      !(matcher instanceof HTMLSelectElement) ||
+      !(pattern instanceof HTMLInputElement) ||
+      !(into instanceof HTMLInputElement) ||
+      !(add instanceof HTMLButtonElement)
+    ) {
       return;
     }
 
@@ -115,8 +121,8 @@ export const RuleBuilder = {
         document.querySelectorAll<HTMLElement>("[data-rule-template-library], #rule-templates"),
       ),
     ];
-    const textarea = document.querySelector("#filenamePatterns") as HTMLTextAreaElement;
-    if (containers.length === 0 || !textarea) {
+    const textarea = document.getElementById("filenamePatterns");
+    if (containers.length === 0 || !(textarea instanceof HTMLTextAreaElement)) {
       return;
     }
 
