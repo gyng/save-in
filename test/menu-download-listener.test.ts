@@ -294,7 +294,7 @@ describe("addDownloadListener", () => {
 
     expect(Notifier.createExtensionNotification).toHaveBeenCalledWith(
       "Translated<notificationBadPreferLinksPattern>",
-      expect.any(SyntaxError),
+      expect.stringContaining("Invalid regular expression"),
       undefined,
       "prefer-links-pattern-error",
     );

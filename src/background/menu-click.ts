@@ -51,7 +51,7 @@ type ClickTarget = {
   suggestedFilename: string | null;
   selectionText: string | null;
   notifyLinkPreferred: boolean;
-  badPatternError: unknown | null;
+  badPatternError: Error | null;
 };
 
 // Pure decision: what does a click on a path item save? Returns the download
@@ -192,7 +192,7 @@ export const handleContextMenuClick = async (
     if (target.badPatternError) {
       Notifier.createExtensionNotification(
         getMessage("notificationBadPreferLinksPattern"),
-        target.badPatternError as string,
+        target.badPatternError.message,
         undefined,
         EXTENSION_NOTIFICATION_STREAMS.PREFER_LINKS_PATTERN_ERROR,
       );
@@ -219,19 +219,20 @@ export const handleContextMenuClick = async (
         comment = menuState.lastUsedMeta.comment;
         menuIndex = menuState.lastUsedMeta.menuIndex;
       }
-    } else {
-      const mappedMenu = menuInfo!;
-      saveIntoPath = mappedMenu.parsedDir;
-      const title = mappedMenu.title || saveIntoPath;
+    } else if (menuInfo) {
+      saveIntoPath = menuInfo.parsedDir;
+      const title = menuInfo.title || saveIntoPath;
       selectedLocation = {
         path: saveIntoPath,
         meta: {
-          comment: mappedMenu.comment,
-          menuIndex: mappedMenu.menuIndex,
+          comment: menuInfo.comment,
+          menuIndex: menuInfo.menuIndex,
           title,
         },
         title,
       };
+    } else {
+      return;
     }
 
     const parsedPath = new Path(saveIntoPath);
