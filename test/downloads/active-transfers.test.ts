@@ -45,6 +45,17 @@ test("keeps the service worker alive while a transfer is active", async () => {
   expect(getPlatformInfo).not.toHaveBeenCalled();
 });
 
+test("keeps transfers alive when the host has no platform-info capability", async () => {
+  vi.useFakeTimers();
+  Object.assign(globalThis.browser.runtime, { getPlatformInfo: undefined });
+  const controller = new AbortController();
+
+  ActiveTransfers.register("h1", controller);
+  await vi.advanceTimersByTimeAsync(25_000);
+
+  ActiveTransfers.finish("h1", controller);
+});
+
 test("updates a registration in place and exposes only durable fields", async () => {
   vi.useFakeTimers();
   vi.setSystemTime(new Date("2026-01-01T00:00:00Z"));

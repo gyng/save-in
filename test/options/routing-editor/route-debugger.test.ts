@@ -587,6 +587,43 @@ test("retries one transient validation failure", async () => {
   expect(validations).toBe(2);
 });
 
+test("announces a validation request that remains in progress", async () => {
+  vi.useFakeTimers();
+  renderWorkbench();
+  vi.spyOn(webExtensionApi.runtime, "sendMessage").mockImplementation((message: any) =>
+    message.type === MESSAGE_TYPES.CHECK_ROUTES
+      ? Promise.resolve(checkResponse())
+      : new Promise(() => {}),
+  );
+  setupRouteDebugger();
+
+  document.querySelector<HTMLButtonElement>("#route-debugger-run")!.click();
+  await vi.advanceTimersByTimeAsync(150);
+
+  expect(document.querySelector<HTMLElement>("#route-debugger-result")?.dataset.state).toBe(
+    "running",
+  );
+});
+
+test("does not announce a request cleared before the progress delay", async () => {
+  vi.useFakeTimers();
+  renderWorkbench();
+  vi.spyOn(webExtensionApi.runtime, "sendMessage").mockImplementation((message: any) =>
+    message.type === MESSAGE_TYPES.CHECK_ROUTES
+      ? Promise.resolve(checkResponse())
+      : new Promise(() => {}),
+  );
+  setupRouteDebugger();
+
+  document.querySelector<HTMLButtonElement>("#route-debugger-run")!.click();
+  document.querySelector<HTMLButtonElement>("#route-debugger-clear")!.click();
+  await vi.advanceTimersByTimeAsync(150);
+
+  expect(document.querySelector<HTMLElement>("#route-debugger-result")?.dataset.state).toBe(
+    "empty",
+  );
+});
+
 test("renders blocking errors while ignoring warnings", async () => {
   renderWorkbench();
   let blocking = true;

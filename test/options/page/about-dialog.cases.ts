@@ -28,6 +28,20 @@ test("opens and closes the About dialog", () => {
   expect(document.activeElement).toBe(document.querySelector("summary"));
 });
 
+test("returns focus to a standalone opener and tolerates its removal", () => {
+  document.body.innerHTML = `
+    <button id="about-open">About</button>
+    <dialog id="about-dialog"><button class="about-close">Close</button></dialog>`;
+  const open = document.querySelector<HTMLButtonElement>("#about-open")!;
+  const dialog = document.querySelector<HTMLDialogElement>("dialog")!;
+  dialog.showModal = vi.fn(() => dialog.setAttribute("open", ""));
+  setupAboutDialog();
+
+  open.click();
+  open.remove();
+  expect(() => dialog.dispatchEvent(new Event("close"))).not.toThrow();
+});
+
 test("opens the welcome guide from About", () => {
   document.body.innerHTML = `
     <span id="lastSavedAt">Saved</span>

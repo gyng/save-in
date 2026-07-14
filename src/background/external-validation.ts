@@ -120,6 +120,7 @@ export const isSafeExternalRegex = (regex: RegExp): boolean => {
   let inCharacterClass = false;
   for (let index = 0; index < source.length; index += 1) {
     const token = source[index];
+    /* v8 ignore next -- The loop bound guarantees a character at this index. */
     if (token === undefined) return false;
     if (token === "\\") {
       const escaped = source[index + 1];
@@ -149,16 +150,19 @@ export const isSafeExternalRegex = (regex: RegExp): boolean => {
     }
     if (token === ")" && groups.length > 1) {
       const group = groups.pop();
+      /* v8 ignore next -- The guarded stack depth guarantees a group to pop. */
       if (!group) return false;
       const repeated = repeatingQuantifierAt(source, index + 1);
       if (repeated && (group.hasAlternation || group.hasQuantifier)) return false;
       const parent = groups.at(-1);
+      /* v8 ignore next -- The root group is never popped. */
       if (!parent) return false;
       parent.hasAlternation ||= group.hasAlternation;
       parent.hasQuantifier ||= group.hasQuantifier || repeated;
       continue;
     }
     const current = groups.at(-1);
+    /* v8 ignore next -- The root group keeps the stack non-empty. */
     if (!current) return false;
     if (token === "|") current.hasAlternation = true;
     if (

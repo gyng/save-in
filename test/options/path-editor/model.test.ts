@@ -110,6 +110,7 @@ describe("path editor model", () => {
   test("treats invalid and same-row moves as no-ops", () => {
     expect(edit("a\nb\nc", (nodes) => dropPathNode(nodes, 1, 1, "inside"))).toBe("a\nb\nc");
     expect(edit("a\nb\nc", (nodes) => reorderPathNode(nodes, 0, -1))).toBe("a\nb\nc");
+    expect(edit("a\nb\nc", (nodes) => deletePathNode(nodes, 9))).toBe("a\nb\nc");
   });
 
   test("normalizes keyboard reordering and promotes children when a parent is deleted", () => {

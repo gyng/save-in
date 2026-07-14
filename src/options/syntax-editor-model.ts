@@ -236,11 +236,13 @@ const routingSnapshot = (source: string, lines: readonly SyntaxLine[]): SyntaxSn
       addRoutingClauseTokens(source, line, tokens);
     } else if (line.kind === "comment") {
       const { delimiter, content } = line.cst;
+      /* v8 ignore next -- Comment nodes always contain their delimiter fragment. */
       if (delimiter) {
         tokens.push(
           token("comment-delimiter", delimiter.span.start.offset, delimiter.span.end.offset),
         );
       }
+      /* v8 ignore next -- Comment nodes always contain their content fragment. */
       if (content) {
         tokens.push(token("comment", content.span.start.offset, content.span.end.offset));
       }
@@ -251,6 +253,7 @@ const routingSnapshot = (source: string, lines: readonly SyntaxLine[]): SyntaxSn
     }
   }
   const diagnostics = parsed.issues.map((issue) => {
+    /* v8 ignore next -- Syntax lines are derived one-for-one from the same source. */
     const line = lines[issue.line - 1] ?? {
       number: issue.line,
       start: issue.span.start.offset,

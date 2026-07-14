@@ -245,6 +245,7 @@ export const Notifier = {
       return;
     if (expectedIndex !== -1) {
       const [matched] = expectedDownloads.splice(expectedIndex, 1);
+      /* v8 ignore next -- A valid index into expectedDownloads always removes one record. */
       if (!matched) return;
       const observedBrowserDownload = matched.record?.observedBrowserDownload === true;
       await mergeTrackedDownload(item.id, {

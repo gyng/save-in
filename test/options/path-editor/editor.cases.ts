@@ -361,6 +361,38 @@ describe("visual editor", () => {
     expect(controls(0, "outdent").getAttribute("aria-label")).toBe("Outdent B");
   });
 
+  test("move controls reorder rows in both directions", () => {
+    controls(0, "move down").click();
+    expect(textarea().value).toBe("b // (alias: B)\na\n---");
+
+    controls(1, "move up").click();
+    expect(textarea().value).toBe("a\nb // (alias: B)\n---");
+  });
+
+  test("contains stale row controls and same-row drops after a rebuild", () => {
+    const staleHandle = rows()[2]!.querySelector<HTMLElement>(".path-editor-handle")!;
+    const staleEnabled = rows()[2]!.querySelector<HTMLInputElement>(".path-editor-enabled")!;
+    const staleAlias = rows()[1]!.querySelector<HTMLInputElement>(".path-editor-alias")!;
+    const staleAccessKey = rows()[1]!.querySelector<HTMLInputElement>(
+      ".path-editor-access-key-input",
+    )!;
+    const staleOutdent = controls(1, "outdent");
+
+    staleHandle.dispatchEvent(new Event("dragstart"));
+    rows()[2]!.dispatchEvent(new Event("drop", { cancelable: true }));
+
+    textarea().value = "only-one";
+    textarea().dispatchEvent(new InputEvent("input", { bubbles: true }));
+    vi.advanceTimersByTime(500);
+
+    staleHandle.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", altKey: true }));
+    staleEnabled.dispatchEvent(new Event("change"));
+    staleAlias.dispatchEvent(new InputEvent("input"));
+    staleAccessKey.dispatchEvent(new InputEvent("input"));
+    staleOutdent.click();
+    expect(textarea().value).toBe("only-one");
+  });
+
   test("keyboard nesting, enabled state, and directory edits commit", () => {
     rows()[0]!
       .querySelector<HTMLElement>(".path-editor-handle")!

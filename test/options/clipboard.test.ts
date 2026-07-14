@@ -27,6 +27,20 @@ test("click-to-copy delegates the element text", async () => {
   expect(element.tabIndex).toBe(0);
 });
 
+test("click-to-copy preserves a caller-provided accessible label", () => {
+  const element = document.createElement("code");
+  element.textContent = ":filename:";
+  element.setAttribute("aria-label", "Copy the filename variable");
+
+  addClickToCopy(
+    element,
+    vi.fn(async () => undefined),
+  );
+
+  expect(element.getAttribute("aria-label")).toBe("Copy the filename variable");
+  expect(element.title).toBe("Copy the filename variable");
+});
+
 test("click-to-copy supports keyboard activation and announces success", async () => {
   const element = document.createElement("code");
   element.textContent = "extension-id";
@@ -44,6 +58,28 @@ test("click-to-copy supports keyboard activation and announces success", async (
       "Translated<sourcePanelCopied>",
     ),
   );
+});
+
+test("click-to-copy ignores unrelated keys, uses fallback status copy, and clears feedback", async () => {
+  vi.useFakeTimers();
+  vi.mocked(browser.i18n.getMessage).mockReturnValue("");
+  const element = document.createElement("code");
+  element.textContent = "extension-id";
+  document.body.append(element);
+  const copy = vi.fn(async () => undefined);
+  addClickToCopy(element, copy);
+
+  element.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+  expect(copy).not.toHaveBeenCalled();
+
+  element.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter" }));
+  await Promise.resolve();
+  expect(element.classList).toContain("copied");
+  expect(document.querySelector("#copy-to-clipboard-status")?.textContent).toBe("Copied");
+
+  await vi.advanceTimersByTimeAsync(1_000);
+  expect(element.classList).not.toContain("copied");
+  vi.useRealTimers();
 });
 
 test("click-to-copy setup is idempotent", async () => {

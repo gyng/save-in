@@ -46,6 +46,7 @@ export const createManualEditorState = (unsavedLabel: string | (() => string)) =
       ),
     ];
     const firstActionRow = actionRows[0];
+    /* v8 ignore next -- Connected action buttons always contribute a parent row. */
     if (!firstActionRow) return;
     const visualSurfaces = buttons
       .map((button) => button.closest<HTMLElement>("#paths-visual, #rules-visual"))
@@ -77,6 +78,7 @@ export const createManualEditorState = (unsavedLabel: string | (() => string)) =
       return status;
     });
     const firstStatus = statuses[0];
+    /* v8 ignore next -- Each non-empty action-row list produces one status. */
     if (!firstStatus) return;
     const saveStatus = document.createElement("span");
     saveStatus.className = "editor-save-status";

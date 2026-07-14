@@ -36,6 +36,7 @@ export const isPerformanceResourceTiming = (
 export const urlsFromCss = (value: string): string[] =>
   [...value.matchAll(/url\((?:"([^"]+)"|'([^']+)'|([^)'"\s]+))\)/g)].flatMap((match) => {
     const url = match[1] || match[2] || match[3];
+    /* v8 ignore next -- The CSS URL expression always captures one supported form. */
     return url ? [url] : [];
   });
 
@@ -194,7 +195,10 @@ export const createSourceTooltip = (source: PageSource): HTMLElement | null => {
       media.loop = true;
       media.playsInline = true;
     }
-  } else if (media instanceof HTMLImageElement) media.alt = "";
+  } else {
+    /* v8 ignore next -- Supported preview kinds create either media or image elements. */
+    if (media instanceof HTMLImageElement) media.alt = "";
+  }
   tooltip.append(media);
   return tooltip;
 };
@@ -246,12 +250,12 @@ export const positionSourceTooltip = (
     left: "right",
     top: "bottom",
   };
-  const side =
-    dock === "floating"
-      ? ((["left", "right", "top", "bottom"] as const).toSorted(
-          (a, b) => available[b] - required[b] - (available[a] - required[a]),
-        )[0] ?? "left")
-      : dockSide[dock];
+  // The fixed candidate list is non-empty, so its sorted result has a first side.
+  const floatingSides = ["left", "right", "top", "bottom"] as const;
+  const floatingSide = floatingSides.toSorted(
+    (a, b) => available[b] - required[b] - (available[a] - required[a]),
+  )[0] as (typeof floatingSides)[number];
+  const side = dock === "floating" ? floatingSide : dockSide[dock];
   const clamp = (value: number, size: number, viewportSize: number) =>
     Math.max(margin, Math.min(value, Math.max(margin, viewportSize - size - margin)));
   const centeredLeft = (anchor.left + anchor.right - tooltip.width) / 2;

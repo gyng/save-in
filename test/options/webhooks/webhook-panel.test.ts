@@ -62,6 +62,23 @@ test("normalizes the browser data-permission boundary without type assertions", 
   await expect(permissions?.remove?.({ data_collection: ["websiteContent"] })).resolves.toBe(false);
   expect(createDataCollectionPermissionsApi(null)).toBeUndefined();
   expect(createDataCollectionPermissionsApi({ getAll: () => ({}) })).toBeUndefined();
+
+  const callable = Object.assign(() => undefined, {
+    getAll: vi.fn(async () => null),
+    request: vi.fn(async () => false),
+  });
+  const callablePermissions = createDataCollectionPermissionsApi(callable);
+  await expect(callablePermissions?.getAll()).resolves.toEqual({});
+  expect(callablePermissions?.remove).toBeUndefined();
+});
+
+test("runs without the optional enabled-state badge", async () => {
+  document.querySelector("#webhook-state-badge")?.remove();
+
+  expect(() => setupWebhookPanel(dependencies())).not.toThrow();
+  await vi.waitFor(() =>
+    expect(document.querySelector<HTMLInputElement>("#webhookEnabled")?.disabled).toBe(false),
+  );
 });
 
 test("returns when the complete webhook control set is unavailable", () => {

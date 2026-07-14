@@ -9,6 +9,7 @@ export const addClickToCopy = (el: HTMLElement, copy: CopyText = copyText): void
       el.setAttribute("aria-label", action);
       el.dataset.copyLabelGenerated = "true";
     }
+    /* v8 ignore next -- The branch above guarantees a generated or caller-provided label. */
     el.title = el.getAttribute("aria-label") || action;
   };
   refreshLabel();

@@ -145,7 +145,9 @@ describe("reference controller", () => {
     groupReferenceRows(document, "variables");
     groupReferenceRows(document, "variables");
     enhanceReferenceTables(document);
+    enhanceReferenceTables(document);
     const empty = ensureReferenceEmptyState(document, referenceMessage)!;
+    expect(ensureReferenceEmptyState(document, referenceMessage)).toBe(empty);
     const [dates, files] = [...document.querySelectorAll<HTMLElement>(".reference-section")];
     expect(dates?.querySelector("h3")?.textContent).toBe("Dates");
     expect(files?.querySelector("h3")?.textContent).toBe("Files");
@@ -173,12 +175,21 @@ describe("reference controller", () => {
     row.innerHTML = "<td><code>a:</code></td><td><code>raw</code></td>";
     direct.append(row);
     document.querySelector("h2")!.after(direct);
+    const code = document.querySelector<HTMLElement>("#clause td code")!;
+    Object.defineProperty(code, "textContent", { configurable: true, value: null });
+    enhanceReferenceTables(document);
     enhanceReferenceTables(document);
     expect(document.querySelector("#empty thead")).toBeNull();
     expect(document.querySelector("#direct tbody")).not.toBeNull();
     expect(document.querySelector("#direct caption")?.textContent).toBe("Custom title");
     expect(document.querySelector("#clause caption")?.textContent).toBe("Existing");
     expect(document.querySelector("#clause td code")).toBeNull();
+  });
+
+  test("does not attach an empty state to a detached fragment", () => {
+    expect(
+      ensureReferenceEmptyState(document.createDocumentFragment(), referenceMessage),
+    ).toBeNull();
   });
 
   test("repairs an existing empty table header", () => {

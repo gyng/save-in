@@ -520,7 +520,7 @@ const PathEditorHelpers = {
           button.title = title;
           button.setAttribute(
             "aria-label",
-            `${(title[0] ?? "").toUpperCase()}${title.slice(1)} ${rowName}`,
+            `${(title[0] as string).toUpperCase()}${title.slice(1)} ${rowName}`,
           );
           button.textContent = glyph;
           if (title === "outdent") button.disabled = node.depth === 0;

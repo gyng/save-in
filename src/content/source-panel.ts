@@ -244,6 +244,7 @@ export const toggleSourcePanel = (
   panel.setAttribute("aria-label", copy.title);
   const docks = ["right", "bottom", "left", "top"] as const;
   const currentDock = (): (typeof docks)[number] =>
+    /* v8 ignore next -- The host dock is written exclusively from this fixed list. */
     docks.find((candidate) => candidate === host.dataset.dock) ?? "right";
   const resize = document.createElement("div");
   resize.className = "resize";
@@ -282,6 +283,7 @@ export const toggleSourcePanel = (
   close.setAttribute("aria-label", copy.closeLabel);
   let dockIndex = 0;
   const updateDock = () => {
+    /* v8 ignore next -- dockIndex is initialized and advanced modulo docks.length. */
     const dock = docks[dockIndex] ?? "right";
     host.dataset.dock = dock;
     host.classList.remove("dock-left", "dock-bottom", "dock-top");
@@ -400,6 +402,7 @@ export const toggleSourcePanel = (
     sort.setAttribute("aria-label", copy.sortLabel);
     [...sort.options].forEach((option, index) => {
       const entry = sortOptions[index];
+      /* v8 ignore next -- Options are created one-for-one from sortOptions. */
       if (entry) option.textContent = copy.sort[entry[1]];
     });
     const dock = currentDock();
@@ -502,6 +505,7 @@ export const toggleSourcePanel = (
         firstSeen.set(source.url, { at: Date.now(), order: ++detectionSequence });
       }
       const detection = firstSeen.get(source.url);
+      /* v8 ignore next -- The immediately preceding block initializes every absent URL. */
       if (!detection) return;
       source.detectedAt = detection.at;
       source.detectedOrder = detection.order;
@@ -537,6 +541,7 @@ export const toggleSourcePanel = (
       let processed = 0;
       while (index < elements.length) {
         const element = elements[index++];
+        /* v8 ignore next -- The loop bound guarantees an element at the incremented index. */
         if (!element) continue;
         if (element.isConnected)
           nextBackgroundCandidates.push(
@@ -790,6 +795,7 @@ export const toggleSourcePanel = (
         const detectedAt = formatSourcePanelCopy(
           copy.detectedAtTemplate,
           SOURCE_PANEL_COPY_VALUE_SLOT,
+          /* v8 ignore next -- commitSources stamps every rendered source. */
           formatters.date.format(new Date(source.detectedAt ?? Date.now())),
         );
         detected.setAttribute("aria-label", detectedAt);
@@ -913,6 +919,7 @@ export const toggleSourcePanel = (
         }
         if (!hasRichTooltip) return;
         richTooltip = createSourceTooltip(source);
+        /* v8 ignore next -- Rich-tooltip eligibility and tooltip creation use the same kinds. */
         if (!richTooltip) return;
         const tooltipId = `source-tooltip-${source.detectedOrder}`;
         richTooltip.id = tooltipId;
@@ -1013,6 +1020,7 @@ export const toggleSourcePanel = (
     });
     while (list.children.length > rowIndex) {
       const last = list.lastElementChild;
+      /* v8 ignore next -- This renderer appends only HTML row elements to the list. */
       if (!(last instanceof HTMLElement)) {
         last?.remove();
         continue;

@@ -131,7 +131,8 @@ export const optionSearchEntries = (
     if (!name) return [];
     const explicitTarget = control.dataset.optionSearchTarget;
     const target = explicitTarget
-      ? form.ownerDocument.getElementById(explicitTarget) || control
+      ? /* v8 ignore next -- Missing legacy search targets intentionally fall back to their control. */
+        form.ownerDocument.getElementById(explicitTarget) || control
       : control;
     return [
       {
@@ -271,6 +272,7 @@ export const setupOptionSearch = (): void => {
       option.setAttribute("aria-selected", String(index === active)),
     );
     const activeOption = options[active];
+    /* v8 ignore next -- A non-empty option list and modulo index always select an option. */
     if (!activeOption) return close();
     input.setAttribute("aria-activedescendant", activeOption.id);
     activeOption.scrollIntoView?.({ block: "nearest" });

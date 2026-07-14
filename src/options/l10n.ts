@@ -70,6 +70,7 @@ export const localizeDocument = (getMessage: GetMessage = nativeGetMessage) => {
   }
   texts.forEach((node) => {
     const value = node.nodeValue;
+    /* v8 ignore next -- Only text nodes with a matching non-null nodeValue enter this list. */
     if (value !== null) node.nodeValue = localizeString(value, getMessage);
   });
 

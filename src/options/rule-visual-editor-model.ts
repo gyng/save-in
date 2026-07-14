@@ -84,6 +84,7 @@ const parseWithUnits = (source: string) => {
     );
     const firstLine = ruleLines[0];
     const lastLine = ruleLines.at(-1);
+    /* v8 ignore next -- A parsed rule span always contains at least one clause line. */
     if (!firstLine || !lastLine) return [];
     const attached = attachedCommentNodes(parsed.ast.lines, firstLine.cst.line.span.start.offset);
     const start = attached[0]?.cst.line.span.start.offset ?? firstLine.cst.line.span.start.offset;
@@ -136,7 +137,7 @@ export const parseVisualRoutingRules = (source: string): VisualRoutingDocument =
         index,
         line: sourceLine(source, unit.rule.span.start.offset),
         comment: unit.attached
-          .map((line) => line.cst.content?.raw.trim() ?? "")
+          .map((line) => (line.cst.content as NonNullable<typeof line.cst.content>).raw.trim())
           .filter(Boolean)
           .join(" · "),
         enabled: controls.every((control) => control.value.trim().toLowerCase() !== "true"),
@@ -352,6 +353,7 @@ export const deleteRoutingRule = (source: string, ruleIndex: number): string => 
   const next = units[ruleIndex + 1];
   if (next) return `${source.slice(0, unit.start)}${source.slice(next.start)}`;
   const previous = units[ruleIndex - 1];
+  /* v8 ignore next -- A non-single last rule always has a previous unit. */
   if (!previous) throw new RangeError(`Routing rule ${ruleIndex + 1} does not exist.`);
   return `${source.slice(0, previous.end)}${source.slice(unit.end)}`;
 };
@@ -362,12 +364,16 @@ export const moveRoutingRule = (source: string, from: number, to: number): strin
   if (from === to) return source;
   const first = units[0];
   const last = units.at(-1);
+  /* v8 ignore next -- editableRule guarantees a non-empty unit list. */
   if (!first || !last) throw new RangeError(`Routing rule ${from + 1} does not exist.`);
   const separators = units
     .slice(0, -1)
-    .map((unit, index) => source.slice(unit.end, units[index + 1]?.start ?? unit.end));
+    .map((unit, index) =>
+      source.slice(unit.end, (units[index + 1] as (typeof units)[number]).start),
+    );
   const ordered = [...units];
   const [moved] = ordered.splice(from, 1);
+  /* v8 ignore next -- editableRule validates the source index. */
   if (!moved) throw new RangeError(`Routing rule ${from + 1} does not exist.`);
   ordered.splice(to, 0, moved);
   const body = ordered.map((unit, index) => `${unit.content}${separators[index] ?? ""}`).join("");

@@ -49,6 +49,7 @@ export const reorderPathNode = (
   }
   const reordered = [...nodes];
   const [moved] = reordered.splice(from, 1);
+  /* v8 ignore next -- The range guard guarantees an item at from. */
   if (!moved) return reordered;
   reordered.splice(destination, 0, moved);
   return normalizePathHierarchy(reordered);

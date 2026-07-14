@@ -60,6 +60,7 @@ const HISTORY_COLUMNS_KEY = "si-history-columns";
 const defaultHistoryColumns = HISTORY_COLUMNS.filter(({ defaultVisible }) => defaultVisible).map(
   ({ key }) => key,
 );
+/* v8 ignore next -- Options initialization installs the localizer before history rendering. */
 let localize: (key: string) => string = () => "";
 export const setHistoryLocalizer = (getLocalizedMessage: (key: string) => string): void => {
   localize = getLocalizedMessage;
@@ -561,6 +562,7 @@ const bindHistoryFacet = (id: string, update: (value: string) => void) => {
   document
     .querySelector<HTMLInputElement | HTMLSelectElement>(id)
     ?.addEventListener("change", (event) => {
+      /* v8 ignore next -- This listener is installed only on input and select elements. */
       if (
         !(
           event.currentTarget instanceof HTMLInputElement ||

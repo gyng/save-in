@@ -83,6 +83,7 @@ const parseSemanticRule = (
   const controls = rule.clauses.filter((line) => line.name === "disabled");
   if (controls.length > 1) {
     const duplicateControl = controls[1];
+    /* v8 ignore next -- Two parsed controls necessarily provide a second control node. */
     if (!duplicateControl) return false;
     appendError(
       errors,
@@ -139,6 +140,7 @@ const parseSemanticRule = (
         errors,
         routingPorts.getMessage("ruleInvalidRegex"),
         flags ? `invalid regex flags: ${flags} (${error})` : `${error}`,
+        /* v8 ignore next -- Parsed flags always carry a flags span. */
         flags ? (line.flagsSpan ?? line.valueSpan) : line.valueSpan,
       );
       return false;
@@ -196,6 +198,7 @@ const parseSemanticRule = (
   }
   if (destinations.length >= 2) {
     const duplicateDestination = destinationNodes[1];
+    /* v8 ignore next -- Two parsed destinations necessarily provide a second destination node. */
     if (!duplicateDestination) return false;
     appendError(
       errors,
@@ -211,6 +214,7 @@ const parseSemanticRule = (
   );
   if (captures.length >= 2) {
     const duplicateCapture = captureNodes[1];
+    /* v8 ignore next -- Two parsed captures necessarily provide a second capture node. */
     if (!duplicateCapture) return false;
     appendError(
       errors,
@@ -223,6 +227,7 @@ const parseSemanticRule = (
   if (captures.length === 1) {
     const capture = captures[0];
     const captureNode = captureNodes[0];
+    /* v8 ignore next -- A parsed capture clause supplies both representations. */
     if (!capture || !captureNode) return false;
     const names = capture.value.split(",").map((name) => name.trim().toLowerCase());
     const matcherCandidates = names.map((name) =>
@@ -231,6 +236,7 @@ const parseSemanticRule = (
     const capturedMatchers = matcherCandidates.map((matches) => matches[0]);
     let missing = false;
     names.forEach((name, index) => {
+      /* v8 ignore next -- matcherCandidates is mapped one-for-one from names. */
       const candidates = matcherCandidates[index] ?? [];
       if (!capturedMatchers[index] || (capture.name === "capturegroups" && candidates.length > 1)) {
         appendError(
@@ -286,6 +292,7 @@ export const parseRulesCollecting = (
   const rules = parsedRules.map((entry) => entry.rule);
   for (let index = 1; index < parsedRules.length; index += 1) {
     const laterEntry = parsedRules[index];
+    /* v8 ignore next -- The loop bound guarantees an entry at this index. */
     if (!laterEntry) continue;
     const laterRule = laterEntry.rule;
     const shadowed = parsedRules.slice(0, index).some(({ rule: earlier }) => {

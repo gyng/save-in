@@ -95,6 +95,7 @@ describe("Page Sources panel interactions", () => {
   test("resizes every dock orientation and drags a floating panel", () => {
     toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
     const host = getSourcePanelHostForTesting()!;
+    host.dataset.dock = "invalid";
     vi.spyOn(host, "getBoundingClientRect").mockReturnValue({
       left: 80,
       top: 60,

@@ -284,6 +284,7 @@ export const Download = {
       if (finalFilenameIsRoutePath) {
         const components = finalFilename.split("/");
         const filename = components.pop();
+        /* v8 ignore next -- Splitting a string always yields at least one component to pop. */
         if (filename !== undefined) {
           components.push(sanitizeFilename(filename, options.truncateLength, true, true));
         }
@@ -377,6 +378,7 @@ export const Download = {
         // HEAD is best-effort; acquisition still proceeds with the resolved name.
       }
     }
+    /* v8 ignore next -- The initial filename assignment above always populates this field. */
     const resolvedFilename = state.info.filename ?? initialFilename;
     state.info.filename = resolvedFilename;
 
@@ -734,6 +736,7 @@ export const Download = {
     state.info.onContentFetchStart = (requestId) => {
       ensureHistoryEntry(
         state,
+        /* v8 ignore next -- Pipeline preparation always resolves a filename before fetching. */
         state.info.filename ?? state.info.suggestedFilename ?? state.info.url ?? "",
       );
       registerTransfer(requestId);

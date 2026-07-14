@@ -252,6 +252,7 @@ describe("syntax editor surface", () => {
     textarea.dispatchEvent(
       new CustomEvent("syntax-editor-visibility", { detail: { visible: true } }),
     );
+    textarea.dispatchEvent(new CustomEvent("syntax-editor-visibility"));
     textarea.dispatchEvent(
       new CustomEvent("syntax-editor-visibility", { detail: { visible: false } }),
     );

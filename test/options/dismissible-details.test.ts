@@ -55,6 +55,32 @@ test("closes an open menu with Escape and restores focus to its trigger", () => 
   expect(document.activeElement).toBe(summary);
 });
 
+test("rechecks the closed state before restoring focus on the next frame", () => {
+  document.body.innerHTML = `
+    <details open><summary>Export</summary><button type="button">CSV</button></details>`;
+  const details = document.querySelector("details") as HTMLDetailsElement;
+  const summary = details.querySelector("summary") as HTMLElement;
+  const action = details.querySelector("button") as HTMLButtonElement;
+  let frame: FrameRequestCallback | undefined;
+  vi.spyOn(window, "requestAnimationFrame").mockImplementation((callback) => {
+    frame = callback;
+    return 1;
+  });
+  setupOutsideDismiss(details);
+
+  action.dispatchEvent(
+    new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }),
+  );
+  summary.blur();
+  frame?.(0);
+  expect(document.activeElement).toBe(summary);
+
+  summary.blur();
+  details.open = true;
+  frame?.(0);
+  expect(document.activeElement).not.toBe(summary);
+});
+
 test("supports the default resources target and an absent target", () => {
   document.body.innerHTML =
     '<details class="nav-resources" open></details><button>Outside</button>';

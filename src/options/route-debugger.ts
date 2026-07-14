@@ -551,6 +551,7 @@ export const setupRouteDebugger = (): void => {
         );
         return;
       }
+      /* v8 ignore next -- A null trace is returned only alongside blocking errors handled above. */
       if (!validation.trace) {
         renderMessage(
           "error",

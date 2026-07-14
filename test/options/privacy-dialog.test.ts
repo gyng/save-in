@@ -64,6 +64,23 @@ test("closes the privacy modal from its close button and backdrop", () => {
   vi.unstubAllGlobals();
 });
 
+test("uses a standalone opener as the focus target and tolerates its removal", () => {
+  const dialog = setupMarkup();
+  const details = document.querySelector("details")!;
+  const open = document.querySelector<HTMLButtonElement>("#privacy-open")!;
+  details.replaceWith(open);
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(() => new Promise(() => {})),
+  );
+  setupPrivacyDialog();
+
+  open.click();
+  open.remove();
+  expect(() => dialog.dispatchEvent(new Event("close"))).not.toThrow();
+  vi.unstubAllGlobals();
+});
+
 test("offers the canonical document when loading fails", async () => {
   setupMarkup();
   vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("unavailable")));

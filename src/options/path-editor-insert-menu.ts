@@ -19,11 +19,14 @@ export const setupPathInsertMenu = (
   };
   const lineButtons = [...menu.querySelectorAll<HTMLElement>("[data-insert-line]")];
   lineButtons
-    .toSorted((a, b) => compareClauses(a.dataset.insertLine ?? "", b.dataset.insertLine ?? ""))
+    .toSorted((a, b) =>
+      compareClauses(a.dataset.insertLine as string, b.dataset.insertLine as string),
+    )
     .forEach((button) => button.parentElement?.append(button));
   lineButtons.forEach((button) => {
     button.addEventListener("click", () => {
       const line = button.dataset.insertLine;
+      /* v8 ignore next -- lineButtons contains only elements selected by data-insert-line. */
       if (line === undefined) return;
       insertLine(textarea, line);
       closeMenu();
@@ -102,6 +105,7 @@ export const setupPathInsertMenu = (
         clauseBody.append(row);
         button.addEventListener("click", () => {
           const line = button.dataset.insertLine;
+          /* v8 ignore next -- This button receives data-insert-line immediately above. */
           if (line === undefined) return;
           insertLine(textarea, line);
           closeMenu();

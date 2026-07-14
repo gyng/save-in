@@ -253,6 +253,7 @@ describe("setupTabs", () => {
   test("ignores option-navigation events outside a tab panel", () => {
     const outside = document.createElement("button");
     document.body.append(outside);
+    document.dispatchEvent(new Event("save-in:navigate-option"));
     document.dispatchEvent(new CustomEvent("save-in:navigate-option"));
     document.dispatchEvent(
       new CustomEvent("save-in:navigate-option", { detail: { target: outside } }),

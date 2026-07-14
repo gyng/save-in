@@ -78,6 +78,24 @@ describe("options search", () => {
     expect(entries.some(({ control }) => control.id === "excluded")).toBe(false);
   });
 
+  test("includes nested fieldset legends and falls back from stale explicit targets", () => {
+    document.querySelector(".tab-panel")!.insertAdjacentHTML(
+      "beforeend",
+      `<fieldset><legend>Network</legend>
+         <fieldset><legend> </legend>
+           <button id="legacy-action" data-option-search="true" data-option-search-target="removed-control">Webhook delivery</button>
+         </fieldset>
+       </fieldset>`,
+    );
+
+    const entry = optionSearchEntries(document.getElementById("options")!).find(
+      ({ control }) => control.id === "legacy-action",
+    );
+
+    expect(entry?.path).toContain("Network");
+    expect(entry?.target).toBe(entry?.control);
+  });
+
   test("finds subsection headings and navigates to them", () => {
     const navigate = vi.fn();
     document.addEventListener("save-in:navigate-option", navigate, { once: true });
@@ -117,6 +135,24 @@ describe("options search", () => {
         .map(({ textContent }) => textContent)
         .filter((label) => label?.toLocaleLowerCase().includes("webhook")),
     ).toEqual(["Webhook", "Webhook delivery", "Send webhook now"]);
+  });
+
+  test("finds a query contained inside a longer word", () => {
+    document
+      .querySelector(".tab-panel")!
+      .insertAdjacentHTML(
+        "beforeend",
+        '<button id="contained-match" data-option-search="true">Webhook delivery</button>',
+      );
+    setupOptionSearch();
+    const input = document.getElementById("option-search") as HTMLInputElement;
+
+    input.value = "hook";
+    input.dispatchEvent(new InputEvent("input"));
+
+    expect(document.querySelector(".option-search-result-label")?.textContent).toBe(
+      "Webhook delivery",
+    );
   });
 
   test("ranks matches in the nearest breadcrumb above deeper ancestor matches", () => {

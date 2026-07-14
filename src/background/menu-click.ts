@@ -125,6 +125,7 @@ export const handleContextMenuClick = async (
       }
     } else {
       const mappedMenu = menuInfo;
+      /* v8 ignore next -- The outer guard admits an ordinary item only when its mapping exists. */
       if (!mappedMenu) return;
       saveIntoPath = mappedMenu.parsedDir;
       const title = mappedMenu.title || saveIntoPath;

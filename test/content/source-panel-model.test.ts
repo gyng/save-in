@@ -8,6 +8,7 @@ import {
   createSourceTooltip,
   filterPageSources,
   formatSourceBytes,
+  isPerformanceResourceTiming,
   isSourceSort,
   positionDraggedSourcePanel,
   positionSourceTooltip,
@@ -16,6 +17,12 @@ import {
   urlsFromCss,
   urlsFromSrcset,
 } from "../../src/content/source-panel-model.ts";
+
+test("accepts legacy and resource timing entries but rejects unrelated performance entries", () => {
+  expect(isPerformanceResourceTiming({ entryType: "" } as PerformanceEntry)).toBe(true);
+  expect(isPerformanceResourceTiming({ entryType: "resource" } as PerformanceEntry)).toBe(true);
+  expect(isPerformanceResourceTiming({ entryType: "navigation" } as PerformanceEntry)).toBe(false);
+});
 
 describe("page source collection", () => {
   beforeEach(() => {

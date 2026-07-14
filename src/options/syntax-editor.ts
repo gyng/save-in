@@ -130,6 +130,7 @@ const renderOverlay = (
   for (let index = 0; index < positions.length - 1; index += 1) {
     const start = positions[index];
     const end = positions[index + 1];
+    /* v8 ignore next -- The loop bound guarantees this adjacent boundary pair. */
     if (start === undefined || end === undefined) continue;
     const value = snapshot.source.slice(start, end);
     const syntaxToken = snapshot.tokens.findLast(
@@ -342,6 +343,7 @@ export const createSyntaxEditor = (
     const line = snapshot.lines.find(
       (candidate) => offset >= candidate.start && offset <= candidate.end,
     );
+    /* v8 ignore next -- Callers pass caret and diagnostic offsets from snapshot.source. */
     if (!line) throw new RangeError(`No syntax line contains offset ${offset}.`);
     return line;
   };

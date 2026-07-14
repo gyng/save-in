@@ -21,6 +21,7 @@ const renderExternalApi = () => {
 
   const id = webExtensionApi.runtime.id;
   idElement.textContent = id;
+  /* v8 ignore next -- The document contract defines ext-id as an HTML code element. */
   if (idElement instanceof HTMLElement) addClickToCopy(idElement);
 
   const snippet = document.querySelector("#api-snippet");
@@ -40,6 +41,7 @@ const renderExternalApi = () => {
       `});`,
       `// res.body -> { status: "OK", version, url } | { status: "ERROR", error, message }`,
     ].join("\n");
+    /* v8 ignore next -- The document contract defines api-snippet as an HTML code element. */
     if (snippet instanceof HTMLElement) addClickToCopy(snippet);
   }
 
