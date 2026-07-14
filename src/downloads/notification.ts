@@ -526,9 +526,9 @@ export const Notifier = {
             );
           }
 
-          if (promptOnFailure && record.allowOriginalUrlFallback !== false) {
+          if (promptOnFailure && record.url && record.allowOriginalUrlFallback !== false) {
             const downloadOptions: Parameters<typeof webExtensionApi.downloads.download>[0] = {
-              url: record.url!,
+              url: record.url,
               saveAs: true,
             };
             Object.assign(

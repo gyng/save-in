@@ -55,6 +55,15 @@ describe("notification variants", () => {
     expect(global.browser.notifications.create).not.toHaveBeenCalled();
   });
 
+  test("promptOnFailure skips partial records without an original URL", async () => {
+    await install({ notifyOnFailure: false, promptOnFailure: true, notifyDuration: 1000 });
+    await startTracked({ id: 7, filename: "/dl/pic.png" });
+
+    await onChanged({ id: 7, error: { current: "NETWORK_FAILED" } });
+
+    expect(global.browser.downloads.download).not.toHaveBeenCalled();
+  });
+
   test("contains a rejected failure Save As prompt", async () => {
     await install({ notifyOnFailure: false, promptOnFailure: true, notifyDuration: 1000 });
     await startTracked({ id: 7, filename: "/dl/pic.png", url: "https://x/p.png" });
