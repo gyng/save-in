@@ -81,7 +81,7 @@ describe("pattern list grammar", () => {
   test("normalizes non-Error regular expression failures", () => {
     const NativeRegExp = globalThis.RegExp;
     class ThrowingRegExp extends NativeRegExp {
-      constructor(pattern?: string | RegExp, flags?: string) {
+      constructor(pattern: string | RegExp = "", flags?: string) {
         if (pattern === "throw-non-error") throw "constructor rejected the pattern";
         super(pattern, flags);
       }
