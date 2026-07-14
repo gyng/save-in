@@ -6,7 +6,7 @@ must extend this system rather than introduce a separate visual language.
 
 The options and reference surfaces load the ordered cascade declared by
 `src/options/style.css`. Tokens, base rules, shell, components, editor features,
-Advanced, History, responsive overrides, and utilities live in matching
+Advanced, History, feature-owned responsive rules, and utilities live in matching
 `style-*.css` ownership files. Page-specific entry sheets import `reference.css`
 and the first-run welcome flow into their declared layers, so they consume the
 same tokens, atoms, and precedence contract. The Page Sources drawer runs in a
@@ -14,9 +14,9 @@ shadow root, so it owns a compact copy of the semantic color contract while
 deliberately using smaller density tokens.
 
 Ownership files stay intentionally bounded: split a file by workflow or
-component before it exceeds the mechanical line limit. The small `overrides`
-files are a migration boundary for cross-owner precedence, not a destination
-for new feature styling.
+component before it exceeds the mechanical line limit. Every responsive or
+corrective rule belongs to the feature layer that owns the component; do not
+reintroduce a catch-all override layer.
 
 Cascade layers are the supported ownership boundary for the declared Firefox
 121 and Chrome 123 minimums. Keep selectors local to their feature file and put
@@ -169,6 +169,8 @@ a second pattern beside an equivalent setting.
 - Tabs implement the complete ARIA keyboard pattern and only the active tab is
   in the sequential focus order.
 - Focus is never conveyed by color alone and uses the shared focus token.
+- Forced-colors mode keeps focus, selection, dirty state, and validation visible
+  with system-color outlines or borders instead of relying on shadows or fills.
 - Error state uses `aria-invalid` on the relevant control and points to visible
   feedback when available. Visual-editor rows add a redundant color-independent
   marker or accessible description.
@@ -194,6 +196,17 @@ a second pattern beside an equivalent setting.
   one selector, but keep nesting shallow and readable.
 - Gate progressive declarations with a feature query for every feature they
   rely on. Unsupported enhancements must fall back to a complete static state.
+- All options elements and pseudo-elements inherit the global `border-box`
+  sizing model. Do not add local `box-sizing` declarations.
+- Nested dialogs, menus, listboxes, and other vertical scroll surfaces contain
+  overscroll so reaching their boundary does not move the page behind them.
+- Use the semantic stacking tokens in `style-tokens.css`; numeric `z-index`
+  declarations are reserved for the documented Page Sources host boundary.
+- Native checkboxes, radios, ranges, and progress controls inherit the semantic
+  accent color. Related controls should remain native unless behavior requires
+  a custom implementation.
+- Use `subgrid` when repeated editor rows must share parent column tracks; keep
+  the responsive track contract on the parent grid.
 - Two-column workspaces collapse before either column violates its minimum
   usable width.
 - Fixed offsets must not position translated status or help text. Prefer grid or

@@ -15,7 +15,6 @@
   gap: var(--space-1);
   /* Full-bleed bar: escape the form's horizontal padding */
   width: calc(100% + 2 * var(--space-5));
-  box-sizing: border-box;
   margin: 0 calc(-1 * var(--space-5)) var(--space-5);
   padding: 0 var(--space-5);
   border-bottom: 1px solid var(--panel-border);
@@ -23,7 +22,7 @@
   top: 0;
   /* Solid, not inherit: content must not show through while scrolling */
   background-color: var(--page-bg);
-  z-index: 10;
+  z-index: var(--z-sticky);
 }
 
 :where(.tablist .tab, .editor-tab, .reference-dialog-tabs [role="tab"]) {
@@ -82,16 +81,14 @@
 
 .option-search {
   position: relative;
-  box-sizing: border-box;
   flex: 0 1 16rem;
   width: min(16rem, 28vw);
   max-width: 100%;
   margin: 0;
-  z-index: 20;
+  z-index: var(--z-menu);
 }
 
 .option-search #option-search {
-  box-sizing: border-box;
   width: 100%;
   max-width: none;
   padding: var(--space-2) var(--space-3);
@@ -108,11 +105,11 @@
   position: absolute;
   top: calc(100% + var(--space-1));
   inset-inline-end: 0;
-  box-sizing: border-box;
   width: min(32rem, calc(100vw - 2 * var(--space-3)));
   min-width: 100%;
   max-height: 20rem;
   overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 4px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
@@ -167,7 +164,7 @@
 
 .option-search-target-row {
   position: relative;
-  z-index: 1;
+  z-index: var(--z-local);
   border-radius: var(--radius-sm);
   outline: none;
   box-shadow: var(--focus-ring);
@@ -191,7 +188,7 @@
 .tab-panel {
   display: none;
   width: 100%;
-  box-sizing: border-box;
+  container: options-panel / inline-size;
   padding-bottom: var(--space-6);
 }
 
@@ -202,6 +199,31 @@
 /* The shell is full-width; individual panel content stays readable */
 .tab-panel > * {
   max-width: var(--content-max-width);
+}
+
+/* In-tab hierarchy and shared wide-row placement belong to panel layout, not
+   a late override layer. */
+.tab-panel h3 {
+  margin-top: var(--space-6);
+}
+
+.tab-heading-hidden + h3,
+.tab-panel > h3:first-child,
+.tab-panel > .column > h3:first-child {
+  margin-top: 0;
+}
+
+.last-download-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  width: 100%;
+  max-width: none;
+}
+
+.last-download-row .last-download-info,
+.last-download-row .last-download-table {
+  width: 100%;
 }
 
 .paths-editor {
@@ -220,6 +242,17 @@
 
 .paths-editor > .column {
   min-width: 0;
+}
+
+@container options-panel (max-width: 640px) {
+  .paths-editor {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .paths-editor .preview-column {
+    position: static;
+    max-height: none;
+  }
 }
 
 /* Right-hand preview stack (menu/template preview + live variables): one
@@ -270,13 +303,13 @@ summary {
 
 .variables-preview-list {
   position: absolute;
-  z-index: 20;
+  z-index: var(--z-menu);
   top: 100%;
   inset-inline-start: 0;
   width: 100%;
-  box-sizing: border-box;
-  max-height: min(360px, 55vh);
+  max-height: min(360px, 55dvh);
   overflow-y: auto;
+  overscroll-behavior: contain;
   border: 1px solid var(--panel-border);
   border-radius: var(--radius);
   background: var(--floating-bg);
@@ -292,7 +325,6 @@ summary {
 
 .variables-preview-table td {
   height: var(--compact-row-height);
-  box-sizing: border-box;
   padding: var(--space-1) var(--space-3);
   border-bottom: 1px solid var(--panel-border);
   line-height: 1.5;
@@ -378,7 +410,6 @@ summary {
 .tab-panel .column,
 .tab-panel .box {
   width: 100%;
-  box-sizing: border-box;
 }
 
 /* Deliberately narrow inputs (accesskeys, replacement char) keep their

@@ -1,0 +1,33 @@
+@media (forced-colors: active) {
+  :where(
+    button,
+    input,
+    select,
+    textarea,
+    summary,
+    a,
+    [role="button"],
+    [role="tab"],
+    [tabindex]
+  ):focus-visible,
+  :where(.option-search-target, .option-search-target-row) {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+    box-shadow: none;
+  }
+
+  :where([aria-selected="true"], .autocomplete-dropdown .selected) {
+    color: HighlightText;
+    background: Highlight;
+    outline: 1px solid Highlight;
+  }
+
+  :where(.error-row, .has-validation-error, .rule-editor-card-unsupported, .menu-preview-error) {
+    border-color: CanvasText;
+    outline: 1px solid CanvasText;
+  }
+
+  :where(.visual-editor-row, .visual-editor-card).is-dirty-row::before {
+    background: CanvasText;
+  }
+}

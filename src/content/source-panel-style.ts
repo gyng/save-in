@@ -34,17 +34,24 @@ export const SOURCE_PANEL_CSS = `
     --color-preview-media: #111111;
     --panel-shadow: 0 8px 28px rgba(0, 0, 0, 0.2);
     --floating-shadow: 0 16px 48px rgba(0, 0, 0, 0.32);
+    --z-preview-control: 2;
     all: initial;
+    box-sizing: border-box;
     position: fixed;
+    /* The drawer lives inside arbitrary pages, so it must outrank page-owned
+       stacking contexts rather than sharing the options-page z-index scale. */
     z-index: 2147483647;
     isolation: isolate;
     inset: 0 0 0 auto;
     width: min(360px, 92vw);
     color: var(--color-text);
+    accent-color: var(--color-accent);
     color-scheme: light dark;
     font: var(--text-base) / 1.35 var(--font-stack);
     animation: source-panel-in 110ms ease-out both;
   }
+
+  *, *::before, *::after { box-sizing: inherit; }
 
   :host([data-theme="light"]) {
     color-scheme: only light;
@@ -70,19 +77,18 @@ export const SOURCE_PANEL_CSS = `
   }
 
   :host(.dock-left) { inset: 0 auto 0 0; }
-  :host(.dock-bottom) { inset: auto 0 0; width: 100vw; height: min(42vh, 520px); }
-  :host(.dock-top) { inset: 0 0 auto; width: 100vw; height: min(42vh, 520px); }
+  :host(.dock-bottom) { inset: auto 0 0; width: 100vw; height: min(42dvh, 520px); }
+  :host(.dock-top) { inset: 0 0 auto; width: 100vw; height: min(42dvh, 520px); }
   :host(.floating) {
     inset: 80px auto auto 80px;
     width: min(520px, calc(100vw - 32px));
-    height: min(70vh, 620px);
+    height: min(70dvh, 620px);
   }
 
   .panel {
     display: flex;
     flex-direction: column;
-    box-sizing: border-box;
-    height: 100vh;
+    height: 100dvh;
     background: var(--color-surface-page);
     box-shadow: var(--panel-shadow);
   }
@@ -169,7 +175,6 @@ export const SOURCE_PANEL_CSS = `
   .toolbar input, .toolbar select {
     min-width: 0;
     min-height: var(--control-height);
-    box-sizing: border-box;
     padding: 5px 7px;
     border: 1px solid var(--color-control-border);
     border-radius: var(--radius);
@@ -212,7 +217,7 @@ export const SOURCE_PANEL_CSS = `
     background: color-mix(in srgb, var(--color-on-accent) 20%, transparent);
   }
 
-  .list { overflow: auto; padding: 0 7px 8px; }
+  .list { overflow: auto; overscroll-behavior: contain; padding: 0 7px 8px; }
   .row {
     --color-kind: var(--color-kind-other);
     padding: 2px 0;
@@ -298,12 +303,11 @@ export const SOURCE_PANEL_CSS = `
   .detected { flex: none; }
   .media-tooltip {
     position: absolute;
-    z-index: 2;
+    z-index: var(--z-preview-control);
     display: grid;
     place-items: center;
-    box-sizing: border-box;
     max-width: min(360px, 45vw);
-    max-height: min(280px, 55vh);
+    max-height: min(280px, 55dvh);
     padding: 6px;
     border: 1px solid var(--color-border);
     border-radius: calc(var(--radius) * 2);
@@ -313,7 +317,7 @@ export const SOURCE_PANEL_CSS = `
   }
   .media-tooltip img, .media-tooltip video {
     width: clamp(160px, 42vw, 340px);
-    height: clamp(120px, 38vh, 260px);
+    height: clamp(120px, 38dvh, 260px);
     object-fit: contain;
     background: var(--color-preview-media);
   }
@@ -331,5 +335,19 @@ export const SOURCE_PANEL_CSS = `
 
   @media (prefers-reduced-motion: reduce) {
     :host, :host(.closing) { animation: none; }
+  }
+
+  @media (forced-colors: active) {
+    :where(a, button, input, select, [tabindex]):focus-visible {
+      outline: 2px solid Highlight;
+      outline-offset: 2px;
+      box-shadow: none;
+    }
+
+    .facet[aria-pressed="true"] {
+      color: HighlightText;
+      background: Highlight;
+      outline: 1px solid Highlight;
+    }
   }
 `;

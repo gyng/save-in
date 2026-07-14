@@ -47,7 +47,6 @@
   display: inline-flex;
   align-items: center;
   min-height: var(--control-height);
-  box-sizing: border-box;
   line-height: 1;
 }
 
@@ -155,7 +154,6 @@
   position: sticky;
   inset-inline-start: 0;
   display: block;
-  box-sizing: border-box;
   width: 100cqi;
   padding-inline: var(--space-3);
 }
@@ -211,13 +209,14 @@
 
 .history-columns-menu {
   position: absolute;
-  z-index: 20;
+  z-index: var(--z-menu);
   top: calc(100% + var(--space-1));
   inset-inline-end: 0;
   display: grid;
   min-width: 180px;
   max-height: 320px;
   overflow-y: auto;
+  overscroll-behavior: contain;
   padding: var(--space-2);
   border: 1px solid var(--panel-border);
   background: var(--floating-bg);
@@ -273,161 +272,6 @@
   font-family: var(--font-mono);
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.source-panel-overview {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(300px, 420px);
-  align-items: start;
-  gap: var(--space-5);
-  margin-bottom: var(--space-5);
-}
-
-.source-panel-demo {
-  width: 100%;
-  margin: 0;
-  overflow: hidden;
-  border: 1px solid var(--panel-border);
-  border-radius: var(--radius);
-  background: var(--page-bg);
-  box-shadow: var(--floating-shadow);
-}
-
-.source-panel-demo-header,
-.source-panel-demo-row {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: 6px 10px 3px;
-}
-
-.source-panel-demo-header {
-  justify-content: space-between;
-  min-height: var(--control-height);
-  box-sizing: border-box;
-  border-bottom: 1px solid var(--panel-border);
-}
-
-.source-panel-demo-actions {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-}
-
-.source-panel-demo-actions > span {
-  display: grid;
-  place-items: center;
-  width: 30px;
-  height: 30px;
-  color: var(--color-text-muted);
-  border-radius: var(--radius-sm);
-}
-
-.source-panel-demo svg {
-  width: 18px;
-  height: 18px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.source-panel-demo-search {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin: var(--space-2) var(--space-3);
-  min-height: var(--control-height);
-  box-sizing: border-box;
-  padding: 6px 8px;
-  color: var(--color-text-muted);
-  border: 1px solid var(--panel-border);
-  border-radius: var(--radius);
-}
-
-.source-panel-demo-facets {
-  display: flex;
-  align-items: center;
-  flex-wrap: nowrap;
-  gap: 4px;
-  padding: 0 var(--space-3) var(--space-2);
-  border-bottom: 1px solid var(--panel-border);
-}
-
-.source-panel-demo-facets span {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 4px;
-  padding: 2px 6px;
-  border: 1px solid var(--panel-border);
-  border-radius: 999px;
-  font-size: var(--text-sm);
-  line-height: 1.25;
-  white-space: nowrap;
-}
-
-.source-panel-demo-facets b {
-  font-size: var(--text-xs);
-  font-variant-numeric: tabular-nums;
-}
-
-.source-panel-demo-facets .active {
-  color: var(--color-on-accent);
-  border-color: var(--color-accent);
-  background: var(--color-accent);
-}
-
-.source-panel-demo-row {
-  min-height: 44px;
-  box-sizing: border-box;
-  padding: 3px 10px;
-  border-bottom: 1px solid var(--panel-border);
-}
-
-.source-panel-demo-row:last-child {
-  border-bottom: 0;
-}
-
-.source-panel-demo-details {
-  display: grid;
-  min-width: 0;
-  gap: 1px;
-  line-height: 1.25;
-}
-
-.source-panel-demo-details strong,
-.source-panel-demo-details small {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.source-panel-demo-row small {
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
-}
-
-.source-panel-demo-thumb {
-  display: grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  flex: none;
-  border-radius: var(--radius-sm);
-  background: linear-gradient(135deg, var(--color-info), var(--color-kind-image));
-}
-
-.video-thumb {
-  color: var(--color-on-accent);
-  background: var(--color-kind-other);
-}
-
-.stream-thumb {
-  color: var(--color-on-accent);
-  background: linear-gradient(135deg, var(--color-kind-image), var(--color-info));
-  font-size: var(--text-lg);
-  font-weight: 700;
 }
 
 .history-open:hover {

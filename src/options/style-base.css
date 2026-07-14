@@ -27,6 +27,7 @@ a.external:dir(rtl) {
 }
 
 html {
+  box-sizing: border-box;
   font-family: var(--font-stack);
   font-size: var(--text-base);
   line-height: var(--leading-ui);
@@ -36,6 +37,16 @@ html {
      short and tall tabs does not shift the layout horizontally */
   scrollbar-gutter: stable;
   overflow-y: scroll;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
+:root {
+  accent-color: var(--color-accent);
 }
 
 button,
@@ -74,7 +85,6 @@ input[type="date"],
 input[type="datetime-local"],
 select {
   min-height: var(--control-height);
-  box-sizing: border-box;
   padding: var(--space-1) var(--space-2);
   background-color: var(--input-background);
   font-size: var(--text-base);

@@ -1,9 +1,9 @@
 /* Full-bleed shell: the page owns the viewport; content width is capped
    per tab panel (.tab-panel > *) instead of on the whole form */
 body {
+  isolation: isolate;
   margin: 0;
   min-height: 100dvh;
-  box-sizing: border-box;
   font-family: inherit;
   font-size: inherit;
   line-height: inherit;
@@ -89,11 +89,10 @@ body:not(#settings-page) {
 .saved-change-popover {
   display: none;
   position: absolute;
-  z-index: 40;
+  z-index: var(--z-status);
   top: calc(100% + var(--space-1));
   inset-inline-start: 4.5rem;
   width: min(26rem, calc(100vw - 2 * var(--space-5)));
-  box-sizing: border-box;
   padding: var(--space-2) var(--space-3);
   color: var(--color-text);
   border: 1px solid var(--panel-border);
@@ -142,7 +141,7 @@ body:not(#settings-page) {
   position: absolute;
   bottom: -1px;
   inset-inline-start: calc(100% + var(--space-1));
-  z-index: 41;
+  z-index: var(--z-status-action);
   min-height: 0;
   margin: 0;
   padding: 1px var(--space-2);
@@ -232,7 +231,7 @@ body:not(#settings-page) {
 
 .nav-resources-menu {
   position: absolute;
-  z-index: 20;
+  z-index: var(--z-menu);
   display: grid;
   gap: 1px;
   min-width: 210px;
@@ -246,7 +245,6 @@ body:not(#settings-page) {
 }
 
 .nav-resources-menu > :is(a, button) {
-  box-sizing: border-box;
   display: flex;
   align-items: center;
   width: 100%;
@@ -272,7 +270,6 @@ body:not(#settings-page) {
 }
 
 .app-dialog {
-  box-sizing: border-box;
   color: var(--color-text);
   border: 1px solid var(--panel-border);
   border-radius: var(--radius-dialog);
@@ -292,8 +289,9 @@ body:not(#settings-page) {
 
 .privacy-dialog {
   width: min(680px, calc(100vw - 2 * var(--space-5)));
-  max-height: min(680px, 80vh);
+  max-height: min(680px, 80dvh);
   overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .privacy-content {

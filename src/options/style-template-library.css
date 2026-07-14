@@ -16,7 +16,6 @@
   display: inline-flex;
   align-items: center;
   min-height: var(--control-height);
-  box-sizing: border-box;
   padding: var(--space-1) var(--space-3);
   border: 1px solid var(--panel-border);
   border-radius: var(--radius);
@@ -33,7 +32,7 @@
 .history-export-options,
 .history-more-options {
   position: absolute;
-  z-index: 20;
+  z-index: var(--z-menu);
   top: calc(100% + var(--space-1));
   inset-inline-end: 0;
   display: grid;
@@ -198,14 +197,13 @@
 .reference-dialog-filter-label .reference-dialog-filter {
   width: min(28rem, 100%);
   max-width: none;
-  box-sizing: border-box;
   padding: var(--space-2) var(--space-3);
 }
 
 .reference-dialog-body {
   height: calc(100% - 144px);
-  box-sizing: border-box;
   overflow: auto;
+  overscroll-behavior: contain;
   padding: 0 var(--space-4) var(--space-4);
 }
 

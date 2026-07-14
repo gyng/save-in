@@ -150,7 +150,8 @@
 
 .rule-editor-card-body {
   display: grid;
-  gap: 1px;
+  grid-template-columns: 30px minmax(112px, 0.38fr) minmax(150px, 1fr) 36px 30px;
+  gap: 1px var(--space-2);
   padding: 0 var(--space-2) var(--space-2) var(--space-3);
 }
 
@@ -178,7 +179,6 @@
   min-width: 5rem;
   max-width: 22rem;
   height: 28px;
-  box-sizing: border-box;
   margin: 0;
   padding: 3px var(--space-1);
   color: var(--color-text-muted);
@@ -205,7 +205,6 @@
   place-items: center;
   width: 30px;
   height: 30px;
-  box-sizing: border-box;
   padding: 0;
   color: var(--color-text-muted);
   border-color: transparent;
@@ -234,7 +233,7 @@
 
 .rule-editor-card-action-menu {
   position: absolute;
-  z-index: 20;
+  z-index: var(--z-menu);
   top: calc(100% + var(--space-1));
   inset-inline-end: 0;
   display: grid;
@@ -260,9 +259,10 @@
 
 .rule-clause-row {
   display: grid;
-  grid-template-columns: 30px minmax(112px, 0.38fr) minmax(150px, 1fr) 36px 30px;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
   align-items: center;
-  gap: var(--space-2);
+  row-gap: var(--space-2);
   min-height: 38px;
   padding: 3px var(--space-1);
   border-radius: var(--radius);
@@ -377,6 +377,7 @@
 }
 
 .rule-editor-add-condition {
+  grid-column: 1 / -1;
   justify-self: start;
   margin: var(--space-1) 0 0 34px;
   padding: 4px 8px;
@@ -403,6 +404,7 @@
 
 .rule-editor-source-preview {
   overflow: auto;
+  overscroll-behavior: contain;
   margin: 0 var(--space-3) var(--space-2);
   padding: var(--space-2);
   border-radius: var(--radius);
@@ -445,7 +447,6 @@
   place-items: center;
   width: var(--control-height);
   min-height: var(--control-height);
-  box-sizing: border-box;
   padding: 0;
   border: 1px solid var(--panel-border);
   border-radius: var(--radius);
@@ -467,7 +468,7 @@
 
 .rule-add-menu-options {
   position: absolute;
-  z-index: 20;
+  z-index: var(--z-menu);
   top: calc(100% + var(--space-1));
   inset-inline-start: 0;
   display: grid;

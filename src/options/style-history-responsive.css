@@ -1,0 +1,54 @@
+.history-feedback:not(:empty) {
+  margin: var(--space-2) 0;
+}
+
+.history-feedback button {
+  margin-inline-start: var(--space-2);
+}
+
+.history-query-row .history-filter,
+.history-facets button,
+.history-table-tools summary {
+  min-height: var(--control-height);
+  padding-block: var(--space-1);
+}
+
+@container options-panel (max-width: 640px) {
+  #history-list {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  .history-table {
+    min-width: 760px;
+  }
+
+  .history-facet {
+    flex: 1 1 10rem;
+    align-items: center;
+  }
+
+  .history-facet select {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .history-query-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .history-query-row .history-filter {
+    flex-basis: auto;
+    width: 100%;
+    max-width: none;
+  }
+
+  .history-table-tools {
+    flex-wrap: wrap;
+  }
+
+  .history-custom-date-range input[type="date"] {
+    flex: 1 1 10rem;
+  }
+}

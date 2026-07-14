@@ -25,7 +25,6 @@
   display: block;
   width: calc(100% - 2 * var(--space-2));
   max-width: none;
-  box-sizing: border-box;
   margin: var(--space-2);
 }
 
@@ -42,7 +41,6 @@
 .clause-preview-filter {
   width: calc(100% - 2 * var(--space-2));
   max-width: none;
-  box-sizing: border-box;
   margin: var(--space-2);
 }
 

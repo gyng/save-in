@@ -1,9 +1,9 @@
 .welcome-dialog {
-  box-sizing: border-box;
   width: min(760px, calc(100vw - 2 * var(--space-5)));
   max-height: calc(100dvh - 2 * var(--space-5));
   padding: 0;
   overflow: auto;
+  overscroll-behavior: contain;
 }
 
 .welcome-content {

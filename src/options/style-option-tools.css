@@ -71,11 +71,10 @@ button:disabled {
 
 #click-to-save-warning {
   max-width: 100%;
-  box-sizing: border-box;
   overflow-wrap: anywhere;
 }
 
-@media (max-width: 760px) {
+@container options-panel (max-width: 760px) {
   .option-subcontrol {
     grid-template-columns: minmax(0, 1fr);
   }

@@ -31,6 +31,21 @@
   --compact-row-height: 32px;
   --content-max-width: 760px;
 
+  /* Stacking contracts. Components choose a semantic role instead of
+     escalating arbitrary numbers when overlays meet. */
+  --z-background: 0;
+  --z-local: 1;
+  --z-editor-input: 2;
+  --z-editor-marker: 4;
+  --z-sticky-local: 5;
+  --z-sticky: 10;
+  --z-menu: 20;
+  --z-status: 40;
+  --z-status-action: 41;
+  --z-autocomplete: 100;
+  --z-listbox: 110;
+  --z-tooltip: 120;
+
   /*
    * Theme palette. light-dark() is supported by the declared Firefox/Chrome
    * minimums and keeps explicit/system themes on one authoritative value set.

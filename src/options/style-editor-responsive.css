@@ -1,0 +1,52 @@
+@container options-panel (max-width: 640px) {
+  .editor-actions,
+  .visual-editor-toolbar {
+    flex-wrap: wrap;
+  }
+}
+
+@container routing-workspace (max-width: 640px) {
+  .rules-editor .preview-column {
+    position: static;
+    max-height: none;
+  }
+
+  .rule-editor-card-body {
+    grid-template-columns: 28px minmax(0, 1fr) auto;
+  }
+
+  .rule-clause-row .rule-clause-marker {
+    align-self: start;
+    grid-column: 1;
+    grid-row: 1;
+    margin-top: 4px;
+  }
+
+  .rule-clause-row .rule-clause-name,
+  .rule-clause-row .rule-clause-fixed-name {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .rule-clause-value {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .rule-clause-row .rule-clause-flag {
+    grid-column: 3;
+    grid-row: 2;
+  }
+
+  .rule-clause-row [data-rule-action="delete-clause"] {
+    grid-column: 3;
+    grid-row: 1;
+  }
+}
+
+@media (max-width: 640px) {
+  .reference-dialog {
+    width: calc(100vw - 2 * var(--space-3));
+    height: calc(100dvh - 2 * var(--space-3));
+  }
+}

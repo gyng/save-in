@@ -20,12 +20,19 @@ const sourcePanelStylePath = path.join(root, "src", "content", "source-panel-sty
 const styleLayers = [
   ["tokens", ["style-tokens.css"]],
   ["base", ["style-base.css"]],
-  ["shell", ["style-shell.css"]],
+  ["shell", ["style-shell.css", "style-shell-responsive.css", "style-dialogs.css"]],
   [
     "components",
-    ["style-components.css", "style-workflows.css", "style-status.css", "style-syntax-editor.css"],
+    [
+      "style-components.css",
+      "style-workflows.css",
+      "style-status.css",
+      "style-syntax-editor.css",
+      "style-source-settings.css",
+      "style-automation.css",
+    ],
   ],
-  ["layout", ["style-layout.css"]],
+  ["layout", ["style-layout.css", "style-layout-responsive.css"]],
   [
     "editors",
     [
@@ -36,23 +43,15 @@ const styleLayers = [
       "style-editor-actions.css",
       "style-path-editor.css",
       "style-menu-preview.css",
+      "style-editor-reference.css",
+      "style-editor-responsive.css",
     ],
   ],
-  ["advanced", ["style-advanced.css"]],
-  ["history", ["style-history.css"]],
+  ["advanced", ["style-advanced.css", "style-advanced-responsive.css"]],
+  ["history", ["style-history.css", "style-history-responsive.css"]],
   ["welcome", []],
   ["reference", []],
-  [
-    "overrides",
-    [
-      "style-responsive-overrides.css",
-      "style-source-overrides.css",
-      "style-automation-overrides.css",
-      "style-editor-reference-overrides.css",
-      "style-dialog-overrides.css",
-    ],
-  ],
-  ["utilities", ["style-utilities.css"]],
+  ["utilities", ["style-accessibility.css", "style-utilities.css"]],
 ];
 const styleEntry = fs.readFileSync(styleEntryPath, "utf8");
 const layerNames = styleLayers.map(([layer]) => layer);
@@ -100,6 +99,9 @@ const uses = new Map();
 for (const file of styles) {
   const source = fs.readFileSync(file, "utf8");
   const relative = path.relative(root, file);
+  if (path.basename(file).includes("-overrides")) {
+    violations.push(`${relative} uses catch-all override ownership; import it with its feature`);
+  }
   for (const match of source.matchAll(/(--[\w-]+)\s*:/g)) definitions.add(match[1]);
   for (const match of source.matchAll(/var\((--[\w-]+)/g)) {
     const locations = uses.get(match[1]) || [];
@@ -182,10 +184,49 @@ for (const file of styles) {
     violations.push(`${relative}:${line} uses a physical direction; use a flow-relative property`);
   }
 
-  for (const match of source.matchAll(/\b100vh\b/g)) {
+  for (const match of source.matchAll(/\b\d+(?:\.\d+)?vh\b/g)) {
     const line = source.slice(0, match.index).split("\n").length;
     violations.push(`${relative}:${line} uses static viewport height; use a dynamic viewport unit`);
   }
+
+  for (const match of source.matchAll(/z-index\s*:\s*-?\d+/g)) {
+    const line = source.slice(0, match.index).split("\n").length;
+    violations.push(`${relative}:${line} uses a numeric z-index; use a semantic stacking token`);
+  }
+
+  if (
+    file !== path.join(root, "src", "options", "style-base.css") &&
+    /box-sizing\s*:/.test(source)
+  ) {
+    violations.push(`${relative} overrides the shared border-box sizing contract`);
+  }
+
+  for (const match of source.matchAll(/[^{}]+\{[^{}]*overflow(?:-y)?\s*:\s*auto;[^{}]*\}/g)) {
+    if (match[0].includes("overscroll-behavior:")) continue;
+    const line = source.slice(0, match.index).split("\n").length;
+    violations.push(`${relative}:${line} allows a nested scroll surface to chain to its parent`);
+  }
+}
+
+const baseStyle = fs.readFileSync(path.join(root, "src", "options", "style-base.css"), "utf8");
+if (!/html\s*\{[^}]*box-sizing:\s*border-box;/.test(baseStyle)) {
+  violations.push("src/options/style-base.css must establish the shared border-box model");
+}
+
+const shellStyle = fs.readFileSync(path.join(root, "src", "options", "style-shell.css"), "utf8");
+if (!/body\s*\{[^}]*isolation:\s*isolate;/.test(shellStyle)) {
+  violations.push("src/options/style-shell.css must isolate the application stacking context");
+}
+if (!baseStyle.includes("accent-color: var(--color-accent);")) {
+  violations.push("src/options/style-base.css must apply the semantic accent to native controls");
+}
+
+const accessibilityStyle = fs.readFileSync(
+  path.join(root, "src", "options", "style-accessibility.css"),
+  "utf8",
+);
+if (!accessibilityStyle.includes("@media (forced-colors: active)")) {
+  violations.push("options focus and selected states need forced-colors fallbacks");
 }
 
 const componentStyle = fs.readFileSync(
@@ -208,11 +249,19 @@ if (/@media\s*\(max-width:/.test(routeDebuggerStyle)) {
   violations.push("route debugger responsiveness must follow its routing-workspace container");
 }
 
+const ruleEditorStyle = fs.readFileSync(
+  path.join(root, "src", "options", "style-rule-editor.css"),
+  "utf8",
+);
+if (!ruleEditorStyle.includes("grid-template-columns: subgrid;")) {
+  violations.push("routing clause rows must share the card column contract through subgrid");
+}
+
 const allowedBreakpoints = new Set([520, 640, 760]);
 for (const file of styles) {
   const source = fs.readFileSync(file, "utf8");
   const relative = path.relative(root, file);
-  for (const match of source.matchAll(/@media\s*\(max-width:\s*(\d+)px\)/g)) {
+  for (const match of source.matchAll(/@(?:media|container)[^{]*\(max-width:\s*(\d+)px\)/g)) {
     const width = Number(match[1]);
     if (!allowedBreakpoints.has(width)) {
       const line = source.slice(0, match.index).split("\n").length;
@@ -237,6 +286,25 @@ for (const selector of obsoleteSelectors) {
 }
 
 const sourcePanelStyle = fs.readFileSync(sourcePanelStylePath, "utf8");
+for (const match of sourcePanelStyle.matchAll(/\b\d+(?:\.\d+)?vh\b/g)) {
+  const line = sourcePanelStyle.slice(0, match.index).split("\n").length;
+  violations.push(`src/content/source-panel-style.ts:${line} uses static viewport height`);
+}
+for (const match of sourcePanelStyle.matchAll(/z-index\s*:\s*(\d+)/g)) {
+  if (match[1] === "2147483647") continue;
+  const line = sourcePanelStyle.slice(0, match.index).split("\n").length;
+  violations.push(`src/content/source-panel-style.ts:${line} uses a numeric local z-index`);
+}
+for (const contract of [
+  "box-sizing: border-box;",
+  "accent-color: var(--color-accent);",
+  "overscroll-behavior: contain;",
+  "@media (forced-colors: active)",
+]) {
+  if (!sourcePanelStyle.includes(contract)) {
+    violations.push(`src/content/source-panel-style.ts is missing ${contract}`);
+  }
+}
 for (const match of sourcePanelStyle.matchAll(/#[0-9a-f]{3,8}\b|rgba?\(/gi)) {
   const lineStart = sourcePanelStyle.lastIndexOf("\n", match.index) + 1;
   const lineEnd = sourcePanelStyle.indexOf("\n", match.index);

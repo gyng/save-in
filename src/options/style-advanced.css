@@ -13,7 +13,6 @@
 
 .advanced-section {
   width: min(var(--content-max-width), 100%);
-  box-sizing: border-box;
   scroll-margin-top: calc(var(--control-height) + var(--space-5));
 }
 
@@ -85,7 +84,6 @@
   display: grid;
   gap: var(--space-3);
   width: min(760px, 100%);
-  box-sizing: border-box;
   margin: var(--space-3) 0 0;
   padding: var(--space-4);
   border: 1px solid var(--panel-border);
@@ -149,7 +147,6 @@
 .tab-panel .webhook-endpoint-row #webhookUrl {
   width: 100%;
   max-width: none;
-  box-sizing: border-box;
   font-family: var(--font-mono);
 }
 
@@ -270,7 +267,6 @@
 .tab-panel #external-extension-id-draft {
   width: 100%;
   max-width: none;
-  box-sizing: border-box;
   font-family: var(--font-mono);
 }
 
@@ -423,7 +419,7 @@
   background: transparent;
 }
 
-@media (max-width: 640px) {
+@container options-panel (max-width: 640px) {
   .webhook-heading-row,
   .advanced-integration-heading,
   .external-access-heading {
@@ -488,7 +484,6 @@
 .tab-panel .counter-control #counter-value {
   width: 8rem;
   max-width: 8rem;
-  box-sizing: border-box;
 }
 
 code.click-to-copy {

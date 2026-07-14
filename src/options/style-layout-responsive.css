@@ -1,0 +1,35 @@
+@media (max-width: 640px) {
+  .option-search {
+    order: 10;
+    flex-basis: 100%;
+    width: 100%;
+    margin: var(--space-1) 0 0;
+  }
+
+  #options {
+    padding-inline: var(--space-3);
+  }
+
+  .tablist {
+    width: calc(100% + 2 * var(--space-3));
+    margin-inline: calc(-1 * var(--space-3));
+    padding-inline: var(--space-3);
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: thin;
+  }
+
+  .tablist .tab {
+    flex: 0 0 auto;
+  }
+
+  .tablist::-webkit-scrollbar {
+    height: var(--space-1);
+  }
+
+  .tablist::-webkit-scrollbar-thumb {
+    border-radius: var(--radius);
+    background: var(--color-control-border);
+  }
+}

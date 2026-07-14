@@ -287,7 +287,6 @@ li {
 }
 
 .feedback {
-  box-sizing: border-box;
   color: var(--color-text-muted);
   font-size: var(--text-sm);
   line-height: 1.4;
@@ -344,7 +343,6 @@ li {
   flex-direction: column;
   align-items: flex-start;
   width: 100%;
-  box-sizing: border-box;
   padding: 0 var(--space-5);
 }
 
@@ -526,6 +524,5 @@ fieldset.click-to-save-controls {
   width: 100%;
   max-width: 100%;
   min-width: 0;
-  box-sizing: border-box;
   margin-top: var(--space-2);
 }

@@ -23,7 +23,7 @@ body:has(.reference-header) {
 .reference-header {
   position: sticky;
   top: 0;
-  z-index: 5;
+  z-index: var(--z-sticky-local);
   display: grid;
   grid-template-columns: 1fr auto;
   gap: var(--space-3) var(--space-5);
@@ -45,7 +45,6 @@ body:has(.reference-header) {
 .reference-search-label .reference-search {
   width: min(28rem, 70vw);
   max-width: none;
-  box-sizing: border-box;
   padding: var(--space-2) var(--space-3);
   border: 1px solid var(--panel-border);
   border-radius: var(--radius);
@@ -135,7 +134,7 @@ body:has(.reference-header) {
 .reference-table thead th {
   position: sticky;
   top: 0;
-  z-index: 1;
+  z-index: var(--z-local);
   padding-top: var(--space-3);
   padding-bottom: var(--space-2);
   border-bottom: 1px solid var(--panel-border);

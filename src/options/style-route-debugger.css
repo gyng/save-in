@@ -87,7 +87,6 @@
   width: 100%;
   min-width: 0;
   max-width: none;
-  box-sizing: border-box;
   margin: 0;
   font: inherit;
 }
@@ -114,7 +113,7 @@
 
 .route-debugger-result[data-busy="true"]::before {
   position: absolute;
-  z-index: 4;
+  z-index: var(--z-editor-marker);
   top: 0;
   inset-inline-start: 0;
   width: 38%;
@@ -238,7 +237,6 @@
   display: flex;
   align-items: center;
   width: 100%;
-  box-sizing: border-box;
   margin: 0;
   border: 0;
   border-radius: 0;
@@ -375,14 +373,14 @@
 }
 
 .route-debugger-variables {
-  z-index: 0;
+  z-index: var(--z-background);
   grid-column: 1 / -1;
   grid-row: 1;
   min-width: 0;
 }
 
 .route-debugger-source-picker {
-  z-index: 1;
+  z-index: var(--z-local);
   grid-column: 2;
   grid-row: 1;
   padding: var(--space-2) 0;
@@ -417,7 +415,6 @@
 
 .route-debugger-last-download > .last-download-info {
   width: 100%;
-  box-sizing: border-box;
   padding: 0 var(--space-3) var(--space-3);
   border: 0;
   background: transparent;

@@ -49,7 +49,6 @@
 }
 
 .path-editor-access-key > .path-editor-access-key-input {
-  box-sizing: border-box;
   width: 30px;
   min-width: 30px;
   height: 26px;

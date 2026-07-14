@@ -31,10 +31,13 @@ cascade-layer order and imports ownership-oriented `style-*.css` files. Keep
 feature rules with their owner, preserve the declared layer order, and use the
 final utilities layer for cross-feature state such as `[hidden]`. Use logical
 properties and `text-align: start/end`, component container queries for owned
-workspace responsiveness, and dynamic viewport-height units. Native nesting is
-allowed for short state/pseudo-element groups; do not build deeply nested
-selector trees. `@scope` is documented as a future migration in `docs/UI.md`;
-do not use it for essential styling while Firefox 121 remains supported.
+workspace responsiveness, and dynamic viewport-height units. All options boxes
+inherit `border-box`; use semantic `--z-*` tokens instead of numeric `z-index`,
+contain nested scroll surfaces, and preserve visible states in forced-colors
+mode. Native nesting is allowed for short state/pseudo-element groups; do not
+build deeply nested selector trees or create catch-all override stylesheets.
+`@scope` is documented as a future migration in `docs/UI.md`; do not use it for
+essential styling while Firefox 121 remains supported.
 
 **Build, ship, and browser tests target the staged bundle** in
 `dist/bundled-pkg`. `npm run typecheck` covers source and the TypeScript test
