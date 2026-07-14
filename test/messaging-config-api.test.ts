@@ -34,6 +34,30 @@ describe("config API", () => {
     expect(sendResponse.mock.calls[0]![0]!.body.options[1].description).toBe("");
   });
 
+  test("GET_CONFIG returns saved apply-ready values and fills omitted defaults", async () => {
+    vi.mocked(global.browser.storage.local.get).mockResolvedValueOnce({
+      prompt: true,
+      paths: { malformed: true },
+    });
+    const sendResponse = vi.fn();
+
+    expect(onMessage({ type: MESSAGE_TYPES.GET_CONFIG }, {}, sendResponse)).toBe(true);
+    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+
+    expect(global.browser.storage.local.get).toHaveBeenCalledWith(["prompt", "paths"]);
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.CONFIG,
+      body: { version: 1, config: { prompt: true, paths: "." } },
+    });
+  });
+
+  test("GET_CONFIG is not reachable from external extensions", () => {
+    const sendResponse = vi.fn();
+    onMessageExternal({ type: MESSAGE_TYPES.GET_CONFIG }, {}, sendResponse);
+    expect(global.browser.storage.local.get).not.toHaveBeenCalled();
+    expect(sendResponse.mock.calls[0]![0]!.body.error).toBe("UNKNOWN_TYPE");
+  });
+
   test("exposes vocabulary and parser grammars to external integrations", () => {
     const vocabularyResponse = vi.fn();
     onMessageExternal({ type: MESSAGE_TYPES.GET_KEYWORDS }, {}, vocabularyResponse);
@@ -140,6 +164,9 @@ describe("config API", () => {
         url: "https://cdn.test/cat.png",
         sourceKind: "image",
         mediaType: "image",
+        suggestedFilename: "cat.png",
+        filename: "cat.png",
+        initialFilename: "cat.png",
       },
       expect.any(Function),
     );

@@ -51,6 +51,7 @@ import {
   AUTOMATIC_PAGE_MATCHERS,
   AUTOMATIC_SOURCE_MATCHERS,
 } from "../routing/automatic-rule.ts";
+import { getFilenameFromUrl } from "../routing/filename.ts";
 
 export type MessageSender = { id?: string | undefined; tab?: CurrentTab | undefined };
 type ProtocolSendResponse<Request extends InternalMessage> = SendResponse<ResponseFor<Request>>;
@@ -195,6 +196,33 @@ export const Messaging = {
     });
   },
 
+  // Internal-only readback uses the persisted representation accepted by
+  // APPLY_CONFIG. Runtime values such as parsed routing rules are deliberately
+  // not exposed because they cannot be safely round-tripped by an agent.
+  handleGetConfig: async (
+    _request: MessageOf<typeof MESSAGE_TYPES.GET_CONFIG>,
+    _sender: MessageSender,
+    sendResponse: ProtocolSendResponse<MessageOf<typeof MESSAGE_TYPES.GET_CONFIG>>,
+  ): Promise<void> => {
+    const keys = OptionsManagement.getKeys();
+    const stored = await webExtensionApi.storage.local.get(keys);
+    const config = Object.fromEntries(
+      OptionsManagement.OPTION_KEYS.map((key) => {
+        const value = stored[key.name];
+        const validStoredType =
+          key.type === OptionsManagement.OPTION_TYPES.BOOL
+            ? typeof value === "boolean"
+            : (typeof value === "string" || typeof value === "number") &&
+              (typeof value !== "number" || Number.isFinite(value));
+        return [key.name, validStoredType ? value : key.default];
+      }),
+    ) as Record<string, string | number | boolean>;
+    sendResponse({
+      type: MESSAGE_TYPES.CONFIG,
+      body: { version: Messaging.API_VERSION, config },
+    });
+  },
+
   handleGetKeywords: (
     _request: MessageOf<typeof MESSAGE_TYPES.GET_KEYWORDS>,
     _sender: MessageSender,
@@ -258,6 +286,8 @@ export const Messaging = {
       }
       if (body.automaticCandidate) {
         const candidate = body.automaticCandidate;
+        const suggestedFilename =
+          candidate.suggestedFilename || getFilenameFromUrl(candidate.sourceUrl);
         result.automaticTrace = await traceRules(
           parsed.rules,
           {
@@ -267,6 +297,13 @@ export const Messaging = {
             url: candidate.sourceUrl,
             sourceKind: candidate.sourceKind,
             mediaType: candidate.sourceKind,
+            ...(suggestedFilename
+              ? {
+                  suggestedFilename,
+                  filename: suggestedFilename,
+                  initialFilename: suggestedFilename,
+                }
+              : {}),
           },
           isEligibleAutomaticRoutingRule,
         );
@@ -639,6 +676,7 @@ const internalHandlers = {
     Messaging.handleCheckRoutes(request, sendResponse),
   [MESSAGE_TYPES.PING]: Messaging.handlePing,
   [MESSAGE_TYPES.GET_SCHEMA]: Messaging.handleGetSchema,
+  [MESSAGE_TYPES.GET_CONFIG]: Messaging.handleGetConfig,
   [MESSAGE_TYPES.VALIDATE]: Messaging.handleValidate,
   [MESSAGE_TYPES.APPLY_CONFIG]: Messaging.handleApplyConfig,
   [MESSAGE_TYPES.DOWNLOAD]: Messaging.handleDownloadMessage,

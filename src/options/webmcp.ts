@@ -96,7 +96,12 @@ const DOWNLOAD_PROPERTIES = new Set([
   "mediaType",
   "sourceKind",
 ]);
-const AUTOMATIC_CANDIDATE_PROPERTIES = new Set(["pageUrl", "sourceUrl", "sourceKind"]);
+const AUTOMATIC_CANDIDATE_PROPERTIES = new Set([
+  "pageUrl",
+  "sourceUrl",
+  "sourceKind",
+  "suggestedFilename",
+]);
 const TRACE_STRING_FIELDS = [
   "srcUrl",
   "url",
@@ -130,7 +135,7 @@ const isValidDownloadUrl = (url: string) =>
 // EXPERIMENTAL — WebMCP (Chrome origin trial, https://developer.chrome.com/docs/ai/webmcp).
 // Registers save-in's config + download tools on this page's document so an
 // in-browser AI agent can discover and call them. It wraps the same messaging
-// API (GET_SCHEMA / VALIDATE / APPLY_CONFIG / DOWNLOAD) documented in
+// API (GET_SCHEMA / GET_CONFIG / VALIDATE / APPLY_CONFIG / DOWNLOAD) documented in
 // docs/INTEGRATIONS.md. No-op wherever document.modelContext is absent, and the
 // API surface is explicitly "subject to change" — treat this as a preview.
 
@@ -159,6 +164,19 @@ export const SaveInWebMCP = {
           return unknown
             ? inputError(unknown.field, unknown.message)
             : send({ type: "GET_SCHEMA" });
+        },
+      },
+      {
+        name: "save_in_get_config",
+        description:
+          "Read current saved settings in the same option-name/value format accepted by save_in_apply_config.",
+        inputSchema: { type: "object", properties: {}, additionalProperties: false },
+        annotations: { readOnlyHint: true, untrustedContentHint: true },
+        execute: (input) => {
+          const unknown = firstUnknownProperty(input, NO_PROPERTIES);
+          return unknown
+            ? inputError(unknown.field, unknown.message)
+            : send({ type: "GET_CONFIG" });
         },
       },
       {
@@ -203,6 +221,10 @@ export const SaveInWebMCP = {
                 pageUrl: { type: "string" },
                 sourceUrl: { type: "string" },
                 sourceKind: { type: "string", enum: [...PAGE_SOURCE_KINDS] },
+                suggestedFilename: {
+                  type: "string",
+                  description: "Optional filename hint; defaults to the source URL filename",
+                },
               },
               additionalProperties: false,
               required: ["pageUrl", "sourceUrl", "sourceKind"],
@@ -292,6 +314,10 @@ export const SaveInWebMCP = {
             if (!isPageSourceKind(candidate.sourceKind)) {
               return inputError("automaticCandidate.sourceKind", "Unknown source kind");
             }
+            const filenameError = invalidOptionalString(candidate, "suggestedFilename");
+            if (filenameError) {
+              return inputError(`automaticCandidate.${filenameError.field}`, filenameError.message);
+            }
             if (!hasOwn(input, "filenamePatterns")) {
               return inputError("automaticCandidate", "Provide filenamePatterns to trace");
             }
@@ -305,7 +331,7 @@ export const SaveInWebMCP = {
       {
         name: "save_in_apply_config",
         description:
-          "Immediately validate, persist, and activate a partial Save In configuration. Unknown keys and type mismatches are rejected; omitted settings remain unchanged.",
+          "Validate and immediately apply each valid setting. The result lists applied and rejected keys; a mixed request can partially succeed. Omitted settings remain unchanged.",
         inputSchema: {
           type: "object",
           properties: {
@@ -427,13 +453,29 @@ export const SaveInWebMCP = {
   },
 };
 
-export const setupWebMcpStatus = (localize: typeof getMessage = getMessage): void => {
+export const setupWebMcpStatus = (
+  localize: typeof getMessage = getMessage,
+  onConfigApplied?: (applied: Record<string, unknown>) => Promise<void> | void,
+): void => {
   const ctx = SaveInWebMCP.getModelContext();
   const statusEl = document.getElementById("webmcp-status");
 
   if (ctx && typeof ctx.registerTool === "function" && webExtensionApi) {
-    const send = (message: WebMcpMessage) =>
-      webExtensionApi.runtime.sendMessage(message).then((res) => (res && res.body) || res);
+    const send = async (message: WebMcpMessage) => {
+      const response = await webExtensionApi.runtime.sendMessage(message);
+      const body = (response && response.body) || response;
+      if (
+        message.type === "APPLY_CONFIG" &&
+        isStringKeyedRecord(body) &&
+        isStringKeyedRecord(body.applied) &&
+        Object.keys(body.applied).length > 0
+      ) {
+        // Persistence has already succeeded. A failed page refresh must not
+        // misreport the config mutation as a failed tool call.
+        await Promise.resolve(onConfigApplied?.(body.applied)).catch(() => {});
+      }
+      return body;
+    };
     const count = SaveInWebMCP.buildTools(send).length;
     if (statusEl) statusEl.textContent = localize("webMcpStatusRegistering") || "Registering…";
     void SaveInWebMCP.register(ctx, send).then((registered) => {

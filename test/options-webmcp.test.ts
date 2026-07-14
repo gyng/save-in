@@ -7,6 +7,7 @@ type SaveInTool = ReturnType<typeof SaveInWebMCP.buildTools>[number];
 type SaveInToolName =
   | "save_in_apply_config"
   | "save_in_download"
+  | "save_in_get_config"
   | "save_in_get_grammars"
   | "save_in_get_schema"
   | "save_in_list_vocabulary"
@@ -28,6 +29,7 @@ describe("buildTools", () => {
     expect(Object.keys(byName).toSorted()).toEqual([
       "save_in_apply_config",
       "save_in_download",
+      "save_in_get_config",
       "save_in_get_grammars",
       "save_in_get_schema",
       "save_in_list_vocabulary",
@@ -44,6 +46,10 @@ describe("buildTools", () => {
     expect(byName.save_in_download.inputSchema.additionalProperties).toBe(false);
     expect(byName.save_in_apply_config.annotations?.readOnlyHint).toBe(false);
     expect(byName.save_in_apply_config.annotations?.untrustedContentHint).toBe(true);
+    expect(byName.save_in_get_config.annotations).toEqual({
+      readOnlyHint: true,
+      untrustedContentHint: true,
+    });
     expect(byName.save_in_validate_config.annotations?.readOnlyHint).toBe(true);
     const validationInfo = byName.save_in_validate_config.inputSchema.properties.info as {
       description: string;
@@ -88,6 +94,9 @@ describe("buildTools", () => {
     byName.save_in_get_schema.execute();
     expect(send).toHaveBeenCalledWith({ type: "GET_SCHEMA" });
 
+    byName.save_in_get_config.execute({});
+    expect(send).toHaveBeenCalledWith({ type: "GET_CONFIG" });
+
     byName.save_in_list_vocabulary.execute({});
     expect(send).toHaveBeenCalledWith({ type: "GET_KEYWORDS" });
 
@@ -131,6 +140,7 @@ describe("buildTools", () => {
       pageUrl: "https://example.test/gallery",
       sourceUrl: "https://cdn.test/cat.png",
       sourceKind: "image",
+      suggestedFilename: "server-cat.png",
     };
 
     await byName.save_in_validate_config.execute({
@@ -176,6 +186,10 @@ describe("buildTools", () => {
     const { send, byName } = toolsByName();
 
     await expect(byName.save_in_get_schema.execute({ surprise: true })).resolves.toEqual({
+      status: "ERROR",
+      errors: [{ field: "surprise", message: "Unknown property" }],
+    });
+    await expect(byName.save_in_get_config.execute({ surprise: true })).resolves.toEqual({
       status: "ERROR",
       errors: [{ field: "surprise", message: "Unknown property" }],
     });
@@ -416,8 +430,8 @@ describe("buildTools", () => {
 
   test("register reports successful registrations and isolates failures", async () => {
     const registerTool = vi.fn(() => Promise.resolve());
-    await expect(SaveInWebMCP.register({ registerTool }, vi.fn())).resolves.toBe(6);
-    expect(registerTool).toHaveBeenCalledTimes(6);
+    await expect(SaveInWebMCP.register({ registerTool }, vi.fn())).resolves.toBe(7);
+    expect(registerTool).toHaveBeenCalledTimes(7);
 
     const throwing = {
       registerTool: vi.fn((tool: { name: string }) => {
@@ -429,7 +443,7 @@ describe("buildTools", () => {
           : Promise.resolve();
       }),
     };
-    await expect(SaveInWebMCP.register(throwing, vi.fn())).resolves.toBe(4);
+    await expect(SaveInWebMCP.register(throwing, vi.fn())).resolves.toBe(5);
   });
 });
 
@@ -453,10 +467,10 @@ describe("options-page registration", () => {
     const { setupWebMcpStatus } = await import("../src/options/webmcp.ts");
     setupWebMcpStatus(() => "");
 
-    expect(registerTool).toHaveBeenCalledTimes(6);
+    expect(registerTool).toHaveBeenCalledTimes(7);
     await vi.waitFor(() =>
       expect(document.getElementById("webmcp-status")?.textContent).toBe(
-        "Active — 6 tools registered",
+        "Active — 7 tools registered",
       ),
     );
   });
@@ -478,9 +492,42 @@ describe("options-page registration", () => {
 
     await vi.waitFor(() =>
       expect(document.getElementById("webmcp-status")?.textContent).toBe(
-        "Limited — 5 of 6 tools registered",
+        "Limited — 6 of 7 tools registered",
       ),
     );
+  });
+
+  test("refreshes the open page after apply succeeds without changing the tool result", async () => {
+    document.body.innerHTML = '<span id="webmcp-status"></span>';
+    let applyTool: SaveInTool | undefined;
+    document.modelContext = {
+      registerTool: vi.fn((tool: { name: string }) => {
+        if (tool.name === "save_in_apply_config") applyTool = tool as SaveInTool;
+        return Promise.resolve();
+      }),
+    };
+    (global as any).browser = {
+      runtime: {
+        sendMessage: vi.fn(() =>
+          Promise.resolve({
+            body: { version: 1, applied: { prompt: true }, rejected: [] },
+          }),
+        ),
+      },
+    };
+    const onConfigApplied = vi.fn(() => Promise.resolve());
+
+    vi.resetModules();
+    const { setupWebMcpStatus } = await import("../src/options/webmcp.ts");
+    setupWebMcpStatus(() => "", onConfigApplied);
+    await vi.waitFor(() => expect(applyTool).toBeDefined());
+
+    await expect(applyTool!.execute({ config: { prompt: true } })).resolves.toEqual({
+      version: 1,
+      applied: { prompt: true },
+      rejected: [],
+    });
+    expect(onConfigApplied).toHaveBeenCalledWith({ prompt: true });
   });
 
   test("no-ops and reports unavailability without a model context", async () => {
@@ -537,7 +584,7 @@ describe("options-page registration", () => {
     vi.resetModules();
     const { setupWebMcpStatus } = await import("../src/options/webmcp.ts");
     expect(() => setupWebMcpStatus(() => "")).not.toThrow();
-    await vi.waitFor(() => expect(document.modelContext?.registerTool).toHaveBeenCalledTimes(6));
+    await vi.waitFor(() => expect(document.modelContext?.registerTool).toHaveBeenCalledTimes(7));
     delete document.modelContext;
     expect(() => setupWebMcpStatus(() => "")).not.toThrow();
   });

@@ -16,7 +16,11 @@ import "../platform/chrome-detector.ts";
 import "../options/options-logic.ts";
 import "../options/history-view.ts";
 import { renderHistory, setHistoryLocalizer } from "../options/history-panel.ts";
-import { confirmPendingChanges, setupOptionsPage } from "../options/options.ts";
+import {
+  confirmPendingChanges,
+  setupOptionsPage,
+  syncOptionsPageAfterWebMcpApply,
+} from "../options/options.ts";
 import "../options/dismissible-details.ts";
 import { setupPermissionsBanner } from "../options/permissions-banner.ts";
 import "../options/click-to-copy.ts";
@@ -64,7 +68,7 @@ document.addEventListener(
     });
     setupOptionSearch();
     setupSourceShortcut();
-    setupWebMcpStatus();
+    setupWebMcpStatus(getMessage, syncOptionsPageAfterWebMcpApply);
     setupPrivacyDialog();
     setupAboutDialog();
     setupLanguageSelector();

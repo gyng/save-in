@@ -58,6 +58,8 @@ describe("message protocol runtime validation", () => {
     ).toBe(true);
     expect(isExternalMessage({ type: MESSAGE_TYPES.GET_KEYWORDS })).toBe(true);
     expect(isExternalMessage({ type: MESSAGE_TYPES.GET_GRAMMARS })).toBe(true);
+    expect(isInternalMessage({ type: MESSAGE_TYPES.GET_CONFIG })).toBe(true);
+    expect(isExternalMessage({ type: MESSAGE_TYPES.GET_CONFIG })).toBe(false);
     expect(
       isExternalMessage({
         type: MESSAGE_TYPES.VALIDATE,
@@ -68,6 +70,7 @@ describe("message protocol runtime validation", () => {
             pageUrl: "https://example.test/",
             sourceUrl: "https://cdn.test/a.png",
             sourceKind: "image",
+            suggestedFilename: "a-final.png",
           },
         },
       }),
@@ -112,6 +115,17 @@ describe("message protocol runtime validation", () => {
     { type: MESSAGE_TYPES.VALIDATE, body: { info: { counter: Number.NaN } } },
     { type: MESSAGE_TYPES.VALIDATE, body: { info: { now: "today" } } },
     { type: MESSAGE_TYPES.VALIDATE, body: { info: { currentTab: { title: 42 } } } },
+    {
+      type: MESSAGE_TYPES.VALIDATE,
+      body: {
+        automaticCandidate: {
+          pageUrl: "https://x/",
+          sourceUrl: "https://x/a",
+          sourceKind: "image",
+          suggestedFilename: 42,
+        },
+      },
+    },
     {
       type: MESSAGE_TYPES.VALIDATE,
       body: {
@@ -202,6 +216,7 @@ describe("message protocol runtime validation", () => {
     MESSAGE_TYPES.GET_GRAMMARS,
     MESSAGE_TYPES.PING,
     MESSAGE_TYPES.GET_SCHEMA,
+    MESSAGE_TYPES.GET_CONFIG,
   ])("accepts bodyless %s messages only without a body", (type) => {
     expect(isInternalMessage({ type })).toBe(true);
     expect(isInternalMessage({ type, body: undefined })).toBe(true);

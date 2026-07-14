@@ -122,11 +122,12 @@ WebMCP is an experimental browser API currently distributed through a Chrome
 origin trial. Its API and availability may change; see the
 [Chrome WebMCP documentation](https://developer.chrome.com/docs/ai/webmcp).
 When a compatible in-browser WebMCP context is available, the open options page
-registers six tools:
+registers seven tools:
 
 | Tool | Mutation | Purpose |
 | --- | --- | --- |
-| `save_in_get_schema` | No | Read option schema and current values |
+| `save_in_get_schema` | No | Read option names, types, defaults, and descriptions |
+| `save_in_get_config` | No | Read current saved values in apply-ready form |
 | `save_in_list_vocabulary` | No | Read variables, matchers, and source kinds |
 | `save_in_get_grammars` | No | Read the two supported config grammars |
 | `save_in_validate_config` | No | Dry-run paths/rules and optional sample matches |
@@ -136,13 +137,15 @@ registers six tools:
 Recommended agent flow:
 
 1. `save_in_get_schema`
-2. `save_in_list_vocabulary`
-3. `save_in_get_grammars`
-4. `save_in_validate_config`
-5. Correct every reported error
-6. `save_in_apply_config`
+2. `save_in_get_config`
+3. `save_in_list_vocabulary`
+4. `save_in_get_grammars`
+5. `save_in_validate_config`
+6. Correct every reported error
+7. `save_in_apply_config`
 
 Tools exist only while the options page is open and the browser provides WebMCP. Inputs may contain untrusted page data; tool annotations distinguish read-only and mutating operations.
+`save_in_apply_config` applies every valid key and reports invalid keys separately, so a mixed request can partially succeed. Read the returned `applied` and `rejected` lists before continuing.
 
 ## Webhooks
 

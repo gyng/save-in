@@ -181,6 +181,7 @@ export type AutomaticRoutingValidationCandidate = {
   pageUrl: string;
   sourceUrl: string;
   sourceKind: PageSourceKind;
+  suggestedFilename?: string | undefined;
 };
 
 export type ProtocolErrorResponse<Type extends string> = Response<
@@ -273,6 +274,10 @@ export type InternalResponseMap = {
       options: Array<WireOptionSchemaKey & { description: string }>;
     }
   >;
+  [MESSAGE_TYPES.GET_CONFIG]: Response<
+    typeof MESSAGE_TYPES.CONFIG,
+    { version: number; config: Record<string, string | number | boolean> }
+  >;
   [MESSAGE_TYPES.VALIDATE]: Response<
     typeof MESSAGE_TYPES.VALIDATE_RESULT,
     {
@@ -348,6 +353,7 @@ export type InternalMessage =
   | OptionalBodyMessage<typeof MESSAGE_TYPES.CHECK_ROUTES, { state?: WireDownloadState }>
   | Message<typeof MESSAGE_TYPES.PING>
   | Message<typeof MESSAGE_TYPES.GET_SCHEMA>
+  | Message<typeof MESSAGE_TYPES.GET_CONFIG>
   | OptionalBodyMessage<
       typeof MESSAGE_TYPES.VALIDATE,
       {
@@ -421,6 +427,7 @@ const INTERNAL_MESSAGE_TYPE_MAP = {
   [MESSAGE_TYPES.CHECK_ROUTES]: true,
   [MESSAGE_TYPES.PING]: true,
   [MESSAGE_TYPES.GET_SCHEMA]: true,
+  [MESSAGE_TYPES.GET_CONFIG]: true,
   [MESSAGE_TYPES.VALIDATE]: true,
   [MESSAGE_TYPES.APPLY_CONFIG]: true,
   [MESSAGE_TYPES.DOWNLOAD]: true,
@@ -511,7 +518,8 @@ const isAutomaticRoutingValidationCandidate = (
   isStringKeyedRecord(value) &&
   typeof value.pageUrl === "string" &&
   typeof value.sourceUrl === "string" &&
-  isPageSourceKind(value.sourceKind);
+  isPageSourceKind(value.sourceKind) &&
+  hasOptionalString(value, "suggestedFilename");
 
 const isWireDownloadInfo = (value: unknown): value is WireDownloadInfo =>
   isStringKeyedRecord(value) &&
@@ -628,6 +636,7 @@ const isMessageBodyValid = (message: Record<string, unknown> & { type: string })
     case MESSAGE_TYPES.GET_GRAMMARS:
     case MESSAGE_TYPES.PING:
     case MESSAGE_TYPES.GET_SCHEMA:
+    case MESSAGE_TYPES.GET_CONFIG:
       return hasNoBody(message);
   }
   return false;
