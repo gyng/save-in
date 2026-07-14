@@ -285,8 +285,8 @@ const PathEditorHelpers = {
         });
         rowEl.appendChild(handle);
 
-        const enabledLabel = document.createElement("label");
-        enabledLabel.className = "visual-editor-enabled path-editor-enabled-label";
+        const enabledControl = document.createElement("span");
+        enabledControl.className = "visual-editor-enabled path-editor-enabled-control";
         const enabled = document.createElement("input");
         enabled.type = "checkbox";
         enabled.className = "path-editor-enabled";
@@ -300,11 +300,8 @@ const PathEditorHelpers = {
           commit();
           rebuild();
         });
-        enabledLabel.append(
-          enabled,
-          document.createTextNode(getMessage("visualEditorEnabled") || "Enabled"),
-        );
-        rowEl.append(enabledLabel);
+        enabledControl.append(enabled);
+        rowEl.append(enabledControl);
 
         rowEl.addEventListener("dragover", (e) => {
           if (dragFrom !== null) {
