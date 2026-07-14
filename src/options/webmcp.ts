@@ -116,13 +116,21 @@ const TRACE_STRING_FIELDS = [
   "selectionText",
   "filename",
   "initialFilename",
+  "resolvedFilename",
   "context",
   "menuIndex",
   "comment",
+  "sha256",
 ];
 const TRACE_CURRENT_TAB_STRING_FIELDS = ["title"];
 const TRACE_CURRENT_TAB_PROPERTIES = new Set(TRACE_CURRENT_TAB_STRING_FIELDS);
-const TRACE_PROPERTIES = new Set([...TRACE_STRING_FIELDS, "currentTab"]);
+const TRACE_PROPERTIES = new Set([
+  ...TRACE_STRING_FIELDS,
+  "sourceKind",
+  "counter",
+  "now",
+  "currentTab",
+]);
 const hasOwn = (input: Record<string, unknown>, key: string) =>
   Object.prototype.hasOwnProperty.call(input, key);
 const isValidDownloadUrl = (url: string) =>
@@ -247,9 +255,14 @@ export const SaveInWebMCP = {
                 selectionText: { type: "string" },
                 filename: { type: "string" },
                 initialFilename: { type: "string" },
+                resolvedFilename: { type: "string" },
                 context: { type: "string" },
                 menuIndex: { type: "string" },
                 comment: { type: "string" },
+                sourceKind: { type: "string", enum: [...PAGE_SOURCE_KINDS] },
+                counter: { type: "integer", minimum: 0 },
+                now: { type: "string", format: "date-time" },
+                sha256: { type: "string" },
                 currentTab: {
                   type: "object",
                   properties: { title: { type: "string" } },
@@ -275,6 +288,27 @@ export const SaveInWebMCP = {
             if (unknownInfo) return inputError(`info.${unknownInfo.field}`, unknownInfo.message);
             const infoError = firstInvalidOptionalString(input.info, TRACE_STRING_FIELDS);
             if (infoError) return inputError(`info.${infoError.field}`, infoError.message);
+            if (
+              typeof input.info.sourceKind !== "undefined" &&
+              !isPageSourceKind(input.info.sourceKind)
+            ) {
+              return inputError("info.sourceKind", "Unknown source kind");
+            }
+            if (
+              typeof input.info.counter !== "undefined" &&
+              (typeof input.info.counter !== "number" ||
+                !Number.isSafeInteger(input.info.counter) ||
+                input.info.counter < 0)
+            ) {
+              return inputError("info.counter", "Expected a non-negative integer");
+            }
+            if (
+              typeof input.info.now !== "undefined" &&
+              (typeof input.info.now !== "string" ||
+                !Number.isFinite(new Date(input.info.now).getTime()))
+            ) {
+              return inputError("info.now", "Expected an ISO date and time");
+            }
             const currentTab = input.info.currentTab;
             if (typeof currentTab !== "undefined" && !isStringKeyedRecord(currentTab)) {
               return inputError("info.currentTab", "Expected an object");

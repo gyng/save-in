@@ -61,6 +61,11 @@ describe("buildTools", () => {
     expect(validationInfo.properties).toHaveProperty("mediaType");
     expect(validationInfo.properties).toHaveProperty("context");
     expect(validationInfo.properties).toHaveProperty("menuIndex");
+    expect(validationInfo.properties).toHaveProperty("resolvedFilename");
+    expect(validationInfo.properties).toHaveProperty("sourceKind");
+    expect(validationInfo.properties).toHaveProperty("counter");
+    expect(validationInfo.properties).toHaveProperty("now");
+    expect(validationInfo.properties).toHaveProperty("sha256");
     expect(validationInfo.properties).toHaveProperty("currentTab");
     expect((validationInfo as { additionalProperties?: boolean }).additionalProperties).toBe(false);
   });
@@ -172,6 +177,11 @@ describe("buildTools", () => {
       selectionText: "selected",
       context: "media",
       menuIndex: "2",
+      resolvedFilename: "report.pdf",
+      sourceKind: "document",
+      counter: 7,
+      now: "2026-07-15T12:30:00.000Z",
+      sha256: "ba7816bf8f01",
       currentTab: { title: "Quarterly report" },
     };
 
@@ -230,6 +240,33 @@ describe("buildTools", () => {
     ).resolves.toEqual({
       status: "ERROR",
       errors: [{ field: "info.currentTab.title", message: "Expected a string" }],
+    });
+    await expect(
+      byName.save_in_validate_config.execute({
+        filenamePatterns: "into: test",
+        info: { sourceKind: "script" },
+      }),
+    ).resolves.toEqual({
+      status: "ERROR",
+      errors: [{ field: "info.sourceKind", message: "Unknown source kind" }],
+    });
+    await expect(
+      byName.save_in_validate_config.execute({
+        filenamePatterns: "into: test",
+        info: { counter: -1 },
+      }),
+    ).resolves.toEqual({
+      status: "ERROR",
+      errors: [{ field: "info.counter", message: "Expected a non-negative integer" }],
+    });
+    await expect(
+      byName.save_in_validate_config.execute({
+        filenamePatterns: "into: test",
+        info: { now: "not-a-date" },
+      }),
+    ).resolves.toEqual({
+      status: "ERROR",
+      errors: [{ field: "info.now", message: "Expected an ISO date and time" }],
     });
     await expect(byName.save_in_apply_config.execute({ config: [] })).resolves.toEqual({
       status: "ERROR",

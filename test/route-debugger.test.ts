@@ -173,7 +173,12 @@ test("shows production rule and clause decisions and jumps back to their source"
   const ruleCards = result.querySelectorAll<HTMLDetailsElement>(".route-debugger-rule");
   expect(ruleCards).toHaveLength(2);
   expect(result.querySelector("summary button")).toBeNull();
-  expect(ruleCards[1]?.querySelector(":scope > .route-debugger-source-link")).not.toBeNull();
+  const sourceLink = ruleCards[1]?.querySelector<HTMLButtonElement>(
+    ":scope > .route-debugger-source-link",
+  );
+  expect(sourceLink?.textContent).toBe("Edit");
+  expect(sourceLink?.getAttribute("aria-label")).toBeNull();
+  expect(sourceLink?.title).toBe("Go to line 4");
   expect(ruleCards[0]?.open).toBe(false);
   expect(ruleCards[1]?.open).toBe(true);
   expect(ruleCards[1]?.textContent).toContain("Rule 2 matched.");
