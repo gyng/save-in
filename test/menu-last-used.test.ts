@@ -42,6 +42,16 @@ describe("Menus last-used state", () => {
     expect(Menus.state.lastUsedMeta).toBeNull();
   });
 
+  test("restoreLastUsed rejects array-shaped routing metadata", () => {
+    Menus.restoreLastUsed({
+      lastUsedPath: "images",
+      lastUsedMeta: [],
+    });
+
+    expect(Menus.state.lastUsedPath).toBe("images");
+    expect(Menus.state.lastUsedMeta).toBeNull();
+  });
+
   test("restoreLastUsed rejects persisted paths that violate the path policy", () => {
     Menus.restoreLastUsed({
       lastUsedPath: "../escape",

@@ -9,6 +9,7 @@ import { options } from "../config/options-data.ts";
 import { LAST_USED_META_STORAGE_KEY, LAST_USED_PATH_STORAGE_KEY } from "../shared/storage-keys.ts";
 import { MEDIA_TYPES } from "../shared/constants.ts";
 import { Path } from "../routing/path.ts";
+import { isStringKeyedRecord } from "../shared/util.ts";
 import { backgroundRuntime } from "./runtime.ts";
 import type { MenuTree } from "../menus/menu-tree.ts";
 import { MENU_IDS } from "../menus/menu-ids.ts";
@@ -25,10 +26,6 @@ const asMenuContexts = (contexts: readonly string[]): MenuContexts => {
   return [first, ...rest] as MenuContexts;
 };
 type LastUsedMeta = { comment?: string; menuIndex?: string; title?: string };
-type StoredLastUsed = {
-  lastUsedPath?: string | null;
-  lastUsedMeta?: LastUsedMeta | null;
-} | null;
 type MenuPathMapping = {
   parsedDir: string;
   comment: string;
@@ -61,19 +58,29 @@ export const setLastUsed = (path: string, meta: LastUsedMeta, privateContext = f
     .catch(() => {});
 };
 
-export const restoreLastUsed = (stored: StoredLastUsed) => {
-  const path = stored?.lastUsedPath;
-  const meta = stored?.lastUsedMeta;
+const normalizeLastUsedMeta = (value: unknown): LastUsedMeta | null => {
+  if (!isStringKeyedRecord(value)) return null;
+  const { comment, menuIndex, title } = value;
+  if (
+    (comment !== undefined && typeof comment !== "string") ||
+    (menuIndex !== undefined && typeof menuIndex !== "string") ||
+    (title !== undefined && typeof title !== "string")
+  ) {
+    return null;
+  }
+  return {
+    ...(typeof comment === "string" ? { comment } : {}),
+    ...(typeof menuIndex === "string" ? { menuIndex } : {}),
+    ...(typeof title === "string" ? { title } : {}),
+  };
+};
+
+export const restoreLastUsed = (stored: unknown) => {
+  const path = isStringKeyedRecord(stored) ? stored.lastUsedPath : undefined;
+  const meta = isStringKeyedRecord(stored) ? stored.lastUsedMeta : undefined;
   menuState.lastUsedPath =
     typeof path === "string" && path && new Path(path).validate().valid ? path : null;
-  menuState.lastUsedMeta =
-    menuState.lastUsedPath &&
-    meta != null &&
-    (meta.comment === undefined || typeof meta.comment === "string") &&
-    (meta.menuIndex === undefined || typeof meta.menuIndex === "string") &&
-    (meta.title === undefined || typeof meta.title === "string")
-      ? meta
-      : null;
+  menuState.lastUsedMeta = menuState.lastUsedPath ? normalizeLastUsedMeta(meta) : null;
 };
 
 export const makeSeparator = (
