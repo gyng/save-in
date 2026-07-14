@@ -38,7 +38,9 @@ export type DownloadsState = {
 const isObject = (value: unknown): value is Record<string, unknown> =>
   value != null && typeof value === "object" && !Array.isArray(value);
 
-const normalizeDownloadRecord = (value: unknown): PersistedDownloadRecord | null => {
+function normalizeDownloadRecord(value: Partial<DownloadRecord>): PersistedDownloadRecord;
+function normalizeDownloadRecord(value: unknown): PersistedDownloadRecord | null;
+function normalizeDownloadRecord(value: unknown): PersistedDownloadRecord | null {
   if (!isObject(value)) return null;
   const record: PersistedDownloadRecord = {};
   const strings = [
@@ -70,7 +72,7 @@ const normalizeDownloadRecord = (value: unknown): PersistedDownloadRecord | null
     record.conflictAction = value.conflictAction;
   }
   return record;
-};
+}
 
 const unwrapDownloadRecords = (value: unknown): unknown =>
   isObject(value) && value.version === 1 && isObject(value.records) ? value.records : value;
@@ -143,7 +145,7 @@ export const mergeDownload = (
     const records = normalizeDownloadRecords(stored);
     if (merged.privateContext) delete records[downloadId];
     else {
-      records[downloadId] = normalizeDownloadRecord(merged)!;
+      records[downloadId] = normalizeDownloadRecord(merged);
     }
     capDownloads(records);
     return preserveDownloadStorageShape(stored, records);
