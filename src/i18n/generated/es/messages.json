@@ -2449,6 +2449,11 @@
   "welcomeEmptyPresetFailed": {
     "message": "No se pudo aplicar el preajuste vacío. Tus carpetas iniciales no se modificaron."
   },
+  "welcomeEmptyConfirmTitle": { "message": "¿Reemplazar las carpetas actuales?" },
+  "welcomeEmptyConfirmDescription": {
+    "message": "El preajuste vacío reemplaza la configuración actual de carpetas y conserva solo el destino Descargas del navegador."
+  },
+  "welcomeKeepCurrentFolders": { "message": "Conservar carpetas actuales" },
   "welcomeUseStarterFolders": { "message": "Empezar a usar Save In" },
   "welcomeUsingStarterSettings": { "message": "Usando la configuración inicial" },
   "html_showWelcomeGuide": { "message": "Mostrar la guía de bienvenida" }

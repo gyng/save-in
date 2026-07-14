@@ -2543,6 +2543,11 @@
   "welcomeEmptyPresetFailed": {
     "message": "无法应用空预设。初始文件夹未更改。"
   },
+  "welcomeEmptyConfirmTitle": { "message": "替换当前文件夹？" },
+  "welcomeEmptyConfirmDescription": {
+    "message": "空预设会替换当前文件夹配置，仅保留浏览器的下载目标。"
+  },
+  "welcomeKeepCurrentFolders": { "message": "保留当前文件夹" },
   "welcomeUseStarterFolders": { "message": "开始使用 Save In" },
   "welcomeUsingStarterSettings": { "message": "正在使用初始设置" },
   "html_showWelcomeGuide": { "message": "显示欢迎指南" }

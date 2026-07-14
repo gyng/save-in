@@ -3525,6 +3525,18 @@
     "message": "Could not apply the empty preset. Your starter folders are unchanged.",
     "description": "Error shown when the empty welcome preset could not be saved. Used in src/options/welcome-dialog.ts."
   },
+  "welcomeEmptyConfirmTitle": {
+    "message": "Replace current folders?",
+    "description": "Confirmation heading before an existing user applies the empty welcome preset. Used in src/options/welcome-dialog.ts."
+  },
+  "welcomeEmptyConfirmDescription": {
+    "message": "The empty preset replaces your current folder configuration and keeps only the browser Downloads destination.",
+    "description": "Warning shown before an existing user applies the empty welcome preset. Used in src/options/welcome-dialog.ts."
+  },
+  "welcomeKeepCurrentFolders": {
+    "message": "Keep current folders",
+    "description": "Cancel action in the empty welcome preset confirmation. Used in src/options/welcome-dialog.ts."
+  },
   "welcomeUseStarterFolders": {
     "message": "Start using Save In",
     "description": "Primary welcome action that accepts the working default folders and closes the guide. Used in src/options/welcome-dialog.ts."

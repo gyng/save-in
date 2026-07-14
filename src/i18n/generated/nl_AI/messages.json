@@ -2455,6 +2455,11 @@
   "welcomeEmptyPresetFailed": {
     "message": "De lege voorinstelling kon niet worden toegepast. Je startmappen zijn niet gewijzigd."
   },
+  "welcomeEmptyConfirmTitle": { "message": "Huidige mappen vervangen?" },
+  "welcomeEmptyConfirmDescription": {
+    "message": "De lege voorinstelling vervangt je huidige mapconfiguratie en behoudt alleen de downloadbestemming van de browser."
+  },
+  "welcomeKeepCurrentFolders": { "message": "Huidige mappen behouden" },
   "welcomeUseStarterFolders": { "message": "Save In gaan gebruiken" },
   "welcomeUsingStarterSettings": { "message": "Startinstellingen worden gebruikt" },
   "html_showWelcomeGuide": { "message": "Welkomstgids tonen" }

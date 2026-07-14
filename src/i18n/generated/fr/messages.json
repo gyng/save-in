@@ -2476,6 +2476,11 @@
   "welcomeEmptyPresetFailed": {
     "message": "Impossible d’appliquer la configuration vide. Vos dossiers de départ restent inchangés."
   },
+  "welcomeEmptyConfirmTitle": { "message": "Remplacer les dossiers actuels ?" },
+  "welcomeEmptyConfirmDescription": {
+    "message": "La configuration vide remplace votre configuration de dossiers actuelle et conserve uniquement la destination Téléchargements du navigateur."
+  },
+  "welcomeKeepCurrentFolders": { "message": "Conserver les dossiers actuels" },
   "welcomeUseStarterFolders": { "message": "Commencer à utiliser Save In" },
   "welcomeUsingStarterSettings": { "message": "Paramètres de départ utilisés" },
   "html_showWelcomeGuide": { "message": "Afficher le guide de bienvenue" }

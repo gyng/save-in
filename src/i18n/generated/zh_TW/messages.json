@@ -2543,6 +2543,11 @@
   "welcomeEmptyPresetFailed": {
     "message": "無法套用空白預設。初始資料夾未變更。"
   },
+  "welcomeEmptyConfirmTitle": { "message": "取代目前的資料夾？" },
+  "welcomeEmptyConfirmDescription": {
+    "message": "空白預設會取代目前的資料夾設定，只保留瀏覽器的下載目的地。"
+  },
+  "welcomeKeepCurrentFolders": { "message": "保留目前的資料夾" },
   "welcomeUseStarterFolders": { "message": "開始使用 Save In" },
   "welcomeUsingStarterSettings": { "message": "正在使用初始設定" },
   "html_showWelcomeGuide": { "message": "顯示歡迎指南" }

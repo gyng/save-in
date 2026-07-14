@@ -25,6 +25,52 @@ const createButton = (
   return button;
 };
 
+const confirmEmptyPreset = (localize: Localize): Promise<boolean> =>
+  new Promise((resolve) => {
+    const dialog = document.createElement("dialog");
+    dialog.className = "app-dialog welcome-preset-confirm";
+    dialog.setAttribute("aria-labelledby", "welcome-preset-confirm-title");
+    dialog.setAttribute("aria-describedby", "welcome-preset-confirm-description");
+
+    const title = document.createElement("h2");
+    title.id = "welcome-preset-confirm-title";
+    title.textContent = localize("welcomeEmptyConfirmTitle") || "Replace current folders?";
+    const description = document.createElement("p");
+    description.id = "welcome-preset-confirm-description";
+    description.textContent =
+      localize("welcomeEmptyConfirmDescription") ||
+      "The empty preset replaces your current folder configuration and keeps only the browser Downloads destination.";
+    const actions = document.createElement("div");
+    actions.className = "dialog-actions";
+    const keep = document.createElement("button");
+    keep.type = "button";
+    keep.textContent = localize("welcomeKeepCurrentFolders") || "Keep current folders";
+    const replace = document.createElement("button");
+    replace.type = "button";
+    replace.className = "button-danger danger-button";
+    replace.textContent = localize("welcomeUseEmptyPreset") || "Use empty preset";
+    actions.append(keep, replace);
+    dialog.append(title, description, actions);
+    document.body.append(dialog);
+
+    const finish = (confirmed: boolean) => {
+      dialog.remove();
+      resolve(confirmed);
+    };
+    keep.addEventListener("click", () => finish(false));
+    replace.addEventListener("click", () => finish(true));
+    dialog.addEventListener("cancel", (event) => {
+      event.preventDefault();
+      finish(false);
+    });
+    dialog.addEventListener("click", (event) => {
+      if (event.target === dialog) finish(false);
+    });
+    if (typeof dialog.showModal === "function") dialog.showModal();
+    else dialog.setAttribute("open", "");
+    keep.focus();
+  });
+
 const createWelcomeDialog = (localize: Localize): HTMLDialogElement => {
   const copy = {
     title: localize("welcomeTitle") || "Welcome to Save In",
@@ -139,7 +185,7 @@ const followWelcomeAction = (action: WelcomeAction): void => {
 export const showWelcomeDialog = (
   storage: WelcomeStorage = webExtensionApi.storage.local,
   localize: Localize = getMessage,
-  updateStarterStatus = false,
+  isFirstInstall = false,
   applyPreset?: WelcomePresetApplier,
 ): boolean => {
   if (document.querySelector("#welcome-dialog")) return false;
@@ -148,7 +194,7 @@ export const showWelcomeDialog = (
   document.body.append(dialog);
 
   const savedStatus = document.querySelector<HTMLElement>("#lastSavedAt");
-  if (savedStatus && updateStarterStatus) {
+  if (savedStatus && isFirstInstall) {
     savedStatus.textContent = localize("welcomeUsingStarterSettings") || "Using starter settings";
   }
 
@@ -165,6 +211,7 @@ export const showWelcomeDialog = (
     else finish(action);
   };
   let applyingPreset = false;
+  let choosingPreset = false;
   const setApplyingPreset = (applying: boolean) => {
     applyingPreset = applying;
     dialog.toggleAttribute("aria-busy", applying);
@@ -173,7 +220,12 @@ export const showWelcomeDialog = (
       .forEach((button) => (button.disabled = applying));
   };
   const useEmptyPreset = async () => {
-    if (applyingPreset) return;
+    if (applyingPreset || choosingPreset) return;
+    choosingPreset = true;
+    if (!isFirstInstall && !(await confirmEmptyPreset(localize))) {
+      choosingPreset = false;
+      return;
+    }
     const status = dialog.querySelector<HTMLElement>(".welcome-action-status");
     if (status) status.hidden = true;
     setApplyingPreset(true);
@@ -184,6 +236,7 @@ export const showWelcomeDialog = (
     } catch {
       if (status) status.hidden = false;
       setApplyingPreset(false);
+      choosingPreset = false;
     }
   };
 

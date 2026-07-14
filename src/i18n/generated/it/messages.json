@@ -2644,6 +2644,11 @@
   "welcomeEmptyPresetFailed": {
     "message": "Impossibile applicare il preset vuoto. Le cartelle iniziali non sono state modificate."
   },
+  "welcomeEmptyConfirmTitle": { "message": "Sostituire le cartelle attuali?" },
+  "welcomeEmptyConfirmDescription": {
+    "message": "Il preset vuoto sostituisce la configurazione attuale delle cartelle e mantiene solo la destinazione Download del browser."
+  },
+  "welcomeKeepCurrentFolders": { "message": "Mantieni cartelle attuali" },
   "welcomeUseStarterFolders": { "message": "Inizia a usare Save In" },
   "welcomeUsingStarterSettings": { "message": "Uso delle impostazioni iniziali" },
   "html_showWelcomeGuide": { "message": "Mostra la guida introduttiva" }

@@ -473,8 +473,8 @@ test("shows a no-last-download message and contains unavailable history lookup",
 });
 
 test.each([
-  { body: { status: MESSAGE_TYPES.ERROR, message: "bad request" } },
-  { body: { status: MESSAGE_TYPES.ERROR, error: "bad request" } },
+  { body: { message: "bad request" } },
+  { body: { error: "bad request" } },
   { body: { version: 1, ruleErrors: [], ruleTrace: {} } },
 ])("reports unavailable debugger response %#", async (validateResponse) => {
   renderWorkbench();

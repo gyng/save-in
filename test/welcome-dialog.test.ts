@@ -89,6 +89,28 @@ test("applies the empty preset before closing the guide", async () => {
   expect(document.querySelector("#welcome-dialog")).toBeNull();
 });
 
+test("confirms before replacing folders from a manually reopened guide", async () => {
+  const storage = storageFixture(undefined);
+  const applyPreset = vi.fn(() => Promise.resolve());
+  showWelcomeDialog(storage, localize, false, applyPreset);
+
+  document.querySelector<HTMLButtonElement>(".welcome-empty")!.click();
+
+  const confirmation = document.querySelector<HTMLDialogElement>(".welcome-preset-confirm")!;
+  expect(confirmation.open).toBe(true);
+  expect(applyPreset).not.toHaveBeenCalled();
+  confirmation.querySelector<HTMLButtonElement>("button")!.click();
+  expect(document.querySelector(".welcome-preset-confirm")).toBeNull();
+  expect(document.querySelector("#welcome-dialog")).not.toBeNull();
+  expect(applyPreset).not.toHaveBeenCalled();
+  await Promise.resolve();
+
+  document.querySelector<HTMLButtonElement>(".welcome-empty")!.click();
+  document.querySelector<HTMLButtonElement>(".welcome-preset-confirm .danger-button")!.click();
+  await vi.waitFor(() => expect(applyPreset).toHaveBeenCalledWith("."));
+  expect(document.querySelector("#welcome-dialog")).toBeNull();
+});
+
 test("keeps the guide open when the empty preset cannot be saved", async () => {
   const storage = storageFixture();
   const applyPreset = vi.fn(() => Promise.reject(new Error("unavailable")));
@@ -107,6 +129,7 @@ test("contains unavailable and repeated empty-preset actions", async () => {
   const storage = storageFixture();
   showWelcomeDialog(storage, localize);
   document.querySelector<HTMLButtonElement>(".welcome-empty")!.click();
+  document.querySelector<HTMLButtonElement>(".welcome-preset-confirm .danger-button")!.click();
   await vi.waitFor(() =>
     expect(document.querySelector<HTMLElement>(".welcome-action-status")!.hidden).toBe(false),
   );
@@ -123,6 +146,8 @@ test("contains unavailable and repeated empty-preset actions", async () => {
   const dialog = document.querySelector<HTMLDialogElement>("#welcome-dialog")!;
   const empty = dialog.querySelector<HTMLButtonElement>(".welcome-empty")!;
   empty.click();
+  document.querySelector<HTMLButtonElement>(".welcome-preset-confirm .danger-button")!.click();
+  await vi.waitFor(() => expect(applyPreset).toHaveBeenCalledOnce());
   empty.dispatchEvent(new MouseEvent("click", { bubbles: true }));
   dialog.dispatchEvent(new MouseEvent("click", { bubbles: true }));
   dialog.dispatchEvent(new Event("cancel", { cancelable: true }));
@@ -152,6 +177,7 @@ test("contains sparse customization and status markup", async () => {
   const dialog = document.querySelector<HTMLDialogElement>("#welcome-dialog")!;
   dialog.querySelector(".welcome-action-status")?.remove();
   dialog.querySelector<HTMLButtonElement>(".welcome-empty")!.click();
+  document.querySelector<HTMLButtonElement>(".welcome-preset-confirm .danger-button")!.click();
   await vi.waitFor(() => expect(dialog.hasAttribute("aria-busy")).toBe(false));
   const text = document.createTextNode("text target");
   dialog.append(text);

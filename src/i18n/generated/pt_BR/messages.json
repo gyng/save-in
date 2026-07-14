@@ -2451,6 +2451,11 @@
   "welcomeEmptyPresetFailed": {
     "message": "Não foi possível aplicar a predefinição vazia. Suas pastas iniciais não foram alteradas."
   },
+  "welcomeEmptyConfirmTitle": { "message": "Substituir as pastas atuais?" },
+  "welcomeEmptyConfirmDescription": {
+    "message": "A predefinição vazia substitui a configuração atual de pastas e mantém apenas o destino Downloads do navegador."
+  },
+  "welcomeKeepCurrentFolders": { "message": "Manter pastas atuais" },
   "welcomeUseStarterFolders": { "message": "Começar a usar o Save In" },
   "welcomeUsingStarterSettings": { "message": "Usando as configurações iniciais" },
   "html_showWelcomeGuide": { "message": "Exibir o guia de boas-vindas" }

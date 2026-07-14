@@ -2543,6 +2543,11 @@
   "welcomeEmptyPresetFailed": {
     "message": "空のプリセットを適用できませんでした。初期フォルダーは変更されていません。"
   },
+  "welcomeEmptyConfirmTitle": { "message": "現在のフォルダーを置き換えますか？" },
+  "welcomeEmptyConfirmDescription": {
+    "message": "空のプリセットは現在のフォルダー設定を置き換え、ブラウザーのダウンロード先だけを残します。"
+  },
+  "welcomeKeepCurrentFolders": { "message": "現在のフォルダーを保持" },
   "welcomeUseStarterFolders": { "message": "Save In を使い始める" },
   "welcomeUsingStarterSettings": { "message": "初期設定を使用中" },
   "html_showWelcomeGuide": { "message": "ウェルカムガイドを表示" }

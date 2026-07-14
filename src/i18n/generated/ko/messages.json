@@ -2543,6 +2543,11 @@
   "welcomeEmptyPresetFailed": {
     "message": "빈 프리셋을 적용할 수 없습니다. 시작 폴더는 변경되지 않았습니다."
   },
+  "welcomeEmptyConfirmTitle": { "message": "현재 폴더를 바꾸시겠습니까?" },
+  "welcomeEmptyConfirmDescription": {
+    "message": "빈 프리셋은 현재 폴더 구성을 바꾸고 브라우저의 다운로드 대상만 남깁니다."
+  },
+  "welcomeKeepCurrentFolders": { "message": "현재 폴더 유지" },
   "welcomeUseStarterFolders": { "message": "Save In 사용 시작" },
   "welcomeUsingStarterSettings": { "message": "시작 설정 사용 중" },
   "html_showWelcomeGuide": { "message": "시작 안내 보기" }

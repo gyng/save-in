@@ -2451,6 +2451,11 @@
   "welcomeEmptyPresetFailed": {
     "message": "Die leere Voreinstellung konnte nicht angewendet werden. Ihre Startordner bleiben unverändert."
   },
+  "welcomeEmptyConfirmTitle": { "message": "Vorhandene Ordner ersetzen?" },
+  "welcomeEmptyConfirmDescription": {
+    "message": "Die leere Voreinstellung ersetzt Ihre aktuelle Ordnerkonfiguration und behält nur das Downloads-Ziel des Browsers bei."
+  },
+  "welcomeKeepCurrentFolders": { "message": "Aktuelle Ordner behalten" },
   "welcomeUseStarterFolders": { "message": "Save In verwenden" },
   "welcomeUsingStarterSettings": { "message": "Starteinstellungen werden verwendet" },
   "html_showWelcomeGuide": { "message": "Willkommensanleitung anzeigen" }

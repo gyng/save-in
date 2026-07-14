@@ -2441,6 +2441,11 @@
   "welcomeEmptyPresetFailed": {
     "message": "Det gick inte att använda den tomma förinställningen. Dina startmappar är oförändrade."
   },
+  "welcomeEmptyConfirmTitle": { "message": "Ersätta nuvarande mappar?" },
+  "welcomeEmptyConfirmDescription": {
+    "message": "Den tomma förinställningen ersätter din nuvarande mappkonfiguration och behåller bara webbläsarens hämtningsmål."
+  },
+  "welcomeKeepCurrentFolders": { "message": "Behåll nuvarande mappar" },
   "welcomeUseStarterFolders": { "message": "Börja använda Save In" },
   "welcomeUsingStarterSettings": { "message": "Använder startinställningar" },
   "html_showWelcomeGuide": { "message": "Visa välkomstguiden" }

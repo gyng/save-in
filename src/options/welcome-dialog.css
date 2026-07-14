@@ -122,6 +122,21 @@
   margin: var(--space-3) 0 0;
 }
 
+.welcome-preset-confirm {
+  width: min(440px, calc(100vw - 2 * var(--space-5)));
+  padding: var(--space-5);
+}
+
+.welcome-preset-confirm h2 {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-lg);
+}
+
+.welcome-preset-confirm p {
+  margin: 0 0 var(--space-5);
+  line-height: var(--leading-copy);
+}
+
 @media (max-width: 640px) {
   .welcome-content {
     padding: var(--space-5);
