@@ -82,6 +82,7 @@ describe("addDownloadListener", () => {
     await listener({
       menuItemId: "save-in-999",
       linkUrl: "https://example.com/stale.png",
+      pageUrl: "https://example.com/",
     });
     expect(Download.renameAndDownload).not.toHaveBeenCalled();
   });

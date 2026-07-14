@@ -103,6 +103,62 @@ test("keeps the guide open when the empty preset cannot be saved", async () => {
   expect(document.querySelector<HTMLButtonElement>(".welcome-empty")?.disabled).toBe(false);
 });
 
+test("contains unavailable and repeated empty-preset actions", async () => {
+  const storage = storageFixture();
+  showWelcomeDialog(storage, localize);
+  document.querySelector<HTMLButtonElement>(".welcome-empty")!.click();
+  await vi.waitFor(() =>
+    expect(document.querySelector<HTMLElement>(".welcome-action-status")!.hidden).toBe(false),
+  );
+
+  document.querySelector("#welcome-dialog")?.remove();
+  let finish!: () => void;
+  const applyPreset = vi.fn(
+    () =>
+      new Promise<void>((resolve) => {
+        finish = resolve;
+      }),
+  );
+  showWelcomeDialog(storage, localize, false, applyPreset);
+  const dialog = document.querySelector<HTMLDialogElement>("#welcome-dialog")!;
+  const empty = dialog.querySelector<HTMLButtonElement>(".welcome-empty")!;
+  empty.click();
+  empty.click();
+  dialog.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+  dialog.dispatchEvent(new Event("cancel", { cancelable: true }));
+  expect(applyPreset).toHaveBeenCalledOnce();
+  expect(dialog.hasAttribute("aria-busy")).toBe(true);
+  finish();
+  await vi.waitFor(() => expect(document.querySelector("#welcome-dialog")).toBeNull());
+});
+
+test("contains sparse customization and status markup", async () => {
+  const storage = storageFixture();
+  document.querySelector(".path-editor-dir")?.remove();
+  showWelcomeDialog(storage, localize);
+  document.querySelector<HTMLButtonElement>(".welcome-customize")!.click();
+  expect(document.querySelector("#welcome-dialog")).toBeNull();
+
+  pageFixture();
+  document.querySelector("#path-editor-rows")?.classList.add("tab-panel");
+  const navigate = vi.fn();
+  document.addEventListener("save-in:navigate-option", navigate, { once: true });
+  showWelcomeDialog(storage, localize);
+  document.querySelector<HTMLButtonElement>(".welcome-customize")!.click();
+  expect(navigate).toHaveBeenCalledOnce();
+
+  pageFixture();
+  showWelcomeDialog(storage, localize, false, () => Promise.reject(new Error("failed")));
+  const dialog = document.querySelector<HTMLDialogElement>("#welcome-dialog")!;
+  dialog.querySelector(".welcome-action-status")?.remove();
+  dialog.querySelector<HTMLButtonElement>(".welcome-empty")!.click();
+  await vi.waitFor(() => expect(dialog.hasAttribute("aria-busy")).toBe(false));
+  const text = document.createTextNode("text target");
+  dialog.append(text);
+  text.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+  expect(document.querySelector("#welcome-dialog")).not.toBeNull();
+});
+
 test("opens the permission explanation through the existing About action", async () => {
   const storage = storageFixture();
   const about = document.querySelector<HTMLButtonElement>("#about-open")!;

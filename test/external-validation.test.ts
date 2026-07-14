@@ -81,6 +81,7 @@ describe("external validation safeguards", () => {
   });
 
   test("bounds adversarial validation object graphs", () => {
+    expect(externalValidationRequestError({ extra: [1, "small"] } as never)).toBeNull();
     expect(
       externalValidationRequestError({ extra: Array(1_025).fill(null) } as never),
     ).toBe("Validation request is too large");
