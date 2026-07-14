@@ -51,11 +51,12 @@ Windows:
 Make sure the actual directories exist, or downloads will silently fail.
 
 - `<all_urls>` is used for page features and extension-context HEAD/fetch requests.
-- The optional Referer filter supports anti-hotlink downloads. Firefox attaches
-  the page URL through `downloads.download({ headers })`; Chrome uses a temporary,
-  exact declarativeNetRequest rule around each requested metadata or content
-  fetch and then saves the content blob. Protected downloads can still use MIME,
-  final-URL, and SHA-256 variables. Save In does not request `webRequest` or
+- The optional Referer filter supports anti-hotlink downloads. Both browsers use
+  a temporary, exact declarativeNetRequest rule around requested metadata or
+  content fetches, so protected downloads can use MIME, final-URL, and SHA-256
+  variables. Firefox keeps its native `downloads.download({ headers })` final
+  transfer unless content was already fetched for hashing; Chrome saves the
+  protected content blob. Save In does not request `webRequest` or
   `webRequestBlocking`.
 - Extension-side Fetch/HEAD requests include applicable credentials by default,
   including at redirect destinations. They can be made anonymous in Advanced

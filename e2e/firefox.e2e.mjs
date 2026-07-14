@@ -3,6 +3,7 @@
 // event page and an extension-page control client. Tests are sequential and
 // build on each other's state.
 
+import crypto from "crypto";
 import fs from "fs";
 import http from "http";
 import path from "path";
@@ -370,16 +371,19 @@ test("options reset re-initialises", async () => {
 });
 
 test("downloads receive the configured Referer header", async () => {
-  let received = false;
-  /** @type {string | null} */
-  let receivedReferer = null;
+  /** @type {Array<{method: string, referer: string}>} */
+  const receivedRequests = [];
+  const body = "firefox referer protected content";
+  const expectedHash = crypto.createHash("sha256").update(body).digest("hex").slice(0, 12);
   const server = http.createServer((req, res) => {
-    if (req.method === "GET") {
-      received = true;
-      receivedReferer = req.headers.referer || null;
+    receivedRequests.push({ method: req.method || "", referer: req.headers.referer || "" });
+    if (req.headers.referer !== referer) {
+      res.writeHead(403, { "Content-Type": "text/plain" });
+      res.end("missing referer");
+      return;
     }
-    res.writeHead(200, { "Content-Type": "text/plain" });
-    res.end("referer probe");
+    res.writeHead(200, { "Content-Type": "image/webp" });
+    res.end(body);
   });
   const port = await listenLocal(server);
   const url = `http://127.0.0.1:${port}/referer-probe.txt`;
@@ -399,19 +403,22 @@ test("downloads receive the configured Referer header", async () => {
       }).then(() => api.startDownload({
         url: ${JSON.stringify(url)},
         pageUrl: ${JSON.stringify(referer)},
+        path: "e2e/referer-protected-firefox-:mimeext:-:sha256:.txt",
         suggestedFilename: "referer-probe-firefox.txt",
       }))`);
-    expect(
-      (await waitForDownloads("referer-probe-firefox")).some(
-        (/** @type {any} */ x) => x.state === "complete",
+    const rows = await waitForDownloads("referer-protected-firefox");
+    const done = rows.find((/** @type {any} */ row) => row.state === "complete");
+    expect(done).toBeTruthy();
+    expect(receivedRequests.map(({ method }) => method)).toEqual(["HEAD", "GET"]);
+    expect(receivedRequests.every(({ referer: observed }) => observed === referer)).toBe(true);
+    expect(done.filename).toContain(`referer-protected-firefox-webp-${expectedHash}`);
+    expect(fs.readFileSync(done.filename, "utf8")).toBe(body);
+    const remainingRules = JSON.parse(
+      await evalBackground(
+        `browser.declarativeNetRequest.getSessionRules().then((rules) => JSON.stringify(rules.map((rule) => rule.id)))`,
       ),
-    ).toBe(true);
-    const observedReferer = /** @type {{value: string | null}} */ (
-      await poll(() => (received ? { value: receivedReferer } : null), {
-        description: "Firefox Referer request",
-      })
     );
-    expect(observedReferer.value).toBe(referer);
+    expect(remainingRules).not.toContain(66_000_001);
   } finally {
     try {
       await evalBackground(`api.setOptions(${JSON.stringify(previous)})`);

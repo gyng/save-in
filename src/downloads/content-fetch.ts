@@ -3,7 +3,7 @@ import { getExtensionFetchCredentials } from "../config/fetch-credentials.ts";
 import { fetchFollowingRedirects } from "../shared/redirect-fetch.ts";
 import { readResponseContent } from "../shared/streaming-content.ts";
 import type { BlobContent, ContentFetchResult } from "../shared/content-fetch-types.ts";
-import { ChromeRefererRules } from "./chrome-referer-rules.ts";
+import { RefererRules } from "./referer-rules.ts";
 
 export const HASH_FETCH_TIMEOUT_MS = 30000;
 
@@ -56,9 +56,7 @@ export const resolveContent = (
     };
   };
 
-  const task = referer
-    ? ChromeRefererRules.withReferer(url, referer, fetchContent)
-    : fetchContent();
+  const task = referer ? RefererRules.withReferer(url, referer, fetchContent) : fetchContent();
   return task.catch((error): ContentFetchResult | null => {
     if (signal?.aborted) throw error;
     return null;
@@ -94,5 +92,5 @@ export const fetchUrlForDownload = async (
       ...(downloadUrl.startsWith("blob:") ? { ownedObjectUrl: downloadUrl } : {}),
     };
   };
-  return referer ? ChromeRefererRules.withReferer(url, referer, fetchContent) : fetchContent();
+  return referer ? RefererRules.withReferer(url, referer, fetchContent) : fetchContent();
 };

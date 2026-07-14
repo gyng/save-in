@@ -36,7 +36,7 @@ Features
 - Connect other extensions through an explicitly approved, versioned integration API.
 - Optionally send selected save data to a user-configured HTTPS webhook after a Save In download starts.
 
-Save In can use the page URL as the Referer for matching downloads when you enable that option. Firefox attaches it directly to the browser download. Experimental routing of ordinary Firefox downloads works by cancelling a matching HTTP(S) download and starting a replacement. That replacement can lose POST bodies, temporary URLs, custom request context, or authentication, so enable it only for compatible downloads.
+Save In can use the page URL as the Referer for matching downloads when you enable that option. Firefox protects exact metadata and content requests so MIME, final-URL, and SHA-256 variables remain available, while retaining its native browser download whenever the content was not already fetched for hashing. Experimental routing of ordinary Firefox downloads works by cancelling a matching HTTP(S) download and starting a replacement. That replacement can lose POST bodies, temporary URLs, custom request context, or authentication, so enable it only for compatible downloads.
 
 Browser security limits extensions to folders inside the configured default download directory. Open Save In's Options after installation to configure destinations, and make sure the destination folders exist. A filesystem symlink can point a destination to another location.
 

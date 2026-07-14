@@ -121,6 +121,10 @@ describe("getDownloadHeaders", () => {
     ).toBe("https://www.pixiv.net/artworks/123");
   });
 
+  test("returns the Referer for Firefox protected metadata and content fetches", () => {
+    expect(RequestHeaders.getFetchReferer(state)).toBe(state.info.pageUrl);
+  });
+
   test("returns nothing when disabled, incomplete, or unmatched", () => {
     options.setRefererHeader = false;
     expect(RequestHeaders.getDownloadHeaders(state)).toBeUndefined();

@@ -22,8 +22,8 @@ context. Use these permission rationales:
 
 - `contextMenus`: show Save In commands on pages and tabs.
 - `declarativeNetRequestWithHostAccess`: attach the containing page as the
-  Referer only while Chrome fetches requested metadata or content for a matching
-  user-selected resource.
+  Referer only while Save In fetches requested metadata or content for a
+  matching user-selected resource.
 - `downloads`: start, name, monitor, retry, and record downloads locally.
 - `notifications`: report completion and actionable failures.
 - `storage`: store settings, rules, local history, and recovery state.
@@ -94,8 +94,8 @@ current Chrome and Firefox:
 
 For a final spot-check, verify Referer behavior in both browsers on a site that
 requires it, such as a pixiv media download, and open options-page dialogs that
-e2e cannot exercise reliably. On Chrome, confirm the protected file completes
-and the temporary session rule is removed.
+e2e cannot exercise reliably. In both browsers, confirm protected metadata/hash
+variables resolve, the file completes, and the temporary session rule is removed.
 
 ## Failed browser runs
 

@@ -27,11 +27,12 @@ downloading. Save In never reads or stores cookie values, and private extension
 requests are anonymous.
 
 The optional Referer feature is off by default and limited to user-configured
-URL patterns. Firefox attaches the containing page URL directly to the selected
-download. Chrome installs a temporary exact session rule only while Save In
-fetches requested metadata or the selected resource, removes that rule after
-each protected operation, and saves the resulting local Blob. The rule does not
-apply to ordinary page traffic.
+URL patterns. Both browsers install a temporary exact session rule only while
+Save In fetches requested metadata or content and remove it after each protected
+operation. Firefox normally attaches the page URL directly to the final browser
+download; Chrome saves the protected content as a local Blob. Content already
+fetched for hashing is reused on both browsers. The rule does not apply to
+ordinary page traffic.
 
 External extensions can request a save only after the user allows their ID.
 Extension permissions support only the features described above.

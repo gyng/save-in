@@ -22,6 +22,8 @@ import { RULE_TYPES } from "../src/shared/constants.ts";
 import type { RoutingRule, RuleClause } from "../src/routing/router.ts";
 import { configureDownloadPorts } from "../src/downloads/ports.ts";
 import { backgroundRuntime } from "../src/background/runtime.ts";
+import { configureRoutingPorts } from "../src/routing/ports.ts";
+import { RefererRules } from "../src/downloads/referer-rules.ts";
 
 const downloadState = BackgroundState.downloads;
 const routingRule = (name = "rule"): RoutingRule => {
@@ -62,7 +64,10 @@ global.chrome = {
 } as any;
 const hostBrowser = global.browser;
 Object.assign(hostBrowser, {
-  runtime: { id: "self-extension-id" },
+  runtime: {
+    id: "self-extension-id",
+    getURL: (path: string) => `moz-extension://save-in-test/${path}`,
+  },
   i18n: { getMessage: vi.fn((key: string) => key) },
   downloads: {
     download: vi.fn(() => Promise.resolve(101)),
@@ -122,6 +127,7 @@ beforeEach(() => {
     log: Log,
     retry: Download.retryViaFetch,
   });
+  configureRoutingPorts({ withRequestReferer: RefererRules.withReferer });
   setCurrentBrowser("FIREFOX");
   Download.pendingStates.clear();
   Download.finalFilenamesByDownloadId.clear();

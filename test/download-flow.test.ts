@@ -91,12 +91,15 @@ describe("pipeline stages", () => {
     expect(fetchSpy).not.toHaveBeenCalledWith(state.info.url, { credentials: "include" });
   });
 
-  test("bypasses extension metadata/fetch when Firefox Referer must survive redirects (#193)", async () => {
+  test("protects Firefox metadata but keeps the redirect-safe native download (#193)", async () => {
     setCurrentBrowser("FIREFOX");
     options.setRefererHeader = true;
     options.setRefererHeaderFilter = "*://example.com/*";
     options.fetchViaFetch = true;
     const state = makeState({ info: { pageUrl: "https://gallery.example/view" } });
+    const updateRules = vi.mocked(global.browser.declarativeNetRequest.updateSessionRules);
+    updateRules.mockClear();
+    updateRules.mockResolvedValue();
     global.fetch = vi.fn((url, init) => {
       if ((init as RequestInit | undefined)?.method === "HEAD") {
         return Promise.resolve({ headers: { has: () => false, get: () => null } });
@@ -107,7 +110,16 @@ describe("pipeline stages", () => {
     const result = await Download.renameAndDownload(state);
 
     expect(result).toEqual({ status: "started", downloadId: 101 });
-    expect(global.fetch).not.toHaveBeenCalled();
+    expect(global.fetch).toHaveBeenCalledOnce();
+    expect(global.fetch).toHaveBeenCalledWith(
+      state.info.url,
+      expect.objectContaining({ method: "HEAD" }),
+    );
+    expect(updateRules).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ addRules: [expect.any(Object)] }),
+    );
+    expect(updateRules).toHaveBeenLastCalledWith({ removeRuleIds: [66_000_001] });
     expect(global.browser.downloads.download).toHaveBeenCalledWith(
       expect.objectContaining({
         url: state.info.url,

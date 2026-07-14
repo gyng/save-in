@@ -1,15 +1,15 @@
-import {
-  ChromeRefererRules,
-  REFERER_SESSION_RULE_ID,
-} from "../src/downloads/chrome-referer-rules.ts";
+import { RefererRules, REFERER_SESSION_RULE_ID } from "../src/downloads/referer-rules.ts";
 import { BROWSERS, setCurrentBrowser } from "../src/platform/chrome-detector.ts";
 
 const updateSessionRules = () => vi.mocked(chrome.declarativeNetRequest.updateSessionRules);
+const firefoxUpdateSessionRules = () => vi.mocked(browser.declarativeNetRequest.updateSessionRules);
 
 beforeEach(() => {
   setCurrentBrowser(BROWSERS.CHROME);
   updateSessionRules().mockReset();
   updateSessionRules().mockResolvedValue();
+  firefoxUpdateSessionRules().mockReset();
+  firefoxUpdateSessionRules().mockResolvedValue();
 });
 
 afterEach(() => {
@@ -17,7 +17,7 @@ afterEach(() => {
 });
 
 test("builds an exact extension-origin GET rule and strips the fragment", () => {
-  const rule = ChromeRefererRules.buildRule(
+  const rule = RefererRules.buildRule(
     "https://i.pximg.net/img/a+b(1).jpg?size=large#preview",
     "https://www.pixiv.net/artworks/123",
   );
@@ -49,11 +49,10 @@ test("builds an exact extension-origin GET rule and strips the fragment", () => 
 });
 
 test("can protect the HEAD and GET requests used by lazy metadata", () => {
-  const rule = ChromeRefererRules.buildRule(
-    "https://cdn.example/file",
-    "https://gallery.example/view",
-    ["head", "get"],
-  );
+  const rule = RefererRules.buildRule("https://cdn.example/file", "https://gallery.example/view", [
+    "head",
+    "get",
+  ]);
 
   expect(rule.condition.requestMethods).toEqual(["head", "get"]);
 });
@@ -62,7 +61,7 @@ test("installs the rule only around the protected operation", async () => {
   const operation = vi.fn(async () => "fetched");
 
   await expect(
-    ChromeRefererRules.withReferer(
+    RefererRules.withReferer(
       "https://i.pximg.net/file.jpg",
       "https://www.pixiv.net/artworks/123",
       operation,
@@ -90,10 +89,8 @@ test("installs the rule only around the protected operation", async () => {
 
 test("removes the rule after a failed operation", async () => {
   await expect(
-    ChromeRefererRules.withReferer(
-      "https://cdn.example/file.jpg",
-      "https://gallery.example/view",
-      () => Promise.reject(new Error("HTTP 403")),
+    RefererRules.withReferer("https://cdn.example/file.jpg", "https://gallery.example/view", () =>
+      Promise.reject(new Error("HTTP 403")),
     ),
   ).rejects.toThrow("HTTP 403");
 
@@ -106,7 +103,7 @@ test("does not fail a completed transfer when rule cleanup fails", async () => {
   updateSessionRules().mockResolvedValueOnce().mockRejectedValueOnce(new Error("worker stopped"));
 
   await expect(
-    ChromeRefererRules.withReferer(
+    RefererRules.withReferer(
       "https://cdn.example/file.jpg",
       "https://gallery.example/view",
       async () => "fetched",
@@ -121,7 +118,7 @@ test("serializes protected fetches so the shared rule cannot change mid-request"
   });
   const order: string[] = [];
 
-  const first = ChromeRefererRules.withReferer(
+  const first = RefererRules.withReferer(
     "https://cdn.example/a.jpg",
     "https://gallery.example/a",
     async () => {
@@ -130,7 +127,7 @@ test("serializes protected fetches so the shared rule cannot change mid-request"
       order.push("first-end");
     },
   );
-  const second = ChromeRefererRules.withReferer(
+  const second = RefererRules.withReferer(
     "https://cdn.example/b.jpg",
     "https://gallery.example/b",
     async () => {
@@ -148,22 +145,32 @@ test("serializes protected fetches so the shared rule cannot change mid-request"
 });
 
 test("startup cleanup removes the reserved session rule", async () => {
-  await ChromeRefererRules.cleanupStaleRule();
+  await RefererRules.cleanupStaleRule();
   expect(updateSessionRules()).toHaveBeenCalledWith({
     removeRuleIds: [REFERER_SESSION_RULE_ID],
   });
 });
 
-test("does not touch DNR on Firefox", async () => {
+test("scopes Firefox rules to its moz-extension origin", async () => {
   setCurrentBrowser(BROWSERS.FIREFOX);
   const operation = vi.fn(async () => "native");
 
   await expect(
-    ChromeRefererRules.withReferer(
+    RefererRules.withReferer(
       "https://cdn.example/file.jpg",
       "https://gallery.example/view",
       operation,
     ),
   ).resolves.toBe("native");
-  expect(updateSessionRules()).not.toHaveBeenCalled();
+  expect(firefoxUpdateSessionRules()).toHaveBeenNthCalledWith(1, {
+    removeRuleIds: [REFERER_SESSION_RULE_ID],
+    addRules: [
+      expect.objectContaining({
+        condition: expect.objectContaining({ initiatorDomains: ["save-in-test"] }),
+      }),
+    ],
+  });
+  expect(firefoxUpdateSessionRules()).toHaveBeenLastCalledWith({
+    removeRuleIds: [REFERER_SESSION_RULE_ID],
+  });
 });

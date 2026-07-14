@@ -2,7 +2,7 @@ import { options } from "../config/options-data.ts";
 import { WEB_EXTENSION_CAPABILITIES } from "../platform/chrome-detector.ts";
 import { matchPatternToRegExp } from "../shared/match-pattern.ts";
 import { splitLines } from "../shared/util.ts";
-import { ChromeRefererRules } from "./chrome-referer-rules.ts";
+import { RefererRules } from "./referer-rules.ts";
 import type { DownloadInfo } from "./download-types.ts";
 
 type RefererState = { info?: Pick<DownloadInfo, "url" | "pageUrl"> } | null | undefined;
@@ -48,8 +48,8 @@ export const RequestHeaders = {
     return referer ? [{ name: "Referer", value: referer }] : undefined;
   },
 
-  // Chrome rejects Referer in downloads.download(), but DNR can attach it to
-  // the extension-owned fetch whose blob is passed to the downloads API.
+  // DNR protects exact extension-owned metadata/content requests. Firefox
+  // still attaches Referer natively when the final download remains direct.
   getFetchReferer: (state: RefererState): string | undefined =>
-    ChromeRefererRules.canUse() ? RequestHeaders.getReferer(state) : undefined,
+    RefererRules.canUse() ? RequestHeaders.getReferer(state) : undefined,
 };

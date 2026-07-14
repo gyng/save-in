@@ -27,7 +27,7 @@ import { ActiveTransfers } from "../downloads/active-transfers.ts";
 import { OffscreenClient } from "../platform/offscreen-client.ts";
 import { rebuildMenus } from "./menu-rebuild.ts";
 import { MENU_IDS } from "../menus/menu-ids.ts";
-import { ChromeRefererRules } from "../downloads/chrome-referer-rules.ts";
+import { RefererRules } from "../downloads/referer-rules.ts";
 
 export const configureBackgroundPorts = () => {
   configureDownloadPorts({
@@ -46,7 +46,7 @@ export const configureBackgroundPorts = () => {
     nextPrivateCounter: () => nextPrivateCounter(counterWriteState, webExtensionApi.storage.local),
     peekCounter: () => peekCounter(webExtensionApi.storage.local),
     resolveContent,
-    withRequestReferer: ChromeRefererRules.withReferer,
+    withRequestReferer: RefererRules.withReferer,
   });
 };
 
@@ -71,7 +71,7 @@ const recoverColdStartState = async (): Promise<void> => {
     // Rebuild the in-memory download records from storage.session before any
     // download event handler (which awaits backgroundRuntime.ready) touches them.
     hydrateDownloads(downloadsState, extensionSessionStorage),
-    ChromeRefererRules.cleanupStaleRule().catch((error) =>
+    RefererRules.cleanupStaleRule().catch((error) =>
       Log.add("Referer session rule cleanup failed", String(error)),
     ),
     recoverNotificationState(),

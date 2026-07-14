@@ -355,13 +355,11 @@ export const Download = {
       Download.rememberPendingState(state);
     }
 
-    // Firefox attaches the Referer to downloads.download and cannot safely
-    // reproduce it on speculative extension requests. Chrome's exact DNR rule
-    // can protect user-requested lazy metadata/content fetches as well as final
-    // acquisition, so those variables remain available there.
+    // Firefox attaches Referer to a direct downloads.download request; both
+    // browsers use an exact DNR rule for extension-owned metadata/content.
     const downloadHeaders = RequestHeaders.getDownloadHeaders(state);
     const protectedFetchReferer = RequestHeaders.getFetchReferer(state);
-    state.info.contentFetchDisabled = Boolean(downloadHeaders);
+    state.info.contentFetchDisabled = Boolean(downloadHeaders && !protectedFetchReferer);
     if (protectedFetchReferer) state.info.protectedFetchReferer = protectedFetchReferer;
     else delete state.info.protectedFetchReferer;
 
@@ -534,7 +532,7 @@ export const Download = {
     }
     const url = requireDownloadUrl(state);
     const fetchReferer = state.info.protectedFetchReferer ?? RequestHeaders.getFetchReferer(state);
-    if (fetchReferer) {
+    if (fetchReferer && !WEB_EXTENSION_CAPABILITIES.downloadRequestHeaders) {
       return Download.acquireFetchedUrl(
         url,
         isPrivateDownloadState(state),
