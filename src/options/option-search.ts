@@ -162,9 +162,7 @@ export const setupOptionSearch = (): void => {
       setActive(active + (event.key === "ArrowDown" ? 1 : -1));
     } else if (event.key === "Enter" && visibleEntries.length > 0) {
       event.preventDefault();
-      const entry = visibleEntries[active];
-      if (entry) choose(entry);
-      else close();
+      choose(visibleEntries[active]!);
     } else if (event.key === "Escape") close();
   });
   input.addEventListener("blur", () => {
