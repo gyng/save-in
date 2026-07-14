@@ -3,7 +3,7 @@ import http from "node:http";
 
 import { expect } from "vitest";
 
-import { closeLocal, listenLocal, poll } from "./helpers.mjs";
+import { closeLocal, listenLocal } from "./helpers.mjs";
 
 const PDF_TEMPLATE_MATCHER = "mime: ^application/pdf$";
 const PDF_TEMPLATE_DESTINATION = "into: documents/:filename:";
@@ -39,74 +39,99 @@ export const runTemplateLibraryScenario = async ({
       rules.focus();
       return true;
     })()`);
-    await poll(
-      async () =>
-        (await evaluateOptions(`(() => {
+    await evaluateOptions(`new Promise((resolve, reject) => {
           const picker = document.querySelector("#routing-template-typeahead");
           const add = document.querySelector(".rule-template-typeahead-add");
-          if (!(picker instanceof HTMLInputElement) || !(add instanceof HTMLButtonElement)) {
-            return false;
+          const apply = document.querySelector('button[data-apply="filenamePatterns"]');
+          const rules = document.querySelector("#filenamePatterns");
+          if (!(picker instanceof HTMLInputElement) ||
+              !(add instanceof HTMLButtonElement) ||
+              !(apply instanceof HTMLButtonElement) ||
+              !(rules instanceof HTMLTextAreaElement)) {
+            reject(new Error("Template controls are unavailable"));
+            return;
           }
+          const timeout = AbortSignal.timeout(8000);
+          let selected = false;
+          let added = false;
+          let applied = false;
+          let appliedValue;
+          let storedValue;
+          let observer;
+          const finish = (callback) => {
+            observer?.disconnect();
+            timeout.removeEventListener("abort", onTimeout);
+            browser.storage.onChanged.removeListener(onStorage);
+            rules.removeEventListener("options-value-applied", onApplied);
+            callback();
+          };
+          const matchesTemplate = (value) =>
+            typeof value === "string" &&
+            value.includes(${JSON.stringify(PDF_TEMPLATE_MATCHER)}) &&
+            value.includes(${JSON.stringify(PDF_TEMPLATE_DESTINATION)});
+          const finishWhenSaved = () => {
+            if (matchesTemplate(appliedValue) && matchesTemplate(storedValue)) {
+              finish(() => resolve(storedValue));
+            }
+          };
+          const onApplied = (event) => {
+            appliedValue = event.detail;
+            finishWhenSaved();
+          };
+          const onStorage = (changes, area) => {
+            if (area === "local" && changes.filenamePatterns) {
+              storedValue = changes.filenamePatterns.newValue;
+              finishWhenSaved();
+            }
+          };
+          const check = () => {
+            if (!selected) {
+              const listbox = document.getElementById(picker.getAttribute("aria-controls") || "");
+              const option = listbox?.querySelector('[role="option"]');
+              if (option instanceof HTMLButtonElement) {
+                selected = true;
+                option.click();
+              }
+            }
+            if (!added && !add.disabled) {
+              added = true;
+              add.click();
+            }
+            if (added && !applied && !apply.disabled) {
+              applied = true;
+              apply.click();
+              void browser.storage.local.get("filenamePatterns")
+                .then((stored) => {
+                  storedValue = stored.filenamePatterns;
+                  finishWhenSaved();
+                });
+            }
+          };
+          const onTimeout = () => finish(() => reject(new Error(JSON.stringify({
+            picker: picker.value,
+            selected,
+            addDisabled: add.disabled,
+            applyDisabled: apply.disabled,
+            applied,
+            appliedValue,
+            storedValue,
+            rules: rules.value,
+          }))));
+          observer = new MutationObserver(check);
+          observer.observe(document.body, {
+            attributes: true,
+            childList: true,
+            subtree: true,
+            attributeFilter: ["disabled", "value"],
+          });
+          timeout.addEventListener("abort", onTimeout, { once: true });
+          browser.storage.onChanged.addListener(onStorage);
+          rules.addEventListener("options-value-applied", onApplied);
           picker.value = ${JSON.stringify(PDF_TEMPLATE_MATCHER)};
           picker.dispatchEvent(new InputEvent("input", { bubbles: true }));
-          const listbox = document.getElementById(picker.getAttribute("aria-controls") || "");
-          const option = listbox?.querySelector('[role="option"]');
-          if (!(option instanceof HTMLButtonElement)) {
-            return false;
-          }
-          option.click();
-          if (add.disabled) return false;
-          add.click();
-          return true;
-        })()`)) === true,
-      { description: "PDF template Add button" },
-    );
-
-    await poll(
-      async () =>
-        (await evaluateOptions(`(() => {
-          const apply = document.querySelector('button[data-apply="filenamePatterns"]');
-          return apply instanceof HTMLButtonElement && !apply.disabled;
-        })()`)) === true,
-      { description: "valid template rule ready to apply" },
-    );
-    await evaluateOptions(`(() => {
-      const apply = document.querySelector('button[data-apply="filenamePatterns"]');
-      if (!(apply instanceof HTMLButtonElement) || apply.disabled) return false;
-      apply.click();
-      return true;
-    })()`);
-
-    const persisted = await poll(
-      async () => {
-        const state =
-          /** @type {{live: Array<Array<{name?: string, value?: unknown}>>, stored: unknown}} */ (
-            JSON.parse(
-              await evaluate(`Promise.all([
-              api.getOption("filenamePatterns"),
-              browser.storage.local.get("filenamePatterns"),
-            ]).then(([live, stored]) => JSON.stringify({ live, stored: stored.filenamePatterns }))`),
-            )
-          );
-        if (
-          Array.isArray(state.live) &&
-          state.live.some((rule) =>
-            rule.some(
-              (clause) => clause.name === "into" && clause.value === "documents/:filename:",
-            ),
-          ) &&
-          typeof state.stored === "string" &&
-          state.stored.includes(PDF_TEMPLATE_MATCHER) &&
-          state.stored.includes(PDF_TEMPLATE_DESTINATION)
-        ) {
-          return state;
-        }
-        throw new Error(`Unexpected rule state: ${JSON.stringify(state)}`);
-      },
-      { description: "template rule in live and persisted options" },
-    );
-    expect(persisted.stored).toContain(PDF_TEMPLATE_MATCHER);
-    expect(persisted.stored).toContain(PDF_TEMPLATE_DESTINATION);
+          check();
+        })`);
+    await evaluate(`api.reset()`);
 
     const body = Buffer.from(content);
     const server = http.createServer((_request, response) => {

@@ -249,15 +249,22 @@ const launch = async ({ extensionDir = ROOT } = {}) => {
       let lastProbe = "options target was not attachable";
       await retryUntil(
         async () => {
-          const tabConsole = await connectedRdp.getTabConsoleActor("src/options/options.html");
-          lastProbe = await connectedRdp.evaluate(
-            tabConsole,
-            `browser.runtime.sendMessage({ type: "WAKE_WARM" })
+          let tabConsole = await connectedRdp.getTabConsoleActor("src/options/options.html");
+          const probe = `browser.runtime.sendMessage({ type: "WAKE_WARM" })
               .then((response) => JSON.stringify({ response }))
-              .catch((error) => JSON.stringify({ error: String(error) }))`,
-          );
-          const probe = JSON.parse(lastProbe);
-          if (probe?.response?.type === "OK") return;
+              .catch((error) => JSON.stringify({ error: String(error) }))`;
+          try {
+            lastProbe = await connectedRdp.evaluate(tabConsole, probe);
+          } catch (error) {
+            if (!String(error).includes("noSuchActor")) throw error;
+            tabConsole = await connectedRdp.refreshTabConsoleActor(
+              "src/options/options.html",
+              tabConsole,
+            );
+            lastProbe = await connectedRdp.evaluate(tabConsole, probe);
+          }
+          const result = JSON.parse(lastProbe);
+          if (result?.response?.type === "OK") return;
           throw new Error(`background readiness probe returned ${lastProbe}`);
         },
         10000,

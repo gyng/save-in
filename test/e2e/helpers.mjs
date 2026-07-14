@@ -81,6 +81,47 @@ export const beginResourceScope = () => {
 };
 
 /**
+ * Keeps a long-lived browser page out of the per-case reset path. The page is
+ * refreshed at most once, immediately before a case first drives it.
+ *
+ * @param {{
+ *   evaluate: (expression: string, timeoutMs?: number) => Promise<any>,
+ *   prepare: () => Promise<void>,
+ * }} adapters
+ */
+export const createLazyPageEvaluator = ({ evaluate, prepare }) => {
+  let ready = true;
+  /** @type {Promise<void> | undefined} */
+  let preparing;
+
+  const ensureReady = async () => {
+    if (ready) return;
+    preparing ??= prepare()
+      .then(() => {
+        ready = true;
+      })
+      .finally(() => {
+        preparing = undefined;
+      });
+    await preparing;
+  };
+
+  return {
+    /** @param {string} expression @param {number} [timeoutMs] */
+    async evaluate(expression, timeoutMs) {
+      await ensureReady();
+      return evaluate(expression, timeoutMs);
+    },
+    invalidate() {
+      ready = false;
+    },
+    markReady() {
+      ready = true;
+    },
+  };
+};
+
+/**
  * Builds a browser-side wait that subscribes before its initial search, so a
  * download completing during setup cannot be missed.
  *
@@ -190,6 +231,68 @@ export const waitForTabExpression = (urlIncludes, timeoutMs = 8000) =>
     void check().catch(fail);
   })`;
 
+/**
+ * @param {string} source
+ * @param {string} name
+ * @param {string[]} [initialNames]
+ * @param {number} [timeoutMs]
+ */
+export const appendImageAndWaitForSourceExpression = (
+  source,
+  name,
+  initialNames = [],
+  timeoutMs = 8000,
+) =>
+  `new Promise((resolve, reject) => {
+    const timeout = AbortSignal.timeout(${timeoutMs});
+    const expectedInitial = ${JSON.stringify(initialNames)};
+    let initial;
+    let appended = false;
+    let observingRoot = false;
+    let observer;
+    const finish = (callback) => {
+      observer?.disconnect();
+      timeout.removeEventListener("abort", onTimeout);
+      callback();
+    };
+    const check = () => {
+      const root = document.querySelector("#save-in-source-panel")?.shadowRoot;
+      if (!root) return;
+      if (!observingRoot) {
+        observingRoot = true;
+        observer.disconnect();
+        observer.observe(root, { childList: true, subtree: true, characterData: true });
+      }
+      const current = [...root.querySelectorAll(".source-link .name")]
+        .map((node) => node.textContent || "");
+      if (!appended) {
+        if (!expectedInitial.every((expected) => current.includes(expected))) return;
+        initial = current;
+        appended = true;
+        const image = document.createElement("img");
+        image.src = ${JSON.stringify(source)};
+        image.alt = ${JSON.stringify(name)};
+        document.body.append(image);
+      }
+      if (current.includes(${JSON.stringify(name)})) {
+        finish(() => resolve(JSON.stringify({ initial, current })));
+      }
+    };
+    const onTimeout = () => {
+      const root = document.querySelector("#save-in-source-panel")?.shadowRoot;
+      const current = root
+        ? [...root.querySelectorAll(".source-link .name")].map((node) => node.textContent || "")
+        : [];
+      finish(() => reject(new Error(
+        "Timed out waiting for Page Source ${name}: " + JSON.stringify({ initial, current })
+      )));
+    };
+    observer = new MutationObserver(check);
+    observer.observe(document.documentElement, { childList: true, subtree: true });
+    timeout.addEventListener("abort", onTimeout, { once: true });
+    check();
+  })`;
+
 /** @param {import("node:http").Server} server @returns {Promise<number>} */
 export const listenLocal = (server) =>
   new Promise((resolve, reject) => {
@@ -214,4 +317,5 @@ export const closeLocal = (server) =>
       return;
     }
     server.close((error) => (error ? reject(error) : resolve()));
+    server.closeIdleConnections?.();
   });

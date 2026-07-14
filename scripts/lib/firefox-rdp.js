@@ -456,7 +456,9 @@ class FirefoxRdp {
       isRdpPacket(packet.target) ? packet.target : undefined,
       "target switch",
     );
-    return requireString(target, "consoleActor", "target switch");
+    const refreshed = requireString(target, "consoleActor", "target switch");
+    this.tabConsoleActors.set(tabActor, refreshed);
+    return refreshed;
   }
 
   /**

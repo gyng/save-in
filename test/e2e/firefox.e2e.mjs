@@ -20,8 +20,10 @@ import {
 } from "./shared-scenarios.mjs";
 import { createHarnessSession } from "./harness-session.mjs";
 import {
+  appendImageAndWaitForSourceExpression,
   beginResourceScope,
   closeLocal,
+  createLazyPageEvaluator,
   listenLocal,
   poll,
   waitForApiEntriesExpression,
@@ -42,10 +44,39 @@ const ARTIFACTS = process.env.E2E_ARTIFACT_DIR
   : path.resolve("dist", "e2e-artifacts");
 
 /** @param {string} expr @param {number} [timeoutMs] */
-const evalOptions = (expr, timeoutMs) =>
+const rawEvalOptions = (expr, timeoutMs) =>
   session.evaluateInTab("src/options/options.html", expr, timeoutMs);
 /** @param {string} expr @param {number} [timeoutMs] */
-const evalBackground = (expr, timeoutMs) => evalOptions(inBackgroundContext(expr), timeoutMs);
+const evalBackground = (expr, timeoutMs) => rawEvalOptions(inBackgroundContext(expr), timeoutMs);
+const reloadOptionsPage = async () => {
+  const tabId = await session.evaluate(
+    `browser.tabs.query({}).then((tabs) => tabs.find((tab) =>
+      tab.url?.startsWith(browser.runtime.getURL("src/options/options.html")))?.id)`,
+  );
+  if (tabId === undefined) {
+    await session.evaluate(
+      `browser.tabs.create({ url: browser.runtime.getURL("src/options/options.html") })`,
+    );
+  } else {
+    await session.evaluate(`browser.tabs.reload(${JSON.stringify(tabId)})`);
+  }
+  await poll(
+    async () =>
+      (await rawEvalOptions(`document.readyState === "complete" &&
+        Boolean(browser.runtime?.id) &&
+        Boolean(document.querySelector("#autocomplete-paths")) &&
+        document.querySelector("#paths")?.getAttribute("aria-busy") === "false" &&
+        document.querySelector("#filenamePatterns")?.getAttribute("aria-busy") === "false"`))
+        ? true
+        : null,
+    { description: "reloaded Firefox options page", ignoreErrors: true },
+  );
+};
+const optionsPage = createLazyPageEvaluator({
+  evaluate: rawEvalOptions,
+  prepare: reloadOptionsPage,
+});
+const evalOptions = optionsPage.evaluate;
 /** @param {string} name */
 const artifactName = (name) =>
   name
@@ -179,30 +210,7 @@ beforeAll(async () => {
     harness = createHarnessSession({
       evaluateBackground: evalBackground,
       evaluateControl: (expression, timeoutMs) => session.evaluate(expression, timeoutMs),
-      resetRuntime: () => evalBackground(`api.reset().then(() => true)`),
       downloadDir: () => session.downloadDir,
-      reloadOptions: async () => {
-        const tabId = await session.evaluate(
-          `browser.tabs.query({}).then((tabs) => tabs.find((tab) =>
-            tab.url?.startsWith(browser.runtime.getURL("src/options/options.html")))?.id)`,
-        );
-        if (tabId === undefined) {
-          await session.evaluate(
-            `browser.tabs.create({ url: browser.runtime.getURL("src/options/options.html") })`,
-          );
-        } else {
-          await session.evaluate(`browser.tabs.reload(${JSON.stringify(tabId)})`);
-        }
-        await poll(
-          async () =>
-            (await evalOptions(
-              `document.readyState === "complete" && Boolean(browser.runtime?.id)`,
-            ))
-              ? true
-              : null,
-          { description: "reloaded Firefox options page", ignoreErrors: true },
-        );
-      },
     });
   } catch (error) {
     suiteFailed = true;
@@ -210,8 +218,9 @@ beforeAll(async () => {
   }
 });
 
-beforeEach(async () => {
+beforeEach(async ({ task }) => {
   resourceScope = beginResourceScope();
+  if (task.name !== FIRST_INSTALL_TEST) optionsPage.invalidate();
   if (!harness) throw new Error("Firefox E2E harness was not initialized");
   await harness.beginCase();
 });
@@ -323,8 +332,7 @@ test("options page autosaves through Firefox host APIs", async () => {
   try {
     await poll(
       async () =>
-        (await session.evaluateInTab(
-          "src/options/options.html",
+        (await evalOptions(
           `(() => {
             const checkbox = document.querySelector("#promptOnShift");
             return document.readyState === "complete" && checkbox && !checkbox.disabled;
@@ -334,8 +342,7 @@ test("options page autosaves through Firefox host APIs", async () => {
           : null,
       { description: "Firefox options controls" },
     );
-    await session.evaluateInTab(
-      "src/options/options.html",
+    await evalOptions(
       `(() => {
         const checkbox = document.querySelector("#promptOnShift");
         checkbox.checked = ${JSON.stringify(changed)};
@@ -904,15 +911,6 @@ test("Page Sources discovers, updates live, and restores across tabs", async () 
   const secondTarget = `localhost:${port}`;
   const firstUrl = `http://${firstMatch}`;
   const secondUrl = `http://${secondMatch}`;
-  /** @param {string} target @returns {Promise<any>} */
-  const sourceNames = (target) =>
-    session
-      .evaluateInTab(
-        target,
-        `JSON.stringify([...document.querySelector("#save-in-source-panel").shadowRoot
-          .querySelectorAll(".source-link .name")].map((node) => node.textContent))`,
-      )
-      .then(JSON.parse);
 
   try {
     await evalBackground(`browser.storage.local.set({
@@ -926,24 +924,38 @@ test("Page Sources discovers, updates live, and restores across tabs", async () 
     await evalBackground(
       `browser.tabs.create({ url: ${JSON.stringify(firstUrl)} }).then(() => "opened")`,
     );
-    await evalBackground(`(${waitForTabExpression(firstMatch)}).then(async (tabJson) => {
-      const tab = JSON.parse(tabJson);
-      await browser.storage.session.set({ sourcePanelOpen: true });
-      await browser.tabs.sendMessage(tab.id, { type: "SET_SOURCE_PANEL", body: { open: true } });
-      return "opened";
-    })`);
+    await evalBackground(waitForTabExpression(firstMatch));
     await poll(
-      async () =>
-        (await session.evaluateInTab(
-          firstTarget,
-          "!!document.querySelector('#save-in-source-panel')?.shadowRoot",
-        )) === true
-          ? true
-          : null,
-      { description: "Firefox Page Sources panel open" },
+      async () => {
+        try {
+          return (await session.evaluateInTab(
+            firstTarget,
+            "document.readyState === 'complete'",
+          )) === true
+            ? true
+            : null;
+        } catch {
+          return null;
+        }
+      },
+      { description: "Firefox Page Sources fixture target" },
     );
-
-    expect(await sourceNames(firstTarget)).toEqual(["second.png", "first.png"]);
+    const [discoveryJson] = await Promise.all([
+      session.evaluateInTab(
+        firstTarget,
+        appendImageAndWaitForSourceExpression("/late.png", "late.png", ["second.png", "first.png"]),
+      ),
+      evalBackground(`browser.tabs.query({}).then(async (tabs) => {
+        const tab = tabs.find((candidate) => candidate.url?.includes(${JSON.stringify(firstMatch)}));
+        if (!tab?.id) throw new Error("Page Sources fixture tab missing");
+        await browser.storage.session.set({ sourcePanelOpen: true });
+        await browser.tabs.sendMessage(tab.id, { type: "SET_SOURCE_PANEL", body: { open: true } });
+        return "opened";
+      })`),
+    ]);
+    const discovery = JSON.parse(discoveryJson);
+    expect(discovery.initial).toEqual(["second.png", "first.png"]);
+    expect(discovery.current).toContain("late.png");
 
     await session.evaluateInTab(
       firstTarget,
@@ -956,18 +968,6 @@ test("Page Sources discovers, updates live, and restores across tabs", async () 
       })()`,
     );
     expect(await waitForDownloadUrl(`http://localhost:${port}/first.png`)).toMatch(/first\.png$/);
-
-    await session.evaluateInTab(
-      firstTarget,
-      `(() => {
-        const image = document.createElement("img");
-        image.src = "/late.png";
-        document.body.append(image);
-      })()`,
-    );
-    await poll(async () => ((await sourceNames(firstTarget)).includes("late.png") ? true : null), {
-      description: "Firefox live Page Sources discovery",
-    });
 
     await evalBackground(`browser.tabs.query({}).then(async (tabs) => {
       const first = tabs.find((tab) => tab.url?.includes(${JSON.stringify(firstMatch)}));
@@ -1004,13 +1004,14 @@ test("Page Sources discovers, updates live, and restores across tabs", async () 
 
 registerSharedBrowserCases({
   evaluate: evalBackground,
-  evaluateOptions: (expression) => session.evaluateInTab("src/options/options.html", expression),
+  evaluateOptions: evalOptions,
   waitForDownloads,
   waitForLog,
   downloadDir: () => session.downloadDir,
   browserLabel: "firefox",
   routingContent: "ff routed content",
   symlinkSupported: true,
+  reloadOptions: reloadOptionsPage,
 });
 
 test("history and the debug log record a self-contained download", async () => {

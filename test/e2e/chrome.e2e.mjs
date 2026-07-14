@@ -20,8 +20,10 @@ import {
 } from "./shared-scenarios.mjs";
 import { createHarnessSession } from "./harness-session.mjs";
 import {
+  appendImageAndWaitForSourceExpression,
   beginResourceScope,
   closeLocal,
+  createLazyPageEvaluator,
   listenLocal,
   poll,
   waitForApiEntriesExpression,
@@ -50,11 +52,33 @@ let harness;
 const FIRST_INSTALL_TEST = "first install starts with a focused welcome";
 
 /** @param {string} expr @returns {Promise<any>} */
-const evalOptions = (expr) => cdp.evalInTarget(PORT, "options.html", expr);
+const rawEvalOptions = (expr) => cdp.evalInTarget(PORT, "options.html", expr);
+const reloadOptionsPage = async () => {
+  const reloaded = await cdp.reloadTargets(PORT, "options.html");
+  if (reloaded === 0) {
+    await cdp.openTab(PORT, `chrome-extension://${extensionId}/src/options/options.html`);
+  }
+  await poll(
+    async () =>
+      (await rawEvalOptions(`document.readyState === "complete" &&
+        Boolean(chrome.runtime?.id) &&
+        Boolean(document.querySelector("#autocomplete-paths")) &&
+        document.querySelector("#paths")?.getAttribute("aria-busy") === "false" &&
+        document.querySelector("#filenamePatterns")?.getAttribute("aria-busy") === "false"`))
+        ? true
+        : null,
+    { description: "reloaded Chrome options page", ignoreErrors: true },
+  );
+};
+const optionsPage = createLazyPageEvaluator({
+  evaluate: rawEvalOptions,
+  prepare: reloadOptionsPage,
+});
+const evalOptions = optionsPage.evaluate;
 // App control travels through production runtime messages from an extension
 // page. Raw worker evaluation remains only for worker-specific assertions.
 /** @param {string} expr @returns {Promise<any>} */
-const evalSW = (expr) => evalOptions(inBackgroundContext(expr));
+const evalSW = (expr) => rawEvalOptions(inBackgroundContext(expr));
 /** @param {string} expr @returns {Promise<any>} */
 const evalWorker = (expr) => cdp.evalInServiceWorker(PORT, extensionId, expr);
 /** @param {string} key @param {unknown} expected @param {number} [timeoutMs] */
@@ -203,7 +227,7 @@ beforeAll(async () => {
     await poll(
       async () => {
         const state = JSON.parse(
-          await evalOptions(`JSON.stringify({
+          await rawEvalOptions(`JSON.stringify({
             ready: document.readyState,
             extensionId: globalThis.chrome?.runtime?.id,
             hasStorage: Boolean(globalThis.chrome?.storage?.local),
@@ -230,19 +254,6 @@ beforeAll(async () => {
     harness = createHarnessSession({
       evaluateBackground: evalSW,
       downloadDir: () => DOWNLOADS,
-      reloadOptions: async () => {
-        const reloaded = await cdp.reloadTargets(PORT, "options.html");
-        if (reloaded === 0) {
-          await cdp.openTab(PORT, `chrome-extension://${extensionId}/src/options/options.html`);
-        }
-        await poll(
-          async () =>
-            (await evalOptions(`document.readyState === "complete" && Boolean(chrome.runtime?.id)`))
-              ? true
-              : null,
-          { description: "reloaded Chrome options page", ignoreErrors: true },
-        );
-      },
     });
   } catch (error) {
     suiteFailed = true;
@@ -250,8 +261,9 @@ beforeAll(async () => {
   }
 });
 
-beforeEach(async () => {
+beforeEach(async ({ task }) => {
   resourceScope = beginResourceScope();
+  if (task.name !== FIRST_INSTALL_TEST) optionsPage.invalidate();
   if (!harness) throw new Error("Chrome E2E harness was not initialized");
   await harness.beginCase();
 });
@@ -924,20 +936,35 @@ test("ordinary browser downloads can be routed and tracked without adoption", as
 });
 
 test("paths textarea renders a live menu-tree preview", async () => {
-  await evalOptions(`(() => {
+  const preview = await evalOptions(`new Promise((resolve, reject) => {
       const ta = document.querySelector("#paths");
+      const preview = document.querySelector("#menu-preview-tree");
+      const timeout = AbortSignal.timeout(8000);
+      let observer;
+      const finish = (callback) => {
+        observer?.disconnect();
+        timeout.removeEventListener("abort", onTimeout);
+        window.removeEventListener("error", onError);
+        callback();
+      };
+      const check = () => {
+        const text = preview?.textContent || "";
+        if (text.includes("Dogs!") && text.includes("corgi")) {
+          finish(() => resolve(text));
+        }
+      };
+      const onTimeout = () => finish(() => reject(new Error(
+        "Timed out waiting for live menu-tree preview: " + (preview?.textContent || "<empty>")
+      )));
+      const onError = (event) => finish(() => reject(event.error || new Error(event.message)));
+      observer = new MutationObserver(check);
+      observer.observe(preview, { childList: true, subtree: true, characterData: true });
+      timeout.addEventListener("abort", onTimeout, { once: true });
+      window.addEventListener("error", onError, { once: true });
       ta.value = "dogs // (alias: Dogs!)\\n>corgi\\n---\\ncats";
       ta.dispatchEvent(new InputEvent("input", { bubbles: true }));
-      return true;
-    })()`);
-
-  const preview = await poll(
-    async () => {
-      const text = await evalOptions(`document.querySelector("#menu-preview-tree")?.textContent`);
-      return text?.includes("Dogs!") && text.includes("corgi") ? text : null;
-    },
-    { description: "live menu-tree preview" },
-  );
+      check();
+    })`);
 
   expect(preview).toContain("Dogs!");
   expect(preview).toContain("corgi");
@@ -1766,27 +1793,19 @@ test("Page Sources discovers, updates live, and restores across tabs", async () 
   const secondUrl = `http://${secondPath}`;
   /** @param {string} pathPart @param {string} expression */
   const evalPage = (pathPart, expression) => cdp.evalInTarget(PORT, pathPart, expression);
-  /** @param {string} pathPart @returns {Promise<any>} */
-  const sourceNames = (pathPart) =>
-    evalPage(
-      pathPart,
-      `JSON.stringify((() => {
-        const root = document.querySelector("#save-in-source-panel")?.shadowRoot;
-        return root
-          ? [...root.querySelectorAll(".source-link .name")].map((node) => node.textContent)
-          : [];
-      })())`,
-    ).then(JSON.parse);
 
   try {
-    await evalSW(`browser.storage.local.set({
-      sourcePanelEnabled: true,
-      sourcePanelLive: true,
-      sourcePanelPreviews: false,
-      sourcePanelBackgrounds: false,
-      sourcePanelResourceHints: false,
-      sourcePanelLinks: false,
-    }).then(() => api.reset()).then(() => "enabled")`);
+    await evalSW(`Promise.all([
+      browser.storage.local.set({
+        sourcePanelEnabled: true,
+        sourcePanelLive: true,
+        sourcePanelPreviews: false,
+        sourcePanelBackgrounds: false,
+        sourcePanelResourceHints: false,
+        sourcePanelLinks: false,
+      }),
+      browser.storage.session.set({ sourcePanelOpen: false }),
+    ]).then(() => api.reset()).then(() => "enabled")`);
     await cdp.openTab(PORT, firstUrl);
     await poll(
       async () =>
@@ -1799,15 +1818,16 @@ test("Page Sources discovers, updates live, and restores across tabs", async () 
       await browser.tabs.update(tab.id, { active: true });
       return "activated";
     })`);
-    await cdp.triggerAction(PORT, extensionId, firstPath);
-    await poll(
-      async () =>
-        (await evalPage(firstPath, "!!document.querySelector('#save-in-source-panel')?.shadowRoot"))
-          ? true
-          : null,
-      { description: "Page Sources panel open" },
-    );
-    expect(await sourceNames(firstPath)).toEqual(["second.png", "first.png"]);
+    const [discoveryJson] = await Promise.all([
+      evalPage(
+        firstPath,
+        appendImageAndWaitForSourceExpression("/late.png", "late.png", ["second.png", "first.png"]),
+      ),
+      cdp.triggerAction(PORT, extensionId, firstPath),
+    ]);
+    const discovery = JSON.parse(discoveryJson);
+    expect(discovery.initial).toEqual(["second.png", "first.png"]);
+    expect(discovery.current).toContain("late.png");
 
     await evalPage(
       firstPath,
@@ -1820,19 +1840,6 @@ test("Page Sources discovers, updates live, and restores across tabs", async () 
       })()`,
     );
     expect(await waitForDownloadUrl(`http://127.0.0.1:${port}/first.png`)).toMatch(/first\.png$/);
-
-    await evalPage(
-      firstPath,
-      `(() => {
-        const image = document.createElement("img");
-        image.src = "/late.png";
-        image.alt = "late";
-        document.body.append(image);
-      })()`,
-    );
-    await poll(async () => ((await sourceNames(firstPath)).includes("late.png") ? true : null), {
-      description: "live Page Sources discovery",
-    });
 
     await cdp.openTab(PORT, secondUrl);
     await poll(

@@ -1,31 +1,58 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const cleanupExpression = `(() => {
+/** @param {Record<string, unknown> | undefined} snapshot */
+const cleanupExpression = (snapshot) => `(async () => {
   const optionsUrl = browser.runtime.getURL("src/options/options.html");
-  return Promise.all([
-    browser.tabs.getCurrent().then((current) => browser.tabs.query({}).then(async (tabs) => {
+  const failures = [];
+  const attempt = async (label, operation) => {
+    try {
+      await operation();
+    } catch (error) {
+      failures.push(label + ": " + String(error?.stack || error));
+    }
+  };
+  await Promise.all([
+    attempt("tabs", async () => {
+      const [current, tabs] = await Promise.all([browser.tabs.getCurrent(), browser.tabs.query({})]);
       const keep = current?.id ?? tabs.find((tab) => tab.url?.startsWith(optionsUrl))?.id;
       const remove = tabs.flatMap((tab) => tab.id !== undefined && tab.id !== keep ? [tab.id] : []);
-      if (remove.length) await browser.tabs.remove(remove).catch(() => {});
-    })),
-    browser.downloads.search({}).then(async (downloads) => {
+      if (remove.length) await browser.tabs.remove(remove);
+    }),
+    attempt("downloads", async () => {
+      const downloads = await browser.downloads.search({});
       await Promise.all(downloads
         .filter((download) => download.state === "in_progress")
         .map((download) => browser.downloads.cancel(download.id).catch(() => {})));
-      await browser.downloads.erase({}).catch(() => {});
+      await browser.downloads.erase({});
     }),
-    browser.notifications?.getAll?.().then((notifications) =>
-      Promise.all(Object.keys(notifications).map((id) => browser.notifications.clear(id)))
-    ).catch(() => {}),
-    browser.declarativeNetRequest?.getSessionRules?.().then((rules) =>
-      rules.length
-        ? browser.declarativeNetRequest.updateSessionRules({
-            removeRuleIds: rules.map((rule) => rule.id),
-          })
-        : undefined
-    ).catch(() => {}),
-  ]).then(() => browser.storage.session?.clear?.()).then(() => true);
+    attempt("notifications", async () => {
+      if (!browser.notifications?.getAll) return;
+      const notifications = await browser.notifications.getAll();
+      await Promise.all(Object.keys(notifications).map((id) => browser.notifications.clear(id)));
+    }),
+    attempt("session rules", async () => {
+      if (!browser.declarativeNetRequest?.getSessionRules) return;
+      const rules = await browser.declarativeNetRequest.getSessionRules();
+      if (rules.length) {
+        await browser.declarativeNetRequest.updateSessionRules({
+          removeRuleIds: rules.map((rule) => rule.id),
+        });
+      }
+    }),
+  ]);
+  await attempt("session storage", () => browser.storage.session?.clear?.());
+  ${
+    snapshot
+      ? `await attempt("local storage", async () => {
+    await browser.storage.local.clear();
+    await browser.storage.local.set(${JSON.stringify(snapshot)});
+  });`
+      : ""
+  }
+  await attempt("runtime reset", () => api.reset());
+  if (failures.length) throw new Error(failures.join("\\n---\\n"));
+  return true;
 })()`;
 
 /** @param {string} directory */
@@ -50,27 +77,28 @@ const emptyDirectory = async (directory) => {
  * @param {{
  *   evaluateBackground: (expression: string, timeoutMs?: number) => Promise<any>,
  *   evaluateControl?: (expression: string, timeoutMs?: number) => Promise<any>,
- *   resetRuntime?: () => Promise<any>,
- *   reloadOptions: () => Promise<void>,
  *   downloadDir: () => string,
  * }} adapters
  */
 export const createHarnessSession = ({
   evaluateBackground,
   evaluateControl = evaluateBackground,
-  resetRuntime = () => evaluateBackground(`api.reset().then(() => true)`),
-  reloadOptions,
   downloadDir,
 }) => {
+  /** @type {Record<string, unknown> | undefined} */
+  let baseline;
   /** @type {Record<string, unknown> | undefined} */
   let snapshot;
   return {
     async beginCase() {
-      snapshot = JSON.parse(
-        await evaluateControl(
-          `browser.storage.local.get(null).then((stored) => JSON.stringify(stored))`,
-        ),
-      );
+      snapshot = baseline;
+      if (!snapshot) {
+        snapshot = JSON.parse(
+          await evaluateControl(
+            `browser.storage.local.get(null).then((stored) => JSON.stringify(stored))`,
+          ),
+        );
+      }
     },
 
     /** @param {{preserveLocal?: boolean}} [options] */
@@ -78,37 +106,16 @@ export const createHarnessSession = ({
       /** @type {unknown[]} */
       const failures = [];
       try {
-        await evaluateControl(cleanupExpression, 15000);
+        await evaluateControl(cleanupExpression(preserveLocal ? undefined : snapshot), 15000);
       } catch (error) {
         failures.push(error);
-      }
-      if (!preserveLocal && snapshot) {
-        try {
-          await evaluateControl(
-            `browser.storage.local.clear()
-            .then(() => browser.storage.local.set(${JSON.stringify(snapshot)}))
-            .then(() => true)`,
-            15000,
-          );
-        } catch (error) {
-          failures.push(error);
-        }
       }
       try {
         await emptyDirectory(downloadDir());
       } catch (error) {
         failures.push(error);
       }
-      try {
-        await reloadOptions();
-      } catch (error) {
-        failures.push(error);
-      }
-      try {
-        await resetRuntime();
-      } catch (error) {
-        failures.push(error);
-      }
+      baseline = failures.length || preserveLocal ? undefined : snapshot;
       snapshot = undefined;
       if (failures.length) {
         const details = failures

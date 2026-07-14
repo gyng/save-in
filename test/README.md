@@ -25,7 +25,8 @@ imports shared case-registration modules from `e2e/cases`; adding a case module 
 second browser launch. Every case gets a storage snapshot and resource scope. Local servers are
 registered automatically, and the harness restores storage, tabs, download records, session
 rules, notifications, and downloaded files after the case. Only lifecycle cases may explicitly
-preserve a transition.
+preserve a transition. Cleanup, restoration, and runtime reset share one browser transaction;
+the Options page reloads lazily only when a case first drives it.
 
 All browser commands use the same immutable per-run staged extension and diagnostics directory:
 
