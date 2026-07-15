@@ -45,6 +45,9 @@ Automatic discovery supplies the synthetic routing context `AUTO`. The
 context: ^auto$
 ```
 
+Use `context: auto` with page and source conditions to match automatic
+downloads. The first matching rule sets the save location.
+
 Save In deliberately ignores ordinary routing rules during automatic discovery,
 including broad rules such as `context: .*`. An automatic rule must explicitly
 mention `auto` in its context pattern and must contain both:
@@ -110,3 +113,6 @@ compatibility, but new configurations should put all automatic rules in
 
 The machine-facing validation and vocabulary contract is documented in
 [Integrations](INTEGRATIONS.md#config-messages).
+
+Manual selection, batch saving, and source-row actions are covered in
+[Destination and source workflows](DESTINATION-AND-SOURCE-WORKFLOWS.md#page-sources).

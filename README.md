@@ -32,6 +32,10 @@ the default download location.
 - Inspect MV3 background health, lifecycle events, configuration issue counts,
   and recent session failures from the collapsed Diagnostics panel in Advanced.
 
+See [Destination and source workflows](docs/DESTINATION-AND-SOURCE-WORKFLOWS.md)
+for destination-specific Save As behavior, recent locations, Page Sources
+batches, History actions, and source-link sidecars.
+
 Page Sources can automatically save newly discovered matching media. Automatic
 saves are off by default and use guarded routing rules with an
 explicit `context: ^auto$`, a page condition, and a source condition. Rules can
