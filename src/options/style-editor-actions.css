@@ -92,8 +92,8 @@
   mask-image: url("i/action-duplicate-16.svg");
 }
 
-:is(.path-editor-action-menu, .rule-editor-card-action-menu).menu-popover
-  .danger-button:is(:hover, :active) {
+:is(.path-editor-action-menu, .rule-editor-card-action-menu, .rule-add-menu-options).menu-popover
+  > :is(button, .visual-editor-control):is(:hover, :active) {
   background: var(--hover-bg);
 }
 
