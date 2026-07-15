@@ -97,7 +97,10 @@ const hasOptionalNumber = (value: Record<string, unknown>, key: string): boolean
 
 const hasOptionalPositiveInteger = (value: Record<string, unknown>, key: string): boolean =>
   !(key in value) ||
-  (typeof value[key] === "number" && Number.isSafeInteger(value[key]) && value[key] > 0);
+  (typeof value[key] === "number" &&
+    Number.isSafeInteger(value[key]) &&
+    value[key] > 0 &&
+    value[key] <= 300_000);
 
 const hasOptionalBoolean = (value: Record<string, unknown>, key: string): boolean =>
   !(key in value) || typeof value[key] === "boolean";

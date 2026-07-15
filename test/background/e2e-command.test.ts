@@ -204,4 +204,10 @@ test("observes notification calls while preserving the native API call", async (
       body: { action: "wait", id: "", timeoutMs: 1000 },
     }),
   ).toBeNull();
+  expect(
+    handleBackgroundE2ENotificationCommand({
+      type: BACKGROUND_E2E_NOTIFICATION_COMMAND,
+      body: { action: "wait", id: "12", timeoutMs: 300_001 },
+    }),
+  ).toBeNull();
 });

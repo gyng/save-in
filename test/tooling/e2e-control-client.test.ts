@@ -260,12 +260,18 @@ describe("structured E2E control client", () => {
       dispatchControlRequest(JSON.stringify({ operation: "downloads.wait", timeoutMs: 1000 })),
     ).rejects.toThrow("Invalid E2E control request");
     await expect(
+      dispatchControlRequest(JSON.stringify({ operation: "downloads.wait", filenameIncludes: "" })),
+    ).rejects.toThrow("Invalid E2E control request");
+    await expect(
       dispatchControlRequest(
         JSON.stringify({ operation: "logs.wait", messages: [], timeoutMs: 1000 }),
       ),
     ).rejects.toThrow("Invalid E2E control request");
     await expect(
       dispatchControlRequest(JSON.stringify({ operation: "tabs.wait", id: 7, timeoutMs: -1 })),
+    ).rejects.toThrow("Invalid E2E control request");
+    await expect(
+      dispatchControlRequest(JSON.stringify({ operation: "tabs.wait", urlIncludes: "" })),
     ).rejects.toThrow("Invalid E2E control request");
     await expect(
       dispatchControlRequest(
@@ -275,6 +281,14 @@ describe("structured E2E control client", () => {
     await expect(
       dispatchControlRequest(
         JSON.stringify({ operation: "history.wait", status: "complete", minimum: -1 }),
+      ),
+    ).rejects.toThrow("Invalid E2E control request");
+    await expect(
+      dispatchControlRequest(JSON.stringify({ operation: "history.wait", timeoutMs: 1000 })),
+    ).rejects.toThrow("Invalid E2E control request");
+    await expect(
+      dispatchControlRequest(
+        JSON.stringify({ operation: "history.wait", status: "complete", timeoutMs: 300_001 }),
       ),
     ).rejects.toThrow("Invalid E2E control request");
     await expect(

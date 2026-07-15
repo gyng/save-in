@@ -33,6 +33,13 @@ export const dispatchControlRequest = async (
     value[key] === undefined ||
     (typeof value[key] === "number" && Number.isSafeInteger(value[key]) && value[key] > 0);
   /** @param {Record<string, unknown>} value @param {string} key */
+  const hasOptionalTimeout = (value, key) =>
+    value[key] === undefined ||
+    (typeof value[key] === "number" &&
+      Number.isSafeInteger(value[key]) &&
+      value[key] > 0 &&
+      value[key] <= 300_000);
+  /** @param {Record<string, unknown>} value @param {string} key */
   const hasOptionalNonnegativeInteger = (value, key) =>
     value[key] === undefined ||
     (typeof value[key] === "number" && Number.isSafeInteger(value[key]) && value[key] >= 0);
@@ -50,7 +57,7 @@ export const dispatchControlRequest = async (
           hasOptionalString(value, "comment")
         );
       case "options.waitReady":
-        return hasOptionalPositiveInteger(value, "timeoutMs");
+        return hasOptionalTimeout(value, "timeoutMs");
       case "storage.get":
         return (
           isArea &&
@@ -63,9 +70,7 @@ export const dispatchControlRequest = async (
       case "storage.set":
         return isArea && isRecord(value.values);
       case "storage.wait":
-        return (
-          isArea && typeof value.key === "string" && hasOptionalPositiveInteger(value, "timeoutMs")
-        );
+        return isArea && typeof value.key === "string" && hasOptionalTimeout(value, "timeoutMs");
       case "storage.remove":
         return isArea && (typeof value.keys === "string" || isStringArray(value.keys));
       case "storage.clear":
@@ -77,13 +82,13 @@ export const dispatchControlRequest = async (
       case "downloads.wait":
         return (
           [value.filenameRegex, value.filenameIncludes, value.url].filter(
-            (selector) => typeof selector === "string",
+            (selector) => typeof selector === "string" && selector.length > 0,
           ).length === 1 &&
           hasOptionalString(value, "filenameRegex") &&
           hasOptionalString(value, "filenameIncludes") &&
           hasOptionalString(value, "url") &&
           hasOptionalPositiveInteger(value, "minimumComplete") &&
-          hasOptionalPositiveInteger(value, "timeoutMs")
+          hasOptionalTimeout(value, "timeoutMs")
         );
       case "downloads.cancel":
       case "tabs.reload":
@@ -94,9 +99,10 @@ export const dispatchControlRequest = async (
         return typeof value.id === "number" && isRecord(value.properties);
       case "tabs.wait":
         return (
-          (typeof value.id === "number" || typeof value.urlIncludes === "string") &&
+          (typeof value.id === "number" ||
+            (typeof value.urlIncludes === "string" && value.urlIncludes.length > 0)) &&
           hasOptionalString(value, "status") &&
-          hasOptionalPositiveInteger(value, "timeoutMs")
+          hasOptionalTimeout(value, "timeoutMs")
         );
       case "tabs.remove":
         return (
@@ -117,16 +123,20 @@ export const dispatchControlRequest = async (
         return (
           isStringArray(value.messages) &&
           value.messages.length > 0 &&
+          value.messages.every((message) => message.length > 0) &&
           hasOptionalNonnegativeInteger(value, "baseline") &&
-          hasOptionalPositiveInteger(value, "timeoutMs")
+          hasOptionalTimeout(value, "timeoutMs")
         );
       case "history.wait":
         return (
+          [value.id, value.url, value.status, value.finalFullPath, value.context].some(
+            (selector) => typeof selector === "string" && selector.length > 0,
+          ) &&
           ["id", "url", "status", "finalFullPath", "context"].every((key) =>
             hasOptionalString(value, key),
           ) &&
           hasOptionalPositiveInteger(value, "minimum") &&
-          hasOptionalPositiveInteger(value, "timeoutMs")
+          hasOptionalTimeout(value, "timeoutMs")
         );
       case "harness.resetCase":
         return value.snapshot === undefined || isRecord(value.snapshot);

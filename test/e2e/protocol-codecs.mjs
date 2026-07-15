@@ -18,7 +18,10 @@ export const createProtocolCodecs = () => {
   /** @param {Record<string, unknown>} value @param {string} key */
   const hasOptionalPositiveInteger = (value, key) =>
     value[key] === undefined ||
-    (typeof value[key] === "number" && Number.isSafeInteger(value[key]) && value[key] > 0);
+    (typeof value[key] === "number" &&
+      Number.isSafeInteger(value[key]) &&
+      value[key] > 0 &&
+      value[key] <= 300_000);
   /** @param {Record<string, unknown>} value @param {string} key */
   const hasOptionalBoolean = (value, key) =>
     value[key] === undefined || typeof value[key] === "boolean";
