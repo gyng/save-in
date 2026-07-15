@@ -6,6 +6,7 @@
 @import url("style-shell-responsive.css") layer(shell);
 @import url("style-dialogs.css") layer(shell);
 @import url("style-components.css") layer(components);
+@import url("style-feedback.css") layer(components);
 @import url("style-option-rows.css") layer(components);
 @import url("style-workflows.css") layer(components);
 @import url("style-status.css") layer(components);

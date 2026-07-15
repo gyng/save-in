@@ -108,7 +108,7 @@ input[type="search"],
 input[type="date"],
 input[type="datetime-local"],
 select {
-  min-height: var(--control-height);
+  min-block-size: var(--control-height);
   padding: var(--space-1) var(--space-2);
   background-color: var(--input-background);
   font-size: var(--text-base);
@@ -143,7 +143,7 @@ td {
 /* Shared button atom. Compact and icon controls explicitly override this box. */
 button,
 .button {
-  min-height: var(--control-height);
+  min-block-size: var(--control-height);
   padding: var(--space-1) var(--space-3);
   border: 1px solid var(--control-border);
   border-radius: var(--radius);

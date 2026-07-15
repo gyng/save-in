@@ -1,5 +1,6 @@
 import { getMessage } from "../platform/localization.ts";
 import { webExtensionApi } from "../platform/web-extension-api.ts";
+import { preferredScrollBehavior } from "../shared/motion-preference.ts";
 import { WELCOME_PENDING_STORAGE_KEY, WELCOME_VERSION } from "../shared/storage-keys.ts";
 
 type Localize = (key: string) => string;
@@ -173,7 +174,7 @@ const followWelcomeAction = (action: WelcomeAction): void => {
     new CustomEvent("save-in:navigate-option", { detail: { target: firstPath } }),
   );
   if (!firstPath.closest(".tab-panel")) {
-    firstPath.scrollIntoView({ block: "center", behavior: "smooth" });
+    firstPath.scrollIntoView({ block: "center", behavior: preferredScrollBehavior() });
     firstPath.focus();
   }
 };

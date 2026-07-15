@@ -52,7 +52,12 @@
     box-shadow: none;
   }
 
-  :where([aria-selected="true"], .autocomplete-dropdown .selected) {
+  :where(
+    [aria-selected="true"],
+    [aria-pressed="true"],
+    [aria-current="true"],
+    .autocomplete-dropdown .selected
+  ) {
     color: HighlightText;
     background: Highlight;
     outline: 1px solid Highlight;

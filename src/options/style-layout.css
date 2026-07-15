@@ -3,7 +3,28 @@
 /* The shell spans the viewport; readable width is enforced per panel
    via .tab-panel > * instead */
 #settings-page {
-  width: 100%;
+  inline-size: 100%;
+}
+
+:where(#options) {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  inline-size: 100%;
+  padding: 0 var(--space-5);
+}
+
+:where(#options) > .column {
+  display: flex;
+  flex-direction: column;
+  inline-size: 100%;
+}
+
+.box {
+  inline-size: 100%;
+  margin: var(--space-4) 0;
+  padding: var(--space-1);
+  background-color: var(--chip-bg);
 }
 
 .tablist {
@@ -11,7 +32,7 @@
   flex-wrap: wrap;
   gap: var(--space-1);
   /* Full-bleed bar: escape the form's horizontal padding */
-  width: calc(100% + 2 * var(--space-5));
+  inline-size: calc(100% + 2 * var(--space-5));
   margin: 0 calc(-1 * var(--space-5)) var(--space-5);
   padding: 0 var(--space-5);
   border-bottom: 1px solid var(--panel-border);
@@ -70,15 +91,15 @@
 .option-search {
   position: relative;
   flex: 0 1 16rem;
-  width: min(16rem, 28dvi);
-  max-width: 100%;
+  inline-size: min(16rem, 28dvi);
+  max-inline-size: 100%;
   margin: 0;
   z-index: var(--z-menu);
 }
 
 .option-search #option-search {
-  width: 100%;
-  max-width: none;
+  inline-size: 100%;
+  max-inline-size: none;
   padding: var(--space-2) var(--space-3);
   font-size: var(--text-base);
 }
@@ -93,8 +114,8 @@
   position: absolute;
   top: calc(100% + var(--space-1));
   inset-inline-end: 0;
-  width: min(22.5rem, calc(100dvi - 2 * var(--space-3)));
-  max-height: 20rem;
+  inline-size: min(22.5rem, calc(100dvi - 2 * var(--space-3)));
+  max-block-size: 20rem;
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -109,8 +130,8 @@
 .option-search-results button {
   display: grid;
   gap: 1px;
-  width: 100%;
-  min-height: var(--compact-control-size);
+  inline-size: 100%;
+  min-block-size: var(--compact-control-size);
   padding: 6px var(--space-2);
   border: 0;
   border-radius: var(--radius-sm);
@@ -176,9 +197,9 @@
 
 .tab-panel {
   display: none;
-  width: 100%;
+  inline-size: 100%;
   container: options-panel / inline-size;
-  padding-bottom: var(--space-6);
+  padding-block-end: var(--space-6);
 }
 
 .tab-panel.active {
@@ -187,7 +208,7 @@
 
 /* The shell is full-width; individual panel content stays readable */
 .tab-panel > * {
-  max-width: var(--content-max-width);
+  max-inline-size: var(--content-max-width);
 }
 
 /* In-tab hierarchy and shared wide-row placement belong to panel layout, not
@@ -206,13 +227,13 @@
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  width: 100%;
-  max-width: none;
+  inline-size: 100%;
+  max-inline-size: none;
 }
 
 .last-download-row .last-download-info,
 .last-download-row .last-download-table {
-  width: 100%;
+  inline-size: 100%;
 }
 
 .paths-editor {
@@ -220,18 +241,18 @@
   grid-template-columns: minmax(340px, 2fr) minmax(260px, 1fr);
   gap: var(--space-5);
   align-items: flex-start;
-  width: 100%;
+  inline-size: 100%;
 }
 
 /* Paths textarea and the live menu preview sit side by side, using the
    width the full-bleed shell frees up; wraps on narrow windows */
 .tab-panel > .paths-editor {
-  max-width: 1200px;
+  max-inline-size: 1200px;
 }
 
 .paths-editor > .column {
   container: path-editor / inline-size;
-  min-width: 0;
+  min-inline-size: 0;
 }
 
 @container options-panel (max-width: 640px) {
@@ -241,7 +262,7 @@
 
   .paths-editor .preview-column {
     position: static;
-    max-height: none;
+    max-block-size: none;
   }
 }
 
@@ -249,19 +270,19 @@
    sticky column so it stays in view while editing */
 .preview-column {
   flex: 1 1 300px;
-  min-width: 260px;
+  min-inline-size: 260px;
   display: flex;
   flex-direction: column;
   gap: var(--space-5);
   position: sticky;
   top: var(--sticky-header-offset);
-  max-height: calc(
+  max-block-size: calc(
     100dvh - var(--sticky-header-offset) - var(--space-6) - var(--space-6) - var(--space-2)
   );
 }
 
 .paths-editor > .preview-column {
-  min-width: 0;
+  min-inline-size: 0;
 }
 
 .preview-column > .menu-preview {
@@ -287,11 +308,11 @@
 .tab-panel textarea,
 .tab-panel .column,
 .tab-panel .box {
-  width: 100%;
+  inline-size: 100%;
 }
 
 /* Deliberately narrow inputs (accesskeys, replacement char) keep their
    own caps; everything else gets a comfortable width */
 .tab-panel input[type="text"]:not(.key):not(#replacementChar) {
-  max-width: 340px;
+  max-inline-size: 340px;
 }

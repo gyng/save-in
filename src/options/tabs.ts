@@ -3,6 +3,7 @@
 // or its id, so the page degrades to a single scrolling form if this script
 // is absent or errors. The selected tab is remembered in localStorage.
 
+import { preferredScrollBehavior } from "../shared/motion-preference.ts";
 import { bindTabInteractions, syncTabSelection } from "./tab-controls.ts";
 
 const TAB_STORAGE_KEY = "si-options-tab";
@@ -220,7 +221,10 @@ export const setupTabs = ({
           : null;
       const highlightTarget = rowTarget || target;
       target.focus({ preventScroll: true });
-      highlightTarget.scrollIntoView?.({ block: "center", behavior: "smooth" });
+      highlightTarget.scrollIntoView?.({
+        block: "center",
+        behavior: preferredScrollBehavior(),
+      });
       highlightTarget.classList.add(
         rowTarget ? "option-search-target-row" : "option-search-target",
       );
