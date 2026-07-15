@@ -1,6 +1,7 @@
 import {
   CONFLICT_ACTION,
   FORBIDDEN_FILENAME_CHARS,
+  MAX_RECENT_DESTINATIONS,
   UNSAFE_INVISIBLE_FILENAME_CHARS,
   isShortcutType,
   type ConflictAction,
@@ -155,7 +156,7 @@ export const OPTION_KEYS = defineOptions([
       if ((typeof value !== "number" && typeof value !== "string") || String(value).trim() === "")
         return false;
       const count = Number(value);
-      return Number.isSafeInteger(count) && count >= 0 && count <= 5;
+      return Number.isSafeInteger(count) && count >= 0 && count <= MAX_RECENT_DESTINATIONS;
     },
     default: OPTION_DEFAULTS.recentDestinationCount,
   },

@@ -6,7 +6,7 @@ describe("background diagnostics", () => {
     await browser.storage.session.clear();
   });
 
-  test("normalizes lifecycle records and keeps the newest bounded entries", async () => {
+  test("bounds routine lifecycle records without evicting high-value events", async () => {
     const { normalizeDiagnosticLifecycle } = await import("../../src/background/diagnostics.ts");
     const valid = Array.from(
       { length: 55 },
@@ -16,10 +16,20 @@ describe("background diagnostics", () => {
       }),
     );
 
-    expect(
-      normalizeDiagnosticLifecycle([null, { at: 1, kind: "background_ready" }, ...valid]),
-    ).toHaveLength(50);
-    expect(normalizeDiagnosticLifecycle(valid)[0]?.at).toContain("05.000Z");
+    const extensionUpdate: DiagnosticLifecycleEntry = {
+      at: "2026-07-15T07:59:00.000Z",
+      kind: "extension_updated",
+      previousVersion: "3.9.0",
+    };
+    const normalized = normalizeDiagnosticLifecycle([
+      null,
+      { at: 1, kind: "background_ready" },
+      extensionUpdate,
+      ...valid,
+    ]);
+    expect(normalized).toHaveLength(6);
+    expect(normalized[0]).toEqual(extensionUpdate);
+    expect(normalized[1]?.at).toContain("50.000Z");
     expect(
       normalizeDiagnosticLifecycle([
         { at: "now", kind: "background_ready", durationMs: -1 },

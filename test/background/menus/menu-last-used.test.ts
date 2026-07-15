@@ -117,12 +117,14 @@ describe("Menus last-used state", () => {
   });
 
   test("records recent destinations newest-first without duplicates", async () => {
-    await recordRecentDestination("images", {
-      comment: "photos",
-      menuIndex: "1",
-      title: "Images",
-      prompt: true,
-    });
+    expect(
+      await recordRecentDestination("images", {
+        comment: "photos",
+        menuIndex: "1",
+        title: "Images",
+        prompt: true,
+      }),
+    ).toBe(true);
     await recordRecentDestination("documents", {
       comment: "docs",
       menuIndex: "2",
@@ -139,6 +141,16 @@ describe("Menus last-used state", () => {
     expect(global.browser.storage.local.set).toHaveBeenLastCalledWith({
       recentDestinations: menuState.recentDestinations,
     });
+    const writes = vi.mocked(global.browser.storage.local.set).mock.calls.length;
+    expect(
+      await recordRecentDestination("images", {
+        comment: "photos",
+        menuIndex: "1",
+        title: "Images",
+        prompt: true,
+      }),
+    ).toBe(false);
+    expect(global.browser.storage.local.set).toHaveBeenCalledTimes(writes);
   });
 
   test("ignores private destinations and contains persistence failures", async () => {
@@ -154,7 +166,7 @@ describe("Menus last-used state", () => {
         menuIndex: "2",
         title: "Public",
       }),
-    ).resolves.toBeUndefined();
+    ).resolves.toBe(true);
 
     expect(menuState.recentDestinations.map(({ path }) => path)).toEqual(["public"]);
   });
@@ -162,7 +174,7 @@ describe("Menus last-used state", () => {
   test("uses fallback copy when rendering recent destinations", () => {
     restoreLastUsed({
       recentDestinations: [
-        { path: "images", meta: { comment: "photos", menuIndex: "1", title: "Images" } },
+        { path: "images", meta: { comment: "photos", menuIndex: "1", title: "Rock & Roll" } },
       ],
     });
     vi.mocked(global.browser.i18n.getMessage).mockReturnValue("");
@@ -171,6 +183,9 @@ describe("Menus last-used state", () => {
 
     expect(global.browser.contextMenus.create).toHaveBeenCalledWith(
       expect.objectContaining({ title: "Recent locations" }),
+    );
+    expect(global.browser.contextMenus.create).toHaveBeenCalledWith(
+      expect.objectContaining({ title: "Rock && Roll" }),
     );
   });
 });

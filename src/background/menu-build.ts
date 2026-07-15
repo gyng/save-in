@@ -11,7 +11,7 @@ import {
   LAST_USED_PATH_STORAGE_KEY,
   RECENT_DESTINATIONS_STORAGE_KEY,
 } from "../shared/storage-keys.ts";
-import { MEDIA_TYPES } from "../shared/constants.ts";
+import { MAX_RECENT_DESTINATIONS, MEDIA_TYPES } from "../shared/constants.ts";
 import { Path } from "../routing/path.ts";
 import { isStringKeyedRecord } from "../shared/util.ts";
 import { backgroundRuntime } from "./runtime.ts";
@@ -115,25 +115,46 @@ const normalizeRecentDestinations = (value: unknown): RecentDestination[] => {
         },
       ];
     })
-    .slice(0, 5);
+    .slice(0, MAX_RECENT_DESTINATIONS);
 };
+
+const recentDestinationsEqual = (
+  left: readonly RecentDestination[],
+  right: readonly RecentDestination[],
+): boolean =>
+  left.length === right.length &&
+  left.every((entry, index) => {
+    const other = right[index];
+    return (
+      other !== undefined &&
+      entry.path === other.path &&
+      entry.meta.comment === other.meta.comment &&
+      entry.meta.menuIndex === other.meta.menuIndex &&
+      entry.meta.title === other.meta.title &&
+      entry.meta.prompt === other.meta.prompt
+    );
+  });
 
 export const recordRecentDestination = (
   path: string,
   meta: RecentDestination["meta"],
   privateContext = false,
-): Promise<void> => {
-  if (privateContext) return Promise.resolve();
+): Promise<boolean> => {
+  if (privateContext) return Promise.resolve(false);
   const next = [
     { path, meta },
     ...menuState.recentDestinations.filter(
       (entry) => entry.path !== path || entry.meta.comment !== meta.comment,
     ),
-  ].slice(0, 5);
+  ].slice(0, MAX_RECENT_DESTINATIONS);
+  if (recentDestinationsEqual(menuState.recentDestinations, next)) {
+    return Promise.resolve(false);
+  }
   menuState.recentDestinations = next;
   return webExtensionApi.storage.local
     .set({ [RECENT_DESTINATIONS_STORAGE_KEY]: next })
-    .catch(() => {});
+    .catch(() => {})
+    .then(() => true);
 };
 
 export const restoreLastUsed = (stored: unknown) => {
@@ -167,7 +188,7 @@ export const addRecentDestinations = (contexts: readonly MenuContext[]): void =>
     };
     webExtensionApi.contextMenus.create({
       id,
-      title: meta.title,
+      title: setAccesskey(meta.title, ""),
       contexts: asMenuContexts(contexts),
       parentId: MENU_IDS.RECENT,
     });

@@ -214,14 +214,17 @@ export const handleContextMenuClick = async (
     const privateContext = clickTab?.incognito === true;
     if (result.status === "started" && selectedLocation && !privateContext) {
       await setLastUsed(selectedLocation.path, selectedLocation.meta);
-      await recordRecentDestination(selectedLocation.path, selectedLocation.meta);
+      const recentDestinationsChanged = await recordRecentDestination(
+        selectedLocation.path,
+        selectedLocation.meta,
+      );
       if (options.enableLastLocation) {
         await webExtensionApi.contextMenus.update(MENU_IDS.LAST_USED, {
           title: setAccesskey(selectedLocation.title, options.keyLastUsed),
           enabled: true,
         });
       }
-      if (options.recentDestinationCount > 0) await rebuildMenus();
+      if (options.recentDestinationCount > 0 && recentDestinationsChanged) await rebuildMenus();
     }
 
     if (

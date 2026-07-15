@@ -34,7 +34,6 @@ export const launchSourceSidecar = async (
       menuItemPath: sidecarDirectory,
       routingDisabled: true,
       suppressPrompt: true,
-      relatedHistoryId: state.scratch.historyEntryId || undefined,
       webhookEligible: false,
     },
   });

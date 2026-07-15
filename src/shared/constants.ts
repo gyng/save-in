@@ -1,6 +1,8 @@
 export const MEDIA_TYPES = ["image", "video", "audio"] as const;
 export type MediaType = (typeof MEDIA_TYPES)[number];
 
+export const MAX_RECENT_DESTINATIONS = 5;
+
 export const isMediaType = (value: unknown): value is MediaType =>
   typeof value === "string" && MEDIA_TYPES.some((mediaType) => mediaType === value);
 

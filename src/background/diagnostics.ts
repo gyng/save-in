@@ -14,14 +14,38 @@ import { Log } from "./log.ts";
 import { backgroundRuntime } from "./runtime.ts";
 
 const LIFECYCLE_LIMIT = 50;
+const ROUTINE_LIFECYCLE_LIMIT = 5;
+const ROUTINE_LIFECYCLE_KINDS = new Set<DiagnosticLifecycleKind>([
+  "background_ready",
+  "configuration_reloaded",
+]);
 const workerStartedAtMs = Date.now();
 const workerStartedAt = new Date(workerStartedAtMs).toISOString();
 let workerReadyAt: string | undefined;
 let workerStatus: DiagnosticSnapshot["workerStatus"] = "starting";
 let latestWrite: Promise<unknown> = Promise.resolve();
 
-export const normalizeDiagnosticLifecycle = (value: unknown): DiagnosticLifecycleEntry[] =>
-  Array.isArray(value) ? value.filter(isDiagnosticLifecycleEntry).slice(-LIFECYCLE_LIMIT) : [];
+export const normalizeDiagnosticLifecycle = (value: unknown): DiagnosticLifecycleEntry[] => {
+  if (!Array.isArray(value)) return [];
+  const entries = value.filter(isDiagnosticLifecycleEntry);
+  const routineCounts = new Map<DiagnosticLifecycleKind, number>();
+  const retained: DiagnosticLifecycleEntry[] = [];
+  for (
+    let index = entries.length - 1;
+    index >= 0 && retained.length < LIFECYCLE_LIMIT;
+    index -= 1
+  ) {
+    const entry = entries[index];
+    if (entry === undefined) continue;
+    if (ROUTINE_LIFECYCLE_KINDS.has(entry.kind)) {
+      const count = routineCounts.get(entry.kind) ?? 0;
+      if (count >= ROUTINE_LIFECYCLE_LIMIT) continue;
+      routineCounts.set(entry.kind, count + 1);
+    }
+    retained.push(entry);
+  }
+  return retained.reverse();
+};
 
 export const recordDiagnosticLifecycle = (
   kind: DiagnosticLifecycleKind,
@@ -37,7 +61,7 @@ export const recordDiagnosticLifecycle = (
     sessionWriteState,
     extensionSessionStorage,
     DIAGNOSTIC_LIFECYCLE_SESSION_KEY,
-    (stored) => [...normalizeDiagnosticLifecycle(stored), entry].slice(-LIFECYCLE_LIMIT),
+    (stored) => normalizeDiagnosticLifecycle([...normalizeDiagnosticLifecycle(stored), entry]),
   );
   return latestWrite;
 };

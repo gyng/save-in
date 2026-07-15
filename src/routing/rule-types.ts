@@ -22,7 +22,6 @@ export type RoutingDownloadInfo = LazyDownloadMetadata<RoutingContent> & {
   forcePrompt?: boolean | undefined;
   suppressPrompt?: boolean | undefined;
   routingDisabled?: boolean | undefined;
-  relatedHistoryId?: string | undefined;
   sourceUrl?: string | undefined;
   url?: string | undefined;
   suggestedFilename?: string | null | undefined;

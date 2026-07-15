@@ -224,6 +224,22 @@ describe("addDownloadListener", () => {
     },
   );
 
+  test("does not rebuild menus when saving to the unchanged most-recent destination", async () => {
+    options.recentDestinationCount = 3;
+    options.paths = "dir1";
+    Menus.addPaths(["dir1"], ["link"]);
+    const click = {
+      menuItemId: "save-in-0",
+      linkUrl: "https://example.com/f.png",
+      pageUrl: "https://example.com/",
+    };
+
+    await listener(click);
+    await listener(click);
+
+    expect(global.browser.contextMenus.removeAll).toHaveBeenCalledTimes(1);
+  });
+
   test("a private path click does not publish last-used state or menu UI", async () => {
     Menus.addPaths(["private/path"], ["link"]);
 

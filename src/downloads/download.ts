@@ -136,7 +136,6 @@ const historyEntry = (state: DownloadPipelineState, finalFullPath: string): Hist
       )
       .map(([key, value]) => [key, String(value)]),
   ),
-  relatedHistoryId: state.info.relatedHistoryId,
 });
 
 const ensureHistoryEntry = (state: DownloadPipelineState, finalFullPath: string) => {

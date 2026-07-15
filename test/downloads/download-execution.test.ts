@@ -249,7 +249,7 @@ describe("renameAndDownload: browserDownload", () => {
     const primary = makeState({ path: { finalize: () => "images" } });
     backgroundRuntime.lastDownloadState = primary;
     const sidecar = makeState({
-      info: { context: DOWNLOAD_TYPES.SIDECAR, relatedHistoryId: "primary-history" },
+      info: { context: DOWNLOAD_TYPES.SIDECAR },
     });
 
     await Download.renameAndDownload(sidecar);
