@@ -1693,6 +1693,18 @@
   "html_toRouteIntoAFolder": {
     "message": "pour le déplacer dans un dossier"
   },
+  "sourcePanelDockFloating": { "message": "Flottant" },
+  "sourcePanelNoMatchesFilter": {
+    "message": "Aucune source ne correspond à « $FILTER$ ».",
+    "placeholders": { "filter": { "content": "$1", "example": "poster" } }
+  },
+  "sourcePanelClearFilters": { "message": "Effacer les filtres" },
+  "sourcePanelSourceCount": {
+    "message": "Sources trouvées : $COUNT$",
+    "placeholders": { "count": { "content": "$1", "example": "12" } }
+  },
+  "sourcePanelEmbeddedSource": { "message": "Source intégrée à la page" },
+  "sourcePanelMoreActions": { "message": "Plus d’actions" },
   "html_webhooks": {
     "message": "Webhooks"
   },

@@ -1673,6 +1673,18 @@
   "html_toRouteIntoAFolder": {
     "message": "para movê-lo para uma pasta"
   },
+  "sourcePanelDockFloating": { "message": "Flutuante" },
+  "sourcePanelNoMatchesFilter": {
+    "message": "Nenhuma fonte corresponde a “$FILTER$”.",
+    "placeholders": { "filter": { "content": "$1", "example": "poster" } }
+  },
+  "sourcePanelClearFilters": { "message": "Limpar filtros" },
+  "sourcePanelSourceCount": {
+    "message": "Fontes encontradas: $COUNT$",
+    "placeholders": { "count": { "content": "$1", "example": "12" } }
+  },
+  "sourcePanelEmbeddedSource": { "message": "Fonte incorporada à página" },
+  "sourcePanelMoreActions": { "message": "Mais ações" },
   "html_webhooks": {
     "message": "Webhooks"
   },

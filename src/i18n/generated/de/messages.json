@@ -1673,6 +1673,18 @@
   "html_toRouteIntoAFolder": {
     "message": "enden, um die Datei in einen Ordner zu verschieben,"
   },
+  "sourcePanelDockFloating": { "message": "Schwebend" },
+  "sourcePanelNoMatchesFilter": {
+    "message": "Keine Quellen entsprechen „$FILTER$“.",
+    "placeholders": { "filter": { "content": "$1", "example": "poster" } }
+  },
+  "sourcePanelClearFilters": { "message": "Filter zurücksetzen" },
+  "sourcePanelSourceCount": {
+    "message": "Gefundene Quellen: $COUNT$",
+    "placeholders": { "count": { "content": "$1", "example": "12" } }
+  },
+  "sourcePanelEmbeddedSource": { "message": "Eingebettete Seitenquelle" },
+  "sourcePanelMoreActions": { "message": "Weitere Aktionen" },
   "html_webhooks": {
     "message": "Webhooks"
   },

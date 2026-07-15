@@ -1694,6 +1694,18 @@
   "html_toRouteIntoAFolder": {
     "message": "för att flytta filen till en mapp"
   },
+  "sourcePanelDockFloating": { "message": "Flytande" },
+  "sourcePanelNoMatchesFilter": {
+    "message": "Inga resurser matchar ”$FILTER$”.",
+    "placeholders": { "filter": { "content": "$1", "example": "poster" } }
+  },
+  "sourcePanelClearFilters": { "message": "Rensa filter" },
+  "sourcePanelSourceCount": {
+    "message": "Hittade resurser: $COUNT$",
+    "placeholders": { "count": { "content": "$1", "example": "12" } }
+  },
+  "sourcePanelEmbeddedSource": { "message": "Inbäddad sidresurs" },
+  "sourcePanelMoreActions": { "message": "Fler åtgärder" },
   "html_webhooks": {
     "message": "Webhooks"
   },

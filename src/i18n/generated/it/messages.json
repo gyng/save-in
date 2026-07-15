@@ -2073,6 +2073,18 @@
       }
     }
   },
+  "sourcePanelDockFloating": { "message": "Fluttuante" },
+  "sourcePanelNoMatchesFilter": {
+    "message": "Nessuna sorgente corrisponde a “$FILTER$”.",
+    "placeholders": { "filter": { "content": "$1", "example": "poster" } }
+  },
+  "sourcePanelClearFilters": { "message": "Cancella filtri" },
+  "sourcePanelSourceCount": {
+    "message": "Sorgenti trovate: $COUNT$",
+    "placeholders": { "count": { "content": "$1", "example": "12" } }
+  },
+  "sourcePanelEmbeddedSource": { "message": "Sorgente incorporata nella pagina" },
+  "sourcePanelMoreActions": { "message": "Altre azioni" },
   "html_webhooks": {
     "message": "Webhook"
   },

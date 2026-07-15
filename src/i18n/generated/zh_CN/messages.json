@@ -1570,6 +1570,18 @@
   "html_toRouteIntoAFolder": {
     "message": "即可移至文件夹，"
   },
+  "sourcePanelDockFloating": { "message": "浮动" },
+  "sourcePanelNoMatchesFilter": {
+    "message": "没有与“$FILTER$”匹配的来源。",
+    "placeholders": { "filter": { "content": "$1", "example": "poster" } }
+  },
+  "sourcePanelClearFilters": { "message": "清除筛选条件" },
+  "sourcePanelSourceCount": {
+    "message": "找到的来源：$COUNT$ 个",
+    "placeholders": { "count": { "content": "$1", "example": "12" } }
+  },
+  "sourcePanelEmbeddedSource": { "message": "页面内嵌来源" },
+  "sourcePanelMoreActions": { "message": "更多操作" },
   "html_webhooks": {
     "message": "Webhook"
   },

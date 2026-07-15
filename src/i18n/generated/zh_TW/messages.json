@@ -1570,6 +1570,18 @@
   "html_toRouteIntoAFolder": {
     "message": "即可移至資料夾，"
   },
+  "sourcePanelDockFloating": { "message": "浮動" },
+  "sourcePanelNoMatchesFilter": {
+    "message": "沒有符合「$FILTER$」的來源。",
+    "placeholders": { "filter": { "content": "$1", "example": "poster" } }
+  },
+  "sourcePanelClearFilters": { "message": "清除篩選條件" },
+  "sourcePanelSourceCount": {
+    "message": "找到的來源：$COUNT$ 個",
+    "placeholders": { "count": { "content": "$1", "example": "12" } }
+  },
+  "sourcePanelEmbeddedSource": { "message": "頁面內嵌來源" },
+  "sourcePanelMoreActions": { "message": "更多操作" },
   "html_webhooks": {
     "message": "Webhook"
   },

@@ -8,7 +8,7 @@ export type SourcePanelCopy = {
   close: string;
   closeLabel: string;
   dockPositionTemplate: string;
-  dockPositions: { right: string; bottom: string; left: string; top: string };
+  dockPositions: { right: string; bottom: string; left: string; top: string; floating: string };
   changeDockLabel: string;
   dockPanel: string;
   popOutPanel: string;
@@ -35,7 +35,11 @@ export type SourcePanelCopy = {
     link: string;
   };
   noMatches: string;
+  noMatchesFilterTemplate: string;
   noSources: string;
+  clearFilters: string;
+  sourceCountTemplate: string;
+  embeddedSource: string;
   sourceInstructionsTemplate: string;
   sizeUnknown: string;
   detectedAtTemplate: string;
@@ -45,6 +49,7 @@ export type SourcePanelCopy = {
   savePlaylist: string;
   copyYtDlp: string;
   copyYtDlpHelp: string;
+  moreActions: string;
   copied: string;
   copyFailed: string;
   rowInstructions: string;
@@ -64,14 +69,15 @@ export const createSourcePanelCopy = (localize: SourcePanelLocalize): SourcePane
   closeLabel: localize("sourcePanelCloseLabel") || "Close Page Sources",
   dockPositionTemplate:
     localize("sourcePanelDockPosition", [VALUE_SLOT]) ||
-    `Dock: ${VALUE_SLOT} — change to the next position`,
+    `Panel position: ${VALUE_SLOT}`,
   dockPositions: {
     right: localize("sourcePanelDockRight") || "Right",
     bottom: localize("sourcePanelDockBottom") || "Bottom",
     left: localize("sourcePanelDockLeft") || "Left",
     top: localize("sourcePanelDockTop") || "Top",
+    floating: localize("sourcePanelDockFloating") || "Floating",
   },
-  changeDockLabel: localize("sourcePanelChangeDockLabel") || "Change panel dock position",
+  changeDockLabel: localize("sourcePanelChangeDockLabel") || "Choose panel position",
   dockPanel: localize("sourcePanelDockPanel") || "Dock Page Sources",
   popOutPanel: localize("sourcePanelPopOutPanel") || "Pop out Page Sources",
   popOutHelp: localize("sourcePanelPopOutHelp") || "Pop out into a draggable panel",
@@ -98,8 +104,15 @@ export const createSourcePanelCopy = (localize: SourcePanelLocalize): SourcePane
     link: localize("html_link") || "Link",
   },
   noMatches: localize("sourcePanelNoMatches") || "No sources match the current filters.",
+  noMatchesFilterTemplate:
+    localize("sourcePanelNoMatchesFilter", [VALUE_SLOT]) ||
+    `No sources match “${VALUE_SLOT}”.`,
   noSources:
     localize("sourcePanelNoSources") || "No page media or streaming-video playlists detected yet.",
+  clearFilters: localize("sourcePanelClearFilters") || "Clear filters",
+  sourceCountTemplate:
+    localize("sourcePanelSourceCount", [VALUE_SLOT]) || `Sources found: ${VALUE_SLOT}`,
+  embeddedSource: localize("sourcePanelEmbeddedSource") || "Embedded page source",
   sourceInstructionsTemplate:
     localize("sourcePanelSourceInstructions", [URL_SLOT]) ||
     `${URL_SLOT}. Right-click for Save In; Alt+click to save immediately.`,
@@ -112,6 +125,7 @@ export const createSourcePanelCopy = (localize: SourcePanelLocalize): SourcePane
   savePlaylist: localize("sourcePanelSavePlaylist") || "Save playlist",
   copyYtDlp: localize("sourcePanelCopyYtDlp") || "Copy URL for yt-dlp",
   copyYtDlpHelp: localize("sourcePanelCopyYtDlpHelp") || "Copy the video URL to use with yt-dlp",
+  moreActions: localize("sourcePanelMoreActions") || "More actions",
   copied: localize("sourcePanelCopied") || "Copied",
   copyFailed: localize("sourcePanelCopyFailed") || "Copy failed",
   rowInstructions:

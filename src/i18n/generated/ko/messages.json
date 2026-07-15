@@ -1570,6 +1570,18 @@
   "html_toRouteIntoAFolder": {
     "message": "를 붙이면 폴더로 이동합니다."
   },
+  "sourcePanelDockFloating": { "message": "플로팅" },
+  "sourcePanelNoMatchesFilter": {
+    "message": "검색어 “$FILTER$”와 일치하는 소스가 없습니다.",
+    "placeholders": { "filter": { "content": "$1", "example": "poster" } }
+  },
+  "sourcePanelClearFilters": { "message": "필터 지우기" },
+  "sourcePanelSourceCount": {
+    "message": "찾은 소스: $COUNT$개",
+    "placeholders": { "count": { "content": "$1", "example": "12" } }
+  },
+  "sourcePanelEmbeddedSource": { "message": "페이지에 삽입된 소스" },
+  "sourcePanelMoreActions": { "message": "추가 작업" },
   "html_webhooks": {
     "message": "웹후크"
   },

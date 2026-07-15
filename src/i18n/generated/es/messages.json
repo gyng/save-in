@@ -1669,6 +1669,18 @@
   "html_toRouteIntoAFolder": {
     "message": "para moverla a una carpeta"
   },
+  "sourcePanelDockFloating": { "message": "Flotante" },
+  "sourcePanelNoMatchesFilter": {
+    "message": "Ningún recurso coincide con «$FILTER$».",
+    "placeholders": { "filter": { "content": "$1", "example": "poster" } }
+  },
+  "sourcePanelClearFilters": { "message": "Borrar filtros" },
+  "sourcePanelSourceCount": {
+    "message": "Recursos encontrados: $COUNT$",
+    "placeholders": { "count": { "content": "$1", "example": "12" } }
+  },
+  "sourcePanelEmbeddedSource": { "message": "Recurso incrustado en la página" },
+  "sourcePanelMoreActions": { "message": "Más acciones" },
   "html_webhooks": {
     "message": "Webhooks"
   },

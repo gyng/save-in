@@ -1570,6 +1570,18 @@
   "html_toRouteIntoAFolder": {
     "message": "を付けるとフォルダーへ移動できます。"
   },
+  "sourcePanelDockFloating": { "message": "フローティング" },
+  "sourcePanelNoMatchesFilter": {
+    "message": "「$FILTER$」に一致するソースはありません。",
+    "placeholders": { "filter": { "content": "$1", "example": "poster" } }
+  },
+  "sourcePanelClearFilters": { "message": "フィルターをクリア" },
+  "sourcePanelSourceCount": {
+    "message": "見つかったソース：$COUNT$ 件",
+    "placeholders": { "count": { "content": "$1", "example": "12" } }
+  },
+  "sourcePanelEmbeddedSource": { "message": "ページに埋め込まれたソース" },
+  "sourcePanelMoreActions": { "message": "その他の操作" },
   "html_webhooks": {
     "message": "Webhook"
   },

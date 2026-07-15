@@ -2656,6 +2656,10 @@
     "message": "Top",
     "description": "Top Page Sources dock position. Used in src/shared/source-panel-copy.ts."
   },
+  "sourcePanelDockFloating": {
+    "message": "Floating",
+    "description": "Floating Page Sources panel position. Used in src/shared/source-panel-copy.ts."
+  },
   "sourcePanelChangeDockLabel": {
     "message": "Change panel dock position",
     "description": "Accessible label for the Page Sources dock-position button. Used in src/shared/source-panel-copy.ts."
@@ -2724,9 +2728,27 @@
     "message": "No sources match the current filters.",
     "description": "Empty state for filtered Page Sources results. Used in src/shared/source-panel-copy.ts."
   },
+  "sourcePanelNoMatchesFilter": {
+    "message": "No sources match “$FILTER$”.",
+    "description": "Empty state for a text-filtered Page Sources result. Used in src/shared/source-panel-copy.ts.",
+    "placeholders": { "filter": { "content": "$1", "example": "poster" } }
+  },
   "sourcePanelNoSources": {
     "message": "No page media or streaming-video playlists detected yet.",
     "description": "Empty state before Page Sources detects anything. Used in src/shared/source-panel-copy.ts."
+  },
+  "sourcePanelClearFilters": {
+    "message": "Clear filters",
+    "description": "Action that clears Page Sources text and kind filters. Used in src/shared/source-panel-copy.ts."
+  },
+  "sourcePanelSourceCount": {
+    "message": "Sources found: $COUNT$",
+    "description": "Accessible Page Sources result count. Used in src/shared/source-panel-copy.ts.",
+    "placeholders": { "count": { "content": "$1", "example": "12" } }
+  },
+  "sourcePanelEmbeddedSource": {
+    "message": "Embedded page source",
+    "description": "Friendly display name for data and blob URLs in Page Sources. Used in src/shared/source-panel-copy.ts."
   },
   "sourcePanelSourceInstructions": {
     "message": "$URL$. Right-click for Save In; Alt+click to save immediately.",
@@ -2765,6 +2787,10 @@
   "sourcePanelCopyYtDlpHelp": {
     "message": "Copy the video URL to use with yt-dlp",
     "description": "Tooltip for the Page Sources yt-dlp URL action. Used in src/shared/source-panel-copy.ts."
+  },
+  "sourcePanelMoreActions": {
+    "message": "More actions",
+    "description": "Accessible label for secondary actions on a Page Sources result. Used in src/shared/source-panel-copy.ts."
   },
   "sourcePanelCopied": {
     "message": "Copied",
