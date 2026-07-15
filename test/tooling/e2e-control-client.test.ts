@@ -101,6 +101,23 @@ describe("structured E2E control client", () => {
     ]);
   });
 
+  test("turns a notification wait timeout into a caller-visible failure", async () => {
+    const client = createE2EControlClient({
+      callFunction: async () =>
+        JSON.stringify({
+          ok: true,
+          value: {
+            type: "SAVE_IN_E2E_NOTIFICATION_CALLS",
+            body: { status: "ERROR", message: "Timed out waiting for notification 7" },
+          },
+        }),
+    });
+
+    await expect(client.background.waitForNotification("7")).rejects.toThrow(
+      "Timed out waiting for notification 7",
+    );
+  });
+
   test("restores a missing control page before retrying discovery", async () => {
     const missing = new Error('No target matching "options.html"');
     Object.assign(missing, { code: "E2E_CONTROL_TARGET_MISSING" });
@@ -221,6 +238,114 @@ describe("structured E2E control client", () => {
         JSON.stringify({ operation: "runtime.send", message: { type: "UNKNOWN_COMMAND" } }),
       ),
     ).rejects.toThrow("Invalid E2E control request");
+    await expect(
+      dispatchControlRequest(
+        JSON.stringify({
+          operation: "downloads.wait",
+          filenameIncludes: "x",
+          minimumComplete: 0,
+        }),
+      ),
+    ).rejects.toThrow("Invalid E2E control request");
+    await expect(
+      dispatchControlRequest(
+        JSON.stringify({
+          operation: "downloads.wait",
+          filenameIncludes: "x",
+          url: "https://example.test/x",
+        }),
+      ),
+    ).rejects.toThrow("Invalid E2E control request");
+    await expect(
+      dispatchControlRequest(JSON.stringify({ operation: "downloads.wait", timeoutMs: 1000 })),
+    ).rejects.toThrow("Invalid E2E control request");
+    await expect(
+      dispatchControlRequest(
+        JSON.stringify({ operation: "logs.wait", messages: [], timeoutMs: 1000 }),
+      ),
+    ).rejects.toThrow("Invalid E2E control request");
+    await expect(
+      dispatchControlRequest(JSON.stringify({ operation: "tabs.wait", id: 7, timeoutMs: -1 })),
+    ).rejects.toThrow("Invalid E2E control request");
+    await expect(
+      dispatchControlRequest(
+        JSON.stringify({ operation: "storage.wait", area: "local", key: "x", timeoutMs: 0 }),
+      ),
+    ).rejects.toThrow("Invalid E2E control request");
+    await expect(
+      dispatchControlRequest(
+        JSON.stringify({ operation: "history.wait", status: "complete", minimum: -1 }),
+      ),
+    ).rejects.toThrow("Invalid E2E control request");
+    await expect(
+      dispatchControlRequest(
+        JSON.stringify({
+          operation: "runtime.send",
+          message: {
+            type: "SAVE_IN_E2E_NOTIFICATION_CALLS",
+            body: { action: "wait", id: "7", timeoutMs: 0 },
+          },
+        }),
+      ),
+    ).rejects.toThrow("Invalid E2E control request");
+  });
+
+  test("resets the background notification observer during case cleanup", async () => {
+    const sendMessage = vi.fn(async (message: { type: string }) =>
+      message.type === "SAVE_IN_E2E_NOTIFICATION_CALLS"
+        ? {
+            type: "SAVE_IN_E2E_NOTIFICATION_CALLS",
+            body: { status: "OK", calls: [] },
+          }
+        : { type: "OK" },
+    );
+    const host = {
+      runtime: {
+        getURL: (path: string) => `chrome-extension://id/${path}`,
+        sendMessage,
+      },
+      tabs: {
+        getCurrent: vi.fn(async () => ({ id: 1 })),
+        query: vi.fn(async () => [{ id: 1, url: "chrome-extension://id/options.html" }]),
+        remove: vi.fn(async () => undefined),
+      },
+      downloads: {
+        search: vi.fn(async () => []),
+        cancel: vi.fn(async () => undefined),
+        erase: vi.fn(async () => []),
+      },
+      notifications: {
+        getAll: vi.fn(async () => ({})),
+        clear: vi.fn(async () => true),
+      },
+      declarativeNetRequest: {
+        getSessionRules: vi.fn(async () => []),
+        updateSessionRules: vi.fn(async () => undefined),
+      },
+      storage: {
+        local: {
+          clear: vi.fn(async () => undefined),
+          set: vi.fn(async () => undefined),
+        },
+        session: { clear: vi.fn(async () => undefined) },
+      },
+    };
+    vi.stubGlobal("chrome", host);
+    vi.stubGlobal("browser", host);
+
+    try {
+      const response = await dispatchControlRequest(
+        JSON.stringify({ operation: "harness.resetCase" }),
+      );
+
+      expect(JSON.parse(response)).toEqual({ ok: true, value: true });
+      expect(sendMessage).toHaveBeenCalledWith({
+        type: "SAVE_IN_E2E_NOTIFICATION_CALLS",
+        body: { action: "reset" },
+      });
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 
   test("decodes raw structured evaluation results without leaking any", async () => {

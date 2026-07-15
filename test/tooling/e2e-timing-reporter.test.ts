@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { TestModule } from "vitest/node";
@@ -18,6 +18,10 @@ test("writes compact per-browser timing telemetry", () => {
   const artifactDirectory = mkdtempSync(join(tmpdir(), "save-in-e2e-timings-"));
   process.env.E2E_ARTIFACT_DIR = artifactDirectory;
   process.env.E2E_RUN_ID = "run-123";
+  writeFileSync(
+    join(artifactDirectory, "chrome-environment.json"),
+    JSON.stringify({ browser: "chrome", version: "Google Chrome 123.0.0.0" }),
+  );
   const testModule = {
     moduleId: "/repo/test/e2e/chrome.e2e.mjs",
     diagnostic: () => ({
@@ -64,9 +68,10 @@ test("writes compact per-browser timing telemetry", () => {
       readFileSync(join(artifactDirectory, "timings-chrome.json"), "utf8"),
     ) as Record<string, unknown>;
     expect(report).toMatchObject({
-      schemaVersion: 1,
+      schemaVersion: 3,
       runId: "run-123",
       browser: "chrome",
+      browserVersion: "Google Chrome 123.0.0.0",
       success: true,
       unhandledErrors: 0,
       phases: {
@@ -78,13 +83,13 @@ test("writes compact per-browser timing telemetry", () => {
       },
       tests: [
         {
-          moduleId: "/repo/test/e2e/chrome.e2e.mjs",
+          moduleId: "test/e2e/chrome.e2e.mjs",
           name: "Chrome E2E saves a download",
           state: "passed",
           durationMs: 123,
         },
         {
-          moduleId: "/repo/test/e2e/cases/chrome.e2e-extra.mjs",
+          moduleId: "test/e2e/cases/chrome.e2e-extra.mjs",
           name: "Chrome E2E routes a download",
           state: "passed",
           durationMs: 45,

@@ -114,14 +114,6 @@ export const decodeString = (value) => {
 };
 
 /** @param {unknown} value */
-export const decodeStringOrNumber = (value) => {
-  if (typeof value !== "string" && typeof value !== "number") {
-    throw new Error("Expected an E2E string or number");
-  }
-  return value;
-};
-
-/** @param {unknown} value */
 export const decodeRecord = (value) => {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
     throw new Error("Expected an E2E record");
@@ -235,116 +227,6 @@ export const createLazyPageEvaluator = ({ evaluate, prepare }) => {
     },
   };
 };
-
-/**
- * Builds a browser-side wait that subscribes before its initial search, so a
- * download completing during setup cannot be missed.
- *
- * @param {{filenameRegex?: string, filenameIncludes?: string, url?: string, timeoutMs?: number}} options
- */
-export const waitForDownloadExpression = ({
-  filenameRegex,
-  filenameIncludes,
-  url,
-  timeoutMs = 8000,
-}) => {
-  const matcher = filenameRegex
-    ? `new RegExp(${JSON.stringify(filenameRegex)}).test(entry.filename)`
-    : filenameIncludes
-      ? `entry.filename.includes(${JSON.stringify(filenameIncludes)})`
-      : `entry.url === ${JSON.stringify(url)}`;
-  const description = filenameRegex ?? filenameIncludes ?? url ?? "download";
-  return `new Promise((resolve, reject) => {
-    const timeout = AbortSignal.timeout(${timeoutMs});
-    const description = ${JSON.stringify(description)};
-    let settled = false;
-    let lastRows = [];
-    const finish = (callback) => {
-      if (settled) return;
-      settled = true;
-      browser.downloads.onChanged.removeListener(onChanged);
-      timeout.removeEventListener("abort", onTimeout);
-      callback();
-    };
-    const fail = (error) => finish(() => reject(error));
-    const check = async () => {
-      const downloads = await browser.downloads.search({});
-      const rows = downloads.filter((entry) => ${matcher});
-      lastRows = rows.map(({ id, state, filename, url }) => ({ id, state, filename, url }));
-      if (lastRows.some((entry) => entry.state === "complete")) {
-        finish(() => resolve(JSON.stringify(lastRows)));
-      }
-    };
-    const onChanged = () => void check().catch(fail);
-    const onTimeout = () => fail(new Error(
-      "Timed out waiting for " + description + ": " + JSON.stringify(lastRows)
-    ));
-    browser.downloads.onChanged.addListener(onChanged);
-    timeout.addEventListener("abort", onTimeout, { once: true });
-    void check().catch(fail);
-  })`;
-};
-
-/**
- * @param {"history" | "logs"} collection
- * @param {string} predicate
- * @param {number} [timeoutMs]
- */
-export const waitForApiEntriesExpression = (collection, predicate, timeoutMs = 8000) =>
-  `new Promise((resolve, reject) => {
-    const timeout = AbortSignal.timeout(${timeoutMs});
-    let settled = false;
-    let lastEntries = [];
-    const finish = (callback) => {
-      if (settled) return;
-      settled = true;
-      browser.storage.onChanged.removeListener(onChanged);
-      timeout.removeEventListener("abort", onTimeout);
-      callback();
-    };
-    const fail = (error) => finish(() => reject(error));
-    const check = async () => {
-      const entries = await api.${collection}();
-      lastEntries = entries.filter(${predicate});
-      if (lastEntries.length) finish(() => resolve(JSON.stringify(lastEntries)));
-    };
-    const onChanged = () => void check().catch(fail);
-    const onTimeout = () => fail(new Error(
-      "Timed out waiting for ${collection}: " + JSON.stringify(lastEntries)
-    ));
-    browser.storage.onChanged.addListener(onChanged);
-    timeout.addEventListener("abort", onTimeout, { once: true });
-    void check().catch(fail);
-  })`;
-
-/** @param {string} urlIncludes @param {number} [timeoutMs] */
-export const waitForTabExpression = (urlIncludes, timeoutMs = 8000) =>
-  `new Promise((resolve, reject) => {
-    const target = ${JSON.stringify(urlIncludes)};
-    const timeout = AbortSignal.timeout(${timeoutMs});
-    let settled = false;
-    const finish = (callback) => {
-      if (settled) return;
-      settled = true;
-      browser.tabs.onUpdated.removeListener(onUpdated);
-      timeout.removeEventListener("abort", onTimeout);
-      callback();
-    };
-    const fail = (error) => finish(() => reject(error));
-    const check = async () => {
-      const tab = (await browser.tabs.query({})).find((candidate) =>
-        candidate.url?.includes(target) && candidate.status === "complete"
-      );
-      if (tab) {
-        finish(() => resolve(JSON.stringify({ id: tab.id, url: tab.url, status: tab.status })));
-      }
-    };
-    const onUpdated = () => void check().catch(fail);
-    const onTimeout = () => fail(new Error("Timed out waiting for tab: " + target));
-    browser.tabs.onUpdated.addListener(onUpdated);
-    timeout.addEventListener("abort", onTimeout, { once: true });
-    void check().catch(fail);
-  })`;
 
 /**
  * @param {string} source

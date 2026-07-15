@@ -1,5 +1,24 @@
 import fs from "node:fs";
 import path from "node:path";
+import timingUtils from "./e2e-timing-utils.js";
+
+const { normalizeTimingModuleId, timingBrowserForModule } = timingUtils;
+
+/** @param {string} artifactDirectory @param {string} browser */
+const readBrowserVersion = (artifactDirectory, browser) => {
+  const environmentFile = path.resolve(artifactDirectory, `${browser}-environment.json`);
+  try {
+    const environment = JSON.parse(fs.readFileSync(environmentFile, "utf8"));
+    return environment?.browser === browser && typeof environment.version === "string"
+      ? environment.version
+      : undefined;
+  } catch (error) {
+    if (error && typeof error === "object" && "code" in error && error.code === "ENOENT") {
+      return undefined;
+    }
+    throw error;
+  }
+};
 
 export default class E2ETimingReporter {
   /**
@@ -14,22 +33,18 @@ export default class E2ETimingReporter {
     /** @type {Map<string, import("vitest/node").TestModule[]>} */
     const grouped = new Map();
     for (const testModule of testModules) {
-      const moduleId = testModule.moduleId;
-      const browser = moduleId.includes("firefox.e2e")
-        ? "firefox"
-        : moduleId.includes("chrome.e2e")
-          ? "chrome"
-          : "unknown";
+      const browser = timingBrowserForModule(testModule.moduleId);
       const modules = grouped.get(browser) ?? [];
       modules.push(testModule);
       grouped.set(browser, modules);
     }
 
     for (const [browser, modules] of grouped) {
+      const browserVersion = readBrowserVersion(artifactDirectory, browser);
       const diagnostics = modules.map((testModule) => testModule.diagnostic());
       const tests = modules.flatMap((testModule) =>
         [...testModule.children.allTests()].map((testCase) => ({
-          moduleId: testModule.moduleId,
+          moduleId: normalizeTimingModuleId(testModule.moduleId),
           name: testCase.fullName,
           state: testCase.result().state,
           durationMs: testCase.diagnostic()?.duration ?? 0,
@@ -41,10 +56,11 @@ export default class E2ETimingReporter {
         output,
         JSON.stringify(
           {
-            schemaVersion: 1,
+            schemaVersion: 3,
             runId: process.env.E2E_RUN_ID,
             capturedAt: new Date().toISOString(),
             browser,
+            ...(browserVersion ? { browserVersion } : {}),
             success: reason === "passed",
             unhandledErrors: unhandledErrors.length,
             phases: {

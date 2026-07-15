@@ -16,6 +16,10 @@ export const createProtocolCodecs = () => {
   const hasOptionalNumber = (value, key) =>
     value[key] === undefined || typeof value[key] === "number";
   /** @param {Record<string, unknown>} value @param {string} key */
+  const hasOptionalPositiveInteger = (value, key) =>
+    value[key] === undefined ||
+    (typeof value[key] === "number" && Number.isSafeInteger(value[key]) && value[key] > 0);
+  /** @param {Record<string, unknown>} value @param {string} key */
   const hasOptionalBoolean = (value, key) =>
     value[key] === undefined || typeof value[key] === "boolean";
 
@@ -90,7 +94,8 @@ export const createProtocolCodecs = () => {
             value.body.action === "reset" ||
             (value.body.action === "wait" &&
               typeof value.body.id === "string" &&
-              hasOptionalNumber(value.body, "timeoutMs")))
+              value.body.id.length > 0 &&
+              hasOptionalPositiveInteger(value.body, "timeoutMs")))
         );
       case "APPLY_CONFIG":
         return isRecord(value.body) && isRecord(value.body.config);
@@ -236,8 +241,8 @@ export const createProtocolCodecs = () => {
         return (
           value.type === message.type &&
           isRecord(value.body) &&
-          value.body.status === "OK" &&
-          isArrayOf(value.body.calls, isNotificationCall)
+          isCommandStatus(value.body) &&
+          (value.body.status !== "OK" || isArrayOf(value.body.calls, isNotificationCall))
         );
       case "APPLY_CONFIG":
         return value.type === "APPLY_CONFIG_RESULT" && isApplyConfigBody(value.body);

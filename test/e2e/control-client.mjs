@@ -29,8 +29,13 @@ export const dispatchControlRequest = async (
   const hasOptionalString = (value, key) =>
     value[key] === undefined || typeof value[key] === "string";
   /** @param {Record<string, unknown>} value @param {string} key */
-  const hasOptionalNumber = (value, key) =>
-    value[key] === undefined || typeof value[key] === "number";
+  const hasOptionalPositiveInteger = (value, key) =>
+    value[key] === undefined ||
+    (typeof value[key] === "number" && Number.isSafeInteger(value[key]) && value[key] > 0);
+  /** @param {Record<string, unknown>} value @param {string} key */
+  const hasOptionalNonnegativeInteger = (value, key) =>
+    value[key] === undefined ||
+    (typeof value[key] === "number" && Number.isSafeInteger(value[key]) && value[key] >= 0);
   /** @param {unknown} value @returns {value is ControlRequest} */
   const isControlRequest = (value) => {
     if (!isRecord(value) || typeof value.operation !== "string") return false;
@@ -45,7 +50,7 @@ export const dispatchControlRequest = async (
           hasOptionalString(value, "comment")
         );
       case "options.waitReady":
-        return hasOptionalNumber(value, "timeoutMs");
+        return hasOptionalPositiveInteger(value, "timeoutMs");
       case "storage.get":
         return (
           isArea &&
@@ -58,7 +63,9 @@ export const dispatchControlRequest = async (
       case "storage.set":
         return isArea && isRecord(value.values);
       case "storage.wait":
-        return isArea && typeof value.key === "string" && hasOptionalNumber(value, "timeoutMs");
+        return (
+          isArea && typeof value.key === "string" && hasOptionalPositiveInteger(value, "timeoutMs")
+        );
       case "storage.remove":
         return isArea && (typeof value.keys === "string" || isStringArray(value.keys));
       case "storage.clear":
@@ -69,11 +76,14 @@ export const dispatchControlRequest = async (
         return value.query === undefined || isRecord(value.query);
       case "downloads.wait":
         return (
+          [value.filenameRegex, value.filenameIncludes, value.url].filter(
+            (selector) => typeof selector === "string",
+          ).length === 1 &&
           hasOptionalString(value, "filenameRegex") &&
           hasOptionalString(value, "filenameIncludes") &&
           hasOptionalString(value, "url") &&
-          hasOptionalNumber(value, "minimumComplete") &&
-          hasOptionalNumber(value, "timeoutMs")
+          hasOptionalPositiveInteger(value, "minimumComplete") &&
+          hasOptionalPositiveInteger(value, "timeoutMs")
         );
       case "downloads.cancel":
       case "tabs.reload":
@@ -86,7 +96,7 @@ export const dispatchControlRequest = async (
         return (
           (typeof value.id === "number" || typeof value.urlIncludes === "string") &&
           hasOptionalString(value, "status") &&
-          hasOptionalNumber(value, "timeoutMs")
+          hasOptionalPositiveInteger(value, "timeoutMs")
         );
       case "tabs.remove":
         return (
@@ -106,16 +116,17 @@ export const dispatchControlRequest = async (
       case "logs.wait":
         return (
           isStringArray(value.messages) &&
-          hasOptionalNumber(value, "baseline") &&
-          hasOptionalNumber(value, "timeoutMs")
+          value.messages.length > 0 &&
+          hasOptionalNonnegativeInteger(value, "baseline") &&
+          hasOptionalPositiveInteger(value, "timeoutMs")
         );
       case "history.wait":
         return (
           ["id", "url", "status", "finalFullPath", "context"].every((key) =>
             hasOptionalString(value, key),
           ) &&
-          hasOptionalNumber(value, "minimum") &&
-          hasOptionalNumber(value, "timeoutMs")
+          hasOptionalPositiveInteger(value, "minimum") &&
+          hasOptionalPositiveInteger(value, "timeoutMs")
         );
       case "harness.resetCase":
         return value.snapshot === undefined || isRecord(value.snapshot);
@@ -457,11 +468,17 @@ export const dispatchControlRequest = async (
         await browserApi.downloads.erase({});
       }),
       attempt("notifications", async () => {
-        if (!browserApi.notifications?.getAll) return;
-        const notifications = await browserApi.notifications.getAll();
-        await Promise.all(
-          Object.keys(notifications).map((id) => browserApi.notifications.clear(id)),
-        );
+        if (browserApi.notifications?.getAll) {
+          const notifications = await browserApi.notifications.getAll();
+          await Promise.all(
+            Object.keys(notifications).map((id) => browserApi.notifications.clear(id)),
+          );
+        }
+        const response = await send({
+          type: "SAVE_IN_E2E_NOTIFICATION_CALLS",
+          body: { action: "reset" },
+        });
+        if (response.body.status === "ERROR") throw new Error(response.body.message);
       }),
       attempt("session rules", async () => {
         if (!browserApi.declarativeNetRequest?.getSessionRules) return;
@@ -886,6 +903,7 @@ export const createE2EControlClient = ({ callFunction }) => {
           operation: "runtime.send",
           message: { type: "SAVE_IN_E2E_NOTIFICATION_CALLS", body: { action } },
         });
+        if (response.body.status === "ERROR") throw new Error(response.body.message);
         return response.body.calls;
       },
       /** @param {string} id @param {number} [timeoutMs] */
@@ -904,7 +922,10 @@ export const createE2EControlClient = ({ callFunction }) => {
           },
           (timeoutMs ?? 8000) + 2000,
         );
-        return response.body.calls.find((notification) => notification.id === id);
+        if (response.body.status === "ERROR") throw new Error(response.body.message);
+        const notification = response.body.calls.find((candidate) => candidate.id === id);
+        if (!notification) throw new Error(`Notification wait completed without ${id}`);
+        return notification;
       },
       /** @param {Record<string, unknown>} config */
       applyConfig: async (config) =>

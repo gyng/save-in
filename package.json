@@ -57,6 +57,7 @@
     "@types/chrome": "^0.2.2",
     "@types/firefox-webext-browser": "^143.0.0",
     "@vitest/coverage-v8": "4.1.9",
+    "acorn": "8.17.0",
     "fast-check": "^4.8.0",
     "jsdom": "^29.1.1",
     "jszip": "3.10.1",

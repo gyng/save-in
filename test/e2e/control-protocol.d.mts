@@ -150,7 +150,7 @@ export type TabMenuClickResponse = {
 };
 export type NotificationResponse = {
   type: "SAVE_IN_E2E_NOTIFICATION_CALLS";
-  body: { status: "OK"; calls: NotificationCall[] };
+  body: { status: "OK"; calls: NotificationCall[] } | { status: "ERROR"; message: string };
 };
 
 export type ApplyConfigResponse = {

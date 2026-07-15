@@ -11,6 +11,7 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
+  actions: read
   contents: read
 
 jobs:
@@ -86,6 +87,11 @@ jobs:
           firefox --version
       - name: Chrome and Firefox e2e
         run: HEADLESS=1 npm run e2e
+      - name: Compare e2e timing with successful master
+        if: github.event_name == 'pull_request'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/compare-e2e-ci-baseline.js --current dist/e2e-artifacts
       - name: Preserve browser timing telemetry
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -123,10 +129,14 @@ jobs:
           curl --fail --location --retry 3 \
             https://storage.googleapis.com/chrome-for-testing-public/123.0.6312.122/linux64/chrome-linux64.zip \
             --output /tmp/save-in-minimum-browsers/chrome.zip
+          echo "97d7925c795786f235f86973d1f60a70ad9613e96b22fee084720b3c6ba0701b  /tmp/save-in-minimum-browsers/chrome.zip" \
+            | sha256sum --check --strict
           unzip -q /tmp/save-in-minimum-browsers/chrome.zip -d /tmp/save-in-minimum-browsers
           curl --fail --location --retry 3 \
             https://archive.mozilla.org/pub/firefox/releases/121.0.1/linux-x86_64/en-US/firefox-121.0.1.tar.bz2 \
             --output /tmp/save-in-minimum-browsers/firefox.tar.bz2
+          echo "0fb696e03ac444d6c973cf3ff9f9c123b369e2091c80b50753ff1b447f1a96c1  /tmp/save-in-minimum-browsers/firefox.tar.bz2" \
+            | sha256sum --check --strict
           tar -xjf /tmp/save-in-minimum-browsers/firefox.tar.bz2 \
             -C /tmp/save-in-minimum-browsers
       - name: Record minimum browser versions
@@ -139,6 +149,14 @@ jobs:
           FIREFOX_PATH: /tmp/save-in-minimum-browsers/firefox/firefox
           HEADLESS: "1"
         run: npm run e2e
+      - name: Compare minimum-browser timing with successful master
+        if: github.event_name == 'pull_request'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: >-
+          node scripts/compare-e2e-ci-baseline.js
+          --current dist/e2e-artifacts
+          --artifact-prefix e2e-minimum-timings-
       - name: Preserve minimum-browser timing telemetry
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

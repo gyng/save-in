@@ -151,4 +151,57 @@ test("observes notification calls while preserving the native API call", async (
       calls: [{ id: "7", title: "Saved", message: "notification-e2e.txt" }],
     },
   });
+
+  handleBackgroundE2ENotificationCommand({
+    type: BACKGROUND_E2E_NOTIFICATION_COMMAND,
+    body: { action: "reset" },
+  });
+  create.mockRejectedValueOnce(new Error("native notification failed"));
+  await expect(
+    global.browser.notifications.create("8", {
+      type: "basic",
+      iconUrl: "icons/save.png",
+      title: "Not saved",
+      message: "failed.txt",
+    }),
+  ).rejects.toThrow("native notification failed");
+  expect(
+    handleBackgroundE2ENotificationCommand({
+      type: BACKGROUND_E2E_NOTIFICATION_COMMAND,
+      body: { action: "get" },
+    }),
+  ).toMatchObject({ body: { status: "OK", calls: [] } });
+
+  const resetWait = handleBackgroundE2ENotificationCommand({
+    type: BACKGROUND_E2E_NOTIFICATION_COMMAND,
+    body: { action: "wait", id: "9", timeoutMs: 1000 },
+  });
+  handleBackgroundE2ENotificationCommand({
+    type: BACKGROUND_E2E_NOTIFICATION_COMMAND,
+    body: { action: "reset" },
+  });
+  await expect(resetWait).resolves.toMatchObject({
+    body: { status: "ERROR", message: "Notification wait was reset" },
+  });
+
+  await expect(
+    handleBackgroundE2ENotificationCommand({
+      type: BACKGROUND_E2E_NOTIFICATION_COMMAND,
+      body: { action: "wait", id: "10", timeoutMs: 1 },
+    }),
+  ).resolves.toMatchObject({
+    body: { status: "ERROR", message: "Timed out waiting for notification 10" },
+  });
+  expect(
+    handleBackgroundE2ENotificationCommand({
+      type: BACKGROUND_E2E_NOTIFICATION_COMMAND,
+      body: { action: "wait", id: "11", timeoutMs: 0 },
+    }),
+  ).toBeNull();
+  expect(
+    handleBackgroundE2ENotificationCommand({
+      type: BACKGROUND_E2E_NOTIFICATION_COMMAND,
+      body: { action: "wait", id: "", timeoutMs: 1000 },
+    }),
+  ).toBeNull();
 });

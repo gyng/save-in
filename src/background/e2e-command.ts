@@ -68,7 +68,9 @@ export type BackgroundE2EContextMenuResponse = {
 
 export type BackgroundE2ENotificationResponse = {
   type: typeof BACKGROUND_E2E_NOTIFICATION_COMMAND;
-  body: { status: "OK"; calls: BackgroundE2ENotificationCall[] };
+  body:
+    | { status: "OK"; calls: BackgroundE2ENotificationCall[] }
+    | { status: "ERROR"; message: string };
 };
 
 export type BackgroundE2ETabMenuResponse = {
@@ -92,6 +94,10 @@ const hasOptionalString = (value: Record<string, unknown>, key: string): boolean
 
 const hasOptionalNumber = (value: Record<string, unknown>, key: string): boolean =>
   !(key in value) || typeof value[key] === "number";
+
+const hasOptionalPositiveInteger = (value: Record<string, unknown>, key: string): boolean =>
+  !(key in value) ||
+  (typeof value[key] === "number" && Number.isSafeInteger(value[key]) && value[key] > 0);
 
 const hasOptionalBoolean = (value: Record<string, unknown>, key: string): boolean =>
   !(key in value) || typeof value[key] === "boolean";
@@ -149,7 +155,8 @@ const isBackgroundE2ENotificationCommand = (
     value.body.action === "reset" ||
     (value.body.action === "wait" &&
       typeof value.body.id === "string" &&
-      hasOptionalNumber(value.body, "timeoutMs")));
+      value.body.id.length > 0 &&
+      hasOptionalPositiveInteger(value.body, "timeoutMs")));
 
 const isBackgroundE2ETabMenuCommand = (value: unknown): value is BackgroundE2ETabMenuRequest =>
   isRecord(value) &&
@@ -227,6 +234,14 @@ export const handleBackgroundE2ENotificationCommand = (
   const body = rawRequest.body;
   if (body.action === "reset") {
     notificationCalls.length = 0;
+    for (const waiter of notificationWaiters) {
+      clearTimeout(waiter.timeout);
+      notificationWaiters.delete(waiter);
+      waiter.resolve({
+        type: BACKGROUND_E2E_NOTIFICATION_COMMAND,
+        body: { status: "ERROR", message: "Notification wait was reset" },
+      });
+    }
   }
   if (body.action === "wait") {
     const { id, timeoutMs = 8000 } = body;
@@ -245,7 +260,7 @@ export const handleBackgroundE2ENotificationCommand = (
           notificationWaiters.delete(waiter);
           resolve({
             type: BACKGROUND_E2E_NOTIFICATION_COMMAND,
-            body: { status: "OK", calls: [] },
+            body: { status: "ERROR", message: `Timed out waiting for notification ${id}` },
           });
         }, timeoutMs),
       };
@@ -287,17 +302,27 @@ export const installBackgroundE2ENotificationObserver = (): void => {
       ...(typeof details.title === "string" ? { title: details.title } : {}),
       ...(typeof details.message === "string" ? { message: details.message } : {}),
     };
-    notificationCalls.push(call);
-    for (const waiter of notificationWaiters) {
-      if (waiter.id !== id) continue;
-      clearTimeout(waiter.timeout);
-      notificationWaiters.delete(waiter);
-      waiter.resolve({
-        type: BACKGROUND_E2E_NOTIFICATION_COMMAND,
-        body: { status: "OK", calls: [structuredClone(call)] },
+    const recordSuccessfulCall = () => {
+      notificationCalls.push(call);
+      for (const waiter of notificationWaiters) {
+        if (waiter.id !== id) continue;
+        clearTimeout(waiter.timeout);
+        notificationWaiters.delete(waiter);
+        waiter.resolve({
+          type: BACKGROUND_E2E_NOTIFICATION_COMMAND,
+          body: { status: "OK", calls: [structuredClone(call)] },
+        });
+      }
+    };
+    const result = Reflect.apply(originalCreate, notifications, args);
+    if (result !== null && typeof result === "object" && "then" in result) {
+      return Promise.resolve(result).then((value) => {
+        recordSuccessfulCall();
+        return value;
       });
     }
-    return Reflect.apply(originalCreate, notifications, args);
+    recordSuccessfulCall();
+    return result;
   });
 };
 
