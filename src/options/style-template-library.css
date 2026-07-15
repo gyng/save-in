@@ -173,6 +173,11 @@
   border-bottom: 1px solid var(--panel-border);
 }
 
+#reference-dialog-title {
+  font-size: var(--text-lg);
+  font-weight: 600;
+}
+
 .reference-dialog-tabs {
   display: flex;
   gap: var(--space-1);
