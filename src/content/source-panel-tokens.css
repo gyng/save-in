@@ -44,6 +44,7 @@
   --color-kind-document: light-dark(#cf222e, #a64b55);
   --color-preview: light-dark(#ededf0, #38383d);
   --color-preview-media: #111111;
+  --color-backdrop: rgba(0, 0, 0, 0.35);
   --panel-shadow: 0 8px 28px rgba(0, 0, 0, 0.2);
   --floating-shadow: 0 16px 48px rgba(0, 0, 0, 0.32);
   --z-preview-control: 2;

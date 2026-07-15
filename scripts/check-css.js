@@ -86,6 +86,7 @@ const styleLayers = [
     "components",
     [
       "style-components.css",
+      "style-feedback.css",
       "style-option-rows.css",
       "style-workflows.css",
       "style-status.css",
@@ -227,9 +228,12 @@ for (const file of styles) {
   const source = fs.readFileSync(file, "utf8");
   const relative = path.relative(root, file);
   for (const match of source.matchAll(/#[0-9a-f]{3,8}\b|rgba?\(/gi)) {
-    if (file === tokenStylePath && match.index < rootTokenBoundary) continue;
+    const lineStart = source.lastIndexOf("\n", match.index) + 1;
+    const lineEnd = source.indexOf("\n", match.index);
+    const lineSource = source.slice(lineStart, lineEnd < 0 ? undefined : lineEnd);
+    if (file === tokenStylePath && /--[\w-]+\s*:/.test(lineSource)) continue;
     const line = source.slice(0, match.index).split("\n").length;
-    violations.push(`${relative}:${line} uses a raw color outside the root token palette`);
+    violations.push(`${relative}:${line} uses a raw color outside a token declaration`);
   }
   const componentStart = file === tokenStylePath ? rootTokenBoundary + 2 : 0;
   const componentStyles = source.slice(componentStart);
@@ -377,11 +381,93 @@ if (/button:disabled/.test(optionToolStyle)) {
 if (!/button:disabled\s*\{[^}]*cursor:\s*default;[^}]*opacity:\s*0\.55;/.test(baseStyle)) {
   violations.push("the base control primitive must own the disabled-button appearance");
 }
+if (!/a\.external::after\s*\{[^}]*background-color:\s*currentColor;[^}]*mask:/.test(baseStyle)) {
+  violations.push(
+    "external-link icons must inherit the link or forced-system color through a mask",
+  );
+}
 
 const accessibilityStyle = fs.readFileSync(
   path.join(root, "src", "options", "style-accessibility.css"),
   "utf8",
 );
+const sharedComponentStyle = fs.readFileSync(
+  path.join(root, "src", "options", "style-components.css"),
+  "utf8",
+);
+const feedbackStyle = fs.readFileSync(
+  path.join(root, "src", "options", "style-feedback.css"),
+  "utf8",
+);
+for (const selector of [".error-notification", ".error-row", ".feedback", ".click-to-copy"]) {
+  if (!feedbackStyle.includes(selector)) {
+    violations.push(`src/options/style-feedback.css must own ${selector}`);
+  }
+  if (sharedComponentStyle.includes(selector)) {
+    violations.push(`src/options/style-components.css must not retain feedback owner ${selector}`);
+  }
+}
+const optionsLayoutStyle = fs.readFileSync(
+  path.join(root, "src", "options", "style-layout.css"),
+  "utf8",
+);
+if (
+  !optionsLayoutStyle.includes(":where(#options) {") ||
+  sharedComponentStyle.includes("#options {")
+) {
+  violations.push("src/options/style-layout.css must own the options form layout");
+}
+for (const file of [
+  "style-layout.css",
+  "style-layout-responsive.css",
+  "style-shell-responsive.css",
+]) {
+  const source = fs.readFileSync(path.join(root, "src", "options", file), "utf8");
+  if (/^\s*(?:min-|max-)?(?:width|height)\s*:/m.test(source)) {
+    violations.push(`src/options/${file} must use logical sizing for semantic layout dimensions`);
+  }
+}
+if (!accessibilityStyle.includes('[aria-pressed="true"]')) {
+  violations.push("pressed controls need a forced-colors selected state");
+}
+if (
+  !shellStyle.includes("@media (hover: hover)") ||
+  !shellStyle.includes(".save-status:focus-within .saved-change-popover")
+) {
+  violations.push("hover-opened saved feedback must retain touch-safe keyboard access");
+}
+
+const motionPreferenceSource = fs.readFileSync(
+  path.join(root, "src", "shared", "motion-preference.ts"),
+  "utf8",
+);
+if (
+  !motionPreferenceSource.includes("(prefers-reduced-motion: reduce)") ||
+  !motionPreferenceSource.includes('"auto" : "smooth"')
+) {
+  violations.push("scripted scrolling must share the reduced-motion preference");
+}
+for (const file of ["welcome-dialog.ts", "rule-visual-editor.ts", "tabs.ts"]) {
+  const source = fs.readFileSync(path.join(root, "src", "options", file), "utf8");
+  if (
+    !source.includes('from "../shared/motion-preference.ts"') ||
+    !source.includes("preferredScrollBehavior()") ||
+    /behavior:\s*["']smooth["']/.test(source)
+  ) {
+    violations.push(`src/options/${file} must honor reduced motion for scripted scrolling`);
+  }
+}
+const sourcePanelSource = fs.readFileSync(
+  path.join(root, "src", "content", "source-panel.ts"),
+  "utf8",
+);
+if (
+  !sourcePanelSource.includes('from "../shared/motion-preference.ts"') ||
+  /behavior:\s*["']smooth["']/.test(sourcePanelSource)
+) {
+  violations.push("the Page Sources panel must honor reduced motion for scripted scrolling");
+}
+
 if (!accessibilityStyle.includes("@media (forced-colors: active)")) {
   violations.push("options focus and selected states need forced-colors fallbacks");
 }
@@ -409,10 +495,6 @@ for (const selectedState of [
   }
 }
 
-const sharedComponentStyle = fs.readFileSync(
-  path.join(root, "src", "options", "style-components.css"),
-  "utf8",
-);
 for (const contract of [
   ".menu-popover",
   "max-inline-size: calc(100dvi",
