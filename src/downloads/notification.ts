@@ -517,7 +517,7 @@ export const Notifier = {
         });
 
         const notifyFailure = async (): Promise<void> => {
-          if (notifyOnFailure) {
+          if (notifyOnFailure && record.sourceSidecar !== true) {
             createNotification(
               String(downloadDelta.id),
               {
@@ -530,7 +530,12 @@ export const Notifier = {
             );
           }
 
-          if (promptOnFailure && record.url && record.allowOriginalUrlFallback !== false) {
+          if (
+            record.sourceSidecar !== true &&
+            promptOnFailure &&
+            record.url &&
+            record.allowOriginalUrlFallback !== false
+          ) {
             const downloadOptions: Parameters<typeof webExtensionApi.downloads.download>[0] = {
               url: record.url,
               saveAs: true,
@@ -583,6 +588,7 @@ export const Notifier = {
         }
       } else if (
         notifyOnSuccess &&
+        record.sourceSidecar !== true &&
         isFromSelf &&
         downloadDelta &&
         downloadDelta.state &&

@@ -79,7 +79,10 @@ export const retryViaFetch = async (
     blobUrl = downloadUrl;
     offscreenRequestId = content.offscreenRequestId;
     runtime.pendingRetryFilenames.set(downloadUrl, filename);
-    expected = services.notifier.expectDownload(downloadUrl, { privateContext });
+    expected = services.notifier.expectDownload(downloadUrl, {
+      privateContext,
+      ...(record.sourceSidecar === true ? { sourceSidecar: true } : {}),
+    });
     await Promise.all(
       privateContext
         ? []

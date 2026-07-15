@@ -5,6 +5,7 @@ import {
   downloadState,
   Log,
   makeState,
+  Notifier,
   options,
   OffscreenClient,
   sessionStore,
@@ -78,6 +79,27 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
 
     // Only one retry per download
     await expect(Download.retryViaFetch(101)).resolves.toBe(false);
+  });
+
+  test("keeps a source-sidecar retry quiet from its first browser event", async () => {
+    await seedStartedDownload();
+    await Download.rememberStartedDownload(101, { sourceSidecar: true });
+    global.fetch = vi.fn(() =>
+      Promise.resolve({ ok: true, blob: () => Promise.resolve(new Blob(["bytes"])) }),
+    ) as any;
+    vi.mocked(global.browser.downloads.download).mockResolvedValue(202);
+
+    await expect(Download.retryViaFetch(101)).resolves.toBe(true);
+
+    expect(Notifier.expectDownload).toHaveBeenCalledWith(expect.stringMatching(/^blob:/), {
+      privateContext: false,
+      sourceSidecar: true,
+    });
+    expect(downloadState.records.get(202)).toMatchObject({
+      adopted: true,
+      sourceSidecar: true,
+      viaFetch: true,
+    });
   });
 
   test("keeps a Firefox private retry private and clears its transient filename", async () => {

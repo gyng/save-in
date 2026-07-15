@@ -230,7 +230,11 @@ export const handleContextMenuClick = async (
       downloadType === DOWNLOAD_TYPES.MEDIA &&
       !saveAsShortcut
     ) {
-      await launchSourceSidecar(state, originalUrl, clickTab?.title);
+      try {
+        await launchSourceSidecar(state, originalUrl, clickTab?.title);
+      } catch (error) {
+        await Log.add("source sidecar failed", String(error), { privateContext });
+      }
     }
 
     // Close the tab a "save page" came from, mirroring the tab-strip

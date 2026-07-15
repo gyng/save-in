@@ -4,6 +4,7 @@ import {
   Download,
   Path,
   backgroundRuntime,
+  Log,
   onMessage,
   onMessageExternal,
   trackedTab,
@@ -100,6 +101,68 @@ describe("handleDownloadMessage", () => {
       type: MESSAGE_TYPES.DOWNLOAD,
       body: { status: MESSAGE_TYPES.OK, version: 1, url: "https://x/file.png" },
     });
+  });
+
+  test("acknowledges the primary media save before its sidecar finishes", async () => {
+    options.saveSourceSidecar = true;
+    let finishSidecar!: (value: { status: "started"; downloadId: number }) => void;
+    vi.mocked(Download.renameAndDownload)
+      .mockResolvedValueOnce({ status: "started", downloadId: 7 })
+      .mockReturnValueOnce(
+        new Promise((resolve) => {
+          finishSidecar = resolve;
+        }),
+      );
+    const sendResponse = vi.fn();
+
+    expect(
+      onMessage(
+        request({
+          info: {
+            pageUrl: "https://x/",
+            srcUrl: "https://x/file.png",
+            sourceKind: "image",
+          },
+        }),
+        { id: global.browser.runtime.id },
+        sendResponse,
+      ),
+    ).toBe(true);
+
+    await waitForCall(sendResponse);
+    expect(Download.renameAndDownload).toHaveBeenCalledTimes(2);
+    expect(sendResponse).toHaveBeenCalledOnce();
+    finishSidecar({ status: "started", downloadId: 8 });
+  });
+
+  test("keeps a sidecar preflight failure from failing an accepted primary save", async () => {
+    options.saveSourceSidecar = true;
+    vi.spyOn(Download, "finalizeFullPath").mockImplementationOnce(() => {
+      throw new Error("sidecar path failed");
+    });
+    const sendResponse = vi.fn();
+
+    expect(
+      onMessage(
+        request({
+          info: {
+            pageUrl: "https://x/",
+            srcUrl: "https://x/file.png",
+            sourceKind: "image",
+          },
+        }),
+        { id: global.browser.runtime.id },
+        sendResponse,
+      ),
+    ).toBe(true);
+
+    await waitForCall(sendResponse);
+    await vi.waitFor(() =>
+      expect(Log.add).toHaveBeenCalledWith("source sidecar failed", "Error: sidecar path failed", {
+        privateContext: false,
+      }),
+    );
+    expect(sendResponse).toHaveBeenCalledOnce();
   });
 
   test("preserves a caller-supplied suggested filename", () => {

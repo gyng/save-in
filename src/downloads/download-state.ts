@@ -17,6 +17,7 @@ export type DownloadRecord = {
   allowOriginalUrlFallback?: boolean | undefined;
   observedBrowserDownload?: boolean | undefined;
   adopted?: boolean | undefined;
+  sourceSidecar?: boolean | undefined;
   historyEntryId?: string | undefined;
   offscreenRequestId?: string | undefined;
   // Runtime-only privacy state. This is deliberately omitted from the
@@ -57,6 +58,7 @@ function normalizeDownloadRecord(value: unknown): PersistedDownloadRecord | null
     "allowOriginalUrlFallback",
     "observedBrowserDownload",
     "adopted",
+    "sourceSidecar",
   ] as const;
   strings.forEach((key) => {
     if (typeof value[key] === "string") record[key] = value[key];

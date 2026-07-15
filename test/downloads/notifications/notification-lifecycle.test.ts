@@ -282,6 +282,29 @@ describe("download lifecycle notifications", () => {
     expect(adoptedIds(sessionStore)).toEqual([]);
   });
 
+  test("keeps a source sidecar silent across a worker restart", async () => {
+    Notifier.expectDownload("data:text/plain,source", { sourceSidecar: true });
+    await onCreated({
+      id: 8,
+      byExtensionId: "save-in",
+      filename: "C:\\dl\\pic.url",
+      url: "data:text/plain,source",
+    });
+    expect(sessionStore.siDownloads[8]).toMatchObject({
+      adopted: true,
+      sourceSidecar: true,
+    });
+
+    downloadState.records.clear();
+    await onChanged({
+      id: 8,
+      state: { current: "complete", previous: "in_progress" },
+    });
+
+    expect(global.browser.notifications.create).not.toHaveBeenCalled();
+    expect(sessionStore.siDownloads[8]).toMatchObject({ adopted: false, sourceSidecar: true });
+  });
+
   test("membership survives a worker restart via the persisted record", async () => {
     // Adoption is a field on the DownloadState record, persisted to siDownloads,
     // so a completion that arrives after the worker restarted (the in-memory

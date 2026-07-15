@@ -511,19 +511,27 @@ export const Messaging = {
       // downloads API call. The response still acknowledges browser acceptance,
       // not eventual download completion.
       return Download.launch(clickState).then(async (result) => {
+        // Acknowledge the accepted primary save before doing optional child
+        // work. Content-script batches must not wait for a second download,
+        // and a sidecar failure must never turn the primary save into a retry.
+        sendResponse({
+          type: MESSAGE_TYPES.DOWNLOAD,
+          body: { status: MESSAGE_TYPES.OK, version, url },
+        });
         if (
           result.status === "started" &&
           sender.id === webExtensionApi.runtime.id &&
           info.sourceKind &&
           info.sourceKind !== "link"
         ) {
-          await launchSourceSidecar(clickState, url, resolvedTab?.title);
+          try {
+            await launchSourceSidecar(clickState, url, resolvedTab?.title);
+          } catch (error) {
+            await Log.add("source sidecar failed", String(error), {
+              privateContext: resolvedTab?.incognito === true,
+            });
+          }
         }
-        // status:"OK" is unchanged for back-compat; version/url are additive
-        sendResponse({
-          type: MESSAGE_TYPES.DOWNLOAD,
-          body: { status: MESSAGE_TYPES.OK, version, url },
-        });
       });
     };
 

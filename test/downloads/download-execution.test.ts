@@ -1,4 +1,5 @@
 // Focused execution coverage extracted from the pipeline suite.
+import { DOWNLOAD_TYPES } from "../../src/shared/constants.ts";
 import {
   backgroundRuntime,
   ActiveTransfers,
@@ -241,6 +242,43 @@ describe("renameAndDownload: browserDownload", () => {
       }),
       { privateContext: false },
     );
+  });
+
+  test("keeps a source sidecar out of primary state and history", async () => {
+    setCurrentBrowser("CHROME");
+    const primary = makeState({ path: { finalize: () => "images" } });
+    backgroundRuntime.lastDownloadState = primary;
+    const sidecar = makeState({
+      info: { context: DOWNLOAD_TYPES.SIDECAR, relatedHistoryId: "primary-history" },
+    });
+
+    await Download.renameAndDownload(sidecar);
+
+    expect(backgroundRuntime.lastDownloadState).toBe(primary);
+    expect(downloaded).not.toHaveBeenCalled();
+    expect(SaveHistory.add).not.toHaveBeenCalled();
+    expect(downloadState.records.get(101)).toMatchObject({
+      adopted: true,
+      sourceSidecar: true,
+    });
+    expect(downloadState.records.get(101)).not.toHaveProperty("historyEntryId");
+    expect(Notifier.expectDownload).toHaveBeenCalledWith(
+      sidecar.info.url,
+      expect.objectContaining({ sourceSidecar: true }),
+    );
+  });
+
+  test("does not surface a source-sidecar browser rejection", async () => {
+    setCurrentBrowser("CHROME");
+    options.fallbackFetch = false;
+    vi.mocked(global.browser.downloads.download).mockRejectedValue(new Error("disk full"));
+
+    await expect(
+      Download.renameAndDownload(makeState({ info: { context: DOWNLOAD_TYPES.SIDECAR } })),
+    ).resolves.toEqual({ status: "failed" });
+
+    expect(SaveHistory.add).not.toHaveBeenCalled();
+    expect(Notifier.reportFailure).not.toHaveBeenCalled();
   });
 });
 

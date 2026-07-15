@@ -75,6 +75,9 @@ const requireDownloadUrl = (state: Pick<DownloadPipelineState, "info">): string 
   return state.info.url;
 };
 
+const isSourceSidecar = (state: Pick<DownloadPipelineState, "info">): boolean =>
+  state.info.context === DOWNLOAD_TYPES.SIDECAR;
+
 const isPrivateDownloadState = (state: Pick<DownloadPipelineState, "info">): boolean =>
   state.info.currentTab?.incognito === true;
 
@@ -137,6 +140,7 @@ const historyEntry = (state: DownloadPipelineState, finalFullPath: string): Hist
 });
 
 const ensureHistoryEntry = (state: DownloadPipelineState, finalFullPath: string) => {
+  if (isSourceSidecar(state)) return null;
   const fields = historyEntry(state, finalFullPath);
   if (typeof state.scratch.historyEntryId !== "undefined") {
     void historyPort.patch(state.scratch.historyEntryId, fields);
@@ -194,7 +198,7 @@ const recordDownloadRequest = (plan: DownloadPlan): void => {
   }
   if (backgroundRuntime.debug && !privateContext) console.log(state, plan.finalFullPath); // eslint-disable-line
 
-  if (!privateContext) {
+  if (!privateContext && !isSourceSidecar(state)) {
     emitDownloaded(state);
     backgroundRuntime.lastDownloadState = state;
   }
@@ -333,7 +337,7 @@ export const Download = {
     Download.renameAndDownload(state).catch((e) => {
       addDownloadLog(state, "renameAndDownload failed", String(e));
       const name = state.info.suggestedFilename || state.info.url || "";
-      Notifier.reportFailure(name, String(e));
+      if (!isSourceSidecar(state)) Notifier.reportFailure(name, String(e));
       return { status: "failed" as const };
     }),
 
@@ -611,6 +615,7 @@ export const Download = {
       retried: false,
       allowOriginalUrlFallback,
       ...(historyEntryId ? { historyEntryId } : {}),
+      ...(isSourceSidecar(state) ? { sourceSidecar: true } : {}),
       privateContext,
     });
     try {
@@ -648,6 +653,7 @@ export const Download = {
         allowOriginalUrlFallback,
         ...(acquired.offscreenRequestId ? { offscreenRequestId: acquired.offscreenRequestId } : {}),
         ...(historyEntryId ? { historyEntryId } : {}),
+        ...(isSourceSidecar(state) ? { sourceSidecar: true } : {}),
         privateContext,
         adopted: true,
       });
@@ -684,7 +690,9 @@ export const Download = {
       } else {
         Download.forgetPendingState(state);
         await historyPort.setStatus(historyEntryId, "DOWNLOAD_API_FAILED");
-        Notifier.reportFailure(finalFullPath || requireDownloadUrl(state), String(e));
+        if (!isSourceSidecar(state)) {
+          Notifier.reportFailure(finalFullPath || requireDownloadUrl(state), String(e));
+        }
         return { status: "failed" };
       }
     } finally {
@@ -814,7 +822,9 @@ export const Download = {
       }
       await historyPort.setStatus(plan.historyEntryId, "DOWNLOAD_PREPARATION_FAILED");
       addDownloadLog(state, "download preparation failed", String(error));
-      Notifier.reportFailure(plan.finalFullPath || requireDownloadUrl(state), String(error));
+      if (!isSourceSidecar(state)) {
+        Notifier.reportFailure(plan.finalFullPath || requireDownloadUrl(state), String(error));
+      }
       finishPreparation();
       return { status: "failed" };
     }

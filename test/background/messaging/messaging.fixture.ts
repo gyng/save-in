@@ -35,6 +35,7 @@ const { Path } = await import("../../../src/routing/path.ts");
 const { setCurrentTab } = await import("../../../src/platform/current-tab.ts");
 const { backgroundRuntime } = await import("../../../src/background/runtime.ts");
 const { SaveHistory } = await import("../../../src/background/history.ts");
+const { Log } = await import("../../../src/background/log.ts");
 const { ActiveTransfers } = await import("../../../src/downloads/active-transfers.ts");
 const { OffscreenClient } = await import("../../../src/platform/offscreen-client.ts");
 const { ExternalDownloadRejections } =
@@ -109,6 +110,7 @@ const setupGlobals = () => {
   vi.spyOn(SaveHistory, "get").mockResolvedValue([]);
   vi.spyOn(SaveHistory, "clear").mockResolvedValue();
   vi.spyOn(SaveHistory, "setStatus").mockResolvedValue(undefined);
+  vi.spyOn(Log, "add").mockResolvedValue(undefined);
   vi.spyOn(ActiveTransfers, "get").mockReturnValue(undefined);
   vi.spyOn(ActiveTransfers, "cancel").mockReturnValue(false);
   vi.spyOn(OffscreenClient, "canUse").mockReturnValue(false);
@@ -170,6 +172,7 @@ export {
   setCurrentTab,
   backgroundRuntime,
   SaveHistory,
+  Log,
   ActiveTransfers,
   OffscreenClient,
   ExternalDownloadRejections,
