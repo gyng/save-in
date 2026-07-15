@@ -271,15 +271,6 @@
   margin: 0;
 }
 
-/* One consistent look for every collapsible section header across the options
-   UI (menu preview, live variables, rule templates, debug log, examples…). */
-summary {
-  cursor: pointer;
-  user-select: none;
-  font-weight: 600;
-  font-size: var(--text-base);
-  padding: var(--space-1) 0;
-}
 
 /* Menu preview is collapsible (open by default); separate its tree from the
    title so the header reads as a header, not a caption glued to the box. */

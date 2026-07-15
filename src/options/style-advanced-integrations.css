@@ -85,7 +85,13 @@
   padding: 0;
 }
 
-.webhook-preview-details > summary {
+:is(
+    .webhook-preview-details,
+    .external-raw-editor,
+    .external-api-details,
+    .webmcp-developer-details
+  )
+  > summary {
   color: var(--color-text-muted);
   font-size: var(--text-sm);
   cursor: pointer;
@@ -206,12 +212,6 @@
   border-top: 1px solid var(--panel-border);
 }
 
-.external-raw-editor > summary {
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
-  cursor: pointer;
-}
-
 .external-raw-editor > p {
   margin: var(--space-2) 0 var(--space-1);
 }
@@ -299,13 +299,6 @@
   padding-top: var(--space-3);
 }
 
-.external-api-details > summary {
-  color: var(--color-text-muted);
-  font-size: var(--text-base);
-  font-weight: 600;
-  cursor: pointer;
-}
-
 .external-api-details > .dev-api {
   max-width: none;
   margin: var(--space-2) 0 0;
@@ -353,12 +346,6 @@
 .webmcp-developer-details {
   padding-top: var(--space-2);
   border-top: 1px solid var(--panel-border);
-}
-
-.webmcp-developer-details > summary {
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
-  cursor: pointer;
 }
 
 .webmcp-developer-content {

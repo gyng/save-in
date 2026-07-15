@@ -48,6 +48,7 @@ describe("path editor insert menu", () => {
     );
     document.body.innerHTML = `<textarea id="paths"></textarea>
       <details id="menu" open data-insert-target="paths">
+        <summary>Clauses</summary>
         <input class="clause-preview-filter">
         <table><tbody><tr><td><button data-insert-line="pageurl: ">Page URL</button></td></tr></tbody></table>
         <button data-insert-line="filename: ">Filename</button>
@@ -63,8 +64,10 @@ describe("path editor insert menu", () => {
     expect(insert).toHaveBeenCalledWith(document.querySelector("#paths"), "filename: ");
 
     document.querySelector<HTMLDetailsElement>("#menu")!.open = true;
+    filter.focus();
     keydown(filter, "Escape");
     expect(document.querySelector<HTMLDetailsElement>("#menu")!.open).toBe(false);
+    expect(document.activeElement).toBe(document.querySelector("summary"));
 
     resolveResponse({ body: {} });
     await Promise.resolve();

@@ -12,23 +12,6 @@
   margin: 0;
 }
 
-.menu-trigger {
-  display: inline-flex;
-  align-items: center;
-  min-height: var(--control-height);
-  padding: var(--space-1) var(--space-3);
-  border: 1px solid var(--panel-border);
-  border-radius: var(--radius);
-  font-size: var(--text-base);
-  font-weight: 500;
-  line-height: 1;
-  list-style: none;
-}
-
-.menu-trigger::-webkit-details-marker {
-  display: none;
-}
-
 .history-export-options,
 .history-more-options {
   --menu-popover-min-inline: 180px;

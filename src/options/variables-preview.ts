@@ -11,6 +11,7 @@ import {
 } from "./vocabulary-groups.ts";
 import { referenceDescription } from "./reference-descriptions.ts";
 import { getMessage } from "../platform/localization.ts";
+import { closeDetailsAndRestoreFocus, setupOutsideDismiss } from "./dismissible-details.ts";
 
 const stringRecord = (value: unknown): Record<string, string> => {
   if (typeof value !== "object" || value === null || Array.isArray(value)) return {};
@@ -241,7 +242,8 @@ export const renderVariablesPreview = async () => {
       filter.addEventListener("input", applyFilter);
       filter.addEventListener("keydown", (event) => {
         if (event.key === "Escape") {
-          panel.removeAttribute("open");
+          if (panel instanceof HTMLDetailsElement) closeDetailsAndRestoreFocus(panel);
+          else panel.removeAttribute("open");
           return;
         }
         if (event.key !== "Enter") return;
@@ -269,4 +271,3 @@ export const setupVariablesPreview = () => {
     .forEach((panel) => setupOutsideDismiss(panel));
   void renderVariablesPreview();
 };
-import { setupOutsideDismiss } from "./dismissible-details.ts";

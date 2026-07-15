@@ -518,7 +518,7 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
     );
     enabledLabel.append(enabled);
     const actions = document.createElement("details");
-    actions.className = "visual-editor-row-actions rule-editor-card-actions";
+    actions.className = "visual-editor-row-actions rule-editor-card-actions details-popup";
     const actionsTrigger = document.createElement("summary");
     actionsTrigger.className = "visual-editor-control rule-editor-actions-trigger";
     actionsTrigger.textContent = "⋯";

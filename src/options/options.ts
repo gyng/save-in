@@ -53,6 +53,7 @@ import {
 } from "./syntax-editor-model.ts";
 import { dispatchEditorValidation } from "./editor-validation.ts";
 import { createDeferredPageReload } from "./deferred-page-reload.ts";
+import { setupDetailsMenuPositioning } from "./details-menu-positioning.ts";
 import { refreshRouteDebuggerLatestDownload } from "./route-debugger.ts";
 
 const setupLastDownloadState = () => {
@@ -1117,6 +1118,7 @@ export const setupOptionsPage = bootstrapOptionsPage({
     setupIntegrationPanel,
     setupCounterPanel,
     setupDefaultDownloadsFolderLinks,
+    setupDetailsMenuPositioning,
     setupVariablesPreview,
     setupDebugLogPanel,
     () => restoreOptions(),

@@ -117,6 +117,7 @@ describe("floating placement", () => {
     );
 
     expect(element.style.width).toBe("304px");
+    expect(element.style.position).toBe("fixed");
     expect(element.style.maxWidth).toBe(`${placement.maxWidth}px`);
     expect(element.style.left).toBe(`${placement.left}px`);
 

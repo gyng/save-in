@@ -85,6 +85,12 @@ button:focus-visible {
   border-color: var(--color-focus);
   box-shadow: var(--focus-ring);
 }
+summary:focus-visible {
+  outline: none;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--focus-ring);
+}
+
 
 input[type="text"],
 input[type="number"],

@@ -4,6 +4,7 @@ import { sendInternalMessage } from "../shared/message-protocol.ts";
 import { compareClauses, CLAUSE_GROUPS, clauseGroup } from "./vocabulary-groups.ts";
 import { matcherTestValue } from "./matcher-descriptions.ts";
 import { referenceDescription } from "./reference-descriptions.ts";
+import { closeDetailsAndRestoreFocus } from "./dismissible-details.ts";
 
 export const setupPathInsertMenu = (
   menuSelector: string,
@@ -120,7 +121,7 @@ export const setupPathInsertMenu = (
   clauseFilter.addEventListener("input", applyClauseFilter);
   clauseFilter.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
-      menu.removeAttribute("open");
+      closeDetailsAndRestoreFocus(menu);
       return;
     }
     if (event.key !== "Enter") return;

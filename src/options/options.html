@@ -21,8 +21,8 @@
           target="_blank"
           rel="noreferrer"
         ></a>
-        <details class="nav-resources">
-          <summary>__MSG_o_lHelpResources__</summary>
+        <details class="nav-resources details-popup">
+          <summary class="menu-trigger">__MSG_o_lHelpResources__</summary>
           <div class="nav-resources-menu menu-popover">
             <a href="#" data-reference-tab="options-reference-variables">__MSG_o_lVariableList__</a>
             <a href="#" data-reference-tab="options-reference-clauses">__MSG_o_lClauseList__</a>
@@ -337,7 +337,7 @@ Briefly explain the structure, check that every line follows this syntax, then p
             <div class="menu-preview-tree" id="menu-preview-tree"></div>
           </details>
 
-          <details class="variables-preview" data-insert-target="paths">
+          <details class="variables-preview details-popup" data-insert-target="paths">
             <summary>__MSG_o_lLiveVariables__</summary>
             <div class="variables-preview-list"></div>
           </details>
@@ -811,7 +811,7 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                 <div class="visual-editor-toolbar rule-editor-toolbar">
                   <div class="rule-editor-create-actions">
                     <button type="button" id="rule-editor-add">+ __MSG_routeVisualAddRule__</button>
-                    <details class="rule-add-menu">
+                    <details class="rule-add-menu details-popup">
                       <summary
                         class="rule-add-menu-trigger"
                         aria-label="__MSG_html_more__"
@@ -1205,13 +1205,13 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
               __MSG_html_references__
             </h4>
             <div class="reference-sections" aria-label="__MSG_html_insertionReferences__">
-              <details class="variables-preview" data-insert-target="filenamePatterns">
+              <details class="variables-preview details-popup" data-insert-target="filenamePatterns">
                 <summary>__MSG_o_lLiveVariables__</summary>
                 <div class="variables-preview-list"></div>
               </details>
 
               <details
-                class="variables-preview clause-preview"
+                class="variables-preview clause-preview details-popup"
                 id="rules-clause-menu"
                 data-insert-target="filenamePatterns"
               >
@@ -1686,11 +1686,11 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
       </div>
       <div id="history-active-filters" class="history-active-filters" aria-live="polite"></div>
       <div class="history-table-tools" aria-label="__MSG_html_historyTableTools__">
-        <details class="history-columns">
+        <details class="history-columns details-popup">
           <summary class="menu-trigger">__MSG_html_columns__</summary>
           <div class="history-columns-menu menu-popover" id="history-column-options"></div>
         </details>
-        <details class="history-export-menu" data-history-requires-entries>
+        <details class="history-export-menu details-popup" data-history-requires-entries>
           <summary class="menu-trigger">__MSG_html_export__</summary>
           <div class="history-export-options menu-popover">
             <button type="button" id="history-export-json">__MSG_html_jsonCompleteData__</button>
@@ -1698,7 +1698,7 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
             <button type="button" id="history-export-tsv">TSV</button>
           </div>
         </details>
-        <details class="history-more-menu" data-history-requires-entries>
+        <details class="history-more-menu details-popup" data-history-requires-entries>
           <summary class="menu-trigger">__MSG_html_more__</summary>
           <div class="history-more-options menu-popover">
             <button type="button" id="history-clear" class="button-danger danger-button">

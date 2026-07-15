@@ -99,6 +99,7 @@ export const positionFloatingElement = (
   anchor: FloatingRect,
   options: PositionFloatingElementOptions = {},
 ): FloatingPlacement => {
+  element.style.position = "fixed";
   element.style.maxWidth = "";
   element.style.maxHeight = "";
   if (options.width !== undefined) element.style.width = `${options.width}px`;

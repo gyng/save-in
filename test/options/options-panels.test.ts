@@ -474,9 +474,10 @@ describe("variables preview", () => {
   test("supports filter keyboard dismissal and inserts the first visible result", async () => {
     document.body.innerHTML = `
       <textarea id="paths"></textarea>
-      <section class="variables-preview" data-insert-target="paths" open>
+      <details class="variables-preview" data-insert-target="paths" open>
+        <summary>Variables</summary>
         <div class="variables-preview-list"></div>
-      </section>`;
+      </details>`;
     vi.mocked(browser.runtime.sendMessage)
       .mockResolvedValueOnce({ body: { variables: [":url:"] } })
       .mockResolvedValueOnce({ body: { interpolatedVariables: {} } });
@@ -485,8 +486,10 @@ describe("variables preview", () => {
     const panel = document.querySelector<HTMLElement>(".variables-preview")!;
     const filter = document.querySelector<HTMLInputElement>(".variables-preview-filter")!;
 
+    filter.focus();
     filter.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
     expect(panel.hasAttribute("open")).toBe(false);
+    expect(document.activeElement).toBe(panel.querySelector("summary"));
     filter.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }));
     filter.value = "no match";
     filter.dispatchEvent(new InputEvent("input", { bubbles: true }));

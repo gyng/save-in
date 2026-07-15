@@ -1,3 +1,12 @@
+export const closeDetailsAndRestoreFocus = (details: HTMLDetailsElement): void => {
+  details.open = false;
+  const trigger = details.querySelector<HTMLElement>(":scope > summary");
+  trigger?.focus();
+  requestAnimationFrame(() => {
+    if (!details.open) trigger?.focus();
+  });
+};
+
 export const setupOutsideDismiss = (
   details: HTMLDetailsElement | null = document.querySelector(".nav-resources"),
 ): void => {
@@ -9,12 +18,7 @@ export const setupOutsideDismiss = (
   document.addEventListener("keydown", (event) => {
     if (!details.open || event.key !== "Escape") return;
     event.preventDefault();
-    details.open = false;
-    const trigger = details.querySelector<HTMLElement>("summary");
-    trigger?.focus();
-    requestAnimationFrame(() => {
-      if (!details.open) trigger?.focus();
-    });
+    closeDetailsAndRestoreFocus(details);
   });
 };
 
