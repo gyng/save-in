@@ -1,6 +1,10 @@
 import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
+const { createE2ERunId, currentE2ERunId } = require("../../scripts/lib/e2e-run-id.js") as {
+  createE2ERunId: (pid?: number, now?: number, nonce?: string) => string;
+  currentE2ERunId: () => string;
+};
 const { finalizeRunMetadata, parseArguments } = require("../../scripts/e2e-parallel.js") as {
   finalizeRunMetadata: (
     metadata: Record<string, unknown>,
@@ -19,6 +23,28 @@ const { finalizeRunMetadata, parseArguments } = require("../../scripts/e2e-paral
     vitestArgs: string[];
   };
 };
+
+test("creates namespace-safe ownership IDs even when PID and time overlap", () => {
+  expect(createE2ERunId(42, 1_700_000_000_000, "aaaaaaaaaaaaaaaa")).toBe(
+    "42-1700000000000-aaaaaaaaaaaaaaaa",
+  );
+  expect(createE2ERunId(42, 1_700_000_000_000, "bbbbbbbbbbbbbbbb")).not.toBe(
+    createE2ERunId(42, 1_700_000_000_000, "aaaaaaaaaaaaaaaa"),
+  );
+});
+
+test("keeps a namespace-safe fallback stable when no outer runner ID is set", () => {
+  const configured = process.env.E2E_RUN_ID;
+  delete process.env.E2E_RUN_ID;
+  try {
+    const fallback = currentE2ERunId();
+    expect(fallback).toMatch(/^\d+-\d+-[a-f\d]{16}$/);
+    expect(currentE2ERunId()).toBe(fallback);
+  } finally {
+    if (configured === undefined) delete process.env.E2E_RUN_ID;
+    else process.env.E2E_RUN_ID = configured;
+  }
+});
 
 test("parses harness options without swallowing Vitest arguments", () => {
   expect(

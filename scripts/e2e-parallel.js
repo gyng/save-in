@@ -11,6 +11,7 @@ const {
   releaseDirectoryLock,
   removeOwnedProfiles,
 } = require("./lib/e2e-cleanup");
+const { createE2ERunId } = require("./lib/e2e-run-id");
 const { terminateProcessTree } = require("./lib/process-tree");
 
 const root = path.join(__dirname, "..");
@@ -18,10 +19,13 @@ const vitest = path.join(root, "node_modules", "vitest", "vitest.mjs");
 const config = "config/vitest/e2e.mjs";
 const artifacts = path.join(root, "dist", "e2e-artifacts");
 const runRoot = path.join(root, "dist", "e2e-runs");
-const runDir = path.join(runRoot, String(process.pid));
-const stagedRun = path.join(runDir, "bundled-pkg");
 const stagingLockDir = path.join(root, "dist", "e2e-staging.lock");
-const runId = `${process.pid}-${Date.now()}`;
+
+// PIDs and clocks can overlap across sandbox namespaces, so the nonce is part
+// of every filesystem and browser-resource ownership boundary.
+const runId = createE2ERunId();
+const runDir = path.join(runRoot, runId);
+const stagedRun = path.join(runDir, "bundled-pkg");
 const runArtifacts = path.join(artifacts, `run-${runId}`);
 const suiteByBrowser = {
   chrome: "test/e2e/chrome.e2e.mjs",
@@ -178,7 +182,7 @@ const main = async () => {
   /** @type {unknown} */
   let runError;
   fs.mkdirSync(runArtifacts, { recursive: true });
-  fs.writeFileSync(path.join(runArtifacts, ".active"), String(process.pid));
+  fs.writeFileSync(path.join(runArtifacts, ".active"), runId);
   /** @type {Record<string, unknown>} */
   let runMetadata = {
     runId,

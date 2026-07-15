@@ -144,7 +144,10 @@ then verifies that no unexpected state survived. Cleanup failures capture the
 same browser diagnostics as assertion failures before the suite exits.
 Profile cleanup is scoped to the exact current run ID. A later run must not
 infer ownership from PID liveness because sandbox PID namespaces can hide a
-concurrent browser that is still using its profile.
+concurrent browser that is still using its profile. Run IDs include a random
+nonce in addition to the PID and start time, and the same ID owns the staged
+extension, browser profiles, artifact directory, and active marker. This keeps
+concurrent runs isolated even when separate PID namespaces expose the same PID.
 
 ## Failed browser runs
 
