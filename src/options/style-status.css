@@ -137,6 +137,7 @@ textarea.saved-base {
 
 input.key {
   max-width: 2em;
+  margin-inline-start: var(--space-1);
   margin-inline-end: 8px;
   text-align: center;
   padding: 4px 8px;
