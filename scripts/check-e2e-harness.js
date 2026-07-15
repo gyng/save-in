@@ -275,6 +275,34 @@ const runnerPollingErrors = (file, source) => {
   return errors;
 };
 
+/** @param {string} file @param {string} source */
+const fixedDelayErrors = (file, source) => {
+  const approved = new Map([
+    ["test/e2e/helpers.mjs", 1],
+    ["test/e2e/harness-session.mjs", 1],
+  ]);
+  const expected = approved.get(file) ?? 0;
+  const actual = callCount(
+    source,
+    (call) =>
+      isAstNode(call.callee) &&
+      ["setTimeout", "globalThis.setTimeout", "window.setTimeout"].includes(
+        calledPath(call.callee) ?? "",
+      ),
+  );
+  if (actual === expected) return [];
+  if (actual < expected) {
+    return [
+      `${file}: fixed-delay allowance fell to ${actual}; lower its recorded ceiling from ` +
+        `${expected} to preserve the improvement.`,
+    ];
+  }
+  return [
+    `${file}: fixed delays increased to ${actual}; ceiling is ${expected}. ` +
+      "Wait on a browser event, DOM mutation, protocol response, or resource state instead.",
+  ];
+};
+
 /** @param {string} file @param {string} source @param {string} evaluator */
 const evaluatorReferenceErrors = (file, source, evaluator) => {
   /** @type {string[]} */
@@ -326,6 +354,7 @@ const main = () => {
     const source = fs.readFileSync(path.join(root, file), "utf8");
     errors.push(...evaluationTypingErrors(file, source));
     errors.push(...runnerPollingErrors(file, source));
+    errors.push(...fixedDelayErrors(file, source));
   }
   /** @type {Array<[string, string]>} */
   const evaluators = [
@@ -360,5 +389,6 @@ module.exports = {
   evaluationBudgetError,
   evaluationTypingErrors,
   evaluatorReferenceErrors,
+  fixedDelayErrors,
   runnerPollingErrors,
 };

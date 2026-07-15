@@ -5,6 +5,7 @@ const {
   evaluationBudgetError,
   evaluationTypingErrors,
   evaluatorReferenceErrors,
+  fixedDelayErrors,
   runnerPollingErrors,
 } = require("../../scripts/check-e2e-harness.js") as {
   evaluationBudgetError: (
@@ -13,6 +14,7 @@ const {
   ) => string | null;
   evaluationTypingErrors: (file: string, source: string) => string[];
   evaluatorReferenceErrors: (file: string, source: string, evaluator: string) => string[];
+  fixedDelayErrors: (file: string, source: string) => string[];
   runnerPollingErrors: (file: string, source: string) => string[];
 };
 
@@ -91,6 +93,24 @@ test("rejects aliases that would hide runner-side state polling", () => {
       `,
     ),
   ).toEqual([expect.stringContaining("must not be destructured")]);
+});
+
+test("rejects fixed sleeps outside the two audited infrastructure backoffs", () => {
+  expect(
+    fixedDelayErrors(
+      "test/e2e/example.mjs",
+      `await new Promise((resolve) => setTimeout(resolve, 1000));`,
+    ),
+  ).toEqual([expect.stringContaining("fixed delays increased")]);
+  expect(
+    fixedDelayErrors(
+      "test/e2e/helpers.mjs",
+      `await new Promise((resolve) => setTimeout(resolve, intervalMs));`,
+    ),
+  ).toEqual([]);
+  expect(fixedDelayErrors("test/e2e/helpers.mjs", "const immediate = true;")).toEqual([
+    expect.stringContaining("lower its recorded ceiling"),
+  ]);
 });
 
 test("allows only the documented raw-background evaluator adapter", () => {
