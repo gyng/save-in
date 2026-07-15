@@ -79,7 +79,10 @@ const evaluationTypingErrors = (file, source) => {
   return errors;
 };
 
-/** @param {string} directory */
+/**
+ * @param {string} directory
+ * @returns {string[]}
+ */
 const moduleFiles = (directory) =>
   fs.readdirSync(path.join(root, directory), { withFileTypes: true }).flatMap((entry) => {
     const relative = path.join(directory, entry.name);
