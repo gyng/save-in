@@ -30,6 +30,30 @@ into: automatic/:pagedomain:/
     );
   });
 
+  test("carries the matched rule's capture-substituted fetch template", () => {
+    const parsed = parseRulesCollecting(`
+context: ^auto$
+pageurl: ^https://gallery\\.example\\.test/
+sourceurl: ^https://cdn\\.example\\.test/original/([\\w.]+)
+capturegroups: sourceurl
+fetch: https://cdn.example.test/full/:$1:
+into: automatic/:$1:
+`);
+
+    expect(parsed.errors.filter((error) => !error.warning)).toEqual([]);
+    const match = matchAutomaticRoutingRule(parsed.rules, candidate);
+    expect(match?.destination).toBe("automatic/cat.JPG");
+    expect(match?.fetch).toBe("https://cdn.example.test/full/cat.JPG");
+  });
+
+  test("reports a null fetch template for plain automatic rules", () => {
+    const parsed = parseRulesCollecting(
+      "context: ^auto$\npageurl: example\nsourcekind: image\ninto: files/",
+    );
+
+    expect(matchAutomaticRoutingRule(parsed.rules, candidate)?.fetch).toBeNull();
+  });
+
   test("does not opt broad or non-automatic context rules into unattended downloads", () => {
     for (const context of [".*", "^media$", "^(?:page|media)$"]) {
       const parsed = parseRulesCollecting(`

@@ -162,6 +162,12 @@ beforeEach(() => {
   // only sanitizeFilename is controlled/asserted.
   vi.spyOn(Path, "sanitizeFilename").mockImplementation((name: any) => name);
   vi.spyOn(router, "matchRules").mockReturnValue(null);
+  // The plan path consults matchRulesDetailed; delegate to the matchRules mock
+  // so route-simulating tests keep a single seam. Fetch tests override this.
+  vi.spyOn(router, "matchRulesDetailed").mockImplementation((rules, info) => {
+    const destination = router.matchRules(rules, info);
+    return destination == null ? null : { rule: rules[0]!, destination, fetch: null };
+  });
   // applyVariables stays real (a never-asserted passthrough that leaves
   // a bufless path unchanged); resolveMime/mimeToExtension are spied per MIME test.
 

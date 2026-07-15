@@ -1,4 +1,4 @@
-import { matchRule } from "../routing/rule-matcher.ts";
+import { evaluateRule } from "../routing/rule-matcher.ts";
 import { parseRoutingRuleAst } from "../routing/rule-syntax.ts";
 import type { RoutingInfo, RoutingRule } from "../routing/rule-types.ts";
 import {
@@ -18,6 +18,7 @@ export type AutomaticRoutingCandidate = {
 export type AutomaticRoutingMatch = {
   rule: RoutingRule;
   destination: string;
+  fetch: string | null;
 };
 
 export const isEligibleAutomaticRoutingRule = (rule: RoutingRule): boolean =>
@@ -39,8 +40,10 @@ export const matchAutomaticRoutingRule = (
   const info = candidateInfo(candidate);
   for (const rule of rules) {
     if (!isEligibleAutomaticRoutingRule(rule)) continue;
-    const destination = matchRule(rule, info);
-    if (destination) return { rule, destination };
+    const evaluation = evaluateRule(rule, info);
+    if (evaluation.destination) {
+      return { rule, destination: evaluation.destination, fetch: evaluation.fetch || null };
+    }
   }
   return null;
 };

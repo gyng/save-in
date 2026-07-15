@@ -8,7 +8,13 @@ import { DOWNLOAD_TYPES } from "../shared/constants.ts";
 import { normalizeSessionCounter, updateSession } from "../shared/session-state.ts";
 import { RequestHeaders } from "./headers.ts";
 import { EXTENSION_NOTIFICATION_STREAMS, Notifier } from "./notification.ts";
-import { matchRules } from "../routing/router.ts";
+import {
+  isRenameOnlyEligibleRule,
+  matchRules,
+  matchRulesDetailed,
+  type RuleMatch,
+} from "../routing/router.ts";
+import { expandFetchUrl } from "../routing/fetch-url.ts";
 import { Path, sanitizeFilename } from "../routing/path.ts";
 import { applyVariables, mimeToExtension, resolveHead, resolveMime } from "../routing/variable.ts";
 import { options } from "../config/options-data.ts";
@@ -181,6 +187,30 @@ const releaseAcquiredDownload = async (acquired: AcquiredDownload): Promise<void
   }
 };
 
+// A fetch: rewrite retargets the download, so every artifact derived from the
+// original URL — resolved head metadata, hash, prefetched content, the
+// MIME-derived extension, and URL-derived names — is stale and must be
+// recomputed against the rewritten URL.
+const applyFetchRewrite = async (
+  state: DownloadPipelineState,
+  rewrittenUrl: string,
+): Promise<void> => {
+  await releaseUnusedContent(state);
+  delete state.info.headPromise;
+  delete state.info.resolvedHead;
+  delete state.info.sha256;
+  delete state.info.mime;
+  delete state.info.mimeExtension;
+  delete state.scratch.mimeExtension;
+  if (WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion) {
+    Download.movePendingState(state, rewrittenUrl);
+  }
+  state.info.url = rewrittenUrl;
+  const naiveFilename = getFilenameFromUrl(rewrittenUrl);
+  const initialFilename = state.info.suggestedFilename || naiveFilename || rewrittenUrl;
+  Object.assign(state.info, { naiveFilename, filename: initialFilename, initialFilename });
+};
+
 import type { FinalFilenameMap } from "./filename-listener.ts";
 
 const recordDownloadRequest = (plan: DownloadPlan): void => {
@@ -316,6 +346,42 @@ export const Download = {
     return filenameFromLib || null;
   },
 
+  // Firefox resolves a server-provided filename before finalizing the plan —
+  // and again after a fetch: rewrite retargets the URL. Chrome must defer this
+  // to onDeterminingFilename, which runs after the browser download starts.
+  resolveDispositionFilename: async (state: DownloadPipelineState): Promise<void> => {
+    if (WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion || state.info.contentFetchDisabled) {
+      return;
+    }
+    try {
+      const metadata = await resolveHead(state.info);
+      if (metadata.contentDisposition) {
+        const dispositionName = Download.getFilenameFromContentDisposition(
+          metadata.contentDisposition,
+          FIREFOX_CONTENT_DISPOSITION_COMPATIBILITY,
+        );
+        state.info.filename = dispositionName || state.info.filename;
+      }
+    } catch {
+      // HEAD is best-effort; acquisition still proceeds with the resolved name.
+    }
+  },
+
+  getRoutingMatch: (state: Pick<DownloadPipelineState, "info">): RuleMatch | null => {
+    if (state.info.routingDisabled) return null;
+    const filenamePatterns = Array.isArray(options.filenamePatterns)
+      ? options.filenamePatterns
+      : [];
+    if (filenamePatterns.length === 0) {
+      return null;
+    }
+
+    return matchRulesDetailed(filenamePatterns, state.info);
+  },
+
+  // Ordinary browser downloads and post-start filename re-evaluation can only
+  // rename a download that is already in flight, so URL-rewriting rules are
+  // skipped there instead of consuming the match.
   getRoutingMatches: (state: Pick<DownloadPipelineState, "info">): string | null => {
     if (state.info.routingDisabled) return null;
     const filenamePatterns = Array.isArray(options.filenamePatterns)
@@ -325,7 +391,7 @@ export const Download = {
       return null;
     }
 
-    return matchRules(filenamePatterns, state.info);
+    return matchRules(filenamePatterns, state.info, isRenameOnlyEligibleRule);
   },
 
   // Single entry point for firing a download from a menu/message click:
@@ -364,26 +430,7 @@ export const Download = {
     if (protectedFetchReferer) state.info.protectedFetchReferer = protectedFetchReferer;
     else delete state.info.protectedFetchReferer;
 
-    // Firefox resolves a server-provided filename before finalizing the plan.
-    // Chrome must defer this to onDeterminingFilename, which runs after the
-    // browser download starts.
-    if (
-      !WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion &&
-      !state.info.contentFetchDisabled
-    ) {
-      try {
-        const metadata = await resolveHead(state.info);
-        if (metadata.contentDisposition) {
-          const dispositionName = Download.getFilenameFromContentDisposition(
-            metadata.contentDisposition,
-            FIREFOX_CONTENT_DISPOSITION_COMPATIBILITY,
-          );
-          state.info.filename = dispositionName || state.info.filename;
-        }
-      } catch {
-        // HEAD is best-effort; acquisition still proceeds with the resolved name.
-      }
-    }
+    await Download.resolveDispositionFilename(state);
     /* v8 ignore next -- The initial filename assignment above always populates this field. */
     const resolvedFilename = state.info.filename ?? initialFilename;
     state.info.filename = resolvedFilename;
@@ -413,7 +460,32 @@ export const Download = {
       }
     }
 
-    const routeMatches = state.scratch.routeTemplateRaw ?? Download.getRoutingMatches(state);
+    let routeMatches: string | null = state.scratch.routeTemplateRaw ?? null;
+    let fetchTemplate: string | null = state.scratch.fetchTemplateRaw ?? null;
+    if (routeMatches === null) {
+      const match = Download.getRoutingMatch(state);
+      routeMatches = match?.destination ?? null;
+      fetchTemplate = match?.fetch ?? null;
+    }
+    if (routeMatches !== null && fetchTemplate !== null) {
+      const rewrittenUrl = await expandFetchUrl(fetchTemplate, state.info);
+      if (isHttpDownloadUrl(rewrittenUrl)) {
+        // Persist both raw templates: Chrome's late filename resolution must
+        // re-expand this rule's destination instead of re-matching, because a
+        // download that already started can no longer honor a URL rewrite.
+        state.scratch.routeTemplateRaw = routeMatches;
+        state.scratch.fetchTemplateRaw = fetchTemplate;
+        if (rewrittenUrl !== requireDownloadUrl(state)) {
+          await applyFetchRewrite(state, rewrittenUrl);
+          await Download.resolveDispositionFilename(state);
+        }
+      } else {
+        // The rule still renames and routes; only the rewrite is dropped.
+        addDownloadLog(state, "fetch rewrite skipped: expanded address is not HTTP(S)", {
+          template: fetchTemplate,
+        });
+      }
+    }
     // Click-to-save reuses the previous menu directory only as its unmatched
     // fallback. A matched `into:` route is rooted at Downloads so an earlier
     // folder choice cannot be prefixed onto every later dynamic route (#190).
@@ -429,15 +501,17 @@ export const Download = {
     }
     const routeRequired =
       !state.info.routingDisabled && (state.needRouteMatch || options.routeSkipUnmatched);
+    // Re-read the URL: a fetch: rewrite above may have retargeted it.
+    const downloadUrl = requireDownloadUrl(state);
     const deferRouteRequirement =
       routeRequired &&
       WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion &&
-      isHttpDownloadUrl(url) &&
+      isHttpDownloadUrl(downloadUrl) &&
       usesResolvedFilename;
     const persistAutomaticRoute =
       typeof state.scratch.routeTemplateRaw === "string" &&
       WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion &&
-      isHttpDownloadUrl(url);
+      isHttpDownloadUrl(downloadUrl);
     if (deferRouteRequirement || persistAutomaticRoute)
       state.scratch.deferredRouteRequirement = true;
     if (routeRequired && !routeMatches && !deferRouteRequirement) {
@@ -449,7 +523,13 @@ export const Download = {
       const tentative =
         state.route && !state.routeIsFolder
           ? state.route.finalize({ finalComponentIsFilename: true })
-          : sanitizeFilename(resolvedFilename, options.truncateLength, true, true);
+          : // The fetch: rewrite may have replaced the resolved filename.
+            sanitizeFilename(
+              state.info.filename ?? resolvedFilename,
+              options.truncateLength,
+              true,
+              true,
+            );
       if (tentative && !EXTENSION_REGEX.test(tentative)) {
         const ext = mimeToExtension(await resolveMime(state.info));
         if (ext) {

@@ -71,13 +71,141 @@ describe("getRoutingMatches", () => {
     expect(router.matchRules).not.toHaveBeenCalled();
   });
 
-  test("delegates to matchRules when patterns exist", () => {
+  test("delegates to matchRules with the rename-only predicate", () => {
     options.filenamePatterns = [routingRule()];
     vi.mocked(router.matchRules).mockReturnValue("the/route");
     const state = { info: { url: "x" } };
 
     expect(Download.getRoutingMatches(state)).toBe("the/route");
-    expect(router.matchRules).toHaveBeenCalledWith(options.filenamePatterns, state.info);
+    // Callers of this seam rename downloads that already started, so rules
+    // that rewrite the URL must be skipped rather than match-consuming.
+    expect(router.matchRules).toHaveBeenCalledWith(
+      options.filenamePatterns,
+      state.info,
+      router.isRenameOnlyEligibleRule,
+    );
+  });
+});
+
+describe("getRoutingMatch", () => {
+  test("returns null without patterns or when routing is disabled", () => {
+    options.filenamePatterns = [];
+    expect(Download.getRoutingMatch({ info: {} })).toBe(null);
+
+    options.filenamePatterns = [routingRule()];
+    expect(Download.getRoutingMatch({ info: { routingDisabled: true } })).toBeNull();
+    expect(router.matchRulesDetailed).not.toHaveBeenCalled();
+  });
+
+  test("delegates to matchRulesDetailed with every rule eligible", () => {
+    options.filenamePatterns = [routingRule()];
+    const match = {
+      rule: options.filenamePatterns[0]!,
+      destination: "the/route",
+      fetch: "https://mirror.example/orig.png",
+    };
+    vi.mocked(router.matchRulesDetailed).mockReturnValue(match);
+    const state = { info: { url: "x" } };
+
+    expect(Download.getRoutingMatch(state)).toBe(match);
+    expect(router.matchRulesDetailed).toHaveBeenCalledWith(options.filenamePatterns, state.info);
+  });
+});
+
+describe("fetch rewrite", () => {
+  const fetchMatch = (destination: string, fetch: string) => {
+    options.filenamePatterns = [routingRule()];
+    vi.mocked(router.matchRulesDetailed).mockReturnValue({
+      rule: options.filenamePatterns[0]!,
+      destination,
+      fetch,
+    });
+  };
+
+  test("rewrites the URL, recomputes URL-derived names, and persists both templates", async () => {
+    fetchMatch("routed/:naivefilename:", "https://mirror.example/orig.png");
+    const state = makeState({ info: { url: "https://cdn.example/small.png" } });
+
+    const plan = await Download.resolveDownloadPlan(state);
+
+    expect(state.info.url).toBe("https://mirror.example/orig.png");
+    expect(state.info.naiveFilename).toBe("orig.png");
+    expect(state.info.initialFilename).toBe("orig.png");
+    expect(state.scratch.routeTemplateRaw).toBe("routed/:naivefilename:");
+    expect(state.scratch.fetchTemplateRaw).toBe("https://mirror.example/orig.png");
+    // The route expands against the rewritten URL, not the original one.
+    expect(plan?.finalFullPath).toBe("downloads/routed/orig.png");
+    expect(SaveHistory.add).toHaveBeenCalledWith(
+      expect.objectContaining({ url: "https://mirror.example/orig.png" }),
+      expect.anything(),
+    );
+  });
+
+  test("invalidates metadata resolved against the original URL", async () => {
+    fetchMatch("routed", "https://mirror.example/orig.png");
+    const state = makeState({
+      scratch: { mimeExtension: "png" },
+      info: {
+        url: "https://cdn.example/small.png",
+        mime: "image/png",
+        sha256: "stale-hash",
+        resolvedHead: { contentType: "image/png", finalUrl: "https://cdn.example/small.png" },
+      },
+    });
+
+    await Download.resolveDownloadPlan(state);
+
+    expect(state.info.mime).toBeUndefined();
+    expect(state.info.sha256).toBeUndefined();
+    // Firefox re-resolves the head against the rewritten URL, so the original
+    // URL's resolution must be gone rather than reused.
+    expect(state.info.resolvedHead?.finalUrl).not.toBe("https://cdn.example/small.png");
+    expect(state.info.mimeExtension).toBeUndefined();
+    expect(state.scratch.mimeExtension).toBeUndefined();
+  });
+
+  test("keeps the original URL when the expanded address is not HTTP(S)", async () => {
+    fetchMatch("routed", "https://:$1:/x");
+    const state = makeState();
+
+    const plan = await Download.resolveDownloadPlan(state);
+
+    expect(state.info.url).toBe("https://example.com/dir/file.png");
+    expect(state.scratch.fetchTemplateRaw).toBeUndefined();
+    expect(state.scratch.routeTemplateRaw).toBeUndefined();
+    // The rule still routes; only the rewrite is dropped.
+    expect(plan?.finalFullPath).toBe("downloads/routed");
+  });
+
+  test("moves Chrome's pending state to the rewritten URL", async () => {
+    setCurrentBrowser("CHROME");
+    fetchMatch("routed", "https://mirror.example/orig.png");
+    const state = makeState({ info: { url: "https://cdn.example/small.png" } });
+
+    await Download.resolveDownloadPlan(state);
+
+    expect(Download.pendingStates.has("https://cdn.example/small.png")).toBe(false);
+    expect(Download.pendingStates.get("https://mirror.example/orig.png")).toEqual([state]);
+    // The persisted templates ride the deferred-route machinery so a late
+    // filename resolution re-expands this rule instead of re-matching.
+    expect(state.scratch.deferredRouteRequirement).toBe(true);
+  });
+
+  test("honors a pre-matched automatic fetch template without re-matching", async () => {
+    options.filenamePatterns = [routingRule()];
+    const state = makeState({
+      scratch: {
+        routeTemplateRaw: "auto/:naivefilename:",
+        fetchTemplateRaw: "https://mirror.example/orig.png",
+      },
+      info: { url: "https://cdn.example/small.png" },
+    });
+
+    const plan = await Download.resolveDownloadPlan(state);
+
+    expect(router.matchRulesDetailed).not.toHaveBeenCalled();
+    expect(state.info.url).toBe("https://mirror.example/orig.png");
+    expect(plan?.finalFullPath).toBe("downloads/auto/orig.png");
   });
 });
 

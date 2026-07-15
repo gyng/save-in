@@ -397,6 +397,28 @@ into: automatic/:pagedomain:/
     });
   });
 
+  test("passes a matched rule's fetch template through to the launch scratch", async () => {
+    options.autoDownloadEnabled = true;
+    options.autoDownloadPrivate = false;
+    options.filenamePatterns = parseRulesCollecting(`
+context: ^auto$
+pageurl: ^https://example\\.test/gallery/
+sourceurl: ^https://cdn\\.test/original/([\\w.]+)$
+capturegroups: sourceurl
+fetch: https://cdn.test/full/:$1:
+into: automatic/:$1:
+`).rules;
+    const sendResponse = vi.fn();
+    const senderTab = { id: 7, url: "https://example.test/gallery/", incognito: false };
+
+    expect(onMessage(request, { tab: senderTab }, sendResponse)).toBe(true);
+    await waitForCall(sendResponse);
+
+    const state = vi.mocked(Download.renameAndDownload).mock.calls[0]![0]!;
+    expect(state.scratch.routeTemplateRaw).toBe("automatic/cat.png");
+    expect(state.scratch.fetchTemplateRaw).toBe("https://cdn.test/full/cat.png");
+  });
+
   test.each([
     ["the feature is disabled", () => (options.autoDownloadEnabled = false)],
     ["no rule matches", () => (options.filenamePatterns = [])],

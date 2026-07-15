@@ -614,7 +614,10 @@ export const Messaging = {
 
     const result = await Download.launch({
       path: new Path("."),
-      scratch: { routeTemplateRaw: match.destination },
+      scratch: {
+        routeTemplateRaw: match.destination,
+        ...(match.fetch !== null ? { fetchTemplateRaw: match.fetch } : {}),
+      },
       info: {
         currentTab: senderTab,
         now: new Date(),

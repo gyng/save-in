@@ -25,6 +25,7 @@ export type DownloadScratch = {
   mimeExtension?: string | undefined;
   pathTemplateRaw?: string | undefined;
   routeTemplateRaw?: string | undefined;
+  fetchTemplateRaw?: string | undefined;
   historyEntryId?: string | null | undefined;
   browserFilenameResolution?: boolean | undefined;
   deferredRouteRequirement?: boolean | undefined;
