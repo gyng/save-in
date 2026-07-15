@@ -351,7 +351,7 @@ describe("download lifecycle notifications", () => {
       "",
       undefined,
     );
-    expect(Log.add).toHaveBeenCalledWith("source sidecar failed", "Error: sidecar denied");
+    expect(Log.addLogEntry).toHaveBeenCalledWith("source sidecar failed", "Error: sidecar denied");
     expect(sessionStore.siDownloads[7]).not.toHaveProperty("pendingSourceSidecar");
   });
 
@@ -498,7 +498,7 @@ describe("download lifecycle notifications", () => {
       url: "https://example.com/other.bin",
     });
     expect(history.setStatus).toHaveBeenCalledWith("h-reroute", "FIREFOX_REROUTE_FAILED");
-    expect(Log.add).toHaveBeenCalledWith(
+    expect(Log.addLogEntry).toHaveBeenCalledWith(
       "Firefox browser download reroute failed",
       expect.stringContaining("cancel failed"),
     );
@@ -612,7 +612,7 @@ describe("download lifecycle notifications", () => {
     created({ id: 90 } as any);
     changed({ id: 90 });
     clicked("90");
-    await vi.waitFor(() => expect(Log.add).toHaveBeenCalledTimes(3));
+    await vi.waitFor(() => expect(Log.addLogEntry).toHaveBeenCalledTimes(3));
   });
 
   test("Firefox skips a replacement when routing returns no filename", async () => {
@@ -702,7 +702,10 @@ describe("listener registration", () => {
     Notifier.onDownloadCreated = vi.fn(() => Promise.reject(new Error("broken event")));
     const [onCreated] = vi.mocked(global.browser.downloads.onCreated.addListener).mock.calls[0]!;
     await expect(onCreated({ id: 7 } as browser.downloads.DownloadItem)).resolves.toBeUndefined();
-    expect(Log.add).toHaveBeenCalledWith("download created event failed", "Error: broken event");
+    expect(Log.addLogEntry).toHaveBeenCalledWith(
+      "download created event failed",
+      "Error: broken event",
+    );
   });
 
   test("tolerates hosts without download or notification events", async () => {

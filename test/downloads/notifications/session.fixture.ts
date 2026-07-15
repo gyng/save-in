@@ -44,7 +44,7 @@ const loadNotification = async () => {
   await mod.recoverNotificationState();
   Notifier = mod.Notifier;
   ({ options } = await import("../../../src/config/options-data.ts"));
-  ({ Log } = await import("../../../src/background/log.ts"));
+  Log = await import("../../../src/background/log.ts");
   ({ SaveHistory } = await import("../../../src/background/history.ts"));
   const { backgroundRuntime } = await import("../../../src/background/runtime.ts");
   Runtime = backgroundRuntime;
@@ -52,7 +52,7 @@ const loadNotification = async () => {
   configureDownloadPorts({
     runtime: backgroundRuntime,
     history: SaveHistory,
-    log: Log,
+    log: { add: (...args: unknown[]) => Log.addLogEntry(...args) },
     retry: (downloadId) => retryHolder.retry(downloadId),
     sourceSidecar: () => Promise.resolve(),
   });
@@ -60,7 +60,7 @@ const loadNotification = async () => {
   for (const k of Object.keys(options)) delete options[k];
   // Log is defensive (typeof Log !== "undefined"); spy it so its calls are
   // assertable and it never writes to the session store
-  vi.spyOn(Log, "add").mockImplementation(() => Promise.resolve());
+  vi.spyOn(Log, "addLogEntry").mockImplementation(() => Promise.resolve());
   // Mirror the entry's synchronous listener registration against the browser
   // stubs installed above.
   mod.registerNotifier();

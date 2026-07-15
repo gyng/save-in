@@ -10,7 +10,7 @@ import {
 import { DIAGNOSTIC_LIFECYCLE_SESSION_KEY } from "../shared/storage-keys.ts";
 import { getSession, updateSession } from "../shared/session-state.ts";
 import { sessionWriteState } from "./state.ts";
-import { Log } from "./log.ts";
+import { getLogEntries } from "./log.ts";
 import { backgroundRuntime } from "./runtime.ts";
 
 const LIFECYCLE_LIMIT = 50;
@@ -83,7 +83,7 @@ const getLifecycle = async (): Promise<DiagnosticLifecycleEntry[]> => {
 
 export const getDiagnosticSnapshot = async (): Promise<DiagnosticSnapshot> => {
   const manifest = webExtensionApi.runtime.getManifest();
-  const [lifecycle, recentFailures] = await Promise.all([getLifecycle(), Log.get()]);
+  const [lifecycle, recentFailures] = await Promise.all([getLifecycle(), getLogEntries()]);
   return {
     capturedAt: new Date().toISOString(),
     extensionVersion: manifest.version,

@@ -1,9 +1,9 @@
 import { runBackgroundTask } from "../../src/background/event-task.ts";
-import { Log } from "../../src/background/log.ts";
+import * as Log from "../../src/background/log.ts";
 import { runEventTask } from "../../src/shared/event-task.ts";
 
 test("turns rejected browser event work into a resolved logged task", async () => {
-  vi.spyOn(Log, "add").mockResolvedValue(undefined);
+  vi.spyOn(Log, "addLogEntry").mockResolvedValue(undefined);
 
   await expect(
     runBackgroundTask("tab activation failed", async () => {
@@ -11,11 +11,11 @@ test("turns rejected browser event work into a resolved logged task", async () =
     }),
   ).resolves.toBeUndefined();
 
-  expect(Log.add).toHaveBeenCalledWith("tab activation failed", "Error: tab closed");
+  expect(Log.addLogEntry).toHaveBeenCalledWith("tab activation failed", "Error: tab closed");
 });
 
 test("also contains synchronous failures from event work", async () => {
-  vi.spyOn(Log, "add").mockResolvedValue(undefined);
+  vi.spyOn(Log, "addLogEntry").mockResolvedValue(undefined);
 
   await expect(
     runBackgroundTask("menu click failed", () => {
@@ -23,11 +23,11 @@ test("also contains synchronous failures from event work", async () => {
     }),
   ).resolves.toBeUndefined();
 
-  expect(Log.add).toHaveBeenCalledWith("menu click failed", "Error: bad click");
+  expect(Log.addLogEntry).toHaveBeenCalledWith("menu click failed", "Error: bad click");
 });
 
 test("does not persist failures from a private browser event", async () => {
-  vi.spyOn(Log, "add").mockResolvedValue(undefined);
+  vi.spyOn(Log, "addLogEntry").mockResolvedValue(undefined);
 
   await runBackgroundTask(
     "private menu click failed",
@@ -35,13 +35,17 @@ test("does not persist failures from a private browser event", async () => {
     { privateContext: true },
   );
 
-  expect(Log.add).toHaveBeenCalledWith("private menu click failed", "Error: private click", {
-    privateContext: true,
-  });
+  expect(Log.addLogEntry).toHaveBeenCalledWith(
+    "private menu click failed",
+    "Error: private click",
+    {
+      privateContext: true,
+    },
+  );
 });
 
 test("contains a synchronous logging failure while handling an event rejection", async () => {
-  vi.spyOn(Log, "add").mockImplementation(() => {
+  vi.spyOn(Log, "addLogEntry").mockImplementation(() => {
     throw new Error("storage unavailable");
   });
 

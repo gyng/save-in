@@ -22,7 +22,7 @@ const setupSession = () => {
 };
 
 describe("Log", () => {
-  let Log: typeof import("../../src/background/log.ts").Log;
+  let Log: typeof import("../../src/background/log.ts");
   let store: LogStore;
   const entries = (): LogEntry[] =>
     Array.isArray(store[LOG_KEY]) ? (store[LOG_KEY] as LogEntry[]) : [];
@@ -30,12 +30,12 @@ describe("Log", () => {
   beforeEach(async () => {
     vi.resetModules();
     store = setupSession();
-    Log = (await import("../../src/background/log.ts")).Log;
+    Log = await import("../../src/background/log.ts");
   });
 
   test("appends timestamped entries", async () => {
-    await Log.add("download requested", { url: "https://a/1" });
-    await Log.add("download complete", { id: 7 });
+    await Log.addLogEntry("download requested", { url: "https://a/1" });
+    await Log.addLogEntry("download complete", { id: 7 });
 
     expect(entries()).toHaveLength(2);
     expect(entries()[0]!.message).toBe("download requested");
@@ -45,7 +45,7 @@ describe("Log", () => {
   });
 
   test("does not persist diagnostics from private browsing", async () => {
-    await Log.add(
+    await Log.addLogEntry(
       "download requested",
       { url: "https://private.example/secret" },
       { privateContext: true },
@@ -57,23 +57,23 @@ describe("Log", () => {
   });
 
   test("caps the ring buffer", async () => {
-    store[LOG_KEY] = Array.from({ length: Log.LIMIT }, (_, i) => ({
+    store[LOG_KEY] = Array.from({ length: Log.LOG_LIMIT }, (_, i) => ({
       at: "t",
       message: `m${i}`,
     }));
 
-    await Log.add("newest");
+    await Log.addLogEntry("newest");
 
-    expect(entries()).toHaveLength(Log.LIMIT);
+    expect(entries()).toHaveLength(Log.LOG_LIMIT);
     expect(entries()[0]!.message).toBe("m1");
-    expect(entries()[Log.LIMIT - 1]!.message).toBe("newest");
+    expect(entries()[Log.LOG_LIMIT - 1]!.message).toBe("newest");
   });
 
   test("serializes unstringifiable data without throwing", async () => {
     const circular: Record<string, unknown> = {};
     circular.self = circular;
 
-    await Log.add("weird", circular);
+    await Log.addLogEntry("weird", circular);
     expect(entries()[0]!.message).toBe("weird");
     expect(typeof entries()[0]!.data).toBe("string");
   });
@@ -88,24 +88,24 @@ describe("Log", () => {
       },
     );
 
-    await expect(Log.add("hostile", hostile)).resolves.toBeUndefined();
+    await expect(Log.addLogEntry("hostile", hostile)).resolves.toBeUndefined();
     expect(entries()[0]).toMatchObject({ message: "hostile", data: "[Unserializable]" });
   });
 
   test("truncates oversized data payloads", async () => {
-    await Log.add("big", { blob: "x".repeat(5000) });
+    await Log.addLogEntry("big", { blob: "x".repeat(5000) });
     expect(entries()[0]!.data?.length).toBeLessThanOrEqual(501);
   });
 
   test("concurrent adds do not lose entries", async () => {
-    await Promise.all([Log.add("a"), Log.add("b"), Log.add("c")]);
+    await Promise.all([Log.addLogEntry("a"), Log.addLogEntry("b"), Log.addLogEntry("c")]);
     expect(entries().map((entry) => entry.message)).toEqual(["a", "b", "c"]);
   });
 
   test("get returns entries, or empty when unset", async () => {
-    await expect(Log.get()).resolves.toEqual([]);
-    await Log.add("one");
-    await expect(Log.get()).resolves.toHaveLength(1);
+    await expect(Log.getLogEntries()).resolves.toEqual([]);
+    await Log.addLogEntry("one");
+    await expect(Log.getLogEntries()).resolves.toHaveLength(1);
   });
 
   test("normalizes malformed and legacy session entries", async () => {
@@ -116,39 +116,39 @@ describe("Log", () => {
       null,
     ];
 
-    await expect(Log.get()).resolves.toEqual([
+    await expect(Log.getLogEntries()).resolves.toEqual([
       { at: "2026-01-01T00:00:00.000Z", message: "kept", data: "details" },
     ]);
 
-    await Log.add("new");
+    await Log.addLogEntry("new");
     expect(entries().map(({ message }) => message)).toEqual(["kept", "new"]);
 
     store[LOG_KEY] = { legacy: true };
-    await expect(Log.get()).resolves.toEqual([]);
-    await Log.add("recovered");
+    await expect(Log.getLogEntries()).resolves.toEqual([]);
+    await Log.addLogEntry("recovered");
     expect(entries().map(({ message }) => message)).toEqual(["recovered"]);
   });
 
   test("clear empties the log", async () => {
-    await Log.add("one");
-    await Log.clear();
-    await expect(Log.get()).resolves.toEqual([]);
+    await Log.addLogEntry("one");
+    await Log.clearLog();
+    await expect(Log.getLogEntries()).resolves.toEqual([]);
   });
 
   test("is a no-op without storage.session (older Firefox)", async () => {
     (global.browser.storage as any).session = undefined;
     vi.resetModules();
-    const BareLog = (await import("../../src/background/log.ts")).Log;
+    const BareLog = await import("../../src/background/log.ts");
 
-    await expect(BareLog.add("x")).resolves.toBeUndefined();
-    await expect(BareLog.get()).resolves.toEqual([]);
-    await expect(BareLog.clear()).resolves.toBeUndefined();
+    await expect(BareLog.addLogEntry("x")).resolves.toBeUndefined();
+    await expect(BareLog.getLogEntries()).resolves.toEqual([]);
+    await expect(BareLog.clearLog()).resolves.toBeUndefined();
   });
 
   test("get returns [] when the read fails", async () => {
     vi.mocked(global.browser.storage.session.get).mockRejectedValueOnce(new Error("gone"));
 
-    await expect(Log.get()).resolves.toEqual([]);
+    await expect(Log.getLogEntries()).resolves.toEqual([]);
   });
 
   test("add swallows storage failures and keeps the queue alive", async () => {
@@ -156,8 +156,8 @@ describe("Log", () => {
     // for later adds (SessionState.update swallows the rejection)
     vi.mocked(global.browser.storage.session.set).mockRejectedValueOnce(new Error("gone"));
 
-    await expect(Log.add("lost")).resolves.toBeUndefined();
-    await Log.add("kept");
+    await expect(Log.addLogEntry("lost")).resolves.toBeUndefined();
+    await Log.addLogEntry("kept");
 
     expect(entries().map((entry) => entry.message)).toEqual(["kept"]);
   });
@@ -165,6 +165,6 @@ describe("Log", () => {
   test("clear surfaces storage failures", async () => {
     vi.mocked(global.browser.storage.session.remove).mockRejectedValueOnce(new Error("gone"));
 
-    await expect(Log.clear()).rejects.toThrow("gone");
+    await expect(Log.clearLog()).rejects.toThrow("gone");
   });
 });

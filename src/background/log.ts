@@ -29,50 +29,52 @@ const normalizeLogEntries = (value: unknown): LogEntry[] =>
       )
     : [];
 
-export const Log = {
-  LIMIT: 200,
+export const LOG_LIMIT = 200;
 
-  serialize: (data: unknown): string | undefined => {
-    if (typeof data === "undefined") {
-      return undefined;
-    }
-    let serialized: string | undefined;
+export const serializeLogData = (data: unknown): string | undefined => {
+  if (typeof data === "undefined") {
+    return undefined;
+  }
+  let serialized: string | undefined;
+  try {
+    serialized = JSON.stringify(data);
+  } catch {
     try {
-      serialized = JSON.stringify(data);
+      serialized = String(data);
     } catch {
-      try {
-        serialized = String(data);
-      } catch {
-        serialized = "[Unserializable]";
-      }
+      serialized = "[Unserializable]";
     }
-    return serialized && serialized.length > 500 ? `${serialized.slice(0, 500)}…` : serialized;
-  },
-
-  // SessionState.update serialises the read-modify-write so concurrent adds
-  // don't drop entries; the ring buffer is bounded to LIMIT
-  add: (message: string, data?: unknown, writeOptions: PrivateWriteOptions = {}) => {
-    if (writeOptions.privateContext) return Promise.resolve();
-
-    const entry = {
-      at: new Date().toISOString(),
-      message,
-      data: Log.serialize(data),
-    };
-    return updateSession<LogEntry[]>(
-      sessionWriteState,
-      extensionSessionStorage,
-      LOG_STORAGE_KEY,
-      (stored) => [...normalizeLogEntries(stored), entry].slice(-Log.LIMIT),
-    );
-  },
-
-  get: async () => {
-    const res = await getSession(extensionSessionStorage, LOG_STORAGE_KEY);
-    return normalizeLogEntries(res[LOG_STORAGE_KEY]);
-  },
-
-  // Clearing is an explicit user action, so surface storage failures to the
-  // diagnostics panel instead of reporting success for a failed removal.
-  clear: () => extensionSessionStorage.remove(LOG_STORAGE_KEY),
+  }
+  return serialized && serialized.length > 500 ? `${serialized.slice(0, 500)}…` : serialized;
 };
+
+// SessionState.update serialises the read-modify-write so concurrent adds
+// don't drop entries; the ring buffer is bounded to LOG_LIMIT
+export const addLogEntry = (
+  message: string,
+  data?: unknown,
+  writeOptions: PrivateWriteOptions = {},
+) => {
+  if (writeOptions.privateContext) return Promise.resolve();
+
+  const entry = {
+    at: new Date().toISOString(),
+    message,
+    data: serializeLogData(data),
+  };
+  return updateSession<LogEntry[]>(
+    sessionWriteState,
+    extensionSessionStorage,
+    LOG_STORAGE_KEY,
+    (stored) => [...normalizeLogEntries(stored), entry].slice(-LOG_LIMIT),
+  );
+};
+
+export const getLogEntries = async () => {
+  const res = await getSession(extensionSessionStorage, LOG_STORAGE_KEY);
+  return normalizeLogEntries(res[LOG_STORAGE_KEY]);
+};
+
+// Clearing is an explicit user action, so surface storage failures to the
+// diagnostics panel instead of reporting success for a failed removal.
+export const clearLog = () => extensionSessionStorage.remove(LOG_STORAGE_KEY);

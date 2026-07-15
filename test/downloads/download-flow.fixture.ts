@@ -14,7 +14,7 @@
 import { BackgroundState } from "../../src/background/state.ts";
 import * as SessionState from "../../src/shared/session-state.ts";
 import { OffscreenClient } from "../../src/platform/offscreen-client.ts";
-import { Log } from "../../src/background/log.ts";
+import * as Log from "../../src/background/log.ts";
 import { SaveHistory } from "../../src/background/history.ts";
 import { getFilenameFromContentDispositionHeader } from "../../src/vendor/content-disposition.ts";
 import { extensionSessionStorage } from "../../src/platform/storage-areas.ts";
@@ -125,7 +125,7 @@ beforeEach(() => {
   configureDownloadPorts({
     runtime: backgroundRuntime,
     history: SaveHistory,
-    log: Log,
+    log: { add: (...args: Parameters<typeof Log.addLogEntry>) => Log.addLogEntry(...args) },
     retry: Download.retryViaFetch,
     sourceSidecar: () => Promise.resolve(),
   });
@@ -196,7 +196,7 @@ beforeEach(() => {
   vi.spyOn(SaveHistory, "patch").mockImplementation(() => Promise.resolve());
   vi.spyOn(SaveHistory, "setDownloadId").mockImplementation(() => Promise.resolve());
   vi.spyOn(SaveHistory, "setStatus").mockImplementation(() => Promise.resolve());
-  vi.spyOn(Log, "add").mockImplementation(() => Promise.resolve());
+  vi.spyOn(Log, "addLogEntry").mockImplementation(() => Promise.resolve());
 
   // Reset the emit stub between tests (it is a mock-factory vi.fn, not a spy)
   downloaded = vi.fn();

@@ -361,7 +361,7 @@ describe("onMessage", () => {
       true,
     );
     await waitForCall(clearResponse);
-    expect(Log.clear).toHaveBeenCalledOnce();
+    expect(Log.clearLog).toHaveBeenCalledOnce();
     expect(clearResponse).toHaveBeenCalledWith({ type: MESSAGE_TYPES.OK });
   });
 

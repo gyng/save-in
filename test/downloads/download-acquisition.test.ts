@@ -330,7 +330,7 @@ describe("renameAndDownload: fetchViaFetch", () => {
       state.info.url,
       expect.objectContaining({ credentials: "omit", redirect: "follow" }),
     );
-    expect(Log.add).not.toHaveBeenCalledWith("fetch download failed", expect.anything());
+    expect(Log.addLogEntry).not.toHaveBeenCalledWith("fetch download failed", expect.anything());
     expect(global.browser.downloads.download).toHaveBeenCalledWith(
       expect.objectContaining({ url: expect.stringMatching(/^blob:/) }),
     );
@@ -399,7 +399,7 @@ describe("renameAndDownload: fetchViaFetch", () => {
       const state = makeState();
       await Download.renameAndDownload(state);
 
-      expect(Log.add).toHaveBeenCalledWith(
+      expect(Log.addLogEntry).toHaveBeenCalledWith(
         "offscreen fetch failed",
         expect.stringContaining("offscreen boom"),
       );
@@ -422,7 +422,7 @@ describe("renameAndDownload: fetchViaFetch", () => {
 
     await Download.renameAndDownload(state);
 
-    expect(Log.add).toHaveBeenCalledWith(
+    expect(Log.addLogEntry).toHaveBeenCalledWith(
       "fetch download failed",
       expect.stringContaining("private fetch failed"),
       { privateContext: true },
@@ -439,7 +439,7 @@ describe("renameAndDownload: fetchViaFetch", () => {
 
     await Download.renameAndDownload(state);
 
-    expect(Log.add).toHaveBeenCalledWith(
+    expect(Log.addLogEntry).toHaveBeenCalledWith(
       "offscreen fetch failed",
       expect.stringContaining("offscreen failed"),
       { privateContext: true },

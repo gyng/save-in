@@ -89,7 +89,7 @@ describe("renameAndDownload: browserDownload", () => {
 
     // a fully failed download registers no adopted record
     expect([...downloadState.records.values()].some((r: any) => r.adopted)).toBe(false);
-    expect(Log.add).toHaveBeenCalledWith("downloads.download failed", "Error: disk full");
+    expect(Log.addLogEntry).toHaveBeenCalledWith("downloads.download failed", "Error: disk full");
     await vi.waitFor(() => expect(sessionStore.siPendingDownloads).toBe(0));
     expect([...Download.pendingStates.values()].flat()).not.toContain(state);
   });
@@ -405,7 +405,7 @@ describe("renameAndDownload: Log integration", () => {
 
     await Download.renameAndDownload(state);
 
-    expect(Log.add).toHaveBeenCalledWith(
+    expect(Log.addLogEntry).toHaveBeenCalledWith(
       "download requested",
       expect.objectContaining({ url: expect.any(String), path: expect.any(String), route: null }),
     );
@@ -883,11 +883,13 @@ describe("concurrent downloads (pendingStates)", () => {
       await import("../../src/downloads/ports.ts");
     const { backgroundRuntime: freshRuntime } = await import("../../src/background/runtime.ts");
     const { SaveHistory: freshHistory } = await import("../../src/background/history.ts");
-    const { Log: freshLog } = await import("../../src/background/log.ts");
+    const freshLog = await import("../../src/background/log.ts");
     configureFreshDownloadPorts({
       runtime: freshRuntime,
       history: freshHistory,
-      log: freshLog,
+      log: {
+        add: (...args: Parameters<typeof freshLog.addLogEntry>) => freshLog.addLogEntry(...args),
+      },
       retry: dl.Download.retryViaFetch,
       sourceSidecar: () => Promise.resolve(),
     });
@@ -974,7 +976,7 @@ describe("Download.launch (fire-and-forget with a user-facing failure)", () => {
         Download.launch(makeState({ info: { suggestedFilename: "x.png" } })),
       ).resolves.toEqual({ status: "failed" });
 
-      expect(Log.add).toHaveBeenCalledWith(
+      expect(Log.addLogEntry).toHaveBeenCalledWith(
         "renameAndDownload failed",
         expect.stringContaining("kaboom"),
       );
@@ -1019,7 +1021,7 @@ describe("Download.launch (fire-and-forget with a user-facing failure)", () => {
       }),
     );
 
-    expect(Log.add).toHaveBeenCalledWith(
+    expect(Log.addLogEntry).toHaveBeenCalledWith(
       "renameAndDownload failed",
       expect.stringContaining("private failure"),
       { privateContext: true },
@@ -1102,7 +1104,7 @@ describe("private browsing persistence", () => {
       adopted: true,
     });
     expect(SaveHistory.setDownloadId).not.toHaveBeenCalled();
-    expect(Log.add).not.toHaveBeenCalledWith("download requested", expect.anything());
+    expect(Log.addLogEntry).not.toHaveBeenCalledWith("download requested", expect.anything());
     expect(downloaded).not.toHaveBeenCalled();
     expect(backgroundRuntime.lastDownloadState).toBeUndefined();
   });

@@ -181,7 +181,7 @@ describe("handleDownloadMessage", () => {
 
     await waitForCall(sendResponse);
     expect(finalize).not.toHaveBeenCalled();
-    expect(Log.add).not.toHaveBeenCalledWith("source sidecar failed", expect.anything());
+    expect(Log.addLogEntry).not.toHaveBeenCalledWith("source sidecar failed", expect.anything());
     expect(sendResponse).toHaveBeenCalledOnce();
   });
 

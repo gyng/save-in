@@ -86,7 +86,7 @@ test("respects a revoked Firefox data permission", async () => {
   await Download.renameAndDownload(webhookState({ selectedUrl: "https://cdn.example/cat.jpg" }));
 
   await vi.waitFor(() =>
-    expect(Log.add).toHaveBeenCalledWith("webhook skipped: data permission not granted"),
+    expect(Log.addLogEntry).toHaveBeenCalledWith("webhook skipped: data permission not granted"),
   );
   expect(
     vi.mocked(global.fetch).mock.calls.filter(([, init]) => init?.method === "POST"),
@@ -118,8 +118,8 @@ test("a webhook failure does not change the successful download result or expose
     Download.renameAndDownload(webhookState({ selectedUrl: "https://cdn.example/cat.jpg" })),
   ).resolves.toMatchObject({ status: "started" });
 
-  await vi.waitFor(() => expect(Log.add).toHaveBeenCalledWith("webhook delivery failed"));
-  expect(Log.add).not.toHaveBeenCalledWith(
+  await vi.waitFor(() => expect(Log.addLogEntry).toHaveBeenCalledWith("webhook delivery failed"));
+  expect(Log.addLogEntry).not.toHaveBeenCalledWith(
     "webhook delivery failed",
     expect.stringContaining("secret"),
   );

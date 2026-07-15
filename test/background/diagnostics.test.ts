@@ -51,7 +51,7 @@ describe("background diagnostics", () => {
   test("reports worker health, configuration state, lifecycle, and recent failures", async () => {
     const diagnostics = await import("../../src/background/diagnostics.ts");
     const { backgroundRuntime } = await import("../../src/background/runtime.ts");
-    const { Log } = await import("../../src/background/log.ts");
+    const Log = await import("../../src/background/log.ts");
     backgroundRuntime.debug = true;
     backgroundRuntime.optionErrors = {
       paths: [{ sourceIndex: 2, message: "bad path", error: "invalid" }],
@@ -60,7 +60,7 @@ describe("background diagnostics", () => {
         { message: "warning", error: "ambiguous", warning: true },
       ],
     };
-    await Log.add("download failed", { reason: "denied" });
+    await Log.addLogEntry("download failed", { reason: "denied" });
     await diagnostics.recordDiagnosticLifecycle("configuration_reloaded");
 
     diagnostics.markBackgroundReady();

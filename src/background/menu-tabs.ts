@@ -11,7 +11,7 @@ import { DOWNLOAD_TYPES } from "../shared/constants.ts";
 import { Path } from "../routing/path.ts";
 import { Download } from "../downloads/download.ts";
 import type { DownloadInfo } from "../downloads/download-types.ts";
-import { Log } from "./log.ts";
+import { addLogEntry } from "./log.ts";
 import { backgroundRuntime } from "./runtime.ts";
 import { runBackgroundTask } from "./event-task.ts";
 import { isDownloadableTab } from "./downloadable-tab.ts";
@@ -177,7 +177,7 @@ export const handleTabMenuClick = async (
         } catch (error) {
           // The tab may have been closed manually while its save was starting;
           // that must not prevent later tabs in the batch from being saved.
-          await Log.add("saved tab close failed", String(error), {
+          await addLogEntry("saved tab close failed", String(error), {
             privateContext: t.incognito === true,
           });
         }
@@ -186,7 +186,7 @@ export const handleTabMenuClick = async (
   } catch (error) {
     // Download.launch reports per-item failures; this catches tab query and
     // batch orchestration failures that occur outside the download pipeline.
-    await Log.add("tab-strip save failed", String(error), {
+    await addLogEntry("tab-strip save failed", String(error), {
       privateContext: fromTab.incognito === true,
     });
   }

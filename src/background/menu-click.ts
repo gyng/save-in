@@ -19,7 +19,7 @@ import { currentTab } from "../platform/current-tab.ts";
 import type { CurrentTab } from "../platform/current-tab.ts";
 import type { DownloadInfo, DownloadPipelineState } from "../downloads/download-types.ts";
 import { backgroundRuntime } from "./runtime.ts";
-import { Log } from "./log.ts";
+import { addLogEntry } from "./log.ts";
 import { runBackgroundTask } from "./event-task.ts";
 import { resolveClickTarget, type ClickInfo } from "./menu-target.ts";
 import { rebuildMenus } from "./menu-rebuild.ts";
@@ -250,7 +250,7 @@ export const handleContextMenuClick = async (
         try {
           await webExtensionApi.tabs.remove(tabId);
         } catch (error) {
-          void Log.add("saved page tab close failed", String(error), { privateContext });
+          void addLogEntry("saved page tab close failed", String(error), { privateContext });
         }
       }
     }

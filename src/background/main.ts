@@ -17,7 +17,7 @@ import {
   WELCOME_PENDING_STORAGE_KEY,
   WELCOME_VERSION,
 } from "../shared/storage-keys.ts";
-import { Log } from "./log.ts";
+import { addLogEntry } from "./log.ts";
 import { currentTab, setCurrentTab, type CurrentTab } from "../platform/current-tab.ts";
 import { syncSourcePanelToTab, toggleSourcePanelForTab } from "./source-panel-state.ts";
 import { backgroundRuntime, resetRuntimeDiagnostics } from "./runtime.ts";
@@ -65,7 +65,7 @@ const recoverColdStartState = async (): Promise<void> => {
     // download event handler (which awaits backgroundRuntime.ready) touches them.
     hydrateDownloads(downloadsState, extensionSessionStorage),
     RefererRules.cleanupStaleRule().catch((error) =>
-      Log.add("Referer session rule cleanup failed", String(error)),
+      addLogEntry("Referer session rule cleanup failed", String(error)),
     ),
     recoverNotificationState(),
     ActiveTransfers.recover().then(async (records) => {
@@ -89,7 +89,7 @@ const recoverColdStartState = async (): Promise<void> => {
 };
 
 const reportInitFailure = (error: unknown): never => {
-  Log.add("init failed", String(error));
+  addLogEntry("init failed", String(error));
   throw error;
 };
 

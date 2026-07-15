@@ -67,7 +67,7 @@ type MenusFixture = typeof import("../../src/background/menu-build.ts") &
 let Menus: MenusFixture;
 let options: typeof import("../../src/config/options-data.ts").options;
 let OptionsManagement: typeof import("../../src/config/option.ts").OptionsManagement;
-let Log: typeof import("../../src/background/log.ts").Log;
+let Log: typeof import("../../src/background/log.ts");
 let Runtime: typeof import("../../src/background/runtime.ts").backgroundRuntime;
 
 type SetupOptions = {
@@ -89,7 +89,7 @@ const setupGlobals = async ({
   };
   ({ OptionsManagement } = await import("../../src/config/option.ts"));
   ({ options } = await import("../../src/config/options-data.ts"));
-  ({ Log } = await import("../../src/background/log.ts"));
+  Log = await import("../../src/background/log.ts");
   ({ backgroundRuntime: Runtime } = await import("../../src/background/runtime.ts"));
   const { setCurrentTab } = await import("../../src/platform/current-tab.ts");
   setCurrentTab(null);
@@ -128,7 +128,7 @@ const setupGlobals = async ({
   );
 
   OptionsManagement.loadOptions = vi.fn(() => Promise.resolve(options));
-  Log.add = vi.fn();
+  vi.spyOn(Log, "addLogEntry").mockImplementation(() => Promise.resolve());
 
   global.browser.storage.local.get = vi.fn(() => Promise.resolve(storedLocal));
   // Mock-boundary casts: these test doubles are partial shapes of the
@@ -345,7 +345,7 @@ describe("init", () => {
     await importIndex();
     await Runtime.ready;
 
-    expect(Log.add).toHaveBeenCalledWith(
+    expect(Log.addLogEntry).toHaveBeenCalledWith(
       "Referer session rule cleanup failed",
       "Error: stale rule",
     );
@@ -509,7 +509,7 @@ describe("init", () => {
     rejectLoad(new Error("storage broke"));
     await readyRejects;
 
-    expect(Log.add).toHaveBeenCalledWith("init failed", "Error: storage broke");
+    expect(Log.addLogEntry).toHaveBeenCalledWith("init failed", "Error: storage broke");
     expect(Menus.addRoot).not.toHaveBeenCalled();
   });
 });
@@ -620,7 +620,7 @@ describe("current tab tracking", () => {
 
     const onActivated = capturedOnActivated();
     await expect(onActivated({ tabId: 9, windowId: 1 })).resolves.toBeUndefined();
-    expect(Log.add).toHaveBeenCalledWith("tab activation failed", "Error: tab closed");
+    expect(Log.addLogEntry).toHaveBeenCalledWith("tab activation failed", "Error: tab closed");
   });
 
   test("onUpdated fetches the tab when none is tracked yet", async () => {

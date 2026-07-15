@@ -208,7 +208,7 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
       url: "https://x/error",
       source: "fetch-fallback-direct",
     });
-    expect(Log.add).toHaveBeenCalledWith("fetch download failed", "Error: HTTP 503");
+    expect(Log.addLogEntry).toHaveBeenCalledWith("fetch download failed", "Error: HTTP 503");
   });
 
   test("survives a service worker restart: retry works from the persisted record", async () => {
@@ -367,7 +367,7 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
     rejectFetch(new Error("aborted"));
 
     await expect(retry).resolves.toBe(true);
-    expect(Log.add).not.toHaveBeenCalledWith("fallback fetch failed", expect.anything());
+    expect(Log.addLogEntry).not.toHaveBeenCalledWith("fallback fetch failed", expect.anything());
   });
 
   test("records a private fetch failure without exposing it to shared state", async () => {
@@ -384,7 +384,7 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
 
     await expect(Download.retryViaFetch(101)).resolves.toBe(false);
 
-    expect(Log.add).toHaveBeenCalledWith("fallback fetch failed", "Error: network denied", {
+    expect(Log.addLogEntry).toHaveBeenCalledWith("fallback fetch failed", "Error: network denied", {
       privateContext: true,
     });
   });

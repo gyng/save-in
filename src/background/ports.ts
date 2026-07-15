@@ -9,7 +9,7 @@ import { currentTab } from "../platform/current-tab.ts";
 import { configureRoutingPorts } from "../routing/ports.ts";
 import { nextCounter, nextPrivateCounter, peekCounter } from "./counter.ts";
 import { SaveHistory } from "./history.ts";
-import { Log } from "./log.ts";
+import { addLogEntry } from "./log.ts";
 import { backgroundRuntime } from "./runtime.ts";
 import { counterWriteState } from "./state.ts";
 
@@ -17,7 +17,7 @@ export const configureBackgroundPorts = () => {
   configureDownloadPorts({
     runtime: backgroundRuntime,
     history: SaveHistory,
-    log: Log,
+    log: { add: addLogEntry },
     retry: Download.retryViaFetch,
     sourceSidecar: launchSourceSidecar,
   });

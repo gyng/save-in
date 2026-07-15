@@ -29,7 +29,7 @@ import {
   type ResponseFor,
 } from "../shared/message-protocol.ts";
 import { respondAsync, type SendResponse } from "./message-dispatch.ts";
-import { Log } from "./log.ts";
+import { addLogEntry, clearLog } from "./log.ts";
 import { SaveHistory } from "./history.ts";
 import { applyConfigSerialized } from "./config-apply.ts";
 import { configWriteState } from "./state.ts";
@@ -700,7 +700,7 @@ const internalHandlers = {
     });
   },
   [MESSAGE_TYPES.DIAGNOSTICS_CLEAR_FAILURES]: async (_request, _sender, sendResponse) => {
-    await Log.clear();
+    await clearLog();
     await recordDiagnosticLifecycle("failures_cleared");
     sendResponse({ type: MESSAGE_TYPES.OK });
   },
@@ -842,7 +842,7 @@ const dispatchMessage = <M extends InternalMessage>(
   // preserve the correlation between a union's discriminator and mapped value.
   const handler = Reflect.get(handlers, request.type) as unknown as Handler<M>;
   const reportFailure = (error: unknown) => {
-    void Log.add(
+    void addLogEntry(
       "message handler failed",
       {
         type: request.type,

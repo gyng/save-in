@@ -71,7 +71,7 @@ describe("notification variants", () => {
 
     await onChanged({ id: 7, error: { current: "NETWORK_FAILED" } });
 
-    expect(Log.add).toHaveBeenCalledWith(
+    expect(Log.addLogEntry).toHaveBeenCalledWith(
       "failure Save As download failed",
       expect.stringContaining("prompt failed"),
     );
@@ -91,7 +91,7 @@ describe("notification variants", () => {
 
     await onChanged({ id: 7, state: { current: "complete", previous: "in_progress" } });
 
-    expect(Log.add).toHaveBeenCalledWith(
+    expect(Log.addLogEntry).toHaveBeenCalledWith(
       "offscreen blob release failed",
       expect.stringContaining("release failed"),
     );
@@ -159,7 +159,7 @@ describe("notification variants", () => {
 
     await onChanged({ id: 7, error: { current: "NETWORK_FAILED" } });
 
-    expect(Log.add).toHaveBeenCalledWith("download failed", {
+    expect(Log.addLogEntry).toHaveBeenCalledWith("download failed", {
       id: 7,
       error: "NETWORK_FAILED",
     });
@@ -172,7 +172,7 @@ describe("notification variants", () => {
 
     await onChanged({ id: 7, state: { current: "interrupted", previous: "in_progress" } });
 
-    expect(Log.add).toHaveBeenCalledWith("download failed", { id: 7, error: true });
+    expect(Log.addLogEntry).toHaveBeenCalledWith("download failed", { id: 7, error: true });
     expect(global.browser.notifications.create).toHaveBeenCalledWith(
       "7",
       expect.objectContaining({ message: "Translated<genericUnknownError>" }),
@@ -209,7 +209,7 @@ describe("notification variants", () => {
 
     await onChanged({ id: 7, state: { current: "complete", previous: "in_progress" } });
 
-    expect(Log.add).toHaveBeenCalledWith("download complete", {
+    expect(Log.addLogEntry).toHaveBeenCalledWith("download complete", {
       id: 7,
       filename: "pic.png",
     });
