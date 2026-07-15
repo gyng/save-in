@@ -1,8 +1,8 @@
 @media (max-width: 640px) {
   .option-search {
     order: 10;
-    flex-basis: 100%;
-    width: 100%;
+    flex: 0 1 16rem;
+    width: min(16rem, 100%);
     margin: var(--space-1) 0 0;
   }
 
