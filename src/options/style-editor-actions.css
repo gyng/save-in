@@ -50,6 +50,48 @@
   opacity: 0.25;
 }
 
+:is(.path-editor-action-menu, .rule-editor-card-action-menu) .visual-editor-control {
+  gap: var(--space-2);
+}
+
+:is(.path-editor-action-menu, .rule-editor-card-action-menu) .visual-editor-control::before {
+  content: "";
+  flex: none;
+  width: 16px;
+  height: 16px;
+  background-color: currentColor;
+  mask-position: center;
+  mask-repeat: no-repeat;
+  mask-size: 16px 16px;
+}
+
+.path-editor-action-menu [data-path-action="outdent"]::before {
+  mask-image: url("i/action-outdent-16.svg");
+}
+
+.path-editor-action-menu [data-path-action="indent"]::before {
+  mask-image: url("i/action-indent-16.svg");
+}
+
+.path-editor-action-menu [data-path-action="move up"]::before,
+.rule-editor-card-action-menu [data-rule-action="up"]::before {
+  mask-image: url("i/action-move-up-16.svg");
+}
+
+.path-editor-action-menu [data-path-action="move down"]::before,
+.rule-editor-card-action-menu [data-rule-action="down"]::before {
+  mask-image: url("i/action-move-down-16.svg");
+}
+
+.path-editor-action-menu [data-path-action="delete"]::before,
+.rule-editor-card-action-menu [data-rule-action="delete"]::before {
+  mask-image: url("i/action-delete-16.svg");
+}
+
+.rule-editor-card-action-menu [data-rule-action="duplicate"]::before {
+  mask-image: url("i/action-duplicate-16.svg");
+}
+
 .visual-editor-row-actions {
   display: flex;
   align-items: baseline;
