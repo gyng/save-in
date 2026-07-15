@@ -171,7 +171,8 @@ body:not(#settings-page) {
 }
 
 .language-selector select {
-  max-width: 210px;
+  inline-size: 10rem;
+  max-inline-size: 100%;
   padding: var(--space-2) var(--space-3);
 }
 
