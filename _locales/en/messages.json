@@ -2904,8 +2904,8 @@
     "description": "Save In midnight-blue interface theme. Used in src/options/options.html."
   },
   "o_lUiThemePastelPink": {
-    "message": "Pastel pink",
-    "description": "Save In pastel-pink interface theme. Used in src/options/options.html."
+    "message": "Blush",
+    "description": "Save In soft rose and mauve interface theme. Used in src/options/options.html."
   },
   "o_lUiThemePaper": {
     "message": "Paper",
