@@ -54,6 +54,7 @@ label:has(> input[type="checkbox"]) > .caption-line {
 }
 
 .described-checkbox > label {
+  justify-self: start;
   margin: 0;
 }
 

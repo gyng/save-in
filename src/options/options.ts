@@ -738,9 +738,9 @@ const setupAutosave = (el: Element) => {
   const showSavedIndicator = () => {
     // Anchor the check to the row's .opt-title (content-width, wrapped below) so
     // it sits right after the label text; fall back to the label / the field.
-    const label = el.closest("label");
+    const label = el.closest("label") || el.labels?.item(0);
     const title = label && label.querySelector(":scope > .opt-title");
-    const target = el instanceof HTMLTextAreaElement ? el : title || el.parentElement;
+    const target = el instanceof HTMLTextAreaElement ? el : title || label || el.parentElement;
     if (!target) {
       return;
     }
