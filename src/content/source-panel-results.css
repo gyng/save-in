@@ -181,6 +181,9 @@ video,
   color: var(--color-text);
   background: var(--color-hover);
 }
+.batch-dialog::backdrop {
+  background: var(--color-backdrop);
+}
 .action-menu {
   inset: calc(100% + 4px) 0 auto auto;
 }

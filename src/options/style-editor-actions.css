@@ -88,6 +88,16 @@
   mask-image: url("i/action-delete-16.svg");
 }
 
+.path-editor-action-menu [data-path-action="save as"]::before {
+  mask-image: url("i/check-16.svg");
+}
+
+.path-editor-action-menu [data-path-action="save as"].is-active {
+  color: var(--link-color);
+  background: color-mix(in srgb, var(--color-selection) 12%, transparent);
+  opacity: 1;
+}
+
 .rule-editor-card-action-menu [data-rule-action="duplicate"]::before {
   mask-image: url("i/action-duplicate-16.svg");
 }
