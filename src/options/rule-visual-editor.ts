@@ -17,7 +17,7 @@ import {
   updateRoutingClause,
   type VisualRoutingRule,
 } from "./rule-visual-editor-model.ts";
-import { sortClauses, sortVariables } from "./vocabulary-groups.ts";
+import { clauseGroup, sortClauses, sortVariables } from "./vocabulary-groups.ts";
 import { isAutomaticRuleClauses } from "../routing/automatic-rule.ts";
 import { completeDirectorySyntax } from "./syntax-editor-model.ts";
 import { bindTabInteractions, syncTabSelection } from "./tab-controls.ts";
@@ -262,6 +262,7 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
           matcherSuggestions.map((matcher) => ({
             value: matcher,
             label: matcher,
+            group: clauseGroup(matcher),
             description: matcherDescription(matcher),
             meta: matcherTestValue(matcher),
           })),
@@ -528,7 +529,7 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
     actionsTrigger.setAttribute("aria-label", actionsLabel);
     actionsTrigger.title = actionsLabel;
     const actionsMenu = document.createElement("div");
-    actionsMenu.className = "rule-editor-card-action-menu";
+    actionsMenu.className = "rule-editor-card-action-menu menu-popover";
     const closeActions = () => (actions.open = false);
     const up = button(
       localize("routeVisualMoveUp", "Move rule up"),
@@ -647,7 +648,8 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
           rule.clauses.filter((clause) => clause.kind === "matcher").map((clause) => clause.name),
         ),
       ]),
-    ].toSorted((left, right) => left.localeCompare(right));
+    ];
+    matcherSuggestions = sortClauses(matcherSuggestions);
     cards.replaceChildren();
     if (documentModel.rules.length === 0) {
       const empty = document.createElement("div");

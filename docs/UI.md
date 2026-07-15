@@ -53,6 +53,8 @@ or feedback.
 - Controls use the shared height, radius, border, focus ring, and disabled state.
 - Buttons have explicit roles: default, primary, quiet, compact/icon, menu
   trigger, and danger. The same action has the same role across surfaces.
+- Action-menu popovers share one compact surface and row rhythm; feature owners
+  control only anchoring, width, and action-specific states such as danger.
 - Badges are either rectangular metadata labels or pill-shaped statuses. Color
   communicates a named semantic state, not a feature-specific improvisation.
 - Code has three treatments: inline token, block example, and plain monospace
@@ -113,9 +115,10 @@ or feedback.
   dropdown; autocomplete inserts a token within freeform text at the caret.
   Both use grouped two-row reference entries: syntax and the current/example
   value share the first row, with the description directly below. Matcher
-  suggestions are alphabetical and destination fields autocomplete variables.
-  The template library matches the compact reference disclosures; its floating
-  results scroll independently while the filter stays pinned.
+  suggestions use the same semantic groups and order as the clause reference;
+  destination fields autocomplete variables. The template library matches the
+  compact reference disclosures; its floating results scroll independently
+  while the filter stays pinned.
   Search, filter, and typeahead inputs are transient controls and must stay
   outside the settings autosave pipeline.
 - Reorderable rule cards use a dedicated drag grip so text fields remain safe

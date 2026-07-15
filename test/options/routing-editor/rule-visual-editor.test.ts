@@ -266,20 +266,32 @@ describe("routing visual editor", () => {
       ...(matcherDropdown?.querySelectorAll<HTMLButtonElement>('[role="option"]') ?? []),
     ];
     expect(
+      [...(matcherDropdown?.querySelectorAll(".typeahead-group") ?? [])].map(
+        (heading) => heading.textContent,
+      ),
+    ).toEqual([
+      "Page and menu context",
+      "URL and source matching",
+      "Filename and content matching",
+    ]);
+    expect(
       matcherOptions.map((option) => option.querySelector(".typeahead-option-label")?.textContent),
-    ).toEqual(["context", "filename", "sourceurl"]);
+    ).toEqual(["context", "sourceurl", "filename"]);
     expect(
       matcherOptions.map(
         (option) => option.querySelector(".typeahead-option-description")?.textContent,
       ),
     ).toEqual([
       "Matches how the save started.",
-      "Matches the resolved filename.",
       "Matches the source URL.",
+      "Matches the resolved filename.",
     ]);
     expect(
       matcherOptions.map((option) => option.querySelector(".typeahead-option-meta")?.textContent),
-    ).toEqual(["link", "report.pdf", "https://cdn.example/report.pdf"]);
+    ).toEqual(["link", "https://cdn.example/report.pdf", "report.pdf"]);
+    expect(matcher.getAttribute("aria-activedescendant")).toBe(
+      matcherOptions.find((option) => option.textContent?.includes("filename"))?.id,
+    );
     matcherOptions[0]!.click();
     expect(element<HTMLTextAreaElement>("#filenamePatterns").value).toContain("context/i:");
 

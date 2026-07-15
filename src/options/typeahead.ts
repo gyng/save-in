@@ -1,6 +1,7 @@
 export type TypeaheadItem = {
   value: string;
   label: string;
+  group?: string;
   description?: string;
   meta?: string;
   searchText?: string;
@@ -81,18 +82,25 @@ export const attachTypeahead = (
     if (listbox.hidden) return;
     const rect = input.getBoundingClientRect();
     const edge = 8;
+    const gap = 4;
     const preferredWidth = options.preferredWidth ?? rect.width;
-    const width = Math.min(
-      Math.max(rect.width, preferredWidth),
-      Math.max(0, window.innerWidth - edge * 2),
-    );
+    const availableWidth =
+      window.innerWidth > edge * 2 ? window.innerWidth - edge * 2 : preferredWidth;
+    const width = Math.min(Math.max(rect.width, preferredWidth), availableWidth);
     listbox.style.width = `${width}px`;
     const left = Math.max(edge, Math.min(rect.left, window.innerWidth - width - edge));
     listbox.style.left = `${left}px`;
-    listbox.style.top = "0";
-    const below = rect.bottom + 4;
-    listbox.style.maxHeight = `min(20rem, ${Math.max(0, window.innerHeight - below - edge)}px)`;
-    listbox.style.top = `${Math.max(edge, below)}px`;
+    listbox.style.maxHeight = "";
+    const desiredHeight = listbox.offsetHeight;
+    const spaceBelow = Math.max(0, window.innerHeight - rect.bottom - gap - edge);
+    const spaceAbove = Math.max(0, rect.top - gap - edge);
+    const openAbove = desiredHeight > spaceBelow && spaceAbove > spaceBelow;
+    const availableHeight = openAbove ? spaceAbove : spaceBelow;
+    const height = Math.min(desiredHeight, availableHeight);
+    listbox.style.maxHeight = `${height}px`;
+    listbox.style.top = openAbove
+      ? `${Math.max(edge, rect.top - gap - height)}px`
+      : `${Math.max(edge, rect.bottom + gap)}px`;
   };
 
   const setActive = (next: number): void => {
@@ -117,14 +125,21 @@ export const attachTypeahead = (
   };
 
   const render = (showAll = false): void => {
-    visibleItems = matchingItems(
-      availableItems(),
-      showAll ? "" : input.value,
-      options.maxResults ?? 12,
-    );
+    const items = availableItems();
+    const maxResults = showAll && input.readOnly ? items.length : (options.maxResults ?? 12);
+    visibleItems = matchingItems(items, showAll ? "" : input.value, maxResults);
     listbox.replaceChildren();
     if (visibleItems.length === 0) return close();
+    let previousGroup = "";
     visibleItems.forEach((item, index) => {
+      if (item.group && item.group !== previousGroup) {
+        const heading = document.createElement("div");
+        heading.className = "typeahead-group";
+        heading.setAttribute("role", "presentation");
+        heading.textContent = item.group;
+        listbox.append(heading);
+        previousGroup = item.group;
+      }
       const row = document.createElement("button");
       row.type = "button";
       row.id = `${listboxId}-option-${index}`;
@@ -154,8 +169,11 @@ export const attachTypeahead = (
     });
     listbox.hidden = false;
     input.setAttribute("aria-expanded", "true");
-    setActive(0);
     position();
+    const current = visibleItems.findIndex(
+      (item) => normalized(item.value) === normalized(input.value),
+    );
+    setActive(current >= 0 ? current : 0);
   };
 
   input.addEventListener("focus", () => render(true), listenerOptions);

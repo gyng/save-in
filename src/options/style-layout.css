@@ -93,14 +93,15 @@
   position: absolute;
   top: calc(100% + var(--space-1));
   inset-inline-end: 0;
-  width: min(32rem, calc(100dvi - 2 * var(--space-3)));
+  width: min(22.5rem, calc(100dvi - 2 * var(--space-3)));
   min-width: 100%;
   max-height: 20rem;
+  overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
-  padding: 4px;
-  border: 1px solid var(--color-border);
+  padding: var(--space-1);
+  border: 1px solid var(--panel-border);
   border-radius: var(--radius);
   background: var(--floating-bg);
   box-shadow: var(--floating-shadow);
@@ -113,7 +114,7 @@
   min-height: var(--compact-control-size);
   padding: 6px var(--space-2);
   border: 0;
-  border-radius: calc(var(--radius) - 2px);
+  border-radius: var(--radius-sm);
   background: transparent;
   text-align: start;
   line-height: 1.25;
@@ -139,7 +140,7 @@
 .option-search-result-location {
   overflow: hidden;
   color: var(--color-text-muted);
-  font-size: var(--text-xs);
+  font-size: var(--text-sm);
   font-weight: 400;
   line-height: 1.35;
   text-overflow: ellipsis;

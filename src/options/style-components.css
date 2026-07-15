@@ -100,6 +100,44 @@ details {
   margin: var(--space-1) 0 0;
 }
 
+/* Shared row atom for compact action menus. Feature owners still control
+   anchoring and width, while the surface and interactive rhythm stay uniform. */
+.menu-popover {
+  display: grid;
+  padding: var(--space-1);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  background: var(--floating-bg);
+  box-shadow: var(--floating-shadow);
+}
+
+.menu-popover > :where(a, button, label) {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: var(--compact-control-size);
+  margin: 0;
+  padding: var(--space-1) var(--space-2);
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  background: transparent;
+  font-size: var(--text-base);
+  font-weight: 400;
+  line-height: 1.25;
+  text-align: start;
+}
+
+.menu-popover > :where(a, button, label):hover {
+  background: var(--hover-bg);
+  text-decoration: none;
+}
+
+.menu-popover > a.external {
+  padding-inline-end: calc(20px + var(--space-2));
+  background-position: var(--external-icon-edge) var(--space-2) center;
+}
+
 /* Modern engines can interpolate intrinsic sizes directly, so disclosure
    panels do not need JavaScript measurements or a stale max-height guess. */
 @supports (interpolate-size: allow-keywords) and selector(details::details-content) {

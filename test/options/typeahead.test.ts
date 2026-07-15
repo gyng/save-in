@@ -76,6 +76,7 @@ describe("typeahead dropdown", () => {
     attachTypeahead(input, { items, onSelect: selected });
 
     input.focus();
+    expect(input.getAttribute("aria-activedescendant")).toBe("typeahead-picker-option-0");
     input.dispatchEvent(new KeyboardEvent("keydown", { key: "d", bubbles: true }));
     expect(input.value).toBe("images");
     expect(input.getAttribute("aria-activedescendant")).toBe("typeahead-picker-option-1");
@@ -85,6 +86,22 @@ describe("typeahead dropdown", () => {
     );
     expect(input.value).toBe("documents");
     expect(selected).toHaveBeenCalledWith(items[1]);
+  });
+
+  test("shows and activates a read-only value beyond the editable result limit", () => {
+    const input = document.querySelector<HTMLInputElement>("#picker")!;
+    const manyItems = Array.from({ length: 14 }, (_, index) => ({
+      value: `value-${index}`,
+      label: `Value ${index}`,
+    }));
+    input.value = "value-13";
+    input.readOnly = true;
+    attachTypeahead(input, { items: manyItems, onSelect: vi.fn() });
+
+    input.focus();
+    const dropdown = document.getElementById(input.getAttribute("aria-controls")!)!;
+    expect(dropdown.querySelectorAll('[role="option"]')).toHaveLength(14);
+    expect(input.getAttribute("aria-activedescendant")).toBe("typeahead-picker-option-13");
   });
 
   test("cleanup removes the floating listbox and combobox relationship", () => {
@@ -99,7 +116,7 @@ describe("typeahead dropdown", () => {
     expect(input.hasAttribute("aria-controls")).toBe(false);
   });
 
-  test("keeps the scrollable results below the input within the viewport", () => {
+  test("flips the scrollable results above when that side has more room", () => {
     const input = document.querySelector<HTMLInputElement>("#picker")!;
     vi.spyOn(window, "innerWidth", "get").mockReturnValue(320);
     vi.spyOn(window, "innerHeight", "get").mockReturnValue(240);
@@ -120,9 +137,31 @@ describe("typeahead dropdown", () => {
 
     input.focus();
 
-    expect(dropdown.style.top).toBe("220px");
+    expect(dropdown.style.top).toBe("16px");
     expect(dropdown.style.width).toBe("304px");
-    expect(dropdown.style.maxHeight).toBe("min(20rem, 12px)");
+    expect(dropdown.style.maxHeight).toBe("160px");
+  });
+
+  test("renders presentation-only group headings without disturbing option selection", () => {
+    const input = document.querySelector<HTMLInputElement>("#picker")!;
+    input.value = "documents";
+    attachTypeahead(input, {
+      items: [
+        { ...items[0]!, group: "Media" },
+        { ...items[1]!, group: "Files" },
+        { ...items[2]!, group: "Files" },
+      ],
+      onSelect: vi.fn(),
+    });
+
+    input.focus();
+    const dropdown = document.getElementById(input.getAttribute("aria-controls")!)!;
+    expect(
+      [...dropdown.querySelectorAll(".typeahead-group")].map((heading) => heading.textContent),
+    ).toEqual(["Media", "Files"]);
+    expect(dropdown.querySelectorAll('[role="presentation"]')).toHaveLength(2);
+    expect(dropdown.querySelectorAll('[role="option"]')).toHaveLength(3);
+    expect(input.getAttribute("aria-activedescendant")).toBe("typeahead-picker-option-1");
   });
 
   test("handles dynamic results, stale rows, and every keyboard boundary", () => {

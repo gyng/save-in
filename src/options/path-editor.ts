@@ -660,7 +660,7 @@ const PathEditorHelpers = {
         moreTrigger.title = moreLabel;
         moreTrigger.setAttribute("aria-label", moreLabel);
         const moreMenu = document.createElement("div");
-        moreMenu.className = "path-editor-action-menu";
+        moreMenu.className = "path-editor-action-menu menu-popover";
         controls.forEach((control) => {
           const button = document.createElement("button");
           button.type = "button";
