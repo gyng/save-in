@@ -82,20 +82,27 @@
 @keyframes saved-field-check {
   from {
     background-size: 16px 16px;
+    background-position: var(--saved-check-edge) calc(var(--saved-check-offset) + 1px)
+      var(--saved-check-y-from);
   }
 
   60% {
     background-size: 19px 19px;
+    background-position: var(--saved-check-edge) calc(var(--saved-check-offset) - 0.5px)
+      var(--saved-check-y-peak);
   }
 
   to {
     background-size: 18px 18px;
+    background-position: var(--saved-check-edge) var(--saved-check-offset) var(--saved-check-y-rest);
   }
 }
 
 .saved-base {
   --saved-check-edge: right;
   --saved-check-offset: 4px;
+  --saved-check-y-from: center;
+  --saved-check-y-peak: center;
   --saved-check-y-rest: center;
 
   background-image: url(i/check-16.svg);
@@ -117,6 +124,8 @@ label.saved-base,
 
 textarea.saved-base {
   --saved-check-offset: 7px;
+  --saved-check-y-from: top 8px;
+  --saved-check-y-peak: top 6.5px;
   --saved-check-y-rest: top 7px;
 
   padding-inline-end: 30px;
