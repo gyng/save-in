@@ -293,43 +293,72 @@ body:not(#settings-page) {
 }
 
 .privacy-content {
-  max-inline-size: 62ch;
+  max-inline-size: 60ch;
   margin-inline: auto;
   font-size: var(--text-base);
-  line-height: var(--leading-copy);
+  line-height: var(--leading-reading);
 }
 
 .privacy-content h1 {
-  margin-block: 0 var(--space-1);
+  margin-block: 0 var(--space-2);
   margin-inline: 0 var(--space-6);
-  font-size: var(--text-xl);
+  font-size: var(--text-2xl);
   font-weight: 600;
-  line-height: 1.2;
-  letter-spacing: -0.015em;
+  line-height: 1.15;
+  letter-spacing: -0.025em;
 }
 
 .privacy-content p,
 .privacy-content ul {
-  margin: 0 0 var(--space-3);
+  margin: 0 0 var(--space-4);
+}
+
+.privacy-content ul {
+  padding-inline-start: var(--space-5);
+}
+
+.privacy-content li + li {
+  margin-block-start: var(--space-1);
 }
 
 .privacy-content h1 + p {
-  margin-bottom: var(--space-5);
+  margin-bottom: var(--space-6);
   color: var(--color-text-muted);
   font-size: var(--text-sm);
-  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  line-height: var(--leading-ui);
+  letter-spacing: 0.01em;
 }
 
 .privacy-content h2 {
-  margin: var(--space-5) 0 var(--space-2);
+  margin: var(--space-6) 0 var(--space-3);
   font-size: var(--text-lg);
   font-weight: 600;
-  line-height: 1.3;
+  line-height: 1.35;
   letter-spacing: -0.01em;
 }
 
 .privacy-content a {
   overflow-wrap: anywhere;
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.16em;
+}
+
+.privacy-content > :last-child {
+  margin-bottom: 0;
+}
+
+@supports (text-wrap: balance) {
+  .privacy-content :is(h1, h2) {
+    text-wrap: balance;
+  }
+}
+
+@supports (text-wrap: pretty) {
+  .privacy-content p {
+    text-wrap: pretty;
+  }
 }
 
 .dialog-close,

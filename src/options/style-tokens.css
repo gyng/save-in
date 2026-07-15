@@ -19,8 +19,10 @@
   --text-base: 15px;
   --text-lg: 17px;
   --text-xl: 22px;
+  --text-2xl: 28px;
   --leading-ui: 1.3;
   --leading-copy: 1.5;
+  --leading-reading: 1.6;
   --leading-code: 1.6;
 
   /* Shape, control, and layout */

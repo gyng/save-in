@@ -191,7 +191,7 @@ for (const file of styles) {
   const typographyPolicies = [
     {
       property: "font-size",
-      allowed: /^(?:var\(--text-(?:xs|sm|base|lg|xl)\)|inherit)$/,
+      allowed: /^(?:var\(--text-(?:xs|sm|base|lg|xl|2xl)\)|inherit)$/,
     },
     {
       property: "font-family",

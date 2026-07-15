@@ -199,6 +199,10 @@ a second pattern beside an equivalent setting.
 - Motion has a `prefers-reduced-motion` fallback.
 - Compact metadata may use `--text-xs`; instructions, errors, and actionable
   status stay at least `--text-sm`.
+- Long-form documents use the shared `--text-2xl` title and
+  `--leading-reading` rhythm, with a roughly 60-character measure. Keep their
+  body copy at `--text-base`; use spacing and heading weight for hierarchy
+  instead of shrinking supporting text.
 
 ## Responsive and localization rules
 
