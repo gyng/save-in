@@ -322,20 +322,27 @@ export const toggleSourcePanel = (
   const exposeShadowForTests = SAVE_IN_CONTENT_E2E === true;
   const shadow = host.attachShadow({ mode: exposeShadowForTests ? "open" : "closed" });
   let panelMenuFrame: number | undefined;
+  type OpenPanelMenu = { trigger: HTMLElement; menu: HTMLElement };
+  const openPanelMenus = new Map<HTMLDetailsElement, OpenPanelMenu>();
   const positionPanelMenus = () => {
     panelMenuFrame = undefined;
-    shadow.querySelectorAll<HTMLDetailsElement>("details[open]").forEach((details) => {
-      const trigger = [...details.children].find((child): child is HTMLElement =>
-        child.matches("summary"),
-      );
-      const menu = [...details.children].find((child): child is HTMLElement =>
-        child.matches(".dock-menu, .action-menu"),
-      );
-      if (!trigger || !menu) return;
+    const panelBounds = panel.getBoundingClientRect();
+    openPanelMenus.forEach(({ trigger, menu }, details) => {
+      if (!details.isConnected || !trigger.isConnected || !menu.isConnected) {
+        openPanelMenus.delete(details);
+        return;
+      }
       menu.style.inset = "auto";
       positionFloatingElement(menu, trigger.getBoundingClientRect(), {
         align: getComputedStyle(details).direction === "rtl" ? "start" : "end",
         prefer: "below",
+        relativeTo: panelBounds,
+        viewport: {
+          left: panelBounds.left,
+          top: panelBounds.top,
+          width: panelBounds.width,
+          height: panelBounds.height,
+        },
       });
     });
   };
@@ -343,7 +350,6 @@ export const toggleSourcePanel = (
     if (panelMenuFrame !== undefined) cancelAnimationFrame(panelMenuFrame);
     panelMenuFrame = requestAnimationFrame(positionPanelMenus);
   };
-  shadow.addEventListener("toggle", schedulePanelMenuPosition, true);
   shadow.addEventListener("scroll", schedulePanelMenuPosition, true);
   window.addEventListener("resize", schedulePanelMenuPosition);
   window.visualViewport?.addEventListener("resize", schedulePanelMenuPosition);
@@ -362,6 +368,30 @@ export const toggleSourcePanel = (
   panel.className = "panel";
   panel.setAttribute("role", "dialog");
   panel.setAttribute("aria-label", copy.title);
+  const setPanelMenuOpen = (
+    details: HTMLDetailsElement,
+    trigger: HTMLElement,
+    menu: HTMLElement,
+    open: boolean,
+  ) => {
+    if (open) {
+      openPanelMenus.forEach((entry, candidate) => {
+        if (candidate !== details) setPanelMenuOpen(candidate, entry.trigger, entry.menu, false);
+      });
+      details.open = true;
+      trigger.setAttribute("aria-expanded", "true");
+      menu.hidden = false;
+      panel.append(menu);
+      openPanelMenus.set(details, { trigger, menu });
+      schedulePanelMenuPosition();
+      return;
+    }
+    openPanelMenus.delete(details);
+    details.open = false;
+    trigger.setAttribute("aria-expanded", "false");
+    menu.hidden = true;
+    details.append(menu);
+  };
   let layout = { ...sourcePanelLayout };
   const currentDock = (): PanelDock =>
     /* v8 ignore next -- The host dock is written exclusively from this fixed list. */
@@ -513,9 +543,12 @@ export const toggleSourcePanel = (
   dockButton.className = "header-button dock";
   setButtonIcon(dockButton, "dock");
   dockButton.setAttribute("aria-label", copy.changeDockLabel);
+  dockButton.setAttribute("aria-haspopup", "menu");
+  dockButton.setAttribute("aria-expanded", "false");
   const dockMenu = document.createElement("div");
   dockMenu.className = "dock-menu";
   dockMenu.setAttribute("role", "menu");
+  dockMenu.hidden = true;
   const placementButtons = new Map<PanelPlacement, HTMLButtonElement>();
   ([...PANEL_DOCKS, "floating"] as const).forEach((placement) => {
     const button = document.createElement("button");
@@ -525,7 +558,7 @@ export const toggleSourcePanel = (
     button.textContent = copy.dockPositions[placement];
     button.addEventListener("click", () => {
       layout.placement = placement;
-      dockPicker.open = false;
+      setPanelMenuOpen(dockPicker, dockButton, dockMenu, false);
       applyLayout();
       commitLayout();
     });
@@ -544,6 +577,10 @@ export const toggleSourcePanel = (
     });
   };
   dockPicker.append(dockButton, dockMenu);
+  dockButton.addEventListener("click", (event) => {
+    event.preventDefault();
+    setPanelMenuOpen(dockPicker, dockButton, dockMenu, !dockPicker.open);
+  });
   applyLayout();
   const closePanel = () => {
     closePanelHost(host);
@@ -1127,11 +1164,14 @@ export const toggleSourcePanel = (
       more.className = "row-more";
       const moreButton = document.createElement("summary");
       moreButton.setAttribute("aria-label", copy.moreActions);
+      moreButton.setAttribute("aria-haspopup", "menu");
+      moreButton.setAttribute("aria-expanded", "false");
       moreButton.title = copy.moreActions;
       moreButton.textContent = "•••";
       const actionMenu = document.createElement("div");
       actionMenu.className = "action-menu";
       actionMenu.setAttribute("role", "menu");
+      actionMenu.hidden = true;
       const locate = document.createElement("button");
       locate.type = "button";
       locate.setAttribute("role", "menuitem");
@@ -1139,7 +1179,7 @@ export const toggleSourcePanel = (
       let locateHighlightTimer = 0;
       locate.textContent = copy.locate;
       locate.addEventListener("click", () => {
-        more.open = false;
+        setPanelMenuOpen(more, moreButton, actionMenu, false);
         source.element.scrollIntoView?.({ behavior: "smooth", block: "center" });
         if (source.element instanceof HTMLElement) {
           const target = source.element;
@@ -1185,12 +1225,9 @@ export const toggleSourcePanel = (
         actionMenu.append(copyCommand);
       }
       more.append(moreButton, actionMenu);
-      more.addEventListener("toggle", () => {
-        if (!more.open) return;
-        dockPicker.open = false;
-        list.querySelectorAll<HTMLDetailsElement>(".row-more[open]").forEach((candidate) => {
-          if (candidate !== more) candidate.open = false;
-        });
+      moreButton.addEventListener("click", (event) => {
+        event.preventDefault();
+        setPanelMenuOpen(more, moreButton, actionMenu, !more.open);
       });
       actions.append(save, more);
       const previewHighlightOwner = {};
@@ -1314,7 +1351,7 @@ export const toggleSourcePanel = (
         hovered = false;
         focused = false;
         syncPreview();
-        more.open = false;
+        setPanelMenuOpen(more, moreButton, actionMenu, false);
         window.clearTimeout(locateHighlightTimer);
         if (source.element instanceof HTMLElement)
           releaseHighlight(source.element, locateHighlightOwner);
@@ -1375,22 +1412,20 @@ export const toggleSourcePanel = (
       });
   });
   const closeOpenMenus = () => {
-    let closed = false;
-    if (dockPicker.open) {
-      dockPicker.open = false;
-      closed = true;
-    }
-    list.querySelectorAll<HTMLDetailsElement>(".row-more[open]").forEach((details) => {
-      details.open = false;
-      closed = true;
+    const entries = [...openPanelMenus];
+    entries.forEach(([details, { trigger, menu }]) => {
+      setPanelMenuOpen(details, trigger, menu, false);
     });
-    return closed;
+    return entries.length > 0;
   };
   const closeMenusOutside = (event: PointerEvent) => {
     if (event.target !== host) closeOpenMenus();
   };
   const closeMenusInsidePanel = (event: Event) => {
-    if (event.target instanceof Element && event.target.closest(".dock-picker, .row-more") !== null)
+    if (
+      event.target instanceof Element &&
+      event.target.closest(".dock-picker, .row-more, .dock-menu, .action-menu") !== null
+    )
       return;
     closeOpenMenus();
   };
@@ -1577,7 +1612,6 @@ export const toggleSourcePanel = (
     document.removeEventListener("pointerdown", closeMenusOutside, true);
     shadow.removeEventListener("pointerdown", closeMenusInsidePanel);
     if (panelMenuFrame !== undefined) cancelAnimationFrame(panelMenuFrame);
-    shadow.removeEventListener("toggle", schedulePanelMenuPosition, true);
     shadow.removeEventListener("scroll", schedulePanelMenuPosition, true);
     window.removeEventListener("resize", schedulePanelMenuPosition);
     window.visualViewport?.removeEventListener("resize", schedulePanelMenuPosition);

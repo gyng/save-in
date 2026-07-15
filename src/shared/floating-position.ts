@@ -91,6 +91,8 @@ export const floatingViewport = (): FloatingViewport => {
 };
 
 type PositionFloatingElementOptions = FloatingPlacementOptions & {
+  relativeTo?: Pick<FloatingRect, "left" | "top">;
+  viewport?: FloatingViewport;
   width?: number;
 };
 
@@ -99,7 +101,8 @@ export const positionFloatingElement = (
   anchor: FloatingRect,
   options: PositionFloatingElementOptions = {},
 ): FloatingPlacement => {
-  element.style.position = "fixed";
+  if (options.relativeTo) element.style.position = "absolute";
+  else element.style.position = "fixed";
   element.style.maxWidth = "";
   element.style.maxHeight = "";
   if (options.width !== undefined) element.style.width = `${options.width}px`;
@@ -107,7 +110,7 @@ export const positionFloatingElement = (
   const placement = calculateFloatingPlacement(
     anchor,
     { width: bounds.width, height: bounds.height },
-    floatingViewport(),
+    options.viewport ?? floatingViewport(),
     options,
   );
   if (options.width !== undefined) {
@@ -115,7 +118,7 @@ export const positionFloatingElement = (
   }
   element.style.maxWidth = `${placement.maxWidth}px`;
   element.style.maxHeight = `${placement.maxHeight}px`;
-  element.style.left = `${placement.left}px`;
-  element.style.top = `${placement.top}px`;
+  element.style.left = `${placement.left - (options.relativeTo?.left ?? 0)}px`;
+  element.style.top = `${placement.top - (options.relativeTo?.top ?? 0)}px`;
   return placement;
 };

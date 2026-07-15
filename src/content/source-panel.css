@@ -89,6 +89,7 @@
 }
 
 .panel {
+  position: relative;
   display: flex;
   flex-direction: column;
   min-width: 0;
@@ -287,6 +288,10 @@ summary:focus-visible {
   background: var(--color-surface-page);
   box-shadow: var(--floating-shadow);
 }
+.dock-menu[hidden],
+.action-menu[hidden] {
+  display: none;
+}
 .dock-menu {
   inset: calc(100% + 4px) 0 auto auto;
 }
@@ -327,16 +332,10 @@ summary:focus-visible {
 }
 .facets {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: var(--source-space-1);
-  overflow-x: auto;
-  overscroll-behavior-inline: contain;
   padding: 0 10px 6px;
   border-bottom: 1px solid var(--color-border);
-  scrollbar-width: none;
-}
-.facets::-webkit-scrollbar {
-  display: none;
 }
 .facet {
   display: inline-flex;

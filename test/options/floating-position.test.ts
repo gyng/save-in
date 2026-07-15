@@ -124,5 +124,17 @@ describe("floating placement", () => {
     element.getBoundingClientRect = vi.fn(() => ({ width: 120, height: 40 }) as DOMRect);
     positionFloatingElement(element, { left: 30, right: 80, top: 40, bottom: 60 });
     expect(element.style.maxHeight).not.toBe("");
+
+    positionFloatingElement(
+      element,
+      { left: 350, right: 390, top: 70, bottom: 90 },
+      {
+        relativeTo: { left: 100, top: 50 },
+        viewport: { left: 100, top: 50, width: 320, height: 240 },
+      },
+    );
+    expect(element.style.position).toBe("absolute");
+    expect(element.style.left).toBe("192px");
+    expect(element.style.top).toBe("44px");
   });
 });

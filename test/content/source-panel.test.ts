@@ -208,23 +208,26 @@ describe("Page Sources panel interactions", () => {
     const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
     const dockPicker = shadow.querySelector<HTMLDetailsElement>(".dock-picker")!;
     const rowMore = shadow.querySelector<HTMLDetailsElement>(".row-more")!;
+    const dockTrigger = dockPicker.querySelector<HTMLElement>("summary")!;
+    const moreTrigger = rowMore.querySelector<HTMLElement>("summary")!;
     const locate = rowMore.querySelector<HTMLButtonElement>("button")!;
 
-    rowMore.open = true;
+    moreTrigger.click();
     locate.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, composed: true }));
     expect(rowMore.open).toBe(true);
+    expect(locate.closest(".panel")).not.toBeNull();
     locate.click();
     expect(image.scrollIntoView).toHaveBeenCalledOnce();
 
-    dockPicker.open = true;
+    dockTrigger.click();
     document.body.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
     expect(dockPicker.open).toBe(false);
 
-    rowMore.open = true;
+    moreTrigger.click();
     document.body.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
     expect(rowMore.open).toBe(false);
 
-    rowMore.open = true;
+    moreTrigger.click();
     shadow
       .querySelector<HTMLElement>(".panel")!
       .dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
@@ -269,6 +272,19 @@ describe("Page Sources panel interactions", () => {
     const rowMore = shadow.querySelector<HTMLDetailsElement>(".row-more")!;
     const trigger = rowMore.querySelector<HTMLElement>("summary")!;
     const menu = rowMore.querySelector<HTMLElement>(".action-menu")!;
+    vi.spyOn(shadow.querySelector<HTMLElement>(".panel")!, "getBoundingClientRect").mockReturnValue(
+      {
+        left: 0,
+        top: 0,
+        right: 320,
+        bottom: 240,
+        width: 320,
+        height: 240,
+        x: 0,
+        y: 0,
+        toJSON: () => ({}),
+      },
+    );
     vi.spyOn(trigger, "getBoundingClientRect").mockReturnValue({
       left: 280,
       top: 210,
@@ -292,11 +308,11 @@ describe("Page Sources panel interactions", () => {
       toJSON: () => ({}),
     });
 
-    rowMore.open = true;
-    rowMore.dispatchEvent(new Event("toggle"));
+    trigger.click();
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
 
-    expect(menu.style.position).toBe("fixed");
+    expect(menu.style.position).toBe("absolute");
+    expect(menu.parentElement).toBe(shadow.querySelector(".panel"));
     expect(menu.style.left).not.toBe("");
     expect(menu.style.top).not.toBe("");
   });
