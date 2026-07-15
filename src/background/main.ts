@@ -123,9 +123,10 @@ export const start = () => {
     if (details.reason === "install") {
       void recordDiagnosticLifecycle("extension_installed");
     } else if (details.reason === "update") {
-      void recordDiagnosticLifecycle("extension_updated", {
-        ...(details.previousVersion ? { previousVersion: details.previousVersion } : {}),
-      });
+      void recordDiagnosticLifecycle(
+        "extension_updated",
+        details.previousVersion ? { previousVersion: details.previousVersion } : {},
+      );
     }
     if (details.reason !== "install") return undefined;
     return runBackgroundTask("first-install options failed", async () => {

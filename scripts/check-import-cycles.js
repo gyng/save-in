@@ -241,6 +241,7 @@ const listenerOwners = new Set([
   "src/offscreen.ts",
   "src/options/options.ts",
   "src/options/permissions-banner.ts",
+  "src/options/source-rule-draft.ts",
 ]);
 for (const file of files) {
   const source = fs.readFileSync(file, "utf8");

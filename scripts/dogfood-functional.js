@@ -324,7 +324,7 @@ const checkHistoryLifecycle = async (session) => {
       `(() => {
         const row = [...document.querySelectorAll("#history-list tr")]
           .find((item) => item.textContent.includes("cancel-me.bin"));
-        return row?.querySelector(".status-badge")?.textContent?.trim() === "user canceled" &&
+        return row?.querySelector(".status-badge")?.textContent?.trim() === "Canceled" &&
           !row.querySelector(".history-cancel");
       })()`,
       "canceled History UI",
@@ -419,11 +419,18 @@ const checkHistoryLifecycle = async (session) => {
     await cdp.evalInTarget(
       session.port,
       OPTIONS_TARGET,
+      `document.querySelector("#history-clear").click(); true`,
+    );
+    // Clearing asks through an in-app dialog, not window.confirm.
+    await waitForValue(
+      session,
       `(() => {
-        globalThis.confirm = () => true;
-        document.querySelector("#history-clear").click();
+        const confirm = document.querySelector(".history-clear-dialog .button-danger");
+        if (!confirm) return false;
+        confirm.click();
         return true;
       })()`,
+      "History clear confirmation dialog",
     );
     await waitForValue(
       session,

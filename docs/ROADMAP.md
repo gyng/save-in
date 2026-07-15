@@ -22,11 +22,11 @@ Not features — release hygiene that unblocks everything below.
 ## 4.1 — coverage and control
 
 Shipped while 4.0.x patches absorb feedback. Five tracks. The first two are
-ordered — the template collections build on `fetch:` — and the remaining
-three are independent of each other and can land in any order.
+implemented (see the 4.1.0 changelog); the remaining three are independent
+of each other and can land in any order.
 
-1. Routing grammar: `fetch:` URL rewriting (#137) — decided, in progress.
-2. Site template collections (#187, #189, #209, #210, #211) — after `fetch:`.
+1. Routing grammar: `fetch:` URL rewriting (#137) — landed.
+2. Site template collections (#187, #189, #209, #210, #211) — landed.
 3. Page Sources automatic scan: link-discovered sources.
 4. Per-site disable list (#183).
 5. Undo last save (#102).
@@ -34,8 +34,8 @@ three are independent of each other and can land in any order.
 ### Routing grammar: `fetch:` URL rewriting (#137)
 
 The grammar RFC planned for 4.1 resolved early: 4.1 ships URL rewriting as a
-`fetch:` clause and rejects conditionals (#180) and continuous rules (#171)
-— rationale under non-goals. `fetch:` adds a capability the grammar lacked
+`fetch:` clause (landed) and rejects conditionals (#180) and continuous
+rules (#171) — rationale under non-goals. `fetch:` adds a capability the grammar lacked
 (choosing the URL that gets downloaded), requires no change to the ordered
 first-match router, and directly unblocks the site-originals templates
 below. It extends the single `filenamePatterns` grammar and its editor; no
@@ -57,29 +57,15 @@ ordinary-download routing — `downloads.onDeterminingFilename` can rename a
 browser download but cannot swap its URL. Shadow diagnostics treat fetch and
 non-fetch rules separately.
 
-Remaining work, in order:
-
-- Pipeline: the download-plan rewrite step in `downloads/download.ts`
-  (template expansion, plan invalidation, disposition-filename factoring),
-  the ordinary-download eligibility seam in `downloads/filename-listener.ts`,
-  and the fetch template through automatic saves and messaging.
-- Diagnostics: route-debugger trace gains per-rule fetch state, the selected
-  template, and the rewritten URL, with two-stage expansion; new rule-error
-  keys in `_locales/en`.
-- Editor surfaces: insert menu and autocomplete vocabulary (excluding banned
-  variables), syntax-editor tokens and completions, a visual-editor row
-  ("Rewrite download URL"), and a route-debugger stage row.
-- Reference and guides: clause reference tables on the options and reference
-  pages, `check-reference-vocabulary`, the routing guide and AI-prompt block,
-  integration-grammar prose, and updates to
-  [AUTOMATIC-SOURCE-SAVES](AUTOMATIC-SOURCE-SAVES.md) and
-  [INTEGRATIONS](INTEGRATIONS.md).
-- i18n: every new key translated in the generated catalogs; `check:i18n`
-  stays green.
-
-Tests: parser/matcher/expansion unit matrices (in place with the core),
-pipeline and ordinary-seam and automatic-save coverage, debugger trace tests,
-editor tests. The changelog entry cites #137 when it lands.
+All layers landed together: the download-plan rewrite step (template
+expansion, plan invalidation, disposition-filename re-resolution), the
+rename-only seam for ordinary downloads, the fetch template through
+automatic saves and messaging, route-debugger trace fields with two-stage
+expansion, the editor surfaces (insert menu, autocomplete minus banned
+variables, syntax tokens, a "Rewrite download URL" visual-editor row, a
+debugger stage row), the clause references and guides, and translated
+catalog keys — each with unit coverage, plus both browsers' e2e suites. The
+4.1.0 changelog entry cites #137.
 
 ### Site template collections (#187, #189, #209, #210, #211)
 

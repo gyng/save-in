@@ -36,6 +36,14 @@ The `into:` value uses the normal routing path and variable syntax. A trailing
 slash preserves the resolved source filename. Rules can instead rename the file
 with variables such as `:filename:`, `:pagedomain:`, or date components.
 
+An automatic rule may also carry a `fetch:` clause. When the rule matches, Save
+In downloads from the expanded template instead of the discovered source URL —
+for example, to save the original-resolution asset behind a preview the page
+linked to — while `into:` still chooses the destination and filename. The
+rewrite applies to unattended saves the same way it applies to interactive
+ones; see [Integrations](INTEGRATIONS.md#config-messages) for the clause's
+syntax and error identifiers.
+
 ## Matching rules
 
 Automatic discovery supplies the synthetic routing context `AUTO`. The

@@ -242,8 +242,8 @@ export const setupTabs = ({
     } else {
       // Migrate the pre-4.0 positional value without losing the user's tab.
       const saved = stored == null ? Number.NaN : parseInt(stored, 10);
-      if (!Number.isNaN(saved) && saved >= 0 && saved < LEGACY_POSITION_KEYS.length) {
-        const storedLegacyKey = LEGACY_POSITION_KEYS[saved]!;
+      const storedLegacyKey = LEGACY_POSITION_KEYS[saved];
+      if (storedLegacyKey !== undefined) {
         const legacyKey = STORED_TAB_REDIRECTS[storedLegacyKey] ?? storedLegacyKey;
         const legacyIndex = sections.findIndex(({ key }) => key === legacyKey);
         initial = legacyIndex >= 0 ? legacyIndex : saved;

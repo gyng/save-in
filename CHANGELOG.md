@@ -1,3 +1,21 @@
+# 4.1.0
+
+- Added the `fetch:` routing clause: a matching rule can rewrite the download
+  address before saving, using captures and routing variables (#137). Save In
+  saves and automatic Page Sources saves honor the rewrite; ordinary browser
+  download routing skips rewriting rules because a started download can only
+  be renamed. The visual editor, autocomplete, route debugger, and references
+  cover the new clause.
+- Added two rule template collections: **Site originals** rewrites Twitter/X,
+  Reddit, Wikimedia, and YouTube media to their original-quality URLs, and
+  **Site filing** names saves after site context for Twitter/X, Instagram,
+  and DeviantArt, including scheme-free and slugged page names (#187, #189,
+  #209, #210, #211).
+- Added six themes: the One Dark, Tokyo Night, and Catppuccin classics, and
+  three Save In themes — Glacier (cool light blue), Matcha (soft light green),
+  and Ember (warm dark amber). Pastel pink's pressed button color now darkens
+  like the other light themes.
+
 # 4.0.0
 
 Version 4 is an extensive revamp. It modernizes browser support and makes

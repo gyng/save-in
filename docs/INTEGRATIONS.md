@@ -115,6 +115,8 @@ const response = await browser.runtime.sendMessage(SAVE_IN_ID, {
 // body.ruleErrors is [] and body.automaticTrace.selectedRule is 1.
 ```
 
+A rule may also carry one `fetch:` clause: a literal `http://` or `https://` URL template that Save In downloads from instead of the matched source once the rule wins, while `into:` keeps setting the destination. `VALIDATE` reports violations in `ruleErrors[].message`: `ruleExtraFetch` (a rule has more than one `fetch:` clause), `ruleFetchNotHttp` (the template is not a literal http(s) URL), and `ruleFetchUnsupportedVariable` (the template references a variable that would fetch the URL being replaced, such as `:mime:` or `:sha256:`). Rules carrying `fetch:` are skipped by ordinary-browser-download routing, which can only rename a download, not redirect it to a different URL; the first matching rule without `fetch:` applies there instead.
+
 Check for the `vocabulary`, `grammar`, and `automatic_routing_validation` capabilities before using these additive API v1 features. Older callers can ignore the new capability and response fields.
 
 `autoDownloadRules` remains accepted as a legacy configuration field. The
