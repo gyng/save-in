@@ -16,6 +16,7 @@ import {
   completeRoutingSyntax,
   type SyntaxCompletion,
 } from "./syntax-editor-model.ts";
+import { positionFloatingElement } from "./floating-position.ts";
 
 export type AutocompleteStrategy = {
   match: RegExp;
@@ -278,6 +279,19 @@ export const attachAutocomplete = (
     textarea.focus();
   };
 
+  const positionDropdown = () => {
+    if (!current || dropdown.style.display === "none") return;
+    const caret = caretCoordinates(textarea, textarea.selectionStart ?? textarea.value.length);
+    const rect = textarea.getBoundingClientRect();
+    const left = rect.left + caret.left - textarea.scrollLeft;
+    const top = rect.top + caret.top - textarea.scrollTop;
+    positionFloatingElement(
+      dropdown,
+      { left, right: left, top, bottom: top + caret.height },
+      { prefer: "below", gap: 0 },
+    );
+  };
+
   const render = (state: ActiveCompletion) => {
     dropdown.innerHTML = "";
     let previousGroup = "";
@@ -324,34 +338,10 @@ export const attachAutocomplete = (
       dropdown.appendChild(li);
     });
 
-    // Anchor to the caret, not the whole field: measure where the caret sits,
-    // add the field's on-screen position, and undo the field's own scroll
-    const caret = caretCoordinates(textarea, textarea.selectionStart ?? textarea.value.length);
-    const rect = textarea.getBoundingClientRect();
-    const caretLeft = rect.left + window.scrollX + caret.left - textarea.scrollLeft;
-    const caretTop = rect.top + window.scrollY + caret.top - textarea.scrollTop;
-
     dropdown.style.display = "grid";
     textarea.setAttribute("aria-expanded", "true");
     textarea.setAttribute("aria-activedescendant", `${dropdownId}-option-${state.selected}`);
-    dropdown.style.left = "0";
-    dropdown.style.top = "0";
-    // offsetWidth/Height need the box laid out, so measure after the list is visible
-    const viewportRight = window.scrollX + document.documentElement.clientWidth;
-    const viewportBottom = window.scrollY + document.documentElement.clientHeight;
-    const left = Math.max(
-      window.scrollX,
-      Math.min(caretLeft, viewportRight - dropdown.offsetWidth - 8),
-    );
-    // Drop below the caret line; flip above it if that would clip the viewport
-    const below = caretTop + caret.height;
-    const top =
-      below + dropdown.offsetHeight > viewportBottom &&
-      caretTop - dropdown.offsetHeight > window.scrollY
-        ? caretTop - dropdown.offsetHeight
-        : below;
-    dropdown.style.left = `${left}px`;
-    dropdown.style.top = `${top}px`;
+    positionDropdown();
     dropdown
       .querySelector<HTMLElement>(`#${dropdownId}-option-${state.selected}`)
       ?.scrollIntoView?.({ block: "nearest" });
@@ -414,6 +404,18 @@ export const attachAutocomplete = (
   );
 
   textarea.addEventListener("blur", close, listenerOptions);
+  textarea.addEventListener("scroll", positionDropdown, {
+    passive: true,
+    signal: controller.signal,
+  });
+  window.addEventListener("resize", positionDropdown, listenerOptions);
+  window.visualViewport?.addEventListener("resize", positionDropdown, listenerOptions);
+  window.visualViewport?.addEventListener("scroll", positionDropdown, listenerOptions);
+  document.addEventListener("scroll", positionDropdown, {
+    capture: true,
+    passive: true,
+    signal: controller.signal,
+  });
 
   // A press anywhere else — outside both the field and its dropdown — dismisses
   // the list (belt-and-suspenders with blur, and covers non-focus-stealing

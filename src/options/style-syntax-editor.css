@@ -241,6 +241,9 @@ textarea.syntax-editor-input::placeholder {
   position: fixed;
   z-index: var(--z-tooltip);
   max-width: min(32rem, calc(100dvi - 2 * var(--space-3)));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
   padding: var(--space-2);
   border: 1px solid color-mix(in srgb, var(--syntax-error) 44%, var(--panel-border));
   border-radius: var(--radius);
@@ -296,7 +299,7 @@ textarea.syntax-editor-input::placeholder {
 }
 
 .autocomplete-dropdown {
-  position: absolute;
+  position: fixed;
   z-index: var(--z-autocomplete);
   display: grid;
   gap: 0;

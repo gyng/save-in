@@ -15,7 +15,11 @@ const tokenStylePath = path.join(root, "src", "options", "style-tokens.css");
 const optionsDocumentPath = path.join(root, "src", "options", "options.html");
 const clauseListDocumentPath = path.join(root, "src", "options", "clauselist.html");
 const sourcePanelPath = path.join(root, "src", "content", "source-panel.ts");
-const sourcePanelStylePath = path.join(root, "src", "content", "source-panel.css");
+const sourcePanelStylePaths = [
+  "source-panel-tokens.css",
+  "source-panel.css",
+  "source-panel-preview.css",
+].map((file) => path.join(root, "src", "content", file));
 
 /**
  * @param {string} value
@@ -60,13 +64,15 @@ const styleLayers = [
       "style-automation.css",
     ],
   ],
-  ["layout", ["style-layout.css", "style-layout-responsive.css"]],
+  ["layout", ["style-layout.css", "style-variables-preview.css", "style-layout-responsive.css"]],
   [
     "editors",
     [
       "style-rule-editor.css",
+      "style-rule-editor-clauses.css",
       "style-rule-editor-create.css",
       "style-route-debugger.css",
+      "style-route-debugger-trace.css",
       "style-route-debugger-tools.css",
       "style-route-debugger-responsive.css",
       "style-template-library.css",
@@ -331,6 +337,31 @@ if (!accessibilityStyle.includes("@media (prefers-contrast: more)")) {
 if (!accessibilityStyle.includes("@media (prefers-reduced-motion: reduce)")) {
   violations.push("options transitions need a shared reduced-motion preference fallback");
 }
+for (const selectedState of [
+  ".menu-preview-row.is-preview-selected",
+  ".path-editor-row.is-preview-selected",
+  ".rule-editor-card.is-debug-selected",
+  ".route-debugger-rule.is-selected",
+]) {
+  if (!accessibilityStyle.includes(selectedState)) {
+    violations.push(`forced-colors selection coverage is missing ${selectedState}`);
+  }
+}
+
+const sharedComponentStyle = fs.readFileSync(
+  path.join(root, "src", "options", "style-components.css"),
+  "utf8",
+);
+for (const contract of [
+  ".menu-popover",
+  "max-inline-size: calc(100dvi",
+  "max-block-size: min(20rem, calc(100dvb",
+  "overscroll-behavior: contain",
+]) {
+  if (!sharedComponentStyle.includes(contract)) {
+    violations.push(`shared menu popovers are missing ${contract}`);
+  }
+}
 
 const componentStyle = fs.readFileSync(
   path.join(root, "src", "options", "style-components.css"),
@@ -354,6 +385,16 @@ if (/@media\s*\(max-width:/.test(routeDebuggerStyle)) {
 if (routeDebuggerStyle.includes(".routing-tool")) {
   violations.push("route debugger tool-shell styles must stay in style-route-debugger-tools.css");
 }
+if (routeDebuggerStyle.includes(".route-debugger-rule-list")) {
+  violations.push("route debugger trace styles must stay in style-route-debugger-trace.css");
+}
+const routeDebuggerTraceStyle = fs.readFileSync(
+  path.join(root, "src", "options", "style-route-debugger-trace.css"),
+  "utf8",
+);
+if (!routeDebuggerTraceStyle.includes(".route-debugger-rule-list")) {
+  violations.push("route debugger trace styles must own the evaluated rule list");
+}
 const routeDebuggerResponsiveStyle = fs.readFileSync(
   path.join(root, "src", "options", "style-route-debugger-responsive.css"),
   "utf8",
@@ -365,6 +406,9 @@ if (!routeDebuggerResponsiveStyle.includes("@container routing-workspace")) {
 const layoutStyle = fs.readFileSync(path.join(root, "src", "options", "style-layout.css"), "utf8");
 if (!/\.preview-column\s*\{[^}]*top:\s*var\(--sticky-header-offset\)/.test(layoutStyle)) {
   violations.push("sticky preview columns must use the shared sticky-header offset");
+}
+if (layoutStyle.includes(".variables-preview-list")) {
+  violations.push("variables preview styles must stay in style-variables-preview.css");
 }
 
 const utilityStyle = fs.readFileSync(
@@ -393,8 +437,23 @@ const ruleEditorStyle = fs.readFileSync(
   path.join(root, "src", "options", "style-rule-editor.css"),
   "utf8",
 );
-if (!ruleEditorStyle.includes("grid-template-columns: subgrid;")) {
+if (ruleEditorStyle.includes(".rule-clause-row")) {
+  violations.push("routing clause styles must stay in style-rule-editor-clauses.css");
+}
+const ruleEditorClauseStyle = fs.readFileSync(
+  path.join(root, "src", "options", "style-rule-editor-clauses.css"),
+  "utf8",
+);
+if (!ruleEditorClauseStyle.includes("grid-template-columns: subgrid;")) {
   violations.push("routing clause rows must share the card column contract through subgrid");
+}
+
+const advancedStyle = fs.readFileSync(
+  path.join(root, "src", "options", "style-advanced.css"),
+  "utf8",
+);
+if (advancedStyle.includes(".webhook-section")) {
+  violations.push("external integration styles must stay in style-advanced-integrations.css");
 }
 
 const syntaxEditorStyle = fs.readFileSync(
@@ -444,7 +503,16 @@ for (const selector of obsoleteSelectors) {
   }
 }
 
-const sourcePanelStyle = fs.readFileSync(sourcePanelStylePath, "utf8");
+const sourcePanelStyles = sourcePanelStylePaths.map((file) => fs.readFileSync(file, "utf8"));
+const sourcePanelStyle = sourcePanelStyles.join("\n");
+sourcePanelStyles.forEach((source, index) => {
+  const lineCount = source.split("\n").length - 1;
+  if (lineCount > 550) {
+    violations.push(
+      `${path.relative(root, sourcePanelStylePaths[index] || "")}: has ${lineCount} lines; split ownership files before they exceed 550`,
+    );
+  }
+});
 for (const match of sourcePanelStyle.matchAll(
   /^\s*(margin|padding|border-radius)\s*:\s*([^;]+);/gm,
 )) {
@@ -490,6 +558,8 @@ for (const contract of [
   "--source-panel-motion-transform: translateY(-8px);",
   "--source-panel-floating-left: clamp(",
   "--source-panel-floating-top: clamp(",
+  "container: source-panel / inline-size",
+  "@container source-panel (max-width: 320px)",
   "100dvw",
   "@media (prefers-contrast: more)",
   "@media (forced-colors: active)",
@@ -539,11 +609,42 @@ for (const role of sharedSemanticRoles) {
 }
 
 const sourcePanel = fs.readFileSync(sourcePanelPath, "utf8");
-if (!sourcePanel.includes('import SOURCE_PANEL_CSS from "./source-panel.css";')) {
-  violations.push("src/content/source-panel.ts must import the owned Page Sources stylesheet");
+for (const file of ["source-panel-tokens.css", "source-panel.css", "source-panel-preview.css"]) {
+  if (!sourcePanel.includes(`from "./${file}";`)) {
+    violations.push(`src/content/source-panel.ts must import owned stylesheet ${file}`);
+  }
 }
 if (/style\.textContent\s*=\s*`/.test(sourcePanel)) {
   violations.push("src/content/source-panel.ts contains inline component CSS");
+}
+
+for (const file of ["autocomplete.ts", "typeahead.ts", "syntax-editor.ts"]) {
+  const source = fs.readFileSync(path.join(root, "src", "options", file), "utf8");
+  if (
+    !source.includes('from "./floating-position.ts"') ||
+    !source.includes("positionFloatingElement(")
+  ) {
+    violations.push(`src/options/${file} must use the shared collision-aware floating positioner`);
+  }
+}
+
+/** @type {Array<[string, string]>} */
+const floatingMenuOwners = [
+  ["options.html", "nav-resources-menu menu-popover"],
+  ["options.html", "rule-add-menu-options menu-popover"],
+  ["options.html", "history-columns-menu menu-popover"],
+  ["options.html", "history-export-options menu-popover"],
+  ["options.html", "history-more-options menu-popover"],
+  ["path-editor.ts", "path-editor-action-menu menu-popover"],
+  ["rule-visual-editor.ts", "rule-editor-card-action-menu menu-popover"],
+];
+for (const [file, className] of floatingMenuOwners) {
+  const source = fs.readFileSync(path.join(root, "src", "options", file), "utf8");
+  if (!source.includes(className)) {
+    violations.push(
+      `src/options/${file} must apply the shared menu-popover surface to ${className}`,
+    );
+  }
 }
 
 const optionEntries = fs.readdirSync(path.join(root, "src", "options"), { withFileTypes: true });

@@ -103,7 +103,16 @@ details {
 /* Shared row atom for compact action menus. Feature owners still control
    anchoring and width, while the surface and interactive rhythm stay uniform. */
 .menu-popover {
+  --menu-popover-min-inline: 170px;
+
   display: grid;
+  min-inline-size: min(var(--menu-popover-min-inline), calc(100dvi - 2 * var(--space-2)));
+  max-inline-size: calc(100dvi - 2 * var(--space-2));
+  max-block-size: min(20rem, calc(100dvb - 2 * var(--space-2)));
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
   padding: var(--space-1);
   border: 1px solid var(--panel-border);
   border-radius: var(--radius);

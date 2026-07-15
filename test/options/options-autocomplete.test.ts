@@ -205,6 +205,7 @@ describe("attachAutocomplete", () => {
   });
 
   test("keystrokes with no dropdown open are ignored", () => {
+    window.dispatchEvent(new Event("resize"));
     key("Enter");
     expect(textarea.value).toBe("");
   });
@@ -253,7 +254,8 @@ describe("attachAutocomplete", () => {
     });
     attachAutocomplete(anonymous, [pathVariableStrategy(VARIABLES)]);
     const menu = document.querySelector<HTMLElement>(".autocomplete-dropdown")!;
-    Object.defineProperty(menu, "offsetHeight", { configurable: true, value: 20 });
+    menu.getBoundingClientRect = () =>
+      ({ left: 0, top: 0, right: 100, bottom: 20, width: 100, height: 20 }) as DOMRect;
     anonymous.value = ":d";
     anonymous.dispatchEvent(new InputEvent("input", { bubbles: true }));
     expect(anonymous.getAttribute("aria-controls")).toBe("autocomplete-0");

@@ -1,3 +1,5 @@
+import { positionFloatingElement } from "./floating-position.ts";
+
 export type TypeaheadItem = {
   value: string;
   label: string;
@@ -81,26 +83,12 @@ export const attachTypeahead = (
   const position = (): void => {
     if (listbox.hidden) return;
     const rect = input.getBoundingClientRect();
-    const edge = 8;
-    const gap = 4;
     const preferredWidth = options.preferredWidth ?? rect.width;
-    const availableWidth =
-      window.innerWidth > edge * 2 ? window.innerWidth - edge * 2 : preferredWidth;
-    const width = Math.min(Math.max(rect.width, preferredWidth), availableWidth);
-    listbox.style.width = `${width}px`;
-    const left = Math.max(edge, Math.min(rect.left, window.innerWidth - width - edge));
-    listbox.style.left = `${left}px`;
-    listbox.style.maxHeight = "";
-    const desiredHeight = listbox.offsetHeight;
-    const spaceBelow = Math.max(0, window.innerHeight - rect.bottom - gap - edge);
-    const spaceAbove = Math.max(0, rect.top - gap - edge);
-    const openAbove = desiredHeight > spaceBelow && spaceAbove > spaceBelow;
-    const availableHeight = openAbove ? spaceAbove : spaceBelow;
-    const height = Math.min(desiredHeight, availableHeight);
-    listbox.style.maxHeight = `${height}px`;
-    listbox.style.top = openAbove
-      ? `${Math.max(edge, rect.top - gap - height)}px`
-      : `${Math.max(edge, rect.bottom + gap)}px`;
+    positionFloatingElement(listbox, rect, {
+      align: getComputedStyle(input).direction === "rtl" ? "end" : "start",
+      prefer: "below",
+      width: Math.max(rect.width, preferredWidth),
+    });
   };
 
   const setActive = (next: number): void => {
@@ -242,6 +230,8 @@ export const attachTypeahead = (
     listenerOptions,
   );
   window.addEventListener("resize", position, listenerOptions);
+  window.visualViewport?.addEventListener("resize", position, listenerOptions);
+  window.visualViewport?.addEventListener("scroll", position, listenerOptions);
   document.addEventListener("scroll", position, { capture: true, signal: controller.signal });
 
   return () => {

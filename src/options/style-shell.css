@@ -231,39 +231,15 @@ body:not(#settings-page) {
 .nav-resources-menu {
   position: absolute;
   z-index: var(--z-menu);
-  display: grid;
-  min-width: 170px;
   margin-top: var(--space-1);
-  padding: var(--space-1);
-  background: var(--floating-bg);
-  border: 1px solid var(--panel-border);
-  border-radius: var(--radius);
-  box-shadow: var(--floating-shadow);
 }
 
 .nav-resources-menu > :is(a, button) {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  min-height: var(--compact-control-size);
-  padding: 4px var(--space-2);
-  border: 0;
-  border-radius: var(--radius-sm);
-  color: var(--color-text);
-  background-color: transparent;
-  font-size: var(--text-base);
   line-height: 1;
-  text-align: start;
 }
 
 .nav-resources-menu > :is(a, button):hover {
   background-color: var(--hover-bg);
-  text-decoration: none;
-}
-
-.nav-resources-menu > a.external {
-  padding-inline-end: calc(20px + var(--space-2));
-  background-position: var(--external-icon-edge) var(--space-2) center;
 }
 
 .app-dialog {

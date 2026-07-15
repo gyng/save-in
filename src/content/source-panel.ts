@@ -23,7 +23,9 @@ import {
   formatSourcePanelCopy,
 } from "../shared/source-panel-copy.ts";
 import { SOURCE_PANEL_SORT_STORAGE_KEY } from "../shared/storage-keys.ts";
+import SOURCE_PANEL_TOKENS_CSS from "./source-panel-tokens.css";
 import SOURCE_PANEL_CSS from "./source-panel.css";
+import SOURCE_PANEL_PREVIEW_CSS from "./source-panel-preview.css";
 
 declare const SAVE_IN_CONTENT_E2E: boolean;
 
@@ -237,7 +239,9 @@ export const toggleSourcePanel = (
   panelOpenChanges.set(host, panelOptions.onOpenChange || (() => {}));
   activePanelHost = host;
   const style = document.createElement("style");
-  style.textContent = SOURCE_PANEL_CSS;
+  style.textContent = [SOURCE_PANEL_TOKENS_CSS, SOURCE_PANEL_CSS, SOURCE_PANEL_PREVIEW_CSS].join(
+    "\n",
+  );
   const panel = document.createElement("div");
   panel.className = "panel";
   panel.setAttribute("role", "dialog");

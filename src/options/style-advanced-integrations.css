@@ -1,3 +1,271 @@
+/* ── Advanced → External integrations ────────────────────────────── */
+
+.webhook-section {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.webhook-heading-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.webhook-heading-row h4,
+.webhook-heading-row p,
+.webhook-endpoint-note {
+  margin: 0;
+}
+
+.integration-documentation-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-sm);
+}
+
+.webhook-endpoint-label {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+}
+
+.webhook-endpoint-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-2);
+}
+
+.tab-panel .webhook-endpoint-row #webhookUrl {
+  width: 100%;
+  max-width: none;
+  font-family: var(--font-mono);
+}
+
+.webhook-enable-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  background: var(--panel-bg);
+}
+
+.webhook-enable-row > input {
+  margin-top: 3px;
+}
+
+.webhook-enable-row label {
+  margin: 0;
+  padding: 0;
+}
+
+.webhook-fields {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+}
+
+.webhook-fields legend {
+  padding: 0 var(--space-1);
+  font-weight: 600;
+}
+
+.webhook-fields label {
+  margin: 0;
+  padding: 0;
+}
+
+.webhook-preview-details > summary {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+.webhook-preview-details pre {
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  margin: var(--space-2) 0 0;
+  padding: var(--space-3);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  background: var(--page-bg);
+  font-size: var(--text-sm);
+}
+
+.webhook-status:empty {
+  display: none;
+}
+
+.webhook-status.is-error {
+  color: var(--error-fg);
+}
+
+.external-integrations-content {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.external-access-control {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+}
+
+.external-access-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.external-access-heading h5,
+.external-access-heading p {
+  margin: 0;
+}
+
+.external-control-label {
+  font-weight: 600;
+}
+
+.external-control-help {
+  max-width: 68ch;
+  line-height: 1.4;
+}
+
+.external-approved-count {
+  flex: 0 0 auto;
+  padding: 2px var(--space-2);
+  color: var(--color-text-muted);
+  border: 1px solid var(--panel-border);
+  border-radius: 999px;
+  background: var(--panel-bg);
+  font-size: var(--text-sm);
+  white-space: nowrap;
+}
+
+.external-extension-add-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-2);
+}
+
+.tab-panel #external-extension-id-draft {
+  width: 100%;
+  max-width: none;
+  font-family: var(--font-mono);
+}
+
+.external-approved-list {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.external-approved-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: var(--control-height);
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  background: var(--panel-bg);
+}
+
+.external-approved-row code {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.external-approved-remove {
+  flex: 0 0 auto;
+}
+
+.external-approved-empty,
+.external-approved-status {
+  margin: 0;
+}
+
+.external-approved-status:empty {
+  display: none;
+}
+
+.external-raw-editor {
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--panel-border);
+}
+
+.external-raw-editor > summary {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+.external-raw-editor > p {
+  margin: var(--space-2) 0 var(--space-1);
+}
+
+.external-raw-editor > label {
+  margin: 0;
+  padding: 0;
+}
+
+.tab-panel .external-allowlist-input {
+  min-height: 6.5rem;
+  margin-top: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--font-mono);
+  line-height: 1.45;
+  resize: vertical;
+}
+
+.external-download-rejections {
+  margin: 0;
+  padding: var(--space-3);
+  border: 1px solid color-mix(in srgb, var(--color-warning) 55%, var(--panel-border));
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--color-warning) 12%, var(--page-bg));
+}
+
+.external-download-rejections-title {
+  margin-bottom: 2px;
+  font-size: var(--text-base);
+  font-weight: 600;
+}
+
+.external-download-rejection {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid color-mix(in srgb, var(--color-warning) 35%, var(--panel-border));
+}
+
+.external-download-rejection-details {
+  min-width: 0;
+}
+
+.external-download-rejection-details code {
+  overflow-wrap: anywhere;
+}
+
+.external-download-rejection-add {
+  flex: 0 0 auto;
+}
+
 .dev-api {
   max-width: 640px;
   margin: var(--space-2) 0 var(--space-4);

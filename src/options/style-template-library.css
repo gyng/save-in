@@ -31,17 +31,12 @@
 
 .history-export-options,
 .history-more-options {
+  --menu-popover-min-inline: 180px;
+
   position: absolute;
   z-index: var(--z-menu);
   top: calc(100% + var(--space-1));
   inset-inline-end: 0;
-  display: grid;
-  min-width: 180px;
-  padding: var(--space-1);
-  border: 1px solid var(--panel-border);
-  border-radius: var(--radius);
-  background: var(--floating-bg);
-  box-shadow: var(--floating-shadow);
 }
 
 .history-export-options button {

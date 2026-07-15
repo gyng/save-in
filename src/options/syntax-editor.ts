@@ -5,6 +5,7 @@ import {
   type SyntaxEditorLanguage,
   type SyntaxSnapshot,
 } from "./syntax-editor-model.ts";
+import { positionFloatingElement } from "./floating-position.ts";
 
 export type SyntaxEditorController = {
   readonly textarea: HTMLTextAreaElement;
@@ -354,12 +355,11 @@ export const createSyntaxEditor = (
     tooltip.replaceChildren(fragment);
     tooltip.hidden = false;
     tooltipPinned = pinned;
-    const viewportWidth = document.documentElement.clientWidth || window.innerWidth;
-    const width = tooltip.getBoundingClientRect().width;
-    const left = Math.max(8, Math.min(anchorX, viewportWidth - width - 8));
-    const top = Math.max(8, anchorTop - tooltip.getBoundingClientRect().height - 10);
-    tooltip.style.left = `${left}px`;
-    tooltip.style.top = `${top}px`;
+    positionFloatingElement(
+      tooltip,
+      { left: anchorX, right: anchorX, top: anchorTop, bottom: anchorTop },
+      { prefer: "above", gap: 10 },
+    );
   };
 
   const editorMetrics = () => {

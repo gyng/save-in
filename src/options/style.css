@@ -14,10 +14,13 @@
 @import url("style-source-settings.css") layer(components);
 @import url("style-automation.css") layer(components);
 @import url("style-layout.css") layer(layout);
+@import url("style-variables-preview.css") layer(layout);
 @import url("style-layout-responsive.css") layer(layout);
 @import url("style-rule-editor.css") layer(editors);
+@import url("style-rule-editor-clauses.css") layer(editors);
 @import url("style-rule-editor-create.css") layer(editors);
 @import url("style-route-debugger.css") layer(editors);
+@import url("style-route-debugger-trace.css") layer(editors);
 @import url("style-route-debugger-tools.css") layer(editors);
 @import url("style-route-debugger-responsive.css") layer(editors);
 @import url("style-template-library.css") layer(editors);

@@ -54,6 +54,22 @@
     outline: 1px solid Highlight;
   }
 
+  :where(
+    .menu-preview-row.is-preview-selected,
+    .path-editor-row.is-preview-selected,
+    .rule-editor-card.is-debug-selected,
+    .route-debugger-rule.is-selected
+  ) {
+    color: HighlightText;
+    border-color: Highlight;
+    background: Highlight;
+    outline: 1px solid Highlight;
+  }
+
+  .route-debugger-rule.is-selected > .route-debugger-rule-header {
+    background: transparent;
+  }
+
   :where(.error-row, .has-validation-error, .rule-editor-card-unsupported, .menu-preview-error) {
     border-color: CanvasText;
     outline: 1px solid CanvasText;

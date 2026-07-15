@@ -133,13 +133,24 @@ describe("typeahead dropdown", () => {
     });
     attachTypeahead(input, { items, onSelect: vi.fn(), preferredWidth: 440 });
     const dropdown = document.getElementById(input.getAttribute("aria-controls")!)!;
-    Object.defineProperty(dropdown, "offsetHeight", { configurable: true, value: 160 });
+    dropdown.getBoundingClientRect = () =>
+      ({ left: 0, top: 0, right: 440, bottom: 160, width: 440, height: 160 }) as DOMRect;
 
     input.focus();
 
     expect(dropdown.style.top).toBe("16px");
     expect(dropdown.style.width).toBe("304px");
     expect(dropdown.style.maxHeight).toBe("160px");
+  });
+
+  test("clamps its preferred width when the viewport is narrower than both edges", () => {
+    const input = document.querySelector<HTMLInputElement>("#picker")!;
+    vi.spyOn(window, "innerWidth", "get").mockReturnValue(12);
+    attachTypeahead(input, { items, onSelect: vi.fn(), preferredWidth: 80 });
+
+    input.focus();
+    const dropdown = document.getElementById(input.getAttribute("aria-controls")!)!;
+    expect(dropdown.style.width).toBe("0px");
   });
 
   test("renders presentation-only group headings without disturbing option selection", () => {
@@ -189,7 +200,7 @@ describe("typeahead dropdown", () => {
 
     window.dispatchEvent(new Event("resize"));
     input.focus();
-    expect(listbox.style.top).toBe("104px");
+    expect(listbox.style.top).toBe("102px");
     input.click();
 
     input.dispatchEvent(

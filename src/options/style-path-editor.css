@@ -201,22 +201,16 @@
 }
 
 .path-editor-action-menu {
+  --menu-popover-min-inline: 10.5rem;
+
   position: absolute;
   z-index: var(--z-menu);
   top: calc(100% + var(--space-1));
   inset-inline-end: 0;
-  display: grid;
-  min-width: 10.5rem;
-  padding: var(--space-1);
-  border: 1px solid var(--panel-border);
-  border-radius: var(--radius);
-  background: var(--floating-bg);
-  box-shadow: var(--floating-shadow);
 }
 
 .path-editor-action-menu .path-editor-control {
   justify-content: flex-start;
-  width: 100%;
   padding-inline: var(--space-2);
   border-color: transparent;
   color: var(--color-text);

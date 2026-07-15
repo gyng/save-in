@@ -1,45 +1,4 @@
-/*
- * The Page Sources drawer runs in a shadow root, so it cannot inherit the
- * options stylesheet. Keep these semantic roles aligned with docs/UI.md and
- * src/options/style.css; scripts/check-css.js guards the shared contract.
- */
 :host {
-  --source-panel-motion-transform: translateX(8px);
-  --source-panel-inline-gutter: min(16px, 4dvw);
-  --source-panel-block-gutter: min(16px, 4dvh);
-  --source-panel-floating-left: clamp(var(--source-panel-inline-gutter), 10dvw, 80px);
-  --source-panel-floating-top: clamp(var(--source-panel-block-gutter), 10dvh, 80px);
-  --font-stack: system-ui, sans-serif;
-  --text-xs: 12px;
-  --text-base: 14px;
-  --text-lg: 16px;
-  --radius: 4px;
-  --radius-sm: 3px;
-  --control-height: 34px;
-  --compact-control-size: 32px;
-  --color-text: light-dark(#0c0c0d, #ffffff);
-  --color-text-muted: light-dark(#66666b, #b1b1b3);
-  --color-text-meta: light-dark(#55555a, #d7d7db);
-  --color-surface-page: light-dark(#ffffff, #2a2a2e);
-  --color-surface-raised: light-dark(#ededf0, #38383d);
-  --color-border: light-dark(#d7d7db, #4a4a4f);
-  --color-control-border: light-dark(#939395, #737373);
-  --color-hover: light-dark(rgba(0, 0, 0, 0.05), rgba(255, 255, 255, 0.07));
-  --color-accent: light-dark(#0060df, #2f79bc);
-  --color-focus: light-dark(#0a84ff, #5b9fdf);
-  --color-link: light-dark(#0060df, #73afe8);
-  --color-on-accent: #ffffff;
-  --color-kind-other: light-dark(#57606a, #626b75);
-  --color-kind-image: light-dark(#8250df, #7057b5);
-  --color-kind-video: light-dark(#0969da, #2f79bc);
-  --color-kind-audio: light-dark(#b45309, #986020);
-  --color-kind-stream: light-dark(#087f5b, #3f7f62);
-  --color-kind-document: light-dark(#cf222e, #a64b55);
-  --color-preview: light-dark(#ededf0, #38383d);
-  --color-preview-media: #111111;
-  --panel-shadow: 0 8px 28px rgba(0, 0, 0, 0.2);
-  --floating-shadow: 0 16px 48px rgba(0, 0, 0, 0.32);
-  --z-preview-control: 2;
   all: initial;
   box-sizing: border-box;
   position: fixed;
@@ -47,6 +6,7 @@
      stacking contexts rather than sharing the options-page z-index scale. */
   z-index: 2147483647;
   isolation: isolate;
+  container: source-panel / inline-size;
   inset: 0 0 0 auto;
   width: min(360px, 92dvw);
   color: var(--color-text);
@@ -106,14 +66,14 @@
   --source-panel-motion-transform: translateY(8px);
 
   inset: auto 0 0;
-  width: 100dvw;
+  inline-size: auto;
   height: min(42dvh, 520px);
 }
 :host(.dock-top) {
   --source-panel-motion-transform: translateY(-8px);
 
   inset: 0 0 auto;
-  width: 100dvw;
+  inline-size: auto;
   height: min(42dvh, 520px);
 }
 :host(.floating) {
@@ -261,7 +221,7 @@ select:focus-visible {
 .facets {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: var(--source-space-1);
   padding: 0 10px 6px;
   border-bottom: 1px solid var(--color-border);
 }
@@ -378,7 +338,7 @@ video,
 .meta {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--source-space-1);
   min-width: 0;
   margin-top: 2px;
   overflow: hidden;
@@ -428,35 +388,10 @@ video,
 .detected {
   flex: none;
 }
-.media-tooltip {
-  position: absolute;
-  z-index: var(--z-preview-control);
-  display: grid;
-  place-items: center;
-  max-width: min(360px, 45dvw);
-  max-height: min(280px, 55dvh);
-  padding: 6px;
-  border: 1px solid var(--color-border);
-  border-radius: calc(var(--radius) * 2);
-  background: var(--color-surface-page);
-  box-shadow: var(--floating-shadow);
-  pointer-events: none;
-}
-.media-tooltip img,
-.media-tooltip video {
-  width: clamp(160px, 42dvw, 340px);
-  height: clamp(120px, 38dvh, 260px);
-  object-fit: contain;
-  background: var(--color-preview-media);
-}
-.media-tooltip audio {
-  width: min(300px, 40dvw);
-  pointer-events: none;
-}
 .actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: var(--source-space-1);
   margin-block: 1px 3px;
   margin-inline: 42px 5px;
 }
@@ -472,9 +407,28 @@ video,
   border-color: var(--color-link);
 }
 .empty {
-  padding: 24px 12px;
+  padding: var(--source-space-5) var(--source-space-3);
   color: var(--color-text-muted);
   text-align: center;
+}
+
+@container source-panel (max-width: 320px) {
+  header {
+    padding-inline: var(--source-space-2);
+  }
+
+  .header-actions {
+    gap: 0;
+  }
+
+  .toolbar {
+    grid-template-columns: minmax(0, 1fr);
+    padding-inline: var(--source-space-2);
+  }
+
+  .facets {
+    padding-inline: var(--source-space-2);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

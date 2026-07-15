@@ -1,0 +1,235 @@
+.route-debugger-rule-list {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3);
+}
+
+.route-debugger-rule {
+  overflow: hidden;
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  background: var(--page-bg);
+}
+
+.route-debugger-rule-output {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--space-2);
+  margin: var(--space-2) var(--space-3) var(--space-2);
+}
+
+.route-debugger-source-link {
+  min-width: 0;
+  min-height: var(--compact-control-size);
+  margin: 0;
+  padding: 2px var(--space-2);
+  border-color: transparent;
+  color: var(--link-color);
+  background: transparent;
+  font-size: var(--text-sm);
+}
+
+.route-debugger-rule-output > .route-debugger-source-link {
+  grid-column: 2;
+  margin: 0;
+}
+
+.route-debugger-rule.is-selected {
+  border-color: color-mix(in srgb, var(--success-fg) 58%, var(--panel-border));
+  border-inline-start: 3px solid var(--success-fg);
+}
+
+.route-debugger-rule-output > .route-debugger-pipeline {
+  grid-column: 1;
+  min-width: 0;
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-sm);
+  background: var(--panel-bg);
+}
+
+.route-debugger-rule > summary {
+  list-style: none;
+}
+
+.route-debugger-rule > summary::-webkit-details-marker {
+  display: none;
+}
+
+.route-debugger-rule-header,
+.route-debugger-clause {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  color: inherit;
+  background: transparent;
+  text-align: start;
+}
+
+.route-debugger-rule-header {
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3);
+}
+
+.route-debugger-rule-header::before {
+  flex: none;
+  width: 0;
+  height: 0;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-inline-start: 6px solid var(--color-text-muted);
+  content: "";
+  transition: transform var(--motion-duration-fast) ease;
+}
+
+.route-debugger-rule[open] > .route-debugger-rule-header::before {
+  transform: rotate(90deg);
+}
+
+.route-debugger-rule-header:hover,
+.route-debugger-clause:hover {
+  background: var(--hover-bg);
+}
+
+.route-debugger-rule.is-selected > .route-debugger-rule-header {
+  background: color-mix(in srgb, var(--success-fg) 6%, transparent);
+}
+
+.route-debugger-rule-title {
+  font-size: var(--text-base);
+  font-weight: 600;
+}
+
+.route-debugger-rule-title-line {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.route-debugger-rule-index {
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  font-weight: 500;
+}
+
+.route-debugger-rule-title-group {
+  display: grid;
+  flex: 1 1 auto;
+  min-width: 0;
+  gap: 2px;
+}
+
+.route-debugger-rule-destination {
+  color: var(--syntax-destination);
+  font-size: var(--text-sm);
+  font-weight: 400;
+  overflow-wrap: anywhere;
+}
+
+.route-debugger-rule-meta {
+  display: flex;
+  align-items: baseline;
+  flex: 0 1 auto;
+  min-width: 0;
+  gap: var(--space-2);
+  justify-content: flex-end;
+}
+
+.route-debugger-rule-count {
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  line-height: var(--leading-ui);
+  white-space: nowrap;
+}
+
+.route-debugger-rule-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 1px var(--space-2);
+  color: var(--color-text-muted);
+  border-radius: 999px;
+  background: var(--chip-bg);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  line-height: var(--leading-ui);
+  white-space: nowrap;
+}
+
+.route-debugger-rule.is-selected .route-debugger-rule-badge {
+  color: var(--success-fg);
+  background: color-mix(in srgb, var(--success-fg) 12%, transparent);
+}
+
+.route-debugger-rule.is-match .route-debugger-rule-badge {
+  color: var(--link-color);
+  background: color-mix(in srgb, var(--color-info) 12%, transparent);
+}
+
+.route-debugger-clauses {
+  margin: 0 var(--space-3);
+  padding: var(--space-1) 0 var(--space-2);
+  border-top: 1px solid var(--panel-border);
+  list-style: none;
+}
+
+.route-debugger-rule-output + .route-debugger-clauses {
+  border-top: 0;
+}
+
+.route-debugger-clauses > li + li {
+  border-top: 1px solid color-mix(in srgb, var(--panel-border) 70%, transparent);
+}
+
+.route-debugger-clause {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  gap: var(--space-2);
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+}
+
+.route-debugger-clause-mark {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  color: var(--success-fg);
+  background: color-mix(in srgb, var(--success-fg) 10%, transparent);
+  font-size: var(--text-xs);
+  font-weight: 700;
+}
+
+.route-debugger-clause.is-miss .route-debugger-clause-mark {
+  color: var(--syntax-error);
+  background: color-mix(in srgb, var(--syntax-error) 10%, transparent);
+}
+
+.route-debugger-clause-decision {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-1);
+  overflow-wrap: anywhere;
+}
+
+.route-debugger-clause-expression {
+  width: fit-content;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  font-size: inherit;
+}
+
+.route-debugger-clause-attempt {
+  color: var(--color-text-muted);
+  line-height: var(--leading-copy);
+}

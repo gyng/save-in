@@ -219,20 +219,12 @@
 }
 
 .history-columns-menu {
+  --menu-popover-min-inline: 180px;
+
   position: absolute;
   z-index: var(--z-menu);
   top: calc(100% + var(--space-1));
   inset-inline-end: 0;
-  display: grid;
-  min-width: 180px;
-  max-height: 320px;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  scrollbar-gutter: stable;
-  padding: var(--space-1);
-  border: 1px solid var(--panel-border);
-  background: var(--floating-bg);
-  box-shadow: var(--floating-shadow);
 }
 
 .history-columns-menu label {
