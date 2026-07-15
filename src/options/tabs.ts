@@ -29,9 +29,9 @@ const PRIMARY_SECTION_ORDER = [
   "section-downloads",
   "section-dynamic-downloads",
   "section-browser-downloads",
+  "section-page-sources",
   "section-keyboard-shortcuts",
   "section-save-as-shortcuts",
-  "section-page-sources",
   "section-history",
   "section-more-options",
 ];

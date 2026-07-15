@@ -78,6 +78,7 @@ describe("orderSections", () => {
       "section-keyboard-shortcuts",
       "section-dynamic-downloads",
       "section-browser-downloads",
+      "section-page-sources",
     ];
     const sections = keys.map((key) => ({
       key,
@@ -88,6 +89,7 @@ describe("orderSections", () => {
       "section-downloads",
       "section-dynamic-downloads",
       "section-browser-downloads",
+      "section-page-sources",
       "section-keyboard-shortcuts",
       "section-save-as-shortcuts",
       "section-history",
