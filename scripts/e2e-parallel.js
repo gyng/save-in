@@ -8,6 +8,7 @@ const { execFileSync, spawn } = require("node:child_process");
 const {
   acquireDirectoryLock,
   pruneArtifactRuns,
+  pruneOrphanedProfiles,
   pruneRunDirectories,
   releaseDirectoryLock,
   removeOwnedProfiles,
@@ -27,6 +28,33 @@ const runArtifacts = path.join(artifacts, `run-${runId}`);
 const suiteByBrowser = {
   chrome: "test/e2e/chrome.e2e.mjs",
   firefox: "test/e2e/firefox.e2e.mjs",
+};
+
+/** @param {unknown} error */
+const errorText = (error) =>
+  error instanceof Error ? error.stack || error.message : String(error);
+
+/**
+ * @param {Record<string, unknown>} metadata
+ * @param {{codes: number[], cleanupErrors: unknown[], interruptedSignal?: NodeJS.Signals, runError?: unknown, finishedAt?: Date}} outcome
+ */
+const finalizeRunMetadata = (
+  metadata,
+  { codes, cleanupErrors, interruptedSignal, runError, finishedAt = new Date() },
+) => {
+  const startedAtMs = Date.parse(String(metadata.startedAt));
+  const failed =
+    runError !== undefined || cleanupErrors.length > 0 || codes.some((code) => code !== 0);
+  return {
+    ...metadata,
+    finishedAt: finishedAt.toISOString(),
+    durationMs: Number.isFinite(startedAtMs) ? Math.max(0, finishedAt.getTime() - startedAtMs) : 0,
+    status: interruptedSignal ? "interrupted" : failed ? "failed" : "passed",
+    exitCodes: [...codes],
+    ...(interruptedSignal ? { interruptedSignal } : {}),
+    ...(runError !== undefined ? { failure: errorText(runError) } : {}),
+    ...(cleanupErrors.length ? { cleanupErrors: cleanupErrors.map(errorText) } : {}),
+  };
 };
 
 /** @param {string} directory */
@@ -149,9 +177,12 @@ const main = async () => {
   const cleanupErrors = [];
   /** @type {number[]} */
   const codes = [];
+  /** @type {unknown} */
+  let runError;
   fs.mkdirSync(runArtifacts, { recursive: true });
   fs.writeFileSync(path.join(runArtifacts, ".active"), String(process.pid));
-  const runMetadata = {
+  /** @type {Record<string, unknown>} */
+  let runMetadata = {
     runId,
     startedAt: new Date().toISOString(),
     node: process.version,
@@ -169,6 +200,7 @@ const main = async () => {
   try {
     pruneArtifactRuns(artifacts);
     pruneRunDirectories(runRoot);
+    await pruneOrphanedProfiles({ chromeRoot: path.join(root, "dist"), firefoxRoot: os.tmpdir() });
     const stagingLock = acquireDirectoryLock(stagingLockDir);
     try {
       execFileSync(process.execPath, [path.join(__dirname, "build-bundled.js"), "--mode=e2e"], {
@@ -195,6 +227,8 @@ const main = async () => {
       const runs = suites.map((suite) => startSuite(suite, childEnv, options.vitestArgs));
       codes.push(...(await Promise.all(runs.map(({ done }) => done))).map(Number));
     }
+  } catch (error) {
+    runError = error;
   } finally {
     try {
       await terminateChildren();
@@ -214,13 +248,29 @@ const main = async () => {
     } catch (error) {
       cleanupErrors.push(error);
     }
-    fs.rmSync(path.join(runArtifacts, ".active"), { force: true });
+    try {
+      fs.rmSync(path.join(runArtifacts, ".active"), { force: true });
+    } catch (error) {
+      cleanupErrors.push(error);
+    }
+    runMetadata = finalizeRunMetadata(runMetadata, {
+      codes,
+      cleanupErrors,
+      ...(interruptedSignal ? { interruptedSignal } : {}),
+      ...(runError !== undefined ? { runError } : {}),
+    });
+    try {
+      writeRunMetadata();
+    } catch (error) {
+      cleanupErrors.push(error);
+    }
     // Successful runs retain compact metadata, environment facts, and timing
     // reports. The next run prunes older directories, while CI uploads the
     // reports for advisory trend comparison.
   }
 
   for (const error of cleanupErrors) console.error(error);
+  if (runError !== undefined) throw runError;
   if (interruptedSignal || codes.some((code) => code !== 0) || cleanupErrors.length) {
     process.exitCode = 1;
   }
@@ -233,4 +283,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { parseArguments };
+module.exports = { finalizeRunMetadata, parseArguments };

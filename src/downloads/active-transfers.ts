@@ -151,8 +151,19 @@ export const ActiveTransfers = {
   },
 
   clear(): void {
+    for (const transfer of controllers.values()) transfer.controller.abort();
+    for (const controller of privateControllers) controller.abort();
     controllers.clear();
     privateControllers.clear();
     syncKeepalive();
+  },
+
+  async reset(): Promise<void> {
+    ActiveTransfers.clear();
+    for (;;) {
+      const pending = [...writes.queues.values()];
+      if (pending.length === 0) return;
+      await Promise.allSettled(pending);
+    }
   },
 };

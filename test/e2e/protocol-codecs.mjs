@@ -90,6 +90,8 @@ export const createProtocolCodecs = () => {
         return isMenuBody(value.body, false);
       case "SAVE_IN_E2E_TAB_MENU_CLICK":
         return isMenuBody(value.body, true);
+      case "SAVE_IN_E2E_RESET_STATE":
+        return value.body === undefined;
       case "SAVE_IN_E2E_NOTIFICATION_CALLS":
         return (
           isRecord(value.body) &&
@@ -239,6 +241,7 @@ export const createProtocolCodecs = () => {
         );
       case "SAVE_IN_E2E_CONTEXT_MENU_CLICK":
       case "SAVE_IN_E2E_TAB_MENU_CLICK":
+      case "SAVE_IN_E2E_RESET_STATE":
         return value.type === message.type && isCommandStatus(value.body);
       case "SAVE_IN_E2E_NOTIFICATION_CALLS":
         return (

@@ -120,6 +120,11 @@ export const RefererRules = {
   cleanupStaleRule: (): Promise<void> =>
     RefererRules.canUse() ? enqueue(removeRule) : Promise.resolve(),
 
+  reset: async (): Promise<void> => {
+    await ruleQueue;
+    if (RefererRules.canUse()) await enqueue(removeRule);
+  },
+
   withReferer: <T>(
     url: string,
     referer: string,

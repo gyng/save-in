@@ -190,7 +190,7 @@ export const createExternalValidationRateLimiter = ({
   windowMs?: number;
 } = {}) => {
   const requests = new Map<string, number[]>();
-  return (senderId: string, now = Date.now()): boolean => {
+  const allow = (senderId: string, now = Date.now()): boolean => {
     const cutoff = now - windowMs;
     const recent = (requests.get(senderId) || []).filter((timestamp) => timestamp > cutoff);
     if (recent.length >= maxRequests) {
@@ -201,4 +201,6 @@ export const createExternalValidationRateLimiter = ({
     requests.set(senderId, recent);
     return true;
   };
+  allow.reset = (): void => requests.clear();
+  return allow;
 };

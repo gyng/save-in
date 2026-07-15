@@ -20,7 +20,8 @@ import { clearPersistenceDiagnostics } from "../../../src/shared/persistence-dia
 (global.browser.runtime as any).onMessage = { addListener: vi.fn() };
 (global.browser.runtime as any).onMessageExternal = { addListener: vi.fn() };
 
-const { Messaging, registerMessaging } = await import("../../../src/background/messaging.ts");
+const { Messaging, registerMessaging, resetMessagingTransientState } =
+  await import("../../../src/background/messaging.ts");
 // Imported after the fakes above: messaging.ts already pulled the whole real SCC
 // into the module cache, so these return the same instances its handlers hold —
 // spies / Object.assign on them reach the live code.
@@ -57,6 +58,7 @@ let trackedTab: CurrentTab;
 const setupGlobals = () => {
   vi.restoreAllMocks();
   clearPersistenceDiagnostics();
+  resetMessagingTransientState();
 
   trackedTab = { id: 1, title: "Tracked Tab" };
   setCurrentTab(trackedTab);

@@ -35,6 +35,32 @@
 /** @param {unknown} value @returns {value is Record<string, unknown>} */
 const isRecord = (value) => typeof value === "object" && value !== null && !Array.isArray(value);
 
+/** @param {WebSocket} socket @param {number} timeoutMs */
+const waitForSocketOpen = (socket, timeoutMs) =>
+  new Promise((resolve, reject) => {
+    const cleanup = () => {
+      clearTimeout(timer);
+      socket.removeEventListener("open", onOpen);
+      socket.removeEventListener("error", onError);
+    };
+    const onOpen = () => {
+      cleanup();
+      resolve(undefined);
+    };
+    const onError = () => {
+      cleanup();
+      reject(new Error("BiDi socket failed"));
+    };
+    const timer = setTimeout(() => {
+      cleanup();
+      socket.close();
+      reject(new Error("Timed out connecting to WebDriver BiDi"));
+    }, timeoutMs);
+    timer.unref();
+    socket.addEventListener("open", onOpen, { once: true });
+    socket.addEventListener("error", onError, { once: true });
+  });
+
 class FirefoxBidi {
   /** @param {WebSocket} socket */
   constructor(socket) {
@@ -83,12 +109,7 @@ class FirefoxBidi {
       let socket;
       try {
         socket = new WebSocket(`ws://127.0.0.1:${port}/session`);
-        await new Promise((resolve, reject) => {
-          socket?.addEventListener("open", resolve, { once: true });
-          socket?.addEventListener("error", () => reject(new Error("BiDi socket failed")), {
-            once: true,
-          });
-        });
+        await waitForSocketOpen(socket, Math.max(1, deadline - Date.now()));
         const client = new FirefoxBidi(socket);
         await client.send("session.new", { capabilities: { alwaysMatch: {} } }, 30000);
         return client;
@@ -122,7 +143,13 @@ class FirefoxBidi {
         reject,
         timer,
       });
-      this.socket.send(JSON.stringify({ id, method, params }));
+      try {
+        this.socket.send(JSON.stringify({ id, method, params }));
+      } catch (error) {
+        this.pending.delete(id);
+        clearTimeout(timer);
+        reject(error);
+      }
     });
   }
 
@@ -233,4 +260,4 @@ class FirefoxBidi {
   }
 }
 
-module.exports = { FirefoxBidi };
+module.exports = { FirefoxBidi, waitForSocketOpen };

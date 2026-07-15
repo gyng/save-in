@@ -304,15 +304,13 @@ describe("structured E2E control client", () => {
     ).rejects.toThrow("Invalid E2E control request");
   });
 
-  test("resets the background notification observer during case cleanup", async () => {
-    const sendMessage = vi.fn(async (message: { type: string }) =>
-      message.type === "SAVE_IN_E2E_NOTIFICATION_CALLS"
-        ? {
-            type: "SAVE_IN_E2E_NOTIFICATION_CALLS",
-            body: { status: "OK", calls: [] },
-          }
-        : { type: "OK" },
-    );
+  test("resets and verifies browser and worker state during case cleanup", async () => {
+    const sendMessage = vi.fn(async (message: { type: string }) => {
+      if (message.type === "SAVE_IN_E2E_RESET_STATE") {
+        return { type: "SAVE_IN_E2E_RESET_STATE", body: { status: "OK" } };
+      }
+      return { type: "OK" };
+    });
     const host = {
       runtime: {
         getURL: (path: string) => `chrome-extension://id/${path}`,
@@ -320,7 +318,9 @@ describe("structured E2E control client", () => {
       },
       tabs: {
         getCurrent: vi.fn(async () => ({ id: 1 })),
-        query: vi.fn(async () => [{ id: 1, url: "chrome-extension://id/options.html" }]),
+        query: vi.fn(async () => [
+          { id: 1, url: "chrome-extension://id/src/options/options.html" },
+        ]),
         remove: vi.fn(async () => undefined),
       },
       downloads: {
@@ -341,7 +341,10 @@ describe("structured E2E control client", () => {
           clear: vi.fn(async () => undefined),
           set: vi.fn(async () => undefined),
         },
-        session: { clear: vi.fn(async () => undefined) },
+        session: {
+          clear: vi.fn(async () => undefined),
+          get: vi.fn(async () => ({ siDiagnosticLifecycle: [] })),
+        },
       },
     };
     vi.stubGlobal("chrome", host);
@@ -354,8 +357,7 @@ describe("structured E2E control client", () => {
 
       expect(JSON.parse(response)).toEqual({ ok: true, value: true });
       expect(sendMessage).toHaveBeenCalledWith({
-        type: "SAVE_IN_E2E_NOTIFICATION_CALLS",
-        body: { action: "reset" },
+        type: "SAVE_IN_E2E_RESET_STATE",
       });
     } finally {
       vi.unstubAllGlobals();

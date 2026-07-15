@@ -133,6 +133,17 @@ The command reports increases above 25%. Add `--enforce` only on a stable,
 repeatable runner; it fails increases above 50% that also add at least two
 seconds. Timing reports aggregate every module for a browser, normalize module
 paths across machines, and identify cases by browser, module, and test name.
+Each artifact's `run.json` records terminal status, total duration, browser
+suite exit codes, interruption signals, and staging or cleanup failure details;
+an artifact with only startup metadata is an interrupted legacy run.
+
+After every case, the harness aborts worker-local transfers, drains pending
+state writes, clears browser downloads, tabs, notifications, DNR rules,
+offscreen documents, and session storage, restores the local-storage baseline,
+then verifies that no unexpected state survived. Cleanup failures capture the
+same browser diagnostics as assertion failures before the suite exits.
+The next run also removes disposable Chrome and Firefox profiles whose owning
+harness PID is no longer alive, without touching profiles from concurrent runs.
 
 ## Failed browser runs
 

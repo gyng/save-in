@@ -67,6 +67,11 @@ type ProtocolSendResponse<Request extends InternalMessage> = SendResponse<Respon
 const sourcePanelCopies = new Map<string, ReturnType<typeof createSourcePanelCopy>>();
 const allowExternalValidation = createExternalValidationRateLimiter();
 
+export const resetMessagingTransientState = (): void => {
+  sourcePanelCopies.clear();
+  allowExternalValidation.reset();
+};
+
 const getUntrustedValidationRejection = (
   request: MessageOf<typeof MESSAGE_TYPES.VALIDATE>,
   sender: MessageSender,

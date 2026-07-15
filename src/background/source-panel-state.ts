@@ -50,3 +50,13 @@ export const syncSourcePanelToTab = (tabId: number): Promise<void> => {
   );
   return queue;
 };
+
+export const resetSourcePanelState = async (): Promise<void> => {
+  for (;;) {
+    const pending = queue;
+    await pending.catch(() => {});
+    if (queue === pending) break;
+  }
+  fallback = false;
+  queue = Promise.resolve();
+};

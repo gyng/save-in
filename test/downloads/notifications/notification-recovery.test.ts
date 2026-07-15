@@ -94,6 +94,20 @@ describe("startup restore", () => {
     }
   });
 
+  test("cancels delayed recovery during an e2e worker-state reset", async () => {
+    vi.useFakeTimers();
+    const sessionStore = { siPendingDownloads: 3 } as Record<string, any>;
+    setupGlobals(sessionStore, () => []);
+
+    await loadNotification();
+    const { resetNotificationRecoveryState } =
+      await import("../../../src/downloads/notification.ts");
+    await resetNotificationRecoveryState();
+    await vi.advanceTimersByTimeAsync(10_000);
+
+    expect(sessionStore.siPendingDownloads).toBe(3);
+  });
+
   test("finishes an expired pending recovery after the worker died before its timer", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-01-01T00:00:00Z"));

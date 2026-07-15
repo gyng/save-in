@@ -1,12 +1,18 @@
 import { Download } from "../../src/downloads/download.ts";
 import { Notifier } from "../../src/downloads/notification.ts";
+import { ActiveTransfers } from "../../src/downloads/active-transfers.ts";
+import { downloadsState } from "../../src/downloads/state.ts";
+import { counterWriteState } from "../../src/background/state.ts";
+import { backgroundRuntime } from "../../src/background/runtime.ts";
 import {
   BACKGROUND_E2E_COMMAND,
   BACKGROUND_E2E_CONTEXT_MENU_COMMAND,
   BACKGROUND_E2E_NOTIFICATION_COMMAND,
+  BACKGROUND_E2E_RESET_COMMAND,
   handleBackgroundE2ECommand,
   handleBackgroundE2EContextMenuCommand,
   handleBackgroundE2ENotificationCommand,
+  handleBackgroundE2EResetCommand,
   installBackgroundE2ENotificationObserver,
 } from "../../src/background/e2e-command.ts";
 
@@ -109,6 +115,36 @@ test("returns a command error when context-menu dispatch fails", async () => {
     type: BACKGROUND_E2E_CONTEXT_MENU_COMMAND,
     body: { status: "ERROR", message: "click failed" },
   });
+});
+
+test("resets worker-local state after each browser case", async () => {
+  const controller = new AbortController();
+  ActiveTransfers.register("history-7", controller);
+  downloadsState.records.set(7, { adopted: true, filename: "old.txt" });
+  downloadsState.hydration = Promise.resolve();
+  counterWriteState.privateValue = 9;
+  const previousReady = backgroundRuntime.ready;
+  backgroundRuntime.ready = Promise.reject(new Error("prior initialization failed"));
+
+  try {
+    await expect(
+      handleBackgroundE2EResetCommand({ type: BACKGROUND_E2E_RESET_COMMAND }),
+    ).resolves.toEqual({
+      type: BACKGROUND_E2E_RESET_COMMAND,
+      body: { status: "OK" },
+    });
+  } finally {
+    if (previousReady) backgroundRuntime.ready = previousReady;
+    else delete backgroundRuntime.ready;
+  }
+
+  expect(controller.signal.aborted).toBe(true);
+  expect(downloadsState.records.size).toBe(0);
+  expect(downloadsState.hydration).toBeNull();
+  expect(counterWriteState.privateValue).toBeUndefined();
+  await expect(
+    handleBackgroundE2EResetCommand({ type: BACKGROUND_E2E_RESET_COMMAND, body: {} }),
+  ).resolves.toBeNull();
 });
 
 test("observes notification calls while preserving the native API call", async () => {

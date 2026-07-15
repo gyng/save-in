@@ -284,6 +284,16 @@ afterEach(async ({ task }) => {
     cleanupErrors.push(error);
   }
   if (cleanupErrors.length) {
+    suiteFailed = true;
+    if (task.result?.state !== "fail") {
+      try {
+        await captureFailureArtifacts(`${task.name} cleanup`, task.result?.duration);
+      } catch (error) {
+        process.stderr.write(
+          `Unable to capture Firefox cleanup failure artifacts: ${error instanceof Error ? error.stack || error.message : String(error)}\n`,
+        );
+      }
+    }
     throw new AggregateError(cleanupErrors, "Firefox E2E case cleanup failed");
   }
 });

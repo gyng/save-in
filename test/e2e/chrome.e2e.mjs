@@ -344,8 +344,19 @@ afterEach(async ({ task }) => {
   } catch (error) {
     cleanupErrors.push(error);
   }
-  if (cleanupErrors.length)
+  if (cleanupErrors.length) {
+    suiteFailed = true;
+    if (task.result?.state !== "fail") {
+      try {
+        await captureFailureArtifacts(`${task.name} cleanup`, task.result?.duration);
+      } catch (error) {
+        process.stderr.write(
+          `Unable to capture Chrome cleanup failure artifacts: ${error instanceof Error ? error.stack || error.message : String(error)}\n`,
+        );
+      }
+    }
     throw new AggregateError(cleanupErrors, "Chrome E2E case cleanup failed");
+  }
 });
 
 test("first install starts with a focused welcome", async () => {

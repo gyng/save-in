@@ -1,4 +1,11 @@
-import { mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import fs, {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createRequire } from "node:module";
@@ -8,6 +15,7 @@ const require = createRequire(import.meta.url);
 const {
   acquireDirectoryLock,
   pruneArtifactRuns,
+  pruneOrphanedProfiles,
   pruneRunDirectories,
   releaseDirectoryLock,
   removeOwnedProfiles,
@@ -18,6 +26,12 @@ const {
     options?: { timeoutMs?: number; pollMs?: number; pid?: number },
   ) => { lockDir: string; token: string };
   pruneArtifactRuns: (directory: string, keep?: number) => void;
+  pruneOrphanedProfiles: (options: {
+    chromeRoot: string;
+    firefoxRoot: string;
+    attempts?: number;
+    delayMs?: number;
+  }) => Promise<void>;
   pruneRunDirectories: (directory: string) => void;
   releaseDirectoryLock: (lock: { lockDir: string; token: string }) => void;
   removeOwnedProfiles: (
@@ -50,6 +64,21 @@ describe("E2E lifecycle cleanup", () => {
     );
     releaseDirectoryLock(lock);
     expect(readdirSync(parent)).toEqual([]);
+  });
+
+  test("removes a partial staging lock when its owner record cannot be written", () => {
+    const parent = tempRoot("save-in-partial-lock-");
+    const lockDir = join(parent, "staging.lock");
+    const write = vi.spyOn(fs, "writeFileSync").mockImplementationOnce(() => {
+      throw Object.assign(new Error("disk write failed"), { code: "EIO" });
+    });
+
+    try {
+      expect(() => acquireDirectoryLock(lockDir)).toThrow("disk write failed");
+      expect(existsSync(lockDir)).toBe(false);
+    } finally {
+      write.mockRestore();
+    }
   });
 
   test("allows only one contender to reclaim a stale staging lock", () => {
@@ -99,6 +128,28 @@ describe("E2E lifecycle cleanup", () => {
     await expect(
       removeOwnedProfiles(["123"], { chromeRoot, firefoxRoot, attempts: 0, delayMs: 0 }),
     ).rejects.toThrow("E2E profile cleanup failed");
+  });
+
+  test("prunes interrupted-run profiles without touching a live concurrent owner", async () => {
+    const chromeRoot = tempRoot("save-in-prune-chrome-");
+    const firefoxRoot = tempRoot("save-in-prune-firefox-");
+    const staleChrome = join(chromeRoot, "e2e-profile-999999999-123-a");
+    const staleFirefox = join(firefoxRoot, "save-in-ff-e2e-999999999-456-b");
+    const liveChrome = join(chromeRoot, `e2e-profile-${process.pid}-${Date.now()}-c`);
+    const reusedPid = join(chromeRoot, `e2e-profile-${process.pid}-1-old`);
+    const unrelated = join(chromeRoot, "e2e-profile-not-an-owner");
+    for (const profile of [staleChrome, staleFirefox, liveChrome, reusedPid, unrelated]) {
+      mkdirSync(profile);
+    }
+
+    await pruneOrphanedProfiles({ chromeRoot, firefoxRoot, delayMs: 0 });
+
+    expect(existsSync(staleChrome)).toBe(false);
+    expect(existsSync(staleFirefox)).toBe(false);
+    expect(existsSync(liveChrome)).toBe(true);
+    if (process.platform === "linux") expect(existsSync(reusedPid)).toBe(false);
+    else expect(existsSync(reusedPid)).toBe(true);
+    expect(existsSync(unrelated)).toBe(true);
   });
 
   test("keeps the newest diagnostic runs", () => {

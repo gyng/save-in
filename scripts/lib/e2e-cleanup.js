@@ -24,6 +24,19 @@ const processIsAlive = (pid) => {
   }
 };
 
+/** @param {number} pid @param {number} runStartedAt */
+const processOwnsRun = (pid, runStartedAt) => {
+  if (!processIsAlive(pid)) return false;
+  if (process.platform !== "linux") return true;
+  try {
+    // PID namespaces can reuse low IDs rapidly. A process created after the
+    // timestamp embedded in the profile name cannot own that older profile.
+    return fs.statSync(`/proc/${pid}`).mtimeMs <= runStartedAt + 1_000;
+  } catch {
+    return true;
+  }
+};
+
 /**
  * Claims stale-lock cleanup with an exclusive marker inside the lock. A
  * contender that does not own the marker must leave the directory untouched.
@@ -86,11 +99,14 @@ const acquireDirectoryLock = (
   const token = `${pid}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
   const deadline = Date.now() + timeoutMs;
   for (;;) {
+    let created = false;
     try {
       fs.mkdirSync(lockDir, { recursive: false });
+      created = true;
       fs.writeFileSync(path.join(lockDir, "owner.json"), JSON.stringify({ pid, token }));
       return { lockDir, token };
     } catch (error) {
+      if (created) fs.rmSync(lockDir, { recursive: true, force: true });
       if (errorCode(error) !== "EEXIST") throw error;
       if (tryReclaimDirectoryLock(lockDir, { pid })) continue;
       if (Date.now() >= deadline)
@@ -157,6 +173,42 @@ const removeOwnedProfiles = async (
   if (failures.length) throw new AggregateError(failures, "E2E profile cleanup failed");
 };
 
+/**
+ * Removes profiles left by interrupted harness processes while preserving any
+ * profile whose owning PID is still alive.
+ *
+ * @param {{chromeRoot: string, firefoxRoot: string, attempts?: number, delayMs?: number}} options
+ */
+const pruneOrphanedProfiles = async ({ chromeRoot, firefoxRoot, attempts = 6, delayMs = 500 }) => {
+  const roots = [
+    { dir: chromeRoot, prefix: "e2e-profile-" },
+    { dir: firefoxRoot, prefix: "save-in-ff-e2e-" },
+  ];
+  /** @type {unknown[]} */
+  const failures = [];
+  for (const { dir, prefix } of roots) {
+    for (const entry of fs.existsSync(dir) ? fs.readdirSync(dir, { withFileTypes: true }) : []) {
+      if (!entry.isDirectory() || !entry.name.startsWith(prefix)) continue;
+      const owner = entry.name.slice(prefix.length).match(/^(\d+)-(\d+)-/);
+      const ownerPid = Number(owner?.[1]);
+      const runStartedAt = Number(owner?.[2]);
+      if (
+        !Number.isInteger(ownerPid) ||
+        !Number.isSafeInteger(runStartedAt) ||
+        processOwnsRun(ownerPid, runStartedAt)
+      ) {
+        continue;
+      }
+      try {
+        await removeWithRetries(path.join(dir, entry.name), { attempts, delayMs });
+      } catch (error) {
+        failures.push(error);
+      }
+    }
+  }
+  if (failures.length) throw new AggregateError(failures, "Orphaned E2E profile cleanup failed");
+};
+
 /** @param {string} artifacts @param {number} [keep] */
 const pruneArtifactRuns = (artifacts, keep = 3) => {
   fs.mkdirSync(artifacts, { recursive: true });
@@ -196,7 +248,9 @@ const pruneRunDirectories = (runRoot) => {
 module.exports = {
   acquireDirectoryLock,
   pruneArtifactRuns,
+  pruneOrphanedProfiles,
   pruneRunDirectories,
+  processOwnsRun,
   releaseDirectoryLock,
   removeOwnedProfiles,
   removeWithRetries,

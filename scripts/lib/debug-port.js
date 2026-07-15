@@ -23,6 +23,84 @@ const processIsAlive = (pid) => {
   }
 };
 
+/** @param {string} lock */
+const readPortOwner = (lock) => {
+  const stored = fs.readFileSync(path.join(lock, "owner"), "utf8");
+  try {
+    const parsed = JSON.parse(stored);
+    if (
+      parsed !== null &&
+      typeof parsed === "object" &&
+      Number.isInteger(parsed.pid) &&
+      typeof parsed.token === "string"
+    ) {
+      return { pid: parsed.pid, token: parsed.token };
+    }
+  } catch {
+    // Older harnesses wrote a plain PID. Keep those locks reclaimable.
+  }
+  const pid = Number(stored);
+  return Number.isInteger(pid) ? { pid, token: undefined } : undefined;
+};
+
+/** @param {string} lock @param {number} [orphanedAfterMs] */
+const tryReclaimPortLock = (lock, orphanedAfterMs = 2_000) => {
+  let observedMtime;
+  try {
+    observedMtime = fs.statSync(lock).mtimeMs;
+  } catch (error) {
+    if (error && typeof error === "object" && "code" in error && error.code === "ENOENT") {
+      return true;
+    }
+    throw error;
+  }
+  const claim = path.join(lock, ".reclaim");
+  try {
+    fs.mkdirSync(claim);
+  } catch (error) {
+    if (
+      error &&
+      typeof error === "object" &&
+      "code" in error &&
+      (error.code === "EEXIST" || error.code === "ENOENT")
+    ) {
+      return false;
+    }
+    throw error;
+  }
+  let removed = false;
+  try {
+    let stale = false;
+    try {
+      const owner = readPortOwner(lock);
+      stale = owner ? !processIsAlive(owner.pid) : Date.now() - observedMtime > orphanedAfterMs;
+    } catch {
+      stale = Date.now() - observedMtime > orphanedAfterMs;
+    }
+    if (!stale) return false;
+    fs.rmSync(lock, { recursive: true, force: true });
+    removed = true;
+    return true;
+  } finally {
+    if (!removed) fs.rmSync(claim, { recursive: true, force: true });
+  }
+};
+
+/** @param {string} lock @param {string} token @param {number} port */
+const releasePortLock = (lock, token, port) => {
+  let owner;
+  try {
+    owner = readPortOwner(lock);
+  } catch (error) {
+    if (error && typeof error === "object" && "code" in error && error.code === "ENOENT") return;
+    throw error;
+  }
+  if (owner?.token !== token) {
+    throw new Error(`Refusing to release a debug port owned by another process: ${port}`);
+  }
+  fs.rmSync(lock, { recursive: true, force: true });
+};
+
 /** @param {number} port @param {string} host @returns {Promise<boolean>} */
 const canBind = (port, host) =>
   new Promise((resolve, reject) => {
@@ -96,28 +174,18 @@ const reserveAvailablePort = async (
   for (let index = 0; index < count; index += 1) {
     const port = start + ((normalizedOffset + index) % count);
     const lock = path.join(PORT_LOCK_ROOT, String(port));
+    const token = `${process.pid}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    let created = false;
     try {
       fs.mkdirSync(lock);
-      fs.writeFileSync(path.join(lock, "owner"), String(process.pid));
+      created = true;
+      fs.writeFileSync(path.join(lock, "owner"), JSON.stringify({ pid: process.pid, token }));
     } catch (error) {
+      if (created) fs.rmSync(lock, { recursive: true, force: true });
       if (!(error && typeof error === "object" && "code" in error && error.code === "EEXIST")) {
         throw error;
       }
-      try {
-        const owner = Number(fs.readFileSync(path.join(lock, "owner"), "utf8"));
-        if (!Number.isInteger(owner) || !processIsAlive(owner)) {
-          const age = Date.now() - fs.statSync(lock).mtimeMs;
-          if (Number.isInteger(owner) || age > 2000) {
-            fs.rmSync(lock, { recursive: true, force: true });
-            index -= 1;
-          }
-        }
-      } catch {
-        if (fs.existsSync(lock) && Date.now() - fs.statSync(lock).mtimeMs > 2000) {
-          fs.rmSync(lock, { recursive: true, force: true });
-          index -= 1;
-        }
-      }
+      if (tryReclaimPortLock(lock)) index -= 1;
       continue;
     }
     if (!(await canBind(port, host))) {
@@ -129,8 +197,8 @@ const reserveAvailablePort = async (
       port,
       release: () => {
         if (released) return;
+        releasePortLock(lock, token, port);
         released = true;
-        fs.rmSync(lock, { recursive: true, force: true });
       },
     };
   }
@@ -145,5 +213,7 @@ module.exports = {
   FIREFOX_BIDI_PORT_COUNT,
   FIREFOX_BIDI_PORT_START,
   findAvailablePort,
+  releasePortLock,
   reserveAvailablePort,
+  tryReclaimPortLock,
 };

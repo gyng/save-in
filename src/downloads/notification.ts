@@ -32,7 +32,10 @@ import {
 import { runEventTask } from "../shared/event-task.ts";
 import { resolveFirefoxDownloadContext } from "./auth-context.ts";
 import { OffscreenClient } from "../platform/offscreen-client.ts";
-export { recoverNotificationState } from "./notification-recovery.ts";
+export {
+  recoverNotificationState,
+  resetNotificationRecoveryState,
+} from "./notification-recovery.ts";
 
 type HostDownloadItem = Parameters<
   Parameters<typeof webExtensionApi.downloads.onCreated.addListener>[0]
@@ -140,6 +143,14 @@ type ExpectedDownload = {
   record?: Partial<DownloadRecord> | undefined;
 };
 const expectedDownloads: ExpectedDownload[] = [];
+
+export const resetNotifierTransientState = (): void => {
+  for (const timer of notificationClearTimers.values()) globalThis.clearTimeout(timer);
+  for (const timer of extensionNotificationDebounceTimers.values()) globalThis.clearTimeout(timer);
+  notificationClearTimers.clear();
+  extensionNotificationDebounceTimers.clear();
+  expectedDownloads.length = 0;
+};
 
 // Recovery of adopted and pending records is owned by notification-recovery.ts.
 const mergeTrackedDownload = (downloadId: number, partial: DownloadRecordUpdate) =>

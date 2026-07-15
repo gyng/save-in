@@ -127,6 +127,8 @@ describe("external validation safeguards", () => {
     expect(allow("extension-a", 200)).toBe(true);
     expect(allow("extension-a", 300)).toBe(false);
     expect(allow("extension-b", 300)).toBe(true);
+    allow.reset();
+    expect(allow("extension-a", 300)).toBe(true);
     expect(allow("extension-a", 1_101)).toBe(true);
   });
 });

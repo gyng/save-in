@@ -29,6 +29,20 @@ test("finishing an old controller does not remove its replacement", () => {
   expect(second.signal.aborted).toBe(true);
 });
 
+test("reset aborts every transfer and drains persistence", async () => {
+  const publicController = new AbortController();
+  const privateController = new AbortController();
+  ActiveTransfers.register("h1", publicController);
+  ActiveTransfers.hold(privateController);
+
+  await ActiveTransfers.reset();
+
+  expect(publicController.signal.aborted).toBe(true);
+  expect(privateController.signal.aborted).toBe(true);
+  expect(ActiveTransfers.cancel("h1")).toBe(false);
+  expect(browser.storage.session.set).toHaveBeenCalled();
+});
+
 test("keeps the service worker alive while a transfer is active", async () => {
   vi.useFakeTimers();
   const getPlatformInfo = vi.fn(() => Promise.resolve({ os: "win" }));

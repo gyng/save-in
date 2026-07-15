@@ -32,6 +32,23 @@ const signalTree = (child, signal, detached) => {
   }
 };
 
+/** @param {Promise<unknown>} exited @param {number} timeoutMs */
+const waitForExit = (exited, timeoutMs) =>
+  new Promise((resolve, reject) => {
+    const timer = setTimeout(() => resolve(false), timeoutMs);
+    timer.unref();
+    exited.then(
+      () => {
+        clearTimeout(timer);
+        resolve(true);
+      },
+      (error) => {
+        clearTimeout(timer);
+        reject(error);
+      },
+    );
+  });
+
 /**
  * Terminates the complete browser/suite process group and escalates when a
  * child ignores the graceful signal.
@@ -43,25 +60,12 @@ const terminateProcessTree = async (child, { detached = false, graceMs = 5000 } 
   if (!child || !isRunning(child)) return;
   const exited = once(child, "exit");
   signalTree(child, "SIGTERM", detached);
-  const graceful = await Promise.race([
-    exited.then(() => true),
-    new Promise((resolve) => {
-      const timer = setTimeout(() => resolve(false), graceMs);
-      timer.unref();
-    }),
-  ]);
+  const graceful = await waitForExit(exited, graceMs);
   if (graceful || !isRunning(child)) return;
   signalTree(child, "SIGKILL", detached);
-  await Promise.race([
-    exited,
-    new Promise((_, reject) => {
-      const timer = setTimeout(
-        () => reject(new Error(`Process tree ${child.pid} did not exit after SIGKILL`)),
-        graceMs,
-      );
-      timer.unref();
-    }),
-  ]);
+  if (!(await waitForExit(exited, graceMs))) {
+    throw new Error(`Process tree ${child.pid} did not exit after SIGKILL`);
+  }
 };
 
-module.exports = { isRunning, terminateProcessTree };
+module.exports = { isRunning, terminateProcessTree, waitForExit };

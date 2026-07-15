@@ -456,6 +456,8 @@ export const dispatchControlRequest = async (
       }
     };
     const optionsUrl = browserApi.runtime.getURL("src/options/options.html");
+    /** @type {number | undefined} */
+    let retainedTabId;
     await Promise.all([
       attempt("tabs", async () => {
         const [current, tabs] = await Promise.all([
@@ -463,10 +465,11 @@ export const dispatchControlRequest = async (
           browserApi.tabs.query({}),
         ]);
         const keep = current?.id ?? tabs.find((tab) => tab.url?.startsWith(optionsUrl))?.id;
+        retainedTabId = keep;
         const remove = tabs.flatMap((tab) =>
           tab.id !== undefined && tab.id !== keep ? [tab.id] : [],
         );
-        if (remove.length) await browserApi.tabs.remove(remove);
+        await Promise.all(remove.map((id) => browserApi.tabs.remove(id).catch(() => {})));
       }),
       attempt("downloads", async () => {
         const downloads = await browserApi.downloads.search({});
@@ -484,11 +487,6 @@ export const dispatchControlRequest = async (
             Object.keys(notifications).map((id) => browserApi.notifications.clear(id)),
           );
         }
-        const response = await send({
-          type: "SAVE_IN_E2E_NOTIFICATION_CALLS",
-          body: { action: "reset" },
-        });
-        if (response.body.status === "ERROR") throw new Error(response.body.message);
       }),
       attempt("session rules", async () => {
         if (!browserApi.declarativeNetRequest?.getSessionRules) return;
@@ -500,6 +498,19 @@ export const dispatchControlRequest = async (
         }
       }),
     ]);
+    await attempt("background state", async () => {
+      const response = await send({ type: "SAVE_IN_E2E_RESET_STATE" });
+      if (response.body.status === "ERROR") throw new Error(response.body.message);
+    });
+    await attempt("offscreen document", async () => {
+      if (!chromeApi.offscreen?.hasDocument || !chromeApi.offscreen.closeDocument) return;
+      if (!(await chromeApi.offscreen.hasDocument())) return;
+      try {
+        await chromeApi.offscreen.closeDocument();
+      } catch (error) {
+        if (await chromeApi.offscreen.hasDocument()) throw error;
+      }
+    });
     await attempt("session storage", () => browserApi.storage.session?.clear?.());
     if (snapshot) {
       await attempt("local storage", async () => {
@@ -508,6 +519,36 @@ export const dispatchControlRequest = async (
       });
     }
     await attempt("runtime reset", () => send({ type: "OPTIONS_LOADED" }));
+    await attempt("post-reset verification", async () => {
+      const [downloads, tabs, session, notifications, rules, hasOffscreenDocument] =
+        await Promise.all([
+          browserApi.downloads.search({}),
+          browserApi.tabs.query({}),
+          browserApi.storage.session?.get?.(null) ?? Promise.resolve({}),
+          browserApi.notifications?.getAll?.() ?? Promise.resolve({}),
+          browserApi.declarativeNetRequest?.getSessionRules?.() ?? Promise.resolve([]),
+          chromeApi.offscreen?.hasDocument?.() ?? Promise.resolve(false),
+        ]);
+      const unexpectedTabs = tabs.filter((tab) => tab.id !== retainedTabId);
+      const unexpectedSessionKeys = Object.keys(session).filter(
+        (key) => key !== "siDiagnosticLifecycle",
+      );
+      const dirty = {
+        ...(downloads.length ? { downloadIds: downloads.map(({ id }) => id) } : {}),
+        ...(unexpectedTabs.length
+          ? { tabs: unexpectedTabs.map(({ id, title, url }) => ({ id, title, url })) }
+          : {}),
+        ...(unexpectedSessionKeys.length ? { sessionKeys: unexpectedSessionKeys } : {}),
+        ...(Object.keys(notifications).length
+          ? { notificationIds: Object.keys(notifications) }
+          : {}),
+        ...(rules.length ? { sessionRuleIds: rules.map(({ id }) => id) } : {}),
+        ...(hasOffscreenDocument ? { offscreenDocument: true } : {}),
+      };
+      if (Object.keys(dirty).length) {
+        throw new Error(`Case state remained after reset: ${JSON.stringify(dirty)}`);
+      }
+    });
     if (failures.length) throw new Error(failures.join("\n---\n"));
     return true;
   };

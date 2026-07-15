@@ -27,6 +27,8 @@ type NotificationRecovery = {
 };
 
 let recovery: Promise<void> | null = null;
+const recoveryTimers = new Set<ReturnType<typeof setTimeout>>();
+const recoveryTasks = new Set<Promise<void>>();
 
 const normalizeRecovery = (value: unknown): NotificationRecovery | null => {
   if (!isStringKeyedRecord(value)) return null;
@@ -143,12 +145,19 @@ const finishRecovery = async (expected: NotificationRecovery): Promise<void> => 
 };
 
 const scheduleRecovery = (expected: NotificationRecovery, delay: number): void => {
-  setTimeout(
+  const timer = setTimeout(
     () => {
-      void finishRecovery(expected);
+      recoveryTimers.delete(timer);
+      const task = finishRecovery(expected);
+      recoveryTasks.add(task);
+      void task.then(
+        () => recoveryTasks.delete(task),
+        () => recoveryTasks.delete(task),
+      );
     },
     Math.max(0, delay),
   );
+  recoveryTimers.add(timer);
 };
 
 const initializeRecovery = async (): Promise<void> => {
@@ -206,4 +215,12 @@ const initializeRecovery = async (): Promise<void> => {
 export const recoverNotificationState = (): Promise<void> => {
   recovery ??= initializeRecovery();
   return recovery;
+};
+
+export const resetNotificationRecoveryState = async (): Promise<void> => {
+  for (const timer of recoveryTimers) clearTimeout(timer);
+  recoveryTimers.clear();
+  await Promise.allSettled(recoveryTasks);
+  recoveryTasks.clear();
+  recovery = null;
 };

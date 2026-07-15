@@ -2,17 +2,28 @@ import { SHORTCUT_TYPES } from "../shared/constants.ts";
 import { webExtensionApi } from "../platform/web-extension-api.ts";
 import { Download } from "../downloads/download.ts";
 import type { DownloadInfo, DownloadLaunchResult } from "../downloads/download-types.ts";
+import { ActiveTransfers } from "../downloads/active-transfers.ts";
+import {
+  resetNotificationRecoveryState,
+  resetNotifierTransientState,
+} from "../downloads/notification.ts";
+import { downloadsState, sessionWriteState } from "../downloads/state.ts";
 import { Shortcut } from "../downloads/shortcut.ts";
 import { Path } from "../routing/path.ts";
 import type { CurrentTab } from "../platform/current-tab.ts";
 import { backgroundRuntime } from "./runtime.ts";
 import { handleContextMenuClick, type ContextMenuClickInfo } from "./menu-click.ts";
 import { handleTabMenuClick, type HostTab, type TabMenuClickInfo } from "./menu-tabs.ts";
+import { configWriteState, counterWriteState } from "./state.ts";
+import { resetMessagingTransientState } from "./messaging.ts";
+import { resetSourcePanelState } from "./source-panel-state.ts";
+import { RefererRules } from "../downloads/referer-rules.ts";
 
 export const BACKGROUND_E2E_COMMAND = "SAVE_IN_E2E_START_DOWNLOAD";
 export const BACKGROUND_E2E_CONTEXT_MENU_COMMAND = "SAVE_IN_E2E_CONTEXT_MENU_CLICK";
 export const BACKGROUND_E2E_NOTIFICATION_COMMAND = "SAVE_IN_E2E_NOTIFICATION_CALLS";
 export const BACKGROUND_E2E_TAB_MENU_COMMAND = "SAVE_IN_E2E_TAB_MENU_CLICK";
+export const BACKGROUND_E2E_RESET_COMMAND = "SAVE_IN_E2E_RESET_STATE";
 
 export type BackgroundE2EDownload = {
   path?: string;
@@ -50,6 +61,10 @@ export type BackgroundE2ETabMenuRequest = {
   body: { info: TabMenuClickInfo; tab: HostTab };
 };
 
+export type BackgroundE2EResetRequest = {
+  type: typeof BACKGROUND_E2E_RESET_COMMAND;
+};
+
 export type BackgroundE2ENotificationCall = {
   id: string;
   title?: string;
@@ -75,6 +90,11 @@ export type BackgroundE2ENotificationResponse = {
 
 export type BackgroundE2ETabMenuResponse = {
   type: typeof BACKGROUND_E2E_TAB_MENU_COMMAND;
+  body: { status: "OK" } | { status: "ERROR"; message: string };
+};
+
+export type BackgroundE2EResetResponse = {
+  type: typeof BACKGROUND_E2E_RESET_COMMAND;
   body: { status: "OK" } | { status: "ERROR"; message: string };
 };
 
@@ -172,6 +192,9 @@ const isBackgroundE2ETabMenuCommand = (value: unknown): value is BackgroundE2ETa
   typeof value.body.tab.id === "number" &&
   typeof value.body.tab.index === "number" &&
   typeof value.body.tab.windowId === "number";
+
+const isBackgroundE2EResetCommand = (value: unknown): value is BackgroundE2EResetRequest =>
+  isRecord(value) && value.type === BACKGROUND_E2E_RESET_COMMAND && value.body === undefined;
 
 const resolveDownloadUrl = (request: BackgroundE2EDownload): string => {
   if (request.shortcutUrl) {
@@ -292,6 +315,53 @@ export const handleBackgroundE2ETabMenuCommand = async (
   }
 };
 
+const drainBackgroundWrites = async (): Promise<void> => {
+  for (;;) {
+    const counterQueue = counterWriteState.queue;
+    const configQueue = configWriteState.queue;
+    const sessionQueues = [...sessionWriteState.queues.values()];
+    await Promise.allSettled([counterQueue, configQueue, ...sessionQueues]);
+    if (
+      counterWriteState.queue === counterQueue &&
+      configWriteState.queue === configQueue &&
+      sessionWriteState.queues.size === 0
+    ) {
+      return;
+    }
+  }
+};
+
+export const handleBackgroundE2EResetCommand = async (
+  rawRequest: unknown,
+): Promise<BackgroundE2EResetResponse | null> => {
+  if (!isBackgroundE2EResetCommand(rawRequest)) return null;
+  try {
+    await (backgroundRuntime.ready ?? Promise.resolve()).catch(() => {});
+    await ActiveTransfers.reset();
+    await RefererRules.reset();
+    await resetNotificationRecoveryState();
+    await resetSourcePanelState();
+    resetMessagingTransientState();
+    resetNotifierTransientState();
+    handleBackgroundE2ENotificationCommand({
+      type: BACKGROUND_E2E_NOTIFICATION_COMMAND,
+      body: { action: "reset" },
+    });
+    await drainBackgroundWrites();
+    downloadsState.records.clear();
+    downloadsState.hydration = null;
+    counterWriteState.privateValue = undefined;
+    counterWriteState.queue = Promise.resolve();
+    configWriteState.queue = Promise.resolve();
+    return { type: BACKGROUND_E2E_RESET_COMMAND, body: { status: "OK" } };
+  } catch (error) {
+    return {
+      type: BACKGROUND_E2E_RESET_COMMAND,
+      body: { status: "ERROR", message: error instanceof Error ? error.message : String(error) },
+    };
+  }
+};
+
 export const installBackgroundE2ENotificationObserver = (): void => {
   if (notificationObserverInstalled) return;
   notificationObserverInstalled = true;
@@ -332,6 +402,10 @@ export const installBackgroundE2ENotificationObserver = (): void => {
 export const registerBackgroundE2ECommand = (): void => {
   installBackgroundE2ENotificationObserver();
   webExtensionApi.runtime.onMessage.addListener((rawRequest, _sender, sendResponse) => {
+    if (isBackgroundE2EResetCommand(rawRequest)) {
+      void handleBackgroundE2EResetCommand(rawRequest).then(sendResponse);
+      return true;
+    }
     if (isBackgroundE2ENotificationCommand(rawRequest)) {
       void Promise.resolve(handleBackgroundE2ENotificationCommand(rawRequest)).then(sendResponse);
       return true;

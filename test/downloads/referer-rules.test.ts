@@ -151,6 +151,32 @@ test("startup cleanup removes the reserved session rule", async () => {
   });
 });
 
+test("worker reset drains protected work before removing the shared rule", async () => {
+  let release!: () => void;
+  const pending = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  const protectedWork = RefererRules.withReferer(
+    "https://cdn.example/reset.jpg",
+    "https://gallery.example/reset",
+    () => pending,
+  );
+  let resetFinished = false;
+  const reset = RefererRules.reset().then(() => {
+    resetFinished = true;
+  });
+
+  await vi.waitFor(() => expect(updateSessionRules()).toHaveBeenCalledOnce());
+  expect(resetFinished).toBe(false);
+  release();
+  await Promise.all([protectedWork, reset]);
+
+  expect(updateSessionRules()).toHaveBeenCalledTimes(3);
+  expect(updateSessionRules()).toHaveBeenLastCalledWith({
+    removeRuleIds: [REFERER_SESSION_RULE_ID],
+  });
+});
+
 test("scopes Firefox rules to its moz-extension origin", async () => {
   setCurrentBrowser(BROWSERS.FIREFOX);
   const operation = vi.fn(async () => "native");
