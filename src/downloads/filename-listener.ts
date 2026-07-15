@@ -21,7 +21,7 @@ import {
   FINAL_FILENAMES_SESSION_KEY,
 } from "../shared/storage-keys.ts";
 import { getMessage } from "../platform/localization.ts";
-import { EXTENSION_NOTIFICATION_STREAMS, Notifier } from "./notification.ts";
+import { createExtensionNotification, EXTENSION_NOTIFICATION_STREAMS } from "./notification.ts";
 import {
   fromWireDownloadState,
   isWireDownloadState,
@@ -279,7 +279,7 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
           .catch((error) => logPort.add("route-miss history update failed", String(error)));
       }
       if (options.notifyOnFailure) {
-        Notifier.createExtensionNotification(
+        createExtensionNotification(
           getMessage("notificationRuleMatchFailedExclusiveTitle"),
           getMessage("notificationRuleMatchFailedExclusiveMessage", [state.info.url ?? ""]),
           true,

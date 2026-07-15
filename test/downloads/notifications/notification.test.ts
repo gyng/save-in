@@ -2,7 +2,7 @@
 // directly. Each test sets the fields it needs and clears them afterwards.
 import { options } from "../../../src/config/options-data.ts";
 import type { SaveInOptions } from "../../../src/config/option-schema.ts";
-import { Notifier as notification } from "../../../src/downloads/notification.ts";
+import * as notification from "../../../src/downloads/notification.ts";
 import { resetNotifierTransientState } from "../../../src/downloads/notification.ts";
 
 const setOptions = (overrides: Partial<SaveInOptions> = {}) => {
@@ -269,7 +269,7 @@ describe("createExtensionNotification", () => {
     vi.advanceTimersByTime(250);
 
     vi.resetModules();
-    const [{ Notifier: reloadedNotifier }, { options: reloadedOptions }] = await Promise.all([
+    const [reloadedNotifier, { options: reloadedOptions }] = await Promise.all([
       import("../../../src/downloads/notification.ts"),
       import("../../../src/config/options-data.ts"),
     ]);

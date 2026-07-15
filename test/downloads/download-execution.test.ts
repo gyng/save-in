@@ -129,7 +129,7 @@ describe("renameAndDownload: browserDownload", () => {
       Download.executeBrowserDownload(plan, { url: state.info.url, source: "direct" }),
     ).resolves.toEqual({ status: "failed" });
 
-    expect(Notifier.reportFailure).toHaveBeenCalledWith(
+    expect(Notifier.reportDownloadFailure).toHaveBeenCalledWith(
       state.info.url,
       expect.stringContaining("disk full"),
     );
@@ -186,7 +186,7 @@ describe("renameAndDownload: browserDownload", () => {
     await expect(Download.renameAndDownload(state)).resolves.toEqual({ status: "skipped" });
 
     expect(SaveHistory.setHistoryStatus).toHaveBeenCalledWith("h-test", "USER_CANCELED");
-    expect(Notifier.reportFailure).not.toHaveBeenCalled();
+    expect(Notifier.reportDownloadFailure).not.toHaveBeenCalled();
   });
 
   test("does not fetch-retry a generated object URL after browser rejection", async () => {
@@ -326,7 +326,7 @@ describe("renameAndDownload: browserDownload", () => {
     ).resolves.toEqual({ status: "failed" });
 
     expect(SaveHistory.addHistoryEntry).not.toHaveBeenCalled();
-    expect(Notifier.reportFailure).not.toHaveBeenCalled();
+    expect(Notifier.reportDownloadFailure).not.toHaveBeenCalled();
   });
 });
 
@@ -989,7 +989,7 @@ describe("Download.launch (fire-and-forget with a user-facing failure)", () => {
         "renameAndDownload failed",
         expect.stringContaining("kaboom"),
       );
-      expect(Notifier.reportFailure).toHaveBeenCalledWith(
+      expect(Notifier.reportDownloadFailure).toHaveBeenCalledWith(
         "x.png",
         expect.stringContaining("kaboom"),
       );
@@ -1005,7 +1005,7 @@ describe("Download.launch (fire-and-forget with a user-facing failure)", () => {
       Download.launch(makeState({ info: { context: DOWNLOAD_TYPES.SIDECAR } })),
     ).resolves.toEqual({ status: "failed" });
 
-    expect(Notifier.reportFailure).not.toHaveBeenCalled();
+    expect(Notifier.reportDownloadFailure).not.toHaveBeenCalled();
   });
 
   test("reports nothing on a successful pipeline run", async () => {
@@ -1015,7 +1015,7 @@ describe("Download.launch (fire-and-forget with a user-facing failure)", () => {
     );
     try {
       await Download.launch(makeState());
-      expect(Notifier.reportFailure).not.toHaveBeenCalled();
+      expect(Notifier.reportDownloadFailure).not.toHaveBeenCalled();
     } finally {
       Download.renameAndDownload = orig;
     }
@@ -1035,7 +1035,7 @@ describe("Download.launch (fire-and-forget with a user-facing failure)", () => {
       expect.stringContaining("private failure"),
       { privateContext: true },
     );
-    expect(Notifier.reportFailure).toHaveBeenCalledWith(
+    expect(Notifier.reportDownloadFailure).toHaveBeenCalledWith(
       "",
       expect.stringContaining("private failure"),
     );
@@ -1052,7 +1052,7 @@ describe("terminal browserDownload failure surfaces to the user", () => {
 
     await Download.renameAndDownload(makeState());
 
-    expect(Notifier.reportFailure).toHaveBeenCalledWith(
+    expect(Notifier.reportDownloadFailure).toHaveBeenCalledWith(
       expect.any(String),
       expect.stringContaining("disk full"),
     );

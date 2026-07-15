@@ -42,7 +42,7 @@ let Runtime: any;
 const loadNotification = async () => {
   const mod = await import("../../../src/downloads/notification.ts");
   await mod.recoverNotificationState();
-  Notifier = mod.Notifier;
+  Notifier = mod;
   ({ options } = await import("../../../src/config/options-data.ts"));
   Log = await import("../../../src/background/log.ts");
   SaveHistory = await import("../../../src/background/history.ts");

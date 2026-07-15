@@ -18,7 +18,7 @@ describe("reportFailure", () => {
     await loadNotification();
     Object.assign(options, { notifyOnFailure: true, notifyDuration: 0 });
 
-    Notifier.reportFailure("file.png", "boom");
+    Notifier.reportDownloadFailure("file.png", "boom");
     vi.advanceTimersByTime(250);
 
     expect(global.browser.notifications.create).toHaveBeenCalledWith(
@@ -32,7 +32,7 @@ describe("reportFailure", () => {
     await loadNotification();
     Object.assign(options, { notifyOnFailure: true, notifyDuration: 0 });
 
-    Notifier.reportFailure("", undefined);
+    Notifier.reportDownloadFailure("", undefined);
     vi.advanceTimersByTime(250);
 
     expect(global.browser.notifications.create).toHaveBeenCalledWith(
@@ -45,7 +45,7 @@ describe("reportFailure", () => {
     await loadNotification();
     Object.assign(options, { notifyOnFailure: false });
 
-    Notifier.reportFailure("file.png", "boom");
+    Notifier.reportDownloadFailure("file.png", "boom");
 
     expect(global.browser.notifications.create).not.toHaveBeenCalled();
   });

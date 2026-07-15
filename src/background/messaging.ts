@@ -10,7 +10,7 @@ import { buildTree } from "../menus/menu-tree.ts";
 import { matcherFunctions, parseRulesCollecting, traceRules } from "../routing/router.ts";
 import { Download } from "../downloads/download.ts";
 import { createSourceSidecarRequest } from "../downloads/source-sidecar.ts";
-import { Notifier } from "../downloads/notification.ts";
+import { reportExternalDownloadRejection } from "../downloads/notification.ts";
 import { currentTab, type CurrentTab } from "../platform/current-tab.ts";
 import { configureDownloadEvents } from "../downloads/download-events.ts";
 import type { DownloadInfo, DownloadPipelineState } from "../downloads/download-types.ts";
@@ -805,7 +805,7 @@ const externalHandlers = {
         if (sender.id && sender.tab?.incognito !== true) {
           await Promise.allSettled([
             ExternalDownloadRejections.record(sender.id, request.body || {}),
-            Notifier.reportExternalDownloadRejection(sender.id),
+            reportExternalDownloadRejection(sender.id),
           ]);
         }
         sendResponse({

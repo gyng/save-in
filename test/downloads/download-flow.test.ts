@@ -96,7 +96,7 @@ describe("pipeline stages", () => {
       "h-test",
       "DOWNLOAD_PREPARATION_FAILED",
     );
-    expect(Notifier.reportFailure).toHaveBeenCalledWith(
+    expect(Notifier.reportDownloadFailure).toHaveBeenCalledWith(
       "downloads/file.png",
       expect.stringContaining("content unavailable"),
     );
@@ -112,7 +112,7 @@ describe("pipeline stages", () => {
 
     await expect(Download.renameAndDownload(state)).resolves.toEqual({ status: "failed" });
 
-    expect(Notifier.reportFailure).not.toHaveBeenCalled();
+    expect(Notifier.reportDownloadFailure).not.toHaveBeenCalled();
   });
 
   test("revokes a generated URL when acquisition fails", async () => {
@@ -129,7 +129,7 @@ describe("pipeline stages", () => {
 
     expect(Download.generatedObjectUrls.has(url)).toBe(false);
     expect(URL.revokeObjectURL).toHaveBeenCalledWith(url);
-    expect(Notifier.reportFailure).toHaveBeenCalledWith(
+    expect(Notifier.reportDownloadFailure).toHaveBeenCalledWith(
       url,
       expect.stringContaining("content unavailable"),
     );

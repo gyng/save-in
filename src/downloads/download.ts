@@ -7,7 +7,13 @@ import type { DownloadRecordUpdate } from "./download-state.ts";
 import { DOWNLOAD_TYPES } from "../shared/constants.ts";
 import { normalizeSessionCounter, updateSession } from "../shared/session-state.ts";
 import { getDownloadHeaders, getFetchReferer } from "./headers.ts";
-import { EXTENSION_NOTIFICATION_STREAMS, Notifier } from "./notification.ts";
+import {
+  cancelExpectedDownload,
+  createExtensionNotification,
+  EXTENSION_NOTIFICATION_STREAMS,
+  expectDownload,
+  reportDownloadFailure,
+} from "./notification.ts";
 import {
   isRenameOnlyEligibleRule,
   matchRules,
@@ -264,7 +270,7 @@ export const Download = {
   retryViaFetch: (downloadId: number): Promise<boolean> =>
     retryViaFetch(
       Download,
-      { notifier: Notifier, log: logPort },
+      { notifier: { expectDownload, cancelExpectedDownload }, log: logPort },
       downloadId,
       enqueueFilename,
       removeFilename,
@@ -409,7 +415,7 @@ export const Download = {
     Download.renameAndDownload(state).catch((e) => {
       addDownloadLog(state, "renameAndDownload failed", String(e));
       const name = state.info.suggestedFilename || state.info.url || "";
-      if (!isSourceSidecar(state)) Notifier.reportFailure(name, String(e));
+      if (!isSourceSidecar(state)) reportDownloadFailure(name, String(e));
       return { status: "failed" as const };
     }),
 
@@ -694,7 +700,7 @@ export const Download = {
           ],
     );
 
-    const expected = Notifier.expectDownload(acquired.url, {
+    const expected = expectDownload(acquired.url, {
       url: state.info.url,
       pageUrl: state.info.pageUrl,
       filename,
@@ -726,7 +732,7 @@ export const Download = {
       Object.assign(downloadOptions, await resolveFirefoxDownloadContext(state.info.currentTab));
       throwIfAborted(signal);
       const downloadId = await webExtensionApi.downloads.download(downloadOptions);
-      Notifier.cancelExpectedDownload(expected);
+      cancelExpectedDownload(expected);
       if (acquired.ownedObjectUrl) {
         Download.ownedObjectUrls.set(downloadId, acquired.ownedObjectUrl);
       }
@@ -758,7 +764,7 @@ export const Download = {
       }
       return { status: "started", downloadId };
     } catch (e) {
-      Notifier.cancelExpectedDownload(expected);
+      cancelExpectedDownload(expected);
       await releaseAcquiredDownload(acquired);
       if (signal?.aborted) {
         Download.forgetPendingState(state);
@@ -781,7 +787,7 @@ export const Download = {
         Download.forgetPendingState(state);
         await historyPort.setStatus(historyEntryId, "DOWNLOAD_API_FAILED");
         if (!isSourceSidecar(state)) {
-          Notifier.reportFailure(finalFullPath || requireDownloadUrl(state), String(e));
+          reportDownloadFailure(finalFullPath || requireDownloadUrl(state), String(e));
         }
         return { status: "failed" };
       }
@@ -881,7 +887,7 @@ export const Download = {
       await historyPort.setStatus(state.scratch.historyEntryId, "RULE_NO_MATCH");
       finishPreparation();
       if ((state.needRouteMatch || options.routeSkipUnmatched) && options.notifyOnFailure) {
-        Notifier.createExtensionNotification(
+        createExtensionNotification(
           getMessage("notificationRuleMatchFailedExclusiveTitle"),
           getMessage("notificationRuleMatchFailedExclusiveMessage", [requireDownloadUrl(state)]),
           true,
@@ -913,7 +919,7 @@ export const Download = {
       await historyPort.setStatus(plan.historyEntryId, "DOWNLOAD_PREPARATION_FAILED");
       addDownloadLog(state, "download preparation failed", String(error));
       if (!isSourceSidecar(state)) {
-        Notifier.reportFailure(plan.finalFullPath || requireDownloadUrl(state), String(error));
+        reportDownloadFailure(plan.finalFullPath || requireDownloadUrl(state), String(error));
       }
       finishPreparation();
       return { status: "failed" };
@@ -933,7 +939,7 @@ export const Download = {
     // Trigger notifications
     if (state.route) {
       if (options.notifyOnRuleMatch && state.info.context !== DOWNLOAD_TYPES.AUTO) {
-        Notifier.createExtensionNotification(
+        createExtensionNotification(
           getMessage("notificationRuleMatchedTitle"),
           `${state.info.initialFilename}\n⬇\n${state.route}`,
           false,

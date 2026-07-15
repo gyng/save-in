@@ -109,7 +109,7 @@ const importMenus = async () => {
   const menuTabs = await import("../../../src/background/menu-tabs.ts");
   ({ options } = await import("../../../src/config/options-data.ts"));
   ({ Download } = await import("../../../src/downloads/download.ts"));
-  ({ Notifier } = await import("../../../src/downloads/notification.ts"));
+  Notifier = await import("../../../src/downloads/notification.ts");
   ({ WEB_EXTENSION_CAPABILITIES } = await import("../../../src/platform/chrome-detector.ts"));
   ({ setCurrentTab } = await import("../../../src/platform/current-tab.ts"));
   ({ backgroundRuntime: Runtime } = await import("../../../src/background/runtime.ts"));

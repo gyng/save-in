@@ -83,7 +83,7 @@ const { BrowserDownloadRouting } = await import("../../src/downloads/browser-dow
 const { options } = await import("../../src/config/options-data.ts");
 const router = await import("../../src/routing/router.ts");
 const Variable = await import("../../src/routing/variable.ts");
-const { Notifier } = await import("../../src/downloads/notification.ts");
+const Notifier = await import("../../src/downloads/notification.ts");
 const Path = await import("../../src/routing/path.ts");
 const { configureDownloadEvents } = await import("../../src/downloads/download-events.ts");
 let downloaded = vi.fn();
@@ -181,7 +181,7 @@ beforeEach(() => {
   // a bufless path unchanged); resolveMime/mimeToExtension are spied per MIME test.
 
   vi.spyOn(Notifier, "createExtensionNotification").mockImplementation(() => {});
-  vi.spyOn(Notifier, "reportFailure").mockImplementation(() => {});
+  vi.spyOn(Notifier, "reportDownloadFailure").mockImplementation(() => {});
   vi.spyOn(Notifier, "expectDownload").mockImplementation((url?: string) => ({ url }));
 
   for (const k of Object.keys(sessionStore)) delete sessionStore[k];

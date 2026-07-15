@@ -605,17 +605,17 @@ describe("download lifecycle notifications", () => {
   });
 
   test("contains rejected registered event tasks", async () => {
-    vi.spyOn(Notifier, "onDownloadCreated").mockRejectedValueOnce(new Error("created failed"));
-    vi.spyOn(Notifier, "onDownloadChanged").mockRejectedValueOnce(new Error("changed failed"));
-    vi.spyOn(Notifier, "onNotificationClicked").mockImplementationOnce(() =>
-      Promise.reject(new Error("click failed")),
-    );
+    // The registered listeners call the real handlers directly, so drive a real
+    // rejection from each: malformed download events throw inside the async
+    // handlers, and a rejecting downloads.show rejects the click handler.
+    // runEventTask must contain and log all three instead of letting them escape.
+    vi.mocked(global.browser.downloads.show).mockRejectedValueOnce(new Error("click failed"));
     const [created] = vi.mocked(global.browser.downloads.onCreated.addListener).mock.calls[0]!;
     const [changed] = vi.mocked(global.browser.downloads.onChanged.addListener).mock.calls[0]!;
     const [clicked] = vi.mocked(global.browser.notifications.onClicked.addListener).mock.calls[0]!;
 
-    created({ id: 90 } as any);
-    changed({ id: 90 });
+    created(undefined as any);
+    changed(undefined as any);
     clicked("90");
     await vi.waitFor(() => expect(Log.addLogEntry).toHaveBeenCalledTimes(3));
   });
@@ -704,12 +704,15 @@ describe("listener registration", () => {
       expect.any(Function),
     );
 
-    Notifier.onDownloadCreated = vi.fn(() => Promise.reject(new Error("broken event")));
+    // A malformed event makes the real onDownloadCreated reject; the registered
+    // listener wraps it in runEventTask, which resolves after logging the error.
     const [onCreated] = vi.mocked(global.browser.downloads.onCreated.addListener).mock.calls[0]!;
-    await expect(onCreated({ id: 7 } as browser.downloads.DownloadItem)).resolves.toBeUndefined();
+    await expect(
+      onCreated(undefined as unknown as browser.downloads.DownloadItem),
+    ).resolves.toBeUndefined();
     expect(Log.addLogEntry).toHaveBeenCalledWith(
       "download created event failed",
-      "Error: broken event",
+      expect.stringContaining("byExtensionId"),
     );
   });
 

@@ -11,7 +11,10 @@ import { MENU_IDS } from "../menus/menu-ids.ts";
 import { DOWNLOAD_TYPES } from "../shared/constants.ts";
 import { Path, sanitizeFilename } from "../routing/path.ts";
 import { Download } from "../downloads/download.ts";
-import { EXTENSION_NOTIFICATION_STREAMS, Notifier } from "../downloads/notification.ts";
+import {
+  createExtensionNotification,
+  EXTENSION_NOTIFICATION_STREAMS,
+} from "../downloads/notification.ts";
 import { makeShortcut, suggestShortcutFilename } from "../downloads/shortcut.ts";
 import { createSourceSidecarRequest } from "../downloads/source-sidecar.ts";
 import { options } from "../config/options-data.ts";
@@ -89,7 +92,7 @@ export const handleContextMenuClick = async (
 
     // Fire the notifications the pure decision flagged
     if (target.notifyLinkPreferred && options.notifyOnLinkPreferred) {
-      Notifier.createExtensionNotification(
+      createExtensionNotification(
         getMessage("notificationLinkPreferred"),
         url,
         undefined,
@@ -97,7 +100,7 @@ export const handleContextMenuClick = async (
       );
     }
     if (target.badPatternError) {
-      Notifier.createExtensionNotification(
+      createExtensionNotification(
         getMessage("notificationBadPreferLinksPattern"),
         target.badPatternError.message,
         undefined,

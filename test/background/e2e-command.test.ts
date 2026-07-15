@@ -1,5 +1,5 @@
 import { Download } from "../../src/downloads/download.ts";
-import { Notifier } from "../../src/downloads/notification.ts";
+import * as Notifier from "../../src/downloads/notification.ts";
 import * as ActiveTransfers from "../../src/downloads/active-transfers.ts";
 import { downloadsState } from "../../src/downloads/state.ts";
 import { counterWriteState } from "../../src/background/state.ts";
