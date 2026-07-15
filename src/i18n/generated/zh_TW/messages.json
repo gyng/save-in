@@ -2249,7 +2249,7 @@
   "o_lUiThemeGroupDefault": { "message": "標準" },
   "o_lUiThemeGroupAccessibility": { "message": "高對比" },
   "o_lUiThemeGroupClassics": { "message": "經典主題" },
-  "o_lUiThemeGroupSaveIn": { "message": "Save In 主題" },
+  "o_lUiThemeGroupSaveIn": { "message": "客製化" },
   "o_lUiThemeHighContrastDark": { "message": "高對比深色" },
   "o_lUiThemeHighContrastLight": { "message": "高對比淺色" },
   "o_lUiThemeHighContrastYellow": { "message": "高對比黃色" },
@@ -2259,12 +2259,18 @@
   "o_lUiThemeDracula": { "message": "Dracula" },
   "o_lUiThemeGruvbox": { "message": "Gruvbox" },
   "o_lUiThemeMonokai": { "message": "Monokai" },
+  "o_lUiThemeOneDark": { "message": "One Dark" },
+  "o_lUiThemeTokyoNight": { "message": "Tokyo Night" },
+  "o_lUiThemeCatppuccin": { "message": "Catppuccin" },
   "o_lUiThemeMidnight": { "message": "午夜" },
   "o_lUiThemePastelPink": { "message": "胭脂" },
   "o_lUiThemePaper": { "message": "紙張" },
   "o_lUiThemeTerminal": { "message": "終端機" },
   "o_lUiThemeBerry": { "message": "莓果" },
   "o_lUiThemeNebula": { "message": "Nebula" },
+  "o_lUiThemeGlacier": { "message": "冰川" },
+  "o_lUiThemeMatcha": { "message": "抹茶" },
+  "o_lUiThemeEmber": { "message": "餘燼" },
   "o_lUiThemeHelp": {
     "message": "選擇用於設定和「頁面來源」的色彩主題。"
   },
@@ -3164,5 +3170,77 @@
   "versionViewReleases": {
     "message": "Save In v$VERSION$ — 查看版本",
     "placeholders": { "version": { "content": "$1", "example": "4.0.0" } }
-  }
+  },
+  "html_advancedFetchADifferentUrl": { "message": "進階：擷取其他 URL" },
+  "html_captureReferencesAndRoutingVariablesSubstituteVerbatim": {
+    "message": "；擷取參照與路由變數會原樣替換，不會清理檔名。"
+  },
+  "html_downloadsFromAnExpandedUrlTemplateInsteadOfTheMatched": {
+    "message": "從展開後的 URL 範本下載，而非比對到的來源；"
+  },
+  "html_downloadsFromThisUrlTemplateInsteadOfTheMatchedSource": {
+    "message": "從此 URL 範本下載，而非比對到的來源；"
+  },
+  "html_downloadsTheOriginalResolutionImageInstead": {
+    "message": "下載原始解析度的圖片，而非小尺寸預覽圖。"
+  },
+  "html_fetchClauseCompatibility": {
+    "message": "一般瀏覽器下載路由會略過此項，因為它只能重新命名，無法替換 URL。選單、點選儲存與自動儲存仍會使用它。"
+  },
+  "html_orLiteral": { "message": "或" },
+  "html_stillControlsTheDestinationAndFilename": { "message": "仍控制目的地與檔名。" },
+  "html_stillSetsTheDestinationAndFilenameMustStartWith": {
+    "message": "仍設定目的地與檔名。必須以"
+  },
+  "routeDebuggerFetchTemplate": { "message": "改寫範本" },
+  "routeDebuggerRewrittenUrl": { "message": "改寫後的 URL" },
+  "routeVisualFetchAccessible": {
+    "message": "規則 $RULE$：改寫下載 URL",
+    "placeholders": { "rule": { "content": "$1", "example": "2" } }
+  },
+  "routeVisualFetchLabel": { "message": "改寫下載 URL" },
+  "ruleTemplateCategorySiteFiling": { "message": "依網站歸檔" },
+  "ruleTemplateCategorySiteOriginals": { "message": "網站原始檔" },
+  "ruleTemplateDeviantArtRenameDescription": {
+    "message": "將 DeviantArt 的雜湊下載檔名重新命名為作品標題與短代碼"
+  },
+  "ruleTemplateDeviantArtRenameName": { "message": "DeviantArt 雜湊檔名重新命名" },
+  "ruleTemplateInstagramUsernamePrefixDescription": {
+    "message": "為儲存的檔案加上從頁面標題擷取的 Instagram 使用者名稱前綴"
+  },
+  "ruleTemplateInstagramUsernamePrefixName": { "message": "Instagram 使用者名稱前綴" },
+  "ruleTemplatePagePathNoSchemeDescription": {
+    "message": "根據頁面 URL 的主機名稱與路徑建立資料夾，並移除會破壞檔名的 https:// 通訊協定"
+  },
+  "ruleTemplatePagePathNoSchemeName": { "message": "不含通訊協定的頁面路徑" },
+  "ruleTemplateRedditOriginalsDescription": {
+    "message": "將 Reddit 預覽圖片連結改寫為 i.redd.it 上的原始檔案"
+  },
+  "ruleTemplateRedditOriginalsName": { "message": "Reddit 圖片原始檔" },
+  "ruleTemplateSluggedTitleRenameDescription": {
+    "message": "將檔名替換為頁面標題的小寫連字號 slug，並保留原始副檔名（不支援對檔名進行一般尋找取代）"
+  },
+  "ruleTemplateSluggedTitleRenameName": { "message": "以標題 slug 重新命名" },
+  "ruleTemplateTwitterHandlePrefixDescription": {
+    "message": "為儲存的檔案加上從頁面 URL 擷取的 Twitter 或 X 使用者名稱前綴"
+  },
+  "ruleTemplateTwitterHandlePrefixName": { "message": "Twitter/X 使用者名稱前綴" },
+  "ruleTemplateTwitterOriginalsDescription": {
+    "message": "將 Twitter 與 X 的圖片連結改寫為原始全解析度檔案"
+  },
+  "ruleTemplateTwitterOriginalsName": { "message": "Twitter/X 圖片原始檔" },
+  "ruleTemplateWikimediaOriginalDescription": {
+    "message": "將 Wikimedia Commons 的縮圖連結改寫為原始完整尺寸檔案"
+  },
+  "ruleTemplateWikimediaOriginalName": { "message": "Wikimedia 完整尺寸圖片" },
+  "ruleTemplateYoutubeMaxResDescription": { "message": "將 YouTube 縮圖連結改寫為最高解析度圖片" },
+  "ruleTemplateYoutubeMaxResName": { "message": "YouTube 縮圖最高解析度" },
+  "ruleExtraFetch": { "message": "一條規則只能包含一個 fetch: 子句" },
+  "ruleFetchNotHttp": { "message": "fetch: 網址必須以 http:// 或 https:// 開頭" },
+  "ruleFetchUnsupportedVariable": { "message": "fetch: 網址中不支援此變數" },
+  "savedValueOff": { "message": "關" },
+  "savedValueOn": { "message": "開" },
+  "o_lUiThemeGildedMosaic": { "message": "鎏金馬賽克" },
+  "o_lUiThemeGiverny": { "message": "吉維尼" },
+  "o_lUiThemeIndigoWave": { "message": "靛藍之浪" }
 }

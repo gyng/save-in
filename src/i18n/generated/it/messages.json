@@ -2008,7 +2008,7 @@
   "o_lUiThemeGroupDefault": { "message": "Standard" },
   "o_lUiThemeGroupAccessibility": { "message": "Contrasto elevato" },
   "o_lUiThemeGroupClassics": { "message": "Temi classici" },
-  "o_lUiThemeGroupSaveIn": { "message": "Temi Save In" },
+  "o_lUiThemeGroupSaveIn": { "message": "Su misura" },
   "o_lUiThemeHighContrastDark": {
     "message": "Scuro a contrasto elevato"
   },
@@ -2028,12 +2028,18 @@
   "o_lUiThemeDracula": { "message": "Dracula" },
   "o_lUiThemeGruvbox": { "message": "Gruvbox" },
   "o_lUiThemeMonokai": { "message": "Monokai" },
+  "o_lUiThemeOneDark": { "message": "One Dark" },
+  "o_lUiThemeTokyoNight": { "message": "Tokyo Night" },
+  "o_lUiThemeCatppuccin": { "message": "Catppuccin" },
   "o_lUiThemeMidnight": { "message": "Mezzanotte" },
   "o_lUiThemePastelPink": { "message": "Rosa cipria" },
   "o_lUiThemePaper": { "message": "Carta" },
   "o_lUiThemeTerminal": { "message": "Terminale" },
   "o_lUiThemeBerry": { "message": "Bacca" },
   "o_lUiThemeNebula": { "message": "Nebula" },
+  "o_lUiThemeGlacier": { "message": "Ghiacciaio" },
+  "o_lUiThemeMatcha": { "message": "Matcha" },
+  "o_lUiThemeEmber": { "message": "Brace" },
   "o_lUiThemeHelp": {
     "message": "Scegli un tema di colori per le impostazioni e le Sorgenti della pagina."
   },
@@ -3297,5 +3303,83 @@
   "versionViewReleases": {
     "message": "Save In v$VERSION$ — visualizza le versioni",
     "placeholders": { "version": { "content": "$1", "example": "4.0.0" } }
-  }
+  },
+  "html_advancedFetchADifferentUrl": { "message": "Avanzato: recupera un URL diverso" },
+  "html_captureReferencesAndRoutingVariablesSubstituteVerbatim": {
+    "message": "; i riferimenti di acquisizione e le variabili di routing vengono sostituiti testualmente, senza sanificazione del nome file."
+  },
+  "html_downloadsFromAnExpandedUrlTemplateInsteadOfTheMatched": {
+    "message": "scarica da un modello di URL espanso invece che dalla sorgente corrispondente;"
+  },
+  "html_downloadsFromThisUrlTemplateInsteadOfTheMatchedSource": {
+    "message": "Scarica da questo modello di URL invece che dalla sorgente corrispondente;"
+  },
+  "html_downloadsTheOriginalResolutionImageInstead": {
+    "message": "Scarica l'immagine alla risoluzione originale invece dell'anteprima piccola."
+  },
+  "html_fetchClauseCompatibility": {
+    "message": "Ignorata dal normale instradamento dei download del browser, che può solo rinominare, non sostituire gli URL. Menu, clic per salvare e salvataggi automatici continuano a usarla."
+  },
+  "html_orLiteral": { "message": "o" },
+  "html_stillControlsTheDestinationAndFilename": {
+    "message": "continua a controllare la destinazione e il nome file."
+  },
+  "html_stillSetsTheDestinationAndFilenameMustStartWith": {
+    "message": "continua a impostare la destinazione e il nome file. Deve iniziare con"
+  },
+  "routeDebuggerFetchTemplate": { "message": "Modello di riscrittura" },
+  "routeDebuggerRewrittenUrl": { "message": "URL riscritto" },
+  "routeVisualFetchAccessible": {
+    "message": "Regola $RULE$: riscrivi URL di download",
+    "placeholders": { "rule": { "content": "$1", "example": "2" } }
+  },
+  "routeVisualFetchLabel": { "message": "Riscrivi URL di download" },
+  "ruleTemplateCategorySiteFiling": { "message": "Archiviazione per sito" },
+  "ruleTemplateCategorySiteOriginals": { "message": "Originali per sito" },
+  "ruleTemplateDeviantArtRenameDescription": {
+    "message": "Rinomina il nome file con hash dei download di DeviantArt nel titolo dell'opera e nel codice breve"
+  },
+  "ruleTemplateDeviantArtRenameName": { "message": "Rinomina nome file con hash di DeviantArt" },
+  "ruleTemplateInstagramUsernamePrefixDescription": {
+    "message": "Antepone ai file salvati il nome utente Instagram ricavato dal titolo della pagina"
+  },
+  "ruleTemplateInstagramUsernamePrefixName": { "message": "Prefisso nome utente Instagram" },
+  "ruleTemplatePagePathNoSchemeDescription": {
+    "message": "Crea cartelle dall'host e dal percorso dell'URL della pagina, eliminando lo schema https:// che altrimenti danneggerebbe i nomi file"
+  },
+  "ruleTemplatePagePathNoSchemeName": { "message": "Percorso pagina senza schema" },
+  "ruleTemplateRedditOriginalsDescription": {
+    "message": "Riscrive i link di anteprima immagine di Reddit verso il file originale su i.redd.it"
+  },
+  "ruleTemplateRedditOriginalsName": { "message": "Originali immagini Reddit" },
+  "ruleTemplateSluggedTitleRenameDescription": {
+    "message": "Sostituisce il nome file con uno slug in minuscolo e trattini ricavato dal titolo della pagina, mantenendo l'estensione originale (non è supportata una sostituzione generale nei nomi file)"
+  },
+  "ruleTemplateSluggedTitleRenameName": { "message": "Rinomina con slug del titolo" },
+  "ruleTemplateTwitterHandlePrefixDescription": {
+    "message": "Antepone ai file salvati l'handle di Twitter o X ricavato dall'URL della pagina"
+  },
+  "ruleTemplateTwitterHandlePrefixName": { "message": "Prefisso handle Twitter/X" },
+  "ruleTemplateTwitterOriginalsDescription": {
+    "message": "Riscrive i link immagine di Twitter e X verso il file originale a piena risoluzione"
+  },
+  "ruleTemplateTwitterOriginalsName": { "message": "Originali immagini Twitter/X" },
+  "ruleTemplateWikimediaOriginalDescription": {
+    "message": "Riscrive i link alle miniature di Wikimedia Commons verso il file originale a piena dimensione"
+  },
+  "ruleTemplateWikimediaOriginalName": { "message": "Immagine Wikimedia a piena dimensione" },
+  "ruleTemplateYoutubeMaxResDescription": {
+    "message": "Riscrive i link alle miniature di YouTube verso l'immagine alla risoluzione massima"
+  },
+  "ruleTemplateYoutubeMaxResName": { "message": "Miniatura YouTube risoluzione massima" },
+  "ruleExtraFetch": { "message": "Una regola può contenere una sola clausola fetch:" },
+  "ruleFetchNotHttp": { "message": "L'indirizzo di fetch: deve iniziare con http:// o https://" },
+  "ruleFetchUnsupportedVariable": {
+    "message": "La variabile non è supportata in un indirizzo fetch:"
+  },
+  "savedValueOff": { "message": "Disattivo" },
+  "savedValueOn": { "message": "Attivo" },
+  "o_lUiThemeGildedMosaic": { "message": "Mosaico dorato" },
+  "o_lUiThemeGiverny": { "message": "Giverny" },
+  "o_lUiThemeIndigoWave": { "message": "Onda indaco" }
 }

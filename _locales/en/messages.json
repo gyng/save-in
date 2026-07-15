@@ -153,6 +153,18 @@
     "message": "A rule can contain only one into: clause",
     "description": "Error message for multiple into clauses in rule. Used in src/routing/rule-parser.ts."
   },
+  "ruleExtraFetch": {
+    "message": "A rule can contain only one fetch: clause",
+    "description": "Error message for multiple fetch clauses in a rule. Used in src/routing/rule-parser.ts."
+  },
+  "ruleFetchNotHttp": {
+    "message": "fetch: address must start with http:// or https://",
+    "description": "Error message when a fetch clause value is not an http(s) URL. Used in src/routing/rule-parser.ts."
+  },
+  "ruleFetchUnsupportedVariable": {
+    "message": "Variable is not supported in a fetch: address",
+    "description": "Error message for an unsupported variable inside a fetch clause URL. Used in src/routing/rule-parser.ts."
+  },
   "ruleUnknownMatcher": {
     "message": "Matcher name is not supported",
     "description": "Error message for an unknown matcher. Used in src/routing/rule-parser.ts."
@@ -889,6 +901,26 @@
   },
   "html_captureClauseCompatibility": {
     "message": "Use capturegroups: for continuous group numbering across matcher clauses. capture: preserves the legacy flattened index layout.",
+    "description": "Compatibility guidance in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
+  },
+  "html_downloadsFromThisUrlTemplateInsteadOfTheMatchedSource": {
+    "message": "Downloads from this URL template instead of the matched source;",
+    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
+  },
+  "html_stillSetsTheDestinationAndFilenameMustStartWith": {
+    "message": "still sets the destination and filename. Must start with",
+    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
+  },
+  "html_orLiteral": {
+    "message": "or",
+    "description": "Bare \"or\" between two literal values in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
+  },
+  "html_captureReferencesAndRoutingVariablesSubstituteVerbatim": {
+    "message": "; capture references and routing variables substitute verbatim, with no filename sanitization.",
+    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
+  },
+  "html_fetchClauseCompatibility": {
+    "message": "Skipped by ordinary browser-download routing, which can only rename—not swap URLs. Menu, click-to-save, and automatic saves still use it.",
     "description": "Compatibility guidance in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_stringsAddJavascriptRegexFlagsAfterTheMatcherName": {
@@ -1653,6 +1685,10 @@
     "message": "Wiki",
     "description": "Text in the options page. Used in src/options/options.html."
   },
+  "html_advancedFetchADifferentUrl": {
+    "message": "Advanced: fetch a different URL",
+    "description": "Text in the options page. Used in src/options/options.html."
+  },
   "html_advancedUseCaptureGroups": {
     "message": "Advanced: use capture groups",
     "description": "Text in the options page. Used in src/options/options.html."
@@ -1691,6 +1727,14 @@
   },
   "html_destinationsAreRelativeToTheDownloadsMenuDestinationYou": {
     "message": "Destinations are relative to the folder you selected. Matcher values are regular expressions; see the",
+    "description": "Text in the options page. Used in src/options/options.html."
+  },
+  "html_downloadsFromAnExpandedUrlTemplateInsteadOfTheMatched": {
+    "message": "downloads from an expanded URL template instead of the matched source;",
+    "description": "Text in the options page. Used in src/options/options.html."
+  },
+  "html_downloadsTheOriginalResolutionImageInstead": {
+    "message": "Downloads the original-resolution image instead of the small preview.",
     "description": "Text in the options page. Used in src/options/options.html."
   },
   "html_enterOneUrlLikeBrowserMatchPatternPerLine": {
@@ -1755,6 +1799,10 @@
   },
   "html_separateRulesWithABlankLine": {
     "message": "Separate rules with a blank line.",
+    "description": "Text in the options page. Used in src/options/options.html."
+  },
+  "html_stillControlsTheDestinationAndFilename": {
+    "message": "still controls the destination and filename.",
     "description": "Text in the options page. Used in src/options/options.html."
   },
   "html_thenUse": {
@@ -1879,7 +1927,7 @@
   },
   "html_none": {
     "message": "None",
-    "description": "Text in the options page. Used in src/options/options.html."
+    "description": "Generic \"none\" value. Used in src/options/options.html and src/options/saved-indicator.ts."
   },
   "html_notifyMeWhen": {
     "message": "Notification events",
@@ -2491,6 +2539,86 @@
     "message": "Keeps files saved from tab actions together",
     "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
   },
+  "ruleTemplateCategorySiteOriginals": {
+    "message": "Site originals",
+    "description": "Category heading above built-in routing-template cards, for fetch:-based templates that rewrite a download to the original-quality asset. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateCategorySiteFiling": {
+    "message": "Site filing",
+    "description": "Category heading above built-in routing-template cards, for site-specific naming and routing templates. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateTwitterOriginalsName": {
+    "message": "Twitter/X image originals",
+    "description": "Title of a built-in routing-template card. \"X\" is the current name of the Twitter social network, kept alongside the older name; do not translate as the letter or algebraic variable X. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateTwitterOriginalsDescription": {
+    "message": "Rewrites Twitter and X image links to the original, full-resolution file",
+    "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateRedditOriginalsName": {
+    "message": "Reddit image originals",
+    "description": "Title of a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateRedditOriginalsDescription": {
+    "message": "Rewrites Reddit preview image links to the original file on i.redd.it",
+    "description": "Description on a built-in routing-template card; i.redd.it is Reddit's media-hosting domain and should stay untranslated. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateWikimediaOriginalName": {
+    "message": "Wikimedia full-size image",
+    "description": "Title of a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateWikimediaOriginalDescription": {
+    "message": "Rewrites Wikimedia Commons thumbnail links to the original full-size file",
+    "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateYoutubeMaxResName": {
+    "message": "YouTube thumbnail max resolution",
+    "description": "Title of a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateYoutubeMaxResDescription": {
+    "message": "Rewrites YouTube thumbnail links to the maximum-resolution image",
+    "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateTwitterHandlePrefixName": {
+    "message": "Twitter/X handle prefix",
+    "description": "Title of a built-in routing-template card. \"X\" is the current name of the Twitter social network, kept alongside the older name; do not translate as the letter or algebraic variable X. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateTwitterHandlePrefixDescription": {
+    "message": "Prefixes saved files with the Twitter or X handle from the page URL",
+    "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateInstagramUsernamePrefixName": {
+    "message": "Instagram username prefix",
+    "description": "Title of a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateInstagramUsernamePrefixDescription": {
+    "message": "Prefixes saved files with the Instagram username from the page title",
+    "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateDeviantArtRenameName": {
+    "message": "DeviantArt hashed-filename rename",
+    "description": "Title of a built-in routing-template card; DeviantArt is a proper noun and should stay untranslated. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateDeviantArtRenameDescription": {
+    "message": "Renames DeviantArt's hashed download filename to the artwork title and short code",
+    "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplatePagePathNoSchemeName": {
+    "message": "Page path without the scheme",
+    "description": "Title of a built-in routing-template card; \"scheme\" means the URL protocol prefix (such as https://). Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplatePagePathNoSchemeDescription": {
+    "message": "Builds folders from the page URL's host and path while dropping the https:// scheme that otherwise corrupts filenames",
+    "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateSluggedTitleRenameName": {
+    "message": "Slugged title rename",
+    "description": "Title of a built-in routing-template card; \"slugged\" refers to a URL-safe, hyphenated form of text. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateSluggedTitleRenameDescription": {
+    "message": "Replaces the filename with a lowercase, hyphenated slug of the page title, keeping the original extension (a general find-and-replace on filenames isn't supported)",
+    "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
   "ruleTemplateAdded": {
     "message": "Added",
     "description": "Control or feedback text for the routing-template cards. Used in src/options/rule-builder.ts."
@@ -2860,8 +2988,8 @@
     "description": "Theme picker group containing well-known color themes. Used in src/options/options.html."
   },
   "o_lUiThemeGroupSaveIn": {
-    "message": "Save In themes",
-    "description": "Theme picker group containing themes designed for Save In. Used in src/options/options.html."
+    "message": "Bespoke",
+    "description": "Theme picker group containing original and art-inspired color themes. Used in src/options/options.html."
   },
   "o_lUiThemeHighContrastDark": {
     "message": "High contrast dark",
@@ -2899,6 +3027,18 @@
     "message": "Monokai",
     "description": "Monokai interface theme. Used in src/options/options.html."
   },
+  "o_lUiThemeOneDark": {
+    "message": "One Dark",
+    "description": "One Dark interface theme. Used in src/options/options.html."
+  },
+  "o_lUiThemeTokyoNight": {
+    "message": "Tokyo Night",
+    "description": "Tokyo Night interface theme. Used in src/options/options.html."
+  },
+  "o_lUiThemeCatppuccin": {
+    "message": "Catppuccin",
+    "description": "Catppuccin interface theme. Used in src/options/options.html."
+  },
   "o_lUiThemeMidnight": {
     "message": "Midnight",
     "description": "Save In midnight-blue interface theme. Used in src/options/options.html."
@@ -2922,6 +3062,30 @@
   "o_lUiThemeNebula": {
     "message": "Nebula",
     "description": "Save In deep-space violet, cyan, and magenta interface theme. Used in src/options/options.html."
+  },
+  "o_lUiThemeGlacier": {
+    "message": "Glacier",
+    "description": "Save In cool ice-blue light interface theme. Used in src/options/options.html."
+  },
+  "o_lUiThemeMatcha": {
+    "message": "Matcha",
+    "description": "Save In soft green-tea light interface theme. Used in src/options/options.html."
+  },
+  "o_lUiThemeEmber": {
+    "message": "Ember",
+    "description": "Save In warm amber-on-brown dark interface theme, named after glowing embers. Used in src/options/options.html."
+  },
+  "o_lUiThemeIndigoWave": {
+    "message": "Indigo Wave",
+    "description": "Light interface theme inspired by Katsushika Hokusai's indigo, washi, and vermilion woodblock palette. Used in src/options/options.html."
+  },
+  "o_lUiThemeGiverny": {
+    "message": "Giverny",
+    "description": "Light interface theme inspired by Claude Monet's garden, water lilies, and lilac shadows. Used in src/options/options.html."
+  },
+  "o_lUiThemeGildedMosaic": {
+    "message": "Gilded Mosaic",
+    "description": "Dark interface theme inspired by Gustav Klimt's charcoal, gold, and warm mosaic palette. Used in src/options/options.html."
   },
   "o_lUiThemeHelp": {
     "message": "Choose a color theme for settings and Page Sources.",
@@ -3503,6 +3667,20 @@
       }
     }
   },
+  "routeVisualFetchLabel": {
+    "message": "Rewrite download URL",
+    "description": "Label for the fetch: clause row that rewrites the download URL in the visual routing editor. Used in src/options/rule-visual-editor.ts."
+  },
+  "routeVisualFetchAccessible": {
+    "message": "Rule $RULE$: rewrite download URL",
+    "description": "Accessible label for the fetch: URL-template field of a routing rule. Used in src/options/rule-visual-editor.ts.",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
   "routeVisualIgnoreCaseHelp": {
     "message": "Match uppercase and lowercase letters",
     "description": "Tooltip explaining case-insensitive matching in the visual routing editor. Used in src/options/rule-visual-editor.ts."
@@ -3674,6 +3852,14 @@
         "example": "2"
       }
     }
+  },
+  "routeDebuggerFetchTemplate": {
+    "message": "Rewrite template",
+    "description": "Route debugger pipeline label for the fetch: URL template with captures substituted. Used in src/options/route-debugger.ts."
+  },
+  "routeDebuggerRewrittenUrl": {
+    "message": "Rewritten URL",
+    "description": "Route debugger pipeline label for the fully expanded URL a fetch: clause downloads instead. Used in src/options/route-debugger.ts."
   },
   "routeDebuggerExpanded": {
     "message": "Expanded path",
@@ -4164,6 +4350,14 @@
   "webhookStateOff": {
     "message": "Off",
     "description": "Current-state badge shown when webhook delivery is disabled. Used in src/options/options.html and src/options/webhook-panel.ts."
+  },
+  "savedValueOn": {
+    "message": "On",
+    "description": "Generic on value shown in the saved-change popover for a boolean setting. Used in src/options/saved-indicator.ts."
+  },
+  "savedValueOff": {
+    "message": "Off",
+    "description": "Generic off value shown in the saved-change popover for a boolean setting. Used in src/options/saved-indicator.ts."
   },
   "contextMenuRecentLocations": {
     "message": "Recent locations",

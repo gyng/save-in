@@ -2155,7 +2155,7 @@
   "o_lUiThemeGroupDefault": { "message": "표준" },
   "o_lUiThemeGroupAccessibility": { "message": "고대비" },
   "o_lUiThemeGroupClassics": { "message": "클래식 테마" },
-  "o_lUiThemeGroupSaveIn": { "message": "Save In 테마" },
+  "o_lUiThemeGroupSaveIn": { "message": "맞춤형" },
   "o_lUiThemeHighContrastDark": { "message": "고대비 어둡게" },
   "o_lUiThemeHighContrastLight": { "message": "고대비 밝게" },
   "o_lUiThemeHighContrastYellow": { "message": "고대비 노랑" },
@@ -2165,12 +2165,18 @@
   "o_lUiThemeDracula": { "message": "Dracula" },
   "o_lUiThemeGruvbox": { "message": "Gruvbox" },
   "o_lUiThemeMonokai": { "message": "Monokai" },
+  "o_lUiThemeOneDark": { "message": "One Dark" },
+  "o_lUiThemeTokyoNight": { "message": "Tokyo Night" },
+  "o_lUiThemeCatppuccin": { "message": "Catppuccin" },
   "o_lUiThemeMidnight": { "message": "미드나이트" },
   "o_lUiThemePastelPink": { "message": "블러시" },
   "o_lUiThemePaper": { "message": "페이퍼" },
   "o_lUiThemeTerminal": { "message": "터미널" },
   "o_lUiThemeBerry": { "message": "베리" },
   "o_lUiThemeNebula": { "message": "네뷸라" },
+  "o_lUiThemeGlacier": { "message": "글레이셔" },
+  "o_lUiThemeMatcha": { "message": "말차" },
+  "o_lUiThemeEmber": { "message": "엠버" },
   "o_lUiThemeHelp": {
     "message": "설정과 페이지 소스에 사용할 색상 테마를 선택합니다."
   },
@@ -3088,5 +3094,79 @@
   "versionViewReleases": {
     "message": "Save In v$VERSION$ — 릴리스 보기",
     "placeholders": { "version": { "content": "$1", "example": "4.0.0" } }
-  }
+  },
+  "html_advancedFetchADifferentUrl": { "message": "고급: 다른 URL 가져오기" },
+  "html_captureReferencesAndRoutingVariablesSubstituteVerbatim": {
+    "message": "; 캡처 참조와 라우팅 변수는 파일명 정리 없이 그대로 치환됩니다."
+  },
+  "html_downloadsFromAnExpandedUrlTemplateInsteadOfTheMatched": {
+    "message": "일치한 소스 대신 확장된 URL 템플릿에서 다운로드합니다;"
+  },
+  "html_downloadsFromThisUrlTemplateInsteadOfTheMatchedSource": {
+    "message": "일치한 소스 대신 이 URL 템플릿에서 다운로드합니다;"
+  },
+  "html_downloadsTheOriginalResolutionImageInstead": {
+    "message": "작은 미리보기 대신 원본 해상도 이미지를 다운로드합니다."
+  },
+  "html_fetchClauseCompatibility": {
+    "message": "일반 브라우저 다운로드 라우팅에서는 건너뜁니다. 이 라우팅은 이름만 바꿀 수 있고 URL은 바꿀 수 없습니다. 메뉴, 클릭하여 저장, 자동 저장에서는 계속 사용됩니다."
+  },
+  "html_orLiteral": { "message": "또는" },
+  "html_stillControlsTheDestinationAndFilename": { "message": "대상과 파일명을 계속 제어합니다." },
+  "html_stillSetsTheDestinationAndFilenameMustStartWith": {
+    "message": "대상과 파일명을 계속 설정합니다. 다음으로 시작해야 합니다"
+  },
+  "routeDebuggerFetchTemplate": { "message": "재작성 템플릿" },
+  "routeDebuggerRewrittenUrl": { "message": "재작성된 URL" },
+  "routeVisualFetchAccessible": {
+    "message": "규칙 $RULE$: 다운로드 URL 재작성",
+    "placeholders": { "rule": { "content": "$1", "example": "2" } }
+  },
+  "routeVisualFetchLabel": { "message": "다운로드 URL 재작성" },
+  "ruleTemplateCategorySiteFiling": { "message": "사이트별 정리" },
+  "ruleTemplateCategorySiteOriginals": { "message": "사이트 원본" },
+  "ruleTemplateDeviantArtRenameDescription": {
+    "message": "DeviantArt의 해시 처리된 다운로드 파일명을 작품 제목과 짧은 코드로 변경합니다"
+  },
+  "ruleTemplateDeviantArtRenameName": { "message": "DeviantArt 해시 파일명 변경" },
+  "ruleTemplateInstagramUsernamePrefixDescription": {
+    "message": "저장한 파일 앞에 페이지 제목에서 가져온 Instagram 사용자 이름을 붙입니다"
+  },
+  "ruleTemplateInstagramUsernamePrefixName": { "message": "Instagram 사용자 이름 접두사" },
+  "ruleTemplatePagePathNoSchemeDescription": {
+    "message": "페이지 URL의 호스트와 경로로 폴더를 만들고, 파일명을 손상시킬 수 있는 https:// 스킴은 제외합니다"
+  },
+  "ruleTemplatePagePathNoSchemeName": { "message": "스킴을 제외한 페이지 경로" },
+  "ruleTemplateRedditOriginalsDescription": {
+    "message": "Reddit 미리보기 이미지 링크를 i.redd.it의 원본 파일로 재작성합니다"
+  },
+  "ruleTemplateRedditOriginalsName": { "message": "Reddit 이미지 원본" },
+  "ruleTemplateSluggedTitleRenameDescription": {
+    "message": "파일명을 페이지 제목의 소문자 하이픈 슬러그로 바꾸고 원래 확장자는 유지합니다(파일명에 대한 일반적인 찾기 및 바꾸기는 지원되지 않습니다)"
+  },
+  "ruleTemplateSluggedTitleRenameName": { "message": "제목 슬러그로 파일명 변경" },
+  "ruleTemplateTwitterHandlePrefixDescription": {
+    "message": "저장한 파일 앞에 페이지 URL에서 가져온 Twitter 또는 X 핸들을 붙입니다"
+  },
+  "ruleTemplateTwitterHandlePrefixName": { "message": "Twitter/X 핸들 접두사" },
+  "ruleTemplateTwitterOriginalsDescription": {
+    "message": "Twitter 및 X 이미지 링크를 원본 풀 해상도 파일로 재작성합니다"
+  },
+  "ruleTemplateTwitterOriginalsName": { "message": "Twitter/X 이미지 원본" },
+  "ruleTemplateWikimediaOriginalDescription": {
+    "message": "Wikimedia Commons 썸네일 링크를 원본 전체 크기 파일로 재작성합니다"
+  },
+  "ruleTemplateWikimediaOriginalName": { "message": "Wikimedia 전체 크기 이미지" },
+  "ruleTemplateYoutubeMaxResDescription": {
+    "message": "YouTube 썸네일 링크를 최대 해상도 이미지로 재작성합니다"
+  },
+  "ruleTemplateYoutubeMaxResName": { "message": "YouTube 썸네일 최대 해상도" },
+  "ruleExtraFetch": { "message": "규칙에는 fetch: 절이 하나만 포함될 수 있습니다." },
+  "ruleFetchNotHttp": { "message": "fetch: 주소는 http:// 또는 https://로 시작해야 합니다" },
+  "ruleFetchUnsupportedVariable": { "message": "fetch: 주소에서는 이 변수가 지원되지 않습니다" },
+  "savedValueOff": { "message": "꺼짐" },
+  "savedValueOn": { "message": "켜짐" },
+  "o_lUiThemeGildedMosaic": { "message": "황금 모자이크" },
+  "o_lUiThemeGiverny": { "message": "지베르니" },
+  "o_lUiThemeIndigoWave": { "message": "인디고 파도" }
 }

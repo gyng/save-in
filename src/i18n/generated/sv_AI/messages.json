@@ -2072,7 +2072,7 @@
   "o_lUiThemeGroupDefault": { "message": "Standard" },
   "o_lUiThemeGroupAccessibility": { "message": "Hög kontrast" },
   "o_lUiThemeGroupClassics": { "message": "Klassiska teman" },
-  "o_lUiThemeGroupSaveIn": { "message": "Save In-teman" },
+  "o_lUiThemeGroupSaveIn": { "message": "Skräddarsytt" },
   "o_lUiThemeHighContrastDark": { "message": "Hög kontrast – mörkt" },
   "o_lUiThemeHighContrastLight": { "message": "Hög kontrast – ljust" },
   "o_lUiThemeHighContrastYellow": { "message": "Hög kontrast – gult" },
@@ -2082,12 +2082,18 @@
   "o_lUiThemeDracula": { "message": "Dracula" },
   "o_lUiThemeGruvbox": { "message": "Gruvbox" },
   "o_lUiThemeMonokai": { "message": "Monokai" },
+  "o_lUiThemeOneDark": { "message": "One Dark" },
+  "o_lUiThemeTokyoNight": { "message": "Tokyo Night" },
+  "o_lUiThemeCatppuccin": { "message": "Catppuccin" },
   "o_lUiThemeMidnight": { "message": "Midnatt" },
   "o_lUiThemePastelPink": { "message": "Rouge" },
   "o_lUiThemePaper": { "message": "Papper" },
   "o_lUiThemeTerminal": { "message": "Terminal" },
   "o_lUiThemeBerry": { "message": "Bär" },
   "o_lUiThemeNebula": { "message": "Nebula" },
+  "o_lUiThemeGlacier": { "message": "Glaciär" },
+  "o_lUiThemeMatcha": { "message": "Matcha" },
+  "o_lUiThemeEmber": { "message": "Glöd" },
   "o_lUiThemeHelp": {
     "message": "Välj ett färgtema för inställningarna och Sidresurser."
   },
@@ -2999,5 +3005,81 @@
   "versionViewReleases": {
     "message": "Save In v$VERSION$ — visa versioner",
     "placeholders": { "version": { "content": "$1", "example": "4.0.0" } }
-  }
+  },
+  "html_advancedFetchADifferentUrl": { "message": "Avancerat: hämta en annan URL" },
+  "html_captureReferencesAndRoutingVariablesSubstituteVerbatim": {
+    "message": "; fångstreferenser och routningsvariabler ersätts ordagrant, utan sanering av filnamnet."
+  },
+  "html_downloadsFromAnExpandedUrlTemplateInsteadOfTheMatched": {
+    "message": "hämtar från en expanderad URL-mall istället för den matchade källan;"
+  },
+  "html_downloadsFromThisUrlTemplateInsteadOfTheMatchedSource": {
+    "message": "Hämtar från den här URL-mallen istället för den matchade källan;"
+  },
+  "html_downloadsTheOriginalResolutionImageInstead": {
+    "message": "Hämtar bilden i originalupplösning istället för den lilla förhandsvisningen."
+  },
+  "html_fetchClauseCompatibility": {
+    "message": "Hoppas över av vanlig webbläsarnedladdningsroutning, som bara kan byta namn – inte byta ut URL:er. Meny, klicka för att spara och automatiska sparningar använder den fortfarande."
+  },
+  "html_orLiteral": { "message": "eller" },
+  "html_stillControlsTheDestinationAndFilename": {
+    "message": "styr fortfarande målet och filnamnet."
+  },
+  "html_stillSetsTheDestinationAndFilenameMustStartWith": {
+    "message": "anger fortfarande målet och filnamnet. Måste börja med"
+  },
+  "routeDebuggerFetchTemplate": { "message": "Omskrivningsmall" },
+  "routeDebuggerRewrittenUrl": { "message": "Omskriven URL" },
+  "routeVisualFetchAccessible": {
+    "message": "Regel $RULE$: skriv om nedladdnings-URL",
+    "placeholders": { "rule": { "content": "$1", "example": "2" } }
+  },
+  "routeVisualFetchLabel": { "message": "Skriv om nedladdnings-URL" },
+  "ruleTemplateCategorySiteFiling": { "message": "Sortering per webbplats" },
+  "ruleTemplateCategorySiteOriginals": { "message": "Original per webbplats" },
+  "ruleTemplateDeviantArtRenameDescription": {
+    "message": "Byter namn på DeviantArts hashade nedladdningsfilnamn till konstverkets titel och kortkod"
+  },
+  "ruleTemplateDeviantArtRenameName": { "message": "Byt namn på hashat DeviantArt-filnamn" },
+  "ruleTemplateInstagramUsernamePrefixDescription": {
+    "message": "Lägger Instagram-användarnamnet från sidtiteln före sparade filer"
+  },
+  "ruleTemplateInstagramUsernamePrefixName": { "message": "Instagram-användarnamn som prefix" },
+  "ruleTemplatePagePathNoSchemeDescription": {
+    "message": "Bygger mappar av värdnamnet och sökvägen i sidans URL, utan schemat https:// som annars förstör filnamn"
+  },
+  "ruleTemplatePagePathNoSchemeName": { "message": "Sidsökväg utan schema" },
+  "ruleTemplateRedditOriginalsDescription": {
+    "message": "Skriver om Reddits förhandsvisningsbildlänkar till originalfilen på i.redd.it"
+  },
+  "ruleTemplateRedditOriginalsName": { "message": "Reddit-bildoriginal" },
+  "ruleTemplateSluggedTitleRenameDescription": {
+    "message": "Ersätter filnamnet med en gemen, bindestreckad slug av sidtiteln och behåller den ursprungliga filändelsen (allmän sök-och-ersätt för filnamn stöds inte)"
+  },
+  "ruleTemplateSluggedTitleRenameName": { "message": "Namnbyte med titel-slug" },
+  "ruleTemplateTwitterHandlePrefixDescription": {
+    "message": "Lägger Twitter- eller X-användarnamnet från sidans URL före sparade filer"
+  },
+  "ruleTemplateTwitterHandlePrefixName": { "message": "Twitter/X-användarnamn som prefix" },
+  "ruleTemplateTwitterOriginalsDescription": {
+    "message": "Skriver om Twitter- och X-bildlänkar till originalfilen i full upplösning"
+  },
+  "ruleTemplateTwitterOriginalsName": { "message": "Twitter/X-bildoriginal" },
+  "ruleTemplateWikimediaOriginalDescription": {
+    "message": "Skriver om Wikimedia Commons miniatyrlänkar till originalfilen i full storlek"
+  },
+  "ruleTemplateWikimediaOriginalName": { "message": "Wikimedia-bild i full storlek" },
+  "ruleTemplateYoutubeMaxResDescription": {
+    "message": "Skriver om YouTubes miniatyrlänkar till bilden med maximal upplösning"
+  },
+  "ruleTemplateYoutubeMaxResName": { "message": "YouTube-miniatyr med maximal upplösning" },
+  "ruleExtraFetch": { "message": "En regel kan bara innehålla en fetch:-sats" },
+  "ruleFetchNotHttp": { "message": "fetch:-adressen måste börja med http:// eller https://" },
+  "ruleFetchUnsupportedVariable": { "message": "Variabeln stöds inte i en fetch:-adress" },
+  "savedValueOff": { "message": "Av" },
+  "savedValueOn": { "message": "På" },
+  "o_lUiThemeGildedMosaic": { "message": "Förgylld mosaik" },
+  "o_lUiThemeGiverny": { "message": "Giverny" },
+  "o_lUiThemeIndigoWave": { "message": "Indigovåg" }
 }

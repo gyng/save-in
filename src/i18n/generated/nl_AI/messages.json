@@ -2051,7 +2051,7 @@
   "o_lUiThemeGroupDefault": { "message": "Standaard" },
   "o_lUiThemeGroupAccessibility": { "message": "Hoog contrast" },
   "o_lUiThemeGroupClassics": { "message": "Klassieke thema's" },
-  "o_lUiThemeGroupSaveIn": { "message": "Save In-thema's" },
+  "o_lUiThemeGroupSaveIn": { "message": "Op maat" },
   "o_lUiThemeHighContrastDark": { "message": "Hoog contrast – donker" },
   "o_lUiThemeHighContrastLight": { "message": "Hoog contrast – licht" },
   "o_lUiThemeHighContrastYellow": { "message": "Hoog contrast – geel" },
@@ -2061,12 +2061,18 @@
   "o_lUiThemeDracula": { "message": "Dracula" },
   "o_lUiThemeGruvbox": { "message": "Gruvbox" },
   "o_lUiThemeMonokai": { "message": "Monokai" },
+  "o_lUiThemeOneDark": { "message": "One Dark" },
+  "o_lUiThemeTokyoNight": { "message": "Tokyo Night" },
+  "o_lUiThemeCatppuccin": { "message": "Catppuccin" },
   "o_lUiThemeMidnight": { "message": "Middernacht" },
   "o_lUiThemePastelPink": { "message": "Blos" },
   "o_lUiThemePaper": { "message": "Papier" },
   "o_lUiThemeTerminal": { "message": "Terminal" },
   "o_lUiThemeBerry": { "message": "Bes" },
   "o_lUiThemeNebula": { "message": "Nebula" },
+  "o_lUiThemeGlacier": { "message": "Gletsjer" },
+  "o_lUiThemeMatcha": { "message": "Matcha" },
+  "o_lUiThemeEmber": { "message": "Gloed" },
   "o_lUiThemeHelp": {
     "message": "Kies een kleurenthema voor de instellingen en Paginabronnen."
   },
@@ -2986,5 +2992,85 @@
   "versionViewReleases": {
     "message": "Save In v$VERSION$ — releases bekijken",
     "placeholders": { "version": { "content": "$1", "example": "4.0.0" } }
-  }
+  },
+  "html_advancedFetchADifferentUrl": { "message": "Geavanceerd: een andere URL ophalen" },
+  "html_captureReferencesAndRoutingVariablesSubstituteVerbatim": {
+    "message": "; vastlegverwijzingen en routeringsvariabelen worden letterlijk ingevuld, zonder opschoning van de bestandsnaam."
+  },
+  "html_downloadsFromAnExpandedUrlTemplateInsteadOfTheMatched": {
+    "message": "downloadt van een uitgebreid URL-sjabloon in plaats van de overeenkomende bron;"
+  },
+  "html_downloadsFromThisUrlTemplateInsteadOfTheMatchedSource": {
+    "message": "Downloadt van dit URL-sjabloon in plaats van de overeenkomende bron;"
+  },
+  "html_downloadsTheOriginalResolutionImageInstead": {
+    "message": "Downloadt de afbeelding op originele resolutie in plaats van de kleine voorvertoning."
+  },
+  "html_fetchClauseCompatibility": {
+    "message": "Wordt overgeslagen door gewone routering van browserdownloads, die alleen kan hernoemen, geen URL's kan vervangen. Menu, opslaan met één klik en automatisch opslaan gebruiken deze nog steeds."
+  },
+  "html_orLiteral": { "message": "of" },
+  "html_stillControlsTheDestinationAndFilename": {
+    "message": "bepaalt nog steeds de bestemming en bestandsnaam."
+  },
+  "html_stillSetsTheDestinationAndFilenameMustStartWith": {
+    "message": "stelt nog steeds de bestemming en bestandsnaam in. Moet beginnen met"
+  },
+  "routeDebuggerFetchTemplate": { "message": "Herschrijfsjabloon" },
+  "routeDebuggerRewrittenUrl": { "message": "Herschreven URL" },
+  "routeVisualFetchAccessible": {
+    "message": "Regel $RULE$: download-URL herschrijven",
+    "placeholders": { "rule": { "content": "$1", "example": "2" } }
+  },
+  "routeVisualFetchLabel": { "message": "Download-URL herschrijven" },
+  "ruleTemplateCategorySiteFiling": { "message": "Indeling per site" },
+  "ruleTemplateCategorySiteOriginals": { "message": "Originelen per site" },
+  "ruleTemplateDeviantArtRenameDescription": {
+    "message": "Hernoemt de gehashte downloadbestandsnaam van DeviantArt naar de titel van het werk en de korte code"
+  },
+  "ruleTemplateDeviantArtRenameName": { "message": "DeviantArt gehashte bestandsnaam hernoemen" },
+  "ruleTemplateInstagramUsernamePrefixDescription": {
+    "message": "Plaatst de Instagram-gebruikersnaam uit de paginatitel vóór opgeslagen bestanden"
+  },
+  "ruleTemplateInstagramUsernamePrefixName": {
+    "message": "Instagram-gebruikersnaam als voorvoegsel"
+  },
+  "ruleTemplatePagePathNoSchemeDescription": {
+    "message": "Bouwt mappen op basis van de host en het pad van de pagina-URL, zonder het schema https:// dat anders bestandsnamen beschadigt"
+  },
+  "ruleTemplatePagePathNoSchemeName": { "message": "Paginapad zonder schema" },
+  "ruleTemplateRedditOriginalsDescription": {
+    "message": "Herschrijft voorvertoningsafbeeldingslinks van Reddit naar het originele bestand op i.redd.it"
+  },
+  "ruleTemplateRedditOriginalsName": { "message": "Originele Reddit-afbeeldingen" },
+  "ruleTemplateSluggedTitleRenameDescription": {
+    "message": "Vervangt de bestandsnaam door een kleine letters, met koppeltekens gescheiden slug van de paginatitel, met behoud van de oorspronkelijke extensie (algemeen zoeken-en-vervangen in bestandsnamen wordt niet ondersteund)"
+  },
+  "ruleTemplateSluggedTitleRenameName": { "message": "Hernoemen met titel-slug" },
+  "ruleTemplateTwitterHandlePrefixDescription": {
+    "message": "Plaatst de Twitter- of X-handle uit de pagina-URL vóór opgeslagen bestanden"
+  },
+  "ruleTemplateTwitterHandlePrefixName": { "message": "Twitter/X-handle als voorvoegsel" },
+  "ruleTemplateTwitterOriginalsDescription": {
+    "message": "Herschrijft Twitter- en X-afbeeldingslinks naar het originele bestand op volledige resolutie"
+  },
+  "ruleTemplateTwitterOriginalsName": { "message": "Originele Twitter/X-afbeeldingen" },
+  "ruleTemplateWikimediaOriginalDescription": {
+    "message": "Herschrijft miniatuurlinks van Wikimedia Commons naar het originele bestand op volledige grootte"
+  },
+  "ruleTemplateWikimediaOriginalName": { "message": "Wikimedia-afbeelding op volledige grootte" },
+  "ruleTemplateYoutubeMaxResDescription": {
+    "message": "Herschrijft miniatuurlinks van YouTube naar de afbeelding met maximale resolutie"
+  },
+  "ruleTemplateYoutubeMaxResName": { "message": "YouTube-miniatuur met maximale resolutie" },
+  "ruleExtraFetch": { "message": "Een regel kan slechts één fetch:-clausule bevatten" },
+  "ruleFetchNotHttp": { "message": "Het fetch:-adres moet beginnen met http:// of https://" },
+  "ruleFetchUnsupportedVariable": {
+    "message": "Variabele wordt niet ondersteund in een fetch:-adres"
+  },
+  "savedValueOff": { "message": "Uit" },
+  "savedValueOn": { "message": "Aan" },
+  "o_lUiThemeGildedMosaic": { "message": "Verguld mozaïek" },
+  "o_lUiThemeGiverny": { "message": "Giverny" },
+  "o_lUiThemeIndigoWave": { "message": "Indigogolf" }
 }

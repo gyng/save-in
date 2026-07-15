@@ -2051,7 +2051,7 @@
   "o_lUiThemeGroupDefault": { "message": "Standard" },
   "o_lUiThemeGroupAccessibility": { "message": "Hoher Kontrast" },
   "o_lUiThemeGroupClassics": { "message": "Klassische Designs" },
-  "o_lUiThemeGroupSaveIn": { "message": "Save In-Designs" },
+  "o_lUiThemeGroupSaveIn": { "message": "Maßgeschneidert" },
   "o_lUiThemeHighContrastDark": { "message": "Hoher Kontrast, dunkel" },
   "o_lUiThemeHighContrastLight": { "message": "Hoher Kontrast, hell" },
   "o_lUiThemeHighContrastYellow": { "message": "Hoher Kontrast, gelb" },
@@ -2065,12 +2065,18 @@
   "o_lUiThemeDracula": { "message": "Dracula" },
   "o_lUiThemeGruvbox": { "message": "Gruvbox" },
   "o_lUiThemeMonokai": { "message": "Monokai" },
+  "o_lUiThemeOneDark": { "message": "One Dark" },
+  "o_lUiThemeTokyoNight": { "message": "Tokyo Night" },
+  "o_lUiThemeCatppuccin": { "message": "Catppuccin" },
   "o_lUiThemeMidnight": { "message": "Mitternacht" },
   "o_lUiThemePastelPink": { "message": "Rouge" },
   "o_lUiThemePaper": { "message": "Papier" },
   "o_lUiThemeTerminal": { "message": "Terminal" },
   "o_lUiThemeBerry": { "message": "Beere" },
   "o_lUiThemeNebula": { "message": "Nebula" },
+  "o_lUiThemeGlacier": { "message": "Gletscher" },
+  "o_lUiThemeMatcha": { "message": "Matcha" },
+  "o_lUiThemeEmber": { "message": "Glut" },
   "o_lUiThemeHelp": {
     "message": "Wählen Sie ein Farbdesign für die Einstellungen und Seitenquellen."
   },
@@ -3112,5 +3118,83 @@
   "versionViewReleases": {
     "message": "Save In v$VERSION$ — Versionen anzeigen",
     "placeholders": { "version": { "content": "$1", "example": "4.0.0" } }
-  }
+  },
+  "html_advancedFetchADifferentUrl": { "message": "Erweitert: eine andere URL abrufen" },
+  "html_captureReferencesAndRoutingVariablesSubstituteVerbatim": {
+    "message": "; Capture-Verweise und Routing-Variablen werden wortwörtlich eingesetzt, ohne Bereinigung des Dateinamens."
+  },
+  "html_downloadsFromAnExpandedUrlTemplateInsteadOfTheMatched": {
+    "message": "lädt von einer expandierten URL-Vorlage anstelle der übereinstimmenden Quelle herunter;"
+  },
+  "html_downloadsFromThisUrlTemplateInsteadOfTheMatchedSource": {
+    "message": "Lädt von dieser URL-Vorlage anstelle der übereinstimmenden Quelle herunter;"
+  },
+  "html_downloadsTheOriginalResolutionImageInstead": {
+    "message": "Lädt das Bild in Originalauflösung anstelle der kleinen Vorschau herunter."
+  },
+  "html_fetchClauseCompatibility": {
+    "message": "Wird von der gewöhnlichen Browser-Download-Weiterleitung übersprungen, die URLs nur umbenennen, aber nicht austauschen kann. Menü, Speichern per Klick und automatisches Speichern verwenden sie weiterhin."
+  },
+  "html_orLiteral": { "message": "oder" },
+  "html_stillControlsTheDestinationAndFilename": {
+    "message": "steuert weiterhin das Ziel und den Dateinamen."
+  },
+  "html_stillSetsTheDestinationAndFilenameMustStartWith": {
+    "message": "legt weiterhin das Ziel und den Dateinamen fest. Muss beginnen mit"
+  },
+  "routeDebuggerFetchTemplate": { "message": "Umschreibungsvorlage" },
+  "routeDebuggerRewrittenUrl": { "message": "Umgeschriebene URL" },
+  "routeVisualFetchAccessible": {
+    "message": "Regel $RULE$: Download-URL umschreiben",
+    "placeholders": { "rule": { "content": "$1", "example": "2" } }
+  },
+  "routeVisualFetchLabel": { "message": "Download-URL umschreiben" },
+  "ruleTemplateCategorySiteFiling": { "message": "Website-Ablage" },
+  "ruleTemplateCategorySiteOriginals": { "message": "Website-Originale" },
+  "ruleTemplateDeviantArtRenameDescription": {
+    "message": "Benennt den gehashten Download-Dateinamen von DeviantArt in Kunstwerktitel und Kurzcode um"
+  },
+  "ruleTemplateDeviantArtRenameName": { "message": "DeviantArt: gehashten Dateinamen umbenennen" },
+  "ruleTemplateInstagramUsernamePrefixDescription": {
+    "message": "Stellt gespeicherten Dateien den Instagram-Benutzernamen aus dem Seitentitel voran"
+  },
+  "ruleTemplateInstagramUsernamePrefixName": { "message": "Instagram-Benutzername als Präfix" },
+  "ruleTemplatePagePathNoSchemeDescription": {
+    "message": "Erstellt Ordner aus Host und Pfad der Seiten-URL und entfernt dabei das Schema https://, das sonst Dateinamen beschädigt"
+  },
+  "ruleTemplatePagePathNoSchemeName": { "message": "Seitenpfad ohne Schema" },
+  "ruleTemplateRedditOriginalsDescription": {
+    "message": "Schreibt Reddit-Vorschaubildlinks auf die Originaldatei bei i.redd.it um"
+  },
+  "ruleTemplateRedditOriginalsName": { "message": "Reddit-Bildoriginale" },
+  "ruleTemplateSluggedTitleRenameDescription": {
+    "message": "Ersetzt den Dateinamen durch einen kleingeschriebenen, mit Bindestrichen versehenen Slug des Seitentitels und behält die ursprüngliche Erweiterung bei (ein allgemeines Suchen-und-Ersetzen für Dateinamen wird nicht unterstützt)"
+  },
+  "ruleTemplateSluggedTitleRenameName": { "message": "Umbenennung nach Titel-Slug" },
+  "ruleTemplateTwitterHandlePrefixDescription": {
+    "message": "Stellt gespeicherten Dateien das Twitter- oder X-Handle aus der Seiten-URL voran"
+  },
+  "ruleTemplateTwitterHandlePrefixName": { "message": "Twitter/X-Handle als Präfix" },
+  "ruleTemplateTwitterOriginalsDescription": {
+    "message": "Schreibt Twitter- und X-Bildlinks auf die Originaldatei in voller Auflösung um"
+  },
+  "ruleTemplateTwitterOriginalsName": { "message": "Twitter/X-Bildoriginale" },
+  "ruleTemplateWikimediaOriginalDescription": {
+    "message": "Schreibt Wikimedia-Commons-Miniaturbildlinks auf die Originaldatei in voller Größe um"
+  },
+  "ruleTemplateWikimediaOriginalName": { "message": "Wikimedia-Bild in voller Größe" },
+  "ruleTemplateYoutubeMaxResDescription": {
+    "message": "Schreibt YouTube-Miniaturbildlinks auf das Bild in maximaler Auflösung um"
+  },
+  "ruleTemplateYoutubeMaxResName": { "message": "YouTube-Miniaturbild in maximaler Auflösung" },
+  "ruleExtraFetch": { "message": "Eine Regel kann nur eine fetch:-Klausel enthalten" },
+  "ruleFetchNotHttp": { "message": "fetch:-Adresse muss mit http:// oder https:// beginnen" },
+  "ruleFetchUnsupportedVariable": {
+    "message": "Variable wird in einer fetch:-Adresse nicht unterstützt"
+  },
+  "savedValueOff": { "message": "Aus" },
+  "savedValueOn": { "message": "Ein" },
+  "o_lUiThemeGildedMosaic": { "message": "Vergoldetes Mosaik" },
+  "o_lUiThemeGiverny": { "message": "Giverny" },
+  "o_lUiThemeIndigoWave": { "message": "Indigowelle" }
 }

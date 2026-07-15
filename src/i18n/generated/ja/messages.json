@@ -2155,7 +2155,7 @@
   "o_lUiThemeGroupDefault": { "message": "標準" },
   "o_lUiThemeGroupAccessibility": { "message": "ハイコントラスト" },
   "o_lUiThemeGroupClassics": { "message": "クラシックテーマ" },
-  "o_lUiThemeGroupSaveIn": { "message": "Save In テーマ" },
+  "o_lUiThemeGroupSaveIn": { "message": "オーダーメイド" },
   "o_lUiThemeHighContrastDark": { "message": "ハイコントラスト（ダーク）" },
   "o_lUiThemeHighContrastLight": { "message": "ハイコントラスト（ライト）" },
   "o_lUiThemeHighContrastYellow": { "message": "ハイコントラスト（黄）" },
@@ -2165,12 +2165,18 @@
   "o_lUiThemeDracula": { "message": "Dracula" },
   "o_lUiThemeGruvbox": { "message": "Gruvbox" },
   "o_lUiThemeMonokai": { "message": "Monokai" },
+  "o_lUiThemeOneDark": { "message": "One Dark" },
+  "o_lUiThemeTokyoNight": { "message": "Tokyo Night" },
+  "o_lUiThemeCatppuccin": { "message": "Catppuccin" },
   "o_lUiThemeMidnight": { "message": "ミッドナイト" },
   "o_lUiThemePastelPink": { "message": "ブラッシュ" },
   "o_lUiThemePaper": { "message": "ペーパー" },
   "o_lUiThemeTerminal": { "message": "ターミナル" },
   "o_lUiThemeBerry": { "message": "ベリー" },
   "o_lUiThemeNebula": { "message": "ネビュラ" },
+  "o_lUiThemeGlacier": { "message": "グレイシャー" },
+  "o_lUiThemeMatcha": { "message": "抹茶" },
+  "o_lUiThemeEmber": { "message": "エンバー" },
   "o_lUiThemeHelp": {
     "message": "設定とページソースの配色テーマを選択します。"
   },
@@ -3088,5 +3094,85 @@
   "versionViewReleases": {
     "message": "Save In v$VERSION$ — リリースを表示",
     "placeholders": { "version": { "content": "$1", "example": "4.0.0" } }
-  }
+  },
+  "html_advancedFetchADifferentUrl": { "message": "詳細: 別のURLを取得する" },
+  "html_captureReferencesAndRoutingVariablesSubstituteVerbatim": {
+    "message": "、キャプチャ参照とルーティング変数はそのまま置き換わり、ファイル名のサニタイズは行われません。"
+  },
+  "html_downloadsFromAnExpandedUrlTemplateInsteadOfTheMatched": {
+    "message": "一致したソースではなく、展開されたURLテンプレートからダウンロードします。"
+  },
+  "html_downloadsFromThisUrlTemplateInsteadOfTheMatchedSource": {
+    "message": "一致したソースではなく、このURLテンプレートからダウンロードします。"
+  },
+  "html_downloadsTheOriginalResolutionImageInstead": {
+    "message": "小さいプレビューではなく、元の解像度の画像をダウンロードします。"
+  },
+  "html_fetchClauseCompatibility": {
+    "message": "通常のブラウザーダウンロードのルーティングではスキップされます。名前の変更はできますが、URLの置き換えはできません。メニュー、クリックして保存、自動保存では引き続き使用されます。"
+  },
+  "html_orLiteral": { "message": "または" },
+  "html_stillControlsTheDestinationAndFilename": {
+    "message": "は引き続き保存先とファイル名を制御します。"
+  },
+  "html_stillSetsTheDestinationAndFilenameMustStartWith": {
+    "message": "は引き続き保存先とファイル名を設定します。次で始める必要があります"
+  },
+  "routeDebuggerFetchTemplate": { "message": "書き換えテンプレート" },
+  "routeDebuggerRewrittenUrl": { "message": "書き換え後のURL" },
+  "routeVisualFetchAccessible": {
+    "message": "ルール $RULE$: ダウンロードURLを書き換え",
+    "placeholders": { "rule": { "content": "$1", "example": "2" } }
+  },
+  "routeVisualFetchLabel": { "message": "ダウンロードURLを書き換え" },
+  "ruleTemplateCategorySiteFiling": { "message": "サイト別整理" },
+  "ruleTemplateCategorySiteOriginals": { "message": "サイトの元データ" },
+  "ruleTemplateDeviantArtRenameDescription": {
+    "message": "DeviantArtのハッシュ化されたダウンロードファイル名を作品タイトルと短縮コードに変更します"
+  },
+  "ruleTemplateDeviantArtRenameName": { "message": "DeviantArtのハッシュファイル名を変更" },
+  "ruleTemplateInstagramUsernamePrefixDescription": {
+    "message": "保存したファイルにページタイトルから取得したInstagramのユーザー名を先頭に追加します"
+  },
+  "ruleTemplateInstagramUsernamePrefixName": { "message": "Instagramのユーザー名を先頭に追加" },
+  "ruleTemplatePagePathNoSchemeDescription": {
+    "message": "ページURLのホストとパスからフォルダーを作成し、ファイル名を壊す原因となる https:// のスキームを除きます"
+  },
+  "ruleTemplatePagePathNoSchemeName": { "message": "スキームを除いたページパス" },
+  "ruleTemplateRedditOriginalsDescription": {
+    "message": "Redditのプレビュー画像リンクを i.redd.it の元ファイルに書き換えます"
+  },
+  "ruleTemplateRedditOriginalsName": { "message": "Reddit画像の元データ" },
+  "ruleTemplateSluggedTitleRenameDescription": {
+    "message": "ファイル名をページタイトルの小文字ハイフン区切りスラッグに置き換え、元の拡張子は保持します(ファイル名の汎用的な検索置換には対応していません)"
+  },
+  "ruleTemplateSluggedTitleRenameName": { "message": "タイトルスラッグへのファイル名変更" },
+  "ruleTemplateTwitterHandlePrefixDescription": {
+    "message": "保存したファイルにページURLから取得したTwitterまたはXのハンドルを先頭に追加します"
+  },
+  "ruleTemplateTwitterHandlePrefixName": { "message": "Twitter/Xのハンドルを先頭に追加" },
+  "ruleTemplateTwitterOriginalsDescription": {
+    "message": "TwitterとXの画像リンクを元のフル解像度ファイルに書き換えます"
+  },
+  "ruleTemplateTwitterOriginalsName": { "message": "Twitter/X画像の元データ" },
+  "ruleTemplateWikimediaOriginalDescription": {
+    "message": "Wikimedia Commonsのサムネイルリンクを元のフルサイズファイルに書き換えます"
+  },
+  "ruleTemplateWikimediaOriginalName": { "message": "Wikimediaのフルサイズ画像" },
+  "ruleTemplateYoutubeMaxResDescription": {
+    "message": "YouTubeのサムネイルリンクを最大解像度の画像に書き換えます"
+  },
+  "ruleTemplateYoutubeMaxResName": { "message": "YouTubeサムネイルの最大解像度" },
+  "ruleExtraFetch": { "message": "ルールには fetch: 句を 1 つだけ含めることができます" },
+  "ruleFetchNotHttp": {
+    "message": "fetch: のアドレスは http:// または https:// で始める必要があります"
+  },
+  "ruleFetchUnsupportedVariable": {
+    "message": "fetch: のアドレスではこの変数はサポートされていません"
+  },
+  "savedValueOff": { "message": "オフ" },
+  "savedValueOn": { "message": "オン" },
+  "o_lUiThemeGildedMosaic": { "message": "黄金のモザイク" },
+  "o_lUiThemeGiverny": { "message": "ジヴェルニー" },
+  "o_lUiThemeIndigoWave": { "message": "藍の波" }
 }

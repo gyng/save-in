@@ -2151,7 +2151,7 @@
   "o_lUiThemeGroupDefault": { "message": "标准" },
   "o_lUiThemeGroupAccessibility": { "message": "高对比度" },
   "o_lUiThemeGroupClassics": { "message": "经典主题" },
-  "o_lUiThemeGroupSaveIn": { "message": "Save In 主题" },
+  "o_lUiThemeGroupSaveIn": { "message": "定制" },
   "o_lUiThemeHighContrastDark": { "message": "高对比度深色" },
   "o_lUiThemeHighContrastLight": { "message": "高对比度浅色" },
   "o_lUiThemeHighContrastYellow": { "message": "高对比度黄色" },
@@ -2161,12 +2161,18 @@
   "o_lUiThemeDracula": { "message": "Dracula" },
   "o_lUiThemeGruvbox": { "message": "Gruvbox" },
   "o_lUiThemeMonokai": { "message": "Monokai" },
+  "o_lUiThemeOneDark": { "message": "One Dark" },
+  "o_lUiThemeTokyoNight": { "message": "Tokyo Night" },
+  "o_lUiThemeCatppuccin": { "message": "Catppuccin" },
   "o_lUiThemeMidnight": { "message": "午夜" },
   "o_lUiThemePastelPink": { "message": "胭脂" },
   "o_lUiThemePaper": { "message": "纸张" },
   "o_lUiThemeTerminal": { "message": "终端" },
   "o_lUiThemeBerry": { "message": "莓果" },
   "o_lUiThemeNebula": { "message": "星云" },
+  "o_lUiThemeGlacier": { "message": "冰川" },
+  "o_lUiThemeMatcha": { "message": "抹茶" },
+  "o_lUiThemeEmber": { "message": "余烬" },
   "o_lUiThemeHelp": {
     "message": "选择用于设置和页面来源的颜色主题。"
   },
@@ -3066,5 +3072,79 @@
   "versionViewReleases": {
     "message": "Save In v$VERSION$ — 查看版本",
     "placeholders": { "version": { "content": "$1", "example": "4.0.0" } }
-  }
+  },
+  "html_advancedFetchADifferentUrl": { "message": "高级：获取其他 URL" },
+  "html_captureReferencesAndRoutingVariablesSubstituteVerbatim": {
+    "message": "；捕获引用和路由变量会按原样替换，不会清理文件名。"
+  },
+  "html_downloadsFromAnExpandedUrlTemplateInsteadOfTheMatched": {
+    "message": "从展开后的 URL 模板下载，而不是匹配到的来源；"
+  },
+  "html_downloadsFromThisUrlTemplateInsteadOfTheMatchedSource": {
+    "message": "从此 URL 模板下载，而不是匹配到的来源；"
+  },
+  "html_downloadsTheOriginalResolutionImageInstead": {
+    "message": "下载原始分辨率的图片，而不是小尺寸预览图。"
+  },
+  "html_fetchClauseCompatibility": {
+    "message": "普通浏览器下载路由会跳过它，因为该路由只能重命名，不能替换 URL。菜单、点击保存和自动保存仍会使用它。"
+  },
+  "html_orLiteral": { "message": "或" },
+  "html_stillControlsTheDestinationAndFilename": { "message": "仍控制保存位置和文件名。" },
+  "html_stillSetsTheDestinationAndFilenameMustStartWith": {
+    "message": "仍设置保存位置和文件名。必须以"
+  },
+  "routeDebuggerFetchTemplate": { "message": "改写模板" },
+  "routeDebuggerRewrittenUrl": { "message": "改写后的 URL" },
+  "routeVisualFetchAccessible": {
+    "message": "规则 $RULE$：改写下载 URL",
+    "placeholders": { "rule": { "content": "$1", "example": "2" } }
+  },
+  "routeVisualFetchLabel": { "message": "改写下载 URL" },
+  "ruleTemplateCategorySiteFiling": { "message": "按站点归档" },
+  "ruleTemplateCategorySiteOriginals": { "message": "站点原始文件" },
+  "ruleTemplateDeviantArtRenameDescription": {
+    "message": "将 DeviantArt 的哈希下载文件名重命名为作品标题和短代码"
+  },
+  "ruleTemplateDeviantArtRenameName": { "message": "DeviantArt 哈希文件名重命名" },
+  "ruleTemplateInstagramUsernamePrefixDescription": {
+    "message": "为保存的文件加上从页面标题中提取的 Instagram 用户名前缀"
+  },
+  "ruleTemplateInstagramUsernamePrefixName": { "message": "Instagram 用户名前缀" },
+  "ruleTemplatePagePathNoSchemeDescription": {
+    "message": "根据页面 URL 的主机名和路径创建文件夹，并去除会破坏文件名的 https:// 协议"
+  },
+  "ruleTemplatePagePathNoSchemeName": { "message": "不含协议的页面路径" },
+  "ruleTemplateRedditOriginalsDescription": {
+    "message": "将 Reddit 预览图片链接改写为 i.redd.it 上的原始文件"
+  },
+  "ruleTemplateRedditOriginalsName": { "message": "Reddit 图片原图" },
+  "ruleTemplateSluggedTitleRenameDescription": {
+    "message": "将文件名替换为页面标题的小写连字符 slug，并保留原有扩展名（不支持对文件名进行通用查找替换）"
+  },
+  "ruleTemplateSluggedTitleRenameName": { "message": "标题 slug 重命名" },
+  "ruleTemplateTwitterHandlePrefixDescription": {
+    "message": "为保存的文件加上从页面 URL 中提取的 Twitter 或 X 用户名前缀"
+  },
+  "ruleTemplateTwitterHandlePrefixName": { "message": "Twitter/X 用户名前缀" },
+  "ruleTemplateTwitterOriginalsDescription": {
+    "message": "将 Twitter 和 X 的图片链接改写为原始全分辨率文件"
+  },
+  "ruleTemplateTwitterOriginalsName": { "message": "Twitter/X 图片原图" },
+  "ruleTemplateWikimediaOriginalDescription": {
+    "message": "将 Wikimedia Commons 的缩略图链接改写为原始完整尺寸文件"
+  },
+  "ruleTemplateWikimediaOriginalName": { "message": "Wikimedia 完整尺寸图片" },
+  "ruleTemplateYoutubeMaxResDescription": {
+    "message": "将 YouTube 缩略图链接改写为最高分辨率图片"
+  },
+  "ruleTemplateYoutubeMaxResName": { "message": "YouTube 缩略图最高分辨率" },
+  "ruleExtraFetch": { "message": "一条规则只能包含一个 fetch: 子句" },
+  "ruleFetchNotHttp": { "message": "fetch: 网址必须以 http:// 或 https:// 开头" },
+  "ruleFetchUnsupportedVariable": { "message": "fetch: 网址中不支持该变量" },
+  "savedValueOff": { "message": "关" },
+  "savedValueOn": { "message": "开" },
+  "o_lUiThemeGildedMosaic": { "message": "鎏金马赛克" },
+  "o_lUiThemeGiverny": { "message": "吉维尼" },
+  "o_lUiThemeIndigoWave": { "message": "靛蓝之浪" }
 }
