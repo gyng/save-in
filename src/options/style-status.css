@@ -64,15 +64,7 @@
   gap: var(--space-3);
 }
 
-.diagnostics-details {
-  margin-top: var(--space-2);
-  border: 1px solid var(--panel-border);
-  border-radius: var(--radius);
-  background: var(--panel-bg);
-}
-
 .diagnostics-details > summary {
-  padding: var(--space-3) var(--space-4);
   cursor: pointer;
   font-weight: 600;
 }
@@ -84,14 +76,12 @@
   font-weight: 400;
 }
 
-.diagnostics-details[open] > summary {
-  border-bottom: 1px solid var(--panel-border);
-}
-
 .diagnostics-panel {
   display: grid;
   gap: var(--space-4);
-  padding: var(--space-4);
+  margin-top: var(--space-2);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--panel-border);
 }
 
 .diagnostics-toolbar,
@@ -114,30 +104,28 @@
 
 .diagnostics-core {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
-  gap: var(--space-2);
   margin: 0;
 }
 
 .diagnostics-core > div {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
   min-inline-size: 0;
-  padding: var(--space-3);
-  border: 1px solid var(--panel-border);
-  border-radius: var(--radius-sm);
-  background: var(--page-bg);
+  padding: var(--space-1) 0;
 }
 
 .diagnostics-core dt {
-  margin-bottom: var(--space-1);
+  flex: 0 0 10em;
+  margin: 0;
   color: var(--color-text-muted);
-  font-size: var(--text-sm);
-  font-weight: 500;
+  font-size: var(--text-base);
 }
 
 .diagnostics-core dd {
   margin: 0;
   overflow-wrap: anywhere;
-  font-weight: 600;
+  font-size: var(--text-base);
 }
 
 .diagnostics-section {
@@ -213,8 +201,9 @@
 }
 
 @media (max-width: 42rem) {
-  .diagnostics-panel {
-    padding: var(--space-3);
+  .diagnostics-core > div {
+    display: grid;
+    gap: var(--space-1);
   }
 
   .diagnostics-lifecycle li {
