@@ -140,10 +140,3 @@
     grid-column: 4;
   }
 }
-
-@media (max-width: 640px) {
-  .reference-dialog {
-    inline-size: calc(100dvi - 2 * var(--space-3));
-    block-size: calc(100dvb - 2 * var(--space-3));
-  }
-}

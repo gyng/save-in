@@ -247,17 +247,6 @@ li {
   font-weight: 600;
 }
 
-.rule-builder-row > label {
-  display: grid;
-  gap: 0.25rem;
-  min-width: 0;
-}
-
-.rule-builder-row > label > span {
-  font-size: var(--text-base);
-  color: var(--color-text-muted);
-}
-
 .save {
   margin-top: var(--space-6);
 }

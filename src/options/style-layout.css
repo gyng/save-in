@@ -158,7 +158,7 @@
   border-radius: var(--radius-sm);
   outline: none;
   box-shadow: var(--focus-ring);
-  animation: option-search-row-flash 1600ms ease-out both;
+  animation: option-search-row-flash var(--motion-duration-highlight) ease-out both;
 }
 
 @keyframes option-search-row-flash {
@@ -270,7 +270,6 @@
      lines up with the live-variables details below it */
   margin: 0;
 }
-
 
 /* Menu preview is collapsible (open by default); separate its tree from the
    title so the header reads as a header, not a caption glued to the box. */

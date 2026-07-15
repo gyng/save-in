@@ -3,6 +3,7 @@ html:has(.reference-header) {
 }
 
 body:has(.reference-header) {
+  container: reference-content / inline-size;
   display: block;
   max-width: 1100px;
   margin: 0 auto;
@@ -191,7 +192,9 @@ body:has(.reference-header) {
     grid-row: auto;
     justify-self: stretch;
   }
+}
 
+@container reference-content (max-width: 640px) {
   .reference-table-scroll {
     overflow: visible;
   }

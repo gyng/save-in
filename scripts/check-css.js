@@ -18,6 +18,7 @@ const sourcePanelPath = path.join(root, "src", "content", "source-panel.ts");
 const sourcePanelStylePaths = [
   "source-panel-tokens.css",
   "source-panel.css",
+  "source-panel-results.css",
   "source-panel-preview.css",
 ].map((file) => path.join(root, "src", "content", file));
 
@@ -42,6 +43,36 @@ const splitTopLevelWhitespace = (value) => {
   if (start < value.length) parts.push(value.slice(start));
   return parts.filter(Boolean);
 };
+
+/**
+ * @param {string} source
+ * @returns {Map<string, string>}
+ */
+const customProperties = (source) =>
+  new Map(
+    [...source.matchAll(/(--[\w-]+)\s*:\s*([^;]+);/g)].map((match) => [
+      match[1] || "",
+      (match[2] || "").trim(),
+    ]),
+  );
+
+/**
+ * @param {string} value
+ * @param {Map<string, string>} properties
+ * @param {Set<string>} [resolving]
+ * @returns {string}
+ */
+const resolvedCustomPropertyValue = (value, properties, resolving = new Set()) =>
+  value
+    .replace(/var\((--[\w-]+)\)/g, (_match, token) => {
+      if (resolving.has(token)) return `var(${token})`;
+      const replacement = properties.get(token);
+      if (replacement === undefined) return `var(${token})`;
+      return resolvedCustomPropertyValue(replacement, properties, new Set([...resolving, token]));
+    })
+    .replace(/\s+/g, " ")
+    .replace(/\s*([(),])\s*/g, "$1")
+    .trim();
 
 /** @type {Array<[string, string[]]>} */
 const styleLayers = [
@@ -177,6 +208,16 @@ for (const file of styles) {
         violations.push(`${relative}:${line} uses ${property}: ${value}`);
       }
     }
+  }
+
+  for (const match of source.matchAll(/\banimation\s*:\s*([^;]+);/g)) {
+    const value = (match[1] || "").trim();
+    if (value === "none" || !/(?:^|\s)(?:\d+(?:\.\d+)?|\.\d+)(?:ms|s)(?:\s|$)/.test(value))
+      continue;
+    const line = source.slice(0, match.index).split("\n").length;
+    violations.push(
+      `${relative}:${line} uses a literal animation duration; use a reduced-motion duration token`,
+    );
   }
 }
 
@@ -323,6 +364,19 @@ if (/html\s*\{[^}]*min-height:\s*1%/.test(baseStyle)) {
 if (!/html\s*\{[^}]*overflow-y:\s*auto;/.test(baseStyle)) {
   violations.push("src/options/style-base.css must pair its stable gutter with automatic overflow");
 }
+if (!/\.app-dialog\s*\{[^}]*container:\s*app-dialog\s*\/\s*inline-size;/.test(shellStyle)) {
+  violations.push("shared dialogs must expose their inline size as the app-dialog container");
+}
+const optionToolStyle = fs.readFileSync(
+  path.join(root, "src", "options", "style-option-tools.css"),
+  "utf8",
+);
+if (/button:disabled/.test(optionToolStyle)) {
+  violations.push("global disabled-button styling must stay in the base control primitive");
+}
+if (!/button:disabled\s*\{[^}]*cursor:\s*default;[^}]*opacity:\s*0\.55;/.test(baseStyle)) {
+  violations.push("the base control primitive must own the disabled-button appearance");
+}
 
 const accessibilityStyle = fs.readFileSync(
   path.join(root, "src", "options", "style-accessibility.css"),
@@ -336,6 +390,13 @@ if (!accessibilityStyle.includes("@media (prefers-contrast: more)")) {
 }
 if (!accessibilityStyle.includes("@media (prefers-reduced-motion: reduce)")) {
   violations.push("options transitions need a shared reduced-motion preference fallback");
+}
+const optionTokenProperties = customProperties(tokenStyle);
+for (const token of optionTokenProperties.keys()) {
+  if (!token.startsWith("--motion-duration-")) continue;
+  if (!accessibilityStyle.includes(`${token}: 0ms;`)) {
+    violations.push(`${token} must become 0ms for the reduced-motion preference`);
+  }
 }
 for (const selectedState of [
   ".menu-preview-row.is-preview-selected",
@@ -493,6 +554,9 @@ const obsoleteSelectors = [
   ".reference-tabs",
   ".reference-nav",
   ".syntax-editor-inline-",
+  ".rule-builder-row",
+  ".rule-editor-help",
+  ".language-switching",
 ];
 for (const selector of obsoleteSelectors) {
   for (const file of styles) {
@@ -503,8 +567,54 @@ for (const selector of obsoleteSelectors) {
   }
 }
 
+/** @type {Array<[string, string]>} */
+const responsiveContainerContracts = [
+  ["welcome-dialog.css", "@container app-dialog (max-width: 640px)"],
+  ["style-about.css", "@container app-dialog (max-width: 640px)"],
+  ["reference.css", "@container reference-content (max-width: 640px)"],
+  ["style-template-library.css", "container: reference-content / inline-size"],
+];
+for (const [file, contract] of responsiveContainerContracts) {
+  const source = fs.readFileSync(path.join(root, "src", "options", file), "utf8");
+  if (!source.includes(contract)) {
+    violations.push(`src/options/${file} is missing responsive container contract ${contract}`);
+  }
+}
+
 const sourcePanelStyles = sourcePanelStylePaths.map((file) => fs.readFileSync(file, "utf8"));
 const sourcePanelStyle = sourcePanelStyles.join("\n");
+const sourcePanelTokenProperties = customProperties(sourcePanelStyles[0] || "");
+for (const role of [
+  "--compact-control-size",
+  "--radius",
+  "--control-height",
+  "--color-text",
+  "--color-text-muted",
+  "--color-surface-page",
+  "--color-surface-raised",
+  "--color-border",
+  "--color-control-border",
+  "--color-accent",
+  "--color-focus",
+  "--color-on-accent",
+  "--color-kind-other",
+  "--color-kind-image",
+  "--color-kind-video",
+  "--color-kind-audio",
+  "--color-kind-stream",
+  "--color-kind-document",
+]) {
+  const optionValue = optionTokenProperties.get(role);
+  const sourceValue = sourcePanelTokenProperties.get(role);
+  if (optionValue === undefined || sourceValue === undefined) continue;
+  const resolvedOptionValue = resolvedCustomPropertyValue(optionValue, optionTokenProperties);
+  const resolvedSourceValue = resolvedCustomPropertyValue(sourceValue, sourcePanelTokenProperties);
+  if (resolvedOptionValue !== resolvedSourceValue) {
+    violations.push(
+      `source-panel theme role ${role} drifted (${resolvedSourceValue}) from options (${resolvedOptionValue})`,
+    );
+  }
+}
 sourcePanelStyles.forEach((source, index) => {
   const lineCount = source.split("\n").length - 1;
   if (lineCount > 550) {
@@ -551,8 +661,10 @@ for (const match of sourcePanelStyle.matchAll(/z-index\s*:\s*(\d+)/g)) {
 for (const contract of [
   "box-sizing: border-box;",
   "accent-color: var(--color-accent);",
+  "touch-action: none;",
   "overscroll-behavior: contain;",
   "scrollbar-gutter: stable;",
+  ".source-link:focus-visible",
   "--source-panel-motion-transform: translateX(-8px);",
   "--source-panel-motion-transform: translateY(8px);",
   "--source-panel-motion-transform: translateY(-8px);",
@@ -568,14 +680,27 @@ for (const contract of [
     violations.push(`src/content/source-panel.css is missing ${contract}`);
   }
 }
-for (const match of sourcePanelStyle.matchAll(/#[0-9a-f]{3,8}\b|rgba?\(/gi)) {
-  const lineStart = sourcePanelStyle.lastIndexOf("\n", match.index) + 1;
-  const lineEnd = sourcePanelStyle.indexOf("\n", match.index);
-  const lineSource = sourcePanelStyle.slice(lineStart, lineEnd < 0 ? undefined : lineEnd);
-  if (/--[\w-]+\s*:/.test(lineSource)) continue;
-  const line = sourcePanelStyle.slice(0, match.index).split("\n").length;
-  violations.push(`src/content/source-panel.css:${line} uses a raw component color`);
-}
+sourcePanelStyles.forEach((source, index) => {
+  for (const match of source.matchAll(/#[0-9a-f]{3,8}\b|rgba?\(/gi)) {
+    const lineStart = source.lastIndexOf("\n", match.index) + 1;
+    const lineEnd = source.indexOf("\n", match.index);
+    const lineSource = source.slice(lineStart, lineEnd < 0 ? undefined : lineEnd);
+    if (index === 0 && /--[\w-]+\s*:/.test(lineSource)) continue;
+    const line = source.slice(0, match.index).split("\n").length;
+    violations.push(
+      `${path.relative(root, sourcePanelStylePaths[index] || "")}:${line} uses a raw component color`,
+    );
+  }
+  for (const match of source.matchAll(/\banimation\s*:\s*([^;]+);/g)) {
+    const value = (match[1] || "").trim();
+    if (value === "none" || !/(?:^|\s)(?:\d+(?:\.\d+)?|\.\d+)(?:ms|s)(?:\s|$)/.test(value))
+      continue;
+    const line = source.slice(0, match.index).split("\n").length;
+    violations.push(
+      `${path.relative(root, sourcePanelStylePaths[index] || "")}:${line} uses a literal animation duration`,
+    );
+  }
+});
 const sharedSemanticRoles = [
   "--compact-control-size",
   "--text-xs",
@@ -609,13 +734,25 @@ for (const role of sharedSemanticRoles) {
 }
 
 const sourcePanel = fs.readFileSync(sourcePanelPath, "utf8");
-for (const file of ["source-panel-tokens.css", "source-panel.css", "source-panel-preview.css"]) {
+for (const file of [
+  "source-panel-tokens.css",
+  "source-panel.css",
+  "source-panel-results.css",
+  "source-panel-preview.css",
+]) {
   if (!sourcePanel.includes(`from "./${file}";`)) {
     violations.push(`src/content/source-panel.ts must import owned stylesheet ${file}`);
   }
 }
 if (/style\.textContent\s*=\s*`/.test(sourcePanel)) {
   violations.push("src/content/source-panel.ts contains inline component CSS");
+}
+if (
+  !sourcePanel.includes('from "../shared/floating-position.ts"') ||
+  !sourcePanel.includes("positionPanelMenus") ||
+  !sourcePanel.includes("positionFloatingElement(")
+) {
+  violations.push("source-panel menus must use shared collision-aware floating positioning");
 }
 
 for (const file of ["autocomplete.ts", "typeahead.ts", "syntax-editor.ts"]) {
@@ -625,6 +762,54 @@ for (const file of ["autocomplete.ts", "typeahead.ts", "syntax-editor.ts"]) {
     !source.includes("positionFloatingElement(")
   ) {
     violations.push(`src/options/${file} must use the shared collision-aware floating positioner`);
+  }
+}
+
+const floatingPositionSource = fs.readFileSync(
+  path.join(root, "src", "shared", "floating-position.ts"),
+  "utf8",
+);
+if (!floatingPositionSource.includes('element.style.position = "fixed"')) {
+  violations.push("shared floating surfaces must escape clipping ancestors with fixed positioning");
+}
+const floatingSurfacesSource = fs.readFileSync(
+  path.join(root, "src", "options", "details-menu-positioning.ts"),
+  "utf8",
+);
+for (const contract of [
+  "details.details-popup[open]",
+  ":scope > .menu-popover",
+  ".variables-preview-list",
+  "positionFloatingElement(",
+]) {
+  if (!floatingSurfacesSource.includes(contract)) {
+    violations.push(`shared floating-surface positioning is missing ${contract}`);
+  }
+}
+const optionsPageSource = fs.readFileSync(path.join(root, "src", "options", "options.ts"), "utf8");
+if (
+  !optionsPageSource.includes('from "./details-menu-positioning.ts"') ||
+  !optionsPageSource.includes("setupDetailsMenuPositioning,")
+) {
+  violations.push("the options page must initialize shared details-menu positioning");
+}
+if (!/:not\(:has\(> \.menu-popover\)\)::details-content/.test(sharedComponentStyle)) {
+  violations.push("menu disclosures must stay outside intrinsic-size clipping animations");
+}
+const anchoredSurfaceSource = fs.readFileSync(
+  path.join(root, "src", "options", "anchored-floating-surface.ts"),
+  "utf8",
+);
+if (
+  !anchoredSurfaceSource.includes("positionFloatingElement(") ||
+  !anchoredSurfaceSource.includes("window.visualViewport")
+) {
+  violations.push("non-menu floating surfaces must use shared viewport-aware positioning");
+}
+for (const file of ["option-search.ts", "saved-indicator.ts"]) {
+  const source = fs.readFileSync(path.join(root, "src", "options", file), "utf8");
+  if (!source.includes('from "./anchored-floating-surface.ts"')) {
+    violations.push(`src/options/${file} must use shared anchored floating positioning`);
   }
 }
 
@@ -689,6 +874,12 @@ for (const entry of optionEntries) {
 
 // Visual path rows receive their nesting depth from the editor at runtime.
 definitions.add("--row-depth");
+
+const unused = [...definitions]
+  .filter((token) => !uses.has(token) && !sourcePanelStyle.includes(`var(${token})`))
+  .toSorted()
+  .map((token) => `${token} is defined but never consumed`);
+violations.push(...unused);
 
 const missing = [...uses]
   .filter(([token]) => !definitions.has(token))

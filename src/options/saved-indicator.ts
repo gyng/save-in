@@ -1,4 +1,8 @@
+import { setupAnchoredFloatingSurface } from "./anchored-floating-surface.ts";
+
 export type SavedChange = { name: string; before: unknown; after: unknown };
+
+const savedPopoverPositioning = new WeakMap<HTMLElement, () => void>();
 
 export const assertSettingsUndoSafe = (hasFieldDrafts: boolean, hasManualDrafts: boolean): void => {
   if (hasFieldDrafts || hasManualDrafts) {
@@ -19,6 +23,10 @@ const displayValue = (value: unknown): string => {
 
 const renderSavedChanges = (changes: SavedChange[], undo?: () => Promise<void> | void): void => {
   const status = document.querySelector<HTMLElement>(".save-status");
+  if (status) {
+    savedPopoverPositioning.get(status)?.();
+    savedPopoverPositioning.delete(status);
+  }
   status?.querySelector(".saved-change-popover")?.remove();
   status?.querySelector(".saved-change-undo")?.remove();
   status?.classList.remove("saved-has-changes");
@@ -35,6 +43,10 @@ const renderSavedChanges = (changes: SavedChange[], undo?: () => Promise<void> |
   popover.id = "saved-change-popover";
   popover.className = "saved-change-popover";
   popover.setAttribute("role", "tooltip");
+  const floatingPopover = setupAnchoredFloatingSurface(status, popover, {
+    isOpen: () => getComputedStyle(popover).display !== "none",
+  });
+  savedPopoverPositioning.set(status, floatingPopover.cleanup);
   const heading = document.createElement("strong");
   heading.textContent =
     changes.length === 1 ? "Setting updated" : `${changes.length} settings updated`;
@@ -67,6 +79,7 @@ const renderSavedChanges = (changes: SavedChange[], undo?: () => Promise<void> |
     status.append(button);
   }
   status.append(popover);
+  floatingPopover.schedule();
 };
 
 export const markSavedNow = (

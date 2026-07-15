@@ -102,12 +102,12 @@
 }
 
 .about-mascot-button.is-celebrating {
-  animation: party-cat-rainbow 1.2s linear infinite;
+  animation: party-cat-rainbow var(--motion-duration-emphasis) linear infinite;
   will-change: filter;
 }
 
 .about-mascot-button.is-celebrating .about-mascot {
-  animation: party-cat-dance 900ms ease-in-out infinite;
+  animation: party-cat-dance var(--motion-duration-progress) ease-in-out infinite;
   transform-origin: 50% 85%;
   will-change: transform;
 }
@@ -148,13 +148,13 @@
   }
 }
 
-@media (max-width: 640px) {
+@container app-dialog (max-width: 640px) {
   .about-layout {
     grid-template-columns: 1fr;
   }
 
   .about-mascot {
-    width: min(220px, 65dvi);
+    width: min(220px, 65cqi);
     margin: 0 auto;
   }
 

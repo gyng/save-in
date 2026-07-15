@@ -132,7 +132,7 @@
   line-height: var(--leading-copy);
 }
 
-@media (max-width: 640px) {
+@container app-dialog (max-width: 640px) {
   .welcome-content {
     padding: var(--space-5);
   }

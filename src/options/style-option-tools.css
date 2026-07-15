@@ -1,7 +1,3 @@
-button:disabled {
-  opacity: 0.55;
-}
-
 .notification-options,
 .shortcut-file-options {
   display: grid;

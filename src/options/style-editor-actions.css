@@ -200,7 +200,7 @@
 }
 
 .path-editor-row-flash {
-  animation: path-editor-flash 1.2s ease-out;
+  animation: path-editor-flash var(--motion-duration-emphasis) ease-out;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -176,10 +176,6 @@ body:not(#settings-page) {
   padding: var(--space-2) var(--space-3);
 }
 
-.language-selector select.language-switching {
-  visibility: hidden;
-}
-
 .save-status span {
   font-size: inherit;
 }
@@ -247,6 +243,7 @@ body:not(#settings-page) {
   --dialog-inline-gutter: min(var(--space-5), 4dvi);
   --dialog-block-gutter: min(var(--space-5), 4dvb);
 
+  container: app-dialog / inline-size;
   inline-size: min(var(--dialog-inline-size), calc(100dvi - 2 * var(--dialog-inline-gutter)));
   max-block-size: calc(100dvb - 2 * var(--dialog-block-gutter));
   overscroll-behavior: contain;

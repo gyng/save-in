@@ -6,14 +6,12 @@
   border-radius: var(--radius);
 }
 
-.history-export-menu,
-.history-more-menu {
+.history-export-menu {
   position: relative;
   margin: 0;
 }
 
-.history-export-options,
-.history-more-options {
+.history-export-options {
   --menu-popover-min-inline: 180px;
 
   position: absolute;
@@ -25,10 +23,6 @@
 .history-export-options button {
   border: 0;
   text-align: start;
-}
-
-.history-more-options button {
-  white-space: nowrap;
 }
 
 .rule-template-category + .rule-template-category {
@@ -115,6 +109,8 @@
 
 .reference-dialog {
   --dialog-inline-size: 1000px;
+  --dialog-inline-gutter: min(var(--space-3), 4dvi);
+  --dialog-block-gutter: min(var(--space-3), 4dvb);
 
   block-size: min(760px, calc(100dvb - 2 * var(--dialog-block-gutter)));
   padding: 0;
@@ -158,6 +154,7 @@
 }
 
 .reference-dialog-body {
+  container: reference-content / inline-size;
   min-block-size: 0;
   overflow: auto;
   overscroll-behavior: contain;

@@ -120,7 +120,7 @@
   height: 2px;
   background: var(--color-info);
   content: "";
-  animation: route-debugger-progress 900ms ease-in-out infinite alternate;
+  animation: route-debugger-progress var(--motion-duration-progress) ease-in-out infinite alternate;
 }
 
 @keyframes route-debugger-progress {

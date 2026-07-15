@@ -38,6 +38,10 @@
   --motion-duration-fast: 120ms;
   --motion-duration-quick: 90ms;
   --motion-duration-instant: 70ms;
+  --motion-duration-feedback: 180ms;
+  --motion-duration-progress: 900ms;
+  --motion-duration-emphasis: 1200ms;
+  --motion-duration-highlight: 1600ms;
 
   /* Stacking contracts. Components choose a semantic role instead of
      escalating arbitrary numbers when overlays meet. */
@@ -59,7 +63,6 @@
    * minimums and keeps explicit/system themes on one authoritative value set.
    * Components consume the semantic roles below, not these palette tokens.
    */
-  --blue40: light-dark(#45a1ff, #86bdec);
   --blue50: light-dark(#0a84ff, #5b9fdf);
   --blue60: light-dark(#0060df, #2f79bc);
   --blue70: light-dark(#003eaa, #276aa6);
@@ -73,7 +76,6 @@
   --yellow50: light-dark(#ffe900, #d6a62a);
   --red50: light-dark(#ff0039, #c5525f);
   --green60: light-dark(#12bc00, #62b75a);
-  --purple50: light-dark(#9400ff, #765eb8);
 
   /* Semantic roles shared by every options/reference component. */
   --color-accent: var(--blue60);

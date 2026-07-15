@@ -1,4 +1,5 @@
 import { getMessage } from "../platform/localization.ts";
+import { setupAnchoredFloatingSurface } from "./anchored-floating-surface.ts";
 
 type SearchEntry = {
   control: HTMLElement;
@@ -173,6 +174,9 @@ export const setupOptionSearch = (): void => {
   results.hidden = true;
   input.setAttribute("aria-controls", results.id);
   wrap.append(input, results);
+  const floatingResults = setupAnchoredFloatingSurface(input, results, {
+    isOpen: () => !results.hidden,
+  });
   const saveStatus = topNav?.querySelector<HTMLElement>(":scope > .save-status");
   if (primaryNav && topNav) {
     if (saveStatus) primaryNav.append(saveStatus);
@@ -263,6 +267,7 @@ export const setupOptionSearch = (): void => {
     if (results.hidden) return close();
     input.setAttribute("aria-expanded", "true");
     setActive(0);
+    floatingResults.position();
   };
   const setActive = (next: number) => {
     const options = [...results.querySelectorAll<HTMLElement>("[role=option]")];
