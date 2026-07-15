@@ -152,6 +152,86 @@
   "ruleTemplateAdd": { "message": "Hinzufügen" },
   "ruleTemplateAddedFeedback": { "message": "Hinzugefügt" },
   "ruleTemplateViewInEditor": { "message": "Im Regeleditor anzeigen" },
+  "historyActiveFilters": { "message": "Aktive Verlaufsfilter" },
+  "historyExportAll": { "message": "Alles exportieren" },
+  "historyFilterSearch": {
+    "message": "Suche: „$QUERY$“",
+    "placeholders": { "query": { "content": "$1", "example": "invoice" } }
+  },
+  "historyFilterSince": {
+    "message": "Seit $DATE$",
+    "placeholders": { "date": { "content": "$1", "example": "2026-07-01" } }
+  },
+  "historyFilterThrough": {
+    "message": "Bis $DATE$",
+    "placeholders": { "date": { "content": "$1", "example": "2026-07-31" } }
+  },
+  "historyDateRangeInvalid": { "message": "Das Startdatum muss am oder vor dem Enddatum liegen." },
+  "historyShowFolderUnavailable": {
+    "message": "Der Ordner konnte nicht geöffnet werden. Der Browser kennt diesen Download nicht mehr."
+  },
+  "historyShowFolderFailed": {
+    "message": "Der Ordner konnte nicht geöffnet werden. Die Datei wurde möglicherweise verschoben oder entfernt."
+  },
+  "historyFilteredResultsCount": {
+    "message": "$MATCHES$ von $TOTAL$ Ergebnissen",
+    "placeholders": {
+      "matches": { "content": "$1", "example": "12" },
+      "total": { "content": "$2", "example": "50" }
+    }
+  },
+  "historyResultCountOne": {
+    "message": "$COUNT$ Ergebnis",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "historyResultCount": {
+    "message": "$COUNT$ Ergebnisse",
+    "placeholders": { "count": { "content": "$1", "example": "24" } }
+  },
+  "historyStorageLimit": {
+    "message": "Der Verlauf bleibt auf diesem Gerät und umfasst bis zu 10.000 Einträge."
+  },
+  "historyTableCaption": { "message": "Verlauf gespeicherter Downloads" },
+  "historyShowInFolder": { "message": "Im Ordner anzeigen" },
+  "historyCancelDownload": { "message": "Abbrechen" },
+  "historyCancelDownloadTitle": { "message": "Diesen Download abbrechen" },
+  "historyCancelDownloadNamed": {
+    "message": "$FILE$ abbrechen",
+    "placeholders": { "file": { "content": "$1", "example": "photo.jpg" } }
+  },
+  "historyCancelingDownload": { "message": "Wird abgebrochen…" },
+  "historyRoutingApplied": { "message": "Angewendet" },
+  "historyRoutingAppliedTitle": {
+    "message": "Eine Routing- oder Umbenennungsregel wurde angewendet."
+  },
+  "historyNewer": { "message": "‹ Neuer" },
+  "historyPageCount": {
+    "message": "Seite $PAGE$ von $TOTAL$",
+    "placeholders": {
+      "page": { "content": "$1", "example": "2" },
+      "total": { "content": "$2", "example": "5" }
+    }
+  },
+  "historyOlder": { "message": "Älter ›" },
+  "historyLoadFailed": { "message": "Der Verlauf konnte nicht geladen werden." },
+  "historyRetry": { "message": "Erneut versuchen" },
+  "historyDeleteConfirmTitle": { "message": "Gesamten Verlauf löschen?" },
+  "historyDeleteConfirmDescription": {
+    "message": "Dadurch werden alle gespeicherten Verlaufseinträge endgültig gelöscht. Dies kann nicht rückgängig gemacht werden."
+  },
+  "historyKeepHistory": { "message": "Verlauf behalten" },
+  "historyDeleteAll": { "message": "Gesamten Verlauf löschen" },
+  "historyClearing": { "message": "Verlauf wird gelöscht…" },
+  "historyClearFailed": { "message": "Der Verlauf konnte nicht gelöscht werden." },
+  "historyStatusSaving": { "message": "Wird gespeichert…" },
+  "historyStatusCanceled": { "message": "Abgebrochen" },
+  "historyStatusNetworkFailed": { "message": "Netzwerkfehler" },
+  "historyStatusDownloadFailed": { "message": "Download fehlgeschlagen" },
+  "historyStatusPreparationFailed": { "message": "Vorbereitung fehlgeschlagen" },
+  "historyStatusPreparationInterrupted": { "message": "Unterbrochen" },
+  "historyStatusStateLost": { "message": "Downloadstatus verloren" },
+  "historyStatusRoutingFailed": { "message": "Routing fehlgeschlagen" },
+  "historyStatusNoRuleMatch": { "message": "Keine passende Regel" },
   "genericUnknownError": {
     "message": "Unbekannter Fehler"
   },
@@ -438,7 +518,7 @@
     "message": "Fehlgeschlagen"
   },
   "o_lHistoryDateSaved": {
-    "message": "Speicherdatum"
+    "message": "Gestartet"
   },
   "o_lHistoryAnyTime": {
     "message": "Beliebiger Zeitraum"
@@ -1065,7 +1145,7 @@
     "message": "Klick"
   },
   "html_clickToSaveShortcut": {
-    "message": "Tastenkombination für Speichern per Klick"
+    "message": "Auslöser"
   },
   "html_clickToSaveShortcutCombination": {
     "message": "Tastenkombination für Speichern per Klick"
@@ -1080,13 +1160,13 @@
     "message": "Command / Windows key"
   },
   "html_copy0LeavesDismissalToTheBrowserOrOperatingSystem": {
-    "message": "Bei 0 übernimmt der Browser oder das Betriebssystem das Ausblenden der Benachrichtigung."
+    "message": "0 verwendet die Standardeinstellung des Browsers oder Betriebssystems."
   },
   "html_ctrl": {
     "message": "Ctrl"
   },
   "html_dismissEarlyAfter": {
-    "message": "Vorzeitig ausblenden nach"
+    "message": "Ausblenden nach"
   },
   "html_export": {
     "message": "Exportieren"
@@ -1143,7 +1223,7 @@
     "message": "Primärer Modifikator"
   },
   "html_saveTheseAsShortcutFiles": {
-    "message": "Als Verknüpfungsdateien speichern"
+    "message": "Verknüpfungsdateien verwenden für"
   },
   "html_secondModifier": {
     "message": "Zweiter Modifikator"
@@ -1155,7 +1235,7 @@
     "message": "Shift"
   },
   "html_shortcutFileBehavior": {
-    "message": "Verhalten von Verknüpfungsdateien"
+    "message": "Einstellungen für Verknüpfungsdateien"
   },
   "html_shortcutKey": {
     "message": "Tastenkombination"
@@ -1958,7 +2038,7 @@
   "historyColumnStatus": { "message": "Status" },
   "historyColumnSize": { "message": "Größe" },
   "historyColumnType": { "message": "Typ" },
-  "historyColumnRule": { "message": "Regel" },
+  "historyColumnRule": { "message": "Routing" },
   "historyColumnFile": { "message": "Datei" },
   "historyColumnFolder": { "message": "Ordner" },
   "historyColumnUrl": { "message": "URL" },

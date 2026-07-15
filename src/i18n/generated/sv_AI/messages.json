@@ -146,6 +146,86 @@
   "ruleTemplateAdd": { "message": "Lägg till" },
   "ruleTemplateAddedFeedback": { "message": "Tillagd" },
   "ruleTemplateViewInEditor": { "message": "Visa i regelredigeraren" },
+  "historyActiveFilters": { "message": "Aktiva historikfilter" },
+  "historyExportAll": { "message": "Exportera allt" },
+  "historyFilterSearch": {
+    "message": "Sök: ”$QUERY$”",
+    "placeholders": { "query": { "content": "$1", "example": "invoice" } }
+  },
+  "historyFilterSince": {
+    "message": "Sedan $DATE$",
+    "placeholders": { "date": { "content": "$1", "example": "2026-07-01" } }
+  },
+  "historyFilterThrough": {
+    "message": "Till och med $DATE$",
+    "placeholders": { "date": { "content": "$1", "example": "2026-07-31" } }
+  },
+  "historyDateRangeInvalid": {
+    "message": "Startdatumet måste vara samma som eller före slutdatumet."
+  },
+  "historyShowFolderUnavailable": {
+    "message": "Det gick inte att öppna mappen. Webbläsaren känner inte längre till hämtningen."
+  },
+  "historyShowFolderFailed": {
+    "message": "Det gick inte att öppna mappen. Filen kan ha flyttats eller tagits bort."
+  },
+  "historyFilteredResultsCount": {
+    "message": "$MATCHES$ av $TOTAL$ resultat",
+    "placeholders": {
+      "matches": { "content": "$1", "example": "12" },
+      "total": { "content": "$2", "example": "50" }
+    }
+  },
+  "historyResultCountOne": {
+    "message": "$COUNT$ resultat",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "historyResultCount": {
+    "message": "$COUNT$ resultat",
+    "placeholders": { "count": { "content": "$1", "example": "24" } }
+  },
+  "historyStorageLimit": {
+    "message": "Historiken lagras på den här enheten, upp till 10 000 poster."
+  },
+  "historyTableCaption": { "message": "Historik över sparade hämtningar" },
+  "historyShowInFolder": { "message": "Visa i mapp" },
+  "historyCancelDownload": { "message": "Avbryt" },
+  "historyCancelDownloadTitle": { "message": "Avbryt den här hämtningen" },
+  "historyCancelDownloadNamed": {
+    "message": "Avbryt $FILE$",
+    "placeholders": { "file": { "content": "$1", "example": "photo.jpg" } }
+  },
+  "historyCancelingDownload": { "message": "Avbryter…" },
+  "historyRoutingApplied": { "message": "Tillämpad" },
+  "historyRoutingAppliedTitle": { "message": "En regel för routning eller namnbyte tillämpades." },
+  "historyNewer": { "message": "‹ Nyare" },
+  "historyPageCount": {
+    "message": "Sida $PAGE$ av $TOTAL$",
+    "placeholders": {
+      "page": { "content": "$1", "example": "2" },
+      "total": { "content": "$2", "example": "5" }
+    }
+  },
+  "historyOlder": { "message": "Äldre ›" },
+  "historyLoadFailed": { "message": "Det gick inte att läsa in historiken." },
+  "historyRetry": { "message": "Försök igen" },
+  "historyDeleteConfirmTitle": { "message": "Ta bort all historik?" },
+  "historyDeleteConfirmDescription": {
+    "message": "Detta tar permanent bort alla sparade historikposter. Åtgärden kan inte ångras."
+  },
+  "historyKeepHistory": { "message": "Behåll historiken" },
+  "historyDeleteAll": { "message": "Ta bort all historik" },
+  "historyClearing": { "message": "Tar bort historik…" },
+  "historyClearFailed": { "message": "Det gick inte att ta bort historiken." },
+  "historyStatusSaving": { "message": "Sparar…" },
+  "historyStatusCanceled": { "message": "Avbruten" },
+  "historyStatusNetworkFailed": { "message": "Nätverksfel" },
+  "historyStatusDownloadFailed": { "message": "Hämtningen misslyckades" },
+  "historyStatusPreparationFailed": { "message": "Förberedelsen misslyckades" },
+  "historyStatusPreparationInterrupted": { "message": "Avbruten" },
+  "historyStatusStateLost": { "message": "Hämtningsstatus förlorad" },
+  "historyStatusRoutingFailed": { "message": "Routningen misslyckades" },
+  "historyStatusNoRuleMatch": { "message": "Ingen matchande regel" },
   "genericUnknownError": {
     "message": "Okänt fel"
   },
@@ -432,7 +512,7 @@
     "message": "Misslyckad"
   },
   "o_lHistoryDateSaved": {
-    "message": "Datum sparat"
+    "message": "Start"
   },
   "o_lHistoryAnyTime": {
     "message": "När som helst"
@@ -1059,7 +1139,7 @@
     "message": "Klicka"
   },
   "html_clickToSaveShortcut": {
-    "message": "Kortkommando för att spara med ett klick"
+    "message": "Utlösare"
   },
   "html_clickToSaveShortcutCombination": {
     "message": "Kortkommando för att spara med ett klick"
@@ -1074,13 +1154,13 @@
     "message": "Command / Windows key"
   },
   "html_copy0LeavesDismissalToTheBrowserOrOperatingSystem": {
-    "message": "Med 0 avgör webbläsaren eller operativsystemet när aviseringen stängs."
+    "message": "0 använder webbläsarens eller operativsystemets standardinställning."
   },
   "html_ctrl": {
     "message": "Ctrl"
   },
   "html_dismissEarlyAfter": {
-    "message": "Stäng i förtid efter"
+    "message": "Stäng efter"
   },
   "html_export": {
     "message": "Exportera"
@@ -1137,7 +1217,7 @@
     "message": "Primär modifierare"
   },
   "html_saveTheseAsShortcutFiles": {
-    "message": "Spara som genvägsfiler"
+    "message": "Använd genvägsfiler för"
   },
   "html_secondModifier": {
     "message": "Andra modifierartangenten"
@@ -1149,7 +1229,7 @@
     "message": "Shift"
   },
   "html_shortcutFileBehavior": {
-    "message": "Genvägsfilens beteende"
+    "message": "Inställningar för genvägsfiler"
   },
   "html_shortcutKey": {
     "message": "Kortkommando"
@@ -1979,7 +2059,7 @@
   "historyColumnStatus": { "message": "Status" },
   "historyColumnSize": { "message": "Storlek" },
   "historyColumnType": { "message": "Typ" },
-  "historyColumnRule": { "message": "Regel" },
+  "historyColumnRule": { "message": "Routning" },
   "historyColumnFile": { "message": "Fil" },
   "historyColumnFolder": { "message": "Mapp" },
   "historyColumnUrl": { "message": "URL" },

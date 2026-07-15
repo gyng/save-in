@@ -152,6 +152,88 @@
   "ruleTemplateAdd": { "message": "Adicionar" },
   "ruleTemplateAddedFeedback": { "message": "Adicionado" },
   "ruleTemplateViewInEditor": { "message": "Ver no editor de regras" },
+  "historyActiveFilters": { "message": "Filtros de histórico ativos" },
+  "historyExportAll": { "message": "Exportar tudo" },
+  "historyFilterSearch": {
+    "message": "Pesquisa: “$QUERY$”",
+    "placeholders": { "query": { "content": "$1", "example": "invoice" } }
+  },
+  "historyFilterSince": {
+    "message": "Desde $DATE$",
+    "placeholders": { "date": { "content": "$1", "example": "2026-07-01" } }
+  },
+  "historyFilterThrough": {
+    "message": "Até $DATE$",
+    "placeholders": { "date": { "content": "$1", "example": "2026-07-31" } }
+  },
+  "historyDateRangeInvalid": {
+    "message": "A data inicial deve ser igual ou anterior à data final."
+  },
+  "historyShowFolderUnavailable": {
+    "message": "Não foi possível abrir a pasta. O navegador não reconhece mais este download."
+  },
+  "historyShowFolderFailed": {
+    "message": "Não foi possível abrir a pasta. O arquivo pode ter sido movido ou removido."
+  },
+  "historyFilteredResultsCount": {
+    "message": "$MATCHES$ de $TOTAL$ resultados",
+    "placeholders": {
+      "matches": { "content": "$1", "example": "12" },
+      "total": { "content": "$2", "example": "50" }
+    }
+  },
+  "historyResultCountOne": {
+    "message": "$COUNT$ resultado",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "historyResultCount": {
+    "message": "$COUNT$ resultados",
+    "placeholders": { "count": { "content": "$1", "example": "24" } }
+  },
+  "historyStorageLimit": {
+    "message": "O histórico permanece neste dispositivo, com até 10.000 entradas."
+  },
+  "historyTableCaption": { "message": "Histórico de downloads salvos" },
+  "historyShowInFolder": { "message": "Mostrar na pasta" },
+  "historyCancelDownload": { "message": "Cancelar" },
+  "historyCancelDownloadTitle": { "message": "Cancelar este download" },
+  "historyCancelDownloadNamed": {
+    "message": "Cancelar $FILE$",
+    "placeholders": { "file": { "content": "$1", "example": "photo.jpg" } }
+  },
+  "historyCancelingDownload": { "message": "Cancelando…" },
+  "historyRoutingApplied": { "message": "Aplicado" },
+  "historyRoutingAppliedTitle": {
+    "message": "Uma regra de roteamento ou renomeação foi aplicada."
+  },
+  "historyNewer": { "message": "‹ Mais recentes" },
+  "historyPageCount": {
+    "message": "Página $PAGE$ de $TOTAL$",
+    "placeholders": {
+      "page": { "content": "$1", "example": "2" },
+      "total": { "content": "$2", "example": "5" }
+    }
+  },
+  "historyOlder": { "message": "Mais antigos ›" },
+  "historyLoadFailed": { "message": "Não foi possível carregar o histórico." },
+  "historyRetry": { "message": "Tentar novamente" },
+  "historyDeleteConfirmTitle": { "message": "Excluir todo o histórico?" },
+  "historyDeleteConfirmDescription": {
+    "message": "Isso exclui permanentemente todas as entradas salvas do histórico. Esta ação não pode ser desfeita."
+  },
+  "historyKeepHistory": { "message": "Manter histórico" },
+  "historyDeleteAll": { "message": "Excluir todo o histórico" },
+  "historyClearing": { "message": "Excluindo histórico…" },
+  "historyClearFailed": { "message": "Não foi possível excluir o histórico." },
+  "historyStatusSaving": { "message": "Salvando…" },
+  "historyStatusCanceled": { "message": "Cancelado" },
+  "historyStatusNetworkFailed": { "message": "Falha de rede" },
+  "historyStatusDownloadFailed": { "message": "Falha no download" },
+  "historyStatusPreparationFailed": { "message": "Falha na preparação" },
+  "historyStatusPreparationInterrupted": { "message": "Interrompido" },
+  "historyStatusStateLost": { "message": "Estado do download perdido" },
+  "historyStatusRoutingFailed": { "message": "Falha no roteamento" },
+  "historyStatusNoRuleMatch": { "message": "Nenhuma regra correspondente" },
   "genericUnknownError": {
     "message": "Erro desconhecido"
   },
@@ -438,7 +520,7 @@
     "message": "Falhou"
   },
   "o_lHistoryDateSaved": {
-    "message": "Data do salvamento"
+    "message": "Início"
   },
   "o_lHistoryAnyTime": {
     "message": "A qualquer momento"
@@ -1065,7 +1147,7 @@
     "message": "Clique"
   },
   "html_clickToSaveShortcut": {
-    "message": "Atalho para salvar com um clique"
+    "message": "Acionador"
   },
   "html_clickToSaveShortcutCombination": {
     "message": "Combinação de atalhos clique para salvar"
@@ -1080,13 +1162,13 @@
     "message": "Command / Windows key"
   },
   "html_copy0LeavesDismissalToTheBrowserOrOperatingSystem": {
-    "message": "Com 0, o navegador ou o sistema operacional decide quando dispensar a notificação."
+    "message": "0 usa a configuração padrão do navegador ou do sistema operacional."
   },
   "html_ctrl": {
     "message": "Ctrl"
   },
   "html_dismissEarlyAfter": {
-    "message": "Dispensar antecipadamente após"
+    "message": "Fechar após"
   },
   "html_export": {
     "message": "Exportar"
@@ -1143,7 +1225,7 @@
     "message": "Modificador primário"
   },
   "html_saveTheseAsShortcutFiles": {
-    "message": "Salvar como arquivos de atalho"
+    "message": "Usar arquivos de atalho para"
   },
   "html_secondModifier": {
     "message": "Segundo modificador"
@@ -1155,7 +1237,7 @@
     "message": "Shift"
   },
   "html_shortcutFileBehavior": {
-    "message": "Comportamento do arquivo de atalho"
+    "message": "Configurações de arquivos de atalho"
   },
   "html_shortcutKey": {
     "message": "Tecla de atalho"
@@ -1958,7 +2040,7 @@
   "historyColumnStatus": { "message": "Status" },
   "historyColumnSize": { "message": "Tamanho" },
   "historyColumnType": { "message": "Tipo" },
-  "historyColumnRule": { "message": "Regra" },
+  "historyColumnRule": { "message": "Roteamento" },
   "historyColumnFile": { "message": "Arquivo" },
   "historyColumnFolder": { "message": "Pasta" },
   "historyColumnUrl": { "message": "URL" },

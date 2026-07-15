@@ -160,6 +160,88 @@
   "ruleTemplateAdd": { "message": "Ajouter" },
   "ruleTemplateAddedFeedback": { "message": "Ajouté" },
   "ruleTemplateViewInEditor": { "message": "Afficher dans l’éditeur de règles" },
+  "historyActiveFilters": { "message": "Filtres d’historique actifs" },
+  "historyExportAll": { "message": "Tout exporter" },
+  "historyFilterSearch": {
+    "message": "Recherche : « $QUERY$ »",
+    "placeholders": { "query": { "content": "$1", "example": "invoice" } }
+  },
+  "historyFilterSince": {
+    "message": "Depuis le $DATE$",
+    "placeholders": { "date": { "content": "$1", "example": "2026-07-01" } }
+  },
+  "historyFilterThrough": {
+    "message": "Jusqu’au $DATE$",
+    "placeholders": { "date": { "content": "$1", "example": "2026-07-31" } }
+  },
+  "historyDateRangeInvalid": {
+    "message": "La date de début doit être antérieure ou égale à la date de fin."
+  },
+  "historyShowFolderUnavailable": {
+    "message": "Impossible d’ouvrir le dossier. Le navigateur ne connaît plus ce téléchargement."
+  },
+  "historyShowFolderFailed": {
+    "message": "Impossible d’ouvrir le dossier. Le fichier a peut-être été déplacé ou supprimé."
+  },
+  "historyFilteredResultsCount": {
+    "message": "$MATCHES$ résultats sur $TOTAL$",
+    "placeholders": {
+      "matches": { "content": "$1", "example": "12" },
+      "total": { "content": "$2", "example": "50" }
+    }
+  },
+  "historyResultCountOne": {
+    "message": "$COUNT$ résultat",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "historyResultCount": {
+    "message": "$COUNT$ résultats",
+    "placeholders": { "count": { "content": "$1", "example": "24" } }
+  },
+  "historyStorageLimit": {
+    "message": "L’historique reste sur cet appareil, dans la limite de 10 000 entrées."
+  },
+  "historyTableCaption": { "message": "Historique des téléchargements enregistrés" },
+  "historyShowInFolder": { "message": "Afficher dans le dossier" },
+  "historyCancelDownload": { "message": "Annuler" },
+  "historyCancelDownloadTitle": { "message": "Annuler ce téléchargement" },
+  "historyCancelDownloadNamed": {
+    "message": "Annuler $FILE$",
+    "placeholders": { "file": { "content": "$1", "example": "photo.jpg" } }
+  },
+  "historyCancelingDownload": { "message": "Annulation…" },
+  "historyRoutingApplied": { "message": "Appliqué" },
+  "historyRoutingAppliedTitle": {
+    "message": "Une règle de routage ou de renommage a été appliquée."
+  },
+  "historyNewer": { "message": "‹ Plus récent" },
+  "historyPageCount": {
+    "message": "Page $PAGE$ sur $TOTAL$",
+    "placeholders": {
+      "page": { "content": "$1", "example": "2" },
+      "total": { "content": "$2", "example": "5" }
+    }
+  },
+  "historyOlder": { "message": "Plus ancien ›" },
+  "historyLoadFailed": { "message": "Impossible de charger l’historique." },
+  "historyRetry": { "message": "Réessayer" },
+  "historyDeleteConfirmTitle": { "message": "Supprimer tout l’historique ?" },
+  "historyDeleteConfirmDescription": {
+    "message": "Cette action supprime définitivement toutes les entrées enregistrées de l’historique. Elle est irréversible."
+  },
+  "historyKeepHistory": { "message": "Conserver l’historique" },
+  "historyDeleteAll": { "message": "Supprimer tout l’historique" },
+  "historyClearing": { "message": "Suppression de l’historique…" },
+  "historyClearFailed": { "message": "Impossible de supprimer l’historique." },
+  "historyStatusSaving": { "message": "Enregistrement…" },
+  "historyStatusCanceled": { "message": "Annulé" },
+  "historyStatusNetworkFailed": { "message": "Échec réseau" },
+  "historyStatusDownloadFailed": { "message": "Échec du téléchargement" },
+  "historyStatusPreparationFailed": { "message": "Échec de la préparation" },
+  "historyStatusPreparationInterrupted": { "message": "Interrompu" },
+  "historyStatusStateLost": { "message": "État du téléchargement perdu" },
+  "historyStatusRoutingFailed": { "message": "Échec du routage" },
+  "historyStatusNoRuleMatch": { "message": "Aucune règle correspondante" },
   "genericUnknownError": {
     "message": "Erreur inconnue"
   },
@@ -458,7 +540,7 @@
     "message": "Échec"
   },
   "o_lHistoryDateSaved": {
-    "message": "Date d’enregistrement"
+    "message": "Début"
   },
   "o_lHistoryAnyTime": {
     "message": "Toutes les dates"
@@ -1085,7 +1167,7 @@
     "message": "Cliquez"
   },
   "html_clickToSaveShortcut": {
-    "message": "Raccourci d’enregistrement au clic"
+    "message": "Déclencheur"
   },
   "html_clickToSaveShortcutCombination": {
     "message": "Combinaison pour l’enregistrement au clic"
@@ -1100,13 +1182,13 @@
     "message": "Command / Windows key"
   },
   "html_copy0LeavesDismissalToTheBrowserOrOperatingSystem": {
-    "message": "Avec 0, le navigateur ou le système d’exploitation décide quand masquer la notification."
+    "message": "0 utilise la valeur par défaut du navigateur ou du système d’exploitation."
   },
   "html_ctrl": {
     "message": "Ctrl"
   },
   "html_dismissEarlyAfter": {
-    "message": "Masquer plus tôt après"
+    "message": "Fermer après"
   },
   "html_export": {
     "message": "Exporter"
@@ -1163,7 +1245,7 @@
     "message": "Modificateur principal"
   },
   "html_saveTheseAsShortcutFiles": {
-    "message": "Enregistrer sous forme de fichiers de raccourci"
+    "message": "Utiliser des fichiers raccourcis pour"
   },
   "html_secondModifier": {
     "message": "Deuxième modificateur"
@@ -1175,7 +1257,7 @@
     "message": "Shift"
   },
   "html_shortcutFileBehavior": {
-    "message": "Comportement du fichier de raccourci"
+    "message": "Paramètres des fichiers raccourcis"
   },
   "html_shortcutKey": {
     "message": "Touche de raccourci"
@@ -1978,7 +2060,7 @@
   "historyColumnStatus": { "message": "Statut" },
   "historyColumnSize": { "message": "Taille" },
   "historyColumnType": { "message": "Type" },
-  "historyColumnRule": { "message": "Règle" },
+  "historyColumnRule": { "message": "Routage" },
   "historyColumnFile": { "message": "Fichier" },
   "historyColumnFolder": { "message": "Dossier" },
   "historyColumnUrl": { "message": "URL" },

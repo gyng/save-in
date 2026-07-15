@@ -39,7 +39,14 @@ for (const file of [manifestFile, ...sourceFiles]) {
     for (const match of source.matchAll(/__MSG_([A-Za-z0-9_]+)__/g)) runtimeKeys.add(match[1]);
   }
   if (file.endsWith(".ts")) {
-    for (const match of source.matchAll(/\b(?:getMessage|localize)\(\s*["']([A-Za-z0-9_]+)["']/g)) {
+    for (const match of source.matchAll(
+      /\b(?:getMessage|historyMessage|localize)\(\s*["']([A-Za-z0-9_]+)["']/g,
+    )) {
+      runtimeKeys.add(match[1]);
+    }
+    // Status labels pair a static message key with an English fallback, then
+    // select the pair by the stored browser status at runtime.
+    for (const match of source.matchAll(/\[\s*["'](historyStatus[A-Za-z0-9_]+)["']\s*,\s*["']/g)) {
       runtimeKeys.add(match[1]);
     }
   }
@@ -89,6 +96,56 @@ const retainedCompatibilityKeys = [
   "autoDownloadVisualInvalid",
 ];
 retainedCompatibilityKeys.forEach((key) => runtimeKeys.add(key));
+// An options page left open across an update may still render the former
+// generic History export label.
+runtimeKeys.add("html_export");
+
+// Keep the reviewed History catalog batch valid when translations land before
+// the options-page update that consumes them. This list is intentionally exact
+// so unrelated unused messages still fail the policy check.
+const catalogAheadHistoryKeys = [
+  "historyActiveFilters",
+  "historyCancelDownload",
+  "historyCancelDownloadNamed",
+  "historyCancelDownloadTitle",
+  "historyCancelingDownload",
+  "historyClearFailed",
+  "historyClearing",
+  "historyDateRangeInvalid",
+  "historyDeleteAll",
+  "historyDeleteConfirmDescription",
+  "historyDeleteConfirmTitle",
+  "historyExportAll",
+  "historyFilterSearch",
+  "historyFilterSince",
+  "historyFilterThrough",
+  "historyFilteredResultsCount",
+  "historyKeepHistory",
+  "historyLoadFailed",
+  "historyNewer",
+  "historyOlder",
+  "historyPageCount",
+  "historyResultCount",
+  "historyResultCountOne",
+  "historyRetry",
+  "historyRoutingApplied",
+  "historyRoutingAppliedTitle",
+  "historyShowFolderFailed",
+  "historyShowFolderUnavailable",
+  "historyShowInFolder",
+  "historyStatusCanceled",
+  "historyStatusDownloadFailed",
+  "historyStatusNetworkFailed",
+  "historyStatusNoRuleMatch",
+  "historyStatusPreparationFailed",
+  "historyStatusPreparationInterrupted",
+  "historyStatusRoutingFailed",
+  "historyStatusSaving",
+  "historyStatusStateLost",
+  "historyStorageLimit",
+  "historyTableCaption",
+];
+catalogAheadHistoryKeys.forEach((key) => runtimeKeys.add(key));
 
 const allowedMessageFields = new Set(["description", "message", "placeholders"]);
 const allowedPlaceholderFields = new Set(["content", "example"]);
