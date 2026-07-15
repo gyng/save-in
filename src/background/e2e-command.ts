@@ -8,7 +8,7 @@ import {
   resetNotifierTransientState,
 } from "../downloads/notification.ts";
 import { downloadsState, sessionWriteState } from "../downloads/state.ts";
-import { Shortcut } from "../downloads/shortcut.ts";
+import { makeShortcut } from "../downloads/shortcut.ts";
 import { Path } from "../routing/path.ts";
 import type { CurrentTab } from "../platform/current-tab.ts";
 import { backgroundRuntime } from "./runtime.ts";
@@ -198,7 +198,7 @@ const isBackgroundE2EResetCommand = (value: unknown): value is BackgroundE2ERese
 
 const resolveDownloadUrl = (request: BackgroundE2EDownload): string => {
   if (request.shortcutUrl) {
-    return Shortcut.makeShortcut(SHORTCUT_TYPES.HTML_REDIRECT, request.shortcutUrl);
+    return makeShortcut(SHORTCUT_TYPES.HTML_REDIRECT, request.shortcutUrl);
   }
   if (request.content !== undefined) return Download.makeObjectUrl(request.content);
   if (request.url) return request.url;

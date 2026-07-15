@@ -3,7 +3,7 @@ import { Path } from "../routing/path.ts";
 import { DOWNLOAD_TYPES } from "../shared/constants.ts";
 import type { DownloadPipelineState, SourceSidecarRequest } from "./download-types.ts";
 import { Download } from "./download.ts";
-import { Shortcut } from "./shortcut.ts";
+import { makeShortcut, sourceSidecarPath } from "./shortcut.ts";
 
 export const createSourceSidecarRequest = (
   state: DownloadPipelineState,
@@ -36,7 +36,7 @@ export const launchSourceSidecar = async (
 ): Promise<void> => {
   if (!options.saveSourceSidecar) return;
   const finalFullPath = resolveSourceSidecarPrimaryPath(intendedFilename, currentFilename);
-  const { directory: sidecarDirectory, filename: sidecarFilename } = Shortcut.sourceSidecarPath(
+  const { directory: sidecarDirectory, filename: sidecarFilename } = sourceSidecarPath(
     finalFullPath,
     options.shortcutType,
     options.truncateLength,
@@ -49,7 +49,7 @@ export const launchSourceSidecar = async (
       pageUrl: request.pageUrl,
       selectedUrl: request.sourceUrl,
       sourceUrl: request.sourceUrl,
-      url: Shortcut.makeShortcut(options.shortcutType, request.sourceUrl, request.title),
+      url: makeShortcut(options.shortcutType, request.sourceUrl, request.title),
       suggestedFilename: sidecarFilename,
       context: DOWNLOAD_TYPES.SIDECAR,
       menuItemId: request.menuItemId,

@@ -4,11 +4,22 @@
 // menu-build/menu-click/menu-tabs and their deps are imported for real.
 // importMenus resets their owner-controlled state and seeds the same module
 // instances the click handlers use, so Object.assign (options,
-// WEB_EXTENSION_CAPABILITIES) and vi.spyOn (Download/Notifier/Shortcut) reach
-// the live collaborators. Path stays untouched (the handlers build real Path
-// objects).
+// WEB_EXTENSION_CAPABILITIES) and vi.spyOn (Download/Notifier) reach the live
+// collaborators. Shortcut is auto-mocked (see below). Path stays untouched
+// (the handlers build real Path objects).
 
+// Shortcut helpers are auto-mocked with spy:true by the test entry
+// (listeners.test.ts) so the click handlers' real imported bindings resolve to
+// spies the setup below can stub and the case files can assert on; unstubbed
+// exports keep their real implementations. The vi.mock must live in the entry
+// file: hoisting it here (an imported helper) does not register before the
+// mocked module is first imported.
 import { DOWNLOAD_TYPES } from "../../../src/shared/constants.ts";
+import {
+  makeShortcut,
+  suggestShortcutFilename,
+  sourceSidecarPath,
+} from "../../../src/downloads/shortcut.ts";
 import type { CurrentTab } from "../../../src/platform/current-tab.ts";
 import type { MenuContext } from "../../../src/background/menu-build.ts";
 
@@ -34,7 +45,6 @@ function assertPresent<T>(value: T): asserts value is NonNullable<T> {
 let options: any;
 let Download: any;
 let Notifier: any;
-let Shortcut: any;
 let WEB_EXTENSION_CAPABILITIES: any;
 let setCurrentTab: (tab: CurrentTab | null) => void;
 let Runtime: typeof import("../../../src/background/runtime.ts").backgroundRuntime;
@@ -88,8 +98,8 @@ const seedDeps = () => {
   vi.spyOn(Download, "makeObjectUrl").mockReturnValue("data:text/plain;base64,eA==");
   vi.spyOn(Notifier, "createExtensionNotification").mockImplementation(() => {});
   vi.spyOn(Notifier, "expectDownload").mockImplementation(() => {});
-  vi.spyOn(Shortcut, "makeShortcut").mockReturnValue("blob:mock-shortcut");
-  vi.spyOn(Shortcut, "suggestShortcutFilename").mockReturnValue("shortcut.url");
+  vi.mocked(makeShortcut).mockReturnValue("blob:mock-shortcut");
+  vi.mocked(suggestShortcutFilename).mockReturnValue("shortcut.url");
 };
 
 const importMenus = async () => {
@@ -100,7 +110,6 @@ const importMenus = async () => {
   ({ options } = await import("../../../src/config/options-data.ts"));
   ({ Download } = await import("../../../src/downloads/download.ts"));
   ({ Notifier } = await import("../../../src/downloads/notification.ts"));
-  ({ Shortcut } = await import("../../../src/downloads/shortcut.ts"));
   ({ WEB_EXTENSION_CAPABILITIES } = await import("../../../src/platform/chrome-detector.ts"));
   ({ setCurrentTab } = await import("../../../src/platform/current-tab.ts"));
   ({ backgroundRuntime: Runtime } = await import("../../../src/background/runtime.ts"));
@@ -125,7 +134,9 @@ export {
   options,
   Download,
   Notifier,
-  Shortcut,
+  makeShortcut,
+  suggestShortcutFilename,
+  sourceSidecarPath,
   WEB_EXTENSION_CAPABILITIES,
   setCurrentTab,
   Runtime,

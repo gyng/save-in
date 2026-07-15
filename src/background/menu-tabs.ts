@@ -6,7 +6,7 @@ import { getMessage } from "../platform/localization.ts";
 import { MENU_IDS } from "../menus/menu-ids.ts";
 import { options } from "../config/options-data.ts";
 import { WEB_EXTENSION_CAPABILITIES } from "../platform/chrome-detector.ts";
-import { Shortcut } from "../downloads/shortcut.ts";
+import { makeShortcut, suggestShortcutFilename } from "../downloads/shortcut.ts";
 import { DOWNLOAD_TYPES } from "../shared/constants.ts";
 import { Path } from "../routing/path.ts";
 import { Download } from "../downloads/download.ts";
@@ -126,9 +126,9 @@ export const handleTabMenuClick = async (
       let suggestedFilename = null;
 
       if (options.shortcutTab) {
-        url = Shortcut.makeShortcut(options.shortcutType, url, t.title || t.url);
+        url = makeShortcut(options.shortcutType, url, t.title || t.url);
 
-        suggestedFilename = Shortcut.suggestShortcutFilename(
+        suggestedFilename = suggestShortcutFilename(
           options.shortcutType,
           DOWNLOAD_TYPES.TAB,
           info,

@@ -3,7 +3,9 @@ import {
   options,
   Download,
   Notifier,
-  Shortcut,
+  makeShortcut,
+  suggestShortcutFilename,
+  sourceSidecarPath,
   setCurrentTab,
   Runtime,
   setupBrowserMocks,
@@ -155,8 +157,6 @@ describe("addDownloadListener", () => {
   test("does not prepare the source-link sidecar before the primary completes", async () => {
     options.saveSourceSidecar = true;
     Menus.addPaths(["images"], ["image"]);
-    const sourceSidecarPath = vi.spyOn(Shortcut, "sourceSidecarPath");
-
     await expect(
       listener({
         menuItemId: "save-in-0",
@@ -165,7 +165,7 @@ describe("addDownloadListener", () => {
         pageUrl: "https://example.com/",
       }),
     ).resolves.toBeUndefined();
-    expect(sourceSidecarPath).not.toHaveBeenCalled();
+    expect(vi.mocked(sourceSidecarPath)).not.toHaveBeenCalled();
   });
 
   test("waits for init (Runtime.ready) before handling a download click", async () => {
@@ -714,11 +714,11 @@ describe("addDownloadListener", () => {
       Menus.addPaths(["dir1"], ["image"]);
       await listener(mediaClick);
 
-      expect(Shortcut.makeShortcut).toHaveBeenCalledWith(
+      expect(vi.mocked(makeShortcut)).toHaveBeenCalledWith(
         "HTML_REDIRECT",
         "https://example.com/i.png",
       );
-      expect(Shortcut.suggestShortcutFilename).toHaveBeenCalledWith(
+      expect(vi.mocked(suggestShortcutFilename)).toHaveBeenCalledWith(
         "HTML_REDIRECT",
         DOWNLOAD_TYPES.MEDIA,
         mediaClick,
@@ -739,7 +739,7 @@ describe("addDownloadListener", () => {
         pageUrl: "https://example.com/",
       });
 
-      expect(Shortcut.makeShortcut).toHaveBeenCalledWith(
+      expect(vi.mocked(makeShortcut)).toHaveBeenCalledWith(
         "HTML_REDIRECT",
         "https://example.com/f.png",
       );
@@ -755,7 +755,7 @@ describe("addDownloadListener", () => {
         { id: 5, title: "Title" },
       );
 
-      expect(Shortcut.makeShortcut).toHaveBeenCalledWith("HTML_REDIRECT", "https://example.com/");
+      expect(vi.mocked(makeShortcut)).toHaveBeenCalledWith("HTML_REDIRECT", "https://example.com/");
       expect(lastState().info.url).toBe("blob:mock-shortcut");
       expect(lastState().info.suggestedFilename).toBe("shortcut.url");
     });

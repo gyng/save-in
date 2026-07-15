@@ -2,7 +2,8 @@ import {
   DOWNLOAD_TYPES,
   options,
   Download,
-  Shortcut,
+  makeShortcut,
+  suggestShortcutFilename,
   Runtime,
   setupBrowserMocks,
   importMenus,
@@ -168,12 +169,12 @@ describe("addTabMenuListener tabstrip downloads", () => {
     await listener({ menuItemId: Menus.IDS.TABSTRIP.SELECTED_TAB }, fromTab);
     await vi.advanceTimersByTimeAsync(2000);
 
-    expect(Shortcut.makeShortcut).toHaveBeenCalledWith(
+    expect(vi.mocked(makeShortcut)).toHaveBeenCalledWith(
       "HTML_REDIRECT",
       "https://b.test/two",
       "Two",
     );
-    expect(Shortcut.suggestShortcutFilename).toHaveBeenCalledWith(
+    expect(vi.mocked(suggestShortcutFilename)).toHaveBeenCalledWith(
       "HTML_REDIRECT",
       DOWNLOAD_TYPES.TAB,
       expect.objectContaining({ menuItemId: Menus.IDS.TABSTRIP.SELECTED_TAB }),
@@ -205,12 +206,12 @@ describe("addTabMenuListener tabstrip downloads", () => {
     );
     await vi.advanceTimersByTimeAsync(2000);
 
-    expect(Shortcut.makeShortcut).toHaveBeenCalledWith(
+    expect(vi.mocked(makeShortcut)).toHaveBeenCalledWith(
       "HTML_REDIRECT",
       "https://c.test/nine",
       "https://c.test/nine",
     );
-    expect(Shortcut.suggestShortcutFilename).toHaveBeenCalledWith(
+    expect(vi.mocked(suggestShortcutFilename)).toHaveBeenCalledWith(
       "HTML_REDIRECT",
       DOWNLOAD_TYPES.TAB,
       expect.anything(),

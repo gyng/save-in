@@ -12,7 +12,7 @@ import { DOWNLOAD_TYPES } from "../shared/constants.ts";
 import { Path, sanitizeFilename } from "../routing/path.ts";
 import { Download } from "../downloads/download.ts";
 import { EXTENSION_NOTIFICATION_STREAMS, Notifier } from "../downloads/notification.ts";
-import { Shortcut } from "../downloads/shortcut.ts";
+import { makeShortcut, suggestShortcutFilename } from "../downloads/shortcut.ts";
 import { createSourceSidecarRequest } from "../downloads/source-sidecar.ts";
 import { options } from "../config/options-data.ts";
 import { currentTab } from "../platform/current-tab.ts";
@@ -152,9 +152,9 @@ export const handleContextMenuClick = async (
       (downloadType === DOWNLOAD_TYPES.PAGE && options.shortcutPage);
 
     if (saveAsShortcut) {
-      url = Shortcut.makeShortcut(options.shortcutType, url);
+      url = makeShortcut(options.shortcutType, url);
 
-      suggestedFilename = Shortcut.suggestShortcutFilename(
+      suggestedFilename = suggestShortcutFilename(
         options.shortcutType,
         downloadType,
         info,
