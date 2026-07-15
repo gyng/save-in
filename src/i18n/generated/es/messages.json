@@ -354,7 +354,7 @@
     "message": "Guardar esta pestaña y todas las pestañas a su derecha (se requiere una regla de enrutamiento)"
   },
   "o_sDownloads": {
-    "message": "Ubicaciones de guardado"
+    "message": "Menú de guardado"
   },
   "o_sDirectories": {
     "message": "Carpetas"
@@ -428,6 +428,9 @@
   "o_sSaveAsShortcuts": {
     "message": "Archivos de acceso directo"
   },
+  "o_lShortcutFilesHelp": {
+    "message": "Guarda páginas, enlaces y contenido multimedia como archivos de acceso directo que abren la dirección original."
+  },
   "o_sKeyboardShortcuts": {
     "message": "Guardar con un clic"
   },
@@ -442,6 +445,9 @@
   },
   "o_sPageSources": {
     "message": "Recursos de la página"
+  },
+  "o_sBrowsePageSources": {
+    "message": "Explorar recursos de la página"
   },
   "o_lPageSourcesHelp": {
     "message": "Explore imágenes, videos, audio, documentos y enlaces descargables que se encuentran en la página actual. Los elementos guardados utilizan sus reglas normales de enrutamiento y cambio de nombre."
@@ -475,9 +481,6 @@
   },
   "o_lSourcePanelShortcutHelp": {
     "message": "Use la sintaxis de atajos del navegador, por ejemplo Ctrl+Shift+Y o Command+Shift+Y. El navegador rechaza los atajos reservados."
-  },
-  "o_bReset": {
-    "message": "Restablecer"
   },
   "o_lHistoryFilter": {
     "message": "Filtrar por archivo, carpeta, tipo o fuente"
@@ -957,7 +960,7 @@
     "message": "Crear un submenú"
   },
   "html_createsTwoSelectableRowsInTheDownloadsMenu": {
-    "message": "Crea dos carpetas en el menú Guardar ubicaciones."
+    "message": "Crea dos carpetas en el menú de guardado."
   },
   "html_defaultDownloadsDirectory": {
     "message": "carpeta Descargas predeterminada"
@@ -1234,9 +1237,6 @@
   },
   "html_shortcutFileBehavior": {
     "message": "Configuración de archivos de acceso directo"
-  },
-  "html_shortcutKey": {
-    "message": "Tecla de acceso directo"
   },
   "html_streamHls3": {
     "message": "Transmisión · HLS · #3"
@@ -1626,7 +1626,7 @@
     "message": "Solo enrutamiento y nombres de archivos"
   },
   "html_specialRowsUsedOnlyInTheDownloadsMenu": {
-    "message": "Filas especiales utilizadas solo en el menú Ubicaciones de guardado"
+    "message": "Filas especiales utilizadas solo en el menú de guardado"
   },
   "html_theN": {
     "message": "; reemplace 1 con el número de grupo."
@@ -2766,6 +2766,48 @@
       }
     }
   },
+  "contextMenuRecentLocations": {
+    "message": "Ubicaciones recientes"
+  },
+  "o_lRecentLocations": {
+    "message": "Ubicaciones recientes"
+  },
+  "o_lRecentLocationsHelp": {
+    "message": "Muestra entre 0 y 5 ubicaciones usadas recientemente."
+  },
+  "pathVisualAlwaysAsk": {
+    "message": "Preguntar siempre dónde guardar"
+  },
+  "pathVisualAlwaysAskAccessible": {
+    "message": "Preguntar siempre dónde guardar al usar $ROW$",
+    "placeholders": {
+      "row": {
+        "content": "$1",
+        "example": "Work"
+      }
+    }
+  },
+  "o_cSaveSourceSidecar": {
+    "message": "Guardar un enlace al origen junto al contenido multimedia descargado"
+  },
+  "o_cSaveSourceSidecarHelp": {
+    "message": "Usa el formato de acceso directo seleccionado y el nombre del archivo descargado."
+  },
+  "historyCopyPath": {
+    "message": "Copiar ruta guardada"
+  },
+  "historyCopySource": {
+    "message": "Copiar URL de origen"
+  },
+  "historyPathCopied": {
+    "message": "Ruta guardada copiada."
+  },
+  "historySourceCopied": {
+    "message": "URL de origen copiada."
+  },
+  "historyCopyFailed": {
+    "message": "No se pudo copiar al portapapeles."
+  },
   "diagnosticsSummaryHelp": {
     "message": "Estado del proceso, ciclo de vida y fallos recientes"
   },
@@ -3020,47 +3062,5 @@
   },
   "sourcePanelCreateAutomaticRule": {
     "message": "Crear regla automática"
-  },
-  "contextMenuRecentLocations": {
-    "message": "Ubicaciones recientes"
-  },
-  "o_lRecentLocations": {
-    "message": "Ubicaciones recientes"
-  },
-  "o_lRecentLocationsHelp": {
-    "message": "Muestra entre 0 y 5 ubicaciones usadas recientemente."
-  },
-  "pathVisualAlwaysAsk": {
-    "message": "Preguntar siempre dónde guardar"
-  },
-  "pathVisualAlwaysAskAccessible": {
-    "message": "Preguntar siempre dónde guardar al usar $ROW$",
-    "placeholders": {
-      "row": {
-        "content": "$1",
-        "example": "Work"
-      }
-    }
-  },
-  "o_cSaveSourceSidecar": {
-    "message": "Guardar un enlace al origen junto al contenido multimedia descargado"
-  },
-  "o_cSaveSourceSidecarHelp": {
-    "message": "Usa el formato de acceso directo seleccionado y el nombre del archivo descargado."
-  },
-  "historyCopyPath": {
-    "message": "Copiar ruta guardada"
-  },
-  "historyCopySource": {
-    "message": "Copiar URL de origen"
-  },
-  "historyPathCopied": {
-    "message": "Ruta guardada copiada."
-  },
-  "historySourceCopied": {
-    "message": "URL de origen copiada."
-  },
-  "historyCopyFailed": {
-    "message": "No se pudo copiar al portapapeles."
   }
 }

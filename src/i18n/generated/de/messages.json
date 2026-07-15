@@ -356,7 +356,7 @@
     "message": "Diesen Tab und alle Tabs rechts davon speichern (Routing-Regel erforderlich)"
   },
   "o_sDownloads": {
-    "message": "Speicherorte"
+    "message": "Speichermenü"
   },
   "o_sDirectories": {
     "message": "Ordner"
@@ -430,6 +430,9 @@
   "o_sSaveAsShortcuts": {
     "message": "Verknüpfungsdateien"
   },
+  "o_lShortcutFilesHelp": {
+    "message": "Speichern Sie Seiten, Links und Medien als Verknüpfungsdateien, die die ursprüngliche Adresse öffnen."
+  },
   "o_sKeyboardShortcuts": {
     "message": "Speichern per Klick"
   },
@@ -444,6 +447,9 @@
   },
   "o_sPageSources": {
     "message": "Seitenquellen"
+  },
+  "o_sBrowsePageSources": {
+    "message": "Seitenquellen durchsuchen"
   },
   "o_lPageSourcesHelp": {
     "message": "Durchsuchen Sie Bilder, Videos, Audiodateien, Dokumente und herunterladbare Links auf der aktuellen Seite. Gespeicherte Elemente verwenden Ihre normalen Routing- und Umbenennungsregeln."
@@ -477,9 +483,6 @@
   },
   "o_lSourcePanelShortcutHelp": {
     "message": "Verwenden Sie die Browser-Syntax für Tastenkombinationen, z. B. Ctrl+Shift+Y oder Command+Shift+Y. Reservierte Tastenkombinationen werden vom Browser abgelehnt."
-  },
-  "o_bReset": {
-    "message": "Zurücksetzen"
   },
   "o_lHistoryFilter": {
     "message": "Nach Datei, Ordner, Typ oder Quelle filtern"
@@ -959,7 +962,7 @@
     "message": "Erstellen Sie ein Untermenü"
   },
   "html_createsTwoSelectableRowsInTheDownloadsMenu": {
-    "message": "Erstellt zwei Ordner im Menü „Speicherorte“."
+    "message": "Erstellt zwei Ordner im Speichermenü."
   },
   "html_defaultDownloadsDirectory": {
     "message": "Standardordner Downloads"
@@ -1236,9 +1239,6 @@
   },
   "html_shortcutFileBehavior": {
     "message": "Einstellungen für Verknüpfungsdateien"
-  },
-  "html_shortcutKey": {
-    "message": "Tastenkombination"
   },
   "html_streamHls3": {
     "message": "Stream · HLS · #3"
@@ -1628,7 +1628,7 @@
     "message": "Nur Routing und Dateinamen"
   },
   "html_specialRowsUsedOnlyInTheDownloadsMenu": {
-    "message": "Spezielle Zeilen, die nur im Menü „Speicherorte“ verwendet werden"
+    "message": "Spezielle Zeilen, die nur im Speichermenü verwendet werden"
   },
   "html_theN": {
     "message": "; Ersetzen Sie 1 durch die Gruppennummer."
@@ -2772,6 +2772,48 @@
       }
     }
   },
+  "contextMenuRecentLocations": {
+    "message": "Zuletzt verwendete Speicherorte"
+  },
+  "o_lRecentLocations": {
+    "message": "Zuletzt verwendete Speicherorte"
+  },
+  "o_lRecentLocationsHelp": {
+    "message": "0–5 zuletzt verwendete Speicherorte anzeigen."
+  },
+  "pathVisualAlwaysAsk": {
+    "message": "Immer nach dem Speicherort fragen"
+  },
+  "pathVisualAlwaysAskAccessible": {
+    "message": "Für $ROW$ immer nach dem Speicherort fragen",
+    "placeholders": {
+      "row": {
+        "content": "$1",
+        "example": "Work"
+      }
+    }
+  },
+  "o_cSaveSourceSidecar": {
+    "message": "Quelllink neben heruntergeladenen Medien speichern"
+  },
+  "o_cSaveSourceSidecarHelp": {
+    "message": "Verwendet das ausgewählte Verknüpfungsformat und den Namen der heruntergeladenen Datei."
+  },
+  "historyCopyPath": {
+    "message": "Gespeicherten Pfad kopieren"
+  },
+  "historyCopySource": {
+    "message": "Quell-URL kopieren"
+  },
+  "historyPathCopied": {
+    "message": "Gespeicherter Pfad kopiert."
+  },
+  "historySourceCopied": {
+    "message": "Quell-URL kopiert."
+  },
+  "historyCopyFailed": {
+    "message": "Kopieren in die Zwischenablage fehlgeschlagen."
+  },
   "diagnosticsSummaryHelp": {
     "message": "Workerzustand, Lebenszyklus und kürzlich aufgetretene Fehler"
   },
@@ -3026,47 +3068,5 @@
   },
   "sourcePanelCreateAutomaticRule": {
     "message": "Automatische Regel erstellen"
-  },
-  "contextMenuRecentLocations": {
-    "message": "Zuletzt verwendete Speicherorte"
-  },
-  "o_lRecentLocations": {
-    "message": "Zuletzt verwendete Speicherorte"
-  },
-  "o_lRecentLocationsHelp": {
-    "message": "0–5 zuletzt verwendete Speicherorte anzeigen."
-  },
-  "pathVisualAlwaysAsk": {
-    "message": "Immer nach dem Speicherort fragen"
-  },
-  "pathVisualAlwaysAskAccessible": {
-    "message": "Für $ROW$ immer nach dem Speicherort fragen",
-    "placeholders": {
-      "row": {
-        "content": "$1",
-        "example": "Work"
-      }
-    }
-  },
-  "o_cSaveSourceSidecar": {
-    "message": "Quelllink neben heruntergeladenen Medien speichern"
-  },
-  "o_cSaveSourceSidecarHelp": {
-    "message": "Verwendet das ausgewählte Verknüpfungsformat und den Namen der heruntergeladenen Datei."
-  },
-  "historyCopyPath": {
-    "message": "Gespeicherten Pfad kopieren"
-  },
-  "historyCopySource": {
-    "message": "Quell-URL kopieren"
-  },
-  "historyPathCopied": {
-    "message": "Gespeicherter Pfad kopiert."
-  },
-  "historySourceCopied": {
-    "message": "Quell-URL kopiert."
-  },
-  "historyCopyFailed": {
-    "message": "Kopieren in die Zwischenablage fehlgeschlagen."
   }
 }

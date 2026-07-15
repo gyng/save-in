@@ -173,7 +173,7 @@
     "message": "このタブとその右側にあるすべてのタブを保存します (ルーティング ルールが必要です)"
   },
   "o_sDownloads": {
-    "message": "保存先"
+    "message": "保存メニュー"
   },
   "o_sDirectories": {
     "message": "フォルダー"
@@ -247,6 +247,9 @@
   "o_sSaveAsShortcuts": {
     "message": "ショートカットファイル"
   },
+  "o_lShortcutFilesHelp": {
+    "message": "ページ、リンク、メディアを、元のアドレスを開くショートカットファイルとして保存します。"
+  },
   "o_sKeyboardShortcuts": {
     "message": "クリックして保存"
   },
@@ -261,6 +264,9 @@
   },
   "o_sPageSources": {
     "message": "ページソース"
+  },
+  "o_sBrowsePageSources": {
+    "message": "ページソースを参照"
   },
   "o_lPageSourcesHelp": {
     "message": "現在のページにある画像、ビデオ、オーディオ、ドキュメント、およびダウンロード可能なリンクを参照します。保存されたアイテムには、通常のルーティングおよび名前変更ルールが使用されます。"
@@ -294,9 +300,6 @@
   },
   "o_lSourcePanelShortcutHelp": {
     "message": "Ctrl+Shift+Y や Command+Shift+Y などのブラウザーのショートカット構文を使用します。ブラウザーは予約されたショートカットを拒否します。"
-  },
-  "o_bReset": {
-    "message": "リセット"
   },
   "o_lHistoryFilter": {
     "message": "ファイル、フォルダー、種類、保存元で絞り込む"
@@ -776,7 +779,7 @@
     "message": "サブメニューを作成する"
   },
   "html_createsTwoSelectableRowsInTheDownloadsMenu": {
-    "message": "［保存先］メニューに 2 つのフォルダーを作成します。"
+    "message": "［保存メニュー］に 2 つのフォルダーを作成します。"
   },
   "html_defaultDownloadsDirectory": {
     "message": "デフォルトのダウンロードフォルダー"
@@ -1053,9 +1056,6 @@
   },
   "html_shortcutFileBehavior": {
     "message": "ショートカットファイル設定"
-  },
-  "html_shortcutKey": {
-    "message": "ショートカットキー"
   },
   "html_streamHls3": {
     "message": "ストリーム · HLS · #3"
@@ -1445,7 +1445,7 @@
     "message": "ルーティングとファイル名のみ"
   },
   "html_specialRowsUsedOnlyInTheDownloadsMenu": {
-    "message": "［保存先］メニューでのみ使用される特別な行"
+    "message": "［保存メニュー］でのみ使用される特別な行"
   },
   "html_theN": {
     "message": "; 1 をグループ番号に置き換えます。"
@@ -2170,7 +2170,7 @@
   "o_lUiThemePaper": { "message": "ペーパー" },
   "o_lUiThemeTerminal": { "message": "ターミナル" },
   "o_lUiThemeBerry": { "message": "ベリー" },
-  "o_lUiThemeNebula": { "message": "Nebula" },
+  "o_lUiThemeNebula": { "message": "ネビュラ" },
   "o_lUiThemeHelp": {
     "message": "設定とページソースの配色テーマを選択します。"
   },
@@ -2850,6 +2850,48 @@
       }
     }
   },
+  "contextMenuRecentLocations": {
+    "message": "最近の保存先"
+  },
+  "o_lRecentLocations": {
+    "message": "最近の保存先"
+  },
+  "o_lRecentLocationsHelp": {
+    "message": "最近使用した保存先を0～5件表示します。"
+  },
+  "pathVisualAlwaysAsk": {
+    "message": "保存場所を常に確認"
+  },
+  "pathVisualAlwaysAskAccessible": {
+    "message": "$ROW$ の保存場所を常に確認",
+    "placeholders": {
+      "row": {
+        "content": "$1",
+        "example": "Work"
+      }
+    }
+  },
+  "o_cSaveSourceSidecar": {
+    "message": "ダウンロードしたメディアの横にソースリンクを保存"
+  },
+  "o_cSaveSourceSidecarHelp": {
+    "message": "選択したショートカット形式とダウンロードしたファイル名を使用します。"
+  },
+  "historyCopyPath": {
+    "message": "保存パスをコピー"
+  },
+  "historyCopySource": {
+    "message": "ソース URL をコピー"
+  },
+  "historyPathCopied": {
+    "message": "保存パスをコピーしました。"
+  },
+  "historySourceCopied": {
+    "message": "ソース URL をコピーしました。"
+  },
+  "historyCopyFailed": {
+    "message": "クリップボードにコピーできませんでした。"
+  },
   "diagnosticsSummaryHelp": {
     "message": "ワーカーの状態、ライフサイクル、最近の失敗"
   },
@@ -3004,47 +3046,5 @@
   },
   "sourcePanelCreateAutomaticRule": {
     "message": "自動ルールを作成"
-  },
-  "contextMenuRecentLocations": {
-    "message": "最近の保存先"
-  },
-  "o_lRecentLocations": {
-    "message": "最近の保存先"
-  },
-  "o_lRecentLocationsHelp": {
-    "message": "最近使用した保存先を0～5件表示します。"
-  },
-  "pathVisualAlwaysAsk": {
-    "message": "保存場所を常に確認"
-  },
-  "pathVisualAlwaysAskAccessible": {
-    "message": "$ROW$ の保存場所を常に確認",
-    "placeholders": {
-      "row": {
-        "content": "$1",
-        "example": "Work"
-      }
-    }
-  },
-  "o_cSaveSourceSidecar": {
-    "message": "ダウンロードしたメディアの横にソースリンクを保存"
-  },
-  "o_cSaveSourceSidecarHelp": {
-    "message": "選択したショートカット形式とダウンロードしたファイル名を使用します。"
-  },
-  "historyCopyPath": {
-    "message": "保存パスをコピー"
-  },
-  "historyCopySource": {
-    "message": "ソース URL をコピー"
-  },
-  "historyPathCopied": {
-    "message": "保存パスをコピーしました。"
-  },
-  "historySourceCopied": {
-    "message": "ソース URL をコピーしました。"
-  },
-  "historyCopyFailed": {
-    "message": "クリップボードにコピーできませんでした。"
   }
 }

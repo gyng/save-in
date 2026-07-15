@@ -173,7 +173,7 @@
     "message": "이 탭과 오른쪽의 모든 탭 저장(라우팅 규칙 필요)"
   },
   "o_sDownloads": {
-    "message": "저장 위치"
+    "message": "저장 메뉴"
   },
   "o_sDirectories": {
     "message": "폴더"
@@ -247,6 +247,9 @@
   "o_sSaveAsShortcuts": {
     "message": "바로가기 파일"
   },
+  "o_lShortcutFilesHelp": {
+    "message": "페이지, 링크 및 미디어를 원래 주소를 여는 바로가기 파일로 저장합니다."
+  },
   "o_sKeyboardShortcuts": {
     "message": "클릭하여 저장"
   },
@@ -261,6 +264,9 @@
   },
   "o_sPageSources": {
     "message": "페이지 소스"
+  },
+  "o_sBrowsePageSources": {
+    "message": "페이지 소스 찾아보기"
   },
   "o_lPageSourcesHelp": {
     "message": "현재 페이지에 있는 이미지, 비디오, 오디오, 문서 및 다운로드 가능한 링크를 찾아보세요. 저장된 항목은 일반적인 라우팅 및 이름 변경 규칙을 사용합니다."
@@ -294,9 +300,6 @@
   },
   "o_lSourcePanelShortcutHelp": {
     "message": "브라우저 단축키 구문(예: Ctrl+Shift+Y 또는 Command+Shift+Y)을 사용합니다. 브라우저는 예약된 단축키를 거부합니다."
-  },
-  "o_bReset": {
-    "message": "재설정"
   },
   "o_lHistoryFilter": {
     "message": "파일, 폴더, 유형 또는 소스별로 필터링"
@@ -776,7 +779,7 @@
     "message": "하위 메뉴 만들기"
   },
   "html_createsTwoSelectableRowsInTheDownloadsMenu": {
-    "message": "위치 저장 메뉴에 두 개의 폴더를 생성합니다."
+    "message": "저장 메뉴에 두 개의 폴더를 생성합니다."
   },
   "html_defaultDownloadsDirectory": {
     "message": "기본 다운로드 폴더"
@@ -1053,9 +1056,6 @@
   },
   "html_shortcutFileBehavior": {
     "message": "바로가기 파일 설정"
-  },
-  "html_shortcutKey": {
-    "message": "단축키"
   },
   "html_streamHls3": {
     "message": "스트림 · HLS · #3"
@@ -1445,7 +1445,7 @@
     "message": "라우팅 및 파일 이름만"
   },
   "html_specialRowsUsedOnlyInTheDownloadsMenu": {
-    "message": "저장 위치 메뉴에서만 사용되는 특수 행"
+    "message": "저장 메뉴에서만 사용되는 특수 행"
   },
   "html_theN": {
     "message": "; 1을 그룹 번호로 바꿉니다."
@@ -2850,6 +2850,48 @@
       }
     }
   },
+  "contextMenuRecentLocations": {
+    "message": "최근 저장 위치"
+  },
+  "o_lRecentLocations": {
+    "message": "최근 저장 위치"
+  },
+  "o_lRecentLocationsHelp": {
+    "message": "최근 사용한 저장 위치를 0~5개 표시합니다."
+  },
+  "pathVisualAlwaysAsk": {
+    "message": "저장 위치 항상 묻기"
+  },
+  "pathVisualAlwaysAskAccessible": {
+    "message": "항상 $ROW$의 저장 위치 묻기",
+    "placeholders": {
+      "row": {
+        "content": "$1",
+        "example": "Work"
+      }
+    }
+  },
+  "o_cSaveSourceSidecar": {
+    "message": "다운로드한 미디어 옆에 소스 링크 저장"
+  },
+  "o_cSaveSourceSidecarHelp": {
+    "message": "선택한 바로가기 형식과 다운로드한 파일 이름을 사용합니다."
+  },
+  "historyCopyPath": {
+    "message": "저장 경로 복사"
+  },
+  "historyCopySource": {
+    "message": "소스 URL 복사"
+  },
+  "historyPathCopied": {
+    "message": "저장 경로를 복사했습니다."
+  },
+  "historySourceCopied": {
+    "message": "소스 URL을 복사했습니다."
+  },
+  "historyCopyFailed": {
+    "message": "클립보드에 복사하지 못했습니다."
+  },
   "diagnosticsSummaryHelp": {
     "message": "워커 상태, 수명 주기 및 최근 실패"
   },
@@ -3004,47 +3046,5 @@
   },
   "sourcePanelCreateAutomaticRule": {
     "message": "자동 규칙 만들기"
-  },
-  "contextMenuRecentLocations": {
-    "message": "최근 저장 위치"
-  },
-  "o_lRecentLocations": {
-    "message": "최근 저장 위치"
-  },
-  "o_lRecentLocationsHelp": {
-    "message": "최근 사용한 저장 위치를 0~5개 표시합니다."
-  },
-  "pathVisualAlwaysAsk": {
-    "message": "저장 위치 항상 묻기"
-  },
-  "pathVisualAlwaysAskAccessible": {
-    "message": "항상 $ROW$의 저장 위치 묻기",
-    "placeholders": {
-      "row": {
-        "content": "$1",
-        "example": "Work"
-      }
-    }
-  },
-  "o_cSaveSourceSidecar": {
-    "message": "다운로드한 미디어 옆에 소스 링크 저장"
-  },
-  "o_cSaveSourceSidecarHelp": {
-    "message": "선택한 바로가기 형식과 다운로드한 파일 이름을 사용합니다."
-  },
-  "historyCopyPath": {
-    "message": "저장 경로 복사"
-  },
-  "historyCopySource": {
-    "message": "소스 URL 복사"
-  },
-  "historyPathCopied": {
-    "message": "저장 경로를 복사했습니다."
-  },
-  "historySourceCopied": {
-    "message": "소스 URL을 복사했습니다."
-  },
-  "historyCopyFailed": {
-    "message": "클립보드에 복사하지 못했습니다."
   }
 }

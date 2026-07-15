@@ -208,7 +208,7 @@
     "description": "Tabstrip context menu label for saving tabs to the right (inclusive) that match a route. Used in src/background/menu-tabs.ts."
   },
   "o_sDownloads": {
-    "message": "Save locations",
+    "message": "Save menu",
     "description": "o prefixes are for options page text, s prefix are for section/subsection titles. Used in src/options/options.html."
   },
   "o_sDirectories": {
@@ -331,6 +331,10 @@
     "message": "Shortcut files",
     "description": "Section heading on the options page. Used in src/options/options.html."
   },
+  "o_lShortcutFilesHelp": {
+    "message": "Save pages, links, and media as shortcut files that open the original address.",
+    "description": "Introductory help for the Shortcut files options tab. Used in src/options/options.html."
+  },
   "o_sKeyboardShortcuts": {
     "message": "Click-to-save",
     "description": "Section heading on the options page. Used in src/options/options.html."
@@ -398,10 +402,6 @@
   "o_lSourcePanelShortcutHelp": {
     "message": "Choose one or two modifiers and a key. Some browser shortcuts are reserved or already in use.",
     "description": "Label, status, or help text in the options interface. Used in src/options/options.html."
-  },
-  "o_bReset": {
-    "message": "Reset",
-    "description": "Button label on the options page. Used in src/options/options.html."
   },
   "o_lHistoryFilter": {
     "message": "Filter by file, folder, type, or source",
@@ -724,7 +724,7 @@
     "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_specialRowsUsedOnlyInTheDownloadsMenu": {
-    "message": "Special rows used only in the Save locations menu",
+    "message": "Special rows used only in the Save menu",
     "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_theN": {
@@ -1542,7 +1542,7 @@
     "description": "Text in the options page. Used in src/options/options.html."
   },
   "html_createsTwoSelectableRowsInTheDownloadsMenu": {
-    "message": "Creates two folders in the Save locations menu.",
+    "message": "Creates two folders in the Save menu.",
     "description": "Text in the options page. Used in src/options/options.html."
   },
   "html_defaultDownloadsDirectory": {
@@ -4165,6 +4165,55 @@
     "message": "Off",
     "description": "Current-state badge shown when webhook delivery is disabled. Used in src/options/options.html and src/options/webhook-panel.ts."
   },
+  "contextMenuRecentLocations": {
+    "message": "Recent locations",
+    "description": "Context-menu submenu containing recently used explicit destinations. Used in src/background/menu-build.ts."
+  },
+  "o_lRecentLocations": {
+    "message": "Recent locations",
+    "description": "Options label for the number of recent destination shortcuts shown in the context menu. Used in src/options/options.html."
+  },
+  "o_lRecentLocationsHelp": {
+    "message": "Show 0–5 recently used destinations.",
+    "description": "Help for the recent destination count option. Used in src/options/options.html."
+  },
+  "pathVisualAlwaysAsk": {
+    "message": "Always ask where to save",
+    "description": "Path editor action that makes one destination open the browser Save As dialog. Used in src/options/path-editor.ts."
+  },
+  "pathVisualAlwaysAskAccessible": {
+    "message": "Always ask where to save $ROW$",
+    "description": "Accessible path editor action naming the destination that will open Save As. Used in src/options/path-editor.ts.",
+    "placeholders": { "row": { "content": "$1", "example": "Work" } }
+  },
+  "o_cSaveSourceSidecar": {
+    "message": "Save a source link beside downloaded media",
+    "description": "Options checkbox for creating a shortcut sidecar beside media saved by Save In. Used in src/options/options.html."
+  },
+  "o_cSaveSourceSidecarHelp": {
+    "message": "Uses the selected shortcut format and the downloaded file name.",
+    "description": "Help for source-link sidecar downloads. Used in src/options/options.html."
+  },
+  "historyCopyPath": {
+    "message": "Copy saved path",
+    "description": "History row action that copies the saved file path. Used in src/options/history-panel.ts."
+  },
+  "historyCopySource": {
+    "message": "Copy source URL",
+    "description": "History row action that copies the source URL. Used in src/options/history-panel.ts."
+  },
+  "historyPathCopied": {
+    "message": "Saved path copied.",
+    "description": "History feedback after copying a saved path. Used in src/options/history-panel.ts."
+  },
+  "historySourceCopied": {
+    "message": "Source URL copied.",
+    "description": "History feedback after copying a source URL. Used in src/options/history-panel.ts."
+  },
+  "historyCopyFailed": {
+    "message": "Could not copy to the clipboard.",
+    "description": "History error shown when a copy action fails. Used in src/options/history-panel.ts."
+  },
   "diagnosticsSummaryHelp": {
     "message": "Worker health, lifecycle, and recent failures",
     "description": "Collapsed Diagnostics summary. Used in src/options/options.html."
@@ -4415,59 +4464,5 @@
   "sourcePanelCreateAutomaticRule": {
     "message": "Create automatic rule",
     "description": "Page Sources action opening Options with a disabled automatic rule drafted from one source. Used in src/shared/source-panel-copy.ts."
-  },
-  "contextMenuRecentLocations": {
-    "message": "Recent locations",
-    "description": "Context-menu submenu containing recently used explicit destinations. Used in src/background/menu-build.ts."
-  },
-  "o_lRecentLocations": {
-    "message": "Recent locations",
-    "description": "Options label for the number of recent destination shortcuts shown in the context menu. Used in src/options/options.html."
-  },
-  "o_lRecentLocationsHelp": {
-    "message": "Show 0–5 recently used destinations.",
-    "description": "Help for the recent destination count option. Used in src/options/options.html."
-  },
-  "pathVisualAlwaysAsk": {
-    "message": "Always ask where to save",
-    "description": "Path editor action that makes one destination open the browser Save As dialog. Used in src/options/path-editor.ts."
-  },
-  "pathVisualAlwaysAskAccessible": {
-    "message": "Always ask where to save $ROW$",
-    "description": "Accessible path editor action naming the destination that will open Save As. Used in src/options/path-editor.ts.",
-    "placeholders": {
-      "row": {
-        "content": "$1",
-        "example": "Work"
-      }
-    }
-  },
-  "o_cSaveSourceSidecar": {
-    "message": "Save a source link beside downloaded media",
-    "description": "Options checkbox for creating a shortcut sidecar beside media saved by Save In. Used in src/options/options.html."
-  },
-  "o_cSaveSourceSidecarHelp": {
-    "message": "Uses the selected shortcut format and the downloaded file name.",
-    "description": "Help for source-link sidecar downloads. Used in src/options/options.html."
-  },
-  "historyCopyPath": {
-    "message": "Copy saved path",
-    "description": "History row action that copies the saved file path. Used in src/options/history-panel.ts."
-  },
-  "historyCopySource": {
-    "message": "Copy source URL",
-    "description": "History row action that copies the source URL. Used in src/options/history-panel.ts."
-  },
-  "historyPathCopied": {
-    "message": "Saved path copied.",
-    "description": "History feedback after copying a saved path. Used in src/options/history-panel.ts."
-  },
-  "historySourceCopied": {
-    "message": "Source URL copied.",
-    "description": "History feedback after copying a source URL. Used in src/options/history-panel.ts."
-  },
-  "historyCopyFailed": {
-    "message": "Could not copy to the clipboard.",
-    "description": "History error shown when a copy action fails. Used in src/options/history-panel.ts."
   }
 }

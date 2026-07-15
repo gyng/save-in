@@ -173,7 +173,7 @@
     "message": "儲存此分頁及其右側的所有分頁（需要路由規則）"
   },
   "o_sDownloads": {
-    "message": "儲存位置"
+    "message": "儲存選單"
   },
   "o_sDirectories": {
     "message": "資料夾"
@@ -247,6 +247,9 @@
   "o_sSaveAsShortcuts": {
     "message": "捷徑檔案"
   },
+  "o_lShortcutFilesHelp": {
+    "message": "將頁面、連結和媒體儲存為可開啟原始位址的捷徑檔案。"
+  },
   "o_sKeyboardShortcuts": {
     "message": "點選儲存"
   },
@@ -261,6 +264,9 @@
   },
   "o_sPageSources": {
     "message": "頁面來源"
+  },
+  "o_sBrowsePageSources": {
+    "message": "瀏覽頁面來源"
   },
   "o_lPageSourcesHelp": {
     "message": "瀏覽目前頁面中的圖片、影片、音訊、文件與可下載連結。儲存的項目會套用一般的路由與重新命名規則。"
@@ -294,9 +300,6 @@
   },
   "o_lSourcePanelShortcutHelp": {
     "message": "請使用瀏覽器快速鍵語法，例如 Ctrl+Shift+Y 或 Command+Shift+Y。瀏覽器會拒絕保留的快速鍵。"
-  },
-  "o_bReset": {
-    "message": "重置"
   },
   "o_lHistoryFilter": {
     "message": "依檔案、資料夾、類型或來源篩選"
@@ -776,7 +779,7 @@
     "message": "建立子選單"
   },
   "html_createsTwoSelectableRowsInTheDownloadsMenu": {
-    "message": "在「儲存位置」選單中建立兩個資料夾。"
+    "message": "在「儲存選單」中建立兩個資料夾。"
   },
   "html_defaultDownloadsDirectory": {
     "message": "預設下載資料夾"
@@ -1053,9 +1056,6 @@
   },
   "html_shortcutFileBehavior": {
     "message": "捷徑檔案設定"
-  },
-  "html_shortcutKey": {
-    "message": "快速鍵"
   },
   "html_streamHls3": {
     "message": "串流 · HLS · #3"
@@ -1445,7 +1445,7 @@
     "message": "僅用於路由與檔案名稱"
   },
   "html_specialRowsUsedOnlyInTheDownloadsMenu": {
-    "message": "僅在「儲存位置」選單中使用的特殊行"
+    "message": "僅在「儲存選單」中使用的特殊行"
   },
   "html_theN": {
     "message": "；請將 1 替換為群組編號。"
@@ -2266,7 +2266,7 @@
   "o_lUiThemeBerry": { "message": "莓果" },
   "o_lUiThemeNebula": { "message": "Nebula" },
   "o_lUiThemeHelp": {
-    "message": "選擇用於設定和頁面資源的色彩主題。"
+    "message": "選擇用於設定和「頁面來源」的色彩主題。"
   },
   "notificationExternalDownloadBlockedTitle": { "message": "已封鎖外部下載" },
   "notificationExternalDownloadBlockedMessage": {
@@ -2940,6 +2940,48 @@
       }
     }
   },
+  "contextMenuRecentLocations": {
+    "message": "最近使用的位置"
+  },
+  "o_lRecentLocations": {
+    "message": "最近使用的位置"
+  },
+  "o_lRecentLocationsHelp": {
+    "message": "顯示 0–5 個最近使用的儲存位置。"
+  },
+  "pathVisualAlwaysAsk": {
+    "message": "一律詢問儲存位置"
+  },
+  "pathVisualAlwaysAskAccessible": {
+    "message": "一律詢問 $ROW$ 的儲存位置",
+    "placeholders": {
+      "row": {
+        "content": "$1",
+        "example": "Work"
+      }
+    }
+  },
+  "o_cSaveSourceSidecar": {
+    "message": "在下載的媒體旁儲存來源連結"
+  },
+  "o_cSaveSourceSidecarHelp": {
+    "message": "使用所選捷徑格式和下載檔名。"
+  },
+  "historyCopyPath": {
+    "message": "複製儲存路徑"
+  },
+  "historyCopySource": {
+    "message": "複製來源 URL"
+  },
+  "historyPathCopied": {
+    "message": "已複製儲存路徑。"
+  },
+  "historySourceCopied": {
+    "message": "已複製來源 URL。"
+  },
+  "historyCopyFailed": {
+    "message": "無法複製到剪貼簿。"
+  },
   "diagnosticsSummaryHelp": {
     "message": "背景程序的健康狀態、生命週期與近期失敗"
   },
@@ -3084,47 +3126,5 @@
   },
   "sourcePanelCreateAutomaticRule": {
     "message": "建立自動規則"
-  },
-  "contextMenuRecentLocations": {
-    "message": "最近使用的位置"
-  },
-  "o_lRecentLocations": {
-    "message": "最近使用的位置"
-  },
-  "o_lRecentLocationsHelp": {
-    "message": "顯示 0–5 個最近使用的儲存位置。"
-  },
-  "pathVisualAlwaysAsk": {
-    "message": "一律詢問儲存位置"
-  },
-  "pathVisualAlwaysAskAccessible": {
-    "message": "一律詢問 $ROW$ 的儲存位置",
-    "placeholders": {
-      "row": {
-        "content": "$1",
-        "example": "Work"
-      }
-    }
-  },
-  "o_cSaveSourceSidecar": {
-    "message": "在下載的媒體旁儲存來源連結"
-  },
-  "o_cSaveSourceSidecarHelp": {
-    "message": "使用所選捷徑格式和下載檔名。"
-  },
-  "historyCopyPath": {
-    "message": "複製儲存路徑"
-  },
-  "historyCopySource": {
-    "message": "複製來源 URL"
-  },
-  "historyPathCopied": {
-    "message": "已複製儲存路徑。"
-  },
-  "historySourceCopied": {
-    "message": "已複製來源 URL。"
-  },
-  "historyCopyFailed": {
-    "message": "無法複製到剪貼簿。"
   }
 }

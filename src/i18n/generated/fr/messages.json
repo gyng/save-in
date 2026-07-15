@@ -378,7 +378,7 @@
     "message": "Enregistrer cet onglet et tous les onglets à sa droite (règle de routage requise)"
   },
   "o_sDownloads": {
-    "message": "Emplacements d’enregistrement"
+    "message": "Menu d’enregistrement"
   },
   "o_sDirectories": {
     "message": "Dossiers"
@@ -452,6 +452,9 @@
   "o_sSaveAsShortcuts": {
     "message": "Fichiers de raccourci"
   },
+  "o_lShortcutFilesHelp": {
+    "message": "Enregistrez les pages, liens et médias sous forme de fichiers raccourcis ouvrant leur adresse d’origine."
+  },
   "o_sKeyboardShortcuts": {
     "message": "Enregistrement au clic"
   },
@@ -466,6 +469,9 @@
   },
   "o_sPageSources": {
     "message": "Sources de la page"
+  },
+  "o_sBrowsePageSources": {
+    "message": "Parcourir les sources de la page"
   },
   "o_lPageSourcesHelp": {
     "message": "Parcourez les images, vidéos, contenus audio, documents et liens téléchargeables trouvés sur la page actuelle. Les éléments enregistrés utilisent vos règles habituelles de routage et de renommage."
@@ -499,9 +505,6 @@
   },
   "o_lSourcePanelShortcutHelp": {
     "message": "Utilisez la syntaxe des raccourcis du navigateur, par exemple Ctrl+Shift+Y ou Command+Shift+Y. Le navigateur rejette les raccourcis réservés."
-  },
-  "o_bReset": {
-    "message": "Réinitialiser"
   },
   "o_lHistoryFilter": {
     "message": "Filtrer par fichier, dossier, type ou source"
@@ -981,7 +984,7 @@
     "message": "Créer un sous-menu"
   },
   "html_createsTwoSelectableRowsInTheDownloadsMenu": {
-    "message": "Crée deux dossiers dans le menu Enregistrer les emplacements."
+    "message": "Crée deux dossiers dans le menu d’enregistrement."
   },
   "html_defaultDownloadsDirectory": {
     "message": "dossier Téléchargements par défaut"
@@ -1258,9 +1261,6 @@
   },
   "html_shortcutFileBehavior": {
     "message": "Paramètres des fichiers raccourcis"
-  },
-  "html_shortcutKey": {
-    "message": "Touche de raccourci"
   },
   "html_streamHls3": {
     "message": "Flux · HLS · #3"
@@ -1650,7 +1650,7 @@
     "message": "Routage et noms de fichiers uniquement"
   },
   "html_specialRowsUsedOnlyInTheDownloadsMenu": {
-    "message": "Lignes spéciales utilisées uniquement dans le menu Enregistrer les emplacements"
+    "message": "Lignes spéciales utilisées uniquement dans le menu d’enregistrement"
   },
   "html_theN": {
     "message": "; remplacez 1 par le numéro du groupe."
@@ -2789,6 +2789,48 @@
       }
     }
   },
+  "contextMenuRecentLocations": {
+    "message": "Emplacements récents"
+  },
+  "o_lRecentLocations": {
+    "message": "Emplacements récents"
+  },
+  "o_lRecentLocationsHelp": {
+    "message": "Afficher de 0 à 5 emplacements utilisés récemment."
+  },
+  "pathVisualAlwaysAsk": {
+    "message": "Toujours demander où enregistrer"
+  },
+  "pathVisualAlwaysAskAccessible": {
+    "message": "Toujours demander où enregistrer pour $ROW$",
+    "placeholders": {
+      "row": {
+        "content": "$1",
+        "example": "Work"
+      }
+    }
+  },
+  "o_cSaveSourceSidecar": {
+    "message": "Enregistrer un lien source à côté du média téléchargé"
+  },
+  "o_cSaveSourceSidecarHelp": {
+    "message": "Utilise le format de raccourci sélectionné et le nom du fichier téléchargé."
+  },
+  "historyCopyPath": {
+    "message": "Copier le chemin enregistré"
+  },
+  "historyCopySource": {
+    "message": "Copier l’URL source"
+  },
+  "historyPathCopied": {
+    "message": "Chemin enregistré copié."
+  },
+  "historySourceCopied": {
+    "message": "URL source copiée."
+  },
+  "historyCopyFailed": {
+    "message": "Impossible de copier dans le presse-papiers."
+  },
   "diagnosticsSummaryHelp": {
     "message": "État du processus, cycle de vie et échecs récents"
   },
@@ -3043,47 +3085,5 @@
   },
   "sourcePanelCreateAutomaticRule": {
     "message": "Créer une règle automatique"
-  },
-  "contextMenuRecentLocations": {
-    "message": "Emplacements récents"
-  },
-  "o_lRecentLocations": {
-    "message": "Emplacements récents"
-  },
-  "o_lRecentLocationsHelp": {
-    "message": "Afficher de 0 à 5 emplacements utilisés récemment."
-  },
-  "pathVisualAlwaysAsk": {
-    "message": "Toujours demander où enregistrer"
-  },
-  "pathVisualAlwaysAskAccessible": {
-    "message": "Toujours demander où enregistrer pour $ROW$",
-    "placeholders": {
-      "row": {
-        "content": "$1",
-        "example": "Work"
-      }
-    }
-  },
-  "o_cSaveSourceSidecar": {
-    "message": "Enregistrer un lien source à côté du média téléchargé"
-  },
-  "o_cSaveSourceSidecarHelp": {
-    "message": "Utilise le format de raccourci sélectionné et le nom du fichier téléchargé."
-  },
-  "historyCopyPath": {
-    "message": "Copier le chemin enregistré"
-  },
-  "historyCopySource": {
-    "message": "Copier l’URL source"
-  },
-  "historyPathCopied": {
-    "message": "Chemin enregistré copié."
-  },
-  "historySourceCopied": {
-    "message": "URL source copiée."
-  },
-  "historyCopyFailed": {
-    "message": "Impossible de copier dans le presse-papiers."
   }
 }

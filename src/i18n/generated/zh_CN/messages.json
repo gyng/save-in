@@ -173,7 +173,7 @@
     "message": "保存此选项卡及其右侧的所有选项卡（需要路由规则）"
   },
   "o_sDownloads": {
-    "message": "保存位置"
+    "message": "保存菜单"
   },
   "o_sDirectories": {
     "message": "文件夹"
@@ -247,6 +247,9 @@
   "o_sSaveAsShortcuts": {
     "message": "快捷方式文件"
   },
+  "o_lShortcutFilesHelp": {
+    "message": "将页面、链接和媒体保存为可打开原始地址的快捷方式文件。"
+  },
   "o_sKeyboardShortcuts": {
     "message": "点击保存"
   },
@@ -261,6 +264,9 @@
   },
   "o_sPageSources": {
     "message": "页面来源"
+  },
+  "o_sBrowsePageSources": {
+    "message": "浏览页面来源"
   },
   "o_lPageSourcesHelp": {
     "message": "浏览当前页面中的图片、视频、音频、文档和可下载链接。保存的项目会使用常规的路由和重命名规则。"
@@ -294,9 +300,6 @@
   },
   "o_lSourcePanelShortcutHelp": {
     "message": "使用浏览器快捷键语法，例如 Ctrl+Shift+Y 或 Command+Shift+Y。浏览器会拒绝保留的快捷键。"
-  },
-  "o_bReset": {
-    "message": "重置"
   },
   "o_lHistoryFilter": {
     "message": "按文件、文件夹、类型或来源过滤"
@@ -776,7 +779,7 @@
     "message": "创建子菜单"
   },
   "html_createsTwoSelectableRowsInTheDownloadsMenu": {
-    "message": "在“保存位置”菜单中创建两个文件夹。"
+    "message": "在“保存菜单”中创建两个文件夹。"
   },
   "html_defaultDownloadsDirectory": {
     "message": "默认下载文件夹"
@@ -1053,9 +1056,6 @@
   },
   "html_shortcutFileBehavior": {
     "message": "快捷方式文件设置"
-  },
-  "html_shortcutKey": {
-    "message": "快捷键"
   },
   "html_streamHls3": {
     "message": "流 · HLS · #3"
@@ -1445,7 +1445,7 @@
     "message": "仅路由和文件名"
   },
   "html_specialRowsUsedOnlyInTheDownloadsMenu": {
-    "message": "仅在“保存位置”菜单中使用的特殊行"
+    "message": "仅在“保存菜单”中使用的特殊行"
   },
   "html_theN": {
     "message": "中的文本；将 1 替换为组号。"
@@ -2844,6 +2844,48 @@
       }
     }
   },
+  "contextMenuRecentLocations": {
+    "message": "最近保存位置"
+  },
+  "o_lRecentLocations": {
+    "message": "最近保存位置"
+  },
+  "o_lRecentLocationsHelp": {
+    "message": "显示 0–5 个最近使用的保存位置。"
+  },
+  "pathVisualAlwaysAsk": {
+    "message": "始终询问保存位置"
+  },
+  "pathVisualAlwaysAskAccessible": {
+    "message": "始终询问 $ROW$ 的保存位置",
+    "placeholders": {
+      "row": {
+        "content": "$1",
+        "example": "Work"
+      }
+    }
+  },
+  "o_cSaveSourceSidecar": {
+    "message": "在下载的媒体旁保存来源链接"
+  },
+  "o_cSaveSourceSidecarHelp": {
+    "message": "使用所选快捷方式格式和下载文件名。"
+  },
+  "historyCopyPath": {
+    "message": "复制保存路径"
+  },
+  "historyCopySource": {
+    "message": "复制来源 URL"
+  },
+  "historyPathCopied": {
+    "message": "已复制保存路径。"
+  },
+  "historySourceCopied": {
+    "message": "已复制来源 URL。"
+  },
+  "historyCopyFailed": {
+    "message": "无法复制到剪贴板。"
+  },
   "diagnosticsSummaryHelp": {
     "message": "后台运行状况、生命周期和近期失败"
   },
@@ -2986,47 +3028,5 @@
   },
   "sourcePanelCreateAutomaticRule": {
     "message": "创建自动规则"
-  },
-  "contextMenuRecentLocations": {
-    "message": "最近保存位置"
-  },
-  "o_lRecentLocations": {
-    "message": "最近保存位置"
-  },
-  "o_lRecentLocationsHelp": {
-    "message": "显示 0–5 个最近使用的保存位置。"
-  },
-  "pathVisualAlwaysAsk": {
-    "message": "始终询问保存位置"
-  },
-  "pathVisualAlwaysAskAccessible": {
-    "message": "始终询问 $ROW$ 的保存位置",
-    "placeholders": {
-      "row": {
-        "content": "$1",
-        "example": "Work"
-      }
-    }
-  },
-  "o_cSaveSourceSidecar": {
-    "message": "在下载的媒体旁保存来源链接"
-  },
-  "o_cSaveSourceSidecarHelp": {
-    "message": "使用所选快捷方式格式和下载文件名。"
-  },
-  "historyCopyPath": {
-    "message": "复制保存路径"
-  },
-  "historyCopySource": {
-    "message": "复制来源 URL"
-  },
-  "historyPathCopied": {
-    "message": "已复制保存路径。"
-  },
-  "historySourceCopied": {
-    "message": "已复制来源 URL。"
-  },
-  "historyCopyFailed": {
-    "message": "无法复制到剪贴板。"
   }
 }

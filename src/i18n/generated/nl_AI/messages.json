@@ -356,7 +356,7 @@
     "message": "Dit tabblad en alle tabbladen rechts opslaan (routeringsregel vereist)"
   },
   "o_sDownloads": {
-    "message": "Opslaglocaties"
+    "message": "Opslagmenu"
   },
   "o_sDirectories": {
     "message": "Mappen"
@@ -430,6 +430,9 @@
   "o_sSaveAsShortcuts": {
     "message": "Snelkoppelingsbestanden"
   },
+  "o_lShortcutFilesHelp": {
+    "message": "Sla pagina’s, links en media op als snelkoppelingsbestanden die het oorspronkelijke adres openen."
+  },
   "o_sKeyboardShortcuts": {
     "message": "Opslaan met één klik"
   },
@@ -444,6 +447,9 @@
   },
   "o_sPageSources": {
     "message": "Paginabronnen"
+  },
+  "o_sBrowsePageSources": {
+    "message": "Door paginabronnen bladeren"
   },
   "o_lPageSourcesHelp": {
     "message": "Blader door afbeeldingen, video, audio, documenten en downloadbare links op de huidige pagina. Voor opgeslagen items worden uw normale regels voor routering en hernoeming gebruikt."
@@ -477,9 +483,6 @@
   },
   "o_lSourcePanelShortcutHelp": {
     "message": "Gebruik de sneltoetsnotatie van de browser, bijvoorbeeld Ctrl+Shift+Y of Command+Shift+Y. De browser weigert gereserveerde sneltoetsen."
-  },
-  "o_bReset": {
-    "message": "Opnieuw instellen"
   },
   "o_lHistoryFilter": {
     "message": "Filter op bestand, map, type of bron"
@@ -959,7 +962,7 @@
     "message": "Maak een submenu"
   },
   "html_createsTwoSelectableRowsInTheDownloadsMenu": {
-    "message": "Maakt twee mappen in het menu Opslaglocaties."
+    "message": "Maakt twee mappen in het opslagmenu."
   },
   "html_defaultDownloadsDirectory": {
     "message": "standaardmap Downloads"
@@ -1236,9 +1239,6 @@
   },
   "html_shortcutFileBehavior": {
     "message": "Instellingen voor snelkoppelingsbestanden"
-  },
-  "html_shortcutKey": {
-    "message": "Sneltoets"
   },
   "html_streamHls3": {
     "message": "Stream · HLS · #3"
@@ -1628,7 +1628,7 @@
     "message": "Alleen routering en bestandsnamen"
   },
   "html_specialRowsUsedOnlyInTheDownloadsMenu": {
-    "message": "Speciale rijen die alleen worden gebruikt in het menu Opslaglocaties"
+    "message": "Speciale rijen die alleen worden gebruikt in het opslagmenu"
   },
   "html_theN": {
     "message": "; vervang 1 door het groepsnummer."
@@ -2756,6 +2756,48 @@
       }
     }
   },
+  "contextMenuRecentLocations": {
+    "message": "Recente locaties"
+  },
+  "o_lRecentLocations": {
+    "message": "Recente locaties"
+  },
+  "o_lRecentLocationsHelp": {
+    "message": "Toon 0–5 recent gebruikte bestemmingen."
+  },
+  "pathVisualAlwaysAsk": {
+    "message": "Altijd vragen waar op te slaan"
+  },
+  "pathVisualAlwaysAskAccessible": {
+    "message": "Altijd vragen waar $ROW$ moet worden opgeslagen",
+    "placeholders": {
+      "row": {
+        "content": "$1",
+        "example": "Work"
+      }
+    }
+  },
+  "o_cSaveSourceSidecar": {
+    "message": "Een bronkoppeling naast gedownloade media opslaan"
+  },
+  "o_cSaveSourceSidecarHelp": {
+    "message": "Gebruikt de gekozen snelkoppelingsindeling en de naam van het gedownloade bestand."
+  },
+  "historyCopyPath": {
+    "message": "Opgeslagen pad kopiëren"
+  },
+  "historyCopySource": {
+    "message": "Bron-URL kopiëren"
+  },
+  "historyPathCopied": {
+    "message": "Opgeslagen pad gekopieerd."
+  },
+  "historySourceCopied": {
+    "message": "Bron-URL gekopieerd."
+  },
+  "historyCopyFailed": {
+    "message": "Kopiëren naar het klembord is mislukt."
+  },
   "diagnosticsSummaryHelp": {
     "message": "Status van worker, levenscyclus en recente fouten"
   },
@@ -2900,47 +2942,5 @@
   },
   "sourcePanelCreateAutomaticRule": {
     "message": "Automatische regel maken"
-  },
-  "contextMenuRecentLocations": {
-    "message": "Recente locaties"
-  },
-  "o_lRecentLocations": {
-    "message": "Recente locaties"
-  },
-  "o_lRecentLocationsHelp": {
-    "message": "Toon 0–5 recent gebruikte bestemmingen."
-  },
-  "pathVisualAlwaysAsk": {
-    "message": "Altijd vragen waar op te slaan"
-  },
-  "pathVisualAlwaysAskAccessible": {
-    "message": "Altijd vragen waar $ROW$ moet worden opgeslagen",
-    "placeholders": {
-      "row": {
-        "content": "$1",
-        "example": "Work"
-      }
-    }
-  },
-  "o_cSaveSourceSidecar": {
-    "message": "Een bronkoppeling naast gedownloade media opslaan"
-  },
-  "o_cSaveSourceSidecarHelp": {
-    "message": "Gebruikt de gekozen snelkoppelingsindeling en de naam van het gedownloade bestand."
-  },
-  "historyCopyPath": {
-    "message": "Opgeslagen pad kopiëren"
-  },
-  "historyCopySource": {
-    "message": "Bron-URL kopiëren"
-  },
-  "historyPathCopied": {
-    "message": "Opgeslagen pad gekopieerd."
-  },
-  "historySourceCopied": {
-    "message": "Bron-URL gekopieerd."
-  },
-  "historyCopyFailed": {
-    "message": "Kopiëren naar het klembord is mislukt."
   }
 }

@@ -350,7 +350,7 @@
     "message": "Spara den här fliken och alla flikar till höger om den (ruttregel krävs)"
   },
   "o_sDownloads": {
-    "message": "Spara platser"
+    "message": "Sparmeny"
   },
   "o_sDirectories": {
     "message": "Mappar"
@@ -424,6 +424,9 @@
   "o_sSaveAsShortcuts": {
     "message": "Genvägsfiler"
   },
+  "o_lShortcutFilesHelp": {
+    "message": "Spara sidor, länkar och media som genvägsfiler som öppnar den ursprungliga adressen."
+  },
   "o_sKeyboardShortcuts": {
     "message": "Klicka för att spara"
   },
@@ -438,6 +441,9 @@
   },
   "o_sPageSources": {
     "message": "Sidresurser"
+  },
+  "o_sBrowsePageSources": {
+    "message": "Bläddra bland sidresurser"
   },
   "o_lPageSourcesHelp": {
     "message": "Bläddra bland bilder, video, ljud, dokument och nedladdningsbara länkar på den aktuella sidan. Sparade objekt använder dina vanliga routnings- och namnbytesregler."
@@ -471,9 +477,6 @@
   },
   "o_lSourcePanelShortcutHelp": {
     "message": "Använd webbläsarens syntax för kortkommandon, till exempel Ctrl+Shift+Y eller Command+Shift+Y. Webbläsaren avvisar reserverade kortkommandon."
-  },
-  "o_bReset": {
-    "message": "Återställ"
   },
   "o_lHistoryFilter": {
     "message": "Filtrera efter fil, mapp, typ eller källa"
@@ -953,7 +956,7 @@
     "message": "Skapa en undermeny"
   },
   "html_createsTwoSelectableRowsInTheDownloadsMenu": {
-    "message": "Skapar två mappar i menyn Spara platser."
+    "message": "Skapar två mappar i sparmenyn."
   },
   "html_defaultDownloadsDirectory": {
     "message": "standardmappen Downloads"
@@ -1230,9 +1233,6 @@
   },
   "html_shortcutFileBehavior": {
     "message": "Inställningar för genvägsfiler"
-  },
-  "html_shortcutKey": {
-    "message": "Kortkommando"
   },
   "html_streamHls3": {
     "message": "Ström · HLS · #3"
@@ -1649,7 +1649,7 @@
     "message": "Endast routning och filnamn"
   },
   "html_specialRowsUsedOnlyInTheDownloadsMenu": {
-    "message": "Specialrader används endast i menyn Spara platser"
+    "message": "Specialrader används endast i sparmenyn"
   },
   "html_theN": {
     "message": "; ersätt 1 med gruppnumret."
@@ -2769,6 +2769,48 @@
       }
     }
   },
+  "contextMenuRecentLocations": {
+    "message": "Senaste platser"
+  },
+  "o_lRecentLocations": {
+    "message": "Senaste platser"
+  },
+  "o_lRecentLocationsHelp": {
+    "message": "Visa 0–5 nyligen använda mål."
+  },
+  "pathVisualAlwaysAsk": {
+    "message": "Fråga alltid var filen ska sparas"
+  },
+  "pathVisualAlwaysAskAccessible": {
+    "message": "Fråga alltid var $ROW$ ska sparas",
+    "placeholders": {
+      "row": {
+        "content": "$1",
+        "example": "Work"
+      }
+    }
+  },
+  "o_cSaveSourceSidecar": {
+    "message": "Spara en källänk bredvid hämtade medier"
+  },
+  "o_cSaveSourceSidecarHelp": {
+    "message": "Använder det valda genvägsformatet och den hämtade filens namn."
+  },
+  "historyCopyPath": {
+    "message": "Kopiera sparad sökväg"
+  },
+  "historyCopySource": {
+    "message": "Kopiera käll-URL"
+  },
+  "historyPathCopied": {
+    "message": "Sparad sökväg kopierad."
+  },
+  "historySourceCopied": {
+    "message": "Käll-URL kopierad."
+  },
+  "historyCopyFailed": {
+    "message": "Det gick inte att kopiera till urklipp."
+  },
   "diagnosticsSummaryHelp": {
     "message": "Bakgrundsprocessens status, livscykel och senaste fel"
   },
@@ -2913,47 +2955,5 @@
   },
   "sourcePanelCreateAutomaticRule": {
     "message": "Skapa automatisk regel"
-  },
-  "contextMenuRecentLocations": {
-    "message": "Senaste platser"
-  },
-  "o_lRecentLocations": {
-    "message": "Senaste platser"
-  },
-  "o_lRecentLocationsHelp": {
-    "message": "Visa 0–5 nyligen använda mål."
-  },
-  "pathVisualAlwaysAsk": {
-    "message": "Fråga alltid var filen ska sparas"
-  },
-  "pathVisualAlwaysAskAccessible": {
-    "message": "Fråga alltid var $ROW$ ska sparas",
-    "placeholders": {
-      "row": {
-        "content": "$1",
-        "example": "Work"
-      }
-    }
-  },
-  "o_cSaveSourceSidecar": {
-    "message": "Spara en källänk bredvid hämtade medier"
-  },
-  "o_cSaveSourceSidecarHelp": {
-    "message": "Använder det valda genvägsformatet och den hämtade filens namn."
-  },
-  "historyCopyPath": {
-    "message": "Kopiera sparad sökväg"
-  },
-  "historyCopySource": {
-    "message": "Kopiera käll-URL"
-  },
-  "historyPathCopied": {
-    "message": "Sparad sökväg kopierad."
-  },
-  "historySourceCopied": {
-    "message": "Käll-URL kopierad."
-  },
-  "historyCopyFailed": {
-    "message": "Det gick inte att kopiera till urklipp."
   }
 }

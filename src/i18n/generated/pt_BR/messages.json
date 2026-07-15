@@ -358,7 +358,7 @@
     "message": "Salvar esta guia e todas as guias à sua direita (é necessária uma regra de roteamento)"
   },
   "o_sDownloads": {
-    "message": "Locais de salvamento"
+    "message": "Menu de salvamento"
   },
   "o_sDirectories": {
     "message": "Pastas"
@@ -432,6 +432,9 @@
   "o_sSaveAsShortcuts": {
     "message": "Arquivos de atalho"
   },
+  "o_lShortcutFilesHelp": {
+    "message": "Salve páginas, links e mídias como arquivos de atalho que abrem o endereço original."
+  },
   "o_sKeyboardShortcuts": {
     "message": "Clique para salvar"
   },
@@ -446,6 +449,9 @@
   },
   "o_sPageSources": {
     "message": "Fontes da página"
+  },
+  "o_sBrowsePageSources": {
+    "message": "Navegar pelas fontes da página"
   },
   "o_lPageSourcesHelp": {
     "message": "Navegue por imagens, vídeos, áudios, documentos e links para download encontrados na página atual. Os itens salvos usam suas regras normais de roteamento e renomeação."
@@ -479,9 +485,6 @@
   },
   "o_lSourcePanelShortcutHelp": {
     "message": "Use a sintaxe de atalho do navegador, por exemplo Ctrl+Shift+Y ou Command+Shift+Y. O navegador rejeita atalhos reservados."
-  },
-  "o_bReset": {
-    "message": "Redefinir"
   },
   "o_lHistoryFilter": {
     "message": "Filtrar por arquivo, pasta, tipo ou origem"
@@ -961,7 +964,7 @@
     "message": "Crie um submenu"
   },
   "html_createsTwoSelectableRowsInTheDownloadsMenu": {
-    "message": "Cria duas pastas no menu Locais de salvamento."
+    "message": "Cria duas pastas no menu de salvamento."
   },
   "html_defaultDownloadsDirectory": {
     "message": "pasta padrão de downloads"
@@ -1238,9 +1241,6 @@
   },
   "html_shortcutFileBehavior": {
     "message": "Configurações de arquivos de atalho"
-  },
-  "html_shortcutKey": {
-    "message": "Tecla de atalho"
   },
   "html_streamHls3": {
     "message": "Transmissão · HLS · #3"
@@ -1630,7 +1630,7 @@
     "message": "Apenas roteamento e nomes de arquivos"
   },
   "html_specialRowsUsedOnlyInTheDownloadsMenu": {
-    "message": "Linhas especiais usadas somente no menu Locais de salvamento"
+    "message": "Linhas especiais usadas somente no menu de salvamento"
   },
   "html_theN": {
     "message": "; substitua 1 pelo número do grupo."
@@ -2756,6 +2756,48 @@
       }
     }
   },
+  "contextMenuRecentLocations": {
+    "message": "Locais recentes"
+  },
+  "o_lRecentLocations": {
+    "message": "Locais recentes"
+  },
+  "o_lRecentLocationsHelp": {
+    "message": "Mostra de 0 a 5 destinos usados recentemente."
+  },
+  "pathVisualAlwaysAsk": {
+    "message": "Sempre perguntar onde salvar"
+  },
+  "pathVisualAlwaysAskAccessible": {
+    "message": "Sempre perguntar onde salvar $ROW$",
+    "placeholders": {
+      "row": {
+        "content": "$1",
+        "example": "Work"
+      }
+    }
+  },
+  "o_cSaveSourceSidecar": {
+    "message": "Salvar um link da fonte ao lado da mídia baixada"
+  },
+  "o_cSaveSourceSidecarHelp": {
+    "message": "Usa o formato de atalho selecionado e o nome do arquivo baixado."
+  },
+  "historyCopyPath": {
+    "message": "Copiar caminho salvo"
+  },
+  "historyCopySource": {
+    "message": "Copiar URL da fonte"
+  },
+  "historyPathCopied": {
+    "message": "Caminho salvo copiado."
+  },
+  "historySourceCopied": {
+    "message": "URL da fonte copiada."
+  },
+  "historyCopyFailed": {
+    "message": "Não foi possível copiar para a área de transferência."
+  },
   "diagnosticsSummaryHelp": {
     "message": "Integridade, ciclo de vida e falhas recentes do processo em segundo plano"
   },
@@ -2900,47 +2942,5 @@
   },
   "sourcePanelCreateAutomaticRule": {
     "message": "Criar regra automática"
-  },
-  "contextMenuRecentLocations": {
-    "message": "Locais recentes"
-  },
-  "o_lRecentLocations": {
-    "message": "Locais recentes"
-  },
-  "o_lRecentLocationsHelp": {
-    "message": "Mostra de 0 a 5 destinos usados recentemente."
-  },
-  "pathVisualAlwaysAsk": {
-    "message": "Sempre perguntar onde salvar"
-  },
-  "pathVisualAlwaysAskAccessible": {
-    "message": "Sempre perguntar onde salvar $ROW$",
-    "placeholders": {
-      "row": {
-        "content": "$1",
-        "example": "Work"
-      }
-    }
-  },
-  "o_cSaveSourceSidecar": {
-    "message": "Salvar um link da fonte ao lado da mídia baixada"
-  },
-  "o_cSaveSourceSidecarHelp": {
-    "message": "Usa o formato de atalho selecionado e o nome do arquivo baixado."
-  },
-  "historyCopyPath": {
-    "message": "Copiar caminho salvo"
-  },
-  "historyCopySource": {
-    "message": "Copiar URL da fonte"
-  },
-  "historyPathCopied": {
-    "message": "Caminho salvo copiado."
-  },
-  "historySourceCopied": {
-    "message": "URL da fonte copiada."
-  },
-  "historyCopyFailed": {
-    "message": "Não foi possível copiar para a área de transferência."
   }
 }

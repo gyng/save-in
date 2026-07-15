@@ -156,7 +156,7 @@
     "message": "Salva questa scheda e tutte le schede alla sua destra (regola di routing obbligatoria)"
   },
   "o_sDownloads": {
-    "message": "Destinazioni di salvataggio"
+    "message": "Menu di salvataggio"
   },
   "o_sDirectories": {
     "message": "Cartelle"
@@ -230,6 +230,9 @@
   "o_sSaveAsShortcuts": {
     "message": "File di collegamento"
   },
+  "o_lShortcutFilesHelp": {
+    "message": "Salva pagine, link e contenuti multimediali come file di collegamento che aprono l’indirizzo originale."
+  },
   "o_sKeyboardShortcuts": {
     "message": "Salvataggio con clic"
   },
@@ -244,6 +247,9 @@
   },
   "o_sPageSources": {
     "message": "Sorgenti della pagina"
+  },
+  "o_sBrowsePageSources": {
+    "message": "Sfoglia le sorgenti della pagina"
   },
   "o_lPageSourcesHelp": {
     "message": "Sfoglia immagini, video, audio, documenti e collegamenti scaricabili presenti nella pagina corrente. Gli elementi salvati utilizzano le normali regole di routing e ridenominazione."
@@ -277,9 +283,6 @@
   },
   "o_lSourcePanelShortcutHelp": {
     "message": "Usa la sintassi delle scorciatoie del browser, ad esempio Ctrl+Shift+Y o Command+Shift+Y. Il browser rifiuta le scorciatoie riservate."
-  },
-  "o_bReset": {
-    "message": "Ripristina"
   },
   "o_lHistoryFilter": {
     "message": "Filtra per file, cartella, tipo o origine"
@@ -522,7 +525,7 @@
     "message": "Solo routing e nomi di file"
   },
   "html_specialRowsUsedOnlyInTheDownloadsMenu": {
-    "message": "Righe speciali utilizzate solo nel menu Destinazioni di salvataggio"
+    "message": "Righe speciali utilizzate solo nel menu di salvataggio"
   },
   "html_theN": {
     "message": "; sostituire 1 con il numero del gruppo."
@@ -1131,7 +1134,7 @@
     "message": "Crea un sottomenu"
   },
   "html_createsTwoSelectableRowsInTheDownloadsMenu": {
-    "message": "Crea due cartelle nel menu Destinazioni di salvataggio."
+    "message": "Crea due cartelle nel menu di salvataggio."
   },
   "html_defaultDownloadsDirectory": {
     "message": "cartella Download predefinita"
@@ -1408,9 +1411,6 @@
   },
   "html_shortcutFileBehavior": {
     "message": "Impostazioni dei file di collegamento"
-  },
-  "html_shortcutKey": {
-    "message": "Tasto di scelta rapida"
   },
   "html_streamHls3": {
     "message": "Streaming · HLS · #3"
@@ -2957,6 +2957,48 @@
       }
     }
   },
+  "contextMenuRecentLocations": {
+    "message": "Destinazioni recenti"
+  },
+  "o_lRecentLocations": {
+    "message": "Destinazioni recenti"
+  },
+  "o_lRecentLocationsHelp": {
+    "message": "Mostra da 0 a 5 destinazioni usate di recente."
+  },
+  "pathVisualAlwaysAsk": {
+    "message": "Chiedi sempre dove salvare"
+  },
+  "pathVisualAlwaysAskAccessible": {
+    "message": "Chiedi sempre dove salvare quando usi $ROW$",
+    "placeholders": {
+      "row": {
+        "content": "$1",
+        "example": "Work"
+      }
+    }
+  },
+  "o_cSaveSourceSidecar": {
+    "message": "Salva un collegamento alla fonte accanto ai media scaricati"
+  },
+  "o_cSaveSourceSidecarHelp": {
+    "message": "Usa il formato di collegamento selezionato e il nome del file scaricato."
+  },
+  "historyCopyPath": {
+    "message": "Copia percorso salvato"
+  },
+  "historyCopySource": {
+    "message": "Copia URL di origine"
+  },
+  "historyPathCopied": {
+    "message": "Percorso salvato copiato."
+  },
+  "historySourceCopied": {
+    "message": "URL di origine copiato."
+  },
+  "historyCopyFailed": {
+    "message": "Impossibile copiare negli appunti."
+  },
   "diagnosticsSummaryHelp": {
     "message": "Stato del processo, ciclo di vita ed errori recenti"
   },
@@ -3211,47 +3253,5 @@
   },
   "sourcePanelCreateAutomaticRule": {
     "message": "Crea regola automatica"
-  },
-  "contextMenuRecentLocations": {
-    "message": "Destinazioni recenti"
-  },
-  "o_lRecentLocations": {
-    "message": "Destinazioni recenti"
-  },
-  "o_lRecentLocationsHelp": {
-    "message": "Mostra da 0 a 5 destinazioni usate di recente."
-  },
-  "pathVisualAlwaysAsk": {
-    "message": "Chiedi sempre dove salvare"
-  },
-  "pathVisualAlwaysAskAccessible": {
-    "message": "Chiedi sempre dove salvare quando usi $ROW$",
-    "placeholders": {
-      "row": {
-        "content": "$1",
-        "example": "Work"
-      }
-    }
-  },
-  "o_cSaveSourceSidecar": {
-    "message": "Salva un collegamento alla fonte accanto ai media scaricati"
-  },
-  "o_cSaveSourceSidecarHelp": {
-    "message": "Usa il formato di collegamento selezionato e il nome del file scaricato."
-  },
-  "historyCopyPath": {
-    "message": "Copia percorso salvato"
-  },
-  "historyCopySource": {
-    "message": "Copia URL di origine"
-  },
-  "historyPathCopied": {
-    "message": "Percorso salvato copiato."
-  },
-  "historySourceCopied": {
-    "message": "URL di origine copiato."
-  },
-  "historyCopyFailed": {
-    "message": "Impossibile copiare negli appunti."
   }
 }
