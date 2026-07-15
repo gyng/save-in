@@ -65,8 +65,12 @@ describe("attachAutocomplete", () => {
 
   test("opens with suggestions on input and closes when nothing matches", () => {
     type("a/:d");
-    expect(dropdown().textContent).toBe("Date and time:date::day:");
     expect(dropdown().querySelector(".autocomplete-group")?.textContent).toBe("Date and time");
+    expect(
+      [...dropdown().querySelectorAll(".autocomplete-option-label")].map(
+        (label) => label.textContent,
+      ),
+    ).toEqual([":date:", ":day:"]);
     expect(textarea.getAttribute("role")).toBe("combobox");
     expect(textarea.getAttribute("aria-expanded")).toBe("true");
     expect(textarea.getAttribute("aria-controls")).toBe(dropdown().id);
@@ -79,6 +83,39 @@ describe("attachAutocomplete", () => {
     type("a/");
     expect(textarea.getAttribute("aria-expanded")).toBe("false");
     expect(textarea.hasAttribute("aria-activedescendant")).toBe(false);
+  });
+
+  test("uses reference rows with current values, examples, and descriptions", () => {
+    cleanup();
+    document.body.insertAdjacentHTML(
+      "beforeend",
+      `<section id="options-reference-variables"><table><tbody>
+        <tr><td><code>:date:</code></td><td>2026-07-15</td><td>Current date</td></tr>
+        <tr><td><code>:day:</code></td><td>15</td><td>Day of the month</td></tr>
+      </tbody></table></section>`,
+    );
+    cleanup = attachAutocomplete(textarea, [pathVariableStrategy(VARIABLES)], {
+      variableValues: { ":date:": "2030-12-31" },
+    });
+
+    type("a/:d");
+    const options = [...dropdown().querySelectorAll<HTMLElement>('[role="option"]')];
+    expect(options).toHaveLength(2);
+    expect(options[0]?.querySelector(".autocomplete-option-label")?.textContent).toBe(":date:");
+    expect(options[0]?.querySelector(".autocomplete-option-meta")?.textContent).toBe("2030-12-31");
+    expect(options[0]?.querySelector(".autocomplete-option-meta")?.getAttribute("title")).toBe(
+      "2030-12-31",
+    );
+    expect(options[0]?.querySelector(".autocomplete-option-description")?.textContent).toBe(
+      "Current date",
+    );
+    expect(options[0]?.querySelector(".autocomplete-option-meta")?.classList).not.toContain(
+      "is-placeholder",
+    );
+    expect(options[1]?.querySelector(".autocomplete-option-meta")?.textContent).toBe("07");
+    expect(options[1]?.querySelector(".autocomplete-option-meta")?.classList).toContain(
+      "is-placeholder",
+    );
   });
 
   test("Enter inserts the selected suggestion", () => {
@@ -240,14 +277,21 @@ describe("setupRoutingAutocomplete wiring", () => {
 
     const dropdown = document.querySelector(".autocomplete-dropdown") as HTMLElement;
     expect(input.getAttribute("aria-expanded")).toBe("true");
-    expect([...dropdown.querySelectorAll('[role="option"]')].map((li) => li.textContent)).toEqual([
-      ":date:",
-      ":day:",
-    ]);
+    expect(
+      [...dropdown.querySelectorAll(".autocomplete-option-label")].map(
+        (label) => label.textContent,
+      ),
+    ).toEqual([":date:", ":day:"]);
   });
 
   test("uses routing grammar context and supports explicit completion", () => {
-    document.body.innerHTML = '<textarea id="filenamePatterns"></textarea>';
+    document.body.innerHTML = `
+      <textarea id="filenamePatterns"></textarea>
+      <input id="route-debugger-filename" value="saved-report.pdf">
+      <section id="options-reference-clauses"><table><tbody>
+        <tr><td><code>filename:</code></td><td>report.pdf</td><td>Matches the resolved filename.</td></tr>
+        <tr><td><code>fileext:</code></td><td>pdf</td><td>Matches its extension.</td></tr>
+      </tbody></table></section>`;
     setupRoutingAutocomplete({
       matchers: ["fileext", "filename"],
       variables: [":date:", ":day:", ":filename:"],
@@ -259,8 +303,14 @@ describe("setupRoutingAutocomplete wiring", () => {
     textarea.dispatchEvent(new window.InputEvent("input", { bubbles: true }));
     let dropdown = document.getElementById(textarea.getAttribute("aria-controls")!)!;
     expect(
-      [...dropdown.querySelectorAll('[role="option"]')].map((item) => item.textContent),
+      [...dropdown.querySelectorAll(".autocomplete-option-label")].map((item) => item.textContent),
     ).toEqual(["filename", "fileext"]);
+    expect(dropdown.querySelector(".autocomplete-option-meta")?.textContent).toBe(
+      "saved-report.pdf",
+    );
+    expect(dropdown.querySelector(".autocomplete-option-description")?.textContent).toBe(
+      "Matches the resolved filename.",
+    );
 
     textarea.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", cancelable: true }));
     expect(textarea.value).toBe("filename: ");
@@ -288,7 +338,31 @@ describe("setupRoutingAutocomplete wiring", () => {
     textarea.value = ":d";
     textarea.selectionStart = 2;
     textarea.dispatchEvent(new InputEvent("input", { bubbles: true }));
-    expect(document.querySelector('[role="option"]')?.textContent).toBe(":date:");
+    expect(document.querySelector(".autocomplete-option-label")?.textContent).toBe(":date:");
+  });
+
+  test("loads saved variable values for autocomplete rows", async () => {
+    vi.resetModules();
+    document.body.innerHTML = '<textarea id="paths"></textarea>';
+    vi.mocked(browser.runtime.sendMessage)
+      .mockResolvedValueOnce({
+        body: { matchers: [], variables: [":date:"] },
+      })
+      .mockResolvedValueOnce({
+        body: { interpolatedVariables: { ":date:": "2042-03-04" } },
+      });
+
+    await import("../../src/options/autocomplete.ts");
+    const textarea = document.querySelector("textarea")!;
+    await vi.waitFor(() => expect(textarea.hasAttribute("aria-controls")).toBe(true));
+    textarea.value = ":d";
+    textarea.setSelectionRange(2, 2);
+    textarea.dispatchEvent(new InputEvent("input", { bubbles: true }));
+
+    expect(document.querySelector(".autocomplete-option-meta")?.textContent).toBe("2042-03-04");
+    expect(document.querySelector(".autocomplete-option-meta")?.classList).not.toContain(
+      "is-placeholder",
+    );
   });
 
   test.each([{ body: {} }, { body: { matchers: [] } }, { body: { matchers: [], variables: [] } }])(

@@ -291,55 +291,106 @@ textarea.syntax-editor-input::placeholder {
 .autocomplete-dropdown {
   position: absolute;
   z-index: var(--z-autocomplete);
+  display: grid;
+  gap: 0;
+  width: min(22.5rem, calc(100vw - 16px));
+  min-width: min(14rem, calc(100vw - 16px));
+  max-height: min(20rem, calc(100dvh - 16px));
   margin: 0;
-  padding: var(--space-1);
+  padding: 0;
   list-style: none;
-  min-width: 14em;
-  max-height: 16em;
+  overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
-  /* Theme-aware surface (the old --background-color token never existed, so
-     this box used to render white-on-white text in dark mode) */
   background: var(--floating-bg);
   border: 1px solid var(--panel-border);
   border-radius: var(--radius);
   box-shadow: var(--floating-shadow);
-  font-family: var(--font-mono);
-  font-size: var(--text-base);
-}
-
-.autocomplete-dropdown li {
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  white-space: nowrap;
 }
 
 .autocomplete-dropdown .autocomplete-group {
-  padding-top: var(--space-2);
+  padding: var(--space-2) var(--space-3) var(--space-1);
   color: var(--color-text-muted);
   cursor: default;
-  font-family: var(--font-stack);
-  font-size: var(--text-sm);
+  font-size: var(--text-xs);
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
-.autocomplete-dropdown .autocomplete-group:hover {
-  background: transparent;
+.autocomplete-option {
+  display: grid;
+  grid-template-columns: minmax(7rem, 45%) minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  gap: 1px var(--space-3);
+  min-width: 0;
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--panel-border);
+  color: var(--color-text);
+  cursor: pointer;
 }
 
-.autocomplete-dropdown li:hover {
-  background: var(--hover-bg-strong);
+.autocomplete-option:last-child {
+  border-bottom: 0;
 }
 
-/* Keyboard selection is the strong cue and outranks hover so the two never
-   disagree when the pointer rests on a different row */
-.autocomplete-dropdown li.selected {
-  background: var(--color-accent);
-  color: var(--color-on-accent);
+.autocomplete-option:hover {
+  background: var(--hover-bg);
+}
+
+.autocomplete-option[aria-selected="true"] {
+  color: var(--link-color);
+  background: color-mix(in srgb, var(--link-color) 10%, transparent);
+}
+
+.autocomplete-option-label {
+  grid-column: 1;
+  grid-row: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--syntax-keyword);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.autocomplete-option-meta {
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  justify-self: end;
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: 400;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.autocomplete-option-meta.is-placeholder {
+  opacity: 0.58;
+  font-style: italic;
+}
+
+.autocomplete-option-description {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  min-width: 0;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: 400;
+  line-height: 1.35;
+  text-overflow: clip;
+  white-space: normal;
 }
 
 /* Editable select controls use a first-party listbox rather than native

@@ -290,7 +290,7 @@ describe("routing visual editor", () => {
     const dropdown = document.getElementById(destination.getAttribute("aria-controls")!);
     expect(
       [...(dropdown?.querySelectorAll<HTMLElement>('[role="option"]') ?? [])].map(
-        (option) => option.textContent,
+        (option) => option.querySelector(".autocomplete-option-label")?.textContent,
       ),
     ).toEqual([":date:", ":day:"]);
 

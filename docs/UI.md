@@ -111,9 +111,11 @@ or feedback.
 - Long routing vocabularies use compact first-party typeahead dropdowns instead
   of expanded lists or native datalists. A typeahead filters a selectable
   dropdown; autocomplete inserts a token within freeform text at the caret.
-  Matcher suggestions are alphabetical and destination fields autocomplete
-  variables. The template library matches the compact reference disclosures;
-  its floating results scroll independently while the filter stays pinned.
+  Both use grouped two-row reference entries: syntax and the current/example
+  value share the first row, with the description directly below. Matcher
+  suggestions are alphabetical and destination fields autocomplete variables.
+  The template library matches the compact reference disclosures; its floating
+  results scroll independently while the filter stays pinned.
   Search, filter, and typeahead inputs are transient controls and must stay
   outside the settings autosave pipeline.
 - Reorderable rule cards use a dedicated drag grip so text fields remain safe

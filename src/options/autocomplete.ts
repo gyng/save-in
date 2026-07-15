@@ -1,7 +1,16 @@
 import { webExtensionApi } from "../platform/web-extension-api.ts";
 import { MESSAGE_TYPES } from "../shared/constants.ts";
 import { sendInternalMessage } from "../shared/message-protocol.ts";
-import { clauseGroup, sortClauses, sortVariables, variableGroup } from "./vocabulary-groups.ts";
+import { matcherDescription, matcherTestValue } from "./matcher-descriptions.ts";
+import { referenceDescription } from "./reference-descriptions.ts";
+import {
+  clauseGroup,
+  isLazyVariable,
+  sortClauses,
+  sortVariables,
+  variableExample,
+  variableGroup,
+} from "./vocabulary-groups.ts";
 import {
   completeDirectorySyntax,
   completeRoutingSyntax,
@@ -23,10 +32,12 @@ export type AutocompleteResult = {
 type RoutingKeywords = {
   matchers: string[];
   variables: string[];
+  variableValues?: Readonly<Record<string, string>>;
 };
 
 type TextField = HTMLInputElement | HTMLTextAreaElement;
 const autocompleteCleanups = new WeakMap<TextField, () => void>();
+let defaultVariableValues: Readonly<Record<string, string>> = {};
 type AutocompleteProvider = (
   value: string,
   caret: number,
@@ -37,6 +48,32 @@ type ActiveCompletion = {
   suggestions: readonly string[];
   selected: number;
   apply: (name: string) => { value: string; caret: number };
+};
+
+type AutocompleteOptions = {
+  variableValues?: Readonly<Record<string, string>>;
+};
+
+type SuggestionDetails = {
+  description: string;
+  meta: string;
+  placeholder: boolean;
+};
+
+const suggestionDetails = (name: string, options: AutocompleteOptions): SuggestionDetails => {
+  if (!name.startsWith(":")) {
+    return {
+      description: matcherDescription(name),
+      meta: matcherTestValue(name),
+      placeholder: false,
+    };
+  }
+  const liveValue = (options.variableValues ?? defaultVariableValues)[name] ?? "";
+  return {
+    description: referenceDescription("variables", name),
+    meta: liveValue || (isLazyVariable(name) ? "(lazy)" : variableExample(name)),
+    placeholder: !liveValue,
+  };
 };
 
 // First-party autocomplete for the paths and rules textareas (replaces the
@@ -174,6 +211,7 @@ export const applySuggestion = (
 export const attachAutocomplete = (
   textarea: TextField,
   source: AutocompleteStrategy[] | AutocompleteProvider,
+  options: AutocompleteOptions = {},
 ) => {
   autocompleteCleanups.get(textarea)?.();
   const controller = new AbortController();
@@ -255,9 +293,26 @@ export const attachAutocomplete = (
       }
       const li = document.createElement("li");
       li.id = `${dropdownId}-option-${i}`;
+      li.className = "autocomplete-option";
       li.setAttribute("role", "option");
       li.setAttribute("aria-selected", i === state.selected ? "true" : "false");
-      li.textContent = name;
+      const label = document.createElement("span");
+      label.className = "autocomplete-option-label";
+      label.textContent = name;
+      li.append(label);
+      const details = suggestionDetails(name, options);
+      if (details.meta) {
+        const meta = document.createElement("span");
+        meta.className = "autocomplete-option-meta";
+        meta.classList.toggle("is-placeholder", details.placeholder);
+        meta.textContent = details.meta;
+        meta.title = details.meta;
+        li.append(meta);
+      }
+      const description = document.createElement("small");
+      description.className = "autocomplete-option-description";
+      description.textContent = details.description;
+      li.append(description);
       if (i === state.selected) {
         li.classList.add("selected");
       }
@@ -276,12 +331,12 @@ export const attachAutocomplete = (
     const caretLeft = rect.left + window.scrollX + caret.left - textarea.scrollLeft;
     const caretTop = rect.top + window.scrollY + caret.top - textarea.scrollTop;
 
-    dropdown.style.display = "block";
+    dropdown.style.display = "grid";
     textarea.setAttribute("aria-expanded", "true");
     textarea.setAttribute("aria-activedescendant", `${dropdownId}-option-${state.selected}`);
     dropdown.style.left = "0";
     dropdown.style.top = "0";
-    // offsetWidth/Height need the box laid out, so measure after display:block
+    // offsetWidth/Height need the box laid out, so measure after the list is visible
     const viewportRight = window.scrollX + document.documentElement.clientWidth;
     const viewportBottom = window.scrollY + document.documentElement.clientHeight;
     const left = Math.max(
@@ -297,6 +352,9 @@ export const attachAutocomplete = (
         : below;
     dropdown.style.left = `${left}px`;
     dropdown.style.top = `${top}px`;
+    dropdown
+      .querySelector<HTMLElement>(`#${dropdownId}-option-${state.selected}`)
+      ?.scrollIntoView?.({ block: "nearest" });
   };
 
   textarea.addEventListener(
@@ -400,17 +458,25 @@ export const attachAutocomplete = (
 export const setupRoutingAutocomplete = (keywords: RoutingKeywords) => {
   const variables = sortVariables(keywords.variables);
   const matchers = sortClauses([...keywords.matchers, "into"]);
+  const options: AutocompleteOptions = keywords.variableValues
+    ? { variableValues: keywords.variableValues }
+    : {};
   const pathTextarea = document.getElementById("paths");
   if (pathTextarea instanceof HTMLTextAreaElement) {
-    attachAutocomplete(pathTextarea, (value, caret) =>
-      completeDirectorySyntax(value, caret, variables),
+    attachAutocomplete(
+      pathTextarea,
+      (value, caret) => completeDirectorySyntax(value, caret, variables),
+      options,
     );
   }
 
   const routerTextarea = document.getElementById("filenamePatterns");
   if (routerTextarea instanceof HTMLTextAreaElement) {
-    attachAutocomplete(routerTextarea, (value, caret, explicit) =>
-      completeRoutingSyntax(value, caret, { matchers, variables }, explicit),
+    attachAutocomplete(
+      routerTextarea,
+      (value, caret, explicit) =>
+        completeRoutingSyntax(value, caret, { matchers, variables }, explicit),
+      options,
     );
   }
 
@@ -418,18 +484,36 @@ export const setupRoutingAutocomplete = (keywords: RoutingKeywords) => {
   // the same :variable: autocomplete as the paths list
   const ruleBuilderInto = document.getElementById("rule-builder-into");
   if (ruleBuilderInto instanceof HTMLInputElement) {
-    attachAutocomplete(ruleBuilderInto, (value, caret) =>
-      completeDirectorySyntax(value, caret, variables),
+    attachAutocomplete(
+      ruleBuilderInto,
+      (value, caret) => completeDirectorySyntax(value, caret, variables),
+      options,
     );
   }
 };
 
 sendInternalMessage(webExtensionApi.runtime, { type: MESSAGE_TYPES.GET_KEYWORDS })
-  .then((response) => {
+  .then(async (response) => {
     if (!("matchers" in response.body) || !("variables" in response.body)) {
       throw new Error("Keyword lookup failed");
     }
-    return response.body;
+    const routes = await sendInternalMessage(webExtensionApi.runtime, {
+      type: MESSAGE_TYPES.CHECK_ROUTES,
+    }).catch(() => null);
+    const interpolated =
+      routes && "interpolatedVariables" in routes.body
+        ? routes.body.interpolatedVariables
+        : undefined;
+    const variableValues =
+      typeof interpolated === "object" && interpolated !== null && !Array.isArray(interpolated)
+        ? Object.fromEntries(
+            Object.entries(interpolated).filter(
+              (entry): entry is [string, string] => typeof entry[1] === "string",
+            ),
+          )
+        : {};
+    defaultVariableValues = variableValues;
+    return { ...response.body, variableValues };
   })
   .then(setupRoutingAutocomplete)
   .catch(() => {});
