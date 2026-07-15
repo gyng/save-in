@@ -22,10 +22,18 @@
   margin: 0;
 }
 
+fieldset.click-to-save-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-3);
+  max-inline-size: 20rem;
+}
+
 .click-to-save-controls > label {
   display: grid;
-  flex: 0 1 10rem;
   gap: var(--space-1);
+  inline-size: 100%;
   min-inline-size: 0;
   margin: 0;
 }
@@ -35,13 +43,8 @@
   margin-bottom: var(--space-1);
 }
 
-.click-to-save-controls > label:has(#clickToSaveButton) {
-  flex-basis: 9rem;
-}
-
 .click-to-save-controls > button {
-  flex: none;
-  align-self: end;
+  justify-self: start;
 }
 
 .click-to-save-controls select {
@@ -53,7 +56,6 @@
 .click-to-save-controls > .caption-line,
 .click-to-save-controls > #click-to-save-warning,
 .click-to-save-controls > #clickToSaveStatus {
-  flex-basis: 100%;
   max-inline-size: 100%;
 }
 
