@@ -2847,8 +2847,84 @@
     "message": "Light",
     "description": "Theme option that always uses light colors. Used in src/options/options.html."
   },
+  "o_lUiThemeGroupDefault": {
+    "message": "Standard",
+    "description": "Theme picker group containing the standard system, dark, and light choices. Used in src/options/options.html."
+  },
+  "o_lUiThemeGroupAccessibility": {
+    "message": "High contrast",
+    "description": "Theme picker group containing high-contrast choices. Used in src/options/options.html."
+  },
+  "o_lUiThemeGroupClassics": {
+    "message": "Classic themes",
+    "description": "Theme picker group containing well-known color themes. Used in src/options/options.html."
+  },
+  "o_lUiThemeGroupSaveIn": {
+    "message": "Save In themes",
+    "description": "Theme picker group containing themes designed for Save In. Used in src/options/options.html."
+  },
+  "o_lUiThemeHighContrastDark": {
+    "message": "High contrast dark",
+    "description": "Dark high-contrast interface theme. Used in src/options/options.html."
+  },
+  "o_lUiThemeHighContrastLight": {
+    "message": "High contrast light",
+    "description": "Light high-contrast interface theme. Used in src/options/options.html."
+  },
+  "o_lUiThemeHighContrastYellow": {
+    "message": "High contrast yellow",
+    "description": "Yellow-on-black high-contrast interface theme. Used in src/options/options.html."
+  },
+  "o_lUiThemeSolarizedDark": {
+    "message": "Solarized Dark",
+    "description": "Solarized dark interface theme. Used in src/options/options.html."
+  },
+  "o_lUiThemeSolarizedLight": {
+    "message": "Solarized Light",
+    "description": "Solarized light interface theme. Used in src/options/options.html."
+  },
+  "o_lUiThemeNord": {
+    "message": "Nord",
+    "description": "Nord interface theme. Used in src/options/options.html."
+  },
+  "o_lUiThemeDracula": {
+    "message": "Dracula",
+    "description": "Dracula interface theme. Used in src/options/options.html."
+  },
+  "o_lUiThemeGruvbox": {
+    "message": "Gruvbox",
+    "description": "Gruvbox interface theme. Used in src/options/options.html."
+  },
+  "o_lUiThemeMonokai": {
+    "message": "Monokai",
+    "description": "Monokai interface theme. Used in src/options/options.html."
+  },
+  "o_lUiThemeMidnight": {
+    "message": "Midnight",
+    "description": "Save In midnight-blue interface theme. Used in src/options/options.html."
+  },
+  "o_lUiThemePastelPink": {
+    "message": "Pastel pink",
+    "description": "Save In pastel-pink interface theme. Used in src/options/options.html."
+  },
+  "o_lUiThemePaper": {
+    "message": "Paper",
+    "description": "Save In warm paper interface theme. Used in src/options/options.html."
+  },
+  "o_lUiThemeTerminal": {
+    "message": "Terminal",
+    "description": "Save In phosphor-green terminal interface theme. Used in src/options/options.html."
+  },
+  "o_lUiThemeBerry": {
+    "message": "Berry",
+    "description": "Save In berry-colored interface theme. Used in src/options/options.html."
+  },
+  "o_lUiThemeNebula": {
+    "message": "Nebula",
+    "description": "Save In deep-space violet, cyan, and magenta interface theme. Used in src/options/options.html."
+  },
   "o_lUiThemeHelp": {
-    "message": "Follow your system theme, or keep the options page and Page Sources dark or light.",
+    "message": "Choose a color theme for settings and Page Sources.",
     "description": "Help text for the shared interface theme override. Used in src/options/options.html."
   },
   "sourcePanelResizeLabel": {

@@ -2152,8 +2152,27 @@
   "o_lUiThemeSystem": { "message": "システム" },
   "o_lUiThemeDark": { "message": "ダーク" },
   "o_lUiThemeLight": { "message": "ライト" },
+  "o_lUiThemeGroupDefault": { "message": "標準" },
+  "o_lUiThemeGroupAccessibility": { "message": "ハイコントラスト" },
+  "o_lUiThemeGroupClassics": { "message": "クラシックテーマ" },
+  "o_lUiThemeGroupSaveIn": { "message": "Save In テーマ" },
+  "o_lUiThemeHighContrastDark": { "message": "ハイコントラスト ダーク" },
+  "o_lUiThemeHighContrastLight": { "message": "ハイコントラスト ライト" },
+  "o_lUiThemeHighContrastYellow": { "message": "ハイコントラスト（黄）" },
+  "o_lUiThemeSolarizedDark": { "message": "Solarized ダーク" },
+  "o_lUiThemeSolarizedLight": { "message": "Solarized ライト" },
+  "o_lUiThemeNord": { "message": "Nord" },
+  "o_lUiThemeDracula": { "message": "Dracula" },
+  "o_lUiThemeGruvbox": { "message": "Gruvbox" },
+  "o_lUiThemeMonokai": { "message": "Monokai" },
+  "o_lUiThemeMidnight": { "message": "ミッドナイト" },
+  "o_lUiThemePastelPink": { "message": "パステルピンク" },
+  "o_lUiThemePaper": { "message": "ペーパー" },
+  "o_lUiThemeTerminal": { "message": "ターミナル" },
+  "o_lUiThemeBerry": { "message": "ベリー" },
+  "o_lUiThemeNebula": { "message": "Nebula" },
   "o_lUiThemeHelp": {
-    "message": "システムテーマに合わせるか、オプションページとページソースを常にダークまたはライトに設定します。"
+    "message": "設定とページソースの配色テーマを選択します。"
   },
   "notificationExternalDownloadBlockedTitle": { "message": "外部ダウンロードをブロックしました" },
   "notificationExternalDownloadBlockedMessage": {

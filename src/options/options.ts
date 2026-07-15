@@ -497,7 +497,7 @@ const setOptionFieldValue = (
 const restoreOptionsHandler = (result: JsonRecord, schema: OptionSchema) => {
   schema.keys.forEach((option) => setOptionFieldValue(option, result[option.name], schema));
 
-  applyUiTheme(document.querySelector<HTMLSelectElement>("#uiTheme")?.value);
+  applyUiTheme(document.querySelector<HTMLInputElement>("#uiTheme")?.value);
 
   updateErrors();
   updateMenuPreview();
@@ -540,7 +540,7 @@ export const syncOptionsPageAfterWebMcpApply = async (
     setOptionFieldValue(option, value, schema);
   });
 
-  applyUiTheme(document.querySelector<HTMLSelectElement>("#uiTheme")?.value);
+  applyUiTheme(document.querySelector<HTMLInputElement>("#uiTheme")?.value);
   updateErrors();
   updateMenuPreview();
   updateOptionDependencies();
@@ -1022,8 +1022,9 @@ setupShortcutOptions();
 
 setupCheckboxRows();
 
-const uiThemeControl = document.querySelector<HTMLSelectElement>("#uiTheme");
-if (uiThemeControl) setupUiThemeControl(uiThemeControl);
+const uiThemeControl = document.querySelector<HTMLInputElement>("#uiTheme");
+const uiThemePicker = document.querySelector<HTMLElement>(".theme-picker");
+if (uiThemeControl && uiThemePicker) setupUiThemeControl(uiThemeControl, uiThemePicker);
 
 ["textarea", "input", "select"].forEach((type) => {
   document.querySelectorAll(type).forEach((el) => {

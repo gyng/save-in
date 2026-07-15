@@ -1,3 +1,4 @@
+import { normalizeUiTheme, type UiTheme } from "../config/content-options.ts";
 import {
   collectBackgroundElements,
   collectBackgroundSourceCandidates,
@@ -249,8 +250,7 @@ const createSourceKindIcon = (kind: PageSourceKind): SVGSVGElement => {
   return svg;
 };
 
-const resolvedPanelTheme = (theme: SourcePanelOptions["theme"]): "system" | "dark" | "light" =>
-  theme === "dark" || theme === "light" ? theme : "system";
+const resolvedPanelTheme = (theme: SourcePanelOptions["theme"]): UiTheme => normalizeUiTheme(theme);
 
 const panelLocale = (locale?: string): string | undefined => {
   if (!locale) return undefined;

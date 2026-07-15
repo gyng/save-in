@@ -2048,8 +2048,27 @@
   "o_lUiThemeSystem": { "message": "Systeem" },
   "o_lUiThemeDark": { "message": "Donker" },
   "o_lUiThemeLight": { "message": "Licht" },
+  "o_lUiThemeGroupDefault": { "message": "Standaard" },
+  "o_lUiThemeGroupAccessibility": { "message": "Hoog contrast" },
+  "o_lUiThemeGroupClassics": { "message": "Klassieke thema's" },
+  "o_lUiThemeGroupSaveIn": { "message": "Save In-thema's" },
+  "o_lUiThemeHighContrastDark": { "message": "Hoog contrast donker" },
+  "o_lUiThemeHighContrastLight": { "message": "Hoog contrast licht" },
+  "o_lUiThemeHighContrastYellow": { "message": "Hoog contrast geel" },
+  "o_lUiThemeSolarizedDark": { "message": "Solarized donker" },
+  "o_lUiThemeSolarizedLight": { "message": "Solarized licht" },
+  "o_lUiThemeNord": { "message": "Nord" },
+  "o_lUiThemeDracula": { "message": "Dracula" },
+  "o_lUiThemeGruvbox": { "message": "Gruvbox" },
+  "o_lUiThemeMonokai": { "message": "Monokai" },
+  "o_lUiThemeMidnight": { "message": "Middernacht" },
+  "o_lUiThemePastelPink": { "message": "Pastelroze" },
+  "o_lUiThemePaper": { "message": "Papier" },
+  "o_lUiThemeTerminal": { "message": "Terminal" },
+  "o_lUiThemeBerry": { "message": "Bes" },
+  "o_lUiThemeNebula": { "message": "Nebula" },
   "o_lUiThemeHelp": {
-    "message": "Het systeemthema volgen of voor de optiepagina en Paginabronnen altijd een donker of licht thema gebruiken."
+    "message": "Kies een kleurenthema voor de instellingen en Paginabronnen."
   },
   "notificationExternalDownloadBlockedTitle": { "message": "Externe download geblokkeerd" },
   "notificationExternalDownloadBlockedMessage": {

@@ -1786,14 +1786,206 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
       >
         <h3 id="advanced-appearance-heading">__MSG_o_sAppearance__</h3>
         <div class="advanced-option-row advanced-field-option">
-          <label>
-            <span>__MSG_o_lUiTheme__</span>
-            <select id="uiTheme" aria-describedby="uiThemeHelp">
-              <option value="system">__MSG_o_lUiThemeSystem__</option>
-              <option value="dark">__MSG_o_lUiThemeDark__</option>
-              <option value="light">__MSG_o_lUiThemeLight__</option>
-            </select>
-          </label>
+          <fieldset
+            class="theme-picker"
+            aria-label="__MSG_o_lUiTheme__"
+            aria-describedby="uiThemeHelp"
+          >
+            <input id="uiTheme" type="hidden" value="system" />
+            <div class="theme-choice-groups">
+              <div class="theme-choice-group" role="group" aria-labelledby="theme-group-default">
+                <span id="theme-group-default" class="theme-choice-group-title"
+                  >__MSG_o_lUiThemeGroupDefault__</span
+                >
+                <div class="theme-choice-grid">
+                  <label class="theme-choice">
+                    <input type="radio" name="uiThemeChoice" value="system" data-no-autosave />
+                    <span class="theme-swatch" data-theme-swatch="system" aria-hidden="true"></span>
+                    <span>__MSG_o_lUiThemeSystem__</span>
+                  </label>
+                  <label class="theme-choice">
+                    <input type="radio" name="uiThemeChoice" value="dark" data-no-autosave />
+                    <span class="theme-swatch" data-theme-swatch="dark" aria-hidden="true"></span>
+                    <span>__MSG_o_lUiThemeDark__</span>
+                  </label>
+                  <label class="theme-choice">
+                    <input type="radio" name="uiThemeChoice" value="light" data-no-autosave />
+                    <span class="theme-swatch" data-theme-swatch="light" aria-hidden="true"></span>
+                    <span>__MSG_o_lUiThemeLight__</span>
+                  </label>
+                </div>
+              </div>
+              <div
+                class="theme-choice-group"
+                role="group"
+                aria-labelledby="theme-group-accessibility"
+              >
+                <span id="theme-group-accessibility" class="theme-choice-group-title"
+                  >__MSG_o_lUiThemeGroupAccessibility__</span
+                >
+                <div class="theme-choice-grid">
+                  <label class="theme-choice">
+                    <input
+                      type="radio"
+                      name="uiThemeChoice"
+                      value="high-contrast-dark"
+                      data-no-autosave
+                    />
+                    <span
+                      class="theme-swatch"
+                      data-theme-swatch="high-contrast-dark"
+                      aria-hidden="true"
+                    ></span>
+                    <span>__MSG_o_lUiThemeHighContrastDark__</span>
+                  </label>
+                  <label class="theme-choice">
+                    <input
+                      type="radio"
+                      name="uiThemeChoice"
+                      value="high-contrast-light"
+                      data-no-autosave
+                    />
+                    <span
+                      class="theme-swatch"
+                      data-theme-swatch="high-contrast-light"
+                      aria-hidden="true"
+                    ></span>
+                    <span>__MSG_o_lUiThemeHighContrastLight__</span>
+                  </label>
+                  <label class="theme-choice">
+                    <input
+                      type="radio"
+                      name="uiThemeChoice"
+                      value="high-contrast-yellow"
+                      data-no-autosave
+                    />
+                    <span
+                      class="theme-swatch"
+                      data-theme-swatch="high-contrast-yellow"
+                      aria-hidden="true"
+                    ></span>
+                    <span>__MSG_o_lUiThemeHighContrastYellow__</span>
+                  </label>
+                </div>
+              </div>
+              <div class="theme-choice-group" role="group" aria-labelledby="theme-group-classics">
+                <span id="theme-group-classics" class="theme-choice-group-title"
+                  >__MSG_o_lUiThemeGroupClassics__</span
+                >
+                <div class="theme-choice-grid">
+                  <label class="theme-choice">
+                    <input
+                      type="radio"
+                      name="uiThemeChoice"
+                      value="solarized-dark"
+                      data-no-autosave
+                    />
+                    <span
+                      class="theme-swatch"
+                      data-theme-swatch="solarized-dark"
+                      aria-hidden="true"
+                    ></span>
+                    <span>__MSG_o_lUiThemeSolarizedDark__</span>
+                  </label>
+                  <label class="theme-choice">
+                    <input
+                      type="radio"
+                      name="uiThemeChoice"
+                      value="solarized-light"
+                      data-no-autosave
+                    />
+                    <span
+                      class="theme-swatch"
+                      data-theme-swatch="solarized-light"
+                      aria-hidden="true"
+                    ></span>
+                    <span>__MSG_o_lUiThemeSolarizedLight__</span>
+                  </label>
+                  <label class="theme-choice">
+                    <input type="radio" name="uiThemeChoice" value="nord" data-no-autosave />
+                    <span class="theme-swatch" data-theme-swatch="nord" aria-hidden="true"></span>
+                    <span>__MSG_o_lUiThemeNord__</span>
+                  </label>
+                  <label class="theme-choice">
+                    <input type="radio" name="uiThemeChoice" value="dracula" data-no-autosave />
+                    <span
+                      class="theme-swatch"
+                      data-theme-swatch="dracula"
+                      aria-hidden="true"
+                    ></span>
+                    <span>__MSG_o_lUiThemeDracula__</span>
+                  </label>
+                  <label class="theme-choice">
+                    <input type="radio" name="uiThemeChoice" value="gruvbox" data-no-autosave />
+                    <span
+                      class="theme-swatch"
+                      data-theme-swatch="gruvbox"
+                      aria-hidden="true"
+                    ></span>
+                    <span>__MSG_o_lUiThemeGruvbox__</span>
+                  </label>
+                  <label class="theme-choice">
+                    <input type="radio" name="uiThemeChoice" value="monokai" data-no-autosave />
+                    <span
+                      class="theme-swatch"
+                      data-theme-swatch="monokai"
+                      aria-hidden="true"
+                    ></span>
+                    <span>__MSG_o_lUiThemeMonokai__</span>
+                  </label>
+                </div>
+              </div>
+              <div class="theme-choice-group" role="group" aria-labelledby="theme-group-save-in">
+                <span id="theme-group-save-in" class="theme-choice-group-title"
+                  >__MSG_o_lUiThemeGroupSaveIn__</span
+                >
+                <div class="theme-choice-grid">
+                  <label class="theme-choice">
+                    <input type="radio" name="uiThemeChoice" value="midnight" data-no-autosave />
+                    <span
+                      class="theme-swatch"
+                      data-theme-swatch="midnight"
+                      aria-hidden="true"
+                    ></span>
+                    <span>__MSG_o_lUiThemeMidnight__</span>
+                  </label>
+                  <label class="theme-choice">
+                    <input type="radio" name="uiThemeChoice" value="pastel-pink" data-no-autosave />
+                    <span
+                      class="theme-swatch"
+                      data-theme-swatch="pastel-pink"
+                      aria-hidden="true"
+                    ></span>
+                    <span>__MSG_o_lUiThemePastelPink__</span>
+                  </label>
+                  <label class="theme-choice">
+                    <input type="radio" name="uiThemeChoice" value="paper" data-no-autosave />
+                    <span class="theme-swatch" data-theme-swatch="paper" aria-hidden="true"></span>
+                    <span>__MSG_o_lUiThemePaper__</span>
+                  </label>
+                  <label class="theme-choice">
+                    <input type="radio" name="uiThemeChoice" value="terminal" data-no-autosave />
+                    <span
+                      class="theme-swatch"
+                      data-theme-swatch="terminal"
+                      aria-hidden="true"
+                    ></span>
+                    <span>__MSG_o_lUiThemeTerminal__</span>
+                  </label>
+                  <label class="theme-choice">
+                    <input type="radio" name="uiThemeChoice" value="berry" data-no-autosave />
+                    <span class="theme-swatch" data-theme-swatch="berry" aria-hidden="true"></span>
+                    <span>__MSG_o_lUiThemeBerry__</span>
+                  </label>
+                  <label class="theme-choice">
+                    <input type="radio" name="uiThemeChoice" value="nebula" data-no-autosave />
+                    <span class="theme-swatch" data-theme-swatch="nebula" aria-hidden="true"></span>
+                    <span>__MSG_o_lUiThemeNebula__</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </fieldset>
           <div class="caption advanced-option-help" id="uiThemeHelp">__MSG_o_lUiThemeHelp__</div>
         </div>
       </section>

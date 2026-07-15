@@ -2246,8 +2246,27 @@
   "o_lUiThemeSystem": { "message": "系統" },
   "o_lUiThemeDark": { "message": "深色" },
   "o_lUiThemeLight": { "message": "淺色" },
+  "o_lUiThemeGroupDefault": { "message": "標準" },
+  "o_lUiThemeGroupAccessibility": { "message": "高對比" },
+  "o_lUiThemeGroupClassics": { "message": "經典主題" },
+  "o_lUiThemeGroupSaveIn": { "message": "Save In 主題" },
+  "o_lUiThemeHighContrastDark": { "message": "高對比深色" },
+  "o_lUiThemeHighContrastLight": { "message": "高對比淺色" },
+  "o_lUiThemeHighContrastYellow": { "message": "高對比黃色" },
+  "o_lUiThemeSolarizedDark": { "message": "Solarized 深色" },
+  "o_lUiThemeSolarizedLight": { "message": "Solarized 淺色" },
+  "o_lUiThemeNord": { "message": "Nord" },
+  "o_lUiThemeDracula": { "message": "Dracula" },
+  "o_lUiThemeGruvbox": { "message": "Gruvbox" },
+  "o_lUiThemeMonokai": { "message": "Monokai" },
+  "o_lUiThemeMidnight": { "message": "午夜" },
+  "o_lUiThemePastelPink": { "message": "柔和粉色" },
+  "o_lUiThemePaper": { "message": "紙張" },
+  "o_lUiThemeTerminal": { "message": "終端機" },
+  "o_lUiThemeBerry": { "message": "莓果" },
+  "o_lUiThemeNebula": { "message": "Nebula" },
   "o_lUiThemeHelp": {
-    "message": "跟隨系統主題，或讓選項頁面和頁面資源一律使用深色或淺色主題。"
+    "message": "選擇用於設定和頁面資源的色彩主題。"
   },
   "notificationExternalDownloadBlockedTitle": { "message": "已封鎖外部下載" },
   "notificationExternalDownloadBlockedMessage": {

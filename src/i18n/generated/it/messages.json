@@ -2005,8 +2005,27 @@
   "o_lUiThemeLight": {
     "message": "Chiaro"
   },
+  "o_lUiThemeGroupDefault": { "message": "Standard" },
+  "o_lUiThemeGroupAccessibility": { "message": "Contrasto elevato" },
+  "o_lUiThemeGroupClassics": { "message": "Temi classici" },
+  "o_lUiThemeGroupSaveIn": { "message": "Temi Save In" },
+  "o_lUiThemeHighContrastDark": { "message": "Contrasto elevato scuro" },
+  "o_lUiThemeHighContrastLight": { "message": "Contrasto elevato chiaro" },
+  "o_lUiThemeHighContrastYellow": { "message": "Contrasto elevato giallo" },
+  "o_lUiThemeSolarizedDark": { "message": "Solarized scuro" },
+  "o_lUiThemeSolarizedLight": { "message": "Solarized chiaro" },
+  "o_lUiThemeNord": { "message": "Nord" },
+  "o_lUiThemeDracula": { "message": "Dracula" },
+  "o_lUiThemeGruvbox": { "message": "Gruvbox" },
+  "o_lUiThemeMonokai": { "message": "Monokai" },
+  "o_lUiThemeMidnight": { "message": "Mezzanotte" },
+  "o_lUiThemePastelPink": { "message": "Rosa pastello" },
+  "o_lUiThemePaper": { "message": "Carta" },
+  "o_lUiThemeTerminal": { "message": "Terminale" },
+  "o_lUiThemeBerry": { "message": "Bacca" },
+  "o_lUiThemeNebula": { "message": "Nebula" },
   "o_lUiThemeHelp": {
-    "message": "Segui il tema di sistema oppure mantieni chiare o scure la pagina Opzioni e Sorgenti della pagina."
+    "message": "Scegli un tema di colori per le impostazioni e le Sorgenti della pagina."
   },
   "sourcePanelResizeLabel": {
     "message": "Ridimensiona Sorgenti della pagina"

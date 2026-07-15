@@ -164,8 +164,31 @@ test("preserves backward-compatible option defaults", () => {
   expect(document.querySelector<HTMLInputElement>("#truncateLength")?.min).toBe("0");
   expect(document.querySelector<HTMLInputElement>("#truncateLength")?.max).toBe("");
   expect(
-    [...document.querySelectorAll<HTMLOptionElement>("#uiTheme option")].map(({ value }) => value),
-  ).toEqual(["system", "dark", "light"]);
+    [...document.querySelectorAll<HTMLInputElement>('.theme-picker input[type="radio"]')].map(
+      ({ value }) => value,
+    ),
+  ).toEqual([
+    "system",
+    "dark",
+    "light",
+    "high-contrast-dark",
+    "high-contrast-light",
+    "high-contrast-yellow",
+    "solarized-dark",
+    "solarized-light",
+    "nord",
+    "dracula",
+    "gruvbox",
+    "monokai",
+    "midnight",
+    "pastel-pink",
+    "paper",
+    "terminal",
+    "berry",
+    "nebula",
+  ]);
+  expect(document.querySelectorAll(".theme-choice-group")).toHaveLength(4);
+  expect(document.querySelectorAll(".theme-swatch")).toHaveLength(18);
   expect(
     [...document.querySelectorAll<HTMLOptionElement>("#shortcutType option")].map(
       ({ value }) => value,

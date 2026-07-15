@@ -2152,8 +2152,27 @@
   "o_lUiThemeSystem": { "message": "시스템" },
   "o_lUiThemeDark": { "message": "어둡게" },
   "o_lUiThemeLight": { "message": "밝게" },
+  "o_lUiThemeGroupDefault": { "message": "표준" },
+  "o_lUiThemeGroupAccessibility": { "message": "고대비" },
+  "o_lUiThemeGroupClassics": { "message": "클래식 테마" },
+  "o_lUiThemeGroupSaveIn": { "message": "Save In 테마" },
+  "o_lUiThemeHighContrastDark": { "message": "고대비 어둡게" },
+  "o_lUiThemeHighContrastLight": { "message": "고대비 밝게" },
+  "o_lUiThemeHighContrastYellow": { "message": "고대비 노랑" },
+  "o_lUiThemeSolarizedDark": { "message": "Solarized 어둡게" },
+  "o_lUiThemeSolarizedLight": { "message": "Solarized 밝게" },
+  "o_lUiThemeNord": { "message": "Nord" },
+  "o_lUiThemeDracula": { "message": "Dracula" },
+  "o_lUiThemeGruvbox": { "message": "Gruvbox" },
+  "o_lUiThemeMonokai": { "message": "Monokai" },
+  "o_lUiThemeMidnight": { "message": "미드나이트" },
+  "o_lUiThemePastelPink": { "message": "파스텔 핑크" },
+  "o_lUiThemePaper": { "message": "페이퍼" },
+  "o_lUiThemeTerminal": { "message": "터미널" },
+  "o_lUiThemeBerry": { "message": "베리" },
+  "o_lUiThemeNebula": { "message": "Nebula" },
   "o_lUiThemeHelp": {
-    "message": "시스템 테마를 따르거나 옵션 페이지와 페이지 소스를 항상 어둡게 또는 밝게 표시합니다."
+    "message": "설정과 페이지 소스에 사용할 색상 테마를 선택합니다."
   },
   "notificationExternalDownloadBlockedTitle": { "message": "외부 다운로드 차단됨" },
   "notificationExternalDownloadBlockedMessage": {

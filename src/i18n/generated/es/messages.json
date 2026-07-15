@@ -2046,8 +2046,27 @@
   "o_lUiThemeSystem": { "message": "Sistema" },
   "o_lUiThemeDark": { "message": "Oscuro" },
   "o_lUiThemeLight": { "message": "Claro" },
+  "o_lUiThemeGroupDefault": { "message": "Estándar" },
+  "o_lUiThemeGroupAccessibility": { "message": "Alto contraste" },
+  "o_lUiThemeGroupClassics": { "message": "Temas clásicos" },
+  "o_lUiThemeGroupSaveIn": { "message": "Temas de Save In" },
+  "o_lUiThemeHighContrastDark": { "message": "Alto contraste oscuro" },
+  "o_lUiThemeHighContrastLight": { "message": "Alto contraste claro" },
+  "o_lUiThemeHighContrastYellow": { "message": "Alto contraste amarillo" },
+  "o_lUiThemeSolarizedDark": { "message": "Solarized oscuro" },
+  "o_lUiThemeSolarizedLight": { "message": "Solarized claro" },
+  "o_lUiThemeNord": { "message": "Nord" },
+  "o_lUiThemeDracula": { "message": "Dracula" },
+  "o_lUiThemeGruvbox": { "message": "Gruvbox" },
+  "o_lUiThemeMonokai": { "message": "Monokai" },
+  "o_lUiThemeMidnight": { "message": "Medianoche" },
+  "o_lUiThemePastelPink": { "message": "Rosa pastel" },
+  "o_lUiThemePaper": { "message": "Papel" },
+  "o_lUiThemeTerminal": { "message": "Terminal" },
+  "o_lUiThemeBerry": { "message": "Baya" },
+  "o_lUiThemeNebula": { "message": "Nebula" },
   "o_lUiThemeHelp": {
-    "message": "Siga el tema del sistema o mantenga la página de opciones y Recursos de la página siempre en modo oscuro o claro."
+    "message": "Elige un tema de color para la configuración y Recursos de la página."
   },
   "notificationExternalDownloadBlockedTitle": { "message": "Descarga externa bloqueada" },
   "notificationExternalDownloadBlockedMessage": {

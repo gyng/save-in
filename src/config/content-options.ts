@@ -5,9 +5,34 @@ import { isStringKeyedRecord, isStringMember } from "../shared/util.ts";
 export const isClickType = (value: unknown): value is ClickType =>
   isStringMember(Object.values(CLICK_TYPES), value);
 
-export const UI_THEMES = ["system", "dark", "light"] as const;
+export const UI_THEMES = [
+  "system",
+  "dark",
+  "light",
+  "high-contrast-dark",
+  "high-contrast-light",
+  "high-contrast-yellow",
+  "solarized-dark",
+  "solarized-light",
+  "nord",
+  "dracula",
+  "gruvbox",
+  "monokai",
+  "midnight",
+  "pastel-pink",
+  "paper",
+  "terminal",
+  "berry",
+  "nebula",
+] as const;
 export type UiTheme = (typeof UI_THEMES)[number];
 export const isUiTheme = (value: unknown): value is UiTheme => isStringMember(UI_THEMES, value);
+export const isStoredUiTheme = (value: unknown): value is UiTheme | "forest" =>
+  value === "forest" || isUiTheme(value);
+export const normalizeUiTheme = (value: unknown): UiTheme => {
+  if (value === "forest") return "pastel-pink";
+  return isUiTheme(value) ? value : "system";
+};
 
 const CONTENT_CLICK_COMBO_KEY_CODES: Record<string, number> = {
   alt: 18,
@@ -163,7 +188,7 @@ const CONTENT_OPTION_NORMALIZERS: ContentOptionNormalizers = {
   sourcePanelResourceHints: booleanOption(CONTENT_OPTION_DEFAULTS.sourcePanelResourceHints),
   sourcePanelLinks: booleanOption(CONTENT_OPTION_DEFAULTS.sourcePanelLinks),
   uiLocale: (stored) => (isSelectableLocale(stored) ? stored : CONTENT_OPTION_DEFAULTS.uiLocale),
-  uiTheme: (stored) => (isUiTheme(stored) ? stored : CONTENT_OPTION_DEFAULTS.uiTheme),
+  uiTheme: normalizeUiTheme,
   contentClickToSaveCombo: (stored) =>
     isContentClickCombo(stored) ? stored : CONTENT_OPTION_DEFAULTS.contentClickToSaveCombo,
   contentClickToSaveButton: (stored) =>

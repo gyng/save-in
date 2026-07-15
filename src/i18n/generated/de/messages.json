@@ -2048,8 +2048,27 @@
   "o_lUiThemeSystem": { "message": "System" },
   "o_lUiThemeDark": { "message": "Dunkel" },
   "o_lUiThemeLight": { "message": "Hell" },
+  "o_lUiThemeGroupDefault": { "message": "Standard" },
+  "o_lUiThemeGroupAccessibility": { "message": "Hoher Kontrast" },
+  "o_lUiThemeGroupClassics": { "message": "Klassische Designs" },
+  "o_lUiThemeGroupSaveIn": { "message": "Save In-Designs" },
+  "o_lUiThemeHighContrastDark": { "message": "Hoher Kontrast, dunkel" },
+  "o_lUiThemeHighContrastLight": { "message": "Hoher Kontrast, hell" },
+  "o_lUiThemeHighContrastYellow": { "message": "Hoher Kontrast, gelb" },
+  "o_lUiThemeSolarizedDark": { "message": "Solarized Dunkel" },
+  "o_lUiThemeSolarizedLight": { "message": "Solarized Hell" },
+  "o_lUiThemeNord": { "message": "Nord" },
+  "o_lUiThemeDracula": { "message": "Dracula" },
+  "o_lUiThemeGruvbox": { "message": "Gruvbox" },
+  "o_lUiThemeMonokai": { "message": "Monokai" },
+  "o_lUiThemeMidnight": { "message": "Mitternacht" },
+  "o_lUiThemePastelPink": { "message": "Pastellrosa" },
+  "o_lUiThemePaper": { "message": "Papier" },
+  "o_lUiThemeTerminal": { "message": "Terminal" },
+  "o_lUiThemeBerry": { "message": "Beere" },
+  "o_lUiThemeNebula": { "message": "Nebula" },
   "o_lUiThemeHelp": {
-    "message": "Dem Systemdesign folgen oder für die Optionsseite und die Seitenquellen immer ein dunkles oder helles Design verwenden."
+    "message": "Wählen Sie ein Farbdesign für die Einstellungen und Seitenquellen."
   },
   "notificationExternalDownloadBlockedTitle": {
     "message": "Download-Anfrage einer Erweiterung blockiert"

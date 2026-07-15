@@ -2069,8 +2069,27 @@
   "o_lUiThemeSystem": { "message": "System" },
   "o_lUiThemeDark": { "message": "Mörkt" },
   "o_lUiThemeLight": { "message": "Ljust" },
+  "o_lUiThemeGroupDefault": { "message": "Standard" },
+  "o_lUiThemeGroupAccessibility": { "message": "Hög kontrast" },
+  "o_lUiThemeGroupClassics": { "message": "Klassiska teman" },
+  "o_lUiThemeGroupSaveIn": { "message": "Save In-teman" },
+  "o_lUiThemeHighContrastDark": { "message": "Hög kontrast mörkt" },
+  "o_lUiThemeHighContrastLight": { "message": "Hög kontrast ljust" },
+  "o_lUiThemeHighContrastYellow": { "message": "Hög kontrast gul" },
+  "o_lUiThemeSolarizedDark": { "message": "Solarized mörkt" },
+  "o_lUiThemeSolarizedLight": { "message": "Solarized ljust" },
+  "o_lUiThemeNord": { "message": "Nord" },
+  "o_lUiThemeDracula": { "message": "Dracula" },
+  "o_lUiThemeGruvbox": { "message": "Gruvbox" },
+  "o_lUiThemeMonokai": { "message": "Monokai" },
+  "o_lUiThemeMidnight": { "message": "Midnatt" },
+  "o_lUiThemePastelPink": { "message": "Pastellrosa" },
+  "o_lUiThemePaper": { "message": "Papper" },
+  "o_lUiThemeTerminal": { "message": "Terminal" },
+  "o_lUiThemeBerry": { "message": "Bär" },
+  "o_lUiThemeNebula": { "message": "Nebula" },
   "o_lUiThemeHelp": {
-    "message": "Följ systemtemat eller använd alltid mörkt eller ljust tema på alternativsidan och för sidresurser."
+    "message": "Välj ett färgtema för inställningarna och Sidresurser."
   },
   "notificationExternalDownloadBlockedTitle": { "message": "Extern nedladdning blockerad" },
   "notificationExternalDownloadBlockedMessage": {

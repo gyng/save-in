@@ -544,6 +544,9 @@ describe("Page Sources panel interactions", () => {
     expect(replaceSourcePanel(vi.fn(), { ...options, theme: "light" })).toBe(true);
     expect(getSourcePanelHostForTesting()).toBe(host);
     expect(host.dataset.theme).toBe("light");
+
+    expect(replaceSourcePanel(vi.fn(), { ...options, theme: "pastel-pink" })).toBe(true);
+    expect(host.dataset.theme).toBe("pastel-pink");
   });
 
   test("defaults direct and legacy panel callers to the system theme", () => {

@@ -3,8 +3,10 @@ import {
   isAutoDownloadLimit,
   isClickType,
   isContentClickCombo,
-  isUiTheme,
+  isStoredUiTheme,
   normalizeAutoDownloadLimit,
+  normalizeUiTheme,
+  type UiTheme,
 } from "./content-options.ts";
 import { parseAutoDownloadRules } from "../automation/auto-download-rules.ts";
 
@@ -63,7 +65,8 @@ export const CONTENT_FEATURE_OPTION_DEFINITIONS = [
   {
     name: "uiTheme",
     type: "VALUE",
-    validate: isUiTheme,
+    onLoad: (value: UiTheme | "forest") => normalizeUiTheme(value),
+    validate: isStoredUiTheme,
     default: CONTENT_OPTION_DEFAULTS.uiTheme,
   },
   {

@@ -2096,8 +2096,27 @@
   "o_lUiThemeSystem": { "message": "Système" },
   "o_lUiThemeDark": { "message": "Sombre" },
   "o_lUiThemeLight": { "message": "Clair" },
+  "o_lUiThemeGroupDefault": { "message": "Standard" },
+  "o_lUiThemeGroupAccessibility": { "message": "Contraste élevé" },
+  "o_lUiThemeGroupClassics": { "message": "Thèmes classiques" },
+  "o_lUiThemeGroupSaveIn": { "message": "Thèmes Save In" },
+  "o_lUiThemeHighContrastDark": { "message": "Contraste élevé sombre" },
+  "o_lUiThemeHighContrastLight": { "message": "Contraste élevé clair" },
+  "o_lUiThemeHighContrastYellow": { "message": "Contraste élevé jaune" },
+  "o_lUiThemeSolarizedDark": { "message": "Solarized sombre" },
+  "o_lUiThemeSolarizedLight": { "message": "Solarized clair" },
+  "o_lUiThemeNord": { "message": "Nord" },
+  "o_lUiThemeDracula": { "message": "Dracula" },
+  "o_lUiThemeGruvbox": { "message": "Gruvbox" },
+  "o_lUiThemeMonokai": { "message": "Monokai" },
+  "o_lUiThemeMidnight": { "message": "Minuit" },
+  "o_lUiThemePastelPink": { "message": "Rose pastel" },
+  "o_lUiThemePaper": { "message": "Papier" },
+  "o_lUiThemeTerminal": { "message": "Terminal" },
+  "o_lUiThemeBerry": { "message": "Baie" },
+  "o_lUiThemeNebula": { "message": "Nebula" },
   "o_lUiThemeHelp": {
-    "message": "Suivre le thème du système ou toujours utiliser le thème sombre ou clair pour la page d’options et le panneau Sources de la page."
+    "message": "Choisissez un thème de couleurs pour les paramètres et Sources de la page."
   },
   "sourcePanelResizeLabel": {
     "message": "Redimensionner le panneau Sources de la page"

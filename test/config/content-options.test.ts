@@ -25,6 +25,9 @@ test("content schema normalizes legacy automatic rules and shortcut keycodes", (
     (typeof CONTENT_FEATURE_OPTION_DEFINITIONS)[number],
     { name: "contentClickToSaveCombo" }
   >;
+  const theme = CONTENT_FEATURE_OPTION_DEFINITIONS.find(
+    ({ name }) => name === "uiTheme",
+  )! as Extract<(typeof CONTENT_FEATURE_OPTION_DEFINITIONS)[number], { name: "uiTheme" }>;
 
   expect("onSave" in automatic && automatic.onSave("  pageurl: example  ")).toBe(
     "pageurl: example",
@@ -34,6 +37,7 @@ test("content schema normalizes legacy automatic rules and shortcut keycodes", (
       automatic.onLoad("pageurl: example\nsourcekind: image\ninto: automatic/").length,
   ).toBe(1);
   expect("onLoad" in combo && combo.onLoad(18)).toBe(18);
+  expect("onLoad" in theme && theme.onLoad("forest")).toBe("pastel-pink");
 });
 
 test("normalizes malformed values and preserves legacy numeric shortcut keycodes", () => {
@@ -104,12 +108,16 @@ test("normalizes interface locale and theme overrides", () => {
   expect(resolveContentOptions({}).uiTheme).toBe("system");
   expect(resolveContentOptions({ uiTheme: "dark" }).uiTheme).toBe("dark");
   expect(resolveContentOptions({ uiTheme: "light" }).uiTheme).toBe("light");
+  expect(resolveContentOptions({ uiTheme: "solarized-dark" }).uiTheme).toBe("solarized-dark");
+  expect(resolveContentOptions({ uiTheme: "forest" }).uiTheme).toBe("pastel-pink");
   expect(resolveContentOptions({ uiTheme: "auto" }).uiTheme).toBe("system");
   expect(resolveContentOptions({ uiTheme: true }).uiTheme).toBe("system");
 
   const themeDefinition = OPTION_KEYS.find(({ name }) => name === "uiTheme")!;
   expect("validate" in themeDefinition && themeDefinition.validate("system")).toBe(true);
   expect("validate" in themeDefinition && themeDefinition.validate("dark")).toBe(true);
+  expect("validate" in themeDefinition && themeDefinition.validate("berry")).toBe(true);
+  expect("validate" in themeDefinition && themeDefinition.validate("forest")).toBe(true);
   expect("validate" in themeDefinition && themeDefinition.validate("auto")).toBe(false);
 });
 
