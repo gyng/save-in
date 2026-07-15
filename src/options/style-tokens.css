@@ -92,12 +92,32 @@
   --theme-swatch-dracula: linear-gradient(90deg, #282a36 0 58%, #bd93f9 58% 100%);
   --theme-swatch-gruvbox: linear-gradient(90deg, #282828 0 58%, #fe8019 58% 100%);
   --theme-swatch-monokai: linear-gradient(90deg, #272822 0 58%, #a6e22e 58% 100%);
+  --theme-swatch-one-dark: linear-gradient(90deg, #282c34 0 58%, #61afef 58% 100%);
+  --theme-swatch-tokyo-night: linear-gradient(90deg, #1a1b26 0 58%, #7aa2f7 58% 100%);
+  --theme-swatch-catppuccin: linear-gradient(90deg, #1e1e2e 0 58%, #cba6f7 58% 100%);
   --theme-swatch-midnight: linear-gradient(90deg, #0d1525 0 58%, #5eead4 58% 100%);
   --theme-swatch-pastel-pink: linear-gradient(90deg, #fff1f6 0 58%, #e889aa 58% 100%);
   --theme-swatch-paper: linear-gradient(90deg, #f7f1e3 0 58%, #a33b2b 58% 100%);
   --theme-swatch-terminal: linear-gradient(90deg, #050805 0 58%, #39ff88 58% 100%);
   --theme-swatch-berry: linear-gradient(90deg, #241322 0 58%, #ff6b8a 58% 100%);
   --theme-swatch-nebula: linear-gradient(90deg, #130b2e 0 48%, #7df9ff 48% 72%, #ff5fd2 72% 100%);
+  --theme-swatch-glacier: linear-gradient(90deg, #f2f6fa 0 58%, #19647f 58% 100%);
+  --theme-swatch-matcha: linear-gradient(90deg, #f5f7ec 0 58%, #49761f 58% 100%);
+  --theme-swatch-ember: linear-gradient(90deg, #1f1410 0 58%, #ffa057 58% 100%);
+  --theme-swatch-primary-grid: linear-gradient(
+    90deg,
+    #f8f5ea 0 34%,
+    #c9272c 34% 56%,
+    #164a9c 56% 78%,
+    #f2c230 78% 100%
+  );
+  --theme-swatch-blue-house: linear-gradient(
+    90deg,
+    #123b82 0 46%,
+    #f0b429 46% 73%,
+    #f0648c 73% 100%
+  );
+  --theme-swatch-gilded-mosaic: linear-gradient(90deg, #191610 0 58%, #d3a72f 58% 100%);
 
   /* Semantic roles shared by every options/reference component. */
   --color-accent: var(--blue60);

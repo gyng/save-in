@@ -3173,6 +3173,6 @@
   "savedValueOff": { "message": "オフ" },
   "savedValueOn": { "message": "オン" },
   "o_lUiThemeGildedMosaic": { "message": "黄金のモザイク" },
-  "o_lUiThemeGiverny": { "message": "ジヴェルニー" },
-  "o_lUiThemeIndigoWave": { "message": "藍の波" }
+  "o_lUiThemeBlueHouse": { "message": "青い家" },
+  "o_lUiThemePrimaryGrid": { "message": "原色のグリッド" }
 }

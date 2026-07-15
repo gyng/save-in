@@ -1,6 +1,7 @@
 @layer tokens, base, shell, components, layout, editors, advanced, history, welcome, reference, utilities;
 @import url("style-tokens.css") layer(tokens);
 @import url("style-themes.css") layer(tokens);
+@import url("style-theme-palettes.css") layer(tokens);
 @import url("style-base.css") layer(base);
 @import url("style-shell.css") layer(shell);
 @import url("style-about.css") layer(shell);

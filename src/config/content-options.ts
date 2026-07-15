@@ -18,12 +18,21 @@ export const UI_THEMES = [
   "dracula",
   "gruvbox",
   "monokai",
+  "one-dark",
+  "tokyo-night",
+  "catppuccin",
   "midnight",
   "pastel-pink",
   "paper",
   "terminal",
   "berry",
   "nebula",
+  "glacier",
+  "matcha",
+  "ember",
+  "primary-grid",
+  "blue-house",
+  "gilded-mosaic",
 ] as const;
 export type UiTheme = (typeof UI_THEMES)[number];
 export const isUiTheme = (value: unknown): value is UiTheme => isStringMember(UI_THEMES, value);

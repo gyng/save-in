@@ -3075,13 +3075,13 @@
     "message": "Ember",
     "description": "Save In warm amber-on-brown dark interface theme, named after glowing embers. Used in src/options/options.html."
   },
-  "o_lUiThemeIndigoWave": {
-    "message": "Indigo Wave",
-    "description": "Light interface theme inspired by Katsushika Hokusai's indigo, washi, and vermilion woodblock palette. Used in src/options/options.html."
+  "o_lUiThemePrimaryGrid": {
+    "message": "Primary Grid",
+    "description": "Light interface theme inspired by Piet Mondrian's black grids and primary-color compositions. Used in src/options/options.html."
   },
-  "o_lUiThemeGiverny": {
-    "message": "Giverny",
-    "description": "Light interface theme inspired by Claude Monet's garden, water lilies, and lilac shadows. Used in src/options/options.html."
+  "o_lUiThemeBlueHouse": {
+    "message": "Blue House",
+    "description": "Dark cobalt interface theme inspired by Frida Kahlo's Casa Azul, marigolds, and vivid floral colors. Used in src/options/options.html."
   },
   "o_lUiThemeGildedMosaic": {
     "message": "Gilded Mosaic",

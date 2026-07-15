@@ -191,6 +191,18 @@
   --theme-swatch: var(--theme-swatch-monokai);
 }
 
+.theme-swatch[data-theme-swatch="one-dark"] {
+  --theme-swatch: var(--theme-swatch-one-dark);
+}
+
+.theme-swatch[data-theme-swatch="tokyo-night"] {
+  --theme-swatch: var(--theme-swatch-tokyo-night);
+}
+
+.theme-swatch[data-theme-swatch="catppuccin"] {
+  --theme-swatch: var(--theme-swatch-catppuccin);
+}
+
 .theme-swatch[data-theme-swatch="midnight"] {
   --theme-swatch: var(--theme-swatch-midnight);
 }
@@ -213,6 +225,30 @@
 
 .theme-swatch[data-theme-swatch="nebula"] {
   --theme-swatch: var(--theme-swatch-nebula);
+}
+
+.theme-swatch[data-theme-swatch="glacier"] {
+  --theme-swatch: var(--theme-swatch-glacier);
+}
+
+.theme-swatch[data-theme-swatch="matcha"] {
+  --theme-swatch: var(--theme-swatch-matcha);
+}
+
+.theme-swatch[data-theme-swatch="ember"] {
+  --theme-swatch: var(--theme-swatch-ember);
+}
+
+.theme-swatch[data-theme-swatch="primary-grid"] {
+  --theme-swatch: var(--theme-swatch-primary-grid);
+}
+
+.theme-swatch[data-theme-swatch="blue-house"] {
+  --theme-swatch: var(--theme-swatch-blue-house);
+}
+
+.theme-swatch[data-theme-swatch="gilded-mosaic"] {
+  --theme-swatch: var(--theme-swatch-gilded-mosaic);
 }
 
 .advanced-option-help {

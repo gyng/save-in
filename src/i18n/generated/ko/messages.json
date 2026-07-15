@@ -3167,6 +3167,6 @@
   "savedValueOff": { "message": "꺼짐" },
   "savedValueOn": { "message": "켜짐" },
   "o_lUiThemeGildedMosaic": { "message": "황금 모자이크" },
-  "o_lUiThemeGiverny": { "message": "지베르니" },
-  "o_lUiThemeIndigoWave": { "message": "인디고 파도" }
+  "o_lUiThemeBlueHouse": { "message": "푸른 집" },
+  "o_lUiThemePrimaryGrid": { "message": "원색 격자" }
 }

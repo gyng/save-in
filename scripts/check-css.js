@@ -13,6 +13,7 @@ const violations = [];
 const styleEntryPath = path.join(root, "src", "options", "style.css");
 const tokenStylePath = path.join(root, "src", "options", "style-tokens.css");
 const themeStylePath = path.join(root, "src", "options", "style-themes.css");
+const themePalettesStylePath = path.join(root, "src", "options", "style-theme-palettes.css");
 const optionsDocumentPath = path.join(root, "src", "options", "options.html");
 const clauseListDocumentPath = path.join(root, "src", "options", "clauselist.html");
 const sourcePanelPath = path.join(root, "src", "content", "source-panel.ts");
@@ -183,7 +184,7 @@ const resolvedCustomPropertyValue = (value, properties, resolving = new Set()) =
 
 /** @type {Array<[string, string[]]>} */
 const styleLayers = [
-  ["tokens", ["style-tokens.css", "style-themes.css"]],
+  ["tokens", ["style-tokens.css", "style-themes.css", "style-theme-palettes.css"]],
   ["base", ["style-base.css"]],
   [
     "shell",
@@ -339,21 +340,37 @@ for (const file of styles) {
 
 const tokenStyle = fs.readFileSync(tokenStylePath, "utf8");
 const themeStyle = fs.readFileSync(themeStylePath, "utf8");
-const optionTokenDeclarationPaths = new Set([tokenStylePath, themeStylePath]);
+const themePaletteStyle = fs.readFileSync(themePalettesStylePath, "utf8");
+const optionTokenDeclarationPaths = new Set([
+  tokenStylePath,
+  themeStylePath,
+  themePalettesStylePath,
+]);
 const rootTokenBoundary = tokenStyle.indexOf("\n}");
 for (const file of styles) {
   const source = fs.readFileSync(file, "utf8");
   const relative = path.relative(root, file);
   for (const match of source.matchAll(/#[0-9a-f]{3,8}\b|rgba?\(/gi)) {
-    const lineStart = source.lastIndexOf("\n", match.index) + 1;
-    const lineEnd = source.indexOf("\n", match.index);
-    const lineSource = source.slice(lineStart, lineEnd < 0 ? undefined : lineEnd);
-    if (optionTokenDeclarationPaths.has(file) && /--[\w-]+\s*:/.test(lineSource)) continue;
+    if (optionTokenDeclarationPaths.has(file)) {
+      const declarationStart = Math.max(
+        source.lastIndexOf(";", match.index),
+        source.lastIndexOf("{", match.index),
+        source.lastIndexOf("}", match.index),
+      );
+      const declarationSource = source
+        .slice(declarationStart + 1, match.index)
+        .replace(/\/\*[\s\S]*?\*\//g, "");
+      if (/^\s*--[\w-]+\s*:/.test(declarationSource)) continue;
+    }
     const line = source.slice(0, match.index).split("\n").length;
     violations.push(`${relative}:${line} uses a raw color outside a token declaration`);
   }
   const componentStart =
-    file === tokenStylePath ? rootTokenBoundary + 2 : file === themeStylePath ? source.length : 0;
+    file === tokenStylePath
+      ? rootTokenBoundary + 2
+      : file === themeStylePath || file === themePalettesStylePath
+        ? source.length
+        : 0;
   const componentStyles = source.slice(componentStart);
   for (const match of componentStyles.matchAll(
     /var\(--(?:blue|grey|red|green|yellow|purple)[\w-]*/g,
@@ -974,7 +991,10 @@ const sourcePanelThemeStyle = fs.readFileSync(
   path.join(root, "src", "content", "source-panel-themes.css"),
   "utf8",
 );
-const optionThemes = themeBlocks(themeStyle, /:root\[data-theme="([^"]+)"\]\s*\{([^}]*)\}/g);
+const optionThemes = themeBlocks(
+  `${themeStyle}\n${themePaletteStyle}`,
+  /:root\[data-theme="([^"]+)"\]\s*\{([^}]*)\}/g,
+);
 const sourcePanelThemes = themeBlocks(
   sourcePanelThemeStyle,
   /:host\(\[data-theme="([^"]+)"\]\)\s*\{([^}]*)\}/g,

@@ -3071,6 +3071,6 @@
   "savedValueOff": { "message": "Uit" },
   "savedValueOn": { "message": "Aan" },
   "o_lUiThemeGildedMosaic": { "message": "Verguld mozaïek" },
-  "o_lUiThemeGiverny": { "message": "Giverny" },
-  "o_lUiThemeIndigoWave": { "message": "Indigogolf" }
+  "o_lUiThemeBlueHouse": { "message": "Blauw huis" },
+  "o_lUiThemePrimaryGrid": { "message": "Primair raster" }
 }

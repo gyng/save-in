@@ -3080,6 +3080,6 @@
   "savedValueOff": { "message": "Av" },
   "savedValueOn": { "message": "På" },
   "o_lUiThemeGildedMosaic": { "message": "Förgylld mosaik" },
-  "o_lUiThemeGiverny": { "message": "Giverny" },
-  "o_lUiThemeIndigoWave": { "message": "Indigovåg" }
+  "o_lUiThemeBlueHouse": { "message": "Blå huset" },
+  "o_lUiThemePrimaryGrid": { "message": "Primärfärgsrutnät" }
 }

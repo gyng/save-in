@@ -720,6 +720,9 @@ describe("Page Sources panel interactions", () => {
 
     expect(replaceSourcePanel(vi.fn(), { ...options, theme: "pastel-pink" })).toBe(true);
     expect(host.dataset.theme).toBe("pastel-pink");
+
+    expect(replaceSourcePanel(vi.fn(), { ...options, theme: "blue-house" })).toBe(true);
+    expect(host.dataset.theme).toBe("blue-house");
   });
 
   test("defaults direct and legacy panel callers to the system theme", () => {

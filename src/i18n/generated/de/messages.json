@@ -3195,6 +3195,6 @@
   "savedValueOff": { "message": "Aus" },
   "savedValueOn": { "message": "Ein" },
   "o_lUiThemeGildedMosaic": { "message": "Vergoldetes Mosaik" },
-  "o_lUiThemeGiverny": { "message": "Giverny" },
-  "o_lUiThemeIndigoWave": { "message": "Indigowelle" }
+  "o_lUiThemeBlueHouse": { "message": "Blaues Haus" },
+  "o_lUiThemePrimaryGrid": { "message": "Primärraster" }
 }

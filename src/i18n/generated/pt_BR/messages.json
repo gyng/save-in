@@ -3073,6 +3073,6 @@
   "savedValueOff": { "message": "Desativado" },
   "savedValueOn": { "message": "Ativado" },
   "o_lUiThemeGildedMosaic": { "message": "Mosaico dourado" },
-  "o_lUiThemeGiverny": { "message": "Giverny" },
-  "o_lUiThemeIndigoWave": { "message": "Onda índigo" }
+  "o_lUiThemeBlueHouse": { "message": "Casa azul" },
+  "o_lUiThemePrimaryGrid": { "message": "Grade primária" }
 }

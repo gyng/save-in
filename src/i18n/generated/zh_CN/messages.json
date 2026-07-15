@@ -3145,6 +3145,6 @@
   "savedValueOff": { "message": "关" },
   "savedValueOn": { "message": "开" },
   "o_lUiThemeGildedMosaic": { "message": "鎏金马赛克" },
-  "o_lUiThemeGiverny": { "message": "吉维尼" },
-  "o_lUiThemeIndigoWave": { "message": "靛蓝之浪" }
+  "o_lUiThemeBlueHouse": { "message": "蓝屋" },
+  "o_lUiThemePrimaryGrid": { "message": "原色网格" }
 }

@@ -212,15 +212,24 @@ test("preserves backward-compatible option defaults", () => {
     "dracula",
     "gruvbox",
     "monokai",
+    "one-dark",
+    "tokyo-night",
+    "catppuccin",
     "midnight",
     "pastel-pink",
     "paper",
     "terminal",
     "berry",
     "nebula",
+    "glacier",
+    "matcha",
+    "ember",
+    "primary-grid",
+    "blue-house",
+    "gilded-mosaic",
   ]);
   expect(document.querySelectorAll(".theme-choice-group")).toHaveLength(4);
-  expect(document.querySelectorAll(".theme-swatch")).toHaveLength(18);
+  expect(document.querySelectorAll(".theme-swatch")).toHaveLength(27);
   expect(
     [...document.querySelectorAll<HTMLOptionElement>("#shortcutType option")].map(
       ({ value }) => value,

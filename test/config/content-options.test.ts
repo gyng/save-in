@@ -122,6 +122,9 @@ test("normalizes interface locale and theme overrides", () => {
   expect(resolveContentOptions({ uiTheme: "dark" }).uiTheme).toBe("dark");
   expect(resolveContentOptions({ uiTheme: "light" }).uiTheme).toBe("light");
   expect(resolveContentOptions({ uiTheme: "solarized-dark" }).uiTheme).toBe("solarized-dark");
+  expect(resolveContentOptions({ uiTheme: "primary-grid" }).uiTheme).toBe("primary-grid");
+  expect(resolveContentOptions({ uiTheme: "blue-house" }).uiTheme).toBe("blue-house");
+  expect(resolveContentOptions({ uiTheme: "gilded-mosaic" }).uiTheme).toBe("gilded-mosaic");
   expect(resolveContentOptions({ uiTheme: "forest" }).uiTheme).toBe("pastel-pink");
   expect(resolveContentOptions({ uiTheme: "auto" }).uiTheme).toBe("system");
   expect(resolveContentOptions({ uiTheme: true }).uiTheme).toBe("system");
@@ -130,6 +133,9 @@ test("normalizes interface locale and theme overrides", () => {
   expect("validate" in themeDefinition && themeDefinition.validate("system")).toBe(true);
   expect("validate" in themeDefinition && themeDefinition.validate("dark")).toBe(true);
   expect("validate" in themeDefinition && themeDefinition.validate("berry")).toBe(true);
+  expect("validate" in themeDefinition && themeDefinition.validate("primary-grid")).toBe(true);
+  expect("validate" in themeDefinition && themeDefinition.validate("blue-house")).toBe(true);
+  expect("validate" in themeDefinition && themeDefinition.validate("gilded-mosaic")).toBe(true);
   expect("validate" in themeDefinition && themeDefinition.validate("forest")).toBe(true);
   expect("validate" in themeDefinition && themeDefinition.validate("auto")).toBe(false);
 });
