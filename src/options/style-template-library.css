@@ -86,7 +86,7 @@
 .rule-template-rule {
   display: block;
   max-width: 100%;
-  overflow-wrap: anywhere;
+  overflow: hidden;
   margin: 2px 0 0;
   padding: 0;
   border: 0;
@@ -94,7 +94,8 @@
   background: none;
   font-size: var(--text-sm);
   line-height: 1.45;
-  white-space: pre-wrap;
+  text-overflow: ellipsis;
+  white-space: pre;
 }
 
 .template-feedback {
