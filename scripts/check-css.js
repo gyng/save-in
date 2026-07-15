@@ -679,16 +679,23 @@ if (!routeDebuggerResponsiveStyle.includes("@container routing-workspace")) {
 
 const layoutStyle = fs.readFileSync(path.join(root, "src", "options", "style-layout.css"), "utf8");
 const mainTablistStyle = /\.tablist\s*\{([^}]*)\}/.exec(layoutStyle)?.[1] ?? "";
+const tablistStyles = styles.flatMap((file) => [
+  ...fs.readFileSync(file, "utf8").matchAll(/^\s*\.tablist\s*\{([^}]*)\}/gm),
+]);
 if (!/flex-wrap:\s*wrap;/.test(mainTablistStyle)) {
   violations.push("the main tab strip must wrap without becoming a scroll container");
 }
-if (/overflow(?:-[xy])?\s*:\s*(?:auto|scroll)/.test(mainTablistStyle)) {
+if (
+  tablistStyles.some((match) => /overflow(?:-[xy])?\s*:\s*(?:auto|scroll)/.test(match[1] ?? ""))
+) {
   violations.push("the main tab strip must never enable scrollbar overflow");
 }
-if (/flex-wrap:\s*nowrap/.test(mainTablistStyle)) {
+if (tablistStyles.some((match) => /flex-wrap:\s*nowrap/.test(match[1] ?? ""))) {
   violations.push("the main tab strip must never disable wrapping");
 }
-if (/(?:overscroll-behavior|scrollbar-width)\s*:/.test(mainTablistStyle)) {
+if (
+  tablistStyles.some((match) => /(?:overscroll-behavior|scrollbar-width)\s*:/.test(match[1] ?? ""))
+) {
   violations.push("the main tab strip must not carry scroll-container styling");
 }
 if (!/\.preview-column\s*\{[^}]*top:\s*var\(--sticky-header-offset\)/.test(layoutStyle)) {
