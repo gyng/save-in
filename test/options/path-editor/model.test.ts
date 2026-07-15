@@ -91,6 +91,7 @@ describe("path editor model", () => {
     expect(serializeDirectoryLine(setPathDialog(prompted, false))).toBe(
       "path // note (alias: Work)",
     );
+    expect(serializeDirectoryLine(setPathDialog(parseDirectoryLine("plain"), false))).toBe("plain");
   });
 
   test("maps a menu source index to the matching non-empty text line", () => {

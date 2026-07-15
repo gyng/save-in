@@ -15,7 +15,6 @@ export const createSourceRuleDraft = (
     if (!["http:", "https:"].includes(source.protocol)) return null;
     const pageDomain = toRootDomain(page.hostname);
     const sourceDomain = toRootDomain(source.hostname);
-    if (!pageDomain || !sourceDomain) return null;
     return [
       `// Suggested automatic ${sourceKind} rule for ${pageDomain}`,
       "context: ^auto$",

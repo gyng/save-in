@@ -64,6 +64,13 @@ describe("getRoutingMatches", () => {
     expect(router.matchRules).not.toHaveBeenCalled();
   });
 
+  test("skips routing when the caller disables it", () => {
+    options.filenamePatterns = [routingRule()];
+
+    expect(Download.getRoutingMatches({ info: { routingDisabled: true } })).toBeNull();
+    expect(router.matchRules).not.toHaveBeenCalled();
+  });
+
   test("delegates to matchRules when patterns exist", () => {
     options.filenamePatterns = [routingRule()];
     vi.mocked(router.matchRules).mockReturnValue("the/route");

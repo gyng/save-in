@@ -15,6 +15,7 @@ beforeEach(() => {
   document.body.innerHTML = "";
   vi.restoreAllMocks();
   vi.clearAllMocks();
+  vi.mocked(browser.i18n.getMessage).mockImplementation((key) => `Translated<${key}>`);
 });
 
 describe("counter panel", () => {
@@ -266,6 +267,241 @@ describe("debug log panel", () => {
     await vi.waitFor(() => expect(copy).toHaveBeenCalledOnce());
     expect(copy.mock.calls[0]?.[0]).toContain("Host: Translated<diagnosticsHostServiceWorker>");
     expect(copy.mock.calls[0]?.[0]).toContain("download failed");
+  });
+
+  test("renders fallback copy, event-page health, and every lifecycle outcome", async () => {
+    vi.spyOn(browser.i18n, "getMessage").mockReturnValue("");
+    vi.mocked(browser.runtime.sendMessage).mockResolvedValue({
+      type: MESSAGE_TYPES.DIAGNOSTICS_GET,
+      body: snapshot({
+        capturedAt: "invalid capture time",
+        backgroundHost: "event_page",
+        workerStatus: "failed",
+        workerStartedAt: "invalid start time",
+        workerUptimeMs: 61_000,
+        browser: "FIREFOX",
+        browserVersion: undefined,
+        sessionStorageAvailable: false,
+        verboseLogging: true,
+        lifecycle: [
+          { at: "invalid ready time", kind: "background_ready" },
+          { at: "2026-07-15T08:00:01.000Z", kind: "background_failed" },
+          { at: "2026-07-15T08:00:02.000Z", kind: "configuration_reloaded" },
+          { at: "2026-07-15T08:00:03.000Z", kind: "extension_installed" },
+          {
+            at: "2026-07-15T08:00:04.000Z",
+            kind: "extension_updated",
+            previousVersion: "3.9.0",
+          },
+          { at: "2026-07-15T08:00:05.000Z", kind: "extension_updated" },
+          { at: "2026-07-15T08:00:06.000Z", kind: "failures_cleared" },
+        ],
+        recentFailures: [],
+      }),
+    });
+    document.querySelector("#diagnostics-extension")?.remove();
+    document.querySelector<HTMLDetailsElement>("#diagnostics-details")!.open = true;
+
+    setupDebugLogPanel();
+
+    await vi.waitFor(() =>
+      expect(document.querySelector("#diagnostics-background")?.textContent).toBe("Startup failed"),
+    );
+    expect(document.querySelector("#diagnostics-host")?.textContent).toBe("MV3 event page");
+    expect(document.querySelector("#diagnostics-browser")?.textContent).toBe("Firefox");
+    expect(document.querySelector("#diagnostics-worker-started")?.textContent).toBe(
+      "$TIME$ · up for $UPTIME$",
+    );
+    expect(document.querySelector("#diagnostics-session-storage")?.textContent).toBe("Unavailable");
+    expect(document.querySelector("#diagnostics-verbose")?.textContent).toBe("On");
+    expect(document.querySelector("#diagnostics-lifecycle")?.textContent).toContain(
+      "Extension updated from $VERSION$.",
+    );
+    expect(document.querySelector("#diagnostics-lifecycle")?.textContent).toContain(
+      "Recent failures cleared.",
+    );
+  });
+
+  test("copies empty diagnostics and ignores incomplete core rows", async () => {
+    const copy = vi.fn<(text: string) => Promise<void>>().mockResolvedValue();
+    vi.mocked(browser.runtime.sendMessage).mockResolvedValue({
+      type: MESSAGE_TYPES.DIAGNOSTICS_GET,
+      body: snapshot({
+        browser: "UNKNOWN",
+        browserVersion: 0,
+        workerStatus: "starting",
+        workerUptimeMs: 500,
+        lifecycle: [],
+        recentFailures: [],
+      }),
+    });
+    const core = document.querySelector("#diagnostics-core")!;
+    core.replaceChildren();
+    core.insertAdjacentHTML(
+      "beforeend",
+      "<div><dt></dt><dd>orphan value</dd></div><div><dt>Orphan label</dt></div>",
+    );
+    document.querySelector<HTMLDetailsElement>("#diagnostics-details")!.open = true;
+    setupDebugLogPanel(copy);
+    await vi.waitFor(() => expect(browser.runtime.sendMessage).toHaveBeenCalledOnce());
+
+    document.querySelector<HTMLButtonElement>("#diagnostics-copy")!.click();
+
+    await vi.waitFor(() => expect(copy).toHaveBeenCalledOnce());
+    expect(copy.mock.calls[0]?.[0]).toContain("Translated<diagnosticsLifecycleEmpty>");
+    expect(copy.mock.calls[0]?.[0]).toContain("Translated<diagnosticsFailuresEmpty>");
+    expect(copy.mock.calls[0]?.[0]).not.toContain("orphan");
+  });
+
+  test("contains diagnostics when optional output and control nodes are absent", async () => {
+    document.body.innerHTML = '<details id="diagnostics-details" open></details>';
+    vi.mocked(browser.runtime.sendMessage).mockResolvedValue({
+      type: MESSAGE_TYPES.DIAGNOSTICS_GET,
+      body: snapshot(),
+    });
+
+    setupDebugLogPanel();
+
+    await vi.waitFor(() => expect(browser.runtime.sendMessage).toHaveBeenCalledOnce());
+    await expect(updateDebugLog()).resolves.toEqual(expect.objectContaining({ browser: "CHROME" }));
+  });
+
+  test("ignores setup without Diagnostics and rejects a non-record snapshot", async () => {
+    document.body.innerHTML = "";
+    setupDebugLogPanel();
+    expect(browser.runtime.sendMessage).not.toHaveBeenCalled();
+
+    document.body.innerHTML = '<details id="diagnostics-details" open></details>';
+    vi.mocked(browser.runtime.sendMessage).mockResolvedValue({
+      type: MESSAGE_TYPES.DIAGNOSTICS_GET,
+      body: null,
+    });
+    await expect(updateDebugLog()).resolves.toBeUndefined();
+  });
+
+  test("refreshes explicitly and ignores a stale successful request", async () => {
+    let resolveFirst: ((value: unknown) => void) | undefined;
+    const first = new Promise((resolve) => {
+      resolveFirst = resolve;
+    });
+    vi.mocked(browser.runtime.sendMessage)
+      .mockReturnValueOnce(first as ReturnType<typeof browser.runtime.sendMessage>)
+      .mockResolvedValueOnce({
+        type: MESSAGE_TYPES.DIAGNOSTICS_GET,
+        body: snapshot({ browser: "FIREFOX" }),
+      });
+    document.querySelector<HTMLDetailsElement>("#diagnostics-details")!.open = true;
+    setupDebugLogPanel();
+    document.querySelector<HTMLButtonElement>("#debug-log-refresh")!.click();
+    await vi.waitFor(() =>
+      expect(document.querySelector("#diagnostics-browser")?.textContent).toContain("Firefox"),
+    );
+
+    resolveFirst?.({
+      type: MESSAGE_TYPES.DIAGNOSTICS_GET,
+      body: snapshot({ browser: "CHROME" }),
+    });
+    await Promise.resolve();
+
+    expect(document.querySelector("#diagnostics-browser")?.textContent).toContain("Firefox");
+  });
+
+  test("refreshes an already rendered snapshot from the button", async () => {
+    vi.mocked(browser.runtime.sendMessage)
+      .mockResolvedValueOnce({ type: MESSAGE_TYPES.DIAGNOSTICS_GET, body: snapshot() })
+      .mockResolvedValueOnce({
+        type: MESSAGE_TYPES.DIAGNOSTICS_GET,
+        body: snapshot({ browser: "FIREFOX" }),
+      });
+    document.querySelector<HTMLDetailsElement>("#diagnostics-details")!.open = true;
+    setupDebugLogPanel();
+    await vi.waitFor(() =>
+      expect(document.querySelector<HTMLButtonElement>("#debug-log-refresh")?.disabled).toBe(false),
+    );
+
+    document.querySelector<HTMLButtonElement>("#debug-log-refresh")!.click();
+
+    await vi.waitFor(() => expect(browser.runtime.sendMessage).toHaveBeenCalledTimes(2));
+    expect(document.querySelector("#diagnostics-browser")?.textContent).toContain("Firefox");
+  });
+
+  test("ignores a stale rejection after a newer request succeeds", async () => {
+    let rejectFirst: ((reason: unknown) => void) | undefined;
+    const first = new Promise((_resolve, reject) => {
+      rejectFirst = reject;
+    });
+    vi.mocked(browser.runtime.sendMessage)
+      .mockReturnValueOnce(first as ReturnType<typeof browser.runtime.sendMessage>)
+      .mockResolvedValueOnce({ type: MESSAGE_TYPES.DIAGNOSTICS_GET, body: snapshot() });
+    document.querySelector<HTMLDetailsElement>("#diagnostics-details")!.open = true;
+    setupDebugLogPanel();
+    document.querySelector<HTMLButtonElement>("#debug-log-refresh")!.click();
+    await vi.waitFor(() =>
+      expect(document.querySelector("#diagnostics-background")?.textContent).toContain(
+        "Translated<diagnosticsWorkerReady>",
+      ),
+    );
+
+    rejectFirst?.(new Error("late failure"));
+    await Promise.resolve();
+
+    expect(document.querySelector("#diagnostics-status")?.classList).not.toContain(
+      "feedback-error",
+    );
+  });
+
+  test("reports copy failures", async () => {
+    const copy = vi.fn<(text: string) => Promise<void>>().mockRejectedValue(new Error("denied"));
+    vi.mocked(browser.runtime.sendMessage).mockResolvedValueOnce({
+      type: MESSAGE_TYPES.DIAGNOSTICS_GET,
+      body: snapshot(),
+    });
+    document.querySelector<HTMLDetailsElement>("#diagnostics-details")!.open = true;
+    setupDebugLogPanel(copy);
+    await vi.waitFor(() =>
+      expect(document.querySelector<HTMLButtonElement>("#diagnostics-copy")?.disabled).toBe(false),
+    );
+    document.querySelector<HTMLButtonElement>("#diagnostics-copy")!.click();
+    await vi.waitFor(() =>
+      expect(document.querySelector("#diagnostics-status")?.textContent).toContain(
+        "Translated<diagnosticsCopyFailed>",
+      ),
+    );
+  });
+
+  test("skips copying when no snapshot can load", async () => {
+    const copy = vi.fn<(text: string) => Promise<void>>().mockResolvedValue();
+    vi.mocked(browser.runtime.sendMessage).mockRejectedValue(new Error("offline"));
+    const details = document.querySelector<HTMLDetailsElement>("#diagnostics-details")!;
+    setupDebugLogPanel(copy);
+    details.open = true;
+    document
+      .querySelector<HTMLButtonElement>("#diagnostics-copy")!
+      .dispatchEvent(new MouseEvent("click"));
+    await vi.waitFor(() =>
+      expect(document.querySelector("#diagnostics-status")?.textContent).toContain(
+        "diagnosticsLoadFailed",
+      ),
+    );
+    expect(browser.runtime.sendMessage).toHaveBeenCalled();
+    expect(copy).not.toHaveBeenCalled();
+  });
+
+  test("rejects a non-OK clear acknowledgement", async () => {
+    vi.mocked(browser.runtime.sendMessage)
+      .mockResolvedValueOnce({ type: MESSAGE_TYPES.DIAGNOSTICS_GET, body: snapshot() })
+      .mockResolvedValueOnce({ type: MESSAGE_TYPES.DIAGNOSTICS_GET, body: snapshot() });
+    document.querySelector<HTMLDetailsElement>("#diagnostics-details")!.open = true;
+    setupDebugLogPanel();
+    await vi.waitFor(() => expect(browser.runtime.sendMessage).toHaveBeenCalledOnce());
+
+    document.querySelector<HTMLButtonElement>("#debug-log-clear")!.click();
+
+    await vi.waitFor(() =>
+      expect(document.querySelector("#diagnostics-status")?.textContent).toContain(
+        "Translated<diagnosticsClearFailed>",
+      ),
+    );
   });
 });
 
@@ -584,6 +820,33 @@ describe("variables preview", () => {
       document.querySelector<HTMLTextAreaElement>("#paths"),
       "---",
     );
+  });
+
+  test("uses path-command fallbacks and dismisses a non-disclosure preview", async () => {
+    vi.mocked(browser.i18n.getMessage).mockReturnValue("");
+    document.body.innerHTML = `
+      <textarea id="paths"></textarea>
+      <section class="variables-preview" data-insert-target="paths" open>
+        <div class="variables-preview-list"></div>
+      </section>`;
+    vi.mocked(browser.runtime.sendMessage)
+      .mockResolvedValueOnce({ body: { variables: [] } })
+      .mockResolvedValueOnce({ body: { interpolatedVariables: {} } });
+    await renderVariablesPreview();
+    const commands = [...document.querySelectorAll<HTMLElement>(".variables-preview-command")];
+    expect(commands.map(({ textContent }) => textContent)).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining("Separator"),
+        expect.stringContaining("Create a submenu"),
+      ]),
+    );
+    const panel = document.querySelector<HTMLElement>(".variables-preview")!;
+    panel.setAttribute("open", "");
+    document
+      .querySelector<HTMLInputElement>(".variables-preview-filter")!
+      .dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+
+    expect(panel.hasAttribute("open")).toBe(false);
   });
 });
 

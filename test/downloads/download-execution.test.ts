@@ -938,6 +938,16 @@ describe("Download.launch (fire-and-forget with a user-facing failure)", () => {
     }
   });
 
+  test("keeps a rejected source-sidecar launch quiet", async () => {
+    vi.spyOn(Download, "renameAndDownload").mockRejectedValue(new Error("sidecar failed"));
+
+    await expect(
+      Download.launch(makeState({ info: { context: DOWNLOAD_TYPES.SIDECAR } })),
+    ).resolves.toEqual({ status: "failed" });
+
+    expect(Notifier.reportFailure).not.toHaveBeenCalled();
+  });
+
   test("reports nothing on a successful pipeline run", async () => {
     const orig = Download.renameAndDownload;
     Download.renameAndDownload = vi.fn(() =>

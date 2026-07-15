@@ -61,6 +61,7 @@ describe("routing visual editor", () => {
       [...document.querySelectorAll("#rules-mode-text, #rules-mode-visual")].map((tab) => tab.id),
     ).toEqual(["rules-mode-text", "rules-mode-visual"]);
     expect(document.querySelectorAll(".rule-editor-card")).toHaveLength(1);
+    expect(element<HTMLElement>(".rule-editor-card h5").textContent).toBe("Rule 1");
     expect(element<HTMLInputElement>(".rule-clause-value").value).toBe("\\.jpg$");
     expect(
       [...document.querySelectorAll("#rules-visual input, #rules-visual select")].every(
@@ -503,6 +504,19 @@ describe("routing visual editor", () => {
     expect(navigate).toHaveBeenCalledOnce();
     expect((navigate.mock.calls[0]![0] as CustomEvent).detail.target).toBe(
       element("#filenamePatterns"),
+    );
+  });
+
+  test("navigates Browser routings to the active visual editor", () => {
+    localStorage.setItem("saveInRulesEditorMode", "visual");
+    const navigate = vi.fn();
+    document.addEventListener("save-in:navigate-option", navigate, { once: true });
+    setupRuleVisualEditor({ matchers: ["context", "sourceurl"] });
+
+    element<HTMLButtonElement>("#browser-download-manage-rules").click();
+
+    expect((navigate.mock.calls[0]![0] as CustomEvent).detail.target).toBe(
+      element("#rules-mode-visual"),
     );
   });
 

@@ -677,6 +677,38 @@ describe("content.js initialisation", () => {
     expect(document.getElementById("save-in-source-panel")).not.toBeNull();
   });
 
+  test.each([false, true])(
+    "contains automatic-rule messaging when the extension context throws: %s",
+    async (throws) => {
+      document.body.innerHTML = '<img src="https://cdn.test/cat.jpg">';
+      await importContentWithOptions({ sourcePanelEnabled: true, sourcePanelBackgrounds: false });
+      const sendMessage = vi.mocked(global.chrome.runtime.sendMessage);
+      sendMessage.mockImplementation((message, callback) => {
+        const respond = typeof callback === "function" ? callback : undefined;
+        if ((message as { type?: string }).type === "CREATE_SOURCE_RULE") {
+          if (throws) throw new Error("context invalidated");
+          respond?.({ type: "OK" });
+          return;
+        }
+        respond?.();
+      });
+      const runtimeListener = vi.mocked(global.chrome.runtime.onMessage.addListener).mock
+        .calls[0]![0] as (message: any) => void;
+      runtimeListener({ type: "SET_SOURCE_PANEL", body: { open: true } });
+      await Promise.resolve();
+      const action = document
+        .getElementById("save-in-source-panel")!
+        .shadowRoot!.querySelectorAll<HTMLButtonElement>(".action-menu button")[1]!;
+
+      expect(() => action.click()).not.toThrow();
+      await Promise.resolve();
+      expect(sendMessage).toHaveBeenCalledWith(
+        expect.objectContaining({ type: "CREATE_SOURCE_RULE" }),
+        expect.any(Function),
+      );
+    },
+  );
+
   test("closes Page Sources in response to explicit background state", async () => {
     await importContentWithOptions({ sourcePanelEnabled: true, sourcePanelBackgrounds: false });
     const runtimeListener = vi.mocked(global.chrome.runtime.onMessage.addListener).mock
@@ -1124,6 +1156,18 @@ describe("setupClickToSave", () => {
       },
       expect.any(Function),
     );
+  });
+
+  test("accepts a successful runtime download acknowledgement", async () => {
+    sendMessage.mockImplementation((_message, callback) =>
+      callback?.({ type: "DOWNLOAD", body: { status: "OK" } }),
+    );
+    holdCombo();
+
+    mousedown(document.getElementById("i"));
+    await Promise.resolve();
+
+    expect(downloadsSent()).toHaveLength(1);
   });
 
   test("a two-modifier shortcut requires both modifiers", () => {

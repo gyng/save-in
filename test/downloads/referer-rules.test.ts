@@ -177,6 +177,15 @@ test("worker reset drains protected work before removing the shared rule", async
   });
 });
 
+test("worker reset is a no-op when referer rules are unavailable", async () => {
+  setCurrentBrowser(BROWSERS.UNKNOWN);
+
+  await RefererRules.reset();
+
+  expect(updateSessionRules()).not.toHaveBeenCalled();
+  expect(firefoxUpdateSessionRules()).not.toHaveBeenCalled();
+});
+
 test("scopes Firefox rules to its moz-extension origin", async () => {
   setCurrentBrowser(BROWSERS.FIREFOX);
   const operation = vi.fn(async () => "native");

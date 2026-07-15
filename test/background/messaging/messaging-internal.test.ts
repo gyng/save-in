@@ -13,6 +13,7 @@ import {
   ExternalDownloadRejections,
   SourcePanelState,
   RoutePreview,
+  Log,
   onMessage,
   onMessageExternal,
   setupGlobals,
@@ -316,6 +317,52 @@ describe("onMessage", () => {
     });
     expect(global.browser.runtime.openOptionsPage).toHaveBeenCalled();
     expect(sendResponse).toHaveBeenCalledWith({ type: MESSAGE_TYPES.OK });
+  });
+
+  test.each([
+    ["a sender without a page URL", {}],
+    [
+      "an incognito sender",
+      { tab: { id: 12, url: "https://gallery.example.com/post/1", incognito: true } },
+    ],
+  ])("CREATE_SOURCE_RULE rejects %s", async (_label, sender) => {
+    vi.mocked(global.browser.runtime.openOptionsPage).mockClear();
+    const sendResponse = vi.fn();
+    expect(
+      onMessage(
+        {
+          type: MESSAGE_TYPES.CREATE_SOURCE_RULE,
+          body: { sourceUrl: "https://cdn.example.net/cat.jpg", sourceKind: "image" },
+        },
+        sender,
+        sendResponse,
+      ),
+    ).toBe(true);
+    await waitForCall(sendResponse);
+
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.CREATE_SOURCE_RULE,
+      body: expect.objectContaining({ status: MESSAGE_TYPES.ERROR }),
+    });
+    expect(global.browser.runtime.openOptionsPage).not.toHaveBeenCalled();
+  });
+
+  test("DIAGNOSTICS_GET returns a snapshot and DIAGNOSTICS_CLEAR_FAILURES clears the log", async () => {
+    const getResponse = vi.fn();
+    expect(onMessage({ type: MESSAGE_TYPES.DIAGNOSTICS_GET }, {}, getResponse)).toBe(true);
+    await waitForCall(getResponse);
+    expect(getResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.DIAGNOSTICS_GET,
+      body: expect.objectContaining({ extensionVersion: "4.0.0" }),
+    });
+
+    const clearResponse = vi.fn();
+    expect(onMessage({ type: MESSAGE_TYPES.DIAGNOSTICS_CLEAR_FAILURES }, {}, clearResponse)).toBe(
+      true,
+    );
+    await waitForCall(clearResponse);
+    expect(Log.clear).toHaveBeenCalledOnce();
+    expect(clearResponse).toHaveBeenCalledWith({ type: MESSAGE_TYPES.OK });
   });
 
   test("OPTIONS_LOADED responds only after the background reset completes", async () => {

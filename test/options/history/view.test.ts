@@ -162,6 +162,7 @@ describe("history row flatteners", () => {
     expect(statusLabel("pending")).toBe("Saving…");
     expect(statusLabel("failed")).toBe("Failed");
     expect(statusLabel("NETWORK_FAILED")).toBe("Network failed");
+    expect(statusLabel("OTHER_THING")).toBe("other thing");
     expect(
       statusLabel("USER_CANCELED", (key) => (key === "historyStatusCanceled" ? "Stopped" : "")),
     ).toBe("Stopped");

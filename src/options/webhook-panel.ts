@@ -243,7 +243,10 @@ export const setupWebhookPanel = (
   endpoint.addEventListener("input", () => {
     endpointValidation(false);
     if (endpointSaveTimer !== undefined) window.clearTimeout(endpointSaveTimer);
-    endpointSaveTimer = window.setTimeout(() => void saveEndpoint(), 400);
+    endpointSaveTimer = window.setTimeout(() => {
+      endpointSaveTimer = undefined;
+      void saveEndpoint();
+    }, 400);
   });
   endpoint.addEventListener("blur", () => {
     endpointValidation(endpoint.value.trim() !== "");

@@ -3,6 +3,7 @@
 import { options } from "../../../src/config/options-data.ts";
 import type { SaveInOptions } from "../../../src/config/option-schema.ts";
 import { Notifier as notification } from "../../../src/downloads/notification.ts";
+import { resetNotifierTransientState } from "../../../src/downloads/notification.ts";
 
 const setOptions = (overrides: Partial<SaveInOptions> = {}) => {
   const mutableOptions = options as unknown as Record<string, unknown>;
@@ -164,6 +165,18 @@ describe("createExtensionNotification", () => {
       "save-in-not-route-match",
       "save-in-not-download-failure",
     ]);
+  });
+
+  test("cancels pending debounce and clear timers during a transient reset", () => {
+    vi.useFakeTimers();
+    setOptions({ notifyDuration: 500 });
+    notification.createExtensionNotification("Routing", "shown", false, "route-match");
+    vi.advanceTimersByTime(250);
+    notification.createExtensionNotification("Download", "queued", true, "download-failure");
+
+    resetNotifierTransientState();
+
+    expect(vi.getTimerCount()).toBe(0);
   });
 
   test("reports a rejected external download immediately with a stable notification id", async () => {

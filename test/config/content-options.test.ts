@@ -88,6 +88,16 @@ test("falls back safely when a stored shortcut string contains unknown keys", ()
   expect("validate" in comboDefinition && comboDefinition.validate("Ctrl+Shift")).toBe(true);
 });
 
+test("validates the bounded recent-destination count", () => {
+  const definition = OPTION_KEYS.find(({ name }) => name === "recentDestinationCount")!;
+  const validate = "validate" in definition ? definition.validate : () => false;
+
+  expect([0, 5, " 3 "].every((value) => validate(value))).toBe(true);
+  expect(
+    [null, "", "   ", 1.5, -1, 6, Number.MAX_SAFE_INTEGER + 1].some((value) => validate(value)),
+  ).toBe(false);
+});
+
 test.each([-1, 0, 1.5, "-1", "0", "1.5", "toString"])(
   "rejects malformed legacy shortcut key code %j",
   (value) => {

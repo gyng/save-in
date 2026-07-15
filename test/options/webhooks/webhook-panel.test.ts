@@ -267,6 +267,12 @@ test("debounces valid endpoint saves, saves blank endpoints, and rejects malform
   endpoint.dispatchEvent(new InputEvent("input"));
   endpoint.value = "https://hooks.example/final";
   endpoint.dispatchEvent(new InputEvent("input"));
+  endpoint.dispatchEvent(new FocusEvent("blur"));
+  await Promise.resolve();
+  expect(ports.apply).toHaveBeenCalledWith({ webhookUrl: "https://hooks.example/final" });
+
+  vi.mocked(ports.apply).mockClear();
+  endpoint.dispatchEvent(new InputEvent("input"));
   await vi.advanceTimersByTimeAsync(400);
   expect(ports.apply).toHaveBeenCalledWith({ webhookUrl: "https://hooks.example/final" });
 

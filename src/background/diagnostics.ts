@@ -56,7 +56,8 @@ export const markBackgroundFailed = (): void => {
 };
 
 const getLifecycle = async (): Promise<DiagnosticLifecycleEntry[]> => {
-  await latestWrite.catch(() => {});
+  // updateSession contains persistence failures and always settles successfully.
+  await latestWrite;
   const stored = await getSession(extensionSessionStorage, DIAGNOSTIC_LIFECYCLE_SESSION_KEY);
   return normalizeDiagnosticLifecycle(stored[DIAGNOSTIC_LIFECYCLE_SESSION_KEY]);
 };

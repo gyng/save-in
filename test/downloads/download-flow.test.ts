@@ -99,6 +99,19 @@ describe("pipeline stages", () => {
     );
   });
 
+  test("keeps a rejected source-sidecar acquisition quiet", async () => {
+    const state = makeState({
+      info: {
+        context: "SIDECAR",
+        contentPromise: Promise.reject(new Error("sidecar content unavailable")),
+      },
+    });
+
+    await expect(Download.renameAndDownload(state)).resolves.toEqual({ status: "failed" });
+
+    expect(Notifier.reportFailure).not.toHaveBeenCalled();
+  });
+
   test("revokes a generated URL when acquisition fails", async () => {
     vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:failed-acquisition");
     vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {});

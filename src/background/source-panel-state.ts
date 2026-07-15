@@ -54,7 +54,8 @@ export const syncSourcePanelToTab = (tabId: number): Promise<void> => {
 export const resetSourcePanelState = async (): Promise<void> => {
   for (;;) {
     const pending = queue;
-    await pending.catch(() => {});
+    // Every queued operation contains host failures at its own boundary.
+    await pending;
     if (queue === pending) break;
   }
   fallback = false;

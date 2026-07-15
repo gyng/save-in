@@ -11,6 +11,7 @@ import {
   formatSourceBytes,
   isPerformanceResourceTiming,
   isSourceSort,
+  mergePageSourcesByUrl,
   positionDraggedSourcePanel,
   positionSourceTooltip,
   resourceTimingByUrl,
@@ -18,6 +19,21 @@ import {
   urlsFromCss,
   urlsFromSrcset,
 } from "../../src/content/source-panel-model.ts";
+
+test("merges responsive metadata into an earlier plain source", () => {
+  const element = document.createElement("img");
+  const merged = mergePageSourcesByUrl([
+    { url: "https://example.com/image.jpg", kind: "image", element },
+    {
+      url: "https://example.com/image.jpg",
+      kind: "image",
+      element,
+      responsive: { selected: true, descriptor: "2x" },
+    },
+  ]);
+
+  expect(merged[0]?.responsive).toEqual({ selected: true, descriptor: "2x" });
+});
 
 test("accepts legacy and resource timing entries but rejects unrelated performance entries", () => {
   expect(isPerformanceResourceTiming({ entryType: "" } as PerformanceEntry)).toBe(true);

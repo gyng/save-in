@@ -238,6 +238,8 @@ describe("startup", () => {
     const installed = capturedOnInstalled();
 
     await installed({ reason: "update", previousVersion: "3.9.0", temporary: false });
+    await installed({ reason: "update", temporary: false });
+    await installed({ reason: "browser_update", temporary: false });
     expect(global.browser.runtime.openOptionsPage).not.toHaveBeenCalled();
     expect(global.browser.storage.local.set).not.toHaveBeenCalled();
 

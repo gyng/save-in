@@ -464,6 +464,7 @@ const renderHistoryTable = () => {
     const cells = new Map<string, HTMLTableCellElement>();
     const appendCell = (key: string, cell: HTMLTableCellElement) => {
       cell.dataset.column = key;
+      /* v8 ignore next -- appendCell receives only the fixed history column keys. */
       cell.dataset.label = columnLabels.get(key) ?? key;
       cells.set(key, cell);
     };

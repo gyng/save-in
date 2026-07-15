@@ -25,4 +25,9 @@ describe("source rule drafts", () => {
       createSourceRuleDraft("https://page.test", "data:image/png;base64,a", "image"),
     ).toBeNull();
   });
+
+  test("contains malformed URLs at the draft boundary", () => {
+    expect(createSourceRuleDraft("not a URL", "https://cdn.test/a.jpg", "image")).toBeNull();
+    expect(createSourceRuleDraft("https://page.test", "https://[invalid", "image")).toBeNull();
+  });
 });

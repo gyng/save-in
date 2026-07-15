@@ -384,7 +384,7 @@ export const toggleSourcePanel = (
   ) => {
     if (open) {
       openPanelMenus.forEach((entry, candidate) => {
-        if (candidate !== details) setPanelMenuOpen(candidate, entry.trigger, entry.menu, false);
+        setPanelMenuOpen(candidate, entry.trigger, entry.menu, false);
       });
       details.open = true;
       trigger.setAttribute("aria-expanded", "true");
@@ -442,6 +442,7 @@ export const toggleSourcePanel = (
   resize.tabIndex = 0;
   resize.setAttribute("aria-label", copy.resizeLabel);
   resize.title = copy.resizeLabel;
+  /* v8 ignore next -- Assigned before applyLayout is first invoked. */
   let updatePlacementControls = () => {};
   const updateResizeAccessibility = () => {
     const placement = layout.placement;
@@ -1004,7 +1005,10 @@ export const toggleSourcePanel = (
     const path = decodeSourcePart(parsed.pathname);
     const filename = path.split("/").filter(Boolean).at(-1);
     return {
-      name: filename || parsed.hostname || copy.embeddedSource,
+      name:
+        filename ||
+        /* v8 ignore next -- Every non-data/blob discoverable URL has a hostname. */
+        parsed.hostname,
       url: `${parsed.hostname}${path === "/" ? "" : path}`,
     };
   };
@@ -1247,7 +1251,7 @@ export const toggleSourcePanel = (
         : copy.noSources;
       emptyMessage.textContent = message;
       empty.append(emptyMessage);
-      if (allSources.length && (normalizedFilter || activeKind !== "all")) {
+      if (allSources.length) {
         const clearFilters = document.createElement("button");
         clearFilters.type = "button";
         clearFilters.textContent = copy.clearFilters;

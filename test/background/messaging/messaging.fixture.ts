@@ -113,6 +113,8 @@ const setupGlobals = () => {
   vi.spyOn(SaveHistory, "clear").mockResolvedValue();
   vi.spyOn(SaveHistory, "setStatus").mockResolvedValue(undefined);
   vi.spyOn(Log, "add").mockResolvedValue(undefined);
+  vi.spyOn(Log, "get").mockResolvedValue([]);
+  vi.spyOn(Log, "clear").mockResolvedValue(undefined);
   vi.spyOn(ActiveTransfers, "get").mockReturnValue(undefined);
   vi.spyOn(ActiveTransfers, "cancel").mockReturnValue(false);
   vi.spyOn(OffscreenClient, "canUse").mockReturnValue(false);

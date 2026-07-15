@@ -3,10 +3,20 @@ import { Shortcut as shortcut } from "../../src/downloads/shortcut.ts";
 import { Download } from "../../src/downloads/download.ts";
 import * as Path from "../../src/routing/path.ts";
 import { setCurrentTab } from "../../src/platform/current-tab.ts";
+import { launchSourceSidecar } from "../../src/downloads/source-sidecar.ts";
+import { options } from "../../src/config/options-data.ts";
 
 const makeShortcutContent = shortcut.makeShortcutContent;
 
 describe("shortcut content creation", () => {
+  test("does not launch a source sidecar when the option is disabled", async () => {
+    options.saveSourceSidecar = false;
+
+    await expect(
+      launchSourceSidecar({ info: {}, scratch: {} } as never, "https://example.com/source"),
+    ).resolves.toBeUndefined();
+  });
+
   test("names a source sidecar after the final routed file", () => {
     expect(
       shortcut.sourceSidecarPath("gallery/cat.large.jpg", SHORTCUT_TYPES.WINDOWS, 200),
@@ -14,6 +24,10 @@ describe("shortcut content creation", () => {
     expect(shortcut.sourceSidecarPath("README", SHORTCUT_TYPES.MAC_WEBLOC, 200)).toEqual({
       directory: ".",
       filename: "README.webloc",
+    });
+    expect(shortcut.sourceSidecarPath("/", "UNKNOWN", 200)).toEqual({
+      directory: ".",
+      filename: "source.url",
     });
   });
 

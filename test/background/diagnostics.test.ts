@@ -68,4 +68,36 @@ describe("background diagnostics", () => {
       expect.objectContaining({ message: "download failed", data: '{"reason":"denied"}' }),
     ]);
   });
+
+  test("reports a failed Firefox event page with its detected version", async () => {
+    Object.assign(browser.runtime, {
+      getBrowserInfo: vi.fn().mockResolvedValue({ name: "Firefox", version: "130.0" }),
+    });
+    vi.stubGlobal("document", {});
+    const diagnostics = await import("../../src/background/diagnostics.ts");
+    await Promise.resolve();
+    diagnostics.markBackgroundFailed();
+
+    const snapshot = await diagnostics.getDiagnosticSnapshot();
+
+    expect(snapshot).toMatchObject({
+      browser: "FIREFOX",
+      browserVersion: 130,
+      backgroundHost: "event_page",
+      workerStatus: "failed",
+    });
+    expect(snapshot).not.toHaveProperty("workerReadyAt");
+    vi.unstubAllGlobals();
+    Reflect.deleteProperty(browser.runtime, "getBrowserInfo");
+  });
+
+  test("continues reading diagnostics after a lifecycle write rejection", async () => {
+    vi.mocked(browser.storage.session.set).mockRejectedValueOnce(new Error("session unavailable"));
+    const diagnostics = await import("../../src/background/diagnostics.ts");
+
+    await expect(
+      diagnostics.recordDiagnosticLifecycle("configuration_reloaded"),
+    ).resolves.toBeUndefined();
+    await expect(diagnostics.getDiagnosticSnapshot()).resolves.toMatchObject({ lifecycle: [] });
+  });
 });

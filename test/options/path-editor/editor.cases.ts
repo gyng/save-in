@@ -218,14 +218,7 @@ describe("visual editor", () => {
       [...menu.querySelectorAll<HTMLButtonElement>("[data-path-action]")].map(
         (button) => button.textContent,
       ),
-    ).toEqual([
-      "Always ask where to save",
-      "Outdent",
-      "Indent",
-      "Move up",
-      "Move down",
-      "Delete",
-    ]);
+    ).toEqual(["Always ask where to save", "Outdent", "Indent", "Move up", "Move down", "Delete"]);
 
     menu.open = true;
     menu.querySelector<HTMLElement>("button")!.focus();
@@ -237,6 +230,42 @@ describe("visual editor", () => {
     expect(menu.open).toBe(true);
     document.body.click();
     expect(menu.open).toBe(false);
+
+    menu.querySelector<HTMLButtonElement>('[data-path-action="save as"]')!.click();
+    expect(textarea().value).toContain("(dialog: true)");
+  });
+
+  test("places undo beside visual save actions when they are available", () => {
+    document.body.innerHTML = `
+      <textarea id="paths">a</textarea>
+      <input type="checkbox" id="enableNumberedItems">
+      <button id="path-editor-add-dir"></button><button id="path-editor-add-sep"></button>
+      <div id="paths-visual">
+        <div id="path-editor-rows"></div>
+        <div class="editor-save-actions"><button data-discard="paths"></button></div>
+      </div>`;
+    new PathEditor().setupVisualEditor();
+    const discard = element<HTMLElement>('[data-discard="paths"]');
+    expect(discard.previousElementSibling).toBe(element(".path-editor-undo"));
+
+    document.body.innerHTML = `
+      <textarea id="paths">a</textarea>
+      <input type="checkbox" id="enableNumberedItems">
+      <button id="path-editor-add-dir"></button><button id="path-editor-add-sep"></button>
+      <div id="paths-visual">
+        <div id="path-editor-rows"></div><div class="editor-save-actions"></div>
+      </div>`;
+    new PathEditor().setupVisualEditor();
+    expect(element(".editor-save-actions").firstElementChild).toBe(element(".path-editor-undo"));
+  });
+
+  test("ignores a stale row action after an external edit removes its node", () => {
+    const stale = rows()[1]!.querySelector<HTMLButtonElement>("[data-path-action]")!;
+    textarea().value = "";
+    textarea().dispatchEvent(new Event("input"));
+    vi.runAllTimers();
+
+    expect(() => stale.click()).not.toThrow();
   });
 
   test("edits access-key metadata from a compact visual control", () => {

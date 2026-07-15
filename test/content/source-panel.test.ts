@@ -216,6 +216,78 @@ describe("Page Sources panel interactions", () => {
     expect(getSourcePanelHostForTesting()!.dataset.dock).toBe("bottom");
   });
 
+  test("supports every resize key, floating pointer resize, and reset direction", () => {
+    vi.stubGlobal("visualViewport", {
+      offsetLeft: 4,
+      offsetTop: 6,
+      width: 900,
+      height: 700,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    });
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    const host = getSourcePanelHostForTesting()!;
+    vi.spyOn(host, "getBoundingClientRect").mockReturnValue({
+      left: 80,
+      top: 60,
+      right: 600,
+      bottom: 680,
+      width: 520,
+      height: 620,
+      x: 80,
+      y: 60,
+      toJSON: () => ({}),
+    });
+    const shadow = host.shadowRoot!;
+    const resize = shadow.querySelector<HTMLElement>(".resize")!;
+    resize.setPointerCapture = vi.fn();
+    const key = (value: string, shiftKey = false) =>
+      resize.dispatchEvent(new KeyboardEvent("keydown", { key: value, shiftKey, bubbles: true }));
+
+    key("ArrowRight");
+    key("PageDown");
+    shadow.querySelector<HTMLButtonElement>('[data-placement="left"]')!.click();
+    key("ArrowLeft", true);
+    key("ArrowRight");
+    key("PageDown");
+    shadow.querySelector<HTMLButtonElement>('[data-placement="top"]')!.click();
+    key("ArrowUp");
+    key("ArrowDown");
+    key("PageDown");
+    resize.dispatchEvent(new MouseEvent("dblclick", { bubbles: true }));
+    shadow.querySelector<HTMLButtonElement>('[data-placement="bottom"]')!.click();
+    key("ArrowDown");
+    shadow.querySelector<HTMLButtonElement>('[data-placement="floating"]')!.click();
+    key("ArrowLeft");
+    key("ArrowRight");
+    key("ArrowUp");
+    key("ArrowDown");
+    key("PageDown");
+
+    resize.dispatchEvent(
+      new PointerEvent("pointerdown", {
+        bubbles: true,
+        button: 0,
+        pointerId: 12,
+        clientX: 500,
+        clientY: 500,
+      }),
+    );
+    resize.dispatchEvent(
+      new PointerEvent("pointermove", {
+        bubbles: true,
+        pointerId: 12,
+        clientX: 540,
+        clientY: 550,
+      }),
+    );
+    resize.dispatchEvent(new PointerEvent("pointercancel", { bubbles: true, pointerId: 12 }));
+    resize.dispatchEvent(new MouseEvent("dblclick", { bubbles: true }));
+
+    expect(host.style.getPropertyValue("--source-panel-floating-width")).toBe("520px");
+    expect(host.style.getPropertyValue("--source-panel-floating-height")).toBe("620px");
+  });
+
   test("keeps row actions clickable and supports keyboard-complete menus", async () => {
     document.body.innerHTML = `<img src="cat.jpg">`;
     const image = document.querySelector<HTMLImageElement>("img")!;
@@ -262,6 +334,39 @@ describe("Page Sources panel interactions", () => {
       .dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
     expect(rowMore.open).toBe(false);
     expect(getSourcePanelHostForTesting()?.classList).not.toContain("closing");
+  });
+
+  test("wraps menu focus and tolerates empty and detached menus", async () => {
+    document.body.innerHTML = `<img src="cat.jpg">`;
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
+    const picker = shadow.querySelector<HTMLDetailsElement>(".dock-picker")!;
+    const trigger = picker.querySelector<HTMLElement>("summary")!;
+    picker.style.direction = "rtl";
+    trigger.click();
+    await Promise.resolve();
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    const menu = shadow.querySelector<HTMLElement>(".dock-menu")!;
+    shadow.querySelector<HTMLElement>(".row-more summary")!.click();
+    await Promise.resolve();
+    trigger.click();
+    await Promise.resolve();
+    const items = [...menu.querySelectorAll<HTMLButtonElement>("button")];
+    items[0]!.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true }));
+    expect(shadow.activeElement).toBe(items.at(-1));
+    items.at(-1)!.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }));
+    expect(shadow.activeElement).toBe(items[0]);
+    items.at(-1)!.dispatchEvent(new KeyboardEvent("keydown", { key: "Home", bubbles: true }));
+    expect(shadow.activeElement).toBe(items[0]);
+    items[0]!.dispatchEvent(new KeyboardEvent("keydown", { key: "Tab", bubbles: true }));
+
+    items.forEach((item) => item.remove());
+    menu.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }));
+    picker.remove();
+    window.dispatchEvent(new Event("resize"));
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+
+    expect(picker.isConnected).toBe(false);
   });
 
   test("locks and restores page scrolling while the narrow panel covers the viewport", () => {
@@ -368,6 +473,19 @@ describe("Page Sources panel interactions", () => {
     shadow.querySelector<HTMLButtonElement>(".empty button")!.click();
     expect(filter.value).toBe("");
     expect(shadow.querySelectorAll(".row")).toHaveLength(1);
+  });
+
+  test("formats malformed, empty data, and blob source URLs safely", () => {
+    document.body.innerHTML = `<img src="http://localhost/%E0%A4%A.jpg"><img src="data:,hello"><img src="blob:http://localhost/id">`;
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
+    const text = [...shadow.querySelectorAll<HTMLElement>(".source-link")].map(
+      ({ textContent }) => textContent,
+    );
+
+    expect(text.some((value) => value.includes("%E0%A4%A.jpg"))).toBe(true);
+    expect(text.some((value) => value.includes("data:data"))).toBe(true);
+    expect(text.some((value) => value.includes("blob:"))).toBe(true);
   });
 
   test("copies only URLs in the active text and type filters", async () => {
@@ -1481,6 +1599,43 @@ describe("Page Sources panel interactions", () => {
     expect(inputs.map(({ checked }) => checked)).toEqual([false, false, true]);
   });
 
+  test("ignores invalid selection-paint starts, moves, and finishes", () => {
+    document.body.innerHTML = `<img src="one.jpg"><img src="two.jpg">`;
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
+    const inputs = [...shadow.querySelectorAll<HTMLInputElement>(".source-selection input")];
+    const pointer = (type: string, pointerId: number, button = 0) =>
+      new PointerEvent(type, {
+        bubbles: true,
+        composed: true,
+        pointerId,
+        button,
+        clientX: 4,
+        clientY: 4,
+      });
+
+    inputs[0]!.dispatchEvent(pointer("pointerdown", 1, 1));
+    const url = inputs[0]!.dataset.sourceUrl;
+    delete inputs[0]!.dataset.sourceUrl;
+    inputs[0]!.dispatchEvent(pointer("pointerdown", 2));
+    inputs[0]!.dataset.sourceUrl = url;
+    document.dispatchEvent(pointer("pointermove", 2));
+    document.dispatchEvent(pointer("pointerup", 2));
+
+    inputs[0]!.dispatchEvent(pointer("pointerdown", 3));
+    inputs[1]!.dispatchEvent(pointer("pointerdown", 4));
+    inputs[0]!.dispatchEvent(pointer("pointermove", 3));
+    inputs[0]!.dispatchEvent(pointer("pointermove", 3));
+    shadow.querySelector<HTMLElement>(".close")!.dispatchEvent(pointer("pointermove", 3));
+    document.dispatchEvent(pointer("pointermove", 4));
+    document.dispatchEvent(pointer("pointerup", 4));
+    document.dispatchEvent(pointer("pointermove", 3));
+    document.dispatchEvent(pointer("pointerup", 3));
+    document.dispatchEvent(pointer("pointercancel", 3));
+
+    expect(inputs[0]!.checked).toBe(true);
+  });
+
   test("does not suppress keyboard activation after a selection drag", () => {
     vi.useFakeTimers();
     document.body.innerHTML = `<img src="one.jpg"><img src="two.jpg">`;
@@ -1500,6 +1655,31 @@ describe("Page Sources panel interactions", () => {
 
     vi.advanceTimersByTime(0);
     input.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, detail: 1 }));
+    expect(input.checked).toBe(false);
+  });
+
+  test("suppresses the synthetic pointer click but permits keyboard activation", () => {
+    vi.useFakeTimers();
+    document.body.innerHTML = `<img src="one.jpg">`;
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    const input =
+      getSourcePanelHostForTesting()!.shadowRoot!.querySelector<HTMLInputElement>(
+        ".source-selection input",
+      )!;
+    input.setPointerCapture = vi.fn();
+    input.dispatchEvent(
+      new PointerEvent("pointerdown", { bubbles: true, button: 0, pointerId: 3 }),
+    );
+    document.dispatchEvent(new PointerEvent("pointerup", { bubbles: true, pointerId: 3 }));
+    input.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, detail: 1 }));
+    expect(
+      getSourcePanelHostForTesting()!.shadowRoot!.querySelector(".selection-count")?.textContent,
+    ).toBe("1 selected");
+
+    input.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, detail: 0 }));
+    input.checked = false;
+    input.dispatchEvent(new Event("change"));
+    vi.advanceTimersByTime(0);
     expect(input.checked).toBe(false);
   });
 
@@ -1545,6 +1725,28 @@ describe("Page Sources panel interactions", () => {
     inputs[3]!.dispatchEvent(new Event("change"));
 
     expect(checkedWrites).toHaveBeenCalledOnce();
+  });
+
+  test("drops selections whose source disappears during a refresh", () => {
+    document.body.innerHTML = `<img src="gone.jpg">`;
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
+    const input = shadow.querySelector<HTMLInputElement>(".source-selection input")!;
+    input.checked = true;
+    input.dispatchEvent(new Event("change"));
+    replaceSourcePanel(vi.fn(), {
+      includeBackgrounds: false,
+      includeLinks: true,
+      live: false,
+    });
+    document.querySelector("img")!.remove();
+    replaceSourcePanel(vi.fn(), {
+      includeBackgrounds: false,
+      includeLinks: false,
+      live: false,
+    });
+
+    expect(shadow.querySelector(".selection-count")?.textContent).toBe("0 selected");
   });
 
   test("labels the selected responsive source and its descriptors", () => {
@@ -1616,6 +1818,83 @@ describe("Page Sources panel interactions", () => {
     )!;
     proceed.click();
     await vi.waitFor(() => expect(sendDownload).toHaveBeenCalledTimes(21));
+  });
+
+  test("cancels large batches through both dialog exits", async () => {
+    document.body.innerHTML = Array.from(
+      { length: 21 },
+      (_, index) => `<img src="image-${index}.jpg">`,
+    ).join("");
+    const sendDownload = vi.fn();
+    toggleSourcePanel(sendDownload, { includeBackgrounds: false, live: false });
+    const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
+    const select = [...shadow.querySelectorAll<HTMLButtonElement>(".selection-bar button")].find(
+      ({ textContent }) => textContent === "Select filtered",
+    )!;
+    const save = shadow.querySelector<HTMLButtonElement>(".batch-save")!;
+    const dialog = shadow.querySelector<HTMLDialogElement>(".batch-dialog")!;
+    dialog.showModal = vi.fn(() => dialog.setAttribute("open", ""));
+    dialog.close = vi.fn(() => dialog.removeAttribute("open"));
+    select.click();
+    save.click();
+    await Promise.resolve();
+    [...dialog.querySelectorAll<HTMLButtonElement>("button")]
+      .find(({ textContent }) => textContent === "Cancel")!
+      .click();
+    await Promise.resolve();
+    save.click();
+    await Promise.resolve();
+    dialog.dispatchEvent(new Event("cancel", { cancelable: true }));
+    await Promise.resolve();
+
+    expect(sendDownload).not.toHaveBeenCalled();
+    expect(dialog.close).toHaveBeenCalledTimes(2);
+  });
+
+  test("handles empty, thrown, cleared, and vanished batch selections", async () => {
+    document.body.innerHTML = `<img src="throw.jpg"><img src="vanish.jpg">`;
+    let release: ((value: boolean) => void) | undefined;
+    const sendDownload = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("failed"))
+      .mockImplementationOnce(() => new Promise<boolean>((resolve) => (release = resolve)));
+    toggleSourcePanel(sendDownload, { includeBackgrounds: false, live: false });
+    const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
+    const save = shadow.querySelector<HTMLButtonElement>(".batch-save")!;
+    save.click();
+    const select = [...shadow.querySelectorAll<HTMLButtonElement>(".selection-bar button")].find(
+      ({ textContent }) => textContent === "Select filtered",
+    )!;
+    select.click();
+    save.click();
+    await vi.waitFor(() => expect(sendDownload).toHaveBeenCalledTimes(2));
+    document.querySelectorAll("img").forEach((image) => image.remove());
+    replaceSourcePanel(sendDownload, {
+      includeBackgrounds: false,
+      includeLinks: true,
+      live: false,
+    });
+    release?.(false);
+    await vi.waitFor(() =>
+      expect(shadow.querySelector(".selection-count")?.textContent).toBe("0 selected"),
+    );
+
+    [...shadow.querySelectorAll<HTMLButtonElement>(".selection-bar button")]
+      .find(({ textContent }) => textContent === "Clear selection")
+      ?.click();
+    expect(sendDownload).toHaveBeenCalledTimes(2);
+  });
+
+  test("shows the unfiltered no-match state for an empty source kind", () => {
+    document.body.innerHTML = `<img src="cat.jpg">`;
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
+    [...shadow.querySelectorAll<HTMLButtonElement>(".facet")]
+      .find(({ textContent }) => textContent?.startsWith("Video"))!
+      .click();
+
+    expect(shadow.querySelector(".empty")?.textContent).toContain("No sources match");
+    expect(shadow.querySelector(".empty button")).not.toBeNull();
   });
 
   test("keeps rejected batch sources selected for retry", async () => {

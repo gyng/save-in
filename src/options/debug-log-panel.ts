@@ -253,6 +253,15 @@ const diagnosticsText = (snapshot: DiagnosticSnapshot): string => {
   ].join("\n");
 };
 
+const copyDiagnostics = async (
+  snapshot: DiagnosticSnapshot | undefined,
+  copy: CopyText,
+): Promise<void> => {
+  if (snapshot === undefined) return;
+  await copy(diagnosticsText(snapshot));
+  setStatus(message("diagnosticsCopySuccess", "Diagnostics copied."));
+};
+
 export const setupDebugLogPanel = (copy: CopyText = copyText): void => {
   const details = document.querySelector<HTMLDetailsElement>("#diagnostics-details");
   if (!details) return;
@@ -267,9 +276,7 @@ export const setupDebugLogPanel = (copy: CopyText = copyText): void => {
   document.querySelector("#diagnostics-copy")?.addEventListener("click", () => {
     const run = async (): Promise<void> => {
       const snapshot = latestSnapshot ?? (await updateDebugLog());
-      if (!snapshot) return;
-      await copy(diagnosticsText(snapshot));
-      setStatus(message("diagnosticsCopySuccess", "Diagnostics copied."));
+      await copyDiagnostics(snapshot, copy);
     };
     void run().catch(() => {
       setStatus(message("diagnosticsCopyFailed", "Could not copy diagnostics."), true);

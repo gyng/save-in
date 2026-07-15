@@ -378,6 +378,32 @@ describe("history filter controls", () => {
     expect(document.querySelector("#history-feedback")?.textContent).toContain("Source URL copied");
   });
 
+  test("renders a browser-owned entry without a saved path", async () => {
+    historyRuntime.entries = [{ id: "h-browser", observedBrowserDownload: true }];
+
+    await historyPanel.renderHistory();
+
+    expect(document.querySelector(".history-origin")?.textContent).toBe("Browser");
+    expect(document.querySelector('[aria-label="Copy saved path"]')).toBeNull();
+  });
+
+  test("reports clipboard failures from row actions", async () => {
+    vi.stubGlobal("navigator", {
+      ...navigator,
+      clipboard: { writeText: vi.fn().mockRejectedValue(new Error("clipboard blocked")) },
+    });
+    historyRuntime.entries = [
+      { id: "h-copy", status: "complete", finalFullPath: "images/cat.png" },
+    ];
+    await historyPanel.renderHistory();
+
+    document.querySelector<HTMLButtonElement>('[aria-label="Copy saved path"]')!.click();
+
+    await vi.waitFor(() =>
+      expect(document.querySelector("#history-feedback")?.textContent).toContain("Could not copy"),
+    );
+  });
+
   test("explains when show-in-folder is unavailable", async () => {
     historyRuntime.entries = [
       { id: "h-complete", status: "complete", downloadId: 42, finalFullPath: "done.png" },
@@ -786,6 +812,29 @@ describe("history filter controls", () => {
     document.querySelector<HTMLButtonElement>("#history-clear")!.click();
     document.querySelector<HTMLButtonElement>(".history-clear-dialog button")!.click();
     expect(historyRuntime.sendMessage).not.toHaveBeenCalledWith({ type: "HISTORY_CLEAR" });
+  });
+
+  test("restores focus when the clear dialog is canceled by the browser", async () => {
+    historyRuntime.entries = [{ id: "h-delete", finalFullPath: "delete-me.txt" }];
+    await historyPanel.renderHistory();
+    const opener = document.querySelector<HTMLButtonElement>("#history-clear")!;
+    opener.focus();
+    const showModal = vi.fn(function (this: HTMLDialogElement) {
+      this.setAttribute("open", "");
+    });
+    Object.defineProperty(HTMLDialogElement.prototype, "showModal", {
+      configurable: true,
+      value: showModal,
+    });
+    const pending = historyPanel.showClearHistoryDialog();
+    const dialog = document.querySelector<HTMLDialogElement>(".history-clear-dialog")!;
+
+    dialog.dispatchEvent(new Event("cancel", { cancelable: true }));
+
+    await expect(pending).resolves.toBe(false);
+    expect(showModal).toHaveBeenCalledOnce();
+    expect(document.activeElement).toBe(opener);
+    Reflect.deleteProperty(HTMLDialogElement.prototype, "showModal");
   });
 
   test("treats a non-OK clear response as a failure", async () => {

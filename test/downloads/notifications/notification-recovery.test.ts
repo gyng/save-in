@@ -255,6 +255,32 @@ describe("startup restore", () => {
     expect(OffscreenClient.release).toHaveBeenCalledWith("offscreen-31");
   });
 
+  test("retires a failed delayed recovery task", async () => {
+    vi.useFakeTimers();
+    const sessionStore = {
+      siDownloads: { 34: { adopted: true, historyEntryId: "h34" } },
+      siNotificationRecovery: {
+        version: 1,
+        token: "existing",
+        deadline: 0,
+        pendingDownloads: 0,
+        adoptedDownloadIds: [34],
+      },
+    } as Record<string, any>;
+    setupGlobals(sessionStore, () => [{ id: 34, state: "complete", fileSize: 12 }]);
+    const { downloadPorts } = await import("../../../src/downloads/ports.ts");
+    vi.spyOn(downloadPorts.history, "setStatus").mockRejectedValue(
+      new Error("history unavailable"),
+    );
+
+    await loadNotification();
+    await vi.advanceTimersByTimeAsync(0);
+    const { resetNotificationRecoveryState } =
+      await import("../../../src/downloads/notification.ts");
+
+    await expect(resetNotificationRecoveryState()).resolves.toBeUndefined();
+  });
+
   test("merges newly adopted downloads into an existing recovery lease", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-01-01T00:00:00Z"));

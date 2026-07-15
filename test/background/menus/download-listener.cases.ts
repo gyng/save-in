@@ -126,6 +126,23 @@ describe("addDownloadListener", () => {
     );
   });
 
+  test("contains source-link sidecar preparation failures", async () => {
+    options.saveSourceSidecar = true;
+    Menus.addPaths(["images"], ["image"]);
+    vi.spyOn(Shortcut, "sourceSidecarPath").mockImplementation(() => {
+      throw new Error("cannot prepare sidecar");
+    });
+
+    await expect(
+      listener({
+        menuItemId: "save-in-0",
+        mediaType: "image",
+        srcUrl: "https://example.com/cat.png",
+        pageUrl: "https://example.com/",
+      }),
+    ).resolves.toBeUndefined();
+  });
+
   test("waits for init (Runtime.ready) before handling a download click", async () => {
     let resolveReady!: (value?: unknown) => void;
     Runtime.ready = new Promise((res) => {

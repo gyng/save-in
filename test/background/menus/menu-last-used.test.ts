@@ -1,4 +1,5 @@
 import {
+  addRecentDestinations,
   menuState,
   recordRecentDestination,
   restoreLastUsed,
@@ -91,6 +92,9 @@ describe("Menus last-used state", () => {
   test("restores only valid recent destinations", () => {
     restoreLastUsed({
       recentDestinations: [
+        null,
+        { path: 3, meta: {} },
+        { path: "docs", meta: { comment: "docs", menuIndex: "2" } },
         {
           path: "images",
           meta: { comment: "photos", menuIndex: "1", title: "Images", prompt: true },
@@ -101,6 +105,10 @@ describe("Menus last-used state", () => {
     });
 
     expect(menuState.recentDestinations).toEqual([
+      {
+        path: "docs",
+        meta: { comment: "docs", menuIndex: "2", title: "docs" },
+      },
       {
         path: "images",
         meta: { comment: "photos", menuIndex: "1", title: "Images", prompt: true },
@@ -131,5 +139,38 @@ describe("Menus last-used state", () => {
     expect(global.browser.storage.local.set).toHaveBeenLastCalledWith({
       recentDestinations: menuState.recentDestinations,
     });
+  });
+
+  test("ignores private destinations and contains persistence failures", async () => {
+    await recordRecentDestination(
+      "private",
+      { comment: "private", menuIndex: "1", title: "Private" },
+      true,
+    );
+    vi.mocked(global.browser.storage.local.set).mockRejectedValueOnce(new Error("unavailable"));
+    await expect(
+      recordRecentDestination("public", {
+        comment: "public",
+        menuIndex: "2",
+        title: "Public",
+      }),
+    ).resolves.toBeUndefined();
+
+    expect(menuState.recentDestinations.map(({ path }) => path)).toEqual(["public"]);
+  });
+
+  test("uses fallback copy when rendering recent destinations", () => {
+    restoreLastUsed({
+      recentDestinations: [
+        { path: "images", meta: { comment: "photos", menuIndex: "1", title: "Images" } },
+      ],
+    });
+    vi.mocked(global.browser.i18n.getMessage).mockReturnValue("");
+
+    addRecentDestinations(["image"]);
+
+    expect(global.browser.contextMenus.create).toHaveBeenCalledWith(
+      expect.objectContaining({ title: "Recent locations" }),
+    );
   });
 });
