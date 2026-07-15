@@ -420,6 +420,15 @@ test("chooses usable floating-panel space and clamps the tooltip to the viewport
       "right",
     ).left,
   ).toBe(8);
+  expect(
+    positionSourceTooltip(
+      { left: 185, top: 50, right: 295, bottom: 90 },
+      { left: 180, top: 40, right: 400, bottom: 240 },
+      { width: 200, height: 100 },
+      { left: 100, top: 50, width: 300, height: 200 },
+      "right",
+    ),
+  ).toMatchObject({ left: 108, top: 58, side: "left" });
 });
 
 test("moves a floating panel by pointer delta and clamps it to the viewport", () => {
@@ -432,4 +441,12 @@ test("moves a floating panel by pointer delta and clamps it to the viewport", ()
   expect(
     positionDraggedSourcePanel(panel, { x: 120, y: 100 }, { x: -500, y: 900 }, viewport),
   ).toEqual({ left: 8, top: 392 });
+  expect(
+    positionDraggedSourcePanel(
+      panel,
+      { x: 120, y: 100 },
+      { x: -500, y: 900 },
+      { left: 20, top: 30, width: 600, height: 500 },
+    ),
+  ).toEqual({ left: 28, top: 122 });
 });

@@ -207,19 +207,28 @@ export type SourceTooltipDock = "right" | "bottom" | "left" | "top" | "floating"
 export type SourceTooltipSide = "left" | "right" | "top" | "bottom";
 type SourceTooltipRect = Pick<DOMRectReadOnly, "left" | "top" | "right" | "bottom">;
 type SourceTooltipSize = { width: number; height: number };
+type SourceViewport = SourceTooltipSize & { left?: number; top?: number };
 
 export const positionDraggedSourcePanel = (
   panel: Pick<DOMRectReadOnly, "left" | "top" | "width" | "height">,
   start: { x: number; y: number },
   current: { x: number; y: number },
-  viewport: SourceTooltipSize,
+  viewport: SourceViewport,
 ): { left: number; top: number } => {
   const margin = 8;
-  const clamp = (value: number, size: number, viewportSize: number) =>
-    Math.max(margin, Math.min(value, Math.max(margin, viewportSize - size - margin)));
+  const clamp = (value: number, size: number, viewportStart: number, viewportSize: number) =>
+    Math.max(
+      viewportStart + margin,
+      Math.min(
+        value,
+        Math.max(viewportStart + margin, viewportStart + viewportSize - size - margin),
+      ),
+    );
+  const viewportLeft = viewport.left ?? 0;
+  const viewportTop = viewport.top ?? 0;
   return {
-    left: clamp(panel.left + current.x - start.x, panel.width, viewport.width),
-    top: clamp(panel.top + current.y - start.y, panel.height, viewport.height),
+    left: clamp(panel.left + current.x - start.x, panel.width, viewportLeft, viewport.width),
+    top: clamp(panel.top + current.y - start.y, panel.height, viewportTop, viewport.height),
   };
 };
 
@@ -227,16 +236,16 @@ export const positionSourceTooltip = (
   anchor: SourceTooltipRect,
   panel: SourceTooltipRect,
   tooltip: SourceTooltipSize,
-  viewport: SourceTooltipSize,
+  viewport: SourceViewport,
   dock: SourceTooltipDock,
 ): { left: number; top: number; side: SourceTooltipSide } => {
   const gap = 8;
   const margin = 8;
   const available: Record<SourceTooltipSide, number> = {
-    left: panel.left - gap - margin,
-    right: viewport.width - panel.right - gap - margin,
-    top: panel.top - gap - margin,
-    bottom: viewport.height - panel.bottom - gap - margin,
+    left: panel.left - (viewport.left ?? 0) - gap - margin,
+    right: (viewport.left ?? 0) + viewport.width - panel.right - gap - margin,
+    top: panel.top - (viewport.top ?? 0) - gap - margin,
+    bottom: (viewport.top ?? 0) + viewport.height - panel.bottom - gap - margin,
   };
   const required: Record<SourceTooltipSide, number> = {
     left: tooltip.width,
@@ -256,8 +265,14 @@ export const positionSourceTooltip = (
     (a, b) => available[b] - required[b] - (available[a] - required[a]),
   )[0] as (typeof floatingSides)[number];
   const side = dock === "floating" ? floatingSide : dockSide[dock];
-  const clamp = (value: number, size: number, viewportSize: number) =>
-    Math.max(margin, Math.min(value, Math.max(margin, viewportSize - size - margin)));
+  const clamp = (value: number, size: number, viewportStart: number, viewportSize: number) =>
+    Math.max(
+      viewportStart + margin,
+      Math.min(
+        value,
+        Math.max(viewportStart + margin, viewportStart + viewportSize - size - margin),
+      ),
+    );
   const centeredLeft = (anchor.left + anchor.right - tooltip.width) / 2;
   const centeredTop = (anchor.top + anchor.bottom - tooltip.height) / 2;
   const left =
@@ -273,8 +288,8 @@ export const positionSourceTooltip = (
         ? panel.bottom + gap
         : centeredTop;
   return {
-    left: clamp(left, tooltip.width, viewport.width),
-    top: clamp(top, tooltip.height, viewport.height),
+    left: clamp(left, tooltip.width, viewport.left ?? 0, viewport.width),
+    top: clamp(top, tooltip.height, viewport.top ?? 0, viewport.height),
     side,
   };
 };

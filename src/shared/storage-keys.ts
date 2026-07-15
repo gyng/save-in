@@ -12,6 +12,7 @@ export const DEFERRED_ROUTES_SESSION_KEY = "siDeferredRoutes";
 export const ACTIVE_TRANSFERS_SESSION_KEY = "siActiveTransfers";
 export const SOURCE_PANEL_OPEN_SESSION_KEY = "sourcePanelOpen";
 export const SOURCE_PANEL_SORT_STORAGE_KEY = "sourcePanelSort";
+export const SOURCE_PANEL_LAYOUT_STORAGE_KEY = "sourcePanelLayout";
 export const EXTERNAL_DOWNLOAD_REJECTIONS_STORAGE_KEY = "externalDownloadRejections";
 export const PATH_TRUNCATION_MIGRATION_STORAGE_KEY = "pathTruncationMigrationVersion";
 export const PATH_TRUNCATION_MIGRATION_VERSION = 2;

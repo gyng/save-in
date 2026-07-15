@@ -8,12 +8,12 @@
   isolation: isolate;
   container: source-panel / inline-size;
   inset: 0 0 0 auto;
-  width: min(360px, 92dvw);
+  width: min(var(--source-panel-side-size, 360px), 100dvw);
   color: var(--color-text);
   accent-color: var(--color-accent);
   color-scheme: light dark;
   font: var(--text-base) / 1.35 var(--font-stack);
-  animation: source-panel-in 110ms ease-out both;
+  animation: source-panel-in var(--source-motion-duration-enter) ease-out both;
 }
 
 *,
@@ -32,7 +32,7 @@
 
 :host(.closing) {
   pointer-events: none;
-  animation: source-panel-out 90ms ease-in both;
+  animation: source-panel-out var(--source-motion-duration-exit) ease-in both;
 }
 
 @keyframes source-panel-in {
@@ -67,24 +67,23 @@
 
   inset: auto 0 0;
   inline-size: auto;
-  height: min(42dvh, 520px);
+  height: min(var(--source-panel-dock-size, 420px), 85dvh);
 }
 :host(.dock-top) {
   --source-panel-motion-transform: translateY(-8px);
 
   inset: 0 0 auto;
   inline-size: auto;
-  height: min(42dvh, 520px);
+  height: min(var(--source-panel-dock-size, 420px), 85dvh);
 }
 :host(.floating) {
   inset: var(--source-panel-floating-top) auto auto var(--source-panel-floating-left);
   width: min(
-    520px,
+    var(--source-panel-floating-width, 520px),
     calc(100dvw - var(--source-panel-floating-left) - var(--source-panel-inline-gutter))
   );
   height: min(
-    620px,
-    70dvh,
+    var(--source-panel-floating-height, 620px),
     calc(100dvh - var(--source-panel-floating-top) - var(--source-panel-block-gutter))
   );
 }
@@ -92,7 +91,9 @@
 .panel {
   display: flex;
   flex-direction: column;
+  min-width: 0;
   height: 100dvh;
+  overflow: hidden;
   background: var(--color-surface-page);
   box-shadow: var(--panel-shadow);
 }
@@ -115,9 +116,31 @@
   inset: 0 auto 0 -4px;
   width: 8px;
   cursor: ew-resize;
+  touch-action: none;
 }
 :host(.floating) .resize {
-  display: none;
+  inset: auto 0 0 auto;
+  z-index: var(--z-panel-resize);
+  width: 18px;
+  height: 18px;
+  cursor: nwse-resize;
+}
+:host(.floating) .resize::after {
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid var(--color-text-muted);
+  border-bottom: 2px solid var(--color-text-muted);
+  content: "";
+}
+.resize:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
+}
+:host(.floating) .resize {
+  border-radius: var(--radius-sm);
 }
 :host(.dock-left) .resize {
   inset: 0 -4px 0 auto;
@@ -144,10 +167,40 @@ header {
 }
 :host(.floating) header {
   cursor: grab;
+  touch-action: none;
   user-select: none;
 }
 :host(.floating) header:active {
   cursor: grabbing;
+}
+.title-group {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 7px;
+}
+.drag-grip {
+  display: none;
+  flex: none;
+  width: 8px;
+  height: 16px;
+  opacity: 0.65;
+  background: radial-gradient(circle, currentcolor 1px, transparent 1.5px) 0 0 / 4px 4px;
+}
+:host(.floating) .drag-grip {
+  display: block;
+}
+.source-count {
+  flex: none;
+  min-width: 20px;
+  padding-inline: 5px;
+  color: var(--color-text-muted);
+  border-radius: 999px;
+  background: var(--color-surface-raised);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  line-height: 20px;
+  text-align: center;
 }
 h2 {
   min-width: 0;
@@ -165,7 +218,8 @@ h2 {
 }
 button,
 input,
-select {
+select,
+summary {
   color: inherit;
   font: inherit;
 }
@@ -174,7 +228,8 @@ button {
 }
 button:focus-visible,
 input:focus-visible,
-select:focus-visible {
+select:focus-visible,
+summary:focus-visible {
   outline: none;
   box-shadow: 0 0 0 2px var(--color-focus);
 }
@@ -202,6 +257,58 @@ select:focus-visible {
   border-color: var(--color-control-border);
   background: var(--color-hover);
 }
+.dock-picker,
+.row-more {
+  position: relative;
+}
+.dock-picker > summary,
+.row-more > summary {
+  cursor: pointer;
+  list-style: none;
+}
+.dock-picker > summary::-webkit-details-marker,
+.row-more > summary::-webkit-details-marker {
+  display: none;
+}
+.dock-menu,
+.action-menu {
+  position: absolute;
+  z-index: var(--z-panel-menu);
+  display: grid;
+  min-width: 140px;
+  max-width: calc(100dvw - 16px);
+  max-height: calc(100dvh - 16px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  padding: 4px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface-page);
+  box-shadow: var(--floating-shadow);
+}
+.dock-menu {
+  inset: calc(100% + 4px) 0 auto auto;
+}
+.dock-menu button,
+.action-menu button {
+  min-height: var(--compact-control-size);
+  padding: 5px 8px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  text-align: start;
+  white-space: nowrap;
+}
+.dock-menu button:hover,
+.action-menu button:hover {
+  background: var(--color-hover);
+}
+.dock-menu button[aria-checked="true"] {
+  color: var(--color-link);
+  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+  font-weight: 600;
+}
 
 .toolbar {
   display: grid;
@@ -220,10 +327,16 @@ select:focus-visible {
 }
 .facets {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: var(--source-space-1);
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
   padding: 0 10px 6px;
   border-bottom: 1px solid var(--color-border);
+  scrollbar-width: none;
+}
+.facets::-webkit-scrollbar {
+  display: none;
 }
 .facet {
   display: inline-flex;
@@ -256,163 +369,7 @@ select:focus-visible {
   background: color-mix(in srgb, var(--color-on-accent) 20%, transparent);
 }
 
-.list {
-  overflow: auto;
-  overscroll-behavior: contain;
-  scrollbar-gutter: stable;
-  padding: 0 7px 8px;
-}
-.row {
-  --color-kind: var(--color-kind-other);
-  padding: 2px 0;
-  border-bottom: 1px solid var(--color-border);
-}
-.row[data-kind="image"] {
-  --color-kind: var(--color-kind-image);
-}
-.row[data-kind="video"] {
-  --color-kind: var(--color-kind-video);
-}
-.row[data-kind="audio"] {
-  --color-kind: var(--color-kind-audio);
-}
-.row[data-kind="stream"] {
-  --color-kind: var(--color-kind-stream);
-}
-.row[data-kind="document"] {
-  --color-kind: var(--color-kind-document);
-}
-.source-link {
-  display: grid;
-  grid-template-columns: 30px minmax(0, 1fr);
-  align-items: center;
-  gap: 7px;
-  min-height: 38px;
-  padding: 3px 5px;
-  color: inherit;
-  border-radius: var(--radius);
-  text-decoration: none;
-}
-.source-link:hover,
-.source-link:focus-visible {
-  outline: none;
-  background: color-mix(in srgb, var(--color-kind) 12%, var(--color-surface-page));
-}
-.source-text {
-  min-width: 0;
-}
-img,
-video,
-.preview-fallback {
-  width: 30px;
-  height: 30px;
-  object-fit: contain;
-  border-radius: var(--radius-sm);
-  background: var(--color-preview);
-}
-.preview-fallback,
-.audio {
-  display: grid;
-  place-items: center;
-  color: var(--color-text-muted);
-  font-size: var(--text-lg);
-}
-.name,
-.url {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.name {
-  color: var(--color-link);
-  font-weight: 600;
-}
-.row .name {
-  color: color-mix(in srgb, var(--color-kind) 72%, var(--color-text));
-}
-.url {
-  color: var(--color-text-muted);
-  font-size: var(--text-xs);
-}
-.meta {
-  display: flex;
-  align-items: center;
-  gap: var(--source-space-1);
-  min-width: 0;
-  margin-top: 2px;
-  overflow: hidden;
-  color: var(--color-text-meta);
-  font-size: var(--text-xs);
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-.kind-badge {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  gap: 3px;
-  max-width: 48%;
-  padding-block: 1px;
-  padding-inline: 4px 5px;
-  color: var(--color-on-accent);
-  border-radius: 999px;
-  background: var(--color-kind);
-  font-weight: 700;
-  line-height: 16px;
-}
-.kind-label,
-.meta-details {
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.source-size {
-  font-weight: 400;
-}
-.source-size[data-size-weight="medium"] {
-  font-weight: 600;
-}
-.source-size[data-size-weight="bold"] {
-  font-weight: 700;
-}
-.kind-icon {
-  flex: none;
-  width: 12px;
-  height: 12px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-.detected {
-  flex: none;
-}
-.actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--source-space-1);
-  margin-block: 1px 3px;
-  margin-inline: 42px 5px;
-}
-.actions button {
-  min-height: var(--compact-control-size);
-  padding: 3px 7px;
-  border: 1px solid var(--color-control-border);
-  border-radius: var(--radius-sm);
-  background: var(--color-surface-page);
-}
-.actions button:last-child {
-  color: var(--color-link);
-  border-color: var(--color-link);
-}
-.empty {
-  padding: var(--source-space-5) var(--source-space-3);
-  color: var(--color-text-muted);
-  text-align: center;
-}
-
-@container source-panel (max-width: 320px) {
+@container source-panel (max-width: 420px) {
   header {
     padding-inline: var(--source-space-2);
   }
@@ -421,13 +378,58 @@ video,
     gap: 0;
   }
 
+  .facets {
+    padding-inline: var(--source-space-2);
+  }
+}
+
+@container source-panel (max-width: 320px) {
+  .source-count {
+    display: none;
+  }
+
+  .primary-action {
+    padding-inline: 6px;
+  }
+
   .toolbar {
     grid-template-columns: minmax(0, 1fr);
     padding-inline: var(--source-space-2);
   }
+}
 
-  .facets {
-    padding-inline: var(--source-space-2);
+@media (max-width: 480px) {
+  :host,
+  :host(.dock-left),
+  :host(.dock-bottom),
+  :host(.dock-top),
+  :host(.floating) {
+    inset: 0;
+    width: 100dvw;
+    height: 100dvh;
+  }
+
+  :host(.floating) .panel {
+    border: 0;
+    border-radius: 0;
+  }
+
+  .resize,
+  :host(.floating) .resize {
+    display: none;
+  }
+
+  :host(.dock-bottom) .list,
+  :host(.dock-top) .list {
+    display: block;
+    padding: 0 7px 8px;
+  }
+
+  :host(.dock-bottom) .row,
+  :host(.dock-top) .row {
+    border: 0;
+    border-bottom: 1px solid var(--color-border);
+    border-radius: 0;
   }
 }
 
@@ -461,6 +463,12 @@ video,
   }
 
   .facet[aria-pressed="true"] {
+    color: HighlightText;
+    background: Highlight;
+    outline: 1px solid Highlight;
+  }
+
+  .dock-menu button[aria-checked="true"] {
     color: HighlightText;
     background: Highlight;
     outline: 1px solid Highlight;

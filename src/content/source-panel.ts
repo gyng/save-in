@@ -22,10 +22,15 @@ import {
   SOURCE_PANEL_COPY_VALUE_SLOT,
   formatSourcePanelCopy,
 } from "../shared/source-panel-copy.ts";
-import { SOURCE_PANEL_SORT_STORAGE_KEY } from "../shared/storage-keys.ts";
+import {
+  SOURCE_PANEL_LAYOUT_STORAGE_KEY,
+  SOURCE_PANEL_SORT_STORAGE_KEY,
+} from "../shared/storage-keys.ts";
+import { positionFloatingElement } from "../shared/floating-position.ts";
 import SOURCE_PANEL_TOKENS_CSS from "./source-panel-tokens.css";
 import SOURCE_PANEL_CSS from "./source-panel.css";
 import SOURCE_PANEL_PREVIEW_CSS from "./source-panel-preview.css";
+import SOURCE_PANEL_RESULTS_CSS from "./source-panel-results.css";
 
 declare const SAVE_IN_CONTENT_E2E: boolean;
 
@@ -46,6 +51,75 @@ export {
 export { formatSourceBytes } from "./source-panel-model.ts";
 
 const PANEL_HOST_ID = "save-in-source-panel";
+const PANEL_DOCKS = ["right", "bottom", "left", "top"] as const;
+type PanelDock = (typeof PANEL_DOCKS)[number];
+type PanelPlacement = PanelDock | "floating";
+type SourcePanelLayout = {
+  placement: PanelPlacement;
+  sideWidth: number;
+  dockHeight: number;
+  floatingLeft: number;
+  floatingTop: number;
+  floatingWidth: number;
+  floatingHeight: number;
+};
+const DEFAULT_SOURCE_PANEL_LAYOUT: SourcePanelLayout = {
+  placement: "right",
+  sideWidth: 360,
+  dockHeight: 420,
+  floatingLeft: 80,
+  floatingTop: 80,
+  floatingWidth: 520,
+  floatingHeight: 620,
+};
+const finiteLayoutNumber = (value: unknown, fallback: number): number =>
+  typeof value === "number" && Number.isFinite(value) ? value : fallback;
+const normalizeSourcePanelLayout = (value: unknown): SourcePanelLayout => {
+  const stored =
+    value != null && typeof value === "object" ? (value as Record<string, unknown>) : {};
+  const placement = [...PANEL_DOCKS, "floating"].includes(stored.placement as PanelPlacement)
+    ? (stored.placement as PanelPlacement)
+    : DEFAULT_SOURCE_PANEL_LAYOUT.placement;
+  return {
+    placement,
+    sideWidth: finiteLayoutNumber(stored.sideWidth, DEFAULT_SOURCE_PANEL_LAYOUT.sideWidth),
+    dockHeight: finiteLayoutNumber(stored.dockHeight, DEFAULT_SOURCE_PANEL_LAYOUT.dockHeight),
+    floatingLeft: finiteLayoutNumber(stored.floatingLeft, DEFAULT_SOURCE_PANEL_LAYOUT.floatingLeft),
+    floatingTop: finiteLayoutNumber(stored.floatingTop, DEFAULT_SOURCE_PANEL_LAYOUT.floatingTop),
+    floatingWidth: finiteLayoutNumber(
+      stored.floatingWidth,
+      DEFAULT_SOURCE_PANEL_LAYOUT.floatingWidth,
+    ),
+    floatingHeight: finiteLayoutNumber(
+      stored.floatingHeight,
+      DEFAULT_SOURCE_PANEL_LAYOUT.floatingHeight,
+    ),
+  };
+};
+let sourcePanelLayout = { ...DEFAULT_SOURCE_PANEL_LAYOUT };
+try {
+  chrome.storage.local.get(SOURCE_PANEL_LAYOUT_STORAGE_KEY, (stored) => {
+    void chrome.runtime.lastError;
+    sourcePanelLayout = normalizeSourcePanelLayout(stored[SOURCE_PANEL_LAYOUT_STORAGE_KEY]);
+  });
+} catch {
+  // The extension may be reloaded while this content script remains alive.
+}
+
+const saveSourcePanelLayout = (layout: SourcePanelLayout) => {
+  sourcePanelLayout = { ...layout };
+  try {
+    chrome.storage.local.set({ [SOURCE_PANEL_LAYOUT_STORAGE_KEY]: sourcePanelLayout }, () => {
+      void chrome.runtime.lastError;
+    });
+  } catch {
+    // The extension may be reloaded while this content script remains alive.
+  }
+};
+
+export const resetSourcePanelLayoutForTesting = () => {
+  sourcePanelLayout = { ...DEFAULT_SOURCE_PANEL_LAYOUT };
+};
 const panelCleanups = new WeakMap<Element, () => void>();
 const panelCloseTimers = new WeakMap<Element, number>();
 const panelPreviousFocus = new WeakMap<Element, HTMLElement>();
@@ -149,7 +223,7 @@ const SOURCE_KIND_ICON_PATHS: Record<PageSourceKind, readonly string[]> = {
   ],
 };
 
-const setButtonIcon = (button: HTMLButtonElement, icon: keyof typeof ICON_PATHS) => {
+const setButtonIcon = (button: HTMLElement, icon: keyof typeof ICON_PATHS) => {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.setAttribute("viewBox", "0 0 24 24");
   svg.setAttribute("aria-hidden", "true");
@@ -181,6 +255,18 @@ const panelLocale = (locale?: string): string | undefined => {
   if (!locale) return undefined;
   if (locale.endsWith("_AI")) return locale.slice(0, -3);
   return locale.replace("_", "-");
+};
+
+const sourcePanelViewport = () => {
+  const viewport = window.visualViewport;
+  return viewport
+    ? {
+        left: viewport.offsetLeft,
+        top: viewport.offsetTop,
+        width: viewport.width,
+        height: viewport.height,
+      }
+    : { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight };
 };
 
 const panelFormatters = new Map<string, { date: Intl.DateTimeFormat; number: Intl.NumberFormat }>();
@@ -235,25 +321,116 @@ export const toggleSourcePanel = (
   host.dataset.theme = resolvedPanelTheme(panelOptions.theme);
   const exposeShadowForTests = SAVE_IN_CONTENT_E2E === true;
   const shadow = host.attachShadow({ mode: exposeShadowForTests ? "open" : "closed" });
+  let panelMenuFrame: number | undefined;
+  const positionPanelMenus = () => {
+    panelMenuFrame = undefined;
+    shadow.querySelectorAll<HTMLDetailsElement>("details[open]").forEach((details) => {
+      const trigger = [...details.children].find((child): child is HTMLElement =>
+        child.matches("summary"),
+      );
+      const menu = [...details.children].find((child): child is HTMLElement =>
+        child.matches(".dock-menu, .action-menu"),
+      );
+      if (!trigger || !menu) return;
+      menu.style.inset = "auto";
+      positionFloatingElement(menu, trigger.getBoundingClientRect(), {
+        align: getComputedStyle(details).direction === "rtl" ? "start" : "end",
+        prefer: "below",
+      });
+    });
+  };
+  const schedulePanelMenuPosition = () => {
+    if (panelMenuFrame !== undefined) cancelAnimationFrame(panelMenuFrame);
+    panelMenuFrame = requestAnimationFrame(positionPanelMenus);
+  };
+  shadow.addEventListener("toggle", schedulePanelMenuPosition, true);
+  shadow.addEventListener("scroll", schedulePanelMenuPosition, true);
+  window.addEventListener("resize", schedulePanelMenuPosition);
+  window.visualViewport?.addEventListener("resize", schedulePanelMenuPosition);
+  window.visualViewport?.addEventListener("scroll", schedulePanelMenuPosition);
   panelRoots.set(host, shadow);
   panelOpenChanges.set(host, panelOptions.onOpenChange || (() => {}));
   activePanelHost = host;
   const style = document.createElement("style");
-  style.textContent = [SOURCE_PANEL_TOKENS_CSS, SOURCE_PANEL_CSS, SOURCE_PANEL_PREVIEW_CSS].join(
-    "\n",
-  );
+  style.textContent = [
+    SOURCE_PANEL_TOKENS_CSS,
+    SOURCE_PANEL_CSS,
+    SOURCE_PANEL_RESULTS_CSS,
+    SOURCE_PANEL_PREVIEW_CSS,
+  ].join("\n");
   const panel = document.createElement("div");
   panel.className = "panel";
   panel.setAttribute("role", "dialog");
   panel.setAttribute("aria-label", copy.title);
-  const docks = ["right", "bottom", "left", "top"] as const;
-  const currentDock = (): (typeof docks)[number] =>
+  let layout = { ...sourcePanelLayout };
+  const currentDock = (): PanelDock =>
     /* v8 ignore next -- The host dock is written exclusively from this fixed list. */
-    docks.find((candidate) => candidate === host.dataset.dock) ?? "right";
+    PANEL_DOCKS.find((candidate) => candidate === host.dataset.dock) ?? "right";
+  const clamp = (value: number, minimum: number, maximum: number) =>
+    Math.min(Math.max(value, minimum), Math.max(minimum, maximum));
   const resize = document.createElement("div");
   resize.className = "resize";
-  resize.setAttribute("role", "separator");
+  resize.tabIndex = 0;
   resize.setAttribute("aria-label", copy.resizeLabel);
+  let updatePlacementControls = () => {};
+  const updateResizeAccessibility = () => {
+    const placement = layout.placement;
+    const viewport = sourcePanelViewport();
+    if (placement === "floating") {
+      resize.setAttribute("role", "separator");
+      resize.setAttribute("aria-orientation", "vertical");
+      resize.setAttribute("aria-valuemin", "320");
+      resize.setAttribute("aria-valuemax", String(Math.max(320, Math.floor(viewport.width - 16))));
+      resize.setAttribute("aria-valuenow", String(Math.round(layout.floatingWidth)));
+      resize.setAttribute(
+        "aria-valuetext",
+        `${Math.round(layout.floatingWidth)} × ${Math.round(layout.floatingHeight)}`,
+      );
+      return;
+    }
+    const sideDock = placement === "right" || placement === "left";
+    const maximum = Math.floor(sideDock ? viewport.width * 0.92 : viewport.height * 0.85);
+    resize.setAttribute("role", "separator");
+    resize.setAttribute("aria-orientation", sideDock ? "vertical" : "horizontal");
+    resize.setAttribute("aria-valuemin", String(sideDock ? 280 : 220));
+    resize.setAttribute("aria-valuemax", String(Math.max(sideDock ? 280 : 220, maximum)));
+    resize.setAttribute(
+      "aria-valuenow",
+      String(Math.round(sideDock ? layout.sideWidth : layout.dockHeight)),
+    );
+    resize.removeAttribute("aria-valuetext");
+  };
+  const applyLayout = () => {
+    const placement = layout.placement;
+    const viewport = sourcePanelViewport();
+    if (placement === "floating" && viewport.width > 480) {
+      layout.floatingWidth = clamp(layout.floatingWidth, 320, viewport.width - 16);
+      layout.floatingHeight = clamp(layout.floatingHeight, 260, viewport.height - 16);
+      layout.floatingLeft = clamp(
+        layout.floatingLeft,
+        viewport.left + 8,
+        viewport.left + viewport.width - layout.floatingWidth - 8,
+      );
+      layout.floatingTop = clamp(
+        layout.floatingTop,
+        viewport.top + 8,
+        viewport.top + viewport.height - layout.floatingHeight - 8,
+      );
+    }
+    host.dataset.dock = placement;
+    host.classList.remove("dock-left", "dock-bottom", "dock-top", "floating");
+    if (placement === "floating") host.classList.add("floating");
+    else if (placement !== "right") host.classList.add(`dock-${placement}`);
+    host.style.setProperty("--source-panel-side-size", `${layout.sideWidth}px`);
+    host.style.setProperty("--source-panel-dock-size", `${layout.dockHeight}px`);
+    host.style.setProperty("--source-panel-floating-left", `${layout.floatingLeft}px`);
+    host.style.setProperty("--source-panel-floating-top", `${layout.floatingTop}px`);
+    host.style.setProperty("--source-panel-floating-width", `${layout.floatingWidth}px`);
+    host.style.setProperty("--source-panel-floating-height", `${layout.floatingHeight}px`);
+    updateResizeAccessibility();
+    updatePlacementControls();
+  };
+  const commitLayout = () => saveSourcePanelLayout(layout);
   resize.addEventListener("pointerdown", (event) => {
     resize.setPointerCapture(event.pointerId);
     const startX = event.clientX;
@@ -261,78 +438,113 @@ export const toggleSourcePanel = (
     const startWidth = host.getBoundingClientRect().width;
     const startHeight = host.getBoundingClientRect().height;
     const move = (moveEvent: PointerEvent) => {
+      const viewport = sourcePanelViewport();
+      if (layout.placement === "floating") {
+        layout.floatingWidth = clamp(
+          startWidth + moveEvent.clientX - startX,
+          320,
+          viewport.width - 16,
+        );
+        layout.floatingHeight = clamp(
+          startHeight + moveEvent.clientY - startY,
+          260,
+          viewport.height - 16,
+        );
+        applyLayout();
+        return;
+      }
       const dock = currentDock();
       if (dock === "right" || dock === "left") {
         const delta = dock === "right" ? startX - moveEvent.clientX : moveEvent.clientX - startX;
-        host.style.width = `${Math.min(window.innerWidth * 0.92, Math.max(280, startWidth + delta))}px`;
+        layout.sideWidth = clamp(startWidth + delta, 280, viewport.width * 0.92);
       } else {
         const delta = dock === "bottom" ? startY - moveEvent.clientY : moveEvent.clientY - startY;
-        host.style.height = `${Math.min(window.innerHeight * 0.85, Math.max(220, startHeight + delta))}px`;
+        layout.dockHeight = clamp(startHeight + delta, 220, viewport.height * 0.85);
       }
+      applyLayout();
+    };
+    const finish = () => {
+      resize.removeEventListener("pointermove", move);
+      commitLayout();
     };
     resize.addEventListener("pointermove", move);
-    resize.addEventListener("pointerup", () => resize.removeEventListener("pointermove", move), {
-      once: true,
-    });
+    resize.addEventListener("pointerup", finish, { once: true });
+    resize.addEventListener("pointercancel", finish, { once: true });
+  });
+  resize.addEventListener("keydown", (event) => {
+    const step = event.shiftKey ? 32 : 12;
+    const viewport = sourcePanelViewport();
+    let handled = true;
+    if (layout.placement === "floating") {
+      if (event.key === "ArrowLeft") layout.floatingWidth -= step;
+      else if (event.key === "ArrowRight") layout.floatingWidth += step;
+      else if (event.key === "ArrowUp") layout.floatingHeight -= step;
+      else if (event.key === "ArrowDown") layout.floatingHeight += step;
+      else handled = false;
+      layout.floatingWidth = clamp(layout.floatingWidth, 320, viewport.width - 16);
+      layout.floatingHeight = clamp(layout.floatingHeight, 260, viewport.height - 16);
+    } else if (layout.placement === "right" || layout.placement === "left") {
+      if (event.key === "ArrowLeft") layout.sideWidth -= step;
+      else if (event.key === "ArrowRight") layout.sideWidth += step;
+      else handled = false;
+      layout.sideWidth = clamp(layout.sideWidth, 280, viewport.width * 0.92);
+    } else {
+      if (event.key === "ArrowUp") layout.dockHeight -= step;
+      else if (event.key === "ArrowDown") layout.dockHeight += step;
+      else handled = false;
+      layout.dockHeight = clamp(layout.dockHeight, 220, viewport.height * 0.85);
+    }
+    if (!handled) return;
+    event.preventDefault();
+    applyLayout();
+    commitLayout();
   });
   const header = document.createElement("header");
   const title = document.createElement("h2");
   const close = document.createElement("button");
-  const dockButton = document.createElement("button");
-  const popoutButton = document.createElement("button");
   title.textContent = copy.title;
   close.className = "header-button close";
   setButtonIcon(close, "close");
   close.title = copy.close;
   close.setAttribute("aria-label", copy.closeLabel);
-  let dockIndex = 0;
-  const updateDock = () => {
-    /* v8 ignore next -- dockIndex is initialized and advanced modulo docks.length. */
-    const dock = docks[dockIndex] ?? "right";
-    host.dataset.dock = dock;
-    host.classList.remove("dock-left", "dock-bottom", "dock-top");
-    if (dock !== "right") host.classList.add(`dock-${dock}`);
-    host.style.left = "";
-    host.style.top = "";
-    host.style.width = "";
-    host.style.height = "";
-    dockButton.title = formatSourcePanelCopy(
-      copy.dockPositionTemplate,
-      SOURCE_PANEL_COPY_VALUE_SLOT,
-      copy.dockPositions[dock],
-    );
-  };
+  const dockPicker = document.createElement("details");
+  dockPicker.className = "dock-picker";
+  const dockButton = document.createElement("summary");
   dockButton.className = "header-button dock";
   setButtonIcon(dockButton, "dock");
   dockButton.setAttribute("aria-label", copy.changeDockLabel);
-  const updatePopoutButton = (floating: boolean) => {
-    popoutButton.setAttribute("aria-pressed", String(floating));
-    popoutButton.setAttribute("aria-label", floating ? copy.dockPanel : copy.popOutPanel);
-    popoutButton.title = floating ? copy.dockPanel : copy.popOutHelp;
+  const dockMenu = document.createElement("div");
+  dockMenu.className = "dock-menu";
+  dockMenu.setAttribute("role", "menu");
+  const placementButtons = new Map<PanelPlacement, HTMLButtonElement>();
+  ([...PANEL_DOCKS, "floating"] as const).forEach((placement) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.dataset.placement = placement;
+    button.setAttribute("role", "menuitemradio");
+    button.textContent = copy.dockPositions[placement];
+    button.addEventListener("click", () => {
+      layout.placement = placement;
+      dockPicker.open = false;
+      applyLayout();
+      commitLayout();
+    });
+    placementButtons.set(placement, button);
+    dockMenu.append(button);
+  });
+  updatePlacementControls = () => {
+    const placement = layout.placement;
+    dockButton.title = formatSourcePanelCopy(
+      copy.dockPositionTemplate,
+      SOURCE_PANEL_COPY_VALUE_SLOT,
+      copy.dockPositions[placement],
+    );
+    placementButtons.forEach((button, value) => {
+      button.setAttribute("aria-checked", String(value === placement));
+    });
   };
-  dockButton.addEventListener("click", () => {
-    host.classList.remove("floating");
-    updatePopoutButton(false);
-    dockIndex = (dockIndex + 1) % docks.length;
-    updateDock();
-  });
-  popoutButton.className = "header-button popout";
-  setButtonIcon(popoutButton, "popout");
-  updatePopoutButton(false);
-  popoutButton.addEventListener("click", () => {
-    const floating = host.classList.toggle("floating");
-    updatePopoutButton(floating);
-    if (floating) {
-      host.classList.remove("dock-left", "dock-bottom", "dock-top");
-      host.style.width = "";
-      host.style.height = "";
-    } else {
-      host.style.left = "";
-      host.style.top = "";
-      updateDock();
-    }
-  });
-  updateDock();
+  dockPicker.append(dockButton, dockMenu);
+  applyLayout();
   const closePanel = () => {
     closePanelHost(host);
   };
@@ -344,11 +556,19 @@ export const toggleSourcePanel = (
   setButtonIcon(copyUrls, "copy");
   copyUrls.title = copy.copyFilteredUrls;
   copyUrls.setAttribute("aria-label", copy.copyFilteredUrlsLabel);
-  headerActions.append(copyUrls, dockButton, popoutButton, close);
-  header.append(title, headerActions);
+  const titleGroup = document.createElement("div");
+  titleGroup.className = "title-group";
+  const dragGrip = document.createElement("span");
+  dragGrip.className = "drag-grip";
+  dragGrip.setAttribute("aria-hidden", "true");
+  const sourceCount = document.createElement("span");
+  sourceCount.className = "source-count";
+  titleGroup.append(dragGrip, title, sourceCount);
+  headerActions.append(copyUrls, dockPicker, close);
+  header.append(titleGroup, headerActions);
   header.addEventListener("pointerdown", (event) => {
     if (!host.classList.contains("floating") || event.button !== 0) return;
-    if (event.target instanceof Element && event.target.closest("button")) return;
+    if (event.target instanceof Element && event.target.closest("button, summary")) return;
     header.setPointerCapture?.(event.pointerId);
     const startX = event.clientX;
     const startY = event.clientY;
@@ -358,18 +578,23 @@ export const toggleSourcePanel = (
         rect,
         { x: startX, y: startY },
         { x: moveEvent.clientX, y: moveEvent.clientY },
-        { width: window.innerWidth, height: window.innerHeight },
+        sourcePanelViewport(),
       );
-      host.style.left = `${left}px`;
-      host.style.top = `${top}px`;
+      layout.floatingLeft = left;
+      layout.floatingTop = top;
+      applyLayout();
+    };
+    const finish = () => {
+      header.removeEventListener("pointermove", move);
+      commitLayout();
     };
     header.addEventListener("pointermove", move);
-    header.addEventListener("pointerup", () => header.removeEventListener("pointermove", move), {
-      once: true,
-    });
+    header.addEventListener("pointerup", finish, { once: true });
+    header.addEventListener("pointercancel", finish, { once: true });
   });
-  const list = document.createElement("div");
+  const list = document.createElement("ul");
   list.className = "list";
+  list.setAttribute("role", "list");
   const toolbar = document.createElement("div");
   toolbar.className = "toolbar";
   const filter = document.createElement("input");
@@ -409,17 +634,22 @@ export const toggleSourcePanel = (
       /* v8 ignore next -- Options are created one-for-one from sortOptions. */
       if (entry) option.textContent = copy.sort[entry[1]];
     });
-    const dock = currentDock();
-    dockButton.title = formatSourcePanelCopy(
-      copy.dockPositionTemplate,
-      SOURCE_PANEL_COPY_VALUE_SLOT,
-      copy.dockPositions[dock],
-    );
-    updatePopoutButton(host.classList.contains("floating"));
+    placementButtons.forEach((button, placement) => {
+      button.textContent = copy.dockPositions[placement];
+    });
+    updatePlacementControls();
   };
   toolbar.append(filter, sort);
   const facets = document.createElement("div");
   facets.className = "facets";
+  facets.setAttribute("aria-label", copy.filterLabel);
+  const liveStatus = document.createElement("div");
+  liveStatus.className = "visually-hidden live-status";
+  liveStatus.setAttribute("role", "status");
+  liveStatus.setAttribute("aria-live", "polite");
+  const announce = (message: string) => {
+    liveStatus.textContent = message;
+  };
   let activeKind: "all" | PageSourceKind = "all";
   const firstSeen = new Map<string, { at: number; order: number }>();
   const highlightedElements = new WeakSet<Element>();
@@ -617,6 +847,27 @@ export const toggleSourcePanel = (
         );
     }
   };
+  const decodeSourcePart = (value: string): string => {
+    try {
+      return decodeURIComponent(value);
+    } catch {
+      return value;
+    }
+  };
+  const sourceDisplay = (source: PageSource): { name: string; url: string } => {
+    const parsed = new URL(source.url);
+    if (parsed.protocol === "data:") {
+      const mediaType = source.url.slice(5).split(/[;,]/, 1)[0] || "data";
+      return { name: copy.embeddedSource, url: `data:${mediaType}` };
+    }
+    if (parsed.protocol === "blob:") return { name: copy.embeddedSource, url: "blob:" };
+    const path = decodeSourcePart(parsed.pathname);
+    const filename = path.split("/").filter(Boolean).at(-1);
+    return {
+      name: filename || parsed.hostname || copy.embeddedSource,
+      url: `${parsed.hostname}${path === "/" ? "" : path}`,
+    };
+  };
   const render = () => {
     previewObserver?.disconnect();
     const sourceSort = isSourceSort(sort.value) ? sort.value : "relevance";
@@ -626,6 +877,14 @@ export const toggleSourcePanel = (
     );
     visibleSources = sources;
     title.textContent = copy.title;
+    const totalCount = formatSourcePanelCopy(
+      copy.sourceCountTemplate,
+      SOURCE_PANEL_COPY_VALUE_SLOT,
+      allSources.length,
+    );
+    sourceCount.textContent = String(allSources.length);
+    sourceCount.title = totalCount;
+    sourceCount.setAttribute("aria-label", totalCount);
     facets.replaceChildren();
     const presentUrls = new Set(allSources.map(({ url }) => url));
     rowCache.forEach((cached, url) => {
@@ -633,13 +892,12 @@ export const toggleSourcePanel = (
       deactivateAndRemove(cached);
       rowCache.delete(url);
     });
-    const searchedSources = filterPageSources(allSources, filter.value, "all");
     (["all", "image", "video", "audio", "document", "stream", "link"] as const).forEach(
       (kindName) => {
         const count =
           kindName === "all"
-            ? searchedSources.length
-            : searchedSources.filter(({ kind }) => kind === kindName).length;
+            ? allSources.length
+            : allSources.filter(({ kind }) => kind === kindName).length;
         const facet = document.createElement("button");
         facet.className = "facet";
         const label = copy.kinds[kindName];
@@ -656,17 +914,45 @@ export const toggleSourcePanel = (
       },
     );
     if (!sources.length) {
-      const empty = document.createElement("div");
+      const empty = document.createElement("li");
       empty.className = "empty";
-      empty.textContent = allSources.length ? copy.noMatches : copy.noSources;
+      const emptyMessage = document.createElement("p");
+      const normalizedFilter = filter.value.trim();
+      const message = allSources.length
+        ? normalizedFilter
+          ? formatSourcePanelCopy(
+              copy.noMatchesFilterTemplate,
+              SOURCE_PANEL_COPY_VALUE_SLOT,
+              normalizedFilter,
+            )
+          : copy.noMatches
+        : copy.noSources;
+      emptyMessage.textContent = message;
+      empty.append(emptyMessage);
+      if (allSources.length && (normalizedFilter || activeKind !== "all")) {
+        const clearFilters = document.createElement("button");
+        clearFilters.type = "button";
+        clearFilters.textContent = copy.clearFilters;
+        clearFilters.addEventListener("click", () => {
+          filter.value = "";
+          activeKind = "all";
+          render();
+          filter.focus();
+        });
+        empty.append(clearFilters);
+      }
       rowCache.forEach((cached) => {
         if (cached.row.isConnected) deactivateAndRemove(cached);
       });
       list.replaceChildren(empty);
       copyUrls.disabled = true;
+      announce(message);
       return;
     }
     copyUrls.disabled = false;
+    announce(
+      formatSourcePanelCopy(copy.sourceCountTemplate, SOURCE_PANEL_COPY_VALUE_SLOT, sources.length),
+    );
     list.querySelectorAll(".empty").forEach((empty) => empty.remove());
     let rowIndex = 0;
     const placeRow = (row: HTMLElement) => {
@@ -692,7 +978,7 @@ export const toggleSourcePanel = (
         return;
       }
       if (cached) deactivateAndRemove(cached);
-      const row = document.createElement("div");
+      const row = document.createElement("li");
       row.className = "row";
       row.dataset.kind = source.kind;
       const preview =
@@ -750,13 +1036,11 @@ export const toggleSourcePanel = (
       const url = document.createElement("div");
       const meta = document.createElement("div");
       name.className = "name";
-      const parsed = new URL(source.url);
-      name.textContent = decodeURIComponent(
-        parsed.pathname.split("/").filter(Boolean).at(-1) || parsed.hostname,
-      );
+      const display = sourceDisplay(source);
+      name.textContent = display.name;
       url.className = "url";
-      url.textContent = source.url;
-      if (!hasRichTooltip) url.title = source.url;
+      url.textContent = display.url;
+      url.title = source.url;
       meta.className = "meta";
       const mediaDetails: string[] = [];
       let displayedBytes = source.bytes;
@@ -786,25 +1070,17 @@ export const toggleSourcePanel = (
               ? "medium"
               : "regular";
         size.textContent = sourceSize;
-        detailText.append(
-          document.createTextNode("· "),
-          size,
-          document.createTextNode(
-            `${mediaDetails.length ? ` · ${mediaDetails.join(" · ")}` : ""} ·`,
-          ),
-        );
-        const detected = document.createElement("span");
-        detected.className = "detected";
-        detected.textContent = `#${source.detectedOrder}`;
+        detailText.append(size);
+        if (mediaDetails.length)
+          detailText.append(document.createTextNode(` · ${mediaDetails.join(" · ")}`));
         const detectedAt = formatSourcePanelCopy(
           copy.detectedAtTemplate,
           SOURCE_PANEL_COPY_VALUE_SLOT,
           /* v8 ignore next -- commitSources stamps every rendered source. */
           formatters.date.format(new Date(source.detectedAt ?? Date.now())),
         );
-        detected.setAttribute("aria-label", detectedAt);
-        if (!hasRichTooltip) detected.title = detectedAt;
-        meta.replaceChildren(kindBadge, detailText, detected);
+        meta.title = detectedAt;
+        meta.replaceChildren(kindBadge, detailText);
       };
       const updateBytes = (bytes: number | undefined) => {
         displayedBytes = bytes;
@@ -847,11 +1123,23 @@ export const toggleSourcePanel = (
       sourceLink.append(preview, text);
       const actions = document.createElement("div");
       actions.className = "actions";
+      const more = document.createElement("details");
+      more.className = "row-more";
+      const moreButton = document.createElement("summary");
+      moreButton.setAttribute("aria-label", copy.moreActions);
+      moreButton.title = copy.moreActions;
+      moreButton.textContent = "•••";
+      const actionMenu = document.createElement("div");
+      actionMenu.className = "action-menu";
+      actionMenu.setAttribute("role", "menu");
       const locate = document.createElement("button");
+      locate.type = "button";
+      locate.setAttribute("role", "menuitem");
       const locateHighlightOwner = {};
       let locateHighlightTimer = 0;
       locate.textContent = copy.locate;
       locate.addEventListener("click", () => {
+        more.open = false;
         source.element.scrollIntoView?.({ behavior: "smooth", block: "center" });
         if (source.element instanceof HTMLElement) {
           const target = source.element;
@@ -864,7 +1152,9 @@ export const toggleSourcePanel = (
         }
       });
       const save = document.createElement("button");
-      save.textContent = source.kind === "stream" ? copy.savePlaylist : copy.save;
+      save.type = "button";
+      save.className = "primary-action";
+      save.textContent = copy.save;
       save.addEventListener("pointerdown", (event) => {
         if (event.button === 0) panelOptions.onSaveIntent?.();
       });
@@ -872,9 +1162,11 @@ export const toggleSourcePanel = (
         if (event.key === "Enter" || event.key === " ") panelOptions.onSaveIntent?.();
       });
       save.addEventListener("click", () => panelSendDownload(source));
-      actions.append(locate, save);
+      actionMenu.append(locate);
       if (source.kind === "stream" || source.kind === "video") {
         const copyCommand = document.createElement("button");
+        copyCommand.type = "button";
+        copyCommand.setAttribute("role", "menuitem");
         copyCommand.textContent = copy.copyYtDlp;
         copyCommand.title = copy.copyYtDlpHelp;
         copyCommand.addEventListener("click", () => {
@@ -882,14 +1174,25 @@ export const toggleSourcePanel = (
             .writeText(source.url)
             .then(() => {
               copyCommand.textContent = copy.copied;
+              announce(copy.copied);
               window.setTimeout(() => (copyCommand.textContent = copy.copyYtDlp), 1200);
             })
             .catch(() => {
               copyCommand.textContent = copy.copyFailed;
+              announce(copy.copyFailed);
             });
         });
-        actions.append(copyCommand);
+        actionMenu.append(copyCommand);
       }
+      more.append(moreButton, actionMenu);
+      more.addEventListener("toggle", () => {
+        if (!more.open) return;
+        dockPicker.open = false;
+        list.querySelectorAll<HTMLDetailsElement>(".row-more[open]").forEach((candidate) => {
+          if (candidate !== more) candidate.open = false;
+        });
+      });
+      actions.append(save, more);
       const previewHighlightOwner = {};
       const highlight = (active: boolean) => {
         if (!(source.element instanceof HTMLElement)) return;
@@ -938,7 +1241,7 @@ export const toggleSourcePanel = (
             anchorBounds,
             panelBounds,
             tooltipBounds,
-            { width: window.innerWidth, height: window.innerHeight },
+            sourcePanelViewport(),
             host.classList.contains("floating") ? "floating" : currentDock(),
           );
           richTooltip.dataset.side = position.side;
@@ -961,20 +1264,19 @@ export const toggleSourcePanel = (
           });
         }
       };
-      row.addEventListener("mouseenter", () => {
+      sourceLink.addEventListener("mouseenter", () => {
         hovered = true;
         syncPreview();
       });
-      row.addEventListener("mouseleave", () => {
+      sourceLink.addEventListener("mouseleave", () => {
         hovered = false;
         syncPreview();
       });
-      row.addEventListener("focusin", () => {
+      sourceLink.addEventListener("focus", () => {
         focused = true;
         syncPreview();
       });
-      row.addEventListener("focusout", (event) => {
-        if (event.relatedTarget instanceof Node && row.contains(event.relatedTarget)) return;
+      sourceLink.addEventListener("blur", () => {
         focused = false;
         syncPreview();
       });
@@ -982,7 +1284,7 @@ export const toggleSourcePanel = (
         if (
           !event.altKey ||
           event.button !== 0 ||
-          (event.target instanceof Element && event.target.closest("button"))
+          (event.target instanceof Element && event.target.closest("button, summary"))
         )
           return;
         event.preventDefault();
@@ -993,7 +1295,7 @@ export const toggleSourcePanel = (
         if (
           event.altKey &&
           event.button === 0 &&
-          !(event.target instanceof Element && event.target.closest("button"))
+          !(event.target instanceof Element && event.target.closest("button, summary"))
         ) {
           panelOptions.onSaveIntent?.();
         }
@@ -1002,17 +1304,17 @@ export const toggleSourcePanel = (
         if (
           event.altKey &&
           (event.key === "Enter" || event.key === " ") &&
-          !(event.target instanceof Element && event.target.closest("button"))
+          !(event.target instanceof Element && event.target.closest("button, summary"))
         ) {
           panelOptions.onSaveIntent?.();
         }
       });
-      if (!hasRichTooltip) row.title = copy.rowInstructions;
       row.append(sourceLink, actions);
       const deactivate = () => {
         hovered = false;
         focused = false;
         syncPreview();
+        more.open = false;
         window.clearTimeout(locateHighlightTimer);
         if (source.element instanceof HTMLElement)
           releaseHighlight(source.element, locateHighlightOwner);
@@ -1051,27 +1353,84 @@ export const toggleSourcePanel = (
       .writeText(visibleSources.map(({ url }) => url).join("\n"))
       .then(() => {
         setButtonIcon(copyUrls, "check");
-        copyUrls.title = formatSourcePanelCopy(
+        const copiedMessage = formatSourcePanelCopy(
           copy.copiedUrlsTemplate,
           SOURCE_PANEL_COPY_VALUE_SLOT,
           visibleSources.length,
         );
+        copyUrls.title = copiedMessage;
+        copyUrls.setAttribute("aria-label", copiedMessage);
+        announce(copiedMessage);
         window.setTimeout(() => {
           setButtonIcon(copyUrls, "copy");
           copyUrls.title = copy.copyFilteredUrls;
+          copyUrls.setAttribute("aria-label", copy.copyFilteredUrlsLabel);
         }, 1200);
       })
       .catch(() => {
         setButtonIcon(copyUrls, "error");
         copyUrls.title = copy.copyFailed;
+        copyUrls.setAttribute("aria-label", copy.copyFailed);
+        announce(copy.copyFailed);
       });
   });
+  const closeOpenMenus = () => {
+    let closed = false;
+    if (dockPicker.open) {
+      dockPicker.open = false;
+      closed = true;
+    }
+    list.querySelectorAll<HTMLDetailsElement>(".row-more[open]").forEach((details) => {
+      details.open = false;
+      closed = true;
+    });
+    return closed;
+  };
+  const closeMenusOutside = (event: PointerEvent) => {
+    if (event.target !== host) closeOpenMenus();
+  };
+  const closeMenusInsidePanel = (event: Event) => {
+    if (event.target instanceof Element && event.target.closest(".dock-picker, .row-more") !== null)
+      return;
+    closeOpenMenus();
+  };
+  document.addEventListener("pointerdown", closeMenusOutside, true);
+  shadow.addEventListener("pointerdown", closeMenusInsidePanel);
   panel.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") closePanel();
+    if (event.key !== "Escape") return;
+    if (closeOpenMenus()) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+    closePanel();
   });
-  panel.append(resize, header, toolbar, facets, list);
+  panel.append(resize, header, toolbar, facets, liveStatus, list);
   shadow.append(style, panel);
   document.documentElement.append(host);
+  const pageRoot = document.documentElement;
+  const previousRootOverflow = pageRoot.style.getPropertyValue("overflow");
+  const previousRootOverflowPriority = pageRoot.style.getPropertyPriority("overflow");
+  let pageScrollLocked = false;
+  const restorePageScroll = () => {
+    if (
+      pageRoot.style.getPropertyValue("overflow") !== "hidden" ||
+      pageRoot.style.getPropertyPriority("overflow") !== "important"
+    )
+      return;
+    if (previousRootOverflow)
+      pageRoot.style.setProperty("overflow", previousRootOverflow, previousRootOverflowPriority);
+    else pageRoot.style.removeProperty("overflow");
+  };
+  const syncPageScrollLock = () => {
+    const shouldLock = window.innerWidth <= 480;
+    if (shouldLock === pageScrollLocked) return;
+    pageScrollLocked = shouldLock;
+    if (shouldLock) pageRoot.style.setProperty("overflow", "hidden", "important");
+    else restorePageScroll();
+  };
+  syncPageScrollLock();
+  window.addEventListener("resize", syncPageScrollLock);
   panelOptions.onOpenChange?.(true);
   let refreshTimer = 0;
   const pendingRoots = new Set<Element>();
@@ -1215,6 +1574,16 @@ export const toggleSourcePanel = (
     window.clearTimeout(refreshTimer);
     cancelBackgroundScan();
     rowCache.forEach(({ deactivate }) => deactivate());
+    document.removeEventListener("pointerdown", closeMenusOutside, true);
+    shadow.removeEventListener("pointerdown", closeMenusInsidePanel);
+    if (panelMenuFrame !== undefined) cancelAnimationFrame(panelMenuFrame);
+    shadow.removeEventListener("toggle", schedulePanelMenuPosition, true);
+    shadow.removeEventListener("scroll", schedulePanelMenuPosition, true);
+    window.removeEventListener("resize", schedulePanelMenuPosition);
+    window.visualViewport?.removeEventListener("resize", schedulePanelMenuPosition);
+    window.visualViewport?.removeEventListener("scroll", schedulePanelMenuPosition);
+    window.removeEventListener("resize", syncPageScrollLock);
+    restorePageScroll();
   });
   panelUpdates.set(host, (nextSendDownload, nextOptions) => {
     const previousOptions = panelOptions;

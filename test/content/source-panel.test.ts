@@ -2,10 +2,12 @@
 import {
   getSourcePanelHostForTesting,
   replaceSourcePanel,
+  resetSourcePanelLayoutForTesting,
   setSourcePanelOpen,
   toggleSourcePanel,
 } from "../../src/content/source-panel.ts";
 import { createSourcePanelCopy } from "../../src/shared/source-panel-copy.ts";
+import { SOURCE_PANEL_LAYOUT_STORAGE_KEY } from "../../src/shared/storage-keys.ts";
 
 describe("page source localization", () => {
   afterEach(() => document.getElementById("save-in-source-panel")?.remove());
@@ -41,10 +43,12 @@ describe("Page Sources panel interactions", () => {
     document.querySelectorAll("#save-in-source-panel").forEach((host) => host.remove());
     document.head.innerHTML = "";
     document.body.innerHTML = "";
+    document.documentElement.style.removeProperty("overflow");
     (globalThis as { SAVE_IN_CONTENT_E2E?: boolean }).SAVE_IN_CONTENT_E2E = true;
     vi.useRealTimers();
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
+    resetSourcePanelLayoutForTesting();
   });
 
   test("uses a closed owned host without removing a page ID collision", () => {
@@ -124,36 +128,36 @@ describe("Page Sources panel interactions", () => {
     pointer("pointerdown", 400, 300);
     pointer("pointermove", 300, 300);
     pointer("pointerup", 300, 300);
-    expect(host.style.width).not.toBe("");
+    expect(host.style.getPropertyValue("--source-panel-side-size")).not.toBe("");
 
-    shadow.querySelector<HTMLButtonElement>(".dock")!.click();
+    shadow.querySelector<HTMLButtonElement>('[data-placement="bottom"]')!.click();
     pointer("pointerdown", 400, 300);
     pointer("pointermove", 400, 200);
     pointer("pointerup", 400, 200);
-    expect(host.style.height).not.toBe("");
+    expect(host.style.getPropertyValue("--source-panel-dock-size")).not.toBe("");
 
-    shadow.querySelector<HTMLButtonElement>(".dock")!.click();
+    shadow.querySelector<HTMLButtonElement>('[data-placement="left"]')!.click();
     pointer("pointerdown", 300, 300);
     pointer("pointermove", 380, 300);
     pointer("pointerup", 380, 300);
-    expect(host.style.width).not.toBe("");
+    expect(host.style.getPropertyValue("--source-panel-side-size")).not.toBe("");
 
-    shadow.querySelector<HTMLButtonElement>(".dock")!.click();
+    shadow.querySelector<HTMLButtonElement>('[data-placement="top"]')!.click();
     pointer("pointerdown", 400, 200);
     pointer("pointermove", 400, 280);
     pointer("pointerup", 400, 280);
-    expect(host.style.height).not.toBe("");
+    expect(host.style.getPropertyValue("--source-panel-dock-size")).not.toBe("");
 
-    shadow.querySelector<HTMLButtonElement>(".popout")!.click();
+    shadow.querySelector<HTMLButtonElement>('[data-placement="floating"]')!.click();
     const header = shadow.querySelector<HTMLElement>("header")!;
     header.setPointerCapture = vi.fn();
     pointer("pointerdown", 100, 100, header);
     pointer("pointermove", 180, 160, header);
     pointer("pointerup", 180, 160, header);
-    expect(host.style.left).not.toBe("");
-    expect(host.style.top).not.toBe("");
+    expect(host.style.getPropertyValue("--source-panel-floating-left")).not.toBe("");
+    expect(host.style.getPropertyValue("--source-panel-floating-top")).not.toBe("");
 
-    shadow.querySelector<HTMLButtonElement>(".popout")!.click();
+    shadow.querySelector<HTMLButtonElement>('[data-placement="right"]')!.click();
     expect(host.classList).not.toContain("floating");
   });
 
@@ -162,11 +166,163 @@ describe("Page Sources panel interactions", () => {
     const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
     const header = shadow.querySelector<HTMLElement>("header")!;
     header.dispatchEvent(new MouseEvent("pointerdown", { bubbles: true, button: 0 }));
-    shadow.querySelector<HTMLButtonElement>(".popout")!.click();
+    shadow.querySelector<HTMLButtonElement>('[data-placement="floating"]')!.click();
     shadow
       .querySelector<HTMLButtonElement>(".close")!
       .dispatchEvent(new MouseEvent("pointerdown", { bubbles: true, button: 0 }));
     expect(getSourcePanelHostForTesting()).not.toBeNull();
+  });
+
+  test("supports keyboard resizing and persists an explicit panel position", () => {
+    const set = vi.spyOn(global.chrome.storage.local, "set");
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    const host = getSourcePanelHostForTesting()!;
+    const shadow = host.shadowRoot!;
+    const resize = shadow.querySelector<HTMLElement>(".resize")!;
+    const initialWidth = Number(resize.getAttribute("aria-valuenow"));
+
+    resize.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+    expect(Number(resize.getAttribute("aria-valuenow"))).toBeGreaterThan(initialWidth);
+    expect(resize.getAttribute("aria-orientation")).toBe("vertical");
+
+    shadow.querySelector<HTMLButtonElement>('[data-placement="bottom"]')!.click();
+    expect(host.dataset.dock).toBe("bottom");
+    expect(resize.getAttribute("aria-orientation")).toBe("horizontal");
+    expect(set).toHaveBeenCalledWith(
+      expect.objectContaining({
+        [SOURCE_PANEL_LAYOUT_STORAGE_KEY]: expect.objectContaining({ placement: "bottom" }),
+      }),
+      expect.any(Function),
+    );
+
+    host.remove();
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    expect(getSourcePanelHostForTesting()!.dataset.dock).toBe("bottom");
+  });
+
+  test("keeps row actions clickable and closes menus only for outside interaction", () => {
+    document.body.innerHTML = `<img src="cat.jpg">`;
+    const image = document.querySelector<HTMLImageElement>("img")!;
+    image.scrollIntoView = vi.fn();
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
+    const dockPicker = shadow.querySelector<HTMLDetailsElement>(".dock-picker")!;
+    const rowMore = shadow.querySelector<HTMLDetailsElement>(".row-more")!;
+    const locate = rowMore.querySelector<HTMLButtonElement>("button")!;
+
+    rowMore.open = true;
+    locate.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, composed: true }));
+    expect(rowMore.open).toBe(true);
+    locate.click();
+    expect(image.scrollIntoView).toHaveBeenCalledOnce();
+
+    dockPicker.open = true;
+    document.body.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
+    expect(dockPicker.open).toBe(false);
+
+    rowMore.open = true;
+    document.body.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
+    expect(rowMore.open).toBe(false);
+
+    rowMore.open = true;
+    shadow
+      .querySelector<HTMLElement>(".panel")!
+      .dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    expect(rowMore.open).toBe(false);
+    expect(getSourcePanelHostForTesting()?.classList).not.toContain("closing");
+  });
+
+  test("locks and restores page scrolling while the narrow panel covers the viewport", () => {
+    vi.useFakeTimers();
+    vi.stubGlobal("innerWidth", 390);
+    document.documentElement.style.overflow = "auto";
+
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    expect(document.documentElement.style.getPropertyValue("overflow")).toBe("hidden");
+    expect(document.documentElement.style.getPropertyPriority("overflow")).toBe("important");
+
+    vi.stubGlobal("innerWidth", 800);
+    window.dispatchEvent(new Event("resize"));
+    window.dispatchEvent(new Event("resize"));
+    expect(document.documentElement.style.getPropertyValue("overflow")).toBe("auto");
+
+    vi.stubGlobal("innerWidth", 390);
+    window.dispatchEvent(new Event("resize"));
+    expect(document.documentElement.style.getPropertyValue("overflow")).toBe("hidden");
+
+    setSourcePanelOpen(false, vi.fn(), { includeBackgrounds: false, live: false });
+    vi.advanceTimersByTime(90);
+    expect(document.documentElement.style.getPropertyValue("overflow")).toBe("auto");
+    expect(document.documentElement.style.getPropertyPriority("overflow")).toBe("");
+
+    document.documentElement.style.removeProperty("overflow");
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    setSourcePanelOpen(false, vi.fn(), { includeBackgrounds: false, live: false });
+    vi.advanceTimersByTime(90);
+    expect(document.documentElement.style.getPropertyValue("overflow")).toBe("");
+  });
+
+  test("positions shadow-root action menus against viewport collisions", async () => {
+    document.body.innerHTML = `<img src="cat.jpg">`;
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
+    const rowMore = shadow.querySelector<HTMLDetailsElement>(".row-more")!;
+    const trigger = rowMore.querySelector<HTMLElement>("summary")!;
+    const menu = rowMore.querySelector<HTMLElement>(".action-menu")!;
+    vi.spyOn(trigger, "getBoundingClientRect").mockReturnValue({
+      left: 280,
+      top: 210,
+      right: 312,
+      bottom: 238,
+      width: 32,
+      height: 28,
+      x: 280,
+      y: 210,
+      toJSON: () => ({}),
+    });
+    vi.spyOn(menu, "getBoundingClientRect").mockReturnValue({
+      left: 0,
+      top: 0,
+      right: 160,
+      bottom: 120,
+      width: 160,
+      height: 120,
+      x: 0,
+      y: 0,
+      toJSON: () => ({}),
+    });
+
+    rowMore.open = true;
+    rowMore.dispatchEvent(new Event("toggle"));
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+
+    expect(menu.style.position).toBe("fixed");
+    expect(menu.style.left).not.toBe("");
+    expect(menu.style.top).not.toBe("");
+  });
+
+  test("uses friendly embedded-source text, list semantics, status, and a clearable empty state", () => {
+    vi.useFakeTimers();
+    document.body.innerHTML = `<img src="data:image/png;base64,AAAA">`;
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
+
+    expect(shadow.querySelector("ul.list")).not.toBeNull();
+    expect(shadow.querySelector(".name")?.textContent).toBe("Embedded page source");
+    expect(shadow.querySelector(".url")?.textContent).toBe("data:image/png");
+    expect(shadow.querySelector(".source-count")?.textContent).toBe("1");
+    expect(shadow.querySelector(".live-status")?.textContent).toContain("1");
+    expect(shadow.querySelector(".meta")?.textContent).not.toContain("#");
+
+    const filter = shadow.querySelector<HTMLInputElement>('input[type="search"]')!;
+    filter.value = "missing";
+    filter.dispatchEvent(new Event("input"));
+    vi.advanceTimersByTime(80);
+    expect(shadow.querySelector(".empty")?.textContent).toContain("missing");
+
+    shadow.querySelector<HTMLButtonElement>(".empty button")!.click();
+    expect(filter.value).toBe("");
+    expect(shadow.querySelectorAll(".row")).toHaveLength(1);
   });
 
   test("copies only URLs in the active text and type filters", async () => {
@@ -186,7 +342,7 @@ describe("Page Sources panel interactions", () => {
       button.textContent?.startsWith("Image"),
     );
     expect(imageFacet?.childNodes[0]?.textContent).toBe("Image");
-    expect(imageFacet?.querySelector(".facet-count")?.textContent).toBe("1");
+    expect(imageFacet?.querySelector(".facet-count")?.textContent).toBe("2");
     imageFacet!.click();
     expect(shadow!.querySelector("h2")?.textContent).toBe("Page sources");
     shadow!.querySelector<HTMLButtonElement>(".copy-urls")!.click();
@@ -228,7 +384,7 @@ describe("Page Sources panel interactions", () => {
     const imageRow = shadow.querySelector<HTMLElement>('.row[data-kind="image"]')!;
     const source = document.querySelector<HTMLElement>("#cat")!;
     source.scrollIntoView = vi.fn();
-    imageRow.querySelector<HTMLButtonElement>(".actions button")!.click();
+    imageRow.querySelector<HTMLButtonElement>(".action-menu button")!.click();
     vi.advanceTimersByTime(1600);
     expect(source.style.outline).toBe("");
 
@@ -242,17 +398,17 @@ describe("Page Sources panel interactions", () => {
     imageRow.dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, key: "x", altKey: true }));
     expect(onSaveIntent).not.toHaveBeenCalled();
 
-    const save = imageRow.querySelector<HTMLButtonElement>(".actions button:last-child")!;
+    const save = imageRow.querySelector<HTMLButtonElement>(".primary-action")!;
     save.dispatchEvent(new MouseEvent("pointerdown", { bubbles: true, button: 1 }));
     save.dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, key: "x" }));
     save.dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, key: " " }));
     expect(onSaveIntent).toHaveBeenCalledOnce();
 
     const link = imageRow.querySelector<HTMLAnchorElement>(".source-link")!;
-    const locate = imageRow.querySelector<HTMLButtonElement>(".actions button")!;
-    link.dispatchEvent(new FocusEvent("focusin", { bubbles: true }));
-    link.dispatchEvent(new FocusEvent("focusout", { bubbles: true, relatedTarget: locate }));
-    expect(shadow.querySelector(".media-tooltip")).not.toBeNull();
+    const locate = imageRow.querySelector<HTMLButtonElement>(".action-menu button")!;
+    link.dispatchEvent(new FocusEvent("focus"));
+    link.dispatchEvent(new FocusEvent("blur", { relatedTarget: locate }));
+    expect(shadow.querySelector(".media-tooltip")).toBeNull();
 
     const sort = shadow.querySelector<HTMLSelectElement>("select")!;
     sort.value = "invalid";
@@ -333,7 +489,7 @@ describe("Page Sources panel interactions", () => {
     const sort = shadow.querySelector<HTMLSelectElement>("select")!;
     filter.value = "cat";
     sort.value = "name-asc";
-    shadow.querySelector<HTMLButtonElement>(".dock")!.click();
+    shadow.querySelector<HTMLButtonElement>('[data-placement="bottom"]')!.click();
 
     expect(replaceSourcePanel(vi.fn(), { ...options, previews: false })).toBe(true);
 
@@ -450,7 +606,7 @@ describe("Page Sources panel interactions", () => {
     const catRow = [...shadow.querySelectorAll<HTMLElement>(".row")].find((row) =>
       row.textContent?.includes("cat.jpg"),
     )!;
-    catRow.dispatchEvent(new MouseEvent("mouseenter"));
+    catRow.querySelector(".source-link")!.dispatchEvent(new MouseEvent("mouseenter"));
     expect(shadow.querySelector(".media-tooltip")).not.toBeNull();
     expect(document.querySelector<HTMLElement>("#cat")!.style.outline).not.toBe("");
 
@@ -483,8 +639,8 @@ describe("Page Sources panel interactions", () => {
     const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
     const rows = [...shadow.querySelectorAll<HTMLElement>(".row")];
     const firstLink = rows[0]!.querySelector<HTMLAnchorElement>(".source-link")!;
-    firstLink.dispatchEvent(new FocusEvent("focusin", { bubbles: true }));
-    rows[1]!.dispatchEvent(new MouseEvent("mouseenter"));
+    firstLink.dispatchEvent(new FocusEvent("focus"));
+    rows[1]!.querySelector(".source-link")!.dispatchEvent(new MouseEvent("mouseenter"));
 
     setSourcePanelOpen(false, vi.fn(), { includeBackgrounds: false, live: false });
     vi.advanceTimersByTime(90);
@@ -1005,7 +1161,7 @@ describe("Page Sources panel interactions", () => {
     });
     const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
     const row = shadow.querySelector<HTMLElement>(".row")!;
-    row.dispatchEvent(new MouseEvent("mouseenter"));
+    row.querySelector(".source-link")!.dispatchEvent(new MouseEvent("mouseenter"));
     const tooltip = shadow.querySelector<HTMLElement>(".media-tooltip")!;
 
     const reportSize = (bytes: number) =>
@@ -1157,7 +1313,11 @@ describe("Page Sources panel interactions", () => {
     toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
     const shadow = document.getElementById("save-in-source-panel")!.shadowRoot!;
 
-    const actions = [...shadow.querySelectorAll<HTMLButtonElement>(".header-actions button")];
+    const actions = [
+      ...shadow.querySelectorAll<HTMLElement>(
+        ".header-actions > button, .header-actions > details > summary",
+      ),
+    ];
     const names = actions.map((button) => button.getAttribute("aria-label"));
     expect(names.every(Boolean)).toBe(true);
     expect(new Set(names).size).toBe(actions.length);
@@ -1173,9 +1333,8 @@ describe("Page Sources panel interactions", () => {
     });
     const shadow = document.getElementById("save-in-source-panel")!.shadowRoot!;
     const row = shadow.querySelector<HTMLElement>(".row")!;
-    const buttons = [...row.querySelectorAll<HTMLButtonElement>(".actions button")];
-    const locate = buttons[0]!;
-    const save = buttons[1]!;
+    const locate = row.querySelector<HTMLButtonElement>(".action-menu button")!;
+    const save = row.querySelector<HTMLButtonElement>(".primary-action")!;
 
     locate.dispatchEvent(new MouseEvent("pointerdown", { bubbles: true, button: 0 }));
     expect(onSaveIntent).not.toHaveBeenCalled();
@@ -1194,7 +1353,7 @@ describe("Page Sources panel interactions", () => {
     toggleSourcePanel(sendDownload, { includeBackgrounds: false, live: false });
     const save = document
       .getElementById("save-in-source-panel")!
-      .shadowRoot!.querySelector<HTMLButtonElement>(".actions button:last-child")!;
+      .shadowRoot!.querySelector<HTMLButtonElement>(".primary-action")!;
 
     save.dispatchEvent(new MouseEvent("click", { bubbles: true, button: 0, altKey: true }));
 
@@ -1207,7 +1366,7 @@ describe("Page Sources panel interactions", () => {
     toggleSourcePanel(sendDownload, { includeBackgrounds: false, live: false });
     const locate = document
       .getElementById("save-in-source-panel")!
-      .shadowRoot!.querySelector<HTMLButtonElement>(".actions button")!;
+      .shadowRoot!.querySelector<HTMLButtonElement>(".action-menu button")!;
     document.querySelector<HTMLImageElement>("img")!.scrollIntoView = vi.fn();
 
     locate.dispatchEvent(new MouseEvent("click", { bubbles: true, button: 0, altKey: true }));
@@ -1215,19 +1374,21 @@ describe("Page Sources panel interactions", () => {
     expect(sendDownload).not.toHaveBeenCalled();
   });
 
-  test("exposes accessible popout and dock states", () => {
+  test("exposes explicit accessible panel positions", () => {
     toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
     const host = document.getElementById("save-in-source-panel")!;
-    const popout = host.shadowRoot!.querySelector<HTMLButtonElement>(".popout")!;
+    const shadow = host.shadowRoot!;
+    const floating = shadow.querySelector<HTMLButtonElement>('[data-placement="floating"]')!;
+    const right = shadow.querySelector<HTMLButtonElement>('[data-placement="right"]')!;
 
-    popout.click();
+    floating.click();
 
-    expect(popout.getAttribute("aria-pressed")).toBe("true");
-    expect(popout.getAttribute("aria-label")).not.toBe("");
+    expect(host.classList).toContain("floating");
+    expect(floating.getAttribute("aria-checked")).toBe("true");
 
-    host.shadowRoot!.querySelector<HTMLButtonElement>(".dock")!.click();
-    expect(popout.getAttribute("aria-pressed")).toBe("false");
-    expect(popout.getAttribute("aria-label")).not.toBe("");
+    right.click();
+    expect(host.classList).not.toContain("floating");
+    expect(right.getAttribute("aria-checked")).toBe("true");
   });
 
   test("newest and oldest visibly reverse sources detected in one render", () => {
@@ -1325,8 +1486,8 @@ describe("Page Sources panel interactions", () => {
     toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
     const row = getSourcePanelHostForTesting()!.shadowRoot!.querySelector<HTMLElement>(".row")!;
 
-    row.querySelector<HTMLButtonElement>(".actions button")!.click();
-    row.dispatchEvent(new MouseEvent("mouseenter"));
+    row.querySelector<HTMLButtonElement>(".action-menu button")!.click();
+    row.querySelector(".source-link")!.dispatchEvent(new MouseEvent("mouseenter"));
     setSourcePanelOpen(false, vi.fn(), { includeBackgrounds: false, live: false });
 
     expect(document.querySelector("svg a")?.getAttribute("style")).toBeNull();
@@ -1349,17 +1510,18 @@ describe("Page Sources panel interactions", () => {
     toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
     const host = getSourcePanelHostForTesting()!;
     const shadow = host.shadowRoot!;
-    shadow.querySelector<HTMLButtonElement>(".popout")!.click();
+    shadow.querySelector<HTMLButtonElement>('[data-placement="floating"]')!.click();
     const videoRow = shadow.querySelector<HTMLElement>('.row[data-kind="video"]')!;
-    videoRow.dispatchEvent(new MouseEvent("mouseenter"));
+    const videoLink = videoRow.querySelector(".source-link")!;
+    videoLink.dispatchEvent(new MouseEvent("mouseenter"));
     const tooltip = shadow.querySelector<HTMLElement>(".media-tooltip")!;
     callbacks[0]!([], {} as ResizeObserver);
     tooltip.querySelector("video")?.dispatchEvent(new Event("loadedmetadata"));
-    videoRow.dispatchEvent(new MouseEvent("mouseleave"));
+    videoLink.dispatchEvent(new MouseEvent("mouseleave"));
     callbacks[0]!([], {} as ResizeObserver);
 
     const documentRow = shadow.querySelector<HTMLElement>('.row[data-kind="document"]')!;
-    documentRow.dispatchEvent(new MouseEvent("mouseenter"));
+    documentRow.querySelector(".source-link")!.dispatchEvent(new MouseEvent("mouseenter"));
     expect(shadow.querySelectorAll(".media-tooltip")).toHaveLength(0);
     expect(play).toHaveBeenCalled();
   });
@@ -1405,12 +1567,12 @@ describe("Page Sources panel interactions", () => {
 
     expect(row.title).toBe("");
     expect(sourceLink.title).toBe("");
-    row.dispatchEvent(new MouseEvent("mouseenter"));
+    sourceLink.dispatchEvent(new MouseEvent("mouseenter"));
     expect(shadow.querySelector<HTMLImageElement>(".media-tooltip img")?.src).toBe(
       "http://localhost/large.jpg",
     );
     expect(sourceLink.hasAttribute("aria-describedby")).toBe(true);
-    row.dispatchEvent(new MouseEvent("mouseleave"));
+    sourceLink.dispatchEvent(new MouseEvent("mouseleave"));
     expect(shadow.querySelector(".media-tooltip")).toBeNull();
     expect(sourceLink.hasAttribute("aria-describedby")).toBe(false);
   });
@@ -1426,7 +1588,7 @@ describe("Page Sources panel interactions", () => {
     const row = shadow.querySelector<HTMLElement>(".row")!;
 
     expect(row.querySelector(".source-link img")).toBeNull();
-    row.dispatchEvent(new MouseEvent("mouseenter"));
+    row.querySelector(".source-link")!.dispatchEvent(new MouseEvent("mouseenter"));
     expect(shadow.querySelector<HTMLImageElement>(".media-tooltip img")?.src).toBe(
       "http://localhost/hover-only.jpg",
     );
@@ -1444,12 +1606,13 @@ describe("Page Sources panel interactions", () => {
     const shadow = document.getElementById("save-in-source-panel")!.shadowRoot!;
     const row = shadow.querySelector<HTMLElement>(".row")!;
 
-    row.dispatchEvent(new MouseEvent("mouseenter"));
+    const sourceLink = row.querySelector(".source-link")!;
+    sourceLink.dispatchEvent(new MouseEvent("mouseenter"));
     const preview = shadow.querySelector<HTMLVideoElement>(".media-tooltip video")!;
     expect(preview.muted).toBe(true);
     expect(play).toHaveBeenCalled();
 
-    row.dispatchEvent(new MouseEvent("mouseleave"));
+    sourceLink.dispatchEvent(new MouseEvent("mouseleave"));
     expect(pause).toHaveBeenCalled();
     expect(preview.isConnected).toBe(false);
   });
@@ -1462,10 +1625,10 @@ describe("Page Sources panel interactions", () => {
     const row = shadow.querySelector<HTMLElement>(".row")!;
     const sourceLink = row.querySelector<HTMLAnchorElement>(".source-link")!;
 
-    sourceLink.dispatchEvent(new FocusEvent("focusin", { bubbles: true }));
+    sourceLink.dispatchEvent(new FocusEvent("focus"));
     expect(shadow.querySelector(".media-tooltip")).not.toBeNull();
     expect(source.style.outline).not.toBe("");
-    sourceLink.dispatchEvent(new FocusEvent("focusout", { bubbles: true, relatedTarget: null }));
+    sourceLink.dispatchEvent(new FocusEvent("blur", { relatedTarget: null }));
     expect(shadow.querySelector(".media-tooltip")).toBeNull();
     expect(source.style.outline).toBe("");
   });

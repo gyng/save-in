@@ -68,8 +68,7 @@ export const createSourcePanelCopy = (localize: SourcePanelLocalize): SourcePane
   close: localize("sourcePanelClose") || "Close",
   closeLabel: localize("sourcePanelCloseLabel") || "Close Page Sources",
   dockPositionTemplate:
-    localize("sourcePanelDockPosition", [VALUE_SLOT]) ||
-    `Panel position: ${VALUE_SLOT}`,
+    localize("sourcePanelDockPosition", [VALUE_SLOT]) || `Panel position: ${VALUE_SLOT}`,
   dockPositions: {
     right: localize("sourcePanelDockRight") || "Right",
     bottom: localize("sourcePanelDockBottom") || "Bottom",
@@ -105,8 +104,7 @@ export const createSourcePanelCopy = (localize: SourcePanelLocalize): SourcePane
   },
   noMatches: localize("sourcePanelNoMatches") || "No sources match the current filters.",
   noMatchesFilterTemplate:
-    localize("sourcePanelNoMatchesFilter", [VALUE_SLOT]) ||
-    `No sources match “${VALUE_SLOT}”.`,
+    localize("sourcePanelNoMatchesFilter", [VALUE_SLOT]) || `No sources match “${VALUE_SLOT}”.`,
   noSources:
     localize("sourcePanelNoSources") || "No page media or streaming-video playlists detected yet.",
   clearFilters: localize("sourcePanelClearFilters") || "Clear filters",

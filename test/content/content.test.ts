@@ -959,7 +959,7 @@ describe("content.js initialisation", () => {
 
     const save = document
       .getElementById("save-in-source-panel")!
-      .shadowRoot!.querySelector<HTMLButtonElement>(".actions button:last-child")!;
+      .shadowRoot!.querySelector<HTMLButtonElement>(".primary-action")!;
     save.dispatchEvent(new MouseEvent("pointerdown", { bubbles: true, button: 0 }));
 
     expect(global.chrome.runtime.sendMessage).toHaveBeenCalledOnce();
