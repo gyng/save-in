@@ -254,7 +254,7 @@ describe("Page Sources shortcut control", () => {
     document.querySelector<HTMLButtonElement>("#sourcePanelShortcutApply")!.click();
     expect(status.textContent).toContain("does not support changing shortcuts");
     document.querySelector<HTMLButtonElement>("#sourcePanelShortcutReset")!.click();
-    expect(status.textContent).toContain("does not support resetting shortcuts");
+    expect(status.textContent).toContain("does not support restoring shortcut defaults");
 
     const commands = global.browser.commands as any;
     commands.update = vi.fn(() => Promise.resolve());
@@ -275,6 +275,6 @@ describe("Page Sources shortcut control", () => {
     commands.reset = vi.fn(() => Promise.resolve());
     commands.getAll = vi.fn(() => Promise.resolve([]));
     document.querySelector<HTMLButtonElement>("#sourcePanelShortcutReset")!.click();
-    await vi.waitFor(() => expect(status.textContent).toBe("Shortcut reset."));
+    await vi.waitFor(() => expect(status.textContent).toBe("Shortcut restored to its default."));
   });
 });

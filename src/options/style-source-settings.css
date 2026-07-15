@@ -1,6 +1,21 @@
+.source-panel-overview-copy {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.source-browser > .section-task-heading {
+  margin-bottom: var(--space-1);
+}
+
 .source-panel-intro {
   max-inline-size: 72ch;
   margin: 0;
+}
+
+.source-panel-master {
+  inline-size: fit-content;
+  margin: 0;
+  font-weight: 600;
 }
 
 .source-panel-intro .section-lead {
@@ -13,9 +28,22 @@
   line-height: 1.45;
 }
 
-.source-panel-settings,
-.source-shortcut-settings {
+.source-browser .source-panel-dependent {
+  gap: var(--space-5);
   margin-top: var(--space-5);
+  margin-inline-start: var(--space-2);
+  padding-inline-start: var(--space-4);
+  border-inline-start: 1px solid var(--panel-border);
+}
+
+.source-browser:has(#sourcePanelEnabled:not(:checked)) .source-panel-dependent {
+  opacity: 0.55;
+}
+
+.source-panel-settings,
+.source-result-settings {
+  display: grid;
+  gap: var(--space-1);
 }
 
 .option-group-heading {
@@ -25,39 +53,36 @@
   font-weight: 600;
 }
 
-.source-shortcut-controls {
-  display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: var(--space-2);
+.source-shortcut-fields {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(7rem, 10rem));
+  gap: var(--space-3);
 }
 
-.source-shortcut-controls > label {
+.source-shortcut-fields > label {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
   margin: 0;
 }
 
-.source-shortcut-controls select,
-.source-shortcut-controls input[type="text"] {
+.source-shortcut-fields select,
+.source-shortcut-fields input[type="text"] {
+  inline-size: 100%;
+  max-inline-size: none;
   min-block-size: var(--control-height);
+  margin: 0;
 }
 
-.source-shortcut-settings .source-shortcut-controls select {
-  inline-size: auto;
-  min-inline-size: 7.5rem;
+.source-shortcut-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
 }
 
-.source-shortcut-controls #sourcePanelShortcutKey {
-  inline-size: 7rem;
-  max-inline-size: 7rem;
-}
-
-.shortcut-plus {
-  color: var(--color-text-muted);
-  font-weight: 600;
-}
-
-#sourcePanelShortcutStatus:not(:empty),
-#clickToSaveStatus:not(:empty) {
+#sourcePanelShortcutStatus:not(:empty) {
   flex-basis: 100%;
   max-inline-size: 100%;
   overflow-wrap: anywhere;
@@ -67,6 +92,7 @@
 
 .source-shortcut-settings > .caption-line {
   max-inline-size: 68ch;
+  margin-top: var(--space-2);
   color: var(--color-text-muted);
   line-height: 1.4;
 }
@@ -89,18 +115,27 @@
   box-shadow: var(--floating-shadow);
 }
 
-.source-panel-demo-header,
-.source-panel-demo-row {
+.source-panel-demo-header {
   display: flex;
+  justify-content: space-between;
   align-items: center;
   gap: var(--space-2);
+  min-block-size: var(--control-height);
   padding: 6px 10px 3px;
+  border-bottom: 1px solid var(--panel-border);
 }
 
-.source-panel-demo-header {
-  justify-content: space-between;
-  min-block-size: var(--control-height);
-  border-bottom: 1px solid var(--panel-border);
+.source-panel-demo-title {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.source-panel-demo-title small {
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
 }
 
 .source-panel-demo-actions {
@@ -128,11 +163,19 @@
   stroke-linejoin: round;
 }
 
+.source-panel-demo-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+}
+
 .source-panel-demo-search {
   display: flex;
   align-items: center;
+  min-inline-size: 0;
   gap: 6px;
-  margin: var(--space-2) var(--space-3);
   min-block-size: var(--control-height);
   padding: 6px 8px;
   color: var(--color-text-muted);
@@ -140,10 +183,37 @@
   border-radius: var(--radius);
 }
 
+.source-panel-demo-search > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.source-panel-demo-sort {
+  --source-demo-sort-chevron-x: calc(100% - 10px);
+
+  display: flex;
+  align-items: center;
+  min-block-size: var(--control-height);
+  padding-block: 6px;
+  padding-inline: 8px 24px;
+  color: var(--color-text);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  background: linear-gradient(45deg, transparent 50%, currentColor 50%)
+    var(--source-demo-sort-chevron-x) 50% / 5px 5px no-repeat;
+  font-size: var(--text-sm);
+  white-space: nowrap;
+}
+
+.source-panel-demo-sort:dir(rtl) {
+  --source-demo-sort-chevron-x: 10px;
+}
+
 .source-panel-demo-facets {
   display: flex;
   align-items: center;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: 4px;
   padding: 0 var(--space-3) var(--space-2);
   border-bottom: 1px solid var(--panel-border);
@@ -173,6 +243,10 @@
 }
 
 .source-panel-demo-row {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-2);
   min-block-size: 44px;
   padding: 3px 10px;
   border-bottom: 1px solid var(--panel-border);
@@ -180,6 +254,14 @@
 
 .source-panel-demo-row:last-child {
   border-bottom: 0;
+}
+
+.source-panel-demo-check {
+  inline-size: 14px;
+  block-size: 14px;
+  border: 1px solid var(--control-border);
+  border-radius: 3px;
+  background: var(--input-background);
 }
 
 .source-panel-demo-details {
@@ -199,6 +281,36 @@
 .source-panel-demo-row small {
   color: var(--color-text-muted);
   font-size: var(--text-sm);
+}
+
+.source-panel-demo-row-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-style: normal;
+}
+
+.source-panel-demo-row-actions b,
+.source-panel-demo-row-actions i {
+  display: grid;
+  place-items: center;
+  min-block-size: var(--compact-control-size);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-sm);
+  background: var(--input-background);
+  font-size: var(--text-sm);
+  font-style: normal;
+  font-weight: 500;
+}
+
+.source-panel-demo-row-actions b {
+  padding-inline: var(--space-2);
+}
+
+.source-panel-demo-row-actions i {
+  inline-size: var(--compact-control-size);
+  color: var(--color-text-muted);
+  letter-spacing: -0.08em;
 }
 
 .source-panel-demo-thumb {
@@ -226,5 +338,16 @@
 @container options-panel (max-width: 640px) {
   .source-panel-overview {
     grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@container options-panel (max-width: 520px) {
+  .source-shortcut-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .source-browser .source-panel-dependent {
+    margin-inline-start: 0;
+    padding-inline-start: var(--space-3);
   }
 }

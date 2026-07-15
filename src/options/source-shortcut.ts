@@ -41,7 +41,8 @@ export const validateSourceShortcut = (
   localize: ShortcutLocalizer = englishShortcutMessage,
 ): string => {
   const value = shortcut.trim();
-  if (!value) return localize("o_lShortcutEnterOrReset", "Enter a shortcut or use Reset.");
+  if (!value)
+    return localize("o_lShortcutEnterOrReset", "Enter a shortcut or restore the default.");
   const parts = value.split("+").map((part) => part.trim());
   if (parts.some((part) => !part))
     return localize("o_lShortcutFormat", "Use a format like Ctrl+Shift+G.");
@@ -159,14 +160,14 @@ export const setupSourceShortcut = () => {
     if (!isCommandMethod(resetValue)) {
       announce(
         getMessage("o_lShortcutResetUnsupported") ||
-          "This browser does not support resetting shortcuts here.",
+          "This browser does not support restoring shortcut defaults here.",
         true,
       );
       return;
     }
     void invokeCommandMethod(resetValue, [COMMAND])
       .then(() => load())
-      .then(() => announce(getMessage("o_lShortcutReset") || "Shortcut reset."))
+      .then(() => announce(getMessage("o_lShortcutReset") || "Shortcut restored to its default."))
       .catch((error) => announce(String(error), true));
   });
   modifier.addEventListener("change", () => {

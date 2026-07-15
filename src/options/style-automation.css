@@ -1,6 +1,8 @@
 .source-automation {
   margin-top: var(--space-6);
   margin-bottom: var(--space-6);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--panel-border);
 }
 
 .browser-download-choice {

@@ -47,6 +47,13 @@
   display: none;
 }
 
+#clickToSaveStatus:not(:empty) {
+  max-inline-size: 100%;
+  overflow-wrap: anywhere;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
 .editor-dirty-status {
   flex: 0 1 auto;
   margin-inline-start: auto;

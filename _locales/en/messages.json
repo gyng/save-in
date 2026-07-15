@@ -351,6 +351,10 @@
     "message": "Page sources",
     "description": "Section heading and Page Sources panel title. Used in src/options/options.html and src/shared/source-panel-copy.ts."
   },
+  "o_sBrowsePageSources": {
+    "message": "Browse page sources",
+    "description": "Task heading for browsing sources found on the current page. Used in src/options/options.html."
+  },
   "o_lPageSourcesHelp": {
     "message": "Browse images, video, audio, documents, and downloadable links found on the current page. Saved items use your normal routing and renaming rules.",
     "description": "Label, status, or help text in the options interface. Used in src/options/options.html."
@@ -360,7 +364,7 @@
     "description": "Label, status, or help text in the options interface. Used in src/options/options.html."
   },
   "o_cSourcePanelEnabled": {
-    "message": "Enable page sources",
+    "message": "Enable Page Sources browsing",
     "description": "Option control label or related help text. Used in src/options/options.html."
   },
   "o_cSourcePanelBackgrounds": {
@@ -384,7 +388,7 @@
     "description": "Option control label or related help text. Used in src/options/options.html."
   },
   "o_lSourcePanelDiscovery": {
-    "message": "Sources and previews",
+    "message": "Results and previews",
     "description": "Label, status, or help text in the options interface. Used in src/options/options.html."
   },
   "o_lSourcePanelShortcut": {
@@ -392,7 +396,7 @@
     "description": "Label, status, or help text in the options interface. Used in src/options/options.html."
   },
   "o_lSourcePanelShortcutHelp": {
-    "message": "Use browser shortcut syntax, for example Ctrl+Shift+Y or Command+Shift+Y. The browser rejects reserved shortcuts.",
+    "message": "Choose one or two modifiers and a key. Some browser shortcuts are reserved or already in use.",
     "description": "Label, status, or help text in the options interface. Used in src/options/options.html."
   },
   "o_bReset": {
@@ -1384,7 +1388,7 @@
     "description": "Label, status, or help text in the options interface. Used in src/options/clauselist.html and src/options/options.html."
   },
   "o_lShortcutEnterOrReset": {
-    "message": "Enter a shortcut or use Reset.",
+    "message": "Enter a shortcut or restore the default.",
     "description": "Label, status, or help text in the options interface. Used in src/options/source-shortcut.ts."
   },
   "o_lShortcutFormat": {
@@ -1428,11 +1432,11 @@
     "description": "Label, status, or help text in the options interface. Used in src/options/shortcut-options.ts and src/options/source-shortcut.ts."
   },
   "o_lShortcutResetUnsupported": {
-    "message": "This browser does not support resetting shortcuts here.",
+    "message": "This browser does not support restoring shortcut defaults here.",
     "description": "Label, status, or help text in the options interface. Used in src/options/source-shortcut.ts."
   },
   "o_lShortcutReset": {
-    "message": "Shortcut reset.",
+    "message": "Shortcut restored to its default.",
     "description": "Label, status, or help text in the options interface. Used in src/options/shortcut-options.ts and src/options/source-shortcut.ts."
   },
   "o_lShortcutLegacyValue": {
@@ -1907,10 +1911,6 @@
   },
   "html_shortcutFileBehavior": {
     "message": "Shortcut file settings",
-    "description": "Text in the options page. Used in src/options/options.html."
-  },
-  "html_shortcutKey": {
-    "message": "Shortcut key",
     "description": "Text in the options page. Used in src/options/options.html."
   },
   "html_streamHls3": {
@@ -2824,7 +2824,7 @@
     "description": "WebMCP status when the browser does not expose WebMCP. Used in src/options/webmcp.ts."
   },
   "o_lSourcePanelShortcutResetHelp": {
-    "message": "Reset restores the browser's suggested default.",
+    "message": "Restore defaults uses the browser's suggested shortcut.",
     "description": "Help text below the page-sources keyboard shortcut control. Used in src/options/options.html."
   },
   "o_sAppearance": {

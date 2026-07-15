@@ -1449,155 +1449,190 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
       <hr />
 
       <h2 id="section-page-sources">__MSG_o_sPageSources__</h2>
-      <div class="source-panel-overview">
-        <div class="source-panel-intro">
-          <p class="section-lead">__MSG_o_lPageSourcesHelp__</p>
-          <p class="caption section-note">__MSG_o_lPageSourcesNetworkLimit__</p>
+      <section class="source-browser" aria-labelledby="source-browser-heading">
+        <h3 class="section-task-heading" id="source-browser-heading">
+          __MSG_o_sBrowsePageSources__
+        </h3>
+        <div class="source-panel-overview">
+          <div class="source-panel-overview-copy">
+            <div class="source-panel-intro">
+              <p class="section-lead" id="source-panel-enable-help">__MSG_o_lPageSourcesHelp__</p>
+              <p class="caption section-note">__MSG_o_lPageSourcesNetworkLimit__</p>
+            </div>
+            <label class="source-panel-master">
+              <input
+                type="checkbox"
+                id="sourcePanelEnabled"
+                aria-controls="source-panel-dependent-options"
+                aria-describedby="source-panel-enable-help"
+              />
+              __MSG_o_cSourcePanelEnabled__
+            </label>
+          </div>
+
+          <figure class="source-panel-demo">
+            <figcaption class="visually-hidden">
+              __MSG_html_previewOfThePageSourcesDrawer__
+            </figcaption>
+            <div aria-hidden="true">
+              <div class="source-panel-demo-header">
+                <span class="source-panel-demo-title"
+                  ><strong>__MSG_o_sPageSources__</strong><small>8</small></span
+                >
+                <span class="source-panel-demo-actions">
+                  <span
+                    ><svg viewBox="0 0 24 24">
+                      <path d="M8 8h10v10H8z" />
+                      <path d="M5 15H3V3h12v2" /></svg
+                  ></span>
+                  <span
+                    ><svg viewBox="0 0 24 24">
+                      <path d="M3 4h18v16H3z" />
+                      <path d="M15 4v16" /></svg
+                  ></span>
+                  <span
+                    ><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18" /></svg
+                  ></span>
+                </span>
+              </div>
+              <div class="source-panel-demo-toolbar">
+                <span class="source-panel-demo-search">
+                  <svg viewBox="0 0 24 24">
+                    <path d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z" />
+                  </svg>
+                  <span>__MSG_html_filterSources__</span>
+                </span>
+                <span class="source-panel-demo-sort">__MSG_sourcePanelSortRelevance__</span>
+              </div>
+              <div class="source-panel-demo-facets">
+                <span class="active">__MSG_html_all__ <b>8</b></span
+                ><span>__MSG_html_images__ <b>5</b></span
+                ><span>__MSG_html_video__ <b>2</b></span
+                ><span>__MSG_html_links__ <b>1</b></span>
+              </div>
+              <div class="source-panel-demo-row">
+                <span class="source-panel-demo-check"></span>
+                <span class="source-panel-demo-thumb image-thumb"></span>
+                <span class="source-panel-demo-details"
+                  ><strong>hero.webp</strong><small>__MSG_html_image128Kb1__</small></span
+                >
+                <span class="source-panel-demo-row-actions"
+                  ><b>__MSG_sourcePanelSave__</b><i>•••</i></span
+                >
+              </div>
+              <div class="source-panel-demo-row">
+                <span class="source-panel-demo-check"></span>
+                <span class="source-panel-demo-thumb video-thumb">▶</span>
+                <span class="source-panel-demo-details"
+                  ><strong>intro.mp4</strong><small>__MSG_html_video24Mb2__</small></span
+                >
+                <span class="source-panel-demo-row-actions"
+                  ><b>__MSG_sourcePanelSave__</b><i>•••</i></span
+                >
+              </div>
+              <div class="source-panel-demo-row">
+                <span class="source-panel-demo-check"></span>
+                <span class="source-panel-demo-thumb stream-thumb">≈</span>
+                <span class="source-panel-demo-details"
+                  ><strong>playlist.m3u8</strong><small>__MSG_html_streamHls3__</small></span
+                >
+                <span class="source-panel-demo-row-actions"
+                  ><b>__MSG_sourcePanelSave__</b><i>•••</i></span
+                >
+              </div>
+            </div>
+          </figure>
         </div>
 
-        <div class="source-panel-demo" aria-label="__MSG_html_previewOfThePageSourcesDrawer__">
-          <div class="source-panel-demo-header">
-            <strong>__MSG_o_sPageSources__</strong>
-            <span class="source-panel-demo-actions" aria-hidden="true">
-              <span
-                ><svg viewBox="0 0 24 24">
-                  <path d="M8 8h10v10H8z" />
-                  <path d="M5 15H3V3h12v2" /></svg
-              ></span>
-              <span
-                ><svg viewBox="0 0 24 24">
-                  <path d="M3 4h18v16H3z" />
-                  <path d="M15 4v16" /></svg
-              ></span>
-              <span
-                ><svg viewBox="0 0 24 24">
-                  <path d="M13 4h7v7" />
-                  <path d="M20 4 10 14" />
-                  <path d="M17 13v7H4V7h7" /></svg
-              ></span>
-              <span
-                ><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18" /></svg
-              ></span>
-            </span>
-          </div>
-          <div class="source-panel-demo-search">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z" />
-            </svg>
-            <span>__MSG_html_filterSources__</span>
-          </div>
-          <div class="source-panel-demo-facets">
-            <span class="active">__MSG_html_all__ <b>8</b></span
-            ><span>__MSG_html_images__ <b>5</b></span
-            ><span>__MSG_html_video__ <b>2</b></span
-            ><span>__MSG_html_links__ <b>1</b></span>
-          </div>
-          <div class="source-panel-demo-row">
-            <span class="source-panel-demo-thumb image-thumb" aria-hidden="true"></span>
-            <span class="source-panel-demo-details"
-              ><strong>hero.webp</strong><small>__MSG_html_image128Kb1__</small></span
+        <div id="source-panel-dependent-options" class="dependent-options source-panel-dependent">
+          <fieldset class="option-group source-panel-settings">
+            <legend class="option-group-heading">__MSG_o_lSourcePanelDiscovery__</legend>
+            <label><input type="checkbox" id="sourcePanelLive" /> __MSG_o_cSourcePanelLive__</label>
+            <label
+              ><input type="checkbox" id="sourcePanelPreviews" />
+              __MSG_o_cSourcePanelPreviews__</label
             >
-          </div>
-          <div class="source-panel-demo-row">
-            <span class="source-panel-demo-thumb video-thumb" aria-hidden="true">▶</span>
-            <span class="source-panel-demo-details"
-              ><strong>intro.mp4</strong><small>__MSG_html_video24Mb2__</small></span
+            <label
+              ><input type="checkbox" id="sourcePanelBackgrounds" />
+              __MSG_o_cSourcePanelBackgrounds__</label
             >
-          </div>
-          <div class="source-panel-demo-row">
-            <span class="source-panel-demo-thumb stream-thumb" aria-hidden="true">≈</span>
-            <span class="source-panel-demo-details"
-              ><strong>playlist.m3u8</strong><small>__MSG_html_streamHls3__</small></span
+            <label
+              ><input type="checkbox" id="sourcePanelResourceHints" />
+              __MSG_o_cSourcePanelResourceHints__</label
             >
-          </div>
-        </div>
-      </div>
+            <label
+              ><input type="checkbox" id="sourcePanelLinks" /> __MSG_o_cSourcePanelLinks__</label
+            >
+          </fieldset>
 
-      <fieldset class="option-group source-panel-settings">
-        <legend class="option-group-heading">__MSG_o_lSourcePanelDiscovery__</legend>
-        <label
-          ><input type="checkbox" id="sourcePanelEnabled" /> __MSG_o_cSourcePanelEnabled__</label
-        >
-        <label><input type="checkbox" id="sourcePanelLive" /> __MSG_o_cSourcePanelLive__</label>
-        <label
-          ><input type="checkbox" id="sourcePanelPreviews" /> __MSG_o_cSourcePanelPreviews__</label
-        >
-        <label
-          ><input type="checkbox" id="sourcePanelBackgrounds" />
-          __MSG_o_cSourcePanelBackgrounds__</label
-        >
-        <label
-          ><input type="checkbox" id="sourcePanelResourceHints" />
-          __MSG_o_cSourcePanelResourceHints__</label
-        >
-        <label><input type="checkbox" id="sourcePanelLinks" /> __MSG_o_cSourcePanelLinks__</label>
-      </fieldset>
-
-      <fieldset class="option-group source-shortcut-settings">
-        <legend class="option-group-heading">__MSG_o_lSourcePanelShortcut__</legend>
-        <div class="source-shortcut-controls">
-          <label>
-            <span class="visually-hidden">__MSG_html_primaryModifier__</span>
-            <select id="sourcePanelShortcutModifier" data-runtime-control="true">
-              <option value="Ctrl">__MSG_html_ctrl__</option>
-              <option value="Alt">__MSG_html_altOption__</option>
-              <option value="Command">__MSG_html_command__</option>
-              <option value="MacCtrl">__MSG_html_macctrl__</option>
-            </select>
-          </label>
-          <span class="shortcut-plus" aria-hidden="true">+</span>
-          <label>
-            <span class="visually-hidden">__MSG_html_secondModifier__</span>
-            <select id="sourcePanelShortcutModifier2" data-runtime-control="true">
-              <option value="">__MSG_html_none__</option>
-              <option value="Shift">__MSG_html_shift__</option>
-              <option value="Alt">__MSG_html_altOption__</option>
-              <option value="Ctrl">__MSG_html_ctrl__</option>
-              <option value="Command">__MSG_html_command__</option>
-              <option value="MacCtrl">__MSG_html_macctrl__</option>
-            </select>
-          </label>
-          <span class="shortcut-plus" aria-hidden="true">+</span>
-          <label>
-            <span class="visually-hidden">__MSG_html_key__</span>
-            <input
-              type="text"
-              id="sourcePanelShortcutKey"
-              data-runtime-control="true"
-              aria-label="__MSG_html_shortcutKey__"
-              placeholder="Y"
-              spellcheck="false"
-              autocomplete="off"
-              list="sourcePanelShortcutKeys"
-              aria-describedby="sourcePanelShortcutHelp sourcePanelShortcutStatus"
-            />
-          </label>
-          <datalist id="sourcePanelShortcutKeys">
-            <option value="Y"></option>
-            <option value="F1"></option>
-            <option value="F2"></option>
-            <option value="F12"></option>
-            <option value="Space"></option>
-            <option value="PageUp"></option>
-            <option value="PageDown"></option>
-            <option value="Home"></option>
-            <option value="End"></option>
-          </datalist>
-          <button type="button" class="button-primary" id="sourcePanelShortcutApply">
-            __MSG_html_applyShortcut__
-          </button>
-          <button type="button" id="sourcePanelShortcutReset">__MSG_o_bReset__</button>
-          <span
-            id="sourcePanelShortcutStatus"
-            class="feedback"
-            role="status"
-            aria-live="polite"
-          ></span>
+          <fieldset class="option-group source-shortcut-settings">
+            <legend class="option-group-heading">__MSG_o_lSourcePanelShortcut__</legend>
+            <div class="source-shortcut-fields">
+              <label>
+                <span class="shortcut-control-label">__MSG_html_primaryModifier__</span>
+                <select id="sourcePanelShortcutModifier" data-runtime-control="true">
+                  <option value="Ctrl">__MSG_html_ctrl__</option>
+                  <option value="Alt">__MSG_html_altOption__</option>
+                  <option value="Command">__MSG_html_command__</option>
+                  <option value="MacCtrl">__MSG_html_macctrl__</option>
+                </select>
+              </label>
+              <label>
+                <span class="shortcut-control-label">__MSG_html_secondModifier__</span>
+                <select id="sourcePanelShortcutModifier2" data-runtime-control="true">
+                  <option value="">__MSG_html_none__</option>
+                  <option value="Shift">__MSG_html_shift__</option>
+                  <option value="Alt">__MSG_html_altOption__</option>
+                  <option value="Ctrl">__MSG_html_ctrl__</option>
+                  <option value="Command">__MSG_html_command__</option>
+                  <option value="MacCtrl">__MSG_html_macctrl__</option>
+                </select>
+              </label>
+              <label>
+                <span class="shortcut-control-label">__MSG_html_key__</span>
+                <input
+                  type="text"
+                  id="sourcePanelShortcutKey"
+                  data-runtime-control="true"
+                  placeholder="Y"
+                  spellcheck="false"
+                  autocomplete="off"
+                  list="sourcePanelShortcutKeys"
+                  aria-describedby="sourcePanelShortcutHelp sourcePanelShortcutStatus"
+                />
+              </label>
+            </div>
+            <datalist id="sourcePanelShortcutKeys">
+              <option value="Y"></option>
+              <option value="F1"></option>
+              <option value="F2"></option>
+              <option value="F12"></option>
+              <option value="Space"></option>
+              <option value="PageUp"></option>
+              <option value="PageDown"></option>
+              <option value="Home"></option>
+              <option value="End"></option>
+            </datalist>
+            <div class="source-shortcut-actions">
+              <button type="button" class="button-primary" id="sourcePanelShortcutApply">
+                __MSG_html_applyShortcut__
+              </button>
+              <button type="button" id="sourcePanelShortcutReset">
+                __MSG_o_cRestoreDefaults__
+              </button>
+              <span
+                id="sourcePanelShortcutStatus"
+                class="feedback"
+                role="status"
+                aria-live="polite"
+              ></span>
+            </div>
+            <div class="caption caption-line" id="sourcePanelShortcutHelp">
+              __MSG_o_lSourcePanelShortcutHelp__ __MSG_o_lSourcePanelShortcutResetHelp__
+            </div>
+          </fieldset>
         </div>
-        <div class="caption caption-line" id="sourcePanelShortcutHelp">
-          __MSG_o_lSourcePanelShortcutHelp__ __MSG_o_lSourcePanelShortcutResetHelp__
-        </div>
-      </fieldset>
+      </section>
 
       <section class="source-automation" aria-labelledby="auto-download-heading">
         <h3 class="section-task-heading" id="auto-download-heading">__MSG_autoDownloadHeading__</h3>

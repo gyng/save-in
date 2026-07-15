@@ -324,6 +324,13 @@ test("keeps stable Page Sources controls", () => {
   expect(document.querySelector("#sourcePanelShortcutKey")?.getAttribute("list")).toBe(
     "sourcePanelShortcutKeys",
   );
+  expect(document.querySelector("#sourcePanelEnabled")?.getAttribute("aria-controls")).toBe(
+    "source-panel-dependent-options",
+  );
+  expect(document.querySelector("#source-panel-dependent-options #sourcePanelLive")).not.toBeNull();
+  expect(document.querySelector(".source-browser #autoDownloadEnabled")).toBeNull();
+  expect(document.querySelector("figure.source-panel-demo figcaption")).not.toBeNull();
+  expect(document.querySelector("figure.source-panel-demo > [aria-hidden='true']")).not.toBeNull();
   expect(document.querySelector("#autoDownloadRules")).toBeNull();
   expect(document.querySelector("#autoDownloadMaxPerPage")?.getAttribute("max")).toBe("500");
 });

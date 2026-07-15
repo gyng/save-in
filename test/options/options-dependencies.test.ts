@@ -9,6 +9,17 @@ describe("option dependencies", () => {
       <select id="clickToSaveModifier"></select>
       <select id="clickToSaveModifier2"></select>
       <select id="contentClickToSaveButton"></select>
+      <input type="checkbox" id="sourcePanelEnabled">
+      <input type="checkbox" id="sourcePanelLive">
+      <input type="checkbox" id="sourcePanelPreviews">
+      <input type="checkbox" id="sourcePanelBackgrounds">
+      <input type="checkbox" id="sourcePanelResourceHints">
+      <input type="checkbox" id="sourcePanelLinks">
+      <select id="sourcePanelShortcutModifier"></select>
+      <select id="sourcePanelShortcutModifier2"></select>
+      <input id="sourcePanelShortcutKey">
+      <button id="sourcePanelShortcutApply"></button>
+      <button id="sourcePanelShortcutReset"></button>
       <input type="checkbox" id="tabEnabled">
       <input type="checkbox" id="closeTabOnSave">
       <input type="checkbox" id="trackBrowserDownloads">
@@ -51,6 +62,26 @@ describe("option dependencies", () => {
     expect((document.querySelector("#includeFetchCredentials") as HTMLInputElement).disabled).toBe(
       true,
     );
+    expect((document.querySelector("#sourcePanelLive") as HTMLInputElement).disabled).toBe(true);
+    expect(
+      (document.querySelector("#sourcePanelShortcutModifier") as HTMLSelectElement).disabled,
+    ).toBe(true);
+    expect(
+      (document.querySelector("#sourcePanelShortcutApply") as HTMLButtonElement).disabled,
+    ).toBe(true);
+  });
+
+  test("enables Page Sources browsing controls when their master is enabled", () => {
+    setupOptionDependencies();
+    const enabled = document.querySelector("#sourcePanelEnabled") as HTMLInputElement;
+    const live = document.querySelector("#sourcePanelLive") as HTMLInputElement;
+    const shortcut = document.querySelector("#sourcePanelShortcutKey") as HTMLInputElement;
+
+    enabled.checked = true;
+    enabled.dispatchEvent(new Event("change"));
+
+    expect(live.disabled).toBe(false);
+    expect(shortcut.disabled).toBe(false);
   });
 
   test("enables fetch credentials when either Save In fetch mode is active", () => {

@@ -47,6 +47,21 @@ export const setupOptionDependencies = () => {
       parent: "autoDownloadEnabled",
       children: ["autoDownloadLive", "autoDownloadPrivate", "autoDownloadMaxPerPage"],
     },
+    {
+      parent: "sourcePanelEnabled",
+      children: [
+        "sourcePanelLive",
+        "sourcePanelPreviews",
+        "sourcePanelBackgrounds",
+        "sourcePanelResourceHints",
+        "sourcePanelLinks",
+        "sourcePanelShortcutModifier",
+        "sourcePanelShortcutModifier2",
+        "sourcePanelShortcutKey",
+        "sourcePanelShortcutApply",
+        "sourcePanelShortcutReset",
+      ],
+    },
     { parent: "tabEnabled", children: ["closeTabOnSave"] },
     {
       parent: "setRefererHeader",
