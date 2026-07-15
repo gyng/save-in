@@ -75,203 +75,196 @@ const showTemplateFeedback = (
   feedback.hidden = false;
 };
 
-export const RuleBuilder = {
-  // Appends a complete rule, separated by the blank line the parser uses
-  // as a rule boundary. Goes through PathEditor.insertText so the edit
-  // joins the undo stack and fires the input pipeline
-  appendRule: (textarea: HTMLTextAreaElement, rule: string): void => {
-    const trimmedEnd = textarea.value.replace(/\s+$/, "").length;
-    const separator = trimmedEnd > 0 ? "\n\n" : "";
-    PathEditor.insertText(textarea, `${separator}${rule}\n`, trimmedEnd, textarea.value.length);
-  },
+// Appends a complete rule, separated by the blank line the parser uses
+// as a rule boundary. Goes through PathEditor.insertText so the edit
+// joins the undo stack and fires the input pipeline
+export const appendRule = (textarea: HTMLTextAreaElement, rule: string): void => {
+  const trimmedEnd = textarea.value.replace(/\s+$/, "").length;
+  const separator = trimmedEnd > 0 ? "\n\n" : "";
+  PathEditor.insertText(textarea, `${separator}${rule}\n`, trimmedEnd, textarea.value.length);
+};
 
-  setupGuidedInput: () => {
-    const textarea = document.getElementById("filenamePatterns");
-    const matcher = document.getElementById("rule-builder-matcher");
-    const pattern = document.getElementById("rule-builder-pattern");
-    const into = document.getElementById("rule-builder-into");
-    const add = document.getElementById("rule-builder-add");
-    if (
-      !(textarea instanceof HTMLTextAreaElement) ||
-      !(matcher instanceof HTMLSelectElement) ||
-      !(pattern instanceof HTMLInputElement) ||
-      !(into instanceof HTMLInputElement) ||
-      !(add instanceof HTMLButtonElement)
-    ) {
-      return;
-    }
+export const setupGuidedInput = () => {
+  const textarea = document.getElementById("filenamePatterns");
+  const matcher = document.getElementById("rule-builder-matcher");
+  const pattern = document.getElementById("rule-builder-pattern");
+  const into = document.getElementById("rule-builder-into");
+  const add = document.getElementById("rule-builder-add");
+  if (
+    !(textarea instanceof HTMLTextAreaElement) ||
+    !(matcher instanceof HTMLSelectElement) ||
+    !(pattern instanceof HTMLInputElement) ||
+    !(into instanceof HTMLInputElement) ||
+    !(add instanceof HTMLButtonElement)
+  ) {
+    return;
+  }
 
-    const updatePatternPlaceholder = () => {
-      pattern.placeholder = MATCHER_PATTERN_PLACEHOLDERS[matcher.value] || ".*";
-    };
+  const updatePatternPlaceholder = () => {
+    pattern.placeholder = MATCHER_PATTERN_PLACEHOLDERS[matcher.value] || ".*";
+  };
 
-    // The matcher list comes from the background routing module, like the
-    // autocomplete keywords do
-    sendInternalMessage(webExtensionApi.runtime, { type: MESSAGE_TYPES.GET_KEYWORDS })
-      .then((response) => {
-        const matchers = "matchers" in response.body ? response.body.matchers : [];
-        sortClauses(matchers).forEach((name) => {
-          const option = document.createElement("option");
-          option.value = name;
-          option.textContent = name;
-          matcher.appendChild(option);
-        });
-        // Prefer URL-path extension matching for new rules because it ignores
-        // query strings and fragments. Keep fileext as a compatibility fallback
-        // when an older background does not advertise urlfileext yet.
-        const matcherNames = [...matcher.options].map((option) => option.value);
-        if (matcherNames.includes("urlfileext")) matcher.value = "urlfileext";
-        else if (matcherNames.includes("fileext")) matcher.value = "fileext";
-        updatePatternPlaceholder();
-        sync();
-      })
-      .catch(() => {});
-
-    const sync = () => {
-      add.disabled = !(matcher.value && pattern.value.trim() && into.value.trim());
-    };
-    [matcher, pattern, into].forEach((el) => {
-      el.addEventListener("input", sync);
-      el.addEventListener("change", sync);
-    });
-    matcher.addEventListener("change", updatePatternPlaceholder);
-    updatePatternPlaceholder();
-    sync();
-
-    add.addEventListener("click", () => {
-      RuleBuilder.appendRule(
-        textarea,
-        `${matcher.value}: ${pattern.value.trim()}\ninto: ${into.value.trim()}`,
-      );
-      pattern.value = "";
+  // The matcher list comes from the background routing module, like the
+  // autocomplete keywords do
+  sendInternalMessage(webExtensionApi.runtime, { type: MESSAGE_TYPES.GET_KEYWORDS })
+    .then((response) => {
+      const matchers = "matchers" in response.body ? response.body.matchers : [];
+      sortClauses(matchers).forEach((name) => {
+        const option = document.createElement("option");
+        option.value = name;
+        option.textContent = name;
+        matcher.appendChild(option);
+      });
+      // Prefer URL-path extension matching for new rules because it ignores
+      // query strings and fragments. Keep fileext as a compatibility fallback
+      // when an older background does not advertise urlfileext yet.
+      const matcherNames = [...matcher.options].map((option) => option.value);
+      if (matcherNames.includes("urlfileext")) matcher.value = "urlfileext";
+      else if (matcherNames.includes("fileext")) matcher.value = "fileext";
+      updatePatternPlaceholder();
       sync();
-    });
-  },
+    })
+    .catch(() => {});
 
-  renderTemplates: (localize: (key: string) => string = () => "") => {
-    const containers = [
-      ...new Set(
-        document.querySelectorAll<HTMLElement>("[data-rule-template-library], #rule-templates"),
-      ),
-    ];
-    const textarea = document.getElementById("filenamePatterns");
-    if (containers.length === 0 || !(textarea instanceof HTMLTextAreaElement)) {
-      return;
-    }
-    const templates = localizeRuleTemplates(localize);
+  const sync = () => {
+    add.disabled = !(matcher.value && pattern.value.trim() && into.value.trim());
+  };
+  [matcher, pattern, into].forEach((el) => {
+    el.addEventListener("input", sync);
+    el.addEventListener("change", sync);
+  });
+  matcher.addEventListener("change", updatePatternPlaceholder);
+  updatePatternPlaceholder();
+  sync();
 
-    containers.forEach((container) => {
-      container.replaceChildren();
+  add.addEventListener("click", () => {
+    appendRule(textarea, `${matcher.value}: ${pattern.value.trim()}\ninto: ${into.value.trim()}`);
+    pattern.value = "";
+    sync();
+  });
+};
 
-      const syncs: Array<() => void> = [];
-      const rows: HTMLElement[] = [];
-      let filter: HTMLInputElement | null = null;
-      let applyFilter: () => void;
-      let category = "";
-      let categoryList: HTMLElement | null = null;
+export const renderTemplates = (localize: (key: string) => string = () => "") => {
+  const containers = [
+    ...new Set(
+      document.querySelectorAll<HTMLElement>("[data-rule-template-library], #rule-templates"),
+    ),
+  ];
+  const textarea = document.getElementById("filenamePatterns");
+  if (containers.length === 0 || !(textarea instanceof HTMLTextAreaElement)) {
+    return;
+  }
+  const templates = localizeRuleTemplates(localize);
 
-      templates.forEach((tpl) => {
-        if (tpl.category !== category) {
-          category = tpl.category;
-          const section = document.createElement("section");
-          section.className = "rule-template-category";
-          const heading = document.createElement("h3");
-          heading.textContent = category;
-          categoryList = document.createElement("div");
-          categoryList.className = "rule-template-category-list";
-          section.append(heading, categoryList);
-          container.append(section);
-        }
-        const row = document.createElement("div");
-        row.className = "rule-template";
-        row.dataset.search = `${tpl.name} ${tpl.description} ${tpl.rule}`.toLocaleLowerCase();
-        rows.push(row);
+  containers.forEach((container) => {
+    container.replaceChildren();
 
-        const body = document.createElement("div");
-        body.className = "rule-template-body";
+    const syncs: Array<() => void> = [];
+    const rows: HTMLElement[] = [];
+    let filter: HTMLInputElement | null = null;
+    let applyFilter: () => void;
+    let category = "";
+    let categoryList: HTMLElement | null = null;
 
-        const name = document.createElement("div");
-        name.className = "rule-template-name";
-        name.textContent = tpl.name;
-        body.appendChild(name);
+    templates.forEach((tpl) => {
+      if (tpl.category !== category) {
+        category = tpl.category;
+        const section = document.createElement("section");
+        section.className = "rule-template-category";
+        const heading = document.createElement("h3");
+        heading.textContent = category;
+        categoryList = document.createElement("div");
+        categoryList.className = "rule-template-category-list";
+        section.append(heading, categoryList);
+        container.append(section);
+      }
+      const row = document.createElement("div");
+      row.className = "rule-template";
+      row.dataset.search = `${tpl.name} ${tpl.description} ${tpl.rule}`.toLocaleLowerCase();
+      rows.push(row);
 
-        const description = document.createElement("div");
-        description.className = "caption rule-template-desc";
-        description.textContent = tpl.description;
-        body.appendChild(description);
+      const body = document.createElement("div");
+      body.className = "rule-template-body";
 
-        // Preserve the matcher/destination line break so the preview teaches the
-        // same grammar users see in the rules editor.
-        const ruleEl = document.createElement("pre");
-        ruleEl.className = "rule-template-rule";
-        renderSyntaxHighlight(ruleEl, "routing", tpl.rule);
-        body.appendChild(ruleEl);
+      const name = document.createElement("div");
+      name.className = "rule-template-name";
+      name.textContent = tpl.name;
+      body.appendChild(name);
 
-        const add = document.createElement("button");
-        add.type = "button";
-        add.className = "rule-template-add";
+      const description = document.createElement("div");
+      description.className = "caption rule-template-desc";
+      description.textContent = tpl.description;
+      body.appendChild(description);
 
-        const sync = () => {
-          const present = textarea.value.includes(tpl.rule);
-          add.disabled = present;
-          add.textContent = present
-            ? localize("ruleTemplateAdded") || "Added"
-            : localize("ruleTemplateAdd") || "Add";
-        };
-        syncs.push(sync);
-        sync();
+      // Preserve the matcher/destination line break so the preview teaches the
+      // same grammar users see in the rules editor.
+      const ruleEl = document.createElement("pre");
+      ruleEl.className = "rule-template-rule";
+      renderSyntaxHighlight(ruleEl, "routing", tpl.rule);
+      body.appendChild(ruleEl);
 
-        add.addEventListener("click", (event) => {
-          event.preventDefault();
-          event.stopPropagation();
-          RuleBuilder.appendRule(textarea, `// ${tpl.name}\n${tpl.rule}`);
-          if (filter?.value) {
-            filter.value = "";
-            applyFilter();
-          }
-          syncs.forEach((fn) => fn());
-          showTemplateFeedback(container, tpl, localize);
-        });
+      const add = document.createElement("button");
+      add.type = "button";
+      add.className = "rule-template-add";
 
-        row.appendChild(body);
-        row.appendChild(add);
-        categoryList?.appendChild(row);
-      });
-
-      filter =
-        container.id === "rule-templates"
-          ? document.querySelector<HTMLInputElement>(
-              "#reference-dialog .reference-dialog-filter.rule-template-filter",
-            ) || document.querySelector<HTMLInputElement>(".rule-template-filter")
-          : container
-              .closest(".rule-template-surface")
-              ?.querySelector<HTMLInputElement>(".rule-template-filter") || null;
-      applyFilter = () => {
-        const query = filter?.value.trim().toLocaleLowerCase() || "";
-        rows.forEach(
-          (row) => (row.hidden = Boolean(query) && !row.dataset.search?.includes(query)),
-        );
-        container.querySelectorAll<HTMLElement>(".rule-template-category").forEach((section) => {
-          section.hidden = !section.querySelector(".rule-template:not([hidden])");
-        });
+      const sync = () => {
+        const present = textarea.value.includes(tpl.rule);
+        add.disabled = present;
+        add.textContent = present
+          ? localize("ruleTemplateAdded") || "Added"
+          : localize("ruleTemplateAdd") || "Add";
       };
-      filter?.addEventListener("input", applyFilter);
-      filter?.addEventListener("keydown", (event) => {
-        if (event.key !== "Enter") return;
-        const first = rows.find((row) => !row.hidden)?.querySelector<HTMLButtonElement>("button");
-        if (!first) return;
+      syncs.push(sync);
+      sync();
+
+      add.addEventListener("click", (event) => {
         event.preventDefault();
-        first.click();
+        event.stopPropagation();
+        appendRule(textarea, `// ${tpl.name}\n${tpl.rule}`);
+        if (filter?.value) {
+          filter.value = "";
+          applyFilter();
+        }
+        syncs.forEach((fn) => fn());
+        showTemplateFeedback(container, tpl, localize);
       });
 
-      textarea.addEventListener("input", () => syncs.forEach((fn) => fn()));
-      // restoreOptions fills the textarea programmatically (no input event).
-      document.addEventListener("options-restored", () => syncs.forEach((fn) => fn()));
+      row.appendChild(body);
+      row.appendChild(add);
+      categoryList?.appendChild(row);
     });
-  },
+
+    filter =
+      container.id === "rule-templates"
+        ? document.querySelector<HTMLInputElement>(
+            "#reference-dialog .reference-dialog-filter.rule-template-filter",
+          ) || document.querySelector<HTMLInputElement>(".rule-template-filter")
+        : container
+            .closest(".rule-template-surface")
+            ?.querySelector<HTMLInputElement>(".rule-template-filter") || null;
+    applyFilter = () => {
+      const query = filter?.value.trim().toLocaleLowerCase() || "";
+      rows.forEach((row) => (row.hidden = Boolean(query) && !row.dataset.search?.includes(query)));
+      container.querySelectorAll<HTMLElement>(".rule-template-category").forEach((section) => {
+        section.hidden = !section.querySelector(".rule-template:not([hidden])");
+      });
+    };
+    filter?.addEventListener("input", applyFilter);
+    filter?.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter") return;
+      const first = rows.find((row) => !row.hidden)?.querySelector<HTMLButtonElement>("button");
+      if (!first) return;
+      event.preventDefault();
+      first.click();
+    });
+
+    textarea.addEventListener("input", () => syncs.forEach((fn) => fn()));
+    // restoreOptions fills the textarea programmatically (no input event).
+    document.addEventListener("options-restored", () => syncs.forEach((fn) => fn()));
+  });
 };
 
 export const setupRuleBuilder = () => {
-  RuleBuilder.setupGuidedInput();
-  RuleBuilder.renderTemplates(getMessage);
+  setupGuidedInput();
+  renderTemplates(getMessage);
 };

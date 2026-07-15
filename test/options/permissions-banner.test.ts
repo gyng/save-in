@@ -2,7 +2,11 @@
 // Options-page host-permission banner: detect a missing <all_urls> grant and
 // offer a one-click request. The shared host is replaced here so
 // it's defined per test.
-import { PermissionsBanner, setupPermissionsBanner } from "../../src/options/permissions-banner.ts";
+import {
+  hasHostAccess,
+  initPermissionsBanner,
+  setupPermissionsBanner,
+} from "../../src/options/permissions-banner.ts";
 
 const makeEl = () => {
   const listeners: Record<string, any> = {};
@@ -19,15 +23,15 @@ afterEach(() => {
   Reflect.deleteProperty(global.browser, "permissions");
 });
 
-describe("PermissionsBanner.hasHostAccess", () => {
+describe("hasHostAccess", () => {
   test("resolves true when the permissions API is unavailable (old browser)", async () => {
     Reflect.deleteProperty(global.browser, "permissions");
-    await expect(PermissionsBanner.hasHostAccess()).resolves.toBe(true);
+    await expect(hasHostAccess()).resolves.toBe(true);
   });
 
   test("resolves the contains() result for <all_urls>", async () => {
     (global.browser as any).permissions = { contains: vi.fn(() => Promise.resolve(false)) };
-    await expect(PermissionsBanner.hasHostAccess()).resolves.toBe(false);
+    await expect(hasHostAccess()).resolves.toBe(false);
     expect(global.browser.permissions.contains).toHaveBeenCalledWith({ origins: ["<all_urls>"] });
   });
 
@@ -35,11 +39,11 @@ describe("PermissionsBanner.hasHostAccess", () => {
     (global.browser as any).permissions = {
       contains: vi.fn(() => Promise.reject(new Error("x"))),
     };
-    await expect(PermissionsBanner.hasHostAccess()).resolves.toBe(true);
+    await expect(hasHostAccess()).resolves.toBe(true);
   });
 });
 
-describe("PermissionsBanner.init", () => {
+describe("initPermissionsBanner", () => {
   const withPerms = (containsResult: boolean, extra: Record<string, any> = {}) => {
     (global.browser as any).permissions = {
       contains: vi.fn(() => Promise.resolve(containsResult)),
@@ -50,20 +54,20 @@ describe("PermissionsBanner.init", () => {
   };
 
   test("returns early (no throw) without elements", async () => {
-    await expect(PermissionsBanner.init(null, null)).resolves.toBeUndefined();
+    await expect(initPermissionsBanner(null, null)).resolves.toBeUndefined();
   });
 
   test("hides the banner when access is granted", async () => {
     withPerms(true);
     const banner = makeEl();
-    await PermissionsBanner.init(banner, makeEl());
+    await initPermissionsBanner(banner, makeEl());
     expect(banner.hidden).toBe(true);
   });
 
   test("shows the banner when access is missing", async () => {
     withPerms(false);
     const banner = makeEl();
-    await PermissionsBanner.init(banner, makeEl());
+    await initPermissionsBanner(banner, makeEl());
     expect(banner.hidden).toBe(false);
   });
 
@@ -78,7 +82,7 @@ describe("PermissionsBanner.init", () => {
     });
     const banner = makeEl();
     const button = makeEl();
-    await PermissionsBanner.init(banner, button);
+    await initPermissionsBanner(banner, button);
     expect(banner.hidden).toBe(false);
 
     button.click();
@@ -92,7 +96,7 @@ describe("PermissionsBanner.init", () => {
     withPerms(false, { request: vi.fn(() => Promise.reject(new Error("denied"))) });
     const banner = makeEl();
     const button = makeEl();
-    await PermissionsBanner.init(banner, button);
+    await initPermissionsBanner(banner, button);
 
     button.click();
     await vi.waitFor(() => expect(global.browser.permissions.request).toHaveBeenCalled());
@@ -102,7 +106,7 @@ describe("PermissionsBanner.init", () => {
 
   test("reacts to grant/revoke while the page is open", async () => {
     withPerms(true);
-    await PermissionsBanner.init(makeEl(), makeEl());
+    await initPermissionsBanner(makeEl(), makeEl());
     expect(global.browser.permissions.onAdded.addListener).toHaveBeenCalled();
     expect(global.browser.permissions.onRemoved.addListener).toHaveBeenCalled();
   });
@@ -114,7 +118,7 @@ describe("PermissionsBanner.init", () => {
     const banner = makeEl();
     const button = makeEl();
 
-    await PermissionsBanner.init(banner, button);
+    await initPermissionsBanner(banner, button);
     button.click();
 
     expect(banner.hidden).toBe(false);

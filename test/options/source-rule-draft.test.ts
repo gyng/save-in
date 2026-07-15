@@ -1,6 +1,8 @@
 // @vitest-environment jsdom
 import { SOURCE_RULE_DRAFT_SESSION_KEY } from "../../src/shared/storage-keys.ts";
 
+vi.mock(import("../../src/options/rule-builder.ts"), { spy: true });
+
 const storageWithOptionalSession = browser.storage as typeof browser.storage & {
   session?: typeof browser.storage.session;
 };
@@ -109,8 +111,8 @@ test("recovers the serialized apply queue after an editor failure", async () => 
     [SOURCE_RULE_DRAFT_SESSION_KEY]: { rule: "context: ^auto$" },
   });
   document.body.innerHTML = '<textarea id="filenamePatterns"></textarea>';
-  const { RuleBuilder } = await import("../../src/options/rule-builder.ts");
-  vi.spyOn(RuleBuilder, "appendRule").mockImplementationOnce(() => {
+  const { appendRule } = await import("../../src/options/rule-builder.ts");
+  vi.mocked(appendRule).mockImplementationOnce(() => {
     throw new Error("editor unavailable");
   });
   const { applySourceRuleDraft } = await import("../../src/options/source-rule-draft.ts");

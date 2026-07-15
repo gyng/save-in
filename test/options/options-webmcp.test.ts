@@ -1,9 +1,9 @@
 // @vitest-environment jsdom
 // EXPERIMENTAL WebMCP adapter: tool definitions + auto-registration guard
 
-import { SaveInWebMCP } from "../../src/options/webmcp.ts";
+import { buildTools, getModelContext, registerWebMcp } from "../../src/options/webmcp.ts";
 
-type SaveInTool = ReturnType<typeof SaveInWebMCP.buildTools>[number];
+type SaveInTool = ReturnType<typeof buildTools>[number];
 type SaveInToolName =
   | "save_in_apply_config"
   | "save_in_download"
@@ -16,7 +16,7 @@ type SaveInToolName =
 describe("buildTools", () => {
   const toolsByName = () => {
     const send = vi.fn((m) => Promise.resolve({ ok: m.type }));
-    const tools = SaveInWebMCP.buildTools(send);
+    const tools = buildTools(send);
     const byName = Object.fromEntries(tools.map((tool) => [tool.name, tool])) as Record<
       SaveInToolName,
       SaveInTool
@@ -71,7 +71,7 @@ describe("buildTools", () => {
   });
 
   test("keeps discovery metadata cloneable and within WebMCP character budgets", () => {
-    const tools = SaveInWebMCP.buildTools(vi.fn());
+    const tools = buildTools(vi.fn());
     const visitSchema = (value: unknown) => {
       if (!value || typeof value !== "object") return;
       const record = value as Record<string, unknown>;
@@ -465,10 +465,10 @@ describe("buildTools", () => {
   });
 
   test("turns synchronous and asynchronous transport failures into stable results", async () => {
-    const syncTools = SaveInWebMCP.buildTools(() => {
+    const syncTools = buildTools(() => {
       throw new Error("extension context invalidated: secret detail");
     });
-    const asyncTools = SaveInWebMCP.buildTools(() => Promise.reject(new Error("worker gone")));
+    const asyncTools = buildTools(() => Promise.reject(new Error("worker gone")));
     await expect(syncTools[0]!.execute({})).resolves.toEqual({
       status: "ERROR",
       errors: [{ field: "$", message: "Save In is temporarily unavailable" }],
@@ -478,7 +478,7 @@ describe("buildTools", () => {
       errors: [{ field: "$", message: "Save In is temporarily unavailable" }],
     });
     for (const empty of [undefined, null]) {
-      const emptyTools = SaveInWebMCP.buildTools(() => Promise.resolve(empty));
+      const emptyTools = buildTools(() => Promise.resolve(empty));
       await expect(emptyTools[0]!.execute({})).resolves.toEqual({
         status: "ERROR",
         errors: [{ field: "$", message: "Save In is temporarily unavailable" }],
@@ -488,7 +488,7 @@ describe("buildTools", () => {
 
   test("register reports successful registrations and isolates failures", async () => {
     const registerTool = vi.fn(() => Promise.resolve());
-    await expect(SaveInWebMCP.register({ registerTool }, vi.fn())).resolves.toBe(7);
+    await expect(registerWebMcp({ registerTool }, vi.fn())).resolves.toBe(7);
     expect(registerTool).toHaveBeenCalledTimes(7);
 
     const throwing = {
@@ -501,7 +501,7 @@ describe("buildTools", () => {
           : Promise.resolve();
       }),
     };
-    await expect(SaveInWebMCP.register(throwing, vi.fn())).resolves.toBe(5);
+    await expect(registerWebMcp(throwing, vi.fn())).resolves.toBe(5);
   });
 });
 
@@ -604,7 +604,7 @@ describe("options-page registration", () => {
   test("uses the legacy navigator context when the document context is absent", () => {
     const registerTool = vi.fn();
     navigator.modelContext = { registerTool };
-    expect(SaveInWebMCP.getModelContext()?.registerTool).toEqual(expect.any(Function));
+    expect(getModelContext()?.registerTool).toEqual(expect.any(Function));
   });
 
   test("reports localized registration failure when every tool is rejected", async () => {

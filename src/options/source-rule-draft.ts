@@ -1,7 +1,7 @@
 import { webExtensionApi } from "../platform/web-extension-api.ts";
 import { SOURCE_RULE_DRAFT_SESSION_KEY } from "../shared/storage-keys.ts";
 import { isStringKeyedRecord } from "../shared/util.ts";
-import { RuleBuilder } from "./rule-builder.ts";
+import { appendRule } from "./rule-builder.ts";
 
 const readDraft = async (): Promise<string | null> => {
   const areas = webExtensionApi.storage.session
@@ -27,7 +27,7 @@ const consumeSourceRuleDraft = async (): Promise<boolean> => {
   const textarea = document.querySelector<HTMLTextAreaElement>("#filenamePatterns");
   if (!textarea) return false;
   document.querySelector<HTMLButtonElement>("#tab-section-dynamic-downloads")?.click();
-  RuleBuilder.appendRule(textarea, rule);
+  appendRule(textarea, rule);
   document.querySelector<HTMLButtonElement>("#rules-mode-visual")?.click();
   document.dispatchEvent(
     new CustomEvent("save-in:navigate-option", { detail: { target: textarea } }),

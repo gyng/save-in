@@ -1,17 +1,22 @@
 // @vitest-environment jsdom
 // Guided rule input + template library on the options page.
 
-import { RuleBuilder, setupRuleBuilder } from "../../../src/options/rule-builder.ts";
+import {
+  appendRule,
+  renderTemplates,
+  setupGuidedInput,
+  setupRuleBuilder,
+} from "../../../src/options/rule-builder.ts";
 import { RULE_TEMPLATES } from "../../../src/options/rule-templates.ts";
 
-describe("RuleBuilder.appendRule", () => {
+describe("appendRule", () => {
   test("appends with a blank-line rule separator and fires input", () => {
     const textarea = document.createElement("textarea");
     const events: string[] = [];
     textarea.addEventListener("input", () => events.push("input"));
 
-    RuleBuilder.appendRule(textarea, "fileext: pdf\ninto: documents/:filename:");
-    RuleBuilder.appendRule(textarea, "mediatype: image\ninto: images/:filename:");
+    appendRule(textarea, "fileext: pdf\ninto: documents/:filename:");
+    appendRule(textarea, "mediatype: image\ninto: images/:filename:");
 
     expect(textarea.value).toBe(
       "fileext: pdf\ninto: documents/:filename:\n\nmediatype: image\ninto: images/:filename:\n",
@@ -41,7 +46,7 @@ describe("guided input", () => {
   });
 
   test("populates matchers, enables Add when filled, appends the rule", async () => {
-    RuleBuilder.setupGuidedInput();
+    setupGuidedInput();
     await vi.waitFor(() =>
       expect(document.querySelectorAll("#rule-builder-matcher option")).toHaveLength(2),
     );
@@ -79,7 +84,7 @@ describe("guided input", () => {
     global.browser.runtime.sendMessage = () =>
       Promise.resolve({ body: { matchers: ["fileext", "urlfileext", "pagedomain"] } });
 
-    RuleBuilder.setupGuidedInput();
+    setupGuidedInput();
 
     await vi.waitFor(() =>
       expect(document.querySelectorAll("#rule-builder-matcher option")).toHaveLength(3),
@@ -91,7 +96,7 @@ describe("guided input", () => {
 
   test("tolerates missing controls and unavailable or legacy keyword responses", async () => {
     document.body.innerHTML = "";
-    expect(RuleBuilder.setupGuidedInput()).toBeUndefined();
+    expect(setupGuidedInput()).toBeUndefined();
 
     document.body.innerHTML = `
       <textarea id="filenamePatterns"></textarea>
@@ -100,7 +105,7 @@ describe("guided input", () => {
       <input id="rule-builder-into">
       <button id="rule-builder-add"></button>`;
     global.browser.runtime.sendMessage = vi.fn().mockRejectedValueOnce(new Error("worker asleep"));
-    RuleBuilder.setupGuidedInput();
+    setupGuidedInput();
     await Promise.resolve();
     await Promise.resolve();
     expect(document.querySelector("#rule-builder-matcher option")).toBeNull();
@@ -112,7 +117,7 @@ describe("guided input", () => {
       <input id="rule-builder-into">
       <button id="rule-builder-add"></button>`;
     global.browser.runtime.sendMessage = vi.fn().mockResolvedValue({ body: {} });
-    RuleBuilder.setupGuidedInput();
+    setupGuidedInput();
     await vi.waitFor(() =>
       expect(document.querySelector<HTMLInputElement>("#rule-builder-pattern")?.placeholder).toBe(
         ".*",
@@ -130,7 +135,7 @@ describe("guided input", () => {
     const sendMessage = vi.fn();
     global.browser.runtime.sendMessage = sendMessage;
 
-    expect(RuleBuilder.setupGuidedInput()).toBeUndefined();
+    expect(setupGuidedInput()).toBeUndefined();
     expect(sendMessage).not.toHaveBeenCalled();
   });
 });
@@ -152,7 +157,7 @@ describe("template list rendering", () => {
   });
 
   test("renders one row per template and marks added ones", () => {
-    RuleBuilder.renderTemplates();
+    renderTemplates();
 
     const rows = document.querySelectorAll(".rule-template");
     expect(rows).toHaveLength(RULE_TEMPLATES.length);
@@ -174,7 +179,7 @@ describe("template list rendering", () => {
   });
 
   test("re-checks Added states after options restore fills the textarea", () => {
-    RuleBuilder.renderTemplates();
+    renderTemplates();
     const textarea = document.querySelector("#filenamePatterns") as HTMLTextAreaElement;
 
     // Programmatic fill, as restoreOptions does (no input event)
@@ -187,7 +192,7 @@ describe("template list rendering", () => {
   });
 
   test("filters templates, with Enter adding the first match", () => {
-    RuleBuilder.renderTemplates();
+    renderTemplates();
 
     const filter = document.querySelector<HTMLInputElement>(".rule-template-filter")!;
     filter.value = "hostname serving";
@@ -207,7 +212,7 @@ describe("template list rendering", () => {
     const library = document.querySelector("#rule-templates")!;
     const bubbled = vi.fn();
     library.addEventListener("click", bubbled);
-    RuleBuilder.renderTemplates();
+    renderTemplates();
 
     document.querySelector<HTMLButtonElement>(".rule-template-add")!.click();
 
@@ -230,7 +235,7 @@ describe("template list rendering", () => {
         <div class="template-feedback" hidden></div>
         <div id="rule-templates" data-rule-template-library></div>
       </dialog>`;
-    RuleBuilder.renderTemplates();
+    renderTemplates();
     expect(document.querySelectorAll(".rule-template")).toHaveLength(RULE_TEMPLATES.length * 2);
 
     const picker = document.querySelector<HTMLInputElement>(".rule-template-surface input")!;
@@ -255,15 +260,15 @@ describe("template list rendering", () => {
 
   test("does nothing without both a library and the rules textarea", () => {
     document.body.innerHTML = '<div id="rule-templates"></div>';
-    expect(RuleBuilder.renderTemplates()).toBeUndefined();
+    expect(renderTemplates()).toBeUndefined();
     document.body.innerHTML = '<textarea id="filenamePatterns"></textarea>';
-    expect(RuleBuilder.renderTemplates()).toBeUndefined();
+    expect(renderTemplates()).toBeUndefined();
   });
 
   test("ignores a template library paired with a non-textarea rules element", () => {
     document.body.innerHTML = '<div id="filenamePatterns"></div><div id="rule-templates"></div>';
 
-    expect(RuleBuilder.renderTemplates()).toBeUndefined();
+    expect(renderTemplates()).toBeUndefined();
     expect(document.querySelector(".rule-template")).toBeNull();
   });
 
@@ -284,7 +289,7 @@ describe("template list rendering", () => {
     dialog.close = vi.fn();
     const navigate = vi.fn();
     document.addEventListener("save-in:navigate-option", navigate, { once: true });
-    RuleBuilder.renderTemplates();
+    renderTemplates();
     document.querySelector<HTMLButtonElement>(".rule-template-add")!.click();
     document.querySelector<HTMLButtonElement>(".template-feedback button")!.click();
 
@@ -308,7 +313,7 @@ describe("template list rendering", () => {
       </div>
       <datalist data-rule-template-library></datalist>
       <div data-rule-template-library></div>`;
-    RuleBuilder.renderTemplates();
+    renderTemplates();
     const filter = document.querySelector<HTMLInputElement>(".rule-template-filter")!;
     filter.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
     filter.value = "no template can match this";
