@@ -151,8 +151,10 @@ rules.
 - Standardized user-facing terms across Options and translations, including
   **Routing rules**, **Shortcut files**, **Notification events**, and History's
   **Started**, **Routing**, and **Export all** labels.
-- Added a session-scoped debug log in Advanced diagnostics (#216), and made the
-  Options page open in a browser tab.
+- Expanded Advanced **Diagnostics** with MV3 background health, bounded lifecycle
+  events, configuration issue counts, copyable support details, and recent
+  session failures. It loads only when opened and excludes private activity
+  (#216). The Options page now opens in a browser tab.
 - Fixed the Firefox dark-mode Last used icon (#184), restored first-party
   autocomplete, and made ordinary text settings autosave after typing pauses.
 

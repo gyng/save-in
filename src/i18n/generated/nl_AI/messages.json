@@ -884,7 +884,7 @@
     "message": "Muisknop voor opslaan met één klik"
   },
   "o_lDebugLog": {
-    "message": "Foutopsporingslogboek"
+    "message": "Recente fouten"
   },
   "o_sAdvancedFilenames": {
     "message": "Bestandsnamen"
@@ -1384,9 +1384,6 @@
   "html_checking": {
     "message": "controleren…"
   },
-  "html_clearLog": {
-    "message": "Logboek wissen"
-  },
   "html_closeAboutSaveIn": {
     "message": "Venster Over Save In sluiten"
   },
@@ -1444,9 +1441,6 @@
   "html_referenceType": {
     "message": "Referentietype"
   },
-  "html_refreshLog": {
-    "message": "Logboek vernieuwen"
-  },
   "html_reportAnIssue": {
     "message": "Probleem melden"
   },
@@ -1475,7 +1469,7 @@
     "message": "Opslag"
   },
   "html_theSessionLogBelowAlwaysKeepsASmallLocal": {
-    "message": "In het onderstaande sessielogboek wordt altijd een klein lokaal overzicht bijgehouden van recente fouten. Schakel dit alleen in bij het oplossen van problemen met de browserontwikkelaarsconsole; het voegt uitgebreide interne details toe en wordt na het opnieuw opstarten gereset naar de opgeslagen instelling."
+    "message": "Recente fouten blijven op dit apparaat staan totdat de browsersessie eindigt. Uitgebreide logboekregistratie schrijft ook routerings- en downloaddetails naar de ontwikkelaarsconsole van de browser en blijft ingeschakeld totdat u deze uitschakelt. Privéactiviteit wordt uitgesloten."
   },
   "html_toConnectOpenThisPageInABrowserThat": {
     "message": "Verbinding maken: open deze pagina in een browser die WebMCP ondersteunt, laat de pagina open en wijs uw browseragent naar dit tabblad. Geef de agent een opdracht in gewone taal, bijvoorbeeld: “sorteer mijn downloads in mappen op website en datum, nummer elk bestand en meld het alleen als er één mislukt.”"
@@ -2742,5 +2736,92 @@
         "example": "Images"
       }
     }
-  }
+  },
+  "diagnosticsSummaryHelp": {
+    "message": "Status van worker, levenscyclus en recente fouten"
+  },
+  "diagnosticsRefresh": { "message": "Vernieuwen" },
+  "diagnosticsCopy": { "message": "Diagnostische gegevens kopiëren" },
+  "diagnosticsBackground": { "message": "Achtergrond" },
+  "diagnosticsHost": { "message": "Host" },
+  "diagnosticsExtension": { "message": "Extensie" },
+  "diagnosticsBrowser": { "message": "Browser" },
+  "diagnosticsWorkerStarted": { "message": "Worker gestart" },
+  "diagnosticsSessionStorage": { "message": "Sessieopslag" },
+  "diagnosticsVerboseLogging": { "message": "Uitgebreide logboekregistratie" },
+  "diagnosticsConfigurationIssues": { "message": "Configuratieproblemen" },
+  "diagnosticsLifecycle": { "message": "Levenscyclus" },
+  "diagnosticsLifecycleHelp": {
+    "message": "Recente starts van de achtergrond, herladen configuraties en extensie-updates. Door Diagnostiek te openen wordt de achtergrond geactiveerd."
+  },
+  "diagnosticsFailuresHelp": {
+    "message": "Recente lokale fouten uit deze browsersessie. Controleer de tekst voordat u deze deelt, want browserfouten kunnen details over sites of bestanden bevatten."
+  },
+  "diagnosticsClearFailures": { "message": "Fouten wissen" },
+  "diagnosticsDeveloperLogging": { "message": "Logboekregistratie voor ontwikkelaars" },
+  "diagnosticsDurationMs": {
+    "message": "$COUNT$ milliseconden",
+    "placeholders": { "count": { "content": "$1", "example": "42" } }
+  },
+  "diagnosticsDurationSeconds": {
+    "message": "$COUNT$ seconden",
+    "placeholders": { "count": { "content": "$1", "example": "4" } }
+  },
+  "diagnosticsDurationMinutes": {
+    "message": "$COUNT$ minuten",
+    "placeholders": { "count": { "content": "$1", "example": "3" } }
+  },
+  "diagnosticsLifecycleBackgroundReady": {
+    "message": "Achtergrond was na $DURATION$ gereed.",
+    "placeholders": { "duration": { "content": "$1", "example": "120 ms" } }
+  },
+  "diagnosticsLifecycleBackgroundFailed": {
+    "message": "Opstarten van de achtergrond is mislukt."
+  },
+  "diagnosticsLifecycleConfigurationReloaded": {
+    "message": "Configuratie opnieuw geladen."
+  },
+  "diagnosticsLifecycleExtensionInstalled": { "message": "Extensie geïnstalleerd." },
+  "diagnosticsLifecycleExtensionUpdatedFrom": {
+    "message": "Extensie bijgewerkt vanaf $VERSION$.",
+    "placeholders": { "version": { "content": "$1", "example": "3.9.1" } }
+  },
+  "diagnosticsLifecycleExtensionUpdated": { "message": "Extensie bijgewerkt." },
+  "diagnosticsLifecycleFailuresCleared": { "message": "Recente fouten gewist." },
+  "diagnosticsLifecycleEmpty": { "message": "Nog geen levenscyclusgebeurtenissen." },
+  "diagnosticsWorkerStarting": { "message": "Wordt gestart" },
+  "diagnosticsWorkerReady": { "message": "Actief · gereed" },
+  "diagnosticsWorkerFailed": { "message": "Opstarten mislukt" },
+  "diagnosticsHostServiceWorker": { "message": "MV3-serviceworker" },
+  "diagnosticsHostEventPage": { "message": "MV3-gebeurtenispagina" },
+  "diagnosticsBrowserUnknown": { "message": "Onbekende browser" },
+  "diagnosticsStartedWithUptime": {
+    "message": "$TIME$ · $UPTIME$ actief",
+    "placeholders": {
+      "time": { "content": "$1", "example": "Jul 15, 2026, 4:10 PM" },
+      "uptime": { "content": "$2", "example": "3 min" }
+    }
+  },
+  "diagnosticsConfigurationIssueCount": {
+    "message": "$PATHS$ pad · $ROUTING$ routering",
+    "placeholders": {
+      "paths": { "content": "$1", "example": "0" },
+      "routing": { "content": "$2", "example": "1" }
+    }
+  },
+  "diagnosticsAvailable": { "message": "Beschikbaar" },
+  "diagnosticsUnavailable": { "message": "Niet beschikbaar" },
+  "diagnosticsOn": { "message": "Aan" },
+  "diagnosticsOff": { "message": "Uit" },
+  "diagnosticsFailuresEmpty": { "message": "Geen recente fouten." },
+  "diagnosticsChecking": { "message": "Achtergrond controleren…" },
+  "diagnosticsCheckedAt": {
+    "message": "Gecontroleerd om $TIME$",
+    "placeholders": { "time": { "content": "$1", "example": "Jul 15, 2026, 4:10 PM" } }
+  },
+  "diagnosticsLoadFailed": { "message": "Kon diagnostische gegevens niet laden." },
+  "diagnosticsCopySuccess": { "message": "Diagnostische gegevens gekopieerd." },
+  "diagnosticsCopyFailed": { "message": "Kon diagnostische gegevens niet kopiëren." },
+  "diagnosticsClearSuccess": { "message": "Recente fouten gewist." },
+  "diagnosticsClearFailed": { "message": "Kon recente fouten niet wissen." }
 }

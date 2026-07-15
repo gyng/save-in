@@ -701,7 +701,7 @@
     "message": "클릭하여 저장하는 마우스 버튼"
   },
   "o_lDebugLog": {
-    "message": "디버그 로그"
+    "message": "최근 실패"
   },
   "o_sAdvancedFilenames": {
     "message": "파일 이름"
@@ -1201,9 +1201,6 @@
   "html_checking": {
     "message": "확인 중…"
   },
-  "html_clearLog": {
-    "message": "로그 지우기"
-  },
   "html_closeAboutSaveIn": {
     "message": "Save In 소개 닫기"
   },
@@ -1261,9 +1258,6 @@
   "html_referenceType": {
     "message": "참조 유형"
   },
-  "html_refreshLog": {
-    "message": "로그 새로고침"
-  },
   "html_reportAnIssue": {
     "message": "문제 신고"
   },
@@ -1292,7 +1286,7 @@
     "message": "저장소"
   },
   "html_theSessionLogBelowAlwaysKeepsASmallLocal": {
-    "message": "아래 세션 로그에는 최근 실패가 소량만 로컬에 기록됩니다. 브라우저 개발자 콘솔로 문제를 해결할 때만 활성화하세요. 자세한 내부 정보가 추가되며 다시 시작하면 저장된 설정으로 돌아갑니다."
+    "message": "최근 실패는 브라우저 세션이 끝날 때까지 이 기기에 보관됩니다. 상세 로깅을 사용하면 라우팅 및 다운로드 세부 정보도 브라우저 개발자 콘솔에 기록되며, 사용자가 끌 때까지 활성 상태로 유지됩니다. 비공개 활동은 제외됩니다."
   },
   "html_toConnectOpenThisPageInABrowserThat": {
     "message": "연결하려면 WebMCP를 지원하는 브라우저에서 이 페이지를 열어 둔 다음, 브라우저 내 에이전트가 이 탭을 사용하도록 지정하세요. 자연어로 요청할 수 있습니다. 예: \"다운로드를 웹사이트와 날짜별 폴더로 정리하고, 각 파일에 번호를 매긴 뒤, 실패할 때만 알려 줘.\""
@@ -2836,5 +2830,102 @@
         "example": "Images"
       }
     }
-  }
+  },
+  "diagnosticsSummaryHelp": {
+    "message": "워커 상태, 수명 주기 및 최근 실패"
+  },
+  "diagnosticsRefresh": { "message": "새로고침" },
+  "diagnosticsCopy": { "message": "진단 정보 복사" },
+  "diagnosticsBackground": { "message": "백그라운드" },
+  "diagnosticsHost": { "message": "호스트" },
+  "diagnosticsExtension": { "message": "확장 프로그램" },
+  "diagnosticsBrowser": { "message": "브라우저" },
+  "diagnosticsWorkerStarted": { "message": "워커 시작" },
+  "diagnosticsSessionStorage": { "message": "세션 저장소" },
+  "diagnosticsVerboseLogging": { "message": "상세 로깅" },
+  "diagnosticsConfigurationIssues": { "message": "구성 문제" },
+  "diagnosticsLifecycle": { "message": "수명 주기" },
+  "diagnosticsLifecycleHelp": {
+    "message": "최근 백그라운드 시작, 구성 다시 로드 및 확장 프로그램 업데이트입니다. 진단을 열면 백그라운드를 깨웁니다."
+  },
+  "diagnosticsFailuresHelp": {
+    "message": "이 브라우저 세션의 최근 로컬 실패입니다. 브라우저 오류에 사이트나 파일 세부 정보가 포함될 수 있으므로 공유하기 전에 내용을 검토하세요."
+  },
+  "diagnosticsClearFailures": { "message": "실패 지우기" },
+  "diagnosticsDeveloperLogging": { "message": "개발자 로깅" },
+  "diagnosticsDurationMs": {
+    "message": "$COUNT$밀리초",
+    "placeholders": { "count": { "content": "$1", "example": "42" } }
+  },
+  "diagnosticsDurationSeconds": {
+    "message": "$COUNT$초",
+    "placeholders": { "count": { "content": "$1", "example": "4" } }
+  },
+  "diagnosticsDurationMinutes": {
+    "message": "$COUNT$분",
+    "placeholders": { "count": { "content": "$1", "example": "3" } }
+  },
+  "diagnosticsLifecycleBackgroundReady": {
+    "message": "백그라운드가 $DURATION$ 만에 준비되었습니다.",
+    "placeholders": { "duration": { "content": "$1", "example": "120 ms" } }
+  },
+  "diagnosticsLifecycleBackgroundFailed": {
+    "message": "백그라운드 시작에 실패했습니다."
+  },
+  "diagnosticsLifecycleConfigurationReloaded": {
+    "message": "구성을 다시 불러왔습니다."
+  },
+  "diagnosticsLifecycleExtensionInstalled": {
+    "message": "확장 프로그램이 설치되었습니다."
+  },
+  "diagnosticsLifecycleExtensionUpdatedFrom": {
+    "message": "확장 프로그램이 $VERSION$에서 업데이트되었습니다.",
+    "placeholders": { "version": { "content": "$1", "example": "3.9.1" } }
+  },
+  "diagnosticsLifecycleExtensionUpdated": {
+    "message": "확장 프로그램이 업데이트되었습니다."
+  },
+  "diagnosticsLifecycleFailuresCleared": {
+    "message": "최근 실패를 지웠습니다."
+  },
+  "diagnosticsLifecycleEmpty": {
+    "message": "아직 수명 주기 이벤트가 없습니다."
+  },
+  "diagnosticsWorkerStarting": { "message": "시작 중" },
+  "diagnosticsWorkerReady": { "message": "실행 중 · 준비됨" },
+  "diagnosticsWorkerFailed": { "message": "시작 실패" },
+  "diagnosticsHostServiceWorker": { "message": "MV3 서비스 워커" },
+  "diagnosticsHostEventPage": { "message": "MV3 이벤트 페이지" },
+  "diagnosticsBrowserUnknown": { "message": "알 수 없는 브라우저" },
+  "diagnosticsStartedWithUptime": {
+    "message": "$TIME$ · 가동 시간 $UPTIME$",
+    "placeholders": {
+      "time": { "content": "$1", "example": "Jul 15, 2026, 4:10 PM" },
+      "uptime": { "content": "$2", "example": "3 min" }
+    }
+  },
+  "diagnosticsConfigurationIssueCount": {
+    "message": "경로 $PATHS$개 · 라우팅 $ROUTING$개",
+    "placeholders": {
+      "paths": { "content": "$1", "example": "0" },
+      "routing": { "content": "$2", "example": "1" }
+    }
+  },
+  "diagnosticsAvailable": { "message": "사용 가능" },
+  "diagnosticsUnavailable": { "message": "사용 불가" },
+  "diagnosticsOn": { "message": "켜짐" },
+  "diagnosticsOff": { "message": "꺼짐" },
+  "diagnosticsFailuresEmpty": { "message": "최근 실패가 없습니다." },
+  "diagnosticsChecking": { "message": "백그라운드 확인 중…" },
+  "diagnosticsCheckedAt": {
+    "message": "$TIME$에 확인",
+    "placeholders": {
+      "time": { "content": "$1", "example": "Jul 15, 2026, 4:10 PM" }
+    }
+  },
+  "diagnosticsLoadFailed": { "message": "진단 정보를 불러올 수 없습니다." },
+  "diagnosticsCopySuccess": { "message": "진단 정보를 복사했습니다." },
+  "diagnosticsCopyFailed": { "message": "진단 정보를 복사할 수 없습니다." },
+  "diagnosticsClearSuccess": { "message": "최근 실패를 지웠습니다." },
+  "diagnosticsClearFailed": { "message": "최근 실패를 지울 수 없습니다." }
 }

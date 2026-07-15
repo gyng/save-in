@@ -26,6 +26,20 @@ test("also contains synchronous failures from event work", async () => {
   expect(Log.add).toHaveBeenCalledWith("menu click failed", "Error: bad click");
 });
 
+test("does not persist failures from a private browser event", async () => {
+  vi.spyOn(Log, "add").mockResolvedValue(undefined);
+
+  await runBackgroundTask(
+    "private menu click failed",
+    () => Promise.reject(new Error("private click")),
+    { privateContext: true },
+  );
+
+  expect(Log.add).toHaveBeenCalledWith("private menu click failed", "Error: private click", {
+    privateContext: true,
+  });
+});
+
 test("contains a synchronous logging failure while handling an event rejection", async () => {
   vi.spyOn(Log, "add").mockImplementation(() => {
     throw new Error("storage unavailable");

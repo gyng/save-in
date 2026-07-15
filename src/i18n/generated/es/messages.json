@@ -882,7 +882,7 @@
     "message": "Botón del ratón para Guardar con un clic"
   },
   "o_lDebugLog": {
-    "message": "Registro de depuración"
+    "message": "Fallos recientes"
   },
   "o_sAdvancedFilenames": {
     "message": "Nombres de archivos"
@@ -1382,9 +1382,6 @@
   "html_checking": {
     "message": "comprobando…"
   },
-  "html_clearLog": {
-    "message": "Borrar registro"
-  },
   "html_closeAboutSaveIn": {
     "message": "Cerrar Acerca de Save In"
   },
@@ -1442,9 +1439,6 @@
   "html_referenceType": {
     "message": "Tipo de referencia"
   },
-  "html_refreshLog": {
-    "message": "Actualizar registro"
-  },
   "html_reportAnIssue": {
     "message": "Informar de un problema"
   },
@@ -1473,7 +1467,7 @@
     "message": "Almacenamiento"
   },
   "html_theSessionLogBelowAlwaysKeepsASmallLocal": {
-    "message": "El registro de sesión conserva localmente un breve historial de los fallos recientes. Actívelo solo para solucionar problemas con la consola de desarrollo del navegador; añade información interna detallada y vuelve a la configuración guardada después de reiniciar."
+    "message": "Los fallos recientes permanecen en este dispositivo hasta que termina la sesión del navegador. El registro detallado también escribe datos de enrutamiento y descarga en la consola de desarrollo del navegador y permanece activado hasta que lo desactives. Se excluye la actividad privada."
   },
   "html_toConnectOpenThisPageInABrowserThat": {
     "message": "Para conectarse, abra esta página en un navegador compatible con WebMCP, manténgala abierta y dirija su agente del navegador a esta pestaña. Pídaselo en lenguaje natural, por ejemplo: «ordene mis descargas en carpetas por sitio web y fecha, numere cada archivo y notifíqueme solo cuando uno falle»."
@@ -2742,5 +2736,202 @@
         "example": "Images"
       }
     }
+  },
+  "diagnosticsSummaryHelp": {
+    "message": "Estado del proceso, ciclo de vida y fallos recientes"
+  },
+  "diagnosticsRefresh": {
+    "message": "Actualizar"
+  },
+  "diagnosticsCopy": {
+    "message": "Copiar diagnóstico"
+  },
+  "diagnosticsBackground": {
+    "message": "Segundo plano"
+  },
+  "diagnosticsHost": {
+    "message": "Host"
+  },
+  "diagnosticsExtension": {
+    "message": "Extensión"
+  },
+  "diagnosticsBrowser": {
+    "message": "Navegador"
+  },
+  "diagnosticsWorkerStarted": {
+    "message": "Proceso iniciado"
+  },
+  "diagnosticsSessionStorage": {
+    "message": "Almacenamiento de sesión"
+  },
+  "diagnosticsVerboseLogging": {
+    "message": "Registro detallado"
+  },
+  "diagnosticsConfigurationIssues": {
+    "message": "Problemas de configuración"
+  },
+  "diagnosticsLifecycle": {
+    "message": "Ciclo de vida"
+  },
+  "diagnosticsLifecycleHelp": {
+    "message": "Inicios recientes del segundo plano, recargas de configuración y actualizaciones de la extensión. Al abrir Diagnóstico, se activa el segundo plano."
+  },
+  "diagnosticsFailuresHelp": {
+    "message": "Fallos locales recientes de esta sesión del navegador. Revisa el texto antes de compartirlo, ya que los errores del navegador pueden incluir datos de sitios o archivos."
+  },
+  "diagnosticsClearFailures": {
+    "message": "Borrar fallos"
+  },
+  "diagnosticsDeveloperLogging": {
+    "message": "Registro para desarrolladores"
+  },
+  "diagnosticsDurationMs": {
+    "message": "$COUNT$ milisegundos",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "42"
+      }
+    }
+  },
+  "diagnosticsDurationSeconds": {
+    "message": "$COUNT$ segundos",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "4"
+      }
+    }
+  },
+  "diagnosticsDurationMinutes": {
+    "message": "$COUNT$ minutos",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "diagnosticsLifecycleBackgroundReady": {
+    "message": "El segundo plano estuvo listo en $DURATION$.",
+    "placeholders": {
+      "duration": {
+        "content": "$1",
+        "example": "120 ms"
+      }
+    }
+  },
+  "diagnosticsLifecycleBackgroundFailed": {
+    "message": "Falló el inicio del segundo plano."
+  },
+  "diagnosticsLifecycleConfigurationReloaded": {
+    "message": "Se volvió a cargar la configuración."
+  },
+  "diagnosticsLifecycleExtensionInstalled": {
+    "message": "Se instaló la extensión."
+  },
+  "diagnosticsLifecycleExtensionUpdatedFrom": {
+    "message": "La extensión se actualizó desde $VERSION$.",
+    "placeholders": {
+      "version": {
+        "content": "$1",
+        "example": "3.9.1"
+      }
+    }
+  },
+  "diagnosticsLifecycleExtensionUpdated": {
+    "message": "Se actualizó la extensión."
+  },
+  "diagnosticsLifecycleFailuresCleared": {
+    "message": "Se borraron los fallos recientes."
+  },
+  "diagnosticsLifecycleEmpty": {
+    "message": "Aún no hay eventos del ciclo de vida."
+  },
+  "diagnosticsWorkerStarting": {
+    "message": "Iniciando"
+  },
+  "diagnosticsWorkerReady": {
+    "message": "En ejecución · listo"
+  },
+  "diagnosticsWorkerFailed": {
+    "message": "Error de inicio"
+  },
+  "diagnosticsHostServiceWorker": {
+    "message": "Proceso de servicio MV3"
+  },
+  "diagnosticsHostEventPage": {
+    "message": "Página de eventos MV3"
+  },
+  "diagnosticsBrowserUnknown": {
+    "message": "Navegador desconocido"
+  },
+  "diagnosticsStartedWithUptime": {
+    "message": "$TIME$ · activo durante $UPTIME$",
+    "placeholders": {
+      "time": {
+        "content": "$1",
+        "example": "Jul 15, 2026, 4:10 PM"
+      },
+      "uptime": {
+        "content": "$2",
+        "example": "3 min"
+      }
+    }
+  },
+  "diagnosticsConfigurationIssueCount": {
+    "message": "$PATHS$ ruta · $ROUTING$ enrutamiento",
+    "placeholders": {
+      "paths": {
+        "content": "$1",
+        "example": "0"
+      },
+      "routing": {
+        "content": "$2",
+        "example": "1"
+      }
+    }
+  },
+  "diagnosticsAvailable": {
+    "message": "Disponible"
+  },
+  "diagnosticsUnavailable": {
+    "message": "No disponible"
+  },
+  "diagnosticsOn": {
+    "message": "Activado"
+  },
+  "diagnosticsOff": {
+    "message": "Desactivado"
+  },
+  "diagnosticsFailuresEmpty": {
+    "message": "No hay fallos recientes."
+  },
+  "diagnosticsChecking": {
+    "message": "Comprobando el segundo plano…"
+  },
+  "diagnosticsCheckedAt": {
+    "message": "Comprobado: $TIME$",
+    "placeholders": {
+      "time": {
+        "content": "$1",
+        "example": "Jul 15, 2026, 4:10 PM"
+      }
+    }
+  },
+  "diagnosticsLoadFailed": {
+    "message": "No se pudo cargar el diagnóstico."
+  },
+  "diagnosticsCopySuccess": {
+    "message": "Diagnóstico copiado."
+  },
+  "diagnosticsCopyFailed": {
+    "message": "No se pudo copiar el diagnóstico."
+  },
+  "diagnosticsClearSuccess": {
+    "message": "Se borraron los fallos recientes."
+  },
+  "diagnosticsClearFailed": {
+    "message": "No se pudieron borrar los fallos recientes."
   }
 }

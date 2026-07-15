@@ -363,7 +363,7 @@
     "message": "Archiviazione"
   },
   "html_theSessionLogBelowAlwaysKeepsASmallLocal": {
-    "message": "Il registro della sessione riportato di seguito conserva sempre un piccolo record locale degli errori recenti. Abilitalo solo durante la risoluzione dei problemi con la console per sviluppatori del browser; aggiunge dettagli interni completi e torna all'impostazione salvata dopo il riavvio."
+    "message": "Gli errori recenti rimangono su questo dispositivo fino al termine della sessione del browser. La registrazione dettagliata scrive anche i dettagli di routing e download nella console per sviluppatori del browser e rimane attiva finché non la disattivi. L’attività privata è esclusa."
   },
   "html_toConnectOpenThisPageInABrowserThat": {
     "message": "Per connetterti: apri questa pagina in un browser che supporta WebMCP, mantienila aperta e punta l'agente interno al browser su questa scheda. Chiedilo in un linguaggio semplice, ad es. \"ordina i miei download in cartelle per sito web e data, numera ogni file e avvisami solo quando uno fallisce.\""
@@ -987,7 +987,7 @@
     "message": "Pulsante del mouse per il salvataggio con clic"
   },
   "o_lDebugLog": {
-    "message": "Registro di debug"
+    "message": "Errori recenti"
   },
   "o_sAdvancedFilenames": {
     "message": "Nomi dei file"
@@ -1556,9 +1556,6 @@
   "html_checking": {
     "message": "Verifica in corso…"
   },
-  "html_clearLog": {
-    "message": "Cancella registro"
-  },
   "html_closeAboutSaveIn": {
     "message": "Chiudi Informazioni su Save In"
   },
@@ -1618,9 +1615,6 @@
   },
   "html_referenceType": {
     "message": "Tipo di riferimento"
-  },
-  "html_refreshLog": {
-    "message": "Aggiorna registro"
   },
   "html_reportAnIssue": {
     "message": "Segnala un problema"
@@ -2933,5 +2927,202 @@
         "example": "Images"
       }
     }
+  },
+  "diagnosticsSummaryHelp": {
+    "message": "Stato del processo, ciclo di vita ed errori recenti"
+  },
+  "diagnosticsRefresh": {
+    "message": "Aggiorna"
+  },
+  "diagnosticsCopy": {
+    "message": "Copia diagnostica"
+  },
+  "diagnosticsBackground": {
+    "message": "Sfondo"
+  },
+  "diagnosticsHost": {
+    "message": "Host"
+  },
+  "diagnosticsExtension": {
+    "message": "Estensione"
+  },
+  "diagnosticsBrowser": {
+    "message": "Browser"
+  },
+  "diagnosticsWorkerStarted": {
+    "message": "Processo avviato"
+  },
+  "diagnosticsSessionStorage": {
+    "message": "Archiviazione sessione"
+  },
+  "diagnosticsVerboseLogging": {
+    "message": "Registrazione dettagliata"
+  },
+  "diagnosticsConfigurationIssues": {
+    "message": "Problemi di configurazione"
+  },
+  "diagnosticsLifecycle": {
+    "message": "Ciclo di vita"
+  },
+  "diagnosticsLifecycleHelp": {
+    "message": "Avvii recenti in background, ricaricamenti della configurazione e aggiornamenti dell’estensione. L’apertura di Diagnostica riattiva lo sfondo."
+  },
+  "diagnosticsFailuresHelp": {
+    "message": "Errori locali recenti di questa sessione del browser. Controlla il testo prima di condividerlo, perché gli errori del browser possono includere dettagli su siti o file."
+  },
+  "diagnosticsClearFailures": {
+    "message": "Cancella errori"
+  },
+  "diagnosticsDeveloperLogging": {
+    "message": "Registrazione per sviluppatori"
+  },
+  "diagnosticsDurationMs": {
+    "message": "$COUNT$ millisecondi",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "42"
+      }
+    }
+  },
+  "diagnosticsDurationSeconds": {
+    "message": "$COUNT$ secondi",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "4"
+      }
+    }
+  },
+  "diagnosticsDurationMinutes": {
+    "message": "$COUNT$ minuti",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "diagnosticsLifecycleBackgroundReady": {
+    "message": "Lo sfondo era pronto in $DURATION$.",
+    "placeholders": {
+      "duration": {
+        "content": "$1",
+        "example": "120 ms"
+      }
+    }
+  },
+  "diagnosticsLifecycleBackgroundFailed": {
+    "message": "Avvio in background non riuscito."
+  },
+  "diagnosticsLifecycleConfigurationReloaded": {
+    "message": "Configurazione ricaricata."
+  },
+  "diagnosticsLifecycleExtensionInstalled": {
+    "message": "Estensione installata."
+  },
+  "diagnosticsLifecycleExtensionUpdatedFrom": {
+    "message": "Estensione aggiornata dalla versione $VERSION$.",
+    "placeholders": {
+      "version": {
+        "content": "$1",
+        "example": "3.9.1"
+      }
+    }
+  },
+  "diagnosticsLifecycleExtensionUpdated": {
+    "message": "Estensione aggiornata."
+  },
+  "diagnosticsLifecycleFailuresCleared": {
+    "message": "Errori recenti cancellati."
+  },
+  "diagnosticsLifecycleEmpty": {
+    "message": "Nessun evento del ciclo di vita."
+  },
+  "diagnosticsWorkerStarting": {
+    "message": "Avvio"
+  },
+  "diagnosticsWorkerReady": {
+    "message": "In esecuzione · pronto"
+  },
+  "diagnosticsWorkerFailed": {
+    "message": "Avvio non riuscito"
+  },
+  "diagnosticsHostServiceWorker": {
+    "message": "Service worker MV3"
+  },
+  "diagnosticsHostEventPage": {
+    "message": "Pagina evento MV3"
+  },
+  "diagnosticsBrowserUnknown": {
+    "message": "Browser sconosciuto"
+  },
+  "diagnosticsStartedWithUptime": {
+    "message": "$TIME$ · attivo da $UPTIME$",
+    "placeholders": {
+      "time": {
+        "content": "$1",
+        "example": "Jul 15, 2026, 4:10 PM"
+      },
+      "uptime": {
+        "content": "$2",
+        "example": "3 min"
+      }
+    }
+  },
+  "diagnosticsConfigurationIssueCount": {
+    "message": "$PATHS$ percorso · $ROUTING$ routing",
+    "placeholders": {
+      "paths": {
+        "content": "$1",
+        "example": "0"
+      },
+      "routing": {
+        "content": "$2",
+        "example": "1"
+      }
+    }
+  },
+  "diagnosticsAvailable": {
+    "message": "Disponibile"
+  },
+  "diagnosticsUnavailable": {
+    "message": "Non disponibile"
+  },
+  "diagnosticsOn": {
+    "message": "Attiva"
+  },
+  "diagnosticsOff": {
+    "message": "Disattiva"
+  },
+  "diagnosticsFailuresEmpty": {
+    "message": "Nessun errore recente."
+  },
+  "diagnosticsChecking": {
+    "message": "Controllo dello sfondo…"
+  },
+  "diagnosticsCheckedAt": {
+    "message": "Controllato alle $TIME$",
+    "placeholders": {
+      "time": {
+        "content": "$1",
+        "example": "Jul 15, 2026, 4:10 PM"
+      }
+    }
+  },
+  "diagnosticsLoadFailed": {
+    "message": "Impossibile caricare la diagnostica."
+  },
+  "diagnosticsCopySuccess": {
+    "message": "Diagnostica copiata."
+  },
+  "diagnosticsCopyFailed": {
+    "message": "Impossibile copiare la diagnostica."
+  },
+  "diagnosticsClearSuccess": {
+    "message": "Errori recenti cancellati."
+  },
+  "diagnosticsClearFailed": {
+    "message": "Impossibile cancellare gli errori recenti."
   }
 }

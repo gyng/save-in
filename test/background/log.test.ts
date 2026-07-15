@@ -162,9 +162,9 @@ describe("Log", () => {
     expect(entries().map((entry) => entry.message)).toEqual(["kept"]);
   });
 
-  test("clear swallows storage failures", async () => {
+  test("clear surfaces storage failures", async () => {
     vi.mocked(global.browser.storage.session.remove).mockRejectedValueOnce(new Error("gone"));
 
-    await expect(Log.clear()).resolves.toBeUndefined();
+    await expect(Log.clear()).rejects.toThrow("gone");
   });
 });

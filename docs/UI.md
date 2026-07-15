@@ -169,6 +169,10 @@ or visually separate interface. Preserve these rules as the tab grows:
   plain identifiers and snippets; a code-block background is not automatic.
 - Anything presented as click-to-copy is a keyboard-operable control with button
   semantics, visible focus, a localized accessible name, and live confirmation.
+- Keep Diagnostics in one collapsed disclosure. Opening it may request one
+  bounded, privacy-safe background snapshot; do not poll. Present core worker
+  health first, then lifecycle events, recent failures, and the developer logging
+  control. Private activity must never enter either diagnostic record.
 - Action rows must wrap without fixed translated-text offsets. Check backup,
   reset, and similar multi-button rows with a long locale as well as English.
 - At narrow widths, let the main tab list wrap onto additional rows instead of

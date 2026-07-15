@@ -177,19 +177,25 @@ export const handleTabMenuClick = async (
         } catch (error) {
           // The tab may have been closed manually while its save was starting;
           // that must not prevent later tabs in the batch from being saved.
-          await Log.add("saved tab close failed", String(error));
+          await Log.add("saved tab close failed", String(error), {
+            privateContext: t.incognito === true,
+          });
         }
       }
     }
   } catch (error) {
     // Download.launch reports per-item failures; this catches tab query and
     // batch orchestration failures that occur outside the download pipeline.
-    await Log.add("tab-strip save failed", String(error));
+    await Log.add("tab-strip save failed", String(error), {
+      privateContext: fromTab.incognito === true,
+    });
   }
 };
 
 export const addTabMenuListener = () => {
   webExtensionApi.contextMenus.onClicked.addListener((info, fromTab) =>
-    runBackgroundTask("tab-strip menu click failed", () => handleTabMenuClick(info, fromTab)),
+    runBackgroundTask("tab-strip menu click failed", () => handleTabMenuClick(info, fromTab), {
+      privateContext: fromTab?.incognito === true,
+    }),
   );
 };

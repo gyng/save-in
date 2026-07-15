@@ -2024,35 +2024,103 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
 
         <textarea id="export-target" hidden spellcheck="false"></textarea>
 
-        <h4>__MSG_o_sAdvancedDiagnostics__</h4>
-        <div class="advanced-option-row advanced-checkbox-option">
-          <label>
-            <input type="checkbox" id="debug" aria-describedby="debugModeHelp" />
-            __MSG_o_cDebugMode__
-          </label>
-          <div class="caption advanced-option-help" id="debugModeHelp">
-            __MSG_html_theSessionLogBelowAlwaysKeepsASmallLocal__
-          </div>
-        </div>
+        <details class="diagnostics-details" id="diagnostics-details">
+          <summary>
+            <span>__MSG_o_sAdvancedDiagnostics__</span>
+            <span class="caption">__MSG_diagnosticsSummaryHelp__</span>
+          </summary>
+          <div class="diagnostics-panel">
+            <div class="diagnostics-toolbar">
+              <span
+                id="diagnostics-status"
+                class="feedback feedback-inline"
+                role="status"
+                aria-live="polite"
+              ></span>
+              <button type="button" id="debug-log-refresh" class="button" data-option-search="true">
+                __MSG_diagnosticsRefresh__
+              </button>
+              <button type="button" id="diagnostics-copy" class="button" data-option-search="true">
+                __MSG_diagnosticsCopy__
+              </button>
+            </div>
 
-        <div class="diagnostics-row">
-          <details class="diagnostics-details">
-            <summary>__MSG_o_lDebugLog__</summary>
-            <textarea
-              class="full-width debug-log-text"
-              id="debug-log"
-              aria-label="__MSG_o_lDebugLog__"
-              spellcheck="false"
-              readonly
-            ></textarea>
-            <button type="button" id="debug-log-refresh" class="button" data-option-search="true">
-              __MSG_html_refreshLog__
-            </button>
-            <button type="button" id="debug-log-clear" class="button" data-option-search="true">
-              __MSG_html_clearLog__
-            </button>
-          </details>
-        </div>
+            <dl class="diagnostics-core" id="diagnostics-core" aria-busy="false">
+              <div>
+                <dt>__MSG_diagnosticsBackground__</dt>
+                <dd id="diagnostics-background">—</dd>
+              </div>
+              <div>
+                <dt>__MSG_diagnosticsHost__</dt>
+                <dd id="diagnostics-host">—</dd>
+              </div>
+              <div>
+                <dt>__MSG_diagnosticsExtension__</dt>
+                <dd id="diagnostics-extension">—</dd>
+              </div>
+              <div>
+                <dt>__MSG_diagnosticsBrowser__</dt>
+                <dd id="diagnostics-browser">—</dd>
+              </div>
+              <div>
+                <dt>__MSG_diagnosticsWorkerStarted__</dt>
+                <dd id="diagnostics-worker-started">—</dd>
+              </div>
+              <div>
+                <dt>__MSG_diagnosticsSessionStorage__</dt>
+                <dd id="diagnostics-session-storage">—</dd>
+              </div>
+              <div>
+                <dt>__MSG_diagnosticsVerboseLogging__</dt>
+                <dd id="diagnostics-verbose">—</dd>
+              </div>
+              <div>
+                <dt>__MSG_diagnosticsConfigurationIssues__</dt>
+                <dd id="diagnostics-configuration">—</dd>
+              </div>
+            </dl>
+
+            <section class="diagnostics-section" aria-labelledby="diagnostics-lifecycle-heading">
+              <h5 id="diagnostics-lifecycle-heading">__MSG_diagnosticsLifecycle__</h5>
+              <p class="caption">__MSG_diagnosticsLifecycleHelp__</p>
+              <ol class="diagnostics-lifecycle" id="diagnostics-lifecycle"></ol>
+            </section>
+
+            <section class="diagnostics-section" aria-labelledby="diagnostics-failures-heading">
+              <div class="diagnostics-section-heading">
+                <h5 id="diagnostics-failures-heading">__MSG_o_lDebugLog__</h5>
+                <span class="count-badge" id="diagnostics-failure-count">0</span>
+              </div>
+              <p class="caption" id="diagnostics-failures-help">__MSG_diagnosticsFailuresHelp__</p>
+              <textarea
+                class="full-width debug-log-text"
+                id="debug-log"
+                aria-label="__MSG_o_lDebugLog__"
+                aria-describedby="diagnostics-failures-help"
+                spellcheck="false"
+                readonly
+              ></textarea>
+              <div class="diagnostics-section-actions">
+                <button type="button" id="debug-log-clear" class="button" data-option-search="true">
+                  __MSG_diagnosticsClearFailures__
+                </button>
+              </div>
+            </section>
+
+            <section class="diagnostics-section" aria-labelledby="diagnostics-logging-heading">
+              <h5 id="diagnostics-logging-heading">__MSG_diagnosticsDeveloperLogging__</h5>
+              <div class="advanced-option-row advanced-checkbox-option">
+                <label>
+                  <input type="checkbox" id="debug" aria-describedby="debugModeHelp" />
+                  __MSG_o_cDebugMode__
+                </label>
+                <div class="caption advanced-option-help" id="debugModeHelp">
+                  __MSG_html_theSessionLogBelowAlwaysKeepsASmallLocal__
+                </div>
+              </div>
+            </section>
+          </div>
+        </details>
       </section>
 
       <section

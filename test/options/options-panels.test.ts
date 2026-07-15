@@ -7,7 +7,9 @@ import {
   setupVariablesPreview,
 } from "../../src/options/variables-preview.ts";
 import { setupResetOptions } from "../../src/options/reset-options.ts";
-import { COUNTER_KEY, LOG_STORAGE_KEY } from "../../src/shared/storage-keys.ts";
+import { COUNTER_KEY } from "../../src/shared/storage-keys.ts";
+import { MESSAGE_TYPES } from "../../src/shared/constants.ts";
+import type { DiagnosticSnapshot } from "../../src/shared/diagnostics-types.ts";
 
 beforeEach(() => {
   document.body.innerHTML = "";
@@ -95,96 +97,175 @@ describe("counter panel", () => {
 });
 
 describe("debug log panel", () => {
+  const snapshot = (overrides: Partial<DiagnosticSnapshot> = {}): DiagnosticSnapshot => ({
+    capturedAt: "2026-07-15T08:00:05.000Z",
+    extensionVersion: "4.0.0",
+    manifestVersion: 3,
+    browser: "CHROME",
+    browserVersion: 140,
+    backgroundHost: "service_worker",
+    workerStatus: "ready",
+    workerStartedAt: "2026-07-15T08:00:00.000Z",
+    workerReadyAt: "2026-07-15T08:00:00.100Z",
+    workerUptimeMs: 5000,
+    sessionStorageAvailable: true,
+    verboseLogging: false,
+    pathErrorCount: 0,
+    routingErrorCount: 1,
+    lifecycle: [
+      {
+        at: "2026-07-15T08:00:00.100Z",
+        kind: "background_ready",
+        durationMs: 100,
+      },
+    ],
+    recentFailures: [
+      { at: "2026-07-15T08:00:04.000Z", message: "download failed", data: "denied" },
+    ],
+    ...overrides,
+  });
+
   beforeEach(() => {
-    Object.defineProperty(browser.storage, "session", {
-      configurable: true,
-      value: { get: vi.fn(), remove: vi.fn() },
-    });
     document.body.innerHTML = `
-      <textarea id="debug-log"></textarea>
-      <button id="debug-log-refresh"></button>
-      <button id="debug-log-clear"></button>`;
+      <details id="diagnostics-details">
+        <span id="diagnostics-status"></span>
+        <button id="debug-log-refresh"></button>
+        <button id="diagnostics-copy"></button>
+        <dl id="diagnostics-core">
+          <div><dt>Background</dt><dd id="diagnostics-background"></dd></div>
+          <div><dt>Host</dt><dd id="diagnostics-host"></dd></div>
+          <div><dt>Extension</dt><dd id="diagnostics-extension"></dd></div>
+          <div><dt>Browser</dt><dd id="diagnostics-browser"></dd></div>
+          <div><dt>Worker started</dt><dd id="diagnostics-worker-started"></dd></div>
+          <div><dt>Session storage</dt><dd id="diagnostics-session-storage"></dd></div>
+          <div><dt>Verbose logging</dt><dd id="diagnostics-verbose"></dd></div>
+          <div><dt>Configuration issues</dt><dd id="diagnostics-configuration"></dd></div>
+        </dl>
+        <ol id="diagnostics-lifecycle"></ol>
+        <span id="diagnostics-failure-count"></span>
+        <textarea id="debug-log"></textarea>
+        <button id="debug-log-clear"></button>
+      </details>`;
   });
 
-  test("formats valid entries and ignores malformed persisted values", async () => {
-    vi.mocked(browser.storage.session.get).mockResolvedValue({
-      [LOG_STORAGE_KEY]: [null, "bad", { at: "now", message: "saved", data: { id: 3 } }],
-    });
-    await updateDebugLog();
-    expect(document.querySelector<HTMLTextAreaElement>("#debug-log")!.value).toBe(
-      'now  saved  {"id":3}',
-    );
-  });
+  test("does not wake the background while Diagnostics is collapsed", async () => {
+    setupDebugLogPanel();
 
-  test("contains values that JSON serialization cannot represent", async () => {
-    const circular: Record<string, unknown> = {};
-    circular.self = circular;
-    circular.toString = () => {
-      throw new Error("cannot stringify");
-    };
-    vi.mocked(browser.storage.session.get).mockResolvedValue({
-      [LOG_STORAGE_KEY]: [{ at: "now", message: 7n, data: circular }],
-    });
-
-    await updateDebugLog();
-
-    expect(document.querySelector<HTMLTextAreaElement>("#debug-log")!.value).toBe(
-      "now  7  [unprintable]",
-    );
-  });
-
-  test("ignores refreshes without a log field and non-array storage", async () => {
-    document.body.innerHTML = "";
     await expect(updateDebugLog()).resolves.toBeUndefined();
-
-    document.body.innerHTML = '<textarea id="debug-log"></textarea>';
-    vi.mocked(browser.storage.session.get).mockResolvedValue({ [LOG_STORAGE_KEY]: "invalid" });
-    await updateDebugLog();
-    expect(document.querySelector<HTMLTextAreaElement>("#debug-log")!.value).toBe("");
+    expect(browser.runtime.sendMessage).not.toHaveBeenCalled();
   });
 
-  test("formats null fields and contains a failed clear", async () => {
-    vi.mocked(browser.storage.session.get).mockResolvedValue({
-      [LOG_STORAGE_KEY]: [{ at: null, message: 7, data: false }],
+  test("loads and renders core health, lifecycle, and failures when opened", async () => {
+    vi.mocked(browser.runtime.sendMessage).mockResolvedValue({
+      type: MESSAGE_TYPES.DIAGNOSTICS_GET,
+      body: snapshot(),
     });
-    vi.mocked(browser.storage.session.remove).mockRejectedValue(new Error("denied"));
     setupDebugLogPanel();
-    await vi.waitFor(() =>
-      expect(document.querySelector<HTMLTextAreaElement>("#debug-log")!.value).toBe("7  false"),
-    );
+    const details = document.querySelector<HTMLDetailsElement>("#diagnostics-details")!;
+    details.open = true;
+    details.dispatchEvent(new Event("toggle"));
 
-    document.querySelector<HTMLButtonElement>("#debug-log-clear")!.click();
-    await vi.waitFor(() => expect(browser.storage.session.remove).toHaveBeenCalled());
-  });
-
-  test("refreshes after clearing and tolerates unavailable session storage", async () => {
-    vi.mocked(browser.storage.session.get)
-      .mockResolvedValueOnce({ [LOG_STORAGE_KEY]: [{ message: "old" }] })
-      .mockRejectedValueOnce(new Error("unsupported"));
-    vi.mocked(browser.storage.session.remove).mockResolvedValue();
-    setupDebugLogPanel();
     await vi.waitFor(() =>
-      expect(document.querySelector<HTMLTextAreaElement>("#debug-log")!.value).toContain("old"),
-    );
-    document.querySelector<HTMLButtonElement>("#debug-log-clear")!.click();
-    await vi.waitFor(() =>
-      expect(document.querySelector<HTMLTextAreaElement>("#debug-log")!.value).toContain(
-        "unavailable",
+      expect(document.querySelector("#diagnostics-background")?.textContent).toBe(
+        "Translated<diagnosticsWorkerReady>",
       ),
     );
-    expect(browser.storage.session.remove).toHaveBeenCalledWith(LOG_STORAGE_KEY);
+    expect(document.querySelector("#diagnostics-host")?.textContent).toBe(
+      "Translated<diagnosticsHostServiceWorker>",
+    );
+    expect(document.querySelector("#diagnostics-configuration")?.textContent).toBe(
+      "Translated<diagnosticsConfigurationIssueCount>",
+    );
+    expect(document.querySelector("#diagnostics-lifecycle")?.textContent).toContain(
+      "diagnosticsLifecycleBackgroundReady",
+    );
+    expect(document.querySelector<HTMLTextAreaElement>("#debug-log")?.value).toContain(
+      "download failed  denied",
+    );
   });
 
-  test("refreshes from the explicit refresh button", async () => {
-    vi.mocked(browser.storage.session.get).mockResolvedValue({
-      [LOG_STORAGE_KEY]: [{ message: "fresh" }],
-    });
+  test("clears failures through the background and refreshes the snapshot", async () => {
+    vi.mocked(browser.runtime.sendMessage)
+      .mockResolvedValueOnce({ type: MESSAGE_TYPES.DIAGNOSTICS_GET, body: snapshot() })
+      .mockResolvedValueOnce({ type: MESSAGE_TYPES.OK })
+      .mockResolvedValueOnce({
+        type: MESSAGE_TYPES.DIAGNOSTICS_GET,
+        body: snapshot({ recentFailures: [] }),
+      });
+    const details = document.querySelector<HTMLDetailsElement>("#diagnostics-details")!;
+    details.open = true;
     setupDebugLogPanel();
-    vi.mocked(browser.storage.session.get).mockClear();
+    await vi.waitFor(() =>
+      expect(document.querySelector<HTMLTextAreaElement>("#debug-log")?.value).toContain(
+        "download failed",
+      ),
+    );
 
-    document.querySelector<HTMLButtonElement>("#debug-log-refresh")!.click();
+    document.querySelector<HTMLButtonElement>("#debug-log-clear")!.click();
+    await vi.waitFor(() =>
+      expect(document.querySelector<HTMLTextAreaElement>("#debug-log")?.value).toBe(
+        "Translated<diagnosticsFailuresEmpty>",
+      ),
+    );
+    expect(browser.runtime.sendMessage).toHaveBeenNthCalledWith(2, {
+      type: MESSAGE_TYPES.DIAGNOSTICS_CLEAR_FAILURES,
+    });
+  });
 
-    await vi.waitFor(() => expect(browser.storage.session.get).toHaveBeenCalledOnce());
+  test("reports malformed responses without replacing the current view", async () => {
+    vi.mocked(browser.runtime.sendMessage).mockResolvedValue({
+      type: MESSAGE_TYPES.DIAGNOSTICS_GET,
+      body: { capturedAt: "invalid" },
+    });
+    document.querySelector<HTMLDetailsElement>("#diagnostics-details")!.open = true;
+    setupDebugLogPanel();
+    await vi.waitFor(() =>
+      expect(document.querySelector("#diagnostics-status")?.textContent).toBe(
+        "Translated<diagnosticsLoadFailed>",
+      ),
+    );
+    expect(document.querySelector<HTMLTextAreaElement>("#debug-log")?.value).toBe("");
+  });
+
+  test("reports a clear failure and keeps the current failure text", async () => {
+    vi.mocked(browser.runtime.sendMessage)
+      .mockResolvedValueOnce({ type: MESSAGE_TYPES.DIAGNOSTICS_GET, body: snapshot() })
+      .mockRejectedValueOnce(new Error("remove denied"));
+    document.querySelector<HTMLDetailsElement>("#diagnostics-details")!.open = true;
+    setupDebugLogPanel();
+    await vi.waitFor(() =>
+      expect(document.querySelector<HTMLTextAreaElement>("#debug-log")?.value).toContain(
+        "download failed",
+      ),
+    );
+
+    document.querySelector<HTMLButtonElement>("#debug-log-clear")!.click();
+
+    await vi.waitFor(() =>
+      expect(document.querySelector("#diagnostics-status")?.textContent).toBe(
+        "Translated<diagnosticsClearFailed>",
+      ),
+    );
+    expect(document.querySelector<HTMLTextAreaElement>("#debug-log")?.value).toContain(
+      "download failed",
+    );
+  });
+
+  test("copies the rendered snapshot only after an explicit action", async () => {
+    const copy = vi.fn<(text: string) => Promise<void>>().mockResolvedValue();
+    vi.mocked(browser.runtime.sendMessage).mockResolvedValue({
+      type: MESSAGE_TYPES.DIAGNOSTICS_GET,
+      body: snapshot(),
+    });
+    document.querySelector<HTMLDetailsElement>("#diagnostics-details")!.open = true;
+    setupDebugLogPanel(copy);
+    await vi.waitFor(() => expect(browser.runtime.sendMessage).toHaveBeenCalledOnce());
+
+    document.querySelector<HTMLButtonElement>("#diagnostics-copy")!.click();
+
+    await vi.waitFor(() => expect(copy).toHaveBeenCalledOnce());
+    expect(copy.mock.calls[0]?.[0]).toContain("Host: Translated<diagnosticsHostServiceWorker>");
+    expect(copy.mock.calls[0]?.[0]).toContain("download failed");
   });
 });
 

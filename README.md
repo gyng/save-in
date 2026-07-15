@@ -24,6 +24,8 @@ the default download location.
   the maintained variable and matcher list.
 - Match normalized MIME types (`mime:` / `contenttype:`), referrer URLs and
   hostnames, and page or source root domains in routing rules.
+- Inspect MV3 background health, lifecycle events, configuration issue counts,
+  and recent session failures from the collapsed Diagnostics panel in Advanced.
 
 Page Sources can automatically save newly discovered matching media. Automatic
 saves are off by default and use guarded routing rules with an

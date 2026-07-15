@@ -878,7 +878,7 @@
     "message": "Musknapp för Klicka för att spara"
   },
   "o_lDebugLog": {
-    "message": "Felsökningslogg"
+    "message": "Senaste fel"
   },
   "o_sAdvancedFilenames": {
     "message": "Filnamn"
@@ -1405,9 +1405,6 @@
   "html_checking": {
     "message": "kollar…"
   },
-  "html_clearLog": {
-    "message": "Rensa logg"
-  },
   "html_closeAboutSaveIn": {
     "message": "Stäng Om Save In"
   },
@@ -1465,9 +1462,6 @@
   "html_referenceType": {
     "message": "Referenstyp"
   },
-  "html_refreshLog": {
-    "message": "Uppdatera loggen"
-  },
   "html_reportAnIssue": {
     "message": "Rapportera ett problem"
   },
@@ -1496,7 +1490,7 @@
     "message": "Lagring"
   },
   "html_theSessionLogBelowAlwaysKeepsASmallLocal": {
-    "message": "Sessionsloggen sparar alltid en liten lokal historik över de senaste felen. Aktivera den bara vid felsökning med webbläsarens utvecklarkonsol; den lägger till utförlig intern information och återgår till den sparade inställningen efter omstart."
+    "message": "De senaste felen lagras på den här enheten tills webbläsarsessionen avslutas. Utförlig loggning skriver även information om dirigering och hämtningar till webbläsarens utvecklarkonsol och förblir aktiverad tills du stänger av den. Privat aktivitet undantas."
   },
   "html_toConnectOpenThisPageInABrowserThat": {
     "message": "För att ansluta: öppna den här sidan i en webbläsare som stöder WebMCP, håll den öppen och peka din webbläsaragent på den här fliken. Fråga det i klartext — t.ex. \"Sortera mina nedladdningar i mappar efter webbplats och datum, numrera varje fil och meddela mig bara när en misslyckas.\""
@@ -2755,5 +2749,92 @@
         "example": "Images"
       }
     }
-  }
+  },
+  "diagnosticsSummaryHelp": {
+    "message": "Bakgrundsprocessens status, livscykel och senaste fel"
+  },
+  "diagnosticsRefresh": { "message": "Uppdatera" },
+  "diagnosticsCopy": { "message": "Kopiera diagnostik" },
+  "diagnosticsBackground": { "message": "Bakgrund" },
+  "diagnosticsHost": { "message": "Värd" },
+  "diagnosticsExtension": { "message": "Tillägg" },
+  "diagnosticsBrowser": { "message": "Webbläsare" },
+  "diagnosticsWorkerStarted": { "message": "Bakgrundsprocess startad" },
+  "diagnosticsSessionStorage": { "message": "Sessionslagring" },
+  "diagnosticsVerboseLogging": { "message": "Utförlig loggning" },
+  "diagnosticsConfigurationIssues": { "message": "Konfigurationsproblem" },
+  "diagnosticsLifecycle": { "message": "Livscykel" },
+  "diagnosticsLifecycleHelp": {
+    "message": "Senaste starter av bakgrundsprocessen, omläsningar av konfigurationen och tilläggsuppdateringar. När Diagnostik öppnas väcks bakgrundsprocessen."
+  },
+  "diagnosticsFailuresHelp": {
+    "message": "Senaste lokala fel från den här webbläsarsessionen. Granska texten innan du delar den eftersom webbläsarfel kan innehålla information om webbplatser eller filer."
+  },
+  "diagnosticsClearFailures": { "message": "Rensa fel" },
+  "diagnosticsDeveloperLogging": { "message": "Utvecklarloggning" },
+  "diagnosticsDurationMs": {
+    "message": "$COUNT$ millisekunder",
+    "placeholders": { "count": { "content": "$1", "example": "42" } }
+  },
+  "diagnosticsDurationSeconds": {
+    "message": "$COUNT$ sekunder",
+    "placeholders": { "count": { "content": "$1", "example": "4" } }
+  },
+  "diagnosticsDurationMinutes": {
+    "message": "$COUNT$ minuter",
+    "placeholders": { "count": { "content": "$1", "example": "3" } }
+  },
+  "diagnosticsLifecycleBackgroundReady": {
+    "message": "Bakgrundsprocessen blev klar på $DURATION$.",
+    "placeholders": { "duration": { "content": "$1", "example": "120 ms" } }
+  },
+  "diagnosticsLifecycleBackgroundFailed": {
+    "message": "Det gick inte att starta bakgrundsprocessen."
+  },
+  "diagnosticsLifecycleConfigurationReloaded": {
+    "message": "Konfigurationen lästes in igen."
+  },
+  "diagnosticsLifecycleExtensionInstalled": { "message": "Tillägget installerades." },
+  "diagnosticsLifecycleExtensionUpdatedFrom": {
+    "message": "Tillägget uppdaterades från $VERSION$.",
+    "placeholders": { "version": { "content": "$1", "example": "3.9.1" } }
+  },
+  "diagnosticsLifecycleExtensionUpdated": { "message": "Tillägget uppdaterades." },
+  "diagnosticsLifecycleFailuresCleared": { "message": "De senaste felen rensades." },
+  "diagnosticsLifecycleEmpty": { "message": "Inga livscykelhändelser ännu." },
+  "diagnosticsWorkerStarting": { "message": "Startar" },
+  "diagnosticsWorkerReady": { "message": "Körs · klar" },
+  "diagnosticsWorkerFailed": { "message": "Starten misslyckades" },
+  "diagnosticsHostServiceWorker": { "message": "MV3-service worker" },
+  "diagnosticsHostEventPage": { "message": "MV3-händelsesida" },
+  "diagnosticsBrowserUnknown": { "message": "Okänd webbläsare" },
+  "diagnosticsStartedWithUptime": {
+    "message": "$TIME$ · har körts i $UPTIME$",
+    "placeholders": {
+      "time": { "content": "$1", "example": "Jul 15, 2026, 4:10 PM" },
+      "uptime": { "content": "$2", "example": "3 min" }
+    }
+  },
+  "diagnosticsConfigurationIssueCount": {
+    "message": "$PATHS$ sökväg · $ROUTING$ dirigering",
+    "placeholders": {
+      "paths": { "content": "$1", "example": "0" },
+      "routing": { "content": "$2", "example": "1" }
+    }
+  },
+  "diagnosticsAvailable": { "message": "Tillgängligt" },
+  "diagnosticsUnavailable": { "message": "Otillgängligt" },
+  "diagnosticsOn": { "message": "På" },
+  "diagnosticsOff": { "message": "Av" },
+  "diagnosticsFailuresEmpty": { "message": "Inga senaste fel." },
+  "diagnosticsChecking": { "message": "Kontrollerar bakgrundsprocessen…" },
+  "diagnosticsCheckedAt": {
+    "message": "Kontrollerad $TIME$",
+    "placeholders": { "time": { "content": "$1", "example": "Jul 15, 2026, 4:10 PM" } }
+  },
+  "diagnosticsLoadFailed": { "message": "Det gick inte att läsa in diagnostiken." },
+  "diagnosticsCopySuccess": { "message": "Diagnostiken har kopierats." },
+  "diagnosticsCopyFailed": { "message": "Det gick inte att kopiera diagnostiken." },
+  "diagnosticsClearSuccess": { "message": "De senaste felen rensades." },
+  "diagnosticsClearFailed": { "message": "Det gick inte att rensa de senaste felen." }
 }

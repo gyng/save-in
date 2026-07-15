@@ -40,7 +40,7 @@ for (const file of [manifestFile, ...sourceFiles]) {
   }
   if (file.endsWith(".ts")) {
     for (const match of source.matchAll(
-      /\b(?:getMessage|historyMessage|localize)\(\s*["']([A-Za-z0-9_]+)["']/g,
+      /(?<!\.)\b(?:getMessage|historyMessage|localize|message)\(\s*["']([A-Za-z0-9_]+)["']/g,
     )) {
       runtimeKeys.add(match[1]);
     }

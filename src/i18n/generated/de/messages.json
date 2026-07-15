@@ -884,7 +884,7 @@
     "message": "Maustaste für Speichern per Klick"
   },
   "o_lDebugLog": {
-    "message": "Debug-Protokoll"
+    "message": "Kürzlich aufgetretene Fehler"
   },
   "o_sAdvancedFilenames": {
     "message": "Dateinamen"
@@ -1384,9 +1384,6 @@
   "html_checking": {
     "message": "Wird geprüft…"
   },
-  "html_clearLog": {
-    "message": "Protokoll löschen"
-  },
   "html_closeAboutSaveIn": {
     "message": "Dialog „Über Save In“ schließen"
   },
@@ -1444,9 +1441,6 @@
   "html_referenceType": {
     "message": "Referenztyp"
   },
-  "html_refreshLog": {
-    "message": "Protokoll aktualisieren"
-  },
   "html_reportAnIssue": {
     "message": "Problem melden"
   },
@@ -1475,7 +1469,7 @@
     "message": "Speicher"
   },
   "html_theSessionLogBelowAlwaysKeepsASmallLocal": {
-    "message": "Das Sitzungsprotokoll unten enthält stets eine kleine lokale Aufzeichnung kürzlich aufgetretener Fehler. Aktivieren Sie diese Option nur zur Fehlerbehebung mit der Browser-Entwicklerkonsole; sie fügt ausführliche interne Details hinzu und wird nach einem Neustart auf die gespeicherte Einstellung zurückgesetzt."
+    "message": "Kürzlich aufgetretene Fehler bleiben bis zum Ende der Browsersitzung auf diesem Gerät. Die ausführliche Protokollierung schreibt außerdem Routing- und Downloaddetails in die Browser-Entwicklerkonsole und bleibt aktiviert, bis Sie sie ausschalten. Private Aktivitäten sind ausgeschlossen."
   },
   "html_toConnectOpenThisPageInABrowserThat": {
     "message": "So stellen Sie eine Verbindung her: Öffnen Sie diese Seite in einem Browser mit WebMCP-Unterstützung, lassen Sie sie geöffnet und weisen Sie Ihren Agenten im Browser auf diesen Tab hin. Bitten Sie ihn in natürlicher Sprache, beispielsweise: „Sortiere meine Downloads nach Website und Datum in Ordner, nummeriere jede Datei und benachrichtige mich nur, wenn eine Datei fehlschlägt.“"
@@ -2754,5 +2748,202 @@
         "example": "Images"
       }
     }
+  },
+  "diagnosticsSummaryHelp": {
+    "message": "Workerzustand, Lebenszyklus und kürzlich aufgetretene Fehler"
+  },
+  "diagnosticsRefresh": {
+    "message": "Aktualisieren"
+  },
+  "diagnosticsCopy": {
+    "message": "Diagnose kopieren"
+  },
+  "diagnosticsBackground": {
+    "message": "Hintergrund"
+  },
+  "diagnosticsHost": {
+    "message": "Host"
+  },
+  "diagnosticsExtension": {
+    "message": "Erweiterung"
+  },
+  "diagnosticsBrowser": {
+    "message": "Browser"
+  },
+  "diagnosticsWorkerStarted": {
+    "message": "Worker gestartet"
+  },
+  "diagnosticsSessionStorage": {
+    "message": "Sitzungsspeicher"
+  },
+  "diagnosticsVerboseLogging": {
+    "message": "Ausführliche Protokollierung"
+  },
+  "diagnosticsConfigurationIssues": {
+    "message": "Konfigurationsprobleme"
+  },
+  "diagnosticsLifecycle": {
+    "message": "Lebenszyklus"
+  },
+  "diagnosticsLifecycleHelp": {
+    "message": "Kürzlich erfolgte Hintergrundstarts, Konfigurationsneuladungen und Erweiterungsupdates. Durch das Öffnen der Diagnose wird der Hintergrund aktiviert."
+  },
+  "diagnosticsFailuresHelp": {
+    "message": "Kürzlich lokal aufgetretene Fehler aus dieser Browsersitzung. Prüfen Sie den Text vor dem Teilen, da Browserfehler Website- oder Dateidetails enthalten können."
+  },
+  "diagnosticsClearFailures": {
+    "message": "Fehler löschen"
+  },
+  "diagnosticsDeveloperLogging": {
+    "message": "Entwicklerprotokollierung"
+  },
+  "diagnosticsDurationMs": {
+    "message": "$COUNT$ Millisekunden",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "42"
+      }
+    }
+  },
+  "diagnosticsDurationSeconds": {
+    "message": "$COUNT$ Sekunden",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "4"
+      }
+    }
+  },
+  "diagnosticsDurationMinutes": {
+    "message": "$COUNT$ Minuten",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "diagnosticsLifecycleBackgroundReady": {
+    "message": "Hintergrund war nach $DURATION$ bereit.",
+    "placeholders": {
+      "duration": {
+        "content": "$1",
+        "example": "120 ms"
+      }
+    }
+  },
+  "diagnosticsLifecycleBackgroundFailed": {
+    "message": "Start des Hintergrunds fehlgeschlagen."
+  },
+  "diagnosticsLifecycleConfigurationReloaded": {
+    "message": "Konfiguration neu geladen."
+  },
+  "diagnosticsLifecycleExtensionInstalled": {
+    "message": "Erweiterung installiert."
+  },
+  "diagnosticsLifecycleExtensionUpdatedFrom": {
+    "message": "Erweiterung von $VERSION$ aktualisiert.",
+    "placeholders": {
+      "version": {
+        "content": "$1",
+        "example": "3.9.1"
+      }
+    }
+  },
+  "diagnosticsLifecycleExtensionUpdated": {
+    "message": "Erweiterung aktualisiert."
+  },
+  "diagnosticsLifecycleFailuresCleared": {
+    "message": "Kürzlich aufgetretene Fehler gelöscht."
+  },
+  "diagnosticsLifecycleEmpty": {
+    "message": "Noch keine Lebenszyklusereignisse."
+  },
+  "diagnosticsWorkerStarting": {
+    "message": "Wird gestartet"
+  },
+  "diagnosticsWorkerReady": {
+    "message": "Wird ausgeführt · bereit"
+  },
+  "diagnosticsWorkerFailed": {
+    "message": "Start fehlgeschlagen"
+  },
+  "diagnosticsHostServiceWorker": {
+    "message": "MV3-Service-Worker"
+  },
+  "diagnosticsHostEventPage": {
+    "message": "MV3-Ereignisseite"
+  },
+  "diagnosticsBrowserUnknown": {
+    "message": "Unbekannter Browser"
+  },
+  "diagnosticsStartedWithUptime": {
+    "message": "$TIME$ · läuft seit $UPTIME$",
+    "placeholders": {
+      "time": {
+        "content": "$1",
+        "example": "Jul 15, 2026, 4:10 PM"
+      },
+      "uptime": {
+        "content": "$2",
+        "example": "3 min"
+      }
+    }
+  },
+  "diagnosticsConfigurationIssueCount": {
+    "message": "$PATHS$ Pfad · $ROUTING$ Routing",
+    "placeholders": {
+      "paths": {
+        "content": "$1",
+        "example": "0"
+      },
+      "routing": {
+        "content": "$2",
+        "example": "1"
+      }
+    }
+  },
+  "diagnosticsAvailable": {
+    "message": "Verfügbar"
+  },
+  "diagnosticsUnavailable": {
+    "message": "Nicht verfügbar"
+  },
+  "diagnosticsOn": {
+    "message": "Ein"
+  },
+  "diagnosticsOff": {
+    "message": "Aus"
+  },
+  "diagnosticsFailuresEmpty": {
+    "message": "Keine kürzlich aufgetretenen Fehler."
+  },
+  "diagnosticsChecking": {
+    "message": "Hintergrund wird geprüft…"
+  },
+  "diagnosticsCheckedAt": {
+    "message": "Geprüft: $TIME$",
+    "placeholders": {
+      "time": {
+        "content": "$1",
+        "example": "Jul 15, 2026, 4:10 PM"
+      }
+    }
+  },
+  "diagnosticsLoadFailed": {
+    "message": "Diagnose konnte nicht geladen werden."
+  },
+  "diagnosticsCopySuccess": {
+    "message": "Diagnose kopiert."
+  },
+  "diagnosticsCopyFailed": {
+    "message": "Diagnose konnte nicht kopiert werden."
+  },
+  "diagnosticsClearSuccess": {
+    "message": "Kürzlich aufgetretene Fehler gelöscht."
+  },
+  "diagnosticsClearFailed": {
+    "message": "Kürzlich aufgetretene Fehler konnten nicht gelöscht werden."
   }
 }

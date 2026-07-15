@@ -906,7 +906,7 @@
     "message": "Bouton de souris pour l’enregistrement au clic"
   },
   "o_lDebugLog": {
-    "message": "Journal de débogage"
+    "message": "Échecs récents"
   },
   "o_sAdvancedFilenames": {
     "message": "Noms de fichiers"
@@ -1406,9 +1406,6 @@
   "html_checking": {
     "message": "vérification…"
   },
-  "html_clearLog": {
-    "message": "Effacer le journal"
-  },
   "html_closeAboutSaveIn": {
     "message": "Fermer la fenêtre À propos de Save In"
   },
@@ -1466,9 +1463,6 @@
   "html_referenceType": {
     "message": "Type de référence"
   },
-  "html_refreshLog": {
-    "message": "Actualiser le journal"
-  },
   "html_reportAnIssue": {
     "message": "Signaler un problème"
   },
@@ -1497,7 +1491,7 @@
     "message": "Stockage"
   },
   "html_theSessionLogBelowAlwaysKeepsASmallLocal": {
-    "message": "Le journal de session conserve localement un bref historique des échecs récents. Activez-le uniquement pour résoudre un problème avec la console de développement du navigateur ; il ajoute des informations internes détaillées et revient au réglage enregistré après un redémarrage."
+    "message": "Les échecs récents restent sur cet appareil jusqu’à la fin de la session du navigateur. La journalisation détaillée écrit également les informations de routage et de téléchargement dans la console de développement du navigateur et reste activée jusqu’à ce que vous la désactiviez. L’activité privée est exclue."
   },
   "html_toConnectOpenThisPageInABrowserThat": {
     "message": "Pour vous connecter : ouvrez cette page dans un navigateur prenant en charge WebMCP, laissez-la ouverte et dirigez votre agent intégré au navigateur vers cet onglet. Demandez-lui en langage courant, par exemple : « trie mes téléchargements dans des dossiers par site Web et par date, numérote chaque fichier et avertis-moi uniquement en cas d’échec »."
@@ -2765,5 +2759,202 @@
         "example": "Images"
       }
     }
+  },
+  "diagnosticsSummaryHelp": {
+    "message": "État du processus, cycle de vie et échecs récents"
+  },
+  "diagnosticsRefresh": {
+    "message": "Actualiser"
+  },
+  "diagnosticsCopy": {
+    "message": "Copier le diagnostic"
+  },
+  "diagnosticsBackground": {
+    "message": "Arrière-plan"
+  },
+  "diagnosticsHost": {
+    "message": "Hôte"
+  },
+  "diagnosticsExtension": {
+    "message": "Extension"
+  },
+  "diagnosticsBrowser": {
+    "message": "Navigateur"
+  },
+  "diagnosticsWorkerStarted": {
+    "message": "Processus démarré"
+  },
+  "diagnosticsSessionStorage": {
+    "message": "Stockage de session"
+  },
+  "diagnosticsVerboseLogging": {
+    "message": "Journalisation détaillée"
+  },
+  "diagnosticsConfigurationIssues": {
+    "message": "Problèmes de configuration"
+  },
+  "diagnosticsLifecycle": {
+    "message": "Cycle de vie"
+  },
+  "diagnosticsLifecycleHelp": {
+    "message": "Démarrages récents de l’arrière-plan, rechargements de la configuration et mises à jour de l’extension. L’ouverture du diagnostic réveille l’arrière-plan."
+  },
+  "diagnosticsFailuresHelp": {
+    "message": "Échecs locaux récents de cette session du navigateur. Vérifiez le texte avant de le partager, car les erreurs du navigateur peuvent contenir des informations sur des sites ou des fichiers."
+  },
+  "diagnosticsClearFailures": {
+    "message": "Effacer les échecs"
+  },
+  "diagnosticsDeveloperLogging": {
+    "message": "Journalisation pour les développeurs"
+  },
+  "diagnosticsDurationMs": {
+    "message": "$COUNT$ millisecondes",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "42"
+      }
+    }
+  },
+  "diagnosticsDurationSeconds": {
+    "message": "$COUNT$ secondes",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "4"
+      }
+    }
+  },
+  "diagnosticsDurationMinutes": {
+    "message": "$COUNT$ minutes",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "diagnosticsLifecycleBackgroundReady": {
+    "message": "L’arrière-plan était prêt en $DURATION$.",
+    "placeholders": {
+      "duration": {
+        "content": "$1",
+        "example": "120 ms"
+      }
+    }
+  },
+  "diagnosticsLifecycleBackgroundFailed": {
+    "message": "Échec du démarrage de l’arrière-plan."
+  },
+  "diagnosticsLifecycleConfigurationReloaded": {
+    "message": "Configuration rechargée."
+  },
+  "diagnosticsLifecycleExtensionInstalled": {
+    "message": "Extension installée."
+  },
+  "diagnosticsLifecycleExtensionUpdatedFrom": {
+    "message": "Extension mise à jour depuis $VERSION$.",
+    "placeholders": {
+      "version": {
+        "content": "$1",
+        "example": "3.9.1"
+      }
+    }
+  },
+  "diagnosticsLifecycleExtensionUpdated": {
+    "message": "Extension mise à jour."
+  },
+  "diagnosticsLifecycleFailuresCleared": {
+    "message": "Échecs récents effacés."
+  },
+  "diagnosticsLifecycleEmpty": {
+    "message": "Aucun événement de cycle de vie pour le moment."
+  },
+  "diagnosticsWorkerStarting": {
+    "message": "Démarrage"
+  },
+  "diagnosticsWorkerReady": {
+    "message": "En cours d’exécution · prêt"
+  },
+  "diagnosticsWorkerFailed": {
+    "message": "Échec du démarrage"
+  },
+  "diagnosticsHostServiceWorker": {
+    "message": "Service worker MV3"
+  },
+  "diagnosticsHostEventPage": {
+    "message": "Page d’événement MV3"
+  },
+  "diagnosticsBrowserUnknown": {
+    "message": "Navigateur inconnu"
+  },
+  "diagnosticsStartedWithUptime": {
+    "message": "$TIME$ · actif depuis $UPTIME$",
+    "placeholders": {
+      "time": {
+        "content": "$1",
+        "example": "Jul 15, 2026, 4:10 PM"
+      },
+      "uptime": {
+        "content": "$2",
+        "example": "3 min"
+      }
+    }
+  },
+  "diagnosticsConfigurationIssueCount": {
+    "message": "$PATHS$ chemin · $ROUTING$ routage",
+    "placeholders": {
+      "paths": {
+        "content": "$1",
+        "example": "0"
+      },
+      "routing": {
+        "content": "$2",
+        "example": "1"
+      }
+    }
+  },
+  "diagnosticsAvailable": {
+    "message": "Disponible"
+  },
+  "diagnosticsUnavailable": {
+    "message": "Indisponible"
+  },
+  "diagnosticsOn": {
+    "message": "Activé"
+  },
+  "diagnosticsOff": {
+    "message": "Désactivé"
+  },
+  "diagnosticsFailuresEmpty": {
+    "message": "Aucun échec récent."
+  },
+  "diagnosticsChecking": {
+    "message": "Vérification de l’arrière-plan…"
+  },
+  "diagnosticsCheckedAt": {
+    "message": "Vérifié à $TIME$",
+    "placeholders": {
+      "time": {
+        "content": "$1",
+        "example": "Jul 15, 2026, 4:10 PM"
+      }
+    }
+  },
+  "diagnosticsLoadFailed": {
+    "message": "Impossible de charger le diagnostic."
+  },
+  "diagnosticsCopySuccess": {
+    "message": "Diagnostic copié."
+  },
+  "diagnosticsCopyFailed": {
+    "message": "Impossible de copier le diagnostic."
+  },
+  "diagnosticsClearSuccess": {
+    "message": "Échecs récents effacés."
+  },
+  "diagnosticsClearFailed": {
+    "message": "Impossible d’effacer les échecs récents."
   }
 }

@@ -701,7 +701,7 @@
     "message": "クリックして保存するマウス ボタン"
   },
   "o_lDebugLog": {
-    "message": "デバッグログ"
+    "message": "最近の失敗"
   },
   "o_sAdvancedFilenames": {
     "message": "ファイル名"
@@ -1201,9 +1201,6 @@
   "html_checking": {
     "message": "チェック中…"
   },
-  "html_clearLog": {
-    "message": "ログをクリアする"
-  },
   "html_closeAboutSaveIn": {
     "message": "Save In について閉じる"
   },
@@ -1261,9 +1258,6 @@
   "html_referenceType": {
     "message": "参照タイプ"
   },
-  "html_refreshLog": {
-    "message": "ログを更新する"
-  },
   "html_reportAnIssue": {
     "message": "問題を報告する"
   },
@@ -1292,7 +1286,7 @@
     "message": "ストレージ"
   },
   "html_theSessionLogBelowAlwaysKeepsASmallLocal": {
-    "message": "以下のセッションログには、最近の失敗が少量だけローカルに記録されます。ブラウザの開発者コンソールで問題を調査するときだけ有効にしてください。詳細な内部情報が追加され、再起動後は保存済みの設定に戻ります。"
+    "message": "最近の失敗はブラウザーセッションが終了するまでこのデバイスに保存されます。詳細ログを有効にすると、ルーティングとダウンロードの詳細もブラウザーの開発者コンソールに出力され、オフにするまで有効なままです。プライベートブラウジングでの操作は除外されます。"
   },
   "html_toConnectOpenThisPageInABrowserThat": {
     "message": "接続するには: WebMCP をサポートするブラウザでこのページを開き、開いたままにして、ブラウザ内エージェントにこのタブを指定します。わかりやすい言葉で質問してください — 例: 「ダウンロードしたファイルをウェブサイトと日付ごとにフォルダーに分類し、各ファイルに番号を付け、失敗した場合にのみ通知します。」"
@@ -2836,5 +2830,102 @@
         "example": "Images"
       }
     }
-  }
+  },
+  "diagnosticsSummaryHelp": {
+    "message": "ワーカーの状態、ライフサイクル、最近の失敗"
+  },
+  "diagnosticsRefresh": { "message": "更新" },
+  "diagnosticsCopy": { "message": "診断情報をコピー" },
+  "diagnosticsBackground": { "message": "バックグラウンド" },
+  "diagnosticsHost": { "message": "ホスト" },
+  "diagnosticsExtension": { "message": "拡張機能" },
+  "diagnosticsBrowser": { "message": "ブラウザー" },
+  "diagnosticsWorkerStarted": { "message": "ワーカー開始" },
+  "diagnosticsSessionStorage": { "message": "セッションストレージ" },
+  "diagnosticsVerboseLogging": { "message": "詳細ログ" },
+  "diagnosticsConfigurationIssues": { "message": "設定の問題" },
+  "diagnosticsLifecycle": { "message": "ライフサイクル" },
+  "diagnosticsLifecycleHelp": {
+    "message": "最近のバックグラウンド起動、設定の再読み込み、拡張機能の更新。診断を開くとバックグラウンドが起動します。"
+  },
+  "diagnosticsFailuresHelp": {
+    "message": "このブラウザーセッションで最近発生したローカルの失敗です。ブラウザーのエラーにはサイトやファイルの詳細が含まれる場合があるため、共有前に内容を確認してください。"
+  },
+  "diagnosticsClearFailures": { "message": "失敗を消去" },
+  "diagnosticsDeveloperLogging": { "message": "開発者ログ" },
+  "diagnosticsDurationMs": {
+    "message": "$COUNT$ ミリ秒",
+    "placeholders": { "count": { "content": "$1", "example": "42" } }
+  },
+  "diagnosticsDurationSeconds": {
+    "message": "$COUNT$ 秒",
+    "placeholders": { "count": { "content": "$1", "example": "4" } }
+  },
+  "diagnosticsDurationMinutes": {
+    "message": "$COUNT$ 分",
+    "placeholders": { "count": { "content": "$1", "example": "3" } }
+  },
+  "diagnosticsLifecycleBackgroundReady": {
+    "message": "バックグラウンドが $DURATION$ で準備完了になりました。",
+    "placeholders": { "duration": { "content": "$1", "example": "120 ms" } }
+  },
+  "diagnosticsLifecycleBackgroundFailed": {
+    "message": "バックグラウンドの起動に失敗しました。"
+  },
+  "diagnosticsLifecycleConfigurationReloaded": {
+    "message": "設定を再読み込みしました。"
+  },
+  "diagnosticsLifecycleExtensionInstalled": {
+    "message": "拡張機能をインストールしました。"
+  },
+  "diagnosticsLifecycleExtensionUpdatedFrom": {
+    "message": "拡張機能を $VERSION$ から更新しました。",
+    "placeholders": { "version": { "content": "$1", "example": "3.9.1" } }
+  },
+  "diagnosticsLifecycleExtensionUpdated": {
+    "message": "拡張機能を更新しました。"
+  },
+  "diagnosticsLifecycleFailuresCleared": {
+    "message": "最近の失敗を消去しました。"
+  },
+  "diagnosticsLifecycleEmpty": {
+    "message": "ライフサイクルイベントはまだありません。"
+  },
+  "diagnosticsWorkerStarting": { "message": "起動中" },
+  "diagnosticsWorkerReady": { "message": "実行中 · 準備完了" },
+  "diagnosticsWorkerFailed": { "message": "起動失敗" },
+  "diagnosticsHostServiceWorker": { "message": "MV3 サービスワーカー" },
+  "diagnosticsHostEventPage": { "message": "MV3 イベントページ" },
+  "diagnosticsBrowserUnknown": { "message": "不明なブラウザー" },
+  "diagnosticsStartedWithUptime": {
+    "message": "$TIME$ · 稼働時間 $UPTIME$",
+    "placeholders": {
+      "time": { "content": "$1", "example": "Jul 15, 2026, 4:10 PM" },
+      "uptime": { "content": "$2", "example": "3 min" }
+    }
+  },
+  "diagnosticsConfigurationIssueCount": {
+    "message": "$PATHS$ 件のパス · $ROUTING$ 件のルーティング",
+    "placeholders": {
+      "paths": { "content": "$1", "example": "0" },
+      "routing": { "content": "$2", "example": "1" }
+    }
+  },
+  "diagnosticsAvailable": { "message": "利用可能" },
+  "diagnosticsUnavailable": { "message": "利用不可" },
+  "diagnosticsOn": { "message": "オン" },
+  "diagnosticsOff": { "message": "オフ" },
+  "diagnosticsFailuresEmpty": { "message": "最近の失敗はありません。" },
+  "diagnosticsChecking": { "message": "バックグラウンドを確認中…" },
+  "diagnosticsCheckedAt": {
+    "message": "$TIME$ に確認",
+    "placeholders": {
+      "time": { "content": "$1", "example": "Jul 15, 2026, 4:10 PM" }
+    }
+  },
+  "diagnosticsLoadFailed": { "message": "診断情報を読み込めませんでした。" },
+  "diagnosticsCopySuccess": { "message": "診断情報をコピーしました。" },
+  "diagnosticsCopyFailed": { "message": "診断情報をコピーできませんでした。" },
+  "diagnosticsClearSuccess": { "message": "最近の失敗を消去しました。" },
+  "diagnosticsClearFailed": { "message": "最近の失敗を消去できませんでした。" }
 }

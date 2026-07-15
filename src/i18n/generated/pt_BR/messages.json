@@ -886,7 +886,7 @@
     "message": "Botão do mouse para clique para salvar"
   },
   "o_lDebugLog": {
-    "message": "Registro de depuração"
+    "message": "Falhas recentes"
   },
   "o_sAdvancedFilenames": {
     "message": "Nomes de arquivos"
@@ -1386,9 +1386,6 @@
   "html_checking": {
     "message": "verificando…"
   },
-  "html_clearLog": {
-    "message": "Limpar registro"
-  },
   "html_closeAboutSaveIn": {
     "message": "Fechar Sobre o Save In"
   },
@@ -1446,9 +1443,6 @@
   "html_referenceType": {
     "message": "Tipo de referência"
   },
-  "html_refreshLog": {
-    "message": "Atualizar registro"
-  },
   "html_reportAnIssue": {
     "message": "Informar um problema"
   },
@@ -1477,7 +1471,7 @@
     "message": "Armazenamento"
   },
   "html_theSessionLogBelowAlwaysKeepsASmallLocal": {
-    "message": "O log da sessão mantém localmente um pequeno registro das falhas recentes. Ative-o somente ao solucionar problemas com o console de desenvolvedor do navegador; ele adiciona informações internas detalhadas e volta à configuração salva após a reinicialização."
+    "message": "As falhas recentes permanecem neste dispositivo até o fim da sessão do navegador. O registro detalhado também grava informações de roteamento e download no console do desenvolvedor do navegador e permanece ativado até você desativá-lo. Atividades de navegação privativa não são incluídas."
   },
   "html_toConnectOpenThisPageInABrowserThat": {
     "message": "Para conectar: abra esta página em um navegador compatível com WebMCP, mantenha-a aberta e aponte seu agente no navegador para esta guia. Pergunte em linguagem simples - por ex. “classifique meus downloads em pastas por site e data, numere cada arquivo e me avise apenas quando um falhar.”"
@@ -2742,5 +2736,92 @@
         "example": "Images"
       }
     }
-  }
+  },
+  "diagnosticsSummaryHelp": {
+    "message": "Integridade, ciclo de vida e falhas recentes do processo em segundo plano"
+  },
+  "diagnosticsRefresh": { "message": "Atualizar" },
+  "diagnosticsCopy": { "message": "Copiar diagnóstico" },
+  "diagnosticsBackground": { "message": "Segundo plano" },
+  "diagnosticsHost": { "message": "Host" },
+  "diagnosticsExtension": { "message": "Extensão" },
+  "diagnosticsBrowser": { "message": "Navegador" },
+  "diagnosticsWorkerStarted": { "message": "Processo iniciado" },
+  "diagnosticsSessionStorage": { "message": "Armazenamento da sessão" },
+  "diagnosticsVerboseLogging": { "message": "Registro detalhado" },
+  "diagnosticsConfigurationIssues": { "message": "Problemas de configuração" },
+  "diagnosticsLifecycle": { "message": "Ciclo de vida" },
+  "diagnosticsLifecycleHelp": {
+    "message": "Inicializações recentes do processo em segundo plano, recarregamentos de configuração e atualizações da extensão. Abrir o Diagnóstico ativa o processo em segundo plano."
+  },
+  "diagnosticsFailuresHelp": {
+    "message": "Falhas locais recentes desta sessão do navegador. Revise o texto antes de compartilhá-lo, pois os erros do navegador podem incluir detalhes de sites ou arquivos."
+  },
+  "diagnosticsClearFailures": { "message": "Limpar falhas" },
+  "diagnosticsDeveloperLogging": { "message": "Registro para desenvolvedores" },
+  "diagnosticsDurationMs": {
+    "message": "$COUNT$ milissegundos",
+    "placeholders": { "count": { "content": "$1", "example": "42" } }
+  },
+  "diagnosticsDurationSeconds": {
+    "message": "$COUNT$ segundos",
+    "placeholders": { "count": { "content": "$1", "example": "4" } }
+  },
+  "diagnosticsDurationMinutes": {
+    "message": "$COUNT$ minutos",
+    "placeholders": { "count": { "content": "$1", "example": "3" } }
+  },
+  "diagnosticsLifecycleBackgroundReady": {
+    "message": "O processo em segundo plano ficou pronto em $DURATION$.",
+    "placeholders": { "duration": { "content": "$1", "example": "120 ms" } }
+  },
+  "diagnosticsLifecycleBackgroundFailed": {
+    "message": "Falha ao iniciar o processo em segundo plano."
+  },
+  "diagnosticsLifecycleConfigurationReloaded": {
+    "message": "Configuração recarregada."
+  },
+  "diagnosticsLifecycleExtensionInstalled": { "message": "Extensão instalada." },
+  "diagnosticsLifecycleExtensionUpdatedFrom": {
+    "message": "Extensão atualizada da versão $VERSION$.",
+    "placeholders": { "version": { "content": "$1", "example": "3.9.1" } }
+  },
+  "diagnosticsLifecycleExtensionUpdated": { "message": "Extensão atualizada." },
+  "diagnosticsLifecycleFailuresCleared": { "message": "Falhas recentes limpas." },
+  "diagnosticsLifecycleEmpty": { "message": "Ainda não há eventos de ciclo de vida." },
+  "diagnosticsWorkerStarting": { "message": "Iniciando" },
+  "diagnosticsWorkerReady": { "message": "Em execução · pronto" },
+  "diagnosticsWorkerFailed": { "message": "Falha na inicialização" },
+  "diagnosticsHostServiceWorker": { "message": "Service worker do MV3" },
+  "diagnosticsHostEventPage": { "message": "Página de eventos do MV3" },
+  "diagnosticsBrowserUnknown": { "message": "Navegador desconhecido" },
+  "diagnosticsStartedWithUptime": {
+    "message": "$TIME$ · em execução há $UPTIME$",
+    "placeholders": {
+      "time": { "content": "$1", "example": "Jul 15, 2026, 4:10 PM" },
+      "uptime": { "content": "$2", "example": "3 min" }
+    }
+  },
+  "diagnosticsConfigurationIssueCount": {
+    "message": "$PATHS$ caminho · $ROUTING$ roteamento",
+    "placeholders": {
+      "paths": { "content": "$1", "example": "0" },
+      "routing": { "content": "$2", "example": "1" }
+    }
+  },
+  "diagnosticsAvailable": { "message": "Disponível" },
+  "diagnosticsUnavailable": { "message": "Indisponível" },
+  "diagnosticsOn": { "message": "Ativado" },
+  "diagnosticsOff": { "message": "Desativado" },
+  "diagnosticsFailuresEmpty": { "message": "Nenhuma falha recente." },
+  "diagnosticsChecking": { "message": "Verificando processo em segundo plano…" },
+  "diagnosticsCheckedAt": {
+    "message": "Verificado às $TIME$",
+    "placeholders": { "time": { "content": "$1", "example": "Jul 15, 2026, 4:10 PM" } }
+  },
+  "diagnosticsLoadFailed": { "message": "Não foi possível carregar o diagnóstico." },
+  "diagnosticsCopySuccess": { "message": "Diagnóstico copiado." },
+  "diagnosticsCopyFailed": { "message": "Não foi possível copiar o diagnóstico." },
+  "diagnosticsClearSuccess": { "message": "Falhas recentes limpas." },
+  "diagnosticsClearFailed": { "message": "Não foi possível limpar as falhas recentes." }
 }

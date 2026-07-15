@@ -27,6 +27,11 @@ import { OffscreenClient } from "../platform/offscreen-client.ts";
 import { rebuildMenus } from "./menu-rebuild.ts";
 import { MENU_IDS } from "../menus/menu-ids.ts";
 import { RefererRules } from "../downloads/referer-rules.ts";
+import {
+  markBackgroundFailed,
+  markBackgroundReady,
+  recordDiagnosticLifecycle,
+} from "./diagnostics.ts";
 
 const seedCurrentTab = (candidate: CurrentTab): void => {
   if (candidate.active === false) return;
@@ -95,6 +100,9 @@ backgroundRuntime.reset = () => {
   backgroundRuntime.ready = (backgroundRuntime.ready ?? Promise.resolve())
     .catch(() => {})
     .then(() => reloadConfigurationAndMenus())
+    .then(() => {
+      void recordDiagnosticLifecycle("configuration_reloaded");
+    })
     .catch(reportInitFailure);
   return backgroundRuntime.ready;
 };
@@ -107,6 +115,13 @@ export const start = () => {
   addTabMenuListener();
   addTabHighlightListener();
   webExtensionApi.runtime.onInstalled.addListener((details) => {
+    if (details.reason === "install") {
+      void recordDiagnosticLifecycle("extension_installed");
+    } else if (details.reason === "update") {
+      void recordDiagnosticLifecycle("extension_updated", {
+        ...(details.previousVersion ? { previousVersion: details.previousVersion } : {}),
+      });
+    }
     if (details.reason !== "install") return undefined;
     return runBackgroundTask("first-install options failed", async () => {
       await webExtensionApi.storage.local
@@ -138,7 +153,14 @@ export const start = () => {
     })
     .catch(() => {});
   backgroundRuntime.ready = Promise.all([backgroundRuntime.init(), initialTab]).then(
-    ([ready]) => ready,
+    ([ready]) => {
+      markBackgroundReady();
+      return ready;
+    },
+    (error: unknown) => {
+      markBackgroundFailed();
+      throw error;
+    },
   );
 
   webExtensionApi.tabs.onActivated.addListener((info) =>

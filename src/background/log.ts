@@ -4,7 +4,7 @@
 // page. No-op where storage.session is unavailable.
 
 import { sessionWriteState } from "./state.ts";
-import { getSession, removeSession, updateSession } from "../shared/session-state.ts";
+import { getSession, updateSession } from "../shared/session-state.ts";
 import { extensionSessionStorage } from "../platform/storage-areas.ts";
 
 import { LOG_STORAGE_KEY } from "../shared/storage-keys.ts";
@@ -72,5 +72,7 @@ export const Log = {
     return normalizeLogEntries(res[LOG_STORAGE_KEY]);
   },
 
-  clear: () => removeSession(extensionSessionStorage, LOG_STORAGE_KEY),
+  // Clearing is an explicit user action, so surface storage failures to the
+  // diagnostics panel instead of reporting success for a failed removal.
+  clear: () => extensionSessionStorage.remove(LOG_STORAGE_KEY),
 };

@@ -57,6 +57,7 @@ import {
   externalValidationRequestError,
   hasUnsafeExternalRegex,
 } from "./external-validation.ts";
+import { getDiagnosticSnapshot, recordDiagnosticLifecycle } from "./diagnostics.ts";
 
 export type MessageSender = { id?: string | undefined; tab?: CurrentTab | undefined };
 type ProtocolSendResponse<Request extends InternalMessage> = SendResponse<ResponseFor<Request>>;
@@ -644,6 +645,17 @@ const internalHandlers = {
       body: copy,
     });
   },
+  [MESSAGE_TYPES.DIAGNOSTICS_GET]: async (_request, _sender, sendResponse) => {
+    sendResponse({
+      type: MESSAGE_TYPES.DIAGNOSTICS_GET,
+      body: await getDiagnosticSnapshot(),
+    });
+  },
+  [MESSAGE_TYPES.DIAGNOSTICS_CLEAR_FAILURES]: async (_request, _sender, sendResponse) => {
+    await Log.clear();
+    await recordDiagnosticLifecycle("failures_cleared");
+    sendResponse({ type: MESSAGE_TYPES.OK });
+  },
   [MESSAGE_TYPES.HISTORY_GET]: async (_request, _sender, sendResponse) => {
     sendResponse({
       type: MESSAGE_TYPES.HISTORY_GET,
@@ -781,10 +793,14 @@ const dispatchMessage = <M extends InternalMessage>(
   // preserve the correlation between a union's discriminator and mapped value.
   const handler = Reflect.get(handlers, request.type) as unknown as Handler<M>;
   const reportFailure = (error: unknown) => {
-    void Log.add("message handler failed", {
-      type: request.type,
-      error: error instanceof Error ? error.message : String(error),
-    });
+    void Log.add(
+      "message handler failed",
+      {
+        type: request.type,
+        error: error instanceof Error ? error.message : String(error),
+      },
+      { privateContext: sender.tab?.incognito === true },
+    );
   };
   if (READY_MESSAGE_TYPES.has(request.type) && backgroundRuntime.ready) {
     const task = backgroundRuntime.ready

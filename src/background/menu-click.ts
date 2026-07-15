@@ -229,7 +229,7 @@ export const handleContextMenuClick = async (
         try {
           await webExtensionApi.tabs.remove(tabId);
         } catch (error) {
-          Log.add("saved page tab close failed", String(error));
+          void Log.add("saved page tab close failed", String(error), { privateContext });
         }
       }
     }
@@ -238,6 +238,8 @@ export const handleContextMenuClick = async (
 
 export const addDownloadListener = () => {
   webExtensionApi.contextMenus.onClicked.addListener((info, tab) =>
-    runBackgroundTask("context menu click failed", () => handleContextMenuClick(info, tab)),
+    runBackgroundTask("context menu click failed", () => handleContextMenuClick(info, tab), {
+      privateContext: tab?.incognito === true,
+    }),
   );
 };

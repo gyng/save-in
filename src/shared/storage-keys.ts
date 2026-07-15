@@ -1,6 +1,7 @@
 /** Persisted key names are public compatibility contracts shared by extension contexts. */
 export const COUNTER_KEY = "save-in-counter";
 export const LOG_STORAGE_KEY = "si-log";
+export const DIAGNOSTIC_LIFECYCLE_SESSION_KEY = "siDiagnosticLifecycle";
 export const HISTORY_STORAGE_KEY = "save-in-history";
 export const LAST_USED_PATH_STORAGE_KEY = "lastUsedPath";
 export const LAST_USED_META_STORAGE_KEY = "lastUsedMeta";

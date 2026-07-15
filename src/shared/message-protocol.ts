@@ -8,6 +8,7 @@ import type { RoutePreview } from "../background/route-preview.ts";
 import type { PersistenceFailure } from "./persistence-diagnostics.ts";
 import type { ExternalDownloadRejection } from "./external-download-rejection-types.ts";
 import type { SourcePanelCopy } from "./source-panel-copy.ts";
+import type { DiagnosticSnapshot } from "./diagnostics-types.ts";
 import { isPageSourceKind, type PageSourceKind } from "./page-source.ts";
 import { isStringKeyedRecord } from "./util.ts";
 
@@ -220,6 +221,11 @@ export type InternalResponseMap = {
     typeof MESSAGE_TYPES.SOURCE_PANEL_COPY,
     SourcePanelCopy
   >;
+  [MESSAGE_TYPES.DIAGNOSTICS_GET]: Response<
+    typeof MESSAGE_TYPES.DIAGNOSTICS_GET,
+    DiagnosticSnapshot
+  >;
+  [MESSAGE_TYPES.DIAGNOSTICS_CLEAR_FAILURES]: OkResponse;
   [MESSAGE_TYPES.HISTORY_GET]: Response<
     typeof MESSAGE_TYPES.HISTORY_GET,
     { entries: HistoryEntry[] }
@@ -341,6 +347,8 @@ export type InternalMessage =
   | Message<typeof MESSAGE_TYPES.SOURCE_PANEL_READY>
   | OptionalBodyMessage<typeof MESSAGE_TYPES.SOURCE_PANEL_STATE, { open: boolean }>
   | Message<typeof MESSAGE_TYPES.SOURCE_PANEL_COPY>
+  | Message<typeof MESSAGE_TYPES.DIAGNOSTICS_GET>
+  | Message<typeof MESSAGE_TYPES.DIAGNOSTICS_CLEAR_FAILURES>
   | Message<typeof MESSAGE_TYPES.HISTORY_GET>
   | Message<typeof MESSAGE_TYPES.HISTORY_CLEAR>
   | RequiredBodyMessage<typeof MESSAGE_TYPES.HISTORY_CANCEL, { historyId: string }>
@@ -419,6 +427,8 @@ const INTERNAL_MESSAGE_TYPE_MAP = {
   [MESSAGE_TYPES.SOURCE_PANEL_READY]: true,
   [MESSAGE_TYPES.SOURCE_PANEL_STATE]: true,
   [MESSAGE_TYPES.SOURCE_PANEL_COPY]: true,
+  [MESSAGE_TYPES.DIAGNOSTICS_GET]: true,
+  [MESSAGE_TYPES.DIAGNOSTICS_CLEAR_FAILURES]: true,
   [MESSAGE_TYPES.HISTORY_GET]: true,
   [MESSAGE_TYPES.HISTORY_CLEAR]: true,
   [MESSAGE_TYPES.HISTORY_CANCEL]: true,
@@ -632,6 +642,8 @@ const isMessageBodyValid = (message: Record<string, unknown> & { type: string })
     case MESSAGE_TYPES.WAKE_WARM:
     case MESSAGE_TYPES.SOURCE_PANEL_READY:
     case MESSAGE_TYPES.SOURCE_PANEL_COPY:
+    case MESSAGE_TYPES.DIAGNOSTICS_GET:
+    case MESSAGE_TYPES.DIAGNOSTICS_CLEAR_FAILURES:
     case MESSAGE_TYPES.HISTORY_GET:
     case MESSAGE_TYPES.HISTORY_CLEAR:
     case MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTIONS_GET:

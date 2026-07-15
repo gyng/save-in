@@ -701,7 +701,7 @@
     "message": "点击保存所用的鼠标按钮"
   },
   "o_lDebugLog": {
-    "message": "调试日志"
+    "message": "近期失败"
   },
   "o_sAdvancedFilenames": {
     "message": "文件名"
@@ -1201,9 +1201,6 @@
   "html_checking": {
     "message": "正在检查…"
   },
-  "html_clearLog": {
-    "message": "清除日志"
-  },
   "html_closeAboutSaveIn": {
     "message": "关闭“关于 Save In”"
   },
@@ -1261,9 +1258,6 @@
   "html_referenceType": {
     "message": "参考类型"
   },
-  "html_refreshLog": {
-    "message": "刷新日志"
-  },
   "html_reportAnIssue": {
     "message": "报告问题"
   },
@@ -1292,7 +1286,7 @@
     "message": "存储"
   },
   "html_theSessionLogBelowAlwaysKeepsASmallLocal": {
-    "message": "下方的会话日志始终在本地保留少量近期失败记录。仅在使用浏览器开发者控制台排查问题时启用；它会添加详细的内部信息，并在重启后恢复为已保存的设置。"
+    "message": "近期失败记录会保留在此设备上，直到浏览器会话结束。详细日志还会将路由和下载详情写入浏览器开发者控制台，并在您关闭前保持启用。隐私活动不会记录。"
   },
   "html_toConnectOpenThisPageInABrowserThat": {
     "message": "连接方法：在支持 WebMCP 的浏览器中打开此页面并保持打开，然后让浏览器内的 AI 智能体使用此选项卡。您可以直接用自然语言提问，例如：“按网站和日期将下载内容整理到文件夹中，为每个文件编号，并且只在失败时通知我。”"
@@ -2830,5 +2824,90 @@
         "example": "Images"
       }
     }
-  }
+  },
+  "diagnosticsSummaryHelp": {
+    "message": "后台运行状况、生命周期和近期失败"
+  },
+  "diagnosticsRefresh": { "message": "刷新" },
+  "diagnosticsCopy": { "message": "复制诊断信息" },
+  "diagnosticsBackground": { "message": "后台" },
+  "diagnosticsHost": { "message": "宿主环境" },
+  "diagnosticsExtension": { "message": "扩展程序" },
+  "diagnosticsBrowser": { "message": "浏览器" },
+  "diagnosticsWorkerStarted": { "message": "工作进程启动时间" },
+  "diagnosticsSessionStorage": { "message": "会话存储" },
+  "diagnosticsVerboseLogging": { "message": "详细日志" },
+  "diagnosticsConfigurationIssues": { "message": "配置问题" },
+  "diagnosticsLifecycle": { "message": "生命周期" },
+  "diagnosticsLifecycleHelp": {
+    "message": "近期后台启动、配置重新加载和扩展程序更新。打开“诊断”会唤醒后台。"
+  },
+  "diagnosticsFailuresHelp": {
+    "message": "此浏览器会话中的近期本地失败记录。浏览器错误可能包含网站或文件详情，请在分享前检查内容。"
+  },
+  "diagnosticsClearFailures": { "message": "清除失败记录" },
+  "diagnosticsDeveloperLogging": { "message": "开发者日志" },
+  "diagnosticsDurationMs": {
+    "message": "$COUNT$ 毫秒",
+    "placeholders": { "count": { "content": "$1", "example": "42" } }
+  },
+  "diagnosticsDurationSeconds": {
+    "message": "$COUNT$ 秒",
+    "placeholders": { "count": { "content": "$1", "example": "4" } }
+  },
+  "diagnosticsDurationMinutes": {
+    "message": "$COUNT$ 分钟",
+    "placeholders": { "count": { "content": "$1", "example": "3" } }
+  },
+  "diagnosticsLifecycleBackgroundReady": {
+    "message": "后台在 $DURATION$ 后就绪。",
+    "placeholders": { "duration": { "content": "$1", "example": "120 ms" } }
+  },
+  "diagnosticsLifecycleBackgroundFailed": { "message": "后台启动失败。" },
+  "diagnosticsLifecycleConfigurationReloaded": { "message": "已重新加载配置。" },
+  "diagnosticsLifecycleExtensionInstalled": { "message": "已安装扩展程序。" },
+  "diagnosticsLifecycleExtensionUpdatedFrom": {
+    "message": "扩展程序已从 $VERSION$ 更新。",
+    "placeholders": { "version": { "content": "$1", "example": "3.9.1" } }
+  },
+  "diagnosticsLifecycleExtensionUpdated": { "message": "扩展程序已更新。" },
+  "diagnosticsLifecycleFailuresCleared": { "message": "已清除近期失败记录。" },
+  "diagnosticsLifecycleEmpty": { "message": "尚无生命周期事件。" },
+  "diagnosticsWorkerStarting": { "message": "正在启动" },
+  "diagnosticsWorkerReady": { "message": "运行中 · 已就绪" },
+  "diagnosticsWorkerFailed": { "message": "启动失败" },
+  "diagnosticsHostServiceWorker": { "message": "MV3 服务工作线程" },
+  "diagnosticsHostEventPage": { "message": "MV3 事件页面" },
+  "diagnosticsBrowserUnknown": { "message": "未知浏览器" },
+  "diagnosticsStartedWithUptime": {
+    "message": "$TIME$ · 已运行 $UPTIME$",
+    "placeholders": {
+      "time": { "content": "$1", "example": "Jul 15, 2026, 4:10 PM" },
+      "uptime": { "content": "$2", "example": "3 min" }
+    }
+  },
+  "diagnosticsConfigurationIssueCount": {
+    "message": "$PATHS$ 个路径 · $ROUTING$ 个路由",
+    "placeholders": {
+      "paths": { "content": "$1", "example": "0" },
+      "routing": { "content": "$2", "example": "1" }
+    }
+  },
+  "diagnosticsAvailable": { "message": "可用" },
+  "diagnosticsUnavailable": { "message": "不可用" },
+  "diagnosticsOn": { "message": "开" },
+  "diagnosticsOff": { "message": "关" },
+  "diagnosticsFailuresEmpty": { "message": "没有近期失败记录。" },
+  "diagnosticsChecking": { "message": "正在检查后台…" },
+  "diagnosticsCheckedAt": {
+    "message": "检查时间：$TIME$",
+    "placeholders": {
+      "time": { "content": "$1", "example": "Jul 15, 2026, 4:10 PM" }
+    }
+  },
+  "diagnosticsLoadFailed": { "message": "无法加载诊断信息。" },
+  "diagnosticsCopySuccess": { "message": "已复制诊断信息。" },
+  "diagnosticsCopyFailed": { "message": "无法复制诊断信息。" },
+  "diagnosticsClearSuccess": { "message": "已清除近期失败记录。" },
+  "diagnosticsClearFailed": { "message": "无法清除近期失败记录。" }
 }

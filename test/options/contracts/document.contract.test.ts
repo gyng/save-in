@@ -205,6 +205,24 @@ test("groups Advanced into navigable sections with described controls", () => {
   }
 });
 
+test("keeps Diagnostics collapsed and connects its live and privacy guidance", () => {
+  const document = documentForOptions();
+  const details = document.querySelector<HTMLDetailsElement>("#diagnostics-details");
+
+  expect(details).not.toBeNull();
+  expect(details?.hasAttribute("open")).toBe(false);
+  expect(document.querySelector("#diagnostics-status")?.getAttribute("role")).toBe("status");
+  expect(document.querySelector("#diagnostics-core")?.getAttribute("aria-busy")).toBe("false");
+  expect(document.querySelector("#diagnostics-lifecycle")?.tagName).toBe("OL");
+  expect(document.querySelector("#debug-log")?.getAttribute("readonly")).not.toBeNull();
+  expect(document.querySelector("#debug-log")?.getAttribute("aria-describedby")).toContain(
+    "diagnostics-failures-help",
+  );
+  for (const id of ["debug-log-refresh", "diagnostics-copy", "debug-log-clear"]) {
+    expect(document.querySelector(`#${id}`)?.tagName).toBe("BUTTON");
+  }
+});
+
 test("uses one shared container for each external integration", () => {
   const document = documentForOptions();
   const integrations = document.querySelectorAll(

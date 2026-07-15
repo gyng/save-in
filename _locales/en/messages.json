@@ -508,7 +508,7 @@
     "description": "Text in the options page. Used in src/options/options.html."
   },
   "html_theSessionLogBelowAlwaysKeepsASmallLocal": {
-    "message": "The session log below always keeps a small local record of recent failures. Enable this only when troubleshooting with the browser developer console; it adds verbose internal details and resets to the saved setting after restart.",
+    "message": "Recent failures stay on this device until the browser session ends. Verbose logging also writes routing and download details to the browser developer console and stays enabled until you turn it off. Private activity is excluded.",
     "description": "Text in the options page. Used in src/options/options.html."
   },
   "html_toConnectOpenThisPageInABrowserThat": {
@@ -1348,7 +1348,7 @@
     "description": "Label, status, or help text in the options interface. Used in src/options/options.html."
   },
   "o_lDebugLog": {
-    "message": "Debug log",
+    "message": "Recent failures",
     "description": "Label, status, or help text in the options interface. Used in src/options/options.html."
   },
   "o_sAdvancedFilenames": {
@@ -2139,10 +2139,6 @@
     "message": "checking…",
     "description": "Text in the options page. Used in src/options/options.html."
   },
-  "html_clearLog": {
-    "message": "Clear log",
-    "description": "Text in the options page. Used in src/options/options.html."
-  },
   "html_closeAboutSaveIn": {
     "message": "Close About Save In",
     "description": "Text in the options page. Used in src/options/options.html."
@@ -2230,10 +2226,6 @@
   "html_referenceType": {
     "message": "Reference type",
     "description": "Text shared by the options and reference interfaces. Used in src/options/options.html."
-  },
-  "html_refreshLog": {
-    "message": "Refresh log",
-    "description": "Text in the options page. Used in src/options/options.html."
   },
   "html_reportAnIssue": {
     "message": "Report an issue",
@@ -4096,5 +4088,207 @@
   "webhookStateOff": {
     "message": "Off",
     "description": "Current-state badge shown when webhook delivery is disabled. Used in src/options/options.html and src/options/webhook-panel.ts."
+  },
+  "diagnosticsSummaryHelp": {
+    "message": "Worker health, lifecycle, and recent failures",
+    "description": "Collapsed Diagnostics summary. Used in src/options/options.html."
+  },
+  "diagnosticsRefresh": {
+    "message": "Refresh",
+    "description": "Action that refreshes the Diagnostics snapshot. Used in src/options/options.html."
+  },
+  "diagnosticsCopy": {
+    "message": "Copy diagnostics",
+    "description": "Action that copies the visible Diagnostics snapshot. Used in src/options/options.html."
+  },
+  "diagnosticsBackground": {
+    "message": "Background",
+    "description": "Diagnostics field label for background readiness. Used in src/options/options.html."
+  },
+  "diagnosticsHost": {
+    "message": "Host",
+    "description": "Diagnostics field label for the browser background host. Used in src/options/options.html."
+  },
+  "diagnosticsExtension": {
+    "message": "Extension",
+    "description": "Diagnostics field label for the extension version. Used in src/options/options.html."
+  },
+  "diagnosticsBrowser": {
+    "message": "Browser",
+    "description": "Diagnostics field label for the browser. Used in src/options/options.html."
+  },
+  "diagnosticsWorkerStarted": {
+    "message": "Worker started",
+    "description": "Diagnostics field label for background start time and uptime. Used in src/options/options.html."
+  },
+  "diagnosticsSessionStorage": {
+    "message": "Session storage",
+    "description": "Diagnostics field label for session storage availability. Used in src/options/options.html."
+  },
+  "diagnosticsVerboseLogging": {
+    "message": "Verbose logging",
+    "description": "Diagnostics field label for developer logging state. Used in src/options/options.html."
+  },
+  "diagnosticsConfigurationIssues": {
+    "message": "Configuration issues",
+    "description": "Diagnostics field label for invalid path and routing counts. Used in src/options/options.html."
+  },
+  "diagnosticsLifecycle": {
+    "message": "Lifecycle",
+    "description": "Diagnostics lifecycle section heading. Used in src/options/options.html and src/options/debug-log-panel.ts."
+  },
+  "diagnosticsLifecycleHelp": {
+    "message": "Recent background starts, configuration reloads, and extension updates. Opening Diagnostics wakes the background.",
+    "description": "Explanation of the Diagnostics lifecycle list. Used in src/options/options.html."
+  },
+  "diagnosticsFailuresHelp": {
+    "message": "Recent local failures from this browser session. Review the text before sharing it because browser errors may include site or file details.",
+    "description": "Privacy guidance for the recent failures list. Used in src/options/options.html."
+  },
+  "diagnosticsClearFailures": {
+    "message": "Clear failures",
+    "description": "Action that clears recent diagnostic failures. Used in src/options/options.html."
+  },
+  "diagnosticsDeveloperLogging": {
+    "message": "Developer logging",
+    "description": "Diagnostics subsection heading for verbose console logging. Used in src/options/options.html."
+  },
+  "diagnosticsDurationMs": {
+    "message": "$COUNT$ ms",
+    "description": "A diagnostic duration in milliseconds. Used in src/options/debug-log-panel.ts.",
+    "placeholders": { "count": { "content": "$1", "example": "42" } }
+  },
+  "diagnosticsDurationSeconds": {
+    "message": "$COUNT$ s",
+    "description": "A diagnostic duration in seconds. Used in src/options/debug-log-panel.ts.",
+    "placeholders": { "count": { "content": "$1", "example": "4" } }
+  },
+  "diagnosticsDurationMinutes": {
+    "message": "$COUNT$ min",
+    "description": "A diagnostic duration in minutes. Used in src/options/debug-log-panel.ts.",
+    "placeholders": { "count": { "content": "$1", "example": "3" } }
+  },
+  "diagnosticsLifecycleBackgroundReady": {
+    "message": "Background became ready in $DURATION$.",
+    "description": "Lifecycle entry for successful background startup. Used in src/options/debug-log-panel.ts.",
+    "placeholders": { "duration": { "content": "$1", "example": "120 ms" } }
+  },
+  "diagnosticsLifecycleBackgroundFailed": {
+    "message": "Background startup failed.",
+    "description": "Lifecycle entry for failed background startup. Used in src/options/debug-log-panel.ts."
+  },
+  "diagnosticsLifecycleConfigurationReloaded": {
+    "message": "Configuration reloaded.",
+    "description": "Lifecycle entry for a configuration reload. Used in src/options/debug-log-panel.ts."
+  },
+  "diagnosticsLifecycleExtensionInstalled": {
+    "message": "Extension installed.",
+    "description": "Lifecycle entry for initial installation. Used in src/options/debug-log-panel.ts."
+  },
+  "diagnosticsLifecycleExtensionUpdatedFrom": {
+    "message": "Extension updated from $VERSION$.",
+    "description": "Lifecycle entry for an update with the previous version. Used in src/options/debug-log-panel.ts.",
+    "placeholders": { "version": { "content": "$1", "example": "3.9.1" } }
+  },
+  "diagnosticsLifecycleExtensionUpdated": {
+    "message": "Extension updated.",
+    "description": "Lifecycle entry for an update without a previous version. Used in src/options/debug-log-panel.ts."
+  },
+  "diagnosticsLifecycleFailuresCleared": {
+    "message": "Recent failures cleared.",
+    "description": "Lifecycle entry after clearing recent failures. Used in src/options/debug-log-panel.ts."
+  },
+  "diagnosticsLifecycleEmpty": {
+    "message": "No lifecycle events yet.",
+    "description": "Empty state for the lifecycle list. Used in src/options/debug-log-panel.ts."
+  },
+  "diagnosticsWorkerStarting": {
+    "message": "Starting",
+    "description": "Background status while startup is in progress. Used in src/options/debug-log-panel.ts."
+  },
+  "diagnosticsWorkerReady": {
+    "message": "Running · ready",
+    "description": "Background status after successful startup. Used in src/options/debug-log-panel.ts."
+  },
+  "diagnosticsWorkerFailed": {
+    "message": "Startup failed",
+    "description": "Background status after startup fails. Used in src/options/debug-log-panel.ts."
+  },
+  "diagnosticsHostServiceWorker": {
+    "message": "MV3 service worker",
+    "description": "Diagnostics host value for Chrome. Used in src/options/debug-log-panel.ts."
+  },
+  "diagnosticsHostEventPage": {
+    "message": "MV3 event page",
+    "description": "Diagnostics host value for Firefox. Used in src/options/debug-log-panel.ts."
+  },
+  "diagnosticsBrowserUnknown": {
+    "message": "Unknown browser",
+    "description": "Fallback browser value in Diagnostics. Used in src/options/debug-log-panel.ts."
+  },
+  "diagnosticsStartedWithUptime": {
+    "message": "$TIME$ · up for $UPTIME$",
+    "description": "Background start time followed by current uptime. Used in src/options/debug-log-panel.ts.",
+    "placeholders": {
+      "time": { "content": "$1", "example": "Jul 15, 2026, 4:10 PM" },
+      "uptime": { "content": "$2", "example": "3 min" }
+    }
+  },
+  "diagnosticsConfigurationIssueCount": {
+    "message": "$PATHS$ path · $ROUTING$ routing",
+    "description": "Counts of invalid path and routing configuration entries. Used in src/options/debug-log-panel.ts.",
+    "placeholders": {
+      "paths": { "content": "$1", "example": "0" },
+      "routing": { "content": "$2", "example": "1" }
+    }
+  },
+  "diagnosticsAvailable": {
+    "message": "Available",
+    "description": "Diagnostics capability is available. Used in src/options/debug-log-panel.ts."
+  },
+  "diagnosticsUnavailable": {
+    "message": "Unavailable",
+    "description": "Diagnostics capability is unavailable. Used in src/options/debug-log-panel.ts."
+  },
+  "diagnosticsOn": {
+    "message": "On",
+    "description": "Diagnostics setting is on. Used in src/options/debug-log-panel.ts."
+  },
+  "diagnosticsOff": {
+    "message": "Off",
+    "description": "Diagnostics setting is off. Used in src/options/debug-log-panel.ts."
+  },
+  "diagnosticsFailuresEmpty": {
+    "message": "No recent failures.",
+    "description": "Empty state for recent failures. Used in src/options/debug-log-panel.ts."
+  },
+  "diagnosticsChecking": {
+    "message": "Checking background…",
+    "description": "Status while Diagnostics loads. Used in src/options/debug-log-panel.ts."
+  },
+  "diagnosticsCheckedAt": {
+    "message": "Checked $TIME$",
+    "description": "Status after Diagnostics loads. Used in src/options/debug-log-panel.ts.",
+    "placeholders": { "time": { "content": "$1", "example": "Jul 15, 2026, 4:10 PM" } }
+  },
+  "diagnosticsLoadFailed": {
+    "message": "Could not load diagnostics.",
+    "description": "Error shown when Diagnostics cannot load. Used in src/options/debug-log-panel.ts."
+  },
+  "diagnosticsCopySuccess": {
+    "message": "Diagnostics copied.",
+    "description": "Status after copying Diagnostics. Used in src/options/debug-log-panel.ts."
+  },
+  "diagnosticsCopyFailed": {
+    "message": "Could not copy diagnostics.",
+    "description": "Error shown when Diagnostics cannot be copied. Used in src/options/debug-log-panel.ts."
+  },
+  "diagnosticsClearSuccess": {
+    "message": "Recent failures cleared.",
+    "description": "Status after clearing recent failures. Used in src/options/debug-log-panel.ts."
+  },
+  "diagnosticsClearFailed": {
+    "message": "Could not clear recent failures.",
+    "description": "Error shown when recent failures cannot be cleared. Used in src/options/debug-log-panel.ts."
   }
 }

@@ -701,7 +701,7 @@
     "message": "點選儲存滑鼠按鈕"
   },
   "o_lDebugLog": {
-    "message": "偵錯記錄"
+    "message": "近期失敗"
   },
   "o_sAdvancedFilenames": {
     "message": "檔案名稱"
@@ -1201,9 +1201,6 @@
   "html_checking": {
     "message": "檢查…"
   },
-  "html_clearLog": {
-    "message": "清除記錄"
-  },
   "html_closeAboutSaveIn": {
     "message": "關閉「關於 Save In」"
   },
@@ -1261,9 +1258,6 @@
   "html_referenceType": {
     "message": "參考類型"
   },
-  "html_refreshLog": {
-    "message": "重新整理記錄"
-  },
   "html_reportAnIssue": {
     "message": "報告問題"
   },
@@ -1292,7 +1286,7 @@
     "message": "儲存"
   },
   "html_theSessionLogBelowAlwaysKeepsASmallLocal": {
-    "message": "下方的工作階段記錄一律會在本機保留少量近期失敗記錄。只有在使用瀏覽器開發人員主控台排解問題時才啟用；它會加入詳細的內部資訊，並在重新啟動後恢復為已儲存的設定。"
+    "message": "近期失敗會保留在此裝置上，直到瀏覽器工作階段結束。詳細記錄也會將路由與下載詳細資訊寫入瀏覽器開發人員主控台，並會持續啟用，直到您將其關閉。隱私活動不會納入記錄。"
   },
   "html_toConnectOpenThisPageInABrowserThat": {
     "message": "若要連線，請在支援 WebMCP 的瀏覽器中開啟此頁面並保持開啟，然後讓瀏覽器內的 AI 代理程式使用此分頁。您可以直接用自然語言提問，例如：「依網站和日期將下載項目整理到資料夾、為每個檔案編號，並且只有在失敗時才通知我。」"
@@ -2926,5 +2920,92 @@
         "example": "Images"
       }
     }
-  }
+  },
+  "diagnosticsSummaryHelp": {
+    "message": "背景程序的健康狀態、生命週期與近期失敗"
+  },
+  "diagnosticsRefresh": { "message": "重新整理" },
+  "diagnosticsCopy": { "message": "複製診斷資訊" },
+  "diagnosticsBackground": { "message": "背景程序" },
+  "diagnosticsHost": { "message": "主機" },
+  "diagnosticsExtension": { "message": "擴充功能" },
+  "diagnosticsBrowser": { "message": "瀏覽器" },
+  "diagnosticsWorkerStarted": { "message": "背景程序啟動時間" },
+  "diagnosticsSessionStorage": { "message": "工作階段儲存空間" },
+  "diagnosticsVerboseLogging": { "message": "詳細記錄" },
+  "diagnosticsConfigurationIssues": { "message": "設定問題" },
+  "diagnosticsLifecycle": { "message": "生命週期" },
+  "diagnosticsLifecycleHelp": {
+    "message": "最近的背景程序啟動、設定重新載入與擴充功能更新。開啟「診斷」會喚醒背景程序。"
+  },
+  "diagnosticsFailuresHelp": {
+    "message": "此瀏覽器工作階段中的近期本機失敗。分享前請檢查文字，因為瀏覽器錯誤可能包含網站或檔案詳細資訊。"
+  },
+  "diagnosticsClearFailures": { "message": "清除失敗記錄" },
+  "diagnosticsDeveloperLogging": { "message": "開發人員記錄" },
+  "diagnosticsDurationMs": {
+    "message": "$COUNT$ 毫秒",
+    "placeholders": { "count": { "content": "$1", "example": "42" } }
+  },
+  "diagnosticsDurationSeconds": {
+    "message": "$COUNT$ 秒",
+    "placeholders": { "count": { "content": "$1", "example": "4" } }
+  },
+  "diagnosticsDurationMinutes": {
+    "message": "$COUNT$ 分鐘",
+    "placeholders": { "count": { "content": "$1", "example": "3" } }
+  },
+  "diagnosticsLifecycleBackgroundReady": {
+    "message": "背景程序於 $DURATION$ 後就緒。",
+    "placeholders": { "duration": { "content": "$1", "example": "120 ms" } }
+  },
+  "diagnosticsLifecycleBackgroundFailed": {
+    "message": "背景程序啟動失敗。"
+  },
+  "diagnosticsLifecycleConfigurationReloaded": {
+    "message": "已重新載入設定。"
+  },
+  "diagnosticsLifecycleExtensionInstalled": { "message": "已安裝擴充功能。" },
+  "diagnosticsLifecycleExtensionUpdatedFrom": {
+    "message": "已從 $VERSION$ 更新擴充功能。",
+    "placeholders": { "version": { "content": "$1", "example": "3.9.1" } }
+  },
+  "diagnosticsLifecycleExtensionUpdated": { "message": "擴充功能已更新。" },
+  "diagnosticsLifecycleFailuresCleared": { "message": "已清除近期失敗記錄。" },
+  "diagnosticsLifecycleEmpty": { "message": "尚無生命週期事件。" },
+  "diagnosticsWorkerStarting": { "message": "啟動中" },
+  "diagnosticsWorkerReady": { "message": "執行中 · 已就緒" },
+  "diagnosticsWorkerFailed": { "message": "啟動失敗" },
+  "diagnosticsHostServiceWorker": { "message": "MV3 Service Worker" },
+  "diagnosticsHostEventPage": { "message": "MV3 事件頁面" },
+  "diagnosticsBrowserUnknown": { "message": "未知瀏覽器" },
+  "diagnosticsStartedWithUptime": {
+    "message": "$TIME$ · 已執行 $UPTIME$",
+    "placeholders": {
+      "time": { "content": "$1", "example": "Jul 15, 2026, 4:10 PM" },
+      "uptime": { "content": "$2", "example": "3 min" }
+    }
+  },
+  "diagnosticsConfigurationIssueCount": {
+    "message": "$PATHS$ 個路徑 · $ROUTING$ 個路由",
+    "placeholders": {
+      "paths": { "content": "$1", "example": "0" },
+      "routing": { "content": "$2", "example": "1" }
+    }
+  },
+  "diagnosticsAvailable": { "message": "可用" },
+  "diagnosticsUnavailable": { "message": "無法使用" },
+  "diagnosticsOn": { "message": "開" },
+  "diagnosticsOff": { "message": "關" },
+  "diagnosticsFailuresEmpty": { "message": "沒有近期失敗。" },
+  "diagnosticsChecking": { "message": "正在檢查背景程序…" },
+  "diagnosticsCheckedAt": {
+    "message": "檢查時間：$TIME$",
+    "placeholders": { "time": { "content": "$1", "example": "Jul 15, 2026, 4:10 PM" } }
+  },
+  "diagnosticsLoadFailed": { "message": "無法載入診斷資訊。" },
+  "diagnosticsCopySuccess": { "message": "已複製診斷資訊。" },
+  "diagnosticsCopyFailed": { "message": "無法複製診斷資訊。" },
+  "diagnosticsClearSuccess": { "message": "已清除近期失敗記錄。" },
+  "diagnosticsClearFailed": { "message": "無法清除近期失敗記錄。" }
 }
