@@ -171,10 +171,8 @@ body:not(#settings-page) {
 }
 
 .language-selector select {
-  min-height: var(--compact-control-size);
   max-width: 210px;
-  padding-block: 2px;
-  font-size: var(--text-sm);
+  padding: var(--space-2) var(--space-3);
 }
 
 .language-selector select.language-switching {
