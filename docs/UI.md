@@ -26,8 +26,11 @@ production styles retain a clear owner.
 Keep syntax-editor surfaces split between the editor/highlighting core and
 `style-syntax-popovers.css`. Keep History table controls in `style-history.css`
 and rich column metadata/status presentation in `style-history-metadata.css`.
-Page Sources viewport, container, pointer, motion, and forced-color adaptations
-belong in `source-panel-responsive.css`, after its result styles.
+Keep foundational Options tokens in `style-tokens.css` and custom presets in
+`style-themes.css`. Page Sources follows the same token/theme split; its header,
+menus, toolbar, and facets belong in `source-panel-controls.css`, while viewport,
+container, pointer, motion, and forced-color adaptations belong in
+`source-panel-responsive.css` after its result styles.
 
 Cascade layers are the supported ownership boundary for the declared Firefox
 121 and Chrome 123 minimums. Keep selectors local to their feature file and put
