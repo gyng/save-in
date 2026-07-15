@@ -1,3 +1,7 @@
+.tab-panel > .source-browser {
+  max-inline-size: 1200px;
+}
+
 .source-panel-overview-copy {
   display: grid;
   gap: var(--space-3);
