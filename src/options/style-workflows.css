@@ -66,18 +66,14 @@
 .inline-guide {
   max-width: var(--content-max-width);
   margin-top: var(--space-3);
-  overflow: clip;
-  border: 1px solid var(--panel-border);
-  border-radius: var(--radius);
-  background: var(--page-bg);
 }
 
 .inline-guide > summary {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  width: 100%;
-  padding: var(--space-2) var(--space-3);
+  width: fit-content;
+  padding: var(--space-1) 0;
   color: var(--color-text);
   list-style: none;
 }
@@ -102,11 +98,7 @@
 }
 
 .inline-guide > summary:hover {
-  background: var(--hover-bg);
-}
-
-.inline-guide[open] > summary {
-  border-bottom: 1px solid var(--panel-border);
+  color: var(--link-color);
 }
 
 .inline-guide summary,
@@ -115,8 +107,11 @@
 }
 
 .inline-guide > .guide-body {
-  margin: 0;
+  margin-top: var(--space-1);
   padding: var(--space-3);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  background: var(--page-bg);
   font-size: var(--text-base);
   line-height: var(--leading-copy);
 }
