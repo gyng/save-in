@@ -154,7 +154,7 @@
   }
 
   .about-mascot {
-    width: min(220px, 65vw);
+    width: min(220px, 65dvi);
     margin: 0 auto;
   }
 

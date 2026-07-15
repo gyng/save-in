@@ -27,6 +27,7 @@ const splitTopLevelWhitespace = (value) => {
   let start = 0;
   for (let index = 0; index < value.length; index += 1) {
     const character = value[index];
+    if (character === undefined) continue;
     if (character === "(") depth += 1;
     else if (character === ")") depth -= 1;
     else if (/\s/.test(character) && depth === 0) {
@@ -54,6 +55,7 @@ const styleLayers = [
       "style-workflows.css",
       "style-status.css",
       "style-syntax-editor.css",
+      "style-typeahead.css",
       "style-source-settings.css",
       "style-automation.css",
     ],
@@ -65,6 +67,7 @@ const styleLayers = [
       "style-rule-editor.css",
       "style-rule-editor-create.css",
       "style-route-debugger.css",
+      "style-route-debugger-tools.css",
       "style-route-debugger-responsive.css",
       "style-template-library.css",
       "style-option-tools.css",
@@ -250,6 +253,22 @@ for (const file of styles) {
     violations.push(`${relative}:${line} uses static viewport height; use a dynamic viewport unit`);
   }
 
+  for (const match of source.matchAll(/\b\d+(?:\.\d+)?vw\b/g)) {
+    const line = source.slice(0, match.index).split("\n").length;
+    violations.push(
+      `${relative}:${line} uses a physical static viewport width; use a dynamic logical viewport unit`,
+    );
+  }
+
+  for (const match of source.matchAll(
+    /box-shadow\s*:\s*inset\s+-?\d+(?:\.\d+)?(?:px|rem|em)\s+0(?:\s|;)/g,
+  )) {
+    const line = source.slice(0, match.index).split("\n").length;
+    violations.push(
+      `${relative}:${line} paints a physical inline-start inset shadow; use a logical border or marker`,
+    );
+  }
+
   for (const match of source.matchAll(/z-index\s*:\s*-?\d+/g)) {
     const line = source.slice(0, match.index).split("\n").length;
     violations.push(`${relative}:${line} uses a numeric z-index; use a semantic stacking token`);
@@ -269,6 +288,14 @@ for (const file of styles) {
     if (match[0].includes("overscroll-behavior:")) continue;
     const line = source.slice(0, match.index).split("\n").length;
     violations.push(`${relative}:${line} allows a nested scroll surface to chain to its parent`);
+  }
+
+  for (const match of source.matchAll(/[^{}]+\{[^{}]*overflow-x\s*:\s*auto;[^{}]*\}/g)) {
+    if (match[0].includes("overscroll-behavior-inline:")) continue;
+    const line = source.slice(0, match.index).split("\n").length;
+    violations.push(
+      `${relative}:${line} allows a horizontal scroll surface to chain to its parent`,
+    );
   }
 }
 
@@ -324,6 +351,9 @@ const routeDebuggerStyle = fs.readFileSync(
 if (/@media\s*\(max-width:/.test(routeDebuggerStyle)) {
   violations.push("route debugger responsiveness must follow its routing-workspace container");
 }
+if (routeDebuggerStyle.includes(".routing-tool")) {
+  violations.push("route debugger tool-shell styles must stay in style-route-debugger-tools.css");
+}
 const routeDebuggerResponsiveStyle = fs.readFileSync(
   path.join(root, "src", "options", "style-route-debugger-responsive.css"),
   "utf8",
@@ -365,6 +395,25 @@ const ruleEditorStyle = fs.readFileSync(
 );
 if (!ruleEditorStyle.includes("grid-template-columns: subgrid;")) {
   violations.push("routing clause rows must share the card column contract through subgrid");
+}
+
+const syntaxEditorStyle = fs.readFileSync(
+  path.join(root, "src", "options", "style-syntax-editor.css"),
+  "utf8",
+);
+if (syntaxEditorStyle.includes(".typeahead-")) {
+  violations.push("shared typeahead styles must stay in style-typeahead.css");
+}
+
+const pathEditorStyle = fs.readFileSync(
+  path.join(root, "src", "options", "style-path-editor.css"),
+  "utf8",
+);
+if (/@container\s+path-editor/.test(pathEditorStyle)) {
+  violations.push("path editor responsive rules must stay in style-editor-responsive.css");
+}
+if (!pathEditorStyle.includes(".path-editor-row:dir(rtl)")) {
+  violations.push("path indentation guides must follow right-to-left direction");
 }
 
 const allowedBreakpoints = new Set([520, 640, 760]);
@@ -421,6 +470,10 @@ for (const match of sourcePanelStyle.matchAll(/word-break\s*:\s*break-all/g)) {
 for (const match of sourcePanelStyle.matchAll(/\b\d+(?:\.\d+)?vh\b/g)) {
   const line = sourcePanelStyle.slice(0, match.index).split("\n").length;
   violations.push(`src/content/source-panel.css:${line} uses static viewport height`);
+}
+for (const match of sourcePanelStyle.matchAll(/\b\d+(?:\.\d+)?vw\b/g)) {
+  const line = sourcePanelStyle.slice(0, match.index).split("\n").length;
+  violations.push(`src/content/source-panel.css:${line} uses a physical static viewport width`);
 }
 for (const match of sourcePanelStyle.matchAll(/z-index\s*:\s*(\d+)/g)) {
   if (match[1] === "2147483647") continue;

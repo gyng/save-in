@@ -10,6 +10,7 @@
 @import url("style-workflows.css") layer(components);
 @import url("style-status.css") layer(components);
 @import url("style-syntax-editor.css") layer(components);
+@import url("style-typeahead.css") layer(components);
 @import url("style-source-settings.css") layer(components);
 @import url("style-automation.css") layer(components);
 @import url("style-layout.css") layer(layout);
@@ -17,6 +18,7 @@
 @import url("style-rule-editor.css") layer(editors);
 @import url("style-rule-editor-create.css") layer(editors);
 @import url("style-route-debugger.css") layer(editors);
+@import url("style-route-debugger-tools.css") layer(editors);
 @import url("style-route-debugger-responsive.css") layer(editors);
 @import url("style-template-library.css") layer(editors);
 @import url("style-option-tools.css") layer(editors);

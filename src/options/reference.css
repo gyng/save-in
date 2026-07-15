@@ -43,7 +43,7 @@ body:has(.reference-header) {
 }
 
 .reference-search-label .reference-search {
-  width: min(28rem, 70vw);
+  width: min(28rem, 70dvi);
   max-width: none;
   padding: var(--space-2) var(--space-3);
   border: 1px solid var(--panel-border);
@@ -85,6 +85,7 @@ body:has(.reference-header) {
 .reference-table-scroll {
   max-width: 100%;
   overflow-x: auto;
+  overscroll-behavior-inline: contain;
 }
 
 .reference-empty-state {

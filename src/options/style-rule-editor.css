@@ -76,8 +76,8 @@
 }
 
 .rule-editor-card.is-debug-selected {
+  border-inline-start: 3px solid var(--color-selection);
   background: color-mix(in srgb, var(--color-selection) 7%, var(--page-bg));
-  box-shadow: inset 3px 0 0 var(--color-selection);
 }
 
 .rule-editor-drag-handle {
@@ -294,7 +294,7 @@
 }
 
 .rule-clause-row:focus-within {
-  box-shadow: inset 2px 0 color-mix(in srgb, var(--color-focus) 72%, transparent);
+  border-inline-start: 2px solid color-mix(in srgb, var(--color-focus) 72%, transparent);
 }
 
 .rule-clause-marker {
@@ -318,14 +318,13 @@
 }
 
 .visual-editor-row.has-validation-error {
+  border-inline-start: 3px solid var(--color-validation);
   background-color: var(--error-bg);
-  box-shadow: inset 3px 0 var(--color-validation);
 }
 
 .visual-editor-row.has-validation-error:hover,
 .visual-editor-row.has-validation-error:focus-within {
   background-color: color-mix(in srgb, var(--color-validation) 11%, var(--page-bg));
-  box-shadow: inset 3px 0 var(--color-validation);
 }
 
 .visual-editor-row.has-validation-error input[type="text"],
@@ -339,12 +338,12 @@
 }
 
 .visual-editor-row.has-validation-warning {
+  border-inline-start: 3px solid var(--syntax-warning);
   background-color: var(--syntax-warning-soft);
-  box-shadow: inset 3px 0 var(--syntax-warning);
 }
 
 .rule-editor-card.has-validation-error {
-  box-shadow: inset 3px 0 var(--color-validation);
+  border-inline-start: 3px solid var(--color-validation);
 }
 
 .rule-clause-destination {

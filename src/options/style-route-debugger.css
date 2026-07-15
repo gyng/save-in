@@ -240,7 +240,7 @@
 
 .route-debugger-rule.is-selected {
   border-color: color-mix(in srgb, var(--success-fg) 58%, var(--panel-border));
-  box-shadow: inset 3px 0 var(--success-fg);
+  border-inline-start: 3px solid var(--success-fg);
 }
 
 .route-debugger-rule-output > .route-debugger-pipeline {
@@ -435,89 +435,4 @@
 .route-debugger-clause-attempt {
   color: var(--color-text-muted);
   line-height: var(--leading-copy);
-}
-
-.routing-tool {
-  margin-top: var(--space-3);
-  border: 0;
-  background: transparent;
-}
-
-.route-debugger-shell {
-  display: grid;
-  gap: var(--space-3);
-}
-
-.route-debugger-variables-header {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: start;
-}
-
-.route-debugger-variables {
-  z-index: var(--z-background);
-  grid-column: 1 / -1;
-  grid-row: 1;
-  min-width: 0;
-}
-
-.route-debugger-source-picker {
-  z-index: var(--z-local);
-  grid-column: 2;
-  grid-row: 1;
-  padding: var(--space-2) 0;
-}
-
-.route-debugger-variables > summary {
-  width: fit-content;
-  padding: var(--space-2) 0;
-  color: var(--link-color);
-}
-
-.route-debugger-variable-actions {
-  display: flex;
-  justify-content: flex-end;
-  padding-bottom: var(--space-3);
-}
-
-.route-debugger-variable-actions > button {
-  margin: 0;
-}
-
-.route-debugger-last-download {
-  display: block;
-  margin: 0;
-}
-
-.route-debugger-last-download > summary {
-  width: fit-content;
-  padding: var(--space-2) var(--space-3);
-  color: var(--link-color);
-}
-
-.route-debugger-last-download > .last-download-info {
-  width: 100%;
-  padding: 0 var(--space-3) var(--space-3);
-  border: 0;
-  background: transparent;
-}
-
-.routing-post-options {
-  display: grid;
-  gap: var(--space-4);
-  margin: var(--space-4) 0;
-  padding: 0;
-}
-
-.routing-post-options > .option-group {
-  display: grid;
-  gap: var(--space-2);
-}
-
-.routing-post-options .option-group-heading {
-  margin: 0;
-}
-
-.routing-post-options label {
-  margin: 0;
 }

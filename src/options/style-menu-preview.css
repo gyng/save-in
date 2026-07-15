@@ -60,14 +60,14 @@
 
 .menu-preview-row.is-source-selected {
   color: var(--color-text);
+  border-inline-start: 3px solid var(--color-selection);
   background: color-mix(in srgb, var(--color-selection) 14%, var(--page-bg));
-  box-shadow: inset 3px 0 0 var(--color-selection);
 }
 
 .menu-preview-separator.is-source-selected {
+  border-inline-start: 3px solid var(--color-selection);
   border-radius: var(--radius);
   background: color-mix(in srgb, var(--color-selection) 10%, var(--page-bg));
-  box-shadow: inset 3px 0 0 var(--color-selection);
 }
 
 .menu-preview-title {

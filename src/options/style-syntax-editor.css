@@ -240,7 +240,7 @@ textarea.syntax-editor-input::placeholder {
 .syntax-editor-tooltip {
   position: fixed;
   z-index: var(--z-tooltip);
-  max-width: min(32rem, calc(100vw - 24px));
+  max-width: min(32rem, calc(100dvi - 2 * var(--space-3)));
   padding: var(--space-2);
   border: 1px solid color-mix(in srgb, var(--syntax-error) 44%, var(--panel-border));
   border-radius: var(--radius);
@@ -300,9 +300,9 @@ textarea.syntax-editor-input::placeholder {
   z-index: var(--z-autocomplete);
   display: grid;
   gap: 0;
-  width: min(22.5rem, calc(100vw - 16px));
-  min-width: min(14rem, calc(100vw - 16px));
-  max-height: min(20rem, calc(100dvh - 16px));
+  width: min(22.5rem, calc(100dvi - 2 * var(--space-2)));
+  min-width: min(14rem, calc(100dvi - 2 * var(--space-2)));
+  max-height: min(20rem, calc(100dvb - 2 * var(--space-2)));
   margin: 0;
   padding: 0;
   list-style: none;
@@ -396,152 +396,6 @@ textarea.syntax-editor-input::placeholder {
   font-size: var(--text-sm);
   font-weight: 400;
   line-height: 1.35;
-  text-overflow: clip;
-  white-space: normal;
-}
-
-/* Editable select controls use a first-party listbox rather than native
-   datalists so their filtering, keyboard behavior, and floating surface match. */
-.typeahead-input {
-  --typeahead-chevron-start: calc(100% - 11px);
-  --typeahead-chevron-end: calc(100% - 7px);
-
-  padding-inline-end: calc(var(--space-3) + 12px);
-  background-image:
-    linear-gradient(45deg, transparent 50%, var(--color-text-muted) 50%),
-    linear-gradient(135deg, var(--color-text-muted) 50%, transparent 50%);
-  background-position:
-    var(--typeahead-chevron-start) 50%,
-    var(--typeahead-chevron-end) 50%;
-  background-size: 4px 4px;
-  background-repeat: no-repeat;
-}
-
-.typeahead-input:dir(rtl) {
-  --typeahead-chevron-start: 11px;
-  --typeahead-chevron-end: 7px;
-}
-
-.typeahead-input[readonly] {
-  cursor: default;
-}
-
-.typeahead-dropdown {
-  position: fixed;
-  z-index: var(--z-listbox);
-  display: grid;
-  gap: 2px;
-  max-height: min(20rem, calc(100dvh - 16px));
-  overflow-x: hidden;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  scrollbar-gutter: stable;
-  padding: var(--space-1);
-  border: 1px solid var(--panel-border);
-  border-radius: var(--radius);
-  background: var(--floating-bg);
-  box-shadow: var(--floating-shadow);
-}
-
-.typeahead-dropdown[hidden] {
-  display: none;
-}
-
-.typeahead-option {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 1px;
-  width: 100%;
-  min-width: 0;
-  min-height: var(--compact-control-size);
-  padding: 6px var(--space-2);
-  border: 0;
-  border-radius: var(--radius-sm);
-  color: var(--color-text);
-  background: transparent;
-  text-align: start;
-}
-
-.typeahead-option:hover {
-  background: var(--hover-bg);
-}
-
-.typeahead-option[aria-selected="true"] {
-  color: var(--link-color);
-  background: color-mix(in srgb, var(--link-color) 10%, transparent);
-}
-
-.typeahead-option-label {
-  min-width: 0;
-  overflow: hidden;
-  font-size: var(--text-base);
-  font-weight: 600;
-  line-height: 1.25;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.typeahead-option-description {
-  min-width: 0;
-  overflow: hidden;
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
-  font-weight: 400;
-  line-height: 1.35;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.typeahead-option-meta {
-  min-width: 0;
-  overflow: hidden;
-  color: var(--color-text-muted);
-  font-family: var(--font-mono);
-  font-size: var(--text-sm);
-  font-weight: 400;
-  line-height: 1.35;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.typeahead-dropdown-reference {
-  gap: 0;
-  padding: 0;
-}
-
-.typeahead-dropdown-reference .typeahead-option {
-  grid-template-columns: minmax(7rem, 45%) minmax(0, 1fr);
-  grid-template-rows: auto auto;
-  gap: 1px var(--space-3);
-  padding: var(--space-2) var(--space-3);
-  border-bottom: 1px solid var(--panel-border);
-  border-radius: 0;
-}
-
-.typeahead-dropdown-reference .typeahead-option:last-child {
-  border-bottom: 0;
-}
-
-.typeahead-dropdown-reference .typeahead-option-label {
-  grid-column: 1;
-  grid-row: 1;
-  align-self: start;
-  color: var(--syntax-keyword);
-  font-family: var(--font-mono);
-  font-size: var(--text-sm);
-}
-
-.typeahead-dropdown-reference .typeahead-option-meta {
-  grid-column: 2;
-  grid-row: 1;
-  justify-self: end;
-  max-width: 100%;
-}
-
-.typeahead-dropdown-reference .typeahead-option-description {
-  grid-column: 1 / -1;
-  grid-row: 2;
-  overflow-wrap: anywhere;
   text-overflow: clip;
   white-space: normal;
 }

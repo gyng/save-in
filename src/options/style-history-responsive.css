@@ -17,6 +17,7 @@
   #history-list {
     max-width: 100%;
     overflow-x: auto;
+    overscroll-behavior-inline: contain;
   }
 
   .history-table {

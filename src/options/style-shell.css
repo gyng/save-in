@@ -92,7 +92,7 @@ body:not(#settings-page) {
   z-index: var(--z-status);
   top: calc(100% + var(--space-1));
   inset-inline-start: 4.5rem;
-  width: min(26rem, calc(100vw - 2 * var(--space-5)));
+  width: min(26rem, calc(100dvi - 2 * var(--space-5)));
   padding: var(--space-2) var(--space-3);
   color: var(--color-text);
   border: 1px solid var(--panel-border);
@@ -243,7 +243,6 @@ body:not(#settings-page) {
 }
 
 .nav-resources-menu > :is(a, button) {
-  box-sizing: border-box;
   display: flex;
   align-items: center;
   width: 100%;

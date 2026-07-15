@@ -34,11 +34,17 @@
     max-width: 100%;
     margin-inline-start: 0;
     overflow-x: auto;
+    overscroll-behavior-inline: contain;
   }
 
   .nav-resources-menu {
     inset-inline-end: 0;
     inset-inline-start: auto;
-    max-width: calc(100vw - 2 * var(--space-3));
+    max-width: calc(100dvi - 2 * var(--space-3));
+  }
+
+  .saved-change-popover {
+    inset-inline-start: 0;
+    width: calc(100dvi - 2 * var(--space-3));
   }
 }
