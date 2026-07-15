@@ -1,5 +1,6 @@
 .path-editor-row {
   --path-guide-direction: 90deg;
+  --path-selection-shadow-x: 3px;
 
   position: relative;
   display: flex;
@@ -20,6 +21,7 @@
 
 .path-editor-row:dir(rtl) {
   --path-guide-direction: 270deg;
+  --path-selection-shadow-x: -3px;
 
   background-position: right top;
 }
@@ -113,9 +115,8 @@
 }
 
 .path-editor-row.is-preview-selected {
-  border-color: color-mix(in srgb, var(--color-selection) 58%, var(--panel-border));
-  border-inline-start: 3px solid var(--color-selection);
   background: color-mix(in srgb, var(--color-selection) 7%, var(--page-bg));
+  box-shadow: inset var(--path-selection-shadow-x) 0 0 var(--color-selection);
 }
 
 .path-editor-indent {
