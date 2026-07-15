@@ -114,7 +114,7 @@
 
 .source-panel-overview {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(300px, 420px);
+  grid-template-columns: minmax(340px, 2fr) minmax(260px, 1fr);
   align-items: start;
   gap: var(--space-5);
   margin-bottom: var(--space-5);
