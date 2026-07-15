@@ -960,7 +960,7 @@ const sourcePanelThemes = themeBlocks(
   /:host\(\[data-theme="([^"]+)"\]\)\s*\{([^}]*)\}/g,
 );
 const customOptionThemeNames = [...optionThemes]
-  .filter(([, properties]) => properties.has("--theme-page"))
+  .filter(([name]) => name !== "light" && name !== "dark")
   .map(([name]) => name)
   .toSorted();
 const sourcePanelThemeNames = [...sourcePanelThemes.keys()].toSorted();
@@ -981,6 +981,55 @@ const sharedThemeRoles = [
   "--theme-link",
   "--theme-on-accent",
 ];
+const optionThemeRoles = [
+  ...sharedThemeRoles,
+  "--theme-input",
+  "--theme-accent-active",
+  "--theme-icon-filter",
+];
+/** @type {Array<[string, Map<string, Map<string, string>>, string[], string[]]>} */
+const themeSchemas = [
+  ["Options", optionThemes, customOptionThemeNames, optionThemeRoles],
+  ["Page Sources", sourcePanelThemes, sourcePanelThemeNames, sharedThemeRoles],
+];
+for (const [surface, themes, names, requiredRoles] of themeSchemas) {
+  const allowedRoles = new Set(requiredRoles);
+  for (const theme of names) {
+    const properties = themes.get(theme);
+    if (!properties) continue;
+    for (const role of requiredRoles) {
+      if (!properties.has(role)) {
+        violations.push(`${surface} theme ${theme} is missing required role ${role}`);
+      }
+    }
+    for (const role of properties.keys()) {
+      if (!allowedRoles.has(role)) {
+        violations.push(`${surface} theme ${theme} declares unknown role ${role}`);
+      }
+    }
+  }
+}
+
+const optionThemeSelector = /:root:is\(([\s\S]*?)\)\s*\{/.exec(themeStyle)?.[1] || "";
+const sourcePanelThemeSelector =
+  /:host\(\s*:is\(([\s\S]*?)\)\s*\)\s*\{/.exec(sourcePanelThemeStyle)?.[1] || "";
+/** @param {string} selector @returns {string[]} */
+const mappedThemeNames = (selector) =>
+  [...selector.matchAll(/\[data-theme="([^"]+)"\]/g)]
+    .map((match) => match[1] || "")
+    .filter(Boolean)
+    .toSorted();
+/** @type {Array<[string, string[], string[]]>} */
+const themeSelectorMappings = [
+  ["Options", customOptionThemeNames, mappedThemeNames(optionThemeSelector)],
+  ["Page Sources", sourcePanelThemeNames, mappedThemeNames(sourcePanelThemeSelector)],
+];
+for (const [surface, expected, actual] of themeSelectorMappings) {
+  if (expected.join("\n") !== actual.join("\n")) {
+    violations.push(`${surface} theme selector mapping must exactly cover its declared themes`);
+  }
+}
+
 for (const theme of customOptionThemeNames) {
   const optionProperties = optionThemes.get(theme);
   const sourcePanelProperties = sourcePanelThemes.get(theme);
@@ -1224,6 +1273,39 @@ for (const entry of optionEntries) {
   const source = fs.readFileSync(file, "utf8");
   if (source.includes('createElement("dialog")') && !source.includes('"app-dialog ')) {
     violations.push(`${relative} creates a dialog outside the shared app-dialog shell`);
+  }
+}
+
+const sourcePanelDefinitions = new Set(
+  [...sourcePanelStyle.matchAll(/(--[\w-]+)\s*:/g)].map((match) => match[1] || ""),
+);
+const sourcePanelCssDefinitions = new Set(sourcePanelDefinitions);
+/** @type {Map<string, string[]>} */
+const sourcePanelUses = new Map();
+sourcePanelStyles.forEach((source, index) => {
+  const relative = path.relative(root, sourcePanelStylePaths[index] || "");
+  for (const match of source.matchAll(/var\((--[\w-]+)/g)) {
+    const token = match[1] || "";
+    const locations = sourcePanelUses.get(token) || [];
+    locations.push(relative);
+    sourcePanelUses.set(token, locations);
+  }
+});
+for (const match of sourcePanel.matchAll(/host\.style\.setProperty\("(--[\w-]+)"/g)) {
+  sourcePanelDefinitions.add(match[1] || "");
+}
+for (const token of [...sourcePanelCssDefinitions].toSorted()) {
+  if (!sourcePanelUses.has(token)) {
+    violations.push(`Page Sources token ${token} is defined but never consumed`);
+  }
+}
+for (const [token, files] of [...sourcePanelUses].toSorted(([left], [right]) =>
+  left.localeCompare(right),
+)) {
+  if (!sourcePanelDefinitions.has(token)) {
+    violations.push(
+      `Page Sources token ${token} used by ${[...new Set(files)].join(", ")} is not defined`,
+    );
   }
 }
 
