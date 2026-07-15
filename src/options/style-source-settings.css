@@ -51,7 +51,7 @@
   color: var(--disabled-control-color);
 }
 
-.source-panel-settings,
+.source-browser .source-panel-settings,
 .source-result-settings {
   display: grid;
   gap: var(--space-1);
