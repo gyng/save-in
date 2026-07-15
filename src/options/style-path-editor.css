@@ -197,10 +197,6 @@
   opacity: 0.55;
 }
 
-.path-editor-undo {
-  margin-top: var(--space-1);
-}
-
 .path-editor-more {
   position: relative;
   flex: none;

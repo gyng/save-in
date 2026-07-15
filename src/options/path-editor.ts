@@ -237,7 +237,13 @@ const PathEditorHelpers = {
     undo.className = "path-editor-undo";
     undo.textContent = localize("pathVisualUndoDelete", "Undo delete");
     undo.hidden = true;
-    container.after(undo);
+    const visualSaveActions = container
+      .closest("#paths-visual")
+      ?.querySelector<HTMLElement>(".editor-save-actions");
+    const discard = visualSaveActions?.querySelector<HTMLElement>('[data-discard="paths"]');
+    if (discard) discard.before(undo);
+    else if (visualSaveActions) visualSaveActions.prepend(undo);
+    else container.after(undo);
     const visualHelp = document.createElement("div");
     visualHelp.className = "caption path-editor-help";
     const helpLines: Array<readonly [string, string]> = [
