@@ -34,7 +34,7 @@ rules.
 ### Platform and compatibility
 
 - Migrated to Manifest V3 and raised the minimum versions to Firefox 121 and
-  Chrome 123.
+  Chrome 123 (#225, #227).
 - Unified Firefox and Chrome releases into one readable, reproducible package
   with browser-specific background handling.
 - Moved cross-origin acquisition from the old content-script path into the
@@ -49,9 +49,10 @@ rules.
 
 - Added a route debugger that tests saved or unsaved rules against recent,
   sample, or custom download details; explains first-match decisions; previews
-  variable expansion and sanitization; and links results back to the editor.
+  variable expansion and sanitization; and links results back to the editor
+  (#194).
 - Added searchable routing templates, Quick add, grammar-aware validation,
-  variable and clause autocomplete, and final-filename previews.
+  variable and clause autocomplete, and final-filename previews (#191).
 - Added **Text** and **Visual** modes for **Save locations** and **Routing
   rules**. Visual mode supports indentation, drag-to-reorder, aliases, clauses,
   variables, separators, and a live context-menu preview.
@@ -87,11 +88,12 @@ rules.
   routing grammar, require explicit `context: ^auto$`, page, and source
   conditions, and cannot be triggered by broad ordinary rules. Valid settings
   from the earlier dedicated automation field migrate automatically.
-- Added opt-in handling for ordinary browser downloads. Chrome can record or
-  route matching downloads before they are saved. Firefox can record them and
-  offers a separately labelled experimental mode that cancels a matching
-  HTTP(S) download and starts a routed replacement; that replacement can lose
-  POST bodies, temporary URLs, authentication, or other request context.
+- Added opt-in handling for ordinary browser downloads (#106, #146, #152).
+  Chrome can record or route matching downloads before they are saved. Firefox
+  can record them and offers a separately labelled experimental mode that
+  cancels a matching HTTP(S) download and starts a routed replacement; that
+  replacement can lose POST bodies, temporary URLs, authentication, or other
+  request context.
 - Fixed History so entries accumulate instead of replacing one another, capped
   it at 10,000 entries, and added search, filtering, pagination, localized
   statuses, download actions, and **Export all** in JSON or formula-safe CSV and
@@ -104,9 +106,11 @@ rules.
 - “Retry failed downloads through Save In” retries eligible network and server
   failures once through a background fetch before reporting failure.
 - Optional Referer handling protects each exact metadata or content request in
-  both browsers. Firefox keeps a native direct download when possible; Chrome
-  saves the protected content locally. Invalid filter lines no longer break the
-  context menu (#222), and the preset covers MangaDex image hosts (#218).
+  both browsers, follows that request's exact redirect targets (#193), and is
+  kept by retry fetches. Firefox keeps a native direct download when possible;
+  Chrome saves the protected content locally. Invalid filter lines no longer
+  break the context menu (#222), and the preset covers MangaDex image hosts
+  (#218).
 - Background fetches can include applicable website sign-in cookies, including
   after redirects, or run anonymously. Private-window extension requests stay
   anonymous because the shared background cannot select a private cookie store;
@@ -156,7 +160,8 @@ rules.
   session failures. It loads only when opened and excludes private activity
   (#216). The Options page now opens in a browser tab.
 - Fixed the Firefox dark-mode Last used icon (#184), restored first-party
-  autocomplete, and made ordinary text settings autosave after typing pauses.
+  autocomplete, and made ordinary text settings autosave after typing pauses
+  (#205).
 
 ### Developer and release process
 
