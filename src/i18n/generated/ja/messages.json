@@ -3080,5 +3080,13 @@
   },
   "externalRejectionsLoadFailed": {
     "message": "拒否されたリクエストを読み込めませんでした。"
+  },
+  "referenceInsertValue": {
+    "message": "$VALUE$ を挿入",
+    "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
+  },
+  "versionViewReleases": {
+    "message": "Save In v$VERSION$ — リリースを表示",
+    "placeholders": { "version": { "content": "$1", "example": "4.0.0" } }
   }
 }

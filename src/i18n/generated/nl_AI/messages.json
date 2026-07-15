@@ -2978,5 +2978,13 @@
   },
   "externalRejectionsLoadFailed": {
     "message": "Afgewezen verzoeken konden niet worden geladen."
+  },
+  "referenceInsertValue": {
+    "message": "$VALUE$ invoegen",
+    "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
+  },
+  "versionViewReleases": {
+    "message": "Save In v$VERSION$ — releases bekijken",
+    "placeholders": { "version": { "content": "$1", "example": "4.0.0" } }
   }
 }

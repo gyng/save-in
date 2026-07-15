@@ -3080,5 +3080,13 @@
   },
   "externalRejectionsLoadFailed": {
     "message": "거부된 요청을 불러올 수 없습니다."
+  },
+  "referenceInsertValue": {
+    "message": "$VALUE$ 삽입",
+    "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
+  },
+  "versionViewReleases": {
+    "message": "Save In v$VERSION$ — 릴리스 보기",
+    "placeholders": { "version": { "content": "$1", "example": "4.0.0" } }
   }
 }

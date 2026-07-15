@@ -2991,5 +2991,13 @@
   },
   "externalRejectionsLoadFailed": {
     "message": "Det gick inte att läsa in avvisade begäranden."
+  },
+  "referenceInsertValue": {
+    "message": "Infoga $VALUE$",
+    "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
+  },
+  "versionViewReleases": {
+    "message": "Save In v$VERSION$ — visa versioner",
+    "placeholders": { "version": { "content": "$1", "example": "4.0.0" } }
   }
 }

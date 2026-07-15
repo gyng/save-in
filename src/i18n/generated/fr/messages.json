@@ -3121,5 +3121,13 @@
   },
   "externalRejectionsLoadFailed": {
     "message": "Impossible de charger les demandes rejetées."
+  },
+  "referenceInsertValue": {
+    "message": "Insérer $VALUE$",
+    "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
+  },
+  "versionViewReleases": {
+    "message": "Save In v$VERSION$ — voir les versions",
+    "placeholders": { "version": { "content": "$1", "example": "4.0.0" } }
   }
 }

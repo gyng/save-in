@@ -1,5 +1,6 @@
 import { webExtensionApi } from "../platform/web-extension-api.ts";
 import { BROWSERS, CURRENT_BROWSER } from "../platform/chrome-detector.ts";
+import { getMessage } from "../platform/localization.ts";
 import { showWelcomeDialog } from "./welcome-dialog.ts";
 
 const STORE_LINK_IDS = {
@@ -31,7 +32,11 @@ export const setupAboutDialog = (openWelcome: () => boolean = () => showWelcomeD
 
   const version = webExtensionApi.runtime.getManifest().version;
   const versionEl = dialog.querySelector<HTMLElement>("#about-version");
-  if (versionEl) versionEl.textContent = version ? `v${version}` : "Unavailable";
+  if (versionEl) {
+    versionEl.textContent = version
+      ? `v${version}`
+      : getMessage("diagnosticsUnavailable") || "Unavailable";
+  }
 
   const storeLinks = dialog.querySelectorAll<HTMLAnchorElement>("[data-about-store]");
   storeLinks.forEach((link) => (link.hidden = true));

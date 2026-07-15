@@ -13,7 +13,8 @@ const renderVersionLabel = () => {
 
   const version = webExtensionApi.runtime.getManifest().version;
   element.textContent = `v${version}`;
-  element.title = `save-in v${version} — view releases`;
+  element.title =
+    getMessage("versionViewReleases", version) || `Save In v${version} — view releases`;
 };
 
 const renderExternalApi = () => {

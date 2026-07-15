@@ -38,6 +38,11 @@ const rejectedCallerMarkup = (allowlist = "") => {
 };
 
 test("renders build identity and the live external API contract", async () => {
+  vi.mocked(webExtensionApi.i18n.getMessage).mockImplementation((key, substitutions) =>
+    key === "versionViewReleases"
+      ? `Save In v${Array.isArray(substitutions) ? substitutions[0] : substitutions} — Versionen`
+      : "",
+  );
   const originalId = webExtensionApi.runtime.id;
   Object.defineProperty(webExtensionApi.runtime, "id", {
     configurable: true,
@@ -55,6 +60,9 @@ test("renders build identity and the live external API contract", async () => {
   setupIntegrationPanel();
 
   expect(document.querySelector("#version-label")?.textContent).toBe("v4.0.0");
+  expect(document.querySelector("#version-label")?.getAttribute("title")).toBe(
+    "Save In v4.0.0 — Versionen",
+  );
   expect(document.querySelector("#ext-id")?.textContent).toBe(webExtensionApi.runtime.id);
   expect(document.querySelector("#api-snippet")?.textContent).toContain('type: "DOWNLOAD"');
   await vi.waitFor(() => expect(document.querySelector("#api-version")?.textContent).toBe("v1"));

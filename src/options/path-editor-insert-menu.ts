@@ -1,4 +1,5 @@
 import { webExtensionApi } from "../platform/web-extension-api.ts";
+import { getMessage } from "../platform/localization.ts";
 import { MESSAGE_TYPES } from "../shared/constants.ts";
 import { sendInternalMessage } from "../shared/message-protocol.ts";
 import { compareClauses, CLAUSE_GROUPS, clauseGroup } from "./vocabulary-groups.ts";
@@ -67,7 +68,10 @@ export const setupPathInsertMenu = (
         button.type = "button";
         button.className = "variables-preview-insert";
         button.dataset.insertLine = `${clause}: `;
-        button.setAttribute("aria-label", `Insert ${clause}: clause`);
+        button.setAttribute(
+          "aria-label",
+          getMessage("referenceInsertValue", `${clause}:`) || `Insert ${clause}:`,
+        );
         const syntax = document.createElement("code");
         syntax.textContent = `${clause}:`;
         button.append(syntax);

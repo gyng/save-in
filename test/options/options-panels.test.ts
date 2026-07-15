@@ -584,7 +584,7 @@ describe("variables preview", () => {
     ];
     expect(buttons).toHaveLength(2);
     expect(buttons[0]!.type).toBe("button");
-    expect(buttons[0]!.getAttribute("aria-label")).toBe("Insert :title:");
+    expect(buttons[0]!.getAttribute("aria-label")).toBe("Translated<referenceInsertValue>");
     buttons[0]!.click();
     expect(insert).toHaveBeenCalledWith(
       document.querySelector<HTMLTextAreaElement>("#paths"),

@@ -9,6 +9,13 @@ const keydown = (element: Element, key: string) =>
 
 describe("path editor insert menu", () => {
   beforeEach(() => {
+    vi.mocked(browser.i18n.getMessage).mockImplementation((key, substitutions) => {
+      if (key === "referenceRuntimeRuleMatcher") return "Runtime rule matcher";
+      if (key === "referenceInsertValue") {
+        return `Localized insert ${Array.isArray(substitutions) ? substitutions[0] : substitutions}`;
+      }
+      return "";
+    });
     document.body.innerHTML = "";
   });
 
@@ -104,6 +111,9 @@ describe("path editor insert menu", () => {
     );
     expect(pageUrlRow?.querySelector(".clause-preview-description")?.textContent).toBe(
       "Localized page URL matcher help",
+    );
+    expect(pageUrlRow?.querySelector("button")?.getAttribute("aria-label")).toBe(
+      "Localized insert pageurl:",
     );
     const filter = input();
     filter.value = "mystery";

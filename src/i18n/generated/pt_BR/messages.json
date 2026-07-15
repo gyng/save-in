@@ -2978,5 +2978,13 @@
   },
   "externalRejectionsLoadFailed": {
     "message": "Não foi possível carregar as solicitações rejeitadas."
+  },
+  "referenceInsertValue": {
+    "message": "Inserir $VALUE$",
+    "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
+  },
+  "versionViewReleases": {
+    "message": "Save In v$VERSION$ — ver versões",
+    "placeholders": { "version": { "content": "$1", "example": "4.0.0" } }
   }
 }

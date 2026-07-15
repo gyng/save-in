@@ -4532,5 +4532,15 @@
   "externalRejectionsLoadFailed": {
     "message": "Could not load rejected requests.",
     "description": "Error shown when blocked external requests cannot be loaded. Used in src/options/integration-panel.ts."
+  },
+  "referenceInsertValue": {
+    "message": "Insert $VALUE$",
+    "description": "Accessible action for inserting a variable or clause into an editor. Used in src/options/path-editor-insert-menu.ts and src/options/variables-preview.ts.",
+    "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
+  },
+  "versionViewReleases": {
+    "message": "Save In v$VERSION$ — view releases",
+    "description": "Tooltip for the current version link that opens the release list. Used in src/options/integration-panel.ts.",
+    "placeholders": { "version": { "content": "$1", "example": "4.0.0" } }
   }
 }

@@ -196,8 +196,10 @@ export const renderVariablesPreview = async () => {
             const insert = document.createElement("button");
             insert.type = "button";
             insert.className = "variables-preview-insert";
-            insert.setAttribute("aria-label", `Insert ${variable}`);
-            insert.title = `Insert ${variable}`;
+            const insertLabel =
+              getMessage("referenceInsertValue", variable) || `Insert ${variable}`;
+            insert.setAttribute("aria-label", insertLabel);
+            insert.title = insertLabel;
             insert.addEventListener("click", () => {
               const insertTarget = currentPathInsertTarget(target);
               if (insertTarget) PathEditor.insertAtCursor(insertTarget, variable);

@@ -3104,5 +3104,13 @@
   },
   "externalRejectionsLoadFailed": {
     "message": "Abgelehnte Anfragen konnten nicht geladen werden."
+  },
+  "referenceInsertValue": {
+    "message": "$VALUE$ einfügen",
+    "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
+  },
+  "versionViewReleases": {
+    "message": "Save In v$VERSION$ — Versionen anzeigen",
+    "placeholders": { "version": { "content": "$1", "example": "4.0.0" } }
   }
 }
