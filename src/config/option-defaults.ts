@@ -24,7 +24,7 @@ export const OPTION_DEFAULTS = {
   notifyOnSuccess: true,
   notifyOnLinkPreferred: true,
   page: true,
-  paths: ". // (alias: Downloads)\nimages\nimages/cats\n>images/cats/tabby\nvideos",
+  paths: ". // (alias: Downloads)\nImages\nVideos\nAudio\nDocuments",
   prompt: false,
   promptIfNoExtension: false,
   promptOnFailure: true,

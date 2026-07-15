@@ -234,9 +234,7 @@ describe("OptionsManagement", () => {
 
     test("starts new profiles with a small useful Downloads menu", async () => {
       const resolved = await OptionsManagement.loadOptions();
-      expect(resolved.paths).toBe(
-        ". // (alias: Downloads)\nimages\nimages/cats\n>images/cats/tabby\nvideos",
-      );
+      expect(resolved.paths).toBe(". // (alias: Downloads)\nImages\nVideos\nAudio\nDocuments");
     });
 
     test("preserves an existing enabled Page Sources preference", async () => {
