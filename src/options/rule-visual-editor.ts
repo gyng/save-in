@@ -94,6 +94,9 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
   const manageAutomaticRules = document.querySelector<HTMLButtonElement>(
     "#auto-download-manage-rules",
   );
+  const manageBrowserDownloadRules = document.querySelector<HTMLButtonElement>(
+    "#browser-download-manage-rules",
+  );
   if (!textarea || !textButton || !visualButton || !textEditor || !visualEditor || !cards) return;
 
   const localize = (key: string, fallback: string, substitutions?: MessageSubstitutions): string =>
@@ -695,6 +698,10 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
     setMode(true);
     if (addRuleMenu) addRuleMenu.open = true;
     const target = addAutomaticRule ?? visualButton;
+    document.dispatchEvent(new CustomEvent("save-in:navigate-option", { detail: { target } }));
+  });
+  manageBrowserDownloadRules?.addEventListener("click", () => {
+    const target = visual ? visualButton : textarea;
     document.dispatchEvent(new CustomEvent("save-in:navigate-option", { detail: { target } }));
   });
   textarea.addEventListener("input", () => {

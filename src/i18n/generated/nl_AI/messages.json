@@ -386,19 +386,19 @@
     "message": "Volg of routeer optioneel downloads die zijn gestart door webpagina's of de browser. Downloads gestart door Save In of een andere extensie zijn uitgesloten."
   },
   "o_cTrackBrowserDownloads": {
-    "message": "Voeg gewone browserdownloads toe aan de geschiedenis van Save In"
+    "message": "Browserdownloads toevoegen aan de geschiedenis van Save In"
   },
   "o_cTrackBrowserDownloadsHelp": {
     "message": "Registreert overeenkomende downloads in de geschiedenis van Save In zonder ze over te nemen. Ze worden niet opnieuw geprobeerd en veroorzaken geen prompts of meldingen van Save In."
   },
   "o_cRouteBrowserDownloads": {
-    "message": "Gebruik routeringsregels voor browserdownloads"
+    "message": "Browserdownloads routeren met routeringsregels"
   },
   "o_cRouteBrowserDownloadsHelp": {
     "message": "Indien ondersteund, kunnen overeenkomende regels de naam van browserdownloads wijzigen of deze in submappen plaatsen. Downloads zonder overeenkomst blijven ongewijzigd."
   },
   "o_cRouteBrowserDownloadsFirefox": {
-    "message": "Experimenteel overeenkomende downloads omleiden in Firefox"
+    "message": "Overeenkomende browserdownloads omleiden"
   },
   "o_cRouteBrowserDownloadsFirefoxHelp": {
     "message": "Firefox heeft geen ingebouwde bestandsnaamroutering, dus Save In annuleert elke overeenkomende download en start een vervangende download. Dit kan mislukken bij POST-verzoeken, verlopende URL’s, aangepaste headers of geverifieerde downloads."
@@ -419,7 +419,7 @@
     "message": "Voer één WebExtension-overeenkomstpatroon per regel in. Uitsluitingen krijgen voorrang op de overeenkomende URL's hierboven en gelden zowel voor het bijhouden in de geschiedenis als voor routering."
   },
   "o_lBrowserDownloadVariables": {
-    "message": "Browserdownloads bieden alleen de URL, voorgestelde bestandsnaam, huidige tijd, teller, UUID en MIME-variabelen. Paginatitel, pagina-URL, linktekst, selectie, menumetagegevens en modificatietoetsen zijn niet beschikbaar."
+    "message": "URL, voorgestelde bestandsnaam, MIME-type, huidige tijd, teller en UUID"
   },
   "o_sRenameAndRouteDownloads": {
     "message": "Routeren en hernoemen"
@@ -1127,7 +1127,7 @@
     "message": "Komt overeen met elk pad. Er kan niet worden gematcht op queryparameters en expliciete poorten."
   },
   "html_trackAndRouteBrowserDownloads": {
-    "message": "Volg en routeer browserdownloads"
+    "message": "Browserdownloads"
   },
   "html_writeOneClausePerLine": {
     "message": "Schrijf één clausule per regel."
@@ -2546,7 +2546,22 @@
     "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
   },
   "o_cBrowserDownloadFiltersEnabled": {
-    "message": "Browserdownloads beperken op basis van URL"
+    "message": "Alleen overeenkomende download-URL's verwerken"
+  },
+  "o_cBrowserDownloadFiltersEnabledHelp": {
+    "message": "Van toepassing op geschiedenisregistratie en routering van Save In."
+  },
+  "o_cBrowserDownloadFilterInvalid": {
+    "message": "Ongeldig patroon. Als URL-filtering is ingeschakeld, komt geen enkele download overeen totdat dit is gecorrigeerd."
+  },
+  "o_cBrowserDownloadExcludeFilterInvalid": {
+    "message": "Ongeldig patroon. Als URL-filtering is ingeschakeld, wordt deze regel genegeerd totdat deze is gecorrigeerd."
+  },
+  "o_lBrowserDownloadVariablesHeading": {
+    "message": "Beschikbare routeringsgegevens"
+  },
+  "o_lBrowserDownloadVariablesUnavailable": {
+    "message": "Paginatitel, pagina-URL, linktekst, selectie, menumetagegevens en modificatietoetsen zijn niet beschikbaar."
   },
   "welcomeTitle": { "message": "Welkom bij Save In" },
   "welcomeIntro": {

@@ -203,19 +203,19 @@
     "message": "您可以追蹤或路由由網頁或瀏覽器啟動的下載。Save In 或其他擴充功能啟動的下載不在此限。"
   },
   "o_cTrackBrowserDownloads": {
-    "message": "將一般瀏覽器下載納入 Save In 歷史記錄"
+    "message": "將瀏覽器下載新增至 Save In 歷史記錄"
   },
   "o_cTrackBrowserDownloadsHelp": {
     "message": "在 Save In 記錄中記下相符的下載項目，但不接管這些下載。Save In 不會重試，也不會顯示提示或通知。"
   },
   "o_cRouteBrowserDownloads": {
-    "message": "使用瀏覽器下載的路由規則"
+    "message": "使用路由規則處理瀏覽器下載"
   },
   "o_cRouteBrowserDownloadsHelp": {
     "message": "如果瀏覽器支援，比對規則可以重新命名瀏覽器下載項目或將其放入子資料夾。不相符的下載項目維持不變。"
   },
   "o_cRouteBrowserDownloadsFirefox": {
-    "message": "在 Firefox 中嘗試重新路由相符的下載項目"
+    "message": "重新路由相符的瀏覽器下載"
   },
   "o_cRouteBrowserDownloadsFirefoxHelp": {
     "message": "Firefox 缺少原生檔案名稱路由功能，因此 Save In 會取消每個符合的下載並啟動替代下載。POST 請求、即將過期的 URL、自訂標頭或需要驗證的下載可能會失敗。"
@@ -236,7 +236,7 @@
     "message": "每行輸入一個 WebExtension 比對模式。排除項目會優先於上方相符的 URL，並同時套用於記錄追蹤和路由。"
   },
   "o_lBrowserDownloadVariables": {
-    "message": "瀏覽器下載僅提供 URL、建議的檔案名稱、目前時間、計數器、UUID 和 MIME 變數。頁面標題、頁面 URL、連結文字、選取的文字、選單中繼資料和輔助按鍵無法使用。"
+    "message": "URL、建議的檔案名稱、MIME 類型、目前時間、計數器和 UUID"
   },
   "o_sRenameAndRouteDownloads": {
     "message": "路由和重新命名"
@@ -944,7 +944,7 @@
     "message": "比對所有路徑。無法比對查詢參數和明確指定的連接埠。"
   },
   "html_trackAndRouteBrowserDownloads": {
-    "message": "追蹤和路由瀏覽器下載"
+    "message": "瀏覽器下載"
   },
   "html_writeOneClausePerLine": {
     "message": "每行寫一個子句。"
@@ -2733,7 +2733,22 @@
     "message": "已複製 $VALUE$",
     "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
   },
-  "o_cBrowserDownloadFiltersEnabled": { "message": "依 URL 限制瀏覽器下載" },
+  "o_cBrowserDownloadFiltersEnabled": { "message": "僅處理相符的下載 URL" },
+  "o_cBrowserDownloadFiltersEnabledHelp": {
+    "message": "適用於 Save In 歷史記錄追蹤和路由。"
+  },
+  "o_cBrowserDownloadFilterInvalid": {
+    "message": "模式無效。啟用 URL 篩選時，在修正前不會有任何下載相符。"
+  },
+  "o_cBrowserDownloadExcludeFilterInvalid": {
+    "message": "模式無效。啟用 URL 篩選時，在修正前會忽略此行。"
+  },
+  "o_lBrowserDownloadVariablesHeading": {
+    "message": "可用的路由資料"
+  },
+  "o_lBrowserDownloadVariablesUnavailable": {
+    "message": "頁面標題、頁面 URL、連結文字、選取的文字、選單中繼資料和輔助按鍵無法使用。"
+  },
   "welcomeTitle": { "message": "歡迎使用 Save In" },
   "welcomeIntro": {
     "message": "Save In 已準備就緒。使用右鍵選單可將圖片、連結、選取的文字、媒體和頁面儲存到您選擇的資料夾。"

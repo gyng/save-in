@@ -380,19 +380,19 @@
     "message": "Spåra eller dirigera eventuellt nedladdningar som startats av webbsidor eller webbläsaren. Nedladdningar som startas av Save In eller annat tillägg är uteslutna."
   },
   "o_cTrackBrowserDownloads": {
-    "message": "Inkludera vanliga webbläsarnedladdningar i historiken Save In"
+    "message": "Lägg till webbläsarnedladdningar i Save In-historiken"
   },
   "o_cTrackBrowserDownloadsHelp": {
     "message": "Registrerar matchande nedladdningar i Save In-historiken utan att ta över dem. Save In försöker inte hämta dem igen och visar inga uppmaningar eller aviseringar för dem."
   },
   "o_cRouteBrowserDownloads": {
-    "message": "Använd routningsregler för webbläsarnedladdningar"
+    "message": "Dirigera webbläsarnedladdningar med routningsregler"
   },
   "o_cRouteBrowserDownloadsHelp": {
     "message": "När de stöds kan matchande regler byta namn på webbläsarnedladdningar eller placera dem i undermappar. Omatchade nedladdningar är oförändrade."
   },
   "o_cRouteBrowserDownloadsFirefox": {
-    "message": "Experimentellt omdirigera matchande nedladdningar på Firefox"
+    "message": "Omdirigera matchande webbläsarnedladdningar"
   },
   "o_cRouteBrowserDownloadsFirefoxHelp": {
     "message": "Firefox saknar inbyggd filnamnsroutning, så Save In avbryter varje matchande nedladdning och startar en ersättningsnedladdning. Detta kan misslyckas för POST-begäranden, URL:er som löper ut, anpassade HTTP-huvuden eller autentiserade nedladdningar."
@@ -413,7 +413,7 @@
     "message": "Ange ett WebExtension-matchningsmönster per rad. Undantag åsidosätter de matchande URL:erna ovan och gäller både historikspårning och routning."
   },
   "o_lBrowserDownloadVariables": {
-    "message": "Webbläsarnedladdningar tillhandahåller endast URL, föreslaget filnamn, aktuell tid, räknare, UUID och MIME-variabler. Sidrubrik, sidadress, länktext, markering, menymetadata och modifieringstangenter är inte tillgängliga."
+    "message": "URL, föreslaget filnamn, MIME-typ, aktuell tid, räknare och UUID"
   },
   "o_sRenameAndRouteDownloads": {
     "message": "Routning och namnbyte"
@@ -1121,7 +1121,7 @@
     "message": "Matchar alla sökvägar. Frågeparametrar och explicita portar kan inte matchas."
   },
   "html_trackAndRouteBrowserDownloads": {
-    "message": "Spåra och routa webbläsarnedladdningar"
+    "message": "Webbläsarnedladdningar"
   },
   "html_writeOneClausePerLine": {
     "message": "Skriv en sats per rad."
@@ -2561,7 +2561,22 @@
     "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
   },
   "o_cBrowserDownloadFiltersEnabled": {
-    "message": "Begränsa webbläsarhämtningar utifrån URL"
+    "message": "Hantera endast matchande nedladdnings-URL:er"
+  },
+  "o_cBrowserDownloadFiltersEnabledHelp": {
+    "message": "Gäller historikspårning och routning i Save In."
+  },
+  "o_cBrowserDownloadFilterInvalid": {
+    "message": "Ogiltigt mönster. När URL-filtrering är aktiverad matchar inga nedladdningar förrän detta har åtgärdats."
+  },
+  "o_cBrowserDownloadExcludeFilterInvalid": {
+    "message": "Ogiltigt mönster. När URL-filtrering är aktiverad ignoreras den här raden tills den har åtgärdats."
+  },
+  "o_lBrowserDownloadVariablesHeading": {
+    "message": "Tillgängliga routningsdata"
+  },
+  "o_lBrowserDownloadVariablesUnavailable": {
+    "message": "Sidrubrik, sid-URL, länktext, markering, menymetadata och modifieringstangenter är inte tillgängliga."
   },
   "welcomeTitle": { "message": "Välkommen till Save In" },
   "welcomeIntro": {

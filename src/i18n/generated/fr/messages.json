@@ -408,19 +408,19 @@
     "message": "Vous pouvez suivre ou acheminer les téléchargements lancés par des pages Web ou par le navigateur. Les téléchargements lancés par Save In ou une autre extension sont exclus."
   },
   "o_cTrackBrowserDownloads": {
-    "message": "Inclure les téléchargements ordinaires du navigateur dans l'historique Save In"
+    "message": "Ajouter les téléchargements du navigateur à l’historique Save In"
   },
   "o_cTrackBrowserDownloadsHelp": {
     "message": "Enregistre les téléchargements correspondants dans l’historique Save In sans les prendre en charge. Ils ne font l’objet d’aucune nouvelle tentative et ne déclenchent ni invite ni notification Save In."
   },
   "o_cRouteBrowserDownloads": {
-    "message": "Utiliser des règles de routage pour les téléchargements du navigateur"
+    "message": "Acheminer les téléchargements du navigateur avec les règles de routage"
   },
   "o_cRouteBrowserDownloadsHelp": {
     "message": "Lorsque cette fonction est prise en charge, les règles correspondantes peuvent renommer les téléchargements du navigateur ou les placer dans des sous-dossiers. Les téléchargements sans correspondance restent inchangés."
   },
   "o_cRouteBrowserDownloadsFirefox": {
-    "message": "Réacheminer à titre expérimental les téléchargements correspondants dans Firefox"
+    "message": "Réacheminer les téléchargements correspondants du navigateur"
   },
   "o_cRouteBrowserDownloadsFirefoxHelp": {
     "message": "Firefox ne permet pas d’acheminer nativement les noms de fichiers. Save In annule donc chaque téléchargement correspondant et lance un téléchargement de remplacement. Cette opération peut échouer pour les requêtes POST, les URL temporaires, les en-têtes personnalisés ou les téléchargements authentifiés."
@@ -441,7 +441,7 @@
     "message": "Entrez un modèle de correspondance WebExtension par ligne. Les exclusions remplacent les URL correspondantes ci-dessus et s'appliquent à la fois au suivi de l'historique et au routage."
   },
   "o_lBrowserDownloadVariables": {
-    "message": "Les téléchargements du navigateur fournissent uniquement l’URL, le nom de fichier proposé, l’heure actuelle, le compteur, l’UUID et les variables MIME. Le titre et l’URL de la page, le texte du lien, la sélection, les métadonnées du menu et les touches de modification ne sont pas disponibles."
+    "message": "URL, nom de fichier proposé, type MIME, heure actuelle, compteur et UUID"
   },
   "o_sRenameAndRouteDownloads": {
     "message": "Routage et renommage"
@@ -1149,7 +1149,7 @@
     "message": "Correspond à tous les chemins. Les paramètres de requête et les ports explicites ne peuvent pas être comparés."
   },
   "html_trackAndRouteBrowserDownloads": {
-    "message": "Suivre et acheminer les téléchargements du navigateur"
+    "message": "Téléchargements du navigateur"
   },
   "html_writeOneClausePerLine": {
     "message": "Écrivez une clause par ligne."
@@ -2571,7 +2571,22 @@
     "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
   },
   "o_cBrowserDownloadFiltersEnabled": {
-    "message": "Limiter les téléchargements du navigateur par URL"
+    "message": "Gérer uniquement les URL de téléchargement correspondantes"
+  },
+  "o_cBrowserDownloadFiltersEnabledHelp": {
+    "message": "S’applique au suivi dans l’historique et au routage de Save In."
+  },
+  "o_cBrowserDownloadFilterInvalid": {
+    "message": "Modèle non valide. Lorsque le filtrage des URL est activé, aucun téléchargement ne correspond tant que ce problème n’est pas corrigé."
+  },
+  "o_cBrowserDownloadExcludeFilterInvalid": {
+    "message": "Modèle non valide. Lorsque le filtrage des URL est activé, cette ligne est ignorée tant qu’elle n’est pas corrigée."
+  },
+  "o_lBrowserDownloadVariablesHeading": {
+    "message": "Données de routage disponibles"
+  },
+  "o_lBrowserDownloadVariablesUnavailable": {
+    "message": "Le titre et l’URL de la page, le texte du lien, la sélection, les métadonnées du menu et les touches de modification ne sont pas disponibles."
   },
   "welcomeTitle": { "message": "Bienvenue dans Save In" },
   "welcomeIntro": {

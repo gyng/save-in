@@ -3,6 +3,65 @@
   margin-bottom: var(--space-6);
 }
 
+.browser-download-choice {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: var(--space-2);
+  align-items: baseline;
+}
+
+.browser-download-choice > input {
+  grid-column: 1;
+  margin: 0;
+}
+
+.browser-download-choice > :is(label, .caption) {
+  grid-column: 2;
+}
+
+.browser-download-choice > label {
+  margin: 0;
+}
+
+.browser-download-route-group {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+.browser-download-route-group > button {
+  margin-inline-start: var(--space-6);
+}
+
+.browser-download-filter-group {
+  margin-top: var(--space-5);
+}
+
+.browser-download-filter-master + .caption {
+  margin-inline-start: var(--space-6);
+}
+
+.browser-download-routing-data {
+  max-width: 48rem;
+  margin-top: var(--space-4);
+}
+
+.browser-download-routing-data > h4,
+.browser-download-routing-data > p {
+  margin: 0;
+}
+
+.browser-download-routing-data > h4 {
+  margin-bottom: var(--space-1);
+  font-size: var(--text-base);
+}
+
+.browser-download-routing-data > .caption {
+  margin-top: var(--space-1);
+  color: var(--color-text-muted);
+}
+
 .auto-download-options {
   display: grid;
   gap: var(--space-3);

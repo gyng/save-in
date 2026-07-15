@@ -244,28 +244,28 @@
     "description": "Section heading on the options page. Used in src/options/options.html."
   },
   "o_lBrowserDownloadsHelp": {
-    "message": "Optionally track or route downloads started by web pages or the browser. Downloads started by Save In or another extension are excluded.",
-    "description": "Label, status, or help text in the options interface. Used in src/options/options.html."
+    "message": "Track or route downloads started by web pages or the browser. Downloads started by Save In or another extension are excluded.",
+    "description": "Introduction to browser-download tracking and routing. Used in src/options/options.html."
   },
   "o_cTrackBrowserDownloads": {
-    "message": "Include ordinary browser downloads in Save In history",
-    "description": "Option control label or related help text. Used in src/options/options.html."
+    "message": "Add browser downloads to Save In history",
+    "description": "Checkbox that records matching browser downloads in Save In history. Used in src/options/options.html."
   },
   "o_cTrackBrowserDownloadsHelp": {
     "message": "Records matching downloads in Save In history without taking ownership of them. They are not retried and do not trigger Save In prompts or notifications.",
     "description": "Option control label or related help text. Used in src/options/options.html."
   },
   "o_cRouteBrowserDownloads": {
-    "message": "Use routing rules for browser downloads",
-    "description": "Option control label or related help text. Used in src/options/options.html."
+    "message": "Route browser downloads with routing rules",
+    "description": "Checkbox that applies routing rules to browser downloads when native routing is supported. Used in src/options/options.html."
   },
   "o_cRouteBrowserDownloadsHelp": {
     "message": "When supported, matching rules can rename browser downloads or place them in subfolders. Unmatched downloads are unchanged.",
     "description": "Option control label or related help text. Used in src/options/options.html."
   },
   "o_cRouteBrowserDownloadsFirefox": {
-    "message": "Experimentally reroute matching downloads on Firefox",
-    "description": "Option control label or related help text. Used in src/options/options.html."
+    "message": "Reroute matching browser downloads",
+    "description": "Experimental Firefox checkbox that replaces matching browser downloads so routing rules can rename or relocate them. Used in src/options/options.html."
   },
   "o_cRouteBrowserDownloadsFirefoxHelp": {
     "message": "Firefox lacks native filename routing, so Save In cancels each matching download and starts a replacement. This can fail for POST requests, expiring URLs, custom headers, or authenticated downloads.",
@@ -276,8 +276,12 @@
     "description": "Label, status, or help text in the options interface. Used in src/options/options.html."
   },
   "o_cBrowserDownloadFiltersEnabled": {
-    "message": "Limit browser downloads by URL",
+    "message": "Handle only matching download URLs",
     "description": "Checkbox enabling the include and exclude URL filters for ordinary browser downloads. Used in src/options/options.html."
+  },
+  "o_cBrowserDownloadFiltersEnabledHelp": {
+    "message": "Applies to Save In history tracking and routing.",
+    "description": "Help below the browser-download URL filter checkbox explaining which workflows share the filter. Used in src/options/options.html."
   },
   "o_cBrowserDownloadFilter": {
     "message": "Include only matching download URLs (optional)",
@@ -295,9 +299,25 @@
     "message": "Enter one WebExtension match pattern per line. Exclusions override the matching URLs above and apply to both history tracking and routing.",
     "description": "Option control label or related help text. Used in src/options/options.html."
   },
+  "o_cBrowserDownloadFilterInvalid": {
+    "message": "Invalid pattern. When URL filtering is on, no downloads will match until this is fixed.",
+    "description": "Persistent validation error below the browser-download include-pattern editor. Used in src/options/options.html."
+  },
+  "o_cBrowserDownloadExcludeFilterInvalid": {
+    "message": "Invalid pattern. When URL filtering is on, this line is ignored until it is fixed.",
+    "description": "Persistent validation error below the browser-download exclude-pattern editor. Used in src/options/options.html."
+  },
+  "o_lBrowserDownloadVariablesHeading": {
+    "message": "Available routing data",
+    "description": "Heading for data available to routing rules that handle browser downloads. Used in src/options/options.html."
+  },
   "o_lBrowserDownloadVariables": {
-    "message": "Browser downloads provide only the URL, proposed filename, current time, counter, UUID, and MIME variables. Page title, page URL, link text, selection, menu metadata, and key modifiers are unavailable.",
-    "description": "Label, status, or help text in the options interface. Used in src/options/options.html."
+    "message": "URL, proposed filename, MIME type, current time, counter, and UUID",
+    "description": "Compact list of data available to routing rules for browser downloads. Used in src/options/options.html."
+  },
+  "o_lBrowserDownloadVariablesUnavailable": {
+    "message": "Page title, page URL, link text, selection, menu metadata, and key modifiers are unavailable.",
+    "description": "Secondary note listing page-derived routing data unavailable for browser downloads. Used in src/options/options.html."
   },
   "o_sRenameAndRouteDownloads": {
     "message": "Routing and renaming",
@@ -1742,8 +1762,8 @@
     "description": "Text in the options page. Used in src/options/options.html."
   },
   "html_trackAndRouteBrowserDownloads": {
-    "message": "Track and route browser downloads",
-    "description": "Text in the options page. Used in src/options/options.html."
+    "message": "Browser downloads",
+    "description": "Visible heading for the Browser routings options tab. Used in src/options/options.html."
   },
   "html_writeOneClausePerLine": {
     "message": "Write one clause per line.",

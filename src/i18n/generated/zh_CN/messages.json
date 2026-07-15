@@ -203,19 +203,19 @@
     "message": "可选择跟踪或路由由网页或浏览器启动的下载。由 Save In 或其他扩展程序启动的下载除外。"
   },
   "o_cTrackBrowserDownloads": {
-    "message": "将普通浏览器下载包含在 Save In 历史记录中"
+    "message": "将浏览器下载添加到 Save In 历史记录"
   },
   "o_cTrackBrowserDownloadsHelp": {
     "message": "在 Save In 历史记录中记录匹配的下载，而不获取它们的所有权。它们不会重试，也不会触发 Save In 提示或通知。"
   },
   "o_cRouteBrowserDownloads": {
-    "message": "使用浏览器下载的路由规则"
+    "message": "使用路由规则处理浏览器下载"
   },
   "o_cRouteBrowserDownloadsHelp": {
     "message": "如果浏览器支持，匹配规则可以重命名浏览器下载或将其放入子文件夹。不匹配的下载保持不变。"
   },
   "o_cRouteBrowserDownloadsFirefox": {
-    "message": "在 Firefox 中尝试重新路由匹配的下载"
+    "message": "重新路由匹配的浏览器下载"
   },
   "o_cRouteBrowserDownloadsFirefoxHelp": {
     "message": "Firefox 缺少原生文件名路由功能，因此 Save In 会取消每个匹配的下载并启动替代下载。POST 请求、即将过期的 URL、自定义标头或需要身份验证的下载可能会失败。"
@@ -236,7 +236,7 @@
     "message": "每行输入一个 WebExtension 匹配模式。排除会覆盖上面的匹配 URL，并适用于历史记录跟踪和路由。"
   },
   "o_lBrowserDownloadVariables": {
-    "message": "浏览器下载仅提供 URL、建议的文件名、当前时间、计数器、UUID 和 MIME 变量。页面标题、页面 URL、链接文本、选中的文本、菜单元数据和修饰键不可用。"
+    "message": "URL、建议的文件名、MIME 类型、当前时间、计数器和 UUID"
   },
   "o_sRenameAndRouteDownloads": {
     "message": "路由和重命名"
@@ -944,7 +944,7 @@
     "message": "匹配所有路径。无法匹配查询参数和显式端口。"
   },
   "html_trackAndRouteBrowserDownloads": {
-    "message": "跟踪和路由浏览器下载"
+    "message": "浏览器下载"
   },
   "html_writeOneClausePerLine": {
     "message": "每行写一个子句。"
@@ -2637,7 +2637,22 @@
     "message": "已复制 $VALUE$",
     "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
   },
-  "o_cBrowserDownloadFiltersEnabled": { "message": "按 URL 限制浏览器下载" },
+  "o_cBrowserDownloadFiltersEnabled": { "message": "仅处理匹配的下载 URL" },
+  "o_cBrowserDownloadFiltersEnabledHelp": {
+    "message": "适用于 Save In 历史记录跟踪和路由。"
+  },
+  "o_cBrowserDownloadFilterInvalid": {
+    "message": "无效的模式。启用 URL 过滤时，在修复之前不会匹配任何下载。"
+  },
+  "o_cBrowserDownloadExcludeFilterInvalid": {
+    "message": "无效的模式。启用 URL 过滤时，在修复之前会忽略此行。"
+  },
+  "o_lBrowserDownloadVariablesHeading": {
+    "message": "可用的路由数据"
+  },
+  "o_lBrowserDownloadVariablesUnavailable": {
+    "message": "页面标题、页面 URL、链接文本、选中的文本、菜单元数据和修饰键不可用。"
+  },
   "welcomeTitle": { "message": "欢迎使用 Save In" },
   "welcomeIntro": {
     "message": "Save In 已准备就绪。使用右键菜单可将图片、链接、选中的文本、媒体和页面保存到您选择的文件夹。"

@@ -386,19 +386,19 @@
     "message": "Downloads, die von Webseiten oder dem Browser gestartet werden, können optional erfasst oder weitergeleitet werden. Von Save In oder einer anderen Erweiterung gestartete Downloads sind ausgeschlossen."
   },
   "o_cTrackBrowserDownloads": {
-    "message": "Normale Browser-Downloads in den Verlauf von Save In aufnehmen"
+    "message": "Browser-Downloads zum Verlauf von Save In hinzufügen"
   },
   "o_cTrackBrowserDownloadsHelp": {
     "message": "Zeichnet passende Downloads im Verlauf von Save In auf, ohne sie zu übernehmen. Save In versucht sie nicht erneut und zeigt dafür keine Eingabeaufforderungen oder Benachrichtigungen an."
   },
   "o_cRouteBrowserDownloads": {
-    "message": "Routing-Regeln für Browser-Downloads verwenden"
+    "message": "Browser-Downloads mit Routing-Regeln weiterleiten"
   },
   "o_cRouteBrowserDownloadsHelp": {
     "message": "Sofern unterstützt, können passende Regeln Browser-Downloads umbenennen oder in Unterordnern ablegen. Downloads ohne passende Regel bleiben unverändert."
   },
   "o_cRouteBrowserDownloadsFirefox": {
-    "message": "Passende Downloads in Firefox versuchsweise umleiten"
+    "message": "Passende Browser-Downloads umleiten"
   },
   "o_cRouteBrowserDownloadsFirefoxHelp": {
     "message": "Firefox unterstützt keine native Weiterleitung anhand des Dateinamens. Daher bricht Save In jeden passenden Download ab und startet einen Ersatzdownload. Dies kann bei POST-Anfragen, ablaufenden URLs, benutzerdefinierten Headern oder authentifizierten Downloads fehlschlagen."
@@ -419,7 +419,7 @@
     "message": "Geben Sie pro Zeile ein WebExtension-Übereinstimmungsmuster ein. Ausschlüsse überschreiben die oben genannten passenden URLs und gelten sowohl für die Verlaufsverfolgung als auch für das Routing."
   },
   "o_lBrowserDownloadVariables": {
-    "message": "Browser-Downloads stellen nur die URL, den vorgeschlagenen Dateinamen, die aktuelle Uhrzeit, den Zähler, die UUID und MIME-Variablen bereit. Seitentitel, Seiten-URL, Linktext, Auswahl, Menümetadaten und Tastenmodifikatoren sind nicht verfügbar."
+    "message": "URL, vorgeschlagener Dateiname, MIME-Typ, aktuelle Uhrzeit, Zähler und UUID"
   },
   "o_sRenameAndRouteDownloads": {
     "message": "Routing und Umbenennen"
@@ -1127,7 +1127,7 @@
     "message": "Entspricht jedem Pfad. Abfrageparameter und explizite Ports können nicht abgeglichen werden."
   },
   "html_trackAndRouteBrowserDownloads": {
-    "message": "Browser-Downloads verfolgen und weiterleiten"
+    "message": "Browser-Downloads"
   },
   "html_writeOneClausePerLine": {
     "message": "Schreiben Sie eine Klausel pro Zeile."
@@ -2556,7 +2556,22 @@
     "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
   },
   "o_cBrowserDownloadFiltersEnabled": {
-    "message": "Browser-Downloads anhand der URL begrenzen"
+    "message": "Nur passende Download-URLs verarbeiten"
+  },
+  "o_cBrowserDownloadFiltersEnabledHelp": {
+    "message": "Gilt für die Verlaufserfassung und das Routing von Save In."
+  },
+  "o_cBrowserDownloadFilterInvalid": {
+    "message": "Ungültiges Muster. Wenn der URL-Filter aktiviert ist, stimmt kein Download überein, bis dies korrigiert wurde."
+  },
+  "o_cBrowserDownloadExcludeFilterInvalid": {
+    "message": "Ungültiges Muster. Wenn der URL-Filter aktiviert ist, wird diese Zeile ignoriert, bis sie korrigiert wurde."
+  },
+  "o_lBrowserDownloadVariablesHeading": {
+    "message": "Verfügbare Routing-Daten"
+  },
+  "o_lBrowserDownloadVariablesUnavailable": {
+    "message": "Seitentitel, Seiten-URL, Linktext, Auswahl, Menümetadaten und Tastenmodifikatoren sind nicht verfügbar."
   },
   "welcomeTitle": { "message": "Willkommen bei Save In" },
   "welcomeIntro": {

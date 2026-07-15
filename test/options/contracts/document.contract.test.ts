@@ -82,6 +82,45 @@ test.each([
   expect(group).not.toBeNull();
 });
 
+test("keeps Browser routings actions concise, described, and task ordered", () => {
+  const document = documentForOptions();
+  const panel = document.getElementById("section-browser-downloads")?.parentElement;
+  const controls = [
+    ["trackBrowserDownloads", "track-browser-downloads-help"],
+    ["routeBrowserDownloads", "route-browser-downloads-help"],
+    ["routeBrowserDownloadsFirefox", "route-browser-downloads-firefox-help"],
+  ] as const;
+
+  for (const [controlId, helpId] of controls) {
+    const control = document.getElementById(controlId);
+    const label = document.querySelector(`label[for="${controlId}"]`);
+    const help = document.getElementById(helpId);
+    expect(control?.getAttribute("aria-describedby")).toContain(helpId);
+    expect(label).not.toBeNull();
+    expect(label?.contains(help)).toBe(false);
+  }
+
+  expect(panel?.querySelector("#browser-download-manage-rules")).not.toBeNull();
+  const trackingControl = panel?.querySelector("#trackBrowserDownloads");
+  const routingControl = panel?.querySelector("#routeBrowserDownloads");
+  expect(trackingControl).not.toBeNull();
+  expect(routingControl).not.toBeNull();
+  expect(
+    trackingControl && routingControl
+      ? trackingControl.compareDocumentPosition(routingControl) & Node.DOCUMENT_POSITION_FOLLOWING
+      : 0,
+  ).toBeTruthy();
+  for (const [controlId, summaryId] of [
+    ["browserDownloadFilter", "browser-download-filter-error"],
+    ["browserDownloadExcludeFilter", "browser-download-exclude-filter-error"],
+  ] as const) {
+    const control = document.getElementById(controlId);
+    expect(control?.getAttribute("data-syntax-validation-summary")).toBe(summaryId);
+    expect(control?.getAttribute("aria-describedby")).toContain(summaryId);
+    expect(document.getElementById(summaryId)?.getAttribute("role")).toBe("status");
+  }
+});
+
 test("keeps behavior controls owned by their semantic groups", () => {
   const document = documentForOptions();
   const expected = {

@@ -71,6 +71,32 @@ describe("syntax editor surface", () => {
     expect(document.querySelector(".syntax-token-matcher")?.textContent).toBe("https");
   });
 
+  test("exposes persistent validation feedback for configured syntax editors", () => {
+    document.body.innerHTML = `<textarea
+      id="filter"
+      data-syntax-validation-summary="filter-error"
+      aria-describedby="filter-help filter-error"
+    >not a pattern</textarea>
+    <div id="filter-help">Enter one pattern per line.</div>
+    <div id="filter-error" role="status" hidden>No downloads will match.</div>`;
+    const textarea = document.querySelector<HTMLTextAreaElement>("#filter")!;
+    const summary = document.querySelector<HTMLElement>("#filter-error")!;
+    const editor = createSyntaxEditor(textarea, "match-patterns");
+
+    expect(textarea.getAttribute("aria-invalid")).toBe("true");
+    expect(textarea.getAttribute("aria-describedby")).toBe("filter-help filter-error");
+    expect(summary.hidden).toBe(false);
+
+    textarea.value = "https://example.com/*";
+    textarea.dispatchEvent(new InputEvent("input", { bubbles: true }));
+    expect(textarea.hasAttribute("aria-invalid")).toBe(false);
+    expect(summary.hidden).toBe(true);
+
+    editor.destroy();
+    expect(textarea.hasAttribute("aria-invalid")).toBe(false);
+    expect(summary.hidden).toBe(true);
+  });
+
   test("renders diagnostics, caret feedback, and gutter navigation without hover tooltips", () => {
     document.body.innerHTML = '<textarea id="paths">first\nsecond</textarea>';
     const textarea = document.querySelector("textarea")!;

@@ -31,6 +31,7 @@ describe("routing visual editor", () => {
         </details>
       </div>
       <button type="button" id="auto-download-manage-rules">Open routing rules</button>
+      <button type="button" id="browser-download-manage-rules">Open routing rules</button>
       <input id="route-debugger-filename" value="report.pdf">
       <input id="route-debugger-source-url" value="https://cdn.example/report.pdf">
       <select id="route-debugger-context"><option value="link" selected>Link</option></select>
@@ -487,6 +488,21 @@ describe("routing visual editor", () => {
     expect(navigate).toHaveBeenCalledOnce();
     expect((navigate.mock.calls[0]![0] as CustomEvent).detail.target).toBe(
       element("#rule-editor-add-auto"),
+    );
+  });
+
+  test("opens the shared editor from Browser routings without changing its mode", () => {
+    localStorage.setItem("saveInRulesEditorMode", "text");
+    const navigate = vi.fn();
+    document.addEventListener("save-in:navigate-option", navigate, { once: true });
+    setupRuleVisualEditor({ matchers: ["context", "sourceurl"] });
+
+    element<HTMLButtonElement>("#browser-download-manage-rules").click();
+
+    expect(element<HTMLElement>("#rules-text-editor").hidden).toBe(false);
+    expect(navigate).toHaveBeenCalledOnce();
+    expect((navigate.mock.calls[0]![0] as CustomEvent).detail.target).toBe(
+      element("#filenamePatterns"),
     );
   });
 

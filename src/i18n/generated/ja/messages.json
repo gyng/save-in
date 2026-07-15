@@ -203,19 +203,19 @@
     "message": "必要に応じて、Web ページまたはブラウザーによって開始されたダウンロードを追跡またはルーティングします。Save In または別の拡張機能によって開始されたダウンロードは除外されます。"
   },
   "o_cTrackBrowserDownloads": {
-    "message": "通常のブラウザーのダウンロードを Save In 履歴に含める"
+    "message": "ブラウザーのダウンロードを Save In 履歴に追加"
   },
   "o_cTrackBrowserDownloadsHelp": {
     "message": "所有権を取得せずに、Save In 履歴に一致するダウンロードを記録します。これらは再試行されず、Save In プロンプトや通知もトリガーされません。"
   },
   "o_cRouteBrowserDownloads": {
-    "message": "ブラウザーのダウンロードにルーティングルールを使用する"
+    "message": "ルーティングルールでブラウザーのダウンロードをルーティング"
   },
   "o_cRouteBrowserDownloadsHelp": {
     "message": "サポートされている場合、一致するルールでブラウザーのダウンロードの名前を変更したり、サブフォルダーに配置したりできます。一致しないダウンロードは変更されません。"
   },
   "o_cRouteBrowserDownloadsFirefox": {
-    "message": "Firefox で一致するダウンロードを試験的に再ルーティング"
+    "message": "一致するブラウザーのダウンロードを再ルーティング"
   },
   "o_cRouteBrowserDownloadsFirefoxHelp": {
     "message": "Firefox にはネイティブのファイル名ルーティング機能がないため、Save In は一致するダウンロードをキャンセルして代替ダウンロードを開始します。POST リクエスト、期限切れになる URL、カスタムヘッダー、認証が必要なダウンロードでは失敗することがあります。"
@@ -236,7 +236,7 @@
     "message": "1 行に 1 つの WebExtension 一致パターンを入力します。除外は、上記の一致する URL をオーバーライドし、履歴追跡とルーティングの両方に適用されます。"
   },
   "o_lBrowserDownloadVariables": {
-    "message": "ブラウザーのダウンロードでは、URL、提案されたファイル名、現在時刻、カウンター、UUID、MIME 変数のみを使用できます。ページタイトル、ページ URL、リンクテキスト、選択範囲、メニューメタデータ、修飾キーは使用できません。"
+    "message": "URL、提案されたファイル名、MIME タイプ、現在時刻、カウンター、UUID"
   },
   "o_sRenameAndRouteDownloads": {
     "message": "ルーティングと名前変更"
@@ -944,7 +944,7 @@
     "message": "すべてのパスに一致します。クエリパラメーターと明示的なポートは照合できません。"
   },
   "html_trackAndRouteBrowserDownloads": {
-    "message": "ブラウザーのダウンロードを追跡してルーティング"
+    "message": "ブラウザーのダウンロード"
   },
   "html_writeOneClausePerLine": {
     "message": "1 行に 1 つの句を記述します。"
@@ -2643,7 +2643,22 @@
     "message": "$VALUE$ をコピーしました",
     "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
   },
-  "o_cBrowserDownloadFiltersEnabled": { "message": "ブラウザーのダウンロードを URL で制限" },
+  "o_cBrowserDownloadFiltersEnabled": { "message": "一致するダウンロード URL のみを処理" },
+  "o_cBrowserDownloadFiltersEnabledHelp": {
+    "message": "Save In の履歴追跡とルーティングに適用されます。"
+  },
+  "o_cBrowserDownloadFilterInvalid": {
+    "message": "無効なパターンです。URL フィルターがオンの場合、修正するまでダウンロードは一致しません。"
+  },
+  "o_cBrowserDownloadExcludeFilterInvalid": {
+    "message": "無効なパターンです。URL フィルターがオンの場合、修正するまでこの行は無視されます。"
+  },
+  "o_lBrowserDownloadVariablesHeading": {
+    "message": "使用可能なルーティングデータ"
+  },
+  "o_lBrowserDownloadVariablesUnavailable": {
+    "message": "ページタイトル、ページ URL、リンクテキスト、選択範囲、メニューメタデータ、修飾キーは使用できません。"
+  },
   "welcomeTitle": { "message": "Save In へようこそ" },
   "welcomeIntro": {
     "message": "Save In の準備ができました。右クリックメニューを使って、画像、リンク、選択したテキスト、メディア、ページを選択したフォルダーに保存できます。"

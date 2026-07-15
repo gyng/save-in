@@ -388,19 +388,19 @@
     "message": "Opcionalmente, rastreie ou direcione downloads iniciados por páginas da web ou pelo navegador. Os downloads iniciados por Save In ou outra extensão são excluídos."
   },
   "o_cTrackBrowserDownloads": {
-    "message": "Incluir downloads comuns do navegador no histórico de Save In"
+    "message": "Adicionar downloads do navegador ao histórico do Save In"
   },
   "o_cTrackBrowserDownloadsHelp": {
     "message": "Registra downloads correspondentes no histórico do Save In sem assumir o controle deles. Não há novas tentativas, e eles não acionam perguntas nem notificações do Save In."
   },
   "o_cRouteBrowserDownloads": {
-    "message": "Use regras de roteamento para downloads do navegador"
+    "message": "Rotear downloads do navegador com regras de roteamento"
   },
   "o_cRouteBrowserDownloadsHelp": {
     "message": "Quando suportadas, as regras correspondentes podem renomear downloads do navegador ou colocá-los em subpastas. Os downloads sem correspondência permanecem inalterados."
   },
   "o_cRouteBrowserDownloadsFirefox": {
-    "message": "Redirecione experimentalmente downloads correspondentes no Firefox"
+    "message": "Redirecionar downloads correspondentes do navegador"
   },
   "o_cRouteBrowserDownloadsFirefoxHelp": {
     "message": "Firefox não possui roteamento de nome de arquivo nativo, então Save In cancela cada download correspondente e inicia uma substituição. Isso pode falhar em solicitações POST, URLs expiradas, cabeçalhos personalizados ou downloads autenticados."
@@ -421,7 +421,7 @@
     "message": "Insira um padrão de correspondência WebExtension por linha. As exclusões têm precedência sobre os URLs correspondentes acima e se aplicam ao rastreamento do histórico e ao roteamento."
   },
   "o_lBrowserDownloadVariables": {
-    "message": "Os downloads do navegador fornecem apenas o URL, o nome do arquivo proposto, a hora atual, o contador, o UUID e as variáveis MIME. O título da página, o URL da página, o texto do link, a seleção, os metadados do menu e os modificadores de teclas não estão disponíveis."
+    "message": "URL, nome de arquivo proposto, tipo MIME, hora atual, contador e UUID"
   },
   "o_sRenameAndRouteDownloads": {
     "message": "Roteamento e renomeação"
@@ -1129,7 +1129,7 @@
     "message": "Corresponde a todos os caminhos. Parâmetros de consulta e portas explícitas não podem ser usados na correspondência."
   },
   "html_trackAndRouteBrowserDownloads": {
-    "message": "Rastrear e rotear downloads do navegador"
+    "message": "Downloads do navegador"
   },
   "html_writeOneClausePerLine": {
     "message": "Escreva uma cláusula por linha."
@@ -2545,7 +2545,24 @@
     "message": "$VALUE$ copiado",
     "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
   },
-  "o_cBrowserDownloadFiltersEnabled": { "message": "Limitar downloads do navegador por URL" },
+  "o_cBrowserDownloadFiltersEnabled": {
+    "message": "Processar somente URLs de download correspondentes"
+  },
+  "o_cBrowserDownloadFiltersEnabledHelp": {
+    "message": "Aplica-se ao registro no histórico e ao roteamento do Save In."
+  },
+  "o_cBrowserDownloadFilterInvalid": {
+    "message": "Padrão inválido. Quando a filtragem de URL estiver ativada, nenhum download corresponderá até que isso seja corrigido."
+  },
+  "o_cBrowserDownloadExcludeFilterInvalid": {
+    "message": "Padrão inválido. Quando a filtragem de URL estiver ativada, esta linha será ignorada até que seja corrigida."
+  },
+  "o_lBrowserDownloadVariablesHeading": {
+    "message": "Dados de roteamento disponíveis"
+  },
+  "o_lBrowserDownloadVariablesUnavailable": {
+    "message": "Título da página, URL da página, texto do link, seleção, metadados do menu e teclas modificadoras não estão disponíveis."
+  },
   "welcomeTitle": { "message": "Boas-vindas ao Save In" },
   "welcomeIntro": {
     "message": "O Save In está pronto. Use o menu de contexto para salvar imagens, links, texto selecionado, mídia e páginas nas pastas que você escolher."

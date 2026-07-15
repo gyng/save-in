@@ -243,6 +243,18 @@ export const createSyntaxEditor = (
   let characterWidth = 0;
   let tooltipPinned = false;
   let selectedSourceIndex: number | null = null;
+  const validationSummaryId = textarea.dataset.syntaxValidationSummary;
+  const validationSummary = validationSummaryId
+    ? textarea.ownerDocument.getElementById(validationSummaryId)
+    : null;
+
+  const syncValidationSummary = (diagnostics: readonly SyntaxEditorDiagnostic[]) => {
+    if (!validationSummary) return;
+    const invalid = diagnostics.some(({ severity }) => severity === "error");
+    validationSummary.hidden = !invalid;
+    if (invalid) textarea.setAttribute("aria-invalid", "true");
+    else textarea.removeAttribute("aria-invalid");
+  };
 
   const syncCurrentLine = (notify = false) => {
     const offset = textarea.selectionStart;
@@ -295,6 +307,7 @@ export const createSyntaxEditor = (
     snapshot = analyzeSyntax(language, textarea.value);
     renderedDiagnostics = renderOverlay(overlay, snapshot, externalDiagnostics);
     renderGutter(gutter, snapshot, renderedDiagnostics);
+    syncValidationSummary(renderedDiagnostics);
     syncScroll();
   };
 
@@ -477,6 +490,8 @@ export const createSyntaxEditor = (
       gutter.removeEventListener("mouseleave", hideHoverTooltip);
       textarea.classList.remove("syntax-editor-input");
       textarea.removeAttribute("wrap");
+      textarea.removeAttribute("aria-invalid");
+      if (validationSummary) validationSummary.hidden = true;
       shell.replaceWith(textarea);
       tooltip.remove();
       controllers.delete(textarea);

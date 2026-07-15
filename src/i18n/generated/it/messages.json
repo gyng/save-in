@@ -186,19 +186,19 @@
     "message": "Facoltativamente, traccia o instrada i download avviati dalle pagine Web o dal browser. Sono esclusi i download avviati da Save In o da un'altra estensione."
   },
   "o_cTrackBrowserDownloads": {
-    "message": "Includi i normali download del browser nella cronologia Save In"
+    "message": "Aggiungi i download del browser alla cronologia di Save In"
   },
   "o_cTrackBrowserDownloadsHelp": {
     "message": "Registra i download corrispondenti nella cronologia Save In senza assumerne la proprietà. Non vengono ritentati e non attivano richieste o notifiche Save In."
   },
   "o_cRouteBrowserDownloads": {
-    "message": "Utilizza le regole di routing per i download del browser"
+    "message": "Instrada i download del browser con le regole di routing"
   },
   "o_cRouteBrowserDownloadsHelp": {
     "message": "Se supportate, le regole di corrispondenza possono rinominare i download del browser o inserirli in sottocartelle. I download senza corrispondenza rimangono invariati."
   },
   "o_cRouteBrowserDownloadsFirefox": {
-    "message": "Reindirizza sperimentalmente i download corrispondenti in Firefox"
+    "message": "Reindirizza i download del browser corrispondenti"
   },
   "o_cRouteBrowserDownloadsFirefoxHelp": {
     "message": "Firefox non supporta il routing nativo dei nomi file, quindi Save In annulla ogni download corrispondente e ne avvia uno sostitutivo. L'operazione può non riuscire con richieste POST, URL temporanei, intestazioni personalizzate o download autenticati."
@@ -219,7 +219,7 @@
     "message": "Inserisci un pattern di corrispondenza WebExtension per riga. Le esclusioni hanno la precedenza sugli URL inclusi sopra e si applicano sia alla cronologia sia al routing."
   },
   "o_lBrowserDownloadVariables": {
-    "message": "I download del browser forniscono solo URL, nome file proposto, ora corrente, contatore, UUID e MIME. Non sono disponibili titolo e URL della pagina, testo del collegamento, selezione, metadati del menu e tasti modificatori."
+    "message": "URL, nome file proposto, tipo MIME, ora corrente, contatore e UUID"
   },
   "o_sRenameAndRouteDownloads": {
     "message": "Routing e ridenominazione"
@@ -1299,7 +1299,7 @@
     "message": "Corrisponde a ogni percorso. I parametri di query e le porte esplicite non possono essere abbinati."
   },
   "html_trackAndRouteBrowserDownloads": {
-    "message": "Tieni traccia e instrada i download del browser"
+    "message": "Download del browser"
   },
   "html_writeOneClausePerLine": {
     "message": "Scrivi una clausola per riga."
@@ -2737,7 +2737,22 @@
     "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
   },
   "o_cBrowserDownloadFiltersEnabled": {
-    "message": "Limita i download del browser in base all’URL"
+    "message": "Gestisci solo gli URL di download corrispondenti"
+  },
+  "o_cBrowserDownloadFiltersEnabledHelp": {
+    "message": "Si applica al monitoraggio nella cronologia e al routing di Save In."
+  },
+  "o_cBrowserDownloadFilterInvalid": {
+    "message": "Pattern non valido. Quando il filtro URL è attivo, nessun download corrisponderà finché non viene corretto."
+  },
+  "o_cBrowserDownloadExcludeFilterInvalid": {
+    "message": "Pattern non valido. Quando il filtro URL è attivo, questa riga viene ignorata finché non viene corretta."
+  },
+  "o_lBrowserDownloadVariablesHeading": {
+    "message": "Dati di routing disponibili"
+  },
+  "o_lBrowserDownloadVariablesUnavailable": {
+    "message": "Titolo e URL della pagina, testo del collegamento, selezione, metadati del menu e tasti modificatori non sono disponibili."
   },
   "welcomeTitle": { "message": "Benvenuto in Save In" },
   "welcomeIntro": {

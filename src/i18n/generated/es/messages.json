@@ -384,19 +384,19 @@
     "message": "Puede registrar o enrutar las descargas iniciadas por páginas web o por el navegador. Se excluyen las descargas iniciadas por Save In u otra extensión."
   },
   "o_cTrackBrowserDownloads": {
-    "message": "Incluir descargas normales del navegador en el historial Save In"
+    "message": "Añadir descargas del navegador al historial de Save In"
   },
   "o_cTrackBrowserDownloadsHelp": {
     "message": "Registra las descargas coincidentes en el historial de Save In sin asumir su control. Save In no vuelve a intentarlas ni muestra avisos o notificaciones."
   },
   "o_cRouteBrowserDownloads": {
-    "message": "Usar reglas de enrutamiento para las descargas del navegador"
+    "message": "Enrutar descargas del navegador con reglas de enrutamiento"
   },
   "o_cRouteBrowserDownloadsHelp": {
     "message": "Cuando sea compatible, las reglas coincidentes pueden cambiar el nombre de las descargas del navegador o colocarlas en subcarpetas. Las descargas sin coincidencia no se modifican."
   },
   "o_cRouteBrowserDownloadsFirefox": {
-    "message": "Redirigir experimentalmente descargas coincidentes en Firefox"
+    "message": "Redirigir descargas coincidentes del navegador"
   },
   "o_cRouteBrowserDownloadsFirefoxHelp": {
     "message": "Firefox carece de enrutamiento de nombres de archivos nativo, por lo que Save In cancela cada descarga coincidente e inicia un reemplazo. Esto puede fallar en solicitudes POST, URL que caducan, encabezados personalizados o descargas autenticadas."
@@ -417,7 +417,7 @@
     "message": "Introduzca un patrón de coincidencia de WebExtension por línea. Las exclusiones anulan las URL coincidentes anteriores y se aplican tanto al seguimiento del historial como al enrutamiento."
   },
   "o_lBrowserDownloadVariables": {
-    "message": "Las descargas del navegador solo proporcionan la URL, el nombre de archivo propuesto, la hora actual, el contador, el UUID y las variables MIME. El título de la página, la URL de la página, el texto del enlace, la selección, los metadatos del menú y las teclas modificadoras no están disponibles."
+    "message": "URL, nombre de archivo propuesto, tipo MIME, hora actual, contador y UUID"
   },
   "o_sRenameAndRouteDownloads": {
     "message": "Enrutamiento y cambio de nombre"
@@ -1125,7 +1125,7 @@
     "message": "Coincide con cualquier ruta. No se pueden hacer coincidir los parámetros de consulta ni los puertos explícitos."
   },
   "html_trackAndRouteBrowserDownloads": {
-    "message": "Rastrear y enrutar las descargas del navegador"
+    "message": "Descargas del navegador"
   },
   "html_writeOneClausePerLine": {
     "message": "Escriba una cláusula por línea."
@@ -2545,7 +2545,24 @@
     "message": "Se copió $VALUE$",
     "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
   },
-  "o_cBrowserDownloadFiltersEnabled": { "message": "Limitar descargas del navegador por URL" },
+  "o_cBrowserDownloadFiltersEnabled": {
+    "message": "Gestionar solo URL de descarga coincidentes"
+  },
+  "o_cBrowserDownloadFiltersEnabledHelp": {
+    "message": "Se aplica al registro en el historial y al enrutamiento de Save In."
+  },
+  "o_cBrowserDownloadFilterInvalid": {
+    "message": "Patrón no válido. Cuando el filtro de URL está activado, ninguna descarga coincidirá hasta que se corrija."
+  },
+  "o_cBrowserDownloadExcludeFilterInvalid": {
+    "message": "Patrón no válido. Cuando el filtro de URL está activado, esta línea se ignora hasta que se corrija."
+  },
+  "o_lBrowserDownloadVariablesHeading": {
+    "message": "Datos de enrutamiento disponibles"
+  },
+  "o_lBrowserDownloadVariablesUnavailable": {
+    "message": "El título de la página, la URL de la página, el texto del enlace, la selección, los metadatos del menú y las teclas modificadoras no están disponibles."
+  },
   "welcomeTitle": { "message": "Te damos la bienvenida a Save In" },
   "welcomeIntro": {
     "message": "Save In está listo. Usa el menú contextual para guardar imágenes, enlaces, texto seleccionado, contenido multimedia y páginas en las carpetas que elijas."

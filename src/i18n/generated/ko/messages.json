@@ -203,19 +203,19 @@
     "message": "선택적으로 웹페이지나 브라우저에서 시작된 다운로드를 추적하거나 라우팅합니다. Save In 또는 다른 확장 프로그램으로 시작된 다운로드는 제외됩니다."
   },
   "o_cTrackBrowserDownloads": {
-    "message": "Save In 기록에 일반 브라우저 다운로드 포함"
+    "message": "브라우저 다운로드를 Save In 기록에 추가"
   },
   "o_cTrackBrowserDownloadsHelp": {
     "message": "소유권을 갖지 않고 Save In 기록에 일치하는 다운로드를 기록합니다. 재시도되지 않으며 Save In 프롬프트나 알림이 트리거되지 않습니다."
   },
   "o_cRouteBrowserDownloads": {
-    "message": "브라우저 다운로드에 라우팅 규칙 사용"
+    "message": "라우팅 규칙으로 브라우저 다운로드 라우팅"
   },
   "o_cRouteBrowserDownloadsHelp": {
     "message": "지원되는 경우 일치 규칙은 브라우저 다운로드의 이름을 바꾸거나 하위 폴더에 배치할 수 있습니다. 일치하지 않는 다운로드는 변경되지 않습니다."
   },
   "o_cRouteBrowserDownloadsFirefox": {
-    "message": "Firefox에서 일치하는 다운로드를 실험적으로 다시 라우팅"
+    "message": "일치하는 브라우저 다운로드 다시 라우팅"
   },
   "o_cRouteBrowserDownloadsFirefoxHelp": {
     "message": "Firefox에는 기본 파일명 라우팅 기능이 없으므로 Save In은 일치하는 다운로드를 취소하고 대체 다운로드를 시작합니다. POST 요청, 만료되는 URL, 사용자 지정 헤더 또는 인증이 필요한 다운로드에서는 실패할 수 있습니다."
@@ -236,7 +236,7 @@
     "message": "WebExtension 일치 패턴을 한 줄에 하나씩 입력하세요. 제외는 위의 일치 URL보다 우선하며 기록 추적 및 라우팅에 모두 적용됩니다."
   },
   "o_lBrowserDownloadVariables": {
-    "message": "브라우저 다운로드는 URL, 제안된 파일 이름, 현재 시간, 카운터, UUID 및 MIME 변수만 제공합니다. 페이지 제목, 페이지 URL, 링크 텍스트, 선택 항목, 메뉴 메타데이터 및 보조 키는 사용할 수 없습니다."
+    "message": "URL, 제안된 파일 이름, MIME 유형, 현재 시간, 카운터 및 UUID"
   },
   "o_sRenameAndRouteDownloads": {
     "message": "라우팅 및 이름 바꾸기"
@@ -944,7 +944,7 @@
     "message": "모든 경로에 일치합니다. 쿼리 매개변수와 명시적 포트는 일치시킬 수 없습니다."
   },
   "html_trackAndRouteBrowserDownloads": {
-    "message": "브라우저 다운로드 추적 및 라우팅"
+    "message": "브라우저 다운로드"
   },
   "html_writeOneClausePerLine": {
     "message": "한 줄에 한 절씩 작성하세요."
@@ -2643,7 +2643,22 @@
     "message": "$VALUE$ 복사됨",
     "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
   },
-  "o_cBrowserDownloadFiltersEnabled": { "message": "브라우저 다운로드를 URL로 제한" },
+  "o_cBrowserDownloadFiltersEnabled": { "message": "일치하는 다운로드 URL만 처리" },
+  "o_cBrowserDownloadFiltersEnabledHelp": {
+    "message": "Save In 기록 추적 및 라우팅에 적용됩니다."
+  },
+  "o_cBrowserDownloadFilterInvalid": {
+    "message": "잘못된 패턴입니다. URL 필터링이 켜져 있으면 수정할 때까지 일치하는 다운로드가 없습니다."
+  },
+  "o_cBrowserDownloadExcludeFilterInvalid": {
+    "message": "잘못된 패턴입니다. URL 필터링이 켜져 있으면 수정할 때까지 이 줄이 무시됩니다."
+  },
+  "o_lBrowserDownloadVariablesHeading": {
+    "message": "사용 가능한 라우팅 데이터"
+  },
+  "o_lBrowserDownloadVariablesUnavailable": {
+    "message": "페이지 제목, 페이지 URL, 링크 텍스트, 선택 항목, 메뉴 메타데이터 및 보조 키는 사용할 수 없습니다."
+  },
   "welcomeTitle": { "message": "Save In에 오신 것을 환영합니다" },
   "welcomeIntro": {
     "message": "Save In을 사용할 준비가 되었습니다. 오른쪽 클릭 메뉴를 사용하여 이미지, 링크, 선택한 텍스트, 미디어 및 페이지를 원하는 폴더에 저장하세요."

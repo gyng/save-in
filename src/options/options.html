@@ -520,28 +520,58 @@ Briefly explain the structure, check that every line follows this syntax, then p
 
         <p class="section-lead">__MSG_o_lBrowserDownloadsHelp__</p>
 
-        <label class="filename-suggestion-only">
-          <input type="checkbox" id="routeBrowserDownloads" />
-          __MSG_o_cRouteBrowserDownloads__
-          <div class="caption caption-line">__MSG_o_cRouteBrowserDownloadsHelp__</div>
-        </label>
-
-        <label class="firefox-reroute-only">
-          <input type="checkbox" id="routeBrowserDownloadsFirefox" />
-          __MSG_o_cRouteBrowserDownloadsFirefox__
-          <span class="badge">Firefox</span>
-          <span class="badge warning">__MSG_o_lExperimental__</span>
-          <div class="caption caption-line warning">
-            __MSG_o_cRouteBrowserDownloadsFirefoxHelp__
-            <a
-              class="external"
-              href="https://bugzilla.mozilla.org/show_bug.cgi?id=1245652"
-              target="_blank"
-              rel="noreferrer"
-              >__MSG_o_lFirefoxFilenameApiBug__</a
-            >
+        <div class="browser-download-choice">
+          <input
+            type="checkbox"
+            id="trackBrowserDownloads"
+            aria-describedby="track-browser-downloads-help"
+          />
+          <label for="trackBrowserDownloads">__MSG_o_cTrackBrowserDownloads__</label>
+          <div class="caption caption-line" id="track-browser-downloads-help">
+            __MSG_o_cTrackBrowserDownloadsHelp__
           </div>
-        </label>
+        </div>
+
+        <div class="browser-download-route-group">
+          <div class="browser-download-choice filename-suggestion-only">
+            <input
+              type="checkbox"
+              id="routeBrowserDownloads"
+              aria-describedby="route-browser-downloads-help"
+            />
+            <label for="routeBrowserDownloads">__MSG_o_cRouteBrowserDownloads__</label>
+            <div class="caption caption-line" id="route-browser-downloads-help">
+              __MSG_o_cRouteBrowserDownloadsHelp__
+            </div>
+          </div>
+
+          <div class="browser-download-choice firefox-reroute-only">
+            <input
+              type="checkbox"
+              id="routeBrowserDownloadsFirefox"
+              aria-describedby="route-browser-downloads-firefox-help"
+            />
+            <label for="routeBrowserDownloadsFirefox" class="inline-control-label">
+              __MSG_o_cRouteBrowserDownloadsFirefox__
+              <span class="badge">Firefox</span>
+              <span class="badge warning">__MSG_o_lExperimental__</span>
+            </label>
+            <div class="caption caption-line warning" id="route-browser-downloads-firefox-help">
+              __MSG_o_cRouteBrowserDownloadsFirefoxHelp__
+              <a
+                class="external"
+                href="https://bugzilla.mozilla.org/show_bug.cgi?id=1245652"
+                target="_blank"
+                rel="noreferrer"
+                >__MSG_o_lFirefoxFilenameApiBug__</a
+              >
+            </div>
+          </div>
+
+          <button type="button" id="browser-download-manage-rules">
+            __MSG_autoDownloadManageRules__
+          </button>
+        </div>
 
         <div class="browser-download-filter-group">
           <label class="browser-download-filter-master">
@@ -549,41 +579,82 @@ Briefly explain the structure, check that every line follows this syntax, then p
               type="checkbox"
               id="browserDownloadFiltersEnabled"
               aria-controls="browser-download-filter-options"
+              aria-describedby="browser-download-filters-help"
             />
             __MSG_o_cBrowserDownloadFiltersEnabled__
           </label>
+          <div class="caption caption-line" id="browser-download-filters-help">
+            __MSG_o_cBrowserDownloadFiltersEnabledHelp__
+          </div>
 
           <div
             id="browser-download-filter-options"
             class="dependent-options browser-download-filter-options"
           >
-            <label>
-              <span>__MSG_o_cBrowserDownloadFilter__</span>
+            <div class="browser-download-filter-field">
+              <label for="browserDownloadFilter">__MSG_o_cBrowserDownloadFilter__</label>
               <textarea
                 class="full-width"
                 id="browserDownloadFilter"
                 rows="3"
                 placeholder="*://*.example.com/*"
                 spellcheck="false"
+                aria-describedby="browser-download-filter-help browser-download-filter-error"
+                data-syntax-validation-summary="browser-download-filter-error"
               ></textarea>
-              <div class="caption caption-line">__MSG_o_cBrowserDownloadFilterHelp__</div>
-            </label>
+              <div class="caption caption-line" id="browser-download-filter-help">
+                __MSG_o_cBrowserDownloadFilterHelp__
+              </div>
+              <div
+                class="feedback feedback-inline feedback-error"
+                id="browser-download-filter-error"
+                role="status"
+                aria-live="polite"
+                hidden
+              >
+                __MSG_o_cBrowserDownloadFilterInvalid__
+              </div>
+            </div>
 
-            <label>
-              <span>__MSG_o_cBrowserDownloadExcludeFilter__</span>
+            <div class="browser-download-filter-field">
+              <label for="browserDownloadExcludeFilter"
+                >__MSG_o_cBrowserDownloadExcludeFilter__</label
+              >
               <textarea
                 class="full-width"
                 id="browserDownloadExcludeFilter"
                 rows="3"
                 placeholder="*://private.example.com/*"
                 spellcheck="false"
+                aria-describedby="browser-download-exclude-filter-help browser-download-exclude-filter-error"
+                data-syntax-validation-summary="browser-download-exclude-filter-error"
               ></textarea>
-              <div class="caption caption-line">__MSG_o_cBrowserDownloadExcludeFilterHelp__</div>
-            </label>
+              <div class="caption caption-line" id="browser-download-exclude-filter-help">
+                __MSG_o_cBrowserDownloadExcludeFilterHelp__
+              </div>
+              <div
+                class="feedback feedback-inline feedback-error"
+                id="browser-download-exclude-filter-error"
+                role="status"
+                aria-live="polite"
+                hidden
+              >
+                __MSG_o_cBrowserDownloadExcludeFilterInvalid__
+              </div>
+            </div>
           </div>
         </div>
 
-        <div class="caption caption-line">__MSG_o_lBrowserDownloadVariables__</div>
+        <section
+          class="info-row browser-download-routing-data"
+          aria-labelledby="browser-download-routing-data-heading"
+        >
+          <h4 id="browser-download-routing-data-heading">
+            __MSG_o_lBrowserDownloadVariablesHeading__
+          </h4>
+          <p>__MSG_o_lBrowserDownloadVariables__</p>
+          <p class="caption">__MSG_o_lBrowserDownloadVariablesUnavailable__</p>
+        </section>
 
         <details class="inline-guide">
           <summary>__MSG_html_howDoDownloadUrlFiltersWork__</summary>
@@ -612,12 +683,6 @@ Briefly explain the structure, check that every line follows this syntax, then p
             </dl>
           </div>
         </details>
-
-        <label>
-          <input type="checkbox" id="trackBrowserDownloads" />
-          __MSG_o_cTrackBrowserDownloads__
-          <div class="caption caption-line">__MSG_o_cTrackBrowserDownloadsHelp__</div>
-        </label>
       </div>
 
       <hr />
@@ -1205,7 +1270,10 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
               __MSG_html_references__
             </h4>
             <div class="reference-sections" aria-label="__MSG_html_insertionReferences__">
-              <details class="variables-preview details-popup" data-insert-target="filenamePatterns">
+              <details
+                class="variables-preview details-popup"
+                data-insert-target="filenamePatterns"
+              >
                 <summary>__MSG_o_lLiveVariables__</summary>
                 <div class="variables-preview-list"></div>
               </details>
