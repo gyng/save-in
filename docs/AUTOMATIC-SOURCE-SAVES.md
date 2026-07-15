@@ -1,9 +1,10 @@
 # Automatic source saves
 
 Save In can automatically save newly discovered page sources through the same
-Dynamic Downloads rules used for interactive saves. The feature is disabled by
-default. Automatic rules live in `filenamePatterns`, appear in the shared
-Text/Visual routing editor, and are marked **Automatic source** in Visual mode.
+**Routing rules** used for interactive saves. The feature is disabled by
+default. Automatic rules live in `filenamePatterns`, appear in **Text** and
+**Visual** modes under **Routing rules**, and are marked **Automatic source** in
+Visual mode.
 
 ## Set up an automatic rule
 

@@ -15,8 +15,9 @@ rules.
   handling, Page Sources, and more dependable click-to-save behavior.
 - Added opt-in automatic saving for discovered Page Sources through guarded
   `context: ^auto$` routing rules, with live/private controls and a per-page
-  limit. The shared Visual routing editor creates and identifies these rules;
-  valid settings from the earlier dedicated rule field migrate automatically.
+  limit. **Visual** mode under **Routing rules** creates and identifies these
+  rules; valid settings from the earlier dedicated rule field migrate
+  automatically.
 - Added opt-in tracking and routing for ordinary browser downloads, including a
   separately labelled experimental Firefox replacement mode.
 - Added explicitly approved extension integrations, validated configuration
@@ -51,9 +52,9 @@ rules.
   variable expansion and sanitization; and links results back to the editor.
 - Added searchable routing templates, Quick add, grammar-aware validation,
   variable and clause autocomplete, and final-filename previews.
-- Added Text and Visual editors for directories and routing rules. Visual mode
-  supports indentation, drag-to-reorder, aliases, clauses, variables,
-  separators, and a live context-menu preview.
+- Added **Text** and **Visual** modes for **Save locations** and **Routing
+  rules**. Visual mode supports indentation, drag-to-reorder, aliases, clauses,
+  variables, separators, and a live context-menu preview.
 - Directory and routing edits now use explicit Apply and Discard actions and
   warn before unsaved drafts are abandoned. Other settings continue to
   autosave.
@@ -69,7 +70,9 @@ rules.
   and broken replacement characters. Path-component limits now use UTF-8 bytes
   and preserve filename extensions.
 - Shortcut files retain their intended extension instead of becoming `.txt`
-  (#161), and HTML redirect shortcuts escape their target URL.
+  (#161). Options now name Windows internet shortcut (`.url`), macOS internet
+  location (`.webloc`), Linux desktop shortcut (`.desktop`), and HTML redirect
+  (`.html`) formats explicitly; HTML redirects also escape their target URL.
 - Empty aliases fall back to their path, multi-dash comments are handled
   consistently, and invalid regular expressions, URLs, capture groups, and
   routing variables produce contained validation errors instead of broad
@@ -90,8 +93,9 @@ rules.
   HTTP(S) download and starts a routed replacement; that replacement can lose
   POST bodies, temporary URLs, authentication, or other request context.
 - Fixed History so entries accumulate instead of replacing one another, capped
-  it at 10,000 entries, and added search, filtering, pagination, recovery
-  actions, JSON export, and formula-safe CSV and TSV export (#159).
+  it at 10,000 entries, and added search, filtering, pagination, localized
+  statuses, download actions, and **Export all** in JSON or formula-safe CSV and
+  TSV formats (#159). Table headings now use **Started** and **Routing**.
 - Wake the background as soon as the click-to-save modifier is held, making
   Chrome saves more reliable (thanks @rudolphos, #230). Click-to-save also
   falls back to the link under the cursor when link saving is enabled (#226).
@@ -144,6 +148,9 @@ rules.
 - Added a language selector and opt-in, locally bundled generated translation
   catalogs with English fallback. Page Sources, integration feedback, History
   states, templates, and validation messages follow the selected language.
+- Standardized user-facing terms across Options and translations, including
+  **Routing rules**, **Shortcut files**, **Notification events**, and History's
+  **Started**, **Routing**, and **Export all** labels.
 - Added a session-scoped debug log in Advanced diagnostics (#216), and made the
   Options page open in a browser tab.
 - Fixed the Firefox dark-mode Last used icon (#184), restored first-party

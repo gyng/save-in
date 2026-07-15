@@ -13,24 +13,27 @@ video, audio, links, selected text, and pages into user-defined folders inside
 the default download location.
 
 - Save into dynamically named directories.
-- Rename and route downloads with flexible rules.
-- Save links or pages as `.url`, `.desktop`, or HTML redirect shortcuts.
-- Browse sortable, filterable download history and export it as JSON or
-  formula-safe CSV/TSV.
+- Rename and route downloads with flexible routing rules.
+- Create shortcut files as Windows internet shortcuts (`.url`), macOS internet
+  locations (`.webloc`), Linux desktop shortcuts (`.desktop`), or HTML
+  redirects (`.html`).
+- Browse sortable, filterable download history, manage active or completed
+  downloads, and export all stored fields as JSON or formula-safe CSV/TSV.
 - Build paths from dates, page and source parts, `:counter:`, `:uuid:`,
   `:mime:`, `:mimeext:`, and other variables. Open **Reference** in Options for
   the maintained variable and matcher list.
 - Match normalized MIME types (`mime:` / `contenttype:`), referrer URLs and
-  hostnames, and page or source root domains in Dynamic Downloads rules.
+  hostnames, and page or source root domains in routing rules.
 
 Page Sources can automatically save newly discovered matching media. Automatic
-saves are off by default and use guarded Dynamic Downloads rules with an
+saves are off by default and use guarded routing rules with an
 explicit `context: ^auto$`, a page condition, and a source condition. Rules are
-created in the shared Visual routing editor and remain subject to private-window
-and per-page safety limits. See [Automatic source saves](docs/AUTOMATIC-SOURCE-SAVES.md).
+created in **Visual** mode under **Routing rules** and remain subject to
+private-window and per-page safety limits. See
+[Automatic source saves](docs/AUTOMATIC-SOURCE-SAVES.md).
 
 Optionally include matching ordinary browser downloads in local history. Chrome
-can apply Dynamic Downloads rules before saving; Firefox offers a separately
+can apply routing rules before saving; Firefox offers a separately
 labelled experimental cancel-and-redownload mode for matching HTTP(S) downloads.
 
 A versioned external API plus configuration tools support scripts and compatible
