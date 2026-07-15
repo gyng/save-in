@@ -72,6 +72,11 @@ textarea.syntax-editor-input:disabled {
   cursor: text;
 }
 
+.syntax-editor-line-number.is-current {
+  color: var(--color-text);
+  font-weight: 700;
+}
+
 .syntax-editor-line-number.has-diagnostic {
   border-color: var(--syntax-error);
   color: var(--syntax-error);
@@ -134,6 +139,8 @@ textarea.syntax-editor-input::placeholder {
   line-height: var(--leading-code);
   white-space: pre;
   color: var(--color-text);
+  background-image: linear-gradient(var(--hover-bg), var(--hover-bg));
+  background-repeat: no-repeat;
   pointer-events: none;
   will-change: transform;
 }

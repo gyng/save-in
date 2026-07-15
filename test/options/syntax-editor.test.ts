@@ -204,6 +204,8 @@ describe("syntax editor surface", () => {
     document.body.innerHTML = '<textarea id="paths">first\n\tsecond</textarea>';
     const textarea = document.querySelector("textarea")!;
     const editor = createSyntaxEditor(textarea, "directories");
+    const lineNumbers = () => document.querySelectorAll<HTMLElement>(".syntax-editor-line-number");
+    expect(lineNumbers()[0]?.classList).toContain("is-current");
     setSyntaxEditorDiagnostics(textarea, [
       {
         start: 6,
@@ -243,6 +245,8 @@ describe("syntax editor surface", () => {
     expect(tooltip.hidden).toBe(true);
     textarea.setSelectionRange(8, 8);
     textarea.dispatchEvent(new MouseEvent("click"));
+    expect(lineNumbers()[0]?.classList).not.toContain("is-current");
+    expect(lineNumbers()[1]?.classList).toContain("is-current");
     textarea.dispatchEvent(new MouseEvent("mousemove", { clientX: 12, clientY: 12 }));
     expect(tooltip.hidden).toBe(false);
 

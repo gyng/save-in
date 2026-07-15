@@ -240,6 +240,25 @@ export const createSyntaxEditor = (
   let characterWidth = 0;
   let tooltipPinned = false;
 
+  const syncCurrentLine = () => {
+    const offset = textarea.selectionStart;
+    const line = snapshot.lines.find(
+      (candidate) => offset >= candidate.start && offset <= candidate.end,
+    );
+    if (!line) return;
+    const style = getComputedStyle(textarea);
+    const lineHeight = Number.parseFloat(style.lineHeight) || 24;
+    const paddingTop = Number.parseFloat(style.paddingTop) || 0;
+    overlay.style.backgroundPosition = `0 ${paddingTop + (line.number - 1) * lineHeight}px`;
+    overlay.style.backgroundSize = `100% ${lineHeight}px`;
+    gutter
+      .querySelectorAll(".syntax-editor-line-number.is-current")
+      .forEach((number) => number.classList.remove("is-current"));
+    gutter
+      .querySelector<HTMLElement>(`.syntax-editor-line-number[data-start="${line.start}"]`)
+      ?.classList.add("is-current");
+  };
+
   const diagnosticsAtOffset = (offset: number): readonly SyntaxEditorDiagnostic[] =>
     uniqueDiagnostics(
       renderedDiagnostics.filter(
@@ -255,6 +274,7 @@ export const createSyntaxEditor = (
   const syncScroll = () => {
     overlay.style.transform = `translate(${-textarea.scrollLeft}px, ${-textarea.scrollTop}px)`;
     gutter.style.transform = `translateY(${-textarea.scrollTop}px)`;
+    syncCurrentLine();
   };
 
   const refresh = () => {
@@ -367,6 +387,11 @@ export const createSyntaxEditor = (
     );
   };
 
+  const onCaretChange = () => {
+    syncCurrentLine();
+    showTooltipForCaret();
+  };
+
   const onGutterPointerMove = (event: MouseEvent) => {
     if (tooltipPinned) return;
     const target = event.target;
@@ -389,6 +414,7 @@ export const createSyntaxEditor = (
     if (!Number.isFinite(start)) return;
     textarea.focus();
     textarea.setSelectionRange(start, start);
+    syncCurrentLine();
     const line = lineAtOffset(start);
     const rect = target.getBoundingClientRect();
     showTooltip(diagnosticsForLine(renderedDiagnostics, line), rect.right + 8, rect.top, true);
@@ -422,10 +448,10 @@ export const createSyntaxEditor = (
       textarea.removeEventListener("options-value-applied", onInput);
       textarea.removeEventListener("scroll", syncScroll);
       textarea.removeEventListener("blur", onBlur);
-      textarea.removeEventListener("focus", showTooltipForCaret);
-      textarea.removeEventListener("click", showTooltipForCaret);
-      textarea.removeEventListener("keyup", showTooltipForCaret);
-      textarea.removeEventListener("select", showTooltipForCaret);
+      textarea.removeEventListener("focus", onCaretChange);
+      textarea.removeEventListener("click", onCaretChange);
+      textarea.removeEventListener("keyup", onCaretChange);
+      textarea.removeEventListener("select", onCaretChange);
       textarea.removeEventListener("keydown", onKeyDown);
       textarea.removeEventListener("syntax-editor-visibility", onVisibilityChange);
       document.removeEventListener("options-restored", refresh);
@@ -444,10 +470,10 @@ export const createSyntaxEditor = (
   textarea.addEventListener("options-value-applied", onInput);
   textarea.addEventListener("scroll", syncScroll, { passive: true });
   textarea.addEventListener("blur", onBlur);
-  textarea.addEventListener("focus", showTooltipForCaret);
-  textarea.addEventListener("click", showTooltipForCaret);
-  textarea.addEventListener("keyup", showTooltipForCaret);
-  textarea.addEventListener("select", showTooltipForCaret);
+  textarea.addEventListener("focus", onCaretChange);
+  textarea.addEventListener("click", onCaretChange);
+  textarea.addEventListener("keyup", onCaretChange);
+  textarea.addEventListener("select", onCaretChange);
   textarea.addEventListener("keydown", onKeyDown);
   textarea.addEventListener("syntax-editor-visibility", onVisibilityChange);
   document.addEventListener("options-restored", refresh);
