@@ -21,7 +21,7 @@ const readDraft = async (): Promise<string | null> => {
   return null;
 };
 
-export const applySourceRuleDraft = async (): Promise<boolean> => {
+const consumeSourceRuleDraft = async (): Promise<boolean> => {
   const rule = await readDraft();
   if (!rule) return false;
   const textarea = document.querySelector<HTMLTextAreaElement>("#filenamePatterns");
@@ -33,6 +33,16 @@ export const applySourceRuleDraft = async (): Promise<boolean> => {
     new CustomEvent("save-in:navigate-option", { detail: { target: textarea } }),
   );
   return true;
+};
+
+let applyQueue = Promise.resolve();
+export const applySourceRuleDraft = (): Promise<boolean> => {
+  const task = applyQueue.then(consumeSourceRuleDraft, consumeSourceRuleDraft);
+  applyQueue = task.then(
+    () => undefined,
+    () => undefined,
+  );
+  return task;
 };
 
 let listenerInstalled = false;

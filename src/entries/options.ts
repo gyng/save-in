@@ -81,7 +81,6 @@ document.addEventListener(
       void setupPermissionsBanner();
       setupPathEditor();
       setupRuleBuilder();
-      setupSourceRuleDraft();
       setupOptionsReferences();
       setupTabs({
         confirmPendingChanges,
@@ -99,6 +98,7 @@ document.addEventListener(
       setupLanguageSelector();
       void setupWelcomeDialog(undefined, undefined, applyWelcomePreset);
       await optionsReady;
+      setupSourceRuleDraft();
       await applySourceRuleDraft();
     } finally {
       root.classList.remove("localization-pending");

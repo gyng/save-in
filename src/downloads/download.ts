@@ -106,7 +106,7 @@ const historyEntry = (state: DownloadPipelineState, finalFullPath: string): Hist
   finalFullPath,
   routed: Boolean(state.route),
   info: {
-    sourceUrl: state.info.sourceUrl,
+    sourceUrl: state.info.sourceUrl || state.info.selectedUrl,
     pageUrl: state.info.pageUrl,
     context: state.info.context,
   },
