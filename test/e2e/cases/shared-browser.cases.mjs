@@ -58,6 +58,7 @@ export const registerSharedBrowserCases = (adapters) => {
 
   test("History cancels an in-flight acquisition and clears durable state", async () => {
     await runHistoryCancellationScenario({
+      control,
       evaluate,
       filename: `cancel-${browserLabel}.bin`,
     });
@@ -69,7 +70,7 @@ export const registerSharedBrowserCases = (adapters) => {
 
   test("production tab-strip handler saves the selected real tab", async () => {
     await runTabStripScenario({
-      evaluate,
+      control,
       waitForDownloads,
       filename: `tab-strip-${browserLabel}.txt`,
     });
@@ -99,7 +100,7 @@ export const registerSharedBrowserCases = (adapters) => {
       : "Chrome safely rejects a configured symlink destination",
     async () => {
       await runSymlinkDestinationScenario({
-        evaluate,
+        control,
         waitForDownloads,
         downloadDir: downloadDir(),
         filename: `symlink-${browserLabel}.txt`,
@@ -110,7 +111,7 @@ export const registerSharedBrowserCases = (adapters) => {
 
   test("a template added in Options persists and routes a matching download", async () => {
     await runTemplateLibraryScenario({
-      evaluate,
+      control,
       evaluateOptions,
       waitForDownloads,
       filename: `template-library-${browserLabel}`,
@@ -120,7 +121,7 @@ export const registerSharedBrowserCases = (adapters) => {
 
   test("visual routing edits persist and connect to the debugger", async () => {
     await runRoutingVisualEditorScenario({
-      evaluate,
+      control,
       evaluateOptions,
       ...(reloadOptions ? { reloadOptions } : {}),
     });

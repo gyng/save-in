@@ -109,6 +109,13 @@ requires it, such as a pixiv media download, and open options-page dialogs that
 e2e cannot exercise reliably. In both browsers, confirm protected metadata/hash
 variables resolve, the file completes, and the temporary session rule is removed.
 
+## Browser run telemetry
+
+Every CI browser run uploads compact `timings-chrome.json` and
+`timings-firefox.json` reports. They include setup phases and individual case
+durations for the advisory regression thresholds in `AGENTS.md`; shared PR
+runners do not enforce wall-clock limits.
+
 ## Failed browser runs
 
 CI uploads `dist/e2e-artifacts` when a browser suite fails. It contains browser

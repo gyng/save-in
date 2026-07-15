@@ -16,13 +16,13 @@ const budgets = [
     file: "test/e2e/chrome.e2e.mjs",
     label: "raw Chrome background evaluations",
     pattern: /\bevalSW\(/g,
-    maximum: 46,
+    maximum: 0,
   },
   {
     file: "test/e2e/firefox.e2e.mjs",
     label: "raw Firefox background evaluations",
     pattern: /\bevalBackground\(/g,
-    maximum: 30,
+    maximum: 0,
   },
   {
     file: "test/e2e/firefox.e2e.mjs",
@@ -34,19 +34,19 @@ const budgets = [
     file: "test/e2e/shared-scenarios.mjs",
     label: "raw shared-scenario evaluations",
     pattern: /\bawait evaluate\(/g,
-    maximum: 19,
+    maximum: 3,
   },
   {
     file: "test/e2e/template-library-scenario.mjs",
     label: "raw template-scenario evaluations",
     pattern: /\bawait evaluate\(/g,
-    maximum: 3,
+    maximum: 0,
   },
   {
     file: "test/e2e/routing-visual-editor-scenario.mjs",
     label: "raw visual-editor evaluations",
     pattern: /\bawait evaluate\(/g,
-    maximum: 2,
+    maximum: 0,
   },
 ];
 

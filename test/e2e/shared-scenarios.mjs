@@ -11,32 +11,27 @@ import {
 import {
   arrayOf,
   closeLocal,
-  decodeBoolean,
   decodeNumber,
   decodeRecord,
   decodeString,
   evaluateJson,
   listenLocal,
   objectOf,
-  optional,
+  poll,
   requireValue,
-  waitForApiEntriesExpression,
 } from "./helpers.mjs";
-import { decodeHistoryEntries, decodeLogEntries } from "./control-codecs.mjs";
-
 /** @typedef {import("./control-protocol.mjs").DownloadSummary} DownloadSummary */
-/** @typedef {import("./control-protocol.mjs").HistoryEntry} HistoryEntry */
 /** @typedef {import("./control-protocol.mjs").LogEntry} LogEntry */
 
 /**
  * @param {{
- *   evaluate: (expression: string) => Promise<unknown>,
+ *   control: ReturnType<typeof import("./control-client.mjs").createE2EControlClient>,
  *   downloadUsingBrowserFilename: (url: string) => Promise<string>,
  *   waitForDownloadUrl: (url: string) => Promise<string>,
  * }} adapters
  */
 export const runContentDispositionScenario = async ({
-  evaluate,
+  control,
   downloadUsingBrowserFilename,
   waitForDownloadUrl,
 }) => {
@@ -46,14 +41,12 @@ export const runContentDispositionScenario = async ({
       const nativeUrl = `http://127.0.0.1:${port}/${fixture.id}?source=native`;
       const saveInUrl = `http://127.0.0.1:${port}/${fixture.id}?source=save-in`;
       const nativeFilename = await downloadUsingBrowserFilename(nativeUrl);
-      await evaluate(
-        `api.startDownload({
-          url: ${JSON.stringify(saveInUrl)},
-          suggestedFilename: ${JSON.stringify(`${fixture.id}-url-fallback.bin`)},
-          pageUrl: ${JSON.stringify(`http://127.0.0.1:${port}/`)},
-          path: "e2e/content-disposition",
-        }).then(() => true)`,
-      );
+      await control.background.startDownload({
+        url: saveInUrl,
+        suggestedFilename: `${fixture.id}-url-fallback.bin`,
+        pageUrl: `http://127.0.0.1:${port}/`,
+        path: "e2e/content-disposition",
+      });
       expect.soft(await waitForDownloadUrl(saveInUrl), fixture.id).toBe(nativeFilename);
     }
   } finally {
@@ -66,45 +59,46 @@ export const runContentDispositionScenario = async ({
  * verifies that private activity never reaches extension persistence.
  *
  * @param {{
- *   evaluate: (expression: string) => Promise<unknown>,
+ *   control: ReturnType<typeof import("./control-client.mjs").createE2EControlClient>,
  *   waitForDownloads: (filename: string) => Promise<DownloadSummary[]>,
  *   filename: string,
  * }} adapters
  */
-export const runPrivateContextScenario = async ({ evaluate, waitForDownloads, filename }) => {
+export const runPrivateContextScenario = async ({ control, waitForDownloads, filename }) => {
   const server = http.createServer((_req, res) => {
     res.writeHead(200, { "Content-Type": "text/plain" });
     res.end("private context content");
   });
   const port = await listenLocal(server);
   const privateUrl = `http://127.0.0.1:${port}/${filename}.txt`;
-  const snapshot = await evaluateJson(
-    evaluate,
-    `Promise.all([
-      browser.storage.local.get(["paths", "save-in-history", "save-in-last-used-path", "save-in-last-used-meta"]),
-      browser.storage.session.get(null),
-      api.logs(),
-    ]).then(([local, session, log]) => JSON.stringify({ local, session, log }))`,
-    objectOf({ local: decodeRecord, session: decodeRecord, log: arrayOf(decodeRecord) }),
-  );
+  const [local, session, log] = await Promise.all([
+    control.storage.local.get([
+      "paths",
+      "save-in-history",
+      "save-in-last-used-path",
+      "save-in-last-used-meta",
+    ]),
+    control.storage.session.get(),
+    control.logs.get(),
+  ]);
+  const snapshot = { local, session, log };
 
   try {
-    await evaluate(`browser.storage.local.set({ paths: "e2e/private" })
-      .then(() => api.reset())
-      .then(() => api.clickContextMenu({
-        info: {
-          menuItemId: "save-in-0",
-          mediaType: "image",
-          srcUrl: ${JSON.stringify(privateUrl)},
-          pageUrl: "https://private.example/",
-        },
-        tab: {
-          id: 91,
-          title: ${JSON.stringify(filename)},
-          url: "https://private.example/",
-          incognito: true,
-        },
-      })).then(() => "clicked")`);
+    await control.options.set({ paths: "e2e/private" });
+    await control.background.clickContextMenu({
+      info: {
+        menuItemId: "save-in-0",
+        mediaType: "image",
+        srcUrl: privateUrl,
+        pageUrl: "https://private.example/",
+      },
+      tab: {
+        id: 91,
+        title: filename,
+        url: "https://private.example/",
+        incognito: true,
+      },
+    });
 
     const downloads = await waitForDownloads(filename);
     expect(downloads).toHaveLength(1);
@@ -112,15 +106,16 @@ export const runPrivateContextScenario = async ({ evaluate, waitForDownloads, fi
     expect(completed.state).toBe("complete");
     expect(fs.readFileSync(completed.filename, "utf8")).toBe("private context content");
 
-    const after = await evaluateJson(
-      evaluate,
-      `Promise.all([
-        browser.storage.local.get(["save-in-history", "save-in-last-used-path", "save-in-last-used-meta"]),
-        browser.storage.session.get(null),
-        api.logs(),
-      ]).then(([local, session, log]) => JSON.stringify({ local, session, log }))`,
-      objectOf({ local: decodeRecord, session: decodeRecord, log: arrayOf(decodeRecord) }),
-    );
+    const [afterLocal, afterSession, afterLog] = await Promise.all([
+      control.storage.local.get([
+        "save-in-history",
+        "save-in-last-used-path",
+        "save-in-last-used-meta",
+      ]),
+      control.storage.session.get(),
+      control.logs.get(),
+    ]);
+    const after = { local: afterLocal, session: afterSession, log: afterLog };
     expect(after.local["save-in-history"]).toEqual(snapshot.local["save-in-history"]);
     expect(after.local["save-in-last-used-path"]).toEqual(snapshot.local["save-in-last-used-path"]);
     expect(after.local["save-in-last-used-meta"]).toEqual(snapshot.local["save-in-last-used-meta"]);
@@ -129,8 +124,9 @@ export const runPrivateContextScenario = async ({ evaluate, waitForDownloads, fi
   } finally {
     const hadPaths = Object.hasOwn(snapshot.local, "paths");
     try {
-      await evaluate(`${hadPaths ? `browser.storage.local.set({ paths: ${JSON.stringify(snapshot.local.paths)} })` : 'browser.storage.local.remove("paths")'}
-        .then(() => api.reset()).then(() => "restored")`);
+      if (hadPaths) await control.storage.local.set({ paths: snapshot.local.paths });
+      else await control.storage.local.remove("paths");
+      await control.runtime.reset();
     } finally {
       await closeLocal(server);
     }
@@ -143,7 +139,7 @@ export const runPrivateContextScenario = async ({ evaluate, waitForDownloads, fi
  * honor its private opt-in, and neither path may enter extension persistence.
  *
  * @param {{
- *   evaluate: (expression: string) => Promise<unknown>,
+ *   control: ReturnType<typeof import("./control-client.mjs").createE2EControlClient>,
  *   openPrivatePage: (url: string) => Promise<{tabId: number, target: string, close: () => Promise<void>}>,
  *   evaluatePrivatePage: (target: string, expression: string) => Promise<unknown>,
  *   waitForFile: (relativePath: string) => Promise<string>,
@@ -151,7 +147,7 @@ export const runPrivateContextScenario = async ({ evaluate, waitForDownloads, fi
  * }} adapters
  */
 export const runPrivateBrowserActivityScenario = async ({
-  evaluate,
+  control,
   openPrivatePage,
   evaluatePrivatePage,
   waitForFile,
@@ -205,23 +201,18 @@ export const runPrivateBrowserActivityScenario = async ({
     "sourcePanelEnabled",
     "filenamePatterns",
   ];
-  const before = await evaluateJson(
-    evaluate,
-    `Promise.all([
-      browser.storage.local.get(${JSON.stringify(optionKeys)}), api.history(), api.logs()
-    ]).then(([options, history, log]) => JSON.stringify({ options, history, log }))`,
-    objectOf({
-      options: decodeRecord,
-      history: decodeHistoryEntries,
-      log: decodeLogEntries,
-    }),
-  );
+  const [options, history, log] = await Promise.all([
+    control.storage.local.get(optionKeys),
+    control.history.get(),
+    control.logs.get(),
+  ]);
+  const before = { options, history, log };
   const missingKeys = optionKeys.filter((key) => !(key in before.options));
   /** @type {{tabId: number, target: string, close: () => Promise<void>} | undefined} */
   let privatePage;
 
   try {
-    await evaluate(`browser.storage.local.set({
+    await control.options.set({
       trackBrowserDownloads: true,
       routeBrowserDownloads: true,
       routeBrowserDownloadsFirefox: true,
@@ -231,8 +222,7 @@ export const runPrivateBrowserActivityScenario = async ({
       autoDownloadPrivate: false,
       autoDownloadMaxPerPage: 2,
       sourcePanelEnabled: true,
-      filenamePatterns: ${JSON.stringify(
-        `context: ^browser$
+      filenamePatterns: `context: ^browser$
 sourceurl: ${filenamePrefix}-native\\.bin$
 into: e2e/private-ordinary-should-not-route/:filename:
 
@@ -241,12 +231,12 @@ pageurl: ^http://127\\.0\\.0\\.1:${port}/private-browser$
 sourcekind: ^image$
 sourceurl: ${filenamePrefix}-(?:initial|late)\\.png$
 into: e2e/private-auto/:filename:`,
-      )},
-    }).then(() => api.reset())`);
+    });
     privatePage = await openPrivatePage(pageUrl);
-    await evaluate(`browser.tabs.sendMessage(${privatePage.tabId}, {
-      type: "SET_SOURCE_PANEL", body: { open: true }
-    }).then(() => true)`);
+    await control.tabs.sendMessage(privatePage.tabId, {
+      type: "SET_SOURCE_PANEL",
+      body: { open: true },
+    });
     await evaluatePrivatePage(
       privatePage.target,
       `new Promise((resolve, reject) => {
@@ -259,12 +249,8 @@ into: e2e/private-auto/:filename:`,
         check();
       })`,
     );
-    const beforeOptIn = await evaluateJson(
-      evaluate,
-      `browser.downloads.search({}).then((items) => JSON.stringify(items.filter(
-        (item) => item.url === "http://127.0.0.1:${port}/${initialName}"
-      )))`,
-      arrayOf(decodeRecord),
+    const beforeOptIn = (await control.downloads.search()).filter(
+      (item) => item.url === `http://127.0.0.1:${port}/${initialName}`,
     );
     expect(beforeOptIn).toHaveLength(0);
 
@@ -281,25 +267,9 @@ into: e2e/private-auto/:filename:`,
 
     // Reset acknowledgement makes the background observe the opt-in before
     // a fresh private document discovers its initial candidates.
-    await evaluate(`api.setOptions({ autoDownloadPrivate: true })`);
-    await evaluate(`browser.tabs.reload(${privatePage.tabId}).then(() => new Promise((resolve, reject) => {
-      const timeout = AbortSignal.timeout(8000);
-      const check = async () => {
-        const tab = await browser.tabs.get(${privatePage.tabId});
-        if (tab.status === "complete") resolve(true);
-        else if (timeout.aborted) reject(new Error("Private fixture did not reload"));
-        else {
-          const channel = new MessageChannel();
-          channel.port1.onmessage = () => {
-            channel.port1.close();
-            channel.port2.close();
-            void check();
-          };
-          channel.port2.postMessage(null);
-        }
-      };
-      void check();
-    }))`);
+    await control.options.set({ autoDownloadPrivate: true });
+    await control.tabs.reload(privatePage.tabId);
+    await control.tabs.wait({ id: privatePage.tabId });
     await evaluatePrivatePage(
       privatePage.target,
       `(() => {
@@ -314,12 +284,8 @@ into: e2e/private-auto/:filename:`,
     expect(fs.readFileSync(initialPath)).toEqual(image);
     expect(fs.readFileSync(latePath)).toEqual(image);
 
-    const after = await evaluateJson(
-      evaluate,
-      `Promise.all([api.history(), api.logs()])
-          .then(([history, log]) => JSON.stringify({ history, log }))`,
-      objectOf({ history: decodeHistoryEntries, log: decodeLogEntries }),
-    );
+    const [afterHistory, afterLog] = await Promise.all([control.history.get(), control.logs.get()]);
+    const after = { history: afterHistory, log: afterLog };
     const privateNames = [nativeName, initialName, lateName];
     expect(
       after.history.filter((entry) =>
@@ -334,10 +300,11 @@ into: e2e/private-auto/:filename:`,
   } finally {
     try {
       await privatePage?.close();
-      await evaluate(`Promise.all([
-        browser.storage.local.set(${JSON.stringify(before.options)}),
-        browser.storage.local.remove(${JSON.stringify(missingKeys)}),
-      ]).then(() => api.reset())`);
+      await Promise.all([
+        control.storage.local.set(before.options),
+        control.storage.local.remove(missingKeys),
+      ]);
+      await control.runtime.reset();
     } finally {
       await closeLocal(server);
     }
@@ -349,7 +316,7 @@ into: e2e/private-auto/:filename:`,
  * boundary, including browser-authenticated sender authorization.
  *
  * @param {{
- *   evaluate: (expression: string) => Promise<unknown>,
+ *   control: ReturnType<typeof import("./control-client.mjs").createE2EControlClient>,
  *   sendExternal: (message: Record<string, unknown>) => Promise<unknown>,
  *   callerId: string,
  *   waitForDownloads: (filename: string) => Promise<DownloadSummary[]>,
@@ -357,7 +324,7 @@ into: e2e/private-auto/:filename:`,
  * }} adapters
  */
 export const runExternalExtensionScenario = async ({
-  evaluate,
+  control,
   sendExternal,
   callerId,
   waitForDownloads,
@@ -371,12 +338,7 @@ export const runExternalExtensionScenario = async ({
   const port = await listenLocal(server);
   const url = `http://127.0.0.1:${port}/${filename}`;
   const optionKeys = ["externalDownloadAllowlist", "filenamePatterns"];
-  const previous = await evaluateJson(
-    evaluate,
-    `browser.storage.local.get(${JSON.stringify(optionKeys)})
-      .then((stored) => JSON.stringify(stored))`,
-    decodeRecord,
-  );
+  const previous = await control.storage.local.get(optionKeys);
   const missingKeys = optionKeys.filter((key) => !(key in previous));
 
   try {
@@ -395,20 +357,18 @@ export const runExternalExtensionScenario = async ({
       type: "DOWNLOAD",
       body: { status: "ERROR", error: "UNAUTHORIZED", version: 1 },
     });
-    const rejection = await evaluateJson(
-      evaluate,
-      `browser.runtime.sendMessage({ type: "EXTERNAL_DOWNLOAD_REJECTIONS_GET" })
-        .then((response) => JSON.stringify(response.body.rejections.find(
-          (entry) => entry.senderId === ${JSON.stringify(callerId)}
-        )))`,
-      objectOf({ senderId: decodeString, attempts: decodeNumber }),
+    const rejectionResponse = await control.runtime.send({
+      type: "EXTERNAL_DOWNLOAD_REJECTIONS_GET",
+    });
+    const rejection = rejectionResponse.body.rejections.find(
+      (entry) => entry.senderId === callerId,
     );
     expect(rejection).toMatchObject({ senderId: callerId, attempts: 1 });
 
-    await evaluate(`browser.storage.local.set({
-      externalDownloadAllowlist: ${JSON.stringify(callerId)},
-      filenamePatterns: "comment: ^external-e2e$\\ninto: e2e/external/:filename:",
-    }).then(() => api.reset())`);
+    await control.options.set({
+      externalDownloadAllowlist: callerId,
+      filenamePatterns: "comment: ^external-e2e$\ninto: e2e/external/:filename:",
+    });
     const accepted = await sendExternal({
       type: "DOWNLOAD",
       body: {
@@ -430,14 +390,15 @@ export const runExternalExtensionScenario = async ({
     expect(fs.readFileSync(complete.filename, "utf8")).toBe(body);
   } finally {
     try {
-      await evaluate(`Promise.all([
-        browser.storage.local.set(${JSON.stringify(previous)}),
-        browser.storage.local.remove(${JSON.stringify(missingKeys)}),
-        browser.runtime.sendMessage({
+      await Promise.all([
+        control.storage.local.set(previous),
+        control.storage.local.remove(missingKeys),
+        control.runtime.send({
           type: "EXTERNAL_DOWNLOAD_REJECTION_CLEAR",
-          body: { senderId: ${JSON.stringify(callerId)} },
+          body: { senderId: callerId },
         }),
-      ]).then(() => api.reset())`);
+      ]);
+      await control.runtime.reset();
     } finally {
       await closeLocal(server);
     }
@@ -448,9 +409,13 @@ export const runExternalExtensionScenario = async ({
  * Cancels a real stalled acquisition through the History protocol and proves
  * that both the network request and durable transfer state are released.
  *
- * @param {{evaluate: (expression: string) => Promise<unknown>, filename: string}} adapters
+ * @param {{
+ *   control: ReturnType<typeof import("./control-client.mjs").createE2EControlClient>,
+ *   evaluate: (expression: string) => Promise<unknown>,
+ *   filename: string,
+ * }} adapters
  */
-export const runHistoryCancellationScenario = async ({ evaluate, filename }) => {
+export const runHistoryCancellationScenario = async ({ control, evaluate, filename }) => {
   /** @type {import("node:http").ServerResponse | undefined} */
   let pendingResponse;
   /** @type {(() => void) | undefined} */
@@ -473,11 +438,7 @@ export const runHistoryCancellationScenario = async ({ evaluate, filename }) => 
   const port = await listenLocal(server);
   const url = `http://127.0.0.1:${port}/${filename}`;
   const optionKeys = ["fetchViaFetch", "filenamePatterns"];
-  const previous = await evaluateJson(
-    evaluate,
-    `browser.storage.local.get(${JSON.stringify(optionKeys)}).then(JSON.stringify)`,
-    decodeRecord,
-  );
+  const previous = await control.storage.local.get(optionKeys);
   const missingKeys = optionKeys.filter((key) => !Object.hasOwn(previous, key));
 
   try {
@@ -513,16 +474,10 @@ export const runHistoryCancellationScenario = async ({ evaluate, filename }) => 
       void check();
     })`),
     );
-    const response = await evaluateJson(
-      evaluate,
-      `browser.runtime.sendMessage({
-        type: "HISTORY_CANCEL", body: { historyId: ${JSON.stringify(historyId)} }
-      }).then(JSON.stringify)`,
-      objectOf({
-        type: decodeString,
-        body: objectOf({ canceled: decodeBoolean }),
-      }),
-    );
+    const response = await control.runtime.send({
+      type: "HISTORY_CANCEL",
+      body: { historyId },
+    });
     expect(response).toEqual({ type: "HISTORY_CANCEL", body: { canceled: true } });
     /** @type {Promise<void>} */
     const requestClosedWithinDeadline = new Promise((resolve, reject) => {
@@ -573,10 +528,11 @@ export const runHistoryCancellationScenario = async ({ evaluate, filename }) => 
     expect(terminal.status).toBe("USER_CANCELED");
   } finally {
     pendingResponse?.destroy();
-    await evaluate(`Promise.all([
-      browser.storage.local.set(${JSON.stringify(previous)}),
-      browser.storage.local.remove(${JSON.stringify(missingKeys)}),
-    ]).then(() => api.reset())`);
+    await Promise.all([
+      control.storage.local.set(previous),
+      control.storage.local.remove(missingKeys),
+    ]);
+    await control.runtime.reset();
     await closeLocal(server);
   }
 };
@@ -586,12 +542,14 @@ export const runHistoryCancellationScenario = async ({ evaluate, filename }) => 
  * flight, and verifies cold-start recovery clears the durable transfer record.
  *
  * @param {{
+ *   control: ReturnType<typeof import("./control-client.mjs").createE2EControlClient>,
  *   evaluate: (expression: string) => Promise<unknown>,
  *   restartBackground: () => Promise<void>,
  *   filename: string,
  * }} adapters
  */
 export const runInterruptedTransferRecoveryScenario = async ({
+  control,
   evaluate,
   restartBackground,
   filename,
@@ -610,7 +568,7 @@ export const runInterruptedTransferRecoveryScenario = async ({
   });
   const port = await listenLocal(server);
   const url = `http://127.0.0.1:${port}/${filename}`;
-  const previousFetchViaFetch = decodeBoolean(await evaluate(`api.getOption("fetchViaFetch")`));
+  const previousFetchViaFetch = await control.options.get("fetchViaFetch");
 
   try {
     await evaluate(`api.setOptions({ fetchViaFetch: true, filenamePatterns: "" })
@@ -690,7 +648,7 @@ export const runInterruptedTransferRecoveryScenario = async ({
     expect(recovered.status).toBe("DOWNLOAD_PREPARATION_INTERRUPTED");
   } finally {
     pendingResponse?.destroy();
-    await evaluate(`api.setOptions({ fetchViaFetch: ${JSON.stringify(previousFetchViaFetch)} })`);
+    await control.options.set({ fetchViaFetch: previousFetchViaFetch });
     await closeLocal(server);
   }
 };
@@ -784,7 +742,7 @@ export const runLegacyProfileRoutingScenario = async ({ control, waitForDownload
 
 /**
  * @param {{
- *   evaluate: (expression: string) => Promise<unknown>,
+ *   control: ReturnType<typeof import("./control-client.mjs").createE2EControlClient>,
  *   waitForDownloads: (filename: string) => Promise<DownloadSummary[]>,
  *   downloadDir: string,
  *   filename: string,
@@ -792,7 +750,7 @@ export const runLegacyProfileRoutingScenario = async ({ control, waitForDownload
  * }} adapters
  */
 export const runSymlinkDestinationScenario = async ({
-  evaluate,
+  control,
   waitForDownloads,
   downloadDir,
   filename,
@@ -807,22 +765,25 @@ export const runSymlinkDestinationScenario = async ({
   fs.symlinkSync(target, link, process.platform === "win32" ? "junction" : "dir");
 
   try {
-    await evaluate(`api.startDownload({
+    await control.background.startDownload({
       content: "symlink destination smoke",
-      suggestedFilename: ${JSON.stringify(filename)},
+      suggestedFilename: filename,
       pageUrl: "https://symlink-smoke.example/",
       path: "e2e/release-symlink",
-    }).then(() => "started")`);
+    });
     if (!supported) {
-      const matches = await evaluateJson(
-        evaluate,
-        waitForApiEntriesExpression(
-          "history",
-          `(row) => row.finalFullPath === ${JSON.stringify(`e2e/release-symlink/${filename}`)} && row.status === "USER_CANCELED"`,
-        ),
-        decodeHistoryEntries,
+      const matches = await poll(
+        async () => {
+          const rows = (await control.history.get()).filter(
+            (row) =>
+              row.finalFullPath === `e2e/release-symlink/${filename}` &&
+              row.status === "USER_CANCELED",
+          );
+          return rows.length ? rows : null;
+        },
+        { description: "symlink rejection history" },
       );
-      const rejected = matches.at(-1);
+      const rejected = requireValue(matches, "Symlink rejection history was not observed").at(-1);
       expect(rejected).toMatchObject({
         finalFullPath: `e2e/release-symlink/${filename}`,
         status: "USER_CANCELED",
@@ -878,63 +839,37 @@ export const runContextMenuScenario = async ({ control, waitForDownloads }) => {
  * verifies the selected-tab shortcut reaches the download pipeline.
  *
  * @param {{
- *   evaluate: (expression: string) => Promise<unknown>,
+ *   control: ReturnType<typeof import("./control-client.mjs").createE2EControlClient>,
  *   waitForDownloads: (filename: string) => Promise<DownloadSummary[]>,
  *   filename: string,
  * }} adapters
  */
-export const runTabStripScenario = async ({ evaluate, waitForDownloads, filename }) => {
+export const runTabStripScenario = async ({ control, waitForDownloads, filename }) => {
   const server = http.createServer((_req, res) => {
     res.writeHead(200, { "Content-Type": "text/html" });
     res.end(`<!doctype html><title>${filename}</title>`);
   });
   const port = await listenLocal(server);
   const url = `http://127.0.0.1:${port}/${filename}`;
-  const previous = await evaluateJson(
-    evaluate,
-    `Promise.all([
-      api.getOption("shortcutTab"), api.getOption("shortcutType")
-    ]).then(([shortcutTab, shortcutType]) => JSON.stringify({ shortcutTab, shortcutType }))`,
-    objectOf({ shortcutTab: decodeBoolean, shortcutType: decodeString }),
-  );
+  const previous = {
+    shortcutTab: await control.options.get("shortcutTab"),
+    shortcutType: await control.options.get("shortcutType"),
+  };
   let tabId;
 
   try {
-    const tab = await evaluateJson(
-      evaluate,
-      `browser.tabs.create({ url: ${JSON.stringify(url)} }).then((created) =>
-        new Promise((resolve, reject) => {
-          const timeout = AbortSignal.timeout(8000);
-          const check = async () => {
-            const current = await browser.tabs.get(created.id);
-            if (current.status === "complete") resolve(JSON.stringify(current));
-            else if (timeout.aborted) reject(new Error("Tab-strip fixture did not load"));
-            else {
-              const channel = new MessageChannel();
-              channel.port1.onmessage = () => {
-                channel.port1.close();
-                channel.port2.close();
-                void check();
-              };
-              channel.port2.postMessage(null);
-            }
-          };
-          void check();
-        }))`,
-      objectOf({
-        id: decodeNumber,
-        index: decodeNumber,
-        windowId: decodeNumber,
-        title: optional(decodeString),
-        url: optional(decodeString),
-      }),
-    );
+    const created = await control.tabs.create({ url });
+    if (created.id === undefined) throw new Error("Tab-strip fixture tab has no ID");
+    const tab = await control.tabs.wait({ id: created.id });
     tabId = tab.id;
-    await evaluate(`api.setOptions({ shortcutTab: true, shortcutType: "HTML_REDIRECT" })
-      .then(() => api.clickTabMenu({
-        info: { menuItemId: "save-in-SI-selected-tab" },
-        tab: ${JSON.stringify(tab)},
-      }))`);
+    if (tab.id === undefined || tab.index === undefined || tab.windowId === undefined) {
+      throw new Error("Tab-strip fixture tab is incomplete");
+    }
+    await control.options.set({ shortcutTab: true, shortcutType: "HTML_REDIRECT" });
+    await control.background.clickTabMenu({
+      info: { menuItemId: "save-in-SI-selected-tab" },
+      tab: { ...tab, id: tab.id, index: tab.index, windowId: tab.windowId },
+    });
     const downloads = await waitForDownloads(filename);
     const complete = requireValue(
       downloads.find((row) => row.state === "complete"),
@@ -943,8 +878,8 @@ export const runTabStripScenario = async ({ evaluate, waitForDownloads, filename
     expect(fs.readFileSync(complete.filename, "utf8")).toContain(url);
   } finally {
     try {
-      await evaluate(`api.setOptions(${JSON.stringify(previous)})
-        .then(() => ${tabId == null ? "undefined" : `browser.tabs.remove(${tabId}).catch(() => {})`})`);
+      await control.options.set(previous);
+      if (tabId != null) await control.tabs.remove(tabId).catch(() => {});
     } finally {
       await closeLocal(server);
     }

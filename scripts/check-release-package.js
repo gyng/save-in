@@ -150,18 +150,20 @@ check(
   "test config must include the complete TypeScript suite",
 );
 
-for (const name of ["e2e:chrome", "e2e:firefox"]) {
+for (const browser of ["chrome", "firefox"]) {
+  const name = `e2e:${browser}`;
   const command = packageJson.scripts?.[name] || "";
-  check(command.includes("HEADLESS=1"), `package.json: ${name} must be headless by default`);
   check(
-    command.includes("EXT_DIR=dist/bundled-pkg-e2e"),
-    `package.json: ${name} must use the isolated E2E package`,
+    command.includes("scripts/e2e-parallel.js") && command.includes(`--browser=${browser}`),
+    `package.json: ${name} must use the shared E2E runner`,
   );
 }
 check(
-  packageJson.scripts?.["e2e:headed"]?.includes("HEADED=1"),
+  packageJson.scripts?.["e2e:headed"]?.includes("--headed"),
   "package.json: headed E2E must opt in explicitly",
 );
+contains("scripts/e2e-parallel.js", 'e2eEnv.HEADLESS = process.env.HEADLESS || "1"');
+contains("scripts/e2e-parallel.js", "EXT_DIR: path.relative(root, stagedRun)");
 
 contains("scripts/build-bundled.js", "assertPackageVersion(root)");
 contains("scripts/build-bundled.js", 'expectE2EControl ? "bundled-pkg-e2e" : "bundled-pkg"');
@@ -207,7 +209,7 @@ check(
 const sourceBuild = read("scripts/build-source-package.js");
 for (const required of [
   '"config"',
-  '"e2e"',
+  '"test"',
   '"CHANGELOG.md"',
   '"config/typescript/worker.json"',
   '"config/typescript/tools.json"',

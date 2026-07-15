@@ -86,6 +86,15 @@ jobs:
           firefox --version
       - name: Chrome and Firefox e2e
         run: HEADLESS=1 npm run e2e
+      - name: Preserve browser timing telemetry
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: e2e-timings-${{ github.sha }}
+          path: |
+            dist/e2e-artifacts/run-*/run.json
+            dist/e2e-artifacts/run-*/timings-*.json
+          if-no-files-found: warn
       - name: Preserve browser diagnostics on failure
         if: failure()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

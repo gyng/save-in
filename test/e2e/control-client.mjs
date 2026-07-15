@@ -1,13 +1,8 @@
-import {
-  decodeControlResult,
-  decodeHistoryEntries,
-  decodeNotificationCalls,
-  decodeOptionValue,
-} from "./control-codecs.mjs";
+import { decodeControlResult, decodeOptionValue } from "./control-codecs.mjs";
+import { createProtocolCodecs } from "./protocol-codecs.mjs";
 
 /** @typedef {import("./control-protocol.mjs").ControlOperation} ControlOperation */
 /** @typedef {import("./control-protocol.mjs").ControlRequest} ControlRequest */
-/** @typedef {import("./control-protocol.mjs").ControlResultMap} ControlResultMap */
 /** @typedef {import("./control-protocol.mjs").ContextMenuClickBody} ContextMenuClickBody */
 /** @typedef {import("./control-protocol.mjs").DownloadEntry} DownloadEntry */
 /** @typedef {import("./control-protocol.mjs").E2ERuntimeOptionName} E2ERuntimeOptionName */
@@ -23,81 +18,19 @@ import {
  * and BiDi serialize it into the target realm and pass only JSON arguments.
  *
  * @param {string} serializedRequest
+ * @param {ReturnType<typeof createProtocolCodecs>} [codecs]
  */
-export const dispatchControlRequest = async (serializedRequest) => {
-  /** @param {unknown} value @returns {value is Record<string, unknown>} */
-  const isRecord = (value) => typeof value === "object" && value !== null && !Array.isArray(value);
-  /** @param {unknown} value */
-  const isStringArray = (value) =>
-    Array.isArray(value) && value.every((item) => typeof item === "string");
+export const dispatchControlRequest = async (
+  serializedRequest,
+  codecs = createProtocolCodecs(),
+) => {
+  const { isRecord, isRuntimeMessage, isStringArray } = codecs;
   /** @param {Record<string, unknown>} value @param {string} key */
   const hasOptionalString = (value, key) =>
     value[key] === undefined || typeof value[key] === "string";
   /** @param {Record<string, unknown>} value @param {string} key */
   const hasOptionalNumber = (value, key) =>
     value[key] === undefined || typeof value[key] === "number";
-  /** @param {unknown} value */
-  const isMenuInfo = (value) =>
-    isRecord(value) &&
-    (typeof value.menuItemId === "string" || typeof value.menuItemId === "number") &&
-    ["selectionText", "pageUrl", "linkUrl", "srcUrl", "frameUrl", "mediaType", "linkText"].every(
-      (key) => hasOptionalString(value, key),
-    ) &&
-    (value.modifiers === undefined || isStringArray(value.modifiers));
-  /** @param {unknown} value @param {boolean} requireTab */
-  const isMenuBody = (value, requireTab) => {
-    if (!isRecord(value) || !isMenuInfo(value.info)) return false;
-    if (!requireTab) {
-      return (
-        value.tab === undefined ||
-        (isRecord(value.tab) &&
-          (value.tab.id === undefined || typeof value.tab.id === "number") &&
-          hasOptionalString(value.tab, "title") &&
-          hasOptionalString(value.tab, "url") &&
-          (value.tab.incognito === undefined || typeof value.tab.incognito === "boolean"))
-      );
-    }
-    return (
-      isRecord(value.tab) &&
-      typeof value.tab.id === "number" &&
-      typeof value.tab.index === "number" &&
-      typeof value.tab.windowId === "number"
-    );
-  };
-  /** @param {unknown} value */
-  const isRuntimeMessage = (value) => {
-    if (!isRecord(value) || typeof value.type !== "string") return false;
-    switch (value.type) {
-      case "WAKE_WARM":
-      case "OPTIONS_LOADED":
-      case "OPTIONS":
-      case "HISTORY_GET":
-        return value.body === undefined;
-      case "SAVE_IN_E2E_START_DOWNLOAD": {
-        const body = value.body;
-        return (
-          isRecord(body) &&
-          typeof body.suggestedFilename === "string" &&
-          ["content", "url", "shortcutUrl", "pageUrl", "path"].every((key) =>
-            hasOptionalString(body, key),
-          ) &&
-          (body.modifiers === undefined || isStringArray(body.modifiers))
-        );
-      }
-      case "SAVE_IN_E2E_CONTEXT_MENU_CLICK":
-        return isMenuBody(value.body, false);
-      case "SAVE_IN_E2E_TAB_MENU_CLICK":
-        return isMenuBody(value.body, true);
-      case "SAVE_IN_E2E_NOTIFICATION_CALLS":
-        return (
-          isRecord(value.body) && (value.body.action === "get" || value.body.action === "reset")
-        );
-      case "APPLY_CONFIG":
-        return isRecord(value.body) && isRecord(value.body.config);
-      default:
-        return false;
-    }
-  };
   /** @param {unknown} value @returns {value is ControlRequest} */
   const isControlRequest = (value) => {
     if (!isRecord(value) || typeof value.operation !== "string") return false;
@@ -105,6 +38,14 @@ export const dispatchControlRequest = async (serializedRequest) => {
     switch (value.operation) {
       case "runtime.send":
         return isRuntimeMessage(value.message);
+      case "runtime.download":
+        return (
+          typeof value.content === "string" &&
+          (value.info === undefined || isRecord(value.info)) &&
+          hasOptionalString(value, "comment")
+        );
+      case "options.waitReady":
+        return hasOptionalNumber(value, "timeoutMs");
       case "storage.get":
         return (
           isArea &&
@@ -116,6 +57,8 @@ export const dispatchControlRequest = async (serializedRequest) => {
         );
       case "storage.set":
         return isArea && isRecord(value.values);
+      case "storage.wait":
+        return isArea && typeof value.key === "string" && hasOptionalNumber(value, "timeoutMs");
       case "storage.remove":
         return isArea && (typeof value.keys === "string" || isStringArray(value.keys));
       case "storage.clear":
@@ -138,6 +81,12 @@ export const dispatchControlRequest = async (serializedRequest) => {
         return isRecord(value.properties);
       case "tabs.update":
         return typeof value.id === "number" && isRecord(value.properties);
+      case "tabs.wait":
+        return (
+          (typeof value.id === "number" || typeof value.urlIncludes === "string") &&
+          hasOptionalString(value, "status") &&
+          hasOptionalNumber(value, "timeoutMs")
+        );
       case "tabs.remove":
         return (
           typeof value.ids === "number" ||
@@ -145,6 +94,10 @@ export const dispatchControlRequest = async (serializedRequest) => {
         );
       case "tabs.sendMessage":
         return typeof value.id === "number" && isRecord(value.message);
+      case "windows.create":
+        return isRecord(value.properties);
+      case "windows.remove":
+        return typeof value.id === "number";
       case "notifications.clear":
         return typeof value.id === "string";
       case "dnr.updateSessionRules":
@@ -239,6 +192,121 @@ export const dispatchControlRequest = async (serializedRequest) => {
       browserApi.downloads.onChanged.addListener(onChanged);
       timeout.addEventListener("abort", onTimeout, { once: true });
       void check().catch((error) => finish(() => reject(error)));
+    });
+
+  /** @param {"local" | "session"} area @param {string} key @param {unknown} expected @param {number} timeoutMs */
+  const waitForStorage = (area, key, expected, timeoutMs) =>
+    new Promise((resolve, reject) => {
+      const timeout = AbortSignal.timeout(timeoutMs);
+      let settled = false;
+      /** @param {() => void} callback */
+      const finish = (callback) => {
+        if (settled) return;
+        settled = true;
+        browserApi.storage.onChanged.removeListener(onChanged);
+        timeout.removeEventListener("abort", onTimeout);
+        callback();
+      };
+      const check = async () => {
+        const stored = await storageArea(area).get(key);
+        if (Object.is(stored[key], expected)) finish(() => resolve(stored[key]));
+      };
+      /** @param {Record<string, chrome.storage.StorageChange>} changes @param {string} changedArea */
+      const onChanged = (changes, changedArea) => {
+        if (changedArea === area && Object.is(changes[key]?.newValue, expected)) {
+          finish(() => resolve(changes[key]?.newValue));
+        }
+      };
+      const onTimeout = () =>
+        finish(() => reject(new Error(`Timed out waiting for ${area} storage key: ${key}`)));
+      browserApi.storage.onChanged.addListener(onChanged);
+      timeout.addEventListener("abort", onTimeout, { once: true });
+      void check().catch((error) => finish(() => reject(error)));
+    });
+
+  /** @param {{id?: number, urlIncludes?: string, status?: string, timeoutMs?: number}} match */
+  const waitForTab = ({ id, urlIncludes, status = "complete", timeoutMs = 8000 }) =>
+    new Promise((resolve, reject) => {
+      const timeout = AbortSignal.timeout(timeoutMs);
+      let settled = false;
+      /** @type {chrome.tabs.Tab | undefined} */
+      let lastTab;
+      /** @param {chrome.tabs.Tab} tab */
+      const matches = (tab) =>
+        (id === undefined || tab.id === id) &&
+        (urlIncludes === undefined || tab.url?.includes(urlIncludes)) &&
+        (status === undefined || tab.status === status);
+      /** @param {() => void} callback */
+      const finish = (callback) => {
+        if (settled) return;
+        settled = true;
+        browserApi.tabs.onUpdated.removeListener(onUpdated);
+        browserApi.tabs.onCreated.removeListener(onCreated);
+        timeout.removeEventListener("abort", onTimeout);
+        callback();
+      };
+      const check = async () => {
+        const tabs =
+          id === undefined ? await browserApi.tabs.query({}) : [await browserApi.tabs.get(id)];
+        lastTab =
+          tabs.find(matches) ??
+          tabs.find((tab) =>
+            id === undefined ? tab.url?.includes(urlIncludes ?? "") : tab.id === id,
+          );
+        if (lastTab && matches(lastTab)) finish(() => resolve(lastTab));
+      };
+      const onUpdated = () => void check().catch((error) => finish(() => reject(error)));
+      const onCreated = () => void check().catch((error) => finish(() => reject(error)));
+      const onTimeout = () =>
+        finish(() =>
+          reject(
+            new Error(
+              `Timed out waiting for tab: ${JSON.stringify({ id, urlIncludes, status, lastTab })}`,
+            ),
+          ),
+        );
+      browserApi.tabs.onUpdated.addListener(onUpdated);
+      browserApi.tabs.onCreated.addListener(onCreated);
+      timeout.addEventListener("abort", onTimeout, { once: true });
+      void check().catch((error) => finish(() => reject(error)));
+    });
+
+  /** @param {number} timeoutMs */
+  const waitForOptionsReady = (timeoutMs) =>
+    new Promise((resolve, reject) => {
+      const timeout = AbortSignal.timeout(timeoutMs);
+      const root = document.documentElement;
+      let settled = false;
+      /** @type {MutationObserver | undefined} */
+      let observer;
+      /** @param {() => void} callback */
+      const finish = (callback) => {
+        if (settled) return;
+        settled = true;
+        observer?.disconnect();
+        document.removeEventListener("readystatechange", check);
+        timeout.removeEventListener("abort", onTimeout);
+        callback();
+      };
+      const check = () => {
+        if (
+          document.readyState === "complete" &&
+          Boolean(browserApi.runtime?.id) &&
+          Boolean(document.querySelector("#autocomplete-paths")) &&
+          document.querySelector("#paths")?.getAttribute("aria-busy") === "false" &&
+          document.querySelector("#filenamePatterns")?.getAttribute("aria-busy") === "false"
+        ) {
+          finish(() => resolve(true));
+        }
+      };
+      const onTimeout = () => finish(() => reject(new Error("Timed out waiting for Options UI")));
+      document.addEventListener("readystatechange", check);
+      timeout.addEventListener("abort", onTimeout, { once: true });
+      if (root) {
+        observer = new MutationObserver(check);
+        observer.observe(root, { attributes: true, childList: true, subtree: true });
+      }
+      check();
     });
 
   const readLogs = async () => {
@@ -354,12 +422,35 @@ export const dispatchControlRequest = async (serializedRequest) => {
       case "runtime.send":
         result = await send(request.message);
         break;
+      case "runtime.download": {
+        const url = URL.createObjectURL(new Blob([request.content]));
+        result = await send({
+          type: "DOWNLOAD",
+          body: {
+            url,
+            ...(request.info === undefined ? {} : { info: request.info }),
+            ...(request.comment === undefined ? {} : { comment: request.comment }),
+          },
+        });
+        break;
+      }
+      case "options.waitReady":
+        result = await waitForOptionsReady(request.timeoutMs ?? 8000);
+        break;
       case "storage.get":
         result = await storageArea(request.area).get(request.keys ?? null);
         break;
       case "storage.set":
         await storageArea(request.area).set(request.values);
         result = true;
+        break;
+      case "storage.wait":
+        result = await waitForStorage(
+          request.area,
+          request.key,
+          request.expected,
+          request.timeoutMs ?? 8000,
+        );
         break;
       case "storage.remove":
         await storageArea(request.area).remove(request.keys);
@@ -390,6 +481,9 @@ export const dispatchControlRequest = async (serializedRequest) => {
       case "tabs.update":
         result = await browserApi.tabs.update(request.id, request.properties);
         break;
+      case "tabs.wait":
+        result = await waitForTab(request);
+        break;
       case "tabs.reload":
         result = await browserApi.tabs.reload(request.id);
         break;
@@ -400,6 +494,12 @@ export const dispatchControlRequest = async (serializedRequest) => {
         break;
       case "tabs.sendMessage":
         result = await browserApi.tabs.sendMessage(request.id, request.message);
+        break;
+      case "windows.create":
+        result = await browserApi.windows.create(request.properties);
+        break;
+      case "windows.remove":
+        result = await browserApi.windows.remove(request.id);
         break;
       case "notifications.getAll":
         result = await browserApi.notifications.getAll();
@@ -452,7 +552,10 @@ export const dispatchControlRequest = async (serializedRequest) => {
   }
 };
 
-const CONTROL_FUNCTION = dispatchControlRequest.toString();
+const CONTROL_FUNCTION = `(async (serializedRequest) => {
+  const createProtocolCodecs = ${createProtocolCodecs.toString()};
+  return (${dispatchControlRequest.toString()})(serializedRequest, createProtocolCodecs());
+})`;
 
 /** @param {unknown} value @returns {value is Record<string, unknown>} */
 const isRecord = (value) => typeof value === "object" && value !== null && !Array.isArray(value);
@@ -510,10 +613,10 @@ export const createRecoveringControlTransport = ({
 export const createE2EControlClient = ({ callFunction }) => {
   let calls = 0;
   /**
-   * @template {ControlOperation} Operation
-   * @param {Extract<ControlRequest, {operation: Operation}>} request
+   * @template {ControlRequest} Request
+   * @param {Request} request
    * @param {number} [timeoutMs]
-   * @returns {Promise<ControlResultMap[Operation]>}
+   * @returns {Promise<import("./control-protocol.mjs").ControlResult<Request>>}
    */
   const call = async (request, timeoutMs) => {
     calls += 1;
@@ -531,7 +634,7 @@ export const createE2EControlClient = ({ callFunction }) => {
       if (typeof details.stack === "string") error.stack = details.stack;
       throw error;
     }
-    return decodeControlResult(request.operation, response.value);
+    return decodeControlResult(request, response.value);
   };
 
   /** @param {"local" | "session"} name */
@@ -540,29 +643,33 @@ export const createE2EControlClient = ({ callFunction }) => {
     get: (keys = null) => call({ operation: "storage.get", area: name, keys }),
     /** @param {Record<string, unknown>} values */
     set: (values) => call({ operation: "storage.set", area: name, values }),
+    /** @param {string} key @param {unknown} expected @param {number} [timeoutMs] */
+    wait: (key, expected, timeoutMs) =>
+      call(
+        {
+          operation: "storage.wait",
+          area: name,
+          key,
+          expected,
+          ...(timeoutMs === undefined ? {} : { timeoutMs }),
+        },
+        (timeoutMs ?? 8000) + 2000,
+      ),
     /** @param {string | string[]} keys */
     remove: (keys) => call({ operation: "storage.remove", area: name, keys }),
     clear: () => call({ operation: "storage.clear", area: name }),
   });
 
-  /** @param {RuntimeMessage} message @param {string} fallback */
-  const command = async (message, fallback) => {
-    const response = await call({ operation: "runtime.send", message });
-    if (!isRecord(response.body) || response.body.status !== "OK") {
-      throw new Error(
-        isRecord(response.body) && typeof response.body.message === "string"
-          ? response.body.message
-          : fallback,
-      );
-    }
-    return response.body;
-  };
-
   return {
     call,
     metrics: () => ({ structuredCalls: calls }),
     runtime: {
-      /** @param {RuntimeMessage} message @param {number} [timeoutMs] */
+      /**
+       * @template {RuntimeMessage} Message
+       * @param {Message} message
+       * @param {number} [timeoutMs]
+       * @returns {Promise<import("./control-protocol.mjs").RuntimeResponseFor<Message>>}
+       */
       send: (message, timeoutMs) => call({ operation: "runtime.send", message }, timeoutMs),
       ready: () => call({ operation: "runtime.send", message: { type: "WAKE_WARM" } }),
       reset: () => call({ operation: "runtime.send", message: { type: "OPTIONS_LOADED" } }),
@@ -586,12 +693,20 @@ export const createE2EControlClient = ({ callFunction }) => {
       create: (properties) => call({ operation: "tabs.create", properties }),
       /** @param {number} id @param {chrome.tabs.UpdateProperties} properties */
       update: (id, properties) => call({ operation: "tabs.update", id, properties }),
+      /** @param {{id?: number, urlIncludes?: string, status?: string, timeoutMs?: number}} match */
+      wait: (match) => call({ operation: "tabs.wait", ...match }, (match.timeoutMs ?? 8000) + 2000),
       /** @param {number} id */
       reload: (id) => call({ operation: "tabs.reload", id }),
       /** @param {number | number[]} ids */
       remove: (ids) => call({ operation: "tabs.remove", ids }),
       /** @param {number} id @param {Record<string, unknown>} message */
       sendMessage: (id, message) => call({ operation: "tabs.sendMessage", id, message }),
+    },
+    windows: {
+      /** @param {chrome.windows.CreateData} properties */
+      create: (properties) => call({ operation: "windows.create", properties }),
+      /** @param {number} id */
+      remove: (id) => call({ operation: "windows.remove", id }),
     },
     notifications: {
       getAll: () => call({ operation: "notifications.getAll" }),
@@ -621,15 +736,22 @@ export const createE2EControlClient = ({ callFunction }) => {
         ),
     },
     options: {
+      /** @param {number} [timeoutMs] */
+      waitReady: (timeoutMs) =>
+        call(
+          {
+            operation: "options.waitReady",
+            ...(timeoutMs === undefined ? {} : { timeoutMs }),
+          },
+          (timeoutMs ?? 8000) + 2000,
+        ),
       all: async () => {
         const response = await call({ operation: "runtime.send", message: { type: "OPTIONS" } });
-        if (!isRecord(response.body)) throw new Error("E2E options response is invalid");
         return response.body;
       },
       /** @template {E2ERuntimeOptionName} Name @param {Name} name @returns {Promise<E2ERuntimeOptionValues[Name]>} */
       get: async (name) => {
         const response = await call({ operation: "runtime.send", message: { type: "OPTIONS" } });
-        if (!isRecord(response.body)) throw new Error("E2E options response is invalid");
         return decodeOptionValue(name, response.body[name]);
       },
       /** @param {StoredOptionsPatch} values */
@@ -644,40 +766,52 @@ export const createE2EControlClient = ({ callFunction }) => {
           operation: "runtime.send",
           message: { type: "HISTORY_GET" },
         });
-        if (!isRecord(response.body) || !Array.isArray(response.body.entries)) {
-          throw new Error("E2E history response is invalid");
-        }
-        return decodeHistoryEntries(response.body.entries);
+        return response.body.entries;
       },
     },
     background: {
+      /** @param {string} content @param {Record<string, unknown>} [info] @param {string} [comment] */
+      downloadMessage: (content, info, comment) =>
+        call({
+          operation: "runtime.download",
+          content,
+          ...(info === undefined ? {} : { info }),
+          ...(comment === undefined ? {} : { comment }),
+        }),
       /** @param {StartDownloadBody} body */
       startDownload: async (body) => {
-        const response = await command(
-          { type: "SAVE_IN_E2E_START_DOWNLOAD", body },
-          "E2E download command failed",
-        );
-        return response.result;
+        const response = await call({
+          operation: "runtime.send",
+          message: { type: "SAVE_IN_E2E_START_DOWNLOAD", body },
+        });
+        if (response.body.status === "ERROR") throw new Error(response.body.message);
+        return response.body.result;
       },
       /** @param {ContextMenuClickBody} body */
-      clickContextMenu: (body) =>
-        command(
-          { type: "SAVE_IN_E2E_CONTEXT_MENU_CLICK", body },
-          "E2E context-menu command failed",
-        ),
+      clickContextMenu: async (body) => {
+        const response = await call({
+          operation: "runtime.send",
+          message: { type: "SAVE_IN_E2E_CONTEXT_MENU_CLICK", body },
+        });
+        if (response.body.status === "ERROR") throw new Error(response.body.message);
+        return response.body;
+      },
       /** @param {TabMenuClickBody} body */
-      clickTabMenu: (body) =>
-        command({ type: "SAVE_IN_E2E_TAB_MENU_CLICK", body }, "E2E tab-menu command failed"),
+      clickTabMenu: async (body) => {
+        const response = await call({
+          operation: "runtime.send",
+          message: { type: "SAVE_IN_E2E_TAB_MENU_CLICK", body },
+        });
+        if (response.body.status === "ERROR") throw new Error(response.body.message);
+        return response.body;
+      },
       /** @param {"get" | "reset"} action */
       notificationCalls: async (action) => {
         const response = await call({
           operation: "runtime.send",
           message: { type: "SAVE_IN_E2E_NOTIFICATION_CALLS", body: { action } },
         });
-        if (!isRecord(response.body) || !Array.isArray(response.body.calls)) {
-          throw new Error("E2E notification calls response is invalid");
-        }
-        return decodeNotificationCalls(response.body.calls);
+        return response.body.calls;
       },
       /** @param {Record<string, unknown>} config */
       applyConfig: async (config) =>

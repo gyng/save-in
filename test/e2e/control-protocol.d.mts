@@ -3,9 +3,18 @@ export type StorageKeys = string | string[] | Record<string, unknown> | null;
 export type StorageRecord = Record<string, unknown>;
 
 export interface E2EStoredOptionValues {
+  autoDownloadEnabled: boolean;
+  autoDownloadLive: boolean;
+  autoDownloadMaxPerPage: string | number;
+  autoDownloadPrivate: boolean;
+  browserDownloadFilter: string;
+  contentClickToSave: boolean;
   contentClickToSaveCombo: string | number;
+  externalDownloadAllowlist: string;
   fallbackFetch: boolean;
+  fetchViaFetch: boolean;
   filenamePatterns: string;
+  includeFetchCredentials: boolean;
   notifyDuration: string | number;
   notifyOnFailure: boolean;
   notifyOnLinkPreferred: boolean;
@@ -13,20 +22,30 @@ export interface E2EStoredOptionValues {
   notifyOnSuccess: boolean;
   paths: string;
   promptOnShift: boolean;
+  routeBrowserDownloads: boolean;
+  routeBrowserDownloadsFirefox: boolean;
   selection: boolean;
-}
-
-export interface E2ERuntimeOptionValues extends Omit<
-  E2EStoredOptionValues,
-  "filenamePatterns" | "notifyDuration"
-> {
-  contentClickToSave: boolean;
-  fetchViaFetch: boolean;
-  notifyDuration: number;
   setRefererHeader: boolean;
   setRefererHeaderFilter: string;
   shortcutTab: boolean;
   shortcutType: "HTML_REDIRECT" | "MAC" | "MAC_WEBLOC" | "FREEDESKTOP" | "WINDOWS";
+  sourcePanelEnabled: boolean;
+  sourcePanelLive: boolean;
+  sourcePanelLinks: boolean;
+  trackBrowserDownloads: boolean;
+  webhookEnabled: boolean;
+  webhookIncludePageTitle: boolean;
+  webhookIncludePageUrl: boolean;
+  webhookIncludeSelectionText: boolean;
+  webhookUrl: string;
+}
+
+export interface E2ERuntimeOptionValues extends Omit<
+  E2EStoredOptionValues,
+  "autoDownloadMaxPerPage" | "filenamePatterns" | "notifyDuration"
+> {
+  autoDownloadMaxPerPage: number;
+  notifyDuration: number;
 }
 
 export type E2ERuntimeOptionName = keyof E2ERuntimeOptionValues;
@@ -87,6 +106,13 @@ export type RuntimeMessage =
   | { type: "OPTIONS_LOADED" }
   | { type: "OPTIONS" }
   | { type: "HISTORY_GET" }
+  | { type: "HISTORY_CANCEL"; body: { historyId: string } }
+  | { type: "EXTERNAL_DOWNLOAD_REJECTIONS_GET" }
+  | { type: "EXTERNAL_DOWNLOAD_REJECTION_CLEAR"; body: { senderId: string } }
+  | {
+      type: "DOWNLOAD";
+      body: { url?: string; info?: Record<string, unknown>; comment?: string };
+    }
   | { type: "SAVE_IN_E2E_START_DOWNLOAD"; body: StartDownloadBody }
   | { type: "SAVE_IN_E2E_CONTEXT_MENU_CLICK"; body: ContextMenuClickBody }
   | { type: "SAVE_IN_E2E_TAB_MENU_CLICK"; body: TabMenuClickBody }
@@ -121,12 +147,50 @@ export type NotificationResponse = {
   body: { status: "OK"; calls: NotificationCall[] };
 };
 
-export type BackgroundRuntimeMessage =
-  | RuntimeMessage
-  | {
-      type: "DOWNLOAD";
-      body: { url?: string; info?: Record<string, unknown>; comment?: string };
-    };
+export type ApplyConfigResponse = {
+  type: "APPLY_CONFIG_RESULT";
+  body: {
+    version: number;
+    applied: Record<string, unknown>;
+    rejected: Array<{ name: string; reason: string }>;
+  };
+};
+
+export type DownloadMessageResponse = {
+  type: "DOWNLOAD";
+  body:
+    | { status: "OK"; version: number; url: string }
+    | { status: "ERROR"; error: string; message?: string | undefined; version: number };
+};
+
+export interface RuntimeResponseMap {
+  WAKE_WARM: { type: "OK" };
+  OPTIONS_LOADED: { type: "OK" };
+  OPTIONS: { type: "OPTIONS"; body: Record<string, unknown> };
+  HISTORY_GET: { type: "HISTORY_GET"; body: { entries: HistoryEntry[] } };
+  HISTORY_CANCEL: { type: "HISTORY_CANCEL"; body: { canceled: boolean } };
+  EXTERNAL_DOWNLOAD_REJECTIONS_GET: {
+    type: "EXTERNAL_DOWNLOAD_REJECTIONS_GET";
+    body: { rejections: ExternalDownloadRejection[] };
+  };
+  EXTERNAL_DOWNLOAD_REJECTION_CLEAR: { type: "OK" };
+  DOWNLOAD: DownloadMessageResponse;
+  SAVE_IN_E2E_START_DOWNLOAD: StartDownloadResponse;
+  SAVE_IN_E2E_CONTEXT_MENU_CLICK: ContextMenuClickResponse;
+  SAVE_IN_E2E_TAB_MENU_CLICK: TabMenuClickResponse;
+  SAVE_IN_E2E_NOTIFICATION_CALLS: NotificationResponse;
+  APPLY_CONFIG: ApplyConfigResponse;
+}
+
+export type RuntimeResponseFor<Message extends RuntimeMessage> =
+  RuntimeResponseMap[Message["type"]];
+export type RuntimeResponse = RuntimeResponseMap[keyof RuntimeResponseMap];
+export interface BackgroundRuntimeResponse {
+  type?: string;
+  body?: Record<string, unknown>;
+}
+
+export type BackgroundRuntimeMessage = RuntimeMessage;
 
 export interface DownloadSummary {
   state: string;
@@ -154,6 +218,12 @@ export interface HistoryEntry {
   [key: string]: unknown;
 }
 
+export interface ExternalDownloadRejection {
+  senderId: string;
+  attempts: number;
+  [key: string]: unknown;
+}
+
 export interface TabEntry {
   id?: number;
   index?: number;
@@ -166,6 +236,13 @@ export interface TabEntry {
   [key: string]: unknown;
 }
 
+export interface WindowEntry {
+  id: number;
+  incognito?: boolean;
+  tabs?: TabEntry[];
+  [key: string]: unknown;
+}
+
 export interface NotificationCall {
   id: string;
   title?: string;
@@ -175,11 +252,6 @@ export interface NotificationCall {
 export interface DnrRule {
   id: number;
   [key: string]: unknown;
-}
-
-export interface RuntimeResponse {
-  type?: string;
-  body?: Record<string, unknown>;
 }
 
 export interface InspectResult {
@@ -198,8 +270,22 @@ export interface InspectResult {
 
 export type ControlRequest =
   | { operation: "runtime.send"; message: RuntimeMessage }
+  | {
+      operation: "runtime.download";
+      content: string;
+      info?: Record<string, unknown>;
+      comment?: string;
+    }
+  | { operation: "options.waitReady"; timeoutMs?: number }
   | { operation: "storage.get"; area: StorageAreaName; keys?: StorageKeys }
   | { operation: "storage.set"; area: StorageAreaName; values: StorageRecord }
+  | {
+      operation: "storage.wait";
+      area: StorageAreaName;
+      key: string;
+      expected: unknown;
+      timeoutMs?: number;
+    }
   | { operation: "storage.remove"; area: StorageAreaName; keys: string | string[] }
   | { operation: "storage.clear"; area: StorageAreaName }
   | { operation: "downloads.search"; query?: chrome.downloads.DownloadQuery }
@@ -215,9 +301,18 @@ export type ControlRequest =
   | { operation: "tabs.query"; query?: chrome.tabs.QueryInfo }
   | { operation: "tabs.create"; properties: chrome.tabs.CreateProperties }
   | { operation: "tabs.update"; id: number; properties: chrome.tabs.UpdateProperties }
+  | {
+      operation: "tabs.wait";
+      id?: number;
+      urlIncludes?: string;
+      status?: string;
+      timeoutMs?: number;
+    }
   | { operation: "tabs.reload"; id: number }
   | { operation: "tabs.remove"; ids: number | number[] }
   | { operation: "tabs.sendMessage"; id: number; message: Record<string, unknown> }
+  | { operation: "windows.create"; properties: chrome.windows.CreateData }
+  | { operation: "windows.remove"; id: number }
   | { operation: "notifications.getAll" }
   | { operation: "notifications.clear"; id: string }
   | { operation: "dnr.getSessionRules" }
@@ -236,9 +331,11 @@ export type ControlRequest =
 export type ControlOperation = ControlRequest["operation"];
 
 export interface ControlResultMap {
-  "runtime.send": RuntimeResponse;
+  "runtime.download": DownloadMessageResponse;
+  "options.waitReady": true;
   "storage.get": StorageRecord;
   "storage.set": true;
+  "storage.wait": unknown;
   "storage.remove": true;
   "storage.clear": true;
   "downloads.search": DownloadEntry[];
@@ -248,9 +345,12 @@ export interface ControlResultMap {
   "tabs.query": TabEntry[];
   "tabs.create": TabEntry;
   "tabs.update": TabEntry;
+  "tabs.wait": TabEntry;
   "tabs.reload": null;
   "tabs.remove": null;
   "tabs.sendMessage": unknown;
+  "windows.create": WindowEntry;
+  "windows.remove": null;
   "notifications.getAll": Record<string, unknown>;
   "notifications.clear": boolean;
   "dnr.getSessionRules": DnrRule[];
@@ -261,3 +361,14 @@ export interface ControlResultMap {
   "harness.resetCase": true;
   inspect: InspectResult;
 }
+
+export type ControlResult<Request extends ControlRequest> = Request extends {
+  operation: "runtime.send";
+  message: infer Message extends RuntimeMessage;
+}
+  ? RuntimeResponseFor<Message>
+  : Request extends { operation: "runtime.download" }
+    ? DownloadMessageResponse
+    : Request["operation"] extends keyof ControlResultMap
+      ? ControlResultMap[Request["operation"]]
+      : never;

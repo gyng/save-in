@@ -11,12 +11,6 @@ import cdp from "../../scripts/lib/cdp.js";
 import chrome from "../../scripts/lib/chrome.js";
 import { inBackgroundContext } from "./background-context.mjs";
 import { registerSharedBrowserCases } from "./cases/shared-browser.cases.mjs";
-import {
-  decodeDownloadEntries,
-  decodeHistoryEntries,
-  decodeTabEntry,
-  decodeWindowReference,
-} from "./control-codecs.mjs";
 import { createE2EControlClient, createRecoveringControlTransport } from "./control-client.mjs";
 import {
   runContentDispositionScenario,
@@ -36,7 +30,6 @@ import {
   decodeNumber,
   decodeRecord,
   decodeString,
-  decodeStringOrNumber,
   evaluateJson,
   listenLocal,
   nullable,
@@ -562,7 +555,7 @@ test("options can select a generated locale and return to the browser default", 
   await poll(async () => (await evalOptions(`document.querySelector("#uiLocale")?.value`)) === "", {
     description: "browser-default locale restore",
   });
-  await evalSW(`api.reset().then(() => "browser-default locale restored")`);
+  await control.runtime.reset();
 });
 
 test("options page works under MV3 CSP with live first-party autocomplete", async () => {
@@ -768,6 +761,7 @@ test("cold start removes a stale Referer session rule", async () => {
 
 test("cold start recovers an interrupted in-flight fetch", async () => {
   await runInterruptedTransferRecoveryScenario({
+    control,
     evaluate: evalSW,
     restartBackground: async () => {
       expect(await cdp.stopServiceWorker(PORT, extensionId)).toBe(true);
@@ -841,7 +835,7 @@ test("download completes through the real pipeline with session tracking", async
 
 test("private context-menu saves leave no extension history or session state", async () => {
   await runPrivateContextScenario({
-    evaluate: evalSW,
+    control,
     waitForDownloads,
     filename: "private-chrome",
   });
@@ -865,32 +859,15 @@ test("real Incognito activity stays out of routing, history, and automatic saves
         : null,
     { description: "Chrome extension reload after Incognito access change" },
   );
-  await evalSW(`api.ready().then(() => true)`);
+  await control.runtime.ready();
 
   await runPrivateBrowserActivityScenario({
-    evaluate: evalSW,
+    control,
     openPrivatePage: async (url) => {
-      const opened = await evaluateJson(
-        evalSW,
-        `browser.windows.create({ incognito: true, url: ${JSON.stringify(url)} })
-          .then((window) => JSON.stringify({ windowId: window.id }))`,
-        decodeWindowReference,
-      );
-      const tab = await evaluateJson(
-        evalSW,
-        `new Promise((resolve, reject) => {
-          const timeout = AbortSignal.timeout(8000);
-          const check = async () => {
-            const [tab] = await browser.tabs.query({ windowId: ${opened.windowId} });
-            if (tab?.id != null && tab.status === "complete") {
-              resolve(JSON.stringify({ id: tab.id, url: tab.url }));
-            } else if (timeout.aborted) reject(new Error("Incognito tab did not load"));
-            else requestAnimationFrame(check);
-          };
-          void check();
-        })`,
-        (value) => decodeTabEntry(value, "private Chrome tab"),
-      );
+      const opened = await control.windows.create({ incognito: true, url });
+      const [createdTab] = await control.tabs.query({ windowId: opened.id });
+      const createdTabId = requireValue(createdTab?.id, "Private Chrome tab has no id");
+      const tab = await control.tabs.wait({ id: createdTabId });
       const tabId = requireValue(tab.id, "Private Chrome tab has no id");
       const tabUrl = requireValue(tab.url, "Private Chrome tab has no URL");
       const target = `127.0.0.1:${new URL(tabUrl).port}/private-browser`;
@@ -898,7 +875,7 @@ test("real Incognito activity stays out of routing, history, and automatic saves
         tabId,
         target,
         close: async () => {
-          await evalSW(`browser.windows.remove(${opened.windowId})`);
+          await control.windows.remove(opened.id);
         },
       };
     },
@@ -919,7 +896,7 @@ test("real Incognito activity stays out of routing, history, and automatic saves
 
 test("Save In filenames match live Chrome Content-Disposition behavior", async () => {
   await runContentDispositionScenario({
-    evaluate: evalSW,
+    control,
     downloadUsingBrowserFilename,
     waitForDownloadUrl,
   });
@@ -975,14 +952,9 @@ test("success notifications are created by the real download listener", async ()
 });
 
 test("lastUsedPath survives re-initialisation", async () => {
-  const lastUsed = decodeString(
-    await evalSW(
-      `browser.storage.local.set({ lastUsedPath: "e2e/persisted" })
-      .then(() => api.reset())
-      .then(() => browser.storage.local.get("lastUsedPath"))
-      .then((stored) => stored.lastUsedPath)`,
-    ),
-  );
+  await control.storage.local.set({ lastUsedPath: "e2e/persisted" });
+  await control.runtime.reset();
+  const lastUsed = decodeString((await control.storage.local.get("lastUsedPath")).lastUsedPath);
   expect(lastUsed).toBe("e2e/persisted");
 });
 
@@ -1004,12 +976,13 @@ test("ordinary browser downloads can be routed and tracked without adoption", as
   const target = `127.0.0.1:${port}`;
 
   try {
-    await evalSW(`browser.storage.local.set({
+    await control.options.set({
       trackBrowserDownloads: true,
       routeBrowserDownloads: true,
       browserDownloadFilter: "*://127.0.0.1/*",
-      filenamePatterns: "mime: ^application/octet-stream$\\nreferrerdomain: ^127\\.0\\.0\\.1$\\ninto: browser-routed/:filename:",
-    }).then(() => api.reset())`);
+      filenamePatterns:
+        "mime: ^application/octet-stream$\nreferrerdomain: ^127\\.0\\.0\\.1$\ninto: browser-routed/:filename:",
+    });
     await cdp.openTab(PORT, pageUrl);
     await poll(
       async () =>
@@ -1023,10 +996,8 @@ test("ordinary browser downloads can be routed and tracked without adoption", as
     const observed = requireValue(
       await poll(
         async () => {
-          const entries = await evaluateJson(
-            evalSW,
-            `api.history().then((items) => JSON.stringify(items.filter((entry) => entry.info?.context === "browser")))`,
-            (value) => decodeHistoryEntries(value, "ordinary browser download history"),
+          const entries = (await control.history.get()).filter(
+            (entry) => entry.info?.context === "browser",
           );
           return entries.some((entry) => entry.status === "complete") ? entries : null;
         },
@@ -1040,12 +1011,12 @@ test("ordinary browser downloads can be routed and tracked without adoption", as
       info: { context: "browser" },
     });
   } finally {
-    await evalSW(`browser.storage.local.set({
+    await control.options.set({
       trackBrowserDownloads: false,
       routeBrowserDownloads: false,
       browserDownloadFilter: "",
       filenamePatterns: "",
-    }).then(() => api.reset())`);
+    });
     await closeLocal(server);
   }
 });
@@ -1134,31 +1105,27 @@ test("the paths editor applies changes while drafts stay local", async () => {
 });
 
 test("changing paths is visible after background reinitialisation", async () => {
-  const pathCount = await evalSW(
-    `browser.storage.local.set({ paths: "alpha\\nbeta\\ngamma\\ndelta\\nepsilon" })
-      .then(() => api.reset())
-      .then(() => browser.runtime.sendMessage({ type: "OPTIONS" }))
-      .then((response) => JSON.stringify(response.body.paths.split("\\n").length))`,
-  );
-  expect(parseJson(pathCount, decodeNumber)).toBe(5);
+  await control.options.set({ paths: "alpha\nbeta\ngamma\ndelta\nepsilon" });
+  expect((await control.options.get("paths")).split("\n")).toHaveLength(5);
 });
 
 test(":counter: advances once per download and persists in storage", async () => {
-  await evalSW(`api.resetCounter()
-      .then(() => browser.storage.local.set({
-        filenamePatterns: "filename: countme\\ninto: counters/:counter:-:filename:",
-      }))
-      .then(() => api.reset())`);
+  await control.storage.local.set({ "save-in-counter": 0 });
+  await control.options.set({
+    filenamePatterns: "filename: countme\ninto: counters/:counter:-:filename:",
+  });
   for (let i = 0; i < 2; i += 1) {
-    await evalSW(`api.startDownload({
-      content: "counted-${i}",
+    await control.background.startDownload({
+      content: `counted-${i}`,
       suggestedFilename: "countme.txt",
       pageUrl: "https://example.com/",
-    })`);
+    });
     const rows = await waitForDownloads(`${i + 1}-countme`);
     expect(rows.some((x) => x.state === "complete")).toBe(true);
   }
-  const finalCount = decodeNumber(await evalSW(`api.peekCounter()`));
+  const finalCount = decodeNumber(
+    (await control.storage.local.get("save-in-counter"))["save-in-counter"],
+  );
   // two downloads -> counter advanced exactly twice
   expect(finalCount).toBe(2);
   // and each download's :counter: resolved to its own value
@@ -1189,11 +1156,9 @@ test("message-driven downloads work and never inherit a stale route", async () =
   // Explicit precondition: a routing rule matching "routeme" is active, and
   // the previous download's routed state is the "last" state a naive merge
   // would inherit. The message download must NOT be renamed/rerouted by it.
-  await evalSW(
-    `browser.storage.local.set({
-      filenamePatterns: "filename: routeme\\ninto: routed/renamed-:filename:",
-    }).then(() => api.reset())`,
-  );
+  await control.options.set({
+    filenamePatterns: "filename: routeme\ninto: routed/renamed-:filename:",
+  });
 
   // v1 handshake: PING negotiates the version + capabilities end-to-end
   const pong = await evaluateJson(
@@ -1249,7 +1214,7 @@ test("a separately installed extension negotiates, authorizes, and routes a down
   );
 
   await runExternalExtensionScenario({
-    evaluate: evalSW,
+    control,
     sendExternal: (message) =>
       cdp
         .evalInTarget(
@@ -1266,16 +1231,15 @@ test("a separately installed extension negotiates, authorizes, and routes a down
 });
 
 test("fetchViaFetch downloads via an offscreen document (Chrome MV3)", async () => {
-  await evalSW(`browser.storage.local.set({ filenamePatterns: "", fetchViaFetch: true })
-      .then(() => api.reset())
-      .then(() => api.startDownload({
-        url: "data:text/plain,via%20fetch%20content",
-        suggestedFilename: "viafetch.txt",
-        pageUrl: "https://example.com/",
-      })).then(() => "started")`);
+  await control.options.set({ filenamePatterns: "", fetchViaFetch: true });
+  await control.background.startDownload({
+    url: "data:text/plain,via%20fetch%20content",
+    suggestedFilename: "viafetch.txt",
+    pageUrl: "https://example.com/",
+  });
   expect((await waitForDownloads("viafetch")).map((x) => x.state)).toEqual(["complete"]);
-  const hasOffscreen = decodeBoolean(await evalSW(`chrome.offscreen.hasDocument()`));
-  await evalSW(`api.setOptions({ fetchViaFetch: false })`);
+  const hasOffscreen = await control.offscreen.hasDocument();
+  await control.options.set({ fetchViaFetch: false });
   // the service worker used an offscreen document for the blob object URL
   expect(hasOffscreen).toBe(true);
 
@@ -1301,26 +1265,22 @@ test("Referer-protected downloads use a scoped DNR offscreen fetch", async () =>
   });
   const port = await listenLocal(server);
   const url = `http://127.0.0.1:${port}/referer-protected.txt`;
-  const previous = await evaluateJson(
-    evalSW,
-    `Promise.all([
-      api.getOption("setRefererHeader"),
-      api.getOption("setRefererHeaderFilter"),
-    ]).then(([setRefererHeader, setRefererHeaderFilter]) =>
-      JSON.stringify({ setRefererHeader, setRefererHeaderFilter }))`,
-    objectOf({ setRefererHeader: decodeBoolean, setRefererHeaderFilter: decodeString }),
-  );
+  const previous = {
+    setRefererHeader: await control.options.get("setRefererHeader"),
+    setRefererHeaderFilter: await control.options.get("setRefererHeaderFilter"),
+  };
   try {
-    await evalSW(`api.setOptions({
-        setRefererHeader: true,
-        setRefererHeaderFilter: "*://127.0.0.1/*",
-        fetchViaFetch: false,
-      }).then(() => api.startDownload({
-        url: ${JSON.stringify(url)},
-        pageUrl: ${JSON.stringify(expectedReferer)},
-        path: "e2e/referer-protected-chrome-:mimeext:-:sha256:.txt",
-        suggestedFilename: "referer-protected-chrome.txt",
-      }))`);
+    await control.options.set({
+      setRefererHeader: true,
+      setRefererHeaderFilter: "*://127.0.0.1/*",
+      fetchViaFetch: false,
+    });
+    await control.background.startDownload({
+      url,
+      pageUrl: expectedReferer,
+      path: "e2e/referer-protected-chrome-:mimeext:-:sha256:.txt",
+      suggestedFilename: "referer-protected-chrome.txt",
+    });
     const rows = await waitForDownloads("referer-protected-chrome");
     const done = requireValue(
       rows.find((row) => row.state === "complete"),
@@ -1330,14 +1290,10 @@ test("Referer-protected downloads use a scoped DNR offscreen fetch", async () =>
     expect(receivedRequests.every(({ referer }) => referer === expectedReferer)).toBe(true);
     expect(done.filename).toContain(`referer-protected-chrome-webp-${expectedHash}`);
     expect(fs.readFileSync(done.filename, "utf8")).toBe(body);
-    const remainingRules = arrayOf(decodeNumber)(
-      await evalSW(
-        `chrome.declarativeNetRequest.getSessionRules().then((rules) => rules.map((rule) => rule.id))`,
-      ),
-    );
+    const remainingRules = (await control.dnr.getSessionRules()).map((rule) => rule.id);
     expect(remainingRules).not.toContain(66_000_001);
   } finally {
-    await evalSW(`api.setOptions(${JSON.stringify({ ...previous, fetchViaFetch: false })})`);
+    await control.options.set({ ...previous, fetchViaFetch: false });
     await closeLocal(server);
   }
 });
@@ -1362,31 +1318,31 @@ test("concurrent Referer-protected fetches keep their exact headers serialized",
     });
   });
   const port = await listenLocal(server);
-  const previous = await evaluateJson(
-    evalSW,
-    `Promise.all([
-      api.getOption("setRefererHeader"),
-      api.getOption("setRefererHeaderFilter"),
-    ]).then(([setRefererHeader, setRefererHeaderFilter]) =>
-      JSON.stringify({ setRefererHeader, setRefererHeaderFilter }))`,
-    objectOf({ setRefererHeader: decodeBoolean, setRefererHeaderFilter: decodeString }),
-  );
+  const previous = {
+    setRefererHeader: await control.options.get("setRefererHeader"),
+    setRefererHeaderFilter: await control.options.get("setRefererHeaderFilter"),
+  };
   const fixtures = [
     { name: "referer-concurrent-a", referer: "https://gallery.example/a" },
     { name: "referer-concurrent-b", referer: "https://gallery.example/b" },
   ];
 
   try {
-    await evalSW(`api.setOptions({
+    await control.options.set({
       setRefererHeader: true,
       setRefererHeaderFilter: "*://127.0.0.1/*",
       fetchViaFetch: false,
-    }).then(() => Promise.all(${JSON.stringify(fixtures)}.map((fixture) => api.startDownload({
-      url: "http://127.0.0.1:${port}/" + fixture.name + ".txt",
-      pageUrl: fixture.referer,
-      path: "e2e/" + fixture.name + "-:mimeext:.txt",
-      suggestedFilename: fixture.name + ".txt",
-    }))))`);
+    });
+    await Promise.all(
+      fixtures.map((fixture) =>
+        control.background.startDownload({
+          url: `http://127.0.0.1:${port}/${fixture.name}.txt`,
+          pageUrl: fixture.referer,
+          path: `e2e/${fixture.name}-:mimeext:.txt`,
+          suggestedFilename: `${fixture.name}.txt`,
+        }),
+      ),
+    );
     await Promise.all(fixtures.map(({ name }) => waitForDownloads(name)));
 
     expect(maxActiveRequests).toBe(1);
@@ -1397,14 +1353,10 @@ test("concurrent Referer-protected fetches keep their exact headers serialized",
       expect(matching.map(({ method }) => method)).toEqual(["HEAD", "GET"]);
       expect(matching.every(({ referer }) => referer === fixture.referer)).toBe(true);
     }
-    const remainingRules = arrayOf(decodeNumber)(
-      await evalSW(
-        `chrome.declarativeNetRequest.getSessionRules().then((rules) => rules.map((rule) => rule.id))`,
-      ),
-    );
+    const remainingRules = (await control.dnr.getSessionRules()).map((rule) => rule.id);
     expect(remainingRules).not.toContain(66_000_001);
   } finally {
-    await evalSW(`api.setOptions(${JSON.stringify({ ...previous, fetchViaFetch: false })})`);
+    await control.options.set({ ...previous, fetchViaFetch: false });
     await closeLocal(server);
   }
 });
@@ -1452,20 +1404,20 @@ test("extension fetch credentials are preserved across cross-origin redirects", 
       { description: "credential fixture cookie" },
     );
 
-    await evalSW(`api.setOptions({ fetchViaFetch: true, includeFetchCredentials: false })
-      .then(() => api.startDownload({
-        url: "http://127.0.0.1:${redirectPort}/credentials-omitted.bin",
-        suggestedFilename: "credentials-omitted.bin",
-        pageUrl: ${JSON.stringify(pageUrl)},
-      })).then(() => "started")`);
+    await control.options.set({ fetchViaFetch: true, includeFetchCredentials: false });
+    await control.background.startDownload({
+      url: `http://127.0.0.1:${redirectPort}/credentials-omitted.bin`,
+      suggestedFilename: "credentials-omitted.bin",
+      pageUrl,
+    });
     await waitForDownloads("credentials-omitted", 10000);
 
-    await evalSW(`api.setOptions({ fetchViaFetch: true, includeFetchCredentials: true })
-      .then(() => api.startDownload({
-        url: "http://127.0.0.1:${redirectPort}/credentials-included.bin",
-        suggestedFilename: "credentials-included.bin",
-        pageUrl: ${JSON.stringify(pageUrl)},
-      })).then(() => "started")`);
+    await control.options.set({ fetchViaFetch: true, includeFetchCredentials: true });
+    await control.background.startDownload({
+      url: `http://127.0.0.1:${redirectPort}/credentials-included.bin`,
+      suggestedFilename: "credentials-included.bin",
+      pageUrl,
+    });
     await waitForDownloads("credentials-included", 10000);
 
     expect(fs.readFileSync(path.join(DOWNLOADS, "e2e", "credentials-omitted.bin"), "utf8")).toBe(
@@ -1477,7 +1429,7 @@ test("extension fetch credentials are preserved across cross-origin redirects", 
     expect(redirectRequests).toEqual(["", ""]);
     expect(protectedRequests).toEqual(["", expect.stringContaining("save_in_auth=granted")]);
   } finally {
-    await evalSW(`api.setOptions({ fetchViaFetch: false, includeFetchCredentials: false })`);
+    await control.options.set({ fetchViaFetch: false, includeFetchCredentials: false });
     await Promise.all([closeLocal(redirectServer), closeLocal(destinationServer)]);
   }
 });
@@ -1498,16 +1450,13 @@ test(":sha256: and :sha256full: hash and save from a single fetch (Chrome MV3)",
   const serverPort = await listenLocal(server);
 
   try {
-    await evalSW(
-      `browser.storage.local.set({ filenamePatterns: "" })
-        .then(() => api.reset())
-        .then(() => api.startDownload({
-          path: "e2e/:sha256:/:sha256full:",
-          url: "http://127.0.0.1:${serverPort}/hashme.bin",
-          suggestedFilename: "hashme.bin",
-          pageUrl: "http://127.0.0.1:${serverPort}/",
-        })).then(() => "started")`,
-    );
+    await control.options.set({ filenamePatterns: "" });
+    await control.background.startDownload({
+      path: "e2e/:sha256:/:sha256full:",
+      url: `http://127.0.0.1:${serverPort}/hashme.bin`,
+      suggestedFilename: "hashme.bin",
+      pageUrl: `http://127.0.0.1:${serverPort}/`,
+    });
 
     const rows = await waitForDownloads(expectedHash, 10000);
     const done = requireValue(
@@ -1535,22 +1484,17 @@ test("a bundled direct save delivers the configured webhook payload once", async
     "webhookIncludePageTitle",
     "webhookIncludeSelectionText",
   ];
-  const previous = await evaluateJson(
-    evalSW,
-    `browser.storage.local.get(${JSON.stringify(keys)})
-      .then((stored) => JSON.stringify(stored))`,
-    decodeRecord,
-  );
+  const previous = await control.storage.local.get(keys);
   const missing = keys.filter((key) => !(key in previous));
 
   try {
-    await evalSW(`api.setOptions({
+    await control.options.set({
       webhookEnabled: true,
       webhookUrl: "https://webhook.invalid/save?token=secret",
       webhookIncludePageUrl: true,
       webhookIncludePageTitle: false,
       webhookIncludeSelectionText: false,
-    })`);
+    });
     await evalWorker(`(() => {
       globalThis.__saveInE2EOriginalFetch = globalThis.fetch;
       globalThis.__saveInE2EWebhookCalls = [];
@@ -1569,11 +1513,11 @@ test("a bundled direct save delivers the configured webhook payload once", async
       };
       return true;
     })()`);
-    await evalSW(`api.startDownload({
+    await control.background.startDownload({
       content: "webhook e2e content",
       suggestedFilename: "webhook-e2e.txt",
       pageUrl: "https://page.example/webhook-source",
-    }).then(() => "started")`);
+    });
     await waitForDownloads("webhook-e2e");
     const calls = requireValue(
       await poll(
@@ -1621,10 +1565,8 @@ test("a bundled direct save delivers the configured webhook payload once", async
       delete globalThis.__saveInE2EWebhookCalls;
       return true;
     })()`).catch(() => {});
-    await evalSW(`Promise.all([
-      browser.storage.local.set(${JSON.stringify(previous)}),
-      browser.storage.local.remove(${JSON.stringify(missing)}),
-    ]).then(() => api.reset())`);
+    await Promise.all([control.storage.local.set(previous), control.storage.local.remove(missing)]);
+    await control.runtime.reset();
   }
 });
 
@@ -1642,16 +1584,12 @@ test("options page autosave persists to storage and survives a restart", async (
     })()`);
 
     // Persisted to storage.local (not just the in-memory option)...
-    const stored = await evalSW(
-      `browser.storage.local.get("promptOnShift").then((o) => JSON.stringify(o.promptOnShift))`,
-    );
-    expect(parseJson(stored, decodeBoolean)).toBe(false);
+    const stored = await control.storage.local.get("promptOnShift");
+    expect(stored.promptOnShift).toBe(false);
 
     // ...and survives a simulated service-worker restart
-    const afterReset = await evalSW(
-      `api.reset().then(() => api.getOption("promptOnShift")).then(JSON.stringify)`,
-    );
-    expect(parseJson(afterReset, decodeBoolean)).toBe(false);
+    await control.runtime.reset();
+    expect(await control.options.get("promptOnShift")).toBe(false);
   } finally {
     await evalOptions(`(async () => {
       const cb = document.querySelector("#promptOnShift");
@@ -1661,16 +1599,13 @@ test("options page autosave persists to storage and survives a restart", async (
       await stored;
       return "restored";
     })()`);
-    await evalSW(`api.reset().then(() => "reset")`);
+    await control.runtime.reset();
   }
 });
 
 test("removing option keys restores live defaults before reset acknowledgement", async () => {
   try {
-    await evalSW(`browser.storage.local.set({ promptOnShift: false })
-      .then(() => api.reset())
-      .then(() => api.getOption("promptOnShift"))
-      .then(JSON.stringify)`);
+    await control.options.set({ promptOnShift: false });
 
     const result = await evaluateJson(
       evalOptions,
@@ -1684,13 +1619,9 @@ test("removing option keys restores live defaults before reset acknowledgement",
 
     expect(result.response).toEqual({ type: "OK" });
     expect(result.stored).toEqual({});
-    expect(
-      parseJson(await evalSW(`api.getOption("promptOnShift").then(JSON.stringify)`), decodeBoolean),
-    ).toBe(true);
+    expect(await control.options.get("promptOnShift")).toBe(true);
   } finally {
-    await evalSW(`browser.storage.local.set({ promptOnShift: true })
-      .then(() => api.reset())
-      .then(() => "restored")`);
+    await control.options.set({ promptOnShift: true });
   }
 });
 
@@ -1712,19 +1643,11 @@ test("alt+click on a real page saves the image through the content script", asyn
   const serverPort = await listenLocal(server);
   const pageUrl = `http://127.0.0.1:${serverPort}/`;
   const targetUrl = `127.0.0.1:${serverPort}`;
-  const previousContentClickToSave = decodeBoolean(
-    await evalSW(`api.getOption("contentClickToSave")`),
-  );
-  const previousContentClickToSaveCombo = decodeStringOrNumber(
-    await evalSW(`api.getOption("contentClickToSaveCombo")`),
-  );
+  const previousContentClickToSave = await control.options.get("contentClickToSave");
+  const previousContentClickToSaveCombo = await control.options.get("contentClickToSaveCombo");
 
   try {
-    await evalSW(
-      `browser.storage.local.set({ contentClickToSave: true, contentClickToSaveCombo: 18 })
-        .then(() => api.reset())
-        .then(() => "enabled")`,
-    );
+    await control.options.set({ contentClickToSave: true, contentClickToSaveCombo: 18 });
 
     await cdp.openTab(PORT, pageUrl);
     await poll(
@@ -1732,11 +1655,11 @@ test("alt+click on a real page saves the image through the content script", asyn
         (await cdp.evalInTarget(PORT, targetUrl, "!!document.getElementById('img')")) === true,
       { description: "content page image" },
     );
-    await evalSW(`browser.tabs.query({}).then((tabs) => {
-      const tab = tabs.find((candidate) => candidate.url?.includes(${JSON.stringify(targetUrl)}));
-      if (!tab?.id) throw new Error("click-to-save fixture tab missing");
-      return browser.tabs.update(tab.id, { active: true });
-    }).then(() => "activated")`);
+    const fixtureTab = (await control.tabs.query()).find((candidate) =>
+      candidate.url?.includes(targetUrl),
+    );
+    const fixtureTabId = requireValue(fixtureTab?.id, "click-to-save fixture tab missing");
+    await control.tabs.update(fixtureTabId, { active: true });
 
     await cdp.evalInTarget(
       PORT,
@@ -1749,11 +1672,8 @@ test("alt+click on a real page saves the image through the content script", asyn
         return true;
       })()`,
     );
-    const syntheticDownloads = await evaluateJson(
-      evalSW,
-      `browser.downloads.search({}).then((items) => JSON.stringify(items
-          .filter((item) => item.url === ${JSON.stringify(`${pageUrl}pic.png`)})))`,
-      (value) => decodeDownloadEntries(value, "synthetic click downloads"),
+    const syntheticDownloads = (await control.downloads.search()).filter(
+      (item) => item.url === `${pageUrl}pic.png`,
     );
     expect(syntheticDownloads).toHaveLength(0);
 
@@ -1825,17 +1745,19 @@ test("alt+click on a real page saves the image through the content script", asyn
     const download = await waitForDownloads("pic");
 
     if (download.length !== 1) {
+      const [log, downloads, option] = await Promise.all([
+        control.logs.get(),
+        control.downloads.search(),
+        control.storage.local.get("contentClickToSave"),
+      ]);
       // eslint-disable-next-line no-console -- emitted only when the e2e assertion is about to fail
       console.log(
         "DIAG:",
-        await evalSW(
-          `Promise.all([api.logs(), browser.downloads.search({}), browser.storage.local.get("contentClickToSave")])
-            .then(([log, d, o]) => JSON.stringify({
-              log: log.slice(-5),
-              downloads: d.map((x) => x.filename.slice(-30)),
-              option: o,
-            }))`,
-        ),
+        JSON.stringify({
+          log: log.slice(-5),
+          downloads: downloads.map((entry) => entry.filename.slice(-30)),
+          option,
+        }),
       );
     }
 
@@ -1845,17 +1767,14 @@ test("alt+click on a real page saves the image through the content script", asyn
     expect(fs.readFileSync(completed.filename)).toEqual(png);
   } finally {
     try {
-      await evalSW(`browser.storage.local
-        .set({
-          contentClickToSave: ${JSON.stringify(previousContentClickToSave)},
-          contentClickToSaveCombo: ${JSON.stringify(previousContentClickToSaveCombo)},
-        })
-        .then(() => browser.tabs.query({}))
-        .then((tabs) => browser.tabs.remove(tabs
-          .filter((tab) => tab.url?.includes(${JSON.stringify(targetUrl)}))
-          .map((tab) => tab.id)
-          .filter((id) => id != null)))
-        .then(() => api.reset())`);
+      await control.options.set({
+        contentClickToSave: previousContentClickToSave,
+        contentClickToSaveCombo: previousContentClickToSaveCombo,
+      });
+      const fixtureIds = (await control.tabs.query())
+        .filter((tab) => tab.url?.includes(targetUrl))
+        .flatMap((tab) => (tab.id === undefined ? [] : [tab.id]));
+      if (fixtureIds.length) await control.tabs.remove(fixtureIds);
     } finally {
       await closeLocal(server);
     }
@@ -1866,13 +1785,12 @@ test("automatic Page Sources routes initial and live matches and enforces the vi
   const { server, port } = await startSourcePanelServer();
   const target = `127.0.0.1:${port}/automatic-sources`;
   const pageUrl = `http://${target}`;
-  const previous = await evaluateJson(
-    evalSW,
-    `browser.storage.local.get([
-      "autoDownloadEnabled", "autoDownloadLive", "autoDownloadMaxPerPage", "filenamePatterns"
-    ]).then((stored) => JSON.stringify(stored))`,
-    decodeRecord,
-  );
+  const previous = await control.storage.local.get([
+    "autoDownloadEnabled",
+    "autoDownloadLive",
+    "autoDownloadMaxPerPage",
+    "filenamePatterns",
+  ]);
   const automaticKeys = [
     "autoDownloadEnabled",
     "autoDownloadLive",
@@ -1882,12 +1800,11 @@ test("automatic Page Sources routes initial and live matches and enforces the vi
   const missingAutomaticKeys = automaticKeys.filter((key) => !(key in previous));
 
   try {
-    await evalSW(`browser.storage.local.set({
+    await control.options.set({
       autoDownloadEnabled: true,
       autoDownloadLive: true,
       autoDownloadMaxPerPage: 3,
-      filenamePatterns: ${JSON.stringify(
-        `url: .*
+      filenamePatterns: `url: .*
 into: e2e/ordinary-should-not-match/
 
 context: ^auto$
@@ -1895,17 +1812,11 @@ pageurl: ^http://127\\.0\\.0\\.1:${port}/automatic-sources$
 sourcekind: ^image$
 sourceurl: \\.png$
 into: e2e/automatic-chrome/:filename:`,
-      )},
-    }).then(() => api.reset()).then(() => "enabled")`);
+    });
     await cdp.openTab(PORT, pageUrl);
     const initial = await poll(
       async () => {
-        const rows = await evaluateJson(
-          evalSW,
-          `browser.downloads.search({ filenameRegex: "automatic-chrome" })
-            .then((items) => JSON.stringify(items.map(({ id, state, filename, url }) => ({ id, state, filename, url }))))`,
-          (value) => decodeDownloadEntries(value, "automatic Chrome downloads"),
-        );
+        const rows = await control.downloads.search({ filenameRegex: "automatic-chrome" });
         return rows.filter((row) => row.state === "complete").length === 2 ? rows : null;
       },
       { timeoutMs: 10000, description: "initial automatic Page Sources downloads" },
@@ -1929,24 +1840,21 @@ into: e2e/automatic-chrome/:filename:`,
       })()`,
     );
     await waitForDownloadUrl(`http://127.0.0.1:${port}/late.png`);
-    const rows = await evaluateJson(
-      evalSW,
-      `browser.downloads.search({}).then((items) => JSON.stringify(items.filter(
-        (item) => item.url === "http://127.0.0.1:${port}/over-limit.png"
-      )))`,
-      arrayOf(decodeRecord),
+    const rows = (await control.downloads.search()).filter(
+      (item) => item.url === `http://127.0.0.1:${port}/over-limit.png`,
     );
     expect(rows).toHaveLength(0);
   } finally {
-    await evalSW(`Promise.all([
-      browser.storage.local.set(${JSON.stringify(previous)}),
-      browser.storage.local.remove(${JSON.stringify(missingAutomaticKeys)}),
-    ])
-      .then(() => browser.tabs.query({}))
-      .then((tabs) => browser.tabs.remove(tabs.filter((tab) =>
-        tab.url?.includes(${JSON.stringify(target)})
-      ).map((tab) => tab.id).filter((id) => id != null)))
-      .then(() => api.reset())`);
+    await Promise.all([
+      control.storage.local.set(previous),
+      control.storage.local.remove(missingAutomaticKeys),
+    ]);
+    const fixtureIds = (await control.tabs.query())
+      .filter((tab) => tab.url?.includes(target))
+      .map((tab) => tab.id)
+      .filter((id) => id !== undefined);
+    if (fixtureIds.length) await control.tabs.remove(fixtureIds);
+    await control.runtime.reset();
     await closeLocal(server);
   }
 });
@@ -1961,8 +1869,8 @@ test("Page Sources discovers, updates live, and restores across tabs", async () 
   const evalPage = (pathPart, expression) => cdp.evalInTarget(PORT, pathPart, expression);
 
   try {
-    await evalSW(`Promise.all([
-      browser.storage.local.set({
+    await Promise.all([
+      control.storage.local.set({
         sourcePanelEnabled: true,
         sourcePanelLive: true,
         sourcePanelPreviews: false,
@@ -1970,20 +1878,18 @@ test("Page Sources discovers, updates live, and restores across tabs", async () 
         sourcePanelResourceHints: false,
         sourcePanelLinks: false,
       }),
-      browser.storage.session.set({ sourcePanelOpen: false }),
-    ]).then(() => api.reset()).then(() => "enabled")`);
+      control.storage.session.set({ sourcePanelOpen: false }),
+    ]);
+    await control.runtime.reset();
     await cdp.openTab(PORT, firstUrl);
     await poll(
       async () =>
         (await evalPage(firstPath, "document.readyState === 'complete'")) === true ? true : null,
       { description: "first Page Sources fixture" },
     );
-    await evalSW(`browser.tabs.query({}).then(async (tabs) => {
-      const tab = tabs.find((candidate) => candidate.url?.includes(${JSON.stringify(firstPath)}));
-      if (!tab?.id) throw new Error("Page Sources fixture tab missing");
-      await browser.tabs.update(tab.id, { active: true });
-      return "activated";
-    })`);
+    const firstTab = (await control.tabs.query()).find((tab) => tab.url?.includes(firstPath));
+    if (firstTab?.id === undefined) throw new Error("Page Sources fixture tab missing");
+    await control.tabs.update(firstTab.id, { active: true });
     const [discoveryJson] = await Promise.all([
       evalPage(
         firstPath,
@@ -2004,7 +1910,7 @@ test("Page Sources discovers, updates live, and restores across tabs", async () 
         const rows = [...document.querySelector("#save-in-source-panel").shadowRoot
           .querySelectorAll(".row")];
         const row = rows.find((candidate) => candidate.querySelector(".name")?.textContent === "first.png");
-        row?.querySelector(".actions button:nth-child(2)")?.click();
+        row?.querySelector(".actions .primary-action")?.click();
         return Boolean(row);
       })()`,
     );
@@ -2016,11 +1922,9 @@ test("Page Sources discovers, updates live, and restores across tabs", async () 
         (await evalPage(secondPath, "document.readyState === 'complete'")) === true ? true : null,
       { description: "second Page Sources fixture" },
     );
-    await evalSW(`browser.tabs.query({}).then((tabs) => {
-      const tab = tabs.find((candidate) => candidate.url?.includes(${JSON.stringify(secondPath)}));
-      if (!tab?.id) throw new Error("second Page Sources fixture tab missing");
-      return browser.tabs.update(tab.id, { active: true });
-    }).then(() => "activated")`);
+    const secondTab = (await control.tabs.query()).find((tab) => tab.url?.includes(secondPath));
+    if (secondTab?.id === undefined) throw new Error("second Page Sources fixture tab missing");
+    await control.tabs.update(secondTab.id, { active: true });
     await poll(
       async () =>
         (await evalPage(
@@ -2032,13 +1936,16 @@ test("Page Sources discovers, updates live, and restores across tabs", async () 
       { description: "Page Sources restored on activated tab" },
     );
   } finally {
-    await evalSW(`Promise.all([
-      browser.storage.session.set({ sourcePanelOpen: false }),
-      browser.storage.local.set({ sourcePanelEnabled: false }),
-      browser.tabs.query({}).then((tabs) => browser.tabs.remove(tabs.filter((tab) =>
-        tab.url?.includes(${JSON.stringify(`127.0.0.1:${port}/sources-`)})
-      ).map((tab) => tab.id).filter((id) => id != null))),
-    ]).then(() => api.reset()).then(() => "cleaned")`);
+    await Promise.all([
+      control.storage.session.set({ sourcePanelOpen: false }),
+      control.storage.local.set({ sourcePanelEnabled: false }),
+    ]);
+    const fixtureIds = (await control.tabs.query())
+      .filter((tab) => tab.url?.includes(`127.0.0.1:${port}/sources-`))
+      .map((tab) => tab.id)
+      .filter((id) => id !== undefined);
+    if (fixtureIds.length) await control.tabs.remove(fixtureIds);
+    await control.runtime.reset();
     await closeLocal(server);
   }
 });
@@ -2083,11 +1990,11 @@ test("history and the debug log record a self-contained download", async () => {
     }))`,
     objectOf({ history: decodeNumber, log: decodeNumber }),
   );
-  await evalSW(`api.startDownload({
+  await control.background.startDownload({
     content: "history e2e content",
     suggestedFilename: "history-e2e.txt",
     pageUrl: "https://example.com/",
-  }).then(() => "started")`);
+  });
   await waitForDownloads("history-e2e");
 
   const records = await evaluateJson(

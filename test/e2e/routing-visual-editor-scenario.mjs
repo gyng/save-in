@@ -3,7 +3,6 @@ import { expect } from "vitest";
 import {
   decodeBoolean,
   decodeNumber,
-  decodeRecord,
   decodeString,
   evaluateJson,
   nullable,
@@ -32,27 +31,23 @@ const EDITED_RULE_SOURCE = VISUAL_RULE_SOURCE.replace("\\.jpg$", EDITED_MATCHER)
  * boundary and that debugger source navigation targets its visual projection.
  *
  * @param {{
- *   evaluate: (expression: string) => Promise<unknown>,
+ *   control: ReturnType<typeof import("./control-client.mjs").createE2EControlClient>,
  *   evaluateOptions: (expression: string) => Promise<unknown>,
  *   reloadOptions?: () => Promise<unknown>,
  * }} adapters
  */
 export const runRoutingVisualEditorScenario = async ({
-  evaluate,
+  control,
   evaluateOptions,
   reloadOptions = () => evaluateOptions(`location.reload()`),
 }) => {
-  const previousConfig = await evaluateJson(
-    evaluate,
-    `browser.storage.local.get("filenamePatterns").then((value) => JSON.stringify(value))`,
-    decodeRecord,
-  );
+  const previousConfig = await control.storage.local.get("filenamePatterns");
   const previousMode = nullable(decodeString)(
     await evaluateOptions(`localStorage.getItem("saveInRulesEditorMode")`),
   );
 
   try {
-    await evaluate(`api.setOptions({ filenamePatterns: ${JSON.stringify(VISUAL_RULE_SOURCE)} })`);
+    await control.options.set({ filenamePatterns: VISUAL_RULE_SOURCE });
     await reloadOptions();
     await poll(
       async () =>
@@ -124,19 +119,8 @@ export const runRoutingVisualEditorScenario = async ({
       return true;
     })()`);
 
-    const persisted = await poll(
-      async () => {
-        const value = await evaluateJson(
-          evaluate,
-          `browser.storage.local.get("filenamePatterns").then((stored) => JSON.stringify(stored.filenamePatterns))`,
-          decodeString,
-        );
-        if (value === EDITED_RULE_SOURCE) return value;
-        throw new Error(
-          `Expected ${JSON.stringify(EDITED_RULE_SOURCE)}, received ${JSON.stringify(value)}`,
-        );
-      },
-      { description: "visual routing edits persisted" },
+    const persisted = decodeString(
+      await control.storage.local.wait("filenamePatterns", EDITED_RULE_SOURCE),
     );
     expect(persisted).toBe(EDITED_RULE_SOURCE);
 
@@ -241,10 +225,11 @@ export const runRoutingVisualEditorScenario = async ({
     );
     expect(sourceNavigation).toEqual({ ruleIndex: "0", activeLine: "2" });
   } finally {
-    await evaluate(`Promise.all([
-      browser.storage.local.set(${JSON.stringify(previousConfig)}),
-      ${Object.hasOwn(previousConfig, "filenamePatterns") ? "Promise.resolve()" : 'browser.storage.local.remove("filenamePatterns")'},
-    ]).then(() => api.reset())`);
+    await control.storage.local.set(previousConfig);
+    if (!Object.hasOwn(previousConfig, "filenamePatterns")) {
+      await control.storage.local.remove("filenamePatterns");
+    }
+    await control.runtime.reset();
     await evaluateOptions(`(() => {
       const previous = ${JSON.stringify(previousMode)};
       if (previous === null) localStorage.removeItem("saveInRulesEditorMode");

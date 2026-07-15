@@ -1,4 +1,7 @@
+import { createProtocolCodecs } from "./protocol-codecs.mjs";
+
 /** @typedef {import("./control-protocol.mjs").BackgroundRuntimeMessage} BackgroundRuntimeMessage */
+/** @typedef {import("./control-protocol.mjs").BackgroundRuntimeResponse} BackgroundRuntimeResponse */
 /** @typedef {import("./control-protocol.mjs").ContextMenuClickBody} ContextMenuClickBody */
 /** @typedef {import("./control-protocol.mjs").E2ERuntimeOptionName} E2ERuntimeOptionName */
 /** @typedef {import("./control-protocol.mjs").E2ERuntimeOptionValues} E2ERuntimeOptionValues */
@@ -6,34 +9,22 @@
 /** @typedef {import("./control-protocol.mjs").LogEntry} LogEntry */
 /** @typedef {import("./control-protocol.mjs").NotificationCall} NotificationCall */
 /** @typedef {import("./control-protocol.mjs").StoredOptionsPatch} StoredOptionsPatch */
-/** @typedef {import("./control-protocol.mjs").RuntimeResponse} RuntimeResponse */
 /** @typedef {import("./control-protocol.mjs").StartDownloadBody} StartDownloadBody */
 /** @typedef {import("./control-protocol.mjs").TabMenuClickBody} TabMenuClickBody */
 
-const installBackgroundHelpers = () => {
+/** @param {ReturnType<typeof createProtocolCodecs>} [codecs] */
+const installBackgroundHelpers = (codecs = createProtocolCodecs()) => {
   const chromeApi = /** @type {typeof chrome} */ (Reflect.get(globalThis, "chrome"));
   const browserApi = /** @type {typeof chrome} */ (
     /** @type {unknown} */ (Reflect.get(globalThis, "browser") || chromeApi)
   );
-  /** @param {unknown} value @returns {value is Record<string, unknown>} */
-  const isRecord = (value) => typeof value === "object" && value !== null && !Array.isArray(value);
-  /** @param {unknown} value */
-  const isLogEntry = (value) => isRecord(value) && typeof value.message === "string";
-  /** @param {unknown} value */
-  const isHistoryEntry = (value) =>
-    isRecord(value) &&
-    (value.id === undefined || typeof value.id === "string") &&
-    (value.url === undefined || typeof value.url === "string") &&
-    (value.status === undefined || typeof value.status === "string") &&
-    (value.finalFullPath === undefined || typeof value.finalFullPath === "string") &&
-    (value.private === undefined || typeof value.private === "boolean") &&
-    (value.info === undefined || isRecord(value.info));
-  /** @param {unknown} value */
-  const isNotificationCall = (value) =>
-    isRecord(value) &&
-    typeof value.id === "string" &&
-    (value.title === undefined || typeof value.title === "string") &&
-    (value.message === undefined || typeof value.message === "string");
+  const {
+    isHistoryEntry,
+    isLog: isLogEntry,
+    isNotificationCall,
+    isOptionValue,
+    isRuntimeResponseFor,
+  } = codecs;
   /** @param {unknown} value @returns {LogEntry[]} */
   const decodeLogs = (value) => {
     if (!Array.isArray(value) || !value.every(isLogEntry)) {
@@ -62,31 +53,16 @@ const installBackgroundHelpers = () => {
    * @returns {E2ERuntimeOptionValues[Name]}
    */
   const decodeOption = (name, value) => {
-    const valid =
-      name === "contentClickToSaveCombo"
-        ? typeof value === "string" || typeof value === "number"
-        : name === "notifyDuration"
-          ? typeof value === "number"
-          : name === "paths" || name === "setRefererHeaderFilter"
-            ? typeof value === "string"
-            : name === "shortcutType"
-              ? typeof value === "string" &&
-                ["HTML_REDIRECT", "MAC", "MAC_WEBLOC", "FREEDESKTOP", "WINDOWS"].includes(value)
-              : typeof value === "boolean";
-    if (!valid) throw new Error(`E2E option value is invalid: ${name}`);
+    if (!isOptionValue(name, value)) throw new Error(`E2E option value is invalid: ${name}`);
     return /** @type {E2ERuntimeOptionValues[Name]} */ (value);
   };
   /** @param {BackgroundRuntimeMessage} message */
   const send = async (message) => {
     const response = /** @type {unknown} */ (await browserApi.runtime.sendMessage(message));
-    if (
-      !isRecord(response) ||
-      (response.type !== undefined && typeof response.type !== "string") ||
-      (response.body !== undefined && !isRecord(response.body))
-    ) {
+    if (!isRuntimeResponseFor(message, response)) {
       throw new Error(`E2E runtime response is invalid: ${message.type}`);
     }
-    return /** @type {RuntimeResponse} */ (response);
+    return /** @type {BackgroundRuntimeResponse} */ (response);
   };
   /** @param {BackgroundRuntimeMessage} message @param {string} fallback */
   const command = async (message, fallback) => {
@@ -192,6 +168,7 @@ const installBackgroundHelpers = () => {
 /** @param {string} expression */
 export const inBackgroundContext = (expression) => `(() => {
   const browser = Reflect.get(globalThis, "browser") || Reflect.get(globalThis, "chrome");
-  const api = (${installBackgroundHelpers.toString()})();
+  const createProtocolCodecs = ${createProtocolCodecs.toString()};
+  const api = (${installBackgroundHelpers.toString()})(createProtocolCodecs());
   return (${expression});
 })()`;

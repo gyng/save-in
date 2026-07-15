@@ -1,74 +1,21 @@
-/** @typedef {import("./control-protocol.mjs").ControlOperation} ControlOperation */
-/** @typedef {import("./control-protocol.mjs").ControlResultMap} ControlResultMap */
+import { createProtocolCodecs } from "./protocol-codecs.mjs";
 
-/** @param {unknown} value @returns {value is Record<string, unknown>} */
-const isRecord = (value) => typeof value === "object" && value !== null && !Array.isArray(value);
+/** @typedef {import("./control-protocol.mjs").ControlRequest} ControlRequest */
 
-/** @param {unknown} value @param {(item: unknown) => boolean} matches */
-const isArrayOf = (value, matches) => Array.isArray(value) && value.every(matches);
-
-/** @param {unknown} value */
-const isDownload = (value) =>
-  isRecord(value) &&
-  typeof value.id === "number" &&
-  typeof value.state === "string" &&
-  typeof value.filename === "string" &&
-  typeof value.url === "string";
-
-/** @param {unknown} value */
-const isTab = (value) =>
-  isRecord(value) &&
-  (value.id === undefined || typeof value.id === "number") &&
-  (value.index === undefined || typeof value.index === "number") &&
-  (value.windowId === undefined || typeof value.windowId === "number") &&
-  (value.url === undefined || typeof value.url === "string") &&
-  (value.title === undefined || typeof value.title === "string") &&
-  (value.active === undefined || typeof value.active === "boolean") &&
-  (value.status === undefined || typeof value.status === "string") &&
-  (value.incognito === undefined || typeof value.incognito === "boolean");
-
-/** @param {unknown} value */
-const isHistoryEntry = (value) =>
-  isRecord(value) &&
-  (value.id === undefined || typeof value.id === "string") &&
-  (value.url === undefined || typeof value.url === "string") &&
-  (value.status === undefined || typeof value.status === "string") &&
-  (value.finalFullPath === undefined || typeof value.finalFullPath === "string") &&
-  (value.private === undefined || typeof value.private === "boolean") &&
-  (value.info === undefined || isRecord(value.info));
-
-/** @param {unknown} value */
-const isNotificationCall = (value) =>
-  isRecord(value) &&
-  typeof value.id === "string" &&
-  (value.title === undefined || typeof value.title === "string") &&
-  (value.message === undefined || typeof value.message === "string");
-
-/** @param {unknown} value */
-const isLog = (value) => isRecord(value) && typeof value.message === "string";
-
-/** @param {unknown} value */
-const isRule = (value) => isRecord(value) && typeof value.id === "number";
-
-/** @param {unknown} value */
-const isRuntimeResponse = (value) =>
-  isRecord(value) &&
-  (value.type === undefined || typeof value.type === "string") &&
-  (value.body === undefined || isRecord(value.body));
-
-/** @param {unknown} value */
-const isInspectResult = (value) =>
-  isRecord(value) &&
-  (value.browser === "CHROME" || value.browser === "FIREFOX") &&
-  isRecord(value.capabilities) &&
-  typeof value.capabilities.tabContextMenus === "boolean" &&
-  typeof value.capabilities.accessKeys === "boolean" &&
-  typeof value.capabilities.downloadFilenameSuggestion === "boolean" &&
-  typeof value.capabilities.downloadDeltaFilename === "boolean" &&
-  typeof value.capabilities.conflictActionPrompt === "boolean" &&
-  typeof value.capabilities.downloadRequestHeaders === "boolean" &&
-  (value.promptConflictAction === "prompt" || value.promptConflictAction === "uniquify") &&
-  typeof value.hasObjectUrl === "boolean";
+const {
+  isArrayOf,
+  isDownload,
+  isHistoryEntry,
+  isInspectResult,
+  isLog,
+  isNotificationCall,
+  isOptionValue,
+  isRecord,
+  isRule,
+  isRuntimeResponseFor,
+  isTab,
+  isWindow,
+} = createProtocolCodecs();
 
 /** @param {unknown} value @param {string} [label] */
 export const decodeDownloadEntries = (value, label = "download entries") => {
@@ -100,6 +47,12 @@ export const decodeTabEntry = (value, label = "tab") => {
   return /** @type {import("./control-protocol.mjs").TabEntry} */ (value);
 };
 
+/** @param {unknown} value @param {string} [label] */
+export const decodeWindowEntry = (value, label = "window") => {
+  if (!isWindow(value)) throw new Error(`Invalid E2E ${label}`);
+  return /** @type {import("./control-protocol.mjs").WindowEntry} */ (value);
+};
+
 /** @param {unknown} value */
 export const decodeWindowReference = (value) => {
   if (!isRecord(value) || typeof value.windowId !== "number") {
@@ -115,32 +68,28 @@ export const decodeWindowReference = (value) => {
  * @returns {import("./control-protocol.mjs").E2ERuntimeOptionValues[Name]}
  */
 export const decodeOptionValue = (name, value) => {
-  const valid =
-    name === "contentClickToSaveCombo"
-      ? typeof value === "string" || typeof value === "number"
-      : name === "notifyDuration"
-        ? typeof value === "number"
-        : name === "paths" || name === "setRefererHeaderFilter"
-          ? typeof value === "string"
-          : name === "shortcutType"
-            ? typeof value === "string" &&
-              ["HTML_REDIRECT", "MAC", "MAC_WEBLOC", "FREEDESKTOP", "WINDOWS"].includes(value)
-            : typeof value === "boolean";
-  if (!valid) throw new Error(`Invalid E2E option value for ${name}`);
+  if (!isOptionValue(name, value)) throw new Error(`Invalid E2E option value for ${name}`);
   return /** @type {import("./control-protocol.mjs").E2ERuntimeOptionValues[Name]} */ (value);
 };
 
 /**
- * @template {ControlOperation} Operation
- * @param {Operation} operation
+ * @template {ControlRequest} Request
+ * @param {Request} request
  * @param {unknown} value
- * @returns {ControlResultMap[Operation]}
+ * @returns {import("./control-protocol.mjs").ControlResult<Request>}
  */
-export const decodeControlResult = (operation, value) => {
+export const decodeControlResult = (request, value) => {
+  const operation = request.operation;
   let valid = false;
   switch (operation) {
     case "runtime.send":
-      valid = isRuntimeResponse(value);
+      valid = isRuntimeResponseFor(request.message, value);
+      break;
+    case "runtime.download":
+      valid = isRuntimeResponseFor({ type: "DOWNLOAD" }, value);
+      break;
+    case "options.waitReady":
+      valid = value === true;
       break;
     case "storage.get":
     case "notifications.getAll":
@@ -152,9 +101,12 @@ export const decodeControlResult = (operation, value) => {
     case "harness.resetCase":
       valid = value === true;
       break;
+    case "storage.wait":
+      valid = true;
+      break;
     case "downloads.search":
     case "downloads.wait":
-      return /** @type {ControlResultMap[Operation]} */ (
+      return /** @type {import("./control-protocol.mjs").ControlResult<Request>} */ (
         decodeDownloadEntries(value, `${operation} result`)
       );
     case "downloads.cancel":
@@ -171,7 +123,14 @@ export const decodeControlResult = (operation, value) => {
       break;
     case "tabs.create":
     case "tabs.update":
+    case "tabs.wait":
       valid = isTab(value);
+      break;
+    case "windows.create":
+      valid = isWindow(value);
+      break;
+    case "windows.remove":
+      valid = value === null;
       break;
     case "tabs.sendMessage":
       valid = true;
@@ -194,5 +153,5 @@ export const decodeControlResult = (operation, value) => {
   if (!valid) {
     throw new Error(`E2E control returned an invalid ${operation} result`);
   }
-  return /** @type {ControlResultMap[Operation]} */ (value);
+  return /** @type {import("./control-protocol.mjs").ControlResult<Request>} */ (value);
 };

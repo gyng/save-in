@@ -149,7 +149,6 @@ const main = async () => {
   const cleanupErrors = [];
   /** @type {number[]} */
   const codes = [];
-  let completed = false;
   fs.mkdirSync(runArtifacts, { recursive: true });
   fs.writeFileSync(path.join(runArtifacts, ".active"), String(process.pid));
   const runMetadata = {
@@ -196,7 +195,6 @@ const main = async () => {
       const runs = suites.map((suite) => startSuite(suite, childEnv, options.vitestArgs));
       codes.push(...(await Promise.all(runs.map(({ done }) => done))).map(Number));
     }
-    completed = true;
   } finally {
     try {
       await terminateChildren();
@@ -217,14 +215,9 @@ const main = async () => {
       cleanupErrors.push(error);
     }
     fs.rmSync(path.join(runArtifacts, ".active"), { force: true });
-    if (
-      completed &&
-      codes.every((code) => code === 0) &&
-      cleanupErrors.length === 0 &&
-      fs.existsSync(runArtifacts)
-    ) {
-      fs.rmSync(runArtifacts, { recursive: true, force: true });
-    }
+    // Successful runs retain compact metadata, environment facts, and timing
+    // reports. The next run prunes older directories, while CI uploads the
+    // reports for advisory trend comparison.
   }
 
   for (const error of cleanupErrors) console.error(error);

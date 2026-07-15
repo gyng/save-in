@@ -36,6 +36,7 @@ import type { ClickType, RuleType } from "../../src/shared/constants.ts";
 import type { SelectableLocale } from "../../src/shared/generated-locales.ts";
 import type {
   InternalMessage,
+  InternalResponseMap,
   MessageOf,
   ResponseFor,
   ValidationInfo,
@@ -47,15 +48,25 @@ import { withUrl } from "../../src/shared/util.ts";
 import type {
   ContextMenuClickRequest,
   ContextMenuClickResponse,
+  DownloadMessageResponse,
   E2ERuntimeOptionValues,
   E2EStoredOptionValues,
+  HistoryEntry as E2EHistoryEntry,
   NotificationRequest,
   NotificationResponse,
+  RuntimeMessage as E2ERuntimeMessage,
+  RuntimeResponseFor as E2ERuntimeResponseFor,
   StartDownloadRequest,
   StartDownloadResponse,
   TabMenuClickRequest,
   TabMenuClickResponse,
 } from "../e2e/control-protocol.mjs";
+
+type E2EMessage<Type extends E2ERuntimeMessage["type"]> = Extract<
+  E2ERuntimeMessage,
+  { type: Type }
+>;
+type SuccessfulProtocolResponse<Type extends InternalMessage["type"]> = InternalResponseMap[Type];
 
 expectTypeOf<DownloadPlan>().toHaveProperty("state").toEqualTypeOf<DownloadPipelineState>();
 expectTypeOf<AcquiredDownload>().toEqualTypeOf<{
@@ -131,6 +142,38 @@ expectTypeOf<TabMenuClickRequest["body"]["info"]>().toEqualTypeOf<
 expectTypeOf<TabMenuClickRequest["body"]["tab"]>().toMatchTypeOf<
   Pick<BackgroundE2ETabMenuRequest["body"]["tab"], "id" | "index" | "windowId">
 >();
+
+expectTypeOf<E2EMessage<"WAKE_WARM">>().toEqualTypeOf<MessageOf<typeof MESSAGE_TYPES.WAKE_WARM>>();
+expectTypeOf<E2ERuntimeResponseFor<E2EMessage<"WAKE_WARM">>>().toEqualTypeOf<
+  SuccessfulProtocolResponse<typeof MESSAGE_TYPES.WAKE_WARM>
+>();
+expectTypeOf<E2EMessage<"HISTORY_CANCEL">>().toEqualTypeOf<
+  MessageOf<typeof MESSAGE_TYPES.HISTORY_CANCEL>
+>();
+expectTypeOf<E2ERuntimeResponseFor<E2EMessage<"HISTORY_CANCEL">>>().toEqualTypeOf<
+  SuccessfulProtocolResponse<typeof MESSAGE_TYPES.HISTORY_CANCEL>
+>();
+expectTypeOf<E2EMessage<"DOWNLOAD">>().toMatchTypeOf<MessageOf<typeof MESSAGE_TYPES.DOWNLOAD>>();
+const e2eDownloadResponse = null as unknown as DownloadMessageResponse;
+const productionDownloadResponse: SuccessfulProtocolResponse<typeof MESSAGE_TYPES.DOWNLOAD> =
+  e2eDownloadResponse;
+const roundTrippedDownloadResponse: DownloadMessageResponse = productionDownloadResponse;
+void roundTrippedDownloadResponse;
+expectTypeOf<E2ERuntimeResponseFor<E2EMessage<"APPLY_CONFIG">>>().toEqualTypeOf<
+  SuccessfulProtocolResponse<typeof MESSAGE_TYPES.APPLY_CONFIG>
+>();
+type ProductionHistoryEntry = SuccessfulProtocolResponse<
+  typeof MESSAGE_TYPES.HISTORY_GET
+>["body"]["entries"][number];
+expectTypeOf<ProductionHistoryEntry["id"]>().toEqualTypeOf<E2EHistoryEntry["id"]>();
+expectTypeOf<ProductionHistoryEntry["url"]>().toEqualTypeOf<E2EHistoryEntry["url"]>();
+expectTypeOf<ProductionHistoryEntry["status"]>().toEqualTypeOf<E2EHistoryEntry["status"]>();
+expectTypeOf<ProductionHistoryEntry["finalFullPath"]>().toEqualTypeOf<
+  E2EHistoryEntry["finalFullPath"]
+>();
+expectTypeOf<
+  SuccessfulProtocolResponse<typeof MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTIONS_GET>
+>().toMatchTypeOf<E2ERuntimeResponseFor<E2EMessage<"EXTERNAL_DOWNLOAD_REJECTIONS_GET">>>();
 
 expectTypeOf<MessageOf<typeof MESSAGE_TYPES.HISTORY_CANCEL>>().toEqualTypeOf<{
   type: typeof MESSAGE_TYPES.HISTORY_CANCEL;

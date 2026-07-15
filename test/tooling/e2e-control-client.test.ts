@@ -128,20 +128,40 @@ describe("structured E2E control client", () => {
   });
 
   test("rejects malformed typed runtime payloads", async () => {
-    const values = [{ body: { paths: 42 } }, { body: { entries: [{ status: 500 }] } }];
+    const values = [
+      { type: "OPTIONS", body: { paths: 42 } },
+      { type: "HISTORY_GET", body: { entries: [{ status: 500 }] } },
+    ];
     const client = createE2EControlClient({
       callFunction: async () => JSON.stringify({ ok: true, value: values.shift() }),
     });
 
     await expect(client.options.get("paths")).rejects.toThrow("Invalid E2E option value for paths");
-    await expect(client.history.get()).rejects.toThrow("Invalid E2E history entries");
+    await expect(client.history.get()).rejects.toThrow("invalid runtime.send result");
+  });
+
+  test("rejects malformed successful command responses before callers use them", async () => {
+    const client = createE2EControlClient({
+      callFunction: async () =>
+        JSON.stringify({
+          ok: true,
+          value: {
+            type: "SAVE_IN_E2E_START_DOWNLOAD",
+            body: { status: "OK", result: { status: "started", downloadId: "7" } },
+          },
+        }),
+    });
+
+    await expect(
+      client.background.startDownload({ content: "x", suggestedFilename: "x.txt" }),
+    ).rejects.toThrow("invalid runtime.send result");
   });
 
   test("decodes string-valued runtime options without treating them as booleans", async () => {
     const values = [
-      { body: { setRefererHeaderFilter: "https://example.com/*" } },
-      { body: { shortcutType: "MAC_WEBLOC" } },
-      { body: { shortcutType: "UNKNOWN" } },
+      { type: "OPTIONS", body: { setRefererHeaderFilter: "https://example.com/*" } },
+      { type: "OPTIONS", body: { shortcutType: "MAC_WEBLOC" } },
+      { type: "OPTIONS", body: { shortcutType: "UNKNOWN" } },
     ];
     const client = createE2EControlClient({
       callFunction: async () => JSON.stringify({ ok: true, value: values.shift() }),

@@ -122,9 +122,6 @@ export const decodeStringOrNumber = (value) => {
 };
 
 /** @param {unknown} value */
-export const decodeUnknown = (value) => value;
-
-/** @param {unknown} value */
 export const decodeRecord = (value) => {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
     throw new Error("Expected an E2E record");
