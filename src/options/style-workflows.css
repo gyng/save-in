@@ -66,11 +66,47 @@
 .inline-guide {
   max-width: var(--content-max-width);
   margin-top: var(--space-3);
+  overflow: clip;
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  background: var(--page-bg);
 }
 
 .inline-guide > summary {
-  width: fit-content;
-  color: var(--link-color);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  color: var(--color-text);
+  list-style: none;
+}
+
+.inline-guide > summary::before {
+  width: 6px;
+  height: 6px;
+  flex: none;
+  border-inline-end: 1.5px solid currentColor;
+  border-block-end: 1.5px solid currentColor;
+  content: "";
+  transform: translateY(-1px) rotate(-45deg);
+  transition: transform var(--motion-duration-fast) ease;
+}
+
+.inline-guide[open] > summary::before {
+  transform: translateY(-2px) rotate(45deg);
+}
+
+.inline-guide > summary::-webkit-details-marker {
+  display: none;
+}
+
+.inline-guide > summary:hover {
+  background: var(--hover-bg);
+}
+
+.inline-guide[open] > summary {
+  border-bottom: 1px solid var(--panel-border);
 }
 
 .inline-guide summary,
@@ -79,10 +115,10 @@
 }
 
 .inline-guide > .guide-body {
-  margin-top: var(--space-2);
-  padding-inline-start: var(--space-3);
-  border-inline-start: 2px solid var(--panel-border);
+  margin: 0;
+  padding: var(--space-3);
   font-size: var(--text-base);
+  line-height: var(--leading-copy);
 }
 
 .guide-body > :first-child {
@@ -111,6 +147,7 @@
   display: block;
   margin-bottom: var(--space-1);
   font-size: var(--text-base);
+  font-weight: 600;
 }
 
 .guide-step pre,
@@ -134,7 +171,15 @@
 
 .guide-more,
 .agent-prompt-guide {
-  margin-top: var(--space-2);
+  margin: 0;
+  border-top: 1px solid var(--panel-border);
+}
+
+:is(.guide-more, .agent-prompt-guide) > summary {
+  width: fit-content;
+  padding: var(--space-2) 0;
+  color: var(--link-color);
+  font-weight: 500;
 }
 
 .guide-syntax {
@@ -171,6 +216,12 @@
 
 .edge-case-guide {
   margin-bottom: var(--space-5);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .inline-guide > summary::before {
+    transition: none;
+  }
 }
 
 @container options-panel (max-width: 640px) {
