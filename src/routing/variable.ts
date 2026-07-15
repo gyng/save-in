@@ -26,7 +26,7 @@ type TransformerRegistry = Record<string, Transformer> &
   Record<TransformableSpecialDirectory, Transformer>;
 const PATH_SEGMENT_TYPE_VALUES = Object.values(PATH_SEGMENT_TYPES);
 
-function ensureTransformerInfo(opts: RoutingDownloadInfo): asserts opts is TransformerInfo {
+export function ensureTransformerInfo(opts: RoutingDownloadInfo): asserts opts is TransformerInfo {
   if (!(opts.now instanceof Date) || !Number.isFinite(opts.now.getTime())) {
     opts.now = new Date();
   }

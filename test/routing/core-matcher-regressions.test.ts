@@ -4,6 +4,7 @@ import { Path } from "../../src/routing/path.ts";
 import {
   getCaptureMatches,
   matchRules,
+  matchRulesDetailed,
   parseRulesCollecting,
   traceRules,
 } from "../../src/routing/router.ts";
@@ -66,6 +67,9 @@ describe("built-in matcher templates", () => {
     const destination = matchRules(rules, template.proof.info);
 
     expect(destination).toBe(template.proof.destination);
+    if (template.proof.fetch !== undefined) {
+      expect(matchRulesDetailed(rules, template.proof.info)?.fetch).toBe(template.proof.fetch);
+    }
     expect((await applyVariables(new Path(destination), template.proof.info)).finalize()).toBe(
       template.example.replace(/^Example: /, ""),
     );

@@ -10,12 +10,22 @@ import type {
   RoutingRule,
 } from "./rule-types.ts";
 import { routingPorts } from "./ports.ts";
+import { expandFetchUrl } from "./fetch-url.ts";
 import { applyVariables } from "./variable.ts";
 import { isStringKeyedRecord } from "../shared/util.ts";
 
 export type * from "./rule-types.ts";
 export { matcherFunctions } from "./matchers.ts";
-export { evaluateRule, getCaptureMatches, matchRule, matchRules } from "./rule-matcher.ts";
+export {
+  evaluateRule,
+  findFetchClause,
+  getCaptureMatches,
+  isRenameOnlyEligibleRule,
+  matchRule,
+  matchRules,
+  matchRulesDetailed,
+  type RuleMatch,
+} from "./rule-matcher.ts";
 export { parseRulesCollecting } from "./rule-parser.ts";
 export {
   parseRoutingRuleAst,
@@ -45,6 +55,11 @@ export type RuleTrace = {
   initialFilename?: string | undefined;
   actualFilename?: string | undefined;
   selectedRule: number | null;
+  // Capture-substituted fetch template of the winning rule, then the fully
+  // expanded URL it rewrites the download to. Destination expansion below
+  // runs against the rewritten URL so the preview matches the pipeline.
+  selectedFetchTemplate: string | null;
+  rewrittenUrl: string | null;
   destination: string | null;
   expandedDestination: string | null;
   sanitizedDestination: string | null;
@@ -54,6 +69,7 @@ export type RuleTrace = {
     index: number;
     matched: boolean;
     destination: string;
+    fetch: string;
     clauses: Array<{
       name: string;
       pattern: string;
@@ -79,7 +95,9 @@ export const traceRules = async (
 ): Promise<RuleTrace> => {
   const eligibility = rules.map(isEligible);
   const evaluations = rules.map((rule, index) =>
-    eligibility[index] ? evaluateRule(rule, info) : { destination: false as const, clauses: [] },
+    eligibility[index]
+      ? evaluateRule(rule, info)
+      : { destination: false as const, fetch: false as const, clauses: [] },
   );
   const matchedDestinations = evaluations.map(({ destination }) => destination);
   const traced = rules.map((rule, index) => {
@@ -98,10 +116,12 @@ export const traceRules = async (
         };
       });
     const destination = rule.find((clause) => clause.type === RULE_TYPES.DESTINATION)?.value ?? "";
+    const fetch = rule.find((clause) => clause.type === RULE_TYPES.FETCH)?.value ?? "";
     return {
       index: index + 1,
       matched: Boolean(matchedDestinations[index]),
       destination,
+      fetch,
       clauses,
     };
   });
@@ -109,6 +129,8 @@ export const traceRules = async (
   const selectedRule = selectedIndex >= 0 ? selectedIndex + 1 : null;
   const matchedDestination = selectedIndex >= 0 ? matchedDestinations[selectedIndex] : false;
   const destination = matchedDestination || null;
+  const selectedEvaluation = selectedIndex >= 0 ? evaluations[selectedIndex] : undefined;
+  const selectedFetchTemplate = selectedEvaluation ? selectedEvaluation.fetch || null : null;
   const actualFilename = info.filename || "";
   const sourceUrl = info.sourceUrl || info.srcUrl;
   const downloadUrl = info.url || sourceUrl || info.linkUrl || info.pageUrl;
@@ -120,7 +142,15 @@ export const traceRules = async (
     now: info.now instanceof Date ? info.now : new Date(),
     preview: true,
   };
-  const expandedPath = destination ? await applyVariables(new Path(destination), traceInfo) : null;
+  const rewrittenUrl = selectedFetchTemplate
+    ? await expandFetchUrl(selectedFetchTemplate, traceInfo)
+    : null;
+  // Stage two: the download now targets the rewritten URL, so URL-derived
+  // destination variables must expand against it, not the original.
+  const destinationInfo = rewrittenUrl ? { ...traceInfo, url: rewrittenUrl } : traceInfo;
+  const expandedPath = destination
+    ? await applyVariables(new Path(destination), destinationInfo)
+    : null;
   const expandedDestination = expandedPath?.toString() ?? null;
   const finalComponentIsFilename = typeof destination === "string" && !/\/\s*$/.test(destination);
   const sanitizedDestination = expandedPath?.finalize({ finalComponentIsFilename }) ?? null;
@@ -128,6 +158,8 @@ export const traceRules = async (
     initialFilename: info.initialFilename,
     actualFilename: info.filename,
     selectedRule,
+    selectedFetchTemplate,
+    rewrittenUrl,
     destination,
     expandedDestination: expandedDestination || null,
     sanitizedDestination,

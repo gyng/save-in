@@ -11,7 +11,7 @@ import type {
   RoutingRule,
 } from "./rule-types.ts";
 import { automaticRuleClauseIssues, isAutomaticRuleClauses } from "./automatic-rule.ts";
-import { findUnknownPathVariables } from "./path-variables.ts";
+import { findBannedFetchVariables, findUnknownPathVariables } from "./path-variables.ts";
 
 const errorLocation = (span: SourceSpan): RuleErrorLocation => ({
   start: span.start.offset,
@@ -73,6 +73,9 @@ const captureGroupCount = (regex: RegExp): number => {
 
 const isPlainMatchAll = (regex: RegExp): boolean => /^(?:\.\*|\^\.\*\$)$/.test(regex.source);
 
+const ruleHasFetchClause = (rule: readonly RuleClause[]): boolean =>
+  rule.some((clause) => clause.type === RULE_TYPES.FETCH);
+
 const isMatcherName = (name: string): name is keyof typeof matcherFunctions =>
   Object.hasOwn(matcherFunctions, name);
 
@@ -131,6 +134,11 @@ const parseSemanticRule = (
     if (name === "capture" || name === "capturegroups") {
       return { name, value: rawValue, type: RULE_TYPES.CAPTURE };
     }
+    if (name === "fetch") {
+      // One leading space is grammar trivia; any other whitespace in a URL
+      // template is accidental and would corrupt the request line.
+      return { name, value: rawValue.trim(), type: RULE_TYPES.FETCH };
+    }
 
     let value: RegExp;
     try {
@@ -177,6 +185,64 @@ const parseSemanticRule = (
     );
   }
   if (unknownVariables.length > 0) return false;
+  const fetchClauses = valid.filter((clause) => clause.type === RULE_TYPES.FETCH);
+  const fetchNodes = lines.filter((line) => line.name === "fetch");
+  if (fetchClauses.length >= 2) {
+    const duplicateFetch = fetchNodes[1];
+    /* v8 ignore next -- Two parsed fetch clauses necessarily provide a second fetch node. */
+    if (!duplicateFetch) return false;
+    appendError(
+      errors,
+      routingPorts.getMessage("ruleExtraFetch"),
+      JSON.stringify(lines.map((line) => line.raw)),
+      duplicateFetch.span,
+    );
+    return false;
+  }
+  const fetchClause = fetchClauses[0];
+  const fetchNode = fetchNodes[0];
+  if (fetchClause && fetchNode) {
+    // The scheme and authority marker must be literal so no expansion can
+    // reintroduce data:, javascript:, or file: requests at runtime.
+    if (!/^https?:\/\//.test(fetchClause.value)) {
+      appendError(
+        errors,
+        routingPorts.getMessage("ruleFetchNotHttp"),
+        fetchClause.value,
+        fetchNode.valueSpan,
+      );
+      return false;
+    }
+    const unknownFetchVariables = findUnknownPathVariables(fetchClause.value);
+    for (const variable of unknownFetchVariables) {
+      appendError(
+        errors,
+        routingPorts.getMessage("ruleUnknownDestinationVariable"),
+        variable.value,
+        spanWithin(fetchNode.valueSpan, variable.start, variable.value.length),
+      );
+    }
+    const bannedFetchVariables = findBannedFetchVariables(fetchClause.value);
+    for (const variable of bannedFetchVariables) {
+      appendError(
+        errors,
+        routingPorts.getMessage("ruleFetchUnsupportedVariable"),
+        variable.value,
+        spanWithin(fetchNode.valueSpan, variable.start, variable.value.length),
+      );
+    }
+    if (unknownFetchVariables.length > 0 || bannedFetchVariables.length > 0) return false;
+    if (
+      fetchClause.value.match(/:\$\d+:/) &&
+      !valid.some((clause) => clause.type === RULE_TYPES.CAPTURE)
+    )
+      appendError(
+        errors,
+        routingPorts.getMessage("ruleMissingCapture"),
+        fetchClause.value,
+        fetchNode.valueSpan,
+      );
+  }
   if (
     destination.value.match(/:\$\d+:/) &&
     !valid.some((clause) => clause.type === RULE_TYPES.CAPTURE)
@@ -274,6 +340,18 @@ const parseSemanticRule = (
       );
       return false;
     }
+    const fetchIndexes = fetchClause
+      ? [...fetchClause.value.matchAll(/:\$(\d+):/g)].map((match) => Number(match[1]))
+      : [];
+    if (fetchIndexes.some((index) => index >= availableIndexes)) {
+      appendError(
+        errors,
+        routingPorts.getMessage("ruleMissingCapture"),
+        fetchClause?.value ?? "",
+        fetchNode?.valueSpan ?? rule.span,
+      );
+      return false;
+    }
   }
   // Fatal whole-rule cardinality and capture-target invariants cannot be
   // expressed by the clause union; issue the parser brand only after checking them.
@@ -297,6 +375,9 @@ export const parseRulesCollecting = (
     const laterRule = laterEntry.rule;
     const shadowed = parsedRules.slice(0, index).some(({ rule: earlier }) => {
       if (isAutomaticRuleClauses(earlier) !== isAutomaticRuleClauses(laterRule)) return false;
+      // Fetch rules are skipped by ordinary browser-download routing, so a
+      // fetch rule and a plain rule never compete on every pipeline.
+      if (ruleHasFetchClause(earlier) !== ruleHasFetchClause(laterRule)) return false;
       const earlierMatchers = earlier.filter((clause) => clause.type === RULE_TYPES.MATCHER);
       const laterMatchers = laterRule.filter((clause) => clause.type === RULE_TYPES.MATCHER);
       return earlierMatchers.every((earlierClause) =>

@@ -96,6 +96,7 @@ export const RULE_TYPES = {
   MATCHER: "MATCHER",
   CAPTURE: "CAPTURE",
   DESTINATION: "DESTINATION",
+  FETCH: "FETCH",
 } as const;
 export type RuleType = (typeof RULE_TYPES)[keyof typeof RULE_TYPES];
 

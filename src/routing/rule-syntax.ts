@@ -63,7 +63,7 @@ export type RoutingInvalidCst = RoutingLineEnvelopeCst & {
 
 export type RoutingClauseNode = {
   kind: "clause";
-  clauseKind: "matcher" | "capture" | "destination";
+  clauseKind: "matcher" | "capture" | "destination" | "fetch";
   raw: string;
   rawName: string;
   name: string;
@@ -162,9 +162,11 @@ const sourceLines = (source: string): SourceLine[] => {
 const clauseKind = (name: string): RoutingClauseNode["clauseKind"] =>
   name === "into"
     ? "destination"
-    : name === "capture" || name === "capturegroups"
-      ? "capture"
-      : "matcher";
+    : name === "fetch"
+      ? "fetch"
+      : name === "capture" || name === "capturegroups"
+        ? "capture"
+        : "matcher";
 
 const lineEnvelope = (source: string, line: SourceLine): RoutingLineEnvelopeCst => ({
   line: sourceFragment(source, "routing-line", line.start, line.end),

@@ -95,7 +95,12 @@ export type DestinationClause = {
   value: string;
   type: typeof RULE_TYPES.DESTINATION;
 };
-export type RuleClause = MatcherClause | CaptureClause | DestinationClause;
+export type FetchClause = {
+  name: "fetch";
+  value: string;
+  type: typeof RULE_TYPES.FETCH;
+};
+export type RuleClause = MatcherClause | CaptureClause | DestinationClause | FetchClause;
 
 declare const parsedRoutingRule: unique symbol;
 export type RoutingRule = RuleClause[] & { readonly [parsedRoutingRule]: true };

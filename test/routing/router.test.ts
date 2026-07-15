@@ -254,6 +254,117 @@ describe("filename rewrite and routing", () => {
     });
   });
 
+  describe("fetch clause", () => {
+    const twitterRules =
+      "sourceurl: ^https://pbs\\.twimg\\.com/media/([\\w-]+)\\?format=(\\w+)\ncapture: sourceurl\nfetch: https://pbs.twimg.com/media/:$1:.:$2:?name=orig\ninto: twitter/:$1:.:$2:";
+    const twitterInfo = {
+      sourceUrl: "https://pbs.twimg.com/media/EQEN6n3U?format=jpg&name=small",
+    };
+
+    beforeEach(() => {
+      diagnostics = { filenamePatterns: [], paths: [] };
+    });
+
+    test("parses and substitutes captures into the fetch template", () => {
+      const rules = router.parseRules(twitterRules);
+
+      expect(rules).toHaveLength(1);
+      const evaluation = router.evaluateRule(rules[0]!, twitterInfo);
+      expect(evaluation.destination).toBe("twitter/EQEN6n3U.jpg");
+      expect(evaluation.fetch).toBe("https://pbs.twimg.com/media/EQEN6n3U.jpg?name=orig");
+    });
+
+    test("matchRulesDetailed returns the winning rule with its fetch template", () => {
+      const rules = router.parseRules(twitterRules);
+      const match = router.matchRulesDetailed(rules, twitterInfo);
+
+      expect(match?.rule).toBe(rules[0]);
+      expect(match?.destination).toBe("twitter/EQEN6n3U.jpg");
+      expect(match?.fetch).toBe("https://pbs.twimg.com/media/EQEN6n3U.jpg?name=orig");
+    });
+
+    test("rules without fetch report a null fetch template", () => {
+      const rules = router.parseRules("filename: \\.jpg$\ninto: images");
+      const match = router.matchRulesDetailed(rules, { filename: "cat.jpg" });
+
+      expect(match?.destination).toBe("images");
+      expect(match?.fetch).toBeNull();
+    });
+
+    test("ineligible fetch rules are skipped without consuming the match", () => {
+      const rules = router.parseRules(
+        "filename: \\.jpg$\nfetch: https://cdn.example/full.jpg\ninto: originals\n\nfilename: \\.jpg$\ninto: images",
+      );
+
+      expect(rules).toHaveLength(2);
+      expect(router.matchRules(rules, { filename: "cat.jpg" })).toBe("originals");
+      expect(
+        router.matchRules(rules, { filename: "cat.jpg" }, router.isRenameOnlyEligibleRule),
+      ).toBe("images");
+      expect(diagnostics.filenamePatterns).toEqual([]);
+    });
+
+    test("rejects a second fetch clause", () => {
+      const rules = router.parseRules(
+        "filename: a\nfetch: https://x.example/a\nfetch: https://x.example/b\ninto: x",
+      );
+
+      expect(rules).toEqual([]);
+      expect(diagnostics.filenamePatterns.at(-1)?.message).toBe("ruleExtraFetch");
+    });
+
+    test("rejects fetch values that are not literal http(s) URLs", () => {
+      for (const value of ["ftp://x.example/a", "//x.example/a", ":sourceurl:", "example.com/a"]) {
+        expect(router.parseRules(`filename: a\nfetch: ${value}\ninto: x`)).toEqual([]);
+        expect(diagnostics.filenamePatterns.at(-1)?.message).toBe("ruleFetchNotHttp");
+      }
+    });
+
+    test("rejects unknown variables in fetch values", () => {
+      const rules = router.parseRules("filename: a\nfetch: https://x.example/:nope:\ninto: x");
+
+      expect(rules).toEqual([]);
+      expect(diagnostics.filenamePatterns.at(-1)?.message).toBe("ruleUnknownDestinationVariable");
+      expect(diagnostics.filenamePatterns.at(-1)?.error).toBe(":nope:");
+    });
+
+    test("rejects variables that would fetch the URL being replaced", () => {
+      for (const variable of [":mime:", ":contenttype:", ":sha256:", ":finalurl:"]) {
+        expect(
+          router.parseRules(`filename: a\nfetch: https://x.example/${variable}\ninto: x`),
+        ).toEqual([]);
+        expect(diagnostics.filenamePatterns.at(-1)?.message).toBe("ruleFetchUnsupportedVariable");
+      }
+    });
+
+    test("capture references in fetch mirror the destination rules", () => {
+      // Without a capture clause the reference is reported but, matching
+      // into:'s historical behavior, the rule stays active.
+      const uncaptured = router.parseRules("filename: (a)\nfetch: https://x.example/:$1:\ninto: x");
+      expect(uncaptured).toHaveLength(1);
+      expect(diagnostics.filenamePatterns.at(-1)?.message).toBe("ruleMissingCapture");
+
+      // An out-of-range index is fatal.
+      const outOfRange = router.parseRules(
+        "filename: (a)\ncapture: filename\nfetch: https://x.example/:$5:\ninto: x",
+      );
+      expect(outOfRange).toEqual([]);
+      expect(diagnostics.filenamePatterns.at(-1)?.message).toBe("ruleMissingCapture");
+    });
+
+    test("fetch and plain twins are exempt from shadow warnings", () => {
+      router.parseRules(
+        "filename: \\.jpg$\nfetch: https://cdn.example/full.jpg\ninto: originals\n\nfilename: \\.jpg$\ninto: images",
+      );
+      expect(diagnostics.filenamePatterns).toEqual([]);
+
+      // The warning still fires for two plain twins.
+      router.parseRules("filename: \\.jpg$\ninto: a\n\nfilename: \\.jpg$\ninto: b");
+      expect(diagnostics.filenamePatterns.at(-1)?.message).toBe("ruleShadowed");
+      expect(diagnostics.filenamePatterns.at(-1)?.warning).toBe(true);
+    });
+  });
+
   describe("browser context menu click integration", () => {
     test("parses Firefox clicks", () => {
       const twitterRulesFirefox = router.parseRules(
@@ -684,6 +795,8 @@ into: captures/:$1:/:$2:`,
           initialFilename: "cat.jpg",
           actualFilename: "server.png",
           selectedRule: 2,
+          selectedFetchTemplate: null,
+          rewrittenUrl: null,
           destination: "other/:filename:",
           expandedDestination: "other/server.png",
           sanitizedDestination: "other/server.png",
@@ -693,6 +806,52 @@ into: captures/:$1:/:$2:`,
       );
       expect(trace.rules[0]!.clauses[0]!).toEqual(
         expect.objectContaining({ name: "fileext", matched: false }),
+      );
+      expect(trace.rules.map((rule) => rule.fetch)).toEqual(["", ""]);
+    });
+
+    test("traces the fetch rewrite in two stages", async () => {
+      const rules = router.parseRules(
+        "sourceurl: \\.png$\nfetch: https://mirror.example/:pagedomain:/orig.png\ninto: mirrored/:naivefilename:",
+      );
+
+      const trace = await router.traceRules(rules, {
+        sourceUrl: "https://cdn.example/a/cat.png",
+        filename: "cat.png",
+        pageUrl: "https://site.example/post/1",
+      });
+
+      // Stage one expands the template; stage two expands the destination
+      // against the rewritten URL, so :naivefilename: must not read cat.png.
+      expect(trace).toEqual(
+        expect.objectContaining({
+          selectedRule: 1,
+          selectedFetchTemplate: "https://mirror.example/:pagedomain:/orig.png",
+          rewrittenUrl: "https://mirror.example/site.example/orig.png",
+          destination: "mirrored/:naivefilename:",
+          expandedDestination: "mirrored/orig.png",
+          finalPath: "mirrored/orig.png",
+        }),
+      );
+      expect(trace.rules[0]!.fetch).toBe("https://mirror.example/:pagedomain:/orig.png");
+    });
+
+    test("substitutes captures into the traced fetch template before expansion", async () => {
+      const rules = router.parseRules(
+        "sourceurl: ^https://pbs\\.twimg\\.com/media/([\\w-]+)\\?format=(\\w+)\ncapture: sourceurl\nfetch: https://pbs.twimg.com/media/:$1:.:$2:?name=orig\ninto: twitter/:$1:.:$2:",
+      );
+
+      const trace = await router.traceRules(rules, {
+        sourceUrl: "https://pbs.twimg.com/media/EQEN6n3U?format=jpg&name=small",
+      });
+
+      expect(trace).toEqual(
+        expect.objectContaining({
+          selectedRule: 1,
+          selectedFetchTemplate: "https://pbs.twimg.com/media/EQEN6n3U.jpg?name=orig",
+          rewrittenUrl: "https://pbs.twimg.com/media/EQEN6n3U.jpg?name=orig",
+          finalPath: "twitter/EQEN6n3U.jpg",
+        }),
       );
     });
 
