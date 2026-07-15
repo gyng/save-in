@@ -320,7 +320,7 @@
     "message": "Règles de routage"
   },
   "o_sBrowserDownloads": {
-    "message": "Téléchargements du navigateur"
+    "message": "Routage du navigateur"
   },
   "o_lBrowserDownloadsHelp": {
     "message": "Vous pouvez suivre ou acheminer les téléchargements lancés par des pages Web ou par le navigateur. Les téléchargements lancés par Save In ou une autre extension sont exclus."
@@ -617,10 +617,10 @@
     "message": "Demander où enregistrer lorsqu’aucune règle de routage ne correspond"
   },
   "o_cExclusiveMode": {
-    "message": "Utiliser les règles de routage au lieu de choisir un dossier"
+    "message": "Masquer les choix de dossiers"
   },
   "o_cExclusiveModeHelp": {
-    "message": "Les fichiers ne sont pas enregistrés si aucune règle de routage ne correspond"
+    "message": "Ne pas enregistrer le fichier"
   },
   "o_cNotifySuccess": {
     "message": "Avertir lorsqu'un téléchargement réussit"
@@ -2203,15 +2203,6 @@
     "message": "1 règle utilisée ; $COUNT$ règles suivantes correspondent également.",
     "placeholders": { "count": { "content": "$1", "example": "2" } }
   },
-  "routeDebuggerMatched": {
-    "message": "La règle $NUMBER$ correspond.",
-    "placeholders": {
-      "number": {
-        "content": "$1",
-        "example": "2"
-      }
-    }
-  },
   "routeDebuggerExpanded": {
     "message": "Chemin développé"
   },
@@ -2529,7 +2520,7 @@
     "message": "Annuler la suppression"
   },
   "pathVisualEmpty": {
-    "message": "Aucun dossier personnalisé. Save In utilisera uniquement le dossier Downloads du navigateur."
+    "message": "Aucun dossier personnalisé. Save In utilisera uniquement le dossier Téléchargements du navigateur."
   },
   "pathVisualReorderHelp": {
     "message": "Faites glisser pour réorganiser. Déposez au centre d’une ligne pour l’imbriquer dessous."

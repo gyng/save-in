@@ -294,7 +294,7 @@
     "message": "Rutningsregler"
   },
   "o_sBrowserDownloads": {
-    "message": "Webbläsarnedladdningar"
+    "message": "Webbläsarroutning"
   },
   "o_lBrowserDownloadsHelp": {
     "message": "Spåra eller dirigera eventuellt nedladdningar som startats av webbsidor eller webbläsaren. Nedladdningar som startas av Save In eller annat tillägg är uteslutna."
@@ -591,10 +591,10 @@
     "message": "Fråga var du ska spara när inga ruttregler matchar"
   },
   "o_cExclusiveMode": {
-    "message": "Använd routningsregler i stället för mappval"
+    "message": "Dölj mappval"
   },
   "o_cExclusiveModeHelp": {
-    "message": "Filer sparas inte när ingen routningsregel matchar"
+    "message": "Spara inte filen"
   },
   "o_cNotifySuccess": {
     "message": "Meddela när en nedladdning lyckas"
@@ -1644,7 +1644,7 @@
     "message": "Matchar sidans värdnamn."
   },
   "html_actualFileExtensionMatcherDescription": {
-    "message": "Matchar det lösta tillägget från filnamnet eller MIME-typen."
+    "message": "Matchar filändelsen som fastställts från filnamnet eller MIME-typen."
   },
   "html_matchesTheSelectionText": {
     "message": "Matchar den markerade texten."
@@ -2203,15 +2203,6 @@
     "message": "1 regel användes; $COUNT$ senare regler matchar också.",
     "placeholders": { "count": { "content": "$1", "example": "2" } }
   },
-  "routeDebuggerMatched": {
-    "message": "Regel $NUMBER$ matchade.",
-    "placeholders": {
-      "number": {
-        "content": "$1",
-        "example": "2"
-      }
-    }
-  },
   "routeDebuggerExpanded": {
     "message": "Expanderad sökväg"
   },
@@ -2521,10 +2512,10 @@
     "message": "Ångra borttagning"
   },
   "pathVisualEmpty": {
-    "message": "Inga anpassade mappar. Save In använder endast webbläsarens Downloads-mapp."
+    "message": "Inga anpassade mappar. Save In använder endast webbläsarens mapp Nedladdningar."
   },
   "pathVisualReorderHelp": {
-    "message": "Dra för att ändra ordning. Släpp mitt på en rad för att kapsla den under."
+    "message": "Dra för att ändra ordning. Släpp mitt på en rad för att placera den under raden."
   },
   "pathVisualReorderAccessible": {
     "message": "Ändra ordning eller kapsling för $NAME$",

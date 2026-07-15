@@ -180,7 +180,7 @@
     "message": "Regole di routing"
   },
   "o_sBrowserDownloads": {
-    "message": "Download del browser"
+    "message": "Routing del browser"
   },
   "o_lBrowserDownloadsHelp": {
     "message": "Facoltativamente, traccia o instrada i download avviati dalle pagine Web o dal browser. Sono esclusi i download avviati da Save In o da un'altra estensione."
@@ -780,10 +780,10 @@
     "message": "Chiedi dove salvare quando nessuna regola di routing corrisponde"
   },
   "o_cExclusiveMode": {
-    "message": "Usa le regole di routing invece di scegliere le cartelle"
+    "message": "Nascondi le opzioni delle cartelle"
   },
   "o_cExclusiveModeHelp": {
-    "message": "I file non vengono salvati se nessuna regola di routing corrisponde"
+    "message": "Non salvare il file"
   },
   "o_cNotifySuccess": {
     "message": "Avvisa quando il download ha esito positivo"
@@ -2295,15 +2295,6 @@
   "routeDebuggerLaterRulesMatch": {
     "message": "1 regola usata; anche $COUNT$ regole successive corrispondono.",
     "placeholders": { "count": { "content": "$1", "example": "2" } }
-  },
-  "routeDebuggerMatched": {
-    "message": "La regola $NUMBER$ ha trovato corrispondenza.",
-    "placeholders": {
-      "number": {
-        "content": "$1",
-        "example": "2"
-      }
-    }
   },
   "routeDebuggerExpanded": {
     "message": "Percorso espanso"

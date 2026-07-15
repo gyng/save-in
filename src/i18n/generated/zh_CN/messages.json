@@ -197,7 +197,7 @@
     "message": "路由规则"
   },
   "o_sBrowserDownloads": {
-    "message": "浏览器下载"
+    "message": "浏览器路由"
   },
   "o_lBrowserDownloadsHelp": {
     "message": "可选择跟踪或路由由网页或浏览器启动的下载。由 Save In 或其他扩展程序启动的下载除外。"
@@ -494,10 +494,10 @@
     "message": "当没有路由规则匹配时询问保存在哪里"
   },
   "o_cExclusiveMode": {
-    "message": "使用路由规则，而不是选择文件夹"
+    "message": "隐藏文件夹选项"
   },
   "o_cExclusiveModeHelp": {
-    "message": "没有匹配的路由规则时，文件不会保存"
+    "message": "不保存文件"
   },
   "o_cNotifySuccess": {
     "message": "下载成功时通知"
@@ -1526,10 +1526,10 @@
     "message": "匹配选定的文本。"
   },
   "html_sourceDomainMatcherDescription": {
-    "message": "匹配所保存来源的主机名。"
+    "message": "匹配待保存来源的主机名。"
   },
   "html_sourceUrlMatcherDescription": {
-    "message": "匹配所保存来源的 URL。"
+    "message": "匹配待保存来源的 URL。"
   },
   "html_matchesTheUrlDerivedExtensionLegacyNameUse": {
     "message": "匹配源自 URL 的扩展名（旧名称）。使用"
@@ -2282,15 +2282,6 @@
     "message": "已使用 1 条规则；后面的 $COUNT$ 条规则也匹配。",
     "placeholders": { "count": { "content": "$1", "example": "2" } }
   },
-  "routeDebuggerMatched": {
-    "message": "规则 $NUMBER$ 匹配。",
-    "placeholders": {
-      "number": {
-        "content": "$1",
-        "example": "2"
-      }
-    }
-  },
   "routeDebuggerExpanded": {
     "message": "展开后的路径"
   },
@@ -2598,7 +2589,7 @@
     "message": "撤销删除"
   },
   "pathVisualEmpty": {
-    "message": "没有自定义文件夹。Save In 将仅使用浏览器的 Downloads 文件夹。"
+    "message": "没有自定义文件夹。Save In 将仅使用浏览器的下载文件夹。"
   },
   "pathVisualReorderHelp": {
     "message": "拖动以重新排序。放到行中间可将其嵌套在该行下方。"

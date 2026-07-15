@@ -197,7 +197,7 @@
     "message": "路由規則"
   },
   "o_sBrowserDownloads": {
-    "message": "瀏覽器下載"
+    "message": "瀏覽器路由"
   },
   "o_lBrowserDownloadsHelp": {
     "message": "您可以追蹤或路由由網頁或瀏覽器啟動的下載。Save In 或其他擴充功能啟動的下載不在此限。"
@@ -494,10 +494,10 @@
     "message": "沒有路由規則相符時詢問儲存位置"
   },
   "o_cExclusiveMode": {
-    "message": "使用路由規則而非選擇資料夾"
+    "message": "隱藏資料夾選項"
   },
   "o_cExclusiveModeHelp": {
-    "message": "沒有符合的路由規則時，檔案不會儲存"
+    "message": "不儲存檔案"
   },
   "o_cNotifySuccess": {
     "message": "下載成功時顯示通知"
@@ -1526,10 +1526,10 @@
     "message": "比對選取的文字。"
   },
   "html_sourceDomainMatcherDescription": {
-    "message": "比對所儲存來源的主機名稱。"
+    "message": "比對待儲存來源的主機名稱。"
   },
   "html_sourceUrlMatcherDescription": {
-    "message": "比對所儲存來源的 URL。"
+    "message": "比對待儲存來源的 URL。"
   },
   "html_matchesTheUrlDerivedExtensionLegacyNameUse": {
     "message": "符合源自 URL 的副檔名（舊名稱）。使用"
@@ -2282,15 +2282,6 @@
     "message": "已使用 1 個規則；後面的 $COUNT$ 個規則也相符。",
     "placeholders": { "count": { "content": "$1", "example": "2" } }
   },
-  "routeDebuggerMatched": {
-    "message": "規則 $NUMBER$ 符合。",
-    "placeholders": {
-      "number": {
-        "content": "$1",
-        "example": "2"
-      }
-    }
-  },
   "routeDebuggerExpanded": {
     "message": "展開後的路徑"
   },
@@ -2596,13 +2587,13 @@
     "message": "復原刪除"
   },
   "pathVisualEmpty": {
-    "message": "沒有自訂資料夾。Save In 將僅使用瀏覽器的 Downloads 資料夾。"
+    "message": "沒有自訂資料夾。Save In 將僅使用瀏覽器的「下載」資料夾。"
   },
   "pathVisualReorderHelp": {
-    "message": "拖曳以重新排序。放到列中央可將其巢狀置於該列下方。"
+    "message": "拖曳以重新排序。放到列中央可將它移至該列下層。"
   },
   "pathVisualReorderAccessible": {
-    "message": "重新排序或變更 $NAME$ 的巢狀層級",
+    "message": "重新排序或變更 $NAME$ 的階層",
     "placeholders": {
       "name": {
         "content": "$1",
@@ -2620,7 +2611,7 @@
     }
   },
   "pathVisualNestUnder": {
-    "message": "巢狀置於「$NAME$」下",
+    "message": "移至「$NAME$」下層",
     "placeholders": {
       "name": {
         "content": "$1",

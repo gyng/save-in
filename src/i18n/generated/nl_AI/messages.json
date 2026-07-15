@@ -300,7 +300,7 @@
     "message": "Routeringsregels"
   },
   "o_sBrowserDownloads": {
-    "message": "Browserdownloads"
+    "message": "Browserroutering"
   },
   "o_lBrowserDownloadsHelp": {
     "message": "Volg of routeer optioneel downloads die zijn gestart door webpagina's of de browser. Downloads gestart door Save In of een andere extensie zijn uitgesloten."
@@ -597,10 +597,10 @@
     "message": "Vraag waar u wilt opslaan als er geen routeringsregels overeenkomen"
   },
   "o_cExclusiveMode": {
-    "message": "Routeringsregels gebruiken in plaats van mappen kiezen"
+    "message": "Mapkeuzes verbergen"
   },
   "o_cExclusiveModeHelp": {
-    "message": "Bestanden worden niet opgeslagen als geen routeringsregel overeenkomt"
+    "message": "Het bestand niet opslaan"
   },
   "o_cNotifySuccess": {
     "message": "Melden wanneer een download slaagt"
@@ -2181,15 +2181,6 @@
   "routeDebuggerLaterRulesMatch": {
     "message": "1 regel gebruikt; $COUNT$ latere regels komen ook overeen.",
     "placeholders": { "count": { "content": "$1", "example": "2" } }
-  },
-  "routeDebuggerMatched": {
-    "message": "Regel $NUMBER$ komt overeen.",
-    "placeholders": {
-      "number": {
-        "content": "$1",
-        "example": "2"
-      }
-    }
   },
   "routeDebuggerExpanded": {
     "message": "Uitgevouwen pad"

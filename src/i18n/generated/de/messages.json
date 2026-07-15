@@ -300,7 +300,7 @@
     "message": "Routing-Regeln"
   },
   "o_sBrowserDownloads": {
-    "message": "Browser-Downloads"
+    "message": "Browser-Routing"
   },
   "o_lBrowserDownloadsHelp": {
     "message": "Downloads, die von Webseiten oder dem Browser gestartet werden, können optional erfasst oder weitergeleitet werden. Von Save In oder einer anderen Erweiterung gestartete Downloads sind ausgeschlossen."
@@ -597,10 +597,10 @@
     "message": "Nach dem Speicherort fragen, wenn keine Routing-Regel zutrifft"
   },
   "o_cExclusiveMode": {
-    "message": "Routing-Regeln statt Ordnerauswahl verwenden"
+    "message": "Ordnerauswahl ausblenden"
   },
   "o_cExclusiveModeHelp": {
-    "message": "Dateien werden nicht gespeichert, wenn keine Routing-Regel zutrifft"
+    "message": "Datei nicht speichern"
   },
   "o_cNotifySuccess": {
     "message": "Benachrichtigen, wenn ein Download erfolgreich ist"
@@ -2186,15 +2186,6 @@
     "message": "1 Regel verwendet; $COUNT$ spätere Regeln stimmen ebenfalls überein.",
     "placeholders": { "count": { "content": "$1", "example": "2" } }
   },
-  "routeDebuggerMatched": {
-    "message": "Regel $NUMBER$ traf zu.",
-    "placeholders": {
-      "number": {
-        "content": "$1",
-        "example": "2"
-      }
-    }
-  },
   "routeDebuggerExpanded": {
     "message": "Aufgelöster Pfad"
   },
@@ -2517,7 +2508,7 @@
     "message": "images\ndocuments/:year:/:month:"
   },
   "pathVisualUndoDelete": {
-    "message": "Löschen rückgängig"
+    "message": "Löschen rückgängig machen"
   },
   "pathVisualEmpty": {
     "message": "Keine benutzerdefinierten Ordner. Save In verwendet nur den Downloads-Ordner des Browsers."

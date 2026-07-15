@@ -3349,16 +3349,6 @@
       }
     }
   },
-  "routeDebuggerMatched": {
-    "message": "Rule $NUMBER$ matched.",
-    "description": "Route debugger outcome naming the selected matching rule. Used in src/options/route-debugger.ts.",
-    "placeholders": {
-      "number": {
-        "content": "$1",
-        "example": "2"
-      }
-    }
-  },
   "routeDebuggerExpanded": {
     "message": "Expanded path",
     "description": "Route debugger pipeline label after variables are expanded. Used in src/options/route-debugger.ts."

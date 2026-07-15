@@ -300,7 +300,7 @@
     "message": "Regras de roteamento"
   },
   "o_sBrowserDownloads": {
-    "message": "Downloads do navegador"
+    "message": "Roteamento do navegador"
   },
   "o_lBrowserDownloadsHelp": {
     "message": "Opcionalmente, rastreie ou direcione downloads iniciados por páginas da web ou pelo navegador. Os downloads iniciados por Save In ou outra extensão são excluídos."
@@ -597,10 +597,10 @@
     "message": "Perguntar onde salvar quando nenhuma regra de roteamento corresponder"
   },
   "o_cExclusiveMode": {
-    "message": "Usar regras de roteamento em vez de escolher pastas"
+    "message": "Ocultar opções de pasta"
   },
   "o_cExclusiveModeHelp": {
-    "message": "Os arquivos não são salvos quando nenhuma regra de roteamento corresponde"
+    "message": "Não salvar o arquivo"
   },
   "o_cNotifySuccess": {
     "message": "Notificar quando um download for bem-sucedido"
@@ -2182,15 +2182,6 @@
     "message": "1 regra usada; $COUNT$ regras posteriores também correspondem.",
     "placeholders": { "count": { "content": "$1", "example": "2" } }
   },
-  "routeDebuggerMatched": {
-    "message": "A regra $NUMBER$ correspondeu.",
-    "placeholders": {
-      "number": {
-        "content": "$1",
-        "example": "2"
-      }
-    }
-  },
   "routeDebuggerExpanded": {
     "message": "Caminho expandido"
   },
@@ -2507,7 +2498,7 @@
     "message": "Nenhuma pasta personalizada. O Save In usará somente a pasta Downloads do navegador."
   },
   "pathVisualReorderHelp": {
-    "message": "Arraste para reordenar. Solte no centro de uma linha para aninhá-la abaixo."
+    "message": "Arraste para reordenar. Solte no centro de uma linha para aninhá-la abaixo dela."
   },
   "pathVisualReorderAccessible": {
     "message": "Reordenar ou alterar o nível de $NAME$",

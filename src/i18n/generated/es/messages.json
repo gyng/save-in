@@ -296,7 +296,7 @@
     "message": "Reglas de enrutamiento"
   },
   "o_sBrowserDownloads": {
-    "message": "Descargas del navegador"
+    "message": "Enrutamiento del navegador"
   },
   "o_lBrowserDownloadsHelp": {
     "message": "Puede registrar o enrutar las descargas iniciadas por páginas web o por el navegador. Se excluyen las descargas iniciadas por Save In u otra extensión."
@@ -593,10 +593,10 @@
     "message": "Preguntar dónde guardar cuando no coincidan reglas de enrutamiento"
   },
   "o_cExclusiveMode": {
-    "message": "Usar reglas de enrutamiento en lugar de elegir carpetas"
+    "message": "Ocultar opciones de carpeta"
   },
   "o_cExclusiveModeHelp": {
-    "message": "Los archivos no se guardan si ninguna regla de enrutamiento coincide"
+    "message": "No guardar el archivo"
   },
   "o_cNotifySuccess": {
     "message": "Notificar cuando una descarga se realice correctamente"
@@ -2180,15 +2180,6 @@
     "message": "Se usó 1 regla; $COUNT$ reglas posteriores también coinciden.",
     "placeholders": { "count": { "content": "$1", "example": "2" } }
   },
-  "routeDebuggerMatched": {
-    "message": "La regla $NUMBER$ coincidió.",
-    "placeholders": {
-      "number": {
-        "content": "$1",
-        "example": "2"
-      }
-    }
-  },
   "routeDebuggerExpanded": {
     "message": "Ruta expandida"
   },
@@ -2504,10 +2495,10 @@
     "message": "Deshacer eliminación"
   },
   "pathVisualEmpty": {
-    "message": "No hay carpetas personalizadas. Save In usará solo la carpeta Downloads del navegador."
+    "message": "No hay carpetas personalizadas. Save In usará solo la carpeta Descargas del navegador."
   },
   "pathVisualReorderHelp": {
-    "message": "Arrastra para reordenar. Suelta en el centro de una fila para anidarla debajo."
+    "message": "Arrastra para reordenar. Suelta en el centro de una fila para anidarla debajo de ella."
   },
   "pathVisualReorderAccessible": {
     "message": "Reordenar o cambiar el nivel de $NAME$",

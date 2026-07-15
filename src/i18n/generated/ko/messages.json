@@ -197,7 +197,7 @@
     "message": "라우팅 규칙"
   },
   "o_sBrowserDownloads": {
-    "message": "브라우저 다운로드"
+    "message": "브라우저 라우팅"
   },
   "o_lBrowserDownloadsHelp": {
     "message": "선택적으로 웹페이지나 브라우저에서 시작된 다운로드를 추적하거나 라우팅합니다. Save In 또는 다른 확장 프로그램으로 시작된 다운로드는 제외됩니다."
@@ -494,10 +494,10 @@
     "message": "일치하는 라우팅 규칙이 없을 때 저장할 위치 묻기"
   },
   "o_cExclusiveMode": {
-    "message": "폴더 선택 대신 라우팅 규칙 사용"
+    "message": "폴더 선택 항목 숨기기"
   },
   "o_cExclusiveModeHelp": {
-    "message": "일치하는 라우팅 규칙이 없으면 파일이 저장되지 않습니다."
+    "message": "파일 저장 안 함"
   },
   "o_cNotifySuccess": {
     "message": "다운로드가 성공하면 알림"
@@ -2282,15 +2282,6 @@
     "message": "1개의 규칙을 사용했습니다. 이후 $COUNT$개의 규칙도 일치합니다.",
     "placeholders": { "count": { "content": "$1", "example": "2" } }
   },
-  "routeDebuggerMatched": {
-    "message": "규칙 $NUMBER$이(가) 일치합니다.",
-    "placeholders": {
-      "number": {
-        "content": "$1",
-        "example": "2"
-      }
-    }
-  },
   "routeDebuggerExpanded": {
     "message": "확장된 경로"
   },
@@ -2600,7 +2591,7 @@
     "message": "삭제 실행 취소"
   },
   "pathVisualEmpty": {
-    "message": "사용자 지정 폴더가 없습니다. Save In은 브라우저의 Downloads 폴더만 사용합니다."
+    "message": "사용자 지정 폴더가 없습니다. Save In은 브라우저의 다운로드 폴더만 사용합니다."
   },
   "pathVisualReorderHelp": {
     "message": "드래그하여 순서를 바꿉니다. 행 가운데에 놓으면 그 아래에 중첩됩니다."
