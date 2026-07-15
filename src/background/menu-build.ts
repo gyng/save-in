@@ -6,7 +6,11 @@ import { getMessage } from "../platform/localization.ts";
 // Click handling lives in menu-click.ts and tab-strip menus in menu-tabs.ts.
 
 import { options } from "../config/options-data.ts";
-import { LAST_USED_META_STORAGE_KEY, LAST_USED_PATH_STORAGE_KEY } from "../shared/storage-keys.ts";
+import {
+  LAST_USED_META_STORAGE_KEY,
+  LAST_USED_PATH_STORAGE_KEY,
+  RECENT_DESTINATIONS_STORAGE_KEY,
+} from "../shared/storage-keys.ts";
 import { MEDIA_TYPES } from "../shared/constants.ts";
 import { Path } from "../routing/path.ts";
 import { isStringKeyedRecord } from "../shared/util.ts";
@@ -25,12 +29,22 @@ const asMenuContexts = (contexts: readonly MenuContext[]): MenuContexts => {
   const [first, ...rest] = contexts;
   return first === undefined ? ["all"] : [first, ...rest];
 };
-type LastUsedMeta = { comment?: string; menuIndex?: string; title?: string };
+type LastUsedMeta = {
+  comment?: string;
+  menuIndex?: string;
+  title?: string;
+  prompt?: boolean;
+};
+export type RecentDestination = {
+  path: string;
+  meta: { comment: string; menuIndex: string; title: string; prompt?: boolean };
+};
 type MenuPathMapping = {
   parsedDir: string;
   comment: string;
   menuIndex: string;
   title: string;
+  prompt?: boolean;
 };
 
 // This is genuine mutable application state shared by menu construction and
@@ -39,10 +53,12 @@ type MenuPathMapping = {
 export const menuState: {
   lastUsedPath: string | null;
   lastUsedMeta: LastUsedMeta | null;
+  recentDestinations: RecentDestination[];
   pathMappings: Record<string | number, MenuPathMapping>;
 } = {
   lastUsedPath: null,
   lastUsedMeta: null,
+  recentDestinations: [],
   pathMappings: {},
 };
 
@@ -60,11 +76,12 @@ export const setLastUsed = (path: string, meta: LastUsedMeta, privateContext = f
 
 const normalizeLastUsedMeta = (value: unknown): LastUsedMeta | null => {
   if (!isStringKeyedRecord(value)) return null;
-  const { comment, menuIndex, title } = value;
+  const { comment, menuIndex, title, prompt } = value;
   if (
     (comment !== undefined && typeof comment !== "string") ||
     (menuIndex !== undefined && typeof menuIndex !== "string") ||
-    (title !== undefined && typeof title !== "string")
+    (title !== undefined && typeof title !== "string") ||
+    (prompt !== undefined && typeof prompt !== "boolean")
   ) {
     return null;
   }
@@ -72,7 +89,51 @@ const normalizeLastUsedMeta = (value: unknown): LastUsedMeta | null => {
     ...(typeof comment === "string" ? { comment } : {}),
     ...(typeof menuIndex === "string" ? { menuIndex } : {}),
     ...(typeof title === "string" ? { title } : {}),
+    ...(typeof prompt === "boolean" ? { prompt } : {}),
   };
+};
+
+const normalizeRecentDestinations = (value: unknown): RecentDestination[] => {
+  if (!Array.isArray(value)) return [];
+  return value
+    .flatMap((entry) => {
+      if (!isStringKeyedRecord(entry) || typeof entry.path !== "string") return [];
+      const meta = normalizeLastUsedMeta(entry.meta);
+      if (!meta || typeof meta.comment !== "string" || typeof meta.menuIndex !== "string")
+        return [];
+      const path = entry.path;
+      if (!path || !new Path(path).validate().valid) return [];
+      return [
+        {
+          path,
+          meta: {
+            comment: meta.comment,
+            menuIndex: meta.menuIndex,
+            title: meta.title || path,
+            ...(meta.prompt === true ? { prompt: true } : {}),
+          },
+        },
+      ];
+    })
+    .slice(0, 5);
+};
+
+export const recordRecentDestination = (
+  path: string,
+  meta: RecentDestination["meta"],
+  privateContext = false,
+): Promise<void> => {
+  if (privateContext) return Promise.resolve();
+  const next = [
+    { path, meta },
+    ...menuState.recentDestinations.filter(
+      (entry) => entry.path !== path || entry.meta.comment !== meta.comment,
+    ),
+  ].slice(0, 5);
+  menuState.recentDestinations = next;
+  return webExtensionApi.storage.local
+    .set({ [RECENT_DESTINATIONS_STORAGE_KEY]: next })
+    .catch(() => {});
 };
 
 export const restoreLastUsed = (stored: unknown) => {
@@ -81,6 +142,36 @@ export const restoreLastUsed = (stored: unknown) => {
   menuState.lastUsedPath =
     typeof path === "string" && path && new Path(path).validate().valid ? path : null;
   menuState.lastUsedMeta = menuState.lastUsedPath ? normalizeLastUsedMeta(meta) : null;
+  menuState.recentDestinations = normalizeRecentDestinations(
+    isStringKeyedRecord(stored) ? stored[RECENT_DESTINATIONS_STORAGE_KEY] : undefined,
+  );
+};
+
+export const addRecentDestinations = (contexts: readonly MenuContext[]): void => {
+  const destinations = menuState.recentDestinations.slice(0, options.recentDestinationCount);
+  if (destinations.length === 0) return;
+  webExtensionApi.contextMenus.create({
+    id: MENU_IDS.RECENT,
+    title: getMessage("contextMenuRecentLocations") || "Recent locations",
+    contexts: asMenuContexts(contexts),
+    parentId: MENU_IDS.ROOT,
+  });
+  destinations.forEach(({ path, meta }, index) => {
+    const id = MENU_IDS.recentDestination(index);
+    menuState.pathMappings[id] = {
+      parsedDir: path,
+      comment: meta.comment,
+      menuIndex: meta.menuIndex,
+      title: meta.title,
+      ...(meta.prompt === true ? { prompt: true } : {}),
+    };
+    webExtensionApi.contextMenus.create({
+      id,
+      title: meta.title,
+      contexts: asMenuContexts(contexts),
+      parentId: MENU_IDS.RECENT,
+    });
+  });
 };
 
 export const makeSeparator = (
@@ -255,6 +346,7 @@ export const renderPathTree = ({ items, errors }: MenuTree, contexts: readonly M
       comment: item.comment,
       menuIndex: item.menuIndex,
       title: item.title,
+      ...(item.prompt === true ? { prompt: true } : {}),
     };
 
     webExtensionApi.contextMenus.create({

@@ -62,6 +62,7 @@ const setupGlobals = () => {
   Object.assign(options, {
     conflictAction: "uniquify",
     externalDownloadAllowlist: "trusted-extension",
+    saveSourceSidecar: false,
   });
   vi.spyOn(Download, "renameAndDownload").mockResolvedValue({ status: "started", downloadId: 1 });
   // Download.launch stays real: it just calls renameAndDownload (the rejection

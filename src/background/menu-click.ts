@@ -6,21 +6,23 @@ import { toggleSourcePanelForTab } from "./source-panel-state.ts";
 // items (and last-used/route-exclusive) into Download.renameAndDownload.
 // Tab-strip clicks are handled in menu-tabs.ts.
 
-import { menuState, setAccesskey, setLastUsed } from "./menu-build.ts";
+import { menuState, recordRecentDestination, setAccesskey, setLastUsed } from "./menu-build.ts";
 import { MENU_IDS } from "../menus/menu-ids.ts";
 import { DOWNLOAD_TYPES } from "../shared/constants.ts";
 import { Path, sanitizeFilename } from "../routing/path.ts";
 import { Download } from "../downloads/download.ts";
 import { EXTENSION_NOTIFICATION_STREAMS, Notifier } from "../downloads/notification.ts";
 import { Shortcut } from "../downloads/shortcut.ts";
+import { launchSourceSidecar } from "../downloads/source-sidecar.ts";
 import { options } from "../config/options-data.ts";
 import { currentTab } from "../platform/current-tab.ts";
 import type { CurrentTab } from "../platform/current-tab.ts";
-import type { DownloadInfo } from "../downloads/download-types.ts";
+import type { DownloadInfo, DownloadPipelineState } from "../downloads/download-types.ts";
 import { backgroundRuntime } from "./runtime.ts";
 import { Log } from "./log.ts";
 import { runBackgroundTask } from "./event-task.ts";
 import { resolveClickTarget, type ClickInfo } from "./menu-target.ts";
+import { rebuildMenus } from "./menu-rebuild.ts";
 
 export { resolveClickTarget } from "./menu-target.ts";
 
@@ -83,6 +85,7 @@ export const handleContextMenuClick = async (
     if (!url) {
       return;
     }
+    const originalUrl = url;
 
     // Fire the notifications the pure decision flagged
     if (target.notifyLinkPreferred && options.notifyOnLinkPreferred) {
@@ -106,7 +109,7 @@ export const handleContextMenuClick = async (
     let selectedLocation:
       | {
           path: string;
-          meta: { comment: string; menuIndex: string; title: string };
+          meta: { comment: string; menuIndex: string; title: string; prompt?: boolean };
           title: string;
         }
       | undefined;
@@ -135,6 +138,7 @@ export const handleContextMenuClick = async (
           comment: mappedMenu.comment,
           menuIndex: mappedMenu.menuIndex,
           title,
+          ...(mappedMenu.prompt === true ? { prompt: true } : {}),
         },
         title,
       };
@@ -187,13 +191,16 @@ export const handleContextMenuClick = async (
         (info.menuItemId === MENU_IDS.LAST_USED ? "Last used location" : "Routing rules"),
       menuItemPath: saveIntoPath,
       comment,
+      forcePrompt:
+        menuInfo?.prompt === true ||
+        (info.menuItemId === MENU_IDS.LAST_USED && menuState.lastUsedMeta?.prompt === true),
       modifiers: Array.isArray(modifiersValue)
         ? modifiersValue.filter((value): value is string => typeof value === "string")
         : undefined,
     };
 
     // keeps track of state of the final path
-    const state = {
+    const state: DownloadPipelineState = {
       path: parsedPath,
       scratch: {},
       info: opts,
@@ -207,12 +214,23 @@ export const handleContextMenuClick = async (
     const privateContext = clickTab?.incognito === true;
     if (result.status === "started" && selectedLocation && !privateContext) {
       await setLastUsed(selectedLocation.path, selectedLocation.meta);
+      await recordRecentDestination(selectedLocation.path, selectedLocation.meta);
       if (options.enableLastLocation) {
         await webExtensionApi.contextMenus.update(MENU_IDS.LAST_USED, {
           title: setAccesskey(selectedLocation.title, options.keyLastUsed),
           enabled: true,
         });
       }
+      await rebuildMenus();
+    }
+
+    if (
+      result.status === "started" &&
+      options.saveSourceSidecar &&
+      downloadType === DOWNLOAD_TYPES.MEDIA &&
+      !saveAsShortcut
+    ) {
+      await launchSourceSidecar(state, originalUrl, clickTab?.title);
     }
 
     // Close the tab a "save page" came from, mirroring the tab-strip

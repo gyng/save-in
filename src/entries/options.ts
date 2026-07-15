@@ -42,6 +42,7 @@ import { setupRuleVisualEditor } from "../options/rule-visual-editor.ts";
 import { showWelcomeDialog, setupWelcomeDialog } from "../options/welcome-dialog.ts";
 import { optionsRuntime } from "../options/options-runtime.ts";
 import { assertApplySucceeded } from "../options/options-save.ts";
+import { applySourceRuleDraft, setupSourceRuleDraft } from "../options/source-rule-draft.ts";
 
 const applyWelcomePreset = async (paths: string): Promise<void> => {
   const response = assertApplySucceeded(await optionsRuntime.apply({ paths }));
@@ -80,6 +81,7 @@ document.addEventListener(
       void setupPermissionsBanner();
       setupPathEditor();
       setupRuleBuilder();
+      setupSourceRuleDraft();
       setupOptionsReferences();
       setupTabs({
         confirmPendingChanges,
@@ -97,6 +99,7 @@ document.addEventListener(
       setupLanguageSelector();
       void setupWelcomeDialog(undefined, undefined, applyWelcomePreset);
       await optionsReady;
+      await applySourceRuleDraft();
     } finally {
       root.classList.remove("localization-pending");
     }

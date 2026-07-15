@@ -9,6 +9,7 @@ import { options } from "../config/options-data.ts";
 import { buildTree } from "../menus/menu-tree.ts";
 import { matcherFunctions, parseRulesCollecting, traceRules } from "../routing/router.ts";
 import { Download } from "../downloads/download.ts";
+import { launchSourceSidecar } from "../downloads/source-sidecar.ts";
 import { Notifier } from "../downloads/notification.ts";
 import { currentTab, type CurrentTab } from "../platform/current-tab.ts";
 import { configureDownloadEvents } from "../downloads/download-events.ts";
@@ -51,6 +52,8 @@ import {
   AUTOMATIC_PAGE_MATCHERS,
   AUTOMATIC_SOURCE_MATCHERS,
 } from "../routing/automatic-rule.ts";
+import { createSourceRuleDraft } from "../automation/source-rule-draft.ts";
+import { SOURCE_RULE_DRAFT_SESSION_KEY } from "../shared/storage-keys.ts";
 import { getFilenameFromUrl } from "../routing/filename.ts";
 import {
   createExternalValidationRateLimiter,
@@ -507,7 +510,15 @@ export const Messaging = {
       // Keep the MV3 message event alive through routing, lazy variables and the
       // downloads API call. The response still acknowledges browser acceptance,
       // not eventual download completion.
-      return Download.launch(clickState).then(() => {
+      return Download.launch(clickState).then(async (result) => {
+        if (
+          result.status === "started" &&
+          sender.id === webExtensionApi.runtime.id &&
+          info.sourceKind &&
+          info.sourceKind !== "link"
+        ) {
+          await launchSourceSidecar(clickState, url, resolvedTab?.title);
+        }
         // status:"OK" is unchanged for back-compat; version/url are additive
         sendResponse({
           type: MESSAGE_TYPES.DOWNLOAD,
@@ -645,6 +656,27 @@ const internalHandlers = {
       body: copy,
     });
   },
+  [MESSAGE_TYPES.CREATE_SOURCE_RULE]: async (request, sender, sendResponse) => {
+    const pageUrl = sender.tab?.url;
+    const draft = pageUrl
+      ? createSourceRuleDraft(pageUrl, request.body.sourceUrl, request.body.sourceKind)
+      : null;
+    if (!draft || sender.tab?.incognito === true) {
+      sendResponse({
+        type: MESSAGE_TYPES.CREATE_SOURCE_RULE,
+        body: {
+          status: MESSAGE_TYPES.ERROR,
+          error: Messaging.API_ERRORS.BAD_REQUEST,
+          message: "An automatic rule cannot be created for this source",
+        },
+      });
+      return;
+    }
+    const storage = webExtensionApi.storage.session ?? webExtensionApi.storage.local;
+    await storage.set({ [SOURCE_RULE_DRAFT_SESSION_KEY]: { rule: draft } });
+    await webExtensionApi.runtime.openOptionsPage();
+    sendResponse({ type: MESSAGE_TYPES.OK });
+  },
   [MESSAGE_TYPES.DIAGNOSTICS_GET]: async (_request, _sender, sendResponse) => {
     sendResponse({
       type: MESSAGE_TYPES.DIAGNOSTICS_GET,
@@ -781,6 +813,7 @@ const READY_MESSAGE_TYPES = new Set<InternalMessage["type"]>([
   MESSAGE_TYPES.CHECK_ROUTES,
   MESSAGE_TYPES.DOWNLOAD,
   MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
+  MESSAGE_TYPES.CREATE_SOURCE_RULE,
 ]);
 
 const dispatchMessage = <M extends InternalMessage>(

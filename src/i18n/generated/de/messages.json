@@ -3026,5 +3026,47 @@
   },
   "sourcePanelCreateAutomaticRule": {
     "message": "Automatische Regel erstellen"
+  },
+  "contextMenuRecentLocations": {
+    "message": "Zuletzt verwendete Speicherorte"
+  },
+  "o_lRecentLocations": {
+    "message": "Zuletzt verwendete Speicherorte"
+  },
+  "o_lRecentLocationsHelp": {
+    "message": "0–5 zuletzt verwendete Speicherorte anzeigen."
+  },
+  "pathVisualAlwaysAsk": {
+    "message": "Immer nach dem Speicherort fragen"
+  },
+  "pathVisualAlwaysAskAccessible": {
+    "message": "Für $ROW$ immer nach dem Speicherort fragen",
+    "placeholders": {
+      "row": {
+        "content": "$1",
+        "example": "Work"
+      }
+    }
+  },
+  "o_cSaveSourceSidecar": {
+    "message": "Quelllink neben heruntergeladenen Medien speichern"
+  },
+  "o_cSaveSourceSidecarHelp": {
+    "message": "Verwendet das ausgewählte Verknüpfungsformat und den Namen der heruntergeladenen Datei."
+  },
+  "historyCopyPath": {
+    "message": "Gespeicherten Pfad kopieren"
+  },
+  "historyCopySource": {
+    "message": "Quell-URL kopieren"
+  },
+  "historyPathCopied": {
+    "message": "Gespeicherter Pfad kopiert."
+  },
+  "historySourceCopied": {
+    "message": "Quell-URL kopiert."
+  },
+  "historyCopyFailed": {
+    "message": "Kopieren in die Zwischenablage fehlgeschlagen."
   }
 }

@@ -17,6 +17,11 @@ Visual mode.
    enable the rule, and select **Apply**.
 6. Return to Page Sources and enable **Save matches automatically**.
 
+As a shortcut, open a source row's actions and select **Create automatic
+rule**. Save In opens a disabled draft in the shared rule editor, scoped to the
+page root domain, source root domain, and source kind. Review its destination,
+enable it, and select **Apply** before turning on automatic saves.
+
 For example, this rule saves JPEG, PNG, and WebP images discovered on one site:
 
 ```text

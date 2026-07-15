@@ -249,6 +249,7 @@
   stroke: currentColor;
   stroke-width: 1.7;
   stroke-linejoin: round;
+  stroke-linecap: round;
 }
 
 .history-columns {

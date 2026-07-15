@@ -7,6 +7,7 @@ import {
 } from "../shared/constants.ts";
 import { Download } from "./download.ts";
 import { sanitizeFilename } from "../routing/path.ts";
+import { EXTENSION_REGEX } from "../routing/filename.ts";
 import { currentTab } from "../platform/current-tab.ts";
 
 type ShortcutInfo = {
@@ -36,6 +37,18 @@ const escapeXml = (value: string): string =>
   value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
 export const Shortcut = {
+  sourceSidecarPath: (finalFullPath: string, shortcutType: string, maxlen: number): string => {
+    const slash = finalFullPath.lastIndexOf("/");
+    const folder = slash >= 0 ? finalFullPath.slice(0, slash + 1) : "";
+    const filename = slash >= 0 ? finalFullPath.slice(slash + 1) : finalFullPath;
+    const extension = filename.match(EXTENSION_REGEX)?.[0] ?? "";
+    const stem = filename.slice(0, Math.max(0, filename.length - extension.length)) || "source";
+    const shortcutExtension = isShortcutType(shortcutType)
+      ? SHORTCUT_EXTENSIONS[shortcutType]
+      : ".url";
+    return `${folder}${sanitizeFilename(`${stem}${shortcutExtension}`, maxlen, true, true)}`;
+  },
+
   makeShortcutContent: (type: string | undefined, url: string, title?: string): string => {
     switch (type) {
       case SHORTCUT_TYPES.MAC:

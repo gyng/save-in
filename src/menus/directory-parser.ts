@@ -37,6 +37,7 @@ export type MenuTreeItem =
       title: string;
       number: number;
       accessKeyOverride?: string | undefined;
+      prompt?: boolean | undefined;
       parsedDir: string;
       comment: string;
       menuIndex: string;
@@ -181,6 +182,7 @@ export const buildTree = (pathsArray: string[]): MenuTree => {
       title,
       number,
       accessKeyOverride: meta.key,
+      ...(meta.dialog?.toLowerCase() === "true" ? { prompt: true } : {}),
       parsedDir,
       comment: `${index}${comment.replaceAll("-", "_")}`,
       menuIndex: menuItemCounter.join("."),

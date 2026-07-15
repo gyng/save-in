@@ -133,6 +133,7 @@ const historyEntry = (state: DownloadPipelineState, finalFullPath: string): Hist
       )
       .map(([key, value]) => [key, String(value)]),
   ),
+  relatedHistoryId: state.info.relatedHistoryId,
 });
 
 const ensureHistoryEntry = (state: DownloadPipelineState, finalFullPath: string) => {
@@ -312,6 +313,7 @@ export const Download = {
   },
 
   getRoutingMatches: (state: Pick<DownloadPipelineState, "info">): string | null => {
+    if (state.info.routingDisabled) return null;
     const filenamePatterns = Array.isArray(options.filenamePatterns)
       ? options.filenamePatterns
       : [];
@@ -421,7 +423,8 @@ export const Download = {
       state.routeIsFolder = /\/\s*$/.test(routeMatches);
       state.route = await applyVariables(new Path(routeMatches), state.info);
     }
-    const routeRequired = state.needRouteMatch || options.routeSkipUnmatched;
+    const routeRequired =
+      !state.info.routingDisabled && (state.needRouteMatch || options.routeSkipUnmatched);
     const deferRouteRequirement =
       routeRequired &&
       WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion &&
@@ -464,7 +467,14 @@ export const Download = {
       state.info.modifiers &&
       typeof state.info.modifiers.find((m) => m === "Shift") !== "undefined";
     const noRuleMatchedPrompt = options.routeFailurePrompt && !state.route;
-    const prompt = options.prompt || noExtensionPrompt || shiftHeldPrompt || noRuleMatchedPrompt;
+    const prompt =
+      state.info.suppressPrompt === true
+        ? false
+        : state.info.forcePrompt === true ||
+          options.prompt ||
+          noExtensionPrompt ||
+          shiftHeldPrompt ||
+          noRuleMatchedPrompt;
 
     const historyEntryId = ensureHistoryEntry(state, finalFullPath);
 

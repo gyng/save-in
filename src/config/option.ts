@@ -60,6 +60,7 @@ export const OptionsManagement: OptionsManagementApi = {
     debug: "Write extra routing and download details to the browser developer console.",
     uiLocale: "Options, menu, and notification language (blank = browser default).",
     enableLastLocation: "Show a 'last used' item at the top of the menu.",
+    recentDestinationCount: "Number of recently used destinations shown in the context menu (0–5).",
     enableNumberedItems: "Add number-key access keys to submenu items.",
     filenamePatterns:
       "Routing/rename rules, including guarded automatic-source rules with context: auto.",
@@ -91,6 +92,7 @@ export const OptionsManagement: OptionsManagementApi = {
     shortcutMedia: "Save media as shortcut files instead of downloading.",
     shortcutPage: "Save pages as shortcut files.",
     shortcutTab: "Save tabs as shortcut files from the browser tab menu.",
+    saveSourceSidecar: "Save media together with a shortcut sidecar that records its source URL.",
     shortcutType: "Shortcut file format (HTML redirect, legacy .url, .desktop, or .webloc).",
     truncateLength: "Limit each file or folder name to this many UTF-8 bytes (0 = no limit).",
     appendMimeExtension:

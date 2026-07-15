@@ -25,6 +25,12 @@ describe("message protocol runtime validation", () => {
     ).toBe(true);
     expect(
       isInternalMessage({
+        type: MESSAGE_TYPES.CREATE_SOURCE_RULE,
+        body: { sourceUrl: "https://cdn.test/image.png", sourceKind: "image" },
+      }),
+    ).toBe(true);
+    expect(
+      isInternalMessage({
         type: MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
         body: {
           pageUrl: "https://example.test/gallery/",

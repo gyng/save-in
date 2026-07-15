@@ -153,6 +153,16 @@ export const setPathAccessKey = (node: DirectoryLineNode, key: string): Director
     : updated;
 };
 
+export const getPathDialog = (node: DirectoryLineNode): boolean =>
+  getDirectoryMetadata(node, "dialog").toLowerCase() === "true";
+
+export const setPathDialog = (node: DirectoryLineNode, dialog: boolean): DirectoryLineNode => {
+  const updated = updateDirectoryMetadata(node, "dialog", dialog ? "true" : "");
+  return !dialog && updated.comment === null
+    ? parsePathLineAst(updated.raw.trimEnd()).ast
+    : updated;
+};
+
 export const getPathEnabled = (node: DirectoryLineNode): boolean =>
   getDirectoryMetadata(node, "disabled").toLowerCase() !== "true";
 

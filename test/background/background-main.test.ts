@@ -360,7 +360,11 @@ describe("init", () => {
 
     expect(Runtime.optionErrors).toEqual({ paths: [], filenamePatterns: [] });
     expect(OptionsManagement.loadOptions).toHaveBeenCalledTimes(1);
-    expect(global.browser.storage.local.get).toHaveBeenCalledWith(["lastUsedPath", "lastUsedMeta"]);
+    expect(global.browser.storage.local.get).toHaveBeenCalledWith([
+      "lastUsedPath",
+      "lastUsedMeta",
+      "recentDestinations",
+    ]);
     expect(global.browser.contextMenus.removeAll).toHaveBeenCalledTimes(1);
     expect(recoveryMocks.recover).toHaveBeenCalledTimes(1);
 

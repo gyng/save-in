@@ -3211,5 +3211,47 @@
   },
   "sourcePanelCreateAutomaticRule": {
     "message": "Crea regola automatica"
+  },
+  "contextMenuRecentLocations": {
+    "message": "Destinazioni recenti"
+  },
+  "o_lRecentLocations": {
+    "message": "Destinazioni recenti"
+  },
+  "o_lRecentLocationsHelp": {
+    "message": "Mostra da 0 a 5 destinazioni usate di recente."
+  },
+  "pathVisualAlwaysAsk": {
+    "message": "Chiedi sempre dove salvare"
+  },
+  "pathVisualAlwaysAskAccessible": {
+    "message": "Chiedi sempre dove salvare quando usi $ROW$",
+    "placeholders": {
+      "row": {
+        "content": "$1",
+        "example": "Work"
+      }
+    }
+  },
+  "o_cSaveSourceSidecar": {
+    "message": "Salva un collegamento alla fonte accanto ai media scaricati"
+  },
+  "o_cSaveSourceSidecarHelp": {
+    "message": "Usa il formato di collegamento selezionato e il nome del file scaricato."
+  },
+  "historyCopyPath": {
+    "message": "Copia percorso salvato"
+  },
+  "historyCopySource": {
+    "message": "Copia URL di origine"
+  },
+  "historyPathCopied": {
+    "message": "Percorso salvato copiato."
+  },
+  "historySourceCopied": {
+    "message": "URL di origine copiato."
+  },
+  "historyCopyFailed": {
+    "message": "Impossibile copiare negli appunti."
   }
 }

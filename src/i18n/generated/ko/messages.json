@@ -3004,5 +3004,47 @@
   },
   "sourcePanelCreateAutomaticRule": {
     "message": "자동 규칙 만들기"
+  },
+  "contextMenuRecentLocations": {
+    "message": "최근 저장 위치"
+  },
+  "o_lRecentLocations": {
+    "message": "최근 저장 위치"
+  },
+  "o_lRecentLocationsHelp": {
+    "message": "최근 사용한 저장 위치를 0~5개 표시합니다."
+  },
+  "pathVisualAlwaysAsk": {
+    "message": "저장 위치 항상 묻기"
+  },
+  "pathVisualAlwaysAskAccessible": {
+    "message": "항상 $ROW$의 저장 위치 묻기",
+    "placeholders": {
+      "row": {
+        "content": "$1",
+        "example": "Work"
+      }
+    }
+  },
+  "o_cSaveSourceSidecar": {
+    "message": "다운로드한 미디어 옆에 소스 링크 저장"
+  },
+  "o_cSaveSourceSidecarHelp": {
+    "message": "선택한 바로가기 형식과 다운로드한 파일 이름을 사용합니다."
+  },
+  "historyCopyPath": {
+    "message": "저장 경로 복사"
+  },
+  "historyCopySource": {
+    "message": "소스 URL 복사"
+  },
+  "historyPathCopied": {
+    "message": "저장 경로를 복사했습니다."
+  },
+  "historySourceCopied": {
+    "message": "소스 URL을 복사했습니다."
+  },
+  "historyCopyFailed": {
+    "message": "클립보드에 복사하지 못했습니다."
   }
 }

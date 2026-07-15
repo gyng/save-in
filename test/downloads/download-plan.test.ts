@@ -481,6 +481,17 @@ describe("renameAndDownload: prompt combinations", () => {
     await expectSaveAs(makeState(), true);
   });
 
+  test("a destination can force Save As independently", async () => {
+    setCurrentBrowser("CHROME");
+    await expectSaveAs(makeState({ info: { forcePrompt: true } }), true);
+  });
+
+  test("internal companion downloads suppress every prompt source", async () => {
+    setCurrentBrowser("CHROME");
+    options.prompt = true;
+    await expectSaveAs(makeState({ info: { forcePrompt: true, suppressPrompt: true } }), false);
+  });
+
   test("promptIfNoExtension prompts when the final filename has no extension", async () => {
     setCurrentBrowser("CHROME");
     options.promptIfNoExtension = true;

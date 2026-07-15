@@ -377,6 +377,18 @@ Briefly explain the structure, check that every line follows this syntax, then p
         <div class="caption behavior-group-intro">__MSG_o_lContextMenuBehaviorHelp__</div>
 
         <label> <input type="checkbox" id="enableLastLocation" />__MSG_o_cLastUsedMenu__ </label>
+        <label class="inline-control-label">
+          __MSG_o_lRecentLocations__
+          <input
+            type="number"
+            id="recentDestinationCount"
+            min="0"
+            max="5"
+            step="1"
+            inputmode="numeric"
+          />
+          <span class="caption">__MSG_o_lRecentLocationsHelp__</span>
+        </label>
 
         <fieldset class="option-group">
           <legend>
@@ -1352,6 +1364,13 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
               </span>
             </label>
           </div>
+          <label>
+            <input type="checkbox" id="saveSourceSidecar" />
+            <span class="option-label-content">
+              <span>__MSG_o_cSaveSourceSidecar__</span>
+              <span class="caption">__MSG_o_cSaveSourceSidecarHelp__</span>
+            </span>
+          </label>
         </div>
       </fieldset>
 
@@ -1621,9 +1640,7 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
 
         <div class="option-subgroup auto-download-rules">
           <h4>__MSG_autoDownloadRulesHeading__</h4>
-          <p class="info-row auto-download-routing-help" id="auto-download-routing-help">
-            __MSG_autoDownloadRoutingHelp__
-          </p>
+          <p class="caption" id="auto-download-routing-help">__MSG_autoDownloadRoutingHelp__</p>
           <button
             type="button"
             id="auto-download-manage-rules"

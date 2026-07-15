@@ -15,6 +15,8 @@ export const MENU_IDS = {
   ROUTE_EXCLUSIVE: "save-in-route-exclusive",
   ROOT: "save-in-root",
   LAST_USED: "save-in-last-used",
+  RECENT: "save-in-recent",
+  recentDestination: (index: number) => `save-in-recent-${index}`,
   OPTIONS: "options",
   TOGGLE_SOURCE_PANEL: "toggle-source-panel",
   SHOW_DEFAULT_FOLDER: "show-default-folder",

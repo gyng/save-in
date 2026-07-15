@@ -111,14 +111,6 @@
   margin-top: var(--space-5);
 }
 
-.auto-download-rules h4,
-.auto-download-routing-help {
+.auto-download-rules h4 {
   max-width: 68ch;
-}
-
-.auto-download-routing-help {
-  margin: 0 0 var(--space-3);
-  border-inline-start: 3px solid var(--color-info);
-  color: var(--color-text-muted);
-  line-height: 1.45;
 }

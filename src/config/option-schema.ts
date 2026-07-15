@@ -147,6 +147,19 @@ export const OPTION_KEYS = defineOptions([
     default: OPTION_DEFAULTS.enableLastLocation,
   },
   {
+    name: "recentDestinationCount",
+    type: OPTION_TYPES.VALUE,
+    onLoad: normalizeWholeNumber,
+    onSave: normalizeWholeNumber,
+    validate: (value: unknown): value is string | number => {
+      if ((typeof value !== "number" && typeof value !== "string") || String(value).trim() === "")
+        return false;
+      const count = Number(value);
+      return Number.isSafeInteger(count) && count >= 0 && count <= 5;
+    },
+    default: OPTION_DEFAULTS.recentDestinationCount,
+  },
+  {
     name: "enableNumberedItems",
     type: OPTION_TYPES.BOOL,
     default: OPTION_DEFAULTS.enableNumberedItems,
@@ -246,6 +259,11 @@ export const OPTION_KEYS = defineOptions([
   { name: "shortcutMedia", type: OPTION_TYPES.BOOL, default: OPTION_DEFAULTS.shortcutMedia },
   { name: "shortcutPage", type: OPTION_TYPES.BOOL, default: OPTION_DEFAULTS.shortcutPage },
   { name: "shortcutTab", type: OPTION_TYPES.BOOL, default: OPTION_DEFAULTS.shortcutTab },
+  {
+    name: "saveSourceSidecar",
+    type: OPTION_TYPES.BOOL,
+    default: OPTION_DEFAULTS.saveSourceSidecar,
+  },
   {
     name: "shortcutType",
     type: OPTION_TYPES.VALUE,

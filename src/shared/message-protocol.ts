@@ -221,6 +221,7 @@ export type InternalResponseMap = {
     typeof MESSAGE_TYPES.SOURCE_PANEL_COPY,
     SourcePanelCopy
   >;
+  [MESSAGE_TYPES.CREATE_SOURCE_RULE]: OkResponse;
   [MESSAGE_TYPES.DIAGNOSTICS_GET]: Response<
     typeof MESSAGE_TYPES.DIAGNOSTICS_GET,
     DiagnosticSnapshot
@@ -341,12 +342,18 @@ export type AutoDownloadSourceRequestBody = {
   sourceKind: PageSourceKind;
 };
 
+export type CreateSourceRuleRequestBody = {
+  sourceUrl: string;
+  sourceKind: PageSourceKind;
+};
+
 export type InternalMessage =
   | Message<typeof MESSAGE_TYPES.WAKE_WARM>
   | RequiredBodyMessage<typeof MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE, AutoDownloadSourceRequestBody>
   | Message<typeof MESSAGE_TYPES.SOURCE_PANEL_READY>
   | OptionalBodyMessage<typeof MESSAGE_TYPES.SOURCE_PANEL_STATE, { open: boolean }>
   | Message<typeof MESSAGE_TYPES.SOURCE_PANEL_COPY>
+  | RequiredBodyMessage<typeof MESSAGE_TYPES.CREATE_SOURCE_RULE, CreateSourceRuleRequestBody>
   | Message<typeof MESSAGE_TYPES.DIAGNOSTICS_GET>
   | Message<typeof MESSAGE_TYPES.DIAGNOSTICS_CLEAR_FAILURES>
   | Message<typeof MESSAGE_TYPES.HISTORY_GET>
@@ -427,6 +434,7 @@ const INTERNAL_MESSAGE_TYPE_MAP = {
   [MESSAGE_TYPES.SOURCE_PANEL_READY]: true,
   [MESSAGE_TYPES.SOURCE_PANEL_STATE]: true,
   [MESSAGE_TYPES.SOURCE_PANEL_COPY]: true,
+  [MESSAGE_TYPES.CREATE_SOURCE_RULE]: true,
   [MESSAGE_TYPES.DIAGNOSTICS_GET]: true,
   [MESSAGE_TYPES.DIAGNOSTICS_CLEAR_FAILURES]: true,
   [MESSAGE_TYPES.HISTORY_GET]: true,
@@ -588,6 +596,12 @@ const isMessageBodyValid = (message: Record<string, unknown> & { type: string })
       return (
         isStringKeyedRecord(message.body) &&
         typeof message.body.pageUrl === "string" &&
+        typeof message.body.sourceUrl === "string" &&
+        isPageSourceKind(message.body.sourceKind)
+      );
+    case MESSAGE_TYPES.CREATE_SOURCE_RULE:
+      return (
+        isStringKeyedRecord(message.body) &&
         typeof message.body.sourceUrl === "string" &&
         isPageSourceKind(message.body.sourceKind)
       );

@@ -3043,5 +3043,47 @@
   },
   "sourcePanelCreateAutomaticRule": {
     "message": "Créer une règle automatique"
+  },
+  "contextMenuRecentLocations": {
+    "message": "Emplacements récents"
+  },
+  "o_lRecentLocations": {
+    "message": "Emplacements récents"
+  },
+  "o_lRecentLocationsHelp": {
+    "message": "Afficher de 0 à 5 emplacements utilisés récemment."
+  },
+  "pathVisualAlwaysAsk": {
+    "message": "Toujours demander où enregistrer"
+  },
+  "pathVisualAlwaysAskAccessible": {
+    "message": "Toujours demander où enregistrer pour $ROW$",
+    "placeholders": {
+      "row": {
+        "content": "$1",
+        "example": "Work"
+      }
+    }
+  },
+  "o_cSaveSourceSidecar": {
+    "message": "Enregistrer un lien source à côté du média téléchargé"
+  },
+  "o_cSaveSourceSidecarHelp": {
+    "message": "Utilise le format de raccourci sélectionné et le nom du fichier téléchargé."
+  },
+  "historyCopyPath": {
+    "message": "Copier le chemin enregistré"
+  },
+  "historyCopySource": {
+    "message": "Copier l’URL source"
+  },
+  "historyPathCopied": {
+    "message": "Chemin enregistré copié."
+  },
+  "historySourceCopied": {
+    "message": "URL source copiée."
+  },
+  "historyCopyFailed": {
+    "message": "Impossible de copier dans le presse-papiers."
   }
 }

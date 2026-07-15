@@ -22,6 +22,7 @@ import {
   deletePathNode,
   dropPathNode,
   getPathAccessKey,
+  getPathDialog,
   getPathAlias,
   getPathEnabled,
   parseDirectoryLine,
@@ -30,6 +31,7 @@ import {
   serializeDirectoryLine,
   reorderPathNode,
   setPathAccessKey,
+  setPathDialog,
   setPathAlias,
   setPathEnabled,
   updateDirectoryLine,
@@ -61,9 +63,11 @@ const PathEditorHelpers = {
   nodesToLines: pathNodesToLines,
   getAlias: getPathAlias,
   getAccessKey: getPathAccessKey,
+  getDialog: getPathDialog,
   getEnabled: getPathEnabled,
   setAlias: setPathAlias,
   setAccessKey: setPathAccessKey,
+  setDialog: setPathDialog,
   setEnabled: setPathEnabled,
   updateLine: updateDirectoryLine,
 
@@ -623,6 +627,7 @@ const PathEditorHelpers = {
           actions.append(aliasToggle, accessKeyControl);
         }
 
+        const previousNode = nodes[index - 1];
         const controls: Array<{
           action: string;
           label: string;
@@ -630,7 +635,31 @@ const PathEditorHelpers = {
           disabled: boolean;
           run: () => void;
           danger?: boolean;
+          pressed?: boolean;
         }> = [
+          ...(node.path.value === SPECIAL_DIRS.SEPARATOR
+            ? []
+            : [
+                {
+                  action: "save as",
+                  label: localize("pathVisualAlwaysAsk", "Always ask where to save"),
+                  accessible: localize(
+                    "pathVisualAlwaysAskAccessible",
+                    `Always ask where to save ${rowName}`,
+                    rowName,
+                  ),
+                  disabled: false,
+                  pressed: PathEditorHelpers.getDialog(node),
+                  run: () => {
+                    const current = nodes[index];
+                    if (!current) return;
+                    nodes[index] = PathEditorHelpers.setDialog(
+                      current,
+                      !PathEditorHelpers.getDialog(current),
+                    );
+                  },
+                },
+              ]),
           {
             action: "outdent",
             label: localize("pathVisualOutdent", "Outdent"),
@@ -644,8 +673,7 @@ const PathEditorHelpers = {
             action: "indent",
             label: localize("pathVisualIndent", "Indent"),
             accessible: localize("pathVisualIndentAccessible", `Indent ${rowName}`, rowName),
-            disabled:
-              nodes[index - 1] === undefined || node.depth >= (nodes[index - 1]?.depth ?? 0) + 1,
+            disabled: previousNode === undefined || node.depth >= previousNode.depth + 1,
             run: () => {
               updateNode(index, { depth: node.depth + 1 });
             },
@@ -705,6 +733,10 @@ const PathEditorHelpers = {
           button.setAttribute("aria-label", control.accessible);
           button.textContent = control.label;
           button.disabled = control.disabled;
+          if (control.pressed !== undefined) {
+            button.setAttribute("aria-pressed", String(control.pressed));
+            button.classList.toggle("is-active", control.pressed);
+          }
           button.classList.toggle("danger-button", control.danger === true);
           button.addEventListener("click", () => {
             control.run();
@@ -804,9 +836,11 @@ export class PathEditor {
   static nodesToLines = PathEditorHelpers.nodesToLines;
   static getAlias = PathEditorHelpers.getAlias;
   static getAccessKey = PathEditorHelpers.getAccessKey;
+  static getDialog = PathEditorHelpers.getDialog;
   static getEnabled = PathEditorHelpers.getEnabled;
   static setAlias = PathEditorHelpers.setAlias;
   static setAccessKey = PathEditorHelpers.setAccessKey;
+  static setDialog = PathEditorHelpers.setDialog;
   static setEnabled = PathEditorHelpers.setEnabled;
   static insertText = PathEditorHelpers.insertText;
   static insertAtCursor = PathEditorHelpers.insertAtCursor;

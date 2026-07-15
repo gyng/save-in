@@ -4,6 +4,7 @@ import {
   getPathAccessKey,
   getPathAlias,
   getPathEnabled,
+  getPathDialog,
   getPathSourceRange,
   pathNodesToLines,
   parseDirectoryLine,
@@ -13,6 +14,7 @@ import {
   setPathAlias,
   setPathAccessKey,
   setPathEnabled,
+  setPathDialog,
 } from "../../../src/options/path-editor-model.ts";
 
 describe("path editor model", () => {
@@ -75,6 +77,18 @@ describe("path editor model", () => {
     expect(serializeDirectoryLine(disabled)).toBe("path // note (alias: Work) (disabled: true)");
     expect(getPathEnabled(disabled)).toBe(false);
     expect(serializeDirectoryLine(setPathEnabled(disabled, true))).toBe(
+      "path // note (alias: Work)",
+    );
+  });
+
+  test("stores per-destination Save As without disturbing other metadata", () => {
+    const node = parseDirectoryLine("path // note (alias: Work)");
+
+    expect(getPathDialog(node)).toBe(false);
+    const prompted = setPathDialog(node, true);
+    expect(serializeDirectoryLine(prompted)).toBe("path // note (alias: Work) (dialog: true)");
+    expect(getPathDialog(prompted)).toBe(true);
+    expect(serializeDirectoryLine(setPathDialog(prompted, false))).toBe(
       "path // note (alias: Work)",
     );
   });

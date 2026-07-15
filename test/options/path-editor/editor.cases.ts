@@ -218,7 +218,14 @@ describe("visual editor", () => {
       [...menu.querySelectorAll<HTMLButtonElement>("[data-path-action]")].map(
         (button) => button.textContent,
       ),
-    ).toEqual(["Outdent", "Indent", "Move up", "Move down", "Delete"]);
+    ).toEqual([
+      "Always ask where to save",
+      "Outdent",
+      "Indent",
+      "Move up",
+      "Move down",
+      "Delete",
+    ]);
 
     menu.open = true;
     menu.querySelector<HTMLElement>("button")!.focus();

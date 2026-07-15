@@ -111,6 +111,17 @@ describe("menu parsing", () => {
     expect(tree.items).toHaveLength(1);
     expect(tree.items[0]).toMatchObject({ kind: "path", parsedDir: "documents" });
   });
+
+  test("carries per-destination Save As metadata into the menu tree", () => {
+    const tree = menu.buildTree(["photos // (alias: Photos) (dialog: true)"]);
+
+    expect(tree.errors).toEqual([]);
+    expect(tree.items[0]).toMatchObject({
+      kind: "path",
+      title: "Photos",
+      prompt: true,
+    });
+  });
 });
 
 const setupMenuCreationMocks = () => {

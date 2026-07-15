@@ -49,7 +49,15 @@ export const normalizeHistoryEntry = (value: unknown): HistoryEntry | null => {
     return null;
 
   const entry: HistoryEntry = {};
-  for (const key of ["id", "status", "timestamp", "initiatedAt", "url", "finalFullPath"] as const) {
+  for (const key of [
+    "id",
+    "status",
+    "timestamp",
+    "initiatedAt",
+    "url",
+    "finalFullPath",
+    "relatedHistoryId",
+  ] as const) {
     if (typeof value[key] === "string") {
       entry[key] =
         key === "timestamp" || key === "initiatedAt"

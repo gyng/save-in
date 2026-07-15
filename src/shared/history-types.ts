@@ -25,6 +25,7 @@ export type HistoryEntryInput = {
     path?: string | undefined;
   };
   variables?: Record<string, string> | undefined;
+  relatedHistoryId?: string | undefined;
 };
 
 export type HistoryEntry = HistoryEntryInput & {

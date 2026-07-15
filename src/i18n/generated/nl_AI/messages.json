@@ -2900,5 +2900,47 @@
   },
   "sourcePanelCreateAutomaticRule": {
     "message": "Automatische regel maken"
+  },
+  "contextMenuRecentLocations": {
+    "message": "Recente locaties"
+  },
+  "o_lRecentLocations": {
+    "message": "Recente locaties"
+  },
+  "o_lRecentLocationsHelp": {
+    "message": "Toon 0–5 recent gebruikte bestemmingen."
+  },
+  "pathVisualAlwaysAsk": {
+    "message": "Altijd vragen waar op te slaan"
+  },
+  "pathVisualAlwaysAskAccessible": {
+    "message": "Altijd vragen waar $ROW$ moet worden opgeslagen",
+    "placeholders": {
+      "row": {
+        "content": "$1",
+        "example": "Work"
+      }
+    }
+  },
+  "o_cSaveSourceSidecar": {
+    "message": "Een bronkoppeling naast gedownloade media opslaan"
+  },
+  "o_cSaveSourceSidecarHelp": {
+    "message": "Gebruikt de gekozen snelkoppelingsindeling en de naam van het gedownloade bestand."
+  },
+  "historyCopyPath": {
+    "message": "Opgeslagen pad kopiëren"
+  },
+  "historyCopySource": {
+    "message": "Bron-URL kopiëren"
+  },
+  "historyPathCopied": {
+    "message": "Opgeslagen pad gekopieerd."
+  },
+  "historySourceCopied": {
+    "message": "Bron-URL gekopieerd."
+  },
+  "historyCopyFailed": {
+    "message": "Kopiëren naar het klembord is mislukt."
   }
 }

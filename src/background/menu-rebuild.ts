@@ -7,6 +7,7 @@ import { buildTree } from "../menus/menu-tree.ts";
 import {
   addLastUsed,
   addOptions,
+  addRecentDestinations,
   addRoot,
   addRouteExclusive,
   addSelectionType,
@@ -16,6 +17,7 @@ import {
   makeSeparator,
   renderPathTree,
   type MenuContext,
+  menuState,
 } from "./menu-build.ts";
 import { addTabMenus } from "./menu-tabs.ts";
 
@@ -46,12 +48,16 @@ export const rebuildMenus = async (): Promise<void> => {
   if (options.enableLastLocation) {
     addLastUsed(downloadContexts);
   }
-  if (options.enableLastLocation && hasPathSection) {
+  addRecentDestinations(downloadContexts);
+  const hasQuickLocations =
+    options.enableLastLocation ||
+    (options.recentDestinationCount > 0 && menuState.recentDestinations.length > 0);
+  if (hasQuickLocations && hasPathSection) {
     makeSeparator(downloadContexts, MENU_IDS.SEPARATOR.LAST_USED);
   }
 
   renderPathTree(pathTree, downloadContexts);
-  if (options.enableLastLocation || hasPathSection) {
+  if (hasQuickLocations || hasPathSection) {
     makeSeparator(downloadContexts, MENU_IDS.SEPARATOR.ACTIONS);
   }
 

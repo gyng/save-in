@@ -358,6 +358,26 @@ describe("history filter controls", () => {
     );
   });
 
+  test("copies the saved path and source URL from row actions", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal("navigator", { ...navigator, clipboard: { writeText } });
+    historyRuntime.entries = [
+      {
+        id: "h-copy",
+        status: "complete",
+        finalFullPath: "images/cat.png",
+        url: "https://cdn.test/cat.png",
+      },
+    ];
+    await historyPanel.renderHistory();
+
+    document.querySelector<HTMLButtonElement>('[aria-label="Copy saved path"]')!.click();
+    await vi.waitFor(() => expect(writeText).toHaveBeenCalledWith("images/cat.png"));
+    document.querySelector<HTMLButtonElement>('[aria-label="Copy source URL"]')!.click();
+    await vi.waitFor(() => expect(writeText).toHaveBeenCalledWith("https://cdn.test/cat.png"));
+    expect(document.querySelector("#history-feedback")?.textContent).toContain("Source URL copied");
+  });
+
   test("explains when show-in-folder is unavailable", async () => {
     historyRuntime.entries = [
       { id: "h-complete", status: "complete", downloadId: 42, finalFullPath: "done.png" },

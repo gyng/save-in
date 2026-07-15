@@ -18,7 +18,12 @@ the default download location.
   locations (`.webloc`), Linux desktop shortcuts (`.desktop`), or HTML
   redirects (`.html`).
 - Browse sortable, filterable download history, manage active or completed
-  downloads, and export all stored fields as JSON or formula-safe CSV/TSV.
+  downloads, copy saved paths or source URLs, and export all stored fields as
+  JSON or formula-safe CSV/TSV.
+- Select and batch-save filtered Page Sources, or draft a guarded automatic
+  rule directly from a discovered source.
+- Keep quick access to recent destinations, make individual destinations open
+  Save As, and optionally save a source-link shortcut beside downloaded media.
 - Build paths from dates, page and source parts, `:counter:`, `:uuid:`,
   `:mime:`, `:mimeext:`, and other variables. Open **Reference** in Options for
   the maintained variable and matcher list.
@@ -29,8 +34,9 @@ the default download location.
 
 Page Sources can automatically save newly discovered matching media. Automatic
 saves are off by default and use guarded routing rules with an
-explicit `context: ^auto$`, a page condition, and a source condition. Rules are
-created in **Visual** mode under **Routing rules** and remain subject to
+explicit `context: ^auto$`, a page condition, and a source condition. Rules can
+be created from a Page Sources row or in **Visual** mode under **Routing rules**
+and remain subject to
 private-window and per-page safety limits. See
 [Automatic source saves](docs/AUTOMATIC-SOURCE-SAVES.md).
 

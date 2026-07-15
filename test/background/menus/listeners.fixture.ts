@@ -77,6 +77,7 @@ const seedDeps = () => {
     shortcutPage: false,
     shortcutTab: false,
     shortcutType: "HTML_REDIRECT",
+    saveSourceSidecar: false,
     closeTabOnSave: false,
     tabEnabled: true,
     keyLastUsed: "",

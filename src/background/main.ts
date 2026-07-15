@@ -13,6 +13,7 @@ import { addTabHighlightListener, addTabMenuListener } from "./menu-tabs.ts";
 import {
   LAST_USED_META_STORAGE_KEY,
   LAST_USED_PATH_STORAGE_KEY,
+  RECENT_DESTINATIONS_STORAGE_KEY,
   WELCOME_PENDING_STORAGE_KEY,
   WELCOME_VERSION,
 } from "../shared/storage-keys.ts";
@@ -46,7 +47,11 @@ const reloadConfigurationAndMenus = async (): Promise<void> => {
       await initializeLocalization(loadedOptions.uiLocale);
       return loadedOptions;
     }),
-    webExtensionApi.storage.local.get([LAST_USED_PATH_STORAGE_KEY, LAST_USED_META_STORAGE_KEY]),
+    webExtensionApi.storage.local.get([
+      LAST_USED_PATH_STORAGE_KEY,
+      LAST_USED_META_STORAGE_KEY,
+      RECENT_DESTINATIONS_STORAGE_KEY,
+    ]),
   ]);
 
   backgroundRuntime.debug = loaded.debug;

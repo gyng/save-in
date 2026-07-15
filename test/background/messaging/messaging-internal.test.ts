@@ -293,6 +293,31 @@ describe("onMessage", () => {
     expect(sendResponse).toHaveBeenCalledWith({ type: MESSAGE_TYPES.OK });
   });
 
+  test("CREATE_SOURCE_RULE stores a disabled domain-scoped draft and opens Options", async () => {
+    const sendResponse = vi.fn();
+    expect(
+      onMessage(
+        {
+          type: MESSAGE_TYPES.CREATE_SOURCE_RULE,
+          body: { sourceUrl: "https://cdn.example.net/cat.jpg", sourceKind: "image" },
+        },
+        { tab: { id: 12, url: "https://gallery.example.com/post/1" } },
+        sendResponse,
+      ),
+    ).toBe(true);
+    await waitForCall(sendResponse);
+
+    expect(global.browser.storage.local.set).toHaveBeenCalledWith({
+      sourceRuleDraft: {
+        rule: expect.stringMatching(
+          /context: \^auto\$[\s\S]*pagerootdomain:[\s\S]*sourcerootdomain:[\s\S]*disabled: true/,
+        ),
+      },
+    });
+    expect(global.browser.runtime.openOptionsPage).toHaveBeenCalled();
+    expect(sendResponse).toHaveBeenCalledWith({ type: MESSAGE_TYPES.OK });
+  });
+
   test("OPTIONS_LOADED responds only after the background reset completes", async () => {
     let finishReset!: () => void;
     backgroundRuntime.reset = vi.fn(

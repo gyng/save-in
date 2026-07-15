@@ -2986,5 +2986,47 @@
   },
   "sourcePanelCreateAutomaticRule": {
     "message": "创建自动规则"
+  },
+  "contextMenuRecentLocations": {
+    "message": "最近保存位置"
+  },
+  "o_lRecentLocations": {
+    "message": "最近保存位置"
+  },
+  "o_lRecentLocationsHelp": {
+    "message": "显示 0–5 个最近使用的保存位置。"
+  },
+  "pathVisualAlwaysAsk": {
+    "message": "始终询问保存位置"
+  },
+  "pathVisualAlwaysAskAccessible": {
+    "message": "始终询问 $ROW$ 的保存位置",
+    "placeholders": {
+      "row": {
+        "content": "$1",
+        "example": "Work"
+      }
+    }
+  },
+  "o_cSaveSourceSidecar": {
+    "message": "在下载的媒体旁保存来源链接"
+  },
+  "o_cSaveSourceSidecarHelp": {
+    "message": "使用所选快捷方式格式和下载文件名。"
+  },
+  "historyCopyPath": {
+    "message": "复制保存路径"
+  },
+  "historyCopySource": {
+    "message": "复制来源 URL"
+  },
+  "historyPathCopied": {
+    "message": "已复制保存路径。"
+  },
+  "historySourceCopied": {
+    "message": "已复制来源 URL。"
+  },
+  "historyCopyFailed": {
+    "message": "无法复制到剪贴板。"
   }
 }

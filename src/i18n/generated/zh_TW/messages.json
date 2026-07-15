@@ -3084,5 +3084,47 @@
   },
   "sourcePanelCreateAutomaticRule": {
     "message": "建立自動規則"
+  },
+  "contextMenuRecentLocations": {
+    "message": "最近使用的位置"
+  },
+  "o_lRecentLocations": {
+    "message": "最近使用的位置"
+  },
+  "o_lRecentLocationsHelp": {
+    "message": "顯示 0–5 個最近使用的儲存位置。"
+  },
+  "pathVisualAlwaysAsk": {
+    "message": "一律詢問儲存位置"
+  },
+  "pathVisualAlwaysAskAccessible": {
+    "message": "一律詢問 $ROW$ 的儲存位置",
+    "placeholders": {
+      "row": {
+        "content": "$1",
+        "example": "Work"
+      }
+    }
+  },
+  "o_cSaveSourceSidecar": {
+    "message": "在下載的媒體旁儲存來源連結"
+  },
+  "o_cSaveSourceSidecarHelp": {
+    "message": "使用所選捷徑格式和下載檔名。"
+  },
+  "historyCopyPath": {
+    "message": "複製儲存路徑"
+  },
+  "historyCopySource": {
+    "message": "複製來源 URL"
+  },
+  "historyPathCopied": {
+    "message": "已複製儲存路徑。"
+  },
+  "historySourceCopied": {
+    "message": "已複製來源 URL。"
+  },
+  "historyCopyFailed": {
+    "message": "無法複製到剪貼簿。"
   }
 }

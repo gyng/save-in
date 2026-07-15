@@ -7,6 +7,15 @@ import { setCurrentTab } from "../../src/platform/current-tab.ts";
 const makeShortcutContent = shortcut.makeShortcutContent;
 
 describe("shortcut content creation", () => {
+  test("names a source sidecar after the final routed file", () => {
+    expect(shortcut.sourceSidecarPath("gallery/cat.large.jpg", SHORTCUT_TYPES.WINDOWS, 200)).toBe(
+      "gallery/cat.large.url",
+    );
+    expect(shortcut.sourceSidecarPath("README", SHORTCUT_TYPES.MAC_WEBLOC, 200)).toBe(
+      "README.webloc",
+    );
+  });
+
   test("creates a HTML redirect shortcut", () => {
     const expected = 'window.location.href = "foo"';
     expect(makeShortcutContent(SHORTCUT_TYPES.HTML_REDIRECT, "foo")).toContain(expected);

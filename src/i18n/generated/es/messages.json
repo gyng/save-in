@@ -3020,5 +3020,47 @@
   },
   "sourcePanelCreateAutomaticRule": {
     "message": "Crear regla automática"
+  },
+  "contextMenuRecentLocations": {
+    "message": "Ubicaciones recientes"
+  },
+  "o_lRecentLocations": {
+    "message": "Ubicaciones recientes"
+  },
+  "o_lRecentLocationsHelp": {
+    "message": "Muestra entre 0 y 5 ubicaciones usadas recientemente."
+  },
+  "pathVisualAlwaysAsk": {
+    "message": "Preguntar siempre dónde guardar"
+  },
+  "pathVisualAlwaysAskAccessible": {
+    "message": "Preguntar siempre dónde guardar al usar $ROW$",
+    "placeholders": {
+      "row": {
+        "content": "$1",
+        "example": "Work"
+      }
+    }
+  },
+  "o_cSaveSourceSidecar": {
+    "message": "Guardar un enlace al origen junto al contenido multimedia descargado"
+  },
+  "o_cSaveSourceSidecarHelp": {
+    "message": "Usa el formato de acceso directo seleccionado y el nombre del archivo descargado."
+  },
+  "historyCopyPath": {
+    "message": "Copiar ruta guardada"
+  },
+  "historyCopySource": {
+    "message": "Copiar URL de origen"
+  },
+  "historyPathCopied": {
+    "message": "Ruta guardada copiada."
+  },
+  "historySourceCopied": {
+    "message": "URL de origen copiada."
+  },
+  "historyCopyFailed": {
+    "message": "No se pudo copiar al portapapeles."
   }
 }

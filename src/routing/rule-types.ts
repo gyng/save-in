@@ -19,6 +19,11 @@ export type RoutingDownloadInfo = LazyDownloadMetadata<RoutingContent> & {
   selectionText?: string | undefined;
   selectedUrl?: string | undefined;
   webhookEligible?: boolean | undefined;
+  forcePrompt?: boolean | undefined;
+  suppressPrompt?: boolean | undefined;
+  routingDisabled?: boolean | undefined;
+  sourceSidecar?: boolean | undefined;
+  relatedHistoryId?: string | undefined;
   sourceUrl?: string | undefined;
   url?: string | undefined;
   suggestedFilename?: string | null | undefined;

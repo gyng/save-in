@@ -2913,5 +2913,47 @@
   },
   "sourcePanelCreateAutomaticRule": {
     "message": "Skapa automatisk regel"
+  },
+  "contextMenuRecentLocations": {
+    "message": "Senaste platser"
+  },
+  "o_lRecentLocations": {
+    "message": "Senaste platser"
+  },
+  "o_lRecentLocationsHelp": {
+    "message": "Visa 0–5 nyligen använda mål."
+  },
+  "pathVisualAlwaysAsk": {
+    "message": "Fråga alltid var filen ska sparas"
+  },
+  "pathVisualAlwaysAskAccessible": {
+    "message": "Fråga alltid var $ROW$ ska sparas",
+    "placeholders": {
+      "row": {
+        "content": "$1",
+        "example": "Work"
+      }
+    }
+  },
+  "o_cSaveSourceSidecar": {
+    "message": "Spara en källänk bredvid hämtade medier"
+  },
+  "o_cSaveSourceSidecarHelp": {
+    "message": "Använder det valda genvägsformatet och den hämtade filens namn."
+  },
+  "historyCopyPath": {
+    "message": "Kopiera sparad sökväg"
+  },
+  "historyCopySource": {
+    "message": "Kopiera käll-URL"
+  },
+  "historyPathCopied": {
+    "message": "Sparad sökväg kopierad."
+  },
+  "historySourceCopied": {
+    "message": "Käll-URL kopierad."
+  },
+  "historyCopyFailed": {
+    "message": "Det gick inte att kopiera till urklipp."
   }
 }

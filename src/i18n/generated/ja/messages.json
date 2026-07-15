@@ -3004,5 +3004,47 @@
   },
   "sourcePanelCreateAutomaticRule": {
     "message": "自動ルールを作成"
+  },
+  "contextMenuRecentLocations": {
+    "message": "最近の保存先"
+  },
+  "o_lRecentLocations": {
+    "message": "最近の保存先"
+  },
+  "o_lRecentLocationsHelp": {
+    "message": "最近使用した保存先を0～5件表示します。"
+  },
+  "pathVisualAlwaysAsk": {
+    "message": "保存場所を常に確認"
+  },
+  "pathVisualAlwaysAskAccessible": {
+    "message": "$ROW$ の保存場所を常に確認",
+    "placeholders": {
+      "row": {
+        "content": "$1",
+        "example": "Work"
+      }
+    }
+  },
+  "o_cSaveSourceSidecar": {
+    "message": "ダウンロードしたメディアの横にソースリンクを保存"
+  },
+  "o_cSaveSourceSidecarHelp": {
+    "message": "選択したショートカット形式とダウンロードしたファイル名を使用します。"
+  },
+  "historyCopyPath": {
+    "message": "保存パスをコピー"
+  },
+  "historyCopySource": {
+    "message": "ソース URL をコピー"
+  },
+  "historyPathCopied": {
+    "message": "保存パスをコピーしました。"
+  },
+  "historySourceCopied": {
+    "message": "ソース URL をコピーしました。"
+  },
+  "historyCopyFailed": {
+    "message": "クリップボードにコピーできませんでした。"
   }
 }

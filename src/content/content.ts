@@ -135,21 +135,29 @@ const sendRuntimeDownload = (
   body: ContentDownloadRequest,
   retries = 2,
   lifecycle?: DownloadLifecycle,
-) => {
-  try {
-    chrome.runtime.sendMessage({ type: "DOWNLOAD", body }, () => {
-      if (chrome.runtime.lastError && retries > 0) {
-        const timer = window.setTimeout(() => {
-          lifecycle?.retryTimers.delete(timer);
-          sendRuntimeDownload(body, retries - 1, lifecycle);
-        }, 300);
-        lifecycle?.retryTimers.add(timer);
-      }
-    });
-  } catch {
-    // Extension context invalidated while the page remained alive.
-  }
-};
+): Promise<boolean> =>
+  new Promise((resolve) => {
+    try {
+      chrome.runtime.sendMessage({ type: "DOWNLOAD", body }, (response) => {
+        if (chrome.runtime.lastError) {
+          if (retries > 0 && !lifecycle?.signal.aborted) {
+            const timer = window.setTimeout(() => {
+              lifecycle?.retryTimers.delete(timer);
+              void sendRuntimeDownload(body, retries - 1, lifecycle).then(resolve);
+            }, 300);
+            lifecycle?.retryTimers.add(timer);
+            return;
+          }
+          resolve(false);
+          return;
+        }
+        resolve(response?.type === "DOWNLOAD" && response.body?.status === "OK");
+      });
+    } catch {
+      // Extension context invalidated while the page remained alive.
+      resolve(false);
+    }
+  });
 
 type ResolvedClickToSaveOptions = Pick<
   ResolvedContentOptions,
@@ -237,7 +245,7 @@ const setupClickToSave = (
         if (source) {
           e.preventDefault();
           e.stopImmediatePropagation();
-          sendRuntimeDownload(
+          void sendRuntimeDownload(
             { url: source, info: { pageUrl: `${window.location}`, srcUrl: source } },
             2,
             downloadLifecycle,
@@ -432,12 +440,25 @@ try {
 }
 
 try {
-  const sendDownload = ({ url, kind }: PageSource) => {
+  const sendDownload = ({ url, kind }: PageSource) =>
     sendRuntimeDownload({
       url,
       info: { pageUrl: `${window.location}`, srcUrl: url, sourceKind: kind },
     });
-  };
+  const createAutomaticRule = ({ url, kind }: PageSource): Promise<void> =>
+    new Promise((resolve) => {
+      try {
+        chrome.runtime.sendMessage(
+          { type: "CREATE_SOURCE_RULE", body: { sourceUrl: url, sourceKind: kind } },
+          () => {
+            void chrome.runtime.lastError;
+            resolve();
+          },
+        );
+      } catch {
+        resolve();
+      }
+    });
   const resolvedPanelCopies = new Map<string, SourcePanelCopy>();
   const nativePanelCopy = () =>
     createSourcePanelCopy((key, substitutions) => chrome.i18n.getMessage(key, substitutions));
@@ -483,6 +504,7 @@ try {
       (typeof chrome.i18n.getUILanguage === "function" ? chrome.i18n.getUILanguage() : ""),
     theme: currentOptions.uiTheme,
     onSaveIntent: warmBackground,
+    onCreateRule: createAutomaticRule,
     onOpenChange: (open: boolean) => {
       sourcePanelIsOpen = open;
       if (!open) sourcePanelForcedOpen = false;

@@ -1,4 +1,9 @@
-import { menuState, restoreLastUsed, setLastUsed } from "../../../src/background/menu-build.ts";
+import {
+  menuState,
+  recordRecentDestination,
+  restoreLastUsed,
+  setLastUsed,
+} from "../../../src/background/menu-build.ts";
 import { setupBrowserMocks } from "./listeners.fixture.ts";
 
 describe("Menus last-used state", () => {
@@ -81,5 +86,50 @@ describe("Menus last-used state", () => {
 
     expect(menuState.lastUsedPath).toBeNull();
     expect(global.browser.storage.local.set).not.toHaveBeenCalled();
+  });
+
+  test("restores only valid recent destinations", () => {
+    restoreLastUsed({
+      recentDestinations: [
+        {
+          path: "images",
+          meta: { comment: "photos", menuIndex: "1", title: "Images", prompt: true },
+        },
+        { path: "../escape", meta: { comment: "bad", menuIndex: "2", title: "Bad" } },
+        { path: "docs", meta: { comment: 2, menuIndex: "3", title: "Docs" } },
+      ],
+    });
+
+    expect(menuState.recentDestinations).toEqual([
+      {
+        path: "images",
+        meta: { comment: "photos", menuIndex: "1", title: "Images", prompt: true },
+      },
+    ]);
+  });
+
+  test("records recent destinations newest-first without duplicates", async () => {
+    await recordRecentDestination("images", {
+      comment: "photos",
+      menuIndex: "1",
+      title: "Images",
+      prompt: true,
+    });
+    await recordRecentDestination("documents", {
+      comment: "docs",
+      menuIndex: "2",
+      title: "Documents",
+    });
+    await recordRecentDestination("images", {
+      comment: "photos",
+      menuIndex: "1",
+      title: "Images",
+      prompt: true,
+    });
+
+    expect(menuState.recentDestinations.map(({ path }) => path)).toEqual(["images", "documents"]);
+    expect(global.browser.storage.local.set).toHaveBeenLastCalledWith({
+      recentDestinations: menuState.recentDestinations,
+    });
   });
 });

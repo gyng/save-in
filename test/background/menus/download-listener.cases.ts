@@ -87,6 +87,45 @@ describe("addDownloadListener", () => {
     expect(Download.renameAndDownload).not.toHaveBeenCalled();
   });
 
+  test("carries a destination Save As preference into the download plan", async () => {
+    Menus.addPaths(["images // (dialog: true)"], ["image"]);
+
+    await listener({
+      menuItemId: "save-in-0",
+      mediaType: "image",
+      srcUrl: "https://example.com/cat.png",
+      pageUrl: "https://example.com/",
+    });
+
+    expect(Download.renameAndDownload).toHaveBeenCalledWith(
+      expect.objectContaining({ info: expect.objectContaining({ forcePrompt: true }) }),
+    );
+  });
+
+  test("starts a source-link sidecar after a media download", async () => {
+    options.saveSourceSidecar = true;
+    Menus.addPaths(["images"], ["image"]);
+
+    await listener({
+      menuItemId: "save-in-0",
+      mediaType: "image",
+      srcUrl: "https://example.com/cat.png",
+      pageUrl: "https://example.com/",
+    });
+
+    expect(Download.renameAndDownload).toHaveBeenCalledTimes(2);
+    expect(Download.renameAndDownload).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        info: expect.objectContaining({
+          context: DOWNLOAD_TYPES.SIDECAR,
+          sourceUrl: "https://example.com/cat.png",
+          routingDisabled: true,
+          suppressPrompt: true,
+        }),
+      }),
+    );
+  });
+
   test("waits for init (Runtime.ready) before handling a download click", async () => {
     let resolveReady!: (value?: unknown) => void;
     Runtime.ready = new Promise((res) => {

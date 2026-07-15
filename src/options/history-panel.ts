@@ -103,6 +103,7 @@ const historyTypeLabel = (type: string): string => {
     selection: ["html_selection", "Selection"],
     click: ["html_click", "Click"],
     tab: ["html_tab", "Tab"],
+    sidecar: ["html_link", "Link"],
   };
   const label = labels[type];
   return label ? historyMessage(label[0], label[1]) : type;
@@ -193,6 +194,25 @@ const folderIcon = () => {
   return svg;
 };
 
+const historyActionIcon = (kind: "copy" | "link") => {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", "0 0 24 24");
+  svg.setAttribute("aria-hidden", "true");
+  const paths =
+    kind === "copy"
+      ? ["M8 8h11v11H8z", "M5 16H3V3h13v2"]
+      : [
+          "M10 13a5 5 0 0 0 7 0l2-2a5 5 0 0 0-7-7l-1 1",
+          "M14 11a5 5 0 0 0-7 0l-2 2a5 5 0 0 0 7 7l1-1",
+        ];
+  paths.forEach((data) => {
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", data);
+    svg.append(path);
+  });
+  return svg;
+};
+
 // Opens the containing folder for a completed download (best-effort; the
 // browser may have forgotten the download)
 const historyFeedback = () => document.querySelector<HTMLElement>("#history-feedback");
@@ -217,6 +237,18 @@ const showInFolder = async (downloadId: number | null) => {
         "historyShowFolderFailed",
         "Could not open the folder. The file may have moved or been removed.",
       ),
+      error: true,
+    });
+  }
+};
+
+const copyHistoryValue = async (value: string, successMessage: string): Promise<void> => {
+  try {
+    await navigator.clipboard.writeText(value);
+    renderHistoryFeedback(historyFeedback(), { message: successMessage });
+  } catch {
+    renderHistoryFeedback(historyFeedback(), {
+      message: historyMessage("historyCopyFailed", "Could not copy to the clipboard."),
       error: true,
     });
   }
@@ -478,6 +510,39 @@ const renderHistoryTable = () => {
       open.appendChild(folderIcon());
       open.addEventListener("click", () => void showInFolder(r.downloadId));
       status.appendChild(open);
+    }
+    if (r.fullPath) {
+      const copyPath = document.createElement("button");
+      copyPath.type = "button";
+      copyPath.className = "history-open history-copy-path";
+      const copyPathLabel = historyMessage("historyCopyPath", "Copy saved path");
+      copyPath.title = copyPathLabel;
+      copyPath.setAttribute("aria-label", copyPathLabel);
+      copyPath.append(historyActionIcon("copy"));
+      copyPath.addEventListener(
+        "click",
+        () =>
+          void copyHistoryValue(
+            r.fullPath,
+            historyMessage("historyPathCopied", "Saved path copied."),
+          ),
+      );
+      status.append(copyPath);
+    }
+    if (r.url) {
+      const copySource = document.createElement("button");
+      copySource.type = "button";
+      copySource.className = "history-open history-copy-source";
+      const copySourceLabel = historyMessage("historyCopySource", "Copy source URL");
+      copySource.title = copySourceLabel;
+      copySource.setAttribute("aria-label", copySourceLabel);
+      copySource.append(historyActionIcon("link"));
+      copySource.addEventListener(
+        "click",
+        () =>
+          void copyHistoryValue(r.url, historyMessage("historySourceCopied", "Source URL copied.")),
+      );
+      status.append(copySource);
     }
     const historyId = r.historyId;
     if (r.status === "pending" && historyId) {
