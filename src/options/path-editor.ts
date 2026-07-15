@@ -550,12 +550,14 @@ const PathEditorHelpers = {
           alias.addEventListener("input", () => {
             const current = nodes[index];
             if (!current) return;
+            aliasToggle.classList.toggle("has-value", Boolean(alias.value));
             nodes[index] = PathEditorHelpers.setAlias(current, alias.value);
             commit();
           });
           const aliasToggle = document.createElement("button");
           aliasToggle.type = "button";
           aliasToggle.className = "path-editor-alias-toggle";
+          aliasToggle.classList.toggle("has-value", Boolean(alias.value));
           aliasToggle.textContent = localize("pathVisualAlias", "Alias");
           aliasToggle.setAttribute("aria-expanded", String(aliasOpen));
           aliasToggle.addEventListener("click", () => {

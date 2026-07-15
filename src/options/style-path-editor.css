@@ -33,10 +33,37 @@
 }
 
 .path-editor-alias-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   flex: none;
+  min-height: var(--compact-control-size);
+  height: var(--compact-control-size);
   padding: 3px 6px;
   font-size: var(--text-base);
   line-height: 1.2;
+}
+
+.path-editor-alias-toggle.has-value[aria-expanded="false"] {
+  color: var(--link-color);
+  border-color: color-mix(in srgb, var(--color-selection) 72%, var(--panel-border));
+  background-color: color-mix(in srgb, var(--color-selection) 11%, transparent);
+  font-weight: 500;
+}
+
+.path-editor-alias-toggle.has-value[aria-expanded="false"]:hover {
+  background-color: color-mix(in srgb, var(--color-selection) 17%, transparent);
+}
+
+.visual-editor-row-actions.path-editor-actions {
+  align-items: center;
+}
+
+.path-editor-handle,
+.path-editor-alias-toggle,
+.path-editor-access-key,
+.path-editor-more {
+  align-self: center;
 }
 
 .path-editor-access-key {
@@ -47,7 +74,10 @@
   color: var(--color-text-muted);
   font-size: var(--text-sm);
   line-height: 1;
+  min-height: var(--compact-control-size);
+  margin-block: 0;
   margin-inline-start: 2px;
+  padding-block: 0;
 }
 
 .path-editor-access-key-label {
@@ -65,7 +95,7 @@
   line-height: 1.2;
   text-align: center;
   text-transform: none;
-  vertical-align: baseline;
+  vertical-align: middle;
 }
 
 .path-editor-help {
@@ -181,6 +211,7 @@
   display: inline-grid;
   place-items: center;
   width: var(--compact-control-size);
+  min-height: var(--compact-control-size);
   height: var(--compact-control-size);
   padding: 0;
   border: 1px solid transparent;

@@ -170,6 +170,7 @@
 .visual-editor-handle {
   flex: none;
   width: var(--compact-control-size);
+  min-height: var(--compact-control-size);
   height: var(--compact-control-size);
   padding: 0;
   color: var(--color-text-muted);
