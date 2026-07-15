@@ -1,6 +1,7 @@
 // @ts-check
 
 const net = require("net");
+const crypto = require("node:crypto");
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
@@ -12,6 +13,7 @@ const FIREFOX_E2E_PORT_COUNT = 200;
 const FIREFOX_BIDI_PORT_START = 9080;
 const FIREFOX_BIDI_PORT_COUNT = 200;
 const PORT_LOCK_ROOT = path.join(os.tmpdir(), "save-in-e2e-ports");
+const PORT_LOCK_ORPHANED_AFTER_MS = 60_000;
 
 /** @param {string} lock */
 const readPortOwner = (lock) => {
@@ -37,7 +39,10 @@ const readPortOwner = (lock) => {
  * @param {string} lock
  * @param {{orphanedAfterMs?: number, portIsBindable?: boolean}} [options]
  */
-const tryReclaimPortLock = (lock, { orphanedAfterMs = 2_000, portIsBindable = false } = {}) => {
+const tryReclaimPortLock = (
+  lock,
+  { orphanedAfterMs = PORT_LOCK_ORPHANED_AFTER_MS, portIsBindable = false } = {},
+) => {
   let observedMtime;
   try {
     observedMtime = fs.statSync(lock).mtimeMs;
@@ -165,7 +170,7 @@ const reserveAvailablePort = async (
   for (let index = 0; index < count; index += 1) {
     const port = start + ((normalizedOffset + index) % count);
     const lock = path.join(PORT_LOCK_ROOT, String(port));
-    const token = `${process.pid}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    const token = crypto.randomBytes(16).toString("hex");
     let created = false;
     try {
       fs.mkdirSync(lock);
@@ -203,6 +208,7 @@ module.exports = {
   CHROME_E2E_PORT_START,
   FIREFOX_E2E_PORT_COUNT,
   FIREFOX_E2E_PORT_START,
+  PORT_LOCK_ORPHANED_AFTER_MS,
   FIREFOX_BIDI_PORT_COUNT,
   FIREFOX_BIDI_PORT_START,
   findAvailablePort,

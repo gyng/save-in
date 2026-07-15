@@ -1,7 +1,11 @@
 // @ts-check
 
+const crypto = require("node:crypto");
 const fs = require("fs");
 const path = require("path");
+
+const DIRECTORY_LOCK_ORPHANED_AFTER_MS = 30 * 60_000;
+const ABANDONED_RUN_AFTER_MS = 24 * 60 * 60_000;
 
 /** @param {number} ms */
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -23,7 +27,7 @@ const errorCode = (error) =>
  */
 const tryReclaimDirectoryLock = (
   lockDir,
-  { orphanedAfterMs = 30 * 60_000, pid = process.pid } = {},
+  { orphanedAfterMs = DIRECTORY_LOCK_ORPHANED_AFTER_MS, pid = process.pid } = {},
 ) => {
   let observedMtime;
   try {
@@ -32,19 +36,10 @@ const tryReclaimDirectoryLock = (
     if (errorCode(error) === "ENOENT") return true;
     throw error;
   }
-  try {
-    const owner = JSON.parse(fs.readFileSync(path.join(lockDir, "owner.json"), "utf8"));
-    if (owner && typeof owner === "object" && Number.isInteger(owner.pid)) {
-      // A valid foreign owner may be invisible in this PID namespace. Never
-      // reclaim it automatically; the acquisition timeout reports the lock.
-      return false;
-    }
-  } catch {
-    // An incomplete owner record is reclaimable only after the age bound.
-  }
-  // Check age before creating the claim marker; creating and removing a child
-  // updates the lock directory mtime and would otherwise keep a stale lock
-  // looking fresh forever.
+  // PID liveness is not comparable across sandbox namespaces. Treat the lock
+  // as a bounded lease instead: even a valid owner becomes reclaimable only
+  // after a duration far beyond a normal build. Check age before creating the
+  // claim marker because child churn updates the directory mtime.
   if (Date.now() - observedMtime <= orphanedAfterMs) return false;
 
   const claim = path.join(lockDir, ".reclaim.json");
@@ -66,8 +61,6 @@ const tryReclaimDirectoryLock = (
 
   let removed = false;
   try {
-    // PID liveness is not comparable across sandbox PID namespaces. Reclaim
-    // only locks far older than any expected staging operation.
     fs.rmSync(lockDir, { recursive: true, force: true });
     removed = true;
     return true;
@@ -84,7 +77,7 @@ const acquireDirectoryLock = (
   lockDir,
   { timeoutMs = 120_000, pollMs = 100, pid = process.pid } = {},
 ) => {
-  const token = `${pid}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  const token = crypto.randomBytes(16).toString("hex");
   const deadline = Date.now() + timeoutMs;
   for (;;) {
     let created = false;
@@ -102,6 +95,77 @@ const acquireDirectoryLock = (
       sleepSync(pollMs);
     }
   }
+};
+
+/**
+ * Removes resources whose active marker has exceeded the maximum supported
+ * run duration. Fresh markers remain authoritative across PID namespaces.
+ *
+ * @param {{artifacts: string, runRoot: string, chromeRoot: string, firefoxRoot: string, orphanedAfterMs?: number, now?: number, attempts?: number, delayMs?: number}} options
+ */
+const cleanupAbandonedRuns = async ({
+  artifacts,
+  runRoot,
+  chromeRoot,
+  firefoxRoot,
+  orphanedAfterMs = ABANDONED_RUN_AFTER_MS,
+  now = Date.now(),
+  attempts = 2,
+  delayMs = 100,
+}) => {
+  /** @type {string[]} */
+  const abandonedRunIds = [];
+  for (const entry of fs.existsSync(artifacts)
+    ? fs.readdirSync(artifacts, { withFileTypes: true })
+    : []) {
+    if (!entry.isDirectory() || !entry.name.startsWith("run-")) continue;
+    const runId = entry.name.slice("run-".length);
+    if (!runId || !/^[a-z0-9_-]+$/i.test(runId)) continue;
+    const marker = path.join(artifacts, entry.name, ".active");
+    let markerAge;
+    let markerOwner;
+    try {
+      markerAge = now - fs.statSync(marker).mtimeMs;
+      markerOwner = fs.readFileSync(marker, "utf8").trim();
+    } catch (error) {
+      if (errorCode(error) === "ENOENT") continue;
+      throw error;
+    }
+    const ownsRun =
+      markerOwner === runId || (/^\d+$/.test(markerOwner) && runId.startsWith(`${markerOwner}-`));
+    if (ownsRun && markerAge > orphanedAfterMs) abandonedRunIds.push(runId);
+  }
+
+  /** @type {unknown[]} */
+  const failures = [];
+  /** @type {string[]} */
+  const cleanedRunIds = [];
+  for (const runId of abandonedRunIds) {
+    /** @type {unknown[]} */
+    const runFailures = [];
+    try {
+      await removeOwnedProfiles([runId], {
+        chromeRoot,
+        firefoxRoot,
+        attempts,
+        delayMs,
+      });
+    } catch (error) {
+      runFailures.push(error);
+    }
+    try {
+      fs.rmSync(path.join(runRoot, runId), { recursive: true, force: true });
+    } catch (error) {
+      runFailures.push(error);
+    }
+    if (runFailures.length === 0) {
+      fs.rmSync(path.join(artifacts, `run-${runId}`, ".active"), { force: true });
+      cleanedRunIds.push(runId);
+    } else {
+      failures.push(...runFailures);
+    }
+  }
+  return { cleanedRunIds, failures };
 };
 
 /** @param {{lockDir: string, token: string}} lock */
@@ -184,7 +248,10 @@ const pruneArtifactRuns = (artifacts, keep = 3) => {
 };
 
 module.exports = {
+  ABANDONED_RUN_AFTER_MS,
+  DIRECTORY_LOCK_ORPHANED_AFTER_MS,
   acquireDirectoryLock,
+  cleanupAbandonedRuns,
   pruneArtifactRuns,
   releaseDirectoryLock,
   removeOwnedProfiles,

@@ -9,6 +9,7 @@ const {
   CHROME_E2E_PORT_START,
   FIREFOX_E2E_PORT_COUNT,
   FIREFOX_E2E_PORT_START,
+  PORT_LOCK_ORPHANED_AFTER_MS,
   releasePortLock,
   tryReclaimPortLock,
 } = require("../../scripts/lib/debug-port.js") as {
@@ -16,6 +17,7 @@ const {
   CHROME_E2E_PORT_START: number;
   FIREFOX_E2E_PORT_COUNT: number;
   FIREFOX_E2E_PORT_START: number;
+  PORT_LOCK_ORPHANED_AFTER_MS: number;
   releasePortLock: (lock: string, token: string, port: number) => void;
   tryReclaimPortLock: (
     lock: string,
@@ -59,7 +61,10 @@ test("allows only the reclaim-marker owner to remove a stale port lease", () => 
   try {
     expect(tryReclaimPortLock(lock, { portIsBindable: true })).toBe(false);
     rmSync(join(lock, ".reclaim"), { recursive: true });
-    const stale = new Date(Date.now() - 3_000);
+    const fresh = new Date(Date.now() - 3_000);
+    utimesSync(lock, fresh, fresh);
+    expect(tryReclaimPortLock(lock, { portIsBindable: true })).toBe(false);
+    const stale = new Date(Date.now() - PORT_LOCK_ORPHANED_AFTER_MS - 1_000);
     utimesSync(lock, stale, stale);
     expect(tryReclaimPortLock(lock)).toBe(false);
     expect(tryReclaimPortLock(lock, { portIsBindable: true })).toBe(true);

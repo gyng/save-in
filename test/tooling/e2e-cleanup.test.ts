@@ -14,16 +14,31 @@ import { afterEach, describe, expect, test } from "vitest";
 
 const require = createRequire(import.meta.url);
 const {
+  ABANDONED_RUN_AFTER_MS,
+  DIRECTORY_LOCK_ORPHANED_AFTER_MS,
   acquireDirectoryLock,
+  cleanupAbandonedRuns,
   pruneArtifactRuns,
   releaseDirectoryLock,
   removeOwnedProfiles,
   tryReclaimDirectoryLock,
 } = require("../../scripts/lib/e2e-cleanup.js") as {
+  ABANDONED_RUN_AFTER_MS: number;
+  DIRECTORY_LOCK_ORPHANED_AFTER_MS: number;
   acquireDirectoryLock: (
     directory: string,
     options?: { timeoutMs?: number; pollMs?: number; pid?: number },
   ) => { lockDir: string; token: string };
+  cleanupAbandonedRuns: (options: {
+    artifacts: string;
+    runRoot: string;
+    chromeRoot: string;
+    firefoxRoot: string;
+    orphanedAfterMs?: number;
+    now?: number;
+    attempts?: number;
+    delayMs?: number;
+  }) => Promise<{ cleanedRunIds: string[]; failures: unknown[] }>;
   pruneArtifactRuns: (directory: string, keep?: number) => void;
   releaseDirectoryLock: (lock: { lockDir: string; token: string }) => void;
   removeOwnedProfiles: (
@@ -73,7 +88,7 @@ describe("E2E lifecycle cleanup", () => {
     }
   });
 
-  test("preserves foreign owners and exclusively reclaims an old incomplete staging lock", () => {
+  test("preserves fresh foreign owners and exclusively reclaims expired staging leases", () => {
     const parent = tempRoot("save-in-stale-lock-");
     const lockDir = join(parent, "staging.lock");
     mkdirSync(lockDir);
@@ -81,13 +96,14 @@ describe("E2E lifecycle cleanup", () => {
       join(lockDir, "owner.json"),
       JSON.stringify({ pid: 999_999_999, token: "foreign" }),
     );
-    const stale = new Date(Date.now() - 31 * 60_000);
-    utimesSync(lockDir, stale, stale);
-
     expect(tryReclaimDirectoryLock(lockDir)).toBe(false);
     expect(readdirSync(lockDir)).toContain("owner.json");
 
-    rmSync(join(lockDir, "owner.json"));
+    const stale = new Date(Date.now() - DIRECTORY_LOCK_ORPHANED_AFTER_MS - 1_000);
+    utimesSync(lockDir, stale, stale);
+    expect(tryReclaimDirectoryLock(lockDir)).toBe(true);
+
+    mkdirSync(lockDir);
     writeFileSync(join(lockDir, ".reclaim.json"), JSON.stringify({ pid: process.pid }));
     utimesSync(lockDir, stale, stale);
     expect(tryReclaimDirectoryLock(lockDir)).toBe(false);
@@ -95,6 +111,80 @@ describe("E2E lifecycle cleanup", () => {
     utimesSync(lockDir, stale, stale);
     expect(tryReclaimDirectoryLock(lockDir)).toBe(true);
     expect(readdirSync(parent)).toEqual([]);
+  });
+
+  test("cleans only runs whose active ownership lease has expired", async () => {
+    const artifacts = tempRoot("save-in-abandoned-artifacts-");
+    const runRoot = tempRoot("save-in-abandoned-runs-");
+    const chromeRoot = tempRoot("save-in-abandoned-chrome-");
+    const firefoxRoot = tempRoot("save-in-abandoned-firefox-");
+    const now = Date.now();
+    const abandonedId = "7-1700000000000-aaaaaaaaaaaaaaaa";
+    const activeId = "7-1700000000001-bbbbbbbbbbbbbbbb";
+    const mismatchedId = "7-1700000000002-cccccccccccccccc";
+
+    for (const runId of [abandonedId, activeId, mismatchedId]) {
+      const artifact = join(artifacts, `run-${runId}`);
+      mkdirSync(artifact);
+      writeFileSync(join(artifact, ".active"), runId);
+      mkdirSync(join(runRoot, runId));
+      mkdirSync(join(chromeRoot, `e2e-profile-${runId}-1-a`));
+      mkdirSync(join(firefoxRoot, `save-in-ff-e2e-${runId}-1-a`));
+    }
+    // Older harnesses wrote only the PID into the marker.
+    writeFileSync(join(artifacts, `run-${abandonedId}`, ".active"), "7");
+    writeFileSync(join(artifacts, `run-${mismatchedId}`, ".active"), "another-owner");
+    const stale = new Date(now - ABANDONED_RUN_AFTER_MS - 1_000);
+    utimesSync(join(artifacts, `run-${abandonedId}`, ".active"), stale, stale);
+    utimesSync(join(artifacts, `run-${mismatchedId}`, ".active"), stale, stale);
+
+    const result = await cleanupAbandonedRuns({
+      artifacts,
+      runRoot,
+      chromeRoot,
+      firefoxRoot,
+      now,
+      delayMs: 0,
+    });
+
+    expect(result).toEqual({ cleanedRunIds: [abandonedId], failures: [] });
+    expect(existsSync(join(artifacts, `run-${abandonedId}`, ".active"))).toBe(false);
+    expect(existsSync(join(runRoot, abandonedId))).toBe(false);
+    expect(existsSync(join(chromeRoot, `e2e-profile-${abandonedId}-1-a`))).toBe(false);
+    expect(existsSync(join(firefoxRoot, `save-in-ff-e2e-${abandonedId}-1-a`))).toBe(false);
+    expect(existsSync(join(artifacts, `run-${activeId}`, ".active"))).toBe(true);
+    expect(existsSync(join(runRoot, activeId))).toBe(true);
+    expect(existsSync(join(artifacts, `run-${mismatchedId}`, ".active"))).toBe(true);
+    expect(existsSync(join(runRoot, mismatchedId))).toBe(true);
+  });
+
+  test("keeps abandoned ownership markers when resource cleanup needs a retry", async () => {
+    const artifacts = tempRoot("save-in-retry-artifacts-");
+    const runRoot = tempRoot("save-in-retry-runs-");
+    const chromeRoot = tempRoot("save-in-retry-chrome-");
+    const firefoxRoot = tempRoot("save-in-retry-firefox-");
+    const runId = "8-1700000000000-dddddddddddddddd";
+    const artifact = join(artifacts, `run-${runId}`);
+    mkdirSync(artifact);
+    writeFileSync(join(artifact, ".active"), runId);
+    mkdirSync(join(chromeRoot, `e2e-profile-${runId}-locked`));
+    const now = Date.now();
+    const stale = new Date(now - ABANDONED_RUN_AFTER_MS - 1_000);
+    utimesSync(join(artifact, ".active"), stale, stale);
+
+    const result = await cleanupAbandonedRuns({
+      artifacts,
+      runRoot,
+      chromeRoot,
+      firefoxRoot,
+      now,
+      attempts: 0,
+      delayMs: 0,
+    });
+
+    expect(result.cleanedRunIds).toEqual([]);
+    expect(result.failures).toHaveLength(1);
+    expect(existsSync(join(artifact, ".active"))).toBe(true);
   });
 
   test("removes only profiles owned by the outer E2E run", async () => {

@@ -148,6 +148,11 @@ concurrent browser that is still using its profile. Run IDs include a random
 nonce in addition to the PID and start time, and the same ID owns the staged
 extension, browser profiles, artifact directory, and active marker. This keeps
 concurrent runs isolated even when separate PID namespaces expose the same PID.
+Shared build locks are bounded 30-minute leases, debug-port reservations use a
+60-second pre-bind grace period, and active run ownership expires after 24
+hours. A later run can therefore recover resources left by a hard-killed run
+without using namespace-local PID liveness or touching an ordinary concurrent
+run.
 
 ## Failed browser runs
 

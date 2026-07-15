@@ -7,6 +7,7 @@ const crypto = require("node:crypto");
 const { execFileSync, spawn } = require("node:child_process");
 const {
   acquireDirectoryLock,
+  cleanupAbandonedRuns,
   pruneArtifactRuns,
   releaseDirectoryLock,
   removeOwnedProfiles,
@@ -200,6 +201,20 @@ const main = async () => {
   writeRunMetadata();
 
   try {
+    const abandonedCleanup = await cleanupAbandonedRuns({
+      artifacts,
+      runRoot,
+      chromeRoot: path.join(root, "dist"),
+      firefoxRoot: os.tmpdir(),
+    });
+    if (abandonedCleanup.cleanedRunIds.length) {
+      runMetadata.recoveredRunIds = abandonedCleanup.cleanedRunIds;
+    }
+    if (abandonedCleanup.failures.length) {
+      runMetadata.recoveryWarnings = abandonedCleanup.failures.map(errorText);
+      for (const error of abandonedCleanup.failures) console.error(error);
+    }
+    writeRunMetadata();
     pruneArtifactRuns(artifacts);
     const stagingLock = acquireDirectoryLock(stagingLockDir);
     try {
