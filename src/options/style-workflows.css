@@ -128,9 +128,23 @@
 .agent-prompt-guide pre {
   max-width: 100%;
   margin: var(--space-1) 0;
+  padding: var(--space-2);
   overflow-x: auto;
   overscroll-behavior-inline: contain;
+  border-radius: var(--radius-sm);
+  background: var(--panel-bg);
+  line-height: var(--leading-code);
   white-space: pre;
+}
+
+.inline-guide .click-to-copy {
+  transition:
+    color var(--motion-duration-fast) ease,
+    background-color var(--motion-duration-fast) ease;
+}
+
+.inline-guide .click-to-copy.copied {
+  background: color-mix(in srgb, var(--color-success) 8%, var(--panel-bg));
 }
 
 .agent-prompt-guide pre {

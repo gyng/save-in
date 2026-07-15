@@ -190,8 +190,19 @@ body:not(#settings-page) {
   position: relative;
 }
 
+@keyframes saved-time-confirmation {
+  from,
+  25% {
+    color: var(--success-fg);
+  }
+
+  to {
+    color: inherit;
+  }
+}
+
 #lastSavedAt.saved-confirmed {
-  color: var(--success-fg);
+  animation: saved-time-confirmation var(--motion-duration-highlight) ease-out;
 }
 
 .app-icon {
