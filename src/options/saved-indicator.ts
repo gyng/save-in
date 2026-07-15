@@ -13,8 +13,22 @@ export const assertSettingsUndoSafe = (hasFieldDrafts: boolean, hasManualDrafts:
   }
 };
 
-const displayName = (name: string): string =>
-  name.replace(/([a-z0-9])([A-Z])/g, "$1 $2").replace(/^./, (character) => character.toUpperCase());
+const displayName = (name: string): string => {
+  const field = document.getElementById(name);
+  const label =
+    field instanceof HTMLInputElement ||
+    field instanceof HTMLSelectElement ||
+    field instanceof HTMLTextAreaElement
+      ? field.labels?.item(0)
+      : null;
+  const localized = label?.querySelector<HTMLElement>(".opt-title")?.textContent?.trim();
+  return (
+    localized ||
+    name
+      .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+      .replace(/^./, (character) => character.toUpperCase())
+  );
+};
 
 const displayValue = (value: unknown): string => {
   if (value === true) return getMessage("webhookStateOn") || "On";

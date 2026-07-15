@@ -400,7 +400,7 @@ const updateErrors = () => {
 
       // Routing result
       if (lastDlMatch) {
-        lastDlMatch.innerHTML = "no matches";
+        lastDlMatch.textContent = getMessage("o_lRoutingNoMatches") || "No matches";
       }
       if (lastDlMatch && body.routeInfo.path) {
         lastDlMatch.textContent = body.routeInfo.path;

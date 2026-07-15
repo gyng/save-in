@@ -16,10 +16,12 @@ test("updates the top status with the save time", () => {
 test("shows the saved delta and offers undo", async () => {
   const undo = vi.fn();
   document.body.innerHTML = `
+    <label for="notifyOnSuccess"><span class="opt-title">Erfolgreiche Downloads</span></label>
+    <input id="notifyOnSuccess">
     <div class="save-status"><span>Updated</span><span id="lastSavedAt">never</span></div>`;
   markSavedNow([{ name: "notifyOnSuccess", before: true, after: false }], undo);
   expect(document.querySelector(".saved-change-popover")?.textContent).toContain(
-    "Notify On SuccessOn → Off",
+    "Erfolgreiche DownloadsOn → Off",
   );
   expect(document.querySelector(".saved-change-popover button")).toBeNull();
   document.querySelector<HTMLButtonElement>(".saved-change-undo")!.click();
