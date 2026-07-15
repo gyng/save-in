@@ -355,4 +355,8 @@ export type SaveInOptions = {
   [Definition in (typeof OPTION_KEYS)[number] as Definition["name"]]: LoadedOptionValue<Definition>;
 };
 
+export type StoredSaveInOptions = {
+  [Definition in (typeof OPTION_KEYS)[number] as Definition["name"]]: StoredOptionValue<Definition>;
+};
+
 export type SaveInOptionName = keyof SaveInOptions;

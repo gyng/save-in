@@ -3,7 +3,7 @@ import http from "node:http";
 
 import { expect } from "vitest";
 
-import { closeLocal, listenLocal, requireValue } from "./helpers.mjs";
+import { closeLocal, decodeRecord, evaluateJson, listenLocal, requireValue } from "./helpers.mjs";
 
 /** @typedef {import("./control-protocol.mjs").DownloadSummary} DownloadSummary */
 
@@ -12,8 +12,8 @@ const PDF_TEMPLATE_DESTINATION = "into: documents/:filename:";
 
 /**
  * @param {{
- *   evaluate: (expression: string) => Promise<any>,
- *   evaluateOptions: (expression: string) => Promise<any>,
+ *   evaluate: (expression: string) => Promise<unknown>,
+ *   evaluateOptions: (expression: string) => Promise<unknown>,
  *   waitForDownloads: (filename: string) => Promise<DownloadSummary[]>,
  *   filename: string,
  *   content: string,
@@ -26,10 +26,10 @@ export const runTemplateLibraryScenario = async ({
   filename,
   content,
 }) => {
-  const previous = JSON.parse(
-    await evaluate(
-      `Promise.resolve(api.getOption("filenamePatterns")).then((value) => JSON.stringify(value))`,
-    ),
+  const previous = await evaluateJson(
+    evaluate,
+    `browser.storage.local.get("filenamePatterns").then((value) => JSON.stringify(value))`,
+    decodeRecord,
   );
 
   try {
@@ -156,6 +156,9 @@ export const runTemplateLibraryScenario = async ({
       await closeLocal(server);
     }
   } finally {
-    await evaluate(`api.setOptions({ filenamePatterns: ${JSON.stringify(previous)} })`);
+    await evaluate(`Promise.all([
+      browser.storage.local.set(${JSON.stringify(previous)}),
+      ${Object.hasOwn(previous, "filenamePatterns") ? "Promise.resolve()" : 'browser.storage.local.remove("filenamePatterns")'},
+    ]).then(() => api.reset())`);
   }
 };

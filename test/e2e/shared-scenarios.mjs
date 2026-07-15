@@ -8,7 +8,22 @@ import {
   CONTENT_DISPOSITION_CASES,
   startContentDispositionServer,
 } from "./content-disposition-cases.mjs";
-import { closeLocal, listenLocal, requireValue, waitForApiEntriesExpression } from "./helpers.mjs";
+import {
+  arrayOf,
+  closeLocal,
+  decodeBoolean,
+  decodeNumber,
+  decodeRecord,
+  decodeString,
+  decodeUnknown,
+  evaluateJson,
+  listenLocal,
+  objectOf,
+  optional,
+  requireValue,
+  waitForApiEntriesExpression,
+} from "./helpers.mjs";
+import { decodeHistoryEntries, decodeLogEntries } from "./control-codecs.mjs";
 
 /** @typedef {import("./control-protocol.mjs").DownloadSummary} DownloadSummary */
 /** @typedef {import("./control-protocol.mjs").HistoryEntry} HistoryEntry */
@@ -16,7 +31,7 @@ import { closeLocal, listenLocal, requireValue, waitForApiEntriesExpression } fr
 
 /**
  * @param {{
- *   evaluate: (expression: string) => Promise<any>,
+ *   evaluate: (expression: string) => Promise<unknown>,
  *   downloadUsingBrowserFilename: (url: string) => Promise<string>,
  *   waitForDownloadUrl: (url: string) => Promise<string>,
  * }} adapters
@@ -52,7 +67,7 @@ export const runContentDispositionScenario = async ({
  * verifies that private activity never reaches extension persistence.
  *
  * @param {{
- *   evaluate: (expression: string) => Promise<any>,
+ *   evaluate: (expression: string) => Promise<unknown>,
  *   waitForDownloads: (filename: string) => Promise<DownloadSummary[]>,
  *   filename: string,
  * }} adapters
@@ -64,12 +79,14 @@ export const runPrivateContextScenario = async ({ evaluate, waitForDownloads, fi
   });
   const port = await listenLocal(server);
   const privateUrl = `http://127.0.0.1:${port}/${filename}.txt`;
-  const snapshot = JSON.parse(
-    await evaluate(`Promise.all([
+  const snapshot = await evaluateJson(
+    evaluate,
+    `Promise.all([
       browser.storage.local.get(["paths", "save-in-history", "save-in-last-used-path", "save-in-last-used-meta"]),
       browser.storage.session.get(null),
       api.logs(),
-    ]).then(([local, session, log]) => JSON.stringify({ local, session, log }))`),
+    ]).then(([local, session, log]) => JSON.stringify({ local, session, log }))`,
+    objectOf({ local: decodeRecord, session: decodeRecord, log: arrayOf(decodeRecord) }),
   );
 
   try {
@@ -96,12 +113,14 @@ export const runPrivateContextScenario = async ({ evaluate, waitForDownloads, fi
     expect(completed.state).toBe("complete");
     expect(fs.readFileSync(completed.filename, "utf8")).toBe("private context content");
 
-    const after = JSON.parse(
-      await evaluate(`Promise.all([
+    const after = await evaluateJson(
+      evaluate,
+      `Promise.all([
         browser.storage.local.get(["save-in-history", "save-in-last-used-path", "save-in-last-used-meta"]),
         browser.storage.session.get(null),
         api.logs(),
-      ]).then(([local, session, log]) => JSON.stringify({ local, session, log }))`),
+      ]).then(([local, session, log]) => JSON.stringify({ local, session, log }))`,
+      objectOf({ local: decodeRecord, session: decodeRecord, log: arrayOf(decodeRecord) }),
     );
     expect(after.local["save-in-history"]).toEqual(snapshot.local["save-in-history"]);
     expect(after.local["save-in-last-used-path"]).toEqual(snapshot.local["save-in-last-used-path"]);
@@ -125,9 +144,9 @@ export const runPrivateContextScenario = async ({ evaluate, waitForDownloads, fi
  * honor its private opt-in, and neither path may enter extension persistence.
  *
  * @param {{
- *   evaluate: (expression: string) => Promise<any>,
+ *   evaluate: (expression: string) => Promise<unknown>,
  *   openPrivatePage: (url: string) => Promise<{tabId: number, target: string, close: () => Promise<void>}>,
- *   evaluatePrivatePage: (target: string, expression: string) => Promise<any>,
+ *   evaluatePrivatePage: (target: string, expression: string) => Promise<unknown>,
  *   waitForFile: (relativePath: string) => Promise<string>,
  *   filenamePrefix: string,
  * }} adapters
@@ -187,10 +206,16 @@ export const runPrivateBrowserActivityScenario = async ({
     "sourcePanelEnabled",
     "filenamePatterns",
   ];
-  const before = JSON.parse(
-    await evaluate(`Promise.all([
+  const before = await evaluateJson(
+    evaluate,
+    `Promise.all([
       browser.storage.local.get(${JSON.stringify(optionKeys)}), api.history(), api.logs()
-    ]).then(([options, history, log]) => JSON.stringify({ options, history, log }))`),
+    ]).then(([options, history, log]) => JSON.stringify({ options, history, log }))`,
+    objectOf({
+      options: decodeRecord,
+      history: decodeHistoryEntries,
+      log: decodeLogEntries,
+    }),
   );
   const missingKeys = optionKeys.filter((key) => !(key in before.options));
   /** @type {{tabId: number, target: string, close: () => Promise<void>} | undefined} */
@@ -235,10 +260,12 @@ into: e2e/private-auto/:filename:`,
         check();
       })`,
     );
-    const beforeOptIn = JSON.parse(
-      await evaluate(`browser.downloads.search({}).then((items) => JSON.stringify(items.filter(
+    const beforeOptIn = await evaluateJson(
+      evaluate,
+      `browser.downloads.search({}).then((items) => JSON.stringify(items.filter(
         (item) => item.url === "http://127.0.0.1:${port}/${initialName}"
-      )))`),
+      )))`,
+      arrayOf(decodeRecord),
     );
     expect(beforeOptIn).toHaveLength(0);
 
@@ -288,11 +315,11 @@ into: e2e/private-auto/:filename:`,
     expect(fs.readFileSync(initialPath)).toEqual(image);
     expect(fs.readFileSync(latePath)).toEqual(image);
 
-    const after = /** @type {{history: HistoryEntry[], log: LogEntry[]}} */ (
-      JSON.parse(
-        await evaluate(`Promise.all([api.history(), api.logs()])
-          .then(([history, log]) => JSON.stringify({ history, log }))`),
-      )
+    const after = await evaluateJson(
+      evaluate,
+      `Promise.all([api.history(), api.logs()])
+          .then(([history, log]) => JSON.stringify({ history, log }))`,
+      objectOf({ history: decodeHistoryEntries, log: decodeLogEntries }),
     );
     const privateNames = [nativeName, initialName, lateName];
     expect(
@@ -323,8 +350,8 @@ into: e2e/private-auto/:filename:`,
  * boundary, including browser-authenticated sender authorization.
  *
  * @param {{
- *   evaluate: (expression: string) => Promise<any>,
- *   sendExternal: (message: Record<string, unknown>) => Promise<any>,
+ *   evaluate: (expression: string) => Promise<unknown>,
+ *   sendExternal: (message: Record<string, unknown>) => Promise<unknown>,
  *   callerId: string,
  *   waitForDownloads: (filename: string) => Promise<DownloadSummary[]>,
  *   filename: string,
@@ -345,14 +372,19 @@ export const runExternalExtensionScenario = async ({
   const port = await listenLocal(server);
   const url = `http://127.0.0.1:${port}/${filename}`;
   const optionKeys = ["externalDownloadAllowlist", "filenamePatterns"];
-  const previous = JSON.parse(
-    await evaluate(`browser.storage.local.get(${JSON.stringify(optionKeys)})
-      .then((stored) => JSON.stringify(stored))`),
+  const previous = await evaluateJson(
+    evaluate,
+    `browser.storage.local.get(${JSON.stringify(optionKeys)})
+      .then((stored) => JSON.stringify(stored))`,
+    decodeRecord,
   );
   const missingKeys = optionKeys.filter((key) => !(key in previous));
 
   try {
-    const pong = await sendExternal({ type: "PING" });
+    const pong = objectOf({
+      type: decodeString,
+      body: objectOf({ version: decodeNumber, capabilities: arrayOf(decodeString) }),
+    })(await sendExternal({ type: "PING" }));
     expect(pong).toMatchObject({ type: "PONG", body: { version: 1 } });
     expect(pong.body.capabilities).toContain("download");
 
@@ -364,11 +396,13 @@ export const runExternalExtensionScenario = async ({
       type: "DOWNLOAD",
       body: { status: "ERROR", error: "UNAUTHORIZED", version: 1 },
     });
-    const rejection = JSON.parse(
-      await evaluate(`browser.runtime.sendMessage({ type: "EXTERNAL_DOWNLOAD_REJECTIONS_GET" })
+    const rejection = await evaluateJson(
+      evaluate,
+      `browser.runtime.sendMessage({ type: "EXTERNAL_DOWNLOAD_REJECTIONS_GET" })
         .then((response) => JSON.stringify(response.body.rejections.find(
           (entry) => entry.senderId === ${JSON.stringify(callerId)}
-        )))`),
+        )))`,
+      objectOf({ senderId: decodeString, attempts: decodeNumber }),
     );
     expect(rejection).toMatchObject({ senderId: callerId, attempts: 1 });
 
@@ -415,7 +449,7 @@ export const runExternalExtensionScenario = async ({
  * Cancels a real stalled acquisition through the History protocol and proves
  * that both the network request and durable transfer state are released.
  *
- * @param {{evaluate: (expression: string) => Promise<any>, filename: string}} adapters
+ * @param {{evaluate: (expression: string) => Promise<unknown>, filename: string}} adapters
  */
 export const runHistoryCancellationScenario = async ({ evaluate, filename }) => {
   /** @type {import("node:http").ServerResponse | undefined} */
@@ -439,11 +473,13 @@ export const runHistoryCancellationScenario = async ({ evaluate, filename }) => 
   });
   const port = await listenLocal(server);
   const url = `http://127.0.0.1:${port}/${filename}`;
-  const previous = JSON.parse(
-    await evaluate(`Promise.all([
+  const previous = await evaluateJson(
+    evaluate,
+    `Promise.all([
       api.getOption("fetchViaFetch"), api.getOption("filenamePatterns")
     ]).then(([fetchViaFetch, filenamePatterns]) =>
-      JSON.stringify({ fetchViaFetch, filenamePatterns }))`),
+      JSON.stringify({ fetchViaFetch, filenamePatterns }))`,
+    objectOf({ fetchViaFetch: decodeBoolean, filenamePatterns: decodeUnknown }),
   );
 
   try {
@@ -454,7 +490,8 @@ export const runHistoryCancellationScenario = async ({ evaluate, filename }) => 
         pageUrl: "https://cancel.example/",
       }); return "started"; })`);
     await requestStarted;
-    const historyId = await evaluate(`new Promise((resolve, reject) => {
+    const historyId = decodeString(
+      await evaluate(`new Promise((resolve, reject) => {
       const timeout = AbortSignal.timeout(8000);
       const check = async () => {
         const entry = (await api.history()).findLast((row) => row.url === ${JSON.stringify(url)});
@@ -476,11 +513,17 @@ export const runHistoryCancellationScenario = async ({ evaluate, filename }) => 
         channel.port2.postMessage(null);
       };
       void check();
-    })`);
-    const response = JSON.parse(
-      await evaluate(`browser.runtime.sendMessage({
+    })`),
+    );
+    const response = await evaluateJson(
+      evaluate,
+      `browser.runtime.sendMessage({
         type: "HISTORY_CANCEL", body: { historyId: ${JSON.stringify(historyId)} }
-      }).then(JSON.stringify)`),
+      }).then(JSON.stringify)`,
+      objectOf({
+        type: decodeString,
+        body: objectOf({ canceled: decodeBoolean }),
+      }),
     );
     expect(response).toEqual({ type: "HISTORY_CANCEL", body: { canceled: true } });
     /** @type {Promise<void>} */
@@ -495,8 +538,9 @@ export const runHistoryCancellationScenario = async ({ evaluate, filename }) => 
     });
     await requestClosedWithinDeadline;
 
-    const terminal = JSON.parse(
-      await evaluate(`new Promise((resolve, reject) => {
+    const terminal = await evaluateJson(
+      evaluate,
+      `new Promise((resolve, reject) => {
         const timeout = AbortSignal.timeout(8000);
         const check = async () => {
           const [history, session, downloads] = await Promise.all([
@@ -525,7 +569,8 @@ export const runHistoryCancellationScenario = async ({ evaluate, filename }) => 
           channel.port2.postMessage(null);
         };
         void check();
-      })`),
+      })`,
+      objectOf({ status: decodeString }),
     );
     expect(terminal.status).toBe("USER_CANCELED");
   } finally {
@@ -540,7 +585,7 @@ export const runHistoryCancellationScenario = async ({ evaluate, filename }) => 
  * flight, and verifies cold-start recovery clears the durable transfer record.
  *
  * @param {{
- *   evaluate: (expression: string) => Promise<any>,
+ *   evaluate: (expression: string) => Promise<unknown>,
  *   restartBackground: () => Promise<void>,
  *   filename: string,
  * }} adapters
@@ -564,7 +609,7 @@ export const runInterruptedTransferRecoveryScenario = async ({
   });
   const port = await listenLocal(server);
   const url = `http://127.0.0.1:${port}/${filename}`;
-  const previousFetchViaFetch = await evaluate(`api.getOption("fetchViaFetch")`);
+  const previousFetchViaFetch = decodeBoolean(await evaluate(`api.getOption("fetchViaFetch")`));
 
   try {
     await evaluate(`api.setOptions({ fetchViaFetch: true, filenamePatterns: "" })
@@ -574,8 +619,9 @@ export const runInterruptedTransferRecoveryScenario = async ({
         pageUrl: "https://restart.example/",
       }); return "started"; })`);
     await requestStarted;
-    const active = JSON.parse(
-      await evaluate(`new Promise((resolve, reject) => {
+    const active = await evaluateJson(
+      evaluate,
+      `new Promise((resolve, reject) => {
         const timeout = AbortSignal.timeout(8000);
         let settled = false;
         const finish = (callback) => {
@@ -601,15 +647,17 @@ export const runInterruptedTransferRecoveryScenario = async ({
         browser.storage.onChanged.addListener(onChanged);
         timeout.addEventListener("abort", onTimeout, { once: true });
         void check().catch((error) => finish(() => reject(error)));
-      })`),
+      })`,
+      decodeRecord,
     );
     expect(Object.keys(active)).toHaveLength(1);
 
     await restartBackground();
     pendingResponse?.end("response after background restart");
 
-    const recovered = JSON.parse(
-      await evaluate(`new Promise((resolve, reject) => {
+    const recovered = await evaluateJson(
+      evaluate,
+      `new Promise((resolve, reject) => {
         const timeout = AbortSignal.timeout(8000);
         const check = async () => {
           const [history, session] = await Promise.all([
@@ -635,7 +683,8 @@ export const runInterruptedTransferRecoveryScenario = async ({
           channel.port2.postMessage(null);
         };
         void check();
-      })`),
+      })`,
+      objectOf({ status: decodeString }),
     );
     expect(recovered.status).toBe("DOWNLOAD_PREPARATION_INTERRUPTED");
   } finally {
@@ -734,7 +783,7 @@ export const runLegacyProfileRoutingScenario = async ({ control, waitForDownload
 
 /**
  * @param {{
- *   evaluate: (expression: string) => Promise<any>,
+ *   evaluate: (expression: string) => Promise<unknown>,
  *   waitForDownloads: (filename: string) => Promise<DownloadSummary[]>,
  *   downloadDir: string,
  *   filename: string,
@@ -764,13 +813,13 @@ export const runSymlinkDestinationScenario = async ({
       path: "e2e/release-symlink",
     }).then(() => "started")`);
     if (!supported) {
-      const matches = JSON.parse(
-        await evaluate(
-          waitForApiEntriesExpression(
-            "history",
-            `(row) => row.finalFullPath === ${JSON.stringify(`e2e/release-symlink/${filename}`)} && row.status === "USER_CANCELED"`,
-          ),
+      const matches = await evaluateJson(
+        evaluate,
+        waitForApiEntriesExpression(
+          "history",
+          `(row) => row.finalFullPath === ${JSON.stringify(`e2e/release-symlink/${filename}`)} && row.status === "USER_CANCELED"`,
         ),
+        decodeHistoryEntries,
       );
       const rejected = matches.at(-1);
       expect(rejected).toMatchObject({
@@ -828,7 +877,7 @@ export const runContextMenuScenario = async ({ control, waitForDownloads }) => {
  * verifies the selected-tab shortcut reaches the download pipeline.
  *
  * @param {{
- *   evaluate: (expression: string) => Promise<any>,
+ *   evaluate: (expression: string) => Promise<unknown>,
  *   waitForDownloads: (filename: string) => Promise<DownloadSummary[]>,
  *   filename: string,
  * }} adapters
@@ -840,16 +889,19 @@ export const runTabStripScenario = async ({ evaluate, waitForDownloads, filename
   });
   const port = await listenLocal(server);
   const url = `http://127.0.0.1:${port}/${filename}`;
-  const previous = JSON.parse(
-    await evaluate(`Promise.all([
+  const previous = await evaluateJson(
+    evaluate,
+    `Promise.all([
       api.getOption("shortcutTab"), api.getOption("shortcutType")
-    ]).then(([shortcutTab, shortcutType]) => JSON.stringify({ shortcutTab, shortcutType }))`),
+    ]).then(([shortcutTab, shortcutType]) => JSON.stringify({ shortcutTab, shortcutType }))`,
+    objectOf({ shortcutTab: decodeBoolean, shortcutType: decodeString }),
   );
   let tabId;
 
   try {
-    const tab = JSON.parse(
-      await evaluate(`browser.tabs.create({ url: ${JSON.stringify(url)} }).then((created) =>
+    const tab = await evaluateJson(
+      evaluate,
+      `browser.tabs.create({ url: ${JSON.stringify(url)} }).then((created) =>
         new Promise((resolve, reject) => {
           const timeout = AbortSignal.timeout(8000);
           const check = async () => {
@@ -867,7 +919,14 @@ export const runTabStripScenario = async ({ evaluate, waitForDownloads, filename
             }
           };
           void check();
-        }))`),
+        }))`,
+      objectOf({
+        id: decodeNumber,
+        index: decodeNumber,
+        windowId: decodeNumber,
+        title: optional(decodeString),
+        url: optional(decodeString),
+      }),
     );
     tabId = tab.id;
     await evaluate(`api.setOptions({ shortcutTab: true, shortcutType: "HTML_REDIRECT" })
@@ -955,10 +1014,8 @@ export const runAutomaticRetryScenario = async ({ control, waitForDownloads, fil
     res.end(body);
   });
   const port = await listenLocal(server);
-  const previous = {
-    fallbackFetch: await control.options.get("fallbackFetch"),
-    filenamePatterns: await control.options.get("filenamePatterns"),
-  };
+  const optionKeys = ["fallbackFetch", "filenamePatterns"];
+  const previous = await control.storage.local.get(optionKeys);
 
   try {
     await control.options.set({ fallbackFetch: true, filenamePatterns: "" });
@@ -977,7 +1034,9 @@ export const runAutomaticRetryScenario = async ({ control, waitForDownloads, fil
     expect(hits).toBeGreaterThanOrEqual(2);
   } finally {
     try {
-      await control.options.set(previous);
+      await control.storage.local.remove(optionKeys);
+      await control.storage.local.set(previous);
+      await control.runtime.reset();
     } finally {
       await closeLocal(server);
     }

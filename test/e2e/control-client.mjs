@@ -10,10 +10,10 @@ import {
 /** @typedef {import("./control-protocol.mjs").ControlResultMap} ControlResultMap */
 /** @typedef {import("./control-protocol.mjs").ContextMenuClickBody} ContextMenuClickBody */
 /** @typedef {import("./control-protocol.mjs").DownloadEntry} DownloadEntry */
-/** @typedef {import("./control-protocol.mjs").E2EOptionName} E2EOptionName */
-/** @typedef {import("./control-protocol.mjs").E2EOptionValues} E2EOptionValues */
+/** @typedef {import("./control-protocol.mjs").E2ERuntimeOptionName} E2ERuntimeOptionName */
+/** @typedef {import("./control-protocol.mjs").E2ERuntimeOptionValues} E2ERuntimeOptionValues */
 /** @typedef {import("./control-protocol.mjs").LogEntry} LogEntry */
-/** @typedef {import("./control-protocol.mjs").OptionsPatch} OptionsPatch */
+/** @typedef {import("./control-protocol.mjs").StoredOptionsPatch} StoredOptionsPatch */
 /** @typedef {import("./control-protocol.mjs").RuntimeMessage} RuntimeMessage */
 /** @typedef {import("./control-protocol.mjs").StartDownloadBody} StartDownloadBody */
 /** @typedef {import("./control-protocol.mjs").TabMenuClickBody} TabMenuClickBody */
@@ -24,14 +24,152 @@ import {
  *
  * @param {string} serializedRequest
  */
-const dispatchControlRequest = async (serializedRequest) => {
+export const dispatchControlRequest = async (serializedRequest) => {
   /** @param {unknown} value @returns {value is Record<string, unknown>} */
   const isRecord = (value) => typeof value === "object" && value !== null && !Array.isArray(value);
+  /** @param {unknown} value */
+  const isStringArray = (value) =>
+    Array.isArray(value) && value.every((item) => typeof item === "string");
+  /** @param {Record<string, unknown>} value @param {string} key */
+  const hasOptionalString = (value, key) =>
+    value[key] === undefined || typeof value[key] === "string";
+  /** @param {Record<string, unknown>} value @param {string} key */
+  const hasOptionalNumber = (value, key) =>
+    value[key] === undefined || typeof value[key] === "number";
+  /** @param {unknown} value */
+  const isMenuInfo = (value) =>
+    isRecord(value) &&
+    (typeof value.menuItemId === "string" || typeof value.menuItemId === "number") &&
+    ["selectionText", "pageUrl", "linkUrl", "srcUrl", "frameUrl", "mediaType", "linkText"].every(
+      (key) => hasOptionalString(value, key),
+    ) &&
+    (value.modifiers === undefined || isStringArray(value.modifiers));
+  /** @param {unknown} value @param {boolean} requireTab */
+  const isMenuBody = (value, requireTab) => {
+    if (!isRecord(value) || !isMenuInfo(value.info)) return false;
+    if (!requireTab) {
+      return (
+        value.tab === undefined ||
+        (isRecord(value.tab) &&
+          (value.tab.id === undefined || typeof value.tab.id === "number") &&
+          hasOptionalString(value.tab, "title") &&
+          hasOptionalString(value.tab, "url") &&
+          (value.tab.incognito === undefined || typeof value.tab.incognito === "boolean"))
+      );
+    }
+    return (
+      isRecord(value.tab) &&
+      typeof value.tab.id === "number" &&
+      typeof value.tab.index === "number" &&
+      typeof value.tab.windowId === "number"
+    );
+  };
+  /** @param {unknown} value */
+  const isRuntimeMessage = (value) => {
+    if (!isRecord(value) || typeof value.type !== "string") return false;
+    switch (value.type) {
+      case "WAKE_WARM":
+      case "OPTIONS_LOADED":
+      case "OPTIONS":
+      case "HISTORY_GET":
+        return value.body === undefined;
+      case "SAVE_IN_E2E_START_DOWNLOAD": {
+        const body = value.body;
+        return (
+          isRecord(body) &&
+          typeof body.suggestedFilename === "string" &&
+          ["content", "url", "shortcutUrl", "pageUrl", "path"].every((key) =>
+            hasOptionalString(body, key),
+          ) &&
+          (body.modifiers === undefined || isStringArray(body.modifiers))
+        );
+      }
+      case "SAVE_IN_E2E_CONTEXT_MENU_CLICK":
+        return isMenuBody(value.body, false);
+      case "SAVE_IN_E2E_TAB_MENU_CLICK":
+        return isMenuBody(value.body, true);
+      case "SAVE_IN_E2E_NOTIFICATION_CALLS":
+        return (
+          isRecord(value.body) && (value.body.action === "get" || value.body.action === "reset")
+        );
+      case "APPLY_CONFIG":
+        return isRecord(value.body) && isRecord(value.body.config);
+      default:
+        return false;
+    }
+  };
+  /** @param {unknown} value @returns {value is ControlRequest} */
+  const isControlRequest = (value) => {
+    if (!isRecord(value) || typeof value.operation !== "string") return false;
+    const isArea = value.area === "local" || value.area === "session";
+    switch (value.operation) {
+      case "runtime.send":
+        return isRuntimeMessage(value.message);
+      case "storage.get":
+        return (
+          isArea &&
+          (value.keys === undefined ||
+            value.keys === null ||
+            typeof value.keys === "string" ||
+            isStringArray(value.keys) ||
+            isRecord(value.keys))
+        );
+      case "storage.set":
+        return isArea && isRecord(value.values);
+      case "storage.remove":
+        return isArea && (typeof value.keys === "string" || isStringArray(value.keys));
+      case "storage.clear":
+        return isArea;
+      case "downloads.search":
+      case "downloads.erase":
+      case "tabs.query":
+        return value.query === undefined || isRecord(value.query);
+      case "downloads.wait":
+        return (
+          hasOptionalString(value, "filenameRegex") &&
+          hasOptionalString(value, "filenameIncludes") &&
+          hasOptionalString(value, "url") &&
+          hasOptionalNumber(value, "timeoutMs")
+        );
+      case "downloads.cancel":
+      case "tabs.reload":
+        return typeof value.id === "number";
+      case "tabs.create":
+        return isRecord(value.properties);
+      case "tabs.update":
+        return typeof value.id === "number" && isRecord(value.properties);
+      case "tabs.remove":
+        return (
+          typeof value.ids === "number" ||
+          (Array.isArray(value.ids) && value.ids.every((id) => typeof id === "number"))
+        );
+      case "tabs.sendMessage":
+        return typeof value.id === "number" && isRecord(value.message);
+      case "notifications.clear":
+        return typeof value.id === "string";
+      case "dnr.updateSessionRules":
+        return isRecord(value.update);
+      case "logs.wait":
+        return (
+          isStringArray(value.messages) &&
+          hasOptionalNumber(value, "baseline") &&
+          hasOptionalNumber(value, "timeoutMs")
+        );
+      case "harness.resetCase":
+        return value.snapshot === undefined || isRecord(value.snapshot);
+      case "notifications.getAll":
+      case "dnr.getSessionRules":
+      case "offscreen.hasDocument":
+      case "logs.get":
+      case "inspect":
+        return true;
+      default:
+        return false;
+    }
+  };
   const parsedRequest = /** @type {unknown} */ (JSON.parse(serializedRequest));
-  if (!isRecord(parsedRequest) || typeof parsedRequest.operation !== "string") {
-    throw new Error("Invalid E2E control request");
-  }
-  const request = /** @type {ControlRequest} */ (parsedRequest);
+  if (!isControlRequest(parsedRequest)) throw new Error("Invalid E2E control request");
+  const request = parsedRequest;
   const chromeApi = /** @type {typeof chrome} */ (Reflect.get(globalThis, "chrome"));
   const browserApi = /** @type {typeof chrome} */ (
     /** @type {unknown} */ (Reflect.get(globalThis, "browser") || chromeApi)
@@ -488,13 +626,13 @@ export const createE2EControlClient = ({ callFunction }) => {
         if (!isRecord(response.body)) throw new Error("E2E options response is invalid");
         return response.body;
       },
-      /** @template {E2EOptionName} Name @param {Name} name @returns {Promise<E2EOptionValues[Name]>} */
+      /** @template {E2ERuntimeOptionName} Name @param {Name} name @returns {Promise<E2ERuntimeOptionValues[Name]>} */
       get: async (name) => {
         const response = await call({ operation: "runtime.send", message: { type: "OPTIONS" } });
         if (!isRecord(response.body)) throw new Error("E2E options response is invalid");
         return decodeOptionValue(name, response.body[name]);
       },
-      /** @param {OptionsPatch} values */
+      /** @param {StoredOptionsPatch} values */
       set: async (values) => {
         await call({ operation: "storage.set", area: "local", values });
         await call({ operation: "runtime.send", message: { type: "OPTIONS_LOADED" } });

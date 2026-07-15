@@ -1,11 +1,11 @@
 /** @typedef {import("./control-protocol.mjs").BackgroundRuntimeMessage} BackgroundRuntimeMessage */
 /** @typedef {import("./control-protocol.mjs").ContextMenuClickBody} ContextMenuClickBody */
-/** @typedef {import("./control-protocol.mjs").E2EOptionName} E2EOptionName */
-/** @typedef {import("./control-protocol.mjs").E2EOptionValues} E2EOptionValues */
+/** @typedef {import("./control-protocol.mjs").E2ERuntimeOptionName} E2ERuntimeOptionName */
+/** @typedef {import("./control-protocol.mjs").E2ERuntimeOptionValues} E2ERuntimeOptionValues */
 /** @typedef {import("./control-protocol.mjs").HistoryEntry} HistoryEntry */
 /** @typedef {import("./control-protocol.mjs").LogEntry} LogEntry */
 /** @typedef {import("./control-protocol.mjs").NotificationCall} NotificationCall */
-/** @typedef {import("./control-protocol.mjs").OptionsPatch} OptionsPatch */
+/** @typedef {import("./control-protocol.mjs").StoredOptionsPatch} StoredOptionsPatch */
 /** @typedef {import("./control-protocol.mjs").RuntimeResponse} RuntimeResponse */
 /** @typedef {import("./control-protocol.mjs").StartDownloadBody} StartDownloadBody */
 /** @typedef {import("./control-protocol.mjs").TabMenuClickBody} TabMenuClickBody */
@@ -44,13 +44,13 @@ const installBackgroundHelpers = () => {
       }
       return /** @type {HistoryEntry[]} */ (response.body.entries);
     },
-    /** @template {E2EOptionName} Name @param {Name} name @returns {Promise<E2EOptionValues[Name]>} */
+    /** @template {E2ERuntimeOptionName} Name @param {Name} name @returns {Promise<E2ERuntimeOptionValues[Name]>} */
     getOption: async (name) => {
       const response = await send({ type: "OPTIONS" });
       if (!response.body) throw new Error("E2E options response is invalid");
-      return /** @type {E2EOptionValues[Name]} */ (response.body[name]);
+      return /** @type {E2ERuntimeOptionValues[Name]} */ (response.body[name]);
     },
-    setOptions: (/** @type {OptionsPatch} */ values) =>
+    setOptions: (/** @type {StoredOptionsPatch} */ values) =>
       browserApi.storage.local.set(values).then(() => api.reset()),
     startDownload: async (/** @type {StartDownloadBody} */ body) =>
       (await command({ type: "SAVE_IN_E2E_START_DOWNLOAD", body }, "E2E download command failed"))

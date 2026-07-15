@@ -2,11 +2,11 @@ export type StorageAreaName = "local" | "session";
 export type StorageKeys = string | string[] | Record<string, unknown> | null;
 export type StorageRecord = Record<string, unknown>;
 
-export interface E2EOptionValues {
-  contentClickToSaveCombo: number;
+export interface E2EStoredOptionValues {
+  contentClickToSaveCombo: string | number;
   fallbackFetch: boolean;
   filenamePatterns: string;
-  notifyDuration: number;
+  notifyDuration: string | number;
   notifyOnFailure: boolean;
   notifyOnLinkPreferred: boolean;
   notifyOnRuleMatch: boolean;
@@ -16,8 +16,15 @@ export interface E2EOptionValues {
   selection: boolean;
 }
 
-export type E2EOptionName = keyof E2EOptionValues;
-export type OptionsPatch = Partial<E2EOptionValues>;
+export interface E2ERuntimeOptionValues extends Omit<
+  E2EStoredOptionValues,
+  "filenamePatterns" | "notifyDuration"
+> {
+  notifyDuration: number;
+}
+
+export type E2ERuntimeOptionName = keyof E2ERuntimeOptionValues;
+export type StoredOptionsPatch = Partial<E2EStoredOptionValues>;
 
 export interface StartDownloadBody {
   content?: string;
@@ -41,9 +48,16 @@ export interface MenuClickInfo {
   modifiers?: string[];
 }
 
+export interface ContextMenuTab {
+  id?: number;
+  title?: string;
+  url?: string;
+  incognito?: boolean;
+}
+
 export interface ContextMenuClickBody {
   info: MenuClickInfo;
-  tab?: TabEntry;
+  tab?: ContextMenuTab;
 }
 
 export interface TabMenuTab extends TabEntry {

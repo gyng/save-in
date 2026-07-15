@@ -95,6 +95,95 @@ export const requireValue = (value, message) => {
   return value;
 };
 
+/** @param {unknown} value */
+export const decodeBoolean = (value) => {
+  if (typeof value !== "boolean") throw new Error("Expected an E2E boolean");
+  return value;
+};
+
+/** @param {unknown} value */
+export const decodeNumber = (value) => {
+  if (typeof value !== "number") throw new Error("Expected an E2E number");
+  return value;
+};
+
+/** @param {unknown} value */
+export const decodeString = (value) => {
+  if (typeof value !== "string") throw new Error("Expected an E2E string");
+  return value;
+};
+
+/** @param {unknown} value */
+export const decodeStringOrNumber = (value) => {
+  if (typeof value !== "string" && typeof value !== "number") {
+    throw new Error("Expected an E2E string or number");
+  }
+  return value;
+};
+
+/** @param {unknown} value */
+export const decodeUnknown = (value) => value;
+
+/** @param {unknown} value */
+export const decodeRecord = (value) => {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    throw new Error("Expected an E2E record");
+  }
+  return /** @type {Record<string, unknown>} */ (value);
+};
+
+/**
+ * @template Value
+ * @param {(value: unknown) => Value} decode
+ */
+export const optional = (decode) => (/** @type {unknown} */ value) =>
+  value === undefined ? undefined : decode(value);
+
+/**
+ * @template Value
+ * @param {(value: unknown) => Value} decode
+ */
+export const nullable = (decode) => (/** @type {unknown} */ value) =>
+  value === null ? null : decode(value);
+
+/**
+ * @template Value
+ * @param {(value: unknown) => Value} decode
+ */
+export const arrayOf = (decode) => (/** @type {unknown} */ value) => {
+  if (!Array.isArray(value)) throw new Error("Expected an E2E array");
+  return value.map(decode);
+};
+
+/**
+ * @template {Record<string, (value: unknown) => unknown>} Schema
+ * @param {Schema} schema
+ * @returns {(value: unknown) => {[Key in keyof Schema]: ReturnType<Schema[Key]>}}
+ */
+export const objectOf = (schema) => (value) => {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    throw new Error("Expected an E2E object");
+  }
+  const record = /** @type {Record<string, unknown>} */ (value);
+  /** @type {Record<string, unknown>} */
+  const decoded = {};
+  for (const [key, decode] of Object.entries(schema)) decoded[key] = decode(record[key]);
+  return /** @type {{[Key in keyof Schema]: ReturnType<Schema[Key]>}} */ (decoded);
+};
+
+/**
+ * @template Value
+ * @param {unknown} serialized
+ * @param {(value: unknown) => Value} decode
+ * @returns {Value}
+ */
+export const parseJson = (serialized, decode) => {
+  if (typeof serialized !== "string") {
+    throw new Error(`E2E JSON value was ${typeof serialized} instead of a string`);
+  }
+  return decode(/** @type {unknown} */ (JSON.parse(serialized)));
+};
+
 /**
  * Evaluates an expression that deliberately returns JSON, then validates the
  * parsed value before it crosses back into typed test code.
@@ -106,12 +195,7 @@ export const requireValue = (value, message) => {
  * @returns {Promise<Value>}
  */
 export const evaluateJson = async (evaluate, expression, decode) => {
-  const serialized = await evaluate(expression);
-  if (typeof serialized !== "string") {
-    throw new Error(`E2E JSON evaluation returned ${typeof serialized} instead of a string`);
-  }
-  const parsed = /** @type {unknown} */ (JSON.parse(serialized));
-  return decode(parsed);
+  return parseJson(await evaluate(expression), decode);
 };
 
 /**
@@ -119,7 +203,7 @@ export const evaluateJson = async (evaluate, expression, decode) => {
  * refreshed at most once, immediately before a case first drives it.
  *
  * @param {{
- *   evaluate: (expression: string, timeoutMs?: number) => Promise<any>,
+ *   evaluate: (expression: string, timeoutMs?: number) => Promise<unknown>,
  *   prepare: () => Promise<void>,
  * }} adapters
  */

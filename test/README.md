@@ -35,11 +35,13 @@ the Options page. `test/e2e/control-protocol.d.mts` defines the request/result r
 operation names and returned downloads, logs, tabs, rules, history, and capability data remain
 strictly checked at their call sites and decoded again when they cross the browser boundary.
 Runtime commands then cross the real `runtime.sendMessage` boundary and wake the background
-normally. New or migrated structured JSON from a raw evaluator uses `evaluateJson` with a runtime
-decoder. Keep deliberately untyped direct page evaluation for DOM-local assertions, scalar
-observations, and lifecycle-specific diagnostics only. `npm run check:e2e-harness` enforces
-declining ceilings on those remaining raw background evaluations; lower the relevant ceiling
-whenever one is migrated.
+normally. Stored option inputs and normalized runtime option results have separate protocol types,
+with compile-only contracts against the production schema. Raw evaluators return `unknown`:
+structured JSON uses `evaluateJson` or `parseJson` with a runtime decoder, and reusable scalar
+results use the matching scalar decoder. Direct comparison is reserved for DOM-local boolean or
+string observations whose comparison itself narrows the value. `npm run check:e2e-harness`
+enforces declining ceilings on the remaining raw background evaluations; lower the relevant
+ceiling whenever one is migrated.
 
 ## E2E performance policy
 

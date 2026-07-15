@@ -1,7 +1,9 @@
 import {
   createE2EControlClient,
   createRecoveringControlTransport,
+  dispatchControlRequest,
 } from "../e2e/control-client.mjs";
+import { arrayOf, decodeNumber, decodeString, evaluateJson, objectOf } from "../e2e/helpers.mjs";
 
 describe("structured E2E control client", () => {
   test("passes data as arguments instead of interpolating executable expressions", async () => {
@@ -133,5 +135,27 @@ describe("structured E2E control client", () => {
 
     await expect(client.options.get("paths")).rejects.toThrow("Invalid E2E option value for paths");
     await expect(client.history.get()).rejects.toThrow("Invalid E2E history entries");
+  });
+
+  test("rejects malformed requests before touching browser APIs", async () => {
+    await expect(
+      dispatchControlRequest(JSON.stringify({ operation: "downloads.cancel", id: "7" })),
+    ).rejects.toThrow("Invalid E2E control request");
+    await expect(
+      dispatchControlRequest(
+        JSON.stringify({ operation: "runtime.send", message: { type: "UNKNOWN_COMMAND" } }),
+      ),
+    ).rejects.toThrow("Invalid E2E control request");
+  });
+
+  test("decodes raw structured evaluation results without leaking any", async () => {
+    const decode = objectOf({ name: decodeString, ids: arrayOf(decodeNumber) });
+
+    await expect(
+      evaluateJson(async () => '{"name":"tab","ids":[1,2]}', "ignored", decode),
+    ).resolves.toEqual({ name: "tab", ids: [1, 2] });
+    await expect(
+      evaluateJson(async () => '{"name":"tab","ids":["1"]}', "ignored", decode),
+    ).rejects.toThrow("Expected an E2E number");
   });
 });

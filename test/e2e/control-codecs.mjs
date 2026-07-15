@@ -83,6 +83,12 @@ export const decodeHistoryEntries = (value, label = "history entries") => {
 };
 
 /** @param {unknown} value @param {string} [label] */
+export const decodeLogEntries = (value, label = "log entries") => {
+  if (!isArrayOf(value, isLog)) throw new Error(`Invalid E2E ${label}`);
+  return /** @type {import("./control-protocol.mjs").LogEntry[]} */ (value);
+};
+
+/** @param {unknown} value @param {string} [label] */
 export const decodeNotificationCalls = (value, label = "notification calls") => {
   if (!isArrayOf(value, isNotificationCall)) throw new Error(`Invalid E2E ${label}`);
   return /** @type {import("./control-protocol.mjs").NotificationCall[]} */ (value);
@@ -103,20 +109,22 @@ export const decodeWindowReference = (value) => {
 };
 
 /**
- * @template {import("./control-protocol.mjs").E2EOptionName} Name
+ * @template {import("./control-protocol.mjs").E2ERuntimeOptionName} Name
  * @param {Name} name
  * @param {unknown} value
- * @returns {import("./control-protocol.mjs").E2EOptionValues[Name]}
+ * @returns {import("./control-protocol.mjs").E2ERuntimeOptionValues[Name]}
  */
 export const decodeOptionValue = (name, value) => {
-  const expected =
-    name === "contentClickToSaveCombo" || name === "notifyDuration"
-      ? "number"
-      : name === "filenamePatterns" || name === "paths"
-        ? "string"
-        : "boolean";
-  if (typeof value !== expected) throw new Error(`Invalid E2E option value for ${name}`);
-  return /** @type {import("./control-protocol.mjs").E2EOptionValues[Name]} */ (value);
+  const valid =
+    name === "contentClickToSaveCombo"
+      ? typeof value === "string" || typeof value === "number"
+      : name === "notifyDuration"
+        ? typeof value === "number"
+        : name === "paths"
+          ? typeof value === "string"
+          : typeof value === "boolean";
+  if (!valid) throw new Error(`Invalid E2E option value for ${name}`);
+  return /** @type {import("./control-protocol.mjs").E2ERuntimeOptionValues[Name]} */ (value);
 };
 
 /**

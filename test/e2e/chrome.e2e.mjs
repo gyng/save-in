@@ -28,11 +28,21 @@ import {
 import { createHarnessSession } from "./harness-session.mjs";
 import {
   appendImageAndWaitForSourceExpression,
+  arrayOf,
   beginResourceScope,
   closeLocal,
   createLazyPageEvaluator,
+  decodeBoolean,
+  decodeNumber,
+  decodeRecord,
+  decodeString,
+  decodeStringOrNumber,
   evaluateJson,
   listenLocal,
+  nullable,
+  objectOf,
+  optional,
+  parseJson,
   poll,
   requireValue,
 } from "./helpers.mjs";
@@ -60,7 +70,7 @@ let resourceScope;
 let harness;
 const FIRST_INSTALL_TEST = "first install starts with a focused welcome";
 
-/** @param {string} expr @returns {Promise<any>} */
+/** @param {string} expr @returns {Promise<unknown>} */
 const rawEvalOptions = (expr) => cdp.evalInTarget(PORT, "options.html", expr);
 const reloadOptionsPage = async () => {
   const reloaded = await cdp.reloadTargets(PORT, "options.html");
@@ -93,9 +103,9 @@ const optionsPage = createLazyPageEvaluator({
 const evalOptions = optionsPage.evaluate;
 // App control travels through production runtime messages from an extension
 // page. Raw worker evaluation remains only for worker-specific assertions.
-/** @param {string} expr @returns {Promise<any>} */
+/** @param {string} expr @returns {Promise<unknown>} */
 const evalSW = (expr) => rawEvalOptions(inBackgroundContext(expr));
-/** @param {string} expr @returns {Promise<any>} */
+/** @param {string} expr @returns {Promise<unknown>} */
 const evalWorker = (expr) => cdp.evalInServiceWorker(PORT, extensionId, expr);
 /** @param {string} key @param {unknown} expected @param {number} [timeoutMs] */
 const localStorageValue = (key, expected, timeoutMs = 5000) => `new Promise((resolve, reject) => {
@@ -143,16 +153,21 @@ const captureFailureArtifacts = async (testName, durationMs) => {
   };
   try {
     report.targets = await cdp.listTargets(PORT);
-    report.options = JSON.parse(
-      await evalOptions(`JSON.stringify({
+    report.options = await evaluateJson(
+      evalOptions,
+      `JSON.stringify({
         url: location.href,
         title: document.title,
         active: document.activeElement?.outerHTML,
         viewport: { width: innerWidth, height: innerHeight },
         document: { width: document.documentElement.scrollWidth, height: document.documentElement.scrollHeight },
-      })`),
+      })`,
+      decodeRecord,
     );
-    fs.writeFileSync(`${prefix}.html`, await evalOptions(`document.documentElement.outerHTML`));
+    fs.writeFileSync(
+      `${prefix}.html`,
+      decodeString(await evalOptions(`document.documentElement.outerHTML`)),
+    );
     const [activeTab] = await control.tabs.query({ active: true, currentWindow: true });
     const activeUrl = activeTab?.url || "";
     report.activeUrl = activeUrl;
@@ -244,12 +259,18 @@ beforeAll(async () => {
     DOWNLOADS = launched.downloadDir || path.join(PROFILE_DIR, "downloads");
     await poll(
       async () => {
-        const state = JSON.parse(
-          await rawEvalOptions(`JSON.stringify({
+        const state = await evaluateJson(
+          rawEvalOptions,
+          `JSON.stringify({
             ready: document.readyState,
             extensionId: globalThis.chrome?.runtime?.id,
             hasStorage: Boolean(globalThis.chrome?.storage?.local),
-          })`),
+          })`,
+          objectOf({
+            ready: decodeString,
+            extensionId: optional(decodeString),
+            hasStorage: decodeBoolean,
+          }),
         );
         if (state.ready !== "complete") return null;
         if (state.extensionId !== extensionId || !state.hasStorage) {
@@ -335,19 +356,29 @@ afterEach(async ({ task }) => {
 });
 
 test("first install starts with a focused welcome", async () => {
-  const welcome = await poll(
-    async () => {
-      const state = JSON.parse(
-        await evalOptions(`JSON.stringify({
+  const welcome = requireValue(
+    await poll(
+      async () => {
+        const state = await evaluateJson(
+          evalOptions,
+          `JSON.stringify({
           open: document.querySelector("#welcome-dialog")?.open === true,
           title: document.querySelector("#welcome-title")?.textContent,
           steps: [...document.querySelectorAll(".welcome-steps li")].map((item) => item.textContent),
           status: document.querySelector("#lastSavedAt")?.textContent,
-        })`),
-      );
-      return state.open ? state : null;
-    },
-    { description: "first-install welcome dialog" },
+        })`,
+          objectOf({
+            open: decodeBoolean,
+            title: optional(decodeString),
+            steps: arrayOf(decodeString),
+            status: optional(decodeString),
+          }),
+        );
+        return state.open ? state : null;
+      },
+      { description: "first-install welcome dialog" },
+    ),
+    "First-install welcome dialog was not observed",
   );
   expect(welcome).toMatchObject({
     title: "Welcome to Save In",
@@ -356,19 +387,28 @@ test("first install starts with a focused welcome", async () => {
   expect(welcome.steps).toHaveLength(3);
 
   await evalOptions(`document.querySelector(".welcome-permissions").click()`);
-  const permissions = await poll(
-    async () => {
-      const state = JSON.parse(
-        await evalOptions(`chrome.storage.local.get("welcomePendingVersion").then((stored) =>
+  const permissions = requireValue(
+    await poll(
+      async () => {
+        const state = await evaluateJson(
+          evalOptions,
+          `chrome.storage.local.get("welcomePendingVersion").then((stored) =>
           JSON.stringify({
             aboutOpen: document.querySelector("#about-dialog")?.open === true,
             welcomeOpen: document.querySelector("#welcome-dialog")?.open === true,
             pending: stored.welcomePendingVersion,
-          }))`),
-      );
-      return state.aboutOpen && state.welcomeOpen ? state : null;
-    },
-    { description: "permission explanation over welcome" },
+          }))`,
+          objectOf({
+            aboutOpen: decodeBoolean,
+            welcomeOpen: decodeBoolean,
+            pending: optional(decodeNumber),
+          }),
+        );
+        return state.aboutOpen && state.welcomeOpen ? state : null;
+      },
+      { description: "permission explanation over welcome" },
+    ),
+    "Permission explanation was not observed",
   );
   expect(permissions.pending).toBe(1);
   await evalOptions(`document.querySelector("#about-dialog .about-close").click()`);
@@ -386,12 +426,14 @@ test("first install starts with a focused welcome", async () => {
   await evalOptions(`document.querySelector(".welcome-accept").click()`);
   await poll(
     async () => {
-      const state = JSON.parse(
-        await evalOptions(`browser.storage.local.get("welcomePendingVersion").then((stored) =>
+      const state = await evaluateJson(
+        evalOptions,
+        `browser.storage.local.get("welcomePendingVersion").then((stored) =>
           JSON.stringify({
             dismissed: !document.querySelector("#welcome-dialog"),
             pending: stored.welcomePendingVersion,
-          }))`),
+          }))`,
+        objectOf({ dismissed: decodeBoolean, pending: optional(decodeNumber) }),
       );
       return state.dismissed && state.pending === undefined ? state : null;
     },
@@ -401,8 +443,9 @@ test("first install starts with a focused welcome", async () => {
 
 test("option search shows detailed locations and navigates indexed actions", async () => {
   await evalOptions(`document.querySelector(".welcome-accept")?.click()`);
-  const result = JSON.parse(
-    await evalOptions(`JSON.stringify((() => {
+  const result = await evaluateJson(
+    evalOptions,
+    `JSON.stringify((() => {
       const input = document.querySelector("#option-search");
       input.value = "test webhook";
       input.dispatchEvent(new InputEvent("input", { bubbles: true }));
@@ -415,7 +458,14 @@ test("option search shows detailed locations and navigates indexed actions", asy
         inputWidth: input.getBoundingClientRect().width,
         resultsWidth: document.querySelector("#option-search-results").getBoundingClientRect().width,
       };
-    })())`),
+    })())`,
+    objectOf({
+      label: optional(decodeString),
+      location: optional(decodeString),
+      fullLocation: optional(decodeString),
+      inputWidth: decodeNumber,
+      resultsWidth: decodeNumber,
+    }),
   );
   expect(result).toMatchObject({
     label: "Send test",
@@ -439,7 +489,7 @@ test("option search shows detailed locations and navigates indexed actions", asy
 
 test("service worker initialises cleanly", async () => {
   const state = await control.inspect();
-  const noObjectUrl = await evalWorker(`typeof URL.createObjectURL !== "function"`);
+  const noObjectUrl = decodeBoolean(await evalWorker(`typeof URL.createObjectURL !== "function"`));
 
   expect(state.browser).toBe("CHROME");
   expect(state.capabilities.tabContextMenus).toEqual(expect.any(Boolean));
@@ -464,10 +514,10 @@ test("structured control restores a missing Options target", async () => {
 });
 
 test("options can select a generated locale and return to the browser default", async () => {
-  const choices = JSON.parse(
-    await evalOptions(
-      `JSON.stringify([...document.querySelectorAll("#uiLocale option")].map((option) => option.value))`,
-    ),
+  const choices = await evaluateJson(
+    evalOptions,
+    `JSON.stringify([...document.querySelectorAll("#uiLocale option")].map((option) => option.value))`,
+    arrayOf(decodeString),
   );
   expect(choices).toEqual(expect.arrayContaining(["", "en", "de"]));
 
@@ -482,14 +532,20 @@ test("options can select a generated locale and return to the browser default", 
     })()`);
     await poll(
       async () => {
-        const state = JSON.parse(
-          await evalOptions(`Promise.all([
+        const state = await evaluateJson(
+          evalOptions,
+          `Promise.all([
             chrome.storage.local.get("uiLocale"),
             Promise.resolve({
               selected: document.querySelector("#uiLocale")?.value,
               marker: globalThis.__saveInE2eLocaleMarker ?? null,
             }),
-          ]).then(([stored, page]) => JSON.stringify({ stored: stored.uiLocale, ...page }))`),
+          ]).then(([stored, page]) => JSON.stringify({ stored: stored.uiLocale, ...page }))`,
+          objectOf({
+            stored: decodeString,
+            selected: optional(decodeString),
+            marker: nullable(decodeString),
+          }),
         );
         return state.stored === locale && state.selected === locale && state.marker !== marker
           ? true
@@ -535,21 +591,24 @@ test("options page works under MV3 CSP with live first-party autocomplete", asyn
   })()`);
   const suggestions = await poll(
     async () => {
-      const state = JSON.parse(
-        await evalOptions(`(() => {
+      const state = await evaluateJson(
+        evalOptions,
+        `(() => {
           const dd = document.querySelector("#autocomplete-paths");
           return JSON.stringify({
             open: Boolean(dd && dd.style.display !== "none"),
             text: dd?.textContent || "",
           });
-        })()`),
+        })()`,
+        objectOf({ open: decodeBoolean, text: decodeString }),
       );
       return state.open && state.text.includes(":date:") ? state.text : null;
     },
     { description: "path variable autocomplete suggestions" },
   );
-  const result = JSON.parse(
-    await evalOptions(`(async () => {
+  const result = await evaluateJson(
+    evalOptions,
+    `(async () => {
       const ta = document.querySelector("#paths");
       ta.value = "";
       ta.dispatchEvent(new InputEvent("input", { bubbles: true }));
@@ -561,7 +620,15 @@ test("options page works under MV3 CSP with live first-party autocomplete", asyn
         nativeBrowserRoutingHidden: document.querySelector("#routeBrowserDownloads")?.closest("label")?.hidden,
         experimentalFirefoxRoutingHidden: document.querySelector("#routeBrowserDownloadsFirefox")?.closest("label")?.hidden,
       });
-    })()`),
+    })()`,
+    objectOf({
+      form: decodeBoolean,
+      hostPermissionGranted: decodeBoolean,
+      permissionBannerHidden: decodeBoolean,
+      refererHidden: decodeBoolean,
+      nativeBrowserRoutingHidden: decodeBoolean,
+      experimentalFirefoxRoutingHidden: decodeBoolean,
+    }),
   );
 
   expect(result.form).toBe(true);
@@ -589,8 +656,9 @@ test("options page keeps keyboard focus and core layout accessible", async () =>
     },
   ]);
 
-  const result = JSON.parse(
-    await evalOptions(`JSON.stringify((() => {
+  const result = await evaluateJson(
+    evalOptions,
+    `JSON.stringify((() => {
       const visible = (element) => {
         const style = getComputedStyle(element);
         const rect = element.getBoundingClientRect();
@@ -612,7 +680,18 @@ test("options page keeps keyboard focus and core layout accessible", async () =>
           inViewport: active ? active.getBoundingClientRect().left >= 0 && active.getBoundingClientRect().right <= innerWidth : false,
         },
       };
-    })())`),
+    })())`,
+    objectOf({
+      duplicateIds: arrayOf(decodeString),
+      horizontalOverflow: decodeNumber,
+      unnamedButtons: arrayOf(decodeString),
+      active: objectOf({
+        tag: optional(decodeString),
+        name: optional(decodeString),
+        focusVisible: decodeBoolean,
+        inViewport: decodeBoolean,
+      }),
+    }),
   );
 
   expect(result.duplicateIds).toEqual([]);
@@ -630,10 +709,12 @@ test("options page keeps keyboard focus and core layout accessible", async () =>
       { width: 480, height: 800 },
     ]) {
       await cdp.setViewport(PORT, "options.html", viewport.width, viewport.height);
-      const overflow = await evalOptions(
-        `document.documentElement.scrollWidth - document.documentElement.clientWidth`,
+      const overflow = decodeNumber(
+        await evalOptions(
+          `document.documentElement.scrollWidth - document.documentElement.clientWidth`,
+        ),
       );
-      expect(Number(overflow), `${viewport.width}x${viewport.height}`).toBeLessThanOrEqual(1);
+      expect(overflow, `${viewport.width}x${viewport.height}`).toBeLessThanOrEqual(1);
     }
   } finally {
     await cdp.setViewport(PORT, "options.html", 1280, 800);
@@ -709,8 +790,9 @@ test("download completes through the real pipeline with session tracking", async
   const downloads = await waitForDownloads("smoke");
   expect(downloads.some((x) => x.state === "complete")).toBe(true);
 
-  const result = JSON.parse(
-    await evalSW(`Promise.all([
+  const result = await evaluateJson(
+    evalSW,
+    `Promise.all([
       browser.downloads.search({ filenameRegex: "smoke" }),
       browser.storage.session.get(null),
       browser.storage.local.get("save-in-history"),
@@ -726,7 +808,18 @@ test("download completes through the real pipeline with session tracking", async
         finalFilenames: sess.siFinalFilenames || {},
         entry: { status: entry.status, hasDownloadId: typeof entry.downloadId === "number", fileSize: entry.fileSize },
       });
-    })`),
+    })`,
+    objectOf({
+      state: optional(decodeString),
+      adopted: arrayOf(decodeString),
+      pending: decodeNumber,
+      finalFilenames: decodeRecord,
+      entry: objectOf({
+        status: optional(decodeString),
+        hasDownloadId: decodeBoolean,
+        fileSize: optional(decodeNumber),
+      }),
+    }),
   );
 
   expect(result.state).toBe("complete");
@@ -882,11 +975,13 @@ test("success notifications are created by the real download listener", async ()
 });
 
 test("lastUsedPath survives re-initialisation", async () => {
-  const lastUsed = await evalSW(
-    `browser.storage.local.set({ lastUsedPath: "e2e/persisted" })
+  const lastUsed = decodeString(
+    await evalSW(
+      `browser.storage.local.set({ lastUsedPath: "e2e/persisted" })
       .then(() => api.reset())
       .then(() => browser.storage.local.get("lastUsedPath"))
       .then((stored) => stored.lastUsedPath)`,
+    ),
   );
   expect(lastUsed).toBe("e2e/persisted");
 });
@@ -956,7 +1051,8 @@ test("ordinary browser downloads can be routed and tracked without adoption", as
 });
 
 test("paths textarea renders a live menu-tree preview", async () => {
-  const preview = await evalOptions(`new Promise((resolve, reject) => {
+  const preview = decodeString(
+    await evalOptions(`new Promise((resolve, reject) => {
       const ta = document.querySelector("#paths");
       const preview = document.querySelector("#menu-preview-tree");
       const timeout = AbortSignal.timeout(8000);
@@ -984,15 +1080,17 @@ test("paths textarea renders a live menu-tree preview", async () => {
       ta.value = "dogs // (alias: Dogs!)\\n>corgi\\n---\\ncats";
       ta.dispatchEvent(new InputEvent("input", { bubbles: true }));
       check();
-    })`);
+    })`),
+  );
 
   expect(preview).toContain("Dogs!");
   expect(preview).toContain("corgi");
 });
 
 test("the paths editor applies changes while drafts stay local", async () => {
-  const result = JSON.parse(
-    await evalOptions(`(async () => {
+  const result = await evaluateJson(
+    evalOptions,
+    `(async () => {
       const ta = document.querySelector("#paths");
       const apply = document.querySelector('[data-apply="paths"]');
       const waitForEnabled = (button, label) => {
@@ -1027,7 +1125,8 @@ test("the paths editor applies changes while drafts stay local", async () => {
       const storedDraft = await browser.storage.local.get("paths");
 
       return JSON.stringify({ value: ta.value, storedPaths: storedDraft.paths });
-    })()`),
+    })()`,
+    objectOf({ value: decodeString, storedPaths: decodeString }),
   );
 
   expect(result.value).toBe("baseline\nunsaved");
@@ -1041,7 +1140,7 @@ test("changing paths is visible after background reinitialisation", async () => 
       .then(() => browser.runtime.sendMessage({ type: "OPTIONS" }))
       .then((response) => JSON.stringify(response.body.paths.split("\\n").length))`,
   );
-  expect(JSON.parse(pathCount)).toBe(5);
+  expect(parseJson(pathCount, decodeNumber)).toBe(5);
 });
 
 test(":counter: advances once per download and persists in storage", async () => {
@@ -1059,7 +1158,7 @@ test(":counter: advances once per download and persists in storage", async () =>
     const rows = await waitForDownloads(`${i + 1}-countme`);
     expect(rows.some((x) => x.state === "complete")).toBe(true);
   }
-  const finalCount = JSON.parse(await evalSW(`api.peekCounter()`));
+  const finalCount = decodeNumber(await evalSW(`api.peekCounter()`));
   // two downloads -> counter advanced exactly twice
   expect(finalCount).toBe(2);
   // and each download's :counter: resolved to its own value
@@ -1068,13 +1167,15 @@ test(":counter: advances once per download and persists in storage", async () =>
 });
 
 test("APPLY_CONFIG validates and persists a partial config (#89)", async () => {
-  const result = JSON.parse(
-    await evalSW(`api.applyConfig({ truncateLength: 99, notifyOnSuccess: false, bogusKey: 1 })
+  const result = await evaluateJson(
+    evalSW,
+    `api.applyConfig({ truncateLength: 99, notifyOnSuccess: false, bogusKey: 1 })
       .then((body) =>
         browser.storage.local
           .get(["truncateLength", "notifyOnSuccess"])
           .then((stored) => JSON.stringify({ body, stored })),
-      )`),
+      )`,
+    objectOf({ body: decodeRecord, stored: decodeRecord }),
   );
 
   expect(result.body.applied).toEqual({ truncateLength: 99, notifyOnSuccess: false });
@@ -1095,10 +1196,13 @@ test("message-driven downloads work and never inherit a stale route", async () =
   );
 
   // v1 handshake: PING negotiates the version + capabilities end-to-end
-  const pong = JSON.parse(
-    await evalOptions(
-      `new Promise((res) => chrome.runtime.sendMessage({ type: "PING" }, (r) => res(JSON.stringify(r))))`,
-    ),
+  const pong = await evaluateJson(
+    evalOptions,
+    `new Promise((res) => chrome.runtime.sendMessage({ type: "PING" }, (r) => res(JSON.stringify(r))))`,
+    objectOf({
+      type: decodeString,
+      body: objectOf({ version: decodeNumber, capabilities: arrayOf(decodeString) }),
+    }),
   );
   expect(pong.type).toBe("PONG");
   expect(pong.body.version).toBe(1);
@@ -1116,7 +1220,7 @@ test("message-driven downloads work and never inherit a stale route", async () =
     },
   }, (r) => res(JSON.stringify(r))))`);
   // v1 external API: status:"OK" is unchanged for back-compat; version/url added
-  expect(JSON.parse(ack)).toEqual({
+  expect(parseJson(ack, decodeRecord)).toEqual({
     type: "DOWNLOAD",
     body: { status: "OK", version: 1, url: "data:text/plain,message%20download" },
   });
@@ -1154,7 +1258,7 @@ test("a separately installed extension negotiates, authorizes, and routes a down
           `chrome.runtime.sendMessage(${JSON.stringify(extensionId)}, ${JSON.stringify(message)})
             .then((response) => JSON.stringify(response))`,
         )
-        .then(JSON.parse),
+        .then((value) => parseJson(value, decodeRecord)),
     callerId,
     waitForDownloads,
     filename: "external-chrome.bin",
@@ -1170,7 +1274,7 @@ test("fetchViaFetch downloads via an offscreen document (Chrome MV3)", async () 
         pageUrl: "https://example.com/",
       })).then(() => "started")`);
   expect((await waitForDownloads("viafetch")).map((x) => x.state)).toEqual(["complete"]);
-  const hasOffscreen = await evalSW(`chrome.offscreen.hasDocument()`);
+  const hasOffscreen = decodeBoolean(await evalSW(`chrome.offscreen.hasDocument()`));
   await evalSW(`api.setOptions({ fetchViaFetch: false })`);
   // the service worker used an offscreen document for the blob object URL
   expect(hasOffscreen).toBe(true);
@@ -1197,12 +1301,14 @@ test("Referer-protected downloads use a scoped DNR offscreen fetch", async () =>
   });
   const port = await listenLocal(server);
   const url = `http://127.0.0.1:${port}/referer-protected.txt`;
-  const previous = JSON.parse(
-    await evalSW(`Promise.all([
+  const previous = await evaluateJson(
+    evalSW,
+    `Promise.all([
       api.getOption("setRefererHeader"),
       api.getOption("setRefererHeaderFilter"),
     ]).then(([setRefererHeader, setRefererHeaderFilter]) =>
-      JSON.stringify({ setRefererHeader, setRefererHeaderFilter }))`),
+      JSON.stringify({ setRefererHeader, setRefererHeaderFilter }))`,
+    objectOf({ setRefererHeader: decodeBoolean, setRefererHeaderFilter: decodeString }),
   );
   try {
     await evalSW(`api.setOptions({
@@ -1224,8 +1330,10 @@ test("Referer-protected downloads use a scoped DNR offscreen fetch", async () =>
     expect(receivedRequests.every(({ referer }) => referer === expectedReferer)).toBe(true);
     expect(done.filename).toContain(`referer-protected-chrome-webp-${expectedHash}`);
     expect(fs.readFileSync(done.filename, "utf8")).toBe(body);
-    const remainingRules = await evalSW(
-      `chrome.declarativeNetRequest.getSessionRules().then((rules) => rules.map((rule) => rule.id))`,
+    const remainingRules = arrayOf(decodeNumber)(
+      await evalSW(
+        `chrome.declarativeNetRequest.getSessionRules().then((rules) => rules.map((rule) => rule.id))`,
+      ),
     );
     expect(remainingRules).not.toContain(66_000_001);
   } finally {
@@ -1254,12 +1362,14 @@ test("concurrent Referer-protected fetches keep their exact headers serialized",
     });
   });
   const port = await listenLocal(server);
-  const previous = JSON.parse(
-    await evalSW(`Promise.all([
+  const previous = await evaluateJson(
+    evalSW,
+    `Promise.all([
       api.getOption("setRefererHeader"),
       api.getOption("setRefererHeaderFilter"),
     ]).then(([setRefererHeader, setRefererHeaderFilter]) =>
-      JSON.stringify({ setRefererHeader, setRefererHeaderFilter }))`),
+      JSON.stringify({ setRefererHeader, setRefererHeaderFilter }))`,
+    objectOf({ setRefererHeader: decodeBoolean, setRefererHeaderFilter: decodeString }),
   );
   const fixtures = [
     { name: "referer-concurrent-a", referer: "https://gallery.example/a" },
@@ -1287,8 +1397,10 @@ test("concurrent Referer-protected fetches keep their exact headers serialized",
       expect(matching.map(({ method }) => method)).toEqual(["HEAD", "GET"]);
       expect(matching.every(({ referer }) => referer === fixture.referer)).toBe(true);
     }
-    const remainingRules = await evalSW(
-      `chrome.declarativeNetRequest.getSessionRules().then((rules) => rules.map((rule) => rule.id))`,
+    const remainingRules = arrayOf(decodeNumber)(
+      await evalSW(
+        `chrome.declarativeNetRequest.getSessionRules().then((rules) => rules.map((rule) => rule.id))`,
+      ),
     );
     expect(remainingRules).not.toContain(66_000_001);
   } finally {
@@ -1423,9 +1535,11 @@ test("a bundled direct save delivers the configured webhook payload once", async
     "webhookIncludePageTitle",
     "webhookIncludeSelectionText",
   ];
-  const previous = JSON.parse(
-    await evalSW(`browser.storage.local.get(${JSON.stringify(keys)})
-      .then((stored) => JSON.stringify(stored))`),
+  const previous = await evaluateJson(
+    evalSW,
+    `browser.storage.local.get(${JSON.stringify(keys)})
+      .then((stored) => JSON.stringify(stored))`,
+    decodeRecord,
   );
   const missing = keys.filter((key) => !(key in previous));
 
@@ -1461,16 +1575,32 @@ test("a bundled direct save delivers the configured webhook payload once", async
       pageUrl: "https://page.example/webhook-source",
     }).then(() => "started")`);
     await waitForDownloads("webhook-e2e");
-    const calls = await poll(
-      async () => {
-        const rows = JSON.parse(
-          await evalWorker(`JSON.stringify(globalThis.__saveInE2EWebhookCalls || [])`),
-        );
-        return rows.length === 1 ? rows : null;
-      },
-      { description: "webhook delivery" },
+    const calls = requireValue(
+      await poll(
+        async () => {
+          const rows = await evaluateJson(
+            evalWorker,
+            `JSON.stringify(globalThis.__saveInE2EWebhookCalls || [])`,
+            arrayOf(
+              objectOf({
+                input: decodeString,
+                method: optional(decodeString),
+                body: decodeString,
+                credentials: optional(decodeString),
+                cache: optional(decodeString),
+                redirect: optional(decodeString),
+                referrerPolicy: optional(decodeString),
+              }),
+            ),
+          );
+          return rows.length === 1 ? rows : null;
+        },
+        { description: "webhook delivery" },
+      ),
+      "Webhook delivery was not observed",
     );
-    expect(calls[0]).toMatchObject({
+    const call = requireValue(calls[0], "Webhook call was not captured");
+    expect(call).toMatchObject({
       input: "https://webhook.invalid/save?token=secret",
       method: "POST",
       credentials: "omit",
@@ -1478,7 +1608,7 @@ test("a bundled direct save delivers the configured webhook payload once", async
       redirect: "error",
       referrerPolicy: "no-referrer",
     });
-    expect(JSON.parse(calls[0].body)).toMatchObject({
+    expect(parseJson(call.body, decodeRecord)).toMatchObject({
       version: 1,
       event: "save",
       url: "https://page.example/webhook-source",
@@ -1515,13 +1645,13 @@ test("options page autosave persists to storage and survives a restart", async (
     const stored = await evalSW(
       `browser.storage.local.get("promptOnShift").then((o) => JSON.stringify(o.promptOnShift))`,
     );
-    expect(JSON.parse(stored)).toBe(false);
+    expect(parseJson(stored, decodeBoolean)).toBe(false);
 
     // ...and survives a simulated service-worker restart
     const afterReset = await evalSW(
       `api.reset().then(() => api.getOption("promptOnShift")).then(JSON.stringify)`,
     );
-    expect(JSON.parse(afterReset)).toBe(false);
+    expect(parseJson(afterReset, decodeBoolean)).toBe(false);
   } finally {
     await evalOptions(`(async () => {
       const cb = document.querySelector("#promptOnShift");
@@ -1542,19 +1672,21 @@ test("removing option keys restores live defaults before reset acknowledgement",
       .then(() => api.getOption("promptOnShift"))
       .then(JSON.stringify)`);
 
-    const result = JSON.parse(
-      await evalOptions(`(async () => {
+    const result = await evaluateJson(
+      evalOptions,
+      `(async () => {
         await chrome.storage.local.remove("promptOnShift");
         const response = await chrome.runtime.sendMessage({ type: "OPTIONS_LOADED" });
         return JSON.stringify({ response, stored: await chrome.storage.local.get("promptOnShift") });
-      })()`),
+      })()`,
+      objectOf({ response: decodeRecord, stored: decodeRecord }),
     );
 
     expect(result.response).toEqual({ type: "OK" });
     expect(result.stored).toEqual({});
-    expect(JSON.parse(await evalSW(`api.getOption("promptOnShift").then(JSON.stringify)`))).toBe(
-      true,
-    );
+    expect(
+      parseJson(await evalSW(`api.getOption("promptOnShift").then(JSON.stringify)`), decodeBoolean),
+    ).toBe(true);
   } finally {
     await evalSW(`browser.storage.local.set({ promptOnShift: true })
       .then(() => api.reset())
@@ -1580,8 +1712,12 @@ test("alt+click on a real page saves the image through the content script", asyn
   const serverPort = await listenLocal(server);
   const pageUrl = `http://127.0.0.1:${serverPort}/`;
   const targetUrl = `127.0.0.1:${serverPort}`;
-  const previousContentClickToSave = await evalSW(`api.getOption("contentClickToSave")`);
-  const previousContentClickToSaveCombo = await evalSW(`api.getOption("contentClickToSaveCombo")`);
+  const previousContentClickToSave = decodeBoolean(
+    await evalSW(`api.getOption("contentClickToSave")`),
+  );
+  const previousContentClickToSaveCombo = decodeStringOrNumber(
+    await evalSW(`api.getOption("contentClickToSaveCombo")`),
+  );
 
   try {
     await evalSW(
@@ -1613,17 +1749,17 @@ test("alt+click on a real page saves the image through the content script", asyn
         return true;
       })()`,
     );
-    const syntheticDownloads = JSON.parse(
-      await evalSW(
-        `browser.downloads.search({}).then((items) => JSON.stringify(items
+    const syntheticDownloads = await evaluateJson(
+      evalSW,
+      `browser.downloads.search({}).then((items) => JSON.stringify(items
           .filter((item) => item.url === ${JSON.stringify(`${pageUrl}pic.png`)})))`,
-      ),
+      (value) => decodeDownloadEntries(value, "synthetic click downloads"),
     );
     expect(syntheticDownloads).toHaveLength(0);
 
     // The page-generated attempt above is rejected. Dispatch real input through
     // the browser to prove the configured gesture still works.
-    const target = JSON.parse(
+    const target = parseJson(
       await cdp.evalInTarget(
         PORT,
         targetUrl,
@@ -1635,6 +1771,7 @@ test("alt+click on a real page saves the image through the content script", asyn
           });
         })()`,
       ),
+      objectOf({ x: decodeNumber, y: decodeNumber }),
     );
 
     await cdp.dispatchInput(PORT, targetUrl, [
@@ -1729,10 +1866,12 @@ test("automatic Page Sources routes initial and live matches and enforces the vi
   const { server, port } = await startSourcePanelServer();
   const target = `127.0.0.1:${port}/automatic-sources`;
   const pageUrl = `http://${target}`;
-  const previous = JSON.parse(
-    await evalSW(`browser.storage.local.get([
+  const previous = await evaluateJson(
+    evalSW,
+    `browser.storage.local.get([
       "autoDownloadEnabled", "autoDownloadLive", "autoDownloadMaxPerPage", "filenamePatterns"
-    ]).then((stored) => JSON.stringify(stored))`),
+    ]).then((stored) => JSON.stringify(stored))`,
+    decodeRecord,
   );
   const automaticKeys = [
     "autoDownloadEnabled",
@@ -1790,10 +1929,12 @@ into: e2e/automatic-chrome/:filename:`,
       })()`,
     );
     await waitForDownloadUrl(`http://127.0.0.1:${port}/late.png`);
-    const rows = JSON.parse(
-      await evalSW(`browser.downloads.search({}).then((items) => JSON.stringify(items.filter(
+    const rows = await evaluateJson(
+      evalSW,
+      `browser.downloads.search({}).then((items) => JSON.stringify(items.filter(
         (item) => item.url === "http://127.0.0.1:${port}/over-limit.png"
-      )))`),
+      )))`,
+      arrayOf(decodeRecord),
     );
     expect(rows).toHaveLength(0);
   } finally {
@@ -1850,7 +1991,10 @@ test("Page Sources discovers, updates live, and restores across tabs", async () 
       ),
       cdp.triggerAction(PORT, extensionId, firstPath),
     ]);
-    const discovery = JSON.parse(discoveryJson);
+    const discovery = parseJson(
+      discoveryJson,
+      objectOf({ initial: arrayOf(decodeString), current: arrayOf(decodeString) }),
+    );
     expect(discovery.initial).toEqual(["second.png", "first.png"]);
     expect(discovery.current).toContain("late.png");
 
@@ -1911,12 +2055,12 @@ registerSharedBrowserCases({
   symlinkSupported: false,
   failedDownloadFilename: "si-unreachable.bin",
   afterFailedDownload: async () => {
-    const requested = JSON.parse(
-      await evalSW(
-        `api.logs().then((log) => JSON.stringify(
+    const requested = await evaluateJson(
+      evalSW,
+      `api.logs().then((log) => JSON.stringify(
           log.filter((entry) => entry.message === "download requested" && String(entry.data).includes("si-unreachable"))
         ))`,
-      ),
+      arrayOf(decodeRecord),
     );
     expect(requested.length).toBeGreaterThanOrEqual(1);
   },
@@ -1931,11 +2075,13 @@ registerSharedBrowserCases({
 });
 
 test("history and the debug log record a self-contained download", async () => {
-  const before = JSON.parse(
-    await evalSW(`Promise.all([api.history(), api.logs()]).then(([history, log]) => JSON.stringify({
+  const before = await evaluateJson(
+    evalSW,
+    `Promise.all([api.history(), api.logs()]).then(([history, log]) => JSON.stringify({
       history: history.length,
       log: log.length,
-    }))`),
+    }))`,
+    objectOf({ history: decodeNumber, log: decodeNumber }),
   );
   await evalSW(`api.startDownload({
     content: "history e2e content",
@@ -1944,14 +2090,20 @@ test("history and the debug log record a self-contained download", async () => {
   }).then(() => "started")`);
   await waitForDownloads("history-e2e");
 
-  const records = JSON.parse(
-    await evalSW(`Promise.all([api.history(), api.logs()]).then(([history, log]) => JSON.stringify({
+  const records = await evaluateJson(
+    evalSW,
+    `Promise.all([api.history(), api.logs()]).then(([history, log]) => JSON.stringify({
       history: history.length,
       matchingHistory: history.filter((entry) => String(entry.finalFullPath).includes("history-e2e")).length,
       matchingRequests: log.slice(${before.log}).filter((entry) =>
         entry.message === "download requested" && JSON.stringify(entry.data).includes("history-e2e")
       ).length,
-    }))`),
+    }))`,
+    objectOf({
+      history: decodeNumber,
+      matchingHistory: decodeNumber,
+      matchingRequests: decodeNumber,
+    }),
   );
 
   expect(records.history).toBeGreaterThan(before.history);

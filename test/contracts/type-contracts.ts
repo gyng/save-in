@@ -4,7 +4,7 @@ import { expectTypeOf } from "vitest";
 import type { CounterWriteState } from "../../src/background/counter.ts";
 import { makeSeparator, type MenuContext } from "../../src/background/menu-build.ts";
 import { handleContextMenuClick } from "../../src/background/menu-click.ts";
-import type { SaveInOptions } from "../../src/config/option-schema.ts";
+import type { SaveInOptions, StoredSaveInOptions } from "../../src/config/option-schema.ts";
 import type { UiTheme } from "../../src/config/content-options.ts";
 import type {
   AcquiredDownload,
@@ -34,6 +34,7 @@ import type {
 import type { SessionWriteState } from "../../src/shared/session-state.ts";
 import { readResponseContent } from "../../src/shared/streaming-content.ts";
 import { withUrl } from "../../src/shared/util.ts";
+import type { E2ERuntimeOptionValues, E2EStoredOptionValues } from "../e2e/control-protocol.mjs";
 
 expectTypeOf<DownloadPlan>().toHaveProperty("state").toEqualTypeOf<DownloadPipelineState>();
 expectTypeOf<AcquiredDownload>().toEqualTypeOf<{
@@ -77,6 +78,12 @@ expectTypeOf<SaveInOptions["filenamePatterns"]>().toEqualTypeOf<RoutingRule[] | 
 expectTypeOf<SaveInOptions["uiTheme"]>().toEqualTypeOf<UiTheme>();
 expectTypeOf<SaveInOptions["uiLocale"]>().toEqualTypeOf<"" | SelectableLocale>();
 expectTypeOf<SaveInOptions["contentClickToSaveButton"]>().toEqualTypeOf<ClickType>();
+expectTypeOf<E2ERuntimeOptionValues>().toEqualTypeOf<
+  Pick<SaveInOptions, keyof E2ERuntimeOptionValues>
+>();
+expectTypeOf<E2EStoredOptionValues>().toEqualTypeOf<
+  Pick<StoredSaveInOptions, keyof E2EStoredOptionValues>
+>();
 
 expectTypeOf<MessageOf<typeof MESSAGE_TYPES.HISTORY_CANCEL>>().toEqualTypeOf<{
   type: typeof MESSAGE_TYPES.HISTORY_CANCEL;

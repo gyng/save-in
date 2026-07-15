@@ -1,6 +1,17 @@
 import { expect } from "vitest";
 
-import { poll } from "./helpers.mjs";
+import {
+  decodeBoolean,
+  decodeNumber,
+  decodeRecord,
+  decodeString,
+  evaluateJson,
+  nullable,
+  objectOf,
+  optional,
+  poll,
+  requireValue,
+} from "./helpers.mjs";
 
 const VISUAL_RULE_SOURCE = [
   "// Product images",
@@ -21,9 +32,9 @@ const EDITED_RULE_SOURCE = VISUAL_RULE_SOURCE.replace("\\.jpg$", EDITED_MATCHER)
  * boundary and that debugger source navigation targets its visual projection.
  *
  * @param {{
- *   evaluate: (expression: string) => Promise<any>,
- *   evaluateOptions: (expression: string) => Promise<any>,
- *   reloadOptions?: () => Promise<any>,
+ *   evaluate: (expression: string) => Promise<unknown>,
+ *   evaluateOptions: (expression: string) => Promise<unknown>,
+ *   reloadOptions?: () => Promise<unknown>,
  * }} adapters
  */
 export const runRoutingVisualEditorScenario = async ({
@@ -31,12 +42,14 @@ export const runRoutingVisualEditorScenario = async ({
   evaluateOptions,
   reloadOptions = () => evaluateOptions(`location.reload()`),
 }) => {
-  const previousConfig = JSON.parse(
-    await evaluate(
-      `browser.storage.local.get("filenamePatterns").then((value) => JSON.stringify(value))`,
-    ),
+  const previousConfig = await evaluateJson(
+    evaluate,
+    `browser.storage.local.get("filenamePatterns").then((value) => JSON.stringify(value))`,
+    decodeRecord,
   );
-  const previousMode = await evaluateOptions(`localStorage.getItem("saveInRulesEditorMode")`);
+  const previousMode = nullable(decodeString)(
+    await evaluateOptions(`localStorage.getItem("saveInRulesEditorMode")`),
+  );
 
   try {
     await evaluate(`api.setOptions({ filenamePatterns: ${JSON.stringify(VISUAL_RULE_SOURCE)} })`);
@@ -51,8 +64,9 @@ export const runRoutingVisualEditorScenario = async ({
       { description: "routing rules loaded in Options" },
     );
 
-    const initial = JSON.parse(
-      await evaluateOptions(`JSON.stringify((() => {
+    const initial = await evaluateJson(
+      evaluateOptions,
+      `JSON.stringify((() => {
         document.querySelector("#rules-mode-visual")?.click();
         const cards = [...document.querySelectorAll(".rule-editor-card")];
         return {
@@ -63,7 +77,15 @@ export const runRoutingVisualEditorScenario = async ({
           firstValue: cards[0]?.querySelector(".rule-clause-value")?.value,
           secondEnabled: cards[1]?.querySelector(".rule-editor-enabled")?.checked,
         };
-      })())`),
+      })())`,
+      objectOf({
+        textHidden: decodeBoolean,
+        visualHidden: decodeBoolean,
+        cardCount: decodeNumber,
+        firstLine: optional(decodeString),
+        firstValue: optional(decodeString),
+        secondEnabled: optional(decodeBoolean),
+      }),
     );
     expect(initial).toEqual({
       textHidden: true,
@@ -104,10 +126,10 @@ export const runRoutingVisualEditorScenario = async ({
 
     const persisted = await poll(
       async () => {
-        const value = JSON.parse(
-          await evaluate(
-            `browser.storage.local.get("filenamePatterns").then((stored) => JSON.stringify(stored.filenamePatterns))`,
-          ),
+        const value = await evaluateJson(
+          evaluate,
+          `browser.storage.local.get("filenamePatterns").then((stored) => JSON.stringify(stored.filenamePatterns))`,
+          decodeString,
         );
         if (value === EDITED_RULE_SOURCE) return value;
         throw new Error(
@@ -121,8 +143,9 @@ export const runRoutingVisualEditorScenario = async ({
     await reloadOptions();
     const restored = await poll(
       async () => {
-        const state = JSON.parse(
-          await evaluateOptions(`JSON.stringify((() => {
+        const state = await evaluateJson(
+          evaluateOptions,
+          `JSON.stringify((() => {
             const cards = [...document.querySelectorAll(".rule-editor-card")];
             return {
               ready: document.readyState,
@@ -133,7 +156,16 @@ export const runRoutingVisualEditorScenario = async ({
               secondDisabled: cards[1]?.classList.contains("is-disabled"),
               secondEnabled: cards[1]?.querySelector(".rule-editor-enabled")?.checked,
             };
-          })())`),
+          })())`,
+          objectOf({
+            ready: decodeString,
+            visualSelected: optional(decodeString),
+            textHidden: decodeBoolean,
+            cardCount: decodeNumber,
+            firstValue: optional(decodeString),
+            secondDisabled: decodeBoolean,
+            secondEnabled: optional(decodeBoolean),
+          }),
         );
         return state.ready === "complete" && state.cardCount === 2 ? state : null;
       },
@@ -183,8 +215,10 @@ export const runRoutingVisualEditorScenario = async ({
         )) === "matched" || null,
       { description: "visual routing debugger match" },
     );
-    const sourceNavigation = JSON.parse(
-      await evaluateOptions(`JSON.stringify((() => {
+    const sourceNavigation = requireValue(
+      await evaluateJson(
+        evaluateOptions,
+        `JSON.stringify((() => {
         const source = document.querySelector(
           ".route-debugger-rule.is-selected .route-debugger-source-link"
         );
@@ -195,7 +229,15 @@ export const runRoutingVisualEditorScenario = async ({
           ruleIndex: selected?.dataset.ruleIndex,
           activeLine: selected?.querySelector(".rule-clause-row.is-active")?.dataset.line,
         };
-      })())`),
+      })())`,
+        nullable(
+          objectOf({
+            ruleIndex: optional(decodeString),
+            activeLine: optional(decodeString),
+          }),
+        ),
+      ),
+      "Visual routing source navigation was unavailable",
     );
     expect(sourceNavigation).toEqual({ ruleIndex: "0", activeLine: "2" });
   } finally {

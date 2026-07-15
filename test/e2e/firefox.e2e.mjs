@@ -11,7 +11,12 @@ import path from "path";
 import firefox from "../../scripts/lib/firefox.js";
 import { inBackgroundContext } from "./background-context.mjs";
 import { registerSharedBrowserCases } from "./cases/shared-browser.cases.mjs";
-import { decodeDownloadEntries, decodeTabEntry, decodeWindowReference } from "./control-codecs.mjs";
+import {
+  decodeDownloadEntries,
+  decodeHistoryEntries,
+  decodeTabEntry,
+  decodeWindowReference,
+} from "./control-codecs.mjs";
 import { createE2EControlClient, createRecoveringControlTransport } from "./control-client.mjs";
 import {
   runContentDispositionScenario,
@@ -23,11 +28,20 @@ import {
 import { createHarnessSession } from "./harness-session.mjs";
 import {
   appendImageAndWaitForSourceExpression,
+  arrayOf,
   beginResourceScope,
   closeLocal,
   createLazyPageEvaluator,
+  decodeBoolean,
+  decodeNumber,
+  decodeRecord,
+  decodeString,
+  decodeStringOrNumber,
   evaluateJson,
   listenLocal,
+  objectOf,
+  optional,
+  parseJson,
   poll,
   requireValue,
   waitForApiEntriesExpression,
@@ -48,15 +62,17 @@ const ARTIFACTS = process.env.E2E_ARTIFACT_DIR
   ? path.resolve(process.env.E2E_ARTIFACT_DIR)
   : path.resolve("dist", "e2e-artifacts");
 
-/** @param {string} expr @param {number} [timeoutMs] */
+/** @param {string} expr @param {number} [timeoutMs] @returns {Promise<unknown>} */
 const rawEvalOptions = (expr, timeoutMs) =>
   session.evaluateInTab("src/options/options.html", expr, timeoutMs);
-/** @param {string} expr @param {number} [timeoutMs] */
+/** @param {string} expr @param {number} [timeoutMs] @returns {Promise<unknown>} */
 const evalBackground = (expr, timeoutMs) => rawEvalOptions(inBackgroundContext(expr), timeoutMs);
 const reloadOptionsPage = async () => {
-  const tabId = await session.evaluate(
-    `browser.tabs.query({}).then((tabs) => tabs.find((tab) =>
-      tab.url?.startsWith(browser.runtime.getURL("src/options/options.html")))?.id)`,
+  const tabId = optional(decodeNumber)(
+    await session.evaluate(
+      `browser.tabs.query({}).then((tabs) => tabs.find((tab) =>
+        tab.url?.startsWith(browser.runtime.getURL("src/options/options.html")))?.id)`,
+    ),
   );
   if (tabId === undefined) {
     await session.evaluate(
@@ -275,31 +291,42 @@ afterEach(async ({ task }) => {
 });
 
 test("first install starts with a focused welcome", async () => {
-  const welcome = await poll(
-    async () => {
-      const state = JSON.parse(
-        await evalOptions(`browser.storage.local.get("welcomePendingVersion").then((stored) =>
+  const welcome = requireValue(
+    await poll(
+      async () => {
+        const state = await evaluateJson(
+          evalOptions,
+          `browser.storage.local.get("welcomePendingVersion").then((stored) =>
           JSON.stringify({
             open: document.querySelector("#welcome-dialog")?.open === true,
             focused: document.activeElement === document.querySelector(".welcome-accept"),
             pending: stored.welcomePendingVersion,
-          }))`),
-      );
-      return state.open && state.focused ? state : null;
-    },
-    { description: "Firefox first-install welcome dialog" },
+          }))`,
+          objectOf({
+            open: decodeBoolean,
+            focused: decodeBoolean,
+            pending: optional(decodeNumber),
+          }),
+        );
+        return state.open && state.focused ? state : null;
+      },
+      { description: "Firefox first-install welcome dialog" },
+    ),
+    "Firefox first-install welcome dialog was not observed",
   );
   expect(welcome.pending).toBe(1);
 
   await evalOptions(`document.querySelector(".welcome-accept").click()`);
   await poll(
     async () => {
-      const state = JSON.parse(
-        await evalOptions(`browser.storage.local.get("welcomePendingVersion").then((stored) =>
+      const state = await evaluateJson(
+        evalOptions,
+        `browser.storage.local.get("welcomePendingVersion").then((stored) =>
           JSON.stringify({
             dismissed: !document.querySelector("#welcome-dialog"),
             pending: stored.welcomePendingVersion,
-          }))`),
+          }))`,
+        objectOf({ dismissed: decodeBoolean, pending: optional(decodeNumber) }),
       );
       return state.dismissed && state.pending === undefined ? state : null;
     },
@@ -559,7 +586,7 @@ test("success notifications are created by the real download listener", async ()
 });
 
 test("options reset re-initialises", async () => {
-  const reset = await evalBackground(`api.reset().then(() => "reset-ok")`);
+  const reset = decodeString(await evalBackground(`api.reset().then(() => "reset-ok")`));
   expect(reset).toBe("reset-ok");
 });
 
@@ -581,12 +608,14 @@ test("downloads receive the configured Referer header", async () => {
   const port = await listenLocal(server);
   const url = `http://127.0.0.1:${port}/referer-probe.txt`;
   const referer = "http://referrer.example/download-test";
-  const previous = JSON.parse(
-    await evalBackground(`Promise.all([
+  const previous = await evaluateJson(
+    evalBackground,
+    `Promise.all([
       api.getOption("setRefererHeader"),
       api.getOption("setRefererHeaderFilter"),
     ]).then(([setRefererHeader, setRefererHeaderFilter]) =>
-      JSON.stringify({ setRefererHeader, setRefererHeaderFilter }))`),
+      JSON.stringify({ setRefererHeader, setRefererHeaderFilter }))`,
+    objectOf({ setRefererHeader: decodeBoolean, setRefererHeaderFilter: decodeString }),
   );
 
   try {
@@ -608,10 +637,10 @@ test("downloads receive the configured Referer header", async () => {
     expect(receivedRequests.every(({ referer: observed }) => observed === referer)).toBe(true);
     expect(done.filename).toContain(`referer-protected-firefox-webp-${expectedHash}`);
     expect(fs.readFileSync(done.filename, "utf8")).toBe(body);
-    const remainingRules = JSON.parse(
-      await evalBackground(
-        `browser.declarativeNetRequest.getSessionRules().then((rules) => JSON.stringify(rules.map((rule) => rule.id)))`,
-      ),
+    const remainingRules = await evaluateJson(
+      evalBackground,
+      `browser.declarativeNetRequest.getSessionRules().then((rules) => JSON.stringify(rules.map((rule) => rule.id)))`,
+      arrayOf(decodeNumber),
     );
     expect(remainingRules).not.toContain(66_000_001);
   } finally {
@@ -673,7 +702,7 @@ test("a separately installed extension negotiates, authorizes, and routes a down
             ${JSON.stringify(message)}
           ).then((response) => JSON.stringify(response))`,
         )
-        .then(JSON.parse),
+        .then((value) => parseJson(value, decodeRecord)),
     callerId,
     waitForDownloads,
     filename: "external-firefox.bin",
@@ -722,13 +751,13 @@ test("ordinary browser downloads can be tracked and experimentally rerouted on F
     const rows = await waitForDownloads("browser-routed");
     expect(rows.some((row) => row.state === "complete")).toBe(true);
     expect(rows.some((row) => row.filename.includes("browser-routed"))).toBe(true);
-    const observed = JSON.parse(
-      await evalBackground(
-        waitForApiEntriesExpression(
-          "history",
-          `(entry) => entry.info?.context === "browser" && entry.status === "complete"`,
-        ),
+    const observed = await evaluateJson(
+      evalBackground,
+      waitForApiEntriesExpression(
+        "history",
+        `(entry) => entry.info?.context === "browser" && entry.status === "complete"`,
       ),
+      decodeHistoryEntries,
     );
     expect(observed.at(-1)).toMatchObject({ status: "complete", info: { context: "browser" } });
   } finally {
@@ -747,9 +776,11 @@ test("click-to-save rejects synthetic input and accepts a trusted alt+click", as
   const { server, port } = await startPageServer();
   const pageUrl = `http://127.0.0.1:${port}/`;
   const targetUrl = `127.0.0.1:${port}`;
-  const previousContentClickToSave = await evalBackground(`api.getOption("contentClickToSave")`);
-  const previousContentClickToSaveCombo = await evalBackground(
-    `api.getOption("contentClickToSaveCombo")`,
+  const previousContentClickToSave = decodeBoolean(
+    await evalBackground(`api.getOption("contentClickToSave")`),
+  );
+  const previousContentClickToSaveCombo = decodeStringOrNumber(
+    await evalBackground(`api.getOption("contentClickToSaveCombo")`),
   );
 
   try {
@@ -776,11 +807,11 @@ test("click-to-save rejects synthetic input and accepts a trusted alt+click", as
       })()`,
     );
 
-    const downloads = JSON.parse(
-      await evalBackground(
-        `browser.downloads.search({}).then((items) => JSON.stringify(items
+    const downloads = await evaluateJson(
+      evalBackground,
+      `browser.downloads.search({}).then((items) => JSON.stringify(items
           .filter((item) => item.url === ${JSON.stringify(`${pageUrl}pic.png`)})))`,
-      ),
+      (value) => decodeDownloadEntries(value, "synthetic Firefox click downloads"),
     );
     expect(downloads).toHaveLength(0);
 
@@ -789,7 +820,7 @@ test("click-to-save rejects synthetic input and accepts a trusted alt+click", as
       if (tab?.id == null) throw new Error("click-to-save fixture tab missing");
       return browser.tabs.update(tab.id, { active: true });
     })`);
-    const point = JSON.parse(
+    const point = parseJson(
       await session.evaluateInTab(
         targetUrl,
         `(() => {
@@ -797,6 +828,7 @@ test("click-to-save rejects synthetic input and accepts a trusted alt+click", as
           return JSON.stringify({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
         })()`,
       ),
+      objectOf({ x: decodeNumber, y: decodeNumber }),
     );
     await session.bidi.altClick(targetUrl, point.x, point.y);
 
@@ -827,10 +859,12 @@ test("automatic Page Sources routes initial and live matches and enforces the vi
   const { server, port } = await startSourcePanelServer();
   const target = `localhost:${port}/automatic-sources`;
   const pageUrl = `http://${target}`;
-  const previous = JSON.parse(
-    await evalBackground(`browser.storage.local.get([
+  const previous = await evaluateJson(
+    evalBackground,
+    `browser.storage.local.get([
       "autoDownloadEnabled", "autoDownloadLive", "autoDownloadMaxPerPage", "filenamePatterns"
-    ]).then((stored) => JSON.stringify(stored))`),
+    ]).then((stored) => JSON.stringify(stored))`,
+    decodeRecord,
   );
   const automaticKeys = [
     "autoDownloadEnabled",
@@ -892,10 +926,12 @@ into: e2e/automatic-firefox/:filename:`,
       })()`,
     );
     await waitForDownloadUrl(`http://localhost:${port}/late.png`);
-    const rows = JSON.parse(
-      await evalBackground(`browser.downloads.search({}).then((items) => JSON.stringify(items.filter(
+    const rows = await evaluateJson(
+      evalBackground,
+      `browser.downloads.search({}).then((items) => JSON.stringify(items.filter(
         (item) => item.url === "http://localhost:${port}/over-limit.png"
-      )))`),
+      )))`,
+      arrayOf(decodeRecord),
     );
     expect(rows).toHaveLength(0);
   } finally {
@@ -962,7 +998,10 @@ test("Page Sources discovers, updates live, and restores across tabs", async () 
         return "opened";
       })`),
     ]);
-    const discovery = JSON.parse(discoveryJson);
+    const discovery = parseJson(
+      discoveryJson,
+      objectOf({ initial: arrayOf(decodeString), current: arrayOf(decodeString) }),
+    );
     expect(discovery.initial).toEqual(["second.png", "first.png"]);
     expect(discovery.current).toContain("late.png");
 
@@ -1025,13 +1064,13 @@ registerSharedBrowserCases({
 });
 
 test("history and the debug log record a self-contained download", async () => {
-  const before = JSON.parse(
-    await evalBackground(
-      `Promise.all([api.history(), api.logs()]).then(([history, log]) => JSON.stringify({
+  const before = await evaluateJson(
+    evalBackground,
+    `Promise.all([api.history(), api.logs()]).then(([history, log]) => JSON.stringify({
         history: history.length,
         log: log.length,
       }))`,
-    ),
+    objectOf({ history: decodeNumber, log: decodeNumber }),
   );
   await evalBackground(`api.startDownload({
     content: "firefox history e2e content",
@@ -1040,16 +1079,20 @@ test("history and the debug log record a self-contained download", async () => {
   }).then(() => "started")`);
   await waitForDownloads("ff-history-e2e");
 
-  const records = JSON.parse(
-    await evalBackground(
-      `Promise.all([api.history(), api.logs()]).then(([history, log]) => JSON.stringify({
+  const records = await evaluateJson(
+    evalBackground,
+    `Promise.all([api.history(), api.logs()]).then(([history, log]) => JSON.stringify({
         history: history.length,
         matchingHistory: history.filter((entry) => String(entry.finalFullPath).includes("ff-history-e2e")).length,
         matchingRequests: log.slice(${before.log}).filter((entry) =>
           entry.message === "download requested" && JSON.stringify(entry.data).includes("ff-history-e2e")
         ).length,
       }))`,
-    ),
+    objectOf({
+      history: decodeNumber,
+      matchingHistory: decodeNumber,
+      matchingRequests: decodeNumber,
+    }),
   );
 
   expect(records.history).toBeGreaterThan(before.history);

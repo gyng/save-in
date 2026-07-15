@@ -27,8 +27,8 @@ import { requireValue } from "../helpers.mjs";
  *
  * @param {{
  *   control: ReturnType<typeof import("../control-client.mjs").createE2EControlClient>,
- *   evaluate: (expression: string) => Promise<any>,
- *   evaluateOptions: (expression: string) => Promise<any>,
+ *   evaluate: (expression: string) => Promise<unknown>,
+ *   evaluateOptions: (expression: string) => Promise<unknown>,
  *   waitForDownloads: (filename: string, timeoutMs?: number) => Promise<DownloadSummary[]>,
  *   waitForLog: (baseline: number, messages: string[], timeoutMs?: number) => Promise<LogEntry[]>,
  *   downloadDir: () => string,
@@ -37,7 +37,7 @@ import { requireValue } from "../helpers.mjs";
  *   symlinkSupported: boolean,
  *   failedDownloadFilename?: string,
  *   afterFailedDownload?: () => Promise<void>,
- *   reloadOptions?: () => Promise<any>,
+ *   reloadOptions?: () => Promise<unknown>,
  * }} adapters
  */
 export const registerSharedBrowserCases = (adapters) => {
