@@ -3,7 +3,7 @@
 
   position: relative;
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: var(--space-1);
   padding: var(--space-1);
   border-radius: var(--radius);
@@ -42,7 +42,7 @@
 .path-editor-access-key {
   display: inline-flex;
   flex: none;
-  align-items: baseline;
+  align-items: center;
   gap: var(--space-1);
   color: var(--color-text-muted);
   font-size: var(--text-sm);
