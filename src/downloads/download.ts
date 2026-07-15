@@ -6,7 +6,7 @@ import { getDownload, mergeDownload } from "./download-state.ts";
 import type { DownloadRecordUpdate } from "./download-state.ts";
 import { DOWNLOAD_TYPES } from "../shared/constants.ts";
 import { normalizeSessionCounter, updateSession } from "../shared/session-state.ts";
-import { RequestHeaders } from "./headers.ts";
+import { getDownloadHeaders, getFetchReferer } from "./headers.ts";
 import { EXTENSION_NOTIFICATION_STREAMS, Notifier } from "./notification.ts";
 import {
   isRenameOnlyEligibleRule,
@@ -424,8 +424,8 @@ export const Download = {
 
     // Firefox attaches Referer to a direct downloads.download request; both
     // browsers use an exact DNR rule for extension-owned metadata/content.
-    const downloadHeaders = RequestHeaders.getDownloadHeaders(state);
-    const protectedFetchReferer = RequestHeaders.getFetchReferer(state);
+    const downloadHeaders = getDownloadHeaders(state);
+    const protectedFetchReferer = getFetchReferer(state);
     state.info.contentFetchDisabled = Boolean(downloadHeaders && !protectedFetchReferer);
     if (protectedFetchReferer) state.info.protectedFetchReferer = protectedFetchReferer;
     else delete state.info.protectedFetchReferer;
@@ -621,7 +621,7 @@ export const Download = {
       state.info.contentPromise = undefined;
     }
     const url = requireDownloadUrl(state);
-    const fetchReferer = state.info.protectedFetchReferer ?? RequestHeaders.getFetchReferer(state);
+    const fetchReferer = state.info.protectedFetchReferer ?? getFetchReferer(state);
     if (fetchReferer && !WEB_EXTENSION_CAPABILITIES.downloadRequestHeaders) {
       return Download.acquireFetchedUrl(
         url,
@@ -631,7 +631,7 @@ export const Download = {
         fetchReferer,
       );
     }
-    if (options.fetchViaFetch && !RequestHeaders.getDownloadHeaders(state))
+    if (options.fetchViaFetch && !getDownloadHeaders(state))
       return Download.acquireFetchedUrl(url, isPrivateDownloadState(state), signal, requestId);
     const ownedObjectUrl = Download.generatedObjectUrls.delete(url) ? url : undefined;
     return { url, source: "direct", ownedObjectUrl };
@@ -652,7 +652,7 @@ export const Download = {
     const filename = finalFullPath || "_";
     const headers =
       acquired.source === "direct" || acquired.source === "fetch-fallback-direct"
-        ? RequestHeaders.getDownloadHeaders(state)
+        ? getDownloadHeaders(state)
         : undefined;
     const allowOriginalUrlFallback = !headers && isHttpDownloadUrl(requireDownloadUrl(state));
     const deferredRouteRecovery = state.scratch.deferredRouteRequirement

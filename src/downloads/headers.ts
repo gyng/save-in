@@ -22,37 +22,30 @@ const getHttpReferer = (value: string | undefined): string | undefined => {
   }
 };
 
-export const RequestHeaders = {
-  matchPatternToRegExp,
+export const matchesRefererFilter = (url: string): boolean =>
+  parsePatternList(options.setRefererHeaderFilter, (pattern) => {
+    try {
+      return matchPatternToRegExp(pattern) ?? new Error("Invalid WebExtension match pattern");
+    } catch (error) {
+      return error instanceof Error ? error : new Error(String(error));
+    }
+  }).entries.some(({ value }) => value.test(url));
 
-  matchesRefererFilter: (url: string): boolean =>
-    parsePatternList(options.setRefererHeaderFilter, (pattern) => {
-      try {
-        return (
-          RequestHeaders.matchPatternToRegExp(pattern) ??
-          new Error("Invalid WebExtension match pattern")
-        );
-      } catch (error) {
-        return error instanceof Error ? error : new Error(String(error));
-      }
-    }).entries.some(({ value }) => value.test(url)),
-
-  getReferer: (state: RefererState): string | undefined => {
-    if (!options.setRefererHeader) return undefined;
-    const pageUrl = getHttpReferer(state?.info?.pageUrl);
-    const url = state?.info?.url;
-    if (!pageUrl || !url || !RequestHeaders.matchesRefererFilter(url)) return undefined;
-    return pageUrl;
-  },
-
-  getDownloadHeaders: (state: RefererState): DownloadHeader[] | undefined => {
-    if (!WEB_EXTENSION_CAPABILITIES.downloadRequestHeaders) return undefined;
-    const referer = RequestHeaders.getReferer(state);
-    return referer ? [{ name: "Referer", value: referer }] : undefined;
-  },
-
-  // DNR protects exact extension-owned metadata/content requests. Firefox
-  // still attaches Referer natively when the final download remains direct.
-  getFetchReferer: (state: RefererState): string | undefined =>
-    RefererRules.canUse() ? RequestHeaders.getReferer(state) : undefined,
+export const getReferer = (state: RefererState): string | undefined => {
+  if (!options.setRefererHeader) return undefined;
+  const pageUrl = getHttpReferer(state?.info?.pageUrl);
+  const url = state?.info?.url;
+  if (!pageUrl || !url || !matchesRefererFilter(url)) return undefined;
+  return pageUrl;
 };
+
+export const getDownloadHeaders = (state: RefererState): DownloadHeader[] | undefined => {
+  if (!WEB_EXTENSION_CAPABILITIES.downloadRequestHeaders) return undefined;
+  const referer = getReferer(state);
+  return referer ? [{ name: "Referer", value: referer }] : undefined;
+};
+
+// DNR protects exact extension-owned metadata/content requests. Firefox
+// still attaches Referer natively when the final download remains direct.
+export const getFetchReferer = (state: RefererState): string | undefined =>
+  RefererRules.canUse() ? getReferer(state) : undefined;

@@ -6,7 +6,7 @@ import { extensionSessionStorage } from "../platform/storage-areas.ts";
 import { options } from "../config/options-data.ts";
 import { resolveFirefoxDownloadContext } from "./auth-context.ts";
 import { fetchUrlForDownload } from "./content-fetch.ts";
-import { RequestHeaders } from "./headers.ts";
+import { getFetchReferer } from "./headers.ts";
 import { ActiveTransfers } from "./active-transfers.ts";
 import { OffscreenClient } from "../platform/offscreen-client.ts";
 import { getDownload, mergeDownload } from "./download-state.ts";
@@ -78,7 +78,7 @@ export const retryViaFetch = async (
     // Re-derive Referer protection from the persisted record so a retry of a
     // protected download is not the one request that arrives without it. This
     // re-checks the live option and filter rather than trusting stale state.
-    const retryReferer = RequestHeaders.getFetchReferer({
+    const retryReferer = getFetchReferer({
       info: { url, pageUrl: record.pageUrl },
     });
     const content = await fetchUrlForDownload(
