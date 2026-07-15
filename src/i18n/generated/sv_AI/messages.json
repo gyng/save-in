@@ -1001,9 +1001,6 @@
   "html_filterRoutingTemplates": {
     "message": "Filtrera routningsmallar"
   },
-  "html_filterTemplates": {
-    "message": "Filtermallar"
-  },
   "html_forExample2": {
     "message": "Mönsterformat"
   },

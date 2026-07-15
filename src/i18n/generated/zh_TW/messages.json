@@ -904,9 +904,6 @@
   "html_filterRoutingTemplates": {
     "message": "篩選路由範本"
   },
-  "html_filterTemplates": {
-    "message": "篩選範本"
-  },
   "html_forExample2": {
     "message": "模式格式"
   },

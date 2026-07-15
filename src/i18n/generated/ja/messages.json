@@ -904,9 +904,6 @@
   "html_filterRoutingTemplates": {
     "message": "ルーティングテンプレートを絞り込む"
   },
-  "html_filterTemplates": {
-    "message": "テンプレートを絞り込む"
-  },
   "html_forExample2": {
     "message": "パターン形式"
   },

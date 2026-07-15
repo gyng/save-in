@@ -1007,9 +1007,6 @@
   "html_filterRoutingTemplates": {
     "message": "Routing-Vorlagen filtern"
   },
-  "html_filterTemplates": {
-    "message": "Filtervorlagen"
-  },
   "html_forExample2": {
     "message": "Musterformat"
   },

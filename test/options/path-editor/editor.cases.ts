@@ -143,6 +143,23 @@ describe("insertAtCursor / insertLine", () => {
     expect(inputs).toBe(0);
     Reflect.deleteProperty(document, "execCommand");
   });
+
+  test("falls back safely when a modal keeps focus outside the target field", () => {
+    const dialogControl = document.createElement("input");
+    document.body.append(dialogControl);
+    dialogControl.focus();
+    const execCommand = vi.fn(() => true);
+    Object.defineProperty(document, "execCommand", { configurable: true, value: execCommand });
+    vi.spyOn(textarea, "focus").mockImplementation(() => {});
+    textarea.value = "abc";
+
+    PathEditor.insertText(textarea, "x", 1, 2);
+
+    expect(execCommand).not.toHaveBeenCalled();
+    expect(textarea.value).toBe("axc");
+    expect(inputs).toBe(1);
+    Reflect.deleteProperty(document, "execCommand");
+  });
 });
 
 describe("visual editor", () => {

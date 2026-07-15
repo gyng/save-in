@@ -1007,9 +1007,6 @@
   "html_filterRoutingTemplates": {
     "message": "Filtrar modelos de roteamento"
   },
-  "html_filterTemplates": {
-    "message": "Filtrar modelos"
-  },
   "html_forExample2": {
     "message": "Formato do padrão"
   },

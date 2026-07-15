@@ -43,8 +43,7 @@
 }
 
 .variables-preview-filter,
-.clause-preview-filter,
-.inline-template-library-content > .rule-template-filter {
+.clause-preview-filter {
   display: block;
   width: auto;
   min-width: 0;

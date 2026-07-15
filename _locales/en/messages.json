@@ -1689,10 +1689,6 @@
     "message": "Filter routing templates",
     "description": "Text in the options page. Used in src/options/options.html."
   },
-  "html_filterTemplates": {
-    "message": "Filter templates",
-    "description": "Text in the options page. Used in src/options/options.html."
-  },
   "html_forExample2": {
     "message": "Pattern format",
     "description": "Text in the options page. Used in src/options/options.html."

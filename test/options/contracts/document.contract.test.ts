@@ -337,21 +337,15 @@ test("keeps the debugger before fallback behavior", () => {
   ).toBe(true);
 });
 
-test("keeps routing references secondary with matching collapsed disclosures", () => {
+test("keeps routing references secondary without duplicating the template library", () => {
   const document = documentForOptions();
   const references = document.querySelector(".routing-reference-column");
-  const templates = document.querySelector<HTMLDetailsElement>(".inline-template-library");
-  const picker = templates?.querySelector<HTMLInputElement>("#routing-template-typeahead");
   const textEditor = document.querySelector<HTMLTextAreaElement>("#filenamePatterns");
 
   expect(references?.tagName).toBe("ASIDE");
   expect(references?.getAttribute("aria-labelledby")).toBe("routing-reference-heading");
-  expect(templates?.open).toBe(false);
-  expect(picker?.type).toBe("search");
-  expect(templates?.querySelector("datalist")).toBeNull();
-  expect(picker?.getAttribute("autocomplete")).toBe("off");
-  expect(picker?.hasAttribute("data-no-autosave")).toBe(true);
-  expect(templates?.querySelector("[data-rule-template-library]")).not.toBeNull();
+  expect(references?.querySelector(".inline-template-library")).toBeNull();
+  expect(document.querySelector("#rule-templates[data-rule-template-library]")).not.toBeNull();
   expect(textEditor?.placeholder).toBe("__MSG_routeTextEmptyExample__");
 });
 

@@ -12,7 +12,6 @@ import { sortClauses } from "./vocabulary-groups.ts";
 import { getMessage } from "../platform/localization.ts";
 import { localizeRuleTemplates, type LocalizedRuleTemplate } from "./rule-templates.ts";
 import { renderSyntaxHighlight } from "./syntax-editor.ts";
-import { setupOutsideDismiss } from "./dismissible-details.ts";
 
 export { RULE_TEMPLATES } from "./rule-templates.ts";
 
@@ -273,9 +272,6 @@ export const RuleBuilder = {
 };
 
 export const setupRuleBuilder = () => {
-  setupOutsideDismiss(
-    document.querySelector<HTMLDetailsElement>("details.inline-template-library"),
-  );
   RuleBuilder.setupGuidedInput();
   RuleBuilder.renderTemplates(getMessage);
 };

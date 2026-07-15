@@ -81,7 +81,7 @@
 .rule-template-rule {
   display: block;
   max-width: 100%;
-  overflow: hidden;
+  overflow-wrap: anywhere;
   margin: 2px 0 0;
   padding: 0;
   border: 0;
@@ -89,8 +89,7 @@
   background: none;
   font-size: var(--text-sm);
   line-height: 1.45;
-  text-overflow: ellipsis;
-  white-space: pre;
+  white-space: pre-wrap;
 }
 
 .template-feedback {
@@ -129,23 +128,6 @@
   flex: none;
   min-width: 60px;
   padding: 4px 10px;
-}
-
-.inline-template-library {
-  position: relative;
-  margin: 0;
-}
-
-.inline-template-library-content {
-  background-color: var(--floating-bg);
-}
-
-.inline-template-library-scroll {
-  padding: 0 var(--space-2) var(--space-2);
-}
-
-.inline-template-library .template-feedback {
-  margin: 0 var(--space-2) var(--space-2);
 }
 
 .reference-dialog {

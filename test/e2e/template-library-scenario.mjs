@@ -3,7 +3,7 @@ import http from "node:http";
 
 import { expect } from "vitest";
 
-import { closeLocal, decodeRecord, evaluateJson, listenLocal, requireValue } from "./helpers.mjs";
+import { closeLocal, listenLocal, requireValue } from "./helpers.mjs";
 
 /** @typedef {import("./control-protocol.mjs").DownloadSummary} DownloadSummary */
 
@@ -12,7 +12,7 @@ const PDF_TEMPLATE_DESTINATION = "into: documents/:filename:";
 
 /**
  * @param {{
- *   evaluate: (expression: string) => Promise<unknown>,
+ *   control: ReturnType<typeof import("./control-client.mjs").createE2EControlClient>,
  *   evaluateOptions: (expression: string) => Promise<unknown>,
  *   waitForDownloads: (filename: string) => Promise<DownloadSummary[]>,
  *   filename: string,
@@ -20,17 +20,13 @@ const PDF_TEMPLATE_DESTINATION = "into: documents/:filename:";
  * }} adapters
  */
 export const runTemplateLibraryScenario = async ({
-  evaluate,
+  control,
   evaluateOptions,
   waitForDownloads,
   filename,
   content,
 }) => {
-  const previous = await evaluateJson(
-    evaluate,
-    `browser.storage.local.get("filenamePatterns").then((value) => JSON.stringify(value))`,
-    decodeRecord,
-  );
+  const previous = await control.storage.local.get("filenamePatterns");
 
   try {
     await evaluateOptions(`(() => {
@@ -39,15 +35,16 @@ export const runTemplateLibraryScenario = async ({
       const rules = document.querySelector("#filenamePatterns");
       if (!(rules instanceof HTMLTextAreaElement)) return false;
       rules.focus();
+      document.querySelector('[data-reference-tab="options-reference-templates"]')?.click();
       return true;
     })()`);
     await evaluateOptions(`new Promise((resolve, reject) => {
-          const library = document.querySelector(".inline-template-library");
-          const picker = document.querySelector("#routing-template-typeahead");
+          const dialog = document.querySelector("#reference-dialog");
+          const library = document.querySelector("#rule-templates");
           const apply = document.querySelector('button[data-apply="filenamePatterns"]');
           const rules = document.querySelector("#filenamePatterns");
-          if (!(library instanceof HTMLDetailsElement) ||
-              !(picker instanceof HTMLInputElement) ||
+          if (!(dialog instanceof HTMLDialogElement) ||
+              !(library instanceof HTMLElement) ||
               !(apply instanceof HTMLButtonElement) ||
               !(rules instanceof HTMLTextAreaElement)) {
             reject(new Error("Template controls are unavailable"));
@@ -86,12 +83,21 @@ export const runTemplateLibraryScenario = async ({
             }
           };
           const check = () => {
-            const add = library.querySelector(
-              ".rule-template:not([hidden]) .rule-template-add",
+            if (document.documentElement.classList.contains("localization-pending")) return;
+            if (rules.closest(".tab-panel")?.hidden) return;
+            const template = [...library.querySelectorAll(".rule-template")].find((candidate) =>
+              candidate.querySelector(".rule-template-rule")?.textContent?.includes(
+                ${JSON.stringify(PDF_TEMPLATE_MATCHER)},
+              ),
             );
+            const add = template?.querySelector(".rule-template-add");
             if (!added && add instanceof HTMLButtonElement && !add.disabled) {
               added = true;
               add.click();
+            }
+            if (added && dialog.open) {
+              const view = dialog.querySelector(".template-feedback button");
+              if (view instanceof HTMLButtonElement) view.click();
             }
             if (added && !applied && !apply.disabled) {
               applied = true;
@@ -104,7 +110,7 @@ export const runTemplateLibraryScenario = async ({
             }
           };
           const onTimeout = () => finish(() => reject(new Error(JSON.stringify({
-            picker: picker.value,
+            dialogOpen: dialog.open,
             visibleTemplates: library.querySelectorAll(".rule-template:not([hidden])").length,
             applyDisabled: apply.disabled,
             applied,
@@ -117,17 +123,14 @@ export const runTemplateLibraryScenario = async ({
             attributes: true,
             childList: true,
             subtree: true,
-            attributeFilter: ["disabled", "value"],
+            attributeFilter: ["class", "disabled", "hidden", "value"],
           });
           timeout.addEventListener("abort", onTimeout, { once: true });
           browser.storage.onChanged.addListener(onStorage);
           rules.addEventListener("options-value-applied", onApplied);
-          library.open = true;
-          picker.value = ${JSON.stringify(PDF_TEMPLATE_MATCHER)};
-          picker.dispatchEvent(new InputEvent("input", { bubbles: true }));
           check();
         })`);
-    await evaluate(`api.reset()`);
+    await control.runtime.reset();
 
     const body = Buffer.from(content);
     const server = http.createServer((_request, response) => {
@@ -139,11 +142,11 @@ export const runTemplateLibraryScenario = async ({
     });
     const port = await listenLocal(server);
     try {
-      await evaluate(`api.startDownload({
-        url: "http://127.0.0.1:${port}/${filename}",
-        suggestedFilename: ${JSON.stringify(filename)},
-        pageUrl: "http://127.0.0.1:${port}/",
-      }).then(() => "started")`);
+      await control.background.startDownload({
+        url: `http://127.0.0.1:${port}/${filename}`,
+        suggestedFilename: filename,
+        pageUrl: `http://127.0.0.1:${port}/`,
+      });
       const downloads = await waitForDownloads(filename);
       const completed = requireValue(
         downloads.find((entry) => entry.state === "complete"),
@@ -156,9 +159,10 @@ export const runTemplateLibraryScenario = async ({
       await closeLocal(server);
     }
   } finally {
-    await evaluate(`Promise.all([
-      browser.storage.local.set(${JSON.stringify(previous)}),
-      ${Object.hasOwn(previous, "filenamePatterns") ? "Promise.resolve()" : 'browser.storage.local.remove("filenamePatterns")'},
-    ]).then(() => api.reset())`);
+    await control.storage.local.set(previous);
+    if (!Object.hasOwn(previous, "filenamePatterns")) {
+      await control.storage.local.remove("filenamePatterns");
+    }
+    await control.runtime.reset();
   }
 };

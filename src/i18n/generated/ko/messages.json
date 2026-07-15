@@ -904,9 +904,6 @@
   "html_filterRoutingTemplates": {
     "message": "라우팅 템플릿 필터링"
   },
-  "html_filterTemplates": {
-    "message": "템플릿 필터링"
-  },
   "html_forExample2": {
     "message": "패턴 형식"
   },

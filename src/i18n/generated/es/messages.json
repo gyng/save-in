@@ -1003,9 +1003,6 @@
   "html_filterRoutingTemplates": {
     "message": "Filtrar plantillas de enrutamiento"
   },
-  "html_filterTemplates": {
-    "message": "Filtrar plantillas"
-  },
   "html_forExample2": {
     "message": "Formato del patrón"
   },

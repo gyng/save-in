@@ -320,24 +320,6 @@ describe("template list rendering", () => {
     expect(document.querySelector<HTMLTextAreaElement>("#filenamePatterns")!.value).not.toBe("");
   });
 
-  test("closes the inline template library after an outside click", () => {
-    document.body.innerHTML = `
-      <textarea id="filenamePatterns"></textarea>
-      <details class="inline-template-library rule-template-surface" open>
-        <summary>Template library</summary>
-        <input class="rule-template-filter">
-        <div data-rule-template-library></div>
-      </details>
-      <button id="outside">Outside</button>`;
-
-    setupRuleBuilder();
-    document.querySelector<HTMLButtonElement>("#outside")!.click();
-
-    expect(document.querySelector<HTMLDetailsElement>(".inline-template-library")?.open).toBe(
-      false,
-    );
-  });
-
   test("setup composes both rule-builder surfaces", () => {
     document.body.innerHTML = "";
     expect(setupRuleBuilder()).toBeUndefined();

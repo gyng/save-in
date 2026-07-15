@@ -75,10 +75,12 @@ const PathEditorHelpers = {
     field.focus();
     field.setSelectionRange(start, end);
     let inserted = false;
-    try {
-      inserted = document.execCommand("insertText", false, text);
-    } catch {
-      inserted = false;
+    if (document.activeElement === field) {
+      try {
+        inserted = document.execCommand("insertText", false, text);
+      } catch {
+        inserted = false;
+      }
     }
     if (!inserted) {
       field.setRangeText(text, start, end, "end");

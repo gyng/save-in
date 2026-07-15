@@ -1259,9 +1259,6 @@
   "html_filterRoutingTemplates": {
     "message": "Filtra i modelli di routing"
   },
-  "html_filterTemplates": {
-    "message": "Filtra modelli"
-  },
   "html_forExample2": {
     "message": "Formato del pattern"
   },
