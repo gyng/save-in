@@ -39,6 +39,7 @@ export const webExtensionEvent = <Args extends unknown[] = unknown[]>() => {
 };
 
 type StorageKeys = string | string[] | Record<string, unknown> | null | undefined;
+type TestHostKind = "firefox" | "chrome";
 
 const selectStoredValues = (
   stored: Record<string, unknown>,
@@ -54,31 +55,43 @@ const selectStoredValues = (
   );
 };
 
-export const webExtensionStorageArea = () => {
+export const webExtensionStorageArea = (kind: TestHostKind = "firefox") => {
   const stored: Record<string, unknown> = {};
+  const returnValue = <T>(value: T, callback?: (result: T) => void): Promise<T> | undefined => {
+    if (callback) {
+      if (kind === "firefox") throw new TypeError("Firefox browser APIs do not accept callbacks");
+      callback(value);
+      return undefined;
+    }
+    return Promise.resolve(value);
+  };
   return {
-    get: vi.fn(async (keys?: StorageKeys) => selectStoredValues(stored, keys)),
-    getBytesInUse: vi.fn(async () => 0),
-    set: vi.fn(async (values: Record<string, unknown>) => {
+    get: vi.fn((keys?: StorageKeys, callback?: (values: Record<string, unknown>) => void) =>
+      returnValue(selectStoredValues(stored, keys), callback),
+    ),
+    getBytesInUse: vi.fn((_keys?: StorageKeys, callback?: (bytes: number) => void) =>
+      returnValue(0, callback),
+    ),
+    set: vi.fn((values: Record<string, unknown>, callback?: () => void) => {
       Object.assign(stored, values);
+      return returnValue(undefined, callback);
     }),
-    remove: vi.fn(async (keys: string | string[]) => {
+    remove: vi.fn((keys: string | string[], callback?: () => void) => {
       for (const key of typeof keys === "string" ? [keys] : keys) delete stored[key];
+      return returnValue(undefined, callback);
     }),
-    clear: vi.fn(async () => {
+    clear: vi.fn((callback?: () => void) => {
       for (const key of Object.keys(stored)) delete stored[key];
+      return returnValue(undefined, callback);
     }),
     onChanged: webExtensionEvent(),
   };
 };
 
-// One deliberately broad host-boundary cast keeps individual tests typed while
-// avoiding a second hand-maintained copy of the Firefox and Chrome declarations.
-// Suites replace the exact APIs whose behavior matters to the unit under test.
-export const createWebExtensionTestHost = (): {
-  browser: typeof browser;
-  chrome: typeof chrome;
-} => {
+// One deliberately broad cast per host keeps individual tests typed without a
+// hand-maintained declaration copy. The two instances remain behaviorally and
+// statefully distinct, including Promise-only Firefox and callback-capable Chrome.
+const createTestHost = (kind: TestHostKind): Record<string, unknown> => {
   const runtimeMessages =
     webExtensionEvent<
       [
@@ -157,7 +170,7 @@ export const createWebExtensionTestHost = (): {
     getSessionRules: vi.fn(async () => []),
     updateSessionRules: vi.fn(async () => undefined),
   };
-  const host = {
+  return {
     contextMenus,
     menus: contextMenus,
     commands: { getAll: vi.fn(async () => []), onCommand: webExtensionEvent() },
@@ -176,8 +189,18 @@ export const createWebExtensionTestHost = (): {
       getManifest: vi.fn(() => ({ manifest_version: 3, name: "Save In", version: "4.0.0" })),
       getURL: vi.fn((path: string) => `moz-extension://save-in-test/${path}`),
       openOptionsPage: vi.fn(async () => undefined),
-      sendMessage: vi.fn(async (message: unknown) => {
+      sendMessage: vi.fn((message: unknown, ...args: unknown[]) => {
+        const callback = args.findLast((argument) => typeof argument === "function") as
+          | ((response?: unknown) => void)
+          | undefined;
+        if (callback && kind === "firefox")
+          throw new TypeError("Firefox browser APIs do not accept callbacks");
         runtimeMessages.emit(message, {}, () => undefined);
+        if (callback) {
+          callback(undefined);
+          return undefined;
+        }
+        return Promise.resolve(undefined);
       }),
       onMessage: runtimeMessages,
       onMessageExternal: externalMessages,
@@ -185,10 +208,10 @@ export const createWebExtensionTestHost = (): {
       onInstalled: webExtensionEvent(),
     },
     storage: {
-      local: webExtensionStorageArea(),
-      sync: webExtensionStorageArea(),
-      session: webExtensionStorageArea(),
-      managed: webExtensionStorageArea(),
+      local: webExtensionStorageArea(kind),
+      sync: webExtensionStorageArea(kind),
+      session: webExtensionStorageArea(kind),
+      managed: webExtensionStorageArea(kind),
       onChanged: webExtensionEvent(),
     },
     tabs,
@@ -206,9 +229,20 @@ export const createWebExtensionTestHost = (): {
       onHistoryStateUpdated: webExtensionEvent(),
     },
   };
+};
 
+export const createFirefoxTestHost = (): typeof browser =>
+  createTestHost("firefox") as unknown as typeof browser;
+
+export const createChromeTestHost = (): typeof chrome =>
+  createTestHost("chrome") as unknown as typeof chrome;
+
+export const createWebExtensionTestHost = (): {
+  browser: typeof browser;
+  chrome: typeof chrome;
+} => {
   return {
-    browser: host as unknown as typeof browser,
-    chrome: host as unknown as typeof chrome,
+    browser: createFirefoxTestHost(),
+    chrome: createChromeTestHost(),
   };
 };

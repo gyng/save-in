@@ -104,6 +104,26 @@ test("consumes a valid draft even when its editor is missing", async () => {
   expect(browser.storage.session.remove).toHaveBeenCalledOnce();
 });
 
+test("recovers the serialized apply queue after an editor failure", async () => {
+  vi.mocked(browser.storage.session.get).mockResolvedValue({
+    [SOURCE_RULE_DRAFT_SESSION_KEY]: { rule: "context: ^auto$" },
+  });
+  document.body.innerHTML = '<textarea id="filenamePatterns"></textarea>';
+  const { RuleBuilder } = await import("../../src/options/rule-builder.ts");
+  vi.spyOn(RuleBuilder, "appendRule").mockImplementationOnce(() => {
+    throw new Error("editor unavailable");
+  });
+  const { applySourceRuleDraft } = await import("../../src/options/source-rule-draft.ts");
+
+  await expect(applySourceRuleDraft()).rejects.toThrow("editor unavailable");
+  await expect(applySourceRuleDraft()).resolves.toBe(true);
+
+  expect(browser.storage.session.get).toHaveBeenCalledTimes(2);
+  expect(document.querySelector<HTMLTextAreaElement>("#filenamePatterns")?.value).toContain(
+    "context: ^auto$",
+  );
+});
+
 test("installs one change listener and reacts only to the draft key", async () => {
   vi.mocked(browser.storage.session.get).mockResolvedValue({});
   vi.mocked(browser.storage.local.get).mockResolvedValue({});

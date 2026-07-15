@@ -49,6 +49,7 @@ describe("Page Sources panel interactions", () => {
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
     resetSourcePanelLayoutForTesting();
+    void chrome.storage.local.clear();
   });
 
   test("uses a closed owned host without removing a page ID collision", () => {
@@ -241,28 +242,51 @@ describe("Page Sources panel interactions", () => {
     const shadow = host.shadowRoot!;
     const resize = shadow.querySelector<HTMLElement>(".resize")!;
     resize.setPointerCapture = vi.fn();
-    const key = (value: string, shiftKey = false) =>
-      resize.dispatchEvent(new KeyboardEvent("keydown", { key: value, shiftKey, bubbles: true }));
+    const key = (value: string, shiftKey = false) => {
+      const event = new KeyboardEvent("keydown", {
+        key: value,
+        shiftKey,
+        bubbles: true,
+        cancelable: true,
+      });
+      resize.dispatchEvent(event);
+      return event;
+    };
 
-    key("ArrowRight");
-    key("PageDown");
+    expect(key("ArrowRight").defaultPrevented).toBe(true);
+    expect(host.style.getPropertyValue("--source-panel-side-size")).toBe("388px");
+    expect(key("PageDown").defaultPrevented).toBe(false);
+    expect(host.style.getPropertyValue("--source-panel-side-size")).toBe("388px");
     shadow.querySelector<HTMLButtonElement>('[data-placement="left"]')!.click();
-    key("ArrowLeft", true);
+    expect(key("ArrowLeft", true).defaultPrevented).toBe(true);
+    expect(host.style.getPropertyValue("--source-panel-side-size")).toBe("356px");
     key("ArrowRight");
+    expect(host.style.getPropertyValue("--source-panel-side-size")).toBe("368px");
     key("PageDown");
+    expect(host.style.getPropertyValue("--source-panel-side-size")).toBe("368px");
     shadow.querySelector<HTMLButtonElement>('[data-placement="top"]')!.click();
     key("ArrowUp");
+    expect(host.style.getPropertyValue("--source-panel-dock-size")).toBe("408px");
     key("ArrowDown");
+    expect(host.style.getPropertyValue("--source-panel-dock-size")).toBe("420px");
     key("PageDown");
+    expect(host.style.getPropertyValue("--source-panel-dock-size")).toBe("420px");
     resize.dispatchEvent(new MouseEvent("dblclick", { bubbles: true }));
+    expect(host.style.getPropertyValue("--source-panel-dock-size")).toBe("420px");
     shadow.querySelector<HTMLButtonElement>('[data-placement="bottom"]')!.click();
     key("ArrowDown");
+    expect(host.style.getPropertyValue("--source-panel-dock-size")).toBe("408px");
     shadow.querySelector<HTMLButtonElement>('[data-placement="floating"]')!.click();
     key("ArrowLeft");
+    expect(host.style.getPropertyValue("--source-panel-floating-width")).toBe("508px");
     key("ArrowRight");
+    expect(host.style.getPropertyValue("--source-panel-floating-width")).toBe("520px");
     key("ArrowUp");
+    expect(host.style.getPropertyValue("--source-panel-floating-height")).toBe("608px");
     key("ArrowDown");
+    expect(host.style.getPropertyValue("--source-panel-floating-height")).toBe("620px");
     key("PageDown");
+    expect(resize.getAttribute("aria-valuetext")).toBe("520 × 620");
 
     resize.dispatchEvent(
       new PointerEvent("pointerdown", {
@@ -282,6 +306,8 @@ describe("Page Sources panel interactions", () => {
       }),
     );
     resize.dispatchEvent(new PointerEvent("pointercancel", { bubbles: true, pointerId: 12 }));
+    expect(host.style.getPropertyValue("--source-panel-floating-width")).toBe("560px");
+    expect(host.style.getPropertyValue("--source-panel-floating-height")).toBe("670px");
     resize.dispatchEvent(new MouseEvent("dblclick", { bubbles: true }));
 
     expect(host.style.getPropertyValue("--source-panel-floating-width")).toBe("520px");
@@ -1615,25 +1641,35 @@ describe("Page Sources panel interactions", () => {
       });
 
     inputs[0]!.dispatchEvent(pointer("pointerdown", 1, 1));
+    expect(inputs.map(({ checked }) => checked)).toEqual([false, false]);
+    expect(shadow.querySelector(".panel")?.hasAttribute("data-selecting")).toBe(false);
     const url = inputs[0]!.dataset.sourceUrl;
     delete inputs[0]!.dataset.sourceUrl;
     inputs[0]!.dispatchEvent(pointer("pointerdown", 2));
+    expect(inputs.map(({ checked }) => checked)).toEqual([false, false]);
     inputs[0]!.dataset.sourceUrl = url;
     document.dispatchEvent(pointer("pointermove", 2));
     document.dispatchEvent(pointer("pointerup", 2));
+    expect(inputs.map(({ checked }) => checked)).toEqual([false, false]);
 
     inputs[0]!.dispatchEvent(pointer("pointerdown", 3));
+    expect(inputs.map(({ checked }) => checked)).toEqual([true, false]);
+    expect(shadow.querySelector<HTMLElement>(".panel")!.dataset.selecting).toBe("select");
     inputs[1]!.dispatchEvent(pointer("pointerdown", 4));
     inputs[0]!.dispatchEvent(pointer("pointermove", 3));
     inputs[0]!.dispatchEvent(pointer("pointermove", 3));
     shadow.querySelector<HTMLElement>(".close")!.dispatchEvent(pointer("pointermove", 3));
     document.dispatchEvent(pointer("pointermove", 4));
     document.dispatchEvent(pointer("pointerup", 4));
+    expect(inputs.map(({ checked }) => checked)).toEqual([true, false]);
+    expect(shadow.querySelector<HTMLElement>(".panel")!.dataset.selecting).toBe("select");
     document.dispatchEvent(pointer("pointermove", 3));
     document.dispatchEvent(pointer("pointerup", 3));
     document.dispatchEvent(pointer("pointercancel", 3));
 
-    expect(inputs[0]!.checked).toBe(true);
+    expect(inputs.map(({ checked }) => checked)).toEqual([true, false]);
+    expect(shadow.querySelector(".panel")?.hasAttribute("data-selecting")).toBe(false);
+    expect(shadow.querySelector(".selection-count")?.textContent).toBe("1 selected");
   });
 
   test("does not suppress keyboard activation after a selection drag", () => {
@@ -1862,12 +1898,17 @@ describe("Page Sources panel interactions", () => {
     const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
     const save = shadow.querySelector<HTMLButtonElement>(".batch-save")!;
     save.click();
+    expect(sendDownload).not.toHaveBeenCalled();
     const select = [...shadow.querySelectorAll<HTMLButtonElement>(".selection-bar button")].find(
       ({ textContent }) => textContent === "Select filtered",
     )!;
     select.click();
+    expect(shadow.querySelector(".selection-count")?.textContent).toBe("2 selected");
     save.click();
     await vi.waitFor(() => expect(sendDownload).toHaveBeenCalledTimes(2));
+    expect(shadow.querySelector(".selection-bar")?.getAttribute("aria-busy")).toBe("true");
+    expect(shadow.querySelector(".list")?.getAttribute("aria-busy")).toBe("true");
+    expect(save.disabled).toBe(true);
     document.querySelectorAll("img").forEach((image) => image.remove());
     replaceSourcePanel(sendDownload, {
       includeBackgrounds: false,
@@ -1878,6 +1919,9 @@ describe("Page Sources panel interactions", () => {
     await vi.waitFor(() =>
       expect(shadow.querySelector(".selection-count")?.textContent).toBe("0 selected"),
     );
+    expect(shadow.querySelector(".selection-bar")?.getAttribute("aria-busy")).toBe("false");
+    expect(shadow.querySelector(".list")?.getAttribute("aria-busy")).toBe("false");
+    expect(save.disabled).toBe(false);
 
     [...shadow.querySelectorAll<HTMLButtonElement>(".selection-bar button")]
       .find(({ textContent }) => textContent === "Clear selection")

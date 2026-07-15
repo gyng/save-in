@@ -37,6 +37,7 @@ import {
   parseJson,
   poll,
   requireValue,
+  waitForPageCondition,
 } from "./helpers.mjs";
 
 /** @typedef {import("./control-protocol.mjs").DownloadEntry} DownloadEntry */
@@ -299,45 +300,38 @@ afterEach(async ({ task }) => {
 });
 
 test("first install starts with a focused welcome", async () => {
+  await waitForPageCondition(
+    evalOptions,
+    `browser.storage.local.get("welcomePendingVersion").then((stored) =>
+      document.querySelector("#welcome-dialog")?.open === true &&
+      document.activeElement === document.querySelector(".welcome-accept") &&
+      stored.welcomePendingVersion === 1)`,
+    { description: "Firefox first-install welcome dialog" },
+  );
   const welcome = requireValue(
-    await poll(
-      async () => {
-        const state = await evaluateJson(
-          evalOptions,
-          `browser.storage.local.get("welcomePendingVersion").then((stored) =>
+    await evaluateJson(
+      evalOptions,
+      `browser.storage.local.get("welcomePendingVersion").then((stored) =>
           JSON.stringify({
             open: document.querySelector("#welcome-dialog")?.open === true,
             focused: document.activeElement === document.querySelector(".welcome-accept"),
             pending: stored.welcomePendingVersion,
           }))`,
-          objectOf({
-            open: decodeBoolean,
-            focused: decodeBoolean,
-            pending: optional(decodeNumber),
-          }),
-        );
-        return state.open && state.focused ? state : null;
-      },
-      { description: "Firefox first-install welcome dialog" },
+      objectOf({
+        open: decodeBoolean,
+        focused: decodeBoolean,
+        pending: optional(decodeNumber),
+      }),
     ),
     "Firefox first-install welcome dialog was not observed",
   );
   expect(welcome.pending).toBe(1);
 
   await evalOptions(`document.querySelector(".welcome-accept").click()`);
-  await poll(
-    async () => {
-      const state = await evaluateJson(
-        evalOptions,
-        `browser.storage.local.get("welcomePendingVersion").then((stored) =>
-          JSON.stringify({
-            dismissed: !document.querySelector("#welcome-dialog"),
-            pending: stored.welcomePendingVersion,
-          }))`,
-        objectOf({ dismissed: decodeBoolean, pending: optional(decodeNumber) }),
-      );
-      return state.dismissed && state.pending === undefined ? state : null;
-    },
+  await waitForPageCondition(
+    evalOptions,
+    `browser.storage.local.get("welcomePendingVersion").then((stored) =>
+      !document.querySelector("#welcome-dialog") && stored.welcomePendingVersion === undefined)`,
     { description: "Firefox welcome dismissal" },
   );
 });
@@ -371,16 +365,12 @@ test("options page autosaves through Firefox host APIs", async () => {
   const original = await control.options.get("promptOnShift");
   const changed = !original;
   try {
-    await poll(
-      async () =>
-        (await evalOptions(
-          `(() => {
-            const checkbox = document.querySelector("#promptOnShift");
-            return document.readyState === "complete" && checkbox && !checkbox.disabled;
-          })()`,
-        )) === true
-          ? true
-          : null,
+    await waitForPageCondition(
+      evalOptions,
+      `(() => {
+        const checkbox = document.querySelector("#promptOnShift");
+        return document.readyState === "complete" && checkbox && !checkbox.disabled;
+      })()`,
       { description: "Firefox options controls" },
     );
     await evalOptions(

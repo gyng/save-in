@@ -38,6 +38,7 @@ import {
   parseJson,
   poll,
   requireValue,
+  waitForPageCondition,
 } from "./helpers.mjs";
 
 /** @typedef {import("./control-protocol.mjs").DownloadEntry} DownloadEntry */
@@ -273,7 +274,7 @@ beforeAll(async () => {
         }
         return true;
       },
-      { description: "options page and extension APIs" },
+      { description: "options page and extension APIs", ignoreErrors: true },
     );
     // Native notifications are exercised by one focused test below. Keep the
     // rest of the download-heavy suite from submitting Windows toasts.
@@ -360,27 +361,26 @@ afterEach(async ({ task }) => {
 });
 
 test("first install starts with a focused welcome", async () => {
+  await waitForPageCondition(
+    evalOptions,
+    'document.querySelector("#welcome-dialog")?.open === true',
+    { description: "first-install welcome dialog" },
+  );
   const welcome = requireValue(
-    await poll(
-      async () => {
-        const state = await evaluateJson(
-          evalOptions,
-          `JSON.stringify({
+    await evaluateJson(
+      evalOptions,
+      `JSON.stringify({
           open: document.querySelector("#welcome-dialog")?.open === true,
           title: document.querySelector("#welcome-title")?.textContent,
           steps: [...document.querySelectorAll(".welcome-steps li")].map((item) => item.textContent),
           status: document.querySelector("#lastSavedAt")?.textContent,
         })`,
-          objectOf({
-            open: decodeBoolean,
-            title: optional(decodeString),
-            steps: arrayOf(decodeString),
-            status: optional(decodeString),
-          }),
-        );
-        return state.open ? state : null;
-      },
-      { description: "first-install welcome dialog" },
+      objectOf({
+        open: decodeBoolean,
+        title: optional(decodeString),
+        steps: arrayOf(decodeString),
+        status: optional(decodeString),
+      }),
     ),
     "First-install welcome dialog was not observed",
   );
@@ -391,56 +391,43 @@ test("first install starts with a focused welcome", async () => {
   expect(welcome.steps).toHaveLength(3);
 
   await evalOptions(`document.querySelector(".welcome-permissions").click()`);
+  await waitForPageCondition(
+    evalOptions,
+    `document.querySelector("#about-dialog")?.open === true &&
+      document.querySelector("#welcome-dialog")?.open === true`,
+    { description: "permission explanation over welcome" },
+  );
   const permissions = requireValue(
-    await poll(
-      async () => {
-        const state = await evaluateJson(
-          evalOptions,
-          `chrome.storage.local.get("welcomePendingVersion").then((stored) =>
+    await evaluateJson(
+      evalOptions,
+      `chrome.storage.local.get("welcomePendingVersion").then((stored) =>
           JSON.stringify({
             aboutOpen: document.querySelector("#about-dialog")?.open === true,
             welcomeOpen: document.querySelector("#welcome-dialog")?.open === true,
             pending: stored.welcomePendingVersion,
           }))`,
-          objectOf({
-            aboutOpen: decodeBoolean,
-            welcomeOpen: decodeBoolean,
-            pending: optional(decodeNumber),
-          }),
-        );
-        return state.aboutOpen && state.welcomeOpen ? state : null;
-      },
-      { description: "permission explanation over welcome" },
+      objectOf({
+        aboutOpen: decodeBoolean,
+        welcomeOpen: decodeBoolean,
+        pending: optional(decodeNumber),
+      }),
     ),
     "Permission explanation was not observed",
   );
   expect(permissions.pending).toBe(1);
   await evalOptions(`document.querySelector("#about-dialog .about-close").click()`);
-  await poll(
-    async () =>
-      (await evalOptions(
-        `document.querySelector("#welcome-dialog")?.open === true &&
-          document.activeElement === document.querySelector(".welcome-permissions")`,
-      )) === true
-        ? true
-        : null,
+  await waitForPageCondition(
+    evalOptions,
+    `document.querySelector("#welcome-dialog")?.open === true &&
+      document.activeElement === document.querySelector(".welcome-permissions")`,
     { description: "welcome focus after permission explanation" },
   );
 
   await evalOptions(`document.querySelector(".welcome-accept").click()`);
-  await poll(
-    async () => {
-      const state = await evaluateJson(
-        evalOptions,
-        `browser.storage.local.get("welcomePendingVersion").then((stored) =>
-          JSON.stringify({
-            dismissed: !document.querySelector("#welcome-dialog"),
-            pending: stored.welcomePendingVersion,
-          }))`,
-        objectOf({ dismissed: decodeBoolean, pending: optional(decodeNumber) }),
-      );
-      return state.dismissed && state.pending === undefined ? state : null;
-    },
+  await waitForPageCondition(
+    evalOptions,
+    `browser.storage.local.get("welcomePendingVersion").then((stored) =>
+      !document.querySelector("#welcome-dialog") && stored.welcomePendingVersion === undefined)`,
     { description: "welcome dismissal" },
   );
 });
@@ -479,14 +466,10 @@ test("option search shows detailed locations and navigates indexed actions", asy
   expect(result.resultsWidth).toBeGreaterThan(result.inputWidth);
 
   await evalOptions(`document.querySelector("#option-search-results [role=option]").click()`);
-  await poll(
-    async () =>
-      (await evalOptions(
-        `document.activeElement === document.querySelector("#webhookUrl") &&
-          document.querySelector('[role=tab][aria-selected="true"]')?.textContent === "Advanced"`,
-      )) === true
-        ? true
-        : null,
+  await waitForPageCondition(
+    evalOptions,
+    `document.activeElement === document.querySelector("#webhookUrl") &&
+      document.querySelector('[role=tab][aria-selected="true"]')?.textContent === "Advanced"`,
     { description: "search action navigation" },
   );
 });
@@ -555,7 +538,7 @@ test("options can select a generated locale and return to the browser default", 
           ? true
           : null;
       },
-      { description },
+      { description, ignoreErrors: true },
     );
   };
 
@@ -563,41 +546,21 @@ test("options can select a generated locale and return to the browser default", 
   await selectLocale("en", "explicit English selection reload");
   await selectLocale("", "browser-default locale restore");
   await control.storage.local.remove("uiLocale");
-  await poll(
-    async () => {
-      const state = await evaluateJson(
-        evalOptions,
-        `chrome.storage.local.get("uiLocale").then((stored) => JSON.stringify({
-          removed: !Object.hasOwn(stored, "uiLocale"),
-          selected: document.querySelector("#uiLocale")?.value,
-        }))`,
-        objectOf({
-          removed: decodeBoolean,
-          selected: optional(decodeString),
-        }),
-      );
-      return state.removed && state.selected === "" ? true : null;
-    },
+  await waitForPageCondition(
+    evalOptions,
+    `chrome.storage.local.get("uiLocale").then((stored) =>
+      !Object.hasOwn(stored, "uiLocale") && document.querySelector("#uiLocale")?.value === "")`,
     { description: "browser-default locale storage cleanup" },
   );
   await control.runtime.reset();
 });
 
 test("options page works under MV3 CSP with live first-party autocomplete", async () => {
-  await poll(
-    async () =>
-      (await evalOptions(`(() => {
-        const ta = document.querySelector("#paths");
-        return Boolean(ta && ta.getAttribute("aria-busy") !== "true");
-      })()`)) || null,
-    { description: "paths editor initialization" },
-  );
+  await control.options.waitReady();
   await evalOptions(`document.querySelector("#paths-mode-text")?.click()`);
-  await poll(
-    async () =>
-      (await evalOptions(
-        `Boolean(document.querySelector("#paths") && !document.querySelector("#paths").hidden)`,
-      )) || null,
+  await waitForPageCondition(
+    evalOptions,
+    `Boolean(document.querySelector("#paths") && !document.querySelector("#paths").hidden)`,
     { description: "paths text editor activation" },
   );
   await evalOptions(`(() => {
@@ -607,23 +570,27 @@ test("options page works under MV3 CSP with live first-party autocomplete", asyn
     ta.selectionStart = ta.selectionEnd = 2;
     ta.dispatchEvent(new InputEvent("input", { bubbles: true }));
   })()`);
-  const suggestions = await poll(
-    async () => {
-      const state = await evaluateJson(
-        evalOptions,
-        `(() => {
+  await waitForPageCondition(
+    evalOptions,
+    `(() => {
+      const dd = document.querySelector("#autocomplete-paths");
+      return Boolean(dd && dd.style.display !== "none" && dd.textContent?.includes(":date:"));
+    })()`,
+    { description: "path variable autocomplete suggestions" },
+  );
+  const suggestions = (
+    await evaluateJson(
+      evalOptions,
+      `(() => {
           const dd = document.querySelector("#autocomplete-paths");
           return JSON.stringify({
             open: Boolean(dd && dd.style.display !== "none"),
             text: dd?.textContent || "",
           });
         })()`,
-        objectOf({ open: decodeBoolean, text: decodeString }),
-      );
-      return state.open && state.text.includes(":date:") ? state.text : null;
-    },
-    { description: "path variable autocomplete suggestions" },
-  );
+      objectOf({ open: decodeBoolean, text: decodeString }),
+    )
+  ).text;
   const result = await evaluateJson(
     evalOptions,
     `(async () => {
@@ -633,10 +600,12 @@ test("options page works under MV3 CSP with live first-party autocomplete", asyn
       return JSON.stringify({
         form: !!ta,
         hostPermissionGranted: await chrome.permissions.contains({ origins: ["<all_urls>"] }),
-        permissionBannerHidden: document.querySelector("#host-permission-banner")?.hidden,
-        refererHidden: document.querySelector("#setRefererHeader")?.closest("label")?.hidden,
-        nativeBrowserRoutingHidden: document.querySelector("#routeBrowserDownloads")?.closest("label")?.hidden,
-        experimentalFirefoxRoutingHidden: document.querySelector("#routeBrowserDownloadsFirefox")?.closest("label")?.hidden,
+        permissionBannerHidden: document.querySelector("#host-permission-banner")?.hidden === true,
+        refererHidden: document.querySelector("#setRefererHeader")?.closest("label")?.hidden === true,
+        nativeBrowserRoutingHidden:
+          document.querySelector("#routeBrowserDownloads")?.closest(".filename-suggestion-only")?.hidden === true,
+        experimentalFirefoxRoutingHidden:
+          document.querySelector("#routeBrowserDownloadsFirefox")?.closest(".firefox-reroute-only")?.hidden === true,
       });
     })()`,
     objectOf({
@@ -864,7 +833,7 @@ test("real Incognito activity stays out of routing, history, and automatic saves
       )) === true
         ? true
         : null,
-    { description: "Chrome extension reload after Incognito access change" },
+    { description: "Chrome extension reload after Incognito access change", ignoreErrors: true },
   );
   await control.runtime.ready();
 
@@ -988,7 +957,7 @@ test("ordinary browser downloads can be routed and tracked without adoption", as
     await poll(
       async () =>
         (await cdp.evalInTarget(PORT, target, "!!document.querySelector('#native')")) === true,
-      { description: "ordinary download page" },
+      { description: "ordinary download page", ignoreErrors: true },
     );
     await cdp.evalInTarget(PORT, target, "document.querySelector('#native').click(); true");
 
@@ -1196,7 +1165,7 @@ test("a separately installed extension negotiates, authorizes, and routes a down
       (await cdp.evalInTarget(PORT, callerId, "document.readyState === 'complete'")) === true
         ? true
         : null,
-    { description: "external caller extension page" },
+    { description: "external caller extension page", ignoreErrors: true },
   );
 
   await runExternalExtensionScenario({
@@ -1387,7 +1356,7 @@ test("extension fetch credentials are preserved across cross-origin redirects", 
         )
           ? true
           : null,
-      { description: "credential fixture cookie" },
+      { description: "credential fixture cookie", ignoreErrors: true },
     );
 
     await control.options.set({ fetchViaFetch: true, includeFetchCredentials: false });
@@ -1639,7 +1608,7 @@ test("alt+click on a real page saves the image through the content script", asyn
     await poll(
       async () =>
         (await cdp.evalInTarget(PORT, targetUrl, "!!document.getElementById('img')")) === true,
-      { description: "content page image" },
+      { description: "content page image", ignoreErrors: true },
     );
     const fixtureTab = (await control.tabs.query()).find((candidate) =>
       candidate.url?.includes(targetUrl),
@@ -1868,7 +1837,7 @@ test("Page Sources discovers, updates live, and restores across tabs", async () 
     await poll(
       async () =>
         (await evalPage(firstPath, "document.readyState === 'complete'")) === true ? true : null,
-      { description: "first Page Sources fixture" },
+      { description: "first Page Sources fixture", ignoreErrors: true },
     );
     const firstTab = (await control.tabs.query()).find((tab) => tab.url?.includes(firstPath));
     if (firstTab?.id === undefined) throw new Error("Page Sources fixture tab missing");
@@ -1903,7 +1872,7 @@ test("Page Sources discovers, updates live, and restores across tabs", async () 
     await poll(
       async () =>
         (await evalPage(secondPath, "document.readyState === 'complete'")) === true ? true : null,
-      { description: "second Page Sources fixture" },
+      { description: "second Page Sources fixture", ignoreErrors: true },
     );
     const secondTab = (await control.tabs.query()).find((tab) => tab.url?.includes(secondPath));
     if (secondTab?.id === undefined) throw new Error("second Page Sources fixture tab missing");
@@ -1916,7 +1885,7 @@ test("Page Sources discovers, updates live, and restores across tabs", async () 
         ))
           ? true
           : null,
-      { description: "Page Sources restored on activated tab" },
+      { description: "Page Sources restored on activated tab", ignoreErrors: true },
     );
   } finally {
     await Promise.all([

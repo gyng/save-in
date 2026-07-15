@@ -20,6 +20,19 @@ The unit configuration discovers `test/**/*.test.ts` and excludes `integration`.
 integration, and end-to-end tests use their dedicated configurations. Run
 `npm run check:test-layout` after moving or adding test files.
 
+## Coverage contract
+
+`npm run test:coverage` holds statements, branches, functions, and lines at 100% for instrumented
+application source. The label is intentionally narrower than “all shipped code”: vendored code,
+bundle entry modules, the test-only E2E command, the offscreen bootstrap, and the Options
+composition root are excluded because their behavior is exercised through staged browser E2E or
+through the controllers they compose. The exact scope lives in `config/vitest/base.mjs`.
+
+`npm run check:coverage-policy` prevents threshold drift and keeps an explicit ceiling on justified
+V8 ignore directives. A lower ignore count must lower the ceiling in the same change; a new ignore
+requires a nearby invariant rationale and an intentional budget review. Keep branch-covering tests
+behavioral: assert each meaningful transition rather than only executing it for the counter.
+
 The browser suites live under `e2e`. Each browser entry launches one disposable profile and
 imports shared case-registration modules from `e2e/cases`; adding a case module must not add a
 second browser launch. Every case gets a storage snapshot and resource scope. Local servers are
@@ -49,6 +62,10 @@ Keep the suite fast by limiting deterministic work rather than weakening asserti
 
 - Subscribe to an in-browser event, observer, or storage change before triggering the action.
   Do not add fixed sleeps or repeated runner-side CDP/RDP polling when such a signal exists.
+- Use `waitForPageCondition` for DOM, focus, or input-driven transitions that need a raw page
+  assertion. It installs one in-page observer and uses one protocol evaluation. Runner polling is
+  reserved for navigation/target startup, worker-only state, and filesystem completion, and its
+  per-file ceilings may only decline.
 - Use the structured control client for serializable setup, state, and browser API operations. Raw
   evaluation is an escape hatch for page-local DOM behavior or a protocol lifecycle that the
   control client cannot express; it must not be used merely to avoid adding a typed operation.

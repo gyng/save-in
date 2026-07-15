@@ -10,6 +10,7 @@ import {
   optional,
   poll,
   requireValue,
+  waitForPageCondition,
 } from "./helpers.mjs";
 
 const VISUAL_RULE_SOURCE = [
@@ -56,7 +57,7 @@ export const runRoutingVisualEditorScenario = async ({
           return document.readyState === "complete" &&
             source?.value === ${JSON.stringify(VISUAL_RULE_SOURCE)};
         })()`)) === true || null,
-      { description: "routing rules loaded in Options" },
+      { description: "routing rules loaded in Options", ignoreErrors: true },
     );
 
     const initial = await evaluateJson(
@@ -104,12 +105,12 @@ export const runRoutingVisualEditorScenario = async ({
       return true;
     })()`);
 
-    await poll(
-      async () =>
-        (await evaluateOptions(`(() => {
-          const apply = document.querySelector('#rules-visual [data-apply="filenamePatterns"]');
-          return apply instanceof HTMLButtonElement && !apply.disabled;
-        })()`)) === true || null,
+    await waitForPageCondition(
+      evaluateOptions,
+      `(() => {
+        const apply = document.querySelector('#rules-visual [data-apply="filenamePatterns"]');
+        return apply instanceof HTMLButtonElement && !apply.disabled;
+      })()`,
       { description: "valid visual routing edits ready to apply" },
     );
     await evaluateOptions(`(() => {
@@ -153,7 +154,7 @@ export const runRoutingVisualEditorScenario = async ({
         );
         return state.ready === "complete" && state.cardCount === 2 ? state : null;
       },
-      { description: "visual routing editor restored after reload" },
+      { description: "visual routing editor restored after reload", ignoreErrors: true },
     );
     expect(restored).toEqual({
       ready: "complete",
@@ -170,12 +171,12 @@ export const runRoutingVisualEditorScenario = async ({
         (response) => response?.body?.lastDownload != null,
       )`)) === true;
     if (hasLastDownload) {
-      await poll(
-        async () =>
-          (await evaluateOptions(`(() => {
-            const useLast = document.querySelector("#route-debugger-use-last");
-            return useLast instanceof HTMLButtonElement && !useLast.disabled;
-          })()`)) === true || null,
+      await waitForPageCondition(
+        evaluateOptions,
+        `(() => {
+          const useLast = document.querySelector("#route-debugger-use-last");
+          return useLast instanceof HTMLButtonElement && !useLast.disabled;
+        })()`,
         { description: "route debugger last-download initialization" },
       );
     }
@@ -192,11 +193,9 @@ export const runRoutingVisualEditorScenario = async ({
       document.querySelector("#route-debugger-run")?.click();
       return true;
     })()`);
-    await poll(
-      async () =>
-        (await evaluateOptions(
-          `document.querySelector("#route-debugger-result")?.dataset.state`,
-        )) === "matched" || null,
+    await waitForPageCondition(
+      evaluateOptions,
+      `document.querySelector("#route-debugger-result")?.dataset.state === "matched"`,
       { description: "visual routing debugger match" },
     );
     const sourceNavigation = requireValue(

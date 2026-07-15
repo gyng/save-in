@@ -276,6 +276,31 @@ const runnerPollingErrors = (file, source) => {
 };
 
 /** @param {string} file @param {string} source */
+const runnerPollBudgetErrors = (file, source) => {
+  const approved = new Map([
+    ["test/e2e/chrome.e2e.mjs", 13],
+    ["test/e2e/firefox.e2e.mjs", 5],
+    ["test/e2e/routing-visual-editor-scenario.mjs", 2],
+  ]);
+  const expected = approved.get(file) ?? 0;
+  const actual = callCount(
+    source,
+    (call) => isAstNode(call.callee) && calledPath(call.callee) === "poll",
+  );
+  if (actual === expected) return [];
+  if (actual < expected) {
+    return [
+      `${file}: runner poll count fell to ${actual}; lower its recorded ceiling from ` +
+        `${expected} to preserve the improvement.`,
+    ];
+  }
+  return [
+    `${file}: runner polls increased to ${actual}; ceiling is ${expected}. ` +
+      "Use an in-page signal or structured control wait.",
+  ];
+};
+
+/** @param {string} file @param {string} source */
 const fixedDelayErrors = (file, source) => {
   const approved = new Map([
     ["test/e2e/helpers.mjs", 1],
@@ -370,6 +395,7 @@ const main = () => {
     const source = fs.readFileSync(path.join(root, file), "utf8");
     errors.push(...evaluationTypingErrors(file, source));
     errors.push(...runnerPollingErrors(file, source));
+    errors.push(...runnerPollBudgetErrors(file, source));
     errors.push(...fixedDelayErrors(file, source));
   }
   /** @type {Array<[string, string]>} */
@@ -406,5 +432,6 @@ module.exports = {
   evaluationTypingErrors,
   evaluatorReferenceErrors,
   fixedDelayErrors,
+  runnerPollBudgetErrors,
   runnerPollingErrors,
 };

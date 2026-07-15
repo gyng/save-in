@@ -6,7 +6,7 @@
  */
 export const poll = async (
   check,
-  { timeoutMs = 8000, description = "condition", ignoreErrors = true, intervalMs = 25 } = {},
+  { timeoutMs = 8000, description = "condition", ignoreErrors = false, intervalMs = 25 } = {},
 ) => {
   const deadline = Date.now() + timeoutMs;
   let lastError;
@@ -31,6 +31,83 @@ export const poll = async (
     }
     await new Promise((resolve) => setTimeout(resolve, intervalMs));
   }
+};
+
+/**
+ * Waits inside a browser page using DOM and interaction signals, so one
+ * CDP/BiDi evaluation replaces repeated runner-to-browser polling.
+ *
+ * @param {(expression: string, timeoutMs?: number) => Promise<unknown>} evaluate
+ * @param {string} condition
+ * @param {{timeoutMs?: number, description?: string}} [options]
+ * @returns {Promise<void>}
+ */
+export const waitForPageCondition = async (
+  evaluate,
+  condition,
+  { timeoutMs = 8000, description = "page condition" } = {},
+) => {
+  await evaluate(
+    `new Promise((resolve, reject) => {
+      const timeout = AbortSignal.timeout(${timeoutMs});
+      const root = document.documentElement;
+      let settled = false;
+      let checking = false;
+      let queued = false;
+      let observer;
+      const finish = (callback) => {
+        if (settled) return;
+        settled = true;
+        observer?.disconnect();
+        document.removeEventListener("readystatechange", check);
+        document.removeEventListener("focusin", check, true);
+        document.removeEventListener("input", check, true);
+        document.removeEventListener("change", check, true);
+        timeout.removeEventListener("abort", onTimeout);
+        callback();
+      };
+      const check = () => {
+        if (settled) return;
+        if (checking) {
+          queued = true;
+          return;
+        }
+        checking = true;
+        Promise.resolve()
+          .then(() => (${condition}))
+          .then((matched) => {
+            if (matched) finish(() => resolve(true));
+          })
+          .catch((error) => finish(() => reject(error)))
+          .finally(() => {
+            checking = false;
+            if (queued) {
+              queued = false;
+              check();
+            }
+          });
+      };
+      const onTimeout = () => finish(() => reject(new Error(
+        ${JSON.stringify(`Timed out waiting for ${description}`)}
+      )));
+      document.addEventListener("readystatechange", check);
+      document.addEventListener("focusin", check, true);
+      document.addEventListener("input", check, true);
+      document.addEventListener("change", check, true);
+      timeout.addEventListener("abort", onTimeout, { once: true });
+      if (root) {
+        observer = new MutationObserver(check);
+        observer.observe(root, {
+          attributes: true,
+          childList: true,
+          characterData: true,
+          subtree: true,
+        });
+      }
+      check();
+    })`,
+    timeoutMs + 1000,
+  );
 };
 
 /** @type {E2EResourceScope | undefined} */

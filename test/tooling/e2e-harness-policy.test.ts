@@ -6,6 +6,7 @@ const {
   evaluationTypingErrors,
   evaluatorReferenceErrors,
   fixedDelayErrors,
+  runnerPollBudgetErrors,
   runnerPollingErrors,
 } = require("../../scripts/check-e2e-harness.js") as {
   evaluationBudgetError: (
@@ -15,6 +16,7 @@ const {
   evaluationTypingErrors: (file: string, source: string) => string[];
   evaluatorReferenceErrors: (file: string, source: string, evaluator: string) => string[];
   fixedDelayErrors: (file: string, source: string) => string[];
+  runnerPollBudgetErrors: (file: string, source: string) => string[];
   runnerPollingErrors: (file: string, source: string) => string[];
 };
 
@@ -93,6 +95,23 @@ test("rejects aliases that would hide runner-side state polling", () => {
       `,
     ),
   ).toEqual([expect.stringContaining("must not be destructured")]);
+});
+
+test("keeps runner-side polling on a declining per-file budget", () => {
+  const source = `await poll(() => ready()); await poll(() => loaded());`;
+  expect(runnerPollBudgetErrors("test/e2e/routing-visual-editor-scenario.mjs", source)).toEqual([]);
+  expect(
+    runnerPollBudgetErrors(
+      "test/e2e/routing-visual-editor-scenario.mjs",
+      `${source} await poll(() => extra());`,
+    ),
+  ).toEqual([expect.stringContaining("runner polls increased to 3")]);
+  expect(
+    runnerPollBudgetErrors(
+      "test/e2e/routing-visual-editor-scenario.mjs",
+      "await poll(() => ready())",
+    ),
+  ).toEqual([expect.stringContaining("lower its recorded ceiling from 2")]);
 });
 
 test("rejects fixed sleeps outside the two audited infrastructure backoffs", () => {
