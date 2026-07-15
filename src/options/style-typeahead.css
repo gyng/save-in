@@ -29,7 +29,7 @@
   z-index: var(--z-listbox);
   display: grid;
   gap: 2px;
-  max-height: min(20rem, calc(100dvb - 2 * var(--space-2)));
+  max-block-size: min(20rem, calc(100dvb - 2 * var(--space-2)));
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -58,9 +58,9 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 1px;
-  width: 100%;
-  min-width: 0;
-  min-height: var(--compact-control-size);
+  inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: var(--compact-control-size);
   padding: 6px var(--space-2);
   border: 0;
   border-radius: var(--radius-sm);
@@ -79,7 +79,7 @@
 }
 
 .typeahead-option-label {
-  min-width: 0;
+  min-inline-size: 0;
   overflow: hidden;
   font-size: var(--text-base);
   font-weight: 600;
@@ -89,7 +89,7 @@
 }
 
 .typeahead-option-description {
-  min-width: 0;
+  min-inline-size: 0;
   overflow: hidden;
   color: var(--color-text-muted);
   font-size: var(--text-sm);
@@ -100,7 +100,7 @@
 }
 
 .typeahead-option-meta {
-  min-width: 0;
+  min-inline-size: 0;
   overflow: hidden;
   color: var(--color-text-muted);
   font-family: var(--font-mono);
@@ -142,7 +142,7 @@
   grid-column: 2;
   grid-row: 1;
   justify-self: end;
-  max-width: 100%;
+  max-inline-size: 100%;
 }
 
 .typeahead-dropdown-reference .typeahead-option-description {

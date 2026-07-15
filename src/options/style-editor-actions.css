@@ -3,7 +3,7 @@
   display: flex;
   align-items: flex-end;
   gap: var(--space-1);
-  width: 100%;
+  inline-size: 100%;
   margin: var(--space-3) 0;
   border-bottom: 1px solid var(--panel-border);
 }
@@ -27,8 +27,8 @@
 
 /* Shared quiet controls for both visual editors. */
 .visual-editor-control {
-  min-width: var(--compact-control-size);
-  min-height: var(--compact-control-size);
+  min-inline-size: var(--compact-control-size);
+  min-block-size: var(--compact-control-size);
   padding: 4px 6px;
   border: none;
   border-radius: var(--radius-sm);
@@ -57,8 +57,8 @@
 :is(.path-editor-action-menu, .rule-editor-card-action-menu) .visual-editor-control::before {
   content: "";
   flex: none;
-  width: 16px;
-  height: 16px;
+  inline-size: 16px;
+  block-size: 16px;
   background-color: currentColor;
   mask-position: center;
   mask-repeat: no-repeat;
@@ -179,9 +179,9 @@
 
 .visual-editor-handle {
   flex: none;
-  width: var(--compact-control-size);
-  min-height: var(--compact-control-size);
-  height: var(--compact-control-size);
+  inline-size: var(--compact-control-size);
+  min-block-size: var(--compact-control-size);
+  block-size: var(--compact-control-size);
   padding: 0;
   color: var(--color-text-muted);
   cursor: grab;
@@ -242,7 +242,7 @@
 .path-editor-drop-zone {
   position: relative;
   z-index: var(--z-local);
-  height: 10px;
+  block-size: 10px;
   margin-block: -5px;
   pointer-events: none;
 }

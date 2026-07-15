@@ -4,7 +4,7 @@
   }
 
   .rules-editor-main {
-    min-width: 0;
+    min-inline-size: 0;
   }
 
   .routing-reference-column {
@@ -45,7 +45,7 @@
   }
 
   .last-download-table > tbody > tr > .last-download-label {
-    width: auto;
+    inline-size: auto;
   }
 
   .route-debugger-source-picker > span {
@@ -75,6 +75,6 @@
 @media (prefers-reduced-motion: reduce) {
   .route-debugger-result[data-busy="true"]::before {
     animation: none;
-    width: 100%;
+    inline-size: 100%;
   }
 }

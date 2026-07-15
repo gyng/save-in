@@ -39,8 +39,8 @@
   align-items: center;
   justify-content: center;
   flex: none;
-  min-height: var(--compact-control-size);
-  height: var(--compact-control-size);
+  min-block-size: var(--compact-control-size);
+  block-size: var(--compact-control-size);
   padding: 3px 6px;
   font-size: var(--text-base);
   line-height: 1.2;
@@ -76,7 +76,7 @@
   color: var(--color-text-muted);
   font-size: var(--text-sm);
   line-height: 1;
-  min-height: var(--compact-control-size);
+  min-block-size: var(--compact-control-size);
   margin-block: 0;
   margin-inline-start: 2px;
   padding-block: 0;
@@ -88,9 +88,9 @@
 }
 
 .path-editor-access-key > .path-editor-access-key-input {
-  width: var(--compact-control-size);
-  min-width: var(--compact-control-size);
-  height: var(--compact-control-size);
+  inline-size: var(--compact-control-size);
+  min-inline-size: var(--compact-control-size);
+  block-size: var(--compact-control-size);
   margin: 0;
   padding: 2px;
   font-family: var(--font-mono);
@@ -127,8 +127,8 @@
 .path-editor-enabled-control {
   align-self: center;
   justify-content: center;
-  width: var(--compact-control-size);
-  height: var(--compact-control-size);
+  inline-size: var(--compact-control-size);
+  block-size: var(--compact-control-size);
   line-height: 0;
 }
 
@@ -140,13 +140,13 @@
   flex: 1 1 auto;
   /* Let the input shrink below its intrinsic width so the row (5 fixed control
      buttons + handle) doesn't overflow a narrow editor column */
-  min-width: 0;
+  min-inline-size: 0;
 }
 
 .path-editor-alias {
   flex: 0 0 0;
-  width: 0;
-  min-width: 0;
+  inline-size: 0;
+  min-inline-size: 0;
   padding-inline-end: 0;
   padding-inline-start: 0;
   border-inline-end-width: 0;
@@ -161,7 +161,7 @@
 
 .path-editor-alias.is-open {
   flex: 0 1 10rem;
-  width: clamp(8rem, 24%, 12rem);
+  inline-size: clamp(8rem, 24%, 12rem);
   padding-inline-end: var(--space-1);
   padding-inline-start: var(--space-1);
   border-inline-end-width: 1px;
@@ -170,7 +170,7 @@
 }
 
 .tab-panel .path-editor-row input[type="text"] {
-  max-width: none;
+  max-inline-size: none;
 }
 
 /* Render a separator row as a centred label on a hairline rule */
@@ -190,7 +190,7 @@
 .path-editor-separator::after {
   content: "";
   flex: 1;
-  height: 1px;
+  block-size: 1px;
   background-color: var(--panel-border);
 }
 
@@ -207,9 +207,9 @@
 .path-editor-more-trigger {
   display: inline-grid;
   place-items: center;
-  width: var(--compact-control-size);
-  min-height: var(--compact-control-size);
-  height: var(--compact-control-size);
+  inline-size: var(--compact-control-size);
+  min-block-size: var(--compact-control-size);
+  block-size: var(--compact-control-size);
   padding: 0;
   border: 1px solid transparent;
   list-style: none;

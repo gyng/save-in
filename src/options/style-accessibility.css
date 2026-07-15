@@ -10,6 +10,19 @@
   }
 }
 
+@media (pointer: coarse) {
+  :root {
+    --control-height: 44px;
+    --compact-control-size: 44px;
+    --compact-row-height: 44px;
+  }
+
+  :where(input[type="checkbox"], input[type="radio"]) {
+    inline-size: 1.25rem;
+    block-size: 1.25rem;
+  }
+}
+
 @media (prefers-contrast: more) {
   :root {
     --color-text-muted: color-mix(in srgb, var(--color-text) 82%, transparent);

@@ -14,14 +14,14 @@
 
 .about-mascot {
   display: block;
-  width: 100%;
-  height: auto;
+  inline-size: 100%;
+  block-size: auto;
 }
 
 .about-mascot-button {
   position: relative;
   display: block;
-  width: 100%;
+  inline-size: 100%;
   padding: 0;
   border: 0;
   border-radius: 18px;
@@ -58,7 +58,7 @@
 }
 
 .about-build-info > div {
-  min-width: 0;
+  min-inline-size: 0;
 }
 
 .about-build-info dt {
@@ -154,7 +154,7 @@
   }
 
   .about-mascot {
-    width: min(220px, 65cqi);
+    inline-size: min(220px, 65cqi);
     margin: 0 auto;
   }
 

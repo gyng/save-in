@@ -19,7 +19,7 @@
   z-index: var(--z-background);
   grid-column: 1 / -1;
   grid-row: 1;
-  min-width: 0;
+  min-inline-size: 0;
 }
 
 .route-debugger-source-picker {
@@ -30,7 +30,7 @@
 }
 
 .route-debugger-variables > summary {
-  width: fit-content;
+  inline-size: fit-content;
   padding: var(--space-2) 0;
   color: var(--link-color);
 }
@@ -51,13 +51,13 @@
 }
 
 .route-debugger-last-download > summary {
-  width: fit-content;
+  inline-size: fit-content;
   padding: var(--space-2) var(--space-3);
   color: var(--link-color);
 }
 
 .route-debugger-last-download > .last-download-info {
-  width: 100%;
+  inline-size: 100%;
   padding: 0 var(--space-3) var(--space-3);
   border: 0;
   background: transparent;

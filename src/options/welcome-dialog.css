@@ -27,7 +27,7 @@
 }
 
 .welcome-intro {
-  max-width: 58ch;
+  max-inline-size: 58ch;
   margin: var(--space-5) 0;
   color: var(--color-text-muted);
   font-size: var(--text-base);
@@ -45,7 +45,7 @@
 }
 
 .welcome-steps li {
-  min-width: 0;
+  min-inline-size: 0;
   padding: var(--space-4);
   border: 1px solid var(--panel-border);
   border-radius: var(--radius);
@@ -58,8 +58,8 @@
 .welcome-steps li::before {
   display: grid;
   place-items: center;
-  width: var(--space-5);
-  height: var(--space-5);
+  inline-size: var(--space-5);
+  block-size: var(--space-5);
   margin-bottom: var(--space-3);
   color: var(--color-on-accent);
   border-radius: 50%;

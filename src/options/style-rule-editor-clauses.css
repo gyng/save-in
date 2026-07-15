@@ -4,7 +4,7 @@
   grid-template-columns: subgrid;
   align-items: center;
   row-gap: var(--space-2);
-  min-height: 38px;
+  min-block-size: 38px;
   padding: 3px var(--space-1);
   border-radius: var(--radius);
 }
@@ -22,8 +22,8 @@
 .rule-clause-marker {
   display: inline-grid;
   place-items: center;
-  width: 24px;
-  height: 22px;
+  inline-size: 24px;
+  block-size: 22px;
   border-radius: 4px;
   color: var(--syntax-keyword);
   background: color-mix(in srgb, var(--syntax-keyword) 10%, transparent);
@@ -88,15 +88,15 @@
 
 .tab-panel .rule-clause-row input[type="text"],
 .tab-panel .rule-clause-row select {
-  width: 100%;
-  max-width: none;
+  inline-size: 100%;
+  max-inline-size: none;
 }
 
 .rule-clause-flag {
   display: inline-flex;
   align-items: center;
   gap: 2px;
-  min-height: var(--compact-control-size);
+  min-block-size: var(--compact-control-size);
   padding: 0 var(--space-1);
   border-radius: var(--radius);
   color: var(--color-text-muted);

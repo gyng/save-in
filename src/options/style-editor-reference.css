@@ -9,7 +9,7 @@
 
 .editor-action-help {
   flex: 1 1 7rem;
-  min-width: 6rem;
+  min-inline-size: 6rem;
   color: var(--color-text-muted);
   font-size: var(--text-sm);
   line-height: 1.35;
@@ -24,11 +24,11 @@
 .variables-preview-list {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
-  overflow: hidden;
+  overflow: clip;
 }
 
 .variables-preview-scroll {
-  min-height: 0;
+  min-block-size: 0;
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -45,9 +45,9 @@
 .variables-preview-filter,
 .clause-preview-filter {
   display: block;
-  width: auto;
-  min-width: 0;
-  max-width: none;
+  inline-size: auto;
+  min-inline-size: 0;
+  max-inline-size: none;
   margin: var(--space-2);
 }
 

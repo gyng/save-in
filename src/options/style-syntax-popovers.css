@@ -1,0 +1,170 @@
+.syntax-editor-end-marker {
+  display: inline-block;
+  inline-size: 0;
+}
+
+.syntax-editor-tooltip {
+  position: fixed;
+  z-index: var(--z-tooltip);
+  max-inline-size: min(32rem, calc(100dvi - 2 * var(--space-3)));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  padding: var(--space-2);
+  border: 1px solid color-mix(in srgb, var(--syntax-error) 44%, var(--panel-border));
+  border-radius: var(--radius);
+  background: var(--floating-bg);
+  box-shadow: var(--floating-shadow);
+  font-size: var(--text-base);
+  line-height: 1.4;
+  pointer-events: none;
+}
+
+.syntax-editor-tooltip-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-2);
+  align-items: baseline;
+  color: var(--syntax-error);
+}
+
+.syntax-editor-tooltip-item + .syntax-editor-tooltip-item {
+  margin-top: var(--space-1);
+  padding-top: var(--space-1);
+  border-top: 1px solid var(--panel-border);
+}
+
+.syntax-editor-tooltip-warning {
+  color: var(--syntax-warning);
+}
+
+.syntax-editor-tooltip-location {
+  padding: 1px var(--space-1);
+  border-radius: var(--radius-sm);
+  background: var(--syntax-error-soft);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.syntax-editor-tooltip-warning .syntax-editor-tooltip-location {
+  background: var(--syntax-warning-soft);
+}
+
+.syntax-editor-tooltip-message {
+  color: var(--color-text);
+  white-space: pre-wrap;
+}
+
+.syntax-editor-character-probe {
+  position: fixed;
+  visibility: hidden;
+  font-family: var(--font-mono);
+  font-size: var(--text-base);
+  white-space: pre;
+}
+
+.autocomplete-dropdown {
+  position: fixed;
+  z-index: var(--z-autocomplete);
+  display: grid;
+  gap: 0;
+  inline-size: min(22.5rem, calc(100dvi - 2 * var(--space-2)));
+  min-inline-size: min(14rem, calc(100dvi - 2 * var(--space-2)));
+  max-block-size: min(20rem, calc(100dvb - 2 * var(--space-2)));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  background: var(--floating-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  box-shadow: var(--floating-shadow);
+}
+
+.autocomplete-dropdown .autocomplete-group {
+  padding: var(--space-2) var(--space-3) var(--space-1);
+  color: var(--color-text-muted);
+  cursor: default;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.autocomplete-option {
+  display: grid;
+  grid-template-columns: minmax(7rem, 45%) minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  gap: 1px var(--space-3);
+  min-inline-size: 0;
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--panel-border);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.autocomplete-option:last-child {
+  border-bottom: 0;
+}
+
+.autocomplete-option:hover {
+  background: var(--hover-bg);
+}
+
+.autocomplete-option[aria-selected="true"] {
+  color: var(--link-color);
+  background: color-mix(in srgb, var(--link-color) 10%, transparent);
+}
+
+.autocomplete-option-label {
+  grid-column: 1;
+  grid-row: 1;
+  min-inline-size: 0;
+  overflow: hidden;
+  color: var(--syntax-keyword);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.autocomplete-option-meta {
+  grid-column: 2;
+  grid-row: 1;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  overflow: hidden;
+  justify-self: end;
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: 400;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.autocomplete-option-meta.is-placeholder {
+  opacity: 0.58;
+  font-style: italic;
+}
+
+.autocomplete-option-description {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  min-inline-size: 0;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: 400;
+  line-height: 1.35;
+  text-overflow: clip;
+  white-space: normal;
+}

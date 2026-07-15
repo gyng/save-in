@@ -9,13 +9,13 @@
 .history-query-row .history-filter,
 .history-facets button,
 .history-table-tools summary {
-  min-height: var(--control-height);
+  min-block-size: var(--control-height);
   padding-block: var(--space-1);
 }
 
 @container options-panel (max-width: 640px) {
   #history-list {
-    max-width: 100%;
+    max-inline-size: 100%;
     overflow: visible;
   }
 
@@ -26,11 +26,11 @@
 
   .history-table thead {
     position: absolute;
-    width: 1px;
-    height: 1px;
+    inline-size: 1px;
+    block-size: 1px;
     padding: 0;
     margin: -1px;
-    overflow: hidden;
+    overflow: clip;
     clip-path: inset(50%);
     white-space: nowrap;
     border: 0;
@@ -63,7 +63,7 @@
     display: grid;
     grid-template-rows: auto minmax(0, 1fr);
     gap: 2px;
-    min-width: 0;
+    min-inline-size: 0;
     padding: 0;
     border: 0;
     white-space: normal;
@@ -96,7 +96,7 @@
 
   .history-table .history-empty-row td {
     display: grid;
-    min-height: 9rem;
+    min-block-size: 9rem;
     place-items: center;
   }
 
@@ -106,7 +106,7 @@
 
   .history-empty-title {
     position: static;
-    width: auto;
+    inline-size: auto;
   }
 
   .history-facet {
@@ -115,7 +115,7 @@
   }
 
   .history-facet select {
-    min-width: 0;
+    min-inline-size: 0;
     flex: 1;
   }
 
@@ -126,8 +126,8 @@
 
   .history-query-row .history-filter {
     flex-basis: auto;
-    width: 100%;
-    max-width: none;
+    inline-size: 100%;
+    max-inline-size: none;
   }
 
   .history-table-tools {

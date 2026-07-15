@@ -11,6 +11,7 @@
 @import url("style-workflows.css") layer(components);
 @import url("style-status.css") layer(components);
 @import url("style-syntax-editor.css") layer(components);
+@import url("style-syntax-popovers.css") layer(components);
 @import url("style-typeahead.css") layer(components);
 @import url("style-source-settings.css") layer(components);
 @import url("style-automation.css") layer(components);
@@ -35,6 +36,7 @@
 @import url("style-advanced-integrations.css") layer(advanced);
 @import url("style-advanced-responsive.css") layer(advanced);
 @import url("style-history.css") layer(history);
+@import url("style-history-metadata.css") layer(history);
 @import url("style-history-responsive.css") layer(history);
 @import url("style-accessibility.css") layer(utilities);
 @import url("style-utilities.css") layer(utilities);

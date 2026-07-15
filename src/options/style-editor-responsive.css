@@ -26,7 +26,7 @@
   .path-editor-dir {
     grid-column: 4 / -1;
     grid-row: 1;
-    width: 100%;
+    inline-size: 100%;
   }
 
   .path-editor-alias:not(.is-open) {
@@ -36,7 +36,7 @@
   .path-editor-alias.is-open {
     grid-column: 4;
     grid-row: 2;
-    width: 100%;
+    inline-size: 100%;
     margin-top: var(--space-1);
   }
 
@@ -94,7 +94,7 @@
 @container routing-workspace (max-width: 640px) {
   .rules-editor .preview-column {
     position: static;
-    max-height: none;
+    max-block-size: none;
   }
 
   .rule-editor-card-body {

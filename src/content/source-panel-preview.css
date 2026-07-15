@@ -3,8 +3,8 @@
   z-index: var(--z-preview-control);
   display: grid;
   place-items: center;
-  max-width: min(360px, 45dvw);
-  max-height: min(280px, 55dvh);
+  max-inline-size: min(360px, 45dvw);
+  max-block-size: min(280px, 55dvh);
   padding: 6px;
   border: 1px solid var(--color-border);
   border-radius: calc(var(--radius) * 2);
@@ -15,13 +15,13 @@
 
 .media-tooltip img,
 .media-tooltip video {
-  width: clamp(160px, 42dvw, 340px);
-  height: clamp(120px, 38dvh, 260px);
+  inline-size: clamp(160px, 42dvw, 340px);
+  block-size: clamp(120px, 38dvh, 260px);
   object-fit: contain;
   background: var(--color-preview-media);
 }
 
 .media-tooltip audio {
-  width: min(300px, 40dvw);
+  inline-size: min(300px, 40dvw);
   pointer-events: none;
 }

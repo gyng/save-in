@@ -2,12 +2,12 @@
   display: grid;
   flex: 0 1 10rem;
   gap: var(--space-1);
-  min-width: 0;
+  min-inline-size: 0;
   margin: 0;
 }
 
 .click-to-save-controls > legend {
-  width: 100%;
+  inline-size: 100%;
   margin-bottom: var(--space-1);
 }
 
@@ -21,16 +21,16 @@
 }
 
 .click-to-save-controls select {
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
+  inline-size: 100%;
+  max-inline-size: 100%;
+  min-inline-size: 0;
 }
 
 .click-to-save-controls > .caption-line,
 .click-to-save-controls > #click-to-save-warning,
 .click-to-save-controls > #clickToSaveStatus {
   flex-basis: 100%;
-  max-width: 100%;
+  max-inline-size: 100%;
 }
 
 .click-to-save-controls:has(> label select:disabled) {
@@ -56,7 +56,7 @@
 }
 
 .full-width {
-  width: 100%;
+  inline-size: 100%;
 }
 
 .mono-input {
@@ -64,12 +64,12 @@
 }
 
 .inline-guide {
-  max-width: var(--content-max-width);
+  max-inline-size: var(--content-max-width);
   margin-top: var(--space-3);
 }
 
 .inline-guide > summary {
-  width: fit-content;
+  inline-size: fit-content;
   padding: var(--space-1) 0;
   color: var(--color-text);
 }
@@ -109,7 +109,7 @@
 }
 
 .guide-step {
-  min-width: 0;
+  min-inline-size: 0;
   padding: var(--space-3) 0;
   border-top: 1px solid var(--panel-border);
 }
@@ -126,7 +126,7 @@
 .guide-command-grid pre,
 .guide-more pre,
 .agent-prompt-guide pre {
-  max-width: 100%;
+  max-inline-size: 100%;
   margin: var(--space-1) 0;
   padding: var(--space-2);
   overflow-x: auto;
@@ -162,7 +162,7 @@
 }
 
 :is(.guide-more, .agent-prompt-guide) > summary {
-  width: fit-content;
+  inline-size: fit-content;
   padding: var(--space-2) 0;
   color: var(--link-color);
   font-weight: 500;

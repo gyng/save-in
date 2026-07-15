@@ -3,14 +3,14 @@
   flex: 1;
   flex-direction: column;
   align-items: baseline;
-  min-width: 0;
-  max-width: 100%;
+  min-inline-size: 0;
+  max-inline-size: 100%;
   padding-inline-end: var(--space-2);
 }
 
 .last-download-table {
-  width: 100%;
-  max-width: 100%;
+  inline-size: 100%;
+  max-inline-size: 100%;
   margin: 0;
   padding: 0;
   border-spacing: 0;
@@ -23,7 +23,7 @@
 }
 
 .last-download-label {
-  width: 110px;
+  inline-size: 110px;
   padding: 0;
   font-weight: 600;
   text-align: start;
@@ -57,7 +57,7 @@
 }
 
 .settings-transfer-actions {
-  width: 100%;
+  inline-size: 100%;
 }
 
 .settings-transfer-actions {
@@ -120,7 +120,7 @@
 }
 
 .diagnostics-core > div {
-  min-width: 0;
+  min-inline-size: 0;
   padding: var(--space-3);
   border: 1px solid var(--panel-border);
   border-radius: var(--radius-sm);
@@ -159,7 +159,7 @@
 }
 
 .diagnostics-section .count-badge {
-  min-width: 2em;
+  min-inline-size: 2em;
   padding: 1px var(--space-2);
   border: 1px solid var(--panel-border);
   border-radius: 999px;
@@ -207,7 +207,7 @@
 }
 
 .debug-log-text {
-  min-height: 12rem;
+  min-block-size: 12rem;
   font-family: var(--font-mono);
   font-size: var(--text-sm);
 }
@@ -285,7 +285,8 @@ textarea.saved-base {
 }
 
 input.key {
-  max-width: 2em;
+  max-inline-size: 2em;
+  margin-inline-start: var(--space-1);
   margin-inline-end: 8px;
   text-align: center;
   padding: 4px 8px;

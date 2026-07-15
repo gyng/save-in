@@ -5,7 +5,7 @@
 }
 
 .route-debugger-rule {
-  overflow: hidden;
+  overflow: clip;
   border: 1px solid var(--panel-border);
   border-radius: var(--radius);
   background: var(--page-bg);
@@ -20,8 +20,8 @@
 }
 
 .route-debugger-source-link {
-  min-width: 0;
-  min-height: var(--compact-control-size);
+  min-inline-size: 0;
+  min-block-size: var(--compact-control-size);
   margin: 0;
   padding: 2px var(--space-2);
   border-color: transparent;
@@ -42,7 +42,7 @@
 
 .route-debugger-rule-output > .route-debugger-pipeline {
   grid-column: 1;
-  min-width: 0;
+  min-inline-size: 0;
   margin: 0;
   padding: var(--space-2) var(--space-3);
   border: 1px solid var(--panel-border);
@@ -62,7 +62,7 @@
 .route-debugger-clause {
   display: flex;
   align-items: center;
-  min-width: 0;
+  min-inline-size: 0;
   margin: 0;
   border: 0;
   border-radius: 0;
@@ -79,8 +79,8 @@
 
 .route-debugger-rule-header::before {
   flex: none;
-  width: 0;
-  height: 0;
+  inline-size: 0;
+  block-size: 0;
   border-top: 4px solid transparent;
   border-bottom: 4px solid transparent;
   border-inline-start: 6px solid var(--color-text-muted);
@@ -122,7 +122,7 @@
 .route-debugger-rule-title-group {
   display: grid;
   flex: 1 1 auto;
-  min-width: 0;
+  min-inline-size: 0;
   gap: 2px;
 }
 
@@ -137,7 +137,7 @@
   display: flex;
   align-items: baseline;
   flex: 0 1 auto;
-  min-width: 0;
+  min-inline-size: 0;
   gap: var(--space-2);
   justify-content: flex-end;
 }
@@ -152,7 +152,7 @@
 .route-debugger-rule-badge {
   display: inline-flex;
   align-items: center;
-  min-height: 22px;
+  min-block-size: 22px;
   padding: 1px var(--space-2);
   color: var(--color-text-muted);
   border-radius: 999px;
@@ -200,8 +200,8 @@
 .route-debugger-clause-mark {
   display: inline-grid;
   place-items: center;
-  width: 20px;
-  height: 20px;
+  inline-size: 20px;
+  block-size: 20px;
   border-radius: 999px;
   color: var(--success-fg);
   background: color-mix(in srgb, var(--success-fg) 10%, transparent);
@@ -216,13 +216,13 @@
 
 .route-debugger-clause-decision {
   display: grid;
-  min-width: 0;
+  min-inline-size: 0;
   gap: var(--space-1);
   overflow-wrap: anywhere;
 }
 
 .route-debugger-clause-expression {
-  width: fit-content;
+  inline-size: fit-content;
   padding: 0;
   border-radius: 0;
   background: transparent;

@@ -20,7 +20,7 @@
   }
 
   .tab-panel .counter-control #counter-value {
-    width: 100%;
-    max-width: none;
+    inline-size: 100%;
+    max-inline-size: none;
   }
 }

@@ -46,7 +46,7 @@
 }
 
 .route-debugger-field-group {
-  min-width: 0;
+  min-inline-size: 0;
   margin: 0;
   padding: 0;
   border: 0;
@@ -70,7 +70,7 @@
   display: grid;
   align-content: start;
   gap: var(--space-1);
-  min-width: 0;
+  min-inline-size: 0;
   margin: 0;
 }
 
@@ -84,9 +84,9 @@
 
 .route-debugger-field input,
 .route-debugger-field select {
-  width: auto;
-  min-width: 0;
-  max-width: none;
+  inline-size: auto;
+  min-inline-size: 0;
+  max-inline-size: none;
   margin: 0;
   font: inherit;
 }
@@ -101,7 +101,7 @@
 
 .route-debugger-result {
   position: relative;
-  overflow: hidden;
+  overflow: clip;
   border: 1px solid var(--panel-border);
   border-radius: var(--radius);
   background: var(--panel-bg);
@@ -116,8 +116,8 @@
   z-index: var(--z-editor-marker);
   top: 0;
   inset-inline-start: 0;
-  width: 38%;
-  height: 2px;
+  inline-size: 38%;
+  block-size: 2px;
   background: var(--color-info);
   content: "";
   animation: route-debugger-progress var(--motion-duration-progress) ease-in-out infinite alternate;
@@ -175,7 +175,7 @@
   display: grid;
   grid-template-columns: max-content minmax(0, 1fr);
   align-items: baseline;
-  min-width: 0;
+  min-inline-size: 0;
   gap: var(--space-3);
   padding: var(--space-1) 0;
 }
@@ -187,7 +187,7 @@
 }
 
 .route-debugger-pipeline dd {
-  min-width: 0;
+  min-inline-size: 0;
   margin: 0;
 }
 

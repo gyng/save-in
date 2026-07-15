@@ -1,13 +1,13 @@
 /* Rules editor sits left, with compact references to its right. */
 .tab-panel > .wide-column {
-  max-width: 1200px;
+  max-inline-size: 1200px;
   container: routing-workspace / inline-size;
 }
 
 /* Prose/controls in the wide Dynamic column stay readable; only the
    two-column editor row is allowed to use the extra width */
 .wide-column > :not(.rules-editor) {
-  max-width: var(--content-max-width);
+  max-inline-size: var(--content-max-width);
 }
 
 .rules-editor {
@@ -15,16 +15,16 @@
   grid-template-columns: minmax(340px, 2fr) minmax(260px, 1fr);
   gap: var(--space-5);
   align-items: flex-start;
-  width: 100%;
+  inline-size: 100%;
 }
 
 .rules-editor-main {
-  min-width: 340px;
+  min-inline-size: 340px;
 }
 
 .routing-reference-column {
   position: static;
-  max-height: none;
+  max-block-size: none;
 }
 
 .routing-reference-column > .editor-field-label {
@@ -36,7 +36,7 @@
 }
 
 .routing-ide {
-  min-width: 0;
+  min-inline-size: 0;
 }
 
 .routing-editor-heading {
@@ -51,7 +51,7 @@
 }
 
 .routing-ide-actions {
-  min-height: var(--control-height);
+  min-block-size: var(--control-height);
 }
 
 .rule-editor-cards {
@@ -70,7 +70,7 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-2);
-  min-height: 34px;
+  min-block-size: 34px;
   padding-block: var(--space-2);
   padding-inline: var(--space-3) var(--space-2);
 }
@@ -84,8 +84,8 @@
   display: inline-grid;
   place-items: center;
   flex: none;
-  width: var(--compact-control-size);
-  height: var(--compact-control-size);
+  inline-size: var(--compact-control-size);
+  block-size: var(--compact-control-size);
   color: var(--color-text-muted);
   font-size: var(--text-lg);
   line-height: 1;
@@ -128,8 +128,8 @@
   display: inline-grid;
   place-items: center;
   align-self: center;
-  width: var(--compact-control-size);
-  height: var(--compact-control-size);
+  inline-size: var(--compact-control-size);
+  block-size: var(--compact-control-size);
   padding: 0;
   line-height: 0;
 }
@@ -166,7 +166,7 @@
   display: flex;
   align-items: center;
   flex: 1 1 auto;
-  min-width: 0;
+  min-inline-size: 0;
   gap: var(--space-2);
 }
 
@@ -178,9 +178,9 @@
 
 .rule-editor-name {
   flex: 1 1 10rem;
-  min-width: 5rem;
-  max-width: 22rem;
-  height: var(--compact-control-size);
+  min-inline-size: 5rem;
+  max-inline-size: 22rem;
+  block-size: var(--compact-control-size);
   margin: 0;
   padding: 3px var(--space-1);
   color: var(--color-text);
@@ -209,8 +209,8 @@
 .rule-editor-actions-trigger {
   display: inline-grid;
   place-items: center;
-  width: var(--compact-control-size);
-  height: var(--compact-control-size);
+  inline-size: var(--compact-control-size);
+  block-size: var(--compact-control-size);
   padding: 0;
   color: var(--color-text-muted);
   border-color: transparent;

@@ -19,6 +19,7 @@ const sourcePanelStylePaths = [
   "source-panel-tokens.css",
   "source-panel.css",
   "source-panel-results.css",
+  "source-panel-responsive.css",
   "source-panel-preview.css",
 ].map((file) => path.join(root, "src", "content", file));
 
@@ -57,6 +58,58 @@ const customProperties = (source) =>
   );
 
 /**
+ * @param {string} source
+ * @param {RegExp} selector
+ * @returns {Map<string, Map<string, string>>}
+ */
+const themeBlocks = (source, selector) =>
+  new Map(
+    [...source.matchAll(selector)].map((match) => [
+      match[1] || "",
+      customProperties(match[2] || ""),
+    ]),
+  );
+
+/** @param {string} value @returns {[number, number, number] | undefined} */
+const rgbFromHex = (value) => {
+  const match = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(value);
+  if (!match?.[1]) return undefined;
+  const hex =
+    match[1].length === 3 ? [...match[1]].map((part) => `${part}${part}`).join("") : match[1];
+  return [
+    Number.parseInt(hex.slice(0, 2), 16),
+    Number.parseInt(hex.slice(2, 4), 16),
+    Number.parseInt(hex.slice(4, 6), 16),
+  ];
+};
+
+/** @param {string} value @returns {number | undefined} */
+const relativeLuminance = (value) => {
+  const rgb = rgbFromHex(value);
+  if (!rgb) return undefined;
+  /** @param {number} channel */
+  const linearChannel = (channel) => {
+    const normalized = channel / 255;
+    return normalized <= 0.04045 ? normalized / 12.92 : ((normalized + 0.055) / 1.055) ** 2.4;
+  };
+  const red = linearChannel(rgb[0]);
+  const green = linearChannel(rgb[1]);
+  const blue = linearChannel(rgb[2]);
+  return 0.2126 * red + 0.7152 * green + 0.0722 * blue;
+};
+
+/** @param {string} foreground @param {string} background @returns {number | undefined} */
+const contrastRatio = (foreground, background) => {
+  const foregroundLuminance = relativeLuminance(foreground);
+  const backgroundLuminance = relativeLuminance(background);
+  if (foregroundLuminance === undefined || backgroundLuminance === undefined) return undefined;
+  return (
+    (Math.max(foregroundLuminance, backgroundLuminance) + 0.05) /
+    (Math.min(foregroundLuminance, backgroundLuminance) + 0.05)
+  );
+};
+
+/**
  * @param {string} value
  * @param {Map<string, string>} properties
  * @param {Set<string>} [resolving]
@@ -91,6 +144,7 @@ const styleLayers = [
       "style-workflows.css",
       "style-status.css",
       "style-syntax-editor.css",
+      "style-syntax-popovers.css",
       "style-typeahead.css",
       "style-source-settings.css",
       "style-automation.css",
@@ -120,7 +174,7 @@ const styleLayers = [
     "advanced",
     ["style-advanced.css", "style-advanced-integrations.css", "style-advanced-responsive.css"],
   ],
-  ["history", ["style-history.css", "style-history-responsive.css"]],
+  ["history", ["style-history.css", "style-history-metadata.css", "style-history-responsive.css"]],
   ["welcome", []],
   ["reference", []],
   ["utilities", ["style-accessibility.css", "style-utilities.css"]],
@@ -278,9 +332,10 @@ for (const file of styles) {
   }
 
   const lineCount = source.split("\n").length - 1;
-  if (lineCount > 550) {
+  const lineLimit = file === tokenStylePath ? 500 : 400;
+  if (lineCount > lineLimit) {
     violations.push(
-      `${relative} has ${lineCount} lines; split ownership files before they exceed 550`,
+      `${relative} has ${lineCount} lines; split ownership files before they exceed ${lineLimit}`,
     );
   }
 
@@ -414,6 +469,15 @@ for (const selector of [".error-notification", ".error-row", ".feedback", ".clic
     violations.push(`src/options/style-components.css must not retain feedback owner ${selector}`);
   }
 }
+if (!feedbackStyle.includes(".error-row:dir(rtl)::after")) {
+  violations.push("validation jump affordances must reverse in RTL documents");
+}
+if (
+  !baseStyle.includes(":where(p, .help-text, .section-lead, .privacy-content) a") ||
+  !baseStyle.includes("text-underline-offset: 0.12em")
+) {
+  violations.push("links in prose and help content must remain visibly identifiable");
+}
 const optionsLayoutStyle = fs.readFileSync(
   path.join(root, "src", "options", "style-layout.css"),
   "utf8",
@@ -424,18 +488,21 @@ if (
 ) {
   violations.push("src/options/style-layout.css must own the options form layout");
 }
-for (const file of [
-  "style-layout.css",
-  "style-layout-responsive.css",
-  "style-shell-responsive.css",
-]) {
-  const source = fs.readFileSync(path.join(root, "src", "options", file), "utf8");
+for (const filePath of styles) {
+  const file = path.basename(filePath);
+  const source = fs.readFileSync(filePath, "utf8");
   if (/^\s*(?:min-|max-)?(?:width|height)\s*:/m.test(source)) {
-    violations.push(`src/options/${file} must use logical sizing for semantic layout dimensions`);
+    violations.push(`src/options/${file} must use logical sizing properties`);
   }
 }
 if (!accessibilityStyle.includes('[aria-pressed="true"]')) {
   violations.push("pressed controls need a forced-colors selected state");
+}
+if (
+  !accessibilityStyle.includes("@media (pointer: coarse)") ||
+  !accessibilityStyle.includes("--compact-control-size: 44px")
+) {
+  violations.push("coarse pointers need enlarged shared control targets");
 }
 if (
   !shellStyle.includes("@media (hover: hover)") ||
@@ -705,11 +772,15 @@ for (const role of [
   }
 }
 sourcePanelStyles.forEach((source, index) => {
+  const relative = path.relative(root, sourcePanelStylePaths[index] || "");
   const lineCount = source.split("\n").length - 1;
-  if (lineCount > 550) {
+  if (lineCount > 400) {
     violations.push(
-      `${path.relative(root, sourcePanelStylePaths[index] || "")}: has ${lineCount} lines; split ownership files before they exceed 550`,
+      `${relative}: has ${lineCount} lines; split ownership files before they exceed 400`,
     );
+  }
+  if (/^\s*(?:min-|max-)?(?:width|height)\s*:/m.test(source)) {
+    violations.push(`${relative} must use logical sizing properties`);
   }
 });
 for (const match of sourcePanelStyle.matchAll(
@@ -822,19 +893,103 @@ for (const role of sharedSemanticRoles) {
   }
 }
 
+const sourcePanelTokenStyle = fs.readFileSync(
+  path.join(root, "src", "content", "source-panel-tokens.css"),
+  "utf8",
+);
+const optionThemes = themeBlocks(tokenStyle, /:root\[data-theme="([^"]+)"\]\s*\{([^}]*)\}/g);
+const sourcePanelThemes = themeBlocks(
+  sourcePanelTokenStyle,
+  /:host\(\[data-theme="([^"]+)"\]\)\s*\{([^}]*)\}/g,
+);
+const customOptionThemeNames = [...optionThemes]
+  .filter(([, properties]) => properties.has("--theme-page"))
+  .map(([name]) => name)
+  .toSorted();
+const sourcePanelThemeNames = [...sourcePanelThemes.keys()].toSorted();
+if (customOptionThemeNames.join("\n") !== sourcePanelThemeNames.join("\n")) {
+  violations.push("Options and Page Sources must expose the same custom theme names");
+}
+
+const sharedThemeRoles = [
+  "--theme-color-scheme",
+  "--theme-page",
+  "--theme-raised",
+  "--theme-text",
+  "--theme-muted",
+  "--theme-border",
+  "--theme-control-border",
+  "--theme-accent",
+  "--theme-focus",
+  "--theme-link",
+  "--theme-on-accent",
+];
+for (const theme of customOptionThemeNames) {
+  const optionProperties = optionThemes.get(theme);
+  const sourcePanelProperties = sourcePanelThemes.get(theme);
+  if (!optionProperties || !sourcePanelProperties) continue;
+  for (const role of sharedThemeRoles) {
+    if (optionProperties.get(role) !== sourcePanelProperties.get(role)) {
+      violations.push(`${theme} must use the same ${role} in Options and Page Sources`);
+    }
+  }
+}
+
+const themeContrastContracts = [
+  ["--theme-text", "--theme-page", 4.5],
+  ["--theme-muted", "--theme-page", 4.5],
+  ["--theme-link", "--theme-page", 4.5],
+  ["--theme-focus", "--theme-page", 3],
+  ["--theme-control-border", "--theme-page", 3],
+  ["--theme-on-accent", "--theme-accent", 4.5],
+];
+for (const theme of customOptionThemeNames) {
+  const properties = optionThemes.get(theme);
+  if (!properties) continue;
+  for (const [foregroundRole, backgroundRole, minimum] of themeContrastContracts) {
+    const foreground = properties.get(String(foregroundRole));
+    const background = properties.get(String(backgroundRole));
+    const ratio = foreground && background ? contrastRatio(foreground, background) : undefined;
+    if (ratio === undefined || ratio + Number.EPSILON < Number(minimum)) {
+      violations.push(
+        `${theme} ${foregroundRole} on ${backgroundRole} must have at least ${minimum}:1 contrast`,
+      );
+    }
+  }
+}
+
 const sourcePanel = fs.readFileSync(sourcePanelPath, "utf8");
 for (const file of [
   "source-panel-tokens.css",
   "source-panel.css",
   "source-panel-results.css",
+  "source-panel-responsive.css",
   "source-panel-preview.css",
 ]) {
   if (!sourcePanel.includes(`from "./${file}";`)) {
     violations.push(`src/content/source-panel.ts must import owned stylesheet ${file}`);
   }
 }
+const sourcePanelResponsiveStyle = fs.readFileSync(
+  path.join(root, "src", "content", "source-panel-responsive.css"),
+  "utf8",
+);
+if (
+  !sourcePanelResponsiveStyle.includes("@media (pointer: coarse)") ||
+  !sourcePanelResponsiveStyle.includes("--compact-control-size: 44px") ||
+  !sourcePanelResponsiveStyle.includes(":host(.floating) .resize")
+) {
+  violations.push("Page Sources coarse pointers need enlarged controls and resize targets");
+}
 if (/style\.textContent\s*=\s*`/.test(sourcePanel)) {
   violations.push("src/content/source-panel.ts contains inline component CSS");
+}
+if (
+  !sourcePanel.includes(
+    "SOURCE_PANEL_RESULTS_CSS,\n    SOURCE_PANEL_RESPONSIVE_CSS,\n    SOURCE_PANEL_PREVIEW_CSS",
+  )
+) {
+  violations.push("Page Sources responsive CSS must follow the result styles it adapts");
 }
 if (
   !sourcePanel.includes('from "../shared/floating-position.ts"') ||

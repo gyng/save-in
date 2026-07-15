@@ -2,7 +2,7 @@
 .shortcut-file-options {
   display: grid;
   gap: var(--space-3);
-  max-width: 48rem;
+  max-inline-size: 48rem;
 }
 
 .tab-panel .notification-options,
@@ -17,7 +17,7 @@
 }
 
 .option-choice-grid > label {
-  min-width: 0;
+  min-inline-size: 0;
   margin: 0;
 }
 
@@ -26,7 +26,7 @@
   align-items: baseline;
   flex-wrap: wrap;
   gap: var(--space-2);
-  min-width: 0;
+  min-inline-size: 0;
 }
 
 .option-subcontrol {
@@ -53,8 +53,8 @@
 }
 
 .unit-control input {
-  width: 7rem;
-  max-width: none;
+  inline-size: 7rem;
+  max-inline-size: none;
 }
 
 .unit-control input[type="hidden"] {
@@ -80,7 +80,7 @@
 }
 
 #click-to-save-warning {
-  max-width: 100%;
+  max-inline-size: 100%;
   overflow-wrap: anywhere;
 }
 

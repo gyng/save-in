@@ -6,9 +6,10 @@
      stacking contexts rather than sharing the options-page z-index scale. */
   z-index: 2147483647;
   isolation: isolate;
+  writing-mode: horizontal-tb;
   container: source-panel / inline-size;
   inset: 0 0 0 auto;
-  width: min(var(--source-panel-side-size, 360px), 100dvw);
+  inline-size: min(var(--source-panel-side-size, 360px), 100dvw);
   color: var(--color-text);
   accent-color: var(--color-accent);
   color-scheme: light dark;
@@ -67,22 +68,22 @@
 
   inset: auto 0 0;
   inline-size: auto;
-  height: min(var(--source-panel-dock-size, 420px), 85dvh);
+  block-size: min(var(--source-panel-dock-size, 420px), 85dvh);
 }
 :host(.dock-top) {
   --source-panel-motion-transform: translateY(-8px);
 
   inset: 0 0 auto;
   inline-size: auto;
-  height: min(var(--source-panel-dock-size, 420px), 85dvh);
+  block-size: min(var(--source-panel-dock-size, 420px), 85dvh);
 }
 :host(.floating) {
   inset: var(--source-panel-floating-top) auto auto var(--source-panel-floating-left);
-  width: min(
+  inline-size: min(
     var(--source-panel-floating-width, 520px),
     calc(100dvw - var(--source-panel-floating-left) - var(--source-panel-inline-gutter))
   );
-  height: min(
+  block-size: min(
     var(--source-panel-floating-height, 620px),
     calc(100dvh - var(--source-panel-floating-top) - var(--source-panel-block-gutter))
   );
@@ -92,9 +93,9 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  min-width: 0;
-  height: 100dvh;
-  overflow: hidden;
+  min-inline-size: 0;
+  block-size: 100dvh;
+  overflow: clip;
   background: var(--color-surface-page);
   box-shadow: var(--panel-shadow);
 }
@@ -102,11 +103,11 @@
 :host(.dock-bottom) .panel,
 :host(.dock-top) .panel,
 :host(.floating) .panel {
-  height: 100%;
+  block-size: 100%;
 }
 
 :host(.floating) .panel {
-  overflow: hidden;
+  overflow: clip;
   border: 1px solid var(--color-border);
   border-radius: calc(var(--radius) * 2);
   box-shadow: var(--floating-shadow);
@@ -116,14 +117,14 @@
   position: absolute;
   z-index: var(--z-panel-resize);
   inset: 0 auto 0 -4px;
-  width: 8px;
+  inline-size: 8px;
   cursor: ew-resize;
   touch-action: none;
 }
 .resize::before {
   position: absolute;
   inset: 0 auto 0 3px;
-  width: 2px;
+  inline-size: 2px;
   background: var(--color-control-border);
   content: "";
   opacity: 0.45;
@@ -136,16 +137,16 @@
 :host(.floating) .resize {
   inset: auto 0 0 auto;
   z-index: var(--z-panel-resize);
-  width: 18px;
-  height: 18px;
+  inline-size: 18px;
+  block-size: 18px;
   cursor: nwse-resize;
 }
 :host(.floating) .resize::after {
   position: absolute;
   right: 3px;
   bottom: 3px;
-  width: 8px;
-  height: 8px;
+  inline-size: 8px;
+  block-size: 8px;
   border-right: 2px solid var(--color-text-muted);
   border-bottom: 2px solid var(--color-text-muted);
   content: "";
@@ -168,20 +169,20 @@
 }
 :host(.dock-bottom) .resize {
   inset: -4px 0 auto;
-  width: auto;
-  height: 8px;
+  inline-size: auto;
+  block-size: 8px;
   cursor: ns-resize;
 }
 :host(.dock-bottom) .resize::before,
 :host(.dock-top) .resize::before {
   inset: 3px 0 auto;
-  width: auto;
-  height: 2px;
+  inline-size: auto;
+  block-size: 2px;
 }
 :host(.dock-top) .resize {
   inset: auto 0 -4px;
-  width: auto;
-  height: 8px;
+  inline-size: auto;
+  block-size: 8px;
   cursor: ns-resize;
 }
 :host(.dock-top) .resize::before {
@@ -192,7 +193,7 @@ header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: var(--control-height);
+  min-block-size: var(--control-height);
   padding: 6px 10px 3px;
 }
 :host(.floating) header {
@@ -205,15 +206,15 @@ header {
 }
 .title-group {
   display: flex;
-  min-width: 0;
+  min-inline-size: 0;
   align-items: center;
   gap: 7px;
 }
 .drag-grip {
   display: none;
   flex: none;
-  width: 8px;
-  height: 16px;
+  inline-size: 8px;
+  block-size: 16px;
   opacity: 0.65;
   background: radial-gradient(circle, currentcolor 1px, transparent 1.5px) 0 0 / 4px 4px;
 }
@@ -222,7 +223,7 @@ header {
 }
 .source-count {
   flex: none;
-  min-width: 20px;
+  min-inline-size: 20px;
   padding-inline: 5px;
   color: var(--color-text-muted);
   border-radius: 999px;
@@ -233,7 +234,7 @@ header {
   text-align: center;
 }
 h2 {
-  min-width: 0;
+  min-inline-size: 0;
   margin: 0;
   overflow: hidden;
   font-size: var(--text-lg);
@@ -266,8 +267,8 @@ summary:focus-visible {
 .header-button {
   display: grid;
   place-items: center;
-  width: var(--compact-control-size);
-  height: var(--compact-control-size);
+  inline-size: var(--compact-control-size);
+  block-size: var(--compact-control-size);
   padding: 0;
   border: 1px solid transparent;
   border-radius: var(--radius);
@@ -275,8 +276,8 @@ summary:focus-visible {
   line-height: 1;
 }
 .header-button svg {
-  width: 18px;
-  height: 18px;
+  inline-size: 18px;
+  block-size: 18px;
   fill: none;
   stroke: currentColor;
   stroke-width: 1.8;
@@ -305,9 +306,9 @@ summary:focus-visible {
   position: absolute;
   z-index: var(--z-panel-menu);
   display: grid;
-  min-width: 140px;
-  max-width: calc(100dvw - 16px);
-  max-height: calc(100dvh - 16px);
+  min-inline-size: 140px;
+  max-inline-size: calc(100dvw - 16px);
+  max-block-size: calc(100dvh - 16px);
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
@@ -326,7 +327,7 @@ summary:focus-visible {
 }
 .dock-menu button,
 .action-menu button {
-  min-height: var(--compact-control-size);
+  min-block-size: var(--compact-control-size);
   padding: 5px 8px;
   border: 0;
   border-radius: var(--radius-sm);
@@ -352,8 +353,8 @@ summary:focus-visible {
 }
 .toolbar input,
 .toolbar select {
-  min-width: 0;
-  min-height: var(--control-height);
+  min-inline-size: 0;
+  min-block-size: var(--control-height);
   padding: 5px 7px;
   border: 1px solid var(--color-control-border);
   border-radius: var(--radius);
@@ -370,7 +371,7 @@ summary:focus-visible {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  min-height: var(--compact-control-size);
+  min-block-size: var(--compact-control-size);
   padding: 2px 6px;
   border: 1px solid var(--color-control-border);
   border-radius: 999px;
@@ -378,7 +379,7 @@ summary:focus-visible {
   white-space: nowrap;
 }
 .facet-count {
-  min-width: 16px;
+  min-inline-size: 16px;
   padding: 0 3px;
   border-radius: 999px;
   color: var(--color-text-meta);
@@ -395,110 +396,4 @@ summary:focus-visible {
 .facet[aria-pressed="true"] .facet-count {
   color: var(--color-on-accent);
   background: color-mix(in srgb, var(--color-on-accent) 20%, transparent);
-}
-
-@container source-panel (max-width: 420px) {
-  header {
-    padding-inline: var(--source-space-2);
-  }
-
-  .header-actions {
-    gap: 0;
-  }
-
-  .facets {
-    padding-inline: var(--source-space-2);
-  }
-}
-
-@container source-panel (max-width: 320px) {
-  .source-count {
-    display: none;
-  }
-
-  .primary-action {
-    padding-inline: 6px;
-  }
-
-  .toolbar {
-    grid-template-columns: minmax(0, 1fr);
-    padding-inline: var(--source-space-2);
-  }
-}
-
-@media (max-width: 480px) {
-  :host,
-  :host(.dock-left),
-  :host(.dock-bottom),
-  :host(.dock-top),
-  :host(.floating) {
-    inset: 0;
-    width: 100dvw;
-    height: 100dvh;
-  }
-
-  :host(.floating) .panel {
-    border: 0;
-    border-radius: 0;
-  }
-
-  .resize,
-  :host(.floating) .resize {
-    display: none;
-  }
-
-  :host(.dock-bottom) .list,
-  :host(.dock-top) .list {
-    display: block;
-    padding: 0 7px 8px;
-  }
-
-  :host(.dock-bottom) .row,
-  :host(.dock-top) .row {
-    border: 0;
-    border-bottom: 1px solid var(--color-border);
-    border-radius: 0;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  :host,
-  :host(.closing) {
-    animation: none;
-  }
-}
-
-@media (prefers-contrast: more) {
-  :host {
-    --color-text-muted: color-mix(in srgb, var(--color-text) 82%, transparent);
-    --color-text-meta: color-mix(in srgb, var(--color-text) 88%, transparent);
-    --color-border: color-mix(in srgb, var(--color-text) 55%, transparent);
-    --color-control-border: color-mix(in srgb, var(--color-text) 75%, transparent);
-  }
-
-  :where(a, button, input, select, [tabindex]):focus-visible {
-    outline: 2px solid var(--color-focus);
-    outline-offset: 2px;
-    box-shadow: none;
-  }
-}
-
-@media (forced-colors: active) {
-  :where(a, button, input, select, [tabindex]):focus-visible {
-    outline: 2px solid Highlight;
-    outline-offset: 2px;
-    box-shadow: none;
-  }
-
-  .facet[aria-pressed="true"] {
-    color: HighlightText;
-    background: Highlight;
-    outline: 1px solid Highlight;
-  }
-
-  .dock-menu button[aria-checked="true"] {
-    color: HighlightText;
-    background: Highlight;
-    outline: 1px solid Highlight;
-  }
 }

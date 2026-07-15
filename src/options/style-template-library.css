@@ -42,8 +42,8 @@
 .rule-template {
   display: flex;
   align-items: flex-start;
-  min-width: 0;
-  overflow: hidden;
+  min-inline-size: 0;
+  overflow: clip;
   gap: var(--space-2);
   padding: var(--space-3);
   border: 1px solid var(--panel-border);
@@ -52,12 +52,12 @@
 
 .rule-template-body {
   flex: 1;
-  min-width: 0;
+  min-inline-size: 0;
 }
 
 .rule-template-rule {
   display: block;
-  max-width: 100%;
+  max-inline-size: 100%;
   overflow-wrap: anywhere;
   margin: 2px 0 0;
   padding: 0;
@@ -103,7 +103,7 @@
 
 .rule-template-add {
   flex: none;
-  min-width: 60px;
+  min-inline-size: 60px;
   padding: 4px 10px;
 }
 
@@ -114,7 +114,7 @@
 
   block-size: min(760px, calc(100dvb - 2 * var(--dialog-block-gutter)));
   padding: 0;
-  overflow: hidden;
+  overflow: clip;
 }
 
 .reference-dialog[open] {
@@ -148,8 +148,8 @@
 }
 
 .reference-dialog-filter-label .reference-dialog-filter {
-  width: min(28rem, 100%);
-  max-width: none;
+  inline-size: min(28rem, 100%);
+  max-inline-size: none;
   padding: var(--space-2) var(--space-3);
 }
 
@@ -163,7 +163,7 @@
 }
 
 .reference-dialog .options-reference-panel {
-  max-width: none;
+  max-inline-size: none;
   margin: 0;
   padding: var(--space-4) 0 0;
 }

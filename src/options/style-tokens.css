@@ -283,12 +283,12 @@
   --theme-raised: #eee8d5;
   --theme-input: #fffaf0;
   --theme-text: #586e75;
-  --theme-muted: #657b83;
+  --theme-muted: #5d737a;
   --theme-border: #d6cfb9;
-  --theme-control-border: #93a1a1;
-  --theme-accent: #268bd2;
+  --theme-control-border: #7b8989;
+  --theme-accent: #2176ad;
   --theme-accent-active: #176ca4;
-  --theme-focus: #b58900;
+  --theme-focus: #a77e00;
   --theme-link: #2176ad;
   --theme-on-accent: #ffffff;
   --theme-icon-filter: none;
@@ -303,7 +303,7 @@
   --theme-muted: #93a1a1;
   --theme-border: #31535c;
   --theme-control-border: #657b83;
-  --theme-accent: #268bd2;
+  --theme-accent: #2176ad;
   --theme-accent-active: #4ba4df;
   --theme-focus: #b58900;
   --theme-link: #6cbae8;
@@ -319,7 +319,7 @@
   --theme-text: #eceff4;
   --theme-muted: #d8dee9;
   --theme-border: #4c566a;
-  --theme-control-border: #69758d;
+  --theme-control-border: #7b88a1;
   --theme-accent: #88c0d0;
   --theme-accent-active: #9ccbd8;
   --theme-focus: #ebcb8b;
@@ -404,8 +404,8 @@
   --theme-text: #4d2938;
   --theme-muted: #7d5364;
   --theme-border: #e8bfd0;
-  --theme-control-border: #c98fa7;
-  --theme-accent: #d96c96;
+  --theme-control-border: #ae667f;
+  --theme-accent: #a73f6a;
   --theme-accent-active: #bd4e79;
   --theme-focus: #7957b8;
   --theme-link: #a73f6a;
@@ -456,7 +456,7 @@
   --theme-text: #ffe9f5;
   --theme-muted: #d5afc7;
   --theme-border: #623254;
-  --theme-control-border: #895177;
+  --theme-control-border: #986087;
   --theme-accent: #ff6b8a;
   --theme-accent-active: #ff8fa6;
   --theme-focus: #ffd166;

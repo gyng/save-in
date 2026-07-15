@@ -16,8 +16,8 @@
 .rule-add-menu-trigger {
   display: inline-grid;
   place-items: center;
-  width: var(--control-height);
-  min-height: var(--control-height);
+  inline-size: var(--control-height);
+  min-block-size: var(--control-height);
   padding: 0;
   border: 1px solid var(--panel-border);
   border-radius: var(--radius);

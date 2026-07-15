@@ -1,0 +1,157 @@
+.history-columns {
+  position: relative;
+  margin-block: 0;
+  margin-inline-start: auto;
+}
+
+.history-columns-menu {
+  --menu-popover-min-inline: 180px;
+
+  position: absolute;
+  z-index: var(--z-menu);
+  top: calc(100% + var(--space-1));
+  inset-inline-end: 0;
+}
+
+.history-columns-menu label {
+  padding: var(--space-1) var(--space-2);
+  margin: 0;
+}
+
+.history-index,
+.history-download-id {
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+}
+
+.history-table td.history-variables {
+  white-space: normal;
+}
+
+.history-variable-list {
+  display: grid;
+  gap: 3px;
+  margin: 0;
+}
+
+.history-variable-list > div {
+  display: grid;
+  grid-template-columns: minmax(5rem, auto) minmax(0, 1fr);
+  gap: var(--space-2);
+  align-items: baseline;
+}
+
+.history-variable-list dt,
+.history-variable-list dd {
+  min-inline-size: 0;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.history-variable-list dt {
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+
+.history-full-path {
+  overflow: hidden;
+  font-family: var(--font-mono);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.history-open:hover {
+  background: none;
+  opacity: 1;
+}
+
+.history-size {
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.history-type {
+  text-transform: capitalize;
+}
+
+.status-pill,
+.routed-chip {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.routed-chip {
+  color: var(--link-color);
+  background-color: color-mix(in srgb, var(--link-color) 10%, transparent);
+}
+
+#history-list {
+  container-type: inline-size;
+}
+
+/* The history table spans the full tab width (it has many columns); its
+   action row (filter, count, clear) spans the same width so the count and
+   Clear button align flush with the table's right edge */
+.tab-panel > #history-list,
+.tab-panel > .history-query-row,
+.tab-panel > .history-facets,
+.tab-panel > .history-table-tools {
+  max-inline-size: none;
+}
+
+.history-pager {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+
+.history-pager button {
+  padding: 4px 12px;
+}
+
+.history-pager-label {
+  font-variant-numeric: tabular-nums;
+}
+
+.status-badge {
+  padding: 1px 8px;
+}
+
+.status-badge.status-ok {
+  color: var(--success-fg);
+  background-color: color-mix(in srgb, var(--color-success) 14%, transparent);
+}
+
+.status-badge.status-pending {
+  color: var(--color-text-muted);
+  background-color: color-mix(in srgb, var(--color-text-muted) 14%, transparent);
+}
+
+.status-badge.status-fail {
+  color: var(--error-fg);
+  background-color: color-mix(in srgb, var(--color-validation) 12%, transparent);
+  text-transform: capitalize;
+}
+
+.history-file {
+  font-family: var(--font-mono);
+}
+
+.history-folder {
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+}
+
+.history-url a {
+  font-family: var(--font-mono);
+}

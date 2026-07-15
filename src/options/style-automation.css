@@ -43,7 +43,7 @@
 }
 
 .browser-download-routing-data {
-  max-width: 48rem;
+  max-inline-size: 48rem;
   margin-top: var(--space-4);
 }
 
@@ -65,7 +65,7 @@
 .auto-download-options {
   display: grid;
   gap: var(--space-3);
-  max-width: 48rem;
+  max-inline-size: 48rem;
   margin-top: var(--space-3);
 }
 
@@ -99,7 +99,7 @@
 }
 
 .auto-download-limit input {
-  width: 7rem;
+  inline-size: 7rem;
 }
 
 .auto-download-limit-help {
@@ -107,10 +107,10 @@
 }
 
 .auto-download-rules {
-  max-width: 48rem;
+  max-inline-size: 48rem;
   margin-top: var(--space-5);
 }
 
 .auto-download-rules h4 {
-  max-width: 68ch;
+  max-inline-size: 68ch;
 }

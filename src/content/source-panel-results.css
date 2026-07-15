@@ -1,5 +1,5 @@
 .list {
-  min-width: 0;
+  min-inline-size: 0;
   margin: 0;
   overflow: auto;
   overscroll-behavior: contain;
@@ -21,16 +21,16 @@
 }
 .source-selection {
   display: grid;
-  min-width: var(--compact-control-size);
-  min-height: var(--compact-control-size);
+  min-inline-size: var(--compact-control-size);
+  min-block-size: var(--compact-control-size);
   place-items: center;
   cursor: pointer;
   touch-action: none;
   user-select: none;
 }
 .source-selection input {
-  width: 15px;
-  height: 15px;
+  inline-size: 15px;
+  block-size: 15px;
   margin: 0;
   cursor: inherit;
 }
@@ -70,7 +70,7 @@
   grid-template-columns: 30px minmax(0, 1fr);
   align-items: center;
   gap: 7px;
-  min-height: 38px;
+  min-block-size: 38px;
   padding: 3px 5px;
   color: inherit;
   border-radius: var(--radius);
@@ -85,13 +85,13 @@
   outline-offset: -2px;
 }
 .source-text {
-  min-width: 0;
+  min-inline-size: 0;
 }
 img,
 video,
 .preview-fallback {
-  width: 30px;
-  height: 30px;
+  inline-size: 30px;
+  block-size: 30px;
   object-fit: contain;
   border-radius: var(--radius-sm);
   background: var(--color-preview);
@@ -122,9 +122,9 @@ video,
   display: flex;
   align-items: center;
   gap: var(--source-space-1);
-  min-width: 0;
+  min-inline-size: 0;
   margin-top: 2px;
-  overflow: hidden;
+  overflow: clip;
   color: var(--color-text-meta);
   font-size: var(--text-xs);
   white-space: nowrap;
@@ -134,7 +134,7 @@ video,
   flex: none;
   align-items: center;
   gap: 3px;
-  max-width: 48%;
+  max-inline-size: 48%;
   padding-block: 1px;
   padding-inline: 4px 5px;
   color: color-mix(in srgb, var(--color-kind) 78%, var(--color-text));
@@ -163,8 +163,8 @@ video,
 }
 .kind-icon {
   flex: none;
-  width: 12px;
-  height: 12px;
+  inline-size: 12px;
+  block-size: 12px;
   fill: none;
   stroke: currentColor;
   stroke-width: 2;
@@ -176,12 +176,12 @@ video,
   flex: none;
   align-items: center;
   gap: var(--source-space-1);
-  min-width: 0;
+  min-inline-size: 0;
   margin-inline: 2px 5px;
 }
 .primary-action,
 .row-more > summary {
-  min-height: var(--compact-control-size);
+  min-block-size: var(--compact-control-size);
   padding: 3px 7px;
   border: 1px solid var(--color-control-border);
   border-radius: var(--radius-sm);
@@ -194,14 +194,14 @@ video,
 }
 .row-more > summary {
   display: grid;
-  width: var(--compact-control-size);
+  inline-size: var(--compact-control-size);
   padding: 0;
   place-items: center;
   color: var(--color-text-muted);
 }
 .row-more > summary svg {
-  width: 17px;
-  height: 17px;
+  inline-size: 17px;
+  block-size: 17px;
   fill: none;
   stroke: currentcolor;
   stroke-width: 2.5;
@@ -222,7 +222,7 @@ video,
 .selection-count {
   display: flex;
   align-items: center;
-  min-width: 0;
+  min-inline-size: 0;
   margin-inline-end: auto;
   overflow: hidden;
   color: var(--color-text-muted);
@@ -237,7 +237,7 @@ video,
 }
 .selection-bar button,
 .batch-dialog button {
-  min-height: var(--compact-control-size);
+  min-block-size: var(--compact-control-size);
   padding: 3px 7px;
   border: 1px solid var(--color-control-border);
   border-radius: var(--radius-sm);
@@ -267,7 +267,7 @@ video,
   opacity: 0.72;
 }
 .batch-dialog {
-  max-width: min(360px, calc(100% - var(--source-space-4)));
+  max-inline-size: min(360px, calc(100% - var(--source-space-4)));
   color: var(--color-text);
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
@@ -298,7 +298,7 @@ video,
   margin: 0;
 }
 .empty button {
-  min-height: var(--compact-control-size);
+  min-block-size: var(--compact-control-size);
   margin-top: var(--source-space-3);
   padding: 4px 9px;
   color: var(--color-link);
@@ -308,8 +308,8 @@ video,
 }
 .visually-hidden {
   position: absolute;
-  width: 1px;
-  height: 1px;
+  inline-size: 1px;
+  block-size: 1px;
   overflow: clip;
   clip-path: inset(50%);
   white-space: nowrap;

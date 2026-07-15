@@ -12,6 +12,11 @@ a:active {
   color: var(--link-color-active);
 }
 
+:where(p, .help-text, .section-lead, .privacy-content) a {
+  text-decoration: underline;
+  text-underline-offset: 0.12em;
+}
+
 a.external {
   position: relative;
   padding-inline-end: calc(16px + var(--space-1));

@@ -4,7 +4,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2) var(--space-4);
-  max-width: var(--content-max-width);
+  max-inline-size: var(--content-max-width);
   margin: 0 0 var(--space-5);
   padding: var(--space-2) 0 var(--space-3);
   border-bottom: 1px solid var(--panel-border);
@@ -12,7 +12,7 @@
 }
 
 .advanced-section {
-  width: min(var(--content-max-width), 100%);
+  inline-size: min(var(--content-max-width), 100%);
   scroll-margin-top: var(--sticky-header-offset);
 }
 
@@ -35,7 +35,7 @@
 }
 
 .advanced-option-row {
-  max-width: 48rem;
+  max-inline-size: 48rem;
   margin-bottom: var(--space-3);
 }
 
@@ -55,7 +55,7 @@
 }
 
 .theme-picker {
-  min-width: 0;
+  min-inline-size: 0;
   margin: 0;
   padding: 0;
   border: 0;
@@ -111,8 +111,8 @@
 
 .theme-choice {
   display: flex;
-  min-width: 0;
-  min-height: var(--compact-row-height);
+  min-inline-size: 0;
+  min-block-size: var(--compact-row-height);
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-1);
@@ -135,8 +135,8 @@
 }
 
 .theme-swatch {
-  width: 1.5rem;
-  height: 1rem;
+  inline-size: 1.5rem;
+  block-size: 1rem;
   flex: 0 0 auto;
   border: 1px solid var(--color-control-border);
   border-radius: var(--radius-sm);
@@ -216,7 +216,7 @@
 }
 
 .advanced-option-help {
-  max-width: 68ch;
+  max-inline-size: 68ch;
   margin-top: var(--space-1);
   color: var(--color-text-muted);
   line-height: var(--leading-copy);
@@ -244,7 +244,7 @@
 .advanced-integration-section {
   display: grid;
   gap: var(--space-3);
-  width: min(760px, 100%);
+  inline-size: min(760px, 100%);
   margin: var(--space-3) 0 0;
   padding: var(--space-4);
   border: 1px solid var(--panel-border);
@@ -265,12 +265,12 @@
 }
 
 .counter-control {
-  max-width: 520px;
+  max-inline-size: 520px;
 }
 
 .tab-panel .counter-control #counter-value {
-  width: 8rem;
-  max-width: 8rem;
+  inline-size: 8rem;
+  max-inline-size: 8rem;
 }
 
 code.click-to-copy {

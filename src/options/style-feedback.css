@@ -36,6 +36,10 @@
   opacity: 0.5;
 }
 
+.error-row:dir(rtl)::after {
+  content: "←";
+}
+
 .error-row:hover {
   border-color: var(--color-validation);
 }

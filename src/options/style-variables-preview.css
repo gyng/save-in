@@ -9,8 +9,8 @@
   z-index: var(--z-menu);
   top: 100%;
   inset-inline-start: 0;
-  width: 100%;
-  max-height: min(360px, 55dvh);
+  inline-size: 100%;
+  max-block-size: min(360px, 55dvh);
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
@@ -22,15 +22,15 @@
 }
 
 .variables-preview-table {
-  width: 100%;
+  inline-size: 100%;
   border-collapse: collapse;
   font-size: var(--text-sm);
 }
 
 .variables-preview-table td {
   overflow: hidden;
-  max-width: 0;
-  height: var(--compact-row-height);
+  max-inline-size: 0;
+  block-size: var(--compact-row-height);
   padding: var(--space-1) var(--space-3);
   border-bottom: 1px solid var(--panel-border);
   line-height: 1.5;
@@ -53,7 +53,7 @@
 }
 
 .variables-preview-table td:first-child {
-  width: 45%;
+  inline-size: 45%;
 }
 
 .variables-preview-reference-row {
@@ -61,15 +61,15 @@
   grid-template-columns: minmax(7rem, 45%) minmax(0, 1fr);
   grid-template-rows: auto auto;
   gap: 1px var(--space-3);
-  width: 100%;
+  inline-size: 100%;
   padding: var(--space-2) var(--space-3);
   border-bottom: 1px solid var(--panel-border);
 }
 
 .variables-preview-reference-row > td {
-  width: auto;
-  max-width: none;
-  height: auto;
+  inline-size: auto;
+  max-inline-size: none;
+  block-size: auto;
   padding: 0;
   border-bottom: 0;
 }
@@ -77,13 +77,13 @@
 .variables-preview-reference-row > td:first-child {
   grid-column: 1;
   grid-row: 1;
-  width: auto;
+  inline-size: auto;
 }
 
 .variables-preview-reference-row > .variables-preview-value:not(.clause-preview-description) {
   grid-column: 2;
   grid-row: 1;
-  min-width: 0;
+  min-inline-size: 0;
   text-align: end;
 }
 
@@ -120,7 +120,7 @@
 
 .variables-preview-insert {
   display: block;
-  width: 100%;
+  inline-size: 100%;
   padding: 0;
   border: 0;
   color: inherit;
@@ -130,7 +130,7 @@
 }
 
 .variables-preview-command > td {
-  height: auto;
+  block-size: auto;
   padding: 0;
 }
 
