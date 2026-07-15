@@ -223,12 +223,30 @@
   opacity: 0.5;
 }
 
-.path-editor-row.drag-before {
-  box-shadow: 0 -2px 0 var(--color-selection);
+.path-editor-drop-zone {
+  position: relative;
+  z-index: var(--z-local);
+  height: 10px;
+  margin-block: -5px;
+  pointer-events: none;
 }
 
-.path-editor-row.drag-after {
-  box-shadow: 0 2px 0 var(--color-selection);
+#path-editor-rows.is-dragging .path-editor-drop-zone {
+  pointer-events: auto;
+}
+
+.path-editor-drop-zone.is-active::before {
+  position: absolute;
+  content: "";
+  top: 50%;
+  inset-inline: 0;
+  border-top: 2px solid var(--color-selection);
+}
+
+.path-editor-drop-zone .path-editor-drop-indicator {
+  top: 50%;
+  bottom: auto;
+  transform: translateY(-50%);
 }
 
 .path-editor-row.drag-inside {
@@ -240,9 +258,4 @@
   top: 50%;
   bottom: auto;
   transform: translateY(-50%);
-}
-
-.path-editor-row.drag-before .path-editor-drop-indicator {
-  top: -9px;
-  bottom: auto;
 }

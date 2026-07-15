@@ -2135,7 +2135,7 @@
     }
   },
   "o_lPathEditorDragHelp": {
-    "message": "Arraste pela alça pontilhada. Solte acima ou abaixo de uma linha para colocá-la no mesmo nível, ou sobre a linha para aninhá-la dentro dela."
+    "message": "Arraste pela alça pontilhada. Solte a linha em um divisor entre linhas para movê-la até lá, ou sobre outra linha para aninhá-la."
   },
   "routeDebuggerTitle": {
     "message": "Testar regras de roteamento"
@@ -2536,11 +2536,8 @@
       }
     }
   },
-  "pathVisualInsertAfter": {
-    "message": "Inserir depois · Mesmo nível"
-  },
-  "pathVisualInsertBefore": {
-    "message": "Inserir antes · Mesmo nível"
+  "pathVisualMoveHere": {
+    "message": "Mover para cá"
   },
   "pathVisualDirectoryPlaceholder": {
     "message": "pasta/:variables:"

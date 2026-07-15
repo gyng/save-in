@@ -2156,7 +2156,7 @@
     }
   },
   "o_lPathEditorDragHelp": {
-    "message": "Faites glisser une ligne par la poignée en pointillés. Déposez-la au-dessus ou au-dessous d’une ligne pour la placer au même niveau, ou sur la ligne pour l’y imbriquer."
+    "message": "Faites glisser par la poignée en pointillés. Déposez la ligne sur un trait entre deux lignes pour l’y déplacer, ou sur une ligne pour l’y imbriquer."
   },
   "routeDebuggerTitle": {
     "message": "Tester les règles de routage"
@@ -2561,11 +2561,8 @@
       }
     }
   },
-  "pathVisualInsertAfter": {
-    "message": "Insérer après · Même niveau"
-  },
-  "pathVisualInsertBefore": {
-    "message": "Insérer avant · Même niveau"
+  "pathVisualMoveHere": {
+    "message": "Déplacer ici"
   },
   "pathVisualDirectoryPlaceholder": {
     "message": "dossier/:variables:"

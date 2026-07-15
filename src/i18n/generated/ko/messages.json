@@ -2235,7 +2235,7 @@
     }
   },
   "o_lPathEditorDragHelp": {
-    "message": "점으로 된 핸들을 끌어 이동합니다. 행의 위나 아래에 놓으면 같은 단계에 배치되고, 행 위에 놓으면 그 안에 중첩됩니다."
+    "message": "점선 핸들을 끕니다. 행 사이의 선에 놓으면 해당 위치로 이동하고, 행 위에 놓으면 그 아래에 중첩됩니다."
   },
   "routeDebuggerTitle": {
     "message": "라우팅 규칙 테스트"
@@ -2632,11 +2632,8 @@
       }
     }
   },
-  "pathVisualInsertAfter": {
-    "message": "뒤에 삽입 · 같은 수준"
-  },
-  "pathVisualInsertBefore": {
-    "message": "앞에 삽입 · 같은 수준"
+  "pathVisualMoveHere": {
+    "message": "여기로 이동"
   },
   "pathVisualDirectoryPlaceholder": {
     "message": "폴더/:variables:"

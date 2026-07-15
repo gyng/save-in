@@ -2135,7 +2135,7 @@
     }
   },
   "o_lPathEditorDragHelp": {
-    "message": "Sleep aan de gestippelde greep. Zet de rij boven of onder een andere rij neer om hem op hetzelfde niveau te plaatsen, of op de rij om hem daarin te nesten."
+    "message": "Sleep aan de gestippelde greep. Zet de rij neer op een lijn tussen rijen om deze daarheen te verplaatsen, of op een rij om deze erin te nesten."
   },
   "routeDebuggerTitle": {
     "message": "Routeringsregels testen"
@@ -2540,11 +2540,8 @@
       }
     }
   },
-  "pathVisualInsertAfter": {
-    "message": "Hierna invoegen · Zelfde niveau"
-  },
-  "pathVisualInsertBefore": {
-    "message": "Hiervoor invoegen · Zelfde niveau"
+  "pathVisualMoveHere": {
+    "message": "Hierheen verplaatsen"
   },
   "pathVisualDirectoryPlaceholder": {
     "message": "map/:variables:"

@@ -2235,7 +2235,7 @@
     }
   },
   "o_lPathEditorDragHelp": {
-    "message": "点線のハンドルをドラッグします。行の上または下にドロップすると同じ階層に配置され、行の上にドロップするとその内側に入れ子になります。"
+    "message": "点線のハンドルをドラッグします。行間の線にドロップするとその位置へ移動し、行上にドロップするとその行の下位になります。"
   },
   "routeDebuggerTitle": {
     "message": "ルーティングルールをテスト"
@@ -2632,11 +2632,8 @@
       }
     }
   },
-  "pathVisualInsertAfter": {
-    "message": "後に挿入 · 同じ階層"
-  },
-  "pathVisualInsertBefore": {
-    "message": "前に挿入 · 同じ階層"
+  "pathVisualMoveHere": {
+    "message": "ここに移動"
   },
   "pathVisualDirectoryPlaceholder": {
     "message": "フォルダー/:variables:"

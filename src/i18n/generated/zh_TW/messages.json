@@ -2235,7 +2235,7 @@
     }
   },
   "o_lPathEditorDragHelp": {
-    "message": "拖曳點狀控點。放在某列的上方或下方可置於同一層級，放在該列上則會巢狀置於其中。"
+    "message": "拖曳點狀控點。放在列間線上可移到該位置，放在某一列上則會移至該列下層。"
   },
   "routeDebuggerTitle": {
     "message": "測試路由規則"
@@ -2628,11 +2628,8 @@
       }
     }
   },
-  "pathVisualInsertAfter": {
-    "message": "插入到後面 · 同一層級"
-  },
-  "pathVisualInsertBefore": {
-    "message": "插入到前面 · 同一層級"
+  "pathVisualMoveHere": {
+    "message": "移到這裡"
   },
   "pathVisualDirectoryPlaceholder": {
     "message": "資料夾/:variables:"

@@ -708,13 +708,13 @@ describe("visual editor drag and drop", () => {
     document.body.innerHTML = "";
   });
 
-  test("dropping a dragged row onto another reorders the lines", () => {
+  test("dropping a dragged row onto another nests it", () => {
     const rows = document.querySelectorAll(".path-editor-row");
     // Drag row 0 ("a") and drop it on row 2 ("c")
     rows[0]!.querySelector(".path-editor-handle")!.dispatchEvent(new Event("dragstart"));
     rows[2]!.dispatchEvent(new Event("drop"));
 
-    expect(element<HTMLTextAreaElement>("#paths").value).toBe("b\nc\na");
+    expect(element<HTMLTextAreaElement>("#paths").value).toBe("b\nc\n>a");
   });
 
   test("a drop without a drag is ignored", () => {
@@ -724,46 +724,36 @@ describe("visual editor drag and drop", () => {
     expect(element<HTMLTextAreaElement>("#paths").value).toBe("a\nb\nc");
   });
 
-  test("the upper drop zone inserts before the target", () => {
+  test("one shared boundary between rows moves the row there", () => {
     const rows = document.querySelectorAll<HTMLElement>(".path-editor-row");
-    vi.spyOn(rows[1]!, "getBoundingClientRect").mockReturnValue({
-      top: 100,
-      bottom: 160,
-      height: 60,
-      left: 0,
-      right: 300,
-      width: 300,
-      x: 0,
-      y: 100,
-      toJSON: () => ({}),
-    });
+    const zones = document.querySelectorAll<HTMLElement>(".path-editor-drop-zone");
+    expect(zones).toHaveLength(rows.length + 1);
+
     rows[2]!.querySelector(".path-editor-handle")!.dispatchEvent(dragEvent("dragstart", 0));
-    rows[1]!.dispatchEvent(dragEvent("dragover", 0, 105));
-    expect(rows[1]!.querySelector(".path-editor-drop-indicator")?.textContent).toContain(
-      "Insert before",
+    zones[1]!.dispatchEvent(dragEvent("dragover", 0));
+    expect(zones[1]!.querySelector(".path-editor-drop-indicator")?.textContent).toContain(
+      "Move here",
     );
-    rows[1]!.dispatchEvent(dragEvent("drop", 0, 105));
+    zones[1]!.dispatchEvent(dragEvent("drop", 0));
 
     expect(element<HTMLTextAreaElement>("#paths").value).toBe("a\nc\nb");
   });
 
-  test("the middle drop zone moves a row inside the highlighted group", () => {
+  test("the final boundary moves a row after the list", () => {
     const rows = document.querySelectorAll<HTMLElement>(".path-editor-row");
-    vi.spyOn(rows[0]!, "getBoundingClientRect").mockReturnValue({
-      top: 100,
-      bottom: 160,
-      height: 60,
-      left: 0,
-      right: 300,
-      width: 300,
-      x: 0,
-      y: 100,
-      toJSON: () => ({}),
-    });
-    rows[2]!.querySelector(".path-editor-handle")!.dispatchEvent(dragEvent("dragstart", 100));
-    rows[0]!.dispatchEvent(dragEvent("dragover", 100, 130));
+    const zones = document.querySelectorAll<HTMLElement>(".path-editor-drop-zone");
+    rows[0]!.querySelector(".path-editor-handle")!.dispatchEvent(dragEvent("dragstart", 0));
+    zones[zones.length - 1]!.dispatchEvent(dragEvent("drop", 0));
 
-    rows[0]!.dispatchEvent(dragEvent("drop", 100, 130));
+    expect(element<HTMLTextAreaElement>("#paths").value).toBe("b\nc\na");
+  });
+
+  test("the row target moves a row inside the highlighted group", () => {
+    const rows = document.querySelectorAll<HTMLElement>(".path-editor-row");
+    rows[2]!.querySelector(".path-editor-handle")!.dispatchEvent(dragEvent("dragstart", 100));
+    rows[0]!.dispatchEvent(dragEvent("dragover", 100));
+
+    rows[0]!.dispatchEvent(dragEvent("drop", 100));
     expect(element<HTMLTextAreaElement>("#paths").value).toBe("a\n>c\nb");
   });
 
@@ -778,8 +768,10 @@ describe("visual editor drag and drop", () => {
     expect(dataTransfer.effectAllowed).toBe("move");
 
     rows[1]!.dispatchEvent(dragEvent("dragover", 0, 0));
-    expect(rows[1]!.querySelector(".path-editor-drop-indicator")).not.toBeNull();
+    const indicator = rows[1]!.querySelector(".path-editor-drop-indicator");
+    expect(indicator).not.toBeNull();
     rows[1]!.dispatchEvent(dragEvent("dragover", 0, 0));
+    expect(rows[1]!.querySelector(".path-editor-drop-indicator")).toBe(indicator);
     handle.dispatchEvent(new Event("dragend"));
     expect(rows[1]!.querySelector(".path-editor-drop-indicator")).toBeNull();
 

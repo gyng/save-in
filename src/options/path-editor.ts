@@ -16,7 +16,6 @@ import { attachAutocomplete } from "./autocomplete.ts";
 import { setupPathInsertMenu } from "./path-editor-insert-menu.ts";
 import { completeDirectorySyntax } from "./syntax-editor-model.ts";
 import { bindTabInteractions, syncTabSelection } from "./tab-controls.ts";
-import { registerPathSourceElement, selectPathSource } from "./path-source-selection.ts";
 import { sortVariables } from "./vocabulary-groups.ts";
 import {
   deletePathNode,
@@ -168,8 +167,6 @@ const PathEditorHelpers = {
     let nodes: DirectoryLineNode[] = [];
     // Index being dragged via a row handle; null when no drag is active
     let dragFrom: number | null = null;
-    let dropAfter = true;
-    let dropInside = false;
     let committing = false;
     let deletedNodes: DirectoryLineNode[] | null = null;
     let validationErrors: readonly EditorValidationFeedback[] = [];
@@ -294,15 +291,76 @@ const PathEditorHelpers = {
           .map((item) => [item.sourceIndex, item]),
       );
 
+      const clearDropAppearance = (): void => {
+        container
+          .querySelectorAll(".path-editor-row.drag-inside")
+          .forEach((row) => row.classList.remove("drag-inside"));
+        container
+          .querySelectorAll(".path-editor-drop-zone.is-active")
+          .forEach((zone) => zone.classList.remove("is-active"));
+        container.querySelectorAll(".path-editor-drop-indicator").forEach((el) => el.remove());
+      };
+
+      const appendBoundaryDropZone = (boundaryIndex: number): void => {
+        const zone = document.createElement("div");
+        zone.className = "path-editor-drop-zone";
+        zone.dataset.boundaryIndex = String(boundaryIndex);
+        zone.setAttribute("aria-hidden", "true");
+        zone.addEventListener("dragover", (event) => {
+          if (dragFrom === null) return;
+          event.preventDefault();
+          if (zone.classList.contains("is-active")) return;
+          clearDropAppearance();
+          zone.classList.add("is-active");
+          const indicator = document.createElement("span");
+          indicator.className = "path-editor-drop-indicator";
+          indicator.textContent = localize("pathVisualMoveHere", "Move here");
+          zone.append(indicator);
+        });
+        zone.addEventListener("dragleave", (event) => {
+          if (event.relatedTarget instanceof Node && zone.contains(event.relatedTarget)) return;
+          zone.classList.remove("is-active");
+          zone.querySelector(".path-editor-drop-indicator")?.remove();
+        });
+        zone.addEventListener("drop", (event) => {
+          event.preventDefault();
+          clearDropAppearance();
+          if (dragFrom === null) return;
+          if (boundaryIndex < nodes.length) {
+            nodes = dropPathNode(nodes, dragFrom, boundaryIndex, "before");
+          } else if (nodes.length > 0) {
+            nodes = dropPathNode(nodes, dragFrom, nodes.length - 1, "after");
+          }
+          dragFrom = null;
+          container.classList.remove("is-dragging");
+          commit();
+          rebuild();
+        });
+        container.append(zone);
+      };
+
+      appendBoundaryDropZone(0);
+
       nodes.forEach((node, index) => {
         const rowEl = document.createElement("div");
         rowEl.className = "visual-editor-row path-editor-row";
         rowEl.dataset.depth = String(node.depth);
-        registerPathSourceElement(rowEl, index);
+        rowEl.dataset.sourceIndex = String(index);
         rowEl.style.setProperty("--row-depth", String(node.depth));
         rowEl.classList.toggle("is-disabled", !PathEditorHelpers.getEnabled(node));
         rowEl.addEventListener("click", () => {
-          selectPathSource(index, { document: textarea.ownerDocument });
+          container
+            .querySelectorAll(".path-editor-row.is-preview-selected")
+            .forEach((row) => row.classList.remove("is-preview-selected"));
+          rowEl.classList.add("is-preview-selected");
+          document
+            .querySelectorAll<HTMLElement>("#menu-preview-tree [data-source-index]")
+            .forEach((previewRow) => {
+              previewRow.classList.toggle(
+                "is-source-selected",
+                Number(previewRow.dataset.sourceIndex) === index,
+              );
+            });
           textarea.dispatchEvent(
             new CustomEvent("path-editor-row-selected", {
               bubbles: true,
@@ -342,7 +400,7 @@ const PathEditorHelpers = {
         handle.draggable = true;
         handle.addEventListener("dragstart", (e) => {
           dragFrom = index;
-          dropInside = false;
+          container.classList.add("is-dragging");
           rowEl.classList.add("dragging");
           if (e.dataTransfer) {
             // Firefox requires data for a drag to start
@@ -352,9 +410,9 @@ const PathEditorHelpers = {
         });
         handle.addEventListener("dragend", () => {
           dragFrom = null;
-          dropInside = false;
+          container.classList.remove("is-dragging");
           rowEl.classList.remove("dragging");
-          container.querySelectorAll(".path-editor-drop-indicator").forEach((el) => el.remove());
+          clearDropAppearance();
         });
         handle.addEventListener("keydown", (event) => {
           if (
@@ -411,52 +469,39 @@ const PathEditorHelpers = {
         rowEl.append(enabledControl);
 
         rowEl.addEventListener("dragover", (e) => {
-          if (dragFrom !== null) {
-            e.preventDefault();
-            const bounds = rowEl.getBoundingClientRect();
-            const relativeY = bounds.height ? (e.clientY - bounds.top) / bounds.height : 1;
-            dropInside =
-              dragFrom !== index &&
-              node.path.value !== SPECIAL_DIRS.SEPARATOR &&
-              relativeY >= 1 / 3 &&
-              relativeY <= 2 / 3;
-            dropAfter = relativeY > 2 / 3;
-            rowEl.classList.toggle("drag-before", !dropAfter && !dropInside);
-            rowEl.classList.toggle("drag-after", dropAfter && !dropInside);
-            rowEl.classList.toggle("drag-inside", dropInside);
-            container.querySelectorAll(".path-editor-drop-indicator").forEach((el) => el.remove());
-            const indicator = document.createElement("span");
-            indicator.className = "path-editor-drop-indicator";
-            indicator.textContent = dropInside
-              ? localize("pathVisualNestUnder", `Nest under “${rowName}”`, rowName)
-              : dropAfter
-                ? localize("pathVisualInsertAfter", "Insert after · Same level")
-                : localize("pathVisualInsertBefore", "Insert before · Same level");
-            rowEl.append(indicator);
-          }
+          if (dragFrom === null || dragFrom === index || node.path.value === SPECIAL_DIRS.SEPARATOR)
+            return;
+          e.preventDefault();
+          if (rowEl.classList.contains("drag-inside")) return;
+          clearDropAppearance();
+          rowEl.classList.add("drag-inside");
+          const indicator = document.createElement("span");
+          indicator.className = "path-editor-drop-indicator";
+          indicator.textContent = localize(
+            "pathVisualNestUnder",
+            `Nest under “${rowName}”`,
+            rowName,
+          );
+          rowEl.append(indicator);
         });
-        rowEl.addEventListener("dragleave", () => {
-          rowEl.classList.remove("drag-before", "drag-after", "drag-inside");
+        rowEl.addEventListener("dragleave", (event) => {
+          if (event.relatedTarget instanceof Node && rowEl.contains(event.relatedTarget)) return;
+          rowEl.classList.remove("drag-inside");
           rowEl.querySelector(".path-editor-drop-indicator")?.remove();
         });
         rowEl.addEventListener("drop", (e) => {
           e.preventDefault();
-          rowEl.classList.remove("drag-before", "drag-after", "drag-inside");
-          rowEl.querySelector(".path-editor-drop-indicator")?.remove();
-          if (dragFrom === null) return;
-          if (dragFrom === index) {
-            dragFrom = null;
-            dropInside = false;
+          clearDropAppearance();
+          if (
+            dragFrom === null ||
+            dragFrom === index ||
+            node.path.value === SPECIAL_DIRS.SEPARATOR
+          ) {
             return;
           }
-          nodes = dropPathNode(
-            nodes,
-            dragFrom,
-            index,
-            dropInside ? "inside" : dropAfter ? "after" : "before",
-          );
+          nodes = dropPathNode(nodes, dragFrom, index, "inside");
           dragFrom = null;
-          dropInside = false;
+          container.classList.remove("is-dragging");
           commit();
           rebuild();
         });
@@ -674,6 +719,7 @@ const PathEditorHelpers = {
         rowEl.append(actions);
 
         container.appendChild(rowEl);
+        appendBoundaryDropZone(index + 1);
       });
       applyValidationAppearance();
       textarea.dispatchEvent(new Event("visual-editor-rendered"));
@@ -699,7 +745,9 @@ const PathEditorHelpers = {
       nodes.push(PathEditorHelpers.parseLine("new-folder"));
       commit();
       rebuild();
-      const input = container.lastElementChild?.querySelector<HTMLInputElement>(".path-editor-dir");
+      const input = container
+        .querySelectorAll<HTMLElement>(".path-editor-row")
+        [nodes.length - 1]?.querySelector<HTMLInputElement>(".path-editor-dir");
       input?.focus();
       input?.select();
     });

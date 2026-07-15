@@ -2139,7 +2139,7 @@
     }
   },
   "o_lPathEditorDragHelp": {
-    "message": "Ziehen Sie eine Zeile am gepunkteten Griff. Legen Sie sie oberhalb oder unterhalb einer Zeile ab, um sie auf derselben Ebene zu platzieren, oder direkt auf einer Zeile, um sie dieser unterzuordnen."
+    "message": "Ziehen Sie am gepunkteten Griff. Legen Sie die Zeile auf einer Linie zwischen Zeilen ab, um sie dorthin zu verschieben, oder auf einer Zeile, um sie dieser unterzuordnen."
   },
   "routeDebuggerTitle": {
     "message": "Routing-Regeln testen"
@@ -2552,11 +2552,8 @@
       }
     }
   },
-  "pathVisualInsertAfter": {
-    "message": "Danach einfügen · Gleiche Ebene"
-  },
-  "pathVisualInsertBefore": {
-    "message": "Davor einfügen · Gleiche Ebene"
+  "pathVisualMoveHere": {
+    "message": "Hierher verschieben"
   },
   "pathVisualDirectoryPlaceholder": {
     "message": "ordner/:variables:"

@@ -1356,7 +1356,7 @@
     "description": "Label, status, or help text in the options interface. Used in src/options/options.html."
   },
   "o_lPathEditorDragHelp": {
-    "message": "Drag by the dotted handle. Drop above or below a row to place it at the same level, or onto the row to nest it inside.",
+    "message": "Drag by the dotted handle. Drop on a line between rows to move it there, or onto a row to nest it inside.",
     "description": "Drag-and-drop instructions below the visual directory editor. Used in src/options/path-editor.ts."
   },
   "o_lFilterReference": {
@@ -2957,13 +2957,9 @@
       }
     }
   },
-  "pathVisualInsertAfter": {
-    "message": "Insert after · Same level",
-    "description": "Drag target shown when moving a folder-menu row after another row. Used in src/options/path-editor.ts."
-  },
-  "pathVisualInsertBefore": {
-    "message": "Insert before · Same level",
-    "description": "Drag target shown when moving a folder-menu row before another row. Used in src/options/path-editor.ts."
+  "pathVisualMoveHere": {
+    "message": "Move here",
+    "description": "Drag target shown on the shared insertion line between folder-menu rows. Used in src/options/path-editor.ts."
   },
   "pathVisualDirectoryPlaceholder": {
     "message": "folder/:variables:",

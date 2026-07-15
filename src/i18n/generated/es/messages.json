@@ -2133,7 +2133,7 @@
     }
   },
   "o_lPathEditorDragHelp": {
-    "message": "Arrastre una fila por el tirador de puntos. Suéltela encima o debajo de otra fila para colocarla en el mismo nivel, o sobre la fila para anidarla dentro."
+    "message": "Arrastre por el tirador de puntos. Suelte la fila en una línea entre filas para moverla allí, o sobre una fila para anidarla dentro."
   },
   "routeDebuggerTitle": {
     "message": "Depurador de rutas"
@@ -2536,11 +2536,8 @@
       }
     }
   },
-  "pathVisualInsertAfter": {
-    "message": "Insertar después · Mismo nivel"
-  },
-  "pathVisualInsertBefore": {
-    "message": "Insertar antes · Mismo nivel"
+  "pathVisualMoveHere": {
+    "message": "Mover aquí"
   },
   "pathVisualDirectoryPlaceholder": {
     "message": "carpeta/:variables:"

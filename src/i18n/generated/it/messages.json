@@ -1008,7 +1008,7 @@
     "message": "Sperimentale"
   },
   "o_lPathEditorDragHelp": {
-    "message": "Trascina tramite la maniglia tratteggiata. Rilascia sopra o sotto una riga per posizionarla allo stesso livello o sulla riga per annidarla all'interno."
+    "message": "Trascina tramite la maniglia tratteggiata. Rilascia su una linea tra le righe per spostare la riga in quella posizione, oppure su una riga per annidarla al suo interno."
   },
   "o_lFilterReference": {
     "message": "Filtro"
@@ -2729,11 +2729,8 @@
       }
     }
   },
-  "pathVisualInsertAfter": {
-    "message": "Inserisci dopo · Stesso livello"
-  },
-  "pathVisualInsertBefore": {
-    "message": "Inserisci prima · Stesso livello"
+  "pathVisualMoveHere": {
+    "message": "Sposta qui"
   },
   "pathVisualDirectoryPlaceholder": {
     "message": "cartella/:variables:"

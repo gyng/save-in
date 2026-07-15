@@ -2156,7 +2156,7 @@
     }
   },
   "o_lPathEditorDragHelp": {
-    "message": "Dra i det prickade handtaget. Släpp raden ovanför eller nedanför en annan rad för att placera den på samma nivå, eller på raden för att nästla den inuti."
+    "message": "Dra i det prickade handtaget. Släpp raden på en linje mellan rader för att flytta den dit, eller på en rad för att placera den under raden."
   },
   "routeDebuggerTitle": {
     "message": "Testa routningsregler"
@@ -2553,11 +2553,8 @@
       }
     }
   },
-  "pathVisualInsertAfter": {
-    "message": "Infoga efter · Samma nivå"
-  },
-  "pathVisualInsertBefore": {
-    "message": "Infoga före · Samma nivå"
+  "pathVisualMoveHere": {
+    "message": "Flytta hit"
   },
   "pathVisualDirectoryPlaceholder": {
     "message": "mapp/:variables:"

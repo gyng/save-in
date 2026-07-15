@@ -2235,7 +2235,7 @@
     }
   },
   "o_lPathEditorDragHelp": {
-    "message": "拖动点状手柄。将其放在某一行的上方或下方可置于同一级别，放在该行上则会嵌套到其中。"
+    "message": "拖动点状手柄。放在行间线上可移到该位置，放在某一行上则会嵌套到其中。"
   },
   "routeDebuggerTitle": {
     "message": "测试路由规则"
@@ -2630,11 +2630,8 @@
       }
     }
   },
-  "pathVisualInsertAfter": {
-    "message": "插入到后面 · 同一级"
-  },
-  "pathVisualInsertBefore": {
-    "message": "插入到前面 · 同一级"
+  "pathVisualMoveHere": {
+    "message": "移到此处"
   },
   "pathVisualDirectoryPlaceholder": {
     "message": "文件夹/:variables:"
