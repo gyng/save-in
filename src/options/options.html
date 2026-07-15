@@ -1468,15 +1468,43 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
               <p class="section-lead" id="source-panel-enable-help">__MSG_o_lPageSourcesHelp__</p>
               <p class="caption section-note">__MSG_o_lPageSourcesNetworkLimit__</p>
             </div>
-            <label class="source-panel-master">
-              <input
-                type="checkbox"
-                id="sourcePanelEnabled"
-                aria-controls="source-panel-dependent-options"
-                aria-describedby="source-panel-enable-help"
-              />
-              __MSG_o_cSourcePanelEnabled__
-            </label>
+            <div class="source-panel-discovery">
+              <label class="source-panel-master">
+                <input
+                  type="checkbox"
+                  id="sourcePanelEnabled"
+                  aria-controls="source-panel-results-options source-panel-dependent-options"
+                  aria-describedby="source-panel-enable-help"
+                />
+                __MSG_o_cSourcePanelEnabled__
+              </label>
+
+              <fieldset
+                id="source-panel-results-options"
+                class="option-group dependent-options source-panel-dependent source-panel-settings"
+              >
+                <legend class="option-group-heading">__MSG_o_lSourcePanelDiscovery__</legend>
+                <label
+                  ><input type="checkbox" id="sourcePanelLive" /> __MSG_o_cSourcePanelLive__</label
+                >
+                <label
+                  ><input type="checkbox" id="sourcePanelPreviews" />
+                  __MSG_o_cSourcePanelPreviews__</label
+                >
+                <label
+                  ><input type="checkbox" id="sourcePanelBackgrounds" />
+                  __MSG_o_cSourcePanelBackgrounds__</label
+                >
+                <label
+                  ><input type="checkbox" id="sourcePanelResourceHints" />
+                  __MSG_o_cSourcePanelResourceHints__</label
+                >
+                <label
+                  ><input type="checkbox" id="sourcePanelLinks" />
+                  __MSG_o_cSourcePanelLinks__</label
+                >
+              </fieldset>
+            </div>
           </div>
 
           <figure class="source-panel-demo">
@@ -1554,26 +1582,6 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
         </div>
 
         <div id="source-panel-dependent-options" class="dependent-options source-panel-dependent">
-          <fieldset class="option-group source-panel-settings">
-            <legend class="option-group-heading">__MSG_o_lSourcePanelDiscovery__</legend>
-            <label><input type="checkbox" id="sourcePanelLive" /> __MSG_o_cSourcePanelLive__</label>
-            <label
-              ><input type="checkbox" id="sourcePanelPreviews" />
-              __MSG_o_cSourcePanelPreviews__</label
-            >
-            <label
-              ><input type="checkbox" id="sourcePanelBackgrounds" />
-              __MSG_o_cSourcePanelBackgrounds__</label
-            >
-            <label
-              ><input type="checkbox" id="sourcePanelResourceHints" />
-              __MSG_o_cSourcePanelResourceHints__</label
-            >
-            <label
-              ><input type="checkbox" id="sourcePanelLinks" /> __MSG_o_cSourcePanelLinks__</label
-            >
-          </fieldset>
-
           <fieldset class="option-group source-shortcut-settings">
             <legend class="option-group-heading">__MSG_o_lSourcePanelShortcut__</legend>
             <div class="source-shortcut-fields">

@@ -356,9 +356,12 @@ test("keeps stable Page Sources controls", () => {
     "sourcePanelShortcutKeys",
   );
   expect(document.querySelector("#sourcePanelEnabled")?.getAttribute("aria-controls")).toBe(
-    "source-panel-dependent-options",
+    "source-panel-results-options source-panel-dependent-options",
   );
-  expect(document.querySelector("#source-panel-dependent-options #sourcePanelLive")).not.toBeNull();
+  expect(document.querySelector("#source-panel-results-options #sourcePanelLive")).not.toBeNull();
+  expect(
+    document.querySelector("#source-panel-dependent-options #sourcePanelShortcutModifier"),
+  ).not.toBeNull();
   expect(document.querySelector(".source-browser #autoDownloadEnabled")).toBeNull();
   expect(document.querySelector("figure.source-panel-demo figcaption")).not.toBeNull();
   expect(document.querySelector("figure.source-panel-demo > [aria-hidden='true']")).not.toBeNull();

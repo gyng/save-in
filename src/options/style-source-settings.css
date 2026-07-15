@@ -18,6 +18,11 @@
   font-weight: 600;
 }
 
+.source-panel-discovery {
+  display: grid;
+  gap: var(--space-1);
+}
+
 .source-panel-intro .section-lead {
   margin: 0 0 var(--space-2);
 }
@@ -34,6 +39,10 @@
   margin-inline-start: var(--space-2);
   padding-inline-start: var(--space-4);
   border-inline-start: 1px solid var(--panel-border);
+}
+
+.source-panel-discovery > .source-panel-dependent {
+  margin-top: 0;
 }
 
 .source-browser:has(#sourcePanelEnabled:not(:checked)) .source-panel-dependent {
