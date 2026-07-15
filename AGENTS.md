@@ -102,7 +102,10 @@ importing it from the relevant entry
 | Blob downloads  | `URL.createObjectURL` (event pages have DOM)              | data-URL fallbacks (`Download.makeObjectUrl` / `makeUrlFromBlob`) |
 
 Both browsers temporarily set the Referer on each exact extension-owned HEAD/GET
-needed for requested lazy metadata or hashes. Firefox still sets it natively on
+needed for requested lazy metadata or hashes. The rule covers the exact requested
+URL plus up to three exact URLs the server redirected that request to (a failed
+redirected hop extends the rule and refetches; any refused extension degrades to
+the unextended rule). Firefox still sets it natively on
 a direct final `downloads.download` request; if hashing fetched the content, that
 blob is reused instead. Chrome rejects the header on `downloads.download`, so its
 final acquisition is also protected by DNR and passed to the downloads API as a
@@ -141,8 +144,9 @@ to Firefox too.
 6. **Referer DNR rules are temporary shared state.** Both browsers protect one
    exact extension-origin HEAD/GET operation at a time, serialize protected fetches,
    removes the rule in `finally`, and clears the reserved rule ID during cold
-   start recovery. Do not broaden the rule to page traffic or allow concurrent
-   protected fetches to overwrite it.
+   start recovery. The rule may grow only to exact URLs the server redirected
+   the protected request to, bounded per operation. Do not broaden the rule to
+   page traffic or allow concurrent protected fetches to overwrite it.
 
 ### Cross-browser gotchas
 

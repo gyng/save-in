@@ -1,5 +1,6 @@
 import { BROWSERS, CURRENT_BROWSER } from "../platform/chrome-detector.ts";
 import type { ProtectedRequestMethod } from "../routing/ports.ts";
+import { MAX_PROTECTED_URL_EXTENSIONS, type RefererProtection } from "../shared/protected-fetch.ts";
 
 export const REFERER_SESSION_RULE_ID = 66_000_001;
 
@@ -62,20 +63,41 @@ const extensionInitiatorDomain = (): string | undefined => {
 
 const escapeRegex = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-const exactRequestUrlRegex = (value: string): string => {
+const canonicalRequestUrl = (value: string): string => {
   const url = new URL(value);
   // Fragments are local browser state and are never part of the HTTP request.
   url.hash = "";
-  return `^${escapeRegex(url.href)}$`;
+  return url.href;
 };
 
+// Redirect targets come from server responses, so unlike the initial URL they
+// must never throw, and only HTTP(S) requests can carry the header.
+const normalizeExtensionCandidate = (value: string): string | undefined => {
+  try {
+    const url = new URL(value);
+    if (url.protocol !== "http:" && url.protocol !== "https:") return undefined;
+    url.hash = "";
+    return url.href;
+  } catch {
+    return undefined;
+  }
+};
+
+const urlSetRegex = (urls: readonly string[]): string => `^(?:${urls.map(escapeRegex).join("|")})$`;
+
+// Chrome rejects regexFilter values whose compiled RE2 program exceeds ~2 KB.
+// This conservative cap refuses most oversized alternations up front; the
+// remaining updateSessionRules rejections degrade to the previous rule.
+const MAX_REGEX_FILTER_LENGTH = 1500;
+
 const buildRule = (
-  url: string,
+  url: string | readonly string[],
   referer: string,
   requestMethods: ProtectedRequestMethod[] = ["get"],
 ): RefererRule => {
   const initiatorDomain = extensionInitiatorDomain();
   if (!initiatorDomain) throw new Error("Extension request origin is unavailable");
+  const urls = typeof url === "string" ? [canonicalRequestUrl(url)] : url;
   return {
     id: REFERER_SESSION_RULE_ID,
     priority: 1,
@@ -84,7 +106,7 @@ const buildRule = (
       requestHeaders: [{ header: "Referer", operation: "set", value: referer }],
     },
     condition: {
-      regexFilter: exactRequestUrlRegex(url),
+      regexFilter: urlSetRegex(urls),
       initiatorDomains: [initiatorDomain],
       requestMethods,
       resourceTypes: ["xmlhttprequest"],
@@ -128,20 +150,46 @@ export const RefererRules = {
   withReferer: <T>(
     url: string,
     referer: string,
-    operation: () => Promise<T>,
+    operation: (protection?: RefererProtection) => Promise<T>,
     requestMethods: ProtectedRequestMethod[] = ["get"],
   ): Promise<T> => {
     if (!RefererRules.canUse()) return operation();
     return enqueue(async () => {
       const api = dnrApi();
       if (!api) return operation();
-      await api.updateSessionRules({
-        removeRuleIds: [REFERER_SESSION_RULE_ID],
-        addRules: [buildRule(url, referer, requestMethods)],
-      });
+      const protectedUrls = [canonicalRequestUrl(url)];
+      const install = (urls: readonly string[]): Promise<void> =>
+        api.updateSessionRules({
+          removeRuleIds: [REFERER_SESSION_RULE_ID],
+          addRules: [buildRule(urls, referer, requestMethods)],
+        });
+      await install(protectedUrls);
+      let released = false;
+      // Runs inside the held queue slot, so it must update the rule directly:
+      // going through enqueue here would deadlock behind this operation.
+      const extend = async (candidate: string): Promise<boolean> => {
+        // The finally below removes the rule; a late extend from a leaked
+        // callback must not resurrect it.
+        if (released) return false;
+        const normalized = normalizeExtensionCandidate(candidate);
+        if (!normalized || protectedUrls.includes(normalized)) return false;
+        if (protectedUrls.length >= 1 + MAX_PROTECTED_URL_EXTENSIONS) return false;
+        const next = [...protectedUrls, normalized];
+        if (urlSetRegex(next).length > MAX_REGEX_FILTER_LENGTH) return false;
+        try {
+          // updateSessionRules replaces atomically; on rejection the previous
+          // rule stays active and the caller degrades to unextended behavior.
+          await install(next);
+        } catch {
+          return false;
+        }
+        protectedUrls.push(normalized);
+        return true;
+      };
       try {
-        return await operation();
+        return await operation({ extend });
       } finally {
+        released = true;
         // Do not turn a completed request into a failed download if cleanup is
         // rejected. The exact rule is replaced next time and removed at startup.
         await removeRule().catch(() => {});

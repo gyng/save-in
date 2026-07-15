@@ -23,6 +23,13 @@ describe("offscreen message runtime validation", () => {
     ).toBe(true);
     expect(isOffscreenFetchResponse({ blobUrl: "blob:https://x/id", hash: "abcd" })).toBe(true);
     expect(isOffscreenFetchResponse({ error: "fetch failed" })).toBe(true);
+    expect(
+      isOffscreenFetchResponse({
+        error: "HTTP 403",
+        status: 403,
+        finalUrl: "https://s3.example/file",
+      }),
+    ).toBe(true);
     expect(isOffscreenFetchCancelRequest({ type: "OFFSCREEN_FETCH_CANCEL", requestId: "r1" })).toBe(
       true,
     );
@@ -50,10 +57,14 @@ describe("offscreen message runtime validation", () => {
     expect(isOffscreenFetchRequest(value)).toBe(false);
   });
 
-  test.each([null, [], { blobUrl: 42 }, { error: {} }])(
-    "rejects malformed fetch response %#",
-    (value) => {
-      expect(isOffscreenFetchResponse(value)).toBe(false);
-    },
-  );
+  test.each([
+    null,
+    [],
+    { blobUrl: 42 },
+    { error: {} },
+    { error: "HTTP 403", status: "403" },
+    { error: "HTTP 403", finalUrl: 42 },
+  ])("rejects malformed fetch response %#", (value) => {
+    expect(isOffscreenFetchResponse(value)).toBe(false);
+  });
 });

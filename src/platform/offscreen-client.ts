@@ -23,6 +23,13 @@ type OffscreenClientApi = {
   release: (requestId: string) => Promise<unknown>;
 };
 
+// Carries the offscreen document's HTTP failure detail so callers can extend
+// Referer protection to the redirected target and retry (#193).
+export class OffscreenHttpError extends Error {
+  status?: number;
+  finalUrl?: string;
+}
+
 let ensurePromise: Promise<void | null> | null = null;
 
 const hasOffscreenDocument = async (): Promise<boolean> => {
@@ -99,7 +106,14 @@ export const OffscreenClient: OffscreenClientApi = {
           );
         }
         if (!isOffscreenFetchResponse(res) || !res.blobUrl) {
-          throw new Error((isOffscreenFetchResponse(res) && res.error) || "offscreen fetch failed");
+          const reason = (isOffscreenFetchResponse(res) && res.error) || "offscreen fetch failed";
+          if (isOffscreenFetchResponse(res) && (res.status !== undefined || res.finalUrl)) {
+            const failure = new OffscreenHttpError(reason);
+            if (res.status !== undefined) failure.status = res.status;
+            if (res.finalUrl) failure.finalUrl = res.finalUrl;
+            throw failure;
+          }
+          throw new Error(reason);
         }
         return {
           sha256: res.hash ?? "",

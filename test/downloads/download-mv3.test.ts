@@ -334,6 +334,87 @@ describe("offscreen document fetch (Chrome MV3)", () => {
     });
   });
 
+  test("extends Referer protection to an offscreen redirect target and retries", async () => {
+    global.chrome.runtime.sendMessage = vi
+      .fn()
+      .mockResolvedValueOnce({
+        error: "HTTP 403",
+        status: 403,
+        finalUrl: "https://s3.example/file",
+      })
+      .mockResolvedValueOnce({ blobUrl: "blob:offscreen-url", hash: "deadbeef" });
+    const extend = vi.fn(async () => true);
+    vi.spyOn(RefererRules, "withReferer").mockImplementation(async (_url, _referer, operation) =>
+      operation({ extend }),
+    );
+
+    await expect(
+      resolveContent(
+        "https://cdn.example/file",
+        false,
+        undefined,
+        "redirected-request",
+        "https://gallery.example/view",
+      ),
+    ).resolves.toEqual({
+      sha256: "deadbeef",
+      downloadUrl: "blob:offscreen-url",
+      offscreenRequestId: "redirected-request",
+    });
+
+    expect(extend).toHaveBeenCalledExactlyOnceWith("https://s3.example/file");
+    // The retry reuses the requestId so cancellation stays wired to the live attempt.
+    const requests = vi.mocked(global.chrome.runtime.sendMessage).mock.calls.map(([m]) => m);
+    expect(requests).toEqual([
+      expect.objectContaining({ requestId: "redirected-request" }),
+      expect.objectContaining({ requestId: "redirected-request" }),
+    ]);
+  });
+
+  test("does not retry a legacy offscreen failure without redirect detail", async () => {
+    global.chrome.runtime.sendMessage = vi.fn(() => Promise.resolve({ error: "HTTP 403" }));
+    const extend = vi.fn(async () => true);
+    vi.spyOn(RefererRules, "withReferer").mockImplementation(async (_url, _referer, operation) =>
+      operation({ extend }),
+    );
+
+    await expect(
+      resolveContent(
+        "https://cdn.example/file",
+        false,
+        undefined,
+        "legacy-request",
+        "https://gallery.example/view",
+      ),
+    ).resolves.toBeNull();
+
+    expect(extend).not.toHaveBeenCalled();
+    expect(global.chrome.runtime.sendMessage).toHaveBeenCalledTimes(1);
+  });
+
+  test("surfaces the failure when protection refuses the offscreen redirect target", async () => {
+    global.chrome.runtime.sendMessage = vi.fn(() =>
+      Promise.resolve({ error: "HTTP 403", status: 403, finalUrl: "https://s3.example/file" }),
+    );
+    const extend = vi.fn(async () => false);
+    vi.spyOn(RefererRules, "withReferer").mockImplementation(async (_url, _referer, operation) =>
+      operation({ extend }),
+    );
+
+    await expect(
+      fetchUrlForDownload(
+        "https://cdn.example/file",
+        false,
+        undefined,
+        "refused-request",
+        "https://gallery.example/view",
+      ),
+    ).rejects.toThrow("HTTP 403");
+
+    expect(extend).toHaveBeenCalledExactlyOnceWith("https://s3.example/file");
+    expect(global.chrome.runtime.sendMessage).toHaveBeenCalledTimes(1);
+  });
+
   test("uses the direct fetch path with cancellation and Referer protection", async () => {
     URL.createObjectURL = vi.fn(() => "blob:direct");
     const controller = new AbortController();

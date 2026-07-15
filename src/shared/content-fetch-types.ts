@@ -34,6 +34,11 @@ export type OffscreenFetchResponse = {
   blobUrl?: string;
   hash?: string;
   error?: string;
+  // HTTP failure detail lets the background extend Referer protection to the
+  // redirected target and retry (#193). Optional so responses from an
+  // offscreen document of an older extension instance stay valid.
+  status?: number;
+  finalUrl?: string;
 };
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -69,6 +74,7 @@ export const isOffscreenBlobReleaseRequest = (
 
 export const isOffscreenFetchResponse = (value: unknown): value is OffscreenFetchResponse =>
   isRecord(value) &&
-  ["blobUrl", "hash", "error"].every(
+  ["blobUrl", "hash", "error", "finalUrl"].every(
     (key) => typeof value[key] === "undefined" || typeof value[key] === "string",
-  );
+  ) &&
+  (typeof value.status === "undefined" || typeof value.status === "number");

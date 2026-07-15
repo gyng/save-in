@@ -11,6 +11,7 @@ import {
   sessionStore,
   setCurrentBrowser,
 } from "./download-flow.fixture.ts";
+import { RefererRules } from "../../src/downloads/referer-rules.ts";
 
 describe("automatic fetch fallback (retryViaFetch)", () => {
   const seedStartedDownload = async () => {
@@ -79,6 +80,39 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
 
     // Only one retry per download
     await expect(Download.retryViaFetch(101)).resolves.toBe(false);
+  });
+
+  test("re-derives Referer protection for the retry fetch", async () => {
+    await seedStartedDownload();
+    options.setRefererHeader = true;
+    options.setRefererHeaderFilter = "*://example.com/*";
+    global.fetch = vi.fn(() =>
+      Promise.resolve({ ok: true, blob: () => Promise.resolve(new Blob(["bytes"])) }),
+    ) as any;
+    vi.mocked(global.browser.downloads.download).mockResolvedValue(202);
+    const withReferer = vi.spyOn(RefererRules, "withReferer");
+
+    await expect(Download.retryViaFetch(101)).resolves.toBe(true);
+
+    expect(withReferer).toHaveBeenCalledWith(
+      "https://example.com/dir/file.png",
+      "https://example.com/page",
+      expect.any(Function),
+    );
+  });
+
+  test("retries without Referer protection when the feature is off", async () => {
+    await seedStartedDownload();
+    options.setRefererHeader = false;
+    global.fetch = vi.fn(() =>
+      Promise.resolve({ ok: true, blob: () => Promise.resolve(new Blob(["bytes"])) }),
+    ) as any;
+    vi.mocked(global.browser.downloads.download).mockResolvedValue(202);
+    const withReferer = vi.spyOn(RefererRules, "withReferer");
+
+    await expect(Download.retryViaFetch(101)).resolves.toBe(true);
+
+    expect(withReferer).not.toHaveBeenCalled();
   });
 
   test("keeps a source-sidecar retry quiet from its first browser event", async () => {

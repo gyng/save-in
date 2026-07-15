@@ -5,6 +5,7 @@ import { stringSegment, type PathSegment } from "./path.ts";
 import type { RoutingDownloadInfo } from "./rule-types.ts";
 import { routingPorts } from "./ports.ts";
 import { getExtensionFetchCredentials } from "../config/fetch-credentials.ts";
+import { fetchProtected, type RefererProtection } from "../shared/protected-fetch.ts";
 import { fetchFollowingRedirects } from "../shared/redirect-fetch.ts";
 import type { HeadMetadata } from "../shared/lazy-download-metadata.ts";
 import { toRootDomain } from "../shared/domain.ts";
@@ -59,12 +60,11 @@ const fetchHeadMetadata = async (
   protectedReferer?: string,
 ): Promise<HeadResult> => {
   const credentials = getExtensionFetchCredentials(privateContext);
-  const fetchMetadata = async (): Promise<HeadResult> => {
+  const fetchMetadata = async (protection?: RefererProtection): Promise<HeadResult> => {
     try {
-      const headResponse = await fetchFollowingRedirects(
-        url,
-        { method: "HEAD", credentials },
-        5000,
+      const headResponse = await fetchProtected(
+        () => fetchFollowingRedirects(url, { method: "HEAD", credentials }, 5000),
+        protection,
       );
       if (headResponse.ok !== false) return metadataFromResponse(headResponse);
       if (headResponse.body) await headResponse.body.cancel().catch(() => {});
@@ -79,7 +79,10 @@ const fetchHeadMetadata = async (
     // lookup into a speculative full download of a large file. If routing accepts
     // it, the acquisition stage performs the actual download later.
     return metadataFromResponse(
-      await fetchFollowingRedirects(url, { method: "GET", credentials }, 5000),
+      await fetchProtected(
+        () => fetchFollowingRedirects(url, { method: "GET", credentials }, 5000),
+        protection,
+      ),
     );
   };
 

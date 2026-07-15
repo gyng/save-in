@@ -23,6 +23,18 @@ import { readResponseContent } from "./shared/streaming-content.ts";
 const activeFetches = new Map<string, AbortController>();
 const blobUrls = new Map<string, string>();
 
+// The service worker cannot observe redirect hops itself, so an HTTP failure
+// reports the redirected final URL back for Referer-rule extension (#193).
+class HttpFailure extends Error {
+  status: number;
+  finalUrl: string;
+  constructor(status: number, finalUrl: string) {
+    super(`HTTP ${status}`);
+    this.status = status;
+    this.finalUrl = finalUrl;
+  }
+}
+
 const releaseBlob = (requestId: string): boolean => {
   const blobUrl = blobUrls.get(requestId);
   if (!blobUrl) return false;
@@ -62,9 +74,11 @@ chrome.runtime.onMessage.addListener(
       { credentials: message.credentials ?? "include", signal: controller.signal },
       DEFAULT_FETCH_RESPONSE_TIMEOUT_MS,
     )
-      .then((res) => {
+      .then(async (res) => {
         if (!res.ok) {
-          throw new Error(`HTTP ${res.status}`);
+          // The failure body must not keep its connection alive across a retry.
+          if (res.body) await res.body.cancel().catch(() => {});
+          throw new HttpFailure(res.status, res.url || "");
         }
         return readResponseContent(res, Boolean(message.hash), controller.signal);
       })
@@ -82,7 +96,17 @@ chrome.runtime.onMessage.addListener(
 
         sendResponse({ blobUrl, ...(message.hash ? { hash: sha256 } : {}) });
       })
-      .catch((e) => sendResponse({ error: String((e && e.message) || e) }))
+      .catch((e) =>
+        sendResponse(
+          e instanceof HttpFailure
+            ? {
+                error: e.message,
+                status: e.status,
+                ...(e.finalUrl ? { finalUrl: e.finalUrl } : {}),
+              }
+            : { error: String((e && e.message) || e) },
+        ),
+      )
       .finally(() => activeFetches.delete(requestId));
 
     return true; // sendResponse is called asynchronously

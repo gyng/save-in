@@ -1,5 +1,6 @@
 import { RefererRules, REFERER_SESSION_RULE_ID } from "../../src/downloads/referer-rules.ts";
 import { BROWSERS, setCurrentBrowser } from "../../src/platform/chrome-detector.ts";
+import type { RefererProtection } from "../../src/shared/protected-fetch.ts";
 
 const updateSessionRules = () => vi.mocked(chrome.declarativeNetRequest.updateSessionRules);
 const firefoxUpdateSessionRules = () => vi.mocked(browser.declarativeNetRequest.updateSessionRules);
@@ -269,6 +270,108 @@ test("rejects rules on unknown and incomplete extension hosts", () => {
 
   vi.mocked(browser.runtime.getURL).mockReturnValueOnce("data:text/plain,extension");
   expect(RefererRules.canUse()).toBe(false);
+});
+
+test("extends the rule to a server-provided redirect target mid-operation", async () => {
+  let extendResult: boolean | undefined;
+
+  await RefererRules.withReferer(
+    "https://cdn.example/file.jpg#frag",
+    "https://gallery.example/view",
+    async (protection) => {
+      extendResult = await protection?.extend("https://s3.example/bucket/file.jpg?sig=1#frag");
+      return "fetched";
+    },
+    ["head", "get"],
+  );
+
+  expect(extendResult).toBe(true);
+  // install, extend, remove — the removal must still come last.
+  expect(updateSessionRules()).toHaveBeenCalledTimes(3);
+  const extended = updateSessionRules().mock.calls[1]![0]!.addRules![0]!;
+  expect(extended.id).toBe(REFERER_SESSION_RULE_ID);
+  expect(extended.condition!.requestMethods).toEqual(["head", "get"]);
+  expect(extended.condition!.initiatorDomains).toEqual([chrome.runtime.id]);
+  const regex = new RegExp(extended.condition!.regexFilter!);
+  expect(regex.test("https://cdn.example/file.jpg")).toBe(true);
+  expect(regex.test("https://s3.example/bucket/file.jpg?sig=1")).toBe(true);
+  expect(regex.test("https://s3.example/bucket/file.jpg?sig=1&extra=2")).toBe(false);
+  expect(regex.test("https://s3.example/bucket/file.jpgx")).toBe(false);
+  expect(updateSessionRules()).toHaveBeenLastCalledWith({
+    removeRuleIds: [REFERER_SESSION_RULE_ID],
+  });
+});
+
+test("refuses extensions that would weaken or oversize the rule", async () => {
+  await RefererRules.withReferer(
+    "https://cdn.example/file.jpg",
+    "https://gallery.example/view",
+    async (protection) => {
+      expect(await protection?.extend("https://cdn.example/file.jpg")).toBe(false);
+      expect(await protection?.extend("data:text/plain,nope")).toBe(false);
+      expect(await protection?.extend("not a url")).toBe(false);
+      expect(await protection?.extend(`https://cdn.example/${"a".repeat(2000)}`)).toBe(false);
+      // No refused candidate may touch the installed rule.
+      expect(updateSessionRules()).toHaveBeenCalledTimes(1);
+
+      expect(await protection?.extend("https://hop1.example/a")).toBe(true);
+      expect(await protection?.extend("https://hop1.example/a")).toBe(false);
+      expect(await protection?.extend("https://hop2.example/a")).toBe(true);
+      expect(await protection?.extend("https://hop3.example/a")).toBe(true);
+      expect(await protection?.extend("https://hop4.example/a")).toBe(false);
+      expect(updateSessionRules()).toHaveBeenCalledTimes(4);
+      return "done";
+    },
+  );
+});
+
+test("degrades to the previous rule when an extension update is rejected", async () => {
+  updateSessionRules()
+    .mockResolvedValueOnce()
+    .mockRejectedValueOnce(new Error("regexFilter too costly"));
+  let extendResult: boolean | undefined;
+
+  await expect(
+    RefererRules.withReferer(
+      "https://cdn.example/file.jpg",
+      "https://gallery.example/view",
+      async (protection) => {
+        extendResult = await protection?.extend("https://s3.example/file.jpg");
+        return "fetched";
+      },
+    ),
+  ).resolves.toBe("fetched");
+
+  expect(extendResult).toBe(false);
+  expect(updateSessionRules()).toHaveBeenLastCalledWith({
+    removeRuleIds: [REFERER_SESSION_RULE_ID],
+  });
+});
+
+test("a leaked extend cannot resurrect the removed rule", async () => {
+  let leaked: RefererProtection | undefined;
+
+  await RefererRules.withReferer(
+    "https://cdn.example/file.jpg",
+    "https://gallery.example/view",
+    async (protection) => {
+      leaked = protection;
+      return "done";
+    },
+  );
+
+  const settledCalls = updateSessionRules().mock.calls.length;
+  await expect(leaked?.extend("https://s3.example/file.jpg")).resolves.toBe(false);
+  expect(updateSessionRules().mock.calls.length).toBe(settledCalls);
+});
+
+test("passes no protection when the rule cannot be used", async () => {
+  setCurrentBrowser(BROWSERS.UNKNOWN);
+  const operation = vi.fn(async (protection?: RefererProtection) => protection);
+
+  await expect(
+    RefererRules.withReferer("https://cdn.example/a", "https://example/a", operation),
+  ).resolves.toBeUndefined();
 });
 
 test("falls back safely if DNR disappears after protected work is queued", async () => {

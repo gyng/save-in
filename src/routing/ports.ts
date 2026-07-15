@@ -1,3 +1,4 @@
+import type { RefererProtection } from "../shared/protected-fetch.ts";
 import type { RoutingContent, RuleError } from "./rule-types.ts";
 
 export type RoutingTab = { title?: string | undefined } | null | undefined;
@@ -22,7 +23,7 @@ export type RoutingPorts = {
   withRequestReferer<T>(
     url: string,
     referer: string,
-    operation: () => Promise<T>,
+    operation: (protection?: RefererProtection) => Promise<T>,
     requestMethods?: ProtectedRequestMethod[],
   ): Promise<T>;
 };
@@ -43,7 +44,7 @@ const ports: RoutingPorts = {
   withRequestReferer: async <T>(
     _url: string,
     _referer: string,
-    operation: () => Promise<T>,
+    operation: (protection?: RefererProtection) => Promise<T>,
   ): Promise<T> => operation(),
 };
 

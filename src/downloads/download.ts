@@ -223,8 +223,9 @@ export const Download = {
   // back to an unrelated pending state
   // Automatic fallback chain: a browser-initiated download that failed with
   // a network/server error is retried once through a background fetch. Resolves
-  // true when a retry was started. Referer-protected attempts opt out because
-  // extension fetch cannot preserve that browser-download header.
+  // true when a retry was started. Downloads that attached native request
+  // headers opt out because extension fetch cannot replay arbitrary headers;
+  // DNR Referer protection alone is re-derived for the retry fetch.
   retryViaFetch: (downloadId: number): Promise<boolean> =>
     retryViaFetch(
       Download,

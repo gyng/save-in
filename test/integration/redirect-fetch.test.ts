@@ -1,6 +1,8 @@
 import { createServer, type RequestListener, type Server } from "node:http";
 import { options } from "../../src/config/options-data.ts";
+import { configureRoutingPorts, routingPorts } from "../../src/routing/ports.ts";
 import { resolveHead } from "../../src/routing/variable.ts";
+import type { RefererProtection } from "../../src/shared/protected-fetch.ts";
 import { fetchFollowingRedirects } from "../../src/shared/redirect-fetch.ts";
 import { closeServer, listenOnLoopback } from "./server.ts";
 
@@ -92,6 +94,157 @@ describe("redirect-aware extension fetches over HTTP", () => {
       finalUrl: `${origin}/file.txt`,
     });
     expect(methods).toEqual(["HEAD /file.txt", "GET /file.txt"]);
+  });
+
+  // Node has no declarativeNetRequest, so these cases exercise the seam the
+  // browser rule sits behind: the retry loop must extend protection to the
+  // exact redirect target and refetch, mirroring RefererRules.extend's
+  // refusal of already-covered URLs.
+  const withFakeProtection = async <T>(
+    granted: Set<string>,
+    extendCalls: string[],
+    run: () => Promise<T>,
+  ): Promise<T> => {
+    const original = routingPorts.withRequestReferer;
+    configureRoutingPorts({
+      withRequestReferer: (url, _referer, operation) => {
+        const covered = new Set([url]);
+        const protection: RefererProtection = {
+          extend: async (candidate) => {
+            extendCalls.push(candidate);
+            if (covered.has(candidate)) return false;
+            covered.add(candidate);
+            granted.add(candidate);
+            return true;
+          },
+        };
+        return operation(protection);
+      },
+    });
+    try {
+      return await run();
+    } finally {
+      configureRoutingPorts({ withRequestReferer: original });
+    }
+  };
+
+  test("re-covers a redirected metadata HEAD after extending protection", async () => {
+    const methods: string[] = [];
+    const granted = new Set<string>();
+    const extendCalls: string[] = [];
+    let targetOrigin = "";
+    targetOrigin = await listen((request, response) => {
+      methods.push(`${request.method} ${request.url}`);
+      if (!granted.has(`${targetOrigin}${request.url}`)) {
+        response.writeHead(403);
+        response.end();
+        return;
+      }
+      response.writeHead(200, { "Content-Type": "image/webp" });
+      response.end();
+    });
+    const sourceOrigin = await listen((request, response) => {
+      methods.push(`${request.method} ${request.url}`);
+      response.writeHead(302, { Location: `${targetOrigin}/final.webp` });
+      response.end();
+    });
+
+    const result = await withFakeProtection(granted, extendCalls, () =>
+      resolveHead({
+        url: `${sourceOrigin}/start`,
+        protectedFetchReferer: "https://gallery.example/view",
+      }),
+    );
+
+    expect(result).toEqual({
+      contentType: "image/webp",
+      finalUrl: `${targetOrigin}/final.webp`,
+    });
+    expect(extendCalls).toEqual([`${targetOrigin}/final.webp`]);
+    expect(methods).toEqual(["HEAD /start", "HEAD /final.webp", "HEAD /start", "HEAD /final.webp"]);
+  });
+
+  test("extends protection from the GET fallback when HEAD is rejected", async () => {
+    const methods: string[] = [];
+    const granted = new Set<string>();
+    const extendCalls: string[] = [];
+    let origin = "";
+    origin = await listen((request, response) => {
+      methods.push(`${request.method} ${request.url}`);
+      if (request.method === "HEAD") {
+        response.writeHead(405);
+        response.end();
+        return;
+      }
+      if (request.url === "/start") {
+        response.writeHead(302, { Location: `${origin}/final.bin` });
+        response.end();
+        return;
+      }
+      if (!granted.has(`${origin}${request.url}`)) {
+        response.writeHead(403);
+        response.end();
+        return;
+      }
+      response.writeHead(200, { "Content-Type": "application/octet-stream" });
+      response.end();
+    });
+
+    const result = await withFakeProtection(granted, extendCalls, () =>
+      resolveHead({
+        url: `${origin}/start`,
+        protectedFetchReferer: "https://gallery.example/view",
+      }),
+    );
+
+    expect(result).toEqual({
+      contentType: "application/octet-stream",
+      finalUrl: `${origin}/final.bin`,
+    });
+    // The rejected HEAD offers only the already-covered original URL; the
+    // redirect target is discovered and extended by the GET fallback.
+    expect(extendCalls).toEqual([`${origin}/start`, `${origin}/final.bin`]);
+    expect(methods).toEqual([
+      "HEAD /start",
+      "GET /start",
+      "GET /final.bin",
+      "GET /start",
+      "GET /final.bin",
+    ]);
+  });
+
+  test("degrades to unextended metadata when protection refuses to extend", async () => {
+    const methods: string[] = [];
+    let origin = "";
+    origin = await listen((request, response) => {
+      methods.push(`${request.method} ${request.url}`);
+      if (request.url === "/start") {
+        response.writeHead(302, { Location: `${origin}/final.bin` });
+        response.end();
+        return;
+      }
+      response.writeHead(403, { "Content-Type": "text/plain" });
+      response.end();
+    });
+    const original = routingPorts.withRequestReferer;
+    configureRoutingPorts({
+      withRequestReferer: (_url, _referer, operation) => operation({ extend: async () => false }),
+    });
+
+    try {
+      await expect(
+        resolveHead({
+          url: `${origin}/start`,
+          protectedFetchReferer: "https://gallery.example/view",
+        }),
+      ).resolves.toEqual({
+        contentType: "text/plain",
+        finalUrl: `${origin}/final.bin`,
+      });
+    } finally {
+      configureRoutingPorts({ withRequestReferer: original });
+    }
+    expect(methods).toEqual(["HEAD /start", "HEAD /final.bin", "GET /start", "GET /final.bin"]);
   });
 
   test("rejects a redirect loop instead of hanging", async () => {
