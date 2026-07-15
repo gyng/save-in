@@ -233,29 +233,28 @@ body:not(#settings-page) {
   position: absolute;
   z-index: var(--z-menu);
   display: grid;
-  gap: 1px;
-  min-width: 210px;
+  min-width: 170px;
   margin-top: var(--space-1);
-  padding: var(--space-2);
-  background: var(--panel-bg);
+  padding: var(--space-1);
+  background: var(--floating-bg);
   border: 1px solid var(--panel-border);
   border-radius: var(--radius);
   box-shadow: var(--floating-shadow);
-  font-size: var(--text-base);
 }
 
 .nav-resources-menu > :is(a, button) {
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   width: 100%;
   min-height: var(--compact-control-size);
-  padding: var(--space-1) var(--space-2);
+  padding: 4px var(--space-2);
   border: 0;
   border-radius: var(--radius-sm);
-  background-color: transparent;
-  color: var(--link-color);
-  font-size: inherit;
-  line-height: var(--leading-ui);
+  color: var(--color-text);
+  background: transparent;
+  font-size: var(--text-base);
+  line-height: 1;
   text-align: start;
 }
 

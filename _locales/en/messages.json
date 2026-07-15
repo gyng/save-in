@@ -240,7 +240,7 @@
     "description": "Section heading on the options page. Used in src/options/options.html."
   },
   "o_sBrowserDownloads": {
-    "message": "Browser downloads",
+    "message": "Browser routings",
     "description": "Section heading on the options page. Used in src/options/options.html."
   },
   "o_lBrowserDownloadsHelp": {
