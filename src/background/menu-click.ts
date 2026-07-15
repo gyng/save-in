@@ -226,6 +226,7 @@ export const handleContextMenuClick = async (
 
     if (
       result.status === "started" &&
+      !privateContext &&
       options.saveSourceSidecar &&
       downloadType === DOWNLOAD_TYPES.MEDIA &&
       !saveAsShortcut

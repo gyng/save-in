@@ -135,6 +135,35 @@ describe("handleDownloadMessage", () => {
     finishSidecar({ status: "started", downloadId: 8 });
   });
 
+  test("never writes a source sidecar for a private source-panel save", async () => {
+    options.saveSourceSidecar = true;
+    const sendResponse = vi.fn();
+
+    expect(
+      onMessage(
+        request({
+          info: {
+            pageUrl: "https://private.example/gallery/",
+            srcUrl: "https://x/private-file.png",
+            sourceKind: "image",
+          },
+        }),
+        {
+          id: global.browser.runtime.id,
+          tab: { id: 8, title: "Private gallery", incognito: true },
+        },
+        sendResponse,
+      ),
+    ).toBe(true);
+
+    await waitForCall(sendResponse);
+    expect(Download.renameAndDownload).toHaveBeenCalledOnce();
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.DOWNLOAD,
+      body: { status: MESSAGE_TYPES.OK, version: 1, url: "https://x/file.png" },
+    });
+  });
+
   test("keeps a sidecar preflight failure from failing an accepted primary save", async () => {
     options.saveSourceSidecar = true;
     vi.spyOn(Download, "finalizeFullPath").mockImplementationOnce(() => {

@@ -126,6 +126,28 @@ describe("addDownloadListener", () => {
     );
   });
 
+  test("never writes a source sidecar for a private media save", async () => {
+    options.saveSourceSidecar = true;
+    Menus.addPaths(["images"], ["image"]);
+
+    await listener(
+      {
+        menuItemId: "save-in-0",
+        mediaType: "image",
+        srcUrl: "https://example.com/private-cat.png",
+        pageUrl: "https://private.example/gallery/",
+      },
+      { id: 8, title: "Private gallery", incognito: true },
+    );
+
+    expect(Download.renameAndDownload).toHaveBeenCalledOnce();
+    expect(Download.renameAndDownload).toHaveBeenCalledWith(
+      expect.objectContaining({
+        info: expect.objectContaining({ context: DOWNLOAD_TYPES.MEDIA }),
+      }),
+    );
+  });
+
   test("contains source-link sidecar preparation failures", async () => {
     options.saveSourceSidecar = true;
     Menus.addPaths(["images"], ["image"]);

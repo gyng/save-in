@@ -525,6 +525,7 @@ export const Messaging = {
         });
         if (
           result.status === "started" &&
+          resolvedTab?.incognito !== true &&
           sender.id === webExtensionApi.runtime.id &&
           info.sourceKind &&
           info.sourceKind !== "link"
@@ -533,7 +534,7 @@ export const Messaging = {
             await launchSourceSidecar(clickState, url, resolvedTab?.title);
           } catch (error) {
             await Log.add("source sidecar failed", String(error), {
-              privateContext: resolvedTab?.incognito === true,
+              privateContext: false,
             });
           }
         }
