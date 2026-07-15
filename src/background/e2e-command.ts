@@ -350,6 +350,7 @@ export const handleBackgroundE2EResetCommand = async (
     await drainBackgroundWrites();
     downloadsState.records.clear();
     downloadsState.hydration = null;
+    delete backgroundRuntime.lastDownloadState;
     counterWriteState.privateValue = undefined;
     counterWriteState.queue = Promise.resolve();
     configWriteState.queue = Promise.resolve();

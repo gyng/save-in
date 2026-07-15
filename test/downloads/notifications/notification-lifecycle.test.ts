@@ -282,6 +282,79 @@ describe("download lifecycle notifications", () => {
     expect(adoptedIds(sessionStore)).toEqual([]);
   });
 
+  test("launches a persisted sidecar only after completion with the resolved filename", async () => {
+    const { downloadPorts } = await import("../../../src/downloads/ports.ts");
+    const sourceSidecar = vi.spyOn(downloadPorts, "sourceSidecar").mockResolvedValue(undefined);
+    sessionStore.siDownloads = {
+      7: {
+        adopted: true,
+        filename: "gallery/source-name.png",
+        pendingSourceSidecar: {
+          sourceUrl: "https://x/source.png",
+          pageUrl: "https://x/gallery/",
+        },
+      },
+    };
+    downloadState.records.clear();
+
+    await onChanged({
+      id: 7,
+      filename: { current: "C:\\Downloads\\gallery\\server-name (1).jpg" },
+      state: { current: "complete", previous: "in_progress" },
+    });
+
+    expect(sourceSidecar).toHaveBeenCalledWith(
+      {
+        sourceUrl: "https://x/source.png",
+        pageUrl: "https://x/gallery/",
+      },
+      "gallery/source-name.png",
+      "C:\\Downloads\\gallery\\server-name (1).jpg",
+    );
+    expect(sessionStore.siDownloads[7]).not.toHaveProperty("pendingSourceSidecar");
+    expect(sessionStore.siDownloads[7]).toMatchObject({ adopted: false });
+  });
+
+  test("drops pending sidecar intent when the primary is canceled", async () => {
+    const { downloadPorts } = await import("../../../src/downloads/ports.ts");
+    const sourceSidecar = vi.spyOn(downloadPorts, "sourceSidecar").mockResolvedValue(undefined);
+    sessionStore.siDownloads = {
+      7: {
+        adopted: true,
+        pendingSourceSidecar: { sourceUrl: "https://x/source.png" },
+      },
+    };
+    downloadState.records.clear();
+
+    await onChanged({ id: 7, error: { current: "USER_CANCELED" } });
+
+    expect(sourceSidecar).not.toHaveBeenCalled();
+    expect(sessionStore.siDownloads[7]).not.toHaveProperty("pendingSourceSidecar");
+    expect(sessionStore.siDownloads[7]).toMatchObject({ adopted: false });
+  });
+
+  test("contains and records a deferred sidecar launch failure", async () => {
+    const { downloadPorts } = await import("../../../src/downloads/ports.ts");
+    vi.spyOn(downloadPorts, "sourceSidecar").mockRejectedValue(new Error("sidecar denied"));
+    sessionStore.siDownloads = {
+      7: {
+        adopted: true,
+        pendingSourceSidecar: { sourceUrl: "https://x/source.png" },
+      },
+    };
+    downloadState.records.clear();
+
+    await onChanged({ id: 7, state: { current: "complete", previous: "in_progress" } });
+
+    expect(downloadPorts.sourceSidecar).toHaveBeenCalledWith(
+      { sourceUrl: "https://x/source.png" },
+      "",
+      undefined,
+    );
+    expect(Log.add).toHaveBeenCalledWith("source sidecar failed", "Error: sidecar denied");
+    expect(sessionStore.siDownloads[7]).not.toHaveProperty("pendingSourceSidecar");
+  });
+
   test("keeps a source sidecar silent across a worker restart", async () => {
     Notifier.expectDownload("data:text/plain,source", { sourceSidecar: true });
     await onCreated({

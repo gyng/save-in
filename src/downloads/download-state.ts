@@ -3,6 +3,7 @@ import type { SessionWriteState } from "../shared/session-state.ts";
 import type { StorageReader, StorageWriter } from "../platform/storage-areas.ts";
 import { DOWNLOADS_SESSION_KEY } from "../shared/storage-keys.ts";
 import type { ConflictAction } from "../shared/constants.ts";
+import type { SourceSidecarRequest } from "./download-types.ts";
 
 const MAX_INACTIVE_RECORDS = 50;
 
@@ -18,6 +19,7 @@ export type DownloadRecord = {
   observedBrowserDownload?: boolean | undefined;
   adopted?: boolean | undefined;
   sourceSidecar?: boolean | undefined;
+  pendingSourceSidecar?: SourceSidecarRequest | undefined;
   historyEntryId?: string | undefined;
   offscreenRequestId?: string | undefined;
   // Runtime-only privacy state. This is deliberately omitted from the
@@ -38,6 +40,20 @@ export type DownloadsState = {
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
   value != null && typeof value === "object" && !Array.isArray(value);
+
+const normalizeSourceSidecarRequest = (value: unknown): SourceSidecarRequest | undefined => {
+  if (!isObject(value) || typeof value.sourceUrl !== "string") return undefined;
+  const optional = ["title", "pageUrl", "menuItemId", "menuItemTitle"] as const;
+  if (optional.some((key) => value[key] !== undefined && typeof value[key] !== "string")) {
+    return undefined;
+  }
+  const request: SourceSidecarRequest = { sourceUrl: value.sourceUrl };
+  optional.forEach((key) => {
+    const item = value[key];
+    if (typeof item === "string") request[key] = item;
+  });
+  return request;
+};
 
 function normalizeDownloadRecord(value: Partial<DownloadRecord>): PersistedDownloadRecord;
 function normalizeDownloadRecord(value: unknown): PersistedDownloadRecord | null;
@@ -73,6 +89,8 @@ function normalizeDownloadRecord(value: unknown): PersistedDownloadRecord | null
   ) {
     record.conflictAction = value.conflictAction;
   }
+  const pendingSourceSidecar = normalizeSourceSidecarRequest(value.pendingSourceSidecar);
+  if (pendingSourceSidecar) record.pendingSourceSidecar = pendingSourceSidecar;
   return record;
 }
 

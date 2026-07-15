@@ -213,6 +213,7 @@ describe("createExtensionNotification", () => {
       },
       log: { add: vi.fn() },
       retry: () => Promise.resolve(false),
+      sourceSidecar: () => Promise.resolve(),
     });
     vi.mocked(global.browser.notifications.create).mockRejectedValue(new Error("create failed"));
     vi.mocked(global.browser.notifications.clear).mockRejectedValue(new Error("clear failed"));

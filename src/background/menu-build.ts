@@ -143,9 +143,7 @@ export const recordRecentDestination = (
   if (privateContext) return Promise.resolve(false);
   const next = [
     { path, meta },
-    ...menuState.recentDestinations.filter(
-      (entry) => entry.path !== path || entry.meta.comment !== meta.comment,
-    ),
+    ...menuState.recentDestinations.filter((entry) => entry.path !== path),
   ].slice(0, MAX_RECENT_DESTINATIONS);
   if (recentDestinationsEqual(menuState.recentDestinations, next)) {
     return Promise.resolve(false);

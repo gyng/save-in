@@ -119,7 +119,7 @@ describe("Menus last-used state", () => {
   test("records recent destinations newest-first without duplicates", async () => {
     expect(
       await recordRecentDestination("images", {
-        comment: "photos",
+        comment: "0photos",
         menuIndex: "1",
         title: "Images",
         prompt: true,
@@ -131,21 +131,25 @@ describe("Menus last-used state", () => {
       title: "Documents",
     });
     await recordRecentDestination("images", {
-      comment: "photos",
-      menuIndex: "1",
+      comment: "1photos",
+      menuIndex: "2",
       title: "Images",
       prompt: true,
     });
 
     expect(menuState.recentDestinations.map(({ path }) => path)).toEqual(["images", "documents"]);
+    expect(menuState.recentDestinations[0]?.meta).toMatchObject({
+      comment: "1photos",
+      menuIndex: "2",
+    });
     expect(global.browser.storage.local.set).toHaveBeenLastCalledWith({
       recentDestinations: menuState.recentDestinations,
     });
     const writes = vi.mocked(global.browser.storage.local.set).mock.calls.length;
     expect(
       await recordRecentDestination("images", {
-        comment: "photos",
-        menuIndex: "1",
+        comment: "1photos",
+        menuIndex: "2",
         title: "Images",
         prompt: true,
       }),

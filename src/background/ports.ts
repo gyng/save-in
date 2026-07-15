@@ -2,6 +2,7 @@ import { Download } from "../downloads/download.ts";
 import { resolveContent } from "../downloads/content-fetch.ts";
 import { configureDownloadPorts } from "../downloads/ports.ts";
 import { RefererRules } from "../downloads/referer-rules.ts";
+import { launchSourceSidecar } from "../downloads/source-sidecar.ts";
 import { webExtensionApi } from "../platform/web-extension-api.ts";
 import { getMessage } from "../platform/localization.ts";
 import { currentTab } from "../platform/current-tab.ts";
@@ -18,6 +19,7 @@ export const configureBackgroundPorts = () => {
     history: SaveHistory,
     log: Log,
     retry: Download.retryViaFetch,
+    sourceSidecar: launchSourceSidecar,
   });
   configureRoutingPorts({
     getMessage,

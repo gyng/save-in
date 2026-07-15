@@ -9,7 +9,7 @@ import { options } from "../config/options-data.ts";
 import { buildTree } from "../menus/menu-tree.ts";
 import { matcherFunctions, parseRulesCollecting, traceRules } from "../routing/router.ts";
 import { Download } from "../downloads/download.ts";
-import { launchSourceSidecar } from "../downloads/source-sidecar.ts";
+import { createSourceSidecarRequest } from "../downloads/source-sidecar.ts";
 import { Notifier } from "../downloads/notification.ts";
 import { currentTab, type CurrentTab } from "../platform/current-tab.ts";
 import { configureDownloadEvents } from "../downloads/download-events.ts";
@@ -512,10 +512,24 @@ export const Messaging = {
         },
       };
 
+      if (
+        resolvedTab?.incognito !== true &&
+        sender.id === webExtensionApi.runtime.id &&
+        info.sourceKind &&
+        info.sourceKind !== "link" &&
+        options.saveSourceSidecar
+      ) {
+        clickState.scratch.sourceSidecar = createSourceSidecarRequest(
+          clickState,
+          url,
+          resolvedTab?.title,
+        );
+      }
+
       // Keep the MV3 message event alive through routing, lazy variables and the
       // downloads API call. The response still acknowledges browser acceptance,
       // not eventual download completion.
-      return Download.launch(clickState).then(async (result) => {
+      return Download.launch(clickState).then(() => {
         // Acknowledge the accepted primary save before doing optional child
         // work. Content-script batches must not wait for a second download,
         // and a sidecar failure must never turn the primary save into a retry.
@@ -523,21 +537,6 @@ export const Messaging = {
           type: MESSAGE_TYPES.DOWNLOAD,
           body: { status: MESSAGE_TYPES.OK, version, url },
         });
-        if (
-          result.status === "started" &&
-          resolvedTab?.incognito !== true &&
-          sender.id === webExtensionApi.runtime.id &&
-          info.sourceKind &&
-          info.sourceKind !== "link"
-        ) {
-          try {
-            await launchSourceSidecar(clickState, url, resolvedTab?.title);
-          } catch (error) {
-            await Log.add("source sidecar failed", String(error), {
-              privateContext: false,
-            });
-          }
-        }
       });
     };
 

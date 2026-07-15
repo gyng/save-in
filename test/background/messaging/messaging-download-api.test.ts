@@ -103,16 +103,8 @@ describe("handleDownloadMessage", () => {
     });
   });
 
-  test("acknowledges the primary media save before its sidecar finishes", async () => {
+  test("acknowledges the primary media save without waiting for its deferred sidecar", async () => {
     options.saveSourceSidecar = true;
-    let finishSidecar!: (value: { status: "started"; downloadId: number }) => void;
-    vi.mocked(Download.renameAndDownload)
-      .mockResolvedValueOnce({ status: "started", downloadId: 7 })
-      .mockReturnValueOnce(
-        new Promise((resolve) => {
-          finishSidecar = resolve;
-        }),
-      );
     const sendResponse = vi.fn();
 
     expect(
@@ -130,9 +122,13 @@ describe("handleDownloadMessage", () => {
     ).toBe(true);
 
     await waitForCall(sendResponse);
-    expect(Download.renameAndDownload).toHaveBeenCalledTimes(2);
+    expect(Download.renameAndDownload).toHaveBeenCalledOnce();
+    expect(vi.mocked(Download.renameAndDownload).mock.calls[0]![0]!.scratch.sourceSidecar).toEqual({
+      sourceUrl: "https://x/file.png",
+      pageUrl: "https://x/",
+      title: "Tracked Tab",
+    });
     expect(sendResponse).toHaveBeenCalledOnce();
-    finishSidecar({ status: "started", downloadId: 8 });
   });
 
   test("never writes a source sidecar for a private source-panel save", async () => {
@@ -164,11 +160,9 @@ describe("handleDownloadMessage", () => {
     });
   });
 
-  test("keeps a sidecar preflight failure from failing an accepted primary save", async () => {
+  test("defers sidecar preparation until after the accepted primary save completes", async () => {
     options.saveSourceSidecar = true;
-    vi.spyOn(Download, "finalizeFullPath").mockImplementationOnce(() => {
-      throw new Error("sidecar path failed");
-    });
+    const finalize = vi.spyOn(Download, "finalizeFullPath");
     const sendResponse = vi.fn();
 
     expect(
@@ -186,11 +180,8 @@ describe("handleDownloadMessage", () => {
     ).toBe(true);
 
     await waitForCall(sendResponse);
-    await vi.waitFor(() =>
-      expect(Log.add).toHaveBeenCalledWith("source sidecar failed", "Error: sidecar path failed", {
-        privateContext: false,
-      }),
-    );
+    expect(finalize).not.toHaveBeenCalled();
+    expect(Log.add).not.toHaveBeenCalledWith("source sidecar failed", expect.anything());
     expect(sendResponse).toHaveBeenCalledOnce();
   });
 

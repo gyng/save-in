@@ -3,7 +3,11 @@ import { Shortcut as shortcut } from "../../src/downloads/shortcut.ts";
 import { Download } from "../../src/downloads/download.ts";
 import * as Path from "../../src/routing/path.ts";
 import { setCurrentTab } from "../../src/platform/current-tab.ts";
-import { launchSourceSidecar } from "../../src/downloads/source-sidecar.ts";
+import {
+  createSourceSidecarRequest,
+  launchSourceSidecar,
+  resolveSourceSidecarPrimaryPath,
+} from "../../src/downloads/source-sidecar.ts";
 import { options } from "../../src/config/options-data.ts";
 
 const makeShortcutContent = shortcut.makeShortcutContent;
@@ -13,8 +17,63 @@ describe("shortcut content creation", () => {
     options.saveSourceSidecar = false;
 
     await expect(
-      launchSourceSidecar({ info: {}, scratch: {} } as never, "https://example.com/source"),
+      launchSourceSidecar({ sourceUrl: "https://example.com/source" }, "gallery/source.png"),
     ).resolves.toBeUndefined();
+    expect(
+      createSourceSidecarRequest(
+        { info: {}, scratch: {}, path: { finalize: () => ".", toString: () => "." } },
+        "https://example.com/source",
+      ),
+    ).toEqual({ sourceUrl: "https://example.com/source" });
+  });
+
+  test("keeps the routed folder while adopting the browser-resolved filename", async () => {
+    expect(
+      resolveSourceSidecarPrimaryPath(
+        "gallery/source-name.png",
+        "C:\\Downloads\\gallery\\server-name (1).jpg",
+      ),
+    ).toBe("gallery/server-name (1).jpg");
+    expect(resolveSourceSidecarPrimaryPath("source-name.png", "/Downloads/final.png")).toBe(
+      "final.png",
+    );
+    expect(resolveSourceSidecarPrimaryPath("gallery/source-name.png")).toBe(
+      "gallery/source-name.png",
+    );
+    expect(resolveSourceSidecarPrimaryPath("gallery/source-name.png", "/")).toBe(
+      "gallery/source-name.png",
+    );
+
+    options.saveSourceSidecar = true;
+    options.shortcutType = SHORTCUT_TYPES.WINDOWS;
+    options.truncateLength = 200;
+    const launch = vi.spyOn(Download, "launch").mockResolvedValue({
+      status: "started",
+      downloadId: 8,
+    });
+
+    await launchSourceSidecar(
+      {
+        sourceUrl: "https://example.com/source.png",
+        pageUrl: "https://example.com/gallery/",
+        title: "Gallery",
+      },
+      "gallery/source-name.png",
+      "C:\\Downloads\\gallery\\server-name (1).jpg",
+    );
+
+    expect(launch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        path: expect.objectContaining({ raw: "gallery" }),
+        info: expect.objectContaining({
+          context: DOWNLOAD_TYPES.SIDECAR,
+          menuItemTitle: "Source link",
+          sourceUrl: "https://example.com/source.png",
+          suggestedFilename: "server-name (1).url",
+          suppressPrompt: true,
+        }),
+      }),
+    );
   });
 
   test("names a source sidecar after the final routed file", () => {

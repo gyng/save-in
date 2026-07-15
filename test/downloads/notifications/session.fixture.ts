@@ -54,6 +54,7 @@ const loadNotification = async () => {
     history: SaveHistory,
     log: Log,
     retry: (downloadId) => retryHolder.retry(downloadId),
+    sourceSidecar: () => Promise.resolve(),
   });
   // Reset the real options bag to empty; each test sets the fields it needs
   for (const k of Object.keys(options)) delete options[k];

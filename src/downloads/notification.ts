@@ -475,6 +475,8 @@ export const Notifier = {
       const isFromSelf = record.adopted === true;
       const isUserCancelled =
         downloadDelta.error && downloadDelta.error.current === "USER_CANCELED";
+      const completed =
+        isFromSelf && downloadDelta.state?.current === "complete" && !isUserCancelled;
 
       // Record the final outcome against the history entry (independent of
       // whether success/failure notifications are enabled)
@@ -506,13 +508,22 @@ export const Notifier = {
         await recordHistoryStatus("USER_CANCELED");
       }
 
-      if (
-        isFromSelf &&
-        downloadDelta.state &&
-        downloadDelta.state.current === "complete" &&
-        !isUserCancelled
-      ) {
+      if (completed) {
         await recordHistoryStatus("complete");
+      }
+
+      if (completed && record.pendingSourceSidecar) {
+        try {
+          await downloadPorts.sourceSidecar(
+            record.pendingSourceSidecar,
+            record.filename || "",
+            record.currentFilename,
+          );
+        } catch (error) {
+          addDownloadLog(record, "source sidecar failed", String(error));
+        } finally {
+          await mergeTrackedDownload(downloadDelta.id, { pendingSourceSidecar: undefined });
+        }
       }
 
       if (backgroundRuntime.debug && !isPrivateDownloadRecord(record)) {
@@ -645,7 +656,10 @@ export const Notifier = {
         }
         // Clear adoption but keep the record: recordHistoryStatus (above) and any
         // in-flight retry still read its historyEntryId; the cap evicts it later
-        await mergeTrackedDownload(downloadDelta.id, { adopted: false });
+        await mergeTrackedDownload(downloadDelta.id, {
+          adopted: false,
+          pendingSourceSidecar: undefined,
+        });
       }
     }
   },

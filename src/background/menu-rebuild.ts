@@ -21,7 +21,7 @@ import {
 } from "./menu-build.ts";
 import { addTabMenus } from "./menu-tabs.ts";
 
-export const rebuildMenus = async (): Promise<void> => {
+const performMenuRebuild = async (): Promise<void> => {
   await webExtensionApi.contextMenus.removeAll();
   clearPathMappings();
 
@@ -65,4 +65,12 @@ export const rebuildMenus = async (): Promise<void> => {
   addShowDefaultFolder(downloadContexts);
   addOptions(downloadContexts);
   addSourcePanel(actionContexts);
+};
+
+let rebuildQueue = Promise.resolve();
+
+export const rebuildMenus = (): Promise<void> => {
+  const next = rebuildQueue.catch(() => {}).then(performMenuRebuild);
+  rebuildQueue = next;
+  return next;
 };

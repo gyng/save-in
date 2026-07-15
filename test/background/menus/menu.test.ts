@@ -537,6 +537,37 @@ describe("menu creation", () => {
       expect(firstIds).toEqual(["save-in-separator-last-used", "save-in-separator-actions"]);
       expect(secondIds).toEqual(firstIds);
     });
+
+    test("serializes overlapping menu rebuilds", async () => {
+      let releaseFirst!: () => void;
+      const firstRemoval = new Promise<void>((resolve) => {
+        releaseFirst = resolve;
+      });
+      vi.mocked(global.browser.contextMenus.removeAll)
+        .mockReturnValueOnce(firstRemoval)
+        .mockResolvedValueOnce(undefined);
+
+      const first = rebuildMenus();
+      const second = rebuildMenus();
+      await vi.waitFor(() => expect(global.browser.contextMenus.removeAll).toHaveBeenCalledOnce());
+
+      releaseFirst();
+      await first;
+      await second;
+
+      expect(global.browser.contextMenus.removeAll).toHaveBeenCalledTimes(2);
+    });
+
+    test("continues the rebuild queue after a failed generation", async () => {
+      vi.mocked(global.browser.contextMenus.removeAll)
+        .mockRejectedValueOnce(new Error("menu host unavailable"))
+        .mockResolvedValueOnce(undefined);
+
+      await expect(rebuildMenus()).rejects.toThrow("menu host unavailable");
+      await expect(rebuildMenus()).resolves.toBeUndefined();
+
+      expect(global.browser.contextMenus.removeAll).toHaveBeenCalledTimes(2);
+    });
   });
 
   describe("addTabMenus", () => {

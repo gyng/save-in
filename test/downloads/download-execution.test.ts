@@ -268,6 +268,54 @@ describe("renameAndDownload: browserDownload", () => {
     );
   });
 
+  test("persists sidecar intent with an unprompted primary download", async () => {
+    setCurrentBrowser("CHROME");
+    const state = makeState({
+      scratch: {
+        sourceSidecar: {
+          sourceUrl: "https://example.com/source.png",
+          pageUrl: "https://example.com/gallery/",
+          title: "Gallery",
+        },
+      },
+    });
+
+    await Download.renameAndDownload(state);
+
+    expect(downloadState.records.get(101)?.pendingSourceSidecar).toEqual({
+      sourceUrl: "https://example.com/source.png",
+      pageUrl: "https://example.com/gallery/",
+      title: "Gallery",
+    });
+    expect(Notifier.expectDownload).toHaveBeenCalledWith(
+      state.info.url,
+      expect.objectContaining({
+        pendingSourceSidecar: expect.objectContaining({
+          sourceUrl: "https://example.com/source.png",
+        }),
+      }),
+    );
+  });
+
+  test("does not persist sidecar intent when the primary opens Save As", async () => {
+    setCurrentBrowser("CHROME");
+    options.prompt = true;
+    const state = makeState({
+      scratch: { sourceSidecar: { sourceUrl: "https://example.com/source.png" } },
+    });
+
+    await Download.renameAndDownload(state);
+
+    expect(global.browser.downloads.download).toHaveBeenCalledWith(
+      expect.objectContaining({ saveAs: true }),
+    );
+    expect(downloadState.records.get(101)).not.toHaveProperty("pendingSourceSidecar");
+    expect(Notifier.expectDownload).toHaveBeenCalledWith(
+      state.info.url,
+      expect.not.objectContaining({ pendingSourceSidecar: expect.anything() }),
+    );
+  });
+
   test("does not surface a source-sidecar browser rejection", async () => {
     setCurrentBrowser("CHROME");
     options.fallbackFetch = false;
@@ -841,6 +889,7 @@ describe("concurrent downloads (pendingStates)", () => {
       history: freshHistory,
       log: freshLog,
       retry: dl.Download.retryViaFetch,
+      sourceSidecar: () => Promise.resolve(),
     });
     concurrentDownload = dl.Download;
     dl.registerDownloadListener();

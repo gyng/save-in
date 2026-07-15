@@ -564,6 +564,8 @@ export const Download = {
   ): Promise<DownloadExecutionResult> => {
     const { state, finalFullPath, prompt, historyEntryId } = plan;
     const privateContext = state.info.currentTab?.incognito === true;
+    const pendingSourceSidecar =
+      !prompt && !privateContext ? state.scratch.sourceSidecar : undefined;
     void historyPort.patch(historyEntryId, {
       mechanism: acquired.source === "fetched" ? "fetch-downloads-api" : "downloads-api",
     });
@@ -616,6 +618,7 @@ export const Download = {
       allowOriginalUrlFallback,
       ...(historyEntryId ? { historyEntryId } : {}),
       ...(isSourceSidecar(state) ? { sourceSidecar: true } : {}),
+      ...(pendingSourceSidecar ? { pendingSourceSidecar } : {}),
       privateContext,
     });
     try {
@@ -654,6 +657,7 @@ export const Download = {
         ...(acquired.offscreenRequestId ? { offscreenRequestId: acquired.offscreenRequestId } : {}),
         ...(historyEntryId ? { historyEntryId } : {}),
         ...(isSourceSidecar(state) ? { sourceSidecar: true } : {}),
+        ...(pendingSourceSidecar ? { pendingSourceSidecar } : {}),
         privateContext,
         adopted: true,
       });

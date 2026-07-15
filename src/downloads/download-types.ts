@@ -12,6 +12,14 @@ export type DownloadInfo = LazyDownloadMetadata &
     currentTab?: CurrentTab | null | undefined;
   };
 
+export type SourceSidecarRequest = {
+  sourceUrl: string;
+  title?: string | undefined;
+  pageUrl?: string | undefined;
+  menuItemId?: string | undefined;
+  menuItemTitle?: string | undefined;
+};
+
 export type DownloadScratch = {
   hasExtension?: boolean | RegExpMatchArray | "" | null | undefined;
   mimeExtension?: string | undefined;
@@ -20,6 +28,7 @@ export type DownloadScratch = {
   historyEntryId?: string | null | undefined;
   browserFilenameResolution?: boolean | undefined;
   deferredRouteRequirement?: boolean | undefined;
+  sourceSidecar?: SourceSidecarRequest | undefined;
 };
 
 export type DownloadPipelineState = {

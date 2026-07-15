@@ -127,6 +127,7 @@ beforeEach(() => {
     history: SaveHistory,
     log: Log,
     retry: Download.retryViaFetch,
+    sourceSidecar: () => Promise.resolve(),
   });
   configureRoutingPorts({ withRequestReferer: RefererRules.withReferer });
   setCurrentBrowser("FIREFOX");

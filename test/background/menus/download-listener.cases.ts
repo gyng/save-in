@@ -102,7 +102,7 @@ describe("addDownloadListener", () => {
     );
   });
 
-  test("starts a source-link sidecar after a media download", async () => {
+  test("attaches a deferred source-link sidecar to a media download", async () => {
     options.saveSourceSidecar = true;
     Menus.addPaths(["images"], ["image"]);
 
@@ -113,14 +113,18 @@ describe("addDownloadListener", () => {
       pageUrl: "https://example.com/",
     });
 
-    expect(Download.renameAndDownload).toHaveBeenCalledTimes(2);
-    expect(Download.renameAndDownload).toHaveBeenLastCalledWith(
+    expect(Download.renameAndDownload).toHaveBeenCalledOnce();
+    expect(Download.renameAndDownload).toHaveBeenCalledWith(
       expect.objectContaining({
+        scratch: expect.objectContaining({
+          sourceSidecar: expect.objectContaining({
+            pageUrl: "https://example.com/",
+            sourceUrl: "https://example.com/cat.png",
+          }),
+        }),
         info: expect.objectContaining({
-          context: DOWNLOAD_TYPES.SIDECAR,
+          context: DOWNLOAD_TYPES.MEDIA,
           sourceUrl: "https://example.com/cat.png",
-          routingDisabled: true,
-          suppressPrompt: true,
         }),
       }),
     );
@@ -148,12 +152,10 @@ describe("addDownloadListener", () => {
     );
   });
 
-  test("contains source-link sidecar preparation failures", async () => {
+  test("does not prepare the source-link sidecar before the primary completes", async () => {
     options.saveSourceSidecar = true;
     Menus.addPaths(["images"], ["image"]);
-    vi.spyOn(Shortcut, "sourceSidecarPath").mockImplementation(() => {
-      throw new Error("cannot prepare sidecar");
-    });
+    const sourceSidecarPath = vi.spyOn(Shortcut, "sourceSidecarPath");
 
     await expect(
       listener({
@@ -163,6 +165,7 @@ describe("addDownloadListener", () => {
         pageUrl: "https://example.com/",
       }),
     ).resolves.toBeUndefined();
+    expect(sourceSidecarPath).not.toHaveBeenCalled();
   });
 
   test("waits for init (Runtime.ready) before handling a download click", async () => {

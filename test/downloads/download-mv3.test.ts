@@ -248,6 +248,27 @@ describe("offscreen document fetch (Chrome MV3)", () => {
     await expect(OffscreenClient.fetch("https://x/a", "omit")).rejects.toThrow("HTTP 403");
   });
 
+  test("preserves offscreen HTTP status and redirected URL", async () => {
+    global.chrome.runtime.sendMessage = vi
+      .fn()
+      .mockResolvedValueOnce({ error: "HTTP 403", status: 403 })
+      .mockResolvedValueOnce({
+        error: "redirect failed",
+        finalUrl: "https://s3.example/file?sig=1",
+      });
+
+    await expect(OffscreenClient.fetch("https://x/a", "omit")).rejects.toMatchObject({
+      message: "HTTP 403",
+      status: 403,
+      finalUrl: undefined,
+    });
+    await expect(OffscreenClient.fetch("https://x/b", "omit")).rejects.toMatchObject({
+      message: "redirect failed",
+      status: undefined,
+      finalUrl: "https://s3.example/file?sig=1",
+    });
+  });
+
   test("uses a generic error for an empty offscreen response", async () => {
     global.chrome.runtime.sendMessage = vi.fn(() => Promise.resolve({}));
     await expect(OffscreenClient.fetch("https://x/a", "omit")).rejects.toThrow(
@@ -593,6 +614,7 @@ describe("onDeterminingFilename listener (Chrome)", () => {
       },
       log: { add: vi.fn() },
       retry: currentDownload.retryViaFetch,
+      sourceSidecar: () => Promise.resolve(),
     });
     freshDownload = currentDownload;
     registerDownloadListener();
@@ -683,6 +705,7 @@ describe("onDeterminingFilename listener (Chrome)", () => {
       },
       log: { add: vi.fn() },
       retry: freshDownload.retryViaFetch,
+      sourceSidecar: () => Promise.resolve(),
     });
     freshOptions.routeBrowserDownloads = false;
     const suggest = vi.fn();
@@ -703,6 +726,7 @@ describe("onDeterminingFilename listener (Chrome)", () => {
       },
       log: { add: vi.fn() },
       retry: freshDownload.retryViaFetch,
+      sourceSidecar: () => Promise.resolve(),
     });
     freshOptions.routeBrowserDownloads = false;
     const suggest = vi.fn();
@@ -1017,6 +1041,7 @@ describe("onDeterminingFilename listener (Chrome)", () => {
       },
       log: { add: vi.fn() },
       retry: freshDownload.retryViaFetch,
+      sourceSidecar: () => Promise.resolve(),
     });
     const suggest = vi.fn();
 

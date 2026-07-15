@@ -30,13 +30,8 @@ export const normalizeDiagnosticLifecycle = (value: unknown): DiagnosticLifecycl
   const entries = value.filter(isDiagnosticLifecycleEntry);
   const routineCounts = new Map<DiagnosticLifecycleKind, number>();
   const retained: DiagnosticLifecycleEntry[] = [];
-  for (
-    let index = entries.length - 1;
-    index >= 0 && retained.length < LIFECYCLE_LIMIT;
-    index -= 1
-  ) {
-    const entry = entries[index];
-    if (entry === undefined) continue;
+  for (const entry of entries.toReversed()) {
+    if (retained.length >= LIFECYCLE_LIMIT) break;
     if (ROUTINE_LIFECYCLE_KINDS.has(entry.kind)) {
       const count = routineCounts.get(entry.kind) ?? 0;
       if (count >= ROUTINE_LIFECYCLE_LIMIT) continue;
@@ -44,7 +39,7 @@ export const normalizeDiagnosticLifecycle = (value: unknown): DiagnosticLifecycl
     }
     retained.push(entry);
   }
-  return retained.reverse();
+  return retained.toReversed();
 };
 
 export const recordDiagnosticLifecycle = (

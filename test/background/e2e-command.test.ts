@@ -122,6 +122,11 @@ test("resets worker-local state after each browser case", async () => {
   ActiveTransfers.register("history-7", controller);
   downloadsState.records.set(7, { adopted: true, filename: "old.txt" });
   downloadsState.hydration = Promise.resolve();
+  backgroundRuntime.lastDownloadState = {
+    path: { finalize: () => "stale", toString: () => "stale" },
+    scratch: {},
+    info: { comment: "stale", menuIndex: "4" },
+  };
   counterWriteState.privateValue = 9;
   const previousReady = backgroundRuntime.ready;
   backgroundRuntime.ready = Promise.reject(new Error("prior initialization failed"));
@@ -141,6 +146,7 @@ test("resets worker-local state after each browser case", async () => {
   expect(controller.signal.aborted).toBe(true);
   expect(downloadsState.records.size).toBe(0);
   expect(downloadsState.hydration).toBeNull();
+  expect(backgroundRuntime.lastDownloadState).toBeUndefined();
   expect(counterWriteState.privateValue).toBeUndefined();
   await expect(
     handleBackgroundE2EResetCommand({ type: BACKGROUND_E2E_RESET_COMMAND, body: {} }),

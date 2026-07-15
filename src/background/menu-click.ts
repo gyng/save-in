@@ -13,7 +13,7 @@ import { Path, sanitizeFilename } from "../routing/path.ts";
 import { Download } from "../downloads/download.ts";
 import { EXTENSION_NOTIFICATION_STREAMS, Notifier } from "../downloads/notification.ts";
 import { Shortcut } from "../downloads/shortcut.ts";
-import { launchSourceSidecar } from "../downloads/source-sidecar.ts";
+import { createSourceSidecarRequest } from "../downloads/source-sidecar.ts";
 import { options } from "../config/options-data.ts";
 import { currentTab } from "../platform/current-tab.ts";
 import type { CurrentTab } from "../platform/current-tab.ts";
@@ -207,11 +207,20 @@ export const handleContextMenuClick = async (
       needRouteMatch: info.menuItemId === MENU_IDS.ROUTE_EXCLUSIVE,
     };
 
+    const privateContext = clickTab?.incognito === true;
+    if (
+      !privateContext &&
+      options.saveSourceSidecar &&
+      downloadType === DOWNLOAD_TYPES.MEDIA &&
+      !saveAsShortcut
+    ) {
+      state.scratch.sourceSidecar = createSourceSidecarRequest(state, originalUrl, clickTab?.title);
+    }
+
     // Fire-and-forget (renameAndDownload is async); Download.launch logs and
     // reports a terminal failure to the user
     const result = await Download.launch(state);
 
-    const privateContext = clickTab?.incognito === true;
     if (result.status === "started" && selectedLocation && !privateContext) {
       await setLastUsed(selectedLocation.path, selectedLocation.meta);
       const recentDestinationsChanged = await recordRecentDestination(
@@ -225,20 +234,6 @@ export const handleContextMenuClick = async (
         });
       }
       if (options.recentDestinationCount > 0 && recentDestinationsChanged) await rebuildMenus();
-    }
-
-    if (
-      result.status === "started" &&
-      !privateContext &&
-      options.saveSourceSidecar &&
-      downloadType === DOWNLOAD_TYPES.MEDIA &&
-      !saveAsShortcut
-    ) {
-      try {
-        await launchSourceSidecar(state, originalUrl, clickTab?.title);
-      } catch (error) {
-        await Log.add("source sidecar failed", String(error), { privateContext });
-      }
     }
 
     // Close the tab a "save page" came from, mirroring the tab-strip

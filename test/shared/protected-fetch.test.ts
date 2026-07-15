@@ -39,6 +39,20 @@ test("extends protection to the redirected target and refetches", async () => {
   expect(cancel).toHaveBeenCalledOnce();
 });
 
+test("contains a rejected abandoned-body cancellation", async () => {
+  const failed = makeResponse(403, "https://s3.example/file?sig=1");
+  vi.spyOn(failed.body!, "cancel").mockRejectedValue(new Error("already closed"));
+  const doFetch = vi
+    .fn<() => Promise<Response>>()
+    .mockResolvedValueOnce(failed)
+    .mockResolvedValueOnce(makeResponse(200, "https://s3.example/file?sig=1"));
+
+  await expect(fetchProtected(doFetch, { extend: async () => true })).resolves.toMatchObject({
+    status: 200,
+  });
+  expect(doFetch).toHaveBeenCalledTimes(2);
+});
+
 test("returns the failed response when the protection refuses to extend", async () => {
   const doFetch = vi.fn(async () => makeResponse(403, "https://s3.example/file"));
   const extend = vi.fn(async () => false);

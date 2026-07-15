@@ -149,6 +149,18 @@ describe("state service instances", () => {
           siDownloads: {
             7: { adopted: true },
             9: { adopted: "yes", url: 4, filename: "valid.txt", unknown: "discard" },
+            10: {
+              adopted: true,
+              pendingSourceSidecar: {
+                sourceUrl: "https://example.com/source.png",
+                title: "Gallery",
+                pageUrl: "https://example.com/gallery/",
+                menuItemId: "save-in-0",
+                menuItemTitle: "Images",
+              },
+            },
+            11: { pendingSourceSidecar: { sourceUrl: 4 } },
+            12: { pendingSourceSidecar: { sourceUrl: "https://example.com", title: 4 } },
             nope: { adopted: true },
             8: "not-a-record",
           },
@@ -160,7 +172,22 @@ describe("state service instances", () => {
 
     expect([...state.records.entries()]).toEqual([
       [7, { adopted: true }],
+      [
+        10,
+        {
+          adopted: true,
+          pendingSourceSidecar: {
+            sourceUrl: "https://example.com/source.png",
+            title: "Gallery",
+            pageUrl: "https://example.com/gallery/",
+            menuItemId: "save-in-0",
+            menuItemTitle: "Images",
+          },
+        },
+      ],
       [9, { filename: "valid.txt" }],
+      [11, {}],
+      [12, {}],
     ]);
   });
 

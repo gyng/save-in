@@ -38,6 +38,14 @@ describe("background diagnostics", () => {
       ]),
     ).toEqual([]);
     expect(normalizeDiagnosticLifecycle({ legacy: true })).toEqual([]);
+    const highValue = Array.from(
+      { length: 51 },
+      (_, index): DiagnosticLifecycleEntry => ({
+        at: `2026-07-15T09:00:${String(index).padStart(2, "0")}.000Z`,
+        kind: "extension_installed",
+      }),
+    );
+    expect(normalizeDiagnosticLifecycle(highValue)).toHaveLength(50);
   });
 
   test("reports worker health, configuration state, lifecycle, and recent failures", async () => {

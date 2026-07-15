@@ -1,6 +1,6 @@
 import type { HistoryEntry, HistoryEntryInput } from "../shared/history-types.ts";
 import type { PrivateWriteOptions } from "../shared/persistence-context.ts";
-import type { DownloadPipelineState } from "./download-types.ts";
+import type { DownloadPipelineState, SourceSidecarRequest } from "./download-types.ts";
 
 export type DownloadPorts = {
   runtime: {
@@ -23,6 +23,11 @@ export type DownloadPorts = {
     add(message: string, data?: unknown, options?: { privateContext?: boolean }): unknown;
   };
   retry(downloadId: number): Promise<boolean>;
+  sourceSidecar(
+    request: SourceSidecarRequest,
+    intendedFilename: string,
+    currentFilename?: string,
+  ): Promise<void>;
 };
 
 export type DownloadPortRegistry = {
@@ -63,6 +68,7 @@ export const createDownloadPortRegistry = (): DownloadPortRegistry => {
     },
     log: { add: (...args) => requirePort("log").add(...args) },
     retry: (...args) => requirePort("retry")(...args),
+    sourceSidecar: (...args) => requirePort("sourceSidecar")(...args),
   };
 
   return {
