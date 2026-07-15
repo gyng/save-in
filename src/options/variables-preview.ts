@@ -120,8 +120,9 @@ export const renderVariablesPreview = async () => {
       filter.type = "search";
       filter.className = "variables-preview-filter";
       filter.name = "variable-filter";
-      filter.placeholder = "Filter variables";
-      filter.setAttribute("aria-label", "Filter variables");
+      const filterLabel = getMessage("html_filterVariables") || "Filter variables";
+      filter.placeholder = filterLabel;
+      filter.setAttribute("aria-label", filterLabel);
       filter.spellcheck = false;
       container.appendChild(filter);
 

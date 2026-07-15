@@ -619,6 +619,8 @@ describe("variables preview", () => {
 
     const filter = document.querySelector<HTMLInputElement>(".variables-preview-filter")!;
     expect(filter.name).toBe("variable-filter");
+    expect(filter.placeholder).toBe("Translated<html_filterVariables>");
+    expect(filter.getAttribute("aria-label")).toBe("Translated<html_filterVariables>");
     filter.value = "title";
     filter.dispatchEvent(new InputEvent("input", { bubbles: true }));
     expect(rows[0]!.hidden).toBe(false);
