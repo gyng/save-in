@@ -36,6 +36,8 @@ cross-feature state such as `[hidden]`. Use logical properties and
 responsiveness, and dynamic viewport-height units. All options boxes inherit
 `border-box`; use semantic `--z-*` tokens instead of numeric `z-index`, contain
 nested scroll surfaces, and preserve visible states in forced-colors mode.
+The main options tabstrip must wrap at every viewport width and must never be a
+horizontal or vertical scroll container; `scripts/check-css.js` enforces this.
 Native nesting is allowed for short state/pseudo-element groups; do not build
 deeply nested selector trees or create catch-all override stylesheets.
 `@scope` is documented as a future migration in `docs/UI.md`; do not use it for

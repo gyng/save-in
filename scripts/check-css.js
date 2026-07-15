@@ -678,6 +678,19 @@ if (!routeDebuggerResponsiveStyle.includes("@container routing-workspace")) {
 }
 
 const layoutStyle = fs.readFileSync(path.join(root, "src", "options", "style-layout.css"), "utf8");
+const mainTablistStyle = /\.tablist\s*\{([^}]*)\}/.exec(layoutStyle)?.[1] ?? "";
+if (!/flex-wrap:\s*wrap;/.test(mainTablistStyle)) {
+  violations.push("the main tab strip must wrap without becoming a scroll container");
+}
+if (/overflow(?:-[xy])?\s*:\s*(?:auto|scroll)/.test(mainTablistStyle)) {
+  violations.push("the main tab strip must never enable scrollbar overflow");
+}
+if (/flex-wrap:\s*nowrap/.test(mainTablistStyle)) {
+  violations.push("the main tab strip must never disable wrapping");
+}
+if (/(?:overscroll-behavior|scrollbar-width)\s*:/.test(mainTablistStyle)) {
+  violations.push("the main tab strip must not carry scroll-container styling");
+}
 if (!/\.preview-column\s*\{[^}]*top:\s*var\(--sticky-header-offset\)/.test(layoutStyle)) {
   violations.push("sticky preview columns must use the shared sticky-header offset");
 }
