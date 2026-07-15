@@ -2,6 +2,16 @@
 import { expectTypeOf } from "vitest";
 
 import type { CounterWriteState } from "../../src/background/counter.ts";
+import type {
+  BackgroundE2ECommandRequest,
+  BackgroundE2ECommandResponse,
+  BackgroundE2EContextMenuRequest,
+  BackgroundE2EContextMenuResponse,
+  BackgroundE2ENotificationRequest,
+  BackgroundE2ENotificationResponse,
+  BackgroundE2ETabMenuRequest,
+  BackgroundE2ETabMenuResponse,
+} from "../../src/background/e2e-command.ts";
 import { makeSeparator, type MenuContext } from "../../src/background/menu-build.ts";
 import { handleContextMenuClick } from "../../src/background/menu-click.ts";
 import type { SaveInOptions, StoredSaveInOptions } from "../../src/config/option-schema.ts";
@@ -34,7 +44,18 @@ import type {
 import type { SessionWriteState } from "../../src/shared/session-state.ts";
 import { readResponseContent } from "../../src/shared/streaming-content.ts";
 import { withUrl } from "../../src/shared/util.ts";
-import type { E2ERuntimeOptionValues, E2EStoredOptionValues } from "../e2e/control-protocol.mjs";
+import type {
+  ContextMenuClickRequest,
+  ContextMenuClickResponse,
+  E2ERuntimeOptionValues,
+  E2EStoredOptionValues,
+  NotificationRequest,
+  NotificationResponse,
+  StartDownloadRequest,
+  StartDownloadResponse,
+  TabMenuClickRequest,
+  TabMenuClickResponse,
+} from "../e2e/control-protocol.mjs";
 
 expectTypeOf<DownloadPlan>().toHaveProperty("state").toEqualTypeOf<DownloadPipelineState>();
 expectTypeOf<AcquiredDownload>().toEqualTypeOf<{
@@ -83,6 +104,32 @@ expectTypeOf<E2ERuntimeOptionValues>().toEqualTypeOf<
 >();
 expectTypeOf<E2EStoredOptionValues>().toEqualTypeOf<
   Pick<StoredSaveInOptions, keyof E2EStoredOptionValues>
+>();
+expectTypeOf<StartDownloadRequest>().toEqualTypeOf<BackgroundE2ECommandRequest>();
+expectTypeOf<ContextMenuClickRequest>().toMatchTypeOf<BackgroundE2EContextMenuRequest>();
+expectTypeOf<BackgroundE2EContextMenuRequest>().toMatchTypeOf<ContextMenuClickRequest>();
+expectTypeOf<NotificationRequest>().toEqualTypeOf<BackgroundE2ENotificationRequest>();
+expectTypeOf<StartDownloadResponse>().toEqualTypeOf<BackgroundE2ECommandResponse>();
+expectTypeOf<ContextMenuClickResponse>().toEqualTypeOf<BackgroundE2EContextMenuResponse>();
+expectTypeOf<TabMenuClickResponse>().toEqualTypeOf<BackgroundE2ETabMenuResponse>();
+expectTypeOf<NotificationResponse>().toEqualTypeOf<BackgroundE2ENotificationResponse>();
+expectTypeOf<TabMenuClickRequest["type"]>().toEqualTypeOf<BackgroundE2ETabMenuRequest["type"]>();
+expectTypeOf<TabMenuClickRequest["body"]["info"]>().toEqualTypeOf<
+  Pick<
+    BackgroundE2ETabMenuRequest["body"]["info"],
+    | "menuItemId"
+    | "selectionText"
+    | "pageUrl"
+    | "linkUrl"
+    | "srcUrl"
+    | "frameUrl"
+    | "mediaType"
+    | "linkText"
+    | "modifiers"
+  >
+>();
+expectTypeOf<TabMenuClickRequest["body"]["tab"]>().toMatchTypeOf<
+  Pick<BackgroundE2ETabMenuRequest["body"]["tab"], "id" | "index" | "windowId">
 >();
 
 expectTypeOf<MessageOf<typeof MESSAGE_TYPES.HISTORY_CANCEL>>().toEqualTypeOf<{

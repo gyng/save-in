@@ -15,9 +15,79 @@ const installBackgroundHelpers = () => {
   const browserApi = /** @type {typeof chrome} */ (
     /** @type {unknown} */ (Reflect.get(globalThis, "browser") || chromeApi)
   );
+  /** @param {unknown} value @returns {value is Record<string, unknown>} */
+  const isRecord = (value) => typeof value === "object" && value !== null && !Array.isArray(value);
+  /** @param {unknown} value */
+  const isLogEntry = (value) => isRecord(value) && typeof value.message === "string";
+  /** @param {unknown} value */
+  const isHistoryEntry = (value) =>
+    isRecord(value) &&
+    (value.id === undefined || typeof value.id === "string") &&
+    (value.url === undefined || typeof value.url === "string") &&
+    (value.status === undefined || typeof value.status === "string") &&
+    (value.finalFullPath === undefined || typeof value.finalFullPath === "string") &&
+    (value.private === undefined || typeof value.private === "boolean") &&
+    (value.info === undefined || isRecord(value.info));
+  /** @param {unknown} value */
+  const isNotificationCall = (value) =>
+    isRecord(value) &&
+    typeof value.id === "string" &&
+    (value.title === undefined || typeof value.title === "string") &&
+    (value.message === undefined || typeof value.message === "string");
+  /** @param {unknown} value @returns {LogEntry[]} */
+  const decodeLogs = (value) => {
+    if (!Array.isArray(value) || !value.every(isLogEntry)) {
+      throw new Error("E2E background logs are invalid");
+    }
+    return value;
+  };
+  /** @param {unknown} value @returns {HistoryEntry[]} */
+  const decodeHistory = (value) => {
+    if (!Array.isArray(value) || !value.every(isHistoryEntry)) {
+      throw new Error("E2E background history is invalid");
+    }
+    return value;
+  };
+  /** @param {unknown} value @returns {NotificationCall[]} */
+  const decodeNotificationCalls = (value) => {
+    if (!Array.isArray(value) || !value.every(isNotificationCall)) {
+      throw new Error("E2E notification calls are invalid");
+    }
+    return value;
+  };
+  /**
+   * @template {E2ERuntimeOptionName} Name
+   * @param {Name} name
+   * @param {unknown} value
+   * @returns {E2ERuntimeOptionValues[Name]}
+   */
+  const decodeOption = (name, value) => {
+    const valid =
+      name === "contentClickToSaveCombo"
+        ? typeof value === "string" || typeof value === "number"
+        : name === "notifyDuration"
+          ? typeof value === "number"
+          : name === "paths" || name === "setRefererHeaderFilter"
+            ? typeof value === "string"
+            : name === "shortcutType"
+              ? typeof value === "string" &&
+                ["HTML_REDIRECT", "MAC", "MAC_WEBLOC", "FREEDESKTOP", "WINDOWS"].includes(value)
+              : typeof value === "boolean";
+    if (!valid) throw new Error(`E2E option value is invalid: ${name}`);
+    return /** @type {E2ERuntimeOptionValues[Name]} */ (value);
+  };
   /** @param {BackgroundRuntimeMessage} message */
-  const send = (message) =>
-    /** @type {Promise<RuntimeResponse>} */ (browserApi.runtime.sendMessage(message));
+  const send = async (message) => {
+    const response = /** @type {unknown} */ (await browserApi.runtime.sendMessage(message));
+    if (
+      !isRecord(response) ||
+      (response.type !== undefined && typeof response.type !== "string") ||
+      (response.body !== undefined && !isRecord(response.body))
+    ) {
+      throw new Error(`E2E runtime response is invalid: ${message.type}`);
+    }
+    return /** @type {RuntimeResponse} */ (response);
+  };
   /** @param {BackgroundRuntimeMessage} message @param {string} fallback */
   const command = async (message, fallback) => {
     const response = await send(message);
@@ -35,20 +105,20 @@ const installBackgroundHelpers = () => {
     reset: () => send({ type: "OPTIONS_LOADED" }),
     logs: async () => {
       const stored = await browserApi.storage.session.get("si-log");
-      return Array.isArray(stored["si-log"]) ? /** @type {LogEntry[]} */ (stored["si-log"]) : [];
+      return stored["si-log"] === undefined ? [] : decodeLogs(stored["si-log"]);
     },
     history: async () => {
       const response = await send({ type: "HISTORY_GET" });
       if (!response.body || !Array.isArray(response.body.entries)) {
         throw new Error("E2E history response is invalid");
       }
-      return /** @type {HistoryEntry[]} */ (response.body.entries);
+      return decodeHistory(response.body.entries);
     },
     /** @template {E2ERuntimeOptionName} Name @param {Name} name @returns {Promise<E2ERuntimeOptionValues[Name]>} */
     getOption: async (name) => {
       const response = await send({ type: "OPTIONS" });
       if (!response.body) throw new Error("E2E options response is invalid");
-      return /** @type {E2ERuntimeOptionValues[Name]} */ (response.body[name]);
+      return decodeOption(name, response.body[name]);
     },
     setOptions: (/** @type {StoredOptionsPatch} */ values) =>
       browserApi.storage.local.set(values).then(() => api.reset()),
@@ -64,8 +134,7 @@ const installBackgroundHelpers = () => {
         { type: "SAVE_IN_E2E_NOTIFICATION_CALLS", body: { action } },
         "E2E notification command failed",
       );
-      if (!Array.isArray(response.calls)) throw new Error("E2E notification response is invalid");
-      return /** @type {NotificationCall[]} */ (response.calls);
+      return decodeNotificationCalls(response.calls);
     },
     resetCounter: () => browserApi.storage.local.set({ "save-in-counter": 0 }),
     peekCounter: () =>

@@ -20,7 +20,13 @@ export interface E2ERuntimeOptionValues extends Omit<
   E2EStoredOptionValues,
   "filenamePatterns" | "notifyDuration"
 > {
+  contentClickToSave: boolean;
+  fetchViaFetch: boolean;
   notifyDuration: number;
+  setRefererHeader: boolean;
+  setRefererHeaderFilter: string;
+  shortcutTab: boolean;
+  shortcutType: "HTML_REDIRECT" | "MAC" | "MAC_WEBLOC" | "FREEDESKTOP" | "WINDOWS";
 }
 
 export type E2ERuntimeOptionName = keyof E2ERuntimeOptionValues;
@@ -36,28 +42,33 @@ export interface StartDownloadBody {
   modifiers?: string[];
 }
 
+export type DownloadLaunchResult =
+  | { status: "started"; downloadId: number }
+  | { status: "skipped" }
+  | { status: "failed" };
+
 export interface MenuClickInfo {
   menuItemId: string | number;
-  selectionText?: string;
-  pageUrl?: string;
-  linkUrl?: string;
-  srcUrl?: string;
-  frameUrl?: string;
-  mediaType?: string;
-  linkText?: string;
-  modifiers?: string[];
+  selectionText?: string | undefined;
+  pageUrl?: string | undefined;
+  linkUrl?: string | undefined;
+  srcUrl?: string | undefined;
+  frameUrl?: string | undefined;
+  mediaType?: string | undefined;
+  linkText?: string | undefined;
+  modifiers?: string[] | undefined;
 }
 
 export interface ContextMenuTab {
-  id?: number;
-  title?: string;
-  url?: string;
-  incognito?: boolean;
+  id?: number | undefined;
+  title?: string | undefined;
+  url?: string | undefined;
+  incognito?: boolean | undefined;
 }
 
 export interface ContextMenuClickBody {
   info: MenuClickInfo;
-  tab?: ContextMenuTab;
+  tab?: ContextMenuTab | undefined;
 }
 
 export interface TabMenuTab extends TabEntry {
@@ -81,6 +92,34 @@ export type RuntimeMessage =
   | { type: "SAVE_IN_E2E_TAB_MENU_CLICK"; body: TabMenuClickBody }
   | { type: "SAVE_IN_E2E_NOTIFICATION_CALLS"; body: { action: "get" | "reset" } }
   | { type: "APPLY_CONFIG"; body: { config: Record<string, unknown> } };
+
+export type StartDownloadRequest = Extract<RuntimeMessage, { type: "SAVE_IN_E2E_START_DOWNLOAD" }>;
+export type ContextMenuClickRequest = Extract<
+  RuntimeMessage,
+  { type: "SAVE_IN_E2E_CONTEXT_MENU_CLICK" }
+>;
+export type TabMenuClickRequest = Extract<RuntimeMessage, { type: "SAVE_IN_E2E_TAB_MENU_CLICK" }>;
+export type NotificationRequest = Extract<
+  RuntimeMessage,
+  { type: "SAVE_IN_E2E_NOTIFICATION_CALLS" }
+>;
+
+export type StartDownloadResponse = {
+  type: "SAVE_IN_E2E_START_DOWNLOAD";
+  body: { status: "OK"; result: DownloadLaunchResult } | { status: "ERROR"; message: string };
+};
+export type ContextMenuClickResponse = {
+  type: "SAVE_IN_E2E_CONTEXT_MENU_CLICK";
+  body: { status: "OK" } | { status: "ERROR"; message: string };
+};
+export type TabMenuClickResponse = {
+  type: "SAVE_IN_E2E_TAB_MENU_CLICK";
+  body: { status: "OK" } | { status: "ERROR"; message: string };
+};
+export type NotificationResponse = {
+  type: "SAVE_IN_E2E_NOTIFICATION_CALLS";
+  body: { status: "OK"; calls: NotificationCall[] };
+};
 
 export type BackgroundRuntimeMessage =
   | RuntimeMessage
@@ -131,7 +170,6 @@ export interface NotificationCall {
   id: string;
   title?: string;
   message?: string;
-  [key: string]: unknown;
 }
 
 export interface DnrRule {

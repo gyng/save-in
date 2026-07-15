@@ -137,6 +137,25 @@ describe("structured E2E control client", () => {
     await expect(client.history.get()).rejects.toThrow("Invalid E2E history entries");
   });
 
+  test("decodes string-valued runtime options without treating them as booleans", async () => {
+    const values = [
+      { body: { setRefererHeaderFilter: "https://example.com/*" } },
+      { body: { shortcutType: "MAC_WEBLOC" } },
+      { body: { shortcutType: "UNKNOWN" } },
+    ];
+    const client = createE2EControlClient({
+      callFunction: async () => JSON.stringify({ ok: true, value: values.shift() }),
+    });
+
+    await expect(client.options.get("setRefererHeaderFilter")).resolves.toBe(
+      "https://example.com/*",
+    );
+    await expect(client.options.get("shortcutType")).resolves.toBe("MAC_WEBLOC");
+    await expect(client.options.get("shortcutType")).rejects.toThrow(
+      "Invalid E2E option value for shortcutType",
+    );
+  });
+
   test("rejects malformed requests before touching browser APIs", async () => {
     await expect(
       dispatchControlRequest(JSON.stringify({ operation: "downloads.cancel", id: "7" })),

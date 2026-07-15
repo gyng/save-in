@@ -15,13 +15,12 @@ import { Log } from "./log.ts";
 import { backgroundRuntime } from "./runtime.ts";
 import { runBackgroundTask } from "./event-task.ts";
 import { isDownloadableTab } from "./downloadable-tab.ts";
+import type { ClickInfo } from "./menu-target.ts";
 
 export type HostTab = Parameters<
   Parameters<typeof webExtensionApi.tabs.onUpdated.addListener>[0]
 >[2];
-export type TabMenuClickInfo = Parameters<
-  Parameters<typeof webExtensionApi.contextMenus.onClicked.addListener>[0]
->[0];
+export type TabMenuClickInfo = ClickInfo & { menuItemId: string | number };
 
 export const addTabMenus = () => {
   if (!options.tabEnabled || !WEB_EXTENSION_CAPABILITIES.tabContextMenus) {

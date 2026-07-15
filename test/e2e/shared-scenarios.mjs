@@ -15,7 +15,6 @@ import {
   decodeNumber,
   decodeRecord,
   decodeString,
-  decodeUnknown,
   evaluateJson,
   listenLocal,
   objectOf,
@@ -473,14 +472,13 @@ export const runHistoryCancellationScenario = async ({ evaluate, filename }) => 
   });
   const port = await listenLocal(server);
   const url = `http://127.0.0.1:${port}/${filename}`;
+  const optionKeys = ["fetchViaFetch", "filenamePatterns"];
   const previous = await evaluateJson(
     evaluate,
-    `Promise.all([
-      api.getOption("fetchViaFetch"), api.getOption("filenamePatterns")
-    ]).then(([fetchViaFetch, filenamePatterns]) =>
-      JSON.stringify({ fetchViaFetch, filenamePatterns }))`,
-    objectOf({ fetchViaFetch: decodeBoolean, filenamePatterns: decodeUnknown }),
+    `browser.storage.local.get(${JSON.stringify(optionKeys)}).then(JSON.stringify)`,
+    decodeRecord,
   );
+  const missingKeys = optionKeys.filter((key) => !Object.hasOwn(previous, key));
 
   try {
     await evaluate(`api.setOptions({ fetchViaFetch: true, filenamePatterns: "" })
@@ -575,7 +573,10 @@ export const runHistoryCancellationScenario = async ({ evaluate, filename }) => 
     expect(terminal.status).toBe("USER_CANCELED");
   } finally {
     pendingResponse?.destroy();
-    await evaluate(`api.setOptions(${JSON.stringify(previous)})`);
+    await evaluate(`Promise.all([
+      browser.storage.local.set(${JSON.stringify(previous)}),
+      browser.storage.local.remove(${JSON.stringify(missingKeys)}),
+    ]).then(() => api.reset())`);
     await closeLocal(server);
   }
 };

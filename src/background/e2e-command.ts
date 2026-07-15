@@ -14,7 +14,7 @@ export const BACKGROUND_E2E_CONTEXT_MENU_COMMAND = "SAVE_IN_E2E_CONTEXT_MENU_CLI
 export const BACKGROUND_E2E_NOTIFICATION_COMMAND = "SAVE_IN_E2E_NOTIFICATION_CALLS";
 export const BACKGROUND_E2E_TAB_MENU_COMMAND = "SAVE_IN_E2E_TAB_MENU_CLICK";
 
-type BackgroundE2EDownload = {
+export type BackgroundE2EDownload = {
   path?: string;
   content?: string;
   url?: string;
@@ -24,12 +24,12 @@ type BackgroundE2EDownload = {
   modifiers?: string[];
 };
 
-type BackgroundE2ECommandRequest = {
+export type BackgroundE2ECommandRequest = {
   type: typeof BACKGROUND_E2E_COMMAND;
   body: BackgroundE2EDownload;
 };
 
-type BackgroundE2EContextMenuRequest = {
+export type BackgroundE2EContextMenuRequest = {
   type: typeof BACKGROUND_E2E_CONTEXT_MENU_COMMAND;
   body: {
     info: ContextMenuClickInfo;
@@ -37,12 +37,12 @@ type BackgroundE2EContextMenuRequest = {
   };
 };
 
-type BackgroundE2ENotificationRequest = {
+export type BackgroundE2ENotificationRequest = {
   type: typeof BACKGROUND_E2E_NOTIFICATION_COMMAND;
   body: { action: "get" | "reset" };
 };
 
-type BackgroundE2ETabMenuRequest = {
+export type BackgroundE2ETabMenuRequest = {
   type: typeof BACKGROUND_E2E_TAB_MENU_COMMAND;
   body: { info: TabMenuClickInfo; tab: HostTab };
 };
@@ -53,22 +53,22 @@ export type BackgroundE2ENotificationCall = {
   message?: string;
 };
 
-type BackgroundE2ECommandResponse = {
+export type BackgroundE2ECommandResponse = {
   type: typeof BACKGROUND_E2E_COMMAND;
   body: { status: "OK"; result: DownloadLaunchResult } | { status: "ERROR"; message: string };
 };
 
-type BackgroundE2EContextMenuResponse = {
+export type BackgroundE2EContextMenuResponse = {
   type: typeof BACKGROUND_E2E_CONTEXT_MENU_COMMAND;
   body: { status: "OK" } | { status: "ERROR"; message: string };
 };
 
-type BackgroundE2ENotificationResponse = {
+export type BackgroundE2ENotificationResponse = {
   type: typeof BACKGROUND_E2E_NOTIFICATION_COMMAND;
   body: { status: "OK"; calls: BackgroundE2ENotificationCall[] };
 };
 
-type BackgroundE2ETabMenuResponse = {
+export type BackgroundE2ETabMenuResponse = {
   type: typeof BACKGROUND_E2E_TAB_MENU_COMMAND;
   body: { status: "OK" } | { status: "ERROR"; message: string };
 };

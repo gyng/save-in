@@ -120,9 +120,12 @@ export const decodeOptionValue = (name, value) => {
       ? typeof value === "string" || typeof value === "number"
       : name === "notifyDuration"
         ? typeof value === "number"
-        : name === "paths"
+        : name === "paths" || name === "setRefererHeaderFilter"
           ? typeof value === "string"
-          : typeof value === "boolean";
+          : name === "shortcutType"
+            ? typeof value === "string" &&
+              ["HTML_REDIRECT", "MAC", "MAC_WEBLOC", "FREEDESKTOP", "WINDOWS"].includes(value)
+            : typeof value === "boolean";
   if (!valid) throw new Error(`Invalid E2E option value for ${name}`);
   return /** @type {import("./control-protocol.mjs").E2ERuntimeOptionValues[Name]} */ (value);
 };
