@@ -69,32 +69,9 @@
 }
 
 .inline-guide > summary {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
   width: fit-content;
   padding: var(--space-1) 0;
   color: var(--color-text);
-  list-style: none;
-}
-
-.inline-guide > summary::before {
-  width: 6px;
-  height: 6px;
-  flex: none;
-  border-inline-end: 1.5px solid currentColor;
-  border-block-end: 1.5px solid currentColor;
-  content: "";
-  transform: translateY(-1px) rotate(-45deg);
-  transition: transform var(--motion-duration-fast) ease;
-}
-
-.inline-guide[open] > summary::before {
-  transform: translateY(-2px) rotate(45deg);
-}
-
-.inline-guide > summary::-webkit-details-marker {
-  display: none;
 }
 
 .inline-guide > summary:hover {
@@ -211,12 +188,6 @@
 
 .edge-case-guide {
   margin-bottom: var(--space-5);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .inline-guide > summary::before {
-    transition: none;
-  }
 }
 
 @container options-panel (max-width: 640px) {
