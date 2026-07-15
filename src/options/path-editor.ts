@@ -16,6 +16,7 @@ import { attachAutocomplete } from "./autocomplete.ts";
 import { setupPathInsertMenu } from "./path-editor-insert-menu.ts";
 import { completeDirectorySyntax } from "./syntax-editor-model.ts";
 import { bindTabInteractions, syncTabSelection } from "./tab-controls.ts";
+import { registerPathSourceElement, selectPathSource } from "./path-source-selection.ts";
 import { sortVariables } from "./vocabulary-groups.ts";
 import {
   deletePathNode,
@@ -297,22 +298,11 @@ const PathEditorHelpers = {
         const rowEl = document.createElement("div");
         rowEl.className = "visual-editor-row path-editor-row";
         rowEl.dataset.depth = String(node.depth);
-        rowEl.dataset.sourceIndex = String(index);
+        registerPathSourceElement(rowEl, index);
         rowEl.style.setProperty("--row-depth", String(node.depth));
         rowEl.classList.toggle("is-disabled", !PathEditorHelpers.getEnabled(node));
         rowEl.addEventListener("click", () => {
-          container
-            .querySelectorAll(".path-editor-row.is-preview-selected")
-            .forEach((row) => row.classList.remove("is-preview-selected"));
-          rowEl.classList.add("is-preview-selected");
-          document
-            .querySelectorAll<HTMLElement>("#menu-preview-tree [data-source-index]")
-            .forEach((previewRow) => {
-              previewRow.classList.toggle(
-                "is-source-selected",
-                Number(previewRow.dataset.sourceIndex) === index,
-              );
-            });
+          selectPathSource(index, { document: textarea.ownerDocument });
           textarea.dispatchEvent(
             new CustomEvent("path-editor-row-selected", {
               bubbles: true,

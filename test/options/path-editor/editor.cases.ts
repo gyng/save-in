@@ -343,6 +343,13 @@ describe("visual editor", () => {
 
     expect(selected).toHaveBeenCalledOnce();
     expect((selected.mock.calls[0]![0] as CustomEvent).detail).toEqual({ sourceIndex: 1 });
+    expect(rows()[1]!.classList).toContain("is-preview-selected");
+    expect(rows()[1]!.getAttribute("aria-current")).toBe("true");
+    const preview = document.querySelector<HTMLElement>(
+      '#menu-preview-tree [data-source-index="1"]',
+    )!;
+    expect(preview.classList).toContain("is-source-selected");
+    expect(preview.getAttribute("aria-current")).toBe("true");
   });
 
   test("indent and outdent rewrite the textarea", () => {

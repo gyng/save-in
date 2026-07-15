@@ -41,6 +41,11 @@ import { setupIntegrationPanel } from "./integration-panel.ts";
 import { isStringKeyedRecord, sendInternalMessage } from "../shared/message-protocol.ts";
 import { applyUiTheme, setupUiThemeControl } from "./theme.ts";
 import { getPathSourceRange } from "./path-editor-model.ts";
+import {
+  registerPathSourceElement,
+  revealSelectedPathSource,
+  selectPathSource,
+} from "./path-source-selection.ts";
 import { setSyntaxEditorDiagnostics, SYNTAX_EDITOR_LINE_SELECTED_EVENT } from "./syntax-editor.ts";
 import {
   directoryValidationLocation,
@@ -812,24 +817,6 @@ const setupAutosave = (el: Element) => {
 // Live context-menu tree preview: mirrors what the paths textarea will
 // produce, updating as the user types (before autosave persists it)
 const MENU_PREVIEW_DEBOUNCE_MS = 250;
-let selectedMenuPreviewSourceIndex: number | null = null;
-
-const markMenuPreviewSource = (element: HTMLElement, sourceIndex: number): void => {
-  element.dataset.sourceIndex = String(sourceIndex);
-  element.classList.toggle("is-source-selected", sourceIndex === selectedMenuPreviewSourceIndex);
-};
-
-const highlightMenuPreviewSource = (sourceIndex: number): void => {
-  selectedMenuPreviewSourceIndex = sourceIndex;
-  document
-    .querySelectorAll<HTMLElement>("#menu-preview-tree [data-source-index]")
-    .forEach((element) => {
-      element.classList.toggle(
-        "is-source-selected",
-        Number(element.dataset.sourceIndex) === sourceIndex,
-      );
-    });
-};
 
 const renderMenuPreview = (container: Element, tree: MenuPreviewTree) => {
   container.textContent = "";
@@ -849,14 +836,17 @@ const renderMenuPreview = (container: Element, tree: MenuPreviewTree) => {
 
       const row = document.createElement("div");
       row.className = "menu-preview-row";
-      markMenuPreviewSource(row, entry.sourceIndex);
+      registerPathSourceElement(row, entry.sourceIndex);
       const title = document.createElement("span");
       title.className = "menu-preview-title";
       title.textContent = entry.error;
       row.appendChild(title);
       li.appendChild(row);
 
-      const jump = () => jumpToError("#paths", entry.error, entry.sourceIndex);
+      const jump = () => {
+        selectPathSource(entry.sourceIndex, { document: container.ownerDocument });
+        jumpToError("#paths", entry.error, entry.sourceIndex);
+      };
       li.addEventListener("click", jump);
       li.addEventListener("keydown", (e) => {
         if (e.key === "Enter" || e.key === " ") {
@@ -866,7 +856,7 @@ const renderMenuPreview = (container: Element, tree: MenuPreviewTree) => {
       });
     } else if (entry.kind === "separator") {
       li.className = "menu-preview-separator";
-      markMenuPreviewSource(li, entry.sourceIndex);
+      registerPathSourceElement(li, entry.sourceIndex);
       li.appendChild(document.createElement("hr"));
     } else {
       li.className = "menu-preview-item";
@@ -875,7 +865,7 @@ const renderMenuPreview = (container: Element, tree: MenuPreviewTree) => {
       // it as a block; hover highlights just the row
       const row = document.createElement("div");
       row.className = "menu-preview-row";
-      markMenuPreviewSource(row, entry.sourceIndex);
+      registerPathSourceElement(row, entry.sourceIndex);
 
       const title = document.createElement("span");
       title.className = "menu-preview-title";
@@ -910,7 +900,10 @@ const renderMenuPreview = (container: Element, tree: MenuPreviewTree) => {
       if (entry.raw) {
         row.setAttribute("role", "button");
         row.setAttribute("tabindex", "0");
-        const jump = () => jumpToError("#paths", entry.raw, entry.sourceIndex);
+        const jump = () => {
+          selectPathSource(entry.sourceIndex, { document: container.ownerDocument });
+          jumpToError("#paths", entry.raw, entry.sourceIndex);
+        };
         row.addEventListener("click", jump);
         row.addEventListener("keydown", (e) => {
           if (e.key === "Enter" || e.key === " ") {
@@ -955,6 +948,7 @@ const renderMenuPreview = (container: Element, tree: MenuPreviewTree) => {
   }
 
   container.appendChild(rootUl);
+  revealSelectedPathSource(container.ownerDocument);
 };
 
 const updateMenuPreview = () => {
@@ -981,10 +975,9 @@ const updateMenuPreview = () => {
     if (!(event instanceof CustomEvent)) return;
     const sourceIndex: unknown = Reflect.get(event.detail ?? {}, "sourceIndex");
     if (typeof sourceIndex === "number" && Number.isInteger(sourceIndex) && sourceIndex >= 0) {
-      highlightMenuPreviewSource(sourceIndex);
+      selectPathSource(sourceIndex, { document: textarea.ownerDocument });
     }
   };
-  textarea.addEventListener("path-editor-row-selected", highlightSelectedSource);
   textarea.addEventListener(SYNTAX_EDITOR_LINE_SELECTED_EVENT, highlightSelectedSource);
 
   let previewTimer: number | null = null;

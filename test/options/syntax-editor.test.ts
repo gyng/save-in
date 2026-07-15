@@ -255,7 +255,7 @@ describe("syntax editor surface", () => {
     textarea.dispatchEvent(new MouseEvent("click"));
     expect(lineNumbers()[0]?.classList).not.toContain("is-current");
     expect(lineNumbers()[1]?.classList).toContain("is-current");
-    expect(lineSelections).toEqual([0, 0, 0, 1]);
+    expect(lineSelections).toEqual([0, 1]);
     textarea.dispatchEvent(new MouseEvent("mousemove", { clientX: 12, clientY: 12 }));
     expect(tooltip.hidden).toBe(false);
 
@@ -265,7 +265,7 @@ describe("syntax editor surface", () => {
     textarea.dispatchEvent(
       new CustomEvent("syntax-editor-visibility", { detail: { visible: true } }),
     );
-    expect(lineSelections).toEqual([0, 0, 0, 1, 1]);
+    expect(lineSelections).toEqual([0, 1, 1]);
     textarea.dispatchEvent(new CustomEvent("syntax-editor-visibility"));
     textarea.dispatchEvent(
       new CustomEvent("syntax-editor-visibility", { detail: { visible: false } }),

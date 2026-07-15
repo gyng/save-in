@@ -401,7 +401,7 @@ export const createSyntaxEditor = (
   };
 
   const onCaretChange = () => {
-    syncCurrentLine(true);
+    syncCurrentLine();
     showTooltipForCaret();
   };
 
@@ -427,7 +427,7 @@ export const createSyntaxEditor = (
     if (!Number.isFinite(start)) return;
     textarea.focus();
     textarea.setSelectionRange(start, start);
-    syncCurrentLine(true);
+    syncCurrentLine();
     const line = lineAtOffset(start);
     const rect = target.getBoundingClientRect();
     showTooltip(diagnosticsForLine(renderedDiagnostics, line), rect.right + 8, rect.top, true);
