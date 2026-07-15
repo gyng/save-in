@@ -13,17 +13,22 @@ a:active {
 }
 
 a.external {
-  --external-icon-edge: right;
-
+  position: relative;
   padding-inline-end: calc(16px + var(--space-1));
-  background-image: url(i/open-in-new-16.svg);
-  background-size: 16px 16px;
-  background-position: var(--external-icon-edge) center;
-  background-repeat: no-repeat;
 }
 
-a.external:dir(rtl) {
-  --external-icon-edge: left;
+a.external::after {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-end: 0;
+  inline-size: 16px;
+  block-size: 16px;
+  background-color: currentColor;
+  content: "";
+  pointer-events: none;
+  transform: translateY(-50%);
+  -webkit-mask: url(i/open-in-new-16.svg) center / contain no-repeat;
+  mask: url(i/open-in-new-16.svg) center / contain no-repeat;
 }
 
 html {
