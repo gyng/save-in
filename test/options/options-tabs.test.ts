@@ -1,7 +1,14 @@
 // @vitest-environment jsdom
 import * as Tabs from "../../src/options/tabs.ts";
 
-const { collectSections, headingLabel, orderSections, setupTabs, TAB_STORAGE_KEY } = Tabs;
+const {
+  collectSections,
+  headingLabel,
+  optionNavigationRow,
+  orderSections,
+  setupTabs,
+  TAB_STORAGE_KEY,
+} = Tabs;
 
 const buildForm = () => {
   document.body.innerHTML = `
@@ -64,6 +71,24 @@ describe("headingLabel", () => {
   test("ignores nested controls (e.g. a reset button in the heading)", () => {
     document.body.innerHTML = '<h2 id="h">More Options<div id="reset">Restore</div></h2>';
     expect(headingLabel(document.getElementById("h") as HTMLElement)).toBe("More Options");
+  });
+});
+
+describe("optionNavigationRow", () => {
+  test("resolves nested and externally associated choice labels", () => {
+    document.body.innerHTML = `
+      <label id="nested-label"><input id="nested" type="checkbox"></label>
+      <input id="external" type="radio"><label id="external-label" for="external">External</label>
+      <input id="unlabelled" type="checkbox"><input id="text" type="text">`;
+
+    expect(optionNavigationRow(document.querySelector<HTMLElement>("#nested")!)).toBe(
+      document.querySelector("#nested-label"),
+    );
+    expect(optionNavigationRow(document.querySelector<HTMLElement>("#external")!)).toBe(
+      document.querySelector("#external-label"),
+    );
+    expect(optionNavigationRow(document.querySelector<HTMLElement>("#unlabelled")!)).toBeNull();
+    expect(optionNavigationRow(document.querySelector<HTMLElement>("#text")!)).toBeNull();
   });
 });
 
@@ -146,25 +171,6 @@ describe("setupTabs", () => {
     expect(tabs[1]!.getAttribute("aria-selected")).toBe("true");
     expect(tabs[1]!.getAttribute("aria-controls")).toBe(panels[1]!.id);
     expect(panels[1]!.getAttribute("aria-labelledby")).toBe(tabs[1]!.id);
-  });
-
-  test("keeps the selected tab visible in a horizontally scrolling tab list", () => {
-    const tabs = document.querySelectorAll<HTMLElement>(".tablist .tab");
-    tabs[1]!.scrollIntoView = vi.fn();
-
-    tabs[1]!.click();
-
-    expect(tabs[1]!.scrollIntoView).toHaveBeenCalledWith({
-      block: "nearest",
-      inline: "nearest",
-    });
-
-    tabs[1]!.scrollIntoView = vi.fn();
-    window.dispatchEvent(new Event("resize"));
-    expect(tabs[1]!.scrollIntoView).toHaveBeenCalledWith({
-      block: "nearest",
-      inline: "nearest",
-    });
   });
 
   test("option navigation activates its panel before focusing the control", () => {
@@ -309,6 +315,23 @@ describe("setupTabs", () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+
+  test("highlights an externally associated choice label as the option row", () => {
+    const panel = document.querySelector<HTMLElement>(".tab-panel")!;
+    const target = document.createElement("input");
+    target.id = "external-choice";
+    target.type = "checkbox";
+    const label = document.createElement("label");
+    label.htmlFor = target.id;
+    label.textContent = "External choice";
+    panel.append(target, label);
+    label.scrollIntoView = vi.fn();
+
+    document.dispatchEvent(new CustomEvent("save-in:navigate-option", { detail: { target } }));
+
+    expect(label.classList.contains("option-search-target-row")).toBe(true);
+    expect(label.scrollIntoView).toHaveBeenCalledWith({ block: "center", behavior: "smooth" });
   });
 
   test("contains an out-of-range legacy position", () => {

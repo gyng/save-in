@@ -2,8 +2,24 @@ import { getMessage } from "../platform/localization.ts";
 import { setupAnchoredFloatingSurface } from "./anchored-floating-surface.ts";
 
 export type SavedChange = { name: string; before: unknown; after: unknown };
+type AutosavedControl = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 
 const savedPopoverPositioning = new WeakMap<HTMLElement, () => void>();
+
+export const savedIndicatorTarget = (control: AutosavedControl): HTMLElement | null => {
+  if (control instanceof HTMLTextAreaElement) return control;
+
+  const label = control.closest("label") || control.labels?.item(0);
+  const explicitTarget = label?.matches("[data-saved-target]")
+    ? label
+    : label?.querySelector<HTMLElement>(":scope > [data-saved-target]");
+  return (
+    explicitTarget ||
+    label?.querySelector<HTMLElement>(":scope > .opt-title") ||
+    label ||
+    control.parentElement
+  );
+};
 
 export const assertSettingsUndoSafe = (hasFieldDrafts: boolean, hasManualDrafts: boolean): void => {
   if (hasFieldDrafts || hasManualDrafts) {

@@ -124,6 +124,7 @@ test("keeps Browser routings actions concise, described, and task ordered", () =
 test("keeps core feature help separate from checkbox accessible names", () => {
   const document = documentForOptions();
   for (const [controlId, helpId] of [
+    ["page", "save-page-help"],
     ["contentClickToSave", "click-to-save-help"],
     ["saveSourceSidecar", "save-source-sidecar-help"],
   ] as const) {
@@ -225,6 +226,9 @@ test("preserves backward-compatible option defaults", () => {
       ({ value }) => value,
     ),
   ).toEqual(["HTML_REDIRECT", "MAC_WEBLOC", "WINDOWS", "FREEDESKTOP", "MAC"]);
+  expect(document.querySelector("#shortcutType")?.getAttribute("aria-describedby")).toContain(
+    "shortcut-format-preview",
+  );
   expect(document.querySelector("#includeFetchCredentials")).not.toBeNull();
   expect(document.querySelector("#containerAuthPermission")).toBeNull();
 });
@@ -285,26 +289,34 @@ test("uses one shared container for each external integration", () => {
   expect(integrations).toHaveLength(3);
   expect(document.querySelector(".webmcp-developer-details")?.hasAttribute("open")).toBe(false);
   expect(document.querySelector("#webhook-state-badge")?.getAttribute("data-state")).toBe("off");
+  const pending = document.querySelector("#external-download-rejections");
+  expect(pending?.hasAttribute("aria-live")).toBe(false);
+  expect(pending?.querySelector("#external-download-rejection-status")?.getAttribute("role")).toBe(
+    "status",
+  );
 });
 
-test("keeps webhook consent, field controls, preview, and status connected", () => {
+test("marks conditional tab-context requirements without describing supported controls", () => {
   const document = documentForOptions();
-  const endpoint = document.querySelector<HTMLInputElement>("#webhookUrl");
-  expect(endpoint?.type).toBe("url");
-  expect(endpoint?.getAttribute("aria-describedby")).toContain("webhook-status");
-  expect(document.querySelector("#webhookEnabled")?.hasAttribute("data-no-autosave")).toBe(true);
-  expect(document.querySelector("#webhookEnabled")?.getAttribute("aria-describedby")).toContain(
-    "webhookEnabledHelp",
+  for (const [controlId, requirementId] of [
+    ["tabEnabled", "tab-context-requirement"],
+    ["shortcutTab", "shortcut-tab-context-requirement"],
+  ] as const) {
+    const control = document.getElementById(controlId);
+    expect(control?.getAttribute("data-tab-context-requirement")).toBe(requirementId);
+    expect(control?.hasAttribute("aria-describedby")).toBe(false);
+    expect(document.getElementById(requirementId)?.hasAttribute("hidden")).toBe(true);
+  }
+});
+
+test("uses the shared external-link treatment for Referer documentation", () => {
+  const document = documentForOptions();
+  const link = document.querySelector<HTMLAnchorElement>(
+    'a[href*="developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Match_patterns"]',
   );
-  expect(document.querySelector("#webhookIncludePageUrl")).not.toBeNull();
-  expect(document.querySelector("#webhookIncludePageTitle")).not.toBeNull();
-  expect(document.querySelector("#webhookIncludeSelectionText")).not.toBeNull();
-  expect(document.querySelector("#webhook-payload-preview")).not.toBeNull();
-  expect(document.querySelector("#webhook-status")?.getAttribute("role")).toBe("status");
-  expect(document.querySelector("#webhook-state-badge")).not.toBeNull();
-  expect(document.querySelector<HTMLAnchorElement>("#webhook-documentation")?.href).toBe(
-    "https://github.com/gyng/save-in/wiki/Webhooks",
-  );
+  expect(link?.classList.contains("external")).toBe(true);
+  expect(link?.target).toBe("_blank");
+  expect(link?.rel).toBe("noreferrer");
 });
 
 test("keeps stable history controls and export commands", () => {

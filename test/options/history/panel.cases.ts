@@ -259,6 +259,13 @@ describe("history filter controls", () => {
 
   test("clears history through the serialized background owner", async () => {
     historyRuntime.entries = [{ id: "h-delete", finalFullPath: "delete-me.txt" }];
+    historyRuntime.sendMessage.mockImplementation(async (message: { type: string }) => {
+      if (message.type === "HISTORY_CLEAR") {
+        historyRuntime.entries = [];
+        return { type: "OK" };
+      }
+      return { type: "HISTORY_GET", body: { entries: historyRuntime.entries } };
+    });
     await historyPanel.renderHistory();
     document.querySelector<HTMLButtonElement>("#history-clear")!.click();
     expect(document.querySelector(".history-clear-dialog")).not.toBeNull();
@@ -266,6 +273,12 @@ describe("history filter controls", () => {
 
     await vi.waitFor(() =>
       expect(historyRuntime.sendMessage).toHaveBeenCalledWith({ type: "HISTORY_CLEAR" }),
+    );
+    await vi.waitFor(() =>
+      expect(document.querySelector<HTMLButtonElement>("#history-clear")!.disabled).toBe(true),
+    );
+    expect(document.querySelector(".history-export-menu")?.getAttribute("aria-disabled")).toBe(
+      "true",
     );
   });
 
@@ -570,6 +583,9 @@ describe("history filter controls", () => {
     const { renderHistory } = historyPanel;
     await renderHistory();
     const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+    const menu = document.querySelector<HTMLDetailsElement>(".history-export-menu")!;
+    const trigger = menu.querySelector<HTMLElement>("summary")!;
+    menu.open = true;
 
     document.querySelector<HTMLButtonElement>(`#history-export-${format}`)!.click();
 
@@ -581,6 +597,19 @@ describe("history filter controls", () => {
     const clickedLink = click.mock.instances[0] as HTMLAnchorElement;
     expect(clickedLink?.download).toBe(`save-in-history.${format}`);
     expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:history-export");
+    expect(menu.open).toBe(false);
+    expect(document.activeElement).toBe(trigger);
+  });
+
+  test("exports safely when optional menu markup is absent", async () => {
+    historyRuntime.entries = [{ id: "h-export", finalFullPath: "photo.png" }];
+    document.body.innerHTML = '<button id="history-export-json"></button>';
+    historyPanel.setupHistoryPanel();
+    const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+
+    document.querySelector<HTMLButtonElement>("#history-export-json")!.click();
+
+    expect(click).toHaveBeenCalledOnce();
   });
 
   test("polls native progress and stops tracking downloads the browser forgets", async () => {

@@ -377,8 +377,8 @@ Briefly explain the structure, check that every line follows this syntax, then p
         <div class="caption behavior-group-intro">__MSG_o_lContextMenuBehaviorHelp__</div>
 
         <label> <input type="checkbox" id="enableLastLocation" />__MSG_o_cLastUsedMenu__ </label>
-        <label class="inline-control-label">
-          __MSG_o_lRecentLocations__
+        <label class="inline-control-label recent-locations">
+          <span data-saved-target>__MSG_o_lRecentLocations__</span>
           <input
             type="number"
             id="recentDestinationCount"
@@ -423,10 +423,11 @@ Briefly explain the structure, check that every line follows this syntax, then p
 
         <label> <input type="checkbox" id="selection" />__MSG_o_cSaveText__ </label>
 
-        <label>
-          <input type="checkbox" id="page" />__MSG_o_cSavePage__
-          <div class="caption caption-line">__MSG_o_cSavePageHelp__</div>
-        </label>
+        <div class="described-checkbox">
+          <input type="checkbox" id="page" aria-describedby="save-page-help" />
+          <label for="page">__MSG_o_cSavePage__</label>
+          <div class="caption caption-line" id="save-page-help">__MSG_o_cSavePageHelp__</div>
+        </div>
 
         <fieldset class="option-group">
           <legend>
@@ -435,7 +436,7 @@ Briefly explain the structure, check that every line follows this syntax, then p
                 type="checkbox"
                 id="tabEnabled"
                 class="tab-context-required"
-                aria-describedby="tab-context-requirement"
+                data-tab-context-requirement="tab-context-requirement"
               />__MSG_o_cSaveTabstrip__
               <span
                 class="warning badge chrome-tab-context-badge"
@@ -475,7 +476,7 @@ Briefly explain the structure, check that every line follows this syntax, then p
         <h4>__MSG_o_sExistingFiles__</h4>
 
         <label class="inline-control-label">
-          __MSG_o_cDupeFilename__
+          <span data-saved-target>__MSG_o_cDupeFilename__</span>
           <select disabled class="chrome-enabled" id="conflictAction">
             <option value="uniquify">__MSG_o_cDupeUniquify__</option>
             <option value="overwrite">__MSG_o_cDupeOverwrite__</option>
@@ -497,7 +498,7 @@ Briefly explain the structure, check that every line follows this syntax, then p
             maxlength="1"
             aria-describedby="access-key-status"
           />
-          __MSG_o_cKeyboardShortcutSaveInMenu__
+          <span data-saved-target>__MSG_o_cKeyboardShortcutSaveInMenu__</span>
         </label>
 
         <label>
@@ -508,7 +509,7 @@ Briefly explain the structure, check that every line follows this syntax, then p
             maxlength="1"
             aria-describedby="access-key-status"
           />
-          __MSG_o_cKeyboardShortcutSubmenu__
+          <span data-saved-target>__MSG_o_cKeyboardShortcutSubmenu__</span>
         </label>
         <div
           id="access-key-status"
@@ -538,7 +539,9 @@ Briefly explain the structure, check that every line follows this syntax, then p
             id="trackBrowserDownloads"
             aria-describedby="track-browser-downloads-help"
           />
-          <label for="trackBrowserDownloads">__MSG_o_cTrackBrowserDownloads__</label>
+          <label for="trackBrowserDownloads" data-saved-target
+            >__MSG_o_cTrackBrowserDownloads__</label
+          >
           <div class="caption caption-line" id="track-browser-downloads-help">
             __MSG_o_cTrackBrowserDownloadsHelp__
           </div>
@@ -551,7 +554,9 @@ Briefly explain the structure, check that every line follows this syntax, then p
               id="routeBrowserDownloads"
               aria-describedby="route-browser-downloads-help"
             />
-            <label for="routeBrowserDownloads">__MSG_o_cRouteBrowserDownloads__</label>
+            <label for="routeBrowserDownloads" data-saved-target
+              >__MSG_o_cRouteBrowserDownloads__</label
+            >
             <div class="caption caption-line" id="route-browser-downloads-help">
               __MSG_o_cRouteBrowserDownloadsHelp__
             </div>
@@ -563,7 +568,11 @@ Briefly explain the structure, check that every line follows this syntax, then p
               id="routeBrowserDownloadsFirefox"
               aria-describedby="route-browser-downloads-firefox-help"
             />
-            <label for="routeBrowserDownloadsFirefox" class="inline-control-label">
+            <label
+              for="routeBrowserDownloadsFirefox"
+              class="inline-control-label"
+              data-saved-target
+            >
               __MSG_o_cRouteBrowserDownloadsFirefox__
               <span class="badge">Firefox</span>
               <span class="badge warning">__MSG_o_lExperimental__</span>
@@ -586,15 +595,15 @@ Briefly explain the structure, check that every line follows this syntax, then p
         </div>
 
         <div class="browser-download-filter-group">
-          <label class="browser-download-filter-master">
-            <input
-              type="checkbox"
-              id="browserDownloadFiltersEnabled"
-              aria-controls="browser-download-filter-options"
-              aria-describedby="browser-download-filters-help"
-            />
-            __MSG_o_cBrowserDownloadFiltersEnabled__
-          </label>
+          <input
+            type="checkbox"
+            id="browserDownloadFiltersEnabled"
+            aria-controls="browser-download-filter-options"
+            aria-describedby="browser-download-filters-help"
+          />
+          <label for="browserDownloadFiltersEnabled" data-saved-target
+            >__MSG_o_cBrowserDownloadFiltersEnabled__</label
+          >
           <div class="caption caption-line" id="browser-download-filters-help">
             __MSG_o_cBrowserDownloadFiltersEnabledHelp__
           </div>
@@ -1323,7 +1332,7 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
         <legend class="option-group-heading">__MSG_html_shortcutFileBehavior__</legend>
         <div class="option-subcontrol shortcut-format-control">
           <label for="shortcutType">__MSG_o_cSaveShortcutsAs__</label>
-          <select id="shortcutType">
+          <select id="shortcutType" aria-describedby="shortcut-format-preview">
             <option value="HTML_REDIRECT">__MSG_o_cSaveShortcutsTypeHtml__</option>
             <option value="MAC_WEBLOC">__MSG_o_cSaveShortcutsTypeMacWebloc__</option>
             <option value="WINDOWS">__MSG_o_cSaveShortcutsTypeWindows__</option>
@@ -1352,7 +1361,7 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                 type="checkbox"
                 id="shortcutTab"
                 class="tab-context-required"
-                aria-describedby="shortcut-tab-context-requirement"
+                data-tab-context-requirement="shortcut-tab-context-requirement"
               />
               <span class="option-label-content">
                 <span>__MSG_o_cSaveShortcutsTabsInstead__</span>
@@ -1385,7 +1394,9 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
       <div class="click-to-save-option">
         <input type="checkbox" id="contentClickToSave" aria-describedby="click-to-save-help" />
         <div class="click-to-save-option-body">
-          <label for="contentClickToSave">__MSG_o_cKeyboardShortcutClickToSave__</label>
+          <label for="contentClickToSave" data-saved-target
+            >__MSG_o_cKeyboardShortcutClickToSave__</label
+          >
           <div class="caption caption-line" id="click-to-save-help">
             __MSG_o_cKeyboardShortcutClickToHelp__
           </div>
@@ -2218,7 +2229,10 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
             <div class="caption caption-line">
               __MSG_o_cSetRefererHeaderFilterHelp__
               <a
+                class="external"
                 href="https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Match_patterns"
+                target="_blank"
+                rel="noreferrer"
                 >__MSG_html_mdnMatchPatterns__</a
               >
             </div>
@@ -2485,7 +2499,6 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
           <section
             id="external-download-rejections"
             class="external-download-rejections"
-            aria-live="polite"
             aria-labelledby="external-pending-heading"
             hidden
           >

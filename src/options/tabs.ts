@@ -44,6 +44,11 @@ export const orderSections = (sections: TabSection[]): TabSection[] =>
     return (ai < 0 ? Number.MAX_SAFE_INTEGER : ai) - (bi < 0 ? Number.MAX_SAFE_INTEGER : bi);
   });
 
+export const optionNavigationRow = (target: HTMLElement): HTMLLabelElement | null =>
+  target instanceof HTMLInputElement && ["checkbox", "radio"].includes(target.type)
+    ? target.closest("label") || target.labels?.item(0) || null
+    : null;
+
 // The <h2> that heads a section: the node itself, or (for a section whose
 // content is wrapped, e.g. Dynamic Downloads in a label.column) its first
 // element child.
@@ -135,9 +140,6 @@ export const setupTabs = ({
 
   let currentIndex = -1;
   let navigationGeneration = 0;
-  const revealTab = (index: number): void => {
-    tabs[index]?.scrollIntoView?.({ block: "nearest", inline: "nearest" });
-  };
 
   const activate = (index: number): void => {
     const section = sections[index];
@@ -145,7 +147,6 @@ export const setupTabs = ({
     currentIndex = index;
 
     syncTabSelection(tabs, panels, index);
-    revealTab(index);
     try {
       localStorage.setItem(TAB_STORAGE_KEY, section.key);
     } catch (e) {
@@ -201,7 +202,6 @@ export const setupTabs = ({
   };
 
   bindTabInteractions(tabs, (index, focus) => select(index, focus));
-  window.addEventListener("resize", () => revealTab(currentIndex), { passive: true });
   tabs.forEach((tab) => tablist.appendChild(tab));
 
   form.prepend(tablist);
@@ -215,10 +215,7 @@ export const setupTabs = ({
     const index = panel ? panels.indexOf(panel) : -1;
     if (!target || index < 0) return;
     select(index, false, () => {
-      const rowTarget =
-        target instanceof HTMLInputElement && ["checkbox", "radio"].includes(target.type)
-          ? target.closest<HTMLElement>("label")
-          : null;
+      const rowTarget = optionNavigationRow(target);
       const highlightTarget = rowTarget || target;
       target.focus({ preventScroll: true });
       highlightTarget.scrollIntoView?.({

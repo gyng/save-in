@@ -265,7 +265,8 @@
 }
 
 label.saved-base,
-.opt-title.saved-base {
+.opt-title.saved-base,
+[data-saved-target].saved-base {
   --saved-check-offset: 2px;
 
   padding-inline-end: 23px;

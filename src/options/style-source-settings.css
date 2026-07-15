@@ -45,8 +45,10 @@
   margin-top: 0;
 }
 
-.source-browser:has(#sourcePanelEnabled:not(:checked)) .source-panel-dependent {
-  opacity: 0.55;
+.source-browser:has(#sourcePanelEnabled:not(:checked))
+  .source-panel-dependent
+  :is(.option-group-heading, label:has(:disabled)) {
+  color: var(--disabled-control-color);
 }
 
 .source-panel-settings,

@@ -26,8 +26,9 @@ import { splitLines } from "../shared/util.ts";
 import { MESSAGE_TYPES } from "../shared/constants.ts";
 import { setupShortcutOptions } from "./shortcut-options.ts";
 import { setupCheckboxRows } from "./checkbox-rows.ts";
+import { updateTabContextControls } from "./tab-context-controls.ts";
 import { setupSettingsTransfer } from "./settings-transfer.ts";
-import { assertSettingsUndoSafe, markSavedNow } from "./saved-indicator.ts";
+import { assertSettingsUndoSafe, markSavedNow, savedIndicatorTarget } from "./saved-indicator.ts";
 import { showUnsavedChangesDialog } from "./unsaved-changes-dialog.ts";
 import { createLatestTaskRunner } from "./latest-task.ts";
 import {
@@ -607,15 +608,9 @@ const setupChromeDisables = () => {
       .forEach((el) => {
         el.disabled = true;
       });
-
-    const tabContextMenus = WEB_EXTENSION_CAPABILITIES.tabContextMenus;
-    document.querySelectorAll<HTMLInputElement>(".tab-context-required").forEach((el) => {
-      el.disabled = !tabContextMenus;
-    });
-    document.querySelectorAll<HTMLElement>(".chrome-tab-context-badge").forEach((badge) => {
-      badge.hidden = tabContextMenus;
-    });
   }
+
+  updateTabContextControls(WEB_EXTENSION_CAPABILITIES.tabContextMenus);
 };
 
 // Debouncing only textareas: every keystroke there previously triggered a
@@ -736,11 +731,7 @@ const setupAutosave = (el: Element) => {
   // Tied to the actual save firing (not every keystroke), so it still
   // reflects when a save really happened once debounced.
   const showSavedIndicator = () => {
-    // Anchor the check to the row's .opt-title (content-width, wrapped below) so
-    // it sits right after the label text; fall back to the label / the field.
-    const label = el.closest("label") || el.labels?.item(0);
-    const title = label && label.querySelector(":scope > .opt-title");
-    const target = el instanceof HTMLTextAreaElement ? el : title || label || el.parentElement;
+    const target = savedIndicatorTarget(el);
     if (!target) {
       return;
     }
@@ -924,28 +915,61 @@ const renderMenuPreview = (container: Element, tree: MenuPreviewTree) => {
     parentUl.appendChild(li);
   });
 
-  // Mirror the real menu: the Last Used slot and its separator sit above
-  // the configured paths when the option is enabled
-  const lastUsed = document.querySelector<HTMLInputElement>("#enableLastLocation");
-  if (lastUsed?.checked) {
-    if (tree.items.some((item) => item.kind === "path")) {
-      const sep = document.createElement("li");
-      sep.className = "menu-preview-separator";
-      sep.appendChild(document.createElement("hr"));
-      rootUl.insertBefore(sep, rootUl.firstChild);
-    }
-
+  // Mirror the real menu: the Last used slot, then the Recent locations slot,
+  // sit above the configured paths — each shown when its option is enabled
+  // (menu-rebuild.ts orders last-used, then recent, then a separator, then paths).
+  const makeQuickLocation = (
+    variant: string,
+    label: string,
+    input: HTMLInputElement,
+    hint: string,
+  ): HTMLLIElement => {
     const li = document.createElement("li");
-    li.className = "menu-preview-item menu-preview-lastused";
+    li.className = `menu-preview-item ${variant}`;
     const row = document.createElement("div");
     row.className = "menu-preview-row";
     const title = document.createElement("span");
     title.className = "menu-preview-title";
-    title.textContent = getMessage("contextMenuLastUsed");
+    title.textContent = label;
     row.appendChild(title);
-    linkOptionPreview(row, lastUsed, "Show the Last used menu setting");
+    linkOptionPreview(row, input, hint);
     li.appendChild(row);
-    rootUl.insertBefore(li, rootUl.firstChild);
+    return li;
+  };
+
+  const lastUsed = document.querySelector<HTMLInputElement>("#enableLastLocation");
+  const recentCount = document.querySelector<HTMLInputElement>("#recentDestinationCount");
+  const quickLocations: HTMLLIElement[] = [];
+  if (lastUsed?.checked) {
+    quickLocations.push(
+      makeQuickLocation(
+        "menu-preview-lastused",
+        getMessage("contextMenuLastUsed"),
+        lastUsed,
+        "Show the Last used menu setting",
+      ),
+    );
+  }
+  if (recentCount && Number(recentCount.value) > 0) {
+    quickLocations.push(
+      makeQuickLocation(
+        "menu-preview-recent",
+        getMessage("contextMenuRecentLocations"),
+        recentCount,
+        "Show the Recent locations menu setting",
+      ),
+    );
+  }
+
+  if (quickLocations.length > 0) {
+    if (tree.items.some((item) => item.kind === "path")) {
+      const sep = document.createElement("li");
+      sep.className = "menu-preview-separator";
+      sep.appendChild(document.createElement("hr"));
+      quickLocations.push(sep);
+    }
+    // Prepend the quick-location slots, preserving order, above the paths
+    [...quickLocations].reverse().forEach((node) => rootUl.insertBefore(node, rootUl.firstChild));
   }
 
   container.appendChild(rootUl);
@@ -968,9 +992,13 @@ const updateMenuPreview = () => {
   }
 
   // Menu-only settings redraw their matching affordances immediately.
-  ["#enableLastLocation", "#enableNumberedItems"].forEach((selector) => {
+  ["#enableLastLocation", "#enableNumberedItems", "#recentDestinationCount"].forEach((selector) => {
     document.querySelector(selector)?.addEventListener("change", () => updateMenuPreview());
   });
+  // The Recent locations count also redraws live as it is typed or stepped.
+  document
+    .querySelector("#recentDestinationCount")
+    ?.addEventListener("input", () => updateMenuPreview());
 
   const highlightSelectedSource = (event: Event) => {
     if (!(event instanceof CustomEvent)) return;

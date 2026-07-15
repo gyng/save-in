@@ -16,6 +16,9 @@
 }
 
 .click-to-save-option-body > label {
+  display: block;
+  justify-self: start;
+  inline-size: fit-content;
   margin: 0;
 }
 

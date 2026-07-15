@@ -28,6 +28,7 @@ import { renderHistoryFeedback } from "./history-feedback.ts";
 import { MESSAGE_TYPES } from "../shared/constants.ts";
 import { sendInternalMessage } from "../shared/message-protocol.ts";
 import { normalizeHistory } from "../shared/history-normalization.ts";
+import { closeDetailsAndRestoreFocus } from "./dismissible-details.ts";
 
 export type HistoryPanelState = {
   entries: HistoryEntry[];
@@ -861,7 +862,7 @@ const removeHistory = async () => {
       onAction: () => void removeHistory(),
     });
   } finally {
-    if (clearButton) clearButton.disabled = false;
+    updateHistoryActionAvailability(historyState.entries.length > 0);
   }
 };
 const clearHistory = async (): Promise<void> => {
@@ -951,15 +952,14 @@ export const setupHistoryPanel = (): void => {
     columnOptions.appendChild(option);
   });
 
-  document
-    .querySelector("#history-export-json")
-    ?.addEventListener("click", () => downloadHistoryExport("json"));
-  document
-    .querySelector("#history-export-csv")
-    ?.addEventListener("click", () => downloadHistoryExport("csv"));
-  document
-    .querySelector("#history-export-tsv")
-    ?.addEventListener("click", () => downloadHistoryExport("tsv"));
+  (["json", "csv", "tsv"] as const).forEach((format) => {
+    const button = document.querySelector<HTMLButtonElement>(`#history-export-${format}`);
+    button?.addEventListener("click", () => {
+      downloadHistoryExport(format);
+      const menu = button.closest<HTMLDetailsElement>(".history-export-menu");
+      if (menu) closeDetailsAndRestoreFocus(menu);
+    });
+  });
   document.querySelector("#history-clear")?.addEventListener("click", () => void clearHistory());
 };
 

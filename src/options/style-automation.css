@@ -22,26 +22,53 @@
 }
 
 .browser-download-choice > label {
+  justify-self: start;
+  inline-size: fit-content;
   margin: 0;
 }
 
 .browser-download-route-group {
   display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
   justify-items: start;
   gap: var(--space-2);
   margin-top: var(--space-4);
 }
 
+.browser-download-route-group > .browser-download-choice {
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+}
+
 .browser-download-route-group > button {
-  margin-inline-start: var(--space-6);
+  grid-column: 2;
 }
 
 .browser-download-filter-group {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: baseline;
+  column-gap: var(--space-2);
   margin-top: var(--space-5);
 }
 
-.browser-download-filter-master + .caption {
-  margin-inline-start: var(--space-6);
+.browser-download-filter-group > input {
+  grid-column: 1;
+  margin: 0;
+}
+
+.browser-download-filter-group > :is(label, .caption, .browser-download-filter-options) {
+  grid-column: 2;
+}
+
+.browser-download-filter-group > label {
+  justify-self: start;
+  inline-size: fit-content;
+  margin: 0;
+}
+
+.browser-download-filter-group > .browser-download-filter-options {
+  margin-inline-start: 0;
 }
 
 .browser-download-routing-data {
@@ -83,10 +110,13 @@
   transition: opacity var(--motion-duration-fast) ease;
 }
 
-.auto-download-options:has(#autoDownloadEnabled:not(:checked)) .auto-download-dependent,
+.auto-download-options:has(#autoDownloadEnabled:not(:checked))
+  .auto-download-dependent
+  :is(label:has(:disabled), .auto-download-limit > label),
 .browser-download-filter-group:has(#browserDownloadFiltersEnabled:not(:checked))
-  .browser-download-filter-options {
-  opacity: 0.55;
+  .browser-download-filter-options
+  :is(label:has(:disabled), .browser-download-filter-field > label) {
+  color: var(--disabled-control-color);
 }
 
 @container options-panel (max-width: 640px) {
