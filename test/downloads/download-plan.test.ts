@@ -135,7 +135,7 @@ describe("fetch rewrite", () => {
     expect(state.scratch.fetchTemplateRaw).toBe("https://mirror.example/orig.png");
     // The route expands against the rewritten URL, not the original one.
     expect(plan?.finalFullPath).toBe("downloads/routed/orig.png");
-    expect(SaveHistory.add).toHaveBeenCalledWith(
+    expect(SaveHistory.addHistoryEntry).toHaveBeenCalledWith(
       expect.objectContaining({ url: "https://mirror.example/orig.png" }),
       expect.anything(),
     );
@@ -450,7 +450,7 @@ describe("renameAndDownload: needRouteMatch", () => {
 
     expect(global.browser.downloads.download).not.toHaveBeenCalled();
     expect(downloaded).not.toHaveBeenCalled();
-    expect(SaveHistory.add).not.toHaveBeenCalled();
+    expect(SaveHistory.addHistoryEntry).not.toHaveBeenCalled();
     expect(Download.pendingStates.get(state.info.url) || []).not.toContain(state);
   });
 

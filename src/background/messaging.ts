@@ -30,7 +30,7 @@ import {
 } from "../shared/message-protocol.ts";
 import { respondAsync, type SendResponse } from "./message-dispatch.ts";
 import { addLogEntry, clearLog } from "./log.ts";
-import { SaveHistory } from "./history.ts";
+import { clearHistory, getHistoryEntries, setHistoryStatus } from "./history.ts";
 import { applyConfigSerialized } from "./config-apply.ts";
 import { configWriteState } from "./state.ts";
 import { getPersistenceDiagnostics } from "../shared/persistence-diagnostics.ts";
@@ -707,11 +707,11 @@ const internalHandlers = {
   [MESSAGE_TYPES.HISTORY_GET]: async (_request, _sender, sendResponse) => {
     sendResponse({
       type: MESSAGE_TYPES.HISTORY_GET,
-      body: { entries: await SaveHistory.get() },
+      body: { entries: await getHistoryEntries() },
     });
   },
   [MESSAGE_TYPES.HISTORY_CLEAR]: async (_request, _sender, sendResponse) => {
-    await SaveHistory.clear();
+    await clearHistory();
     sendResponse({ type: MESSAGE_TYPES.OK });
   },
   [MESSAGE_TYPES.HISTORY_CANCEL]: async (request, _sender, sendResponse) => {
@@ -722,7 +722,7 @@ const internalHandlers = {
       await OffscreenClient.cancel(active.requestId).catch(() => {});
     }
     const entry = historyId
-      ? (await SaveHistory.get()).find((candidate) => candidate.id === historyId)
+      ? (await getHistoryEntries()).find((candidate) => candidate.id === historyId)
       : undefined;
     const downloadId = entry?.downloadId ?? active?.downloadId;
     let shouldRecordCanceled = canceled && downloadId == null;
@@ -740,7 +740,7 @@ const internalHandlers = {
       }
     }
     if (shouldRecordCanceled) {
-      await SaveHistory.setStatus(historyId, "USER_CANCELED", downloadId);
+      await setHistoryStatus(historyId, "USER_CANCELED", downloadId);
     }
     sendResponse({ type: MESSAGE_TYPES.HISTORY_CANCEL, body: { canceled } });
   },

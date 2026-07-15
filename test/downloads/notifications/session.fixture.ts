@@ -45,13 +45,18 @@ const loadNotification = async () => {
   Notifier = mod.Notifier;
   ({ options } = await import("../../../src/config/options-data.ts"));
   Log = await import("../../../src/background/log.ts");
-  ({ SaveHistory } = await import("../../../src/background/history.ts"));
+  SaveHistory = await import("../../../src/background/history.ts");
   const { backgroundRuntime } = await import("../../../src/background/runtime.ts");
   Runtime = backgroundRuntime;
   const { configureDownloadPorts } = await import("../../../src/downloads/ports.ts");
   configureDownloadPorts({
     runtime: backgroundRuntime,
-    history: SaveHistory,
+    history: {
+      add: (...a: unknown[]) => SaveHistory.addHistoryEntry(...a),
+      patch: (...a: unknown[]) => SaveHistory.patchHistoryEntry(...a),
+      setDownloadId: (...a: unknown[]) => SaveHistory.setHistoryDownloadId(...a),
+      setStatus: (...a: unknown[]) => SaveHistory.setHistoryStatus(...a),
+    },
     log: { add: (...args: unknown[]) => Log.addLogEntry(...args) },
     retry: (downloadId) => retryHolder.retry(downloadId),
     sourceSidecar: () => Promise.resolve(),

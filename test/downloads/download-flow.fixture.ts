@@ -15,7 +15,7 @@ import { BackgroundState } from "../../src/background/state.ts";
 import * as SessionState from "../../src/shared/session-state.ts";
 import { OffscreenClient } from "../../src/platform/offscreen-client.ts";
 import * as Log from "../../src/background/log.ts";
-import { SaveHistory } from "../../src/background/history.ts";
+import * as SaveHistory from "../../src/background/history.ts";
 import { getFilenameFromContentDispositionHeader } from "../../src/vendor/content-disposition.ts";
 import { extensionSessionStorage } from "../../src/platform/storage-areas.ts";
 import { RULE_TYPES } from "../../src/shared/constants.ts";
@@ -124,7 +124,16 @@ const makeState = (overrides: Record<string, any> = {}): any => ({
 beforeEach(() => {
   configureDownloadPorts({
     runtime: backgroundRuntime,
-    history: SaveHistory,
+    history: {
+      add: (...a: Parameters<typeof SaveHistory.addHistoryEntry>) =>
+        SaveHistory.addHistoryEntry(...a),
+      patch: (...a: Parameters<typeof SaveHistory.patchHistoryEntry>) =>
+        SaveHistory.patchHistoryEntry(...a),
+      setDownloadId: (...a: Parameters<typeof SaveHistory.setHistoryDownloadId>) =>
+        SaveHistory.setHistoryDownloadId(...a),
+      setStatus: (...a: Parameters<typeof SaveHistory.setHistoryStatus>) =>
+        SaveHistory.setHistoryStatus(...a),
+    },
     log: { add: (...args: Parameters<typeof Log.addLogEntry>) => Log.addLogEntry(...args) },
     retry: Download.retryViaFetch,
     sourceSidecar: () => Promise.resolve(),
@@ -192,10 +201,10 @@ beforeEach(() => {
 
   // setDownloadId is never asserted; add returns a stable id so the started
   // record carries a truthy historyEntryId
-  vi.spyOn(SaveHistory, "add").mockReturnValue("h-test");
-  vi.spyOn(SaveHistory, "patch").mockImplementation(() => Promise.resolve());
-  vi.spyOn(SaveHistory, "setDownloadId").mockImplementation(() => Promise.resolve());
-  vi.spyOn(SaveHistory, "setStatus").mockImplementation(() => Promise.resolve());
+  vi.spyOn(SaveHistory, "addHistoryEntry").mockReturnValue("h-test");
+  vi.spyOn(SaveHistory, "patchHistoryEntry").mockImplementation(() => Promise.resolve());
+  vi.spyOn(SaveHistory, "setHistoryDownloadId").mockImplementation(() => Promise.resolve());
+  vi.spyOn(SaveHistory, "setHistoryStatus").mockImplementation(() => Promise.resolve());
   vi.spyOn(Log, "addLogEntry").mockImplementation(() => Promise.resolve());
 
   // Reset the emit stub between tests (it is a mock-factory vi.fn, not a spy)

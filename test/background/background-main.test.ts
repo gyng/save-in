@@ -326,7 +326,7 @@ describe("init", () => {
     await setupGlobals();
     const { OffscreenClient } = await import("../../src/platform/offscreen-client.ts");
     const { RefererRules } = await import("../../src/downloads/referer-rules.ts");
-    const { SaveHistory } = await import("../../src/background/history.ts");
+    const SaveHistory = await import("../../src/background/history.ts");
     vi.spyOn(RefererRules, "cleanupStaleRule").mockRejectedValueOnce(new Error("stale rule"));
     vi.spyOn(OffscreenClient, "canUse").mockReturnValueOnce(true).mockReturnValueOnce(false);
     const cancelOffscreen = vi
@@ -335,7 +335,7 @@ describe("init", () => {
     const cancelDownload = vi
       .mocked(global.browser.downloads.cancel)
       .mockRejectedValueOnce(new Error("gone"));
-    const setStatus = vi.spyOn(SaveHistory, "setStatus").mockResolvedValue(undefined);
+    const setStatus = vi.spyOn(SaveHistory, "setHistoryStatus").mockResolvedValue(undefined);
     activeTransferMocks.recover.mockResolvedValueOnce({
       first: { requestId: "request-1", downloadId: 7 },
       second: { requestId: "request-2", downloadId: null },

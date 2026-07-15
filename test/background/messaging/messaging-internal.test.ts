@@ -85,7 +85,9 @@ describe("onMessage", () => {
   });
 
   test("HISTORY_GET returns normalized history from its background owner", async () => {
-    vi.mocked(SaveHistory.get).mockResolvedValue([{ id: "h1", url: "https://x.test/a" }]);
+    vi.mocked(SaveHistory.getHistoryEntries).mockResolvedValue([
+      { id: "h1", url: "https://x.test/a" },
+    ]);
     const sendResponse = vi.fn();
 
     expect(onMessage({ type: MESSAGE_TYPES.HISTORY_GET }, {}, sendResponse)).toBe(true);
@@ -101,7 +103,7 @@ describe("onMessage", () => {
     const sendResponse = vi.fn();
     expect(onMessage({ type: MESSAGE_TYPES.HISTORY_CLEAR }, {}, sendResponse)).toBe(true);
     await waitForCall(sendResponse);
-    expect(SaveHistory.clear).toHaveBeenCalledOnce();
+    expect(SaveHistory.clearHistory).toHaveBeenCalledOnce();
     expect(sendResponse).toHaveBeenCalledWith({ type: MESSAGE_TYPES.OK });
   });
 
@@ -130,7 +132,7 @@ describe("onMessage", () => {
 
     expect(OffscreenClient.cancel).toHaveBeenCalledWith("request-1");
     expect(global.browser.downloads.cancel).toHaveBeenCalledWith(17);
-    expect(SaveHistory.setStatus).toHaveBeenCalledWith("history-1", "USER_CANCELED", 17);
+    expect(SaveHistory.setHistoryStatus).toHaveBeenCalledWith("history-1", "USER_CANCELED", 17);
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.HISTORY_CANCEL,
       body: { canceled: true },
@@ -138,7 +140,7 @@ describe("onMessage", () => {
   });
 
   test("HISTORY_CANCEL uses a stored download id without overwriting completion", async () => {
-    vi.mocked(SaveHistory.get).mockResolvedValue([
+    vi.mocked(SaveHistory.getHistoryEntries).mockResolvedValue([
       { id: "history-2", url: "https://x.test/file", downloadId: 23 },
     ]);
     vi.mocked(global.browser.downloads.search).mockResolvedValue([
@@ -154,7 +156,7 @@ describe("onMessage", () => {
     await waitForCall(sendResponse);
 
     expect(global.browser.downloads.cancel).toHaveBeenCalledWith(23);
-    expect(SaveHistory.setStatus).not.toHaveBeenCalled();
+    expect(SaveHistory.setHistoryStatus).not.toHaveBeenCalled();
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.HISTORY_CANCEL,
       body: { canceled: true },
@@ -173,7 +175,11 @@ describe("onMessage", () => {
     );
     await waitForCall(sendResponse);
 
-    expect(SaveHistory.setStatus).toHaveBeenCalledWith("history-3", "USER_CANCELED", undefined);
+    expect(SaveHistory.setHistoryStatus).toHaveBeenCalledWith(
+      "history-3",
+      "USER_CANCELED",
+      undefined,
+    );
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.HISTORY_CANCEL,
       body: { canceled: true },
@@ -181,7 +187,7 @@ describe("onMessage", () => {
   });
 
   test("HISTORY_CANCEL tolerates a browser cancellation race and an empty id", async () => {
-    vi.mocked(SaveHistory.get).mockResolvedValue([
+    vi.mocked(SaveHistory.getHistoryEntries).mockResolvedValue([
       { id: "history-4", url: "https://x.test/file", downloadId: 29 },
     ]);
     vi.mocked(global.browser.downloads.cancel).mockRejectedValue(new Error("already complete"));
@@ -197,11 +203,11 @@ describe("onMessage", () => {
       body: { canceled: false },
     });
 
-    vi.mocked(SaveHistory.get).mockClear();
+    vi.mocked(SaveHistory.getHistoryEntries).mockClear();
     const emptyResponse = vi.fn();
     onMessage({ type: MESSAGE_TYPES.HISTORY_CANCEL, body: { historyId: "" } }, {}, emptyResponse);
     await waitForCall(emptyResponse);
-    expect(SaveHistory.get).not.toHaveBeenCalled();
+    expect(SaveHistory.getHistoryEntries).not.toHaveBeenCalled();
   });
 
   test("lists and clears rejected external download callers", async () => {

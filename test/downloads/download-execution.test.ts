@@ -147,7 +147,7 @@ describe("renameAndDownload: browserDownload", () => {
     await expect(Download.renameAndDownload(state)).resolves.toEqual({ status: "skipped" });
 
     expect(global.browser.downloads.cancel).toHaveBeenCalledWith(101);
-    expect(SaveHistory.setStatus).toHaveBeenCalledWith("h-test", "USER_CANCELED", 101);
+    expect(SaveHistory.setHistoryStatus).toHaveBeenCalledWith("h-test", "USER_CANCELED", 101);
   });
 
   test("rejects before browser setup when acquisition is already aborted", async () => {
@@ -185,7 +185,7 @@ describe("renameAndDownload: browserDownload", () => {
 
     await expect(Download.renameAndDownload(state)).resolves.toEqual({ status: "skipped" });
 
-    expect(SaveHistory.setStatus).toHaveBeenCalledWith("h-test", "USER_CANCELED");
+    expect(SaveHistory.setHistoryStatus).toHaveBeenCalledWith("h-test", "USER_CANCELED");
     expect(Notifier.reportFailure).not.toHaveBeenCalled();
   });
 
@@ -229,7 +229,7 @@ describe("renameAndDownload: browserDownload", () => {
 
     expect(downloaded).toHaveBeenCalledWith(state);
     expect(backgroundRuntime.lastDownloadState).toBe(state);
-    expect(SaveHistory.add).toHaveBeenCalledWith(
+    expect(SaveHistory.addHistoryEntry).toHaveBeenCalledWith(
       expect.objectContaining({
         url: state.info.url,
         routed: false,
@@ -256,7 +256,7 @@ describe("renameAndDownload: browserDownload", () => {
 
     expect(backgroundRuntime.lastDownloadState).toBe(primary);
     expect(downloaded).not.toHaveBeenCalled();
-    expect(SaveHistory.add).not.toHaveBeenCalled();
+    expect(SaveHistory.addHistoryEntry).not.toHaveBeenCalled();
     expect(downloadState.records.get(101)).toMatchObject({
       adopted: true,
       sourceSidecar: true,
@@ -325,7 +325,7 @@ describe("renameAndDownload: browserDownload", () => {
       Download.renameAndDownload(makeState({ info: { context: DOWNLOAD_TYPES.SIDECAR } })),
     ).resolves.toEqual({ status: "failed" });
 
-    expect(SaveHistory.add).not.toHaveBeenCalled();
+    expect(SaveHistory.addHistoryEntry).not.toHaveBeenCalled();
     expect(Notifier.reportFailure).not.toHaveBeenCalled();
   });
 });
@@ -482,7 +482,7 @@ describe("onDeterminingFilename listener: sync path", () => {
       filename: "downloads/from-download-item.bin",
       conflictAction: "uniquify",
     });
-    expect(SaveHistory.patch).toHaveBeenCalledWith("h-test", {
+    expect(SaveHistory.patchHistoryEntry).toHaveBeenCalledWith("h-test", {
       finalFullPath: "downloads/from-download-item.bin",
     });
   });
@@ -757,7 +757,7 @@ describe("onDeterminingFilename listener: sync path", () => {
     );
     const cancel = vi.fn(() => Promise.reject(new Error("already stopped")));
     global.browser.downloads.cancel = cancel;
-    vi.mocked(SaveHistory.setStatus).mockRejectedValue(new Error("history unavailable"));
+    vi.mocked(SaveHistory.setHistoryStatus).mockRejectedValue(new Error("history unavailable"));
     const state = makeState({
       path: new Path.Path("downloads"),
       info: { url: "https://example.com/file.pdf" },
@@ -781,7 +781,7 @@ describe("onDeterminingFilename listener: sync path", () => {
 
     await vi.waitFor(() => expect(cancel).toHaveBeenCalledWith(101));
     expect(suggest).toHaveBeenCalledWith();
-    expect(SaveHistory.setStatus).toHaveBeenCalledWith("h-test", "RULE_NO_MATCH", 101);
+    expect(SaveHistory.setHistoryStatus).toHaveBeenCalledWith("h-test", "RULE_NO_MATCH", 101);
     expect(Notifier.createExtensionNotification).toHaveBeenCalledWith(
       "notificationRuleMatchFailedExclusiveTitle",
       "notificationRuleMatchFailedExclusiveMessage",
@@ -882,11 +882,20 @@ describe("concurrent downloads (pendingStates)", () => {
     const { configureDownloadPorts: configureFreshDownloadPorts } =
       await import("../../src/downloads/ports.ts");
     const { backgroundRuntime: freshRuntime } = await import("../../src/background/runtime.ts");
-    const { SaveHistory: freshHistory } = await import("../../src/background/history.ts");
+    const freshHistory = await import("../../src/background/history.ts");
     const freshLog = await import("../../src/background/log.ts");
     configureFreshDownloadPorts({
       runtime: freshRuntime,
-      history: freshHistory,
+      history: {
+        add: (...a: Parameters<typeof freshHistory.addHistoryEntry>) =>
+          freshHistory.addHistoryEntry(...a),
+        patch: (...a: Parameters<typeof freshHistory.patchHistoryEntry>) =>
+          freshHistory.patchHistoryEntry(...a),
+        setDownloadId: (...a: Parameters<typeof freshHistory.setHistoryDownloadId>) =>
+          freshHistory.setHistoryDownloadId(...a),
+        setStatus: (...a: Parameters<typeof freshHistory.setHistoryStatus>) =>
+          freshHistory.setHistoryStatus(...a),
+      },
       log: {
         add: (...args: Parameters<typeof freshLog.addLogEntry>) => freshLog.addLogEntry(...args),
       },
@@ -1047,7 +1056,7 @@ describe("terminal browserDownload failure surfaces to the user", () => {
       expect.any(String),
       expect.stringContaining("disk full"),
     );
-    expect(SaveHistory.setStatus).toHaveBeenCalledWith("h-test", "DOWNLOAD_API_FAILED");
+    expect(SaveHistory.setHistoryStatus).toHaveBeenCalledWith("h-test", "DOWNLOAD_API_FAILED");
   });
 
   test("does not report a rule match after a terminal browser rejection", async () => {
@@ -1088,12 +1097,12 @@ describe("owned object URL lifecycle", () => {
 describe("private browsing persistence", () => {
   test("keeps private save metadata out of local and session storage", async () => {
     setCurrentBrowser("CHROME");
-    vi.mocked(SaveHistory.add).mockReturnValue(null);
+    vi.mocked(SaveHistory.addHistoryEntry).mockReturnValue(null);
     const state = makeState({ info: { currentTab: { incognito: true } } });
 
     await Download.renameAndDownload(state);
 
-    expect(SaveHistory.add).toHaveBeenCalledWith(expect.any(Object), {
+    expect(SaveHistory.addHistoryEntry).toHaveBeenCalledWith(expect.any(Object), {
       privateContext: true,
     });
     expect(sessionStore.siPendingDownloads).toBeUndefined();
@@ -1103,7 +1112,7 @@ describe("private browsing persistence", () => {
       privateContext: true,
       adopted: true,
     });
-    expect(SaveHistory.setDownloadId).not.toHaveBeenCalled();
+    expect(SaveHistory.setHistoryDownloadId).not.toHaveBeenCalled();
     expect(Log.addLogEntry).not.toHaveBeenCalledWith("download requested", expect.anything());
     expect(downloaded).not.toHaveBeenCalled();
     expect(backgroundRuntime.lastDownloadState).toBeUndefined();

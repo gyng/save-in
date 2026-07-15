@@ -18,7 +18,7 @@ describe("pipeline stages", () => {
 
     Download.createDownloadPlan(state);
 
-    expect(SaveHistory.add).toHaveBeenCalledWith(expect.any(Object), {
+    expect(SaveHistory.addHistoryEntry).toHaveBeenCalledWith(expect.any(Object), {
       privateContext: true,
     });
   });
@@ -28,8 +28,8 @@ describe("pipeline stages", () => {
     Download.createDownloadPlan(state);
     Download.createDownloadPlan(state);
 
-    expect(SaveHistory.add).toHaveBeenCalledOnce();
-    expect(SaveHistory.patch).toHaveBeenCalledWith(
+    expect(SaveHistory.addHistoryEntry).toHaveBeenCalledOnce();
+    expect(SaveHistory.patchHistoryEntry).toHaveBeenCalledWith(
       "h-test",
       expect.objectContaining({ finalFullPath: "downloads" }),
     );
@@ -92,7 +92,10 @@ describe("pipeline stages", () => {
     expect(result).toEqual({ status: "failed" });
     expect(global.browser.downloads.download).not.toHaveBeenCalled();
     expect(Download.pendingStates.get(state.info.url) || []).not.toContain(state);
-    expect(SaveHistory.setStatus).toHaveBeenCalledWith("h-test", "DOWNLOAD_PREPARATION_FAILED");
+    expect(SaveHistory.setHistoryStatus).toHaveBeenCalledWith(
+      "h-test",
+      "DOWNLOAD_PREPARATION_FAILED",
+    );
     expect(Notifier.reportFailure).toHaveBeenCalledWith(
       "downloads/file.png",
       expect.stringContaining("content unavailable"),
@@ -201,7 +204,7 @@ describe("pipeline stages", () => {
       source: "fetched",
     });
 
-    expect(SaveHistory.patch).toHaveBeenCalledWith("h-test", {
+    expect(SaveHistory.patchHistoryEntry).toHaveBeenCalledWith("h-test", {
       mechanism: "fetch-downloads-api",
     });
 

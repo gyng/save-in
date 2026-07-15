@@ -30,16 +30,16 @@ describe("renameAndDownload: shared :sha256: fetch reuse", () => {
     const state = makeState();
 
     const task = Download.renameAndDownload(state);
-    await vi.waitFor(() => expect(SaveHistory.add).toHaveBeenCalled());
+    await vi.waitFor(() => expect(SaveHistory.addHistoryEntry).toHaveBeenCalled());
     expect(ActiveTransfers.cancel("h-test")).toBe(true);
 
     await expect(task).resolves.toEqual({ status: "skipped" });
-    expect(SaveHistory.setStatus).toHaveBeenCalledWith("h-test", "USER_CANCELED");
+    expect(SaveHistory.setHistoryStatus).toHaveBeenCalledWith("h-test", "USER_CANCELED");
     expect(global.browser.downloads.download).not.toHaveBeenCalled();
   });
 
   test("holds one private preparation controller when history is disabled", async () => {
-    vi.mocked(SaveHistory.add).mockReturnValue(null);
+    vi.mocked(SaveHistory.addHistoryEntry).mockReturnValue(null);
     const hold = vi.spyOn(ActiveTransfers, "hold");
     const release = vi.spyOn(ActiveTransfers, "release");
     vi.spyOn(Variable, "applyVariables").mockImplementationOnce(async (path, info) => {
@@ -290,7 +290,7 @@ describe("renameAndDownload: fetchViaFetch", () => {
 
     await expect(task).resolves.toEqual({ status: "skipped" });
     expect(global.browser.downloads.download).not.toHaveBeenCalled();
-    expect(SaveHistory.setStatus).toHaveBeenCalledWith("h-test", "USER_CANCELED");
+    expect(SaveHistory.setHistoryStatus).toHaveBeenCalledWith("h-test", "USER_CANCELED");
   });
   test("keeps a fetched blob associated with Firefox private downloads", async () => {
     setCurrentBrowser("FIREFOX");
@@ -415,7 +415,7 @@ describe("renameAndDownload: fetchViaFetch", () => {
   test("records a private fetch failure without exposing its URL in the shared log", async () => {
     setCurrentBrowser("CHROME");
     options.fetchViaFetch = true;
-    vi.mocked(SaveHistory.add).mockReturnValue(null);
+    vi.mocked(SaveHistory.addHistoryEntry).mockReturnValue(null);
     vi.spyOn(OffscreenClient, "canUse").mockReturnValue(false);
     global.fetch = vi.fn(() => Promise.reject(new Error("private fetch failed"))) as any;
     const state = makeState({ info: { currentTab: { incognito: true } } });
@@ -432,7 +432,7 @@ describe("renameAndDownload: fetchViaFetch", () => {
   test("labels a private offscreen fetch failure", async () => {
     setCurrentBrowser("CHROME");
     options.fetchViaFetch = true;
-    vi.mocked(SaveHistory.add).mockReturnValue(null);
+    vi.mocked(SaveHistory.addHistoryEntry).mockReturnValue(null);
     vi.spyOn(OffscreenClient, "canUse").mockReturnValue(true);
     vi.spyOn(OffscreenClient, "fetchContent").mockRejectedValue(new Error("offscreen failed"));
     const state = makeState({ info: { currentTab: { incognito: true } } });

@@ -35,7 +35,7 @@ const Variable = await import("../../../src/routing/variable.ts");
 const { Path } = await import("../../../src/routing/path.ts");
 const { setCurrentTab } = await import("../../../src/platform/current-tab.ts");
 const { backgroundRuntime } = await import("../../../src/background/runtime.ts");
-const { SaveHistory } = await import("../../../src/background/history.ts");
+const SaveHistory = await import("../../../src/background/history.ts");
 const Log = await import("../../../src/background/log.ts");
 const { ActiveTransfers } = await import("../../../src/downloads/active-transfers.ts");
 const { OffscreenClient } = await import("../../../src/platform/offscreen-client.ts");
@@ -109,9 +109,9 @@ const setupGlobals = () => {
     path: "routed/dir",
     captures: null,
   } as any);
-  vi.spyOn(SaveHistory, "get").mockResolvedValue([]);
-  vi.spyOn(SaveHistory, "clear").mockResolvedValue();
-  vi.spyOn(SaveHistory, "setStatus").mockResolvedValue(undefined);
+  vi.spyOn(SaveHistory, "getHistoryEntries").mockResolvedValue([]);
+  vi.spyOn(SaveHistory, "clearHistory").mockResolvedValue();
+  vi.spyOn(SaveHistory, "setHistoryStatus").mockResolvedValue(undefined);
   vi.spyOn(Log, "addLogEntry").mockResolvedValue(undefined);
   vi.spyOn(Log, "getLogEntries").mockResolvedValue([]);
   vi.spyOn(Log, "clearLog").mockResolvedValue(undefined);

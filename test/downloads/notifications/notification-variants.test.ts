@@ -137,7 +137,7 @@ describe("notification variants", () => {
 
   test("user-cancelled downloads are untracked without a notification", async () => {
     await install({ notifyOnSuccess: true, notifyOnFailure: true, notifyDuration: 1000 });
-    vi.spyOn(SaveHistory, "setStatus").mockResolvedValue(undefined);
+    vi.spyOn(SaveHistory, "setHistoryStatus").mockResolvedValue(undefined);
     Notifier.expectDownload("https://x/p.png", { historyEntryId: "h-test" });
     await onCreated({
       id: 7,
@@ -149,7 +149,7 @@ describe("notification variants", () => {
     await onChanged({ id: 7, error: { current: "USER_CANCELED" } });
 
     expect(global.browser.notifications.create).not.toHaveBeenCalled();
-    expect(SaveHistory.setStatus).toHaveBeenCalledWith("h-test", "USER_CANCELED", 7);
+    expect(SaveHistory.setHistoryStatus).toHaveBeenCalledWith("h-test", "USER_CANCELED", 7);
     expect(adoptedIds(sessionStore)).toEqual([]);
   });
 

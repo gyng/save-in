@@ -5,7 +5,7 @@ import { initializeLocalization } from "../platform/localization.ts";
 import { OptionsManagement } from "../config/option.ts";
 import { downloadsState } from "./state.ts";
 import { hydrateDownloads } from "../downloads/download-state.ts";
-import { SaveHistory } from "./history.ts";
+import { setHistoryStatus } from "./history.ts";
 import { extensionSessionStorage } from "../platform/storage-areas.ts";
 import { restoreLastUsed } from "./menu-build.ts";
 import { addDownloadListener } from "./menu-click.ts";
@@ -77,11 +77,7 @@ const recoverColdStartState = async (): Promise<void> => {
           if (record.downloadId != null) {
             await webExtensionApi.downloads.cancel(record.downloadId).catch(() => {});
           }
-          await SaveHistory.setStatus(
-            historyId,
-            "DOWNLOAD_PREPARATION_INTERRUPTED",
-            record.downloadId,
-          );
+          await setHistoryStatus(historyId, "DOWNLOAD_PREPARATION_INTERRUPTED", record.downloadId);
         }),
       );
     }),

@@ -8,7 +8,12 @@ import { getMessage } from "../platform/localization.ts";
 import { currentTab } from "../platform/current-tab.ts";
 import { configureRoutingPorts } from "../routing/ports.ts";
 import { nextCounter, nextPrivateCounter, peekCounter } from "./counter.ts";
-import { SaveHistory } from "./history.ts";
+import {
+  addHistoryEntry,
+  patchHistoryEntry,
+  setHistoryDownloadId,
+  setHistoryStatus,
+} from "./history.ts";
 import { addLogEntry } from "./log.ts";
 import { backgroundRuntime } from "./runtime.ts";
 import { counterWriteState } from "./state.ts";
@@ -16,7 +21,12 @@ import { counterWriteState } from "./state.ts";
 export const configureBackgroundPorts = () => {
   configureDownloadPorts({
     runtime: backgroundRuntime,
-    history: SaveHistory,
+    history: {
+      add: addHistoryEntry,
+      patch: patchHistoryEntry,
+      setDownloadId: setHistoryDownloadId,
+      setStatus: setHistoryStatus,
+    },
     log: { add: addLogEntry },
     retry: Download.retryViaFetch,
     sourceSidecar: launchSourceSidecar,

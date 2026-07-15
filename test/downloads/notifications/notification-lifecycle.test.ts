@@ -78,10 +78,10 @@ describe("download lifecycle notifications", () => {
 
   test("records an ordinary browser download without adopting or retrying it", async () => {
     options.trackBrowserDownloads = true;
-    const { SaveHistory: history } = await import("../../../src/background/history.ts");
-    vi.spyOn(history, "add").mockReturnValue("h-browser");
-    vi.spyOn(history, "setDownloadId").mockResolvedValue(undefined);
-    vi.spyOn(history, "setStatus").mockResolvedValue(undefined);
+    const history = await import("../../../src/background/history.ts");
+    vi.spyOn(history, "addHistoryEntry").mockReturnValue("h-browser");
+    vi.spyOn(history, "setHistoryDownloadId").mockResolvedValue(undefined);
+    vi.spyOn(history, "setHistoryStatus").mockResolvedValue(undefined);
 
     await onCreated({
       id: 44,
@@ -95,7 +95,7 @@ describe("download lifecycle notifications", () => {
       historyEntryId: "h-browser",
       allowOriginalUrlFallback: false,
     });
-    expect(SaveHistory.add).toHaveBeenCalledWith(
+    expect(SaveHistory.addHistoryEntry).toHaveBeenCalledWith(
       expect.objectContaining({
         url: "https://example.com/browser.zip",
         finalFullPath: "C:\\Downloads\\browser.zip",
@@ -106,7 +106,7 @@ describe("download lifecycle notifications", () => {
 
     await onChanged({ id: 44, state: { current: "complete", previous: "in_progress" } });
 
-    expect(SaveHistory.setStatus).toHaveBeenCalledWith("h-browser", "complete", 44, 2048);
+    expect(SaveHistory.setHistoryStatus).toHaveBeenCalledWith("h-browser", "complete", 44, 2048);
     expect(sessionStore.siDownloads[44]!.observedBrowserDownload).toBe(false);
     expect(retryHolder.retry).not.toHaveBeenCalled();
     expect(global.browser.notifications.create).not.toHaveBeenCalled();
@@ -114,8 +114,8 @@ describe("download lifecycle notifications", () => {
 
   test("does not retain ordinary downloads from private browsing", async () => {
     options.trackBrowserDownloads = true;
-    const { SaveHistory: history } = await import("../../../src/background/history.ts");
-    vi.spyOn(history, "add");
+    const history = await import("../../../src/background/history.ts");
+    vi.spyOn(history, "addHistoryEntry");
 
     await onCreated({
       id: 48,
@@ -124,7 +124,7 @@ describe("download lifecycle notifications", () => {
       url: "https://private.example/private.zip",
     });
 
-    expect(history.add).not.toHaveBeenCalled();
+    expect(history.addHistoryEntry).not.toHaveBeenCalled();
     expect(sessionStore.siDownloads?.[48]).toBeUndefined();
   });
 
@@ -149,8 +149,8 @@ describe("download lifecycle notifications", () => {
 
   test("does not track downloads initiated by another extension", async () => {
     options.trackBrowserDownloads = true;
-    const { SaveHistory: history } = await import("../../../src/background/history.ts");
-    vi.spyOn(history, "add");
+    const history = await import("../../../src/background/history.ts");
+    vi.spyOn(history, "addHistoryEntry");
 
     await onCreated({
       id: 45,
@@ -159,7 +159,7 @@ describe("download lifecycle notifications", () => {
       url: "https://example.com/other.zip",
     });
 
-    expect(history.add).not.toHaveBeenCalled();
+    expect(history.addHistoryEntry).not.toHaveBeenCalled();
     expect(sessionStore.siDownloads?.[45]).toBeUndefined();
   });
 
@@ -169,9 +169,9 @@ describe("download lifecycle notifications", () => {
     options.browserDownloadFilter = "*://example.com/*";
     const { BrowserDownloadRouting } = await import("../../../src/downloads/browser-downloads.ts");
     vi.spyOn(BrowserDownloadRouting, "route").mockResolvedValue("sorted/native.bin");
-    const { SaveHistory: history } = await import("../../../src/background/history.ts");
-    vi.spyOn(history, "add").mockReturnValue("h-reroute");
-    vi.spyOn(history, "setDownloadId").mockResolvedValue(undefined);
+    const history = await import("../../../src/background/history.ts");
+    vi.spyOn(history, "addHistoryEntry").mockReturnValue("h-reroute");
+    vi.spyOn(history, "setHistoryDownloadId").mockResolvedValue(undefined);
     vi.mocked(global.browser.downloads.download).mockImplementationOnce(async (downloadOptions) => {
       await onCreated({
         id: 99,
@@ -477,9 +477,9 @@ describe("download lifecycle notifications", () => {
     options.browserDownloadFilter = "*://example.com/*";
     const { BrowserDownloadRouting } = await import("../../../src/downloads/browser-downloads.ts");
     vi.spyOn(BrowserDownloadRouting, "route").mockResolvedValue("sorted/native.bin");
-    const { SaveHistory: history } = await import("../../../src/background/history.ts");
-    vi.spyOn(history, "add").mockReturnValue("h-reroute");
-    vi.spyOn(history, "setStatus").mockResolvedValue(undefined);
+    const history = await import("../../../src/background/history.ts");
+    vi.spyOn(history, "addHistoryEntry").mockReturnValue("h-reroute");
+    vi.spyOn(history, "setHistoryStatus").mockResolvedValue(undefined);
     vi.mocked(global.browser.downloads.erase).mockRejectedValueOnce(new Error("erase failed"));
     vi.mocked(global.browser.downloads.download).mockResolvedValueOnce(99);
 
@@ -497,7 +497,7 @@ describe("download lifecycle notifications", () => {
       filename: "C:\\Downloads\\other.bin",
       url: "https://example.com/other.bin",
     });
-    expect(history.setStatus).toHaveBeenCalledWith("h-reroute", "FIREFOX_REROUTE_FAILED");
+    expect(history.setHistoryStatus).toHaveBeenCalledWith("h-reroute", "FIREFOX_REROUTE_FAILED");
     expect(Log.addLogEntry).toHaveBeenCalledWith(
       "Firefox browser download reroute failed",
       expect.stringContaining("cancel failed"),
@@ -506,8 +506,8 @@ describe("download lifecycle notifications", () => {
 
   test("tracks an ordinary browser download without a history id", async () => {
     options.trackBrowserDownloads = true;
-    const { SaveHistory: history } = await import("../../../src/background/history.ts");
-    vi.spyOn(history, "add").mockReturnValue(null);
+    const history = await import("../../../src/background/history.ts");
+    vi.spyOn(history, "addHistoryEntry").mockReturnValue(null);
 
     await onCreated({
       id: 43,
@@ -519,8 +519,8 @@ describe("download lifecycle notifications", () => {
   });
 
   test("records tracked completion size and tolerates a failed size lookup", async () => {
-    const { SaveHistory: history } = await import("../../../src/background/history.ts");
-    vi.spyOn(history, "setStatus").mockResolvedValue(undefined);
+    const history = await import("../../../src/background/history.ts");
+    vi.spyOn(history, "setHistoryStatus").mockResolvedValue(undefined);
     Notifier.expectDownload("https://x/sized.png", { historyEntryId: "h-sized" });
     await onCreated({
       id: 70,
@@ -529,7 +529,7 @@ describe("download lifecycle notifications", () => {
       url: "https://x/sized.png",
     });
     await onChanged({ id: 70, state: { current: "complete", previous: "in_progress" } });
-    expect(history.setStatus).toHaveBeenCalledWith("h-sized", "complete", 70, 2048);
+    expect(history.setHistoryStatus).toHaveBeenCalledWith("h-sized", "complete", 70, 2048);
 
     Notifier.expectDownload("https://x/unknown.png", { historyEntryId: "h-unknown" });
     await onCreated({
@@ -540,7 +540,7 @@ describe("download lifecycle notifications", () => {
     });
     vi.mocked(global.browser.downloads.search).mockRejectedValueOnce(new Error("search failed"));
     await onChanged({ id: 71, state: { current: "complete", previous: "in_progress" } });
-    expect(history.setStatus).toHaveBeenCalledWith("h-unknown", "complete", 71);
+    expect(history.setHistoryStatus).toHaveBeenCalledWith("h-unknown", "complete", 71);
 
     Notifier.expectDownload("https://x/fallback.png", { historyEntryId: "h-fallback" });
     await onCreated({
@@ -553,7 +553,7 @@ describe("download lifecycle notifications", () => {
       { id: 73, fileSize: 0, totalBytes: 512 } as any,
     ]);
     await onChanged({ id: 73, state: { current: "complete", previous: "in_progress" } });
-    expect(history.setStatus).toHaveBeenCalledWith("h-fallback", "complete", 73, 512);
+    expect(history.setHistoryStatus).toHaveBeenCalledWith("h-fallback", "complete", 73, 512);
 
     Notifier.expectDownload("https://x/empty.png", { historyEntryId: "h-empty" });
     await onCreated({
@@ -564,15 +564,15 @@ describe("download lifecycle notifications", () => {
     });
     vi.mocked(global.browser.downloads.search).mockResolvedValueOnce([]);
     await onChanged({ id: 74, state: { current: "complete", previous: "in_progress" } });
-    expect(history.setStatus).toHaveBeenCalledWith("h-empty", "complete", 74, undefined);
+    expect(history.setHistoryStatus).toHaveBeenCalledWith("h-empty", "complete", 74, undefined);
   });
 
   test("updates and fails an observed browser-download history row", async () => {
     options.trackBrowserDownloads = true;
-    const { SaveHistory: history } = await import("../../../src/background/history.ts");
-    vi.spyOn(history, "add").mockReturnValue("h-observed");
-    vi.spyOn(history, "patch").mockResolvedValue(undefined);
-    vi.spyOn(history, "setStatus").mockResolvedValue(undefined);
+    const history = await import("../../../src/background/history.ts");
+    vi.spyOn(history, "addHistoryEntry").mockReturnValue("h-observed");
+    vi.spyOn(history, "patchHistoryEntry").mockResolvedValue(undefined);
+    vi.spyOn(history, "setHistoryStatus").mockResolvedValue(undefined);
     await onCreated({
       id: 72,
       filename: "/dl/original.zip",
@@ -580,13 +580,18 @@ describe("download lifecycle notifications", () => {
     });
 
     await onChanged({ id: 72, filename: { current: "/dl/renamed.zip" } });
-    expect(history.patch).toHaveBeenCalledWith("h-observed", {
+    expect(history.patchHistoryEntry).toHaveBeenCalledWith("h-observed", {
       finalFullPath: "/dl/renamed.zip",
     });
     await onChanged({ id: 72, error: { current: "NETWORK_FAILED" } });
-    expect(history.setStatus).toHaveBeenCalledWith("h-observed", "NETWORK_FAILED", 72, undefined);
+    expect(history.setHistoryStatus).toHaveBeenCalledWith(
+      "h-observed",
+      "NETWORK_FAILED",
+      72,
+      undefined,
+    );
     await onChanged({ id: 72, filename: { current: "/dl/ignored.zip" } });
-    expect(history.patch).not.toHaveBeenCalledWith("h-observed", {
+    expect(history.patchHistoryEntry).not.toHaveBeenCalledWith("h-observed", {
       finalFullPath: "/dl/ignored.zip",
     });
   });
@@ -637,8 +642,8 @@ describe("download lifecycle notifications", () => {
     options.browserDownloadFilter = "*://example.com/*";
     const { BrowserDownloadRouting } = await import("../../../src/downloads/browser-downloads.ts");
     vi.spyOn(BrowserDownloadRouting, "route").mockResolvedValue("sorted/native.bin");
-    const { SaveHistory: history } = await import("../../../src/background/history.ts");
-    vi.spyOn(history, "add").mockReturnValue(null);
+    const history = await import("../../../src/background/history.ts");
+    vi.spyOn(history, "addHistoryEntry").mockReturnValue(null);
     vi.mocked(global.browser.downloads.download).mockResolvedValueOnce(99);
 
     await onCreated({
@@ -652,34 +657,34 @@ describe("download lifecycle notifications", () => {
 
   test("records observed downloads with missing and fallback byte sizes", async () => {
     options.trackBrowserDownloads = true;
-    const { SaveHistory: history } = await import("../../../src/background/history.ts");
-    vi.spyOn(history, "add").mockReturnValue("h-bytes");
-    vi.spyOn(history, "setStatus").mockResolvedValue(undefined);
+    const history = await import("../../../src/background/history.ts");
+    vi.spyOn(history, "addHistoryEntry").mockReturnValue("h-bytes");
+    vi.spyOn(history, "setHistoryStatus").mockResolvedValue(undefined);
 
     await onCreated({ id: 93, filename: "/dl/a", url: "https://x/a" });
     vi.mocked(global.browser.downloads.search).mockResolvedValueOnce([
       { id: 93, fileSize: 0, totalBytes: 512 } as any,
     ]);
     await onChanged({ id: 93, state: { current: "complete" } });
-    expect(history.setStatus).toHaveBeenCalledWith("h-bytes", "complete", 93, 512);
+    expect(history.setHistoryStatus).toHaveBeenCalledWith("h-bytes", "complete", 93, 512);
 
     await onCreated({ id: 94, filename: "/dl/b", url: "https://x/b" });
     vi.mocked(global.browser.downloads.search).mockResolvedValueOnce([]);
     await onChanged({ id: 94, state: { current: "complete" } });
-    expect(history.setStatus).toHaveBeenCalledWith("h-bytes", "complete", 94, undefined);
+    expect(history.setHistoryStatus).toHaveBeenCalledWith("h-bytes", "complete", 94, undefined);
   });
 
   test("records a generic observed Firefox interruption", async () => {
     browserState.current = "FIREFOX";
     options.trackBrowserDownloads = true;
-    const { SaveHistory: history } = await import("../../../src/background/history.ts");
-    vi.spyOn(history, "add").mockReturnValue("h-firefox");
-    vi.spyOn(history, "setStatus").mockResolvedValue(undefined);
+    const history = await import("../../../src/background/history.ts");
+    vi.spyOn(history, "addHistoryEntry").mockReturnValue("h-firefox");
+    vi.spyOn(history, "setHistoryStatus").mockResolvedValue(undefined);
     await onCreated({ id: 95, filename: "/dl/a", url: "https://x/a" });
 
     await onChanged({ id: 95, state: { current: "interrupted" } });
 
-    expect(history.setStatus).toHaveBeenCalledWith("h-firefox", "failed", 95, undefined);
+    expect(history.setHistoryStatus).toHaveBeenCalledWith("h-firefox", "failed", 95, undefined);
   });
 });
 

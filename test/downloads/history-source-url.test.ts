@@ -11,7 +11,7 @@ test("history keeps the original source URL for shortcut-backed saves", () => {
 
   Download.createDownloadPlan(state);
 
-  expect(SaveHistory.add).toHaveBeenCalledWith(
+  expect(SaveHistory.addHistoryEntry).toHaveBeenCalledWith(
     expect.objectContaining({
       url: "blob:shortcut-content",
       info: expect.objectContaining({ sourceUrl: "https://example.test/original-page" }),
