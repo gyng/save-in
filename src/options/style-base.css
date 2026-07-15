@@ -44,6 +44,14 @@ html {
   box-sizing: inherit;
 }
 
+/* Chrome inserts this generated box between details and its disclosed children,
+   so it must carry the shared sizing model into menus containing links. */
+@supports selector(details::details-content) {
+  details::details-content {
+    box-sizing: inherit;
+  }
+}
+
 :root {
   accent-color: var(--color-accent);
 }
