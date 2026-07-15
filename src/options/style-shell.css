@@ -249,7 +249,7 @@ body:not(#settings-page) {
   border: 0;
   border-radius: var(--radius-sm);
   color: var(--color-text);
-  background: transparent;
+  background-color: transparent;
   font-size: var(--text-base);
   line-height: 1;
   text-align: start;
