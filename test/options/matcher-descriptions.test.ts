@@ -67,3 +67,17 @@ test("omits derived previews when test URLs are invalid", () => {
   expect(matcherTestValue("sourcedomain")).toBe("");
   expect(matcherTestValue("sourcerootdomain")).toBe("");
 });
+
+test("omits filename and extension previews when their inputs do not provide them", () => {
+  const source = document.querySelector<HTMLInputElement>("#route-debugger-source-url")!;
+  const filename = document.querySelector<HTMLInputElement>("#route-debugger-filename")!;
+  source.value = "";
+  expect(matcherTestValue("naivefilename")).toBe("");
+  expect(matcherTestValue("urlfileext")).toBe("");
+
+  source.value = "https://example.com/download";
+  filename.value = "README";
+  expect(matcherTestValue("fileext")).toBe("");
+  expect(matcherTestValue("urlfileext")).toBe("");
+  expect(matcherTestValue("actualfileext")).toBe("");
+});

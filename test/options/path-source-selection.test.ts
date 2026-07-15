@@ -59,4 +59,30 @@ describe("path source selection", () => {
       inline: "nearest",
     });
   });
+
+  test("ignores invalid or unavailable sources", () => {
+    const detachedDocument = document.implementation.createHTMLDocument();
+    const detachedRow = detachedDocument.createElement("div");
+    detachedRow.className = "menu-preview-separator";
+
+    registerPathSourceElement(detachedRow, 0);
+    selectPathSource(-1);
+    selectPathSource(1.5);
+    selectPathSource(0, { document: detachedDocument });
+    revealSelectedPathSource(detachedDocument);
+
+    expect(detachedRow.dataset.sourceIndex).toBe("0");
+    expect(detachedRow.hasAttribute("aria-current")).toBe(false);
+  });
+
+  test("recognizes preview descendants and safely reveals a missing row", () => {
+    const previewChild = document.createElement("span");
+    document.querySelector("#menu-preview-tree")!.append(previewChild);
+    registerPathSourceElement(previewChild, 2);
+    selectPathSource(2, { revealPreview: false });
+
+    expect(previewChild.classList).toContain("is-source-selected");
+    previewChild.remove();
+    expect(() => revealSelectedPathSource()).not.toThrow();
+  });
 });

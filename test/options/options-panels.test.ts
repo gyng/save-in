@@ -286,7 +286,9 @@ describe("variables preview", () => {
 
     expect(document.querySelector(".variables-preview-structures")).toBeNull();
     const insertLine = vi.spyOn(PathEditor, "insertLine").mockImplementation(() => {});
-    document.querySelector<HTMLButtonElement>(".variables-preview-command button")!.click();
+    document
+      .querySelector<HTMLButtonElement>(".variables-preview-command button")!
+      .dispatchEvent(new MouseEvent("click", { bubbles: true }));
     expect(insertLine).toHaveBeenCalledWith(
       document.querySelector<HTMLTextAreaElement>("#paths"),
       "---",
@@ -335,6 +337,46 @@ describe("variables preview", () => {
     expect(document.querySelector<HTMLButtonElement>(".variables-preview-insert")!.disabled).toBe(
       true,
     );
+  });
+
+  test("tracks text-mode focus and clears a removed visual target", async () => {
+    vi.useFakeTimers();
+    document.body.innerHTML = `
+      <textarea id="paths"></textarea>
+      <button id="paths-mode-text"></button>
+      <button id="paths-mode-visual"></button>
+      <div id="paths-visual"><input class="path-editor-dir"></div>
+      <section class="variables-preview" data-insert-target="paths">
+        <div class="variables-preview-list"></div>
+      </section>`;
+    vi.mocked(browser.runtime.sendMessage)
+      .mockResolvedValueOnce({ body: { variables: [":year:"] } })
+      .mockResolvedValueOnce({ body: { interpolatedVariables: {} } });
+
+    await renderVariablesPreview();
+    expect(document.querySelector<HTMLElement>("#paths-visual")!.hidden).toBe(false);
+    const insertLine = vi.spyOn(PathEditor, "insertLine").mockImplementation(() => {});
+    document
+      .querySelector<HTMLButtonElement>(".variables-preview-command button")!
+      .dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(insertLine).not.toHaveBeenCalled();
+    const folder = document.querySelector<HTMLInputElement>(".path-editor-dir")!;
+    folder.focus();
+    document.dispatchEvent(new Event("visual-editor-rendered"));
+    folder.remove();
+    document.dispatchEvent(new Event("visual-editor-rendered"));
+    expect(document.querySelector<HTMLButtonElement>(".variables-preview-insert")!.disabled).toBe(
+      true,
+    );
+    document
+      .querySelector<HTMLButtonElement>(".variables-preview-insert:not([data-path-command])")!
+      .dispatchEvent(new MouseEvent("click", { bubbles: true }));
+
+    document.querySelector<HTMLTextAreaElement>("#paths")!.focus();
+    document.querySelector<HTMLButtonElement>("#paths-mode-text")!.click();
+    vi.runAllTimers();
+    expect(vi.getTimerCount()).toBe(0);
+    vi.useRealTimers();
   });
 
   test("shows known variables with blank values before a save", async () => {

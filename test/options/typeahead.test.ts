@@ -88,6 +88,40 @@ describe("typeahead dropdown", () => {
     expect(selected).toHaveBeenCalledWith(items[1]);
   });
 
+  test("reopens for read-only keyboard search and resets its buffered prefix", () => {
+    vi.useFakeTimers();
+    const input = document.querySelector<HTMLInputElement>("#picker")!;
+    input.readOnly = true;
+    const cleanup = attachTypeahead(input, { items, onSelect: vi.fn() });
+
+    input.focus();
+    input.blur();
+    input.dispatchEvent(new KeyboardEvent("keydown", { key: "d", bubbles: true }));
+    expect(input.getAttribute("aria-expanded")).toBe("true");
+    expect(input.getAttribute("aria-activedescendant")).toBe("typeahead-picker-option-1");
+
+    input.dispatchEvent(new KeyboardEvent("keydown", { key: "a", bubbles: true }));
+    expect(input.getAttribute("aria-activedescendant")).toBe("typeahead-picker-option-2");
+    vi.advanceTimersByTime(700);
+    input.dispatchEvent(new KeyboardEvent("keydown", { key: "i", bubbles: true }));
+    expect(input.getAttribute("aria-activedescendant")).toBe("typeahead-picker-option-0");
+
+    cleanup();
+    vi.useRealTimers();
+  });
+
+  test("clears a pending keyboard-search timer during cleanup", () => {
+    vi.useFakeTimers();
+    const input = document.querySelector<HTMLInputElement>("#picker")!;
+    input.readOnly = true;
+    const cleanup = attachTypeahead(input, { items, onSelect: vi.fn() });
+    input.dispatchEvent(new KeyboardEvent("keydown", { key: "z", bubbles: true }));
+
+    cleanup();
+    expect(vi.getTimerCount()).toBe(0);
+    vi.useRealTimers();
+  });
+
   test("shows and activates a read-only value beyond the editable result limit", () => {
     const input = document.querySelector<HTMLInputElement>("#picker")!;
     const manyItems = Array.from({ length: 14 }, (_, index) => ({
@@ -145,6 +179,7 @@ describe("typeahead dropdown", () => {
 
   test("clamps its preferred width when the viewport is narrower than both edges", () => {
     const input = document.querySelector<HTMLInputElement>("#picker")!;
+    input.style.direction = "rtl";
     vi.spyOn(window, "innerWidth", "get").mockReturnValue(12);
     attachTypeahead(input, { items, onSelect: vi.fn(), preferredWidth: 80 });
 

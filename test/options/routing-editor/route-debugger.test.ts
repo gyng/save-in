@@ -900,3 +900,42 @@ test("keeps source jumps inside Visual mode and uses explicit line heights in Te
   document.querySelector<HTMLButtonElement>(".route-debugger-source-link")!.click();
   expect(focus).toHaveBeenCalled();
 });
+
+test("renders a selected destination pipeline without a source link", async () => {
+  renderWorkbench();
+  vi.spyOn(webExtensionApi.runtime, "sendMessage").mockImplementation(async (message: any) =>
+    message.type === MESSAGE_TYPES.CHECK_ROUTES
+      ? checkResponse()
+      : {
+          type: MESSAGE_TYPES.VALIDATE_RESULT,
+          body: {
+            version: 1,
+            ruleErrors: [],
+            ruleTrace: {
+              selectedRule: 99,
+              destination: "archive/",
+              expandedDestination: "archive/",
+              sanitizedDestination: "archive/",
+              finalPath: "archive/report.pdf",
+              rules: [
+                {
+                  index: 99,
+                  matched: true,
+                  destination: "archive/",
+                  clauses: [{ name: "fileext", pattern: "pdf", matched: true }],
+                },
+              ],
+            },
+          },
+        },
+  );
+
+  setupRouteDebugger();
+  document.querySelector<HTMLButtonElement>("#route-debugger-run")!.click();
+  await vi.waitFor(() => expect(document.querySelector(".route-debugger-pipeline")).not.toBeNull());
+
+  expect(document.querySelector(".route-debugger-source-link")).toBeNull();
+  expect(document.querySelector(".route-debugger-rule-output")?.textContent).toContain(
+    "archive/report.pdf",
+  );
+});

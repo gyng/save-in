@@ -266,6 +266,7 @@ describe("syntax editor surface", () => {
       new CustomEvent("syntax-editor-visibility", { detail: { visible: true } }),
     );
     expect(lineSelections).toEqual([0, 1, 1]);
+    textarea.dispatchEvent(new Event("syntax-editor-visibility"));
     textarea.dispatchEvent(new CustomEvent("syntax-editor-visibility"));
     textarea.dispatchEvent(
       new CustomEvent("syntax-editor-visibility", { detail: { visible: false } }),
@@ -277,6 +278,9 @@ describe("syntax editor surface", () => {
     expect(document.querySelector<HTMLElement>(".syntax-editor-overlay")!.style.transform).toBe(
       "translate(-12px, -24px)",
     );
+    const selectionStart = vi.spyOn(textarea, "selectionStart", "get").mockReturnValue(-1);
+    textarea.dispatchEvent(new Event("select"));
+    selectionStart.mockRestore();
     editor.destroy();
   });
 

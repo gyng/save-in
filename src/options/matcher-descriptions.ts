@@ -71,10 +71,10 @@ export const matcherTestValue = (matcher: string, root: ParentNode = document): 
       return testFieldValue(root, "route-debugger-media-type");
     case "mime":
     case "contenttype":
-      return (
-        testFieldValue(root, "route-debugger-mime").split(";", 1)[0]?.trim().toLocaleLowerCase() ??
-        ""
-      );
+      return testFieldValue(root, "route-debugger-mime")
+        .split(";", 1)[0]!
+        .trim()
+        .toLocaleLowerCase();
     default:
       return "";
   }

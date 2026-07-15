@@ -106,6 +106,17 @@ describe("insertAtCursor / insertLine", () => {
     expect(inputs).toBe(1);
   });
 
+  test("insertAtCursor falls back when a text field has no selection", () => {
+    textarea.value = "abc";
+    Object.defineProperty(textarea, "selectionStart", { configurable: true, get: () => null });
+    Object.defineProperty(textarea, "selectionEnd", { configurable: true, get: () => null });
+
+    PathEditor.insertAtCursor(textarea, "x");
+
+    expect(textarea.value).toBe("abcx");
+    expect(inputs).toBe(1);
+  });
+
   test("insertLine adds a whole line after the cursor's line", () => {
     textarea.value = "a\nb";
     textarea.setSelectionRange(0, 0); // cursor on line "a"
@@ -193,6 +204,13 @@ describe("visual editor", () => {
     ).toEqual(["Outdent", "Indent", "Move up", "Move down", "Delete"]);
 
     menu.open = true;
+    menu.querySelector<HTMLElement>("button")!.focus();
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    expect(document.activeElement).toBe(menu.querySelector("summary"));
+
+    menu.open = true;
+    menu.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(menu.open).toBe(true);
     document.body.click();
     expect(menu.open).toBe(false);
   });
@@ -779,6 +797,14 @@ describe("visual editor drag and drop", () => {
     rows[1]!.dispatchEvent(dragEvent("dragover", 0, 0));
     rows[1]!.dispatchEvent(dragEvent("dragleave", 0));
     expect(rows[1]!.querySelector(".path-editor-drop-indicator")).toBeNull();
+
+    handle.dispatchEvent(start);
+    rows[1]!.dispatchEvent(dragEvent("dragover", 0, 0));
+    const nestedIndicator = rows[1]!.querySelector(".path-editor-drop-indicator")!;
+    const nestedLeave = dragEvent("dragleave", 0);
+    Object.defineProperty(nestedLeave, "relatedTarget", { value: nestedIndicator });
+    rows[1]!.dispatchEvent(nestedLeave);
+    expect(rows[1]!.querySelector(".path-editor-drop-indicator")).toBe(nestedIndicator);
   });
 
   test("dragover without an active drag leaves the row unchanged", () => {
@@ -788,6 +814,79 @@ describe("visual editor drag and drop", () => {
     expect(event.defaultPrevented).toBe(false);
     expect(row.querySelector(".path-editor-drop-indicator")).toBeNull();
   });
+
+  test("boundary zones contain inactive, repeated, nested-leave, and stale drops", () => {
+    const rows = document.querySelectorAll<HTMLElement>(".path-editor-row");
+    const zones = document.querySelectorAll<HTMLElement>(".path-editor-drop-zone");
+    const zone = zones[1]!;
+    const inactiveOver = dragEvent("dragover", 0);
+    zone.dispatchEvent(inactiveOver);
+    expect(inactiveOver.defaultPrevented).toBe(false);
+    const inactiveDrop = dragEvent("drop", 0);
+    zone.dispatchEvent(inactiveDrop);
+
+    rows[2]!.querySelector(".path-editor-handle")!.dispatchEvent(dragEvent("dragstart", 0));
+    zone.dispatchEvent(dragEvent("dragover", 0));
+    const indicator = zone.querySelector(".path-editor-drop-indicator")!;
+    zone.dispatchEvent(dragEvent("dragover", 0));
+    expect(zone.querySelector(".path-editor-drop-indicator")).toBe(indicator);
+    const nestedLeave = dragEvent("dragleave", 0);
+    Object.defineProperty(nestedLeave, "relatedTarget", { value: indicator });
+    zone.dispatchEvent(nestedLeave);
+    expect(zone.querySelector(".path-editor-drop-indicator")).toBe(indicator);
+    zone.dispatchEvent(dragEvent("dragleave", 0));
+    expect(zone.querySelector(".path-editor-drop-indicator")).toBeNull();
+
+    const staleFinalZone = zones[zones.length - 1]!;
+    const staleHandle = rows[0]!.querySelector(".path-editor-handle")!;
+    staleHandle.dispatchEvent(dragEvent("dragstart", 0));
+    element<HTMLTextAreaElement>("#paths").value = "";
+    document.dispatchEvent(new Event("options-restored"));
+    staleFinalZone.dispatchEvent(dragEvent("drop", 0));
+    expect(element<HTMLTextAreaElement>("#paths").value).toBe("");
+  });
+});
+
+test("visual editor contains non-node document clicks and enables variable completion", async () => {
+  document.body.innerHTML = `
+    <textarea id="paths">docs/</textarea>
+    <div id="path-editor-rows"></div>`;
+  const addEventListener = vi.spyOn(document, "addEventListener");
+  vi.mocked(browser.runtime.sendMessage)
+    .mockResolvedValueOnce({ body: { variables: "invalid" } })
+    .mockResolvedValueOnce({ body: { variables: [":year:", 7] } })
+    .mockResolvedValueOnce({ body: { variables: [] } });
+
+  new PathEditor().setupVisualEditor();
+  const clickListener = addEventListener.mock.calls.find(
+    ([type, , options]) =>
+      type === "click" && typeof options === "object" && options?.capture === true,
+  )?.[1] as EventListener | undefined;
+  clickListener?.({ target: window } as unknown as Event);
+
+  document.body.insertAdjacentHTML(
+    "beforeend",
+    '<textarea id="paths-second">archive/</textarea><div id="rows-second"></div>',
+  );
+  const firstPaths = element<HTMLTextAreaElement>("#paths");
+  firstPaths.id = "paths-old";
+  const firstRows = element<HTMLElement>("#path-editor-rows");
+  firstRows.id = "rows-old";
+  element<HTMLTextAreaElement>("#paths-second").id = "paths";
+  element<HTMLElement>("#rows-second").id = "path-editor-rows";
+  new PathEditor().setupVisualEditor();
+  await Promise.resolve();
+  await Promise.resolve();
+
+  const input = element<HTMLInputElement>("#path-editor-rows .path-editor-dir");
+  input.value = "archive/:y";
+  input.setSelectionRange(input.value.length, input.value.length);
+  input.dispatchEvent(new InputEvent("input", { bubbles: true }));
+  expect(document.querySelector(".autocomplete-option-label")?.textContent).toBe(":year:");
+  document.dispatchEvent(new Event("options-restored"));
+  new PathEditor().setupVisualEditor();
+  await Promise.resolve();
+  document.body.innerHTML = "";
 });
 
 test("top-level path editor setup tolerates absent option markup", () => {

@@ -367,6 +367,28 @@ describe("setupRoutingAutocomplete wiring", () => {
     );
   });
 
+  test("continues startup when current route values are temporarily unavailable", async () => {
+    vi.resetModules();
+    document.body.innerHTML = '<textarea id="paths"></textarea>';
+    vi.mocked(browser.runtime.sendMessage).mockImplementation((message: unknown) => {
+      const type = Reflect.get(message as object, "type");
+      return type === "CHECK_ROUTES"
+        ? Promise.reject(new Error("worker restarting"))
+        : Promise.resolve({ body: { matchers: [], variables: [":sha256:"] } });
+    });
+
+    await import("../../src/options/autocomplete.ts");
+    await vi.waitFor(() =>
+      expect(browser.runtime.sendMessage).toHaveBeenCalledWith({ type: "CHECK_ROUTES" }),
+    );
+    const textarea = document.querySelector<HTMLTextAreaElement>("#paths")!;
+    textarea.value = ":s";
+    textarea.setSelectionRange(2, 2);
+    textarea.dispatchEvent(new InputEvent("input", { bubbles: true }));
+
+    expect(document.querySelector(".autocomplete-option-meta")?.textContent).toBe("(lazy)");
+  });
+
   test.each([{ body: {} }, { body: { matchers: [] } }, { body: { matchers: [], variables: [] } }])(
     "contains and normalizes keyword response %j during module startup",
     async (response) => {
