@@ -46,6 +46,7 @@ const optionStyleFiles = [
   "style-automation.css",
   "style-base.css",
   "style-components.css",
+  "style-feedback.css",
   "style-option-rows.css",
   "style-workflows.css",
   "style-status.css",

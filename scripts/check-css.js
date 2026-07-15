@@ -137,6 +137,13 @@ if (styleEntry !== expectedStyleEntry) {
   violations.push("src/options/style.css must preserve the declared ownership layer order");
 }
 
+const bundledBuildSource = fs.readFileSync(path.join(root, "scripts", "build-bundled.js"), "utf8");
+for (const file of styleLayers.flatMap(([, files]) => files)) {
+  if (!bundledBuildSource.includes(`"${file}"`)) {
+    violations.push(`scripts/build-bundled.js must stage imported stylesheet ${file}`);
+  }
+}
+
 /** @type {Array<[string, string, string]>} */
 const pageStyleLayers = [
   ["style-welcome.css", "welcome-dialog.css", "welcome"],
