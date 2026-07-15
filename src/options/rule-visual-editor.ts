@@ -2,6 +2,7 @@ import { getMessage } from "../platform/localization.ts";
 import { webExtensionApi } from "../platform/web-extension-api.ts";
 import { MESSAGE_TYPES } from "../shared/constants.ts";
 import { sendInternalMessage } from "../shared/message-protocol.ts";
+import { preferredScrollBehavior } from "../shared/motion-preference.ts";
 import { attachAutocomplete } from "./autocomplete.ts";
 import {
   addRoutingClause,
@@ -730,7 +731,7 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
         "select:not([disabled]), input:not([disabled]), textarea:not([disabled]), button:not([disabled])",
       )
       ?.focus({ preventScroll: true });
-    card.scrollIntoView?.({ block: "nearest", behavior: "smooth" });
+    card.scrollIntoView?.({ block: "nearest", behavior: preferredScrollBehavior() });
   });
 
   let initialVisual = true;

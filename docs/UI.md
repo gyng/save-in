@@ -18,6 +18,11 @@ component before it exceeds the mechanical line limit. Every responsive or
 corrective rule belongs to the feature layer that owns the component; do not
 reintroduce a catch-all override layer.
 
+Shared validation, warning, success, and copy-confirmation states live in
+`style-feedback.css`; options-form and panel geometry live in `style-layout.css`.
+Keep those responsibilities out of the general component sheet so reviewable
+production styles retain a clear owner.
+
 Cascade layers are the supported ownership boundary for the declared Firefox
 121 and Chrome 123 minimums. Keep selectors local to their feature file and put
 cross-feature precedence in the layer order instead of escalating specificity.

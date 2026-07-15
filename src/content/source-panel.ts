@@ -27,6 +27,7 @@ import {
   SOURCE_PANEL_SORT_STORAGE_KEY,
 } from "../shared/storage-keys.ts";
 import { positionFloatingElement } from "../shared/floating-position.ts";
+import { preferredScrollBehavior } from "../shared/motion-preference.ts";
 import SOURCE_PANEL_TOKENS_CSS from "./source-panel-tokens.css";
 import SOURCE_PANEL_CSS from "./source-panel.css";
 import SOURCE_PANEL_PREVIEW_CSS from "./source-panel-preview.css";
@@ -1180,7 +1181,10 @@ export const toggleSourcePanel = (
       locate.textContent = copy.locate;
       locate.addEventListener("click", () => {
         setPanelMenuOpen(more, moreButton, actionMenu, false);
-        source.element.scrollIntoView?.({ behavior: "smooth", block: "center" });
+        source.element.scrollIntoView?.({
+          behavior: preferredScrollBehavior(),
+          block: "center",
+        });
         if (source.element instanceof HTMLElement) {
           const target = source.element;
           window.clearTimeout(locateHighlightTimer);
