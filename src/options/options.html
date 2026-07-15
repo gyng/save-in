@@ -1237,34 +1237,6 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
         </div>
       </div>
 
-      <hr />
-
-      <h2 id="section-notifications">__MSG_o_sNotifications__</h2>
-      <fieldset class="option-group notification-options">
-        <legend class="option-group-heading">__MSG_html_notifyMeWhen__</legend>
-        <div class="option-choice-grid">
-          <label> <input type="checkbox" id="notifyOnSuccess" /> __MSG_o_cNotifySuccess__ </label>
-          <label> <input type="checkbox" id="notifyOnFailure" /> __MSG_o_cNotifyFailure__ </label>
-          <label> <input type="checkbox" id="notifyOnRuleMatch" /> __MSG_o_cNotifyMatch__ </label>
-          <label>
-            <input type="checkbox" id="notifyOnLinkPreferred" />
-            __MSG_o_cNotifyLinkPreferred__
-          </label>
-        </div>
-        <div class="option-subcontrol notification-timing">
-          <label for="notifyDuration">__MSG_html_dismissEarlyAfter__</label>
-          <span class="unit-control">
-            <input type="number" id="notifyDuration" min="0" step="100" inputmode="numeric" />
-            <span>__MSG_html_ms__</span>
-          </span>
-          <span class="caption"
-            >__MSG_html_copy0LeavesDismissalToTheBrowserOrOperatingSystem__</span
-          >
-        </div>
-      </fieldset>
-
-      <hr />
-
       <h2 id="section-save-as-shortcuts">__MSG_o_sSaveAsShortcuts__</h2>
       <fieldset class="option-group shortcut-file-options">
         <legend class="option-group-heading">__MSG_html_shortcutFileBehavior__</legend>
@@ -1272,10 +1244,10 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
           <label for="shortcutType">__MSG_o_cSaveShortcutsAs__</label>
           <select id="shortcutType">
             <option value="HTML_REDIRECT">__MSG_o_cSaveShortcutsTypeHtml__</option>
-            <option value="MAC">__MSG_o_cSaveShortcutsTypeMac__</option>
             <option value="MAC_WEBLOC">__MSG_o_cSaveShortcutsTypeMacWebloc__</option>
             <option value="WINDOWS">__MSG_o_cSaveShortcutsTypeWindows__</option>
             <option value="FREEDESKTOP">__MSG_o_cSaveShortcutsTypeFreedesktop__</option>
+            <option value="MAC">__MSG_o_cSaveShortcutsTypeMac__</option>
           </select>
           <span id="shortcut-format-preview" class="caption"></span>
         </div>
@@ -1300,13 +1272,16 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                 id="shortcutTab"
                 class="tab-context-required"
                 aria-describedby="shortcut-tab-context-requirement"
-              />__MSG_o_cSaveShortcutsTabsInstead__
-              <span
-                class="warning badge chrome-tab-context-badge"
-                id="shortcut-tab-context-requirement"
-                hidden
-                >Chrome 150+</span
-              >
+              />
+              <span class="option-label-content">
+                <span>__MSG_o_cSaveShortcutsTabsInstead__</span>
+                <span
+                  class="warning badge chrome-tab-context-badge"
+                  id="shortcut-tab-context-requirement"
+                  hidden
+                  >Chrome 150+</span
+                >
+              </span>
             </label>
           </div>
         </div>
@@ -1324,7 +1299,7 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
       <fieldset
         class="option-group inline-option-group source-shortcut-controls click-to-save-controls"
       >
-        <legend class="visually-hidden">__MSG_html_clickToSaveShortcut__</legend>
+        <legend class="option-group-heading">__MSG_html_clickToSaveShortcut__</legend>
         <input
           type="hidden"
           id="contentClickToSaveCombo"
@@ -1337,7 +1312,7 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
           aria-label="__MSG_o_lClickToSaveButton__"
         />
         <label>
-          <span class="visually-hidden">__MSG_html_primaryModifier__</span>
+          <span class="shortcut-control-label">__MSG_html_primaryModifier__</span>
           <select id="clickToSaveModifier" data-runtime-control="true">
             <option value="">__MSG_html_none__</option>
             <option value="Alt" selected>__MSG_html_altOption__</option>
@@ -1346,9 +1321,8 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
             <option value="Meta">__MSG_html_commandWindowsKey__</option>
           </select>
         </label>
-        <span class="shortcut-plus" aria-hidden="true">+</span>
         <label>
-          <span class="visually-hidden">__MSG_html_secondModifier__</span>
+          <span class="shortcut-control-label">__MSG_html_secondModifier__</span>
           <select id="clickToSaveModifier2" data-runtime-control="true">
             <option value="">__MSG_html_none__</option>
             <option value="Shift">__MSG_html_shift__</option>
@@ -1357,9 +1331,8 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
             <option value="Meta">__MSG_html_commandWindowsKey__</option>
           </select>
         </label>
-        <span class="shortcut-plus" aria-hidden="true">+</span>
         <label>
-          <span class="visually-hidden">__MSG_o_lClickToSaveButton__</span>
+          <span class="shortcut-control-label">__MSG_o_lClickToSaveButton__</span>
           <select id="clickToSaveButton" data-runtime-control="true">
             <option value="LEFT_CLICK">__MSG_o_cKeyboardShortcutModifierLeftClick__</option>
             <option value="MIDDLE_CLICK">__MSG_o_cKeyboardShortcutModifierMiddleClick__</option>
@@ -1369,7 +1342,7 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
           </select>
         </label>
         <button type="button" class="button-primary" id="clickToSaveApply">__MSG_o_bApply__</button>
-        <button type="button" id="clickToSaveReset">__MSG_o_bReset__</button>
+        <button type="button" id="clickToSaveReset">__MSG_o_cRestoreDefaults__</button>
         <span id="clickToSaveStatus" class="feedback" role="status" aria-live="polite"></span>
         <div class="caption caption-line">__MSG_o_cKeyboardShortcutModifierHelp__</div>
         <div
@@ -1722,6 +1695,7 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
 
       <nav class="advanced-section-nav" aria-label="__MSG_o_sMoreOptions__">
         <a href="#advanced-appearance">__MSG_o_sAppearance__</a>
+        <a href="#advanced-notifications">__MSG_o_sNotifications__</a>
         <a href="#advanced-files-downloads">__MSG_advancedFilesDownloads__</a>
         <a href="#advanced-maintenance">__MSG_advancedMaintenanceDiagnostics__</a>
         <a href="#advanced-integrations">__MSG_html_externalIntegrations__</a>
@@ -1744,6 +1718,45 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
           </label>
           <div class="caption advanced-option-help" id="uiThemeHelp">__MSG_o_lUiThemeHelp__</div>
         </div>
+      </section>
+
+      <section
+        id="advanced-notifications"
+        class="advanced-section"
+        aria-labelledby="section-notifications"
+      >
+        <h3 id="section-notifications">__MSG_o_sNotifications__</h3>
+        <fieldset class="option-group notification-options">
+          <legend class="option-group-heading">__MSG_html_notifyMeWhen__</legend>
+          <div class="option-choice-grid">
+            <label> <input type="checkbox" id="notifyOnFailure" /> __MSG_o_cNotifyFailure__ </label>
+            <label> <input type="checkbox" id="notifyOnSuccess" /> __MSG_o_cNotifySuccess__ </label>
+            <label> <input type="checkbox" id="notifyOnRuleMatch" /> __MSG_o_cNotifyMatch__ </label>
+            <label>
+              <input type="checkbox" id="notifyOnLinkPreferred" />
+              __MSG_o_cNotifyLinkPreferred__
+            </label>
+          </div>
+          <div class="option-subcontrol notification-timing">
+            <label for="notifyDurationSeconds">__MSG_html_dismissEarlyAfter__</label>
+            <span class="unit-control">
+              <input type="hidden" id="notifyDuration" value="7000" />
+              <input
+                type="number"
+                id="notifyDurationSeconds"
+                min="0"
+                step="0.1"
+                inputmode="decimal"
+                data-runtime-control="true"
+                aria-describedby="notify-duration-help"
+              />
+              <span>__MSG_html_ms__</span>
+            </span>
+            <span class="caption" id="notify-duration-help"
+              >__MSG_html_copy0LeavesDismissalToTheBrowserOrOperatingSystem__</span
+            >
+          </div>
+        </fieldset>
       </section>
 
       <section

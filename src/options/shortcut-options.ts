@@ -35,16 +35,33 @@ export const setupShortcutOptions = () => {
     .map((id) => document.querySelector<HTMLInputElement>(`#${id}`))
     .filter((input): input is HTMLInputElement => Boolean(input));
   const notificationDuration = document.querySelector<HTMLInputElement>("#notifyDuration");
+  const notificationDurationSeconds =
+    document.querySelector<HTMLInputElement>("#notifyDurationSeconds");
+  const showNotificationDuration = () => {
+    if (!notificationDuration || !notificationDurationSeconds) return;
+    const milliseconds = Number(notificationDuration.value);
+    notificationDurationSeconds.value = Number.isFinite(milliseconds)
+      ? String(milliseconds / 1000)
+      : "";
+  };
+  const saveNotificationDuration = () => {
+    if (!notificationDuration || !notificationDurationSeconds) return;
+    const seconds = Number(notificationDurationSeconds.value);
+    if (!Number.isFinite(seconds) || seconds < 0) return;
+    notificationDuration.value = String(Math.round(seconds * 1000));
+    notificationDuration.dispatchEvent(new Event("change", { bubbles: true }));
+  };
   const syncNotifications = () => {
-    if (notificationDuration) {
+    const timingControl = notificationDurationSeconds ?? notificationDuration;
+    if (timingControl) {
       const enabled = notificationToggles.some(({ checked }) => checked);
-      notificationDuration.disabled = !enabled;
-      notificationDuration
-        .closest(".notification-timing")
-        ?.classList.toggle("is-disabled", !enabled);
+      if (notificationDuration) notificationDuration.disabled = !enabled;
+      if (notificationDurationSeconds) notificationDurationSeconds.disabled = !enabled;
+      timingControl.closest(".notification-timing")?.classList.toggle("is-disabled", !enabled);
     }
   };
   notificationToggles.forEach((toggle) => toggle.addEventListener("change", syncNotifications));
+  notificationDurationSeconds?.addEventListener("change", saveNotificationDuration);
 
   const type = document.querySelector<HTMLSelectElement>("#shortcutType");
   const preview = document.querySelector<HTMLElement>("#shortcut-format-preview");
@@ -163,11 +180,13 @@ export const setupShortcutOptions = () => {
   validateAccessKeys();
 
   document.addEventListener("options-restored", () => {
+    showNotificationDuration();
     syncNotifications();
     syncFormat();
     showClickCombo();
     syncClickControls();
     validateAccessKeys();
   });
+  showNotificationDuration();
   syncNotifications();
 };

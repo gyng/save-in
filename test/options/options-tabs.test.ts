@@ -88,11 +88,11 @@ describe("orderSections", () => {
       "section-downloads",
       "section-dynamic-downloads",
       "section-browser-downloads",
-      "section-history",
-      "section-notifications",
-      "section-save-as-shortcuts",
       "section-keyboard-shortcuts",
+      "section-save-as-shortcuts",
+      "section-history",
       "section-more-options",
+      "section-notifications",
     ]);
   });
 });
@@ -229,6 +229,37 @@ describe("setupTabs", () => {
     setupTabs();
 
     expect(document.querySelector<HTMLElement>("#tab-section-history")?.ariaSelected).toBe("true");
+  });
+
+  test("redirects the removed Notifications tab to Advanced", () => {
+    document.body.innerHTML = `
+      <form id="options">
+        <h2 id="section-downloads">Downloads</h2>
+        <h2 id="section-more-options">Advanced</h2>
+      </form>`;
+    localStorage.setItem(TAB_STORAGE_KEY, "section-notifications");
+
+    setupTabs();
+
+    expect(document.querySelector<HTMLElement>("#tab-section-more-options")?.ariaSelected).toBe(
+      "true",
+    );
+    expect(localStorage.getItem(TAB_STORAGE_KEY)).toBe("section-more-options");
+  });
+
+  test("redirects the legacy numeric Notifications position to Advanced", () => {
+    document.body.innerHTML = `
+      <form id="options">
+        <h2 id="section-downloads">Downloads</h2>
+        <h2 id="section-more-options">Advanced</h2>
+      </form>`;
+    localStorage.setItem(TAB_STORAGE_KEY, "2");
+
+    setupTabs();
+
+    expect(document.querySelector<HTMLElement>("#tab-section-more-options")?.ariaSelected).toBe(
+      "true",
+    );
   });
 
   test("arrow keys move between tabs", () => {

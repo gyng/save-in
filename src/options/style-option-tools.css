@@ -25,6 +25,14 @@ button:disabled {
   margin: 0;
 }
 
+.option-label-content {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
 .option-subcontrol {
   display: grid;
   grid-template-columns: max-content minmax(10rem, max-content) minmax(12rem, 1fr);
@@ -51,6 +59,10 @@ button:disabled {
 .unit-control input {
   width: 7rem;
   max-width: none;
+}
+
+.unit-control input[type="hidden"] {
+  display: none;
 }
 
 .shortcut-format-control {

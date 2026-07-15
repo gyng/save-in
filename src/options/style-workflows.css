@@ -1,11 +1,14 @@
 .click-to-save-controls > label {
-  flex: 0 1 7.5rem;
+  display: grid;
+  flex: 0 1 10rem;
+  gap: var(--space-1);
   min-width: 0;
   margin: 0;
 }
 
-.click-to-save-controls > legend.visually-hidden {
-  width: 1px;
+.click-to-save-controls > legend {
+  width: 100%;
+  margin-bottom: var(--space-1);
 }
 
 .click-to-save-controls > label:has(#clickToSaveButton) {
@@ -14,6 +17,7 @@
 
 .click-to-save-controls > button {
   flex: none;
+  align-self: end;
 }
 
 .click-to-save-controls select {
@@ -29,8 +33,14 @@
   max-width: 100%;
 }
 
-.click-to-save-controls:has(:disabled) {
+.click-to-save-controls:has(> label select:disabled) {
   opacity: 0.48;
+}
+
+.shortcut-control-label {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: 600;
 }
 
 #clickToSaveStatus:empty {

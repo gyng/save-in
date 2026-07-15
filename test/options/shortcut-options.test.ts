@@ -17,21 +17,62 @@ describe("shortcut option controller", () => {
 
   test("enables notification duration only while a notification is selected", () => {
     document.body.innerHTML = `<label class="notification-timing">
-        <input id="notifyDuration">
+        <input type="hidden" id="notifyDuration" value="7000">
+        <input type="number" id="notifyDurationSeconds" data-runtime-control="true">
       </label>
       <input type="checkbox" id="notifyOnSuccess">
       <input type="checkbox" id="notifyOnFailure">`;
     setupShortcutOptions();
     const duration = document.querySelector<HTMLInputElement>("#notifyDuration")!;
+    const seconds = document.querySelector<HTMLInputElement>("#notifyDurationSeconds")!;
     const success = document.querySelector<HTMLInputElement>("#notifyOnSuccess")!;
     expect(duration.disabled).toBe(true);
+    expect(seconds.disabled).toBe(true);
+    expect(seconds.value).toBe("7");
     expect(duration.closest("label")!.classList).toContain("is-disabled");
 
     success.checked = true;
     change(success);
     expect(duration.disabled).toBe(false);
+    expect(seconds.disabled).toBe(false);
     expect(duration.closest("label")!.classList).not.toContain("is-disabled");
+    const saved = vi.fn();
+    duration.addEventListener("change", saved);
+    seconds.value = "2.5";
+    change(seconds);
+    expect(duration.value).toBe("2500");
+    expect(saved).toHaveBeenCalledOnce();
+    duration.value = "8000";
     document.dispatchEvent(new Event("options-restored"));
+    expect(seconds.value).toBe("8");
+  });
+
+  test("contains invalid notification seconds and legacy duration-only markup", () => {
+    document.body.innerHTML = `<label class="notification-timing">
+        <input type="hidden" id="notifyDuration" value="bad">
+        <input type="number" id="notifyDurationSeconds" data-runtime-control="true">
+      </label>
+      <input type="checkbox" id="notifyOnSuccess" checked>`;
+    const seconds = document.querySelector<HTMLInputElement>("#notifyDurationSeconds")!;
+    setupShortcutOptions();
+    expect(seconds.value).toBe("");
+    seconds.value = "-1";
+    change(seconds);
+    expect(document.querySelector<HTMLInputElement>("#notifyDuration")!.value).toBe("bad");
+
+    document.body.innerHTML = `<label class="notification-timing">
+        <input id="notifyDuration" value="7000">
+      </label>`;
+    expect(() => setupShortcutOptions()).not.toThrow();
+    expect(document.querySelector(".notification-timing")?.classList).toContain("is-disabled");
+
+    document.body.innerHTML = `<label class="notification-timing">
+        <input type="number" id="notifyDurationSeconds" value="3">
+      </label>`;
+    setupShortcutOptions();
+    const secondsOnly = document.querySelector<HTMLInputElement>("#notifyDurationSeconds")!;
+    change(secondsOnly);
+    expect(secondsOnly.disabled).toBe(true);
   });
 
   test("updates every shortcut format preview and falls back for unknown values", () => {

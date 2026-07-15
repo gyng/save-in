@@ -335,7 +335,7 @@
     "message": "失敗"
   },
   "o_lHistoryDateSaved": {
-    "message": "開始日"
+    "message": "保存日"
   },
   "o_lHistoryAnyTime": {
     "message": "期間指定なし"
@@ -962,7 +962,7 @@
     "message": "クリック"
   },
   "html_clickToSaveShortcut": {
-    "message": "トリガー"
+    "message": "クリック保存のショートカット"
   },
   "html_clickToSaveShortcutCombination": {
     "message": "クリックして保存するショートカットの組み合わせ"
@@ -977,13 +977,13 @@
     "message": "Command / Windows key"
   },
   "html_copy0LeavesDismissalToTheBrowserOrOperatingSystem": {
-    "message": "0 にすると、ブラウザーまたは OS の既定値を使用します。"
+    "message": "0 にすると、通知を閉じるタイミングはブラウザまたは OS に任されます。"
   },
   "html_ctrl": {
     "message": "Ctrl"
   },
   "html_dismissEarlyAfter": {
-    "message": "次の時間後に閉じる"
+    "message": "早めに閉じるまでの時間"
   },
   "html_export": {
     "message": "エクスポート"
@@ -1025,13 +1025,13 @@
     "message": "この機能が有効になっている間は、保存可能なメディアとリンクに対する通常のクリックがマウスのみの左クリックに置き換えられます。"
   },
   "html_ms": {
-    "message": "秒"
+    "message": "ミリ秒"
   },
   "html_none": {
     "message": "None"
   },
   "html_notifyMeWhen": {
-    "message": "通知イベント"
+    "message": "いつ通知するか"
   },
   "html_previewOfThePageSourcesDrawer": {
     "message": "「ページソース」パネルのプレビュー"
@@ -1040,7 +1040,7 @@
     "message": "主な修飾子"
   },
   "html_saveTheseAsShortcutFiles": {
-    "message": "ショートカットファイルを使用する対象"
+    "message": "ショートカットファイルとして保存"
   },
   "html_secondModifier": {
     "message": "2 番目の修飾子"
@@ -1052,7 +1052,7 @@
     "message": "Shift"
   },
   "html_shortcutFileBehavior": {
-    "message": "ショートカットファイル設定"
+    "message": "ショートカットファイルの動作"
   },
   "html_shortcutKey": {
     "message": "ショートカットキー"
@@ -2022,90 +2022,8 @@
   "ruleTemplateViewInEditor": {
     "message": "ルールエディターで表示"
   },
-  "historyActiveFilters": { "message": "適用中の履歴フィルター" },
-  "historyExportAll": { "message": "すべてエクスポート" },
-  "historyFilterSearch": {
-    "message": "検索：「$QUERY$」",
-    "placeholders": { "query": { "content": "$1", "example": "invoice" } }
-  },
-  "historyFilterSince": {
-    "message": "$DATE$ 以降",
-    "placeholders": { "date": { "content": "$1", "example": "2026-07-01" } }
-  },
-  "historyFilterThrough": {
-    "message": "$DATE$ 以前",
-    "placeholders": { "date": { "content": "$1", "example": "2026-07-31" } }
-  },
-  "historyDateRangeInvalid": {
-    "message": "開始日は終了日以前の日付にしてください。"
-  },
-  "historyShowFolderUnavailable": {
-    "message": "フォルダーを開けませんでした。このダウンロードの記録はブラウザーに残っていません。"
-  },
-  "historyShowFolderFailed": {
-    "message": "フォルダーを開けませんでした。ファイルが移動または削除された可能性があります。"
-  },
-  "historyFilteredResultsCount": {
-    "message": "$TOTAL$ 件中 $MATCHES$ 件",
-    "placeholders": {
-      "matches": { "content": "$1", "example": "12" },
-      "total": { "content": "$2", "example": "50" }
-    }
-  },
-  "historyResultCountOne": {
-    "message": "$COUNT$ 件",
-    "placeholders": { "count": { "content": "$1", "example": "1" } }
-  },
-  "historyResultCount": {
-    "message": "$COUNT$ 件",
-    "placeholders": { "count": { "content": "$1", "example": "24" } }
-  },
-  "historyStorageLimit": {
-    "message": "履歴はこのデバイスに保存されます（最大 10,000 件）。"
-  },
-  "historyTableCaption": { "message": "保存したダウンロードの履歴" },
-  "historyShowInFolder": { "message": "フォルダー内に表示" },
-  "historyCancelDownload": { "message": "キャンセル" },
-  "historyCancelDownloadTitle": { "message": "このダウンロードをキャンセル" },
-  "historyCancelDownloadNamed": {
-    "message": "$FILE$ をキャンセル",
-    "placeholders": { "file": { "content": "$1", "example": "photo.jpg" } }
-  },
-  "historyCancelingDownload": { "message": "キャンセル中…" },
-  "historyRoutingApplied": { "message": "適用済み" },
-  "historyRoutingAppliedTitle": {
-    "message": "ルーティングまたは名前変更ルールが適用されました。"
-  },
-  "historyNewer": { "message": "‹ 新しい履歴" },
-  "historyPageCount": {
-    "message": "$TOTAL$ ページ中 $PAGE$ ページ",
-    "placeholders": {
-      "page": { "content": "$1", "example": "2" },
-      "total": { "content": "$2", "example": "5" }
-    }
-  },
-  "historyOlder": { "message": "古い履歴 ›" },
-  "historyLoadFailed": { "message": "履歴を読み込めませんでした。" },
-  "historyRetry": { "message": "再試行" },
-  "historyDeleteConfirmTitle": { "message": "履歴をすべて削除しますか？" },
-  "historyDeleteConfirmDescription": {
-    "message": "保存されているすべての履歴項目が完全に削除されます。この操作は元に戻せません。"
-  },
-  "historyKeepHistory": { "message": "履歴を保持" },
-  "historyDeleteAll": { "message": "すべての履歴を削除" },
-  "historyClearing": { "message": "履歴を削除中…" },
-  "historyClearFailed": { "message": "履歴を削除できませんでした。" },
-  "historyStatusSaving": { "message": "保存中…" },
-  "historyStatusCanceled": { "message": "キャンセル済み" },
-  "historyStatusNetworkFailed": { "message": "ネットワークエラー" },
-  "historyStatusDownloadFailed": { "message": "ダウンロード失敗" },
-  "historyStatusPreparationFailed": { "message": "準備失敗" },
-  "historyStatusPreparationInterrupted": { "message": "中断" },
-  "historyStatusStateLost": { "message": "ダウンロード状態を喪失" },
-  "historyStatusRoutingFailed": { "message": "ルーティング失敗" },
-  "historyStatusNoRuleMatch": { "message": "一致するルールなし" },
   "historyColumnInitiated": {
-    "message": "開始"
+    "message": "開始日時"
   },
   "historyColumnSource": {
     "message": "保存元"
@@ -2123,7 +2041,7 @@
     "message": "種類"
   },
   "historyColumnRule": {
-    "message": "ルーティング"
+    "message": "ルール"
   },
   "historyColumnFile": {
     "message": "ファイル"

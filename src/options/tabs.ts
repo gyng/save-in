@@ -6,6 +6,9 @@
 import { bindTabInteractions, syncTabSelection } from "./tab-controls.ts";
 
 const TAB_STORAGE_KEY = "si-options-tab";
+const STORED_TAB_REDIRECTS: Readonly<Record<string, string>> = {
+  "section-notifications": "section-more-options",
+};
 const LEGACY_POSITION_KEYS = [
   "section-downloads",
   "section-dynamic-downloads",
@@ -26,11 +29,10 @@ const PRIMARY_SECTION_ORDER = [
   "section-downloads",
   "section-dynamic-downloads",
   "section-browser-downloads",
+  "section-keyboard-shortcuts",
+  "section-save-as-shortcuts",
   "section-page-sources",
   "section-history",
-  "section-notifications",
-  "section-save-as-shortcuts",
-  "section-keyboard-shortcuts",
   "section-more-options",
 ];
 
@@ -232,7 +234,7 @@ export const setupTabs = ({
   let initial = 0;
   try {
     const rawStored = localStorage.getItem(TAB_STORAGE_KEY);
-    const stored = rawStored;
+    const stored = rawStored ? (STORED_TAB_REDIRECTS[rawStored] ?? rawStored) : rawStored;
     const stableIndex = sections.findIndex((section) => section.key === stored);
     if (stableIndex >= 0) {
       initial = stableIndex;
@@ -240,7 +242,8 @@ export const setupTabs = ({
       // Migrate the pre-4.0 positional value without losing the user's tab.
       const saved = stored == null ? Number.NaN : parseInt(stored, 10);
       if (!Number.isNaN(saved) && saved >= 0 && saved < LEGACY_POSITION_KEYS.length) {
-        const legacyKey = LEGACY_POSITION_KEYS[saved];
+        const storedLegacyKey = LEGACY_POSITION_KEYS[saved]!;
+        const legacyKey = STORED_TAB_REDIRECTS[storedLegacyKey] ?? storedLegacyKey;
         const legacyIndex = sections.findIndex(({ key }) => key === legacyKey);
         initial = legacyIndex >= 0 ? legacyIndex : saved;
       }

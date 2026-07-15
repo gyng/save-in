@@ -55,6 +55,10 @@ test("keeps stable controls for each options workflow", () => {
     "options-reference-variables",
     "options-reference-clauses",
   ]);
+  expect(document.getElementById("section-notifications")?.tagName).toBe("H3");
+  expect(document.getElementById("section-notifications")?.closest(".advanced-section")?.id).toBe(
+    "advanced-notifications",
+  );
 });
 
 test("gives every static form field an id or name", () => {
@@ -113,11 +117,21 @@ test("preserves backward-compatible option defaults", () => {
   expect(document.querySelector<HTMLSelectElement>("#clickToSaveModifier")?.value).toBe("Alt");
   expect(document.querySelector<HTMLSelectElement>("#clickToSaveModifier2")?.value).toBe("");
   expect(document.querySelector<HTMLSelectElement>("#clickToSaveButton")?.value).toBe("LEFT_CLICK");
+  expect(document.querySelector<HTMLInputElement>("#notifyDuration")?.type).toBe("hidden");
+  expect(document.querySelector<HTMLInputElement>("#notifyDurationSeconds")?.value).toBe("");
+  expect(
+    document.querySelector("#notifyDurationSeconds")?.getAttribute("data-runtime-control"),
+  ).toBe("true");
   expect(document.querySelector<HTMLInputElement>("#truncateLength")?.min).toBe("0");
   expect(document.querySelector<HTMLInputElement>("#truncateLength")?.max).toBe("");
   expect(
     [...document.querySelectorAll<HTMLOptionElement>("#uiTheme option")].map(({ value }) => value),
   ).toEqual(["system", "dark", "light"]);
+  expect(
+    [...document.querySelectorAll<HTMLOptionElement>("#shortcutType option")].map(
+      ({ value }) => value,
+    ),
+  ).toEqual(["HTML_REDIRECT", "MAC_WEBLOC", "WINDOWS", "FREEDESKTOP", "MAC"]);
   expect(document.querySelector("#includeFetchCredentials")).not.toBeNull();
   expect(document.querySelector("#containerAuthPermission")).toBeNull();
 });
@@ -126,6 +140,7 @@ test("groups Advanced into navigable sections with described controls", () => {
   const document = documentForOptions();
   const sectionLinks = [
     "advanced-appearance",
+    "advanced-notifications",
     "advanced-files-downloads",
     "advanced-maintenance",
     "advanced-integrations",
