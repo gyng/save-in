@@ -93,6 +93,18 @@
   align-self: stretch;
 }
 
+.path-editor-enabled-control {
+  align-self: center;
+  justify-content: center;
+  width: var(--compact-control-size);
+  height: var(--compact-control-size);
+  line-height: 0;
+}
+
+.path-editor-enabled {
+  margin: 0;
+}
+
 .path-editor-dir {
   flex: 1 1 auto;
   /* Let the input shrink below its intrinsic width so the row (5 fixed control
