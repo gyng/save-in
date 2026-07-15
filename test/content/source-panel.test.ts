@@ -173,7 +173,7 @@ describe("Page Sources panel interactions", () => {
     expect(getSourcePanelHostForTesting()).not.toBeNull();
   });
 
-  test("supports keyboard resizing and persists an explicit panel position", () => {
+  test("moves dock boundaries in their visual direction and preserves unrelated dimensions", () => {
     const set = vi.spyOn(global.chrome.storage.local, "set");
     toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
     const host = getSourcePanelHostForTesting()!;
@@ -181,13 +181,29 @@ describe("Page Sources panel interactions", () => {
     const resize = shadow.querySelector<HTMLElement>(".resize")!;
     const initialWidth = Number(resize.getAttribute("aria-valuenow"));
 
-    resize.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+    resize.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowLeft", bubbles: true }));
     expect(Number(resize.getAttribute("aria-valuenow"))).toBeGreaterThan(initialWidth);
     expect(resize.getAttribute("aria-orientation")).toBe("vertical");
 
     shadow.querySelector<HTMLButtonElement>('[data-placement="bottom"]')!.click();
+    const initialBottomHeight = Number(resize.getAttribute("aria-valuenow"));
+    resize.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true }));
+    expect(Number(resize.getAttribute("aria-valuenow"))).toBeGreaterThan(initialBottomHeight);
     expect(host.dataset.dock).toBe("bottom");
     expect(resize.getAttribute("aria-orientation")).toBe("horizontal");
+
+    shadow.querySelector<HTMLButtonElement>('[data-placement="floating"]')!.click();
+    const initialFloatingWidth = host.style.getPropertyValue("--source-panel-floating-width");
+    resize.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+    const resizedFloatingWidth = host.style.getPropertyValue("--source-panel-floating-width");
+    expect(resizedFloatingWidth).not.toBe(initialFloatingWidth);
+
+    shadow.querySelector<HTMLButtonElement>('[data-placement="right"]')!.click();
+    resize.dispatchEvent(new MouseEvent("dblclick", { bubbles: true }));
+    shadow.querySelector<HTMLButtonElement>('[data-placement="floating"]')!.click();
+    expect(host.style.getPropertyValue("--source-panel-floating-width")).toBe(resizedFloatingWidth);
+
+    shadow.querySelector<HTMLButtonElement>('[data-placement="bottom"]')!.click();
     expect(set).toHaveBeenCalledWith(
       expect.objectContaining({
         [SOURCE_PANEL_LAYOUT_STORAGE_KEY]: expect.objectContaining({ placement: "bottom" }),
@@ -1465,6 +1481,52 @@ describe("Page Sources panel interactions", () => {
     expect(inputs.map(({ checked }) => checked)).toEqual([false, false, true]);
   });
 
+  test("does not suppress keyboard activation after a selection drag", () => {
+    vi.useFakeTimers();
+    document.body.innerHTML = `<img src="one.jpg"><img src="two.jpg">`;
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
+    const input = shadow.querySelector<HTMLInputElement>(".source-selection input")!;
+    Object.defineProperty(shadow, "elementFromPoint", {
+      configurable: true,
+      value: vi.fn(() => input),
+    });
+    const pointer = (type: string) =>
+      new PointerEvent(type, { bubbles: true, button: 0, pointerId: 9 });
+
+    input.dispatchEvent(pointer("pointerdown"));
+    document.dispatchEvent(pointer("pointerup"));
+    expect(input.checked).toBe(true);
+
+    vi.advanceTimersByTime(0);
+    input.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, detail: 1 }));
+    expect(input.checked).toBe(false);
+  });
+
+  test("removes document drag listeners when the panel closes mid-selection", () => {
+    vi.useFakeTimers();
+    document.body.innerHTML = `<img src="one.jpg"><img src="two.jpg">`;
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    const host = getSourcePanelHostForTesting()!;
+    const shadow = host.shadowRoot!;
+    const input = shadow.querySelector<HTMLInputElement>(".source-selection input")!;
+    const hitTest = vi.fn(() => input);
+    Object.defineProperty(shadow, "elementFromPoint", {
+      configurable: true,
+      value: hitTest,
+    });
+
+    input.dispatchEvent(
+      new PointerEvent("pointerdown", { bubbles: true, button: 0, pointerId: 11 }),
+    );
+    shadow.querySelector<HTMLButtonElement>(".close")!.click();
+    vi.advanceTimersByTime(90);
+    hitTest.mockClear();
+    document.dispatchEvent(new PointerEvent("pointermove", { bubbles: true, pointerId: 11 }));
+
+    expect(hitTest).not.toHaveBeenCalled();
+  });
+
   test("updates only the checkbox whose selection changed", () => {
     document.body.innerHTML = Array.from(
       { length: 8 },
@@ -1503,6 +1565,38 @@ describe("Page Sources panel interactions", () => {
     expect(large?.querySelector(".meta-details")?.textContent).toContain("2x");
   });
 
+  test("refreshes the current responsive source after the viewport changes", () => {
+    vi.useFakeTimers();
+    document.body.innerHTML = `<img src="fallback.jpg" srcset="small.jpg 1x, large.jpg 2x">`;
+    const image = document.querySelector("img")!;
+    Object.defineProperty(image, "currentSrc", {
+      configurable: true,
+      value: "http://localhost/small.jpg",
+    });
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: true });
+    const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
+    expect(
+      shadow
+        .querySelector(".current-source")
+        ?.closest(".row")
+        ?.querySelector<HTMLAnchorElement>(".source-link")?.href,
+    ).toBe("http://localhost/small.jpg");
+
+    Object.defineProperty(image, "currentSrc", {
+      configurable: true,
+      value: "http://localhost/large.jpg",
+    });
+    window.dispatchEvent(new Event("resize"));
+    vi.advanceTimersByTime(200);
+
+    expect(
+      shadow
+        .querySelector(".current-source")
+        ?.closest(".row")
+        ?.querySelector<HTMLAnchorElement>(".source-link")?.href,
+    ).toBe("http://localhost/large.jpg");
+  });
+
   test("confirms a batch larger than twenty sources", async () => {
     document.body.innerHTML = Array.from(
       { length: 21 },
@@ -1522,6 +1616,24 @@ describe("Page Sources panel interactions", () => {
     )!;
     proceed.click();
     await vi.waitFor(() => expect(sendDownload).toHaveBeenCalledTimes(21));
+  });
+
+  test("keeps rejected batch sources selected for retry", async () => {
+    document.body.innerHTML = `<img src="accepted.jpg"><img src="rejected.jpg">`;
+    const sendDownload = vi.fn(async ({ url }: { url: string }) => !url.endsWith("rejected.jpg"));
+    toggleSourcePanel(sendDownload, { includeBackgrounds: false, live: false });
+    const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
+    const select = [...shadow.querySelectorAll<HTMLButtonElement>(".selection-bar button")].find(
+      ({ textContent }) => textContent === "Select filtered",
+    )!;
+    select.click();
+    shadow.querySelector<HTMLButtonElement>(".batch-save")!.click();
+    await vi.waitFor(() => expect(sendDownload).toHaveBeenCalledTimes(2));
+
+    const selectedUrls = [...shadow.querySelectorAll<HTMLInputElement>(".source-selection input")]
+      .filter(({ checked }) => checked)
+      .map(({ dataset }) => dataset.sourceUrl);
+    expect(selectedUrls).toEqual(["http://localhost/rejected.jpg"]);
   });
 
   test("offers an automatic rule draft for each source", () => {

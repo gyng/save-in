@@ -198,8 +198,14 @@ video,
   padding: 0;
   place-items: center;
   color: var(--color-text-muted);
-  font-weight: 700;
-  letter-spacing: 1px;
+}
+.row-more > summary svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 2.5;
+  stroke-linecap: round;
 }
 .row-more[open] > summary,
 .row-more > summary:hover {

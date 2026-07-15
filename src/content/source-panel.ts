@@ -203,6 +203,7 @@ const ICON_PATHS = {
   close: ["m6 6 12 12", "m18 6-12 12"],
   check: ["m5 12 4 4L19 6"],
   error: ["M12 8v5", "M12 17h.01", "M4 20h16L12 4z"],
+  more: ["M6 12h.01", "M12 12h.01", "M18 12h.01"],
 } as const;
 
 const SOURCE_KIND_ICON_PATHS: Record<PageSourceKind, readonly string[]> = {
@@ -551,14 +552,15 @@ export const toggleSourcePanel = (
       layout.floatingWidth = clamp(layout.floatingWidth, 320, viewport.width - 16);
       layout.floatingHeight = clamp(layout.floatingHeight, 260, viewport.height - 16);
     } else if (layout.placement === "right" || layout.placement === "left") {
-      if (event.key === "ArrowLeft") layout.sideWidth -= step;
-      else if (event.key === "ArrowRight") layout.sideWidth += step;
-      else handled = false;
+      const boundaryDelta =
+        event.key === "ArrowLeft" ? -step : event.key === "ArrowRight" ? step : 0;
+      if (boundaryDelta === 0) handled = false;
+      else layout.sideWidth += layout.placement === "right" ? -boundaryDelta : boundaryDelta;
       layout.sideWidth = clamp(layout.sideWidth, 280, viewport.width * 0.92);
     } else {
-      if (event.key === "ArrowUp") layout.dockHeight -= step;
-      else if (event.key === "ArrowDown") layout.dockHeight += step;
-      else handled = false;
+      const boundaryDelta = event.key === "ArrowUp" ? -step : event.key === "ArrowDown" ? step : 0;
+      if (boundaryDelta === 0) handled = false;
+      else layout.dockHeight += layout.placement === "bottom" ? -boundaryDelta : boundaryDelta;
       layout.dockHeight = clamp(layout.dockHeight, 220, viewport.height * 0.85);
     }
     if (!handled) return;
@@ -567,8 +569,14 @@ export const toggleSourcePanel = (
     commitLayout();
   });
   resize.addEventListener("dblclick", () => {
-    const placement = layout.placement;
-    layout = { ...DEFAULT_SOURCE_PANEL_LAYOUT, placement };
+    if (layout.placement === "floating") {
+      layout.floatingWidth = DEFAULT_SOURCE_PANEL_LAYOUT.floatingWidth;
+      layout.floatingHeight = DEFAULT_SOURCE_PANEL_LAYOUT.floatingHeight;
+    } else if (layout.placement === "right" || layout.placement === "left") {
+      layout.sideWidth = DEFAULT_SOURCE_PANEL_LAYOUT.sideWidth;
+    } else {
+      layout.dockHeight = DEFAULT_SOURCE_PANEL_LAYOUT.dockHeight;
+    }
     applyLayout();
     commitLayout();
   });
@@ -731,7 +739,7 @@ export const toggleSourcePanel = (
   facets.setAttribute("aria-label", copy.filterLabel);
   const selectionBar = document.createElement("div");
   selectionBar.className = "selection-bar";
-  selectionBar.setAttribute("role", "toolbar");
+  selectionBar.setAttribute("role", "group");
   selectionBar.setAttribute("aria-label", copy.saveSelected);
   const selectionCount = document.createElement("span");
   selectionCount.className = "selection-count";
@@ -1035,11 +1043,21 @@ export const toggleSourcePanel = (
     );
   };
   type SelectionPaint = {
+    origin: HTMLInputElement;
     pointerId: number;
     selected: boolean;
     visited: Set<string>;
   };
   let selectionPaint: SelectionPaint | null = null;
+  const clearSelectionPaint = () => {
+    const origin = selectionPaint?.origin;
+    selectionPaint = null;
+    delete panel.dataset.selecting;
+    document.removeEventListener("pointermove", moveSelectionPaint, true);
+    document.removeEventListener("pointerup", finishSelectionPaint, true);
+    document.removeEventListener("pointercancel", finishSelectionPaint, true);
+    if (origin) window.setTimeout(() => suppressedSelectionClicks.delete(origin));
+  };
   const paintSelection = (input: HTMLInputElement) => {
     const url = input.dataset.sourceUrl;
     if (!selectionPaint || !url || selectionPaint.visited.has(url)) return;
@@ -1064,21 +1082,18 @@ export const toggleSourcePanel = (
   const finishSelectionPaint = (event: PointerEvent) => {
     if (!selectionPaint || event.pointerId !== selectionPaint.pointerId) return;
     const count = selectedSourceUrls.size;
-    selectionPaint = null;
-    delete panel.dataset.selecting;
-    document.removeEventListener("pointermove", moveSelectionPaint, true);
-    document.removeEventListener("pointerup", finishSelectionPaint, true);
-    document.removeEventListener("pointercancel", finishSelectionPaint, true);
+    clearSelectionPaint();
     announce(
       formatSourcePanelCopy(copy.selectedCountTemplate, SOURCE_PANEL_COPY_VALUE_SLOT, count),
     );
   };
   const startSelectionPaint = (event: PointerEvent, input: HTMLInputElement) => {
-    if (batchSaving || event.button !== 0) return;
+    if (batchSaving || selectionPaint || event.button !== 0) return;
     const url = input.dataset.sourceUrl;
     if (!url) return;
     event.preventDefault();
     selectionPaint = {
+      origin: input,
       pointerId: event.pointerId,
       selected: !selectedSourceUrls.has(url),
       visited: new Set(),
@@ -1132,6 +1147,7 @@ export const toggleSourcePanel = (
     updateAllSelectionRows();
     panelOptions.onSaveIntent?.();
     let started = 0;
+    const failed: PageSource[] = [];
     for (const [index, source] of sources.entries()) {
       saveSelected.textContent = formatSourcePanelCopy(
         copy.batchSavingTemplate,
@@ -1140,12 +1156,16 @@ export const toggleSourcePanel = (
       );
       try {
         if ((await panelSendDownload(source)) !== false) started += 1;
+        else failed.push(source);
       } catch {
-        // Continue the explicit batch when one source is rejected.
+        failed.push(source);
       }
     }
     batchSaving = false;
     selectedSourceUrls.clear();
+    failed.forEach(({ url }) => {
+      if (allSources.some((source) => source.url === url)) selectedSourceUrls.add(url);
+    });
     saveSelected.textContent = copy.saveSelected;
     updateSelectionUi();
     updateAllSelectionRows();
@@ -1292,6 +1312,10 @@ export const toggleSourcePanel = (
       );
       selectionInput.addEventListener("click", (event) => {
         if (!suppressedSelectionClicks.has(selectionInput)) return;
+        if (event.detail === 0) {
+          suppressedSelectionClicks.delete(selectionInput);
+          return;
+        }
         event.preventDefault();
         event.stopPropagation();
         selectionInput.checked = selectedSourceUrls.has(source.url);
@@ -1462,7 +1486,7 @@ export const toggleSourcePanel = (
       moreButton.setAttribute("aria-haspopup", "menu");
       moreButton.setAttribute("aria-expanded", "false");
       moreButton.title = copy.moreActions;
-      moreButton.textContent = "•••";
+      setButtonIcon(moreButton, "more");
       const actionMenu = document.createElement("div");
       actionMenu.className = "action-menu";
       actionMenu.setAttribute("role", "menu");
@@ -1817,6 +1841,13 @@ export const toggleSourcePanel = (
       commitSources();
     }, 200);
   };
+  const scheduleResponsiveRefresh = () => {
+    if (panelOptions.live === false) return;
+    fullRefreshPending = true;
+    scheduleRefresh();
+  };
+  window.addEventListener("resize", scheduleResponsiveRefresh);
+  window.visualViewport?.addEventListener("resize", scheduleResponsiveRefresh);
   const observer = new MutationObserver((mutations) => {
     if (!host.isConnected) {
       panelOpenChanges.get(host)?.(false);
@@ -1925,6 +1956,7 @@ export const toggleSourcePanel = (
     observer.disconnect();
     resourceObserver?.disconnect();
     previewObserver?.disconnect();
+    clearSelectionPaint();
     window.clearTimeout(filterTimer);
     window.clearTimeout(refreshTimer);
     cancelBackgroundScan();
@@ -1937,6 +1969,8 @@ export const toggleSourcePanel = (
     window.visualViewport?.removeEventListener("resize", schedulePanelMenuPosition);
     window.visualViewport?.removeEventListener("scroll", schedulePanelMenuPosition);
     window.removeEventListener("resize", syncPageScrollLock);
+    window.removeEventListener("resize", scheduleResponsiveRefresh);
+    window.visualViewport?.removeEventListener("resize", scheduleResponsiveRefresh);
     restorePageScroll();
   });
   panelUpdates.set(host, (nextSendDownload, nextOptions) => {
