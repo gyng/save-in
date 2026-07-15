@@ -48,10 +48,6 @@
   text-transform: uppercase;
 }
 
-.variables-preview-command + .variables-preview-command td {
-  border-top: 1px solid var(--panel-border);
-}
-
 .variables-preview-table tr:last-child td {
   border-bottom: none;
 }
@@ -133,14 +129,32 @@
   cursor: pointer;
 }
 
-.variables-preview-command .variables-preview-insert {
-  min-height: var(--compact-row-height);
-  padding: var(--space-1) var(--space-2);
+.variables-preview-command > td {
+  height: auto;
+  padding: 0;
+}
+
+.variables-preview-command-insert {
+  display: grid;
+  grid-template-columns: minmax(7rem, 45%) minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  gap: 1px var(--space-3);
+  padding: var(--space-2) var(--space-3);
+}
+
+.variables-preview-command-label {
+  grid-column: 2;
+  grid-row: 1;
+  overflow: hidden;
+  color: var(--color-text-muted);
+  text-align: end;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .variables-preview-row.insertable:has(.variables-preview-insert:hover),
 .variables-preview-row.insertable:has(.variables-preview-insert:focus-visible) {
-  background-color: var(--panel-bg);
+  background-color: var(--hover-bg);
 }
 
 .variables-preview-insert:hover code,

@@ -217,10 +217,17 @@ describe("variables preview", () => {
         <div class="variables-preview-list"></div>
       </section>
       <section id="options-reference-variables">
-        <table><tbody><tr>
-          <td><code>:url:</code></td><td>https://example/file.jpg</td>
-          <td>Localized source URL description</td>
-        </tr></tbody></table>
+        <table><tbody>
+          <tr>
+            <td><code>:url:</code></td><td>https://example/file.jpg</td>
+            <td>Localized source URL description</td>
+          </tr>
+          <tr><td><code>---</code></td><td>Separator</td><td>Add a menu divider</td></tr>
+          <tr>
+            <td><code>&gt;submenu</code></td><td>submenu</td>
+            <td>Add an item under the folder above to create a submenu</td>
+          </tr>
+        </tbody></table>
       </section>`;
     vi.mocked(browser.runtime.sendMessage)
       .mockResolvedValueOnce({ body: { variables: [":url:", 7, ":title:"] } })
@@ -267,10 +274,26 @@ describe("variables preview", () => {
       ":title:",
     );
     expect(
-      [...document.querySelectorAll<HTMLElement>(".variables-preview-command")].map(
-        (row) => row.textContent,
-      ),
-    ).toEqual(["Separator", "Submenu item"]);
+      [...document.querySelectorAll<HTMLElement>(".variables-preview-command")].map((row) => ({
+        syntax: row.querySelector("code")?.textContent,
+        label: row.querySelector(".variables-preview-command-label")?.textContent,
+        description: row.querySelector(".variables-preview-description")?.textContent,
+        insertable: row.classList.contains("insertable"),
+      })),
+    ).toEqual([
+      {
+        syntax: "---",
+        label: "Translated<o_bAddSeparator>",
+        description: "Add a menu divider",
+        insertable: true,
+      },
+      {
+        syntax: ">submenu",
+        label: "Translated<html_createASubmenu>",
+        description: "Add an item under the folder above to create a submenu",
+        insertable: true,
+      },
+    ]);
     expect(
       [...document.querySelectorAll<HTMLElement>(".variables-preview-group")].map(
         (row) => row.textContent,
@@ -286,12 +309,18 @@ describe("variables preview", () => {
 
     expect(document.querySelector(".variables-preview-structures")).toBeNull();
     const insertLine = vi.spyOn(PathEditor, "insertLine").mockImplementation(() => {});
-    document
-      .querySelector<HTMLButtonElement>(".variables-preview-command button")!
-      .dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    const commandButtons = [
+      ...document.querySelectorAll<HTMLButtonElement>(".variables-preview-command button"),
+    ];
+    commandButtons[0]!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     expect(insertLine).toHaveBeenCalledWith(
       document.querySelector<HTMLTextAreaElement>("#paths"),
       "---",
+    );
+    commandButtons[1]!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(insertLine).toHaveBeenCalledWith(
+      document.querySelector<HTMLTextAreaElement>("#paths"),
+      ">submenu",
     );
   });
 
@@ -312,7 +341,11 @@ describe("variables preview", () => {
     await renderVariablesPreview();
     const folder = document.querySelector<HTMLInputElement>(".path-editor-dir")!;
     folder.focus();
-    document.querySelector<HTMLButtonElement>(".variables-preview-insert:not(:disabled)")!.click();
+    document
+      .querySelector<HTMLButtonElement>(
+        ".variables-preview-insert:not([data-path-command]):not(:disabled)",
+      )!
+      .click();
 
     expect(insert).toHaveBeenCalledWith(folder, ":year:");
     expect(insert).not.toHaveBeenCalledWith(
@@ -334,9 +367,16 @@ describe("variables preview", () => {
 
     await renderVariablesPreview();
 
-    expect(document.querySelector<HTMLButtonElement>(".variables-preview-insert")!.disabled).toBe(
-      true,
-    );
+    expect(
+      document.querySelector<HTMLButtonElement>(
+        ".variables-preview-insert:not([data-path-command])",
+      )!.disabled,
+    ).toBe(true);
+    expect(
+      [...document.querySelectorAll<HTMLButtonElement>("[data-path-command]")].every(
+        (button) => !button.disabled,
+      ),
+    ).toBe(true);
   });
 
   test("tracks text-mode focus and clears a removed visual target", async () => {
@@ -359,15 +399,20 @@ describe("variables preview", () => {
     document
       .querySelector<HTMLButtonElement>(".variables-preview-command button")!
       .dispatchEvent(new MouseEvent("click", { bubbles: true }));
-    expect(insertLine).not.toHaveBeenCalled();
+    expect(insertLine).toHaveBeenCalledWith(
+      document.querySelector<HTMLTextAreaElement>("#paths"),
+      "---",
+    );
     const folder = document.querySelector<HTMLInputElement>(".path-editor-dir")!;
     folder.focus();
     document.dispatchEvent(new Event("visual-editor-rendered"));
     folder.remove();
     document.dispatchEvent(new Event("visual-editor-rendered"));
-    expect(document.querySelector<HTMLButtonElement>(".variables-preview-insert")!.disabled).toBe(
-      true,
-    );
+    expect(
+      document.querySelector<HTMLButtonElement>(
+        ".variables-preview-insert:not([data-path-command])",
+      )!.disabled,
+    ).toBe(true);
     document
       .querySelector<HTMLButtonElement>(".variables-preview-insert:not([data-path-command])")!
       .dispatchEvent(new MouseEvent("click", { bubbles: true }));

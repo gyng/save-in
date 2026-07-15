@@ -10,6 +10,7 @@ import {
   variableGroup,
 } from "./vocabulary-groups.ts";
 import { referenceDescription } from "./reference-descriptions.ts";
+import { getMessage } from "../platform/localization.ts";
 
 const stringRecord = (value: unknown): Record<string, string> => {
   if (typeof value !== "object" || value === null || Array.isArray(value)) return {};
@@ -49,7 +50,7 @@ const updatePathInsertAvailability = (): void => {
       '.variables-preview[data-insert-target="paths"] .variables-preview-insert',
     )
     .forEach((button) => {
-      button.disabled = visual && (button.dataset.pathCommand === "true" || !visualTargetReady);
+      button.disabled = visual && button.dataset.pathCommand !== "true" && !visualTargetReady;
     });
 };
 
@@ -127,25 +128,44 @@ export const renderVariablesPreview = async () => {
       table.className = "variables-preview-table";
 
       if (target?.id === "paths") {
-        const commands: Array<readonly [string, string]> = [
-          ["---", "Separator"],
-          [">submenu", "Submenu item"],
+        const commands = [
+          {
+            syntax: "---",
+            label: getMessage("o_bAddSeparator") || "Separator",
+          },
+          {
+            syntax: ">submenu",
+            label: getMessage("html_createASubmenu") || "Create a submenu",
+          },
         ];
-        commands.forEach(([syntax, label]) => {
+        commands.forEach(({ syntax, label }) => {
+          const description = referenceDescription("variables", syntax);
           const row = document.createElement("tr");
-          row.className = "variables-preview-row variables-preview-command";
+          row.className = "variables-preview-row variables-preview-command insertable";
           const cell = document.createElement("td");
           cell.colSpan = 2;
           const insert = document.createElement("button");
           insert.type = "button";
-          insert.className = "variables-preview-insert";
+          insert.className = "variables-preview-insert variables-preview-command-insert";
           insert.dataset.pathCommand = "true";
-          insert.textContent = label;
-          insert.title = syntax;
+          insert.setAttribute("aria-label", `${label}: ${description}`);
+          insert.title = description;
           insert.addEventListener("click", () => {
-            if (!visualPathsActive()) PathEditor.insertLine(target, syntax);
+            if (visualPathsActive()) {
+              target.setSelectionRange(target.value.length, target.value.length);
+            }
+            PathEditor.insertLine(target, syntax);
           });
-          cell.append(insert);
+          const syntaxElement = document.createElement("code");
+          syntaxElement.textContent = syntax;
+          const labelElement = document.createElement("span");
+          labelElement.className = "variables-preview-command-label";
+          labelElement.textContent = label;
+          const descriptionElement = document.createElement("span");
+          descriptionElement.className = "variables-preview-description";
+          descriptionElement.textContent = description;
+          insert.append(syntaxElement, labelElement, descriptionElement);
+          cell.appendChild(insert);
           row.append(cell);
           table.append(row);
         });
