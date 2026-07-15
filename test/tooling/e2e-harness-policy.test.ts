@@ -104,6 +104,12 @@ test("rejects fixed sleeps outside the two audited infrastructure backoffs", () 
   ).toEqual([expect.stringContaining("fixed delays increased")]);
   expect(
     fixedDelayErrors(
+      "test/e2e/example.mjs",
+      "await evalOptions(`new Promise((resolve) => setTimeout(resolve, 1000))`);",
+    ),
+  ).toEqual([expect.stringContaining("fixed delays increased")]);
+  expect(
+    fixedDelayErrors(
       "test/e2e/helpers.mjs",
       `await new Promise((resolve) => setTimeout(resolve, intervalMs));`,
     ),

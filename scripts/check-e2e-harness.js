@@ -282,7 +282,7 @@ const fixedDelayErrors = (file, source) => {
     ["test/e2e/harness-session.mjs", 1],
   ]);
   const expected = approved.get(file) ?? 0;
-  const actual = callCount(
+  const direct = callCount(
     source,
     (call) =>
       isAstNode(call.callee) &&
@@ -290,6 +290,22 @@ const fixedDelayErrors = (file, source) => {
         calledPath(call.callee) ?? "",
       ),
   );
+  let embedded = 0;
+  walk(parseSource(source), (node) => {
+    const text =
+      node.type === "TemplateElement" &&
+      node.value !== null &&
+      typeof node.value === "object" &&
+      "raw" in node.value &&
+      typeof node.value.raw === "string"
+        ? node.value.raw
+        : node.type === "Literal" && typeof node.value === "string"
+          ? node.value
+          : undefined;
+    if (typeof text !== "string") return;
+    embedded += text.match(/\b(?:(?:globalThis|window)\.)?setTimeout\s*\(/g)?.length ?? 0;
+  });
+  const actual = direct + embedded;
   if (actual === expected) return [];
   if (actual < expected) {
     return [
