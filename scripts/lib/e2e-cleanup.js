@@ -14,29 +14,6 @@ const errorCode = (error) =>
     ? error.code
     : undefined;
 
-/** @param {number} pid */
-const processIsAlive = (pid) => {
-  try {
-    process.kill(pid, 0);
-    return true;
-  } catch (error) {
-    return errorCode(error) === "EPERM";
-  }
-};
-
-/** @param {number} pid @param {number} runStartedAt */
-const processOwnsRun = (pid, runStartedAt) => {
-  if (!processIsAlive(pid)) return false;
-  if (process.platform !== "linux") return true;
-  try {
-    // PID namespaces can reuse low IDs rapidly. A process created after the
-    // timestamp embedded in the profile name cannot own that older profile.
-    return fs.statSync(`/proc/${pid}`).mtimeMs <= runStartedAt + 1_000;
-  } catch {
-    return true;
-  }
-};
-
 /**
  * Claims stale-lock cleanup with an exclusive marker inside the lock. A
  * contender that does not own the marker must leave the directory untouched.
@@ -44,7 +21,10 @@ const processOwnsRun = (pid, runStartedAt) => {
  * @param {string} lockDir
  * @param {{orphanedAfterMs?: number, pid?: number}} [options]
  */
-const tryReclaimDirectoryLock = (lockDir, { orphanedAfterMs = 2_000, pid = process.pid } = {}) => {
+const tryReclaimDirectoryLock = (
+  lockDir,
+  { orphanedAfterMs = 30 * 60_000, pid = process.pid } = {},
+) => {
   let observedMtime;
   try {
     observedMtime = fs.statSync(lockDir).mtimeMs;
@@ -52,6 +32,20 @@ const tryReclaimDirectoryLock = (lockDir, { orphanedAfterMs = 2_000, pid = proce
     if (errorCode(error) === "ENOENT") return true;
     throw error;
   }
+  try {
+    const owner = JSON.parse(fs.readFileSync(path.join(lockDir, "owner.json"), "utf8"));
+    if (owner && typeof owner === "object" && Number.isInteger(owner.pid)) {
+      // A valid foreign owner may be invisible in this PID namespace. Never
+      // reclaim it automatically; the acquisition timeout reports the lock.
+      return false;
+    }
+  } catch {
+    // An incomplete owner record is reclaimable only after the age bound.
+  }
+  // Check age before creating the claim marker; creating and removing a child
+  // updates the lock directory mtime and would otherwise keep a stale lock
+  // looking fresh forever.
+  if (Date.now() - observedMtime <= orphanedAfterMs) return false;
 
   const claim = path.join(lockDir, ".reclaim.json");
   let handle;
@@ -72,14 +66,8 @@ const tryReclaimDirectoryLock = (lockDir, { orphanedAfterMs = 2_000, pid = proce
 
   let removed = false;
   try {
-    let stale = false;
-    try {
-      const owner = JSON.parse(fs.readFileSync(path.join(lockDir, "owner.json"), "utf8"));
-      stale = !processIsAlive(owner.pid);
-    } catch (error) {
-      stale = Date.now() - observedMtime > orphanedAfterMs;
-    }
-    if (!stale) return false;
+    // PID liveness is not comparable across sandbox PID namespaces. Reclaim
+    // only locks far older than any expected staging operation.
     fs.rmSync(lockDir, { recursive: true, force: true });
     removed = true;
     return true;
@@ -173,42 +161,6 @@ const removeOwnedProfiles = async (
   if (failures.length) throw new AggregateError(failures, "E2E profile cleanup failed");
 };
 
-/**
- * Removes profiles left by interrupted harness processes while preserving any
- * profile whose owning PID is still alive.
- *
- * @param {{chromeRoot: string, firefoxRoot: string, attempts?: number, delayMs?: number}} options
- */
-const pruneOrphanedProfiles = async ({ chromeRoot, firefoxRoot, attempts = 6, delayMs = 500 }) => {
-  const roots = [
-    { dir: chromeRoot, prefix: "e2e-profile-" },
-    { dir: firefoxRoot, prefix: "save-in-ff-e2e-" },
-  ];
-  /** @type {unknown[]} */
-  const failures = [];
-  for (const { dir, prefix } of roots) {
-    for (const entry of fs.existsSync(dir) ? fs.readdirSync(dir, { withFileTypes: true }) : []) {
-      if (!entry.isDirectory() || !entry.name.startsWith(prefix)) continue;
-      const owner = entry.name.slice(prefix.length).match(/^(\d+)-(\d+)-/);
-      const ownerPid = Number(owner?.[1]);
-      const runStartedAt = Number(owner?.[2]);
-      if (
-        !Number.isInteger(ownerPid) ||
-        !Number.isSafeInteger(runStartedAt) ||
-        processOwnsRun(ownerPid, runStartedAt)
-      ) {
-        continue;
-      }
-      try {
-        await removeWithRetries(path.join(dir, entry.name), { attempts, delayMs });
-      } catch (error) {
-        failures.push(error);
-      }
-    }
-  }
-  if (failures.length) throw new AggregateError(failures, "Orphaned E2E profile cleanup failed");
-};
-
 /** @param {string} artifacts @param {number} [keep] */
 const pruneArtifactRuns = (artifacts, keep = 3) => {
   fs.mkdirSync(artifacts, { recursive: true });
@@ -220,11 +172,9 @@ const pruneArtifactRuns = (artifacts, keep = 3) => {
     const runPath = path.join(artifacts, entry.name);
     const mtime = fs.statSync(runPath).mtimeMs;
     const marker = path.join(runPath, ".active");
-    if (fs.existsSync(marker)) {
-      const pid = Number(fs.readFileSync(marker, "utf8"));
-      if (Number.isInteger(pid) && processIsAlive(pid)) continue;
-      fs.rmSync(marker, { force: true });
-    }
+    // A PID from another sandbox namespace can look dead here. Preserve every
+    // active marker; only the owning runner removes it after cleanup.
+    if (fs.existsSync(marker)) continue;
     runs.push({ path: runPath, mtime });
   }
   const sortedRuns = runs.toSorted((a, b) => b.mtime - a.mtime);
@@ -233,24 +183,9 @@ const pruneArtifactRuns = (artifacts, keep = 3) => {
   }
 };
 
-/** @param {string} runRoot */
-const pruneRunDirectories = (runRoot) => {
-  if (!fs.existsSync(runRoot)) return;
-  for (const entry of fs.readdirSync(runRoot, { withFileTypes: true })) {
-    if (!entry.isDirectory()) continue;
-    const pid = Number(entry.name);
-    if (!Number.isInteger(pid) || !processIsAlive(pid)) {
-      fs.rmSync(path.join(runRoot, entry.name), { recursive: true, force: true });
-    }
-  }
-};
-
 module.exports = {
   acquireDirectoryLock,
   pruneArtifactRuns,
-  pruneOrphanedProfiles,
-  pruneRunDirectories,
-  processOwnsRun,
   releaseDirectoryLock,
   removeOwnedProfiles,
   removeWithRetries,

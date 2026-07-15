@@ -1,5 +1,5 @@
 import { createRequire } from "node:module";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, utimesSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -17,7 +17,10 @@ const {
   FIREFOX_E2E_PORT_COUNT: number;
   FIREFOX_E2E_PORT_START: number;
   releasePortLock: (lock: string, token: string, port: number) => void;
-  tryReclaimPortLock: (lock: string, orphanedAfterMs?: number) => boolean;
+  tryReclaimPortLock: (
+    lock: string,
+    options?: { orphanedAfterMs?: number; portIsBindable?: boolean },
+  ) => boolean;
 };
 
 test("assigns Chrome and Firefox disjoint E2E debug-port ranges", () => {
@@ -54,9 +57,12 @@ test("allows only the reclaim-marker owner to remove a stale port lease", () => 
   mkdirSync(join(lock, ".reclaim"));
 
   try {
-    expect(tryReclaimPortLock(lock)).toBe(false);
+    expect(tryReclaimPortLock(lock, { portIsBindable: true })).toBe(false);
     rmSync(join(lock, ".reclaim"), { recursive: true });
-    expect(tryReclaimPortLock(lock)).toBe(true);
+    const stale = new Date(Date.now() - 3_000);
+    utimesSync(lock, stale, stale);
+    expect(tryReclaimPortLock(lock)).toBe(false);
+    expect(tryReclaimPortLock(lock, { portIsBindable: true })).toBe(true);
     expect(() => mkdirSync(lock)).not.toThrow();
   } finally {
     rmSync(root, { recursive: true, force: true });

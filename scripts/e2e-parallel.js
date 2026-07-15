@@ -8,8 +8,6 @@ const { execFileSync, spawn } = require("node:child_process");
 const {
   acquireDirectoryLock,
   pruneArtifactRuns,
-  pruneOrphanedProfiles,
-  pruneRunDirectories,
   releaseDirectoryLock,
   removeOwnedProfiles,
 } = require("./lib/e2e-cleanup");
@@ -199,8 +197,6 @@ const main = async () => {
 
   try {
     pruneArtifactRuns(artifacts);
-    pruneRunDirectories(runRoot);
-    await pruneOrphanedProfiles({ chromeRoot: path.join(root, "dist"), firefoxRoot: os.tmpdir() });
     const stagingLock = acquireDirectoryLock(stagingLockDir);
     try {
       execFileSync(process.execPath, [path.join(__dirname, "build-bundled.js"), "--mode=e2e"], {

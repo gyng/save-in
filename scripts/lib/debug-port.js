@@ -13,16 +13,6 @@ const FIREFOX_BIDI_PORT_START = 9080;
 const FIREFOX_BIDI_PORT_COUNT = 200;
 const PORT_LOCK_ROOT = path.join(os.tmpdir(), "save-in-e2e-ports");
 
-/** @param {number} pid */
-const processIsAlive = (pid) => {
-  try {
-    process.kill(pid, 0);
-    return true;
-  } catch (error) {
-    return Boolean(error && typeof error === "object" && "code" in error && error.code === "EPERM");
-  }
-};
-
 /** @param {string} lock */
 const readPortOwner = (lock) => {
   const stored = fs.readFileSync(path.join(lock, "owner"), "utf8");
@@ -43,8 +33,11 @@ const readPortOwner = (lock) => {
   return Number.isInteger(pid) ? { pid, token: undefined } : undefined;
 };
 
-/** @param {string} lock @param {number} [orphanedAfterMs] */
-const tryReclaimPortLock = (lock, orphanedAfterMs = 2_000) => {
+/**
+ * @param {string} lock
+ * @param {{orphanedAfterMs?: number, portIsBindable?: boolean}} [options]
+ */
+const tryReclaimPortLock = (lock, { orphanedAfterMs = 2_000, portIsBindable = false } = {}) => {
   let observedMtime;
   try {
     observedMtime = fs.statSync(lock).mtimeMs;
@@ -54,6 +47,9 @@ const tryReclaimPortLock = (lock, orphanedAfterMs = 2_000) => {
     }
     throw error;
   }
+  // Avoid touching a fresh lock or one whose browser still owns the port.
+  // Claim-marker churn changes the directory mtime.
+  if (!portIsBindable || Date.now() - observedMtime <= orphanedAfterMs) return false;
   const claim = path.join(lock, ".reclaim");
   try {
     fs.mkdirSync(claim);
@@ -70,14 +66,9 @@ const tryReclaimPortLock = (lock, orphanedAfterMs = 2_000) => {
   }
   let removed = false;
   try {
-    let stale = false;
-    try {
-      const owner = readPortOwner(lock);
-      stale = owner ? !processIsAlive(owner.pid) : Date.now() - observedMtime > orphanedAfterMs;
-    } catch {
-      stale = Date.now() - observedMtime > orphanedAfterMs;
-    }
-    if (!stale) return false;
+    // PID liveness is not comparable across sandbox namespaces. A lock is
+    // reclaimable only when its port is actually free and the lease is old
+    // enough to be past the check-to-browser-bind startup window.
     fs.rmSync(lock, { recursive: true, force: true });
     removed = true;
     return true;
@@ -185,7 +176,9 @@ const reserveAvailablePort = async (
       if (!(error && typeof error === "object" && "code" in error && error.code === "EEXIST")) {
         throw error;
       }
-      if (tryReclaimPortLock(lock)) index -= 1;
+      if ((await canBind(port, host)) && tryReclaimPortLock(lock, { portIsBindable: true })) {
+        index -= 1;
+      }
       continue;
     }
     if (!(await canBind(port, host))) {

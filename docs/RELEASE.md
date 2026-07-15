@@ -142,8 +142,9 @@ state writes, clears browser downloads, tabs, notifications, DNR rules,
 offscreen documents, and session storage, restores the local-storage baseline,
 then verifies that no unexpected state survived. Cleanup failures capture the
 same browser diagnostics as assertion failures before the suite exits.
-The next run also removes disposable Chrome and Firefox profiles whose owning
-harness PID is no longer alive, without touching profiles from concurrent runs.
+Profile cleanup is scoped to the exact current run ID. A later run must not
+infer ownership from PID liveness because sandbox PID namespaces can hide a
+concurrent browser that is still using its profile.
 
 ## Failed browser runs
 

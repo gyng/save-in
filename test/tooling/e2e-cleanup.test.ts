@@ -4,6 +4,7 @@ import fs, {
   mkdtempSync,
   readdirSync,
   rmSync,
+  utimesSync,
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
@@ -15,8 +16,6 @@ const require = createRequire(import.meta.url);
 const {
   acquireDirectoryLock,
   pruneArtifactRuns,
-  pruneOrphanedProfiles,
-  pruneRunDirectories,
   releaseDirectoryLock,
   removeOwnedProfiles,
   tryReclaimDirectoryLock,
@@ -26,13 +25,6 @@ const {
     options?: { timeoutMs?: number; pollMs?: number; pid?: number },
   ) => { lockDir: string; token: string };
   pruneArtifactRuns: (directory: string, keep?: number) => void;
-  pruneOrphanedProfiles: (options: {
-    chromeRoot: string;
-    firefoxRoot: string;
-    attempts?: number;
-    delayMs?: number;
-  }) => Promise<void>;
-  pruneRunDirectories: (directory: string) => void;
   releaseDirectoryLock: (lock: { lockDir: string; token: string }) => void;
   removeOwnedProfiles: (
     ownerIds: string[],
@@ -81,17 +73,26 @@ describe("E2E lifecycle cleanup", () => {
     }
   });
 
-  test("allows only one contender to reclaim a stale staging lock", () => {
+  test("preserves foreign owners and exclusively reclaims an old incomplete staging lock", () => {
     const parent = tempRoot("save-in-stale-lock-");
     const lockDir = join(parent, "staging.lock");
     mkdirSync(lockDir);
-    writeFileSync(join(lockDir, "owner.json"), JSON.stringify({ pid: 999_999_999 }));
-    writeFileSync(join(lockDir, ".reclaim.json"), JSON.stringify({ pid: process.pid }));
+    writeFileSync(
+      join(lockDir, "owner.json"),
+      JSON.stringify({ pid: 999_999_999, token: "foreign" }),
+    );
+    const stale = new Date(Date.now() - 31 * 60_000);
+    utimesSync(lockDir, stale, stale);
 
     expect(tryReclaimDirectoryLock(lockDir)).toBe(false);
     expect(readdirSync(lockDir)).toContain("owner.json");
 
+    rmSync(join(lockDir, "owner.json"));
+    writeFileSync(join(lockDir, ".reclaim.json"), JSON.stringify({ pid: process.pid }));
+    utimesSync(lockDir, stale, stale);
+    expect(tryReclaimDirectoryLock(lockDir)).toBe(false);
     rmSync(join(lockDir, ".reclaim.json"));
+    utimesSync(lockDir, stale, stale);
     expect(tryReclaimDirectoryLock(lockDir)).toBe(true);
     expect(readdirSync(parent)).toEqual([]);
   });
@@ -130,29 +131,7 @@ describe("E2E lifecycle cleanup", () => {
     ).rejects.toThrow("E2E profile cleanup failed");
   });
 
-  test("prunes interrupted-run profiles without touching a live concurrent owner", async () => {
-    const chromeRoot = tempRoot("save-in-prune-chrome-");
-    const firefoxRoot = tempRoot("save-in-prune-firefox-");
-    const staleChrome = join(chromeRoot, "e2e-profile-999999999-123-a");
-    const staleFirefox = join(firefoxRoot, "save-in-ff-e2e-999999999-456-b");
-    const liveChrome = join(chromeRoot, `e2e-profile-${process.pid}-${Date.now()}-c`);
-    const reusedPid = join(chromeRoot, `e2e-profile-${process.pid}-1-old`);
-    const unrelated = join(chromeRoot, "e2e-profile-not-an-owner");
-    for (const profile of [staleChrome, staleFirefox, liveChrome, reusedPid, unrelated]) {
-      mkdirSync(profile);
-    }
-
-    await pruneOrphanedProfiles({ chromeRoot, firefoxRoot, delayMs: 0 });
-
-    expect(existsSync(staleChrome)).toBe(false);
-    expect(existsSync(staleFirefox)).toBe(false);
-    expect(existsSync(liveChrome)).toBe(true);
-    if (process.platform === "linux") expect(existsSync(reusedPid)).toBe(false);
-    else expect(existsSync(reusedPid)).toBe(true);
-    expect(existsSync(unrelated)).toBe(true);
-  });
-
-  test("keeps the newest diagnostic runs", () => {
+  test("keeps the newest diagnostic runs and every foreign active marker", () => {
     const artifacts = tempRoot("save-in-artifacts-");
     for (let index = 1; index <= 5; index += 1) {
       const run = join(artifacts, `run-${index}`);
@@ -170,17 +149,12 @@ describe("E2E lifecycle cleanup", () => {
 
     pruneArtifactRuns(artifacts, 3);
 
-    expect(readdirSync(artifacts).toSorted()).toEqual(["run-3", "run-4", "run-5", "run-active"]);
-  });
-
-  test("removes stale staging snapshots without touching a concurrent runner", () => {
-    const runRoot = tempRoot("save-in-runs-");
-    mkdirSync(join(runRoot, String(process.pid)));
-    mkdirSync(join(runRoot, "999999999"));
-    mkdirSync(join(runRoot, "not-a-pid"));
-
-    pruneRunDirectories(runRoot);
-
-    expect(readdirSync(runRoot)).toEqual([String(process.pid)]);
+    expect(readdirSync(artifacts).toSorted()).toEqual([
+      "run-3",
+      "run-4",
+      "run-5",
+      "run-active",
+      "run-stale",
+    ]);
   });
 });
