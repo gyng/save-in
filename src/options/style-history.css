@@ -33,8 +33,9 @@
 }
 
 .history-query-row .history-filter {
-  flex: 1 1 24rem;
-  max-width: 38rem;
+  flex: 0 1 24rem;
+  width: min(24rem, 100%);
+  max-width: 100%;
 }
 
 #history-count {
