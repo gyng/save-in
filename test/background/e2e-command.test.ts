@@ -119,6 +119,10 @@ test("observes notification calls while preserving the native API call", async (
     type: BACKGROUND_E2E_NOTIFICATION_COMMAND,
     body: { action: "reset" },
   });
+  const observed = handleBackgroundE2ENotificationCommand({
+    type: BACKGROUND_E2E_NOTIFICATION_COMMAND,
+    body: { action: "wait", id: "7", timeoutMs: 1000 },
+  });
 
   await global.browser.notifications.create("7", {
     type: "basic",
@@ -128,6 +132,13 @@ test("observes notification calls while preserving the native API call", async (
   });
 
   expect(create).toHaveBeenCalledOnce();
+  await expect(observed).resolves.toEqual({
+    type: BACKGROUND_E2E_NOTIFICATION_COMMAND,
+    body: {
+      status: "OK",
+      calls: [{ id: "7", title: "Saved", message: "notification-e2e.txt" }],
+    },
+  });
   expect(
     handleBackgroundE2ENotificationCommand({
       type: BACKGROUND_E2E_NOTIFICATION_COMMAND,

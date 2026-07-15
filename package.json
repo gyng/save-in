@@ -31,6 +31,7 @@
     "e2e:chrome:headed": "node scripts/e2e-parallel.js --browser=chrome --headed",
     "e2e:firefox": "node scripts/e2e-parallel.js --browser=firefox",
     "e2e:firefox:headed": "node scripts/e2e-parallel.js --browser=firefox --headed",
+    "e2e:compare": "node scripts/compare-e2e-timings.js",
     "fmt": "oxfmt",
     "fmt:check": "oxfmt --check",
     "lint": "npm run typecheck && npm run stage:bundled && npm run lint:staged",

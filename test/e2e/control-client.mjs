@@ -72,6 +72,7 @@ export const dispatchControlRequest = async (
           hasOptionalString(value, "filenameRegex") &&
           hasOptionalString(value, "filenameIncludes") &&
           hasOptionalString(value, "url") &&
+          hasOptionalNumber(value, "minimumComplete") &&
           hasOptionalNumber(value, "timeoutMs")
         );
       case "downloads.cancel":
@@ -106,6 +107,14 @@ export const dispatchControlRequest = async (
         return (
           isStringArray(value.messages) &&
           hasOptionalNumber(value, "baseline") &&
+          hasOptionalNumber(value, "timeoutMs")
+        );
+      case "history.wait":
+        return (
+          ["id", "url", "status", "finalFullPath", "context"].every((key) =>
+            hasOptionalString(value, key),
+          ) &&
+          hasOptionalNumber(value, "minimum") &&
           hasOptionalNumber(value, "timeoutMs")
         );
       case "harness.resetCase":
@@ -148,8 +157,14 @@ export const dispatchControlRequest = async (
     return selected;
   };
 
-  /** @param {{filenameRegex?: string, filenameIncludes?: string, url?: string, timeoutMs?: number}} match */
-  const waitForDownload = ({ filenameRegex, filenameIncludes, url, timeoutMs = 8000 }) =>
+  /** @param {{filenameRegex?: string, filenameIncludes?: string, url?: string, minimumComplete?: number, timeoutMs?: number}} match */
+  const waitForDownload = ({
+    filenameRegex,
+    filenameIncludes,
+    url,
+    minimumComplete = 1,
+    timeoutMs = 8000,
+  }) =>
     new Promise((resolve, reject) => {
       const timeout = AbortSignal.timeout(timeoutMs);
       let settled = false;
@@ -178,7 +193,7 @@ export const dispatchControlRequest = async (
           filename,
           url: rowUrl,
         }));
-        if (lastRows.some((entry) => entry.state === "complete")) {
+        if (lastRows.filter((entry) => entry.state === "complete").length >= minimumComplete) {
           finish(() => resolve(lastRows));
         }
       };
@@ -313,6 +328,60 @@ export const dispatchControlRequest = async (
     const stored = await browserApi.storage.session.get("si-log");
     return Array.isArray(stored["si-log"]) ? /** @type {LogEntry[]} */ (stored["si-log"]) : [];
   };
+
+  const readHistory = async () => {
+    const response = await send({ type: "HISTORY_GET" });
+    return response.body.entries;
+  };
+
+  /** @param {{id?: string, url?: string, status?: string, finalFullPath?: string, context?: string, minimum?: number, timeoutMs?: number}} match */
+  const waitForHistory = ({
+    id,
+    url,
+    status,
+    finalFullPath,
+    context,
+    minimum = 1,
+    timeoutMs = 8000,
+  }) =>
+    new Promise((resolve, reject) => {
+      const timeout = AbortSignal.timeout(timeoutMs);
+      let settled = false;
+      /** @type {import("./control-protocol.mjs").HistoryEntry[]} */
+      let lastEntries = [];
+      /** @param {import("./control-protocol.mjs").HistoryEntry} entry */
+      const matches = (entry) =>
+        (id === undefined || entry.id === id) &&
+        (url === undefined || entry.url === url) &&
+        (status === undefined || entry.status === status) &&
+        (finalFullPath === undefined || entry.finalFullPath === finalFullPath) &&
+        (context === undefined || entry.info?.context === context);
+      /** @param {() => void} callback */
+      const finish = (callback) => {
+        if (settled) return;
+        settled = true;
+        browserApi.storage.onChanged.removeListener(onChanged);
+        timeout.removeEventListener("abort", onTimeout);
+        callback();
+      };
+      const check = async () => {
+        lastEntries = (await readHistory()).filter(matches);
+        if (lastEntries.length >= minimum) finish(() => resolve(lastEntries));
+      };
+      /** @param {Record<string, chrome.storage.StorageChange>} changes @param {string} area */
+      const onChanged = (changes, area) => {
+        if (area === "local" && changes["save-in-history"]) {
+          void check().catch((error) => finish(() => reject(error)));
+        }
+      };
+      const onTimeout = () =>
+        finish(() =>
+          reject(new Error(`Timed out waiting for history entry: ${JSON.stringify(lastEntries)}`)),
+        );
+      browserApi.storage.onChanged.addListener(onChanged);
+      timeout.addEventListener("abort", onTimeout, { once: true });
+      void check().catch((error) => finish(() => reject(error)));
+    });
 
   /** @param {{baseline?: number, messages: string[], timeoutMs?: number}} match */
   const waitForLog = ({ baseline = 0, messages, timeoutMs = 8000 }) =>
@@ -522,6 +591,9 @@ export const dispatchControlRequest = async (
       case "logs.wait":
         result = await waitForLog(request);
         break;
+      case "history.wait":
+        result = await waitForHistory(request);
+        break;
       case "harness.resetCase":
         result = await resetCase(request.snapshot);
         break;
@@ -678,7 +750,7 @@ export const createE2EControlClient = ({ callFunction }) => {
     downloads: {
       /** @param {chrome.downloads.DownloadQuery} [query] */
       search: (query = {}) => call({ operation: "downloads.search", query }),
-      /** @param {{filenameRegex?: string, filenameIncludes?: string, url?: string, timeoutMs?: number}} match */
+      /** @param {{filenameRegex?: string, filenameIncludes?: string, url?: string, minimumComplete?: number, timeoutMs?: number}} match */
       wait: (match) =>
         call({ operation: "downloads.wait", ...match }, (match.timeoutMs ?? 8000) + 2000),
       /** @param {number} id */
@@ -768,6 +840,9 @@ export const createE2EControlClient = ({ callFunction }) => {
         });
         return response.body.entries;
       },
+      /** @param {{id?: string, url?: string, status?: string, finalFullPath?: string, context?: string, minimum?: number, timeoutMs?: number}} match */
+      wait: (match) =>
+        call({ operation: "history.wait", ...match }, (match.timeoutMs ?? 8000) + 2000),
     },
     background: {
       /** @param {string} content @param {Record<string, unknown>} [info] @param {string} [comment] */
@@ -812,6 +887,24 @@ export const createE2EControlClient = ({ callFunction }) => {
           message: { type: "SAVE_IN_E2E_NOTIFICATION_CALLS", body: { action } },
         });
         return response.body.calls;
+      },
+      /** @param {string} id @param {number} [timeoutMs] */
+      waitForNotification: async (id, timeoutMs) => {
+        const response = await call(
+          {
+            operation: "runtime.send",
+            message: {
+              type: "SAVE_IN_E2E_NOTIFICATION_CALLS",
+              body: {
+                action: "wait",
+                id,
+                ...(timeoutMs === undefined ? {} : { timeoutMs }),
+              },
+            },
+          },
+          (timeoutMs ?? 8000) + 2000,
+        );
+        return response.body.calls.find((notification) => notification.id === id);
       },
       /** @param {Record<string, unknown>} config */
       applyConfig: async (config) =>

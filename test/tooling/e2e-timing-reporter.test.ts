@@ -37,9 +37,28 @@ test("writes compact per-browser timing telemetry", () => {
       ],
     },
   } as unknown as TestModule;
+  const secondModule = {
+    moduleId: "/repo/test/e2e/cases/chrome.e2e-extra.mjs",
+    diagnostic: () => ({
+      environmentSetupDuration: 1,
+      prepareDuration: 2,
+      collectDuration: 3,
+      setupDuration: 4,
+      duration: 5,
+    }),
+    children: {
+      allTests: () => [
+        {
+          fullName: "Chrome E2E routes a download",
+          result: () => ({ state: "passed" }),
+          diagnostic: () => ({ duration: 45 }),
+        },
+      ],
+    },
+  } as unknown as TestModule;
 
   try {
-    new E2ETimingReporter().onTestRunEnd([testModule], [], "passed");
+    new E2ETimingReporter().onTestRunEnd([testModule, secondModule], [], "passed");
 
     const report = JSON.parse(
       readFileSync(join(artifactDirectory, "timings-chrome.json"), "utf8"),
@@ -51,13 +70,26 @@ test("writes compact per-browser timing telemetry", () => {
       success: true,
       unhandledErrors: 0,
       phases: {
-        environmentSetupMs: 10,
-        prepareMs: 20,
-        collectMs: 30,
-        setupMs: 40,
-        testsMs: 50,
+        environmentSetupMs: 11,
+        prepareMs: 22,
+        collectMs: 33,
+        setupMs: 44,
+        testsMs: 55,
       },
-      tests: [{ name: "Chrome E2E saves a download", state: "passed", durationMs: 123 }],
+      tests: [
+        {
+          moduleId: "/repo/test/e2e/chrome.e2e.mjs",
+          name: "Chrome E2E saves a download",
+          state: "passed",
+          durationMs: 123,
+        },
+        {
+          moduleId: "/repo/test/e2e/cases/chrome.e2e-extra.mjs",
+          name: "Chrome E2E routes a download",
+          state: "passed",
+          durationMs: 45,
+        },
+      ],
     });
     expect(report.capturedAt).toEqual(expect.any(String));
   } finally {

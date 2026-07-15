@@ -116,7 +116,13 @@ export type RuntimeMessage =
   | { type: "SAVE_IN_E2E_START_DOWNLOAD"; body: StartDownloadBody }
   | { type: "SAVE_IN_E2E_CONTEXT_MENU_CLICK"; body: ContextMenuClickBody }
   | { type: "SAVE_IN_E2E_TAB_MENU_CLICK"; body: TabMenuClickBody }
-  | { type: "SAVE_IN_E2E_NOTIFICATION_CALLS"; body: { action: "get" | "reset" } }
+  | {
+      type: "SAVE_IN_E2E_NOTIFICATION_CALLS";
+      body:
+        | { action: "get" }
+        | { action: "reset" }
+        | { action: "wait"; id: string; timeoutMs?: number };
+    }
   | { type: "APPLY_CONFIG"; body: { config: Record<string, unknown> } };
 
 export type StartDownloadRequest = Extract<RuntimeMessage, { type: "SAVE_IN_E2E_START_DOWNLOAD" }>;
@@ -294,6 +300,7 @@ export type ControlRequest =
       filenameRegex?: string;
       filenameIncludes?: string;
       url?: string;
+      minimumComplete?: number;
       timeoutMs?: number;
     }
   | { operation: "downloads.cancel"; id: number }
@@ -323,6 +330,16 @@ export type ControlRequest =
       operation: "logs.wait";
       baseline?: number;
       messages: string[];
+      timeoutMs?: number;
+    }
+  | {
+      operation: "history.wait";
+      id?: string;
+      url?: string;
+      status?: string;
+      finalFullPath?: string;
+      context?: string;
+      minimum?: number;
       timeoutMs?: number;
     }
   | { operation: "harness.resetCase"; snapshot?: StorageRecord }
@@ -358,6 +375,7 @@ export interface ControlResultMap {
   "offscreen.hasDocument": boolean;
   "logs.get": LogEntry[];
   "logs.wait": LogEntry[];
+  "history.wait": HistoryEntry[];
   "harness.resetCase": true;
   inspect: InspectResult;
 }

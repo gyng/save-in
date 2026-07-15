@@ -114,7 +114,20 @@ variables resolve, the file completes, and the temporary session rule is removed
 Every CI browser run uploads compact `timings-chrome.json` and
 `timings-firefox.json` reports. They include setup phases and individual case
 durations for the advisory regression thresholds in `AGENTS.md`; shared PR
-runners do not enforce wall-clock limits.
+runners do not enforce wall-clock limits. CI runs the suites once with the
+host's current browsers and once with the declared minimum Chrome 123 and
+Firefox 121 releases. The same artifact includes each
+browser's `*-environment.json`, so comparisons can confirm the executable and
+version. Compare two downloaded run directories with:
+
+```sh
+npm run e2e:compare -- --baseline path/to/baseline --current path/to/current
+```
+
+The command reports increases above 25%. Add `--enforce` only on a stable,
+repeatable runner; it fails increases above 50% that also add at least two
+seconds. Timing reports aggregate every module for a browser instead of letting
+later modules overwrite earlier results.
 
 ## Failed browser runs
 

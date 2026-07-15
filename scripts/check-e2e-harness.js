@@ -15,13 +15,13 @@ const budgets = [
   {
     file: "test/e2e/chrome.e2e.mjs",
     label: "raw Chrome background evaluations",
-    pattern: /\bevalSW\(/g,
+    pattern: /(?:\bevalSW\s*\(|\bevaluateJson\s*\(\s*evalSW\s*,)/g,
     maximum: 0,
   },
   {
     file: "test/e2e/firefox.e2e.mjs",
     label: "raw Firefox background evaluations",
-    pattern: /\bevalBackground\(/g,
+    pattern: /(?:\bevalBackground\s*\(|\bevaluateJson\s*\(\s*evalBackground\s*,)/g,
     maximum: 0,
   },
   {
@@ -33,8 +33,8 @@ const budgets = [
   {
     file: "test/e2e/shared-scenarios.mjs",
     label: "raw shared-scenario evaluations",
-    pattern: /\bawait evaluate\(/g,
-    maximum: 3,
+    pattern: /(?:\bawait evaluate\s*\(|\bevaluateJson\s*\(\s*evaluate\s*,)/g,
+    maximum: 6,
   },
   {
     file: "test/e2e/template-library-scenario.mjs",
@@ -79,6 +79,23 @@ const evaluationTypingErrors = (file, source) => {
   return errors;
 };
 
+/** @param {string} file @param {string} source */
+const runnerPollingErrors = (file, source) => {
+  const forbidden =
+    /\bcontrol\.(?:history\.get|downloads\.search|storage\.(?:local|session)\.get|background\.notificationCalls)\s*\(/;
+  const pollBlocks = source.matchAll(
+    /\bawait poll\s*\(\s*async\s*\(\)\s*=>\s*\{([\s\S]*?)\n\s*\},\n\s*\{[^}]*\},?\n\s*\)/g,
+  );
+  return [...pollBlocks].flatMap((match) =>
+    forbidden.test(match[1] ?? "")
+      ? [
+          `${file}: runner-side state polling is forbidden; use an event-driven structured ` +
+            "control wait operation.",
+        ]
+      : [],
+  );
+};
+
 /**
  * @param {string} directory
  * @returns {string[]}
@@ -102,6 +119,7 @@ const main = () => {
   for (const file of moduleFiles("test/e2e")) {
     const source = fs.readFileSync(path.join(root, file), "utf8");
     errors.push(...evaluationTypingErrors(file, source));
+    errors.push(...runnerPollingErrors(file, source));
   }
 
   const harness = fs.readFileSync(path.join(root, "test/e2e/harness-session.mjs"), "utf8");
@@ -115,7 +133,7 @@ const main = () => {
     console.error(errors.join("\n"));
     process.exitCode = 1;
   } else {
-    console.log("E2E evaluation budgets and typing boundaries hold.");
+    console.log("E2E harness evaluation, typing, and wait policies hold.");
   }
 };
 
@@ -123,4 +141,4 @@ if (require.main === module) {
   main();
 }
 
-module.exports = { evaluationBudgetError, evaluationTypingErrors };
+module.exports = { evaluationBudgetError, evaluationTypingErrors, runnerPollingErrors };

@@ -146,6 +146,9 @@ export const decodeControlResult = (request, value) => {
     case "logs.wait":
       valid = isArrayOf(value, isLog);
       break;
+    case "history.wait":
+      valid = isArrayOf(value, isHistoryEntry);
+      break;
     case "inspect":
       valid = isInspectResult(value);
       break;

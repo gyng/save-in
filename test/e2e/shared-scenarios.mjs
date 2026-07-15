@@ -17,7 +17,6 @@ import {
   evaluateJson,
   listenLocal,
   objectOf,
-  poll,
   requireValue,
 } from "./helpers.mjs";
 /** @typedef {import("./control-protocol.mjs").DownloadSummary} DownloadSummary */
@@ -772,18 +771,11 @@ export const runSymlinkDestinationScenario = async ({
       path: "e2e/release-symlink",
     });
     if (!supported) {
-      const matches = await poll(
-        async () => {
-          const rows = (await control.history.get()).filter(
-            (row) =>
-              row.finalFullPath === `e2e/release-symlink/${filename}` &&
-              row.status === "USER_CANCELED",
-          );
-          return rows.length ? rows : null;
-        },
-        { description: "symlink rejection history" },
-      );
-      const rejected = requireValue(matches, "Symlink rejection history was not observed").at(-1);
+      const matches = await control.history.wait({
+        finalFullPath: `e2e/release-symlink/${filename}`,
+        status: "USER_CANCELED",
+      });
+      const rejected = requireValue(matches.at(-1), "Symlink rejection history was not observed");
       expect(rejected).toMatchObject({
         finalFullPath: `e2e/release-symlink/${filename}`,
         status: "USER_CANCELED",

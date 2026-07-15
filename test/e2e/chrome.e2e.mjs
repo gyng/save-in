@@ -550,11 +550,25 @@ test("options can select a generated locale and return to the browser default", 
 
   await selectLocale("de", "generated locale selection reload");
   await selectLocale("en", "explicit English selection reload");
-
-  await evalOptions(`chrome.storage.local.set({ uiLocale: "" }).then(() => location.reload())`);
-  await poll(async () => (await evalOptions(`document.querySelector("#uiLocale")?.value`)) === "", {
-    description: "browser-default locale restore",
-  });
+  await selectLocale("", "browser-default locale restore");
+  await control.storage.local.remove("uiLocale");
+  await poll(
+    async () => {
+      const state = await evaluateJson(
+        evalOptions,
+        `chrome.storage.local.get("uiLocale").then((stored) => JSON.stringify({
+          removed: !Object.hasOwn(stored, "uiLocale"),
+          selected: document.querySelector("#uiLocale")?.value,
+        }))`,
+        objectOf({
+          removed: decodeBoolean,
+          selected: optional(decodeString),
+        }),
+      );
+      return state.removed && state.selected === "" ? true : null;
+    },
+    { description: "browser-default locale storage cleanup" },
+  );
   await control.runtime.reset();
 });
 
@@ -784,50 +798,32 @@ test("download completes through the real pipeline with session tracking", async
   const downloads = await waitForDownloads("smoke");
   expect(downloads.some((x) => x.state === "complete")).toBe(true);
 
-  const result = await evaluateJson(
-    evalSW,
-    `Promise.all([
-      browser.downloads.search({ filenameRegex: "smoke" }),
-      browser.storage.session.get(null),
-      browser.storage.local.get("save-in-history"),
-    ])
-    .then(([d, sess, hist]) => {
-      const entries = (hist["save-in-history"] || []).filter((e) => (e.finalFullPath || "").includes("smoke"));
-      const entry = entries[entries.length - 1] || {};
-      const adopted = Object.keys(sess.siDownloads || {}).filter((id) => sess.siDownloads[id].adopted);
-      return JSON.stringify({
-        state: d[0] && d[0].state,
-        adopted,
-        pending: sess.siPendingDownloads || 0,
-        finalFilenames: sess.siFinalFilenames || {},
-        entry: { status: entry.status, hasDownloadId: typeof entry.downloadId === "number", fileSize: entry.fileSize },
-      });
-    })`,
-    objectOf({
-      state: optional(decodeString),
-      adopted: arrayOf(decodeString),
-      pending: decodeNumber,
-      finalFilenames: decodeRecord,
-      entry: objectOf({
-        status: optional(decodeString),
-        hasDownloadId: decodeBoolean,
-        fileSize: optional(decodeNumber),
-      }),
-    }),
-  );
+  const [matchingDownloads, sessionState, history] = await Promise.all([
+    control.downloads.search({ filenameRegex: "smoke" }),
+    control.storage.session.get(),
+    control.history.get(),
+  ]);
+  const downloadState = matchingDownloads[0]?.state;
+  const trackedDownloads = decodeRecord(sessionState.siDownloads ?? {});
+  const adopted = Object.entries(trackedDownloads)
+    .filter(([, record]) => decodeRecord(record).adopted === true)
+    .map(([id]) => id);
+  const pending = decodeNumber(sessionState.siPendingDownloads ?? 0);
+  const finalFilenames = decodeRecord(sessionState.siFinalFilenames ?? {});
+  const entry = history.filter((row) => row.finalFullPath?.includes("smoke")).at(-1);
 
-  expect(result.state).toBe("complete");
+  expect(downloadState).toBe("complete");
   // Adoption is cleared after completion (the record itself lingers in
   // siDownloads for history/retry correlation); the pending counter is balanced
   // back to 0 and the per-URL filename entry was cleaned up (it only lingers
   // across a real service-worker restart, where the cleanup never runs)
-  expect(result.adopted).toEqual([]);
-  expect(result.pending).toBe(0);
-  expect(result.finalFilenames).toEqual({});
+  expect(adopted).toEqual([]);
+  expect(pending).toBe(0);
+  expect(finalFilenames).toEqual({});
   // the history entry recorded completion, the download id, and the file size
-  expect(result.entry.status).toBe("complete");
-  expect(result.entry.hasDownloadId).toBe(true);
-  expect(result.entry.fileSize).toBe("e2e smoke test content".length);
+  expect(entry?.status).toBe("complete");
+  expect(entry?.downloadId).toEqual(expect.any(Number));
+  expect(entry?.fileSize).toBe("e2e smoke test content".length);
 
   const file = path.join(DOWNLOADS, "e2e", "smoke.txt");
   expect(fs.readFileSync(file, "utf8")).toBe("e2e smoke test content");
@@ -926,13 +922,7 @@ test("success notifications are created by the real download listener", async ()
     expect(download.id).toEqual(expect.any(Number));
     const notificationId = String(download.id);
 
-    const notification = await poll(
-      async () => {
-        const calls = await control.background.notificationCalls("get");
-        return calls.find((call) => call.id === notificationId) || null;
-      },
-      { description: "success notification for notification-e2e" },
-    );
+    const notification = await control.background.waitForNotification(notificationId);
     if (!notification) throw new Error("Success notification call was not captured");
     expect(notification.message).toContain("notification-e2e");
     const failures = (await control.logs.get())
@@ -993,18 +983,7 @@ test("ordinary browser downloads can be routed and tracked without adoption", as
 
     const rows = await waitForDownloads("browser-routed.*native\\.bin");
     expect(rows.some((row) => row.state === "complete")).toBe(true);
-    const observed = requireValue(
-      await poll(
-        async () => {
-          const entries = (await control.history.get()).filter(
-            (entry) => entry.info?.context === "browser",
-          );
-          return entries.some((entry) => entry.status === "complete") ? entries : null;
-        },
-        { description: "ordinary browser download history" },
-      ),
-      "Ordinary browser download history was not observed",
-    );
+    const observed = await control.history.wait({ context: "browser", status: "complete" });
     expect(observed.at(-1)).toMatchObject({
       status: "complete",
       finalFullPath: expect.stringContaining("browser-routed"),
@@ -1134,22 +1113,18 @@ test(":counter: advances once per download and persists in storage", async () =>
 });
 
 test("APPLY_CONFIG validates and persists a partial config (#89)", async () => {
-  const result = await evaluateJson(
-    evalSW,
-    `api.applyConfig({ truncateLength: 99, notifyOnSuccess: false, bogusKey: 1 })
-      .then((body) =>
-        browser.storage.local
-          .get(["truncateLength", "notifyOnSuccess"])
-          .then((stored) => JSON.stringify({ body, stored })),
-      )`,
-    objectOf({ body: decodeRecord, stored: decodeRecord }),
-  );
+  const body = await control.background.applyConfig({
+    truncateLength: 99,
+    notifyOnSuccess: false,
+    bogusKey: 1,
+  });
+  const stored = await control.storage.local.get(["truncateLength", "notifyOnSuccess"]);
 
-  expect(result.body.applied).toEqual({ truncateLength: 99, notifyOnSuccess: false });
-  expect(result.body.rejected).toEqual([{ name: "bogusKey", reason: "unknown option" }]);
+  expect(body.applied).toEqual({ truncateLength: 99, notifyOnSuccess: false });
+  expect(body.rejected).toEqual([{ name: "bogusKey", reason: "unknown option" }]);
   // persisted to storage.local, and the unknown key was not written
-  expect(result.stored.truncateLength).toBe(99);
-  expect(result.stored.notifyOnSuccess).toBe(false);
+  expect(stored.truncateLength).toBe(99);
+  expect(stored.notifyOnSuccess).toBe(false);
 });
 
 test("message-driven downloads work and never inherit a stale route", async () => {
@@ -1814,14 +1789,11 @@ sourceurl: \\.png$
 into: e2e/automatic-chrome/:filename:`,
     });
     await cdp.openTab(PORT, pageUrl);
-    const initial = await poll(
-      async () => {
-        const rows = await control.downloads.search({ filenameRegex: "automatic-chrome" });
-        return rows.filter((row) => row.state === "complete").length === 2 ? rows : null;
-      },
-      { timeoutMs: 10000, description: "initial automatic Page Sources downloads" },
-    );
-    const completed = requireValue(initial, "Initial automatic Chrome downloads were not captured");
+    const completed = await control.downloads.wait({
+      filenameRegex: "automatic-chrome",
+      minimumComplete: 2,
+      timeoutMs: 10000,
+    });
     expect(completed.filter((row) => row.state === "complete")).toHaveLength(2);
     expect(completed.every((row) => !row.filename.includes("ordinary-should-not-match"))).toBe(
       true,
@@ -1962,12 +1934,9 @@ registerSharedBrowserCases({
   symlinkSupported: false,
   failedDownloadFilename: "si-unreachable.bin",
   afterFailedDownload: async () => {
-    const requested = await evaluateJson(
-      evalSW,
-      `api.logs().then((log) => JSON.stringify(
-          log.filter((entry) => entry.message === "download requested" && String(entry.data).includes("si-unreachable"))
-        ))`,
-      arrayOf(decodeRecord),
+    const requested = (await control.logs.get()).filter(
+      (entry) =>
+        entry.message === "download requested" && String(entry.data).includes("si-unreachable"),
     );
     expect(requested.length).toBeGreaterThanOrEqual(1);
   },
@@ -1982,14 +1951,7 @@ registerSharedBrowserCases({
 });
 
 test("history and the debug log record a self-contained download", async () => {
-  const before = await evaluateJson(
-    evalSW,
-    `Promise.all([api.history(), api.logs()]).then(([history, log]) => JSON.stringify({
-      history: history.length,
-      log: log.length,
-    }))`,
-    objectOf({ history: decodeNumber, log: decodeNumber }),
-  );
+  const [beforeHistory, beforeLog] = await Promise.all([control.history.get(), control.logs.get()]);
   await control.background.startDownload({
     content: "history e2e content",
     suggestedFilename: "history-e2e.txt",
@@ -1997,23 +1959,19 @@ test("history and the debug log record a self-contained download", async () => {
   });
   await waitForDownloads("history-e2e");
 
-  const records = await evaluateJson(
-    evalSW,
-    `Promise.all([api.history(), api.logs()]).then(([history, log]) => JSON.stringify({
-      history: history.length,
-      matchingHistory: history.filter((entry) => String(entry.finalFullPath).includes("history-e2e")).length,
-      matchingRequests: log.slice(${before.log}).filter((entry) =>
-        entry.message === "download requested" && JSON.stringify(entry.data).includes("history-e2e")
-      ).length,
-    }))`,
-    objectOf({
-      history: decodeNumber,
-      matchingHistory: decodeNumber,
-      matchingRequests: decodeNumber,
-    }),
+  const [history, log] = await Promise.all([control.history.get(), control.logs.get()]);
+  const matchingHistory = history.filter((entry) =>
+    String(entry.finalFullPath).includes("history-e2e"),
   );
+  const matchingRequests = log
+    .slice(beforeLog.length)
+    .filter(
+      (entry) =>
+        entry.message === "download requested" &&
+        JSON.stringify(entry.data).includes("history-e2e"),
+    );
 
-  expect(records.history).toBeGreaterThan(before.history);
-  expect(records.matchingHistory).toBe(1);
-  expect(records.matchingRequests).toBe(1);
+  expect(history.length).toBeGreaterThan(beforeHistory.length);
+  expect(matchingHistory).toHaveLength(1);
+  expect(matchingRequests).toHaveLength(1);
 });

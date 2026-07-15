@@ -65,6 +65,42 @@ describe("structured E2E control client", () => {
     ]);
   });
 
+  test("sends event-driven wait criteria through the structured protocol", async () => {
+    const requests: unknown[] = [];
+    const client = createE2EControlClient({
+      callFunction: async (_declaration, args) => {
+        const request = args?.[0] as { operation?: string } | undefined;
+        requests.push(request);
+        return JSON.stringify({
+          ok: true,
+          value:
+            request?.operation === "runtime.send"
+              ? {
+                  type: "SAVE_IN_E2E_NOTIFICATION_CALLS",
+                  body: { status: "OK", calls: [{ id: "7", message: "saved" }] },
+                }
+              : [],
+        });
+      },
+    });
+
+    await client.downloads.wait({ filenameIncludes: "automatic", minimumComplete: 2 });
+    await client.history.wait({ status: "complete", context: "browser" });
+    await expect(client.background.waitForNotification("7")).resolves.toMatchObject({ id: "7" });
+
+    expect(requests).toEqual([
+      { operation: "downloads.wait", filenameIncludes: "automatic", minimumComplete: 2 },
+      { operation: "history.wait", status: "complete", context: "browser" },
+      {
+        operation: "runtime.send",
+        message: {
+          type: "SAVE_IN_E2E_NOTIFICATION_CALLS",
+          body: { action: "wait", id: "7" },
+        },
+      },
+    ]);
+  });
+
   test("restores a missing control page before retrying discovery", async () => {
     const missing = new Error('No target matching "options.html"');
     Object.assign(missing, { code: "E2E_CONTROL_TARGET_MISSING" });

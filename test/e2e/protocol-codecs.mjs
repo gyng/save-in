@@ -85,7 +85,12 @@ export const createProtocolCodecs = () => {
         return isMenuBody(value.body, true);
       case "SAVE_IN_E2E_NOTIFICATION_CALLS":
         return (
-          isRecord(value.body) && (value.body.action === "get" || value.body.action === "reset")
+          isRecord(value.body) &&
+          (value.body.action === "get" ||
+            value.body.action === "reset" ||
+            (value.body.action === "wait" &&
+              typeof value.body.id === "string" &&
+              hasOptionalNumber(value.body, "timeoutMs")))
         );
       case "APPLY_CONFIG":
         return isRecord(value.body) && isRecord(value.body.config);

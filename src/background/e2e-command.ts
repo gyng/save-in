@@ -39,7 +39,10 @@ export type BackgroundE2EContextMenuRequest = {
 
 export type BackgroundE2ENotificationRequest = {
   type: typeof BACKGROUND_E2E_NOTIFICATION_COMMAND;
-  body: { action: "get" | "reset" };
+  body:
+    | { action: "get" }
+    | { action: "reset" }
+    | { action: "wait"; id: string; timeoutMs?: number };
 };
 
 export type BackgroundE2ETabMenuRequest = {
@@ -74,6 +77,11 @@ export type BackgroundE2ETabMenuResponse = {
 };
 
 const notificationCalls: BackgroundE2ENotificationCall[] = [];
+const notificationWaiters = new Set<{
+  id: string;
+  resolve: (response: BackgroundE2ENotificationResponse) => void;
+  timeout: ReturnType<typeof setTimeout>;
+}>();
 let notificationObserverInstalled = false;
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -137,7 +145,11 @@ const isBackgroundE2ENotificationCommand = (
   isRecord(value) &&
   value.type === BACKGROUND_E2E_NOTIFICATION_COMMAND &&
   isRecord(value.body) &&
-  (value.body.action === "get" || value.body.action === "reset");
+  (value.body.action === "get" ||
+    value.body.action === "reset" ||
+    (value.body.action === "wait" &&
+      typeof value.body.id === "string" &&
+      hasOptionalNumber(value.body, "timeoutMs")));
 
 const isBackgroundE2ETabMenuCommand = (value: unknown): value is BackgroundE2ETabMenuRequest =>
   isRecord(value) &&
@@ -210,9 +222,36 @@ export const handleBackgroundE2EContextMenuCommand = async (
 
 export const handleBackgroundE2ENotificationCommand = (
   rawRequest: unknown,
-): BackgroundE2ENotificationResponse | null => {
+): BackgroundE2ENotificationResponse | Promise<BackgroundE2ENotificationResponse> | null => {
   if (!isBackgroundE2ENotificationCommand(rawRequest)) return null;
-  if (rawRequest.body.action === "reset") notificationCalls.length = 0;
+  const body = rawRequest.body;
+  if (body.action === "reset") {
+    notificationCalls.length = 0;
+  }
+  if (body.action === "wait") {
+    const { id, timeoutMs = 8000 } = body;
+    const existing = notificationCalls.find((call) => call.id === id);
+    if (existing) {
+      return {
+        type: BACKGROUND_E2E_NOTIFICATION_COMMAND,
+        body: { status: "OK", calls: [structuredClone(existing)] },
+      };
+    }
+    return new Promise((resolve) => {
+      const waiter = {
+        id,
+        resolve,
+        timeout: setTimeout(() => {
+          notificationWaiters.delete(waiter);
+          resolve({
+            type: BACKGROUND_E2E_NOTIFICATION_COMMAND,
+            body: { status: "OK", calls: [] },
+          });
+        }, timeoutMs),
+      };
+      notificationWaiters.add(waiter);
+    });
+  }
   return {
     type: BACKGROUND_E2E_NOTIFICATION_COMMAND,
     body: { status: "OK", calls: structuredClone(notificationCalls) },
@@ -243,11 +282,21 @@ export const installBackgroundE2ENotificationObserver = (): void => {
   Reflect.set(notifications, "create", (...args: unknown[]) => {
     const id = typeof args[0] === "string" ? args[0] : "";
     const details = isRecord(args[1]) ? args[1] : isRecord(args[0]) ? args[0] : {};
-    notificationCalls.push({
+    const call = {
       id,
       ...(typeof details.title === "string" ? { title: details.title } : {}),
       ...(typeof details.message === "string" ? { message: details.message } : {}),
-    });
+    };
+    notificationCalls.push(call);
+    for (const waiter of notificationWaiters) {
+      if (waiter.id !== id) continue;
+      clearTimeout(waiter.timeout);
+      notificationWaiters.delete(waiter);
+      waiter.resolve({
+        type: BACKGROUND_E2E_NOTIFICATION_COMMAND,
+        body: { status: "OK", calls: [structuredClone(call)] },
+      });
+    }
     return Reflect.apply(originalCreate, notifications, args);
   });
 };
@@ -256,8 +305,8 @@ export const registerBackgroundE2ECommand = (): void => {
   installBackgroundE2ENotificationObserver();
   webExtensionApi.runtime.onMessage.addListener((rawRequest, _sender, sendResponse) => {
     if (isBackgroundE2ENotificationCommand(rawRequest)) {
-      sendResponse(handleBackgroundE2ENotificationCommand(rawRequest));
-      return;
+      void Promise.resolve(handleBackgroundE2ENotificationCommand(rawRequest)).then(sendResponse);
+      return true;
     }
     if (isBackgroundE2EContextMenuCommand(rawRequest)) {
       void handleBackgroundE2EContextMenuCommand(rawRequest).then(sendResponse);

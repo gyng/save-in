@@ -382,17 +382,8 @@ test("options page autosaves through Firefox host APIs", async () => {
       })()`,
     );
 
-    const state = await poll(
-      async () => {
-        const stored = await control.storage.local.get("promptOnShift");
-        const candidate = {
-          stored: stored.promptOnShift,
-          live: await control.options.get("promptOnShift"),
-        };
-        return candidate.stored === changed && candidate.live === changed ? candidate : null;
-      },
-      { description: "Firefox options autosave" },
-    );
+    const stored = await control.storage.local.wait("promptOnShift", changed);
+    const state = { stored, live: await control.options.get("promptOnShift") };
     expect(state).toEqual({ stored: changed, live: changed });
   } finally {
     await control.options.set({ promptOnShift: original });
@@ -547,13 +538,7 @@ test("success notifications are created by the real download listener", async ()
     expect(download.id).toEqual(expect.any(Number));
     const notificationId = String(download.id);
 
-    const notification = await poll(
-      async () => {
-        const calls = await control.background.notificationCalls("get");
-        return calls.find((call) => call.id === notificationId) || null;
-      },
-      { description: "success notification for ff-notification-e2e" },
-    );
+    const notification = await control.background.waitForNotification(notificationId);
     if (!notification) throw new Error("Success notification call was not captured");
     expect(notification.message).toContain("ff-notification-e2e");
     const failures = (await control.logs.get())
@@ -723,18 +708,7 @@ test("ordinary browser downloads can be tracked and experimentally rerouted on F
     const rows = await waitForDownloads("browser-routed");
     expect(rows.some((row) => row.state === "complete")).toBe(true);
     expect(rows.some((row) => row.filename.includes("browser-routed"))).toBe(true);
-    const observed = requireValue(
-      await poll(
-        async () => {
-          const entries = (await control.history.get()).filter(
-            (entry) => entry.info?.context === "browser",
-          );
-          return entries.some((entry) => entry.status === "complete") ? entries : null;
-        },
-        { description: "ordinary Firefox browser download history" },
-      ),
-      "Ordinary Firefox browser download history was not observed",
-    );
+    const observed = await control.history.wait({ context: "browser", status: "complete" });
     expect(observed.at(-1)).toMatchObject({ status: "complete", info: { context: "browser" } });
   } finally {
     heldNativeResponse?.destroy();
@@ -851,19 +825,11 @@ into: e2e/automatic-firefox/:filename:`,
     await control.tabs.wait(
       created.id === undefined ? { urlIncludes: target } : { id: created.id },
     );
-    const initial = await poll(
-      async () => {
-        const rows = (await control.downloads.search()).filter((item) =>
-          item.filename.includes("automatic-firefox"),
-        );
-        return rows.filter((row) => row.state === "complete").length === 2 ? rows : null;
-      },
-      { timeoutMs: 10000, description: "initial Firefox automatic Page Sources downloads" },
-    );
-    const completed = requireValue(
-      initial,
-      "Initial automatic Firefox downloads were not captured",
-    );
+    const completed = await control.downloads.wait({
+      filenameIncludes: "automatic-firefox",
+      minimumComplete: 2,
+      timeoutMs: 10000,
+    });
     expect(completed.filter((row) => row.state === "complete")).toHaveLength(2);
     expect(completed.every((row) => !row.filename.includes("ordinary-should-not-match"))).toBe(
       true,
@@ -1021,14 +987,7 @@ registerSharedBrowserCases({
 });
 
 test("history and the debug log record a self-contained download", async () => {
-  const before = await evaluateJson(
-    evalBackground,
-    `Promise.all([api.history(), api.logs()]).then(([history, log]) => JSON.stringify({
-        history: history.length,
-        log: log.length,
-      }))`,
-    objectOf({ history: decodeNumber, log: decodeNumber }),
-  );
+  const [beforeHistory, beforeLog] = await Promise.all([control.history.get(), control.logs.get()]);
   await control.background.startDownload({
     content: "firefox history e2e content",
     suggestedFilename: "ff-history-e2e.txt",
@@ -1036,23 +995,19 @@ test("history and the debug log record a self-contained download", async () => {
   });
   await waitForDownloads("ff-history-e2e");
 
-  const records = await evaluateJson(
-    evalBackground,
-    `Promise.all([api.history(), api.logs()]).then(([history, log]) => JSON.stringify({
-        history: history.length,
-        matchingHistory: history.filter((entry) => String(entry.finalFullPath).includes("ff-history-e2e")).length,
-        matchingRequests: log.slice(${before.log}).filter((entry) =>
-          entry.message === "download requested" && JSON.stringify(entry.data).includes("ff-history-e2e")
-        ).length,
-      }))`,
-    objectOf({
-      history: decodeNumber,
-      matchingHistory: decodeNumber,
-      matchingRequests: decodeNumber,
-    }),
+  const [history, log] = await Promise.all([control.history.get(), control.logs.get()]);
+  const matchingHistory = history.filter((entry) =>
+    String(entry.finalFullPath).includes("ff-history-e2e"),
   );
+  const matchingRequests = log
+    .slice(beforeLog.length)
+    .filter(
+      (entry) =>
+        entry.message === "download requested" &&
+        JSON.stringify(entry.data).includes("ff-history-e2e"),
+    );
 
-  expect(records.history).toBeGreaterThan(before.history);
-  expect(records.matchingHistory).toBe(1);
-  expect(records.matchingRequests).toBe(1);
+  expect(history.length).toBeGreaterThan(beforeHistory.length);
+  expect(matchingHistory).toHaveLength(1);
+  expect(matchingRequests).toHaveLength(1);
 });

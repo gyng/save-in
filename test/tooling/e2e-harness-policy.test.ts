@@ -1,13 +1,14 @@
 import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
-const { evaluationBudgetError, evaluationTypingErrors } =
+const { evaluationBudgetError, evaluationTypingErrors, runnerPollingErrors } =
   require("../../scripts/check-e2e-harness.js") as {
     evaluationBudgetError: (
       budget: { file: string; label: string; maximum: number },
       actual: number,
     ) => string | null;
     evaluationTypingErrors: (file: string, source: string) => string[];
+    runnerPollingErrors: (file: string, source: string) => string[];
   };
 
 const budget = {
@@ -18,6 +19,32 @@ const budget = {
 
 test("requires evaluation ceilings to be lowered after a migration", () => {
   expect(evaluationBudgetError(budget, 4)).toContain("lower its recorded ceiling from 5");
+});
+
+test("rejects runner-side browser-state polling", () => {
+  expect(
+    runnerPollingErrors(
+      "test/e2e/example.mjs",
+      `await poll(
+        async () => {
+          const rows = await control.downloads.search({});
+          return rows.length ? rows : null;
+        },
+        { description: "download" },
+      )`,
+    ),
+  ).toHaveLength(1);
+  expect(
+    runnerPollingErrors(
+      "test/e2e/example.mjs",
+      `await poll(
+        async () => {
+          return (await evalOptions("document.readyState")) === "complete";
+        },
+        { description: "document" },
+      )`,
+    ),
+  ).toEqual([]);
 });
 
 test("rejects evaluation growth and accepts the exact recorded count", () => {
