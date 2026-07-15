@@ -2968,5 +2968,63 @@
   },
   "diagnosticsClearFailed": {
     "message": "Kürzlich aufgetretene Fehler konnten nicht gelöscht werden."
+  },
+  "sourcePanelSelectFiltered": {
+    "message": "Gefilterte Quellen auswählen"
+  },
+  "sourcePanelClearSelection": {
+    "message": "Auswahl aufheben"
+  },
+  "sourcePanelSelectedCount": {
+    "message": "$COUNT$ ausgewählt",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "sourcePanelHiddenSelectedCount": {
+    "message": "$COUNT$ ausgeblendet",
+    "placeholders": { "count": { "content": "$1", "example": "2" } }
+  },
+  "sourcePanelSaveSelected": {
+    "message": "Ausgewählte Quellen speichern"
+  },
+  "sourcePanelBatchConfirm": {
+    "message": "$COUNT$ ausgewählte Quellen speichern?",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "24"
+      }
+    }
+  },
+  "sourcePanelBatchContinue": {
+    "message": "Quellen speichern"
+  },
+  "sourcePanelBatchCancel": {
+    "message": "Abbrechen"
+  },
+  "sourcePanelBatchSaving": {
+    "message": "$COUNT$ Quellen werden gespeichert…",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "8"
+      }
+    }
+  },
+  "sourcePanelBatchSaved": {
+    "message": "$COUNT$ Downloads gestartet",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "8"
+      }
+    }
+  },
+  "sourcePanelCreateAutomaticRule": {
+    "message": "Automatische Regel erstellen"
   }
 }

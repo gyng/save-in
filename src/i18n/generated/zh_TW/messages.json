@@ -3026,5 +3026,63 @@
   "diagnosticsCopySuccess": { "message": "已複製診斷資訊。" },
   "diagnosticsCopyFailed": { "message": "無法複製診斷資訊。" },
   "diagnosticsClearSuccess": { "message": "已清除近期失敗記錄。" },
-  "diagnosticsClearFailed": { "message": "無法清除近期失敗記錄。" }
+  "diagnosticsClearFailed": { "message": "無法清除近期失敗記錄。" },
+  "sourcePanelSelectFiltered": {
+    "message": "選取篩選結果"
+  },
+  "sourcePanelClearSelection": {
+    "message": "清除選取"
+  },
+  "sourcePanelSelectedCount": {
+    "message": "已選取 $COUNT$ 個",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "sourcePanelHiddenSelectedCount": {
+    "message": "已隱藏 $COUNT$ 個",
+    "placeholders": { "count": { "content": "$1", "example": "2" } }
+  },
+  "sourcePanelSaveSelected": {
+    "message": "儲存選取的來源"
+  },
+  "sourcePanelBatchConfirm": {
+    "message": "要儲存選取的 $COUNT$ 個來源嗎？",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "24"
+      }
+    }
+  },
+  "sourcePanelBatchContinue": {
+    "message": "儲存來源"
+  },
+  "sourcePanelBatchCancel": {
+    "message": "取消"
+  },
+  "sourcePanelBatchSaving": {
+    "message": "正在儲存 $COUNT$ 個來源…",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "8"
+      }
+    }
+  },
+  "sourcePanelBatchSaved": {
+    "message": "已開始 $COUNT$ 個下載",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "8"
+      }
+    }
+  },
+  "sourcePanelCreateAutomaticRule": {
+    "message": "建立自動規則"
+  }
 }

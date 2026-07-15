@@ -2985,5 +2985,63 @@
   },
   "diagnosticsClearFailed": {
     "message": "Impossible d’effacer les échecs récents."
+  },
+  "sourcePanelSelectFiltered": {
+    "message": "Sélectionner les sources filtrées"
+  },
+  "sourcePanelClearSelection": {
+    "message": "Effacer la sélection"
+  },
+  "sourcePanelSelectedCount": {
+    "message": "$COUNT$ sélectionnées",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "sourcePanelHiddenSelectedCount": {
+    "message": "$COUNT$ masquées",
+    "placeholders": { "count": { "content": "$1", "example": "2" } }
+  },
+  "sourcePanelSaveSelected": {
+    "message": "Enregistrer les sources sélectionnées"
+  },
+  "sourcePanelBatchConfirm": {
+    "message": "Enregistrer les $COUNT$ sources sélectionnées ?",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "24"
+      }
+    }
+  },
+  "sourcePanelBatchContinue": {
+    "message": "Enregistrer les sources"
+  },
+  "sourcePanelBatchCancel": {
+    "message": "Annuler"
+  },
+  "sourcePanelBatchSaving": {
+    "message": "Enregistrement de $COUNT$ sources…",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "8"
+      }
+    }
+  },
+  "sourcePanelBatchSaved": {
+    "message": "$COUNT$ téléchargements démarrés",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "8"
+      }
+    }
+  },
+  "sourcePanelCreateAutomaticRule": {
+    "message": "Créer une règle automatique"
   }
 }

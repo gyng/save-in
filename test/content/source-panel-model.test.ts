@@ -5,6 +5,7 @@ import {
   collectPageSourceCandidates,
   collectPageSources,
   collectResourceHintSources,
+  candidatesFromSrcset,
   createSourceTooltip,
   filterPageSources,
   formatSourceBytes,
@@ -59,6 +60,11 @@ describe("page source collection", () => {
       "first.jpg",
       "second.jpg",
     ]);
+    expect(candidatesFromSrcset("small.jpg 1x, wide.jpg 1200w, fallback.jpg")).toEqual([
+      { url: "small.jpg", descriptor: "1x" },
+      { url: "wide.jpg", descriptor: "1200w" },
+      { url: "fallback.jpg" },
+    ]);
   });
 
   test("parses quoted and unquoted CSS image URLs", () => {
@@ -101,12 +107,12 @@ describe("page source collection", () => {
 
     expect(
       collectPageSources(document, { includeBackgrounds: false, resourceHints: false }).map(
-        ({ url }) => url,
+        ({ url, responsive }) => [url, responsive],
       ),
     ).toEqual([
-      "http://localhost/selected.jpg",
-      "http://localhost/fallback.jpg",
-      "http://localhost/large.jpg",
+      ["http://localhost/selected.jpg", { descriptor: "1x", selected: true }],
+      ["http://localhost/fallback.jpg", { selected: false }],
+      ["http://localhost/large.jpg", { descriptor: "2x", selected: false }],
     ]);
   });
 

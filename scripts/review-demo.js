@@ -461,6 +461,30 @@ const installHotReload = (reload) => {
   };
 };
 
+/** @param {number} port @param {string} extensionId @param {number} demoPort */
+const waitForChromeReviewContent = (port, extensionId, demoPort) => {
+  const optionsTarget = `${extensionId}/src/options/options.html`;
+  const demoUrl = `http://127.0.0.1:${demoPort}/`;
+  return waitFor(
+    () =>
+      cdp.evalInTarget(
+        port,
+        optionsTarget,
+        `(async () => {
+          const tab = (await chrome.tabs.query({})).find(({ url }) => url === ${JSON.stringify(demoUrl)});
+          if (!tab?.id) return false;
+          try {
+            await chrome.tabs.sendMessage(tab.id, { type: "SET_SOURCE_PANEL", body: { open: false } });
+            return true;
+          } catch {
+            return false;
+          }
+        })()`,
+      ),
+    "Page Sources content script",
+  );
+};
+
 /** @param {number} port @param {number} demoPort */
 const reloadReviewSession = async (port, demoPort) => {
   chrome.stageBuild();
@@ -475,6 +499,7 @@ const reloadReviewSession = async (port, demoPort) => {
     optionsTabs = 1;
   }
   const demoTabs = await cdp.reloadTargets(port, `127.0.0.1:${demoPort}`);
+  if (demoTabs) await waitForChromeReviewContent(port, extensionId, demoPort);
   return { extensionId, optionsTabs, demoTabs };
 };
 
@@ -571,6 +596,10 @@ const main = async () => {
     );
     await cdp.evalInTarget(port, optionsTarget, "location.reload()");
     await cdp.openTab(port, `http://127.0.0.1:${demoPort}/`);
+    await waitForChromeReviewContent(port, extensionId, demoPort).catch(async () => {
+      await cdp.reloadTargets(port, `127.0.0.1:${demoPort}`);
+      await waitForChromeReviewContent(port, extensionId, demoPort);
+    });
 
     let reloading = false;
     let pendingReload = false;

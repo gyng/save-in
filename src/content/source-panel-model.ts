@@ -12,6 +12,12 @@ export type PageSource = {
   previewable?: boolean | undefined;
   detectedAt?: number | undefined;
   detectedOrder?: number | undefined;
+  responsive?:
+    | {
+        descriptor?: string | undefined;
+        selected: boolean;
+      }
+    | undefined;
 };
 export type SourcePanelOptions = {
   enabled?: boolean;
@@ -25,6 +31,7 @@ export type SourcePanelOptions = {
   theme?: UiTheme;
   onOpenChange?: (open: boolean) => void;
   onSaveIntent?: () => void;
+  onCreateRule?: (source: PageSource) => void | Promise<void>;
 };
 
 export type ResourceTimingByUrl = ReadonlyMap<string, PerformanceResourceTiming>;
@@ -45,8 +52,10 @@ const isAsciiWhitespace = (value: string | undefined): boolean =>
 
 // Mirrors the URL-token boundaries in the HTML srcset parser. In particular,
 // commas inside a non-whitespace URL (such as a data URL) are not separators.
-export const urlsFromSrcset = (input: string): string[] => {
-  const urls: string[] = [];
+export type SrcsetCandidate = { url: string; descriptor?: string | undefined };
+
+export const candidatesFromSrcset = (input: string): SrcsetCandidate[] => {
+  const candidates: SrcsetCandidate[] = [];
   let position = 0;
   while (position < input.length) {
     while (
@@ -61,11 +70,11 @@ export const urlsFromSrcset = (input: string): string[] => {
     let url = input.slice(start, position);
     if (url.endsWith(",")) {
       url = url.replace(/,+$/, "");
-      urls.push(url);
+      candidates.push({ url });
       continue;
     }
-    urls.push(url);
 
+    const descriptorStart = position;
     let parentheses = 0;
     while (position < input.length) {
       const character = input[position];
@@ -74,8 +83,32 @@ export const urlsFromSrcset = (input: string): string[] => {
       else if (character === ")" && parentheses > 0) parentheses -= 1;
       else if (character === "," && parentheses === 0) break;
     }
+    const descriptor = input
+      .slice(descriptorStart, position - (input[position - 1] === "," ? 1 : 0))
+      .trim();
+    candidates.push(descriptor ? { url, descriptor } : { url });
   }
-  return urls;
+  return candidates;
+};
+
+export const urlsFromSrcset = (input: string): string[] =>
+  candidatesFromSrcset(input).map(({ url }) => url);
+
+export const mergePageSourcesByUrl = (sources: PageSource[]): PageSource[] => {
+  const merged = new Map<string, PageSource>();
+  sources.forEach((source) => {
+    const existing = merged.get(source.url);
+    if (!existing) {
+      merged.set(source.url, source);
+      return;
+    }
+    if (!existing.responsive && source.responsive) existing.responsive = source.responsive;
+    else if (existing.responsive && source.responsive) {
+      existing.responsive.selected ||= source.responsive.selected;
+      existing.responsive.descriptor ||= source.responsive.descriptor;
+    }
+  });
+  return [...merged.values()];
 };
 
 const absoluteUrl = (value: string): string | null => {
@@ -364,6 +397,7 @@ export const collectPageSourceCandidates = (
     kind: PageSourceKind,
     element: Element,
     previewable = true,
+    responsive?: PageSource["responsive"],
   ) => {
     const url = value && absoluteUrl(value);
     if (url) {
@@ -374,6 +408,7 @@ export const collectPageSourceCandidates = (
         element,
         bytes: resourceBytes(timing?.encodedBodySize, timing?.transferSize),
         previewable,
+        responsive,
       });
     }
   };
@@ -381,26 +416,44 @@ export const collectPageSourceCandidates = (
   queryIncludingRoot<HTMLImageElement>(root, "img").forEach((element) => {
     const selectedUrl = element.currentSrc ? absoluteUrl(element.currentSrc) : null;
     const fallbackSource = element.getAttribute("src") || element.src;
-    add(element.currentSrc, "image", element);
+    const ownCandidates = candidatesFromSrcset(element.getAttribute("srcset") || "");
+    const pictureCandidates: SrcsetCandidate[] = [];
+    if (element.parentElement?.matches("picture")) {
+      for (const sibling of element.parentElement.children) {
+        if (sibling === element) break;
+        if (sibling instanceof HTMLSourceElement)
+          pictureCandidates.push(...candidatesFromSrcset(sibling.getAttribute("srcset") || ""));
+      }
+    }
+    const hasResponsiveCandidates = ownCandidates.length + pictureCandidates.length > 0;
+    add(
+      element.currentSrc,
+      "image",
+      element,
+      true,
+      hasResponsiveCandidates ? { selected: true } : undefined,
+    );
     add(
       fallbackSource,
       "image",
       element,
       !selectedUrl || absoluteUrl(fallbackSource) === selectedUrl,
+      hasResponsiveCandidates
+        ? { selected: !selectedUrl || absoluteUrl(fallbackSource) === selectedUrl }
+        : undefined,
     );
-    urlsFromSrcset(element.getAttribute("srcset") || "").forEach((candidate) =>
-      add(candidate, "image", element, absoluteUrl(candidate) === selectedUrl),
+    ownCandidates.forEach((candidate) =>
+      add(candidate.url, "image", element, absoluteUrl(candidate.url) === selectedUrl, {
+        descriptor: candidate.descriptor,
+        selected: absoluteUrl(candidate.url) === selectedUrl,
+      }),
     );
-    if (element.parentElement?.matches("picture")) {
-      for (const sibling of element.parentElement.children) {
-        if (sibling === element) break;
-        if (sibling instanceof HTMLSourceElement) {
-          urlsFromSrcset(sibling.getAttribute("srcset") || "").forEach((candidate) =>
-            add(candidate, "image", element, absoluteUrl(candidate) === selectedUrl),
-          );
-        }
-      }
-    }
+    pictureCandidates.forEach((candidate) =>
+      add(candidate.url, "image", element, absoluteUrl(candidate.url) === selectedUrl, {
+        descriptor: candidate.descriptor,
+        selected: absoluteUrl(candidate.url) === selectedUrl,
+      }),
+    );
   });
   queryIncludingRoot<HTMLMediaElement>(root, "video, audio").forEach((element) => {
     const kind = element instanceof HTMLVideoElement ? "video" : "audio";
@@ -411,8 +464,11 @@ export const collectPageSourceCandidates = (
     element.querySelectorAll<HTMLSourceElement>("source").forEach((source) => {
       const sourceUrl = source.getAttribute("src") || source.src;
       add(sourceUrl, kind, element, absoluteUrl(sourceUrl) === selectedUrl);
-      urlsFromSrcset(source.getAttribute("srcset") || "").forEach((candidate) =>
-        add(candidate, kind, element, absoluteUrl(candidate) === selectedUrl),
+      candidatesFromSrcset(source.getAttribute("srcset") || "").forEach((candidate) =>
+        add(candidate.url, kind, element, absoluteUrl(candidate.url) === selectedUrl, {
+          descriptor: candidate.descriptor,
+          selected: absoluteUrl(candidate.url) === selectedUrl,
+        }),
       );
     });
   });
@@ -449,8 +505,5 @@ export const collectPageSources = (
   root: ParentNode = document,
   options: SourcePanelOptions = {},
 ): PageSource[] => {
-  const seen = new Set<string>();
-  return collectPageSourceCandidates(root, options).filter(
-    ({ url }) => !seen.has(url) && Boolean(seen.add(url)),
-  );
+  return mergePageSourcesByUrl(collectPageSourceCandidates(root, options));
 };

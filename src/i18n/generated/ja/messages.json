@@ -2946,5 +2946,63 @@
   "diagnosticsCopySuccess": { "message": "診断情報をコピーしました。" },
   "diagnosticsCopyFailed": { "message": "診断情報をコピーできませんでした。" },
   "diagnosticsClearSuccess": { "message": "最近の失敗を消去しました。" },
-  "diagnosticsClearFailed": { "message": "最近の失敗を消去できませんでした。" }
+  "diagnosticsClearFailed": { "message": "最近の失敗を消去できませんでした。" },
+  "sourcePanelSelectFiltered": {
+    "message": "絞り込み結果を選択"
+  },
+  "sourcePanelClearSelection": {
+    "message": "選択を解除"
+  },
+  "sourcePanelSelectedCount": {
+    "message": "$COUNT$件を選択中",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "sourcePanelHiddenSelectedCount": {
+    "message": "$COUNT$件が非表示",
+    "placeholders": { "count": { "content": "$1", "example": "2" } }
+  },
+  "sourcePanelSaveSelected": {
+    "message": "選択項目を保存"
+  },
+  "sourcePanelBatchConfirm": {
+    "message": "選択した$COUNT$件のソースを保存しますか？",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "24"
+      }
+    }
+  },
+  "sourcePanelBatchContinue": {
+    "message": "ソースを保存"
+  },
+  "sourcePanelBatchCancel": {
+    "message": "キャンセル"
+  },
+  "sourcePanelBatchSaving": {
+    "message": "$COUNT$件のソースを保存中…",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "8"
+      }
+    }
+  },
+  "sourcePanelBatchSaved": {
+    "message": "$COUNT$件のダウンロードを開始しました",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "8"
+      }
+    }
+  },
+  "sourcePanelCreateAutomaticRule": {
+    "message": "自動ルールを作成"
+  }
 }

@@ -2946,5 +2946,63 @@
   "diagnosticsCopySuccess": { "message": "진단 정보를 복사했습니다." },
   "diagnosticsCopyFailed": { "message": "진단 정보를 복사할 수 없습니다." },
   "diagnosticsClearSuccess": { "message": "최근 실패를 지웠습니다." },
-  "diagnosticsClearFailed": { "message": "최근 실패를 지울 수 없습니다." }
+  "diagnosticsClearFailed": { "message": "최근 실패를 지울 수 없습니다." },
+  "sourcePanelSelectFiltered": {
+    "message": "필터링된 항목 선택"
+  },
+  "sourcePanelClearSelection": {
+    "message": "선택 해제"
+  },
+  "sourcePanelSelectedCount": {
+    "message": "$COUNT$개 선택됨",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "sourcePanelHiddenSelectedCount": {
+    "message": "$COUNT$개 숨김",
+    "placeholders": { "count": { "content": "$1", "example": "2" } }
+  },
+  "sourcePanelSaveSelected": {
+    "message": "선택 항목 저장"
+  },
+  "sourcePanelBatchConfirm": {
+    "message": "선택한 소스 $COUNT$개를 저장할까요?",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "24"
+      }
+    }
+  },
+  "sourcePanelBatchContinue": {
+    "message": "소스 저장"
+  },
+  "sourcePanelBatchCancel": {
+    "message": "취소"
+  },
+  "sourcePanelBatchSaving": {
+    "message": "소스 $COUNT$개 저장 중…",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "8"
+      }
+    }
+  },
+  "sourcePanelBatchSaved": {
+    "message": "다운로드 $COUNT$개를 시작했습니다",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "8"
+      }
+    }
+  },
+  "sourcePanelCreateAutomaticRule": {
+    "message": "자동 규칙 만들기"
+  }
 }

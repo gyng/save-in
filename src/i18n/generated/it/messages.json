@@ -3153,5 +3153,63 @@
   },
   "diagnosticsClearFailed": {
     "message": "Impossibile cancellare gli errori recenti."
+  },
+  "sourcePanelSelectFiltered": {
+    "message": "Seleziona le fonti filtrate"
+  },
+  "sourcePanelClearSelection": {
+    "message": "Deseleziona tutto"
+  },
+  "sourcePanelSelectedCount": {
+    "message": "$COUNT$ selezionate",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "sourcePanelHiddenSelectedCount": {
+    "message": "$COUNT$ nascoste",
+    "placeholders": { "count": { "content": "$1", "example": "2" } }
+  },
+  "sourcePanelSaveSelected": {
+    "message": "Salva le fonti selezionate"
+  },
+  "sourcePanelBatchConfirm": {
+    "message": "Salvare $COUNT$ fonti selezionate?",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "24"
+      }
+    }
+  },
+  "sourcePanelBatchContinue": {
+    "message": "Salva fonti"
+  },
+  "sourcePanelBatchCancel": {
+    "message": "Annulla"
+  },
+  "sourcePanelBatchSaving": {
+    "message": "Salvataggio di $COUNT$ fonti…",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "8"
+      }
+    }
+  },
+  "sourcePanelBatchSaved": {
+    "message": "Avviati $COUNT$ download",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "8"
+      }
+    }
+  },
+  "sourcePanelCreateAutomaticRule": {
+    "message": "Crea regola automatica"
   }
 }

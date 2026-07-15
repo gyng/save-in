@@ -200,7 +200,7 @@ describe("Page Sources panel interactions", () => {
     expect(getSourcePanelHostForTesting()!.dataset.dock).toBe("bottom");
   });
 
-  test("keeps row actions clickable and closes menus only for outside interaction", () => {
+  test("keeps row actions clickable and supports keyboard-complete menus", async () => {
     document.body.innerHTML = `<img src="cat.jpg">`;
     const image = document.querySelector<HTMLImageElement>("img")!;
     image.scrollIntoView = vi.fn();
@@ -213,11 +213,24 @@ describe("Page Sources panel interactions", () => {
     const locate = rowMore.querySelector<HTMLButtonElement>("button")!;
 
     moreTrigger.click();
+    await Promise.resolve();
+    expect(shadow.activeElement).toBe(locate);
     locate.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, composed: true }));
     expect(rowMore.open).toBe(true);
     expect(locate.closest(".panel")).not.toBeNull();
     locate.click();
     expect(image.scrollIntoView).toHaveBeenCalledOnce();
+
+    dockTrigger.click();
+    await Promise.resolve();
+    const dockItems = [...shadow.querySelectorAll<HTMLButtonElement>(".dock-menu button")];
+    expect(dockTrigger.getAttribute("aria-controls")).toBe(dockItems[0]?.parentElement?.id);
+    expect(shadow.activeElement).toBe(dockItems[0]);
+    dockItems[0]?.dispatchEvent(new KeyboardEvent("keydown", { key: "End", bubbles: true }));
+    expect(shadow.activeElement).toBe(dockItems.at(-1));
+    dockItems.at(-1)?.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    expect(dockPicker.open).toBe(false);
+    expect(shadow.activeElement).toBe(dockTrigger);
 
     dockTrigger.click();
     document.body.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
@@ -1377,6 +1390,134 @@ describe("Page Sources panel interactions", () => {
     save.dispatchEvent(new MouseEvent("click", { bubbles: true, button: 0, altKey: true }));
 
     expect(sendDownload).toHaveBeenCalledOnce();
+  });
+
+  test("selects filtered sources and submits the batch sequentially", async () => {
+    document.body.innerHTML = `<img src="cat.jpg"><img src="dog.jpg"><a href="paper.pdf">Paper</a>`;
+    const order: string[] = [];
+    const sendDownload = vi.fn(async ({ url }: { url: string }) => {
+      order.push(url);
+      return true;
+    });
+    toggleSourcePanel(sendDownload, {
+      includeBackgrounds: false,
+      includeLinks: true,
+      live: false,
+    });
+    const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
+    expect(shadow.querySelector<HTMLElement>(".selection-count")!.hidden).toBe(true);
+    expect(shadow.querySelector<HTMLButtonElement>(".batch-save")!.hidden).toBe(true);
+    const filter = shadow.querySelector<HTMLInputElement>('input[type="search"]')!;
+    filter.value = ".jpg";
+    filter.dispatchEvent(new Event("input"));
+    await vi.waitFor(() => expect(shadow.querySelectorAll(".row")).toHaveLength(2));
+    const select = [...shadow.querySelectorAll<HTMLButtonElement>(".selection-bar button")].find(
+      ({ textContent }) => textContent === "Select filtered",
+    )!;
+    select.click();
+    expect(shadow.querySelector<HTMLElement>(".selection-count")!.hidden).toBe(false);
+    expect(select.hidden).toBe(true);
+    filter.value = ".pdf";
+    filter.dispatchEvent(new Event("input"));
+    await vi.waitFor(() =>
+      expect(shadow.querySelector(".hidden-selection-count")?.textContent).toBe("2 hidden"),
+    );
+    shadow.querySelector<HTMLButtonElement>(".batch-save")!.click();
+
+    await vi.waitFor(() => expect(sendDownload).toHaveBeenCalledTimes(2));
+    expect(order[0]).toContain("cat.jpg");
+    expect(order[1]).toContain("dog.jpg");
+    expect(shadow.querySelector(".selection-count")?.textContent).toBe("0 selected");
+  });
+
+  test("paints one checkbox state across rows while dragging", () => {
+    document.body.innerHTML = `<img src="one.jpg"><img src="two.jpg"><img src="three.jpg">`;
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
+    const inputs = [...shadow.querySelectorAll<HTMLInputElement>(".source-selection input")];
+    let hit: Element = inputs[0]!;
+    Object.defineProperty(shadow, "elementFromPoint", {
+      configurable: true,
+      value: vi.fn(() => hit),
+    });
+    const pointer = (type: string) =>
+      new PointerEvent(type, {
+        bubbles: true,
+        button: 0,
+        clientX: 10,
+        clientY: 10,
+        pointerId: 7,
+      });
+
+    inputs[0]!.dispatchEvent(pointer("pointerdown"));
+    hit = inputs[1]!;
+    document.dispatchEvent(pointer("pointermove"));
+    hit = inputs[2]!;
+    document.dispatchEvent(pointer("pointermove"));
+    document.dispatchEvent(pointer("pointerup"));
+    expect(inputs.map(({ checked }) => checked)).toEqual([true, true, true]);
+
+    hit = inputs[1]!;
+    inputs[1]!.dispatchEvent(pointer("pointerdown"));
+    hit = inputs[0]!;
+    document.dispatchEvent(pointer("pointermove"));
+    document.dispatchEvent(pointer("pointerup"));
+    expect(inputs.map(({ checked }) => checked)).toEqual([false, false, true]);
+  });
+
+  test("labels the selected responsive source and its descriptors", () => {
+    document.body.innerHTML = `<img src="fallback.jpg" srcset="selected.jpg 1x, large.jpg 2x">`;
+    const image = document.querySelector("img")!;
+    Object.defineProperty(image, "currentSrc", {
+      configurable: true,
+      value: "http://localhost/selected.jpg",
+    });
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    const rows = [...getSourcePanelHostForTesting()!.shadowRoot!.querySelectorAll(".row")];
+
+    expect(rows[0]?.querySelector(".meta-details")?.textContent).toContain("1x");
+    expect(rows[0]?.querySelector(".current-source")?.textContent).toBe("Current");
+    const large = rows.find((row) =>
+      row.querySelector<HTMLAnchorElement>(".source-link")?.href.endsWith("/large.jpg"),
+    );
+    expect(large?.querySelector(".meta-details")?.textContent).toContain("2x");
+  });
+
+  test("confirms a batch larger than twenty sources", async () => {
+    document.body.innerHTML = Array.from(
+      { length: 21 },
+      (_, index) => `<img src="image-${index}.jpg">`,
+    ).join("");
+    const sendDownload = vi.fn().mockResolvedValue(true);
+    toggleSourcePanel(sendDownload, { includeBackgrounds: false, live: false });
+    const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
+    const buttons = [...shadow.querySelectorAll<HTMLButtonElement>(".selection-bar button")];
+    buttons.find(({ textContent }) => textContent === "Select filtered")!.click();
+    shadow.querySelector<HTMLButtonElement>(".batch-save")!.click();
+
+    expect(sendDownload).not.toHaveBeenCalled();
+    expect(shadow.querySelector(".batch-dialog")?.hasAttribute("open")).toBe(true);
+    const proceed = [...shadow.querySelectorAll<HTMLButtonElement>(".batch-dialog button")].find(
+      ({ textContent }) => textContent === "Save sources",
+    )!;
+    proceed.click();
+    await vi.waitFor(() => expect(sendDownload).toHaveBeenCalledTimes(21));
+  });
+
+  test("offers an automatic rule draft for each source", () => {
+    document.body.innerHTML = `<img src="cat.jpg">`;
+    const onCreateRule = vi.fn();
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false, onCreateRule });
+    const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
+    const action = [...shadow.querySelectorAll<HTMLButtonElement>(".action-menu button")].find(
+      ({ textContent }) => textContent === "Create automatic rule",
+    )!;
+
+    action.click();
+
+    expect(onCreateRule).toHaveBeenCalledWith(
+      expect.objectContaining({ kind: "image", url: expect.stringContaining("cat.jpg") }),
+    );
   });
 
   test("Alt-clicking non-save action buttons does not trigger a row download", () => {

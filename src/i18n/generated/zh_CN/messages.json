@@ -2928,5 +2928,63 @@
   "diagnosticsCopySuccess": { "message": "已复制诊断信息。" },
   "diagnosticsCopyFailed": { "message": "无法复制诊断信息。" },
   "diagnosticsClearSuccess": { "message": "已清除近期失败记录。" },
-  "diagnosticsClearFailed": { "message": "无法清除近期失败记录。" }
+  "diagnosticsClearFailed": { "message": "无法清除近期失败记录。" },
+  "sourcePanelSelectFiltered": {
+    "message": "选择筛选结果"
+  },
+  "sourcePanelClearSelection": {
+    "message": "清除所选项"
+  },
+  "sourcePanelSelectedCount": {
+    "message": "已选择 $COUNT$ 个",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "sourcePanelHiddenSelectedCount": {
+    "message": "$COUNT$ 个已隐藏",
+    "placeholders": { "count": { "content": "$1", "example": "2" } }
+  },
+  "sourcePanelSaveSelected": {
+    "message": "保存所选项"
+  },
+  "sourcePanelBatchConfirm": {
+    "message": "要保存所选的 $COUNT$ 个来源吗？",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "24"
+      }
+    }
+  },
+  "sourcePanelBatchContinue": {
+    "message": "保存来源"
+  },
+  "sourcePanelBatchCancel": {
+    "message": "取消"
+  },
+  "sourcePanelBatchSaving": {
+    "message": "正在保存 $COUNT$ 个来源…",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "8"
+      }
+    }
+  },
+  "sourcePanelBatchSaved": {
+    "message": "已开始 $COUNT$ 个下载",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "8"
+      }
+    }
+  },
+  "sourcePanelCreateAutomaticRule": {
+    "message": "创建自动规则"
+  }
 }

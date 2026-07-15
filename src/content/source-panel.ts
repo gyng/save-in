@@ -12,6 +12,7 @@ import {
   sortPageSources,
   resourceTimingByUrl,
   isPerformanceResourceTiming,
+  mergePageSourcesByUrl,
   type PageSource,
   type PageSourceKind,
   type SourcePanelOptions,
@@ -44,6 +45,7 @@ export {
   filterPageSources,
   sortPageSources,
   resourceTimingByUrl,
+  candidatesFromSrcset,
   urlsFromSrcset,
   type PageSource,
   type PageSourceKind,
@@ -67,7 +69,7 @@ type SourcePanelLayout = {
 };
 const DEFAULT_SOURCE_PANEL_LAYOUT: SourcePanelLayout = {
   placement: "right",
-  sideWidth: 360,
+  sideWidth: 400,
   dockHeight: 420,
   floatingLeft: 80,
   floatingTop: 80,
@@ -127,9 +129,10 @@ const panelCloseTimers = new WeakMap<Element, number>();
 const panelPreviousFocus = new WeakMap<Element, HTMLElement>();
 const panelRoots = new WeakMap<HTMLElement, ShadowRoot>();
 const panelOpenChanges = new WeakMap<HTMLElement, (open: boolean) => void>();
+export type SourcePanelDownload = (source: PageSource) => void | boolean | Promise<void | boolean>;
 const panelUpdates = new WeakMap<
   HTMLElement,
-  (sendDownload: (source: PageSource) => void, options: SourcePanelOptions) => void
+  (sendDownload: SourcePanelDownload, options: SourcePanelOptions) => void
 >();
 let activePanelHost: HTMLElement | null = null;
 
@@ -294,7 +297,7 @@ const getPanelFormatters = (locale?: string) => {
 };
 
 export const toggleSourcePanel = (
-  sendDownload: (source: PageSource) => void,
+  sendDownload: SourcePanelDownload,
   options: SourcePanelOptions = {},
 ): boolean => {
   if (activePanelHost && !activePanelHost.isConnected) cleanupPanelHost(activePanelHost);
@@ -369,6 +372,7 @@ export const toggleSourcePanel = (
   panel.className = "panel";
   panel.setAttribute("role", "dialog");
   panel.setAttribute("aria-label", copy.title);
+  let panelMenuSequence = 0;
   const setPanelMenuOpen = (
     details: HTMLDetailsElement,
     trigger: HTMLElement,
@@ -385,13 +389,44 @@ export const toggleSourcePanel = (
       panel.append(menu);
       openPanelMenus.set(details, { trigger, menu });
       schedulePanelMenuPosition();
+      queueMicrotask(() => {
+        if (details.open)
+          menu.querySelector<HTMLElement>('[role^="menuitem"]:not([disabled])')?.focus();
+      });
       return;
     }
+    const restoreFocus = menu.contains(shadow.activeElement);
     openPanelMenus.delete(details);
     details.open = false;
     trigger.setAttribute("aria-expanded", "false");
     menu.hidden = true;
     details.append(menu);
+    if (restoreFocus) trigger.focus();
+  };
+  const wirePanelMenu = (details: HTMLDetailsElement, trigger: HTMLElement, menu: HTMLElement) => {
+    menu.id = `save-in-source-panel-menu-${++panelMenuSequence}`;
+    trigger.setAttribute("aria-controls", menu.id);
+    menu.addEventListener("keydown", (event) => {
+      const items = [...menu.querySelectorAll<HTMLElement>('[role^="menuitem"]')].filter(
+        (item) => !(item instanceof HTMLButtonElement) || !item.disabled,
+      );
+      if (items.length === 0) return;
+      const activeIndex = items.indexOf(shadow.activeElement as HTMLElement);
+      let nextIndex: number | undefined;
+      if (event.key === "ArrowDown") nextIndex = (activeIndex + 1) % items.length;
+      else if (event.key === "ArrowUp") nextIndex = (activeIndex - 1 + items.length) % items.length;
+      else if (event.key === "Home") nextIndex = 0;
+      else if (event.key === "End") nextIndex = items.length - 1;
+      else if (event.key === "Escape") {
+        event.preventDefault();
+        event.stopPropagation();
+        setPanelMenuOpen(details, trigger, menu, false);
+        trigger.focus();
+        return;
+      } else return;
+      event.preventDefault();
+      items[nextIndex]?.focus();
+    });
   };
   let layout = { ...sourcePanelLayout };
   const currentDock = (): PanelDock =>
@@ -403,6 +438,7 @@ export const toggleSourcePanel = (
   resize.className = "resize";
   resize.tabIndex = 0;
   resize.setAttribute("aria-label", copy.resizeLabel);
+  resize.title = copy.resizeLabel;
   let updatePlacementControls = () => {};
   const updateResizeAccessibility = () => {
     const placement = layout.placement;
@@ -530,6 +566,12 @@ export const toggleSourcePanel = (
     applyLayout();
     commitLayout();
   });
+  resize.addEventListener("dblclick", () => {
+    const placement = layout.placement;
+    layout = { ...DEFAULT_SOURCE_PANEL_LAYOUT, placement };
+    applyLayout();
+    commitLayout();
+  });
   const header = document.createElement("header");
   const title = document.createElement("h2");
   const close = document.createElement("button");
@@ -578,6 +620,7 @@ export const toggleSourcePanel = (
     });
   };
   dockPicker.append(dockButton, dockMenu);
+  wirePanelMenu(dockPicker, dockButton, dockMenu);
   dockButton.addEventListener("click", (event) => {
     event.preventDefault();
     setPanelMenuOpen(dockPicker, dockButton, dockMenu, !dockPicker.open);
@@ -664,6 +707,11 @@ export const toggleSourcePanel = (
     dockButton.setAttribute("aria-label", copy.changeDockLabel);
     copyUrls.setAttribute("aria-label", copy.copyFilteredUrlsLabel);
     copyUrls.title = copy.copyFilteredUrls;
+    selectFiltered.textContent = copy.selectFiltered;
+    clearSelection.textContent = copy.clearSelection;
+    saveSelected.textContent = copy.saveSelected;
+    cancelBatch.textContent = copy.batchCancel;
+    continueBatch.textContent = copy.batchContinue;
     filter.placeholder = copy.filterSources;
     filter.setAttribute("aria-label", copy.filterLabel);
     sort.setAttribute("aria-label", copy.sortLabel);
@@ -681,6 +729,44 @@ export const toggleSourcePanel = (
   const facets = document.createElement("div");
   facets.className = "facets";
   facets.setAttribute("aria-label", copy.filterLabel);
+  const selectionBar = document.createElement("div");
+  selectionBar.className = "selection-bar";
+  selectionBar.setAttribute("role", "toolbar");
+  selectionBar.setAttribute("aria-label", copy.saveSelected);
+  const selectionCount = document.createElement("span");
+  selectionCount.className = "selection-count";
+  const selectedCount = document.createElement("span");
+  const hiddenSelectedCount = document.createElement("span");
+  hiddenSelectedCount.className = "hidden-selection-count";
+  selectionCount.append(selectedCount, hiddenSelectedCount);
+  const selectFiltered = document.createElement("button");
+  selectFiltered.type = "button";
+  const clearSelection = document.createElement("button");
+  clearSelection.type = "button";
+  const saveSelected = document.createElement("button");
+  saveSelected.type = "button";
+  saveSelected.className = "batch-save";
+  selectionBar.append(selectionCount, selectFiltered, clearSelection, saveSelected);
+  const batchDialog = document.createElement("dialog");
+  batchDialog.className = "batch-dialog";
+  const batchQuestion = document.createElement("p");
+  batchQuestion.id = "save-in-source-panel-batch-question";
+  batchDialog.setAttribute("aria-label", copy.batchContinue);
+  batchDialog.setAttribute("aria-describedby", batchQuestion.id);
+  const batchDialogActions = document.createElement("div");
+  batchDialogActions.className = "batch-dialog-actions";
+  const cancelBatch = document.createElement("button");
+  cancelBatch.type = "button";
+  const continueBatch = document.createElement("button");
+  continueBatch.type = "button";
+  continueBatch.className = "primary-action";
+  selectFiltered.textContent = copy.selectFiltered;
+  clearSelection.textContent = copy.clearSelection;
+  saveSelected.textContent = copy.saveSelected;
+  cancelBatch.textContent = copy.batchCancel;
+  continueBatch.textContent = copy.batchContinue;
+  batchDialogActions.append(cancelBatch, continueBatch);
+  batchDialog.append(batchQuestion, batchDialogActions);
   const liveStatus = document.createElement("div");
   liveStatus.className = "visually-hidden live-status";
   liveStatus.setAttribute("role", "status");
@@ -717,12 +803,16 @@ export const toggleSourcePanel = (
   let backgroundCandidates: PageSource[] = [];
   let allSources: PageSource[] = [];
   let visibleSources: PageSource[] = [];
+  const selectedSourceUrls = new Set<string>();
+  let batchSaving = false;
+  const suppressedSelectionClicks = new WeakSet<HTMLInputElement>();
   let resourceHintSources: PageSource[] = [];
   type CachedRow = {
     source: PageSource;
     row: HTMLElement;
     deactivate: () => void;
     updateBytes: (bytes: number | undefined) => void;
+    updateSelection: (selected: boolean, disabled: boolean) => void;
   };
   const rowCache = new Map<string, CachedRow>();
   const cachedRows = new WeakMap<HTMLElement, CachedRow>();
@@ -764,11 +854,13 @@ export const toggleSourcePanel = (
     previewObserver.observe(preview);
   };
   const commitSources = () => {
-    const seen = new Set<string>();
-    allSources = [sourceCandidates, backgroundCandidates, resourceHintSources]
-      .flat()
-      .filter(({ url }) => !seen.has(url) && Boolean(seen.add(url)));
+    allSources = mergePageSourcesByUrl(
+      [sourceCandidates, backgroundCandidates, resourceHintSources].flat(),
+    );
     const presentUrls = new Set(allSources.map(({ url }) => url));
+    selectedSourceUrls.forEach((url) => {
+      if (!presentUrls.has(url)) selectedSourceUrls.delete(url);
+    });
     firstSeen.forEach((_value, url) => {
       if (!presentUrls.has(url)) firstSeen.delete(url);
     });
@@ -906,6 +998,163 @@ export const toggleSourcePanel = (
       url: `${parsed.hostname}${path === "/" ? "" : path}`,
     };
   };
+  const updateSelectionUi = () => {
+    const count = selectedSourceUrls.size;
+    selectedCount.textContent = formatSourcePanelCopy(
+      copy.selectedCountTemplate,
+      SOURCE_PANEL_COPY_VALUE_SLOT,
+      count,
+    );
+    const visibleUrls = new Set(visibleSources.map(({ url }) => url));
+    const hiddenCount = [...selectedSourceUrls].filter((url) => !visibleUrls.has(url)).length;
+    hiddenSelectedCount.hidden = hiddenCount === 0;
+    hiddenSelectedCount.textContent = hiddenCount
+      ? formatSourcePanelCopy(
+          copy.hiddenSelectedCountTemplate,
+          SOURCE_PANEL_COPY_VALUE_SLOT,
+          hiddenCount,
+        )
+      : "";
+    const hasSelection = count > 0;
+    selectionBar.hidden = !hasSelection && visibleSources.length === 0;
+    selectionBar.dataset.hasSelection = String(hasSelection);
+    selectionCount.hidden = !hasSelection;
+    selectFiltered.hidden = hasSelection;
+    clearSelection.hidden = !hasSelection;
+    saveSelected.hidden = !hasSelection;
+    clearSelection.disabled = batchSaving;
+    saveSelected.disabled = batchSaving;
+    selectFiltered.disabled = batchSaving || visibleSources.length === 0;
+    selectionBar.setAttribute("aria-busy", String(batchSaving));
+    list.inert = batchSaving;
+    list.setAttribute("aria-busy", String(batchSaving));
+    rowCache.forEach((cached, url) =>
+      cached.updateSelection(selectedSourceUrls.has(url), batchSaving),
+    );
+  };
+  type SelectionPaint = {
+    pointerId: number;
+    selected: boolean;
+    visited: Set<string>;
+  };
+  let selectionPaint: SelectionPaint | null = null;
+  const paintSelection = (input: HTMLInputElement) => {
+    const url = input.dataset.sourceUrl;
+    if (!selectionPaint || !url || selectionPaint.visited.has(url)) return;
+    selectionPaint.visited.add(url);
+    if (selectionPaint.selected) selectedSourceUrls.add(url);
+    else selectedSourceUrls.delete(url);
+    updateSelectionUi();
+  };
+  const selectionInputAt = (event: PointerEvent): HTMLInputElement | null => {
+    const hit = shadow.elementFromPoint?.(event.clientX, event.clientY);
+    const target = hit || (event.composedPath()[0] as Element | undefined);
+    return target instanceof Element
+      ? target.closest(".row")?.querySelector<HTMLInputElement>(".source-selection input") || null
+      : null;
+  };
+  const moveSelectionPaint = (event: PointerEvent) => {
+    if (!selectionPaint || event.pointerId !== selectionPaint.pointerId) return;
+    const input = selectionInputAt(event);
+    if (input) paintSelection(input);
+  };
+  const finishSelectionPaint = (event: PointerEvent) => {
+    if (!selectionPaint || event.pointerId !== selectionPaint.pointerId) return;
+    const count = selectedSourceUrls.size;
+    selectionPaint = null;
+    delete panel.dataset.selecting;
+    document.removeEventListener("pointermove", moveSelectionPaint, true);
+    document.removeEventListener("pointerup", finishSelectionPaint, true);
+    document.removeEventListener("pointercancel", finishSelectionPaint, true);
+    announce(
+      formatSourcePanelCopy(copy.selectedCountTemplate, SOURCE_PANEL_COPY_VALUE_SLOT, count),
+    );
+  };
+  const startSelectionPaint = (event: PointerEvent, input: HTMLInputElement) => {
+    if (batchSaving || event.button !== 0) return;
+    const url = input.dataset.sourceUrl;
+    if (!url) return;
+    event.preventDefault();
+    selectionPaint = {
+      pointerId: event.pointerId,
+      selected: !selectedSourceUrls.has(url),
+      visited: new Set(),
+    };
+    panel.dataset.selecting = selectionPaint.selected ? "select" : "clear";
+    suppressedSelectionClicks.add(input);
+    paintSelection(input);
+    try {
+      input.setPointerCapture(event.pointerId);
+    } catch {
+      // Pointer capture is unavailable in some embedded page contexts.
+    }
+    document.addEventListener("pointermove", moveSelectionPaint, true);
+    document.addEventListener("pointerup", finishSelectionPaint, true);
+    document.addEventListener("pointercancel", finishSelectionPaint, true);
+  };
+  const confirmLargeBatch = (count: number): Promise<boolean> => {
+    if (count <= 20) return Promise.resolve(true);
+    batchQuestion.textContent = formatSourcePanelCopy(
+      copy.batchConfirmTemplate,
+      SOURCE_PANEL_COPY_VALUE_SLOT,
+      count,
+    );
+    return new Promise((resolve) => {
+      function finish(accepted: boolean) {
+        cancelBatch.removeEventListener("click", cancel);
+        continueBatch.removeEventListener("click", proceed);
+        batchDialog.removeEventListener("cancel", cancel);
+        if (typeof batchDialog.close === "function") batchDialog.close();
+        else batchDialog.removeAttribute("open");
+        resolve(accepted);
+      }
+      function cancel() {
+        finish(false);
+      }
+      function proceed() {
+        finish(true);
+      }
+      cancelBatch.addEventListener("click", cancel);
+      continueBatch.addEventListener("click", proceed);
+      batchDialog.addEventListener("cancel", cancel);
+      if (typeof batchDialog.showModal === "function") batchDialog.showModal();
+      else batchDialog.setAttribute("open", "");
+    });
+  };
+  const saveSelectedSources = async () => {
+    const sources = allSources.filter(({ url }) => selectedSourceUrls.has(url));
+    if (sources.length === 0 || !(await confirmLargeBatch(sources.length))) return;
+    batchSaving = true;
+    updateSelectionUi();
+    panelOptions.onSaveIntent?.();
+    let started = 0;
+    for (const [index, source] of sources.entries()) {
+      saveSelected.textContent = formatSourcePanelCopy(
+        copy.batchSavingTemplate,
+        SOURCE_PANEL_COPY_VALUE_SLOT,
+        `${index + 1}/${sources.length}`,
+      );
+      try {
+        if ((await panelSendDownload(source)) !== false) started += 1;
+      } catch {
+        // Continue the explicit batch when one source is rejected.
+      }
+    }
+    batchSaving = false;
+    selectedSourceUrls.clear();
+    saveSelected.textContent = copy.saveSelected;
+    updateSelectionUi();
+    announce(formatSourcePanelCopy(copy.batchSavedTemplate, SOURCE_PANEL_COPY_VALUE_SLOT, started));
+  };
+  selectFiltered.addEventListener("click", () => {
+    visibleSources.forEach(({ url }) => selectedSourceUrls.add(url));
+    updateSelectionUi();
+  });
+  clearSelection.addEventListener("click", () => {
+    selectedSourceUrls.clear();
+    updateSelectionUi();
+  });
+  saveSelected.addEventListener("click", () => void saveSelectedSources());
   const render = () => {
     previewObserver?.disconnect();
     const sourceSort = isSourceSort(sort.value) ? sort.value : "relevance";
@@ -914,6 +1163,7 @@ export const toggleSourcePanel = (
       sourceSort,
     );
     visibleSources = sources;
+    updateSelectionUi();
     title.textContent = copy.title;
     const totalCount = formatSourcePanelCopy(
       copy.sourceCountTemplate,
@@ -1004,10 +1254,13 @@ export const toggleSourcePanel = (
         cached &&
         cached.source.kind === source.kind &&
         cached.source.element === source.element &&
-        cached.source.previewable === source.previewable
+        cached.source.previewable === source.previewable &&
+        cached.source.responsive?.descriptor === source.responsive?.descriptor &&
+        cached.source.responsive?.selected === source.responsive?.selected
       ) {
         if (cached.source.bytes !== source.bytes) cached.updateBytes(source.bytes);
         cached.source = source;
+        cached.updateSelection(selectedSourceUrls.has(source.url), batchSaving);
         const preview = cached.row.querySelector<HTMLImageElement | HTMLMediaElement>("img, video");
         if (previewObserver && preview && !preview.hasAttribute("src")) {
           previewObserver.observe(preview);
@@ -1019,6 +1272,29 @@ export const toggleSourcePanel = (
       const row = document.createElement("li");
       row.className = "row";
       row.dataset.kind = source.kind;
+      const selection = document.createElement("label");
+      selection.className = "source-selection";
+      const selectionInput = document.createElement("input");
+      selectionInput.type = "checkbox";
+      selectionInput.dataset.sourceUrl = source.url;
+      selectionInput.checked = selectedSourceUrls.has(source.url);
+      selectionInput.setAttribute("aria-label", source.url);
+      selectionInput.addEventListener("pointerdown", (event) =>
+        startSelectionPaint(event, selectionInput),
+      );
+      selectionInput.addEventListener("click", (event) => {
+        if (!suppressedSelectionClicks.has(selectionInput)) return;
+        event.preventDefault();
+        event.stopPropagation();
+        selectionInput.checked = selectedSourceUrls.has(source.url);
+        window.setTimeout(() => suppressedSelectionClicks.delete(selectionInput));
+      });
+      selectionInput.addEventListener("change", () => {
+        if (selectionInput.checked) selectedSourceUrls.add(source.url);
+        else selectedSourceUrls.delete(source.url);
+        updateSelectionUi();
+      });
+      selection.append(selectionInput);
       const preview =
         panelOptions.previews === false ||
         source.previewable === false ||
@@ -1108,7 +1384,16 @@ export const toggleSourcePanel = (
               ? "medium"
               : "regular";
         size.textContent = sourceSize;
+        if (source.responsive?.selected) {
+          const current = document.createElement("span");
+          current.className = "current-source";
+          current.textContent = copy.current;
+          current.setAttribute("aria-current", "true");
+          detailText.append(current, document.createTextNode(" · "));
+        }
         detailText.append(size);
+        if (source.responsive?.descriptor)
+          detailText.append(document.createTextNode(` · ${source.responsive.descriptor}`));
         if (mediaDetails.length)
           detailText.append(document.createTextNode(` · ${mediaDetails.join(" · ")}`));
         const detectedAt = formatSourcePanelCopy(
@@ -1207,6 +1492,17 @@ export const toggleSourcePanel = (
       });
       save.addEventListener("click", () => panelSendDownload(source));
       actionMenu.append(locate);
+      if (panelOptions.onCreateRule) {
+        const createRule = document.createElement("button");
+        createRule.type = "button";
+        createRule.setAttribute("role", "menuitem");
+        createRule.textContent = copy.createAutomaticRule;
+        createRule.addEventListener("click", () => {
+          setPanelMenuOpen(more, moreButton, actionMenu, false);
+          void panelOptions.onCreateRule?.(source);
+        });
+        actionMenu.append(createRule);
+      }
       if (source.kind === "stream" || source.kind === "video") {
         const copyCommand = document.createElement("button");
         copyCommand.type = "button";
@@ -1229,6 +1525,7 @@ export const toggleSourcePanel = (
         actionMenu.append(copyCommand);
       }
       more.append(moreButton, actionMenu);
+      wirePanelMenu(more, moreButton, actionMenu);
       moreButton.addEventListener("click", (event) => {
         event.preventDefault();
         setPanelMenuOpen(more, moreButton, actionMenu, !more.open);
@@ -1350,7 +1647,7 @@ export const toggleSourcePanel = (
           panelOptions.onSaveIntent?.();
         }
       });
-      row.append(sourceLink, actions);
+      row.append(selection, sourceLink, actions);
       const deactivate = () => {
         hovered = false;
         focused = false;
@@ -1360,7 +1657,17 @@ export const toggleSourcePanel = (
         if (source.element instanceof HTMLElement)
           releaseHighlight(source.element, locateHighlightOwner);
       };
-      const cachedRow = { source, row, deactivate, updateBytes };
+      const cachedRow = {
+        source,
+        row,
+        deactivate,
+        updateBytes,
+        updateSelection: (selected: boolean, disabled: boolean) => {
+          selectionInput.checked = selected;
+          selectionInput.disabled = disabled;
+          row.dataset.selected = String(selected);
+        },
+      };
       rowCache.set(source.url, cachedRow);
       cachedRows.set(row, cachedRow);
       placeRow(row);
@@ -1444,7 +1751,7 @@ export const toggleSourcePanel = (
     }
     closePanel();
   });
-  panel.append(resize, header, toolbar, facets, liveStatus, list);
+  panel.append(resize, header, toolbar, facets, selectionBar, liveStatus, list, batchDialog);
   shadow.append(style, panel);
   document.documentElement.append(host);
   const pageRoot = document.documentElement;
@@ -1668,7 +1975,7 @@ export const toggleSourcePanel = (
 };
 
 export const replaceSourcePanel = (
-  sendDownload: (source: PageSource) => void,
+  sendDownload: SourcePanelDownload,
   options: SourcePanelOptions = {},
 ): boolean => {
   const existing = activePanelHost?.isConnected ? activePanelHost : null;
@@ -1679,7 +1986,7 @@ export const replaceSourcePanel = (
 
 export const setSourcePanelOpen = (
   open: boolean,
-  sendDownload: (source: PageSource) => void,
+  sendDownload: SourcePanelDownload,
   options: SourcePanelOptions = {},
 ): boolean => {
   const existing = activePanelHost?.isConnected ? activePanelHost : null;

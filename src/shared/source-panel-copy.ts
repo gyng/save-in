@@ -15,6 +15,16 @@ export type SourcePanelCopy = {
   popOutHelp: string;
   copyFilteredUrls: string;
   copyFilteredUrlsLabel: string;
+  selectFiltered: string;
+  clearSelection: string;
+  selectedCountTemplate: string;
+  hiddenSelectedCountTemplate: string;
+  saveSelected: string;
+  batchConfirmTemplate: string;
+  batchContinue: string;
+  batchCancel: string;
+  batchSavingTemplate: string;
+  batchSavedTemplate: string;
   filterSources: string;
   filterLabel: string;
   sortLabel: string;
@@ -43,8 +53,10 @@ export type SourcePanelCopy = {
   sourceInstructionsTemplate: string;
   sizeUnknown: string;
   detectedAtTemplate: string;
+  current: string;
   previewUnavailable: string;
   locate: string;
+  createAutomaticRule: string;
   save: string;
   savePlaylist: string;
   copyYtDlp: string;
@@ -83,6 +95,21 @@ export const createSourcePanelCopy = (localize: SourcePanelLocalize): SourcePane
   copyFilteredUrls: localize("sourcePanelCopyFilteredUrls") || "Copy URLs in the current filter",
   copyFilteredUrlsLabel:
     localize("sourcePanelCopyFilteredUrlsLabel") || "Copy filtered source URLs",
+  selectFiltered: localize("sourcePanelSelectFiltered") || "Select filtered",
+  clearSelection: localize("sourcePanelClearSelection") || "Clear selection",
+  selectedCountTemplate:
+    localize("sourcePanelSelectedCount", [VALUE_SLOT]) || `${VALUE_SLOT} selected`,
+  hiddenSelectedCountTemplate:
+    localize("sourcePanelHiddenSelectedCount", [VALUE_SLOT]) || `${VALUE_SLOT} hidden`,
+  saveSelected: localize("sourcePanelSaveSelected") || "Save selected",
+  batchConfirmTemplate:
+    localize("sourcePanelBatchConfirm", [VALUE_SLOT]) || `Save ${VALUE_SLOT} selected sources?`,
+  batchContinue: localize("sourcePanelBatchContinue") || "Save sources",
+  batchCancel: localize("sourcePanelBatchCancel") || "Cancel",
+  batchSavingTemplate:
+    localize("sourcePanelBatchSaving", [VALUE_SLOT]) || `Saving ${VALUE_SLOT} sources…`,
+  batchSavedTemplate:
+    localize("sourcePanelBatchSaved", [VALUE_SLOT]) || `Started ${VALUE_SLOT} downloads`,
   filterSources: localize("html_filterSources") || "Filter sources",
   filterLabel: localize("sourcePanelFilterLabel") || "Filter page sources",
   sortLabel: localize("sourcePanelSortLabel") || "Sort sources",
@@ -117,8 +144,10 @@ export const createSourcePanelCopy = (localize: SourcePanelLocalize): SourcePane
   sizeUnknown: localize("sourcePanelSizeUnknown") || "size unknown",
   detectedAtTemplate:
     localize("sourcePanelDetectedAt", [VALUE_SLOT]) || `Detected at ${VALUE_SLOT}`,
+  current: localize("html_current") || "Current",
   previewUnavailable: localize("sourcePanelPreviewUnavailable") || "Preview unavailable",
   locate: localize("sourcePanelLocate") || "Locate",
+  createAutomaticRule: localize("sourcePanelCreateAutomaticRule") || "Create automatic rule",
   save: localize("sourcePanelSave") || "Save",
   savePlaylist: localize("sourcePanelSavePlaylist") || "Save playlist",
   copyYtDlp: localize("sourcePanelCopyYtDlp") || "Copy URL for yt-dlp",

@@ -4366,5 +4366,54 @@
   "diagnosticsClearFailed": {
     "message": "Could not clear recent failures.",
     "description": "Error shown when recent failures cannot be cleared. Used in src/options/debug-log-panel.ts."
+  },
+  "sourcePanelSelectFiltered": {
+    "message": "Select filtered",
+    "description": "Page Sources action selecting every source in the current filter. Used in src/shared/source-panel-copy.ts."
+  },
+  "sourcePanelClearSelection": {
+    "message": "Clear selection",
+    "description": "Page Sources action clearing selected sources. Used in src/shared/source-panel-copy.ts."
+  },
+  "sourcePanelSelectedCount": {
+    "message": "$COUNT$ selected",
+    "description": "Page Sources selected-source count. Used in src/shared/source-panel-copy.ts.",
+    "placeholders": { "count": { "content": "$1", "example": "3" } }
+  },
+  "sourcePanelHiddenSelectedCount": {
+    "message": "$COUNT$ hidden",
+    "description": "Page Sources count of selected sources hidden by the current filter. Used in src/shared/source-panel-copy.ts.",
+    "placeholders": { "count": { "content": "$1", "example": "2" } }
+  },
+  "sourcePanelSaveSelected": {
+    "message": "Save selected",
+    "description": "Page Sources action starting downloads for selected sources. Used in src/shared/source-panel-copy.ts."
+  },
+  "sourcePanelBatchConfirm": {
+    "message": "Save $COUNT$ selected sources?",
+    "description": "Page Sources confirmation before starting a large batch. Used in src/shared/source-panel-copy.ts.",
+    "placeholders": { "count": { "content": "$1", "example": "24" } }
+  },
+  "sourcePanelBatchContinue": {
+    "message": "Save sources",
+    "description": "Page Sources confirmation action that starts a large batch. Used in src/shared/source-panel-copy.ts."
+  },
+  "sourcePanelBatchCancel": {
+    "message": "Cancel",
+    "description": "Page Sources confirmation action that cancels a large batch. Used in src/shared/source-panel-copy.ts."
+  },
+  "sourcePanelBatchSaving": {
+    "message": "Saving $COUNT$ sources…",
+    "description": "Page Sources progress text while a selected batch is submitted. Used in src/shared/source-panel-copy.ts.",
+    "placeholders": { "count": { "content": "$1", "example": "8" } }
+  },
+  "sourcePanelBatchSaved": {
+    "message": "Started $COUNT$ downloads",
+    "description": "Page Sources completion status after submitting a selected batch. Used in src/shared/source-panel-copy.ts.",
+    "placeholders": { "count": { "content": "$1", "example": "8" } }
+  },
+  "sourcePanelCreateAutomaticRule": {
+    "message": "Create automatic rule",
+    "description": "Page Sources action opening Options with a disabled automatic rule drafted from one source. Used in src/shared/source-panel-copy.ts."
   }
 }

@@ -114,10 +114,24 @@
 
 .resize {
   position: absolute;
+  z-index: var(--z-panel-resize);
   inset: 0 auto 0 -4px;
   width: 8px;
   cursor: ew-resize;
   touch-action: none;
+}
+.resize::before {
+  position: absolute;
+  inset: 0 auto 0 3px;
+  width: 2px;
+  background: var(--color-control-border);
+  content: "";
+  opacity: 0.45;
+}
+.resize:hover::before,
+.resize:focus-visible::before {
+  background: var(--color-focus);
+  opacity: 1;
 }
 :host(.floating) .resize {
   inset: auto 0 0 auto;
@@ -136,6 +150,9 @@
   border-bottom: 2px solid var(--color-text-muted);
   content: "";
 }
+:host(.floating) .resize::before {
+  display: none;
+}
 .resize:focus-visible {
   outline: 2px solid var(--color-focus);
   outline-offset: -2px;
@@ -146,17 +163,29 @@
 :host(.dock-left) .resize {
   inset: 0 -4px 0 auto;
 }
+:host(.dock-left) .resize::before {
+  inset: 0 3px 0 auto;
+}
 :host(.dock-bottom) .resize {
   inset: -4px 0 auto;
   width: auto;
   height: 8px;
   cursor: ns-resize;
 }
+:host(.dock-bottom) .resize::before,
+:host(.dock-top) .resize::before {
+  inset: 3px 0 auto;
+  width: auto;
+  height: 2px;
+}
 :host(.dock-top) .resize {
   inset: auto 0 -4px;
   width: auto;
   height: 8px;
   cursor: ns-resize;
+}
+:host(.dock-top) .resize::before {
+  inset: auto 0 3px;
 }
 
 header {

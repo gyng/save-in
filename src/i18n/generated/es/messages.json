@@ -2962,5 +2962,63 @@
   },
   "diagnosticsClearFailed": {
     "message": "No se pudieron borrar los fallos recientes."
+  },
+  "sourcePanelSelectFiltered": {
+    "message": "Seleccionar fuentes filtradas"
+  },
+  "sourcePanelClearSelection": {
+    "message": "Anular selección"
+  },
+  "sourcePanelSelectedCount": {
+    "message": "$COUNT$ seleccionadas",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "sourcePanelHiddenSelectedCount": {
+    "message": "$COUNT$ ocultas",
+    "placeholders": { "count": { "content": "$1", "example": "2" } }
+  },
+  "sourcePanelSaveSelected": {
+    "message": "Guardar fuentes seleccionadas"
+  },
+  "sourcePanelBatchConfirm": {
+    "message": "¿Guardar $COUNT$ fuentes seleccionadas?",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "24"
+      }
+    }
+  },
+  "sourcePanelBatchContinue": {
+    "message": "Guardar fuentes"
+  },
+  "sourcePanelBatchCancel": {
+    "message": "Cancelar"
+  },
+  "sourcePanelBatchSaving": {
+    "message": "Guardando $COUNT$ fuentes…",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "8"
+      }
+    }
+  },
+  "sourcePanelBatchSaved": {
+    "message": "Se iniciaron $COUNT$ descargas",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "8"
+      }
+    }
+  },
+  "sourcePanelCreateAutomaticRule": {
+    "message": "Crear regla automática"
   }
 }

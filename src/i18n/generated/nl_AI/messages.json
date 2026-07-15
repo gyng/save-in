@@ -2842,5 +2842,63 @@
   "diagnosticsCopySuccess": { "message": "Diagnostische gegevens gekopieerd." },
   "diagnosticsCopyFailed": { "message": "Kon diagnostische gegevens niet kopiëren." },
   "diagnosticsClearSuccess": { "message": "Recente fouten gewist." },
-  "diagnosticsClearFailed": { "message": "Kon recente fouten niet wissen." }
+  "diagnosticsClearFailed": { "message": "Kon recente fouten niet wissen." },
+  "sourcePanelSelectFiltered": {
+    "message": "Gefilterde bronnen selecteren"
+  },
+  "sourcePanelClearSelection": {
+    "message": "Selectie wissen"
+  },
+  "sourcePanelSelectedCount": {
+    "message": "$COUNT$ geselecteerd",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "sourcePanelHiddenSelectedCount": {
+    "message": "$COUNT$ verborgen",
+    "placeholders": { "count": { "content": "$1", "example": "2" } }
+  },
+  "sourcePanelSaveSelected": {
+    "message": "Geselecteerde bronnen opslaan"
+  },
+  "sourcePanelBatchConfirm": {
+    "message": "$COUNT$ geselecteerde bronnen opslaan?",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "24"
+      }
+    }
+  },
+  "sourcePanelBatchContinue": {
+    "message": "Bronnen opslaan"
+  },
+  "sourcePanelBatchCancel": {
+    "message": "Annuleren"
+  },
+  "sourcePanelBatchSaving": {
+    "message": "$COUNT$ bronnen opslaan…",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "8"
+      }
+    }
+  },
+  "sourcePanelBatchSaved": {
+    "message": "$COUNT$ downloads gestart",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "8"
+      }
+    }
+  },
+  "sourcePanelCreateAutomaticRule": {
+    "message": "Automatische regel maken"
+  }
 }

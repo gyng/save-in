@@ -11,10 +11,31 @@
   --color-kind: var(--color-kind-other);
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   padding: 2px 0;
   border-bottom: 1px solid var(--color-border);
+}
+.row[data-selected="true"] {
+  background: color-mix(in srgb, var(--color-accent) 7%, transparent);
+}
+.source-selection {
+  display: grid;
+  min-width: var(--compact-control-size);
+  min-height: var(--compact-control-size);
+  place-items: center;
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+}
+.source-selection input {
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  cursor: inherit;
+}
+.source-selection input:disabled {
+  cursor: default;
 }
 :host(.dock-bottom) .list,
 :host(.dock-top) .list {
@@ -136,6 +157,10 @@ video,
 .source-size[data-size-weight="bold"] {
   font-weight: 700;
 }
+.current-source {
+  color: var(--color-link);
+  font-weight: 600;
+}
 .kind-icon {
   flex: none;
   width: 12px;
@@ -181,8 +206,78 @@ video,
   color: var(--color-text);
   background: var(--color-hover);
 }
+.selection-bar {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: var(--source-space-1);
+  padding: 0 var(--source-space-3) var(--source-space-2);
+}
+.selection-count {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  margin-inline-end: auto;
+  overflow: hidden;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hidden-selection-count::before {
+  margin-inline: var(--source-space-1);
+  content: "·";
+}
+.selection-bar button,
+.batch-dialog button {
+  min-height: var(--compact-control-size);
+  padding: 3px 7px;
+  border: 1px solid var(--color-control-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-page);
+}
+.selection-bar .batch-save,
+.batch-dialog .primary-action {
+  color: var(--color-link);
+  border-color: var(--color-link);
+  font-weight: 600;
+}
+.selection-bar button:disabled,
+.batch-dialog button:disabled {
+  color: var(--color-text-muted);
+  border-color: var(--color-control-border);
+  background: var(--color-surface-raised);
+  cursor: default;
+  opacity: 0.65;
+}
+.selection-bar [hidden] {
+  display: none;
+}
+.panel[data-selecting] .row {
+  cursor: crosshair;
+}
+.list[aria-busy="true"] {
+  opacity: 0.72;
+}
+.batch-dialog {
+  max-width: min(360px, calc(100% - var(--source-space-4)));
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface-page);
+  box-shadow: var(--floating-shadow);
+}
 .batch-dialog::backdrop {
   background: var(--color-backdrop);
+}
+.batch-dialog p {
+  margin-block: 0 var(--source-space-4);
+}
+.batch-dialog-actions {
+  display: flex;
+  justify-content: end;
+  gap: var(--source-space-2);
 }
 .action-menu {
   inset: calc(100% + 4px) 0 auto auto;

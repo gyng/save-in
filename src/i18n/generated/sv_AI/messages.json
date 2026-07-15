@@ -2855,5 +2855,63 @@
   "diagnosticsCopySuccess": { "message": "Diagnostiken har kopierats." },
   "diagnosticsCopyFailed": { "message": "Det gick inte att kopiera diagnostiken." },
   "diagnosticsClearSuccess": { "message": "De senaste felen rensades." },
-  "diagnosticsClearFailed": { "message": "Det gick inte att rensa de senaste felen." }
+  "diagnosticsClearFailed": { "message": "Det gick inte att rensa de senaste felen." },
+  "sourcePanelSelectFiltered": {
+    "message": "Välj filtrerade källor"
+  },
+  "sourcePanelClearSelection": {
+    "message": "Rensa markering"
+  },
+  "sourcePanelSelectedCount": {
+    "message": "$COUNT$ markerade",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "sourcePanelHiddenSelectedCount": {
+    "message": "$COUNT$ dolda",
+    "placeholders": { "count": { "content": "$1", "example": "2" } }
+  },
+  "sourcePanelSaveSelected": {
+    "message": "Spara markerade källor"
+  },
+  "sourcePanelBatchConfirm": {
+    "message": "Spara $COUNT$ markerade källor?",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "24"
+      }
+    }
+  },
+  "sourcePanelBatchContinue": {
+    "message": "Spara källor"
+  },
+  "sourcePanelBatchCancel": {
+    "message": "Avbryt"
+  },
+  "sourcePanelBatchSaving": {
+    "message": "Sparar $COUNT$ källor…",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "8"
+      }
+    }
+  },
+  "sourcePanelBatchSaved": {
+    "message": "$COUNT$ hämtningar startades",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "8"
+      }
+    }
+  },
+  "sourcePanelCreateAutomaticRule": {
+    "message": "Skapa automatisk regel"
+  }
 }

@@ -2842,5 +2842,63 @@
   "diagnosticsCopySuccess": { "message": "Diagnóstico copiado." },
   "diagnosticsCopyFailed": { "message": "Não foi possível copiar o diagnóstico." },
   "diagnosticsClearSuccess": { "message": "Falhas recentes limpas." },
-  "diagnosticsClearFailed": { "message": "Não foi possível limpar as falhas recentes." }
+  "diagnosticsClearFailed": { "message": "Não foi possível limpar as falhas recentes." },
+  "sourcePanelSelectFiltered": {
+    "message": "Selecionar fontes filtradas"
+  },
+  "sourcePanelClearSelection": {
+    "message": "Limpar seleção"
+  },
+  "sourcePanelSelectedCount": {
+    "message": "$COUNT$ selecionadas",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "sourcePanelHiddenSelectedCount": {
+    "message": "$COUNT$ ocultas",
+    "placeholders": { "count": { "content": "$1", "example": "2" } }
+  },
+  "sourcePanelSaveSelected": {
+    "message": "Salvar fontes selecionadas"
+  },
+  "sourcePanelBatchConfirm": {
+    "message": "Salvar $COUNT$ fontes selecionadas?",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "24"
+      }
+    }
+  },
+  "sourcePanelBatchContinue": {
+    "message": "Salvar fontes"
+  },
+  "sourcePanelBatchCancel": {
+    "message": "Cancelar"
+  },
+  "sourcePanelBatchSaving": {
+    "message": "Salvando $COUNT$ fontes…",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "8"
+      }
+    }
+  },
+  "sourcePanelBatchSaved": {
+    "message": "$COUNT$ downloads iniciados",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "8"
+      }
+    }
+  },
+  "sourcePanelCreateAutomaticRule": {
+    "message": "Criar regra automática"
+  }
 }
