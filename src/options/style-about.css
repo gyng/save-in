@@ -63,8 +63,14 @@
   white-space: nowrap;
 }
 
-.about-copy h3 {
-  margin: var(--space-6) 0 var(--space-2);
+.about-permissions {
+  grid-column: 1 / -1;
+  padding-block-start: var(--space-4);
+  border-block-start: 1px solid var(--panel-border);
+}
+
+.about-permissions h3 {
+  margin: 0 0 var(--space-2);
 }
 
 .permission-rationale {
