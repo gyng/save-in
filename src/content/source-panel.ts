@@ -1028,6 +1028,8 @@ export const toggleSourcePanel = (
     selectionBar.setAttribute("aria-busy", String(batchSaving));
     list.inert = batchSaving;
     list.setAttribute("aria-busy", String(batchSaving));
+  };
+  const updateAllSelectionRows = () => {
     rowCache.forEach((cached, url) =>
       cached.updateSelection(selectedSourceUrls.has(url), batchSaving),
     );
@@ -1044,6 +1046,7 @@ export const toggleSourcePanel = (
     selectionPaint.visited.add(url);
     if (selectionPaint.selected) selectedSourceUrls.add(url);
     else selectedSourceUrls.delete(url);
+    rowCache.get(url)?.updateSelection(selectedSourceUrls.has(url), batchSaving);
     updateSelectionUi();
   };
   const selectionInputAt = (event: PointerEvent): HTMLInputElement | null => {
@@ -1126,6 +1129,7 @@ export const toggleSourcePanel = (
     if (sources.length === 0 || !(await confirmLargeBatch(sources.length))) return;
     batchSaving = true;
     updateSelectionUi();
+    updateAllSelectionRows();
     panelOptions.onSaveIntent?.();
     let started = 0;
     for (const [index, source] of sources.entries()) {
@@ -1144,15 +1148,18 @@ export const toggleSourcePanel = (
     selectedSourceUrls.clear();
     saveSelected.textContent = copy.saveSelected;
     updateSelectionUi();
+    updateAllSelectionRows();
     announce(formatSourcePanelCopy(copy.batchSavedTemplate, SOURCE_PANEL_COPY_VALUE_SLOT, started));
   };
   selectFiltered.addEventListener("click", () => {
     visibleSources.forEach(({ url }) => selectedSourceUrls.add(url));
     updateSelectionUi();
+    updateAllSelectionRows();
   });
   clearSelection.addEventListener("click", () => {
     selectedSourceUrls.clear();
     updateSelectionUi();
+    updateAllSelectionRows();
   });
   saveSelected.addEventListener("click", () => void saveSelectedSources());
   const render = () => {
@@ -1164,6 +1171,7 @@ export const toggleSourcePanel = (
     );
     visibleSources = sources;
     updateSelectionUi();
+    updateAllSelectionRows();
     title.textContent = copy.title;
     const totalCount = formatSourcePanelCopy(
       copy.sourceCountTemplate,
@@ -1292,6 +1300,7 @@ export const toggleSourcePanel = (
       selectionInput.addEventListener("change", () => {
         if (selectionInput.checked) selectedSourceUrls.add(source.url);
         else selectedSourceUrls.delete(source.url);
+        rowCache.get(source.url)?.updateSelection(selectedSourceUrls.has(source.url), batchSaving);
         updateSelectionUi();
       });
       selection.append(selectionInput);

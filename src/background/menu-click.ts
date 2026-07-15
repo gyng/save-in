@@ -221,7 +221,7 @@ export const handleContextMenuClick = async (
           enabled: true,
         });
       }
-      await rebuildMenus();
+      if (options.recentDestinationCount > 0) await rebuildMenus();
     }
 
     if (

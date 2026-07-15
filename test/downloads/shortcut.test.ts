@@ -8,12 +8,13 @@ const makeShortcutContent = shortcut.makeShortcutContent;
 
 describe("shortcut content creation", () => {
   test("names a source sidecar after the final routed file", () => {
-    expect(shortcut.sourceSidecarPath("gallery/cat.large.jpg", SHORTCUT_TYPES.WINDOWS, 200)).toBe(
-      "gallery/cat.large.url",
-    );
-    expect(shortcut.sourceSidecarPath("README", SHORTCUT_TYPES.MAC_WEBLOC, 200)).toBe(
-      "README.webloc",
-    );
+    expect(
+      shortcut.sourceSidecarPath("gallery/cat.large.jpg", SHORTCUT_TYPES.WINDOWS, 200),
+    ).toEqual({ directory: "gallery", filename: "cat.large.url" });
+    expect(shortcut.sourceSidecarPath("README", SHORTCUT_TYPES.MAC_WEBLOC, 200)).toEqual({
+      directory: ".",
+      filename: "README.webloc",
+    });
   });
 
   test("creates a HTML redirect shortcut", () => {

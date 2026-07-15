@@ -20,6 +20,13 @@ describe("background diagnostics", () => {
       normalizeDiagnosticLifecycle([null, { at: 1, kind: "background_ready" }, ...valid]),
     ).toHaveLength(50);
     expect(normalizeDiagnosticLifecycle(valid)[0]?.at).toContain("05.000Z");
+    expect(
+      normalizeDiagnosticLifecycle([
+        { at: "now", kind: "background_ready", durationMs: -1 },
+        { at: "now", kind: "background_ready", previousVersion: 4 },
+        { at: "now", kind: "unknown" },
+      ]),
+    ).toEqual([]);
     expect(normalizeDiagnosticLifecycle({ legacy: true })).toEqual([]);
   });
 

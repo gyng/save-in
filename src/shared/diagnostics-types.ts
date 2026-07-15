@@ -16,6 +16,24 @@ export type DiagnosticLifecycleEntry = {
   previousVersion?: string | undefined;
 };
 
+const isDiagnosticLifecycleKind = (value: unknown): value is DiagnosticLifecycleKind =>
+  typeof value === "string" && DIAGNOSTIC_LIFECYCLE_KINDS.some((kind) => kind === value);
+
+export const isDiagnosticLifecycleEntry = (value: unknown): value is DiagnosticLifecycleEntry => {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) return false;
+  const at = Reflect.get(value, "at");
+  const kind = Reflect.get(value, "kind");
+  const durationMs = Reflect.get(value, "durationMs");
+  const previousVersion = Reflect.get(value, "previousVersion");
+  return (
+    typeof at === "string" &&
+    isDiagnosticLifecycleKind(kind) &&
+    (typeof durationMs === "undefined" ||
+      (typeof durationMs === "number" && Number.isSafeInteger(durationMs) && durationMs >= 0)) &&
+    (typeof previousVersion === "undefined" || typeof previousVersion === "string")
+  );
+};
+
 export type DiagnosticFailureEntry = {
   at: string;
   message: string;

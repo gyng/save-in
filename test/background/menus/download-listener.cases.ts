@@ -166,6 +166,25 @@ describe("addDownloadListener", () => {
     });
   });
 
+  test.each([
+    { recentDestinationCount: 0, rebuilds: false },
+    { recentDestinationCount: 3, rebuilds: true },
+  ])(
+    "rebuilds menus after a save only when recent destinations are visible ($recentDestinationCount)",
+    async ({ recentDestinationCount, rebuilds }) => {
+      options.recentDestinationCount = recentDestinationCount;
+      Menus.addPaths(["dir1"], ["link"]);
+
+      await listener({
+        menuItemId: "save-in-0",
+        linkUrl: "https://example.com/f.png",
+        pageUrl: "https://example.com/",
+      });
+
+      expect(global.browser.contextMenus.removeAll).toHaveBeenCalledTimes(rebuilds ? 1 : 0);
+    },
+  );
+
   test("a private path click does not publish last-used state or menu UI", async () => {
     Menus.addPaths(["private/path"], ["link"]);
 

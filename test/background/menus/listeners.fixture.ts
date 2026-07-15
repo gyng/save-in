@@ -81,6 +81,7 @@ const seedDeps = () => {
     closeTabOnSave: false,
     tabEnabled: true,
     keyLastUsed: "",
+    recentDestinationCount: 3,
   });
   Object.assign(WEB_EXTENSION_CAPABILITIES, { tabContextMenus: false });
   vi.spyOn(Download, "renameAndDownload").mockResolvedValue({ status: "started", downloadId: 1 });

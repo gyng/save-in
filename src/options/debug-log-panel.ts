@@ -2,7 +2,7 @@ import { webExtensionApi } from "../platform/web-extension-api.ts";
 import { getMessage } from "../platform/localization.ts";
 import { MESSAGE_TYPES } from "../shared/constants.ts";
 import {
-  DIAGNOSTIC_LIFECYCLE_KINDS,
+  isDiagnosticLifecycleEntry,
   type DiagnosticLifecycleEntry,
   type DiagnosticSnapshot,
 } from "../shared/diagnostics-types.ts";
@@ -14,17 +14,6 @@ let requestGeneration = 0;
 
 const message = (key: string, fallback: string, substitutions?: string | number | string[]) =>
   getMessage(key, substitutions) || fallback;
-
-const isLifecycleEntry = (value: unknown): value is DiagnosticLifecycleEntry =>
-  isStringKeyedRecord(value) &&
-  typeof value.at === "string" &&
-  typeof value.kind === "string" &&
-  DIAGNOSTIC_LIFECYCLE_KINDS.some((kind) => kind === value.kind) &&
-  (typeof value.durationMs === "undefined" ||
-    (typeof value.durationMs === "number" &&
-      Number.isSafeInteger(value.durationMs) &&
-      value.durationMs >= 0)) &&
-  (typeof value.previousVersion === "undefined" || typeof value.previousVersion === "string");
 
 const isFailureEntry = (value: unknown): boolean =>
   isStringKeyedRecord(value) &&
@@ -58,7 +47,7 @@ const isDiagnosticSnapshot = (value: unknown): value is DiagnosticSnapshot => {
     Number.isSafeInteger(value.routingErrorCount) &&
     value.routingErrorCount >= 0 &&
     Array.isArray(value.lifecycle) &&
-    value.lifecycle.every(isLifecycleEntry) &&
+    value.lifecycle.every(isDiagnosticLifecycleEntry) &&
     Array.isArray(value.recentFailures) &&
     value.recentFailures.every(isFailureEntry)
   );

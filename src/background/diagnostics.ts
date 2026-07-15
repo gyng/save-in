@@ -2,7 +2,7 @@ import { webExtensionApi } from "../platform/web-extension-api.ts";
 import { CURRENT_BROWSER, CURRENT_BROWSER_VERSION } from "../platform/chrome-detector.ts";
 import { extensionSessionStorage } from "../platform/storage-areas.ts";
 import {
-  DIAGNOSTIC_LIFECYCLE_KINDS,
+  isDiagnosticLifecycleEntry,
   type DiagnosticLifecycleEntry,
   type DiagnosticLifecycleKind,
   type DiagnosticSnapshot,
@@ -20,26 +20,8 @@ let workerReadyAt: string | undefined;
 let workerStatus: DiagnosticSnapshot["workerStatus"] = "starting";
 let latestWrite: Promise<unknown> = Promise.resolve();
 
-const isLifecycleKind = (value: unknown): value is DiagnosticLifecycleKind =>
-  typeof value === "string" && DIAGNOSTIC_LIFECYCLE_KINDS.some((kind) => kind === value);
-
-const isLifecycleEntry = (value: unknown): value is DiagnosticLifecycleEntry => {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) return false;
-  const at = Reflect.get(value, "at");
-  const kind = Reflect.get(value, "kind");
-  const durationMs = Reflect.get(value, "durationMs");
-  const previousVersion = Reflect.get(value, "previousVersion");
-  return (
-    typeof at === "string" &&
-    isLifecycleKind(kind) &&
-    (typeof durationMs === "undefined" ||
-      (typeof durationMs === "number" && Number.isSafeInteger(durationMs) && durationMs >= 0)) &&
-    (typeof previousVersion === "undefined" || typeof previousVersion === "string")
-  );
-};
-
 export const normalizeDiagnosticLifecycle = (value: unknown): DiagnosticLifecycleEntry[] =>
-  Array.isArray(value) ? value.filter(isLifecycleEntry).slice(-LIFECYCLE_LIMIT) : [];
+  Array.isArray(value) ? value.filter(isDiagnosticLifecycleEntry).slice(-LIFECYCLE_LIMIT) : [];
 
 export const recordDiagnosticLifecycle = (
   kind: DiagnosticLifecycleKind,

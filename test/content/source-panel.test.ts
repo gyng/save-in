@@ -1465,6 +1465,26 @@ describe("Page Sources panel interactions", () => {
     expect(inputs.map(({ checked }) => checked)).toEqual([false, false, true]);
   });
 
+  test("updates only the checkbox whose selection changed", () => {
+    document.body.innerHTML = Array.from(
+      { length: 8 },
+      (_, index) => `<img src="image-${index}.jpg">`,
+    ).join("");
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    const inputs = [
+      ...getSourcePanelHostForTesting()!.shadowRoot!.querySelectorAll<HTMLInputElement>(
+        ".source-selection input",
+      ),
+    ];
+    const checkedWrites = vi.spyOn(HTMLInputElement.prototype, "checked", "set");
+    inputs[3]!.checked = true;
+    checkedWrites.mockClear();
+
+    inputs[3]!.dispatchEvent(new Event("change"));
+
+    expect(checkedWrites).toHaveBeenCalledOnce();
+  });
+
   test("labels the selected responsive source and its descriptors", () => {
     document.body.innerHTML = `<img src="fallback.jpg" srcset="selected.jpg 1x, large.jpg 2x">`;
     const image = document.querySelector("img")!;
