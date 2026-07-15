@@ -10,6 +10,11 @@
   margin-top: var(--space-3);
 }
 
+.shortcut-files-lead {
+  max-inline-size: 68ch;
+  margin: 0;
+}
+
 .option-choice-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr);

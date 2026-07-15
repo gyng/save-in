@@ -100,7 +100,7 @@ or feedback.
 - The app shell owns identity, resources, language, search, save state, and main
   navigation. Keep it hidden through localization and the initial stored-option
   restore so editors render their real content before the first visible frame.
-- Save locations and Routing rules are sibling editor workspaces and must share
+- Save menu and Routing rules are sibling editor workspaces and must share
   editor tabs, validation, action rows, previews, and responsive behavior.
 - Routing rules has one visible primary creation action. Automation rules and
   the template library are secondary choices in the adjacent More menu; Page

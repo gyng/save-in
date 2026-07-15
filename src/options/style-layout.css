@@ -213,7 +213,7 @@
 
 /* In-tab hierarchy and shared wide-row placement belong to panel layout, not
    a late override layer. */
-.tab-panel h3 {
+.tab-panel h3:not(.section-task-heading) {
   margin-top: var(--space-6);
 }
 

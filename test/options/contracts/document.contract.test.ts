@@ -121,6 +121,37 @@ test("keeps Browser routings actions concise, described, and task ordered", () =
   }
 });
 
+test("keeps core feature help separate from checkbox accessible names", () => {
+  const document = documentForOptions();
+  for (const [controlId, helpId] of [
+    ["contentClickToSave", "click-to-save-help"],
+    ["saveSourceSidecar", "save-source-sidecar-help"],
+  ] as const) {
+    const control = document.getElementById(controlId);
+    const label = document.querySelector(`label[for="${controlId}"]`);
+    const help = document.getElementById(helpId);
+
+    expect(control?.getAttribute("aria-describedby")).toContain(helpId);
+    expect(label).not.toBeNull();
+    expect(help).not.toBeNull();
+    expect(label?.contains(help)).toBe(false);
+  }
+});
+
+test("places Page sources activation before its illustrative preview", () => {
+  const document = documentForOptions();
+  const activation = document.getElementById("sourcePanelEnabled");
+  const preview = document.querySelector(".source-panel-demo");
+
+  expect(activation).not.toBeNull();
+  expect(preview).not.toBeNull();
+  expect(
+    activation && preview
+      ? activation.compareDocumentPosition(preview) & Node.DOCUMENT_POSITION_FOLLOWING
+      : 0,
+  ).toBeTruthy();
+});
+
 test("keeps behavior controls owned by their semantic groups", () => {
   const document = documentForOptions();
   const expected = {
