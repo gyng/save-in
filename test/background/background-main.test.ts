@@ -325,9 +325,11 @@ describe("init", () => {
   test("cleans interrupted transfers and contains stale-resource cleanup failures", async () => {
     await setupGlobals();
     const { OffscreenClient } = await import("../../src/platform/offscreen-client.ts");
-    const { RefererRules } = await import("../../src/downloads/referer-rules.ts");
+    const RefererRules = await import("../../src/downloads/referer-rules.ts");
     const SaveHistory = await import("../../src/background/history.ts");
-    vi.spyOn(RefererRules, "cleanupStaleRule").mockRejectedValueOnce(new Error("stale rule"));
+    vi.spyOn(RefererRules, "cleanupStaleRefererRule").mockRejectedValueOnce(
+      new Error("stale rule"),
+    );
     vi.spyOn(OffscreenClient, "canUse").mockReturnValueOnce(true).mockReturnValueOnce(false);
     const cancelOffscreen = vi
       .spyOn(OffscreenClient, "cancel")

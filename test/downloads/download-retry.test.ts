@@ -11,7 +11,7 @@ import {
   sessionStore,
   setCurrentBrowser,
 } from "./download-flow.fixture.ts";
-import { RefererRules } from "../../src/downloads/referer-rules.ts";
+import * as RefererRules from "../../src/downloads/referer-rules.ts";
 
 describe("automatic fetch fallback (retryViaFetch)", () => {
   const seedStartedDownload = async () => {
@@ -90,7 +90,7 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
       Promise.resolve({ ok: true, blob: () => Promise.resolve(new Blob(["bytes"])) }),
     ) as any;
     vi.mocked(global.browser.downloads.download).mockResolvedValue(202);
-    const withReferer = vi.spyOn(RefererRules, "withReferer");
+    const withReferer = vi.spyOn(RefererRules, "withRequestReferer");
 
     await expect(Download.retryViaFetch(101)).resolves.toBe(true);
 
@@ -108,7 +108,7 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
       Promise.resolve({ ok: true, blob: () => Promise.resolve(new Blob(["bytes"])) }),
     ) as any;
     vi.mocked(global.browser.downloads.download).mockResolvedValue(202);
-    const withReferer = vi.spyOn(RefererRules, "withReferer");
+    const withReferer = vi.spyOn(RefererRules, "withRequestReferer");
 
     await expect(Download.retryViaFetch(101)).resolves.toBe(true);
 

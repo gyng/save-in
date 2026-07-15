@@ -90,7 +90,7 @@ const urlSetRegex = (urls: readonly string[]): string => `^(?:${urls.map(escapeR
 // remaining updateSessionRules rejections degrade to the previous rule.
 const MAX_REGEX_FILTER_LENGTH = 1500;
 
-const buildRule = (
+export const buildRule = (
   url: string | readonly string[],
   referer: string,
   requestMethods: ProtectedRequestMethod[] = ["get"],
@@ -129,71 +129,67 @@ const removeRule = async (): Promise<void> => {
   await api.updateSessionRules({ removeRuleIds: [REFERER_SESSION_RULE_ID] });
 };
 
-export const RefererRules = {
-  canUse: (): boolean =>
-    (CURRENT_BROWSER === BROWSERS.CHROME || CURRENT_BROWSER === BROWSERS.FIREFOX) &&
-    typeof dnrApi()?.updateSessionRules === "function" &&
-    extensionInitiatorDomain() !== undefined,
+export const canUseRefererRules = (): boolean =>
+  (CURRENT_BROWSER === BROWSERS.CHROME || CURRENT_BROWSER === BROWSERS.FIREFOX) &&
+  typeof dnrApi()?.updateSessionRules === "function" &&
+  extensionInitiatorDomain() !== undefined;
 
-  buildRule,
+// A background stop can prevent the finally block below from running.
+// Session rules outlive background instances, so startup removes our reserved ID.
+export const cleanupStaleRefererRule = (): Promise<void> =>
+  canUseRefererRules() ? enqueue(removeRule) : Promise.resolve();
 
-  // A background stop can prevent the finally block below from running.
-  // Session rules outlive background instances, so startup removes our reserved ID.
-  cleanupStaleRule: (): Promise<void> =>
-    RefererRules.canUse() ? enqueue(removeRule) : Promise.resolve(),
+export const resetRefererRules = async (): Promise<void> => {
+  await ruleQueue;
+  if (canUseRefererRules()) await enqueue(removeRule);
+};
 
-  reset: async (): Promise<void> => {
-    await ruleQueue;
-    if (RefererRules.canUse()) await enqueue(removeRule);
-  },
-
-  withReferer: <T>(
-    url: string,
-    referer: string,
-    operation: (protection?: RefererProtection) => Promise<T>,
-    requestMethods: ProtectedRequestMethod[] = ["get"],
-  ): Promise<T> => {
-    if (!RefererRules.canUse()) return operation();
-    return enqueue(async () => {
-      const api = dnrApi();
-      if (!api) return operation();
-      const protectedUrls = [canonicalRequestUrl(url)];
-      const install = (urls: readonly string[]): Promise<void> =>
-        api.updateSessionRules({
-          removeRuleIds: [REFERER_SESSION_RULE_ID],
-          addRules: [buildRule(urls, referer, requestMethods)],
-        });
-      await install(protectedUrls);
-      let released = false;
-      // Runs inside the held queue slot, so it must update the rule directly:
-      // going through enqueue here would deadlock behind this operation.
-      const extend = async (candidate: string): Promise<boolean> => {
-        // The finally below removes the rule; a late extend from a leaked
-        // callback must not resurrect it.
-        if (released) return false;
-        const normalized = normalizeExtensionCandidate(candidate);
-        if (!normalized || protectedUrls.includes(normalized)) return false;
-        if (protectedUrls.length >= 1 + MAX_PROTECTED_URL_EXTENSIONS) return false;
-        const next = [...protectedUrls, normalized];
-        if (urlSetRegex(next).length > MAX_REGEX_FILTER_LENGTH) return false;
-        try {
-          // updateSessionRules replaces atomically; on rejection the previous
-          // rule stays active and the caller degrades to unextended behavior.
-          await install(next);
-        } catch {
-          return false;
-        }
-        protectedUrls.push(normalized);
-        return true;
-      };
+export const withRequestReferer = <T>(
+  url: string,
+  referer: string,
+  operation: (protection?: RefererProtection) => Promise<T>,
+  requestMethods: ProtectedRequestMethod[] = ["get"],
+): Promise<T> => {
+  if (!canUseRefererRules()) return operation();
+  return enqueue(async () => {
+    const api = dnrApi();
+    if (!api) return operation();
+    const protectedUrls = [canonicalRequestUrl(url)];
+    const install = (urls: readonly string[]): Promise<void> =>
+      api.updateSessionRules({
+        removeRuleIds: [REFERER_SESSION_RULE_ID],
+        addRules: [buildRule(urls, referer, requestMethods)],
+      });
+    await install(protectedUrls);
+    let released = false;
+    // Runs inside the held queue slot, so it must update the rule directly:
+    // going through enqueue here would deadlock behind this operation.
+    const extend = async (candidate: string): Promise<boolean> => {
+      // The finally below removes the rule; a late extend from a leaked
+      // callback must not resurrect it.
+      if (released) return false;
+      const normalized = normalizeExtensionCandidate(candidate);
+      if (!normalized || protectedUrls.includes(normalized)) return false;
+      if (protectedUrls.length >= 1 + MAX_PROTECTED_URL_EXTENSIONS) return false;
+      const next = [...protectedUrls, normalized];
+      if (urlSetRegex(next).length > MAX_REGEX_FILTER_LENGTH) return false;
       try {
-        return await operation({ extend });
-      } finally {
-        released = true;
-        // Do not turn a completed request into a failed download if cleanup is
-        // rejected. The exact rule is replaced next time and removed at startup.
-        await removeRule().catch(() => {});
+        // updateSessionRules replaces atomically; on rejection the previous
+        // rule stays active and the caller degrades to unextended behavior.
+        await install(next);
+      } catch {
+        return false;
       }
-    });
-  },
+      protectedUrls.push(normalized);
+      return true;
+    };
+    try {
+      return await operation({ extend });
+    } finally {
+      released = true;
+      // Do not turn a completed request into a failed download if cleanup is
+      // rejected. The exact rule is replaced next time and removed at startup.
+      await removeRule().catch(() => {});
+    }
+  });
 };

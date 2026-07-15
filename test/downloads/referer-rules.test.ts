@@ -1,4 +1,5 @@
-import { RefererRules, REFERER_SESSION_RULE_ID } from "../../src/downloads/referer-rules.ts";
+import * as RefererRules from "../../src/downloads/referer-rules.ts";
+import { REFERER_SESSION_RULE_ID } from "../../src/downloads/referer-rules.ts";
 import { BROWSERS, setCurrentBrowser } from "../../src/platform/chrome-detector.ts";
 import type { RefererProtection } from "../../src/shared/protected-fetch.ts";
 
@@ -62,7 +63,7 @@ test("installs the rule only around the protected operation", async () => {
   const operation = vi.fn(async () => "fetched");
 
   await expect(
-    RefererRules.withReferer(
+    RefererRules.withRequestReferer(
       "https://i.pximg.net/file.jpg",
       "https://www.pixiv.net/artworks/123",
       operation,
@@ -90,8 +91,10 @@ test("installs the rule only around the protected operation", async () => {
 
 test("removes the rule after a failed operation", async () => {
   await expect(
-    RefererRules.withReferer("https://cdn.example/file.jpg", "https://gallery.example/view", () =>
-      Promise.reject(new Error("HTTP 403")),
+    RefererRules.withRequestReferer(
+      "https://cdn.example/file.jpg",
+      "https://gallery.example/view",
+      () => Promise.reject(new Error("HTTP 403")),
     ),
   ).rejects.toThrow("HTTP 403");
 
@@ -104,7 +107,7 @@ test("does not fail a completed transfer when rule cleanup fails", async () => {
   updateSessionRules().mockResolvedValueOnce().mockRejectedValueOnce(new Error("worker stopped"));
 
   await expect(
-    RefererRules.withReferer(
+    RefererRules.withRequestReferer(
       "https://cdn.example/file.jpg",
       "https://gallery.example/view",
       async () => "fetched",
@@ -119,7 +122,7 @@ test("serializes protected fetches so the shared rule cannot change mid-request"
   });
   const order: string[] = [];
 
-  const first = RefererRules.withReferer(
+  const first = RefererRules.withRequestReferer(
     "https://cdn.example/a.jpg",
     "https://gallery.example/a",
     async () => {
@@ -128,7 +131,7 @@ test("serializes protected fetches so the shared rule cannot change mid-request"
       order.push("first-end");
     },
   );
-  const second = RefererRules.withReferer(
+  const second = RefererRules.withRequestReferer(
     "https://cdn.example/b.jpg",
     "https://gallery.example/b",
     async () => {
@@ -146,7 +149,7 @@ test("serializes protected fetches so the shared rule cannot change mid-request"
 });
 
 test("startup cleanup removes the reserved session rule", async () => {
-  await RefererRules.cleanupStaleRule();
+  await RefererRules.cleanupStaleRefererRule();
   expect(updateSessionRules()).toHaveBeenCalledWith({
     removeRuleIds: [REFERER_SESSION_RULE_ID],
   });
@@ -157,13 +160,13 @@ test("worker reset drains protected work before removing the shared rule", async
   const pending = new Promise<void>((resolve) => {
     release = resolve;
   });
-  const protectedWork = RefererRules.withReferer(
+  const protectedWork = RefererRules.withRequestReferer(
     "https://cdn.example/reset.jpg",
     "https://gallery.example/reset",
     () => pending,
   );
   let resetFinished = false;
-  const reset = RefererRules.reset().then(() => {
+  const reset = RefererRules.resetRefererRules().then(() => {
     resetFinished = true;
   });
 
@@ -181,7 +184,7 @@ test("worker reset drains protected work before removing the shared rule", async
 test("worker reset is a no-op when referer rules are unavailable", async () => {
   setCurrentBrowser(BROWSERS.UNKNOWN);
 
-  await RefererRules.reset();
+  await RefererRules.resetRefererRules();
 
   expect(updateSessionRules()).not.toHaveBeenCalled();
   expect(firefoxUpdateSessionRules()).not.toHaveBeenCalled();
@@ -192,7 +195,7 @@ test("scopes Firefox rules to its moz-extension origin", async () => {
   const operation = vi.fn(async () => "native");
 
   await expect(
-    RefererRules.withReferer(
+    RefererRules.withRequestReferer(
       "https://cdn.example/file.jpg",
       "https://gallery.example/view",
       operation,
@@ -215,11 +218,11 @@ test("runs directly and skips stale cleanup on an unsupported host", async () =>
   setCurrentBrowser(BROWSERS.UNKNOWN);
   const operation = vi.fn(async () => "direct");
 
-  expect(RefererRules.canUse()).toBe(false);
+  expect(RefererRules.canUseRefererRules()).toBe(false);
   await expect(
-    RefererRules.withReferer("https://cdn.example/a", "https://example/a", operation),
+    RefererRules.withRequestReferer("https://cdn.example/a", "https://example/a", operation),
   ).resolves.toBe("direct");
-  await RefererRules.cleanupStaleRule();
+  await RefererRules.cleanupStaleRefererRule();
 
   expect(operation).toHaveBeenCalledOnce();
   expect(updateSessionRules()).not.toHaveBeenCalled();
@@ -229,7 +232,7 @@ test("runs directly and skips stale cleanup on an unsupported host", async () =>
 test("rejects rules when the extension origin cannot be established", () => {
   const chromeId = chrome.runtime.id;
   Reflect.set(chrome.runtime, "id", "");
-  expect(RefererRules.canUse()).toBe(false);
+  expect(RefererRules.canUseRefererRules()).toBe(false);
   expect(() => RefererRules.buildRule("https://cdn.example/a", "https://example/a")).toThrow(
     "origin is unavailable",
   );
@@ -239,7 +242,7 @@ test("rejects rules when the extension origin cannot be established", () => {
   vi.mocked(browser.runtime.getURL).mockImplementation(() => {
     throw new Error("context invalidated");
   });
-  expect(RefererRules.canUse()).toBe(false);
+  expect(RefererRules.canUseRefererRules()).toBe(false);
   vi.mocked(browser.runtime.getURL).mockImplementation(
     (path) => `moz-extension://save-in-test/${path}`,
   );
@@ -265,17 +268,17 @@ test("rejects rules on unknown and incomplete extension hosts", () => {
     configurable: true,
     value: { ...firefoxRuntime, getURL: undefined },
   });
-  expect(RefererRules.canUse()).toBe(false);
+  expect(RefererRules.canUseRefererRules()).toBe(false);
   Object.defineProperty(browser, "runtime", { configurable: true, value: firefoxRuntime });
 
   vi.mocked(browser.runtime.getURL).mockReturnValueOnce("data:text/plain,extension");
-  expect(RefererRules.canUse()).toBe(false);
+  expect(RefererRules.canUseRefererRules()).toBe(false);
 });
 
 test("extends the rule to a server-provided redirect target mid-operation", async () => {
   let extendResult: boolean | undefined;
 
-  await RefererRules.withReferer(
+  await RefererRules.withRequestReferer(
     "https://cdn.example/file.jpg#frag",
     "https://gallery.example/view",
     async (protection) => {
@@ -303,7 +306,7 @@ test("extends the rule to a server-provided redirect target mid-operation", asyn
 });
 
 test("refuses extensions that would weaken or oversize the rule", async () => {
-  await RefererRules.withReferer(
+  await RefererRules.withRequestReferer(
     "https://cdn.example/file.jpg",
     "https://gallery.example/view",
     async (protection) => {
@@ -332,7 +335,7 @@ test("degrades to the previous rule when an extension update is rejected", async
   let extendResult: boolean | undefined;
 
   await expect(
-    RefererRules.withReferer(
+    RefererRules.withRequestReferer(
       "https://cdn.example/file.jpg",
       "https://gallery.example/view",
       async (protection) => {
@@ -351,7 +354,7 @@ test("degrades to the previous rule when an extension update is rejected", async
 test("a leaked extend cannot resurrect the removed rule", async () => {
   let leaked: RefererProtection | undefined;
 
-  await RefererRules.withReferer(
+  await RefererRules.withRequestReferer(
     "https://cdn.example/file.jpg",
     "https://gallery.example/view",
     async (protection) => {
@@ -370,13 +373,13 @@ test("passes no protection when the rule cannot be used", async () => {
   const operation = vi.fn(async (protection?: RefererProtection) => protection);
 
   await expect(
-    RefererRules.withReferer("https://cdn.example/a", "https://example/a", operation),
+    RefererRules.withRequestReferer("https://cdn.example/a", "https://example/a", operation),
   ).resolves.toBeUndefined();
 });
 
 test("falls back safely if DNR disappears after protected work is queued", async () => {
   const dnr = chrome.declarativeNetRequest;
-  const cleanup = RefererRules.cleanupStaleRule();
+  const cleanup = RefererRules.cleanupStaleRefererRule();
   Object.defineProperty(chrome, "declarativeNetRequest", {
     configurable: true,
     value: undefined,
@@ -385,7 +388,7 @@ test("falls back safely if DNR disappears after protected work is queued", async
   Object.defineProperty(chrome, "declarativeNetRequest", { configurable: true, value: dnr });
 
   const operation = vi.fn(async () => "direct");
-  const protectedWork = RefererRules.withReferer(
+  const protectedWork = RefererRules.withRequestReferer(
     "https://cdn.example/a",
     "https://example/a",
     operation,

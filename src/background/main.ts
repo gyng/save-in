@@ -27,7 +27,7 @@ import { recoverActiveTransfers } from "../downloads/active-transfers.ts";
 import { OffscreenClient } from "../platform/offscreen-client.ts";
 import { rebuildMenus } from "./menu-rebuild.ts";
 import { MENU_IDS } from "../menus/menu-ids.ts";
-import { RefererRules } from "../downloads/referer-rules.ts";
+import { cleanupStaleRefererRule } from "../downloads/referer-rules.ts";
 import {
   markBackgroundFailed,
   markBackgroundReady,
@@ -64,7 +64,7 @@ const recoverColdStartState = async (): Promise<void> => {
     // Rebuild the in-memory download records from storage.session before any
     // download event handler (which awaits backgroundRuntime.ready) touches them.
     hydrateDownloads(downloadsState, extensionSessionStorage),
-    RefererRules.cleanupStaleRule().catch((error) =>
+    cleanupStaleRefererRule().catch((error) =>
       addLogEntry("Referer session rule cleanup failed", String(error)),
     ),
     recoverNotificationState(),

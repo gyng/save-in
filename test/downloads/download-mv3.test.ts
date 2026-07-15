@@ -16,7 +16,7 @@ import {
   makeUrlFromBlob,
   resolveContent,
 } from "../../src/downloads/content-fetch.ts";
-import { RefererRules } from "../../src/downloads/referer-rules.ts";
+import * as RefererRules from "../../src/downloads/referer-rules.ts";
 
 const decodeDataUrl = (url: string) => {
   const [meta, b64] = url.split(",");
@@ -365,8 +365,8 @@ describe("offscreen document fetch (Chrome MV3)", () => {
       })
       .mockResolvedValueOnce({ blobUrl: "blob:offscreen-url", hash: "deadbeef" });
     const extend = vi.fn(async () => true);
-    vi.spyOn(RefererRules, "withReferer").mockImplementation(async (_url, _referer, operation) =>
-      operation({ extend }),
+    vi.spyOn(RefererRules, "withRequestReferer").mockImplementation(
+      async (_url, _referer, operation) => operation({ extend }),
     );
 
     await expect(
@@ -395,8 +395,8 @@ describe("offscreen document fetch (Chrome MV3)", () => {
   test("does not retry a legacy offscreen failure without redirect detail", async () => {
     global.chrome.runtime.sendMessage = vi.fn(() => Promise.resolve({ error: "HTTP 403" }));
     const extend = vi.fn(async () => true);
-    vi.spyOn(RefererRules, "withReferer").mockImplementation(async (_url, _referer, operation) =>
-      operation({ extend }),
+    vi.spyOn(RefererRules, "withRequestReferer").mockImplementation(
+      async (_url, _referer, operation) => operation({ extend }),
     );
 
     await expect(
@@ -418,8 +418,8 @@ describe("offscreen document fetch (Chrome MV3)", () => {
       Promise.resolve({ error: "HTTP 403", status: 403, finalUrl: "https://s3.example/file" }),
     );
     const extend = vi.fn(async () => false);
-    vi.spyOn(RefererRules, "withReferer").mockImplementation(async (_url, _referer, operation) =>
-      operation({ extend }),
+    vi.spyOn(RefererRules, "withRequestReferer").mockImplementation(
+      async (_url, _referer, operation) => operation({ extend }),
     );
 
     await expect(
@@ -443,7 +443,7 @@ describe("offscreen document fetch (Chrome MV3)", () => {
       .spyOn(globalThis, "fetch")
       .mockResolvedValue(new Response("content", { status: 200 }));
     const withReferer = vi
-      .spyOn(RefererRules, "withReferer")
+      .spyOn(RefererRules, "withRequestReferer")
       .mockImplementation(async (_url, _referer, operation) => operation());
 
     await expect(
@@ -473,7 +473,7 @@ describe("offscreen document fetch (Chrome MV3)", () => {
     (global.chrome as any).offscreen = undefined;
     vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response("download", { status: 200 }));
     const withReferer = vi
-      .spyOn(RefererRules, "withReferer")
+      .spyOn(RefererRules, "withRequestReferer")
       .mockImplementation(async (_url, _referer, operation) => operation());
 
     const controller = new AbortController();

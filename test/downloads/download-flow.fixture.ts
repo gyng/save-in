@@ -23,7 +23,7 @@ import type { RoutingRule, RuleClause } from "../../src/routing/router.ts";
 import { configureDownloadPorts } from "../../src/downloads/ports.ts";
 import { backgroundRuntime } from "../../src/background/runtime.ts";
 import { configureRoutingPorts } from "../../src/routing/ports.ts";
-import { RefererRules } from "../../src/downloads/referer-rules.ts";
+import * as RefererRules from "../../src/downloads/referer-rules.ts";
 
 const downloadState = BackgroundState.downloads;
 const routingRule = (name = "rule"): RoutingRule => {
@@ -138,7 +138,7 @@ beforeEach(() => {
     retry: Download.retryViaFetch,
     sourceSidecar: () => Promise.resolve(),
   });
-  configureRoutingPorts({ withRequestReferer: RefererRules.withReferer });
+  configureRoutingPorts({ withRequestReferer: RefererRules.withRequestReferer });
   setCurrentBrowser("FIREFOX");
   Download.pendingStates.clear();
   Download.finalFilenamesByDownloadId.clear();

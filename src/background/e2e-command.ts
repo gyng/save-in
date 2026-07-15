@@ -17,7 +17,7 @@ import { handleTabMenuClick, type HostTab, type TabMenuClickInfo } from "./menu-
 import { configWriteState, counterWriteState } from "./state.ts";
 import { resetMessagingTransientState } from "./messaging.ts";
 import { resetSourcePanelState } from "./source-panel-state.ts";
-import { RefererRules } from "../downloads/referer-rules.ts";
+import { resetRefererRules } from "../downloads/referer-rules.ts";
 
 export const BACKGROUND_E2E_COMMAND = "SAVE_IN_E2E_START_DOWNLOAD";
 export const BACKGROUND_E2E_CONTEXT_MENU_COMMAND = "SAVE_IN_E2E_CONTEXT_MENU_CLICK";
@@ -338,7 +338,7 @@ export const handleBackgroundE2EResetCommand = async (
   try {
     await (backgroundRuntime.ready ?? Promise.resolve()).catch(() => {});
     await resetActiveTransfers();
-    await RefererRules.reset();
+    await resetRefererRules();
     await resetNotificationRecoveryState();
     await resetSourcePanelState();
     resetMessagingTransientState();

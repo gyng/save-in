@@ -2,7 +2,7 @@ import { options } from "../config/options-data.ts";
 import { WEB_EXTENSION_CAPABILITIES } from "../platform/chrome-detector.ts";
 import { matchPatternToRegExp } from "../shared/match-pattern.ts";
 import { parsePatternList } from "../shared/pattern-list.ts";
-import { RefererRules } from "./referer-rules.ts";
+import { canUseRefererRules } from "./referer-rules.ts";
 import type { DownloadInfo } from "./download-types.ts";
 
 type RefererState = { info?: Pick<DownloadInfo, "url" | "pageUrl"> } | null | undefined;
@@ -48,4 +48,4 @@ export const getDownloadHeaders = (state: RefererState): DownloadHeader[] | unde
 // DNR protects exact extension-owned metadata/content requests. Firefox
 // still attaches Referer natively when the final download remains direct.
 export const getFetchReferer = (state: RefererState): string | undefined =>
-  RefererRules.canUse() ? getReferer(state) : undefined;
+  canUseRefererRules() ? getReferer(state) : undefined;
