@@ -4,6 +4,7 @@ import {
   renderSyntaxHighlight,
   setSyntaxEditorDiagnostics,
   setupSyntaxEditors,
+  SYNTAX_EDITOR_LINE_SELECTED_EVENT,
 } from "../../src/options/syntax-editor.ts";
 
 describe("syntax editor surface", () => {
@@ -203,9 +204,16 @@ describe("syntax editor surface", () => {
   test("handles caret, keyboard, visibility, and scroll states", () => {
     document.body.innerHTML = '<textarea id="paths">first\n\tsecond</textarea>';
     const textarea = document.querySelector("textarea")!;
+    const lineSelections: number[] = [];
+    textarea.addEventListener(SYNTAX_EDITOR_LINE_SELECTED_EVENT, (event) => {
+      if (event instanceof CustomEvent) {
+        lineSelections.push(Reflect.get(event.detail ?? {}, "sourceIndex"));
+      }
+    });
     const editor = createSyntaxEditor(textarea, "directories");
     const lineNumbers = () => document.querySelectorAll<HTMLElement>(".syntax-editor-line-number");
     expect(lineNumbers()[0]?.classList).toContain("is-current");
+    expect(lineSelections).toEqual([0]);
     setSyntaxEditorDiagnostics(textarea, [
       {
         start: 6,
@@ -247,6 +255,7 @@ describe("syntax editor surface", () => {
     textarea.dispatchEvent(new MouseEvent("click"));
     expect(lineNumbers()[0]?.classList).not.toContain("is-current");
     expect(lineNumbers()[1]?.classList).toContain("is-current");
+    expect(lineSelections).toEqual([0, 0, 0, 1]);
     textarea.dispatchEvent(new MouseEvent("mousemove", { clientX: 12, clientY: 12 }));
     expect(tooltip.hidden).toBe(false);
 
@@ -256,6 +265,7 @@ describe("syntax editor surface", () => {
     textarea.dispatchEvent(
       new CustomEvent("syntax-editor-visibility", { detail: { visible: true } }),
     );
+    expect(lineSelections).toEqual([0, 0, 0, 1, 1]);
     textarea.dispatchEvent(new CustomEvent("syntax-editor-visibility"));
     textarea.dispatchEvent(
       new CustomEvent("syntax-editor-visibility", { detail: { visible: false } }),

@@ -14,6 +14,8 @@ export type SyntaxEditorController = {
   destroy(): void;
 };
 
+export const SYNTAX_EDITOR_LINE_SELECTED_EVENT = "syntax-editor-line-selected";
+
 const controllers = new WeakMap<HTMLTextAreaElement, SyntaxEditorController>();
 const pendingDiagnostics = new WeakMap<HTMLTextAreaElement, readonly SyntaxEditorDiagnostic[]>();
 
@@ -239,8 +241,9 @@ export const createSyntaxEditor = (
   let renderedDiagnostics: readonly SyntaxEditorDiagnostic[] = [];
   let characterWidth = 0;
   let tooltipPinned = false;
+  let selectedSourceIndex: number | null = null;
 
-  const syncCurrentLine = () => {
+  const syncCurrentLine = (notify = false) => {
     const offset = textarea.selectionStart;
     const line = snapshot.lines.find(
       (candidate) => offset >= candidate.start && offset <= candidate.end,
@@ -257,6 +260,16 @@ export const createSyntaxEditor = (
     gutter
       .querySelector<HTMLElement>(`.syntax-editor-line-number[data-start="${line.start}"]`)
       ?.classList.add("is-current");
+    const sourceIndex = line.number - 1;
+    if (notify || sourceIndex !== selectedSourceIndex) {
+      selectedSourceIndex = sourceIndex;
+      textarea.dispatchEvent(
+        new CustomEvent(SYNTAX_EDITOR_LINE_SELECTED_EVENT, {
+          bubbles: true,
+          detail: { sourceIndex },
+        }),
+      );
+    }
   };
 
   const diagnosticsAtOffset = (offset: number): readonly SyntaxEditorDiagnostic[] =>
@@ -388,7 +401,7 @@ export const createSyntaxEditor = (
   };
 
   const onCaretChange = () => {
-    syncCurrentLine();
+    syncCurrentLine(true);
     showTooltipForCaret();
   };
 
@@ -414,7 +427,7 @@ export const createSyntaxEditor = (
     if (!Number.isFinite(start)) return;
     textarea.focus();
     textarea.setSelectionRange(start, start);
-    syncCurrentLine();
+    syncCurrentLine(true);
     const line = lineAtOffset(start);
     const rect = target.getBoundingClientRect();
     showTooltip(diagnosticsForLine(renderedDiagnostics, line), rect.right + 8, rect.top, true);
@@ -425,8 +438,12 @@ export const createSyntaxEditor = (
   };
 
   const onVisibilityChange = (event: Event) => {
-    if (event instanceof CustomEvent && Reflect.get(event.detail ?? {}, "visible") === false) {
+    if (!(event instanceof CustomEvent)) return;
+    const visible: unknown = Reflect.get(event.detail ?? {}, "visible");
+    if (visible === false) {
       hideTooltip();
+    } else if (visible === true) {
+      syncCurrentLine(true);
     }
   };
 

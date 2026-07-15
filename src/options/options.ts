@@ -41,7 +41,7 @@ import { setupIntegrationPanel } from "./integration-panel.ts";
 import { isStringKeyedRecord, sendInternalMessage } from "../shared/message-protocol.ts";
 import { applyUiTheme, setupUiThemeControl } from "./theme.ts";
 import { getPathSourceRange } from "./path-editor-model.ts";
-import { setSyntaxEditorDiagnostics } from "./syntax-editor.ts";
+import { setSyntaxEditorDiagnostics, SYNTAX_EDITOR_LINE_SELECTED_EVENT } from "./syntax-editor.ts";
 import {
   directoryValidationLocation,
   validationErrorsToDiagnostics,
@@ -977,13 +977,15 @@ const updateMenuPreview = () => {
     document.querySelector(selector)?.addEventListener("change", () => updateMenuPreview());
   });
 
-  textarea.addEventListener("path-editor-row-selected", (event) => {
+  const highlightSelectedSource = (event: Event) => {
     if (!(event instanceof CustomEvent)) return;
     const sourceIndex: unknown = Reflect.get(event.detail ?? {}, "sourceIndex");
     if (typeof sourceIndex === "number" && Number.isInteger(sourceIndex) && sourceIndex >= 0) {
       highlightMenuPreviewSource(sourceIndex);
     }
-  });
+  };
+  textarea.addEventListener("path-editor-row-selected", highlightSelectedSource);
+  textarea.addEventListener(SYNTAX_EDITOR_LINE_SELECTED_EVENT, highlightSelectedSource);
 
   let previewTimer: number | null = null;
   textarea.addEventListener("input", () => {
