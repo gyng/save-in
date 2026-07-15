@@ -13,7 +13,7 @@ describe("emit.downloaded", () => {
       info: { url: "https://x/file.png" },
     };
 
-    expect(() => Messaging.emit.downloaded(state)).not.toThrow();
+    expect(() => Messaging.emitDownloaded(state)).not.toThrow();
     expect(global.browser.runtime.sendMessage).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.DOWNLOADED,
       body: { state: { path: ".", info: { url: "https://x/file.png" } } },

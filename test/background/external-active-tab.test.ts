@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-import { Messaging } from "../../src/background/messaging.ts";
+import * as Messaging from "../../src/background/messaging.ts";
 import { Download } from "../../src/downloads/download.ts";
 import { MESSAGE_TYPES } from "../../src/shared/constants.ts";
 import { webExtensionApi } from "../../src/platform/web-extension-api.ts";
