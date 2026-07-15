@@ -37,6 +37,26 @@ label:has(> input[type="checkbox"]) > .caption-line {
   grid-column: 2;
 }
 
+.described-checkbox {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: var(--space-2);
+  align-items: baseline;
+}
+
+.described-checkbox > input {
+  grid-column: 1;
+  margin: 0;
+}
+
+.described-checkbox > :is(label, .caption) {
+  grid-column: 2;
+}
+
+.described-checkbox > label {
+  margin: 0;
+}
+
 .behavior-group {
   padding: var(--space-2) 0;
 }
