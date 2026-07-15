@@ -139,7 +139,7 @@ describe("renameAndDownload: browserDownload", () => {
     setCurrentBrowser("CHROME");
     vi.mocked(global.browser.downloads.cancel).mockRejectedValue(new Error("already stopped"));
     vi.mocked(global.browser.downloads.download).mockImplementation(async () => {
-      expect(ActiveTransfers.cancel("h-test")).toBe(true);
+      expect(ActiveTransfers.cancelActiveTransfer("h-test")).toBe(true);
       return 101;
     });
     const state = makeState();
@@ -178,7 +178,7 @@ describe("renameAndDownload: browserDownload", () => {
   test("contains a browser rejection caused by cancellation", async () => {
     setCurrentBrowser("CHROME");
     vi.mocked(global.browser.downloads.download).mockImplementation(async () => {
-      expect(ActiveTransfers.cancel("h-test")).toBe(true);
+      expect(ActiveTransfers.cancelActiveTransfer("h-test")).toBe(true);
       throw new Error("aborted by browser");
     });
     const state = makeState();

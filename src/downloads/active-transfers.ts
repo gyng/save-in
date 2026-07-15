@@ -79,91 +79,89 @@ const persist = (historyId: string, record?: ActiveTransferRecord) =>
     },
   );
 
-export const ActiveTransfers = {
-  register(
-    historyId: string,
-    controller: AbortController,
-    fields: Partial<Pick<ActiveTransferRecord, "requestId" | "downloadId">> = {},
-  ): void {
-    const previous = controllers.get(historyId);
-    if (previous?.controller === controller) {
-      ActiveTransfers.update(historyId, fields);
-      return;
-    }
-    previous?.controller.abort();
-    const record = { ...fields, updatedAt: Date.now(), controller };
-    controllers.set(historyId, record);
-    void persist(historyId, record);
-    syncKeepalive();
-  },
+export const registerActiveTransfer = (
+  historyId: string,
+  controller: AbortController,
+  fields: Partial<Pick<ActiveTransferRecord, "requestId" | "downloadId">> = {},
+): void => {
+  const previous = controllers.get(historyId);
+  if (previous?.controller === controller) {
+    updateActiveTransfer(historyId, fields);
+    return;
+  }
+  previous?.controller.abort();
+  const record = { ...fields, updatedAt: Date.now(), controller };
+  controllers.set(historyId, record);
+  void persist(historyId, record);
+  syncKeepalive();
+};
 
-  cancel(historyId: string): boolean {
-    const transfer = controllers.get(historyId);
-    if (!transfer) return false;
-    transfer.controller.abort();
-    return true;
-  },
+export const cancelActiveTransfer = (historyId: string): boolean => {
+  const transfer = controllers.get(historyId);
+  if (!transfer) return false;
+  transfer.controller.abort();
+  return true;
+};
 
-  get(historyId: string): ActiveTransferRecord | undefined {
-    const transfer = controllers.get(historyId);
-    if (!transfer) return undefined;
-    const { requestId, downloadId, updatedAt } = transfer;
-    return {
-      updatedAt,
-      ...(requestId ? { requestId } : {}),
-      ...(downloadId != null ? { downloadId } : {}),
-    };
-  },
+export const getActiveTransfer = (historyId: string): ActiveTransferRecord | undefined => {
+  const transfer = controllers.get(historyId);
+  if (!transfer) return undefined;
+  const { requestId, downloadId, updatedAt } = transfer;
+  return {
+    updatedAt,
+    ...(requestId ? { requestId } : {}),
+    ...(downloadId != null ? { downloadId } : {}),
+  };
+};
 
-  update(
-    historyId: string,
-    fields: Partial<Pick<ActiveTransferRecord, "requestId" | "downloadId">>,
-  ): void {
-    const transfer = controllers.get(historyId);
-    if (!transfer) return;
-    Object.assign(transfer, fields, { updatedAt: Date.now() });
-    void persist(historyId, transfer);
-  },
+export const updateActiveTransfer = (
+  historyId: string,
+  fields: Partial<Pick<ActiveTransferRecord, "requestId" | "downloadId">>,
+): void => {
+  const transfer = controllers.get(historyId);
+  if (!transfer) return;
+  Object.assign(transfer, fields, { updatedAt: Date.now() });
+  void persist(historyId, transfer);
+};
 
-  hold(controller: AbortController): void {
-    privateControllers.add(controller);
-    syncKeepalive();
-  },
+export const holdTransferKeepalive = (controller: AbortController): void => {
+  privateControllers.add(controller);
+  syncKeepalive();
+};
 
-  finish(historyId: string, controller: AbortController): void {
-    if (controllers.get(historyId)?.controller === controller) {
-      controllers.delete(historyId);
-      void persist(historyId);
-    }
-    syncKeepalive();
-  },
+export const finishActiveTransfer = (historyId: string, controller: AbortController): void => {
+  if (controllers.get(historyId)?.controller === controller) {
+    controllers.delete(historyId);
+    void persist(historyId);
+  }
+  syncKeepalive();
+};
 
-  release(controller: AbortController): void {
-    privateControllers.delete(controller);
-    syncKeepalive();
-  },
+export const releaseTransferKeepalive = (controller: AbortController): void => {
+  privateControllers.delete(controller);
+  syncKeepalive();
+};
 
-  async recover(): Promise<Record<string, ActiveTransferRecord>> {
-    const stored = await getSession(extensionSessionStorage, ACTIVE_TRANSFERS_SESSION_KEY);
-    const records = storedRecords(stored[ACTIVE_TRANSFERS_SESSION_KEY]);
-    await extensionSessionStorage.remove(ACTIVE_TRANSFERS_SESSION_KEY);
-    return records;
-  },
+export const recoverActiveTransfers = async (): Promise<Record<string, ActiveTransferRecord>> => {
+  const stored = await getSession(extensionSessionStorage, ACTIVE_TRANSFERS_SESSION_KEY);
+  const records = storedRecords(stored[ACTIVE_TRANSFERS_SESSION_KEY]);
+  await extensionSessionStorage.remove(ACTIVE_TRANSFERS_SESSION_KEY);
+  return records;
+};
 
-  clear(): void {
-    for (const transfer of controllers.values()) transfer.controller.abort();
-    for (const controller of privateControllers) controller.abort();
-    controllers.clear();
-    privateControllers.clear();
-    syncKeepalive();
-  },
+export const clearActiveTransfers = (): void => {
+  for (const transfer of controllers.values()) transfer.controller.abort();
+  for (const controller of privateControllers) controller.abort();
+  controllers.clear();
+  privateControllers.clear();
+  syncKeepalive();
+};
 
-  async reset(): Promise<void> {
-    ActiveTransfers.clear();
-    for (;;) {
-      const pending = [...writes.queues.values()];
-      if (pending.length === 0) return;
-      await Promise.allSettled(pending);
-    }
-  },
+export const resetActiveTransfers = async (): Promise<void> => {
+  clearActiveTransfers();
+  for (;;) {
+    const pending = [...writes.queues.values()];
+    if (pending.length === 0) return;
+    await Promise.allSettled(pending);
+  }
 };

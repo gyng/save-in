@@ -37,7 +37,7 @@ const { setCurrentTab } = await import("../../../src/platform/current-tab.ts");
 const { backgroundRuntime } = await import("../../../src/background/runtime.ts");
 const SaveHistory = await import("../../../src/background/history.ts");
 const Log = await import("../../../src/background/log.ts");
-const { ActiveTransfers } = await import("../../../src/downloads/active-transfers.ts");
+const ActiveTransfers = await import("../../../src/downloads/active-transfers.ts");
 const { OffscreenClient } = await import("../../../src/platform/offscreen-client.ts");
 const { ExternalDownloadRejections } =
   await import("../../../src/background/external-download-rejections.ts");
@@ -115,8 +115,8 @@ const setupGlobals = () => {
   vi.spyOn(Log, "addLogEntry").mockResolvedValue(undefined);
   vi.spyOn(Log, "getLogEntries").mockResolvedValue([]);
   vi.spyOn(Log, "clearLog").mockResolvedValue(undefined);
-  vi.spyOn(ActiveTransfers, "get").mockReturnValue(undefined);
-  vi.spyOn(ActiveTransfers, "cancel").mockReturnValue(false);
+  vi.spyOn(ActiveTransfers, "getActiveTransfer").mockReturnValue(undefined);
+  vi.spyOn(ActiveTransfers, "cancelActiveTransfer").mockReturnValue(false);
   vi.spyOn(OffscreenClient, "canUse").mockReturnValue(false);
   vi.spyOn(OffscreenClient, "cancel").mockResolvedValue(undefined);
   vi.spyOn(ExternalDownloadRejections, "get").mockResolvedValue([]);

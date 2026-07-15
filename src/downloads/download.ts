@@ -54,7 +54,13 @@ import {
 } from "./filename-listener.ts";
 import { BrowserDownloadRouting, routeBrowserDownload } from "./browser-downloads.ts";
 import { resolveFirefoxDownloadContext } from "./auth-context.ts";
-import { ActiveTransfers } from "./active-transfers.ts";
+import {
+  finishActiveTransfer,
+  holdTransferKeepalive,
+  registerActiveTransfer,
+  releaseTransferKeepalive,
+  updateActiveTransfer,
+} from "./active-transfers.ts";
 import type { HistoryEntryInput } from "../shared/history-types.ts";
 import { deliverSaveWebhook } from "./webhook-delivery.ts";
 
@@ -742,7 +748,7 @@ export const Download = {
         adopted: true,
       });
       if (historyEntryId) {
-        ActiveTransfers.update(historyEntryId, { downloadId });
+        updateActiveTransfer(historyEntryId, { downloadId });
         await historyPort.setDownloadId(historyEntryId, downloadId);
       }
       if (signal?.aborted) {
@@ -825,13 +831,13 @@ export const Download = {
       const id = state.scratch.historyEntryId;
       if (id) {
         registeredHistoryId = id;
-        ActiveTransfers.register(
+        registerActiveTransfer(
           id,
           preparationController,
           activeRequestId ? { requestId: activeRequestId } : {},
         );
       } else if (!privateHeld) {
-        ActiveTransfers.hold(preparationController);
+        holdTransferKeepalive(preparationController);
         privateHeld = true;
       }
     };
@@ -846,8 +852,8 @@ export const Download = {
       emitDownloaded(state);
     };
     const finishPreparation = () => {
-      if (registeredHistoryId) ActiveTransfers.finish(registeredHistoryId, preparationController);
-      if (privateHeld) ActiveTransfers.release(preparationController);
+      if (registeredHistoryId) finishActiveTransfer(registeredHistoryId, preparationController);
+      if (privateHeld) releaseTransferKeepalive(preparationController);
       state.info.abortSignal = undefined;
       state.info.onContentFetchStart = undefined;
     };

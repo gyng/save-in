@@ -23,7 +23,7 @@ import { syncSourcePanelToTab, toggleSourcePanelForTab } from "./source-panel-st
 import { backgroundRuntime, resetRuntimeDiagnostics } from "./runtime.ts";
 import { recoverNotificationState } from "../downloads/notification-recovery.ts";
 import { runBackgroundTask } from "./event-task.ts";
-import { ActiveTransfers } from "../downloads/active-transfers.ts";
+import { recoverActiveTransfers } from "../downloads/active-transfers.ts";
 import { OffscreenClient } from "../platform/offscreen-client.ts";
 import { rebuildMenus } from "./menu-rebuild.ts";
 import { MENU_IDS } from "../menus/menu-ids.ts";
@@ -68,7 +68,7 @@ const recoverColdStartState = async (): Promise<void> => {
       addLogEntry("Referer session rule cleanup failed", String(error)),
     ),
     recoverNotificationState(),
-    ActiveTransfers.recover().then(async (records) => {
+    recoverActiveTransfers().then(async (records) => {
       await Promise.all(
         Object.entries(records).map(async ([historyId, record]) => {
           if (record.requestId && OffscreenClient.canUse()) {

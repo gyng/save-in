@@ -1,45 +1,45 @@
-import { ActiveTransfers } from "../../src/downloads/active-transfers.ts";
+import * as ActiveTransfers from "../../src/downloads/active-transfers.ts";
 import { ACTIVE_TRANSFERS_SESSION_KEY } from "../../src/shared/storage-keys.ts";
 
 beforeEach(() => vi.clearAllMocks());
 
 afterEach(() => {
-  ActiveTransfers.clear();
+  ActiveTransfers.clearActiveTransfers();
   vi.useRealTimers();
 });
 
 test("cancels an active preparation by its history ID", () => {
   const controller = new AbortController();
-  ActiveTransfers.register("h1", controller);
+  ActiveTransfers.registerActiveTransfer("h1", controller);
 
-  expect(ActiveTransfers.cancel("h1")).toBe(true);
+  expect(ActiveTransfers.cancelActiveTransfer("h1")).toBe(true);
   expect(controller.signal.aborted).toBe(true);
-  expect(ActiveTransfers.cancel("missing")).toBe(false);
+  expect(ActiveTransfers.cancelActiveTransfer("missing")).toBe(false);
 });
 
 test("finishing an old controller does not remove its replacement", () => {
   const first = new AbortController();
   const second = new AbortController();
-  ActiveTransfers.register("h1", first);
-  ActiveTransfers.register("h1", second);
-  ActiveTransfers.finish("h1", first);
+  ActiveTransfers.registerActiveTransfer("h1", first);
+  ActiveTransfers.registerActiveTransfer("h1", second);
+  ActiveTransfers.finishActiveTransfer("h1", first);
 
   expect(first.signal.aborted).toBe(true);
-  expect(ActiveTransfers.cancel("h1")).toBe(true);
+  expect(ActiveTransfers.cancelActiveTransfer("h1")).toBe(true);
   expect(second.signal.aborted).toBe(true);
 });
 
 test("reset aborts every transfer and drains persistence", async () => {
   const publicController = new AbortController();
   const privateController = new AbortController();
-  ActiveTransfers.register("h1", publicController);
-  ActiveTransfers.hold(privateController);
+  ActiveTransfers.registerActiveTransfer("h1", publicController);
+  ActiveTransfers.holdTransferKeepalive(privateController);
 
-  await ActiveTransfers.reset();
+  await ActiveTransfers.resetActiveTransfers();
 
   expect(publicController.signal.aborted).toBe(true);
   expect(privateController.signal.aborted).toBe(true);
-  expect(ActiveTransfers.cancel("h1")).toBe(false);
+  expect(ActiveTransfers.cancelActiveTransfer("h1")).toBe(false);
   expect(browser.storage.session.set).toHaveBeenCalled();
 });
 
@@ -49,11 +49,11 @@ test("keeps the service worker alive while a transfer is active", async () => {
   Object.assign(globalThis.browser.runtime, { getPlatformInfo });
   const controller = new AbortController();
 
-  ActiveTransfers.register("h1", controller);
+  ActiveTransfers.registerActiveTransfer("h1", controller);
   await vi.advanceTimersByTimeAsync(25_000);
   expect(getPlatformInfo).toHaveBeenCalled();
 
-  ActiveTransfers.finish("h1", controller);
+  ActiveTransfers.finishActiveTransfer("h1", controller);
   getPlatformInfo.mockClear();
   await vi.advanceTimersByTimeAsync(25_000);
   expect(getPlatformInfo).not.toHaveBeenCalled();
@@ -64,28 +64,31 @@ test("keeps transfers alive when the host has no platform-info capability", asyn
   Object.assign(globalThis.browser.runtime, { getPlatformInfo: undefined });
   const controller = new AbortController();
 
-  ActiveTransfers.register("h1", controller);
+  ActiveTransfers.registerActiveTransfer("h1", controller);
   await vi.advanceTimersByTimeAsync(25_000);
 
-  ActiveTransfers.finish("h1", controller);
+  ActiveTransfers.finishActiveTransfer("h1", controller);
 });
 
 test("updates a registration in place and exposes only durable fields", async () => {
   vi.useFakeTimers();
   vi.setSystemTime(new Date("2026-01-01T00:00:00Z"));
   const controller = new AbortController();
-  ActiveTransfers.register("h1", controller);
-  expect(ActiveTransfers.get("h1")).toEqual({ updatedAt: Date.now() });
+  ActiveTransfers.registerActiveTransfer("h1", controller);
+  expect(ActiveTransfers.getActiveTransfer("h1")).toEqual({ updatedAt: Date.now() });
 
   vi.setSystemTime(new Date("2026-01-01T00:00:01Z"));
-  ActiveTransfers.register("h1", controller, { requestId: "request-1", downloadId: 7 });
-  expect(ActiveTransfers.get("h1")).toEqual({
+  ActiveTransfers.registerActiveTransfer("h1", controller, {
+    requestId: "request-1",
+    downloadId: 7,
+  });
+  expect(ActiveTransfers.getActiveTransfer("h1")).toEqual({
     requestId: "request-1",
     downloadId: 7,
     updatedAt: Date.now(),
   });
-  expect(ActiveTransfers.get("missing")).toBeUndefined();
-  expect(() => ActiveTransfers.update("missing", { downloadId: 9 })).not.toThrow();
+  expect(ActiveTransfers.getActiveTransfer("missing")).toBeUndefined();
+  expect(() => ActiveTransfers.updateActiveTransfer("missing", { downloadId: 9 })).not.toThrow();
 
   await vi.waitFor(() =>
     expect(browser.storage.session.set).toHaveBeenCalledWith(
@@ -104,12 +107,12 @@ test("holds private transfers without persisting an identifying record", async (
   Object.assign(globalThis.browser.runtime, { getPlatformInfo });
   const controller = new AbortController();
 
-  ActiveTransfers.hold(controller);
+  ActiveTransfers.holdTransferKeepalive(controller);
   await vi.advanceTimersByTimeAsync(25_000);
   expect(getPlatformInfo).toHaveBeenCalledOnce();
   expect(browser.storage.session.set).not.toHaveBeenCalled();
 
-  ActiveTransfers.release(controller);
+  ActiveTransfers.releaseTransferKeepalive(controller);
   getPlatformInfo.mockClear();
   await vi.advanceTimersByTimeAsync(25_000);
   expect(getPlatformInfo).not.toHaveBeenCalled();
@@ -136,7 +139,7 @@ test("recovers only normalized durable transfer records and removes the snapshot
   });
   vi.mocked(browser.storage.session.remove).mockResolvedValue();
 
-  await expect(ActiveTransfers.recover()).resolves.toEqual({
+  await expect(ActiveTransfers.recoverActiveTransfers()).resolves.toEqual({
     complete: { requestId: "req", downloadId: 4, updatedAt: 10 },
     minimal: { updatedAt: 11 },
     invalidDownloadId: { requestId: "req-2", updatedAt: 12 },
@@ -151,5 +154,5 @@ test.each([null, "invalid", []])("normalizes a malformed transfer snapshot %j", 
     [ACTIVE_TRANSFERS_SESSION_KEY]: stored,
   });
   vi.mocked(browser.storage.session.remove).mockResolvedValue();
-  await expect(ActiveTransfers.recover()).resolves.toEqual({});
+  await expect(ActiveTransfers.recoverActiveTransfers()).resolves.toEqual({});
 });

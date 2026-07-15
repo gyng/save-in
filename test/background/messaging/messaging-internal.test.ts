@@ -108,12 +108,12 @@ describe("onMessage", () => {
   });
 
   test("HISTORY_CANCEL aborts offscreen and active browser transfers", async () => {
-    vi.mocked(ActiveTransfers.get).mockReturnValue({
+    vi.mocked(ActiveTransfers.getActiveTransfer).mockReturnValue({
       requestId: "request-1",
       downloadId: 17,
       updatedAt: 1,
     });
-    vi.mocked(ActiveTransfers.cancel).mockReturnValue(true);
+    vi.mocked(ActiveTransfers.cancelActiveTransfer).mockReturnValue(true);
     vi.mocked(OffscreenClient.canUse).mockReturnValue(true);
     vi.mocked(OffscreenClient.cancel).mockRejectedValue(new Error("already released"));
     vi.mocked(global.browser.downloads.search).mockResolvedValue([
@@ -164,8 +164,8 @@ describe("onMessage", () => {
   });
 
   test("HISTORY_CANCEL records an active transfer when no browser download exists", async () => {
-    vi.mocked(ActiveTransfers.get).mockReturnValue({ updatedAt: 1 });
-    vi.mocked(ActiveTransfers.cancel).mockReturnValue(true);
+    vi.mocked(ActiveTransfers.getActiveTransfer).mockReturnValue({ updatedAt: 1 });
+    vi.mocked(ActiveTransfers.cancelActiveTransfer).mockReturnValue(true);
     const sendResponse = vi.fn();
 
     onMessage(

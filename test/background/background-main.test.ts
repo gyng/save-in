@@ -49,7 +49,7 @@ vi.mock("../../src/downloads/notification-recovery.ts", () => ({
 }));
 const activeTransferMocks = vi.hoisted(() => ({ recover: vi.fn(() => Promise.resolve({})) }));
 vi.mock("../../src/downloads/active-transfers.ts", () => ({
-  ActiveTransfers: { recover: activeTransferMocks.recover },
+  recoverActiveTransfers: activeTransferMocks.recover,
 }));
 
 import type { CurrentTab } from "../../src/platform/current-tab.ts";

@@ -7,7 +7,13 @@ import { options } from "../config/options-data.ts";
 import { resolveFirefoxDownloadContext } from "./auth-context.ts";
 import { fetchUrlForDownload } from "./content-fetch.ts";
 import { getFetchReferer } from "./headers.ts";
-import { ActiveTransfers } from "./active-transfers.ts";
+import {
+  finishActiveTransfer,
+  holdTransferKeepalive,
+  registerActiveTransfer,
+  releaseTransferKeepalive,
+  updateActiveTransfer,
+} from "./active-transfers.ts";
 import { OffscreenClient } from "../platform/offscreen-client.ts";
 import { getDownload, mergeDownload } from "./download-state.ts";
 import { isPrivateDownloadRecord } from "./download-state.ts";
@@ -62,9 +68,9 @@ export const retryViaFetch = async (
   const controller = new AbortController();
   const requestId = crypto.randomUUID();
   if (record.historyEntryId) {
-    ActiveTransfers.register(record.historyEntryId, controller, { requestId });
+    registerActiveTransfer(record.historyEntryId, controller, { requestId });
   } else {
-    ActiveTransfers.hold(controller);
+    holdTransferKeepalive(controller);
   }
   // Persist before fetching so a worker restart cannot retry the same download twice.
   record.retried = true;
@@ -127,7 +133,7 @@ export const retryViaFetch = async (
     services.notifier.cancelExpectedDownload(expected);
     expected = undefined;
     if (content.ownedObjectUrl) runtime.ownedObjectUrls.set(newId, content.ownedObjectUrl);
-    if (record.historyEntryId) ActiveTransfers.update(record.historyEntryId, { downloadId: newId });
+    if (record.historyEntryId) updateActiveTransfer(record.historyEntryId, { downloadId: newId });
     await rememberStartedDownload(
       newId,
       Object.assign({}, record, {
@@ -155,8 +161,8 @@ export const retryViaFetch = async (
     } else services.log.add("fallback fetch failed", String(error));
     return false;
   } finally {
-    if (record.historyEntryId) ActiveTransfers.finish(record.historyEntryId, controller);
-    else ActiveTransfers.release(controller);
+    if (record.historyEntryId) finishActiveTransfer(record.historyEntryId, controller);
+    else releaseTransferKeepalive(controller);
     const cleanupUrl = blobUrl;
     if (cleanupUrl) {
       const filenameListenerWillConsume =

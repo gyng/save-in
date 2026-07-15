@@ -2,7 +2,7 @@ import { SHORTCUT_TYPES } from "../shared/constants.ts";
 import { webExtensionApi } from "../platform/web-extension-api.ts";
 import { Download } from "../downloads/download.ts";
 import type { DownloadInfo, DownloadLaunchResult } from "../downloads/download-types.ts";
-import { ActiveTransfers } from "../downloads/active-transfers.ts";
+import { resetActiveTransfers } from "../downloads/active-transfers.ts";
 import {
   resetNotificationRecoveryState,
   resetNotifierTransientState,
@@ -337,7 +337,7 @@ export const handleBackgroundE2EResetCommand = async (
   if (!isBackgroundE2EResetCommand(rawRequest)) return null;
   try {
     await (backgroundRuntime.ready ?? Promise.resolve()).catch(() => {});
-    await ActiveTransfers.reset();
+    await resetActiveTransfers();
     await RefererRules.reset();
     await resetNotificationRecoveryState();
     await resetSourcePanelState();

@@ -271,8 +271,8 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
     await seedStartedDownload();
     const record = downloadState.records.get(101)!;
     delete record.historyEntryId;
-    const hold = vi.spyOn(ActiveTransfers, "hold");
-    const release = vi.spyOn(ActiveTransfers, "release");
+    const hold = vi.spyOn(ActiveTransfers, "holdTransferKeepalive");
+    const release = vi.spyOn(ActiveTransfers, "releaseTransferKeepalive");
     vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:untracked-retry");
     global.fetch = vi.fn(() =>
       Promise.resolve({ ok: true, blob: () => Promise.resolve(new Blob(["bytes"])) }),
@@ -289,7 +289,7 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
   test("cancels a replacement accepted after its transfer was aborted", async () => {
     await seedStartedDownload();
     const historyEntryId = downloadState.records.get(101)!.historyEntryId!;
-    const register = vi.spyOn(ActiveTransfers, "register");
+    const register = vi.spyOn(ActiveTransfers, "registerActiveTransfer");
     vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:aborted-retry");
     global.fetch = vi.fn(() =>
       Promise.resolve({ ok: true, blob: () => Promise.resolve(new Blob(["bytes"])) }),
@@ -312,7 +312,7 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
 
     await expect(retry).resolves.toBe(false);
     expect(global.browser.downloads.cancel).toHaveBeenCalledWith(213);
-    expect(ActiveTransfers.get(historyEntryId)).toBeUndefined();
+    expect(ActiveTransfers.getActiveTransfer(historyEntryId)).toBeUndefined();
   });
 
   test("releases offscreen content when the replacement download is rejected", async () => {
@@ -352,7 +352,7 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
 
   test("treats an aborted in-flight fetch as handled", async () => {
     await seedStartedDownload();
-    const register = vi.spyOn(ActiveTransfers, "register");
+    const register = vi.spyOn(ActiveTransfers, "registerActiveTransfer");
     vi.spyOn(OffscreenClient, "canUse").mockReturnValue(true);
     let rejectFetch!: (error: Error) => void;
     vi.spyOn(OffscreenClient, "fetchContent").mockReturnValue(

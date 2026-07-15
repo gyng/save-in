@@ -36,7 +36,7 @@ import { configWriteState } from "./state.ts";
 import { getPersistenceDiagnostics } from "../shared/persistence-diagnostics.ts";
 import { syncSourcePanelToTab, setSourcePanelOpenState } from "./source-panel-state.ts";
 import { previewRoutes } from "./route-preview.ts";
-import { ActiveTransfers } from "../downloads/active-transfers.ts";
+import { cancelActiveTransfer, getActiveTransfer } from "../downloads/active-transfers.ts";
 import { OffscreenClient } from "../platform/offscreen-client.ts";
 import { ExternalDownloadRejections } from "./external-download-rejections.ts";
 import { getMessage } from "../platform/localization.ts";
@@ -716,8 +716,8 @@ const internalHandlers = {
   },
   [MESSAGE_TYPES.HISTORY_CANCEL]: async (request, _sender, sendResponse) => {
     const { historyId } = request.body;
-    const active = ActiveTransfers.get(historyId);
-    let canceled = ActiveTransfers.cancel(historyId);
+    const active = getActiveTransfer(historyId);
+    let canceled = cancelActiveTransfer(historyId);
     if (active?.requestId && OffscreenClient.canUse()) {
       await OffscreenClient.cancel(active.requestId).catch(() => {});
     }

@@ -31,7 +31,7 @@ describe("renameAndDownload: shared :sha256: fetch reuse", () => {
 
     const task = Download.renameAndDownload(state);
     await vi.waitFor(() => expect(SaveHistory.addHistoryEntry).toHaveBeenCalled());
-    expect(ActiveTransfers.cancel("h-test")).toBe(true);
+    expect(ActiveTransfers.cancelActiveTransfer("h-test")).toBe(true);
 
     await expect(task).resolves.toEqual({ status: "skipped" });
     expect(SaveHistory.setHistoryStatus).toHaveBeenCalledWith("h-test", "USER_CANCELED");
@@ -40,8 +40,8 @@ describe("renameAndDownload: shared :sha256: fetch reuse", () => {
 
   test("holds one private preparation controller when history is disabled", async () => {
     vi.mocked(SaveHistory.addHistoryEntry).mockReturnValue(null);
-    const hold = vi.spyOn(ActiveTransfers, "hold");
-    const release = vi.spyOn(ActiveTransfers, "release");
+    const hold = vi.spyOn(ActiveTransfers, "holdTransferKeepalive");
+    const release = vi.spyOn(ActiveTransfers, "releaseTransferKeepalive");
     vi.spyOn(Variable, "applyVariables").mockImplementationOnce(async (path, info) => {
       await info?.onContentFetchStart?.("private-request");
       return path as any;
@@ -286,7 +286,7 @@ describe("renameAndDownload: fetchViaFetch", () => {
 
     const task = Download.renameAndDownload(state);
     await vi.waitFor(() => expect(global.fetch).toHaveBeenCalled());
-    expect(ActiveTransfers.cancel("h-test")).toBe(true);
+    expect(ActiveTransfers.cancelActiveTransfer("h-test")).toBe(true);
 
     await expect(task).resolves.toEqual({ status: "skipped" });
     expect(global.browser.downloads.download).not.toHaveBeenCalled();

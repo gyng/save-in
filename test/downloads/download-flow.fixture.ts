@@ -78,7 +78,7 @@ Object.assign(hostBrowser, {
 // Importing download.ts loads the rest of the (real) cyclic module graph;
 // grab the same singleton instances it binds to.
 const { Download, registerDownloadListener } = await import("../../src/downloads/download.ts");
-const { ActiveTransfers } = await import("../../src/downloads/active-transfers.ts");
+const ActiveTransfers = await import("../../src/downloads/active-transfers.ts");
 const { BrowserDownloadRouting } = await import("../../src/downloads/browser-downloads.ts");
 const { options } = await import("../../src/config/options-data.ts");
 const router = await import("../../src/routing/router.ts");
@@ -144,7 +144,7 @@ beforeEach(() => {
   Download.finalFilenamesByDownloadId.clear();
   Download.generatedObjectUrls.clear();
   Download.ownedObjectUrls.clear();
-  ActiveTransfers.clear();
+  ActiveTransfers.clearActiveTransfers();
 
   // Reset the real options bag to exactly the fields this suite controls
   for (const k of Object.keys(options)) Reflect.deleteProperty(options, k);

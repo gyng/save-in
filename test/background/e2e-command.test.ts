@@ -1,6 +1,6 @@
 import { Download } from "../../src/downloads/download.ts";
 import { Notifier } from "../../src/downloads/notification.ts";
-import { ActiveTransfers } from "../../src/downloads/active-transfers.ts";
+import * as ActiveTransfers from "../../src/downloads/active-transfers.ts";
 import { downloadsState } from "../../src/downloads/state.ts";
 import { counterWriteState } from "../../src/background/state.ts";
 import { backgroundRuntime } from "../../src/background/runtime.ts";
@@ -119,7 +119,7 @@ test("returns a command error when context-menu dispatch fails", async () => {
 
 test("resets worker-local state after each browser case", async () => {
   const controller = new AbortController();
-  ActiveTransfers.register("history-7", controller);
+  ActiveTransfers.registerActiveTransfer("history-7", controller);
   downloadsState.records.set(7, { adopted: true, filename: "old.txt" });
   downloadsState.hydration = Promise.resolve();
   backgroundRuntime.lastDownloadState = {
