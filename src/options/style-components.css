@@ -19,10 +19,10 @@ code {
 }
 
 h2 {
-  inline-size: 100%;
+  inline-size: var(--heading-inline-size, 100%);
   font-size: var(--text-xl);
   font-weight: 600;
-  margin: 0 0 var(--space-4);
+  margin: var(--heading-margin, 0 0 var(--space-4));
 }
 
 h1,
