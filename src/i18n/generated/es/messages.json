@@ -3062,5 +3062,41 @@
   },
   "sourcePanelCreateAutomaticRule": {
     "message": "Crear regla automática"
+  },
+  "savedSettingUpdated": { "message": "Configuración actualizada" },
+  "savedSettingsUpdated": {
+    "message": "$COUNT$ configuraciones actualizadas",
+    "placeholders": { "count": { "content": "$1", "example": "3" } }
+  },
+  "savedUndo": { "message": "Deshacer" },
+  "savedUndoFailed": {
+    "message": "No se pudo deshacer — selecciona para volver a intentarlo"
+  },
+  "savedUndoBlocked": {
+    "message": "Finaliza o descarta los demás cambios antes de deshacer."
+  },
+  "externalApiUnknown": { "message": "Desconocido" },
+  "externalApiUnavailable": { "message": "No disponible" },
+  "externalBlockedAttemptOne": {
+    "message": "$COUNT$ intento bloqueado",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "externalBlockedAttemptMany": {
+    "message": "$COUNT$ intentos bloqueados",
+    "placeholders": { "count": { "content": "$1", "example": "3" } }
+  },
+  "externalRequestActiveTab": { "message": "Solicitud de pestaña activa" },
+  "externalRequestUrl": { "message": "Solicitud de URL" },
+  "externalRequestDownload": { "message": "Solicitud de descarga" },
+  "externalApprove": { "message": "Aprobar" },
+  "externalApproving": { "message": "Aprobando…" },
+  "externalApprovalFailed": {
+    "message": "No se pudo aprobar $ID$.",
+    "placeholders": {
+      "id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" }
+    }
+  },
+  "externalRejectionsLoadFailed": {
+    "message": "No se pudieron cargar las solicitudes rechazadas."
   }
 }

@@ -2955,5 +2955,41 @@
   },
   "sourcePanelCreateAutomaticRule": {
     "message": "Skapa automatisk regel"
+  },
+  "savedSettingUpdated": { "message": "Inställningen uppdaterad" },
+  "savedSettingsUpdated": {
+    "message": "$COUNT$ inställningar uppdaterade",
+    "placeholders": { "count": { "content": "$1", "example": "3" } }
+  },
+  "savedUndo": { "message": "Ångra" },
+  "savedUndoFailed": {
+    "message": "Det gick inte att ångra — välj för att försöka igen"
+  },
+  "savedUndoBlocked": {
+    "message": "Slutför eller kassera dina andra ändringar innan du ångrar."
+  },
+  "externalApiUnknown": { "message": "Okänd" },
+  "externalApiUnavailable": { "message": "Otillgänglig" },
+  "externalBlockedAttemptOne": {
+    "message": "$COUNT$ blockerat försök",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "externalBlockedAttemptMany": {
+    "message": "$COUNT$ blockerade försök",
+    "placeholders": { "count": { "content": "$1", "example": "3" } }
+  },
+  "externalRequestActiveTab": { "message": "Begäran om aktiv flik" },
+  "externalRequestUrl": { "message": "URL-begäran" },
+  "externalRequestDownload": { "message": "Nedladdningsbegäran" },
+  "externalApprove": { "message": "Godkänn" },
+  "externalApproving": { "message": "Godkänner…" },
+  "externalApprovalFailed": {
+    "message": "Det gick inte att godkänna $ID$.",
+    "placeholders": {
+      "id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" }
+    }
+  },
+  "externalRejectionsLoadFailed": {
+    "message": "Det gick inte att läsa in avvisade begäranden."
   }
 }

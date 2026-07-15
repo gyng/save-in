@@ -4464,5 +4464,73 @@
   "sourcePanelCreateAutomaticRule": {
     "message": "Create automatic rule",
     "description": "Page Sources action opening Options with a disabled automatic rule drafted from one source. Used in src/shared/source-panel-copy.ts."
+  },
+  "savedSettingUpdated": {
+    "message": "Setting updated",
+    "description": "Saved-change popover heading for one updated setting. Used in src/options/saved-indicator.ts."
+  },
+  "savedSettingsUpdated": {
+    "message": "$COUNT$ settings updated",
+    "description": "Saved-change popover heading for multiple updated settings. Used in src/options/saved-indicator.ts.",
+    "placeholders": { "count": { "content": "$1", "example": "3" } }
+  },
+  "savedUndo": {
+    "message": "Undo",
+    "description": "Action that restores the settings changed by the latest save. Used in src/options/saved-indicator.ts."
+  },
+  "savedUndoFailed": {
+    "message": "Undo failed — select to retry",
+    "description": "Retryable error shown on the saved-change Undo action. Used in src/options/saved-indicator.ts."
+  },
+  "savedUndoBlocked": {
+    "message": "Finish or discard your other edits before undoing",
+    "description": "Error shown when saved settings cannot be undone while another editor has pending changes. Used in src/options/saved-indicator.ts."
+  },
+  "externalApiUnknown": {
+    "message": "Unknown",
+    "description": "External integration API version status when no version is reported. Used in src/options/integration-panel.ts."
+  },
+  "externalApiUnavailable": {
+    "message": "Unavailable",
+    "description": "External integration API status when its capabilities cannot be loaded. Used in src/options/integration-panel.ts."
+  },
+  "externalBlockedAttemptOne": {
+    "message": "$COUNT$ blocked attempt",
+    "description": "Singular count of blocked requests from an unapproved extension. Used in src/options/integration-panel.ts.",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "externalBlockedAttemptMany": {
+    "message": "$COUNT$ blocked attempts",
+    "description": "Plural count of blocked requests from an unapproved extension. Used in src/options/integration-panel.ts.",
+    "placeholders": { "count": { "content": "$1", "example": "3" } }
+  },
+  "externalRequestActiveTab": {
+    "message": "Active-tab request",
+    "description": "Blocked external request type that asks Save In to use the active tab. Used in src/options/integration-panel.ts."
+  },
+  "externalRequestUrl": {
+    "message": "URL request",
+    "description": "Blocked external request type that supplies a URL. Used in src/options/integration-panel.ts."
+  },
+  "externalRequestDownload": {
+    "message": "Download request",
+    "description": "Blocked external request type that supplies download details. Used in src/options/integration-panel.ts."
+  },
+  "externalApprove": {
+    "message": "Approve",
+    "description": "Action that approves an extension after it made a blocked request. Used in src/options/integration-panel.ts."
+  },
+  "externalApproving": {
+    "message": "Approving…",
+    "description": "Progress label while an extension approval is being saved. Used in src/options/integration-panel.ts."
+  },
+  "externalApprovalFailed": {
+    "message": "Could not approve $ID$.",
+    "description": "Error shown when an extension approval could not be saved. Used in src/options/integration-panel.ts.",
+    "placeholders": { "id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" } }
+  },
+  "externalRejectionsLoadFailed": {
+    "message": "Could not load rejected requests.",
+    "description": "Error shown when blocked external requests cannot be loaded. Used in src/options/integration-panel.ts."
   }
 }

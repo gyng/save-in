@@ -3253,5 +3253,41 @@
   },
   "sourcePanelCreateAutomaticRule": {
     "message": "Crea regola automatica"
+  },
+  "savedSettingUpdated": { "message": "Impostazione aggiornata" },
+  "savedSettingsUpdated": {
+    "message": "$COUNT$ impostazioni aggiornate",
+    "placeholders": { "count": { "content": "$1", "example": "3" } }
+  },
+  "savedUndo": { "message": "Annulla" },
+  "savedUndoFailed": {
+    "message": "Annullamento non riuscito — seleziona per riprovare"
+  },
+  "savedUndoBlocked": {
+    "message": "Completa o annulla le altre modifiche prima di annullare."
+  },
+  "externalApiUnknown": { "message": "Sconosciuto" },
+  "externalApiUnavailable": { "message": "Non disponibile" },
+  "externalBlockedAttemptOne": {
+    "message": "$COUNT$ tentativo bloccato",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "externalBlockedAttemptMany": {
+    "message": "$COUNT$ tentativi bloccati",
+    "placeholders": { "count": { "content": "$1", "example": "3" } }
+  },
+  "externalRequestActiveTab": { "message": "Richiesta scheda attiva" },
+  "externalRequestUrl": { "message": "Richiesta URL" },
+  "externalRequestDownload": { "message": "Richiesta di download" },
+  "externalApprove": { "message": "Approva" },
+  "externalApproving": { "message": "Approvazione…" },
+  "externalApprovalFailed": {
+    "message": "Impossibile approvare $ID$.",
+    "placeholders": {
+      "id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" }
+    }
+  },
+  "externalRejectionsLoadFailed": {
+    "message": "Impossibile caricare le richieste rifiutate."
   }
 }

@@ -3046,5 +3046,39 @@
   },
   "sourcePanelCreateAutomaticRule": {
     "message": "자동 규칙 만들기"
+  },
+  "savedSettingUpdated": { "message": "설정이 업데이트됨" },
+  "savedSettingsUpdated": {
+    "message": "$COUNT$개 설정이 업데이트됨",
+    "placeholders": { "count": { "content": "$1", "example": "3" } }
+  },
+  "savedUndo": { "message": "실행 취소" },
+  "savedUndoFailed": { "message": "실행 취소 실패 — 선택하여 다시 시도" },
+  "savedUndoBlocked": {
+    "message": "실행 취소하기 전에 다른 편집을 완료하거나 취소하세요."
+  },
+  "externalApiUnknown": { "message": "알 수 없음" },
+  "externalApiUnavailable": { "message": "사용할 수 없음" },
+  "externalBlockedAttemptOne": {
+    "message": "차단된 시도 $COUNT$회",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "externalBlockedAttemptMany": {
+    "message": "차단된 시도 $COUNT$회",
+    "placeholders": { "count": { "content": "$1", "example": "3" } }
+  },
+  "externalRequestActiveTab": { "message": "활성 탭 요청" },
+  "externalRequestUrl": { "message": "URL 요청" },
+  "externalRequestDownload": { "message": "다운로드 요청" },
+  "externalApprove": { "message": "승인" },
+  "externalApproving": { "message": "승인 중…" },
+  "externalApprovalFailed": {
+    "message": "$ID$을(를) 승인할 수 없습니다.",
+    "placeholders": {
+      "id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" }
+    }
+  },
+  "externalRejectionsLoadFailed": {
+    "message": "거부된 요청을 불러올 수 없습니다."
   }
 }

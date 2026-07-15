@@ -1,6 +1,11 @@
 // @vitest-environment jsdom
 import { assertSettingsUndoSafe, markSavedNow } from "../../src/options/saved-indicator.ts";
 
+beforeEach(() => {
+  vi.mocked(browser.i18n.getMessage).mockReset().mockReturnValue("");
+  document.body.innerHTML = "";
+});
+
 test("updates the top status with the save time", () => {
   document.body.innerHTML = '<span id="lastSavedAt">never</span>';
   markSavedNow();
@@ -53,6 +58,16 @@ test("clears stale popover accessibility state after the change is dismissed", (
 });
 
 test("summarizes multiple value shapes and uses a retryable fallback for unknown failures", async () => {
+  vi.mocked(browser.i18n.getMessage).mockImplementation((key, substitutions) => {
+    const count = Array.isArray(substitutions) ? substitutions[0] : substitutions;
+    const messages: Record<string, string> = {
+      savedSettingsUpdated: `${count} Einstellungen aktualisiert`,
+      html_none: "Keine",
+      savedUndo: "Rückgängig",
+      savedUndoFailed: "Rückgängig fehlgeschlagen — erneut versuchen",
+    };
+    return messages[key] || "";
+  });
   document.body.innerHTML = `
     <div class="save-status"><span id="lastSavedAt">never</span></div>`;
   markSavedNow(
@@ -66,14 +81,14 @@ test("summarizes multiple value shapes and uses a retryable fallback for unknown
   );
 
   const popover = document.querySelector<HTMLElement>(".saved-change-popover")!;
-  expect(popover.textContent).toContain("2 settings updated");
-  expect(popover.textContent).toContain("None → None");
+  expect(popover.textContent).toContain("2 Einstellungen aktualisiert");
+  expect(popover.textContent).toContain("Keine → Keine");
   expect(popover.textContent).toContain('{"enabled":true}');
   expect(popover.textContent).toContain("…");
   const undo = document.querySelector<HTMLButtonElement>(".saved-change-undo")!;
   undo.click();
   await vi.waitFor(() => expect(undo.disabled).toBe(false));
-  expect(undo.textContent).toBe("Undo failed — select to retry");
+  expect(undo.textContent).toBe("Rückgängig fehlgeschlagen — erneut versuchen");
 });
 
 test("does nothing when the page has no saved-time indicator", () => {

@@ -3085,5 +3085,41 @@
   },
   "sourcePanelCreateAutomaticRule": {
     "message": "Créer une règle automatique"
+  },
+  "savedSettingUpdated": { "message": "Paramètre mis à jour" },
+  "savedSettingsUpdated": {
+    "message": "$COUNT$ paramètres mis à jour",
+    "placeholders": { "count": { "content": "$1", "example": "3" } }
+  },
+  "savedUndo": { "message": "Annuler" },
+  "savedUndoFailed": {
+    "message": "Échec de l’annulation — sélectionnez pour réessayer"
+  },
+  "savedUndoBlocked": {
+    "message": "Terminez ou abandonnez vos autres modifications avant d’annuler."
+  },
+  "externalApiUnknown": { "message": "Inconnu" },
+  "externalApiUnavailable": { "message": "Indisponible" },
+  "externalBlockedAttemptOne": {
+    "message": "$COUNT$ tentative bloquée",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "externalBlockedAttemptMany": {
+    "message": "$COUNT$ tentatives bloquées",
+    "placeholders": { "count": { "content": "$1", "example": "3" } }
+  },
+  "externalRequestActiveTab": { "message": "Demande de l’onglet actif" },
+  "externalRequestUrl": { "message": "Demande d’URL" },
+  "externalRequestDownload": { "message": "Demande de téléchargement" },
+  "externalApprove": { "message": "Approuver" },
+  "externalApproving": { "message": "Approbation…" },
+  "externalApprovalFailed": {
+    "message": "Impossible d’approuver $ID$.",
+    "placeholders": {
+      "id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" }
+    }
+  },
+  "externalRejectionsLoadFailed": {
+    "message": "Impossible de charger les demandes rejetées."
   }
 }

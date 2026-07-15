@@ -1,3 +1,4 @@
+import { getMessage } from "../platform/localization.ts";
 import { setupAnchoredFloatingSurface } from "./anchored-floating-surface.ts";
 
 export type SavedChange = { name: string; before: unknown; after: unknown };
@@ -6,7 +7,9 @@ const savedPopoverPositioning = new WeakMap<HTMLElement, () => void>();
 
 export const assertSettingsUndoSafe = (hasFieldDrafts: boolean, hasManualDrafts: boolean): void => {
   if (hasFieldDrafts || hasManualDrafts) {
-    throw new Error("Finish or discard your other edits before undoing");
+    throw new Error(
+      getMessage("savedUndoBlocked") || "Finish or discard your other edits before undoing",
+    );
   }
 };
 
@@ -14,9 +17,9 @@ const displayName = (name: string): string =>
   name.replace(/([a-z0-9])([A-Z])/g, "$1 $2").replace(/^./, (character) => character.toUpperCase());
 
 const displayValue = (value: unknown): string => {
-  if (value === true) return "On";
-  if (value === false) return "Off";
-  if (value == null || value === "") return "None";
+  if (value === true) return getMessage("webhookStateOn") || "On";
+  if (value === false) return getMessage("webhookStateOff") || "Off";
+  if (value == null || value === "") return getMessage("html_none") || "None";
   const text = typeof value === "string" ? value : JSON.stringify(value);
   return text.length > 48 ? `${text.slice(0, 45)}…` : text;
 };
@@ -49,7 +52,9 @@ const renderSavedChanges = (changes: SavedChange[], undo?: () => Promise<void> |
   savedPopoverPositioning.set(status, floatingPopover.cleanup);
   const heading = document.createElement("strong");
   heading.textContent =
-    changes.length === 1 ? "Setting updated" : `${changes.length} settings updated`;
+    changes.length === 1
+      ? getMessage("savedSettingUpdated") || "Setting updated"
+      : getMessage("savedSettingsUpdated", changes.length) || `${changes.length} settings updated`;
   const list = document.createElement("ul");
   changes.forEach(({ name, before, after }) => {
     const item = document.createElement("li");
@@ -65,7 +70,7 @@ const renderSavedChanges = (changes: SavedChange[], undo?: () => Promise<void> |
     const button = document.createElement("button");
     button.type = "button";
     button.className = "saved-change-undo";
-    button.textContent = "Undo";
+    button.textContent = getMessage("savedUndo") || "Undo";
     button.addEventListener("click", async () => {
       button.disabled = true;
       try {
@@ -73,7 +78,9 @@ const renderSavedChanges = (changes: SavedChange[], undo?: () => Promise<void> |
       } catch (error) {
         button.disabled = false;
         button.textContent =
-          error instanceof Error && error.message ? error.message : "Undo failed — select to retry";
+          error instanceof Error && error.message
+            ? error.message
+            : getMessage("savedUndoFailed") || "Undo failed — select to retry";
       }
     });
     status.append(button);

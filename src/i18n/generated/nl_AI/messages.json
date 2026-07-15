@@ -2942,5 +2942,41 @@
   },
   "sourcePanelCreateAutomaticRule": {
     "message": "Automatische regel maken"
+  },
+  "savedSettingUpdated": { "message": "Instelling bijgewerkt" },
+  "savedSettingsUpdated": {
+    "message": "$COUNT$ instellingen bijgewerkt",
+    "placeholders": { "count": { "content": "$1", "example": "3" } }
+  },
+  "savedUndo": { "message": "Ongedaan maken" },
+  "savedUndoFailed": {
+    "message": "Ongedaan maken mislukt — selecteer om opnieuw te proberen"
+  },
+  "savedUndoBlocked": {
+    "message": "Voltooi of verwerp uw andere bewerkingen voordat u iets ongedaan maakt."
+  },
+  "externalApiUnknown": { "message": "Onbekend" },
+  "externalApiUnavailable": { "message": "Niet beschikbaar" },
+  "externalBlockedAttemptOne": {
+    "message": "$COUNT$ geblokkeerde poging",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "externalBlockedAttemptMany": {
+    "message": "$COUNT$ geblokkeerde pogingen",
+    "placeholders": { "count": { "content": "$1", "example": "3" } }
+  },
+  "externalRequestActiveTab": { "message": "Verzoek voor actief tabblad" },
+  "externalRequestUrl": { "message": "URL-verzoek" },
+  "externalRequestDownload": { "message": "Downloadverzoek" },
+  "externalApprove": { "message": "Goedkeuren" },
+  "externalApproving": { "message": "Goedkeuren…" },
+  "externalApprovalFailed": {
+    "message": "$ID$ kon niet worden goedgekeurd.",
+    "placeholders": {
+      "id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" }
+    }
+  },
+  "externalRejectionsLoadFailed": {
+    "message": "Afgewezen verzoeken konden niet worden geladen."
   }
 }

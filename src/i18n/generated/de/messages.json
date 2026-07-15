@@ -3068,5 +3068,41 @@
   },
   "sourcePanelCreateAutomaticRule": {
     "message": "Automatische Regel erstellen"
+  },
+  "savedSettingUpdated": { "message": "Einstellung aktualisiert" },
+  "savedSettingsUpdated": {
+    "message": "$COUNT$ Einstellungen aktualisiert",
+    "placeholders": { "count": { "content": "$1", "example": "3" } }
+  },
+  "savedUndo": { "message": "Rückgängig" },
+  "savedUndoFailed": {
+    "message": "Rückgängig machen fehlgeschlagen — zum erneuten Versuchen auswählen"
+  },
+  "savedUndoBlocked": {
+    "message": "Beenden oder verwerfen Sie Ihre anderen Änderungen, bevor Sie etwas rückgängig machen."
+  },
+  "externalApiUnknown": { "message": "Unbekannt" },
+  "externalApiUnavailable": { "message": "Nicht verfügbar" },
+  "externalBlockedAttemptOne": {
+    "message": "$COUNT$ blockierter Versuch",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "externalBlockedAttemptMany": {
+    "message": "$COUNT$ blockierte Versuche",
+    "placeholders": { "count": { "content": "$1", "example": "3" } }
+  },
+  "externalRequestActiveTab": { "message": "Anfrage für aktiven Tab" },
+  "externalRequestUrl": { "message": "URL-Anfrage" },
+  "externalRequestDownload": { "message": "Download-Anfrage" },
+  "externalApprove": { "message": "Genehmigen" },
+  "externalApproving": { "message": "Wird genehmigt…" },
+  "externalApprovalFailed": {
+    "message": "$ID$ konnte nicht genehmigt werden.",
+    "placeholders": {
+      "id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" }
+    }
+  },
+  "externalRejectionsLoadFailed": {
+    "message": "Abgelehnte Anfragen konnten nicht geladen werden."
   }
 }

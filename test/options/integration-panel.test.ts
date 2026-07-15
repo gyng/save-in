@@ -5,10 +5,17 @@ import { webExtensionApi } from "../../src/platform/web-extension-api.ts";
 import { MESSAGE_TYPES } from "../../src/shared/constants.ts";
 
 const dispatchRestore = () => document.dispatchEvent(new Event("options-restored"));
+const capturedMessageType = (message: unknown): unknown =>
+  typeof message === "object" && message !== null
+    ? (message as { type?: unknown }).type
+    : undefined;
 
 beforeEach(async () => {
+  vi.restoreAllMocks();
+  vi.clearAllMocks();
+  vi.mocked(webExtensionApi.i18n.getMessage).mockReset().mockReturnValue("");
   await initializeLocalization("test-native-messages");
-  vi.mocked(webExtensionApi.i18n.getMessage).mockReturnValue("");
+  document.body.innerHTML = "";
 });
 
 const rejection = (
@@ -263,9 +270,9 @@ test("tolerates an integration document without optional surfaces", async () => 
 });
 
 test.each([
-  [{ body: {} }, "unavailable", "—"],
-  [{ body: { version: 2 } }, "unavailable", "—"],
-  [{ body: { version: null, capabilities: null } }, "unknown", "—"],
+  [{ body: {} }, "Unavailable", "—"],
+  [{ body: { version: 2 } }, "Unavailable", "—"],
+  [{ body: { version: null, capabilities: null } }, "Unknown", "—"],
 ])("degrades the API handshake for response %#", async (response, version, capabilities) => {
   document.body.innerHTML = `<span id="ext-id"></span>
     <span id="api-version"></span><span id="api-capabilities"></span>`;
@@ -333,6 +340,18 @@ test("manages empty, duplicate, and keyboard-approved allowlist drafts", async (
 });
 
 test("renders every rejected-request label and keeps the panel for remaining callers", async () => {
+  vi.mocked(webExtensionApi.i18n.getMessage).mockImplementation((key, substitutions) => {
+    const count = Array.isArray(substitutions) ? substitutions[0] : substitutions;
+    const messages: Record<string, string> = {
+      externalBlockedAttemptOne: `${count} blockierter Versuch`,
+      externalBlockedAttemptMany: `${count} blockierte Versuche`,
+      externalRequestActiveTab: "Anfrage für aktiven Tab",
+      externalRequestUrl: "URL-Anfrage",
+      externalRequestDownload: "Download-Anfrage",
+      externalApprove: "Genehmigen",
+    };
+    return messages[key] || "";
+  });
   rejectedCallerMarkup("active-caller");
   vi.spyOn(webExtensionApi.runtime, "sendMessage").mockImplementation(async (message: any) => {
     if (message.type === MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTIONS_GET) {
@@ -363,9 +382,9 @@ test("renders every rejected-request label and keeps the panel for remaining cal
   await vi.waitFor(() =>
     expect(document.querySelectorAll(".external-download-rejection")).toHaveLength(3),
   );
-  expect(document.body.textContent).toContain("1 blocked attempt · active-tab request");
-  expect(document.body.textContent).toContain("2 blocked attempts · URL request");
-  expect(document.body.textContent).toContain("download request");
+  expect(document.body.textContent).toContain("1 blockierter Versuch · Anfrage für aktiven Tab");
+  expect(document.body.textContent).toContain("2 blockierte Versuche · URL-Anfrage");
+  expect(document.body.textContent).toContain("Download-Anfrage");
 
   document
     .querySelector<HTMLButtonElement>("[data-rejected-sender-id='active-caller'] button")!
@@ -402,7 +421,7 @@ test.each([
 
   await vi.waitFor(() =>
     expect(document.querySelector("#external-download-rejection-status")?.textContent).toContain(
-      "Could not add blocked",
+      "Could not approve blocked.",
     ),
   );
   expect(
@@ -415,22 +434,24 @@ test("reports missing allowlists and rejected-clear failures, then accepts a lat
     <div id="external-download-rejection-list"></div>
     <div id="external-download-rejection-status"></div></section>`;
   let clearSucceeds = false;
-  vi.spyOn(webExtensionApi.runtime, "sendMessage").mockImplementation(async (message: any) => {
-    if (message.type === MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTIONS_GET) {
-      return {
-        type: MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTIONS_GET,
-        body: { rejections: [rejection("blocked")] },
-      };
-    }
-    if (message.type === MESSAGE_TYPES.APPLY_CONFIG) {
-      const value = message.body.config.externalDownloadAllowlist;
-      return {
-        type: MESSAGE_TYPES.APPLY_CONFIG_RESULT,
-        body: { rejected: [], applied: { externalDownloadAllowlist: value } },
-      };
-    }
-    return { type: clearSucceeds ? MESSAGE_TYPES.OK : "wrong" };
-  });
+  const sendMessage = vi
+    .spyOn(webExtensionApi.runtime, "sendMessage")
+    .mockImplementation(async (message: any) => {
+      if (message.type === MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTIONS_GET) {
+        return {
+          type: MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTIONS_GET,
+          body: { rejections: [rejection("blocked")] },
+        };
+      }
+      if (message.type === MESSAGE_TYPES.APPLY_CONFIG) {
+        const value = message.body.config.externalDownloadAllowlist;
+        return {
+          type: MESSAGE_TYPES.APPLY_CONFIG_RESULT,
+          body: { rejected: [], applied: { externalDownloadAllowlist: value } },
+        };
+      }
+      return { type: clearSucceeds ? MESSAGE_TYPES.OK : "wrong" };
+    });
   setupIntegrationPanel();
   dispatchRestore();
   await vi.waitFor(() =>
@@ -439,9 +460,14 @@ test("reports missing allowlists and rejected-clear failures, then accepts a lat
   document.querySelector<HTMLButtonElement>(".external-download-rejection-add")!.click();
   await vi.waitFor(() =>
     expect(document.querySelector("#external-download-rejection-status")?.textContent).toContain(
-      "allowlist field is unavailable",
+      "Could not approve blocked.",
     ),
   );
+  expect(
+    sendMessage.mock.calls.filter(
+      ([message]) => capturedMessageType(message) === MESSAGE_TYPES.APPLY_CONFIG,
+    ),
+  ).toHaveLength(0);
 
   const allowlist = document.createElement("textarea");
   allowlist.id = "externalDownloadAllowlist";
@@ -449,9 +475,15 @@ test("reports missing allowlists and rejected-clear failures, then accepts a lat
   document.querySelector<HTMLButtonElement>(".external-download-rejection-add")!.click();
   await vi.waitFor(() =>
     expect(document.querySelector("#external-download-rejection-status")?.textContent).toContain(
-      "could not clear",
+      "Could not approve blocked.",
     ),
   );
+  expect(
+    sendMessage.mock.calls.filter(
+      ([message]) =>
+        capturedMessageType(message) === MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTION_CLEAR,
+    ),
+  ).toHaveLength(1);
 
   clearSucceeds = true;
   document.querySelector<HTMLButtonElement>(".external-download-rejection-add")!.click();

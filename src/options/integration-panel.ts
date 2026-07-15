@@ -55,14 +55,17 @@ const renderExternalApi = () => {
       }
       const body = pong.body;
       if (versionElement) {
-        versionElement.textContent = body.version != null ? `v${body.version}` : "unknown";
+        versionElement.textContent =
+          body.version != null ? `v${body.version}` : getMessage("externalApiUnknown") || "Unknown";
       }
       if (capabilitiesElement) {
         capabilitiesElement.textContent = (body.capabilities || []).join(", ") || "—";
       }
     })
     .catch(() => {
-      if (versionElement) versionElement.textContent = "unavailable";
+      if (versionElement) {
+        versionElement.textContent = getMessage("externalApiUnavailable") || "Unavailable";
+      }
       if (capabilitiesElement) capabilitiesElement.textContent = "—";
     });
 };
@@ -161,7 +164,9 @@ const setupApprovedExtensions = () => {
 };
 
 const rejectionAttemptLabel = (attempts: number): string =>
-  `${attempts} blocked ${attempts === 1 ? "attempt" : "attempts"}`;
+  attempts === 1
+    ? getMessage("externalBlockedAttemptOne", attempts) || `${attempts} blocked attempt`
+    : getMessage("externalBlockedAttemptMany", attempts) || `${attempts} blocked attempts`;
 
 const renderRejectedCaller = (
   rejection: ExternalDownloadRejection,
@@ -181,10 +186,10 @@ const renderRejectedCaller = (
   summary.className = "caption";
   const requestLabel =
     rejection.requestType === "activeTab"
-      ? "active-tab request"
+      ? getMessage("externalRequestActiveTab") || "Active-tab request"
       : rejection.requestType === "url"
-        ? "URL request"
-        : "download request";
+        ? getMessage("externalRequestUrl") || "URL request"
+        : getMessage("externalRequestDownload") || "Download request";
   summary.textContent = `${rejectionAttemptLabel(rejection.attempts)} · ${requestLabel} · ${new Date(
     rejection.lastRejectedAt,
   ).toLocaleString()}`;
@@ -193,10 +198,10 @@ const renderRejectedCaller = (
   const add = document.createElement("button");
   add.type = "button";
   add.className = "button external-download-rejection-add";
-  add.textContent = "Approve";
+  add.textContent = getMessage("externalApprove") || "Approve";
   add.addEventListener("click", () => {
     add.disabled = true;
-    add.textContent = "Approving…";
+    add.textContent = getMessage("externalApproving") || "Approving…";
     if (status) status.textContent = "";
     approvalQueue = approvalQueue
       .then(async () => {
@@ -232,10 +237,14 @@ const renderRejectedCaller = (
         row.remove();
         panel.hidden = !list.children.length;
       })
-      .catch((error) => {
+      .catch(() => {
         add.disabled = false;
-        add.textContent = "Approve";
-        if (status) status.textContent = `Could not add ${rejection.senderId}: ${String(error)}`;
+        add.textContent = getMessage("externalApprove") || "Approve";
+        if (status) {
+          status.textContent =
+            getMessage("externalApprovalFailed", rejection.senderId) ||
+            `Could not approve ${rejection.senderId}.`;
+        }
       });
   });
 
@@ -264,9 +273,12 @@ const renderExternalDownloadRejections = async () => {
     list.textContent = "";
     rejections.forEach((rejection) => renderRejectedCaller(rejection, list, panel, status));
     panel.hidden = rejections.length === 0;
-  } catch (error) {
+  } catch {
     panel.hidden = false;
-    if (status) status.textContent = `Could not load rejected requests: ${String(error)}`;
+    if (status) {
+      status.textContent =
+        getMessage("externalRejectionsLoadFailed") || "Could not load rejected requests.";
+    }
   }
 };
 

@@ -3126,5 +3126,35 @@
   },
   "sourcePanelCreateAutomaticRule": {
     "message": "建立自動規則"
-  }
+  },
+  "savedSettingUpdated": { "message": "設定已更新" },
+  "savedSettingsUpdated": {
+    "message": "已更新 $COUNT$ 項設定",
+    "placeholders": { "count": { "content": "$1", "example": "3" } }
+  },
+  "savedUndo": { "message": "復原" },
+  "savedUndoFailed": { "message": "復原失敗 — 選取以重試" },
+  "savedUndoBlocked": { "message": "請先完成或捨棄其他編輯，再執行復原。" },
+  "externalApiUnknown": { "message": "未知" },
+  "externalApiUnavailable": { "message": "無法使用" },
+  "externalBlockedAttemptOne": {
+    "message": "$COUNT$ 次遭封鎖的嘗試",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "externalBlockedAttemptMany": {
+    "message": "$COUNT$ 次遭封鎖的嘗試",
+    "placeholders": { "count": { "content": "$1", "example": "3" } }
+  },
+  "externalRequestActiveTab": { "message": "使用中分頁請求" },
+  "externalRequestUrl": { "message": "URL 請求" },
+  "externalRequestDownload": { "message": "下載請求" },
+  "externalApprove": { "message": "核准" },
+  "externalApproving": { "message": "正在核准…" },
+  "externalApprovalFailed": {
+    "message": "無法核准 $ID$。",
+    "placeholders": {
+      "id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" }
+    }
+  },
+  "externalRejectionsLoadFailed": { "message": "無法載入遭拒絕的請求。" }
 }

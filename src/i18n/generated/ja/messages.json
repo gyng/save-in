@@ -3046,5 +3046,39 @@
   },
   "sourcePanelCreateAutomaticRule": {
     "message": "自動ルールを作成"
+  },
+  "savedSettingUpdated": { "message": "設定を更新しました" },
+  "savedSettingsUpdated": {
+    "message": "$COUNT$ 件の設定を更新しました",
+    "placeholders": { "count": { "content": "$1", "example": "3" } }
+  },
+  "savedUndo": { "message": "元に戻す" },
+  "savedUndoFailed": { "message": "元に戻せませんでした — 選択して再試行" },
+  "savedUndoBlocked": {
+    "message": "元に戻す前に、他の編集を完了または破棄してください。"
+  },
+  "externalApiUnknown": { "message": "不明" },
+  "externalApiUnavailable": { "message": "利用不可" },
+  "externalBlockedAttemptOne": {
+    "message": "ブロックされた試行 $COUNT$ 件",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "externalBlockedAttemptMany": {
+    "message": "ブロックされた試行 $COUNT$ 件",
+    "placeholders": { "count": { "content": "$1", "example": "3" } }
+  },
+  "externalRequestActiveTab": { "message": "アクティブタブのリクエスト" },
+  "externalRequestUrl": { "message": "URL リクエスト" },
+  "externalRequestDownload": { "message": "ダウンロードリクエスト" },
+  "externalApprove": { "message": "承認" },
+  "externalApproving": { "message": "承認中…" },
+  "externalApprovalFailed": {
+    "message": "$ID$ を承認できませんでした。",
+    "placeholders": {
+      "id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" }
+    }
+  },
+  "externalRejectionsLoadFailed": {
+    "message": "拒否されたリクエストを読み込めませんでした。"
   }
 }

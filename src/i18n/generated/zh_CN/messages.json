@@ -3028,5 +3028,35 @@
   },
   "sourcePanelCreateAutomaticRule": {
     "message": "创建自动规则"
-  }
+  },
+  "savedSettingUpdated": { "message": "设置已更新" },
+  "savedSettingsUpdated": {
+    "message": "已更新 $COUNT$ 项设置",
+    "placeholders": { "count": { "content": "$1", "example": "3" } }
+  },
+  "savedUndo": { "message": "撤销" },
+  "savedUndoFailed": { "message": "撤销失败 — 选择以重试" },
+  "savedUndoBlocked": { "message": "请先完成或放弃其他编辑，再执行撤销。" },
+  "externalApiUnknown": { "message": "未知" },
+  "externalApiUnavailable": { "message": "不可用" },
+  "externalBlockedAttemptOne": {
+    "message": "$COUNT$ 次被阻止的尝试",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "externalBlockedAttemptMany": {
+    "message": "$COUNT$ 次被阻止的尝试",
+    "placeholders": { "count": { "content": "$1", "example": "3" } }
+  },
+  "externalRequestActiveTab": { "message": "活动标签页请求" },
+  "externalRequestUrl": { "message": "URL 请求" },
+  "externalRequestDownload": { "message": "下载请求" },
+  "externalApprove": { "message": "批准" },
+  "externalApproving": { "message": "正在批准…" },
+  "externalApprovalFailed": {
+    "message": "无法批准 $ID$。",
+    "placeholders": {
+      "id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" }
+    }
+  },
+  "externalRejectionsLoadFailed": { "message": "无法加载被拒绝的请求。" }
 }
