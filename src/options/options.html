@@ -54,8 +54,8 @@
             aria-label="__MSG_o_lLanguage__"
             aria-describedby="language-error"
           >
-            <option value="">__MSG_o_lBrowserDefault__</option>
-            <option value="en">English</option>
+            <option value="">English</option>
+            <option value="en" hidden>English</option>
             <option value="de">Deutsch (AI)</option>
             <option value="es">Español (AI)</option>
             <option value="fr">Français (AI)</option>
@@ -112,9 +112,9 @@
 
       <div class="paths-editor">
         <div class="column">
-          <div class="editor-field-label" id="paths-editor-label">
+          <h4 class="editor-field-label" id="paths-editor-label">
             __MSG_o_lDirectoryDefinitions__
-          </div>
+          </h4>
           <div class="editor-tabs" role="tablist" aria-label="__MSG_html_directoryEditorMode__">
             <button
               type="button"
@@ -144,7 +144,7 @@
               id="paths"
               data-manual="true"
               rows="16"
-              placeholder="."
+              placeholder="__MSG_pathTextEmptyExample__"
               spellcheck="false"
               aria-labelledby="paths-editor-label"
               aria-describedby="paths-editor-description error-paths"
@@ -373,7 +373,7 @@ Briefly explain the structure, check that every line follows this syntax, then p
       <h3>__MSG_o_sBehavior__</h3>
 
       <div class="behavior-group" data-behavior-group="context-menu">
-        <h4>__MSG_o_sContextMenu__</h4>
+        <h4>__MSG_html_contextMenus__</h4>
         <div class="caption behavior-group-intro">__MSG_o_lContextMenuBehaviorHelp__</div>
 
         <label> <input type="checkbox" id="enableLastLocation" />__MSG_o_cLastUsedMenu__ </label>

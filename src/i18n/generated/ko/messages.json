@@ -179,7 +179,7 @@
     "message": "폴더"
   },
   "o_sBehavior": {
-    "message": "동작"
+    "message": "저장 동작"
   },
   "o_sSaveDialog": {
     "message": "저장 대화 상자"
@@ -414,9 +414,6 @@
   },
   "o_lLanguage": {
     "message": "언어"
-  },
-  "o_lBrowserDefault": {
-    "message": "기본 언어"
   },
   "o_lLanguageChangeFailed": {
     "message": "언어를 변경할 수 없습니다. 다시 시도해 보세요."
@@ -2595,5 +2592,155 @@
   "advancedFilesDownloads": { "message": "파일 및 다운로드" },
   "advancedMaintenanceDiagnostics": { "message": "유지 관리 및 진단" },
   "webhookStateOn": { "message": "켬" },
-  "webhookStateOff": { "message": "끔" }
+  "webhookStateOff": { "message": "끔" },
+  "pathTextEmptyExample": {
+    "message": "images\ndocuments/:year:/:month:"
+  },
+  "pathVisualUndoDelete": {
+    "message": "삭제 실행 취소"
+  },
+  "pathVisualEmpty": {
+    "message": "사용자 지정 폴더가 없습니다. Save In은 브라우저의 Downloads 폴더만 사용합니다."
+  },
+  "pathVisualReorderHelp": {
+    "message": "드래그하여 순서를 바꿉니다. 행 가운데에 놓으면 그 아래에 중첩됩니다."
+  },
+  "pathVisualReorderAccessible": {
+    "message": "$NAME$의 순서 또는 중첩 수준 변경",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualEnabledAccessible": {
+    "message": "$NAME$ 사용",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualNestUnder": {
+    "message": "“$NAME$” 아래에 중첩",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualInsertAfter": {
+    "message": "뒤에 삽입 · 같은 수준"
+  },
+  "pathVisualInsertBefore": {
+    "message": "앞에 삽입 · 같은 수준"
+  },
+  "pathVisualDirectoryPlaceholder": {
+    "message": "폴더/:variables:"
+  },
+  "pathVisualDirectoryAccessible": {
+    "message": "폴더 $NUMBER$",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "pathVisualAlias": {
+    "message": "별칭"
+  },
+  "pathVisualAliasPlaceholder": {
+    "message": "표시 이름"
+  },
+  "pathVisualAliasAccessible": {
+    "message": "폴더 $NUMBER$의 표시 이름",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "pathVisualAccessKeyAccessible": {
+    "message": "$NAME$에 액세스 키 할당",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualMoreActionsAccessible": {
+    "message": "$NAME$ 추가 작업",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualOutdent": {
+    "message": "내어쓰기"
+  },
+  "pathVisualOutdentAccessible": {
+    "message": "$NAME$ 내어쓰기",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualIndent": {
+    "message": "들여쓰기"
+  },
+  "pathVisualIndentAccessible": {
+    "message": "$NAME$ 들여쓰기",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualMoveUp": {
+    "message": "위로"
+  },
+  "pathVisualMoveUpAccessible": {
+    "message": "$NAME$ 위로 이동",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualMoveDown": {
+    "message": "아래로"
+  },
+  "pathVisualMoveDownAccessible": {
+    "message": "$NAME$ 아래로 이동",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualDelete": {
+    "message": "삭제"
+  },
+  "pathVisualDeleteAccessible": {
+    "message": "$NAME$ 삭제",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  }
 }

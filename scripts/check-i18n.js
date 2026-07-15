@@ -267,6 +267,7 @@ const intentionallySharedEnglishKeys = new Set([
   "extensionName",
   "historyColumnUrl",
   "o_lGithub",
+  "pathTextEmptyExample",
   "routeDebuggerSha256",
   "routeTextEmptyExample",
   "translationCredits",

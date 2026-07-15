@@ -1,7 +1,93 @@
+@container path-editor (max-width: 640px) {
+  .path-editor-row {
+    display: grid;
+    grid-template-columns:
+      max-content var(--compact-control-size) minmax(var(--compact-control-size), auto)
+      minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+    align-items: center;
+  }
+
+  .path-editor-indent {
+    grid-column: 1;
+    grid-row: 1 / -1;
+  }
+
+  .path-editor-handle {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .path-editor-enabled-control {
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+  .path-editor-dir {
+    grid-column: 4 / -1;
+    grid-row: 1;
+    width: 100%;
+  }
+
+  .path-editor-alias:not(.is-open) {
+    display: none;
+  }
+
+  .path-editor-alias.is-open {
+    grid-column: 4;
+    grid-row: 2;
+    width: 100%;
+    margin-top: var(--space-1);
+  }
+
+  .path-editor-actions {
+    grid-column: 4 / -1;
+    grid-row: 2;
+    justify-self: end;
+    margin-top: var(--space-1);
+  }
+
+  .path-editor-alias.is-open ~ .path-editor-actions {
+    grid-column: 5;
+  }
+
+  .path-editor-separator {
+    grid-column: 4;
+    grid-row: 1;
+  }
+
+  .path-editor-row:has(.path-editor-separator) .path-editor-actions {
+    grid-column: 5;
+    grid-row: 1;
+    margin-top: 0;
+  }
+}
+
 @container options-panel (max-width: 640px) {
   .editor-actions,
   .visual-editor-toolbar {
     flex-wrap: wrap;
+  }
+}
+
+@container path-editor (max-width: 520px) {
+  #paths-text-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+  }
+
+  #paths-text-actions .editor-action-help {
+    grid-column: 1 / -1;
+  }
+
+  #paths-text-actions .editor-dirty-status {
+    grid-column: 1;
+    margin-inline-start: 0;
+  }
+
+  #paths-text-actions .editor-save-actions {
+    grid-column: 2;
   }
 }
 

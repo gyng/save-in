@@ -302,7 +302,7 @@
     "message": "Dossiers"
   },
   "o_sBehavior": {
-    "message": "Comportement"
+    "message": "Comportement d’enregistrement"
   },
   "o_sSaveDialog": {
     "message": "Boîte de dialogue Enregistrer"
@@ -537,9 +537,6 @@
   },
   "o_lLanguage": {
     "message": "Langue"
-  },
-  "o_lBrowserDefault": {
-    "message": "Langue par défaut"
   },
   "o_lLanguageChangeFailed": {
     "message": "Impossible de changer la langue. Réessayez."
@@ -2524,5 +2521,155 @@
   "advancedFilesDownloads": { "message": "Fichiers et téléchargements" },
   "advancedMaintenanceDiagnostics": { "message": "Maintenance et diagnostics" },
   "webhookStateOn": { "message": "Activé" },
-  "webhookStateOff": { "message": "Désactivé" }
+  "webhookStateOff": { "message": "Désactivé" },
+  "pathTextEmptyExample": {
+    "message": "images\ndocuments/:year:/:month:"
+  },
+  "pathVisualUndoDelete": {
+    "message": "Annuler la suppression"
+  },
+  "pathVisualEmpty": {
+    "message": "Aucun dossier personnalisé. Save In utilisera uniquement le dossier Downloads du navigateur."
+  },
+  "pathVisualReorderHelp": {
+    "message": "Faites glisser pour réorganiser. Déposez au centre d’une ligne pour l’imbriquer dessous."
+  },
+  "pathVisualReorderAccessible": {
+    "message": "Réorganiser ou modifier l’imbrication de $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualEnabledAccessible": {
+    "message": "Activer $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualNestUnder": {
+    "message": "Imbriquer sous « $NAME$ »",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualInsertAfter": {
+    "message": "Insérer après · Même niveau"
+  },
+  "pathVisualInsertBefore": {
+    "message": "Insérer avant · Même niveau"
+  },
+  "pathVisualDirectoryPlaceholder": {
+    "message": "dossier/:variables:"
+  },
+  "pathVisualDirectoryAccessible": {
+    "message": "Dossier $NUMBER$",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "pathVisualAlias": {
+    "message": "Alias"
+  },
+  "pathVisualAliasPlaceholder": {
+    "message": "Nom affiché"
+  },
+  "pathVisualAliasAccessible": {
+    "message": "Nom affiché du dossier $NUMBER$",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "pathVisualAccessKeyAccessible": {
+    "message": "Attribuer une touche d’accès à $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualMoreActionsAccessible": {
+    "message": "Plus d’actions pour $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualOutdent": {
+    "message": "Diminuer le retrait"
+  },
+  "pathVisualOutdentAccessible": {
+    "message": "Diminuer le retrait de $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualIndent": {
+    "message": "Augmenter le retrait"
+  },
+  "pathVisualIndentAccessible": {
+    "message": "Augmenter le retrait de $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualMoveUp": {
+    "message": "Monter"
+  },
+  "pathVisualMoveUpAccessible": {
+    "message": "Déplacer $NAME$ vers le haut",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualMoveDown": {
+    "message": "Descendre"
+  },
+  "pathVisualMoveDownAccessible": {
+    "message": "Déplacer $NAME$ vers le bas",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualDelete": {
+    "message": "Supprimer"
+  },
+  "pathVisualDeleteAccessible": {
+    "message": "Supprimer $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  }
 }

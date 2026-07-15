@@ -6,12 +6,17 @@
 // The paths textarea stays the single source of truth: every edit
 // serializes back to it and fires the normal input/autosave pipeline.
 
-import { SPECIAL_DIRS } from "../shared/constants.ts";
+import { MESSAGE_TYPES, SPECIAL_DIRS } from "../shared/constants.ts";
 import { getMessage } from "../platform/localization.ts";
+import { webExtensionApi } from "../platform/web-extension-api.ts";
 import { buildTree } from "../menus/menu-tree.ts";
 import { resolveMenuAccessKey } from "../menus/access-key.ts";
+import { sendInternalMessage } from "../shared/message-protocol.ts";
+import { attachAutocomplete } from "./autocomplete.ts";
 import { setupPathInsertMenu } from "./path-editor-insert-menu.ts";
+import { completeDirectorySyntax } from "./syntax-editor-model.ts";
 import { bindTabInteractions, syncTabSelection } from "./tab-controls.ts";
+import { sortVariables } from "./vocabulary-groups.ts";
 import {
   deletePathNode,
   dropPathNode,
@@ -40,6 +45,14 @@ import {
 } from "./editor-validation.ts";
 
 type EditorOwner = { rebuildVisual?: () => void };
+type TextField = HTMLInputElement | HTMLTextAreaElement;
+
+const localize = (
+  key: string,
+  fallback: string,
+  substitutions?: string | number | Array<string | number>,
+): string => getMessage(key, substitutions) || fallback;
+
 const PathEditorHelpers = {
   parseLine: parseDirectoryLine,
   serializeLine: serializeDirectoryLine,
@@ -57,9 +70,9 @@ const PathEditorHelpers = {
   // deprecated but remains the only way a programmatic edit joins the
   // browser's undo stack (it also fires input itself); setRangeText is
   // the non-undoable fallback (e.g. under jsdom)
-  insertText: (textarea: HTMLTextAreaElement, text: string, start: number, end: number): void => {
-    textarea.focus();
-    textarea.setSelectionRange(start, end);
+  insertText: (field: TextField, text: string, start: number, end: number): void => {
+    field.focus();
+    field.setSelectionRange(start, end);
     let inserted = false;
     try {
       inserted = document.execCommand("insertText", false, text);
@@ -67,15 +80,15 @@ const PathEditorHelpers = {
       inserted = false;
     }
     if (!inserted) {
-      textarea.setRangeText(text, start, end, "end");
-      textarea.dispatchEvent(new InputEvent("input", { bubbles: true }));
+      field.setRangeText(text, start, end, "end");
+      field.dispatchEvent(new InputEvent("input", { bubbles: true }));
     }
   },
 
-  insertAtCursor: (textarea: HTMLTextAreaElement, text: string): void => {
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    PathEditorHelpers.insertText(textarea, text, start, end);
+  insertAtCursor: (field: TextField, text: string): void => {
+    const start = field.selectionStart ?? field.value.length;
+    const end = field.selectionEnd ?? start;
+    PathEditorHelpers.insertText(field, text, start, end);
   },
 
   // Inserts a whole line after the line the cursor is on
@@ -100,6 +113,7 @@ const PathEditorHelpers = {
     const pathsTextarea = document.querySelector<HTMLElement>("#paths");
     const textContainer = document.querySelector<HTMLElement>("#paths-text-editor");
     const visualContainer = document.querySelector<HTMLElement>("#paths-visual");
+    const validationSummary = document.querySelector<HTMLElement>("#error-paths");
     if (!textButton || !visualButton || !textContainer || !visualContainer || !pathsTextarea) {
       return;
     }
@@ -117,6 +131,13 @@ const PathEditorHelpers = {
       );
       if (visual && typeof owner.rebuildVisual === "function") {
         owner.rebuildVisual();
+      }
+      if (validationSummary) {
+        if (visual) {
+          visualContainer.after(validationSummary);
+        } else {
+          textContainer.querySelector(".editor-actions")?.after(validationSummary);
+        }
       }
       try {
         localStorage.setItem("saveInPathsEditorMode", visual ? "visual" : "text");
@@ -151,6 +172,28 @@ const PathEditorHelpers = {
     let committing = false;
     let deletedNodes: DirectoryLineNode[] | null = null;
     let validationErrors: readonly EditorValidationFeedback[] = [];
+    let variables: string[] = [];
+    let editorControlCleanups: Array<() => void> = [];
+    const openMenuSelector = ".path-editor-more[open]";
+
+    document.addEventListener(
+      "click",
+      (event) => {
+        const target = event.target;
+        if (!(target instanceof Node)) return;
+        document.querySelectorAll<HTMLDetailsElement>(openMenuSelector).forEach((menu) => {
+          if (!menu.contains(target)) menu.open = false;
+        });
+      },
+      { capture: true },
+    );
+    document.addEventListener("keydown", (event) => {
+      if (event.key !== "Escape") return;
+      const menus = [...document.querySelectorAll<HTMLDetailsElement>(openMenuSelector)];
+      const activeMenu = menus.find((menu) => menu.contains(document.activeElement));
+      menus.forEach((menu) => (menu.open = false));
+      activeMenu?.querySelector<HTMLElement>("summary")?.focus();
+    });
 
     const clearValidationAppearance = (): void => {
       container
@@ -191,15 +234,17 @@ const PathEditorHelpers = {
     const undo = document.createElement("button");
     undo.type = "button";
     undo.className = "path-editor-undo";
-    undo.textContent = "Undo delete";
+    undo.textContent = localize("pathVisualUndoDelete", "Undo delete");
     undo.hidden = true;
     container.after(undo);
     const visualHelp = document.createElement("div");
     visualHelp.className = "caption path-editor-help";
     const helpLines: Array<readonly [string, string]> = [
       [
-        getMessage("o_lPathEditorDragHelp") ||
+        localize(
+          "o_lPathEditorDragHelp",
           "Drag by the dotted handle. Drop above or below a row to place it at the same level, or onto the row to nest it inside.",
+        ),
         "",
       ],
     ];
@@ -223,7 +268,22 @@ const PathEditorHelpers = {
     };
 
     const render = () => {
-      container.textContent = "";
+      editorControlCleanups.forEach((cleanup) => cleanup());
+      editorControlCleanups = [];
+      container.replaceChildren();
+      visualHelp.hidden = nodes.length < 2;
+
+      if (nodes.length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "path-editor-empty";
+        empty.textContent = localize(
+          "pathVisualEmpty",
+          "No custom folders. Save In will use only the browser Downloads folder.",
+        );
+        container.append(empty);
+        textarea.dispatchEvent(new Event("visual-editor-rendered"));
+        return;
+      }
 
       const showNumberedItems =
         document.querySelector<HTMLInputElement>("#enableNumberedItems")?.checked === true;
@@ -269,13 +329,26 @@ const PathEditorHelpers = {
 
         // Drag to reorder: only the handle starts a drag (a draggable row
         // would fight text selection in the inputs); any row is a target
-        const rowName = PathEditorHelpers.getAlias(node) || node.path.value || `row ${index + 1}`;
+        const rowName =
+          PathEditorHelpers.getAlias(node) ||
+          node.path.value ||
+          localize("pathVisualDirectoryAccessible", `Folder ${index + 1}`, index + 1);
         const handle = document.createElement("button");
         handle.type = "button";
         handle.className = "visual-editor-handle path-editor-handle";
         handle.textContent = "⠿";
-        handle.title = "Drag to reorder. Drop on the middle of a row to nest under it.";
-        handle.setAttribute("aria-label", `Reorder or change nesting for ${rowName}`);
+        handle.title = localize(
+          "pathVisualReorderHelp",
+          "Drag to reorder. Drop on the middle of a row to nest under it.",
+        );
+        handle.setAttribute(
+          "aria-label",
+          localize(
+            "pathVisualReorderAccessible",
+            `Reorder or change nesting for ${rowName}`,
+            rowName,
+          ),
+        );
         handle.draggable = true;
         handle.addEventListener("dragstart", (e) => {
           dragFrom = index;
@@ -332,9 +405,10 @@ const PathEditorHelpers = {
         enabled.className = "path-editor-enabled";
         enabled.name = "path-enabled";
         enabled.checked = PathEditorHelpers.getEnabled(node);
+        enabled.title = localize("visualEditorEnabled", "Enabled");
         enabled.setAttribute(
           "aria-label",
-          `${getMessage("visualEditorEnabled") || "Enabled"}: ${rowName}`,
+          localize("pathVisualEnabledAccessible", `Enabled: ${rowName}`, rowName),
         );
         enabled.addEventListener("change", () => {
           const current = nodes[index];
@@ -364,8 +438,10 @@ const PathEditorHelpers = {
             const indicator = document.createElement("span");
             indicator.className = "path-editor-drop-indicator";
             indicator.textContent = dropInside
-              ? `Nest under “${rowName}”`
-              : `${dropAfter ? "Insert after" : "Insert before"} · Same level`;
+              ? localize("pathVisualNestUnder", `Nest under “${rowName}”`, rowName)
+              : dropAfter
+                ? localize("pathVisualInsertAfter", "Insert after · Same level")
+                : localize("pathVisualInsertBefore", "Insert before · Same level");
             rowEl.append(indicator);
           }
         });
@@ -401,7 +477,7 @@ const PathEditorHelpers = {
         if (node.path.value === SPECIAL_DIRS.SEPARATOR) {
           const sep = document.createElement("span");
           sep.className = "path-editor-separator";
-          sep.textContent = "separator";
+          sep.textContent = localize("o_bAddSeparator", "Separator");
           rowEl.appendChild(sep);
         } else {
           const dir = document.createElement("input");
@@ -409,13 +485,23 @@ const PathEditorHelpers = {
           dir.className = "path-editor-dir";
           dir.name = "path-directory";
           dir.value = node.path.value;
-          dir.placeholder = "directory/:variables:";
+          dir.placeholder = localize("pathVisualDirectoryPlaceholder", "folder/:variables:");
           dir.spellcheck = false;
-          dir.setAttribute("aria-label", `Directory ${index + 1}`);
+          dir.setAttribute(
+            "aria-label",
+            localize("pathVisualDirectoryAccessible", `Folder ${index + 1}`, index + 1),
+          );
           dir.addEventListener("input", () => {
             updateNode(index, { path: dir.value });
             commit();
           });
+          if (variables.length > 0) {
+            editorControlCleanups.push(
+              attachAutocomplete(dir, (source, caret) =>
+                completeDirectorySyntax(source, caret, variables),
+              ),
+            );
+          }
           rowEl.appendChild(dir);
 
           const alias = document.createElement("input");
@@ -423,12 +509,19 @@ const PathEditorHelpers = {
           alias.className = "path-editor-alias";
           alias.name = "path-alias";
           alias.value = PathEditorHelpers.getAlias(node);
-          alias.placeholder = "alias";
+          alias.placeholder = localize("pathVisualAliasPlaceholder", "Display name");
           const aliasOpen = Boolean(alias.value);
           alias.classList.toggle("is-open", aliasOpen);
           alias.tabIndex = aliasOpen ? 0 : -1;
           alias.setAttribute("aria-hidden", String(!aliasOpen));
-          alias.setAttribute("aria-label", `Display name for directory ${index + 1}`);
+          alias.setAttribute(
+            "aria-label",
+            localize(
+              "pathVisualAliasAccessible",
+              `Display name for folder ${index + 1}`,
+              index + 1,
+            ),
+          );
           alias.addEventListener("input", () => {
             const current = nodes[index];
             if (!current) return;
@@ -438,7 +531,7 @@ const PathEditorHelpers = {
           const aliasToggle = document.createElement("button");
           aliasToggle.type = "button";
           aliasToggle.className = "path-editor-alias-toggle";
-          aliasToggle.textContent = "Alias";
+          aliasToggle.textContent = localize("pathVisualAlias", "Alias");
           aliasToggle.setAttribute("aria-expanded", String(aliasOpen));
           aliasToggle.addEventListener("click", () => {
             const open = !alias.classList.contains("is-open");
@@ -474,7 +567,14 @@ const PathEditorHelpers = {
               : "";
           accessKey.maxLength = 1;
           accessKey.spellcheck = false;
-          accessKey.setAttribute("aria-label", `${accessKeyAssignment}: ${rowName}`);
+          accessKey.setAttribute(
+            "aria-label",
+            localize(
+              "pathVisualAccessKeyAccessible",
+              `${accessKeyAssignment}: ${rowName}`,
+              rowName,
+            ),
+          );
           accessKey.addEventListener("input", () => {
             const current = nodes[index];
             if (!current) return;
@@ -488,70 +588,98 @@ const PathEditorHelpers = {
           actions.append(aliasToggle, accessKeyControl);
         }
 
-        const controls: [string, string, () => void][] = [
-          [
-            "◀",
-            "outdent",
-            () => {
+        const controls: Array<{
+          action: string;
+          label: string;
+          accessible: string;
+          disabled: boolean;
+          run: () => void;
+          danger?: boolean;
+        }> = [
+          {
+            action: "outdent",
+            label: localize("pathVisualOutdent", "Outdent"),
+            accessible: localize("pathVisualOutdentAccessible", `Outdent ${rowName}`, rowName),
+            disabled: node.depth === 0,
+            run: () => {
               updateNode(index, { depth: Math.max(0, node.depth - 1) });
             },
-          ],
-          [
-            "▶",
-            "indent",
-            () => {
+          },
+          {
+            action: "indent",
+            label: localize("pathVisualIndent", "Indent"),
+            accessible: localize("pathVisualIndentAccessible", `Indent ${rowName}`, rowName),
+            disabled:
+              nodes[index - 1] === undefined || node.depth >= (nodes[index - 1]?.depth ?? 0) + 1,
+            run: () => {
               updateNode(index, { depth: node.depth + 1 });
             },
-          ],
-          [
-            "▲",
-            "move up",
-            () => {
+          },
+          {
+            action: "move up",
+            label: localize("pathVisualMoveUp", "Move up"),
+            accessible: localize("pathVisualMoveUpAccessible", `Move ${rowName} up`, rowName),
+            disabled: index === 0,
+            run: () => {
               nodes = reorderPathNode(nodes, index, index - 1);
             },
-          ],
-          [
-            "▼",
-            "move down",
-            () => {
+          },
+          {
+            action: "move down",
+            label: localize("pathVisualMoveDown", "Move down"),
+            accessible: localize("pathVisualMoveDownAccessible", `Move ${rowName} down`, rowName),
+            disabled: index === nodes.length - 1,
+            run: () => {
               nodes = reorderPathNode(nodes, index, index + 1);
             },
-          ],
-          [
-            "✕",
-            "delete",
-            () => {
+          },
+          {
+            action: "delete",
+            label: localize("pathVisualDelete", "Delete"),
+            accessible: localize("pathVisualDeleteAccessible", `Delete ${rowName}`, rowName),
+            disabled: false,
+            run: () => {
               deletedNodes = nodes.slice();
               nodes = deletePathNode(nodes, index);
               undo.hidden = false;
             },
-          ],
+            danger: true,
+          },
         ];
 
-        controls.forEach(([glyph, title, action]) => {
+        const more = document.createElement("details");
+        more.className = "path-editor-more";
+        const moreTrigger = document.createElement("summary");
+        moreTrigger.className = "visual-editor-control path-editor-more-trigger";
+        moreTrigger.textContent = "⋯";
+        const moreLabel = localize(
+          "pathVisualMoreActionsAccessible",
+          `More actions for ${rowName}`,
+          rowName,
+        );
+        moreTrigger.title = moreLabel;
+        moreTrigger.setAttribute("aria-label", moreLabel);
+        const moreMenu = document.createElement("div");
+        moreMenu.className = "path-editor-action-menu";
+        controls.forEach((control) => {
           const button = document.createElement("button");
           button.type = "button";
           button.className = "visual-editor-control path-editor-control";
-          button.title = title;
-          button.setAttribute(
-            "aria-label",
-            `${(title[0] as string).toUpperCase()}${title.slice(1)} ${rowName}`,
-          );
-          button.textContent = glyph;
-          if (title === "outdent") button.disabled = node.depth === 0;
-          if (title === "indent") {
-            const previousDepth = nodes[index - 1]?.depth;
-            button.disabled = previousDepth === undefined || node.depth >= previousDepth + 1;
-          }
-          if (title === "move up") button.disabled = index === 0;
-          if (title === "move down") button.disabled = index === nodes.length - 1;
+          button.dataset.pathAction = control.action;
+          button.title = control.label;
+          button.setAttribute("aria-label", control.accessible);
+          button.textContent = control.label;
+          button.disabled = control.disabled;
+          button.classList.toggle("danger-button", control.danger === true);
           button.addEventListener("click", () => {
-            action();
+            control.run();
             commit();
             rebuild();
           });
-          actions.appendChild(button);
+          moreMenu.appendChild(button);
         });
+        more.append(moreTrigger, moreMenu);
+        actions.append(more);
 
         rowEl.append(actions);
 
@@ -611,6 +739,18 @@ const PathEditorHelpers = {
       applyValidationAppearance();
     });
     document.querySelector("#enableNumberedItems")?.addEventListener("change", rebuild);
+
+    sendInternalMessage(webExtensionApi.runtime, { type: MESSAGE_TYPES.GET_KEYWORDS })
+      .then((response) => {
+        if (!("variables" in response.body) || !Array.isArray(response.body.variables)) return;
+        variables = sortVariables(
+          response.body.variables.filter(
+            (variable: unknown): variable is string => typeof variable === "string",
+          ),
+        );
+        if (variables.length > 0) rebuild();
+      })
+      .catch(() => {});
 
     // restoreOptions fills the textarea programmatically (no input event).
     document.addEventListener("options-restored", rebuild);

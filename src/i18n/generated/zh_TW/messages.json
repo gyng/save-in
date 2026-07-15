@@ -179,7 +179,7 @@
     "message": "資料夾"
   },
   "o_sBehavior": {
-    "message": "行為"
+    "message": "儲存行為"
   },
   "o_sSaveDialog": {
     "message": "儲存對話框"
@@ -414,9 +414,6 @@
   },
   "o_lLanguage": {
     "message": "語言"
-  },
-  "o_lBrowserDefault": {
-    "message": "預設語言"
   },
   "o_lLanguageChangeFailed": {
     "message": "無法變更語言，請再試一次。"
@@ -2591,5 +2588,155 @@
   "advancedFilesDownloads": { "message": "檔案與下載" },
   "advancedMaintenanceDiagnostics": { "message": "維護與診斷" },
   "webhookStateOn": { "message": "開" },
-  "webhookStateOff": { "message": "關" }
+  "webhookStateOff": { "message": "關" },
+  "pathTextEmptyExample": {
+    "message": "images\ndocuments/:year:/:month:"
+  },
+  "pathVisualUndoDelete": {
+    "message": "復原刪除"
+  },
+  "pathVisualEmpty": {
+    "message": "沒有自訂資料夾。Save In 將僅使用瀏覽器的 Downloads 資料夾。"
+  },
+  "pathVisualReorderHelp": {
+    "message": "拖曳以重新排序。放到列中央可將其巢狀置於該列下方。"
+  },
+  "pathVisualReorderAccessible": {
+    "message": "重新排序或變更 $NAME$ 的巢狀層級",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualEnabledAccessible": {
+    "message": "啟用 $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualNestUnder": {
+    "message": "巢狀置於「$NAME$」下",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualInsertAfter": {
+    "message": "插入到後面 · 同一層級"
+  },
+  "pathVisualInsertBefore": {
+    "message": "插入到前面 · 同一層級"
+  },
+  "pathVisualDirectoryPlaceholder": {
+    "message": "資料夾/:variables:"
+  },
+  "pathVisualDirectoryAccessible": {
+    "message": "資料夾 $NUMBER$",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "pathVisualAlias": {
+    "message": "別名"
+  },
+  "pathVisualAliasPlaceholder": {
+    "message": "顯示名稱"
+  },
+  "pathVisualAliasAccessible": {
+    "message": "資料夾 $NUMBER$ 的顯示名稱",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "pathVisualAccessKeyAccessible": {
+    "message": "為 $NAME$ 指派存取鍵",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualMoreActionsAccessible": {
+    "message": "$NAME$ 的更多操作",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualOutdent": {
+    "message": "減少縮排"
+  },
+  "pathVisualOutdentAccessible": {
+    "message": "減少 $NAME$ 的縮排",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualIndent": {
+    "message": "增加縮排"
+  },
+  "pathVisualIndentAccessible": {
+    "message": "增加 $NAME$ 的縮排",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualMoveUp": {
+    "message": "上移"
+  },
+  "pathVisualMoveUpAccessible": {
+    "message": "將 $NAME$ 向上移動",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualMoveDown": {
+    "message": "下移"
+  },
+  "pathVisualMoveDownAccessible": {
+    "message": "將 $NAME$ 向下移動",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualDelete": {
+    "message": "刪除"
+  },
+  "pathVisualDeleteAccessible": {
+    "message": "刪除 $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  }
 }

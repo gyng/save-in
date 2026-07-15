@@ -1,4 +1,6 @@
 .path-editor-row {
+  --path-guide-direction: 90deg;
+
   position: relative;
   display: flex;
   align-items: baseline;
@@ -6,7 +8,7 @@
   padding: var(--space-1);
   border-radius: var(--radius);
   background-image: repeating-linear-gradient(
-    90deg,
+    var(--path-guide-direction),
     transparent 0,
     transparent 19px,
     color-mix(in srgb, var(--panel-border) 60%, transparent) 19px,
@@ -14,6 +16,20 @@
   );
   background-size: calc(var(--row-depth) * 20px) 100%;
   background-repeat: no-repeat;
+}
+
+.path-editor-row:dir(rtl) {
+  --path-guide-direction: 270deg;
+
+  background-position: right top;
+}
+
+.path-editor-empty {
+  padding: var(--space-4);
+  border: 1px dashed var(--panel-border);
+  border-radius: var(--radius);
+  color: var(--color-text-muted);
+  font-size: var(--text-base);
 }
 
 .path-editor-alias-toggle {
@@ -68,8 +84,8 @@
 
 .path-editor-row.is-preview-selected {
   border-color: color-mix(in srgb, var(--color-selection) 58%, var(--panel-border));
+  border-inline-start: 3px solid var(--color-selection);
   background: color-mix(in srgb, var(--color-selection) 7%, var(--page-bg));
-  box-shadow: inset 3px 0 0 var(--color-selection);
 }
 
 .path-editor-indent {
@@ -101,10 +117,10 @@
 }
 
 .path-editor-alias.is-open {
-  flex: 0 1 130px;
-  width: 130px;
-  padding-inline-end: 5px;
-  padding-inline-start: 5px;
+  flex: 0 1 10rem;
+  width: clamp(8rem, 24%, 12rem);
+  padding-inline-end: var(--space-1);
+  padding-inline-start: var(--space-1);
   border-inline-end-width: 1px;
   border-inline-start-width: 1px;
   opacity: 1;
@@ -141,6 +157,71 @@
 
 .path-editor-undo {
   margin-top: var(--space-1);
+}
+
+.path-editor-more {
+  position: relative;
+  flex: none;
+  margin: 0;
+}
+
+.path-editor-more-trigger {
+  display: inline-grid;
+  place-items: center;
+  width: var(--compact-control-size);
+  height: var(--compact-control-size);
+  padding: 0;
+  border: 1px solid transparent;
+  list-style: none;
+  font-size: var(--text-lg);
+  opacity: 1;
+}
+
+.path-editor-more-trigger::-webkit-details-marker {
+  display: none;
+}
+
+.path-editor-more-trigger:hover,
+.path-editor-more-trigger:focus-visible {
+  color: var(--color-text);
+  border-color: var(--panel-border);
+  background: var(--hover-bg);
+}
+
+.path-editor-action-menu {
+  position: absolute;
+  z-index: var(--z-menu);
+  top: calc(100% + var(--space-1));
+  inset-inline-end: 0;
+  display: grid;
+  min-width: 10.5rem;
+  padding: var(--space-1);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  background: var(--floating-bg);
+  box-shadow: var(--floating-shadow);
+}
+
+.path-editor-action-menu .path-editor-control {
+  justify-content: flex-start;
+  width: 100%;
+  padding-inline: var(--space-2);
+  border-color: transparent;
+  color: var(--color-text);
+  background: transparent;
+  font-size: var(--text-base);
+  text-align: start;
+  opacity: 1;
+}
+
+.path-editor-action-menu .danger-button {
+  color: var(--color-danger);
+}
+
+.path-editor-action-menu .danger-button:hover,
+.path-editor-action-menu .danger-button:active {
+  color: var(--color-danger-active);
+  background: transparent;
 }
 
 .tab-heading-hidden {

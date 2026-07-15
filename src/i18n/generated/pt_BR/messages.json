@@ -282,7 +282,7 @@
     "message": "Pastas"
   },
   "o_sBehavior": {
-    "message": "Comportamento"
+    "message": "Comportamento ao salvar"
   },
   "o_sSaveDialog": {
     "message": "Caixa de diálogo Salvar"
@@ -517,9 +517,6 @@
   },
   "o_lLanguage": {
     "message": "Idioma"
-  },
-  "o_lBrowserDefault": {
-    "message": "Idioma padrão"
   },
   "o_lLanguageChangeFailed": {
     "message": "Não foi possível alterar o idioma. Tente novamente."
@@ -2499,5 +2496,155 @@
   "advancedFilesDownloads": { "message": "Arquivos e downloads" },
   "advancedMaintenanceDiagnostics": { "message": "Manutenção e diagnósticos" },
   "webhookStateOn": { "message": "Ativado" },
-  "webhookStateOff": { "message": "Desativado" }
+  "webhookStateOff": { "message": "Desativado" },
+  "pathTextEmptyExample": {
+    "message": "images\ndocuments/:year:/:month:"
+  },
+  "pathVisualUndoDelete": {
+    "message": "Desfazer exclusão"
+  },
+  "pathVisualEmpty": {
+    "message": "Nenhuma pasta personalizada. O Save In usará somente a pasta Downloads do navegador."
+  },
+  "pathVisualReorderHelp": {
+    "message": "Arraste para reordenar. Solte no centro de uma linha para aninhá-la abaixo."
+  },
+  "pathVisualReorderAccessible": {
+    "message": "Reordenar ou alterar o nível de $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualEnabledAccessible": {
+    "message": "Ativar $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualNestUnder": {
+    "message": "Aninhar abaixo de “$NAME$”",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualInsertAfter": {
+    "message": "Inserir depois · Mesmo nível"
+  },
+  "pathVisualInsertBefore": {
+    "message": "Inserir antes · Mesmo nível"
+  },
+  "pathVisualDirectoryPlaceholder": {
+    "message": "pasta/:variables:"
+  },
+  "pathVisualDirectoryAccessible": {
+    "message": "Pasta $NUMBER$",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "pathVisualAlias": {
+    "message": "Alias"
+  },
+  "pathVisualAliasPlaceholder": {
+    "message": "Nome de exibição"
+  },
+  "pathVisualAliasAccessible": {
+    "message": "Nome de exibição da pasta $NUMBER$",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "pathVisualAccessKeyAccessible": {
+    "message": "Atribuir uma tecla de acesso a $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualMoreActionsAccessible": {
+    "message": "Mais ações para $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualOutdent": {
+    "message": "Diminuir recuo"
+  },
+  "pathVisualOutdentAccessible": {
+    "message": "Diminuir o recuo de $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualIndent": {
+    "message": "Aumentar recuo"
+  },
+  "pathVisualIndentAccessible": {
+    "message": "Aumentar o recuo de $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualMoveUp": {
+    "message": "Mover para cima"
+  },
+  "pathVisualMoveUpAccessible": {
+    "message": "Mover $NAME$ para cima",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualMoveDown": {
+    "message": "Mover para baixo"
+  },
+  "pathVisualMoveDownAccessible": {
+    "message": "Mover $NAME$ para baixo",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualDelete": {
+    "message": "Excluir"
+  },
+  "pathVisualDeleteAccessible": {
+    "message": "Excluir $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  }
 }

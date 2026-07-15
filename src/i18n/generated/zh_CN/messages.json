@@ -179,7 +179,7 @@
     "message": "文件夹"
   },
   "o_sBehavior": {
-    "message": "行为"
+    "message": "保存行为"
   },
   "o_sSaveDialog": {
     "message": "保存对话框"
@@ -414,9 +414,6 @@
   },
   "o_lLanguage": {
     "message": "语言"
-  },
-  "o_lBrowserDefault": {
-    "message": "默认语言"
   },
   "o_lLanguageChangeFailed": {
     "message": "无法更改语言。再试一次。"
@@ -2593,5 +2590,155 @@
   "advancedFilesDownloads": { "message": "文件和下载" },
   "advancedMaintenanceDiagnostics": { "message": "维护和诊断" },
   "webhookStateOn": { "message": "开" },
-  "webhookStateOff": { "message": "关" }
+  "webhookStateOff": { "message": "关" },
+  "pathTextEmptyExample": {
+    "message": "images\ndocuments/:year:/:month:"
+  },
+  "pathVisualUndoDelete": {
+    "message": "撤销删除"
+  },
+  "pathVisualEmpty": {
+    "message": "没有自定义文件夹。Save In 将仅使用浏览器的 Downloads 文件夹。"
+  },
+  "pathVisualReorderHelp": {
+    "message": "拖动以重新排序。放到行中间可将其嵌套在该行下方。"
+  },
+  "pathVisualReorderAccessible": {
+    "message": "重新排序或更改 $NAME$ 的嵌套层级",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualEnabledAccessible": {
+    "message": "启用 $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualNestUnder": {
+    "message": "嵌套在“$NAME$”下",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualInsertAfter": {
+    "message": "插入到后面 · 同一级"
+  },
+  "pathVisualInsertBefore": {
+    "message": "插入到前面 · 同一级"
+  },
+  "pathVisualDirectoryPlaceholder": {
+    "message": "文件夹/:variables:"
+  },
+  "pathVisualDirectoryAccessible": {
+    "message": "文件夹 $NUMBER$",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "pathVisualAlias": {
+    "message": "别名"
+  },
+  "pathVisualAliasPlaceholder": {
+    "message": "显示名称"
+  },
+  "pathVisualAliasAccessible": {
+    "message": "文件夹 $NUMBER$ 的显示名称",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "pathVisualAccessKeyAccessible": {
+    "message": "为 $NAME$ 分配访问键",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualMoreActionsAccessible": {
+    "message": "$NAME$ 的更多操作",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualOutdent": {
+    "message": "减少缩进"
+  },
+  "pathVisualOutdentAccessible": {
+    "message": "减少 $NAME$ 的缩进",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualIndent": {
+    "message": "增加缩进"
+  },
+  "pathVisualIndentAccessible": {
+    "message": "增加 $NAME$ 的缩进",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualMoveUp": {
+    "message": "上移"
+  },
+  "pathVisualMoveUpAccessible": {
+    "message": "向上移动 $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualMoveDown": {
+    "message": "下移"
+  },
+  "pathVisualMoveDownAccessible": {
+    "message": "向下移动 $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualDelete": {
+    "message": "删除"
+  },
+  "pathVisualDeleteAccessible": {
+    "message": "删除 $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  }
 }

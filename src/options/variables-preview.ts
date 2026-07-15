@@ -20,9 +20,70 @@ const stringRecord = (value: unknown): Record<string, string> => {
   );
 };
 
+type PathInsertTarget = HTMLInputElement | HTMLTextAreaElement;
+let activePathInsertTarget: PathInsertTarget | null = null;
+let pathInsertTrackingReady = false;
+
+const visualPathsActive = (): boolean => {
+  const panel = document.querySelector<HTMLElement>("#paths-visual");
+  return panel !== null && !panel.hidden;
+};
+
+const currentPathInsertTarget = (textarea: HTMLTextAreaElement): PathInsertTarget | null => {
+  if (!visualPathsActive()) return textarea;
+  return activePathInsertTarget instanceof HTMLInputElement &&
+    activePathInsertTarget.matches(".path-editor-dir") &&
+    activePathInsertTarget.isConnected
+    ? activePathInsertTarget
+    : null;
+};
+
+const updatePathInsertAvailability = (): void => {
+  const visual = visualPathsActive();
+  const visualTargetReady =
+    activePathInsertTarget instanceof HTMLInputElement &&
+    activePathInsertTarget.matches(".path-editor-dir") &&
+    activePathInsertTarget.isConnected;
+  document
+    .querySelectorAll<HTMLButtonElement>(
+      '.variables-preview[data-insert-target="paths"] .variables-preview-insert',
+    )
+    .forEach((button) => {
+      button.disabled = visual && (button.dataset.pathCommand === "true" || !visualTargetReady);
+    });
+};
+
+const setupPathInsertTracking = (): void => {
+  if (pathInsertTrackingReady) return;
+  pathInsertTrackingReady = true;
+  document.addEventListener("focusin", (event) => {
+    const target = event.target;
+    if (target instanceof HTMLTextAreaElement && target.id === "paths") {
+      activePathInsertTarget = target;
+    } else if (target instanceof HTMLInputElement && target.matches(".path-editor-dir")) {
+      activePathInsertTarget = target;
+    }
+    updatePathInsertAvailability();
+  });
+  document.addEventListener("visual-editor-rendered", () => {
+    if (activePathInsertTarget && !activePathInsertTarget.isConnected) {
+      activePathInsertTarget = null;
+    }
+    updatePathInsertAvailability();
+  });
+  document.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof Element) || !target.matches("#paths-mode-text, #paths-mode-visual")) {
+      return;
+    }
+    window.setTimeout(updatePathInsertAvailability, 0);
+  });
+};
+
 export const renderVariablesPreview = async () => {
   const panels = document.querySelectorAll<HTMLElement>(".variables-preview");
   if (panels.length === 0) return;
+  setupPathInsertTracking();
 
   try {
     const [keywords, routes] = await Promise.all([
@@ -78,9 +139,12 @@ export const renderVariablesPreview = async () => {
           const insert = document.createElement("button");
           insert.type = "button";
           insert.className = "variables-preview-insert";
+          insert.dataset.pathCommand = "true";
           insert.textContent = label;
           insert.title = syntax;
-          insert.addEventListener("click", () => PathEditor.insertLine(target, syntax));
+          insert.addEventListener("click", () => {
+            if (!visualPathsActive()) PathEditor.insertLine(target, syntax);
+          });
           cell.append(insert);
           row.append(cell);
           table.append(row);
@@ -112,7 +176,10 @@ export const renderVariablesPreview = async () => {
             insert.className = "variables-preview-insert";
             insert.setAttribute("aria-label", `Insert ${variable}`);
             insert.title = `Insert ${variable}`;
-            insert.addEventListener("click", () => PathEditor.insertAtCursor(target, variable));
+            insert.addEventListener("click", () => {
+              const insertTarget = currentPathInsertTarget(target);
+              if (insertTarget) PathEditor.insertAtCursor(insertTarget, variable);
+            });
             insert.appendChild(name);
             nameCell.appendChild(insert);
           } else {
@@ -160,10 +227,15 @@ export const renderVariablesPreview = async () => {
         if (event.key !== "Enter") return;
         event.preventDefault();
         rows
-          .find((row) => !row.hidden)
-          ?.querySelector<HTMLButtonElement>(".variables-preview-insert")
+          .find(
+            (row) =>
+              !row.hidden &&
+              row.querySelector<HTMLButtonElement>(".variables-preview-insert:not(:disabled)"),
+          )
+          ?.querySelector<HTMLButtonElement>(".variables-preview-insert:not(:disabled)")
           ?.click();
       });
+      updatePathInsertAvailability();
     });
   } catch {
     // The background may be restarting; the next download refreshes the panel.
@@ -171,6 +243,7 @@ export const renderVariablesPreview = async () => {
 };
 
 export const setupVariablesPreview = () => {
+  setupPathInsertTracking();
   document
     .querySelectorAll<HTMLDetailsElement>("details.variables-preview")
     .forEach((panel) => setupOutsideDismiss(panel));

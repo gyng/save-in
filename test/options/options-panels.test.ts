@@ -293,6 +293,50 @@ describe("variables preview", () => {
     );
   });
 
+  test("inserts variables into the focused visual folder instead of the hidden textarea", async () => {
+    document.body.innerHTML = `
+      <textarea id="paths">images</textarea>
+      <div id="paths-visual">
+        <input class="path-editor-dir" value="images">
+      </div>
+      <section class="variables-preview" data-insert-target="paths">
+        <div class="variables-preview-list"></div>
+      </section>`;
+    vi.mocked(browser.runtime.sendMessage)
+      .mockResolvedValueOnce({ body: { variables: [":year:"] } })
+      .mockResolvedValueOnce({ body: { interpolatedVariables: {} } });
+    const insert = vi.spyOn(PathEditor, "insertAtCursor").mockImplementation(() => {});
+
+    await renderVariablesPreview();
+    const folder = document.querySelector<HTMLInputElement>(".path-editor-dir")!;
+    folder.focus();
+    document.querySelector<HTMLButtonElement>(".variables-preview-insert:not(:disabled)")!.click();
+
+    expect(insert).toHaveBeenCalledWith(folder, ":year:");
+    expect(insert).not.toHaveBeenCalledWith(
+      document.querySelector<HTMLTextAreaElement>("#paths"),
+      ":year:",
+    );
+  });
+
+  test("disables visual insertion until a folder field has been focused", async () => {
+    document.body.innerHTML = `
+      <textarea id="paths">images</textarea>
+      <div id="paths-visual"><input class="path-editor-dir" value="images"></div>
+      <section class="variables-preview" data-insert-target="paths">
+        <div class="variables-preview-list"></div>
+      </section>`;
+    vi.mocked(browser.runtime.sendMessage)
+      .mockResolvedValueOnce({ body: { variables: [":year:"] } })
+      .mockResolvedValueOnce({ body: { interpolatedVariables: {} } });
+
+    await renderVariablesPreview();
+
+    expect(document.querySelector<HTMLButtonElement>(".variables-preview-insert")!.disabled).toBe(
+      true,
+    );
+  });
+
   test("shows known variables with blank values before a save", async () => {
     document.body.innerHTML =
       '<section class="variables-preview"><div class="variables-preview-list"></div></section>';

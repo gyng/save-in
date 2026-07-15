@@ -162,7 +162,7 @@
     "message": "Cartelle"
   },
   "o_sBehavior": {
-    "message": "Comportamento"
+    "message": "Comportamento di salvataggio"
   },
   "o_sSaveDialog": {
     "message": "Finestra di salvataggio"
@@ -700,9 +700,6 @@
   },
   "o_lLanguage": {
     "message": "Lingua"
-  },
-  "o_lBrowserDefault": {
-    "message": "Predefinita del browser"
   },
   "o_lLanguageChangeFailed": {
     "message": "Impossibile cambiare la lingua. Riprova."
@@ -2692,5 +2689,155 @@
   "advancedFilesDownloads": { "message": "File e download" },
   "advancedMaintenanceDiagnostics": { "message": "Manutenzione e diagnostica" },
   "webhookStateOn": { "message": "Attivo" },
-  "webhookStateOff": { "message": "Disattivo" }
+  "webhookStateOff": { "message": "Disattivo" },
+  "pathTextEmptyExample": {
+    "message": "images\ndocuments/:year:/:month:"
+  },
+  "pathVisualUndoDelete": {
+    "message": "Annulla eliminazione"
+  },
+  "pathVisualEmpty": {
+    "message": "Nessuna cartella personalizzata. Save In userà solo la cartella Downloads del browser."
+  },
+  "pathVisualReorderHelp": {
+    "message": "Trascina per riordinare. Rilascia al centro di una riga per annidarla sotto."
+  },
+  "pathVisualReorderAccessible": {
+    "message": "Riordina o modifica il livello di $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualEnabledAccessible": {
+    "message": "Attiva $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualNestUnder": {
+    "message": "Annida sotto “$NAME$”",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualInsertAfter": {
+    "message": "Inserisci dopo · Stesso livello"
+  },
+  "pathVisualInsertBefore": {
+    "message": "Inserisci prima · Stesso livello"
+  },
+  "pathVisualDirectoryPlaceholder": {
+    "message": "cartella/:variables:"
+  },
+  "pathVisualDirectoryAccessible": {
+    "message": "Cartella $NUMBER$",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "pathVisualAlias": {
+    "message": "Alias"
+  },
+  "pathVisualAliasPlaceholder": {
+    "message": "Nome visualizzato"
+  },
+  "pathVisualAliasAccessible": {
+    "message": "Nome visualizzato della cartella $NUMBER$",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "pathVisualAccessKeyAccessible": {
+    "message": "Assegna un tasto di accesso a $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualMoreActionsAccessible": {
+    "message": "Altre azioni per $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualOutdent": {
+    "message": "Riduci rientro"
+  },
+  "pathVisualOutdentAccessible": {
+    "message": "Riduci il rientro di $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualIndent": {
+    "message": "Aumenta rientro"
+  },
+  "pathVisualIndentAccessible": {
+    "message": "Aumenta il rientro di $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualMoveUp": {
+    "message": "Sposta su"
+  },
+  "pathVisualMoveUpAccessible": {
+    "message": "Sposta $NAME$ in alto",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualMoveDown": {
+    "message": "Sposta giù"
+  },
+  "pathVisualMoveDownAccessible": {
+    "message": "Sposta $NAME$ in basso",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualDelete": {
+    "message": "Elimina"
+  },
+  "pathVisualDeleteAccessible": {
+    "message": "Elimina $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  }
 }

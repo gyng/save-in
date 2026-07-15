@@ -168,7 +168,7 @@ describe("visual editor", () => {
   const textarea = () => element<HTMLTextAreaElement>("#paths");
   const rows = () => document.querySelectorAll<HTMLElement>(".path-editor-row");
   const controls = (row: number, title: string) =>
-    rows()[row]!.querySelector<HTMLElement>(`[title="${title}"]`)!;
+    rows()[row]!.querySelector<HTMLElement>(`[data-path-action="${title}"]`)!;
 
   test("renders one row per line, separators included", () => {
     expect(rows()).toHaveLength(3);
@@ -181,6 +181,20 @@ describe("visual editor", () => {
     ).toBe(true);
     expect(rows()[2]!.querySelector(".path-editor-separator")).not.toBeNull();
     expect(rows()[2]!.querySelector(".path-editor-access-key")).toBeNull();
+  });
+
+  test("uses a compact menu for secondary row actions", () => {
+    const menu = rows()[1]!.querySelector<HTMLDetailsElement>(".path-editor-more")!;
+    expect(menu.querySelector("summary")?.getAttribute("aria-label")).toContain("B");
+    expect(
+      [...menu.querySelectorAll<HTMLButtonElement>("[data-path-action]")].map(
+        (button) => button.textContent,
+      ),
+    ).toEqual(["Outdent", "Indent", "Move up", "Move down", "Delete"]);
+
+    menu.open = true;
+    document.body.click();
+    expect(menu.open).toBe(false);
   });
 
   test("edits access-key metadata from a compact visual control", () => {
@@ -475,7 +489,7 @@ describe("visual editor", () => {
       "Drag by the dotted handle",
     );
     expect(document.querySelector(".path-editor-handle")?.getAttribute("aria-label")).toContain(
-      "row 1",
+      "Folder 1",
     );
   });
 
@@ -495,6 +509,18 @@ describe("visual editor", () => {
     vi.advanceTimersByTime(500);
     expect(rows()).toHaveLength(1);
   });
+
+  test("shows a useful empty state and hides irrelevant drag guidance", () => {
+    textarea().value = "";
+    textarea().dispatchEvent(new InputEvent("input", { bubbles: true }));
+    vi.advanceTimersByTime(500);
+
+    expect(rows()).toHaveLength(0);
+    expect(document.querySelector(".path-editor-empty")?.textContent).toContain(
+      "No custom folders",
+    );
+    expect(document.querySelector<HTMLElement>(".path-editor-help")!.hidden).toBe(true);
+  });
 });
 
 describe("text/visual mode toggle", () => {
@@ -508,7 +534,7 @@ describe("text/visual mode toggle", () => {
       <div id="paths-text-editor">
         <div id="paths-editor-description">One relative directory per line.</div>
         <div id="paths-text-help"></div>
-        <div id="paths-text-actions"><details id="paths-insert-menu"></details></div>
+        <div class="editor-actions" id="paths-text-actions"><details id="paths-insert-menu"></details></div>
         <div class="manual-save-help"></div>
         <textarea id="paths">a</textarea>
       </div>
@@ -547,6 +573,15 @@ describe("text/visual mode toggle", () => {
     expect(element<HTMLElement>("#paths-text-editor").hidden).toBe(false);
     expect(element<HTMLElement>("#paths-visual").hidden).toBe(true);
     expect(element("#paths-mode-text").getAttribute("aria-selected")).toBe("true");
+    expect(element("#paths-text-actions").nextElementSibling).toBe(element("#error-paths"));
+  });
+
+  test("keeps validation immediately after the active editor", () => {
+    expect(element("#paths-visual").nextElementSibling).toBe(element("#error-paths"));
+
+    element<HTMLElement>("#paths-mode-text").click();
+
+    expect(element("#paths-text-actions").nextElementSibling).toBe(element("#error-paths"));
   });
 
   test("remembers the selected editor mode", () => {

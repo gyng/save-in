@@ -276,7 +276,7 @@
     "message": "Mappar"
   },
   "o_sBehavior": {
-    "message": "Beteende"
+    "message": "Sparbeteende"
   },
   "o_sSaveDialog": {
     "message": "Dialogrutan Spara"
@@ -511,9 +511,6 @@
   },
   "o_lLanguage": {
     "message": "Språk"
-  },
-  "o_lBrowserDefault": {
-    "message": "Standardspråk"
   },
   "o_lLanguageChangeFailed": {
     "message": "Det gick inte att ändra språket. Försök igen."
@@ -2516,5 +2513,155 @@
   "advancedFilesDownloads": { "message": "Filer och hämtningar" },
   "advancedMaintenanceDiagnostics": { "message": "Underhåll och diagnostik" },
   "webhookStateOn": { "message": "På" },
-  "webhookStateOff": { "message": "Av" }
+  "webhookStateOff": { "message": "Av" },
+  "pathTextEmptyExample": {
+    "message": "images\ndocuments/:year:/:month:"
+  },
+  "pathVisualUndoDelete": {
+    "message": "Ångra borttagning"
+  },
+  "pathVisualEmpty": {
+    "message": "Inga anpassade mappar. Save In använder endast webbläsarens Downloads-mapp."
+  },
+  "pathVisualReorderHelp": {
+    "message": "Dra för att ändra ordning. Släpp mitt på en rad för att kapsla den under."
+  },
+  "pathVisualReorderAccessible": {
+    "message": "Ändra ordning eller kapsling för $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualEnabledAccessible": {
+    "message": "Aktivera $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualNestUnder": {
+    "message": "Kapsla under ”$NAME$”",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualInsertAfter": {
+    "message": "Infoga efter · Samma nivå"
+  },
+  "pathVisualInsertBefore": {
+    "message": "Infoga före · Samma nivå"
+  },
+  "pathVisualDirectoryPlaceholder": {
+    "message": "mapp/:variables:"
+  },
+  "pathVisualDirectoryAccessible": {
+    "message": "Mapp $NUMBER$",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "pathVisualAlias": {
+    "message": "Alias"
+  },
+  "pathVisualAliasPlaceholder": {
+    "message": "Visningsnamn"
+  },
+  "pathVisualAliasAccessible": {
+    "message": "Visningsnamn för mapp $NUMBER$",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "pathVisualAccessKeyAccessible": {
+    "message": "Tilldela en åtkomsttangent till $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualMoreActionsAccessible": {
+    "message": "Fler åtgärder för $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualOutdent": {
+    "message": "Minska indrag"
+  },
+  "pathVisualOutdentAccessible": {
+    "message": "Minska indrag för $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualIndent": {
+    "message": "Öka indrag"
+  },
+  "pathVisualIndentAccessible": {
+    "message": "Öka indrag för $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualMoveUp": {
+    "message": "Flytta upp"
+  },
+  "pathVisualMoveUpAccessible": {
+    "message": "Flytta upp $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualMoveDown": {
+    "message": "Flytta ned"
+  },
+  "pathVisualMoveDownAccessible": {
+    "message": "Flytta ned $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualDelete": {
+    "message": "Ta bort"
+  },
+  "pathVisualDeleteAccessible": {
+    "message": "Ta bort $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  }
 }

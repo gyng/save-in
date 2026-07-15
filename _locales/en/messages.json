@@ -216,7 +216,7 @@
     "description": "Section heading on the options page. Used in src/options/options.html."
   },
   "o_sBehavior": {
-    "message": "Behavior",
+    "message": "Save behavior",
     "description": "Section heading on the options page. Used in src/options/options.html."
   },
   "o_sSaveDialog": {
@@ -937,10 +937,6 @@
   },
   "o_lLanguage": {
     "message": "Language",
-    "description": "Label, status, or help text in the options interface. Used in src/options/options.html."
-  },
-  "o_lBrowserDefault": {
-    "message": "Default language",
     "description": "Label, status, or help text in the options interface. Used in src/options/options.html."
   },
   "o_lLanguageChangeFailed": {
@@ -2911,9 +2907,185 @@
     "message": "// example\nfileext: pdf\ninto: documents/:filename:",
     "description": "Literal routing syntax shown as the empty Text editor placeholder. Used in src/options/options.html."
   },
+  "pathTextEmptyExample": {
+    "message": "images\ndocuments/:year:/:month:",
+    "description": "Literal folder-menu syntax shown as the empty Text editor placeholder. Used in src/options/options.html."
+  },
   "visualEditorEnabled": {
     "message": "Enabled",
     "description": "Checkbox label for enabling a destination menu entry or routing rule. Used in src/options/path-editor.ts and src/options/rule-visual-editor.ts."
+  },
+  "pathVisualUndoDelete": {
+    "message": "Undo delete",
+    "description": "Button that restores the most recently deleted folder-menu row. Used in src/options/path-editor.ts."
+  },
+  "pathVisualEmpty": {
+    "message": "No custom folders. Save In will use only the browser's Downloads folder.",
+    "description": "Empty state shown in the visual folder-menu editor. Used in src/options/path-editor.ts."
+  },
+  "pathVisualReorderHelp": {
+    "message": "Drag to reorder. Drop on the middle of a row to nest under it.",
+    "description": "Tooltip for the folder-menu row drag handle. Used in src/options/path-editor.ts."
+  },
+  "pathVisualReorderAccessible": {
+    "message": "Reorder or change nesting for $NAME$",
+    "description": "Accessible name for a folder-menu row drag handle. Used in src/options/path-editor.ts.",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualEnabledAccessible": {
+    "message": "Enable $NAME$",
+    "description": "Accessible name for a folder-menu row enabled checkbox. Used in src/options/path-editor.ts.",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualNestUnder": {
+    "message": "Nest under “$NAME$”",
+    "description": "Drag target shown when nesting a folder-menu row. Used in src/options/path-editor.ts.",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualInsertAfter": {
+    "message": "Insert after · Same level",
+    "description": "Drag target shown when moving a folder-menu row after another row. Used in src/options/path-editor.ts."
+  },
+  "pathVisualInsertBefore": {
+    "message": "Insert before · Same level",
+    "description": "Drag target shown when moving a folder-menu row before another row. Used in src/options/path-editor.ts."
+  },
+  "pathVisualDirectoryPlaceholder": {
+    "message": "folder/:variables:",
+    "description": "Placeholder for a folder path in the visual folder-menu editor. Used in src/options/path-editor.ts."
+  },
+  "pathVisualDirectoryAccessible": {
+    "message": "Folder $NUMBER$",
+    "description": "Accessible name for a folder path field in the visual folder-menu editor. Used in src/options/path-editor.ts.",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "pathVisualAlias": {
+    "message": "Alias",
+    "description": "Button that reveals the optional display name for a folder-menu row. Used in src/options/path-editor.ts."
+  },
+  "pathVisualAliasPlaceholder": {
+    "message": "Display name",
+    "description": "Placeholder for an optional folder-menu display name. Used in src/options/path-editor.ts."
+  },
+  "pathVisualAliasAccessible": {
+    "message": "Display name for folder $NUMBER$",
+    "description": "Accessible name for a folder-menu display-name field. Used in src/options/path-editor.ts.",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "pathVisualAccessKeyAccessible": {
+    "message": "Assign an access key to $NAME$",
+    "description": "Accessible name for a folder-menu access-key field. Used in src/options/path-editor.ts.",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualMoreActionsAccessible": {
+    "message": "More actions for $NAME$",
+    "description": "Accessible name for a folder-menu row action menu. Used in src/options/path-editor.ts.",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualOutdent": {
+    "message": "Outdent",
+    "description": "Action that reduces a folder-menu row's nesting level. Used in src/options/path-editor.ts."
+  },
+  "pathVisualOutdentAccessible": {
+    "message": "Outdent $NAME$",
+    "description": "Accessible name for reducing a folder-menu row's nesting level. Used in src/options/path-editor.ts.",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualIndent": {
+    "message": "Indent",
+    "description": "Action that increases a folder-menu row's nesting level. Used in src/options/path-editor.ts."
+  },
+  "pathVisualIndentAccessible": {
+    "message": "Indent $NAME$",
+    "description": "Accessible name for increasing a folder-menu row's nesting level. Used in src/options/path-editor.ts.",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualMoveUp": {
+    "message": "Move up",
+    "description": "Action that moves a folder-menu row earlier. Used in src/options/path-editor.ts."
+  },
+  "pathVisualMoveUpAccessible": {
+    "message": "Move $NAME$ up",
+    "description": "Accessible name for moving a folder-menu row earlier. Used in src/options/path-editor.ts.",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualMoveDown": {
+    "message": "Move down",
+    "description": "Action that moves a folder-menu row later. Used in src/options/path-editor.ts."
+  },
+  "pathVisualMoveDownAccessible": {
+    "message": "Move $NAME$ down",
+    "description": "Accessible name for moving a folder-menu row later. Used in src/options/path-editor.ts.",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualDelete": {
+    "message": "Delete",
+    "description": "Action that deletes a folder-menu row. Used in src/options/path-editor.ts."
+  },
+  "pathVisualDeleteAccessible": {
+    "message": "Delete $NAME$",
+    "description": "Accessible name for deleting a folder-menu row. Used in src/options/path-editor.ts.",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
   },
   "html_disableThisDestinationAndItsChildren": {
     "message": "Keep this destination and its children out of the menu",

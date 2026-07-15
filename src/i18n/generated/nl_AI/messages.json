@@ -282,7 +282,7 @@
     "message": "Mappen"
   },
   "o_sBehavior": {
-    "message": "Gedrag"
+    "message": "Opslaggedrag"
   },
   "o_sSaveDialog": {
     "message": "Opslagdialoog"
@@ -517,9 +517,6 @@
   },
   "o_lLanguage": {
     "message": "Taal"
-  },
-  "o_lBrowserDefault": {
-    "message": "Standaardtaal"
   },
   "o_lLanguageChangeFailed": {
     "message": "Kon de taal niet wijzigen. Probeer het opnieuw."
@@ -2503,5 +2500,155 @@
   "advancedFilesDownloads": { "message": "Bestanden en downloads" },
   "advancedMaintenanceDiagnostics": { "message": "Onderhoud en diagnostiek" },
   "webhookStateOn": { "message": "Aan" },
-  "webhookStateOff": { "message": "Uit" }
+  "webhookStateOff": { "message": "Uit" },
+  "pathTextEmptyExample": {
+    "message": "images\ndocuments/:year:/:month:"
+  },
+  "pathVisualUndoDelete": {
+    "message": "Verwijderen ongedaan maken"
+  },
+  "pathVisualEmpty": {
+    "message": "Geen aangepaste mappen. Save In gebruikt alleen de Downloads-map van de browser."
+  },
+  "pathVisualReorderHelp": {
+    "message": "Sleep om te herschikken. Zet neer in het midden van een rij om deze eronder te nesten."
+  },
+  "pathVisualReorderAccessible": {
+    "message": "Volgorde of nesting van $NAME$ wijzigen",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualEnabledAccessible": {
+    "message": "$NAME$ inschakelen",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualNestUnder": {
+    "message": "Nesten onder ‘$NAME$’",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualInsertAfter": {
+    "message": "Hierna invoegen · Zelfde niveau"
+  },
+  "pathVisualInsertBefore": {
+    "message": "Hiervoor invoegen · Zelfde niveau"
+  },
+  "pathVisualDirectoryPlaceholder": {
+    "message": "map/:variables:"
+  },
+  "pathVisualDirectoryAccessible": {
+    "message": "Map $NUMBER$",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "pathVisualAlias": {
+    "message": "Alias"
+  },
+  "pathVisualAliasPlaceholder": {
+    "message": "Weergavenaam"
+  },
+  "pathVisualAliasAccessible": {
+    "message": "Weergavenaam voor map $NUMBER$",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "pathVisualAccessKeyAccessible": {
+    "message": "Toegangstoets toewijzen aan $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualMoreActionsAccessible": {
+    "message": "Meer acties voor $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualOutdent": {
+    "message": "Minder inspringen"
+  },
+  "pathVisualOutdentAccessible": {
+    "message": "$NAME$ minder laten inspringen",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualIndent": {
+    "message": "Inspringen"
+  },
+  "pathVisualIndentAccessible": {
+    "message": "$NAME$ laten inspringen",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualMoveUp": {
+    "message": "Omhoog"
+  },
+  "pathVisualMoveUpAccessible": {
+    "message": "$NAME$ omhoog verplaatsen",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualMoveDown": {
+    "message": "Omlaag"
+  },
+  "pathVisualMoveDownAccessible": {
+    "message": "$NAME$ omlaag verplaatsen",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualDelete": {
+    "message": "Verwijderen"
+  },
+  "pathVisualDeleteAccessible": {
+    "message": "$NAME$ verwijderen",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  }
 }

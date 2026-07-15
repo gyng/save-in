@@ -282,7 +282,7 @@
     "message": "Ordner"
   },
   "o_sBehavior": {
-    "message": "Verhalten"
+    "message": "Speicherverhalten"
   },
   "o_sSaveDialog": {
     "message": "Speicherdialog"
@@ -517,9 +517,6 @@
   },
   "o_lLanguage": {
     "message": "Sprache"
-  },
-  "o_lBrowserDefault": {
-    "message": "Standardsprache"
   },
   "o_lLanguageChangeFailed": {
     "message": "Die Sprache konnte nicht geändert werden. Versuchen Sie es erneut."
@@ -2515,5 +2512,155 @@
   "advancedFilesDownloads": { "message": "Dateien und Downloads" },
   "advancedMaintenanceDiagnostics": { "message": "Wartung und Diagnose" },
   "webhookStateOn": { "message": "Ein" },
-  "webhookStateOff": { "message": "Aus" }
+  "webhookStateOff": { "message": "Aus" },
+  "pathTextEmptyExample": {
+    "message": "images\ndocuments/:year:/:month:"
+  },
+  "pathVisualUndoDelete": {
+    "message": "Löschen rückgängig"
+  },
+  "pathVisualEmpty": {
+    "message": "Keine benutzerdefinierten Ordner. Save In verwendet nur den Downloads-Ordner des Browsers."
+  },
+  "pathVisualReorderHelp": {
+    "message": "Zum Neuordnen ziehen. In der Mitte einer Zeile ablegen, um sie darunter zu verschachteln."
+  },
+  "pathVisualReorderAccessible": {
+    "message": "Reihenfolge oder Verschachtelung für $NAME$ ändern",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualEnabledAccessible": {
+    "message": "$NAME$ aktivieren",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualNestUnder": {
+    "message": "Unter „$NAME$“ verschachteln",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualInsertAfter": {
+    "message": "Danach einfügen · Gleiche Ebene"
+  },
+  "pathVisualInsertBefore": {
+    "message": "Davor einfügen · Gleiche Ebene"
+  },
+  "pathVisualDirectoryPlaceholder": {
+    "message": "ordner/:variables:"
+  },
+  "pathVisualDirectoryAccessible": {
+    "message": "Ordner $NUMBER$",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "pathVisualAlias": {
+    "message": "Alias"
+  },
+  "pathVisualAliasPlaceholder": {
+    "message": "Anzeigename"
+  },
+  "pathVisualAliasAccessible": {
+    "message": "Anzeigename für Ordner $NUMBER$",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "pathVisualAccessKeyAccessible": {
+    "message": "Zugriffstaste für $NAME$ zuweisen",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualMoreActionsAccessible": {
+    "message": "Weitere Aktionen für $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualOutdent": {
+    "message": "Einzug verringern"
+  },
+  "pathVisualOutdentAccessible": {
+    "message": "Einzug für $NAME$ verringern",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualIndent": {
+    "message": "Einrücken"
+  },
+  "pathVisualIndentAccessible": {
+    "message": "$NAME$ einrücken",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualMoveUp": {
+    "message": "Nach oben"
+  },
+  "pathVisualMoveUpAccessible": {
+    "message": "$NAME$ nach oben verschieben",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualMoveDown": {
+    "message": "Nach unten"
+  },
+  "pathVisualMoveDownAccessible": {
+    "message": "$NAME$ nach unten verschieben",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualDelete": {
+    "message": "Löschen"
+  },
+  "pathVisualDeleteAccessible": {
+    "message": "$NAME$ löschen",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  }
 }

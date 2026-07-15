@@ -278,7 +278,7 @@
     "message": "Carpetas"
   },
   "o_sBehavior": {
-    "message": "Comportamiento"
+    "message": "Comportamiento de guardado"
   },
   "o_sSaveDialog": {
     "message": "Cuadro de diálogo de guardado"
@@ -513,9 +513,6 @@
   },
   "o_lLanguage": {
     "message": "Idioma"
-  },
-  "o_lBrowserDefault": {
-    "message": "Idioma predeterminado"
   },
   "o_lLanguageChangeFailed": {
     "message": "No se pudo cambiar el idioma. Inténtelo de nuevo."
@@ -2499,5 +2496,155 @@
   "advancedFilesDownloads": { "message": "Archivos y descargas" },
   "advancedMaintenanceDiagnostics": { "message": "Mantenimiento y diagnóstico" },
   "webhookStateOn": { "message": "Activado" },
-  "webhookStateOff": { "message": "Desactivado" }
+  "webhookStateOff": { "message": "Desactivado" },
+  "pathTextEmptyExample": {
+    "message": "images\ndocuments/:year:/:month:"
+  },
+  "pathVisualUndoDelete": {
+    "message": "Deshacer eliminación"
+  },
+  "pathVisualEmpty": {
+    "message": "No hay carpetas personalizadas. Save In usará solo la carpeta Downloads del navegador."
+  },
+  "pathVisualReorderHelp": {
+    "message": "Arrastra para reordenar. Suelta en el centro de una fila para anidarla debajo."
+  },
+  "pathVisualReorderAccessible": {
+    "message": "Reordenar o cambiar el nivel de $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualEnabledAccessible": {
+    "message": "Activar $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualNestUnder": {
+    "message": "Anidar debajo de «$NAME$»",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualInsertAfter": {
+    "message": "Insertar después · Mismo nivel"
+  },
+  "pathVisualInsertBefore": {
+    "message": "Insertar antes · Mismo nivel"
+  },
+  "pathVisualDirectoryPlaceholder": {
+    "message": "carpeta/:variables:"
+  },
+  "pathVisualDirectoryAccessible": {
+    "message": "Carpeta $NUMBER$",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "pathVisualAlias": {
+    "message": "Alias"
+  },
+  "pathVisualAliasPlaceholder": {
+    "message": "Nombre visible"
+  },
+  "pathVisualAliasAccessible": {
+    "message": "Nombre visible de la carpeta $NUMBER$",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "pathVisualAccessKeyAccessible": {
+    "message": "Asignar una tecla de acceso a $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualMoreActionsAccessible": {
+    "message": "Más acciones para $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualOutdent": {
+    "message": "Reducir sangría"
+  },
+  "pathVisualOutdentAccessible": {
+    "message": "Reducir la sangría de $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualIndent": {
+    "message": "Aumentar sangría"
+  },
+  "pathVisualIndentAccessible": {
+    "message": "Aumentar la sangría de $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualMoveUp": {
+    "message": "Subir"
+  },
+  "pathVisualMoveUpAccessible": {
+    "message": "Mover $NAME$ hacia arriba",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualMoveDown": {
+    "message": "Bajar"
+  },
+  "pathVisualMoveDownAccessible": {
+    "message": "Mover $NAME$ hacia abajo",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualDelete": {
+    "message": "Eliminar"
+  },
+  "pathVisualDeleteAccessible": {
+    "message": "Eliminar $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  }
 }

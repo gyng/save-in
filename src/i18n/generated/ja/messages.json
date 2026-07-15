@@ -179,7 +179,7 @@
     "message": "フォルダー"
   },
   "o_sBehavior": {
-    "message": "動作"
+    "message": "保存時の動作"
   },
   "o_sSaveDialog": {
     "message": "保存ダイアログ"
@@ -414,9 +414,6 @@
   },
   "o_lLanguage": {
     "message": "言語"
-  },
-  "o_lBrowserDefault": {
-    "message": "既定の言語"
   },
   "o_lLanguageChangeFailed": {
     "message": "言語を変更できませんでした。もう一度やり直してください。"
@@ -2595,5 +2592,155 @@
   "advancedFilesDownloads": { "message": "ファイルとダウンロード" },
   "advancedMaintenanceDiagnostics": { "message": "メンテナンスと診断" },
   "webhookStateOn": { "message": "オン" },
-  "webhookStateOff": { "message": "オフ" }
+  "webhookStateOff": { "message": "オフ" },
+  "pathTextEmptyExample": {
+    "message": "images\ndocuments/:year:/:month:"
+  },
+  "pathVisualUndoDelete": {
+    "message": "削除を元に戻す"
+  },
+  "pathVisualEmpty": {
+    "message": "カスタムフォルダーはありません。Save In はブラウザーの Downloads フォルダーのみを使用します。"
+  },
+  "pathVisualReorderHelp": {
+    "message": "ドラッグして並べ替えます。行の中央にドロップすると、その下に入れ子になります。"
+  },
+  "pathVisualReorderAccessible": {
+    "message": "$NAME$ の順序または階層を変更",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualEnabledAccessible": {
+    "message": "$NAME$ を有効にする",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualNestUnder": {
+    "message": "「$NAME$」の下に入れ子にする",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualInsertAfter": {
+    "message": "後に挿入 · 同じ階層"
+  },
+  "pathVisualInsertBefore": {
+    "message": "前に挿入 · 同じ階層"
+  },
+  "pathVisualDirectoryPlaceholder": {
+    "message": "フォルダー/:variables:"
+  },
+  "pathVisualDirectoryAccessible": {
+    "message": "フォルダー $NUMBER$",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "pathVisualAlias": {
+    "message": "別名"
+  },
+  "pathVisualAliasPlaceholder": {
+    "message": "表示名"
+  },
+  "pathVisualAliasAccessible": {
+    "message": "フォルダー $NUMBER$ の表示名",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "pathVisualAccessKeyAccessible": {
+    "message": "$NAME$ にアクセスキーを割り当てる",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualMoreActionsAccessible": {
+    "message": "$NAME$ のその他の操作",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualOutdent": {
+    "message": "階層を上げる"
+  },
+  "pathVisualOutdentAccessible": {
+    "message": "$NAME$ の階層を上げる",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualIndent": {
+    "message": "階層を下げる"
+  },
+  "pathVisualIndentAccessible": {
+    "message": "$NAME$ の階層を下げる",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualMoveUp": {
+    "message": "上へ"
+  },
+  "pathVisualMoveUpAccessible": {
+    "message": "$NAME$ を上へ移動",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualMoveDown": {
+    "message": "下へ"
+  },
+  "pathVisualMoveDownAccessible": {
+    "message": "$NAME$ を下へ移動",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualDelete": {
+    "message": "削除"
+  },
+  "pathVisualDeleteAccessible": {
+    "message": "$NAME$ を削除",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  }
 }
