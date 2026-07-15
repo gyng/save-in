@@ -291,4 +291,43 @@ describe("syntax editor model", () => {
       },
     ]);
   });
+
+  test("highlights a fetch clause like a destination with variable tokens", () => {
+    const source = "filename: a\nfetch: https://x.example/:$1:";
+    const snapshot = analyzeSyntax("routing", source);
+    const byKind = (kind: string) =>
+      snapshot.tokens
+        .filter((candidate) => candidate.kind === kind)
+        .map(({ start, end }) => tokenText(source, start, end));
+
+    expect(byKind("destination")).toContain("fetch");
+    expect(byKind("destination-value")).toContain("https://x.example/:$1:");
+    expect(byKind("variable")).toContain(":$1:");
+  });
+
+  test("completes fetch as a clause name and excludes fetch-incompatible variables", () => {
+    const matchers = ["fetch", "into", "filename"];
+    const variables = [":pagedomain:", ":mime:", ":sha256:", ":sha256full:"];
+    const vocabulary = { matchers, variables };
+
+    expect(completeRoutingSyntax("fet", 3, vocabulary)).toEqual({
+      start: 0,
+      end: 3,
+      suggestions: ["fetch"],
+      suffix: ": ",
+    });
+
+    const fetchValue = "fetch: https://x.example/:";
+    expect(completeRoutingSyntax(fetchValue, fetchValue.length, vocabulary)?.suggestions).toEqual([
+      ":pagedomain:",
+    ]);
+
+    const intoValue = "into: :";
+    expect(completeRoutingSyntax(intoValue, intoValue.length, vocabulary)?.suggestions).toEqual([
+      ":pagedomain:",
+      ":mime:",
+      ":sha256:",
+      ":sha256full:",
+    ]);
+  });
 });

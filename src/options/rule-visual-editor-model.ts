@@ -280,8 +280,13 @@ export const addRoutingClause = (
   clause: NewRoutingClause,
 ): string => {
   const { unit } = editableRule(source, ruleIndex);
-  const before = unit.rule.clauses.find(
-    (candidate) => candidate.clauseKind === "capture" || candidate.clauseKind === "destination",
+  // fetch: is serialized after matchers and capture but before into:, so it
+  // anchors to the destination clause; other clauses precede capture too.
+  const isFetch = clause.name.trim().toLowerCase() === "fetch";
+  const before = unit.rule.clauses.find((candidate) =>
+    isFetch
+      ? candidate.clauseKind === "destination"
+      : candidate.clauseKind === "capture" || candidate.clauseKind === "destination",
   );
   const line = `${clause.name}${clause.caseInsensitive ? "/i" : ""}: ${clause.value}`;
   const newline = newlineFor(source);

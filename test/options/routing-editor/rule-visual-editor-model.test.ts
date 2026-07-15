@@ -148,6 +148,25 @@ describe("routing visual editor model", () => {
     );
   });
 
+  test("inserts a fetch clause after capture but immediately before the destination", () => {
+    expect(
+      addRoutingClause(source, 1, { name: "fetch", value: "https://x.example/:$1:" }),
+    ).toContain(
+      [
+        "fileext: pdf",
+        "capturegroups: fileext",
+        "fetch: https://x.example/:$1:",
+        "into: documents/:filename:",
+      ].join("\n"),
+    );
+    expect(
+      addRoutingClause("filename: jpg\ninto: images", 0, {
+        name: "fetch",
+        value: "https://x.example/full.jpg",
+      }),
+    ).toBe("filename: jpg\nfetch: https://x.example/full.jpg\ninto: images");
+  });
+
   test("deletes one clause line without disturbing comments or other rules", () => {
     expect(deleteRoutingClause(source, 1, 1)).toBe(source.replace("capturegroups: fileext\n", ""));
   });

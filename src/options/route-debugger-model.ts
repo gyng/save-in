@@ -32,6 +32,10 @@ export type RouteDebuggerRule = {
 
 export type RouteDebuggerTrace = {
   selectedRule: number | null;
+  // Optional so a trace from an older background that predates fetch: routing
+  // still validates; absent means the winning rule did not rewrite the URL.
+  selectedFetchTemplate?: string | null | undefined;
+  rewrittenUrl?: string | null | undefined;
   destination: string | null;
   expandedDestination: string | null;
   sanitizedDestination: string | null;
@@ -110,6 +114,8 @@ export const parseRouteDebuggerTrace = (value: unknown): RouteDebuggerTrace | nu
     !nullableString(value.expandedDestination) ||
     !nullableString(value.sanitizedDestination) ||
     !nullableString(value.finalPath) ||
+    !(value.selectedFetchTemplate === undefined || nullableString(value.selectedFetchTemplate)) ||
+    !(value.rewrittenUrl === undefined || nullableString(value.rewrittenUrl)) ||
     !Array.isArray(value.rules)
   ) {
     return null;
@@ -158,6 +164,10 @@ export const parseRouteDebuggerTrace = (value: unknown): RouteDebuggerTrace | nu
 
   return {
     selectedRule: value.selectedRule,
+    ...(value.selectedFetchTemplate === undefined
+      ? {}
+      : { selectedFetchTemplate: value.selectedFetchTemplate }),
+    ...(value.rewrittenUrl === undefined ? {} : { rewrittenUrl: value.rewrittenUrl }),
     destination: value.destination,
     expandedDestination: value.expandedDestination,
     sanitizedDestination: value.sanitizedDestination,

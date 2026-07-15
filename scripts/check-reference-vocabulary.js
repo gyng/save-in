@@ -57,9 +57,12 @@ const missing = [
   ...(variableReference.includes("capturegroups:")
     ? []
     : ["src/options/options.html: missing capturegroups variable"]),
-  ...[...matcherTokens, "capture:", "capturegroups:", "into:"]
+  ...[...matcherTokens, "capture:", "capturegroups:", "into:", "fetch:"]
     .filter((token) => !matcherReference.includes(token))
     .map((token) => `src/options/clauselist.html: missing routing clause ${token}`),
+  ...(variableReference.includes("fetch:")
+    ? []
+    : ["src/options/options.html: missing routing clause fetch:"]),
 ];
 
 if (missing.length) {

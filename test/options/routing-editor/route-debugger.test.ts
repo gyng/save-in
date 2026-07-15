@@ -252,6 +252,101 @@ test("shows production rule and clause decisions and jumps back to their source"
   );
 });
 
+const fetchTraceResponse = (
+  ruleTrace: Record<string, unknown>,
+): ((message: { type: string }) => Promise<unknown>) => {
+  return async (message) => {
+    if (message.type === MESSAGE_TYPES.CHECK_ROUTES) return checkResponse();
+    if (message.type === MESSAGE_TYPES.VALIDATE) {
+      return {
+        type: MESSAGE_TYPES.VALIDATE_RESULT,
+        body: { version: 1, ruleErrors: [], ruleTrace },
+      };
+    }
+    throw new Error(`Unexpected message: ${message.type}`);
+  };
+};
+
+test("shows the fetch rewrite stages for a rule that rewrites the URL", async () => {
+  renderWorkbench();
+  vi.mocked(browser.i18n.getMessage).mockImplementation((key: string) => {
+    if (key === "routeDebuggerFetchTemplate") return "Rewrite template";
+    if (key === "routeDebuggerRewrittenUrl") return "Rewritten URL";
+    return "";
+  });
+  vi.spyOn(webExtensionApi.runtime, "sendMessage").mockImplementation(
+    fetchTraceResponse({
+      selectedRule: 1,
+      selectedFetchTemplate: "https://mirror.example/:pagedomain:/orig.png",
+      rewrittenUrl: "https://mirror.example/site.example/orig.png",
+      destination: "mirrored/:naivefilename:",
+      expandedDestination: "mirrored/orig.png",
+      sanitizedDestination: "mirrored/orig.png",
+      finalPath: "mirrored/orig.png",
+      rules: [
+        {
+          index: 1,
+          matched: true,
+          destination: "mirrored/:naivefilename:",
+          fetch: "https://mirror.example/:pagedomain:/orig.png",
+          clauses: [{ name: "sourceurl", pattern: "\\.png$", matched: true }],
+        },
+      ],
+    }) as never,
+  );
+
+  setupRouteDebugger();
+  document.querySelector<HTMLButtonElement>("#route-debugger-run")?.click();
+  const result = document.querySelector<HTMLElement>("#route-debugger-result")!;
+  await vi.waitFor(() => expect(result.dataset.state).toBe("matched"));
+  const pipeline = result.querySelector(".route-debugger-pipeline");
+  expect(pipeline?.textContent).toContain(
+    "Rewrite templatehttps://mirror.example/:pagedomain:/orig.png",
+  );
+  expect(pipeline?.textContent).toContain(
+    "Rewritten URLhttps://mirror.example/site.example/orig.png",
+  );
+});
+
+test("hides the fetch rewrite stages for a rule that keeps the source URL", async () => {
+  renderWorkbench();
+  vi.mocked(browser.i18n.getMessage).mockImplementation((key: string) => {
+    if (key === "routeDebuggerFetchTemplate") return "Rewrite template";
+    if (key === "routeDebuggerRewrittenUrl") return "Rewritten URL";
+    if (key === "routeDebuggerExpanded") return "Expanded path";
+    return "";
+  });
+  vi.spyOn(webExtensionApi.runtime, "sendMessage").mockImplementation(
+    fetchTraceResponse({
+      selectedRule: 1,
+      selectedFetchTemplate: null,
+      rewrittenUrl: null,
+      destination: "images/:filename:",
+      expandedDestination: "images/report.pdf",
+      sanitizedDestination: "images/report.pdf",
+      finalPath: "images/report.pdf",
+      rules: [
+        {
+          index: 1,
+          matched: true,
+          destination: "images/:filename:",
+          fetch: "",
+          clauses: [{ name: "filename", pattern: "\\.pdf$", matched: true }],
+        },
+      ],
+    }) as never,
+  );
+
+  setupRouteDebugger();
+  document.querySelector<HTMLButtonElement>("#route-debugger-run")?.click();
+  const result = document.querySelector<HTMLElement>("#route-debugger-result")!;
+  await vi.waitFor(() => expect(result.dataset.state).toBe("matched"));
+  const pipeline = result.querySelector(".route-debugger-pipeline");
+  expect(pipeline?.textContent).toContain("Expanded path");
+  expect(pipeline?.textContent).not.toContain("Rewrite template");
+  expect(pipeline?.textContent).not.toContain("Rewritten URL");
+});
+
 test("loads the last download into the test bench", async () => {
   renderWorkbench();
   const sendMessage = vi

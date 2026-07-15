@@ -1,12 +1,21 @@
 import type { RoutingDownloadInfo } from "../routing/rule-types.ts";
 
 export type RuleTemplate = {
-  category: "Media" | "File types" | "Date and sequence" | "Sites and URLs" | "Save context";
+  category:
+    | "Media"
+    | "File types"
+    | "Date and sequence"
+    | "Sites and URLs"
+    | "Save context"
+    | "Site originals"
+    | "Site filing";
   name: string;
   description: string;
   example: string;
   rule: string;
-  proof: { info: RoutingDownloadInfo; destination: string };
+  // `fetch` is only present on fetch:-based templates; the proof suite
+  // asserts it through matchRulesDetailed alongside the plain destination.
+  proof: { info: RoutingDownloadInfo; destination: string; fetch?: string };
 };
 
 type GetMessage = (key: string) => string;
@@ -375,6 +384,131 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     rule: "context: tab\ninto: tabs/:filename:",
     proof: { info: { context: "tab", filename: "page.html" }, destination: "tabs/:filename:" },
   },
+  {
+    category: "Site originals",
+    name: "Twitter/X image originals",
+    description: "Rewrites Twitter and X image links to the original, full-resolution file",
+    example: "Example: twitter/EQEN6n3U.jpg",
+    rule: "sourceurl: ^https://pbs\\.twimg\\.com/media/([\\w-]+)\\?format=(\\w+)\ncapturegroups: sourceurl\nfetch: https://pbs.twimg.com/media/:$1:.:$2:?name=orig\ninto: twitter/:$1:.:$2:",
+    proof: {
+      info: { sourceUrl: "https://pbs.twimg.com/media/EQEN6n3U?format=jpg&name=small" },
+      destination: "twitter/EQEN6n3U.jpg",
+      fetch: "https://pbs.twimg.com/media/EQEN6n3U.jpg?name=orig",
+    },
+  },
+  {
+    category: "Site originals",
+    name: "Reddit image originals",
+    description: "Rewrites Reddit preview image links to the original file on i.redd.it",
+    example: "Example: reddit/8k2eq6z6z6ib1.jpg",
+    rule: "sourceurl: ^https://preview\\.redd\\.it/([\\w-]+\\.\\w+)\\?\ncapturegroups: sourceurl\nfetch: https://i.redd.it/:$1:\ninto: reddit/:$1:",
+    proof: {
+      info: {
+        sourceUrl:
+          "https://preview.redd.it/8k2eq6z6z6ib1.jpg?width=960&crop=smart&auto=webp&s=abc123",
+      },
+      destination: "reddit/8k2eq6z6z6ib1.jpg",
+      fetch: "https://i.redd.it/8k2eq6z6z6ib1.jpg",
+    },
+  },
+  {
+    category: "Site originals",
+    name: "Wikimedia full-size image",
+    description: "Rewrites Wikimedia Commons thumbnail links to the original full-size file",
+    example: "Example: wikimedia/Example.jpg",
+    rule: "sourceurl: ^https://upload\\.wikimedia\\.org/(wikipedia/\\w+)/thumb/(\\w+/\\w+)/([^/]+)/\\d+px-[^/]+$\ncapturegroups: sourceurl\nfetch: https://upload.wikimedia.org/:$1:/:$2:/:$3:\ninto: wikimedia/:$3:",
+    proof: {
+      info: {
+        sourceUrl:
+          "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Example.jpg/250px-Example.jpg",
+      },
+      destination: "wikimedia/Example.jpg",
+      fetch: "https://upload.wikimedia.org/wikipedia/commons/a/a9/Example.jpg",
+    },
+  },
+  {
+    category: "Site originals",
+    name: "YouTube thumbnail max resolution",
+    description: "Rewrites YouTube thumbnail links to the maximum-resolution image",
+    example: "Example: youtube/dQw4w9WgXcQ-maxresdefault.jpg",
+    rule: "sourceurl: ^https://i\\.ytimg\\.com/vi/([\\w-]+)/\\w+\\.(\\w+)$\ncapturegroups: sourceurl\nfetch: https://i.ytimg.com/vi/:$1:/maxresdefault.:$2:\ninto: youtube/:$1:-maxresdefault.:$2:",
+    proof: {
+      info: { sourceUrl: "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg" },
+      destination: "youtube/dQw4w9WgXcQ-maxresdefault.jpg",
+      fetch: "https://i.ytimg.com/vi/dQw4w9WgXcQ/maxresdefault.jpg",
+    },
+  },
+  {
+    category: "Site filing",
+    name: "Twitter/X handle prefix",
+    description: "Prefixes saved files with the Twitter or X handle from the page URL",
+    example: "Example: twitter/exampleuser-photo.jpg",
+    rule: "pageurl: ^https://(?:x|twitter)\\.com/(\\w+)/\ncapturegroups: pageurl\ninto: twitter/:$1:-:filename:",
+    proof: {
+      info: { pageUrl: "https://x.com/exampleuser/status/123456789", filename: "photo.jpg" },
+      destination: "twitter/exampleuser-:filename:",
+    },
+  },
+  {
+    category: "Site filing",
+    name: "Instagram username prefix",
+    description: "Prefixes saved files with the Instagram username from the page title",
+    example: "Example: instagram/janedoe-photo.jpg",
+    rule: "pagerootdomain: ^instagram\\.com$\npagetitle: @(\\w+)\ncapturegroups: pagetitle\ninto: instagram/:$1:-:filename:",
+    proof: {
+      info: {
+        pageUrl: "https://www.instagram.com/p/Cx1234567/",
+        filename: "photo.jpg",
+        currentTab: { title: "Jane Doe (@janedoe) • Instagram photos and videos" },
+      },
+      destination: "instagram/janedoe-:filename:",
+    },
+  },
+  {
+    category: "Site filing",
+    name: "DeviantArt hashed-filename rename",
+    description:
+      "Renames DeviantArt's hashed download filename to the artwork title and short code",
+    example: "Example: deviantart/Sunset over the lake-dcror1m.png",
+    rule: "filename: ^([a-z0-9]+)-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\\.(\\w+)$\npagetitle: (.+) on DeviantArt\ncapturegroups: filename,pagetitle\ninto: deviantart/:$3:-:$1:.:$2:",
+    proof: {
+      info: {
+        filename: "dcror1m-bd1fe78d-cf2b-4c0f-ab93-08eaadfc4e88.png",
+        currentTab: { title: "Sunset over the lake on DeviantArt" },
+      },
+      destination: "deviantart/Sunset over the lake-dcror1m.png",
+    },
+  },
+  {
+    category: "Site filing",
+    name: "Page path without the scheme",
+    description:
+      "Builds folders from the page URL's host and path while dropping the https:// scheme that otherwise corrupts filenames",
+    example: "Example: pages/example.com/articles/great-article/photo.jpg",
+    rule: "pageurl: ^https?://([^?]+)\ncapturegroups: pageurl\ninto: pages/:$1:/:filename:",
+    proof: {
+      info: {
+        pageUrl: "https://example.com/articles/great-article?utm_source=x",
+        filename: "photo.jpg",
+      },
+      destination: "pages/example.com/articles/great-article/:filename:",
+    },
+  },
+  {
+    category: "Site filing",
+    name: "Slugged title rename",
+    description:
+      "Replaces the filename with a lowercase, hyphenated slug of the page title, keeping the original extension (a general find-and-replace on filenames isn't supported)",
+    example: "Example: my-great-article.jpg",
+    rule: "pagetitle: .+\nfilename: \\.(\\w+)$\ncapturegroups: filename\ninto: :pagetitleslug:.:$1:",
+    proof: {
+      info: {
+        filename: "My-Great-Article.jpg",
+        currentTab: { title: "My Great, Article!" },
+      },
+      destination: ":pagetitleslug:.jpg",
+    },
+  },
 ];
 
 export const localizeRuleTemplates = (getMessage: GetMessage): LocalizedRuleTemplate[] => {
@@ -384,6 +518,8 @@ export const localizeRuleTemplates = (getMessage: GetMessage): LocalizedRuleTemp
     "Date and sequence": getMessage("ruleTemplateCategoryDateAndSequence") || "Date and sequence",
     "Sites and URLs": getMessage("ruleTemplateCategorySitesAndUrls") || "Sites and URLs",
     "Save context": getMessage("ruleTemplateCategorySaveContext") || "Save context",
+    "Site originals": getMessage("ruleTemplateCategorySiteOriginals") || "Site originals",
+    "Site filing": getMessage("ruleTemplateCategorySiteFiling") || "Site filing",
   };
   const copy = new Map<string, { name: string; description: string }>([
     [
@@ -635,6 +771,87 @@ export const localizeRuleTemplates = (getMessage: GetMessage): LocalizedRuleTemp
         description:
           getMessage("ruleTemplateTabInboxDescription") ||
           "Keeps files saved from tab actions together",
+      },
+    ],
+    [
+      "Twitter/X image originals",
+      {
+        name: getMessage("ruleTemplateTwitterOriginalsName") || "Twitter/X image originals",
+        description:
+          getMessage("ruleTemplateTwitterOriginalsDescription") ||
+          "Rewrites Twitter and X image links to the original, full-resolution file",
+      },
+    ],
+    [
+      "Reddit image originals",
+      {
+        name: getMessage("ruleTemplateRedditOriginalsName") || "Reddit image originals",
+        description:
+          getMessage("ruleTemplateRedditOriginalsDescription") ||
+          "Rewrites Reddit preview image links to the original file on i.redd.it",
+      },
+    ],
+    [
+      "Wikimedia full-size image",
+      {
+        name: getMessage("ruleTemplateWikimediaOriginalName") || "Wikimedia full-size image",
+        description:
+          getMessage("ruleTemplateWikimediaOriginalDescription") ||
+          "Rewrites Wikimedia Commons thumbnail links to the original full-size file",
+      },
+    ],
+    [
+      "YouTube thumbnail max resolution",
+      {
+        name: getMessage("ruleTemplateYoutubeMaxResName") || "YouTube thumbnail max resolution",
+        description:
+          getMessage("ruleTemplateYoutubeMaxResDescription") ||
+          "Rewrites YouTube thumbnail links to the maximum-resolution image",
+      },
+    ],
+    [
+      "Twitter/X handle prefix",
+      {
+        name: getMessage("ruleTemplateTwitterHandlePrefixName") || "Twitter/X handle prefix",
+        description:
+          getMessage("ruleTemplateTwitterHandlePrefixDescription") ||
+          "Prefixes saved files with the Twitter or X handle from the page URL",
+      },
+    ],
+    [
+      "Instagram username prefix",
+      {
+        name: getMessage("ruleTemplateInstagramUsernamePrefixName") || "Instagram username prefix",
+        description:
+          getMessage("ruleTemplateInstagramUsernamePrefixDescription") ||
+          "Prefixes saved files with the Instagram username from the page title",
+      },
+    ],
+    [
+      "DeviantArt hashed-filename rename",
+      {
+        name: getMessage("ruleTemplateDeviantArtRenameName") || "DeviantArt hashed-filename rename",
+        description:
+          getMessage("ruleTemplateDeviantArtRenameDescription") ||
+          "Renames DeviantArt's hashed download filename to the artwork title and short code",
+      },
+    ],
+    [
+      "Page path without the scheme",
+      {
+        name: getMessage("ruleTemplatePagePathNoSchemeName") || "Page path without the scheme",
+        description:
+          getMessage("ruleTemplatePagePathNoSchemeDescription") ||
+          "Builds folders from the page URL's host and path while dropping the https:// scheme that otherwise corrupts filenames",
+      },
+    ],
+    [
+      "Slugged title rename",
+      {
+        name: getMessage("ruleTemplateSluggedTitleRenameName") || "Slugged title rename",
+        description:
+          getMessage("ruleTemplateSluggedTitleRenameDescription") ||
+          "Replaces the filename with a lowercase, hyphenated slug of the page title, keeping the original extension (a general find-and-replace on filenames isn't supported)",
       },
     ],
   ]);

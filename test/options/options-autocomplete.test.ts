@@ -330,7 +330,9 @@ describe("setupRoutingAutocomplete wiring", () => {
     );
     dropdown = document.getElementById(textarea.getAttribute("aria-controls")!)!;
     expect(textarea.getAttribute("aria-expanded")).toBe("true");
-    expect(dropdown.querySelectorAll('[role="option"]')).toHaveLength(3);
+    expect(
+      [...dropdown.querySelectorAll(".autocomplete-option-label")].map((item) => item.textContent),
+    ).toEqual(["into", "fetch", "filename", "fileext"]);
   });
 
   test("attaches directory completion to the paths textarea", () => {

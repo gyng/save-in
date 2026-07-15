@@ -45,7 +45,7 @@ export const setupPathInsertMenu = (
     if (!clauseBody) return;
     clauseBody.replaceChildren();
     clauseButtons.length = 0;
-    const clauses = ["into", "capture", "capturegroups", ...matchers].toSorted((a, b) =>
+    const clauses = ["into", "fetch", "capture", "capturegroups", ...matchers].toSorted((a, b) =>
       compareClauses(`${a}:`, `${b}:`),
     );
     CLAUSE_GROUPS.forEach((group) => {

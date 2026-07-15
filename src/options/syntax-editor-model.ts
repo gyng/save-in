@@ -1,4 +1,5 @@
 import { parsePathLineAst } from "../config/path-syntax.ts";
+import { FETCH_URL_BANNED_VARIABLES } from "../routing/path-variables.ts";
 import { parseRoutingRuleAst, type RoutingLineNode } from "../routing/rule-syntax.ts";
 import { parseMatchPatternList } from "../shared/match-pattern.ts";
 import { parseRegularExpressionList, type PatternListIssue } from "../shared/pattern-list.ts";
@@ -194,8 +195,10 @@ const addRoutingClauseTokens = (
   line: Extract<RoutingLineNode, { kind: "clause" }>,
   tokens: SyntaxToken[],
 ): void => {
+  // fetch: is a URL template with the same variable-expansion behaviour as
+  // into:, so it reuses the destination highlighting rather than a bespoke token.
   const nameKind =
-    line.clauseKind === "destination"
+    line.clauseKind === "destination" || line.clauseKind === "fetch"
       ? "destination"
       : line.clauseKind === "capture"
         ? "capture"
@@ -217,13 +220,13 @@ const addRoutingClauseTokens = (
   );
 
   const valueKind =
-    line.clauseKind === "destination"
+    line.clauseKind === "destination" || line.clauseKind === "fetch"
       ? "destination-value"
       : line.clauseKind === "capture"
         ? "capture-value"
         : "regex";
   tokens.push(token(valueKind, line.valueSpan.start.offset, line.valueSpan.end.offset));
-  if (line.clauseKind === "destination") {
+  if (line.clauseKind === "destination" || line.clauseKind === "fetch") {
     addVariableTokens(source, line.valueSpan.start.offset, line.valueSpan.end.offset, tokens);
   }
 };
@@ -503,6 +506,16 @@ export const completeRoutingSyntax = (
   }
   if (node.name === "into") {
     return variableCompletion(source, caret, node.valueSpan.start.offset, vocabulary.variables);
+  }
+  if (node.name === "fetch") {
+    // A fetch: template rewrites the download URL, so variables that would
+    // fetch the original resource to compute their value are unavailable here.
+    return variableCompletion(
+      source,
+      caret,
+      node.valueSpan.start.offset,
+      vocabulary.variables.filter((name) => !FETCH_URL_BANNED_VARIABLES.has(name)),
+    );
   }
   if (node.name === "capture" || node.name === "capturegroups") {
     return captureMatcherCompletion(

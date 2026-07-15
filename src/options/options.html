@@ -773,6 +773,20 @@ into: :$2:/:$1:.:$3:</pre>
                 ><code>ubuntu.v2.tar</code> __MSG_html_becomes__ <code>v2/ubuntu.tar</code>.</span
               >
             </details>
+            <details class="guide-more">
+              <summary>__MSG_html_advancedFetchADifferentUrl__</summary>
+              <p class="caption">
+                <code>fetch:</code>
+                __MSG_html_downloadsFromAnExpandedUrlTemplateInsteadOfTheMatched__
+                <code>into:</code> __MSG_html_stillControlsTheDestinationAndFilename__
+              </p>
+              <pre class="click-to-copy">
+sourceurl: ^https://pbs\.twimg\.com/media/([\w-]+)\?format=(\w+)
+capture: sourceurl
+fetch: https://pbs.twimg.com/media/:$1:.:$2:?name=orig
+into: twitter/:$1:.:$2:</pre>
+              <span class="caption">__MSG_html_downloadsTheOriginalResolutionImageInstead__</span>
+            </details>
             <details class="agent-prompt-guide">
               <summary>__MSG_html_askAnAiAgentToDraftRoutingRules__</summary>
               <p class="caption">
@@ -799,6 +813,7 @@ Save In syntax:
 - Otherwise include :filename: unless the goal explicitly requests renaming.
 - Variables use :name: syntax. Useful choices include :filename:, :fileext:, :sourcedomain:, :year:, :month:, :day:, :counter:, and :uuid:.
 - To reuse regex groups in new rules, add capturegroups: followed by the matcher name, then use :$1:, :$2:, and so on in into:. capture: is only for compatibility with legacy flattened indexes.
+- Add an optional fetch: clause with a literal http:// or https:// URL template to download from that address instead of the matched source; into: still sets the destination. It may reuse :$1:, :$2:, and other routing variables except :mime:, :contenttype:, :mimeext:, :sha256:, :sha256full:, :finalurl:, and :redirecturl:. A rule may contain at most one fetch: clause.
 - Add disabled: true to a rule to keep it without running it.
 - Lines beginning with // are comments. Never use absolute paths, .., or unsupported clause names.
 
@@ -2017,10 +2032,37 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                     ></span>
                     <span>__MSG_o_lUiThemeMonokai__</span>
                   </label>
+                  <label class="theme-choice">
+                    <input type="radio" name="uiThemeChoice" value="one-dark" data-no-autosave />
+                    <span
+                      class="theme-swatch"
+                      data-theme-swatch="one-dark"
+                      aria-hidden="true"
+                    ></span>
+                    <span>__MSG_o_lUiThemeOneDark__</span>
+                  </label>
+                  <label class="theme-choice">
+                    <input type="radio" name="uiThemeChoice" value="tokyo-night" data-no-autosave />
+                    <span
+                      class="theme-swatch"
+                      data-theme-swatch="tokyo-night"
+                      aria-hidden="true"
+                    ></span>
+                    <span>__MSG_o_lUiThemeTokyoNight__</span>
+                  </label>
+                  <label class="theme-choice">
+                    <input type="radio" name="uiThemeChoice" value="catppuccin" data-no-autosave />
+                    <span
+                      class="theme-swatch"
+                      data-theme-swatch="catppuccin"
+                      aria-hidden="true"
+                    ></span>
+                    <span>__MSG_o_lUiThemeCatppuccin__</span>
+                  </label>
                 </div>
               </div>
-              <div class="theme-choice-group" role="group" aria-labelledby="theme-group-save-in">
-                <span id="theme-group-save-in" class="theme-choice-group-title"
+              <div class="theme-choice-group" role="group" aria-labelledby="theme-group-bespoke">
+                <span id="theme-group-bespoke" class="theme-choice-group-title"
                   >__MSG_o_lUiThemeGroupSaveIn__</span
                 >
                 <div class="theme-choice-grid">
@@ -2065,6 +2107,57 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                     <input type="radio" name="uiThemeChoice" value="nebula" data-no-autosave />
                     <span class="theme-swatch" data-theme-swatch="nebula" aria-hidden="true"></span>
                     <span>__MSG_o_lUiThemeNebula__</span>
+                  </label>
+                  <label class="theme-choice">
+                    <input type="radio" name="uiThemeChoice" value="glacier" data-no-autosave />
+                    <span
+                      class="theme-swatch"
+                      data-theme-swatch="glacier"
+                      aria-hidden="true"
+                    ></span>
+                    <span>__MSG_o_lUiThemeGlacier__</span>
+                  </label>
+                  <label class="theme-choice">
+                    <input type="radio" name="uiThemeChoice" value="matcha" data-no-autosave />
+                    <span class="theme-swatch" data-theme-swatch="matcha" aria-hidden="true"></span>
+                    <span>__MSG_o_lUiThemeMatcha__</span>
+                  </label>
+                  <label class="theme-choice">
+                    <input type="radio" name="uiThemeChoice" value="ember" data-no-autosave />
+                    <span class="theme-swatch" data-theme-swatch="ember" aria-hidden="true"></span>
+                    <span>__MSG_o_lUiThemeEmber__</span>
+                  </label>
+                  <label class="theme-choice">
+                    <input type="radio" name="uiThemeChoice" value="indigo-wave" data-no-autosave />
+                    <span
+                      class="theme-swatch"
+                      data-theme-swatch="indigo-wave"
+                      aria-hidden="true"
+                    ></span>
+                    <span>__MSG_o_lUiThemeIndigoWave__</span>
+                  </label>
+                  <label class="theme-choice">
+                    <input type="radio" name="uiThemeChoice" value="giverny" data-no-autosave />
+                    <span
+                      class="theme-swatch"
+                      data-theme-swatch="giverny"
+                      aria-hidden="true"
+                    ></span>
+                    <span>__MSG_o_lUiThemeGiverny__</span>
+                  </label>
+                  <label class="theme-choice">
+                    <input
+                      type="radio"
+                      name="uiThemeChoice"
+                      value="gilded-mosaic"
+                      data-no-autosave
+                    />
+                    <span
+                      class="theme-swatch"
+                      data-theme-swatch="gilded-mosaic"
+                      aria-hidden="true"
+                    ></span>
+                    <span>__MSG_o_lUiThemeGildedMosaic__</span>
                   </label>
                 </div>
               </div>
@@ -3173,6 +3266,24 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                   <code class="click-to-copy">:$2:</code
                   >__MSG_html_splitMultipleCaptureTargetsWithA__ <code>,</code>.
                   <div class="caption">__MSG_html_captureClauseCompatibility__</div>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <code class="click-to-copy">fetch:</code>
+                </td>
+                <td>
+                  <code>https://pbs.twimg.com/media/:$1:.:$2:?name=orig</code>
+                </td>
+                <td>
+                  <span class="badge">__MSG_html_optional__</span>
+                  __MSG_html_downloadsFromThisUrlTemplateInsteadOfTheMatchedSource__
+                  <code>into:</code>
+                  __MSG_html_stillSetsTheDestinationAndFilenameMustStartWith__
+                  <code>http://</code> __MSG_html_orLiteral__
+                  <code>https://</code
+                  >__MSG_html_captureReferencesAndRoutingVariablesSubstituteVerbatim__
+                  <div class="caption">__MSG_html_fetchClauseCompatibility__</div>
                 </td>
               </tr>
             </tbody>

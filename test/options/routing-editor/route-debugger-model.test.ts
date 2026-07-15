@@ -51,6 +51,33 @@ test("accepts a complete route trace received from the background", () => {
   expect(parseRouteDebuggerTrace(trace)).toEqual(trace);
 });
 
+test("carries fetch rewrite fields and tolerates their absence", () => {
+  const withFetch = {
+    ...trace,
+    selectedFetchTemplate: "https://mirror.example/:pagedomain:/orig.png",
+    rewrittenUrl: "https://mirror.example/site.example/orig.png",
+  };
+  expect(parseRouteDebuggerTrace(withFetch)).toEqual(withFetch);
+
+  const plain = parseRouteDebuggerTrace({
+    ...trace,
+    selectedFetchTemplate: null,
+    rewrittenUrl: null,
+  });
+  expect(plain).toMatchObject({ selectedFetchTemplate: null, rewrittenUrl: null });
+
+  const legacy = parseRouteDebuggerTrace(trace);
+  expect(legacy).not.toBeNull();
+  expect(legacy && "selectedFetchTemplate" in legacy).toBe(false);
+});
+
+test.each([
+  { ...trace, selectedFetchTemplate: 4 },
+  { ...trace, rewrittenUrl: 4 },
+])("rejects malformed fetch rewrite fields", (value) => {
+  expect(parseRouteDebuggerTrace(value)).toBeNull();
+});
+
 test("accepts an optional rule name and rejects malformed names", () => {
   const named = {
     ...trace,

@@ -119,6 +119,31 @@ describe("routing visual editor", () => {
     expect(input).toHaveBeenCalledOnce();
   });
 
+  test("renders a fetch clause as a dedicated rewrite-download-URL row", () => {
+    vi.mocked(browser.i18n.getMessage).mockImplementation((key: string) => {
+      if (key === "routeVisualFetchLabel") return "Rewrite download URL";
+      if (key === "routeVisualFetchAccessible") return "Rule $RULE$: rewrite download URL";
+      return "";
+    });
+    const textarea = element<HTMLTextAreaElement>("#filenamePatterns");
+    textarea.value =
+      "filename: \\.jpg$\nfetch: https://cdn.example/full.jpg\ninto: originals/:filename:";
+
+    setupRuleVisualEditor({ matchers: ["filename"], variables: [] });
+    element<HTMLButtonElement>("#rules-mode-visual").click();
+
+    expect(document.querySelector(".rule-editor-card-unsupported")).toBeNull();
+    const fetchRow = element<HTMLElement>(".rule-clause-fetch");
+    expect(fetchRow.querySelector(".rule-clause-marker")?.textContent).toBe("⇄");
+    expect(fetchRow.querySelector(".rule-clause-fixed-name")?.textContent).toBe(
+      "Rewrite download URL",
+    );
+    const value = fetchRow.querySelector<HTMLInputElement>(".rule-clause-value")!;
+    expect(value.value).toBe("https://cdn.example/full.jpg");
+    expect(value.name).toBe("routing-fetch");
+    expect(value.getAttribute("aria-label")).toBe("Rule 1: rewrite download URL");
+  });
+
   test("marks, aggregates, and clears visual rule validation", () => {
     element<HTMLTextAreaElement>("#filenamePatterns").value =
       "fileext: pdf\ninto: pdfs/:weekday:-:naivefidlename:";

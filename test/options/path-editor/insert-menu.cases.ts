@@ -146,6 +146,7 @@ describe("path editor insert menu", () => {
     await vi.waitFor(() =>
       expect(document.querySelector('[data-insert-line="capturegroups: "]')).not.toBeNull(),
     );
+    expect(document.querySelector('[data-insert-line="fetch: "]')).not.toBeNull();
     expect(document.querySelector('[data-insert-line="invalid: "]')).toBeNull();
   });
 });

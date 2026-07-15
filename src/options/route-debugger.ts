@@ -405,6 +405,14 @@ export const setupRouteDebugger = (): void => {
         const routePipeline = document.createElement("dl");
         routePipeline.className = "route-debugger-pipeline";
         const stages: Array<[string, string | null]> = [
+          // fetch: rewrites the download URL before destination variables
+          // expand, so these two stages sit ahead of the path pipeline and stay
+          // hidden for plain rules that never rewrite the URL.
+          [
+            localize("routeDebuggerFetchTemplate", "Rewrite template"),
+            trace.selectedFetchTemplate ?? null,
+          ],
+          [localize("routeDebuggerRewrittenUrl", "Rewritten URL"), trace.rewrittenUrl ?? null],
           [localize("routeDebuggerExpanded", "Expanded path"), trace.expandedDestination],
           [localize("routeDebuggerFinalPath", "Final path"), trace.finalPath],
         ];

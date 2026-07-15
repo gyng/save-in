@@ -213,9 +213,10 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
   };
 
   const selectTextSource = (line: number): void => {
-    setMode(false);
     const lines = textarea.value.split("\n");
-    const selectedLine = lines[line - 1]!;
+    const selectedLine = lines[line - 1];
+    if (selectedLine === undefined) return;
+    setMode(false);
     const offset = lines
       .slice(0, Math.max(0, line - 1))
       .reduce((sum, value) => sum + value.length + 1, 0);
@@ -289,7 +290,13 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
     const marker = document.createElement("span");
     marker.className = "rule-clause-marker";
     marker.textContent =
-      clause.kind === "destination" ? "→" : clause.kind === "capture" ? "$" : "if";
+      clause.kind === "destination"
+        ? "→"
+        : clause.kind === "capture"
+          ? "$"
+          : clause.kind === "fetch"
+            ? "⇄"
+            : "if";
     marker.setAttribute("aria-hidden", "true");
     row.append(marker);
 
@@ -303,7 +310,10 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
     } else {
       const name = document.createElement("span");
       name.className = "rule-clause-fixed-name";
-      name.textContent = clause.name;
+      name.textContent =
+        clause.kind === "fetch"
+          ? localize("routeVisualFetchLabel", "Rewrite download URL")
+          : clause.name;
       row.append(name);
     }
 
@@ -313,7 +323,12 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
     value.name = `routing-${clause.kind === "matcher" ? "pattern" : clause.kind}`;
     value.value = clause.value;
     value.spellcheck = false;
-    value.placeholder = clause.kind === "destination" ? "folder/:filename:" : ".*";
+    value.placeholder =
+      clause.kind === "destination"
+        ? "folder/:filename:"
+        : clause.kind === "fetch"
+          ? "https://example.com/:$1:"
+          : ".*";
     value.setAttribute(
       "aria-label",
       clause.kind === "destination"
@@ -321,17 +336,26 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
             localize("routeVisualDestinationAccessible", "Rule $RULE$ destination", rule.index + 1),
             rule.index + 1,
           )
-        : clause.kind === "matcher"
+        : clause.kind === "matcher" && conditionNumber !== undefined
           ? contextualLabel(
               localize(
                 "routeVisualPatternAccessible",
                 "Rule $RULE$, condition $CONDITION$: pattern",
-                [rule.index + 1, conditionNumber!],
+                [rule.index + 1, conditionNumber],
               ),
               rule.index + 1,
               conditionNumber,
             )
-          : clause.name,
+          : clause.kind === "fetch"
+            ? contextualLabel(
+                localize(
+                  "routeVisualFetchAccessible",
+                  "Rule $RULE$: rewrite download URL",
+                  rule.index + 1,
+                ),
+                rule.index + 1,
+              )
+            : clause.name,
     );
     value.addEventListener("input", () => {
       commit(
@@ -348,7 +372,7 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
       );
     }
 
-    if (clause.kind === "matcher") {
+    if (clause.kind === "matcher" && conditionNumber !== undefined) {
       const insensitive = document.createElement("label");
       insensitive.className = "rule-clause-flag";
       insensitive.title = localize(
@@ -365,7 +389,7 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
           localize(
             "routeVisualIgnoreCaseAccessible",
             "Rule $RULE$, condition $CONDITION$: ignore case",
-            [rule.index + 1, conditionNumber!],
+            [rule.index + 1, conditionNumber],
           ),
           rule.index + 1,
           conditionNumber,
@@ -462,7 +486,7 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
     });
     const identity = document.createElement("div");
     identity.className = "rule-editor-identity";
-    const title = document.createElement("h4");
+    const title = document.createElement("h5");
     title.id = `rule-editor-title-${rule.index}`;
     card.setAttribute("aria-labelledby", title.id);
     title.textContent = localize(
