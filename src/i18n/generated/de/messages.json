@@ -2055,8 +2055,12 @@
   "o_lUiThemeHighContrastDark": { "message": "Hoher Kontrast, dunkel" },
   "o_lUiThemeHighContrastLight": { "message": "Hoher Kontrast, hell" },
   "o_lUiThemeHighContrastYellow": { "message": "Hoher Kontrast, gelb" },
-  "o_lUiThemeSolarizedDark": { "message": "Solarized Dunkel" },
-  "o_lUiThemeSolarizedLight": { "message": "Solarized Hell" },
+  "o_lUiThemeSolarizedDark": {
+    "message": "Solarized Dark"
+  },
+  "o_lUiThemeSolarizedLight": {
+    "message": "Solarized Light"
+  },
   "o_lUiThemeNord": { "message": "Nord" },
   "o_lUiThemeDracula": { "message": "Dracula" },
   "o_lUiThemeGruvbox": { "message": "Gruvbox" },

@@ -2050,11 +2050,21 @@
   "o_lUiThemeGroupAccessibility": { "message": "Alto contraste" },
   "o_lUiThemeGroupClassics": { "message": "Temas clásicos" },
   "o_lUiThemeGroupSaveIn": { "message": "Temas de Save In" },
-  "o_lUiThemeHighContrastDark": { "message": "Alto contraste oscuro" },
-  "o_lUiThemeHighContrastLight": { "message": "Alto contraste claro" },
-  "o_lUiThemeHighContrastYellow": { "message": "Alto contraste amarillo" },
-  "o_lUiThemeSolarizedDark": { "message": "Solarized oscuro" },
-  "o_lUiThemeSolarizedLight": { "message": "Solarized claro" },
+  "o_lUiThemeHighContrastDark": {
+    "message": "Oscuro de alto contraste"
+  },
+  "o_lUiThemeHighContrastLight": {
+    "message": "Claro de alto contraste"
+  },
+  "o_lUiThemeHighContrastYellow": {
+    "message": "Amarillo de alto contraste"
+  },
+  "o_lUiThemeSolarizedDark": {
+    "message": "Solarized Dark"
+  },
+  "o_lUiThemeSolarizedLight": {
+    "message": "Solarized Light"
+  },
   "o_lUiThemeNord": { "message": "Nord" },
   "o_lUiThemeDracula": { "message": "Dracula" },
   "o_lUiThemeGruvbox": { "message": "Gruvbox" },
