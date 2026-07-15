@@ -1,16 +1,16 @@
-:is(.unsaved-changes-dialog, .reset-settings-dialog) {
+:is(.unsaved-changes-dialog, .reset-settings-dialog, .history-clear-dialog) {
   --dialog-inline-size: 420px;
 
   padding: var(--space-5);
 }
 
-:is(.unsaved-changes-dialog, .reset-settings-dialog) h2 {
+:is(.unsaved-changes-dialog, .reset-settings-dialog, .history-clear-dialog) h2 {
   margin: 0 0 var(--space-2);
   font-size: var(--text-lg);
   font-weight: 600;
 }
 
-:is(.unsaved-changes-dialog, .reset-settings-dialog) p {
+:is(.unsaved-changes-dialog, .reset-settings-dialog, .history-clear-dialog) p {
   margin: 0 0 var(--space-5);
 }
 
@@ -48,4 +48,10 @@
 .danger-button:active {
   border-color: var(--color-danger-active);
   background: var(--color-danger-active);
+}
+
+.button-danger:disabled,
+.danger-button:disabled {
+  border-color: var(--panel-border);
+  background: var(--panel-bg);
 }

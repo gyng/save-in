@@ -634,7 +634,6 @@ const floatingMenuOwners = [
   ["options.html", "rule-add-menu-options menu-popover"],
   ["options.html", "history-columns-menu menu-popover"],
   ["options.html", "history-export-options menu-popover"],
-  ["options.html", "history-more-options menu-popover"],
   ["path-editor.ts", "path-editor-action-menu menu-popover"],
   ["rule-visual-editor.ts", "rule-editor-card-action-menu menu-popover"],
 ];

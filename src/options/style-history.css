@@ -15,7 +15,10 @@
   flex-wrap: wrap;
   align-items: baseline;
   gap: var(--space-3);
+  min-inline-size: 0;
   margin-top: var(--space-3);
+  padding: 0;
+  border: 0;
 }
 
 .history-query-row {
@@ -23,6 +26,10 @@
   align-items: center;
   gap: var(--space-3);
   max-width: none;
+}
+
+.history-storage-note {
+  margin: calc(-1 * var(--space-2)) 0 var(--space-3);
 }
 
 .history-query-row .history-filter {
@@ -48,11 +55,6 @@
   align-items: center;
   min-height: var(--control-height);
   line-height: 1;
-}
-
-.history-clear-filters-inactive {
-  visibility: hidden;
-  pointer-events: none;
 }
 
 .history-custom-date-range {
@@ -90,10 +92,19 @@
 }
 
 .history-active-filters {
-  min-height: 1.4em;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
   margin-top: var(--space-2);
   color: var(--color-text-muted);
   font-size: var(--text-sm);
+}
+
+.history-active-filter {
+  padding: 2px var(--space-2);
+  border: 1px solid var(--panel-border);
+  border-radius: 999px;
+  background: var(--panel-bg);
 }
 
 .history-facet {
@@ -122,12 +133,32 @@
 }
 
 .history-table th.sortable {
-  cursor: pointer;
   user-select: none;
 }
 
-.history-table th.sortable:hover {
+.history-sort-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+}
+
+.history-sort-button:hover {
   color: var(--link-color);
+  background: transparent;
+}
+
+.history-sort-button:focus-visible {
+  border-radius: var(--radius-sm);
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
 
 .history-table th.sorted {
@@ -142,6 +173,10 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.history-table tbody tr:not(.history-empty-row):hover td {
+  background: var(--hover-bg);
 }
 
 .history-table .history-empty-row td {
@@ -174,7 +209,11 @@
 }
 
 .history-status {
-  white-space: nowrap;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+  white-space: normal;
 }
 
 .history-open {
@@ -183,7 +222,7 @@
   width: var(--compact-control-size);
   height: var(--compact-control-size);
   padding: 0;
-  margin-inline-start: var(--space-1);
+  margin-inline-start: 0;
   border: none;
   background: none;
   font-size: var(--text-sm);
@@ -193,7 +232,7 @@
 }
 
 .history-cancel {
-  margin-inline-start: var(--space-1);
+  margin-inline-start: 0;
   padding: 2px 6px;
   border: 1px solid var(--error-border);
   border-radius: var(--radius-sm);

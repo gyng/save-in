@@ -126,8 +126,12 @@ or feedback.
   for keyboard and assistive-technology workflows.
 - Page Sources settings describe the real drawer. Its static preview must expose
   the same header actions and vocabulary as the shipped drawer.
-- History is a dense data organism. Filters, menu triggers, statuses, table, and
-  pagination still use shared atoms.
+- History is a dense data organism. Its default columns prioritize the saved
+  file, destination, outcome, and origin; implementation metadata stays in the
+  optional column menu. Sort controls are real buttons, exports always include
+  complete records, and narrow layouts present each entry as a labelled record
+  instead of requiring horizontal scrolling. Filters, menu triggers, statuses,
+  table, and pagination still use shared atoms.
 - Reference pages/dialogs use the shared table and tab contracts and must remain
   usable without horizontal scrolling at narrow widths.
 - Dialogs use the `app-dialog` shell for backdrop, elevation, radius, and

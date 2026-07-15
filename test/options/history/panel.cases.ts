@@ -33,7 +33,7 @@ const markup = () => `
     <input id="history-date-to" type="date" aria-describedby="history-date-error">
     <span id="history-date-error" hidden></span>
   </div>
-  <div id="history-active-filters"></div>
+  <div id="history-active-filters" hidden></div>
   <div id="history-feedback"></div><div id="history-list"></div>
   <div id="history-column-options"></div>
   <details class="history-export-menu" data-history-requires-entries>
@@ -41,9 +41,11 @@ const markup = () => `
     <button id="history-export-json"></button><button id="history-export-csv"></button>
     <button id="history-export-tsv"></button>
   </details>
-  <details class="history-more-menu" data-history-requires-entries>
-    <summary>More</summary><button id="history-clear"></button>
-  </details>`;
+  <button id="history-clear" data-history-requires-entries></button>`;
+
+const confirmHistoryClear = () => {
+  document.querySelector<HTMLButtonElement>(".history-clear-dialog .danger-button")!.click();
+};
 
 let historyPanel: typeof import("../../../src/options/history-panel.ts");
 
@@ -91,7 +93,7 @@ describe("history filter controls", () => {
     to.value = "2024-07-01";
     to.dispatchEvent(new Event("change"));
 
-    expect(from.validationMessage).toContain("before end date");
+    expect(from.validationMessage).toContain("on or before the end date");
     const error = document.querySelector<HTMLElement>("#history-date-error")!;
     expect(error.hidden).toBe(false);
     expect(from.getAttribute("aria-invalid")).toBe("true");
@@ -178,12 +180,15 @@ describe("history filter controls", () => {
     expect(document.querySelector("#history-active-filters")!.textContent).toContain("Image");
     const clear = document.querySelector<HTMLButtonElement>("#history-clear-filters")!;
     expect(clear.disabled).toBe(false);
+    expect(clear.hidden).toBe(false);
     clear.click();
 
     expect(search.value).toBe("");
     expect(type.value).toBe("");
     expect(clear.disabled).toBe(true);
+    expect(clear.hidden).toBe(true);
     expect(document.querySelector("#history-active-filters")!.textContent).toBe("");
+    expect(document.querySelector<HTMLElement>("#history-active-filters")!.hidden).toBe(true);
   });
 
   test("keeps table headers and an empty-state row when history has no entries", async () => {
@@ -193,12 +198,15 @@ describe("history filter controls", () => {
 
     expect(document.querySelectorAll("#history-list th").length).toBeGreaterThan(0);
     expect(document.querySelector("#history-list .history-empty-row")).not.toBeNull();
+    expect(document.querySelector("#history-list .history-pager")).toBeNull();
     expect(document.querySelector("#history-list .history-empty-title")?.textContent).toContain(
       "No downloads saved yet",
     );
     expect(
       [...document.querySelectorAll<HTMLElement>("[data-history-requires-entries]")].every(
-        (menu) => menu.inert && menu.getAttribute("aria-disabled") === "true",
+        (control) =>
+          (control instanceof HTMLButtonElement ? control.disabled : control.inert) &&
+          control.getAttribute("aria-disabled") === "true",
       ),
     ).toBe(true);
     expect(historyRuntime.sendMessage).toHaveBeenCalledWith({ type: "HISTORY_GET" });
@@ -216,17 +224,29 @@ describe("history filter controls", () => {
     await renderHistory();
     expect(
       [...document.querySelectorAll<HTMLElement>("[data-history-requires-entries]")].every(
-        (menu) => !menu.inert && !menu.hasAttribute("aria-disabled"),
+        (control) =>
+          (control instanceof HTMLButtonElement ? !control.disabled : !control.inert) &&
+          !control.hasAttribute("aria-disabled"),
       ),
     ).toBe(true);
     const time = document.querySelector<HTMLTableCellElement>(".history-time-heading")!;
-    time.click();
+    expect(time.getAttribute("aria-sort")).toBe("descending");
+    time.querySelector<HTMLButtonElement>("button")!.click();
     expect(time.isConnected).toBe(false);
-    document.querySelector<HTMLTableCellElement>(".history-time-heading")!.click();
+    document
+      .querySelector<HTMLTableCellElement>(".history-time-heading")!
+      .querySelector<HTMLButtonElement>("button")!
+      .click();
     const status = document.querySelector<HTMLTableCellElement>(".history-status-heading")!;
-    status.click();
-    document.querySelector<HTMLTableCellElement>(".history-status-heading")!.click();
-    document.querySelector<HTMLTableCellElement>(".history-time-heading")!.click();
+    status.querySelector<HTMLButtonElement>("button")!.click();
+    document
+      .querySelector<HTMLTableCellElement>(".history-status-heading")!
+      .querySelector<HTMLButtonElement>("button")!
+      .click();
+    document
+      .querySelector<HTMLTableCellElement>(".history-time-heading")!
+      .querySelector<HTMLButtonElement>("button")!
+      .click();
 
     const search = document.querySelector<HTMLInputElement>("#history-filter")!;
     search.value = "missing";
@@ -238,8 +258,11 @@ describe("history filter controls", () => {
   });
 
   test("clears history through the serialized background owner", async () => {
-    vi.spyOn(window, "confirm").mockReturnValue(true);
+    historyRuntime.entries = [{ id: "h-delete", finalFullPath: "delete-me.txt" }];
+    await historyPanel.renderHistory();
     document.querySelector<HTMLButtonElement>("#history-clear")!.click();
+    expect(document.querySelector(".history-clear-dialog")).not.toBeNull();
+    confirmHistoryClear();
 
     await vi.waitFor(() =>
       expect(historyRuntime.sendMessage).toHaveBeenCalledWith({ type: "HISTORY_CLEAR" }),
@@ -267,11 +290,13 @@ describe("history filter controls", () => {
   });
 
   test("contains clear failures, restores the control, and retries on request", async () => {
-    vi.spyOn(window, "confirm").mockReturnValue(true);
+    historyRuntime.entries = [{ id: "h-delete", finalFullPath: "delete-me.txt" }];
+    await historyPanel.renderHistory();
     historyRuntime.sendMessage.mockRejectedValueOnce(new Error("storage unavailable"));
     const clear = document.querySelector<HTMLButtonElement>("#history-clear")!;
 
     clear.click();
+    confirmHistoryClear();
 
     const feedback = document.querySelector<HTMLElement>("#history-feedback")!;
     await vi.waitFor(() => expect(feedback.getAttribute("role")).toBe("alert"));
@@ -284,7 +309,7 @@ describe("history filter controls", () => {
     expect(
       historyRuntime.sendMessage.mock.calls.filter(([message]) => message.type === "HISTORY_CLEAR"),
     ).toHaveLength(2);
-    expect(clear.disabled).toBe(false);
+    await vi.waitFor(() => expect(clear.disabled).toBe(false));
   });
 
   test("cancels a pending preparation before it has a browser download ID", async () => {
@@ -368,7 +393,9 @@ describe("history filter controls", () => {
     localStorage.setItem("si-history-columns", JSON.stringify(["index"]));
     document.body.innerHTML = markup();
     historyPanel.setupHistoryPanel();
-    const onlyVisible = document.querySelector<HTMLInputElement>("#history-column-options input")!;
+    const onlyVisible = document.querySelector<HTMLInputElement>(
+      '#history-column-options input[value="index"]',
+    )!;
     expect(onlyVisible.checked).toBe(true);
 
     onlyVisible.click();
@@ -385,16 +412,16 @@ describe("history filter controls", () => {
 
   test("renders and localizes every optional history column", async () => {
     const allColumns = [
-      "index",
       "time",
-      "source",
-      "mechanism",
-      "status",
-      "size",
-      "type",
-      "routed",
       "file",
       "folder",
+      "status",
+      "size",
+      "source",
+      "type",
+      "routed",
+      "index",
+      "mechanism",
       "url",
       "fullPath",
       "downloadId",
@@ -425,6 +452,16 @@ describe("history filter controls", () => {
     await renderHistory();
 
     expect(document.querySelector(".history-source-heading")?.textContent).toBe("Localized source");
+    expect(
+      [...document.querySelectorAll<HTMLElement>(".history-table thead th")].map(
+        (cell) => cell.dataset.column,
+      ),
+    ).toEqual(allColumns);
+    expect(
+      [...document.querySelectorAll(".history-table tbody tr:first-child td")].map(
+        (cell) => (cell as HTMLElement).dataset.column,
+      ),
+    ).toEqual(allColumns);
     expect(document.querySelector(".history-size")?.textContent).toBe("1.2 KB");
     expect(document.querySelector(".routed-chip")).not.toBeNull();
     expect(document.querySelector<HTMLAnchorElement>(".history-url a")?.href).toBe(
@@ -723,27 +760,33 @@ describe("history filter controls", () => {
     expect(document.querySelector("#history-active-filters")?.textContent).toBe("");
   });
 
-  test("does not clear history when confirmation is declined", () => {
-    vi.spyOn(window, "confirm").mockReturnValue(false);
+  test("does not clear history when confirmation is declined", async () => {
+    historyRuntime.entries = [{ id: "h-delete", finalFullPath: "delete-me.txt" }];
+    await historyPanel.renderHistory();
     document.querySelector<HTMLButtonElement>("#history-clear")!.click();
+    document.querySelector<HTMLButtonElement>(".history-clear-dialog button")!.click();
     expect(historyRuntime.sendMessage).not.toHaveBeenCalledWith({ type: "HISTORY_CLEAR" });
   });
 
   test("treats a non-OK clear response as a failure", async () => {
-    vi.spyOn(window, "confirm").mockReturnValue(true);
+    historyRuntime.entries = [{ id: "h-delete", finalFullPath: "delete-me.txt" }];
+    await historyPanel.renderHistory();
     historyRuntime.sendMessage.mockResolvedValueOnce({ type: "HISTORY_CLEAR", body: {} });
     document.querySelector<HTMLButtonElement>("#history-clear")!.click();
+    confirmHistoryClear();
     await vi.waitFor(() =>
       expect(document.querySelector("#history-feedback")?.textContent).toContain(
-        "Could not clear history",
+        "Could not delete history",
       ),
     );
   });
 
   test("retries clearing after the clear button is removed", async () => {
-    vi.spyOn(window, "confirm").mockReturnValue(true);
+    historyRuntime.entries = [{ id: "h-delete", finalFullPath: "delete-me.txt" }];
+    await historyPanel.renderHistory();
     historyRuntime.sendMessage.mockRejectedValue(new Error("storage unavailable"));
     document.querySelector<HTMLButtonElement>("#history-clear")!.click();
+    confirmHistoryClear();
     await vi.waitFor(() =>
       expect(document.querySelector("#history-feedback button")).not.toBeNull(),
     );

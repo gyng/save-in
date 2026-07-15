@@ -42,6 +42,16 @@ export const formatHistoryTime = (iso?: string): string => {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}.${pad(date.getMilliseconds(), 3)}${offsetSign}${pad(Math.floor(offset / 60))}:${pad(offset % 60)}`;
 };
 
+export const formatHistoryDisplayTime = (iso?: string): string => {
+  if (!iso) return "";
+  const date = new Date(iso);
+  if (!Number.isFinite(date.getTime())) return iso;
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(date);
+};
+
 export const relativeHistoryTime = (iso?: string, now = Date.now()): string => {
   if (!iso) return "";
   const timestamp = new Date(iso).getTime();
@@ -101,6 +111,7 @@ export const historyType = (entry: HistoryEntry): string => {
     return "";
   }
   const c = String(context).toLowerCase();
+  if (c === "browser") return "";
   return c === "media" ? "image" : c;
 };
 
@@ -114,16 +125,31 @@ const HISTORY_MECHANISMS: Record<string, string> = {
   "firefox-replacement": "Firefox replacement",
 };
 
-export const statusLabel = (status: string): string => {
+export const statusLabel = (
+  status: string,
+  getMessage: (key: string) => string = () => "",
+): string => {
   if (status === "complete") {
-    return "Saved";
+    return getMessage("o_lHistorySaved") || "Saved";
   }
   if (status === "pending") {
-    return "Saving…";
+    return getMessage("historyStatusSaving") || "Saving…";
   }
   if (status === "failed") {
-    return "Failed";
+    return getMessage("o_lHistoryFailed") || "Failed";
   }
+  const knownStatuses: Record<string, [string, string]> = {
+    USER_CANCELED: ["historyStatusCanceled", "Canceled"],
+    NETWORK_FAILED: ["historyStatusNetworkFailed", "Network failed"],
+    DOWNLOAD_API_FAILED: ["historyStatusDownloadFailed", "Download failed"],
+    DOWNLOAD_PREPARATION_FAILED: ["historyStatusPreparationFailed", "Preparation failed"],
+    DOWNLOAD_PREPARATION_INTERRUPTED: ["historyStatusPreparationInterrupted", "Interrupted"],
+    DOWNLOAD_STATE_LOST: ["historyStatusStateLost", "Download state lost"],
+    FIREFOX_REROUTE_FAILED: ["historyStatusRoutingFailed", "Routing failed"],
+    RULE_NO_MATCH: ["historyStatusNoRuleMatch", "No matching rule"],
+  };
+  const known = knownStatuses[status];
+  if (known) return getMessage(known[0]) || known[1];
   // a browser error name (SERVER_FORBIDDEN, NETWORK_FAILED) shown lowercased
   return status.toLowerCase().replace(/_/g, " ");
 };
@@ -205,23 +231,23 @@ export type HistoryDisplayColumn = {
 };
 
 export const HISTORY_COLUMNS: HistoryDisplayColumn[] = [
-  { key: "index", label: "#", sortable: false, width: "4%", defaultVisible: true },
-  { key: "time", label: "Initiated", sortable: true, width: "12%", defaultVisible: true },
-  { key: "source", label: "Source", sortable: true, width: "8%", defaultVisible: false },
+  { key: "time", label: "Started", sortable: true, width: "12%", defaultVisible: true },
+  { key: "file", label: "File", sortable: true, width: "22%", defaultVisible: true },
+  { key: "folder", label: "Folder", sortable: true, width: "16%", defaultVisible: true },
+  { key: "status", label: "Status", sortable: true, width: "14%", defaultVisible: true },
+  { key: "size", label: "Size", sortable: true, width: "8%", defaultVisible: true },
+  { key: "source", label: "Source", sortable: true, width: "9%", defaultVisible: true },
+  { key: "type", label: "Type", sortable: true, width: "8%", defaultVisible: true },
+  { key: "routed", label: "Routing", sortable: true, width: "9%", defaultVisible: true },
+  { key: "index", label: "#", sortable: false, width: "4%", defaultVisible: false },
   {
     key: "mechanism",
     label: "Method",
     sortable: true,
     width: "12%",
-    defaultVisible: true,
+    defaultVisible: false,
   },
-  { key: "status", label: "Status", sortable: true, width: "9%", defaultVisible: true },
-  { key: "size", label: "Size", sortable: true, width: "8%", defaultVisible: true },
-  { key: "type", label: "Type", sortable: true, width: "6%", defaultVisible: true },
-  { key: "routed", label: "Rule", sortable: true, width: "7%", defaultVisible: true },
-  { key: "file", label: "File", sortable: true, width: "16%", defaultVisible: true },
-  { key: "folder", label: "Folder", sortable: true, width: "15%", defaultVisible: true },
-  { key: "url", label: "URL", sortable: false, width: "19%", defaultVisible: true },
+  { key: "url", label: "URL", sortable: false, width: "19%", defaultVisible: false },
   { key: "fullPath", label: "Full path", sortable: true, width: "20%", defaultVisible: false },
   { key: "downloadId", label: "Download ID", sortable: true, width: "6rem", defaultVisible: false },
   { key: "menuItem", label: "Menu item", sortable: true, width: "12%", defaultVisible: false },
@@ -232,13 +258,13 @@ export const localizeHistoryColumns = (
   getMessage: (key: string) => string,
 ): HistoryDisplayColumn[] => {
   const labels: Partial<Record<HistoryDisplayColumn["key"], string>> = {
-    time: getMessage("historyColumnInitiated") || "Initiated",
+    time: getMessage("historyColumnInitiated") || "Started",
     source: getMessage("historyColumnSource") || "Source",
     mechanism: getMessage("historyColumnMethod") || "Method",
     status: getMessage("historyColumnStatus") || "Status",
     size: getMessage("historyColumnSize") || "Size",
     type: getMessage("historyColumnType") || "Type",
-    routed: getMessage("historyColumnRule") || "Rule",
+    routed: getMessage("historyColumnRule") || "Routing",
     file: getMessage("historyColumnFile") || "File",
     folder: getMessage("historyColumnFolder") || "Folder",
     url: getMessage("historyColumnUrl") || "URL",

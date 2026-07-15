@@ -1569,9 +1569,10 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
       <hr />
 
       <h2 id="section-history">__MSG_o_sHistory__</h2>
+      <p class="caption history-storage-note">__MSG_historyStorageLimit__</p>
       <div class="history-query-row">
         <input
-          type="text"
+          type="search"
           id="history-filter"
           class="history-filter"
           data-runtime-control="true"
@@ -1581,7 +1582,8 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
         />
         <span id="history-count" class="caption"></span>
       </div>
-      <div class="history-facets" aria-label="__MSG_o_lHistoryFacets__">
+      <fieldset class="history-facets">
+        <legend class="visually-hidden">__MSG_o_lHistoryFacets__</legend>
         <div class="history-facet">
           <label for="history-source-filter">__MSG_o_lHistorySource__</label>
           <select id="history-source-filter" data-runtime-control="true">
@@ -1609,7 +1611,6 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
             <option value="selection">__MSG_html_selection__</option>
             <option value="click">__MSG_html_click__</option>
             <option value="tab">__MSG_html_tab__</option>
-            <option value="browser">__MSG_o_lHistoryBrowser__</option>
           </select>
         </div>
         <div class="history-facet">
@@ -1628,10 +1629,11 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
           class="button history-clear-filters-inactive"
           aria-hidden="true"
           disabled
+          hidden
         >
           __MSG_o_cClearHistoryFilters__
         </button>
-      </div>
+      </fieldset>
       <div
         id="history-custom-date-range"
         class="history-custom-date-range"
@@ -1657,28 +1659,36 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
         />
         <span id="history-date-error" class="history-date-error" role="alert" hidden></span>
       </div>
-      <div id="history-active-filters" class="history-active-filters" aria-live="polite"></div>
-      <div class="history-table-tools" aria-label="__MSG_html_historyTableTools__">
+      <div
+        id="history-active-filters"
+        class="history-active-filters"
+        role="status"
+        aria-label="__MSG_historyActiveFilters__"
+        aria-live="polite"
+        hidden
+      ></div>
+      <div class="history-table-tools" role="toolbar" aria-label="__MSG_html_historyTableTools__">
         <details class="history-columns details-popup">
           <summary class="menu-trigger">__MSG_html_columns__</summary>
           <div class="history-columns-menu menu-popover" id="history-column-options"></div>
         </details>
         <details class="history-export-menu details-popup" data-history-requires-entries>
-          <summary class="menu-trigger">__MSG_html_export__</summary>
+          <summary class="menu-trigger">__MSG_historyExportAll__</summary>
           <div class="history-export-options menu-popover">
             <button type="button" id="history-export-json">__MSG_html_jsonCompleteData__</button>
             <button type="button" id="history-export-csv">CSV</button>
             <button type="button" id="history-export-tsv">TSV</button>
           </div>
         </details>
-        <details class="history-more-menu details-popup" data-history-requires-entries>
-          <summary class="menu-trigger">__MSG_html_more__</summary>
-          <div class="history-more-options menu-popover">
-            <button type="button" id="history-clear" class="button-danger danger-button">
-              __MSG_o_cDeleteAllHistory__
-            </button>
-          </div>
-        </details>
+        <button
+          type="button"
+          id="history-clear"
+          class="button-danger danger-button"
+          data-history-requires-entries
+          disabled
+        >
+          __MSG_o_cDeleteAllHistory__
+        </button>
       </div>
       <div
         id="history-feedback"

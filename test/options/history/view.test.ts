@@ -1,6 +1,7 @@
 // Pure history-table helpers extracted from options.js (history-view.js).
 import {
   formatBytes,
+  formatHistoryDisplayTime,
   formatHistoryTime,
   relativeHistoryTime,
   historyFilename,
@@ -21,6 +22,8 @@ import {
 } from "../../../src/options/history-view.ts";
 
 test("missing legacy timestamps render as blank", () => {
+  expect(formatHistoryDisplayTime()).toBe("");
+  expect(formatHistoryDisplayTime("not-a-date")).toBe("not-a-date");
   expect(formatHistoryTime()).toBe("");
   expect(formatHistoryTime("not-a-date")).toBe("not-a-date");
   expect(relativeHistoryTime()).toBe("");
@@ -50,6 +53,7 @@ test("history timestamps use ISO text and relative labels", () => {
   ].join("-");
   const expected = `${expectedPrefix}T${String(instant.getHours()).padStart(2, "0")}:${String(instant.getMinutes()).padStart(2, "0")}:${String(instant.getSeconds()).padStart(2, "0")}.000${offsetSign}${offsetHours}:${offsetRemainder}`;
   expect(formatHistoryTime(instant.toISOString())).toBe(expected);
+  expect(formatHistoryDisplayTime(instant.toISOString())).not.toContain("T00:00:00");
   expect(relativeHistoryTime("2024-01-01T11:59:00Z", Date.parse("2024-01-01T12:00:00Z"))).toContain(
     "minute",
   );
@@ -75,7 +79,7 @@ test("CSV export includes all flattened history fields and escapes values", () =
     },
   ]);
 
-  expect(csv).toContain('"Initiated","Source","Method","Status"');
+  expect(csv).toContain('"Started","File","Folder","Status"');
   expect(csv).toContain('"a,""b"".txt"');
   expect(csv).toContain('"7"');
 });
@@ -106,10 +110,16 @@ test("spreadsheet exports neutralize formula-leading history values", () => {
   expect(tsv).toContain("\t'＝2+2.csv\t");
 });
 
-test("history columns show row numbers and hide Source by default", () => {
-  expect(HISTORY_COLUMNS.find(({ key }) => key === "index")?.defaultVisible).toBe(true);
-  expect(HISTORY_COLUMNS.find(({ key }) => key === "source")?.defaultVisible).toBe(false);
-  expect(HISTORY_COLUMNS.find(({ key }) => key === "mechanism")?.defaultVisible).toBe(true);
+test("history columns prioritize user outcomes over implementation metadata", () => {
+  expect(HISTORY_COLUMNS.slice(0, 4).map(({ key }) => key)).toEqual([
+    "time",
+    "file",
+    "folder",
+    "status",
+  ]);
+  expect(HISTORY_COLUMNS.find(({ key }) => key === "index")?.defaultVisible).toBe(false);
+  expect(HISTORY_COLUMNS.find(({ key }) => key === "source")?.defaultVisible).toBe(true);
+  expect(HISTORY_COLUMNS.find(({ key }) => key === "mechanism")?.defaultVisible).toBe(false);
   expect(HISTORY_COLUMNS.map(({ key }) => key)).toContain("fullPath");
   expect(HISTORY_COLUMNS.map(({ key }) => key)).toContain("downloadId");
   expect(HISTORY_COLUMNS.find(({ key }) => key === "menuItem")?.defaultVisible).toBe(false);
@@ -122,7 +132,7 @@ test("history column localization falls back field by field", () => {
   );
   const fallback = localizeHistoryColumns(() => "");
   expect(localized.find(({ key }) => key === "file")?.label).toBe("Localized file");
-  expect(localized.find(({ key }) => key === "time")?.label).toBe("Initiated");
+  expect(localized.find(({ key }) => key === "time")?.label).toBe("Started");
   expect(fallback.find(({ key }) => key === "file")?.label).toBe("File");
   expect(fallback.find(({ key }) => key === "index")?.label).toBe("#");
 });
@@ -140,6 +150,7 @@ describe("history row flatteners", () => {
   test("type maps media->image and lowercases, defaults empty", () => {
     expect(historyType({ info: { context: "MEDIA" } })).toBe("image");
     expect(historyType({ info: { context: "LINK" } })).toBe("link");
+    expect(historyType({ info: { context: "browser" } })).toBe("");
     expect(historyType({})).toBe("");
     // legacy entries kept the whole state
     expect(historyType({ state: { info: { context: "PAGE" } } })).toBe("page");
@@ -150,7 +161,10 @@ describe("history row flatteners", () => {
     expect(statusLabel("complete")).toBe("Saved");
     expect(statusLabel("pending")).toBe("Saving…");
     expect(statusLabel("failed")).toBe("Failed");
-    expect(statusLabel("NETWORK_FAILED")).toBe("network failed");
+    expect(statusLabel("NETWORK_FAILED")).toBe("Network failed");
+    expect(
+      statusLabel("USER_CANCELED", (key) => (key === "historyStatusCanceled" ? "Stopped" : "")),
+    ).toBe("Stopped");
     expect(statusClass("complete")).toBe("status-ok");
     expect(statusClass("pending")).toBe("status-pending");
     expect(statusClass("SERVER_FORBIDDEN")).toBe("status-fail");
