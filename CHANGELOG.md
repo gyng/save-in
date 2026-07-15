@@ -56,6 +56,12 @@ rules.
 - Added **Text** and **Visual** modes for **Save locations** and **Routing
   rules**. Visual mode supports indentation, drag-to-reorder, aliases, clauses,
   variables, separators, and a live context-menu preview.
+- Added **Recent locations**: the context menu can list up to five recently
+  used destinations beside **Last used**, controlled by a count from 0 to 5
+  (#122).
+- A save location can prompt for its final destination through the browser's
+  Save As dialog, added with a `(dialog: true)` comment or the Visual-mode
+  **Always ask where to save** action (#154).
 - Directory and routing edits now use explicit Apply and Discard actions and
   warn before unsaved drafts are abandoned. Other settings continue to
   autosave.
@@ -96,13 +102,18 @@ rules.
   request context.
 - Fixed History so entries accumulate instead of replacing one another, capped
   it at 10,000 entries, and added search, filtering, pagination, localized
-  statuses, download actions, and **Export all** in JSON or formula-safe CSV and
-  TSV formats (#159). Table headings now use **Started** and **Routing**.
+  statuses, download actions, copy actions for the saved path and source URL,
+  and **Export all** in JSON or formula-safe CSV and TSV formats (#159). Table
+  headings now use **Started** and **Routing**.
 - Wake the background as soon as the click-to-save modifier is held, making
   Chrome saves more reliable (thanks @rudolphos, #230). Click-to-save also
   falls back to the link under the cursor when link saving is enabled (#226).
 - Click-to-save and external-extension requests no longer inherit the previous
   download's filename, destination, or rename route (#190).
+- Added an option to save a shortcut recording a download's original source
+  address alongside the media itself (#164). The source shortcut stays out of
+  completion notifications and History totals, never delays or re-triggers the
+  media save, and does not change how the next download is routed.
 - “Retry failed downloads through Save In” retries eligible network and server
   failures once through a background fetch before reporting failure.
 - Optional Referer handling protects each exact metadata or content request in
@@ -145,8 +156,9 @@ rules.
 ### Options and localization
 
 - Rebuilt Options as a full-width tabbed interface with clearer navigation,
-  searchable settings, a live save indicator, consistent typography, improved
-  keyboard and narrow-screen behavior, and dark-mode fixes.
+  searchable settings, a live save indicator with one-click undo of the last
+  change, consistent typography, improved keyboard and narrow-screen behavior,
+  and dark-mode fixes.
 - Added a first-install welcome guide with starter configurations and direct
   links to the most important setup actions.
 - Added a language selector and opt-in, locally bundled generated translation
@@ -159,6 +171,8 @@ rules.
   events, configuration issue counts, copyable support details, and recent
   session failures. It loads only when opened and excludes private activity
   (#216). The Options page now opens in a browser tab.
+- The **About** page now lists each requested browser permission with a plain
+  explanation of why Save In needs it.
 - Fixed the Firefox dark-mode Last used icon (#184), restored first-party
   autocomplete, and made ordinary text settings autosave after typing pauses
   (#205).
