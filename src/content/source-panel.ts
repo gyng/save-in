@@ -31,7 +31,9 @@ import {
 import { positionFloatingElement } from "../shared/floating-position.ts";
 import { preferredScrollBehavior } from "../shared/motion-preference.ts";
 import SOURCE_PANEL_TOKENS_CSS from "./source-panel-tokens.css";
+import SOURCE_PANEL_THEMES_CSS from "./source-panel-themes.css";
 import SOURCE_PANEL_CSS from "./source-panel.css";
+import SOURCE_PANEL_CONTROLS_CSS from "./source-panel-controls.css";
 import SOURCE_PANEL_PREVIEW_CSS from "./source-panel-preview.css";
 import SOURCE_PANEL_RESPONSIVE_CSS from "./source-panel-responsive.css";
 import SOURCE_PANEL_RESULTS_CSS from "./source-panel-results.css";
@@ -366,7 +368,9 @@ export const toggleSourcePanel = (
   const style = document.createElement("style");
   style.textContent = [
     SOURCE_PANEL_TOKENS_CSS,
+    SOURCE_PANEL_THEMES_CSS,
     SOURCE_PANEL_CSS,
+    SOURCE_PANEL_CONTROLS_CSS,
     SOURCE_PANEL_RESULTS_CSS,
     SOURCE_PANEL_RESPONSIVE_CSS,
     SOURCE_PANEL_PREVIEW_CSS,

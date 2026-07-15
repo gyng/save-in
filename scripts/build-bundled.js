@@ -78,6 +78,7 @@ const optionStyleFiles = [
   "style-rule-editor-clauses.css",
   "style-rule-editor-create.css",
   "style-shell.css",
+  "style-themes.css",
   "style-tokens.css",
   "style-utilities.css",
   "style-welcome.css",

@@ -286,7 +286,8 @@ video,
   gap: var(--source-space-2);
 }
 .action-menu {
-  inset: calc(100% + 4px) 0 auto auto;
+  inset-block-start: calc(100% + 4px);
+  inset-inline-end: 0;
 }
 .empty {
   grid-column: 1 / -1;

@@ -12,12 +12,15 @@ const styles = fs
 const violations = [];
 const styleEntryPath = path.join(root, "src", "options", "style.css");
 const tokenStylePath = path.join(root, "src", "options", "style-tokens.css");
+const themeStylePath = path.join(root, "src", "options", "style-themes.css");
 const optionsDocumentPath = path.join(root, "src", "options", "options.html");
 const clauseListDocumentPath = path.join(root, "src", "options", "clauselist.html");
 const sourcePanelPath = path.join(root, "src", "content", "source-panel.ts");
 const sourcePanelStylePaths = [
   "source-panel-tokens.css",
+  "source-panel-themes.css",
   "source-panel.css",
+  "source-panel-controls.css",
   "source-panel-results.css",
   "source-panel-responsive.css",
   "source-panel-preview.css",
@@ -42,6 +45,27 @@ const splitTopLevelWhitespace = (value) => {
     }
   }
   if (start < value.length) parts.push(value.slice(start));
+  return parts.filter(Boolean);
+};
+
+/**
+ * @param {string} value
+ * @returns {string[]}
+ */
+const splitTopLevelComma = (value) => {
+  const parts = [];
+  let depth = 0;
+  let start = 0;
+  for (let index = 0; index < value.length; index += 1) {
+    const character = value[index];
+    if (character === "(") depth += 1;
+    else if (character === ")") depth -= 1;
+    else if (character === "," && depth === 0) {
+      parts.push(value.slice(start, index).trim());
+      start = index + 1;
+    }
+  }
+  parts.push(value.slice(start).trim());
   return parts.filter(Boolean);
 };
 
@@ -110,6 +134,36 @@ const contrastRatio = (foreground, background) => {
 };
 
 /**
+ * Resolve a base token to its concrete light or dark color. Base theme
+ * contrast contracts intentionally accept only direct variables, hex colors,
+ * and light-dark() so unsupported expressions cannot silently skip checks.
+ * @param {string} value
+ * @param {Map<string, string>} properties
+ * @param {"light" | "dark"} scheme
+ * @param {Set<string>} [resolving]
+ * @returns {string | undefined}
+ */
+const colorForScheme = (value, properties, scheme, resolving = new Set()) => {
+  const normalized = value.trim();
+  const variable = /^var\((--[\w-]+)\)$/.exec(normalized)?.[1];
+  if (variable) {
+    if (resolving.has(variable)) return undefined;
+    const replacement = properties.get(variable);
+    if (replacement === undefined) return undefined;
+    return colorForScheme(replacement, properties, scheme, new Set([...resolving, variable]));
+  }
+
+  const lightDark = /^light-dark\(([\s\S]*)\)$/.exec(normalized)?.[1];
+  if (lightDark !== undefined) {
+    const choices = splitTopLevelComma(lightDark);
+    if (choices.length !== 2) return undefined;
+    return colorForScheme(choices[scheme === "light" ? 0 : 1] || "", properties, scheme, resolving);
+  }
+
+  return rgbFromHex(normalized) ? normalized : undefined;
+};
+
+/**
  * @param {string} value
  * @param {Map<string, string>} properties
  * @param {Set<string>} [resolving]
@@ -129,7 +183,7 @@ const resolvedCustomPropertyValue = (value, properties, resolving = new Set()) =
 
 /** @type {Array<[string, string[]]>} */
 const styleLayers = [
-  ["tokens", ["style-tokens.css"]],
+  ["tokens", ["style-tokens.css", "style-themes.css"]],
   ["base", ["style-base.css"]],
   [
     "shell",
@@ -284,6 +338,8 @@ for (const file of styles) {
 }
 
 const tokenStyle = fs.readFileSync(tokenStylePath, "utf8");
+const themeStyle = fs.readFileSync(themeStylePath, "utf8");
+const optionTokenDeclarationPaths = new Set([tokenStylePath, themeStylePath]);
 const rootTokenBoundary = tokenStyle.indexOf("\n}");
 for (const file of styles) {
   const source = fs.readFileSync(file, "utf8");
@@ -292,11 +348,12 @@ for (const file of styles) {
     const lineStart = source.lastIndexOf("\n", match.index) + 1;
     const lineEnd = source.indexOf("\n", match.index);
     const lineSource = source.slice(lineStart, lineEnd < 0 ? undefined : lineEnd);
-    if (file === tokenStylePath && /--[\w-]+\s*:/.test(lineSource)) continue;
+    if (optionTokenDeclarationPaths.has(file) && /--[\w-]+\s*:/.test(lineSource)) continue;
     const line = source.slice(0, match.index).split("\n").length;
     violations.push(`${relative}:${line} uses a raw color outside a token declaration`);
   }
-  const componentStart = file === tokenStylePath ? rootTokenBoundary + 2 : 0;
+  const componentStart =
+    file === tokenStylePath ? rootTokenBoundary + 2 : file === themeStylePath ? source.length : 0;
   const componentStyles = source.slice(componentStart);
   for (const match of componentStyles.matchAll(
     /var\(--(?:blue|grey|red|green|yellow|purple)[\w-]*/g,
@@ -332,7 +389,7 @@ for (const file of styles) {
   }
 
   const lineCount = source.split("\n").length - 1;
-  const lineLimit = file === tokenStylePath ? 500 : 400;
+  const lineLimit = 400;
   if (lineCount > lineLimit) {
     violations.push(
       `${relative} has ${lineCount} lines; split ownership files before they exceed ${lineLimit}`,
@@ -845,7 +902,7 @@ sourcePanelStyles.forEach((source, index) => {
     const lineStart = source.lastIndexOf("\n", match.index) + 1;
     const lineEnd = source.indexOf("\n", match.index);
     const lineSource = source.slice(lineStart, lineEnd < 0 ? undefined : lineEnd);
-    if (index === 0 && /--[\w-]+\s*:/.test(lineSource)) continue;
+    if (index <= 1 && /--[\w-]+\s*:/.test(lineSource)) continue;
     const line = source.slice(0, match.index).split("\n").length;
     violations.push(
       `${path.relative(root, sourcePanelStylePaths[index] || "")}:${line} uses a raw component color`,
@@ -893,13 +950,13 @@ for (const role of sharedSemanticRoles) {
   }
 }
 
-const sourcePanelTokenStyle = fs.readFileSync(
-  path.join(root, "src", "content", "source-panel-tokens.css"),
+const sourcePanelThemeStyle = fs.readFileSync(
+  path.join(root, "src", "content", "source-panel-themes.css"),
   "utf8",
 );
-const optionThemes = themeBlocks(tokenStyle, /:root\[data-theme="([^"]+)"\]\s*\{([^}]*)\}/g);
+const optionThemes = themeBlocks(themeStyle, /:root\[data-theme="([^"]+)"\]\s*\{([^}]*)\}/g);
 const sourcePanelThemes = themeBlocks(
-  sourcePanelTokenStyle,
+  sourcePanelThemeStyle,
   /:host\(\[data-theme="([^"]+)"\]\)\s*\{([^}]*)\}/g,
 );
 const customOptionThemeNames = [...optionThemes]
@@ -958,10 +1015,50 @@ for (const theme of customOptionThemeNames) {
   }
 }
 
+const defaultThemeContrastContracts = [
+  ["--color-text", "--color-surface-page", 4.5],
+  ["--color-text-muted", "--color-surface-page", 4.5],
+  ["--color-focus", "--color-surface-page", 3],
+  ["--color-control-border", "--color-surface-page", 3],
+  ["--color-on-accent", "--color-accent", 4.5],
+];
+/** @type {Array<[string, Map<string, string>, string]>} */
+const defaultThemeSurfaces = [
+  ["Options", optionTokenProperties, "--link-color"],
+  ["Page Sources", sourcePanelTokenProperties, "--color-link"],
+];
+/** @type {Array<"light" | "dark">} */
+const defaultColorSchemes = ["light", "dark"];
+for (const [surface, properties, linkRole] of defaultThemeSurfaces) {
+  for (const scheme of defaultColorSchemes) {
+    for (const [foregroundRole, backgroundRole, minimum] of [
+      ...defaultThemeContrastContracts,
+      [linkRole, "--color-surface-page", 4.5],
+    ]) {
+      const foregroundValue = properties.get(String(foregroundRole));
+      const backgroundValue = properties.get(String(backgroundRole));
+      const foreground = foregroundValue
+        ? colorForScheme(foregroundValue, properties, scheme)
+        : undefined;
+      const background = backgroundValue
+        ? colorForScheme(backgroundValue, properties, scheme)
+        : undefined;
+      const ratio = foreground && background ? contrastRatio(foreground, background) : undefined;
+      if (ratio === undefined || ratio + Number.EPSILON < Number(minimum)) {
+        violations.push(
+          `${surface} default ${scheme} ${foregroundRole} on ${backgroundRole} must have at least ${minimum}:1 contrast`,
+        );
+      }
+    }
+  }
+}
+
 const sourcePanel = fs.readFileSync(sourcePanelPath, "utf8");
 for (const file of [
   "source-panel-tokens.css",
+  "source-panel-themes.css",
   "source-panel.css",
+  "source-panel-controls.css",
   "source-panel-results.css",
   "source-panel-responsive.css",
   "source-panel-preview.css",
@@ -974,6 +1071,20 @@ const sourcePanelResponsiveStyle = fs.readFileSync(
   path.join(root, "src", "content", "source-panel-responsive.css"),
   "utf8",
 );
+/** @type {Array<[string, string]>} */
+const sourcePanelLogicalMenuAnchors = [
+  ["source-panel-controls.css", ".dock-menu"],
+  ["source-panel-results.css", ".action-menu"],
+];
+for (const [file, selector] of sourcePanelLogicalMenuAnchors) {
+  const source = fs.readFileSync(path.join(root, "src", "content", file), "utf8");
+  const block = new RegExp(
+    `${selector.replace(".", "\\.")}\\s*\\{[^}]*inset-block-start:\\s*calc\\(100% \\+ 4px\\);[^}]*inset-inline-end:\\s*0;`,
+  );
+  if (!block.test(source)) {
+    violations.push(`${file} must anchor ${selector} to logical block-start and inline-end edges`);
+  }
+}
 if (
   !sourcePanelResponsiveStyle.includes("@media (pointer: coarse)") ||
   !sourcePanelResponsiveStyle.includes("--compact-control-size: 44px") ||
@@ -986,7 +1097,7 @@ if (/style\.textContent\s*=\s*`/.test(sourcePanel)) {
 }
 if (
   !sourcePanel.includes(
-    "SOURCE_PANEL_RESULTS_CSS,\n    SOURCE_PANEL_RESPONSIVE_CSS,\n    SOURCE_PANEL_PREVIEW_CSS",
+    "SOURCE_PANEL_CONTROLS_CSS,\n    SOURCE_PANEL_RESULTS_CSS,\n    SOURCE_PANEL_RESPONSIVE_CSS,\n    SOURCE_PANEL_PREVIEW_CSS",
   )
 ) {
   violations.push("Page Sources responsive CSS must follow the result styles it adapts");
