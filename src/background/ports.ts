@@ -1,4 +1,4 @@
-import { Download } from "../downloads/download.ts";
+import { retryViaFetch } from "../downloads/download.ts";
 import { resolveContent } from "../downloads/content-fetch.ts";
 import { configureDownloadPorts } from "../downloads/ports.ts";
 import { withRequestReferer } from "../downloads/referer-rules.ts";
@@ -28,7 +28,7 @@ export const configureBackgroundPorts = () => {
       setStatus: setHistoryStatus,
     },
     log: { add: addLogEntry },
-    retry: Download.retryViaFetch,
+    retry: retryViaFetch,
     sourceSidecar: launchSourceSidecar,
   });
   configureRoutingPorts({

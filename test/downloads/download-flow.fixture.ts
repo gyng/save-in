@@ -77,7 +77,8 @@ Object.assign(hostBrowser, {
 
 // Importing download.ts loads the rest of the (real) cyclic module graph;
 // grab the same singleton instances it binds to.
-const { Download, registerDownloadListener } = await import("../../src/downloads/download.ts");
+const Download = await import("../../src/downloads/download.ts");
+const { registerDownloadListener } = Download;
 const ActiveTransfers = await import("../../src/downloads/active-transfers.ts");
 const { BrowserDownloadRouting } = await import("../../src/downloads/browser-downloads.ts");
 const { options } = await import("../../src/config/options-data.ts");
@@ -140,10 +141,10 @@ beforeEach(() => {
   });
   configureRoutingPorts({ withRequestReferer: RefererRules.withRequestReferer });
   setCurrentBrowser("FIREFOX");
-  Download.pendingStates.clear();
-  Download.finalFilenamesByDownloadId.clear();
-  Download.generatedObjectUrls.clear();
-  Download.ownedObjectUrls.clear();
+  Download.downloadRuntime.pendingStates.clear();
+  Download.downloadRuntime.finalFilenamesByDownloadId.clear();
+  Download.downloadRuntime.generatedObjectUrls.clear();
+  Download.downloadRuntime.ownedObjectUrls.clear();
   ActiveTransfers.clearActiveTransfers();
 
   // Reset the real options bag to exactly the fields this suite controls

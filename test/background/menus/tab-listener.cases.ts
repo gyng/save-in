@@ -68,7 +68,7 @@ describe("addTabMenuListener tabstrip downloads", () => {
   });
 
   const downloads = () =>
-    vi.mocked(Download.renameAndDownload).mock.calls.map(([state]: [any]) => state);
+    vi.mocked(Download.launchDownload).mock.calls.map(([state]: [any]) => state);
 
   test("SELECTED_TAB downloads only the clicked tab", async () => {
     await listener({ menuItemId: Menus.IDS.TABSTRIP.SELECTED_TAB }, fromTab);
@@ -231,7 +231,7 @@ describe("addTabMenuListener tabstrip downloads", () => {
 
   test("closeTabOnSave keeps a tab whose save is skipped", async () => {
     options.closeTabOnSave = true;
-    vi.mocked(Download.renameAndDownload).mockResolvedValueOnce({ status: "skipped" });
+    vi.mocked(Download.launchDownload).mockResolvedValueOnce({ status: "skipped" });
 
     await listener({ menuItemId: Menus.IDS.TABSTRIP.SELECTED_TAB }, fromTab);
 

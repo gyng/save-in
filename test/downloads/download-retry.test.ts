@@ -23,7 +23,7 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
 
   beforeEach(() => {
     downloadState.records.clear();
-    Download.pendingRetryFilenames.clear();
+    Download.downloadRuntime.pendingRetryFilenames.clear();
     options.fallbackFetch = true;
   });
 
@@ -165,7 +165,7 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
       conflictAction: "uniquify",
       incognito: true,
     });
-    expect(Download.pendingRetryFilenames.has("blob:private-retry")).toBe(false);
+    expect(Download.downloadRuntime.pendingRetryFilenames.has("blob:private-retry")).toBe(false);
     expect(sessionStore.siDownloads?.[202]).toBeUndefined();
   });
 
@@ -197,7 +197,7 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
 
     expect(sessionStore.siPendingDownloads).toBe(0);
     expect(sessionStore.siFinalFilenames).toEqual({});
-    expect(Download.pendingRetryFilenames.has("blob:retry-rejected")).toBe(false);
+    expect(Download.downloadRuntime.pendingRetryFilenames.has("blob:retry-rejected")).toBe(false);
     expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:retry-rejected");
   });
 
@@ -283,7 +283,7 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
 
     expect(hold).toHaveBeenCalledOnce();
     expect(release).toHaveBeenCalledWith(hold.mock.calls[0]![0]);
-    expect(Download.ownedObjectUrls.get(212)).toBe("blob:untracked-retry");
+    expect(Download.downloadRuntime.ownedObjectUrls.get(212)).toBe("blob:untracked-retry");
   });
 
   test("cancels a replacement accepted after its transfer was aborted", async () => {
@@ -328,7 +328,7 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
     await expect(Download.retryViaFetch(101)).resolves.toBe(false);
 
     expect(OffscreenClient.release).toHaveBeenCalledWith("offscreen-request");
-    expect(Download.pendingRetryFilenames.has("blob:offscreen-retry")).toBe(false);
+    expect(Download.downloadRuntime.pendingRetryFilenames.has("blob:offscreen-retry")).toBe(false);
   });
 
   test("adopts a successful offscreen retry without claiming ownership of its URL", async () => {
@@ -342,7 +342,7 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
 
     await expect(Download.retryViaFetch(101)).resolves.toBe(true);
 
-    expect(Download.ownedObjectUrls.has(215)).toBe(false);
+    expect(Download.downloadRuntime.ownedObjectUrls.has(215)).toBe(false);
     expect(downloadState.records.get(215)).toMatchObject({
       adopted: true,
       viaFetch: true,
@@ -400,7 +400,9 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
 
     await expect(Download.retryViaFetch(101)).resolves.toBe(true);
 
-    expect(Download.pendingRetryFilenames.get("blob:chrome-retry")).toBe("downloads/file.png");
+    expect(Download.downloadRuntime.pendingRetryFilenames.get("blob:chrome-retry")).toBe(
+      "downloads/file.png",
+    );
   });
 
   test("unknown download ids resolve false", async () => {

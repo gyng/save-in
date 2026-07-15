@@ -39,7 +39,7 @@ import {
   PENDING_DOWNLOADS_SESSION_KEY,
 } from "../shared/storage-keys.ts";
 import { emitDownloaded } from "./download-events.ts";
-import { retryViaFetch } from "./download-retry.ts";
+import { retryViaFetch as runRetryViaFetch } from "./download-retry.ts";
 import { extensionSessionStorage } from "../platform/storage-areas.ts";
 import type {
   AcquiredDownload,
@@ -77,15 +77,21 @@ const FIREFOX_CONTENT_DISPOSITION_COMPATIBILITY: ContentDispositionParseOptions 
   unescapeExtendedValueAgain: true,
 };
 
-const downloadRuntime = createDownloadRuntimeState();
+// url -> state for in-flight downloads, so onDeterminingFilename can
+// attribute the right state when two Chrome downloads overlap.
+export const downloadRuntime = createDownloadRuntimeState();
 const logPort = downloadPorts.log;
 const historyPort = downloadPorts.history;
 const backgroundRuntime = downloadPorts.runtime;
 
-const mergeStartedDownload = (downloadId: number, partial: DownloadRecordUpdate) =>
+// The per-download record (retry + history info) lives in DownloadState, keyed
+// by downloadId, mirrored to storage.session so it survives an MV3 worker
+// restart. These stay as thin seams because notification.js and the tests use
+// them.
+export const rememberStartedDownload = (downloadId: number, partial: DownloadRecordUpdate) =>
   mergeDownload(downloadsState, sessionWriteState, extensionSessionStorage, downloadId, partial);
 
-const getStartedDownload = (downloadId: number) =>
+export const getStartedDownload = (downloadId: number) =>
   getDownload(downloadsState, extensionSessionStorage, downloadId);
 
 const requireDownloadUrl = (state: Pick<DownloadPipelineState, "info">): string => {
@@ -215,7 +221,7 @@ const applyFetchRewrite = async (
   delete state.info.mimeExtension;
   delete state.scratch.mimeExtension;
   if (WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion) {
-    Download.movePendingState(state, rewrittenUrl);
+    downloadRuntime.movePendingState(state, rewrittenUrl);
   }
   state.info.url = rewrittenUrl;
   const naiveFilename = getFilenameFromUrl(rewrittenUrl);
@@ -245,432 +251,521 @@ const recordDownloadRequest = (plan: DownloadPlan): void => {
   }
 };
 
-export const Download = {
-  DISPOSITION_FILENAME_REGEX: /filename[^;=\n]*=((['"])(.*)?\2|(.+'')?([^;\n]*))/i,
-  // url -> state for in-flight downloads, so onDeterminingFilename can
-  // attribute the right state when two Chrome downloads overlap.
-  ...downloadRuntime,
+export const DISPOSITION_FILENAME_REGEX = /filename[^;=\n]*=((['"])(.*)?\2|(.+'')?([^;\n]*))/i;
 
-  // The per-download record (retry + history info) lives in DownloadState, keyed
-  // by downloadId, mirrored to storage.session so it survives an MV3 worker
-  // restart. These stay as thin seams because notification.js and the tests use
-  // them.
-  rememberStartedDownload: mergeStartedDownload,
+// blob/data URL -> final filename for retry downloads, so Chrome's
+// onDeterminingFilename suggests the intended path instead of falling
+// back to an unrelated pending state
+// Automatic fallback chain: a browser-initiated download that failed with
+// a network/server error is retried once through a background fetch. Resolves
+// true when a retry was started. Downloads that attached native request
+// headers opt out because extension fetch cannot replay arbitrary headers;
+// DNR Referer protection alone is re-derived for the retry fetch.
+export const retryViaFetch = (downloadId: number): Promise<boolean> =>
+  runRetryViaFetch(
+    downloadRuntime,
+    { notifier: { expectDownload, cancelExpectedDownload }, log: logPort },
+    downloadId,
+    enqueueFilename,
+    removeFilename,
+  );
 
-  getStartedDownload,
+export const makeObjectUrl = (content: string, mime = "text/plain"): string => {
+  if (typeof URL.createObjectURL === "function") {
+    const objectUrl = URL.createObjectURL(
+      new Blob([content], {
+        type: `${mime};charset=utf-8`,
+      }),
+    );
+    downloadRuntime.generatedObjectUrls.add(objectUrl);
+    return objectUrl;
+  }
 
-  // blob/data URL -> final filename for retry downloads, so Chrome's
-  // onDeterminingFilename suggests the intended path instead of falling
-  // back to an unrelated pending state
-  // Automatic fallback chain: a browser-initiated download that failed with
-  // a network/server error is retried once through a background fetch. Resolves
-  // true when a retry was started. Downloads that attached native request
-  // headers opt out because extension fetch cannot replay arbitrary headers;
-  // DNR Referer protection alone is re-derived for the retry fetch.
-  retryViaFetch: (downloadId: number): Promise<boolean> =>
-    retryViaFetch(
-      Download,
-      { notifier: { expectDownload, cancelExpectedDownload }, log: logPort },
-      downloadId,
-      enqueueFilename,
-      removeFilename,
-    ),
+  // MV3 service workers have no URL.createObjectURL: use a data URL
+  const bytes = new TextEncoder().encode(content);
+  let binary = "";
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return `data:${mime};charset=utf-8;base64,${btoa(binary)}`;
+};
 
-  makeObjectUrl: (content: string, mime = "text/plain"): string => {
-    if (typeof URL.createObjectURL === "function") {
-      const objectUrl = URL.createObjectURL(
-        new Blob([content], {
-          type: `${mime};charset=utf-8`,
-        }),
-      );
-      Download.generatedObjectUrls.add(objectUrl);
-      return objectUrl;
-    }
+export const finalizeFullPath = (_state: FinalizableDownloadState): string => {
+  let finalDir = _state.path.finalize();
+  let finalFilename;
+  let finalFilenameIsRoutePath = false;
 
-    // MV3 service workers have no URL.createObjectURL: use a data URL
-    const bytes = new TextEncoder().encode(content);
-    let binary = "";
-    for (const byte of bytes) binary += String.fromCharCode(byte);
-    return `data:${mime};charset=utf-8;base64,${btoa(binary)}`;
-  },
+  if (_state.route && _state.routeIsFolder) {
+    // §8.1: a folder-only rule (its `into:` ends with "/") routes into a
+    // directory and keeps the download's real name — the browser's
+    // Content-Disposition/MIME-resolved filename (or the URL/CD name on
+    // Firefox) — instead of naming the file after the folder.
+    const routeDir = String(_state.route.finalize()).replace(/\/+$/, "");
+    finalDir = [finalDir, routeDir].filter((x) => x != null && x !== "").join("/");
+    finalFilename = typeof _state.info.filename === "string" ? _state.info.filename : undefined;
+  } else if (_state.route) {
+    // The rule sets the whole name (which may itself include subdirectories)
+    finalFilename = _state.route.finalize({ finalComponentIsFilename: true });
+    finalFilenameIsRoutePath = true;
+  } else {
+    finalFilename = typeof _state.info.filename === "string" ? _state.info.filename : undefined;
+  }
 
-  finalizeFullPath: (_state: FinalizableDownloadState): string => {
-    let finalDir = _state.path.finalize();
-    let finalFilename;
-    let finalFilenameIsRoutePath = false;
+  // §8.1: append a MIME-derived extension when the resolved filename has none
+  // (extensionless CDN / query-suffix URLs). The extension is resolved once,
+  // asynchronously, in renameAndDownload and stashed on scratch.
+  if (
+    _state.scratch &&
+    _state.scratch.mimeExtension &&
+    finalFilename &&
+    !EXTENSION_REGEX.test(finalFilename)
+  ) {
+    finalFilename = `${finalFilename}.${_state.scratch.mimeExtension}`;
+  }
 
-    if (_state.route && _state.routeIsFolder) {
-      // §8.1: a folder-only rule (its `into:` ends with "/") routes into a
-      // directory and keeps the download's real name — the browser's
-      // Content-Disposition/MIME-resolved filename (or the URL/CD name on
-      // Firefox) — instead of naming the file after the folder.
-      const routeDir = String(_state.route.finalize()).replace(/\/+$/, "");
-      finalDir = [finalDir, routeDir].filter((x) => x != null && x !== "").join("/");
-      finalFilename = typeof _state.info.filename === "string" ? _state.info.filename : undefined;
-    } else if (_state.route) {
-      // The rule sets the whole name (which may itself include subdirectories)
-      finalFilename = _state.route.finalize({ finalComponentIsFilename: true });
-      finalFilenameIsRoutePath = true;
+  if (finalFilename) {
+    if (finalFilenameIsRoutePath) {
+      const components = finalFilename.split("/");
+      const filename = components.pop();
+      /* v8 ignore next -- Splitting a string always yields at least one component to pop. */
+      if (filename !== undefined) {
+        components.push(sanitizeFilename(filename, options.truncateLength, true, true));
+      }
+      finalFilename = components.join("/");
     } else {
-      finalFilename = typeof _state.info.filename === "string" ? _state.info.filename : undefined;
+      // Server-, URL-, and browser-derived names are one untrusted component.
+      // Only explicit route paths may introduce destination subdirectories.
+      finalFilename = sanitizeFilename(finalFilename, options.truncateLength, true, true);
     }
+  }
 
-    // §8.1: append a MIME-derived extension when the resolved filename has none
-    // (extensionless CDN / query-suffix URLs). The extension is resolved once,
-    // asynchronously, in renameAndDownload and stashed on scratch.
-    if (
-      _state.scratch &&
-      _state.scratch.mimeExtension &&
-      finalFilename &&
-      !EXTENSION_REGEX.test(finalFilename)
-    ) {
-      finalFilename = `${finalFilename}.${_state.scratch.mimeExtension}`;
+  const finalFullPath = [finalDir, finalFilename].filter((x) => x != null).join("/");
+
+  return finalFullPath.replace(/^\.\//, "").replace(/^\//, "");
+};
+
+export const getFilenameFromContentDisposition = (
+  disposition: unknown,
+  parseOptions: ContentDispositionParseOptions = {},
+): string | null => {
+  if (typeof disposition !== "string") return null;
+
+  const filenameFromLib = getFilenameFromContentDispositionHeader(disposition, parseOptions);
+  return filenameFromLib || null;
+};
+
+// Firefox resolves a server-provided filename before finalizing the plan —
+// and again after a fetch: rewrite retargets the URL. Chrome must defer this
+// to onDeterminingFilename, which runs after the browser download starts.
+export const resolveDispositionFilename = async (state: DownloadPipelineState): Promise<void> => {
+  if (WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion || state.info.contentFetchDisabled) {
+    return;
+  }
+  try {
+    const metadata = await resolveHead(state.info);
+    if (metadata.contentDisposition) {
+      const dispositionName = getFilenameFromContentDisposition(
+        metadata.contentDisposition,
+        FIREFOX_CONTENT_DISPOSITION_COMPATIBILITY,
+      );
+      state.info.filename = dispositionName || state.info.filename;
     }
+  } catch {
+    // HEAD is best-effort; acquisition still proceeds with the resolved name.
+  }
+};
 
-    if (finalFilename) {
-      if (finalFilenameIsRoutePath) {
-        const components = finalFilename.split("/");
-        const filename = components.pop();
-        /* v8 ignore next -- Splitting a string always yields at least one component to pop. */
-        if (filename !== undefined) {
-          components.push(sanitizeFilename(filename, options.truncateLength, true, true));
-        }
-        finalFilename = components.join("/");
-      } else {
-        // Server-, URL-, and browser-derived names are one untrusted component.
-        // Only explicit route paths may introduce destination subdirectories.
-        finalFilename = sanitizeFilename(finalFilename, options.truncateLength, true, true);
+export const getRoutingMatch = (state: Pick<DownloadPipelineState, "info">): RuleMatch | null => {
+  if (state.info.routingDisabled) return null;
+  const filenamePatterns = Array.isArray(options.filenamePatterns) ? options.filenamePatterns : [];
+  if (filenamePatterns.length === 0) {
+    return null;
+  }
+
+  return matchRulesDetailed(filenamePatterns, state.info);
+};
+
+// Ordinary browser downloads and post-start filename re-evaluation can only
+// rename a download that is already in flight, so URL-rewriting rules are
+// skipped there instead of consuming the match.
+export const getRoutingMatches = (state: Pick<DownloadPipelineState, "info">): string | null => {
+  if (state.info.routingDisabled) return null;
+  const filenamePatterns = Array.isArray(options.filenamePatterns) ? options.filenamePatterns : [];
+  if (filenamePatterns.length === 0) {
+    return null;
+  }
+
+  return matchRules(filenamePatterns, state.info, isRenameOnlyEligibleRule);
+};
+
+// Single entry point for firing a download from a menu/message click:
+// fire-and-forget (renameAndDownload is async) but with one place that both
+// logs and surfaces a terminal pipeline failure to the user. Callers still
+// Browser-attempt ownership is registered later, immediately around
+// downloads.download(), so planning failures cannot leak an expectation.
+export const launchDownload = (state: DownloadPipelineState): Promise<DownloadLaunchResult> =>
+  renameAndDownload(state).catch((e) => {
+    addDownloadLog(state, "renameAndDownload failed", String(e));
+    const name = state.info.suggestedFilename || state.info.url || "";
+    if (!isSourceSidecar(state)) reportDownloadFailure(name, String(e));
+    return { status: "failed" as const };
+  });
+
+export const resolveDownloadPlan = async (
+  state: DownloadPipelineState,
+): Promise<DownloadPlan | null> => {
+  const url = requireDownloadUrl(state);
+  const naiveFilename = getFilenameFromUrl(url);
+  const initialFilename = state.info.suggestedFilename || naiveFilename || url;
+  Object.assign(state.info, { naiveFilename, filename: initialFilename, initialFilename });
+  if (state.path instanceof Path && typeof state.path.raw === "string") {
+    state.scratch.pathTemplateRaw = state.path.raw;
+  }
+
+  // This must precede the first await so onDeterminingFilename can correlate
+  // a download even when variable interpolation yields control.
+  if (WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion) {
+    downloadRuntime.rememberPendingState(state);
+  }
+
+  // Firefox attaches Referer to a direct downloads.download request; both
+  // browsers use an exact DNR rule for extension-owned metadata/content.
+  const downloadHeaders = getDownloadHeaders(state);
+  const protectedFetchReferer = getFetchReferer(state);
+  state.info.contentFetchDisabled = Boolean(downloadHeaders && !protectedFetchReferer);
+  if (protectedFetchReferer) state.info.protectedFetchReferer = protectedFetchReferer;
+  else delete state.info.protectedFetchReferer;
+
+  await resolveDispositionFilename(state);
+  /* v8 ignore next -- The initial filename assignment above always populates this field. */
+  const resolvedFilename = state.info.filename ?? initialFilename;
+  state.info.filename = resolvedFilename;
+
+  const filenamePatterns = Array.isArray(options.filenamePatterns) ? options.filenamePatterns : [];
+  const usesMime = filenamePatterns.some((rule) =>
+    rule.some((clause) => clause.name === "mime" || clause.name === "contenttype"),
+  );
+  if (usesMime) state.info.mime = await resolveMime(state.info);
+  const usesResolvedFilename = filenamePatterns.some((rule) =>
+    rule.some((clause) => clause.name === "filename" || clause.name === "actualfileext"),
+  );
+  const usesActualFileExtension = filenamePatterns.some((rule) =>
+    rule.some((clause) => clause.name === "actualfileext"),
+  );
+  if (
+    options.appendMimeExtension !== false &&
+    usesActualFileExtension &&
+    !EXTENSION_REGEX.test(resolvedFilename)
+  ) {
+    const extension = mimeToExtension(await resolveMime(state.info));
+    if (extension) {
+      state.info.mimeExtension = extension;
+      state.scratch.mimeExtension = extension;
+    }
+  }
+
+  let routeMatches: string | null = state.scratch.routeTemplateRaw ?? null;
+  let fetchTemplate: string | null = state.scratch.fetchTemplateRaw ?? null;
+  if (routeMatches === null) {
+    const match = getRoutingMatch(state);
+    routeMatches = match?.destination ?? null;
+    fetchTemplate = match?.fetch ?? null;
+  }
+  if (routeMatches !== null && fetchTemplate !== null) {
+    const rewrittenUrl = await expandFetchUrl(fetchTemplate, state.info);
+    if (isHttpDownloadUrl(rewrittenUrl)) {
+      // Persist both raw templates: Chrome's late filename resolution must
+      // re-expand this rule's destination instead of re-matching, because a
+      // download that already started can no longer honor a URL rewrite.
+      state.scratch.routeTemplateRaw = routeMatches;
+      state.scratch.fetchTemplateRaw = fetchTemplate;
+      if (rewrittenUrl !== requireDownloadUrl(state)) {
+        await applyFetchRewrite(state, rewrittenUrl);
+        await resolveDispositionFilename(state);
+      }
+    } else {
+      // The rule still renames and routes; only the rewrite is dropped.
+      addDownloadLog(state, "fetch rewrite skipped: expanded address is not HTTP(S)", {
+        template: fetchTemplate,
+      });
+    }
+  }
+  // Click-to-save reuses the previous menu directory only as its unmatched
+  // fallback. A matched `into:` route is rooted at Downloads so an earlier
+  // folder choice cannot be prefixed onto every later dynamic route (#190).
+  if (
+    routeMatches &&
+    (state.info.context === DOWNLOAD_TYPES.CLICK || state.info.context === DOWNLOAD_TYPES.AUTO)
+  )
+    state.path = new Path(".");
+  state.path = await applyVariables(state.path, state.info);
+  if (routeMatches) {
+    state.routeIsFolder = /\/\s*$/.test(routeMatches);
+    state.route = await applyVariables(new Path(routeMatches), state.info);
+  }
+  const routeRequired =
+    !state.info.routingDisabled && (state.needRouteMatch || options.routeSkipUnmatched);
+  // Re-read the URL: a fetch: rewrite above may have retargeted it.
+  const downloadUrl = requireDownloadUrl(state);
+  const deferRouteRequirement =
+    routeRequired &&
+    WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion &&
+    isHttpDownloadUrl(downloadUrl) &&
+    usesResolvedFilename;
+  const persistAutomaticRoute =
+    typeof state.scratch.routeTemplateRaw === "string" &&
+    WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion &&
+    isHttpDownloadUrl(downloadUrl);
+  if (deferRouteRequirement || persistAutomaticRoute) state.scratch.deferredRouteRequirement = true;
+  if (routeRequired && !routeMatches && !deferRouteRequirement) {
+    downloadRuntime.forgetPendingState(state);
+    return null;
+  }
+
+  if (options.appendMimeExtension !== false) {
+    const tentative =
+      state.route && !state.routeIsFolder
+        ? state.route.finalize({ finalComponentIsFilename: true })
+        : // The fetch: rewrite may have replaced the resolved filename.
+          sanitizeFilename(
+            state.info.filename ?? resolvedFilename,
+            options.truncateLength,
+            true,
+            true,
+          );
+    if (tentative && !EXTENSION_REGEX.test(tentative)) {
+      const ext = mimeToExtension(await resolveMime(state.info));
+      if (ext) {
+        state.info.mimeExtension = ext;
+        state.scratch.mimeExtension = ext;
       }
     }
+  }
 
-    const finalFullPath = [finalDir, finalFilename].filter((x) => x != null).join("/");
+  return createDownloadPlan(state);
+};
 
-    return finalFullPath.replace(/^\.\//, "").replace(/^\//, "");
-  },
+export const createDownloadPlan = (state: DownloadPipelineState): DownloadPlan => {
+  const finalFullPath = finalizeFullPath(state);
+  state.scratch.hasExtension = finalFullPath && finalFullPath.match(EXTENSION_REGEX);
+  const noExtensionPrompt = options.promptIfNoExtension && !state.scratch.hasExtension;
+  const shiftHeldPrompt =
+    options.promptOnShift &&
+    state.info.modifiers &&
+    typeof state.info.modifiers.find((m) => m === "Shift") !== "undefined";
+  const noRuleMatchedPrompt = options.routeFailurePrompt && !state.route;
+  const prompt =
+    state.info.suppressPrompt === true
+      ? false
+      : state.info.forcePrompt === true ||
+        options.prompt ||
+        noExtensionPrompt ||
+        shiftHeldPrompt ||
+        noRuleMatchedPrompt;
 
-  getFilenameFromContentDisposition: (
-    disposition: unknown,
-    parseOptions: ContentDispositionParseOptions = {},
-  ): string | null => {
-    if (typeof disposition !== "string") return null;
+  const historyEntryId = ensureHistoryEntry(state, finalFullPath);
 
-    const filenameFromLib = getFilenameFromContentDispositionHeader(disposition, parseOptions);
-    return filenameFromLib || null;
-  },
+  return { state, finalFullPath, prompt, historyEntryId };
+};
 
-  // Firefox resolves a server-provided filename before finalizing the plan —
-  // and again after a fetch: rewrite retargets the URL. Chrome must defer this
-  // to onDeterminingFilename, which runs after the browser download starts.
-  resolveDispositionFilename: async (state: DownloadPipelineState): Promise<void> => {
-    if (WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion || state.info.contentFetchDisabled) {
-      return;
-    }
-    try {
-      const metadata = await resolveHead(state.info);
-      if (metadata.contentDisposition) {
-        const dispositionName = Download.getFilenameFromContentDisposition(
-          metadata.contentDisposition,
-          FIREFOX_CONTENT_DISPOSITION_COMPATIBILITY,
-        );
-        state.info.filename = dispositionName || state.info.filename;
-      }
-    } catch {
-      // HEAD is best-effort; acquisition still proceeds with the resolved name.
-    }
-  },
+export const acquireFetchedUrl = async (
+  url: string,
+  privateContext = false,
+  signal?: AbortSignal,
+  requestId?: string,
+  referer?: string,
+): Promise<AcquiredDownload> => {
+  const usingOffscreen = OffscreenClient.canUse();
+  try {
+    const content = await fetchUrlForDownload(url, privateContext, signal, requestId, referer);
+    return {
+      url: content.downloadUrl,
+      source: "fetched",
+      ownedObjectUrl: content.ownedObjectUrl,
+      offscreenRequestId: content.offscreenRequestId,
+    };
+  } catch (e) {
+    if (signal?.aborted) throw e;
+    if (privateContext) {
+      logPort.add(usingOffscreen ? "offscreen fetch failed" : "fetch download failed", String(e), {
+        privateContext: true,
+      });
+    } else
+      logPort.add(usingOffscreen ? "offscreen fetch failed" : "fetch download failed", String(e));
+    return { url, source: "fetch-fallback-direct" };
+  }
+};
 
-  getRoutingMatch: (state: Pick<DownloadPipelineState, "info">): RuleMatch | null => {
-    if (state.info.routingDisabled) return null;
-    const filenamePatterns = Array.isArray(options.filenamePatterns)
-      ? options.filenamePatterns
-      : [];
-    if (filenamePatterns.length === 0) {
-      return null;
-    }
-
-    return matchRulesDetailed(filenamePatterns, state.info);
-  },
-
-  // Ordinary browser downloads and post-start filename re-evaluation can only
-  // rename a download that is already in flight, so URL-rewriting rules are
-  // skipped there instead of consuming the match.
-  getRoutingMatches: (state: Pick<DownloadPipelineState, "info">): string | null => {
-    if (state.info.routingDisabled) return null;
-    const filenamePatterns = Array.isArray(options.filenamePatterns)
-      ? options.filenamePatterns
-      : [];
-    if (filenamePatterns.length === 0) {
-      return null;
-    }
-
-    return matchRules(filenamePatterns, state.info, isRenameOnlyEligibleRule);
-  },
-
-  // Single entry point for firing a download from a menu/message click:
-  // fire-and-forget (renameAndDownload is async) but with one place that both
-  // logs and surfaces a terminal pipeline failure to the user. Callers still
-  // Browser-attempt ownership is registered later, immediately around
-  // downloads.download(), so planning failures cannot leak an expectation.
-  launch: (state: DownloadPipelineState): Promise<DownloadLaunchResult> =>
-    Download.renameAndDownload(state).catch((e) => {
-      addDownloadLog(state, "renameAndDownload failed", String(e));
-      const name = state.info.suggestedFilename || state.info.url || "";
-      if (!isSourceSidecar(state)) reportDownloadFailure(name, String(e));
-      return { status: "failed" as const };
-    }),
-
-  resolveDownloadPlan: async (state: DownloadPipelineState): Promise<DownloadPlan | null> => {
-    const url = requireDownloadUrl(state);
-    const naiveFilename = getFilenameFromUrl(url);
-    const initialFilename = state.info.suggestedFilename || naiveFilename || url;
-    Object.assign(state.info, { naiveFilename, filename: initialFilename, initialFilename });
-    if (state.path instanceof Path && typeof state.path.raw === "string") {
-      state.scratch.pathTemplateRaw = state.path.raw;
-    }
-
-    // This must precede the first await so onDeterminingFilename can correlate
-    // a download even when variable interpolation yields control.
-    if (WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion) {
-      Download.rememberPendingState(state);
-    }
-
-    // Firefox attaches Referer to a direct downloads.download request; both
-    // browsers use an exact DNR rule for extension-owned metadata/content.
-    const downloadHeaders = getDownloadHeaders(state);
-    const protectedFetchReferer = getFetchReferer(state);
-    state.info.contentFetchDisabled = Boolean(downloadHeaders && !protectedFetchReferer);
-    if (protectedFetchReferer) state.info.protectedFetchReferer = protectedFetchReferer;
-    else delete state.info.protectedFetchReferer;
-
-    await Download.resolveDispositionFilename(state);
-    /* v8 ignore next -- The initial filename assignment above always populates this field. */
-    const resolvedFilename = state.info.filename ?? initialFilename;
-    state.info.filename = resolvedFilename;
-
-    const filenamePatterns = Array.isArray(options.filenamePatterns)
-      ? options.filenamePatterns
-      : [];
-    const usesMime = filenamePatterns.some((rule) =>
-      rule.some((clause) => clause.name === "mime" || clause.name === "contenttype"),
-    );
-    if (usesMime) state.info.mime = await resolveMime(state.info);
-    const usesResolvedFilename = filenamePatterns.some((rule) =>
-      rule.some((clause) => clause.name === "filename" || clause.name === "actualfileext"),
-    );
-    const usesActualFileExtension = filenamePatterns.some((rule) =>
-      rule.some((clause) => clause.name === "actualfileext"),
-    );
-    if (
-      options.appendMimeExtension !== false &&
-      usesActualFileExtension &&
-      !EXTENSION_REGEX.test(resolvedFilename)
-    ) {
-      const extension = mimeToExtension(await resolveMime(state.info));
-      if (extension) {
-        state.info.mimeExtension = extension;
-        state.scratch.mimeExtension = extension;
-      }
-    }
-
-    let routeMatches: string | null = state.scratch.routeTemplateRaw ?? null;
-    let fetchTemplate: string | null = state.scratch.fetchTemplateRaw ?? null;
-    if (routeMatches === null) {
-      const match = Download.getRoutingMatch(state);
-      routeMatches = match?.destination ?? null;
-      fetchTemplate = match?.fetch ?? null;
-    }
-    if (routeMatches !== null && fetchTemplate !== null) {
-      const rewrittenUrl = await expandFetchUrl(fetchTemplate, state.info);
-      if (isHttpDownloadUrl(rewrittenUrl)) {
-        // Persist both raw templates: Chrome's late filename resolution must
-        // re-expand this rule's destination instead of re-matching, because a
-        // download that already started can no longer honor a URL rewrite.
-        state.scratch.routeTemplateRaw = routeMatches;
-        state.scratch.fetchTemplateRaw = fetchTemplate;
-        if (rewrittenUrl !== requireDownloadUrl(state)) {
-          await applyFetchRewrite(state, rewrittenUrl);
-          await Download.resolveDispositionFilename(state);
-        }
-      } else {
-        // The rule still renames and routes; only the rewrite is dropped.
-        addDownloadLog(state, "fetch rewrite skipped: expanded address is not HTTP(S)", {
-          template: fetchTemplate,
-        });
-      }
-    }
-    // Click-to-save reuses the previous menu directory only as its unmatched
-    // fallback. A matched `into:` route is rooted at Downloads so an earlier
-    // folder choice cannot be prefixed onto every later dynamic route (#190).
-    if (
-      routeMatches &&
-      (state.info.context === DOWNLOAD_TYPES.CLICK || state.info.context === DOWNLOAD_TYPES.AUTO)
-    )
-      state.path = new Path(".");
-    state.path = await applyVariables(state.path, state.info);
-    if (routeMatches) {
-      state.routeIsFolder = /\/\s*$/.test(routeMatches);
-      state.route = await applyVariables(new Path(routeMatches), state.info);
-    }
-    const routeRequired =
-      !state.info.routingDisabled && (state.needRouteMatch || options.routeSkipUnmatched);
-    // Re-read the URL: a fetch: rewrite above may have retargeted it.
-    const downloadUrl = requireDownloadUrl(state);
-    const deferRouteRequirement =
-      routeRequired &&
-      WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion &&
-      isHttpDownloadUrl(downloadUrl) &&
-      usesResolvedFilename;
-    const persistAutomaticRoute =
-      typeof state.scratch.routeTemplateRaw === "string" &&
-      WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion &&
-      isHttpDownloadUrl(downloadUrl);
-    if (deferRouteRequirement || persistAutomaticRoute)
-      state.scratch.deferredRouteRequirement = true;
-    if (routeRequired && !routeMatches && !deferRouteRequirement) {
-      Download.forgetPendingState(state);
-      return null;
-    }
-
-    if (options.appendMimeExtension !== false) {
-      const tentative =
-        state.route && !state.routeIsFolder
-          ? state.route.finalize({ finalComponentIsFilename: true })
-          : // The fetch: rewrite may have replaced the resolved filename.
-            sanitizeFilename(
-              state.info.filename ?? resolvedFilename,
-              options.truncateLength,
-              true,
-              true,
-            );
-      if (tentative && !EXTENSION_REGEX.test(tentative)) {
-        const ext = mimeToExtension(await resolveMime(state.info));
-        if (ext) {
-          state.info.mimeExtension = ext;
-          state.scratch.mimeExtension = ext;
-        }
-      }
-    }
-
-    return Download.createDownloadPlan(state);
-  },
-
-  createDownloadPlan: (state: DownloadPipelineState): DownloadPlan => {
-    const finalFullPath = Download.finalizeFullPath(state);
-    state.scratch.hasExtension = finalFullPath && finalFullPath.match(EXTENSION_REGEX);
-    const noExtensionPrompt = options.promptIfNoExtension && !state.scratch.hasExtension;
-    const shiftHeldPrompt =
-      options.promptOnShift &&
-      state.info.modifiers &&
-      typeof state.info.modifiers.find((m) => m === "Shift") !== "undefined";
-    const noRuleMatchedPrompt = options.routeFailurePrompt && !state.route;
-    const prompt =
-      state.info.suppressPrompt === true
-        ? false
-        : state.info.forcePrompt === true ||
-          options.prompt ||
-          noExtensionPrompt ||
-          shiftHeldPrompt ||
-          noRuleMatchedPrompt;
-
-    const historyEntryId = ensureHistoryEntry(state, finalFullPath);
-
-    return { state, finalFullPath, prompt, historyEntryId };
-  },
-
-  acquireFetchedUrl: async (
-    url: string,
-    privateContext = false,
-    signal?: AbortSignal,
-    requestId?: string,
-    referer?: string,
-  ): Promise<AcquiredDownload> => {
-    const usingOffscreen = OffscreenClient.canUse();
-    try {
-      const content = await fetchUrlForDownload(url, privateContext, signal, requestId, referer);
+export const acquireDownloadUrl = async (
+  plan: DownloadPlan,
+  signal?: AbortSignal,
+  requestId?: string,
+): Promise<AcquiredDownload> => {
+  const { state } = plan;
+  throwIfAborted(signal);
+  if (state.info.contentPromise) {
+    const content = await state.info.contentPromise;
+    if (content && content.downloadUrl) {
+      state.info.contentPromise = undefined;
       return {
         url: content.downloadUrl,
         source: "fetched",
         ownedObjectUrl: content.ownedObjectUrl,
         offscreenRequestId: content.offscreenRequestId,
       };
-    } catch (e) {
-      if (signal?.aborted) throw e;
-      if (privateContext) {
-        logPort.add(
-          usingOffscreen ? "offscreen fetch failed" : "fetch download failed",
-          String(e),
-          {
-            privateContext: true,
-          },
-        );
-      } else
-        logPort.add(usingOffscreen ? "offscreen fetch failed" : "fetch download failed", String(e));
-      return { url, source: "fetch-fallback-direct" };
     }
-  },
+    if (content?.ownedObjectUrl && typeof URL.revokeObjectURL === "function") {
+      URL.revokeObjectURL(content.ownedObjectUrl);
+    }
+    state.info.contentPromise = undefined;
+  }
+  const url = requireDownloadUrl(state);
+  const fetchReferer = state.info.protectedFetchReferer ?? getFetchReferer(state);
+  if (fetchReferer && !WEB_EXTENSION_CAPABILITIES.downloadRequestHeaders) {
+    return acquireFetchedUrl(url, isPrivateDownloadState(state), signal, requestId, fetchReferer);
+  }
+  if (options.fetchViaFetch && !getDownloadHeaders(state))
+    return acquireFetchedUrl(url, isPrivateDownloadState(state), signal, requestId);
+  const ownedObjectUrl = downloadRuntime.generatedObjectUrls.delete(url) ? url : undefined;
+  return { url, source: "direct", ownedObjectUrl };
+};
 
-  acquireDownloadUrl: async (
-    plan: DownloadPlan,
-    signal?: AbortSignal,
-    requestId?: string,
-  ): Promise<AcquiredDownload> => {
-    const { state } = plan;
-    throwIfAborted(signal);
-    if (state.info.contentPromise) {
-      const content = await state.info.contentPromise;
-      if (content && content.downloadUrl) {
-        state.info.contentPromise = undefined;
-        return {
-          url: content.downloadUrl,
-          source: "fetched",
-          ownedObjectUrl: content.ownedObjectUrl,
-          offscreenRequestId: content.offscreenRequestId,
-        };
-      }
-      if (content?.ownedObjectUrl && typeof URL.revokeObjectURL === "function") {
-        URL.revokeObjectURL(content.ownedObjectUrl);
-      }
-      state.info.contentPromise = undefined;
-    }
-    const url = requireDownloadUrl(state);
-    const fetchReferer = state.info.protectedFetchReferer ?? getFetchReferer(state);
-    if (fetchReferer && !WEB_EXTENSION_CAPABILITIES.downloadRequestHeaders) {
-      return Download.acquireFetchedUrl(
-        url,
-        isPrivateDownloadState(state),
-        signal,
-        requestId,
-        fetchReferer,
-      );
-    }
-    if (options.fetchViaFetch && !getDownloadHeaders(state))
-      return Download.acquireFetchedUrl(url, isPrivateDownloadState(state), signal, requestId);
-    const ownedObjectUrl = Download.generatedObjectUrls.delete(url) ? url : undefined;
-    return { url, source: "direct", ownedObjectUrl };
-  },
-
-  executeBrowserDownload: async (
-    plan: DownloadPlan,
-    acquired: AcquiredDownload,
-    signal?: AbortSignal,
-  ): Promise<DownloadExecutionResult> => {
-    const { state, finalFullPath, prompt, historyEntryId } = plan;
-    const privateContext = state.info.currentTab?.incognito === true;
-    const pendingSourceSidecar =
-      !prompt && !privateContext ? state.scratch.sourceSidecar : undefined;
-    void historyPort.patch(historyEntryId, {
-      mechanism: acquired.source === "fetched" ? "fetch-downloads-api" : "downloads-api",
-    });
-    const filename = finalFullPath || "_";
-    const headers =
-      acquired.source === "direct" || acquired.source === "fetch-fallback-direct"
-        ? getDownloadHeaders(state)
-        : undefined;
-    const allowOriginalUrlFallback = !headers && isHttpDownloadUrl(requireDownloadUrl(state));
-    const deferredRouteRecovery = state.scratch.deferredRouteRequirement
-      ? createDeferredRouteRecovery(state)
+export const executeBrowserDownload = async (
+  plan: DownloadPlan,
+  acquired: AcquiredDownload,
+  signal?: AbortSignal,
+): Promise<DownloadExecutionResult> => {
+  const { state, finalFullPath, prompt, historyEntryId } = plan;
+  const privateContext = state.info.currentTab?.incognito === true;
+  const pendingSourceSidecar = !prompt && !privateContext ? state.scratch.sourceSidecar : undefined;
+  void historyPort.patch(historyEntryId, {
+    mechanism: acquired.source === "fetched" ? "fetch-downloads-api" : "downloads-api",
+  });
+  const filename = finalFullPath || "_";
+  const headers =
+    acquired.source === "direct" || acquired.source === "fetch-fallback-direct"
+      ? getDownloadHeaders(state)
       : undefined;
+  const allowOriginalUrlFallback = !headers && isHttpDownloadUrl(requireDownloadUrl(state));
+  const deferredRouteRecovery = state.scratch.deferredRouteRequirement
+    ? createDeferredRouteRecovery(state)
+    : undefined;
+  throwIfAborted(signal);
+  await Promise.all(
+    privateContext
+      ? []
+      : [
+          updateSession<number>(
+            sessionWriteState,
+            extensionSessionStorage,
+            PENDING_DOWNLOADS_SESSION_KEY,
+            (n) => normalizeSessionCounter(n) + 1,
+          ),
+          updateSession<FinalFilenameMap>(
+            sessionWriteState,
+            extensionSessionStorage,
+            FINAL_FILENAMES_SESSION_KEY,
+            (m) => enqueueFilename(m, acquired.url, filename),
+          ),
+          ...(deferredRouteRecovery
+            ? [
+                updateSession(
+                  sessionWriteState,
+                  extensionSessionStorage,
+                  DEFERRED_ROUTES_SESSION_KEY,
+                  (map) => enqueueDeferredRoute(map, acquired.url, deferredRouteRecovery),
+                ),
+              ]
+            : []),
+        ],
+  );
+
+  const expected = expectDownload(acquired.url, {
+    url: state.info.url,
+    pageUrl: state.info.pageUrl,
+    filename,
+    conflictAction: options.conflictAction,
+    viaFetch: acquired.source === "fetched",
+    retried: false,
+    allowOriginalUrlFallback,
+    ...(historyEntryId ? { historyEntryId } : {}),
+    ...(isSourceSidecar(state) ? { sourceSidecar: true } : {}),
+    ...(pendingSourceSidecar ? { pendingSourceSidecar } : {}),
+    privateContext,
+  });
+  try {
+    if (acquired.url !== state.info.url) downloadRuntime.movePendingState(state, acquired.url);
+    const browserFilenameResolution =
+      WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion &&
+      acquired.source === "direct" &&
+      isHttpDownloadUrl(acquired.url);
+    state.scratch.browserFilenameResolution = browserFilenameResolution;
+    const downloadOptions: Parameters<typeof webExtensionApi.downloads.download>[0] = {
+      url: acquired.url,
+      saveAs: prompt,
+      conflictAction: options.conflictAction,
+    };
+    // An explicit Chrome downloads.download filename suppresses the server's
+    // Content-Disposition name before onDeterminingFilename can route it.
+    if (!browserFilenameResolution) downloadOptions.filename = filename;
+    if (headers) downloadOptions.headers = headers;
+    Object.assign(downloadOptions, await resolveFirefoxDownloadContext(state.info.currentTab));
     throwIfAborted(signal);
+    const downloadId = await webExtensionApi.downloads.download(downloadOptions);
+    cancelExpectedDownload(expected);
+    if (acquired.ownedObjectUrl) {
+      downloadRuntime.ownedObjectUrls.set(downloadId, acquired.ownedObjectUrl);
+    }
+    const browserFilename = downloadRuntime.finalFilenamesByDownloadId.get(downloadId);
+    downloadRuntime.finalFilenamesByDownloadId.delete(downloadId);
+    await rememberStartedDownload(downloadId, {
+      url: state.info.url,
+      pageUrl: state.info.pageUrl,
+      filename: browserFilename || filename,
+      conflictAction: options.conflictAction,
+      viaFetch: acquired.source === "fetched",
+      retried: false,
+      allowOriginalUrlFallback,
+      ...(acquired.offscreenRequestId ? { offscreenRequestId: acquired.offscreenRequestId } : {}),
+      ...(historyEntryId ? { historyEntryId } : {}),
+      ...(isSourceSidecar(state) ? { sourceSidecar: true } : {}),
+      ...(pendingSourceSidecar ? { pendingSourceSidecar } : {}),
+      privateContext,
+      adopted: true,
+    });
+    if (historyEntryId) {
+      updateActiveTransfer(historyEntryId, { downloadId });
+      await historyPort.setDownloadId(historyEntryId, downloadId);
+    }
+    if (signal?.aborted) {
+      await webExtensionApi.downloads.cancel(downloadId).catch(() => {});
+      await historyPort.setStatus(historyEntryId, "USER_CANCELED", downloadId);
+      return { status: "skipped" };
+    }
+    return { status: "started", downloadId };
+  } catch (e) {
+    cancelExpectedDownload(expected);
+    await releaseAcquiredDownload(acquired);
+    if (signal?.aborted) {
+      downloadRuntime.forgetPendingState(state);
+      await historyPort.setStatus(historyEntryId, "USER_CANCELED");
+      return { status: "skipped" };
+    }
+    addDownloadLog(state, "downloads.download failed", String(e));
+    if (
+      acquired.source === "direct" &&
+      allowOriginalUrlFallback &&
+      options.fallbackFetch !== false
+    ) {
+      const fallback = await acquireFetchedUrl(requireDownloadUrl(state), privateContext, signal);
+      return await executeBrowserDownload(plan, fallback, signal);
+    } else {
+      downloadRuntime.forgetPendingState(state);
+      await historyPort.setStatus(historyEntryId, "DOWNLOAD_API_FAILED");
+      if (!isSourceSidecar(state)) {
+        reportDownloadFailure(finalFullPath || requireDownloadUrl(state), String(e));
+      }
+      return { status: "failed" };
+    }
+  } finally {
     await Promise.all(
       privateContext
         ? []
@@ -679,13 +774,13 @@ export const Download = {
               sessionWriteState,
               extensionSessionStorage,
               PENDING_DOWNLOADS_SESSION_KEY,
-              (n) => normalizeSessionCounter(n) + 1,
+              (n) => Math.max(0, normalizeSessionCounter(n) - 1),
             ),
             updateSession<FinalFilenameMap>(
               sessionWriteState,
               extensionSessionStorage,
               FINAL_FILENAMES_SESSION_KEY,
-              (m) => enqueueFilename(m, acquired.url, filename),
+              (m) => removeFilename(m, acquired.url, filename),
             ),
             ...(deferredRouteRecovery
               ? [
@@ -693,267 +788,145 @@ export const Download = {
                     sessionWriteState,
                     extensionSessionStorage,
                     DEFERRED_ROUTES_SESSION_KEY,
-                    (map) => enqueueDeferredRoute(map, acquired.url, deferredRouteRecovery),
+                    (map) => removeDeferredRoute(map, acquired.url, deferredRouteRecovery.id),
                   ),
                 ]
               : []),
           ],
     );
+  }
+};
 
-    const expected = expectDownload(acquired.url, {
-      url: state.info.url,
-      pageUrl: state.info.pageUrl,
-      filename,
-      conflictAction: options.conflictAction,
-      viaFetch: acquired.source === "fetched",
-      retried: false,
-      allowOriginalUrlFallback,
-      ...(historyEntryId ? { historyEntryId } : {}),
-      ...(isSourceSidecar(state) ? { sourceSidecar: true } : {}),
-      ...(pendingSourceSidecar ? { pendingSourceSidecar } : {}),
-      privateContext,
-    });
-    try {
-      if (acquired.url !== state.info.url) Download.movePendingState(state, acquired.url);
-      const browserFilenameResolution =
-        WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion &&
-        acquired.source === "direct" &&
-        isHttpDownloadUrl(acquired.url);
-      state.scratch.browserFilenameResolution = browserFilenameResolution;
-      const downloadOptions: Parameters<typeof webExtensionApi.downloads.download>[0] = {
-        url: acquired.url,
-        saveAs: prompt,
-        conflictAction: options.conflictAction,
-      };
-      // An explicit Chrome downloads.download filename suppresses the server's
-      // Content-Disposition name before onDeterminingFilename can route it.
-      if (!browserFilenameResolution) downloadOptions.filename = filename;
-      if (headers) downloadOptions.headers = headers;
-      Object.assign(downloadOptions, await resolveFirefoxDownloadContext(state.info.currentTab));
-      throwIfAborted(signal);
-      const downloadId = await webExtensionApi.downloads.download(downloadOptions);
-      cancelExpectedDownload(expected);
-      if (acquired.ownedObjectUrl) {
-        Download.ownedObjectUrls.set(downloadId, acquired.ownedObjectUrl);
-      }
-      const browserFilename = Download.finalFilenamesByDownloadId.get(downloadId);
-      Download.finalFilenamesByDownloadId.delete(downloadId);
-      await Download.rememberStartedDownload(downloadId, {
-        url: state.info.url,
-        pageUrl: state.info.pageUrl,
-        filename: browserFilename || filename,
-        conflictAction: options.conflictAction,
-        viaFetch: acquired.source === "fetched",
-        retried: false,
-        allowOriginalUrlFallback,
-        ...(acquired.offscreenRequestId ? { offscreenRequestId: acquired.offscreenRequestId } : {}),
-        ...(historyEntryId ? { historyEntryId } : {}),
-        ...(isSourceSidecar(state) ? { sourceSidecar: true } : {}),
-        ...(pendingSourceSidecar ? { pendingSourceSidecar } : {}),
-        privateContext,
-        adopted: true,
-      });
-      if (historyEntryId) {
-        updateActiveTransfer(historyEntryId, { downloadId });
-        await historyPort.setDownloadId(historyEntryId, downloadId);
-      }
-      if (signal?.aborted) {
-        await webExtensionApi.downloads.cancel(downloadId).catch(() => {});
-        await historyPort.setStatus(historyEntryId, "USER_CANCELED", downloadId);
-        return { status: "skipped" };
-      }
-      return { status: "started", downloadId };
-    } catch (e) {
-      cancelExpectedDownload(expected);
-      await releaseAcquiredDownload(acquired);
-      if (signal?.aborted) {
-        Download.forgetPendingState(state);
-        await historyPort.setStatus(historyEntryId, "USER_CANCELED");
-        return { status: "skipped" };
-      }
-      addDownloadLog(state, "downloads.download failed", String(e));
-      if (
-        acquired.source === "direct" &&
-        allowOriginalUrlFallback &&
-        options.fallbackFetch !== false
-      ) {
-        const fallback = await Download.acquireFetchedUrl(
-          requireDownloadUrl(state),
-          privateContext,
-          signal,
-        );
-        return await Download.executeBrowserDownload(plan, fallback, signal);
-      } else {
-        Download.forgetPendingState(state);
-        await historyPort.setStatus(historyEntryId, "DOWNLOAD_API_FAILED");
-        if (!isSourceSidecar(state)) {
-          reportDownloadFailure(finalFullPath || requireDownloadUrl(state), String(e));
-        }
-        return { status: "failed" };
-      }
-    } finally {
-      await Promise.all(
-        privateContext
-          ? []
-          : [
-              updateSession<number>(
-                sessionWriteState,
-                extensionSessionStorage,
-                PENDING_DOWNLOADS_SESSION_KEY,
-                (n) => Math.max(0, normalizeSessionCounter(n) - 1),
-              ),
-              updateSession<FinalFilenameMap>(
-                sessionWriteState,
-                extensionSessionStorage,
-                FINAL_FILENAMES_SESSION_KEY,
-                (m) => removeFilename(m, acquired.url, filename),
-              ),
-              ...(deferredRouteRecovery
-                ? [
-                    updateSession(
-                      sessionWriteState,
-                      extensionSessionStorage,
-                      DEFERRED_ROUTES_SESSION_KEY,
-                      (map) => removeDeferredRoute(map, acquired.url, deferredRouteRecovery.id),
-                    ),
-                  ]
-                : []),
-            ],
+// async because applyVariables may await a
+// :counter:/:mime: transformer). Callers fire-and-forget, so awaiting the
+// path/route interpolation here before the download is safe.
+export const renameAndDownload = async (
+  state: DownloadPipelineState,
+): Promise<DownloadLaunchResult> => {
+  const preparationController = new AbortController();
+  state.info.abortSignal = preparationController.signal;
+  let registeredHistoryId: string | null | undefined;
+  let privateHeld = false;
+  let activeRequestId: string | undefined;
+  const registerTransfer = (requestId?: string) => {
+    activeRequestId = requestId ?? activeRequestId;
+    const id = state.scratch.historyEntryId;
+    if (id) {
+      registeredHistoryId = id;
+      registerActiveTransfer(
+        id,
+        preparationController,
+        activeRequestId ? { requestId: activeRequestId } : {},
       );
+    } else if (!privateHeld) {
+      holdTransferKeepalive(preparationController);
+      privateHeld = true;
     }
-  },
-
-  // async because applyVariables may await a
-  // :counter:/:mime: transformer). Callers fire-and-forget, so awaiting the
-  // path/route interpolation here before the download is safe.
-  renameAndDownload: async (state: DownloadPipelineState): Promise<DownloadLaunchResult> => {
-    const preparationController = new AbortController();
-    state.info.abortSignal = preparationController.signal;
-    let registeredHistoryId: string | null | undefined;
-    let privateHeld = false;
-    let activeRequestId: string | undefined;
-    const registerTransfer = (requestId?: string) => {
-      activeRequestId = requestId ?? activeRequestId;
-      const id = state.scratch.historyEntryId;
-      if (id) {
-        registeredHistoryId = id;
-        registerActiveTransfer(
-          id,
-          preparationController,
-          activeRequestId ? { requestId: activeRequestId } : {},
-        );
-      } else if (!privateHeld) {
-        holdTransferKeepalive(preparationController);
-        privateHeld = true;
-      }
-    };
-    state.info.onContentFetchStart = (requestId) => {
-      ensureHistoryEntry(
-        state,
-        /* v8 ignore next -- Pipeline preparation always resolves a filename before fetching. */
-        state.info.filename ?? state.info.suggestedFilename ?? state.info.url ?? "",
-      );
-      registerTransfer(requestId);
-      // Make an open options page render the cancellable preparation row.
-      emitDownloaded(state);
-    };
-    const finishPreparation = () => {
-      if (registeredHistoryId) finishActiveTransfer(registeredHistoryId, preparationController);
-      if (privateHeld) releaseTransferKeepalive(preparationController);
-      state.info.abortSignal = undefined;
-      state.info.onContentFetchStart = undefined;
-    };
-    let plan: DownloadPlan | null;
-    try {
-      plan = await Download.resolveDownloadPlan(state);
-    } catch (error) {
-      Download.forgetPendingState(state);
-      await releaseUnusedContent(state);
-      const url = state.info.url;
-      if (url && Download.generatedObjectUrls.delete(url)) URL.revokeObjectURL(url);
-      if (preparationController.signal.aborted) {
-        await historyPort.setStatus(state.scratch.historyEntryId, "USER_CANCELED");
-        finishPreparation();
-        return { status: "skipped" };
-      }
-      await historyPort.setStatus(state.scratch.historyEntryId, "DOWNLOAD_PREPARATION_FAILED");
+  };
+  state.info.onContentFetchStart = (requestId) => {
+    ensureHistoryEntry(
+      state,
+      /* v8 ignore next -- Pipeline preparation always resolves a filename before fetching. */
+      state.info.filename ?? state.info.suggestedFilename ?? state.info.url ?? "",
+    );
+    registerTransfer(requestId);
+    // Make an open options page render the cancellable preparation row.
+    emitDownloaded(state);
+  };
+  const finishPreparation = () => {
+    if (registeredHistoryId) finishActiveTransfer(registeredHistoryId, preparationController);
+    if (privateHeld) releaseTransferKeepalive(preparationController);
+    state.info.abortSignal = undefined;
+    state.info.onContentFetchStart = undefined;
+  };
+  let plan: DownloadPlan | null;
+  try {
+    plan = await resolveDownloadPlan(state);
+  } catch (error) {
+    downloadRuntime.forgetPendingState(state);
+    await releaseUnusedContent(state);
+    const url = state.info.url;
+    if (url && downloadRuntime.generatedObjectUrls.delete(url)) URL.revokeObjectURL(url);
+    if (preparationController.signal.aborted) {
+      await historyPort.setStatus(state.scratch.historyEntryId, "USER_CANCELED");
       finishPreparation();
-      throw error;
-    }
-    if (!plan) {
-      await releaseUnusedContent(state);
-      const url = state.info.url;
-      if (url && Download.generatedObjectUrls.delete(url)) URL.revokeObjectURL(url);
-      await historyPort.setStatus(state.scratch.historyEntryId, "RULE_NO_MATCH");
-      finishPreparation();
-      if ((state.needRouteMatch || options.routeSkipUnmatched) && options.notifyOnFailure) {
-        createExtensionNotification(
-          getMessage("notificationRuleMatchFailedExclusiveTitle"),
-          getMessage("notificationRuleMatchFailedExclusiveMessage", [requireDownloadUrl(state)]),
-          true,
-          EXTENSION_NOTIFICATION_STREAMS.ROUTE_MISS,
-        );
-      }
       return { status: "skipped" };
     }
-
-    registerTransfer();
-    recordDownloadRequest(plan);
-    let acquired: AcquiredDownload;
-    try {
-      acquired = await Download.acquireDownloadUrl(
-        plan,
-        preparationController.signal,
-        activeRequestId,
-      );
-    } catch (error) {
-      Download.forgetPendingState(state);
-      await releaseUnusedContent(state);
-      const url = state.info.url;
-      if (url && Download.generatedObjectUrls.delete(url)) URL.revokeObjectURL(url);
-      if (preparationController.signal.aborted) {
-        await historyPort.setStatus(plan.historyEntryId, "USER_CANCELED");
-        finishPreparation();
-        return { status: "skipped" };
-      }
-      await historyPort.setStatus(plan.historyEntryId, "DOWNLOAD_PREPARATION_FAILED");
-      addDownloadLog(state, "download preparation failed", String(error));
-      if (!isSourceSidecar(state)) {
-        reportDownloadFailure(plan.finalFullPath || requireDownloadUrl(state), String(error));
-      }
-      finishPreparation();
-      return { status: "failed" };
-    }
-    const result = await Download.executeBrowserDownload(
-      plan,
-      acquired,
-      preparationController.signal,
-    );
+    await historyPort.setStatus(state.scratch.historyEntryId, "DOWNLOAD_PREPARATION_FAILED");
     finishPreparation();
-    if (result.status !== "started") return result;
-
-    // Webhooks are an optional side effect of the user's save command. They
-    // never change, delay, or retry the browser download that already started.
-    void deliverSaveWebhook(options, plan, logPort);
-
-    // Trigger notifications
-    if (state.route) {
-      if (options.notifyOnRuleMatch && state.info.context !== DOWNLOAD_TYPES.AUTO) {
-        createExtensionNotification(
-          getMessage("notificationRuleMatchedTitle"),
-          `${state.info.initialFilename}\n⬇\n${state.route}`,
-          false,
-          EXTENSION_NOTIFICATION_STREAMS.ROUTE_MATCH,
-        );
-      }
+    throw error;
+  }
+  if (!plan) {
+    await releaseUnusedContent(state);
+    const url = state.info.url;
+    if (url && downloadRuntime.generatedObjectUrls.delete(url)) URL.revokeObjectURL(url);
+    await historyPort.setStatus(state.scratch.historyEntryId, "RULE_NO_MATCH");
+    finishPreparation();
+    if ((state.needRouteMatch || options.routeSkipUnmatched) && options.notifyOnFailure) {
+      createExtensionNotification(
+        getMessage("notificationRuleMatchFailedExclusiveTitle"),
+        getMessage("notificationRuleMatchFailedExclusiveMessage", [requireDownloadUrl(state)]),
+        true,
+        EXTENSION_NOTIFICATION_STREAMS.ROUTE_MISS,
+      );
     }
-    return result;
-  },
+    return { status: "skipped" };
+  }
+
+  registerTransfer();
+  recordDownloadRequest(plan);
+  let acquired: AcquiredDownload;
+  try {
+    acquired = await acquireDownloadUrl(plan, preparationController.signal, activeRequestId);
+  } catch (error) {
+    downloadRuntime.forgetPendingState(state);
+    await releaseUnusedContent(state);
+    const url = state.info.url;
+    if (url && downloadRuntime.generatedObjectUrls.delete(url)) URL.revokeObjectURL(url);
+    if (preparationController.signal.aborted) {
+      await historyPort.setStatus(plan.historyEntryId, "USER_CANCELED");
+      finishPreparation();
+      return { status: "skipped" };
+    }
+    await historyPort.setStatus(plan.historyEntryId, "DOWNLOAD_PREPARATION_FAILED");
+    addDownloadLog(state, "download preparation failed", String(error));
+    if (!isSourceSidecar(state)) {
+      reportDownloadFailure(plan.finalFullPath || requireDownloadUrl(state), String(error));
+    }
+    finishPreparation();
+    return { status: "failed" };
+  }
+  const result = await executeBrowserDownload(plan, acquired, preparationController.signal);
+  finishPreparation();
+  if (result.status !== "started") return result;
+
+  // Webhooks are an optional side effect of the user's save command. They
+  // never change, delay, or retry the browser download that already started.
+  void deliverSaveWebhook(options, plan, logPort);
+
+  // Trigger notifications
+  if (state.route) {
+    if (options.notifyOnRuleMatch && state.info.context !== DOWNLOAD_TYPES.AUTO) {
+      createExtensionNotification(
+        getMessage("notificationRuleMatchedTitle"),
+        `${state.info.initialFilename}\n⬇\n${state.route}`,
+        false,
+        EXTENSION_NOTIFICATION_STREAMS.ROUTE_MATCH,
+      );
+    }
+  }
+  return result;
 };
 
 // MV3 (Chrome): entry.background calls this synchronously at startup so the
 // onDeterminingFilename listener is attached before any download event fires.
 export const registerDownloadListener = () => {
-  BrowserDownloadRouting.route = (item) => routeBrowserDownload(Download, item);
-  registerFilenameAndObjectUrlListeners(Download);
+  BrowserDownloadRouting.route = (item) =>
+    routeBrowserDownload({ getRoutingMatches, finalizeFullPath }, item);
+  registerFilenameAndObjectUrlListeners({
+    ...downloadRuntime,
+    retryViaFetch,
+    getRoutingMatches,
+    finalizeFullPath,
+  });
 };

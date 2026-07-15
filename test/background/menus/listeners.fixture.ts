@@ -63,9 +63,8 @@ const setupBrowserMocks = () => {
 
 // Seed the freshly-imported deps: spy the click-handler collaborators, mutate
 // the real options bag and the WEB_EXTENSION_CAPABILITIES live-binding object in place.
-// Download.launch stays real (it just calls the spied renameAndDownload, then
-// swallows rejections — its logging/reportFailure path is covered in
-// download-flow.test).
+// The menu entry point launchDownload is stubbed so listener tests never run
+// the real pipeline; its containment path is covered in download-execution.
 const seedDeps = () => {
   setCurrentTab(null);
   Object.assign(options, {
@@ -94,7 +93,7 @@ const seedDeps = () => {
     recentDestinationCount: 3,
   });
   Object.assign(WEB_EXTENSION_CAPABILITIES, { tabContextMenus: false });
-  vi.spyOn(Download, "renameAndDownload").mockResolvedValue({ status: "started", downloadId: 1 });
+  vi.spyOn(Download, "launchDownload").mockResolvedValue({ status: "started", downloadId: 1 });
   vi.spyOn(Download, "makeObjectUrl").mockReturnValue("data:text/plain;base64,eA==");
   vi.spyOn(Notifier, "createExtensionNotification").mockImplementation(() => {});
   vi.spyOn(Notifier, "expectDownload").mockImplementation(() => {});
@@ -108,7 +107,7 @@ const importMenus = async () => {
   const menuClick = await import("../../../src/background/menu-click.ts");
   const menuTabs = await import("../../../src/background/menu-tabs.ts");
   ({ options } = await import("../../../src/config/options-data.ts"));
-  ({ Download } = await import("../../../src/downloads/download.ts"));
+  Download = await import("../../../src/downloads/download.ts");
   Notifier = await import("../../../src/downloads/notification.ts");
   ({ WEB_EXTENSION_CAPABILITIES } = await import("../../../src/platform/chrome-detector.ts"));
   ({ setCurrentTab } = await import("../../../src/platform/current-tab.ts"));

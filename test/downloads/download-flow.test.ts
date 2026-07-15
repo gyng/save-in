@@ -44,42 +44,21 @@ describe("pipeline stages", () => {
     ).resolves.toBeNull();
   });
 
-  test("runs RESOLVE, ACQUIRE, and DOWNLOAD in order with explicit values", async () => {
-    const calls: string[] = [];
+  // The RESOLVE → ACQUIRE → DOWNLOAD order is now enforced lexically inside
+  // renameAndDownload; the durable contract is that each stage's output feeds
+  // the next, exercised here through the real pipeline.
+  test("hands the resolved plan through acquisition to the browser download", async () => {
     const state = makeState();
-    const plan = {
-      state,
-      finalFullPath: "downloads/file.png",
-      prompt: false,
-      historyEntryId: "h-test",
-    };
-    const acquired = {
-      url: "blob:resolved",
-      source: "fetched" as const,
-      ownedObjectUrl: "blob:resolved",
-    };
 
-    vi.spyOn(Download, "resolveDownloadPlan").mockImplementation(async () => {
-      calls.push("resolve");
-      return plan;
-    });
-    vi.spyOn(Download, "acquireDownloadUrl").mockImplementation(async (received) => {
-      calls.push("acquire");
-      expect(received).toBe(plan);
-      return acquired;
-    });
-    vi.spyOn(Download, "executeBrowserDownload").mockImplementation(
-      async (receivedPlan, receivedAcquired) => {
-        calls.push("download");
-        expect(receivedPlan).toBe(plan);
-        expect(receivedAcquired).toBe(acquired);
-        return { status: "started", downloadId: 101 };
-      },
+    const plan = await Download.resolveDownloadPlan(state);
+    expect(plan).not.toBeNull();
+    const acquired = await Download.acquireDownloadUrl(plan!);
+    const result = await Download.executeBrowserDownload(plan!, acquired);
+
+    expect(result).toEqual({ status: "started", downloadId: expect.any(Number) });
+    expect(global.browser.downloads.download).toHaveBeenCalledWith(
+      expect.objectContaining({ url: acquired.url }),
     );
-
-    await Download.renameAndDownload(state);
-
-    expect(calls).toEqual(["resolve", "acquire", "download"]);
   });
 
   test("reports and cleans up a rejected acquisition", async () => {
@@ -91,7 +70,7 @@ describe("pipeline stages", () => {
 
     expect(result).toEqual({ status: "failed" });
     expect(global.browser.downloads.download).not.toHaveBeenCalled();
-    expect(Download.pendingStates.get(state.info.url) || []).not.toContain(state);
+    expect(Download.downloadRuntime.pendingStates.get(state.info.url) || []).not.toContain(state);
     expect(SaveHistory.setHistoryStatus).toHaveBeenCalledWith(
       "h-test",
       "DOWNLOAD_PREPARATION_FAILED",
@@ -127,7 +106,7 @@ describe("pipeline stages", () => {
 
     await expect(Download.renameAndDownload(state)).resolves.toEqual({ status: "failed" });
 
-    expect(Download.generatedObjectUrls.has(url)).toBe(false);
+    expect(Download.downloadRuntime.generatedObjectUrls.has(url)).toBe(false);
     expect(URL.revokeObjectURL).toHaveBeenCalledWith(url);
     expect(Notifier.reportDownloadFailure).toHaveBeenCalledWith(
       url,
@@ -191,7 +170,7 @@ describe("pipeline stages", () => {
   test("correlates fetched URLs with Chrome's filename event", async () => {
     setCurrentBrowser("CHROME");
     const state = makeState({ info: { suggestedFilename: "fetched.png" } });
-    Download.rememberPendingState(state);
+    Download.downloadRuntime.rememberPendingState(state);
     const plan = {
       state,
       finalFullPath: "downloads/fetched.png",
@@ -208,8 +187,8 @@ describe("pipeline stages", () => {
       mechanism: "fetch-downloads-api",
     });
 
-    expect(Download.pendingStates.get(state.info.url)).toBeUndefined();
-    expect(Download.pendingStates.get("blob:fetched-file")).toEqual([state]);
+    expect(Download.downloadRuntime.pendingStates.get(state.info.url)).toBeUndefined();
+    expect(Download.downloadRuntime.pendingStates.get("blob:fetched-file")).toEqual([state]);
 
     const suggest = vi.fn();
     capturedListener(

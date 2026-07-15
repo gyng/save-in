@@ -35,7 +35,7 @@ describe("addDownloadListener", () => {
   test("opens the options page for the options item", async () => {
     await listener({ menuItemId: Menus.IDS.OPTIONS });
     expect(global.browser.runtime.openOptionsPage).toHaveBeenCalled();
-    expect(Download.renameAndDownload).not.toHaveBeenCalled();
+    expect(Download.launchDownload).not.toHaveBeenCalled();
   });
 
   test("shows the default folder for show-default-folder", async () => {
@@ -77,7 +77,7 @@ describe("addDownloadListener", () => {
 
   test("ignores tabstrip menu items", async () => {
     await listener({ menuItemId: Menus.IDS.TABSTRIP.SELECTED_TAB });
-    expect(Download.renameAndDownload).not.toHaveBeenCalled();
+    expect(Download.launchDownload).not.toHaveBeenCalled();
   });
 
   test("ignores stale path menu identifiers", async () => {
@@ -86,7 +86,7 @@ describe("addDownloadListener", () => {
       linkUrl: "https://example.com/stale.png",
       pageUrl: "https://example.com/",
     });
-    expect(Download.renameAndDownload).not.toHaveBeenCalled();
+    expect(Download.launchDownload).not.toHaveBeenCalled();
   });
 
   test("carries a destination Save As preference into the download plan", async () => {
@@ -99,7 +99,7 @@ describe("addDownloadListener", () => {
       pageUrl: "https://example.com/",
     });
 
-    expect(Download.renameAndDownload).toHaveBeenCalledWith(
+    expect(Download.launchDownload).toHaveBeenCalledWith(
       expect.objectContaining({ info: expect.objectContaining({ forcePrompt: true }) }),
     );
   });
@@ -115,8 +115,8 @@ describe("addDownloadListener", () => {
       pageUrl: "https://example.com/",
     });
 
-    expect(Download.renameAndDownload).toHaveBeenCalledOnce();
-    expect(Download.renameAndDownload).toHaveBeenCalledWith(
+    expect(Download.launchDownload).toHaveBeenCalledOnce();
+    expect(Download.launchDownload).toHaveBeenCalledWith(
       expect.objectContaining({
         scratch: expect.objectContaining({
           sourceSidecar: expect.objectContaining({
@@ -146,8 +146,8 @@ describe("addDownloadListener", () => {
       { id: 8, title: "Private gallery", incognito: true },
     );
 
-    expect(Download.renameAndDownload).toHaveBeenCalledOnce();
-    expect(Download.renameAndDownload).toHaveBeenCalledWith(
+    expect(Download.launchDownload).toHaveBeenCalledOnce();
+    expect(Download.launchDownload).toHaveBeenCalledWith(
       expect.objectContaining({
         info: expect.objectContaining({ context: DOWNLOAD_TYPES.MEDIA }),
       }),
@@ -182,11 +182,11 @@ describe("addDownloadListener", () => {
     });
 
     await Promise.resolve();
-    expect(Download.renameAndDownload).not.toHaveBeenCalled();
+    expect(Download.launchDownload).not.toHaveBeenCalled();
 
     resolveReady();
     await pending;
-    expect(Download.renameAndDownload).toHaveBeenCalledTimes(1);
+    expect(Download.launchDownload).toHaveBeenCalledTimes(1);
   });
 
   test("path click downloads and persists lastUsedPath", async () => {
@@ -198,8 +198,8 @@ describe("addDownloadListener", () => {
       pageUrl: "https://example.com/",
     });
 
-    expect(Download.renameAndDownload).toHaveBeenCalledTimes(1);
-    const state = Download.renameAndDownload.mock.calls[0]![0]!;
+    expect(Download.launchDownload).toHaveBeenCalledTimes(1);
+    const state = Download.launchDownload.mock.calls[0]![0]!;
     expect(state.info.url).toBe("https://example.com/f.png");
 
     expect(global.browser.storage.local.set).toHaveBeenCalledWith({
@@ -302,7 +302,7 @@ describe("addDownloadListener", () => {
       { id: 5, title: "Clicked Tab" },
     );
 
-    const state = Download.renameAndDownload.mock.calls[0]![0]!;
+    const state = Download.launchDownload.mock.calls[0]![0]!;
     expect(state.info.currentTab.title).toBe("Clicked Tab");
   });
 
@@ -316,7 +316,7 @@ describe("addDownloadListener", () => {
       pageUrl: "https://example.com/",
     });
 
-    const state = Download.renameAndDownload.mock.calls[0]![0]!;
+    const state = Download.launchDownload.mock.calls[0]![0]!;
     expect(state.info.currentTab.title).toBe("Tracked Tab");
   });
 
@@ -337,10 +337,10 @@ describe("addDownloadListener", () => {
       }),
     ).resolves.not.toThrow();
 
-    expect(Download.renameAndDownload).toHaveBeenCalledTimes(2);
+    expect(Download.launchDownload).toHaveBeenCalledTimes(2);
   });
 
-  const lastState = () => vi.mocked(Download.renameAndDownload).mock.calls.at(-1)![0];
+  const lastState = () => vi.mocked(Download.launchDownload).mock.calls.at(-1)![0];
 
   const mediaClick = {
     menuItemId: "save-in-0",
@@ -373,13 +373,13 @@ describe("addDownloadListener", () => {
       pageUrl: "https://example.com/",
     });
 
-    expect(Download.renameAndDownload).toHaveBeenCalledTimes(1);
+    expect(Download.launchDownload).toHaveBeenCalledTimes(1);
   });
 
   test("ignores clicks on ids without a path mapping (separators)", async () => {
     Menus.addPaths(["dir1"], ["link"]);
     await listener({ menuItemId: "separator-0", pageUrl: "https://example.com/" });
-    expect(Download.renameAndDownload).not.toHaveBeenCalled();
+    expect(Download.launchDownload).not.toHaveBeenCalled();
   });
 
   test("turns selection targets into object URLs before delegating", async () => {
@@ -446,7 +446,7 @@ describe("addDownloadListener", () => {
   test("contains a media menu event whose source URL disappeared", async () => {
     Menus.addPaths(["dir1"], ["image"]);
     await listener({ menuItemId: "save-in-0", mediaType: "image" });
-    expect(Download.renameAndDownload).not.toHaveBeenCalled();
+    expect(Download.launchDownload).not.toHaveBeenCalled();
   });
 
   test("bails out when the click has nothing downloadable", async () => {
@@ -456,7 +456,7 @@ describe("addDownloadListener", () => {
     Menus.addPaths(["dir1"], ["page"]);
     await listener({ menuItemId: "save-in-0", pageUrl: "https://example.com/" });
 
-    expect(Download.renameAndDownload).not.toHaveBeenCalled();
+    expect(Download.launchDownload).not.toHaveBeenCalled();
   });
 
   test("closeTabOnSave removes the tab only after the browser accepts a page save", async () => {
@@ -490,7 +490,7 @@ describe("addDownloadListener", () => {
   test("closeTabOnSave keeps the tab when a page save fails", async () => {
     options.closeTabOnSave = true;
     (global.browser as any).tabs = { remove: vi.fn() };
-    vi.mocked(Download.renameAndDownload).mockResolvedValueOnce({ status: "failed" });
+    vi.mocked(Download.launchDownload).mockResolvedValueOnce({ status: "failed" });
     Menus.addPaths(["dir1"], ["page"]);
 
     await listener(
@@ -502,7 +502,7 @@ describe("addDownloadListener", () => {
   });
 
   test("a failed save does not replace the last-used location", async () => {
-    vi.mocked(Download.renameAndDownload).mockResolvedValueOnce({ status: "failed" });
+    vi.mocked(Download.launchDownload).mockResolvedValueOnce({ status: "failed" });
     Menus.addPaths(["dir1"], ["link"]);
 
     await listener({
@@ -614,7 +614,7 @@ describe("addDownloadListener", () => {
       linkUrl: "https://example.com/file.png",
       pageUrl: "https://example.com/",
     });
-    expect(Download.renameAndDownload).not.toHaveBeenCalled();
+    expect(Download.launchDownload).not.toHaveBeenCalled();
   });
 
   describe("last used menu bookkeeping", () => {

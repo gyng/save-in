@@ -9,7 +9,7 @@ import { WEB_EXTENSION_CAPABILITIES } from "../platform/chrome-detector.ts";
 import { makeShortcut, suggestShortcutFilename } from "../downloads/shortcut.ts";
 import { DOWNLOAD_TYPES } from "../shared/constants.ts";
 import { Path } from "../routing/path.ts";
-import { Download } from "../downloads/download.ts";
+import { launchDownload } from "../downloads/download.ts";
 import type { DownloadInfo } from "../downloads/download-types.ts";
 import { addLogEntry } from "./log.ts";
 import { backgroundRuntime } from "./runtime.ts";
@@ -166,8 +166,8 @@ export const handleTabMenuClick = async (
         needRouteMatch: info.menuItemId === MENU_IDS.TABSTRIP.TO_RIGHT_MATCH,
       };
 
-      // Download.launch reports whether the browser accepted the save.
-      const result = await Download.launch(state);
+      // launchDownload reports whether the browser accepted the save.
+      const result = await launchDownload(state);
 
       if (options.closeTabOnSave && result.status === "started") {
         const tabId = t.id;
@@ -184,7 +184,7 @@ export const handleTabMenuClick = async (
       }
     }
   } catch (error) {
-    // Download.launch reports per-item failures; this catches tab query and
+    // launchDownload reports per-item failures; this catches tab query and
     // batch orchestration failures that occur outside the download pipeline.
     await addLogEntry("tab-strip save failed", String(error), {
       privateContext: fromTab.incognito === true,

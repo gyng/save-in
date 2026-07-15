@@ -5,7 +5,7 @@ import {
   isShortcutType,
   type ShortcutType,
 } from "../shared/constants.ts";
-import { Download } from "./download.ts";
+import { makeObjectUrl } from "./download.ts";
 import { sanitizeFilename } from "../routing/path.ts";
 import { EXTENSION_REGEX } from "../routing/filename.ts";
 import { currentTab } from "../platform/current-tab.ts";
@@ -107,7 +107,7 @@ export const makeShortcut = (
   type: string | undefined,
   url: string,
   title = currentTab?.title,
-): string => Download.makeObjectUrl(makeShortcutContent(type, url, title), mimeForType(type));
+): string => makeObjectUrl(makeShortcutContent(type, url, title), mimeForType(type));
 
 export const suggestShortcutFilename = (
   shortcutType: string,

@@ -46,7 +46,7 @@ describe("external DOWNLOAD API v1", () => {
   test("rejects a missing url with BAD_REQUEST and does not download", () => {
     const sendResponse = vi.fn();
     onMessageExternal(download({ info: {} }), { id: "trusted-extension" }, sendResponse);
-    expect(Download.renameAndDownload).not.toHaveBeenCalled();
+    expect(Download.launchDownload).not.toHaveBeenCalled();
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.DOWNLOAD,
       body: {
@@ -65,7 +65,7 @@ describe("external DOWNLOAD API v1", () => {
       { id: "trusted-extension" },
       sendResponse,
     );
-    expect(Download.renameAndDownload).not.toHaveBeenCalled();
+    expect(Download.launchDownload).not.toHaveBeenCalled();
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.DOWNLOAD,
       body: {
@@ -103,7 +103,7 @@ describe("external DOWNLOAD API v1", () => {
       ),
     ).toBe(true);
 
-    expect(Download.renameAndDownload).not.toHaveBeenCalled();
+    expect(Download.launchDownload).not.toHaveBeenCalled();
     expect(global.browser.tabs.query).not.toHaveBeenCalled();
     await waitForCall(sendResponse);
     expect(ExternalDownloadRejections.record).toHaveBeenCalledWith("untrusted-extension", {
@@ -159,7 +159,7 @@ describe("external DOWNLOAD API v1", () => {
       ),
     ).toBe(true);
     await waitForCall(sendResponse);
-    expect(Download.renameAndDownload).toHaveBeenCalledOnce();
+    expect(Download.launchDownload).toHaveBeenCalledOnce();
   });
 
   test("an unknown external message type returns UNKNOWN_TYPE", () => {
@@ -184,7 +184,7 @@ describe("external DOWNLOAD API v1", () => {
       {},
       sendResponse,
     );
-    expect(Download.renameAndDownload).not.toHaveBeenCalled();
+    expect(Download.launchDownload).not.toHaveBeenCalled();
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.DOWNLOAD,
       body: { status: MESSAGE_TYPES.ERROR, error: "BAD_REQUEST", version: 1 },

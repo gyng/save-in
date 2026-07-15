@@ -96,10 +96,10 @@ its own history, restart state, and debug log. Add a background module by
 importing it from the relevant entry
 — there is no hand-maintained file list to keep in sync anymore.
 
-|                 | Firefox (event page)                                      | Chrome (service worker)                                           |
-| --------------- | --------------------------------------------------------- | ----------------------------------------------------------------- |
-| Referer feature | Scoped DNR metadata/content; native direct final download | Scoped DNR metadata/content fetches, then a blob download         |
-| Blob downloads  | `URL.createObjectURL` (event pages have DOM)              | data-URL fallbacks (`Download.makeObjectUrl` / `makeUrlFromBlob`) |
+|                 | Firefox (event page)                                      | Chrome (service worker)                                   |
+| --------------- | --------------------------------------------------------- | --------------------------------------------------------- |
+| Referer feature | Scoped DNR metadata/content; native direct final download | Scoped DNR metadata/content fetches, then a blob download |
+| Blob downloads  | `URL.createObjectURL` (event pages have DOM)              | data-URL fallbacks (`makeObjectUrl` / `makeUrlFromBlob`)  |
 
 Both browsers temporarily set the Referer on each exact extension-owned HEAD/GET
 needed for requested lazy metadata or hashes. The rule covers the exact requested

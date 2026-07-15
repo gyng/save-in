@@ -1,4 +1,4 @@
-import { Download } from "../../src/downloads/download.ts";
+import * as Download from "../../src/downloads/download.ts";
 import { EXTENSION_REGEX, getFilenameFromUrl } from "../../src/routing/filename.ts";
 import { options } from "../../src/config/options-data.ts";
 import { Path } from "../../src/routing/path.ts";

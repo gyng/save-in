@@ -2,7 +2,7 @@ import { options } from "../config/options-data.ts";
 import { Path } from "../routing/path.ts";
 import { DOWNLOAD_TYPES } from "../shared/constants.ts";
 import type { DownloadPipelineState, SourceSidecarRequest } from "./download-types.ts";
-import { Download } from "./download.ts";
+import { launchDownload } from "./download.ts";
 import { makeShortcut, sourceSidecarPath } from "./shortcut.ts";
 
 export const createSourceSidecarRequest = (
@@ -41,7 +41,7 @@ export const launchSourceSidecar = async (
     options.shortcutType,
     options.truncateLength,
   );
-  await Download.launch({
+  await launchDownload({
     path: new Path(sidecarDirectory),
     scratch: {},
     info: {

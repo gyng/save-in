@@ -1,4 +1,4 @@
-import { Download } from "../../src/downloads/download.ts";
+import * as Download from "../../src/downloads/download.ts";
 import * as Notifier from "../../src/downloads/notification.ts";
 import * as ActiveTransfers from "../../src/downloads/active-transfers.ts";
 import { downloadsState } from "../../src/downloads/state.ts";
@@ -17,7 +17,7 @@ import {
 } from "../../src/background/e2e-command.ts";
 
 test("starts one pipeline download without registering a duplicate expectation", async () => {
-  const launch = vi.spyOn(Download, "launch").mockResolvedValue({
+  const launch = vi.spyOn(Download, "launchDownload").mockResolvedValue({
     status: "started",
     downloadId: 7,
   });

@@ -1,6 +1,6 @@
 import { SHORTCUT_TYPES } from "../shared/constants.ts";
 import { webExtensionApi } from "../platform/web-extension-api.ts";
-import { Download } from "../downloads/download.ts";
+import { launchDownload, makeObjectUrl } from "../downloads/download.ts";
 import type { DownloadInfo, DownloadLaunchResult } from "../downloads/download-types.ts";
 import { resetActiveTransfers } from "../downloads/active-transfers.ts";
 import {
@@ -200,7 +200,7 @@ const resolveDownloadUrl = (request: BackgroundE2EDownload): string => {
   if (request.shortcutUrl) {
     return makeShortcut(SHORTCUT_TYPES.HTML_REDIRECT, request.shortcutUrl);
   }
-  if (request.content !== undefined) return Download.makeObjectUrl(request.content);
+  if (request.content !== undefined) return makeObjectUrl(request.content);
   if (request.url) return request.url;
   throw new Error("E2E download requires content, url, or shortcutUrl");
 };
@@ -220,7 +220,7 @@ export const handleBackgroundE2ECommand = async (
       pageUrl: request.pageUrl,
       modifiers: request.modifiers ?? [],
     };
-    const result = await Download.launch({
+    const result = await launchDownload({
       path: new Path(request.path ?? "e2e"),
       scratch: {},
       info,

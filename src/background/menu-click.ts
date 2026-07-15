@@ -3,14 +3,14 @@ import { getMessage } from "../platform/localization.ts";
 import { toggleSourcePanelForTab } from "./source-panel-state.ts";
 
 // Click handling for the save-in context menu: routes clicks on path
-// items (and last-used/route-exclusive) into Download.renameAndDownload.
+// items (and last-used/route-exclusive) into renameAndDownload.
 // Tab-strip clicks are handled in menu-tabs.ts.
 
 import { menuState, recordRecentDestination, setAccesskey, setLastUsed } from "./menu-build.ts";
 import { MENU_IDS } from "../menus/menu-ids.ts";
 import { DOWNLOAD_TYPES } from "../shared/constants.ts";
 import { Path, sanitizeFilename } from "../routing/path.ts";
-import { Download } from "../downloads/download.ts";
+import { launchDownload, makeObjectUrl } from "../downloads/download.ts";
 import {
   createExtensionNotification,
   EXTENSION_NOTIFICATION_STREAMS,
@@ -82,8 +82,7 @@ export const handleContextMenuClick = async (
     const downloadType = target.downloadType;
     // A text selection is saved as an object URL of its text (the pure
     // decision only reports the text)
-    let url =
-      target.selectionText != null ? Download.makeObjectUrl(target.selectionText) : target.url;
+    let url = target.selectionText != null ? makeObjectUrl(target.selectionText) : target.url;
     let suggestedFilename = target.suggestedFilename;
     if (!url) {
       return;
@@ -220,9 +219,9 @@ export const handleContextMenuClick = async (
       state.scratch.sourceSidecar = createSourceSidecarRequest(state, originalUrl, clickTab?.title);
     }
 
-    // Fire-and-forget (renameAndDownload is async); Download.launch logs and
+    // Fire-and-forget (renameAndDownload is async); launchDownload logs and
     // reports a terminal failure to the user
-    const result = await Download.launch(state);
+    const result = await launchDownload(state);
 
     if (result.status === "started" && selectedLocation && !privateContext) {
       await setLastUsed(selectedLocation.path, selectedLocation.meta);

@@ -184,8 +184,10 @@ describe("fetch rewrite", () => {
 
     await Download.resolveDownloadPlan(state);
 
-    expect(Download.pendingStates.has("https://cdn.example/small.png")).toBe(false);
-    expect(Download.pendingStates.get("https://mirror.example/orig.png")).toEqual([state]);
+    expect(Download.downloadRuntime.pendingStates.has("https://cdn.example/small.png")).toBe(false);
+    expect(Download.downloadRuntime.pendingStates.get("https://mirror.example/orig.png")).toEqual([
+      state,
+    ]);
     // The persisted templates ride the deferred-route machinery so a late
     // filename resolution re-expands this rule instead of re-matching.
     expect(state.scratch.deferredRouteRequirement).toBe(true);
@@ -451,7 +453,7 @@ describe("renameAndDownload: needRouteMatch", () => {
     expect(global.browser.downloads.download).not.toHaveBeenCalled();
     expect(downloaded).not.toHaveBeenCalled();
     expect(SaveHistory.addHistoryEntry).not.toHaveBeenCalled();
-    expect(Download.pendingStates.get(state.info.url) || []).not.toContain(state);
+    expect(Download.downloadRuntime.pendingStates.get(state.info.url) || []).not.toContain(state);
   });
 
   test("revokes content acquired during planning when route-exclusive skips", async () => {
@@ -507,7 +509,7 @@ describe("renameAndDownload: needRouteMatch", () => {
 
     await expect(Download.renameAndDownload(state)).resolves.toEqual({ status: "skipped" });
 
-    expect(Download.generatedObjectUrls.has(url)).toBe(false);
+    expect(Download.downloadRuntime.generatedObjectUrls.has(url)).toBe(false);
     expect(URL.revokeObjectURL).toHaveBeenCalledWith(url);
   });
 
@@ -521,8 +523,8 @@ describe("renameAndDownload: needRouteMatch", () => {
 
     await expect(Download.renameAndDownload(state)).rejects.toThrow("bad variable");
 
-    expect(Download.pendingStates.get(url) || []).not.toContain(state);
-    expect(Download.generatedObjectUrls.has(url)).toBe(false);
+    expect(Download.downloadRuntime.pendingStates.get(url) || []).not.toContain(state);
+    expect(Download.downloadRuntime.generatedObjectUrls.has(url)).toBe(false);
     expect(URL.revokeObjectURL).toHaveBeenCalledWith(url);
   });
 

@@ -91,7 +91,7 @@ describe("renameAndDownload: browserDownload", () => {
     expect([...downloadState.records.values()].some((r: any) => r.adopted)).toBe(false);
     expect(Log.addLogEntry).toHaveBeenCalledWith("downloads.download failed", "Error: disk full");
     await vi.waitFor(() => expect(sessionStore.siPendingDownloads).toBe(0));
-    expect([...Download.pendingStates.values()].flat()).not.toContain(state);
+    expect([...Download.downloadRuntime.pendingStates.values()].flat()).not.toContain(state);
   });
 
   test("releases offscreen content after a terminal browser rejection", async () => {
@@ -648,7 +648,7 @@ describe("onDeterminingFilename listener: sync path", () => {
 
     const launch = Download.renameAndDownload(state);
     await vi.waitFor(() => expect(sessionStore.siDeferredRoutes).toBeDefined());
-    Download.pendingStates.clear();
+    Download.downloadRuntime.pendingStates.clear();
 
     const suggest = vi.fn();
     capturedListener(
@@ -689,7 +689,7 @@ describe("onDeterminingFilename listener: sync path", () => {
 
     const launch = Download.renameAndDownload(state);
     await vi.waitFor(() => expect(sessionStore.siDeferredRoutes).toBeDefined());
-    Download.pendingStates.clear();
+    Download.downloadRuntime.pendingStates.clear();
 
     const suggest = vi.fn();
     capturedListener(
@@ -850,7 +850,7 @@ describe("onDeterminingFilename listener: sync path", () => {
       ),
     ).toBe(false);
 
-    expect(Download.finalFilenamesByDownloadId.get(202)).toBe("downloads/file.png");
+    expect(Download.downloadRuntime.finalFilenamesByDownloadId.get(202)).toBe("downloads/file.png");
   });
 });
 
@@ -899,10 +899,10 @@ describe("concurrent downloads (pendingStates)", () => {
       log: {
         add: (...args: Parameters<typeof freshLog.addLogEntry>) => freshLog.addLogEntry(...args),
       },
-      retry: dl.Download.retryViaFetch,
+      retry: dl.retryViaFetch,
       sourceSidecar: () => Promise.resolve(),
     });
-    concurrentDownload = dl.Download;
+    concurrentDownload = dl;
     dl.registerDownloadListener();
     [[listener]] = vi.mocked(
       (global.chrome as any).downloads.onDeterminingFilename.addListener,
@@ -931,10 +931,10 @@ describe("concurrent downloads (pendingStates)", () => {
   });
 
   test("same-URL downloads are consumed in request order", () => {
-    concurrentDownload.rememberPendingState(
+    concurrentDownload.downloadRuntime.rememberPendingState(
       makeConcurrentState("https://x/same.png", "dirA", "a.png"),
     );
-    concurrentDownload.rememberPendingState(
+    concurrentDownload.downloadRuntime.rememberPendingState(
       makeConcurrentState("https://x/same.png", "dirB", "b.png"),
     );
 
@@ -956,75 +956,66 @@ describe("concurrent downloads (pendingStates)", () => {
   test("consumed entries are removed and the map stays bounded", () => {
     concurrentDownload.renameAndDownload(makeConcurrentState("https://x/a.png", "dirA", "a.png"));
     listener({ byExtensionId: "self-extension-id", url: "https://x/a.png" }, vi.fn());
-    expect(concurrentDownload.pendingStates.has("https://x/a.png")).toBe(false);
+    expect(concurrentDownload.downloadRuntime.pendingStates.has("https://x/a.png")).toBe(false);
 
     for (let i = 0; i < 60; i += 1) {
-      concurrentDownload.rememberPendingState(
+      concurrentDownload.downloadRuntime.rememberPendingState(
         makeConcurrentState(`https://x/${i}.png`, "d", `${i}.png`),
       );
     }
-    expect(concurrentDownload.pendingStates.size).toBe(60);
+    expect(concurrentDownload.downloadRuntime.pendingStates.size).toBe(60);
   });
 
   test("bounds queued attempts even when every request uses the same URL", () => {
     for (let i = 0; i < 60; i += 1) {
-      concurrentDownload.rememberPendingState(
+      concurrentDownload.downloadRuntime.rememberPendingState(
         makeConcurrentState("https://x/same.png", "d", `${i}.png`),
       );
     }
-    expect(concurrentDownload.pendingStates.get("https://x/same.png")?.length).toBe(60);
+    expect(concurrentDownload.downloadRuntime.pendingStates.get("https://x/same.png")?.length).toBe(
+      60,
+    );
   });
 });
 
-describe("Download.launch (fire-and-forget with a user-facing failure)", () => {
+// A state without a URL makes the real renameAndDownload reject in planning
+// (requireDownloadUrl); launchDownload's containment is exercised without
+// stubbing same-module pipeline internals.
+describe("launchDownload (fire-and-forget with a user-facing failure)", () => {
   test("swallows a pipeline rejection, logging and reporting it to the user", async () => {
-    const orig = Download.renameAndDownload;
-    Download.renameAndDownload = vi.fn(() => Promise.reject(new Error("kaboom")));
-    try {
-      await expect(
-        Download.launch(makeState({ info: { suggestedFilename: "x.png" } })),
-      ).resolves.toEqual({ status: "failed" });
+    await expect(
+      Download.launchDownload(makeState({ info: { suggestedFilename: "x.png", url: undefined } })),
+    ).resolves.toEqual({ status: "failed" });
 
-      expect(Log.addLogEntry).toHaveBeenCalledWith(
-        "renameAndDownload failed",
-        expect.stringContaining("kaboom"),
-      );
-      expect(Notifier.reportDownloadFailure).toHaveBeenCalledWith(
-        "x.png",
-        expect.stringContaining("kaboom"),
-      );
-    } finally {
-      Download.renameAndDownload = orig;
-    }
+    expect(Log.addLogEntry).toHaveBeenCalledWith(
+      "renameAndDownload failed",
+      expect.stringContaining("Download URL is required"),
+    );
+    expect(Notifier.reportDownloadFailure).toHaveBeenCalledWith(
+      "x.png",
+      expect.stringContaining("Download URL is required"),
+    );
   });
 
   test("keeps a rejected source-sidecar launch quiet", async () => {
-    vi.spyOn(Download, "renameAndDownload").mockRejectedValue(new Error("sidecar failed"));
-
     await expect(
-      Download.launch(makeState({ info: { context: DOWNLOAD_TYPES.SIDECAR } })),
+      Download.launchDownload(
+        makeState({ info: { context: DOWNLOAD_TYPES.SIDECAR, url: undefined } }),
+      ),
     ).resolves.toEqual({ status: "failed" });
 
     expect(Notifier.reportDownloadFailure).not.toHaveBeenCalled();
   });
 
   test("reports nothing on a successful pipeline run", async () => {
-    const orig = Download.renameAndDownload;
-    Download.renameAndDownload = vi.fn(() =>
-      Promise.resolve({ status: "started" as const, downloadId: 1 }),
-    );
-    try {
-      await Download.launch(makeState());
-      expect(Notifier.reportDownloadFailure).not.toHaveBeenCalled();
-    } finally {
-      Download.renameAndDownload = orig;
-    }
+    const result = await Download.launchDownload(makeState());
+
+    expect(result.status).toBe("started");
+    expect(Notifier.reportDownloadFailure).not.toHaveBeenCalled();
   });
 
   test("keeps a private launch failure out of the shared log", async () => {
-    vi.spyOn(Download, "renameAndDownload").mockRejectedValue(new Error("private failure"));
-
-    await Download.launch(
+    await Download.launchDownload(
       makeState({
         info: { currentTab: { incognito: true }, suggestedFilename: undefined, url: undefined },
       }),
@@ -1032,12 +1023,12 @@ describe("Download.launch (fire-and-forget with a user-facing failure)", () => {
 
     expect(Log.addLogEntry).toHaveBeenCalledWith(
       "renameAndDownload failed",
-      expect.stringContaining("private failure"),
+      expect.stringContaining("Download URL is required"),
       { privateContext: true },
     );
     expect(Notifier.reportDownloadFailure).toHaveBeenCalledWith(
       "",
-      expect.stringContaining("private failure"),
+      expect.stringContaining("Download URL is required"),
     );
   });
 });
@@ -1076,12 +1067,12 @@ describe("terminal browserDownload failure surfaces to the user", () => {
 describe("owned object URL lifecycle", () => {
   test("revokes an owned object URL when its browser download terminates", () => {
     vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {});
-    Download.ownedObjectUrls.set(404, "blob:owned-download");
+    Download.downloadRuntime.ownedObjectUrls.set(404, "blob:owned-download");
 
     capturedDownloadChangedListener({ id: 404, state: { current: "complete" } });
 
     expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:owned-download");
-    expect(Download.ownedObjectUrls.has(404)).toBe(false);
+    expect(Download.downloadRuntime.ownedObjectUrls.has(404)).toBe(false);
   });
 
   test("ignores nonterminal changes and terminal changes without an object URL", () => {

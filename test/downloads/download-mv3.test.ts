@@ -9,7 +9,7 @@ global.TextEncoder = global.TextEncoder || TextEncoder;
 // Listener registration belongs to the entry, so these worker-safe modules can
 // be imported against the minimal host fixture without messaging side effects.
 
-import { Download } from "../../src/downloads/download.ts";
+import * as Download from "../../src/downloads/download.ts";
 import { OffscreenClient } from "../../src/platform/offscreen-client.ts";
 import {
   fetchUrlForDownload,
@@ -553,7 +553,7 @@ describe("onDeterminingFilename listener (Chrome)", () => {
     suggest: (suggestion?: { filename: string; conflictAction: string }) => void,
   ) => boolean;
   let sessionStore: Record<string, any>;
-  let freshDownload: typeof import("../../src/downloads/download.ts").Download;
+  let freshDownload: typeof import("../../src/downloads/download.ts");
   let freshOptions: typeof import("../../src/config/options-data.ts").options;
 
   beforeEach(async () => {
@@ -601,8 +601,7 @@ describe("onDeterminingFilename listener (Chrome)", () => {
     );
 
     // Attach onDeterminingFilename against the fresh Chrome stub, then capture.
-    const { Download: currentDownload, registerDownloadListener } =
-      await import("../../src/downloads/download.ts");
+    const currentDownload = await import("../../src/downloads/download.ts");
     const { configureDownloadPorts } = await import("../../src/downloads/ports.ts");
     configureDownloadPorts({
       runtime: { ready: Promise.resolve(), debug: false },
@@ -617,7 +616,23 @@ describe("onDeterminingFilename listener (Chrome)", () => {
       sourceSidecar: () => Promise.resolve(),
     });
     freshDownload = currentDownload;
-    registerDownloadListener();
+    // Register with deferred lookups instead of registerDownloadListener():
+    // the production records capture module locals at build time, which a
+    // later vi.spyOn on the namespace cannot reach.
+    const { registerFilenameAndObjectUrlListeners } =
+      await import("../../src/downloads/filename-listener.ts");
+    const { BrowserDownloadRouting, routeBrowserDownload } =
+      await import("../../src/downloads/browser-downloads.ts");
+    const routedDownload = {
+      getRoutingMatches: (state: any) => freshDownload.getRoutingMatches(state),
+      finalizeFullPath: (state: any) => freshDownload.finalizeFullPath(state),
+    };
+    BrowserDownloadRouting.route = (item) => routeBrowserDownload(routedDownload, item);
+    registerFilenameAndObjectUrlListeners({
+      ...currentDownload.downloadRuntime,
+      retryViaFetch: (downloadId: number) => freshDownload.retryViaFetch(downloadId),
+      ...routedDownload,
+    });
     [[listener]] = (global.chrome.downloads.onDeterminingFilename.addListener as any).mock.calls;
   });
 
@@ -786,7 +801,7 @@ describe("onDeterminingFilename listener (Chrome)", () => {
     const sessionState = await import("../../src/shared/session-state.ts");
     vi.mocked(sessionState.updateSession).mockRejectedValueOnce(new Error("storage failed"));
     const url = "blob:retry-cleanup-failure";
-    freshDownload.pendingRetryFilenames.set(url, "route/retried.txt");
+    freshDownload.downloadRuntime.pendingRetryFilenames.set(url, "route/retried.txt");
     const suggest = vi.fn();
 
     expect(
@@ -801,7 +816,7 @@ describe("onDeterminingFilename listener (Chrome)", () => {
 
   test("an in-memory retry consumes its persisted filename only when Chrome asks", async () => {
     const url = "blob:retry-url";
-    freshDownload.pendingRetryFilenames.set(url, "route/retried.txt");
+    freshDownload.downloadRuntime.pendingRetryFilenames.set(url, "route/retried.txt");
     sessionStore.siFinalFilenames = { [url]: "route/retried.txt" };
     const suggest = vi.fn();
 
@@ -898,7 +913,7 @@ describe("onDeterminingFilename listener (Chrome)", () => {
       scratch: { pathTemplateRaw: ":filename:" },
       info: { url: "https://x/file", filename: "old.txt" },
     } as any;
-    freshDownload.rememberPendingState(state);
+    freshDownload.downloadRuntime.rememberPendingState(state);
     const variable = await import("../../src/routing/variable.ts");
     vi.spyOn(variable, "applyVariables").mockRejectedValueOnce(new Error("variable failed"));
     const suggest = vi.fn();
@@ -925,7 +940,7 @@ describe("onDeterminingFilename listener (Chrome)", () => {
       scratch: { pathTemplateRaw: ":filename:", deferredRouteRequirement: true },
       info: { url: "https://x/deferred", filename: "old.txt" },
     } as any;
-    freshDownload.rememberPendingState(state);
+    freshDownload.downloadRuntime.rememberPendingState(state);
     const variable = await import("../../src/routing/variable.ts");
     vi.spyOn(variable, "applyVariables").mockRejectedValueOnce(new Error("variable failed"));
     const suggest = vi.fn();
@@ -951,7 +966,7 @@ describe("onDeterminingFilename listener (Chrome)", () => {
       scratch: {},
       info: { url: "https://x/no-template", filename: "old.txt" },
     } as any;
-    freshDownload.rememberPendingState(state);
+    freshDownload.downloadRuntime.rememberPendingState(state);
     vi.spyOn(freshDownload, "finalizeFullPath").mockReturnValue("server.txt");
     const suggest = vi.fn();
 
@@ -977,7 +992,7 @@ describe("onDeterminingFilename listener (Chrome)", () => {
       scratch: { browserFilenameResolution: false },
       info: { url: "https://x/no-replacement", filename: "old.txt" },
     } as any;
-    freshDownload.rememberPendingState(state);
+    freshDownload.downloadRuntime.rememberPendingState(state);
     vi.spyOn(freshDownload, "finalizeFullPath").mockReturnValue("old.txt");
     const suggest = vi.fn();
 
@@ -1082,7 +1097,7 @@ describe("onDeterminingFilename listener (Chrome)", () => {
       scratch: {},
       info: { url: "https://x/final-pending", filename: "final.txt" },
     } as any;
-    freshDownload.rememberPendingState(state);
+    freshDownload.downloadRuntime.rememberPendingState(state);
     const suggest = vi.fn();
 
     listener(
@@ -1094,7 +1109,7 @@ describe("onDeterminingFilename listener (Chrome)", () => {
       },
       suggest,
     );
-    expect(freshDownload.pendingStates.has("https://x/final-pending")).toBe(false);
+    expect(freshDownload.downloadRuntime.pendingStates.has("https://x/final-pending")).toBe(false);
   });
 
   test("does not register Chrome filename handling when the capability is absent", async () => {
@@ -1109,7 +1124,12 @@ describe("onDeterminingFilename listener (Chrome)", () => {
     detector.setCurrentBrowser("FIREFOX");
     const { registerFilenameAndObjectUrlListeners } =
       await import("../../src/downloads/filename-listener.ts");
-    registerFilenameAndObjectUrlListeners(freshDownload);
+    registerFilenameAndObjectUrlListeners({
+      ...freshDownload.downloadRuntime,
+      retryViaFetch: freshDownload.retryViaFetch,
+      getRoutingMatches: freshDownload.getRoutingMatches,
+      finalizeFullPath: freshDownload.finalizeFullPath,
+    });
 
     expect(onChanged.addListener).toHaveBeenCalledOnce();
   });
@@ -1123,8 +1143,8 @@ describe("onDeterminingFilename listener (Chrome)", () => {
       }) as any;
     const requested = makeState("https://x/request", "request.txt");
     const redirected = makeState("https://x/final", "final.txt");
-    freshDownload.rememberPendingState(requested);
-    freshDownload.rememberPendingState(redirected);
+    freshDownload.downloadRuntime.rememberPendingState(requested);
+    freshDownload.downloadRuntime.rememberPendingState(redirected);
 
     listener(
       {
@@ -1136,6 +1156,8 @@ describe("onDeterminingFilename listener (Chrome)", () => {
       vi.fn(),
     );
 
-    expect(freshDownload.pendingStates.get("https://x/final")).toEqual([redirected]);
+    expect(freshDownload.downloadRuntime.pendingStates.get("https://x/final")).toEqual([
+      redirected,
+    ]);
   });
 });

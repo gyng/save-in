@@ -47,7 +47,9 @@ vi.mock("../../src/platform/chrome-detector.ts", () => ({
 vi.mock("../../src/routing/router.ts", () => mocks.router);
 vi.mock("../../src/routing/variable.ts", () => ({ applyVariables: mocks.applyVariables }));
 vi.mock("../../src/routing/path.ts", () => ({ Path: mocks.Path }));
-vi.mock("../../src/downloads/download.ts", () => ({ Download: mocks.Download }));
+vi.mock("../../src/downloads/download.ts", () => ({
+  getRoutingMatches: (...args: unknown[]) => mocks.Download.getRoutingMatches(...args),
+}));
 
 const setupGlobals = () => {
   mocks.currentBrowser = "UNKNOWN";

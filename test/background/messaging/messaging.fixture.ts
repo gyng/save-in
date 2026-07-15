@@ -27,7 +27,7 @@ const { registerMessaging, resetMessagingTransientState } = Messaging;
 // spies / Object.assign on them reach the live code.
 const { OptionsManagement } = await import("../../../src/config/option.ts");
 const { options } = await import("../../../src/config/options-data.ts");
-const { Download } = await import("../../../src/downloads/download.ts");
+const Download = await import("../../../src/downloads/download.ts");
 const Notifier = await import("../../../src/downloads/notification.ts");
 const Menus = await import("../../../src/menus/menu-tree.ts");
 const router = await import("../../../src/routing/router.ts");
@@ -67,9 +67,9 @@ const setupGlobals = () => {
     externalDownloadAllowlist: "trusted-extension",
     saveSourceSidecar: false,
   });
-  vi.spyOn(Download, "renameAndDownload").mockResolvedValue({ status: "started", downloadId: 1 });
-  // Download.launch stays real: it just calls renameAndDownload (the rejection
-  // path it also handles is covered in download-flow.test).
+  vi.spyOn(Download, "launchDownload").mockResolvedValue({ status: "started", downloadId: 1 });
+  // The message entry point launchDownload is stubbed so handler tests never
+  // run the real pipeline; its containment path is covered in download-execution.
   vi.spyOn(Notifier, "expectDownload").mockImplementation((url?: string) => ({ url }));
   vi.spyOn(Menus, "buildTree").mockImplementation((paths: string[]) => ({
     items: paths.map((path, index) => ({

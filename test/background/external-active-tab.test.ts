@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import * as Messaging from "../../src/background/messaging.ts";
-import { Download } from "../../src/downloads/download.ts";
+import * as Download from "../../src/downloads/download.ts";
 import { MESSAGE_TYPES } from "../../src/shared/constants.ts";
 import { webExtensionApi } from "../../src/platform/web-extension-api.ts";
 
@@ -15,7 +15,7 @@ describe("external active-tab downloads", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
     vi.clearAllMocks();
-    vi.spyOn(Download, "launch").mockResolvedValue({ status: "skipped" });
+    vi.spyOn(Download, "launchDownload").mockResolvedValue({ status: "skipped" });
     vi.spyOn(webExtensionApi.tabs, "query").mockResolvedValue([]);
   });
 
@@ -46,7 +46,7 @@ describe("external active-tab downloads", () => {
       active: true,
       lastFocusedWindow: true,
     });
-    const state = vi.mocked(Download.launch).mock.calls[0]![0]!;
+    const state = vi.mocked(Download.launchDownload).mock.calls[0]![0]!;
     expect(state.info.url).toBe("https://x/active");
     expect(state.info.currentTab).toBe(activeTab);
     expect(state.info.comment).toBe("gesturefy");
@@ -66,7 +66,7 @@ describe("external active-tab downloads", () => {
     );
 
     expect(webExtensionApi.tabs.query).not.toHaveBeenCalled();
-    const state = vi.mocked(Download.launch).mock.calls[0]![0]!;
+    const state = vi.mocked(Download.launchDownload).mock.calls[0]![0]!;
     expect(state.info.url).toBe("https://x/origin");
     expect(state.info.currentTab).toBe(senderTab);
   });
@@ -79,7 +79,9 @@ describe("external active-tab downloads", () => {
     );
 
     expect(webExtensionApi.tabs.query).not.toHaveBeenCalled();
-    expect(vi.mocked(Download.launch).mock.calls[0]![0]!.info.url).toBe("https://x/explicit");
+    expect(vi.mocked(Download.launchDownload).mock.calls[0]![0]!.info.url).toBe(
+      "https://x/explicit",
+    );
   });
 
   test("reports a missing active tab without launching", async () => {
@@ -87,7 +89,7 @@ describe("external active-tab downloads", () => {
 
     await Messaging.handleDownloadMessage(request({ target: "activeTab" }), {}, sendResponse);
 
-    expect(Download.launch).not.toHaveBeenCalled();
+    expect(Download.launchDownload).not.toHaveBeenCalled();
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.DOWNLOAD,
       body: {

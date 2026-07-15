@@ -1,6 +1,6 @@
 import { SHORTCUT_TYPES, DOWNLOAD_TYPES } from "../../src/shared/constants.ts";
 import * as shortcut from "../../src/downloads/shortcut.ts";
-import { Download } from "../../src/downloads/download.ts";
+import * as Download from "../../src/downloads/download.ts";
 import * as Path from "../../src/routing/path.ts";
 import { setCurrentTab } from "../../src/platform/current-tab.ts";
 import {
@@ -47,7 +47,7 @@ describe("shortcut content creation", () => {
     options.saveSourceSidecar = true;
     options.shortcutType = SHORTCUT_TYPES.WINDOWS;
     options.truncateLength = 200;
-    const launch = vi.spyOn(Download, "launch").mockResolvedValue({
+    const launch = vi.spyOn(Download, "launchDownload").mockResolvedValue({
       status: "started",
       downloadId: 8,
     });

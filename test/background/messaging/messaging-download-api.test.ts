@@ -37,7 +37,7 @@ describe("handleDownloadMessage", () => {
         sendResponse,
       ),
     ).toBe(true);
-    expect(Download.renameAndDownload).toHaveBeenCalledTimes(1);
+    expect(Download.launchDownload).toHaveBeenCalledTimes(1);
     await waitForCall(sendResponse);
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.DOWNLOAD,
@@ -48,7 +48,7 @@ describe("handleDownloadMessage", () => {
   test("rejects an omitted body as a missing URL", () => {
     const sendResponse = vi.fn();
     onMessage({ type: MESSAGE_TYPES.DOWNLOAD }, {}, sendResponse);
-    expect(Download.renameAndDownload).not.toHaveBeenCalled();
+    expect(Download.launchDownload).not.toHaveBeenCalled();
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.DOWNLOAD,
       body: {
@@ -64,9 +64,9 @@ describe("handleDownloadMessage", () => {
     const sendResponse = vi.fn();
     expect(onMessage(request(), {}, sendResponse)).toBe(true);
 
-    expect(Download.renameAndDownload).toHaveBeenCalledTimes(1);
+    expect(Download.launchDownload).toHaveBeenCalledTimes(1);
 
-    const state = vi.mocked(Download.renameAndDownload).mock.calls[0]![0]!;
+    const state = vi.mocked(Download.launchDownload).mock.calls[0]![0]!;
     expect(state.path).toMatchObject({ raw: "." });
     expect(state.path.finalize()).toBe(".");
     expect(state.scratch).toEqual({});
@@ -85,7 +85,7 @@ describe("handleDownloadMessage", () => {
 
   test("keeps the message channel alive until the browser accepts the download", async () => {
     let finish!: (value: { status: "started"; downloadId: number }) => void;
-    vi.mocked(Download.renameAndDownload).mockReturnValueOnce(
+    vi.mocked(Download.launchDownload).mockReturnValueOnce(
       new Promise((resolve) => {
         finish = resolve;
       }),
@@ -122,8 +122,8 @@ describe("handleDownloadMessage", () => {
     ).toBe(true);
 
     await waitForCall(sendResponse);
-    expect(Download.renameAndDownload).toHaveBeenCalledOnce();
-    expect(vi.mocked(Download.renameAndDownload).mock.calls[0]![0]!.scratch.sourceSidecar).toEqual({
+    expect(Download.launchDownload).toHaveBeenCalledOnce();
+    expect(vi.mocked(Download.launchDownload).mock.calls[0]![0]!.scratch.sourceSidecar).toEqual({
       sourceUrl: "https://x/file.png",
       pageUrl: "https://x/",
       title: "Tracked Tab",
@@ -153,7 +153,7 @@ describe("handleDownloadMessage", () => {
     ).toBe(true);
 
     await waitForCall(sendResponse);
-    expect(Download.renameAndDownload).toHaveBeenCalledOnce();
+    expect(Download.launchDownload).toHaveBeenCalledOnce();
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.DOWNLOAD,
       body: { status: MESSAGE_TYPES.OK, version: 1, url: "https://x/file.png" },
@@ -192,7 +192,7 @@ describe("handleDownloadMessage", () => {
       vi.fn(),
     );
 
-    const state = vi.mocked(Download.renameAndDownload).mock.calls[0]![0]!;
+    const state = vi.mocked(Download.launchDownload).mock.calls[0]![0]!;
     expect(state.info.suggestedFilename).toBe("caller-name.png");
   });
 
@@ -210,7 +210,7 @@ describe("handleDownloadMessage", () => {
       vi.fn(),
     );
 
-    const state = vi.mocked(Download.renameAndDownload).mock.calls[0]![0]!;
+    const state = vi.mocked(Download.launchDownload).mock.calls[0]![0]!;
     expect(state.info).toMatchObject({
       mime: "image/png",
       mediaType: "image",
@@ -234,7 +234,7 @@ describe("handleDownloadMessage", () => {
 
     onMessage(request(), {}, vi.fn());
 
-    const state = vi.mocked(Download.renameAndDownload).mock.calls[0]![0]!;
+    const state = vi.mocked(Download.launchDownload).mock.calls[0]![0]!;
     expect(state.path).toBe(lastPath);
     // Inheriting the previous route, filename, or scratch would name this
     // download after the previous one (found live by the alt+click e2e)
@@ -253,7 +253,7 @@ describe("handleDownloadMessage", () => {
 
     onMessage(request(), {}, vi.fn());
 
-    const state = vi.mocked(Download.renameAndDownload).mock.calls[0]![0]!;
+    const state = vi.mocked(Download.launchDownload).mock.calls[0]![0]!;
     expect(state.path).toMatchObject({ raw: "." });
     expect(state.path.finalize()).toBe(".");
   });
@@ -262,21 +262,21 @@ describe("handleDownloadMessage", () => {
     const senderTab = { id: 5, title: "Sender Tab" };
     onMessage(request(), { tab: senderTab }, vi.fn());
 
-    const state = vi.mocked(Download.renameAndDownload).mock.calls[0]![0]!;
+    const state = vi.mocked(Download.launchDownload).mock.calls[0]![0]!;
     expect(state.info.currentTab).toBe(senderTab);
   });
 
   test("falls back to the tracked tab when the sender has none", () => {
     onMessage(request(), {}, vi.fn());
 
-    const state = vi.mocked(Download.renameAndDownload).mock.calls[0]![0]!;
+    const state = vi.mocked(Download.launchDownload).mock.calls[0]![0]!;
     expect(state.info.currentTab).toBe(trackedTab);
   });
 
   test("passes through a comment for routing rules (external extensions)", () => {
     onMessage(request({ comment: "from-foxy-gestures" }), {}, vi.fn());
 
-    const state = vi.mocked(Download.renameAndDownload).mock.calls[0]![0]!;
+    const state = vi.mocked(Download.launchDownload).mock.calls[0]![0]!;
     expect(state.info.comment).toBe("from-foxy-gestures");
   });
 
@@ -294,7 +294,7 @@ describe("handleDownloadMessage", () => {
       vi.fn(),
     );
 
-    const state = vi.mocked(Download.renameAndDownload).mock.calls[0]![0]!;
+    const state = vi.mocked(Download.launchDownload).mock.calls[0]![0]!;
     expect(state.info.context).toBe(DOWNLOAD_TYPES.CLICK);
     expect(state.info.url).toBe("https://x/file.png");
     expect(state.info.currentTab).toBe(trackedTab);
@@ -303,7 +303,7 @@ describe("handleDownloadMessage", () => {
   test("omits the comment when none is supplied", () => {
     onMessage(request(), {}, vi.fn());
 
-    const state = vi.mocked(Download.renameAndDownload).mock.calls[0]![0]!;
+    const state = vi.mocked(Download.launchDownload).mock.calls[0]![0]!;
     expect(state.info.comment).toBeUndefined();
   });
 
@@ -313,7 +313,7 @@ describe("handleDownloadMessage", () => {
       onMessageExternal(request(), { id: "trusted-extension", tab: { id: 9 } }, sendResponse),
     ).toBe(true);
 
-    expect(Download.renameAndDownload).toHaveBeenCalledTimes(1);
+    expect(Download.launchDownload).toHaveBeenCalledTimes(1);
     await waitForCall(sendResponse);
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.DOWNLOAD,
@@ -331,13 +331,13 @@ describe("handleDownloadMessage", () => {
     expect(
       onMessageExternal(request(), { id: "trusted-extension", tab: { id: 9 } }, sendResponse),
     ).toBe(true);
-    expect(Download.renameAndDownload).not.toHaveBeenCalled();
+    expect(Download.launchDownload).not.toHaveBeenCalled();
     expect(sendResponse).not.toHaveBeenCalled();
 
     finish();
     await backgroundRuntime.ready;
     await waitForCall(sendResponse);
-    expect(Download.renameAndDownload).toHaveBeenCalledTimes(1);
+    expect(Download.launchDownload).toHaveBeenCalledTimes(1);
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.DOWNLOAD,
       body: { status: MESSAGE_TYPES.OK, version: 1, url: "https://x/file.png" },
@@ -379,8 +379,8 @@ into: automatic/:pagedomain:/
     expect(onMessage(request, { tab: senderTab }, sendResponse)).toBe(true);
     await waitForCall(sendResponse);
 
-    expect(Download.renameAndDownload).toHaveBeenCalledOnce();
-    const state = vi.mocked(Download.renameAndDownload).mock.calls[0]![0]!;
+    expect(Download.launchDownload).toHaveBeenCalledOnce();
+    const state = vi.mocked(Download.launchDownload).mock.calls[0]![0]!;
     expect(state.path).toMatchObject({ raw: "." });
     expect(state.scratch.routeTemplateRaw).toBe("automatic/:pagedomain:/");
     expect(state.info).toMatchObject({
@@ -414,7 +414,7 @@ into: automatic/:$1:
     expect(onMessage(request, { tab: senderTab }, sendResponse)).toBe(true);
     await waitForCall(sendResponse);
 
-    const state = vi.mocked(Download.renameAndDownload).mock.calls[0]![0]!;
+    const state = vi.mocked(Download.launchDownload).mock.calls[0]![0]!;
     expect(state.scratch.routeTemplateRaw).toBe("automatic/cat.png");
     expect(state.scratch.fetchTemplateRaw).toBe("https://cdn.test/full/cat.png");
   });
@@ -436,7 +436,7 @@ into: automatic/:$1:
     );
 
     await waitForCall(sendResponse);
-    expect(Download.renameAndDownload).not.toHaveBeenCalled();
+    expect(Download.launchDownload).not.toHaveBeenCalled();
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
       body: { status: "skipped" },
@@ -455,7 +455,7 @@ into: automatic/:$1:
       );
 
       await waitForCall(sendResponse);
-      expect(Download.renameAndDownload).not.toHaveBeenCalled();
+      expect(Download.launchDownload).not.toHaveBeenCalled();
       expect(sendResponse).toHaveBeenCalledWith({
         type: MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
         body: { status: "skipped" },
@@ -473,7 +473,7 @@ into: automatic/:$1:
       sendResponse,
     );
     await waitForCall(sendResponse);
-    expect(Download.renameAndDownload).toHaveBeenCalledOnce();
+    expect(Download.launchDownload).toHaveBeenCalledOnce();
   });
 });
 

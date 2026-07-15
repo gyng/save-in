@@ -1,6 +1,6 @@
 import { options } from "../config/options-data.ts";
 import type { DownloadInfo } from "../downloads/download-types.ts";
-import { Download } from "../downloads/download.ts";
+import { getRoutingMatches } from "../downloads/download.ts";
 import { Path } from "../routing/path.ts";
 import { getCaptureMatches, matchRule } from "../routing/router.ts";
 import { applyVariables } from "../routing/variable.ts";
@@ -25,7 +25,7 @@ export const previewRoutes = async (state?: RoutePreviewState | null): Promise<R
     preview: true,
   };
   const previewState = { ...state, info };
-  const matchedRoute = Download.getRoutingMatches(previewState);
+  const matchedRoute = getRoutingMatches(previewState);
   const path = await applyVariables(new Path(matchedRoute), info);
 
   const filenamePatterns = Array.isArray(options.filenamePatterns) ? options.filenamePatterns : [];

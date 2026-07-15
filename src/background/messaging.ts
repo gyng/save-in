@@ -8,7 +8,7 @@ import { OptionsManagement } from "../config/option.ts";
 import { options } from "../config/options-data.ts";
 import { buildTree } from "../menus/menu-tree.ts";
 import { matcherFunctions, parseRulesCollecting, traceRules } from "../routing/router.ts";
-import { Download } from "../downloads/download.ts";
+import { launchDownload } from "../downloads/download.ts";
 import { createSourceSidecarRequest } from "../downloads/source-sidecar.ts";
 import { reportExternalDownloadRejection } from "../downloads/notification.ts";
 import { currentTab, type CurrentTab } from "../platform/current-tab.ts";
@@ -526,7 +526,7 @@ export const handleDownloadMessage = (
     // Keep the MV3 message event alive through routing, lazy variables and the
     // downloads API call. The response still acknowledges browser acceptance,
     // not eventual download completion.
-    return Download.launch(clickState).then(() => {
+    return launchDownload(clickState).then(() => {
       // Acknowledge the accepted primary save before doing optional child
       // work. Content-script batches must not wait for a second download,
       // and a sidecar failure must never turn the primary save into a retry.
@@ -609,7 +609,7 @@ export const handleAutoDownloadSource = async (
     return;
   }
 
-  const result = await Download.launch({
+  const result = await launchDownload({
     path: new Path("."),
     scratch: {
       routeTemplateRaw: match.destination,
