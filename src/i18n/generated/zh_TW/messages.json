@@ -335,7 +335,7 @@
     "message": "失敗"
   },
   "o_lHistoryDateSaved": {
-    "message": "儲存日期"
+    "message": "開始日期"
   },
   "o_lHistoryAnyTime": {
     "message": "任何時間"
@@ -509,34 +509,34 @@
     "message": "路由規則相符時顯示通知"
   },
   "o_cSaveShortcutsAs": {
-    "message": "捷徑儲存格式"
+    "message": "檔案格式"
   },
   "o_cSaveShortcutsTypeHtml": {
-    "message": "HTML 重定向"
+    "message": "HTML 重新導向（.html）"
   },
   "o_cSaveShortcutsTypeMac": {
-    "message": "Mac .url"
+    "message": "Legacy macOS shortcut (.url)"
   },
   "o_cSaveShortcutsTypeMacWebloc": {
-    "message": "macOS .webloc"
+    "message": "macOS internet location (.webloc)"
   },
   "o_cSaveShortcutsTypeWindows": {
-    "message": "Windows .url"
+    "message": "Windows internet shortcut (.url)"
   },
   "o_cSaveShortcutsTypeFreedesktop": {
-    "message": "Freedesktop .desktop"
+    "message": "Linux desktop shortcut (.desktop)"
   },
   "o_cSaveShortcutsMediaInstead": {
-    "message": "改將媒體儲存為捷徑"
+    "message": "將媒體儲存為捷徑檔案"
   },
   "o_cSaveShortcutsLinksInstead": {
-    "message": "改將連結儲存為捷徑"
+    "message": "將連結儲存為捷徑檔案"
   },
   "o_cSaveShortcutsPagesInstead": {
-    "message": "改將頁面儲存為捷徑"
+    "message": "將頁面儲存為捷徑檔案"
   },
   "o_cSaveShortcutsTabsInstead": {
-    "message": "改將分頁儲存為捷徑（從分頁內容選單）"
+    "message": "從分頁內容選單將分頁儲存為捷徑檔案"
   },
   "o_cKeyboardShortcutSaveInMenu": {
     "message": "Save In 上下文選單項目"
@@ -962,7 +962,7 @@
     "message": "點選"
   },
   "html_clickToSaveShortcut": {
-    "message": "點選儲存快速鍵"
+    "message": "觸發方式"
   },
   "html_clickToSaveShortcutCombination": {
     "message": "點選儲存快速鍵組合"
@@ -977,13 +977,13 @@
     "message": "Command / Windows key"
   },
   "html_copy0LeavesDismissalToTheBrowserOrOperatingSystem": {
-    "message": "設為 0 時，由瀏覽器或作業系統決定何時關閉通知。"
+    "message": "0 會使用瀏覽器或作業系統的預設值。"
   },
   "html_ctrl": {
     "message": "Ctrl"
   },
   "html_dismissEarlyAfter": {
-    "message": "提前關閉時間"
+    "message": "關閉通知前等待"
   },
   "html_export": {
     "message": "匯出"
@@ -1025,13 +1025,13 @@
     "message": "啟用此功能後，僅使用滑鼠左鍵單擊將取代可儲存媒體和連結的正常單擊。"
   },
   "html_ms": {
-    "message": "ms"
+    "message": "秒"
   },
   "html_none": {
     "message": "None"
   },
   "html_notifyMeWhen": {
-    "message": "通知時機"
+    "message": "通知事件"
   },
   "html_previewOfThePageSourcesDrawer": {
     "message": "「頁面來源」面板預覽"
@@ -1040,7 +1040,7 @@
     "message": "主要修飾符"
   },
   "html_saveTheseAsShortcutFiles": {
-    "message": "儲存為捷徑檔案"
+    "message": "以下項目使用捷徑檔案"
   },
   "html_secondModifier": {
     "message": "第二個修飾符"
@@ -1052,7 +1052,7 @@
     "message": "Shift"
   },
   "html_shortcutFileBehavior": {
-    "message": "捷徑檔案行為"
+    "message": "捷徑檔案設定"
   },
   "html_shortcutKey": {
     "message": "快速鍵"
@@ -2022,6 +2022,182 @@
   "ruleTemplateViewInEditor": {
     "message": "在規則編輯器中檢視"
   },
+  "historyActiveFilters": {
+    "message": "已套用的歷史記錄篩選條件"
+  },
+  "historyExportAll": {
+    "message": "匯出全部"
+  },
+  "historyFilterSearch": {
+    "message": "搜尋：「$QUERY$」",
+    "placeholders": {
+      "query": {
+        "content": "$1",
+        "example": "invoice"
+      }
+    }
+  },
+  "historyFilterSince": {
+    "message": "從 $DATE$ 起",
+    "placeholders": {
+      "date": {
+        "content": "$1",
+        "example": "2026-07-01"
+      }
+    }
+  },
+  "historyFilterThrough": {
+    "message": "截至 $DATE$",
+    "placeholders": {
+      "date": {
+        "content": "$1",
+        "example": "2026-07-31"
+      }
+    }
+  },
+  "historyDateRangeInvalid": {
+    "message": "開始日期必須早於或等於結束日期。"
+  },
+  "historyShowFolderUnavailable": {
+    "message": "無法開啟資料夾。此瀏覽器已無此下載項目的記錄。"
+  },
+  "historyShowFolderFailed": {
+    "message": "無法開啟資料夾。檔案可能已移動或刪除。"
+  },
+  "historyFilteredResultsCount": {
+    "message": "$TOTAL$ 筆結果中有 $MATCHES$ 筆",
+    "placeholders": {
+      "matches": {
+        "content": "$1",
+        "example": "12"
+      },
+      "total": {
+        "content": "$2",
+        "example": "50"
+      }
+    }
+  },
+  "historyResultCountOne": {
+    "message": "$COUNT$ 筆結果",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
+  },
+  "historyResultCount": {
+    "message": "$COUNT$ 筆結果",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "24"
+      }
+    }
+  },
+  "historyStorageLimit": {
+    "message": "歷史記錄會保留在此裝置上，最多 10,000 筆。"
+  },
+  "historyTableCaption": {
+    "message": "已儲存的下載歷史記錄"
+  },
+  "historyShowInFolder": {
+    "message": "在資料夾中顯示"
+  },
+  "historyCancelDownload": {
+    "message": "取消"
+  },
+  "historyCancelDownloadTitle": {
+    "message": "取消此下載"
+  },
+  "historyCancelDownloadNamed": {
+    "message": "取消 $FILE$",
+    "placeholders": {
+      "file": {
+        "content": "$1",
+        "example": "photo.jpg"
+      }
+    }
+  },
+  "historyCancelingDownload": {
+    "message": "正在取消…"
+  },
+  "historyRoutingApplied": {
+    "message": "已套用"
+  },
+  "historyRoutingAppliedTitle": {
+    "message": "已套用路由或重新命名規則。"
+  },
+  "historyNewer": {
+    "message": "‹ 較新"
+  },
+  "historyPageCount": {
+    "message": "第 $PAGE$ 頁，共 $TOTAL$ 頁",
+    "placeholders": {
+      "page": {
+        "content": "$1",
+        "example": "2"
+      },
+      "total": {
+        "content": "$2",
+        "example": "5"
+      }
+    }
+  },
+  "historyOlder": {
+    "message": "較舊 ›"
+  },
+  "historyLoadFailed": {
+    "message": "無法載入歷史記錄。"
+  },
+  "historyRetry": {
+    "message": "重試"
+  },
+  "historyDeleteConfirmTitle": {
+    "message": "要刪除所有歷史記錄嗎？"
+  },
+  "historyDeleteConfirmDescription": {
+    "message": "這會永久刪除所有已儲存的歷史記錄，且無法復原。"
+  },
+  "historyKeepHistory": {
+    "message": "保留歷史記錄"
+  },
+  "historyDeleteAll": {
+    "message": "刪除所有歷史記錄"
+  },
+  "historyClearing": {
+    "message": "正在刪除歷史記錄…"
+  },
+  "historyClearFailed": {
+    "message": "無法刪除歷史記錄。"
+  },
+  "historyStatusSaving": {
+    "message": "儲存中…"
+  },
+  "historyStatusCanceled": {
+    "message": "已取消"
+  },
+  "historyStatusNetworkFailed": {
+    "message": "網路失敗"
+  },
+  "historyStatusDownloadFailed": {
+    "message": "下載失敗"
+  },
+  "historyStatusPreparationFailed": {
+    "message": "準備失敗"
+  },
+  "historyStatusPreparationInterrupted": {
+    "message": "已中斷"
+  },
+  "historyStatusStateLost": {
+    "message": "下載狀態已遺失"
+  },
+  "historyStatusRoutingFailed": {
+    "message": "路由失敗"
+  },
+  "historyStatusNoRuleMatch": {
+    "message": "無相符規則"
+  },
   "historyColumnInitiated": {
     "message": "開始時間"
   },
@@ -2041,7 +2217,7 @@
     "message": "類型"
   },
   "historyColumnRule": {
-    "message": "規則"
+    "message": "路由"
   },
   "historyColumnFile": {
     "message": "檔案"

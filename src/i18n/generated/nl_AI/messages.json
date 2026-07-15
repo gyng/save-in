@@ -152,6 +152,86 @@
   "ruleTemplateAdd": { "message": "Toevoegen" },
   "ruleTemplateAddedFeedback": { "message": "Toegevoegd" },
   "ruleTemplateViewInEditor": { "message": "In de regeleditor bekijken" },
+  "historyActiveFilters": { "message": "Actieve geschiedenisfilters" },
+  "historyExportAll": { "message": "Alles exporteren" },
+  "historyFilterSearch": {
+    "message": "Zoeken: ‘$QUERY$’",
+    "placeholders": { "query": { "content": "$1", "example": "invoice" } }
+  },
+  "historyFilterSince": {
+    "message": "Sinds $DATE$",
+    "placeholders": { "date": { "content": "$1", "example": "2026-07-01" } }
+  },
+  "historyFilterThrough": {
+    "message": "Tot en met $DATE$",
+    "placeholders": { "date": { "content": "$1", "example": "2026-07-31" } }
+  },
+  "historyDateRangeInvalid": { "message": "De begindatum moet op of vóór de einddatum liggen." },
+  "historyShowFolderUnavailable": {
+    "message": "De map kon niet worden geopend. De browser kent deze download niet meer."
+  },
+  "historyShowFolderFailed": {
+    "message": "De map kon niet worden geopend. Het bestand is mogelijk verplaatst of verwijderd."
+  },
+  "historyFilteredResultsCount": {
+    "message": "$MATCHES$ van $TOTAL$ resultaten",
+    "placeholders": {
+      "matches": { "content": "$1", "example": "12" },
+      "total": { "content": "$2", "example": "50" }
+    }
+  },
+  "historyResultCountOne": {
+    "message": "$COUNT$ resultaat",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "historyResultCount": {
+    "message": "$COUNT$ resultaten",
+    "placeholders": { "count": { "content": "$1", "example": "24" } }
+  },
+  "historyStorageLimit": {
+    "message": "De geschiedenis blijft op dit apparaat staan, tot maximaal 10.000 items."
+  },
+  "historyTableCaption": { "message": "Geschiedenis van opgeslagen downloads" },
+  "historyShowInFolder": { "message": "In map tonen" },
+  "historyCancelDownload": { "message": "Annuleren" },
+  "historyCancelDownloadTitle": { "message": "Deze download annuleren" },
+  "historyCancelDownloadNamed": {
+    "message": "$FILE$ annuleren",
+    "placeholders": { "file": { "content": "$1", "example": "photo.jpg" } }
+  },
+  "historyCancelingDownload": { "message": "Annuleren…" },
+  "historyRoutingApplied": { "message": "Toegepast" },
+  "historyRoutingAppliedTitle": {
+    "message": "Er is een routerings- of hernoemingsregel toegepast."
+  },
+  "historyNewer": { "message": "‹ Nieuwer" },
+  "historyPageCount": {
+    "message": "Pagina $PAGE$ van $TOTAL$",
+    "placeholders": {
+      "page": { "content": "$1", "example": "2" },
+      "total": { "content": "$2", "example": "5" }
+    }
+  },
+  "historyOlder": { "message": "Ouder ›" },
+  "historyLoadFailed": { "message": "De geschiedenis kon niet worden geladen." },
+  "historyRetry": { "message": "Opnieuw proberen" },
+  "historyDeleteConfirmTitle": { "message": "Alle geschiedenis verwijderen?" },
+  "historyDeleteConfirmDescription": {
+    "message": "Hiermee worden alle opgeslagen geschiedenisitems permanent verwijderd. Dit kan niet ongedaan worden gemaakt."
+  },
+  "historyKeepHistory": { "message": "Geschiedenis behouden" },
+  "historyDeleteAll": { "message": "Alle geschiedenis verwijderen" },
+  "historyClearing": { "message": "Geschiedenis verwijderen…" },
+  "historyClearFailed": { "message": "De geschiedenis kon niet worden verwijderd." },
+  "historyStatusSaving": { "message": "Opslaan…" },
+  "historyStatusCanceled": { "message": "Geannuleerd" },
+  "historyStatusNetworkFailed": { "message": "Netwerkfout" },
+  "historyStatusDownloadFailed": { "message": "Download mislukt" },
+  "historyStatusPreparationFailed": { "message": "Voorbereiding mislukt" },
+  "historyStatusPreparationInterrupted": { "message": "Onderbroken" },
+  "historyStatusStateLost": { "message": "Downloadstatus verloren" },
+  "historyStatusRoutingFailed": { "message": "Routering mislukt" },
+  "historyStatusNoRuleMatch": { "message": "Geen overeenkomende regel" },
   "genericUnknownError": {
     "message": "Onbekende fout"
   },
@@ -438,7 +518,7 @@
     "message": "Mislukt"
   },
   "o_lHistoryDateSaved": {
-    "message": "Datum opgeslagen"
+    "message": "Gestart"
   },
   "o_lHistoryAnyTime": {
     "message": "Elk moment"
@@ -612,34 +692,34 @@
     "message": "Melden wanneer een routeringsregel overeenkomt"
   },
   "o_cSaveShortcutsAs": {
-    "message": "Snelkoppelingen opslaan als"
+    "message": "Bestandsindeling"
   },
   "o_cSaveShortcutsTypeHtml": {
-    "message": "HTML-omleiding"
+    "message": "HTML-omleiding (.html)"
   },
   "o_cSaveShortcutsTypeMac": {
-    "message": "Mac .url"
+    "message": "Legacy macOS shortcut (.url)"
   },
   "o_cSaveShortcutsTypeMacWebloc": {
-    "message": "macOS .webloc"
+    "message": "macOS internet location (.webloc)"
   },
   "o_cSaveShortcutsTypeWindows": {
-    "message": "Windows .url"
+    "message": "Windows internet shortcut (.url)"
   },
   "o_cSaveShortcutsTypeFreedesktop": {
-    "message": "Freedesktop .desktop"
+    "message": "Linux desktop shortcut (.desktop)"
   },
   "o_cSaveShortcutsMediaInstead": {
-    "message": "Sla media in plaats daarvan op als snelkoppelingen"
+    "message": "Media opslaan als snelkoppelingsbestanden"
   },
   "o_cSaveShortcutsLinksInstead": {
-    "message": "Koppelingen in plaats daarvan als snelkoppelingen opslaan"
+    "message": "Links opslaan als snelkoppelingsbestanden"
   },
   "o_cSaveShortcutsPagesInstead": {
-    "message": "Sla pagina's in plaats daarvan op als snelkoppelingen"
+    "message": "Pagina’s opslaan als snelkoppelingsbestanden"
   },
   "o_cSaveShortcutsTabsInstead": {
-    "message": "Tabbladen opslaan als snelkoppelingen (vanuit het tabbladcontextmenu)"
+    "message": "Tabbladen vanuit het contextmenu voor tabbladen opslaan als snelkoppelingsbestanden"
   },
   "o_cKeyboardShortcutSaveInMenu": {
     "message": "Save In-item in het contextmenu"
@@ -1065,7 +1145,7 @@
     "message": "Klik"
   },
   "html_clickToSaveShortcut": {
-    "message": "Sneltoets voor opslaan met een klik"
+    "message": "Activering"
   },
   "html_clickToSaveShortcutCombination": {
     "message": "Sneltoetscombinatie voor opslaan met een klik"
@@ -1080,13 +1160,13 @@
     "message": "Command / Windows key"
   },
   "html_copy0LeavesDismissalToTheBrowserOrOperatingSystem": {
-    "message": "Bij 0 bepaalt de browser of het besturingssysteem wanneer de melding verdwijnt."
+    "message": "0 gebruikt de standaardinstelling van de browser of het besturingssysteem."
   },
   "html_ctrl": {
     "message": "Ctrl"
   },
   "html_dismissEarlyAfter": {
-    "message": "Voortijdig sluiten na"
+    "message": "Sluiten na"
   },
   "html_export": {
     "message": "Exporteren"
@@ -1128,13 +1208,13 @@
     "message": "Als deze functie is ingeschakeld, vervangt klikken met alleen de linkermuisknop normale klikken op media en koppelingen die kunnen worden opgeslagen."
   },
   "html_ms": {
-    "message": "ms"
+    "message": "seconden"
   },
   "html_none": {
     "message": "None"
   },
   "html_notifyMeWhen": {
-    "message": "Laat weten wanneer"
+    "message": "Meldingsgebeurtenissen"
   },
   "html_previewOfThePageSourcesDrawer": {
     "message": "Voorvertoning van het paneel Paginabronnen"
@@ -1143,7 +1223,7 @@
     "message": "Primaire modificator"
   },
   "html_saveTheseAsShortcutFiles": {
-    "message": "Opslaan als snelkoppelingsbestanden"
+    "message": "Snelkoppelingsbestanden gebruiken voor"
   },
   "html_secondModifier": {
     "message": "Tweede modificator"
@@ -1155,7 +1235,7 @@
     "message": "Shift"
   },
   "html_shortcutFileBehavior": {
-    "message": "Gedrag van snelkoppelingsbestanden"
+    "message": "Instellingen voor snelkoppelingsbestanden"
   },
   "html_shortcutKey": {
     "message": "Sneltoets"
@@ -1958,7 +2038,7 @@
   "historyColumnStatus": { "message": "Status" },
   "historyColumnSize": { "message": "Grootte" },
   "historyColumnType": { "message": "Type" },
-  "historyColumnRule": { "message": "Regel" },
+  "historyColumnRule": { "message": "Routering" },
   "historyColumnFile": { "message": "Bestand" },
   "historyColumnFolder": { "message": "Map" },
   "historyColumnUrl": { "message": "URL" },

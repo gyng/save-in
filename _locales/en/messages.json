@@ -428,7 +428,7 @@
     "description": "Label, status, or help text in the options interface. Used in src/options/options.html."
   },
   "o_lHistoryDateSaved": {
-    "message": "Date saved",
+    "message": "Started",
     "description": "Label, status, or help text in the options interface. Used in src/options/options.html."
   },
   "o_lHistoryAnyTime": {
@@ -1064,43 +1064,43 @@
     "description": "Option control label or related help text. Used in src/options/options.html."
   },
   "o_cSaveShortcutsAs": {
-    "message": "Save shortcuts as",
+    "message": "File format",
     "description": "Option control label or related help text. Used in src/options/options.html."
   },
   "o_cSaveShortcutsTypeHtml": {
-    "message": "HTML redirect",
+    "message": "HTML redirect (.html)",
     "description": "Option control label or related help text. Used in src/options/options.html."
   },
   "o_cSaveShortcutsTypeMac": {
-    "message": "Mac .url",
+    "message": "Legacy macOS shortcut (.url)",
     "description": "Option control label or related help text. Used in src/options/options.html."
   },
   "o_cSaveShortcutsTypeMacWebloc": {
-    "message": "macOS .webloc",
+    "message": "macOS internet location (.webloc)",
     "description": "Native macOS internet location shortcut format. Used in src/options/options.html."
   },
   "o_cSaveShortcutsTypeWindows": {
-    "message": "Windows .url",
+    "message": "Windows internet shortcut (.url)",
     "description": "Option control label or related help text. Used in src/options/options.html."
   },
   "o_cSaveShortcutsTypeFreedesktop": {
-    "message": "Freedesktop .desktop",
+    "message": "Linux desktop shortcut (.desktop)",
     "description": "Option control label or related help text. Used in src/options/options.html."
   },
   "o_cSaveShortcutsMediaInstead": {
-    "message": "Save media as shortcuts instead",
+    "message": "Save media as shortcut files",
     "description": "Option control label or related help text. Used in src/options/options.html."
   },
   "o_cSaveShortcutsLinksInstead": {
-    "message": "Save links as shortcuts instead",
+    "message": "Save links as shortcut files",
     "description": "Option control label or related help text. Used in src/options/options.html."
   },
   "o_cSaveShortcutsPagesInstead": {
-    "message": "Save pages as shortcuts instead",
+    "message": "Save pages as shortcut files",
     "description": "Option control label or related help text. Used in src/options/options.html."
   },
   "o_cSaveShortcutsTabsInstead": {
-    "message": "Save tabs as shortcuts (from the tab context menu)",
+    "message": "Save tabs as shortcut files from the tab context menu",
     "description": "Option control label or related help text. Used in src/options/options.html."
   },
   "o_cKeyboardShortcutSaveInMenu": {
@@ -1766,7 +1766,7 @@
     "description": "Text in the options page. Used in src/options/options.html."
   },
   "html_clickToSaveShortcut": {
-    "message": "Click-to-save shortcut",
+    "message": "Trigger",
     "description": "Text in the options page. Used in src/options/options.html."
   },
   "html_clickToSaveShortcutCombination": {
@@ -1786,7 +1786,7 @@
     "description": "Text in the options page. Used in src/options/options.html."
   },
   "html_copy0LeavesDismissalToTheBrowserOrOperatingSystem": {
-    "message": "0 leaves dismissal to the browser or operating system.",
+    "message": "0 uses the browser or operating system default.",
     "description": "Text in the options page. Used in src/options/options.html."
   },
   "html_ctrl": {
@@ -1794,12 +1794,12 @@
     "description": "Text in the options page. Used in src/options/options.html."
   },
   "html_dismissEarlyAfter": {
-    "message": "Dismiss early after",
+    "message": "Dismiss after",
     "description": "Text in the options page. Used in src/options/options.html."
   },
   "html_export": {
     "message": "Export",
-    "description": "Text in the options page. Used in src/options/options.html."
+    "description": "Compatibility text for options pages left open across an extension update."
   },
   "html_filterSources": {
     "message": "Filter sources",
@@ -1850,7 +1850,7 @@
     "description": "Text in the options page. Used in src/options/options.html."
   },
   "html_ms": {
-    "message": "ms",
+    "message": "seconds",
     "description": "Text in the options page. Used in src/options/options.html."
   },
   "html_none": {
@@ -1858,7 +1858,7 @@
     "description": "Text in the options page. Used in src/options/options.html."
   },
   "html_notifyMeWhen": {
-    "message": "Notify when",
+    "message": "Notification events",
     "description": "Text in the options page. Used in src/options/options.html."
   },
   "html_previewOfThePageSourcesDrawer": {
@@ -1870,7 +1870,7 @@
     "description": "Text in the options page. Used in src/options/options.html."
   },
   "html_saveTheseAsShortcutFiles": {
-    "message": "Save as shortcut files",
+    "message": "Use shortcut files for",
     "description": "Text in the options page. Used in src/options/options.html."
   },
   "html_secondModifier": {
@@ -1886,7 +1886,7 @@
     "description": "Text in the options page. Used in src/options/options.html."
   },
   "html_shortcutFileBehavior": {
-    "message": "Shortcut file behavior",
+    "message": "Shortcut file settings",
     "description": "Text in the options page. Used in src/options/options.html."
   },
   "html_shortcutKey": {
@@ -2496,7 +2496,7 @@
     "description": "Control or feedback text for the routing-template cards. Used in src/options/rule-builder.ts."
   },
   "historyColumnInitiated": {
-    "message": "Initiated",
+    "message": "Started",
     "description": "History table and export column heading. Used in src/options/history-view.ts."
   },
   "historyColumnSource": {
@@ -2520,7 +2520,7 @@
     "description": "History table and export column heading. Used in src/options/history-view.ts."
   },
   "historyColumnRule": {
-    "message": "Rule",
+    "message": "Routing",
     "description": "History table and export column heading. Used in src/options/history-view.ts."
   },
   "historyColumnFile": {
@@ -2558,6 +2558,222 @@
   "historyEmptyNoMatches": {
     "message": "No history matches these filters.",
     "description": "History table empty state when filters have no matches. Used in src/options/history-panel.ts."
+  },
+  "historyActiveFilters": {
+    "message": "Active history filters",
+    "description": "Accessible label for the list of active History filters. Used in src/options/options.html."
+  },
+  "historyExportAll": {
+    "message": "Export all",
+    "description": "History toolbar menu that exports all stored fields, including fields hidden from the table. Used in src/options/options.html."
+  },
+  "historyFilterSearch": {
+    "message": "Search: “$QUERY$”",
+    "description": "Active History filter chip for a text search. Used in src/options/history-panel.ts.",
+    "placeholders": {
+      "query": {
+        "content": "$1",
+        "example": "invoice"
+      }
+    }
+  },
+  "historyFilterSince": {
+    "message": "Since $DATE$",
+    "description": "Active History filter chip when only a start date is set. Used in src/options/history-panel.ts.",
+    "placeholders": {
+      "date": {
+        "content": "$1",
+        "example": "2026-07-01"
+      }
+    }
+  },
+  "historyFilterThrough": {
+    "message": "Through $DATE$",
+    "description": "Active History filter chip when only an end date is set. Used in src/options/history-panel.ts.",
+    "placeholders": {
+      "date": {
+        "content": "$1",
+        "example": "2026-07-31"
+      }
+    }
+  },
+  "historyDateRangeInvalid": {
+    "message": "Start date must be on or before the end date.",
+    "description": "History date-range validation error. Used in src/options/history-panel.ts."
+  },
+  "historyShowFolderUnavailable": {
+    "message": "Could not open the folder. This browser no longer knows the download.",
+    "description": "History error shown when the browser no longer has a record of a download. Used in src/options/history-panel.ts."
+  },
+  "historyShowFolderFailed": {
+    "message": "Could not open the folder. The file may have moved or been removed.",
+    "description": "History error shown when the browser cannot reveal a downloaded file. Used in src/options/history-panel.ts."
+  },
+  "historyFilteredResultsCount": {
+    "message": "$MATCHES$ of $TOTAL$ results",
+    "description": "History result count while filters are active. Used in src/options/history-panel.ts.",
+    "placeholders": {
+      "matches": {
+        "content": "$1",
+        "example": "12"
+      },
+      "total": {
+        "content": "$2",
+        "example": "50"
+      }
+    }
+  },
+  "historyResultCountOne": {
+    "message": "$COUNT$ result",
+    "description": "History result count when exactly one entry is stored. The numeric substitution allows locales to position the number naturally. Used in src/options/history-panel.ts.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
+  },
+  "historyResultCount": {
+    "message": "$COUNT$ results",
+    "description": "History result count when more than one entry is stored. Used in src/options/history-panel.ts.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "24"
+      }
+    }
+  },
+  "historyStorageLimit": {
+    "message": "History stays on this device, up to 10,000 entries.",
+    "description": "History result-count tooltip explaining local storage and its entry limit. Used in src/options/history-panel.ts."
+  },
+  "historyTableCaption": {
+    "message": "Saved download history",
+    "description": "Accessible caption for the History table. Used in src/options/history-panel.ts."
+  },
+  "historyShowInFolder": {
+    "message": "Show in folder",
+    "description": "History action that reveals a downloaded file in its folder. Used in src/options/history-panel.ts."
+  },
+  "historyCancelDownload": {
+    "message": "Cancel",
+    "description": "History action that cancels an active download. Used in src/options/history-panel.ts."
+  },
+  "historyCancelDownloadTitle": {
+    "message": "Cancel this download",
+    "description": "Tooltip for the History action that cancels an active download. Used in src/options/history-panel.ts."
+  },
+  "historyCancelDownloadNamed": {
+    "message": "Cancel $FILE$",
+    "description": "Accessible label for canceling an active download, including its filename. Used in src/options/history-panel.ts.",
+    "placeholders": {
+      "file": {
+        "content": "$1",
+        "example": "photo.jpg"
+      }
+    }
+  },
+  "historyCancelingDownload": {
+    "message": "Canceling…",
+    "description": "History action state while an active download is being canceled. Used in src/options/history-panel.ts."
+  },
+  "historyRoutingApplied": {
+    "message": "Applied",
+    "description": "History table badge showing that routing changed the download path or filename. Used in src/options/history-panel.ts."
+  },
+  "historyRoutingAppliedTitle": {
+    "message": "A routing or renaming rule was applied.",
+    "description": "Tooltip explaining the routing badge in the History table. Used in src/options/history-panel.ts."
+  },
+  "historyNewer": {
+    "message": "‹ Newer",
+    "description": "History pagination action that moves to newer entries. Used in src/options/history-panel.ts."
+  },
+  "historyPageCount": {
+    "message": "Page $PAGE$ of $TOTAL$",
+    "description": "Current page and total page count in History pagination. Used in src/options/history-panel.ts.",
+    "placeholders": {
+      "page": {
+        "content": "$1",
+        "example": "2"
+      },
+      "total": {
+        "content": "$2",
+        "example": "5"
+      }
+    }
+  },
+  "historyOlder": {
+    "message": "Older ›",
+    "description": "History pagination action that moves to older entries. Used in src/options/history-panel.ts."
+  },
+  "historyLoadFailed": {
+    "message": "Could not load history.",
+    "description": "History error shown when stored entries cannot be loaded. Used in src/options/history-panel.ts."
+  },
+  "historyRetry": {
+    "message": "Retry",
+    "description": "History error action that tries the failed operation again. Used in src/options/history-panel.ts."
+  },
+  "historyDeleteConfirmTitle": {
+    "message": "Delete all history?",
+    "description": "Title of the confirmation dialog for deleting all History entries. Used in src/options/history-panel.ts."
+  },
+  "historyDeleteConfirmDescription": {
+    "message": "This permanently deletes every saved history entry. This cannot be undone.",
+    "description": "Warning in the confirmation dialog for deleting all History entries. Used in src/options/history-panel.ts."
+  },
+  "historyKeepHistory": {
+    "message": "Keep history",
+    "description": "Cancel action in the dialog for deleting all History entries. Used in src/options/history-panel.ts."
+  },
+  "historyDeleteAll": {
+    "message": "Delete all history",
+    "description": "Confirm action in the dialog for deleting all History entries. Used in src/options/history-panel.ts."
+  },
+  "historyClearing": {
+    "message": "Deleting history…",
+    "description": "History status shown while all entries are being deleted. Used in src/options/history-panel.ts."
+  },
+  "historyClearFailed": {
+    "message": "Could not delete history.",
+    "description": "History error shown when all entries could not be deleted. Used in src/options/history-panel.ts."
+  },
+  "historyStatusSaving": {
+    "message": "Saving…",
+    "description": "History status badge for a download that is in progress. Used in src/options/history-view.ts."
+  },
+  "historyStatusCanceled": {
+    "message": "Canceled",
+    "description": "History status badge for a download canceled by the user. Used in src/options/history-view.ts."
+  },
+  "historyStatusNetworkFailed": {
+    "message": "Network failed",
+    "description": "History status badge for a download that failed because of a network error. Used in src/options/history-view.ts."
+  },
+  "historyStatusDownloadFailed": {
+    "message": "Download failed",
+    "description": "History status badge for a download rejected by the browser downloads API. Used in src/options/history-view.ts."
+  },
+  "historyStatusPreparationFailed": {
+    "message": "Preparation failed",
+    "description": "History status badge for a download that could not be prepared. Used in src/options/history-view.ts."
+  },
+  "historyStatusPreparationInterrupted": {
+    "message": "Interrupted",
+    "description": "History status badge for interrupted download preparation. Used in src/options/history-view.ts."
+  },
+  "historyStatusStateLost": {
+    "message": "Download state lost",
+    "description": "History status badge shown when an in-progress download cannot be recovered after a restart. Used in src/options/history-view.ts."
+  },
+  "historyStatusRoutingFailed": {
+    "message": "Routing failed",
+    "description": "History status badge for a browser download that could not be routed. Used in src/options/history-view.ts."
+  },
+  "historyStatusNoRuleMatch": {
+    "message": "No matching rule",
+    "description": "History status badge for a browser download that did not match a routing rule. Used in src/options/history-view.ts."
   },
   "webMcpStatusRegistering": {
     "message": "Registering…",

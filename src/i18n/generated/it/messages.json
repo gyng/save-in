@@ -318,7 +318,7 @@
     "message": "Non riuscito"
   },
   "o_lHistoryDateSaved": {
-    "message": "Data di salvataggio"
+    "message": "Inizio"
   },
   "o_lHistoryAnyTime": {
     "message": "In qualsiasi momento"
@@ -795,34 +795,34 @@
     "message": "Notifica quando una regola di routing corrisponde"
   },
   "o_cSaveShortcutsAs": {
-    "message": "Salva i file di collegamento come"
+    "message": "Formato file"
   },
   "o_cSaveShortcutsTypeHtml": {
-    "message": "Reindirizzamento HTML"
+    "message": "Reindirizzamento HTML (.html)"
   },
   "o_cSaveShortcutsTypeMac": {
-    "message": "Mac .url"
+    "message": "Legacy macOS shortcut (.url)"
   },
   "o_cSaveShortcutsTypeMacWebloc": {
-    "message": "macOS .webloc"
+    "message": "macOS internet location (.webloc)"
   },
   "o_cSaveShortcutsTypeWindows": {
-    "message": "Windows .url"
+    "message": "Windows internet shortcut (.url)"
   },
   "o_cSaveShortcutsTypeFreedesktop": {
-    "message": "Freedesktop .desktop"
+    "message": "Linux desktop shortcut (.desktop)"
   },
   "o_cSaveShortcutsMediaInstead": {
-    "message": "Salva invece i contenuti multimediali come file di collegamento"
+    "message": "Salva i contenuti multimediali come file di collegamento"
   },
   "o_cSaveShortcutsLinksInstead": {
-    "message": "Salva invece i link come file di collegamento"
+    "message": "Salva i link come file di collegamento"
   },
   "o_cSaveShortcutsPagesInstead": {
-    "message": "Salva invece le pagine come file di collegamento"
+    "message": "Salva le pagine come file di collegamento"
   },
   "o_cSaveShortcutsTabsInstead": {
-    "message": "Salva le schede come file di collegamento (dal menu contestuale delle schede)"
+    "message": "Salva le schede come file di collegamento dal menu contestuale delle schede"
   },
   "o_cKeyboardShortcutSaveInMenu": {
     "message": "Voce del menu contestuale Save In"
@@ -1317,7 +1317,7 @@
     "message": "Clic"
   },
   "html_clickToSaveShortcut": {
-    "message": "Scorciatoia per il salvataggio con clic"
+    "message": "Attivazione"
   },
   "html_clickToSaveShortcutCombination": {
     "message": "Combinazione per il salvataggio con clic"
@@ -1332,13 +1332,13 @@
     "message": "Command / Windows key"
   },
   "html_copy0LeavesDismissalToTheBrowserOrOperatingSystem": {
-    "message": "Con 0, la chiusura viene gestita dal browser o dal sistema operativo."
+    "message": "0 usa l’impostazione predefinita del browser o del sistema operativo."
   },
   "html_ctrl": {
     "message": "Ctrl"
   },
   "html_dismissEarlyAfter": {
-    "message": "Chiudi automaticamente dopo"
+    "message": "Chiudi dopo"
   },
   "html_export": {
     "message": "Esporta"
@@ -1380,13 +1380,13 @@
     "message": "Quando questa funzione è attiva, il solo clic sinistro sostituisce i normali clic sui contenuti multimediali e sui collegamenti salvabili."
   },
   "html_ms": {
-    "message": "ms"
+    "message": "secondi"
   },
   "html_none": {
     "message": "None"
   },
   "html_notifyMeWhen": {
-    "message": "Avvisami quando"
+    "message": "Eventi di notifica"
   },
   "html_previewOfThePageSourcesDrawer": {
     "message": "Anteprima del pannello Sorgenti della pagina"
@@ -1395,7 +1395,7 @@
     "message": "Modificatore primario"
   },
   "html_saveTheseAsShortcutFiles": {
-    "message": "Salva come file di collegamento"
+    "message": "Usa i file di collegamento per"
   },
   "html_secondModifier": {
     "message": "Secondo modificatore"
@@ -1407,7 +1407,7 @@
     "message": "Shift"
   },
   "html_shortcutFileBehavior": {
-    "message": "Comportamento del file di collegamento"
+    "message": "Impostazioni dei file di collegamento"
   },
   "html_shortcutKey": {
     "message": "Tasto di scelta rapida"
@@ -1832,6 +1832,88 @@
   "ruleTemplateViewInEditor": {
     "message": "Visualizza nell'editor delle regole"
   },
+  "historyActiveFilters": { "message": "Filtri della cronologia attivi" },
+  "historyExportAll": { "message": "Esporta tutto" },
+  "historyFilterSearch": {
+    "message": "Cerca: “$QUERY$”",
+    "placeholders": { "query": { "content": "$1", "example": "invoice" } }
+  },
+  "historyFilterSince": {
+    "message": "Dal $DATE$",
+    "placeholders": { "date": { "content": "$1", "example": "2026-07-01" } }
+  },
+  "historyFilterThrough": {
+    "message": "Fino al $DATE$",
+    "placeholders": { "date": { "content": "$1", "example": "2026-07-31" } }
+  },
+  "historyDateRangeInvalid": {
+    "message": "La data di inizio deve essere uguale o precedente alla data di fine."
+  },
+  "historyShowFolderUnavailable": {
+    "message": "Impossibile aprire la cartella. Il browser non riconosce più questo download."
+  },
+  "historyShowFolderFailed": {
+    "message": "Impossibile aprire la cartella. Il file potrebbe essere stato spostato o rimosso."
+  },
+  "historyFilteredResultsCount": {
+    "message": "$MATCHES$ risultati su $TOTAL$",
+    "placeholders": {
+      "matches": { "content": "$1", "example": "12" },
+      "total": { "content": "$2", "example": "50" }
+    }
+  },
+  "historyResultCountOne": {
+    "message": "$COUNT$ risultato",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "historyResultCount": {
+    "message": "$COUNT$ risultati",
+    "placeholders": { "count": { "content": "$1", "example": "24" } }
+  },
+  "historyStorageLimit": {
+    "message": "La cronologia rimane su questo dispositivo, fino a 10.000 voci."
+  },
+  "historyTableCaption": { "message": "Cronologia dei download salvati" },
+  "historyShowInFolder": { "message": "Mostra nella cartella" },
+  "historyCancelDownload": { "message": "Annulla" },
+  "historyCancelDownloadTitle": { "message": "Annulla questo download" },
+  "historyCancelDownloadNamed": {
+    "message": "Annulla $FILE$",
+    "placeholders": { "file": { "content": "$1", "example": "photo.jpg" } }
+  },
+  "historyCancelingDownload": { "message": "Annullamento…" },
+  "historyRoutingApplied": { "message": "Applicato" },
+  "historyRoutingAppliedTitle": {
+    "message": "È stata applicata una regola di instradamento o ridenominazione."
+  },
+  "historyNewer": { "message": "‹ Più recenti" },
+  "historyPageCount": {
+    "message": "Pagina $PAGE$ di $TOTAL$",
+    "placeholders": {
+      "page": { "content": "$1", "example": "2" },
+      "total": { "content": "$2", "example": "5" }
+    }
+  },
+  "historyOlder": { "message": "Più vecchi ›" },
+  "historyLoadFailed": { "message": "Impossibile caricare la cronologia." },
+  "historyRetry": { "message": "Riprova" },
+  "historyDeleteConfirmTitle": { "message": "Eliminare tutta la cronologia?" },
+  "historyDeleteConfirmDescription": {
+    "message": "Questa operazione elimina definitivamente tutte le voci salvate nella cronologia e non può essere annullata."
+  },
+  "historyKeepHistory": { "message": "Mantieni cronologia" },
+  "historyDeleteAll": { "message": "Elimina tutta la cronologia" },
+  "historyClearing": { "message": "Eliminazione cronologia…" },
+  "historyClearFailed": { "message": "Impossibile eliminare la cronologia." },
+  "historyStatusSaving": { "message": "Salvataggio…" },
+  "historyStatusCanceled": { "message": "Annullato" },
+  "historyStatusNetworkFailed": { "message": "Errore di rete" },
+  "historyStatusDownloadFailed": { "message": "Download non riuscito" },
+  "historyStatusPreparationFailed": { "message": "Preparazione non riuscita" },
+  "historyStatusPreparationInterrupted": { "message": "Interrotto" },
+  "historyStatusStateLost": { "message": "Stato del download perso" },
+  "historyStatusRoutingFailed": { "message": "Instradamento non riuscito" },
+  "historyStatusNoRuleMatch": { "message": "Nessuna regola corrispondente" },
   "historyColumnInitiated": {
     "message": "Iniziato"
   },
@@ -1851,7 +1933,7 @@
     "message": "Tipo"
   },
   "historyColumnRule": {
-    "message": "Regola"
+    "message": "Instradamento"
   },
   "historyColumnFile": {
     "message": "File"

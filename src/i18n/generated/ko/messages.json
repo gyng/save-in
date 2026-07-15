@@ -335,7 +335,7 @@
     "message": "실패"
   },
   "o_lHistoryDateSaved": {
-    "message": "저장 날짜"
+    "message": "시작 날짜"
   },
   "o_lHistoryAnyTime": {
     "message": "언제든지"
@@ -509,34 +509,34 @@
     "message": "라우팅 규칙이 일치하면 알림"
   },
   "o_cSaveShortcutsAs": {
-    "message": "바로가기 저장 형식"
+    "message": "파일 형식"
   },
   "o_cSaveShortcutsTypeHtml": {
-    "message": "HTML 리디렉션"
+    "message": "HTML 리디렉션(.html)"
   },
   "o_cSaveShortcutsTypeMac": {
-    "message": "Mac .url"
+    "message": "Legacy macOS shortcut (.url)"
   },
   "o_cSaveShortcutsTypeMacWebloc": {
-    "message": "macOS .webloc"
+    "message": "macOS internet location (.webloc)"
   },
   "o_cSaveShortcutsTypeWindows": {
-    "message": "Windows .url"
+    "message": "Windows internet shortcut (.url)"
   },
   "o_cSaveShortcutsTypeFreedesktop": {
-    "message": "Freedesktop .desktop"
+    "message": "Linux desktop shortcut (.desktop)"
   },
   "o_cSaveShortcutsMediaInstead": {
-    "message": "대신 미디어를 바로가기로 저장"
+    "message": "미디어를 바로가기 파일로 저장"
   },
   "o_cSaveShortcutsLinksInstead": {
-    "message": "대신 링크를 바로가기로 저장"
+    "message": "링크를 바로가기 파일로 저장"
   },
   "o_cSaveShortcutsPagesInstead": {
-    "message": "대신 페이지를 바로가기로 저장"
+    "message": "페이지를 바로가기 파일로 저장"
   },
   "o_cSaveShortcutsTabsInstead": {
-    "message": "탭을 바로가기로 저장(탭 컨텍스트 메뉴에서)"
+    "message": "탭 컨텍스트 메뉴에서 탭을 바로가기 파일로 저장"
   },
   "o_cKeyboardShortcutSaveInMenu": {
     "message": "Save In 컨텍스트 메뉴 항목"
@@ -962,7 +962,7 @@
     "message": "클릭"
   },
   "html_clickToSaveShortcut": {
-    "message": "클릭 저장 단축키"
+    "message": "트리거"
   },
   "html_clickToSaveShortcutCombination": {
     "message": "클릭 저장 단축키 조합"
@@ -977,13 +977,13 @@
     "message": "Command / Windows key"
   },
   "html_copy0LeavesDismissalToTheBrowserOrOperatingSystem": {
-    "message": "0으로 설정하면 알림을 닫는 시점은 브라우저나 운영 체제가 결정합니다."
+    "message": "0은 브라우저 또는 운영 체제 기본값을 사용합니다."
   },
   "html_ctrl": {
     "message": "Ctrl"
   },
   "html_dismissEarlyAfter": {
-    "message": "조기에 닫기까지"
+    "message": "다음 시간 후 닫기"
   },
   "html_export": {
     "message": "내보내기"
@@ -1025,13 +1025,13 @@
     "message": "이 기능을 사용하는 동안 보조 키 없이 왼쪽 클릭하면 저장 가능한 미디어와 링크의 일반 클릭 동작이 바뀝니다."
   },
   "html_ms": {
-    "message": "ms"
+    "message": "초"
   },
   "html_none": {
     "message": "None"
   },
   "html_notifyMeWhen": {
-    "message": "다음 경우 알림"
+    "message": "알림 이벤트"
   },
   "html_previewOfThePageSourcesDrawer": {
     "message": "페이지 소스 창 미리보기"
@@ -1040,7 +1040,7 @@
     "message": "주 보조 키"
   },
   "html_saveTheseAsShortcutFiles": {
-    "message": "바로가기 파일로 저장"
+    "message": "바로가기 파일 사용 대상"
   },
   "html_secondModifier": {
     "message": "두 번째 보조 키"
@@ -1052,7 +1052,7 @@
     "message": "Shift"
   },
   "html_shortcutFileBehavior": {
-    "message": "바로가기 파일 동작"
+    "message": "바로가기 파일 설정"
   },
   "html_shortcutKey": {
     "message": "단축키"
@@ -2022,8 +2022,90 @@
   "ruleTemplateViewInEditor": {
     "message": "규칙 편집기에서 보기"
   },
+  "historyActiveFilters": { "message": "활성 기록 필터" },
+  "historyExportAll": { "message": "모두 내보내기" },
+  "historyFilterSearch": {
+    "message": "검색: “$QUERY$”",
+    "placeholders": { "query": { "content": "$1", "example": "invoice" } }
+  },
+  "historyFilterSince": {
+    "message": "$DATE$ 이후",
+    "placeholders": { "date": { "content": "$1", "example": "2026-07-01" } }
+  },
+  "historyFilterThrough": {
+    "message": "$DATE$까지",
+    "placeholders": { "date": { "content": "$1", "example": "2026-07-31" } }
+  },
+  "historyDateRangeInvalid": {
+    "message": "시작일은 종료일과 같거나 이전이어야 합니다."
+  },
+  "historyShowFolderUnavailable": {
+    "message": "폴더를 열 수 없습니다. 브라우저에 이 다운로드 기록이 더 이상 없습니다."
+  },
+  "historyShowFolderFailed": {
+    "message": "폴더를 열 수 없습니다. 파일이 이동되었거나 삭제되었을 수 있습니다."
+  },
+  "historyFilteredResultsCount": {
+    "message": "전체 $TOTAL$개 중 $MATCHES$개 결과",
+    "placeholders": {
+      "matches": { "content": "$1", "example": "12" },
+      "total": { "content": "$2", "example": "50" }
+    }
+  },
+  "historyResultCountOne": {
+    "message": "$COUNT$개 결과",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "historyResultCount": {
+    "message": "$COUNT$개 결과",
+    "placeholders": { "count": { "content": "$1", "example": "24" } }
+  },
+  "historyStorageLimit": {
+    "message": "기록은 이 기기에 최대 10,000개 항목까지 저장됩니다."
+  },
+  "historyTableCaption": { "message": "저장한 다운로드 기록" },
+  "historyShowInFolder": { "message": "폴더에서 보기" },
+  "historyCancelDownload": { "message": "취소" },
+  "historyCancelDownloadTitle": { "message": "이 다운로드 취소" },
+  "historyCancelDownloadNamed": {
+    "message": "$FILE$ 취소",
+    "placeholders": { "file": { "content": "$1", "example": "photo.jpg" } }
+  },
+  "historyCancelingDownload": { "message": "취소 중…" },
+  "historyRoutingApplied": { "message": "적용됨" },
+  "historyRoutingAppliedTitle": {
+    "message": "라우팅 또는 이름 바꾸기 규칙이 적용되었습니다."
+  },
+  "historyNewer": { "message": "‹ 최신 항목" },
+  "historyPageCount": {
+    "message": "$TOTAL$페이지 중 $PAGE$페이지",
+    "placeholders": {
+      "page": { "content": "$1", "example": "2" },
+      "total": { "content": "$2", "example": "5" }
+    }
+  },
+  "historyOlder": { "message": "이전 항목 ›" },
+  "historyLoadFailed": { "message": "기록을 불러올 수 없습니다." },
+  "historyRetry": { "message": "다시 시도" },
+  "historyDeleteConfirmTitle": { "message": "모든 기록을 삭제할까요?" },
+  "historyDeleteConfirmDescription": {
+    "message": "저장된 모든 기록 항목이 영구적으로 삭제됩니다. 이 작업은 실행 취소할 수 없습니다."
+  },
+  "historyKeepHistory": { "message": "기록 유지" },
+  "historyDeleteAll": { "message": "모든 기록 삭제" },
+  "historyClearing": { "message": "기록 삭제 중…" },
+  "historyClearFailed": { "message": "기록을 삭제할 수 없습니다." },
+  "historyStatusSaving": { "message": "저장 중…" },
+  "historyStatusCanceled": { "message": "취소됨" },
+  "historyStatusNetworkFailed": { "message": "네트워크 실패" },
+  "historyStatusDownloadFailed": { "message": "다운로드 실패" },
+  "historyStatusPreparationFailed": { "message": "준비 실패" },
+  "historyStatusPreparationInterrupted": { "message": "중단됨" },
+  "historyStatusStateLost": { "message": "다운로드 상태가 손실됨" },
+  "historyStatusRoutingFailed": { "message": "라우팅 실패" },
+  "historyStatusNoRuleMatch": { "message": "일치하는 규칙 없음" },
   "historyColumnInitiated": {
-    "message": "시작 시각"
+    "message": "시작"
   },
   "historyColumnSource": {
     "message": "출처"
@@ -2041,7 +2123,7 @@
     "message": "유형"
   },
   "historyColumnRule": {
-    "message": "규칙"
+    "message": "라우팅"
   },
   "historyColumnFile": {
     "message": "파일"

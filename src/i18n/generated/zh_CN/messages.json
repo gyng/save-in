@@ -335,7 +335,7 @@
     "message": "失败"
   },
   "o_lHistoryDateSaved": {
-    "message": "保存日期"
+    "message": "开始日期"
   },
   "o_lHistoryAnyTime": {
     "message": "任何时间"
@@ -509,34 +509,34 @@
     "message": "当路由规则匹配时发出通知"
   },
   "o_cSaveShortcutsAs": {
-    "message": "将快捷方式另存为"
+    "message": "文件格式"
   },
   "o_cSaveShortcutsTypeHtml": {
-    "message": "HTML 重定向"
+    "message": "HTML 重定向 (.html)"
   },
   "o_cSaveShortcutsTypeMac": {
-    "message": "Mac .url"
+    "message": "Legacy macOS shortcut (.url)"
   },
   "o_cSaveShortcutsTypeMacWebloc": {
-    "message": "macOS .webloc"
+    "message": "macOS internet location (.webloc)"
   },
   "o_cSaveShortcutsTypeWindows": {
-    "message": "Windows .url"
+    "message": "Windows internet shortcut (.url)"
   },
   "o_cSaveShortcutsTypeFreedesktop": {
-    "message": "Freedesktop .desktop"
+    "message": "Linux desktop shortcut (.desktop)"
   },
   "o_cSaveShortcutsMediaInstead": {
-    "message": "将媒体另存为快捷方式"
+    "message": "将媒体保存为快捷方式文件"
   },
   "o_cSaveShortcutsLinksInstead": {
-    "message": "将链接另存为快捷方式"
+    "message": "将链接保存为快捷方式文件"
   },
   "o_cSaveShortcutsPagesInstead": {
-    "message": "将页面另存为快捷方式"
+    "message": "将页面保存为快捷方式文件"
   },
   "o_cSaveShortcutsTabsInstead": {
-    "message": "将选项卡另存为快捷方式（从选项卡上下文菜单）"
+    "message": "从选项卡上下文菜单将选项卡保存为快捷方式文件"
   },
   "o_cKeyboardShortcutSaveInMenu": {
     "message": "Save In 上下文菜单项"
@@ -962,7 +962,7 @@
     "message": "点击"
   },
   "html_clickToSaveShortcut": {
-    "message": "点击保存快捷键"
+    "message": "触发方式"
   },
   "html_clickToSaveShortcutCombination": {
     "message": "点击保存快捷键组合"
@@ -977,13 +977,13 @@
     "message": "Command / Windows key"
   },
   "html_copy0LeavesDismissalToTheBrowserOrOperatingSystem": {
-    "message": "设为 0 时，由浏览器或操作系统决定何时关闭通知。"
+    "message": "0 表示使用浏览器或操作系统默认值。"
   },
   "html_ctrl": {
     "message": "Ctrl"
   },
   "html_dismissEarlyAfter": {
-    "message": "提前关闭时间"
+    "message": "在以下时间后关闭"
   },
   "html_export": {
     "message": "导出"
@@ -1025,13 +1025,13 @@
     "message": "启用此功能后，仅使用鼠标左键单击将取代对可保存媒体和链接的正常单击。"
   },
   "html_ms": {
-    "message": "ms"
+    "message": "秒"
   },
   "html_none": {
     "message": "None"
   },
   "html_notifyMeWhen": {
-    "message": "在以下情况下通知"
+    "message": "通知事件"
   },
   "html_previewOfThePageSourcesDrawer": {
     "message": "“页面来源”面板预览"
@@ -1040,7 +1040,7 @@
     "message": "主要修饰符"
   },
   "html_saveTheseAsShortcutFiles": {
-    "message": "另存为快捷方式文件"
+    "message": "对以下内容使用快捷方式文件"
   },
   "html_secondModifier": {
     "message": "第二个修饰符"
@@ -1052,7 +1052,7 @@
     "message": "Shift"
   },
   "html_shortcutFileBehavior": {
-    "message": "快捷方式文件行为"
+    "message": "快捷方式文件设置"
   },
   "html_shortcutKey": {
     "message": "快捷键"
@@ -2022,8 +2022,86 @@
   "ruleTemplateViewInEditor": {
     "message": "在规则编辑器中查看"
   },
+  "historyActiveFilters": { "message": "当前历史记录筛选条件" },
+  "historyExportAll": { "message": "全部导出" },
+  "historyFilterSearch": {
+    "message": "搜索：“$QUERY$”",
+    "placeholders": { "query": { "content": "$1", "example": "invoice" } }
+  },
+  "historyFilterSince": {
+    "message": "自 $DATE$ 起",
+    "placeholders": { "date": { "content": "$1", "example": "2026-07-01" } }
+  },
+  "historyFilterThrough": {
+    "message": "截至 $DATE$",
+    "placeholders": { "date": { "content": "$1", "example": "2026-07-31" } }
+  },
+  "historyDateRangeInvalid": { "message": "开始日期不得晚于结束日期。" },
+  "historyShowFolderUnavailable": {
+    "message": "无法打开文件夹。浏览器已没有此下载的记录。"
+  },
+  "historyShowFolderFailed": {
+    "message": "无法打开文件夹。文件可能已移动或删除。"
+  },
+  "historyFilteredResultsCount": {
+    "message": "$TOTAL$ 个结果中有 $MATCHES$ 个",
+    "placeholders": {
+      "matches": { "content": "$1", "example": "12" },
+      "total": { "content": "$2", "example": "50" }
+    }
+  },
+  "historyResultCountOne": {
+    "message": "$COUNT$ 个结果",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "historyResultCount": {
+    "message": "$COUNT$ 个结果",
+    "placeholders": { "count": { "content": "$1", "example": "24" } }
+  },
+  "historyStorageLimit": {
+    "message": "历史记录保留在此设备上，最多 10,000 条。"
+  },
+  "historyTableCaption": { "message": "已保存的下载历史记录" },
+  "historyShowInFolder": { "message": "在文件夹中显示" },
+  "historyCancelDownload": { "message": "取消" },
+  "historyCancelDownloadTitle": { "message": "取消此下载" },
+  "historyCancelDownloadNamed": {
+    "message": "取消 $FILE$",
+    "placeholders": { "file": { "content": "$1", "example": "photo.jpg" } }
+  },
+  "historyCancelingDownload": { "message": "正在取消…" },
+  "historyRoutingApplied": { "message": "已应用" },
+  "historyRoutingAppliedTitle": { "message": "已应用路由或重命名规则。" },
+  "historyNewer": { "message": "‹ 较新" },
+  "historyPageCount": {
+    "message": "第 $PAGE$ 页，共 $TOTAL$ 页",
+    "placeholders": {
+      "page": { "content": "$1", "example": "2" },
+      "total": { "content": "$2", "example": "5" }
+    }
+  },
+  "historyOlder": { "message": "较旧 ›" },
+  "historyLoadFailed": { "message": "无法加载历史记录。" },
+  "historyRetry": { "message": "重试" },
+  "historyDeleteConfirmTitle": { "message": "删除所有历史记录？" },
+  "historyDeleteConfirmDescription": {
+    "message": "此操作会永久删除所有已保存的历史记录，且无法撤销。"
+  },
+  "historyKeepHistory": { "message": "保留历史记录" },
+  "historyDeleteAll": { "message": "删除所有历史记录" },
+  "historyClearing": { "message": "正在删除历史记录…" },
+  "historyClearFailed": { "message": "无法删除历史记录。" },
+  "historyStatusSaving": { "message": "保存中…" },
+  "historyStatusCanceled": { "message": "已取消" },
+  "historyStatusNetworkFailed": { "message": "网络错误" },
+  "historyStatusDownloadFailed": { "message": "下载失败" },
+  "historyStatusPreparationFailed": { "message": "准备失败" },
+  "historyStatusPreparationInterrupted": { "message": "已中断" },
+  "historyStatusStateLost": { "message": "下载状态已丢失" },
+  "historyStatusRoutingFailed": { "message": "路由失败" },
+  "historyStatusNoRuleMatch": { "message": "无匹配规则" },
   "historyColumnInitiated": {
-    "message": "开始时间"
+    "message": "开始"
   },
   "historyColumnSource": {
     "message": "来源"
@@ -2041,7 +2119,7 @@
     "message": "类型"
   },
   "historyColumnRule": {
-    "message": "规则"
+    "message": "路由"
   },
   "historyColumnFile": {
     "message": "文件"
