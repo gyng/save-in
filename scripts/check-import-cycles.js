@@ -236,7 +236,7 @@ const listenerOwners = new Set([
   "src/background/main.ts",
   "src/background/menu-click.ts",
   "src/background/menu-tabs.ts",
-  "src/background/messaging.ts",
+  "src/background/messaging/index.ts",
   "src/background/e2e-command.ts",
   "src/content/content.ts",
   "src/downloads/filename-listener.ts",

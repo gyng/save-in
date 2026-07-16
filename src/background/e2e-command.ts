@@ -15,7 +15,7 @@ import { backgroundRuntime } from "./runtime.ts";
 import { handleContextMenuClick, type ContextMenuClickInfo } from "./menu-click.ts";
 import { handleTabMenuClick, type HostTab, type TabMenuClickInfo } from "./menu-tabs.ts";
 import { configWriteState, counterWriteState } from "./application-state.ts";
-import { resetMessagingTransientState } from "./messaging.ts";
+import { resetMessagingTransientState } from "./messaging/index.ts";
 import { resetSourcePanelState } from "./source-panel-state.ts";
 import { resetRefererRules } from "../downloads/referer-rules.ts";
 

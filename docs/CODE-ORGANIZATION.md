@@ -212,6 +212,31 @@ move with their code. Order by value and by how much other work each unblocks.
    Rationale: this is the single riskiest file to change today; splitting
    transport from orchestration shrinks the blast radius of every future
    message change.
+
+   Landed as described, `git mv`'d onto `handlers.ts` (the largest share of
+   the original file). `handleAutoDownloadSource` had already shrunk to
+   ~65 lines by the time of this split (routing now delegates to
+   `automation/automatic-routing.ts`), so `auto-download.ts` is small today;
+   it still stays separate because it is the automation-orchestration seam
+   Phase 3.4 will grow. `getUntrustedValidationRejection` (the external
+   VALIDATE rate-limit/shape check) and the `sourcePanelCopies` cache landed
+   in `handlers.ts` alongside the handler they support, exported for
+   `index.ts` to call/read. The per-message-type dispatch tables
+   (`internalHandlers`/`externalHandlers`, including the handlers that were
+   already inline closures rather than named `handle*` functions —
+   `WAKE_WARM`, `SOURCE_PANEL_*`, `CREATE_SOURCE_RULE`, `DIAGNOSTICS_*`,
+   `HISTORY_*`, `EXTERNAL_DOWNLOAD_REJECTION*`, `OPTIONS*`, `PREVIEW_MENUS`)
+   stayed in `index.ts` as part of the `onMessage`/`onMessageExternal` wiring
+   they're built for, rather than being extracted into more named handler
+   functions; that keeps `index.ts` as the one place reviewers check for the
+   full message-type surface. `index.ts` re-exports `handlePing`,
+   `handleDownloadMessage`, `emitDownloaded`, `resetMessagingTransientState`
+   (from `handlers.ts`) and `isValidDownloadUrl` (from `protocol.ts`) so
+   `import * as Messaging from ".../messaging/index.ts"` keeps working for the
+   tests that exercise a handler directly instead of only through dispatch.
+   Updated the listener-owner allowlist in `scripts/check-import-cycles.js`
+   to `src/background/messaging/index.ts`, and the two external importers
+   (`entries/background.ts`, `background/e2e-command.ts`) to the same path.
 2. **`shared/message-protocol.ts` → types vs runtime:**
    - `shared/message-protocol.ts` keeps wire *types* and the message-type
      maps/sets/guards (contract only).

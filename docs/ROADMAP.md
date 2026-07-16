@@ -185,7 +185,7 @@ Implementation:
   ID already is the download ID.
 - Message: a new `HISTORY_UNDO` modeled on `HISTORY_CANCEL` (constants,
   `shared/message-protocol.ts` types and validators, handler in
-  `background/messaging.ts`). The handler resolves the entry's download ID,
+  `background/messaging/index.ts`). The handler resolves the entry's download ID,
   removes the file, erases the shelf entry, and marks the entry through
   `background/history.ts`. A file already deleted out-of-band still erases
   and marks, with a distinct response so the UI can say so.

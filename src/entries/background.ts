@@ -5,7 +5,7 @@
 // execute it.
 
 import { seedOptions } from "../config/option.ts";
-import { registerMessaging } from "../background/messaging.ts";
+import { registerMessaging } from "../background/messaging/index.ts";
 import { registerNotifier } from "../downloads/notification.ts";
 import { registerDownloadListener } from "../downloads/download.ts";
 import { start } from "../background/main.ts";

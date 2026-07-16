@@ -1,7 +1,7 @@
 // Background messaging: routes messages from content scripts, the options
 // page, and external extensions to options/downloads.
 //
-// messaging.ts registers its onMessage/onMessageExternal listeners at eval, so
+// messaging/index.ts registers its onMessage/onMessageExternal listeners at eval, so
 // the fake listener objects below are installed before it (and the real SCC it
 // pulls in) evaluates — hence the dynamic imports. Its deps are then imported
 // for real and controlled through vi.spyOn (methods) / Object.assign (data, and
@@ -20,9 +20,9 @@ import { clearPersistenceDiagnostics } from "../../../src/shared/persistence-dia
 (global.browser.runtime as any).onMessage = { addListener: vi.fn() };
 (global.browser.runtime as any).onMessageExternal = { addListener: vi.fn() };
 
-const Messaging = await import("../../../src/background/messaging.ts");
+const Messaging = await import("../../../src/background/messaging/index.ts");
 const { registerMessaging, resetMessagingTransientState } = Messaging;
-// Imported after the fakes above: messaging.ts already pulled the whole real SCC
+// Imported after the fakes above: messaging/index.ts already pulled the whole real SCC
 // into the module cache, so these return the same instances its handlers hold —
 // spies / Object.assign on them reach the live code.
 const { OptionsManagement } = await import("../../../src/config/option.ts");
