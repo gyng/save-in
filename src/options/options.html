@@ -493,12 +493,11 @@ Briefly explain the structure, check that every line follows this syntax, then p
 
         <label class="inline-control-label">
           <span data-saved-target>__MSG_o_cDupeFilename__</span>
-          <select disabled class="chrome-enabled" id="conflictAction">
+          <select id="conflictAction">
             <option value="uniquify">__MSG_o_cDupeUniquify__</option>
             <option value="overwrite">__MSG_o_cDupeOverwrite__</option>
-            <option value="prompt">__MSG_o_cDupePrompt__</option>
+            <option class="conflict-prompt-only" value="prompt">__MSG_o_cDupePrompt__</option>
           </select>
-          <span class="badge">Chrome</span>
         </label>
       </div>
 

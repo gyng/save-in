@@ -13,6 +13,16 @@ export const applyBrowserCapabilityUi = (): void => {
   document.querySelectorAll<HTMLElement>(".filename-suggestion-only").forEach((el) => {
     el.hidden = !WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion;
   });
+  // Only the "prompt" conflict action is Chrome-only; Firefox has never
+  // implemented it and fails the download outright. "uniquify"/"overwrite" work
+  // in both, so gate the option rather than the whole control. Hidden alone
+  // leaves an <option> selectable, so disable it too.
+  document.querySelectorAll<HTMLElement>(".conflict-prompt-only").forEach((el) => {
+    el.hidden = !WEB_EXTENSION_CAPABILITIES.conflictActionPrompt;
+    if (el instanceof HTMLOptionElement) {
+      el.disabled = !WEB_EXTENSION_CAPABILITIES.conflictActionPrompt;
+    }
+  });
   document.querySelectorAll<HTMLElement>(".firefox-reroute-only").forEach((el) => {
     el.hidden =
       CURRENT_BROWSER !== BROWSERS.FIREFOX || WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion;
@@ -21,10 +31,6 @@ export const applyBrowserCapabilityUi = (): void => {
     document.querySelectorAll<HTMLElement>(".firefox-only").forEach((el) => {
       el.hidden = true;
     });
-    document.querySelectorAll(".chrome-enabled").forEach((el) => {
-      el.removeAttribute("disabled");
-    });
-
     document
       .querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLButtonElement>(
         ".chrome-disabled",
