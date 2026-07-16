@@ -1,4 +1,5 @@
 import { EXTENSION_REGEX, getFilenameFromUrl } from "./filename.ts";
+import { isDataUrl, truncateDataUrlForDisplay } from "../shared/data-url.ts";
 import { routingPorts } from "./ports.ts";
 import { normalizeMimeType, toRootDomain } from "./variable.ts";
 import type {
@@ -24,9 +25,25 @@ const isPrivateInfo = (info: RoutingInfo | undefined): boolean => {
   );
 };
 
-const logMatch = (match: MatcherResult, regex: RegExp, info: RoutingInfo | undefined): void => {
+// Debug consoles retain object graphs, so a page-controlled data: payload must
+// never reach DevTools — the same rule the download pipeline applies to its own
+// log entries. Only the URL-bearing fields can carry one.
+const DATA_URL_INFO_KEYS = ["url", "sourceUrl", "selectedUrl", "pageUrl"] as const;
+
+const withoutDataPayloads = (info: RoutingInfo): RoutingInfo => {
+  const redacted: RoutingInfo = { ...info };
+  for (const key of DATA_URL_INFO_KEYS) {
+    const value = redacted[key];
+    if (typeof value === "string" && isDataUrl(value)) {
+      redacted[key] = truncateDataUrlForDisplay(value);
+    }
+  }
+  return redacted;
+};
+
+const logMatch = (match: MatcherResult, regex: RegExp, info: RoutingInfo): void => {
   if (routingPorts.isDebug() && match && !isPrivateInfo(info))
-    routingPorts.logDebug("matched", match, regex, info);
+    routingPorts.logDebug("matched", match, regex, withoutDataPayloads(info));
 };
 
 const matchValue = (value: string, regex: RegExp): RegExpMatchArray | null =>

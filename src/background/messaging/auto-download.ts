@@ -88,6 +88,9 @@ export const handleAutoDownloadSource = async (
     sourceUrl,
     sourceKind: request.body.sourceKind,
     matchedCssSelectorsByOrigin: cssAttestation,
+    // Carries the private marker, so this re-match is suppressed from the debug
+    // log exactly like the launchDownload below it.
+    currentTab: senderTab,
   });
   if (!match) {
     skip();

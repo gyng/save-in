@@ -6,6 +6,7 @@ import {
   type AutomaticScanGates,
 } from "../../src/automation/automatic-routing.ts";
 import { parseRulesCollecting } from "../../src/routing/rule-parser.ts";
+import { configureRoutingPorts } from "../../src/routing/ports.ts";
 import { isAutomaticRuleClauses } from "../../src/routing/automatic-rule.ts";
 import type { PageSourceChannel, PageSourceKind } from "../../src/shared/page-source.ts";
 
@@ -187,6 +188,13 @@ into: :$1:
 context: ^auto$
 pageurl: gallery
 sourcekind: image
+naivefilename: ^(.+)$
+capturegroups: naivefilename
+into: :$1:
+
+context: ^auto$
+pageurl: gallery
+sourcekind: image
 into: :sourceurl:
 
 context: ^auto$
@@ -213,6 +221,37 @@ into: inline/download
 
       expect(match?.destination).toBe("inline/download");
     });
+  });
+
+  // The background re-match runs before launchDownload, which carries the
+  // private marker itself. Without one here the re-match would print a private
+  // page and source URL to the debug console that the save never logs.
+  test("suppresses debug logging when the candidate names a private tab", () => {
+    const logDebug = vi.fn();
+    configureRoutingPorts({ isDebug: () => true, logDebug });
+    const parsed = parseRulesCollecting(`
+context: ^auto$
+pageurl: gallery
+sourcekind: image
+into: private/
+`);
+    const source = {
+      pageUrl: "https://gallery.example.test/album",
+      sourceUrl: "https://cdn.example.test/private-photo.jpg",
+      sourceKind: "image" as const,
+    };
+
+    expect(matchAutomaticRoutingRule(parsed.rules, source)?.destination).toBe("private/");
+    expect(logDebug).toHaveBeenCalled();
+
+    logDebug.mockClear();
+    expect(
+      matchAutomaticRoutingRule(parsed.rules, { ...source, currentTab: { incognito: true } })
+        ?.destination,
+    ).toBe("private/");
+    expect(logDebug).not.toHaveBeenCalled();
+
+    configureRoutingPorts({ isDebug: () => false, logDebug: () => {} });
   });
 });
 

@@ -22,6 +22,11 @@ export type AutomaticRoutingCandidate = {
   // sourcekind: alone still selects the destination.
   sourceChannel?: PageSourceChannel | undefined;
   matchedCssSelectorsByOrigin?: string[][] | undefined;
+  // The tab that declared the source. The background re-match sets it so this
+  // match is evaluated against that tab — and, because routing suppresses debug
+  // logging for a private tab, so a private automatic save does not print its
+  // page and source URLs. The content pre-match leaves it absent.
+  currentTab?: RoutingInfo["currentTab"];
 };
 
 // The phase-A link gate, phase-B channel gates, and phase-C data: protocol gate
@@ -82,13 +87,25 @@ export type AutomaticRoutingMatch = RuleMatch;
 export const isEligibleAutomaticRoutingRule = (rule: RoutingRule): boolean =>
   isAutomaticRuleClauses(rule) && automaticRuleClauseIssues(rule).length === 0;
 
+// Matchers that read the source URL itself, so capturing one on a data:
+// candidate would carry page-controlled payload into $1 and out through the
+// destination. This is the same payload DATA_PAYLOAD_OUTPUT_VARIABLE below
+// blocks, named as matchers rather than variables: the two lists describe one
+// boundary and have to grow together. `capture:` resolves against the full
+// matcher set, not the narrower automatic-source vocabulary.
+const DATA_PAYLOAD_CAPTURE_MATCHERS = new Set([
+  "fileext",
+  "naivefilename",
+  "sourceurl",
+  "urlfileext",
+]);
+
 const hasDataPayloadCapture = (rule: RoutingRule): boolean => {
   const capture = rule.find((clause) => clause.type === RULE_TYPES.CAPTURE);
   if (!capture) return false;
-  const capturedMatchers = capture.value.split(",").map((name) => name.trim().toLowerCase());
-  return capturedMatchers.some(
-    (name) => name === "sourceurl" || name === "fileext" || name === "urlfileext",
-  );
+  return capture.value
+    .split(",")
+    .some((name) => DATA_PAYLOAD_CAPTURE_MATCHERS.has(name.trim().toLowerCase()));
 };
 
 const DATA_PAYLOAD_OUTPUT_VARIABLE =
@@ -114,6 +131,9 @@ export const isEligibleAutomaticRoutingRuleForCandidate = (
 const candidateInfo = (candidate: AutomaticRoutingCandidate): RoutingInfo => ({
   context: AUTOMATIC_CONTEXT,
   mediaType: candidate.sourceKind,
+  // Only when the caller supplied it: the key's presence switches title
+  // matching from the last focused tab to this one.
+  ...(candidate.currentTab !== undefined ? { currentTab: candidate.currentTab } : {}),
   pageUrl: candidate.pageUrl,
   sourceKind: candidate.sourceKind,
   sourceUrl: candidate.sourceUrl,

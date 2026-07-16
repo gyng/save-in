@@ -154,6 +154,27 @@ describe("filename rewrite and routing", () => {
         logDebug: logRoutingDebug,
       });
     });
+
+    // Debug consoles retain object graphs, so a page-controlled data: payload
+    // must not reach DevTools through the matched-info bag.
+    test("debug matching truncates data: payloads it would otherwise log", () => {
+      const logDebug = vi.fn();
+      configureRoutingPorts({ isDebug: () => true, logDebug });
+      const payload = `data:image/png;base64,${"SECRETPAYLOAD".repeat(200)}`;
+      const matcher = router.matcherFunctions.sourcekind(/^image$/);
+
+      expect(matcher({ sourceKind: "image", url: payload, sourceUrl: payload })).toBeTruthy();
+
+      const logged = logDebug.mock.calls[0]!.at(-1) as Record<string, unknown>;
+      expect(logged.url).toBe("data:image/png;base64,…");
+      expect(logged.sourceUrl).toBe("data:image/png;base64,…");
+      expect(JSON.stringify(logged)).not.toContain("SECRETPAYLOAD");
+
+      configureRoutingPorts({
+        isDebug: () => debug,
+        logDebug: logRoutingDebug,
+      });
+    });
   });
 
   describe("rule parsing", () => {
