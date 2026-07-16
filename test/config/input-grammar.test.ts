@@ -258,6 +258,61 @@ describe("routing-rule grammar", () => {
     ]);
   });
 
+  // The grammar declares the space after a clause colon optional. The clause
+  // name therefore ends at the FIRST colon: a greedy name token would run on to
+  // the last colon of the line and swallow a value that carries its own colons.
+  test.each([
+    ["into:dongs/:filename:", "into", "", "dongs/:filename:"],
+    ["into:a:b", "into", "", "a:b"],
+    ["fileext:png", "fileext", "", "png"],
+    ["fileext:^png$", "fileext", "", "^png$"],
+    ["sourceurl:https://example.test/x", "sourceurl", "", "https://example.test/x"],
+    ["css:a:hover", "css", "", "a:hover"],
+    ["filename/i:\\.png$", "filename", "i", "\\.png$"],
+    ["filename/i:a/b", "filename", "i", "a/b"],
+    ["rename/gi:a -> b", "rename", "gi", "a -> b"],
+    ["rename/i:a:b -> c", "rename", "i", "a:b -> c"],
+  ])("parses %j without the optional space", (source, name, flags, value) => {
+    const parsed = parseRoutingRuleAst(source);
+
+    expect(parsed.issues).toEqual([]);
+    expect(parsed.ast.rules[0]!.clauses[0]!).toEqual(
+      expect.objectContaining({ name, flags, value }),
+    );
+  });
+
+  // The optional space is grammar trivia, so writing it must not change what a
+  // clause means — only the leading trivia the CST records for it.
+  test.each([
+    "into:dongs/:filename:",
+    "css:a:hover",
+    "sourceurl:https://example.test/x",
+    "filename/i:a/b",
+    "rename/i:a:b -> c",
+  ])("reads %j identically with and without the optional space", (source) => {
+    const colon = source.indexOf(":");
+    const spaced = `${source.slice(0, colon + 1)} ${source.slice(colon + 1)}`;
+    const read = (text: string) => {
+      const clause = parseRoutingRuleAst(text).ast.rules[0]!.clauses[0]!;
+      return { name: clause.name, flags: clause.flags, value: clause.value };
+    };
+
+    expect(read(source)).toEqual(read(spaced));
+  });
+
+  // The flags separator sits before the first colon, so a "/" in the value can
+  // never be mistaken for it.
+  test("keeps a value slash out of the regex flags", () => {
+    const parsed = parseRoutingRuleAst("into:dongs/:filename:");
+    const clause = parsed.ast.rules[0]!.clauses[0]!;
+
+    expect(clause.flagsSpan).toBeNull();
+    expect(clause.cst.flagsSeparator).toBeNull();
+    expect(clause.cst.rawName.raw).toBe("into");
+    expect(clause.cst.valueLeadingTrivia.raw).toBe("");
+    expect(serializeRoutingDocument(parsed.ast)).toBe("into:dongs/:filename:");
+  });
+
   test("preserves legacy whole-document whitespace normalization", () => {
     const parsed = parseRoutingRuleAst("  filename: jpg\ninto: images  ");
     expect(parsed.issues).toEqual([]);

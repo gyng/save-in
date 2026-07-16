@@ -83,11 +83,25 @@ const legacySetPathMetadata = (comment: string, key: string, value: string): str
   return cleaned ? `${cleaned} ${metadata}` : metadata;
 };
 
-const legacyTokenize = (source: string): { tokens: LegacyRuleToken[]; invalid: string[] } => {
+// How v3 read a clause head. The `: ?` shows the space after the colon was
+// always meant to be optional, but the greedy `\S*` defeated it: the name ran
+// on to the LAST colon of the line and swallowed any value carrying one of its
+// own (into:dongs/:filename:, css:a:hover, url:https://host/x).
+const LEGACY_CLAUSE_HEAD = /^(\S*): ?(.*)/;
+// What v3 meant, and what v4 implements: the name ends at the FIRST colon. This
+// is the same expression with `\S*` narrowed to exclude the colon. Both accept
+// exactly the same lines — a colon with no whitespace before it — so the set of
+// invalid lines is unchanged; only where the name stops can differ.
+const INTENDED_CLAUSE_HEAD = /^([^\s:]*): ?(.*)/;
+
+const legacyTokenize = (
+  source: string,
+  head: RegExp,
+): { tokens: LegacyRuleToken[]; invalid: string[] } => {
   const tokens: LegacyRuleToken[] = [];
   const invalid: string[] = [];
   source.split(/\r\n|[\n\r\u2028\u2029]/).forEach((line) => {
-    const matches = line.match(/^(\S*): ?(.*)/);
+    const matches = line.match(head);
     const fullClause = matches?.[0];
     const name = matches?.[1];
     const value = matches?.[2];
@@ -97,7 +111,10 @@ const legacyTokenize = (source: string): { tokens: LegacyRuleToken[]; invalid: s
   return { tokens, invalid };
 };
 
-const legacyParseRouting = (raw: string): { rules: LegacyRuleToken[][]; invalid: string[] } => {
+const legacyParseRouting = (
+  raw: string,
+  head: RegExp = LEGACY_CLAUSE_HEAD,
+): { rules: LegacyRuleToken[][]; invalid: string[] } => {
   const source = raw
     .split(/\r\n|[\n\r\u2028\u2029]/)
     .map((line) => (line.trim() === "" ? "" : line))
@@ -110,7 +127,7 @@ const legacyParseRouting = (raw: string): { rules: LegacyRuleToken[][]; invalid:
     .replace(/\n\n+/g, "\n\n")
     .split("\n\n")
     .map((block) => {
-      const parsed = legacyTokenize(block);
+      const parsed = legacyTokenize(block, head);
       invalid.push(...parsed.invalid);
       return parsed.tokens;
     });
@@ -291,6 +308,7 @@ describe("legacy parser compatibility", () => {
     ];
     cases.forEach((source) => {
       const legacy = legacyParseRouting(source);
+      const intended = legacyParseRouting(source, INTENDED_CLAUSE_HEAD);
       const parsed = parseRoutingRuleAst(source);
       expect(serializeRoutingDocument(parsed.ast), JSON.stringify(source)).toBe(source);
       expect(
@@ -300,11 +318,27 @@ describe("legacy parser compatibility", () => {
       const tokens = parsed.ast.rules.map((rule) =>
         rule.clauses.map((clause): LegacyRuleToken => [clause.raw, clause.rawName, clause.value]),
       );
-      expect(tokens, JSON.stringify(source)).toEqual(legacy.rules);
+      expect(tokens, JSON.stringify(source)).toEqual(intended.rules);
+      // Rule grouping and the set of unreadable lines stay bug-for-bug on v3.
       expect(
         parsed.issues.map((issue) => issue.source),
         JSON.stringify(source),
       ).toEqual(legacy.invalid);
+      expect(legacy.invalid, JSON.stringify(source)).toEqual(intended.invalid);
+      expect(
+        tokens.map((rule) => rule.length),
+        JSON.stringify(source),
+      ).toEqual(legacy.rules.map((rule) => rule.length));
+      // Where v4 reads a clause differently from v3, v3's name had run past a
+      // colon. No clause name contains one, so v3 could only reject that line:
+      // the divergence cannot change a rule that worked on v3.
+      if (JSON.stringify(tokens) !== JSON.stringify(legacy.rules)) {
+        const runOn = legacy.rules
+          .flat()
+          .filter(([, name]) => name.includes(":"))
+          .map(([, name]) => name);
+        expect(runOn.length, JSON.stringify(source)).toBeGreaterThan(0);
+      }
     });
   });
 });

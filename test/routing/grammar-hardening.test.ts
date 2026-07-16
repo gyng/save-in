@@ -171,6 +171,29 @@ describe("routing grammar hardening", () => {
     );
   });
 
+  // ROUTING_RULE_GRAMMAR declares the space after a clause colon optional, and
+  // integrations author against that EBNF. A rule written without it must route
+  // exactly like the spaced form.
+  test.each([
+    ["fileext:png\ninto:dongs/:filename:", "dongs/:filename:"],
+    ["fileext: png\ninto: dongs/:filename:", "dongs/:filename:"],
+    ["sourceurl:^https://example\\.test/\ninto:saved/:filename:", "saved/:filename:"],
+  ])("routes %j without the optional space", (source, destination) => {
+    const parsed = parseRulesCollecting(source);
+
+    expect(parsed.errors).toEqual([]);
+    expect(
+      matchRulesDetailed(parsed.rules, {
+        filename: "report.png",
+        sourceUrl: "https://example.test/report.png",
+      })?.destination,
+    ).toBe(destination);
+  });
+
+  test("accepts a css: selector whose pseudo-class carries a colon", () => {
+    expect(parseRulesCollecting("css:a:hover\ninto: saved/:filename:").errors).toEqual([]);
+  });
+
   test.each([
     "into/i: x",
     "fetch/i: https://example.test/x",

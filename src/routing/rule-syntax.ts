@@ -131,7 +131,13 @@ type SourceLine = {
 const clauseParser = defineGrammar(
   map(
     sequence(
-      located(token(/\S*(?=:)/, "clause name")),
+      // The name ends at the FIRST colon: the grammar makes the space after the
+      // colon optional, so a greedy name token would run on to the last colon of
+      // the line and swallow a value carrying its own colons (into:a/:filename:,
+      // css:a:hover, url:https://host/x). Excluding ":" also keeps the optional
+      // "/" flags separator strictly inside the name, where a "/" in the value
+      // can never be mistaken for it.
+      located(token(/[^\s:]*(?=:)/, "clause name")),
       located(literal(":")),
       located(optional(literal(" "))),
       located(token(/.*/, "clause value")),
