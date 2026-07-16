@@ -4,6 +4,8 @@ import {
   parseAutoDownloadRules,
   serializeAutoDownloadRules,
 } from "../../src/automation/auto-download-rules.ts";
+import { matchAutomaticRoutingRule } from "../../src/automation/automatic-routing.ts";
+import { parseRulesCollecting } from "../../src/routing/rule-parser.ts";
 
 const candidate = {
   pageUrl: "https://www.example.co.uk/gallery/42",
@@ -175,6 +177,25 @@ into: dangerous/
         "disabled: true",
       ].join("\n"),
     });
+  });
+
+  // The legacy fileext matcher read the extension out of the URL's path, so it
+  // matched sources carrying a query string. Routing's fileext reads the raw
+  // URL against an end-anchored EXTENSION_REGEX, so a source URL with a query
+  // has no extension to find; urlfileext is the matcher that keeps the old
+  // meaning. Carrying the name across verbatim silently stops a stored rule
+  // matching the sources it was written for.
+  test("migrates fileext to the routing matcher that keeps its meaning", () => {
+    const legacy = "pagedomain: ^www\\.example\\.co\\.uk$\nfileext/i: ^jpg$\ninto: matched/";
+    const parsedLegacy = parseAutoDownloadRules(legacy);
+    expect(parsedLegacy.errors).toEqual([]);
+    expect(matchAutoDownloadRule(parsedLegacy.rules, candidate)?.destination).toBe("matched/");
+
+    const migrated = migrateLegacyAutoDownloadRules(legacy);
+    expect(migrated.errors).toEqual([]);
+    const routed = parseRulesCollecting(migrated.routingSource);
+    expect(routed.errors.filter((error) => !error.warning)).toEqual([]);
+    expect(matchAutomaticRoutingRule(routed.rules, candidate)?.destination).toBe("matched/");
   });
 
   test("returns migration diagnostics without emitting a partial routing document", () => {

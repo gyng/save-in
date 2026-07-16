@@ -291,6 +291,15 @@ export const serializeAutoDownloadRules = (rules: readonly EditableAutoDownloadR
     )
     .join("\n\n");
 
+// Legacy matchers whose routing counterpart of the same name means something
+// else. fileext read the extension out of the URL's path, so it matched a
+// source carrying a query string and reported "" for an extensionless one.
+// Routing's fileext tests the raw URL against an end-anchored EXTENSION_REGEX,
+// which finds no extension in either; urlfileext keeps both meanings.
+const MIGRATED_MATCHER_NAMES: Partial<Record<AutoDownloadMatcherName, string>> = {
+  fileext: "urlfileext",
+};
+
 export const migrateLegacyAutoDownloadRules = (
   source: string,
 ): { routingSource: string; errors: AutoDownloadRuleError[] } => {
@@ -301,10 +310,10 @@ export const migrateLegacyAutoDownloadRules = (
       [
         ...(rule.name ? [`// ${escapeControlValue(rule.name)}`] : []),
         "context: ^auto$",
-        ...rule.matchers.map(
-          (matcher) =>
-            `${matcher.name}${matcher.flags ? `/${matcher.flags}` : ""}: ${matcher.pattern}`,
-        ),
+        ...rule.matchers.map((matcher) => {
+          const name = MIGRATED_MATCHER_NAMES[matcher.name] ?? matcher.name;
+          return `${name}${matcher.flags ? `/${matcher.flags}` : ""}: ${matcher.pattern}`;
+        }),
         `into: ${rule.destination}`,
         ...(!rule.enabled ? ["disabled: true"] : []),
       ].join("\n"),

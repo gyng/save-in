@@ -165,7 +165,7 @@ rules.
 - Added Page Sources for previewing media discovered on the current page,
   including relevance sorting, richer previews, live updates, and per-page
   controls.
-- Added opt-in automatic Page Sources saves. Eligible rules use the normal
+- Added opt-in automatic Page Sources saves (#47). Eligible rules use the normal
   routing grammar, require explicit `context: ^auto$`, page, and source
   conditions, and cannot be triggered by broad ordinary rules. Valid settings
   from the earlier dedicated automation field migrate automatically.
@@ -233,7 +233,9 @@ rules.
   directly to the effective default through the normal routing pipeline. A menu
   toggle switches that default between Downloads and the configured folder,
   while per-location `(tab: close)` and `(tab: return)` actions can close or
-  refocus the source tab after a successful save (#115).
+  refocus the source tab after a successful save (#115, #68). Those act on any
+  save, not only a saved page, and only once the save actually starts — the
+  older global setting closed on a timer whether or not it worked.
 - Added undo for a completed save (#102): a button on the success
   notification (Chrome) and a History row action (both browsers) remove the
   file, clear it from the browser's download list, and mark the History entry

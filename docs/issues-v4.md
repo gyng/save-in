@@ -669,14 +669,66 @@ self-authored by the maintainer. **#25/#87** — genuinely platform-blocked (bot
 need native messaging), and notably neither is in the roadmap's non-goals.
 **#57** — "to the right" shipped in v3; "to the left" never existed.
 
-### Stale reasons worth retracting
+### Stale reasons worth retracting — decide, do not repeat
 
-**#65** ("no access to the title attribute") and **#77** ("if accesskeys still
-don't show up") — both owner reasons that v4 has since invalidated: the content
-script now reads page DOM, and access keys shipped. The asks remain unbuilt; only
-the excuses expired. **#86** (Vivaldi) — the mechanism is right (Chromium forks
-take the Chrome path via the `getBrowserInfo` absence), the 2020 polyfill error
-is gone by construction, but Vivaldi is in no test matrix — ask, do not assert.
+Both were declined for a reason v4 has since invalidated. The asks are still
+unbuilt; only the excuses expired. Closing either by repeating its original
+reason would be wrong on the facts.
+
+**#65** — *"prioritize title attribute over text when using `:linktext:`"*.
+Declined: *"the WebExtensions API does not provide access to the title attribute
+directly so this can only be done using content scripts. It's going to take some
+effort to do that, so it's not going to happen anytime soon."* v4 ships a
+content script on every page that already reads origin elements from the DOM for
+CSS-selector attestation (`content/css-routing.ts`) — the effort he was avoiding
+is now sunk cost. `linkText` still comes solely from the browser's own
+`info.linkText` (`background/menu-click.ts`), and no `linkTitle` token exists.
+One honest caveat against over-crediting: `css:` can *match* `a[title*="…"]` but
+cannot *capture* it into a filename, and is Page-Sources-scoped rather than
+wired into the right-click path.
+
+**#77** — a long-press folder menu. Declined **conditionally**: *"There's also
+movement in the bug for accesskeys in Firefox. If accesskeys still don't show up
+after a while I'll consider adding something like this."* Access keys shipped
+(`setAccesskey`, `keyRoot`/`keyLastUsed`), and `ROADMAP.md` treats the Last-used
+access key as settled by-design. By his own wording that is the branch where he
+does **not** build it — so wontfix is defensible, but the condition should be
+stated as resolved rather than left dangling. Note a third party reported the
+offered userChrome.css workaround did not work, and was never answered.
+
+**Recommendation: close both as wontfix, saying the reason expired.** The work
+to build them is real; the pretext that they were impossible is not.
+
+### Fixed, and the reporter was never told
+
+**#68** — drook's original (close the tab after saving) shipped in **v3**.
+Wombat2018's follow-up asked for two more things and gyng accepted both —
+*"I'll open a new issue for this"* — then never did.
+
+- *"close the tab from which something is being downloaded **in general**"* —
+  **new in v4**: the per-destination `(tab: close)` annotation
+  (`menus/directory-parser.ts`, applied in `background/menu-click.ts`) fires on
+  **any** download type, where the older global `closeTabOnSave` is
+  `DOWNLOAD_TYPES.PAGE`-only by deliberate design (*"closing the tab under an
+  image/link save would be a surprise"*). It also closes only once the save
+  starts, resolving a v3 TODO that closed on a timer regardless of outcome.
+  Credited in the changelog as of this pass.
+- *"define at which **pages** the tab should be closed"* — **not built.**
+  `tabAction` lives on menu items only; it is not a routing clause.
+
+So: close drook's original, and either split Wombat2018's page-scoped half into
+the issue that was promised or answer it as a non-goal. Closing #68 outright
+drops an ask the maintainer said he would track.
+
+**#47** — self-authored by the maintainer, zero comments, so nobody is waiting.
+The intent shipped: automatic saves of everything matching a rule, as
+`context: ^auto$` (`routing/automatic-rule.ts`, `docs/AUTOMATIC-SOURCE-SAVES.md`),
+off by default. The *design in the body* did not and should not: it asked to
+*"add `webRequest` permissions"* and *"listen to all URLs"*, and AGENTS.md makes
+that a standing architectural refusal — Save In requests
+`declarativeNetRequestWithHostAccess`, never `webRequest`. v4 discovers page-DOM
+sources, not arbitrary network traffic. Credited in the changelog as of this
+pass; cleanest close is his own, pointing at `context: ^auto$`.
 
 ### Not reproducible
 
