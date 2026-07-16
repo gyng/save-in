@@ -127,9 +127,11 @@ export type ResolvedContentOptions = {
   uiTheme: UiTheme;
   contentClickToSaveCombo: string | number;
   contentClickToSaveButton: ClickType;
+  contentClickToSaveUseDefault: boolean;
   links: boolean;
   perSiteDisableList: string;
   quickSaveEnabled: boolean;
+  quickSaveOnly: boolean;
   quickSaveDirectory: string;
   quickSaveUseDirectory: boolean;
 };
@@ -156,11 +158,19 @@ export const CONTENT_OPTION_DEFAULTS: ResolvedContentOptions = {
   uiTheme: "system",
   contentClickToSaveCombo: DEFAULT_CONTENT_CLICK_COMBO,
   contentClickToSaveButton: CLICK_TYPES.LEFT_CLICK,
+  // Click-to-save inherits the last save's folder, which is what #162 asked to
+  // opt out of: picking one other folder from the menu silently redirects every
+  // later click. Off keeps the inheriting behavior that predates this option.
+  contentClickToSaveUseDefault: false,
   links: true,
   perSiteDisableList: "",
   // Quick save keeps the menu unchanged until explicitly opted into, so the
   // context menu never grows a root save item without the user asking for it.
   quickSaveEnabled: false,
+  // Browsers only collapse an extension's context-menu items into a submenu
+  // when there is more than one, so offering Quick save alone is the one way to
+  // reach a save in a single click (#144). Off keeps the full menu.
+  quickSaveOnly: false,
   // "." is the Downloads root, matching the effective default before this
   // option existed; an absent stored key preserves that behavior.
   quickSaveDirectory: ".",
@@ -227,6 +237,8 @@ const CONTENT_OPTION_NORMALIZERS: ContentOptionNormalizers = {
   uiTheme: normalizeUiTheme,
   contentClickToSaveCombo: (stored) =>
     isContentClickCombo(stored) ? stored : CONTENT_OPTION_DEFAULTS.contentClickToSaveCombo,
+  contentClickToSaveUseDefault: booleanOption(CONTENT_OPTION_DEFAULTS.contentClickToSaveUseDefault),
+  quickSaveOnly: booleanOption(CONTENT_OPTION_DEFAULTS.quickSaveOnly),
   contentClickToSaveButton: (stored) =>
     isClickType(stored) ? stored : CONTENT_OPTION_DEFAULTS.contentClickToSaveButton,
   links: booleanOption(CONTENT_OPTION_DEFAULTS.links),

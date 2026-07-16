@@ -4186,6 +4186,9 @@
   "contextMenuQuickSave": {
     "message": "Enregistrement rapide"
   },
+  "contextMenuQuickSaveOnly": {
+    "message": "Enregistrement rapide (Save In)"
+  },
   "contextMenuQuickSaveToDirectory": {
     "message": "Enregistrer dans $DIRECTORY$",
     "placeholders": {
@@ -4209,6 +4212,18 @@
   },
   "o_cQuickSaveUseDirectory": {
     "message": "Enregistrer dans ce dossier au lieu de Téléchargements"
+  },
+  "o_cQuickSaveOnly": {
+    "message": "N'afficher que Enregistrement rapide dans le menu contextuel"
+  },
+  "o_cQuickSaveOnlyHelp": {
+    "message": "Enregistre en un clic en supprimant le sous-menu Save In. La liste des dossiers, Dernier utilisé et les autres actions du menu disparaissent avec lui, car les navigateurs n'omettent le sous-menu que s'il ne reste qu'un seul élément."
+  },
+  "o_cClickToSaveUseDefault": {
+    "message": "Toujours enregistrer vers la destination par défaut"
+  },
+  "o_cClickToSaveUseDefaultHelp": {
+    "message": "Sinon, le clic pour enregistrer réutilise le dernier dossier choisi dans le menu."
   },
   "historyMovePending": {
     "message": "Téléchargement vers le nouveau dossier en cours. Le fichier d’origine sera supprimé à la fin."

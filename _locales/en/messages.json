@@ -5377,6 +5377,10 @@
     "message": "Quick save",
     "description": "Context menu item that saves straight to the default destination without opening the folder list. Used in src/background/menu-build.ts."
   },
+  "contextMenuQuickSaveOnly": {
+    "message": "Quick save (Save In)",
+    "description": "Standalone context menu item shown when Quick save replaces the Save In submenu entirely; it names the extension because no root item does. Used in src/background/menu-build.ts."
+  },
   "contextMenuQuickSaveToDirectory": {
     "message": "Save to $DIRECTORY$",
     "description": "Checkbox context menu item that switches quick save between the Downloads root and a configured folder. $DIRECTORY$ is the configured folder path. Used in src/background/menu-build.ts.",
@@ -5406,6 +5410,22 @@
   "o_cQuickSaveUseDirectory": {
     "message": "Save to this folder instead of Downloads",
     "description": "Option checkbox label that routes quick save to the configured folder instead of the Downloads root. Used in src/options/options.html."
+  },
+  "o_cQuickSaveOnly": {
+    "message": "Show only Quick save in the context menu",
+    "description": "Checkbox label: show only Quick save in the context menu, with no Save In submenu. Used in src/options/options.html."
+  },
+  "o_cQuickSaveOnlyHelp": {
+    "message": "Saves in one click by removing the Save In submenu. The folder list, Last used, and the other menu actions go with it, because browsers only skip the submenu when there is a single item.",
+    "description": "Help text explaining that quick-save-only removes the folder list, Last used, and the other menu actions, because browsers only skip the submenu for a single item. Used in src/options/options.html."
+  },
+  "o_cClickToSaveUseDefault": {
+    "message": "Always save to the default destination",
+    "description": "Checkbox label: send click-to-save to the default destination rather than the last folder saved to. Used in src/options/options.html."
+  },
+  "o_cClickToSaveUseDefaultHelp": {
+    "message": "Click to save otherwise reuses whichever folder you last picked from the menu.",
+    "description": "Help text explaining that click-to-save otherwise reuses whichever folder was last picked from the menu. Used in src/options/options.html."
   },
   "ruleClauseFlags": {
     "message": "This clause does not accept regular-expression flags",

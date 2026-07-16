@@ -4186,6 +4186,9 @@
   "contextMenuQuickSave": {
     "message": "快速儲存"
   },
+  "contextMenuQuickSaveOnly": {
+    "message": "快速儲存 (Save In)"
+  },
   "contextMenuQuickSaveToDirectory": {
     "message": "儲存至 $DIRECTORY$",
     "placeholders": {
@@ -4209,6 +4212,18 @@
   },
   "o_cQuickSaveUseDirectory": {
     "message": "儲存至此資料夾而非下載資料夾"
+  },
+  "o_cQuickSaveOnly": {
+    "message": "右鍵選單只顯示快速儲存"
+  },
+  "o_cQuickSaveOnlyHelp": {
+    "message": "去掉 Save In 子選單，一次點擊即可儲存。資料夾清單、最近使用和其他選單動作也會一併消失，因為瀏覽器只有在僅剩一個項目時才會省略子選單。"
+  },
+  "o_cClickToSaveUseDefault": {
+    "message": "一律儲存到預設位置"
+  },
+  "o_cClickToSaveUseDefaultHelp": {
+    "message": "否則點擊儲存會沿用你上次在選單中選擇的資料夾。"
   },
   "historyMovePending": {
     "message": "正在下載到新資料夾。完成後將刪除原始檔案。"

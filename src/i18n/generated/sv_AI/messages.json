@@ -4186,6 +4186,9 @@
   "contextMenuQuickSave": {
     "message": "Snabbspara"
   },
+  "contextMenuQuickSaveOnly": {
+    "message": "Snabbspara (Save In)"
+  },
   "contextMenuQuickSaveToDirectory": {
     "message": "Spara i $DIRECTORY$",
     "placeholders": {
@@ -4209,6 +4212,18 @@
   },
   "o_cQuickSaveUseDirectory": {
     "message": "Spara i den här mappen i stället för Hämtade filer"
+  },
+  "o_cQuickSaveOnly": {
+    "message": "Visa bara Snabbspara i snabbmenyn"
+  },
+  "o_cQuickSaveOnlyHelp": {
+    "message": "Sparar med ett klick genom att ta bort undermenyn Save In. Mapplistan, Senast använda och övriga menyåtgärder försvinner med den, eftersom webbläsare bara hoppar över undermenyn när det finns ett enda objekt."
+  },
+  "o_cClickToSaveUseDefault": {
+    "message": "Spara alltid till standardmålet"
+  },
+  "o_cClickToSaveUseDefaultHelp": {
+    "message": "Annars återanvänder klicka för att spara den mapp du senast valde i menyn."
   },
   "historyMovePending": {
     "message": "Hämtar till den nya mappen. Originalfilen tas bort när hämtningen är klar."

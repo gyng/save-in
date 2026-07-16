@@ -8,6 +8,7 @@ import { Path } from "../../routing/path.ts";
 import { OptionsManagement } from "../../config/option.ts";
 import { options } from "../../config/options-data.ts";
 import { buildTree } from "../../menus/menu-tree.ts";
+import { resolveDefaultDestination } from "../../menus/quick-save-target.ts";
 import { matcherFunctions, parseRulesCollecting, traceRules } from "../../routing/router.ts";
 import { launchDownload } from "../../downloads/download.ts";
 import { createSourceSidecarRequest } from "../../downloads/source-sidecar.ts";
@@ -452,8 +453,16 @@ export const handleDownloadMessage = (
     // or scratch: those describe a different URL, and inheriting them names
     // this download after the previous one. renameAndDownload re-evaluates
     // the routing rules and filenames for this URL.
+    //
+    // Inheriting the folder is what #162 asked to opt out of: picking one other
+    // folder from the menu silently redirects every later click. When the user
+    // opts out, take the same destination Quick save resolves, so the two
+    // one-click saves cannot disagree about where "default" is. A matched
+    // `into:` route still overrides this — download-plan re-roots CLICK saves.
     const clickState: DownloadPipelineState = {
-      path: last?.path || new Path("."),
+      path: options.contentClickToSaveUseDefault
+        ? new Path(resolveDefaultDestination(options))
+        : last?.path || new Path("."),
       scratch: {},
       info: {
         ...opts,

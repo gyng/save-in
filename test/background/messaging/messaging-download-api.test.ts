@@ -259,6 +259,61 @@ describe("handleDownloadMessage", () => {
     expect(state.path.finalize()).toBe(".");
   });
 
+  // #162: "If I need it anywhere I would select those other folders and then my
+  // instant click download is broken." The inherited folder is the default; the
+  // option opts out of it.
+  describe("click-to-save default destination (#162)", () => {
+    const seedLastPath = () => {
+      backgroundRuntime.lastDownloadState = {
+        path: new Path("images/cats"),
+        scratch: {},
+        info: {},
+      } as any;
+    };
+
+    const clickPath = () => {
+      const state = vi.mocked(Download.launchDownload).mock.calls[0]![0]!;
+      return state.path.finalize();
+    };
+
+    test("still inherits the last folder while the option is off", () => {
+      seedLastPath();
+      options.contentClickToSaveUseDefault = false;
+
+      onMessage(request(), {}, vi.fn());
+
+      expect(clickPath()).toBe("images/cats");
+    });
+
+    test("uses the Downloads root instead of the last folder when opted in", () => {
+      seedLastPath();
+      options.contentClickToSaveUseDefault = true;
+
+      onMessage(request(), {}, vi.fn());
+
+      expect(clickPath()).toBe(".");
+    });
+
+    // The opt-out resolves the same destination Quick save does, so the two
+    // one-click saves cannot disagree about where "default" is.
+    test("follows the configured Quick save folder when one is set", () => {
+      seedLastPath();
+      options.contentClickToSaveUseDefault = true;
+      options.quickSaveUseDirectory = true;
+      options.quickSaveDirectory = "Inbox";
+
+      onMessage(request(), {}, vi.fn());
+
+      expect(clickPath()).toBe("Inbox");
+    });
+
+    afterEach(() => {
+      options.contentClickToSaveUseDefault = false;
+      options.quickSaveUseDirectory = false;
+      options.quickSaveDirectory = ".";
+    });
+  });
+
   test("prefers the sender's tab over the tracked global tab (#172)", () => {
     const senderTab = { id: 5, title: "Sender Tab" };
     onMessage(request(), { tab: senderTab }, vi.fn());

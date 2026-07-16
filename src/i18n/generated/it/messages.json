@@ -4186,6 +4186,9 @@
   "contextMenuQuickSave": {
     "message": "Salvataggio rapido"
   },
+  "contextMenuQuickSaveOnly": {
+    "message": "Salvataggio rapido (Save In)"
+  },
   "contextMenuQuickSaveToDirectory": {
     "message": "Salva in $DIRECTORY$",
     "placeholders": {
@@ -4209,6 +4212,18 @@
   },
   "o_cQuickSaveUseDirectory": {
     "message": "Salva in questa cartella invece che in Download"
+  },
+  "o_cQuickSaveOnly": {
+    "message": "Mostra solo Salvataggio rapido nel menu contestuale"
+  },
+  "o_cQuickSaveOnlyHelp": {
+    "message": "Salva con un clic rimuovendo il sottomenu Save In. L'elenco delle cartelle, Ultimo usato e le altre azioni del menu spariscono con esso, perché i browser saltano il sottomenu solo con un unico elemento."
+  },
+  "o_cClickToSaveUseDefault": {
+    "message": "Salva sempre nella destinazione predefinita"
+  },
+  "o_cClickToSaveUseDefaultHelp": {
+    "message": "Altrimenti il clic per salvare riusa l'ultima cartella scelta dal menu."
   },
   "historyMovePending": {
     "message": "Download nella nuova cartella in corso. Il file originale verrà rimosso al termine."

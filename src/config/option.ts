@@ -43,6 +43,8 @@ export const OptionsManagement: OptionsManagementApi = {
     contentClickToSaveCombo:
       "Modifiers to hold for click-to-save; legacy raw keyCodes remain supported.",
     contentClickToSaveButton: "Mouse button for click-to-save.",
+    contentClickToSaveUseDefault:
+      "Send click-to-save to the default destination instead of the last folder saved to.",
     autoDownloadEnabled:
       "Automatically save page sources that match routing rules with context: auto.",
     autoDownloadRules:
@@ -137,6 +139,7 @@ export const OptionsManagement: OptionsManagementApi = {
       "URL match patterns where click to save, Page Sources, and automatic saves stay off.",
     quickSaveEnabled:
       "Show a Quick save item at the top of the menu that saves straight to the default destination.",
+    quickSaveOnly: "Offer only Quick save in the context menu, with no Save In submenu around it.",
     quickSaveDirectory:
       "Destination Quick save uses when 'save to this folder' is on ('.' is the Downloads root).",
     quickSaveUseDirectory:

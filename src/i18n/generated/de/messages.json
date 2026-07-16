@@ -4186,6 +4186,9 @@
   "contextMenuQuickSave": {
     "message": "Schnell speichern"
   },
+  "contextMenuQuickSaveOnly": {
+    "message": "Schnell speichern (Save In)"
+  },
   "contextMenuQuickSaveToDirectory": {
     "message": "In $DIRECTORY$ speichern",
     "placeholders": {
@@ -4209,6 +4212,18 @@
   },
   "o_cQuickSaveUseDirectory": {
     "message": "In diesem Ordner statt in Downloads speichern"
+  },
+  "o_cQuickSaveOnly": {
+    "message": "Nur Schnell speichern im Kontextmenü zeigen"
+  },
+  "o_cQuickSaveOnlyHelp": {
+    "message": "Speichert mit einem Klick, indem das Save In-Untermenü entfällt. Die Ordnerliste, Zuletzt verwendet und die übrigen Menüaktionen entfallen damit ebenfalls, denn Browser überspringen das Untermenü nur bei einem einzelnen Eintrag."
+  },
+  "o_cClickToSaveUseDefault": {
+    "message": "Immer am Standardziel speichern"
+  },
+  "o_cClickToSaveUseDefaultHelp": {
+    "message": "Klick zum Speichern verwendet sonst den zuletzt im Menü gewählten Ordner erneut."
   },
   "historyMovePending": {
     "message": "Download in den neuen Ordner läuft. Die Originaldatei wird nach Abschluss entfernt."

@@ -4186,6 +4186,9 @@
   "contextMenuQuickSave": {
     "message": "Guardado rápido"
   },
+  "contextMenuQuickSaveOnly": {
+    "message": "Guardado rápido (Save In)"
+  },
   "contextMenuQuickSaveToDirectory": {
     "message": "Guardar en $DIRECTORY$",
     "placeholders": {
@@ -4209,6 +4212,18 @@
   },
   "o_cQuickSaveUseDirectory": {
     "message": "Guardar en esta carpeta en lugar de Descargas"
+  },
+  "o_cQuickSaveOnly": {
+    "message": "Mostrar solo Guardado rápido en el menú contextual"
+  },
+  "o_cQuickSaveOnlyHelp": {
+    "message": "Guarda con un clic al quitar el submenú de Save In. La lista de carpetas, Último usado y las demás acciones del menú desaparecen con él, porque los navegadores solo omiten el submenú cuando hay un único elemento."
+  },
+  "o_cClickToSaveUseDefault": {
+    "message": "Guardar siempre en el destino predeterminado"
+  },
+  "o_cClickToSaveUseDefaultHelp": {
+    "message": "De lo contrario, clic para guardar reutiliza la última carpeta que elegiste en el menú."
   },
   "historyMovePending": {
     "message": "Descargando en la nueva carpeta. El archivo original se eliminará cuando termine."

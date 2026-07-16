@@ -101,6 +101,14 @@ rules.
   variation selectors (#220), trailing dots or spaces, reserved device names,
   and broken replacement characters. Path-component limits now use UTF-8 bytes
   and preserve filename extensions.
+- Click to save can now always use the default destination instead of the last
+  folder you saved to (#162). It follows the same folder Quick save uses, so
+  picking one other folder from the menu no longer redirects every later click.
+  A matching routing rule still wins.
+- Quick save can now be the only thing in the context menu, with no **Save In**
+  submenu around it (#144) — a save in one click. The folder list, **Last used**,
+  and the other menu actions go with it: browsers only skip the submenu when an
+  extension offers a single item.
 - Whitespace is now trimmed from both ends of every folder and filename,
   including non-breaking and other Unicode spaces (#53). Browsers reject a
   path component that begins or ends with whitespace, so such a save used to

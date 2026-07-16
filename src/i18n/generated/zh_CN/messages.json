@@ -4186,6 +4186,9 @@
   "contextMenuQuickSave": {
     "message": "快速保存"
   },
+  "contextMenuQuickSaveOnly": {
+    "message": "快速保存 (Save In)"
+  },
   "contextMenuQuickSaveToDirectory": {
     "message": "保存到 $DIRECTORY$",
     "placeholders": {
@@ -4209,6 +4212,18 @@
   },
   "o_cQuickSaveUseDirectory": {
     "message": "保存到此文件夹而非下载文件夹"
+  },
+  "o_cQuickSaveOnly": {
+    "message": "右键菜单只显示快速保存"
+  },
+  "o_cQuickSaveOnlyHelp": {
+    "message": "去掉 Save In 子菜单，一次点击即可保存。文件夹列表、最近使用和其他菜单操作也会一并消失，因为浏览器只有在仅剩一个项目时才会省略子菜单。"
+  },
+  "o_cClickToSaveUseDefault": {
+    "message": "始终保存到默认位置"
+  },
+  "o_cClickToSaveUseDefaultHelp": {
+    "message": "否则点击保存会沿用你上次在菜单中选择的文件夹。"
   },
   "historyMovePending": {
     "message": "正在下载到新文件夹。完成后将删除原文件。"

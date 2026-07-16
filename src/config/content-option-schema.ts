@@ -109,6 +109,11 @@ export const CONTENT_FEATURE_OPTION_DEFINITIONS = [
     default: CONTENT_OPTION_DEFAULTS.contentClickToSaveButton,
   },
   {
+    name: "contentClickToSaveUseDefault",
+    type: "BOOL",
+    default: CONTENT_OPTION_DEFAULTS.contentClickToSaveUseDefault,
+  },
+  {
     // Stored as raw newline-delimited match patterns: the content bundle parses
     // it with parseMatchPatternList, and the background backstop re-tests the
     // sender-tab URL against the same string, so no onLoad transform is applied.
@@ -117,6 +122,7 @@ export const CONTENT_FEATURE_OPTION_DEFINITIONS = [
     default: CONTENT_OPTION_DEFAULTS.perSiteDisableList,
   },
   { name: "quickSaveEnabled", type: "BOOL", default: CONTENT_OPTION_DEFAULTS.quickSaveEnabled },
+  { name: "quickSaveOnly", type: "BOOL", default: CONTENT_OPTION_DEFAULTS.quickSaveOnly },
   {
     name: "quickSaveDirectory",
     type: "VALUE",

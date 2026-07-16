@@ -4186,6 +4186,9 @@
   "contextMenuQuickSave": {
     "message": "Snel opslaan"
   },
+  "contextMenuQuickSaveOnly": {
+    "message": "Snel opslaan (Save In)"
+  },
   "contextMenuQuickSaveToDirectory": {
     "message": "Opslaan in $DIRECTORY$",
     "placeholders": {
@@ -4209,6 +4212,18 @@
   },
   "o_cQuickSaveUseDirectory": {
     "message": "Opslaan in deze map in plaats van Downloads"
+  },
+  "o_cQuickSaveOnly": {
+    "message": "Toon alleen Snel opslaan in het contextmenu"
+  },
+  "o_cQuickSaveOnlyHelp": {
+    "message": "Slaat op met één klik door het Save In-submenu weg te laten. De mappenlijst, Laatst gebruikt en de overige menuacties verdwijnen mee, omdat browsers het submenu alleen overslaan bij één enkel item."
+  },
+  "o_cClickToSaveUseDefault": {
+    "message": "Altijd naar de standaardbestemming opslaan"
+  },
+  "o_cClickToSaveUseDefaultHelp": {
+    "message": "Anders hergebruikt klikken om op te slaan de map die je als laatste in het menu koos."
   },
   "historyMovePending": {
     "message": "Downloaden naar de nieuwe map. Het oorspronkelijke bestand wordt na voltooiing verwijderd."

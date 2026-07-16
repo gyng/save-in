@@ -4186,6 +4186,9 @@
   "contextMenuQuickSave": {
     "message": "クイック保存"
   },
+  "contextMenuQuickSaveOnly": {
+    "message": "クイック保存 (Save In)"
+  },
   "contextMenuQuickSaveToDirectory": {
     "message": "$DIRECTORY$ に保存",
     "placeholders": {
@@ -4209,6 +4212,18 @@
   },
   "o_cQuickSaveUseDirectory": {
     "message": "ダウンロードではなくこのフォルダーに保存する"
+  },
+  "o_cQuickSaveOnly": {
+    "message": "コンテキストメニューにクイック保存のみを表示"
+  },
+  "o_cQuickSaveOnlyHelp": {
+    "message": "Save In のサブメニューをなくし、1 クリックで保存します。ブラウザーは項目が 1 つのときだけサブメニューを省くため、フォルダー一覧・最後に使用した項目・その他のメニュー操作も同時になくなります。"
+  },
+  "o_cClickToSaveUseDefault": {
+    "message": "常に既定の保存先に保存する"
+  },
+  "o_cClickToSaveUseDefaultHelp": {
+    "message": "オフの場合、クリックして保存はメニューで最後に選んだフォルダーを使い続けます。"
   },
   "historyMovePending": {
     "message": "新しいフォルダーにダウンロードしています。完了後に元のファイルを削除します。"

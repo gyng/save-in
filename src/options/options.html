@@ -403,6 +403,11 @@ Briefly explain the structure, check that every line follows this syntax, then p
             <label>
               <input type="checkbox" id="quickSaveUseDirectory" />__MSG_o_cQuickSaveUseDirectory__
             </label>
+            <label>
+              <input type="checkbox" id="quickSaveOnly" aria-describedby="quick-save-only-help" />
+              __MSG_o_cQuickSaveOnly__
+            </label>
+            <div class="caption" id="quick-save-only-help">__MSG_o_cQuickSaveOnlyHelp__</div>
           </div>
         </fieldset>
 
@@ -1444,6 +1449,20 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
           >
           <div class="caption caption-line" id="click-to-save-help">
             __MSG_o_cKeyboardShortcutClickToHelp__
+          </div>
+
+          <div class="caption caption-line">
+            <label>
+              <input
+                type="checkbox"
+                id="contentClickToSaveUseDefault"
+                aria-describedby="click-to-save-default-help"
+              />
+              __MSG_o_cClickToSaveUseDefault__
+            </label>
+            <div class="caption" id="click-to-save-default-help">
+              __MSG_o_cClickToSaveUseDefaultHelp__
+            </div>
           </div>
 
           <fieldset
