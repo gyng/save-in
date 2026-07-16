@@ -1,13 +1,15 @@
 // Option-aware reachability for automatic rules: which source kinds a rule
 // can match versus which kinds the current discovery options can produce.
 import {
-  inputDiscoveryUnlockOptions,
+  AUTOMATIC_EMPTY_VARIABLES,
+  inputDiscoveryDiagnostics,
   matchableSourceKinds,
   producibleSourceKinds,
   readReachabilityOptions,
   ruleReachabilityDiagnostics,
   type ReachabilityOptions,
 } from "../../../src/options/core/rule-reachability-model.ts";
+import { PAGE_SOURCE_KINDS } from "../../../src/shared/page-source.ts";
 
 const allOff: ReachabilityOptions = {
   autoDownloadEnabled: true,
@@ -55,6 +57,16 @@ describe("producibleSourceKinds", () => {
     expect(kinds.has("link")).toBe(false);
     expect(kinds.size).toBe(3);
   });
+
+  test("the documents channel admits every kind except plain links", () => {
+    // The unreachable-kinds diagnostic assumes any non-link kind has at least
+    // one unlocking option; this pins that invariant against admission-table
+    // drift (producibility is derived by probing isAdmittedAutomaticSource).
+    const producible = producibleSourceKinds({ ...allOff, autoDownloadDocuments: true });
+    for (const kind of PAGE_SOURCE_KINDS) {
+      expect(producible.has(kind)).toBe(kind !== "link");
+    }
+  });
 });
 
 describe("matchableSourceKinds", () => {
@@ -100,6 +112,92 @@ describe("ruleReachabilityDiagnostics", () => {
     expect(ruleReachabilityDiagnostics(clauses, allOff)).toEqual([]);
   });
 
+  test.each([
+    ["auto|click", undefined, "an alternation"],
+    ["AUTO|CLICK", "i", "a case-insensitive alternation (contexts match lowercased)"],
+    [".*", undefined, "a match-everything pattern"],
+    ["auto|selection", undefined, "a selection alternation"],
+  ])("a mixed context (%s /%s/ — %s) suppresses every diagnostic", (context, flags, _why) => {
+    // The copy claims the rule cannot run; a rule that still fires on
+    // interactive saves must stay silent even with the master switch off,
+    // unreachable kinds, and an always-empty variable.
+    const clauses = [
+      { name: "context", value: context, ...(flags ? { flags } : {}) },
+      { name: "pageurl", value: "." },
+      { name: "sourcekind", value: "^stream$" },
+      { name: "into", value: ":menupath:/streams/" },
+    ];
+    expect(ruleReachabilityDiagnostics(clauses, { ...allOff, autoDownloadEnabled: false })).toEqual(
+      [],
+    );
+  });
+
+  test("contexts match lowercased, so an uppercase alternative stays exclusive", () => {
+    // The router tests the user pattern against lowercase context values;
+    // without the i flag, CLICK can never fire and the rule is auto-only.
+    const clauses = [
+      { name: "context", value: "auto|CLICK" },
+      { name: "pageurl", value: "." },
+      { name: "sourcekind", value: "^document$" },
+      { name: "into", value: "docs/" },
+    ];
+    expect(ruleReachabilityDiagnostics(clauses, allOff)).toEqual([
+      { kind: "unreachable-kinds", level: "warning", unlockOptions: ["autoDownloadDocuments"] },
+    ]);
+  });
+
+  test("an exclusively automatic context with several clauses still reports", () => {
+    // Two context clauses intersect: `auto|click` alone would fire on click,
+    // but the second clause excludes every interactive context.
+    const clauses = [
+      { name: "context", value: "auto|click" },
+      { name: "context", value: "^auto$" },
+      { name: "pageurl", value: "." },
+      { name: "sourcekind", value: "^stream$" },
+      { name: "into", value: "streams/" },
+    ];
+    expect(ruleReachabilityDiagnostics(clauses, allOff)).toEqual([
+      {
+        kind: "unreachable-kinds",
+        level: "warning",
+        unlockOptions: ["autoDownloadDocuments", "autoDownloadManifests"],
+      },
+    ]);
+  });
+
+  test("an uncompilable context clause does not defeat the exclusive-auto gate", () => {
+    // The validator owns the broken pattern; the probe treats it as
+    // constraining nothing, so the intact ^auto$ clause still decides.
+    // The broken clause sits first so the probe actually evaluates it before
+    // the intact one short-circuits each interactive context.
+    const clauses = [
+      { name: "context", value: "(" },
+      { name: "context", value: "^auto$" },
+      { name: "pageurl", value: "." },
+      { name: "sourcekind", value: "^stream$" },
+      { name: "into", value: "streams/" },
+    ];
+    expect(ruleReachabilityDiagnostics(clauses, allOff)).toEqual([
+      {
+        kind: "unreachable-kinds",
+        level: "warning",
+        unlockOptions: ["autoDownloadDocuments", "autoDownloadManifests"],
+      },
+    ]);
+    // Alone, an uncompilable clause constrains nothing and suppresses.
+    expect(
+      ruleReachabilityDiagnostics(
+        [
+          { name: "context", value: "auto(" },
+          { name: "pageurl", value: "." },
+          { name: "sourcekind", value: "^stream$" },
+          { name: "into", value: "streams/" },
+        ],
+        allOff,
+      ),
+    ).toEqual([]);
+  });
+
   test("a reachable automatic rule reports nothing", () => {
     expect(ruleReachabilityDiagnostics(automatic(), allOff)).toEqual([]);
     // image stays producible, so one reachable alternative silences the hint.
@@ -132,6 +230,32 @@ describe("ruleReachabilityDiagnostics", () => {
     ).toEqual([
       { kind: "unreachable-kinds", level: "warning", unlockOptions: ["autoDownloadDocuments"] },
     ]);
+  });
+
+  test("channels that are already on are never advised", () => {
+    // Links and backgrounds are on but cannot supply streams; the advice
+    // skips enabled options and still names both stream unlockers.
+    expect(
+      ruleReachabilityDiagnostics(automatic({ name: "sourcekind", value: "^stream$" }), {
+        ...allOff,
+        autoDownloadLinks: true,
+        autoDownloadBackgrounds: true,
+      }),
+    ).toEqual([
+      {
+        kind: "unreachable-kinds",
+        level: "warning",
+        unlockOptions: ["autoDownloadDocuments", "autoDownloadManifests"],
+      },
+    ]);
+  });
+
+  test("a RegExp-valued template clause is not scanned for variables", () => {
+    // Template clauses are strings in parsed rules; the defensive type guard
+    // must not treat a RegExp value's source as an expanding template.
+    expect(
+      ruleReachabilityDiagnostics(automatic({ name: "into", value: /:menupath:/ }), allOff),
+    ).toEqual([]);
   });
 
   test("an unlocked channel clears the warning", () => {
@@ -180,13 +304,13 @@ describe("ruleReachabilityDiagnostics", () => {
     ).toEqual([{ kind: "no-kinds", level: "warning" }]);
   });
 
-  test(":menupath: in templates is flagged; in matchers it is not", () => {
+  test("always-empty variables in templates are flagged; in matchers they are not", () => {
     expect(
       ruleReachabilityDiagnostics(
         automatic({ name: "fetch", value: "https://cdn.test/:menupath:" }),
         allOff,
       ),
-    ).toEqual([{ kind: "menupath-empty", level: "warning" }]);
+    ).toEqual([{ kind: "empty-variable", level: "warning", variable: ":menupath:" }]);
     expect(
       ruleReachabilityDiagnostics(
         [
@@ -200,7 +324,32 @@ describe("ruleReachabilityDiagnostics", () => {
     ).toEqual([]);
     expect(
       ruleReachabilityDiagnostics(automatic({ name: "rename", value: "x -> :menupath:" }), allOff),
-    ).toEqual([{ kind: "menupath-empty", level: "warning" }]);
+    ).toEqual([{ kind: "empty-variable", level: "warning", variable: ":menupath:" }]);
+  });
+
+  test("a rename find pattern is a raw regex, not a template", () => {
+    // ':menupath:' on the find side is literal text to strip from filenames;
+    // variables expand only in the replacement.
+    expect(
+      ruleReachabilityDiagnostics(automatic({ name: "rename", value: ":menupath: -> x" }), allOff),
+    ).toEqual([]);
+    // A rename with no separator has no replacement side to analyze.
+    expect(
+      ruleReachabilityDiagnostics(automatic({ name: "rename", value: ":menupath:" }), allOff),
+    ).toEqual([]);
+  });
+
+  test("link text and selection text are equally absent from automatic saves", () => {
+    expect(AUTOMATIC_EMPTY_VARIABLES).toEqual([":menupath:", ":linktext:", ":selectiontext:"]);
+    expect(
+      ruleReachabilityDiagnostics(
+        automatic({ name: "into", value: ":linktext:/:selectiontext:/" }),
+        allOff,
+      ),
+    ).toEqual([
+      { kind: "empty-variable", level: "warning", variable: ":linktext:" },
+      { kind: "empty-variable", level: "warning", variable: ":selectiontext:" },
+    ]);
   });
 
   test("diagnostics stack in a stable order", () => {
@@ -212,59 +361,103 @@ describe("ruleReachabilityDiagnostics", () => {
         ),
         { ...allOff, autoDownloadEnabled: false },
       ).map((diagnostic) => diagnostic.kind),
-    ).toEqual(["automatic-saves-off", "unreachable-kinds", "menupath-empty"]);
+    ).toEqual(["automatic-saves-off", "unreachable-kinds", "empty-variable"]);
   });
 });
 
-describe("inputDiscoveryUnlockOptions", () => {
+describe("inputDiscoveryDiagnostics", () => {
+  const none = {
+    automaticSavesOff: false,
+    neverAdopted: false,
+    requiresDataGate: false,
+  };
+
   test("non-automatic contexts report nothing", () => {
-    expect(
-      inputDiscoveryUnlockOptions({ context: "link", sourceKind: "stream" }, allOff),
-    ).toBeNull();
-    expect(inputDiscoveryUnlockOptions({ sourceKind: "stream" }, allOff)).toBeNull();
+    expect(inputDiscoveryDiagnostics({ context: "link", sourceKind: "stream" }, allOff)).toBeNull();
+    expect(inputDiscoveryDiagnostics({ sourceKind: "stream" }, allOff)).toBeNull();
   });
 
-  test("an automatic stream input names both unlocking options, case-insensitively", () => {
-    expect(inputDiscoveryUnlockOptions({ context: "AUTO", sourceKind: "stream" }, allOff)).toEqual([
-      "autoDownloadDocuments",
-      "autoDownloadManifests",
-    ]);
+  test("an automatic stream input names both channel alternatives, case-insensitively", () => {
+    expect(inputDiscoveryDiagnostics({ context: "AUTO", sourceKind: "stream" }, allOff)).toEqual({
+      ...none,
+      channelOptions: ["autoDownloadDocuments", "autoDownloadManifests"],
+    });
+  });
+
+  test("channel alternatives never exceed the two-option sentence frames", () => {
+    // The debugger renders at most two alternatives; more would be dropped
+    // silently, so pin the derived list's ceiling.
+    for (const kind of PAGE_SOURCE_KINDS) {
+      const discovery = inputDiscoveryDiagnostics({ context: "auto", sourceKind: kind }, allOff);
+      expect(discovery?.channelOptions.length ?? 0).toBeLessThanOrEqual(2);
+    }
   });
 
   test("a producible kind or enabled gate reports nothing", () => {
     expect(
-      inputDiscoveryUnlockOptions(
+      inputDiscoveryDiagnostics(
         { context: "auto", sourceKind: "document" },
-        {
-          ...allOff,
-          autoDownloadDocuments: true,
-        },
+        { ...allOff, autoDownloadDocuments: true },
       ),
     ).toBeNull();
-    expect(
-      inputDiscoveryUnlockOptions({ context: "auto", sourceKind: "image" }, allOff),
-    ).toBeNull();
+    expect(inputDiscoveryDiagnostics({ context: "auto", sourceKind: "image" }, allOff)).toBeNull();
   });
 
   test("an automatic document input names only the documents option", () => {
-    expect(
-      inputDiscoveryUnlockOptions({ context: "auto", sourceKind: "document" }, allOff),
-    ).toEqual(["autoDownloadDocuments"]);
+    expect(inputDiscoveryDiagnostics({ context: "auto", sourceKind: "document" }, allOff)).toEqual({
+      ...none,
+      channelOptions: ["autoDownloadDocuments"],
+    });
   });
 
-  test("a data: source with the gate off is named, and stacks with kind gaps", () => {
+  test("the data: gate is conjunctive and stacks with kind gaps", () => {
     expect(
-      inputDiscoveryUnlockOptions(
+      inputDiscoveryDiagnostics(
         { context: "auto", sourceKind: "image", sourceUrl: "data:image/png;base64,AA==" },
         allOff,
       ),
-    ).toEqual(["autoDownloadDataUrls"]);
+    ).toEqual({ ...none, channelOptions: [], requiresDataGate: true });
     expect(
-      inputDiscoveryUnlockOptions(
+      inputDiscoveryDiagnostics(
         { context: "auto", sourceKind: "stream", sourceUrl: "data:application/x-mpegurl,#" },
         allOff,
       ),
-    ).toEqual(["autoDownloadDocuments", "autoDownloadManifests", "autoDownloadDataUrls"]);
+    ).toEqual({
+      ...none,
+      channelOptions: ["autoDownloadDocuments", "autoDownloadManifests"],
+      requiresDataGate: true,
+    });
+    expect(
+      inputDiscoveryDiagnostics(
+        { context: "auto", sourceKind: "image", sourceUrl: "data:image/png;base64,AA==" },
+        { ...allOff, autoDownloadDataUrls: true },
+      ),
+    ).toBeNull();
+  });
+
+  test("a plain link input is never adopted and gets no channel or data advice", () => {
+    expect(
+      inputDiscoveryDiagnostics(
+        { context: "auto", sourceKind: "link", sourceUrl: "data:text/plain,x" },
+        allOff,
+      ),
+    ).toEqual({ ...none, neverAdopted: true, channelOptions: [] });
+  });
+
+  test("the master switch off is reported for parity with the rule cards", () => {
+    expect(
+      inputDiscoveryDiagnostics(
+        { context: "auto", sourceKind: "image" },
+        { ...allOff, autoDownloadEnabled: false },
+      ),
+    ).toEqual({ ...none, automaticSavesOff: true, channelOptions: [] });
+    // An unknown kind string carries no kind note but the master note stays.
+    expect(
+      inputDiscoveryDiagnostics(
+        { context: "auto", sourceKind: "" },
+        { ...allOff, autoDownloadEnabled: false },
+      ),
+    ).toEqual({ ...none, automaticSavesOff: true, channelOptions: [] });
   });
 });
 

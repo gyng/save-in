@@ -163,6 +163,13 @@
   background: color-mix(in srgb, var(--warning-fg) 8%, var(--page-bg));
 }
 
+/* The master-switch note is informational; meaning stays in the text, so
+   forced-colors mode needs no override. */
+.route-debugger-reachability-note[data-level="info"] {
+  color: var(--color-text-muted);
+  background: color-mix(in srgb, var(--color-text-muted) 8%, var(--page-bg));
+}
+
 .route-debugger-reachability-note .route-debugger-message-title {
   font-size: var(--text-base);
 }

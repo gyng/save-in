@@ -3088,8 +3088,8 @@
   "ruleReachabilityLinkOnly": {
     "message": "Esta regra corresponde apenas a links simples, que o salvamento automático nunca adota."
   },
-  "ruleReachabilityMenuPath": {
-    "message": "A variável $VARIABLE$ fica sempre vazia em salvamentos automáticos, que não usam menu.",
+  "ruleReachabilityEmptyVariable": {
+    "message": "A variável $VARIABLE$ fica sempre vazia em salvamentos automáticos.",
     "placeholders": {
       "variable": {
         "content": "$1",
@@ -3116,6 +3116,48 @@
       "option2": {
         "content": "$2",
         "example": "Look for streaming-video playlists (HLS/DASH; best effort)"
+      }
+    }
+  },
+  "routeDebuggerReachabilityOffData": {
+    "message": "Com as configurações atuais, esta fonte não seria descoberta automaticamente. Ative “$OPTION$” e “$DATAOPTION$” para incluí-la.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      },
+      "dataoption": {
+        "content": "$2",
+        "example": "Include inline data: images and media"
+      }
+    }
+  },
+  "routeDebuggerReachabilityOffEitherData": {
+    "message": "Com as configurações atuais, esta fonte não seria descoberta automaticamente. Ative “$OPTION$” ou “$OPTION2$”, além de “$DATAOPTION$”, para incluí-la.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      },
+      "option2": {
+        "content": "$2",
+        "example": "Look for streaming-video playlists (HLS/DASH; best effort)"
+      },
+      "dataoption": {
+        "content": "$3",
+        "example": "Include inline data: images and media"
+      }
+    }
+  },
+  "routeDebuggerReachabilityLink": {
+    "message": "A descoberta automática nunca adota links simples; portanto, esta fonte nunca seria descoberta."
+  },
+  "routeDebuggerReachabilityAutomaticOff": {
+    "message": "O salvamento automático está desativado; esta fonte não seria salva até “$OPTION$” ser ativado.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Save matches automatically"
       }
     }
   },

@@ -3088,8 +3088,8 @@
   "ruleReachabilityLinkOnly": {
     "message": "此规则只匹配普通链接，而自动保存从不采用普通链接。"
   },
-  "ruleReachabilityMenuPath": {
-    "message": "$VARIABLE$ 变量在自动保存中始终为空，因为不涉及菜单。",
+  "ruleReachabilityEmptyVariable": {
+    "message": "$VARIABLE$ 变量在自动保存中始终为空。",
     "placeholders": {
       "variable": {
         "content": "$1",
@@ -3116,6 +3116,48 @@
       "option2": {
         "content": "$2",
         "example": "Look for streaming-video playlists (HLS/DASH; best effort)"
+      }
+    }
+  },
+  "routeDebuggerReachabilityOffData": {
+    "message": "当前设置不会自动发现此来源。开启“$OPTION$”和“$DATAOPTION$”即可纳入。",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      },
+      "dataoption": {
+        "content": "$2",
+        "example": "Include inline data: images and media"
+      }
+    }
+  },
+  "routeDebuggerReachabilityOffEitherData": {
+    "message": "当前设置不会自动发现此来源。开启“$OPTION$”或“$OPTION2$”，并开启“$DATAOPTION$”，即可纳入。",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      },
+      "option2": {
+        "content": "$2",
+        "example": "Look for streaming-video playlists (HLS/DASH; best effort)"
+      },
+      "dataoption": {
+        "content": "$3",
+        "example": "Include inline data: images and media"
+      }
+    }
+  },
+  "routeDebuggerReachabilityLink": {
+    "message": "自动发现从不采用普通链接，因此当前设置永远不会发现此来源。"
+  },
+  "routeDebuggerReachabilityAutomaticOff": {
+    "message": "自动保存已关闭，开启“$OPTION$”后才会保存此来源。",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Save matches automatically"
       }
     }
   },

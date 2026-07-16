@@ -175,9 +175,9 @@
     "message": "This rule only matches plain links, which automatic saving never adopts.",
     "description": "Warning under a Visual-editor automatic rule card whose source kind conditions only match the plain link kind. Used in src/options/rule-editor/rule-visual-editor.ts."
   },
-  "ruleReachabilityMenuPath": {
-    "message": "The $VARIABLE$ variable is always empty in automatic saves, which use no menu.",
-    "description": "Warning under a Visual-editor automatic rule card whose destination, fetch, or rename template uses the menu-path variable. $VARIABLE$ is the literal variable token and is not translated. Used in src/options/rule-editor/rule-visual-editor.ts.",
+  "ruleReachabilityEmptyVariable": {
+    "message": "The $VARIABLE$ variable is always empty in automatic saves.",
+    "description": "Warning under a Visual-editor automatic rule card whose destination, fetch, or rename replacement uses a variable automatic saves never populate. $VARIABLE$ is the variable token, for example :menupath:. Used in src/options/rule-editor/rule-visual-editor.ts.",
     "placeholders": {
       "variable": {
         "content": "$1",
@@ -206,6 +206,52 @@
       "option2": {
         "content": "$2",
         "example": "Look for streaming-video playlists (HLS/DASH; best effort)"
+      }
+    }
+  },
+  "routeDebuggerReachabilityOffData": {
+    "message": "Current settings would not discover this source automatically. Turn on “$OPTION$” and “$DATAOPTION$” to include it.",
+    "description": "Route debugger note when the debugged source needs one discovery channel option AND the data: gate; both named options are required together. $OPTION$ is the channel option label, $DATAOPTION$ the data: gate label. Used in src/options/route-debugger/route-debugger.ts.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      },
+      "dataoption": {
+        "content": "$2",
+        "example": "Include inline data: images and media"
+      }
+    }
+  },
+  "routeDebuggerReachabilityOffEitherData": {
+    "message": "Current settings would not discover this source automatically. Turn on “$OPTION$” or “$OPTION2$”, and “$DATAOPTION$” to include it.",
+    "description": "Route debugger note when either of two channel options would discover the source but the data: gate is also required. $OPTION$/$OPTION2$ are the channel alternatives, $DATAOPTION$ the data: gate label. Used in src/options/route-debugger/route-debugger.ts.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      },
+      "option2": {
+        "content": "$2",
+        "example": "Look for streaming-video playlists (HLS/DASH; best effort)"
+      },
+      "dataoption": {
+        "content": "$3",
+        "example": "Include inline data: images and media"
+      }
+    }
+  },
+  "routeDebuggerReachabilityLink": {
+    "message": "Automatic discovery never adopts plain links, so current settings would never discover this source.",
+    "description": "Route debugger note when the debugged automatic-context input names the plain link kind, which automatic discovery never adopts. Used in src/options/route-debugger/route-debugger.ts."
+  },
+  "routeDebuggerReachabilityAutomaticOff": {
+    "message": "Automatic saving is off, so this source would not be saved until “$OPTION$” is on.",
+    "description": "Informational route debugger note when the debugged automatic-context input is parked behind the automatic-saves master switch. $OPTION$ is that switch's localized label. Used in src/options/route-debugger/route-debugger.ts.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Save matches automatically"
       }
     }
   },

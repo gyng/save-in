@@ -3088,8 +3088,8 @@
   "ruleReachabilityLinkOnly": {
     "message": "Cette règle ne correspond qu’à des liens simples, que l’enregistrement automatique n’adopte jamais."
   },
-  "ruleReachabilityMenuPath": {
-    "message": "La variable $VARIABLE$ est toujours vide lors des enregistrements automatiques, qui n’utilisent aucun menu.",
+  "ruleReachabilityEmptyVariable": {
+    "message": "La variable $VARIABLE$ est toujours vide lors des enregistrements automatiques.",
     "placeholders": {
       "variable": {
         "content": "$1",
@@ -3116,6 +3116,48 @@
       "option2": {
         "content": "$2",
         "example": "Look for streaming-video playlists (HLS/DASH; best effort)"
+      }
+    }
+  },
+  "routeDebuggerReachabilityOffData": {
+    "message": "Avec les réglages actuels, cette source ne serait pas découverte automatiquement. Activez « $OPTION$ » et « $DATAOPTION$ » pour l’inclure.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      },
+      "dataoption": {
+        "content": "$2",
+        "example": "Include inline data: images and media"
+      }
+    }
+  },
+  "routeDebuggerReachabilityOffEitherData": {
+    "message": "Avec les réglages actuels, cette source ne serait pas découverte automatiquement. Activez « $OPTION$ » ou « $OPTION2$ », ainsi que « $DATAOPTION$ », pour l’inclure.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      },
+      "option2": {
+        "content": "$2",
+        "example": "Look for streaming-video playlists (HLS/DASH; best effort)"
+      },
+      "dataoption": {
+        "content": "$3",
+        "example": "Include inline data: images and media"
+      }
+    }
+  },
+  "routeDebuggerReachabilityLink": {
+    "message": "La découverte automatique n’adopte jamais les liens simples ; cette source ne serait donc jamais découverte."
+  },
+  "routeDebuggerReachabilityAutomaticOff": {
+    "message": "L’enregistrement automatique est désactivé ; cette source ne serait pas enregistrée tant que « $OPTION$ » n’est pas activé.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Save matches automatically"
       }
     }
   },

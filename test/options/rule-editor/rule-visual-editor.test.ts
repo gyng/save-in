@@ -932,11 +932,24 @@ describe("routing visual editor", () => {
     const kinds = [...document.querySelectorAll("[data-reachability]")].map(
       (note) => (note as HTMLElement).dataset.reachability,
     );
-    expect(kinds).toEqual(["link-only", "no-kinds", "unreachable-kinds", "menupath-empty"]);
+    expect(kinds).toEqual(["link-only", "no-kinds", "unreachable-kinds", "empty-variable"]);
   });
 
   test("ordinary rules never render reachability notes", () => {
     setupRuleVisualEditor({ matchers: ["filename", "sourceurl"] });
+
+    expect(element<HTMLElement>("#rule-editor-cards").children.length).toBeGreaterThan(0);
+    expect(document.querySelector(".rule-editor-reachability")).toBeNull();
+  });
+
+  test("a mixed-context rule renders no notes: interactive saves still use it", () => {
+    document.body.insertAdjacentHTML(
+      "beforeend",
+      '<input type="checkbox" id="autoDownloadEnabled">',
+    );
+    element<HTMLTextAreaElement>("#filenamePatterns").value =
+      "context: auto|click\npageurl: .\nsourcekind: ^document$\ninto: :menupath:/docs/";
+    setupRuleVisualEditor({ matchers: ["sourcekind"] });
 
     expect(element<HTMLElement>("#rule-editor-cards").children.length).toBeGreaterThan(0);
     expect(document.querySelector(".rule-editor-reachability")).toBeNull();

@@ -12,7 +12,8 @@ import {
 } from "./route-debugger-model.ts";
 import { isPageSourceKind } from "../../shared/page-source.ts";
 import {
-  inputDiscoveryUnlockOptions,
+  inputDiscoveryDiagnostics,
+  REACHABILITY_OPTION_IDS,
   readReachabilityOptions,
 } from "../core/rule-reachability-model.ts";
 
@@ -209,6 +210,12 @@ export const setupRouteDebugger = (): void => {
   let latestDownloadGeneration = 0;
   let hasRun = false;
   let rerunTimer: number | null = null;
+  // The displayed trace and the exact field snapshot it ran with: the
+  // reachability note re-renders against live checkboxes, but it must
+  // describe the input of the trace on screen, not whatever the fields say
+  // now.
+  let lastTrace: RouteDebuggerTrace | null = null;
+  let lastRunFields: RouteDebuggerFields | null = null;
 
   const readFields = (): RouteDebuggerFields => ({
     filename: filename.value.trim(),
@@ -298,7 +305,9 @@ export const setupRouteDebugger = (): void => {
     textarea.scrollTop = Math.max(0, line * lineHeight - textarea.clientHeight / 3);
   };
 
-  const renderTrace = (trace: RouteDebuggerTrace): void => {
+  const renderTrace = (trace: RouteDebuggerTrace, fields: RouteDebuggerFields): void => {
+    lastTrace = trace;
+    lastRunFields = fields;
     setState(trace.selectedRule === null ? "no-match" : "matched");
     const resultFragment = document.createDocumentFragment();
     const matchedRuleCount = trace.rules.filter((rule) => rule.matched).length;
@@ -334,10 +343,11 @@ export const setupRouteDebugger = (): void => {
     resultFragment.append(message);
 
     // An automatic-context input can describe a source the current discovery
-    // options never produce; the trace is still exact, so this is a note
-    // beside it, keyed to the input rather than to any rule.
-    const fields = readFields();
-    const unlockers = inputDiscoveryUnlockOptions(
+    // options never produce; the trace is still exact, so these are notes
+    // beside it, keyed to the input snapshot the trace ran with. Options are
+    // read live, and the checkbox listeners below re-render the trace, so the
+    // advice follows the named controls.
+    const discovery = inputDiscoveryDiagnostics(
       { context: fields.context, sourceKind: fields.sourceKind, sourceUrl: fields.sourceUrl },
       readReachabilityOptions((id) => {
         const control = document.getElementById(id);
@@ -346,30 +356,86 @@ export const setupRouteDebugger = (): void => {
         );
       }),
     );
-    if (unlockers) {
-      const [firstOption, secondOption] = unlockers;
-      const first = localize(firstOption, firstOption);
-      const second = secondOption === undefined ? undefined : localize(secondOption, secondOption);
-      const note = document.createElement("div");
-      note.className = "route-debugger-message route-debugger-reachability-note";
-      appendText(
-        note,
-        "route-debugger-message-title",
-        second === undefined
-          ? localize(
-              "routeDebuggerReachabilityOff",
-              "Current settings would not discover this source automatically. Turn on “$OPTION$” to include it.",
-              [first],
-            ).replace("$OPTION$", first)
-          : localize(
-              "routeDebuggerReachabilityOffEither",
-              "Current settings would not discover this source automatically. Turn on “$OPTION$” or “$OPTION2$” to include it.",
-              [first, second],
-            )
-              .replace("$OPTION$", first)
-              .replace("$OPTION2$", second),
-      );
-      resultFragment.append(note);
+    if (discovery) {
+      const appendNote = (level: "info" | "warning", text: string): void => {
+        const note = document.createElement("div");
+        note.className = "route-debugger-message route-debugger-reachability-note";
+        note.dataset.level = level;
+        appendText(note, "route-debugger-message-title", text);
+        resultFragment.append(note);
+      };
+      if (discovery.neverAdopted) {
+        appendNote(
+          "warning",
+          localize(
+            "routeDebuggerReachabilityLink",
+            "Automatic discovery never adopts plain links, so current settings would never discover this source.",
+          ),
+        );
+      }
+      // Channel alternatives are disjunctive ("or"); the data: gate is
+      // conjunctive with whichever channel applies, so it always renders with
+      // "and" — a user enabling only one side of a conjunction gets nothing.
+      const [firstOption, secondOption] = discovery.channelOptions;
+      const dataLabel = discovery.requiresDataGate
+        ? localize("autoDownloadDataUrls", "autoDownloadDataUrls")
+        : undefined;
+      if (firstOption !== undefined && secondOption !== undefined) {
+        const first = localize(firstOption, firstOption);
+        const second = localize(secondOption, secondOption);
+        appendNote(
+          "warning",
+          dataLabel === undefined
+            ? localize(
+                "routeDebuggerReachabilityOffEither",
+                `Current settings would not discover this source automatically. Turn on “${first}” or “${second}” to include it.`,
+                [first, second],
+              )
+            : localize(
+                "routeDebuggerReachabilityOffEitherData",
+                `Current settings would not discover this source automatically. Turn on “${first}” or “${second}”, and “${dataLabel}” to include it.`,
+                [first, second, dataLabel],
+              ),
+        );
+      } else if (firstOption !== undefined) {
+        const first = localize(firstOption, firstOption);
+        appendNote(
+          "warning",
+          dataLabel === undefined
+            ? localize(
+                "routeDebuggerReachabilityOff",
+                `Current settings would not discover this source automatically. Turn on “${first}” to include it.`,
+                [first],
+              )
+            : localize(
+                "routeDebuggerReachabilityOffData",
+                `Current settings would not discover this source automatically. Turn on “${first}” and “${dataLabel}” to include it.`,
+                [first, dataLabel],
+              ),
+        );
+      } else if (dataLabel !== undefined) {
+        appendNote(
+          "warning",
+          localize(
+            "routeDebuggerReachabilityOff",
+            `Current settings would not discover this source automatically. Turn on “${dataLabel}” to include it.`,
+            [dataLabel],
+          ),
+        );
+      }
+      // The parked master switch reads as a footnote after the actionable
+      // discovery advice above.
+      if (discovery.automaticSavesOff) {
+        const master = localize("autoDownloadEnabled", "autoDownloadEnabled");
+        appendNote(
+          "info",
+          localize(
+            "routeDebuggerReachabilityAutomaticOff",
+            `Automatic saving is off, so this source would not be saved until “${master}” is on.`,
+            [master],
+          ),
+        );
+      }
     }
 
     const rules = document.createElement("div");
@@ -589,13 +655,16 @@ export const setupRouteDebugger = (): void => {
             renderMessage("running", localize("routeDebuggerRunning", "Testing routes…"));
           }
         }, RUNNING_MESSAGE_DELAY_MS);
+    // One snapshot feeds both the validation request and the rendered trace,
+    // so the reachability note always describes the input the trace ran with.
+    const fields = readFields();
     try {
       const requestValidation = async () => {
         const response = await sendInternalMessage(webExtensionApi.runtime, {
           type: MESSAGE_TYPES.VALIDATE,
           body: {
             filenamePatterns: textarea.value,
-            info: routeDebuggerInfo(readFields()),
+            info: routeDebuggerInfo(fields),
           },
         });
         if ("status" in response.body) {
@@ -635,7 +704,7 @@ export const setupRouteDebugger = (): void => {
         );
         return;
       }
-      renderTrace(mapRouteTraceToSource(textarea.value, validation.trace));
+      renderTrace(mapRouteTraceToSource(textarea.value, validation.trace), fields);
     } catch {
       if (mine !== generation) return;
       renderMessage(
@@ -664,9 +733,23 @@ export const setupRouteDebugger = (): void => {
   runButton.addEventListener("click", () => {
     void run();
   });
+  // The reachability note names live discovery checkboxes; toggling one must
+  // refresh a displayed trace without re-running it (the trace stays exact
+  // for its snapshot). Registered once here so debugger reruns never stack
+  // duplicate listeners.
+  REACHABILITY_OPTION_IDS.forEach((id) => {
+    const control = document.getElementById(id);
+    if (control instanceof HTMLInputElement) {
+      control.addEventListener("change", () => {
+        if (lastTrace && lastRunFields) renderTrace(lastTrace, lastRunFields);
+      });
+    }
+  });
   clearButton.addEventListener("click", () => {
     generation += 1;
     hasRun = false;
+    lastTrace = null;
+    lastRunFields = null;
     runButton.disabled = false;
     delete result.dataset.busy;
     result.removeAttribute("aria-busy");

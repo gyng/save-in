@@ -1114,6 +1114,11 @@ test("renders a selected destination pipeline without a source link", async () =
 
 test("notes an automatic-context input current options would never discover", async () => {
   renderWorkbench();
+  // The master switch is on; the parked-switch footnote is covered separately.
+  document.body.insertAdjacentHTML(
+    "beforeend",
+    '<input type="checkbox" id="autoDownloadEnabled" checked>',
+  );
   vi.spyOn(webExtensionApi.runtime, "sendMessage").mockImplementation(async (message: any) => {
     if (message.type === MESSAGE_TYPES.CHECK_ROUTES) return checkResponse();
     if (message.type === MESSAGE_TYPES.VALIDATE) {
@@ -1166,4 +1171,139 @@ test("notes an automatic-context input current options would never discover", as
   await vi.waitFor(() =>
     expect(result.querySelector(".route-debugger-reachability-note")).toBeNull(),
   );
+});
+
+test("conjunctive gates, link inputs, and the parked master switch each note precisely", async () => {
+  renderWorkbench();
+  document.body.insertAdjacentHTML(
+    "beforeend",
+    `<input type="checkbox" id="autoDownloadEnabled" checked>
+     <input type="checkbox" id="autoDownloadDocuments">`,
+  );
+  vi.spyOn(webExtensionApi.runtime, "sendMessage").mockImplementation(async (message: any) => {
+    if (message.type === MESSAGE_TYPES.CHECK_ROUTES) return checkResponse();
+    if (message.type === MESSAGE_TYPES.VALIDATE) {
+      return {
+        type: MESSAGE_TYPES.VALIDATE_RESULT,
+        body: { version: 1, ruleErrors: [], ruleTrace: noMatchTrace },
+      };
+    }
+    throw new Error(`Unexpected message: ${message.type}`);
+  });
+
+  setupRouteDebugger();
+  await new Promise((resolve) => setTimeout(resolve));
+  const context = document.querySelector<HTMLSelectElement>("#route-debugger-context")!;
+  context.insertAdjacentHTML("beforeend", '<option value="auto">Automatic</option>');
+  context.value = "auto";
+  const sourceKind = document.querySelector<HTMLSelectElement>("#route-debugger-source-kind")!;
+  sourceKind.insertAdjacentHTML(
+    "beforeend",
+    '<option value="stream">Stream</option><option value="document">Document</option><option value="link">Link</option>',
+  );
+  const sourceUrl = document.querySelector<HTMLInputElement>("#route-debugger-source-url")!;
+  const run = document.querySelector<HTMLButtonElement>("#route-debugger-run")!;
+  const result = document.querySelector<HTMLElement>("#route-debugger-result")!;
+  const noteText = () =>
+    result.querySelector(".route-debugger-reachability-note")?.textContent ?? "";
+
+  // One channel option AND the data: gate: both are required together.
+  sourceKind.value = "document";
+  sourceUrl.value = "data:application/pdf;base64,AA==";
+  run.click();
+  await vi.waitFor(() => expect(noteText()).toContain("” and “"));
+  expect(noteText()).not.toContain("” or “");
+
+  // Two channel alternatives AND the data: gate: or-joined, then and-joined.
+  sourceKind.value = "stream";
+  sourceUrl.value = "data:application/x-mpegurl,#EXTM3U";
+  run.click();
+  await vi.waitFor(() => expect(noteText()).toContain("” or “"));
+  expect(noteText()).toContain("”, and “");
+
+  // A plain link is never adopted; no option is advised.
+  sourceKind.value = "link";
+  sourceUrl.value = "https://example.test/page";
+  run.click();
+  await vi.waitFor(() => expect(noteText()).toContain("plain links"));
+  expect(noteText()).not.toContain("Turn on");
+
+  // The parked master switch is an informational footnote after the advice.
+  const master = document.querySelector<HTMLInputElement>("#autoDownloadEnabled")!;
+  master.checked = false;
+  sourceKind.value = "document";
+  sourceUrl.value = "https://example.test/report.pdf";
+  run.click();
+  await vi.waitFor(() => {
+    const notes = [...result.querySelectorAll<HTMLElement>(".route-debugger-reachability-note")];
+    expect(notes.length).toBe(2);
+    expect(notes[0]!.dataset.level).toBe("warning");
+    expect(notes[1]!.dataset.level).toBe("info");
+    expect(notes[1]!.textContent).toContain("Automatic saving is off");
+  });
+});
+
+test("a displayed trace's note follows the named checkboxes without a rerun", async () => {
+  renderWorkbench();
+  document.body.insertAdjacentHTML(
+    "beforeend",
+    `<input type="checkbox" id="autoDownloadEnabled" checked>
+     <input type="checkbox" id="autoDownloadDocuments">`,
+  );
+  const sendMessage = vi
+    .spyOn(webExtensionApi.runtime, "sendMessage")
+    .mockImplementation(async (message: any) => {
+      if (message.type === MESSAGE_TYPES.CHECK_ROUTES) return checkResponse();
+      if (message.type === MESSAGE_TYPES.VALIDATE) {
+        return {
+          type: MESSAGE_TYPES.VALIDATE_RESULT,
+          body: { version: 1, ruleErrors: [], ruleTrace: noMatchTrace },
+        };
+      }
+      throw new Error(`Unexpected message: ${message.type}`);
+    });
+
+  setupRouteDebugger();
+  await new Promise((resolve) => setTimeout(resolve));
+  const context = document.querySelector<HTMLSelectElement>("#route-debugger-context")!;
+  context.insertAdjacentHTML("beforeend", '<option value="auto">Automatic</option>');
+  context.value = "auto";
+  const sourceKind = document.querySelector<HTMLSelectElement>("#route-debugger-source-kind")!;
+  sourceKind.insertAdjacentHTML("beforeend", '<option value="document">Document</option>');
+  sourceKind.value = "document";
+
+  // Before any run there is no trace to refresh; a toggle is a no-op.
+  const early = document.querySelector<HTMLInputElement>("#autoDownloadDocuments")!;
+  early.dispatchEvent(new Event("change"));
+  expect(document.querySelector(".route-debugger-reachability-note")).toBeNull();
+
+  document.querySelector<HTMLButtonElement>("#route-debugger-run")!.click();
+
+  const result = document.querySelector<HTMLElement>("#route-debugger-result")!;
+  await vi.waitFor(() =>
+    expect(result.querySelector(".route-debugger-reachability-note")).not.toBeNull(),
+  );
+  const runsBefore = sendMessage.mock.calls.filter(
+    ([message]: any[]) => message.type === MESSAGE_TYPES.VALIDATE,
+  ).length;
+
+  // Enabling the named channel clears the note live, without re-running.
+  const documents = document.querySelector<HTMLInputElement>("#autoDownloadDocuments")!;
+  documents.checked = true;
+  documents.dispatchEvent(new Event("change"));
+  expect(result.querySelector(".route-debugger-reachability-note")).toBeNull();
+
+  // The note describes the snapshot the trace ran with: editing a field
+  // without running must not change what a checkbox toggle re-renders.
+  sourceKind.insertAdjacentHTML("beforeend", '<option value="image">Image</option>');
+  sourceKind.value = "image";
+  documents.checked = false;
+  documents.dispatchEvent(new Event("change"));
+  expect(result.querySelector(".route-debugger-reachability-note")?.textContent).toContain(
+    "Turn on",
+  );
+  expect(
+    sendMessage.mock.calls.filter(([message]: any[]) => message.type === MESSAGE_TYPES.VALIDATE)
+      .length,
+  ).toBe(runsBefore);
 });

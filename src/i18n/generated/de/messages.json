@@ -3088,8 +3088,8 @@
   "ruleReachabilityLinkOnly": {
     "message": "Diese Regel passt nur auf einfache Links, die das automatische Speichern nie übernimmt."
   },
-  "ruleReachabilityMenuPath": {
-    "message": "Die Variable $VARIABLE$ ist bei automatischen Speicherungen immer leer, da kein Menü beteiligt ist.",
+  "ruleReachabilityEmptyVariable": {
+    "message": "Die Variable $VARIABLE$ ist bei automatischen Speicherungen immer leer.",
     "placeholders": {
       "variable": {
         "content": "$1",
@@ -3116,6 +3116,48 @@
       "option2": {
         "content": "$2",
         "example": "Look for streaming-video playlists (HLS/DASH; best effort)"
+      }
+    }
+  },
+  "routeDebuggerReachabilityOffData": {
+    "message": "Mit den aktuellen Einstellungen würde diese Quelle nicht automatisch gefunden. Aktivieren Sie „$OPTION$“ und „$DATAOPTION$“, um sie einzubeziehen.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      },
+      "dataoption": {
+        "content": "$2",
+        "example": "Include inline data: images and media"
+      }
+    }
+  },
+  "routeDebuggerReachabilityOffEitherData": {
+    "message": "Mit den aktuellen Einstellungen würde diese Quelle nicht automatisch gefunden. Aktivieren Sie „$OPTION$“ oder „$OPTION2$“ sowie „$DATAOPTION$“, um sie einzubeziehen.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      },
+      "option2": {
+        "content": "$2",
+        "example": "Look for streaming-video playlists (HLS/DASH; best effort)"
+      },
+      "dataoption": {
+        "content": "$3",
+        "example": "Include inline data: images and media"
+      }
+    }
+  },
+  "routeDebuggerReachabilityLink": {
+    "message": "Die automatische Erkennung übernimmt nie einfache Links; diese Quelle würde daher nie gefunden."
+  },
+  "routeDebuggerReachabilityAutomaticOff": {
+    "message": "Automatisches Speichern ist aus; diese Quelle würde erst gespeichert, wenn „$OPTION$“ aktiviert ist.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Save matches automatically"
       }
     }
   },

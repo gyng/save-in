@@ -3088,8 +3088,8 @@
   "ruleReachabilityLinkOnly": {
     "message": "Deze regel komt alleen overeen met gewone links, die automatisch opslaan nooit overneemt."
   },
-  "ruleReachabilityMenuPath": {
-    "message": "De variabele $VARIABLE$ is bij automatisch opslaan altijd leeg, omdat er geen menu wordt gebruikt.",
+  "ruleReachabilityEmptyVariable": {
+    "message": "De variabele $VARIABLE$ is bij automatisch opslaan altijd leeg.",
     "placeholders": {
       "variable": {
         "content": "$1",
@@ -3116,6 +3116,48 @@
       "option2": {
         "content": "$2",
         "example": "Look for streaming-video playlists (HLS/DASH; best effort)"
+      }
+    }
+  },
+  "routeDebuggerReachabilityOffData": {
+    "message": "Met de huidige instellingen zou deze bron niet automatisch worden gevonden. Zet “$OPTION$” en “$DATAOPTION$” aan om deze mee te nemen.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      },
+      "dataoption": {
+        "content": "$2",
+        "example": "Include inline data: images and media"
+      }
+    }
+  },
+  "routeDebuggerReachabilityOffEitherData": {
+    "message": "Met de huidige instellingen zou deze bron niet automatisch worden gevonden. Zet “$OPTION$” of “$OPTION2$” aan, plus “$DATAOPTION$”, om deze mee te nemen.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      },
+      "option2": {
+        "content": "$2",
+        "example": "Look for streaming-video playlists (HLS/DASH; best effort)"
+      },
+      "dataoption": {
+        "content": "$3",
+        "example": "Include inline data: images and media"
+      }
+    }
+  },
+  "routeDebuggerReachabilityLink": {
+    "message": "Automatische detectie neemt gewone links nooit over; deze bron zou dus nooit worden gevonden."
+  },
+  "routeDebuggerReachabilityAutomaticOff": {
+    "message": "Automatisch opslaan staat uit; deze bron wordt pas opgeslagen zodra “$OPTION$” aan staat.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Save matches automatically"
       }
     }
   },

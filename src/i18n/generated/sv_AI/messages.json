@@ -3088,8 +3088,8 @@
   "ruleReachabilityLinkOnly": {
     "message": "Regeln matchar bara vanliga länkar, som automatisk sparning aldrig tar med."
   },
-  "ruleReachabilityMenuPath": {
-    "message": "Variabeln $VARIABLE$ är alltid tom vid automatisk sparning, som inte använder någon meny.",
+  "ruleReachabilityEmptyVariable": {
+    "message": "Variabeln $VARIABLE$ är alltid tom vid automatisk sparning.",
     "placeholders": {
       "variable": {
         "content": "$1",
@@ -3116,6 +3116,48 @@
       "option2": {
         "content": "$2",
         "example": "Look for streaming-video playlists (HLS/DASH; best effort)"
+      }
+    }
+  },
+  "routeDebuggerReachabilityOffData": {
+    "message": "Med nuvarande inställningar skulle källan inte upptäckas automatiskt. Slå på ”$OPTION$” och ”$DATAOPTION$” för att ta med den.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      },
+      "dataoption": {
+        "content": "$2",
+        "example": "Include inline data: images and media"
+      }
+    }
+  },
+  "routeDebuggerReachabilityOffEitherData": {
+    "message": "Med nuvarande inställningar skulle källan inte upptäckas automatiskt. Slå på ”$OPTION$” eller ”$OPTION2$” samt ”$DATAOPTION$” för att ta med den.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      },
+      "option2": {
+        "content": "$2",
+        "example": "Look for streaming-video playlists (HLS/DASH; best effort)"
+      },
+      "dataoption": {
+        "content": "$3",
+        "example": "Include inline data: images and media"
+      }
+    }
+  },
+  "routeDebuggerReachabilityLink": {
+    "message": "Automatisk upptäckt tar aldrig med vanliga länkar, så källan skulle aldrig upptäckas."
+  },
+  "routeDebuggerReachabilityAutomaticOff": {
+    "message": "Automatisk sparning är av; källan sparas inte förrän ”$OPTION$” är på.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Save matches automatically"
       }
     }
   },

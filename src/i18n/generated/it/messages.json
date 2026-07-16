@@ -3088,8 +3088,8 @@
   "ruleReachabilityLinkOnly": {
     "message": "Questa regola corrisponde solo a link semplici, che il salvataggio automatico non adotta mai."
   },
-  "ruleReachabilityMenuPath": {
-    "message": "La variabile $VARIABLE$ è sempre vuota nei salvataggi automatici, che non usano alcun menu.",
+  "ruleReachabilityEmptyVariable": {
+    "message": "La variabile $VARIABLE$ è sempre vuota nei salvataggi automatici.",
     "placeholders": {
       "variable": {
         "content": "$1",
@@ -3116,6 +3116,48 @@
       "option2": {
         "content": "$2",
         "example": "Look for streaming-video playlists (HLS/DASH; best effort)"
+      }
+    }
+  },
+  "routeDebuggerReachabilityOffData": {
+    "message": "Con le impostazioni attuali questa fonte non verrebbe scoperta automaticamente. Attiva «$OPTION$» e «$DATAOPTION$» per includerla.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      },
+      "dataoption": {
+        "content": "$2",
+        "example": "Include inline data: images and media"
+      }
+    }
+  },
+  "routeDebuggerReachabilityOffEitherData": {
+    "message": "Con le impostazioni attuali questa fonte non verrebbe scoperta automaticamente. Attiva «$OPTION$» o «$OPTION2$», oltre a «$DATAOPTION$», per includerla.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      },
+      "option2": {
+        "content": "$2",
+        "example": "Look for streaming-video playlists (HLS/DASH; best effort)"
+      },
+      "dataoption": {
+        "content": "$3",
+        "example": "Include inline data: images and media"
+      }
+    }
+  },
+  "routeDebuggerReachabilityLink": {
+    "message": "La scoperta automatica non adotta mai i link semplici, quindi questa fonte non verrebbe mai scoperta."
+  },
+  "routeDebuggerReachabilityAutomaticOff": {
+    "message": "Il salvataggio automatico è disattivato; questa fonte non verrebbe salvata finché «$OPTION$» non è attivo.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Save matches automatically"
       }
     }
   },

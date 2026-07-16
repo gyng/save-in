@@ -3088,8 +3088,8 @@
   "ruleReachabilityLinkOnly": {
     "message": "이 규칙은 일반 링크에만 일치하며, 자동 저장은 이를 채택하지 않습니다."
   },
-  "ruleReachabilityMenuPath": {
-    "message": "$VARIABLE$ 변수는 메뉴를 사용하지 않는 자동 저장에서 항상 비어 있습니다.",
+  "ruleReachabilityEmptyVariable": {
+    "message": "$VARIABLE$ 변수는 자동 저장에서 항상 비어 있습니다.",
     "placeholders": {
       "variable": {
         "content": "$1",
@@ -3116,6 +3116,48 @@
       "option2": {
         "content": "$2",
         "example": "Look for streaming-video playlists (HLS/DASH; best effort)"
+      }
+    }
+  },
+  "routeDebuggerReachabilityOffData": {
+    "message": "현재 설정으로는 이 소스가 자동으로 발견되지 않습니다. “$OPTION$”과 “$DATAOPTION$”을 켜면 포함됩니다.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      },
+      "dataoption": {
+        "content": "$2",
+        "example": "Include inline data: images and media"
+      }
+    }
+  },
+  "routeDebuggerReachabilityOffEitherData": {
+    "message": "현재 설정으로는 이 소스가 자동으로 발견되지 않습니다. “$OPTION$” 또는 “$OPTION2$”와 함께 “$DATAOPTION$”을 켜면 포함됩니다.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      },
+      "option2": {
+        "content": "$2",
+        "example": "Look for streaming-video playlists (HLS/DASH; best effort)"
+      },
+      "dataoption": {
+        "content": "$3",
+        "example": "Include inline data: images and media"
+      }
+    }
+  },
+  "routeDebuggerReachabilityLink": {
+    "message": "자동 발견은 일반 링크를 채택하지 않으므로 이 소스는 발견되지 않습니다."
+  },
+  "routeDebuggerReachabilityAutomaticOff": {
+    "message": "자동 저장이 꺼져 있어 이 소스는 “$OPTION$”을 켤 때까지 저장되지 않습니다.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Save matches automatically"
       }
     }
   },

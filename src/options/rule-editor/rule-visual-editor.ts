@@ -1,6 +1,6 @@
 import { getMessage } from "../../platform/localization.ts";
 import { webExtensionApi } from "../../platform/web-extension-api.ts";
-import { MESSAGE_TYPES, SPECIAL_DIRS } from "../../shared/constants.ts";
+import { MESSAGE_TYPES } from "../../shared/constants.ts";
 import { sendInternalMessage } from "../../platform/messaging.ts";
 import { preferredScrollBehavior } from "../../shared/motion-preference.ts";
 import { attachAutocomplete } from "../syntax-editor/autocomplete.ts";
@@ -139,12 +139,14 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
   const optionLabel = (id: string): string => localize(id, id);
   const reachabilityText = (diagnostic: RuleReachabilityDiagnostic): string => {
     switch (diagnostic.kind) {
-      case "automatic-saves-off":
+      case "automatic-saves-off": {
+        const master = optionLabel("autoDownloadEnabled");
         return localize(
           "ruleReachabilityAutomaticOff",
-          "Automatic saving is off, so this rule is idle until “$OPTION$” is on.",
-          [optionLabel("autoDownloadEnabled")],
-        ).replace("$OPTION$", optionLabel("autoDownloadEnabled"));
+          `Automatic saving is off, so this rule is idle until “${master}” is on.`,
+          [master],
+        );
+      }
       case "no-kinds":
         return localize(
           "ruleReachabilityNoKinds",
@@ -155,12 +157,12 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
           "ruleReachabilityLinkOnly",
           "This rule only matches plain links, which automatic saving never adopts.",
         );
-      case "menupath-empty":
+      case "empty-variable":
         return localize(
-          "ruleReachabilityMenuPath",
-          "The $VARIABLE$ variable is always empty in automatic saves, which use no menu.",
-          [SPECIAL_DIRS.MENU_PATH],
-        ).replace("$VARIABLE$", SPECIAL_DIRS.MENU_PATH);
+          "ruleReachabilityEmptyVariable",
+          `The ${diagnostic.variable} variable is always empty in automatic saves.`,
+          [diagnostic.variable],
+        );
       case "unreachable-kinds": {
         const [firstOption, secondOption] = diagnostic.unlockOptions;
         const first = optionLabel(firstOption);
@@ -168,22 +170,23 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
           const second = optionLabel(secondOption);
           return localize(
             "ruleReachabilityChannelOffEither",
-            "Current settings never discover sources this rule matches. Turn on “$OPTION$” or “$OPTION2$” to supply them.",
+            `Current settings never discover sources this rule matches. Turn on “${first}” or “${second}” to supply them.`,
             [first, second],
-          )
-            .replace("$OPTION$", first)
-            .replace("$OPTION2$", second);
+          );
         }
         return localize(
           "ruleReachabilityChannelOff",
-          "Current settings never discover sources this rule matches. Turn on “$OPTION$” to supply them.",
+          `Current settings never discover sources this rule matches. Turn on “${first}” to supply them.`,
           [first],
-        ).replace("$OPTION$", first);
+        );
       }
     }
   };
-  const createReachabilityNotes = (rule: VisualRoutingRule): HTMLElement | null => {
-    const diagnostics = ruleReachabilityDiagnostics(rule.clauses, reachabilityOptions());
+  const createReachabilityNotes = (
+    rule: VisualRoutingRule,
+    reachability: ReachabilityOptions,
+  ): HTMLElement | null => {
+    const diagnostics = ruleReachabilityDiagnostics(rule.clauses, reachability);
     if (diagnostics.length === 0) return null;
     const notes = document.createElement("div");
     notes.className = "rule-editor-reachability";
@@ -555,7 +558,11 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
     card.append(warning, source, edit);
   };
 
-  const createRuleCard = (rule: VisualRoutingRule, total: number): HTMLElement => {
+  const createRuleCard = (
+    rule: VisualRoutingRule,
+    total: number,
+    reachability: ReachabilityOptions,
+  ): HTMLElement => {
     const card = document.createElement("section");
     card.className = "visual-editor-card rule-editor-card";
     card.dataset.ruleIndex = String(rule.index);
@@ -759,8 +766,8 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
       .slice(conditionEnd)
       .forEach((clause) => body.append(createClauseRow(rule, clause)));
     card.append(body);
-    const reachability = createReachabilityNotes(rule);
-    if (reachability) card.append(reachability);
+    const reachabilityNotes = createReachabilityNotes(rule, reachability);
+    if (reachabilityNotes) card.append(reachabilityNotes);
     return card;
   };
 
@@ -789,8 +796,11 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
       textarea.dispatchEvent(new Event("visual-editor-rendered"));
       return;
     }
+    // One live-checkbox read serves the whole render pass; every card sees
+    // the same option snapshot.
+    const reachability = reachabilityOptions();
     documentModel.rules.forEach((rule) =>
-      cards.append(createRuleCard(rule, documentModel.rules.length)),
+      cards.append(createRuleCard(rule, documentModel.rules.length, reachability)),
     );
     applyValidationAppearance();
     textarea.dispatchEvent(new Event("visual-editor-rendered"));

@@ -132,13 +132,18 @@ not a fifth channel: it admits `data:` URLs through whichever channel found
 them, and its 2 MB cap is enforced both before the source leaves the page and
 again in the background.
 
-The Visual rule editor flags automatic rules the current settings cannot feed:
-a rule whose `sourcekind:`/`mediatype:` conditions only match kinds no enabled
-channel produces names the option to turn on, plain-link-only rules are marked
-as never adopted, and `:menupath:` is called out as always empty in automatic
-saves. The route debugger adds the same note when a debugged automatic-context
-source could not be discovered under current options. These hints follow the
-option checkboxes live and never block saving a rule.
+The Visual rule editor flags rules that only automatic discovery can reach
+and the current settings cannot feed: a rule whose `sourcekind:`/`mediatype:`
+conditions only match kinds no enabled channel produces names the option to
+turn on, plain-link-only rules are marked as never adopted, and `:menupath:`,
+`:linktext:`, and `:selectiontext:` are called out as always empty in
+automatic saves. A rule that also matches an interactive context (for
+example `context: auto|click`) still fires on interactive saves, so it gets
+no such note. The route debugger adds the same notes when a debugged
+automatic-context source could not be discovered under current options — a
+`data:` source additionally needs its gate on together with whichever
+channel finds it. These hints follow the option checkboxes live and never
+block saving a rule.
 
 ## Safety controls
 
