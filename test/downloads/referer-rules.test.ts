@@ -43,6 +43,9 @@ test("builds an exact extension-origin GET rule and strips the fragment", () => 
     },
     condition: {
       regexFilter: expect.any(String),
+      // Without this DNR matches case-insensitively, so the rule would cover
+      // more than the exact URL the overlap check reserves.
+      isUrlFilterCaseSensitive: true,
       initiatorDomains: [chrome.runtime.id],
       requestMethods: ["get"],
       resourceTypes: ["xmlhttprequest"],
@@ -109,6 +112,91 @@ test("removes the rule after a failed operation", async () => {
 
 test("does not fail a completed transfer when rule cleanup fails", async () => {
   updateSessionRules().mockResolvedValueOnce().mockRejectedValueOnce(new Error("worker stopped"));
+
+  await expect(
+    RefererRules.withRequestReferer(
+      "https://cdn.example/file.jpg",
+      "https://gallery.example/view",
+      async () => "fetched",
+    ),
+  ).resolves.toBe("fetched");
+});
+
+// The pool hands out the lowest free ID, so a rule whose removal was rejected
+// can outlive its operation under a different ID and keep covering its URL with
+// the old Referer. The next install must clear it in the same atomic update.
+test("sweeps a rule left behind by a rejected cleanup on the next install", async () => {
+  const leakedId = REFERER_SESSION_RULE_ID + 1;
+  // Only the leaked operation's cleanup fails: a removal carries no addRules.
+  updateSessionRules().mockImplementation(async (update) => {
+    if (!update.addRules && update.removeRuleIds?.includes(leakedId)) {
+      throw new Error("worker stopped");
+    }
+  });
+
+  // Hold the lowest ID so the leaking operation is forced onto a different one.
+  let releaseHolder!: () => void;
+  const holderPending = new Promise<void>((resolve) => {
+    releaseHolder = resolve;
+  });
+  const holder = RefererRules.withRequestReferer(
+    "https://cdn.example/holder.jpg",
+    "https://gallery.example/view",
+    async () => {
+      await holderPending;
+      return "holder";
+    },
+  );
+  await Promise.resolve();
+
+  // Takes leakedId, and leaks it when its cleanup rejects.
+  await RefererRules.withRequestReferer(
+    "https://cdn.example/file.jpg",
+    "https://gallery.example/view",
+    async () => "leaker",
+  );
+  releaseHolder();
+  await holder;
+
+  updateSessionRules().mockClear();
+  updateSessionRules().mockResolvedValue();
+
+  // Same URL, different Referer: it takes the now-lowest free ID, so its own
+  // removeRuleIds would not cover the leaked rule still carrying the old value.
+  await RefererRules.withRequestReferer(
+    "https://cdn.example/file.jpg",
+    "https://other.example/view",
+    async () => "second",
+  );
+
+  const install = updateSessionRules().mock.calls[0]![0]!;
+  expect(install.addRules?.[0]?.id).toBe(REFERER_SESSION_RULE_ID);
+  expect(install.removeRuleIds).toContain(leakedId);
+
+  // The sweep is not repeated once it has succeeded.
+  updateSessionRules().mockClear();
+  await RefererRules.withRequestReferer(
+    "https://cdn.example/third.jpg",
+    "https://gallery.example/view",
+    async () => "third",
+  );
+  expect(updateSessionRules().mock.calls[0]![0]!.removeRuleIds).toEqual([REFERER_SESSION_RULE_ID]);
+});
+
+test("degrades to an unprotected request when the first rule would be oversized", async () => {
+  const longUrl = `https://cdn.example/${"a".repeat(2000)}.jpg`;
+  updateSessionRules().mockClear();
+
+  await expect(
+    RefererRules.withRequestReferer(longUrl, "https://gallery.example/view", async () => "fetched"),
+  ).resolves.toBe("fetched");
+
+  // No rule is installed, but the operation still runs rather than throwing.
+  expect(updateSessionRules()).not.toHaveBeenCalled();
+});
+
+test("degrades to an unprotected request when the first install is rejected", async () => {
+  updateSessionRules().mockRejectedValueOnce(new Error("regex program too large"));
 
   await expect(
     RefererRules.withRequestReferer(

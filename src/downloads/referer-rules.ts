@@ -27,6 +27,7 @@ type RefererRule = {
   };
   condition: {
     regexFilter: string;
+    isUrlFilterCaseSensitive: true;
     initiatorDomains: string[];
     requestMethods: ProtectedRequestMethod[];
     resourceTypes: ["xmlhttprequest"];
@@ -58,6 +59,12 @@ type InFlightOperation = {
 };
 
 const inFlight = new Map<number, InFlightOperation>();
+// Rule IDs whose removal was rejected while the background stayed alive. The
+// pool hands out the lowest free ID, so "the exact rule is replaced next time"
+// no longer holds: a stale rule can outlive its operation under a different ID
+// and keep covering that URL with the old Referer. Every install clears them
+// in the same atomic update that adds its own rule.
+const staleRuleIds = new Set<number>();
 let releaseWaiters: Array<() => void> = [];
 
 const wakeReleaseWaiters = (): void => {
@@ -183,6 +190,11 @@ export const buildRule = (
     },
     condition: {
       regexFilter: urlSetRegex(urls),
+      // DNR matches case-insensitively by default, which would make this rule
+      // cover more than its exact URLs — including a differently-cased URL an
+      // operation with another Referer holds, defeating the overlap check that
+      // compares canonical URLs as exact strings.
+      isUrlFilterCaseSensitive: true,
       initiatorDomains: [initiatorDomain],
       requestMethods,
       resourceTypes: ["xmlhttprequest"],
@@ -192,8 +204,11 @@ export const buildRule = (
 
 // A background stop can strand any subset of the pool, so recovery always
 // clears the whole ID range in one call rather than a single reserved ID.
-const removeAllRules = (api: DnrApi): Promise<void> =>
-  api.updateSessionRules({ removeRuleIds: [...REFERER_SESSION_RULE_IDS] });
+const removeAllRules = async (api: DnrApi): Promise<void> => {
+  await api.updateSessionRules({ removeRuleIds: [...REFERER_SESSION_RULE_IDS] });
+  // The whole range is gone, so nothing is left for a later install to sweep.
+  staleRuleIds.clear();
+};
 
 export const canUseRefererRules = (): boolean =>
   (CURRENT_BROWSER === BROWSERS.CHROME || CURRENT_BROWSER === BROWSERS.FIREFOX) &&
@@ -226,12 +241,25 @@ export const withRequestReferer = async <T>(
   try {
     const api = dnrApi();
     if (!api) return operation();
-    const install = (urls: readonly string[]): Promise<void> =>
-      api.updateSessionRules({
-        removeRuleIds: [id],
+    const install = async (urls: readonly string[]): Promise<void> => {
+      const sweeping = [...staleRuleIds];
+      await api.updateSessionRules({
+        removeRuleIds: [id, ...sweeping],
         addRules: [buildRule(urls, referer, requestMethods, id)],
       });
-    await install(entry.urls);
+      // Only drop the IDs this update actually removed; a concurrent failure
+      // may have recorded more while it was in flight.
+      for (const stale of sweeping) staleRuleIds.delete(stale);
+    };
+    // An oversized alternation is rejected by the browser, and there is no
+    // previous rule to fall back to on the first install, so the operation
+    // degrades to an unprotected request rather than failing the download.
+    if (urlSetRegex(entry.urls).length > MAX_REGEX_FILTER_LENGTH) return operation();
+    try {
+      await install(entry.urls);
+    } catch {
+      return operation();
+    }
     const removeReservedUrl = (reservedUrl: string): void => {
       entry.urls = entry.urls.filter((reserved) => reserved !== reservedUrl);
       wakeReleaseWaiters();
@@ -285,8 +313,9 @@ export const withRequestReferer = async <T>(
       // removal, or its queued install could recreate the rule afterward.
       await entry.extensionWrites;
       // Do not turn a completed request into a failed download if cleanup is
-      // rejected. The exact rule is replaced next time and removed at startup.
-      await api.updateSessionRules({ removeRuleIds: [id] }).catch(() => {});
+      // rejected, but the rule may still be live: record it so the next install
+      // sweeps it, because this ID can be reused for a different Referer.
+      await api.updateSessionRules({ removeRuleIds: [id] }).catch(() => staleRuleIds.add(id));
     }
   } finally {
     releaseRuleSlot(id);
