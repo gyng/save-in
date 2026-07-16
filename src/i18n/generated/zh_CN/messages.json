@@ -4073,12 +4073,6 @@
   "ruleCssFlags": {
     "message": "css: 不接受正则表达式标志"
   },
-  "ruleTemplateYoutubeMaxResDescription": {
-    "message": "将 YouTube 缩略图链接改写为最高分辨率图片"
-  },
-  "ruleTemplateYoutubeMaxResName": {
-    "message": "YouTube 缩略图最高分辨率"
-  },
   "contextMenuQuickSave": {
     "message": "快速保存"
   },
@@ -4105,5 +4099,20 @@
   },
   "o_cQuickSaveUseDirectory": {
     "message": "保存到此文件夹而非下载文件夹"
+  },
+  "historyMovePending": {
+    "message": "正在下载到新文件夹。完成后将删除原文件。"
+  },
+  "promptAssistantSingleRule": {
+    "message": "草稿必须只包含一条规则"
+  },
+  "ruleCssSyntaxUnverified": {
+    "message": "后台验证不会检查 CSS 选择器语法"
+  },
+  "ruleFetchFinalFilenameUnsupported": {
+    "message": "fetch: 不能与 finalfilename: 组合使用"
+  },
+  "ruleTooManyCssSelectors": {
+    "message": "不同的 css: 选择器过多"
   }
 }

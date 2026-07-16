@@ -18,19 +18,15 @@ import {
 } from "../../shared/message-protocol.ts";
 import { respondAsync } from "../message-dispatch.ts";
 import { addLogEntry } from "../log.ts";
-import {
-  clearHistory,
-  getHistoryEntries,
-  patchHistoryEntry,
-  setHistoryStatus,
-} from "../history.ts";
+import { clearHistory, getHistoryEntries, setHistoryStatus } from "../history.ts";
 import { syncSourcePanelToTab, setSourcePanelOpenState } from "../source-panel-state.ts";
 import { cancelActiveTransfer, getActiveTransfer } from "../../downloads/active-transfers.ts";
+import { findVerifiedDownload, undoDownloadAndMark } from "../../downloads/undo-download.ts";
 import {
-  findVerifiedDownload,
-  undoBrowserDownload,
-  undoDownloadAndMark,
-} from "../../downloads/undo-download.ts";
+  abandonPendingHistoryMove,
+  completePendingHistoryMove,
+  registerPendingHistoryMove,
+} from "../../downloads/history-move.ts";
 import { launchDownload } from "../../downloads/download.ts";
 import { Path } from "../../routing/path.ts";
 import type { DownloadPipelineState } from "../../downloads/download-types.ts";
@@ -241,11 +237,23 @@ const internalHandlers = {
         sourceUrl: info.sourceUrl,
         pageUrl: info.pageUrl,
         suggestedFilename,
+        linkText:
+          typeof recordedVariables.linktext === "string" ? recordedVariables.linktext : undefined,
+        selectionText:
+          typeof recordedVariables.selection === "string" ? recordedVariables.selection : undefined,
         comment:
           typeof recordedVariables.comment === "string" ? recordedVariables.comment : undefined,
-        currentTab: null,
+        menuIndex:
+          typeof recordedVariables.menuindex === "string" ? recordedVariables.menuindex : undefined,
+        menuItemId: entry.menu?.id,
+        menuItemTitle: entry.menu?.title,
+        menuItemPath: destination,
+        currentTab:
+          typeof recordedVariables.pagetitle === "string" || info.pageUrl
+            ? { title: recordedVariables.pagetitle, url: info.pageUrl }
+            : null,
         now: new Date(),
-        context: DOWNLOAD_TYPES.CLICK,
+        context: info.context || recordedVariables.context || DOWNLOAD_TYPES.CLICK,
         // A reroute re-issues an existing save; announcing it through the
         // webhook again would double-report the same content.
         webhookEligible: false,
@@ -258,23 +266,49 @@ const internalHandlers = {
       refuse();
       return;
     }
-    const removal = await undoBrowserDownload(downloadId, expected);
-    if (removal.undone) {
-      await setHistoryStatus(historyId, "moved", downloadId);
-    }
-    // The pipeline recorded the replacement's entry id in the launch state;
-    // link the pair so both rows carry their relationship.
     const scratchEntryId = rerouteState.scratch.historyEntryId;
     const newHistoryId = typeof scratchEntryId === "string" ? scratchEntryId : undefined;
-    if (newHistoryId) {
-      await patchHistoryEntry(newHistoryId, { rerouteOf: historyId });
-      await patchHistoryEntry(historyId, { rerouteTo: newHistoryId });
+    await registerPendingHistoryMove(replacement.downloadId, {
+      historyId,
+      downloadId,
+      startTime: entry.downloadStartTime,
+      filename: entry.finalFullPath,
+    });
+
+    // Close the fast-completion race: the terminal event may have fired before
+    // the pending intent was persisted. Ordinary in-progress replacements are
+    // completed by the top-level onChanged listener, which survives wakeups.
+    let replacementState: string | undefined;
+    try {
+      const [item] = await webExtensionApi.downloads.search({ id: replacement.downloadId });
+      replacementState = item?.state;
+    } catch {
+      // The completion listener remains authoritative when search is briefly
+      // unavailable; retaining the original is always the safe fallback.
+    }
+    if (replacementState === "complete") {
+      const completedMove = await completePendingHistoryMove(replacement.downloadId);
+      sendResponse({
+        type: MESSAGE_TYPES.HISTORY_REROUTE,
+        body: {
+          rerouted: true,
+          oldRemoved: completedMove.oldRemoved,
+          ...(completedMove.newHistoryId ? { newHistoryId: completedMove.newHistoryId } : {}),
+        },
+      });
+      return;
+    }
+    if (replacementState === "interrupted") {
+      await abandonPendingHistoryMove(replacement.downloadId);
+      refuse();
+      return;
     }
     sendResponse({
       type: MESSAGE_TYPES.HISTORY_REROUTE,
       body: {
         rerouted: true,
-        oldRemoved: removal.undone,
+        oldRemoved: false,
+        pending: true,
         ...(newHistoryId ? { newHistoryId } : {}),
       },
     });

@@ -27,6 +27,7 @@ const copy: Record<string, string> = {
   promptAssistantStatusUnavailable: "Not available in this browser or on this device",
   promptAssistantStatusWorking: "Creating and checking a draft…",
   promptAssistantStatusInvalid: "The draft needs another try: $ERROR$",
+  promptAssistantSingleRule: "The draft must contain exactly one rule",
   promptAssistantStatusFailed: "Could not create a draft: $ERROR$",
   promptAssistantStatusDraftReady: "Draft ready — review it before adding",
   promptAssistantStatusAdded: "Added as an unsaved draft in the rules editor",
@@ -232,4 +233,41 @@ test("rejects invalid generated CSS before background validation", async () => {
   expect(element<HTMLButtonElement>("prompt-assistant-add").disabled).toBe(true);
   expect(mocks.sendMessage.mock.calls.some(([message]) => message.type === "VALIDATE")).toBe(false);
   expect(mocks.appendRule).not.toHaveBeenCalled();
+});
+
+test("rejects a valid response containing more than one rule", async () => {
+  mocks.runPrompt.mockResolvedValue("fileext: ^png$\ninto: Images\n\nfileext: ^jpg$\ninto: Photos");
+  setup();
+  await enable();
+  const input = element<HTMLTextAreaElement>("prompt-assistant-input");
+  input.value = "Sort images";
+  input.dispatchEvent(new InputEvent("input"));
+  element<HTMLFormElement>("prompt-assistant-form").dispatchEvent(
+    new SubmitEvent("submit", { cancelable: true }),
+  );
+
+  await vi.waitFor(() =>
+    expect(element("prompt-assistant-status").textContent).toContain("exactly one rule"),
+  );
+  expect(element<HTMLButtonElement>("prompt-assistant-add").disabled).toBe(true);
+  expect(mocks.sendMessage.mock.calls.some(([message]) => message.type === "VALIDATE")).toBe(false);
+});
+
+test("rechecks availability while the on-device model is downloading", async () => {
+  vi.useFakeTimers();
+  try {
+    mocks.availability.mockResolvedValueOnce("downloading").mockResolvedValueOnce("available");
+    setup();
+    const control = element<HTMLInputElement>("promptAssistantEnabled");
+    control.checked = true;
+    control.dispatchEvent(new Event("change"));
+    await vi.advanceTimersByTimeAsync(0);
+    expect(element("prompt-assistant-status").textContent).toContain("downloading");
+
+    await vi.advanceTimersByTimeAsync(1_000);
+    expect(mocks.availability).toHaveBeenCalledTimes(2);
+    expect(element("prompt-assistant-status").textContent).toBe("Ready on this device");
+  } finally {
+    vi.useRealTimers();
+  }
 });

@@ -28,6 +28,7 @@ const { registerMessaging, resetMessagingTransientState } = Messaging;
 const { OptionsManagement } = await import("../../../src/config/option.ts");
 const { options } = await import("../../../src/config/options-data.ts");
 const Download = await import("../../../src/downloads/download.ts");
+const HistoryMove = await import("../../../src/downloads/history-move.ts");
 const Notifier = await import("../../../src/downloads/notification.ts");
 const Menus = await import("../../../src/menus/menu-tree.ts");
 const router = await import("../../../src/routing/router.ts");
@@ -69,6 +70,12 @@ const setupGlobals = () => {
     perSiteDisableList: "",
   });
   vi.spyOn(Download, "launchDownload").mockResolvedValue({ status: "started", downloadId: 1 });
+  vi.spyOn(HistoryMove, "registerPendingHistoryMove").mockResolvedValue(undefined);
+  vi.spyOn(HistoryMove, "abandonPendingHistoryMove").mockResolvedValue(undefined);
+  vi.spyOn(HistoryMove, "completePendingHistoryMove").mockResolvedValue({
+    handled: true,
+    oldRemoved: true,
+  });
   // The message entry point launchDownload is stubbed so handler tests never
   // run the real pipeline; its containment path is covered in download-execution.
   vi.spyOn(Notifier, "expectDownload").mockImplementation((url?: string) => ({ url }));
@@ -170,6 +177,7 @@ export {
   OptionsManagement,
   options,
   Download,
+  HistoryMove,
   Notifier,
   Menus,
   router,

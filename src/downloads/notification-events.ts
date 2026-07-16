@@ -49,6 +49,7 @@ import {
   type ExpectedDownloadIdentity,
 } from "./undo-download.ts";
 import { isDataUrl } from "../shared/data-url.ts";
+import { abandonPendingHistoryMove, completePendingHistoryMove } from "./history-move.ts";
 
 type HostDownloadItem = Parameters<
   Parameters<typeof webExtensionApi.downloads.onCreated.addListener>[0]
@@ -453,6 +454,7 @@ export const onDownloadChanged = async (downloadDelta: HostDownloadDelta) => {
 
     if (completed) {
       await recordHistoryStatus("complete");
+      await completePendingHistoryMove(downloadDelta.id);
     }
 
     // Deliberately write the source shortcut only after the media download
@@ -545,15 +547,20 @@ export const onDownloadChanged = async (downloadDelta: HostDownloadDelta) => {
           addDownloadLog(record, "retrying failed download via fetch", {
             id: downloadDelta.id,
           });
-          await mergeTrackedDownload(downloadDelta.id, { adopted: false });
+          await mergeTrackedDownload(downloadDelta.id, {
+            adopted: false,
+            pendingHistoryMove: undefined,
+          });
         } else {
           // Retryable failures always have a concrete browser error name.
           await recordHistoryStatus(errorName);
           await notifyFailure();
+          await abandonPendingHistoryMove(downloadDelta.id);
         }
       } else {
         await recordHistoryStatus(errorName || "failed");
         await notifyFailure();
+        await abandonPendingHistoryMove(downloadDelta.id);
       }
     } else if (
       notifyOnSuccess &&

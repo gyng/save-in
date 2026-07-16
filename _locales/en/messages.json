@@ -197,6 +197,18 @@
     "message": "css: does not accept regular-expression flags",
     "description": "Validation error when a css: routing matcher has flags such as /i. Used in src/routing/rule-parser.ts."
   },
+  "ruleTooManyCssSelectors": {
+    "message": "Too many distinct css: selectors",
+    "description": "Validation error when routing configuration exceeds the bounded CSS selector attestation limit. Keep the literal css: clause name. Used in src/routing/rule-parser.ts."
+  },
+  "ruleCssSyntaxUnverified": {
+    "message": "CSS selector syntax is not verified in background validation",
+    "description": "Warning returned by the background integration API because a service worker has no DOM selector parser. Used in src/background/messaging/handlers.ts."
+  },
+  "ruleFetchFinalFilenameUnsupported": {
+    "message": "fetch: cannot be combined with finalfilename:",
+    "description": "Cross-browser validation error for a routing rule that tries to rewrite a URL after Chrome learns the final filename. Keep the literal clause names. Used in src/routing/rule-parser.ts."
+  },
   "ruleShadowed": {
     "message": "Earlier rule already matches every download this rule can match",
     "description": "Warning for a routing rule shadowed by an earlier rule. Used in src/routing/rule-parser.ts."
@@ -2985,6 +2997,10 @@
     "message": "Save moved. The file was downloaded to the new folder.",
     "description": "History confirmation after a move: the replacement download succeeded and the original file was removed. Used in src/options/history/history-panel.ts."
   },
+  "historyMovePending": {
+    "message": "Downloading to the new folder. The original will be removed after it completes.",
+    "description": "History Move status while the replacement download is still running. Used in src/options/history/history-panel.ts."
+  },
   "historyMoveOriginalKept": {
     "message": "Saved to the new folder. The original file could not be removed.",
     "description": "History warning after a move where the new download succeeded but removing the original file failed; both copies may exist. Used in src/options/history/history-panel.ts."
@@ -5197,6 +5213,10 @@
     "message": "The draft needs another try: $ERROR$",
     "description": "Validation failure for a locally generated routing rule. Used in src/options/integrations/prompt-assistant-panel.ts.",
     "placeholders": { "error": { "content": "$1", "example": "The rule needs an into clause" } }
+  },
+  "promptAssistantSingleRule": {
+    "message": "The draft must contain exactly one rule",
+    "description": "Validation failure when the local Prompt API returns zero or multiple routing rules. Used in src/options/integrations/prompt-assistant-panel.ts."
   },
   "promptAssistantStatusFailed": {
     "message": "Could not create a draft: $ERROR$",

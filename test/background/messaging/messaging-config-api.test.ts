@@ -108,6 +108,35 @@ describe("config API", () => {
     expect(body.menuPreview).toHaveLength(2);
   });
 
+  test("external VALIDATE reports CSS syntax as unverified in a DOM-free background", async () => {
+    vi.mocked(router.parseRulesCollecting).mockReturnValue({
+      rules: [
+        [
+          {
+            name: "css",
+            value: "[",
+            type: "MATCHER",
+            matcher: vi.fn(),
+          },
+          { name: "into", value: "files/", type: "DESTINATION" },
+        ] as any,
+      ],
+      errors: [],
+    });
+    const sendResponse = vi.fn();
+
+    onMessageExternal(
+      { type: MESSAGE_TYPES.VALIDATE, body: { filenamePatterns: "css: [\ninto: files/" } },
+      { id: "css-validator" },
+      sendResponse,
+    );
+    await waitForCall(sendResponse);
+
+    expect(sendResponse.mock.calls[0]![0]!.body.ruleErrors).toEqual([
+      expect.objectContaining({ error: "[", warning: true }),
+    ]);
+  });
+
   test("VALIDATE returns a rule trace when sample download info is supplied", async () => {
     const rules = [{ name: "into", value: "images/:filename:", type: "DESTINATION" }] as any;
     vi.mocked(router.parseRulesCollecting).mockReturnValue({ rules, errors: [] });

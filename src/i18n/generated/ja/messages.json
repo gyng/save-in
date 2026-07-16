@@ -4073,12 +4073,6 @@
   "ruleCssFlags": {
     "message": "css: には正規表現フラグを指定できません"
   },
-  "ruleTemplateYoutubeMaxResDescription": {
-    "message": "YouTubeのサムネイルリンクを最大解像度の画像に書き換えます"
-  },
-  "ruleTemplateYoutubeMaxResName": {
-    "message": "YouTubeサムネイルの最大解像度"
-  },
   "contextMenuQuickSave": {
     "message": "クイック保存"
   },
@@ -4105,5 +4099,20 @@
   },
   "o_cQuickSaveUseDirectory": {
     "message": "ダウンロードではなくこのフォルダーに保存する"
+  },
+  "historyMovePending": {
+    "message": "新しいフォルダーにダウンロードしています。完了後に元のファイルを削除します。"
+  },
+  "promptAssistantSingleRule": {
+    "message": "下書きにはルールを1つだけ含める必要があります"
+  },
+  "ruleCssSyntaxUnverified": {
+    "message": "バックグラウンド検証では CSS セレクターの構文は確認されません"
+  },
+  "ruleFetchFinalFilenameUnsupported": {
+    "message": "fetch: と finalfilename: は組み合わせられません"
+  },
+  "ruleTooManyCssSelectors": {
+    "message": "異なる css: セレクターが多すぎます"
   }
 }

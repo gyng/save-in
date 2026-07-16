@@ -4073,12 +4073,6 @@
   "ruleCssFlags": {
     "message": "css:에는 정규식 플래그를 사용할 수 없습니다"
   },
-  "ruleTemplateYoutubeMaxResDescription": {
-    "message": "YouTube 썸네일 링크를 최대 해상도 이미지로 재작성합니다"
-  },
-  "ruleTemplateYoutubeMaxResName": {
-    "message": "YouTube 썸네일 최대 해상도"
-  },
   "contextMenuQuickSave": {
     "message": "빠른 저장"
   },
@@ -4105,5 +4099,20 @@
   },
   "o_cQuickSaveUseDirectory": {
     "message": "다운로드 대신 이 폴더에 저장"
+  },
+  "historyMovePending": {
+    "message": "새 폴더로 다운로드 중입니다. 완료되면 원본 파일이 삭제됩니다."
+  },
+  "promptAssistantSingleRule": {
+    "message": "초안에는 규칙이 정확히 하나만 있어야 합니다"
+  },
+  "ruleCssSyntaxUnverified": {
+    "message": "백그라운드 유효성 검사에서는 CSS 선택자 구문을 확인하지 않습니다"
+  },
+  "ruleFetchFinalFilenameUnsupported": {
+    "message": "fetch:는 finalfilename:과 함께 사용할 수 없습니다"
+  },
+  "ruleTooManyCssSelectors": {
+    "message": "고유한 css: 선택자가 너무 많습니다"
   }
 }

@@ -330,16 +330,21 @@ const rerouteSave = async (historyId: string, destination: string): Promise<void
     // outcome message must land after the refreshed rows
     await renderHistory();
     renderHistoryFeedback(historyFeedback(), {
-      message: response.body.oldRemoved
+      message: response.body.pending
         ? historyMessage(
-            "historyMoveDone",
-            "Save moved. The file was downloaded to the new folder.",
+            "historyMovePending",
+            "Downloading to the new folder. The original will be removed after it completes.",
           )
-        : historyMessage(
-            "historyMoveOriginalKept",
-            "Saved to the new folder. The original file could not be removed.",
-          ),
-      ...(response.body.oldRemoved ? {} : { error: true }),
+        : response.body.oldRemoved
+          ? historyMessage(
+              "historyMoveDone",
+              "Save moved. The file was downloaded to the new folder.",
+            )
+          : historyMessage(
+              "historyMoveOriginalKept",
+              "Saved to the new folder. The original file could not be removed.",
+            ),
+      ...(response.body.oldRemoved || response.body.pending ? {} : { error: true }),
     });
   } catch {
     renderHistoryFeedback(historyFeedback(), {

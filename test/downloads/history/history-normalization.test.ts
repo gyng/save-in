@@ -1,11 +1,28 @@
 import {
   hasLegacyDateOnlyTimestamp,
+  historySourceUrl,
+  isReroutableHistoryEntry,
   migrateLegacyHistoryTimestamps,
   normalizeHistory,
   normalizeHistoryTimestamp,
 } from "../../../src/shared/history-normalization.ts";
 
 describe("history normalization", () => {
+  test("reroutes the bytes actually saved and refuses expired object URLs", () => {
+    const generated = {
+      id: "generated",
+      downloadId: 2,
+      status: "complete",
+      url: "data:text/plain;base64,c2VsZWN0ZWQ=",
+      info: { sourceUrl: "https://page.test/article" },
+    };
+    expect(historySourceUrl(generated)).toBe(generated.url);
+    expect(isReroutableHistoryEntry(generated)).toBe(true);
+    expect(isReroutableHistoryEntry({ ...generated, url: "blob:moz-extension://expired" })).toBe(
+      false,
+    );
+  });
+
   test("normalizes allowlisted fields and drops malformed entries", () => {
     expect(normalizeHistory([null, { id: 4 }, { id: "ok", downloadId: 7, extra: true }])).toEqual([
       { id: "ok", downloadId: 7 },

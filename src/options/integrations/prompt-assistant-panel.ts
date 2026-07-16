@@ -12,6 +12,7 @@ import { cssSelectorErrors } from "../core/css-selector-validation.ts";
 import {
   buildRuleAuthoringPrompt,
   cleanRuleSuggestion,
+  isSingleRuleSuggestion,
   type RuleAuthoringVocabulary,
 } from "./prompt-assistant-model.ts";
 
@@ -21,6 +22,8 @@ type Localize = (key: string, substitutions?: MessageSubstitutions) => string;
 type PromptAssistantPorts = {
   appendRule(textarea: HTMLTextAreaElement, rule: string): void;
 };
+
+const AVAILABILITY_RECHECK_MS = 1_000;
 
 const routingGrammar = async (): Promise<WireIntegrationGrammar> => {
   const response = await sendInternalMessage(webExtensionApi.runtime, {
@@ -61,6 +64,7 @@ export const setupPromptAssistantPanel = (
   let suggestedRule = "";
   let requestVersion = 0;
   let working = false;
+  let availabilityTimer: ReturnType<typeof setTimeout> | undefined;
   const copy = {
     off: localize("promptAssistantStatusOff") || "Off — no model checks or prompts",
     checking: localize("promptAssistantStatusChecking") || "Checking on-device model…",
@@ -76,6 +80,7 @@ export const setupPromptAssistantPanel = (
     working: localize("promptAssistantStatusWorking") || "Creating and checking a draft…",
     invalid: (error: string) =>
       localize("promptAssistantStatusInvalid", error) || `The draft needs another try: ${error}`,
+    singleRule: localize("promptAssistantSingleRule") || "The draft must contain exactly one rule",
     failed: (error: string) =>
       localize("promptAssistantStatusFailed", error) || `Could not create a draft: ${error}`,
     draftReady:
@@ -110,6 +115,10 @@ export const setupPromptAssistantPanel = (
   };
 
   const refreshAvailability = async () => {
+    if (availabilityTimer) {
+      clearTimeout(availabilityTimer);
+      availabilityTimer = undefined;
+    }
     const version = ++requestVersion;
     if (!enabled.checked) {
       availability = "unavailable";
@@ -126,6 +135,10 @@ export const setupPromptAssistantPanel = (
       setStatus(copy.downloadable, "notice");
     } else if (availability === "downloading") {
       setStatus(copy.downloading, "notice");
+      availabilityTimer = setTimeout(() => {
+        availabilityTimer = undefined;
+        void refreshAvailability();
+      }, AVAILABILITY_RECHECK_MS);
     } else setStatus(copy.unavailable, "error");
     updateControls();
   };
@@ -159,6 +172,7 @@ export const setupPromptAssistantPanel = (
         if (version !== requestVersion || !enabled.checked) return;
         const cleaned = output ? cleanRuleSuggestion(output) : null;
         if (!cleaned) throw new Error(copy.unavailable);
+        if (!isSingleRuleSuggestion(cleaned)) throw new Error(copy.singleRule);
         suggestedRule = cleaned;
         rule.textContent = cleaned;
         result.hidden = false;

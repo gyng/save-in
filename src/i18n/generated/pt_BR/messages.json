@@ -4073,12 +4073,6 @@
   "ruleCssFlags": {
     "message": "css: não aceita sinalizadores de expressão regular"
   },
-  "ruleTemplateYoutubeMaxResDescription": {
-    "message": "Reescreve links de miniaturas do YouTube para a imagem em resolução máxima"
-  },
-  "ruleTemplateYoutubeMaxResName": {
-    "message": "Miniatura do YouTube em resolução máxima"
-  },
   "contextMenuQuickSave": {
     "message": "Salvamento rápido"
   },
@@ -4105,5 +4099,20 @@
   },
   "o_cQuickSaveUseDirectory": {
     "message": "Salvar nesta pasta em vez de Downloads"
+  },
+  "historyMovePending": {
+    "message": "Baixando para a nova pasta. O arquivo original será removido após a conclusão."
+  },
+  "promptAssistantSingleRule": {
+    "message": "O rascunho deve conter exatamente uma regra"
+  },
+  "ruleCssSyntaxUnverified": {
+    "message": "A sintaxe do seletor CSS não é verificada na validação em segundo plano"
+  },
+  "ruleFetchFinalFilenameUnsupported": {
+    "message": "fetch: não pode ser combinado com finalfilename:"
+  },
+  "ruleTooManyCssSelectors": {
+    "message": "Seletores css: distintos em excesso"
   }
 }

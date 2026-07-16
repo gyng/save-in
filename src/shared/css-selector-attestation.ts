@@ -4,6 +4,7 @@
 export const MAX_CSS_SELECTOR_LENGTH = 512;
 export const MAX_CSS_SELECTOR_ORIGINS = 32;
 export const MAX_CSS_SELECTORS_PER_ORIGIN = 64;
+export const MAX_CSS_SELECTORS = MAX_CSS_SELECTORS_PER_ORIGIN;
 export const MAX_CSS_SELECTOR_MATCHES = 256;
 
 export type CssSelectorAttestation = string[][];

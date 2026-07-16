@@ -1,4 +1,5 @@
 import type { WireIntegrationGrammar } from "../../shared/message-protocol.ts";
+import { parseRulesCollecting } from "../../routing/rule-parser.ts";
 
 const MAX_USER_REQUEST_CHARACTERS = 4_000;
 
@@ -44,3 +45,6 @@ export const cleanRuleSuggestion = (output: string): string | null => {
   const result = (fenced?.[1] ?? trimmed).trim();
   return result || null;
 };
+
+export const isSingleRuleSuggestion = (source: string): boolean =>
+  parseRulesCollecting(source).rules.length === 1;

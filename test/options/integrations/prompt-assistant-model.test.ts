@@ -1,6 +1,7 @@
 import {
   buildRuleAuthoringPrompt,
   cleanRuleSuggestion,
+  isSingleRuleSuggestion,
 } from "../../../src/options/integrations/prompt-assistant-model.ts";
 
 const grammar = {
@@ -38,5 +39,12 @@ describe("Prompt API rule-authoring model", () => {
       "fileext: ^png$\ninto: Images",
     );
     expect(cleanRuleSuggestion("  \n ")).toBeNull();
+  });
+
+  test("distinguishes one semantic rule from a multi-rule response", () => {
+    expect(isSingleRuleSuggestion("fileext: ^png$\ninto: Images")).toBe(true);
+    expect(
+      isSingleRuleSuggestion("fileext: ^png$\ninto: Images\n\nfileext: ^jpg$\ninto: Photos"),
+    ).toBe(false);
   });
 });

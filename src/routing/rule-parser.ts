@@ -17,7 +17,7 @@ import type {
   RoutingRule,
 } from "./rule-types.ts";
 import { isCssMatcherClause, isRegexMatcherClause } from "./rule-types.ts";
-import { MAX_CSS_SELECTOR_LENGTH } from "../shared/css-selector-attestation.ts";
+import { MAX_CSS_SELECTOR_LENGTH, MAX_CSS_SELECTORS } from "../shared/css-selector-attestation.ts";
 import { automaticRuleClauseIssues, isAutomaticRuleClauses } from "./automatic-rule.ts";
 import { findBannedFetchVariables, findUnknownPathVariables } from "./path-variables.ts";
 import { RENAME_SEPARATOR, splitRenameValue } from "./rename.ts";
@@ -324,6 +324,23 @@ const parseSemanticRule = (
   }
   const fetchClause = fetchClauses[0];
   const fetchNode = fetchNodes[0];
+  if (
+    fetchClause &&
+    fetchNode &&
+    valid.some((clause) => clause.type === RULE_TYPES.MATCHER && clause.name === "finalfilename")
+  ) {
+    // Chrome learns finalfilename only after the request has started, when a
+    // fetch: URL rewrite is no longer possible. Reject the cross-phase pair in
+    // both browsers instead of accepting a Firefox-only rule that silently
+    // behaves differently on Chrome.
+    appendError(
+      errors,
+      routingPorts.getMessage("ruleFetchFinalFilenameUnsupported"),
+      fetchClause.value,
+      fetchNode.valueSpan,
+    );
+    return false;
+  }
   if (fetchClause && fetchNode) {
     // The scheme and authority marker must be literal so no expansion can
     // reintroduce data:, javascript:, or file: requests at runtime.
@@ -539,9 +556,29 @@ export const parseRulesCollecting = (
   const syntax = parseRoutingRuleAst(raw);
   const errors: RuleError[] = [];
   appendSyntaxErrors(syntax.issues, errors);
-  const parsedRules = syntax.ast.rules
+  const semanticRules = syntax.ast.rules
     .map((ast) => ({ ast, rule: parseSemanticRule(ast, errors) }))
     .filter((entry): entry is { ast: RoutingRuleNode; rule: RoutingRule } => Boolean(entry.rule));
+  const cssSelectors = new Set<string>();
+  const parsedRules = semanticRules.filter((entry) => {
+    const newSelectorNodes = entry.ast.clauses.filter(
+      (clause) => clause.name === "css" && !cssSelectors.has(clause.value.trim()),
+    );
+    if (cssSelectors.size + newSelectorNodes.length > MAX_CSS_SELECTORS) {
+      const overflow = newSelectorNodes[MAX_CSS_SELECTORS - cssSelectors.size];
+      if (overflow) {
+        appendError(
+          errors,
+          routingPorts.getMessage("ruleTooManyCssSelectors"),
+          overflow.value.trim(),
+          overflow.valueSpan,
+        );
+      }
+      return false;
+    }
+    newSelectorNodes.forEach((clause) => cssSelectors.add(clause.value.trim()));
+    return true;
+  });
   const rules = parsedRules.map((entry) => entry.rule);
   for (let index = 1; index < parsedRules.length; index += 1) {
     const laterEntry = parsedRules[index];

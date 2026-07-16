@@ -809,6 +809,26 @@ describe("addDownloadListener", () => {
       expect(options.quickSaveUseDirectory).toBe(false);
     });
 
+    test("the directory checkbox waits for cold-start option hydration", async () => {
+      let finishReady!: () => void;
+      Runtime.ready = new Promise<void>((resolve) => {
+        finishReady = resolve;
+      });
+
+      const pending = Promise.resolve(
+        listener({ menuItemId: Menus.IDS.QUICK_SAVE_TO_DIRECTORY, checked: true }),
+      );
+      await Promise.resolve();
+      expect(global.browser.storage.local.set).not.toHaveBeenCalled();
+
+      finishReady();
+      await pending;
+      expect(options.quickSaveUseDirectory).toBe(true);
+      expect(global.browser.storage.local.set).toHaveBeenCalledWith({
+        quickSaveUseDirectory: true,
+      });
+    });
+
     test("the keyboard command quick-saves the active tab's page", async () => {
       (global.browser as any).tabs = {
         query: vi.fn(() =>

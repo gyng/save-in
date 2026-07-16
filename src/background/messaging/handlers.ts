@@ -1,4 +1,5 @@
 import { webExtensionApi } from "../../platform/web-extension-api.ts";
+import { getMessage } from "../../platform/localization.ts";
 
 import { splitLines } from "../../shared/util.ts";
 import { MESSAGE_TYPES, DOWNLOAD_TYPES } from "../../shared/constants.ts";
@@ -257,6 +258,24 @@ export const handleValidate = async (
       return;
     }
     result.ruleErrors = parsed.errors;
+    if (external) {
+      const cssWarnings = parsed.rules.flatMap((rule) =>
+        rule.flatMap((clause) =>
+          clause.type === "MATCHER" && clause.name === "css" && typeof clause.value === "string"
+            ? [
+                {
+                  message:
+                    getMessage("ruleCssSyntaxUnverified") ||
+                    "CSS selector syntax is not verified in background validation",
+                  error: clause.value,
+                  warning: true as const,
+                },
+              ]
+            : [],
+        ),
+      );
+      result.ruleErrors.push(...cssWarnings);
+    }
     if (body.info && typeof body.info === "object" && !Array.isArray(body.info)) {
       const { now, ...wireInfo } = body.info;
       const normalizedInfo = {

@@ -61,18 +61,19 @@ export const handleContextMenuClick = async (
     return;
   }
 
-  // The dynamic-default checkbox only flips which destination Quick save
-  // resolves to; the browser already toggled its own checked state, so the
-  // click state (post-toggle) is authoritative.
-  if (info.menuItemId === MENU_IDS.QUICK_SAVE_TO_DIRECTORY) {
-    await setQuickSaveUseDirectory(Reflect.get(info, "checked") === true);
-    return;
-  }
-
   // MV3 service workers restart between events: wait for options
   // and menus to be reinitialised before handling the click
   if (backgroundRuntime.ready) {
     await backgroundRuntime.ready;
+  }
+
+  // The dynamic-default checkbox only flips which destination Quick save
+  // resolves to; the browser already toggled its own checked state, so the
+  // click state (post-toggle) is authoritative. Await initialization first:
+  // a concurrent load must not overwrite the newly persisted in-memory value.
+  if (info.menuItemId === MENU_IDS.QUICK_SAVE_TO_DIRECTORY) {
+    await setQuickSaveUseDirectory(Reflect.get(info, "checked") === true);
+    return;
   }
 
   // Prefer the tab the click happened in: the tracked global can lag

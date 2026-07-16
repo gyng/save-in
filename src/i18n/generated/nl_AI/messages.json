@@ -4073,12 +4073,6 @@
   "ruleCssFlags": {
     "message": "css: accepteert geen vlaggen voor reguliere expressies"
   },
-  "ruleTemplateYoutubeMaxResDescription": {
-    "message": "Herschrijft miniatuurlinks van YouTube naar de afbeelding met maximale resolutie"
-  },
-  "ruleTemplateYoutubeMaxResName": {
-    "message": "YouTube-miniatuur met maximale resolutie"
-  },
   "contextMenuQuickSave": {
     "message": "Snel opslaan"
   },
@@ -4105,5 +4099,20 @@
   },
   "o_cQuickSaveUseDirectory": {
     "message": "Opslaan in deze map in plaats van Downloads"
+  },
+  "historyMovePending": {
+    "message": "Downloaden naar de nieuwe map. Het oorspronkelijke bestand wordt na voltooiing verwijderd."
+  },
+  "promptAssistantSingleRule": {
+    "message": "Het concept moet precies één regel bevatten"
+  },
+  "ruleCssSyntaxUnverified": {
+    "message": "De syntaxis van de CSS-selector wordt niet gecontroleerd bij validatie op de achtergrond"
+  },
+  "ruleFetchFinalFilenameUnsupported": {
+    "message": "fetch: kan niet worden gecombineerd met finalfilename:"
+  },
+  "ruleTooManyCssSelectors": {
+    "message": "Te veel verschillende css:-selectors"
   }
 }

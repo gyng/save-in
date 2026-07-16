@@ -4073,12 +4073,6 @@
   "ruleCssFlags": {
     "message": "css: n’accepte pas les indicateurs d’expression régulière"
   },
-  "ruleTemplateYoutubeMaxResDescription": {
-    "message": "Réécrit les liens de vignettes YouTube vers l’image en résolution maximale"
-  },
-  "ruleTemplateYoutubeMaxResName": {
-    "message": "Vignette YouTube en résolution maximale"
-  },
   "contextMenuQuickSave": {
     "message": "Enregistrement rapide"
   },
@@ -4105,5 +4099,20 @@
   },
   "o_cQuickSaveUseDirectory": {
     "message": "Enregistrer dans ce dossier au lieu de Téléchargements"
+  },
+  "historyMovePending": {
+    "message": "Téléchargement vers le nouveau dossier en cours. Le fichier d’origine sera supprimé à la fin."
+  },
+  "promptAssistantSingleRule": {
+    "message": "Le brouillon doit contenir exactement une règle"
+  },
+  "ruleCssSyntaxUnverified": {
+    "message": "La syntaxe du sélecteur CSS n’est pas vérifiée lors de la validation en arrière-plan"
+  },
+  "ruleFetchFinalFilenameUnsupported": {
+    "message": "fetch: ne peut pas être combiné avec finalfilename:"
+  },
+  "ruleTooManyCssSelectors": {
+    "message": "Trop de sélecteurs css: distincts"
   }
 }

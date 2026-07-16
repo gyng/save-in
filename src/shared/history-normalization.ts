@@ -125,7 +125,10 @@ export const historyEntryInfo = (entry: HistoryEntry): NonNullable<HistoryEntry[
 
 export const historySourceUrl = (entry: HistoryEntry): string => {
   const info = historyEntryInfo(entry);
-  return info.sourceUrl || entry.url || info.pageUrl || "";
+  // entry.url is what Save In actually handed to downloads.download(). This
+  // matters for generated selections and shortcut files: info.sourceUrl is
+  // their originating page/link, not the bytes that were saved.
+  return entry.url || info.sourceUrl || info.pageUrl || "";
 };
 
 export const isReroutableHistoryEntry = (
@@ -136,13 +139,17 @@ export const isReroutableHistoryEntry = (
   // remain useful to inspect and copy, but cannot be fetched regardless of
   // which save context originally produced them.
   const displayOnlyDataUrl = /^data:/i.test(sourceUrl) && sourceUrl.endsWith("…");
+  // Event-page object URLs are process-local and are revoked after the save;
+  // retrying one from persistent history cannot reproduce the saved bytes.
+  const expiredObjectUrl = /^blob:/i.test(sourceUrl);
   return (
     (entry.status || "complete") === "complete" &&
     typeof entry.id === "string" &&
     entry.id.length > 0 &&
     typeof entry.downloadId === "number" &&
     sourceUrl.length > 0 &&
-    !displayOnlyDataUrl
+    !displayOnlyDataUrl &&
+    !expiredObjectUrl
   );
 };
 

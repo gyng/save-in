@@ -112,6 +112,7 @@ export const retryViaFetch = async (
       // the replacement is a different browser download, and the dead
       // original's startTime would refuse undo of the retried save.
       ...(record.historyEntryId ? { historyEntryId: record.historyEntryId } : {}),
+      ...(record.pendingHistoryMove ? { pendingHistoryMove: record.pendingHistoryMove } : {}),
     });
     await Promise.all(
       privateContext

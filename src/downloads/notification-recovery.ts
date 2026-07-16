@@ -15,6 +15,7 @@ import { hydrateDownloads, mergeDownload } from "./download-state.ts";
 import { OffscreenClient } from "../platform/offscreen-client.ts";
 import { downloadPorts } from "./ports.ts";
 import { isStringKeyedRecord } from "../shared/util.ts";
+import { abandonPendingHistoryMove, completePendingHistoryMove } from "./history-move.ts";
 
 const PENDING_RECOVERY_GRACE_MS = 10000;
 
@@ -117,12 +118,14 @@ const reconcileAdoptedDownloads = async (expected: NotificationRecovery) => {
             id,
             (bytes ?? 0) > 0 ? bytes : undefined,
           );
+          await completePendingHistoryMove(id);
         } else {
           await downloadPorts.history.setStatus(
             record.historyEntryId,
             item?.error || "DOWNLOAD_STATE_LOST",
             id,
           );
+          await abandonPendingHistoryMove(id);
         }
       }
       if (record?.offscreenRequestId) {

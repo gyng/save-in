@@ -8,6 +8,13 @@ import { isDataUrl } from "../shared/data-url.ts";
 
 const MAX_INACTIVE_RECORDS = 50;
 
+export type PendingHistoryMove = {
+  historyId: string;
+  downloadId: number;
+  startTime?: string | undefined;
+  filename?: string | undefined;
+};
+
 export type DownloadRecord = {
   url?: string | undefined;
   pageUrl?: string | undefined;
@@ -23,6 +30,7 @@ export type DownloadRecord = {
   pendingSourceSidecar?: SourceSidecarRequest | undefined;
   historyEntryId?: string | undefined;
   offscreenRequestId?: string | undefined;
+  pendingHistoryMove?: PendingHistoryMove | undefined;
   // Runtime-only privacy state. This is deliberately omitted from the
   // persisted record type and serializer below.
   privateContext?: boolean | undefined;
@@ -54,6 +62,31 @@ const normalizeSourceSidecarRequest = (value: unknown): SourceSidecarRequest | u
     if (typeof item === "string") request[key] = item;
   });
   return request;
+};
+
+const normalizePendingHistoryMove = (value: unknown): PendingHistoryMove | undefined => {
+  if (
+    !isObject(value) ||
+    typeof value.historyId !== "string" ||
+    value.historyId.length === 0 ||
+    typeof value.downloadId !== "number" ||
+    !Number.isSafeInteger(value.downloadId) ||
+    value.downloadId < 0
+  ) {
+    return undefined;
+  }
+  if (
+    (value.startTime !== undefined && typeof value.startTime !== "string") ||
+    (value.filename !== undefined && typeof value.filename !== "string")
+  ) {
+    return undefined;
+  }
+  return {
+    historyId: value.historyId,
+    downloadId: value.downloadId,
+    ...(typeof value.startTime === "string" ? { startTime: value.startTime } : {}),
+    ...(typeof value.filename === "string" ? { filename: value.filename } : {}),
+  };
 };
 
 function normalizeDownloadRecord(value: Partial<DownloadRecord>): PersistedDownloadRecord;
@@ -97,6 +130,8 @@ function normalizeDownloadRecord(value: unknown): PersistedDownloadRecord | null
   }
   const pendingSourceSidecar = normalizeSourceSidecarRequest(value.pendingSourceSidecar);
   if (pendingSourceSidecar) record.pendingSourceSidecar = pendingSourceSidecar;
+  const pendingHistoryMove = normalizePendingHistoryMove(value.pendingHistoryMove);
+  if (pendingHistoryMove) record.pendingHistoryMove = pendingHistoryMove;
   return record;
 }
 

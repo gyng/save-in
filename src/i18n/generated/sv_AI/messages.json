@@ -4073,12 +4073,6 @@
   "ruleCssFlags": {
     "message": "css: accepterar inte flaggor för reguljära uttryck"
   },
-  "ruleTemplateYoutubeMaxResDescription": {
-    "message": "Skriver om YouTubes miniatyrlänkar till bilden med maximal upplösning"
-  },
-  "ruleTemplateYoutubeMaxResName": {
-    "message": "YouTube-miniatyr med maximal upplösning"
-  },
   "contextMenuQuickSave": {
     "message": "Snabbspara"
   },
@@ -4105,5 +4099,20 @@
   },
   "o_cQuickSaveUseDirectory": {
     "message": "Spara i den här mappen i stället för Hämtade filer"
+  },
+  "historyMovePending": {
+    "message": "Hämtar till den nya mappen. Originalfilen tas bort när hämtningen är klar."
+  },
+  "promptAssistantSingleRule": {
+    "message": "Utkastet måste innehålla exakt en regel"
+  },
+  "ruleCssSyntaxUnverified": {
+    "message": "CSS-väljarsyntaxen verifieras inte vid bakgrundsvalidering"
+  },
+  "ruleFetchFinalFilenameUnsupported": {
+    "message": "fetch: kan inte kombineras med finalfilename:"
+  },
+  "ruleTooManyCssSelectors": {
+    "message": "För många olika css:-väljare"
   }
 }

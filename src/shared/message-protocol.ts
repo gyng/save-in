@@ -190,7 +190,7 @@ export type InternalResponseMap = {
   >;
   [MESSAGE_TYPES.HISTORY_REROUTE]: Response<
     typeof MESSAGE_TYPES.HISTORY_REROUTE,
-    { rerouted: boolean; oldRemoved: boolean; newHistoryId?: string }
+    { rerouted: boolean; oldRemoved: boolean; pending?: boolean; newHistoryId?: string }
   >;
   [MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTIONS_GET]: Response<
     typeof MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTIONS_GET,

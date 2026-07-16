@@ -369,6 +369,17 @@ describe("filename rewrite and routing", () => {
       expect(diagnostics.filenamePatterns.at(-1)?.message).toBe("ruleExtraFetch");
     });
 
+    test("rejects a finalfilename fetch rewrite that Chrome cannot apply after start", () => {
+      const rules = router.parseRules(
+        "finalfilename: ^server-name\\.pdf$\nfetch: https://cdn.example/original.pdf\ninto: resolved/:filename:",
+      );
+
+      expect(rules).toEqual([]);
+      expect(diagnostics.filenamePatterns.at(-1)?.message).toBe(
+        "ruleFetchFinalFilenameUnsupported",
+      );
+    });
+
     test("rejects fetch values that are not literal http(s) URLs", () => {
       for (const value of ["ftp://x.example/a", "//x.example/a", ":sourceurl:", "example.com/a"]) {
         expect(router.parseRules(`filename: a\nfetch: ${value}\ninto: x`)).toEqual([]);

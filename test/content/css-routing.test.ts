@@ -94,4 +94,20 @@ describe("content CSS routing", () => {
     );
     expect(cssSelectorsForRules(parsed.rules)).toEqual(["article img", ".hero"]);
   });
+
+  test("rejects selectors beyond the bounded attestation contract", () => {
+    const source = Array.from(
+      { length: 65 },
+      (_, index) => `css: img:not([data-${index}])\ninto: images/${index}/`,
+    ).join("\n\n");
+    const parsed = parseRulesCollecting(source);
+
+    expect(cssSelectorsForRules(parsed.rules)).toHaveLength(64);
+    expect(parsed.errors).toContainEqual(
+      expect.objectContaining({
+        message: "ruleTooManyCssSelectors",
+        error: "img:not([data-64])",
+      }),
+    );
+  });
 });

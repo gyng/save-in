@@ -1,5 +1,6 @@
 import {
   MESSAGE_TYPES,
+  DOWNLOAD_TYPES,
   OptionsManagement,
   options,
   Menus,
@@ -8,6 +9,7 @@ import {
   Path,
   backgroundRuntime,
   Download,
+  HistoryMove,
   SaveHistory,
   ActiveTransfers,
   OffscreenClient,
@@ -205,11 +207,21 @@ describe("onMessage", () => {
       },
     ]);
     vi.mocked(global.browser.downloads.search).mockResolvedValue([
-      { id: 41, url: "https://x.test/moved.png", startTime: "2026-07-17T01:02:03.000Z" } as never,
+      {
+        id: 41,
+        url: "https://x.test/moved.png",
+        startTime: "2026-07-17T01:02:03.000Z",
+        state: "complete",
+      } as never,
     ]);
     vi.mocked(Download.launchDownload).mockImplementation(async (state) => {
       state.scratch.historyEntryId = "history-new";
       return { status: "started", downloadId: 42 };
+    });
+    vi.mocked(HistoryMove.completePendingHistoryMove).mockResolvedValue({
+      handled: true,
+      oldRemoved: true,
+      newHistoryId: "history-new",
     });
     const sendResponse = vi.fn();
 
@@ -230,21 +242,150 @@ describe("onMessage", () => {
     expect(state.info.url).toBe("https://x.test/moved.png");
     expect(state.info.suggestedFilename).toBe("moved.png");
     expect(state.info.comment).toBe("archive");
+    expect(HistoryMove.registerPendingHistoryMove).toHaveBeenCalledWith(42, {
+      historyId: "history-20",
+      downloadId: 41,
+      startTime: "2026-07-17T01:02:03.000Z",
+      filename: "from/moved.png",
+    });
     // A reroute re-issues an existing save; it must not double-report through
     // the webhook.
     expect(state.info.webhookEligible).toBe(false);
-    expect(global.browser.downloads.removeFile).toHaveBeenCalledWith(41);
-    expect(SaveHistory.setHistoryStatus).toHaveBeenCalledWith("history-20", "moved", 41);
-    expect(SaveHistory.patchHistoryEntry).toHaveBeenCalledWith("history-new", {
-      rerouteOf: "history-20",
-    });
-    expect(SaveHistory.patchHistoryEntry).toHaveBeenCalledWith("history-20", {
-      rerouteTo: "history-new",
-    });
+    expect(HistoryMove.completePendingHistoryMove).toHaveBeenCalledWith(42);
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.HISTORY_REROUTE,
       body: { rerouted: true, oldRemoved: true, newHistoryId: "history-new" },
     });
+  });
+
+  test("HISTORY_REROUTE keeps the original when the accepted replacement later fails", async () => {
+    vi.mocked(SaveHistory.getHistoryEntries).mockResolvedValue([
+      {
+        id: "history-late-failure",
+        url: "https://x.test/original.png",
+        finalFullPath: "from/original.png",
+        downloadId: 60,
+        status: "complete",
+      },
+    ]);
+    vi.mocked(global.browser.downloads.search).mockResolvedValue([
+      { id: 60, url: "https://x.test/original.png" } as never,
+    ]);
+    vi.mocked(Download.launchDownload).mockResolvedValue({ status: "started", downloadId: 61 });
+    vi.mocked(global.browser.downloads.search)
+      .mockResolvedValueOnce([{ id: 60, url: "https://x.test/original.png" } as never])
+      .mockResolvedValueOnce([{ id: 61, state: "interrupted" } as never]);
+    vi.mocked(global.browser.downloads.removeFile).mockClear();
+    const sendResponse = vi.fn();
+
+    onMessage(
+      {
+        type: MESSAGE_TYPES.HISTORY_REROUTE,
+        body: { historyId: "history-late-failure", destination: "moved/here" },
+      },
+      {},
+      sendResponse,
+    );
+    await waitForCall(sendResponse);
+
+    expect(HistoryMove.abandonPendingHistoryMove).toHaveBeenCalledWith(61);
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.HISTORY_REROUTE,
+      body: { rerouted: false, oldRemoved: false },
+    });
+  });
+
+  test("HISTORY_REROUTE restores recorded routing context and menu variables", async () => {
+    vi.mocked(SaveHistory.getHistoryEntries).mockResolvedValue([
+      {
+        id: "history-context",
+        url: "https://cdn.test/photo.png",
+        finalFullPath: "from/photo.png",
+        downloadId: 62,
+        status: "complete",
+        info: {
+          context: DOWNLOAD_TYPES.MEDIA,
+          sourceUrl: "https://cdn.test/photo.png",
+          pageUrl: "https://page.test/gallery",
+        },
+        menu: { id: "save-in-2", title: "Pictures", path: "old/path" },
+        variables: {
+          pagetitle: "Gallery",
+          linktext: "Full-size photo",
+          selection: "selected words",
+          menuindex: "2",
+          comment: "photos",
+          suggestedfilename: "photo.png",
+        },
+      },
+    ]);
+    vi.mocked(global.browser.downloads.search).mockResolvedValue([
+      { id: 62, url: "https://cdn.test/photo.png" } as never,
+    ]);
+    vi.mocked(Download.launchDownload).mockResolvedValue({ status: "started", downloadId: 63 });
+    const sendResponse = vi.fn();
+
+    onMessage(
+      {
+        type: MESSAGE_TYPES.HISTORY_REROUTE,
+        body: { historyId: "history-context", destination: "new/path" },
+      },
+      {},
+      sendResponse,
+    );
+    await waitForCall(sendResponse);
+
+    expect(vi.mocked(Download.launchDownload).mock.calls[0]![0]!.info).toMatchObject({
+      context: DOWNLOAD_TYPES.MEDIA,
+      sourceUrl: "https://cdn.test/photo.png",
+      pageUrl: "https://page.test/gallery",
+      linkText: "Full-size photo",
+      selectionText: "selected words",
+      menuIndex: "2",
+      menuItemId: "save-in-2",
+      menuItemTitle: "Pictures",
+      menuItemPath: "new/path",
+      currentTab: { title: "Gallery", url: "https://page.test/gallery" },
+    });
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.HISTORY_REROUTE,
+      body: { rerouted: true, oldRemoved: false, pending: true },
+    });
+  });
+
+  test("HISTORY_REROUTE re-downloads generated data bytes instead of their originating page", async () => {
+    const generatedUrl = "data:text/plain;base64,c2VsZWN0ZWQ=";
+    vi.mocked(SaveHistory.getHistoryEntries).mockResolvedValue([
+      {
+        id: "history-generated",
+        url: generatedUrl,
+        finalFullPath: "from/selection.txt",
+        downloadId: 64,
+        status: "complete",
+        info: {
+          context: DOWNLOAD_TYPES.SELECTION,
+          sourceUrl: "https://page.test/article",
+          pageUrl: "https://page.test/article",
+        },
+      },
+    ]);
+    vi.mocked(global.browser.downloads.search).mockResolvedValue([
+      { id: 64, url: generatedUrl } as never,
+    ]);
+    vi.mocked(Download.launchDownload).mockResolvedValue({ status: "started", downloadId: 65 });
+    const sendResponse = vi.fn();
+
+    onMessage(
+      {
+        type: MESSAGE_TYPES.HISTORY_REROUTE,
+        body: { historyId: "history-generated", destination: "new/path" },
+      },
+      {},
+      sendResponse,
+    );
+    await waitForCall(sendResponse);
+
+    expect(vi.mocked(Download.launchDownload).mock.calls[0]![0]!.info.url).toBe(generatedUrl);
   });
 
   test("HISTORY_REROUTE refuses an unknown entry without launching anything", async () => {
@@ -283,7 +424,7 @@ describe("onMessage", () => {
       },
     ]);
     vi.mocked(global.browser.downloads.search).mockResolvedValue([
-      { id: 50, url: "https://legacy.test/image.png" } as never,
+      { id: 50, url: "https://legacy.test/image.png", state: "complete" } as never,
     ]);
     vi.mocked(Download.launchDownload).mockResolvedValue({ status: "started", downloadId: 51 });
     const sendResponse = vi.fn();
@@ -420,16 +561,19 @@ describe("onMessage", () => {
         status: "complete",
       },
     ]);
-    // Verified at launch time, but the browser loses the download before the
-    // removal step — the second search finds nothing.
-    vi.mocked(global.browser.downloads.search)
-      .mockResolvedValueOnce([{ id: 45, url: "https://x.test/dup.png" }] as never)
-      .mockResolvedValueOnce([] as never);
+    vi.mocked(global.browser.downloads.search).mockResolvedValue([
+      { id: 45, url: "https://x.test/dup.png", state: "complete" } as never,
+    ]);
     vi.mocked(Download.launchDownload).mockImplementation(async (state) => {
       state.scratch.historyEntryId = "history-new-2";
       return { status: "started", downloadId: 46 };
     });
     vi.mocked(SaveHistory.setHistoryStatus).mockClear();
+    vi.mocked(HistoryMove.completePendingHistoryMove).mockResolvedValue({
+      handled: true,
+      oldRemoved: false,
+      newHistoryId: "history-new-2",
+    });
     const sendResponse = vi.fn();
 
     onMessage(
@@ -463,7 +607,7 @@ describe("onMessage", () => {
       },
     ]);
     vi.mocked(global.browser.downloads.search).mockResolvedValue([
-      { id: 48, url: "https://x.test/unlinked.png" } as never,
+      { id: 48, url: "https://x.test/unlinked.png", state: "complete" } as never,
     ]);
     vi.mocked(Download.launchDownload).mockResolvedValue({ status: "started", downloadId: 49 });
     vi.mocked(SaveHistory.patchHistoryEntry).mockClear();

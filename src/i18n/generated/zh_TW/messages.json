@@ -4073,12 +4073,6 @@
   "ruleCssFlags": {
     "message": "css: 不接受規則運算式旗標"
   },
-  "ruleTemplateYoutubeMaxResDescription": {
-    "message": "將 YouTube 縮圖連結改寫為最高解析度圖片"
-  },
-  "ruleTemplateYoutubeMaxResName": {
-    "message": "YouTube 縮圖最高解析度"
-  },
   "contextMenuQuickSave": {
     "message": "快速儲存"
   },
@@ -4105,5 +4099,20 @@
   },
   "o_cQuickSaveUseDirectory": {
     "message": "儲存至此資料夾而非下載資料夾"
+  },
+  "historyMovePending": {
+    "message": "正在下載到新資料夾。完成後將刪除原始檔案。"
+  },
+  "promptAssistantSingleRule": {
+    "message": "草稿只能包含一條規則"
+  },
+  "ruleCssSyntaxUnverified": {
+    "message": "背景驗證不會檢查 CSS 選取器語法"
+  },
+  "ruleFetchFinalFilenameUnsupported": {
+    "message": "fetch: 不能與 finalfilename: 搭配使用"
+  },
+  "ruleTooManyCssSelectors": {
+    "message": "不同的 css: 選取器過多"
   }
 }

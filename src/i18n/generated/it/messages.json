@@ -4073,12 +4073,6 @@
   "ruleCssFlags": {
     "message": "css: non accetta flag per espressioni regolari"
   },
-  "ruleTemplateYoutubeMaxResDescription": {
-    "message": "Riscrive i link alle miniature di YouTube verso l'immagine alla risoluzione massima"
-  },
-  "ruleTemplateYoutubeMaxResName": {
-    "message": "Miniatura YouTube risoluzione massima"
-  },
   "contextMenuQuickSave": {
     "message": "Salvataggio rapido"
   },
@@ -4105,5 +4099,20 @@
   },
   "o_cQuickSaveUseDirectory": {
     "message": "Salva in questa cartella invece che in Download"
+  },
+  "historyMovePending": {
+    "message": "Download nella nuova cartella in corso. Il file originale verrà rimosso al termine."
+  },
+  "promptAssistantSingleRule": {
+    "message": "La bozza deve contenere esattamente una regola"
+  },
+  "ruleCssSyntaxUnverified": {
+    "message": "La sintassi del selettore CSS non viene verificata nella convalida in background"
+  },
+  "ruleFetchFinalFilenameUnsupported": {
+    "message": "fetch: non può essere combinato con finalfilename:"
+  },
+  "ruleTooManyCssSelectors": {
+    "message": "Troppi selettori css: distinti"
   }
 }
