@@ -192,6 +192,15 @@ describe("Prompt API rule-authoring model", () => {
     ["save pngs into /archive", "fileext: ^png$\ninto: archive/:filename:", []],
     ["save foobar into /archive", "fileext: ^foobar$\ninto: archive/:filename:", []],
     ["save images into /Pictures", "sourcekind: ^image$\ninto: Pictures/:filename:", []],
+    // A category names what a source is, so inventing an extension list for it
+    // both adds unrequested types and silently misses others (webp, avif).
+    [
+      "save images into /Pictures",
+      "fileext/i: ^(?:png|jpe?g|gif)$\ninto: Pictures/:filename:",
+      ["The request names images as a media category, not a file type."],
+    ],
+    // An explicit type alongside the category still anchors a fileext matcher.
+    ["save PNG images into /Pictures", "fileext/i: ^png$\ninto: Pictures/:filename:", []],
     ["save photos into /Pictures please", "sourcekind: ^image$\ninto: Pictures/:filename:", []],
     ["save png into / please", "fileext: ^png$\ninto: elsewhere/:filename:", []],
     ['save png into "/"', "fileext: ^png$\ninto: elsewhere/:filename:", []],

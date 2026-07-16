@@ -71,6 +71,7 @@ export const buildRuleAuthoringPrompt = (
     "Preserve every explicit file type, site, path, filename, and requested distinction exactly.",
     "Do not add file types, sites, folders, renames, or behavior that the user did not request.",
     "Treat image, photo, audio, video, document, and media as categories, not filename extensions.",
+    "Match a category with sourcekind. Do not expand it into a list of filename extensions.",
     "Infer a file extension only from an explicit extension or a named file format.",
     "A request to save into a folder keeps the original filename unless the user explicitly asks to rename it.",
     "A leading slash in a requested folder is shorthand for an extension-relative folder, not an absolute path.",
@@ -264,6 +265,23 @@ const FILE_TYPE_CATEGORIES = new Set([
   "videos",
 ]);
 
+// The words naming what to save, before any qualifier. Everything from the
+// first qualifier onward describes where a source came from or how it matches,
+// not what type it is: "PDF from docs.example.com" names the pdf type, and
+// never the doc type.
+const namedTypeWords = (request: string): string[] => {
+  const target = request.match(
+    /\b(?:save|route|move|put|send|download)\s+(.{1,100}?)\s+(?:into|in|to|under)\b/i,
+  )?.[1];
+  const named = target?.split(/\b(?:from|matching|named|on|where|whose|with)\b/i)[0];
+  if (!named) return [];
+  return named
+    .toLowerCase()
+    .split(/(?:\s*(?:,|\/|\band\b|\bor\b)\s*)|\s+/)
+    .map((token) => token.replace(/^\.|[^a-z0-9+_-]/g, ""))
+    .filter((token) => token && !FILE_TYPE_FILLER.has(token));
+};
+
 const explicitExtensions = (request: string): string[] => {
   const extensions: string[] = [];
   for (const match of request.matchAll(/(?:^|\s)\.([a-z0-9][a-z0-9+_-]{0,9})\b/gi)) {
@@ -271,28 +289,18 @@ const explicitExtensions = (request: string): string[] => {
     const extension = match[1] as string;
     extensions.push(extension.toLowerCase());
   }
-  const target = request.match(
-    /\b(?:save|route|move|put|send|download)\s+(.{1,100}?)\s+(?:into|in|to|under)\b/i,
-  )?.[1];
-  // Everything from the first qualifier onward describes where a source came
-  // from or how it matches, not what type it is: "PDF from docs.example.com"
-  // names the pdf type, and never the doc type.
-  const named = target?.split(/\b(?:from|matching|named|on|where|whose|with)\b/i)[0];
-  if (named) {
-    const tokens = named
-      .toLowerCase()
-      .split(/(?:\s*(?:,|\/|\band\b|\bor\b)\s*)|\s+/)
-      .map((token) => token.replace(/^\.|[^a-z0-9+_-]/g, ""))
-      .filter((token) => token && !FILE_TYPE_FILLER.has(token) && !FILE_TYPE_CATEGORIES.has(token));
-    if (tokens.length > 0 && tokens.length <= 5 && tokens.every((token) => token.length <= 10)) {
-      for (const token of tokens) {
-        const singular = token.endsWith("s") ? token.slice(0, -1) : token;
-        extensions.push(COMMON_FILE_EXTENSION_SET.has(singular) ? singular : token);
-      }
+  const tokens = namedTypeWords(request).filter((token) => !FILE_TYPE_CATEGORIES.has(token));
+  if (tokens.length > 0 && tokens.length <= 5 && tokens.every((token) => token.length <= 10)) {
+    for (const token of tokens) {
+      const singular = token.endsWith("s") ? token.slice(0, -1) : token;
+      extensions.push(COMMON_FILE_EXTENSION_SET.has(singular) ? singular : token);
     }
   }
   return unique(extensions);
 };
+
+const namedCategories = (request: string): string[] =>
+  unique(namedTypeWords(request).filter((token) => FILE_TYPE_CATEGORIES.has(token)));
 
 const fileExtensionMatcher = (
   rule: string,
@@ -387,6 +395,15 @@ export const ruleRequestGuardrailIssues = (request: string, rule: string): strin
       } catch {
         // The routing validator reports the malformed regular expression precisely.
       }
+    }
+  } else {
+    // A category names what a source is. Turning it into an extension list both
+    // adds types the request never named and misses others the category covers.
+    const categories = namedCategories(request);
+    if (categories.length > 0 && fileExtensionMatcher(rule)) {
+      issues.push(
+        `The request names ${categories.join(", ")} as a media category, not a file type.`,
+      );
     }
   }
 
