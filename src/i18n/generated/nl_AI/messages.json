@@ -1292,7 +1292,7 @@
     "message": "Verplaats of hernoem downloads automatisch wanneer hun bestandsnaam, bron, pagina of context overeenkomt."
   },
   "o_lRouteBrowserDownloadsFromRules": {
-    "message": "Regels gelden voor opslagacties via Save In. Downloads die de browser zelf start, vallen er pas onder zodra je dat inschakelt."
+    "message": "Regels gelden voor opslagacties via Save In. Downloads die de browser zelf start, vallen er pas onder zodra u dat inschakelt."
   },
   "o_lOpenBrowserDownloads": {
     "message": "Browserdownloads openen"
@@ -1964,7 +1964,7 @@
     "message": "Komt overeen met de index van het geselecteerde menu-item (1, 2, 3…)."
   },
   "html_directoryMatcherDescription": {
-    "message": "Komt overeen met de map die je in het Save In-menu koos. Leeg bij opslagacties zonder mapkeuze."
+    "message": "Komt overeen met de map die u in het Save In-menu koos. Leeg bij opslagacties zonder mapkeuze."
   },
   "html_matchesTheNaiveFilename": {
     "message": "Komt overeen met de bestandsnaam die is afgeleid van de URL."
@@ -2726,7 +2726,7 @@
     "message": "Uitgevouwen pad"
   },
   "routeDebuggerPathBase": {
-    "message": "Bij opslaan via het menu wordt de gekozen map voor dit pad geplaatst. Bij opslaan met een klik en bij automatisch opslaan begint het pad in je downloadmap."
+    "message": "Bij opslaan via het menu wordt de gekozen map voor dit pad geplaatst. Bij opslaan met een klik en bij automatisch opslaan begint het pad in uw downloadmap."
   },
   "routeDebuggerFinalPath": {
     "message": "Definitief pad"
@@ -4235,7 +4235,7 @@
     "message": "Altijd naar de standaardbestemming opslaan"
   },
   "o_cClickToSaveUseDefaultHelp": {
-    "message": "Anders hergebruikt klikken om op te slaan de map die je als laatste in het menu koos."
+    "message": "Anders hergebruikt klikken om op te slaan de map die u als laatste in het menu koos."
   },
   "historyMovePending": {
     "message": "Downloaden naar de nieuwe map. Het oorspronkelijke bestand wordt na voltooiing verwijderd."

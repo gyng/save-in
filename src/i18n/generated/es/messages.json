@@ -1292,7 +1292,7 @@
     "message": "Mueva o cambie el nombre de las descargas automáticamente cuando coincida su nombre de archivo, fuente, página o contexto."
   },
   "o_lRouteBrowserDownloadsFromRules": {
-    "message": "Las reglas cubren los guardados que haces con Save In. Las descargas que inicia el propio navegador solo se cubren cuando lo activas."
+    "message": "Las reglas cubren los guardados que hace con Save In. Las descargas que inicia el propio navegador solo se cubren cuando lo activa."
   },
   "o_lOpenBrowserDownloads": {
     "message": "Abrir descargas del navegador"
@@ -2461,7 +2461,7 @@
     "message": "Brasa"
   },
   "o_lUiThemeHelp": {
-    "message": "Elige un tema de color para la configuración y Recursos de la página."
+    "message": "Elija un tema de color para la configuración y Recursos de la página."
   },
   "notificationExternalDownloadBlockedTitle": {
     "message": "Descarga externa bloqueada"
@@ -3294,7 +3294,7 @@
     "message": "Desactivar Save In en los sitios coincidentes (opcional)"
   },
   "o_cPerSiteDisableListHelp": {
-    "message": "Introduce un patrón de coincidencia de WebExtension por línea. Guardar con un clic, los recursos de la página y los guardados automáticos permanecen desactivados en las páginas coincidentes."
+    "message": "Introduzca un patrón de coincidencia de WebExtension por línea. Guardar con un clic, los recursos de la página y los guardados automáticos permanecen desactivados en las páginas coincidentes."
   },
   "o_cPerSiteDisableListInvalid": {
     "message": "Patrón no válido. Esta línea se ignora hasta que se corrija."
@@ -3315,13 +3315,13 @@
     "message": "Haz clic con el botón derecho en algo que quieras guardar."
   },
   "welcomeStepChooseSaveIn": {
-    "message": "Elige Save In… en el menú."
+    "message": "Elija Save In… en el menú."
   },
   "welcomeStepPickFolder": {
-    "message": "Elige una carpeta inicial."
+    "message": "Elija una carpeta inicial."
   },
   "welcomeStarterNote": {
-    "message": "Las carpetas iniciales ya están activas. Puedes personalizarlas en cualquier momento."
+    "message": "Las carpetas iniciales ya están activas. Puede personalizarlas en cualquier momento."
   },
   "welcomeToolbarNote": {
     "message": "El botón de la barra de herramientas abre Recursos de la página para buscar contenido multimedia en la página actual."
@@ -3336,7 +3336,7 @@
     "message": "Usar solo la carpeta Descargas"
   },
   "welcomeEmptyPresetFailed": {
-    "message": "No se pudo cambiar a usar solo la carpeta Descargas. Tus carpetas no se han modificado."
+    "message": "No se pudo cambiar a usar solo la carpeta Descargas. Sus carpetas no se han modificado."
   },
   "welcomeEmptyConfirmTitle": {
     "message": "¿Reemplazar las carpetas actuales?"
@@ -3833,7 +3833,7 @@
     "message": "Deshacer"
   },
   "savedUndoFailed": {
-    "message": "No se pudo deshacer — selecciona para volver a intentarlo"
+    "message": "No se pudo deshacer — seleccione para volver a intentarlo"
   },
   "savedUndoBlocked": {
     "message": "Finaliza o descarta los demás cambios antes de deshacer."
@@ -4067,7 +4067,7 @@
     "message": "; un reemplazo vacío elimina las coincidencias, y el reemplazo expande variables de enrutamiento y referencias de captura como"
   },
   "html_renameClauseCompatibility": {
-    "message": "Se aplica después de que el nombre de archivo se resuelva por completo (incluidas las reescrituras de fetch:) y antes de los límites de longitud; las carpetas nunca se ven afectadas. Las descargas comunes del navegador registradas solo la usan cuando el reemplazo no necesita un hash del contenido. Escribe un ' -> ' literal en el patrón con un espacio escapado (\\x20->)."
+    "message": "Se aplica después de que el nombre de archivo se resuelva por completo (incluidas las reescrituras de fetch:) y antes de los límites de longitud; las carpetas nunca se ven afectadas. Las descargas comunes del navegador registradas solo la usan cuando el reemplazo no necesita un hash del contenido. Escriba un ' -> ' literal en el patrón con un espacio escapado (\\x20->)."
   },
   "html_advancedRenameTheSavedFile": {
     "message": "Avanzado: renombrar el archivo guardado"
@@ -4115,7 +4115,7 @@
     "message": "Guardar archivos PNG de example.com en Images/example"
   },
   "promptAssistantPromptHelp": {
-    "message": "Esta solicitud es global y no se guarda. El asistente no lee tus pestañas abiertas; incluye el sitio, el tipo de archivo y la carpeta que quieres."
+    "message": "Esta solicitud es global y no se guarda. El asistente no lee sus pestañas abiertas; incluya el sitio, el tipo de archivo y la carpeta que quiere."
   },
   "promptAssistantSuggest": {
     "message": "Sugerir regla"
@@ -4142,7 +4142,7 @@
     "message": "Listo en este dispositivo"
   },
   "promptAssistantStatusDownloadable": {
-    "message": "El modelo se descarga cuando sugieres tu primera regla"
+    "message": "El modelo se descarga cuando sugiere su primera regla"
   },
   "promptAssistantStatusDownloading": {
     "message": "Chrome está descargando el modelo en el dispositivo"
@@ -4235,7 +4235,7 @@
     "message": "Guardar siempre en el destino predeterminado"
   },
   "o_cClickToSaveUseDefaultHelp": {
-    "message": "De lo contrario, clic para guardar reutiliza la última carpeta que elegiste en el menú."
+    "message": "De lo contrario, clic para guardar reutiliza la última carpeta que eligió en el menú."
   },
   "historyMovePending": {
     "message": "Descargando en la nueva carpeta. El archivo original se eliminará cuando termine."
