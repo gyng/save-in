@@ -17,7 +17,7 @@ import {
 import { OffscreenClient } from "../platform/offscreen-client.ts";
 import { getDownload, mergeDownload } from "./download-state.ts";
 import { downloadPorts } from "./ports.ts";
-import { searchDownloadStartTime } from "./undo-download.ts";
+import { backfillDownloadStartTime } from "./undo-download.ts";
 import { isPrivateDownloadRecord } from "./download-state.ts";
 import type { DownloadRecordUpdate } from "./download-state.ts";
 import {
@@ -107,6 +107,11 @@ export const retryViaFetch = async (
       // record (before rememberStartedDownload persists the full one) still
       // writes the source shortcut for a retried save.
       ...(record.pendingSourceSidecar ? { pendingSourceSidecar: record.pendingSourceSidecar } : {}),
+      // Carry the history entry so onDownloadCreated's matched branch rebinds
+      // the entry to the replacement id with the item's startTime for free —
+      // the replacement is a different browser download, and the dead
+      // original's startTime would refuse undo of the retried save.
+      ...(record.historyEntryId ? { historyEntryId: record.historyEntryId } : {}),
     });
     await Promise.all(
       privateContext
@@ -141,14 +146,14 @@ export const retryViaFetch = async (
     if (content.ownedObjectUrl) runtime.ownedObjectUrls.set(newId, content.ownedObjectUrl);
     if (record.historyEntryId) {
       updateActiveTransfer(record.historyEntryId, { downloadId: newId });
-      // The replacement is a different browser download: rebind the history
-      // entry with its own startTime, or the startTime-decides identity check
-      // would refuse undo of the retried save against the dead original's.
-      await downloadPorts.history.setDownloadId(
-        record.historyEntryId,
-        newId,
-        await searchDownloadStartTime(newId),
-      );
+      // The expected record carries historyEntryId, so the event path rebinds
+      // id and startTime when it wins its race against cancelExpectedDownload
+      // above. This direct bind covers the losing order, and stays off the
+      // await chain so a fast replacement's completion still finds the record
+      // persisted by rememberStartedDownload below. A different-id bind
+      // without a time clears the dead original's stale anchor.
+      void downloadPorts.history.setDownloadId(record.historyEntryId, newId).catch(() => {});
+      backfillDownloadStartTime(record.historyEntryId, newId, downloadPorts.history.setDownloadId);
     }
     await rememberStartedDownload(
       newId,

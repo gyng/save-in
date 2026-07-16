@@ -223,6 +223,57 @@ describe("undo on the success notification", () => {
     expect(history.setHistoryStatus).toHaveBeenCalledWith("h-undo", "undone", 7);
   });
 
+  test("a record without an entry id never borrows a foreign entry's startTime", async () => {
+    const history = await import("../../../src/background/history.ts");
+    vi.spyOn(history, "setHistoryStatus").mockResolvedValue(undefined);
+    // A reused download id names an old, unrelated entry; its startTime must
+    // not veto an undo the record's own url verifies.
+    vi.spyOn(history, "getHistoryEntries").mockResolvedValue([
+      {
+        id: "h-foreign",
+        url: "https://elsewhere/old.bin",
+        downloadId: 7,
+        status: "complete",
+        downloadStartTime: "2020-01-01T00:00:00.000Z",
+      },
+    ] as never);
+    sessionStore.siDownloads = { 7: { adopted: true, url: "https://x/p.png" } };
+    vi.mocked(global.browser.downloads.search).mockResolvedValue([
+      { id: 7, url: "https://x/p.png", startTime: "2026-07-17T05:06:07.000Z" } as never,
+    ]);
+
+    await onButtonClicked("7", 0);
+
+    expect(global.browser.downloads.removeFile).toHaveBeenCalledWith(7);
+    // Record-only evidence: the foreign entry is neither consulted nor marked.
+    expect(history.setHistoryStatus).not.toHaveBeenCalled();
+    expect(Log.addLogEntry).toHaveBeenCalledWith("undo could not mark history", { downloadId: 7 });
+  });
+
+  test("evidence prefers the filename the onChanged delta updated", async () => {
+    const history = await import("../../../src/background/history.ts");
+    vi.spyOn(history, "setHistoryStatus").mockResolvedValue(undefined);
+    vi.spyOn(history, "getHistoryEntries").mockResolvedValue([] as never);
+    // The browser uniquified the file after creation: only currentFilename
+    // carries the on-disk name; the stale merge-time filename would refuse.
+    sessionStore.siDownloads = {
+      7: {
+        adopted: true,
+        historyEntryId: "h-undo",
+        filename: "stale.png",
+        currentFilename: "pic (1).png",
+      },
+    };
+    vi.mocked(global.browser.downloads.search).mockResolvedValue([
+      { id: 7, url: "blob:chrome-extension/2", filename: "/dl/pic (1).png" } as never,
+    ]);
+
+    await onButtonClicked("7", 0);
+
+    expect(global.browser.downloads.removeFile).toHaveBeenCalledWith(7);
+    expect(history.setHistoryStatus).toHaveBeenCalledWith("h-undo", "undone", 7);
+  });
+
   test("an unreadable history degrades to record-only evidence", async () => {
     const history = await import("../../../src/background/history.ts");
     vi.spyOn(history, "setHistoryStatus").mockResolvedValue(undefined);

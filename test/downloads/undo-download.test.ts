@@ -2,11 +2,13 @@
 // both sides know it), refuses without evidence, and never claims success
 // unless the browser tracked the download when the undo began.
 import {
+  backfillDownloadStartTime,
   matchesDownloadIdentity,
   searchDownloadStartTime,
   undoBrowserDownload,
   undoDownloadAndMark,
 } from "../../src/downloads/undo-download.ts";
+import { setCurrentBrowser } from "../../src/platform/chrome-detector.ts";
 
 const seedSearch = (items: unknown[]) =>
   vi.mocked(global.browser.downloads.search).mockResolvedValue(items as never);
@@ -63,12 +65,6 @@ describe("matchesDownloadIdentity", () => {
       true,
     ],
     [
-      "Firefox's spaceless uniquify format also matches",
-      { filename: "gallery/photo.jpg" },
-      { url: "blob:moz-extension/2", filename: "/dl/photo(1).jpg" },
-      true,
-    ],
-    [
       "an extensionless uniquified basename matches",
       { filename: "archive" },
       { filename: "/dl/archive (10)" },
@@ -112,6 +108,58 @@ describe("matchesDownloadIdentity", () => {
     ],
   ])("%s", (_name, expected, item, outcome) => {
     expect(matchesDownloadIdentity(item, expected)).toBe(outcome);
+  });
+});
+
+describe("uniquify tolerance is browser-aware", () => {
+  afterEach(() => setCurrentBrowser("UNKNOWN"));
+
+  test("Firefox strips only its spaceless format", () => {
+    setCurrentBrowser("FIREFOX");
+    expect(
+      matchesDownloadIdentity({ filename: "/dl/photo(1).jpg" }, { filename: "photo.jpg" }),
+    ).toBe(true);
+    // Firefox never inserts the spaced form, so a spaced "(n)" there is part
+    // of a genuine routed name and must not match the suffixless entry.
+    expect(
+      matchesDownloadIdentity({ filename: "/dl/photo (1).jpg" }, { filename: "photo.jpg" }),
+    ).toBe(false);
+  });
+
+  test("Chrome strips only its spaced format", () => {
+    setCurrentBrowser("CHROME");
+    expect(
+      matchesDownloadIdentity({ filename: "/dl/photo (1).jpg" }, { filename: "photo.jpg" }),
+    ).toBe(true);
+    // A spaceless "(n)" on Chrome is never browser-inserted; stripping it
+    // would let a genuine routed "photo(3).jpg" match an unrelated entry.
+    expect(
+      matchesDownloadIdentity({ filename: "/dl/photo(3).jpg" }, { filename: "photo.jpg" }),
+    ).toBe(false);
+  });
+});
+
+describe("backfillDownloadStartTime", () => {
+  test("binds the searched startTime behind the hot path", async () => {
+    seedSearch([{ id: 5, startTime: "2026-07-17T02:03:04.000Z" }]);
+    const bind = vi.fn().mockResolvedValue(undefined);
+
+    backfillDownloadStartTime("h-1", 5, bind);
+
+    await vi.waitFor(() => expect(bind).toHaveBeenCalledWith("h-1", 5, "2026-07-17T02:03:04.000Z"));
+  });
+
+  test("binds nothing when the item is untracked and contains bind failures", async () => {
+    seedSearch([]);
+    const bind = vi.fn().mockRejectedValue(new Error("write refused"));
+
+    backfillDownloadStartTime("h-1", 5, bind);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(bind).not.toHaveBeenCalled();
+
+    seedSearch([{ id: 5, startTime: "2026-07-17T02:03:04.000Z" }]);
+    backfillDownloadStartTime("h-1", 5, bind);
+    await vi.waitFor(() => expect(bind).toHaveBeenCalled());
   });
 });
 

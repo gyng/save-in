@@ -233,22 +233,27 @@ export const onNotificationButtonClicked = async (notId: string, buttonIndex: nu
   const downloadId = Number(notId);
   if (!Number.isSafeInteger(downloadId)) return;
   const record = await getTrackedDownload(downloadId);
-  // Identity evidence merges both stores: the History entry carries the
-  // authoritative startTime, while the session record's url/filename are
-  // fresher (onChanged deltas update them). A record holding only its
-  // historyEntryId must not degrade the evidence to nothing. Ids can repeat
-  // across Firefox sessions (and after a Chrome downloads-DB reset), so
-  // without a record the NEWEST entry that is not already undone is the one
-  // this button can belong to — a failed completion write can leave a
-  // pending status, which still deserves an undo.
+  // Identity evidence follows the record when one exists: its url and
+  // currentFilename track onChanged deltas, and its historyEntryId names the
+  // exact entry whose startTime may weigh in. A record WITHOUT an entry id
+  // must stay record-only — looking an entry up by a reused download id
+  // could inject a foreign startTime that alone refuses a verifiable undo.
+  // Only with no record at all does the NEWEST not-yet-undone entry for the
+  // id stand in (ids repeat across Firefox sessions and after a Chrome
+  // downloads-DB reset, and a failed completion write can leave a pending
+  // status that still deserves an undo); that entry is then both the
+  // evidence and the mark target.
   let entry: HistoryEntry | undefined;
   try {
-    const entries = await historyPort.entries();
-    entry = record?.historyEntryId
-      ? entries.find((candidate) => candidate.id === record.historyEntryId)
-      : entries.findLast(
-          (candidate) => candidate.downloadId === downloadId && candidate.status !== "undone",
-        );
+    if (record?.historyEntryId) {
+      entry = (await historyPort.entries()).find(
+        (candidate) => candidate.id === record.historyEntryId,
+      );
+    } else if (!record) {
+      entry = (await historyPort.entries()).findLast(
+        (candidate) => candidate.downloadId === downloadId && candidate.status !== "undone",
+      );
+    }
   } catch {
     // History being unreadable degrades to record-only evidence; the undo
     // still refuses when that leaves nothing to verify.
@@ -257,7 +262,7 @@ export const onNotificationButtonClicked = async (notId: string, buttonIndex: nu
   const expected: ExpectedDownloadIdentity = {
     startTime: entry?.downloadStartTime,
     url: record?.url ?? entry?.url,
-    filename: record?.filename ?? entry?.finalFullPath,
+    filename: record?.currentFilename ?? record?.filename ?? entry?.finalFullPath,
   };
   // A refused undo must not be a silent no-op: the notification stays, so the
   // user needs to hear that clicking it did nothing.

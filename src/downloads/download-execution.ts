@@ -2,6 +2,7 @@ import { webExtensionApi } from "../platform/web-extension-api.ts";
 import { getMessage } from "../platform/localization.ts";
 
 import { getDownload, mergeDownload } from "./download-state.ts";
+import { backfillDownloadStartTime } from "./undo-download.ts";
 import type { DownloadRecordUpdate } from "./download-state.ts";
 import { downloadsState, sessionWriteState } from "./download-state-instances.ts";
 import { DOWNLOAD_TYPES } from "../shared/constants.ts";
@@ -276,8 +277,10 @@ export const executeBrowserDownload = async (
       // This bind only publishes the bare id early so the options page can
       // poll progress; onDownloadCreated supplies the item's startTime from
       // the event payload, and a same-id bind without a time never clobbers
-      // one already captured.
+      // one already captured. The event path can lose its race against
+      // cancelExpectedDownload, so the anchor is backfilled off the hot path.
       await historyPort.setDownloadId(historyEntryId, downloadId);
+      backfillDownloadStartTime(historyEntryId, downloadId, historyPort.setDownloadId);
     }
     if (signal?.aborted) {
       await webExtensionApi.downloads.cancel(downloadId).catch(() => {});

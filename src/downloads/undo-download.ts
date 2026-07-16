@@ -1,4 +1,5 @@
 import { webExtensionApi } from "../platform/web-extension-api.ts";
+import { BROWSERS, CURRENT_BROWSER } from "../platform/chrome-detector.ts";
 import { proposedFilename } from "./browser-downloads.ts";
 
 export type UndoDownloadResult = { undone: boolean; fileMissing: boolean };
@@ -15,9 +16,14 @@ export type ExpectedDownloadIdentity = {
 // The browser resolves an on-disk filename collision by inserting "(n)"
 // before the extension — Chrome with a leading space, Firefox without one.
 // History keeps the pre-collision routed name, so only the browser item's
-// basename may carry the suffix.
+// basename may carry the suffix, and only in the host's own format: on
+// Chrome a spaceless "(n)" is never browser-inserted (it is part of the
+// routed name), and on Firefox a spaced " (n)" is not either. Stripping the
+// foreign format would let a genuine "(n)" name match an unrelated entry.
 const withoutUniquifySuffix = (name: string): string =>
-  name.replace(/ ?\(\d+\)(?=(?:\.[^.]*)?$)/, "");
+  CURRENT_BROWSER === BROWSERS.FIREFOX
+    ? name.replace(/(?<! )\(\d+\)(?=(?:\.[^.]*)?$)/, "")
+    : name.replace(/ \(\d+\)(?=(?:\.[^.]*)?$)/, "");
 
 // A stored path ending in a separator names a directory, not a file; taking
 // its last real segment would make "a/foo/" match any file named "foo", so
@@ -63,6 +69,22 @@ export const searchDownloadStartTime = async (downloadId: number): Promise<strin
   } catch {
     return undefined;
   }
+};
+
+// The event-path bind (onDownloadCreated's matched expected record) supplies
+// the startTime for free, but it can lose its race against
+// cancelExpectedDownload, and an entry left without its anchor degrades undo
+// to the weaker field rules. This late write stays off the launch hot path;
+// when the event path already won, the same download yields the same
+// startTime, so the rewrite is a no-op.
+export const backfillDownloadStartTime = (
+  entryId: string,
+  downloadId: number,
+  bind: (entryId: string, downloadId: number, startTime: string) => Promise<unknown>,
+): void => {
+  void searchDownloadStartTime(downloadId)
+    .then((startTime) => (startTime ? bind(entryId, downloadId, startTime) : undefined))
+    .catch(() => {});
 };
 
 // Undoing a save removes the file and erases the browser's shelf entry, in

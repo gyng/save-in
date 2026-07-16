@@ -97,11 +97,48 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
 
     // Without the rebind the entry would keep the dead original's identity
     // and the startTime-decides undo check would refuse the retried save.
-    expect(SaveHistory.setHistoryDownloadId).toHaveBeenCalledWith(
-      "h-test",
-      202,
-      "2026-07-17T04:05:06.000Z",
+    // The replacement id binds immediately (clearing the stale anchor) and
+    // the startTime backfills off the await chain, so a fast completion is
+    // never blocked behind the search round-trip.
+    expect(SaveHistory.setHistoryDownloadId).toHaveBeenCalledWith("h-test", 202);
+    await vi.waitFor(() =>
+      expect(SaveHistory.setHistoryDownloadId).toHaveBeenCalledWith(
+        "h-test",
+        202,
+        "2026-07-17T04:05:06.000Z",
+      ),
     );
+  });
+
+  test("the expected record carries the entry so the event path can rebind", async () => {
+    await seedStartedDownload();
+    global.fetch = vi.fn(() =>
+      Promise.resolve({ ok: true, blob: () => Promise.resolve(new Blob(["bytes"])) }),
+    ) as any;
+    vi.mocked(global.browser.downloads.download).mockResolvedValue(202);
+
+    await expect(Download.retryViaFetch(101)).resolves.toBe(true);
+
+    // onDownloadCreated's matched branch binds id and startTime from the
+    // event payload when it wins the race against cancelExpectedDownload.
+    expect(Notifier.expectDownload).toHaveBeenCalledWith(
+      expect.stringMatching(/^blob:/),
+      expect.objectContaining({ historyEntryId: "h-test" }),
+    );
+  });
+
+  test("a rejected direct rebind never fails the retry", async () => {
+    const SaveHistory = await import("../../src/background/history.ts");
+    await seedStartedDownload();
+    vi.spyOn(SaveHistory, "setHistoryDownloadId").mockRejectedValue(new Error("write refused"));
+    global.fetch = vi.fn(() =>
+      Promise.resolve({ ok: true, blob: () => Promise.resolve(new Blob(["bytes"])) }),
+    ) as any;
+    vi.mocked(global.browser.downloads.download).mockResolvedValue(202);
+
+    // The direct bind is containment-wrapped off the await chain: a refused
+    // history write must not turn a successful replacement into a failure.
+    await expect(Download.retryViaFetch(101)).resolves.toBe(true);
   });
 
   test("re-derives Referer protection for the retry fetch", async () => {
@@ -150,6 +187,7 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
     expect(Notifier.expectDownload).toHaveBeenCalledWith(expect.stringMatching(/^blob:/), {
       privateContext: false,
       sourceSidecar: true,
+      historyEntryId: "h-test",
     });
     expect(downloadState.records.get(202)).toMatchObject({
       adopted: true,
@@ -176,6 +214,7 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
     expect(Notifier.expectDownload).toHaveBeenCalledWith(expect.stringMatching(/^blob:/), {
       privateContext: false,
       pendingSourceSidecar: { sourceUrl: "https://x/source.png" },
+      historyEntryId: "h-test",
     });
   });
 
