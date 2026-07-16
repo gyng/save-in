@@ -147,3 +147,23 @@ test("does not overwrite explicit split routing behavior", async () => {
     routeSkipUnmatched: false,
   });
 });
+
+test("leaves split routing behavior alone when the legacy mode is already off", async () => {
+  const storage = { get: vi.fn(), set: vi.fn(() => Promise.resolve()) };
+
+  const result = await applyConfigSerialized(
+    { queue: Promise.resolve() },
+    storage,
+    { routeExclusive: false },
+    undefined,
+    vi.fn(() => Promise.resolve()),
+  );
+
+  // Only a combined mode that is on carries behavior to split. APPLY_CONFIG is
+  // partial and its result is written straight to storage, so expanding the
+  // default here would clear whichever split option the user had set without
+  // the caller ever naming it. The stored-profile migration agrees: it acts on
+  // routeExclusive === true alone.
+  expect(result.applied).toEqual({ routeExclusive: false });
+  expect(storage.set).toHaveBeenCalledWith({ routeExclusive: false });
+});

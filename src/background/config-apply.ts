@@ -16,9 +16,14 @@ type ConfigStorage = {
 const equalStoredValue = (left: unknown, right: unknown): boolean =>
   JSON.stringify(left) === JSON.stringify(right);
 
+// Only a combined mode that is on carries behavior to split. This config is
+// partial and its result is written straight to storage, so expanding the
+// already-default `false` would clear whichever split option the user had set
+// without the caller ever naming it. The stored-profile migration in option.ts
+// draws the same line on `=== true`.
 const expandLegacyRouteExclusive = (config: Record<string, unknown>): Record<string, unknown> => {
   if (
-    typeof config.routeExclusive !== "boolean" ||
+    config.routeExclusive !== true ||
     Object.hasOwn(config, "routeHideFolderChoices") ||
     Object.hasOwn(config, "routeSkipUnmatched")
   ) {
@@ -27,8 +32,8 @@ const expandLegacyRouteExclusive = (config: Record<string, unknown>): Record<str
   return {
     ...config,
     routeExclusive: false,
-    routeHideFolderChoices: config.routeExclusive,
-    routeSkipUnmatched: config.routeExclusive,
+    routeHideFolderChoices: true,
+    routeSkipUnmatched: true,
   };
 };
 
