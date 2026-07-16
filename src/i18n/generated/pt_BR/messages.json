@@ -304,7 +304,7 @@
     "message": "capture: usa a primeira condição com este nome"
   },
   "ruleMissingCapture": {
-    "message": "A variável de captura do destino não tem um grupo de captura correspondente"
+    "message": "A referência de captura não tem um grupo de captura correspondente"
   },
   "ruleMultipleCapture": {
     "message": "Uma regra pode conter apenas uma cláusula de captura"

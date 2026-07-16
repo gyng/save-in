@@ -324,7 +324,7 @@
     "message": "capture: utilise la première condition portant ce nom"
   },
   "ruleMissingCapture": {
-    "message": "La variable de capture de destination n’a aucun groupe de capture correspondant"
+    "message": "La référence de capture n’a aucun groupe de capture correspondant"
   },
   "ruleMultipleCapture": {
     "message": "Une règle ne peut contenir qu'une seule clause de capture"

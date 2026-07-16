@@ -10,7 +10,8 @@ import type {
   RoutingRule,
 } from "./rule-types.ts";
 import { routingPorts } from "./ports.ts";
-import { expandFetchUrl } from "./fetch-url.ts";
+import { expandFetchUrl, isUsableFetchRewrite } from "./fetch-url.ts";
+import { getFilenameFromUrl } from "./filename.ts";
 import { applyVariables } from "./variable.ts";
 import { isStringKeyedRecord } from "../shared/util.ts";
 
@@ -142,12 +143,26 @@ export const traceRules = async (
     now: info.now instanceof Date ? info.now : new Date(),
     preview: true,
   };
-  const rewrittenUrl = selectedFetchTemplate
+  const expandedFetchUrl = selectedFetchTemplate
     ? await expandFetchUrl(selectedFetchTemplate, traceInfo)
     : null;
-  // Stage two: the download now targets the rewritten URL, so URL-derived
-  // destination variables must expand against it, not the original.
-  const destinationInfo = rewrittenUrl ? { ...traceInfo, url: rewrittenUrl } : traceInfo;
+  // Mirror the pipeline exactly: an unusable expansion drops the rewrite, and
+  // a usable one retargets both the URL and the URL-derived names before the
+  // destination expands (applyFetchRewrite does the same for real downloads).
+  const rewrittenUrl =
+    expandedFetchUrl !== null && isUsableFetchRewrite(expandedFetchUrl) ? expandedFetchUrl : null;
+  let destinationInfo = traceInfo;
+  if (rewrittenUrl) {
+    const naiveFilename = getFilenameFromUrl(rewrittenUrl);
+    const rewrittenFilename = info.suggestedFilename || naiveFilename || rewrittenUrl;
+    destinationInfo = {
+      ...traceInfo,
+      url: rewrittenUrl,
+      naiveFilename,
+      filename: rewrittenFilename,
+      initialFilename: rewrittenFilename,
+    };
+  }
   const expandedPath = destination
     ? await applyVariables(new Path(destination), destinationInfo)
     : null;

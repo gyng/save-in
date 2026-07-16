@@ -34,3 +34,18 @@ export const expandFetchUrl = async (
   );
   return resolved.join("");
 };
+
+// An expanded template is only usable when its authority is literally
+// present. An empty substitution can otherwise collapse "https:///path" into
+// a URL whose HOST becomes the first path segment — the WHATWG parser accepts
+// it, silently retargeting the download — and whitespace or other artifacts
+// from raw substitution must fail closed rather than corrupt the request.
+export const isUsableFetchRewrite = (value: string): boolean => {
+  if (!/^https?:\/\/[^/?#]/i.test(value)) return false;
+  try {
+    const protocol = new URL(value).protocol;
+    return protocol === "https:" || protocol === "http:";
+  } catch {
+    return false;
+  }
+};

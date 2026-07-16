@@ -352,7 +352,9 @@ describe("filename rewrite and routing", () => {
       expect(diagnostics.filenamePatterns.at(-1)?.message).toBe("ruleMissingCapture");
     });
 
-    test("fetch and plain twins are exempt from shadow warnings", () => {
+    test("a fetch rule ahead of a plain twin is exempt from shadow warnings", () => {
+      // Ordinary browser-download routing skips the fetch rule, so the plain
+      // twin still acts there and is not dead.
       router.parseRules(
         "filename: \\.jpg$\nfetch: https://cdn.example/full.jpg\ninto: originals\n\nfilename: \\.jpg$\ninto: images",
       );
@@ -362,6 +364,27 @@ describe("filename rewrite and routing", () => {
       router.parseRules("filename: \\.jpg$\ninto: a\n\nfilename: \\.jpg$\ninto: b");
       expect(diagnostics.filenamePatterns.at(-1)?.message).toBe("ruleShadowed");
       expect(diagnostics.filenamePatterns.at(-1)?.warning).toBe(true);
+    });
+
+    test("a plain rule ahead of a fetch twin still shadows it", () => {
+      // The plain rule wins first in every pipeline the fetch rule is
+      // eligible for, so the fetch rule is genuinely dead and stays flagged.
+      router.parseRules(
+        "filename: \\.jpg$\ninto: images\n\nfilename: \\.jpg$\nfetch: https://cdn.example/full.jpg\ninto: originals",
+      );
+      expect(diagnostics.filenamePatterns.at(-1)?.message).toBe("ruleShadowed");
+      expect(diagnostics.filenamePatterns.at(-1)?.warning).toBe(true);
+    });
+
+    test("anchors fetch variable errors on the raw value despite extra spaces", () => {
+      const source = "filename: a\nfetch:   https://x.example/:sha256:\ninto: x";
+
+      expect(router.parseRules(source)).toEqual([]);
+
+      const error = diagnostics.filenamePatterns.at(-1);
+      expect(error?.message).toBe("ruleFetchUnsupportedVariable");
+      expect(error?.location?.start).toBe(source.indexOf(":sha256:"));
+      expect(error?.location?.end).toBe(source.indexOf(":sha256:") + ":sha256:".length);
     });
   });
 
@@ -834,6 +857,58 @@ into: captures/:$1:/:$2:`,
         }),
       );
       expect(trace.rules[0]!.fetch).toBe("https://mirror.example/:pagedomain:/orig.png");
+    });
+
+    test("drops an unusable fetch expansion exactly like the pipeline", async () => {
+      // An empty capture collapses the authority: "https:///orig.png" would
+      // WHATWG-parse with host "orig.png", so the rewrite must be dropped and
+      // the destination must expand against the original URL.
+      const rules = router.parseRules(
+        "sourceurl: ^https://cdn\\.example/(z?)small\\.png$\ncapturegroups: sourceurl\nfetch: https://:$1:/orig.png\ninto: mirrored/:naivefilename:",
+      );
+
+      const trace = await router.traceRules(rules, {
+        sourceUrl: "https://cdn.example/small.png",
+      });
+
+      expect(trace).toEqual(
+        expect.objectContaining({
+          selectedRule: 1,
+          selectedFetchTemplate: "https:///orig.png",
+          rewrittenUrl: null,
+          expandedDestination: "mirrored/small.png",
+        }),
+      );
+    });
+
+    test("stage two renames :filename: from the rewritten URL like the pipeline", async () => {
+      const rules = router.parseRules(
+        "sourceurl: \\.png$\nfetch: https://mirror.example/orig.png\ninto: mirrored/:filename:",
+      );
+
+      const trace = await router.traceRules(rules, {
+        sourceUrl: "https://cdn.example/small.png",
+        filename: "small.png",
+      });
+
+      expect(trace.rewrittenUrl).toBe("https://mirror.example/orig.png");
+      expect(trace.finalPath).toBe("mirrored/orig.png");
+    });
+
+    test("stage two falls back to the rewritten URL when it has no path filename", async () => {
+      const rules = router.parseRules(
+        "sourceurl: \\.png$\nfetch: https://mirror.example/\ninto: mirrored/:filename:",
+      );
+
+      const trace = await router.traceRules(rules, {
+        sourceUrl: "https://cdn.example/small.png",
+      });
+
+      // A rewrite to a bare host leaves no URL-derived name; the preview must
+      // mirror the pipeline's last-resort fallback to the URL itself instead
+      // of showing an empty filename.
+      expect(trace.rewrittenUrl).toBe("https://mirror.example/");
+      expect(trace.expandedDestination).toBe("mirrored/https://mirror.example/");
     });
 
     test("substitutes captures into the traced fetch template before expansion", async () => {

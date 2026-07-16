@@ -49,6 +49,7 @@ vi.mock("../../src/routing/variable.ts", () => ({ applyVariables: mocks.applyVar
 vi.mock("../../src/routing/path.ts", () => ({ Path: mocks.Path }));
 vi.mock("../../src/downloads/download-plan.ts", () => ({
   getRoutingMatches: (...args: unknown[]) => mocks.Download.getRoutingMatches(...args),
+  getRoutingMatch: (...args: unknown[]) => mocks.Download.getRoutingMatch(...args),
 }));
 
 const setupGlobals = () => {
@@ -60,7 +61,7 @@ const setupGlobals = () => {
   });
   mocks.applyVariables.mockReset();
   mocks.Path.mockReset();
-  Object.assign(mocks.Download, { getRoutingMatches: vi.fn() });
+  Object.assign(mocks.Download, { getRoutingMatches: vi.fn(), getRoutingMatch: vi.fn() });
   global.browser.storage.local.get = vi.fn(() => Promise.resolve({}));
   global.browser.storage.local.set = vi.fn(() => Promise.resolve());
 };
@@ -425,7 +426,13 @@ describe("OptionsManagement", () => {
       const ruleB = routingRule("rule-b");
       OptionsManagement.setOption("filenamePatterns", [ruleA, ruleB]);
 
-      mocks.Download.getRoutingMatches.mockReturnValue("routed/dir");
+      // The preview mirrors the pipeline's own unfiltered match: path and
+      // captures both come from the single winning rule (fetch rules incl.).
+      mocks.Download.getRoutingMatch.mockReturnValue({
+        rule: ruleB,
+        destination: "routed/dir",
+        fetch: null,
+      });
       mocks.Path.mockImplementation(function fakePath(
         this: { routingMatches: unknown },
         routingMatches: unknown,
@@ -435,14 +442,13 @@ describe("OptionsManagement", () => {
       mocks.applyVariables.mockImplementation((path: { routingMatches: unknown }) => ({
         finalize: () => `finalized:${path.routingMatches}`,
       }));
-      mocks.router.matchRule.mockReturnValueOnce(false).mockReturnValueOnce("routed/dir");
       mocks.router.getCaptureMatches.mockReturnValueOnce(["cap1"]);
 
       const state = { info: { filename: "photo.png", url: "https://x/photo.png" } };
 
       const result = await previewRoutes(state);
 
-      expect(mocks.Download.getRoutingMatches).toHaveBeenCalledWith(
+      expect(mocks.Download.getRoutingMatch).toHaveBeenCalledWith(
         expect.objectContaining({
           info: expect.objectContaining({
             filename: "photo.png",
@@ -457,16 +463,6 @@ describe("OptionsManagement", () => {
         expect.objectContaining({ filename: "photo.png", now: expect.any(Date) }),
       );
 
-      expect(mocks.router.matchRule).toHaveBeenNthCalledWith(
-        1,
-        ruleA,
-        expect.objectContaining({ filename: "photo.png" }),
-      );
-      expect(mocks.router.matchRule).toHaveBeenNthCalledWith(
-        2,
-        ruleB,
-        expect.objectContaining({ filename: "photo.png" }),
-      );
       expect(mocks.router.getCaptureMatches).toHaveBeenCalledOnce();
       expect(mocks.router.getCaptureMatches).toHaveBeenCalledWith(
         ruleB,
@@ -478,7 +474,7 @@ describe("OptionsManagement", () => {
 
     test("prefers initialFilename over filename (Chrome mutates filename with `_`)", async () => {
       OptionsManagement.setOption("filenamePatterns", []);
-      mocks.Download.getRoutingMatches.mockReturnValue("routed/dir");
+      mocks.Download.getRoutingMatch.mockReturnValue(null);
       mocks.Path.mockImplementation(function fakePath(
         this: { routingMatches: unknown },
         routingMatches: unknown,
@@ -499,7 +495,7 @@ describe("OptionsManagement", () => {
 
       await previewRoutes(state);
 
-      expect(mocks.Download.getRoutingMatches).toHaveBeenCalledWith(
+      expect(mocks.Download.getRoutingMatch).toHaveBeenCalledWith(
         expect.objectContaining({ info: expect.objectContaining({ filename: "café.png", now }) }),
       );
     });
@@ -507,7 +503,11 @@ describe("OptionsManagement", () => {
     test("falls back to url for capture matching when there is no filename", async () => {
       const onlyRule = routingRule("only-rule");
       OptionsManagement.setOption("filenamePatterns", [onlyRule]);
-      mocks.Download.getRoutingMatches.mockReturnValue("routed/dir");
+      mocks.Download.getRoutingMatch.mockReturnValue({
+        rule: onlyRule,
+        destination: "routed/dir",
+        fetch: null,
+      });
       mocks.Path.mockImplementation(function fakePath(
         this: { routingMatches: unknown },
         routingMatches: unknown,
@@ -516,7 +516,6 @@ describe("OptionsManagement", () => {
       });
       mocks.applyVariables.mockImplementation(() => ({ finalize: () => "x" }));
       mocks.router.getCaptureMatches.mockReturnValue(null);
-      mocks.router.matchRule.mockReturnValue("routed/dir");
 
       const state = { info: { url: "https://x/nofilename" } };
 
@@ -531,7 +530,7 @@ describe("OptionsManagement", () => {
 
     test("tolerates an unnormalized rule value and an unmatched route", async () => {
       OptionsManagement.setOption("filenamePatterns", "legacy value" as never);
-      mocks.Download.getRoutingMatches.mockReturnValue(false);
+      mocks.Download.getRoutingMatch.mockReturnValue(null);
       mocks.Path.mockImplementation(function fakePath(
         this: { routingMatches: unknown },
         routingMatches: unknown,

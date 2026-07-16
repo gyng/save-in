@@ -175,7 +175,9 @@ const parseSemanticRule = (
     );
     return false;
   }
-  const unknownVariables = findUnknownPathVariables(destination.value);
+  // Scan the raw node text, not the normalized clause value: stripped
+  // prefixes and whitespace would shift every reported span off target.
+  const unknownVariables = findUnknownPathVariables(destinationNode.value);
   for (const variable of unknownVariables) {
     appendError(
       errors,
@@ -213,7 +215,9 @@ const parseSemanticRule = (
       );
       return false;
     }
-    const unknownFetchVariables = findUnknownPathVariables(fetchClause.value);
+    // Scan the raw node text so spans stay aligned when the trimmed clause
+    // value dropped extra leading whitespace.
+    const unknownFetchVariables = findUnknownPathVariables(fetchNode.value);
     for (const variable of unknownFetchVariables) {
       appendError(
         errors,
@@ -222,7 +226,7 @@ const parseSemanticRule = (
         spanWithin(fetchNode.valueSpan, variable.start, variable.value.length),
       );
     }
-    const bannedFetchVariables = findBannedFetchVariables(fetchClause.value);
+    const bannedFetchVariables = findBannedFetchVariables(fetchNode.value);
     for (const variable of bannedFetchVariables) {
       appendError(
         errors,
@@ -347,7 +351,9 @@ const parseSemanticRule = (
       appendError(
         errors,
         routingPorts.getMessage("ruleMissingCapture"),
+        /* v8 ignore next -- A non-empty fetchIndexes list proves fetchClause exists. */
         fetchClause?.value ?? "",
+        /* v8 ignore next -- Parsed fetch clauses and fetch nodes come one-for-one from the same lines. */
         fetchNode?.valueSpan ?? rule.span,
       );
       return false;
@@ -375,9 +381,11 @@ export const parseRulesCollecting = (
     const laterRule = laterEntry.rule;
     const shadowed = parsedRules.slice(0, index).some(({ rule: earlier }) => {
       if (isAutomaticRuleClauses(earlier) !== isAutomaticRuleClauses(laterRule)) return false;
-      // Fetch rules are skipped by ordinary browser-download routing, so a
-      // fetch rule and a plain rule never compete on every pipeline.
-      if (ruleHasFetchClause(earlier) !== ruleHasFetchClause(laterRule)) return false;
+      // A fetch rule ahead of a plain twin leaves the plain rule live in
+      // ordinary browser-download routing, which skips fetch rules. A plain
+      // rule ahead of a fetch twin wins in every pipeline the fetch rule is
+      // eligible for, so that fetch rule is genuinely dead and stays flagged.
+      if (ruleHasFetchClause(earlier) && !ruleHasFetchClause(laterRule)) return false;
       const earlierMatchers = earlier.filter((clause) => clause.type === RULE_TYPES.MATCHER);
       const laterMatchers = laterRule.filter((clause) => clause.type === RULE_TYPES.MATCHER);
       return earlierMatchers.every((earlierClause) =>

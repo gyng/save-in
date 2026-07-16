@@ -302,7 +302,7 @@
     "message": "capture: verwendet die erste Bedingung mit diesem Namen"
   },
   "ruleMissingCapture": {
-    "message": "Die Capture-Variable im Ziel besitzt keine passende Erfassungsgruppe"
+    "message": "Die Capture-Referenz besitzt keine passende Erfassungsgruppe"
   },
   "ruleMultipleCapture": {
     "message": "Eine Regel kann nur eine Capture-Klausel enthalten"

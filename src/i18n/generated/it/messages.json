@@ -102,7 +102,7 @@
     "message": "capture: usa la prima condizione con questo nome"
   },
   "ruleMissingCapture": {
-    "message": "La variabile di acquisizione della destinazione non ha un gruppo di acquisizione corrispondente"
+    "message": "Il riferimento di acquisizione non ha un gruppo di acquisizione corrispondente"
   },
   "ruleMultipleCapture": {
     "message": "Una regola può contenere una sola clausola capture:"

@@ -1,8 +1,8 @@
-import { options } from "../config/options-data.ts";
 import type { DownloadInfo } from "../downloads/download-types.ts";
-import { getRoutingMatches } from "../downloads/download-plan.ts";
+import { getRoutingMatch } from "../downloads/download-plan.ts";
+import { options } from "../config/options-data.ts";
 import { Path } from "../routing/path.ts";
-import { getCaptureMatches, matchRule } from "../routing/router.ts";
+import { getCaptureMatches } from "../routing/router.ts";
 import { applyVariables } from "../routing/variable.ts";
 
 export type RoutePreviewState = { info: DownloadInfo };
@@ -25,16 +25,13 @@ export const previewRoutes = async (state?: RoutePreviewState | null): Promise<R
     preview: true,
   };
   const previewState = { ...state, info };
-  const matchedRoute = getRoutingMatches(previewState);
+  // The preview must mirror the Save In pipeline's own match — every rule
+  // eligible, including fetch rules — and take the path and the captures from
+  // the SAME winning rule, or the pane contradicts the download it explains.
+  const match = getRoutingMatch(previewState);
+  const matchedRoute = match?.destination ?? null;
   const path = await applyVariables(new Path(matchedRoute), info);
-
-  const filenamePatterns = Array.isArray(options.filenamePatterns) ? options.filenamePatterns : [];
-  let captures: (string | undefined)[] | null = null;
-  for (const rule of filenamePatterns) {
-    if (!matchRule(rule, info)) continue;
-    captures = getCaptureMatches(rule, info);
-    break;
-  }
+  const captures = match ? getCaptureMatches(match.rule, info) : null;
 
   return {
     path: path.finalize({ finalComponentIsFilename: !/\/\s*$/.test(matchedRoute || "") }),

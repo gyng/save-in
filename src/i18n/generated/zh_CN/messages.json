@@ -119,7 +119,7 @@
     "message": "capture: 使用同名的第一个条件"
   },
   "ruleMissingCapture": {
-    "message": "目标位置中的捕获变量没有对应的捕获组"
+    "message": "捕获引用没有对应的捕获组"
   },
   "ruleMultipleCapture": {
     "message": "一条规则只能包含一个捕获子句"

@@ -119,7 +119,7 @@
     "message": "capture: 會使用第一個具有此名稱的條件"
   },
   "ruleMissingCapture": {
-    "message": "目的地的擷取變數沒有對應的擷取群組"
+    "message": "擷取參照沒有對應的擷取群組"
   },
   "ruleMultipleCapture": {
     "message": "一項規則只能包含一個擷取子句"

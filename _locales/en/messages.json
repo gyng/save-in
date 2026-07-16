@@ -138,8 +138,8 @@
     "description": "Warning when a legacy capture target names more than one matcher clause. Used in src/routing/rule-parser.ts."
   },
   "ruleMissingCapture": {
-    "message": "Destination capture variable has no matching capture group",
-    "description": "Error message for missing capture clause in rule. Used in src/routing/rule-parser.ts."
+    "message": "Capture reference has no matching capture group",
+    "description": "Error message for a :$n: capture reference in a rule's into: or fetch: clause without a matching capture group. Used in src/routing/rule-parser.ts."
   },
   "ruleMultipleCapture": {
     "message": "A rule can contain only one capture clause",

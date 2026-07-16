@@ -302,7 +302,7 @@
     "message": "capture: gebruikt de eerste voorwaarde met deze naam"
   },
   "ruleMissingCapture": {
-    "message": "De capturevariabele in de bestemming heeft geen overeenkomende capturegroep"
+    "message": "De capture-referentie heeft geen overeenkomende capturegroep"
   },
   "ruleMultipleCapture": {
     "message": "Een regel kan slechts één capture-clausule bevatten"

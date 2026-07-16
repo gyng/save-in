@@ -119,7 +119,7 @@
     "message": "capture: では、この名前の最初の条件が使用されます"
   },
   "ruleMissingCapture": {
-    "message": "保存先のキャプチャ変数に対応するキャプチャグループがありません"
+    "message": "キャプチャ参照に対応するキャプチャグループがありません"
   },
   "ruleMultipleCapture": {
     "message": "ルールにはキャプチャ句を 1 つだけ含めることができます"

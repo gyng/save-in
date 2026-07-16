@@ -164,6 +164,42 @@ describe("fetch rewrite", () => {
     expect(state.scratch.mimeExtension).toBeUndefined();
   });
 
+  test("falls back to the rewritten URL as the name when it has no path filename", async () => {
+    fetchMatch("routed/:naivefilename:", "https://mirror.example/");
+    const state = makeState({ info: { url: "https://cdn.example/small.png" } });
+
+    await Download.resolveDownloadPlan(state);
+
+    // A rewrite to a bare host must not leave the download nameless: the URL
+    // itself is the last-resort initial filename, matching the original-URL path.
+    expect(state.info.naiveFilename).toBe("");
+    expect(state.info.initialFilename).toBe("https://mirror.example/");
+  });
+
+  test("does not invalidate resolved metadata when the rewrite expands to the same URL", async () => {
+    fetchMatch("routed", "https://cdn.example/small.png");
+    const state = makeState({
+      info: {
+        url: "https://cdn.example/small.png",
+        sha256: "still-valid-hash",
+        resolvedHead: { contentType: "image/png", finalUrl: "https://cdn.example/small.png" },
+      },
+    });
+
+    const plan = await Download.resolveDownloadPlan(state);
+
+    // The artifacts derived from the URL are only stale when the URL actually
+    // changed; a self-targeting fetch: must not throw away the hash or head.
+    expect(state.info.url).toBe("https://cdn.example/small.png");
+    expect(state.info.sha256).toBe("still-valid-hash");
+    expect(state.info.resolvedHead?.finalUrl).toBe("https://cdn.example/small.png");
+    // The templates still persist so Chrome's late filename resolution
+    // re-expands this rule instead of re-matching.
+    expect(state.scratch.routeTemplateRaw).toBe("routed");
+    expect(state.scratch.fetchTemplateRaw).toBe("https://cdn.example/small.png");
+    expect(plan?.finalFullPath).toBe("downloads/routed");
+  });
+
   test("keeps the original URL when the expanded address is not HTTP(S)", async () => {
     fetchMatch("routed", "https://:$1:/x");
     const state = makeState();
@@ -171,10 +207,25 @@ describe("fetch rewrite", () => {
     const plan = await Download.resolveDownloadPlan(state);
 
     expect(state.info.url).toBe("https://example.com/dir/file.png");
-    expect(state.scratch.fetchTemplateRaw).toBeUndefined();
-    expect(state.scratch.routeTemplateRaw).toBeUndefined();
+    // Both templates persist even when the rewrite is dropped: Chrome's late
+    // filename resolution skips fetch rules, so it must re-expand this rule's
+    // destination instead of re-matching and losing the route.
+    expect(state.scratch.routeTemplateRaw).toBe("routed");
+    expect(state.scratch.fetchTemplateRaw).toBe("https://:$1:/x");
     // The rule still routes; only the rewrite is dropped.
     expect(plan?.finalFullPath).toBe("downloads/routed");
+  });
+
+  test("rejects an expansion whose authority collapsed into a path segment", async () => {
+    // "https:///orig.png" WHATWG-parses with host "orig.png" — the rewrite
+    // must fail closed instead of silently retargeting to a bogus host.
+    fetchMatch("routed", "https:///orig.png");
+    const state = makeState();
+
+    await Download.resolveDownloadPlan(state);
+
+    expect(state.info.url).toBe("https://example.com/dir/file.png");
+    expect(state.info.naiveFilename).not.toBe("orig.png");
   });
 
   test("moves Chrome's pending state to the rewritten URL", async () => {

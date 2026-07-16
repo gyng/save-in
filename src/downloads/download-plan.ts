@@ -6,7 +6,7 @@ import {
   matchRulesDetailed,
   type RuleMatch,
 } from "../routing/router.ts";
-import { expandFetchUrl } from "../routing/fetch-url.ts";
+import { expandFetchUrl, isUsableFetchRewrite } from "../routing/fetch-url.ts";
 import { Path, sanitizeFilename } from "../routing/path.ts";
 import { applyVariables, mimeToExtension, resolveMime } from "../routing/variable.ts";
 import { options } from "../config/options-data.ts";
@@ -131,20 +131,21 @@ export const resolveDownloadPlan = async (
     fetchTemplate = match?.fetch ?? null;
   }
   if (routeMatches !== null && fetchTemplate !== null) {
+    // Persist both raw templates in every outcome: Chrome's late filename
+    // resolution skips fetch rules (a started download can no longer honor a
+    // URL rewrite), so it must re-expand this rule's destination from the
+    // scratch instead of re-matching and losing or replacing the route.
+    state.scratch.routeTemplateRaw = routeMatches;
+    state.scratch.fetchTemplateRaw = fetchTemplate;
     const rewrittenUrl = await expandFetchUrl(fetchTemplate, state.info);
-    if (isHttpDownloadUrl(rewrittenUrl)) {
-      // Persist both raw templates: Chrome's late filename resolution must
-      // re-expand this rule's destination instead of re-matching, because a
-      // download that already started can no longer honor a URL rewrite.
-      state.scratch.routeTemplateRaw = routeMatches;
-      state.scratch.fetchTemplateRaw = fetchTemplate;
+    if (isUsableFetchRewrite(rewrittenUrl)) {
       if (rewrittenUrl !== requireDownloadUrl(state)) {
         await applyFetchRewrite(state, rewrittenUrl);
         await resolveDispositionFilename(state);
       }
     } else {
       // The rule still renames and routes; only the rewrite is dropped.
-      addDownloadLog(state, "fetch rewrite skipped: expanded address is not HTTP(S)", {
+      addDownloadLog(state, "fetch rewrite skipped: expanded address is not usable HTTP(S)", {
         template: fetchTemplate,
       });
     }
@@ -187,6 +188,7 @@ export const resolveDownloadPlan = async (
         ? state.route.finalize({ finalComponentIsFilename: true })
         : // The fetch: rewrite may have replaced the resolved filename.
           sanitizeFilename(
+            /* v8 ignore next -- Both filename writers since the assignment above (applyFetchRewrite, resolveDispositionFilename) only ever store strings. */
             state.info.filename ?? resolvedFilename,
             options.truncateLength,
             true,
