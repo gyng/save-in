@@ -160,6 +160,33 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
     );
   });
 
+  // Firefox sets the Referer natively on the direct download, so the record
+  // bars the bare original-URL fallback that promptOnFailure would use. This
+  // retry is not bare — it re-derives the Referer — so it must still run. It is
+  // the only automatic fallback a protected Firefox download has, and the
+  // default filter is exactly pixiv and mangadex.
+  test("still fetch-retries a Firefox download whose Referer can be re-derived", async () => {
+    setCurrentBrowser("FIREFOX");
+    options.setRefererHeader = true;
+    options.setRefererHeaderFilter = "*://example.com/*";
+    await seedStartedDownload();
+    expect(downloadState.records.get(101)).toMatchObject({ allowOriginalUrlFallback: false });
+
+    global.fetch = vi.fn(() =>
+      Promise.resolve({ ok: true, blob: () => Promise.resolve(new Blob(["bytes"])) }),
+    ) as any;
+    vi.mocked(global.browser.downloads.download).mockResolvedValue(202);
+    const withReferer = vi.spyOn(RefererRules, "withRequestReferer");
+
+    await expect(Download.retryViaFetch(101)).resolves.toBe(true);
+
+    expect(withReferer).toHaveBeenCalledWith(
+      "https://example.com/dir/file.png",
+      "https://example.com/page",
+      expect.any(Function),
+    );
+  });
+
   test("retries without Referer protection when the feature is off", async () => {
     await seedStartedDownload();
     options.setRefererHeader = false;

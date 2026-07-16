@@ -57,7 +57,6 @@ export const retryViaFetch = async (
     !record ||
     record.retried ||
     record.viaFetch ||
-    record.allowOriginalUrlFallback === false ||
     options.fallbackFetch === false ||
     !record.url ||
     !record.filename
@@ -66,6 +65,18 @@ export const retryViaFetch = async (
   }
 
   const { filename, url } = record;
+  // Re-derive Referer protection from the persisted record so a retry of a
+  // protected download is not the one request that arrives without it. This
+  // re-checks the live option and filter rather than trusting stale state.
+  const retryReferer = getFetchReferer({ info: { url, pageUrl: record.pageUrl } });
+  // `allowOriginalUrlFallback` is false when the download carried a Referer
+  // natively (Firefox) or when its address is not HTTP(S). It exists to bar
+  // promptOnFailure, which re-requests the original URL bare — a hotlink
+  // -protected host rejects that. This retry is not bare: it fetches under DNR
+  // Referer protection, so it stays viable exactly while that Referer can still
+  // be carried. blob:/data: addresses never match the Referer filter, so they
+  // yield no Referer here and stay barred.
+  if (record.allowOriginalUrlFallback === false && !retryReferer) return false;
   const privateContext = isPrivateDownloadRecord(record);
   const controller = new AbortController();
   const requestId = crypto.randomUUID();
@@ -83,12 +94,6 @@ export const retryViaFetch = async (
   let newId: number | undefined;
   let offscreenRequestId: string | undefined;
   try {
-    // Re-derive Referer protection from the persisted record so a retry of a
-    // protected download is not the one request that arrives without it. This
-    // re-checks the live option and filter rather than trusting stale state.
-    const retryReferer = getFetchReferer({
-      info: { url, pageUrl: record.pageUrl },
-    });
     const content = await fetchUrlForDownload(
       url,
       privateContext,
