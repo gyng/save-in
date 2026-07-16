@@ -187,6 +187,36 @@ describe("renameAndDownload: browserDownload", () => {
     expect(global.browser.downloads.download).not.toHaveBeenCalled();
   });
 
+  // acquireDownloadUrl converts a data: payload without an abort signal, so a
+  // cancel landing during that conversion is only seen by the check that
+  // follows acquisition — outside executeBrowserDownload's own containment.
+  test("contains an abort that lands as a data: acquisition completes", async () => {
+    setCurrentBrowser("FIREFOX");
+    vi.mocked(global.fetch).mockResolvedValue({
+      headers: { has: () => false, get: () => null },
+      blob: async () => ({ type: "image/png" }),
+    } as any);
+    vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {});
+    vi.spyOn(URL, "createObjectURL").mockImplementation(() => {
+      expect(ActiveTransfers.cancelActiveTransfer("h-test")).toBe(true);
+      return "blob:from-data";
+    });
+    const state = makeState({
+      info: { url: "data:image/png;base64,AAAA", suggestedFilename: "x.png" },
+    });
+
+    await expect(Download.renameAndDownload(state)).resolves.toEqual({ status: "skipped" });
+
+    expect(SaveHistory.setHistoryStatus).toHaveBeenCalledWith("h-test", "USER_CANCELED");
+    expect(global.browser.downloads.download).not.toHaveBeenCalled();
+    expect(Notifier.reportDownloadFailure).not.toHaveBeenCalled();
+    // The acquired blob is released and the preparation row retired, so the
+    // options page cannot keep a stuck cancellable row or pin the keepalive.
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:from-data");
+    expect(state.info.abortSignal).toBeUndefined();
+    expect(ActiveTransfers.cancelActiveTransfer("h-test")).toBe(false);
+  });
+
   test("treats an invalid acquired URL as ineligible for HTTP fallback", async () => {
     setCurrentBrowser("CHROME");
     const state = makeState({ info: { url: "not a URL" } });

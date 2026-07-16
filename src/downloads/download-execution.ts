@@ -492,7 +492,34 @@ export const renameAndDownload = async (
     finishPreparation();
     return { status: "failed" };
   }
-  const result = await executeBrowserDownload(plan, acquired, preparationController.signal);
+  // executeBrowserDownload contains its own failures only from the point it
+  // has registered the expectation. A throw before that — an abort landing
+  // between acquisition and browser setup, or a rejected session write — would
+  // otherwise escape renameAndDownload with the preparation never finished,
+  // stranding the cancellable row, its keepalive and the acquired object URL,
+  // and turning the user's own cancel into a failure notification.
+  let result: DownloadExecutionResult;
+  try {
+    result = await executeBrowserDownload(plan, acquired, preparationController.signal);
+  } catch (error) {
+    downloadRuntime.forgetPendingState(state);
+    await releaseAcquiredDownload(acquired);
+    if (preparationController.signal.aborted) {
+      await historyPort.setStatus(plan.historyEntryId, "USER_CANCELED");
+      finishPreparation();
+      return { status: "skipped" };
+    }
+    await historyPort.setStatus(plan.historyEntryId, "DOWNLOAD_API_FAILED");
+    addDownloadLog(state, "download execution failed", String(error));
+    if (!isSourceSidecar(state)) {
+      reportDownloadFailure(
+        plan.finalFullPath || truncateDataUrlForDisplay(requireDownloadUrl(state)),
+        String(error),
+      );
+    }
+    finishPreparation();
+    return { status: "failed" };
+  }
   finishPreparation();
   if (result.status !== "started") return result;
 
