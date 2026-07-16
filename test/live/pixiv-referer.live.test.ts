@@ -55,6 +55,11 @@ test("pixiv still gates i.pximg.net on the Referer the shipped defaults produce"
 
   const referer = getReferer({ info: { url, pageUrl } });
   expect(referer, "extension must decide to send a Referer for a pixiv image").toBe(pageUrl);
+  // getReferer returns undefined when the option or filter says not to send one.
+  // The assertion above proves it did not here; narrow so the fetch below sends
+  // the extension's own derived value rather than a hand-written pageUrl, which
+  // would test pixiv instead of Save In.
+  if (referer === undefined) throw new Error("getReferer sent no Referer for a pixiv image");
 
   const withoutReferer = await fetch(url, { headers: { "User-Agent": UA } });
   const withReferer = await fetch(url, { headers: { "User-Agent": UA, Referer: referer } });

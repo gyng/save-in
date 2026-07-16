@@ -14,6 +14,7 @@ export type WebExtensionCapabilities = {
   conflictActionPrompt: boolean;
   downloadRequestHeaders: boolean;
   notificationButtons: boolean;
+  shortcutFileExtensions: boolean;
 };
 
 // Mutable cross-file state: reassigned only in this module (by the detection
@@ -26,6 +27,7 @@ export let WEB_EXTENSION_CAPABILITIES: WebExtensionCapabilities = {
   conflictActionPrompt: false,
   downloadRequestHeaders: false,
   notificationButtons: false,
+  shortcutFileExtensions: false,
 };
 export let CURRENT_BROWSER = BROWSERS.UNKNOWN;
 export let CURRENT_BROWSER_VERSION: number | undefined;
@@ -61,6 +63,16 @@ export const detectCapabilities = (currentBrowser: string): WebExtensionCapabili
   // (and exposes no onButtonClicked), so button-bearing notifications are
   // Chrome-only progressive enhancement.
   notificationButtons: currentBrowser === BROWSERS.CHROME,
+  // Firefox 112 (bug 1815062 / CVE-2023-29542) moved the dangerous-extension
+  // check into the sanitizer downloads.download validates its filename against,
+  // and never gave the extension API the allowInvalidFilenames opt-out the
+  // file-picker callers got. A name ending .url/.desktop/.lnk/.scf/.local now
+  // fails the whole download with "filename must not contain illegal
+  // characters" (#207, reproduced on a current Firefox). Firefox always passes
+  // filename — browserFilenameResolution needs downloadFilenameSuggestion,
+  // which is Chrome-only — so it is always validated. Every supported Firefox
+  // (121+) is past 112, so this is a browser fact, not a version probe.
+  shortcutFileExtensions: currentBrowser !== BROWSERS.FIREFOX,
 });
 
 // The write-half of the browser identity/capability live bindings: they

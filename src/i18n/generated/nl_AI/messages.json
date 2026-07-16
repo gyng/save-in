@@ -928,6 +928,9 @@
   "o_cSaveShortcutsTypeHtml": {
     "message": "HTML-omleiding (.html)"
   },
+  "o_lShortcutTypeFirefoxUnavailable": {
+    "message": "Firefox weigert bestanden op te slaan die eindigen op .url of .desktop, dus die formaten zijn hier niet beschikbaar. Opslaan gebeurt in plaats daarvan met de HTML-omleiding."
+  },
   "o_cSaveShortcutsTypeMac": {
     "message": "Legacy macOS shortcut (.url)"
   },

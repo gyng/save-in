@@ -518,6 +518,9 @@
   "o_cSaveShortcutsTypeHtml": {
     "message": "HTML 리디렉션(.html)"
   },
+  "o_lShortcutTypeFirefoxUnavailable": {
+    "message": "Firefox는 .url 또는 .desktop으로 끝나는 파일 저장을 거부하므로 여기서는 해당 형식을 사용할 수 없습니다. 대신 HTML 리디렉션으로 저장됩니다."
+  },
   "o_cSaveShortcutsTypeMac": {
     "message": "Legacy macOS shortcut (.url)"
   },

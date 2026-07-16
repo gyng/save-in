@@ -818,6 +818,9 @@
   "o_cSaveShortcutsTypeHtml": {
     "message": "Reindirizzamento HTML (.html)"
   },
+  "o_lShortcutTypeFirefoxUnavailable": {
+    "message": "Firefox si rifiuta di salvare file che terminano con .url o .desktop, quindi qui quei formati non sono disponibili. I salvataggi usano il reindirizzamento HTML."
+  },
   "o_cSaveShortcutsTypeMac": {
     "message": "Legacy macOS shortcut (.url)"
   },

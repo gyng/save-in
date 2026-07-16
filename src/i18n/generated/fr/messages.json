@@ -940,6 +940,9 @@
   "o_cSaveShortcutsTypeHtml": {
     "message": "Redirection HTML (.html)"
   },
+  "o_lShortcutTypeFirefoxUnavailable": {
+    "message": "Firefox refuse d'enregistrer les fichiers se terminant par .url ou .desktop ; ces formats ne sont donc pas disponibles ici. Les enregistrements utilisent la redirection HTML à la place."
+  },
   "o_cSaveShortcutsTypeMac": {
     "message": "Legacy macOS shortcut (.url)"
   },

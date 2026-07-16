@@ -928,6 +928,9 @@
   "o_cSaveShortcutsTypeHtml": {
     "message": "HTML-omdirigering (.html)"
   },
+  "o_lShortcutTypeFirefoxUnavailable": {
+    "message": "Firefox vägrar spara filer som slutar på .url eller .desktop, så de formaten är inte tillgängliga här. Sparningar använder HTML-omdirigeringen i stället."
+  },
   "o_cSaveShortcutsTypeMac": {
     "message": "Legacy macOS shortcut (.url)"
   },

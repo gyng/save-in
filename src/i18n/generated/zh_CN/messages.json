@@ -518,6 +518,9 @@
   "o_cSaveShortcutsTypeHtml": {
     "message": "HTML 重定向 (.html)"
   },
+  "o_lShortcutTypeFirefoxUnavailable": {
+    "message": "Firefox 拒绝保存以 .url 或 .desktop 结尾的文件，因此这里无法使用这些格式。保存将改用 HTML 跳转。"
+  },
   "o_cSaveShortcutsTypeMac": {
     "message": "Legacy macOS shortcut (.url)"
   },

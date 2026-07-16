@@ -1396,11 +1396,20 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
           <select id="shortcutType" aria-describedby="shortcut-format-preview">
             <option value="HTML_REDIRECT">__MSG_o_cSaveShortcutsTypeHtml__</option>
             <option value="MAC_WEBLOC">__MSG_o_cSaveShortcutsTypeMacWebloc__</option>
-            <option value="WINDOWS">__MSG_o_cSaveShortcutsTypeWindows__</option>
-            <option value="FREEDESKTOP">__MSG_o_cSaveShortcutsTypeFreedesktop__</option>
-            <option value="MAC">__MSG_o_cSaveShortcutsTypeMac__</option>
+            <option value="WINDOWS" class="shortcut-extension-only">
+              __MSG_o_cSaveShortcutsTypeWindows__
+            </option>
+            <option value="FREEDESKTOP" class="shortcut-extension-only">
+              __MSG_o_cSaveShortcutsTypeFreedesktop__
+            </option>
+            <option value="MAC" class="shortcut-extension-only">
+              __MSG_o_cSaveShortcutsTypeMac__
+            </option>
           </select>
           <span id="shortcut-format-preview" class="caption"></span>
+          <div class="caption shortcut-extension-unavailable">
+            __MSG_o_lShortcutTypeFirefoxUnavailable__
+          </div>
         </div>
         <div class="option-subgroup">
           <h3>__MSG_html_saveTheseAsShortcutFiles__</h3>

@@ -518,6 +518,9 @@
   "o_cSaveShortcutsTypeHtml": {
     "message": "HTML リダイレクト (.html)"
   },
+  "o_lShortcutTypeFirefoxUnavailable": {
+    "message": "Firefox は .url や .desktop で終わるファイルの保存を拒否するため、これらの形式はここでは利用できません。代わりに HTML リダイレクトで保存します。"
+  },
   "o_cSaveShortcutsTypeMac": {
     "message": "Legacy macOS shortcut (.url)"
   },

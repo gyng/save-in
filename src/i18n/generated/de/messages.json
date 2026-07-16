@@ -928,6 +928,9 @@
   "o_cSaveShortcutsTypeHtml": {
     "message": "HTML-Weiterleitung (.html)"
   },
+  "o_lShortcutTypeFirefoxUnavailable": {
+    "message": "Firefox weigert sich, Dateien zu speichern, die auf .url oder .desktop enden; diese Formate stehen hier deshalb nicht zur Verfügung. Gespeichert wird stattdessen die HTML-Weiterleitung."
+  },
   "o_cSaveShortcutsTypeMac": {
     "message": "Legacy macOS shortcut (.url)"
   },

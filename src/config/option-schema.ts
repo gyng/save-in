@@ -2,6 +2,8 @@ import {
   CONFLICT_ACTION,
   FORBIDDEN_FILENAME_CHARS,
   MAX_RECENT_DESTINATIONS,
+  REJECTED_SHORTCUT_TYPES,
+  SHORTCUT_TYPES,
   UNSAFE_INVISIBLE_FILENAME_CHARS,
   isShortcutType,
   type ConflictAction,
@@ -274,7 +276,14 @@ export const OPTION_KEYS = defineOptions([
   {
     name: "shortcutType",
     type: OPTION_TYPES.VALUE,
-    onLoad: (v: ShortcutType) => v,
+    // Firefox rejects a download whose filename ends in a shortcut extension
+    // it treats as dangerous — .url, .desktop — and fails the save outright
+    // rather than renaming it (#207). Fall back to the HTML redirect, the one
+    // format it accepts, so a stored or imported profile still saves something.
+    onLoad: (v: ShortcutType) =>
+      !WEB_EXTENSION_CAPABILITIES.shortcutFileExtensions && REJECTED_SHORTCUT_TYPES.has(v)
+        ? SHORTCUT_TYPES.HTML_REDIRECT
+        : v,
     validate: isShortcutType,
     default: OPTION_DEFAULTS.shortcutType,
   },

@@ -1333,6 +1333,10 @@
     "message": "HTML redirect (.html)",
     "description": "Option control label or related help text. Used in src/options/options.html."
   },
+  "o_lShortcutTypeFirefoxUnavailable": {
+    "message": "Firefox refuses to save files ending in .url or .desktop, so those formats are unavailable here. Saves use the HTML redirect instead.",
+    "description": "Help text shown only on Firefox, where the .url and .desktop shortcut formats are unavailable: Firefox refuses to save a file whose name ends in one and fails the download. Explains why those formats are missing from the list. Used in src/options/options.html."
+  },
   "o_cSaveShortcutsTypeMac": {
     "message": "Legacy macOS shortcut (.url)",
     "description": "Option control label or related help text. Used in src/options/options.html."

@@ -41,7 +41,12 @@ const mocks = vi.hoisted(() => ({
 vi.mock("../../src/platform/chrome-detector.ts", () => ({
   BROWSERS: { CHROME: "CHROME", FIREFOX: "FIREFOX", UNKNOWN: "UNKNOWN" },
   get WEB_EXTENSION_CAPABILITIES() {
-    return { conflictActionPrompt: mocks.currentBrowser === "CHROME" };
+    return {
+      conflictActionPrompt: mocks.currentBrowser === "CHROME",
+      // Mirrors detectCapabilities: only Firefox validates a download filename
+      // against its dangerous-extension list and rejects .url/.desktop (#207).
+      shortcutFileExtensions: mocks.currentBrowser !== "FIREFOX",
+    };
   },
 }));
 vi.mock("../../src/routing/router.ts", () => mocks.router);
@@ -285,6 +290,38 @@ describe("OptionsManagement", () => {
     test("keeps 'prompt' on Chrome", () => {
       mocks.currentBrowser = "CHROME";
       expect(conflictKey().onLoad("prompt")).toBe("prompt");
+    });
+  });
+
+  // Firefox 112 (bug 1815062 / CVE-2023-29542) moved the dangerous-extension
+  // check into the sanitizer downloads.download validates against, so a
+  // filename ending .url or .desktop fails the whole download with "filename
+  // must not contain illegal characters" — #207 verbatim, reproduced on a
+  // current Firefox. Firefox always passes filename (browserFilenameResolution
+  // is Chrome-only), so it always gets validated.
+  describe("shortcutType validation (#207)", () => {
+    const shortcutKey = () =>
+      OptionsManagement.OPTION_KEYS.find((k) => k.name === "shortcutType")! as LoadKey;
+
+    test.each(["WINDOWS", "MAC", "FREEDESKTOP"])(
+      "downgrades %s to the HTML redirect on Firefox, which refuses its extension",
+      (type) => {
+        mocks.currentBrowser = "FIREFOX";
+        expect(shortcutKey().onLoad(type)).toBe("HTML_REDIRECT");
+      },
+    );
+
+    test("leaves the formats Firefox accepts alone", () => {
+      mocks.currentBrowser = "FIREFOX";
+      // .webloc and .html are not on the dangerous list; both save fine.
+      expect(shortcutKey().onLoad("MAC_WEBLOC")).toBe("MAC_WEBLOC");
+      expect(shortcutKey().onLoad("HTML_REDIRECT")).toBe("HTML_REDIRECT");
+    });
+
+    test("keeps every format on Chrome", () => {
+      mocks.currentBrowser = "CHROME";
+      expect(shortcutKey().onLoad("WINDOWS")).toBe("WINDOWS");
+      expect(shortcutKey().onLoad("FREEDESKTOP")).toBe("FREEDESKTOP");
     });
   });
 

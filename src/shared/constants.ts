@@ -75,6 +75,29 @@ export const SHORTCUT_EXTENSIONS = {
   [SHORTCUT_TYPES.WINDOWS]: ".url",
 } as const satisfies Record<ShortcutType, string>;
 
+// Firefox 112 moved its dangerous-extension check into the sanitizer that
+// downloads.download validates a filename against (bug 1815062 /
+// CVE-2023-29542) and never gave the extension API the opt-out its file-picker
+// callers got, so these fail the whole download rather than being renamed.
+// Confirmed against a current Firefox: .url, .desktop, .lnk, .scf and .local
+// all return "filename must not contain illegal characters"; .html and .webloc
+// save (#207).
+const FIREFOX_REJECTED_FILENAME_EXTENSIONS: ReadonlySet<string> = new Set([
+  ".lnk",
+  ".local",
+  ".url",
+  ".scf",
+  ".desktop",
+]);
+
+// Derived, not hand-listed: a new shortcut format picks up the restriction from
+// its extension instead of quietly missing it.
+export const REJECTED_SHORTCUT_TYPES: ReadonlySet<ShortcutType> = new Set(
+  Object.values(SHORTCUT_TYPES).filter((type) =>
+    FIREFOX_REJECTED_FILENAME_EXTENSIONS.has(SHORTCUT_EXTENSIONS[type]),
+  ),
+);
+
 export const DOWNLOAD_TYPES = {
   UNKNOWN: "UNKNOWN",
   AUTO: "AUTO",

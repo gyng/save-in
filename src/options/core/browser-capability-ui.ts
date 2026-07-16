@@ -23,6 +23,20 @@ export const applyBrowserCapabilityUi = (): void => {
       el.disabled = !WEB_EXTENSION_CAPABILITIES.conflictActionPrompt;
     }
   });
+  // Firefox fails a download outright when the filename ends in a shortcut
+  // extension it treats as dangerous, so .url and .desktop formats cannot be
+  // offered there at all (#207). Same shape as the conflict action above:
+  // hidden alone leaves an <option> selectable, so disable it too.
+  document.querySelectorAll<HTMLElement>(".shortcut-extension-only").forEach((el) => {
+    el.hidden = !WEB_EXTENSION_CAPABILITIES.shortcutFileExtensions;
+    if (el instanceof HTMLOptionElement) {
+      el.disabled = !WEB_EXTENSION_CAPABILITIES.shortcutFileExtensions;
+    }
+  });
+  // The inverse: say why those formats are missing, only where they are.
+  document.querySelectorAll<HTMLElement>(".shortcut-extension-unavailable").forEach((el) => {
+    el.hidden = WEB_EXTENSION_CAPABILITIES.shortcutFileExtensions;
+  });
   document.querySelectorAll<HTMLElement>(".firefox-reroute-only").forEach((el) => {
     el.hidden =
       CURRENT_BROWSER !== BROWSERS.FIREFOX || WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion;
