@@ -1,8 +1,11 @@
 import {
   buildRuleAuthoringPrompt,
+  buildRuleCritiquePrompt,
   cleanRuleSuggestion,
   isSingleRuleSuggestion,
-  ruleSuggestionFidelityError,
+  parseRuleCritique,
+  parseRuleDraft,
+  ruleRequestGuardrailIssues,
 } from "../../../src/options/integrations/prompt-assistant-model.ts";
 
 const grammar = {
@@ -22,74 +25,11 @@ describe("Prompt API rule-authoring model", () => {
 
     expect(result).toContain("Put PNG files in Images");
     expect(result).toContain(grammar.ebnf);
-    expect(result).toContain(grammar.examples[0]);
+    expect(result).not.toContain(grammar.examples[0]);
     expect(result).toContain("fileext, pagedomain");
     expect(result).toContain(":filename:, :pagedomain:");
-    expect(result).toContain("Return exactly one rule");
-    expect(result).toContain("Do not use Markdown");
-    expect(result).toContain("Do not add file types");
-    expect(result).toContain("remove only the leading slash");
-  });
-
-  test("puts exact extracted constraints after examples and the user request", () => {
-    const result = buildRuleAuthoringPrompt("save png into /dongs", grammar, {
-      matchers: ["fileext"],
-      variables: ["filename"],
-    });
-
-    expect(result).toContain("fileext must match only: png");
-    expect(result).toContain("into destination folder must be exactly: dongs");
-    expect(result).toContain("bare into: dongs would rename the file and is wrong");
-    expect(result.indexOf("Exact constraints")).toBeGreaterThan(result.indexOf("User request:"));
-
-    const unconstrained = buildRuleAuthoringPrompt("!!!", grammar, {
-      matchers: ["fileext"],
-      variables: ["filename"],
-    });
-    expect(unconstrained).toContain("no explicit file extension constraint was detected");
-    expect(unconstrained).toContain("no slash-prefixed destination folder was detected");
-  });
-
-  test("rejects a model draft that broadens an explicit file type", () => {
-    expect(
-      ruleSuggestionFidelityError(
-        "save png into /dongs",
-        "fileext/i: ^(?:png|jpe?g)$\ninto: Images/:filename:",
-      ),
-    ).toBe("The generated file types do not exactly match the request");
-    expect(
-      ruleSuggestionFidelityError(
-        "save png into /dongs",
-        "fileext/i: ^png$\ninto: dongs/:filename:",
-      ),
-    ).toBeNull();
-    expect(ruleSuggestionFidelityError("save png", "into: Images/")).toBe(
-      "The generated rule does not include the requested file type",
-    );
-    expect(ruleSuggestionFidelityError("save png", "fileext: [\ninto: Images/")).toBe(
-      "The generated rule does not include the requested file type",
-    );
-  });
-
-  test("rejects a model draft that changes an explicit slash-prefixed folder", () => {
-    expect(
-      ruleSuggestionFidelityError(
-        "save png into /dongs",
-        "fileext/i: ^png$\ninto: Images/:filename:",
-      ),
-    ).toBe("The generated destination does not match /dongs");
-    expect(
-      ruleSuggestionFidelityError(
-        "save jpg to the folder /Photos",
-        "fileext: ^jpe?g$\ninto: Photos/",
-      ),
-    ).toBeNull();
-    expect(ruleSuggestionFidelityError("save png into /dongs", "fileext: ^png$\ninto: dongs")).toBe(
-      "The generated destination would rename the file instead of saving it in /dongs",
-    );
-    expect(ruleSuggestionFidelityError("save this into /dongs", "filename: .*\ninto:")).toBe(
-      "The generated destination does not match /dongs",
-    );
+    expect(result).toContain("Return JSON matching the supplied response schema");
+    expect(result).toContain("Do not add file types, sites, folders, renames, or behavior");
   });
 
   test("extracts a fenced rule without retaining Markdown", () => {
@@ -107,9 +47,91 @@ describe("Prompt API rule-authoring model", () => {
   });
 
   test("distinguishes one semantic rule from a multi-rule response", () => {
-    expect(isSingleRuleSuggestion("fileext: ^png$\ninto: Images")).toBe(true);
+    expect(isSingleRuleSuggestion("fileext: ^png$\ninto: Images/")).toBe(true);
     expect(
-      isSingleRuleSuggestion("fileext: ^png$\ninto: Images\n\nfileext: ^jpg$\ninto: Photos"),
+      isSingleRuleSuggestion("fileext: ^png$\ninto: Images/\n\nfileext: ^jpg$\ninto: Photos/"),
     ).toBe(false);
+  });
+
+  test("parses constrained author and critic responses at the runtime boundary", () => {
+    expect(parseRuleDraft(JSON.stringify({ rule: "fileext: ^png$\ninto: dongs/" }))).toBe(
+      "fileext: ^png$\ninto: dongs/",
+    );
+    expect(
+      parseRuleCritique(
+        JSON.stringify({
+          accepted: false,
+          issues: ["Wrong folder"],
+          repairedRule: "fileext: ^png$\ninto: dongs/",
+        }),
+      ),
+    ).toEqual({
+      accepted: false,
+      issues: ["Wrong folder"],
+      repairedRule: "fileext: ^png$\ninto: dongs/",
+    });
+    expect(parseRuleDraft("not JSON")).toBeNull();
+    expect(parseRuleCritique(JSON.stringify({ accepted: true, issues: [] }))).toBeNull();
+  });
+
+  test("grounds the independent review in the request, candidate, and validator findings", () => {
+    const result = buildRuleCritiquePrompt(
+      "save png into /dongs",
+      "fileext/i: ^(?:png|jpe?g)$\ninto: Images/:filename:",
+      [
+        "The fileext matcher also matches unrequested file types (jpeg, jpg).",
+        "The destination must use the requested dongs/ folder.",
+      ],
+      grammar,
+      { matchers: ["fileext"], variables: ["filename"] },
+    );
+
+    expect(result).toContain(JSON.stringify("save png into /dongs"));
+    expect(result).toContain(JSON.stringify("fileext/i: ^(?:png|jpe?g)$\ninto: Images/:filename:"));
+    expect(result).toContain("all and only the requested behavior");
+    expect(result).toContain("The destination must use the requested dongs/ folder.");
+  });
+
+  test.each([
+    [
+      "save png into /dongs",
+      "fileext/i: ^(?:png|jpe?g)$\ninto: Images/:filename:",
+      [
+        "The fileext matcher also matches unrequested file types (jpeg, jpg).",
+        "The destination must use the requested dongs/ folder.",
+      ],
+    ],
+    [
+      "save png into /dongs",
+      "pagedomain: .*\ninto: dongs/:filename:",
+      ["The request names png file types, but the rule has no fileext matcher."],
+    ],
+    [
+      "save png into /dongs",
+      "fileext: ^jpg$\ninto: dongs/:filename:",
+      [
+        "The fileext matcher does not match the requested png type.",
+        "The fileext matcher also matches unrequested file types (jpg).",
+      ],
+    ],
+    [
+      "save png into /dongs",
+      "fileext: ^png$\ninto: dongs",
+      ["The destination must use the requested dongs/ folder."],
+    ],
+    ["save png into /dongs", "fileext/i: ^png$\ninto: dongs/:filename:", []],
+    [
+      "from docs.example.com, save PDF and PNG files into /archive",
+      "fileext/i: ^(?:pdf|png)$\npagedomain: ^docs\\.example\\.com$\ninto: archive/:filename:",
+      [],
+    ],
+    [
+      "from docs.example.com, save PDF into /archive",
+      "fileext/i: ^pdf$\npagedomain: ^other\\.example$\ninto: archive/:filename:",
+      ["The matchers do not contain the requested docs.example.com site."],
+    ],
+  ] as const)("checks explicit request anchors for %s", (request, rule, expected) => {
+    const issues = ruleRequestGuardrailIssues(request, rule);
+    expect(issues).toEqual(expected);
   });
 });

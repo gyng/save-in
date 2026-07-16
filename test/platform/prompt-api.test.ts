@@ -77,6 +77,19 @@ describe("prompt-api capability layer", () => {
     expect(session.destroy).toHaveBeenCalledOnce();
   });
 
+  test("forwards a structured-output response constraint", async () => {
+    const session = install("available");
+    const responseConstraint = {
+      type: "object",
+      properties: { rule: { type: "string" } },
+      required: ["rule"],
+    };
+
+    await runPrompt("suggest a rule", { responseConstraint });
+
+    expect(session.prompt).toHaveBeenCalledWith("suggest a rule", { responseConstraint });
+  });
+
   test("does not create a session when the model is only downloadable", async () => {
     const session = install("downloadable");
     expect(await runPrompt("suggest a rule")).toBeNull();

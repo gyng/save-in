@@ -10,10 +10,14 @@ import { MESSAGE_TYPES } from "../../shared/constants.ts";
 import type { WireIntegrationGrammar } from "../../shared/message-protocol.ts";
 import { cssSelectorErrors } from "../core/css-selector-validation.ts";
 import {
+  RULE_CRITIQUE_RESPONSE_CONSTRAINT,
+  RULE_DRAFT_RESPONSE_CONSTRAINT,
   buildRuleAuthoringPrompt,
-  cleanRuleSuggestion,
+  buildRuleCritiquePrompt,
   isSingleRuleSuggestion,
-  ruleSuggestionFidelityError,
+  parseRuleCritique,
+  parseRuleDraft,
+  ruleRequestGuardrailIssues,
   type RuleAuthoringVocabulary,
 } from "./prompt-assistant-model.ts";
 
@@ -133,6 +137,30 @@ export const setupPromptAssistantPanel = (
     add.disabled = true;
   };
 
+  const showCandidate = (candidate: string) => {
+    suggestedRule = candidate;
+    rule.textContent = candidate;
+    result.hidden = false;
+  };
+
+  const validationIssues = async (request: string, candidate: string): Promise<string[]> => {
+    const issues = ruleRequestGuardrailIssues(request, candidate);
+    if (!isSingleRuleSuggestion(candidate)) return [copy.singleRule, ...issues];
+    const invalidCss = cssSelectorErrors(candidate)[0];
+    if (invalidCss) return [...issues, invalidCss.message];
+    const response = await sendInternalMessage(webExtensionApi.runtime, {
+      type: MESSAGE_TYPES.VALIDATE,
+      body: { filenamePatterns: candidate },
+    });
+    if (!("version" in response.body)) throw new Error("Rule validation is unavailable");
+    return [
+      ...issues,
+      ...(response.body.ruleErrors ?? [])
+        .filter((error) => !error.warning)
+        .map((error) => error.message),
+    ];
+  };
+
   const refreshAvailability = async () => {
     if (availabilityTimer) {
       clearTimeout(availabilityTimer);
@@ -171,8 +199,6 @@ export const setupPromptAssistantPanel = (
     working = false;
     progress.hidden = true;
     progress.removeAttribute("value");
-    // Submit is enabled only in these two states, so a working request always
-    // returns to one of them when canceled.
     if (availability === "downloadable") setStatus(copy.downloadable, "notice");
     else setStatus(copy.ready, "ready");
     updateControls();
@@ -193,9 +219,9 @@ export const setupPromptAssistantPanel = (
   form.addEventListener("submit", (event) => {
     event.preventDefault();
     if (submit.disabled) return;
-    const request = input.value;
     const version = ++requestVersion;
     const controller = new AbortController();
+    const request = input.value;
     activeController = controller;
     working = true;
     progress.hidden = true;
@@ -203,60 +229,78 @@ export const setupPromptAssistantPanel = (
     clearResult();
     setStatus(copy.working, "working");
     updateControls();
-    void Promise.all([routingGrammar(), ruleAuthoringVocabulary()])
-      .then(([grammar, vocabulary]) => {
-        if (version !== requestVersion || controller.signal.aborted) return null;
-        return runPrompt(buildRuleAuthoringPrompt(request, grammar, vocabulary), {
+    const isCurrent = () =>
+      version === requestVersion && enabled.checked && !controller.signal.aborted;
+    void (async () => {
+      const [grammar, vocabulary] = await Promise.all([
+        routingGrammar(),
+        ruleAuthoringVocabulary(),
+      ]);
+      if (!isCurrent()) return;
+      const authorOutput = await runPrompt(buildRuleAuthoringPrompt(request, grammar, vocabulary), {
+        allowDownload: true,
+        signal: controller.signal,
+        responseConstraint: RULE_DRAFT_RESPONSE_CONSTRAINT,
+        onDownloadProgress: (loaded) => {
+          if (!isCurrent()) return;
+          progress.hidden = false;
+          if (loaded < 1) {
+            progress.value = Math.max(0, loaded);
+            setStatus(copy.downloading, "notice");
+          } else {
+            progress.removeAttribute("value");
+            setStatus(copy.working, "working");
+          }
+        },
+      });
+      if (!isCurrent()) return;
+      let candidate = authorOutput ? parseRuleDraft(authorOutput) : null;
+      if (!candidate) throw new Error(copy.unavailable);
+
+      let issues = await validationIssues(request, candidate);
+      if (!isCurrent()) return;
+      const critiqueOutput = await runPrompt(
+        buildRuleCritiquePrompt(request, candidate, issues, grammar, vocabulary),
+        {
           allowDownload: true,
           signal: controller.signal,
-          onDownloadProgress: (loaded) => {
-            if (version !== requestVersion || controller.signal.aborted) return;
-            progress.hidden = false;
-            if (loaded < 1) {
-              progress.value = Math.max(0, loaded);
-              setStatus(copy.downloading, "notice");
-            } else {
-              progress.removeAttribute("value");
-              setStatus(copy.working, "working");
-            }
-          },
-        });
-      })
-      .then(async (output) => {
-        if (version !== requestVersion || !enabled.checked) return;
-        const cleaned = output ? cleanRuleSuggestion(output) : null;
-        if (!cleaned) throw new Error(copy.unavailable);
-        if (!isSingleRuleSuggestion(cleaned)) throw new Error(copy.singleRule);
-        suggestedRule = cleaned;
-        rule.textContent = cleaned;
-        result.hidden = false;
-        const fidelityError = ruleSuggestionFidelityError(request, cleaned);
-        if (fidelityError) {
-          add.disabled = true;
-          setStatus(copy.invalid(fidelityError), "error");
-          return;
-        }
-        const invalidCss = cssSelectorErrors(cleaned)[0];
-        if (invalidCss) {
-          add.disabled = true;
-          setStatus(copy.invalid(invalidCss.message), "error");
-          return;
-        }
-        const response = await sendInternalMessage(webExtensionApi.runtime, {
-          type: MESSAGE_TYPES.VALIDATE,
-          body: { filenamePatterns: cleaned },
-        });
-        if (version !== requestVersion || !enabled.checked) return;
-        if (!("version" in response.body)) throw new Error("Rule validation is unavailable");
-        const invalid = response.body.ruleErrors?.find((error) => !error.warning);
-        if (invalid) {
-          add.disabled = true;
-          setStatus(copy.invalid(invalid.message), "error");
-          return;
-        }
+          responseConstraint: RULE_CRITIQUE_RESPONSE_CONSTRAINT,
+        },
+      );
+      if (!isCurrent()) return;
+      const critique = critiqueOutput ? parseRuleCritique(critiqueOutput) : null;
+      if (!critique) throw new Error("The model returned an invalid review");
+      if (issues.length === 0 && critique.accepted && critique.repairedRule === candidate) {
+        showCandidate(candidate);
         add.disabled = false;
         setStatus(copy.draftReady, "success");
-      })
+        return;
+      }
+
+      candidate = critique.repairedRule;
+      issues = await validationIssues(request, candidate);
+      if (!isCurrent()) return;
+      const finalReviewOutput = await runPrompt(
+        buildRuleCritiquePrompt(request, candidate, issues, grammar, vocabulary),
+        {
+          allowDownload: true,
+          signal: controller.signal,
+          responseConstraint: RULE_CRITIQUE_RESPONSE_CONSTRAINT,
+        },
+      );
+      if (!isCurrent()) return;
+      const finalReview = finalReviewOutput ? parseRuleCritique(finalReviewOutput) : null;
+      if (!finalReview) throw new Error("The model returned an invalid final review");
+      showCandidate(candidate);
+      if (issues.length === 0 && finalReview.accepted && finalReview.repairedRule === candidate) {
+        add.disabled = false;
+        setStatus(copy.draftReady, "success");
+        return;
+      }
+      add.disabled = true;
+      const problem = issues[0] ?? finalReview.issues[0] ?? critique.issues[0];
+      setStatus(copy.invalid(problem || "The draft does not match the request"), "error");
+    })()
       .catch((error: unknown) => {
         if (version !== requestVersion || !enabled.checked) return;
         setStatus(copy.failed(String(error)), "error");

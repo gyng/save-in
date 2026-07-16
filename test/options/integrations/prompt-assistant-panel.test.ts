@@ -84,6 +84,13 @@ const submitRequest = (request = "Put PNG files in Images") => {
   );
 };
 
+const defaultRule = "fileext: ^png$\ninto: Images/:filename:";
+
+const authorResponse = (rule = defaultRule) => JSON.stringify({ rule });
+
+const critiqueResponse = (rule = defaultRule, accepted = true, issues: string[] = []) =>
+  JSON.stringify({ accepted, issues, repairedRule: rule });
+
 beforeEach(() => {
   vi.restoreAllMocks();
   markup();
@@ -92,7 +99,9 @@ beforeEach(() => {
   mocks.sendMessage.mockReset();
   mocks.appendRule.mockReset();
   mocks.availability.mockResolvedValue("available");
-  mocks.runPrompt.mockResolvedValue("fileext: ^png$\ninto: Images/:filename:");
+  mocks.runPrompt.mockImplementation(async (prompt: string) =>
+    prompt.startsWith("Review one proposed") ? critiqueResponse() : authorResponse(),
+  );
   mocks.sendMessage.mockImplementation(async (message: { type: string }) =>
     message.type === "GET_GRAMMARS"
       ? {
@@ -159,8 +168,10 @@ test("generates, validates, and appends only a reviewable draft", async () => {
   expect(mocks.runPrompt).toHaveBeenCalledWith(expect.stringContaining(input.value), {
     allowDownload: true,
     signal: expect.any(AbortSignal),
+    responseConstraint: expect.any(Object),
     onDownloadProgress: expect.any(Function),
   });
+  expect(mocks.runPrompt).toHaveBeenCalledTimes(2);
   expect(mocks.sendMessage).toHaveBeenCalledWith(
     expect.objectContaining({
       type: "VALIDATE",
@@ -177,6 +188,70 @@ test("generates, validates, and appends only a reviewable draft", async () => {
     element<HTMLTextAreaElement>("filenamePatterns"),
     "fileext: ^png$\ninto: Images/:filename:",
   );
+  expect(element<HTMLButtonElement>("prompt-assistant-add").disabled).toBe(true);
+});
+
+test("repairs example-copy drift and independently reviews the repaired rule", async () => {
+  const copiedExample = "fileext/i: ^(?:png|jpe?g)$\ninto: Images/:filename:";
+  const repaired = "fileext/i: ^png$\ninto: dongs/:filename:";
+  mocks.runPrompt
+    .mockResolvedValueOnce(authorResponse(copiedExample))
+    .mockResolvedValueOnce(
+      critiqueResponse(repaired, false, ["JPEG and Images were not requested"]),
+    )
+    .mockResolvedValueOnce(critiqueResponse(repaired));
+  setup();
+  await enable();
+
+  submitRequest("save png into /dongs");
+
+  await vi.waitFor(() =>
+    expect(element<HTMLButtonElement>("prompt-assistant-add").disabled).toBe(false),
+  );
+  expect(mocks.runPrompt).toHaveBeenCalledTimes(3);
+  expect(element("prompt-assistant-rule").textContent).toBe(repaired);
+  expect(mocks.sendMessage).toHaveBeenCalledWith({
+    type: "VALIDATE",
+    body: { filenamePatterns: repaired },
+  });
+});
+
+test("keeps a syntactically valid but semantically rejected repair out of the editor", async () => {
+  const copiedExample = "fileext/i: ^(?:png|jpe?g)$\ninto: Images/:filename:";
+  const incompleteRepair = "fileext/i: ^(?:png|jpe?g)$\ninto: dongs/:filename:";
+  mocks.runPrompt
+    .mockResolvedValueOnce(authorResponse(copiedExample))
+    .mockResolvedValueOnce(
+      critiqueResponse(incompleteRepair, false, ["The destination was incorrect"]),
+    )
+    .mockResolvedValueOnce(
+      critiqueResponse("fileext/i: ^png$\ninto: dongs/:filename:", false, [
+        "JPEG is still included",
+      ]),
+    );
+  setup();
+  await enable();
+
+  submitRequest("save png into /dongs");
+
+  await vi.waitFor(() => expect(element("prompt-assistant-status").dataset.state).toBe("error"));
+  expect(element("prompt-assistant-rule").textContent).toBe(incompleteRepair);
+  expect(element("prompt-assistant-status").textContent).toContain("unrequested file types");
+  expect(element<HTMLButtonElement>("prompt-assistant-add").disabled).toBe(true);
+  expect(mocks.appendRule).not.toHaveBeenCalled();
+});
+
+test("rejects a malformed structured semantic review", async () => {
+  mocks.runPrompt
+    .mockResolvedValueOnce(authorResponse())
+    .mockResolvedValueOnce(JSON.stringify({ accepted: true, issues: [] }));
+  setupPromptAssistantPanel(() => "", { appendRule: mocks.appendRule });
+  await enable();
+
+  submitRequest();
+
+  await vi.waitFor(() => expect(element("prompt-assistant-status").dataset.state).toBe("error"));
+  expect(element("prompt-assistant-status").textContent).toContain("invalid review");
   expect(element<HTMLButtonElement>("prompt-assistant-add").disabled).toBe(true);
 });
 
@@ -253,7 +328,11 @@ test("rejects invalid generated CSS before background validation", async () => {
 });
 
 test("rejects a valid response containing more than one rule", async () => {
-  mocks.runPrompt.mockResolvedValue("fileext: ^png$\ninto: Images\n\nfileext: ^jpg$\ninto: Photos");
+  const multipleRules = "fileext: ^png$\ninto: Images/\n\nfileext: ^jpg$\ninto: Photos/";
+  mocks.runPrompt
+    .mockResolvedValueOnce(authorResponse(multipleRules))
+    .mockResolvedValueOnce(critiqueResponse(multipleRules, false, ["More than one rule"]))
+    .mockResolvedValueOnce(critiqueResponse(multipleRules, false, ["More than one rule"]));
   setup();
   await enable();
   const input = element<HTMLTextAreaElement>("prompt-assistant-input");
@@ -266,23 +345,6 @@ test("rejects a valid response containing more than one rule", async () => {
   await vi.waitFor(() =>
     expect(element("prompt-assistant-status").textContent).toContain("exactly one rule"),
   );
-  expect(element<HTMLButtonElement>("prompt-assistant-add").disabled).toBe(true);
-  expect(mocks.sendMessage.mock.calls.some(([message]) => message.type === "VALIDATE")).toBe(false);
-});
-
-test("rejects a syntactically valid draft that broadens explicit constraints", async () => {
-  mocks.runPrompt.mockResolvedValue("fileext/i: ^(?:png|jpe?g)$\ninto: Images/:filename:");
-  setup();
-  await enable();
-
-  submitRequest("save png into /dongs");
-
-  await vi.waitFor(() =>
-    expect(element("prompt-assistant-status").textContent).toContain(
-      "file types do not exactly match",
-    ),
-  );
-  expect(element("prompt-assistant-result").hidden).toBe(false);
   expect(element<HTMLButtonElement>("prompt-assistant-add").disabled).toBe(true);
   expect(mocks.sendMessage.mock.calls.some(([message]) => message.type === "VALIDATE")).toBe(false);
 });
@@ -506,7 +568,7 @@ test("disabling during generation discards the stale completion", async () => {
   const control = element<HTMLInputElement>("promptAssistantEnabled");
   control.checked = false;
   control.dispatchEvent(new Event("change"));
-  resolvePrompt("fileext: png\ninto: images/");
+  resolvePrompt(authorResponse("fileext: png\ninto: images/"));
 
   await vi.waitFor(() => expect(element("prompt-assistant-status").dataset.state).toBe("off"));
   expect(element("prompt-assistant-result").hidden).toBe(true);
@@ -537,7 +599,7 @@ test("shows bounded download progress while Chrome prepares the model", async ()
   expect(progress.hasAttribute("value")).toBe(false);
   expect(element("prompt-assistant-status").textContent).toBe("Creating and checking a draft…");
 
-  resolvePrompt("fileext: png\ninto: images/");
+  resolvePrompt(authorResponse("fileext: png\ninto: images/"));
   await vi.waitFor(() => expect(progress.hidden).toBe(true));
   expect(progress.hasAttribute("value")).toBe(false);
 });

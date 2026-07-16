@@ -16,7 +16,10 @@
 export type PromptAvailability = "unavailable" | "downloadable" | "downloading" | "available";
 
 type LanguageModelSession = {
-  prompt: (input: string, options?: { signal?: AbortSignal }) => Promise<string>;
+  prompt: (
+    input: string,
+    options?: { signal?: AbortSignal; responseConstraint?: Record<string, unknown> },
+  ) => Promise<string>;
   destroy: () => void;
 };
 
@@ -74,6 +77,7 @@ export const runPrompt = async (
     allowDownload?: boolean;
     signal?: AbortSignal;
     onDownloadProgress?: (loaded: number) => void;
+    responseConstraint?: Record<string, unknown>;
   } = {},
 ): Promise<string | null> => {
   const model = getLanguageModel();
@@ -96,8 +100,12 @@ export const runPrompt = async (
   };
   const session = await model.create(createOptions);
   try {
-    return options.signal
-      ? await session.prompt(input, { signal: options.signal })
+    const promptOptions = {
+      ...(options.signal ? { signal: options.signal } : {}),
+      ...(options.responseConstraint ? { responseConstraint: options.responseConstraint } : {}),
+    };
+    return Object.keys(promptOptions).length > 0
+      ? await session.prompt(input, promptOptions)
       : await session.prompt(input);
   } finally {
     session.destroy();
