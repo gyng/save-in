@@ -51,7 +51,13 @@ export type PathFinalizeOptions = {
 export const SPECIAL_CHARACTERS_REGEX = new RegExp(FORBIDDEN_FILENAME_CHARS.source, "g");
 export const INVISIBLE_CHARACTERS_REGEX = new RegExp(UNSAFE_INVISIBLE_FILENAME_CHARS.source, "g");
 export const BAD_LEADING_CHARACTERS = /^[./\\]/g;
-export const TRAILING_DOTS_AND_SPACES_REGEX = /[. ]+$/;
+// Browsers strip whitespace from the edges of a path component, so a component
+// left edged with it is silently altered or dropped instead of being saved
+// where the rule says (#53). `\s` matters more than the ASCII space here: the
+// report was about U+00A0, which no filesystem rule forbids and which nothing
+// else in this file removes.
+export const LEADING_WHITESPACE_REGEX = /^\s+/;
+export const TRAILING_DOTS_AND_SPACES_REGEX = /[.\s]+$/;
 export const RESERVED_DEVICE_NAME_REGEX = /^(CON|PRN|AUX|NUL|COM[1-9¹²³]|LPT[1-9¹²³])$/i;
 export const SEPARATOR_REGEX_INCLUSIVE = /([/\\])/g;
 
@@ -127,6 +133,10 @@ export function trimTrailingDotsAndSpaces(value: string) {
   return value.replace(TRAILING_DOTS_AND_SPACES_REGEX, "");
 }
 
+export function trimLeadingWhitespace(value: string) {
+  return value.replace(LEADING_WHITESPACE_REGEX, "");
+}
+
 export function neutralizeReservedDeviceName(value: string, replacement?: string) {
   const baseName = value.split(".")[0] || value;
   if (!RESERVED_DEVICE_NAME_REGEX.test(baseName)) {
@@ -159,7 +169,12 @@ export function sanitizeFilename(
   }
 
   const fsSafe = replaceFsBadChars(removeUnsafeInvisibleChars(value));
-  const dotsHandled = leadingDotsForbidden ? replaceLeadingDots(fsSafe) : fsSafe;
+  // Trim after the forbidden-character pass, so a control character still
+  // becomes the replacement rather than disappearing, but before the
+  // leading-dot guard: whitespace must not hide a dot from that guard's `^`
+  // anchor and carry a hidden-file or traversal name past it.
+  const edgeSafe = trimLeadingWhitespace(fsSafe);
+  const dotsHandled = leadingDotsForbidden ? replaceLeadingDots(edgeSafe) : edgeSafe;
   const trimmed = trimTrailingDotsAndSpaces(dotsHandled);
   const truncated = preserveExtension
     ? truncatePreservingExtension(trimmed, max)

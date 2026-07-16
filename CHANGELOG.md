@@ -101,6 +101,12 @@ rules.
   variation selectors (#220), trailing dots or spaces, reserved device names,
   and broken replacement characters. Path-component limits now use UTF-8 bytes
   and preserve filename extensions.
+- Whitespace is now trimmed from both ends of every folder and filename,
+  including non-breaking and other Unicode spaces (#53). Browsers reject a
+  path component that begins or ends with whitespace, so such a save used to
+  fail or quietly drop the folder; a component made only of whitespace now
+  becomes the replacement character instead of disappearing. Whitespace inside
+  a name is untouched.
 - Shortcut files retain their intended extension instead of becoming `.txt`
   (#161). Options now name Windows internet shortcut (`.url`), macOS internet
   location (`.webloc`), Linux desktop shortcut (`.desktop`), and HTML redirect

@@ -42,6 +42,62 @@ describe("sanitisation", () => {
     });
   });
 
+  // Browsers strip whitespace at the edges of a path component, so a component
+  // we leave edged with it is silently altered or rejected downstream (#53).
+  describe("edge whitespace (#53)", () => {
+    const NBSP = " ";
+
+    test("trims a trailing non-breaking space", () => {
+      expect(Path.sanitizeFilename(`test${NBSP}`, 0, false)).toBe("test");
+    });
+
+    test("trims a leading non-breaking space", () => {
+      expect(Path.sanitizeFilename(`${NBSP}something`, 0, false)).toBe("something");
+    });
+
+    test("trims a leading ASCII space, as it already does a trailing one", () => {
+      expect(Path.sanitizeFilename(" name", 0, false)).toBe("name");
+    });
+
+    test.each([" ", " ", "　", " "])(
+      "trims other Unicode whitespace (%j) from both edges",
+      (space) => {
+        expect(Path.sanitizeFilename(`${space}name${space}`, 0, false)).toBe("name");
+      },
+    );
+
+    test("trims whitespace interleaved with trailing dots", () => {
+      expect(Path.sanitizeFilename(`name${NBSP}.`, 0, false)).toBe("name");
+      expect(Path.sanitizeFilename(`name.${NBSP}`, 0, false)).toBe("name");
+    });
+
+    // The reporter's working cases: only the edges fail, so interior whitespace
+    // must survive untouched.
+    test("keeps interior whitespace", () => {
+      expect(Path.sanitizeFilename(`test${NBSP}test`, 0, false)).toBe(`test${NBSP}test`);
+      expect(new Path.Path(`test${NBSP}test/sub`).finalize()).toBe(`test${NBSP}test/sub`);
+    });
+
+    // Reported as "fails without saving a file" — a whitespace-only component
+    // cannot exist, so it must become something predictable rather than vanish.
+    test("turns a whitespace-only component into the replacement character", () => {
+      expect(Path.sanitizeFilename(NBSP, 0, false)).toBe("_");
+      expect(new Path.Path(`${NBSP}/something`).finalize()).toBe("_/something");
+    });
+
+    // Reported as "fails but saves a file to E:\test" — the component was
+    // silently dropped by the browser instead of being routed.
+    test("routes the reporter's trailing-NBSP path to a predictable component", () => {
+      expect(new Path.Path(`test/${NBSP}`).finalize()).toBe("test/_");
+    });
+
+    // Whitespace must not be able to smuggle a leading dot past the
+    // hidden-file/traversal guard by hiding it from the ^ anchor.
+    test("still neutralizes a leading dot revealed by trimming", () => {
+      expect(Path.sanitizeFilename(` ${NBSP}.hidden`)).toBe("_hidden");
+    });
+  });
+
   describe("reserved Windows device names", () => {
     test.each(["CON", "con", "PRN", "AUX", "NUL", "COM1", "com9", "LPT1", "lpt9"])(
       "prefixes the bare reserved name %s with the replacement character",
