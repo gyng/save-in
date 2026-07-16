@@ -144,6 +144,30 @@ describe("routing visual editor", () => {
     expect(value.getAttribute("aria-label")).toBe("Rule 1: rewrite download URL");
   });
 
+  test("renders a rename clause as a dedicated rename-the-file row", () => {
+    vi.mocked(browser.i18n.getMessage).mockImplementation((key: string) => {
+      if (key === "routeVisualRenameLabel") return "Rename the file";
+      if (key === "routeVisualRenameAccessible") return "Rule $RULE$: rename the file";
+      return "";
+    });
+    const textarea = element<HTMLTextAreaElement>("#filenamePatterns");
+    // Visual mode supports only the /i flag, matching matcher clauses; /g
+    // rules stay editable in text mode.
+    textarea.value = "filename: \\.jpg$\nrename/i: cat -> dog\ninto: originals/:filename:";
+
+    setupRuleVisualEditor({ matchers: ["filename"], variables: [] });
+    element<HTMLButtonElement>("#rules-mode-visual").click();
+
+    expect(document.querySelector(".rule-editor-card-unsupported")).toBeNull();
+    const renameRow = element<HTMLElement>(".rule-clause-rename");
+    expect(renameRow.querySelector(".rule-clause-marker")?.textContent).toBe("✎");
+    expect(renameRow.querySelector(".rule-clause-fixed-name")?.textContent).toBe("Rename the file");
+    const value = renameRow.querySelector<HTMLInputElement>(".rule-clause-value")!;
+    expect(value.value).toBe("cat -> dog");
+    expect(value.name).toBe("routing-rename");
+    expect(value.getAttribute("aria-label")).toBe("Rule 1: rename the file");
+  });
+
   test("marks, aggregates, and clears visual rule validation", () => {
     element<HTMLTextAreaElement>("#filenamePatterns").value =
       "fileext: pdf\ninto: pdfs/:weekday:-:naivefidlename:";

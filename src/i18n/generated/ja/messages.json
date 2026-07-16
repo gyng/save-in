@@ -1,5 +1,7 @@
 {
-  "ruleTemplatePdfsByContentTypeName": { "message": "コンテンツタイプで PDF を分類" },
+  "ruleTemplatePdfsByContentTypeName": {
+    "message": "コンテンツタイプで PDF を分類"
+  },
   "ruleTemplatePdfsByContentTypeDescription": {
     "message": "ファイル名ではなく、報告されたコンテンツタイプで PDF を検出します"
   },
@@ -27,7 +29,6 @@
   "html_matchesTheRootHostname": {
     "message": "サブドメインを除いたホスト名と照合します。"
   },
-
   "extensionName": {
     "message": "Save In"
   },
@@ -94,7 +95,9 @@
       }
     }
   },
-  "notificationUndoSave": { "message": "保存を取り消す" },
+  "notificationUndoSave": {
+    "message": "保存を取り消す"
+  },
   "notificationRuleMatchedTitle": {
     "message": "Save In: ルールが一致しました"
   },
@@ -1135,24 +1138,51 @@
   },
   "externalApprovedCountOne": {
     "message": "承認済みの拡張機能 $COUNT$ 件",
-    "placeholders": { "count": { "content": "$1", "example": "1" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
   },
   "externalApprovedCountMany": {
     "message": "承認済みの拡張機能 $COUNT$ 件",
-    "placeholders": { "count": { "content": "$1", "example": "3" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
   },
-  "externalRemoveApproval": { "message": "削除" },
+  "externalRemoveApproval": {
+    "message": "削除"
+  },
   "externalRemoveApprovalFor": {
     "message": "$ID$ の承認を削除",
-    "placeholders": { "id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" } }
+    "placeholders": {
+      "id": {
+        "content": "$1",
+        "example": "abcdefghijklmnopabcdefghijklmnop"
+      }
+    }
   },
   "externalApprovalRemoved": {
     "message": "$ID$ の承認が解除されました。",
-    "placeholders": { "id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" } }
+    "placeholders": {
+      "id": {
+        "content": "$1",
+        "example": "abcdefghijklmnopabcdefghijklmnop"
+      }
+    }
   },
   "externalApprovalAdded": {
     "message": "$ID$ が承認されました。",
-    "placeholders": { "id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" } }
+    "placeholders": {
+      "id": {
+        "content": "$1",
+        "example": "abcdefghijklmnopabcdefghijklmnop"
+      }
+    }
   },
   "html_oneExtensionIdPerLine": {
     "message": "1 行に 1 つの拡張機能 ID"
@@ -1565,18 +1595,36 @@
   "html_toRouteIntoAFolder": {
     "message": "を付けるとフォルダーへ移動できます。"
   },
-  "sourcePanelDockFloating": { "message": "フローティング" },
+  "sourcePanelDockFloating": {
+    "message": "フローティング"
+  },
   "sourcePanelNoMatchesFilter": {
     "message": "「$FILTER$」に一致するソースはありません。",
-    "placeholders": { "filter": { "content": "$1", "example": "poster" } }
+    "placeholders": {
+      "filter": {
+        "content": "$1",
+        "example": "poster"
+      }
+    }
   },
-  "sourcePanelClearFilters": { "message": "フィルターをクリア" },
+  "sourcePanelClearFilters": {
+    "message": "フィルターをクリア"
+  },
   "sourcePanelSourceCount": {
     "message": "見つかったソース：$COUNT$ 件",
-    "placeholders": { "count": { "content": "$1", "example": "12" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "12"
+      }
+    }
   },
-  "sourcePanelEmbeddedSource": { "message": "ページに埋め込まれたソース" },
-  "sourcePanelMoreActions": { "message": "その他の操作" },
+  "sourcePanelEmbeddedSource": {
+    "message": "ページに埋め込まれたソース"
+  },
+  "sourcePanelMoreActions": {
+    "message": "その他の操作"
+  },
   "html_webhooks": {
     "message": "Webhook"
   },
@@ -2017,19 +2065,38 @@
   "ruleTemplateViewInEditor": {
     "message": "ルールエディターで表示"
   },
-  "historyActiveFilters": { "message": "適用中の履歴フィルター" },
-  "historyExportAll": { "message": "すべてエクスポート" },
+  "historyActiveFilters": {
+    "message": "適用中の履歴フィルター"
+  },
+  "historyExportAll": {
+    "message": "すべてエクスポート"
+  },
   "historyFilterSearch": {
     "message": "検索：「$QUERY$」",
-    "placeholders": { "query": { "content": "$1", "example": "invoice" } }
+    "placeholders": {
+      "query": {
+        "content": "$1",
+        "example": "invoice"
+      }
+    }
   },
   "historyFilterSince": {
     "message": "$DATE$ 以降",
-    "placeholders": { "date": { "content": "$1", "example": "2026-07-01" } }
+    "placeholders": {
+      "date": {
+        "content": "$1",
+        "example": "2026-07-01"
+      }
+    }
   },
   "historyFilterThrough": {
     "message": "$DATE$ 以前",
-    "placeholders": { "date": { "content": "$1", "example": "2026-07-31" } }
+    "placeholders": {
+      "date": {
+        "content": "$1",
+        "example": "2026-07-31"
+      }
+    }
   },
   "historyDateRangeInvalid": {
     "message": "開始日は終了日以前の日付にしてください。"
@@ -2043,73 +2110,161 @@
   "historyFilteredResultsCount": {
     "message": "$TOTAL$ 件中 $MATCHES$ 件",
     "placeholders": {
-      "matches": { "content": "$1", "example": "12" },
-      "total": { "content": "$2", "example": "50" }
+      "matches": {
+        "content": "$1",
+        "example": "12"
+      },
+      "total": {
+        "content": "$2",
+        "example": "50"
+      }
     }
   },
   "historyResultCountOne": {
     "message": "$COUNT$ 件",
-    "placeholders": { "count": { "content": "$1", "example": "1" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
   },
   "historyResultCount": {
     "message": "$COUNT$ 件",
-    "placeholders": { "count": { "content": "$1", "example": "24" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "24"
+      }
+    }
   },
   "historyStorageLimit": {
     "message": "履歴はこのデバイスに保存されます（最大 10,000 件）。"
   },
-  "historyTableCaption": { "message": "保存したダウンロードの履歴" },
-  "historyShowInFolder": { "message": "フォルダー内に表示" },
-  "historyCancelDownload": { "message": "キャンセル" },
-  "historyCancelDownloadTitle": { "message": "このダウンロードをキャンセル" },
+  "historyTableCaption": {
+    "message": "保存したダウンロードの履歴"
+  },
+  "historyShowInFolder": {
+    "message": "フォルダー内に表示"
+  },
+  "historyCancelDownload": {
+    "message": "キャンセル"
+  },
+  "historyCancelDownloadTitle": {
+    "message": "このダウンロードをキャンセル"
+  },
   "historyCancelDownloadNamed": {
     "message": "$FILE$ をキャンセル",
-    "placeholders": { "file": { "content": "$1", "example": "photo.jpg" } }
+    "placeholders": {
+      "file": {
+        "content": "$1",
+        "example": "photo.jpg"
+      }
+    }
   },
-  "historyCancelingDownload": { "message": "キャンセル中…" },
-  "historyUndoSave": { "message": "保存を取り消す" },
+  "historyCancelingDownload": {
+    "message": "キャンセル中…"
+  },
+  "historyUndoSave": {
+    "message": "保存を取り消す"
+  },
   "historyUndoSaveNamed": {
     "message": "$FILE$ の保存を取り消す",
-    "placeholders": { "file": { "content": "$1", "example": "photo.jpg" } }
+    "placeholders": {
+      "file": {
+        "content": "$1",
+        "example": "photo.jpg"
+      }
+    }
   },
-  "historyUndoDone": { "message": "保存を取り消しました。ファイルは削除されました。" },
+  "historyUndoDone": {
+    "message": "保存を取り消しました。ファイルは削除されました。"
+  },
   "historyUndoFileMissing": {
     "message": "保存を取り消しました。ファイルはすでに移動または削除されていました。"
   },
-  "historyUndoFailed": { "message": "この保存を取り消せませんでした。" },
-  "historyRoutingApplied": { "message": "適用済み" },
+  "historyUndoFailed": {
+    "message": "この保存を取り消せませんでした。"
+  },
+  "historyRoutingApplied": {
+    "message": "適用済み"
+  },
   "historyRoutingAppliedTitle": {
     "message": "ルーティングまたは名前変更ルールが適用されました。"
   },
-  "historyNewer": { "message": "‹ 新しい履歴" },
+  "historyNewer": {
+    "message": "‹ 新しい履歴"
+  },
   "historyPageCount": {
     "message": "$TOTAL$ ページ中 $PAGE$ ページ",
     "placeholders": {
-      "page": { "content": "$1", "example": "2" },
-      "total": { "content": "$2", "example": "5" }
+      "page": {
+        "content": "$1",
+        "example": "2"
+      },
+      "total": {
+        "content": "$2",
+        "example": "5"
+      }
     }
   },
-  "historyOlder": { "message": "古い履歴 ›" },
-  "historyLoadFailed": { "message": "履歴を読み込めませんでした。" },
-  "historyRetry": { "message": "再試行" },
-  "historyDeleteConfirmTitle": { "message": "履歴をすべて削除しますか？" },
+  "historyOlder": {
+    "message": "古い履歴 ›"
+  },
+  "historyLoadFailed": {
+    "message": "履歴を読み込めませんでした。"
+  },
+  "historyRetry": {
+    "message": "再試行"
+  },
+  "historyDeleteConfirmTitle": {
+    "message": "履歴をすべて削除しますか？"
+  },
   "historyDeleteConfirmDescription": {
     "message": "保存されているすべての履歴項目が完全に削除されます。この操作は元に戻せません。"
   },
-  "historyKeepHistory": { "message": "履歴を保持" },
-  "historyDeleteAll": { "message": "すべての履歴を削除" },
-  "historyClearing": { "message": "履歴を削除中…" },
-  "historyClearFailed": { "message": "履歴を削除できませんでした。" },
-  "historyStatusSaving": { "message": "保存中…" },
-  "historyStatusCanceled": { "message": "キャンセル済み" },
-  "historyStatusUndone": { "message": "取り消し済み" },
-  "historyStatusNetworkFailed": { "message": "ネットワークエラー" },
-  "historyStatusDownloadFailed": { "message": "ダウンロード失敗" },
-  "historyStatusPreparationFailed": { "message": "準備失敗" },
-  "historyStatusPreparationInterrupted": { "message": "中断" },
-  "historyStatusStateLost": { "message": "ダウンロード状態を喪失" },
-  "historyStatusRoutingFailed": { "message": "ルーティング失敗" },
-  "historyStatusNoRuleMatch": { "message": "一致するルールなし" },
+  "historyKeepHistory": {
+    "message": "履歴を保持"
+  },
+  "historyDeleteAll": {
+    "message": "すべての履歴を削除"
+  },
+  "historyClearing": {
+    "message": "履歴を削除中…"
+  },
+  "historyClearFailed": {
+    "message": "履歴を削除できませんでした。"
+  },
+  "historyStatusSaving": {
+    "message": "保存中…"
+  },
+  "historyStatusCanceled": {
+    "message": "キャンセル済み"
+  },
+  "historyStatusUndone": {
+    "message": "取り消し済み"
+  },
+  "historyStatusNetworkFailed": {
+    "message": "ネットワークエラー"
+  },
+  "historyStatusDownloadFailed": {
+    "message": "ダウンロード失敗"
+  },
+  "historyStatusPreparationFailed": {
+    "message": "準備失敗"
+  },
+  "historyStatusPreparationInterrupted": {
+    "message": "中断"
+  },
+  "historyStatusStateLost": {
+    "message": "ダウンロード状態を喪失"
+  },
+  "historyStatusRoutingFailed": {
+    "message": "ルーティング失敗"
+  },
+  "historyStatusNoRuleMatch": {
+    "message": "一致するルールなし"
+  },
   "historyColumnInitiated": {
     "message": "開始"
   },
@@ -2158,63 +2313,151 @@
   "o_lShortcutFormatLinux": {
     "message": "Linux デスクトップ ショートカット"
   },
-  "html_closePrivacyPolicy": { "message": "プライバシーポリシーを閉じる" },
-  "o_sAppearance": { "message": "外観" },
-  "o_lUiTheme": { "message": "テーマ" },
-  "o_lUiThemeSystem": { "message": "システム" },
-  "o_lUiThemeDark": { "message": "ダーク" },
-  "o_lUiThemeLight": { "message": "ライト" },
-  "o_lUiThemeGroupDefault": { "message": "標準" },
-  "o_lUiThemeGroupAccessibility": { "message": "ハイコントラスト" },
-  "o_lUiThemeGroupClassics": { "message": "クラシックテーマ" },
-  "o_lUiThemeGroupSaveIn": { "message": "オーダーメイド" },
-  "o_lUiThemeHighContrastDark": { "message": "ハイコントラスト（ダーク）" },
-  "o_lUiThemeHighContrastLight": { "message": "ハイコントラスト（ライト）" },
-  "o_lUiThemeHighContrastYellow": { "message": "ハイコントラスト（黄）" },
-  "o_lUiThemeSolarizedDark": { "message": "Solarized ダーク" },
-  "o_lUiThemeSolarizedLight": { "message": "Solarized ライト" },
-  "o_lUiThemeNord": { "message": "Nord" },
-  "o_lUiThemeDracula": { "message": "Dracula" },
-  "o_lUiThemeGruvbox": { "message": "Gruvbox" },
-  "o_lUiThemeMonokai": { "message": "Monokai" },
-  "o_lUiThemeOneDark": { "message": "One Dark" },
-  "o_lUiThemeTokyoNight": { "message": "Tokyo Night" },
-  "o_lUiThemeCatppuccin": { "message": "Catppuccin" },
-  "o_lUiThemeMidnight": { "message": "ミッドナイト" },
-  "o_lUiThemePastelPink": { "message": "ブラッシュ" },
-  "o_lUiThemePaper": { "message": "ペーパー" },
-  "o_lUiThemeTerminal": { "message": "ターミナル" },
-  "o_lUiThemeBerry": { "message": "ベリー" },
-  "o_lUiThemeNebula": { "message": "ネビュラ" },
-  "o_lUiThemeGlacier": { "message": "グレイシャー" },
-  "o_lUiThemeMatcha": { "message": "抹茶" },
-  "o_lUiThemeEmber": { "message": "エンバー" },
+  "html_closePrivacyPolicy": {
+    "message": "プライバシーポリシーを閉じる"
+  },
+  "o_sAppearance": {
+    "message": "外観"
+  },
+  "o_lUiTheme": {
+    "message": "テーマ"
+  },
+  "o_lUiThemeSystem": {
+    "message": "システム"
+  },
+  "o_lUiThemeDark": {
+    "message": "ダーク"
+  },
+  "o_lUiThemeLight": {
+    "message": "ライト"
+  },
+  "o_lUiThemeGroupDefault": {
+    "message": "標準"
+  },
+  "o_lUiThemeGroupAccessibility": {
+    "message": "ハイコントラスト"
+  },
+  "o_lUiThemeGroupClassics": {
+    "message": "クラシックテーマ"
+  },
+  "o_lUiThemeGroupSaveIn": {
+    "message": "オーダーメイド"
+  },
+  "o_lUiThemeHighContrastDark": {
+    "message": "ハイコントラスト（ダーク）"
+  },
+  "o_lUiThemeHighContrastLight": {
+    "message": "ハイコントラスト（ライト）"
+  },
+  "o_lUiThemeHighContrastYellow": {
+    "message": "ハイコントラスト（黄）"
+  },
+  "o_lUiThemeSolarizedDark": {
+    "message": "Solarized ダーク"
+  },
+  "o_lUiThemeSolarizedLight": {
+    "message": "Solarized ライト"
+  },
+  "o_lUiThemeNord": {
+    "message": "Nord"
+  },
+  "o_lUiThemeDracula": {
+    "message": "Dracula"
+  },
+  "o_lUiThemeGruvbox": {
+    "message": "Gruvbox"
+  },
+  "o_lUiThemeMonokai": {
+    "message": "Monokai"
+  },
+  "o_lUiThemeOneDark": {
+    "message": "One Dark"
+  },
+  "o_lUiThemeTokyoNight": {
+    "message": "Tokyo Night"
+  },
+  "o_lUiThemeCatppuccin": {
+    "message": "Catppuccin"
+  },
+  "o_lUiThemeMidnight": {
+    "message": "ミッドナイト"
+  },
+  "o_lUiThemePastelPink": {
+    "message": "ブラッシュ"
+  },
+  "o_lUiThemePaper": {
+    "message": "ペーパー"
+  },
+  "o_lUiThemeTerminal": {
+    "message": "ターミナル"
+  },
+  "o_lUiThemeBerry": {
+    "message": "ベリー"
+  },
+  "o_lUiThemeNebula": {
+    "message": "ネビュラ"
+  },
+  "o_lUiThemeGlacier": {
+    "message": "グレイシャー"
+  },
+  "o_lUiThemeMatcha": {
+    "message": "抹茶"
+  },
+  "o_lUiThemeEmber": {
+    "message": "エンバー"
+  },
   "o_lUiThemeHelp": {
     "message": "設定とページソースの配色テーマを選択します。"
   },
-  "notificationExternalDownloadBlockedTitle": { "message": "外部ダウンロードをブロックしました" },
+  "notificationExternalDownloadBlockedTitle": {
+    "message": "外部ダウンロードをブロックしました"
+  },
   "notificationExternalDownloadBlockedMessage": {
     "message": "$SENDER_ID$ からのリクエストをブロックしました。クリックしてオプションで確認してください。",
     "placeholders": {
-      "sender_id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" }
+      "sender_id": {
+        "content": "$1",
+        "example": "abcdefghijklmnopabcdefghijklmnop"
+      }
     }
   },
-  "historyEmptyNoDownloads": { "message": "保存されたダウンロードはまだありません。" },
-  "historyEmptyNoMatches": { "message": "これらのフィルターに一致する履歴はありません。" },
-  "webMcpStatusRegistering": { "message": "登録中…" },
+  "historyEmptyNoDownloads": {
+    "message": "保存されたダウンロードはまだありません。"
+  },
+  "historyEmptyNoMatches": {
+    "message": "これらのフィルターに一致する履歴はありません。"
+  },
+  "webMcpStatusRegistering": {
+    "message": "登録中…"
+  },
   "webMcpStatusActive": {
     "message": "有効 — $COUNT$ 個のツールを登録済み",
-    "placeholders": { "count": { "content": "$1", "example": "5" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "5"
+      }
+    }
   },
   "webMcpStatusLimited": {
     "message": "制限あり — $TOTAL$ 個中 $REGISTERED$ 個のツールを登録済み",
     "placeholders": {
-      "registered": { "content": "$1", "example": "4" },
-      "total": { "content": "$2", "example": "5" }
+      "registered": {
+        "content": "$1",
+        "example": "4"
+      },
+      "total": {
+        "content": "$2",
+        "example": "5"
+      }
     }
   },
-  "webMcpStatusRegistrationFailed": { "message": "利用不可 — ツールの登録に失敗しました" },
-  "webMcpStatusUnavailableBrowser": { "message": "このブラウザーでは利用できません" },
+  "webMcpStatusRegistrationFailed": {
+    "message": "利用不可 — ツールの登録に失敗しました"
+  },
+  "webMcpStatusUnavailableBrowser": {
+    "message": "このブラウザーでは利用できません"
+  },
   "sourcePanelResizeLabel": {
     "message": "ページソースのサイズを変更"
   },
@@ -2362,9 +2605,15 @@
   "routeDebuggerTitle": {
     "message": "ルーティングルールをテスト"
   },
-  "routeDebuggerUseSource": { "message": "使用" },
-  "routeDebuggerLatestDownload": { "message": "最新" },
-  "routeDebuggerUseSampleDownload": { "message": "例" },
+  "routeDebuggerUseSource": {
+    "message": "使用"
+  },
+  "routeDebuggerLatestDownload": {
+    "message": "最新"
+  },
+  "routeDebuggerUseSampleDownload": {
+    "message": "例"
+  },
   "routeDebuggerFilename": {
     "message": "ファイル名"
   },
@@ -2394,15 +2643,30 @@
   },
   "routeDebuggerOneRuleMatched": {
     "message": "$COUNT$ 件のルールが一致し、使用されました。",
-    "placeholders": { "count": { "content": "$1", "example": "1" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
   },
   "routeDebuggerOneLaterRuleMatches": {
     "message": "1 件のルールを使用しました。後続の $COUNT$ 件のルールも一致します。",
-    "placeholders": { "count": { "content": "$1", "example": "1" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
   },
   "routeDebuggerLaterRulesMatch": {
     "message": "1 件のルールを使用しました。後続の $COUNT$ 件のルールも一致します。",
-    "placeholders": { "count": { "content": "$1", "example": "2" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
   },
   "routeDebuggerExpanded": {
     "message": "展開後のパス"
@@ -2506,43 +2770,82 @@
   },
   "routeVisualRuleEnabledAccessible": {
     "message": "ルール $RULE$ を有効化",
-    "placeholders": { "rule": { "content": "$1", "example": "2" } }
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
   },
   "routeVisualRuleActionsAccessible": {
     "message": "ルール $RULE$ のその他の操作",
-    "placeholders": { "rule": { "content": "$1", "example": "2" } }
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
   },
   "routeVisualMatcherAccessible": {
     "message": "ルール $RULE$、条件 $CONDITION$：マッチャー",
     "placeholders": {
-      "rule": { "content": "$1", "example": "2" },
-      "condition": { "content": "$2", "example": "1" }
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      },
+      "condition": {
+        "content": "$2",
+        "example": "1"
+      }
     }
   },
   "routeVisualPatternAccessible": {
     "message": "ルール $RULE$、条件 $CONDITION$：パターン",
     "placeholders": {
-      "rule": { "content": "$1", "example": "2" },
-      "condition": { "content": "$2", "example": "1" }
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      },
+      "condition": {
+        "content": "$2",
+        "example": "1"
+      }
     }
   },
   "routeVisualIgnoreCaseAccessible": {
     "message": "ルール $RULE$、条件 $CONDITION$：大文字と小文字を区別しない",
     "placeholders": {
-      "rule": { "content": "$1", "example": "2" },
-      "condition": { "content": "$2", "example": "1" }
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      },
+      "condition": {
+        "content": "$2",
+        "example": "1"
+      }
     }
   },
   "routeVisualDeleteConditionAccessible": {
     "message": "ルール $RULE$ から条件 $CONDITION$ を削除",
     "placeholders": {
-      "condition": { "content": "$2", "example": "1" },
-      "rule": { "content": "$1", "example": "2" }
+      "condition": {
+        "content": "$2",
+        "example": "1"
+      },
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      }
     }
   },
   "routeVisualDestinationAccessible": {
     "message": "ルール $RULE$ の保存先",
-    "placeholders": { "rule": { "content": "$1", "example": "2" } }
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
   },
   "routeVisualIgnoreCaseHelp": {
     "message": "大文字と小文字を同一として照合します"
@@ -2580,102 +2883,210 @@
   "routeVisualEmpty": {
     "message": "ルーティングルールはまだありません。ルールを追加して開始してください。"
   },
-  "visualEditorEnabled": { "message": "有効" },
+  "visualEditorEnabled": {
+    "message": "有効"
+  },
   "html_disableThisDestinationAndItsChildren": {
     "message": "この保存先とその子項目をメニューに表示しない"
   },
   "html_keepsARuleWithoutRunningIt": {
     "message": "ルールを実行せずに保持します"
   },
-  "autoDownloadHeading": { "message": "ページソースを自動保存" },
+  "autoDownloadHeading": {
+    "message": "ページソースを自動保存"
+  },
   "autoDownloadHelp": {
     "message": "有効なルールがページとソースの両方に一致した場合のみ、新しく検出されたページソースを保存します。"
   },
-  "autoDownloadEnabled": { "message": "一致した項目を自動保存" },
-  "autoDownloadLive": { "message": "ページの読み込み後に追加されたソースも含める" },
-  "autoDownloadPrivate": { "message": "プライベートウィンドウでの自動保存を許可" },
-  "autoDownloadLinks": { "message": "リンク先のメディアも含める" },
-  "autoDownloadLimit": { "message": "1 回のページ訪問での最大保存数" },
+  "autoDownloadEnabled": {
+    "message": "一致した項目を自動保存"
+  },
+  "autoDownloadLive": {
+    "message": "ページの読み込み後に追加されたソースも含める"
+  },
+  "autoDownloadPrivate": {
+    "message": "プライベートウィンドウでの自動保存を許可"
+  },
+  "autoDownloadLinks": {
+    "message": "リンク先のメディアも含める"
+  },
+  "autoDownloadLimit": {
+    "message": "1 回のページ訪問での最大保存数"
+  },
   "autoDownloadLimitHelp": {
     "message": "この上限に達すると、Save In は新しい一致項目のキューへの追加を停止します。新しい訪問を開始するにはページを再読み込みしてください。"
   },
-  "autoDownloadRulesHeading": { "message": "自動化ルール" },
+  "autoDownloadRulesHeading": {
+    "message": "自動化ルール"
+  },
   "autoDownloadRulesHelp": {
     "message": "各ルールにはページ条件、ソース条件、保存先が必要です。最初に一致したルールが使われます。"
   },
-  "autoDownloadEditorMode": { "message": "自動化ルールエディターのモード" },
-  "autoDownloadVisual": { "message": "ビジュアル" },
-  "autoDownloadText": { "message": "テキスト" },
-  "autoDownloadAddRule": { "message": "自動化ルールを追加" },
-  "autoDownloadGrammar": { "message": "ルールの構文" },
-  "autoDownloadCondition": { "message": "条件" },
-  "autoDownloadPattern": { "message": "パターン" },
-  "autoDownloadIgnoreCase": { "message": "大文字と小文字を区別しない" },
-  "autoDownloadIgnoreCaseHelp": { "message": "大文字と小文字を同一として照合します" },
-  "autoDownloadDeleteCondition": { "message": "条件を削除" },
+  "autoDownloadEditorMode": {
+    "message": "自動化ルールエディターのモード"
+  },
+  "autoDownloadVisual": {
+    "message": "ビジュアル"
+  },
+  "autoDownloadText": {
+    "message": "テキスト"
+  },
+  "autoDownloadAddRule": {
+    "message": "自動化ルールを追加"
+  },
+  "autoDownloadGrammar": {
+    "message": "ルールの構文"
+  },
+  "autoDownloadCondition": {
+    "message": "条件"
+  },
+  "autoDownloadPattern": {
+    "message": "パターン"
+  },
+  "autoDownloadIgnoreCase": {
+    "message": "大文字と小文字を区別しない"
+  },
+  "autoDownloadIgnoreCaseHelp": {
+    "message": "大文字と小文字を同一として照合します"
+  },
+  "autoDownloadDeleteCondition": {
+    "message": "条件を削除"
+  },
   "autoDownloadVisualInvalid": {
     "message": "ビジュアルモードに切り替える前に、テキストモードでエラーを修正してください。"
   },
   "autoDownloadEmpty": {
     "message": "自動保存ルールはまだありません。ルールを追加し、サイトとソースを選択してから有効にしてください。"
   },
-  "autoDownloadRule": { "message": "ルール" },
-  "autoDownloadMoveUp": { "message": "ルールを上へ移動" },
-  "autoDownloadMoveDown": { "message": "ルールを下へ移動" },
-  "autoDownloadDeleteRule": { "message": "ルールを削除" },
-  "autoDownloadRuleName": { "message": "ルール名" },
-  "autoDownloadAddCondition": { "message": "条件を追加" },
-  "autoDownloadDestination": { "message": "保存先" },
-  "autoDownloadNewRule": { "message": "新しいルール" },
+  "autoDownloadRule": {
+    "message": "ルール"
+  },
+  "autoDownloadMoveUp": {
+    "message": "ルールを上へ移動"
+  },
+  "autoDownloadMoveDown": {
+    "message": "ルールを下へ移動"
+  },
+  "autoDownloadDeleteRule": {
+    "message": "ルールを削除"
+  },
+  "autoDownloadRuleName": {
+    "message": "ルール名"
+  },
+  "autoDownloadAddCondition": {
+    "message": "条件を追加"
+  },
+  "autoDownloadDestination": {
+    "message": "保存先"
+  },
+  "autoDownloadNewRule": {
+    "message": "新しいルール"
+  },
   "ruleAutomaticMissingPage": {
     "message": "pageurl:、pagedomain:、pagerootdomain: のいずれかの条件を追加してください"
   },
   "ruleAutomaticMissingSource": {
     "message": "ソースのアドレス、ドメイン、種類、拡張子のいずれかの条件を追加してください"
   },
-  "autoDownloadRoutingBadge": { "message": "ソースを自動保存" },
-  "autoDownloadManageRules": { "message": "ルーティングルールを開く" },
+  "autoDownloadRoutingBadge": {
+    "message": "ソースを自動保存"
+  },
+  "autoDownloadManageRules": {
+    "message": "ルーティングルールを開く"
+  },
   "autoDownloadRoutingHelp": {
     "message": "自動ダウンロードを照合するには、context: auto をページ条件およびソース条件と組み合わせて使用します。最初に一致したルールによって保存先が決まります。"
   },
-  "html_openInFirefoxAddons": { "message": "Firefox Add-ons で開く" },
-  "html_openInChromeWebStore": { "message": "Chrome Web Store で開く" },
-  "html_downloadRequestHeaders": { "message": "ダウンロードリクエストのヘッダー" },
+  "html_openInFirefoxAddons": {
+    "message": "Firefox Add-ons で開く"
+  },
+  "html_openInChromeWebStore": {
+    "message": "Chrome Web Store で開く"
+  },
+  "html_downloadRequestHeaders": {
+    "message": "ダウンロードリクエストのヘッダー"
+  },
   "html_temporarilyAddsThePageUrlAsRefererForExactSaveInRequests": {
     "message": "サイトで必要な場合に、対象の Save In リクエストへページ URL を Referer として一時的に追加します。"
   },
-  "matchPatternInvalid": { "message": "無効な WebExtension マッチパターン" },
-  "regularExpressionInvalid": { "message": "無効な正規表現" },
-  "validationJumpToIssue": { "message": "この問題に移動" },
-  "optionsKeepEditing": { "message": "編集を続ける" },
-  "optionsDiscardChanges": { "message": "変更を破棄" },
+  "matchPatternInvalid": {
+    "message": "無効な WebExtension マッチパターン"
+  },
+  "regularExpressionInvalid": {
+    "message": "無効な正規表現"
+  },
+  "validationJumpToIssue": {
+    "message": "この問題に移動"
+  },
+  "optionsKeepEditing": {
+    "message": "編集を続ける"
+  },
+  "optionsDiscardChanges": {
+    "message": "変更を破棄"
+  },
   "restoreDefaultsConfirm": {
     "message": "すべての設定を既定値に戻しますか？ダウンロード履歴は保持されます。"
   },
-  "restoreDefaultsCancel": { "message": "現在の設定を保持" },
-  "restoreDefaultsSuccess": { "message": "既定の設定を復元しました。" },
-  "restoreDefaultsFailure": { "message": "既定の設定を復元できませんでした。" },
-  "referenceCaption": { "message": "リファレンス" },
-  "referenceColumnSyntax": { "message": "構文" },
-  "referenceColumnExample": { "message": "例" },
-  "referenceColumnMeaning": { "message": "意味" },
+  "restoreDefaultsCancel": {
+    "message": "現在の設定を保持"
+  },
+  "restoreDefaultsSuccess": {
+    "message": "既定の設定を復元しました。"
+  },
+  "restoreDefaultsFailure": {
+    "message": "既定の設定を復元できませんでした。"
+  },
+  "referenceCaption": {
+    "message": "リファレンス"
+  },
+  "referenceColumnSyntax": {
+    "message": "構文"
+  },
+  "referenceColumnExample": {
+    "message": "例"
+  },
+  "referenceColumnMeaning": {
+    "message": "意味"
+  },
   "referenceResult": {
     "message": "$COUNT$ 件",
-    "placeholders": { "count": { "content": "$1", "example": "1" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
   },
   "referenceResults": {
     "message": "$COUNT$ 件",
-    "placeholders": { "count": { "content": "$1", "example": "12" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "12"
+      }
+    }
   },
   "referenceCopyValue": {
     "message": "$VALUE$ をコピー",
-    "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
+    "placeholders": {
+      "value": {
+        "content": "$1",
+        "example": ":filename:"
+      }
+    }
   },
   "referenceCopiedValue": {
     "message": "$VALUE$ をコピーしました",
-    "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
+    "placeholders": {
+      "value": {
+        "content": "$1",
+        "example": ":filename:"
+      }
+    }
   },
-  "o_cBrowserDownloadFiltersEnabled": { "message": "一致するダウンロード URL のみを処理" },
+  "o_cBrowserDownloadFiltersEnabled": {
+    "message": "一致するダウンロード URL のみを処理"
+  },
   "o_cBrowserDownloadFiltersEnabledHelp": {
     "message": "Save In の履歴追跡とルーティングに適用されます。"
   },
@@ -2703,37 +3114,69 @@
   "o_lBrowserDownloadVariablesUnavailable": {
     "message": "ページタイトル、ページ URL、リンクテキスト、選択範囲、メニューメタデータ、修飾キーは使用できません。"
   },
-  "welcomeTitle": { "message": "Save In へようこそ" },
+  "welcomeTitle": {
+    "message": "Save In へようこそ"
+  },
   "welcomeIntro": {
     "message": "Save In の準備ができました。右クリックメニューを使って、画像、リンク、選択したテキスト、メディア、ページを選択したフォルダーに保存できます。"
   },
-  "welcomeStepRightClick": { "message": "保存したい項目を右クリックします。" },
-  "welcomeStepChooseSaveIn": { "message": "メニューから Save In… を選択します。" },
-  "welcomeStepPickFolder": { "message": "初期フォルダーを選択します。" },
+  "welcomeStepRightClick": {
+    "message": "保存したい項目を右クリックします。"
+  },
+  "welcomeStepChooseSaveIn": {
+    "message": "メニューから Save In… を選択します。"
+  },
+  "welcomeStepPickFolder": {
+    "message": "初期フォルダーを選択します。"
+  },
   "welcomeStarterNote": {
     "message": "初期フォルダーはすでに有効です。いつでもカスタマイズできます。"
   },
   "welcomeToolbarNote": {
     "message": "ツールバーボタンからページソースを開き、現在のページにあるメディアを検索できます。"
   },
-  "welcomePermissions": { "message": "これらの権限が必要な理由" },
-  "welcomeCustomizeFolders": { "message": "フォルダーをカスタマイズ" },
-  "welcomeUseEmptyPreset": { "message": "ダウンロードフォルダーのみを使用" },
+  "welcomePermissions": {
+    "message": "これらの権限が必要な理由"
+  },
+  "welcomeCustomizeFolders": {
+    "message": "フォルダーをカスタマイズ"
+  },
+  "welcomeUseEmptyPreset": {
+    "message": "ダウンロードフォルダーのみを使用"
+  },
   "welcomeEmptyPresetFailed": {
     "message": "ダウンロードフォルダーのみに切り替えられませんでした。現在のフォルダーは変更されていません。"
   },
-  "welcomeEmptyConfirmTitle": { "message": "現在のフォルダーを置き換えますか？" },
+  "welcomeEmptyConfirmTitle": {
+    "message": "現在のフォルダーを置き換えますか？"
+  },
   "welcomeEmptyConfirmDescription": {
     "message": "現在のフォルダー設定を置き換え、ブラウザーのダウンロード先だけを残します。"
   },
-  "welcomeKeepCurrentFolders": { "message": "現在のフォルダーを保持" },
-  "welcomeUseStarterFolders": { "message": "初期フォルダーを保持" },
-  "welcomeUsingStarterSettings": { "message": "たった今" },
-  "html_showWelcomeGuide": { "message": "ウェルカムガイドを表示" },
-  "advancedFilesDownloads": { "message": "ファイルとダウンロード" },
-  "advancedMaintenanceDiagnostics": { "message": "メンテナンスと診断" },
-  "webhookStateOn": { "message": "オン" },
-  "webhookStateOff": { "message": "オフ" },
+  "welcomeKeepCurrentFolders": {
+    "message": "現在のフォルダーを保持"
+  },
+  "welcomeUseStarterFolders": {
+    "message": "初期フォルダーを保持"
+  },
+  "welcomeUsingStarterSettings": {
+    "message": "たった今"
+  },
+  "html_showWelcomeGuide": {
+    "message": "ウェルカムガイドを表示"
+  },
+  "advancedFilesDownloads": {
+    "message": "ファイルとダウンロード"
+  },
+  "advancedMaintenanceDiagnostics": {
+    "message": "メンテナンスと診断"
+  },
+  "webhookStateOn": {
+    "message": "オン"
+  },
+  "webhookStateOff": {
+    "message": "オフ"
+  },
   "pathTextEmptyExample": {
     "message": "images\ndocuments/:year:/:month:"
   },
@@ -2926,40 +3369,86 @@
   "diagnosticsSummaryHelp": {
     "message": "ワーカーの状態、ライフサイクル、最近の失敗"
   },
-  "diagnosticsRefresh": { "message": "更新" },
-  "diagnosticsCopy": { "message": "診断情報をコピー" },
-  "diagnosticsBackground": { "message": "バックグラウンド" },
-  "diagnosticsHost": { "message": "ホスト" },
-  "diagnosticsExtension": { "message": "拡張機能" },
-  "diagnosticsBrowser": { "message": "ブラウザー" },
-  "diagnosticsWorkerStarted": { "message": "ワーカー開始" },
-  "diagnosticsSessionStorage": { "message": "セッションストレージ" },
-  "diagnosticsVerboseLogging": { "message": "詳細ログ" },
-  "diagnosticsConfigurationIssues": { "message": "設定の問題" },
-  "diagnosticsLifecycle": { "message": "ライフサイクル" },
+  "diagnosticsRefresh": {
+    "message": "更新"
+  },
+  "diagnosticsCopy": {
+    "message": "診断情報をコピー"
+  },
+  "diagnosticsBackground": {
+    "message": "バックグラウンド"
+  },
+  "diagnosticsHost": {
+    "message": "ホスト"
+  },
+  "diagnosticsExtension": {
+    "message": "拡張機能"
+  },
+  "diagnosticsBrowser": {
+    "message": "ブラウザー"
+  },
+  "diagnosticsWorkerStarted": {
+    "message": "ワーカー開始"
+  },
+  "diagnosticsSessionStorage": {
+    "message": "セッションストレージ"
+  },
+  "diagnosticsVerboseLogging": {
+    "message": "詳細ログ"
+  },
+  "diagnosticsConfigurationIssues": {
+    "message": "設定の問題"
+  },
+  "diagnosticsLifecycle": {
+    "message": "ライフサイクル"
+  },
   "diagnosticsLifecycleHelp": {
     "message": "最近のバックグラウンド起動、設定の再読み込み、拡張機能の更新。診断を開くとバックグラウンドが起動します。"
   },
   "diagnosticsFailuresHelp": {
     "message": "このブラウザーセッションで最近発生したローカルの失敗です。ブラウザーのエラーにはサイトやファイルの詳細が含まれる場合があるため、共有前に内容を確認してください。"
   },
-  "diagnosticsClearFailures": { "message": "失敗を消去" },
-  "diagnosticsDeveloperLogging": { "message": "開発者ログ" },
+  "diagnosticsClearFailures": {
+    "message": "失敗を消去"
+  },
+  "diagnosticsDeveloperLogging": {
+    "message": "開発者ログ"
+  },
   "diagnosticsDurationMs": {
     "message": "$COUNT$ ミリ秒",
-    "placeholders": { "count": { "content": "$1", "example": "42" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "42"
+      }
+    }
   },
   "diagnosticsDurationSeconds": {
     "message": "$COUNT$ 秒",
-    "placeholders": { "count": { "content": "$1", "example": "4" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "4"
+      }
+    }
   },
   "diagnosticsDurationMinutes": {
     "message": "$COUNT$ 分",
-    "placeholders": { "count": { "content": "$1", "example": "3" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
   },
   "diagnosticsLifecycleBackgroundReady": {
     "message": "バックグラウンドが $DURATION$ で準備完了になりました。",
-    "placeholders": { "duration": { "content": "$1", "example": "120 ms" } }
+    "placeholders": {
+      "duration": {
+        "content": "$1",
+        "example": "120 ms"
+      }
+    }
   },
   "diagnosticsLifecycleBackgroundFailed": {
     "message": "バックグラウンドの起動に失敗しました。"
@@ -2972,7 +3461,12 @@
   },
   "diagnosticsLifecycleExtensionUpdatedFrom": {
     "message": "拡張機能を $VERSION$ から更新しました。",
-    "placeholders": { "version": { "content": "$1", "example": "3.9.1" } }
+    "placeholders": {
+      "version": {
+        "content": "$1",
+        "example": "3.9.1"
+      }
+    }
   },
   "diagnosticsLifecycleExtensionUpdated": {
     "message": "拡張機能を更新しました。"
@@ -2983,43 +3477,92 @@
   "diagnosticsLifecycleEmpty": {
     "message": "ライフサイクルイベントはまだありません。"
   },
-  "diagnosticsWorkerStarting": { "message": "起動中" },
-  "diagnosticsWorkerReady": { "message": "実行中 · 準備完了" },
-  "diagnosticsWorkerFailed": { "message": "起動失敗" },
-  "diagnosticsHostServiceWorker": { "message": "MV3 サービスワーカー" },
-  "diagnosticsHostEventPage": { "message": "MV3 イベントページ" },
-  "diagnosticsBrowserUnknown": { "message": "不明なブラウザー" },
+  "diagnosticsWorkerStarting": {
+    "message": "起動中"
+  },
+  "diagnosticsWorkerReady": {
+    "message": "実行中 · 準備完了"
+  },
+  "diagnosticsWorkerFailed": {
+    "message": "起動失敗"
+  },
+  "diagnosticsHostServiceWorker": {
+    "message": "MV3 サービスワーカー"
+  },
+  "diagnosticsHostEventPage": {
+    "message": "MV3 イベントページ"
+  },
+  "diagnosticsBrowserUnknown": {
+    "message": "不明なブラウザー"
+  },
   "diagnosticsStartedWithUptime": {
     "message": "$TIME$ · 稼働時間 $UPTIME$",
     "placeholders": {
-      "time": { "content": "$1", "example": "Jul 15, 2026, 4:10 PM" },
-      "uptime": { "content": "$2", "example": "3 min" }
+      "time": {
+        "content": "$1",
+        "example": "Jul 15, 2026, 4:10 PM"
+      },
+      "uptime": {
+        "content": "$2",
+        "example": "3 min"
+      }
     }
   },
   "diagnosticsConfigurationIssueCount": {
     "message": "$PATHS$ 件のパス · $ROUTING$ 件のルーティング",
     "placeholders": {
-      "paths": { "content": "$1", "example": "0" },
-      "routing": { "content": "$2", "example": "1" }
+      "paths": {
+        "content": "$1",
+        "example": "0"
+      },
+      "routing": {
+        "content": "$2",
+        "example": "1"
+      }
     }
   },
-  "diagnosticsAvailable": { "message": "利用可能" },
-  "diagnosticsUnavailable": { "message": "利用不可" },
-  "diagnosticsOn": { "message": "オン" },
-  "diagnosticsOff": { "message": "オフ" },
-  "diagnosticsFailuresEmpty": { "message": "最近の失敗はありません。" },
-  "diagnosticsChecking": { "message": "バックグラウンドを確認中…" },
+  "diagnosticsAvailable": {
+    "message": "利用可能"
+  },
+  "diagnosticsUnavailable": {
+    "message": "利用不可"
+  },
+  "diagnosticsOn": {
+    "message": "オン"
+  },
+  "diagnosticsOff": {
+    "message": "オフ"
+  },
+  "diagnosticsFailuresEmpty": {
+    "message": "最近の失敗はありません。"
+  },
+  "diagnosticsChecking": {
+    "message": "バックグラウンドを確認中…"
+  },
   "diagnosticsCheckedAt": {
     "message": "$TIME$ に確認",
     "placeholders": {
-      "time": { "content": "$1", "example": "Jul 15, 2026, 4:10 PM" }
+      "time": {
+        "content": "$1",
+        "example": "Jul 15, 2026, 4:10 PM"
+      }
     }
   },
-  "diagnosticsLoadFailed": { "message": "診断情報を読み込めませんでした。" },
-  "diagnosticsCopySuccess": { "message": "診断情報をコピーしました。" },
-  "diagnosticsCopyFailed": { "message": "診断情報をコピーできませんでした。" },
-  "diagnosticsClearSuccess": { "message": "最近の失敗を消去しました。" },
-  "diagnosticsClearFailed": { "message": "最近の失敗を消去できませんでした。" },
+  "diagnosticsLoadFailed": {
+    "message": "診断情報を読み込めませんでした。"
+  },
+  "diagnosticsCopySuccess": {
+    "message": "診断情報をコピーしました。"
+  },
+  "diagnosticsCopyFailed": {
+    "message": "診断情報をコピーできませんでした。"
+  },
+  "diagnosticsClearSuccess": {
+    "message": "最近の失敗を消去しました。"
+  },
+  "diagnosticsClearFailed": {
+    "message": "最近の失敗を消去できませんでした。"
+  },
   "sourcePanelSelectFiltered": {
     "message": "絞り込み結果を選択"
   },
@@ -3037,7 +3580,12 @@
   },
   "sourcePanelHiddenSelectedCount": {
     "message": "$COUNT$件が非表示",
-    "placeholders": { "count": { "content": "$1", "example": "2" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
   },
   "sourcePanelSaveSelected": {
     "message": "選択項目を保存"
@@ -3078,35 +3626,73 @@
   "sourcePanelCreateAutomaticRule": {
     "message": "自動ルールを作成"
   },
-  "savedSettingUpdated": { "message": "設定を更新しました" },
+  "savedSettingUpdated": {
+    "message": "設定を更新しました"
+  },
   "savedSettingsUpdated": {
     "message": "$COUNT$ 件の設定を更新しました",
-    "placeholders": { "count": { "content": "$1", "example": "3" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
   },
-  "savedUndo": { "message": "元に戻す" },
-  "savedUndoFailed": { "message": "元に戻せませんでした — 選択して再試行" },
+  "savedUndo": {
+    "message": "元に戻す"
+  },
+  "savedUndoFailed": {
+    "message": "元に戻せませんでした — 選択して再試行"
+  },
   "savedUndoBlocked": {
     "message": "元に戻す前に、他の編集を完了または破棄してください。"
   },
-  "externalApiUnknown": { "message": "不明" },
-  "externalApiUnavailable": { "message": "利用不可" },
+  "externalApiUnknown": {
+    "message": "不明"
+  },
+  "externalApiUnavailable": {
+    "message": "利用不可"
+  },
   "externalBlockedAttemptOne": {
     "message": "ブロックされた試行 $COUNT$ 件",
-    "placeholders": { "count": { "content": "$1", "example": "1" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
   },
   "externalBlockedAttemptMany": {
     "message": "ブロックされた試行 $COUNT$ 件",
-    "placeholders": { "count": { "content": "$1", "example": "3" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
   },
-  "externalRequestActiveTab": { "message": "アクティブタブのリクエスト" },
-  "externalRequestUrl": { "message": "URL リクエスト" },
-  "externalRequestDownload": { "message": "ダウンロードリクエスト" },
-  "externalApprove": { "message": "承認" },
-  "externalApproving": { "message": "承認中…" },
+  "externalRequestActiveTab": {
+    "message": "アクティブタブのリクエスト"
+  },
+  "externalRequestUrl": {
+    "message": "URL リクエスト"
+  },
+  "externalRequestDownload": {
+    "message": "ダウンロードリクエスト"
+  },
+  "externalApprove": {
+    "message": "承認"
+  },
+  "externalApproving": {
+    "message": "承認中…"
+  },
   "externalApprovalFailed": {
     "message": "$ID$ を承認できませんでした。",
     "placeholders": {
-      "id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" }
+      "id": {
+        "content": "$1",
+        "example": "abcdefghijklmnopabcdefghijklmnop"
+      }
     }
   },
   "externalRejectionsLoadFailed": {
@@ -3114,13 +3700,25 @@
   },
   "referenceInsertValue": {
     "message": "$VALUE$ を挿入",
-    "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
+    "placeholders": {
+      "value": {
+        "content": "$1",
+        "example": ":filename:"
+      }
+    }
   },
   "versionViewReleases": {
     "message": "Save In v$VERSION$ — リリースを表示",
-    "placeholders": { "version": { "content": "$1", "example": "4.0.0" } }
+    "placeholders": {
+      "version": {
+        "content": "$1",
+        "example": "4.0.0"
+      }
+    }
   },
-  "html_advancedFetchADifferentUrl": { "message": "詳細: 別のURLを取得する" },
+  "html_advancedFetchADifferentUrl": {
+    "message": "詳細: 別のURLを取得する"
+  },
   "html_captureReferencesAndRoutingVariablesSubstituteVerbatim": {
     "message": "、キャプチャ参照とルーティング変数はそのまま置き換わり、ファイル名のサニタイズは行われません。"
   },
@@ -3136,68 +3734,154 @@
   "html_fetchClauseCompatibility": {
     "message": "通常のブラウザーダウンロードのルーティングではスキップされます。名前の変更はできますが、URLの置き換えはできません。メニュー、クリックして保存、自動保存では引き続き使用されます。"
   },
-  "html_orLiteral": { "message": "または" },
+  "html_orLiteral": {
+    "message": "または"
+  },
   "html_stillControlsTheDestinationAndFilename": {
     "message": "は引き続き保存先とファイル名を制御します。"
   },
   "html_stillSetsTheDestinationAndFilenameMustStartWith": {
     "message": "は引き続き保存先とファイル名を設定します。次で始める必要があります"
   },
-  "routeDebuggerFetchTemplate": { "message": "書き換えテンプレート" },
-  "routeDebuggerRewrittenUrl": { "message": "書き換え後のURL" },
+  "routeDebuggerFetchTemplate": {
+    "message": "書き換えテンプレート"
+  },
+  "routeDebuggerRewrittenUrl": {
+    "message": "書き換え後のURL"
+  },
   "routeVisualFetchAccessible": {
     "message": "ルール $RULE$: ダウンロードURLを書き換え",
-    "placeholders": { "rule": { "content": "$1", "example": "2" } }
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
   },
-  "routeVisualFetchLabel": { "message": "ダウンロードURLを書き換え" },
-  "ruleTemplateCategorySiteFiling": { "message": "サイト別整理" },
-  "ruleTemplateCategorySiteOriginals": { "message": "サイトの元データ" },
+  "routeVisualFetchLabel": {
+    "message": "ダウンロードURLを書き換え"
+  },
+  "ruleTemplateCategorySiteFiling": {
+    "message": "サイト別整理"
+  },
+  "ruleTemplateCategorySiteOriginals": {
+    "message": "サイトの元データ"
+  },
   "ruleTemplateDeviantArtRenameDescription": {
     "message": "DeviantArtのハッシュ化されたダウンロードファイル名を作品タイトルと短縮コードに変更します"
   },
-  "ruleTemplateDeviantArtRenameName": { "message": "DeviantArtのハッシュファイル名を変更" },
+  "ruleTemplateDeviantArtRenameName": {
+    "message": "DeviantArtのハッシュファイル名を変更"
+  },
   "ruleTemplateInstagramUsernamePrefixDescription": {
     "message": "保存したファイルにページタイトルから取得したInstagramのユーザー名を先頭に追加します"
   },
-  "ruleTemplateInstagramUsernamePrefixName": { "message": "Instagramのユーザー名を先頭に追加" },
+  "ruleTemplateInstagramUsernamePrefixName": {
+    "message": "Instagramのユーザー名を先頭に追加"
+  },
   "ruleTemplatePagePathNoSchemeDescription": {
     "message": "ページURLのホストとパスからフォルダーを作成し、ファイル名を壊す原因となる https:// のスキームを除きます"
   },
-  "ruleTemplatePagePathNoSchemeName": { "message": "スキームを除いたページパス" },
+  "ruleTemplatePagePathNoSchemeName": {
+    "message": "スキームを除いたページパス"
+  },
   "ruleTemplateRedditOriginalsDescription": {
     "message": "Redditのプレビュー画像リンクを i.redd.it の元ファイルに書き換えます"
   },
-  "ruleTemplateRedditOriginalsName": { "message": "Reddit画像の元データ" },
+  "ruleTemplateRedditOriginalsName": {
+    "message": "Reddit画像の元データ"
+  },
   "ruleTemplateSluggedTitleRenameDescription": {
     "message": "ファイル名をページタイトルの小文字ハイフン区切りスラッグに置き換え、元の拡張子は保持します(ファイル名の汎用的な検索置換には対応していません)"
   },
-  "ruleTemplateSluggedTitleRenameName": { "message": "タイトルスラッグへのファイル名変更" },
+  "ruleTemplateSluggedTitleRenameName": {
+    "message": "タイトルスラッグへのファイル名変更"
+  },
   "ruleTemplateTwitterHandlePrefixDescription": {
     "message": "保存したファイルにページURLから取得したTwitterまたはXのハンドルを先頭に追加します"
   },
-  "ruleTemplateTwitterHandlePrefixName": { "message": "Twitter/Xのハンドルを先頭に追加" },
+  "ruleTemplateTwitterHandlePrefixName": {
+    "message": "Twitter/Xのハンドルを先頭に追加"
+  },
   "ruleTemplateTwitterOriginalsDescription": {
     "message": "TwitterとXの画像リンクを元のフル解像度ファイルに書き換えます"
   },
-  "ruleTemplateTwitterOriginalsName": { "message": "Twitter/X画像の元データ" },
+  "ruleTemplateTwitterOriginalsName": {
+    "message": "Twitter/X画像の元データ"
+  },
   "ruleTemplateWikimediaOriginalDescription": {
     "message": "Wikimedia Commonsのサムネイルリンクを元のフルサイズファイルに書き換えます"
   },
-  "ruleTemplateWikimediaOriginalName": { "message": "Wikimediaのフルサイズ画像" },
+  "ruleTemplateWikimediaOriginalName": {
+    "message": "Wikimediaのフルサイズ画像"
+  },
   "ruleTemplateYoutubeMaxResDescription": {
     "message": "YouTubeのサムネイルリンクを最大解像度の画像に書き換えます"
   },
-  "ruleTemplateYoutubeMaxResName": { "message": "YouTubeサムネイルの最大解像度" },
-  "ruleExtraFetch": { "message": "ルールには fetch: 句を 1 つだけ含めることができます" },
+  "ruleTemplateYoutubeMaxResName": {
+    "message": "YouTubeサムネイルの最大解像度"
+  },
+  "ruleExtraFetch": {
+    "message": "ルールには fetch: 句を 1 つだけ含めることができます"
+  },
   "ruleFetchNotHttp": {
     "message": "fetch: のアドレスは http:// または https:// で始める必要があります"
   },
   "ruleFetchUnsupportedVariable": {
     "message": "fetch: のアドレスではこの変数はサポートされていません"
   },
-  "savedValueOff": { "message": "オフ" },
-  "savedValueOn": { "message": "オン" },
-  "o_lUiThemeGildedMosaic": { "message": "黄金のモザイク" },
-  "o_lUiThemeBlueHouse": { "message": "青い家" },
-  "o_lUiThemePrimaryGrid": { "message": "原色のグリッド" }
+  "savedValueOff": {
+    "message": "オフ"
+  },
+  "savedValueOn": {
+    "message": "オン"
+  },
+  "o_lUiThemeGildedMosaic": {
+    "message": "黄金のモザイク"
+  },
+  "o_lUiThemeBlueHouse": {
+    "message": "青い家"
+  },
+  "o_lUiThemePrimaryGrid": {
+    "message": "原色のグリッド"
+  },
+  "ruleExtraRename": {
+    "message": "ルールには rename: 句を 1 つだけ含めることができます"
+  },
+  "ruleRenameMissingSeparator": {
+    "message": "パターンと置換テキストは ' -> ' で区切ってください"
+  },
+  "html_renameReplacesMatchesInTheFinalFilename": {
+    "message": "最終ファイル名内で正規表現に一致した部分を、次の区切りの後にあるリテラルテキストに置き換えます:"
+  },
+  "html_renameReplacementExpandsVariables": {
+    "message": "。置換テキストが空の場合は一致部分を削除します。置換テキストではルーティング変数や次のようなキャプチャ参照が展開されます:"
+  },
+  "html_renameClauseCompatibility": {
+    "message": "ファイル名が完全に解決された後（fetch: の書き換えを含む）、長さ制限の前に適用されます。フォルダーには影響しません。記録された通常のブラウザーダウンロードの名前も変更します。パターン内でリテラルの ' -> ' を使うには、スペースをエスケープして書きます (\\x20->)。"
+  },
+  "html_advancedRenameTheSavedFile": {
+    "message": "詳細: 保存するファイルの名前を変更する"
+  },
+  "html_renameGuideDescription": {
+    "message": "は最終ファイル名を編集します。' -> ' の前のパターンは正規表現で、その後のリテラル置換テキストではルーティング変数とキャプチャ参照を使用できます。フォルダーには影響しません。"
+  },
+  "routeVisualRenameLabel": {
+    "message": "ファイル名を変更"
+  },
+  "routeVisualRenameAccessible": {
+    "message": "ルール $RULE$: ファイル名を変更",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "routeDebuggerRenameTemplate": {
+    "message": "名前の変更"
+  },
+  "routeDebuggerRenamedName": {
+    "message": "変更後の名前"
+  }
 }

@@ -405,6 +405,11 @@ export const setupRouteDebugger = (): void => {
       if (selected && trace.destination) {
         const routePipeline = document.createElement("dl");
         routePipeline.className = "route-debugger-pipeline";
+        const rename = trace.selectedRename ?? null;
+        const renamed =
+          typeof trace.renamedFrom === "string" && typeof trace.renamedTo === "string"
+            ? `${trace.renamedFrom} → ${trace.renamedTo}`
+            : null;
         const stages: Array<[string, string | null]> = [
           // fetch: rewrites the download URL before destination variables
           // expand, so these two stages sit ahead of the path pipeline and stay
@@ -415,6 +420,15 @@ export const setupRouteDebugger = (): void => {
           ],
           [localize("routeDebuggerRewrittenUrl", "Rewritten URL"), trace.rewrittenUrl ?? null],
           [localize("routeDebuggerExpanded", "Expanded path"), trace.expandedDestination],
+          // rename: edits the final filename component between expansion and
+          // sanitization; both stages stay hidden for rules without one.
+          [
+            localize("routeDebuggerRenameTemplate", "Rename"),
+            rename
+              ? `${rename.find}${rename.flags ? `/${rename.flags}` : ""} → ${rename.replacement}`
+              : null,
+          ],
+          [localize("routeDebuggerRenamedName", "Renamed name"), renamed],
           [localize("routeDebuggerFinalPath", "Final path"), trace.finalPath],
         ];
         stages.forEach(([label, value]) => {

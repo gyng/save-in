@@ -90,6 +90,7 @@ export type ClauseGroup = (typeof CLAUSE_GROUPS)[number];
 const CLAUSE_ORDER = [
   "into",
   "fetch",
+  "rename",
   "capture",
   "capturegroups",
   "context",
@@ -122,10 +123,10 @@ const clauseName = (clause: string) => clause.replace(/[:/].*/, "").toLocaleLowe
 
 export const clauseGroup = (clause: string): ClauseGroup => {
   const name = clauseName(clause);
-  // fetch: chooses what gets downloaded, same as into: chooses where — group
-  // them together so the reference table doesn't split one output decision
-  // across two headings.
-  if (name === "into" || name === "fetch") return "Output";
+  // fetch: chooses what gets downloaded and rename: edits the final name,
+  // same as into: chooses where — group them together so the reference table
+  // doesn't split one output decision across several headings.
+  if (name === "into" || name === "fetch" || name === "rename") return "Output";
   if (name === "capture" || name === "capturegroups") return "Capture setup";
   if (/^(context|menuindex|comment|linktext|selectiontext)$/.test(name))
     return "Page and menu context";

@@ -330,4 +330,48 @@ describe("syntax editor model", () => {
       ":sha256full:",
     ]);
   });
+
+  test("highlights a rename clause as regex, separator, and replacement", () => {
+    const source = "filename: a\nrename/gi: ^img_(\\d+) -> photo-:$1:";
+    const snapshot = analyzeSyntax("routing", source);
+    const byKind = (kind: string) =>
+      snapshot.tokens
+        .filter((candidate) => candidate.kind === kind)
+        .map(({ start, end }) => tokenText(source, start, end));
+
+    expect(byKind("destination")).toContain("rename");
+    expect(byKind("flags")).toContain("gi");
+    expect(byKind("regex")).toContain("^img_(\\d+)");
+    expect(byKind("punctuation")).toContain(" -> ");
+    expect(byKind("destination-value")).toContain("photo-:$1:");
+    expect(byKind("variable")).toContain(":$1:");
+  });
+
+  test("a rename clause without a separator highlights the value as one regex", () => {
+    const source = "rename: no-separator";
+    const snapshot = analyzeSyntax("routing", source);
+    const regexToken = snapshot.tokens.find((candidate) => candidate.kind === "regex");
+    expect(regexToken && source.slice(regexToken.start, regexToken.end)).toBe("no-separator");
+  });
+
+  test("completes variables only in the rename replacement side", () => {
+    const vocabulary = {
+      matchers: ["filename"],
+      variables: [":pagedomain:", ":mime:"],
+    };
+
+    // Metadata-dependent variables stay available: the rename applies at the
+    // filename stage, where the pipeline can resolve them.
+    const replacement = "rename: a -> :";
+    expect(completeRoutingSyntax(replacement, replacement.length, vocabulary)?.suggestions).toEqual(
+      [":pagedomain:", ":mime:"],
+    );
+
+    // The find side is a regex, so ":" there must not open variable completion.
+    const find = "rename: :m -> x";
+    expect(completeRoutingSyntax(find, "rename: :".length, vocabulary)).toBeNull();
+
+    const missingSeparator = "rename: a:";
+    expect(completeRoutingSyntax(missingSeparator, missingSeparator.length, vocabulary)).toBeNull();
+  });
 });

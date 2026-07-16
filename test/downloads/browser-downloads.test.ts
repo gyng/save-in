@@ -168,10 +168,13 @@ describe("browser download routing", () => {
     });
     try {
       await expect(
-        routeBrowserDownload({ getRoutingMatches, resolveRenameTransform, finalizeFullPath }, {
-          url: "https://cdn.example/files/cat.jpg",
-          filename: "cat.jpg",
-        }),
+        routeBrowserDownload(
+          { getRoutingMatches, resolveRenameTransform, finalizeFullPath },
+          {
+            url: "https://cdn.example/files/cat.jpg",
+            filename: "cat.jpg",
+          },
+        ),
       ).resolves.toBe("browser/dog.jpg");
     } finally {
       Object.assign(options, previous);

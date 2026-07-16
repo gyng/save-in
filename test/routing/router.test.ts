@@ -1109,6 +1109,14 @@ into: captures/:$1:/:$2:`,
       expect(trace.sanitizedDestination).toBe("pdfs/");
       expect(trace.renamedFrom).toBe("report.pdf");
       expect(trace.renamedTo).toBe("report.archive.pdf");
+
+      // Without a resolved name yet there is nothing to rename.
+      const namelessRules = router.parseRules("sourceurl: \\.pdf$\nrename: a -> b\ninto: pdfs/");
+      const nameless = await router.traceRules(namelessRules, {
+        sourceUrl: "https://x.example/report.pdf",
+      });
+      expect(nameless.selectedRule).toBe(1);
+      expect(nameless.renamedFrom).toBe("");
     });
 
     test("rules without rename trace null rename fields", async () => {

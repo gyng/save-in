@@ -78,6 +78,38 @@ test.each([
   expect(parseRouteDebuggerTrace(value)).toBeNull();
 });
 
+test("carries rename fields and tolerates their absence", () => {
+  const withRename = {
+    ...trace,
+    selectedRename: { find: "^img_", flags: "gi", replacement: "photo-" },
+    renamedFrom: "img_042.jpg",
+    renamedTo: "photo-042.jpg",
+  };
+  expect(parseRouteDebuggerTrace(withRename)).toEqual(withRename);
+
+  const plain = parseRouteDebuggerTrace({
+    ...trace,
+    selectedRename: null,
+    renamedFrom: null,
+    renamedTo: null,
+  });
+  expect(plain).toMatchObject({ selectedRename: null, renamedFrom: null, renamedTo: null });
+
+  // A trace from an older background omits the fields entirely.
+  const legacy = parseRouteDebuggerTrace(trace);
+  expect(legacy).not.toBeNull();
+  expect(legacy && "selectedRename" in legacy).toBe(false);
+});
+
+test.each([
+  { ...trace, selectedRename: "a -> b" },
+  { ...trace, selectedRename: { find: "a", flags: "g" } },
+  { ...trace, renamedFrom: 4 },
+  { ...trace, renamedTo: 4 },
+])("rejects malformed rename fields", (value) => {
+  expect(parseRouteDebuggerTrace(value)).toBeNull();
+});
+
 test("accepts an optional rule name and rejects malformed names", () => {
   const named = {
     ...trace,

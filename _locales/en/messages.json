@@ -951,6 +951,18 @@
     "message": "Skipped by ordinary browser-download routing, which can only rename—not swap URLs. Menu, click-to-save, and automatic saves still use it.",
     "description": "Compatibility guidance in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
   },
+  "html_renameReplacesMatchesInTheFinalFilename": {
+    "message": "Replaces regular-expression matches in the final filename with the literal text after",
+    "description": "Start of the rename: clause description in the routing-clause reference; a code sample of the ' -> ' separator follows. Used in src/options/clauselist.html and src/options/options.html."
+  },
+  "html_renameReplacementExpandsVariables": {
+    "message": "; an empty replacement deletes matches, and the replacement expands routing variables and capture references such as",
+    "description": "Continuation of the rename: clause description; a code sample of :$1: follows. Used in src/options/clauselist.html and src/options/options.html."
+  },
+  "html_renameClauseCompatibility": {
+    "message": "Applies after the filename fully resolves (including fetch: rewrites) and before length limits — folders are never affected. It also renames tracked ordinary browser downloads. Write a literal ' -> ' in the pattern with an escaped space (\\x20->).",
+    "description": "Compatibility guidance for the rename: clause in the routing-clause reference. Keep the literal tokens fetch:, ' -> ', and \\x20-> unchanged. Used in src/options/clauselist.html and src/options/options.html."
+  },
   "html_stringsAddJavascriptRegexFlagsAfterTheMatcherName": {
     "message": ". Add JavaScript flags after the matcher name; for example, use",
     "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
@@ -1716,6 +1728,14 @@
   "html_advancedFetchADifferentUrl": {
     "message": "Advanced: fetch a different URL",
     "description": "Text in the options page. Used in src/options/options.html."
+  },
+  "html_advancedRenameTheSavedFile": {
+    "message": "Advanced: rename the saved file",
+    "description": "Summary of the rename: clause guide disclosure on the options page. Used in src/options/options.html."
+  },
+  "html_renameGuideDescription": {
+    "message": "edits the final filename: the pattern before ' -> ' is a regular expression, and the literal replacement after it may use routing variables and capture references. Folders are never affected.",
+    "description": "Guide text for the rename: clause on the options page; follows a code sample reading \"rename:\". Keep the literal ' -> ' token. Used in src/options/options.html."
   },
   "html_advancedUseCaptureGroups": {
     "message": "Advanced: use capture groups",
@@ -3739,6 +3759,20 @@
       }
     }
   },
+  "routeVisualRenameLabel": {
+    "message": "Rename the file",
+    "description": "Label for the rename: clause row that edits the final filename in the visual routing editor. Used in src/options/rule-visual-editor.ts."
+  },
+  "routeVisualRenameAccessible": {
+    "message": "Rule $RULE$: rename the file",
+    "description": "Accessible label for the rename: find-and-replacement field of a routing rule. Used in src/options/rule-visual-editor.ts.",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
   "routeVisualIgnoreCaseHelp": {
     "message": "Match uppercase and lowercase letters",
     "description": "Tooltip explaining case-insensitive matching in the visual routing editor. Used in src/options/rule-visual-editor.ts."
@@ -3918,6 +3952,14 @@
   "routeDebuggerRewrittenUrl": {
     "message": "Rewritten URL",
     "description": "Route debugger pipeline label for the fully expanded URL a fetch: clause downloads instead. Used in src/options/route-debugger.ts."
+  },
+  "routeDebuggerRenameTemplate": {
+    "message": "Rename",
+    "description": "Route debugger pipeline label for the rename: find-and-replacement transform of the winning rule, with captures substituted. Used in src/options/route-debugger.ts."
+  },
+  "routeDebuggerRenamedName": {
+    "message": "Renamed name",
+    "description": "Route debugger pipeline label showing the final filename component before and after the rename: transform applied. Used in src/options/route-debugger.ts."
   },
   "routeDebuggerExpanded": {
     "message": "Expanded path",

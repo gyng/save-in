@@ -1,5 +1,7 @@
 {
-  "ruleTemplatePdfsByContentTypeName": { "message": "按内容类型分类 PDF" },
+  "ruleTemplatePdfsByContentTypeName": {
+    "message": "按内容类型分类 PDF"
+  },
   "ruleTemplatePdfsByContentTypeDescription": {
     "message": "根据报告的内容类型而不是文件名识别 PDF"
   },
@@ -27,7 +29,6 @@
   "html_matchesTheRootHostname": {
     "message": "匹配不含子域名的主机名。"
   },
-
   "extensionName": {
     "message": "Save In"
   },
@@ -94,7 +95,9 @@
       }
     }
   },
-  "notificationUndoSave": { "message": "撤销保存" },
+  "notificationUndoSave": {
+    "message": "撤销保存"
+  },
   "notificationRuleMatchedTitle": {
     "message": "Save In：规则匹配"
   },
@@ -1135,24 +1138,51 @@
   },
   "externalApprovedCountOne": {
     "message": "已批准 $COUNT$ 个扩展程序",
-    "placeholders": { "count": { "content": "$1", "example": "1" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
   },
   "externalApprovedCountMany": {
     "message": "已批准 $COUNT$ 个扩展程序",
-    "placeholders": { "count": { "content": "$1", "example": "3" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
   },
-  "externalRemoveApproval": { "message": "移除" },
+  "externalRemoveApproval": {
+    "message": "移除"
+  },
   "externalRemoveApprovalFor": {
     "message": "移除对 $ID$ 的批准",
-    "placeholders": { "id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" } }
+    "placeholders": {
+      "id": {
+        "content": "$1",
+        "example": "abcdefghijklmnopabcdefghijklmnop"
+      }
+    }
   },
   "externalApprovalRemoved": {
     "message": "$ID$ 已不再获批准。",
-    "placeholders": { "id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" } }
+    "placeholders": {
+      "id": {
+        "content": "$1",
+        "example": "abcdefghijklmnopabcdefghijklmnop"
+      }
+    }
   },
   "externalApprovalAdded": {
     "message": "$ID$ 现已获批准。",
-    "placeholders": { "id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" } }
+    "placeholders": {
+      "id": {
+        "content": "$1",
+        "example": "abcdefghijklmnopabcdefghijklmnop"
+      }
+    }
   },
   "html_oneExtensionIdPerLine": {
     "message": "每行一个扩展程序 ID"
@@ -1565,18 +1595,36 @@
   "html_toRouteIntoAFolder": {
     "message": "即可移至文件夹，"
   },
-  "sourcePanelDockFloating": { "message": "浮动" },
+  "sourcePanelDockFloating": {
+    "message": "浮动"
+  },
   "sourcePanelNoMatchesFilter": {
     "message": "没有与“$FILTER$”匹配的来源。",
-    "placeholders": { "filter": { "content": "$1", "example": "poster" } }
+    "placeholders": {
+      "filter": {
+        "content": "$1",
+        "example": "poster"
+      }
+    }
   },
-  "sourcePanelClearFilters": { "message": "清除筛选条件" },
+  "sourcePanelClearFilters": {
+    "message": "清除筛选条件"
+  },
   "sourcePanelSourceCount": {
     "message": "找到的来源：$COUNT$ 个",
-    "placeholders": { "count": { "content": "$1", "example": "12" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "12"
+      }
+    }
   },
-  "sourcePanelEmbeddedSource": { "message": "页面内嵌来源" },
-  "sourcePanelMoreActions": { "message": "更多操作" },
+  "sourcePanelEmbeddedSource": {
+    "message": "页面内嵌来源"
+  },
+  "sourcePanelMoreActions": {
+    "message": "更多操作"
+  },
   "html_webhooks": {
     "message": "Webhook"
   },
@@ -2017,21 +2065,42 @@
   "ruleTemplateViewInEditor": {
     "message": "在规则编辑器中查看"
   },
-  "historyActiveFilters": { "message": "当前历史记录筛选条件" },
-  "historyExportAll": { "message": "全部导出" },
+  "historyActiveFilters": {
+    "message": "当前历史记录筛选条件"
+  },
+  "historyExportAll": {
+    "message": "全部导出"
+  },
   "historyFilterSearch": {
     "message": "搜索：“$QUERY$”",
-    "placeholders": { "query": { "content": "$1", "example": "invoice" } }
+    "placeholders": {
+      "query": {
+        "content": "$1",
+        "example": "invoice"
+      }
+    }
   },
   "historyFilterSince": {
     "message": "自 $DATE$ 起",
-    "placeholders": { "date": { "content": "$1", "example": "2026-07-01" } }
+    "placeholders": {
+      "date": {
+        "content": "$1",
+        "example": "2026-07-01"
+      }
+    }
   },
   "historyFilterThrough": {
     "message": "截至 $DATE$",
-    "placeholders": { "date": { "content": "$1", "example": "2026-07-31" } }
+    "placeholders": {
+      "date": {
+        "content": "$1",
+        "example": "2026-07-31"
+      }
+    }
   },
-  "historyDateRangeInvalid": { "message": "开始日期不得晚于结束日期。" },
+  "historyDateRangeInvalid": {
+    "message": "开始日期不得晚于结束日期。"
+  },
   "historyShowFolderUnavailable": {
     "message": "无法打开文件夹。浏览器已没有此下载的记录。"
   },
@@ -2041,69 +2110,161 @@
   "historyFilteredResultsCount": {
     "message": "$TOTAL$ 个结果中有 $MATCHES$ 个",
     "placeholders": {
-      "matches": { "content": "$1", "example": "12" },
-      "total": { "content": "$2", "example": "50" }
+      "matches": {
+        "content": "$1",
+        "example": "12"
+      },
+      "total": {
+        "content": "$2",
+        "example": "50"
+      }
     }
   },
   "historyResultCountOne": {
     "message": "$COUNT$ 个结果",
-    "placeholders": { "count": { "content": "$1", "example": "1" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
   },
   "historyResultCount": {
     "message": "$COUNT$ 个结果",
-    "placeholders": { "count": { "content": "$1", "example": "24" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "24"
+      }
+    }
   },
   "historyStorageLimit": {
     "message": "历史记录保留在此设备上，最多 10,000 条。"
   },
-  "historyTableCaption": { "message": "已保存的下载历史记录" },
-  "historyShowInFolder": { "message": "在文件夹中显示" },
-  "historyCancelDownload": { "message": "取消" },
-  "historyCancelDownloadTitle": { "message": "取消此下载" },
+  "historyTableCaption": {
+    "message": "已保存的下载历史记录"
+  },
+  "historyShowInFolder": {
+    "message": "在文件夹中显示"
+  },
+  "historyCancelDownload": {
+    "message": "取消"
+  },
+  "historyCancelDownloadTitle": {
+    "message": "取消此下载"
+  },
   "historyCancelDownloadNamed": {
     "message": "取消 $FILE$",
-    "placeholders": { "file": { "content": "$1", "example": "photo.jpg" } }
+    "placeholders": {
+      "file": {
+        "content": "$1",
+        "example": "photo.jpg"
+      }
+    }
   },
-  "historyCancelingDownload": { "message": "正在取消…" },
-  "historyUndoSave": { "message": "撤销保存" },
+  "historyCancelingDownload": {
+    "message": "正在取消…"
+  },
+  "historyUndoSave": {
+    "message": "撤销保存"
+  },
   "historyUndoSaveNamed": {
     "message": "撤销 $FILE$ 的保存",
-    "placeholders": { "file": { "content": "$1", "example": "photo.jpg" } }
+    "placeholders": {
+      "file": {
+        "content": "$1",
+        "example": "photo.jpg"
+      }
+    }
   },
-  "historyUndoDone": { "message": "已撤销保存。文件已删除。" },
-  "historyUndoFileMissing": { "message": "已撤销保存。文件此前已被移动或删除。" },
-  "historyUndoFailed": { "message": "无法撤销此次保存。" },
-  "historyRoutingApplied": { "message": "已应用" },
-  "historyRoutingAppliedTitle": { "message": "已应用路由或重命名规则。" },
-  "historyNewer": { "message": "‹ 较新" },
+  "historyUndoDone": {
+    "message": "已撤销保存。文件已删除。"
+  },
+  "historyUndoFileMissing": {
+    "message": "已撤销保存。文件此前已被移动或删除。"
+  },
+  "historyUndoFailed": {
+    "message": "无法撤销此次保存。"
+  },
+  "historyRoutingApplied": {
+    "message": "已应用"
+  },
+  "historyRoutingAppliedTitle": {
+    "message": "已应用路由或重命名规则。"
+  },
+  "historyNewer": {
+    "message": "‹ 较新"
+  },
   "historyPageCount": {
     "message": "第 $PAGE$ 页，共 $TOTAL$ 页",
     "placeholders": {
-      "page": { "content": "$1", "example": "2" },
-      "total": { "content": "$2", "example": "5" }
+      "page": {
+        "content": "$1",
+        "example": "2"
+      },
+      "total": {
+        "content": "$2",
+        "example": "5"
+      }
     }
   },
-  "historyOlder": { "message": "较旧 ›" },
-  "historyLoadFailed": { "message": "无法加载历史记录。" },
-  "historyRetry": { "message": "重试" },
-  "historyDeleteConfirmTitle": { "message": "删除所有历史记录？" },
+  "historyOlder": {
+    "message": "较旧 ›"
+  },
+  "historyLoadFailed": {
+    "message": "无法加载历史记录。"
+  },
+  "historyRetry": {
+    "message": "重试"
+  },
+  "historyDeleteConfirmTitle": {
+    "message": "删除所有历史记录？"
+  },
   "historyDeleteConfirmDescription": {
     "message": "此操作会永久删除所有已保存的历史记录，且无法撤销。"
   },
-  "historyKeepHistory": { "message": "保留历史记录" },
-  "historyDeleteAll": { "message": "删除所有历史记录" },
-  "historyClearing": { "message": "正在删除历史记录…" },
-  "historyClearFailed": { "message": "无法删除历史记录。" },
-  "historyStatusSaving": { "message": "保存中…" },
-  "historyStatusCanceled": { "message": "已取消" },
-  "historyStatusUndone": { "message": "已撤销" },
-  "historyStatusNetworkFailed": { "message": "网络错误" },
-  "historyStatusDownloadFailed": { "message": "下载失败" },
-  "historyStatusPreparationFailed": { "message": "准备失败" },
-  "historyStatusPreparationInterrupted": { "message": "已中断" },
-  "historyStatusStateLost": { "message": "下载状态已丢失" },
-  "historyStatusRoutingFailed": { "message": "路由失败" },
-  "historyStatusNoRuleMatch": { "message": "无匹配规则" },
+  "historyKeepHistory": {
+    "message": "保留历史记录"
+  },
+  "historyDeleteAll": {
+    "message": "删除所有历史记录"
+  },
+  "historyClearing": {
+    "message": "正在删除历史记录…"
+  },
+  "historyClearFailed": {
+    "message": "无法删除历史记录。"
+  },
+  "historyStatusSaving": {
+    "message": "保存中…"
+  },
+  "historyStatusCanceled": {
+    "message": "已取消"
+  },
+  "historyStatusUndone": {
+    "message": "已撤销"
+  },
+  "historyStatusNetworkFailed": {
+    "message": "网络错误"
+  },
+  "historyStatusDownloadFailed": {
+    "message": "下载失败"
+  },
+  "historyStatusPreparationFailed": {
+    "message": "准备失败"
+  },
+  "historyStatusPreparationInterrupted": {
+    "message": "已中断"
+  },
+  "historyStatusStateLost": {
+    "message": "下载状态已丢失"
+  },
+  "historyStatusRoutingFailed": {
+    "message": "路由失败"
+  },
+  "historyStatusNoRuleMatch": {
+    "message": "无匹配规则"
+  },
   "historyColumnInitiated": {
     "message": "开始"
   },
@@ -2152,63 +2313,151 @@
   "o_lShortcutFormatLinux": {
     "message": "Linux 桌面快捷方式"
   },
-  "html_closePrivacyPolicy": { "message": "关闭隐私政策" },
-  "o_sAppearance": { "message": "外观" },
-  "o_lUiTheme": { "message": "主题" },
-  "o_lUiThemeSystem": { "message": "系统" },
-  "o_lUiThemeDark": { "message": "深色" },
-  "o_lUiThemeLight": { "message": "浅色" },
-  "o_lUiThemeGroupDefault": { "message": "标准" },
-  "o_lUiThemeGroupAccessibility": { "message": "高对比度" },
-  "o_lUiThemeGroupClassics": { "message": "经典主题" },
-  "o_lUiThemeGroupSaveIn": { "message": "定制" },
-  "o_lUiThemeHighContrastDark": { "message": "高对比度深色" },
-  "o_lUiThemeHighContrastLight": { "message": "高对比度浅色" },
-  "o_lUiThemeHighContrastYellow": { "message": "高对比度黄色" },
-  "o_lUiThemeSolarizedDark": { "message": "Solarized 深色" },
-  "o_lUiThemeSolarizedLight": { "message": "Solarized 浅色" },
-  "o_lUiThemeNord": { "message": "Nord" },
-  "o_lUiThemeDracula": { "message": "Dracula" },
-  "o_lUiThemeGruvbox": { "message": "Gruvbox" },
-  "o_lUiThemeMonokai": { "message": "Monokai" },
-  "o_lUiThemeOneDark": { "message": "One Dark" },
-  "o_lUiThemeTokyoNight": { "message": "Tokyo Night" },
-  "o_lUiThemeCatppuccin": { "message": "Catppuccin" },
-  "o_lUiThemeMidnight": { "message": "午夜" },
-  "o_lUiThemePastelPink": { "message": "胭脂" },
-  "o_lUiThemePaper": { "message": "纸张" },
-  "o_lUiThemeTerminal": { "message": "终端" },
-  "o_lUiThemeBerry": { "message": "莓果" },
-  "o_lUiThemeNebula": { "message": "星云" },
-  "o_lUiThemeGlacier": { "message": "冰川" },
-  "o_lUiThemeMatcha": { "message": "抹茶" },
-  "o_lUiThemeEmber": { "message": "余烬" },
+  "html_closePrivacyPolicy": {
+    "message": "关闭隐私政策"
+  },
+  "o_sAppearance": {
+    "message": "外观"
+  },
+  "o_lUiTheme": {
+    "message": "主题"
+  },
+  "o_lUiThemeSystem": {
+    "message": "系统"
+  },
+  "o_lUiThemeDark": {
+    "message": "深色"
+  },
+  "o_lUiThemeLight": {
+    "message": "浅色"
+  },
+  "o_lUiThemeGroupDefault": {
+    "message": "标准"
+  },
+  "o_lUiThemeGroupAccessibility": {
+    "message": "高对比度"
+  },
+  "o_lUiThemeGroupClassics": {
+    "message": "经典主题"
+  },
+  "o_lUiThemeGroupSaveIn": {
+    "message": "定制"
+  },
+  "o_lUiThemeHighContrastDark": {
+    "message": "高对比度深色"
+  },
+  "o_lUiThemeHighContrastLight": {
+    "message": "高对比度浅色"
+  },
+  "o_lUiThemeHighContrastYellow": {
+    "message": "高对比度黄色"
+  },
+  "o_lUiThemeSolarizedDark": {
+    "message": "Solarized 深色"
+  },
+  "o_lUiThemeSolarizedLight": {
+    "message": "Solarized 浅色"
+  },
+  "o_lUiThemeNord": {
+    "message": "Nord"
+  },
+  "o_lUiThemeDracula": {
+    "message": "Dracula"
+  },
+  "o_lUiThemeGruvbox": {
+    "message": "Gruvbox"
+  },
+  "o_lUiThemeMonokai": {
+    "message": "Monokai"
+  },
+  "o_lUiThemeOneDark": {
+    "message": "One Dark"
+  },
+  "o_lUiThemeTokyoNight": {
+    "message": "Tokyo Night"
+  },
+  "o_lUiThemeCatppuccin": {
+    "message": "Catppuccin"
+  },
+  "o_lUiThemeMidnight": {
+    "message": "午夜"
+  },
+  "o_lUiThemePastelPink": {
+    "message": "胭脂"
+  },
+  "o_lUiThemePaper": {
+    "message": "纸张"
+  },
+  "o_lUiThemeTerminal": {
+    "message": "终端"
+  },
+  "o_lUiThemeBerry": {
+    "message": "莓果"
+  },
+  "o_lUiThemeNebula": {
+    "message": "星云"
+  },
+  "o_lUiThemeGlacier": {
+    "message": "冰川"
+  },
+  "o_lUiThemeMatcha": {
+    "message": "抹茶"
+  },
+  "o_lUiThemeEmber": {
+    "message": "余烬"
+  },
   "o_lUiThemeHelp": {
     "message": "选择用于设置和页面来源的颜色主题。"
   },
-  "notificationExternalDownloadBlockedTitle": { "message": "外部下载已阻止" },
+  "notificationExternalDownloadBlockedTitle": {
+    "message": "外部下载已阻止"
+  },
   "notificationExternalDownloadBlockedMessage": {
     "message": "已阻止来自 $SENDER_ID$ 的请求。点击可在选项中查看。",
     "placeholders": {
-      "sender_id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" }
+      "sender_id": {
+        "content": "$1",
+        "example": "abcdefghijklmnopabcdefghijklmnop"
+      }
     }
   },
-  "historyEmptyNoDownloads": { "message": "尚未保存任何下载。" },
-  "historyEmptyNoMatches": { "message": "没有符合这些筛选条件的历史记录。" },
-  "webMcpStatusRegistering": { "message": "正在注册…" },
+  "historyEmptyNoDownloads": {
+    "message": "尚未保存任何下载。"
+  },
+  "historyEmptyNoMatches": {
+    "message": "没有符合这些筛选条件的历史记录。"
+  },
+  "webMcpStatusRegistering": {
+    "message": "正在注册…"
+  },
   "webMcpStatusActive": {
     "message": "已启用 — 已注册 $COUNT$ 个工具",
-    "placeholders": { "count": { "content": "$1", "example": "5" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "5"
+      }
+    }
   },
   "webMcpStatusLimited": {
     "message": "受限 — 已注册 $TOTAL$ 个工具中的 $REGISTERED$ 个",
     "placeholders": {
-      "registered": { "content": "$1", "example": "4" },
-      "total": { "content": "$2", "example": "5" }
+      "registered": {
+        "content": "$1",
+        "example": "4"
+      },
+      "total": {
+        "content": "$2",
+        "example": "5"
+      }
     }
   },
-  "webMcpStatusRegistrationFailed": { "message": "不可用 — 工具注册失败" },
-  "webMcpStatusUnavailableBrowser": { "message": "此浏览器不支持" },
+  "webMcpStatusRegistrationFailed": {
+    "message": "不可用 — 工具注册失败"
+  },
+  "webMcpStatusUnavailableBrowser": {
+    "message": "此浏览器不支持"
+  },
   "sourcePanelResizeLabel": {
     "message": "调整“页面来源”的大小"
   },
@@ -2356,9 +2605,15 @@
   "routeDebuggerTitle": {
     "message": "测试路由规则"
   },
-  "routeDebuggerUseSource": { "message": "使用" },
-  "routeDebuggerLatestDownload": { "message": "最新" },
-  "routeDebuggerUseSampleDownload": { "message": "示例" },
+  "routeDebuggerUseSource": {
+    "message": "使用"
+  },
+  "routeDebuggerLatestDownload": {
+    "message": "最新"
+  },
+  "routeDebuggerUseSampleDownload": {
+    "message": "示例"
+  },
   "routeDebuggerFilename": {
     "message": "文件名"
   },
@@ -2388,15 +2643,30 @@
   },
   "routeDebuggerOneRuleMatched": {
     "message": "$COUNT$ 条规则匹配并已使用。",
-    "placeholders": { "count": { "content": "$1", "example": "1" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
   },
   "routeDebuggerOneLaterRuleMatches": {
     "message": "已使用 1 条规则；后面的 $COUNT$ 条规则也匹配。",
-    "placeholders": { "count": { "content": "$1", "example": "1" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
   },
   "routeDebuggerLaterRulesMatch": {
     "message": "已使用 1 条规则；后面的 $COUNT$ 条规则也匹配。",
-    "placeholders": { "count": { "content": "$1", "example": "2" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
   },
   "routeDebuggerExpanded": {
     "message": "展开后的路径"
@@ -2500,43 +2770,82 @@
   },
   "routeVisualRuleEnabledAccessible": {
     "message": "规则 $RULE$ 已启用",
-    "placeholders": { "rule": { "content": "$1", "example": "2" } }
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
   },
   "routeVisualRuleActionsAccessible": {
     "message": "规则 $RULE$ 的更多操作",
-    "placeholders": { "rule": { "content": "$1", "example": "2" } }
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
   },
   "routeVisualMatcherAccessible": {
     "message": "规则 $RULE$，条件 $CONDITION$：匹配器",
     "placeholders": {
-      "rule": { "content": "$1", "example": "2" },
-      "condition": { "content": "$2", "example": "1" }
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      },
+      "condition": {
+        "content": "$2",
+        "example": "1"
+      }
     }
   },
   "routeVisualPatternAccessible": {
     "message": "规则 $RULE$，条件 $CONDITION$：模式",
     "placeholders": {
-      "rule": { "content": "$1", "example": "2" },
-      "condition": { "content": "$2", "example": "1" }
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      },
+      "condition": {
+        "content": "$2",
+        "example": "1"
+      }
     }
   },
   "routeVisualIgnoreCaseAccessible": {
     "message": "规则 $RULE$，条件 $CONDITION$：忽略大小写",
     "placeholders": {
-      "rule": { "content": "$1", "example": "2" },
-      "condition": { "content": "$2", "example": "1" }
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      },
+      "condition": {
+        "content": "$2",
+        "example": "1"
+      }
     }
   },
   "routeVisualDeleteConditionAccessible": {
     "message": "从规则 $RULE$ 中删除条件 $CONDITION$",
     "placeholders": {
-      "condition": { "content": "$2", "example": "1" },
-      "rule": { "content": "$1", "example": "2" }
+      "condition": {
+        "content": "$2",
+        "example": "1"
+      },
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      }
     }
   },
   "routeVisualDestinationAccessible": {
     "message": "规则 $RULE$ 的目标位置",
-    "placeholders": { "rule": { "content": "$1", "example": "2" } }
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
   },
   "routeVisualIgnoreCaseHelp": {
     "message": "将大写和小写字母视为相同"
@@ -2574,100 +2883,210 @@
   "routeVisualEmpty": {
     "message": "尚无路由规则。添加一条规则即可开始。"
   },
-  "visualEditorEnabled": { "message": "已启用" },
+  "visualEditorEnabled": {
+    "message": "已启用"
+  },
   "html_disableThisDestinationAndItsChildren": {
     "message": "不在菜单中显示此目标位置及其子项"
   },
   "html_keepsARuleWithoutRunningIt": {
     "message": "保留规则但不执行"
   },
-  "autoDownloadHeading": { "message": "自动保存页面来源" },
+  "autoDownloadHeading": {
+    "message": "自动保存页面来源"
+  },
   "autoDownloadHelp": {
     "message": "仅当已启用的规则同时匹配页面和来源时，才保存新发现的页面来源。"
   },
-  "autoDownloadEnabled": { "message": "自动保存匹配项" },
-  "autoDownloadLive": { "message": "包含页面加载后添加的来源" },
-  "autoDownloadPrivate": { "message": "允许在隐私窗口中自动保存" },
-  "autoDownloadLinks": { "message": "包含页面链接的媒体" },
-  "autoDownloadLimit": { "message": "每次页面访问的最大保存数" },
+  "autoDownloadEnabled": {
+    "message": "自动保存匹配项"
+  },
+  "autoDownloadLive": {
+    "message": "包含页面加载后添加的来源"
+  },
+  "autoDownloadPrivate": {
+    "message": "允许在隐私窗口中自动保存"
+  },
+  "autoDownloadLinks": {
+    "message": "包含页面链接的媒体"
+  },
+  "autoDownloadLimit": {
+    "message": "每次页面访问的最大保存数"
+  },
   "autoDownloadLimitHelp": {
     "message": "达到此限制时，Save In 将停止将新匹配项加入队列。重新加载页面即可开始新的访问。"
   },
-  "autoDownloadRulesHeading": { "message": "自动化规则" },
+  "autoDownloadRulesHeading": {
+    "message": "自动化规则"
+  },
   "autoDownloadRulesHelp": {
     "message": "每条规则都需要页面条件、来源条件和目标位置。执行首条匹配的规则。"
   },
-  "autoDownloadEditorMode": { "message": "自动化规则编辑器模式" },
-  "autoDownloadVisual": { "message": "可视化" },
-  "autoDownloadText": { "message": "文本" },
-  "autoDownloadAddRule": { "message": "添加自动化规则" },
-  "autoDownloadGrammar": { "message": "规则语法" },
-  "autoDownloadCondition": { "message": "条件" },
-  "autoDownloadPattern": { "message": "模式" },
-  "autoDownloadIgnoreCase": { "message": "忽略大小写" },
-  "autoDownloadIgnoreCaseHelp": { "message": "将大写和小写字母视为相同" },
-  "autoDownloadDeleteCondition": { "message": "删除条件" },
+  "autoDownloadEditorMode": {
+    "message": "自动化规则编辑器模式"
+  },
+  "autoDownloadVisual": {
+    "message": "可视化"
+  },
+  "autoDownloadText": {
+    "message": "文本"
+  },
+  "autoDownloadAddRule": {
+    "message": "添加自动化规则"
+  },
+  "autoDownloadGrammar": {
+    "message": "规则语法"
+  },
+  "autoDownloadCondition": {
+    "message": "条件"
+  },
+  "autoDownloadPattern": {
+    "message": "模式"
+  },
+  "autoDownloadIgnoreCase": {
+    "message": "忽略大小写"
+  },
+  "autoDownloadIgnoreCaseHelp": {
+    "message": "将大写和小写字母视为相同"
+  },
+  "autoDownloadDeleteCondition": {
+    "message": "删除条件"
+  },
   "autoDownloadVisualInvalid": {
     "message": "切换到可视化模式之前，请先在文本模式中修复错误。"
   },
   "autoDownloadEmpty": {
     "message": "尚无自动化规则。请添加规则，选择网站和来源，然后启用该规则。"
   },
-  "autoDownloadRule": { "message": "规则" },
-  "autoDownloadMoveUp": { "message": "上移规则" },
-  "autoDownloadMoveDown": { "message": "下移规则" },
-  "autoDownloadDeleteRule": { "message": "删除规则" },
-  "autoDownloadRuleName": { "message": "规则名称" },
-  "autoDownloadAddCondition": { "message": "添加条件" },
-  "autoDownloadDestination": { "message": "保存到" },
-  "autoDownloadNewRule": { "message": "新规则" },
+  "autoDownloadRule": {
+    "message": "规则"
+  },
+  "autoDownloadMoveUp": {
+    "message": "上移规则"
+  },
+  "autoDownloadMoveDown": {
+    "message": "下移规则"
+  },
+  "autoDownloadDeleteRule": {
+    "message": "删除规则"
+  },
+  "autoDownloadRuleName": {
+    "message": "规则名称"
+  },
+  "autoDownloadAddCondition": {
+    "message": "添加条件"
+  },
+  "autoDownloadDestination": {
+    "message": "保存到"
+  },
+  "autoDownloadNewRule": {
+    "message": "新规则"
+  },
   "ruleAutomaticMissingPage": {
     "message": "添加 pageurl:、pagedomain: 或 pagerootdomain: 条件"
   },
   "ruleAutomaticMissingSource": {
     "message": "添加来源地址、域名、类型或扩展名条件"
   },
-  "autoDownloadRoutingBadge": { "message": "自动来源" },
-  "autoDownloadManageRules": { "message": "打开路由规则" },
+  "autoDownloadRoutingBadge": {
+    "message": "自动来源"
+  },
+  "autoDownloadManageRules": {
+    "message": "打开路由规则"
+  },
   "autoDownloadRoutingHelp": {
     "message": "使用 context: auto 以及页面和来源条件来匹配自动下载。首条匹配规则会设置保存位置。"
   },
-  "html_openInFirefoxAddons": { "message": "在 Firefox Add-ons 中打开" },
-  "html_openInChromeWebStore": { "message": "在 Chrome Web Store 中打开" },
-  "html_downloadRequestHeaders": { "message": "下载请求标头" },
+  "html_openInFirefoxAddons": {
+    "message": "在 Firefox Add-ons 中打开"
+  },
+  "html_openInChromeWebStore": {
+    "message": "在 Chrome Web Store 中打开"
+  },
+  "html_downloadRequestHeaders": {
+    "message": "下载请求标头"
+  },
   "html_temporarilyAddsThePageUrlAsRefererForExactSaveInRequests": {
     "message": "当网站需要时，临时为完全匹配的 Save In 请求添加页面 URL 作为 Referer。"
   },
-  "matchPatternInvalid": { "message": "无效的 WebExtension 匹配模式" },
-  "regularExpressionInvalid": { "message": "无效的正则表达式" },
-  "validationJumpToIssue": { "message": "跳转到此问题" },
-  "optionsKeepEditing": { "message": "继续编辑" },
-  "optionsDiscardChanges": { "message": "放弃更改" },
-  "restoreDefaultsConfirm": { "message": "要将所有设置恢复为默认值吗？下载历史记录将保留。" },
-  "restoreDefaultsCancel": { "message": "保留当前设置" },
-  "restoreDefaultsSuccess": { "message": "已恢复默认设置。" },
-  "restoreDefaultsFailure": { "message": "无法恢复默认设置。" },
-  "referenceCaption": { "message": "参考" },
-  "referenceColumnSyntax": { "message": "语法" },
-  "referenceColumnExample": { "message": "示例" },
-  "referenceColumnMeaning": { "message": "含义" },
+  "matchPatternInvalid": {
+    "message": "无效的 WebExtension 匹配模式"
+  },
+  "regularExpressionInvalid": {
+    "message": "无效的正则表达式"
+  },
+  "validationJumpToIssue": {
+    "message": "跳转到此问题"
+  },
+  "optionsKeepEditing": {
+    "message": "继续编辑"
+  },
+  "optionsDiscardChanges": {
+    "message": "放弃更改"
+  },
+  "restoreDefaultsConfirm": {
+    "message": "要将所有设置恢复为默认值吗？下载历史记录将保留。"
+  },
+  "restoreDefaultsCancel": {
+    "message": "保留当前设置"
+  },
+  "restoreDefaultsSuccess": {
+    "message": "已恢复默认设置。"
+  },
+  "restoreDefaultsFailure": {
+    "message": "无法恢复默认设置。"
+  },
+  "referenceCaption": {
+    "message": "参考"
+  },
+  "referenceColumnSyntax": {
+    "message": "语法"
+  },
+  "referenceColumnExample": {
+    "message": "示例"
+  },
+  "referenceColumnMeaning": {
+    "message": "含义"
+  },
   "referenceResult": {
     "message": "$COUNT$ 个结果",
-    "placeholders": { "count": { "content": "$1", "example": "1" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
   },
   "referenceResults": {
     "message": "$COUNT$ 个结果",
-    "placeholders": { "count": { "content": "$1", "example": "12" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "12"
+      }
+    }
   },
   "referenceCopyValue": {
     "message": "复制 $VALUE$",
-    "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
+    "placeholders": {
+      "value": {
+        "content": "$1",
+        "example": ":filename:"
+      }
+    }
   },
   "referenceCopiedValue": {
     "message": "已复制 $VALUE$",
-    "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
+    "placeholders": {
+      "value": {
+        "content": "$1",
+        "example": ":filename:"
+      }
+    }
   },
-  "o_cBrowserDownloadFiltersEnabled": { "message": "仅处理匹配的下载 URL" },
+  "o_cBrowserDownloadFiltersEnabled": {
+    "message": "仅处理匹配的下载 URL"
+  },
   "o_cBrowserDownloadFiltersEnabledHelp": {
     "message": "适用于 Save In 历史记录跟踪和路由。"
   },
@@ -2695,37 +3114,69 @@
   "o_lBrowserDownloadVariablesUnavailable": {
     "message": "页面标题、页面 URL、链接文本、选中的文本、菜单元数据和修饰键不可用。"
   },
-  "welcomeTitle": { "message": "欢迎使用 Save In" },
+  "welcomeTitle": {
+    "message": "欢迎使用 Save In"
+  },
   "welcomeIntro": {
     "message": "Save In 已准备就绪。使用右键菜单可将图片、链接、选中的文本、媒体和页面保存到您选择的文件夹。"
   },
-  "welcomeStepRightClick": { "message": "右键单击要保存的内容。" },
-  "welcomeStepChooseSaveIn": { "message": "从菜单中选择 Save In…。" },
-  "welcomeStepPickFolder": { "message": "选择一个初始文件夹。" },
+  "welcomeStepRightClick": {
+    "message": "右键单击要保存的内容。"
+  },
+  "welcomeStepChooseSaveIn": {
+    "message": "从菜单中选择 Save In…。"
+  },
+  "welcomeStepPickFolder": {
+    "message": "选择一个初始文件夹。"
+  },
   "welcomeStarterNote": {
     "message": "初始文件夹现已启用。您可以随时对其进行自定义。"
   },
   "welcomeToolbarNote": {
     "message": "工具栏按钮会打开“页面来源”，用于查找当前页面上的媒体。"
   },
-  "welcomePermissions": { "message": "为什么需要这些权限？" },
-  "welcomeCustomizeFolders": { "message": "自定义文件夹" },
-  "welcomeUseEmptyPreset": { "message": "仅使用下载文件夹" },
+  "welcomePermissions": {
+    "message": "为什么需要这些权限？"
+  },
+  "welcomeCustomizeFolders": {
+    "message": "自定义文件夹"
+  },
+  "welcomeUseEmptyPreset": {
+    "message": "仅使用下载文件夹"
+  },
   "welcomeEmptyPresetFailed": {
     "message": "无法切换为仅使用下载文件夹。您的文件夹未更改。"
   },
-  "welcomeEmptyConfirmTitle": { "message": "替换当前文件夹？" },
+  "welcomeEmptyConfirmTitle": {
+    "message": "替换当前文件夹？"
+  },
   "welcomeEmptyConfirmDescription": {
     "message": "此操作会替换当前文件夹配置，仅保留浏览器的下载文件夹。"
   },
-  "welcomeKeepCurrentFolders": { "message": "保留当前文件夹" },
-  "welcomeUseStarterFolders": { "message": "保留初始文件夹" },
-  "welcomeUsingStarterSettings": { "message": "刚刚" },
-  "html_showWelcomeGuide": { "message": "显示欢迎指南" },
-  "advancedFilesDownloads": { "message": "文件和下载" },
-  "advancedMaintenanceDiagnostics": { "message": "维护和诊断" },
-  "webhookStateOn": { "message": "开" },
-  "webhookStateOff": { "message": "关" },
+  "welcomeKeepCurrentFolders": {
+    "message": "保留当前文件夹"
+  },
+  "welcomeUseStarterFolders": {
+    "message": "保留初始文件夹"
+  },
+  "welcomeUsingStarterSettings": {
+    "message": "刚刚"
+  },
+  "html_showWelcomeGuide": {
+    "message": "显示欢迎指南"
+  },
+  "advancedFilesDownloads": {
+    "message": "文件和下载"
+  },
+  "advancedMaintenanceDiagnostics": {
+    "message": "维护和诊断"
+  },
+  "webhookStateOn": {
+    "message": "开"
+  },
+  "webhookStateOff": {
+    "message": "关"
+  },
   "pathTextEmptyExample": {
     "message": "images\ndocuments/:year:/:month:"
   },
@@ -2918,88 +3369,200 @@
   "diagnosticsSummaryHelp": {
     "message": "后台运行状况、生命周期和近期失败"
   },
-  "diagnosticsRefresh": { "message": "刷新" },
-  "diagnosticsCopy": { "message": "复制诊断信息" },
-  "diagnosticsBackground": { "message": "后台" },
-  "diagnosticsHost": { "message": "宿主环境" },
-  "diagnosticsExtension": { "message": "扩展程序" },
-  "diagnosticsBrowser": { "message": "浏览器" },
-  "diagnosticsWorkerStarted": { "message": "工作进程启动时间" },
-  "diagnosticsSessionStorage": { "message": "会话存储" },
-  "diagnosticsVerboseLogging": { "message": "详细日志" },
-  "diagnosticsConfigurationIssues": { "message": "配置问题" },
-  "diagnosticsLifecycle": { "message": "生命周期" },
+  "diagnosticsRefresh": {
+    "message": "刷新"
+  },
+  "diagnosticsCopy": {
+    "message": "复制诊断信息"
+  },
+  "diagnosticsBackground": {
+    "message": "后台"
+  },
+  "diagnosticsHost": {
+    "message": "宿主环境"
+  },
+  "diagnosticsExtension": {
+    "message": "扩展程序"
+  },
+  "diagnosticsBrowser": {
+    "message": "浏览器"
+  },
+  "diagnosticsWorkerStarted": {
+    "message": "工作进程启动时间"
+  },
+  "diagnosticsSessionStorage": {
+    "message": "会话存储"
+  },
+  "diagnosticsVerboseLogging": {
+    "message": "详细日志"
+  },
+  "diagnosticsConfigurationIssues": {
+    "message": "配置问题"
+  },
+  "diagnosticsLifecycle": {
+    "message": "生命周期"
+  },
   "diagnosticsLifecycleHelp": {
     "message": "近期后台启动、配置重新加载和扩展程序更新。打开“诊断”会唤醒后台。"
   },
   "diagnosticsFailuresHelp": {
     "message": "此浏览器会话中的近期本地失败记录。浏览器错误可能包含网站或文件详情，请在分享前检查内容。"
   },
-  "diagnosticsClearFailures": { "message": "清除失败记录" },
-  "diagnosticsDeveloperLogging": { "message": "开发者日志" },
+  "diagnosticsClearFailures": {
+    "message": "清除失败记录"
+  },
+  "diagnosticsDeveloperLogging": {
+    "message": "开发者日志"
+  },
   "diagnosticsDurationMs": {
     "message": "$COUNT$ 毫秒",
-    "placeholders": { "count": { "content": "$1", "example": "42" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "42"
+      }
+    }
   },
   "diagnosticsDurationSeconds": {
     "message": "$COUNT$ 秒",
-    "placeholders": { "count": { "content": "$1", "example": "4" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "4"
+      }
+    }
   },
   "diagnosticsDurationMinutes": {
     "message": "$COUNT$ 分钟",
-    "placeholders": { "count": { "content": "$1", "example": "3" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
   },
   "diagnosticsLifecycleBackgroundReady": {
     "message": "后台在 $DURATION$ 后就绪。",
-    "placeholders": { "duration": { "content": "$1", "example": "120 ms" } }
+    "placeholders": {
+      "duration": {
+        "content": "$1",
+        "example": "120 ms"
+      }
+    }
   },
-  "diagnosticsLifecycleBackgroundFailed": { "message": "后台启动失败。" },
-  "diagnosticsLifecycleConfigurationReloaded": { "message": "已重新加载配置。" },
-  "diagnosticsLifecycleExtensionInstalled": { "message": "已安装扩展程序。" },
+  "diagnosticsLifecycleBackgroundFailed": {
+    "message": "后台启动失败。"
+  },
+  "diagnosticsLifecycleConfigurationReloaded": {
+    "message": "已重新加载配置。"
+  },
+  "diagnosticsLifecycleExtensionInstalled": {
+    "message": "已安装扩展程序。"
+  },
   "diagnosticsLifecycleExtensionUpdatedFrom": {
     "message": "扩展程序已从 $VERSION$ 更新。",
-    "placeholders": { "version": { "content": "$1", "example": "3.9.1" } }
+    "placeholders": {
+      "version": {
+        "content": "$1",
+        "example": "3.9.1"
+      }
+    }
   },
-  "diagnosticsLifecycleExtensionUpdated": { "message": "扩展程序已更新。" },
-  "diagnosticsLifecycleFailuresCleared": { "message": "已清除近期失败记录。" },
-  "diagnosticsLifecycleEmpty": { "message": "尚无生命周期事件。" },
-  "diagnosticsWorkerStarting": { "message": "正在启动" },
-  "diagnosticsWorkerReady": { "message": "运行中 · 已就绪" },
-  "diagnosticsWorkerFailed": { "message": "启动失败" },
-  "diagnosticsHostServiceWorker": { "message": "MV3 服务工作线程" },
-  "diagnosticsHostEventPage": { "message": "MV3 事件页面" },
-  "diagnosticsBrowserUnknown": { "message": "未知浏览器" },
+  "diagnosticsLifecycleExtensionUpdated": {
+    "message": "扩展程序已更新。"
+  },
+  "diagnosticsLifecycleFailuresCleared": {
+    "message": "已清除近期失败记录。"
+  },
+  "diagnosticsLifecycleEmpty": {
+    "message": "尚无生命周期事件。"
+  },
+  "diagnosticsWorkerStarting": {
+    "message": "正在启动"
+  },
+  "diagnosticsWorkerReady": {
+    "message": "运行中 · 已就绪"
+  },
+  "diagnosticsWorkerFailed": {
+    "message": "启动失败"
+  },
+  "diagnosticsHostServiceWorker": {
+    "message": "MV3 服务工作线程"
+  },
+  "diagnosticsHostEventPage": {
+    "message": "MV3 事件页面"
+  },
+  "diagnosticsBrowserUnknown": {
+    "message": "未知浏览器"
+  },
   "diagnosticsStartedWithUptime": {
     "message": "$TIME$ · 已运行 $UPTIME$",
     "placeholders": {
-      "time": { "content": "$1", "example": "Jul 15, 2026, 4:10 PM" },
-      "uptime": { "content": "$2", "example": "3 min" }
+      "time": {
+        "content": "$1",
+        "example": "Jul 15, 2026, 4:10 PM"
+      },
+      "uptime": {
+        "content": "$2",
+        "example": "3 min"
+      }
     }
   },
   "diagnosticsConfigurationIssueCount": {
     "message": "$PATHS$ 个路径 · $ROUTING$ 个路由",
     "placeholders": {
-      "paths": { "content": "$1", "example": "0" },
-      "routing": { "content": "$2", "example": "1" }
+      "paths": {
+        "content": "$1",
+        "example": "0"
+      },
+      "routing": {
+        "content": "$2",
+        "example": "1"
+      }
     }
   },
-  "diagnosticsAvailable": { "message": "可用" },
-  "diagnosticsUnavailable": { "message": "不可用" },
-  "diagnosticsOn": { "message": "开" },
-  "diagnosticsOff": { "message": "关" },
-  "diagnosticsFailuresEmpty": { "message": "没有近期失败记录。" },
-  "diagnosticsChecking": { "message": "正在检查后台…" },
+  "diagnosticsAvailable": {
+    "message": "可用"
+  },
+  "diagnosticsUnavailable": {
+    "message": "不可用"
+  },
+  "diagnosticsOn": {
+    "message": "开"
+  },
+  "diagnosticsOff": {
+    "message": "关"
+  },
+  "diagnosticsFailuresEmpty": {
+    "message": "没有近期失败记录。"
+  },
+  "diagnosticsChecking": {
+    "message": "正在检查后台…"
+  },
   "diagnosticsCheckedAt": {
     "message": "检查时间：$TIME$",
     "placeholders": {
-      "time": { "content": "$1", "example": "Jul 15, 2026, 4:10 PM" }
+      "time": {
+        "content": "$1",
+        "example": "Jul 15, 2026, 4:10 PM"
+      }
     }
   },
-  "diagnosticsLoadFailed": { "message": "无法加载诊断信息。" },
-  "diagnosticsCopySuccess": { "message": "已复制诊断信息。" },
-  "diagnosticsCopyFailed": { "message": "无法复制诊断信息。" },
-  "diagnosticsClearSuccess": { "message": "已清除近期失败记录。" },
-  "diagnosticsClearFailed": { "message": "无法清除近期失败记录。" },
+  "diagnosticsLoadFailed": {
+    "message": "无法加载诊断信息。"
+  },
+  "diagnosticsCopySuccess": {
+    "message": "已复制诊断信息。"
+  },
+  "diagnosticsCopyFailed": {
+    "message": "无法复制诊断信息。"
+  },
+  "diagnosticsClearSuccess": {
+    "message": "已清除近期失败记录。"
+  },
+  "diagnosticsClearFailed": {
+    "message": "无法清除近期失败记录。"
+  },
   "sourcePanelSelectFiltered": {
     "message": "选择筛选结果"
   },
@@ -3017,7 +3580,12 @@
   },
   "sourcePanelHiddenSelectedCount": {
     "message": "$COUNT$ 个已隐藏",
-    "placeholders": { "count": { "content": "$1", "example": "2" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
   },
   "sourcePanelSaveSelected": {
     "message": "保存所选项"
@@ -3058,45 +3626,99 @@
   "sourcePanelCreateAutomaticRule": {
     "message": "创建自动规则"
   },
-  "savedSettingUpdated": { "message": "设置已更新" },
+  "savedSettingUpdated": {
+    "message": "设置已更新"
+  },
   "savedSettingsUpdated": {
     "message": "已更新 $COUNT$ 项设置",
-    "placeholders": { "count": { "content": "$1", "example": "3" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
   },
-  "savedUndo": { "message": "撤销" },
-  "savedUndoFailed": { "message": "撤销失败 — 选择以重试" },
-  "savedUndoBlocked": { "message": "请先完成或放弃其他编辑，再执行撤销。" },
-  "externalApiUnknown": { "message": "未知" },
-  "externalApiUnavailable": { "message": "不可用" },
+  "savedUndo": {
+    "message": "撤销"
+  },
+  "savedUndoFailed": {
+    "message": "撤销失败 — 选择以重试"
+  },
+  "savedUndoBlocked": {
+    "message": "请先完成或放弃其他编辑，再执行撤销。"
+  },
+  "externalApiUnknown": {
+    "message": "未知"
+  },
+  "externalApiUnavailable": {
+    "message": "不可用"
+  },
   "externalBlockedAttemptOne": {
     "message": "$COUNT$ 次被阻止的尝试",
-    "placeholders": { "count": { "content": "$1", "example": "1" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
   },
   "externalBlockedAttemptMany": {
     "message": "$COUNT$ 次被阻止的尝试",
-    "placeholders": { "count": { "content": "$1", "example": "3" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
   },
-  "externalRequestActiveTab": { "message": "活动标签页请求" },
-  "externalRequestUrl": { "message": "URL 请求" },
-  "externalRequestDownload": { "message": "下载请求" },
-  "externalApprove": { "message": "批准" },
-  "externalApproving": { "message": "正在批准…" },
+  "externalRequestActiveTab": {
+    "message": "活动标签页请求"
+  },
+  "externalRequestUrl": {
+    "message": "URL 请求"
+  },
+  "externalRequestDownload": {
+    "message": "下载请求"
+  },
+  "externalApprove": {
+    "message": "批准"
+  },
+  "externalApproving": {
+    "message": "正在批准…"
+  },
   "externalApprovalFailed": {
     "message": "无法批准 $ID$。",
     "placeholders": {
-      "id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" }
+      "id": {
+        "content": "$1",
+        "example": "abcdefghijklmnopabcdefghijklmnop"
+      }
     }
   },
-  "externalRejectionsLoadFailed": { "message": "无法加载被拒绝的请求。" },
+  "externalRejectionsLoadFailed": {
+    "message": "无法加载被拒绝的请求。"
+  },
   "referenceInsertValue": {
     "message": "插入 $VALUE$",
-    "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
+    "placeholders": {
+      "value": {
+        "content": "$1",
+        "example": ":filename:"
+      }
+    }
   },
   "versionViewReleases": {
     "message": "Save In v$VERSION$ — 查看版本",
-    "placeholders": { "version": { "content": "$1", "example": "4.0.0" } }
+    "placeholders": {
+      "version": {
+        "content": "$1",
+        "example": "4.0.0"
+      }
+    }
   },
-  "html_advancedFetchADifferentUrl": { "message": "高级：获取其他 URL" },
+  "html_advancedFetchADifferentUrl": {
+    "message": "高级：获取其他 URL"
+  },
   "html_captureReferencesAndRoutingVariablesSubstituteVerbatim": {
     "message": "；捕获引用和路由变量会按原样替换，不会清理文件名。"
   },
@@ -3112,62 +3734,154 @@
   "html_fetchClauseCompatibility": {
     "message": "普通浏览器下载路由会跳过它，因为该路由只能重命名，不能替换 URL。菜单、点击保存和自动保存仍会使用它。"
   },
-  "html_orLiteral": { "message": "或" },
-  "html_stillControlsTheDestinationAndFilename": { "message": "仍控制保存位置和文件名。" },
+  "html_orLiteral": {
+    "message": "或"
+  },
+  "html_stillControlsTheDestinationAndFilename": {
+    "message": "仍控制保存位置和文件名。"
+  },
   "html_stillSetsTheDestinationAndFilenameMustStartWith": {
     "message": "仍设置保存位置和文件名。必须以"
   },
-  "routeDebuggerFetchTemplate": { "message": "改写模板" },
-  "routeDebuggerRewrittenUrl": { "message": "改写后的 URL" },
+  "routeDebuggerFetchTemplate": {
+    "message": "改写模板"
+  },
+  "routeDebuggerRewrittenUrl": {
+    "message": "改写后的 URL"
+  },
   "routeVisualFetchAccessible": {
     "message": "规则 $RULE$：改写下载 URL",
-    "placeholders": { "rule": { "content": "$1", "example": "2" } }
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
   },
-  "routeVisualFetchLabel": { "message": "改写下载 URL" },
-  "ruleTemplateCategorySiteFiling": { "message": "按站点归档" },
-  "ruleTemplateCategorySiteOriginals": { "message": "站点原始文件" },
+  "routeVisualFetchLabel": {
+    "message": "改写下载 URL"
+  },
+  "ruleTemplateCategorySiteFiling": {
+    "message": "按站点归档"
+  },
+  "ruleTemplateCategorySiteOriginals": {
+    "message": "站点原始文件"
+  },
   "ruleTemplateDeviantArtRenameDescription": {
     "message": "将 DeviantArt 的哈希下载文件名重命名为作品标题和短代码"
   },
-  "ruleTemplateDeviantArtRenameName": { "message": "DeviantArt 哈希文件名重命名" },
+  "ruleTemplateDeviantArtRenameName": {
+    "message": "DeviantArt 哈希文件名重命名"
+  },
   "ruleTemplateInstagramUsernamePrefixDescription": {
     "message": "为保存的文件加上从页面标题中提取的 Instagram 用户名前缀"
   },
-  "ruleTemplateInstagramUsernamePrefixName": { "message": "Instagram 用户名前缀" },
+  "ruleTemplateInstagramUsernamePrefixName": {
+    "message": "Instagram 用户名前缀"
+  },
   "ruleTemplatePagePathNoSchemeDescription": {
     "message": "根据页面 URL 的主机名和路径创建文件夹，并去除会破坏文件名的 https:// 协议"
   },
-  "ruleTemplatePagePathNoSchemeName": { "message": "不含协议的页面路径" },
+  "ruleTemplatePagePathNoSchemeName": {
+    "message": "不含协议的页面路径"
+  },
   "ruleTemplateRedditOriginalsDescription": {
     "message": "将 Reddit 预览图片链接改写为 i.redd.it 上的原始文件"
   },
-  "ruleTemplateRedditOriginalsName": { "message": "Reddit 图片原图" },
+  "ruleTemplateRedditOriginalsName": {
+    "message": "Reddit 图片原图"
+  },
   "ruleTemplateSluggedTitleRenameDescription": {
     "message": "将文件名替换为页面标题的小写连字符 slug，并保留原有扩展名（不支持对文件名进行通用查找替换）"
   },
-  "ruleTemplateSluggedTitleRenameName": { "message": "标题 slug 重命名" },
+  "ruleTemplateSluggedTitleRenameName": {
+    "message": "标题 slug 重命名"
+  },
   "ruleTemplateTwitterHandlePrefixDescription": {
     "message": "为保存的文件加上从页面 URL 中提取的 Twitter 或 X 用户名前缀"
   },
-  "ruleTemplateTwitterHandlePrefixName": { "message": "Twitter/X 用户名前缀" },
+  "ruleTemplateTwitterHandlePrefixName": {
+    "message": "Twitter/X 用户名前缀"
+  },
   "ruleTemplateTwitterOriginalsDescription": {
     "message": "将 Twitter 和 X 的图片链接改写为原始全分辨率文件"
   },
-  "ruleTemplateTwitterOriginalsName": { "message": "Twitter/X 图片原图" },
+  "ruleTemplateTwitterOriginalsName": {
+    "message": "Twitter/X 图片原图"
+  },
   "ruleTemplateWikimediaOriginalDescription": {
     "message": "将 Wikimedia Commons 的缩略图链接改写为原始完整尺寸文件"
   },
-  "ruleTemplateWikimediaOriginalName": { "message": "Wikimedia 完整尺寸图片" },
+  "ruleTemplateWikimediaOriginalName": {
+    "message": "Wikimedia 完整尺寸图片"
+  },
   "ruleTemplateYoutubeMaxResDescription": {
     "message": "将 YouTube 缩略图链接改写为最高分辨率图片"
   },
-  "ruleTemplateYoutubeMaxResName": { "message": "YouTube 缩略图最高分辨率" },
-  "ruleExtraFetch": { "message": "一条规则只能包含一个 fetch: 子句" },
-  "ruleFetchNotHttp": { "message": "fetch: 网址必须以 http:// 或 https:// 开头" },
-  "ruleFetchUnsupportedVariable": { "message": "fetch: 网址中不支持该变量" },
-  "savedValueOff": { "message": "关" },
-  "savedValueOn": { "message": "开" },
-  "o_lUiThemeGildedMosaic": { "message": "鎏金马赛克" },
-  "o_lUiThemeBlueHouse": { "message": "蓝屋" },
-  "o_lUiThemePrimaryGrid": { "message": "原色网格" }
+  "ruleTemplateYoutubeMaxResName": {
+    "message": "YouTube 缩略图最高分辨率"
+  },
+  "ruleExtraFetch": {
+    "message": "一条规则只能包含一个 fetch: 子句"
+  },
+  "ruleFetchNotHttp": {
+    "message": "fetch: 网址必须以 http:// 或 https:// 开头"
+  },
+  "ruleFetchUnsupportedVariable": {
+    "message": "fetch: 网址中不支持该变量"
+  },
+  "savedValueOff": {
+    "message": "关"
+  },
+  "savedValueOn": {
+    "message": "开"
+  },
+  "o_lUiThemeGildedMosaic": {
+    "message": "鎏金马赛克"
+  },
+  "o_lUiThemeBlueHouse": {
+    "message": "蓝屋"
+  },
+  "o_lUiThemePrimaryGrid": {
+    "message": "原色网格"
+  },
+  "ruleExtraRename": {
+    "message": "一条规则只能包含一个 rename: 子句"
+  },
+  "ruleRenameMissingSeparator": {
+    "message": "请用 ' -> ' 分隔模式和替换文本"
+  },
+  "html_renameReplacesMatchesInTheFinalFilename": {
+    "message": "将最终文件名中与正则表达式匹配的部分替换为分隔符之后的字面文本，分隔符为"
+  },
+  "html_renameReplacementExpandsVariables": {
+    "message": "；替换文本为空会删除匹配项，替换文本中会展开路由变量和捕获引用，例如"
+  },
+  "html_renameClauseCompatibility": {
+    "message": "在文件名完全确定之后（包括 fetch: 改写）、长度限制之前应用——文件夹不受影响。也会重命名已记录的普通浏览器下载。要在模式中书写字面的 ' -> '，请转义空格（\\x20->）。"
+  },
+  "html_advancedRenameTheSavedFile": {
+    "message": "高级：重命名保存的文件"
+  },
+  "html_renameGuideDescription": {
+    "message": "编辑最终文件名：' -> ' 之前的模式是正则表达式，之后的字面替换文本可以使用路由变量和捕获引用。文件夹不受影响。"
+  },
+  "routeVisualRenameLabel": {
+    "message": "重命名文件"
+  },
+  "routeVisualRenameAccessible": {
+    "message": "规则 $RULE$：重命名文件",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "routeDebuggerRenameTemplate": {
+    "message": "重命名"
+  },
+  "routeDebuggerRenamedName": {
+    "message": "重命名后的名称"
+  }
 }

@@ -35,6 +35,7 @@ export const syncReferenceVocabulary = (
     required.add("into:");
     required.add("capture:");
     required.add("fetch:");
+    required.add("rename:");
   }
 
   rows.forEach((row) => {

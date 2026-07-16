@@ -339,6 +339,32 @@ describe("rename transform in the plan", () => {
     expect(plan?.finalFullPath).toBe("downloads/routed");
   });
 
+  test("a rename that strips the extension still gets the MIME-derived one appended", async () => {
+    renameMatch("routed/:filename:", { find: "\\.png$", flags: "", replacement: "" });
+    options.appendMimeExtension = true;
+    vi.spyOn(Variable, "resolveMime").mockResolvedValue("image/png");
+    const state = makeState({ info: { url: "https://example.com/dir/file.png" } });
+
+    const plan = await Download.resolveDownloadPlan(state);
+
+    // The tentative extension check sees the renamed component, so the MIME
+    // append decision reflects the rename's output rather than the raw route.
+    expect(state.scratch.mimeExtension).toBe("png");
+    expect(plan?.finalFullPath).toBe("downloads/routed/file.png");
+  });
+
+  test("a folder-only route renames the download's own name before the MIME check", async () => {
+    renameMatch("routed/", { find: "\\.png$", flags: "", replacement: "" });
+    options.appendMimeExtension = true;
+    vi.spyOn(Variable, "resolveMime").mockResolvedValue("image/png");
+    const state = makeState({ info: { url: "https://example.com/dir/file.png" } });
+
+    const plan = await Download.resolveDownloadPlan(state);
+
+    expect(state.scratch.mimeExtension).toBe("png");
+    expect(plan?.finalFullPath).toBe("downloads/routed/file.png");
+  });
+
   test("with fetch:, renames the fetched resource's final name", async () => {
     renameMatch(
       "routed/:naivefilename:",
