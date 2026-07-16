@@ -1281,31 +1281,60 @@ test("Referer-protected downloads use a scoped DNR offscreen fetch", async () =>
 test("distinct Referer-protected fetches overlap while keeping exact headers", async () => {
   /** @type {Array<{path: string, method: string, referer: string}>} */
   const requests = [];
-  let activeRequests = 0;
-  let maxActiveRequests = 0;
+  const fixtures = [
+    { name: "referer-concurrent-a", referer: "https://gallery.example/a" },
+    { name: "referer-concurrent-b", referer: "https://gallery.example/b" },
+  ];
+  /** @type {Array<() => void>} */
+  const heldHeadResponses = [];
+  let holdHeadResponses = true;
+  let concurrentHeadsObserved = false;
+  let markConcurrentHeadsObserved = () => {};
+  /** @type {Promise<void>} */
+  const concurrentHeads = new Promise((resolve, reject) => {
+    const timeout = AbortSignal.timeout(8000);
+    /** @param {() => void} complete */
+    const finish = (complete) => {
+      timeout.removeEventListener("abort", onTimeout);
+      complete();
+    };
+    const onTimeout = () =>
+      finish(() => reject(new Error("Distinct Referer-protected HEAD requests did not overlap")));
+    markConcurrentHeadsObserved = () => finish(resolve);
+    timeout.addEventListener("abort", onTimeout, { once: true });
+  });
+  const releaseHeldHeads = () => {
+    for (const respond of heldHeadResponses.splice(0)) respond();
+  };
   const server = http.createServer((req, res) => {
-    activeRequests += 1;
-    maxActiveRequests = Math.max(maxActiveRequests, activeRequests);
     requests.push({
       path: req.url || "",
       method: req.method || "",
       referer: req.headers.referer || "",
     });
-    setImmediate(() => {
-      activeRequests -= 1;
+    const respond = () => {
       res.writeHead(200, { "Content-Type": "text/plain" });
       res.end(req.method === "HEAD" ? undefined : `body:${req.url}`);
-    });
+    };
+    if (holdHeadResponses && req.method === "HEAD") {
+      heldHeadResponses.push(respond);
+      if (heldHeadResponses.length === fixtures.length) {
+        concurrentHeadsObserved = true;
+        holdHeadResponses = false;
+        markConcurrentHeadsObserved();
+        releaseHeldHeads();
+      }
+      return;
+    }
+    respond();
   });
   const port = await listenLocal(server);
   const previous = {
     setRefererHeader: await control.options.get("setRefererHeader"),
     setRefererHeaderFilter: await control.options.get("setRefererHeaderFilter"),
   };
-  const fixtures = [
-    { name: "referer-concurrent-a", referer: "https://gallery.example/a" },
-    { name: "referer-concurrent-b", referer: "https://gallery.example/b" },
-  ];
+  /** @type {Promise<unknown> | undefined} */
+  let launches;
 
   try {
     await control.options.set({
@@ -1313,7 +1342,7 @@ test("distinct Referer-protected fetches overlap while keeping exact headers", a
       setRefererHeaderFilter: "*://127.0.0.1/*",
       fetchViaFetch: false,
     });
-    await Promise.all(
+    launches = Promise.all(
       fixtures.map((fixture) =>
         control.background.startDownload({
           url: `http://127.0.0.1:${port}/${fixture.name}.txt`,
@@ -1323,9 +1352,11 @@ test("distinct Referer-protected fetches overlap while keeping exact headers", a
         }),
       ),
     );
+    await concurrentHeads;
+    await launches;
     await Promise.all(fixtures.map(({ name }) => waitForDownloads(name)));
 
-    expect(maxActiveRequests).toBe(2);
+    expect(concurrentHeadsObserved).toBe(true);
     for (const fixture of fixtures) {
       const matching = requests.filter(({ path: requestPath }) =>
         requestPath.includes(fixture.name),
@@ -1338,6 +1369,9 @@ test("distinct Referer-protected fetches overlap while keeping exact headers", a
       expect(remainingRules).not.toContain(id);
     }
   } finally {
+    holdHeadResponses = false;
+    releaseHeldHeads();
+    await launches?.catch(() => {});
     await control.options.set({ ...previous, fetchViaFetch: false });
     await closeLocal(server);
   }
