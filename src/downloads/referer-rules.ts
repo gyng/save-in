@@ -65,6 +65,20 @@ const inFlight = new Map<number, InFlightOperation>();
 // and keep covering that URL with the old Referer. Every install clears them
 // in the same atomic update that adds its own rule.
 const staleRuleIds = new Set<number>();
+// Installs share one queue, so each reads staleRuleIds after the previous
+// install has finished updating it. Concurrent installs cannot, and then the
+// interleaving decides the outcome: a sweep computed before another install
+// lands either deletes the live rule that install just added, or skips a leak
+// that install turned out not to replace. Serialized, staleRuleIds is the whole
+// truth — an ID leaves it exactly when an install has replaced its rule — so a
+// sweep never has to guess what an in-flight install will do.
+let installQueue: Promise<unknown> = Promise.resolve();
+const serializeInstall = (run: () => Promise<void>): Promise<void> => {
+  // Runs on both settlements: a rejected install must not poison the queue.
+  const next = installQueue.then(run, run);
+  installQueue = next.catch(() => undefined);
+  return next;
+};
 let releaseWaiters: Array<() => void> = [];
 
 const wakeReleaseWaiters = (): void => {
@@ -241,23 +255,23 @@ export const withRequestReferer = async <T>(
   try {
     const api = dnrApi();
     if (!api) return operation();
-    const install = async (urls: readonly string[]): Promise<void> => {
-      // A stale ID another operation currently holds is that operation's to
-      // resolve: the pool reissues the lowest free ID, so it has already
-      // reinstalled a live rule under it. Sweeping it here would delete that
-      // rule rather than the leaked one, sending its request with no Referer.
-      const sweeping = [...staleRuleIds].filter((stale) => stale !== id && !inFlight.has(stale));
-      await api.updateSessionRules({
-        removeRuleIds: [id, ...sweeping],
-        addRules: [buildRule(urls, referer, requestMethods, id)],
+    const install = (urls: readonly string[]): Promise<void> =>
+      serializeInstall(async () => {
+        // Every ID still recorded as leaked is still leaked: an install that
+        // replaced one removed it from the set before this one was allowed to
+        // read it. The holder of a leaked ID is no exception — if its install
+        // succeeded the ID is already gone from here, and if it was rejected
+        // the leak is live and nobody else will clear it.
+        const sweeping = [...staleRuleIds].filter((stale) => stale !== id);
+        await api.updateSessionRules({
+          removeRuleIds: [id, ...sweeping],
+          addRules: [buildRule(urls, referer, requestMethods, id)],
+        });
+        // This update replaced the rule under `id`, so a leak recorded against
+        // it is resolved whether or not another operation left it behind.
+        staleRuleIds.delete(id);
+        for (const stale of sweeping) staleRuleIds.delete(stale);
       });
-      // This update replaced the rule under `id`, so a leak recorded against
-      // it is resolved whether or not another operation left it behind.
-      staleRuleIds.delete(id);
-      // Only drop the IDs this update actually removed; a concurrent failure
-      // may have recorded more while it was in flight.
-      for (const stale of sweeping) staleRuleIds.delete(stale);
-    };
     // An oversized alternation is rejected by the browser, and there is no
     // previous rule to fall back to on the first install, so the operation
     // degrades to an unprotected request rather than failing the download.

@@ -240,6 +240,66 @@ test("a stale sweep leaves a rule a concurrent operation reinstalled alone", asy
   expect(protectingReuser?.action.requestHeaders?.[0]?.value).toBe("https://reuser.example/view");
 });
 
+// Skipping a stale ID another operation holds assumes that operation has
+// replaced the leaked rule under it. While its install is still in flight it
+// has not, and if that install is rejected it never will: nothing was added and
+// nothing removed. The leak stays live, and the concurrent operation that
+// deferred to it has already installed its own rule — so one URL ends up
+// covered by two rules with different Referers, and the DNR tie decides which
+// one the request carries.
+test("sweeps a leaked rule when the operation holding its ID fails to install", async () => {
+  const leakedId = REFERER_SESSION_RULE_ID;
+  const leakedUrl = "https://cdn.example/contested.jpg";
+  const rules = new Map<number, chrome.declarativeNetRequest.Rule>();
+  let rejectReinstall: (() => void) | undefined;
+  let failInstallsUnderLeakedId = false;
+  updateSessionRules().mockImplementation(async (update) => {
+    // The cleanup that leaks the rule: a removal carries no addRules.
+    if (!update.addRules && update.removeRuleIds?.includes(leakedId)) {
+      throw new Error("worker stopped");
+    }
+    if (failInstallsUnderLeakedId && update.addRules?.some((rule) => rule.id === leakedId)) {
+      // Hold the install in flight so the concurrent operation below decides
+      // whether to sweep while this ID is still held and still carries a leak.
+      await new Promise<void>((resolve) => {
+        rejectReinstall = resolve;
+      });
+      throw new Error("rule store busy");
+    }
+    for (const id of update.removeRuleIds ?? []) rules.delete(id);
+    for (const rule of update.addRules ?? []) rules.set(rule.id, rule);
+  });
+
+  // Leaks a live rule covering leakedUrl with its own Referer.
+  await RefererRules.withRequestReferer(leakedUrl, "https://gallery.example/view", async () => "a");
+  expect(rules.get(leakedId)).toBeDefined();
+
+  // Inherits the leaked ID; its install hangs, then is rejected.
+  failInstallsUnderLeakedId = true;
+  const reinstaller = RefererRules.withRequestReferer(
+    "https://cdn.example/reinstaller.jpg",
+    "https://reinstaller.example/view",
+    async () => "reinstaller",
+  );
+  await vi.waitFor(() => expect(rejectReinstall).toBeDefined());
+
+  // Wants the leaked rule's URL under a different Referer, and runs while the
+  // leaked ID is held by an install that is about to fail.
+  let coveringLeakedUrl: chrome.declarativeNetRequest.Rule[] = [];
+  const contender = RefererRules.withRequestReferer(leakedUrl, "https://other.example/view", () => {
+    coveringLeakedUrl = [...rules.values()].filter((rule) =>
+      new RegExp(rule.condition.regexFilter!).test(leakedUrl),
+    );
+    return Promise.resolve("contender");
+  });
+  rejectReinstall?.();
+  await expect(reinstaller).resolves.toBe("reinstaller");
+  await expect(contender).resolves.toBe("contender");
+
+  const referers = new Set(coveringLeakedUrl.map((rule) => rule.action.requestHeaders?.[0]?.value));
+  expect([...referers]).toEqual(["https://other.example/view"]);
+});
+
 test("degrades to an unprotected request when the first rule would be oversized", async () => {
   const longUrl = `https://cdn.example/${"a".repeat(2000)}.jpg`;
   updateSessionRules().mockClear();
