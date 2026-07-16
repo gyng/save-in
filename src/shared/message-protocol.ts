@@ -16,6 +16,10 @@ import {
   type PageSourceKind,
 } from "./page-source.ts";
 import { isStringKeyedRecord } from "./util.ts";
+import {
+  isCssSelectorAttestation,
+  type CssSelectorAttestation,
+} from "./css-selector-attestation.ts";
 
 export { isStringKeyedRecord } from "./util.ts";
 
@@ -278,7 +282,10 @@ export type DownloadRequestBody = {
         | "mime"
         | "mediaType"
         | "sourceKind"
-      > & { srcUrl?: string | undefined })
+      > & {
+        srcUrl?: string | undefined;
+        matchedCssSelectorsByOrigin?: CssSelectorAttestation | undefined;
+      })
     | undefined;
   comment?: string | undefined;
   version?: number | undefined;
@@ -292,6 +299,7 @@ export type AutoDownloadSourceRequestBody = {
   // present for anchor/background/resource-hint candidates so the background
   // backstop can re-check admission against trusted, current options.
   sourceChannel?: PageSourceChannel | undefined;
+  matchedCssSelectorsByOrigin?: CssSelectorAttestation | undefined;
 };
 
 export type CreateSourceRuleRequestBody = {
@@ -442,6 +450,8 @@ const isDownloadInfo = (value: unknown): boolean => {
       hasOptionalString(value, key),
     ) &&
     (typeof value.sourceKind === "undefined" || isPageSourceKind(value.sourceKind)) &&
+    (typeof value.matchedCssSelectorsByOrigin === "undefined" ||
+      isCssSelectorAttestation(value.matchedCssSelectorsByOrigin)) &&
     ["suggestedFilename", "menuIndex", "comment"].every((key) =>
       hasOptionalNullableString(value, key),
     ) &&
@@ -541,7 +551,9 @@ const isMessageBodyValid = (message: Record<string, unknown> & { type: string })
         typeof message.body.sourceUrl === "string" &&
         isPageSourceKind(message.body.sourceKind) &&
         (typeof message.body.sourceChannel === "undefined" ||
-          isPageSourceChannel(message.body.sourceChannel))
+          isPageSourceChannel(message.body.sourceChannel)) &&
+        (typeof message.body.matchedCssSelectorsByOrigin === "undefined" ||
+          isCssSelectorAttestation(message.body.matchedCssSelectorsByOrigin))
       );
     case MESSAGE_TYPES.CREATE_SOURCE_RULE:
       return (

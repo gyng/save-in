@@ -47,6 +47,7 @@ describe("message protocol runtime validation", () => {
           sourceUrl: "https://cdn.test/manifest.m3u8",
           sourceKind: "stream",
           sourceChannel: "resource-hint",
+          matchedCssSelectorsByOrigin: [["article video", "video:not(.preview)"]],
         },
       }),
     ).toBe(true);
@@ -172,6 +173,10 @@ describe("message protocol runtime validation", () => {
     { type: MESSAGE_TYPES.DOWNLOAD, body: { target: 1 } },
     { type: MESSAGE_TYPES.DOWNLOAD, body: { info: { sourceKind: "script" } } },
     {
+      type: MESSAGE_TYPES.DOWNLOAD,
+      body: { info: { matchedCssSelectorsByOrigin: [["img"], [42]] } },
+    },
+    {
       type: MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
       body: { pageUrl: "https://x/", sourceUrl: "https://x/a.png", sourceKind: "script" },
     },
@@ -186,6 +191,15 @@ describe("message protocol runtime validation", () => {
         sourceUrl: "https://x/a.m3u8",
         sourceKind: "stream",
         sourceChannel: "embedded",
+      },
+    },
+    {
+      type: MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
+      body: {
+        pageUrl: "https://x/",
+        sourceUrl: "https://x/a.png",
+        sourceKind: "image",
+        matchedCssSelectorsByOrigin: "img",
       },
     },
   ])("rejects malformed internal message %#", (message) => {

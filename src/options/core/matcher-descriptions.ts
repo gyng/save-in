@@ -49,6 +49,8 @@ export const matcherTestValue = (matcher: string, root: ParentNode = document): 
       return testFieldValue(root, "route-debugger-page-title");
     case "frameurl":
       return testFieldValue(root, "route-debugger-frame-url");
+    case "css":
+      return "DOM context unavailable";
     case "sourceurl":
       return sourceUrl;
     case "sourcedomain":

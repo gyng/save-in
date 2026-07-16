@@ -19,6 +19,7 @@ const MATCHER_PATTERN_PLACEHOLDERS: Record<string, string> = {
   context: "media|link|page|tab",
   menuindex: "images|documents",
   comment: "favorites|work",
+  css: "article img, .gallery video",
   fileext: "jpg|png",
   urlfileext: "pdf|epub",
   actualfileext: "jpg|png",

@@ -223,7 +223,8 @@ const internalHandlers = {
   [MESSAGE_TYPES.GET_CONFIG]: handleGetConfig,
   [MESSAGE_TYPES.VALIDATE]: handleValidate,
   [MESSAGE_TYPES.APPLY_CONFIG]: handleApplyConfig,
-  [MESSAGE_TYPES.DOWNLOAD]: handleDownloadMessage,
+  [MESSAGE_TYPES.DOWNLOAD]: (request, sender, sendResponse) =>
+    handleDownloadMessage(request, sender, sendResponse, true),
 } satisfies HandlerTable<InternalMessage>;
 
 const externalHandlers = {

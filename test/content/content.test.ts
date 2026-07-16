@@ -1547,6 +1547,34 @@ describe("setupClickToSave", () => {
     );
   });
 
+  test("click-to-save sends CSS matches for the exact clicked element", () => {
+    const remove = ClickToSave.setupClickToSave(
+      {
+        contentClickToSaveCombo: "Ctrl",
+        contentClickToSaveButton: "BACK_CLICK",
+        links: false,
+        filenamePatterns: "css: article img:not(.avatar)\ninto: articles/",
+      },
+      acceptTestInput,
+    );
+    document.body.innerHTML = '<article><img id="hero" src="http://x.test/hero.png"></article>';
+    window.dispatchEvent(keyEvent("keydown", 17));
+    mousedown(document.getElementById("hero"), 8);
+
+    expect(sendMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: "DOWNLOAD",
+        body: expect.objectContaining({
+          info: expect.objectContaining({
+            matchedCssSelectorsByOrigin: [["article img:not(.avatar)"]],
+          }),
+        }),
+      }),
+      expect.any(Function),
+    );
+    remove();
+  });
+
   test("accepts a successful runtime download acknowledgement", async () => {
     sendMessage.mockImplementation((_message, callback) =>
       callback?.({ type: "DOWNLOAD", body: { status: "OK" } }),

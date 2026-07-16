@@ -681,12 +681,13 @@ describe("onMessage", () => {
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.KEYWORD_LIST,
       body: {
-        matchers: Object.keys(router.matcherFunctions),
+        matchers: [...Object.keys(router.matcherFunctions), "css"],
         variables: [":date:", ":year:"],
         automaticMatchers: [
           "pageurl",
           "pagedomain",
           "pagerootdomain",
+          "css",
           "sourceurl",
           "sourcedomain",
           "sourcerootdomain",

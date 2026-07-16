@@ -4001,5 +4001,15 @@
   "promptAssistantStatusDraftReady": { "message": "Rascunho pronto — revise antes de adicionar" },
   "promptAssistantStatusAdded": {
     "message": "Adicionado como rascunho não salvo no editor de regras"
+  },
+  "html_cssMatcherDescription": {
+    "message": "Corresponde ao elemento da página que descobriu a fonte. Disponível para Fontes da página automáticas, salvar com clique e salvamentos pelo painel Fontes da página."
+  },
+  "html_cssMatcherSyntax": {
+    "message": "O correspondente css: usa a sintaxe de seletor CSS em vez de uma expressão regular e não aceita sinalizadores."
+  },
+  "ruleInvalidCssSelector": { "message": "Seletor CSS inválido" },
+  "ruleCssFlags": {
+    "message": "css: não aceita sinalizadores de expressão regular"
   }
 }

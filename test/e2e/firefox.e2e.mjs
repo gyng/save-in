@@ -1118,6 +1118,7 @@ registerSharedBrowserCases({
   control,
   evaluate: evalBackground,
   evaluateOptions: evalOptions,
+  evaluatePage: (target, expression) => session.evaluateInTab(target, expression),
   waitForDownloads,
   waitForLog,
   downloadDir: () => session.downloadDir,

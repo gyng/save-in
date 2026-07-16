@@ -8,6 +8,9 @@ export type PageSource = {
   url: string;
   kind: PageSourceKind;
   element: Element;
+  // URL-deduplicated panel rows retain every element that discovered the
+  // source so DOM-aware routing does not depend on traversal order.
+  originElements?: Element[] | undefined;
   bytes?: number | undefined;
   previewable?: boolean | undefined;
   detectedAt?: number | undefined;
@@ -107,6 +110,11 @@ export const mergePageSourcesByUrl = (sources: PageSource[]): PageSource[] => {
       merged.set(source.url, source);
       return;
     }
+    const origins = existing.originElements ?? [existing.element];
+    for (const element of source.originElements ?? [source.element]) {
+      if (!origins.includes(element)) origins.push(element);
+    }
+    existing.originElements = origins;
     if (!existing.responsive && source.responsive) existing.responsive = source.responsive;
     else if (existing.responsive && source.responsive) {
       existing.responsive.selected ||= source.responsive.selected;

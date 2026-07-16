@@ -110,7 +110,8 @@ const repeatingQuantifierAt = (source: string, index: number): boolean => {
   return maximum === "" || Number(maximum) > 1;
 };
 
-export const isSafeExternalRegex = (regex: RegExp): boolean => {
+export const isSafeExternalRegex = (regex: RegExp | string): boolean => {
+  if (typeof regex === "string") return true;
   const { source } = regex;
   if (source.length > MAX_REGEX_CHARACTERS) return false;
 

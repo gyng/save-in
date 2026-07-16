@@ -69,12 +69,18 @@ mention `auto` in its context pattern and must contain both:
 
 - a page condition: `pageurl:`, `pagedomain:`, or `pagerootdomain:`; and
 - a source condition: `sourceurl:`, `sourcedomain:`, `sourcerootdomain:`,
-  `sourcekind:`, `mediatype:`, `fileext:`, or `urlfileext:`.
+  `sourcekind:`, `mediatype:`, `fileext:`, `urlfileext:`, or `css:`.
 
 Invalid automatic rules are rejected by the normal routing validator. Among
 valid automatic rules, the first complete match owns the destination. Ordinary
 and automatic rules may be interleaved in the same editor without ordinary
 rules becoming eligible for unattended saves.
+
+`css:` takes a CSS selector rather than a regular expression. It matches the
+page element that discovered a candidate; multiple `css:` clauses must match
+the same element, while a comma-separated selector list uses normal CSS OR
+semantics. Resource-timing hints have no originating element and cannot match
+this condition.
 
 `sourcekind:` uses the shared Page Sources vocabulary: `image`, `video`,
 `audio`, `stream`, `document`, and `link`. The automatic page scanner always

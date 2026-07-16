@@ -2,6 +2,7 @@ import { webExtensionApi } from "../../platform/web-extension-api.ts";
 import { getMessage } from "../../platform/localization.ts";
 import { isStringKeyedRecord, withUrl } from "../../shared/util.ts";
 import { isPageSourceKind, PAGE_SOURCE_KINDS } from "../../shared/page-source.ts";
+import { cssSelectorErrors } from "../core/css-selector-validation.ts";
 
 type WebMcpMessage = { type: string; body?: unknown };
 type WebMcpSend = (message: WebMcpMessage) => unknown;
@@ -380,6 +381,13 @@ export const buildTools = (send: WebMcpSend): WebMcpTool[] => {
         }
         if (Object.keys(input.config).length === 0) {
           return inputError("config", "Provide at least one setting");
+        }
+        const patterns = input.config.filenamePatterns;
+        if (typeof patterns === "string") {
+          const invalidCss = cssSelectorErrors(patterns)[0];
+          if (invalidCss) {
+            return inputError("config.filenamePatterns", invalidCss.message);
+          }
         }
         return send({ type: "APPLY_CONFIG", body: { config: input.config } });
       },

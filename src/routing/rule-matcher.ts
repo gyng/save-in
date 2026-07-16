@@ -6,10 +6,12 @@ import type {
   MatcherAttempt,
   MatcherClause,
   MatcherResult,
+  CssMatcherClause,
   RenameClause,
   RoutingInfo,
   RoutingRule,
 } from "./rule-types.ts";
+import { isCssMatcherClause, isRegexMatcherClause } from "./rule-types.ts";
 
 export type EvaluatedMatcherClause = {
   clause: MatcherClause;
@@ -60,9 +62,55 @@ const evaluateMatcherClause = (
 };
 
 const evaluateMatcherClauses = (rule: RoutingRule, info: RoutingInfo): EvaluatedMatcherClause[] =>
-  rule
-    .filter((clause): clause is MatcherClause => clause.type === RULE_TYPES.MATCHER)
-    .map((clause) => evaluateMatcherClause(clause, info));
+  evaluateMatchersWithCssOrigins(
+    rule.filter((clause): clause is MatcherClause => clause.type === RULE_TYPES.MATCHER),
+    info,
+  );
+
+const evaluateCssClauses = (
+  clauses: CssMatcherClause[],
+  info: RoutingInfo,
+): EvaluatedMatcherClause[] => {
+  const groups = info.matchedCssSelectorsByOrigin;
+  if (!groups) {
+    return clauses.map((clause) => ({
+      clause,
+      result: null,
+      attempts: [{ source: "pageElement", value: null, status: "missing" }],
+    }));
+  }
+  const matchingGroup = groups.find((group) => clauses.every(({ value }) => group.includes(value)));
+  return clauses.map((clause) => ({
+    clause,
+    result: matchingGroup ? /^([\s\S]*)$/.exec(clause.value) : null,
+    attempts: groups.length
+      ? groups.map((group, index) => ({
+          source: `pageElement[${index}]`,
+          value: clause.value,
+          status:
+            matchingGroup === group && group.includes(clause.value) ? "matched" : "not-matched",
+          ...(matchingGroup === group && group.includes(clause.value)
+            ? { matchedText: clause.value, captures: [] }
+            : {}),
+        }))
+      : [{ source: "pageElement", value: null, status: "missing" }],
+  }));
+};
+
+const evaluateMatchersWithCssOrigins = (
+  clauses: MatcherClause[],
+  info: RoutingInfo,
+): EvaluatedMatcherClause[] => {
+  const cssClauses = clauses.filter(isCssMatcherClause);
+  const cssEvaluations = new Map(
+    evaluateCssClauses(cssClauses, info).map((evaluation) => [evaluation.clause, evaluation]),
+  );
+  return clauses.map((clause) =>
+    isCssMatcherClause(clause)
+      ? (cssEvaluations.get(clause) ?? evaluateMatcherClause(clause, info))
+      : evaluateMatcherClause(clause, info),
+  );
+};
 
 const getCaptureMatcherResults = (
   rule: RoutingRule,
@@ -75,7 +123,8 @@ const getCaptureMatcherResults = (
   const captured: RegExpMatchArray[] = [];
   for (const name of names) {
     const clause = rule.find(
-      (item): item is MatcherClause => item.type === RULE_TYPES.MATCHER && item.name === name,
+      (item) =>
+        item.type === RULE_TYPES.MATCHER && item.name === name && isRegexMatcherClause(item),
     );
     const result = evaluatedClauses.find((evaluated) => evaluated.clause === clause)?.result;
     if (result) captured.push(result);

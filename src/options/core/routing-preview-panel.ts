@@ -17,6 +17,7 @@ import {
   validationErrorsToDiagnostics,
 } from "../syntax-editor/syntax-editor-model.ts";
 import { dispatchEditorValidation } from "../syntax-editor/editor-validation.ts";
+import { cssSelectorErrors } from "./css-selector-validation.ts";
 
 // Shared with menu-preview.ts's paths-textarea debounce (both editors debounce
 // their live preview/validation by the same amount).
@@ -268,11 +269,25 @@ export const createRoutingPreviewPanel = (manualEditorState: ManualEditorStateLi
       const pathErrors = Array.isArray(body.pathErrors)
         ? body.pathErrors.filter(isIndexedValidationError)
         : [];
-      const ruleErrors = Array.isArray(body.ruleErrors)
+      const backgroundRuleErrors = Array.isArray(body.ruleErrors)
         ? body.ruleErrors.filter(isValidationError)
         : [];
       const pathsTextarea = document.querySelector("#paths");
       const rulesTextarea = document.querySelector("#filenamePatterns");
+      const localCssErrors =
+        rulesTextarea instanceof HTMLTextAreaElement ? cssSelectorErrors(rulesTextarea.value) : [];
+      const ruleErrors = [
+        ...backgroundRuleErrors,
+        ...localCssErrors.filter(
+          (local) =>
+            !backgroundRuleErrors.some(
+              (remote) =>
+                remote.error === local.error &&
+                remote.location?.start === local.location?.start &&
+                remote.location?.end === local.location?.end,
+            ),
+        ),
+      ];
       const pathsErrors = document.querySelector("#error-paths");
       const rulesErrors = document.querySelector("#error-filenamePatterns");
       const updatePanel = (panel: Element, errors: ValidationError[], textareaId: string) => {

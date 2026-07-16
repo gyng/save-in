@@ -98,6 +98,7 @@ export const handleAutoDownloadSource = async (
     pageUrl: senderTab.url,
     sourceUrl,
     sourceKind: request.body.sourceKind,
+    matchedCssSelectorsByOrigin: request.body.matchedCssSelectorsByOrigin,
   });
   if (!match) {
     skip();
@@ -118,6 +119,7 @@ export const handleAutoDownloadSource = async (
       selectedUrl: sourceUrl,
       sourceUrl,
       sourceKind: request.body.sourceKind,
+      matchedCssSelectorsByOrigin: request.body.matchedCssSelectorsByOrigin,
       url: sourceUrl,
       context: DOWNLOAD_TYPES.AUTO,
       // A data: URL carries no path, so seed the mediatype parsed from its

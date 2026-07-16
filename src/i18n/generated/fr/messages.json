@@ -4005,5 +4005,15 @@
   },
   "promptAssistantStatusAdded": {
     "message": "Ajouté comme brouillon non enregistré dans l’éditeur de règles"
+  },
+  "html_cssMatcherDescription": {
+    "message": "Correspond à l’élément de page qui a détecté la source. Disponible pour les Sources de page automatiques, l’enregistrement par clic et les enregistrements depuis le panneau Sources de page."
+  },
+  "html_cssMatcherSyntax": {
+    "message": "Le critère css: utilise la syntaxe des sélecteurs CSS au lieu d’une expression régulière et n’accepte aucun indicateur."
+  },
+  "ruleInvalidCssSelector": { "message": "Sélecteur CSS non valide" },
+  "ruleCssFlags": {
+    "message": "css: n’accepte pas les indicateurs d’expression régulière"
   }
 }

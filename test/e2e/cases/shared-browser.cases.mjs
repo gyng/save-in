@@ -5,6 +5,7 @@ import { expect, test } from "vitest";
 import {
   runAutomaticRetryScenario,
   runContextMenuScenario,
+  runCssRoutingScenario,
   runFailedDownloadLogScenario,
   runHistoryCancellationScenario,
   runLegacyProfileRoutingScenario,
@@ -31,6 +32,7 @@ import { requireValue } from "../helpers.mjs";
  *   control: ReturnType<typeof import("../control-client.mjs").createE2EControlClient>,
  *   evaluate: (expression: string) => Promise<unknown>,
  *   evaluateOptions: (expression: string) => Promise<unknown>,
+ *   evaluatePage: (target: string, expression: string) => Promise<unknown>,
  *   waitForDownloads: (filename: string, timeoutMs?: number) => Promise<DownloadSummary[]>,
  *   waitForLog: (baseline: number, messages: string[], timeoutMs?: number) => Promise<LogEntry[]>,
  *   downloadDir: () => string,
@@ -47,6 +49,7 @@ export const registerSharedBrowserCases = (adapters) => {
     control,
     evaluate,
     evaluateOptions,
+    evaluatePage,
     waitForDownloads,
     waitForLog,
     downloadDir,
@@ -95,6 +98,10 @@ export const registerSharedBrowserCases = (adapters) => {
     });
     const completed = requireValue(downloads[0], "Routed download was not captured");
     expect(fs.readFileSync(completed.filename, "utf8")).toBe(routingContent);
+  });
+
+  test("CSS routes automatic and manual Page Sources by their originating element", async () => {
+    await runCssRoutingScenario({ control, evaluatePage, browserLabel });
   });
 
   test("a rename: clause edits the final filename of a routed save", async () => {

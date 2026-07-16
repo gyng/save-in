@@ -4001,5 +4001,13 @@
   "promptAssistantStatusDraftReady": {
     "message": "Utkastet är klart — granska det innan du lägger till det"
   },
-  "promptAssistantStatusAdded": { "message": "Tillagt som ett osparat utkast i regelredigeraren" }
+  "promptAssistantStatusAdded": { "message": "Tillagt som ett osparat utkast i regelredigeraren" },
+  "html_cssMatcherDescription": {
+    "message": "Matchar sidelementet som hittade källan. Tillgängligt för automatiska sidkällor, klickspara och sparningar från panelen Sidkällor."
+  },
+  "html_cssMatcherSyntax": {
+    "message": "Matcharen css: använder CSS-selektorsyntax i stället för ett reguljärt uttryck och accepterar inga flaggor."
+  },
+  "ruleInvalidCssSelector": { "message": "Ogiltig CSS-selektor" },
+  "ruleCssFlags": { "message": "css: accepterar inte flaggor för reguljära uttryck" }
 }

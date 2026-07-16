@@ -4003,5 +4003,13 @@
   "promptAssistantStatusDraftReady": {
     "message": "下書きの準備ができました — 追加する前に確認してください"
   },
-  "promptAssistantStatusAdded": { "message": "未保存の下書きとしてルールエディターに追加しました" }
+  "promptAssistantStatusAdded": { "message": "未保存の下書きとしてルールエディターに追加しました" },
+  "html_cssMatcherDescription": {
+    "message": "ソースを検出したページ要素に一致します。自動ページソース、クリック保存、ページソースパネルからの保存で利用できます。"
+  },
+  "html_cssMatcherSyntax": {
+    "message": "css: マッチャーは正規表現ではなく CSS セレクター構文を使用し、フラグは指定できません。"
+  },
+  "ruleInvalidCssSelector": { "message": "CSS セレクターが無効です" },
+  "ruleCssFlags": { "message": "css: には正規表現フラグを指定できません" }
 }

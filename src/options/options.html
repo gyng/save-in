@@ -819,8 +819,8 @@ Goal: [describe which downloads to match and where they should be saved]
 
 Save In syntax:
 - Write one clause per line and separate rules with a blank line.
-- Every matcher in one rule must match. Matcher values are JavaScript regular expressions.
-- Common matchers include filename:, actualfileext:, mime:, sourceurl:, sourcedomain:, sourcerootdomain:, sourcekind:, pageurl:, pagedomain:, pagerootdomain:, referrerurl:, referrerdomain:, pagetitle:, context:, and mediatype:.
+- Every matcher in one rule must match. Matcher values are JavaScript regular expressions except css:, which takes a CSS selector and no flags.
+- Common matchers include filename:, actualfileext:, mime:, sourceurl:, sourcedomain:, sourcerootdomain:, sourcekind:, css:, pageurl:, pagedomain:, pagerootdomain:, referrerurl:, referrerdomain:, pagetitle:, context:, and mediatype:.
 - Add /i to a matcher name for case-insensitive matching, for example filename/i: \.pdf$.
 - Every rule must contain exactly one into: clause. Its value is a relative destination or filename template.
 - End into: with / to move the file while preserving its resolved filename.
@@ -3493,9 +3493,19 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
           >
           __MSG_html_stringsAddJavascriptRegexFlagsAfterTheMatcherName__
           <code class="click-to-copy">filename/i:</code> __MSG_html_forCaseInsensitiveMatching__
+          <p>__MSG_html_cssMatcherSyntax__</p>
 
           <table class="box">
             <tbody>
+              <tr>
+                <td>
+                  <code class="click-to-copy">css:</code>
+                </td>
+                <td>
+                  <code>article img, .gallery video</code>
+                </td>
+                <td>__MSG_html_cssMatcherDescription__</td>
+              </tr>
               <tr>
                 <td>
                   <code class="click-to-copy">context:</code>

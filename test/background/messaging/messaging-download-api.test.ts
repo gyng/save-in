@@ -301,6 +301,28 @@ describe("handleDownloadMessage", () => {
     expect(state.info.currentTab).toBe(trackedTab);
   });
 
+  test("accepts CSS attestations only through the internal message channel", async () => {
+    const cssRequest = request({
+      info: {
+        pageUrl: "https://x/",
+        srcUrl: "https://x/file.png",
+        matchedCssSelectorsByOrigin: [["article img"]],
+      },
+    });
+    onMessage(cssRequest, { tab: { id: 8 } }, vi.fn());
+    expect(vi.mocked(Download.launchDownload).mock.calls[0]![0]!.info).toMatchObject({
+      matchedCssSelectorsByOrigin: [["article img"]],
+    });
+
+    vi.mocked(Download.launchDownload).mockClear();
+    const response = vi.fn();
+    onMessageExternal(cssRequest, { id: "trusted-extension", tab: { id: 9 } }, response);
+    await waitForCall(response);
+    expect(
+      vi.mocked(Download.launchDownload).mock.calls[0]![0]!.info.matchedCssSelectorsByOrigin,
+    ).toBeUndefined();
+  });
+
   test("omits the comment when none is supplied", () => {
     onMessage(request(), {}, vi.fn());
 
@@ -395,6 +417,57 @@ into: automatic/:pagedomain:/
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
       body: { status: "started" },
+    });
+  });
+
+  test("rechecks CSS attestations against the current automatic rule", async () => {
+    options.autoDownloadEnabled = true;
+    options.autoDownloadPrivate = false;
+    options.filenamePatterns = parseRulesCollecting(`
+context: ^auto$
+pageurl: ^https://example\\.test/gallery/
+css: article img
+css: img:not(.avatar)
+into: automatic/
+`).rules;
+    const senderTab = { id: 7, url: request.body.pageUrl, incognito: false };
+
+    const stale = vi.fn();
+    onMessage(request, { tab: senderTab }, stale);
+    await waitForCall(stale);
+    expect(Download.launchDownload).not.toHaveBeenCalled();
+
+    const splitOrigins = vi.fn();
+    onMessage(
+      {
+        ...request,
+        body: {
+          ...request.body,
+          matchedCssSelectorsByOrigin: [["article img"], ["img:not(.avatar)"]],
+        },
+      },
+      { tab: senderTab },
+      splitOrigins,
+    );
+    await waitForCall(splitOrigins);
+    expect(Download.launchDownload).not.toHaveBeenCalled();
+
+    const matched = vi.fn();
+    onMessage(
+      {
+        ...request,
+        body: {
+          ...request.body,
+          matchedCssSelectorsByOrigin: [["article img", "img:not(.avatar)"]],
+        },
+      },
+      { tab: senderTab },
+      matched,
+    );
+    await waitForCall(matched);
+    expect(Download.launchDownload).toHaveBeenCalledOnce();
+    expect(vi.mocked(Download.launchDownload).mock.calls[0]![0]!.info).toMatchObject({
+      matchedCssSelectorsByOrigin: [["article img", "img:not(.avatar)"]],
     });
   });
 

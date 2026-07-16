@@ -3,6 +3,7 @@ export const AUTOMATIC_CONTEXT_PATTERN = "^auto$";
 
 export const AUTOMATIC_PAGE_MATCHERS = ["pageurl", "pagedomain", "pagerootdomain"] as const;
 export const AUTOMATIC_SOURCE_MATCHERS = [
+  "css",
   "sourceurl",
   "sourcedomain",
   "sourcerootdomain",

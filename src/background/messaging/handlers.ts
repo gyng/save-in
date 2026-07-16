@@ -191,7 +191,7 @@ export const handleGetKeywords = (
   sendResponse({
     type: MESSAGE_TYPES.KEYWORD_LIST,
     body: {
-      matchers: Object.keys(matcherFunctions),
+      matchers: [...Object.keys(matcherFunctions), "css"],
       variables: Object.keys(transformers),
       automaticMatchers: [...AUTOMATIC_PAGE_MATCHERS, ...AUTOMATIC_SOURCE_MATCHERS],
       // Context matchers normalize their input before testing. Expose the
@@ -370,6 +370,7 @@ export const handleDownloadMessage = (
   request: MessageOf<typeof MESSAGE_TYPES.DOWNLOAD>,
   sender: MessageSender,
   sendResponse: ProtocolSendResponse<MessageOf<typeof MESSAGE_TYPES.DOWNLOAD>>,
+  internal = false,
 ): Promise<void> | void => {
   const requestBody = request.body || {};
   const { url: requestedUrl, target, comment } = requestBody;
@@ -413,6 +414,9 @@ export const handleDownloadMessage = (
       mime: info.mime,
       mediaType: info.mediaType,
       sourceKind: info.sourceKind,
+      ...(internal && info.matchedCssSelectorsByOrigin
+        ? { matchedCssSelectorsByOrigin: info.matchedCssSelectorsByOrigin }
+        : {}),
       url,
       context: DOWNLOAD_TYPES.CLICK,
     };

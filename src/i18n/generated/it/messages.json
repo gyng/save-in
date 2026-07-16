@@ -4007,5 +4007,15 @@
   },
   "promptAssistantStatusAdded": {
     "message": "Aggiunta come bozza non salvata nell’editor delle regole"
+  },
+  "html_cssMatcherDescription": {
+    "message": "Corrisponde all’elemento della pagina che ha rilevato la sorgente. Disponibile per Sorgenti pagina automatiche, salvataggio con clic e salvataggi dal pannello Sorgenti pagina."
+  },
+  "html_cssMatcherSyntax": {
+    "message": "Il criterio css: usa la sintassi dei selettori CSS invece di un’espressione regolare e non accetta flag."
+  },
+  "ruleInvalidCssSelector": { "message": "Selettore CSS non valido" },
+  "ruleCssFlags": {
+    "message": "css: non accetta flag per espressioni regolari"
   }
 }

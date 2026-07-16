@@ -5,11 +5,14 @@ import { parseRoutingRuleAst, type RoutingRuleNode, type RuleSyntaxIssue } from 
 import type { SourceSpan } from "../shared/syntax-parser.ts";
 import type {
   MatcherClause,
+  RegexMatcherClause,
   RuleClause,
   RuleError,
   RuleErrorLocation,
   RoutingRule,
 } from "./rule-types.ts";
+import { isCssMatcherClause, isRegexMatcherClause } from "./rule-types.ts";
+import { MAX_CSS_SELECTOR_LENGTH } from "../shared/css-selector-attestation.ts";
 import { automaticRuleClauseIssues, isAutomaticRuleClauses } from "./automatic-rule.ts";
 import { findBannedFetchVariables, findUnknownPathVariables } from "./path-variables.ts";
 import { RENAME_SEPARATOR, splitRenameValue } from "./rename.ts";
@@ -79,6 +82,14 @@ const ruleHasFetchClause = (rule: readonly RuleClause[]): boolean =>
 
 const isMatcherName = (name: string): name is keyof typeof matcherFunctions =>
   Object.hasOwn(matcherFunctions, name);
+
+const cssMatcher = (selector: string): MatcherClause["matcher"] => {
+  const matcher = (info: Parameters<MatcherClause["matcher"]>[0]) =>
+    info.matchedCssSelectorsByOrigin?.some((group) => group.includes(selector)) === true
+      ? /^([\s\S]*)$/.exec(selector)
+      : null;
+  return matcher;
+};
 
 const parseSemanticRule = (
   rule: RoutingRuleNode,
@@ -170,6 +181,34 @@ const parseSemanticRule = (
         find,
         replacement: parts.replacement,
         type: RULE_TYPES.RENAME,
+      };
+    }
+
+    if (name === "css") {
+      const selector = rawValue.trim();
+      if (flags) {
+        appendError(
+          errors,
+          routingPorts.getMessage("ruleCssFlags"),
+          `css/${flags}:`,
+          line.flagsSpan ?? line.nameSpan,
+        );
+        return false;
+      }
+      if (!selector || selector.length > MAX_CSS_SELECTOR_LENGTH) {
+        appendError(
+          errors,
+          routingPorts.getMessage("ruleInvalidCssSelector"),
+          selector,
+          line.valueSpan,
+        );
+        return false;
+      }
+      return {
+        name,
+        value: selector,
+        type: RULE_TYPES.MATCHER,
+        matcher: cssMatcher(selector),
       };
     }
 
@@ -382,14 +421,25 @@ const parseSemanticRule = (
     if (!capture || !captureNode) return false;
     const names = capture.value.split(",").map((name) => name.trim().toLowerCase());
     const matcherCandidates = names.map((name) =>
-      valid.filter((clause) => clause.type === RULE_TYPES.MATCHER && clause.name === name),
+      valid.filter(
+        (clause): clause is MatcherClause =>
+          clause.type === RULE_TYPES.MATCHER && clause.name === name,
+      ),
     );
-    const capturedMatchers = matcherCandidates.map((matches) => matches[0]);
+    const capturedMatchers = matcherCandidates.map((matches) => matches.find(isRegexMatcherClause));
     let missing = false;
     names.forEach((name, index) => {
       /* v8 ignore next -- matcherCandidates is mapped one-for-one from names. */
       const candidates = matcherCandidates[index] ?? [];
       if (!capturedMatchers[index] || (capture.name === "capturegroups" && candidates.length > 1)) {
+        appendError(
+          errors,
+          routingPorts.getMessage("ruleCaptureMissingMatcher"),
+          `${capture.name}: ${name}`,
+          captureNode.valueSpan,
+        );
+        missing = true;
+      } else if (candidates.some(isCssMatcherClause)) {
         appendError(
           errors,
           routingPorts.getMessage("ruleCaptureMissingMatcher"),
@@ -409,7 +459,7 @@ const parseSemanticRule = (
     });
     if (missing) return false;
     const definiteCapturedMatchers = capturedMatchers.filter(
-      (clause): clause is MatcherClause => clause !== undefined,
+      (clause): clause is RegexMatcherClause => clause !== undefined,
     );
     const availableIndexes = definiteCapturedMatchers.reduce(
       (total, clause) => total + captureGroupCount(clause.value) + 1,
@@ -484,12 +534,15 @@ export const parseRulesCollecting = (
       const earlierMatchers = earlier.filter((clause) => clause.type === RULE_TYPES.MATCHER);
       const laterMatchers = laterRule.filter((clause) => clause.type === RULE_TYPES.MATCHER);
       return earlierMatchers.every((earlierClause) =>
-        earlierClause.name.toLowerCase() === "filename" && isPlainMatchAll(earlierClause.value)
+        earlierClause.name.toLowerCase() === "filename" &&
+        typeof earlierClause.value !== "string" &&
+        isPlainMatchAll(earlierClause.value)
           ? true
           : laterMatchers.some((laterClause) => {
               if (laterClause.name !== earlierClause.name) return false;
               const a = earlierClause.value;
               const b = laterClause.value;
+              if (typeof a === "string" || typeof b === "string") return a === b;
               return isPlainMatchAll(a) || (a.source === b.source && a.flags === b.flags);
             }),
       );

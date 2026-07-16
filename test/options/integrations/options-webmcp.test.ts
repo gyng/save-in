@@ -146,6 +146,19 @@ describe("buildTools", () => {
     });
   });
 
+  test("blocks applying an invalid CSS matcher from an agent", async () => {
+    const { send, byName } = toolsByName();
+    await expect(
+      byName.save_in_apply_config.execute({
+        config: { filenamePatterns: "css: [\ninto: files/" },
+      }),
+    ).resolves.toMatchObject({
+      status: "ERROR",
+      errors: [{ field: "config.filenamePatterns" }],
+    });
+    expect(send).not.toHaveBeenCalled();
+  });
+
   test("validates and forwards automatic-source rules with a sample candidate", async () => {
     const { send, byName } = toolsByName();
     const automaticCandidate = {

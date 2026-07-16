@@ -21,6 +21,7 @@ export type AutomaticRoutingCandidate = {
   // isAdmittedAutomaticSource below). Not part of the rule-matching vocabulary:
   // sourcekind: alone still selects the destination.
   sourceChannel?: PageSourceChannel | undefined;
+  matchedCssSelectorsByOrigin?: string[][] | undefined;
 };
 
 // The three phase-B content options, plus the phase-A link option, expressed
@@ -73,6 +74,7 @@ const candidateInfo = (candidate: AutomaticRoutingCandidate): RoutingInfo => ({
   pageUrl: candidate.pageUrl,
   sourceKind: candidate.sourceKind,
   sourceUrl: candidate.sourceUrl,
+  matchedCssSelectorsByOrigin: candidate.matchedCssSelectorsByOrigin,
   url: candidate.sourceUrl,
   // A data: URL has no path (fileext:/urlfileext: are empty), so mime-based
   // matching and :mimeext: naming rely on the mediatype parsed from its header.

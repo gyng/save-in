@@ -4003,5 +4003,15 @@
   "promptAssistantStatusDraftReady": { "message": "Entwurf bereit — vor dem Hinzufügen prüfen" },
   "promptAssistantStatusAdded": {
     "message": "Als ungespeicherter Entwurf im Regel-Editor hinzugefügt"
+  },
+  "html_cssMatcherDescription": {
+    "message": "Entspricht dem Seitenelement, das die Quelle erkannt hat. Verfügbar für automatische Seitenquellen, Speichern per Klick und Speichern im Seitenquellen-Bereich."
+  },
+  "html_cssMatcherSyntax": {
+    "message": "Der Matcher css: verwendet CSS-Selektorsyntax anstelle eines regulären Ausdrucks und akzeptiert keine Flags."
+  },
+  "ruleInvalidCssSelector": { "message": "Ungültiger CSS-Selektor" },
+  "ruleCssFlags": {
+    "message": "css: akzeptiert keine Flags für reguläre Ausdrücke"
   }
 }

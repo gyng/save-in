@@ -130,8 +130,8 @@
     "description": "Validation error requiring automatic source routing rules to be limited to a page or site. Used in src/routing/rule-parser.ts."
   },
   "ruleAutomaticMissingSource": {
-    "message": "Add a source address, domain, kind, or extension condition",
-    "description": "Validation error requiring automatic source routing rules to select a source URL, kind, domain, or extension. Used in src/routing/rule-parser.ts."
+    "message": "Add a source address, domain, kind, extension, or page-element condition",
+    "description": "Validation error requiring automatic source routing rules to select a source URL, kind, domain, extension, or originating page element. Used in src/routing/rule-parser.ts."
   },
   "ruleCaptureMissingMatcher": {
     "message": "Capture target does not match any condition in this rule",
@@ -188,6 +188,14 @@
   "ruleInvalidRegex": {
     "message": "Pattern or flags are not a valid regular expression",
     "description": "Error message for a rule with invalid regex. Used in src/routing/rule-parser.ts."
+  },
+  "ruleInvalidCssSelector": {
+    "message": "Invalid CSS selector",
+    "description": "Validation error for an invalid css: routing matcher value. Used in src/routing/rule-parser.ts and the Options page."
+  },
+  "ruleCssFlags": {
+    "message": "css: does not accept regular-expression flags",
+    "description": "Validation error when a css: routing matcher has flags such as /i. Used in src/routing/rule-parser.ts."
   },
   "ruleShadowed": {
     "message": "Earlier rule already matches every download this rule can match",
@@ -834,6 +842,14 @@
   "html_linkTextMatcherDescription": {
     "message": "Matches link text when the browser provides it; tab saves use the tab title.",
     "description": "Description of the linktext routing matcher, including its availability and tab-save fallback. Used in src/options/clauselist.html and src/options/options.html."
+  },
+  "html_cssMatcherDescription": {
+    "message": "Matches the page element that discovered the source. Available for automatic Page Sources, click-to-save, and Page Sources panel saves.",
+    "description": "Description of the css: routing matcher and the content-originated save paths where DOM context exists. Used in src/options/clauselist.html and src/options/options.html."
+  },
+  "html_cssMatcherSyntax": {
+    "message": "The css: matcher uses CSS selector syntax instead of a regular expression and does not accept flags.",
+    "description": "CSS syntax exception in the routing matcher reference. Keep the literal css: matcher name. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_matchesTheMediaType": {
     "message": "Matches the media type:",

@@ -26,12 +26,14 @@ export const INTEGRATION_GRAMMARS: readonly IntegrationGrammar[] = [
     ebnf: ROUTING_RULE_GRAMMAR,
     semantics: [
       "Blank lines separate rules; matcher clauses in one rule must all match.",
+      "Matcher values are regular expressions except css:, whose value is a CSS selector without regex flags.",
       "A rule may contain capture clauses and ends with an into destination.",
       "Automatic source rules use context: ^auto$ and require page and source constraints.",
     ],
     examples: [
       "fileext/i: ^(?:png|jpe?g)$\ninto: Images/:filename:",
       "context: ^auto$\npagedomain: ^example\\.com$\nsourcekind: ^image$\ninto: Images",
+      "context: ^auto$\npagedomain: ^example\\.com$\ncss: article img\ninto: Articles",
     ],
   },
 ] as const;

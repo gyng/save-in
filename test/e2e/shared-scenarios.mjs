@@ -905,6 +905,129 @@ export const runTabStripScenario = async ({ control, waitForDownloads, filename 
 };
 
 /**
+ * Verifies CSS routing in both content-owned paths: automatic discovery and a
+ * manual Page Sources save. The duplicate URL proves a panel row retains all
+ * origins rather than making selector results depend on traversal order.
+ *
+ * @param {{
+ *   control: ReturnType<typeof import("./control-client.mjs").createE2EControlClient>,
+ *   evaluatePage: (target: string, expression: string) => Promise<unknown>,
+ *   browserLabel: "chrome" | "firefox",
+ * }} adapters
+ */
+export const runCssRoutingScenario = async ({ control, evaluatePage, browserLabel }) => {
+  const server = http.createServer((req, res) => {
+    if (req.url?.startsWith("/css-routing")) {
+      res.writeHead(200, { "Content-Type": "text/html" });
+      res.end(`<!doctype html>
+        <article><img src="/css-shared.png" alt="article"></article>
+        <aside><img class="avatar" src="/css-shared.png" alt="avatar"></aside>`);
+      return;
+    }
+    res.writeHead(200, { "Content-Type": "image/png" });
+    res.end("css routing fixture");
+  });
+  const port = await listenLocal(server);
+  const target = `127.0.0.1:${port}/css-routing`;
+  const pageUrl = `http://${target}`;
+  const keys = [
+    "autoDownloadEnabled",
+    "autoDownloadLive",
+    "autoDownloadMaxPerPage",
+    "filenamePatterns",
+    "sourcePanelEnabled",
+    "sourcePanelPreviews",
+    "sourcePanelBackgrounds",
+    "sourcePanelResourceHints",
+    "sourcePanelLinks",
+  ];
+  const previous = await control.storage.local.get(keys);
+  const missing = keys.filter((key) => !Object.hasOwn(previous, key));
+  let tabId;
+
+  try {
+    await Promise.all([
+      control.options.set({
+        autoDownloadEnabled: true,
+        autoDownloadLive: false,
+        autoDownloadMaxPerPage: 4,
+        filenamePatterns: `context: ^auto$
+pageurl: /css-routing$
+css: article img
+into: e2e/css-auto-${browserLabel}/:filename:`,
+      }),
+      control.storage.local.set({
+        sourcePanelEnabled: true,
+        sourcePanelPreviews: false,
+        sourcePanelBackgrounds: false,
+        sourcePanelResourceHints: false,
+        sourcePanelLinks: false,
+      }),
+    ]);
+    const created = await control.tabs.create({ url: pageUrl, active: true });
+    tabId = created.id;
+    await control.tabs.wait(tabId === undefined ? { urlIncludes: target } : { id: tabId });
+    await evaluatePage(target, "document.readyState === 'complete'");
+    const automatic = await control.downloads.wait({
+      filenameIncludes: `css-auto-${browserLabel}`,
+      minimumComplete: 1,
+      timeoutMs: 10000,
+    });
+    expect(automatic.filter((row) => row.state === "complete")).toHaveLength(1);
+
+    await control.options.set({
+      autoDownloadEnabled: false,
+      filenamePatterns: `pageurl: /css-routing(?:\\?manual)?$
+css: aside img.avatar
+into: e2e/css-manual-${browserLabel}/:filename:`,
+    });
+    if (tabId !== undefined) await control.tabs.remove(tabId);
+    const manualTarget = `${target}?manual`;
+    const manualTab = await control.tabs.create({ url: `${pageUrl}?manual`, active: true });
+    tabId = manualTab.id;
+    await control.tabs.wait(tabId === undefined ? { urlIncludes: manualTarget } : { id: tabId });
+    const tab = (await control.tabs.query()).find((candidate) =>
+      candidate.url?.includes(manualTarget),
+    );
+    if (tab?.id === undefined) throw new Error("CSS routing fixture tab missing");
+    await control.storage.session.set({ sourcePanelOpen: true });
+    await control.tabs.sendMessage(tab.id, { type: "SET_SOURCE_PANEL", body: { open: true } });
+    await evaluatePage(
+      manualTarget,
+      `new Promise((resolve, reject) => {
+        const deadline = Date.now() + 5000;
+        const check = () => {
+          const root = document.querySelector("#save-in-source-panel")?.shadowRoot;
+          const row = root?.querySelector(".row");
+          if (row) {
+            row.querySelector(".actions .primary-action")?.click();
+            resolve(true);
+          } else if (Date.now() >= deadline) reject(new Error("Page Sources row did not appear"));
+          else requestAnimationFrame(check);
+        };
+        check();
+      })`,
+    );
+    const manual = await control.downloads.wait({
+      filenameIncludes: `css-manual-${browserLabel}`,
+      minimumComplete: 1,
+      timeoutMs: 10000,
+    });
+    expect(manual.filter((row) => row.state === "complete")).toHaveLength(1);
+  } finally {
+    try {
+      await control.storage.session.set({ sourcePanelOpen: false });
+      await control.storage.local.set(previous);
+      if (missing.length) await control.storage.local.remove(missing);
+      if (tabId !== undefined) await control.tabs.remove(tabId).catch(() => {});
+      await control.runtime.reset();
+    } finally {
+      await closeLocal(server);
+    }
+  }
+};
+
+/**
  * @param {{
  *   control: ReturnType<typeof import("./control-client.mjs").createE2EControlClient>,
  *   waitForDownloads: (filename: string) => Promise<DownloadSummary[]>,

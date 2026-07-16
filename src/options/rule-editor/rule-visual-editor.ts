@@ -46,6 +46,7 @@ const DEFAULT_MATCHERS = [
   "pagerootdomain",
   "pagetitle",
   "frameurl",
+  "css",
   "sourceurl",
   "sourcedomain",
   "sourcerootdomain",
@@ -309,7 +310,7 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
         ? rule.clauses.slice(0, clause.index + 1).filter((item) => item.kind === "matcher").length
         : undefined;
 
-    if (clause.kind === "matcher" && conditionNumber !== undefined) {
+    if (clause.kind === "matcher" && conditionNumber !== undefined && clause.name !== "css") {
       row.append(createMatcherInput(rule, clause, conditionNumber));
     } else {
       const name = document.createElement("span");
@@ -336,7 +337,9 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
           ? "https://example.com/:$1:"
           : clause.kind === "rename"
             ? "find -> replacement"
-            : ".*";
+            : clause.name === "css"
+              ? "article img, .gallery video"
+              : ".*";
     value.setAttribute(
       "aria-label",
       clause.kind === "destination"

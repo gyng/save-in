@@ -4003,5 +4003,15 @@
   },
   "promptAssistantStatusAdded": {
     "message": "Als niet-opgeslagen concept toegevoegd aan de regeleditor"
+  },
+  "html_cssMatcherDescription": {
+    "message": "Komt overeen met het pagina-element dat de bron heeft gevonden. Beschikbaar voor automatische paginabronnen, opslaan met klikken en opslaan via het paneel Paginabronnen."
+  },
+  "html_cssMatcherSyntax": {
+    "message": "De matcher css: gebruikt CSS-selectorsyntaxis in plaats van een reguliere expressie en accepteert geen vlaggen."
+  },
+  "ruleInvalidCssSelector": { "message": "Ongeldige CSS-selector" },
+  "ruleCssFlags": {
+    "message": "css: accepteert geen vlaggen voor reguliere expressies"
   }
 }

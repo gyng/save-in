@@ -29,6 +29,12 @@ import {
 } from "./auto-download.ts";
 import { matchesAnyPattern } from "../shared/match-pattern.ts";
 import type { AutomaticRoutingCandidate } from "../automation/automatic-routing.ts";
+import { parseRulesCollecting } from "../routing/rule-parser.ts";
+import {
+  cssSelectorsForRules,
+  matchedCssSelectorsByOrigin,
+  sourceOriginElements,
+} from "./css-routing.ts";
 
 // Runs in every page. Uses callback-style chrome.* APIs: available in both
 // Chrome and Firefox content scripts (no polyfill is loaded here). try/catch
@@ -68,21 +74,34 @@ const ClickToSave = {
       composedPath?: () => Array<EventTarget | null>;
     },
     allowLinks: boolean,
-  ): { url: string; kind: PageSource["kind"] } | undefined => {
-    let source: { url: string; kind: PageSource["kind"] } | undefined;
+  ): { url: string; kind: PageSource["kind"]; element: Element } | undefined => {
+    const withElement = (
+      url: string,
+      kind: PageSource["kind"],
+      element: Element,
+    ): { url: string; kind: PageSource["kind"]; element: Element } => {
+      const result = { url, kind, element };
+      // Keep findSource's established enumerable {url, kind} shape for callers
+      // while retaining the DOM origin for routing inside this content script.
+      Object.defineProperty(result, "element", { enumerable: false });
+      return result;
+    };
+    let source: { url: string; kind: PageSource["kind"]; element: Element } | undefined;
     const path = typeof e.composedPath === "function" ? e.composedPath() : [];
     // Report the element's kind so a saved click carries its true source kind:
     // the `sourcekind:` routing matcher and the source sidecar both read it.
     const mediaSource = (
       element: unknown,
-    ): { url: string; kind: PageSource["kind"] } | undefined => {
+    ): { url: string; kind: PageSource["kind"]; element: Element } | undefined => {
       let kind: "image" | "video" | "audio";
       if (element instanceof HTMLVideoElement) kind = "video";
       else if (element instanceof HTMLAudioElement) kind = "audio";
       else if (element instanceof HTMLImageElement) kind = "image";
       else return undefined;
       const candidate = element.currentSrc || element.src;
-      return /^(https?|ftp|blob|data):/i.test(candidate) ? { url: candidate, kind } : undefined;
+      return /^(https?|ftp|blob|data):/i.test(candidate)
+        ? withElement(candidate, kind, element)
+        : undefined;
     };
 
     // Shadow-DOM retargeting can hide the actual media element from e.target.
@@ -111,9 +130,10 @@ const ClickToSave = {
       );
       const targetAnchor =
         e.target instanceof Element ? e.target.closest<HTMLAnchorElement>("a[href]") : null;
-      const href = (pathAnchor ?? targetAnchor)?.href;
+      const anchor = pathAnchor ?? targetAnchor;
+      const href = anchor?.href;
       if (href && /^(https?|ftp|blob|data):/i.test(href)) {
-        source = { url: href, kind: "link" };
+        source = withElement(href, "link", anchor);
       }
     }
 
@@ -140,7 +160,12 @@ const warmBackground = () => {
 
 type ContentDownloadRequest = {
   url: string;
-  info: { pageUrl: string; srcUrl: string; sourceKind?: PageSource["kind"] };
+  info: {
+    pageUrl: string;
+    srcUrl: string;
+    sourceKind?: PageSource["kind"];
+    matchedCssSelectorsByOrigin?: string[][];
+  };
 };
 type DownloadLifecycle = { signal: AbortSignal; retryTimers: Set<number> };
 
@@ -175,7 +200,7 @@ const sendRuntimeDownload = (
 type ResolvedClickToSaveOptions = Pick<
   ResolvedContentOptions,
   "contentClickToSaveCombo" | "contentClickToSaveButton" | "links"
->;
+> & { filenamePatterns?: string };
 type ResolvedAutoDownloadOptions = Pick<
   ResolvedContentOptions,
   | "autoDownloadLive"
@@ -193,6 +218,9 @@ const setupClickToSave = (
   acceptInput: (event: KeyboardEvent | MouseEvent) => boolean = (event) => event.isTrusted,
   isDisabled: () => boolean = () => false,
 ) => {
+  const cssSelectors = cssSelectorsForRules(
+    parseRulesCollecting(options.filenamePatterns ?? "").rules,
+  );
   const controller = new AbortController();
   const listenerOptions = { capture: true, signal: controller.signal };
   const shortcutOptions = {
@@ -275,6 +303,14 @@ const setupClickToSave = (
                 pageUrl: `${window.location}`,
                 srcUrl: source.url,
                 sourceKind: source.kind,
+                ...(cssSelectors.length > 0
+                  ? {
+                      matchedCssSelectorsByOrigin: matchedCssSelectorsByOrigin(
+                        [source.element],
+                        cssSelectors,
+                      ),
+                    }
+                  : {}),
               },
             },
             2,
@@ -407,7 +443,13 @@ const applyOptions = (next: ContentOptions) => {
   // current page closes an open panel.
   const disableListChanged = previous.perSiteDisableList !== currentOptions.perSiteDisableList;
   const clickOptionsChanged = (
-    ["contentClickToSave", "contentClickToSaveCombo", "contentClickToSaveButton", "links"] as const
+    [
+      "contentClickToSave",
+      "contentClickToSaveCombo",
+      "contentClickToSaveButton",
+      "links",
+      "filenamePatterns",
+    ] as const
   ).some((key) => previous[key] !== currentOptions[key]);
   // A disable-list change remounts discovery so removing the site from the
   // list resumes automatic saves without a reload — but the dedup state
@@ -512,11 +554,27 @@ try {
 }
 
 try {
-  const sendDownload = ({ url, kind }: PageSource) =>
-    sendRuntimeDownload({
-      url,
-      info: { pageUrl: `${window.location}`, srcUrl: url, sourceKind: kind },
+  const sendDownload = (source: PageSource) => {
+    const cssSelectors = cssSelectorsForRules(
+      parseRulesCollecting(currentOptions.filenamePatterns).rules,
+    );
+    return sendRuntimeDownload({
+      url: source.url,
+      info: {
+        pageUrl: `${window.location}`,
+        srcUrl: source.url,
+        sourceKind: source.kind,
+        ...(cssSelectors.length > 0
+          ? {
+              matchedCssSelectorsByOrigin: matchedCssSelectorsByOrigin(
+                sourceOriginElements(source),
+                cssSelectors,
+              ),
+            }
+          : {}),
+      },
     });
+  };
   const createAutomaticRule = ({ url, kind }: PageSource): Promise<void> =>
     new Promise((resolve) => {
       try {

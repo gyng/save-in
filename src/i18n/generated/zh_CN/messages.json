@@ -3991,5 +3991,13 @@
     "placeholders": { "error": { "content": "$1", "example": "The model session ended" } }
   },
   "promptAssistantStatusDraftReady": { "message": "草稿已就绪 — 添加前请先检查" },
-  "promptAssistantStatusAdded": { "message": "已作为未保存的草稿添加到规则编辑器" }
+  "promptAssistantStatusAdded": { "message": "已作为未保存的草稿添加到规则编辑器" },
+  "html_cssMatcherDescription": {
+    "message": "匹配发现该来源的页面元素。适用于自动页面来源、点击保存以及从“页面来源”面板保存。"
+  },
+  "html_cssMatcherSyntax": {
+    "message": "css: 匹配器使用 CSS 选择器语法，而不是正则表达式，并且不接受标志。"
+  },
+  "ruleInvalidCssSelector": { "message": "CSS 选择器无效" },
+  "ruleCssFlags": { "message": "css: 不接受正则表达式标志" }
 }

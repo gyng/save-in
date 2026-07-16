@@ -3993,5 +3993,13 @@
     "placeholders": { "error": { "content": "$1", "example": "The model session ended" } }
   },
   "promptAssistantStatusDraftReady": { "message": "草稿已就緒 — 加入前請先檢查" },
-  "promptAssistantStatusAdded": { "message": "已作為未儲存的草稿加入規則編輯器" }
+  "promptAssistantStatusAdded": { "message": "已作為未儲存的草稿加入規則編輯器" },
+  "html_cssMatcherDescription": {
+    "message": "比對找到該來源的頁面元素。適用於自動頁面來源、點擊儲存，以及從「頁面來源」面板儲存。"
+  },
+  "html_cssMatcherSyntax": {
+    "message": "css: 比對器使用 CSS 選取器語法，而非規則運算式，且不接受旗標。"
+  },
+  "ruleInvalidCssSelector": { "message": "無效的 CSS 選取器" },
+  "ruleCssFlags": { "message": "css: 不接受規則運算式旗標" }
 }

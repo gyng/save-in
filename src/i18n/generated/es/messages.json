@@ -4005,5 +4005,15 @@
   "promptAssistantStatusDraftReady": { "message": "Borrador listo — revísalo antes de añadirlo" },
   "promptAssistantStatusAdded": {
     "message": "Añadido como borrador sin guardar en el editor de reglas"
+  },
+  "html_cssMatcherDescription": {
+    "message": "Coincide con el elemento de la página que detectó la fuente. Disponible para Fuentes de página automáticas, guardar con clic y guardar desde el panel Fuentes de página."
+  },
+  "html_cssMatcherSyntax": {
+    "message": "El comparador css: usa sintaxis de selector CSS en lugar de una expresión regular y no admite indicadores."
+  },
+  "ruleInvalidCssSelector": { "message": "Selector CSS no válido" },
+  "ruleCssFlags": {
+    "message": "css: no admite indicadores de expresiones regulares"
   }
 }

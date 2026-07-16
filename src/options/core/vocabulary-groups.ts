@@ -105,6 +105,7 @@ const CLAUSE_ORDER = [
   "pagerootdomain",
   "pagetitle",
   "frameurl",
+  "css",
   "sourceurl",
   "sourcedomain",
   "sourcerootdomain",
@@ -128,7 +129,7 @@ export const clauseGroup = (clause: string): ClauseGroup => {
   // doesn't split one output decision across several headings.
   if (name === "into" || name === "fetch" || name === "rename") return "Output";
   if (name === "capture" || name === "capturegroups") return "Capture setup";
-  if (/^(context|menuindex|comment|linktext|selectiontext)$/.test(name))
+  if (/^(context|menuindex|comment|linktext|selectiontext|css)$/.test(name))
     return "Page and menu context";
   if (/^(page|source|frame|referrer)/.test(name)) return "URL and source matching";
   return "Filename and content matching";

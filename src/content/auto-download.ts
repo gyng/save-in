@@ -1,4 +1,9 @@
 import {
+  cssSelectorsForRules,
+  matchedCssSelectorsByOrigin,
+  sourceOriginElements,
+} from "./css-routing.ts";
+import {
   isAdmittedAutomaticSource,
   matchAutomaticRoutingRule,
   type AutomaticRoutingCandidate,
@@ -82,6 +87,7 @@ export const setupAutoDownloadDiscovery = (
 ): AutoDownloadDiscovery => {
   const parsed = parseRulesCollecting(options.rules);
   const automaticRules = parsed.rules.filter(isAutomaticRuleClauses);
+  const cssSelectors = cssSelectorsForRules(automaticRules);
   const dedup = options.dedup ?? createAutoDownloadDedup();
   const seen = dedup.seen;
   const queue: AutomaticRoutingCandidate[] = [];
@@ -170,6 +176,14 @@ export const setupAutoDownloadDiscovery = (
         sourceUrl,
         sourceKind: source.kind,
         ...(source.channel ? { sourceChannel: source.channel } : {}),
+        ...(cssSelectors.length > 0
+          ? {
+              matchedCssSelectorsByOrigin: matchedCssSelectorsByOrigin(
+                sourceOriginElements(source),
+                cssSelectors,
+              ),
+            }
+          : {}),
       };
       if (!matchAutomaticRoutingRule(automaticRules, candidate)) continue;
       if (seen.size >= maxPerPage) {
@@ -202,7 +216,7 @@ export const setupAutoDownloadDiscovery = (
       childList: true,
       subtree: true,
       attributes: true,
-      attributeFilter: ["href", "src", "srcset"],
+      ...(cssSelectors.length > 0 ? {} : { attributeFilter: ["href", "src", "srcset"] }),
     });
   }
   scan(document);

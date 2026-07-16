@@ -51,6 +51,14 @@ sourceurl: cdn\.test
 into: automatic/
 `;
 
+const cssRules = String.raw`
+context: ^auto$
+pageurl: ^http://localhost/
+css: article img
+css: img:not(.avatar)
+into: automatic/
+`;
+
 beforeEach(() => {
   fixture.candidates = [];
 });
@@ -68,6 +76,35 @@ test("filters non-previewable and malformed collector results at the discovery b
   expect(send).toHaveBeenCalledOnce();
   expect(send).toHaveBeenCalledWith(
     expect.objectContaining({ sourceUrl: "https://cdn.test/visible.png" }),
+  );
+  controller.stop();
+});
+
+test("attests selectors per origin and only queues a complete same-element CSS match", async () => {
+  const article = document.createElement("article");
+  const hero = document.createElement("img");
+  article.append(hero);
+  const avatar = document.createElement("img");
+  avatar.className = "avatar";
+  fixture.candidates = [
+    { url: "https://cdn.test/avatar.png", kind: "image", element: avatar },
+    { url: "https://cdn.test/hero.png", kind: "image", element: hero },
+  ];
+  const send = vi.fn(async () => "started" as const);
+  const controller = setupAutoDownloadDiscovery({
+    rules: cssRules,
+    live: false,
+    maxPerPage: 10,
+    send,
+  });
+  await controller.idle();
+
+  expect(send).toHaveBeenCalledOnce();
+  expect(send).toHaveBeenCalledWith(
+    expect.objectContaining({
+      sourceUrl: "https://cdn.test/hero.png",
+      matchedCssSelectorsByOrigin: [["article img", "img:not(.avatar)"]],
+    }),
   );
   controller.stop();
 });

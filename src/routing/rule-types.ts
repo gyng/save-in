@@ -41,6 +41,7 @@ export type RoutingDownloadInfo = LazyDownloadMetadata<RoutingContent> & {
   abortSignal?: AbortSignal | undefined;
   onContentFetchStart?: ((requestId: string) => void | Promise<void>) | undefined;
   contentFetchDisabled?: boolean | undefined;
+  matchedCssSelectorsByOrigin?: string[][] | undefined;
 };
 
 export type RuleErrorLocation = {
@@ -79,12 +80,25 @@ export type RuleMatcher = {
   explain?: (info: RoutingInfo, metadata?: Partial<RoutingInfo>) => MatcherEvaluation;
 };
 export type MatcherFactory = (regex: RegExp) => RuleMatcher;
-export type MatcherClause = {
+export type RegexMatcherClause = {
   name: string;
   value: RegExp;
   type: typeof RULE_TYPES.MATCHER;
   matcher: RuleMatcher;
 };
+export type CssMatcherClause = {
+  name: "css";
+  value: string;
+  type: typeof RULE_TYPES.MATCHER;
+  matcher: RuleMatcher;
+};
+export type MatcherClause = RegexMatcherClause | CssMatcherClause;
+
+export const isCssMatcherClause = (clause: MatcherClause): clause is CssMatcherClause =>
+  clause.name === "css";
+
+export const isRegexMatcherClause = (clause: MatcherClause): clause is RegexMatcherClause =>
+  !isCssMatcherClause(clause);
 export type CaptureClause = {
   name: "capture" | "capturegroups";
   value: string;

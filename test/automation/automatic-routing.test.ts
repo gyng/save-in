@@ -82,6 +82,35 @@ into: unsafe/
     expect(parseRulesCollecting(source).errors).toHaveLength(1);
   });
 
+  test("accepts css as the automatic source guard and requires one common origin", () => {
+    const parsed = parseRulesCollecting(`
+context: ^auto$
+pageurl: example
+css: article img
+css: img:not(.avatar)
+into: articles/
+`);
+    expect(parsed.errors.filter((error) => !error.warning)).toEqual([]);
+    expect(
+      matchAutomaticRoutingRule(parsed.rules, {
+        ...candidate,
+        matchedCssSelectorsByOrigin: [["article img", "img:not(.avatar)"]],
+      })?.destination,
+    ).toBe("articles/");
+    expect(
+      matchAutomaticRoutingRule(parsed.rules, {
+        ...candidate,
+        matchedCssSelectorsByOrigin: [["article img"], ["img:not(.avatar)"]],
+      }),
+    ).toBeNull();
+    expect(matchAutomaticRoutingRule(parsed.rules, candidate)).toBeNull();
+  });
+
+  test("rejects regex flags and capture targets on css matchers", () => {
+    expect(parseRulesCollecting("css/i: img\ninto: files/").rules).toEqual([]);
+    expect(parseRulesCollecting("css: img\ncapture: css\ninto: files/").rules).toEqual([]);
+  });
+
   describe("data: candidates", () => {
     const dataCandidate = (sourceUrl: string) => ({
       pageUrl: "https://gallery.example.test/post/42",

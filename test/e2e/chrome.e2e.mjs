@@ -2040,6 +2040,7 @@ registerSharedBrowserCases({
   control,
   evaluate: evalSW,
   evaluateOptions: evalOptions,
+  evaluatePage: (target, expression) => cdp.evalInTarget(PORT, target, expression),
   waitForDownloads,
   waitForLog,
   downloadDir: () => DOWNLOADS,

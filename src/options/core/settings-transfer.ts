@@ -1,6 +1,7 @@
 import type { ApplyConfigResponse } from "../../shared/message-protocol.ts";
 import { isStringKeyedRecord } from "../../shared/message-protocol.ts";
 import { assertApplyAcknowledged } from "./options-save.ts";
+import { cssSelectorErrors } from "./css-selector-validation.ts";
 
 type OptionSchema = { keys: Array<{ name: string }> };
 
@@ -35,6 +36,10 @@ export const setupSettingsTransfer = (dependencies: SettingsTransferDependencies
       if (!json) return;
       const settings: unknown = JSON.parse(json);
       if (!isStringKeyedRecord(settings)) throw new TypeError("Settings must be a JSON object");
+      if (typeof settings.filenamePatterns === "string") {
+        const invalidCss = cssSelectorErrors(settings.filenamePatterns)[0];
+        if (invalidCss) throw new TypeError(`${invalidCss.message}: ${invalidCss.error}`);
+      }
       const response = assertApplyAcknowledged(await dependencies.apply(settings));
       await dependencies.restore();
       const rejected = response.body.rejected;

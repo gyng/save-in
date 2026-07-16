@@ -57,6 +57,23 @@ downloads. The first matching rule sets the save location. See
 [Automatic source saves](AUTOMATIC-SOURCE-SAVES.md) for eligibility and safety
 controls.
 
+Use `css:` when a URL or source kind is too broad and the page element that
+discovered the source is the useful distinction. Its value is a CSS selector,
+not a regular expression:
+
+```text
+context: ^auto$
+pagerootdomain: ^example\.com$
+css: article .gallery img:not(.avatar)
+into: Articles/:filename:
+```
+
+Comma-separated selectors use normal CSS OR behavior. Multiple `css:` clauses
+must all match the same originating element. If the same source URL appears in
+several elements, any one origin may satisfy the rule. DOM matching is available
+for automatic Page Sources, click-to-save, and Page Sources panel saves; routes
+without page-element context do not match `css:`.
+
 ## History actions
 
 History records the original source URL for a Save In download, including when
