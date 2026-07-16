@@ -16,6 +16,23 @@
 - Automatic saves can optionally include inline `data:` images and media (up
   to 2 MB each, off by default). History shows a shortened form of these
   addresses instead of the full inline payload.
+- Added opt-in **Quick Save** and an optional keyboard command for saving
+  directly to the effective default through the normal routing pipeline
+  (#144, #162). A menu
+  toggle switches that default between Downloads and the configured folder
+  (#201, #213), while per-location `(tab: close)` and `(tab: return)` actions
+  can close or refocus the source tab after a successful save (#115).
+- Added **Move** to completed History rows: Save In downloads the source again
+  into a chosen folder, then removes the verified original and links both
+  History entries (#102). Automatic Page Sources saves expose the same per-row
+  Undo action as interactive saves.
+- Added `finalfilename:` for matching the browser-resolved name after
+  Content-Disposition (#178, #189), plus `:menupath:` for including the chosen
+  Save In folder in a destination or filename (#208). Both are available in
+  the editors, debugger, autocomplete, and references.
+- Parallelized Referer-protected metadata and content requests over a bounded
+  rule-ID pool (#193). Conflicting URL sets still wait, every operation removes
+  only its own temporary rule, and redirected HEAD requests stay protected.
 - Added the `fetch:` routing clause: a matching rule can rewrite the download
   address before saving, using captures and routing variables (#137). Save In
   saves and automatic Page Sources saves honor the rewrite; ordinary browser

@@ -169,6 +169,21 @@ describe("variables", () => {
       const output = (await Variable.applyVariables(input, info)).finalize();
       expect(output).toBe("foobartitle");
     });
+
+    test("sanitizes invisible controls from :pagetitle: without losing the clicked tab (#220)", async () => {
+      const input = new Path.Path("pages/:pagetitle:/:filename:");
+      const output = (
+        await Variable.applyVariables(input, {
+          ...info,
+          currentTab: {
+            title:
+              "Current\u00ad\u200b\u200c\u200d\u200e\u200f\u202a\u202b\u202c\u202d\u202e\u2060\ufeff\ufe0f page",
+          },
+        })
+      ).finalize();
+
+      expect(output).toBe("pages/Current page/lol.jpeg");
+    });
   });
 
   describe("root domain variables (GH #221)", () => {

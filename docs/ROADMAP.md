@@ -1,13 +1,9 @@
 # Roadmap
 
-Planned work after the 4.0.0 release. The 4.1 section is the record of what
-shipped in 4.1.0; the 4.2 section is the current implementation plan —
-items name the modules they change and the tests that gate them, and the
-decision-gated tracks fix their designs and criteria in advance. The 4.3
-section is directional: a theme with designs sketched at module depth, not
-yet fixed for implementation, and reshaped by 4.1/4.2 field feedback before
-it becomes a plan. Nothing lands without the usual test, lint, and review
-gates. Issue numbers refer to the GitHub tracker.
+Planned work after the 4.0.0 release. The 4.1–4.3 sections record the work
+implemented for the pending 4.1.0 release; per-track landed notes preserve
+where implementation refined the original plan. Nothing lands without the
+usual test, lint, and review gates. Issue numbers refer to the GitHub tracker.
 
 ## 4.0 release follow-through
 
@@ -395,15 +391,17 @@ needed — the verdict reads issue reports against those records.
 
 ## 4.3 — save workflow and acquisition maturity
 
-Directional. Most of the pre-4.0 backlog is already resolved by the rebuild
-or slotted into 4.1/4.2; what remains and is not a non-goal clusters into one
-user-facing theme plus engine-maturity follow-ons to work this session
-stabilized. The primary theme is self-contained and touches no routing
-internals; the engine tracks are gated on 4.2 landing first. Every track ends
-with the tracker-hygiene sweep that pairs a feature release with citeable
-closures, the way 4.0 did.
+Implemented after 4.2 settled. The four product and engine tracks landed; the
+tracker-hygiene sweep is verified and has closure/retest comments drafted for
+maintainer approval, with no comments posted automatically.
 
-### Save workflow: fewer clicks to a save (#144, #162, #201, #213, #115)
+1. Save workflow (#144, #162, #201, #213, #115) — landed.
+2. Parallel Referer protection (#193) — landed.
+3. Grammar follow-through (`finalfilename:`, `:menupath:`) — landed.
+4. Undo and History maturity — landed.
+5. Release hygiene — verified; tracker comments drafted.
+
+### Save workflow: fewer clicks to a save (#144, #162, #201, #213, #115) — landed
 
 The most-repeated workflow gap. Three additions, none touching the routing
 engine — all in the menu build and the content/menu-click handlers:
@@ -436,7 +434,13 @@ that Quick Save reuses the normal pipeline; a content-options normalization
 case for the default-destination toggle; one e2e smoke per browser saving via
 Quick Save. No engine or grammar change, so the routing suites are untouched.
 
-### Acquisition robustness: parallel Referer protection (#193)
+Landed with one useful permission result: `tabs.remove` and `tabs.update` work
+for the source tab without adding the broad `tabs` permission. Quick Save is
+opt-in, the keyboard command is unbound by default, the effective-default
+toggle persists, and `(tab: close)` / `(tab: return)` remain per-location
+actions that run only after a successful save.
+
+### Acquisition robustness: parallel Referer protection (#193) — landed
 
 Engine maturity with no new user surface. Two items in the Referer subsystem
 this session worked adjacent to:
@@ -465,7 +469,12 @@ keep their own Referer with no rule collision, plus the cold-start pool-clear;
 a redirect case asserting the HEAD hop stays protected. Serialization behavior
 stays covered so the fallback path is not lost.
 
-### Grammar follow-through beyond `rename:` — gated on 4.2
+Landed with a six-ID pool. Distinct URL sets proceed concurrently; overlapping
+sets with different Referers wait, pool exhaustion queues, mid-flight redirect
+conflicts retain the unextended exact rule rather than deadlocking, and cold
+start clears the whole reserved range.
+
+### Grammar follow-through beyond `rename:` — landed
 
 Proceed only after the 4.2 `rename:` value-transform clause lands and settles;
 these are the asks value transforms still cannot express:
@@ -493,7 +502,15 @@ suggested one; the deferred late-pass path) in the router and filename-listener
 suites; a variable-expansion case for the menu-path variable; template proofs
 if a Site filing template adopts either.
 
-### Undo and history maturity — builds on 4.1 undo
+Landed as `finalfilename:` and `:menupath:`. The matcher reads only the
+browser-resolved name (`resolvedFilename`), so it cannot accidentally match the
+suggested name; Chrome reevaluates it in `onDeterminingFilename`, while Firefox
+uses the exact disposition-resolved name supplied to `downloads.download`.
+`:menupath:` expands the selected menu directory as one sanitized filename/path
+component, matching #208's folder-name use case without letting a variable
+inject unreviewed destination separators.
+
+### Undo and history maturity — landed
 
 - **Move / re-route last save:** #102's own stated alternative ("a Move last
   save might be just as useful"). The downloads API has no move, so this is
@@ -514,7 +531,13 @@ Tests: `HISTORY_REROUTE` protocol validation and handler (resolve source,
 remove old file, re-route, relink) modeled on the undo tests; a privacy case;
 history-panel row-action coverage.
 
-### Release hygiene: verify-and-close the resolved tail
+Landed with replacement-first ordering: reroute verifies the original, starts
+the replacement through the normal pipeline, and only then attempts removal.
+The response distinguishes a kept original, both History rows retain their
+relationship, legacy rows remain readable, and automatic-save rows use the same
+Undo action as interactive saves.
+
+### Release hygiene: verified; tracker comments drafted
 
 Several open reports are already fixed by the 4.0 rebuild or by this session's
 sanitization and match-pattern hardening but were never cited closed. Confirm
@@ -529,6 +552,10 @@ and close with a reproduction note, the way 4.0 follow-through did:
   matching, #186 Waterfox detection, #212, #205) against 4.x behavior, closing
   the fixed ones and asking the rest to retest, mirroring the #207/#196/#143
   retest asks in the 4.0 follow-through.
+
+Verification is complete, including the #220 page-title regression. Drafts for
+#221, #220, #172, #178, #186, #212, and #205 are prepared locally for
+maintainer review; posting or closing remains an explicit outward action.
 
 ## Non-goals
 

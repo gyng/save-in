@@ -26,7 +26,9 @@ the default download location.
   Save As, and optionally save a source-link shortcut beside downloaded media.
 - Build paths from dates, page and source parts, `:counter:`, `:uuid:`,
   `:mime:`, `:mimeext:`, and other variables. Open **Reference** in Options for
-  the maintained variable and matcher list.
+  the maintained variable and matcher list. Use `:pagerootdomain:` or
+  `:sourcerootdomain:` when the folder should omit subdomains such as `www` or
+  numbered CDN hosts (#221).
 - Match normalized MIME types (`mime:` / `contenttype:`), referrer URLs and
   hostnames, page or source root domains, and the browser-resolved
   `finalfilename:` in routing rules. Use `:menupath:` in a destination to
