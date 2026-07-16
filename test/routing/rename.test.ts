@@ -112,6 +112,26 @@ describe("expandRenameTransform", () => {
     const expanded = await expandRenameTransform(transform("x", ":notavariable:"), {});
     expect(expanded.replacement).toBe(":notavariable:");
   });
+
+  // The template splits on a capturing variable pattern, so the literal text
+  // between variables is looked up in the transformer table too. That table is
+  // an object literal whose own keys are all colon-wrapped, so an
+  // Object.prototype name can never be shadowed: a replacement naming one is
+  // ordinary literal text that must survive as itself.
+  test.each(["constructor", "__proto__", "toString", "valueOf"])(
+    "the inherited name %s is literal replacement text",
+    async (name) => {
+      const expanded = await expandRenameTransform(transform("x", name), {});
+      expect(expanded.replacement).toBe(name);
+    },
+  );
+
+  test("an inherited name next to a real variable stays literal", async () => {
+    const expanded = await expandRenameTransform(transform("x", ":naivefilename:constructor"), {
+      url: "https://cdn.example/dir/pic.png",
+    });
+    expect(expanded.replacement).toBe("pic.pngconstructor");
+  });
 });
 
 describe("isRenameTransform", () => {

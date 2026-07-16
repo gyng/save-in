@@ -559,7 +559,14 @@ export const expandVariableTemplate = async (
   const resolved = await Promise.all(
     tokens.map(async (token) => {
       if (skipTokens?.has(token)) return token;
-      const transformer = transformers[token];
+      // split() on a capturing pattern also yields the literal text between the
+      // variables, so that text reaches this lookup. transformers is an object
+      // literal whose own keys are all colon-wrapped, so an Object.prototype
+      // name is never shadowed by a real variable: a rename: replacement of
+      // "constructor" would resolve to Object and stringify as "[object
+      // Object]", and "__proto__" is truthy but not callable, throwing out of
+      // the download pipeline. Only an own key names a variable.
+      const transformer = Object.hasOwn(transformers, token) ? transformers[token] : undefined;
       if (!transformer) return token;
       return String(await transformer(info));
     }),
