@@ -29,6 +29,23 @@ describe("routing grammar hardening", () => {
     );
   });
 
+  test.each(["\r", "\u2028", "\u2029"])(
+    "treats %j as a line terminator instead of silently ignoring the rest of a clause",
+    (terminator) => {
+      const parsed = parseRulesCollecting(
+        `filename: jpg${terminator}this is broken\ninto: broad\n\nfilename: pdf\ninto: safe`,
+      );
+
+      expect(parsed.errors).toContainEqual(
+        expect.objectContaining({ message: "ruleBadClause", error: "this is broken" }),
+      );
+      expect(parsed.rules).toHaveLength(1);
+      expect(matchRulesDetailed(parsed.rules, { filename: "report.pdf" })?.destination).toBe(
+        "safe",
+      );
+    },
+  );
+
   test.each([
     "disabled: true\nfilename: [[\ninto: x",
     "disabled: true\nfilename: .*\ninto: :typo:",
@@ -106,6 +123,16 @@ describe("routing grammar hardening", () => {
     expect(destinationFor("filename:\ninto: first/:filename:")).toBe("first/:filename:");
   });
 
+  test("reports a shadowed rule by its source ordinal after inert rules", () => {
+    const parsed = parseRulesCollecting(
+      "disabled: true\nfilename: z\ninto: z\n\nfilename: .*\ninto: first\n\nfilename: jpg\ninto: second",
+    );
+
+    expect(parsed.errors).toContainEqual(
+      expect.objectContaining({ message: "ruleShadowed", error: "rule 3", warning: true }),
+    );
+  });
+
   test.each([
     "into/i: x",
     "fetch/i: https://example.test/x",
@@ -159,6 +186,17 @@ describe("routing grammar hardening", () => {
       expect(parsed.rules).toEqual([]);
       expect(parsed.errors).toContainEqual(
         expect.objectContaining({ message: "ruleUnknownDestinationVariable", error: variable }),
+      );
+    },
+  );
+
+  test.each([":filename.txt", ":filename?download", ":$1.jpg"])(
+    "rejects a known variable or capture missing its closing colon before punctuation: %s",
+    (variable) => {
+      const parsed = parseRulesCollecting(`filename: .*\ninto: output/${variable}`);
+      expect(parsed.rules).toEqual([]);
+      expect(parsed.errors).toContainEqual(
+        expect.objectContaining({ message: "ruleUnknownDestinationVariable" }),
       );
     },
   );

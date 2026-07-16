@@ -438,6 +438,25 @@ describe("filename rewrite and routing", () => {
       ).toBe("images");
     });
 
+    test("content-hash renames are ineligible for ordinary downloads already in flight", () => {
+      const explicit = router.parseRules("filename: \\.jpg$\nrename: $ -> -:sha256:\ninto: images");
+      expect(router.isRenameOnlyEligibleRule(explicit[0]!, { filename: "cat.jpg" })).toBe(false);
+      const fallback = router.parseRules(
+        "filename: \\.jpg$\nrename: $ -> -:sha256:\ninto: hashes\n\nfilename: \\.jpg$\ninto: images",
+      );
+      expect(
+        router.matchRules(fallback, { filename: "cat.jpg" }, router.isRenameOnlyEligibleRule),
+      ).toBe("images");
+
+      const captured = router.parseRules(
+        "filename: ^(.*)\\.jpg$\ncapturegroups: filename\nrename: $ -> -:$1:\ninto: images",
+      );
+      const downloadInfo = { filename: ":sha256:.jpg" };
+
+      expect(router.isRenameOnlyEligibleRule(captured[0]!, downloadInfo)).toBe(false);
+      expect(router.matchRules(captured, downloadInfo, router.isRenameOnlyEligibleRule)).toBeNull();
+    });
+
     test("rejects a second rename clause", () => {
       const rules = router.parseRules("filename: a\nrename: a -> b\nrename: b -> c\ninto: x");
 

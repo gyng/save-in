@@ -33,6 +33,7 @@ export {
   applyRenameTransform,
   expandRenameTransform,
   isRenameTransform,
+  renameReplacementNeedsContent,
   RENAME_SEPARATOR,
   splitRenameValue,
   type RenameTransform,
@@ -109,9 +110,9 @@ const normalizeTraceCurrentTab = (value: unknown): RoutingDownloadInfo["currentT
 export const traceRules = async (
   rules: RoutingRule[],
   info: RoutingInfo,
-  isEligible: (rule: RoutingRule) => boolean = () => true,
+  isEligible: (rule: RoutingRule, info: RoutingInfo) => boolean = () => true,
 ): Promise<RuleTrace> => {
-  const eligibility = rules.map(isEligible);
+  const eligibility = rules.map((rule) => isEligible(rule, info));
   const evaluations = rules.map((rule, index) =>
     eligibility[index]
       ? evaluateRule(rule, info)

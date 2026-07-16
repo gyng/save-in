@@ -147,23 +147,35 @@ const clauseParser = defineGrammar(
 );
 
 const sourceLines = (source: string): SourceLine[] => {
-  let offset = 0;
-  const rawLines = source.split("\n");
-  return rawLines.map((raw, index) => {
-    const start = offset;
-    const end = start + raw.length;
-    const terminatorEnd = end + (index < rawLines.length - 1 ? 1 : 0);
-    offset = terminatorEnd;
-    return {
-      raw,
-      line: index + 1,
+  const lines: SourceLine[] = [];
+  const terminators = /\r\n|[\n\r\u2028\u2029]/g;
+  let start = 0;
+  let line = 1;
+  for (const match of source.matchAll(terminators)) {
+    const end = match.index;
+    const terminatorEnd = end + match[0].length;
+    lines.push({
+      raw: source.slice(start, end),
+      line,
       start,
       end,
       parseStart: start,
       parseEnd: end,
       terminatorEnd,
-    };
+    });
+    start = terminatorEnd;
+    line += 1;
+  }
+  lines.push({
+    raw: source.slice(start),
+    line,
+    start,
+    end: source.length,
+    parseStart: start,
+    parseEnd: source.length,
+    terminatorEnd: source.length,
   });
+  return lines;
 };
 
 const clauseKind = (name: string): RoutingClauseNode["clauseKind"] =>

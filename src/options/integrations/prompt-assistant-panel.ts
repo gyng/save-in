@@ -10,8 +10,10 @@ import { MESSAGE_TYPES } from "../../shared/constants.ts";
 import type { WireIntegrationGrammar } from "../../shared/message-protocol.ts";
 import { cssSelectorErrors } from "../core/css-selector-validation.ts";
 import {
+  applyRuleRequestGuardrails,
   buildRuleAuthoringPrompt,
   cleanRuleSuggestion,
+  ruleRequestGuardrailIssues,
   type RuleAuthoringVocabulary,
 } from "./prompt-assistant-model.ts";
 
@@ -180,6 +182,7 @@ export const setupPromptAssistantPanel = (
     if (submit.disabled) return;
     const version = ++requestVersion;
     const controller = new AbortController();
+    const request = input.value;
     activeController = controller;
     working = true;
     progress.hidden = true;
@@ -190,7 +193,7 @@ export const setupPromptAssistantPanel = (
     void Promise.all([routingGrammar(), ruleAuthoringVocabulary()])
       .then(([grammar, vocabulary]) => {
         if (version !== requestVersion || controller.signal.aborted) return null;
-        return runPrompt(buildRuleAuthoringPrompt(input.value, grammar, vocabulary), {
+        return runPrompt(buildRuleAuthoringPrompt(request, grammar, vocabulary), {
           allowDownload: true,
           signal: controller.signal,
           onDownloadProgress: (loaded) => {
@@ -208,8 +211,9 @@ export const setupPromptAssistantPanel = (
       })
       .then(async (output) => {
         if (version !== requestVersion || !enabled.checked) return;
-        const cleaned = output ? cleanRuleSuggestion(output) : null;
-        if (!cleaned) throw new Error(copy.unavailable);
+        const suggestion = output ? cleanRuleSuggestion(output) : null;
+        if (!suggestion) throw new Error(copy.unavailable);
+        const cleaned = applyRuleRequestGuardrails(request, suggestion);
         suggestedRule = cleaned;
         rule.textContent = cleaned;
         result.hidden = false;
@@ -229,6 +233,12 @@ export const setupPromptAssistantPanel = (
         if (invalid) {
           add.disabled = true;
           setStatus(copy.invalid(invalid.message), "error");
+          return;
+        }
+        const requestIssue = ruleRequestGuardrailIssues(request, cleaned)[0];
+        if (requestIssue) {
+          add.disabled = true;
+          setStatus(copy.invalid(requestIssue), "error");
           return;
         }
         add.disabled = false;

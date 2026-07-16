@@ -86,7 +86,7 @@ const legacySetPathMetadata = (comment: string, key: string, value: string): str
 const legacyTokenize = (source: string): { tokens: LegacyRuleToken[]; invalid: string[] } => {
   const tokens: LegacyRuleToken[] = [];
   const invalid: string[] = [];
-  source.split("\n").forEach((line) => {
+  source.split(/\r\n|[\n\r\u2028\u2029]/).forEach((line) => {
     const matches = line.match(/^(\S*): ?(.*)/);
     const fullClause = matches?.[0];
     const name = matches?.[1];
@@ -99,7 +99,7 @@ const legacyTokenize = (source: string): { tokens: LegacyRuleToken[]; invalid: s
 
 const legacyParseRouting = (raw: string): { rules: LegacyRuleToken[][]; invalid: string[] } => {
   const source = raw
-    .split("\n")
+    .split(/\r\n|[\n\r\u2028\u2029]/)
     .map((line) => (line.trim() === "" ? "" : line))
     .filter((line) => !line.trimStart().startsWith("//"))
     .join("\n")
@@ -279,7 +279,7 @@ describe("legacy parser compatibility", () => {
     }
   });
 
-  test("routing rule grouping and tokens match normalized legacy documents", () => {
+  test("routing rule grouping and tokens remain compatible across supported line endings", () => {
     const cases = [
       "",
       "// comment",

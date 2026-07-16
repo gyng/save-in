@@ -1,5 +1,5 @@
 import { RULE_TYPES } from "../shared/constants.ts";
-import type { RenameTransform } from "./rename.ts";
+import { renameReplacementNeedsContent, type RenameTransform } from "./rename.ts";
 import type {
   CaptureClause,
   FetchClause,
@@ -42,9 +42,16 @@ export const findFetchClause = (rule: RoutingRule): FetchClause | undefined =>
 export const findRenameClause = (rule: RoutingRule): RenameClause | undefined =>
   rule.find((clause): clause is RenameClause => clause.type === RULE_TYPES.RENAME);
 
-// Ordinary browser downloads can only be renamed, never re-requested, so
-// rules that rewrite the download URL must be invisible to those pipelines.
-export const isRenameOnlyEligibleRule = (rule: RoutingRule): boolean => !findFetchClause(rule);
+// Ordinary browser downloads can only be renamed, never re-requested. URL
+// rewrites and renames that would acquire content for a hash stay invisible to
+// those pipelines so a later eligible rule can still win.
+export const isRenameOnlyEligibleRule = (rule: RoutingRule, info?: RoutingInfo): boolean => {
+  if (findFetchClause(rule)) return false;
+  const rename = findRenameClause(rule);
+  if (!rename) return true;
+  const captured = info ? getCaptureMatches(rule, info) : null;
+  return !renameReplacementNeedsContent(substituteCaptures(rename.replacement, captured));
+};
 
 type CaptureMatcherResults = {
   declaration: CaptureClause;
@@ -178,14 +185,14 @@ export const matchRule = (rule: RoutingRule, info: RoutingInfo): string | false 
 export const matchRulesDetailed = (
   rules: RoutingRule[],
   info: RoutingInfo,
-  isEligible: (rule: RoutingRule) => boolean = () => true,
+  isEligible: (rule: RoutingRule, info: RoutingInfo) => boolean = () => true,
 ): RuleMatch | null => {
   // Routing is ordered and intentionally non-chaining: the first complete
   // match owns the destination, and later rules never inspect its output.
   // Ineligible rules are skipped, not match-consuming, so a later rule can
   // still win on pipelines that exclude some rules.
   for (const rule of rules) {
-    if (!isEligible(rule)) continue;
+    if (!isEligible(rule, info)) continue;
     const evaluation = evaluateRule(rule, info);
     if (evaluation.destination) {
       return {
@@ -202,5 +209,5 @@ export const matchRulesDetailed = (
 export const matchRules = (
   rules: RoutingRule[],
   info: RoutingInfo,
-  isEligible?: (rule: RoutingRule) => boolean,
+  isEligible?: (rule: RoutingRule, info: RoutingInfo) => boolean,
 ): string | null => matchRulesDetailed(rules, info, isEligible)?.destination ?? null;

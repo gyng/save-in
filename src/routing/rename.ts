@@ -4,6 +4,7 @@
 // Path: the directory part stays untouched, and any separator the replacement
 // introduces is sanitized later as an ordinary filename character.
 import { isStringKeyedRecord } from "../shared/util.ts";
+import { SPECIAL_DIRS } from "../shared/constants.ts";
 import type { RoutingDownloadInfo } from "./rule-types.ts";
 import { expandVariableTemplate } from "./variable.ts";
 
@@ -34,6 +35,9 @@ export const isRenameTransform = (value: unknown): value is RenameTransform =>
   typeof value.find === "string" &&
   typeof value.flags === "string" &&
   typeof value.replacement === "string";
+
+export const renameReplacementNeedsContent = (replacement: string): boolean =>
+  replacement.includes(SPECIAL_DIRS.SHA256) || replacement.includes(SPECIAL_DIRS.SHA256_FULL);
 
 // Unlike fetch:, the replacement may use metadata-dependent variables
 // (:mime:, :sha256:, …): by the time the final filename settles, the download

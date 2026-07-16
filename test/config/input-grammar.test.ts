@@ -148,8 +148,8 @@ describe("routing-rule grammar", () => {
         colon: expect.objectContaining({ raw: ":" }),
         valueLeadingTrivia: expect.objectContaining({ raw: " " }),
         value: expect.objectContaining({ raw: " \\.png$" }),
-        trailingTrivia: expect.objectContaining({ raw: "\r" }),
-        terminator: expect.objectContaining({ raw: "\n" }),
+        trailingTrivia: expect.objectContaining({ raw: "" }),
+        terminator: expect.objectContaining({ raw: "\r\n" }),
       }),
     );
     expect(comment.cst).toEqual(
@@ -162,6 +162,20 @@ describe("routing-rule grammar", () => {
     );
     expect(destination.cst.trailingTrivia.raw).toBe("  ");
   });
+
+  test.each(["\r\n", "\n", "\r", "\u2028", "\u2029"])(
+    "preserves %j as one routing line terminator",
+    (terminator) => {
+      const source = `filename: jpg${terminator}into: images`;
+      const parsed = parseRoutingRuleAst(source);
+
+      expect(parsed.issues).toEqual([]);
+      expect(parsed.ast.rules[0]?.clauses).toHaveLength(2);
+      expect(parsed.ast.rules[0]?.clauses[0]?.cst.terminator.raw).toBe(terminator);
+      expect(parsed.ast.rules[0]?.clauses[1]?.span.start.line).toBe(2);
+      expect(serializeRoutingDocument(parsed.ast)).toBe(source);
+    },
+  );
 
   test("builds a source-backed document AST with typed clauses and trivia", () => {
     const source = "// image rule\nfilename/i: \\.png$\ninto: images/:filename:\n\nnot a clause";

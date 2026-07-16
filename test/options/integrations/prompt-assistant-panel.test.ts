@@ -163,18 +163,18 @@ test("generates, validates, and appends only a reviewable draft", async () => {
   expect(mocks.sendMessage).toHaveBeenCalledWith(
     expect.objectContaining({
       type: "VALIDATE",
-      body: { filenamePatterns: "fileext: ^png$\ninto: Images/:filename:" },
+      body: { filenamePatterns: "fileext/i: ^png$\ninto: Images/:filename:" },
     }),
   );
   expect(element("prompt-assistant-rule").textContent).toBe(
-    "fileext: ^png$\ninto: Images/:filename:",
+    "fileext/i: ^png$\ninto: Images/:filename:",
   );
   expect(mocks.appendRule).not.toHaveBeenCalled();
 
   element<HTMLButtonElement>("prompt-assistant-add").click();
   expect(mocks.appendRule).toHaveBeenCalledWith(
     element<HTMLTextAreaElement>("filenamePatterns"),
-    "fileext: ^png$\ninto: Images/:filename:",
+    "fileext/i: ^png$\ninto: Images/:filename:",
   );
   expect(element<HTMLButtonElement>("prompt-assistant-add").disabled).toBe(true);
 });
@@ -229,6 +229,25 @@ test("shows an invalid suggestion but does not let it enter the editor", async (
     expect(element("prompt-assistant-status").textContent).toContain("Missing destination"),
   );
   expect(element<HTMLButtonElement>("prompt-assistant-add").disabled).toBe(true);
+  expect(mocks.appendRule).not.toHaveBeenCalled();
+});
+
+test("repairs explicit request details before enabling a draft", async () => {
+  mocks.runPrompt.mockResolvedValue("fileext: ^jpe?g$\ninto: Images/:filename:");
+  setup();
+  await enable();
+  submitRequest("Save PNG files into /Pictures please");
+
+  await vi.waitFor(() =>
+    expect(element<HTMLButtonElement>("prompt-assistant-add").disabled).toBe(false),
+  );
+  expect(element("prompt-assistant-rule").textContent).toBe(
+    "fileext/i: ^png$\ninto: Pictures/:filename:",
+  );
+  expect(mocks.sendMessage).toHaveBeenCalledWith({
+    type: "VALIDATE",
+    body: { filenamePatterns: "fileext/i: ^png$\ninto: Pictures/:filename:" },
+  });
   expect(mocks.appendRule).not.toHaveBeenCalled();
 });
 

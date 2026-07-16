@@ -40,9 +40,9 @@ export const getRoutingMatch = (state: Pick<DownloadPipelineState, "info">): Rul
 
 // Ordinary browser downloads and post-start filename re-evaluation can only
 // rename a download that is already in flight, so URL-rewriting rules are
-// skipped there instead of consuming the match. rename: only edits the final
-// name, so rename rules stay eligible; the winning rule's transform is
-// stashed on scratch for the synchronous finalizeFullPath call.
+// skipped there instead of consuming the match. rename: stays eligible unless
+// its replacement would read content for a hash; the winning rule's transform
+// is stashed on scratch for the synchronous finalizeFullPath call.
 export const getRoutingMatches = (
   state: Pick<DownloadPipelineState, "info" | "scratch">,
 ): string | null => {
