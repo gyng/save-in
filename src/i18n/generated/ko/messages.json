@@ -3051,6 +3051,74 @@
   "ruleAutomaticMissingSource": {
     "message": "소스 주소, 도메인, 종류 또는 확장자 조건을 추가하세요"
   },
+  "ruleReachabilityAutomaticOff": {
+    "message": "자동 저장이 꺼져 있어 이 규칙은 “$OPTION$”을 켤 때까지 대기합니다.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Save matches automatically"
+      }
+    }
+  },
+  "ruleReachabilityChannelOff": {
+    "message": "현재 설정으로는 이 규칙과 일치하는 소스가 발견되지 않습니다. “$OPTION$”을 켜면 공급됩니다.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      }
+    }
+  },
+  "ruleReachabilityChannelOffEither": {
+    "message": "현재 설정으로는 이 규칙과 일치하는 소스가 발견되지 않습니다. “$OPTION$” 또는 “$OPTION2$”를 켜면 공급됩니다.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      },
+      "option2": {
+        "content": "$2",
+        "example": "Look for streaming-video playlists (HLS/DASH; best effort)"
+      }
+    }
+  },
+  "ruleReachabilityNoKinds": {
+    "message": "소스 종류 조건이 어떤 페이지 소스 종류와도 일치하지 않아 이 규칙은 저장할 수 없습니다."
+  },
+  "ruleReachabilityLinkOnly": {
+    "message": "이 규칙은 일반 링크에만 일치하며, 자동 저장은 이를 채택하지 않습니다."
+  },
+  "ruleReachabilityMenuPath": {
+    "message": "$VARIABLE$ 변수는 메뉴를 사용하지 않는 자동 저장에서 항상 비어 있습니다.",
+    "placeholders": {
+      "variable": {
+        "content": "$1",
+        "example": ":menupath:"
+      }
+    }
+  },
+  "routeDebuggerReachabilityOff": {
+    "message": "현재 설정으로는 이 소스가 자동으로 발견되지 않습니다. “$OPTION$”을 켜면 포함됩니다.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include inline data: images and media"
+      }
+    }
+  },
+  "routeDebuggerReachabilityOffEither": {
+    "message": "현재 설정으로는 이 소스가 자동으로 발견되지 않습니다. “$OPTION$” 또는 “$OPTION2$”를 켜면 포함됩니다.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      },
+      "option2": {
+        "content": "$2",
+        "example": "Look for streaming-video playlists (HLS/DASH; best effort)"
+      }
+    }
+  },
   "autoDownloadRoutingBadge": {
     "message": "소스 자동 저장"
   },

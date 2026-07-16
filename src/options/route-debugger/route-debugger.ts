@@ -11,6 +11,10 @@ import {
   type RouteDebuggerTrace,
 } from "./route-debugger-model.ts";
 import { isPageSourceKind } from "../../shared/page-source.ts";
+import {
+  inputDiscoveryUnlockOptions,
+  readReachabilityOptions,
+} from "../core/rule-reachability-model.ts";
 
 type MessageSubstitutions = string | number | Array<string | number>;
 
@@ -328,6 +332,45 @@ export const setupRouteDebugger = (): void => {
               ),
     );
     resultFragment.append(message);
+
+    // An automatic-context input can describe a source the current discovery
+    // options never produce; the trace is still exact, so this is a note
+    // beside it, keyed to the input rather than to any rule.
+    const fields = readFields();
+    const unlockers = inputDiscoveryUnlockOptions(
+      { context: fields.context, sourceKind: fields.sourceKind, sourceUrl: fields.sourceUrl },
+      readReachabilityOptions((id) => {
+        const control = document.getElementById(id);
+        return (
+          control instanceof HTMLInputElement && control.type === "checkbox" && control.checked
+        );
+      }),
+    );
+    if (unlockers) {
+      const [firstOption, secondOption] = unlockers;
+      const first = localize(firstOption, firstOption);
+      const second = secondOption === undefined ? undefined : localize(secondOption, secondOption);
+      const note = document.createElement("div");
+      note.className = "route-debugger-message route-debugger-reachability-note";
+      appendText(
+        note,
+        "route-debugger-message-title",
+        second === undefined
+          ? localize(
+              "routeDebuggerReachabilityOff",
+              "Current settings would not discover this source automatically. Turn on “$OPTION$” to include it.",
+              [first],
+            ).replace("$OPTION$", first)
+          : localize(
+              "routeDebuggerReachabilityOffEither",
+              "Current settings would not discover this source automatically. Turn on “$OPTION$” or “$OPTION2$” to include it.",
+              [first, second],
+            )
+              .replace("$OPTION$", first)
+              .replace("$OPTION2$", second),
+      );
+      resultFragment.append(note);
+    }
 
     const rules = document.createElement("div");
     rules.className = "route-debugger-rule-list";

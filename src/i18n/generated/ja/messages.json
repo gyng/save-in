@@ -3051,6 +3051,74 @@
   "ruleAutomaticMissingSource": {
     "message": "ソースのアドレス、ドメイン、種類、拡張子のいずれかの条件を追加してください"
   },
+  "ruleReachabilityAutomaticOff": {
+    "message": "自動保存がオフのため、このルールは「$OPTION$」をオンにするまで動作しません。",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Save matches automatically"
+      }
+    }
+  },
+  "ruleReachabilityChannelOff": {
+    "message": "現在の設定では、このルールに一致するソースは検出されません。「$OPTION$」をオンにすると供給されます。",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      }
+    }
+  },
+  "ruleReachabilityChannelOffEither": {
+    "message": "現在の設定では、このルールに一致するソースは検出されません。「$OPTION$」または「$OPTION2$」をオンにすると供給されます。",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      },
+      "option2": {
+        "content": "$2",
+        "example": "Look for streaming-video playlists (HLS/DASH; best effort)"
+      }
+    }
+  },
+  "ruleReachabilityNoKinds": {
+    "message": "ソース種別の条件がどのページソース種別にも一致しないため、このルールが保存することはありません。"
+  },
+  "ruleReachabilityLinkOnly": {
+    "message": "このルールは通常のリンクのみに一致しますが、自動保存がそれを採用することはありません。"
+  },
+  "ruleReachabilityMenuPath": {
+    "message": "変数 $VARIABLE$ は、メニューを使わない自動保存では常に空です。",
+    "placeholders": {
+      "variable": {
+        "content": "$1",
+        "example": ":menupath:"
+      }
+    }
+  },
+  "routeDebuggerReachabilityOff": {
+    "message": "現在の設定では、このソースは自動的に検出されません。「$OPTION$」をオンにすると含まれます。",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include inline data: images and media"
+      }
+    }
+  },
+  "routeDebuggerReachabilityOffEither": {
+    "message": "現在の設定では、このソースは自動的に検出されません。「$OPTION$」または「$OPTION2$」をオンにすると含まれます。",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      },
+      "option2": {
+        "content": "$2",
+        "example": "Look for streaming-video playlists (HLS/DASH; best effort)"
+      }
+    }
+  },
   "autoDownloadRoutingBadge": {
     "message": "ソースを自動保存"
   },

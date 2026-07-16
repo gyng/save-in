@@ -3051,6 +3051,74 @@
   "ruleAutomaticMissingSource": {
     "message": "添加来源地址、域名、类型或扩展名条件"
   },
+  "ruleReachabilityAutomaticOff": {
+    "message": "自动保存已关闭，此规则将保持闲置，直到开启“$OPTION$”。",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Save matches automatically"
+      }
+    }
+  },
+  "ruleReachabilityChannelOff": {
+    "message": "当前设置不会发现与此规则匹配的来源。开启“$OPTION$”即可提供。",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      }
+    }
+  },
+  "ruleReachabilityChannelOffEither": {
+    "message": "当前设置不会发现与此规则匹配的来源。开启“$OPTION$”或“$OPTION2$”即可提供。",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      },
+      "option2": {
+        "content": "$2",
+        "example": "Look for streaming-video playlists (HLS/DASH; best effort)"
+      }
+    }
+  },
+  "ruleReachabilityNoKinds": {
+    "message": "来源类型条件与任何页面来源类型都不匹配，此规则永远不会保存。"
+  },
+  "ruleReachabilityLinkOnly": {
+    "message": "此规则只匹配普通链接，而自动保存从不采用普通链接。"
+  },
+  "ruleReachabilityMenuPath": {
+    "message": "$VARIABLE$ 变量在自动保存中始终为空，因为不涉及菜单。",
+    "placeholders": {
+      "variable": {
+        "content": "$1",
+        "example": ":menupath:"
+      }
+    }
+  },
+  "routeDebuggerReachabilityOff": {
+    "message": "当前设置不会自动发现此来源。开启“$OPTION$”即可纳入。",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include inline data: images and media"
+      }
+    }
+  },
+  "routeDebuggerReachabilityOffEither": {
+    "message": "当前设置不会自动发现此来源。开启“$OPTION$”或“$OPTION2$”即可纳入。",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      },
+      "option2": {
+        "content": "$2",
+        "example": "Look for streaming-video playlists (HLS/DASH; best effort)"
+      }
+    }
+  },
   "autoDownloadRoutingBadge": {
     "message": "自动来源"
   },

@@ -3051,6 +3051,74 @@
   "ruleAutomaticMissingSource": {
     "message": "新增來源位址、網域、類型或副檔名條件"
   },
+  "ruleReachabilityAutomaticOff": {
+    "message": "自動儲存已關閉，此規則將維持閒置，直到開啟「$OPTION$」。",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Save matches automatically"
+      }
+    }
+  },
+  "ruleReachabilityChannelOff": {
+    "message": "目前設定不會發現符合此規則的來源。開啟「$OPTION$」即可提供。",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      }
+    }
+  },
+  "ruleReachabilityChannelOffEither": {
+    "message": "目前設定不會發現符合此規則的來源。開啟「$OPTION$」或「$OPTION2$」即可提供。",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      },
+      "option2": {
+        "content": "$2",
+        "example": "Look for streaming-video playlists (HLS/DASH; best effort)"
+      }
+    }
+  },
+  "ruleReachabilityNoKinds": {
+    "message": "來源種類條件與任何頁面來源種類都不符合，此規則永遠不會儲存。"
+  },
+  "ruleReachabilityLinkOnly": {
+    "message": "此規則只符合一般連結，而自動儲存從不採用一般連結。"
+  },
+  "ruleReachabilityMenuPath": {
+    "message": "$VARIABLE$ 變數在自動儲存中一律為空，因為不涉及選單。",
+    "placeholders": {
+      "variable": {
+        "content": "$1",
+        "example": ":menupath:"
+      }
+    }
+  },
+  "routeDebuggerReachabilityOff": {
+    "message": "目前設定不會自動發現此來源。開啟「$OPTION$」即可納入。",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include inline data: images and media"
+      }
+    }
+  },
+  "routeDebuggerReachabilityOffEither": {
+    "message": "目前設定不會自動發現此來源。開啟「$OPTION$」或「$OPTION2$」即可納入。",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      },
+      "option2": {
+        "content": "$2",
+        "example": "Look for streaming-video playlists (HLS/DASH; best effort)"
+      }
+    }
+  },
   "autoDownloadRoutingBadge": {
     "message": "自動來源"
   },

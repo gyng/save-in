@@ -66,6 +66,11 @@ rules.
   sample, or custom download details; explains first-match decisions; previews
   variable expansion and sanitization; and links results back to the editor
   (#194).
+- Visual mode and the route debugger now flag automatic rules the current
+  settings cannot feed: rules whose source kinds no enabled discovery channel
+  produces name the option to turn on, and debugged sources current options
+  would never discover get the same note. The hints follow the checkboxes
+  live and never block saving.
 - Added searchable routing templates, Quick add, grammar-aware validation,
   variable and clause autocomplete, and final-filename previews (#191).
 - Added **Text** and **Visual** modes for **Save locations** and **Routing

@@ -867,4 +867,78 @@ describe("routing visual editor", () => {
     document.body.innerHTML = '<textarea id="filenamePatterns"></textarea>';
     expect(() => setupRuleVisualEditor({ matchers: [] })).not.toThrow();
   });
+
+  test("cards report option-aware reachability for automatic rules", () => {
+    element<HTMLTextAreaElement>("#filenamePatterns").value =
+      "context: ^auto$\npageurl: ^https://example\\.test/\nsourcekind: ^stream$\ninto: streams/";
+    setupRuleVisualEditor({ matchers: ["filename", "sourcekind"] });
+
+    // No discovery checkboxes exist in this fixture, so the master switch is
+    // off and no channel produces stream candidates.
+    const notes = element<HTMLElement>(".rule-editor-reachability");
+    const kinds = [...notes.querySelectorAll("[data-reachability]")].map(
+      (note) => (note as HTMLElement).dataset.reachability,
+    );
+    expect(kinds).toEqual(["automatic-saves-off", "unreachable-kinds"]);
+    expect(
+      notes.querySelector<HTMLElement>('[data-reachability="automatic-saves-off"]')?.dataset.level,
+    ).toBe("info");
+    expect(
+      notes.querySelector<HTMLElement>('[data-reachability="unreachable-kinds"]')?.dataset.level,
+    ).toBe("warning");
+  });
+
+  test("reachability notes follow the discovery checkboxes live", () => {
+    document.body.insertAdjacentHTML(
+      "beforeend",
+      `<input type="checkbox" id="autoDownloadEnabled" checked>
+       <input type="checkbox" id="autoDownloadDocuments" checked>`,
+    );
+    element<HTMLTextAreaElement>("#filenamePatterns").value =
+      "context: ^auto$\npageurl: ^https://example\\.test/\nsourcekind: ^stream$\ninto: streams/";
+    setupRuleVisualEditor({ matchers: ["filename", "sourcekind"] });
+
+    expect(document.querySelector(".rule-editor-reachability")).toBeNull();
+
+    const documents = element<HTMLInputElement>("#autoDownloadDocuments");
+    documents.checked = false;
+    documents.dispatchEvent(new Event("change"));
+
+    expect(
+      document.querySelector<HTMLElement>('[data-reachability="unreachable-kinds"]'),
+    ).not.toBeNull();
+    expect(document.querySelector('[data-reachability="automatic-saves-off"]')).toBeNull();
+
+    // A toggle while Text mode is active must not rebuild the hidden cards.
+    element<HTMLButtonElement>("#rules-mode-text").click();
+    const cardCount = element<HTMLElement>("#rule-editor-cards").children.length;
+    documents.checked = true;
+    documents.dispatchEvent(new Event("change"));
+    expect(element<HTMLElement>("#rule-editor-cards").children.length).toBe(cardCount);
+  });
+
+  test("each reachability sentence renders for its rule shape", () => {
+    document.body.insertAdjacentHTML(
+      "beforeend",
+      '<input type="checkbox" id="autoDownloadEnabled" checked>',
+    );
+    element<HTMLTextAreaElement>("#filenamePatterns").value = [
+      "context: ^auto$\npageurl: .\nsourcekind: ^link$\ninto: links/",
+      "context: ^auto$\npageurl: .\nsourcekind: ^pdf$\ninto: broken/",
+      "context: ^auto$\npageurl: .\nsourcekind: ^document$\ninto: :menupath:/docs/",
+    ].join("\n\n");
+    setupRuleVisualEditor({ matchers: ["sourcekind"] });
+
+    const kinds = [...document.querySelectorAll("[data-reachability]")].map(
+      (note) => (note as HTMLElement).dataset.reachability,
+    );
+    expect(kinds).toEqual(["link-only", "no-kinds", "unreachable-kinds", "menupath-empty"]);
+  });
+
+  test("ordinary rules never render reachability notes", () => {
+    setupRuleVisualEditor({ matchers: ["filename", "sourceurl"] });
+
+    expect(element<HTMLElement>("#rule-editor-cards").children.length).toBeGreaterThan(0);
+    expect(document.querySelector(".rule-editor-reachability")).toBeNull();
+  });
 });

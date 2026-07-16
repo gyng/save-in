@@ -1111,3 +1111,59 @@ test("renders a selected destination pipeline without a source link", async () =
     "archive/report.pdf",
   );
 });
+
+test("notes an automatic-context input current options would never discover", async () => {
+  renderWorkbench();
+  vi.spyOn(webExtensionApi.runtime, "sendMessage").mockImplementation(async (message: any) => {
+    if (message.type === MESSAGE_TYPES.CHECK_ROUTES) return checkResponse();
+    if (message.type === MESSAGE_TYPES.VALIDATE) {
+      return {
+        type: MESSAGE_TYPES.VALIDATE_RESULT,
+        body: { version: 1, ruleErrors: [], ruleTrace: noMatchTrace },
+      };
+    }
+    throw new Error(`Unexpected message: ${message.type}`);
+  });
+
+  setupRouteDebugger();
+  // Setup initializes asynchronously (and may rewrite the field controls), so
+  // the automatic-context input is chosen after it settles, as a user would.
+  await new Promise((resolve) => setTimeout(resolve));
+  const context = document.querySelector<HTMLSelectElement>("#route-debugger-context")!;
+  context.insertAdjacentHTML("beforeend", '<option value="auto">Automatic</option>');
+  context.value = "auto";
+  const sourceKind = document.querySelector<HTMLSelectElement>("#route-debugger-source-kind")!;
+  sourceKind.insertAdjacentHTML("beforeend", '<option value="stream">Stream</option>');
+  sourceKind.value = "stream";
+  document.querySelector<HTMLButtonElement>("#route-debugger-run")?.click();
+
+  const result = document.querySelector<HTMLElement>("#route-debugger-result")!;
+  await vi.waitFor(() => expect(result.dataset.state).toBe("no-match"));
+  expect(result.querySelector(".route-debugger-reachability-note")?.textContent).toContain(
+    "” or “",
+  );
+
+  // A single unlocking option (the data: gate) uses the one-option sentence.
+  sourceKind.value = "image";
+  document.querySelector<HTMLInputElement>("#route-debugger-source-url")!.value =
+    "data:image/png;base64,AA==";
+  document.querySelector<HTMLButtonElement>("#route-debugger-run")?.click();
+  await vi.waitFor(() => {
+    const note = result.querySelector(".route-debugger-reachability-note");
+    expect(note?.textContent).toContain("Turn on");
+    expect(note?.textContent).not.toContain("” or “");
+  });
+
+  // An enabled channel that produces the kind silences the note.
+  document.body.insertAdjacentHTML(
+    "beforeend",
+    '<input type="checkbox" id="autoDownloadDocuments" checked>',
+  );
+  sourceKind.value = "stream";
+  document.querySelector<HTMLInputElement>("#route-debugger-source-url")!.value =
+    "https://cdn.example/list.m3u8";
+  document.querySelector<HTMLButtonElement>("#route-debugger-run")?.click();
+  await vi.waitFor(() =>
+    expect(result.querySelector(".route-debugger-reachability-note")).toBeNull(),
+  );
+});

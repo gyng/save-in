@@ -133,6 +133,82 @@
     "message": "Add a source address, domain, kind, extension, or page-element condition",
     "description": "Validation error requiring automatic source routing rules to select a source URL, kind, domain, extension, or originating page element. Used in src/routing/rule-parser.ts."
   },
+  "ruleReachabilityAutomaticOff": {
+    "message": "Automatic saving is off, so this rule is idle until “$OPTION$” is on.",
+    "description": "Informational note under a Visual-editor automatic rule card while the automatic-saves master switch is disabled. $OPTION$ is the localized label of that switch. Used in src/options/rule-editor/rule-visual-editor.ts.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Save matches automatically"
+      }
+    }
+  },
+  "ruleReachabilityChannelOff": {
+    "message": "Current settings never discover sources this rule matches. Turn on “$OPTION$” to supply them.",
+    "description": "Warning under a Visual-editor automatic rule card whose source-kind conditions only match kinds no enabled discovery channel produces. $OPTION$ is the localized label of the option that would supply them. Used in src/options/rule-editor/rule-visual-editor.ts.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      }
+    }
+  },
+  "ruleReachabilityChannelOffEither": {
+    "message": "Current settings never discover sources this rule matches. Turn on “$OPTION$” or “$OPTION2$” to supply them.",
+    "description": "Warning under a Visual-editor automatic rule card when either of two options would supply the matched source kinds. $OPTION$ and $OPTION2$ are the localized labels of those options. Used in src/options/rule-editor/rule-visual-editor.ts.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      },
+      "option2": {
+        "content": "$2",
+        "example": "Look for streaming-video playlists (HLS/DASH; best effort)"
+      }
+    }
+  },
+  "ruleReachabilityNoKinds": {
+    "message": "The source kind conditions match none of the page source kinds, so this rule can never save.",
+    "description": "Warning under a Visual-editor automatic rule card whose sourcekind:/mediatype: patterns match none of the six page source kinds. Used in src/options/rule-editor/rule-visual-editor.ts."
+  },
+  "ruleReachabilityLinkOnly": {
+    "message": "This rule only matches plain links, which automatic saving never adopts.",
+    "description": "Warning under a Visual-editor automatic rule card whose source kind conditions only match the plain link kind. Used in src/options/rule-editor/rule-visual-editor.ts."
+  },
+  "ruleReachabilityMenuPath": {
+    "message": "The $VARIABLE$ variable is always empty in automatic saves, which use no menu.",
+    "description": "Warning under a Visual-editor automatic rule card whose destination, fetch, or rename template uses the menu-path variable. $VARIABLE$ is the literal variable token and is not translated. Used in src/options/rule-editor/rule-visual-editor.ts.",
+    "placeholders": {
+      "variable": {
+        "content": "$1",
+        "example": ":menupath:"
+      }
+    }
+  },
+  "routeDebuggerReachabilityOff": {
+    "message": "Current settings would not discover this source automatically. Turn on “$OPTION$” to include it.",
+    "description": "Route debugger note when the debugged automatic-context input names a source current discovery options never produce. $OPTION$ is the localized label of the option that would produce it. Used in src/options/route-debugger/route-debugger.ts.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include inline data: images and media"
+      }
+    }
+  },
+  "routeDebuggerReachabilityOffEither": {
+    "message": "Current settings would not discover this source automatically. Turn on “$OPTION$” or “$OPTION2$” to include it.",
+    "description": "Route debugger note when either of two options would let current discovery produce the debugged automatic-context source. $OPTION$ and $OPTION2$ are the localized labels of those options. Used in src/options/route-debugger/route-debugger.ts.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      },
+      "option2": {
+        "content": "$2",
+        "example": "Look for streaming-video playlists (HLS/DASH; best effort)"
+      }
+    }
+  },
   "ruleCaptureMissingMatcher": {
     "message": "Capture target does not match any condition in this rule",
     "description": "Error message for capture targeting missing matcher. Used in src/routing/rule-parser.ts."

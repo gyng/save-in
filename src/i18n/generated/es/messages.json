@@ -3051,6 +3051,74 @@
   "ruleAutomaticMissingSource": {
     "message": "Añada una condición de dirección, dominio, tipo o extensión de fuente"
   },
+  "ruleReachabilityAutomaticOff": {
+    "message": "El guardado automático está desactivado; esta regla queda inactiva hasta activar «$OPTION$».",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Save matches automatically"
+      }
+    }
+  },
+  "ruleReachabilityChannelOff": {
+    "message": "Con la configuración actual nunca se descubren fuentes que coincidan con esta regla. Active «$OPTION$» para proporcionarlas.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      }
+    }
+  },
+  "ruleReachabilityChannelOffEither": {
+    "message": "Con la configuración actual nunca se descubren fuentes que coincidan con esta regla. Active «$OPTION$» u «$OPTION2$» para proporcionarlas.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      },
+      "option2": {
+        "content": "$2",
+        "example": "Look for streaming-video playlists (HLS/DASH; best effort)"
+      }
+    }
+  },
+  "ruleReachabilityNoKinds": {
+    "message": "Las condiciones de tipo de fuente no coinciden con ningún tipo de fuente de página; esta regla nunca podrá guardar."
+  },
+  "ruleReachabilityLinkOnly": {
+    "message": "Esta regla solo coincide con enlaces simples, que el guardado automático nunca adopta."
+  },
+  "ruleReachabilityMenuPath": {
+    "message": "La variable $VARIABLE$ siempre está vacía en los guardados automáticos, que no usan menú.",
+    "placeholders": {
+      "variable": {
+        "content": "$1",
+        "example": ":menupath:"
+      }
+    }
+  },
+  "routeDebuggerReachabilityOff": {
+    "message": "Con la configuración actual esta fuente no se descubriría automáticamente. Active «$OPTION$» para incluirla.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include inline data: images and media"
+      }
+    }
+  },
+  "routeDebuggerReachabilityOffEither": {
+    "message": "Con la configuración actual esta fuente no se descubriría automáticamente. Active «$OPTION$» u «$OPTION2$» para incluirla.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      },
+      "option2": {
+        "content": "$2",
+        "example": "Look for streaming-video playlists (HLS/DASH; best effort)"
+      }
+    }
+  },
   "autoDownloadRoutingBadge": {
     "message": "Fuente automática"
   },

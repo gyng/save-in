@@ -3051,6 +3051,74 @@
   "ruleAutomaticMissingSource": {
     "message": "Automatiska källregler behöver ett källvillkor"
   },
+  "ruleReachabilityAutomaticOff": {
+    "message": "Automatisk sparning är av; regeln vilar tills ”$OPTION$” är på.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Save matches automatically"
+      }
+    }
+  },
+  "ruleReachabilityChannelOff": {
+    "message": "Med nuvarande inställningar upptäcks inga källor som matchar regeln. Slå på ”$OPTION$” för att tillhandahålla dem.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      }
+    }
+  },
+  "ruleReachabilityChannelOffEither": {
+    "message": "Med nuvarande inställningar upptäcks inga källor som matchar regeln. Slå på ”$OPTION$” eller ”$OPTION2$” för att tillhandahålla dem.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      },
+      "option2": {
+        "content": "$2",
+        "example": "Look for streaming-video playlists (HLS/DASH; best effort)"
+      }
+    }
+  },
+  "ruleReachabilityNoKinds": {
+    "message": "Källtypsvillkoren matchar ingen av sidkällornas typer; regeln kan aldrig spara."
+  },
+  "ruleReachabilityLinkOnly": {
+    "message": "Regeln matchar bara vanliga länkar, som automatisk sparning aldrig tar med."
+  },
+  "ruleReachabilityMenuPath": {
+    "message": "Variabeln $VARIABLE$ är alltid tom vid automatisk sparning, som inte använder någon meny.",
+    "placeholders": {
+      "variable": {
+        "content": "$1",
+        "example": ":menupath:"
+      }
+    }
+  },
+  "routeDebuggerReachabilityOff": {
+    "message": "Med nuvarande inställningar skulle källan inte upptäckas automatiskt. Slå på ”$OPTION$” för att ta med den.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include inline data: images and media"
+      }
+    }
+  },
+  "routeDebuggerReachabilityOffEither": {
+    "message": "Med nuvarande inställningar skulle källan inte upptäckas automatiskt. Slå på ”$OPTION$” eller ”$OPTION2$” för att ta med den.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      },
+      "option2": {
+        "content": "$2",
+        "example": "Look for streaming-video playlists (HLS/DASH; best effort)"
+      }
+    }
+  },
   "autoDownloadRoutingBadge": {
     "message": "Automatisk källa"
   },

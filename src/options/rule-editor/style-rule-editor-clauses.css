@@ -143,6 +143,20 @@
   font-size: var(--text-base);
 }
 
+.rule-editor-reachability {
+  margin: 0 var(--space-3) var(--space-2);
+}
+
+.rule-editor-reachability-note {
+  margin: 0 0 var(--space-1);
+  color: var(--color-text-muted);
+  font-size: var(--text-base);
+
+  &[data-level="warning"] {
+    color: var(--warning-fg);
+  }
+}
+
 .rule-editor-source-preview {
   overflow: auto;
   overscroll-behavior: contain;

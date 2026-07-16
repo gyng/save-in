@@ -158,6 +158,15 @@
   background: color-mix(in srgb, var(--warning-fg) 8%, var(--page-bg));
 }
 
+.route-debugger-reachability-note {
+  color: var(--warning-fg);
+  background: color-mix(in srgb, var(--warning-fg) 8%, var(--page-bg));
+}
+
+.route-debugger-reachability-note .route-debugger-message-title {
+  font-size: var(--text-base);
+}
+
 .route-debugger-result[data-state="error"] .route-debugger-message,
 .route-debugger-result[data-state="invalid"] .route-debugger-message {
   color: var(--error-fg);

@@ -1,6 +1,6 @@
 import { getMessage } from "../../platform/localization.ts";
 import { webExtensionApi } from "../../platform/web-extension-api.ts";
-import { MESSAGE_TYPES } from "../../shared/constants.ts";
+import { MESSAGE_TYPES, SPECIAL_DIRS } from "../../shared/constants.ts";
 import { sendInternalMessage } from "../../platform/messaging.ts";
 import { preferredScrollBehavior } from "../../shared/motion-preference.ts";
 import { attachAutocomplete } from "../syntax-editor/autocomplete.ts";
@@ -20,6 +20,13 @@ import {
 } from "./rule-visual-editor-model.ts";
 import { clauseGroup, sortClauses, sortVariables } from "../core/vocabulary-groups.ts";
 import { isAutomaticRuleClauses } from "../../routing/automatic-rule.ts";
+import {
+  REACHABILITY_OPTION_IDS,
+  readReachabilityOptions,
+  ruleReachabilityDiagnostics,
+  type ReachabilityOptions,
+  type RuleReachabilityDiagnostic,
+} from "../core/rule-reachability-model.ts";
 import { completeDirectorySyntax } from "../syntax-editor/syntax-editor-model.ts";
 import { bindTabInteractions, syncTabSelection } from "../core/tab-controls.ts";
 import { attachTypeahead } from "../ui/typeahead.ts";
@@ -121,6 +128,75 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
   let validationErrors: readonly EditorValidationFeedback[] = [];
   const openMenuSelector = ".rule-add-menu[open], .rule-editor-card-actions[open]";
   let matcherSuggestions = [...matchers];
+
+  const optionChecked = (id: string): boolean => {
+    const control = document.getElementById(id);
+    return control instanceof HTMLInputElement && control.type === "checkbox" && control.checked;
+  };
+  // Reachability reads the live checkboxes on this same page, so the hints
+  // always describe the state the user is editing, saved or not.
+  const reachabilityOptions = (): ReachabilityOptions => readReachabilityOptions(optionChecked);
+  const optionLabel = (id: string): string => localize(id, id);
+  const reachabilityText = (diagnostic: RuleReachabilityDiagnostic): string => {
+    switch (diagnostic.kind) {
+      case "automatic-saves-off":
+        return localize(
+          "ruleReachabilityAutomaticOff",
+          "Automatic saving is off, so this rule is idle until “$OPTION$” is on.",
+          [optionLabel("autoDownloadEnabled")],
+        ).replace("$OPTION$", optionLabel("autoDownloadEnabled"));
+      case "no-kinds":
+        return localize(
+          "ruleReachabilityNoKinds",
+          "The source kind conditions match none of the page source kinds, so this rule can never save.",
+        );
+      case "link-only":
+        return localize(
+          "ruleReachabilityLinkOnly",
+          "This rule only matches plain links, which automatic saving never adopts.",
+        );
+      case "menupath-empty":
+        return localize(
+          "ruleReachabilityMenuPath",
+          "The $VARIABLE$ variable is always empty in automatic saves, which use no menu.",
+          [SPECIAL_DIRS.MENU_PATH],
+        ).replace("$VARIABLE$", SPECIAL_DIRS.MENU_PATH);
+      case "unreachable-kinds": {
+        const [firstOption, secondOption] = diagnostic.unlockOptions;
+        const first = optionLabel(firstOption);
+        if (secondOption !== undefined) {
+          const second = optionLabel(secondOption);
+          return localize(
+            "ruleReachabilityChannelOffEither",
+            "Current settings never discover sources this rule matches. Turn on “$OPTION$” or “$OPTION2$” to supply them.",
+            [first, second],
+          )
+            .replace("$OPTION$", first)
+            .replace("$OPTION2$", second);
+        }
+        return localize(
+          "ruleReachabilityChannelOff",
+          "Current settings never discover sources this rule matches. Turn on “$OPTION$” to supply them.",
+          [first],
+        ).replace("$OPTION$", first);
+      }
+    }
+  };
+  const createReachabilityNotes = (rule: VisualRoutingRule): HTMLElement | null => {
+    const diagnostics = ruleReachabilityDiagnostics(rule.clauses, reachabilityOptions());
+    if (diagnostics.length === 0) return null;
+    const notes = document.createElement("div");
+    notes.className = "rule-editor-reachability";
+    diagnostics.forEach((diagnostic) => {
+      const note = document.createElement("p");
+      note.className = "rule-editor-reachability-note";
+      note.dataset.level = diagnostic.level;
+      note.dataset.reachability = diagnostic.kind;
+      note.textContent = reachabilityText(diagnostic);
+      notes.append(note);
+    });
+    return notes;
+  };
 
   const clearDragAppearance = (): void => {
     cards
@@ -683,6 +759,8 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
       .slice(conditionEnd)
       .forEach((clause) => body.append(createClauseRow(rule, clause)));
     card.append(body);
+    const reachability = createReachabilityNotes(rule);
+    if (reachability) card.append(reachability);
     return card;
   };
 
@@ -761,6 +839,16 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
     applyValidationAppearance();
   });
   document.addEventListener("options-restored", render);
+  // Reachability hints follow the discovery checkboxes live, so toggling a
+  // channel updates the open Visual editor without a reload.
+  REACHABILITY_OPTION_IDS.forEach((id) => {
+    const control = document.getElementById(id);
+    if (control instanceof HTMLInputElement) {
+      control.addEventListener("change", () => {
+        if (visual) render();
+      });
+    }
+  });
   document.addEventListener("route-debugger-source-selected", (event) => {
     if (!(event instanceof CustomEvent) || !visual) return;
     const detail = event.detail ?? {};

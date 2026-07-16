@@ -3051,6 +3051,74 @@
   "ruleAutomaticMissingSource": {
     "message": "Fügen Sie eine Bedingung für Quelladresse, Quelldomäne, Quellenart oder Dateiendung hinzu"
   },
+  "ruleReachabilityAutomaticOff": {
+    "message": "Automatisches Speichern ist aus; diese Regel ruht, bis „$OPTION$“ aktiviert ist.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Save matches automatically"
+      }
+    }
+  },
+  "ruleReachabilityChannelOff": {
+    "message": "Mit den aktuellen Einstellungen werden keine Quellen gefunden, auf die diese Regel passt. Aktivieren Sie „$OPTION$“, um sie zu liefern.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      }
+    }
+  },
+  "ruleReachabilityChannelOffEither": {
+    "message": "Mit den aktuellen Einstellungen werden keine Quellen gefunden, auf die diese Regel passt. Aktivieren Sie „$OPTION$“ oder „$OPTION2$“, um sie zu liefern.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      },
+      "option2": {
+        "content": "$2",
+        "example": "Look for streaming-video playlists (HLS/DASH; best effort)"
+      }
+    }
+  },
+  "ruleReachabilityNoKinds": {
+    "message": "Die Quellart-Bedingungen passen auf keine der Seitenquellen-Arten; diese Regel kann nie speichern."
+  },
+  "ruleReachabilityLinkOnly": {
+    "message": "Diese Regel passt nur auf einfache Links, die das automatische Speichern nie übernimmt."
+  },
+  "ruleReachabilityMenuPath": {
+    "message": "Die Variable $VARIABLE$ ist bei automatischen Speicherungen immer leer, da kein Menü beteiligt ist.",
+    "placeholders": {
+      "variable": {
+        "content": "$1",
+        "example": ":menupath:"
+      }
+    }
+  },
+  "routeDebuggerReachabilityOff": {
+    "message": "Mit den aktuellen Einstellungen würde diese Quelle nicht automatisch gefunden. Aktivieren Sie „$OPTION$“, um sie einzubeziehen.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include inline data: images and media"
+      }
+    }
+  },
+  "routeDebuggerReachabilityOffEither": {
+    "message": "Mit den aktuellen Einstellungen würde diese Quelle nicht automatisch gefunden. Aktivieren Sie „$OPTION$“ oder „$OPTION2$“, um sie einzubeziehen.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      },
+      "option2": {
+        "content": "$2",
+        "example": "Look for streaming-video playlists (HLS/DASH; best effort)"
+      }
+    }
+  },
   "autoDownloadRoutingBadge": {
     "message": "Automatische Quelle"
   },

@@ -3051,6 +3051,74 @@
   "ruleAutomaticMissingSource": {
     "message": "Voeg een voorwaarde voor bronadres, brondomein, brontype of bestandsextensie toe"
   },
+  "ruleReachabilityAutomaticOff": {
+    "message": "Automatisch opslaan staat uit; deze regel blijft inactief totdat “$OPTION$” aan staat.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Save matches automatically"
+      }
+    }
+  },
+  "ruleReachabilityChannelOff": {
+    "message": "Met de huidige instellingen worden geen bronnen gevonden die bij deze regel passen. Zet “$OPTION$” aan om ze te leveren.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      }
+    }
+  },
+  "ruleReachabilityChannelOffEither": {
+    "message": "Met de huidige instellingen worden geen bronnen gevonden die bij deze regel passen. Zet “$OPTION$” of “$OPTION2$” aan om ze te leveren.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      },
+      "option2": {
+        "content": "$2",
+        "example": "Look for streaming-video playlists (HLS/DASH; best effort)"
+      }
+    }
+  },
+  "ruleReachabilityNoKinds": {
+    "message": "De bronsoort-voorwaarden komen met geen enkele paginabronsoort overeen; deze regel kan nooit opslaan."
+  },
+  "ruleReachabilityLinkOnly": {
+    "message": "Deze regel komt alleen overeen met gewone links, die automatisch opslaan nooit overneemt."
+  },
+  "ruleReachabilityMenuPath": {
+    "message": "De variabele $VARIABLE$ is bij automatisch opslaan altijd leeg, omdat er geen menu wordt gebruikt.",
+    "placeholders": {
+      "variable": {
+        "content": "$1",
+        "example": ":menupath:"
+      }
+    }
+  },
+  "routeDebuggerReachabilityOff": {
+    "message": "Met de huidige instellingen zou deze bron niet automatisch worden gevonden. Zet “$OPTION$” aan om deze mee te nemen.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include inline data: images and media"
+      }
+    }
+  },
+  "routeDebuggerReachabilityOffEither": {
+    "message": "Met de huidige instellingen zou deze bron niet automatisch worden gevonden. Zet “$OPTION$” of “$OPTION2$” aan om deze mee te nemen.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      },
+      "option2": {
+        "content": "$2",
+        "example": "Look for streaming-video playlists (HLS/DASH; best effort)"
+      }
+    }
+  },
   "autoDownloadRoutingBadge": {
     "message": "Automatische bron"
   },
