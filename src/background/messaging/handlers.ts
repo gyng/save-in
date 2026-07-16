@@ -298,6 +298,10 @@ export const handleValidate = async (
         parsed.rules,
         {
           context: AUTOMATIC_CONTEXT,
+          // An absent currentTab key makes pagetitle: matching fall back to the
+          // tracked tab, so an external caller must be answered about its own
+          // candidate only — never about the page the user happens to be on.
+          ...(external ? { currentTab: null } : {}),
           pageUrl: candidate.pageUrl,
           sourceUrl: candidate.sourceUrl,
           url: candidate.sourceUrl,

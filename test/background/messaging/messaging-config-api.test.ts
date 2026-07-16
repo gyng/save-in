@@ -203,6 +203,40 @@ describe("config API", () => {
     expect(router.traceRules).toHaveBeenCalledWith(rules, { currentTab: null });
   });
 
+  // The automatic trace builds its own info from the candidate. Leaving the
+  // currentTab key off it makes pagetitle: matching fall back to the tracked
+  // tab, handing an external caller the title of whatever the user is reading.
+  test("external automatic VALIDATE never falls back to the tracked browser tab", async () => {
+    const rules = [[{ name: "into", value: "images", type: "DESTINATION" }]] as any;
+    vi.mocked(router.parseRulesCollecting).mockReturnValue({ rules, errors: [] });
+    const sendResponse = vi.fn();
+
+    expect(
+      onMessageExternal(
+        {
+          type: MESSAGE_TYPES.VALIDATE,
+          body: {
+            filenamePatterns: "x",
+            automaticCandidate: {
+              pageUrl: "https://example.com/gallery",
+              sourceUrl: "https://example.com/img/cat.png",
+              sourceKind: "image",
+            },
+          },
+        },
+        { id: "validation-client" },
+        sendResponse,
+      ),
+    ).toBe(true);
+    await waitForCall(sendResponse);
+
+    expect(router.traceRules).toHaveBeenCalledWith(
+      rules,
+      expect.objectContaining({ currentTab: null }),
+      expect.any(Function),
+    );
+  });
+
   test("external VALIDATE rejects unsafe regexes before tracing", async () => {
     const rules = [
       [
@@ -381,6 +415,7 @@ describe("config API", () => {
       expect.any(Array),
       {
         context: "AUTO",
+        currentTab: null,
         pageUrl: "https://example.test/gallery",
         sourceUrl: "https://cdn.test/cat.png",
         url: "https://cdn.test/cat.png",
