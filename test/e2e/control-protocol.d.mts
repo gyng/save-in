@@ -27,6 +27,7 @@ export interface E2EStoredOptionValues {
   promptOnShift: boolean;
   quickSaveDirectory: string;
   quickSaveEnabled: boolean;
+  quickSaveOnly: boolean;
   quickSaveUseDirectory: boolean;
   routeBrowserDownloads: boolean;
   routeBrowserDownloadsFirefox: boolean;
