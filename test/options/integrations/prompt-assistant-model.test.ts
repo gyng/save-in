@@ -148,6 +148,18 @@ describe("deterministic rule assembly", () => {
     }
   });
 
+  // A model that answers with the origin it was shown, rather than a bare
+  // hostname, still names one site exactly — the scheme and trailing slash
+  // narrow nothing a domain matcher would have to drop.
+  test("accepts a site given as a bare origin and matches on its hostname", () => {
+    expect(assembled({ folder: "a", site: "https://docs.example.com/" })).toContain(
+      "(?:^|\\.)docs\\.example\\.com$",
+    );
+    expect(assembled({ folder: "a", site: "https://docs.example.com" })).toContain(
+      "(?:^|\\.)docs\\.example\\.com$",
+    );
+  });
+
   test("reads a named site as the page being browsed unless the request says otherwise", () => {
     // pageUrl is present for every save, and "from example.com" almost always
     // names the site the user is on rather than the host serving the bytes.
@@ -207,6 +219,9 @@ describe("deterministic rule assembly", () => {
     // route more than the request asked for.
     [{ folder: "a", site: "example.com/docs" }, "site carrying a path"],
     [{ folder: "a", site: "https://example.com:8443" }, "site carrying a port"],
+    // The plan is model output, so a site that looks like a URL but cannot be
+    // parsed as one must fail closed rather than throw out of the assembler.
+    [{ folder: "a", site: "https://[" }, "site that is not a parseable URL"],
     [{ folder: "", fileExtensions: ["png"] }, "empty folder"],
     [{ folder: "/", fileExtensions: ["png"] }, "root-only folder"],
     [{ folder: "../secrets", fileExtensions: ["png"] }, "folder escaping upwards"],
@@ -586,5 +601,31 @@ describe("the schema offered for one request", () => {
 
     expect(Object.keys(constraint.properties as object)).toContain("sourceKind");
     expect(constraint.required).toContain("sourceKind");
+  });
+});
+
+describe("the site scope a request can justify", () => {
+  test("withholds the scope field from a request that names only a site", () => {
+    // Measured: for "save images from docs.example.com" the model answered
+    // siteScope "source" on some runs and "page" on others, and both were
+    // accepted — materially different rules. "from example.com" names the page
+    // being browsed; pageUrl is present for every save and sourceUrl is not, so
+    // page is both the likelier reading and the one that fails safe. The model
+    // is not offered the choice unless the request states it.
+    const constraint = rulePlanConstraint("save images from docs.example.com into /archive");
+
+    expect(Object.keys(constraint.properties as object)).not.toContain("siteScope");
+    expect(constraint.required).not.toContain("siteScope");
+    expect(Object.keys(constraint.properties as object)).toContain("site");
+  });
+
+  test("offers the scope field to a request that names where the file is hosted", () => {
+    const constraint = rulePlanConstraint("save images hosted on cdn.example.com into /archive");
+
+    expect(Object.keys(constraint.properties as object)).toContain("siteScope");
+  });
+
+  test("reads a site as the page being browsed when no scope was asked for", () => {
+    expect(assembled({ folder: "a", site: "example.com" })).toContain("pagedomain: ");
   });
 });

@@ -70,16 +70,26 @@ export const RULE_PLAN_RESPONSE_CONSTRAINT: Record<string, unknown> = RULE_PLAN_
 // when the request itself names a file type, do not offer the field it would
 // answer with. The same extraction decides this and checks the draft, so the
 // model is never offered a field the review would reject it for using.
+// Whether the request states where the file itself is hosted. "from x.com"
+// names the page being browsed, which is the usual reading and the one that
+// fails safe: pageUrl is present for every save and sourceUrl is not.
+const namesSourceHosting = (request: string): boolean =>
+  /\b(?:hosted|serving|served|cdn|origin)\b/i.test(request);
+
 export const rulePlanConstraint = (request: string): Record<string, unknown> => {
-  if (explicitExtensions(request).length === 0) return RULE_PLAN_SCHEMA;
-  const { sourceKind: _sourceKind, ...properties } = RULE_PLAN_SCHEMA.properties as Record<
-    string,
-    unknown
-  >;
+  const withheld = new Set<string>();
+  if (explicitExtensions(request).length > 0) withheld.add("sourceKind");
+  if (!namesSourceHosting(request)) withheld.add("siteScope");
+  if (withheld.size === 0) return RULE_PLAN_SCHEMA;
+  const properties = Object.fromEntries(
+    Object.entries(RULE_PLAN_SCHEMA.properties as Record<string, unknown>).filter(
+      ([name]) => !withheld.has(name),
+    ),
+  );
   return {
     ...RULE_PLAN_SCHEMA,
     properties,
-    required: (RULE_PLAN_SCHEMA.required as string[]).filter((name) => name !== "sourceKind"),
+    required: (RULE_PLAN_SCHEMA.required as string[]).filter((name) => !withheld.has(name)),
   };
 };
 
