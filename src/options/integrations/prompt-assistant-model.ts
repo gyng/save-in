@@ -93,7 +93,7 @@ const suggestedDestination = (
 ): { folder: string; preservesFilename: boolean } | null => {
   const line = suggestion.match(/^into:\s*(.+)$/im)?.[1]?.trim();
   if (!line) return null;
-  const preservesFilename = /\/$/.test(line) || /\/?:(?:naive)?filename:\s*$/i.test(line);
+  const preservesFilename = line.endsWith("/") || /\/?:(?:naive)?filename:\s*$/i.test(line);
   return {
     folder: line.replace(/\/?:(?:naive)?filename:\s*$/i, "").replace(/\/+$/, ""),
     preservesFilename,

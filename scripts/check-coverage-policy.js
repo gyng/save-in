@@ -10,7 +10,7 @@ const sourceRoot = path.join(root, "src");
 // Reviewed ceiling after the 4.2 parser/finalization/data-URL cleanup removed ten
 // obsolete ignores. New ignores require an explicit rationale and a deliberate
 // ceiling update so uncovered branches cannot accumulate silently.
-const ignoreCeiling = 75;
+const ignoreCeiling = 74;
 
 const errors = [];
 const config = fs.readFileSync(configPath, "utf8");
