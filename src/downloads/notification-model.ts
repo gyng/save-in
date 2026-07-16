@@ -35,10 +35,18 @@ export const buildSuccessNotificationTitle = (
   mime?: string | false,
 ): string => [label, formatNotificationFileSize(bytes), mime].filter(Boolean).join(" · ");
 
+// CRASH nominally means the browser crashed, which an extension could never
+// observe from inside it. Firefox instead reports it for a generic
+// NS_ERROR_FAILURE in BackgroundFileSaver (Mozilla bug 1633191, still open),
+// where the documented workaround is to fetch the file instead — which is
+// exactly what the retry does. Treating it as retryable makes that workaround
+// automatic rather than a buried opt-in (#166).
+const RETRYABLE_DOWNLOAD_FAILURES = /^(NETWORK_|SERVER_|CRASH$)/;
+
 export const isRetryableDownloadFailure = (failure: DownloadFailure): boolean =>
   typeof failure === "object" &&
   typeof failure.current === "string" &&
-  /^(NETWORK_|SERVER_)/.test(failure.current);
+  RETRYABLE_DOWNLOAD_FAILURES.test(failure.current);
 
 export const downloadFailureReason = (failure: DownloadFailure): string | undefined =>
   typeof failure === "string" ? failure : typeof failure === "object" ? failure.current : undefined;

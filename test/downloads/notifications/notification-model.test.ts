@@ -44,6 +44,11 @@ describe("notification model", () => {
     expect(isRetryableDownloadFailure({ current: "FILE_FAILED" })).toBe(false);
     expect(isRetryableDownloadFailure({})).toBe(false);
     expect(isRetryableDownloadFailure("SERVER_FAILED")).toBe(false);
+    // #166: Firefox reports a BackgroundFileSaver NS_ERROR_FAILURE as CRASH
+    // (Mozilla bug 1633191); the fetch retry is the documented workaround.
+    expect(isRetryableDownloadFailure({ current: "CRASH" })).toBe(true);
+    // Anchored, so it stays an exact match and never a prefix family.
+    expect(isRetryableDownloadFailure({ current: "CRASHED_SOMEHOW" })).toBe(false);
     expect(downloadFailureReason({ current: "NETWORK_FAILED" })).toBe("NETWORK_FAILED");
     expect(downloadFailureReason("SERVER_FAILED")).toBe("SERVER_FAILED");
     expect(downloadFailureReason(true)).toBeUndefined();
