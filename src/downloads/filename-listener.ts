@@ -208,7 +208,11 @@ type FilenameDownload = DownloadRuntimeState & {
   finalizeFullPath(state: DownloadPipelineState): string;
 };
 
-const rememberFilename = (downloadId: number, filename: string, privateContext = false) =>
+// privateContext is required, not defaulted: it decides whether the record
+// reaches storage.session, and a default answers that question for a caller
+// that never considered it. mergeDownload assigns the value through, so an
+// explicit false also clears a known-private in-memory record.
+const rememberFilename = (downloadId: number, filename: string, privateContext: boolean) =>
   mergeDownload(downloadsState, sessionWriteState, extensionSessionStorage, downloadId, {
     filename,
     privateContext,
@@ -413,7 +417,12 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
         }
         if (typeof downloadItem.id === "number") {
           Download.finalFilenamesByDownloadId.set(downloadItem.id, recovered);
-          void rememberFilename(downloadItem.id, recovered);
+          // A restart is what put us on this path, and privateContext does not
+          // survive one: the in-memory record is gone and was never persisted.
+          // downloadItem.incognito is the only surviving evidence that this is
+          // private, so it — not the default — decides whether the record is
+          // written to storage.session.
+          void rememberFilename(downloadItem.id, recovered, downloadItem.incognito === true);
         }
         await updateSession<FinalFilenameMap>(
           sessionWriteState,

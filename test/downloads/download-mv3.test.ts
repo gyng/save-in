@@ -820,6 +820,34 @@ describe("onDeterminingFilename listener (Chrome)", () => {
     });
   });
 
+  test("keeps a private download's recovered filename out of session storage", async () => {
+    // The restart above is what makes this reachable: privateContext lives only
+    // in memory, so after a wakeup the record cannot say the download is
+    // private. downloadItem.incognito is the only surviving evidence, and
+    // storage.session is restart state, which private activity stays out of.
+    sessionStore.siFinalFilenames = { "https://x/private.png": "route/recovered.txt" };
+
+    const suggest = vi.fn();
+    listener(
+      {
+        id: 21,
+        byExtensionId: "self-extension-id",
+        filename: "original.txt",
+        url: "https://x/private.png",
+        incognito: true,
+      },
+      suggest,
+    );
+
+    await vi.waitFor(() => expect(suggest).toHaveBeenCalled());
+    // The private download is still routed; only the persisted record is denied.
+    expect(suggest).toHaveBeenCalledWith({
+      filename: "route/recovered.txt",
+      conflictAction: "uniquify",
+    });
+    expect(sessionStore.siDownloads?.[21]).toBeUndefined();
+  });
+
   test("still suggests a retry filename when persisted cleanup fails", async () => {
     const sessionState = await import("../../src/shared/session-state.ts");
     vi.mocked(sessionState.updateSession).mockRejectedValueOnce(new Error("storage failed"));
