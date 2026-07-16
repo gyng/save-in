@@ -198,6 +198,10 @@ const SOURCE_PNG = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
   "base64",
 );
+// Minimal but structurally valid PDF: header, one empty page object, xref, EOF.
+const SOURCE_PDF = Buffer.from(
+  "%PDF-1.1\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n2 0 obj<</Type/Pages/Kids[]/Count 0>>endobj\ntrailer<</Root 1 0 R>>\n%%EOF",
+);
 
 const startSourcePanelServer = async () => {
   const server = http.createServer((req, res) => {
@@ -206,9 +210,23 @@ const startSourcePanelServer = async () => {
       res.end(SOURCE_PNG);
       return;
     }
+    if (req.url?.endsWith(".pdf")) {
+      res.writeHead(200, {
+        "Content-Type": "application/pdf",
+        "Content-Length": SOURCE_PDF.length,
+      });
+      res.end(SOURCE_PDF);
+      return;
+    }
     res.writeHead(200, { "Content-Type": "text/html" });
+    // The linked doc.pdf and the phase-b-background CSS background image are
+    // only adopted by the automatic scan when a test explicitly turns on
+    // autoDownloadDocuments/autoDownloadBackgrounds — every other case here
+    // leaves both content options off, so they add no candidates.
     res.end(`<!doctype html><title>Page Sources e2e</title>
-      <img src="/first.png" alt="first"><img src="/second.png" alt="second">`);
+      <img src="/first.png" alt="first"><img src="/second.png" alt="second">
+      <a href="/doc.pdf">document</a>
+      <div id="phase-b-background" style="width:10px;height:10px;background-image:url('/bg.png')"></div>`);
   });
   return { server, port: await listenLocal(server) };
 };
@@ -1796,6 +1814,64 @@ into: e2e/automatic-chrome/:filename:`,
       (item) => item.url === `http://127.0.0.1:${port}/over-limit.png`,
     );
     expect(rows).toHaveLength(0);
+  } finally {
+    await Promise.all([
+      control.storage.local.set(previous),
+      control.storage.local.remove(missingAutomaticKeys),
+    ]);
+    const fixtureIds = (await control.tabs.query())
+      .filter((tab) => tab.url?.includes(target))
+      .map((tab) => tab.id)
+      .filter((id) => id !== undefined);
+    if (fixtureIds.length) await control.tabs.remove(fixtureIds);
+    await control.runtime.reset();
+    await closeLocal(server);
+  }
+});
+
+test("automatic scan phase B adopts a linked document and a background image only when their options are on", async () => {
+  const { server, port } = await startSourcePanelServer();
+  const target = `127.0.0.1:${port}/automatic-sources`;
+  const pageUrl = `http://${target}`;
+  const automaticKeys = [
+    "autoDownloadEnabled",
+    "autoDownloadLive",
+    "autoDownloadDocuments",
+    "autoDownloadBackgrounds",
+    "autoDownloadMaxPerPage",
+    "filenamePatterns",
+  ];
+  const previous = await control.storage.local.get(automaticKeys);
+  const missingAutomaticKeys = automaticKeys.filter((key) => !(key in previous));
+
+  try {
+    await control.options.set({
+      autoDownloadEnabled: true,
+      autoDownloadLive: false,
+      autoDownloadDocuments: true,
+      autoDownloadBackgrounds: true,
+      autoDownloadMaxPerPage: 3,
+      filenamePatterns: `context: ^auto$
+pageurl: ^http://127\\.0\\.0\\.1:${port}/automatic-sources$
+sourcekind: ^document$
+sourceurl: doc\\.pdf$
+into: e2e/automatic-phase-b-chrome/:filename:
+
+context: ^auto$
+pageurl: ^http://127\\.0\\.0\\.1:${port}/automatic-sources$
+sourcekind: ^image$
+sourceurl: bg\\.png$
+into: e2e/automatic-phase-b-chrome/:filename:`,
+    });
+    await cdp.openTab(PORT, pageUrl);
+    const completed = await control.downloads.wait({
+      filenameRegex: "automatic-phase-b-chrome",
+      minimumComplete: 2,
+      timeoutMs: 10000,
+    });
+    expect(completed.filter((row) => row.state === "complete")).toHaveLength(2);
+    expect(completed.some((row) => row.filename.endsWith("doc.pdf"))).toBe(true);
+    expect(completed.some((row) => row.filename.endsWith("bg.png"))).toBe(true);
   } finally {
     await Promise.all([
       control.storage.local.set(previous),

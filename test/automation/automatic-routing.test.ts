@@ -1,9 +1,12 @@
 import {
   automaticRoutingRuleIssues,
+  isAdmittedAutomaticSource,
   matchAutomaticRoutingRule,
+  type AutomaticScanGates,
 } from "../../src/automation/automatic-routing.ts";
 import { parseRulesCollecting } from "../../src/routing/rule-parser.ts";
 import { isAutomaticRuleClauses } from "../../src/routing/automatic-rule.ts";
+import type { PageSourceChannel, PageSourceKind } from "../../src/shared/page-source.ts";
 
 const candidate = {
   pageUrl: "https://gallery.example.test/post/42",
@@ -78,4 +81,129 @@ into: unsafe/
     expect(automaticRoutingRuleIssues(source)).toContain(issue);
     expect(parseRulesCollecting(source).errors).toHaveLength(1);
   });
+});
+
+describe("isAdmittedAutomaticSource", () => {
+  const ALL_OFF: AutomaticScanGates = {
+    includeLinks: false,
+    includeDocuments: false,
+    includeBackgrounds: false,
+    resourceHints: false,
+  };
+  const ALL_ON: AutomaticScanGates = {
+    includeLinks: true,
+    includeDocuments: true,
+    includeBackgrounds: true,
+    resourceHints: true,
+  };
+
+  test.each<[PageSourceKind]>([["image"], ["video"], ["audio"]])(
+    "always admits embedded %s regardless of every gate",
+    (kind) => {
+      expect(isAdmittedAutomaticSource(kind, undefined, ALL_OFF)).toBe(true);
+      expect(isAdmittedAutomaticSource(kind, undefined, ALL_ON)).toBe(true);
+    },
+  );
+
+  test.each<[PageSourceKind]>([["stream"], ["document"], ["link"]])(
+    "never admits embedded %s (the collector never emits these without a channel)",
+    (kind) => {
+      expect(isAdmittedAutomaticSource(kind, undefined, ALL_ON)).toBe(false);
+    },
+  );
+
+  test.each<[PageSourceKind]>([["image"], ["video"], ["audio"]])(
+    "gates an anchor %s on includeLinks alone",
+    (kind) => {
+      expect(isAdmittedAutomaticSource(kind, "anchor", ALL_OFF)).toBe(false);
+      expect(isAdmittedAutomaticSource(kind, "anchor", { ...ALL_OFF, includeLinks: true })).toBe(
+        true,
+      );
+      // Turning on the unrelated documents gate must not admit media anchors.
+      expect(
+        isAdmittedAutomaticSource(kind, "anchor", { ...ALL_OFF, includeDocuments: true }),
+      ).toBe(false);
+    },
+  );
+
+  test.each<[PageSourceKind]>([["stream"], ["document"]])(
+    "gates an anchor %s on includeDocuments alone",
+    (kind) => {
+      expect(isAdmittedAutomaticSource(kind, "anchor", ALL_OFF)).toBe(false);
+      expect(
+        isAdmittedAutomaticSource(kind, "anchor", { ...ALL_OFF, includeDocuments: true }),
+      ).toBe(true);
+      // Turning on the unrelated links/resourceHints gates must not admit
+      // linked documents/streams — cross-channel bleed is exactly the
+      // correctness bug this predicate exists to prevent.
+      expect(isAdmittedAutomaticSource(kind, "anchor", { ...ALL_OFF, includeLinks: true })).toBe(
+        false,
+      );
+      expect(isAdmittedAutomaticSource(kind, "anchor", { ...ALL_OFF, resourceHints: true })).toBe(
+        false,
+      );
+    },
+  );
+
+  test("never admits a plain link anchor, even with every gate on", () => {
+    expect(isAdmittedAutomaticSource("link", "anchor", ALL_ON)).toBe(false);
+  });
+
+  test("gates a background image on includeBackgrounds alone", () => {
+    expect(isAdmittedAutomaticSource("image", "background", ALL_OFF)).toBe(false);
+    expect(
+      isAdmittedAutomaticSource("image", "background", { ...ALL_OFF, includeBackgrounds: true }),
+    ).toBe(true);
+    // Every other gate on, but not includeBackgrounds, must still refuse.
+    expect(
+      isAdmittedAutomaticSource("image", "background", { ...ALL_ON, includeBackgrounds: false }),
+    ).toBe(false);
+  });
+
+  test.each<[PageSourceKind]>([["video"], ["audio"], ["stream"], ["document"], ["link"]])(
+    "never admits a background candidate of kind %s",
+    (kind) => {
+      expect(isAdmittedAutomaticSource(kind, "background", ALL_ON)).toBe(false);
+    },
+  );
+
+  test("gates a resource-hint stream on resourceHints alone", () => {
+    expect(isAdmittedAutomaticSource("stream", "resource-hint", ALL_OFF)).toBe(false);
+    expect(
+      isAdmittedAutomaticSource("stream", "resource-hint", { ...ALL_OFF, resourceHints: true }),
+    ).toBe(true);
+    // A resource-hint stream must not be adopted merely because the
+    // (unrelated) linked-documents gate is on — the correctness requirement
+    // this predicate exists to enforce.
+    expect(
+      isAdmittedAutomaticSource("stream", "resource-hint", { ...ALL_OFF, includeDocuments: true }),
+    ).toBe(false);
+  });
+
+  test.each<[PageSourceKind]>([["image"], ["video"], ["audio"], ["document"], ["link"]])(
+    "never admits a resource-hint candidate of kind %s",
+    (kind) => {
+      expect(isAdmittedAutomaticSource(kind, "resource-hint", ALL_ON)).toBe(false);
+    },
+  );
+
+  test("a .m3u8 anchor is not adopted merely because the manifests gate is on", () => {
+    expect(isAdmittedAutomaticSource("stream", "anchor", { ...ALL_OFF, resourceHints: true })).toBe(
+      false,
+    );
+  });
+
+  test.each<[PageSourceChannel]>([["anchor"], ["background"], ["resource-hint"]])(
+    "%s never admits a kind that channel cannot produce, even with every gate on",
+    (channel) => {
+      const impossible: Record<PageSourceChannel, PageSourceKind[]> = {
+        anchor: [],
+        background: ["video", "audio", "stream", "document", "link"],
+        "resource-hint": ["image", "video", "audio", "document", "link"],
+      };
+      for (const kind of impossible[channel]) {
+        expect(isAdmittedAutomaticSource(kind, channel, ALL_ON)).toBe(false);
+      }
+    },
+  );
 });

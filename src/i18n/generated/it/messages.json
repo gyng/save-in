@@ -2654,6 +2654,18 @@
     "message": "Consenti nelle finestre private"
   },
   "autoDownloadLinks": { "message": "Includi i media collegati" },
+  "autoDownloadCoverageHeading": { "message": "Copertura della scansione automatica" },
+  "autoDownloadDocuments": { "message": "Includi documenti e stream collegati" },
+  "autoDownloadDocumentsHelp": {
+    "message": "Acquisisce i file PDF e i manifest HLS/DASH collegati, indipendentemente dal fatto che i contenuti multimediali collegati siano inclusi."
+  },
+  "autoDownloadBackgrounds": { "message": "Includi immagini di sfondo CSS" },
+  "autoDownloadManifests": {
+    "message": "Cerca playlist di streaming (HLS/DASH; rilevamento non garantito)"
+  },
+  "autoDownloadManifestsHelp": {
+    "message": "Salva il file manifest stesso, non lo stream assemblato."
+  },
   "autoDownloadLimit": {
     "message": "Numero massimo di salvataggi per visita alla pagina"
   },

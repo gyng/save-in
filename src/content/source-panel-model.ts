@@ -1,9 +1,9 @@
 import type { UiTheme } from "../config/content-options.ts";
 import type { SourcePanelCopy } from "../shared/source-panel-copy.ts";
-import type { PageSourceKind } from "../shared/page-source.ts";
+import type { PageSourceChannel, PageSourceKind } from "../shared/page-source.ts";
 import { isStringMember } from "../shared/util.ts";
 
-export type { PageSourceKind } from "../shared/page-source.ts";
+export type { PageSourceKind, PageSourceChannel } from "../shared/page-source.ts";
 export type PageSource = {
   url: string;
   kind: PageSourceKind;
@@ -12,6 +12,11 @@ export type PageSource = {
   previewable?: boolean | undefined;
   detectedAt?: number | undefined;
   detectedOrder?: number | undefined;
+  // Absent for media embedded directly on the page (img/video/audio) — the
+  // pre-4.2 default. Set for anchor/background/resource-hint candidates so the
+  // automatic scan can gate admission by channel x kind (Page Sources panel
+  // itself does not read this field; its behavior is unchanged).
+  channel?: PageSourceChannel | undefined;
   responsive?:
     | {
         descriptor?: string | undefined;
@@ -348,6 +353,7 @@ export const collectResourceHintSources = (
               kind: "stream" as const,
               element,
               bytes: resourceBytes(entry.encodedBodySize, entry.transferSize),
+              channel: "resource-hint" as const,
             },
           ]
         : [];
@@ -380,6 +386,7 @@ export const collectBackgroundSourceCandidates = (
         kind: "image",
         element,
         bytes: resourceBytes(timing?.encodedBodySize, timing?.transferSize),
+        channel: "background",
       });
     });
   }
@@ -398,6 +405,7 @@ export const collectPageSourceCandidates = (
     element: Element,
     previewable = true,
     responsive?: PageSource["responsive"],
+    channel?: PageSource["channel"],
   ) => {
     const url = value && absoluteUrl(value);
     if (url) {
@@ -409,6 +417,7 @@ export const collectPageSourceCandidates = (
         bytes: resourceBytes(timing?.encodedBodySize, timing?.transferSize),
         previewable,
         responsive,
+        channel,
       });
     }
   };
@@ -488,7 +497,7 @@ export const collectPageSourceCandidates = (
               : path.endsWith(".pdf")
                 ? "document"
                 : "link";
-      add(href, kind, element);
+      add(href, kind, element, true, undefined, "anchor");
     });
   }
   if (options.includeBackgrounds !== false) {

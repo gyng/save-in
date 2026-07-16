@@ -2495,6 +2495,18 @@
   },
   "autoDownloadPrivate": { "message": "Toestaan in privévensters" },
   "autoDownloadLinks": { "message": "Gekoppelde media opnemen" },
+  "autoDownloadCoverageHeading": { "message": "Bereik van automatische scan" },
+  "autoDownloadDocuments": { "message": "Gekoppelde documenten en streams opnemen" },
+  "autoDownloadDocumentsHelp": {
+    "message": "Neemt gekoppelde PDF- en HLS/DASH-manifestbestanden over, ongeacht of gekoppelde media is opgenomen."
+  },
+  "autoDownloadBackgrounds": { "message": "CSS-achtergrondafbeeldingen opnemen" },
+  "autoDownloadManifests": {
+    "message": "Zoeken naar afspeellijsten voor streamingvideo indien mogelijk (HLS/DASH)"
+  },
+  "autoDownloadManifestsHelp": {
+    "message": "Slaat het manifestbestand zelf op, niet de samengestelde stream."
+  },
   "autoDownloadLimit": { "message": "Maximumaantal opgeslagen items per paginabezoek" },
   "autoDownloadLimitHelp": {
     "message": "Save In stopt met het toevoegen van nieuwe overeenkomsten aan de wachtrij wanneer deze limiet is bereikt. Herlaad de pagina om een nieuw bezoek te starten."

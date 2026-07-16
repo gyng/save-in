@@ -512,6 +512,105 @@ into: automatic/:$1:
     await waitForCall(sendResponse);
     expect(Download.launchDownload).toHaveBeenCalledOnce();
   });
+
+  describe("phase-B channel backstop", () => {
+    // No sourcekind restriction: isolates the channel/kind gate from rule
+    // matching, exactly like the content-side discovery-boundary fixtures.
+    const configureBroad = () => {
+      options.autoDownloadEnabled = true;
+      options.autoDownloadPrivate = false;
+      // options is a shared singleton across tests in this file; a prior row's
+      // "then allows it" mutation must not leak into the next row's refusal.
+      options.autoDownloadLinks = false;
+      options.autoDownloadDocuments = false;
+      options.autoDownloadBackgrounds = false;
+      options.autoDownloadManifests = false;
+      options.filenamePatterns = parseRulesCollecting(`
+context: ^auto$
+pageurl: ^https://example\\.test/gallery/
+sourceurl: cdn\\.test
+into: automatic/:pagedomain:/
+`).rules;
+    };
+    const senderTab = { id: 7, url: "https://example.test/gallery/", incognito: false };
+    const channelRequest = (sourceKind: string, sourceChannel: string) => ({
+      type: MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
+      body: {
+        pageUrl: senderTab.url,
+        sourceUrl: "https://cdn.test/candidate",
+        sourceKind,
+        sourceChannel,
+      },
+    });
+
+    test.each([
+      ["document", "anchor", "autoDownloadDocuments"],
+      ["stream", "anchor", "autoDownloadDocuments"],
+      ["image", "background", "autoDownloadBackgrounds"],
+      ["stream", "resource-hint", "autoDownloadManifests"],
+    ] as const)(
+      "refuses a stale %s/%s candidate until %s is on, then allows it",
+      async (sourceKind, sourceChannel, optionName) => {
+        configureBroad();
+        const refused = vi.fn();
+        onMessage(channelRequest(sourceKind, sourceChannel), { tab: senderTab }, refused);
+        await waitForCall(refused);
+        expect(Download.launchDownload).not.toHaveBeenCalled();
+        expect(refused).toHaveBeenCalledWith({
+          type: MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
+          body: { status: "skipped" },
+        });
+
+        (options as unknown as Record<string, boolean>)[optionName] = true;
+        const allowed = vi.fn();
+        onMessage(channelRequest(sourceKind, sourceChannel), { tab: senderTab }, allowed);
+        await waitForCall(allowed);
+        expect(Download.launchDownload).toHaveBeenCalledOnce();
+      },
+    );
+
+    test("a .m3u8 anchor is not adopted merely because the manifests option is on", async () => {
+      configureBroad();
+      options.autoDownloadManifests = true;
+      const sendResponse = vi.fn();
+      onMessage(channelRequest("stream", "anchor"), { tab: senderTab }, sendResponse);
+      await waitForCall(sendResponse);
+      expect(Download.launchDownload).not.toHaveBeenCalled();
+      expect(sendResponse).toHaveBeenCalledWith({
+        type: MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
+        body: { status: "skipped" },
+      });
+    });
+
+    test("a resource-hint stream is not adopted merely because linked documents/streams is on", async () => {
+      configureBroad();
+      options.autoDownloadDocuments = true;
+      const sendResponse = vi.fn();
+      onMessage(channelRequest("stream", "resource-hint"), { tab: senderTab }, sendResponse);
+      await waitForCall(sendResponse);
+      expect(Download.launchDownload).not.toHaveBeenCalled();
+      expect(sendResponse).toHaveBeenCalledWith({
+        type: MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
+        body: { status: "skipped" },
+      });
+    });
+
+    test("a malformed stored channel option never blocks embedded media", async () => {
+      configure();
+      // Legacy or corrupted storage can hold a non-boolean here; the backstop
+      // must fall back to "channel off" without throwing, and embedded media
+      // (no sourceChannel) is unaffected either way.
+      options.autoDownloadDocuments = "yes" as unknown as boolean;
+      const sendResponse = vi.fn();
+      onMessage(
+        request,
+        { tab: { id: 7, url: request.body.pageUrl, incognito: false } },
+        sendResponse,
+      );
+      await waitForCall(sendResponse);
+      expect(Download.launchDownload).toHaveBeenCalledOnce();
+    });
+  });
 });
 
 // Official versioned external API (#110)

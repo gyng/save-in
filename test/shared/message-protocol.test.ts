@@ -36,6 +36,20 @@ describe("message protocol runtime validation", () => {
         },
       }),
     ).toBe(true);
+    // sourceChannel is optional (absent for embedded media) but must be a
+    // known channel when a phase-B candidate (anchor/background/resource-hint)
+    // supplies one.
+    expect(
+      isInternalMessage({
+        type: MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
+        body: {
+          pageUrl: "https://example.test/gallery/",
+          sourceUrl: "https://cdn.test/manifest.m3u8",
+          sourceKind: "stream",
+          sourceChannel: "resource-hint",
+        },
+      }),
+    ).toBe(true);
     expect(
       isExternalMessage({
         type: MESSAGE_TYPES.VALIDATE,
@@ -164,6 +178,15 @@ describe("message protocol runtime validation", () => {
     {
       type: MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
       body: { pageUrl: "https://x/", sourceUrl: 1, sourceKind: "image" },
+    },
+    {
+      type: MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
+      body: {
+        pageUrl: "https://x/",
+        sourceUrl: "https://x/a.m3u8",
+        sourceKind: "stream",
+        sourceChannel: "embedded",
+      },
     },
   ])("rejects malformed internal message %#", (message) => {
     expect(isInternalMessage(message)).toBe(false);

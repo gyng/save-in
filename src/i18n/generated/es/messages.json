@@ -2505,6 +2505,18 @@
   },
   "autoDownloadPrivate": { "message": "Permitir en ventanas privadas" },
   "autoDownloadLinks": { "message": "Incluir medios enlazados" },
+  "autoDownloadCoverageHeading": { "message": "Cobertura del escaneo automático" },
+  "autoDownloadDocuments": { "message": "Incluir documentos y transmisiones enlazados" },
+  "autoDownloadDocumentsHelp": {
+    "message": "Adopta archivos PDF y manifiestos HLS/DASH enlazados, se incluyan o no los medios enlazados."
+  },
+  "autoDownloadBackgrounds": { "message": "Incluir imágenes de fondo CSS" },
+  "autoDownloadManifests": {
+    "message": "Buscar listas de reproducción de vídeo en streaming cuando sea posible (HLS/DASH)"
+  },
+  "autoDownloadManifestsHelp": {
+    "message": "Guarda el propio archivo de manifiesto, no la transmisión ensamblada."
+  },
   "autoDownloadLimit": { "message": "Máximo de guardados por visita a la página" },
   "autoDownloadLimitHelp": {
     "message": "Save In deja de poner nuevas coincidencias en cola al alcanzar este límite. Recargue la página para iniciar una nueva visita."

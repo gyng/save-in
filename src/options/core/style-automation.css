@@ -112,7 +112,7 @@
 
 .auto-download-options:has(#autoDownloadEnabled:not(:checked))
   .auto-download-dependent
-  :is(label:has(:disabled), .auto-download-limit > label),
+  :is(.option-group-heading, label:has(:disabled), .auto-download-limit > label),
 .browser-download-filter-group:has(#browserDownloadFiltersEnabled:not(:checked))
   .browser-download-filter-options
   :is(label:has(:disabled), .browser-download-filter-field > label) {
@@ -123,6 +123,11 @@
   .dependent-options {
     margin-inline-start: var(--space-2);
   }
+}
+
+.auto-download-coverage {
+  display: grid;
+  gap: var(--space-2);
 }
 
 .auto-download-limit {

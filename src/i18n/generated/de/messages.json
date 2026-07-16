@@ -2501,6 +2501,18 @@
   "autoDownloadLive": { "message": "Nach dem Laden hinzugefügte Quellen einbeziehen" },
   "autoDownloadPrivate": { "message": "In privaten Fenstern zulassen" },
   "autoDownloadLinks": { "message": "Verlinkte Medien einbeziehen" },
+  "autoDownloadCoverageHeading": { "message": "Umfang des automatischen Scans" },
+  "autoDownloadDocuments": { "message": "Verlinkte Dokumente und Streams einbeziehen" },
+  "autoDownloadDocumentsHelp": {
+    "message": "Übernimmt verlinkte PDF- und HLS/DASH-Manifestdateien, unabhängig davon, ob verlinkte Medien einbezogen werden."
+  },
+  "autoDownloadBackgrounds": { "message": "CSS-Hintergrundbilder einbeziehen" },
+  "autoDownloadManifests": {
+    "message": "Nach Wiedergabelisten für Streamingvideos suchen (HLS/DASH; soweit möglich)"
+  },
+  "autoDownloadManifestsHelp": {
+    "message": "Speichert die Manifestdatei selbst, nicht den zusammengesetzten Stream."
+  },
   "autoDownloadLimit": {
     "message": "Maximal gespeicherte Quellen pro Seitenbesuch"
   },

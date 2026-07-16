@@ -2687,6 +2687,14 @@
   "autoDownloadLive": { "message": "監看頁面載入後新增的來源" },
   "autoDownloadPrivate": { "message": "允許在隱私視窗中自動儲存" },
   "autoDownloadLinks": { "message": "包含頁面連結的媒體" },
+  "autoDownloadCoverageHeading": { "message": "自動掃描涵蓋範圍" },
+  "autoDownloadDocuments": { "message": "包含連結的文件與串流" },
+  "autoDownloadDocumentsHelp": {
+    "message": "無論是否包含連結的媒體，都會擷取連結的 PDF 與 HLS/DASH 清單檔案。"
+  },
+  "autoDownloadBackgrounds": { "message": "包含 CSS 背景圖片" },
+  "autoDownloadManifests": { "message": "盡可能尋找串流影片播放清單（HLS/DASH）" },
+  "autoDownloadManifestsHelp": { "message": "儲存清單檔案本身，而非組合後的串流。" },
   "autoDownloadLimit": { "message": "每次頁面瀏覽的最大儲存數" },
   "autoDownloadLimitHelp": {
     "message": "達到此限制時，Save In 將停止把新的符合項目加入佇列。重新載入頁面即可開始新的瀏覽。"

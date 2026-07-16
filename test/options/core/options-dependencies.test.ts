@@ -9,6 +9,14 @@ describe("option dependencies", () => {
       <select id="clickToSaveModifier"></select>
       <select id="clickToSaveModifier2"></select>
       <select id="contentClickToSaveButton"></select>
+      <input type="checkbox" id="autoDownloadEnabled">
+      <input type="checkbox" id="autoDownloadLive">
+      <input type="checkbox" id="autoDownloadPrivate">
+      <input type="checkbox" id="autoDownloadLinks">
+      <input type="checkbox" id="autoDownloadDocuments">
+      <input type="checkbox" id="autoDownloadBackgrounds">
+      <input type="checkbox" id="autoDownloadManifests">
+      <input id="autoDownloadMaxPerPage">
       <input type="checkbox" id="sourcePanelEnabled">
       <input type="checkbox" id="sourcePanelLive">
       <input type="checkbox" id="sourcePanelPreviews">
@@ -59,6 +67,17 @@ describe("option dependencies", () => {
       (document.querySelector("#browserDownloadExcludeFilter") as HTMLTextAreaElement).disabled,
     ).toBe(true);
     expect((document.querySelector("#preferLinks") as HTMLInputElement).disabled).toBe(true);
+    expect((document.querySelector("#autoDownloadLive") as HTMLInputElement).disabled).toBe(true);
+    expect((document.querySelector("#autoDownloadLinks") as HTMLInputElement).disabled).toBe(true);
+    expect((document.querySelector("#autoDownloadDocuments") as HTMLInputElement).disabled).toBe(
+      true,
+    );
+    expect((document.querySelector("#autoDownloadBackgrounds") as HTMLInputElement).disabled).toBe(
+      true,
+    );
+    expect((document.querySelector("#autoDownloadManifests") as HTMLInputElement).disabled).toBe(
+      true,
+    );
     expect((document.querySelector("#includeFetchCredentials") as HTMLInputElement).disabled).toBe(
       true,
     );
@@ -82,6 +101,28 @@ describe("option dependencies", () => {
 
     expect(live.disabled).toBe(false);
     expect(shortcut.disabled).toBe(false);
+  });
+
+  test("enables the automatic scan coverage checkboxes when the master switch is on", () => {
+    setupOptionDependencies();
+    const enabled = document.querySelector("#autoDownloadEnabled") as HTMLInputElement;
+    const documents = document.querySelector("#autoDownloadDocuments") as HTMLInputElement;
+    const backgrounds = document.querySelector("#autoDownloadBackgrounds") as HTMLInputElement;
+    const manifests = document.querySelector("#autoDownloadManifests") as HTMLInputElement;
+
+    enabled.checked = true;
+    enabled.dispatchEvent(new Event("change"));
+
+    expect(documents.disabled).toBe(false);
+    expect(backgrounds.disabled).toBe(false);
+    expect(manifests.disabled).toBe(false);
+
+    enabled.checked = false;
+    enabled.dispatchEvent(new Event("change"));
+
+    expect(documents.disabled).toBe(true);
+    expect(backgrounds.disabled).toBe(true);
+    expect(manifests.disabled).toBe(true);
   });
 
   test("enables fetch credentials when either Save In fetch mode is active", () => {

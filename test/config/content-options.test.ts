@@ -61,6 +61,17 @@ test("normalizes malformed values and preserves legacy numeric shortcut keycodes
   expect(resolveContentOptions(arraySnapshot)).toEqual(CONTENT_OPTION_DEFAULTS);
 });
 
+test.each(["autoDownloadDocuments", "autoDownloadBackgrounds", "autoDownloadManifests"] as const)(
+  "normalizes the %s scan-coverage channel like autoDownloadLinks",
+  (name) => {
+    expect(CONTENT_OPTION_DEFAULTS[name]).toBe(false);
+    expect(resolveContentOptions({ [name]: true })[name]).toBe(true);
+    for (const value of [null, 1, "true", undefined]) {
+      expect(resolveContentOptions({ [name]: value })[name]).toBe(false);
+    }
+  },
+);
+
 test("falls back safely when a stored shortcut string contains unknown keys", () => {
   expect(
     resolveContentOptions({

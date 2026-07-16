@@ -1698,11 +1698,41 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                 <input type="checkbox" id="autoDownloadPrivate" />
                 __MSG_autoDownloadPrivate__
               </label>
+            </div>
+
+            <fieldset class="option-group auto-download-coverage" id="auto-download-coverage">
+              <legend class="option-group-heading">__MSG_autoDownloadCoverageHeading__</legend>
               <label>
                 <input type="checkbox" id="autoDownloadLinks" />
                 __MSG_autoDownloadLinks__
               </label>
-            </div>
+              <label>
+                <input
+                  type="checkbox"
+                  id="autoDownloadDocuments"
+                  aria-describedby="auto-download-documents-help"
+                />
+                __MSG_autoDownloadDocuments__
+              </label>
+              <span class="caption caption-line" id="auto-download-documents-help"
+                >__MSG_autoDownloadDocumentsHelp__</span
+              >
+              <label>
+                <input type="checkbox" id="autoDownloadBackgrounds" />
+                __MSG_autoDownloadBackgrounds__
+              </label>
+              <label>
+                <input
+                  type="checkbox"
+                  id="autoDownloadManifests"
+                  aria-describedby="auto-download-manifests-help"
+                />
+                __MSG_autoDownloadManifests__
+              </label>
+              <span class="caption caption-line" id="auto-download-manifests-help"
+                >__MSG_autoDownloadManifestsHelp__</span
+              >
+            </fieldset>
 
             <div class="option-subcontrol auto-download-limit">
               <label for="autoDownloadMaxPerPage">__MSG_autoDownloadLimit__</label>

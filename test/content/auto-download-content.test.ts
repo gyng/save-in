@@ -4,19 +4,43 @@ import {
   type AutoDownloadDiscoveryOptions,
 } from "../../src/content/auto-download.ts";
 
-// Link adoption and the disable-list predicate are wired in from content.ts;
-// default them here so each case only states what it exercises.
+// Link adoption, the phase-B channel toggles, and the disable-list predicate
+// are wired in from content.ts; default them here so each case only states
+// what it exercises.
+type DefaultedOption =
+  | "includeLinks"
+  | "includeDocuments"
+  | "includeBackgrounds"
+  | "resourceHints"
+  | "isPageDisabled";
+
 const setupAutoDownloadDiscovery = (
-  options: Omit<AutoDownloadDiscoveryOptions, "includeLinks" | "isPageDisabled"> &
-    Partial<Pick<AutoDownloadDiscoveryOptions, "includeLinks" | "isPageDisabled">>,
+  options: Omit<AutoDownloadDiscoveryOptions, DefaultedOption> &
+    Partial<Pick<AutoDownloadDiscoveryOptions, DefaultedOption>>,
 ) =>
-  rawSetupAutoDownloadDiscovery({ includeLinks: false, isPageDisabled: () => false, ...options });
+  rawSetupAutoDownloadDiscovery({
+    includeLinks: false,
+    includeDocuments: false,
+    includeBackgrounds: false,
+    resourceHints: false,
+    isPageDisabled: () => false,
+    ...options,
+  });
 
 const rules = `
 context: ^auto$
 pageurl: ^http://localhost/
 sourcekind: image
 sourceurl/i: \\.(?:png|jpg)(?:[?#].*)?$
+into: automatic/
+`;
+
+// No sourcekind matcher, so this rule isolates the scan's channel gates from
+// rule matching: every candidate URL matches, and only the option gates decide.
+const anyKindRules = `
+context: ^auto$
+pageurl: ^http://localhost/
+sourceurl: cdn\\.test
 into: automatic/
 `;
 
@@ -76,6 +100,7 @@ describe("automatic source discovery", () => {
       pageUrl: "http://localhost/",
       sourceUrl: "https://cdn.test/linked.jpg",
       sourceKind: "image",
+      sourceChannel: "anchor",
     });
     controller.stop();
   });
@@ -93,6 +118,97 @@ describe("automatic source discovery", () => {
 
     expect(send).not.toHaveBeenCalled();
     controller.stop();
+  });
+
+  test("adopts a linked document without requiring link adoption, and still excludes a plain media link", async () => {
+    document.body.innerHTML = `
+      <a href="https://cdn.test/paper.pdf">paper</a>
+      <a href="https://cdn.test/linked.jpg">image link</a>
+    `;
+    const send = vi.fn(() => Promise.resolve("started" as const));
+    const controller = setupAutoDownloadDiscovery({
+      rules: anyKindRules,
+      live: false,
+      maxPerPage: 20,
+      includeDocuments: true,
+      send,
+    });
+
+    await controller.idle();
+
+    // includeDocuments turns on anchor collection by itself: the linked PDF is
+    // adopted even though includeLinks (media links) stays off, and the media
+    // anchor is still excluded because its own gate is off.
+    expect(send).toHaveBeenCalledOnce();
+    expect(send).toHaveBeenCalledWith({
+      pageUrl: "http://localhost/",
+      sourceUrl: "https://cdn.test/paper.pdf",
+      sourceKind: "document",
+      sourceChannel: "anchor",
+    });
+    controller.stop();
+  });
+
+  test("adopts a linked stream anchor only when the documents option is enabled, never merely from the manifests option", async () => {
+    document.body.innerHTML = `<a href="https://cdn.test/playlist.m3u8">playlist</a>`;
+    const send = vi.fn(() => Promise.resolve("started" as const));
+    // The manifests (resourceHints) option does not collect anchors at all, so
+    // a linked .m3u8 must stay unadopted even when it is on.
+    const controllerManifestsOnly = setupAutoDownloadDiscovery({
+      rules: anyKindRules,
+      live: false,
+      maxPerPage: 20,
+      resourceHints: true,
+      send,
+    });
+    await controllerManifestsOnly.idle();
+    expect(send).not.toHaveBeenCalled();
+    controllerManifestsOnly.stop();
+
+    const send2 = vi.fn(() => Promise.resolve("started" as const));
+    const controllerDocuments = setupAutoDownloadDiscovery({
+      rules: anyKindRules,
+      live: false,
+      maxPerPage: 20,
+      includeDocuments: true,
+      send: send2,
+    });
+    await controllerDocuments.idle();
+    expect(send2).toHaveBeenCalledOnce();
+    expect(send2).toHaveBeenCalledWith({
+      pageUrl: "http://localhost/",
+      sourceUrl: "https://cdn.test/playlist.m3u8",
+      sourceKind: "stream",
+      sourceChannel: "anchor",
+    });
+    controllerDocuments.stop();
+  });
+
+  test("adopts a CSS background image only when the backgrounds option is enabled", async () => {
+    document.body.innerHTML = `<div style="background-image:url('https://cdn.test/wall.png')"></div>`;
+    const send = vi.fn(() => Promise.resolve("started" as const));
+    const controllerOff = setupAutoDownloadDiscovery({ rules, live: false, maxPerPage: 20, send });
+    await controllerOff.idle();
+    expect(send).not.toHaveBeenCalled();
+    controllerOff.stop();
+
+    const send2 = vi.fn(() => Promise.resolve("started" as const));
+    const controllerOn = setupAutoDownloadDiscovery({
+      rules,
+      live: false,
+      maxPerPage: 20,
+      includeBackgrounds: true,
+      send: send2,
+    });
+    await controllerOn.idle();
+    expect(send2).toHaveBeenCalledOnce();
+    expect(send2).toHaveBeenCalledWith({
+      pageUrl: "http://localhost/",
+      sourceUrl: "https://cdn.test/wall.png",
+      sourceKind: "image",
+      sourceChannel: "background",
+    });
+    controllerOn.stop();
   });
 
   test("skips dispatch for a candidate once the page is on the disable list", async () => {

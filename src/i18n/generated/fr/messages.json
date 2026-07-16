@@ -2530,6 +2530,18 @@
     "message": "Autoriser dans les fenêtres privées"
   },
   "autoDownloadLinks": { "message": "Inclure les médias liés" },
+  "autoDownloadCoverageHeading": { "message": "Couverture de l’analyse automatique" },
+  "autoDownloadDocuments": { "message": "Inclure les documents et flux liés" },
+  "autoDownloadDocumentsHelp": {
+    "message": "Récupère les fichiers PDF et les manifestes HLS/DASH liés, que les médias liés soient inclus ou non."
+  },
+  "autoDownloadBackgrounds": { "message": "Inclure des images d'arrière-plan CSS" },
+  "autoDownloadManifests": {
+    "message": "Rechercher les listes de lecture vidéo en streaming (HLS/DASH, dans la mesure du possible)"
+  },
+  "autoDownloadManifestsHelp": {
+    "message": "Enregistre le fichier manifeste lui-même, pas le flux assemblé."
+  },
   "autoDownloadLimit": { "message": "Nombre maximal d’enregistrements par consultation de page" },
   "autoDownloadLimitHelp": {
     "message": "Save In cesse d’ajouter de nouvelles sources correspondantes à la file lorsque cette limite est atteinte. Rechargez la page pour commencer une nouvelle consultation."

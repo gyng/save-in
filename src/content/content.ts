@@ -178,7 +178,12 @@ type ResolvedClickToSaveOptions = Pick<
 >;
 type ResolvedAutoDownloadOptions = Pick<
   ResolvedContentOptions,
-  "autoDownloadLive" | "autoDownloadLinks" | "autoDownloadMaxPerPage"
+  | "autoDownloadLive"
+  | "autoDownloadLinks"
+  | "autoDownloadDocuments"
+  | "autoDownloadBackgrounds"
+  | "autoDownloadManifests"
+  | "autoDownloadMaxPerPage"
 > & { filenamePatterns: string };
 type ResolvedContentScriptOptions = ResolvedContentOptions & ResolvedAutoDownloadOptions;
 
@@ -332,6 +337,9 @@ const setupAutoDownload = (options: ResolvedAutoDownloadOptions, dedup: AutoDown
     live: options.autoDownloadLive,
     maxPerPage: options.autoDownloadMaxPerPage,
     includeLinks: options.autoDownloadLinks,
+    includeDocuments: options.autoDownloadDocuments,
+    includeBackgrounds: options.autoDownloadBackgrounds,
+    resourceHints: options.autoDownloadManifests,
     isPageDisabled: isCurrentPageDisabled,
     send,
     dedup,
@@ -408,6 +416,9 @@ const applyOptions = (next: ContentOptions) => {
       "filenamePatterns",
       "autoDownloadLive",
       "autoDownloadLinks",
+      "autoDownloadDocuments",
+      "autoDownloadBackgrounds",
+      "autoDownloadManifests",
       "autoDownloadMaxPerPage",
     ] as const
   ).some((key) => previous[key] !== currentOptions[key]);

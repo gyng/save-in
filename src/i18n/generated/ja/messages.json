@@ -2595,6 +2595,18 @@
   "autoDownloadLive": { "message": "ページの読み込み後に追加されたソースも含める" },
   "autoDownloadPrivate": { "message": "プライベートウィンドウでの自動保存を許可" },
   "autoDownloadLinks": { "message": "リンク先のメディアも含める" },
+  "autoDownloadCoverageHeading": { "message": "自動スキャンの対象範囲" },
+  "autoDownloadDocuments": { "message": "リンクされたドキュメントとストリームを含める" },
+  "autoDownloadDocumentsHelp": {
+    "message": "リンクされたメディアを含めるかどうかにかかわらず、リンクされた PDF と HLS/DASH マニフェストファイルを取り込みます。"
+  },
+  "autoDownloadBackgrounds": { "message": "CSS 背景画像を含める" },
+  "autoDownloadManifests": {
+    "message": "ストリーミング動画のプレイリストを可能な範囲で検出する（HLS/DASH）"
+  },
+  "autoDownloadManifestsHelp": {
+    "message": "組み立て済みのストリームではなく、マニフェストファイル自体を保存します。"
+  },
   "autoDownloadLimit": { "message": "1 回のページ訪問での最大保存数" },
   "autoDownloadLimitHelp": {
     "message": "この上限に達すると、Save In は新しい一致項目のキューへの追加を停止します。新しい訪問を開始するにはページを再読み込みしてください。"

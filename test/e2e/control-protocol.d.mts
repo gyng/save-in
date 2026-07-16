@@ -3,6 +3,8 @@ export type StorageKeys = string | string[] | Record<string, unknown> | null;
 export type StorageRecord = Record<string, unknown>;
 
 export interface E2EStoredOptionValues {
+  autoDownloadBackgrounds: boolean;
+  autoDownloadDocuments: boolean;
   autoDownloadEnabled: boolean;
   autoDownloadLive: boolean;
   autoDownloadMaxPerPage: string | number;

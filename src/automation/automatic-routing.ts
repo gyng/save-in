@@ -7,12 +7,52 @@ import {
   isAutomaticRuleClauses,
   type AutomaticRuleIssue,
 } from "../routing/automatic-rule.ts";
-import type { PageSourceKind } from "../shared/page-source.ts";
+import type { PageSourceChannel, PageSourceKind } from "../shared/page-source.ts";
 
 export type AutomaticRoutingCandidate = {
   pageUrl: string;
   sourceUrl: string;
   sourceKind: PageSourceKind;
+  // Absent for media embedded directly on the page — the pre-4.2 default,
+  // always admitted. Present for anchor/background/resource-hint candidates so
+  // the content scan and the background backstop gate the same way (see
+  // isAdmittedAutomaticSource below). Not part of the rule-matching vocabulary:
+  // sourcekind: alone still selects the destination.
+  sourceChannel?: PageSourceChannel | undefined;
+};
+
+// The three phase-B content options, plus the phase-A link option, expressed
+// as a plain gate record so the content scan and the background backstop
+// (background/messaging/auto-download.ts) can share one admission rule
+// instead of drifting out of sync.
+export type AutomaticScanGates = {
+  includeLinks: boolean;
+  includeDocuments: boolean;
+  includeBackgrounds: boolean;
+  resourceHints: boolean;
+};
+
+// Per-channel x kind admission for the automatic scan. A candidate with no
+// channel is embedded media (img/video/audio) and is always admitted — that
+// is the scan's pre-4.1 baseline behavior. Every other channel needs its own
+// content option on, and a channel's option only admits the kinds that
+// channel can actually produce: an anchor-classified stream/document needs
+// includeDocuments; a resource-hint stream needs resourceHints even though
+// both carry sourceKind "stream". A plain-link anchor (kind "link") is never
+// admitted, by design.
+export const isAdmittedAutomaticSource = (
+  kind: PageSourceKind,
+  channel: PageSourceChannel | undefined,
+  gates: AutomaticScanGates,
+): boolean => {
+  if (channel === "background") return gates.includeBackgrounds && kind === "image";
+  if (channel === "resource-hint") return gates.resourceHints && kind === "stream";
+  if (channel === "anchor") {
+    if (kind === "image" || kind === "video" || kind === "audio") return gates.includeLinks;
+    if (kind === "stream" || kind === "document") return gates.includeDocuments;
+    return false;
+  }
+  return kind === "image" || kind === "video" || kind === "audio";
 };
 
 export type AutomaticRoutingMatch = {

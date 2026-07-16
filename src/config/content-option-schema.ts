@@ -42,6 +42,21 @@ export const CONTENT_FEATURE_OPTION_DEFINITIONS = [
     default: CONTENT_OPTION_DEFAULTS.autoDownloadLinks,
   },
   {
+    name: "autoDownloadDocuments",
+    type: "BOOL",
+    default: CONTENT_OPTION_DEFAULTS.autoDownloadDocuments,
+  },
+  {
+    name: "autoDownloadBackgrounds",
+    type: "BOOL",
+    default: CONTENT_OPTION_DEFAULTS.autoDownloadBackgrounds,
+  },
+  {
+    name: "autoDownloadManifests",
+    type: "BOOL",
+    default: CONTENT_OPTION_DEFAULTS.autoDownloadManifests,
+  },
+  {
     name: "autoDownloadMaxPerPage",
     type: "VALUE",
     onLoad: normalizeAutoDownloadLimit,

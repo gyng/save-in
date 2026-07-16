@@ -166,6 +166,27 @@ describe("page source collection", () => {
     ).toEqual([]);
   });
 
+  test("tags each source with the channel it was discovered through", () => {
+    document.head.innerHTML = `<base href="https://example.com/page/">`;
+    document.body.innerHTML = `
+      <img src="hero.jpg">
+      <a href="paper.pdf">paper</a>
+      <div style="background-image:url('wall.png')"></div>`;
+    const timingSpy = vi
+      .spyOn(performance, "getEntriesByType")
+      .mockReturnValue([{ name: "https://cdn.test/master.m3u8" } as PerformanceEntry]);
+
+    const byUrl = new Map(collectPageSources().map(({ url, channel }) => [url, channel]));
+    timingSpy.mockRestore();
+    // Media embedded directly on the page (img/video/audio) carries no channel
+    // — the pre-4.2 default that keeps old candidates and the Page Sources
+    // panel's behavior unchanged.
+    expect(byUrl.get("https://example.com/page/hero.jpg")).toBeUndefined();
+    expect(byUrl.get("https://example.com/page/paper.pdf")).toBe("anchor");
+    expect(byUrl.get("https://example.com/page/wall.png")).toBe("background");
+    expect(byUrl.get("https://cdn.test/master.m3u8")).toBe("resource-hint");
+  });
+
   test("ignores malformed link URLs without aborting collection", () => {
     document.body.innerHTML = `<a href="http://[">broken</a><img src="valid.png">`;
 

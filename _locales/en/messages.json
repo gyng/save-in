@@ -4141,6 +4141,30 @@
     "message": "Include media that pages link to",
     "description": "Checkbox label that opts in to adopting anchors (<a href>) pointing at previewable image, video, or audio files during automatic saving, in addition to media embedded on the page. Off by default. Used in src/options/options.html."
   },
+  "autoDownloadCoverageHeading": {
+    "message": "Automatic scan coverage",
+    "description": "Legend for the fieldset grouping the automatic-scan channel checkboxes (linked media, linked documents/streams, backgrounds, manifests). Used in src/options/options.html."
+  },
+  "autoDownloadDocuments": {
+    "message": "Include linked documents and streams",
+    "description": "Checkbox label that opts in to adopting anchors (<a href>) pointing at PDF documents or HLS/DASH stream manifests during automatic saving. Off by default. Used in src/options/options.html."
+  },
+  "autoDownloadDocumentsHelp": {
+    "message": "Adopts linked PDF and HLS/DASH manifest files, whether or not linked media is included.",
+    "description": "Explains that this option turns on link discovery for documents and streams independently of the media-links option. Used in src/options/options.html."
+  },
+  "autoDownloadBackgrounds": {
+    "message": "Include CSS background images",
+    "description": "Checkbox label that opts in to adopting image URLs found in computed CSS background images during automatic saving. Off by default. Used in src/options/options.html."
+  },
+  "autoDownloadManifests": {
+    "message": "Look for streaming-video playlists (HLS/DASH; best effort)",
+    "description": "Checkbox label that opts in to adopting HLS/DASH manifest URLs discovered in resource timing during automatic saving. Off by default. Used in src/options/options.html."
+  },
+  "autoDownloadManifestsHelp": {
+    "message": "Saves the manifest file itself, not the assembled stream.",
+    "description": "Clarifies that Save In downloads the playlist file and does not assemble segmented media. Used in src/options/options.html."
+  },
   "autoDownloadLimit": {
     "message": "Maximum saves per page visit",
     "description": "Label for the automatic-download safety limit. Used in src/options/options.html."

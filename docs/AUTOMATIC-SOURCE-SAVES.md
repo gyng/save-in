@@ -71,22 +71,45 @@ rules becoming eligible for unattended saves.
 
 `sourcekind:` uses the shared Page Sources vocabulary: `image`, `video`,
 `audio`, `stream`, `document`, and `link`. The automatic page scanner always
-queues previewable HTTP(S) image, video, and audio elements. When **Include
-media that pages link to** is enabled it additionally adopts anchors
-(`<a href>`) the shared collector classifies as previewable media — `image`,
-`video`, or `audio` by URL extension. A media anchor flows through with that
-kind, so a linked `.jpg` is queued as `sourcekind: image`. That option is off by
-default, so pre-4.1 rules keep matching embedded media only. Anchors classified
-`stream`, `document`, or plain `link`, along with CSS backgrounds and
-resource-timing playlist hints, are still not adopted.
+queues previewable HTTP(S) image, video, and audio elements. Three further
+content options each open one additional discovery channel, all off by
+default so pre-4.1 rules keep matching embedded media only until a channel is
+turned on:
+
+- **Include media that pages link to** adopts anchors (`<a href>`) the shared
+  collector classifies as previewable media — `image`, `video`, or `audio` by
+  URL extension. A media anchor flows through with that kind, so a linked
+  `.jpg` is queued as `sourcekind: image`.
+- **Include linked documents and streams** adopts anchors classified `stream`
+  (`.m3u8`/`.mpd`) or `document` (`.pdf`). It turns on anchor discovery on its
+  own, so linked documents and streams are adopted whether or not media links
+  are also enabled. Plain `link` anchors are never adopted by either option.
+- **Include CSS background images** adopts URLs found in computed CSS
+  background images; candidates arrive as `sourcekind: image`.
+- **Look for streaming-video playlists (HLS/DASH; best effort)** adopts
+  HLS/DASH manifest URLs discovered in resource timing; candidates arrive as
+  `sourcekind: stream`. Saving one of these matches downloads the manifest
+  (playlist) file itself — Save In does not fetch or assemble the segmented
+  media the manifest describes.
+
+Each channel is gated independently by its own option and by where a
+candidate actually came from, not only by its `sourcekind`. A `.m3u8`
+discovered as a page anchor is gated by **Include linked documents and
+streams**; the same URL discovered as a resource-timing hint is gated by
+**Look for streaming-video playlists**. Turning on one of these options never
+adopts a kind through a channel it does not gate — for example, enabling only
+the playlist option does not adopt a linked `.m3u8` anchor.
 
 ## Safety controls
 
 - **Save matches automatically** is the master switch and defaults to off.
 - **Include sources added after the page loads** keeps watching dynamic pages.
 - **Allow in private windows** is a separate opt-in and defaults to off.
-- **Include media that pages link to** is a separate opt-in and defaults to off;
-  when off, only media embedded on the page is adopted.
+- **Include media that pages link to**, **Include linked documents and
+  streams**, **Include CSS background images**, and **Look for
+  streaming-video playlists** are grouped under **Automatic scan coverage**.
+  Each is a separate opt-in and defaults to off; when all are off, only media
+  embedded on the page is adopted.
 - **Maximum saves per page visit** defaults to 20 and accepts 1–500. Reloading
   the page starts a new visit.
 - A source URL is queued once per page visit, and only after a guarded automatic

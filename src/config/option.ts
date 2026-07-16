@@ -50,6 +50,11 @@ export const OptionsManagement: OptionsManagementApi = {
     autoDownloadLive: "Watch for matching sources added after the page initially loads.",
     autoDownloadPrivate: "Allow automatic source saving in private browsing windows.",
     autoDownloadLinks: "Also adopt anchors that link to previewable image, video, or audio files.",
+    autoDownloadDocuments:
+      "Also adopt anchors that link to PDF documents or HLS/DASH stream manifests.",
+    autoDownloadBackgrounds: "Also adopt image URLs found in computed CSS background images.",
+    autoDownloadManifests:
+      "Also adopt HLS/DASH manifest URLs found in resource timing; saves the manifest file itself, not the assembled stream.",
     autoDownloadMaxPerPage: "Maximum automatic saves allowed during one page visit.",
     sourcePanelEnabled: "Enable the toolbar source browser for DOM-visible page media.",
     sourcePanelBackgrounds: "Include URLs found in computed CSS background images.",

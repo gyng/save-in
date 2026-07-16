@@ -275,6 +275,50 @@ describe("content.js initialisation", () => {
     );
   });
 
+  test("wires the phase-B channel options through to a linked document candidate", async () => {
+    document.body.innerHTML = '<a href="https://cdn.test/paper.pdf">paper</a>';
+    await importContentWithOptions({
+      autoDownloadEnabled: true,
+      autoDownloadLive: false,
+      autoDownloadDocuments: true,
+      autoDownloadMaxPerPage: 20,
+      filenamePatterns:
+        "context: ^auto$\npageurl: ^http://localhost/\nsourcekind: document\nsourceurl: paper\\.pdf$\ninto: automatic/",
+    });
+
+    await vi.waitFor(() =>
+      expect(global.chrome.runtime.sendMessage).toHaveBeenCalledWith(
+        {
+          type: "AUTO_DOWNLOAD_SOURCE",
+          body: {
+            pageUrl: "http://localhost/",
+            sourceUrl: "https://cdn.test/paper.pdf",
+            sourceKind: "document",
+            sourceChannel: "anchor",
+          },
+        },
+        expect.any(Function),
+      ),
+    );
+  });
+
+  test("leaves a linked document alone when autoDownloadDocuments is off", async () => {
+    document.body.innerHTML = '<a href="https://cdn.test/paper.pdf">paper</a>';
+    await importContentWithOptions({
+      autoDownloadEnabled: true,
+      autoDownloadLive: false,
+      autoDownloadMaxPerPage: 20,
+      filenamePatterns:
+        "context: ^auto$\npageurl: ^http://localhost/\nsourcekind: document\nsourceurl: paper\\.pdf$\ninto: automatic/",
+    });
+
+    await Promise.resolve();
+    expect(global.chrome.runtime.sendMessage).not.toHaveBeenCalledWith(
+      expect.objectContaining({ type: "AUTO_DOWNLOAD_SOURCE" }),
+      expect.any(Function),
+    );
+  });
+
   test("retries automatic saves and accepts a started response", async () => {
     vi.useFakeTimers();
     vi.resetModules();

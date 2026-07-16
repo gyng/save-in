@@ -11,11 +11,25 @@ import {
 } from "../../src/content/auto-download.ts";
 import type { AutomaticRoutingCandidate } from "../../src/automation/automatic-routing.ts";
 
+type DefaultedOption =
+  | "includeLinks"
+  | "includeDocuments"
+  | "includeBackgrounds"
+  | "resourceHints"
+  | "isPageDisabled";
+
 const setupAutoDownloadDiscovery = (
-  options: Omit<AutoDownloadDiscoveryOptions, "includeLinks" | "isPageDisabled"> &
-    Partial<Pick<AutoDownloadDiscoveryOptions, "includeLinks" | "isPageDisabled">>,
+  options: Omit<AutoDownloadDiscoveryOptions, DefaultedOption> &
+    Partial<Pick<AutoDownloadDiscoveryOptions, DefaultedOption>>,
 ) =>
-  rawSetupAutoDownloadDiscovery({ includeLinks: false, isPageDisabled: () => false, ...options });
+  rawSetupAutoDownloadDiscovery({
+    includeLinks: false,
+    includeDocuments: false,
+    includeBackgrounds: false,
+    resourceHints: false,
+    isPageDisabled: () => false,
+    ...options,
+  });
 
 const rules = String.raw`
 context: ^auto$
@@ -64,7 +78,9 @@ test("keeps only media-kind candidates and drops stream, document, and plain lin
     { url: "https://cdn.test/paper.pdf", kind: "document", previewable: true },
     { url: "https://cdn.test/page.html", kind: "link", previewable: true },
   ];
-  const send = vi.fn(async (_candidate: AutomaticRoutingCandidate) => "started" as const);
+  const send = vi.fn<(candidate: AutomaticRoutingCandidate) => Promise<"started">>(
+    async () => "started",
+  );
   const controller = setupAutoDownloadDiscovery({
     rules: anyMediaRules,
     live: false,
@@ -81,13 +97,154 @@ test("keeps only media-kind candidates and drops stream, document, and plain lin
   controller.stop();
 });
 
+test.each([
+  ["anchor", "stream", "includeDocuments", { includeDocuments: true }],
+  ["anchor", "document", "includeDocuments", { includeDocuments: true }],
+  ["anchor", "image", "includeLinks", { includeLinks: true }],
+  ["anchor", "video", "includeLinks", { includeLinks: true }],
+  ["anchor", "audio", "includeLinks", { includeLinks: true }],
+  ["background", "image", "includeBackgrounds", { includeBackgrounds: true }],
+  ["resource-hint", "stream", "resourceHints", { resourceHints: true }],
+] as const)(
+  "adopts a %s %s candidate only when %s is on",
+  async (channel, kind, _optionName, enabling) => {
+    fixture.candidates = [{ url: "https://cdn.test/candidate", kind, channel, previewable: true }];
+    const send = vi.fn(async () => "started" as const);
+    const off = setupAutoDownloadDiscovery({
+      rules: anyMediaRules,
+      live: false,
+      maxPerPage: 10,
+      send,
+    });
+    await off.idle();
+    expect(send).not.toHaveBeenCalled();
+    off.stop();
+
+    const send2 = vi.fn(async () => "started" as const);
+    const on = setupAutoDownloadDiscovery({
+      rules: anyMediaRules,
+      live: false,
+      maxPerPage: 10,
+      send: send2,
+      ...enabling,
+    });
+    await on.idle();
+    expect(send2).toHaveBeenCalledOnce();
+    on.stop();
+  },
+);
+
+test("a plain link anchor is never adopted, even with every channel enabled", async () => {
+  fixture.candidates = [
+    { url: "https://cdn.test/page.html", kind: "link", channel: "anchor", previewable: true },
+  ];
+  const send = vi.fn(async () => "started" as const);
+  const controller = setupAutoDownloadDiscovery({
+    rules: anyMediaRules,
+    live: false,
+    maxPerPage: 10,
+    includeLinks: true,
+    includeDocuments: true,
+    includeBackgrounds: true,
+    resourceHints: true,
+    send,
+  });
+  await controller.idle();
+  expect(send).not.toHaveBeenCalled();
+  controller.stop();
+});
+
+test("a .m3u8 anchor is not adopted merely because the manifests option is on", async () => {
+  fixture.candidates = [
+    { url: "https://cdn.test/playlist.m3u8", kind: "stream", channel: "anchor", previewable: true },
+  ];
+  const send = vi.fn(async () => "started" as const);
+  const controller = setupAutoDownloadDiscovery({
+    rules: anyMediaRules,
+    live: false,
+    maxPerPage: 10,
+    resourceHints: true,
+    send,
+  });
+  await controller.idle();
+  expect(send).not.toHaveBeenCalled();
+  controller.stop();
+});
+
+test("a resource-hint stream is not adopted merely because linked documents/streams is on", async () => {
+  fixture.candidates = [
+    {
+      url: "https://cdn.test/playlist.m3u8",
+      kind: "stream",
+      channel: "resource-hint",
+      previewable: true,
+    },
+  ];
+  const send = vi.fn(async () => "started" as const);
+  const controller = setupAutoDownloadDiscovery({
+    rules: anyMediaRules,
+    live: false,
+    maxPerPage: 10,
+    includeDocuments: true,
+    send,
+  });
+  await controller.idle();
+  expect(send).not.toHaveBeenCalled();
+  controller.stop();
+});
+
+test("an image anchor is not adopted merely because includeBackgrounds is on", async () => {
+  fixture.candidates = [
+    { url: "https://cdn.test/linked.jpg", kind: "image", channel: "anchor", previewable: true },
+  ];
+  const send = vi.fn(async () => "started" as const);
+  const controller = setupAutoDownloadDiscovery({
+    rules: anyMediaRules,
+    live: false,
+    maxPerPage: 10,
+    includeBackgrounds: true,
+    send,
+  });
+  await controller.idle();
+  expect(send).not.toHaveBeenCalled();
+  controller.stop();
+});
+
+test("applies the per-page limit to a background candidate like any other channel", async () => {
+  fixture.candidates = [
+    { url: "https://cdn.test/skip.png", kind: "image", channel: "background", previewable: true },
+    { url: "https://cdn.test/first.jpg", kind: "image", previewable: true },
+  ];
+  const send = vi.fn<(candidate: AutomaticRoutingCandidate) => Promise<"started">>(
+    async () => "started",
+  );
+  const onLimitReached = vi.fn();
+  const controller = setupAutoDownloadDiscovery({
+    rules: anyMediaRules,
+    live: false,
+    maxPerPage: 1,
+    includeBackgrounds: true,
+    send,
+    onLimitReached,
+  });
+  await controller.idle();
+
+  expect(send.mock.calls.map(([candidate]) => candidate.sourceUrl)).toEqual([
+    "https://cdn.test/skip.png",
+  ]);
+  expect(onLimitReached).toHaveBeenCalledOnce();
+  controller.stop();
+});
+
 test("applies the per-page limit after the media-kind filter", async () => {
   fixture.candidates = [
     { url: "https://cdn.test/skip.pdf", kind: "document", previewable: true },
     { url: "https://cdn.test/first.jpg", kind: "image", previewable: true },
     { url: "https://cdn.test/second.mp4", kind: "video", previewable: true },
   ];
-  const send = vi.fn(async (_candidate: AutomaticRoutingCandidate) => "started" as const);
+  const send = vi.fn<(candidate: AutomaticRoutingCandidate) => Promise<"started">>(
+    async () => "started",
+  );
   const onLimitReached = vi.fn();
   const controller = setupAutoDownloadDiscovery({
     rules: anyMediaRules,

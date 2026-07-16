@@ -2,7 +2,10 @@ import { DOWNLOAD_TYPES, MESSAGE_TYPES } from "../../shared/constants.ts";
 import { Path } from "../../routing/path.ts";
 import { options } from "../../config/options-data.ts";
 import { launchDownload } from "../../downloads/download.ts";
-import { matchAutomaticRoutingRule } from "../../automation/automatic-routing.ts";
+import {
+  isAdmittedAutomaticSource,
+  matchAutomaticRoutingRule,
+} from "../../automation/automatic-routing.ts";
 import { matchesAnyPattern } from "../../shared/match-pattern.ts";
 import { normalizeContentOption } from "../../config/content-options.ts";
 import type { MessageOf } from "../../shared/message-protocol.ts";
@@ -45,6 +48,26 @@ export const handleAutoDownloadSource = async (
     return;
   }
   if (sourceProtocol !== "http:" && sourceProtocol !== "https:") {
+    skip();
+    return;
+  }
+  // Backstop: a stale content script cannot adopt a kind/channel combination
+  // the current options forbid, even if it was allowed when the page loaded.
+  // Mirrors the disable-list backstop above by re-deriving the same gates a
+  // freshly mounted scan would use and re-running the shared admission rule.
+  const gates = {
+    includeLinks: normalizeContentOption("autoDownloadLinks", options.autoDownloadLinks),
+    includeDocuments: normalizeContentOption(
+      "autoDownloadDocuments",
+      options.autoDownloadDocuments,
+    ),
+    includeBackgrounds: normalizeContentOption(
+      "autoDownloadBackgrounds",
+      options.autoDownloadBackgrounds,
+    ),
+    resourceHints: normalizeContentOption("autoDownloadManifests", options.autoDownloadManifests),
+  };
+  if (!isAdmittedAutomaticSource(request.body.sourceKind, request.body.sourceChannel, gates)) {
     skip();
     return;
   }

@@ -2495,6 +2495,18 @@
   "autoDownloadLive": { "message": "Incluir fontes adicionadas após o carregamento da página" },
   "autoDownloadPrivate": { "message": "Permitir salvamento automático em janelas privativas" },
   "autoDownloadLinks": { "message": "Incluir mídia vinculada" },
+  "autoDownloadCoverageHeading": { "message": "Cobertura da verificação automática" },
+  "autoDownloadDocuments": { "message": "Incluir documentos e transmissões vinculados" },
+  "autoDownloadDocumentsHelp": {
+    "message": "Adota arquivos PDF e manifestos HLS/DASH vinculados, independentemente de a mídia vinculada estar incluída."
+  },
+  "autoDownloadBackgrounds": { "message": "Incluir imagens de fundo CSS" },
+  "autoDownloadManifests": {
+    "message": "Procurar playlists de vídeo por streaming quando possível (HLS/DASH)"
+  },
+  "autoDownloadManifestsHelp": {
+    "message": "Salva o próprio arquivo de manifesto, não a transmissão remontada."
+  },
   "autoDownloadLimit": { "message": "Máximo de salvamentos por visita à página" },
   "autoDownloadLimitHelp": {
     "message": "O Save In deixa de colocar novas correspondências na fila quando esse limite é atingido. Recarregue a página para iniciar uma nova visita."

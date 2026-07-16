@@ -1,8 +1,9 @@
 import {
+  isAdmittedAutomaticSource,
   matchAutomaticRoutingRule,
   type AutomaticRoutingCandidate,
 } from "../automation/automatic-routing.ts";
-import { collectPageSourceCandidates, type PageSource } from "./source-panel-model.ts";
+import { collectPageSourceCandidates } from "./source-panel-model.ts";
 import { parseRulesCollecting } from "../routing/rule-parser.ts";
 import { isAutomaticRuleClauses } from "../routing/automatic-rule.ts";
 import { normalizeAutoDownloadLimit } from "../config/content-options.ts";
@@ -28,6 +29,14 @@ export type AutoDownloadDiscoveryOptions = {
   // matched only media embedded on the page, so link adoption stays off unless
   // the user enabled the autoDownloadLinks content option.
   includeLinks: boolean;
+  // Phase B channels (4.2), each its own default-off content option, gated
+  // per candidate by isAdmittedAutomaticSource so enabling one channel never
+  // silently adopts a kind that only belongs to another. includeDocuments
+  // turns on anchor collection on its own (like includeLinks), so linked
+  // documents/streams are adopted whether or not includeLinks is also on.
+  includeDocuments: boolean;
+  includeBackgrounds: boolean;
+  resourceHints: boolean;
   // Enforced at dispatch time against the live URL so a single-page-app
   // navigation onto the disable list stops queued saves without an options
   // change, and one off it resumes them.
@@ -41,12 +50,6 @@ export type AutoDownloadDiscovery = {
   idle(): Promise<void>;
   stop(): void;
 };
-
-// Phase A of scan coverage: when link adoption is enabled the automatic scan
-// adopts anchors only where the shared collector classified them as previewable
-// media by URL extension. Anchors classified stream/document/plain link stay
-// out until 4.2, so the scan keeps only image/video/audio candidates.
-const AUTOMATIC_MEDIA_KINDS: ReadonlySet<PageSource["kind"]> = new Set(["image", "video", "audio"]);
 
 const automaticUrl = (value: string): string | null => {
   try {
@@ -116,16 +119,31 @@ export const setupAutoDownloadDiscovery = (
     if (options.isPageDisabled()) return;
     const pageUrl = `${window.location}`;
     const candidates = collectPageSourceCandidates(root, {
-      includeBackgrounds: false,
-      resourceHints: false,
-      includeLinks: options.includeLinks,
+      includeBackgrounds: options.includeBackgrounds,
+      resourceHints: options.resourceHints,
+      // Documents/streams are anchor-classified, so their option turns on
+      // anchor collection by itself — it does not require includeLinks.
+      includeLinks: options.includeLinks || options.includeDocuments,
     });
     for (const source of candidates) {
       if (source.previewable === false) continue;
-      if (!AUTOMATIC_MEDIA_KINDS.has(source.kind)) continue;
+      if (
+        !isAdmittedAutomaticSource(source.kind, source.channel, {
+          includeLinks: options.includeLinks,
+          includeDocuments: options.includeDocuments,
+          includeBackgrounds: options.includeBackgrounds,
+          resourceHints: options.resourceHints,
+        })
+      )
+        continue;
       const sourceUrl = automaticUrl(source.url);
       if (!sourceUrl || seen.has(sourceUrl)) continue;
-      const candidate = { pageUrl, sourceUrl, sourceKind: source.kind };
+      const candidate: AutomaticRoutingCandidate = {
+        pageUrl,
+        sourceUrl,
+        sourceKind: source.kind,
+        ...(source.channel ? { sourceChannel: source.channel } : {}),
+      };
       if (!matchAutomaticRoutingRule(automaticRules, candidate)) continue;
       if (seen.size >= maxPerPage) {
         if (!dedup.limitNotified) {

@@ -2595,6 +2595,16 @@
   "autoDownloadLive": { "message": "페이지가 로드된 후 추가된 소스 포함" },
   "autoDownloadPrivate": { "message": "비공개 창에서 자동 저장 허용" },
   "autoDownloadLinks": { "message": "링크된 미디어 포함" },
+  "autoDownloadCoverageHeading": { "message": "자동 스캔 범위" },
+  "autoDownloadDocuments": { "message": "링크된 문서와 스트림 포함" },
+  "autoDownloadDocumentsHelp": {
+    "message": "링크된 미디어 포함 여부와 관계없이 링크된 PDF와 HLS/DASH 매니페스트 파일을 가져옵니다."
+  },
+  "autoDownloadBackgrounds": { "message": "CSS 배경 이미지 포함" },
+  "autoDownloadManifests": { "message": "가능한 범위에서 스트리밍 동영상 재생목록 찾기(HLS/DASH)" },
+  "autoDownloadManifestsHelp": {
+    "message": "조립된 스트림이 아니라 매니페스트 파일 자체를 저장합니다."
+  },
   "autoDownloadLimit": { "message": "페이지 방문당 최대 저장 수" },
   "autoDownloadLimitHelp": {
     "message": "이 한도에 도달하면 Save In이 새 일치 항목을 대기열에 추가하지 않습니다. 새 방문을 시작하려면 페이지를 다시 로드하세요."

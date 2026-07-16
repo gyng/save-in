@@ -9,7 +9,12 @@ import type { PersistenceFailure } from "./persistence-diagnostics.ts";
 import type { ExternalDownloadRejection } from "./external-download-rejection-types.ts";
 import type { SourcePanelCopy } from "./source-panel-copy.ts";
 import type { DiagnosticSnapshot } from "./diagnostics-types.ts";
-import { isPageSourceKind, type PageSourceKind } from "./page-source.ts";
+import {
+  isPageSourceChannel,
+  isPageSourceKind,
+  type PageSourceChannel,
+  type PageSourceKind,
+} from "./page-source.ts";
 import { isStringKeyedRecord } from "./util.ts";
 
 export { isStringKeyedRecord } from "./util.ts";
@@ -283,6 +288,10 @@ export type AutoDownloadSourceRequestBody = {
   pageUrl: string;
   sourceUrl: string;
   sourceKind: PageSourceKind;
+  // See AutomaticRoutingCandidate.sourceChannel: absent for embedded media,
+  // present for anchor/background/resource-hint candidates so the background
+  // backstop can re-check admission against trusted, current options.
+  sourceChannel?: PageSourceChannel | undefined;
 };
 
 export type CreateSourceRuleRequestBody = {
@@ -530,7 +539,9 @@ const isMessageBodyValid = (message: Record<string, unknown> & { type: string })
         isStringKeyedRecord(message.body) &&
         typeof message.body.pageUrl === "string" &&
         typeof message.body.sourceUrl === "string" &&
-        isPageSourceKind(message.body.sourceKind)
+        isPageSourceKind(message.body.sourceKind) &&
+        (typeof message.body.sourceChannel === "undefined" ||
+          isPageSourceChannel(message.body.sourceChannel))
       );
     case MESSAGE_TYPES.CREATE_SOURCE_RULE:
       return (
