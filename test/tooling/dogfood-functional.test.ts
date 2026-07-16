@@ -15,8 +15,20 @@ const { milliseconds, parseArgs, selectDogfoodProfile } =
       headed: boolean,
       promptProfile: string,
       profileExists: (profile: string) => boolean,
-    ): { profileDir: string; preserve: boolean; enableGpu: boolean };
+      promptRuntime: () => { extraArgs: string[]; environment: Record<string, string> } | null,
+    ): {
+      profileDir: string;
+      preserve: boolean;
+      enableGpu: boolean;
+      extraArgs: string[];
+      environment: Record<string, string>;
+    };
   };
+
+const runtime = {
+  extraArgs: ["--use-angle=gl"],
+  environment: { VK_DRIVER_FILES: "/runtime/icd.json" },
+};
 
 describe("functional dogfood CLI", () => {
   test("uses the isolated fast-path defaults", () => {
@@ -49,15 +61,33 @@ describe("functional dogfood CLI", () => {
 
   test("preserves a provisioned profile only for headed dogfood", () => {
     const exists = vi.fn(() => true);
-    expect(selectDogfoodProfile(true, "/profiles/nano", exists)).toEqual({
+    expect(selectDogfoodProfile(true, "/profiles/nano", exists, () => runtime)).toEqual({
       profileDir: "/profiles/nano",
       preserve: true,
       enableGpu: true,
+      ...runtime,
     });
-    expect(selectDogfoodProfile(false, "/profiles/nano", exists)).toEqual({
+    expect(selectDogfoodProfile(false, "/profiles/nano", exists, () => runtime)).toEqual({
       profileDir: expect.stringMatching(/[\\/]dist[\\/]dogfood-profile$/),
       preserve: false,
       enableGpu: false,
+      extraArgs: [],
+      environment: {},
+    });
+  });
+
+  test("keeps the on-device profile out of a launch that lacks its runtime", () => {
+    const exists = (profile: string) => profile === "/profiles/nano";
+
+    // ChromeML cannot reach a device without the provisioned runtime, so the
+    // model process crashes and Chrome disables the model for that profile.
+    // Falling back keeps a headed round from poisoning the shared profile.
+    expect(selectDogfoodProfile(true, "/profiles/nano", exists, () => null)).toEqual({
+      profileDir: expect.stringMatching(/[\\/]dist[\\/]dogfood-profile$/),
+      preserve: false,
+      enableGpu: false,
+      extraArgs: [],
+      environment: {},
     });
   });
 

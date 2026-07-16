@@ -14,11 +14,14 @@ const { performance } = require("node:perf_hooks");
 const cdp = require("./lib/cdp");
 const chrome = require("./lib/chrome");
 const { terminateProcessTree } = require("./lib/process-tree");
+const { promptRuntimeSettings } = require("./review-demo");
 
 const OPTIONS_TARGET = "src/options/options.html";
 const PROFILE = path.join(chrome.ROOT, "dist", "dogfood-profile");
 const PROMPT_PROFILE =
   process.env.SAVE_IN_PROMPT_PROFILE || path.join(os.homedir(), ".cache", "save-in-nano-profile");
+const PROMPT_RUNTIME =
+  process.env.SAVE_IN_PROMPT_RUNTIME || path.join(os.homedir(), ".cache", "save-in-nano-runtime");
 const ARTIFACTS = path.join(chrome.ROOT, "dist", "dogfood-artifacts");
 const REPORT_FILE = path.join(ARTIFACTS, "functional-latest.json");
 const FAILURE_FILE = path.join(ARTIFACTS, "functional-failure.json");
@@ -60,14 +63,37 @@ const parseArgs = (argv) => {
   };
 };
 
+/** @returns {{extraArgs: string[], environment: NodeJS.ProcessEnv} | null} */
+const provisionedPromptRuntime = () => {
+  try {
+    return promptRuntimeSettings(PROMPT_RUNTIME);
+  } catch {
+    return null;
+  }
+};
+
 /**
+ * The on-device profile is only usable together with its provisioned runtime:
+ * without a reachable ChromeML device the model process crashes, and Chrome
+ * then disables the model for that profile until it is reprovisioned. Falling
+ * back keeps a headed round from poisoning the profile `npm run review` needs.
+ *
  * @param {boolean} headed
  * @param {string} promptProfile
  * @param {(profile: string) => boolean} [profileExists]
+ * @param {() => {extraArgs: string[], environment: NodeJS.ProcessEnv} | null} [promptRuntime]
  */
-const selectDogfoodProfile = (headed, promptProfile, profileExists = fs.existsSync) => {
-  const preserve = headed && profileExists(promptProfile);
+const selectDogfoodProfile = (
+  headed,
+  promptProfile,
+  profileExists = fs.existsSync,
+  promptRuntime = provisionedPromptRuntime,
+) => {
+  const runtime = headed && profileExists(promptProfile) ? promptRuntime() : null;
+  const preserve = runtime !== null;
   return {
+    extraArgs: runtime?.extraArgs ?? [],
+    environment: runtime?.environment ?? {},
     profileDir: preserve ? promptProfile : PROFILE,
     preserve,
     enableGpu: preserve,
@@ -720,6 +746,8 @@ const main = async (args) => {
     fresh: !selectedProfile.preserve,
     preserveProfile: selectedProfile.preserve,
     enableGpu: selectedProfile.enableGpu,
+    extraArgs: selectedProfile.extraArgs,
+    environment: selectedProfile.environment,
   });
   if (!session.downloadDir)
     throw new Error("Chrome did not provide an isolated download directory");
