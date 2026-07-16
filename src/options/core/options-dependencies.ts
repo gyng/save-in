@@ -95,16 +95,17 @@ export const setupOptionDependencies = () => {
       children: ["routeFailurePrompt"],
       when: () => !checked("routeSkipUnmatched"),
     },
-    { parent: "links", children: ["preferLinks"] },
-    {
-      parent: "preferLinks",
-      children: ["preferLinksFilterEnabled"],
-      when: () => checked("links") && checked("preferLinks"),
-    },
+    // Siblings, not a chain. preferLinks prefers links on every page; the
+    // filter prefers them only on matching ones, and menu-target.ts evaluates
+    // the two independently. So the filter is only useful while preferLinks is
+    // OFF — chaining it behind preferLinks left "Only on matching pages"
+    // reachable exclusively in the state where it can no longer narrow
+    // anything, which is the one configuration #100 asked for.
+    { parent: "links", children: ["preferLinks", "preferLinksFilterEnabled"] },
     {
       parent: "preferLinksFilterEnabled",
       children: ["preferLinksFilter"],
-      when: () => checked("links") && checked("preferLinks") && checked("preferLinksFilterEnabled"),
+      when: () => checked("links") && checked("preferLinksFilterEnabled"),
     },
   ];
   const update = () => {

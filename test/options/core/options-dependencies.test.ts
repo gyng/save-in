@@ -187,6 +187,32 @@ describe("option dependencies", () => {
     expect(filter.disabled).toBe(false);
   });
 
+  // #100 asked to prefer links on some sites and not others. The engine grants
+  // exactly that: menu-target.ts evaluates preferLinksFilterEnabled
+  // independently of preferLinks, and menu-resolver.test.ts pins filter-only
+  // returning LINK on a matching page and MEDIA elsewhere. But preferLinks
+  // prefers links on EVERY page, so the filter can only narrow anything while
+  // preferLinks is off — and gating the filter behind it made that one useful
+  // configuration the single thing the options page would not let you build.
+  test("the page filter is reachable without preferring links everywhere (#100)", () => {
+    setupOptionDependencies();
+    const links = document.querySelector("#links") as HTMLInputElement;
+    const prefer = document.querySelector("#preferLinks") as HTMLInputElement;
+    const filterEnabled = document.querySelector("#preferLinksFilterEnabled") as HTMLInputElement;
+    const filter = document.querySelector("#preferLinksFilter") as HTMLTextAreaElement;
+
+    links.checked = true;
+    links.dispatchEvent(new Event("change"));
+
+    expect(filterEnabled.disabled).toBe(false);
+    filterEnabled.checked = true;
+    filterEnabled.dispatchEvent(new Event("change"));
+
+    expect(filter.disabled).toBe(false);
+    // The whole point: never had to prefer links everywhere to get here.
+    expect(prefer.checked).toBe(false);
+  });
+
   test("keeps children disabled when a checked parent is unavailable", () => {
     const tab = document.querySelector("#tabEnabled") as HTMLInputElement;
     const close = document.querySelector("#closeTabOnSave") as HTMLInputElement;
