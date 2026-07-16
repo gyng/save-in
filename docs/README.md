@@ -18,7 +18,8 @@ these documents assume.
 
 - [Integrations](INTEGRATIONS.md) — the contract for the external Download API,
   config discovery and validation, webhooks, and the experimental WebMCP tools.
-  Source-controlled: it wins over any wiki page that disagrees.
+  Source-controlled, and authoritative over the wiki on protocol details; the
+  wiki holds the user-facing recipes.
 
 ## Contributing
 
