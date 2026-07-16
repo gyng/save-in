@@ -8,6 +8,8 @@ import {
   ruleRequestGuardrailIssues,
   sanitizeRuleDraft,
 } from "../../../src/options/integrations/prompt-assistant-model.ts";
+import { transformers } from "../../../src/routing/variable.ts";
+import { matcherFunctions } from "../../../src/routing/matchers.ts";
 
 const vocabulary = { matchers: ["fileext", "pagedomain", "css"], variables: ["filename"] };
 
@@ -36,6 +38,21 @@ describe("Prompt API rule-authoring model", () => {
     expect(result).toContain("Return JSON matching the supplied response schema");
     expect(result).toContain("Do not add file types, sites, folders, renames, or behavior");
     expect(result).toContain("categories, not filename extensions");
+  });
+
+  test("names the vocabulary the background actually sends", () => {
+    // Built the way the GET_KEYWORDS handler builds it, so a change to
+    // SPECIAL_DIRS or the registries cannot drift the reference the model reads
+    // without failing here first.
+    const wireVocabulary = {
+      matchers: [...Object.keys(matcherFunctions), "css"],
+      variables: Object.keys(transformers),
+    };
+    const result = buildRuleAuthoringPrompt("save png into /dongs", grammar, wireVocabulary);
+
+    expect(result).not.toContain("::");
+    expect(result).toContain(":filename:");
+    expect(result).toContain("fileext");
   });
 
   test("extracts a fenced rule without retaining Markdown", () => {
