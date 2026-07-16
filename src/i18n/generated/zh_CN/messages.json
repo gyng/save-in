@@ -891,7 +891,10 @@
     "message": "保存位置。"
   },
   "html_destinationsAreRelativeToTheDownloadsMenuDestinationYou": {
-    "message": "保存位置是相对于所选文件夹的路径。匹配器值是正则表达式；请参阅"
+    "message": "保存位置是相对于您在菜单中选择的文件夹的路径，但点击保存和自动保存时会从下载文件夹开始。匹配器值是正则表达式；请参阅"
+  },
+  "html_intoDestinationsStartFromTheMenuFolder": {
+    "message": "保存位置是相对于您在菜单中选择的文件夹的路径，但点击保存和自动保存时会从下载文件夹开始。"
   },
   "html_enterOneUrlLikeBrowserMatchPatternPerLine": {
     "message": "每行添加一个 WebExtension 匹配模式。这些不是正则表达式。每个模式由协议、主机和路径组成。"

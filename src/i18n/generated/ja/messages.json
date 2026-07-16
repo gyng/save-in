@@ -891,7 +891,10 @@
     "message": "保存先。"
   },
   "html_destinationsAreRelativeToTheDownloadsMenuDestinationYou": {
-    "message": "保存先は選択したフォルダーからの相対パスです。マッチャーの値には正規表現を使用します。詳しくは"
+    "message": "保存先はメニューで選んだフォルダーからの相対パスですが、クリックして保存する場合と自動保存の場合はダウンロードフォルダーが起点になります。マッチャーの値には正規表現を使用します。詳しくは"
+  },
+  "html_intoDestinationsStartFromTheMenuFolder": {
+    "message": "保存先はメニューで選んだフォルダーからの相対パスですが、クリックして保存する場合と自動保存の場合はダウンロードフォルダーが起点になります。"
   },
   "html_enterOneUrlLikeBrowserMatchPatternPerLine": {
     "message": "1 行に 1 つの WebExtension マッチパターンを追加します。正規表現ではありません。各パターンはスキーム、ホスト、パスで構成されます。"

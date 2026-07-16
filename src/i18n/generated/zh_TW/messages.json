@@ -891,7 +891,10 @@
     "message": "儲存位置。"
   },
   "html_destinationsAreRelativeToTheDownloadsMenuDestinationYou": {
-    "message": "儲存位置是相對於所選資料夾的路徑。比對器值是規則運算式；請參閱"
+    "message": "儲存位置是相對於您在選單中選擇的資料夾的路徑，但點選儲存與自動儲存時會從下載資料夾開始。比對器值是規則運算式；請參閱"
+  },
+  "html_intoDestinationsStartFromTheMenuFolder": {
+    "message": "儲存位置是相對於您在選單中選擇的資料夾的路徑，但點選儲存與自動儲存時會從下載資料夾開始。"
   },
   "html_enterOneUrlLikeBrowserMatchPatternPerLine": {
     "message": "每行新增一個 WebExtension 比對模式。這些不是正規表示式。每個模式由通訊協定、主機和路徑組成。"

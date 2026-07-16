@@ -1301,7 +1301,10 @@
     "message": "Ziel enden."
   },
   "html_destinationsAreRelativeToTheDownloadsMenuDestinationYou": {
-    "message": "Ziele sind relativ zu dem von Ihnen ausgewählten Ordner. Matcher-Werte sind reguläre Ausdrücke; siehe die"
+    "message": "Ziele sind relativ zu dem im Menü gewählten Ordner, beginnen beim Speichern per Klick und bei automatischen Speichervorgängen jedoch im Downloads-Ordner. Matcher-Werte sind reguläre Ausdrücke; siehe die"
+  },
+  "html_intoDestinationsStartFromTheMenuFolder": {
+    "message": "Ziele sind relativ zu dem im Menü gewählten Ordner, beginnen beim Speichern per Klick und bei automatischen Speichervorgängen jedoch im Downloads-Ordner."
   },
   "html_enterOneUrlLikeBrowserMatchPatternPerLine": {
     "message": "Fügen Sie pro Zeile ein WebExtension-Abgleichsmuster hinzu. Dies sind keine regulären Ausdrücke. Jedes Muster besteht aus Schema, Host und Pfad."

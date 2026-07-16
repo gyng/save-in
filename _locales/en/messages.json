@@ -1940,8 +1940,12 @@
     "description": "Text in the options page. Used in src/options/options.html."
   },
   "html_destinationsAreRelativeToTheDownloadsMenuDestinationYou": {
-    "message": "Destinations are relative to the folder you selected. Matcher values are regular expressions; see the",
+    "message": "Destinations are relative to the folder you pick from the menu, but start at your download folder for click-to-save and automatic saves. Matcher values are regular expressions; see the",
     "description": "Text in the options page. Used in src/options/options.html."
+  },
+  "html_intoDestinationsStartFromTheMenuFolder": {
+    "message": "Destinations are relative to the folder you pick from the menu, but start at your download folder for click-to-save and automatic saves.",
+    "description": "Sentence in the routing-clause reference explaining that a matched into: destination is nested under the folder chosen from the menu, but starts at the download folder for click-to-save and automatic saves. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_downloadsFromAnExpandedUrlTemplateInsteadOfTheMatched": {
     "message": "downloads from an expanded URL template instead of the matched source;",
