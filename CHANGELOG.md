@@ -91,8 +91,12 @@ rules.
   variables. `:pagerootdomain:` and `:sourcerootdomain:` give the
   registrable domain without its subdomains (#221).
 - Page titles now come from the clicked tab (#172, #188). Server-provided
-  names, including extensionless and PHP download URLs, are resolved before
-  routing, and literal `%` characters no longer cause an error (#178).
+  names, including extensionless and PHP download URLs, now reach routing:
+  Firefox resolves the `Content-Disposition` name before rules run, and Chrome
+  re-evaluates name-dependent rules once it reports the final name. Match a
+  server-provided name with `actualfileext:` or `finalfilename:`; `fileext:`
+  reads the URL and cannot see it (#178). Literal `%` characters no longer
+  cause an error.
 - Hardened Windows filenames against control and invisible format characters,
   variation selectors (#220), trailing dots or spaces, reserved device names,
   and broken replacement characters. Path-component limits now use UTF-8 bytes
