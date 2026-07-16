@@ -535,6 +535,9 @@
   "ruleMissingInto": {
     "message": "Fügen Sie genau ein nicht leeres Ziel mit into: hinzu"
   },
+  "ruleIntoConstantFilename": {
+    "message": "Benennt jeden Treffer in denselben Namen um. Beenden Sie ihn mit /, um in einen Ordner zu leiten, oder mit :filename:, um den Namen des Downloads zu behalten"
+  },
   "ruleExtraInto": {
     "message": "Eine Regel kann nur eine into:-Klausel enthalten"
   },

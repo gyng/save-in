@@ -95,15 +95,53 @@ describe("routing grammar hardening", () => {
     expect(error?.location?.start).toBe(source.indexOf(".."));
   });
 
+  // #196: `fileext: stl` / `into: STL` looks like it files into an STL folder,
+  // but a constant final component names every match "STL" instead. The rule
+  // stays valid — a fixed name is legal — so this is a warning that names both
+  // working forms.
+  test("warns that a constant into: destination renames every match", () => {
+    const source = "fileext: stl\ninto: STL";
+    const parsed = parseRulesCollecting(source);
+    expect(parsed.errors).toContainEqual(
+      expect.objectContaining({ message: "ruleIntoConstantFilename", error: "STL", warning: true }),
+    );
+    // A warning must not discard the rule, and the reported span points at the
+    // destination so the editor can highlight it.
+    expect(parsed.rules).toHaveLength(1);
+    expect(parsed.errors[0]?.location?.start).toBe(source.indexOf("STL", source.indexOf("into:")));
+  });
+
+  test.each([
+    ["STL/", "a folder route keeps the download's own name"],
+    ["STL/:filename:", "an explicit filename variable"],
+    ["archive/:counter:-:filename:", "a variable-bearing final component"],
+    ["files/:$1:", "a capture reference"],
+    [":pagetitleslug:", "a variable that expands per page"],
+  ])("does not warn for into: %s (%s)", (destination) => {
+    const parsed = parseRulesCollecting(
+      `filename: (.*)\ncapturegroups: filename\ninto: ${destination}`,
+    );
+    expect(parsed.errors.filter((error) => error.message === "ruleIntoConstantFilename")).toEqual(
+      [],
+    );
+  });
+
+  test("warns for a nested constant destination that reads like a folder", () => {
+    const parsed = parseRulesCollecting("filename: .*\ninto: Plants/Trees");
+    expect(parsed.errors).toContainEqual(
+      expect.objectContaining({ message: "ruleIntoConstantFilename", warning: true }),
+    );
+  });
+
   test.each(["/absolute", "C:\\outside", "safe/../outside", "safe\\..\\outside"])(
     "skips a rule when capture expansion creates a non-relative destination: %s",
     (captured) => {
       const parsed = parseRulesCollecting(
-        "filename: ^(.*)$\ncapturegroups: filename\ninto: :$1:\n\nfilename: .*\ninto: fallback",
+        "filename: ^(.*)$\ncapturegroups: filename\ninto: :$1:\n\nfilename: .*\ninto: fallback/:filename:",
       );
       expect(parsed.errors).toEqual([]);
       expect(matchRulesDetailed(parsed.rules, { filename: captured })?.destination).toBe(
-        "fallback",
+        "fallback/:filename:",
       );
     },
   );
@@ -147,13 +185,13 @@ describe("routing grammar hardening", () => {
   });
 
   test("rejects an empty flag suffix but accepts flags on matchers and rename", () => {
-    expect(parseRulesCollecting("filename/: jpg\ninto: x").rules).toEqual([]);
-    expect(parseRulesCollecting("filename/: jpg\ninto: x").errors).toContainEqual(
+    expect(parseRulesCollecting("filename/: jpg\ninto: x/:filename:").rules).toEqual([]);
+    expect(parseRulesCollecting("filename/: jpg\ninto: x/:filename:").errors).toContainEqual(
       expect.objectContaining({ message: "ruleInvalidRegex" }),
     );
-    expect(parseRulesCollecting("filename/i: JPG\nrename/gi: jpg -> jpeg\ninto: x").errors).toEqual(
-      [],
-    );
+    expect(
+      parseRulesCollecting("filename/i: JPG\nrename/gi: jpg -> jpeg\ninto: x/:filename:").errors,
+    ).toEqual([]);
   });
 
   test.each(["filename:  jpg$\ninto: x", "filename: jpg$  \ninto: x"])(
@@ -226,7 +264,9 @@ describe("routing grammar hardening", () => {
       expect.objectContaining({ message: "ruleUnsafeRegex", warning: true }),
     );
 
-    const rename = parseRulesCollecting("filename: .*\nrename: (a+)+$ -> x\ninto: output");
+    const rename = parseRulesCollecting(
+      "filename: .*\nrename: (a+)+$ -> x\ninto: output/:filename:",
+    );
     expect(rename.rules).toHaveLength(1);
     expect(rename.errors).toContainEqual(
       expect.objectContaining({ message: "ruleUnsafeRegex", warning: true }),
@@ -235,14 +275,18 @@ describe("routing grammar hardening", () => {
 
   test("accepts case-insensitive HTTP schemes but rejects statically unusable addresses", () => {
     expect(
-      parseRulesCollecting("filename: .*\nfetch: HTTPS://example.test/file\ninto: output").errors,
+      parseRulesCollecting(
+        "filename: .*\nfetch: HTTPS://example.test/file\ninto: output/:filename:",
+      ).errors,
     ).toEqual([]);
     for (const address of [
       "https:///file",
       "https://exa mple.test/file",
       "https://host:bad/file",
     ]) {
-      const invalid = parseRulesCollecting(`filename: .*\nfetch: ${address}\ninto: output`);
+      const invalid = parseRulesCollecting(
+        `filename: .*\nfetch: ${address}\ninto: output/:filename:`,
+      );
       expect(invalid.rules).toEqual([]);
       expect(invalid.errors).toContainEqual(
         expect.objectContaining({ message: "ruleFetchNotHttp" }),

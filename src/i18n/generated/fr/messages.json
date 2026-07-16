@@ -547,6 +547,9 @@
   "ruleMissingInto": {
     "message": "Ajoutez une destination into: non vide"
   },
+  "ruleIntoConstantFilename": {
+    "message": "Renomme chaque correspondance avec le même nom. Terminez par / pour un dossier, ou par :filename: pour conserver le nom du téléchargement"
+  },
   "ruleExtraInto": {
     "message": "Une règle ne peut contenir qu’une seule clause into:"
   },

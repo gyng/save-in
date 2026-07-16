@@ -125,6 +125,9 @@
   "ruleMissingInto": {
     "message": "新增一個非空白的 into: 目的地"
   },
+  "ruleIntoConstantFilename": {
+    "message": "會將所有符合項目重新命名為相同名稱。以 / 結尾可歸入資料夾，以 :filename: 結尾可保留下載的名稱"
+  },
   "ruleExtraInto": {
     "message": "一條規則只能包含一個 into: 子句"
   },

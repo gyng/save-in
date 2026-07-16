@@ -535,6 +535,9 @@
   "ruleMissingInto": {
     "message": "Lägg till ett ifyllt mål med into:"
   },
+  "ruleIntoConstantFilename": {
+    "message": "Byter namn på varje träff till samma namn. Avsluta med / för en mapp, eller med :filename: för att behålla nedladdningens namn"
+  },
   "ruleExtraInto": {
     "message": "En regel kan bara innehålla en i:-sats"
   },

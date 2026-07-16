@@ -314,14 +314,14 @@ describe("filename rewrite and routing", () => {
 
     test("ineligible fetch rules are skipped without consuming the match", () => {
       const rules = router.parseRules(
-        "filename: \\.jpg$\nfetch: https://cdn.example/full.jpg\ninto: originals\n\nfilename: \\.jpg$\ninto: images",
+        "filename: \\.jpg$\nfetch: https://cdn.example/full.jpg\ninto: originals/:filename:\n\nfilename: \\.jpg$\ninto: images/:filename:",
       );
 
       expect(rules).toHaveLength(2);
-      expect(router.matchRules(rules, { filename: "cat.jpg" })).toBe("originals");
+      expect(router.matchRules(rules, { filename: "cat.jpg" })).toBe("originals/:filename:");
       expect(
         router.matchRules(rules, { filename: "cat.jpg" }, router.isRenameOnlyEligibleRule),
-      ).toBe("images");
+      ).toBe("images/:filename:");
       expect(diagnostics.filenamePatterns).toEqual([]);
     });
 
@@ -444,12 +444,12 @@ describe("filename rewrite and routing", () => {
       // Ordinary browser-download routing skips the fetch rule, so the plain
       // twin still acts there and is not dead.
       router.parseRules(
-        "filename: \\.jpg$\nfetch: https://cdn.example/full.jpg\ninto: originals\n\nfilename: \\.jpg$\ninto: images",
+        "filename: \\.jpg$\nfetch: https://cdn.example/full.jpg\ninto: originals/:filename:\n\nfilename: \\.jpg$\ninto: images/:filename:",
       );
       expect(diagnostics.filenamePatterns).toEqual([]);
 
       router.parseRules(
-        "filename: ^(.+)$\nfetch: https://cdn.example/full.jpg\ninto: originals\n\n" +
+        "filename: ^(.+)$\nfetch: https://cdn.example/full.jpg\ninto: originals/:filename:\n\n" +
           "filename: ^(.+)$\ncapturegroups: filename\ninto: images/:$1:",
       );
       expect(diagnostics.filenamePatterns).toEqual([]);
@@ -536,12 +536,14 @@ describe("filename rewrite and routing", () => {
     test("rename rules stay eligible for rename-only ordinary-download routing", () => {
       // Unlike fetch:, rename: never re-requests the download, so
       // downloads.onDeterminingFilename can still honor it.
-      const rules = router.parseRules("filename: \\.jpg$\nrename: cat -> dog\ninto: images");
+      const rules = router.parseRules(
+        "filename: \\.jpg$\nrename: cat -> dog\ninto: images/:filename:",
+      );
       expect(rules).toHaveLength(1);
       expect(router.isRenameOnlyEligibleRule(rules[0]!)).toBe(true);
       expect(
         router.matchRules(rules, { filename: "cat.jpg" }, router.isRenameOnlyEligibleRule),
-      ).toBe("images");
+      ).toBe("images/:filename:");
     });
 
     test("rejects a second rename clause", () => {
@@ -581,7 +583,9 @@ describe("filename rewrite and routing", () => {
 
       // The find side is a regex; ":nope:" there is ordinary pattern text.
       diagnostics = { filenamePatterns: [], paths: [] };
-      expect(router.parseRules("filename: a\nrename: :nope: -> b\ninto: x")).toHaveLength(1);
+      expect(
+        router.parseRules("filename: a\nrename: :nope: -> b\ninto: x/:filename:"),
+      ).toHaveLength(1);
       expect(diagnostics.filenamePatterns).toEqual([]);
     });
 
@@ -589,7 +593,7 @@ describe("filename rewrite and routing", () => {
       // The rename applies after disposition resolution, when the pipeline
       // can resolve metadata for the URL actually being downloaded.
       const rules = router.parseRules(
-        "filename: a\nrename: \\.bin$ -> .:mimeext:\ninto: x/\n\nfilename: b\nrename: $ -> -:sha256:\ninto: y",
+        "filename: a\nrename: \\.bin$ -> .:mimeext:\ninto: x/\n\nfilename: b\nrename: $ -> -:sha256:\ninto: y/:filename:",
       );
       expect(rules).toHaveLength(2);
       expect(diagnostics.filenamePatterns).toEqual([]);
@@ -792,12 +796,12 @@ describe("filename rewrite and routing", () => {
 
     test("disabled rules are valid but do not participate in routing", () => {
       const rules = router.parseRules(
-        "disabled: true\nfilename: \\.jpg$\ninto: images\n\nfilename: \\.pdf$\ninto: documents",
+        "disabled: true\nfilename: \\.jpg$\ninto: images/:filename:\n\nfilename: \\.pdf$\ninto: documents/:filename:",
       );
 
       expect(rules).toHaveLength(1);
       expect(router.matchRules(rules, { filename: "cat.jpg" })).toBeNull();
-      expect(router.matchRules(rules, { filename: "report.pdf" })).toBe("documents");
+      expect(router.matchRules(rules, { filename: "report.pdf" })).toBe("documents/:filename:");
       expect(diagnostics.filenamePatterns).toEqual([]);
     });
 
@@ -898,7 +902,7 @@ describe("filename rewrite and routing", () => {
 
     test("treats whitespace-only lines as rule separators", () => {
       const result = router.parseRulesCollecting(
-        "fileext: jpg\ninto: images\n   \nfileext: pdf\ninto: documents",
+        "fileext: jpg\ninto: images/:filename:\n   \nfileext: pdf\ninto: documents/:filename:",
       );
 
       expect(result.rules).toHaveLength(2);
@@ -942,14 +946,14 @@ describe("filename rewrite and routing", () => {
     });
 
     test("multiple into clauses are rejected", () => {
-      const rules = router.parseRules("sourceurl: a\ninto: x\ninto: y");
+      const rules = router.parseRules("sourceurl: a\ninto: x/:filename:\ninto: y/:filename:");
       expect(rules).toEqual([]);
       expect(diagnostics.filenamePatterns.length).toBe(1);
     });
 
     test("multiple capture clauses are rejected", () => {
       const rules = router.parseRules(
-        "sourceurl: a\ncapture: sourceurl\ncapture: sourceurl\ninto: x",
+        "sourceurl: a\ncapture: sourceurl\ncapture: sourceurl\ninto: x/:filename:",
       );
       expect(rules).toEqual([]);
       expect(diagnostics.filenamePatterns.length).toBe(1);

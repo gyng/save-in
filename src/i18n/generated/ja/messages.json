@@ -125,6 +125,9 @@
   "ruleMissingInto": {
     "message": "空でない into: の保存先を 1 つ追加してください"
   },
+  "ruleIntoConstantFilename": {
+    "message": "一致したすべてのファイルが同じ名前になります。フォルダーに振り分けるには / で終え、ダウンロード名を保持するには :filename: で終えてください"
+  },
   "ruleExtraInto": {
     "message": "ルールには into: 句を 1 つだけ含めることができます"
   },

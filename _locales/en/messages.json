@@ -153,6 +153,10 @@
     "message": "Add one non-empty into: destination",
     "description": "Error message for missing into clause in rule. Used in src/routing/rule-parser.ts."
   },
+  "ruleIntoConstantFilename": {
+    "message": "Renames every match to the same name. End with / for a folder, or :filename: to keep the download's name",
+    "description": "Warning when a routing rule's into: destination ends in a fixed literal name, so every matching download is saved under that one name instead of being filed into a folder. \"/\" and \":filename:\" are literal syntax; keep them as-is. Used in src/routing/rule-parser.ts."
+  },
   "ruleExtraInto": {
     "message": "A rule can contain only one into: clause",
     "description": "Error message for multiple into clauses in rule. Used in src/routing/rule-parser.ts."

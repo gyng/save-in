@@ -125,6 +125,9 @@
   "ruleMissingInto": {
     "message": "添加一个非空的 into: 目标位置"
   },
+  "ruleIntoConstantFilename": {
+    "message": "会将所有匹配项重命名为同一名称。以 / 结尾可归入文件夹，以 :filename: 结尾可保留下载的名称"
+  },
   "ruleExtraInto": {
     "message": "一条规则只能包含一个 into: 子句"
   },

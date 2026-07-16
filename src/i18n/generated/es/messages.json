@@ -535,6 +535,9 @@
   "ruleMissingInto": {
     "message": "Añada un único destino into: que no esté vacío"
   },
+  "ruleIntoConstantFilename": {
+    "message": "Cambia el nombre de todas las coincidencias al mismo. Termine con / para una carpeta o con :filename: para conservar el nombre de la descarga"
+  },
   "ruleExtraInto": {
     "message": "Una regla solo puede contener una cláusula into:"
   },

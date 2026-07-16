@@ -30,6 +30,13 @@ import { isSafeRoutingRegex } from "./regex-safety.ts";
 import { isUsableFetchTemplate } from "./fetch-url.ts";
 import { invalidDestinationRange } from "./destination-safety.ts";
 
+// Mirrors the folder-route test in downloads/download-plan.ts: a trailing
+// slash routes into a directory and keeps the download's own name.
+const ROUTES_TO_FOLDER = /\/\s*$/;
+// A routing variable or capture reference, i.e. a component that expands to a
+// different value per download rather than a fixed literal.
+const EXPANDING_DESTINATION_TOKEN = /:(?:[A-Za-z][A-Za-z0-9_]*|\$\d+):/;
+
 const errorLocation = (span: SourceSpan): RuleErrorLocation => ({
   start: span.start.offset,
   end: span.end.offset,
@@ -412,6 +419,25 @@ const parseSemanticRule = (
     );
   }
   if (unknownVariables.length > 0) return false;
+  // `into:` names the saved file unless it ends with "/" (the folder route in
+  // downloads/download-plan.ts) or its final component expands per download.
+  // A constant final component names every match identically, so they collapse
+  // onto one file — usually a folder that was meant instead (#196). Legal, so
+  // this warns rather than rejecting.
+  const finalDestinationComponent = destination.value.slice(destination.value.lastIndexOf("/") + 1);
+  if (
+    !ROUTES_TO_FOLDER.test(destination.value) &&
+    finalDestinationComponent.trim() &&
+    !EXPANDING_DESTINATION_TOKEN.test(finalDestinationComponent)
+  ) {
+    appendError(
+      errors,
+      routingPorts.getMessage("ruleIntoConstantFilename"),
+      destinationNode.value,
+      destinationNode.valueSpan,
+      true,
+    );
+  }
   const fetchClauses = valid.filter((clause) => clause.type === RULE_TYPES.FETCH);
   const fetchNodes = lines.filter((line) => line.name === "fetch");
   if (

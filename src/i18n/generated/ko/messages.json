@@ -125,6 +125,9 @@
   "ruleMissingInto": {
     "message": "비어 있지 않은 into: 저장 위치를 하나 추가하세요"
   },
+  "ruleIntoConstantFilename": {
+    "message": "일치하는 모든 파일의 이름이 같아집니다. 폴더로 보내려면 /로, 다운로드 이름을 유지하려면 :filename:으로 끝내세요"
+  },
   "ruleExtraInto": {
     "message": "규칙에는 into: 절이 하나만 포함될 수 있습니다."
   },

@@ -535,6 +535,9 @@
   "ruleMissingInto": {
     "message": "Voeg één niet-lege into:-bestemming toe"
   },
+  "ruleIntoConstantFilename": {
+    "message": "Hernoemt elke overeenkomst naar dezelfde naam. Eindig met / voor een map, of met :filename: om de naam van de download te behouden"
+  },
   "ruleExtraInto": {
     "message": "Een regel kan slechts één into:-clausule bevatten"
   },

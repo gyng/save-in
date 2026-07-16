@@ -113,6 +113,9 @@
   "ruleMissingInto": {
     "message": "Aggiungi una destinazione into: non vuota"
   },
+  "ruleIntoConstantFilename": {
+    "message": "Rinomina ogni corrispondenza con lo stesso nome. Termina con / per una cartella o con :filename: per mantenere il nome del download"
+  },
   "ruleExtraInto": {
     "message": "Una regola può contenere una sola clausola into:"
   },
