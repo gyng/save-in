@@ -67,6 +67,30 @@ test("rejects unsafe automatic rules before writing configuration", async () => 
   expect(reset).not.toHaveBeenCalled();
 });
 
+test("rejects CSS matcher configurations larger than the attestation boundary", async () => {
+  const storage = { get: vi.fn(), set: vi.fn() };
+  const reset = vi.fn();
+  const filenamePatterns = Array.from(
+    { length: 257 },
+    (_value, index) => `css: .item-${index}\ninto: item-${index}/`,
+  ).join("\n\n");
+
+  const result = await applyConfigSerialized(
+    { queue: Promise.resolve() },
+    storage,
+    { filenamePatterns },
+    undefined,
+    reset,
+  );
+
+  expect(result).toEqual({
+    applied: {},
+    rejected: [{ name: "filenamePatterns", reason: "invalid value" }],
+  });
+  expect(storage.set).not.toHaveBeenCalled();
+  expect(reset).not.toHaveBeenCalled();
+});
+
 test("continues serialized writes after an earlier write rejected", async () => {
   const storage = { get: vi.fn(), set: vi.fn(() => Promise.resolve()) };
   const reset = vi.fn(() => Promise.resolve());

@@ -269,6 +269,34 @@ describe("built-in matcher templates", () => {
     expect((await applyVariables(new Path(destination), info)).finalize()).toBe(
       "pages/sub.example.com/articles/great-article/photo.jpg",
     );
+
+    for (const pageUrl of [
+      "https://example.com",
+      "https://example.com/",
+      "https://example.com?source=home",
+      "https://example.com/#top",
+    ]) {
+      const rootInfo = { pageUrl, filename: "photo.jpg" };
+      const rootDestination = matchRules(rules, rootInfo);
+      expect(rootDestination).toBe("pages/:pagedomain:/:filename:");
+      expect((await applyVariables(new Path(rootDestination), rootInfo)).finalize()).toBe(
+        "pages/example.com/photo.jpg",
+      );
+    }
+
+    const trailingSlashInfo = {
+      pageUrl: "https://example.com/articles/great-article/",
+      filename: "photo.jpg",
+    };
+    const trailingSlashDestination = matchRules(rules, trailingSlashInfo);
+    expect(trailingSlashDestination).toBe("pages/:pagedomain:/articles/great-article/:filename:");
+    expect(
+      (await applyVariables(new Path(trailingSlashDestination), trailingSlashInfo)).finalize(),
+    ).toBe("pages/example.com/articles/great-article/photo.jpg");
+
+    for (const pageUrl of ["https://:bad/path", "https://user@:8443/path", "not a URL"]) {
+      expect(matchRules(rules, { pageUrl, filename: "photo.jpg" })).toBeNull();
+    }
   });
 
   test("the slugged-title template keeps the resolved extension", async () => {
@@ -285,6 +313,25 @@ describe("built-in matcher templates", () => {
       "a-useful-page.PNG",
     );
   });
+
+  test.each(["Page-title prefix", "Slugged title rename"])(
+    "%s requires a title that can produce a non-empty slug",
+    (name) => {
+      const rules = rulesFor(name);
+      expect(
+        matchRules(rules, {
+          filename: "report.pdf",
+          currentTab: { title: "!!! 😀" },
+        }),
+      ).toBeNull();
+      expect(
+        matchRules(rules, {
+          filename: "report.pdf",
+          currentTab: { title: "東京 2026" },
+        }),
+      ).not.toBeNull();
+    },
+  );
 
   test.each([
     ["PDFs into a documents folder", "report.pdfx"],
@@ -303,6 +350,19 @@ describe("built-in matcher templates", () => {
     ).toBeNull();
   });
 
+  test.each([
+    ["Archives into one folder", "backup.zst", "archives/:filename:"],
+    ["Archives into one folder", "package.zipx", "archives/:filename:"],
+    ["Documents into one folder", "slides.odp", "documents/:filename:"],
+    ["Documents into one folder", "notes.md", "documents/:filename:"],
+    ["Apps and installers", "setup.msixbundle", "installers/:filename:"],
+    ["Apps and installers", "extension.xpi", "installers/:filename:"],
+    ["Apps and installers", "package.flatpakref", "installers/:filename:"],
+    ["Fonts into one folder", "collection.ttc", "fonts/:filename:"],
+  ])("%s recognizes the current format in %s", (name, filename, destination) => {
+    expect(matchRules(rulesFor(name), { filename })).toBe(destination);
+  });
+
   test("the single-site template matches only the chosen host and its subdomains", () => {
     const rules = rulesFor("One site, one folder");
     const matches = (hostname: string) =>
@@ -312,10 +372,17 @@ describe("built-in matcher templates", () => {
         currentTab: { title: "Report" },
       });
 
-    expect(matches("example.com")).not.toBeNull();
-    expect(matches("www.example.com")).not.toBeNull();
+    expect(matches("example.com")).toBe("example/:filename:");
+    expect(matches("www.example.com")).toBe("example/:filename:");
     expect(matches("notexample.com")).toBeNull();
     expect(matches("example.com.evil.test")).toBeNull();
+
+    expect(
+      matchRules(rules, {
+        pageUrl: "https://example.com/report",
+        filename: "report.pdf",
+      }),
+    ).toBe("example/:filename:");
   });
 
   test("the PDF template matches mixed-case extensions", () => {
@@ -545,6 +612,12 @@ describe("built-in matcher templates", () => {
         }),
       ).toBeNull();
     }
+    expect(
+      matchRules(rules, {
+        sourceUrl:
+          "https://cdnb.artstation.com/p/assets/images/images/064/942/263/large/nested/artwork.jpg",
+      }),
+    ).toBeNull();
   });
 
   test("the Mastodon template preserves media prefixes and excludes ambiguous PNG previews", () => {
@@ -574,6 +647,16 @@ describe("built-in matcher templates", () => {
       matchRules(rules, {
         sourceUrl:
           "https://media.example/system/media_attachments/files/112/859/957/767/662/021/small/video-preview.png",
+      }),
+    ).toBeNull();
+    expect(
+      matchRules(rules, {
+        sourceUrl: `https://user@media.example/system/media_attachments/files/${file}`,
+      }),
+    ).toBeNull();
+    expect(
+      matchRules(rules, {
+        sourceUrl: `https://media.example:bad/system/media_attachments/files/${file}`,
       }),
     ).toBeNull();
   });

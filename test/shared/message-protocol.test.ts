@@ -10,6 +10,24 @@ import {
 } from "../../src/shared/message-protocol.ts";
 
 describe("message protocol runtime validation", () => {
+  test("accepts the bounded CSS proof maximum and rejects one group beyond it", () => {
+    const message = (groups: string[][]) => ({
+      type: MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
+      body: {
+        pageUrl: "https://example.test/",
+        sourceUrl: "https://example.test/image.png",
+        sourceKind: "image",
+        matchedCssSelectorsByOrigin: groups,
+      },
+    });
+    expect(
+      isInternalMessage(message(Array.from({ length: 256 }, (_value, index) => [`.s-${index}`]))),
+    ).toBe(true);
+    expect(
+      isInternalMessage(message(Array.from({ length: 257 }, (_value, index) => [`.s-${index}`]))),
+    ).toBe(false);
+  });
+
   test("accepts valid internal and external message bodies", () => {
     expect(
       isInternalMessage({ type: MESSAGE_TYPES.PREVIEW_MENUS, body: { paths: "images" } }),

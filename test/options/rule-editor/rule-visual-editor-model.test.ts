@@ -117,6 +117,9 @@ describe("routing visual editor model", () => {
     expect(updateRoutingClause("filename: jpg\ninto: images", 0, 0, { name: "fileext" })).toBe(
       "fileext: jpg\ninto: images",
     );
+    expect(updateRoutingClause("filename/i: jpg\ninto: images", 0, 0, { name: "css" })).toBe(
+      "css: jpg\ninto: images",
+    );
     expect(updateRoutingClause("filename: pdf\ninto:", 0, 1, { value: ":filename:" })).toBe(
       "filename: pdf\ninto: :filename:",
     );
@@ -293,6 +296,8 @@ describe("routing visual editor model", () => {
 
   test.each([
     "filename/x: jpg\ninto: images",
+    "css/i: img\ninto: images",
+    "css: #escaped\\ \ninto: images",
     "disabled: maybe\nfilename: jpg\ninto: images",
     "disabled/i: false\nfilename: jpg\ninto: images",
     "disabled: false\ndisabled: true\nfilename: jpg\ninto: images",

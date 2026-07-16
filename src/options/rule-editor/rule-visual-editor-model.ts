@@ -122,6 +122,12 @@ const supportsDisabledControl = (clauses: RoutingClauseNode[]): boolean => {
   );
 };
 
+const hasUnsupportedFlags = (clauses: RoutingClauseNode[]): boolean =>
+  clauses.some((clause) => clause.flags !== "" && (clause.flags !== "i" || clause.name === "css"));
+
+const hasLossyVisualCssValue = (clauses: RoutingClauseNode[]): boolean =>
+  clauses.some((clause) => clause.name === "css" && /\\\s$/.test(clause.value));
+
 export const parseVisualRoutingRules = (source: string): VisualRoutingDocument => {
   const { parsed, units } = parseWithUnits(source);
   return {
@@ -129,9 +135,7 @@ export const parseVisualRoutingRules = (source: string): VisualRoutingDocument =
     issues: parsed.issues,
     rules: units.map((unit, index) => {
       const issues = parsed.issues.filter((issue) => issueInRule(issue, unit));
-      const unsupportedFlags = unit.rule.clauses.some(
-        (clause) => clause.flags !== "" && clause.flags !== "i",
-      );
+      const unsupportedFlags = hasUnsupportedFlags(unit.rule.clauses);
       const controls = disabledControls(unit.rule.clauses);
       return {
         index,
@@ -153,7 +157,10 @@ export const parseVisualRoutingRules = (source: string): VisualRoutingDocument =
             line: clause.span.start.line,
           })),
         editable:
-          issues.length === 0 && !unsupportedFlags && supportsDisabledControl(unit.rule.clauses),
+          issues.length === 0 &&
+          !unsupportedFlags &&
+          !hasLossyVisualCssValue(unit.rule.clauses) &&
+          supportsDisabledControl(unit.rule.clauses),
         issues,
         source: unit.content,
       };
@@ -166,10 +173,13 @@ const editableRule = (source: string, ruleIndex: number) => {
   const unit = result.units[ruleIndex];
   if (!unit) throw new RangeError(`Routing rule ${ruleIndex + 1} does not exist.`);
   const issues = result.parsed.issues.filter((issue) => issueInRule(issue, unit));
-  const unsupportedFlags = unit.rule.clauses.some(
-    (clause) => clause.flags !== "" && clause.flags !== "i",
-  );
-  if (issues.length > 0 || unsupportedFlags || !supportsDisabledControl(unit.rule.clauses)) {
+  const unsupportedFlags = hasUnsupportedFlags(unit.rule.clauses);
+  if (
+    issues.length > 0 ||
+    unsupportedFlags ||
+    hasLossyVisualCssValue(unit.rule.clauses) ||
+    !supportsDisabledControl(unit.rule.clauses)
+  ) {
     throw new Error("Edit this rule in Text mode before using visual controls.");
   }
   return { ...result, unit };
@@ -254,7 +264,8 @@ export const updateRoutingClause = (
   if (update.name !== undefined || update.caseInsensitive !== undefined) {
     const name =
       update.name ?? source.slice(clause.nameSpan.start.offset, clause.nameSpan.end.offset);
-    const caseInsensitive = update.caseInsensitive ?? clause.flags === "i";
+    const caseInsensitive =
+      name === "css" ? false : (update.caseInsensitive ?? clause.flags === "i");
     patches.push({
       start: clause.cst.rawName.span.start.offset,
       end: clause.cst.rawName.span.end.offset,

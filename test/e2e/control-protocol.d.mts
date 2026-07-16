@@ -191,7 +191,7 @@ export interface RuntimeResponseMap {
   HISTORY_UNDO: { type: "HISTORY_UNDO"; body: { undone: boolean; fileMissing: boolean } };
   HISTORY_REROUTE: {
     type: "HISTORY_REROUTE";
-    body: { rerouted: boolean; oldRemoved: boolean; newHistoryId?: string };
+    body: { rerouted: boolean; oldRemoved: boolean; pending?: boolean; newHistoryId?: string };
   };
   EXTERNAL_DOWNLOAD_REJECTIONS_GET: {
     type: "EXTERNAL_DOWNLOAD_REJECTIONS_GET";

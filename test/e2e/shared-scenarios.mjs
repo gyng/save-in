@@ -955,7 +955,8 @@ export const runCssRoutingScenario = async ({ control, evaluatePage, browserLabe
       res.writeHead(200, { "Content-Type": "text/html" });
       res.end(`<!doctype html>
         <article><img src="/css-shared.png" alt="article"></article>
-        <aside><img class="avatar" src="/css-shared.png" alt="avatar"></aside>`);
+        <aside><img class="avatar" src="/css-shared.png" alt="avatar"></aside>
+        <video class="video-origin" src="/css-shared.png"></video>`);
       return;
     }
     res.writeHead(200, { "Content-Type": "image/png" });
@@ -987,11 +988,13 @@ export const runCssRoutingScenario = async ({ control, evaluatePage, browserLabe
         autoDownloadMaxPerPage: 4,
         filenamePatterns: `context: ^auto$
 pageurl: /css-routing$
-css: aside img.avatar
+sourcekind: ^video$
+css: video.video-origin
 into: e2e/css-auto-${browserLabel}/:filename:
 
 context: ^auto$
 pageurl: /css-routing$
+sourcekind: ^image$
 css: article img
 into: e2e/css-auto-traversal-order-${browserLabel}/:filename:`,
       }),

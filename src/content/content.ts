@@ -218,9 +218,8 @@ const setupClickToSave = (
   acceptInput: (event: KeyboardEvent | MouseEvent) => boolean = (event) => event.isTrusted,
   isDisabled: () => boolean = () => false,
 ) => {
-  const cssSelectors = cssSelectorsForRules(
-    parseRulesCollecting(options.filenamePatterns ?? "").rules,
-  );
+  const routingRules = parseRulesCollecting(options.filenamePatterns ?? "").rules;
+  const cssSelectors = cssSelectorsForRules(routingRules);
   const controller = new AbortController();
   const listenerOptions = { capture: true, signal: controller.signal };
   const shortcutOptions = {
@@ -307,7 +306,7 @@ const setupClickToSave = (
                   ? {
                       matchedCssSelectorsByOrigin: matchedCssSelectorsByOrigin(
                         [source.element],
-                        cssSelectors,
+                        routingRules,
                       ),
                     }
                   : {}),
@@ -555,9 +554,8 @@ try {
 
 try {
   const sendDownload = (source: PageSource) => {
-    const cssSelectors = cssSelectorsForRules(
-      parseRulesCollecting(currentOptions.filenamePatterns).rules,
-    );
+    const routingRules = parseRulesCollecting(currentOptions.filenamePatterns).rules;
+    const cssSelectors = cssSelectorsForRules(routingRules);
     return sendRuntimeDownload({
       url: source.url,
       info: {
@@ -568,7 +566,7 @@ try {
           ? {
               matchedCssSelectorsByOrigin: matchedCssSelectorsByOrigin(
                 sourceOriginElements(source),
-                cssSelectors,
+                routingRules,
               ),
             }
           : {}),

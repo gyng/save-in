@@ -129,7 +129,7 @@
     "message": "Añadir la fecha a cada descarga"
   },
   "ruleTemplateDateStampDescription": {
-    "message": "Antepone la fecha de guardado al nombre de archivo original"
+    "message": "Antepone la fecha de guardado al nombre del archivo guardado"
   },
   "ruleTemplateDailyInboxName": {
     "message": "Bandeja diaria"
@@ -141,7 +141,7 @@
     "message": "Descargas por mes"
   },
   "ruleTemplateDownloadsByMonthDescription": {
-    "message": "Crea carpetas de año y mes conservando el nombre de archivo original"
+    "message": "Crea carpetas de año y mes conservando el nombre del archivo guardado"
   },
   "ruleTemplateWeeklyInboxName": {
     "message": "Bandeja semanal"
@@ -177,7 +177,7 @@
     "message": "Prefijo con el título de la página"
   },
   "ruleTemplatePageTitlePrefixDescription": {
-    "message": "Añade un título de página seguro para el sistema de archivos antes del nombre original"
+    "message": "Añade un título de página seguro para el sistema de archivos antes del nombre guardado"
   },
   "ruleTemplateCaptureUrlName": {
     "message": "Capturar parte de la URL"
@@ -1907,7 +1907,7 @@
     "message": "Las reglas de enrutamiento utilizan cláusulas para decidir qué descargas mover o cambiar de nombre."
   },
   "html_templatesProvideReadyMadeRoutingRulesYouCanAddAndCustomize": {
-    "message": "Las plantillas ofrecen reglas de enrutamiento listas para añadir y personalizar."
+    "message": "Las plantillas ofrecen reglas listas para personalizar. Save In usa la primera coincidencia, así que coloque las plantillas generales después de las específicas."
   },
   "html_forCaseInsensitiveMatching": {
     "message": "para coincidencias que no distinguen entre mayúsculas y minúsculas."
@@ -3828,7 +3828,7 @@
     "message": "Originales por sitio"
   },
   "ruleTemplatePagePathNoSchemeDescription": {
-    "message": "Crea carpetas a partir del host y la ruta de la página, sin credenciales ni sufijos de URL"
+    "message": "Crea carpetas a partir del nombre de host y la ruta de la página, sin credenciales, puertos, consultas ni fragmentos"
   },
   "ruleTemplatePagePathNoSchemeName": {
     "message": "Ruta de página sin el esquema"

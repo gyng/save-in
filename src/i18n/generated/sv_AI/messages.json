@@ -129,7 +129,7 @@
     "message": "Datumstämpla varje nedladdning"
   },
   "ruleTemplateDateStampDescription": {
-    "message": "Lägger sparandedatumet före det ursprungliga filnamnet"
+    "message": "Lägger sparandedatumet före det sparade filnamnet"
   },
   "ruleTemplateDailyInboxName": {
     "message": "Daglig inkorg"
@@ -141,7 +141,7 @@
     "message": "Nedladdningar per månad"
   },
   "ruleTemplateDownloadsByMonthDescription": {
-    "message": "Skapar års- och månadsmappar och behåller det ursprungliga filnamnet"
+    "message": "Skapar års- och månadsmappar och behåller det sparade filnamnet"
   },
   "ruleTemplateWeeklyInboxName": {
     "message": "Veckovis inkorg"
@@ -177,7 +177,7 @@
     "message": "Sidtitel som prefix"
   },
   "ruleTemplatePageTitlePrefixDescription": {
-    "message": "Lägger en filsystemsäkert formaterad sidtitel före det ursprungliga filnamnet"
+    "message": "Lägger en filsystemsäkert formaterad sidtitel före det sparade filnamnet"
   },
   "ruleTemplateCaptureUrlName": {
     "message": "Fånga en del av URL:en"
@@ -1907,7 +1907,7 @@
     "message": "Routningsregler använder villkor för att avgöra vilka nedladdningar som ska flyttas eller byta namn."
   },
   "html_templatesProvideReadyMadeRoutingRulesYouCanAddAndCustomize": {
-    "message": "Mallar innehåller färdiga routningsregler som du kan lägga till och anpassa."
+    "message": "Mallar innehåller färdiga regler som du kan anpassa. Save In använder den första träffen, så placera allmänna mallar efter specifika."
   },
   "html_forCaseInsensitiveMatching": {
     "message": "för skiftlägesokänslig matchning."
@@ -3828,7 +3828,7 @@
     "message": "Original per webbplats"
   },
   "ruleTemplatePagePathNoSchemeDescription": {
-    "message": "Bygger mappar av sidans värdnamn och sökväg utan URL-inloggningsuppgifter eller suffix"
+    "message": "Bygger mappar av sidans värdnamn och sökväg utan inloggningsuppgifter, portar, frågor eller fragment"
   },
   "ruleTemplatePagePathNoSchemeName": {
     "message": "Sidsökväg utan schema"

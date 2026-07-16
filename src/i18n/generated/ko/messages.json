@@ -1497,7 +1497,7 @@
     "message": "라우팅 규칙은 절을 사용하여 이동하거나 이름을 바꿀 다운로드를 결정합니다."
   },
   "html_templatesProvideReadyMadeRoutingRulesYouCanAddAndCustomize": {
-    "message": "템플릿은 추가하고 맞춤 설정할 수 있는 미리 만들어진 라우팅 규칙을 제공합니다."
+    "message": "템플릿은 맞춤 설정할 수 있는 미리 만들어진 규칙을 제공합니다. Save In은 첫 번째 일치 항목을 사용하므로 일반 템플릿을 특정 템플릿 뒤에 배치하세요."
   },
   "html_forCaseInsensitiveMatching": {
     "message": "대소문자를 구분하지 않는 일치를 위해."
@@ -1976,7 +1976,7 @@
     "message": "모든 다운로드에 날짜 표시"
   },
   "ruleTemplateDateStampDescription": {
-    "message": "원래 파일명 앞에 저장 날짜를 붙입니다"
+    "message": "저장할 파일명 앞에 저장 날짜를 붙입니다"
   },
   "ruleTemplateDailyInboxName": {
     "message": "일일 보관함"
@@ -1988,7 +1988,7 @@
     "message": "월별 다운로드"
   },
   "ruleTemplateDownloadsByMonthDescription": {
-    "message": "원래 파일명을 유지하면서 연도 및 월별 폴더를 만듭니다"
+    "message": "저장할 파일명을 유지하면서 연도 및 월별 폴더를 만듭니다"
   },
   "ruleTemplateWeeklyInboxName": {
     "message": "주간 보관함"
@@ -2024,7 +2024,7 @@
     "message": "페이지 제목 접두사"
   },
   "ruleTemplatePageTitlePrefixDescription": {
-    "message": "파일 시스템에 안전한 페이지 제목을 원래 파일명 앞에 붙입니다"
+    "message": "파일 시스템에 안전한 페이지 제목을 저장할 파일명 앞에 붙입니다"
   },
   "ruleTemplateCaptureUrlName": {
     "message": "URL 일부 캡처"
@@ -3828,7 +3828,7 @@
     "message": "사이트 원본"
   },
   "ruleTemplatePagePathNoSchemeDescription": {
-    "message": "URL 자격 증명이나 접미사를 제외하고 페이지 호스트와 경로로 폴더를 만듭니다"
+    "message": "자격 증명, 포트, 쿼리, 프래그먼트를 제외하고 페이지 호스트 이름과 경로로 폴더를 만듭니다"
   },
   "ruleTemplatePagePathNoSchemeName": {
     "message": "스킴을 제외한 페이지 경로"

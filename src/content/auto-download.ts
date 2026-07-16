@@ -205,27 +205,37 @@ export const setupAutoDownloadDiscovery = (
         sourceOriginElements(source),
       ]),
     );
+    const sourcesByUrl = new Map<string, typeof admittedSources>();
     for (const source of admittedSources) {
-      const sourceUrl = source.url;
+      const variants = sourcesByUrl.get(source.url);
+      if (variants) variants.push(source);
+      else sourcesByUrl.set(source.url, [source]);
+    }
+    for (const [sourceUrl, sources] of sourcesByUrl) {
       // A long data: URL keys the dedup set on its hash so the set never holds a
       // megabyte string; http(s) and short data: URLs key on the string itself.
       const seenKey = seenKeyFor(sourceUrl);
       if (seen.has(seenKey)) continue;
-      const candidate: AutomaticRoutingCandidate = {
-        pageUrl,
-        sourceUrl,
-        sourceKind: source.kind,
-        ...(source.channel ? { sourceChannel: source.channel } : {}),
-        ...(cssSelectors.length > 0
-          ? {
-              matchedCssSelectorsByOrigin: matchedCssSelectorsByOrigin(
-                originsByUrl.get(sourceUrl) ?? sourceOriginElements(source),
-                cssSelectors,
-              ),
-            }
-          : {}),
-      };
-      if (!matchAutomaticRoutingRule(automaticRules, candidate)) continue;
+      const origins = originsByUrl.get(sourceUrl);
+      if (!origins) continue;
+      const cssAttestation =
+        cssSelectors.length > 0 ? matchedCssSelectorsByOrigin(origins, automaticRules) : undefined;
+      let selected: { candidate: AutomaticRoutingCandidate; ruleIndex: number } | undefined;
+      for (const source of sources) {
+        const candidate: AutomaticRoutingCandidate = {
+          pageUrl,
+          sourceUrl,
+          sourceKind: source.kind,
+          ...(source.channel ? { sourceChannel: source.channel } : {}),
+          ...(cssAttestation ? { matchedCssSelectorsByOrigin: cssAttestation } : {}),
+        };
+        const match = matchAutomaticRoutingRule(automaticRules, candidate);
+        if (!match) continue;
+        const ruleIndex = automaticRules.indexOf(match.rule);
+        if (ruleIndex < 0) continue;
+        if (!selected || ruleIndex < selected.ruleIndex) selected = { candidate, ruleIndex };
+      }
+      if (!selected) continue;
       if (
         isDataUrl(sourceUrl) &&
         outstandingDataCharacters + sourceUrl.length > AUTO_DATA_CHARACTER_BUDGET
@@ -239,7 +249,7 @@ export const setupAutoDownloadDiscovery = (
         continue;
       }
       seen.add(seenKey);
-      queue.push(candidate);
+      queue.push(selected.candidate);
       if (isDataUrl(sourceUrl)) outstandingDataCharacters += sourceUrl.length;
     }
     void drain();

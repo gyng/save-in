@@ -17,7 +17,11 @@ import type {
   RoutingRule,
 } from "./rule-types.ts";
 import { isCssMatcherClause, isRegexMatcherClause } from "./rule-types.ts";
-import { MAX_CSS_SELECTOR_LENGTH, MAX_CSS_SELECTORS } from "../shared/css-selector-attestation.ts";
+import {
+  MAX_CSS_SELECTOR_LENGTH,
+  MAX_CSS_SELECTOR_MATCHES,
+  MAX_CSS_SELECTORS_PER_ORIGIN,
+} from "../shared/css-selector-attestation.ts";
 import { automaticRuleClauseIssues, isAutomaticRuleClauses } from "./automatic-rule.ts";
 import { findBannedFetchVariables, findUnknownPathVariables } from "./path-variables.ts";
 import { RENAME_SEPARATOR, splitRenameValue } from "./rename.ts";
@@ -179,6 +183,16 @@ const parseSemanticRule = (
     if (value === "true") return false;
   }
   const lines = rule.clauses.filter((line) => line.name !== "disabled");
+  const excessCssLine = lines.filter((line) => line.name === "css")[MAX_CSS_SELECTORS_PER_ORIGIN];
+  if (excessCssLine) {
+    appendError(
+      errors,
+      routingPorts.getMessage("ruleTooManyCssSelectors"),
+      excessCssLine.value.trim(),
+      excessCssLine.valueSpan,
+    );
+    return false;
+  }
   const automaticIssues = automaticRuleClauseIssues(lines);
   automaticIssues.forEach((issue) =>
     appendError(
@@ -241,7 +255,10 @@ const parseSemanticRule = (
     }
 
     if (name === "css") {
-      const selector = rawValue.trim();
+      // CSS permits escaped trailing whitespace (for example an ID ending in
+      // a space). The syntax parser already removes the grammar's one trivia
+      // space after the colon, so preserve the selector value byte-for-byte.
+      const selector = rawValue;
       if (flags) {
         appendError(
           errors,
@@ -251,7 +268,7 @@ const parseSemanticRule = (
         );
         return false;
       }
-      if (!selector || selector.length > MAX_CSS_SELECTOR_LENGTH) {
+      if (!selector.trim() || selector.length > MAX_CSS_SELECTOR_LENGTH) {
         appendError(
           errors,
           routingPorts.getMessage("ruleInvalidCssSelector"),
@@ -559,26 +576,20 @@ export const parseRulesCollecting = (
   const semanticRules = syntax.ast.rules
     .map((ast) => ({ ast, rule: parseSemanticRule(ast, errors) }))
     .filter((entry): entry is { ast: RoutingRuleNode; rule: RoutingRule } => Boolean(entry.rule));
-  const cssSelectors = new Set<string>();
-  const parsedRules = semanticRules.filter((entry) => {
-    const newSelectorNodes = entry.ast.clauses.filter(
-      (clause) => clause.name === "css" && !cssSelectors.has(clause.value.trim()),
+  const parsedRules = semanticRules;
+  const cssNodes = parsedRules.flatMap(({ ast }) =>
+    ast.clauses.filter((clause) => clause.name === "css"),
+  );
+  const excessCssNode = cssNodes[MAX_CSS_SELECTOR_MATCHES];
+  if (excessCssNode) {
+    appendError(
+      errors,
+      routingPorts.getMessage("ruleTooManyCssSelectors"),
+      excessCssNode.value.trim(),
+      excessCssNode.valueSpan,
     );
-    if (cssSelectors.size + newSelectorNodes.length > MAX_CSS_SELECTORS) {
-      const overflow = newSelectorNodes[MAX_CSS_SELECTORS - cssSelectors.size];
-      if (overflow) {
-        appendError(
-          errors,
-          routingPorts.getMessage("ruleTooManyCssSelectors"),
-          overflow.value.trim(),
-          overflow.valueSpan,
-        );
-      }
-      return false;
-    }
-    newSelectorNodes.forEach((clause) => cssSelectors.add(clause.value.trim()));
-    return true;
-  });
+    return { rules: [], errors };
+  }
   const rules = parsedRules.map((entry) => entry.rule);
   for (let index = 1; index < parsedRules.length; index += 1) {
     const laterEntry = parsedRules[index];

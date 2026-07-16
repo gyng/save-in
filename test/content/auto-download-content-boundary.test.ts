@@ -72,7 +72,7 @@ test("filters non-previewable and malformed collector results at the discovery b
     { url: "http://[", kind: "image", previewable: true },
     { url: "https://cdn.test/visible.png#preview", kind: "image", previewable: true },
   ];
-  const send = vi.fn(async () => "started" as const);
+  const send = vi.fn(async (_candidate: AutomaticRoutingCandidate) => "started" as const);
   const controller = setupAutoDownloadDiscovery({ rules, live: false, maxPerPage: 10, send });
   await controller.idle();
 
@@ -152,10 +152,80 @@ into: second/
   expect(send).toHaveBeenCalledOnce();
   expect(send).toHaveBeenCalledWith(
     expect.objectContaining({
-      matchedCssSelectorsByOrigin: [["article img"], ["aside img.avatar"]],
+      matchedCssSelectorsByOrigin: [["aside img.avatar"], ["article img"]],
     }),
   );
   expect(destinations).toEqual(["first/"]);
+  controller.stop();
+});
+
+test("does not lose a later matching rule when one origin matches more than 64 selectors", async () => {
+  const image = document.createElement("img");
+  image.className = Array.from({ length: 65 }, (_value, index) => `selector-${index}`).join(" ");
+  fixture.candidates = [{ url: "https://cdn.test/dense.png", kind: "image", element: image }];
+  const denseRules = Array.from({ length: 65 }, (_value, index) =>
+    [
+      "context: ^auto$",
+      `pageurl: ${index === 64 ? "^http://localhost/$" : "^https://never\\.test/$"}`,
+      `css: .selector-${index}`,
+      `into: rule-${index}/`,
+    ].join("\n"),
+  ).join("\n\n");
+  const send = vi.fn(async (_candidate: AutomaticRoutingCandidate) => "started" as const);
+  const controller = setupAutoDownloadDiscovery({
+    rules: denseRules,
+    live: false,
+    maxPerPage: 10,
+    send,
+  });
+  await controller.idle();
+
+  expect(send).toHaveBeenCalledOnce();
+  expect(send.mock.calls[0]?.[0].matchedCssSelectorsByOrigin).toContainEqual([".selector-64"]);
+  controller.stop();
+});
+
+test("preserves rule order across duplicate URL variants with different source kinds", async () => {
+  const image = document.createElement("img");
+  image.className = "image-origin";
+  const video = document.createElement("video");
+  video.className = "video-origin";
+  fixture.candidates = [
+    { url: "https://cdn.test/shared.bin", kind: "image", element: image },
+    { url: "https://cdn.test/shared.bin", kind: "video", element: video },
+  ];
+  const variantRules = String.raw`
+context: ^auto$
+pageurl: ^http://localhost/
+sourcekind: ^video$
+css: .video-origin
+into: first-video/
+
+context: ^auto$
+pageurl: ^http://localhost/
+sourcekind: ^image$
+css: .image-origin
+into: second-image/
+`;
+  const parsed = parseRulesCollecting(variantRules);
+  const destinations: Array<string | undefined> = [];
+  const send = vi.fn(async (candidate: AutomaticRoutingCandidate) => {
+    destinations.push(matchAutomaticRoutingRule(parsed.rules, candidate)?.destination);
+    return "started" as const;
+  });
+  const controller = setupAutoDownloadDiscovery({
+    rules: variantRules,
+    live: false,
+    maxPerPage: 10,
+    send,
+  });
+  await controller.idle();
+
+  expect(send).toHaveBeenCalledOnce();
+  expect(send.mock.calls[0]?.[0]).toEqual(
+    expect.objectContaining({ sourceKind: "video", sourceUrl: "https://cdn.test/shared.bin" }),
+  );
+  expect(destinations).toEqual(["first-video/"]);
   controller.stop();
 });
 
