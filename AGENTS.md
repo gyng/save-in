@@ -249,15 +249,18 @@ browsers before reporting it as confirmed.
   `dist/dogfood-artifacts`.
 - On-device Prompt review needs both a provisioned profile and its provisioned
   runtime (`SAVE_IN_PROMPT_PROFILE`, `SAVE_IN_PROMPT_RUNTIME`; by default
-  `~/.cache/save-in-nano-profile` and `~/.cache/save-in-nano-runtime`). Launch
-  the model only through `promptRuntimeSettings()`: ChromeML owns its own
-  Vulkan device, and without that runtime it reaches no device and the model
-  process crashes. `availability()` still answers "available" because the
-  weights are present, so the failure surfaces only at `prompt()`. Three
-  crashes trip Chrome's per-profile cutoff and every later call fails with
-  "the model process crashed too many times for this version" until the
-  profile is reprovisioned — repair the launch rather than the counter. Keep
-  ANGLE on `gl`, which is already what reaches D3D12 through Mesa.
+  `~/.cache/save-in-nano-profile` and `~/.cache/save-in-nano-runtime`). Run it
+  with `npm run review`, then press `p`. Launch the model only through
+  `promptRuntimeSettings()`: ChromeML owns its own Vulkan device, and on
+  WSL/WSLg — where Ubuntu ships no Dozen — it reaches no device without that
+  runtime and the model process crashes. `availability()` still answers
+  "available" because the weights are present, so the failure surfaces only at
+  `prompt()`. Three crashes trip Chrome's per-profile cutoff and every later
+  call fails with "the model process crashed too many times for this version"
+  until the profile is reprovisioned — repair the launch rather than the
+  counter. The Dozen/Gallium settings and `--use-angle=gl` are WSL/WSLg
+  specific; under WSLg `gl` is already what reaches D3D12 through Mesa, so
+  asking ANGLE for `d3d12` or `vulkan` only removes the GPU context.
 - `npm run d:chrome` and `npm run d`: auto-rebuilding Chrome and Firefox dev
   loops.
 - `npm run bundle`: emit readable bundles. `npm run build` also stages and
