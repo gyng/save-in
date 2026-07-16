@@ -66,16 +66,35 @@ how the model typed them.
 ## The gate
 
 Add is enabled only when the deterministic guardrails, the background `VALIDATE`
-message, and the review all agree. The guardrails historically only asked whether
-the rule did what was asked; they must also ask whether it does **only** that.
-Two false accepts were found that way, and both are pinned by tests:
+message, and the review all agree. A false accept is the worst failure this
+feature has; a false reject only annoys. Every false accept found so far was the
+gate being **incomplete**, never the model being clever — each is pinned by a
+test built from the model's actual output:
 
 - asked for pdf and png, the model added `sourcekind: ^document$` — a rule that
-  can never route a png — and Add was enabled;
-- `pagedomain` and `sourcedomain` are both accepted for a named site, though they
-  mean materially different things. Still unchecked.
+  can never route a png — because nothing asked whether the rule did **only**
+  what was asked;
+- `pagedomain` and `sourcedomain` were both accepted for a named site, because
+  nothing asked **which scope**;
+- "sorted by site and date" was answered with `into: Images/:filename:`, because
+  nothing asked whether the rule did **what was asked** at all.
 
-A false accept is the worst failure this feature has. A false reject only annoys.
+So a guardrail owes three questions, and the third is the one that keeps getting
+forgotten: does the rule do what was asked, does it do only that, and does it do
+it the way it was asked?
+
+### A wrong fact is self-consistent
+
+The same extraction builds the prompt and checks the draft. That keeps the
+instruction and the check from disagreeing — and it is why a bad extraction is
+invisible. "save png into /Images sorted by site and date" once read the folder
+as `Images sorted by site`, told the model that was the requirement, and then
+checked the draft against the same wrong fact. Both sides agreed. Add lit up on a
+rule saving into a sentence, and the reviewer — which sees the raw request and
+could have caught it — had been told our version by the requirement lines.
+
+Every fact extracted from a request is a new way for both sides to be wrong
+together. The tests do not catch it: they derive from the same extraction.
 
 ## Measuring
 
@@ -101,8 +120,19 @@ intend to quote against the provisioned profile.
 
 ## Where it stands
 
-Measured over 20 samples, 5 per request, on a throwaway profile: **19/20**, every
-accepted rule faithful. The one shape it cannot express is anything outside a
-plan field — no `css`, `capture`, `fetch`, `rename` templates, arbitrary regex,
-or destination variables. A free-form fallback would restore the 0% path; add
-plan *fields* instead, since those are checkable.
+Measured over 25 samples, 5 per request, on a throwaway profile. Requests naming
+file types, a site, or a rename: **~19/20**, every accepted rule faithful. Spread
+run to run is about ±2, so read a difference smaller than that as noise.
+
+**Grouping a destination by variables is 0/5.** The plan can carry
+`pathVariables`, offered only to a request that asks to group and narrowed to the
+dimensions its own words name — and the model does not fill it. Narrowing the
+enum, which is what made `sourceKind` reliable, did not move it off zero. Those
+requests are refused rather than answered with a rule that drops what they asked
+for. Two things worth trying before concluding the model cannot: the raw output
+(is the field empty, or is the plan rejected downstream?), and the provisioned
+model component, since these numbers are from the older one.
+
+Nothing outside a plan field is expressible: no `css`, `capture`, `fetch`,
+`rename` templates, or arbitrary regex. A free-form fallback would restore the 0%
+path; add plan *fields* instead, since those are checkable.
