@@ -6,7 +6,7 @@ import {
 } from "./vocabulary-groups.ts";
 import { webExtensionApi } from "../../platform/web-extension-api.ts";
 import { MESSAGE_TYPES } from "../../shared/constants.ts";
-import { sendInternalMessage } from "../../shared/message-protocol.ts";
+import { sendInternalMessage } from "../../platform/messaging.ts";
 import { getMessage } from "../../platform/localization.ts";
 import { copyText, type CopyText } from "../ui/clipboard.ts";
 

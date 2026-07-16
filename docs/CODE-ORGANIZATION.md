@@ -247,6 +247,34 @@ move with their code. Order by value and by how much other work each unblocks.
      type` from five feature directories; invert by having feature dirs
      declare their wire shapes in shared, or accept and *document* the
      type-edge exemption in `check-import-cycles.js`.
+
+   Landed as described (611 lines remain). `toWireDownloadState`/
+   `fromWireDownloadState` moved to `downloads/wire-state.ts`, next to the
+   `DownloadPipelineState`/`DownloadInfo` shapes in `downloads/download-types.ts`
+   they marshal; `WIRE_INFO_STRING_FIELDS`, `isRoutingCounter`, and
+   `isBrowserTabId` stayed in `shared/message-protocol.ts` (exported) because
+   the wire-state validators that remain there — `isWireDownloadInfo`,
+   `isValidationInfo`, `isWireCurrentTab` — still need them, so `wire-state.ts`
+   imports them back rather than duplicating the contract. `sendInternalMessage`
+   went to `platform/messaging.ts`, not the messaging composition layer: every
+   current importer is an options-page caller (13 files under `src/options/`),
+   none is background composition code, and the function's only dependency is
+   a generic `{ sendMessage }` shape, so `platform/` (generic, importable from
+   any execution context) fit better than growing
+   `background/messaging/`. Updated all importers directly (no shim); split
+   `test/shared/message-protocol.test.ts` into the surviving contract test plus
+   `test/downloads/wire-state.test.ts` and `test/platform/messaging.test.ts`.
+
+   The type-only upward policy tightening (last bullet) did not land in this
+   pass: `shared/message-protocol.ts` still carries `import type`s into
+   `downloads/download-types.ts` (`DownloadInfo`, used by `DownloadRequestBody`),
+   `menus/menu-tree.ts`, `routing/rule-types.ts`, and `background/runtime.ts` /
+   `background/route-preview.ts` — all needed by `InternalResponseMap`/
+   `InternalMessage` entries (`PREVIEW_MENUS`, `VALIDATE`, `CHECK_ROUTES`, the
+   `DOWNLOAD` request body) that were never part of the marshalling or
+   transport code this step moved. Inverting those (feature dirs declaring
+   their own wire shapes in `shared/`) is a real design change, not a
+   mechanical extraction, and is left for a dedicated Phase 3 step.
 3. **`content/source-panel.ts`:** extract the module-level seams first —
    `source-panel-layout.ts` (layout type, normalization, storage/sort
    persistence), `source-panel-icons.ts`, `source-panel-format.ts`

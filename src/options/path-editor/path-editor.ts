@@ -11,7 +11,7 @@ import { getMessage } from "../../platform/localization.ts";
 import { webExtensionApi } from "../../platform/web-extension-api.ts";
 import { buildTree } from "../../menus/menu-tree.ts";
 import { resolveMenuAccessKey } from "../../menus/access-key.ts";
-import { sendInternalMessage } from "../../shared/message-protocol.ts";
+import { sendInternalMessage } from "../../platform/messaging.ts";
 import { attachAutocomplete } from "../syntax-editor/autocomplete.ts";
 import { setupPathInsertMenu } from "./path-editor-insert-menu.ts";
 import { completeDirectorySyntax } from "../syntax-editor/syntax-editor-model.ts";

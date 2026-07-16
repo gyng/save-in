@@ -8,7 +8,7 @@ import {
 import { webExtensionApi } from "../../platform/web-extension-api.ts";
 import { addClickToCopy } from "../ui/click-to-copy.ts";
 import { MESSAGE_TYPES } from "../../shared/constants.ts";
-import { sendInternalMessage } from "../../shared/message-protocol.ts";
+import { sendInternalMessage } from "../../platform/messaging.ts";
 import { bindTabInteractions, syncTabSelection } from "./tab-controls.ts";
 import { getMessage } from "../../platform/localization.ts";
 

@@ -26,7 +26,7 @@ import {
 } from "./history-view.ts";
 import { renderHistoryFeedback } from "./history-feedback.ts";
 import { MESSAGE_TYPES } from "../../shared/constants.ts";
-import { sendInternalMessage } from "../../shared/message-protocol.ts";
+import { sendInternalMessage } from "../../platform/messaging.ts";
 import { normalizeHistory } from "../../shared/history-normalization.ts";
 import { closeDetailsAndRestoreFocus } from "../ui/dismissible-details.ts";
 

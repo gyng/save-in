@@ -3,8 +3,9 @@ import { getMessage } from "../../platform/localization.ts";
 import { configureRoutingPorts } from "../../routing/ports.ts";
 import { COUNTER_KEY } from "../../shared/storage-keys.ts";
 import { MESSAGE_TYPES } from "../../shared/constants.ts";
-import { isStringKeyedRecord, sendInternalMessage } from "../../shared/message-protocol.ts";
+import { isStringKeyedRecord } from "../../shared/message-protocol.ts";
 import type { ApplyConfigResponse } from "../../shared/message-protocol.ts";
+import { sendInternalMessage } from "../../platform/messaging.ts";
 import type { OptionSchema } from "./options-persistence.ts";
 
 export type OptionsRuntimeApi = {

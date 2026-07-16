@@ -1,6 +1,6 @@
 import { webExtensionApi } from "../../platform/web-extension-api.ts";
 import { MESSAGE_TYPES } from "../../shared/constants.ts";
-import { sendInternalMessage } from "../../shared/message-protocol.ts";
+import { sendInternalMessage } from "../../platform/messaging.ts";
 import { PathEditor } from "../path-editor/path-editor.ts";
 import {
   sortVariables,

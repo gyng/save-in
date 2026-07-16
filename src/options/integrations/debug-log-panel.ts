@@ -6,7 +6,8 @@ import {
   type DiagnosticLifecycleEntry,
   type DiagnosticSnapshot,
 } from "../../shared/diagnostics-types.ts";
-import { isStringKeyedRecord, sendInternalMessage } from "../../shared/message-protocol.ts";
+import { isStringKeyedRecord } from "../../shared/message-protocol.ts";
+import { sendInternalMessage } from "../../platform/messaging.ts";
 import { copyText, type CopyText } from "../ui/clipboard.ts";
 
 let latestSnapshot: DiagnosticSnapshot | undefined;

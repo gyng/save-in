@@ -1,6 +1,6 @@
 import { webExtensionApi } from "../../platform/web-extension-api.ts";
 import { MESSAGE_TYPES } from "../../shared/constants.ts";
-import { sendInternalMessage } from "../../shared/message-protocol.ts";
+import { sendInternalMessage } from "../../platform/messaging.ts";
 
 // Guided rule input and template library for the Dynamic Downloads rules
 // textarea. Both compose complete rules and append them through the normal

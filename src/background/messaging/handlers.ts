@@ -13,13 +13,8 @@ import { createSourceSidecarRequest } from "../../downloads/source-sidecar.ts";
 import { currentTab, type CurrentTab } from "../../platform/current-tab.ts";
 import type { DownloadInfo, DownloadPipelineState } from "../../downloads/download-types.ts";
 import { backgroundRuntime } from "../runtime.ts";
-import {
-  fromWireDownloadState,
-  toWireDownloadState,
-  type InternalEvent,
-  type MessageOf,
-  type ResponseFor,
-} from "../../shared/message-protocol.ts";
+import { fromWireDownloadState, toWireDownloadState } from "../../downloads/wire-state.ts";
+import type { InternalEvent, MessageOf, ResponseFor } from "../../shared/message-protocol.ts";
 import { applyConfigSerialized } from "../config-apply.ts";
 import { configWriteState } from "../application-state.ts";
 import { getPersistenceDiagnostics } from "../../shared/persistence-diagnostics.ts";

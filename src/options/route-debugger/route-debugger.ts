@@ -1,7 +1,8 @@
 import { getMessage } from "../../platform/localization.ts";
 import { webExtensionApi } from "../../platform/web-extension-api.ts";
 import { MESSAGE_TYPES } from "../../shared/constants.ts";
-import { sendInternalMessage, type WireDownloadInfo } from "../../shared/message-protocol.ts";
+import type { WireDownloadInfo } from "../../shared/message-protocol.ts";
+import { sendInternalMessage } from "../../platform/messaging.ts";
 import {
   mapRouteTraceToSource,
   parseRouteDebuggerTrace,

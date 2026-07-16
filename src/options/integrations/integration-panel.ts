@@ -1,7 +1,7 @@
 import { webExtensionApi } from "../../platform/web-extension-api.ts";
 import { getMessage } from "../../platform/localization.ts";
 import { MESSAGE_TYPES } from "../../shared/constants.ts";
-import { sendInternalMessage } from "../../shared/message-protocol.ts";
+import { sendInternalMessage } from "../../platform/messaging.ts";
 import type { ExternalDownloadRejection } from "../../shared/external-download-rejection-types.ts";
 import { splitLines } from "../../shared/util.ts";
 import { addClickToCopy } from "../ui/click-to-copy.ts";

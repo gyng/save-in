@@ -1,7 +1,7 @@
 import { webExtensionApi } from "../../platform/web-extension-api.ts";
 import { getMessage } from "../../platform/localization.ts";
 import { MESSAGE_TYPES } from "../../shared/constants.ts";
-import { sendInternalMessage } from "../../shared/message-protocol.ts";
+import { sendInternalMessage } from "../../platform/messaging.ts";
 import { compareClauses, CLAUSE_GROUPS, clauseGroup } from "../reference/vocabulary-groups.ts";
 import { matcherTestValue } from "../reference/matcher-descriptions.ts";
 import { referenceDescription } from "../reference/reference-descriptions.ts";

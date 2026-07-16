@@ -22,12 +22,8 @@ import {
 } from "../shared/storage-keys.ts";
 import { getMessage } from "../platform/localization.ts";
 import { createExtensionNotification, EXTENSION_NOTIFICATION_STREAMS } from "./notification.ts";
-import {
-  fromWireDownloadState,
-  isWireDownloadState,
-  toWireDownloadState,
-  type WireDownloadState,
-} from "../shared/message-protocol.ts";
+import { isWireDownloadState, type WireDownloadState } from "../shared/message-protocol.ts";
+import { fromWireDownloadState, toWireDownloadState } from "./wire-state.ts";
 import { isStringKeyedRecord } from "../shared/util.ts";
 
 const historyPort = downloadPorts.history;

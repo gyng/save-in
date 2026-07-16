@@ -1,7 +1,7 @@
 import { getMessage } from "../../platform/localization.ts";
 import { webExtensionApi } from "../../platform/web-extension-api.ts";
 import { MESSAGE_TYPES } from "../../shared/constants.ts";
-import { sendInternalMessage } from "../../shared/message-protocol.ts";
+import { sendInternalMessage } from "../../platform/messaging.ts";
 import { preferredScrollBehavior } from "../../shared/motion-preference.ts";
 import { attachAutocomplete } from "../syntax-editor/autocomplete.ts";
 import {

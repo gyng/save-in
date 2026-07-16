@@ -39,7 +39,8 @@ import {
 import { optionsRuntime } from "./options-runtime.ts";
 import { bootstrapOptionsPage } from "./options-bootstrap.ts";
 import { setupIntegrationPanel } from "../integrations/integration-panel.ts";
-import { isStringKeyedRecord, sendInternalMessage } from "../../shared/message-protocol.ts";
+import { isStringKeyedRecord } from "../../shared/message-protocol.ts";
+import { sendInternalMessage } from "../../platform/messaging.ts";
 import { applyUiTheme, setupUiThemeControl } from "./theme.ts";
 import { getPathSourceRange } from "../path-editor/path-editor-model.ts";
 import {
