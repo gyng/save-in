@@ -602,6 +602,9 @@
   "html_matchesTheMenuIndexOfTheClickedMenuItem": {
     "message": "Corrisponde all'indice della voce di menu selezionata (1, 2, 3…)."
   },
+  "html_directoryMatcherDescription": {
+    "message": "Corrisponde alla cartella scelta dal menu di Save In. Vuoto per i salvataggi che non scelgono una cartella."
+  },
   "html_matchesTheNaiveFilename": {
     "message": "Corrisponde al nome file derivato da URL."
   },

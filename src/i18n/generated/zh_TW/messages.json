@@ -1553,6 +1553,9 @@
   "html_matchesTheMenuIndexOfTheClickedMenuItem": {
     "message": "符合所選選單項目的索引（1、2、3…）。"
   },
+  "html_directoryMatcherDescription": {
+    "message": "比對你在 Save In 選單中選擇的資料夾。未選擇資料夾的儲存為空。"
+  },
   "html_matchesTheNaiveFilename": {
     "message": "符合從 URL 派生的檔案名稱。"
   },

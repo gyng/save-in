@@ -1553,6 +1553,9 @@
   "html_matchesTheMenuIndexOfTheClickedMenuItem": {
     "message": "選択したメニュー項目のインデックス (1、2、3…) と一致します。"
   },
+  "html_directoryMatcherDescription": {
+    "message": "Save In メニューで選んだフォルダーに一致します。フォルダーを選ばない保存では空になります。"
+  },
   "html_matchesTheNaiveFilename": {
     "message": "URL から派生したファイル名と一致します。"
   },

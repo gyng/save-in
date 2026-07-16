@@ -186,6 +186,20 @@ needed — the verdict reads issue reports against those records.
 - Clipboard-based variables (#121): MV3 backgrounds have no clean clipboard
   access, and the privacy cost outweighs the value.
 - Downloading from the browser cache (#148): no WebExtension API exists.
+- Saving outside the Downloads folder (#25) and populating submenus from real
+  subfolders (#87): both need to touch the filesystem, and nothing in the
+  WebExtension API does. `downloads.download` takes a path relative to the
+  Downloads directory and rejects absolute paths and `..`; no API enumerates
+  directories; and nothing even reports where Downloads is. Native messaging is
+  the only route, and it means shipping and maintaining a separate native binary
+  per platform — a different product, which is why the 2017 answer to #25 was
+  "not in the near future" and why `docs/INTEGRATIONS.md` frames the yt-dlp
+  hand-off as deliberately avoiding the permission. #87 also has a design
+  objection independent of the API: enumerating subfolders "would end up reading
+  in an entire drive", as a commenter pointed out. Both were left unrejected for
+  years while being exactly this; recorded here so they stop reading as open.
+  Note the same wall bounds #201: a Save As target outside Downloads could only
+  ever be reused if this changed.
 - CSS `@scope` migration: deferred until the minimum Firefox version rises
   (see [UI](UI.md)); a v5-era change.
 

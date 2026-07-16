@@ -1963,6 +1963,9 @@
   "html_matchesTheMenuIndexOfTheClickedMenuItem": {
     "message": "Coincide con el índice del elemento del menú seleccionado (1, 2, 3…)."
   },
+  "html_directoryMatcherDescription": {
+    "message": "Coincide con la carpeta elegida en el menú de Save In. Vacío cuando el guardado no elige carpeta."
+  },
   "html_matchesTheNaiveFilename": {
     "message": "Coincide con el nombre de archivo derivado de la URL."
   },

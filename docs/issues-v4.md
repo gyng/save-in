@@ -662,12 +662,47 @@ auto-retry now covers `SERVER_FORBIDDEN`; the Referer angle predates the report.
 ### Do not close
 
 **#145** — Firefox screenshots are `blob:`, excluded by a *tested contract*
-(`browser-downloads.test.ts` asserts it). **#50** — not a prefix rule; the ask is
-a prefix that *varies by directory*, and no `directory:` matcher exists.
-**#68/#47** — each has a live sub-ask the code does not satisfy; #47 is
-self-authored by the maintainer. **#25/#87** — genuinely platform-blocked (both
-need native messaging), and notably neither is in the roadmap's non-goals.
-**#57** — "to the right" shipped in v3; "to the left" never existed.
+(`browser-downloads.test.ts` asserts it). **#68/#47** — each has a live sub-ask
+the code does not satisfy; see above. **#57** — "to the right" shipped in v3;
+"to the left" never existed.
+
+**#25 and #87 are wontfix** (decided this pass) and now stated in the roadmap's
+non-goals. Both are the same wall: touching the filesystem. `downloads.download`
+takes a path relative to Downloads and rejects `..`, nothing enumerates
+directories, and nothing reports where Downloads is — so native messaging is the
+only route for either, meaning a separate native binary per platform. #87 also
+carries a design objection from a *user*: enumerating subfolders "would end up
+reading in an entire drive". Worth knowing: **#201's constraint is #25's** — if
+native messaging ever happened, #201's outside-Downloads case stops being
+impossible.
+
+### #50 — `directory:`, and why it stalled on a misreading
+
+**Built this pass.** The reporter asked for *"access to the directory, maybe by a
+clause `directory:` … extract a portion of the directory name with a regular
+expression to add a prefix based on part of the path"*.
+
+It stalled on gyng's own scoping: *"This is actually harder than I expected as
+it'll require access to the 'final' path. Rewriting that will mean it's not
+actually the 'final' path. Will probably need some form of 2-pass renaming."*
+That circularity is real — but it is about the **routed output**, and the
+reporter asked about the **folder they picked**. `menu-click.ts` sets
+`menuItemPath` *before* `launchDownload`, so it is an input. No second pass; the
+objection never applied to the ask. Eight years on a misreading.
+
+The matcher is one line (`makeInfoMatcherFactory("menuItemPath")`, the same
+shape as `linktext`/`mediatype`) and `capture:` came free —
+`getCaptureMatcherResults` finds any regex matcher clause by name, so
+`capture: directory` needed no new code. The cost was the surrounding surface:
+vocabulary, visual editor, autocomplete grouping, both copies of the clause
+reference, the debugger field map, and i18n.
+
+Note it overlaps `menuindex:`, which already branches per folder — but by
+*position*, so inserting a folder silently renumbers every rule. `directory:`
+matches by name. Empty for click-to-save and automatic saves, consistent with
+the other menu-only matchers (`linktext:`, `selectiontext:`), none of which the
+reachability panel warns about — a gap that belongs to the whole family rather
+than to this clause.
 
 ### Stale reasons worth retracting — decide, do not repeat
 

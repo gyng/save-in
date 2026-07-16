@@ -1013,6 +1013,10 @@
     "message": "Matches the selected menu item's index (1, 2, 3…).",
     "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
   },
+  "html_directoryMatcherDescription": {
+    "message": "Matches the folder picked from the Save In menu. Empty for saves that pick no folder.",
+    "description": "Description of the directory routing matcher, which matches the folder chosen from the Save In menu. Empty for click-to-save and automatic saves, which choose no folder. Used in src/options/clauselist.html and src/options/options.html."
+  },
   "html_matchesTheNaiveFilename": {
     "message": "Matches the filename derived from the URL.",
     "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."

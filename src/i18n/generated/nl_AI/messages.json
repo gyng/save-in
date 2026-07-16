@@ -1963,6 +1963,9 @@
   "html_matchesTheMenuIndexOfTheClickedMenuItem": {
     "message": "Komt overeen met de index van het geselecteerde menu-item (1, 2, 3…)."
   },
+  "html_directoryMatcherDescription": {
+    "message": "Komt overeen met de map die je in het Save In-menu koos. Leeg bij opslagacties zonder mapkeuze."
+  },
   "html_matchesTheNaiveFilename": {
     "message": "Komt overeen met de bestandsnaam die is afgeleid van de URL."
   },

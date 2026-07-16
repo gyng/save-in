@@ -154,6 +154,12 @@ rules.
   Content-Disposition (#178, #189), plus `:menupath:` for including the chosen
   Save In folder in a destination or filename (#208). Both are available in
   the editors, debugger, autocomplete, and references.
+- Added `directory:` for matching the folder you picked from the menu (#50), so
+  a rule can branch on where you are filing rather than only on what you are
+  saving. It captures like any other matcher, so
+  `directory: ^dogs/(\w+)` with `capture: directory` puts part of the folder
+  name into `:$1:`. It is empty for click-to-save and automatic saves, which
+  pick no folder.
 - Added two rule template collections: **Site originals** rewrites Twitter/X,
   Reddit, Wikimedia, Bluesky, ArtStation, Mastodon, Google, and Flickr media to
   their original-quality URLs, and **Site filing** names saves after site

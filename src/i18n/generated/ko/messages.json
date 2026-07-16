@@ -1553,6 +1553,9 @@
   "html_matchesTheMenuIndexOfTheClickedMenuItem": {
     "message": "선택한 메뉴 항목의 색인(1, 2, 3…)과 일치합니다."
   },
+  "html_directoryMatcherDescription": {
+    "message": "Save In 메뉴에서 고른 폴더와 일치합니다. 폴더를 고르지 않는 저장에서는 비어 있습니다."
+  },
   "html_matchesTheNaiveFilename": {
     "message": "URL에서 파생된 파일 이름과 일치합니다."
   },

@@ -1963,6 +1963,9 @@
   "html_matchesTheMenuIndexOfTheClickedMenuItem": {
     "message": "Matchar det valda menyalternativets index (1, 2, 3...)."
   },
+  "html_directoryMatcherDescription": {
+    "message": "Matchar mappen du valde i Save In-menyn. Tom för sparningar som inte väljer någon mapp."
+  },
   "html_matchesTheNaiveFilename": {
     "message": "Matchar filnamnet som kommer från URL:en."
   },

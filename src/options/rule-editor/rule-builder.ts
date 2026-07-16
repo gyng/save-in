@@ -25,6 +25,7 @@ const MATCHER_PATTERN_PLACEHOLDERS: Record<string, string> = {
   actualfileext: "jpg|png",
   filename: "^invoice.*\\.pdf$",
   finalfilename: "^invoice.*\\.pdf$",
+  directory: "^photos/",
   frameurl: "example\\.com/embed",
   linktext: "download|save",
   mediatype: "image|video",

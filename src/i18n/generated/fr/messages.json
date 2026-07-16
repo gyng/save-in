@@ -1975,6 +1975,9 @@
   "html_matchesTheMenuIndexOfTheClickedMenuItem": {
     "message": "Correspond à l'index de l'élément de menu sélectionné (1, 2, 3…)."
   },
+  "html_directoryMatcherDescription": {
+    "message": "Correspond au dossier choisi dans le menu Save In. Vide pour les enregistrements sans choix de dossier."
+  },
   "html_matchesTheNaiveFilename": {
     "message": "Correspond au nom de fichier dérivé de l'URL."
   },

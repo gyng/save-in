@@ -1553,6 +1553,9 @@
   "html_matchesTheMenuIndexOfTheClickedMenuItem": {
     "message": "匹配所选菜单项的索引（1、2、3…）。"
   },
+  "html_directoryMatcherDescription": {
+    "message": "匹配你在 Save In 菜单中选择的文件夹。未选择文件夹的保存为空。"
+  },
   "html_matchesTheNaiveFilename": {
     "message": "匹配从 URL 派生的文件名。"
   },

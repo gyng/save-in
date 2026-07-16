@@ -1963,6 +1963,9 @@
   "html_matchesTheMenuIndexOfTheClickedMenuItem": {
     "message": "Entspricht dem Index des ausgewählten Menüelements (1, 2, 3…)."
   },
+  "html_directoryMatcherDescription": {
+    "message": "Passt auf den im Save In-Menü gewählten Ordner. Leer bei Speichervorgängen ohne Ordnerwahl."
+  },
   "html_matchesTheNaiveFilename": {
     "message": "Entspricht dem aus der URL abgeleiteten Dateinamen."
   },

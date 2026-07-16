@@ -307,6 +307,12 @@ export const matcherFunctions = {
     }),
   finalfilename: makeInfoMatcherFactory("resolvedFilename"),
   frameurl: makeInfoMatcherFactory("frameUrl"),
+  // The folder chosen from the Save In menu (#50). It is an input, not the
+  // routed output: menu-click sets menuItemPath before launchDownload, so a
+  // rule can match it without the two-pass problem that matching the final
+  // path would create. Empty for click-to-save and automatic saves, which
+  // choose no folder — those simply do not match.
+  directory: makeInfoMatcherFactory("menuItemPath"),
   linktext: makeInfoMatcherFactory("linkText"),
   mediatype: makeInfoMatcherFactory("mediaType"),
   mime: mimeMatcher,

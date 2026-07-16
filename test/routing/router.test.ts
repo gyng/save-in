@@ -741,6 +741,18 @@ describe("filename rewrite and routing", () => {
       expect(matcher(info)).toBe(null);
     });
 
+    // #50 wanted the folder they picked available to a rule. It is an input,
+    // not the routed output: menu-click sets menuItemPath before launchDownload,
+    // so matching it needs no second pass over a path it also produces.
+    test("directory", () => {
+      const matcher = router.matcherFunctions.directory(new RegExp("^dogs/"));
+      expect(expectMatch(matcher({ ...info, menuItemPath: "dogs/labrador" }))[0]!).toBe("dogs/");
+      expect(matcher({ ...info, menuItemPath: "cats/tabby" })).toBe(null);
+      // Click-to-save and automatic saves choose no folder, so a directory rule
+      // simply does not match rather than matching an empty string.
+      expect(matcher(info)).toBe(null);
+    });
+
     test("comment", () => {
       const matcher = router.matcherFunctions.comment(new RegExp("save"));
       expect(expectMatch(matcher(info, { comment: "save here" }))[0]!).toBe("save");
@@ -1004,10 +1016,29 @@ describe("filename rewrite and routing", () => {
       expect(() => router.getCaptureMatches(rules[0]!, { sourceUrl: "http://x/" })).not.toThrow();
     });
 
+    // #50's literal ask: "extract a portion of the directory name with a
+    // regular expression to add a prefix based on part of the path".
+    test("captures part of the chosen directory into the filename (#50)", () => {
+      const rules = router.parseRules(
+        "directory: ^dogs/(\\w+)\ncapture: directory\ninto: :$1:_:filename:",
+      );
+
+      // matchRules substitutes captures and leaves variables for applyVariables,
+      // so the folder name is already in place here while :filename: is not yet.
+      expect(router.matchRules(rules, { menuItemPath: "dogs/labrador" })).toBe(
+        "labrador_:filename:",
+      );
+      // A different folder takes a different branch, which is the whole ask:
+      // one prefix per directory rather than one global prefix.
+      expect(router.matchRules(rules, { menuItemPath: "dogs/beagle" })).toBe("beagle_:filename:");
+      expect(router.matchRules(rules, { menuItemPath: "cats/tabby" })).toBeNull();
+    });
+
     test.each([
       ["context", "context", "media"],
       ["menuindex", "menuIndex", "2"],
       ["comment", "comment", "save"],
+      ["directory", "menuItemPath", "dogs"],
     ])("captures %s metadata", (matcherName, infoName, value) => {
       const rules = router.parseRules(
         `${matcherName}: (${value})\ncapture: ${matcherName}\ninto: group/:$1:`,

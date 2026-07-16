@@ -47,6 +47,7 @@ const DEFAULT_MATCHERS = [
   "context",
   "menuindex",
   "comment",
+  "directory",
   "linktext",
   "selectiontext",
   "referrerurl",
