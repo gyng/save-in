@@ -33,7 +33,7 @@ describe("routing visual editor model", () => {
       editable: true,
       comment: "Images from the CDN",
       clauses: [
-        { name: "sourceurl", flags: "i", value: "cdn\\.example\\.com", line: 2 },
+        { name: "sourceurl", flags: "i", value: "cdn\\.example\\.com  ", line: 2 },
         { name: "into", flags: "", value: "images/:filename:", line: 3 },
       ],
     });
@@ -57,17 +57,20 @@ describe("routing visual editor model", () => {
     expect(setRoutingRuleEnabled(disabled, 0, true)).toBe(source);
   });
 
-  test("patches only a clause value and preserves surrounding bytes", () => {
+  test("patches the complete semantic value, including visible trailing whitespace", () => {
     expect(updateRoutingClause(source, 0, 0, { value: "assets\\.example\\.com" })).toBe(
       [
         "// Images from the CDN",
-        "  sourceurl/i: assets\\.example\\.com  ",
+        "  sourceurl/i: assets\\.example\\.com",
         "into: images/:filename:",
         "",
         "fileext: pdf",
         "capturegroups: fileext",
         "into: documents/:filename:",
       ].join("\n"),
+    );
+    expect(updateRoutingClause(source, 0, 0, { value: "assets\\.example\\.com  " })).toBe(
+      source.replace("cdn\\.example\\.com", "assets\\.example\\.com"),
     );
   });
 
@@ -297,13 +300,24 @@ describe("routing visual editor model", () => {
   test.each([
     "filename/x: jpg\ninto: images",
     "css/i: img\ninto: images",
-    "css: #escaped\\ \ninto: images",
     "disabled: maybe\nfilename: jpg\ninto: images",
     "disabled/i: false\nfilename: jpg\ninto: images",
+    "into/i: images\nfilename: jpg",
+    "filename/: jpg\ninto: images",
     "disabled: false\ndisabled: true\nfilename: jpg\ninto: images",
   ])("marks unsupported visual control syntax as read-only", (unsupported) => {
     expect(parseVisualRoutingRules(unsupported).rules[0]?.editable).toBe(false);
     expect(() => setRoutingRuleEnabled(unsupported, 0, false)).toThrow(/Text mode/);
+  });
+
+  test("keeps an escaped trailing CSS space visible and editable", () => {
+    const cssSource = "css: #escaped\\ \ninto: images";
+    const rule = parseVisualRoutingRules(cssSource).rules[0];
+    expect(rule?.editable).toBe(true);
+    expect(rule?.clauses[0]).toMatchObject({ name: "css", value: "#escaped\\ " });
+    expect(updateRoutingClause(cssSource, 0, 0, { value: "#other\\ " })).toBe(
+      "css: #other\\ \ninto: images",
+    );
   });
 
   test("updates an existing disabled control and removes a trailing control", () => {

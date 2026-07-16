@@ -7,7 +7,9 @@ test("Options uses the browser selector parser to reject invalid css matchers", 
   expect(cssSelectorErrors("css: [\ninto: files/")).toEqual([
     expect.objectContaining({ error: "[" }),
   ]);
-  expect(cssSelectorErrors("css: [\ninto: draft/\ndisabled: true")).toEqual([]);
+  expect(cssSelectorErrors("css: [\ninto: draft/\ndisabled: true")).toEqual([
+    expect.objectContaining({ error: "[" }),
+  ]);
   expect(cssSelectorErrors("css: [\ninto: files/\ndisabled: false")).toEqual([
     expect.objectContaining({ error: "[" }),
   ]);

@@ -11,6 +11,7 @@ import type {
   RoutingRule,
 } from "./rule-types.ts";
 import { isCssMatcherClause, isRegexMatcherClause } from "./rule-types.ts";
+import { isSafeRelativeDestination } from "./destination-safety.ts";
 
 export type EvaluatedMatcherClause = {
   clause: MatcherClause;
@@ -153,8 +154,12 @@ export const evaluateRule = (rule: RoutingRule, info: RoutingInfo): RuleEvaluati
   const captured = capture ? captureValues(capture) : null;
   const fetchClause = findFetchClause(rule);
   const renameClause = findRenameClause(rule);
+  const destination = substituteCaptures(destinationClause.value, captured);
+  if (!destination || !isSafeRelativeDestination(destination)) {
+    return { destination: false, fetch: false, rename: false, clauses };
+  }
   return {
-    destination: substituteCaptures(destinationClause.value, captured),
+    destination,
     fetch: fetchClause ? substituteCaptures(fetchClause.value, captured) : false,
     rename: renameClause
       ? {

@@ -20,6 +20,9 @@ import {
 import { automaticRuleClauseIssues, isAutomaticRuleClauses } from "./automatic-rule.ts";
 import { findBannedFetchVariables, findUnknownPathVariables } from "./path-variables.ts";
 import { RENAME_SEPARATOR, splitRenameValue } from "./rename.ts";
+import { isSafeRoutingRegex } from "./regex-safety.ts";
+import { isUsableFetchTemplate } from "./fetch-url.ts";
+import { invalidDestinationRange } from "./destination-safety.ts";
 
 const errorLocation = (span: SourceSpan): RuleErrorLocation => ({
   start: span.start.offset,
@@ -79,10 +82,18 @@ const captureGroupCount = (regex: RegExp): number => {
   return groups;
 };
 
-const isPlainMatchAll = (regex: RegExp): boolean => /^(?:\.\*|\^\.\*\$)$/.test(regex.source);
+const isPlainMatchAll = (regex: RegExp): boolean =>
+  /^(?:\(\?:\)|\.\*|\^\.\*\$)$/.test(regex.source);
+
+const clauseAcceptsRegexFlags = (line: RoutingRuleNode["clauses"][number]): boolean =>
+  line.name === "rename" ||
+  !["capture", "capturegroups", "css", "disabled", "fetch", "into"].includes(line.name);
 
 const ruleHasFetchClause = (rule: readonly RuleClause[]): boolean =>
   rule.some((clause) => clause.type === RULE_TYPES.FETCH);
+const issueFallsWithinRule = (issue: RuleSyntaxIssue, rule: RoutingRuleNode): boolean =>
+  issue.span.start.offset >= rule.span.start.offset &&
+  issue.span.end.offset <= rule.span.end.offset;
 
 const isMatcherName = (name: string): name is keyof typeof matcherFunctions =>
   Object.hasOwn(matcherFunctions, name);
@@ -99,6 +110,30 @@ const parseSemanticRule = (
   rule: RoutingRuleNode,
   errors: RuleError[] = [],
 ): RoutingRule | false => {
+  let invalidFlags = false;
+  rule.clauses.forEach((line) => {
+    if (line.flagsSpan === null) return;
+    if (!line.flags) {
+      appendError(
+        errors,
+        routingPorts.getMessage("ruleInvalidRegex"),
+        "empty regular-expression flags after /",
+        line.flagsSpan,
+      );
+      invalidFlags = true;
+      return;
+    }
+    if (!clauseAcceptsRegexFlags(line)) {
+      const message =
+        line.name === "css"
+          ? routingPorts.getMessage("ruleCssFlags")
+          : routingPorts.getMessage("ruleClauseFlags");
+      appendError(errors, message, `${line.name}/${line.flags}:`, line.flagsSpan);
+      invalidFlags = true;
+    }
+  });
+  if (invalidFlags) return false;
+
   const controls = rule.clauses.filter((line) => line.name === "disabled");
   if (controls.length > 1) {
     const duplicateControl = controls[1];
@@ -113,6 +148,7 @@ const parseSemanticRule = (
     return false;
   }
   const control = controls[0];
+  let disabled = false;
   if (control) {
     const value = control.value.trim().toLowerCase();
     if (value !== "true" && value !== "false") {
@@ -124,7 +160,7 @@ const parseSemanticRule = (
       );
       return false;
     }
-    if (value === "true") return false;
+    disabled = value === "true";
   }
   const lines = rule.clauses.filter((line) => line.name !== "disabled");
   const cssLines = lines.filter((line) => line.name === "css");
@@ -190,6 +226,15 @@ const parseSemanticRule = (
         );
         return false;
       }
+      if (!isSafeRoutingRegex(find)) {
+        appendError(
+          errors,
+          routingPorts.getMessage("ruleUnsafeRegex"),
+          parts.find,
+          spanWithin(line.valueSpan, 0, parts.find.length),
+          true,
+        );
+      }
       return {
         name,
         value: rawValue,
@@ -201,16 +246,6 @@ const parseSemanticRule = (
 
     if (name === "css") {
       const selector = rawValue;
-      if (flags) {
-        appendError(
-          errors,
-          routingPorts.getMessage("ruleCssFlags"),
-          `css/${flags}:`,
-          // The syntax parser creates the span together with non-empty flags.
-          line.flagsSpan as SourceSpan,
-        );
-        return false;
-      }
       if (!selector.trim() || selector.length > MAX_CSS_SELECTOR_LENGTH) {
         appendError(
           errors,
@@ -246,6 +281,32 @@ const parseSemanticRule = (
       appendError(errors, routingPorts.getMessage("ruleUnknownMatcher"), `${name}:`, line.nameSpan);
       return false;
     }
+    if (rawValue === "") {
+      appendError(
+        errors,
+        routingPorts.getMessage("ruleEmptyMatcher"),
+        `${name}:`,
+        line.valueSpan,
+        true,
+      );
+    } else if (rawValue !== rawValue.trim()) {
+      appendError(
+        errors,
+        routingPorts.getMessage("ruleSuspiciousWhitespace"),
+        rawValue,
+        line.valueSpan,
+        true,
+      );
+    }
+    if (!isSafeRoutingRegex(value)) {
+      appendError(
+        errors,
+        routingPorts.getMessage("ruleUnsafeRegex"),
+        rawValue,
+        line.valueSpan,
+        true,
+      );
+    }
     return { name, value, type: RULE_TYPES.MATCHER, matcher: factory(value) };
   });
   const valid = clauses.filter((clause): clause is RuleClause => clause !== false);
@@ -260,6 +321,23 @@ const parseSemanticRule = (
       routingPorts.getMessage("ruleMissingInto"),
       destination ? destination.value : "",
       destinationNode?.valueSpan ?? rule.span,
+    );
+    return false;
+  }
+  const relativePrefixLength = destinationNode.value.startsWith("./") ? 2 : 0;
+  const invalidDestination = invalidDestinationRange(
+    destinationNode.value.slice(relativePrefixLength),
+  );
+  if (invalidDestination) {
+    appendError(
+      errors,
+      routingPorts.getMessage("ruleDestinationMustBeRelative"),
+      destinationNode.value,
+      spanWithin(
+        destinationNode.valueSpan,
+        relativePrefixLength + invalidDestination.start,
+        invalidDestination.length,
+      ),
     );
     return false;
   }
@@ -294,7 +372,7 @@ const parseSemanticRule = (
   if (fetchClause && fetchNode) {
     // The scheme and authority marker must be literal so no expansion can
     // reintroduce data:, javascript:, or file: requests at runtime.
-    if (!/^https?:\/\//.test(fetchClause.value)) {
+    if (!isUsableFetchTemplate(fetchClause.value)) {
       appendError(
         errors,
         routingPorts.getMessage("ruleFetchNotHttp"),
@@ -327,13 +405,15 @@ const parseSemanticRule = (
     if (
       fetchClause.value.match(/:\$\d+:/) &&
       !valid.some((clause) => clause.type === RULE_TYPES.CAPTURE)
-    )
+    ) {
       appendError(
         errors,
         routingPorts.getMessage("ruleMissingCapture"),
         fetchClause.value,
         fetchNode.valueSpan,
       );
+      return false;
+    }
   }
   const renameClauses = valid.filter((clause) => clause.type === RULE_TYPES.RENAME);
   const renameNodes = lines.filter((line) => line.name === "rename");
@@ -375,24 +455,28 @@ const parseSemanticRule = (
     if (
       renameClause.replacement.match(/:\$\d+:/) &&
       !valid.some((clause) => clause.type === RULE_TYPES.CAPTURE)
-    )
+    ) {
       appendError(
         errors,
         routingPorts.getMessage("ruleMissingCapture"),
         renameClause.value,
         renameNode.valueSpan,
       );
+      return false;
+    }
   }
   if (
     destination.value.match(/:\$\d+:/) &&
     !valid.some((clause) => clause.type === RULE_TYPES.CAPTURE)
-  )
+  ) {
     appendError(
       errors,
       routingPorts.getMessage("ruleMissingCapture"),
       destination.value,
       destinationNode.valueSpan,
     );
+    return false;
+  }
   if (!valid.some((clause) => clause.type === RULE_TYPES.MATCHER)) {
     appendError(
       errors,
@@ -514,7 +598,7 @@ const parseSemanticRule = (
   }
   // Fatal whole-rule cardinality and capture-target invariants cannot be
   // expressed by the clause union; issue the parser brand only after checking them.
-  return valid as RoutingRule;
+  return disabled ? false : (valid as RoutingRule);
 };
 
 export const parseRulesCollecting = (
@@ -524,7 +608,12 @@ export const parseRulesCollecting = (
   const errors: RuleError[] = [];
   appendSyntaxErrors(syntax.issues, errors);
   const parsedRules = syntax.ast.rules
-    .map((ast) => ({ ast, rule: parseSemanticRule(ast, errors) }))
+    .map((ast) => ({
+      ast,
+      rule: syntax.issues.some((issue) => issueFallsWithinRule(issue, ast))
+        ? false
+        : parseSemanticRule(ast, errors),
+    }))
     .filter((entry): entry is { ast: RoutingRuleNode; rule: RoutingRule } => Boolean(entry.rule));
   const rules = parsedRules.map((entry) => entry.rule);
   const cssNodes = parsedRules.flatMap(({ ast }) =>

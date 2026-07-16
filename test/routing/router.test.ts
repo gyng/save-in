@@ -338,10 +338,8 @@ describe("filename rewrite and routing", () => {
     });
 
     test("capture references in fetch mirror the destination rules", () => {
-      // Without a capture clause the reference is reported but, matching
-      // into:'s historical behavior, the rule stays active.
       const uncaptured = router.parseRules("filename: (a)\nfetch: https://x.example/:$1:\ninto: x");
-      expect(uncaptured).toHaveLength(1);
+      expect(uncaptured).toEqual([]);
       expect(diagnostics.filenamePatterns.at(-1)?.message).toBe("ruleMissingCapture");
 
       // An out-of-range index is fatal.
@@ -492,10 +490,8 @@ describe("filename rewrite and routing", () => {
     });
 
     test("capture references in the replacement mirror the destination rules", () => {
-      // Without a capture clause the reference is reported but, matching
-      // into:'s historical behavior, the rule stays active.
       const uncaptured = router.parseRules("filename: (a)\nrename: a -> :$1:\ninto: x");
-      expect(uncaptured).toHaveLength(1);
+      expect(uncaptured).toEqual([]);
       expect(diagnostics.filenamePatterns.at(-1)?.message).toBe("ruleMissingCapture");
 
       // An out-of-range index is fatal.
@@ -802,7 +798,7 @@ describe("filename rewrite and routing", () => {
 
     test("a capture destination without a capture clause is invalid", () => {
       const rules = router.parseRules("sourceurl: (dog)\ninto: cat:$1:");
-      expect(rules.length).toBe(1);
+      expect(rules.length).toBe(0);
       expect(diagnostics.filenamePatterns[0]).not.toHaveProperty("warning");
       expect(diagnostics.filenamePatterns[0]!.error).toBe("cat:$1:");
     });
@@ -994,10 +990,10 @@ into: captures/:$1:/:$2:`,
       expect(trace.rules[0]!.fetch).toBe("https://mirror.example/:pagedomain:/orig.png");
     });
 
-    test("drops an unusable fetch expansion exactly like the pipeline", async () => {
+    test("fails closed on an unusable fetch expansion exactly like the pipeline", async () => {
       // An empty capture collapses the authority: "https:///orig.png" would
       // WHATWG-parse with host "orig.png", so the rewrite must be dropped and
-      // the destination must expand against the original URL.
+      // the route must not label the original preview as the rewritten asset.
       const rules = router.parseRules(
         "sourceurl: ^https://cdn\\.example/(z?)small\\.png$\ncapturegroups: sourceurl\nfetch: https://:$1:/orig.png\ninto: mirrored/:naivefilename:",
       );
@@ -1011,7 +1007,8 @@ into: captures/:$1:/:$2:`,
           selectedRule: 1,
           selectedFetchTemplate: "https:///orig.png",
           rewrittenUrl: null,
-          expandedDestination: "mirrored/small.png",
+          expandedDestination: null,
+          finalPath: null,
         }),
       );
     });

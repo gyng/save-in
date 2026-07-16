@@ -3753,7 +3753,7 @@
     "message": "작은 미리보기 대신 원본 해상도 이미지를 다운로드합니다."
   },
   "html_fetchClauseCompatibility": {
-    "message": "일반 브라우저 다운로드 라우팅에서는 건너뜁니다. 이 라우팅은 이름만 바꿀 수 있고 URL은 바꿀 수 없습니다. 메뉴, 클릭하여 저장, 자동 저장에서는 계속 사용됩니다."
+    "message": "일반 브라우저 다운로드 라우팅에서는 건너뜁니다. 이 라우팅은 이름만 바꿀 수 있고 URL은 바꿀 수 없습니다. 메뉴, 클릭하여 저장, 자동 저장에서는 계속 사용되지만 확장 결과가 사용 가능한 HTTP(S) URL이 아니면 저장에 실패합니다."
   },
   "html_orLiteral": {
     "message": "또는"
@@ -3864,7 +3864,7 @@
     "message": "규칙에는 fetch: 절이 하나만 포함될 수 있습니다."
   },
   "ruleFetchNotHttp": {
-    "message": "fetch: 주소는 http:// 또는 https://로 시작해야 합니다"
+    "message": "fetch: 주소는 사용 가능한 http:// 또는 https:// URL이어야 합니다"
   },
   "ruleFetchUnsupportedVariable": {
     "message": "fetch: 주소에서는 이 변수가 지원되지 않습니다"
@@ -3897,7 +3897,7 @@
     "message": ". 대체 텍스트가 비어 있으면 일치 부분을 삭제하며, 대체 텍스트에서는 라우팅 변수와 다음과 같은 캡처 참조가 확장됩니다:"
   },
   "html_renameClauseCompatibility": {
-    "message": "파일 이름이 완전히 결정된 후(fetch: 재작성 포함), 길이 제한 전에 적용됩니다. 폴더에는 영향을 주지 않습니다. 기록된 일반 브라우저 다운로드의 이름도 바꿉니다. 패턴에 리터럴 ' -> '를 쓰려면 공백을 이스케이프하세요(\\x20->)."
+    "message": "파일 이름이 완전히 결정된 후(fetch: 재작성 포함), 길이 제한 전에 적용됩니다. 폴더에는 영향을 주지 않습니다. 기록된 일반 브라우저 다운로드에서는 대체 내용에 콘텐츠 해시가 필요하지 않을 때만 사용됩니다. 패턴에 리터럴 ' -> '를 쓰려면 공백을 이스케이프하세요(\\x20->)."
   },
   "html_advancedRenameTheSavedFile": {
     "message": "고급: 저장되는 파일 이름 바꾸기"
@@ -3972,5 +3972,12 @@
     "message": "css: 매처는 정규식 대신 CSS 선택자 구문을 사용하며 플래그를 허용하지 않습니다."
   },
   "ruleInvalidCssSelector": { "message": "잘못된 CSS 선택자" },
-  "ruleCssFlags": { "message": "css:에는 정규식 플래그를 사용할 수 없습니다" }
+  "ruleCssFlags": { "message": "css:에는 정규식 플래그를 사용할 수 없습니다" },
+  "ruleClauseFlags": { "message": "이 절에는 정규식 플래그를 사용할 수 없습니다" },
+  "ruleEmptyMatcher": { "message": "빈 조건은 모두 일치합니다. .*를 명시적으로 입력하세요" },
+  "ruleSuspiciousWhitespace": { "message": "패턴의 시작이나 끝에 공백이 있습니다" },
+  "ruleUnsafeRegex": { "message": "입력이 길면 패턴 처리에 너무 오래 걸릴 수 있습니다" },
+  "ruleDestinationMustBeRelative": {
+    "message": "대상은 상대 경로여야 하며 .. 경로 구성 요소를 포함할 수 없습니다"
+  }
 }

@@ -8,9 +8,17 @@ export type UnknownPathVariable = {
 
 const knownPathVariables = new Set<string>(Object.values(SPECIAL_DIRS));
 
+const isInsideBracketedHost = (value: string, index: number): boolean =>
+  value.lastIndexOf("[", index) > value.lastIndexOf("]", index);
+
 export const findUnknownPathVariables = (path: string): UnknownPathVariable[] =>
-  [...path.matchAll(/:[A-Za-z][A-Za-z0-9_]*:/g)]
-    .filter((match) => !knownPathVariables.has(match[0]))
+  [...path.matchAll(/:[A-Za-z$][A-Za-z0-9_$-]*(?::|(?=[/\\]|$))/g)]
+    .filter(
+      (match) =>
+        !isInsideBracketedHost(path, match.index) &&
+        !knownPathVariables.has(match[0]) &&
+        !/^:\$\d+:$/.test(match[0]),
+    )
     .map((match) => ({
       value: match[0],
       start: match.index,

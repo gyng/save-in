@@ -3753,7 +3753,7 @@
     "message": "Baixa a imagem na resolução original em vez da pequena prévia."
   },
   "html_fetchClauseCompatibility": {
-    "message": "Ignorada pelo roteamento comum de downloads do navegador, que só pode renomear, não trocar URLs. Menu, clique para salvar e salvamentos automáticos continuam usando-a."
+    "message": "Ignorada pelo roteamento comum de downloads do navegador, que só pode renomear, não trocar URLs. Menu, clique para salvar e salvamentos automáticos continuam usando-a; o salvamento falha se a expansão não produzir uma URL HTTP(S) utilizável."
   },
   "html_orLiteral": {
     "message": "ou"
@@ -3864,7 +3864,7 @@
     "message": "Uma regra pode conter apenas uma cláusula fetch:"
   },
   "ruleFetchNotHttp": {
-    "message": "O endereço de fetch: deve começar com http:// ou https://"
+    "message": "O endereço de fetch: deve ser uma URL http:// ou https:// utilizável"
   },
   "ruleFetchUnsupportedVariable": {
     "message": "A variável não é compatível em um endereço fetch:"
@@ -3897,7 +3897,7 @@
     "message": "; uma substituição vazia exclui as correspondências, e a substituição expande variáveis de roteamento e referências de captura como"
   },
   "html_renameClauseCompatibility": {
-    "message": "Aplica-se depois que o nome de arquivo é totalmente resolvido (incluindo reescritas de fetch:) e antes dos limites de comprimento — as pastas nunca são afetadas. Também renomeia downloads comuns do navegador registrados. Escreva um ' -> ' literal no padrão com um espaço com escape (\\x20->)."
+    "message": "Aplica-se depois que o nome de arquivo é totalmente resolvido (incluindo reescritas de fetch:) e antes dos limites de comprimento — as pastas nunca são afetadas. Downloads comuns do navegador registrados só a usam quando a substituição não precisa de hash de conteúdo. Escreva um ' -> ' literal no padrão com um espaço com escape (\\x20->)."
   },
   "html_advancedRenameTheSavedFile": {
     "message": "Avançado: renomear o arquivo salvo"
@@ -3978,5 +3978,14 @@
   "ruleInvalidCssSelector": { "message": "Seletor CSS inválido" },
   "ruleCssFlags": {
     "message": "css: não aceita sinalizadores de expressão regular"
+  },
+  "ruleClauseFlags": { "message": "Esta cláusula não aceita sinalizadores de expressão regular" },
+  "ruleEmptyMatcher": {
+    "message": "Uma condição vazia corresponde a tudo; escreva .* explicitamente"
+  },
+  "ruleSuspiciousWhitespace": { "message": "O padrão começa ou termina com espaço em branco" },
+  "ruleUnsafeRegex": { "message": "O padrão pode demorar demais com entradas longas" },
+  "ruleDestinationMustBeRelative": {
+    "message": "O destino deve ser relativo e não pode conter componentes de caminho .."
   }
 }

@@ -3753,7 +3753,7 @@
     "message": "Lädt das Bild in Originalauflösung anstelle der kleinen Vorschau herunter."
   },
   "html_fetchClauseCompatibility": {
-    "message": "Wird von der gewöhnlichen Browser-Download-Weiterleitung übersprungen, die URLs nur umbenennen, aber nicht austauschen kann. Menü, Speichern per Klick und automatisches Speichern verwenden sie weiterhin."
+    "message": "Wird von der gewöhnlichen Browser-Download-Weiterleitung übersprungen, die URLs nur umbenennen, aber nicht austauschen kann. Menü, Speichern per Klick und automatisches Speichern verwenden sie weiterhin; die Speicherung schlägt fehl, wenn die Erweiterung keine verwendbare HTTP(S)-URL ergibt."
   },
   "html_orLiteral": {
     "message": "oder"
@@ -3864,7 +3864,7 @@
     "message": "Eine Regel kann nur eine fetch:-Klausel enthalten"
   },
   "ruleFetchNotHttp": {
-    "message": "fetch:-Adresse muss mit http:// oder https:// beginnen"
+    "message": "fetch:-Adresse muss eine verwendbare http://- oder https://-URL sein"
   },
   "ruleFetchUnsupportedVariable": {
     "message": "Variable wird in einer fetch:-Adresse nicht unterstützt"
@@ -3897,7 +3897,7 @@
     "message": "; eine leere Ersetzung löscht Treffer, und in der Ersetzung werden Routing-Variablen und Capture-Verweise expandiert wie"
   },
   "html_renameClauseCompatibility": {
-    "message": "Gilt, nachdem der Dateiname vollständig aufgelöst ist (einschließlich fetch:-Umschreibungen) und vor Längenbegrenzungen — Ordner bleiben unberührt. Auch erfasste gewöhnliche Browser-Downloads werden damit umbenannt. Ein literales ' -> ' im Muster mit einem maskierten Leerzeichen schreiben (\\x20->)."
+    "message": "Gilt, nachdem der Dateiname vollständig aufgelöst ist (einschließlich fetch:-Umschreibungen) und vor Längenbegrenzungen — Ordner bleiben unberührt. Erfasste gewöhnliche Browser-Downloads verwenden dies nur, wenn der Ersatz keinen Inhalts-Hash benötigt. Ein literales ' -> ' im Muster mit einem maskierten Leerzeichen schreiben (\\x20->)."
   },
   "html_advancedRenameTheSavedFile": {
     "message": "Erweitert: die gespeicherte Datei umbenennen"
@@ -3980,5 +3980,14 @@
   "ruleInvalidCssSelector": { "message": "Ungültiger CSS-Selektor" },
   "ruleCssFlags": {
     "message": "css: akzeptiert keine Flags für reguläre Ausdrücke"
+  },
+  "ruleClauseFlags": { "message": "Diese Klausel akzeptiert keine Flags für reguläre Ausdrücke" },
+  "ruleEmptyMatcher": {
+    "message": "Eine leere Bedingung trifft auf alles zu; schreiben Sie .* ausdrücklich"
+  },
+  "ruleSuspiciousWhitespace": { "message": "Das Muster beginnt oder endet mit Leerraum" },
+  "ruleUnsafeRegex": { "message": "Das Muster kann bei langen Eingaben zu lange dauern" },
+  "ruleDestinationMustBeRelative": {
+    "message": "Das Ziel muss relativ sein und darf keine ..-Pfadbestandteile enthalten"
   }
 }

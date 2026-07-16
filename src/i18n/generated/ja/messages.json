@@ -3753,7 +3753,7 @@
     "message": "小さいプレビューではなく、元の解像度の画像をダウンロードします。"
   },
   "html_fetchClauseCompatibility": {
-    "message": "通常のブラウザーダウンロードのルーティングではスキップされます。名前の変更はできますが、URLの置き換えはできません。メニュー、クリックして保存、自動保存では引き続き使用されます。"
+    "message": "通常のブラウザーダウンロードのルーティングではスキップされます。名前の変更はできますが、URLの置き換えはできません。メニュー、クリックして保存、自動保存では引き続き使用されますが、展開後に使用可能な HTTP(S) URL にならない場合は保存に失敗します。"
   },
   "html_orLiteral": {
     "message": "または"
@@ -3864,7 +3864,7 @@
     "message": "ルールには fetch: 句を 1 つだけ含めることができます"
   },
   "ruleFetchNotHttp": {
-    "message": "fetch: のアドレスは http:// または https:// で始める必要があります"
+    "message": "fetch: のアドレスは使用可能な http:// または https:// URL にしてください"
   },
   "ruleFetchUnsupportedVariable": {
     "message": "fetch: のアドレスではこの変数はサポートされていません"
@@ -3897,7 +3897,7 @@
     "message": "。置換テキストが空の場合は一致部分を削除します。置換テキストではルーティング変数や次のようなキャプチャ参照が展開されます:"
   },
   "html_renameClauseCompatibility": {
-    "message": "ファイル名が完全に解決された後（fetch: の書き換えを含む）、長さ制限の前に適用されます。フォルダーには影響しません。記録された通常のブラウザーダウンロードの名前も変更します。パターン内でリテラルの ' -> ' を使うには、スペースをエスケープして書きます (\\x20->)。"
+    "message": "ファイル名が完全に解決された後（fetch: の書き換えを含む）、長さ制限の前に適用されます。フォルダーには影響しません。記録された通常のブラウザーダウンロードでは、置換にコンテンツハッシュが不要な場合にだけ使用されます。パターン内でリテラルの ' -> ' を使うには、スペースをエスケープして書きます (\\x20->)。"
   },
   "html_advancedRenameTheSavedFile": {
     "message": "詳細: 保存するファイルの名前を変更する"
@@ -3978,5 +3978,14 @@
     "message": "css: マッチャーは正規表現ではなく CSS セレクター構文を使用し、フラグは指定できません。"
   },
   "ruleInvalidCssSelector": { "message": "CSS セレクターが無効です" },
-  "ruleCssFlags": { "message": "css: には正規表現フラグを指定できません" }
+  "ruleCssFlags": { "message": "css: には正規表現フラグを指定できません" },
+  "ruleClauseFlags": { "message": "この句には正規表現フラグを指定できません" },
+  "ruleEmptyMatcher": { "message": "空の条件はすべてに一致します。.* を明示的に記述してください" },
+  "ruleSuspiciousWhitespace": { "message": "パターンの先頭または末尾に空白があります" },
+  "ruleUnsafeRegex": {
+    "message": "長い入力ではパターンの処理に時間がかかりすぎる可能性があります"
+  },
+  "ruleDestinationMustBeRelative": {
+    "message": "保存先は相対パスにし、.. パス要素を含めないでください"
+  }
 }

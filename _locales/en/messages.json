@@ -143,7 +143,7 @@
   },
   "ruleMissingCapture": {
     "message": "Capture reference has no matching capture group",
-    "description": "Error message for a :$n: capture reference in a rule's into: or fetch: clause without a matching capture group. Used in src/routing/rule-parser.ts."
+    "description": "Error message for a :$n: capture reference in a rule's into:, fetch:, or rename: clause without a matching capture group. Used in src/routing/rule-parser.ts."
   },
   "ruleMultipleCapture": {
     "message": "A rule can contain only one capture clause",
@@ -162,8 +162,8 @@
     "description": "Error message for multiple fetch clauses in a rule. Used in src/routing/rule-parser.ts."
   },
   "ruleFetchNotHttp": {
-    "message": "fetch: address must start with http:// or https://",
-    "description": "Error message when a fetch clause value is not an http(s) URL. Used in src/routing/rule-parser.ts."
+    "message": "fetch: address must be a usable http:// or https:// URL",
+    "description": "Error message when a fetch clause value is not a structurally usable http(s) URL template. Used in src/routing/rule-parser.ts."
   },
   "ruleFetchUnsupportedVariable": {
     "message": "Variable is not supported in a fetch: address",
@@ -196,6 +196,26 @@
   "ruleCssFlags": {
     "message": "css: does not accept regular-expression flags",
     "description": "Validation error when a css: routing matcher has flags such as /i. Used in src/routing/rule-parser.ts."
+  },
+  "ruleClauseFlags": {
+    "message": "This clause does not accept regular-expression flags",
+    "description": "Validation error when a non-regex routing clause has a flags suffix. Used in src/routing/rule-parser.ts."
+  },
+  "ruleEmptyMatcher": {
+    "message": "Empty condition matches everything; write .* explicitly",
+    "description": "Warning when a routing matcher has an empty regular-expression value. Keep the literal .* token. Used in src/routing/rule-parser.ts."
+  },
+  "ruleSuspiciousWhitespace": {
+    "message": "Pattern starts or ends with whitespace",
+    "description": "Warning when a routing regular expression has leading or trailing whitespace that may be accidental. Used in src/routing/rule-parser.ts."
+  },
+  "ruleUnsafeRegex": {
+    "message": "Pattern may take too long on long input",
+    "description": "Warning for a routing regular expression with a potentially expensive structure. Used in src/routing/rule-parser.ts."
+  },
+  "ruleDestinationMustBeRelative": {
+    "message": "Destination must be relative and cannot contain .. path components",
+    "description": "Validation error for an absolute routing destination or one containing parent-directory components. Keep the literal .. token. Used in src/routing/rule-parser.ts."
   },
   "ruleShadowed": {
     "message": "Earlier rule already matches every download this rule can match",
@@ -968,7 +988,7 @@
     "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_fetchClauseCompatibility": {
-    "message": "Skipped by ordinary browser-download routing, which can only rename—not swap URLs. Menu, click-to-save, and automatic saves still use it.",
+    "message": "Skipped by ordinary browser-download routing, which can only rename—not swap URLs. Menu, click-to-save, and automatic saves still use it; the save fails if expansion does not produce a usable HTTP(S) URL.",
     "description": "Compatibility guidance in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_renameReplacesMatchesInTheFinalFilename": {
@@ -980,7 +1000,7 @@
     "description": "Continuation of the rename: clause description; a code sample of :$1: follows. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_renameClauseCompatibility": {
-    "message": "Applies after the filename fully resolves (including fetch: rewrites) and before length limits — folders are never affected. It also renames tracked ordinary browser downloads. Write a literal ' -> ' in the pattern with an escaped space (\\x20->).",
+    "message": "Applies after the filename fully resolves (including fetch: rewrites) and before length limits — folders are never affected. Tracked ordinary browser downloads use it only when the replacement needs no content hash. Write a literal ' -> ' in the pattern with an escaped space (\\x20->).",
     "description": "Compatibility guidance for the rename: clause in the routing-clause reference. Keep the literal tokens fetch:, ' -> ', and \\x20-> unchanged. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_stringsAddJavascriptRegexFlagsAfterTheMatcherName": {

@@ -1,4 +1,8 @@
-import { expandFetchUrl, isUsableFetchRewrite } from "../../src/routing/fetch-url.ts";
+import {
+  expandFetchUrl,
+  isUsableFetchRewrite,
+  isUsableFetchTemplate,
+} from "../../src/routing/fetch-url.ts";
 
 test("substitutes variables verbatim without path sanitization", async () => {
   const now = new Date(2026, 6, 15, 9, 30, 5);
@@ -93,4 +97,12 @@ test("rejects a backslash the parser folds into an authority slash", () => {
   expect(isUsableFetchRewrite("https://mirror.example\\@evil.example/x")).toBe(false);
   // A percent-encoded backslash is a normal path character and stays usable.
   expect(isUsableFetchRewrite("https://mirror.example/a%5Cb.png")).toBe(true);
+});
+
+test("validates fetch templates with placeholders in structural URL positions", () => {
+  expect(isUsableFetchTemplate("https://:$1:/:filename:")).toBe(true);
+  expect(isUsableFetchTemplate("https://example.test::$1:/file")).toBe(true);
+  expect(isUsableFetchTemplate("https://[2001:db8::1]/file")).toBe(true);
+  expect(isUsableFetchTemplate("https:///file")).toBe(false);
+  expect(isUsableFetchTemplate("https://example.test:bad/file")).toBe(false);
 });

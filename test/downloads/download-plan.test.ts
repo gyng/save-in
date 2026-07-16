@@ -203,20 +203,16 @@ describe("fetch rewrite", () => {
     expect(plan?.finalFullPath).toBe("downloads/routed");
   });
 
-  test("keeps the original URL when the expanded address is not HTTP(S)", async () => {
+  test("fails the plan when the expanded fetch address is not usable HTTP(S)", async () => {
     fetchMatch("routed", "https://:$1:/x");
     const state = makeState();
 
     const plan = await Download.resolveDownloadPlan(state);
 
     expect(state.info.url).toBe("https://example.com/dir/file.png");
-    // Both templates persist even when the rewrite is dropped: Chrome's late
-    // filename resolution skips fetch rules, so it must re-expand this rule's
-    // destination instead of re-matching and losing the route.
     expect(state.scratch.routeTemplateRaw).toBe("routed");
     expect(state.scratch.fetchTemplateRaw).toBe("https://:$1:/x");
-    // The rule still routes; only the rewrite is dropped.
-    expect(plan?.finalFullPath).toBe("downloads/routed");
+    expect(plan).toBeNull();
     // The skip is logged with the expanded address so a stray character is
     // diagnosable, not just the unexpanded template.
     expect(Log.addLogEntry).toHaveBeenCalledWith(
@@ -231,10 +227,11 @@ describe("fetch rewrite", () => {
     fetchMatch("routed", "https://\t/orig.png");
     const state = makeState();
 
-    await Download.resolveDownloadPlan(state);
+    const plan = await Download.resolveDownloadPlan(state);
 
     expect(state.info.url).toBe("https://example.com/dir/file.png");
     expect(state.info.naiveFilename).not.toBe("orig.png");
+    expect(plan).toBeNull();
   });
 
   test("rejects an expansion whose authority collapsed into a path segment", async () => {
@@ -243,10 +240,11 @@ describe("fetch rewrite", () => {
     fetchMatch("routed", "https:///orig.png");
     const state = makeState();
 
-    await Download.resolveDownloadPlan(state);
+    const plan = await Download.resolveDownloadPlan(state);
 
     expect(state.info.url).toBe("https://example.com/dir/file.png");
     expect(state.info.naiveFilename).not.toBe("orig.png");
+    expect(plan).toBeNull();
   });
 
   test("moves Chrome's pending state to the rewritten URL", async () => {

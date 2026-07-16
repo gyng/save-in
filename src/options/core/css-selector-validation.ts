@@ -7,29 +7,25 @@ export const cssSelectorErrors = (
   root: Element = document.documentElement,
 ): RuleError[] =>
   parseRoutingRuleAst(source).ast.rules.flatMap((rule) =>
-    rule.clauses.some(
-      (clause) => clause.name === "disabled" && clause.value.trim().toLowerCase() === "true",
-    )
-      ? []
-      : rule.clauses.flatMap((clause) => {
-          if (clause.name !== "css") return [];
-          const selector = clause.value;
-          try {
-            root.matches(selector);
-            return [];
-          } catch {
-            return [
-              {
-                message: getMessage("ruleInvalidCssSelector") || "Invalid CSS selector",
-                error: selector,
-                location: {
-                  start: clause.valueSpan.start.offset,
-                  end: clause.valueSpan.end.offset,
-                  line: clause.valueSpan.start.line,
-                  column: clause.valueSpan.start.column,
-                },
-              },
-            ];
-          }
-        }),
+    rule.clauses.flatMap((clause) => {
+      if (clause.name !== "css") return [];
+      const selector = clause.value;
+      try {
+        root.matches(selector);
+        return [];
+      } catch {
+        return [
+          {
+            message: getMessage("ruleInvalidCssSelector") || "Invalid CSS selector",
+            error: selector,
+            location: {
+              start: clause.valueSpan.start.offset,
+              end: clause.valueSpan.end.offset,
+              line: clause.valueSpan.start.line,
+              column: clause.valueSpan.start.column,
+            },
+          },
+        ];
+      }
+    }),
   );

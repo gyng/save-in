@@ -1,6 +1,7 @@
 import { RULE_TYPES } from "../shared/constants.ts";
 import { isStringKeyedRecord } from "../shared/util.ts";
 import type { RoutingRule } from "../routing/rule-types.ts";
+import { isSafeRoutingRegex } from "../routing/regex-safety.ts";
 
 const MAX_RULE_CHARACTERS = 32_768;
 const MAX_PATH_CHARACTERS = 32_768;
@@ -8,7 +9,6 @@ const MAX_SAMPLE_FIELD_CHARACTERS = 4_096;
 const MAX_URL_CHARACTERS = 8_192;
 const MAX_FILENAME_CHARACTERS = 1_024;
 const MAX_TOTAL_CHARACTERS = 65_536;
-const MAX_REGEX_CHARACTERS = 1_024;
 
 type ExternalValidationBody = {
   paths?: string | undefined;
@@ -98,89 +98,21 @@ export const externalValidationRequestError = (
     : null;
 };
 
-const repeatingQuantifierAt = (source: string, index: number): boolean => {
-  const token = source[index];
-  if (token === "*" || token === "+") return true;
-  if (token !== "{") return false;
-  const end = source.indexOf("}", index + 1);
-  if (end < 0) return false;
-  const bounds = source.slice(index + 1, end).split(",");
-  if (bounds.length === 1) return Number(bounds[0]) > 1;
-  const maximum = bounds[1];
-  return maximum === "" || Number(maximum) > 1;
-};
+export const isSafeExternalRegex = isSafeRoutingRegex;
 
-export const isSafeExternalRegex = (regex: RegExp | string): boolean => {
-  if (typeof regex === "string") return true;
-  const { source } = regex;
-  if (source.length > MAX_REGEX_CHARACTERS) return false;
-
-  const groups: Array<{ hasAlternation: boolean; hasQuantifier: boolean }> = [
-    { hasAlternation: false, hasQuantifier: false },
-  ];
-  let inCharacterClass = false;
-  for (let index = 0; index < source.length; index += 1) {
-    const token = source[index];
-    /* v8 ignore next -- The loop bound guarantees a character at this index. */
-    if (token === undefined) return false;
-    if (token === "\\") {
-      const escaped = source[index + 1];
-      if (
-        !inCharacterClass &&
-        escaped &&
-        (/[1-9]/.test(escaped) || (escaped === "k" && source[index + 2] === "<"))
-      ) {
-        return false;
-      }
-      index += 1;
-      continue;
-    }
-    if (token === "[") {
-      inCharacterClass = true;
-      continue;
-    }
-    if (token === "]" && inCharacterClass) {
-      inCharacterClass = false;
-      continue;
-    }
-    if (inCharacterClass) continue;
-
-    if (token === "(") {
-      groups.push({ hasAlternation: false, hasQuantifier: false });
-      continue;
-    }
-    if (token === ")" && groups.length > 1) {
-      const group = groups.pop();
-      /* v8 ignore next -- The guarded stack depth guarantees a group to pop. */
-      if (!group) return false;
-      const repeated = repeatingQuantifierAt(source, index + 1);
-      if (repeated && (group.hasAlternation || group.hasQuantifier)) return false;
-      const parent = groups.at(-1);
-      /* v8 ignore next -- The root group is never popped. */
-      if (!parent) return false;
-      parent.hasAlternation ||= group.hasAlternation;
-      parent.hasQuantifier ||= group.hasQuantifier || repeated;
-      continue;
-    }
-    const current = groups.at(-1);
-    /* v8 ignore next -- The root group keeps the stack non-empty. */
-    if (!current) return false;
-    if (token === "|") current.hasAlternation = true;
-    if (
-      token === "*" ||
-      token === "+" ||
-      (token === "?" && source[index - 1] !== "(") ||
-      token === "{"
-    ) {
-      current.hasQuantifier = true;
-    }
-  }
-  return true;
-};
-
+// An untrusted external VALIDATE compiles and executes two classes of
+// attacker-supplied regex: matcher clause patterns, and the rename: clause's
+// `find` pattern (applyRenameTransform runs it against an attacker-controlled
+// filename during traceRules). Both must pass the ReDoS gate. Capture clauses
+// store a plain string and fetch templates expand through a fixed variable
+// pattern, so neither compiles an attacker regex.
 export const hasUnsafeExternalRegex = (rules: RoutingRule[]): boolean =>
   rules.some((rule) =>
-    rule.some((clause) => clause.type === RULE_TYPES.MATCHER && !isSafeExternalRegex(clause.value)),
+    rule.some((clause) => {
+      if (clause.type === RULE_TYPES.MATCHER) return !isSafeRoutingRegex(clause.value);
+      if (clause.type === RULE_TYPES.RENAME) return !isSafeRoutingRegex(clause.find);
+      return false;
+    }),
   );
 
 export const createExternalValidationRateLimiter = ({

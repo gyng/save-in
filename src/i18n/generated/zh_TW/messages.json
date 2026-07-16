@@ -3753,7 +3753,7 @@
     "message": "下載原始解析度的圖片，而非小尺寸預覽圖。"
   },
   "html_fetchClauseCompatibility": {
-    "message": "一般瀏覽器下載路由會略過此項，因為它只能重新命名，無法替換 URL。選單、點選儲存與自動儲存仍會使用它。"
+    "message": "一般瀏覽器下載路由會略過此項，因為它只能重新命名，無法替換 URL。選單、點選儲存與自動儲存仍會使用它；若展開後未產生可用的 HTTP(S) URL，儲存將失敗。"
   },
   "html_orLiteral": {
     "message": "或"
@@ -3864,7 +3864,7 @@
     "message": "一條規則只能包含一個 fetch: 子句"
   },
   "ruleFetchNotHttp": {
-    "message": "fetch: 網址必須以 http:// 或 https:// 開頭"
+    "message": "fetch: 網址必須是可用的 http:// 或 https:// URL"
   },
   "ruleFetchUnsupportedVariable": {
     "message": "fetch: 網址中不支援此變數"
@@ -3897,7 +3897,7 @@
     "message": "；取代文字為空會刪除相符項目，取代文字中會展開路由變數與擷取參照，例如"
   },
   "html_renameClauseCompatibility": {
-    "message": "在檔名完全確定之後（包括 fetch: 改寫）、長度限制之前套用——資料夾不受影響。也會重新命名已記錄的一般瀏覽器下載。若要在模式中寫入字面的 ' -> '，請將空格跳脫（\\x20->）。"
+    "message": "在檔名完全確定之後（包括 fetch: 改寫）、長度限制之前套用——資料夾不受影響。已記錄的一般瀏覽器下載只有在替換內容不需要內容雜湊時才會使用它。若要在模式中寫入字面的 ' -> '，請將空格跳脫（\\x20->）。"
   },
   "html_advancedRenameTheSavedFile": {
     "message": "進階：重新命名儲存的檔案"
@@ -3968,5 +3968,10 @@
     "message": "css: 比對器使用 CSS 選取器語法，而非規則運算式，且不接受旗標。"
   },
   "ruleInvalidCssSelector": { "message": "無效的 CSS 選取器" },
-  "ruleCssFlags": { "message": "css: 不接受規則運算式旗標" }
+  "ruleCssFlags": { "message": "css: 不接受規則運算式旗標" },
+  "ruleClauseFlags": { "message": "此子句不接受規則運算式旗標" },
+  "ruleEmptyMatcher": { "message": "空白條件會比對所有內容；請明確寫出 .*" },
+  "ruleSuspiciousWhitespace": { "message": "模式的開頭或結尾包含空白字元" },
+  "ruleUnsafeRegex": { "message": "處理較長的輸入時，此模式可能耗時過久" },
+  "ruleDestinationMustBeRelative": { "message": "目的地必須是相對路徑，且不能包含 .. 路徑元件" }
 }

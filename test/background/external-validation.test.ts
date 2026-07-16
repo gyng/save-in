@@ -8,6 +8,10 @@ import {
 } from "../../src/background/external-validation.ts";
 
 describe("external validation safeguards", () => {
+  test("accepts a literal template string that is never executed as a regex", () => {
+    expect(isSafeExternalRegex("literal")).toBe(true);
+  });
+
   test.each([/^https?:\/\//, /(?:jpg|png)$/i, /(?:ab)+/, /[a-z]+/, /a{1,3}/, /(ab){1}/])(
     "accepts bounded regexes %#",
     (regex) => {
@@ -119,6 +123,27 @@ describe("external validation safeguards", () => {
       ] as never),
     ).toBe(true);
     expect(hasUnsafeExternalRegex([[{ type: "DESTINATION", value: "safe" }]] as never)).toBe(false);
+  });
+
+  test("rejects an unsafe rename find pattern, not only matcher patterns", () => {
+    // rename:'s find regex is compiled and executed against an attacker-supplied
+    // filename during traceRules, so it must pass the same ReDoS gate as a
+    // matcher. A safe matcher must not launder a catastrophic rename find past
+    // the gate.
+    expect(
+      hasUnsafeExternalRegex([
+        [
+          { type: "MATCHER", value: /safe/ },
+          { type: "RENAME", value: "(a+)+$ -> x", find: /(a+)+$/, replacement: "x" },
+          { type: "DESTINATION", value: "out/" },
+        ],
+      ] as never),
+    ).toBe(true);
+    expect(
+      hasUnsafeExternalRegex([
+        [{ type: "RENAME", value: "\\d+ -> x", find: /\d+/, replacement: "x" }],
+      ] as never),
+    ).toBe(false);
   });
 
   test("limits bursts per browser-authenticated sender ID", () => {
