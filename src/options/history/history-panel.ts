@@ -29,6 +29,8 @@ import { MESSAGE_TYPES } from "../../shared/constants.ts";
 import { sendInternalMessage } from "../../platform/messaging.ts";
 import { normalizeHistory } from "../../shared/history-normalization.ts";
 import { closeDetailsAndRestoreFocus } from "../ui/dismissible-details.ts";
+import { buildTree } from "../../menus/menu-tree.ts";
+import { splitLines } from "../../shared/util.ts";
 
 export type HistoryPanelState = {
   entries: HistoryEntry[];
@@ -195,7 +197,7 @@ const folderIcon = () => {
   return svg;
 };
 
-const historyActionIcon = (kind: "copy" | "link" | "undo") => {
+const historyActionIcon = (kind: "copy" | "link" | "undo" | "move") => {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.setAttribute("viewBox", "0 0 24 24");
   svg.setAttribute("aria-hidden", "true");
@@ -204,10 +206,12 @@ const historyActionIcon = (kind: "copy" | "link" | "undo") => {
       ? ["M8 8h11v11H8z", "M5 16H3V3h13v2"]
       : kind === "undo"
         ? ["M3 7v6h6", "M3 13a9 9 0 1 0 2.6-7L3 8.4"]
-        : [
-            "M10 13a5 5 0 0 0 7 0l2-2a5 5 0 0 0-7-7l-1 1",
-            "M14 11a5 5 0 0 0-7 0l-2 2a5 5 0 0 0 7 7l1-1",
-          ];
+        : kind === "move"
+          ? ["M3 6h7l2 2h9v12H3z", "M12 11v6", "M9 14l3 3 3-3"]
+          : [
+              "M10 13a5 5 0 0 0 7 0l2-2a5 5 0 0 0-7-7l-1 1",
+              "M14 11a5 5 0 0 0-7 0l-2 2a5 5 0 0 0 7 7l1-1",
+            ];
   paths.forEach((data) => {
     const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
     path.setAttribute("d", data);
@@ -280,6 +284,66 @@ const undoSave = async (historyId: string): Promise<void> => {
   } catch {
     renderHistoryFeedback(historyFeedback(), {
       message: historyMessage("historyUndoFailed", "Could not undo this save."),
+      error: true,
+    });
+  }
+};
+
+// The reroute destinations mirror the configured menu directories: the paths
+// textarea is the same source the menu preview reads, so no background
+// round-trip is needed. Downloads root is always offered.
+const rerouteDestinations = (): { dir: string; title: string }[] => {
+  const textarea = document.querySelector<HTMLTextAreaElement>("#paths");
+  const tree = buildTree(splitLines(textarea?.value ?? ""));
+  const dirs = new Map<string, string>([
+    [".", historyMessage("historyMoveDownloadsRoot", "Downloads")],
+  ]);
+  for (const item of tree.items) {
+    if (item.kind === "path" && !dirs.has(item.parsedDir)) {
+      dirs.set(item.parsedDir, item.title);
+    }
+  }
+  return [...dirs].map(([dir, title]) => ({ dir, title }));
+};
+
+// A move is honestly a re-download to the new folder plus a verified removal
+// of the original — the downloads API has no filesystem move. The original
+// row is marked, never deleted, so both outcomes stay auditable.
+const rerouteSave = async (historyId: string, destination: string): Promise<void> => {
+  try {
+    const response = await sendInternalMessage(webExtensionApi.runtime, {
+      type: MESSAGE_TYPES.HISTORY_REROUTE,
+      body: { historyId, destination },
+    });
+    if (
+      response.type !== MESSAGE_TYPES.HISTORY_REROUTE ||
+      !("rerouted" in response.body) ||
+      !response.body.rerouted
+    ) {
+      renderHistoryFeedback(historyFeedback(), {
+        message: historyMessage("historyMoveFailed", "Could not move this save."),
+        error: true,
+      });
+      return;
+    }
+    // Re-render first: renderHistory clears the feedback area, so the
+    // outcome message must land after the refreshed rows
+    await renderHistory();
+    renderHistoryFeedback(historyFeedback(), {
+      message: response.body.oldRemoved
+        ? historyMessage(
+            "historyMoveDone",
+            "Save moved. The file was downloaded to the new folder.",
+          )
+        : historyMessage(
+            "historyMoveOriginalKept",
+            "Saved to the new folder. The original file could not be removed.",
+          ),
+      ...(response.body.oldRemoved ? {} : { error: true }),
+    });
+  } catch {
+    renderHistoryFeedback(historyFeedback(), {
+      message: historyMessage("historyMoveFailed", "Could not move this save."),
       error: true,
     });
   }
@@ -576,6 +640,62 @@ const renderHistoryTable = () => {
         });
       });
       status.appendChild(undo);
+    }
+    // Move needs everything undo needs plus the recorded source URL: it
+    // re-downloads to the chosen folder, then removes the verified original.
+    if (r.status === "complete" && r.downloadId != null && r.historyId && r.url) {
+      const moveHistoryId = r.historyId;
+      const move = document.createElement("button");
+      move.type = "button";
+      move.className = "history-open history-move";
+      // The help text carries the honest mechanics: this is a re-download,
+      // not a filesystem move.
+      const moveLabel = historyMessage(
+        "historyMoveSave",
+        "Move save (downloads it again to the chosen folder)",
+      );
+      move.title = moveLabel;
+      move.setAttribute(
+        "aria-label",
+        historyMessage("historyMoveSaveNamed", `Move save of ${r.file}`, r.file),
+      );
+      move.append(historyActionIcon("move"));
+      move.addEventListener("click", () => {
+        const existing = status.querySelector(".history-move-picker");
+        if (existing) {
+          existing.remove();
+          return;
+        }
+        const picker = document.createElement("span");
+        picker.className = "history-move-picker";
+        const select = document.createElement("select");
+        select.setAttribute(
+          "aria-label",
+          historyMessage("historyMoveDestination", "Destination folder"),
+        );
+        for (const { dir, title } of rerouteDestinations()) {
+          const option = document.createElement("option");
+          option.value = dir;
+          option.textContent = title;
+          select.appendChild(option);
+        }
+        const confirm = document.createElement("button");
+        confirm.type = "button";
+        confirm.className = "history-open history-move-confirm";
+        confirm.textContent = historyMessage("historyMoveConfirm", "Move");
+        confirm.addEventListener("click", () => {
+          move.disabled = true;
+          confirm.disabled = true;
+          void rerouteSave(moveHistoryId, select.value).finally(() => {
+            move.disabled = false;
+            picker.remove();
+          });
+        });
+        picker.append(select, confirm);
+        status.appendChild(picker);
+        select.focus();
+      });
+      status.appendChild(move);
     }
     if (r.fullPath) {
       const copyPath = document.createElement("button");

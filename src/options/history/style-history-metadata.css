@@ -143,10 +143,18 @@
   text-transform: capitalize;
 }
 
-/* A deliberate user action: neutral like pending, not an error */
-.status-badge.status-undone {
+/* Deliberate user actions: neutral like pending, not errors */
+.status-badge.status-undone,
+.status-badge.status-moved {
   color: var(--color-text-muted);
   background-color: color-mix(in srgb, var(--color-text-muted) 14%, transparent);
+}
+
+/* Inline destination picker the Move row action opens beside its button */
+.history-move-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
 }
 
 .history-file {

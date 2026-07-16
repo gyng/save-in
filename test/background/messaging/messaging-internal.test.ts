@@ -7,6 +7,7 @@ import {
   Variable,
   Path,
   backgroundRuntime,
+  Download,
   SaveHistory,
   ActiveTransfers,
   OffscreenClient,
@@ -188,6 +189,228 @@ describe("onMessage", () => {
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.HISTORY_UNDO,
       body: { undone: true, fileMissing: true },
+    });
+  });
+
+  test("HISTORY_REROUTE re-downloads, removes the verified original, and links the rows", async () => {
+    vi.mocked(SaveHistory.getHistoryEntries).mockResolvedValue([
+      {
+        id: "history-20",
+        url: "https://x.test/moved.png",
+        finalFullPath: "from/moved.png",
+        downloadId: 41,
+        status: "complete",
+        downloadStartTime: "2026-07-17T01:02:03.000Z",
+        variables: { suggestedfilename: "moved.png" },
+      },
+    ]);
+    vi.mocked(global.browser.downloads.search).mockResolvedValue([
+      { id: 41, url: "https://x.test/moved.png", startTime: "2026-07-17T01:02:03.000Z" } as never,
+    ]);
+    vi.mocked(Download.launchDownload).mockImplementation(async (state) => {
+      state.scratch.historyEntryId = "history-new";
+      return { status: "started", downloadId: 42 };
+    });
+    const sendResponse = vi.fn();
+
+    expect(
+      onMessage(
+        {
+          type: MESSAGE_TYPES.HISTORY_REROUTE,
+          body: { historyId: "history-20", destination: "moved/here" },
+        },
+        {},
+        sendResponse,
+      ),
+    ).toBe(true);
+    await waitForCall(sendResponse);
+
+    const state = vi.mocked(Download.launchDownload).mock.calls[0]![0]!;
+    expect(state.path.finalize()).toBe("moved/here");
+    expect(state.info.url).toBe("https://x.test/moved.png");
+    expect(state.info.suggestedFilename).toBe("moved.png");
+    // A reroute re-issues an existing save; it must not double-report through
+    // the webhook.
+    expect(state.info.webhookEligible).toBe(false);
+    expect(global.browser.downloads.removeFile).toHaveBeenCalledWith(41);
+    expect(SaveHistory.setHistoryStatus).toHaveBeenCalledWith("history-20", "moved", 41);
+    expect(SaveHistory.patchHistoryEntry).toHaveBeenCalledWith("history-new", {
+      rerouteOf: "history-20",
+    });
+    expect(SaveHistory.patchHistoryEntry).toHaveBeenCalledWith("history-20", {
+      rerouteTo: "history-new",
+    });
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.HISTORY_REROUTE,
+      body: { rerouted: true, oldRemoved: true, newHistoryId: "history-new" },
+    });
+  });
+
+  test("HISTORY_REROUTE refuses an unknown entry without launching anything", async () => {
+    vi.mocked(SaveHistory.getHistoryEntries).mockResolvedValue([]);
+    vi.mocked(Download.launchDownload).mockClear();
+    vi.mocked(global.browser.downloads.removeFile).mockClear();
+    const sendResponse = vi.fn();
+
+    onMessage(
+      {
+        type: MESSAGE_TYPES.HISTORY_REROUTE,
+        body: { historyId: "history-absent", destination: "moved/here" },
+      },
+      {},
+      sendResponse,
+    );
+    await waitForCall(sendResponse);
+
+    expect(Download.launchDownload).not.toHaveBeenCalled();
+    expect(global.browser.downloads.removeFile).not.toHaveBeenCalled();
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.HISTORY_REROUTE,
+      body: { rerouted: false, oldRemoved: false },
+    });
+  });
+
+  test("HISTORY_REROUTE refuses an unverifiable original before any download", async () => {
+    vi.mocked(SaveHistory.getHistoryEntries).mockResolvedValue([
+      {
+        id: "history-21",
+        url: "https://x.test/photo.png",
+        downloadId: 43,
+        status: "complete",
+        downloadStartTime: "2026-07-17T01:02:03.000Z",
+      },
+    ]);
+    // A reused session-scoped id points at a different download now.
+    vi.mocked(global.browser.downloads.search).mockResolvedValue([
+      { id: 43, url: "https://elsewhere/report.pdf", startTime: "2026-07-18T09:00:00.000Z" },
+    ] as never);
+    vi.mocked(Download.launchDownload).mockClear();
+    vi.mocked(global.browser.downloads.removeFile).mockClear();
+    const sendResponse = vi.fn();
+
+    onMessage(
+      {
+        type: MESSAGE_TYPES.HISTORY_REROUTE,
+        body: { historyId: "history-21", destination: "moved/here" },
+      },
+      {},
+      sendResponse,
+    );
+    await waitForCall(sendResponse);
+
+    expect(Download.launchDownload).not.toHaveBeenCalled();
+    expect(global.browser.downloads.removeFile).not.toHaveBeenCalled();
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.HISTORY_REROUTE,
+      body: { rerouted: false, oldRemoved: false },
+    });
+  });
+
+  test("HISTORY_REROUTE leaves the original untouched when the replacement fails", async () => {
+    vi.mocked(SaveHistory.getHistoryEntries).mockResolvedValue([
+      {
+        id: "history-22",
+        url: "https://x.test/kept.png",
+        downloadId: 44,
+        status: "complete",
+      },
+    ]);
+    vi.mocked(global.browser.downloads.search).mockResolvedValue([
+      { id: 44, url: "https://x.test/kept.png" } as never,
+    ]);
+    vi.mocked(Download.launchDownload).mockResolvedValue({ status: "failed" });
+    vi.mocked(global.browser.downloads.removeFile).mockClear();
+    vi.mocked(SaveHistory.setHistoryStatus).mockClear();
+    const sendResponse = vi.fn();
+
+    onMessage(
+      {
+        type: MESSAGE_TYPES.HISTORY_REROUTE,
+        body: { historyId: "history-22", destination: "moved/here" },
+      },
+      {},
+      sendResponse,
+    );
+    await waitForCall(sendResponse);
+
+    // A failed re-download must never have destroyed the only copy.
+    expect(global.browser.downloads.removeFile).not.toHaveBeenCalled();
+    expect(SaveHistory.setHistoryStatus).not.toHaveBeenCalled();
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.HISTORY_REROUTE,
+      body: { rerouted: false, oldRemoved: false },
+    });
+  });
+
+  test("HISTORY_REROUTE reports the kept original when removal is refused after launch", async () => {
+    vi.mocked(SaveHistory.getHistoryEntries).mockResolvedValue([
+      {
+        id: "history-23",
+        url: "https://x.test/dup.png",
+        downloadId: 45,
+        status: "complete",
+      },
+    ]);
+    // Verified at launch time, but the browser loses the download before the
+    // removal step — the second search finds nothing.
+    vi.mocked(global.browser.downloads.search)
+      .mockResolvedValueOnce([{ id: 45, url: "https://x.test/dup.png" }] as never)
+      .mockResolvedValueOnce([] as never);
+    vi.mocked(Download.launchDownload).mockImplementation(async (state) => {
+      state.scratch.historyEntryId = "history-new-2";
+      return { status: "started", downloadId: 46 };
+    });
+    vi.mocked(SaveHistory.setHistoryStatus).mockClear();
+    const sendResponse = vi.fn();
+
+    onMessage(
+      {
+        type: MESSAGE_TYPES.HISTORY_REROUTE,
+        body: { historyId: "history-23", destination: "moved/here" },
+      },
+      {},
+      sendResponse,
+    );
+    await waitForCall(sendResponse);
+
+    expect(SaveHistory.setHistoryStatus).not.toHaveBeenCalledWith(
+      "history-23",
+      "moved",
+      expect.anything(),
+    );
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.HISTORY_REROUTE,
+      body: { rerouted: true, oldRemoved: false, newHistoryId: "history-new-2" },
+    });
+  });
+
+  test("HISTORY_UNDO works for an automatic-save entry exactly like a manual one", async () => {
+    vi.mocked(SaveHistory.getHistoryEntries).mockResolvedValue([
+      {
+        id: "history-auto",
+        url: "https://x.test/auto.png",
+        downloadId: 47,
+        status: "complete",
+        info: { context: "auto" },
+      },
+    ]);
+    vi.mocked(global.browser.downloads.search).mockResolvedValue([
+      { id: 47, url: "https://x.test/auto.png" } as never,
+    ]);
+    const sendResponse = vi.fn();
+
+    onMessage(
+      { type: MESSAGE_TYPES.HISTORY_UNDO, body: { historyId: "history-auto" } },
+      {},
+      sendResponse,
+    );
+    await waitForCall(sendResponse);
+
+    expect(global.browser.downloads.removeFile).toHaveBeenCalledWith(47);
+    expect(SaveHistory.setHistoryStatus).toHaveBeenCalledWith("history-auto", "undone", 47);
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.HISTORY_UNDO,
+      body: { undone: true, fileMissing: false },
     });
   });
 

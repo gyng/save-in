@@ -348,6 +348,36 @@
   "historyUndoFailed": {
     "message": "Det gick inte att ångra den här sparningen."
   },
+  "historyMoveSave": {
+    "message": "Flytta sparning (laddar ner filen igen till den valda mappen)"
+  },
+  "historyMoveSaveNamed": {
+    "message": "Flytta sparningen av $FILE$",
+    "placeholders": {
+      "file": {
+        "content": "$1",
+        "example": "photo.jpg"
+      }
+    }
+  },
+  "historyMoveDestination": {
+    "message": "Målmapp"
+  },
+  "historyMoveConfirm": {
+    "message": "Flytta"
+  },
+  "historyMoveDownloadsRoot": {
+    "message": "Hämtade filer"
+  },
+  "historyMoveDone": {
+    "message": "Sparningen flyttades. Filen laddades ner till den nya mappen."
+  },
+  "historyMoveOriginalKept": {
+    "message": "Sparad i den nya mappen. Den ursprungliga filen kunde inte tas bort."
+  },
+  "historyMoveFailed": {
+    "message": "Den här sparningen kunde inte flyttas."
+  },
   "historyRoutingApplied": {
     "message": "Tillämpad"
   },
@@ -405,6 +435,9 @@
   },
   "historyStatusUndone": {
     "message": "Ångrad"
+  },
+  "historyStatusMoved": {
+    "message": "Flyttad"
   },
   "historyStatusNetworkFailed": {
     "message": "Nätverksfel"

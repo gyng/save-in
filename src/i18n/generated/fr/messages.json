@@ -348,6 +348,36 @@
   "historyUndoFailed": {
     "message": "Impossible d’annuler cet enregistrement."
   },
+  "historyMoveSave": {
+    "message": "Déplacer l'enregistrement (retélécharge le fichier dans le dossier choisi)"
+  },
+  "historyMoveSaveNamed": {
+    "message": "Déplacer l'enregistrement de $FILE$",
+    "placeholders": {
+      "file": {
+        "content": "$1",
+        "example": "photo.jpg"
+      }
+    }
+  },
+  "historyMoveDestination": {
+    "message": "Dossier de destination"
+  },
+  "historyMoveConfirm": {
+    "message": "Déplacer"
+  },
+  "historyMoveDownloadsRoot": {
+    "message": "Téléchargements"
+  },
+  "historyMoveDone": {
+    "message": "Enregistrement déplacé. Le fichier a été téléchargé dans le nouveau dossier."
+  },
+  "historyMoveOriginalKept": {
+    "message": "Enregistré dans le nouveau dossier. Le fichier d'origine n'a pas pu être supprimé."
+  },
+  "historyMoveFailed": {
+    "message": "Impossible de déplacer cet enregistrement."
+  },
   "historyRoutingApplied": {
     "message": "Appliqué"
   },
@@ -405,6 +435,9 @@
   },
   "historyStatusUndone": {
     "message": "Défait"
+  },
+  "historyStatusMoved": {
+    "message": "Déplacé"
   },
   "historyStatusNetworkFailed": {
     "message": "Échec réseau"

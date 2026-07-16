@@ -1264,3 +1264,84 @@ export const runUndoLastSaveScenario = async ({
     }
   }
 };
+
+/**
+ * Moves a completed save to a different configured folder through the History
+ * protocol: the source is downloaded again into the destination, the verified
+ * original file is removed, and the two entries are linked, with the original
+ * marked moved rather than deleted.
+ *
+ * @param {{
+ *   control: ReturnType<typeof import("./control-client.mjs").createE2EControlClient>,
+ *   waitForDownloads: (filename: string, timeoutMs?: number) => Promise<DownloadSummary[]>,
+ *   filename: string,
+ * }} adapters
+ */
+export const runRerouteLastSaveScenario = async ({ control, waitForDownloads, filename }) => {
+  const server = http.createServer((_req, res) => {
+    res.writeHead(200, { "Content-Type": "application/octet-stream" });
+    res.end("reroute scenario content");
+  });
+  const port = await listenLocal(server);
+  const name = `${filename}.bin`;
+  const url = `http://127.0.0.1:${port}/${name}`;
+  const optionKeys = ["filenamePatterns"];
+  const previous = await control.storage.local.get(optionKeys);
+  const missingKeys = optionKeys.filter((key) => !Object.hasOwn(previous, key));
+
+  try {
+    await control.options.set({ filenamePatterns: "" });
+    await control.background.startDownload({
+      url,
+      suggestedFilename: name,
+      pageUrl: "https://reroute.example/",
+      path: "e2e/reroute-from",
+    });
+    const downloads = await waitForDownloads(name);
+    const original = requireValue(
+      downloads.find((row) => row.state === "complete"),
+      "Reroute scenario download did not complete",
+    );
+    const entries = await control.history.wait({ url, status: "complete" });
+    const entry = requireValue(
+      entries.find((row) => row.url === url && typeof row.downloadId === "number"),
+      "Reroute scenario History entry was not recorded with a download id",
+    );
+    const historyId = decodeString(entry.id);
+
+    const response = await control.runtime.send({
+      type: "HISTORY_REROUTE",
+      body: { historyId, destination: "e2e/reroute-to" },
+    });
+    if (response.type !== "HISTORY_REROUTE" || !("rerouted" in response.body)) {
+      throw new Error(`Unexpected reroute response: ${JSON.stringify(response)}`);
+    }
+    expect(response.body.rerouted).toBe(true);
+    expect(response.body.oldRemoved).toBe(true);
+    const newHistoryId = decodeString(response.body.newHistoryId);
+
+    // The replacement completes under the new folder while the original file
+    // is gone and its row is marked moved and linked, never deleted.
+    const rerouted = await waitForDownloads(name, 8000);
+    const replacement = requireValue(
+      rerouted.find(
+        (row) => row.state === "complete" && /reroute-to/.test(row.filename.replaceAll("\\", "/")),
+      ),
+      "Rerouted download did not complete in the destination folder",
+    );
+    expect(fs.readFileSync(replacement.filename, "utf8")).toBe("reroute scenario content");
+    expect(fs.existsSync(original.filename)).toBe(false);
+    const moved = await control.history.wait({ id: historyId, status: "moved" });
+    expect(moved.some((row) => row.id === historyId && row.rerouteTo === newHistoryId)).toBe(true);
+    const linked = await control.history.wait({ id: newHistoryId, status: "complete" });
+    expect(linked.some((row) => row.id === newHistoryId && row.rerouteOf === historyId)).toBe(true);
+  } finally {
+    try {
+      await control.storage.local.set(previous);
+      if (missingKeys.length > 0) await control.storage.local.remove(missingKeys);
+      await control.runtime.reset();
+    } finally {
+      await closeLocal(server);
+    }
+  }
+};

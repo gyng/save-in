@@ -348,6 +348,36 @@
   "historyUndoFailed": {
     "message": "Dieses Speichern konnte nicht rückgängig gemacht werden."
   },
+  "historyMoveSave": {
+    "message": "Speichern verschieben (lädt die Datei erneut in den gewählten Ordner)"
+  },
+  "historyMoveSaveNamed": {
+    "message": "Speichern von $FILE$ verschieben",
+    "placeholders": {
+      "file": {
+        "content": "$1",
+        "example": "photo.jpg"
+      }
+    }
+  },
+  "historyMoveDestination": {
+    "message": "Zielordner"
+  },
+  "historyMoveConfirm": {
+    "message": "Verschieben"
+  },
+  "historyMoveDownloadsRoot": {
+    "message": "Downloads"
+  },
+  "historyMoveDone": {
+    "message": "Speichern verschoben. Die Datei wurde in den neuen Ordner heruntergeladen."
+  },
+  "historyMoveOriginalKept": {
+    "message": "Im neuen Ordner gespeichert. Die ursprüngliche Datei konnte nicht entfernt werden."
+  },
+  "historyMoveFailed": {
+    "message": "Dieses Speichern konnte nicht verschoben werden."
+  },
   "historyRoutingApplied": {
     "message": "Angewendet"
   },
@@ -405,6 +435,9 @@
   },
   "historyStatusUndone": {
     "message": "Rückgängig gemacht"
+  },
+  "historyStatusMoved": {
+    "message": "Verschoben"
   },
   "historyStatusNetworkFailed": {
     "message": "Netzwerkfehler"

@@ -2947,6 +2947,44 @@
     "message": "Could not undo this save.",
     "description": "History error shown when the undo action fails. Used in src/options/history/history-panel.ts."
   },
+  "historyMoveSave": {
+    "message": "Move save (downloads it again to the chosen folder)",
+    "description": "History row action that saves the file again into a chosen folder and removes the original. The parenthetical is the honest mechanic: the extension cannot move files on disk, it re-downloads. Used in src/options/history/history-panel.ts."
+  },
+  "historyMoveSaveNamed": {
+    "message": "Move save of $FILE$",
+    "description": "Accessible label for the move action on one history row, including its filename. Used in src/options/history/history-panel.ts.",
+    "placeholders": {
+      "file": {
+        "content": "$1",
+        "example": "photo.jpg"
+      }
+    }
+  },
+  "historyMoveDestination": {
+    "message": "Destination folder",
+    "description": "Accessible label for the folder selector shown by the history move action. Used in src/options/history/history-panel.ts."
+  },
+  "historyMoveConfirm": {
+    "message": "Move",
+    "description": "Confirm button beside the history move action's folder selector. Used in src/options/history/history-panel.ts."
+  },
+  "historyMoveDownloadsRoot": {
+    "message": "Downloads",
+    "description": "First entry in the history move action's folder selector: the browser's Downloads root. Used in src/options/history/history-panel.ts."
+  },
+  "historyMoveDone": {
+    "message": "Save moved. The file was downloaded to the new folder.",
+    "description": "History confirmation after a move: the replacement download succeeded and the original file was removed. Used in src/options/history/history-panel.ts."
+  },
+  "historyMoveOriginalKept": {
+    "message": "Saved to the new folder. The original file could not be removed.",
+    "description": "History warning after a move where the new download succeeded but removing the original file failed; both copies may exist. Used in src/options/history/history-panel.ts."
+  },
+  "historyMoveFailed": {
+    "message": "Could not move this save.",
+    "description": "History error shown when the move action fails or is refused. Used in src/options/history/history-panel.ts."
+  },
   "historyRoutingApplied": {
     "message": "Applied",
     "description": "History table badge showing that routing changed the download path or filename. Used in src/options/history-panel.ts."
@@ -3020,6 +3058,10 @@
   "historyStatusUndone": {
     "message": "Undone",
     "description": "History status badge for a save the user undid: the file was removed and the entry kept. Used in src/options/history/history-view.ts."
+  },
+  "historyStatusMoved": {
+    "message": "Moved",
+    "description": "History status badge for a save the user moved: the file was re-downloaded to a new folder and the original removed; the entry links to the replacement. Must stay distinct from historyStatusUndone and historyStatusCanceled in every language. Used in src/options/history/history-view.ts."
   },
   "historyStatusNetworkFailed": {
     "message": "Network failed",

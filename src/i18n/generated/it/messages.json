@@ -1977,6 +1977,36 @@
   "historyUndoFailed": {
     "message": "Impossibile annullare questo salvataggio."
   },
+  "historyMoveSave": {
+    "message": "Sposta salvataggio (scarica di nuovo il file nella cartella scelta)"
+  },
+  "historyMoveSaveNamed": {
+    "message": "Sposta il salvataggio di $FILE$",
+    "placeholders": {
+      "file": {
+        "content": "$1",
+        "example": "photo.jpg"
+      }
+    }
+  },
+  "historyMoveDestination": {
+    "message": "Cartella di destinazione"
+  },
+  "historyMoveConfirm": {
+    "message": "Sposta"
+  },
+  "historyMoveDownloadsRoot": {
+    "message": "Download"
+  },
+  "historyMoveDone": {
+    "message": "Salvataggio spostato. Il file è stato scaricato nella nuova cartella."
+  },
+  "historyMoveOriginalKept": {
+    "message": "Salvato nella nuova cartella. Impossibile rimuovere il file originale."
+  },
+  "historyMoveFailed": {
+    "message": "Impossibile spostare questo salvataggio."
+  },
   "historyRoutingApplied": {
     "message": "Applicato"
   },
@@ -2034,6 +2064,9 @@
   },
   "historyStatusUndone": {
     "message": "Disfatto"
+  },
+  "historyStatusMoved": {
+    "message": "Spostato"
   },
   "historyStatusNetworkFailed": {
     "message": "Errore di rete"

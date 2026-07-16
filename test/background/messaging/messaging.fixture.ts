@@ -113,6 +113,7 @@ const setupGlobals = () => {
   vi.spyOn(SaveHistory, "getHistoryEntries").mockResolvedValue([]);
   vi.spyOn(SaveHistory, "clearHistory").mockResolvedValue();
   vi.spyOn(SaveHistory, "setHistoryStatus").mockResolvedValue(undefined);
+  vi.spyOn(SaveHistory, "patchHistoryEntry").mockResolvedValue(undefined);
   vi.spyOn(Log, "addLogEntry").mockResolvedValue(undefined);
   vi.spyOn(Log, "getLogEntries").mockResolvedValue([]);
   vi.spyOn(Log, "clearLog").mockResolvedValue(undefined);

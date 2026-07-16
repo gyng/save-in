@@ -2186,6 +2186,36 @@
   "historyUndoFailed": {
     "message": "無法復原此次儲存。"
   },
+  "historyMoveSave": {
+    "message": "移動儲存（將檔案重新下載到所選資料夾）"
+  },
+  "historyMoveSaveNamed": {
+    "message": "移動 $FILE$ 的儲存",
+    "placeholders": {
+      "file": {
+        "content": "$1",
+        "example": "photo.jpg"
+      }
+    }
+  },
+  "historyMoveDestination": {
+    "message": "目標資料夾"
+  },
+  "historyMoveConfirm": {
+    "message": "移動"
+  },
+  "historyMoveDownloadsRoot": {
+    "message": "下載"
+  },
+  "historyMoveDone": {
+    "message": "儲存已移動。檔案已下載到新資料夾。"
+  },
+  "historyMoveOriginalKept": {
+    "message": "已儲存到新資料夾。原始檔案無法移除。"
+  },
+  "historyMoveFailed": {
+    "message": "無法移動此儲存。"
+  },
   "historyRoutingApplied": {
     "message": "已套用"
   },
@@ -2243,6 +2273,9 @@
   },
   "historyStatusUndone": {
     "message": "已復原"
+  },
+  "historyStatusMoved": {
+    "message": "已移動"
   },
   "historyStatusNetworkFailed": {
     "message": "網路失敗"

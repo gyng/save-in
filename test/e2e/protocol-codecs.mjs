@@ -69,6 +69,13 @@ export const createProtocolCodecs = () => {
       case "HISTORY_CANCEL":
       case "HISTORY_UNDO":
         return isRecord(value.body) && typeof value.body.historyId === "string";
+      case "HISTORY_REROUTE":
+        return (
+          isRecord(value.body) &&
+          typeof value.body.historyId === "string" &&
+          typeof value.body.destination === "string" &&
+          value.body.destination.length > 0
+        );
       case "DOWNLOAD":
         return (
           isRecord(value.body) &&
@@ -220,6 +227,14 @@ export const createProtocolCodecs = () => {
           isRecord(value.body) &&
           typeof value.body.undone === "boolean" &&
           typeof value.body.fileMissing === "boolean"
+        );
+      case "HISTORY_REROUTE":
+        return (
+          value.type === "HISTORY_REROUTE" &&
+          isRecord(value.body) &&
+          typeof value.body.rerouted === "boolean" &&
+          typeof value.body.oldRemoved === "boolean" &&
+          (value.body.newHistoryId === undefined || typeof value.body.newHistoryId === "string")
         );
       case "EXTERNAL_DOWNLOAD_REJECTIONS_GET":
         return (

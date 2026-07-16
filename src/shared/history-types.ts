@@ -25,6 +25,11 @@ export type HistoryEntryInput = {
     path?: string | undefined;
   };
   variables?: Record<string, string> | undefined;
+  // A reroute links the replacement entry to the original it re-downloaded
+  // (rerouteOf) and the original to its replacement (rerouteTo). Additive and
+  // optional: entries written before 4.3 have neither.
+  rerouteOf?: string | undefined;
+  rerouteTo?: string | undefined;
 };
 
 export type HistoryEntry = HistoryEntryInput & {

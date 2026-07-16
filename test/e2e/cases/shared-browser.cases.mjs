@@ -15,6 +15,7 @@ import {
   runShortcutScenario,
   runSymlinkDestinationScenario,
   runTabStripScenario,
+  runRerouteLastSaveScenario,
   runUndoLastSaveScenario,
 } from "../shared-scenarios.mjs";
 import { runTemplateLibraryScenario } from "../template-library-scenario.mjs";
@@ -76,6 +77,14 @@ export const registerSharedBrowserCases = (adapters) => {
       waitForDownloads,
       filename: `undo-${browserLabel}`,
       detectsMissingFile: browserLabel !== "chrome",
+    });
+  });
+
+  test("move re-downloads to the chosen folder and links the History rows", async () => {
+    await runRerouteLastSaveScenario({
+      control,
+      waitForDownloads,
+      filename: `reroute-${browserLabel}`,
     });
   });
 

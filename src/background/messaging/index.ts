@@ -1,7 +1,7 @@
 import { webExtensionApi } from "../../platform/web-extension-api.ts";
 
 import { splitLines } from "../../shared/util.ts";
-import { MESSAGE_TYPES } from "../../shared/constants.ts";
+import { DOWNLOAD_TYPES, MESSAGE_TYPES } from "../../shared/constants.ts";
 import { OptionsManagement } from "../../config/option.ts";
 import { options } from "../../config/options-data.ts";
 import { buildTree } from "../../menus/menu-tree.ts";
@@ -18,10 +18,22 @@ import {
 } from "../../shared/message-protocol.ts";
 import { respondAsync } from "../message-dispatch.ts";
 import { addLogEntry } from "../log.ts";
-import { clearHistory, getHistoryEntries, setHistoryStatus } from "../history.ts";
+import {
+  clearHistory,
+  getHistoryEntries,
+  patchHistoryEntry,
+  setHistoryStatus,
+} from "../history.ts";
 import { syncSourcePanelToTab, setSourcePanelOpenState } from "../source-panel-state.ts";
 import { cancelActiveTransfer, getActiveTransfer } from "../../downloads/active-transfers.ts";
-import { undoDownloadAndMark } from "../../downloads/undo-download.ts";
+import {
+  findVerifiedDownload,
+  undoBrowserDownload,
+  undoDownloadAndMark,
+} from "../../downloads/undo-download.ts";
+import { launchDownload } from "../../downloads/download.ts";
+import { Path } from "../../routing/path.ts";
+import type { DownloadPipelineState } from "../../downloads/download-types.ts";
 import { OffscreenClient } from "../../platform/offscreen-client.ts";
 import { ExternalDownloadRejections } from "../external-download-rejections.ts";
 import { getMessage } from "../../platform/localization.ts";
@@ -180,6 +192,86 @@ const internalHandlers = {
       () => setHistoryStatus(historyId, "undone", downloadId),
     );
     sendResponse({ type: MESSAGE_TYPES.HISTORY_UNDO, body: result });
+  },
+  [MESSAGE_TYPES.HISTORY_REROUTE]: async (request, _sender, sendResponse) => {
+    const { historyId, destination } = request.body;
+    const refuse = () =>
+      sendResponse({
+        type: MESSAGE_TYPES.HISTORY_REROUTE,
+        body: { rerouted: false, oldRemoved: false },
+      });
+    const entry = (await getHistoryEntries()).find((candidate) => candidate.id === historyId);
+    const downloadId = entry?.downloadId;
+    const sourceUrl = typeof entry?.url === "string" && entry.url.length > 0 ? entry.url : null;
+    if (entry === undefined || downloadId == null || sourceUrl === null) {
+      refuse();
+      return;
+    }
+    const expected = {
+      startTime: entry.downloadStartTime,
+      url: entry.url,
+      filename: entry.finalFullPath,
+    };
+    // Verify the original BEFORE issuing the replacement: an unverifiable row
+    // (reused Firefox id, cleared shelf) must refuse outright, or the reroute
+    // would create a duplicate file it can never clean up.
+    if ((await findVerifiedDownload(downloadId, expected)) === null) {
+      refuse();
+      return;
+    }
+    const recordedVariables = entry.variables ?? {};
+    const suggestedFilename =
+      typeof recordedVariables.suggestedfilename === "string"
+        ? recordedVariables.suggestedfilename
+        : undefined;
+    const rerouteState: DownloadPipelineState = {
+      // The chosen directory is the menu selection; routing rules still run,
+      // exactly as they would for a menu click on that directory.
+      path: new Path(destination),
+      scratch: {},
+      info: {
+        url: sourceUrl,
+        selectedUrl: sourceUrl,
+        sourceUrl: entry.info?.sourceUrl,
+        pageUrl: entry.info?.pageUrl,
+        suggestedFilename,
+        comment:
+          typeof recordedVariables.comment === "string" ? recordedVariables.comment : undefined,
+        currentTab: null,
+        now: new Date(),
+        context: DOWNLOAD_TYPES.CLICK,
+        // A reroute re-issues an existing save; announcing it through the
+        // webhook again would double-report the same content.
+        webhookEligible: false,
+      },
+    };
+    const replacement = await launchDownload(rerouteState);
+    // Remove the original only after the replacement is underway: a refused
+    // or failed re-download must leave the only copy untouched.
+    if (replacement.status !== "started") {
+      refuse();
+      return;
+    }
+    const removal = await undoBrowserDownload(downloadId, expected);
+    if (removal.undone) {
+      await setHistoryStatus(historyId, "moved", downloadId);
+    }
+    // The pipeline recorded the replacement's entry id in the launch state;
+    // link the pair so both rows carry their relationship.
+    const scratchEntryId = rerouteState.scratch.historyEntryId;
+    const newHistoryId = typeof scratchEntryId === "string" ? scratchEntryId : undefined;
+    if (newHistoryId) {
+      await patchHistoryEntry(newHistoryId, { rerouteOf: historyId });
+      await patchHistoryEntry(historyId, { rerouteTo: newHistoryId });
+    }
+    sendResponse({
+      type: MESSAGE_TYPES.HISTORY_REROUTE,
+      body: {
+        rerouted: true,
+        oldRemoved: removal.undone,
+        ...(newHistoryId ? { newHistoryId } : {}),
+      },
+    });
   },
   [MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTIONS_GET]: async (_request, _sender, sendResponse) => {
     sendResponse({

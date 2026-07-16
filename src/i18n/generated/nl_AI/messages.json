@@ -348,6 +348,36 @@
   "historyUndoFailed": {
     "message": "Dit opslaan kon niet ongedaan worden gemaakt."
   },
+  "historyMoveSave": {
+    "message": "Opslag verplaatsen (downloadt het bestand opnieuw naar de gekozen map)"
+  },
+  "historyMoveSaveNamed": {
+    "message": "Opslag van $FILE$ verplaatsen",
+    "placeholders": {
+      "file": {
+        "content": "$1",
+        "example": "photo.jpg"
+      }
+    }
+  },
+  "historyMoveDestination": {
+    "message": "Doelmap"
+  },
+  "historyMoveConfirm": {
+    "message": "Verplaatsen"
+  },
+  "historyMoveDownloadsRoot": {
+    "message": "Downloads"
+  },
+  "historyMoveDone": {
+    "message": "Opslag verplaatst. Het bestand is naar de nieuwe map gedownload."
+  },
+  "historyMoveOriginalKept": {
+    "message": "Opgeslagen in de nieuwe map. Het oorspronkelijke bestand kon niet worden verwijderd."
+  },
+  "historyMoveFailed": {
+    "message": "Deze opslag kon niet worden verplaatst."
+  },
   "historyRoutingApplied": {
     "message": "Toegepast"
   },
@@ -405,6 +435,9 @@
   },
   "historyStatusUndone": {
     "message": "Ongedaan gemaakt"
+  },
+  "historyStatusMoved": {
+    "message": "Verplaatst"
   },
   "historyStatusNetworkFailed": {
     "message": "Netwerkfout"

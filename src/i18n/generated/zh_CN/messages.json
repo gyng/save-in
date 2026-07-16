@@ -2186,6 +2186,36 @@
   "historyUndoFailed": {
     "message": "无法撤销此次保存。"
   },
+  "historyMoveSave": {
+    "message": "移动保存（将文件重新下载到所选文件夹）"
+  },
+  "historyMoveSaveNamed": {
+    "message": "移动 $FILE$ 的保存",
+    "placeholders": {
+      "file": {
+        "content": "$1",
+        "example": "photo.jpg"
+      }
+    }
+  },
+  "historyMoveDestination": {
+    "message": "目标文件夹"
+  },
+  "historyMoveConfirm": {
+    "message": "移动"
+  },
+  "historyMoveDownloadsRoot": {
+    "message": "下载"
+  },
+  "historyMoveDone": {
+    "message": "保存已移动。文件已下载到新文件夹。"
+  },
+  "historyMoveOriginalKept": {
+    "message": "已保存到新文件夹。原始文件无法移除。"
+  },
+  "historyMoveFailed": {
+    "message": "无法移动此保存。"
+  },
   "historyRoutingApplied": {
     "message": "已应用"
   },
@@ -2243,6 +2273,9 @@
   },
   "historyStatusUndone": {
     "message": "已撤销"
+  },
+  "historyStatusMoved": {
+    "message": "已移动"
   },
   "historyStatusNetworkFailed": {
     "message": "网络错误"

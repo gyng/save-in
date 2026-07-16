@@ -348,6 +348,36 @@
   "historyUndoFailed": {
     "message": "Não foi possível desfazer este salvamento."
   },
+  "historyMoveSave": {
+    "message": "Mover salvamento (baixa o arquivo novamente na pasta escolhida)"
+  },
+  "historyMoveSaveNamed": {
+    "message": "Mover o salvamento de $FILE$",
+    "placeholders": {
+      "file": {
+        "content": "$1",
+        "example": "photo.jpg"
+      }
+    }
+  },
+  "historyMoveDestination": {
+    "message": "Pasta de destino"
+  },
+  "historyMoveConfirm": {
+    "message": "Mover"
+  },
+  "historyMoveDownloadsRoot": {
+    "message": "Downloads"
+  },
+  "historyMoveDone": {
+    "message": "Salvamento movido. O arquivo foi baixado na nova pasta."
+  },
+  "historyMoveOriginalKept": {
+    "message": "Salvo na nova pasta. Não foi possível remover o arquivo original."
+  },
+  "historyMoveFailed": {
+    "message": "Não foi possível mover este salvamento."
+  },
   "historyRoutingApplied": {
     "message": "Aplicado"
   },
@@ -405,6 +435,9 @@
   },
   "historyStatusUndone": {
     "message": "Desfeito"
+  },
+  "historyStatusMoved": {
+    "message": "Movido"
   },
   "historyStatusNetworkFailed": {
     "message": "Falha de rede"

@@ -35,6 +35,7 @@ const markup = () => `
   </div>
   <div id="history-active-filters" hidden></div>
   <div id="history-feedback"></div><div id="history-list"></div>
+  <textarea id="paths"></textarea>
   <div id="history-column-options"></div>
   <details class="history-export-menu" data-history-requires-entries>
     <summary>Export</summary>
@@ -373,6 +374,73 @@ describe("history filter controls", () => {
     await vi.waitFor(() => expect(feedback.hidden).toBe(false));
     expect(feedback.classList.contains("feedback-error")).toBe(false);
     expect(feedback.textContent).toContain("Save undone");
+  });
+
+  test("offers the same undo row action for an automatic save", async () => {
+    historyRuntime.entries = [
+      {
+        id: "h-auto",
+        status: "complete",
+        downloadId: 43,
+        finalFullPath: "automatic.png",
+        info: { context: "auto" },
+      },
+    ];
+    await historyPanel.renderHistory();
+
+    document.querySelector<HTMLButtonElement>(".history-undo")!.click();
+
+    await vi.waitFor(() =>
+      expect(historyRuntime.sendMessage).toHaveBeenCalledWith({
+        type: "HISTORY_UNDO",
+        body: { historyId: "h-auto" },
+      }),
+    );
+  });
+
+  test("reroutes a completed save to a configured destination", async () => {
+    historyRuntime.entries = [
+      {
+        id: "h-move",
+        status: "complete",
+        downloadId: 44,
+        finalFullPath: "from/photo.png",
+        url: "https://cdn.test/photo.png",
+      },
+    ];
+    document.querySelector<HTMLTextAreaElement>("#paths")!.value =
+      "Pictures // (alias: Images)\n> Pictures/Archive";
+    historyRuntime.sendMessage.mockImplementation(async (message: { type: string }) => {
+      if (message.type === "HISTORY_REROUTE") {
+        return {
+          type: "HISTORY_REROUTE",
+          body: { rerouted: true, oldRemoved: true, newHistoryId: "h-new" },
+        };
+      }
+      return { type: "HISTORY_GET", body: { entries: historyRuntime.entries } };
+    });
+    await historyPanel.renderHistory();
+
+    document.querySelector<HTMLButtonElement>(".history-move")!.click();
+    const picker = document.querySelector<HTMLElement>(".history-move-picker")!;
+    const select = picker.querySelector<HTMLSelectElement>("select")!;
+    expect([...select.options].map(({ value, text }) => [value, text])).toEqual([
+      [".", "Downloads"],
+      ["Pictures", "Images"],
+      ["Pictures/Archive", "Pictures/Archive"],
+    ]);
+    select.value = "Pictures/Archive";
+    picker.querySelector<HTMLButtonElement>(".history-move-confirm")!.click();
+
+    await vi.waitFor(() =>
+      expect(historyRuntime.sendMessage).toHaveBeenCalledWith({
+        type: "HISTORY_REROUTE",
+        body: { historyId: "h-move", destination: "Pictures/Archive" },
+      }),
+    );
+    await vi.waitFor(() =>
+      expect(document.querySelector("#history-feedback")?.textContent).toContain("Save moved"),
+    );
   });
 
   test("undo failure is contained and re-enables the row action", async () => {

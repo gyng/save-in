@@ -141,6 +141,9 @@ export const statusLabel = (
   if (status === "undone") {
     return getMessage("historyStatusUndone") || "Undone";
   }
+  if (status === "moved") {
+    return getMessage("historyStatusMoved") || "Moved";
+  }
   const knownStatuses: Record<string, [string, string]> = {
     USER_CANCELED: ["historyStatusCanceled", "Canceled"],
     NETWORK_FAILED: ["historyStatusNetworkFailed", "Network failed"],
@@ -164,9 +167,9 @@ export const statusClass = (status: string): string => {
   if (status === "pending") {
     return "status-pending";
   }
-  // A deliberate user action, not an error: distinct from the failure styling
-  if (status === "undone") {
-    return "status-undone";
+  // Deliberate user actions, not errors: distinct from the failure styling
+  if (status === "undone" || status === "moved") {
+    return status === "undone" ? "status-undone" : "status-moved";
   }
   return "status-fail";
 };
@@ -363,9 +366,13 @@ export const paginateHistory = (
   if (statusFilter) {
     rows = rows.filter((r) =>
       statusFilter === "failed"
-        ? // Every non-terminal-success status except the deliberate user undo:
-          // browser error names (SERVER_FORBIDDEN, …) have no enumerable list
-          r.status !== "complete" && r.status !== "pending" && r.status !== "undone"
+        ? // Every non-terminal-success status except the deliberate user
+          // actions (undo, move): browser error names (SERVER_FORBIDDEN, …)
+          // have no enumerable list
+          r.status !== "complete" &&
+          r.status !== "pending" &&
+          r.status !== "undone" &&
+          r.status !== "moved"
         : r.status === statusFilter,
     );
   }

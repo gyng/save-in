@@ -80,6 +80,11 @@ export const normalizeHistoryEntry = (value: unknown): HistoryEntry | null => {
   if (typeof value.downloadStartTime === "string" && value.downloadStartTime.length > 0) {
     entry.downloadStartTime = value.downloadStartTime;
   }
+  for (const key of ["rerouteOf", "rerouteTo"] as const) {
+    if (typeof value[key] === "string" && value[key].length > 0) {
+      entry[key] = value[key];
+    }
+  }
   if (
     typeof value.fileSize === "number" &&
     Number.isSafeInteger(value.fileSize) &&

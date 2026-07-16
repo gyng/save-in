@@ -100,18 +100,30 @@ export const backfillDownloadStartTime = (
 // cannot stat the filesystem, so when the browser no longer tracks the id
 // (or tracks a different download under it) the file's fate is unknowable —
 // undo must refuse rather than destroy the wrong file or claim success.
-export const undoBrowserDownload = async (
+// Non-destructive half of the undo check, shared with reroute: reroute must
+// prove the original is verifiable BEFORE issuing the replacement download,
+// or an unverifiable row would spawn a duplicate file it can never clean up.
+export const findVerifiedDownload = async (
   downloadId: number,
   expected: ExpectedDownloadIdentity = {},
-): Promise<UndoDownloadResult> => {
+): Promise<{ id: number; exists?: boolean | undefined } | null> => {
   let item;
   try {
     [item] = await webExtensionApi.downloads.search({ id: downloadId });
   } catch {
-    return { undone: false, fileMissing: false };
+    return null;
   }
+  if (!item) return null;
+  if (!matchesDownloadIdentity(item, expected)) return null;
+  return item;
+};
+
+export const undoBrowserDownload = async (
+  downloadId: number,
+  expected: ExpectedDownloadIdentity = {},
+): Promise<UndoDownloadResult> => {
+  const item = await findVerifiedDownload(downloadId, expected);
   if (!item) return { undone: false, fileMissing: false };
-  if (!matchesDownloadIdentity(item, expected)) return { undone: false, fileMissing: false };
 
   // Success needs at least one confirmed fact: the browser reported the file
   // gone, removeFile resolved, or erase actually erased. A removeFile
