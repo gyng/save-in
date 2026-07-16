@@ -86,6 +86,11 @@ export const buildRuleAuthoringPrompt = (
     "",
     "User request (JSON string):",
     JSON.stringify(boundedRequest(request)),
+    // The requirements the draft is checked against, last, where a small model
+    // weights them most. Restating them here only repeats what the request
+    // already says, so it cannot introduce a requirement the review would then
+    // reject.
+    ...requestRequirementLines(request),
   ].join("\n");
 
 export const buildRuleCritiquePrompt = (
@@ -385,6 +390,39 @@ const matcherText = (rule: string): string =>
     .join("\n")
     .replaceAll("\\", "")
     .toLowerCase();
+
+// The same facts ruleRequestGuardrailIssues enforces, phrased for the author.
+// Deriving both from one extraction keeps the instruction and the check from
+// disagreeing about what the request asked for.
+const requestRequirementLines = (request: string): string[] => {
+  const requirements: string[] = [];
+  const extensions = explicitExtensions(request);
+  if (extensions.length > 0) {
+    requirements.push(`Match only these file types: ${extensions.join(", ")}.`);
+  } else {
+    const categories = namedCategories(request);
+    if (categories.length > 0) {
+      requirements.push(
+        `Match ${categories.join(", ")} with sourcekind. It is a category, not a file type.`,
+      );
+    }
+  }
+  for (const site of explicitSites(request)) {
+    requirements.push(`Match only the ${site} site.`);
+  }
+  const folder = explicitFolder(request);
+  if (folder) {
+    requirements.push(`Save into the ${folder}/ folder.`);
+    if (!asksForRename(request)) {
+      requirements.push(
+        `Keep the original filename: end the destination with ${folder}/:filename:.`,
+      );
+    }
+  }
+  return requirements.length > 0
+    ? ["", "This request requires exactly:", ...requirements.map((line) => `- ${line}`)]
+    : [];
+};
 
 export const ruleRequestGuardrailIssues = (request: string, rule: string): string[] => {
   const issues: string[] = [];

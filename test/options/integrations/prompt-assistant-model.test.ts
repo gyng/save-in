@@ -55,6 +55,39 @@ describe("Prompt API rule-authoring model", () => {
     expect(result).toContain("fileext");
   });
 
+  test("states the requirements it will enforce, last, where the model reads them", () => {
+    const vocabulary = { matchers: ["fileext", "sourcekind"], variables: [":filename:"] };
+    const result = buildRuleAuthoringPrompt("save png into /dongs", grammar, vocabulary);
+
+    expect(result).toContain("Match only these file types: png.");
+    expect(result).toContain("Save into the dongs/ folder.");
+    expect(result).toContain("dongs/:filename:");
+    expect(result.indexOf("This request requires exactly:")).toBeGreaterThan(
+      result.indexOf("User request"),
+    );
+  });
+
+  test("states a category requirement without inventing a file type", () => {
+    const vocabulary = { matchers: ["fileext", "sourcekind"], variables: [":filename:"] };
+    const result = buildRuleAuthoringPrompt(
+      "save images from docs.example.com into /archive",
+      grammar,
+      vocabulary,
+    );
+
+    expect(result).toContain("sourcekind");
+    expect(result).toContain("Match only the docs.example.com site.");
+    expect(result).toContain("Save into the archive/ folder.");
+    expect(result).not.toContain("Match only these file types");
+  });
+
+  test("adds no requirements it cannot prove from the request", () => {
+    const vocabulary = { matchers: ["fileext"], variables: [":filename:"] };
+    const result = buildRuleAuthoringPrompt("sort my downloads sensibly", grammar, vocabulary);
+
+    expect(result).not.toContain("This request requires exactly:");
+  });
+
   test("extracts a fenced rule without retaining Markdown", () => {
     expect(
       cleanRuleSuggestion("Here is the rule:\n```text\nfileext: ^png$\ninto: Images\n```"),
