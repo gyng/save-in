@@ -184,7 +184,9 @@ export const sanitizeRuleDraft = (
     clauses += 1;
     kept.push(line);
   }
-  return clauses > 0 ? kept.join("\n").trim() || null : null;
+  // A counted clause line always carries its own name and colon, so the join is
+  // never blank once one survives.
+  return clauses > 0 ? kept.join("\n").trim() : null;
 };
 
 export const isSingleRuleSuggestion = (source: string): boolean =>

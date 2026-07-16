@@ -67,6 +67,20 @@ describe("Prompt API rule-authoring model", () => {
     );
   });
 
+  // A request that asks for a rename must not also be told to keep the
+  // original filename: the two requirements contradict each other.
+  test("omits the keep-the-filename requirement when the request asks for a rename", () => {
+    const vocabulary = { matchers: ["fileext"], variables: [":filename:", ":sha256:"] };
+    const result = buildRuleAuthoringPrompt(
+      "save png into /dongs and rename to :sha256:",
+      grammar,
+      vocabulary,
+    );
+
+    expect(result).toContain("Save into the dongs/ folder.");
+    expect(result).not.toContain("Keep the original filename");
+  });
+
   test("states a category requirement without inventing a file type", () => {
     const vocabulary = { matchers: ["fileext", "sourcekind"], variables: [":filename:"] };
     const result = buildRuleAuthoringPrompt(

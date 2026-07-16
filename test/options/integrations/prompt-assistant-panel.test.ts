@@ -517,6 +517,24 @@ test("reports empty model output as an unusable draft, not as lost availability"
   expect(element("prompt-assistant-status").textContent).not.toContain("Not available");
 });
 
+// The repair pass is model output too, so it gets the same sanitising as the
+// first draft rather than being trusted because a critique produced it.
+test("refuses a repaired rule whose unknown clause would silently match every download", async () => {
+  mocks.runPrompt.mockImplementation(async (prompt: string) =>
+    prompt.startsWith("Review one proposed")
+      ? critiqueResponse("extension: ^png$\ninto: dongs/:filename:", false, ["wrong matcher"])
+      : authorResponse(),
+  );
+  setup();
+  await enable();
+  submitRequest("save png into /dongs");
+
+  await vi.waitFor(() => expect(element("prompt-assistant-status").dataset.state).toBe("error"));
+  expect(element("prompt-assistant-status").textContent).toContain(
+    "The model did not return a usable rule",
+  );
+});
+
 test("refuses a draft whose unknown clause would silently match every download", async () => {
   mocks.runPrompt.mockImplementation(async (prompt: string) =>
     prompt.startsWith("Review one proposed")
