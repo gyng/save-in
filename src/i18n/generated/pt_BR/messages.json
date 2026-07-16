@@ -129,7 +129,7 @@
     "message": "Adicionar a data a cada download"
   },
   "ruleTemplateDateStampDescription": {
-    "message": "Antepõe a data de salvamento ao nome de arquivo original"
+    "message": "Antepõe a data de salvamento ao nome do arquivo salvo"
   },
   "ruleTemplateDailyInboxName": {
     "message": "Caixa de entrada diária"
@@ -141,7 +141,7 @@
     "message": "Downloads por mês"
   },
   "ruleTemplateDownloadsByMonthDescription": {
-    "message": "Cria pastas de ano e mês mantendo o nome de arquivo original"
+    "message": "Cria pastas de ano e mês mantendo o nome do arquivo salvo"
   },
   "ruleTemplateWeeklyInboxName": {
     "message": "Caixa de entrada semanal"
@@ -177,7 +177,7 @@
     "message": "Prefixo com o título da página"
   },
   "ruleTemplatePageTitlePrefixDescription": {
-    "message": "Adiciona um título de página seguro para o sistema de arquivos antes do nome original"
+    "message": "Adiciona um título de página seguro para o sistema de arquivos antes do nome salvo"
   },
   "ruleTemplateCaptureUrlName": {
     "message": "Capturar parte da URL"
@@ -1874,7 +1874,7 @@
     "message": "As regras de roteamento usam cláusulas para decidir quais downloads serão movidos ou renomeados."
   },
   "html_templatesProvideReadyMadeRoutingRulesYouCanAddAndCustomize": {
-    "message": "Os modelos oferecem regras de roteamento prontas para adicionar e personalizar."
+    "message": "Os modelos oferecem regras prontas para personalizar. O Save In usa a primeira correspondência, portanto mantenha os modelos gerais após os específicos."
   },
   "html_forCaseInsensitiveMatching": {
     "message": "para correspondência sem distinção entre maiúsculas e minúsculas."
@@ -3789,7 +3789,7 @@
     "message": "Originais por site"
   },
   "ruleTemplatePagePathNoSchemeDescription": {
-    "message": "Cria pastas a partir do host e do caminho da página, sem credenciais ou sufixos de URL"
+    "message": "Cria pastas a partir do nome do host e do caminho da página, sem credenciais, portas, consultas ou fragmentos"
   },
   "ruleTemplatePagePathNoSchemeName": {
     "message": "Caminho da página sem o esquema"

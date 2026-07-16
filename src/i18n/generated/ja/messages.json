@@ -1497,7 +1497,7 @@
     "message": "ルーティング ルールは、句を使用して、どのダウンロードを移動または名前変更するかを決定します。"
   },
   "html_templatesProvideReadyMadeRoutingRulesYouCanAddAndCustomize": {
-    "message": "テンプレートには、追加してカスタマイズできる既製のルーティング ルールが用意されています。"
+    "message": "テンプレートにはカスタマイズできる既製のルールがあります。Save In は最初の一致を使用するため、一般的なテンプレートは特定のテンプレートより後に配置してください。"
   },
   "html_forCaseInsensitiveMatching": {
     "message": "大文字と小文字を区別しないマッチングの場合。"
@@ -1970,7 +1970,7 @@
     "message": "すべてのダウンロードに日付を付加"
   },
   "ruleTemplateDateStampDescription": {
-    "message": "元のファイル名の先頭に保存日を追加します"
+    "message": "保存するファイル名の先頭に保存日を追加します"
   },
   "ruleTemplateDailyInboxName": {
     "message": "日別フォルダー"
@@ -1982,7 +1982,7 @@
     "message": "ダウンロードを月別に整理"
   },
   "ruleTemplateDownloadsByMonthDescription": {
-    "message": "元のファイル名を保ったまま、年別と月別のフォルダーを作成します"
+    "message": "保存するファイル名を保ったまま、年別と月別のフォルダーを作成します"
   },
   "ruleTemplateWeeklyInboxName": {
     "message": "週別フォルダー"
@@ -2018,7 +2018,7 @@
     "message": "ページタイトルを先頭に追加"
   },
   "ruleTemplatePageTitlePrefixDescription": {
-    "message": "ファイルシステムで安全なページタイトルを元のファイル名の先頭に追加します"
+    "message": "ファイルシステムで安全なページタイトルを保存するファイル名の先頭に追加します"
   },
   "ruleTemplateCaptureUrlName": {
     "message": "URL の一部を取り込む"
@@ -3789,7 +3789,7 @@
     "message": "サイトの元データ"
   },
   "ruleTemplatePagePathNoSchemeDescription": {
-    "message": "URLの認証情報やサフィックスを除き、ページのホストとパスからフォルダーを作成します"
+    "message": "認証情報、ポート、クエリ、フラグメントを除き、ページのホスト名とパスからフォルダーを作成します"
   },
   "ruleTemplatePagePathNoSchemeName": {
     "message": "スキームを除いたページパス"

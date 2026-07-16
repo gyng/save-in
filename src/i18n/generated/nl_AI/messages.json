@@ -129,7 +129,7 @@
     "message": "Elke download van een datum voorzien"
   },
   "ruleTemplateDateStampDescription": {
-    "message": "Plaatst de opslagdatum vóór de oorspronkelijke bestandsnaam"
+    "message": "Plaatst de opslagdatum vóór de opgeslagen bestandsnaam"
   },
   "ruleTemplateDailyInboxName": {
     "message": "Dagelijkse inbox"
@@ -141,7 +141,7 @@
     "message": "Downloads per maand"
   },
   "ruleTemplateDownloadsByMonthDescription": {
-    "message": "Maakt jaar- en maandmappen met behoud van de oorspronkelijke bestandsnaam"
+    "message": "Maakt jaar- en maandmappen met behoud van de opgeslagen bestandsnaam"
   },
   "ruleTemplateWeeklyInboxName": {
     "message": "Wekelijkse inbox"
@@ -177,7 +177,7 @@
     "message": "Paginatitel als voorvoegsel"
   },
   "ruleTemplatePageTitlePrefixDescription": {
-    "message": "Plaatst een bestandssysteemveilige paginatitel vóór de oorspronkelijke bestandsnaam"
+    "message": "Plaatst een bestandssysteemveilige paginatitel vóór de opgeslagen bestandsnaam"
   },
   "ruleTemplateCaptureUrlName": {
     "message": "Deel van de URL vastleggen"
@@ -1874,7 +1874,7 @@
     "message": "Routeringsregels gebruiken clausules om te bepalen welke downloads worden verplaatst of hernoemd."
   },
   "html_templatesProvideReadyMadeRoutingRulesYouCanAddAndCustomize": {
-    "message": "Sjablonen bieden kant-en-klare routeringsregels die u kunt toevoegen en aanpassen."
+    "message": "Sjablonen bieden kant-en-klare regels die u kunt aanpassen. Save In gebruikt de eerste overeenkomst, dus plaats algemene sjablonen na specifieke."
   },
   "html_forCaseInsensitiveMatching": {
     "message": "voor hoofdletterongevoelige overeenkomsten."
@@ -3789,7 +3789,7 @@
     "message": "Originelen per site"
   },
   "ruleTemplatePagePathNoSchemeDescription": {
-    "message": "Bouwt mappen op basis van de host en het pad van de pagina, zonder URL-inloggegevens of achtervoegsels"
+    "message": "Bouwt mappen op basis van de hostnaam en het pad van de pagina, zonder inloggegevens, poorten, query's of fragmenten"
   },
   "ruleTemplatePagePathNoSchemeName": {
     "message": "Paginapad zonder schema"

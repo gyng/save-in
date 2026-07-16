@@ -110,7 +110,7 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     name: "Archives into one folder",
     description: "Collects zip, rar, 7z, tar, and compressed archives",
     example: "Example: archives/project.zip",
-    rule: "actualfileext/i: ^(zip|rar|7z|tar|gz|tgz|bz2|xz)$\ninto: archives/:filename:",
+    rule: "actualfileext/i: ^(zipx?|rar|7z|tar|gz|tgz|bz2|xz|zst|cab)$\ninto: archives/:filename:",
     proof: {
       info: { sourceUrl: "https://example.test/project.zip", filename: "project.zip" },
       destination: "archives/:filename:",
@@ -121,7 +121,7 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     name: "Documents into one folder",
     description: "Collects common office and text documents",
     example: "Example: documents/notes.docx",
-    rule: "actualfileext/i: ^(pdf|docx?|xlsx?|pptx?|odt|ods|rtf|txt|csv)$\ninto: documents/:filename:",
+    rule: "actualfileext/i: ^(pdf|docx?|xlsx?|pptx?|odt|ods|odp|rtf|txt|md|csv)$\ninto: documents/:filename:",
     proof: {
       info: { sourceUrl: "https://example.test/notes.docx", filename: "notes.docx" },
       destination: "documents/:filename:",
@@ -143,7 +143,7 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     name: "Apps and installers",
     description: "Keeps desktop and mobile installation packages together",
     example: "Example: installers/setup.msi",
-    rule: "actualfileext/i: ^(exe|msi|dmg|pkg|deb|rpm|appimage|apk)$\ninto: installers/:filename:",
+    rule: "actualfileext/i: ^(exe|msi|msix(?:bundle)?|appx(?:bundle)?|dmg|pkg|deb|rpm|appimage|flatpak(?:ref)?|snap|apk|ipa|crx|xpi)$\ninto: installers/:filename:",
     proof: {
       info: { sourceUrl: "https://example.test/setup.msi", filename: "setup.msi" },
       destination: "installers/:filename:",
@@ -154,7 +154,7 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     name: "Fonts into one folder",
     description: "Collects desktop and web font files",
     example: "Example: fonts/inter.woff2",
-    rule: "actualfileext/i: ^(ttf|otf|woff2?|eot)$\ninto: fonts/:filename:",
+    rule: "actualfileext/i: ^(ttf|ttc|otf|woff2?|eot)$\ninto: fonts/:filename:",
     proof: {
       info: { sourceUrl: "https://example.test/inter.woff2", filename: "inter.woff2" },
       destination: "fonts/:filename:",
@@ -174,7 +174,7 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
   {
     category: "Date and sequence",
     name: "Date-stamp every download",
-    description: "Prefixes the original filename with the save date",
+    description: "Prefixes the saved filename with the save date",
     example: "Example: 2026-07-12-report.pdf",
     rule: "filename: .*\ninto: :date:-:filename:",
     proof: {
@@ -204,7 +204,7 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
   {
     category: "Date and sequence",
     name: "Downloads by month",
-    description: "Creates year and month folders while keeping the original filename",
+    description: "Creates year and month folders while keeping the saved filename",
     example: "Example: archive/2026/07/report.pdf",
     rule: "filename: .*\ninto: archive/:year:/:month:/:filename:",
     proof: {
@@ -250,15 +250,14 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     category: "Sites and URLs",
     name: "One site, one folder",
     description: "Routes one chosen website into its own folder",
-    example: "Example: example/an-interesting-page/report.pdf",
-    rule: "pagedomain: ^(?:[^.]+\\.)*example\\.com$\ninto: example/:pagetitleslug:/:filename:",
+    example: "Example: example/report.pdf",
+    rule: "pagedomain: ^(?:[^.]+\\.)*example\\.com$\ninto: example/:filename:",
     proof: {
       info: {
         pageUrl: "https://news.example.com/an-interesting-page",
         filename: "report.pdf",
-        currentTab: { title: "An Interesting Page" },
       },
-      destination: "example/:pagetitleslug:/:filename:",
+      destination: "example/:filename:",
     },
   },
   {
@@ -290,9 +289,9 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
   {
     category: "Sites and URLs",
     name: "Page-title prefix",
-    description: "Adds a filesystem-safe page title before the original filename",
+    description: "Adds a filesystem-safe page title before the saved filename",
     example: "Example: pages/an-interesting-page-report.pdf",
-    rule: "pagetitle: .+\ninto: pages/:pagetitleslug:-:filename:",
+    rule: "pagetitle/u: [\\p{L}\\p{M}\\p{N}]\ninto: pages/:pagetitleslug:-:filename:",
     proof: {
       info: {
         sourceUrl: "https://example.test/report.pdf",
@@ -443,7 +442,7 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     // ArtStation serves the 4k path even when the upload is smaller, in which
     // case it keeps the available dimensions. Do not rewrite `original` assets
     // such as animated GIFs or claim that the 4k rendition is the upload.
-    rule: "sourceurl: ^https://(cdn[ab]\\.artstation\\.com)/(p/assets/images/images/\\d+/\\d+/\\d+)/(?:small|medium|large)/([^?#]+)(?:[?#]|$)\ncapturegroups: sourceurl\nfetch: https://:$1:/:$2:/4k/:$3:\ninto: artstation/:$3:",
+    rule: "sourceurl: ^https://(cdn[ab]\\.artstation\\.com)/(p/assets/images/images/\\d+/\\d+/\\d+)/(?:small|medium|large)/([^/?#]+)(?:[?#]|$)\ncapturegroups: sourceurl\nfetch: https://:$1:/:$2:/4k/:$3:\ninto: artstation/:$3:",
     proof: {
       info: {
         sourceUrl:
@@ -465,7 +464,7 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     // rendition segment to `original`. Restrict this to JPEG because video and
     // GIFV attachments use a PNG preview whose original has an MP4 extension;
     // the preview URL alone cannot distinguish those from a static PNG image.
-    rule: "sourceurl: ^https://([^/]+)/((?:[^/?#]+/)*media_attachments/files/(?:\\d+/)+)small/([^/?#]+\\.jpe?g)(?:[?#]|$)\ncapturegroups: sourceurl\nfetch: https://:$1:/:$2:original/:$3:\ninto: mastodon/:$3:",
+    rule: "sourceurl: ^https://([A-Za-z0-9.-]+(?::\\d+)?)/((?:[^/?#]+/)*media_attachments/files/(?:\\d+/)+)small/([^/?#]+\\.jpe?g)(?:[?#]|$)\ncapturegroups: sourceurl\nfetch: https://:$1:/:$2:original/:$3:\ninto: mastodon/:$3:",
     proof: {
       info: {
         sourceUrl:
@@ -543,9 +542,10 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
   {
     category: "Site filing",
     name: "Page path without the scheme",
-    description: "Builds folders from the page host and path without URL credentials or suffixes",
+    description:
+      "Builds folders from the page hostname and path without credentials, ports, queries, or fragments",
     example: "Example: pages/example.com/articles/great-article/photo.jpg",
-    rule: "pageurl: ^https?://[^/?#]+/?([^?#]*)\ncapturegroups: pageurl\ninto: pages/:pagedomain:/:$1:/:filename:",
+    rule: "pageurl: ^https?://[^/?#]+(/[^/?#][^?#]*?)?/?(?:[?#]|$)\npagedomain: .+\ncapturegroups: pageurl\ninto: pages/:pagedomain::$1:/:filename:",
     proof: {
       info: {
         pageUrl: "https://example.com/articles/great-article?utm_source=x",
@@ -560,7 +560,7 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     description:
       "Replaces the filename with a lowercase, hyphenated page title while keeping the resolved extension",
     example: "Example: my-great-article.jpg",
-    rule: "pagetitle: .+\nactualfileext/i: ^([a-z0-9]+)$\ncapturegroups: actualfileext\ninto: :pagetitleslug:.:$1:",
+    rule: "pagetitle/u: [\\p{L}\\p{M}\\p{N}]\nactualfileext/i: ^([a-z0-9]+)$\ncapturegroups: actualfileext\ninto: :pagetitleslug:.:$1:",
     proof: {
       info: {
         filename: "My-Great-Article.jpg",
@@ -693,7 +693,7 @@ export const localizeRuleTemplates = (getMessage: GetMessage): LocalizedRuleTemp
         name: getMessage("ruleTemplateDateStampName") || "Date-stamp every download",
         description:
           getMessage("ruleTemplateDateStampDescription") ||
-          "Prefixes the original filename with the save date",
+          "Prefixes the saved filename with the save date",
       },
     ],
     [
@@ -711,7 +711,7 @@ export const localizeRuleTemplates = (getMessage: GetMessage): LocalizedRuleTemp
         name: getMessage("ruleTemplateDownloadsByMonthName") || "Downloads by month",
         description:
           getMessage("ruleTemplateDownloadsByMonthDescription") ||
-          "Creates year and month folders while keeping the original filename",
+          "Creates year and month folders while keeping the saved filename",
       },
     ],
     [
@@ -765,7 +765,7 @@ export const localizeRuleTemplates = (getMessage: GetMessage): LocalizedRuleTemp
         name: getMessage("ruleTemplatePageTitlePrefixName") || "Page-title prefix",
         description:
           getMessage("ruleTemplatePageTitlePrefixDescription") ||
-          "Adds a filesystem-safe page title before the original filename",
+          "Adds a filesystem-safe page title before the saved filename",
       },
     ],
     [
@@ -920,7 +920,7 @@ export const localizeRuleTemplates = (getMessage: GetMessage): LocalizedRuleTemp
         name: getMessage("ruleTemplatePagePathNoSchemeName") || "Page path without the scheme",
         description:
           getMessage("ruleTemplatePagePathNoSchemeDescription") ||
-          "Builds folders from the page host and path without URL credentials or suffixes",
+          "Builds folders from the page hostname and path without credentials, ports, queries, or fragments",
       },
     ],
     [

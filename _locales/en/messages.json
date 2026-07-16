@@ -808,7 +808,7 @@
     "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_templatesProvideReadyMadeRoutingRulesYouCanAddAndCustomize": {
-    "message": "Templates provide ready-made routing rules you can add and customize.",
+    "message": "Templates provide ready-made rules you can customize. Save In uses the first match, so keep general templates after specific ones.",
     "description": "Help text above the template library in the reference dialog. Used in src/options/options.html."
   },
   "html_forCaseInsensitiveMatching": {
@@ -2484,7 +2484,7 @@
     "description": "Title of a built-in routing-template card. Used in src/options/rule-templates.ts."
   },
   "ruleTemplateDateStampDescription": {
-    "message": "Prefixes the original filename with the save date",
+    "message": "Prefixes the saved filename with the save date",
     "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
   },
   "ruleTemplateDailyInboxName": {
@@ -2500,7 +2500,7 @@
     "description": "Title of a built-in routing-template card. Used in src/options/rule-templates.ts."
   },
   "ruleTemplateDownloadsByMonthDescription": {
-    "message": "Creates year and month folders while keeping the original filename",
+    "message": "Creates year and month folders while keeping the saved filename",
     "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
   },
   "ruleTemplateWeeklyInboxName": {
@@ -2548,7 +2548,7 @@
     "description": "Title of a built-in routing-template card. Used in src/options/rule-templates.ts."
   },
   "ruleTemplatePageTitlePrefixDescription": {
-    "message": "Adds a filesystem-safe page title before the original filename",
+    "message": "Adds a filesystem-safe page title before the saved filename",
     "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
   },
   "ruleTemplateCaptureUrlName": {
@@ -2692,7 +2692,7 @@
     "description": "Title of a built-in routing-template card; \"scheme\" means the URL protocol prefix (such as https://). Used in src/options/rule-templates.ts."
   },
   "ruleTemplatePagePathNoSchemeDescription": {
-    "message": "Builds folders from the page host and path without URL credentials or suffixes",
+    "message": "Builds folders from the page hostname and path without credentials, ports, queries, or fragments",
     "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
   },
   "ruleTemplateSluggedTitleRenameName": {

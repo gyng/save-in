@@ -555,7 +555,7 @@
     "message": "Le regole di routing utilizzano clausole per decidere quali download spostare o rinominare."
   },
   "html_templatesProvideReadyMadeRoutingRulesYouCanAddAndCustomize": {
-    "message": "I modelli offrono regole di routing pronte da aggiungere e personalizzare."
+    "message": "I modelli offrono regole pronte da personalizzare. Save In usa la prima corrispondenza, quindi inserisci i modelli generali dopo quelli specifici."
   },
   "html_forCaseInsensitiveMatching": {
     "message": "per la corrispondenza senza distinzione tra maiuscole e minuscole."
@@ -1755,7 +1755,7 @@
     "message": "Aggiungi la data a ogni download"
   },
   "ruleTemplateDateStampDescription": {
-    "message": "Antepone al nome file originale la data di salvataggio"
+    "message": "Antepone al nome del file salvato la data di salvataggio"
   },
   "ruleTemplateDailyInboxName": {
     "message": "Raccolta giornaliera"
@@ -1767,7 +1767,7 @@
     "message": "Download per mese"
   },
   "ruleTemplateDownloadsByMonthDescription": {
-    "message": "Crea cartelle per anno e mese mantenendo il nome file originale"
+    "message": "Crea cartelle per anno e mese mantenendo il nome del file salvato"
   },
   "ruleTemplateWeeklyInboxName": {
     "message": "Raccolta settimanale"
@@ -1803,7 +1803,7 @@
     "message": "Prefisso del titolo della pagina"
   },
   "ruleTemplatePageTitlePrefixDescription": {
-    "message": "Aggiunge un titolo di pagina sicuro per il file system prima del nome file originale"
+    "message": "Aggiunge un titolo di pagina sicuro per il file system prima del nome del file salvato"
   },
   "ruleTemplateCaptureUrlName": {
     "message": "Acquisisci parte dell'URL"
@@ -3789,7 +3789,7 @@
     "message": "Originali per sito"
   },
   "ruleTemplatePagePathNoSchemeDescription": {
-    "message": "Crea cartelle dall'host e dal percorso della pagina, senza credenziali o suffissi dell'URL"
+    "message": "Crea cartelle dal nome host e dal percorso della pagina, senza credenziali, porte, query o frammenti"
   },
   "ruleTemplatePagePathNoSchemeName": {
     "message": "Percorso pagina senza schema"

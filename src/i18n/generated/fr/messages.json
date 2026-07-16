@@ -129,7 +129,7 @@
     "message": "Dater chaque téléchargement"
   },
   "ruleTemplateDateStampDescription": {
-    "message": "Ajoute la date d’enregistrement avant le nom de fichier d’origine"
+    "message": "Ajoute la date d’enregistrement avant le nom du fichier enregistré"
   },
   "ruleTemplateDailyInboxName": {
     "message": "Boîte de réception quotidienne"
@@ -141,7 +141,7 @@
     "message": "Téléchargements par mois"
   },
   "ruleTemplateDownloadsByMonthDescription": {
-    "message": "Crée des dossiers par année et par mois en conservant le nom de fichier d’origine"
+    "message": "Crée des dossiers par année et par mois en conservant le nom du fichier enregistré"
   },
   "ruleTemplateWeeklyInboxName": {
     "message": "Boîte de réception hebdomadaire"
@@ -177,7 +177,7 @@
     "message": "Titre de page comme préfixe"
   },
   "ruleTemplatePageTitlePrefixDescription": {
-    "message": "Ajoute un titre de page compatible avec le système de fichiers avant le nom d’origine"
+    "message": "Ajoute un titre de page compatible avec le système de fichiers avant le nom enregistré"
   },
   "ruleTemplateCaptureUrlName": {
     "message": "Capturer une partie de l’URL"
@@ -1886,7 +1886,7 @@
     "message": "Les règles de routage utilisent des clauses pour décider quels téléchargements déplacer ou renommer."
   },
   "html_templatesProvideReadyMadeRoutingRulesYouCanAddAndCustomize": {
-    "message": "Les modèles proposent des règles de routage prêtes à ajouter et à personnaliser."
+    "message": "Les modèles proposent des règles prêtes à personnaliser. Save In utilise la première correspondance : placez donc les modèles généraux après les modèles spécifiques."
   },
   "html_forCaseInsensitiveMatching": {
     "message": "pour une correspondance insensible à la casse."
@@ -3789,7 +3789,7 @@
     "message": "Originaux par site"
   },
   "ruleTemplatePagePathNoSchemeDescription": {
-    "message": "Construit des dossiers à partir de l’hôte et du chemin de la page, sans identifiants ni suffixes d’URL"
+    "message": "Construit des dossiers à partir du nom d’hôte et du chemin de la page, sans identifiants, ports, requêtes ni fragments"
   },
   "ruleTemplatePagePathNoSchemeName": {
     "message": "Chemin de page sans le schéma"

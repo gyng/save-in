@@ -1497,7 +1497,7 @@
     "message": "路由規則使用子句來決定要移動或重新命名哪些下載。"
   },
   "html_templatesProvideReadyMadeRoutingRulesYouCanAddAndCustomize": {
-    "message": "範本提供可新增及自訂的現成路由規則。"
+    "message": "範本提供可自訂的現成規則。Save In 會使用第一個相符項目，因此請將一般範本放在特定範本之後。"
   },
   "html_forCaseInsensitiveMatching": {
     "message": "以進行不區分大小寫的比對。"
@@ -1970,7 +1970,7 @@
     "message": "為每個下載項目加上日期"
   },
   "ruleTemplateDateStampDescription": {
-    "message": "在原始檔名前加上儲存日期"
+    "message": "在儲存的檔名前加上儲存日期"
   },
   "ruleTemplateDailyInboxName": {
     "message": "每日收件匣"
@@ -1982,7 +1982,7 @@
     "message": "依月份整理下載項目"
   },
   "ruleTemplateDownloadsByMonthDescription": {
-    "message": "保留原始檔名，並建立年份與月份資料夾"
+    "message": "保留儲存的檔名，並建立年份與月份資料夾"
   },
   "ruleTemplateWeeklyInboxName": {
     "message": "每週收件匣"
@@ -2018,7 +2018,7 @@
     "message": "頁面標題前綴"
   },
   "ruleTemplatePageTitlePrefixDescription": {
-    "message": "在原始檔名前加上適用於檔案系統的安全頁面標題"
+    "message": "在儲存的檔名前加上適用於檔案系統的安全頁面標題"
   },
   "ruleTemplateCaptureUrlName": {
     "message": "擷取 URL 的一部分"
@@ -3789,7 +3789,7 @@
     "message": "網站原始檔"
   },
   "ruleTemplatePagePathNoSchemeDescription": {
-    "message": "根據頁面主機名稱與路徑建立資料夾，不包含 URL 憑證或後綴"
+    "message": "根據頁面主機名稱與路徑建立資料夾，不包含憑證、連接埠、查詢或片段"
   },
   "ruleTemplatePagePathNoSchemeName": {
     "message": "不含通訊協定的頁面路徑"

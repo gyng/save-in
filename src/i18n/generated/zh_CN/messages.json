@@ -1497,7 +1497,7 @@
     "message": "路由规则使用子句来决定要移动或重命名哪些下载。"
   },
   "html_templatesProvideReadyMadeRoutingRulesYouCanAddAndCustomize": {
-    "message": "模板提供可添加和自定义的现成路由规则。"
+    "message": "模板提供可自定义的现成规则。Save In 使用首个匹配项，因此请将通用模板放在特定模板之后。"
   },
   "html_forCaseInsensitiveMatching": {
     "message": "用于不区分大小写的匹配。"
@@ -1970,7 +1970,7 @@
     "message": "为每个下载添加日期"
   },
   "ruleTemplateDateStampDescription": {
-    "message": "在原始文件名前添加保存日期"
+    "message": "在保存的文件名前添加保存日期"
   },
   "ruleTemplateDailyInboxName": {
     "message": "每日收件箱"
@@ -1982,7 +1982,7 @@
     "message": "按月整理下载"
   },
   "ruleTemplateDownloadsByMonthDescription": {
-    "message": "保留原始文件名，并创建年份和月份文件夹"
+    "message": "保留保存的文件名，并创建年份和月份文件夹"
   },
   "ruleTemplateWeeklyInboxName": {
     "message": "每周收件箱"
@@ -2018,7 +2018,7 @@
     "message": "页面标题前缀"
   },
   "ruleTemplatePageTitlePrefixDescription": {
-    "message": "在原始文件名前添加适用于文件系统的安全页面标题"
+    "message": "在保存的文件名前添加适用于文件系统的安全页面标题"
   },
   "ruleTemplateCaptureUrlName": {
     "message": "捕获 URL 的一部分"
@@ -3789,7 +3789,7 @@
     "message": "站点原始文件"
   },
   "ruleTemplatePagePathNoSchemeDescription": {
-    "message": "根据页面主机名和路径创建文件夹，不包含 URL 凭据或后缀"
+    "message": "根据页面主机名和路径创建文件夹，不包含凭据、端口、查询或片段"
   },
   "ruleTemplatePagePathNoSchemeName": {
     "message": "不含协议的页面路径"

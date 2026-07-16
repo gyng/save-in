@@ -129,7 +129,7 @@
     "message": "Jeden Download mit Datum versehen"
   },
   "ruleTemplateDateStampDescription": {
-    "message": "Stellt dem ursprünglichen Dateinamen das Speicherdatum voran"
+    "message": "Stellt dem gespeicherten Dateinamen das Speicherdatum voran"
   },
   "ruleTemplateDailyInboxName": {
     "message": "Täglicher Ablageordner"
@@ -141,7 +141,7 @@
     "message": "Downloads nach Monat"
   },
   "ruleTemplateDownloadsByMonthDescription": {
-    "message": "Erstellt Jahres- und Monatsordner und behält den ursprünglichen Dateinamen bei"
+    "message": "Erstellt Jahres- und Monatsordner und behält den gespeicherten Dateinamen bei"
   },
   "ruleTemplateWeeklyInboxName": {
     "message": "Wöchentlicher Ablageordner"
@@ -177,7 +177,7 @@
     "message": "Seitentitel als Präfix"
   },
   "ruleTemplatePageTitlePrefixDescription": {
-    "message": "Stellt dem ursprünglichen Dateinamen einen dateisystemsicheren Seitentitel voran"
+    "message": "Stellt dem gespeicherten Dateinamen einen dateisystemsicheren Seitentitel voran"
   },
   "ruleTemplateCaptureUrlName": {
     "message": "Teil der URL erfassen"
@@ -1874,7 +1874,7 @@
     "message": "Routing-Regeln verwenden Klauseln, um zu entscheiden, welche Downloads verschoben oder umbenannt werden sollen."
   },
   "html_templatesProvideReadyMadeRoutingRulesYouCanAddAndCustomize": {
-    "message": "Vorlagen enthalten vorgefertigte Routing-Regeln, die Sie hinzufügen und anpassen können."
+    "message": "Vorlagen enthalten fertige Regeln zum Anpassen. Save In verwendet den ersten Treffer; allgemeine Vorlagen gehören daher hinter spezifische."
   },
   "html_forCaseInsensitiveMatching": {
     "message": "für den Vergleich ohne Berücksichtigung der Groß-/Kleinschreibung."
@@ -3789,7 +3789,7 @@
     "message": "Website-Originale"
   },
   "ruleTemplatePagePathNoSchemeDescription": {
-    "message": "Erstellt Ordner aus Host und Pfad der Seite, ohne URL-Zugangsdaten oder Suffixe"
+    "message": "Erstellt Ordner aus Hostname und Pfad der Seite, ohne Zugangsdaten, Ports, Abfragen oder Fragmente"
   },
   "ruleTemplatePagePathNoSchemeName": {
     "message": "Seitenpfad ohne Schema"
