@@ -83,9 +83,24 @@ describe("functional dogfood CLI", () => {
   // round that does not ask for it can only ever report WebMCP as unavailable.
   test("always enables the WebMCP runtime feature the round asserts on", () => {
     const rounds = [
-      selectDogfoodProfile(true, "/profiles/nano", () => true, () => runtime),
-      selectDogfoodProfile(false, "/profiles/nano", () => true, () => runtime),
-      selectDogfoodProfile(true, "/profiles/nano", () => false, () => null),
+      selectDogfoodProfile(
+        true,
+        "/profiles/nano",
+        () => true,
+        () => runtime,
+      ),
+      selectDogfoodProfile(
+        false,
+        "/profiles/nano",
+        () => true,
+        () => runtime,
+      ),
+      selectDogfoodProfile(
+        true,
+        "/profiles/nano",
+        () => false,
+        () => null,
+      ),
     ];
     for (const round of rounds) expect(round.extraArgs).toContain(WEBMCP_FLAG);
   });
