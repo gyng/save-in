@@ -643,7 +643,7 @@ const renderHistoryTable = () => {
     }
     // Move needs everything undo needs plus the recorded source URL: it
     // re-downloads to the chosen folder, then removes the verified original.
-    if (r.status === "complete" && r.downloadId != null && r.historyId && r.url) {
+    if (r.reroutable && r.historyId) {
       const moveHistoryId = r.historyId;
       const move = document.createElement("button");
       move.type = "button";

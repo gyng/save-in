@@ -296,6 +296,100 @@ test("a mid-flight extension toward another operation's URL degrades instead of 
   expect(secondAttempt).toBe(true);
 });
 
+test("two Referers cannot concurrently extend onto the same redirect URL", async () => {
+  let started = 0;
+  let releaseBoth!: () => void;
+  const bothStarted = new Promise<void>((resolve) => {
+    releaseBoth = resolve;
+  });
+  const extendShared = async (protection?: RefererProtection): Promise<boolean | undefined> => {
+    started += 1;
+    if (started === 2) releaseBoth();
+    await bothStarted;
+    return protection?.extend("https://redirect.example/shared.jpg");
+  };
+
+  const results = await Promise.all([
+    RefererRules.withRequestReferer(
+      "https://cdn.example/a.jpg",
+      "https://gallery.example/a",
+      extendShared,
+    ),
+    RefererRules.withRequestReferer(
+      "https://cdn.example/b.jpg",
+      "https://gallery.example/b",
+      extendShared,
+    ),
+  ]);
+
+  expect(results.filter(Boolean)).toHaveLength(1);
+  const coveringRules = updateSessionRules().mock.calls.filter(([update]) =>
+    update.addRules?.some((rule) =>
+      new RegExp(rule.condition.regexFilter!).test("https://redirect.example/shared.jpg"),
+    ),
+  );
+  expect(coveringRules).toHaveLength(1);
+});
+
+test("concurrent extensions on one operation install the cumulative URL set", async () => {
+  const firstRedirect = "https://redirect.example/first.jpg";
+  const secondRedirect = "https://redirect.example/second.jpg";
+
+  await RefererRules.withRequestReferer(
+    "https://cdn.example/original.jpg",
+    "https://gallery.example/view",
+    async (protection) => {
+      await expect(
+        Promise.all([protection?.extend(firstRedirect), protection?.extend(secondRedirect)]),
+      ).resolves.toEqual([true, true]);
+    },
+  );
+
+  const finalInstall = updateSessionRules()
+    .mock.calls.filter(([update]) => update.addRules)
+    .at(-1)![0].addRules![0]!;
+  const regex = new RegExp(finalInstall.condition.regexFilter!);
+  expect(regex.test(firstRedirect)).toBe(true);
+  expect(regex.test(secondRedirect)).toBe(true);
+});
+
+test("cleanup drains an unawaited extension queue without installing abandoned URLs", async () => {
+  let releaseFirstExtension!: () => void;
+  const firstExtensionPending = new Promise<void>((resolve) => {
+    releaseFirstExtension = resolve;
+  });
+  updateSessionRules()
+    .mockResolvedValueOnce()
+    .mockImplementationOnce(() => firstExtensionPending);
+  let firstResult: Promise<boolean> | undefined;
+  let abandonedResult: Promise<boolean> | undefined;
+  let secondQueued = false;
+
+  const protectedWork = RefererRules.withRequestReferer(
+    "https://cdn.example/original.jpg",
+    "https://gallery.example/view",
+    async (protection) => {
+      if (!protection) return;
+      firstResult = protection.extend("https://redirect.example/first.jpg");
+      await vi.waitFor(() => expect(updateSessionRules()).toHaveBeenCalledTimes(2));
+      abandonedResult = protection.extend("https://redirect.example/abandoned.jpg");
+      secondQueued = true;
+    },
+  );
+
+  await vi.waitFor(() => expect(secondQueued).toBe(true));
+  releaseFirstExtension();
+  await protectedWork;
+
+  await expect(firstResult).resolves.toBe(true);
+  await expect(abandonedResult).resolves.toBe(false);
+  const installs = updateSessionRules().mock.calls.filter(([update]) => update.addRules);
+  expect(installs).toHaveLength(2);
+  expect(updateSessionRules()).toHaveBeenLastCalledWith({
+    removeRuleIds: [REFERER_SESSION_RULE_ID],
+  });
+});
+
 test("startup cleanup removes the whole pool's session rules", async () => {
   await RefererRules.cleanupStaleRefererRule();
   // A killed worker can strand any subset of the pool, so recovery clears the

@@ -38,6 +38,11 @@ import { OffscreenClient } from "../../platform/offscreen-client.ts";
 import { ExternalDownloadRejections } from "../external-download-rejections.ts";
 import { getMessage } from "../../platform/localization.ts";
 import { createSourcePanelCopy } from "../../shared/source-panel-copy.ts";
+import {
+  historyEntryInfo,
+  historySourceUrl,
+  isReroutableHistoryEntry,
+} from "../../shared/history-normalization.ts";
 import { createSourceRuleDraft } from "../../automation/source-rule-draft.ts";
 import { SOURCE_RULE_DRAFT_SESSION_KEY } from "../../shared/storage-keys.ts";
 import { getDiagnosticSnapshot, recordDiagnosticLifecycle } from "../diagnostics.ts";
@@ -201,15 +206,16 @@ const internalHandlers = {
         body: { rerouted: false, oldRemoved: false },
       });
     const entry = (await getHistoryEntries()).find((candidate) => candidate.id === historyId);
-    const downloadId = entry?.downloadId;
-    const sourceUrl = typeof entry?.url === "string" && entry.url.length > 0 ? entry.url : null;
-    if (entry === undefined || downloadId == null || sourceUrl === null) {
+    if (entry === undefined || !isReroutableHistoryEntry(entry)) {
       refuse();
       return;
     }
+    const downloadId = entry.downloadId;
+    const sourceUrl = historySourceUrl(entry);
+    const info = historyEntryInfo(entry);
     const expected = {
       startTime: entry.downloadStartTime,
-      url: entry.url,
+      url: entry.url || sourceUrl,
       filename: entry.finalFullPath,
     };
     // Verify the original BEFORE issuing the replacement: an unverifiable row
@@ -232,8 +238,8 @@ const internalHandlers = {
       info: {
         url: sourceUrl,
         selectedUrl: sourceUrl,
-        sourceUrl: entry.info?.sourceUrl,
-        pageUrl: entry.info?.pageUrl,
+        sourceUrl: info.sourceUrl,
+        pageUrl: info.pageUrl,
         suggestedFilename,
         comment:
           typeof recordedVariables.comment === "string" ? recordedVariables.comment : undefined,

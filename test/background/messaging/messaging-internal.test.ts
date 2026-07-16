@@ -271,6 +271,74 @@ describe("onMessage", () => {
     });
   });
 
+  test("HISTORY_REROUTE accepts a legacy source URL from state info", async () => {
+    vi.mocked(SaveHistory.getHistoryEntries).mockResolvedValue([
+      {
+        id: "history-legacy",
+        finalFullPath: "from/legacy.png",
+        downloadId: 50,
+        status: "complete",
+        info: { context: "CLICK" },
+        state: { info: { sourceUrl: "https://legacy.test/image.png" } },
+      },
+    ]);
+    vi.mocked(global.browser.downloads.search).mockResolvedValue([
+      { id: 50, url: "https://legacy.test/image.png" } as never,
+    ]);
+    vi.mocked(Download.launchDownload).mockResolvedValue({ status: "started", downloadId: 51 });
+    const sendResponse = vi.fn();
+
+    onMessage(
+      {
+        type: MESSAGE_TYPES.HISTORY_REROUTE,
+        body: { historyId: "history-legacy", destination: "moved/here" },
+      },
+      {},
+      sendResponse,
+    );
+    await waitForCall(sendResponse);
+
+    expect(vi.mocked(Download.launchDownload).mock.calls[0]![0]!.info.url).toBe(
+      "https://legacy.test/image.png",
+    );
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.HISTORY_REROUTE,
+      body: { rerouted: true, oldRemoved: true },
+    });
+  });
+
+  test("HISTORY_REROUTE refuses an abbreviated data URL from an older profile", async () => {
+    vi.mocked(SaveHistory.getHistoryEntries).mockResolvedValue([
+      {
+        id: "history-auto-data",
+        url: "data:image/png;base64,AAAA…",
+        downloadId: 52,
+        status: "complete",
+        info: { context: "CLICK" },
+      },
+    ]);
+    vi.mocked(Download.launchDownload).mockClear();
+    vi.mocked(global.browser.downloads.search).mockClear();
+    const sendResponse = vi.fn();
+
+    onMessage(
+      {
+        type: MESSAGE_TYPES.HISTORY_REROUTE,
+        body: { historyId: "history-auto-data", destination: "moved/here" },
+      },
+      {},
+      sendResponse,
+    );
+    await waitForCall(sendResponse);
+
+    expect(global.browser.downloads.search).not.toHaveBeenCalled();
+    expect(Download.launchDownload).not.toHaveBeenCalled();
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.HISTORY_REROUTE,
+      body: { rerouted: false, oldRemoved: false },
+    });
+  });
+
   test("HISTORY_REROUTE refuses an unverifiable original before any download", async () => {
     vi.mocked(SaveHistory.getHistoryEntries).mockResolvedValue([
       {

@@ -55,6 +55,7 @@ export type HistoryRow = {
   source: string;
   mechanism: string;
   url: string;
+  reroutable: boolean;
   downloadId: number | null;
   size: number | null;
   menuItem: string;

@@ -206,6 +206,7 @@ describe("history row flatteners", () => {
       folder: "cats",
       source: "Save In",
       url: "https://x/k.png",
+      reroutable: false,
       downloadId: 7,
       size: 2048,
       mechanism: "Fetch + downloads API",
@@ -286,6 +287,36 @@ describe("history row flatteners", () => {
       mechanism: "Firefox replacement",
       menuItem: "fallback-id",
     });
+  });
+
+  test("uses one reroute gate for legacy sources and display-only data URLs", () => {
+    expect(
+      historyRow({
+        id: "legacy",
+        status: "complete",
+        downloadId: 8,
+        info: { context: "CLICK" },
+        state: { info: { sourceUrl: "https://legacy.test/file.png" } },
+      }),
+    ).toMatchObject({ url: "https://legacy.test/file.png", reroutable: true });
+    expect(
+      historyRow({
+        id: "auto-data",
+        status: "complete",
+        downloadId: 9,
+        url: "data:image/png;base64,AAAA…",
+        info: { context: "CLICK" },
+      }),
+    ).toMatchObject({ reroutable: false });
+    expect(
+      historyRow({
+        id: "short-auto-data",
+        status: "complete",
+        downloadId: 10,
+        url: "data:text/plain,ok",
+        info: { context: "AUTO" },
+      }),
+    ).toMatchObject({ reroutable: true });
   });
 
   test("formatBytes uses SI units", () => {

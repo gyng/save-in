@@ -10,6 +10,11 @@ import type {
   HistoryPageOptions,
   HistoryRow,
 } from "../../shared/history-types.ts";
+import {
+  historyEntryInfo,
+  historySourceUrl,
+  isReroutableHistoryEntry,
+} from "../../shared/history-normalization.ts";
 
 export const historyFilename = (fullPath?: string): string => {
   if (!fullPath) {
@@ -102,8 +107,7 @@ export const historyDateRange = (preset: string, now = Date.now()) => {
 
 // info.context holds a DOWNLOAD_TYPES value; older entries kept the whole
 // state, so fall back to state.info
-export const historyInfo = (entry: HistoryEntry): HistoryInfo =>
-  entry.info || (entry.state && entry.state.info) || {};
+export const historyInfo = (entry: HistoryEntry): HistoryInfo => historyEntryInfo(entry);
 
 export const historyType = (entry: HistoryEntry): string => {
   const context = historyInfo(entry).context;
@@ -193,7 +197,8 @@ export const historyRow = (entry: HistoryEntry): HistoryRow => {
       (entry.observedBrowserDownload || info.context === "browser"
         ? "Browser download"
         : "Downloads API"),
-    url: info.sourceUrl || entry.url || info.pageUrl || "",
+    url: historySourceUrl(entry),
+    reroutable: isReroutableHistoryEntry(entry),
     downloadId: typeof entry.downloadId === "number" ? entry.downloadId : null,
     size: typeof entry.fileSize === "number" ? entry.fileSize : null,
     menuItem: entry.menu?.title || entry.menu?.path || entry.menu?.id || "",

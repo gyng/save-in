@@ -51,9 +51,10 @@ type ExtensionHost = {
 // mid-flight extensions can be checked against every other operation.
 type InFlightOperation = {
   referer: string;
+  installedUrls: string[];
   urls: string[];
-  done: Promise<void>;
-  finish: () => void;
+  extensionWrites: Promise<void>;
+  released: boolean;
 };
 
 const inFlight = new Map<number, InFlightOperation>();
@@ -91,11 +92,13 @@ const acquireRuleSlot = async (
     if (!conflictingOperation(url, referer)) {
       const id = REFERER_SESSION_RULE_IDS.find((candidate) => !inFlight.has(candidate));
       if (id !== undefined) {
-        let finish!: () => void;
-        const done = new Promise<void>((resolve) => {
-          finish = resolve;
-        });
-        const operation: InFlightOperation = { referer, urls: [url], done, finish };
+        const operation: InFlightOperation = {
+          referer,
+          installedUrls: [url],
+          urls: [url],
+          extensionWrites: Promise.resolve(),
+          released: false,
+        };
         inFlight.set(id, operation);
         return { id, operation };
       }
@@ -105,9 +108,7 @@ const acquireRuleSlot = async (
 };
 
 const releaseRuleSlot = (id: number): void => {
-  const operation = inFlight.get(id);
   inFlight.delete(id);
-  operation?.finish();
   wakeReleaseWaiters();
 };
 
@@ -231,11 +232,14 @@ export const withRequestReferer = async <T>(
         addRules: [buildRule(urls, referer, requestMethods, id)],
       });
     await install(entry.urls);
-    let released = false;
+    const removeReservedUrl = (reservedUrl: string): void => {
+      entry.urls = entry.urls.filter((reserved) => reserved !== reservedUrl);
+      wakeReleaseWaiters();
+    };
     const extend = async (candidate: string): Promise<boolean> => {
       // The finally below removes the rule; a late extend from a leaked
       // callback must not resurrect it.
-      if (released) return false;
+      if (entry.released) return false;
       const normalized = normalizeExtensionCandidate(candidate);
       if (!normalized || entry.urls.includes(normalized)) return false;
       if (entry.urls.length >= 1 + MAX_PROTECTED_URL_EXTENSIONS) return false;
@@ -247,20 +251,39 @@ export const withRequestReferer = async <T>(
       if (conflictingOperation(normalized, referer)) return false;
       const next = [...entry.urls, normalized];
       if (urlSetRegex(next).length > MAX_REGEX_FILTER_LENGTH) return false;
-      try {
-        // updateSessionRules replaces atomically; on rejection the previous
-        // rule stays active and the caller degrades to unextended behavior.
-        await install(next);
-      } catch {
-        return false;
-      }
+      // Reserve before the first await so another operation cannot pass the
+      // overlap check while this rule update is still pending. Writes for one
+      // operation are serialized so each install sees the cumulative URL set.
       entry.urls.push(normalized);
-      return true;
+      const write = entry.extensionWrites.then(async () => {
+        if (entry.released) {
+          // Keep the reservation until cleanup. An earlier queued install may
+          // still cover it, and waking a conflicting operation before the old
+          // rule is removed would violate the no-overlap invariant.
+          return false;
+        }
+        const installedNext = [...entry.installedUrls, normalized];
+        try {
+          // updateSessionRules replaces atomically; on rejection the previous
+          // rule stays active and the caller degrades to unextended behavior.
+          await install(installedNext);
+          entry.installedUrls.push(normalized);
+          return true;
+        } catch {
+          removeReservedUrl(normalized);
+          return false;
+        }
+      });
+      entry.extensionWrites = write.then(() => undefined);
+      return write;
     };
     try {
       return await operation({ extend });
     } finally {
-      released = true;
+      entry.released = true;
+      // An extend started by the operation but not awaited must settle before
+      // removal, or its queued install could recreate the rule afterward.
+      await entry.extensionWrites;
       // Do not turn a completed request into a failed download if cleanup is
       // rejected. The exact rule is replaced next time and removed at startup.
       await api.updateSessionRules({ removeRuleIds: [id] }).catch(() => {});

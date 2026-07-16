@@ -1,6 +1,6 @@
-// Deliberately shared, not feature-owned: background/history.ts and
-// options/history/history-panel.ts both normalize history entries through
-// this module. options/ may not import background/ implementations
+// Deliberately shared, not feature-owned: background history/messaging and
+// the options history view both normalize and interpret entries through this
+// module. options/ may not import background/ implementations
 // (scripts/check-import-cycles.js), and the reverse has never been legal
 // either — options talks to background only through runtime.sendMessage
 // (AGENTS.md) — so this stays here rather than moving into either owner
@@ -114,6 +114,37 @@ export const normalizeHistory = (value: unknown): HistoryEntry[] =>
   Array.isArray(value)
     ? value.map(normalizeHistoryEntry).filter((entry): entry is HistoryEntry => entry != null)
     : [];
+
+// History consumers span the background and options page. Keep legacy source
+// and state fallbacks identical so the UI never offers an action the message
+// handler cannot perform.
+export const historyEntryInfo = (entry: HistoryEntry): NonNullable<HistoryEntry["info"]> => ({
+  ...entry.state?.info,
+  ...entry.info,
+});
+
+export const historySourceUrl = (entry: HistoryEntry): string => {
+  const info = historyEntryInfo(entry);
+  return info.sourceUrl || entry.url || info.pageUrl || "";
+};
+
+export const isReroutableHistoryEntry = (
+  entry: HistoryEntry,
+): entry is HistoryEntry & { id: string; downloadId: number } => {
+  const sourceUrl = historySourceUrl(entry);
+  // Some 4.2-era profiles contain deliberately abbreviated data URLs. They
+  // remain useful to inspect and copy, but cannot be fetched regardless of
+  // which save context originally produced them.
+  const displayOnlyDataUrl = /^data:/i.test(sourceUrl) && sourceUrl.endsWith("…");
+  return (
+    (entry.status || "complete") === "complete" &&
+    typeof entry.id === "string" &&
+    entry.id.length > 0 &&
+    typeof entry.downloadId === "number" &&
+    sourceUrl.length > 0 &&
+    !displayOnlyDataUrl
+  );
+};
 
 export const hasLegacyDateOnlyTimestamp = (value: unknown): boolean =>
   Array.isArray(value) &&

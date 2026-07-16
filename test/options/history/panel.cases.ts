@@ -462,6 +462,24 @@ describe("history filter controls", () => {
     expect(document.querySelector(".history-move-picker")).toBeNull();
   });
 
+  test("hides Move for an abbreviated automatic data URL", async () => {
+    historyRuntime.entries = [
+      {
+        id: "h-auto-data",
+        status: "complete",
+        downloadId: 49,
+        finalFullPath: "from/generated.png",
+        url: "data:image/png;base64,AAAA…",
+        info: { context: "AUTO" },
+      },
+    ];
+
+    await historyPanel.renderHistory();
+
+    expect(document.querySelector(".history-move")).toBeNull();
+    expect(document.querySelector(".history-undo")).not.toBeNull();
+  });
+
   test.each([
     { type: "OK", body: {} },
     { type: "HISTORY_REROUTE", body: {} },
