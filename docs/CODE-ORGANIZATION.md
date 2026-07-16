@@ -6,6 +6,15 @@ features, or the build model. The ESM + readable-bundle architecture,
 the enforced import layering, and the execution-context split described in
 [AGENTS.md](../AGENTS.md) stay as they are; this plan strengthens them.
 
+**All three phases have landed.** This is now a record of what was decided and
+why, not pending work: each step carries a "Landed" note describing what
+actually happened, including where the plan was adapted or rejected. Source
+files and `scripts/check-import-cycles.js` cite these phase numbers, so they are
+stable references. The problem statements and phase scopes deliberately name
+files by their **pre-move** paths — a rename is only legible if it names what it
+renamed — and line counts are measurements taken when a phase landed. For the
+current structure and conventions, read [AGENTS.md](../AGENTS.md) instead.
+
 ## What already works (keep and extend)
 
 - **Enforced layering.** `scripts/check-import-cycles.js` codifies real rules:
