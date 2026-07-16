@@ -475,6 +475,21 @@ describe("download lifecycle notifications", () => {
     );
   });
 
+  // The browser reports an absolute on-disk path, which is backslash-separated
+  // on Windows; the notification names the file, not where it landed.
+  test("names the file from a Windows path the browser reports", async () => {
+    sessionStore.siPendingDownloads = 1;
+    await onCreated({ id: 8, byExtensionId: "save-in", url: "https://x/cat.png" });
+
+    await onChanged({ id: 8, filename: { current: "C:\\Users\\me\\Downloads\\pics\\cat.png" } });
+    await onChanged({ id: 8, state: { current: "complete", previous: "in_progress" } });
+
+    expect(global.browser.notifications.create).toHaveBeenCalledWith(
+      "8",
+      expect.objectContaining({ message: "cat.png" }),
+    );
+  });
+
   test("clears the success notification after notifyDuration", async () => {
     sessionStore.siPendingDownloads = 1;
     await onCreated({

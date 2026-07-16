@@ -28,6 +28,7 @@ import {
   isOrdinaryBrowserDownload,
   isReroutableBrowserDownload,
   matchesBrowserDownloadFilter,
+  proposedFilename,
 } from "./browser-downloads.ts";
 import { extensionSessionStorage } from "../platform/storage-areas.ts";
 import { downloadPorts } from "./ports.ts";
@@ -411,8 +412,9 @@ export const onDownloadChanged = async (downloadDelta: HostDownloadDelta) => {
     // Filename can be missing on entries restored after a service worker
     // restart until a filename delta arrives; fall back to the intended path
     const fullFilename = record.currentFilename || record.filename || "";
-    const slashIdx = fullFilename.lastIndexOf("/");
-    const filename = fullFilename.substring(slashIdx + 1);
+    // The browser reports an absolute on-disk path, backslash-separated on
+    // Windows; proposedFilename takes the last segment whatever the separator.
+    const filename = proposedFilename(fullFilename);
 
     const failed = isDownloadFailure(
       downloadDelta,
