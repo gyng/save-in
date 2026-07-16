@@ -92,6 +92,30 @@ describe("pattern list grammar", () => {
     expect(matchesAnyPattern("https://example.com/gallery", "")).toBe(false);
   });
 
+  test("matches hosts case-insensitively but keeps the path case-sensitive", () => {
+    // Hosts are case-insensitive per the spec: a user's uppercase host in a
+    // disable/exclude pattern must still match the browser's lowercased URL.
+    expect(matchesAnyPattern("https://example.com/x", "*://Example.com/*")).toBe(true);
+    expect(matchesAnyPattern("https://example.com/x", "*://*.Example.COM/*")).toBe(true);
+    // Paths stay case-sensitive.
+    expect(matchesAnyPattern("https://example.com/Private", "*://example.com/private")).toBe(false);
+  });
+
+  test("ignores userinfo so credentials cannot shift the apparent host", () => {
+    // The parser resolves the host to evil.com regardless of "user@"; a textual
+    // match on the raw string would have missed the disable/exclude entry.
+    expect(matchesAnyPattern("https://user@evil.com/x", "*://evil.com/*")).toBe(true);
+    expect(matchesAnyPattern("https://user:pw@evil.com/x", "*://evil.com/*")).toBe(true);
+    // Credentials naming a different host do not make an unrelated pattern match.
+    expect(matchesAnyPattern("https://good.example@evil.com/x", "*://good.example/*")).toBe(false);
+  });
+
+  test("falls back to the raw string when the URL does not parse", () => {
+    // A non-URL value still tests textually (fragment-stripped) as before, so
+    // no previously matching input silently stops matching.
+    expect(matchesAnyPattern("not a url", "*://example.com/*")).toBe(false);
+  });
+
   test("normalizes non-Error regular expression failures", () => {
     const NativeRegExp = globalThis.RegExp;
     class ThrowingRegExp extends NativeRegExp {
