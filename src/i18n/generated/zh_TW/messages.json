@@ -4019,6 +4019,9 @@
   "promptAssistantStatusUnavailable": {
     "message": "此瀏覽器或裝置無法使用"
   },
+  "promptAssistantStatusUnusable": {
+    "message": "模型未傳回可用的規則"
+  },
   "promptAssistantStatusWorking": {
     "message": "正在建立並檢查草稿…"
   },

@@ -4019,6 +4019,9 @@
   "promptAssistantStatusUnavailable": {
     "message": "Indisponible dans ce navigateur ou sur cet appareil"
   },
+  "promptAssistantStatusUnusable": {
+    "message": "Le modèle n’a pas renvoyé de règle utilisable"
+  },
   "promptAssistantStatusWorking": {
     "message": "Création et vérification d’un brouillon…"
   },

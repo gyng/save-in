@@ -4019,6 +4019,9 @@
   "promptAssistantStatusUnavailable": {
     "message": "Indisponível neste navegador ou dispositivo"
   },
+  "promptAssistantStatusUnusable": {
+    "message": "O modelo não retornou uma regra utilizável"
+  },
   "promptAssistantStatusWorking": {
     "message": "Criando e verificando um rascunho…"
   },

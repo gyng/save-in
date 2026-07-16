@@ -4019,6 +4019,9 @@
   "promptAssistantStatusUnavailable": {
     "message": "このブラウザーまたはデバイスでは利用できません"
   },
+  "promptAssistantStatusUnusable": {
+    "message": "モデルは使用可能なルールを返しませんでした"
+  },
   "promptAssistantStatusWorking": {
     "message": "下書きを作成して確認しています…"
   },

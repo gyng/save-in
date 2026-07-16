@@ -5185,6 +5185,10 @@
     "message": "Not available in this browser or on this device",
     "description": "Unavailable status for the experimental local rule-authoring assistant. Used in src/options/integrations/prompt-assistant-panel.ts."
   },
+  "promptAssistantStatusUnusable": {
+    "message": "The model did not return a usable rule",
+    "description": "Failure status when the experimental local rule-authoring assistant returns empty output or text that is not a routing rule. Used in src/options/integrations/prompt-assistant-panel.ts."
+  },
   "promptAssistantStatusWorking": {
     "message": "Creating and checking a draft…",
     "description": "Inference and validation progress status for the experimental local rule-authoring assistant. Used in src/options/integrations/prompt-assistant-panel.ts."

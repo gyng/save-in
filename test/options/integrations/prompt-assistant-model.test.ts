@@ -6,7 +6,10 @@ import {
   parseRuleCritique,
   parseRuleDraft,
   ruleRequestGuardrailIssues,
+  sanitizeRuleDraft,
 } from "../../../src/options/integrations/prompt-assistant-model.ts";
+
+const vocabulary = { matchers: ["fileext", "pagedomain", "css"], variables: ["filename"] };
 
 const grammar = {
   id: "routing" as const,
@@ -45,6 +48,35 @@ describe("Prompt API rule-authoring model", () => {
     );
     expect(cleanRuleSuggestion("  \n ")).toBeNull();
     expect(cleanRuleSuggestion("```text\n   \n```")).toBeNull();
+  });
+
+  test("drops explanatory prose the model adds around recognized clauses", () => {
+    expect(
+      sanitizeRuleDraft(
+        "Here is your rule:\nfileext/i: ^(?:pdf|png)$\ninto: archive/:filename:\n\nrule, context, sourcekind, fileext, ...",
+        vocabulary,
+      ),
+    ).toBe("fileext/i: ^(?:pdf|png)$\ninto: archive/:filename:");
+  });
+
+  test("retains comments, flags, and clause values containing separators", () => {
+    expect(
+      sanitizeRuleDraft(
+        "// Save PDFs\ncss: div > a\nrename/i: ^(.*)$ -> cover.png\ninto: archive/:filename:",
+        vocabulary,
+      ),
+    ).toBe("// Save PDFs\ncss: div > a\nrename/i: ^(.*)$ -> cover.png\ninto: archive/:filename:");
+  });
+
+  test("rejects unknown clause-looking text instead of silently dropping it", () => {
+    // Dropping a misnamed matcher would leave a rule that matches every file.
+    expect(sanitizeRuleDraft("extension: ^png$\ninto: archive/:filename:", vocabulary)).toBeNull();
+    expect(sanitizeRuleDraft("Note: this saves PNG files\nfileext: ^png$", vocabulary)).toBeNull();
+  });
+
+  test("rejects a draft that keeps no clause at all", () => {
+    expect(sanitizeRuleDraft("I cannot create that rule.", vocabulary)).toBeNull();
+    expect(sanitizeRuleDraft("   \n\n  ", vocabulary)).toBeNull();
   });
 
   test("distinguishes one semantic rule from a multi-rule response", () => {

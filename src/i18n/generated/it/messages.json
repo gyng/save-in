@@ -4019,6 +4019,9 @@
   "promptAssistantStatusUnavailable": {
     "message": "Non disponibile in questo browser o dispositivo"
   },
+  "promptAssistantStatusUnusable": {
+    "message": "Il modello non ha restituito una regola utilizzabile"
+  },
   "promptAssistantStatusWorking": {
     "message": "Creazione e controllo di una bozza…"
   },

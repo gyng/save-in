@@ -18,6 +18,7 @@ import {
   parseRuleCritique,
   parseRuleDraft,
   ruleRequestGuardrailIssues,
+  sanitizeRuleDraft,
   type RuleAuthoringVocabulary,
 } from "./prompt-assistant-model.ts";
 
@@ -97,6 +98,7 @@ export const setupPromptAssistantPanel = (
     unavailable:
       localize("promptAssistantStatusUnavailable") ||
       "Not available in this browser or on this device",
+    unusable: localize("promptAssistantStatusUnusable") || "The model did not return a usable rule",
     working: localize("promptAssistantStatusWorking") || "Creating and checking a draft…",
     invalid: (error: string) =>
       localize("promptAssistantStatusInvalid", error) || `The draft needs another try: ${error}`,
@@ -254,8 +256,9 @@ export const setupPromptAssistantPanel = (
         },
       });
       if (!isCurrent()) return;
-      let candidate = authorOutput ? parseRuleDraft(authorOutput) : null;
-      if (!candidate) throw new Error(copy.unavailable);
+      const draft = authorOutput ? parseRuleDraft(authorOutput) : null;
+      let candidate = draft ? sanitizeRuleDraft(draft, vocabulary) : null;
+      if (!candidate) throw new Error(copy.unusable);
 
       let issues = await validationIssues(request, candidate);
       if (!isCurrent()) return;
@@ -277,7 +280,9 @@ export const setupPromptAssistantPanel = (
         return;
       }
 
-      candidate = critique.repairedRule;
+      const repaired = sanitizeRuleDraft(critique.repairedRule, vocabulary);
+      if (!repaired) throw new Error(copy.unusable);
+      candidate = repaired;
       issues = await validationIssues(request, candidate);
       if (!isCurrent()) return;
       const finalReviewOutput = await runPrompt(

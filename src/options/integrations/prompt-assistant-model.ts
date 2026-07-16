@@ -138,6 +138,45 @@ export const parseRuleDraft = (output: string): string | null => {
   return typeof value === "string" ? cleanRuleSuggestion(value) : null;
 };
 
+// Clause names the routing grammar accepts beyond the matcher vocabulary.
+const NON_MATCHER_CLAUSE_NAMES = [
+  "capture",
+  "capturegroups",
+  "disabled",
+  "fetch",
+  "into",
+  "rename",
+];
+
+// A clause line is one clause name, optional regex flags, then a colon. Prose
+// lines never take that shape, so they can be told apart without guessing.
+const CLAUSE_LINE = /^\s*([A-Za-z][A-Za-z0-9_]*)(?:\/\S+)?:/;
+
+export const sanitizeRuleDraft = (
+  draft: string,
+  vocabulary: RuleAuthoringVocabulary,
+): string | null => {
+  const known = new Set(
+    [...vocabulary.matchers, ...NON_MATCHER_CLAUSE_NAMES].map((name) => name.toLowerCase()),
+  );
+  const kept: string[] = [];
+  let clauses = 0;
+  for (const line of draft.split(RULE_LINE_BREAKS)) {
+    const name = line.match(CLAUSE_LINE)?.[1];
+    if (name === undefined) {
+      // Explanatory prose and stray grammar text carry no routing meaning.
+      if (!line.trim() || line.trimStart().startsWith("//")) kept.push(line);
+      continue;
+    }
+    // An unrecognized clause name may be a misnamed matcher; dropping it would
+    // silently broaden the rule to every download.
+    if (!known.has(name.toLowerCase())) return null;
+    clauses += 1;
+    kept.push(line);
+  }
+  return clauses > 0 ? kept.join("\n").trim() || null : null;
+};
+
 export const isSingleRuleSuggestion = (source: string): boolean =>
   parseRulesCollecting(source).rules.length === 1;
 

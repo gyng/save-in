@@ -4019,6 +4019,9 @@
   "promptAssistantStatusUnavailable": {
     "message": "In diesem Browser oder auf diesem Gerät nicht verfügbar"
   },
+  "promptAssistantStatusUnusable": {
+    "message": "Das Modell hat keine verwendbare Regel zurückgegeben"
+  },
   "promptAssistantStatusWorking": {
     "message": "Entwurf wird erstellt und geprüft…"
   },

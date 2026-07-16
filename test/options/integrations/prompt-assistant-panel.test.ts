@@ -26,6 +26,7 @@ const copy: Record<string, string> = {
   promptAssistantStatusDownloadable: "The model downloads when you suggest your first rule",
   promptAssistantStatusDownloading: "Chrome is downloading the on-device model",
   promptAssistantStatusUnavailable: "Not available in this browser or on this device",
+  promptAssistantStatusUnusable: "The model did not return a usable rule",
   promptAssistantStatusWorking: "Creating and checking a draft…",
   promptAssistantStatusInvalid: "The draft needs another try: $ERROR$",
   promptAssistantSingleRule: "The draft must contain exactly one rule",
@@ -487,6 +488,50 @@ test.each([
   expect(element<HTMLButtonElement>("prompt-assistant-submit").disabled).toBe(disabled);
 });
 
+test("strips model prose around a valid rule instead of failing validation", async () => {
+  const rule = "fileext/i: ^png$\ninto: dongs/:filename:";
+  mocks.runPrompt.mockImplementation(async (prompt: string) =>
+    prompt.startsWith("Review one proposed")
+      ? critiqueResponse(rule)
+      : authorResponse(`${rule}\n\nrule, context, sourcekind, fileext, ...`),
+  );
+  setup();
+  await enable();
+  submitRequest("save png into /dongs");
+
+  await vi.waitFor(() => expect(element("prompt-assistant-status").dataset.state).toBe("success"));
+  expect(element("prompt-assistant-rule").textContent).toBe(rule);
+  expect(element<HTMLButtonElement>("prompt-assistant-add").disabled).toBe(false);
+});
+
+test("reports empty model output as an unusable draft, not as lost availability", async () => {
+  mocks.runPrompt.mockResolvedValue("");
+  setup();
+  await enable();
+  submitRequest();
+
+  await vi.waitFor(() => expect(element("prompt-assistant-status").dataset.state).toBe("error"));
+  expect(element("prompt-assistant-status").textContent).toContain(
+    "The model did not return a usable rule",
+  );
+  expect(element("prompt-assistant-status").textContent).not.toContain("Not available");
+});
+
+test("refuses a draft whose unknown clause would silently match every download", async () => {
+  mocks.runPrompt.mockImplementation(async (prompt: string) =>
+    prompt.startsWith("Review one proposed")
+      ? critiqueResponse()
+      : authorResponse("extension: ^png$\ninto: dongs/:filename:"),
+  );
+  setup();
+  await enable();
+  submitRequest("save png into /dongs");
+
+  await vi.waitFor(() => expect(element("prompt-assistant-status").dataset.state).toBe("error"));
+  expect(element<HTMLButtonElement>("prompt-assistant-add").disabled).toBe(true);
+  expect(mocks.appendRule).not.toHaveBeenCalled();
+});
+
 test("supports an initially enabled control and turning the assistant off", async () => {
   const control = element<HTMLInputElement>("promptAssistantEnabled");
   control.checked = true;
@@ -605,7 +650,12 @@ test.each([
               }
             : {
                 type: "KEYWORD_LIST",
-                body: { matchers: [], variables: [], automaticMatchers: [], sourceKinds: [] },
+                body: {
+                  matchers: ["fileext", "pagedomain"],
+                  variables: [],
+                  automaticMatchers: [],
+                  sourceKinds: [],
+                },
               },
       ),
   ],
@@ -726,7 +776,12 @@ test("cancel before authoring metadata arrives never starts the model", async ()
     }
     return Promise.resolve({
       type: "KEYWORD_LIST",
-      body: { matchers: [], variables: [], automaticMatchers: [], sourceKinds: [] },
+      body: {
+        matchers: ["fileext", "pagedomain"],
+        variables: [],
+        automaticMatchers: [],
+        sourceKinds: [],
+      },
     });
   });
   setup();
@@ -778,7 +833,12 @@ test("disabling during validation discards the stale validation result", async (
     }
     return {
       type: "KEYWORD_LIST",
-      body: { matchers: [], variables: [], automaticMatchers: [], sourceKinds: [] },
+      body: {
+        matchers: ["fileext", "pagedomain"],
+        variables: [],
+        automaticMatchers: [],
+        sourceKinds: [],
+      },
     };
   });
   setup();
@@ -873,7 +933,12 @@ test("disabling while metadata rejects suppresses the stale failure", async () =
         })
       : Promise.resolve({
           type: "KEYWORD_LIST",
-          body: { matchers: [], variables: [], automaticMatchers: [], sourceKinds: [] },
+          body: {
+            matchers: ["fileext", "pagedomain"],
+            variables: [],
+            automaticMatchers: [],
+            sourceKinds: [],
+          },
         }),
   );
   setup();
