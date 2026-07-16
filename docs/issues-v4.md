@@ -426,6 +426,27 @@ named at the call site. A genuine probe must route through
 `background/e2e-command.ts` (inside the bundle) and needs a browser run to
 verify — not attempted.
 
+## Two Options-page e2e cases flake (pre-existing)
+
+Found while e2e-verifying #144, and **not caused by it** — reproduced on a
+baseline with that change stashed.
+
+- *"a template added in Options persists and routes a matching download"* — fails
+  with `{"dialogOpen":true,"visibleTemplates":39,"applyDisabled":true,"applied":false,"rules":""}`:
+  the dialog is open and templates render, but Apply is still disabled when the
+  case clicks it.
+- *"visual routing edits persist and connect to the debugger"* — fails two ways:
+  fast on Chrome (~650ms against a ~2000ms healthy run, so an error rather than a
+  timeout) and as a 10.7s timeout on Firefox.
+
+Measured rate roughly 1 in 4 on both browsers, with and without the #144 change.
+Both are Options-page UI cases and both smell like a readiness race — the case
+acts before the panel finishes wiring, rather than a lost event.
+
+This matters beyond the annoyance: a suite that fails ~25% of the time trains
+people to re-run until green, which is exactly how a real regression gets waved
+through. Worth fixing before the release gate leans on it.
+
 ## Not yet validated
 
 - The ~28 reports the 4.0.0 CHANGELOG is said to resolve (`ROADMAP.md:47-49`).
