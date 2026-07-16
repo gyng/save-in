@@ -982,9 +982,15 @@ export const runAutomaticRetryScenario = async ({ control, waitForDownloads, fil
  *   control: ReturnType<typeof import("./control-client.mjs").createE2EControlClient>,
  *   waitForDownloads: (filename: string, timeoutMs?: number) => Promise<DownloadSummary[]>,
  *   filename: string,
+ *   detectsMissingFile?: boolean,
  * }} adapters
  */
-export const runUndoLastSaveScenario = async ({ control, waitForDownloads, filename }) => {
+export const runUndoLastSaveScenario = async ({
+  control,
+  waitForDownloads,
+  filename,
+  detectsMissingFile = true,
+}) => {
   const server = http.createServer((_req, res) => {
     res.writeHead(200, { "Content-Type": "application/octet-stream" });
     res.end("undo scenario content");
@@ -1039,7 +1045,15 @@ export const runUndoLastSaveScenario = async ({ control, waitForDownloads, filen
       type: "HISTORY_UNDO",
       body: { historyId: second.historyId },
     });
-    expect(missing).toEqual({ type: "HISTORY_UNDO", body: { undone: true, fileMissing: true } });
+    // Firefox's removeFile rejects for an out-of-band-removed file, so the
+    // response carries the distinct file-missing flag. Chromium's deletion is
+    // idempotent and it re-checks file existence lazily, so until it happens
+    // to observe the removal the undo is indistinguishable from a normal one
+    // — the end state (file gone, entry undone) is identical either way.
+    expect(missing).toEqual({
+      type: "HISTORY_UNDO",
+      body: { undone: true, fileMissing: detectsMissingFile },
+    });
     await control.history.wait({ id: second.historyId, status: "undone" });
 
     // Once the shelf entry is erased the extension can no longer verify the

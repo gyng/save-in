@@ -70,6 +70,7 @@ export const registerSharedBrowserCases = (adapters) => {
       control,
       waitForDownloads,
       filename: `undo-${browserLabel}`,
+      detectsMissingFile: browserLabel !== "chrome",
     });
   });
 
