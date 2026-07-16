@@ -506,15 +506,21 @@ variables of any kind.
 
 **The tag points at the lesser mechanism.** `:mimeext:` is the manual version,
 usable only if you write a rule. What actually resolves all three is
-**`appendMimeExtension`**, which defaults to **on** (`config/option-defaults.ts`)
-and appends a Content-Type-derived extension whenever the finalized path has
-none (`downloads/download-plan.ts`, tested at
-`test/downloads/download-plan.test.ts:390`). No rule required.
+**`appendMimeExtension`**, which appends a Content-Type-derived extension
+whenever the finalized path has none (`downloads/download-plan.ts`). No rule
+required — but **off by default**, so all three verdicts are
+FIXED-BUT-NEEDS-USER-ACTION: the reply has to name the setting.
 
-### #43 — FIXED, and better than asked
+The default was deliberately flipped off after this validation. It is the only
+option that edits a filename nobody asked it to, "no extension" is also how
+LICENSE and Makefile are spelled, and answering it costs a HEAD to the origin.
+Both halves are pinned by a test, since flipping it back is a one-character
+change nothing else would fail on.
+
+### #43 — FIXED (needs the setting on), and better than asked
 
 *"Is there a way to auto apply an extension to a file without one?"* That is
-`appendMimeExtension`, on by default.
+`appendMimeExtension`.
 
 The 2017 blocker was gyng's own: *"Firefox also doesn't seem to populate the mime
 field in the download item right now, so that will require yet another request
@@ -528,7 +534,7 @@ reads the real Content-Type, so there is no rule to switch and no wrong guess.
 config, and its `filename: ^[^\.]+[^\.]{0,5}$` rules will now fight the
 automatic extension.
 
-### #135 — FIXED, and `blocked upstream` is wrong
+### #135 — FIXED (needs the setting on), and `blocked upstream` is wrong
 
 *"This particular site has urls to image files which end in '/' or 'full' … the
 file is downloaded as a blank file because it has no extension assigned to it."*

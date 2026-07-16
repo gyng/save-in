@@ -1,5 +1,6 @@
 // Focused plan coverage extracted from the pipeline suite.
 import type { SaveInOptions } from "../../src/config/option-schema.ts";
+import { OPTION_DEFAULTS } from "../../src/config/option-defaults.ts";
 import type { RuleMatch } from "../../src/routing/router.ts";
 import { DOWNLOAD_TYPES } from "../../src/shared/constants.ts";
 import {
@@ -383,6 +384,24 @@ describe("rename transform in the plan", () => {
     expect(state.scratch.renameTemplate).toBeUndefined();
     expect(state.scratch.renameResolved).toBeUndefined();
     expect(plan?.finalFullPath).toBe("downloads/routed");
+  });
+
+  // appendMimeExtension is the one option that edits a filename nobody asked it
+  // to, and answering it costs a HEAD to the origin. Both halves of "off by
+  // default" are pinned here because flipping it back is a one-character change
+  // that nothing else would fail on: LICENSE and Makefile are spelled the same
+  // way as a broken name, and a save should not phone the origin to be named.
+  test("by default, leaves an extensionless name alone and asks the origin nothing", async () => {
+    renameMatch("routed/:filename:", null);
+    options.appendMimeExtension = OPTION_DEFAULTS.appendMimeExtension;
+    const resolveMime = vi.spyOn(Variable, "resolveMime");
+    const state = makeState({ info: { url: "https://example.com/dir/LICENSE" } });
+
+    const plan = await Download.resolveDownloadPlan(state);
+
+    expect(plan?.finalFullPath).toBe("downloads/routed/LICENSE");
+    expect(state.scratch.mimeExtension).toBeUndefined();
+    expect(resolveMime).not.toHaveBeenCalled();
   });
 
   test("a rename that strips the extension still gets the MIME-derived one appended", async () => {

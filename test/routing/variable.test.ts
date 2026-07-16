@@ -868,55 +868,70 @@ describe(":mime: / :contenttype: / :mimeext: (async HEAD)", () => {
     expect(mimeFallback).toBe("text_plain");
   });
 
-  test("mimeToExtension maps common types and falls back to the subtype", () => {
+  test("mimeToExtension maps known types, and only known types", () => {
     expect(Variable.normalizeMimeType(undefined)).toBe("");
     expect(Variable.normalizeMimeType("; charset=utf-8")).toBe("");
     expect(Variable.mimeToExtension("image/jpeg")).toBe("jpg");
     expect(Variable.mimeToExtension("image/png")).toBe("png");
-    expect(Variable.mimeToExtension("application/vnd.foobar+json")).toBe("json");
     expect(Variable.mimeToExtension("audio/x-wav")).toBe("wav");
     expect(Variable.mimeToExtension("")).toBe("");
     expect(Variable.mimeToExtension("invalid")).toBe("");
   });
 
-  // The subtype fallback only works where the subtype IS the extension. These
-  // are the two families where it is not, and both reach a real filename:
-  // appendMimeExtension runs on any save whose name has no extension.
-  describe("mimeToExtension refuses to invent an extension", () => {
-    // "I don't know what this is" — the likeliest answer for exactly the URLs
-    // that have no extension. "foo.octet" is worse than "foo": it looks like a
-    // real extension, so the user has to remove it before adding the right one.
-    test.each([
-      "application/octet-stream",
-      "binary/octet-stream",
-      "application/octetstream",
-      "application/force-download",
-      "application/x-download",
-      "application/download",
-      "application/unknown",
-    ])("leaves the name bare for %s", (mime) => {
-      expect(Variable.mimeToExtension(mime)).toBe("");
-    });
-
-    test.each([
-      ["application/x-bittorrent", "torrent"],
-      ["application/x-msdownload", "exe"],
-      ["application/x-shockwave-flash", "swf"],
-    ])("maps %s to %s rather than its subtype", (mime, extension) => {
-      expect(Variable.mimeToExtension(mime)).toBe(extension);
-    });
-
-    // The fallback's real wins must survive: these are types where the subtype
-    // is the extension, including ones added after this table was written.
+  // This value becomes a real filename: appendMimeExtension appends it to any
+  // save whose name has no extension. It only ever guesses from a curated
+  // table, because the alternative — deriving from the subtype — invents
+  // extensions that look real and are not.
+  describe("mimeToExtension only names what it knows", () => {
     test.each([
       ["image/webp", "webp"],
       ["image/avif", "avif"],
+      ["image/gif", "gif"],
+      ["image/svg+xml", "svg"],
       ["video/webm", "webm"],
+      ["video/quicktime", "mov"],
+      ["audio/mpeg", "mp3"],
+      ["audio/flac", "flac"],
+      ["application/pdf", "pdf"],
       ["application/x-7z-compressed", "7z"],
       ["application/vnd.rar", "rar"],
+      ["application/epub+zip", "epub"],
       ["font/woff2", "woff2"],
-    ])("still derives %s from its subtype", (mime, extension) => {
+      ["text/csv", "csv"],
+      // Subtype and extension diverge; the old subtype fallback got all three
+      // wrong, and x-bittorrent is #178's own file type.
+      ["application/x-bittorrent", "torrent"],
+      ["application/x-msdownload", "exe"],
+      ["application/x-shockwave-flash", "swf"],
+    ])("maps %s to %s", (mime, extension) => {
       expect(Variable.mimeToExtension(mime)).toBe(extension);
+    });
+
+    // RFC 6839 structured suffixes: the suffix is the format by definition, so
+    // an unlisted vendor type still resolves. The table wins first, which is
+    // why image/svg+xml is svg and application/epub+zip is epub, not xml/zip.
+    test.each([
+      ["application/vnd.foobar+json", "json"],
+      ["application/vnd.custom+xml", "xml"],
+      ["application/vnd.thing+zip", "zip"],
+    ])("resolves the structured suffix of %s to %s", (mime, extension) => {
+      expect(Variable.mimeToExtension(mime)).toBe(extension);
+    });
+
+    // "I don't know what this is" — the likeliest answer for exactly the URLs
+    // that carry no extension. A bare name is honest; "foo.octet" looks like a
+    // real extension the user must strip before adding the right one.
+    test.each([
+      "application/octet-stream",
+      "binary/octet-stream",
+      "application/force-download",
+      "application/x-download",
+      "application/unknown",
+      // Not opaque, merely unlisted: still no invented extension.
+      "application/x-madeup-format",
+      "chemical/x-pdb",
+    ])("gives no extension for %s", (mime) => {
+      expect(Variable.mimeToExtension(mime)).toBe("");
     });
   });
 });

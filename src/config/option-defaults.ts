@@ -44,7 +44,12 @@ export const OPTION_DEFAULTS = {
   shortcutType: SHORTCUT_TYPES.HTML_REDIRECT,
   saveSourceSidecar: false,
   truncateLength: 240,
-  appendMimeExtension: true,
+  // Off: this is the one option that edits a filename the user did not ask it
+  // to. It fires only on a name with no extension, but "no extension" is also
+  // how LICENSE, Makefile, and README are spelled, and answering it costs a HEAD
+  // to the origin. Save In should not quietly rename a save, or reach for the
+  // network to decide a name, until asked.
+  appendMimeExtension: false,
   fetchViaFetch: false,
   fallbackFetch: true,
   includeFetchCredentials: true,

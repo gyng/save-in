@@ -179,73 +179,110 @@ export const toTld = (hostname: string | null | undefined) => {
   return labels.length >= 2 ? labels[labels.length - 1] : "";
 };
 
-// Content-Types that mean "I don't know what this is". Their subtype is not an
-// extension, and octet-stream is the likeliest answer for exactly the URLs that
-// carry no extension — the case appendMimeExtension exists for. Deriving from
-// the subtype there yields "foo.octet", which is worse than "foo": it looks
-// like a real extension, so the user must remove it before adding the right
-// one. An unknown type earns no extension.
-const OPAQUE_MIME_TYPES = new Set([
-  "application/octet-stream",
-  "binary/octet-stream",
-  "application/octetstream",
-  "application/download",
-  "application/force-download",
-  "application/x-download",
-  "application/unknown",
-]);
-
-// Common Content-Type -> file extension. The subtype fallback in
-// mimeToExtension covers the long tail, so this only needs the cases where
-// the subtype is not the extension people expect.
+// Content-Type -> file extension, and the whole policy: this value is appended
+// to a real filename by appendMimeExtension, so it only ever names a type it
+// knows. The previous fallback derived an extension from the subtype, which is
+// right only where the subtype IS the extension and silently wrong elsewhere —
+// application/octet-stream became "octet", and octet-stream is what a server
+// sends when it does not know the type, which is the same case as "this URL has
+// no extension". A name like "foo.octet" is worse than "foo": it looks real, so
+// the user has to strip it before adding the right one. An unknown type earns
+// no extension.
 export const MIME_EXTENSIONS: Record<string, string> = {
+  // Images
   "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/gif": "gif",
+  "image/webp": "webp",
+  "image/avif": "avif",
+  "image/bmp": "bmp",
+  "image/heic": "heic",
+  "image/heif": "heif",
   "image/svg+xml": "svg",
   "image/x-icon": "ico",
   "image/vnd.microsoft.icon": "ico",
   "image/tiff": "tif",
+  // Video
+  "video/mp4": "mp4",
+  "video/webm": "webm",
+  "video/ogg": "ogv",
   "video/quicktime": "mov",
   "video/x-matroska": "mkv",
   "video/mpeg": "mpg",
+  "video/x-msvideo": "avi",
+  // Audio
   "audio/mpeg": "mp3",
-  "audio/x-wav": "wav",
+  "audio/mp4": "m4a",
+  "audio/x-m4a": "m4a",
+  "audio/aac": "aac",
+  "audio/flac": "flac",
+  "audio/x-flac": "flac",
+  "audio/ogg": "ogg",
+  "audio/opus": "opus",
   "audio/wav": "wav",
+  "audio/x-wav": "wav",
+  // Documents
   "application/pdf": "pdf",
+  "application/rtf": "rtf",
+  "application/epub+zip": "epub",
+  "application/msword": "doc",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "docx",
+  "application/vnd.ms-excel": "xls",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": "xlsx",
+  "application/vnd.ms-powerpoint": "ppt",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation": "pptx",
+  // Archives
   "application/zip": "zip",
   "application/gzip": "gz",
-  // Subtype and extension diverge on these, so the fallback would produce
+  "application/x-gzip": "gz",
+  "application/x-tar": "tar",
+  "application/x-7z-compressed": "7z",
+  "application/vnd.rar": "rar",
+  "application/x-rar-compressed": "rar",
+  "application/x-bzip2": "bz2",
+  "application/x-xz": "xz",
+  // Text and data
+  "text/plain": "txt",
+  "text/html": "html",
+  "text/css": "css",
+  "text/csv": "csv",
+  "text/markdown": "md",
+  "text/javascript": "js",
+  "application/javascript": "js",
+  "application/json": "json",
+  "application/xml": "xml",
+  "text/xml": "xml",
+  "application/wasm": "wasm",
+  // Fonts
+  "font/woff": "woff",
+  "font/woff2": "woff2",
+  "font/ttf": "ttf",
+  "font/otf": "otf",
+  // Subtype and extension diverge on these, so a subtype rule would give
   // "bittorrent", "msdownload", and "shockwave".
   "application/x-bittorrent": "torrent",
   "application/x-msdownload": "exe",
   "application/x-shockwave-flash": "swf",
-  "application/javascript": "js",
-  "application/xml": "xml",
-  "text/plain": "txt",
-  "text/html": "html",
-  "text/markdown": "md",
-  "text/javascript": "js",
 };
 
-// "image/jpeg" -> "jpg". Falls back to the subtype with vendor/x- prefixes
-// and +suffixes stripped ("application/vnd.foo+json" -> "json") for the tail.
-export const mimeToExtension = (mime: string | null | undefined) => {
-  if (!mime) {
-    return "";
-  }
-  if (MIME_EXTENSIONS[mime]) {
-    return MIME_EXTENSIONS[mime];
-  }
-  if (OPAQUE_MIME_TYPES.has(mime)) {
-    return "";
-  }
-  const sub = mime.split("/")[1];
-  if (!sub) {
-    return "";
-  }
-  return sub
-    .replace(/^(x-|vnd\.)/, "")
-    .replace(/^.*\+/, "")
-    .replace(/[^0-9a-z].*$/i, "");
+// RFC 6839 structured syntax suffixes: "+json" and friends define the format by
+// standard, so an unlisted vendor type still resolves without guesswork. The
+// table wins first — image/svg+xml is svg, not xml, and application/epub+zip is
+// epub, not zip.
+const STRUCTURED_SUFFIX_EXTENSIONS: Record<string, string> = {
+  json: "json",
+  xml: "xml",
+  zip: "zip",
+  gzip: "gz",
+};
+
+// "image/jpeg" -> "jpg". Returns "" for anything not known: see MIME_EXTENSIONS.
+export const mimeToExtension = (mime: string | null | undefined): string => {
+  if (!mime) return "";
+  const known = MIME_EXTENSIONS[mime];
+  if (known) return known;
+  const suffix = mime.split("+")[1];
+  return (suffix && STRUCTURED_SUFFIX_EXTENSIONS[suffix]) || "";
 };
 
 // Lazily HEAD the URL once per download (cached as a promise on the info bag,
