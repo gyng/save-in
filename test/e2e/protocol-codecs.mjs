@@ -169,16 +169,21 @@ export const createProtocolCodecs = () => {
     (value.type === undefined || typeof value.type === "string") &&
     (value.body === undefined || isRecord(value.body));
   /** @param {unknown} value */
+  // Mirrors WebExtensionCapabilities in src/platform/chrome-detector.ts. UNKNOWN
+  // stays decodable so a detector that misfires on a host reaches the test as a
+  // failed assertion naming the browser, not as an opaque decode error.
   const isInspectResult = (value) =>
     isRecord(value) &&
-    (value.browser === "CHROME" || value.browser === "FIREFOX") &&
+    (value.browser === "CHROME" || value.browser === "FIREFOX" || value.browser === "UNKNOWN") &&
+    (value.browserVersion === undefined || typeof value.browserVersion === "number") &&
     isRecord(value.capabilities) &&
     typeof value.capabilities.tabContextMenus === "boolean" &&
-    typeof value.capabilities.accessKeys === "boolean" &&
     typeof value.capabilities.downloadFilenameSuggestion === "boolean" &&
     typeof value.capabilities.downloadDeltaFilename === "boolean" &&
     typeof value.capabilities.conflictActionPrompt === "boolean" &&
     typeof value.capabilities.downloadRequestHeaders === "boolean" &&
+    typeof value.capabilities.notificationButtons === "boolean" &&
+    typeof value.capabilities.shortcutFileExtensions === "boolean" &&
     (value.promptConflictAction === "prompt" || value.promptConflictAction === "uniquify") &&
     typeof value.hasObjectUrl === "boolean";
   /** @param {unknown} value */

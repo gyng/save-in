@@ -368,11 +368,12 @@ test("background event page initialises cleanly", async () => {
   expect(state.browser).toBe("FIREFOX");
   expect(state.capabilities).toMatchObject({
     tabContextMenus: true,
-    accessKeys: true,
     downloadFilenameSuggestion: false,
     downloadDeltaFilename: false,
     conflictActionPrompt: false,
     downloadRequestHeaders: true,
+    notificationButtons: false,
+    shortcutFileExtensions: false,
   });
   expect(state.promptConflictAction).toBe("uniquify");
   // Event pages keep a real DOM (unlike Chrome's service worker)...

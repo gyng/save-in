@@ -1,5 +1,11 @@
-import { SHORTCUT_TYPES } from "../shared/constants.ts";
+import { CONFLICT_ACTION, SHORTCUT_TYPES, type ConflictAction } from "../shared/constants.ts";
 import { webExtensionApi } from "../platform/web-extension-api.ts";
+import {
+  CURRENT_BROWSER,
+  CURRENT_BROWSER_VERSION,
+  WEB_EXTENSION_CAPABILITIES,
+  type WebExtensionCapabilities,
+} from "../platform/chrome-detector.ts";
 import { launchDownload, makeObjectUrl } from "../downloads/download.ts";
 import type { DownloadInfo, DownloadLaunchResult } from "../downloads/download-types.ts";
 import { resetActiveTransfers } from "../downloads/active-transfers.ts";
@@ -24,6 +30,7 @@ export const BACKGROUND_E2E_CONTEXT_MENU_COMMAND = "SAVE_IN_E2E_CONTEXT_MENU_CLI
 export const BACKGROUND_E2E_NOTIFICATION_COMMAND = "SAVE_IN_E2E_NOTIFICATION_CALLS";
 export const BACKGROUND_E2E_TAB_MENU_COMMAND = "SAVE_IN_E2E_TAB_MENU_CLICK";
 export const BACKGROUND_E2E_RESET_COMMAND = "SAVE_IN_E2E_RESET_STATE";
+export const BACKGROUND_E2E_INSPECT_COMMAND = "SAVE_IN_E2E_INSPECT";
 
 export type BackgroundE2EDownload = {
   path?: string;
@@ -63,6 +70,23 @@ export type BackgroundE2ETabMenuRequest = {
 
 export type BackgroundE2EResetRequest = {
   type: typeof BACKGROUND_E2E_RESET_COMMAND;
+};
+
+export type BackgroundE2EInspectRequest = {
+  type: typeof BACKGROUND_E2E_INSPECT_COMMAND;
+};
+
+export type BackgroundE2EInspectState = {
+  browser: string;
+  browserVersion?: number;
+  capabilities: WebExtensionCapabilities;
+  promptConflictAction: ConflictAction;
+  hasObjectUrl: boolean;
+};
+
+export type BackgroundE2EInspectResponse = {
+  type: typeof BACKGROUND_E2E_INSPECT_COMMAND;
+  body: { status: "OK"; state: BackgroundE2EInspectState } | { status: "ERROR"; message: string };
 };
 
 export type BackgroundE2ENotificationCall = {
@@ -195,6 +219,49 @@ const isBackgroundE2ETabMenuCommand = (value: unknown): value is BackgroundE2ETa
 
 const isBackgroundE2EResetCommand = (value: unknown): value is BackgroundE2EResetRequest =>
   isRecord(value) && value.type === BACKGROUND_E2E_RESET_COMMAND && value.body === undefined;
+
+const isBackgroundE2EInspectCommand = (value: unknown): value is BackgroundE2EInspectRequest =>
+  isRecord(value) && value.type === BACKGROUND_E2E_INSPECT_COMMAND && value.body === undefined;
+
+// The capability answers must come from inside the bundle. A harness that
+// restates chrome-detector.ts checks itself and proves nothing about the
+// extension: that drift is how `accessKeys` — a capability this extension has
+// never had — came to be asserted true in both browsers. These read the real
+// live bindings, so a detector that misfires on a host fails the suite.
+// `hasObjectUrl` is likewise resolved in the real background global, which is
+// the only place the Chrome service worker's missing DOM is observable.
+export const handleBackgroundE2EInspectCommand = async (
+  rawRequest: unknown,
+): Promise<BackgroundE2EInspectResponse | null> => {
+  if (!isBackgroundE2EInspectCommand(rawRequest)) return null;
+  try {
+    await (backgroundRuntime.ready ?? Promise.resolve()).catch(() => {});
+    return {
+      type: BACKGROUND_E2E_INSPECT_COMMAND,
+      body: {
+        status: "OK",
+        state: {
+          browser: CURRENT_BROWSER,
+          ...(CURRENT_BROWSER_VERSION === undefined
+            ? {}
+            : { browserVersion: CURRENT_BROWSER_VERSION }),
+          capabilities: { ...WEB_EXTENSION_CAPABILITIES },
+          // option-schema.ts downgrades a stored `prompt` through this same
+          // binding (#89, #217); reading it here keeps the two in step.
+          promptConflictAction: WEB_EXTENSION_CAPABILITIES.conflictActionPrompt
+            ? CONFLICT_ACTION.PROMPT
+            : CONFLICT_ACTION.UNIQUIFY,
+          hasObjectUrl: typeof URL.createObjectURL === "function",
+        },
+      },
+    };
+  } catch (error) {
+    return {
+      type: BACKGROUND_E2E_INSPECT_COMMAND,
+      body: { status: "ERROR", message: String(error) },
+    };
+  }
+};
 
 const resolveDownloadUrl = (request: BackgroundE2EDownload): string => {
   if (request.shortcutUrl) {
@@ -417,6 +484,10 @@ export const registerBackgroundE2ECommand = (): void => {
     }
     if (isBackgroundE2ETabMenuCommand(rawRequest)) {
       void handleBackgroundE2ETabMenuCommand(rawRequest).then(sendResponse);
+      return true;
+    }
+    if (isBackgroundE2EInspectCommand(rawRequest)) {
+      void handleBackgroundE2EInspectCommand(rawRequest).then(sendResponse);
       return true;
     }
     if (!isBackgroundE2ECommand(rawRequest)) return;

@@ -501,20 +501,27 @@ test("option search shows detailed locations and navigates indexed actions", asy
 
 test("service worker initialises cleanly", async () => {
   const state = await control.inspect();
-  const noObjectUrl = decodeBoolean(await evalWorker(`typeof URL.createObjectURL !== "function"`));
 
   expect(state.browser).toBe("CHROME");
-  expect(state.capabilities.tabContextMenus).toEqual(expect.any(Boolean));
+  // Chrome gained tab-strip menus in 150; 123-149 stay supported and omit
+  // them. Checking the detector against the version the runner actually
+  // launched keeps both branches honest without restating its ContextType
+  // probe, which would only compare the harness to itself.
+  const chromeMajor = Number(/(\d+)\.\d/.exec(browserVersion)?.[1]);
+  expect(Number.isSafeInteger(chromeMajor)).toBe(true);
+  expect(state.capabilities.tabContextMenus).toBe(chromeMajor >= 150);
   expect(state.capabilities).toMatchObject({
-    accessKeys: true,
     downloadFilenameSuggestion: true,
     downloadDeltaFilename: true,
     conflictActionPrompt: true,
     downloadRequestHeaders: false,
+    notificationButtons: true,
+    shortcutFileExtensions: true,
   });
   expect(state.promptConflictAction).toBe("prompt");
-  // Running in a real service worker, with the MV3 fallbacks in play
-  expect(noObjectUrl).toBe(true);
+  // Reported by the real service worker, where the MV3 fallbacks exist because
+  // there is no DOM to make an object URL with.
+  expect(state.hasObjectUrl).toBe(false);
   expect((await control.logs.get()).some((entry) => entry.message === "init failed")).toBe(false);
 });
 

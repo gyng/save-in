@@ -128,6 +128,18 @@ const budgets = [
     maximum: 0,
   },
   {
+    // evalWorker reaches the same service worker as evalSW over CDP, so it must
+    // be budgeted too: while only evalSW was named here, an evaluator spelled
+    // differently walked straight through a ceiling of zero. The three that
+    // remain install and read a fetch patch inside the worker, which no control
+    // operation can express. Anything observable through the bundle belongs in
+    // background/e2e-command.ts instead.
+    file: "test/e2e/chrome.e2e.mjs",
+    label: "raw Chrome service-worker evaluations",
+    count: rawEvaluatorCalls("evalWorker"),
+    maximum: 3,
+  },
+  {
     file: "test/e2e/firefox.e2e.mjs",
     label: "raw Firefox background evaluations",
     count: rawEvaluatorCalls("evalBackground"),

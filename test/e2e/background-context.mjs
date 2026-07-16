@@ -144,31 +144,6 @@ const installBackgroundHelpers = (codecs = createProtocolCodecs()) => {
         return response.body;
       });
     },
-    inspect: async () => {
-      // These values RESTATE src/platform/chrome-detector.ts rather than read
-      // it: this script runs in the background context but outside the bundle,
-      // so the real WEB_EXTENSION_CAPABILITIES binding is unreachable from here.
-      // Asserting them therefore checks this file against itself and proves
-      // nothing about the extension — b04d753b did read the real binding, and
-      // 05df4cc4 lost that when it replaced the global bridge. Keep them in
-      // sync with the detector by hand; a genuine probe would have to go
-      // through background/e2e-command.ts, which is inside the bundle.
-      const firefox = typeof Reflect.get(browserApi.runtime, "getBrowserInfo") === "function";
-      const contextTypes = chromeApi?.contextMenus?.ContextType;
-      return {
-        browser: firefox ? "FIREFOX" : "CHROME",
-        capabilities: {
-          tabContextMenus: firefox || contextTypes?.TAB === "tab",
-          accessKeys: true,
-          downloadFilenameSuggestion: Boolean(chromeApi?.downloads?.onDeterminingFilename),
-          downloadDeltaFilename: !firefox,
-          conflictActionPrompt: !firefox,
-          downloadRequestHeaders: firefox,
-        },
-        promptConflictAction: firefox ? "uniquify" : "prompt",
-        hasObjectUrl: typeof URL.createObjectURL === "function",
-      };
-    },
   };
   return api;
 };

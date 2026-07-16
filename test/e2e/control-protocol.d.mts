@@ -127,6 +127,7 @@ export type RuntimeMessage =
   | { type: "SAVE_IN_E2E_CONTEXT_MENU_CLICK"; body: ContextMenuClickBody }
   | { type: "SAVE_IN_E2E_TAB_MENU_CLICK"; body: TabMenuClickBody }
   | { type: "SAVE_IN_E2E_RESET_STATE" }
+  | { type: "SAVE_IN_E2E_INSPECT" }
   | {
       type: "SAVE_IN_E2E_NOTIFICATION_CALLS";
       body:
@@ -167,6 +168,10 @@ export type ResetStateResponse = {
   type: "SAVE_IN_E2E_RESET_STATE";
   body: { status: "OK" } | { status: "ERROR"; message: string };
 };
+export type InspectStateResponse = {
+  type: "SAVE_IN_E2E_INSPECT";
+  body: { status: "OK"; state: InspectResult } | { status: "ERROR"; message: string };
+};
 
 export type ApplyConfigResponse = {
   type: "APPLY_CONFIG_RESULT";
@@ -205,6 +210,7 @@ export interface RuntimeResponseMap {
   SAVE_IN_E2E_CONTEXT_MENU_CLICK: ContextMenuClickResponse;
   SAVE_IN_E2E_TAB_MENU_CLICK: TabMenuClickResponse;
   SAVE_IN_E2E_RESET_STATE: ResetStateResponse;
+  SAVE_IN_E2E_INSPECT: InspectStateResponse;
   SAVE_IN_E2E_NOTIFICATION_CALLS: NotificationResponse;
   APPLY_CONFIG: ApplyConfigResponse;
 }
@@ -281,15 +287,18 @@ export interface DnrRule {
   [key: string]: unknown;
 }
 
+/** Reported by the bundle itself; mirrors src/platform/chrome-detector.ts. */
 export interface InspectResult {
-  browser: "CHROME" | "FIREFOX";
+  browser: "CHROME" | "FIREFOX" | "UNKNOWN";
+  browserVersion?: number;
   capabilities: {
     tabContextMenus: boolean;
-    accessKeys: boolean;
     downloadFilenameSuggestion: boolean;
     downloadDeltaFilename: boolean;
     conflictActionPrompt: boolean;
     downloadRequestHeaders: boolean;
+    notificationButtons: boolean;
+    shortcutFileExtensions: boolean;
   };
   promptConflictAction: "prompt" | "uniquify";
   hasObjectUrl: boolean;

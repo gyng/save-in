@@ -666,21 +666,15 @@ export const dispatchControlRequest = async (
         result = await resetCase(request.snapshot);
         break;
       case "inspect": {
-        const firefox = typeof Reflect.get(browserApi.runtime, "getBrowserInfo") === "function";
-        const contextTypes = chromeApi?.contextMenus?.ContextType;
-        result = {
-          browser: firefox ? "FIREFOX" : "CHROME",
-          capabilities: {
-            tabContextMenus: firefox || contextTypes?.TAB === "tab",
-            accessKeys: true,
-            downloadFilenameSuggestion: Boolean(chromeApi?.downloads?.onDeterminingFilename),
-            downloadDeltaFilename: !firefox,
-            conflictActionPrompt: !firefox,
-            downloadRequestHeaders: firefox,
-          },
-          promptConflictAction: firefox ? "uniquify" : "prompt",
-          hasObjectUrl: typeof URL.createObjectURL === "function",
-        };
+        // The bundle answers this. Restating chrome-detector.ts here would
+        // check the harness against itself, and would report the control
+        // page's DOM rather than the background's — the Chrome service
+        // worker's missing `URL.createObjectURL` is invisible from this side.
+        const inspected = await send({ type: "SAVE_IN_E2E_INSPECT" });
+        if (!inspected?.body || inspected.body.status !== "OK") {
+          throw new Error(`E2E inspect failed: ${inspected?.body?.message ?? "no response"}`);
+        }
+        result = inspected.body.state;
         break;
       }
       default:
