@@ -221,6 +221,16 @@ describe("Prompt API rule-authoring model", () => {
     // A folder name may still contain spaces when no conjunction follows it.
     ["save png into /My Documents", "fileext: ^png$\ninto: My Documents/:filename:", []],
     [
+      "save PDF and PNG files into /archive",
+      "fileext/i: ^(?:pdf|png)$\ninto: archive/:filename:",
+      [],
+    ],
+    [
+      "save images from docs.example.com into /archive",
+      "sourcekind: ^image$\npagedomain: ^docs\\.example\\.com$\ninto: archive/:filename:",
+      [],
+    ],
+    [
       "save png into /archive",
       "fileext: ^png$\ninto: archive/custom-name",
       ["Saving into a folder must preserve the original filename."],
