@@ -14,7 +14,10 @@ messages, and feature docs. Each track is one line with its issue refs.
 ### Coverage and control
 
 1. Routing grammar: `fetch:` URL rewriting (#137).
-2. Site template collections (#187, #189, #209, #210, #211).
+2. Site template collections (#187, #189, #209, #210). #211 (Instagram
+   username prefix) is **not** covered: that template was built and then
+   removed as unreliable, and `core-matcher-regressions.test.ts` asserts it is
+   not offered. An Instagram post URL carries no username.
 3. Page Sources automatic scan: link-discovered sources.
 4. Per-site disable list (#183).
 5. Undo last save (#102).
@@ -32,7 +35,12 @@ did not land; it remains the one evidence-gated decision (see below).
 ### Save workflow and acquisition maturity
 
 1. Save workflow: Quick Save, switchable default destination, and post-save tab
-   actions (#144, #162, #201, #213, #115).
+   actions (#213, #115). #144, #162, and #201 were cited by this track but are
+   **not** resolved by it: Quick Save still sits inside the Save In submenu, so
+   #144's extra step remains; click-to-save still takes `last?.path`
+   unconditionally with no option to prefer the download folder (#162); and
+   `setLastUsed` is only ever called from a context-menu click, so a browser
+   Save As dialog cannot update Last used (#201).
 2. Parallel Referer protection (#193).
 3. Grammar follow-through: `finalfilename:` matching (#178, #189) and the
    `:menupath:` variable (#208).

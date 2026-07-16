@@ -127,22 +127,23 @@ rules.
   download routing skips rewriting rules because a started download can only
   be renamed. The visual editor, autocomplete, route debugger, and references
   cover the new clause.
-- Added the `rename:` routing clause (#187): a matching rule can rewrite the
-  final filename with a regular-expression find and replace
+- Added the `rename:` routing clause (#187, #209): a matching rule can rewrite
+  the final filename with a regular-expression find and replace
   (`rename/gi: find -> replacement`), with captures and routing variables
-  expanding in the replacement. It applies to Save In saves, automatic Page
-  Sources saves, and routed ordinary browser downloads, and only ever changes
-  the filename — never the destination folder. The visual editor, autocomplete,
-  route debugger, and references cover the new clause.
+  expanding in the replacement. An empty replacement deletes the match, which is
+  how you drop unwanted text such as a leading `https___`. It applies to Save In
+  saves, automatic Page Sources saves, and routed ordinary browser downloads,
+  and only ever changes the filename — never the destination folder. The visual
+  editor, autocomplete, route debugger, and references cover the new clause.
 - Added `finalfilename:` for matching the browser-resolved name after
   Content-Disposition (#178, #189), plus `:menupath:` for including the chosen
   Save In folder in a destination or filename (#208). Both are available in
   the editors, debugger, autocomplete, and references.
 - Added two rule template collections: **Site originals** rewrites Twitter/X,
-  Reddit, Wikimedia, and YouTube media to their original-quality URLs, and
-  **Site filing** names saves after site context for Twitter/X, Instagram,
-  and DeviantArt, including scheme-free and slugged page names (#187, #189,
-  #209, #210, #211).
+  Reddit, Wikimedia, Bluesky, ArtStation, Mastodon, Google, and Flickr media to
+  their original-quality URLs, and **Site filing** names saves after site
+  context, with a Twitter/X handle prefix plus scheme-free and slugged page
+  names (#210).
 
 ### Page Sources and downloads
 
@@ -273,8 +274,11 @@ rules.
 - The **About** page now lists each requested browser permission with a plain
   explanation of why Save In needs it.
 - Fixed the Firefox dark-mode Last used icon (#184), restored first-party
-  autocomplete, and made ordinary text settings autosave after typing pauses
-  (#205).
+  autocomplete, and made ordinary text settings autosave after typing pauses.
+- The **Last used** entry now keeps your configured access key (#205). Saving
+  to a folder used to rewrite that menu item with a hardcoded `(&a)`, so a
+  custom key stopped working until you re-entered it in Options. The entry also
+  survives a browser restart now, instead of coming back disabled.
 - Added six themes: the One Dark, Tokyo Night, and Catppuccin classics, and
   three Save In themes — Glacier (cool light blue), Matcha (soft light green),
   and Ember (warm dark amber). Pastel pink's pressed button color now darkens
