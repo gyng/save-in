@@ -1,5 +1,21 @@
 # 4.1.0
 
+- Added the `rename:` routing clause (#187): a matching rule can rewrite the
+  final filename with a regular-expression find and replace
+  (`rename/gi: find -> replacement`), with captures and routing variables
+  expanding in the replacement. It applies to Save In saves, automatic Page
+  Sources saves, and routed ordinary browser downloads, and only ever changes
+  the filename — never the destination folder. The visual editor, autocomplete,
+  route debugger, and references cover the new clause.
+- Automatic Page Sources saves can now cover more of a page, each behind its
+  own off-by-default control: linked documents and streaming playlists
+  (`.pdf`, HLS/DASH manifests — the manifest file itself, not an assembled
+  stream), CSS background images, and detected streaming playlists. A stale
+  or tampered page cannot bypass the controls: the background re-checks every
+  candidate against your settings before saving.
+- Automatic saves can optionally include inline `data:` images and media (up
+  to 2 MB each, off by default). History shows a shortened form of these
+  addresses instead of the full inline payload.
 - Added the `fetch:` routing clause: a matching rule can rewrite the download
   address before saving, using captures and routing variables (#137). Save In
   saves and automatic Page Sources saves honor the rewrite; ordinary browser

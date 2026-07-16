@@ -205,9 +205,10 @@ failure containment, message-protocol validation, one e2e smoke per browser.
 
 ## 4.2 — scan completion and verdicts
 
-Four tracks. The scan phases are planned work; the last two are
-decision-gated, with the designs and decision criteria fixed now so 4.1
-feedback converts directly into action instead of reopening design.
+Four tracks. Tracks 1–3 are implemented (rolled into the pending v4
+release alongside 4.1 — the maintainer waived the demand gate on track 3);
+track 4 stays decision-gated on field evidence. Per-track "Landed" notes
+record where implementation deviated from the plan.
 
 1. Automatic scan phase B: linked documents and streams, CSS backgrounds,
    playlist hints.
@@ -268,6 +269,19 @@ document and a background image. Update
 channel-toggle rule, keep the `data:`/`blob:` exclusion wording until
 phase C.
 
+Landed as planned, with these specifics: option keys are
+`autoDownloadDocuments` (linked documents and streams — it enables anchor
+collection by itself rather than requiring the links option),
+`autoDownloadBackgrounds`, and `autoDownloadManifests`, grouped with
+`autoDownloadLinks` in an "Automatic scan coverage" fieldset. Candidates
+gained an optional `PageSourceChannel` marker
+(`anchor | background | resource-hint`, absent for embedded media) so one
+shared predicate — `isAdmittedAutomaticSource` in
+`automation/automatic-routing.ts` — gates kind × channel identically in the
+content scan and the background backstop; a `.m3u8` anchor is never admitted
+by the manifests option. The backstop parity was also extended to the
+pre-existing links channel, which previously had no background-side check.
+
 ### Automatic scan phase C: `data:` sources
 
 `data:` and `blob:` differ fundamentally and split here. A `data:` URL is
@@ -305,7 +319,17 @@ Tests: gate matrix (cap, protocol, dedup-by-hash) at the content and
 messaging boundaries; a pipeline case proving direct acquisition with no
 DNR rule; one e2e smoke saving a small inline `data:` image.
 
-### Grammar: general value transforms (#187) — gated
+Landed as planned (`autoDownloadDataUrls`, bounds in `shared/data-url.ts`,
+enforced at both gates; sha256 dedup is synchronous — `shared/sha256.ts` is
+a sync class; history stores a 100-char truncated display form via
+`historyDisplayUrl`, and no history action ever dereferences the URL). Two
+pipeline fixes surfaced by e2e: disposition-filename HEAD requests now skip
+non-HTTP URLs (the "HTTP-only" premise wasn't enforced in code), and
+Firefox's `downloads.download` rejects `data:` URLs, so event-page
+acquisition converts them to blob object URLs while Chrome keeps them
+direct.
+
+### Grammar: general value transforms (#187) — landed (gate waived)
 
 Trigger: proceed only if post-4.1 reports show repeated asks that a Site
 filing template cannot express and that reduce to a pure value edit
@@ -324,6 +348,22 @@ tokens, a visual-editor row, a debugger stage row, vocabulary groups,
 clause references and guides, catalog keys, and template proofs. Anything
 beyond a single find/replace per rule (chains, conditionals, cross-rule
 state) stays rejected under the 4.1 non-goals.
+
+Landed with the fixed design (separator, single clause, filename-component
+scope, rename-only ordinary-routing eligibility). Implementation specifics:
+the transform applies in `finalizeFullPath`
+(`downloads/download-disposition.ts`) via a `transformFinalComponent` hook
+on `Path.finalize`, with async replacement expansion
+(`resolveRenameTransform` in `download-plan.ts`) running after the `fetch:`
+rewrite so metadata variables resolve against the URL actually downloaded;
+Chrome's deferred-route recovery persists the capture-substituted template.
+Metadata variables are allowed in replacements (no banned set — the
+filename stage has metadata available). Judgment calls: a rename that
+deletes the whole component falls back to `_` (the `sanitizeFilename`
+convention), and a stale stored transform that no longer compiles is
+skipped rather than failing the download. Visual mode edits `rename/i:`
+rows; other flag combinations drop to text-mode editing, matching matcher
+clauses.
 
 ### Firefox cancel-and-redownload verdict — gated
 
