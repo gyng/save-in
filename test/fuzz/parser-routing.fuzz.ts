@@ -8,6 +8,8 @@ import {
   updateDirectoryMetadata,
 } from "../../src/config/path-syntax.ts";
 import { setAccesskey } from "../../src/background/menu-build.ts";
+import { MENU_IDS } from "../../src/menus/menu-ids.ts";
+import { buildTree } from "../../src/menus/menu-tree.ts";
 import { seedOptions } from "../../src/config/option.ts";
 import { options } from "../../src/config/options-data.ts";
 import { FORBIDDEN_FILENAME_CHARS, RULE_TYPES } from "../../src/shared/constants.ts";
@@ -158,6 +160,72 @@ const menuAccessKeyMarkup: FuzzTarget = {
           literal === title || literal.startsWith(`${title} (`),
           "menu title changed the text the user reads",
         );
+      }),
+      parameters,
+    ),
+};
+
+// A path line nests with ">" and may skip a level, which is where numbering
+// and attachment can disagree: buildTree renders a skipped level at the
+// deepest available parent, so menuIndex has to follow the rendered position
+// rather than the raw indent.
+const menuLineArbitrary = fc
+  .tuple(
+    fc.integer({ min: 0, max: 4 }).map((depth) => ">".repeat(depth)),
+    fc.constantFrom(
+      "a",
+      "Photos",
+      "---",
+      "..",
+      "bad<name",
+      "İzmir",
+      "x // (alias: Nice)",
+      "y // (disabled: true)",
+      "z // (key: g)",
+    ),
+  )
+  .map(([indent, body]) => indent + body);
+
+const menuTreeNumbering: FuzzTarget = {
+  name: "menu-tree-numbering",
+  run: (parameters) =>
+    fc.check(
+      fc.property(fc.array(menuLineArbitrary, { maxLength: 10 }), (lines) => {
+        const { items } = buildTree(lines);
+        const parentOf = new Map<string, string>();
+        const ids = new Set<string>();
+        const renderedPaths = new Set<string>([MENU_IDS.ROOT]);
+        const numbersByParent = new Map<string, Set<number>>();
+
+        for (const item of items) {
+          invariant(!ids.has(item.id), "menu tree emitted one id twice");
+          ids.add(item.id);
+          // contextMenus.create throws if parentId names an item it has not
+          // created yet, which would abort the whole menu build.
+          invariant(renderedPaths.has(item.parentId), "menu item has a forward or dangling parent");
+          parentOf.set(item.id, item.parentId);
+          if (item.kind !== "path") continue;
+          renderedPaths.add(item.id);
+
+          const components = item.menuIndex.split(".");
+          invariant(
+            components.every((component) => component !== ""),
+            "menuIndex has an empty component",
+          );
+          let rendered = 0;
+          for (let id = item.parentId; id !== MENU_IDS.ROOT; id = parentOf.get(id) ?? MENU_IDS.ROOT)
+            rendered++;
+          invariant(components.length === rendered + 1, "menuIndex disagrees with rendered depth");
+          invariant(
+            components[components.length - 1] === String(item.number),
+            "menuIndex does not end in the item's own number",
+          );
+
+          const siblings = numbersByParent.get(item.parentId) ?? new Set<number>();
+          invariant(!siblings.has(item.number), "two siblings share an access-key number");
+          siblings.add(item.number);
+          numbersByParent.set(item.parentId, siblings);
+        }
       }),
       parameters,
     ),
@@ -444,6 +512,7 @@ const targets: FuzzTarget[] = [
   routingSemantic,
   filenameSafety,
   menuAccessKeyMarkup,
+  menuTreeNumbering,
   webhookUrlPolicy,
 ];
 
