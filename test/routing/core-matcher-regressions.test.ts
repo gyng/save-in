@@ -279,12 +279,107 @@ describe("built-in matcher templates", () => {
     expect(
       matchRules(rules, {
         ...source,
+        sourceKind: "image",
+        sourceUrl: "https://www.gstatic.com/images/branding/googlelogo.png",
+      }),
+    ).toBeNull();
+    expect(
+      matchRules(rules, {
+        ...source,
         pageUrl: "https://www.google.com/search?q=landscape",
         sourceKind: "image",
       }),
     ).toBeNull();
     expect(matchRules(rules, { ...source, sourceKind: "link" })).toBeNull();
     expect(matchRules(rules, { ...source, sourceKind: "link", mediaType: "image" })).toBeNull();
+  });
+
+  test("the Twitter/X template accepts media renditions without overmatching formats or hosts", () => {
+    const rules = rulesFor("Twitter/X largest image");
+
+    expect(
+      matchRulesDetailed(rules, {
+        sourceUrl: "https://pbs.twimg.com/media/EQEN6n3U?format=jpg&name=small&tag=12",
+      }),
+    ).toMatchObject({
+      destination: "twitter/EQEN6n3U.jpg",
+      fetch: "https://pbs.twimg.com/media/EQEN6n3U.jpg?name=orig",
+    });
+    expect(
+      matchRules(rules, {
+        sourceUrl: "https://pbs.twimg.com/media/EQEN6n3U?format=html&name=small",
+      }),
+    ).toBeNull();
+    expect(
+      matchRules(rules, {
+        sourceUrl: "https://example.com/media/EQEN6n3U?format=jpg&name=small",
+      }),
+    ).toBeNull();
+  });
+
+  test("the Reddit template retains the signed query required by current originals", () => {
+    const rules = rulesFor("Reddit image originals");
+    const query = "width=1080&crop=smart&auto=webp&s=signature";
+
+    expect(
+      matchRulesDetailed(rules, {
+        sourceUrl: `https://preview.redd.it/post-title-v0-mediaid.png?${query}`,
+      }),
+    ).toMatchObject({
+      destination: "reddit/post-title-v0-mediaid.png",
+      fetch: `https://i.redd.it/post-title-v0-mediaid.png?${query}`,
+    });
+    expect(
+      matchRules(rules, {
+        sourceUrl: "https://preview.redd.it/post-title-v0-mediaid.png",
+      }),
+    ).toBeNull();
+    expect(
+      matchRules(rules, {
+        sourceUrl: `https://i.redd.it/post-title-v0-mediaid.png?${query}`,
+      }),
+    ).toBeNull();
+  });
+
+  test("the Wikimedia template handles transformed SVG thumbnails and ignores originals", () => {
+    const rules = rulesFor("Wikimedia full-size image");
+
+    expect(
+      matchRulesDetailed(rules, {
+        sourceUrl:
+          "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Commons-logo.svg/120px-Commons-logo.svg.png?download=1",
+      }),
+    ).toMatchObject({
+      destination: "wikimedia/Commons-logo.svg",
+      fetch: "https://upload.wikimedia.org/wikipedia/commons/4/4a/Commons-logo.svg",
+    });
+    expect(
+      matchRules(rules, {
+        sourceUrl: "https://upload.wikimedia.org/wikipedia/commons/4/4a/Commons-logo.svg",
+      }),
+    ).toBeNull();
+  });
+
+  test("the YouTube template rewrites only lower JPEG thumbnail tiers", () => {
+    const rules = rulesFor("YouTube thumbnail max resolution");
+
+    for (const tier of ["default", "mqdefault", "hqdefault", "sddefault", "0", "3"]) {
+      expect(
+        matchRulesDetailed(rules, {
+          sourceUrl: `https://i.ytimg.com/vi/dQw4w9WgXcQ/${tier}.jpg`,
+        }),
+      ).toMatchObject({
+        destination: "youtube/dQw4w9WgXcQ-maxresdefault.jpg",
+        fetch: "https://i.ytimg.com/vi/dQw4w9WgXcQ/maxresdefault.jpg",
+      });
+    }
+    for (const tier of ["maxresdefault", "hq720", "poster"]) {
+      expect(
+        matchRules(rules, {
+          sourceUrl: `https://i.ytimg.com/vi/dQw4w9WgXcQ/${tier}.jpg`,
+        }),
+      ).toBeNull();
+    }
   });
 
   test("the Bluesky template rewrites only feed thumbnails", () => {
@@ -297,7 +392,7 @@ describe("built-in matcher templates", () => {
         filename: "bafkreiexample.jpeg",
       }),
     ).toMatchObject({
-      destination: "bluesky/:filename:",
+      destination: "bluesky/bafkreiexample.jpeg",
       fetch: `https://cdn.bsky.app/img/feed_fullsize/${tail}`,
     });
     expect(
@@ -335,9 +430,9 @@ describe("built-in matcher templates", () => {
     }
   });
 
-  test("the Mastodon template preserves the instance media prefix and rewrites only small attachments", () => {
-    const rules = rulesFor("Mastodon full-size attachment");
-    const file = "112/859/957/767/662/021/small/bb2447eee900fe87.png";
+  test("the Mastodon template preserves media prefixes and excludes ambiguous PNG previews", () => {
+    const rules = rulesFor("Mastodon full-size JPEG image");
+    const file = "112/859/957/767/662/021/small/bb2447eee900fe87.jpeg";
 
     for (const prefix of [
       "media_attachments/files",
@@ -349,7 +444,7 @@ describe("built-in matcher templates", () => {
           sourceUrl: `https://media.example/${prefix}/${file}?cache=1`,
         }),
       ).toMatchObject({
-        destination: "mastodon/bb2447eee900fe87.png",
+        destination: "mastodon/bb2447eee900fe87.jpeg",
         fetch: `https://media.example/${prefix}/${file.replace("/small/", "/original/")}`,
       });
     }
@@ -358,6 +453,54 @@ describe("built-in matcher templates", () => {
         sourceUrl: `https://media.example/system/media_attachments/files/${file.replace("/small/", "/original/")}`,
       }),
     ).toBeNull();
+    expect(
+      matchRules(rules, {
+        sourceUrl:
+          "https://media.example/system/media_attachments/files/112/859/957/767/662/021/small/video-preview.png",
+      }),
+    ).toBeNull();
+  });
+
+  test("the Google CDN template matches only a complete flat size-directive URL", () => {
+    const rules = rulesFor("Google original-size image");
+
+    expect(
+      matchRulesDetailed(rules, {
+        sourceUrl: "https://yt3.googleusercontent.com/opaque-token=s900-c-k-c0x00ffffff-no-rj?x=1",
+      }),
+    ).toMatchObject({
+      destination: "google/opaque-token",
+      fetch: "https://yt3.googleusercontent.com/opaque-token=s0",
+    });
+    for (const sourceUrl of [
+      "https://blogger.googleusercontent.com/img/a/path/image.jpg=s400",
+      "https://lh3.googleusercontent.com/opaque-token=s400/extra",
+      "https://example.com/opaque-token=s400",
+    ]) {
+      expect(matchRules(rules, { sourceUrl })).toBeNull();
+    }
+  });
+
+  test("the Flickr template upgrades only tiers below 1024px", () => {
+    const rules = rulesFor("Flickr larger image");
+
+    for (const tier of ["s", "q", "t", "m", "n", "w", "z", "c"]) {
+      expect(
+        matchRulesDetailed(rules, {
+          sourceUrl: `https://live.staticflickr.com/65535/55392836202_97bdf7986a_${tier}.jpg`,
+        }),
+      ).toMatchObject({
+        destination: "flickr/55392836202_97bdf7986a_b.jpg",
+        fetch: "https://live.staticflickr.com/65535/55392836202_97bdf7986a_b.jpg",
+      });
+    }
+    for (const tier of ["b", "h", "k", "3k", "4k", "5k", "6k", "o"]) {
+      expect(
+        matchRules(rules, {
+          sourceUrl: `https://live.staticflickr.com/65535/55392836202_97bdf7986a_${tier}.jpg`,
+        }),
+      ).toBeNull();
+    }
   });
 
   test("actual extension matching can use a resolved preview filename", () => {

@@ -3828,10 +3828,10 @@
     "message": "Twitter/X-användarnamn som prefix"
   },
   "ruleTemplateTwitterOriginalsDescription": {
-    "message": "Skriver om Twitter- och X-bildlänkar till originalfilen i full upplösning"
+    "message": "Skriver om Twitter- och X-bildlänkar till deras största offentliga version"
   },
   "ruleTemplateTwitterOriginalsName": {
-    "message": "Twitter/X-bildoriginal"
+    "message": "Största Twitter/X-bilden"
   },
   "ruleTemplateWikimediaOriginalDescription": {
     "message": "Skriver om Wikimedia Commons miniatyrlänkar till originalfilen i full storlek"
@@ -3840,13 +3840,7 @@
     "message": "Wikimedia-bild i full storlek"
   },
   "ruleTemplateYoutubeMaxResDescription": {
-    "message": "Skriver om YouTubes miniatyrlänkar till bilden med maximal upplösning"
-  },
-  "ruleTemplatePixivOriginalName": {
-    "message": "Pixiv-bild i originalkvalitet"
-  },
-  "ruleTemplatePixivOriginalDescription": {
-    "message": "Skriver om en förhandsgranskningsbild från Pixiv till originalfilen i full upplösning (kräver att Referer-alternativet är aktiverat för i.pximg.net)"
+    "message": "Begär YouTubes miniatyr med maximal upplösning när den versionen finns"
   },
   "ruleTemplateBlueskyFullsizeName": {
     "message": "Bluesky-bild i full storlek"
@@ -3861,10 +3855,10 @@
     "message": "Skriver om en förhandsgranskningsbild från ArtStation till den högsta tillgängliga versionen"
   },
   "ruleTemplateMastodonFullsizeName": {
-    "message": "Mastodon-bilaga i full storlek"
+    "message": "Mastodon-JPEG-bild i full storlek"
   },
   "ruleTemplateMastodonFullsizeDescription": {
-    "message": "Skriver om förhandsgranskningen av en Mastodon-bilaga till filen i full storlek"
+    "message": "Skriver om förhandsgranskningen av en Mastodon-JPEG-bild till JPEG-filen i full storlek"
   },
   "ruleTemplateGoogleOriginalName": {
     "message": "Google-bild i originalstorlek"
@@ -3883,12 +3877,6 @@
   },
   "ruleTemplateFlickrLargeDescription": {
     "message": "Skriver om en Flickr-bildlänk till en större version på 1024 px"
-  },
-  "ruleTemplateTumblrHighResName": {
-    "message": "Tumblr-bild i hög upplösning"
-  },
-  "ruleTemplateTumblrHighResDescription": {
-    "message": "Skriver om en Tumblr-bildlänk till den högsta tillgängliga upplösningen"
   },
   "ruleTemplateYoutubeMaxResName": {
     "message": "YouTube-miniatyr med maximal upplösning"

@@ -3828,10 +3828,10 @@
     "message": "Twitter/X 使用者名稱前綴"
   },
   "ruleTemplateTwitterOriginalsDescription": {
-    "message": "將 Twitter 與 X 的圖片連結改寫為原始全解析度檔案"
+    "message": "將 Twitter 與 X 的圖片連結改寫為公開可用的最大版本"
   },
   "ruleTemplateTwitterOriginalsName": {
-    "message": "Twitter/X 圖片原始檔"
+    "message": "Twitter/X 最大圖片"
   },
   "ruleTemplateWikimediaOriginalDescription": {
     "message": "將 Wikimedia Commons 的縮圖連結改寫為原始完整尺寸檔案"
@@ -3840,13 +3840,7 @@
     "message": "Wikimedia 完整尺寸圖片"
   },
   "ruleTemplateYoutubeMaxResDescription": {
-    "message": "將 YouTube 縮圖連結改寫為最高解析度圖片"
-  },
-  "ruleTemplatePixivOriginalName": {
-    "message": "Pixiv 原始畫質圖片"
-  },
-  "ruleTemplatePixivOriginalDescription": {
-    "message": "將 Pixiv 預覽圖片改寫為完整解析度原始檔案（需要為 i.pximg.net 啟用 Referer 選項）"
+    "message": "在該版本存在時要求 YouTube 的最高解析度縮圖"
   },
   "ruleTemplateBlueskyFullsizeName": {
     "message": "Bluesky 完整尺寸圖片"
@@ -3861,10 +3855,10 @@
     "message": "將 ArtStation 預覽圖片改寫為最高可用畫質版本"
   },
   "ruleTemplateMastodonFullsizeName": {
-    "message": "Mastodon 完整尺寸附件"
+    "message": "Mastodon 完整尺寸 JPEG 圖片"
   },
   "ruleTemplateMastodonFullsizeDescription": {
-    "message": "將 Mastodon 附件預覽改寫為完整尺寸檔案"
+    "message": "將 Mastodon JPEG 圖片預覽改寫為完整尺寸 JPEG 檔案"
   },
   "ruleTemplateGoogleOriginalName": {
     "message": "Google 原始尺寸圖片"
@@ -3883,12 +3877,6 @@
   },
   "ruleTemplateFlickrLargeDescription": {
     "message": "將 Flickr 圖片連結改寫為更大的 1024 像素版本"
-  },
-  "ruleTemplateTumblrHighResName": {
-    "message": "Tumblr 高解析度圖片"
-  },
-  "ruleTemplateTumblrHighResDescription": {
-    "message": "將 Tumblr 圖片連結改寫為可用的最高解析度"
   },
   "ruleTemplateYoutubeMaxResName": {
     "message": "YouTube 縮圖最高解析度"

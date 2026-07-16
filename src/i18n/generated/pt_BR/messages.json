@@ -3828,10 +3828,10 @@
     "message": "Prefixo com identificador do Twitter/X"
   },
   "ruleTemplateTwitterOriginalsDescription": {
-    "message": "Reescreve links de imagem do Twitter e X para o arquivo original em resolução completa"
+    "message": "Reescreve links de imagem do Twitter e X para a maior versão pública"
   },
   "ruleTemplateTwitterOriginalsName": {
-    "message": "Originais de imagens do Twitter/X"
+    "message": "Maior imagem do Twitter/X"
   },
   "ruleTemplateWikimediaOriginalDescription": {
     "message": "Reescreve links de miniaturas do Wikimedia Commons para o arquivo original em tamanho completo"
@@ -3840,13 +3840,7 @@
     "message": "Imagem do Wikimedia em tamanho completo"
   },
   "ruleTemplateYoutubeMaxResDescription": {
-    "message": "Reescreve links de miniaturas do YouTube para a imagem em resolução máxima"
-  },
-  "ruleTemplatePixivOriginalName": {
-    "message": "Imagem do Pixiv em qualidade original"
-  },
-  "ruleTemplatePixivOriginalDescription": {
-    "message": "Reescreve uma imagem de prévia do Pixiv para o arquivo original em resolução máxima (requer a opção Referer ativada para i.pximg.net)"
+    "message": "Solicita a miniatura do YouTube em resolução máxima quando essa versão está disponível"
   },
   "ruleTemplateBlueskyFullsizeName": {
     "message": "Imagem do Bluesky em tamanho completo"
@@ -3861,10 +3855,10 @@
     "message": "Reescreve uma imagem de prévia do ArtStation para a melhor versão disponível"
   },
   "ruleTemplateMastodonFullsizeName": {
-    "message": "Anexo do Mastodon em tamanho completo"
+    "message": "Imagem JPEG do Mastodon em tamanho completo"
   },
   "ruleTemplateMastodonFullsizeDescription": {
-    "message": "Reescreve a prévia de um anexo do Mastodon para o arquivo em tamanho completo"
+    "message": "Reescreve a prévia de uma imagem JPEG do Mastodon para o arquivo JPEG em tamanho completo"
   },
   "ruleTemplateGoogleOriginalName": {
     "message": "Imagem do Google em tamanho original"
@@ -3883,12 +3877,6 @@
   },
   "ruleTemplateFlickrLargeDescription": {
     "message": "Reescreve um link de imagem do Flickr para uma versão maior de 1024 px"
-  },
-  "ruleTemplateTumblrHighResName": {
-    "message": "Imagem do Tumblr em alta resolução"
-  },
-  "ruleTemplateTumblrHighResDescription": {
-    "message": "Reescreve um link de imagem do Tumblr para a resolução mais alta disponível"
   },
   "ruleTemplateYoutubeMaxResName": {
     "message": "Miniatura do YouTube em resolução máxima"

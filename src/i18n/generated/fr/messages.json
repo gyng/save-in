@@ -3828,10 +3828,10 @@
     "message": "Préfixe de l’identifiant Twitter/X"
   },
   "ruleTemplateTwitterOriginalsDescription": {
-    "message": "Réécrit les liens d’images Twitter et X vers le fichier d’origine en pleine résolution"
+    "message": "Réécrit les liens d’images Twitter et X vers leur plus grande version publique"
   },
   "ruleTemplateTwitterOriginalsName": {
-    "message": "Originaux d’images Twitter/X"
+    "message": "Image Twitter/X la plus grande"
   },
   "ruleTemplateWikimediaOriginalDescription": {
     "message": "Réécrit les liens de vignettes Wikimedia Commons vers le fichier d’origine en taille réelle"
@@ -3840,13 +3840,7 @@
     "message": "Image Wikimedia en taille réelle"
   },
   "ruleTemplateYoutubeMaxResDescription": {
-    "message": "Réécrit les liens de vignettes YouTube vers l’image en résolution maximale"
-  },
-  "ruleTemplatePixivOriginalName": {
-    "message": "Image Pixiv en qualité originale"
-  },
-  "ruleTemplatePixivOriginalDescription": {
-    "message": "Réécrit une image d’aperçu Pixiv vers le fichier original en pleine résolution (nécessite l’option Referer activée pour i.pximg.net)"
+    "message": "Demande la vignette YouTube en résolution maximale lorsque cette version existe"
   },
   "ruleTemplateBlueskyFullsizeName": {
     "message": "Image Bluesky en taille réelle"
@@ -3861,10 +3855,10 @@
     "message": "Réécrit une image d’aperçu ArtStation vers la meilleure version disponible"
   },
   "ruleTemplateMastodonFullsizeName": {
-    "message": "Pièce jointe Mastodon en taille réelle"
+    "message": "Image JPEG Mastodon en taille réelle"
   },
   "ruleTemplateMastodonFullsizeDescription": {
-    "message": "Réécrit l’aperçu d’une pièce jointe Mastodon vers son fichier en taille réelle"
+    "message": "Réécrit l’aperçu d’une image JPEG Mastodon vers son fichier JPEG en taille réelle"
   },
   "ruleTemplateGoogleOriginalName": {
     "message": "Image Google en taille originale"
@@ -3883,12 +3877,6 @@
   },
   "ruleTemplateFlickrLargeDescription": {
     "message": "Réécrit un lien d’image Flickr vers une version plus grande de 1024 px"
-  },
-  "ruleTemplateTumblrHighResName": {
-    "message": "Image Tumblr en haute résolution"
-  },
-  "ruleTemplateTumblrHighResDescription": {
-    "message": "Réécrit un lien d’image Tumblr vers la plus haute résolution disponible"
   },
   "ruleTemplateYoutubeMaxResName": {
     "message": "Vignette YouTube en résolution maximale"

@@ -3828,10 +3828,10 @@
     "message": "Twitter/X 핸들 접두사"
   },
   "ruleTemplateTwitterOriginalsDescription": {
-    "message": "Twitter 및 X 이미지 링크를 원본 풀 해상도 파일로 재작성합니다"
+    "message": "Twitter 및 X 이미지 링크를 공개된 가장 큰 이미지로 재작성합니다"
   },
   "ruleTemplateTwitterOriginalsName": {
-    "message": "Twitter/X 이미지 원본"
+    "message": "Twitter/X 최대 이미지"
   },
   "ruleTemplateWikimediaOriginalDescription": {
     "message": "Wikimedia Commons 썸네일 링크를 원본 전체 크기 파일로 재작성합니다"
@@ -3840,13 +3840,7 @@
     "message": "Wikimedia 전체 크기 이미지"
   },
   "ruleTemplateYoutubeMaxResDescription": {
-    "message": "YouTube 썸네일 링크를 최대 해상도 이미지로 재작성합니다"
-  },
-  "ruleTemplatePixivOriginalName": {
-    "message": "Pixiv 원본 화질 이미지"
-  },
-  "ruleTemplatePixivOriginalDescription": {
-    "message": "Pixiv 미리보기 이미지를 전체 해상도 원본 파일로 재작성합니다 (i.pximg.net에 대해 Referer 옵션을 켜야 합니다)"
+    "message": "해당 버전이 있는 경우 YouTube 최대 해상도 썸네일을 요청합니다"
   },
   "ruleTemplateBlueskyFullsizeName": {
     "message": "Bluesky 전체 크기 이미지"
@@ -3861,10 +3855,10 @@
     "message": "ArtStation 미리보기 이미지를 사용 가능한 최고 화질 버전으로 재작성합니다"
   },
   "ruleTemplateMastodonFullsizeName": {
-    "message": "Mastodon 전체 크기 첨부 파일"
+    "message": "Mastodon 전체 크기 JPEG 이미지"
   },
   "ruleTemplateMastodonFullsizeDescription": {
-    "message": "Mastodon 첨부 파일 미리보기를 전체 크기 파일로 재작성합니다"
+    "message": "Mastodon JPEG 이미지 미리보기를 전체 크기 JPEG 파일로 재작성합니다"
   },
   "ruleTemplateGoogleOriginalName": {
     "message": "Google 원본 크기 이미지"
@@ -3883,12 +3877,6 @@
   },
   "ruleTemplateFlickrLargeDescription": {
     "message": "Flickr 이미지 링크를 1024픽셀의 더 큰 버전으로 재작성합니다"
-  },
-  "ruleTemplateTumblrHighResName": {
-    "message": "Tumblr 고해상도 이미지"
-  },
-  "ruleTemplateTumblrHighResDescription": {
-    "message": "Tumblr 이미지 링크를 사용 가능한 최고 해상도로 재작성합니다"
   },
   "ruleTemplateYoutubeMaxResName": {
     "message": "YouTube 썸네일 최대 해상도"

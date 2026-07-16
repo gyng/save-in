@@ -3828,10 +3828,10 @@
     "message": "Twitter/X-Handle als Präfix"
   },
   "ruleTemplateTwitterOriginalsDescription": {
-    "message": "Schreibt Twitter- und X-Bildlinks auf die Originaldatei in voller Auflösung um"
+    "message": "Schreibt Twitter- und X-Bildlinks auf ihre größte öffentliche Darstellung um"
   },
   "ruleTemplateTwitterOriginalsName": {
-    "message": "Twitter/X-Bildoriginale"
+    "message": "Größtes Twitter/X-Bild"
   },
   "ruleTemplateWikimediaOriginalDescription": {
     "message": "Schreibt Wikimedia-Commons-Miniaturbildlinks auf die Originaldatei in voller Größe um"
@@ -3840,13 +3840,7 @@
     "message": "Wikimedia-Bild in voller Größe"
   },
   "ruleTemplateYoutubeMaxResDescription": {
-    "message": "Schreibt YouTube-Miniaturbildlinks auf das Bild in maximaler Auflösung um"
-  },
-  "ruleTemplatePixivOriginalName": {
-    "message": "Pixiv-Bild in Originalqualität"
-  },
-  "ruleTemplatePixivOriginalDescription": {
-    "message": "Schreibt ein Pixiv-Vorschaubild auf die Originaldatei in voller Auflösung um (erfordert die aktivierte Referer-Option für i.pximg.net)"
+    "message": "Fordert YouTubes Miniaturbild mit maximaler Auflösung an, wenn diese Darstellung verfügbar ist"
   },
   "ruleTemplateBlueskyFullsizeName": {
     "message": "Bluesky-Bild in voller Größe"
@@ -3861,10 +3855,10 @@
     "message": "Schreibt ein ArtStation-Vorschaubild auf die höchste verfügbare Darstellung um"
   },
   "ruleTemplateMastodonFullsizeName": {
-    "message": "Mastodon-Anhang in voller Größe"
+    "message": "Mastodon-JPEG-Bild in voller Größe"
   },
   "ruleTemplateMastodonFullsizeDescription": {
-    "message": "Schreibt die Vorschau eines Mastodon-Anhangs auf die Datei in voller Größe um"
+    "message": "Schreibt die Vorschau eines Mastodon-JPEG-Bildes auf seine JPEG-Datei in voller Größe um"
   },
   "ruleTemplateGoogleOriginalName": {
     "message": "Google-Bild in Originalgröße"
@@ -3883,12 +3877,6 @@
   },
   "ruleTemplateFlickrLargeDescription": {
     "message": "Schreibt einen Flickr-Bildlink auf eine größere 1024-px-Version um"
-  },
-  "ruleTemplateTumblrHighResName": {
-    "message": "Tumblr-Bild in hoher Auflösung"
-  },
-  "ruleTemplateTumblrHighResDescription": {
-    "message": "Schreibt einen Tumblr-Bildlink auf die höchste verfügbare Auflösung um"
   },
   "ruleTemplateYoutubeMaxResName": {
     "message": "YouTube-Miniaturbild in maximaler Auflösung"

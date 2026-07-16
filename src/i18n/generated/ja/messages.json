@@ -3828,10 +3828,10 @@
     "message": "Twitter/Xのハンドルを先頭に追加"
   },
   "ruleTemplateTwitterOriginalsDescription": {
-    "message": "TwitterとXの画像リンクを元のフル解像度ファイルに書き換えます"
+    "message": "Twitter と X の画像リンクを公開されている最大サイズの画像に書き換えます"
   },
   "ruleTemplateTwitterOriginalsName": {
-    "message": "Twitter/X画像の元データ"
+    "message": "Twitter/X の最大画像"
   },
   "ruleTemplateWikimediaOriginalDescription": {
     "message": "Wikimedia Commonsのサムネイルリンクを元のフルサイズファイルに書き換えます"
@@ -3840,13 +3840,7 @@
     "message": "Wikimediaのフルサイズ画像"
   },
   "ruleTemplateYoutubeMaxResDescription": {
-    "message": "YouTubeのサムネイルリンクを最大解像度の画像に書き換えます"
-  },
-  "ruleTemplatePixivOriginalName": {
-    "message": "Pixivのオリジナル画質の画像"
-  },
-  "ruleTemplatePixivOriginalDescription": {
-    "message": "Pixivのプレビュー画像をフル解像度のオリジナルファイルに書き換えます（i.pximg.net に対して Referer オプションを有効にする必要があります）"
+    "message": "最大解像度版が存在する場合に YouTube の最大解像度サムネイルを要求します"
   },
   "ruleTemplateBlueskyFullsizeName": {
     "message": "Bluesky のフルサイズ画像"
@@ -3861,10 +3855,10 @@
     "message": "ArtStation のプレビュー画像を利用可能な最高画質版に書き換えます"
   },
   "ruleTemplateMastodonFullsizeName": {
-    "message": "Mastodon のフルサイズ添付ファイル"
+    "message": "Mastodon のフルサイズ JPEG 画像"
   },
   "ruleTemplateMastodonFullsizeDescription": {
-    "message": "Mastodon の添付ファイルのプレビューをフルサイズ版に書き換えます"
+    "message": "Mastodon の JPEG 画像プレビューをフルサイズの JPEG ファイルに書き換えます"
   },
   "ruleTemplateGoogleOriginalName": {
     "message": "Google 画像を元のサイズに"
@@ -3883,12 +3877,6 @@
   },
   "ruleTemplateFlickrLargeDescription": {
     "message": "Flickr の画像リンクを 1024 ピクセルの大きいバージョンに書き換えます"
-  },
-  "ruleTemplateTumblrHighResName": {
-    "message": "Tumblr の高解像度画像"
-  },
-  "ruleTemplateTumblrHighResDescription": {
-    "message": "Tumblr の画像リンクを利用可能な最高解像度に書き換えます"
   },
   "ruleTemplateYoutubeMaxResName": {
     "message": "YouTubeサムネイルの最大解像度"

@@ -2612,12 +2612,12 @@
     "description": "Category heading above built-in routing-template cards, for site-specific naming and routing templates. Used in src/options/rule-templates.ts."
   },
   "ruleTemplateTwitterOriginalsName": {
-    "message": "Twitter/X image originals",
+    "message": "Twitter/X largest image",
     "description": "Title of a built-in routing-template card. \"X\" is the current name of the Twitter social network, kept alongside the older name; do not translate as the letter or algebraic variable X. Used in src/options/rule-templates.ts."
   },
   "ruleTemplateTwitterOriginalsDescription": {
-    "message": "Rewrites Twitter and X image links to the original, full-resolution file",
-    "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
+    "message": "Rewrites Twitter and X image links to their largest public rendition",
+    "description": "Description on a built-in routing-template card. Largest public rendition does not claim to be the untouched uploaded file. Used in src/options/rule-templates.ts."
   },
   "ruleTemplateRedditOriginalsName": {
     "message": "Reddit image originals",
@@ -2640,16 +2640,8 @@
     "description": "Title of a built-in routing-template card. Used in src/options/rule-templates.ts."
   },
   "ruleTemplateYoutubeMaxResDescription": {
-    "message": "Rewrites YouTube thumbnail links to the maximum-resolution image",
-    "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
-  },
-  "ruleTemplatePixivOriginalName": {
-    "message": "Pixiv original-quality image",
-    "description": "Title of a built-in routing-template card. \"Pixiv\" is the proper name of an art-hosting website; keep it as-is. Used in src/options/rule-templates.ts."
-  },
-  "ruleTemplatePixivOriginalDescription": {
-    "message": "Rewrites a Pixiv preview image to the full-resolution original file (needs the Referer option on for i.pximg.net)",
-    "description": "Description on a built-in routing-template card. Assumes a JPEG original. \"Referer\" is the deliberately misspelled HTTP header name; keep it as-is. \"Pixiv\" is a website name; keep it as-is. Used in src/options/rule-templates.ts."
+    "message": "Requests YouTube's maximum-resolution thumbnail when that rendition exists",
+    "description": "Description on a built-in routing-template card. YouTube does not provide the maximum-resolution rendition for every video. Used in src/options/rule-templates.ts."
   },
   "ruleTemplateBlueskyFullsizeName": {
     "message": "Bluesky full-size image",
@@ -2668,12 +2660,12 @@
     "description": "Description on a built-in routing-template card. Highest available rendition means the site's 4K image endpoint, which may keep the preview dimensions for smaller uploads and is not necessarily the exact uploaded file. \"ArtStation\" is a website name; keep it as-is. Used in src/options/rule-templates.ts."
   },
   "ruleTemplateMastodonFullsizeName": {
-    "message": "Mastodon full-size attachment",
+    "message": "Mastodon full-size JPEG image",
     "description": "Title of a built-in routing-template card. \"Mastodon\" is the proper name of federated social-network software; keep it as-is. Used in src/options/rule-templates.ts."
   },
   "ruleTemplateMastodonFullsizeDescription": {
-    "message": "Rewrites a Mastodon attachment preview to its full-size file",
-    "description": "Description on a built-in routing-template card. The rule preserves the user's Mastodon instance or media-storage host. \"Mastodon\" is a software name; keep it as-is. Used in src/options/rule-templates.ts."
+    "message": "Rewrites a Mastodon JPEG image preview to its full-size JPEG file",
+    "description": "Description on a built-in routing-template card. The JPEG restriction avoids treating PNG previews for video or GIFV attachments as if their originals were PNG files. The rule preserves the user's Mastodon instance or media-storage host. \"Mastodon\" is a software name; keep it as-is. Used in src/options/rule-templates.ts."
   },
   "ruleTemplateGoogleOriginalName": {
     "message": "Google original-size image",
@@ -2698,14 +2690,6 @@
   "ruleTemplateFlickrLargeDescription": {
     "message": "Rewrites a Flickr image link to a larger 1024px version",
     "description": "Description on a built-in routing-template card. \"px\" abbreviates pixels. \"Flickr\" is a website name; keep it as-is. Used in src/options/rule-templates.ts."
-  },
-  "ruleTemplateTumblrHighResName": {
-    "message": "Tumblr high-resolution image",
-    "description": "Title of a built-in routing-template card. \"Tumblr\" is a website name; keep it as-is. Used in src/options/rule-templates.ts."
-  },
-  "ruleTemplateTumblrHighResDescription": {
-    "message": "Rewrites a Tumblr image link to the highest available resolution",
-    "description": "Description on a built-in routing-template card. \"Tumblr\" is a website name; keep it as-is. Used in src/options/rule-templates.ts."
   },
   "ruleTemplateTwitterHandlePrefixName": {
     "message": "Twitter/X handle prefix",

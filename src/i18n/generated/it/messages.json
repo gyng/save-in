@@ -3828,10 +3828,10 @@
     "message": "Prefisso handle Twitter/X"
   },
   "ruleTemplateTwitterOriginalsDescription": {
-    "message": "Riscrive i link immagine di Twitter e X verso il file originale a piena risoluzione"
+    "message": "Riscrive i link alle immagini di Twitter e X verso la loro versione pubblica più grande"
   },
   "ruleTemplateTwitterOriginalsName": {
-    "message": "Originali immagini Twitter/X"
+    "message": "Immagine Twitter/X più grande"
   },
   "ruleTemplateWikimediaOriginalDescription": {
     "message": "Riscrive i link alle miniature di Wikimedia Commons verso il file originale a piena dimensione"
@@ -3840,13 +3840,7 @@
     "message": "Immagine Wikimedia a piena dimensione"
   },
   "ruleTemplateYoutubeMaxResDescription": {
-    "message": "Riscrive i link alle miniature di YouTube verso l'immagine alla risoluzione massima"
-  },
-  "ruleTemplatePixivOriginalName": {
-    "message": "Immagine Pixiv in qualità originale"
-  },
-  "ruleTemplatePixivOriginalDescription": {
-    "message": "Riscrive un'immagine di anteprima di Pixiv verso il file originale a piena risoluzione (richiede l'opzione Referer attiva per i.pximg.net)"
+    "message": "Richiede la miniatura YouTube alla massima risoluzione quando tale versione è disponibile"
   },
   "ruleTemplateBlueskyFullsizeName": {
     "message": "Immagine Bluesky a piena dimensione"
@@ -3861,10 +3855,10 @@
     "message": "Riscrive un'immagine di anteprima di ArtStation verso la migliore versione disponibile"
   },
   "ruleTemplateMastodonFullsizeName": {
-    "message": "Allegato Mastodon a piena dimensione"
+    "message": "Immagine JPEG Mastodon a piena dimensione"
   },
   "ruleTemplateMastodonFullsizeDescription": {
-    "message": "Riscrive l’anteprima di un allegato Mastodon verso il file a piena dimensione"
+    "message": "Riscrive l’anteprima di un’immagine JPEG Mastodon verso il file JPEG a piena dimensione"
   },
   "ruleTemplateGoogleOriginalName": {
     "message": "Immagine Google a dimensione originale"
@@ -3883,12 +3877,6 @@
   },
   "ruleTemplateFlickrLargeDescription": {
     "message": "Riscrive un link a un'immagine di Flickr verso una versione più grande da 1024 px"
-  },
-  "ruleTemplateTumblrHighResName": {
-    "message": "Immagine Tumblr ad alta risoluzione"
-  },
-  "ruleTemplateTumblrHighResDescription": {
-    "message": "Riscrive un link a un'immagine di Tumblr verso la risoluzione più alta disponibile"
   },
   "ruleTemplateYoutubeMaxResName": {
     "message": "Miniatura YouTube risoluzione massima"

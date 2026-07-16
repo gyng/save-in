@@ -3828,10 +3828,10 @@
     "message": "Twitter/X-handle als voorvoegsel"
   },
   "ruleTemplateTwitterOriginalsDescription": {
-    "message": "Herschrijft Twitter- en X-afbeeldingslinks naar het originele bestand op volledige resolutie"
+    "message": "Herschrijft Twitter- en X-afbeeldingslinks naar hun grootste openbare versie"
   },
   "ruleTemplateTwitterOriginalsName": {
-    "message": "Originele Twitter/X-afbeeldingen"
+    "message": "Grootste Twitter/X-afbeelding"
   },
   "ruleTemplateWikimediaOriginalDescription": {
     "message": "Herschrijft miniatuurlinks van Wikimedia Commons naar het originele bestand op volledige grootte"
@@ -3840,13 +3840,7 @@
     "message": "Wikimedia-afbeelding op volledige grootte"
   },
   "ruleTemplateYoutubeMaxResDescription": {
-    "message": "Herschrijft miniatuurlinks van YouTube naar de afbeelding met maximale resolutie"
-  },
-  "ruleTemplatePixivOriginalName": {
-    "message": "Pixiv-afbeelding in originele kwaliteit"
-  },
-  "ruleTemplatePixivOriginalDescription": {
-    "message": "Herschrijft een Pixiv-voorbeeldafbeelding naar het originele bestand op volledige resolutie (vereist de ingeschakelde Referer-optie voor i.pximg.net)"
+    "message": "Vraagt de YouTube-miniatuur met maximale resolutie op wanneer die versie beschikbaar is"
   },
   "ruleTemplateBlueskyFullsizeName": {
     "message": "Bluesky-afbeelding op volledige grootte"
@@ -3861,10 +3855,10 @@
     "message": "Herschrijft een ArtStation-voorbeeldafbeelding naar de hoogst beschikbare versie"
   },
   "ruleTemplateMastodonFullsizeName": {
-    "message": "Mastodon-bijlage op volledige grootte"
+    "message": "Mastodon-JPEG-afbeelding op volledige grootte"
   },
   "ruleTemplateMastodonFullsizeDescription": {
-    "message": "Herschrijft het voorbeeld van een Mastodon-bijlage naar het bestand op volledige grootte"
+    "message": "Herschrijft het voorbeeld van een Mastodon-JPEG-afbeelding naar het JPEG-bestand op volledige grootte"
   },
   "ruleTemplateGoogleOriginalName": {
     "message": "Google-afbeelding op originele grootte"
@@ -3883,12 +3877,6 @@
   },
   "ruleTemplateFlickrLargeDescription": {
     "message": "Herschrijft een Flickr-afbeeldingslink naar een grotere versie van 1024 px"
-  },
-  "ruleTemplateTumblrHighResName": {
-    "message": "Tumblr-afbeelding in hoge resolutie"
-  },
-  "ruleTemplateTumblrHighResDescription": {
-    "message": "Herschrijft een Tumblr-afbeeldingslink naar de hoogst beschikbare resolutie"
   },
   "ruleTemplateYoutubeMaxResName": {
     "message": "YouTube-miniatuur met maximale resolutie"

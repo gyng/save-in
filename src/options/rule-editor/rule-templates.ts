@@ -386,10 +386,10 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
   },
   {
     category: "Site originals",
-    name: "Twitter/X image originals",
-    description: "Rewrites Twitter and X image links to the original, full-resolution file",
+    name: "Twitter/X largest image",
+    description: "Rewrites Twitter and X image links to their largest public rendition",
     example: "Example: twitter/EQEN6n3U.jpg",
-    rule: "sourceurl: ^https://pbs\\.twimg\\.com/media/([\\w-]+)\\?format=(\\w+)\ncapturegroups: sourceurl\nfetch: https://pbs.twimg.com/media/:$1:.:$2:?name=orig\ninto: twitter/:$1:.:$2:",
+    rule: "sourceurl: ^https://pbs\\.twimg\\.com/media/([\\w-]+)\\?format=(jpe?g|png|gif|webp)(?:&[^#]*)?(?:#|$)\ncapturegroups: sourceurl\nfetch: https://pbs.twimg.com/media/:$1:.:$2:?name=orig\ninto: twitter/:$1:.:$2:",
     proof: {
       info: { sourceUrl: "https://pbs.twimg.com/media/EQEN6n3U?format=jpg&name=small" },
       destination: "twitter/EQEN6n3U.jpg",
@@ -401,14 +401,17 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     name: "Reddit image originals",
     description: "Rewrites Reddit preview image links to the original file on i.redd.it",
     example: "Example: reddit/8k2eq6z6z6ib1.jpg",
-    rule: "sourceurl: ^https://preview\\.redd\\.it/([\\w-]+\\.\\w+)\\?\ncapturegroups: sourceurl\nfetch: https://i.redd.it/:$1:\ninto: reddit/:$1:",
+    // Reddit now rejects a bare i.redd.it URL for some current uploads. Keep
+    // the signed preview query while changing the host; i.redd.it uses it to
+    // authorize the request but returns the original encoded file.
+    rule: "sourceurl: ^https://preview\\.redd\\.it/([\\w-]+\\.(?:jpe?g|png|gif|webp|avif))\\?([^#]+)(?:#|$)\ncapturegroups: sourceurl\nfetch: https://i.redd.it/:$1:?:$2:\ninto: reddit/:$1:",
     proof: {
       info: {
         sourceUrl:
           "https://preview.redd.it/8k2eq6z6z6ib1.jpg?width=960&crop=smart&auto=webp&s=abc123",
       },
       destination: "reddit/8k2eq6z6z6ib1.jpg",
-      fetch: "https://i.redd.it/8k2eq6z6z6ib1.jpg",
+      fetch: "https://i.redd.it/8k2eq6z6z6ib1.jpg?width=960&crop=smart&auto=webp&s=abc123",
     },
   },
   {
@@ -416,7 +419,7 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     name: "Wikimedia full-size image",
     description: "Rewrites Wikimedia Commons thumbnail links to the original full-size file",
     example: "Example: wikimedia/Example.jpg",
-    rule: "sourceurl: ^https://upload\\.wikimedia\\.org/(wikipedia/\\w+)/thumb/(\\w+/\\w+)/([^/]+)/\\d+px-[^/]+$\ncapturegroups: sourceurl\nfetch: https://upload.wikimedia.org/:$1:/:$2:/:$3:\ninto: wikimedia/:$3:",
+    rule: "sourceurl: ^https://upload\\.wikimedia\\.org/(wikipedia/\\w+)/thumb/([0-9a-f]/[0-9a-f]{2})/([^/]+)/[^/?#]*\\d+px-[^/?#]+(?:[?#]|$)\ncapturegroups: sourceurl\nfetch: https://upload.wikimedia.org/:$1:/:$2:/:$3:\ninto: wikimedia/:$3:",
     proof: {
       info: {
         sourceUrl:
@@ -429,33 +432,13 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
   {
     category: "Site originals",
     name: "YouTube thumbnail max resolution",
-    description: "Rewrites YouTube thumbnail links to the maximum-resolution image",
+    description: "Requests YouTube's maximum-resolution thumbnail when that rendition exists",
     example: "Example: youtube/dQw4w9WgXcQ-maxresdefault.jpg",
-    rule: "sourceurl: ^https://i\\.ytimg\\.com/vi/([\\w-]+)/\\w+\\.(\\w+)$\ncapturegroups: sourceurl\nfetch: https://i.ytimg.com/vi/:$1:/maxresdefault.:$2:\ninto: youtube/:$1:-maxresdefault.:$2:",
+    rule: "sourceurl: ^https://i\\.ytimg\\.com/vi/([\\w-]+)/(?:default|mqdefault|hqdefault|sddefault|[0-3])\\.(jpg)(?:[?#]|$)\ncapturegroups: sourceurl\nfetch: https://i.ytimg.com/vi/:$1:/maxresdefault.:$2:\ninto: youtube/:$1:-maxresdefault.:$2:",
     proof: {
       info: { sourceUrl: "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg" },
       destination: "youtube/dQw4w9WgXcQ-maxresdefault.jpg",
       fetch: "https://i.ytimg.com/vi/dQw4w9WgXcQ/maxresdefault.jpg",
-    },
-  },
-  {
-    category: "Site originals",
-    name: "Pixiv original-quality image",
-    description:
-      "Rewrites a Pixiv preview image to the full-resolution original file (needs the Referer option on for i.pximg.net)",
-    example: "Example: pixiv/74391008_p0.jpg",
-    // Pixiv's img-master preview is always JPEG, but the original keeps its
-    // uploaded extension, so the fetch line assumes .jpg — change it for a PNG
-    // or GIF work. i.pximg.net serves nothing without a pixiv.net Referer, so
-    // this needs the Referer option enabled for *://i.pximg.net/* (#66).
-    rule: "sourceurl: ^https://i\\.pximg\\.net/img-master/img/(.+)/(\\d+_p\\d+)_master1200\\.(\\w+)\ncapturegroups: sourceurl\nfetch: https://i.pximg.net/img-original/img/:$1:/:$2:.jpg\ninto: pixiv/:$2:.:$3:",
-    proof: {
-      info: {
-        sourceUrl:
-          "https://i.pximg.net/img-master/img/2019/04/26/22/08/07/74391008_p0_master1200.jpg",
-      },
-      destination: "pixiv/74391008_p0.jpg",
-      fetch: "https://i.pximg.net/img-original/img/2019/04/26/22/08/07/74391008_p0.jpg",
     },
   },
   {
@@ -466,14 +449,13 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     // Bluesky's public schema names this rendition `fullsize`, but explicitly
     // says it may not be the exact original blob. Preserve the complete CDN
     // tail because it carries the DID, content ID, and optional format hint.
-    rule: "sourceurl: ^https://cdn\\.bsky\\.app/img/feed_thumbnail/([^?#]+)(?:[?#]|$)\ncapturegroups: sourceurl\nfetch: https://cdn.bsky.app/img/feed_fullsize/:$1:\ninto: bluesky/:filename:",
+    rule: "sourceurl: ^https://cdn\\.bsky\\.app/img/feed_thumbnail/((?:[^/?#]+/)*([^/@?#]+)@([a-z0-9]+))(?:[?#]|$)\ncapturegroups: sourceurl\nfetch: https://cdn.bsky.app/img/feed_fullsize/:$1:\ninto: bluesky/:$2:.:$3:",
     proof: {
       info: {
         sourceUrl:
           "https://cdn.bsky.app/img/feed_thumbnail/plain/did:plc:example/bafkreiexample@jpeg",
-        filename: "bafkreiexample.jpeg",
       },
-      destination: "bluesky/:filename:",
+      destination: "bluesky/bafkreiexample.jpeg",
       fetch: "https://cdn.bsky.app/img/feed_fullsize/plain/did:plc:example/bafkreiexample@jpeg",
     },
   },
@@ -498,22 +480,24 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
   },
   {
     category: "Site originals",
-    name: "Mastodon full-size attachment",
-    description: "Rewrites a Mastodon attachment preview to its full-size file",
-    example: "Example: mastodon/bb2447eee900fe87.png",
+    name: "Mastodon full-size JPEG image",
+    description: "Rewrites a Mastodon JPEG image preview to its full-size JPEG file",
+    example: "Example: mastodon/bb2447eee900fe87.jpeg",
     // Mastodon storage can live on the instance, under /system, or behind an
     // object-storage prefix on another host. Preserve everything around the
     // documented media_attachments/files/.../small pair and change only the
-    // rendition segment to `original`.
-    rule: "sourceurl: ^https://([^/]+)/((?:[^/?#]+/)*media_attachments/files/(?:\\d+/)+)small/([^?#]+)(?:[?#]|$)\ncapturegroups: sourceurl\nfetch: https://:$1:/:$2:original/:$3:\ninto: mastodon/:$3:",
+    // rendition segment to `original`. Restrict this to JPEG because video and
+    // GIFV attachments use a PNG preview whose original has an MP4 extension;
+    // the preview URL alone cannot distinguish those from a static PNG image.
+    rule: "sourceurl: ^https://([^/]+)/((?:[^/?#]+/)*media_attachments/files/(?:\\d+/)+)small/([^/?#]+\\.jpe?g)(?:[?#]|$)\ncapturegroups: sourceurl\nfetch: https://:$1:/:$2:original/:$3:\ninto: mastodon/:$3:",
     proof: {
       info: {
         sourceUrl:
-          "https://files.mastodon.social/media_attachments/files/112/859/957/767/662/021/small/bb2447eee900fe87.png",
+          "https://files.mastodon.social/media_attachments/files/112/859/957/767/662/021/small/bb2447eee900fe87.jpeg",
       },
-      destination: "mastodon/bb2447eee900fe87.png",
+      destination: "mastodon/bb2447eee900fe87.jpeg",
       fetch:
-        "https://files.mastodon.social/media_attachments/files/112/859/957/767/662/021/original/bb2447eee900fe87.png",
+        "https://files.mastodon.social/media_attachments/files/112/859/957/767/662/021/original/bb2447eee900fe87.jpeg",
     },
   },
   {
@@ -526,7 +510,7 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     // Save In derives the type from the response. Matches only the flat
     // host/token=size form (Photos, Blogger avatars, Play), not path-based
     // blogger URLs.
-    rule: "sourceurl: ^https://([a-z0-9-]+\\.(?:googleusercontent|ggpht)\\.com)/([\\w-]+)=[\\w-]+\ncapturegroups: sourceurl\nfetch: https://:$1:/:$2:=s0\ninto: google/:$2:",
+    rule: "sourceurl: ^https://([a-z0-9-]+\\.(?:googleusercontent|ggpht)\\.com)/([\\w-]+)=[\\w-]+(?:[?#]|$)\ncapturegroups: sourceurl\nfetch: https://:$1:/:$2:=s0\ninto: google/:$2:",
     proof: {
       info: { sourceUrl: "https://lh3.googleusercontent.com/AbCd_1234=s400-c" },
       destination: "google/AbCd_1234",
@@ -543,7 +527,7 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     // result is opened, Google places the publisher URL directly on the large
     // image. Match that stable URL distinction instead of volatile DOM class
     // names. Keep both the current udm=2 and legacy tbm=isch search forms.
-    rule: "pageurl: ^https://(?:www\\.)?google\\.[a-z]{2,3}(?:\\.[a-z]{2})?/search\\?(?:[^#]*&)?(?:udm=2|tbm=isch)(?:&|#|$)\nsourcekind: ^image$\nsourceurl: ^https://(?!(?:encrypted-tbn\\d+|ssl)\\.gstatic\\.com/)\ninto: google-images/:filename:",
+    rule: "pageurl: ^https://(?:www\\.)?google\\.[a-z]{2,3}(?:\\.[a-z]{2})?/search\\?(?:[^#]*&)?(?:udm=2|tbm=isch)(?:&|#|$)\nsourcekind: ^image$\nsourceurl: ^https://(?!(?:[^/]+\\.)*gstatic\\.com/)\ninto: google-images/:filename:",
     proof: {
       info: {
         pageUrl: "https://www.google.com/search?udm=2&q=landscape",
@@ -559,32 +543,14 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     name: "Flickr larger image",
     description: "Rewrites a Flickr image link to a larger 1024px version",
     example: "Example: flickr/55392836202_97bdf7986a_b.jpg",
-    // Flickr's size suffix (_z, _n, _c, ...) selects a rendition; _b is the
-    // universally available 1024px version and is always JPEG.
-    rule: "sourceurl: ^https://live\\.staticflickr\\.com/(\\d+)/(\\d+_[a-z0-9]+)_\\w+\\.(\\w+)\ncapturegroups: sourceurl\nfetch: https://live.staticflickr.com/:$1:/:$2:_b.jpg\ninto: flickr/:$2:_b.:$3:",
+    // Flickr's _b rendition is 1024px and uses the same secret as only the
+    // smaller tiers below it. Larger tiers and originals use different
+    // secrets, so matching those would either downgrade them or fetch a 404.
+    rule: "sourceurl: ^https://live\\.staticflickr\\.com/(\\d+)/(\\d+_[a-z0-9]+)_(?:s|q|t|m|n|w|z|c)\\.(jpg)(?:[?#]|$)\ncapturegroups: sourceurl\nfetch: https://live.staticflickr.com/:$1:/:$2:_b.:$3:\ninto: flickr/:$2:_b.:$3:",
     proof: {
       info: { sourceUrl: "https://live.staticflickr.com/65535/55392836202_97bdf7986a_z.jpg" },
       destination: "flickr/55392836202_97bdf7986a_b.jpg",
       fetch: "https://live.staticflickr.com/65535/55392836202_97bdf7986a_b.jpg",
-    },
-  },
-  {
-    category: "Site originals",
-    name: "Tumblr high-resolution image",
-    description: "Rewrites a Tumblr image link to the highest available resolution",
-    example: "Example: tumblr/2177496b02726f8a3da8975056fc1be0b62ec694.png",
-    // Tumblr serves only pre-generated renditions; s2048x3072 is the standard
-    // high-res breakpoint. Very small images may not have it and keep the
-    // requested size.
-    rule: "sourceurl: ^https://(\\d+\\.media\\.tumblr\\.com/[a-f0-9]+/[a-z0-9-]+)/s\\d+x\\d+/([^/?]+)\ncapturegroups: sourceurl\nfetch: https://:$1:/s2048x3072/:$2:\ninto: tumblr/:$2:",
-    proof: {
-      info: {
-        sourceUrl:
-          "https://64.media.tumblr.com/abc123def/0011deadbeef-aa/s540x810/2177496b02726f8a3da8975056fc1be0b62ec694.png",
-      },
-      destination: "tumblr/2177496b02726f8a3da8975056fc1be0b62ec694.png",
-      fetch:
-        "https://64.media.tumblr.com/abc123def/0011deadbeef-aa/s2048x3072/2177496b02726f8a3da8975056fc1be0b62ec694.png",
     },
   },
   {
@@ -923,12 +889,12 @@ export const localizeRuleTemplates = (getMessage: GetMessage): LocalizedRuleTemp
       },
     ],
     [
-      "Twitter/X image originals",
+      "Twitter/X largest image",
       {
-        name: getMessage("ruleTemplateTwitterOriginalsName") || "Twitter/X image originals",
+        name: getMessage("ruleTemplateTwitterOriginalsName") || "Twitter/X largest image",
         description:
           getMessage("ruleTemplateTwitterOriginalsDescription") ||
-          "Rewrites Twitter and X image links to the original, full-resolution file",
+          "Rewrites Twitter and X image links to their largest public rendition",
       },
     ],
     [
@@ -955,16 +921,7 @@ export const localizeRuleTemplates = (getMessage: GetMessage): LocalizedRuleTemp
         name: getMessage("ruleTemplateYoutubeMaxResName") || "YouTube thumbnail max resolution",
         description:
           getMessage("ruleTemplateYoutubeMaxResDescription") ||
-          "Rewrites YouTube thumbnail links to the maximum-resolution image",
-      },
-    ],
-    [
-      "Pixiv original-quality image",
-      {
-        name: getMessage("ruleTemplatePixivOriginalName") || "Pixiv original-quality image",
-        description:
-          getMessage("ruleTemplatePixivOriginalDescription") ||
-          "Rewrites a Pixiv preview image to the full-resolution original file (needs the Referer option on for i.pximg.net)",
+          "Requests YouTube's maximum-resolution thumbnail when that rendition exists",
       },
     ],
     [
@@ -987,12 +944,12 @@ export const localizeRuleTemplates = (getMessage: GetMessage): LocalizedRuleTemp
       },
     ],
     [
-      "Mastodon full-size attachment",
+      "Mastodon full-size JPEG image",
       {
-        name: getMessage("ruleTemplateMastodonFullsizeName") || "Mastodon full-size attachment",
+        name: getMessage("ruleTemplateMastodonFullsizeName") || "Mastodon full-size JPEG image",
         description:
           getMessage("ruleTemplateMastodonFullsizeDescription") ||
-          "Rewrites a Mastodon attachment preview to its full-size file",
+          "Rewrites a Mastodon JPEG image preview to its full-size JPEG file",
       },
     ],
     [
@@ -1020,15 +977,6 @@ export const localizeRuleTemplates = (getMessage: GetMessage): LocalizedRuleTemp
         description:
           getMessage("ruleTemplateFlickrLargeDescription") ||
           "Rewrites a Flickr image link to a larger 1024px version",
-      },
-    ],
-    [
-      "Tumblr high-resolution image",
-      {
-        name: getMessage("ruleTemplateTumblrHighResName") || "Tumblr high-resolution image",
-        description:
-          getMessage("ruleTemplateTumblrHighResDescription") ||
-          "Rewrites a Tumblr image link to the highest available resolution",
       },
     ],
     [
