@@ -1,4 +1,3 @@
-import { normalizeUiTheme, type UiTheme } from "../config/content-options.ts";
 import {
   collectBackgroundElements,
   collectBackgroundSourceCandidates,
@@ -24,12 +23,40 @@ import {
   SOURCE_PANEL_COPY_VALUE_SLOT,
   formatSourcePanelCopy,
 } from "../shared/source-panel-copy.ts";
-import {
-  SOURCE_PANEL_LAYOUT_STORAGE_KEY,
-  SOURCE_PANEL_SORT_STORAGE_KEY,
-} from "../shared/storage-keys.ts";
 import { positionFloatingElement } from "../shared/floating-position.ts";
 import { preferredScrollBehavior } from "../shared/motion-preference.ts";
+import {
+  DEFAULT_SOURCE_PANEL_LAYOUT,
+  loadSourceSort,
+  saveSourceSort,
+  saveSourcePanelLayout,
+  sourcePanelLayout,
+  type PanelDock,
+  type PanelPlacement,
+  PANEL_DOCKS,
+} from "./source-panel-layout.ts";
+export { resetSourcePanelLayoutForTesting } from "./source-panel-layout.ts";
+import { setButtonIcon, createSourceKindIcon } from "./source-panel-icons.ts";
+import {
+  resolvedPanelTheme,
+  sourcePanelViewport,
+  getPanelFormatters,
+} from "./source-panel-format.ts";
+import {
+  PANEL_HOST_ID,
+  panelCleanups,
+  panelOpenChanges,
+  panelPreviousFocus,
+  panelRoots,
+  panelUpdates,
+  activePanelHost,
+  setActivePanelHost,
+  cancelPanelRemoval,
+  cleanupPanelHost,
+  closePanelHost,
+  type SourcePanelDownload,
+} from "./source-panel-host.ts";
+export { getSourcePanelHostForTesting, type SourcePanelDownload } from "./source-panel-host.ts";
 import SOURCE_PANEL_TOKENS_CSS from "./source-panel-tokens.css";
 import SOURCE_PANEL_THEMES_CSS from "./source-panel-themes.css";
 import SOURCE_PANEL_CSS from "./source-panel.css";
@@ -56,249 +83,6 @@ export {
   type SourceSort,
 } from "./source-panel-model.ts";
 export { formatSourceBytes } from "./source-panel-model.ts";
-
-const PANEL_HOST_ID = "save-in-source-panel";
-const PANEL_DOCKS = ["right", "bottom", "left", "top"] as const;
-type PanelDock = (typeof PANEL_DOCKS)[number];
-type PanelPlacement = PanelDock | "floating";
-type SourcePanelLayout = {
-  placement: PanelPlacement;
-  sideWidth: number;
-  dockHeight: number;
-  floatingLeft: number;
-  floatingTop: number;
-  floatingWidth: number;
-  floatingHeight: number;
-};
-const DEFAULT_SOURCE_PANEL_LAYOUT: SourcePanelLayout = {
-  placement: "right",
-  sideWidth: 400,
-  dockHeight: 420,
-  floatingLeft: 80,
-  floatingTop: 80,
-  floatingWidth: 520,
-  floatingHeight: 620,
-};
-const finiteLayoutNumber = (value: unknown, fallback: number): number =>
-  typeof value === "number" && Number.isFinite(value) ? value : fallback;
-const normalizeSourcePanelLayout = (value: unknown): SourcePanelLayout => {
-  const stored =
-    value != null && typeof value === "object" ? (value as Record<string, unknown>) : {};
-  const placement = [...PANEL_DOCKS, "floating"].includes(stored.placement as PanelPlacement)
-    ? (stored.placement as PanelPlacement)
-    : DEFAULT_SOURCE_PANEL_LAYOUT.placement;
-  return {
-    placement,
-    sideWidth: finiteLayoutNumber(stored.sideWidth, DEFAULT_SOURCE_PANEL_LAYOUT.sideWidth),
-    dockHeight: finiteLayoutNumber(stored.dockHeight, DEFAULT_SOURCE_PANEL_LAYOUT.dockHeight),
-    floatingLeft: finiteLayoutNumber(stored.floatingLeft, DEFAULT_SOURCE_PANEL_LAYOUT.floatingLeft),
-    floatingTop: finiteLayoutNumber(stored.floatingTop, DEFAULT_SOURCE_PANEL_LAYOUT.floatingTop),
-    floatingWidth: finiteLayoutNumber(
-      stored.floatingWidth,
-      DEFAULT_SOURCE_PANEL_LAYOUT.floatingWidth,
-    ),
-    floatingHeight: finiteLayoutNumber(
-      stored.floatingHeight,
-      DEFAULT_SOURCE_PANEL_LAYOUT.floatingHeight,
-    ),
-  };
-};
-let sourcePanelLayout = { ...DEFAULT_SOURCE_PANEL_LAYOUT };
-try {
-  chrome.storage.local.get(SOURCE_PANEL_LAYOUT_STORAGE_KEY, (stored) => {
-    void chrome.runtime.lastError;
-    sourcePanelLayout = normalizeSourcePanelLayout(stored[SOURCE_PANEL_LAYOUT_STORAGE_KEY]);
-  });
-} catch {
-  // The extension may be reloaded while this content script remains alive.
-}
-
-const saveSourcePanelLayout = (layout: SourcePanelLayout) => {
-  sourcePanelLayout = { ...layout };
-  try {
-    chrome.storage.local.set({ [SOURCE_PANEL_LAYOUT_STORAGE_KEY]: sourcePanelLayout }, () => {
-      void chrome.runtime.lastError;
-    });
-  } catch {
-    // The extension may be reloaded while this content script remains alive.
-  }
-};
-
-export const resetSourcePanelLayoutForTesting = () => {
-  sourcePanelLayout = { ...DEFAULT_SOURCE_PANEL_LAYOUT };
-};
-const panelCleanups = new WeakMap<Element, () => void>();
-const panelCloseTimers = new WeakMap<Element, number>();
-const panelPreviousFocus = new WeakMap<Element, HTMLElement>();
-const panelRoots = new WeakMap<HTMLElement, ShadowRoot>();
-const panelOpenChanges = new WeakMap<HTMLElement, (open: boolean) => void>();
-export type SourcePanelDownload = (source: PageSource) => void | boolean | Promise<void | boolean>;
-const panelUpdates = new WeakMap<
-  HTMLElement,
-  (sendDownload: SourcePanelDownload, options: SourcePanelOptions) => void
->();
-let activePanelHost: HTMLElement | null = null;
-
-const loadSourceSort = (apply: (sort: SourceSort) => void) => {
-  try {
-    chrome.storage.local.get(SOURCE_PANEL_SORT_STORAGE_KEY, (stored) => {
-      void chrome.runtime.lastError;
-      const sort = stored[SOURCE_PANEL_SORT_STORAGE_KEY];
-      if (isSourceSort(sort)) apply(sort);
-    });
-  } catch {
-    // The extension may be reloaded while this content script remains alive.
-  }
-};
-
-const saveSourceSort = (sort: SourceSort) => {
-  try {
-    chrome.storage.local.set({ [SOURCE_PANEL_SORT_STORAGE_KEY]: sort }, () => {
-      void chrome.runtime.lastError;
-    });
-  } catch {
-    // The extension may be reloaded while this content script remains alive.
-  }
-};
-
-export const getSourcePanelHostForTesting = (): HTMLElement | null => activePanelHost;
-
-const cleanupPanelHost = (host: HTMLElement) => {
-  panelCleanups.get(host)?.();
-  panelCleanups.delete(host);
-  panelPreviousFocus.delete(host);
-  panelRoots.delete(host);
-  panelOpenChanges.delete(host);
-  panelUpdates.delete(host);
-  if (activePanelHost === host) activePanelHost = null;
-};
-
-const cancelPanelRemoval = (host: Element) => {
-  const timer = panelCloseTimers.get(host);
-  if (timer !== undefined) window.clearTimeout(timer);
-  panelCloseTimers.delete(host);
-};
-
-const schedulePanelRemoval = (host: HTMLElement) => {
-  cancelPanelRemoval(host);
-  panelCloseTimers.set(
-    host,
-    window.setTimeout(() => {
-      panelCloseTimers.delete(host);
-      cleanupPanelHost(host);
-      host.remove();
-    }, 90),
-  );
-};
-
-const closePanelHost = (host: HTMLElement): false => {
-  if (host.classList.contains("closing")) return false;
-  panelPreviousFocus.get(host)?.focus();
-  host.classList.add("closing");
-  schedulePanelRemoval(host);
-  panelOpenChanges.get(host)?.(false);
-  return false;
-};
-const ICON_PATHS = {
-  copy: ["M8 8h10v10H8z", "M5 15H3V3h12v2"],
-  dock: ["M3 4h18v16H3z", "M15 4v16"],
-  popout: ["M13 4h7v7", "M20 4 10 14", "M17 13v7H4V7h7"],
-  close: ["m6 6 12 12", "m18 6-12 12"],
-  check: ["m5 12 4 4L19 6"],
-  error: ["M12 8v5", "M12 17h.01", "M4 20h16L12 4z"],
-  more: ["M6 12h.01", "M12 12h.01", "M18 12h.01"],
-} as const;
-
-const SOURCE_KIND_ICON_PATHS: Record<PageSourceKind, readonly string[]> = {
-  image: ["M3 5h18v14H3z", "m3 11 4-4 4 4 3-3 5 5", "M8 9h.01"],
-  video: ["M4 6h12v12H4z", "M16 9l4-3v12l-4-3z"],
-  audio: [
-    "M9 18V6l10-2v12",
-    "M9 10l10-2",
-    "M6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6",
-    "M16 19a3 3 0 1 0 0-6 3 3 0 0 0 0 6",
-  ],
-  stream: [
-    "M12 12h.01",
-    "M8.5 8.5a5 5 0 0 0 0 7",
-    "M15.5 8.5a5 5 0 0 1 0 7",
-    "M5 5a10 10 0 0 0 0 14",
-    "M19 5a10 10 0 0 1 0 14",
-  ],
-  document: ["M6 3h8l4 4v14H6z", "M14 3v5h5", "M9 12h6", "M9 16h6"],
-  link: [
-    "M10 13a5 5 0 0 0 7 0l2-2a5 5 0 0 0-7-7l-1 1",
-    "M14 11a5 5 0 0 0-7 0l-2 2a5 5 0 0 0 7 7l1-1",
-  ],
-};
-
-const setButtonIcon = (button: HTMLElement, icon: keyof typeof ICON_PATHS) => {
-  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  svg.setAttribute("viewBox", "0 0 24 24");
-  svg.setAttribute("aria-hidden", "true");
-  ICON_PATHS[icon].forEach((pathData) => {
-    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    path.setAttribute("d", pathData);
-    svg.append(path);
-  });
-  button.replaceChildren(svg);
-};
-
-const createSourceKindIcon = (kind: PageSourceKind): SVGSVGElement => {
-  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  svg.classList.add("kind-icon");
-  svg.setAttribute("viewBox", "0 0 24 24");
-  svg.setAttribute("aria-hidden", "true");
-  SOURCE_KIND_ICON_PATHS[kind].forEach((pathData) => {
-    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    path.setAttribute("d", pathData);
-    svg.append(path);
-  });
-  return svg;
-};
-
-const resolvedPanelTheme = (theme: SourcePanelOptions["theme"]): UiTheme => normalizeUiTheme(theme);
-
-const panelLocale = (locale?: string): string | undefined => {
-  if (!locale) return undefined;
-  if (locale.endsWith("_AI")) return locale.slice(0, -3);
-  return locale.replace("_", "-");
-};
-
-const sourcePanelViewport = () => {
-  const viewport = window.visualViewport;
-  return viewport
-    ? {
-        left: viewport.offsetLeft,
-        top: viewport.offsetTop,
-        width: viewport.width,
-        height: viewport.height,
-      }
-    : { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight };
-};
-
-const panelFormatters = new Map<string, { date: Intl.DateTimeFormat; number: Intl.NumberFormat }>();
-const getPanelFormatters = (locale?: string) => {
-  const key = panelLocale(locale) || "default";
-  const cached = panelFormatters.get(key);
-  if (cached) return cached;
-  let formatters: { date: Intl.DateTimeFormat; number: Intl.NumberFormat };
-  try {
-    formatters = {
-      date: new Intl.DateTimeFormat(key === "default" ? undefined : key, { timeStyle: "short" }),
-      number: new Intl.NumberFormat(key === "default" ? undefined : key, {
-        maximumFractionDigits: 1,
-      }),
-    };
-  } catch {
-    formatters = {
-      date: new Intl.DateTimeFormat(undefined, { timeStyle: "short" }),
-      number: new Intl.NumberFormat(undefined, { maximumFractionDigits: 1 }),
-    };
-  }
-  panelFormatters.set(key, formatters);
-  return formatters;
-};
 
 export const toggleSourcePanel = (
   sendDownload: SourcePanelDownload,
@@ -364,7 +148,7 @@ export const toggleSourcePanel = (
   window.visualViewport?.addEventListener("scroll", schedulePanelMenuPosition);
   panelRoots.set(host, shadow);
   panelOpenChanges.set(host, panelOptions.onOpenChange || (() => {}));
-  activePanelHost = host;
+  setActivePanelHost(host);
   const style = document.createElement("style");
   style.textContent = [
     SOURCE_PANEL_TOKENS_CSS,
