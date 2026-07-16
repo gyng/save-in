@@ -94,6 +94,26 @@ describe("Prompt API rule-plan model", () => {
     expect(parseRulePlan("not JSON")).toBeNull();
     expect(parseRulePlan("[]")).toBeNull();
   });
+
+  // The schema caps pathVariables, but the plan is parsed from raw model output
+  // that the constraint may not have shaped, so the cap is re-applied here.
+  test("keeps only string path variables, in order, up to the plan's cap", () => {
+    expect(
+      parseRulePlan(
+        JSON.stringify({
+          folder: "archive",
+          pathVariables: [":pagedomain:", 7, ":year:", ":month:", ":day:"],
+        }),
+      ),
+    ).toEqual({ folder: "archive", pathVariables: [":pagedomain:", ":year:", ":month:"] });
+    // An empty or non-array value is the model saying "none", not a plan field.
+    expect(parseRulePlan(JSON.stringify({ folder: "archive", pathVariables: [] }))).toEqual({
+      folder: "archive",
+    });
+    expect(
+      parseRulePlan(JSON.stringify({ folder: "archive", pathVariables: ":pagedomain:" })),
+    ).toEqual({ folder: "archive" });
+  });
 });
 
 const assembled = (plan: RulePlan): string => {
@@ -627,5 +647,132 @@ describe("the site scope a request can justify", () => {
 
   test("reads a site as the page being browsed when no scope was asked for", () => {
     expect(assembled({ folder: "a", site: "example.com" })).toContain("pagedomain: ");
+  });
+});
+
+describe("grouping a destination by variables", () => {
+  test("names only variables the routing language actually has", () => {
+    // The enum is what stops the model inventing :website:. It is worth nothing
+    // if an entry is not a real transformer, so prove each against the registry.
+    const constraint = rulePlanConstraint("save png into /Images sorted by site and date");
+    const offered = (constraint.properties as { pathVariables: { items: { enum: string[] } } })
+      .pathVariables.items.enum;
+
+    expect(offered.length).toBeGreaterThan(0);
+    for (const variable of offered) expect(Object.keys(transformers)).toContain(variable);
+    expect(offered).not.toContain(":filename:");
+  });
+
+  test("groups the destination between the folder and the file", () => {
+    expect(
+      assembled({
+        folder: "Images",
+        fileExtensions: ["png"],
+        pathVariables: [":pagedomain:", ":date:"],
+      }),
+    ).toBe("fileext/i: ^png$\ninto: Images/:pagedomain:/:date:/:filename:");
+  });
+
+  test("keeps a rename under the grouping it was asked for", () => {
+    expect(
+      assembled({
+        folder: "a",
+        fileExtensions: ["png"],
+        pathVariables: [":year:"],
+        filename: "c.png",
+      }),
+    ).toContain("into: a/:year:/c.png");
+  });
+
+  test("refuses a variable the routing language does not have", () => {
+    // Narrowing it to a literal would name a folder nobody asked for.
+    expect(
+      assembleRule({ folder: "a", fileExtensions: ["png"], pathVariables: [":website:"] }),
+    ).toBeNull();
+    expect(
+      assembleRule({ folder: "a", fileExtensions: ["png"], pathVariables: [":pageurl:"] }),
+    ).toBeNull();
+  });
+
+  test("offers grouping only to a request that asks for it", () => {
+    expect(
+      Object.keys(rulePlanConstraint("save png into /Images sorted by site").properties as object),
+    ).toContain("pathVariables");
+    expect(
+      Object.keys(rulePlanConstraint("save png into /Images by date").properties as object),
+    ).toContain("pathVariables");
+    // Nesting is behaviour; a request that did not ask for it must not get it.
+    expect(
+      Object.keys(rulePlanConstraint("save png into /dongs").properties as object),
+    ).not.toContain("pathVariables");
+  });
+});
+
+describe("a folder that is really the rest of the sentence", () => {
+  test("ends the folder where the request starts asking for grouping", () => {
+    // Measured: "save png into /Images sorted by site and date" extracted the
+    // folder as "Images sorted by site", told the model that was the
+    // requirement, and then checked the draft against the same wrong fact — so
+    // both sides agreed and Add lit up on a rule saving into a sentence.
+    expect(
+      ruleRequestGuardrailIssues(
+        "save png into /Images sorted by site and date",
+        "fileext/i: ^png$\ninto: Images/:pagedomain:/:date:/:filename:",
+      ),
+    ).toEqual([]);
+    expect(buildRulePlanPrompt("save png into /Images sorted by site and date")).toContain(
+      "folder must be Images.",
+    );
+  });
+
+  test.each([
+    ["save png into /Images sorted by site and date", "Images"],
+    ["save png into /archive grouped by date", "archive"],
+    ["save png into /Media organised by type", "Media"],
+    ["save png into /files by domain", "files"],
+    ["save png into /My Documents", "My Documents"],
+  ])("reads the folder of %j as %j", (request, folder) => {
+    expect(buildRulePlanPrompt(request)).toContain(`folder must be ${folder}.`);
+  });
+});
+
+describe("grouping a request asked for", () => {
+  test("rejects a destination that drops the grouping the request asked for", () => {
+    // Measured: "sorted by site and date" was answered with into: Images/
+    // :filename: — no grouping at all — and Add lit up. A rule that silently
+    // does neither of the two things the request named is not a draft of it.
+    expect(
+      ruleRequestGuardrailIssues(
+        "save png into /Images sorted by site and date",
+        "fileext/i: ^png$\ninto: Images/:filename:",
+      ),
+    ).toContain("The destination does not group saves the way the request asks.");
+    expect(
+      ruleRequestGuardrailIssues(
+        "save png into /Images sorted by site and date",
+        "fileext/i: ^png$\ninto: Images/:pagedomain:/:date:/:filename:",
+      ),
+    ).toEqual([]);
+  });
+
+  test("asks nothing of a request that never mentioned grouping", () => {
+    expect(
+      ruleRequestGuardrailIssues(
+        "save png into /dongs",
+        "fileext/i: ^png$\ninto: dongs/:filename:",
+      ),
+    ).toEqual([]);
+  });
+
+  test("offers only the variables the request's own words name", () => {
+    const constraint = rulePlanConstraint("save png into /Images sorted by site and date");
+    const offered = (constraint.properties as { pathVariables: { items: { enum: string[] } } })
+      .pathVariables.items.enum;
+
+    expect(offered).toContain(":pagedomain:");
+    expect(offered).toContain(":date:");
+    // Nothing the request never named: it asked for site and date, not the type.
+    expect(offered).not.toContain(":fileext:");
+    expect(offered).not.toContain(":pagetitleslug:");
   });
 });

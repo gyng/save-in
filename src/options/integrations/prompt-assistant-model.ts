@@ -21,6 +21,7 @@ export type RulePlan = {
   sourceKind?: string;
   site?: string;
   siteScope?: string;
+  pathVariables?: string[];
   folder: string;
   filename?: string;
 };
@@ -30,6 +31,65 @@ export type RulePlanCritique = {
   issues: string[];
   repairedPlan: RulePlan;
 };
+
+// The variables worth nesting a destination by, in the routing language's own
+// spelling. A closed set is what makes a field reliable here — the model invents
+// values it is not given a list of — and the routing language has 44 variables,
+// most of which name a file rather than a folder to group it in. Every entry is
+// proved to be a real transformer by a test.
+const PATH_VARIABLES = [
+  ":pagedomain:",
+  ":pagerootdomain:",
+  ":sourcedomain:",
+  ":sourcerootdomain:",
+  ":date:",
+  ":isodate:",
+  ":year:",
+  ":month:",
+  ":monthname:",
+  ":day:",
+  ":weekday:",
+  ":fileext:",
+  ":actualfileext:",
+  ":mimeext:",
+  ":pagetitleslug:",
+] as const;
+
+const MAX_PLAN_PATH_VARIABLES = 3;
+
+// The dimensions a request can ask to be grouped by, and the variables that
+// answer each. Offering all fifteen for "by site and date" asks the model to
+// map words onto tokens it has only seen listed; offering the four that answer
+// "site" asks it to pick one. The request's own words decide.
+const PATH_DIMENSIONS: { readonly names: RegExp; readonly variables: readonly string[] }[] = [
+  {
+    names: /\b(?:sites?|domains?|hosts?|websites?)\b/i,
+    variables: [":pagedomain:", ":pagerootdomain:", ":sourcedomain:", ":sourcerootdomain:"],
+  },
+  { names: /\b(?:dates?|days?)\b/i, variables: [":date:", ":isodate:", ":day:", ":weekday:"] },
+  { names: /\b(?:months?)\b/i, variables: [":month:", ":monthname:"] },
+  { names: /\b(?:years?)\b/i, variables: [":year:"] },
+  {
+    names: /\b(?:types?|extensions?|formats?|kinds?)\b/i,
+    variables: [":fileext:", ":actualfileext:", ":mimeext:"],
+  },
+  { names: /\b(?:titles?|headlines?)\b/i, variables: [":pagetitleslug:"] },
+];
+
+const requestedPathVariables = (request: string): string[] => {
+  const offered = PATH_DIMENSIONS.filter((d) => d.names.test(request)).flatMap((d) => [
+    ...d.variables,
+  ]);
+  return offered.length > 0 ? offered : [...PATH_VARIABLES];
+};
+
+// Whether the request asks for its saves to be grouped at all. Nesting the
+// destination is behaviour, and behaviour the request did not ask for is exactly
+// what the model volunteers when a field is on offer.
+const namesPathOrganisation = (request: string): boolean =>
+  /\b(?:organi[sz]ed?|organising|organizing|sort(?:ed|ing)?|group(?:ed|ing)?|nest(?:ed|ing)?|separate(?:d)?|split|subfolders?|folders? (?:for|per|by)|per|by)\s+(?:\w+\s+){0,2}(?:site|sites|domain|domains|date|dates|day|days|month|months|year|years|type|types|extension|extensions|title|titles|kind|kinds)\b/i.test(
+    request,
+  );
 
 const RULE_PLAN_SCHEMA: Record<string, unknown> = {
   type: "object",
@@ -46,6 +106,11 @@ const RULE_PLAN_SCHEMA: Record<string, unknown> = {
     sourceKind: { type: "string", enum: [...PAGE_SOURCE_KINDS, ""] },
     site: { type: "string" },
     siteScope: { type: "string", enum: ["page", "source"] },
+    pathVariables: {
+      type: "array",
+      items: { type: "string", enum: [...PATH_VARIABLES] },
+      maxItems: MAX_PLAN_PATH_VARIABLES,
+    },
     folder: { type: "string" },
     filename: { type: "string" },
   },
@@ -56,7 +121,15 @@ const RULE_PLAN_SCHEMA: Record<string, unknown> = {
   // the file type out, even though the prompt told it in words that
   // fileExtensions must be exactly png. The schema is the instruction the model
   // actually follows, so require each field and let "" and [] carry "none".
-  required: ["fileExtensions", "sourceKind", "site", "siteScope", "folder", "filename"],
+  required: [
+    "fileExtensions",
+    "sourceKind",
+    "site",
+    "siteScope",
+    "pathVariables",
+    "folder",
+    "filename",
+  ],
   additionalProperties: false,
 };
 
@@ -80,12 +153,20 @@ export const rulePlanConstraint = (request: string): Record<string, unknown> => 
   const withheld = new Set<string>();
   if (explicitExtensions(request).length > 0) withheld.add("sourceKind");
   if (!namesSourceHosting(request)) withheld.add("siteScope");
+  if (!namesPathOrganisation(request)) withheld.add("pathVariables");
   if (withheld.size === 0) return RULE_PLAN_SCHEMA;
-  const properties = Object.fromEntries(
+  const properties: Record<string, unknown> = Object.fromEntries(
     Object.entries(RULE_PLAN_SCHEMA.properties as Record<string, unknown>).filter(
       ([name]) => !withheld.has(name),
     ),
   );
+  if (properties.pathVariables !== undefined) {
+    properties.pathVariables = {
+      type: "array",
+      items: { type: "string", enum: requestedPathVariables(request) },
+      maxItems: MAX_PLAN_PATH_VARIABLES,
+    };
+  }
   return {
     ...RULE_PLAN_SCHEMA,
     properties,
@@ -158,6 +239,9 @@ const PLAN_FIELD_LINES = [
   "- site: one hostname the request names, no scheme, port, or path.",
   "- siteScope: page when the site is the page the user is browsing, which is the usual reading;",
   "  source only when the request explicitly names where the file itself is hosted.",
+  `- pathVariables: the variables to group saves under, in order, from ${PATH_VARIABLES.join(", ")}.`,
+  "  Only when the request asks for its saves grouped or sorted; they become folders between the",
+  "  destination folder and the file, so leave them out to save straight into folder.",
 ];
 
 export const buildRulePlanPrompt = (request: string): string =>
@@ -254,6 +338,12 @@ const planFromRecord = (value: Record<string, unknown>): RulePlan | null => {
   if (site) plan.site = site;
   const siteScope = optionalString(value.siteScope);
   if (siteScope) plan.siteScope = siteScope;
+  const pathVariables = Array.isArray(value.pathVariables)
+    ? value.pathVariables.filter((entry) => typeof entry === "string")
+    : undefined;
+  if (pathVariables && pathVariables.length > 0) {
+    plan.pathVariables = pathVariables.slice(0, MAX_PLAN_PATH_VARIABLES);
+  }
   const filename = optionalString(value.filename);
   if (filename) plan.filename = filename;
   return plan;
@@ -385,7 +475,19 @@ export const assembleRule = (plan: RulePlan): string | null => {
 
   // The space after the colon is what the parser needs to read the clause head:
   // a value pressed against it donates its "/" to the regex-flags separator.
-  return [...matchers, `into: ${folder}/${filename ?? ":filename:"}`].join("\n");
+  // Grouping goes between the folder and the file: Images/:pagedomain:/:date:/
+  // :filename:. An unknown variable is not narrowed to a literal — it would name
+  // a folder the user never asked for.
+  const nesting: string[] = [];
+  for (const variable of plan.pathVariables ?? []) {
+    const token = variable.trim().toLowerCase();
+    if (!(PATH_VARIABLES as readonly string[]).includes(token)) return null;
+    if (!nesting.includes(token)) nesting.push(token);
+  }
+
+  return [...matchers, `into: ${[folder, ...nesting, filename ?? ":filename:"].join("/")}`].join(
+    "\n",
+  );
 };
 
 // Whether two rules say the same thing. Both sides are assembled here now, so
@@ -558,12 +660,13 @@ const explicitFolder = (request: string): string | null => {
       .replace(/\s+(?:please|thanks|thank you)\s*$/i, "")
       .trim()
       .replace(/^\/+|\/+$/g, "");
-  // A folder runs to the end of its clause. A conjunction or a preposition
-  // opens the next part of the request ("into /Pictures and rename it
+  // A folder runs to the end of its clause. A conjunction, a preposition, or a
+  // word opening a grouping clause ("/Images sorted by site") opens the next
+  // part of the request ("into /Pictures and rename it
   // cover.png", "into /archive with the same filename"), so it ends the folder
   // rather than becoming part of its name.
   const slashFolder = request.match(
-    /\b(?:into|in|to|under)\s+(?:the\s+)?(?:folder\s+)?\/(?!\/)([^\n,;.!?]+?)(?=\s+(?:and|then|also|plus|but|with|without|using|keeping|named|called|please|thanks)\b|[,;.!?]|$)/i,
+    /\b(?:into|in|to|under)\s+(?:the\s+)?(?:folder\s+)?\/(?!\/)([^\n,;.!?]+?)(?=\s+(?:and|then|also|plus|but|with|without|using|keeping|named|called|sorted|sorting|sort|grouped|grouping|group|organi[sz]ed|organi[sz]ing|organi[sz]e|nested|nesting|separated|split|by|per|please|thanks)\b|[,;.!?]|$)/i,
   )?.[1];
   if (slashFolder) return trimFolder(slashFolder) || null;
   const quotedFolder = request.match(
@@ -657,6 +760,13 @@ const requestRequirementLines = (request: string): string[] => {
 
 export const ruleRequestGuardrailIssues = (request: string, rule: string): string[] => {
   const issues: string[] = [];
+  // Grouping asked for and not delivered. Measured: "save png into /Images
+  // sorted by site and date" was answered with into: Images/:filename: and
+  // accepted — the guardrails ask whether what a rule does is permitted, never
+  // whether it does what was asked.
+  if (namesPathOrganisation(request) && !/^\s*into:.*:[a-z0-9]+:.*\/[^/\n]*$/im.test(rule)) {
+    issues.push("The destination does not group saves the way the request asks.");
+  }
   // A matcher the request never named narrows the rule to something the user
   // did not ask for and cannot see in the draft's effect. The on-device model
   // volunteers one: asked for pdf and png it added sourcekind ^document$, which
