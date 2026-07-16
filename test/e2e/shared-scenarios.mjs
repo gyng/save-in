@@ -1322,7 +1322,10 @@ export const runRerouteLastSaveScenario = async ({ control, waitForDownloads, fi
       throw new Error(`Unexpected reroute response: ${JSON.stringify(response)}`);
     }
     expect(response.body.rerouted).toBe(true);
-    expect(response.body.oldRemoved).toBe(true);
+    // Long replacements return while the persisted move is pending; the
+    // top-level completion listener removes the original only after the new
+    // file is complete. A very fast replacement may already be finalized.
+    expect(response.body.oldRemoved).toBe(response.body.pending === true ? false : true);
     const newHistoryId = decodeString(response.body.newHistoryId);
 
     // The replacement completes under the new folder while the original file
