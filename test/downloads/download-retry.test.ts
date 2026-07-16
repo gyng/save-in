@@ -136,6 +136,27 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
     });
   });
 
+  test("carries a pending source sidecar so a retried completion still writes it", async () => {
+    await seedStartedDownload();
+    await Download.rememberStartedDownload(101, {
+      pendingSourceSidecar: { sourceUrl: "https://x/source.png" },
+    });
+    global.fetch = vi.fn(() =>
+      Promise.resolve({ ok: true, blob: () => Promise.resolve(new Blob(["bytes"])) }),
+    ) as any;
+    vi.mocked(global.browser.downloads.download).mockResolvedValue(202);
+
+    await expect(Download.retryViaFetch(101)).resolves.toBe(true);
+
+    // The completion may merge from the provisional expected record before
+    // rememberStartedDownload persists the full one; losing the pending
+    // sidecar here would silently skip the source shortcut for retried saves.
+    expect(Notifier.expectDownload).toHaveBeenCalledWith(expect.stringMatching(/^blob:/), {
+      privateContext: false,
+      pendingSourceSidecar: { sourceUrl: "https://x/source.png" },
+    });
+  });
+
   test("keeps a Firefox private retry private and clears its transient filename", async () => {
     setCurrentBrowser("FIREFOX");
     const state = makeState({

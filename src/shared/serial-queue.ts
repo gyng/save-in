@@ -28,6 +28,7 @@ export const createSerialQueue = (): SerialQueue => {
     settled: (): Promise<void> =>
       tail.then(
         () => undefined,
+        /* v8 ignore next -- enqueue only ever assigns never-rejecting promises to tail; this arm keeps the never-rejects contract explicit. */
         () => undefined,
       ),
   };

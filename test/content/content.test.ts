@@ -26,6 +26,28 @@ describe("findSource", () => {
     });
   });
 
+  test("reports a clicked video with its true source kind", () => {
+    document.body.innerHTML = '<video id="v" src="http://x.test/clip.mp4"></video>';
+    const video = document.getElementById("v");
+
+    // The sourcekind: matcher and the source sidecar both read this kind, so a
+    // video click must not degrade to "image" or be dropped.
+    expect(ClickToSave.findSource(event(video), false)).toEqual({
+      url: "http://x.test/clip.mp4",
+      kind: "video",
+    });
+  });
+
+  test("reports a clicked audio element with its true source kind", () => {
+    document.body.innerHTML = '<audio id="a" src="http://x.test/track.mp3"></audio>';
+    const audio = document.getElementById("a");
+
+    expect(ClickToSave.findSource(event(audio), false)).toEqual({
+      url: "http://x.test/track.mp3",
+      kind: "audio",
+    });
+  });
+
   test("finds media in a composed event path before coordinate fallback", () => {
     document.body.innerHTML = '<div id="host"></div><img id="i" src="http://x.test/path.png">';
     const host = document.getElementById("host");

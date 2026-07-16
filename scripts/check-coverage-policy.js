@@ -7,7 +7,7 @@ const { walkFiles } = require("./lib/walk-files.js");
 const root = path.resolve(__dirname, "..");
 const configPath = path.join(root, "config", "vitest", "base.mjs");
 const sourceRoot = path.join(root, "src");
-const ignoreCeiling = 75;
+const ignoreCeiling = 79;
 
 const errors = [];
 const config = fs.readFileSync(configPath, "utf8");

@@ -558,6 +558,27 @@ describe("routing visual editor", () => {
     expect(element<HTMLTextAreaElement>("#filenamePatterns").selectionStart).toBeGreaterThan(0);
   });
 
+  test("a stale Edit-in-Text click still opens Text mode without selecting", () => {
+    const textarea = element<HTMLTextAreaElement>("#filenamePatterns");
+    textarea.value = "filename: jpg\nnot a clause\ninto: images/:filename:";
+    setupRuleVisualEditor({ matchers: ["filename"] });
+    element<HTMLButtonElement>("#rules-mode-visual").click();
+    const edit = element<HTMLButtonElement>(".rule-editor-edit-text");
+
+    // The textarea can change underneath a rendered card (e.g. an import
+    // replacing the source before the rebuild event lands). A stale click
+    // must still reach Text mode for manual repair instead of throwing or
+    // selecting a line that no longer exists.
+    textarea.value = "filename: jpg";
+    expect(() => edit.click()).not.toThrow();
+
+    expect(element<HTMLElement>("#rules-text-editor").hidden).toBe(false);
+    expect(element<HTMLElement>("#rules-visual").hidden).toBe(true);
+    expect(document.activeElement).toBe(textarea);
+    // No range is selected; the stale line number is dropped, not clamped.
+    expect(textarea.selectionStart).toBe(textarea.selectionEnd);
+  });
+
   test("uses the rule line for read-only rules with unsupported flags", () => {
     element<HTMLTextAreaElement>("#filenamePatterns").value =
       "filename/x: jpg\ninto: images/:filename:";

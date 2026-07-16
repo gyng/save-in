@@ -1,4 +1,4 @@
-import { expandFetchUrl } from "../../src/routing/fetch-url.ts";
+import { expandFetchUrl, isUsableFetchRewrite } from "../../src/routing/fetch-url.ts";
 
 test("substitutes variables verbatim without path sanitization", async () => {
   const now = new Date(2026, 6, 15, 9, 30, 5);
@@ -55,4 +55,18 @@ test("unknown-looking tokens pass through untouched", async () => {
   await expect(expandFetchUrl("https://x.example/:notavariable:/end", {})).resolves.toBe(
     "https://x.example/:notavariable:/end",
   );
+});
+
+test("accepts exactly the expansions whose HTTP(S) authority is literally present", () => {
+  expect(isUsableFetchRewrite("https://mirror.example/orig.png")).toBe(true);
+  // Plain-HTTP mirrors are legitimate rewrite targets; tightening this to
+  // HTTPS-only would silently drop their rewrites.
+  expect(isUsableFetchRewrite("http://mirror.example/orig.png")).toBe(true);
+  // An empty substitution collapsing the authority must fail closed: the
+  // WHATWG parser would accept "https:///orig.png" with host "orig.png".
+  expect(isUsableFetchRewrite("https:///orig.png")).toBe(false);
+  expect(isUsableFetchRewrite("ftp://mirror.example/orig.png")).toBe(false);
+  expect(isUsableFetchRewrite("")).toBe(false);
+  // Substitution artifacts that break URL parsing fail closed too.
+  expect(isUsableFetchRewrite("https://exa mple.com/x")).toBe(false);
 });
