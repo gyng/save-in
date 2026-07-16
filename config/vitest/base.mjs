@@ -42,9 +42,19 @@ export default defineConfig({
         // fetch/createObjectURL/crypto.subtle in a separate document context):
         // exercised by the Chrome e2e sha256/offscreen path
         "src/offscreen/offscreen.ts",
-        // The options composition root runs top-level against the real document;
-        // pure models and controllers remain visible to unit coverage.
+        // The options composition root and the wiring modules it delegates
+        // to (Phase 2.4 of docs/CODE-ORGANIZATION.md) run top-level DOM/
+        // message-round-trip wiring against the real options.html document;
+        // they are exercised by the e2e suites, not unit coverage. Pieces
+        // split out alongside them that are plain data-in/data-out or
+        // deterministic DOM helpers (option-field-sync.ts,
+        // download-refresh.ts, ui/disclosure-help.ts) stay covered.
         "src/options/core/options.ts",
+        "src/options/core/pending-changes.ts",
+        "src/options/core/routing-preview-panel.ts",
+        "src/options/core/menu-preview.ts",
+        "src/options/core/manual-editor-actions.ts",
+        "src/options/core/browser-capability-ui.ts",
       ],
       thresholds: {
         statements: 100,

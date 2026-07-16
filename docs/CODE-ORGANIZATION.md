@@ -365,6 +365,89 @@ move with their code. Order by value and by how much other work each unblocks.
    the `onDownloaded` fan-out into a small subscriber registry so panels
    subscribe instead of being hard-wired. Target: `options.ts` becomes a real
    composition root under ~200 lines.
+
+   **Landed** (247 lines; the ~200 target was a stretch once every `ready[]`
+   wiring call and the persistence/webmcp-sync orchestration stayed put — see
+   below). Six new `core/` modules plus one `ui/` helper absorbed the rest:
+   `pending-changes.ts` (211 lines: `createFieldSaveState`-backed autosave
+   scheduling, the beforeunload guard, and `confirmPendingChanges`, all behind
+   a `createPendingChangesTracker(ports)` factory options.ts calls once and
+   re-delegates `confirmPendingChanges` from — a thin re-export, per the
+   backward-compatibility note, since `entries/options.ts` still imports it
+   from `options.ts`); `routing-preview-panel.ts` (464 lines: the VALIDATE
+   error channels and the CHECK_ROUTES-driven last-download/variables/capture
+   panel stayed one module, not two, because `updateErrors` already does both
+   in a single round trip; also owns `jumpToError`, shared with
+   `menu-preview.ts`); `menu-preview.ts` (237 lines: the live context-menu
+   tree renderer and its paths-textarea wiring — placed in `core/`, not
+   `path-editor/`, even though `style-menu-preview.css` lives there per Phase
+   1, because the renderer also reads other options-page fields
+   `path-editor.ts` doesn't own, and `path-editor.ts` is already an 867-line
+   file slated for its own future split); `manual-editor-actions.ts` (69
+   lines: the Apply/Discard button wiring for the two grammar editors);
+   `option-field-sync.ts` (42 lines: `setOptionFieldValue`, the schema→DOM
+   field writer, now unit-tested like `options-logic.ts`);
+   `browser-capability-ui.ts` (38 lines: the Chrome/Firefox capability
+   toggles, formerly `setupChromeDisables`); `download-refresh.ts` (16 lines:
+   the `subscribeDownloadRefresh`/`notifyDownloadRefresh` subscriber
+   registry — a plain array of callbacks, since panels' refresh order had to
+   stay identical to the original hard-coded `onDownloaded` fan-out, so
+   `options.ts` still does the registering, just through the registry instead
+   of an inline closure); and `ui/disclosure-help.ts` (27 lines: the generic
+   `.help` disclosure toggle, unrelated to any one feature).
+
+   `options.ts` itself keeps: the persistence round trip
+   (`restoreOptionsHandler`/`optionsPersistence`/`restoreOptions`/
+   `saveOptions`), the exported `syncOptionsPageAfterWebMcpApply` (WebMCP
+   sync needs to reach into `pendingChanges`' and `manualEditorState`'s dirty
+   tracking to avoid clobbering an in-progress local edit — a real
+   composition-root concern), the `manualEditorState`/`routingPreview`/
+   `pendingChanges`/`localePageReload` construction that wires the extracted
+   modules together, a handful of one-line `ready[]` wrapper functions
+   (`setupResetOptionsPanel`, `setupManualEditors`, `setupThemePicker`,
+   `setupSettingsTransferPanel`, `setupDefaultDownloadsFolderLinks`), and the
+   final `bootstrapOptionsPage({ ready: [...], onDownloaded:
+   notifyDownloadRefresh, ... })` call.
+
+   Module import is now side-effect-light with one documented exception:
+   `const updateOptionDependencies = setupOptionDependencies();` stays eager
+   at module top level (not moved into `ready[]`). `bootstrapOptionsPage`
+   calls `ports.startBrowserDetection()` — which, on Chrome, synchronously
+   invokes `waitForBrowserDetection` → `updateOptionDependencies()` — before
+   it runs any `ready[]` entry, so the binding must already exist by then.
+   Everything else that used to run at import time (help-disclosure wiring,
+   the beforeunload guard, manual-editor setup, the paths/filenamePatterns
+   live-preview and live-validation wiring, autosave wiring, Apply/Discard
+   buttons, settings-transfer wiring) now runs as a `ready[]` entry, in the
+   same relative order those blocks executed in the original file. This does
+   shift them later relative to `entries/options.ts`'s own
+   `setupSyntaxEditors()`/`setupRouteDebugger()`/`setupRuleVisualEditor()`
+   calls, which used to run *after* all of `options.ts`'s import-time code
+   (ES module evaluation completes before `entries/options.ts`'s
+   `DOMContentLoaded` handler runs) and now run *before* `setupOptionsPage()`
+   invokes `ready[]`. Checked for a load-bearing dependency on the old order:
+   `createSyntaxEditor` wraps the `#paths`/`#filenamePatterns` textareas with
+   a sibling overlay rather than replacing them, so the elements
+   `options.ts`'s wiring queries stay the same nodes either way, and neither
+   side reads state the other writes. Verified with a full `npm run
+   e2e:chrome` (49/49) and `npm run e2e:firefox` (32/32) pass, including the
+   paths live-preview, autosave-persists-and-survives-restart, Apply/Discard,
+   and reset-defaults scenarios that exercise this exact reordering.
+
+   `config/vitest/base.mjs`'s coverage `exclude` list grew from one entry to
+   six: `options.ts` plus `pending-changes.ts`, `routing-preview-panel.ts`,
+   `menu-preview.ts`, `manual-editor-actions.ts`, and
+   `browser-capability-ui.ts` — the pieces that still run DOM/message-round-
+   trip wiring against the real document the way `options.ts` always did
+   (exercised by e2e, not unit coverage). `option-field-sync.ts`,
+   `download-refresh.ts`, and `ui/disclosure-help.ts` are plain data-in/data-
+   out or deterministic-DOM helpers and gained real unit tests instead
+   (`test/options/core/option-field-sync.test.ts`,
+   `test/options/core/download-refresh.test.ts`,
+   `test/options/ui/disclosure-help.test.ts`); global coverage after the
+   split matches the pre-existing baseline exactly (99.97/99.9/99.96/99.99%,
+   the same numbers as before this change, with the same unrelated
+   `shared/serial-queue.ts` gap the baseline already had).
 5. **`downloads/download.ts`:** extract `download-plan.ts` (resolve/create
    plan, fetch rewrite, routing-match helpers), `download-disposition.ts`
    (content-disposition parsing), and `download-execution.ts`
