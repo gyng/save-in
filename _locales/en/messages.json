@@ -2635,14 +2635,6 @@
     "message": "Rewrites Wikimedia Commons thumbnail links to the original full-size file",
     "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
   },
-  "ruleTemplateYoutubeMaxResName": {
-    "message": "YouTube larger thumbnail",
-    "description": "Title of a built-in routing-template card. Used in src/options/rule-templates.ts."
-  },
-  "ruleTemplateYoutubeMaxResDescription": {
-    "message": "Rewrites a smaller YouTube thumbnail to the standard 480px rendition",
-    "description": "Description on a built-in routing-template card. The rule targets YouTube's standard hqdefault video thumbnail and deliberately avoids the optional maxresdefault rendition. \"px\" abbreviates pixels. Used in src/options/rule-templates.ts."
-  },
   "ruleTemplateBlueskyFullsizeName": {
     "message": "Bluesky full-size image",
     "description": "Title of a built-in routing-template card. \"Bluesky\" is the proper name of a social network; keep it as-is. Full-size means the network's larger rendition, which may not be the exact uploaded file. Used in src/options/rule-templates.ts."

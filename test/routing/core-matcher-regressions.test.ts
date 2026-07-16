@@ -360,28 +360,6 @@ describe("built-in matcher templates", () => {
     ).toBeNull();
   });
 
-  test("the YouTube template upgrades only thumbnails below the standard 480px tier", () => {
-    const rules = rulesFor("YouTube larger thumbnail");
-
-    for (const tier of ["default", "mqdefault", "1", "2", "3"]) {
-      expect(
-        matchRulesDetailed(rules, {
-          sourceUrl: `https://i.ytimg.com/vi/dQw4w9WgXcQ/${tier}.jpg`,
-        }),
-      ).toMatchObject({
-        destination: "youtube/dQw4w9WgXcQ-hqdefault.jpg",
-        fetch: "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg",
-      });
-    }
-    for (const tier of ["0", "hqdefault", "sddefault", "maxresdefault", "hq720", "poster"]) {
-      expect(
-        matchRules(rules, {
-          sourceUrl: `https://i.ytimg.com/vi/dQw4w9WgXcQ/${tier}.jpg`,
-        }),
-      ).toBeNull();
-    }
-  });
-
   test("the Bluesky template rewrites only feed thumbnails", () => {
     const rules = rulesFor("Bluesky full-size image");
     const tail = "plain/did:plc:example/bafkreiexample@jpeg";

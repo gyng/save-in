@@ -3839,9 +3839,6 @@
   "ruleTemplateWikimediaOriginalName": {
     "message": "Wikimediaのフルサイズ画像"
   },
-  "ruleTemplateYoutubeMaxResDescription": {
-    "message": "小さい YouTube サムネイルを標準の 480 px 版に書き換えます"
-  },
   "ruleTemplateBlueskyFullsizeName": {
     "message": "Bluesky のフルサイズ画像"
   },
@@ -3877,9 +3874,6 @@
   },
   "ruleTemplateFlickrLargeDescription": {
     "message": "Flickr の画像リンクを 1024 ピクセルの大きいバージョンに書き換えます"
-  },
-  "ruleTemplateYoutubeMaxResName": {
-    "message": "YouTube の大きいサムネイル"
   },
   "ruleExtraFetch": {
     "message": "ルールには fetch: 句を 1 つだけ含めることができます"

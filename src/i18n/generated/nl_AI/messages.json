@@ -3839,9 +3839,6 @@
   "ruleTemplateWikimediaOriginalName": {
     "message": "Wikimedia-afbeelding op volledige grootte"
   },
-  "ruleTemplateYoutubeMaxResDescription": {
-    "message": "Herschrijft een kleinere YouTube-miniatuur naar de standaardversie van 480 px"
-  },
   "ruleTemplateBlueskyFullsizeName": {
     "message": "Bluesky-afbeelding op volledige grootte"
   },
@@ -3877,9 +3874,6 @@
   },
   "ruleTemplateFlickrLargeDescription": {
     "message": "Herschrijft een Flickr-afbeeldingslink naar een grotere versie van 1024 px"
-  },
-  "ruleTemplateYoutubeMaxResName": {
-    "message": "Grotere YouTube-miniatuur"
   },
   "ruleExtraFetch": {
     "message": "Een regel kan slechts één fetch:-clausule bevatten"

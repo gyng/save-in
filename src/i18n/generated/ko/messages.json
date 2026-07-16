@@ -3839,9 +3839,6 @@
   "ruleTemplateWikimediaOriginalName": {
     "message": "Wikimedia 전체 크기 이미지"
   },
-  "ruleTemplateYoutubeMaxResDescription": {
-    "message": "더 작은 YouTube 썸네일을 표준 480px 버전으로 재작성합니다"
-  },
   "ruleTemplateBlueskyFullsizeName": {
     "message": "Bluesky 전체 크기 이미지"
   },
@@ -3877,9 +3874,6 @@
   },
   "ruleTemplateFlickrLargeDescription": {
     "message": "Flickr 이미지 링크를 1024픽셀의 더 큰 버전으로 재작성합니다"
-  },
-  "ruleTemplateYoutubeMaxResName": {
-    "message": "더 큰 YouTube 썸네일"
   },
   "ruleExtraFetch": {
     "message": "규칙에는 fetch: 절이 하나만 포함될 수 있습니다."

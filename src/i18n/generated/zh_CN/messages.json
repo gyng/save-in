@@ -3839,9 +3839,6 @@
   "ruleTemplateWikimediaOriginalName": {
     "message": "Wikimedia 完整尺寸图片"
   },
-  "ruleTemplateYoutubeMaxResDescription": {
-    "message": "将较小的 YouTube 缩略图改写为标准的 480 像素版本"
-  },
   "ruleTemplateBlueskyFullsizeName": {
     "message": "Bluesky 完整尺寸图片"
   },
@@ -3877,9 +3874,6 @@
   },
   "ruleTemplateFlickrLargeDescription": {
     "message": "将 Flickr 图片链接改写为更大的 1024 像素版本"
-  },
-  "ruleTemplateYoutubeMaxResName": {
-    "message": "更大的 YouTube 缩略图"
   },
   "ruleExtraFetch": {
     "message": "一条规则只能包含一个 fetch: 子句"
