@@ -252,6 +252,24 @@ describe("menu creation", () => {
       expect(created()[0]!.title).toBe("Quick save");
     });
 
+    // Standing alone, it is the only thing naming the extension in the menu, so
+    // it takes the root item's title and access key instead of its own.
+    test("addQuickSave standing alone names the extension and has no parent", () => {
+      menu.addQuickSave(["image"], { topLevel: true });
+
+      const item = created()[0]!;
+      expect(item.parentId).toBeUndefined();
+      expect(item.title).toContain("QuickSaveOnly");
+      // The "&" is the root access key, which only a standing-alone item takes.
+      expect(item.title).toContain("&");
+    });
+
+    test("addQuickSave standing alone falls back to an English title that names the extension", () => {
+      vi.mocked(global.browser.i18n.getMessage).mockReturnValueOnce("");
+      menu.addQuickSave(["image"], { topLevel: true });
+      expect(created()[0]!.title).toContain("Quick save (Save In)");
+    });
+
     test("quickSaveDirectoryConfigured reports only a valid non-root directory", () => {
       options.quickSaveDirectory = "Photos";
       expect(menu.quickSaveDirectoryConfigured()).toBe(true);

@@ -89,6 +89,11 @@ describe("Prompt API rule-plan model", () => {
     // folder is the one field every plan needs; the rest are absent, not
     // undefined, when the model leaves them out.
     expect(parseRulePlan(JSON.stringify({ folder: "archive" }))).toEqual({ folder: "archive" });
+    // A rename the request asked for survives the boundary as a plan field.
+    expect(parseRulePlan(JSON.stringify({ folder: "archive", filename: "cover.png" }))).toEqual({
+      folder: "archive",
+      filename: "cover.png",
+    });
     expect(parseRulePlan(JSON.stringify({ fileExtensions: ["png"] }))).toBeNull();
     expect(parseRulePlan(JSON.stringify({ folder: 7 }))).toBeNull();
     expect(parseRulePlan("not JSON")).toBeNull();
@@ -251,8 +256,31 @@ describe("deterministic rule assembly", () => {
     [{ folder: "a", fileExtensions: ["png"], filename: ":filename:.bak" }, "filename variable"],
     [{ folder: "a", fileExtensions: ["png"], filename: "b/c.png" }, "filename with a path"],
     [{ folder: "a", fileExtensions: ["png"], filename: "" }, "empty rename"],
+    // A relative segment names a folder, not a file, so it cannot be the rename.
+    [{ folder: "a", fileExtensions: ["png"], filename: "." }, "filename that is a dot segment"],
+    [{ folder: "a", fileExtensions: ["png"], filename: ".." }, "filename that escapes upwards"],
+    [{ folder: "a", site: "   " }, "site that is only whitespace"],
+    // A host with no dot is a machine name, not the site a request can name.
+    [{ folder: "a", site: "https://localhost/" }, "origin whose host is not a domain"],
+    // Nesting an unknown token would name a folder the request never asked for.
+    [
+      { folder: "a", fileExtensions: ["png"], pathVariables: [":nonsense:"] },
+      "path variable outside the offered set",
+    ],
   ])("refuses to assemble a plan it cannot express exactly (%#: %s)", (plan) => {
     expect(assembleRule(plan)).toBeNull();
+  });
+
+  // The schema caps and orders pathVariables, but the plan is model output: a
+  // repeated dimension would nest the same folder twice.
+  test("nests each path variable once, in the order the plan gives them", () => {
+    expect(
+      assembled({
+        folder: "a",
+        fileExtensions: ["png"],
+        pathVariables: [":year:", ":pagedomain:", ":year:"],
+      }),
+    ).toBe("fileext/i: ^png$\ninto: a/:year:/:pagedomain:/:filename:");
   });
 
   // The whole point of the plan: the assembler's output is valid because of how
@@ -621,6 +649,17 @@ describe("the schema offered for one request", () => {
 
     expect(Object.keys(constraint.properties as object)).toContain("sourceKind");
     expect(constraint.required).toContain("sourceKind");
+  });
+
+  // A request that justifies every field is the one case with nothing to
+  // withhold, so the whole schema is offered rather than a rebuilt subset.
+  test("offers the whole schema to a request that justifies every field", () => {
+    const constraint = rulePlanConstraint("save images served from the cdn, organized by date");
+
+    expect(constraint).toBe(RULE_PLAN_RESPONSE_CONSTRAINT);
+    for (const field of ["sourceKind", "siteScope", "pathVariables"]) {
+      expect(Object.keys(constraint.properties as object)).toContain(field);
+    }
   });
 });
 

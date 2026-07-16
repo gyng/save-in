@@ -8,12 +8,14 @@ const root = path.resolve(__dirname, "..");
 const configPath = path.join(root, "config", "vitest", "base.mjs");
 const sourceRoot = path.join(root, "src");
 // Reviewed ceiling after the 4.2 parser/finalization/data-URL cleanup removed ten
-// obsolete ignores, plus one for the rule-plan assembler: the assistant's
-// single-rule check is unreachable while every candidate is assembled from a
-// checked plan, and is kept for a future non-plan caller rather than deleted.
+// obsolete ignores, plus two the rule-plan design made unreachable without
+// making them wrong: the assistant's single-rule check, which stays as the
+// guard for a future non-plan caller, and the path-variable fallback, which
+// stands for a caller that asks without naming a dimension. Both are kept for
+// their callers rather than deleted to satisfy a threshold.
 // New ignores require an explicit rationale and a deliberate ceiling update so
 // uncovered branches cannot accumulate silently.
-const ignoreCeiling = 75;
+const ignoreCeiling = 76;
 
 const errors = [];
 const config = fs.readFileSync(configPath, "utf8");
