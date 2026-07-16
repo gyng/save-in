@@ -1,3 +1,10 @@
+// Deliberately shared, not feature-owned: config/option-schema.ts validates
+// stored webhook settings, downloads/webhook-delivery.ts performs the fetch,
+// and options/integrations/webhook-panel.ts renders the UI. config/ may only
+// reach shared/platform (scripts/check-import-cycles.js), so this cannot move
+// into downloads/ or options/ without breaking that boundary; it stays here
+// as a cross-context contract plus pure helper (docs/CODE-ORGANIZATION.md
+// Phase 3.1).
 export const WEBHOOK_DATA_TYPES = {
   BROWSING_ACTIVITY: "browsingActivity",
   WEBSITE_ACTIVITY: "websiteActivity",

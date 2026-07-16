@@ -1,3 +1,9 @@
+// Deliberately shared, not feature-owned: downloads/content-fetch.ts and
+// offscreen/offscreen.ts are peer execution contexts that talk to each other
+// only through platform/offscreen-client.ts message passing, never by
+// importing one another's implementation. This response-streaming/hashing
+// helper has no single owning feature directory both can legally reach, so
+// it stays here (docs/CODE-ORGANIZATION.md Phase 3.1).
 import { Sha256 } from "./sha256.ts";
 
 type StreamableResponse = Pick<Response, "body" | "headers"> &

@@ -609,6 +609,41 @@ registration requires updating the owner list deliberately, not reflexively.
    that shared may host feature *contracts and pure helpers* needed by
    multiple contexts. The goal is that `shared/` membership is a decision,
    not a default.
+
+   **Landed** — none of the four moved; each was kept with a short comment
+   explaining why, and the underlying reason is the same shape in every case:
+   the file has two or more importers in directories that cannot legally
+   import one another, so no single "owning feature directory" exists.
+   - `source-panel-copy.ts`: imported by `background/messaging/{handlers,index}.ts`
+     (runtime `createSourcePanelCopy`, not type-only) and by
+     `content/source-panel*.ts`. Background and content are peer execution
+     contexts; background importing a content/ implementation module would be
+     the exact inversion the doc's own example called out. Stays in `shared/`.
+   - `webhook.ts`: imported by `config/option-schema.ts`,
+     `downloads/webhook-delivery.ts`, and
+     `options/integrations/webhook-panel.ts`. `config/` may only reach
+     `shared/`/`platform/` (`scripts/check-import-cycles.js`'s explicit config
+     rule), so moving this into `downloads/` or `options/` would make
+     `option-schema.ts` violate that rule outright. Stays in `shared/`.
+   - `history-normalization.ts`: imported by `background/history.ts` and
+     `options/history/history-panel.ts`. `options/` may not import
+     `background/` (explicit checker rule); the reverse has no explicit
+     checker rule but has zero existing precedent anywhere in `src/`
+     (confirmed by grep) and would contradict AGENTS.md's "options talks to
+     background exclusively via `runtime.sendMessage`" contract. Stays in
+     `shared/`.
+   - `streaming-content.ts`: imported by `downloads/content-fetch.ts` and
+     `offscreen/offscreen.ts`. These are peer execution contexts that already
+     communicate exclusively through `platform/offscreen-client.ts` message
+     passing (verified: neither directory imports the other's implementation
+     anywhere today); the helper itself is generic (streams a `Response` body
+     into a `Blob` while incrementally hashing it) and arguably closer to
+     `platform/`-tier than "feature" code, but no importer-driven move was in
+     scope here, so it stays in `shared/` per the same two-peer-context
+     reasoning as the other three.
+
+   Each file now carries a short header comment recording this so the
+   decision doesn't have to be re-derived by the next reader.
 2. **Write the naming conventions down** (in AGENTS.md's Conventions section):
    `-model.ts` = pure, DOM-free, unit-tested; view file owns DOM and browser
    events; `-state.ts` reserved for genuinely pure state containers (rename

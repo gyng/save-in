@@ -1,3 +1,10 @@
+// Deliberately shared, not feature-owned: background/history.ts and
+// options/history/history-panel.ts both normalize history entries through
+// this module. options/ may not import background/ implementations
+// (scripts/check-import-cycles.js), and the reverse has never been legal
+// either — options talks to background only through runtime.sendMessage
+// (AGENTS.md) — so this stays here rather than moving into either owner
+// (docs/CODE-ORGANIZATION.md Phase 3.1).
 import type { HistoryEntry } from "./history-types.ts";
 import { isStringKeyedRecord, isStringMember } from "./util.ts";
 
