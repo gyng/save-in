@@ -24,6 +24,14 @@ export type DownloadPorts = {
     ): Promise<unknown>;
     // Undo resolves a lost session record back to its entry by downloadId.
     entries(): Promise<HistoryEntry[]>;
+    // Guarded late anchor: applies only while the entry still points at this
+    // download and has no startTime, so it can never repoint an entry a
+    // retry has since rebound.
+    anchorStartTime(
+      id: string | null | undefined,
+      downloadId: number,
+      startTime: string,
+    ): Promise<unknown>;
   };
   log: {
     add(message: string, data?: unknown, options?: { privateContext?: boolean }): unknown;
@@ -72,6 +80,7 @@ export const createDownloadPortRegistry = (): DownloadPortRegistry => {
       setDownloadId: (...args) => requirePort("history").setDownloadId(...args),
       setStatus: (...args) => requirePort("history").setStatus(...args),
       entries: () => requirePort("history").entries(),
+      anchorStartTime: (...args) => requirePort("history").anchorStartTime(...args),
     },
     log: { add: (...args) => requirePort("log").add(...args) },
     retry: (...args) => requirePort("retry")(...args),

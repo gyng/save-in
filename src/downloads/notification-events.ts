@@ -261,8 +261,10 @@ export const onNotificationButtonClicked = async (notId: string, buttonIndex: nu
   const historyEntryId = record?.historyEntryId ?? entry?.id;
   const expected: ExpectedDownloadIdentity = {
     startTime: entry?.downloadStartTime,
-    url: record?.url ?? entry?.url,
-    filename: record?.currentFilename ?? record?.filename ?? entry?.finalFullPath,
+    url: record?.url || entry?.url,
+    // || not ??: Chrome's onDownloadCreated merges an empty-string filename at
+    // creation, which must fall through to the routed record.filename.
+    filename: record?.currentFilename || record?.filename || entry?.finalFullPath,
   };
   // A refused undo must not be a silent no-op: the notification stays, so the
   // user needs to hear that clicking it did nothing.

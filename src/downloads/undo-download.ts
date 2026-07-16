@@ -74,16 +74,18 @@ export const searchDownloadStartTime = async (downloadId: number): Promise<strin
 // The event-path bind (onDownloadCreated's matched expected record) supplies
 // the startTime for free, but it can lose its race against
 // cancelExpectedDownload, and an entry left without its anchor degrades undo
-// to the weaker field rules. This late write stays off the launch hot path;
-// when the event path already won, the same download yields the same
-// startTime, so the rewrite is a no-op.
+// to the weaker field rules. This late write stays off the launch hot path,
+// and the anchor callback must be guarded: it applies only while the entry
+// still points at this download and lacks a startTime, because a fetch retry
+// may have rebound the entry to a replacement download in the meantime and a
+// late write of the dead original would misdirect undo and progress.
 export const backfillDownloadStartTime = (
   entryId: string,
   downloadId: number,
-  bind: (entryId: string, downloadId: number, startTime: string) => Promise<unknown>,
+  anchor: (entryId: string, downloadId: number, startTime: string) => Promise<unknown>,
 ): void => {
   void searchDownloadStartTime(downloadId)
-    .then((startTime) => (startTime ? bind(entryId, downloadId, startTime) : undefined))
+    .then((startTime) => (startTime ? anchor(entryId, downloadId, startTime) : undefined))
     .catch(() => {});
 };
 

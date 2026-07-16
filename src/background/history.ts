@@ -70,9 +70,14 @@ export const patchHistoryEntry = (
     .then(() => webExtensionApi.storage.local.get(HISTORY_STORAGE_KEY))
     .then((res) => {
       const history = normalizeHistory(res?.[HISTORY_STORAGE_KEY]);
+      let mutated = false;
       const next = history.map((e) => {
         if (e.id !== id) return e;
         const resolved = typeof fields === "function" ? fields(e) : fields;
+        // An empty patch (a guarded write whose condition no longer holds)
+        // must not rewrite the whole history array for nothing.
+        if (Object.keys(resolved).length === 0) return e;
+        mutated = true;
         const merged = Object.assign({}, e, resolved);
         // An explicitly-undefined field means "remove": Firefox's structured
         // clone would otherwise persist the key, and normalization must never
@@ -83,6 +88,7 @@ export const patchHistoryEntry = (
         }
         return merged;
       });
+      if (!mutated) return undefined;
       return webExtensionApi.storage.local.set({ [HISTORY_STORAGE_KEY]: next });
     })
     .catch((error) => recordHistoryFailure("write", error));
@@ -136,6 +142,21 @@ export const setHistoryDownloadId = (
         ? { downloadStartTime: undefined }
         : {}),
   }));
+
+// Late anchor backfill: applies only while the entry still points at the
+// download it was scheduled for and no anchor was captured yet. A fetch
+// retry may have rebound the entry in the meantime, and rewriting the dead
+// original's id or time would misdirect undo and progress.
+export const anchorHistoryDownloadStartTime = (
+  id: string | null | undefined,
+  downloadId: number,
+  startTime: string,
+) =>
+  patchHistoryEntry(id, (entry) =>
+    entry.downloadId === downloadId && entry.downloadStartTime == null
+      ? { downloadStartTime: startTime }
+      : {},
+  );
 
 export const getHistoryEntries = async (): Promise<HistoryEntry[]> => {
   // Reads requested by the options page must observe every write that was

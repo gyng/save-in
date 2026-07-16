@@ -200,6 +200,56 @@ describe("SaveHistory", () => {
     });
   });
 
+  test("anchorStartTime applies only to an unanchored entry still on its download", async () => {
+    const id = SaveHistory.addHistoryEntry({ url: "https://a/1" });
+    await flushWrites();
+    SaveHistory.setHistoryDownloadId(id, 7);
+    await flushWrites();
+
+    SaveHistory.anchorHistoryDownloadStartTime(id, 7, "2026-07-17T01:02:03.000Z");
+    await flushWrites();
+
+    expect(store[HISTORY_KEY]![0]!).toMatchObject({
+      downloadId: 7,
+      downloadStartTime: "2026-07-17T01:02:03.000Z",
+    });
+  });
+
+  test("anchorStartTime never repoints an entry a retry has rebound", async () => {
+    const id = SaveHistory.addHistoryEntry({ url: "https://a/1" });
+    await flushWrites();
+    // The fetch retry rebound the entry to the replacement download before
+    // the launch path's late backfill for the dead original landed.
+    SaveHistory.setHistoryDownloadId(id, 8, "2026-07-18T09:08:07.000Z");
+    await flushWrites();
+
+    SaveHistory.anchorHistoryDownloadStartTime(id, 7, "2026-07-17T01:02:03.000Z");
+    await flushWrites();
+
+    expect(store[HISTORY_KEY]![0]!).toMatchObject({
+      downloadId: 8,
+      downloadStartTime: "2026-07-18T09:08:07.000Z",
+    });
+  });
+
+  test("anchorStartTime does not overwrite an anchor the event path captured", async () => {
+    const id = SaveHistory.addHistoryEntry({ url: "https://a/1" });
+    await flushWrites();
+    SaveHistory.setHistoryDownloadId(id, 7, "2026-07-17T01:02:03.000Z");
+    await flushWrites();
+    const writes = vi.mocked(global.browser.storage.local.set).mock.calls.length;
+
+    SaveHistory.anchorHistoryDownloadStartTime(id, 7, "2026-07-17T09:09:09.000Z");
+    await flushWrites();
+
+    // The guarded no-op must also skip the storage write entirely: bulk
+    // automatic saves would otherwise double history churn for nothing.
+    expect(store[HISTORY_KEY]![0]!).toMatchObject({
+      downloadStartTime: "2026-07-17T01:02:03.000Z",
+    });
+    expect(vi.mocked(global.browser.storage.local.set).mock.calls.length).toBe(writes);
+  });
+
   test("get returns the entry list", async () => {
     store[HISTORY_KEY] = [{ url: "https://a/1" }];
     await expect(SaveHistory.getHistoryEntries()).resolves.toEqual([{ url: "https://a/1" }]);

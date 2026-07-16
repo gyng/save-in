@@ -10,6 +10,7 @@ import { configureRoutingPorts } from "../routing/ports.ts";
 import { nextCounter, nextPrivateCounter, peekCounter } from "./counter.ts";
 import {
   addHistoryEntry,
+  anchorHistoryDownloadStartTime,
   getHistoryEntries,
   patchHistoryEntry,
   setHistoryDownloadId,
@@ -28,6 +29,7 @@ export const configureBackgroundPorts = () => {
       setDownloadId: setHistoryDownloadId,
       setStatus: setHistoryStatus,
       entries: getHistoryEntries,
+      anchorStartTime: anchorHistoryDownloadStartTime,
     },
     log: { add: addLogEntry },
     retry: retryViaFetch,

@@ -130,6 +130,24 @@ describe("undo on the success notification", () => {
     expect(global.browser.downloads.erase).not.toHaveBeenCalled();
   });
 
+  test("an empty created-event filename falls through to the routed name", async () => {
+    const history = await import("../../../src/background/history.ts");
+    vi.spyOn(history, "setHistoryStatus").mockResolvedValue(undefined);
+    // Chrome's onDownloadCreated merges item.filename, which is "" at
+    // creation; the routed record.filename must still count as evidence.
+    sessionStore.siDownloads = {
+      7: { adopted: true, historyEntryId: "h-undo", currentFilename: "", filename: "pic.png" },
+    };
+    vi.mocked(global.browser.downloads.search).mockResolvedValue([
+      { id: 7, filename: "/dl/pic.png" } as never,
+    ]);
+
+    await onButtonClicked("7", 0);
+
+    expect(global.browser.downloads.removeFile).toHaveBeenCalledWith(7);
+    expect(history.setHistoryStatus).toHaveBeenCalledWith("h-undo", "undone", 7);
+  });
+
   test("a lost session record falls back to the history entry and marks it", async () => {
     const history = await import("../../../src/background/history.ts");
     vi.spyOn(history, "setHistoryStatus").mockResolvedValue(undefined);

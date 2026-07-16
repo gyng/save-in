@@ -102,7 +102,7 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
     // never blocked behind the search round-trip.
     expect(SaveHistory.setHistoryDownloadId).toHaveBeenCalledWith("h-test", 202);
     await vi.waitFor(() =>
-      expect(SaveHistory.setHistoryDownloadId).toHaveBeenCalledWith(
+      expect(SaveHistory.anchorHistoryDownloadStartTime).toHaveBeenCalledWith(
         "h-test",
         202,
         "2026-07-17T04:05:06.000Z",

@@ -153,7 +153,11 @@ export const retryViaFetch = async (
       // persisted by rememberStartedDownload below. A different-id bind
       // without a time clears the dead original's stale anchor.
       void downloadPorts.history.setDownloadId(record.historyEntryId, newId).catch(() => {});
-      backfillDownloadStartTime(record.historyEntryId, newId, downloadPorts.history.setDownloadId);
+      backfillDownloadStartTime(
+        record.historyEntryId,
+        newId,
+        downloadPorts.history.anchorStartTime,
+      );
     }
     await rememberStartedDownload(
       newId,

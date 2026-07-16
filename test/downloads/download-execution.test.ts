@@ -898,6 +898,8 @@ describe("concurrent downloads (pendingStates)", () => {
         setStatus: (...a: Parameters<typeof freshHistory.setHistoryStatus>) =>
           freshHistory.setHistoryStatus(...a),
         entries: () => freshHistory.getHistoryEntries(),
+        anchorStartTime: (...a: Parameters<typeof freshHistory.anchorHistoryDownloadStartTime>) =>
+          freshHistory.anchorHistoryDownloadStartTime(...a),
       },
       log: {
         add: (...args: Parameters<typeof freshLog.addLogEntry>) => freshLog.addLogEntry(...args),

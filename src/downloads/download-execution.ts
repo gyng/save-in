@@ -280,7 +280,7 @@ export const executeBrowserDownload = async (
       // one already captured. The event path can lose its race against
       // cancelExpectedDownload, so the anchor is backfilled off the hot path.
       await historyPort.setDownloadId(historyEntryId, downloadId);
-      backfillDownloadStartTime(historyEntryId, downloadId, historyPort.setDownloadId);
+      backfillDownloadStartTime(historyEntryId, downloadId, historyPort.anchorStartTime);
     }
     if (signal?.aborted) {
       await webExtensionApi.downloads.cancel(downloadId).catch(() => {});

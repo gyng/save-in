@@ -66,6 +66,7 @@ const loadNotification = async () => {
       setDownloadId: (...a: unknown[]) => SaveHistory.setHistoryDownloadId(...a),
       setStatus: (...a: unknown[]) => SaveHistory.setHistoryStatus(...a),
       entries: () => SaveHistory.getHistoryEntries(),
+      anchorStartTime: (...a: unknown[]) => SaveHistory.anchorHistoryDownloadStartTime(...a),
     },
     log: { add: (...args: unknown[]) => Log.addLogEntry(...args) },
     retry: (downloadId) => retryHolder.retry(downloadId),

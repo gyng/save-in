@@ -152,6 +152,8 @@ beforeEach(() => {
       setStatus: (...a: Parameters<typeof SaveHistory.setHistoryStatus>) =>
         SaveHistory.setHistoryStatus(...a),
       entries: () => SaveHistory.getHistoryEntries(),
+      anchorStartTime: (...a: Parameters<typeof SaveHistory.anchorHistoryDownloadStartTime>) =>
+        SaveHistory.anchorHistoryDownloadStartTime(...a),
     },
     log: { add: (...args: Parameters<typeof Log.addLogEntry>) => Log.addLogEntry(...args) },
     retry: Download.retryViaFetch,
@@ -224,6 +226,9 @@ beforeEach(() => {
   vi.spyOn(SaveHistory, "patchHistoryEntry").mockImplementation(() => Promise.resolve());
   vi.spyOn(SaveHistory, "setHistoryDownloadId").mockImplementation(() => Promise.resolve());
   vi.spyOn(SaveHistory, "setHistoryStatus").mockImplementation(() => Promise.resolve());
+  vi.spyOn(SaveHistory, "anchorHistoryDownloadStartTime").mockImplementation(() =>
+    Promise.resolve(),
+  );
   vi.spyOn(Log, "addLogEntry").mockImplementation(() => Promise.resolve());
 
   // Reset the emit stub between tests (it is a mock-factory vi.fn, not a spy)
