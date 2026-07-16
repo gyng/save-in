@@ -371,7 +371,7 @@ test("background event page initialises cleanly", async () => {
     accessKeys: true,
     downloadFilenameSuggestion: false,
     downloadDeltaFilename: false,
-    conflictActionPrompt: true,
+    conflictActionPrompt: false,
     downloadRequestHeaders: true,
   });
   expect(state.promptConflictAction).toBe("prompt");

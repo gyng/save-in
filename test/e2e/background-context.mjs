@@ -154,7 +154,7 @@ const installBackgroundHelpers = (codecs = createProtocolCodecs()) => {
           accessKeys: true,
           downloadFilenameSuggestion: Boolean(chromeApi?.downloads?.onDeterminingFilename),
           downloadDeltaFilename: !firefox,
-          conflictActionPrompt: firefox,
+          conflictActionPrompt: !firefox,
           downloadRequestHeaders: firefox,
         },
         promptConflictAction: firefox ? "prompt" : "uniquify",

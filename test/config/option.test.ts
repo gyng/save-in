@@ -41,7 +41,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock("../../src/platform/chrome-detector.ts", () => ({
   BROWSERS: { CHROME: "CHROME", FIREFOX: "FIREFOX", UNKNOWN: "UNKNOWN" },
   get WEB_EXTENSION_CAPABILITIES() {
-    return { conflictActionPrompt: mocks.currentBrowser === "FIREFOX" };
+    return { conflictActionPrompt: mocks.currentBrowser === "CHROME" };
   },
 }));
 vi.mock("../../src/routing/router.ts", () => mocks.router);
@@ -273,14 +273,17 @@ describe("OptionsManagement", () => {
     const conflictKey = () =>
       OptionsManagement.OPTION_KEYS.find((k) => k.name === "conflictAction")! as LoadKey;
 
-    test("downgrades the Firefox-only 'prompt' to 'uniquify' on Chrome", () => {
-      mocks.currentBrowser = "CHROME";
+    // Firefox never implemented the "prompt" conflict action and fails the
+    // download outright, which is what #89/#217 reported; Chrome has had it
+    // since 28. An imported profile must not carry prompt onto Firefox.
+    test("downgrades the Chrome-only 'prompt' to 'uniquify' on Firefox", () => {
+      mocks.currentBrowser = "FIREFOX";
       expect(conflictKey().onLoad("prompt")).toBe("uniquify");
       expect(conflictKey().onLoad("overwrite")).toBe("overwrite");
     });
 
-    test("keeps 'prompt' on Firefox", () => {
-      mocks.currentBrowser = "FIREFOX";
+    test("keeps 'prompt' on Chrome", () => {
+      mocks.currentBrowser = "CHROME";
       expect(conflictKey().onLoad("prompt")).toBe("prompt");
     });
   });

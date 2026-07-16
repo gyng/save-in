@@ -509,7 +509,7 @@ test("service worker initialises cleanly", async () => {
     accessKeys: true,
     downloadFilenameSuggestion: true,
     downloadDeltaFilename: true,
-    conflictActionPrompt: false,
+    conflictActionPrompt: true,
     downloadRequestHeaders: false,
   });
   expect(state.promptConflictAction).toBe("uniquify");

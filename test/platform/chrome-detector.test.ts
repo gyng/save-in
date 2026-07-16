@@ -17,11 +17,11 @@ describe("detectCapabilities", () => {
   test("normalizes browser-specific download semantics", () => {
     expect(detectCapabilities(BROWSERS.CHROME)).toMatchObject({
       downloadDeltaFilename: true,
-      conflictActionPrompt: false,
+      conflictActionPrompt: true,
     });
     expect(detectCapabilities(BROWSERS.FIREFOX)).toMatchObject({
       downloadDeltaFilename: false,
-      conflictActionPrompt: true,
+      conflictActionPrompt: false,
     });
   });
 

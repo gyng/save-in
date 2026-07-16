@@ -56,7 +56,7 @@ rules.
   extension context. “Always download through Save In” is now available on
   Chrome as well as Firefox.
 - Waterfox and other Gecko forks are detected as Firefox (#186).
-- Downgraded the Firefox-only conflict action on Chrome, where it could break
+- Downgraded the Chrome-only conflict action on Firefox, where it could break
   downloads (#89, #217). Fresh installs also show “Downloads” instead of “.”
   for the default destination (#213).
 

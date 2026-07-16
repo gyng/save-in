@@ -124,7 +124,8 @@ export const OPTION_KEYS = defineOptions([
   {
     name: "conflictAction",
     type: OPTION_TYPES.VALUE,
-    // Imported profiles can contain Firefox's prompt mode on Chrome.
+    // Imported profiles can carry Chrome's prompt mode onto Firefox, where it
+    // fails the download instead of asking (#89, #217).
     onLoad: (v: ConflictAction) =>
       v === CONFLICT_ACTION.PROMPT && !WEB_EXTENSION_CAPABILITIES.conflictActionPrompt
         ? CONFLICT_ACTION.UNIQUIFY

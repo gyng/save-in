@@ -51,7 +51,10 @@ export const detectCapabilities = (currentBrowser: string): WebExtensionCapabili
   // Chrome supplies the final filename through DownloadDelta; Firefox includes
   // it in the initial DownloadItem.
   downloadDeltaFilename: currentBrowser === BROWSERS.CHROME,
-  conflictActionPrompt: currentBrowser === BROWSERS.FIREFOX,
+  // Chrome has supported the "prompt" conflict action since 28; Firefox has
+  // never implemented it and fails the download outright, which is what #89
+  // and #217 reported. The schema downgrades an imported prompt on Firefox.
+  conflictActionPrompt: currentBrowser === BROWSERS.CHROME,
   // Chrome rejects Referer in downloads.DownloadOptions as an unsafe header.
   downloadRequestHeaders: currentBrowser === BROWSERS.FIREFOX,
   // Firefox's notifications.create rejects the buttons property outright
