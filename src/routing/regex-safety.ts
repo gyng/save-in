@@ -6,9 +6,6 @@ type RegexGroupState = {
   start: number;
 };
 
-const lastGroup = (groups: RegexGroupState[]): RegexGroupState =>
-  Reflect.get(groups, groups.length - 1) as RegexGroupState;
-
 const repeatingQuantifierAt = (source: string, index: number): boolean => {
   const token = source[index];
   if (token === "*" || token === "+") return true;
@@ -26,7 +23,8 @@ const trailingDelimiterIsExcluded = (body: string): boolean => {
   const tail = /(?:\[\^([^\]]*)\]|\\([dws]))(?:[+*]|\{[^}]+\})(\\.|[^\\()[\]{}?+*|^$])$/.exec(body);
   if (!tail) return false;
   // The final regex group is mandatory whenever the expression matches.
-  const rawDelimiter = tail[3] as string;
+  const rawDelimiter = tail[3];
+  if (rawDelimiter === undefined) return false;
   const delimiter = rawDelimiter.startsWith("\\") ? rawDelimiter.slice(1) : rawDelimiter;
   if (delimiter.length !== 1 || /[dDsSwWbB]/.test(rawDelimiter.slice(1))) return false;
   const excluded = tail[1];
@@ -47,7 +45,11 @@ export const isSafeRoutingRegex = (regex: RegExp | string): boolean => {
   const { source } = regex;
   if (source.length > MAX_ROUTING_REGEX_CHARACTERS) return false;
 
-  const groups: RegexGroupState[] = [{ hasAlternation: false, hasQuantifier: false, start: -1 }];
+  // The scanned group is held live rather than read back off the stack, so the
+  // root group cannot be popped and every read is a defined value by
+  // construction. An unbalanced ")" leaves `parents` empty and is ignored.
+  let current: RegexGroupState = { hasAlternation: false, hasQuantifier: false, start: -1 };
+  const parents: RegexGroupState[] = [];
   let inCharacterClass = false;
   for (let index = 0; index < source.length; index += 1) {
     const token = source.charAt(index);
@@ -74,12 +76,15 @@ export const isSafeRoutingRegex = (regex: RegExp | string): boolean => {
     if (inCharacterClass) continue;
 
     if (token === "(") {
-      groups.push({ hasAlternation: false, hasQuantifier: false, start: index });
+      parents.push(current);
+      current = { hasAlternation: false, hasQuantifier: false, start: index };
       continue;
     }
-    if (token === ")" && groups.length > 1) {
-      const group = lastGroup(groups);
-      groups.pop();
+    if (token === ")") {
+      const parent = parents.pop();
+      if (!parent) continue;
+      const group = current;
+      current = parent;
       const repeated = repeatingQuantifierAt(source, index + 1);
       if (
         repeated &&
@@ -89,12 +94,10 @@ export const isSafeRoutingRegex = (regex: RegExp | string): boolean => {
       ) {
         return false;
       }
-      const parent = lastGroup(groups);
       parent.hasAlternation ||= group.hasAlternation;
       parent.hasQuantifier ||= group.hasQuantifier || repeated;
       continue;
     }
-    const current = lastGroup(groups);
     if (token === "|") {
       current.hasAlternation = true;
       continue;
