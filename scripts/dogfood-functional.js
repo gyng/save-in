@@ -6,6 +6,7 @@
 
 const fs = require("node:fs");
 const http = require("node:http");
+const os = require("node:os");
 const path = require("node:path");
 const readline = require("node:readline");
 const { performance } = require("node:perf_hooks");
@@ -16,6 +17,8 @@ const { terminateProcessTree } = require("./lib/process-tree");
 
 const OPTIONS_TARGET = "src/options/options.html";
 const PROFILE = path.join(chrome.ROOT, "dist", "dogfood-profile");
+const PROMPT_PROFILE =
+  process.env.SAVE_IN_PROMPT_PROFILE || path.join(os.homedir(), ".cache", "save-in-nano-profile");
 const ARTIFACTS = path.join(chrome.ROOT, "dist", "dogfood-artifacts");
 const REPORT_FILE = path.join(ARTIFACTS, "functional-latest.json");
 const FAILURE_FILE = path.join(ARTIFACTS, "functional-failure.json");
@@ -23,7 +26,7 @@ const FAILURE_SCREENSHOT = path.join(ARTIFACTS, "functional-failure.png");
 const WATCH_DIRECTORIES = ["src", "icons", "_locales"];
 const WATCH_FILES = ["manifest.json", "config/rolldown.config.mjs"];
 
-/** @typedef {{watch: boolean, headed: boolean, stage: boolean, requireWebMcp: boolean}} DogfoodArgs */
+/** @typedef {{watch: boolean, headed: boolean, stage: boolean, requireWebMcp: boolean, requirePromptApi: boolean}} DogfoodArgs */
 /** @typedef {{name: string, ok: boolean, durationMs: number, details?: unknown, error?: string}} DogfoodCheck */
 /**
  * @typedef {{
@@ -39,7 +42,13 @@ const WATCH_FILES = ["manifest.json", "config/rolldown.config.mjs"];
 
 /** @param {string[]} argv @returns {DogfoodArgs} */
 const parseArgs = (argv) => {
-  const known = new Set(["--watch", "--headed", "--no-stage", "--allow-no-webmcp"]);
+  const known = new Set([
+    "--watch",
+    "--headed",
+    "--no-stage",
+    "--allow-no-webmcp",
+    "--allow-no-prompt-api",
+  ]);
   const unknown = argv.filter((argument) => argument.startsWith("--") && !known.has(argument));
   if (unknown.length) throw new Error(`Unknown dogfood option: ${unknown.join(", ")}`);
   return {
@@ -47,6 +56,21 @@ const parseArgs = (argv) => {
     headed: argv.includes("--headed"),
     stage: !argv.includes("--no-stage"),
     requireWebMcp: !argv.includes("--allow-no-webmcp"),
+    requirePromptApi: !argv.includes("--allow-no-prompt-api"),
+  };
+};
+
+/**
+ * @param {boolean} headed
+ * @param {string} promptProfile
+ * @param {(profile: string) => boolean} [profileExists]
+ */
+const selectDogfoodProfile = (headed, promptProfile, profileExists = fs.existsSync) => {
+  const preserve = headed && profileExists(promptProfile);
+  return {
+    profileDir: preserve ? promptProfile : PROFILE,
+    preserve,
+    enableGpu: preserve,
   };
 };
 
@@ -200,6 +224,54 @@ const waitForOptions = async (session) => {
     "initialized options page",
     15_000,
   );
+};
+
+/**
+ * @param {{port: number}} session
+ * @param {boolean} required
+ */
+const checkPromptApi = async (session, required) => {
+  try {
+    const result = /** @type {{availability: string, output?: string}} */ (
+      await cdp.callFunctionInTarget(
+        session.port,
+        OPTIONS_TARGET,
+        `async function () {
+          if (typeof LanguageModel === "undefined") return {availability: "missing"};
+          let availability = await LanguageModel.availability();
+          const deadline = Date.now() + 60_000;
+          while (availability === "downloading" && Date.now() < deadline) {
+            await new Promise((resolve) => setTimeout(resolve, 1_000));
+            availability = await LanguageModel.availability();
+          }
+          if (availability !== "available") return {availability};
+          const session = await LanguageModel.create();
+          try {
+            return {
+              availability,
+              output: await session.prompt(
+                "Reply with a short confirmation that local Save In assistance is ready.",
+              ),
+            };
+          } finally {
+            session.destroy();
+          }
+        }`,
+        [],
+        180_000,
+      )
+    );
+    if (result.availability !== "available" || !result.output?.trim()) {
+      if (required) {
+        throw new Error(`Expected a Prompt API completion, received: ${result.availability}`);
+      }
+      return { ...result, required };
+    }
+    return { ...result, output: result.output.slice(0, 240), required };
+  } catch (error) {
+    if (required) throw error;
+    return { availability: "failed", error: String(error), required };
+  }
 };
 
 /** @param {DogfoodReport} report @param {string} name @param {() => Promise<unknown>} operation */
@@ -500,8 +572,9 @@ const checkWorkerRecovery = async (session) => {
  * @param {Record<string, unknown>} baseline
  * @param {{stageMs?: number, launchMs?: number}} timings
  * @param {boolean} requireWebMcp
+ * @param {{headed: boolean, requirePromptApi: boolean}} promptApi
  */
-const runRound = async (session, baseline, timings, requireWebMcp) => {
+const runRound = async (session, baseline, timings, requireWebMcp, promptApi) => {
   const started = performance.now();
   /** @type {DogfoodReport} */
   const report = {
@@ -530,6 +603,12 @@ const runRound = async (session, baseline, timings, requireWebMcp) => {
     }
     return { status: report.webmcp, required: requireWebMcp };
   });
+
+  await runCheck(report, "on-device Prompt API inference", () =>
+    promptApi.headed
+      ? checkPromptApi(session, promptApi.requirePromptApi)
+      : Promise.resolve({ availability: "skipped-headless", required: false }),
+  );
 
   await runCheck(report, "optimistic configuration conflict", () =>
     checkOptimisticConfiguration(session),
@@ -629,9 +708,18 @@ const main = async (args) => {
   }
 
   const launchStart = performance.now();
+  const selectedProfile = selectDogfoodProfile(args.headed, PROMPT_PROFILE);
+  const selectedDownloads = selectedProfile.preserve
+    ? path.join(selectedProfile.profileDir, "downloads")
+    : undefined;
+  if (selectedDownloads) fs.mkdirSync(selectedDownloads, { recursive: true });
   const session = await chrome.launch({
-    profileDir: PROFILE,
+    profileDir: selectedProfile.profileDir,
+    ...(selectedDownloads ? { downloadDir: selectedDownloads } : {}),
     extensionDir: chrome.DIST,
+    fresh: !selectedProfile.preserve,
+    preserveProfile: selectedProfile.preserve,
+    enableGpu: selectedProfile.enableGpu,
   });
   if (!session.downloadDir)
     throw new Error("Chrome did not provide an isolated download directory");
@@ -693,9 +781,11 @@ const main = async (args) => {
       detached: process.platform !== "win32",
       graceMs: 1_000,
     });
-    await chrome.removeProfile(session.profileDir);
+    if (!selectedProfile.preserve) await chrome.removeProfile(session.profileDir);
     process.stdout.write(
-      `Cleaned isolated browser in ${milliseconds(performance.now() - cleanupStart)}\n`,
+      `${selectedProfile.preserve ? "Stopped preserved-profile" : "Cleaned isolated"} browser in ${milliseconds(
+        performance.now() - cleanupStart,
+      )}\n`,
     );
   };
   const requestStop = () => {
@@ -717,7 +807,10 @@ const main = async (args) => {
     running = true;
     try {
       if (rebuild) await reloadStagedExtension(session);
-      const report = await runRound(functionalSession, baseline, timings, args.requireWebMcp);
+      const report = await runRound(functionalSession, baseline, timings, args.requireWebMcp, {
+        headed: args.headed,
+        requirePromptApi: args.requirePromptApi,
+      });
       if (report.failures) await captureFailureArtifacts(session, report);
       if (!args.watch && report.failures) process.exitCode = 1;
     } catch (error) {
@@ -783,4 +876,4 @@ if (require.main === module) {
   }
 }
 
-module.exports = { milliseconds, parseArgs };
+module.exports = { milliseconds, parseArgs, selectDogfoodProfile };

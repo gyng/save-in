@@ -229,7 +229,10 @@ browsers before reporting it as confirmed.
   smoke round. Use `dogfood:functional:watch` to keep Chrome alive, rebuild and
   reload after source changes, or press Enter to rerun the same build immediately.
   Pass `-- --no-stage` to reuse the current bundle or `-- --headed` to inspect
-  the browser. Reports and failure artifacts are written under
+  the browser. A headed run reuses and preserves `SAVE_IN_PROMPT_PROFILE` (or
+  `~/.cache/save-in-nano-profile` when present) for its on-device Prompt API
+  check; pass `--allow-no-prompt-api` to record an unavailable or failed model
+  without failing the round. Reports and failure artifacts are written under
   `dist/dogfood-artifacts`.
 - `npm run d:chrome` and `npm run d`: auto-rebuilding Chrome and Firefox dev
   loops.

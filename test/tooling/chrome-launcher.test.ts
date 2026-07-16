@@ -14,6 +14,7 @@ const { buildOutputForMode, chromeArgs, findChrome, parseChromeMajorVersion, rem
       headless?: boolean,
       noSandbox?: boolean,
       legacyExtensionDir?: string,
+      disableGpu?: boolean,
     ) => string[];
     findChrome: () => string;
     parseChromeMajorVersion: (version: string) => number;
@@ -52,6 +53,12 @@ describe("isolated Chrome launcher", () => {
   test("adds headless mode only when requested", () => {
     expect(chromeArgs("profile", 9555, true)).toContain("--headless=new");
     expect(chromeArgs("profile", 9555, false)).not.toContain("--headless=new");
+  });
+
+  test("allows a persistent inference profile to keep GPU acceleration", () => {
+    expect(chromeArgs("profile", 9555, false, false, undefined, false)).not.toContain(
+      "--disable-gpu",
+    );
   });
 
   test("finds a per-user Chrome installation through PATH", () => {

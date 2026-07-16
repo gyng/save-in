@@ -19,6 +19,9 @@ import {
   fetchFollowingRedirects,
 } from "../shared/redirect-fetch.ts";
 import { readResponseContent } from "../shared/streaming-content.ts";
+import { isOffscreenPromptRequest } from "../shared/prompt-message-types.ts";
+import type { OffscreenPromptResponse } from "../shared/prompt-message-types.ts";
+import { runPrompt } from "../platform/prompt-api.ts";
 
 const activeFetches = new Map<string, AbortController>();
 const blobUrls = new Map<string, string>();
@@ -47,7 +50,9 @@ chrome.runtime.onMessage.addListener(
   (
     message: unknown,
     _sender: chrome.runtime.MessageSender,
-    sendResponse: (response: OffscreenFetchResponse | { canceled: boolean }) => void,
+    sendResponse: (
+      response: OffscreenFetchResponse | OffscreenPromptResponse | { canceled: boolean },
+    ) => void,
   ) => {
     if (isOffscreenFetchCancelRequest(message)) {
       const controller = activeFetches.get(message.requestId);
@@ -58,6 +63,13 @@ chrome.runtime.onMessage.addListener(
     if (isOffscreenBlobReleaseRequest(message)) {
       sendResponse({ canceled: releaseBlob(message.requestId) });
       return false;
+    }
+    if (isOffscreenPromptRequest(message)) {
+      runPrompt(message.input).then(
+        (output) => sendResponse({ output }),
+        (error: unknown) => sendResponse({ error: String(error) }),
+      );
+      return true;
     }
     if (!isOffscreenFetchRequest(message)) {
       return false;

@@ -24,6 +24,50 @@ const dispatchFetch = async (requestId: string): Promise<ReturnType<typeof vi.fn
   return sendResponse;
 };
 
+const dispatchPrompt = async (input: string): Promise<ReturnType<typeof vi.fn>> => {
+  const sendResponse = vi.fn();
+  const handled = capturedListener()(
+    { type: "OFFSCREEN_PROMPT", input },
+    {} as chrome.runtime.MessageSender,
+    sendResponse,
+  );
+  expect(handled).toBe(true);
+  await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+  return sendResponse;
+};
+
+afterEach(() => Reflect.deleteProperty(globalThis, "LanguageModel"));
+
+test("runs document-only prompts and destroys the session", async () => {
+  const destroy = vi.fn();
+  Reflect.set(globalThis, "LanguageModel", {
+    availability: vi.fn(async () => "available"),
+    create: vi.fn(async () => ({
+      prompt: vi.fn(async () => "into: suggested/"),
+      destroy,
+    })),
+  });
+
+  const sendResponse = await dispatchPrompt("Suggest a rule");
+
+  expect(sendResponse).toHaveBeenCalledWith({ output: "into: suggested/" });
+  expect(destroy).toHaveBeenCalledOnce();
+});
+
+test("reports unavailable and failed prompts without escaping the listener", async () => {
+  const unavailable = await dispatchPrompt("Suggest a rule");
+  expect(unavailable).toHaveBeenCalledWith({ output: null });
+
+  Reflect.set(globalThis, "LanguageModel", {
+    availability: vi.fn(async () => "available"),
+    create: vi.fn(async () => {
+      throw new DOMException("session destroyed", "InvalidStateError");
+    }),
+  });
+  const failed = await dispatchPrompt("Suggest another rule");
+  expect(failed).toHaveBeenCalledWith({ error: "InvalidStateError: session destroyed" });
+});
+
 test("reports HTTP failure status and final URL for Referer extension", async () => {
   const failed = new Response("denied", { status: 403 });
   Object.defineProperty(failed, "url", { value: "https://s3.example/file?sig=1" });

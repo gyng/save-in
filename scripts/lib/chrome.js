@@ -153,13 +153,14 @@ const makeProfile = (baseProfileDir, downloadDir, unique = false) => {
   return { profileDir, downloadDir: downloads };
 };
 
-/** @param {string} profileDir @param {number} port @param {boolean} [headless] @param {boolean} [noSandbox] @param {string} [legacyExtensionDir] */
+/** @param {string} profileDir @param {number} port @param {boolean} [headless] @param {boolean} [noSandbox] @param {string} [legacyExtensionDir] @param {boolean} [disableGpu] */
 const chromeArgs = (
   profileDir,
   port,
   headless = false,
   noSandbox = false,
   legacyExtensionDir = undefined,
+  disableGpu = true,
 ) => {
   const args = [
     `--user-data-dir=${profileDir}`,
@@ -168,10 +169,10 @@ const chromeArgs = (
     "--no-first-run",
     "--no-default-browser-check",
     "--disable-background-networking",
-    // Disposable E2E profiles do not need GPU acceleration. Avoid persistent
-    // GPU cache locks crashing a subsequent isolated Chrome before CDP opens.
-    "--disable-gpu",
   ];
+  // Disposable E2E profiles do not need GPU acceleration. Avoid persistent
+  // GPU cache locks crashing a subsequent isolated Chrome before CDP opens.
+  if (disableGpu) args.push("--disable-gpu");
   // An outer automation sandbox can deny Chrome's own Windows sandbox token,
   // crashing the GPU helper with 0xC0000022. Keep normal local/CI runs
   // sandboxed; CODEX_SHELL or the explicit override opts into nesting support.
@@ -208,13 +209,15 @@ const startupError = (error, proc, logPath) => {
   );
 };
 
-/** @param {{port?: number, profileDir: string, downloadDir?: string, extensionDir?: string, fresh?: boolean}} settings */
+/** @param {{port?: number, profileDir: string, downloadDir?: string, extensionDir?: string, fresh?: boolean, preserveProfile?: boolean, enableGpu?: boolean}} settings */
 const launch = async ({
   port: requestedPort = undefined,
   profileDir,
   downloadDir = undefined,
   extensionDir = DIST,
   fresh = true,
+  preserveProfile = false,
+  enableGpu = false,
 }) => {
   let resolvedProfile = profileDir;
   let resolvedDownloads = downloadDir;
@@ -242,6 +245,7 @@ const launch = async ({
     Boolean(process.env.HEADLESS),
     Boolean(process.env.CODEX_SHELL || process.env.CHROME_E2E_NO_SANDBOX),
     legacyExtensionDir,
+    !enableGpu,
   );
   fs.mkdirSync(ARTIFACTS, { recursive: true });
   const logPath = path.join(ARTIFACTS, `chrome-${port}.log`);
@@ -288,6 +292,7 @@ const launch = async ({
     // and eventually fail for unrelated resource/port reasons.
     await killTree(proc);
     const failure = startupError(error, proc, logPath);
+    if (preserveProfile) throw failure;
     try {
       await removeProfile(resolvedProfile);
     } catch (cleanupError) {
