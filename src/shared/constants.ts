@@ -177,7 +177,7 @@ export type ClickType = (typeof CLICK_TYPES)[keyof typeof CLICK_TYPES];
 
 // Characters invalid in a filename/path segment (Windows as the lowest common
 // denominator). One source of truth for Path's sanitizer and the option schema's
-// replacementChar validator (#221). No flags — callers add `g` where needed.
+// replacementChar validator. No flags — callers add `g` where needed.
 // eslint-disable-next-line no-control-regex -- control chars \x00-\x1f are intentionally forbidden
 export const FORBIDDEN_FILENAME_CHARS = /[<>:"/\\|?*\x00-\x1f]/;
 

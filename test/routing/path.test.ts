@@ -24,7 +24,7 @@ describe("sanitisation", () => {
 
   test("control characters", () => {
     // :pagetitle:/selection text can carry raw newlines/tabs that Windows
-    // filenames can't contain (GH #221)
+    // filenames can't contain
     expect(Path.replaceFsBadChars("a\tb\nc\rd\x01e\x1ff\x00g")).toBe("a_b_c_d_e_f_g");
   });
 

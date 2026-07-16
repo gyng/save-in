@@ -288,7 +288,7 @@ describe("OptionsManagement", () => {
     });
   });
 
-  describe("replacementChar validation (#221)", () => {
+  describe("replacementChar validation", () => {
     const replacementCharKey = () =>
       OptionsManagement.OPTION_KEYS.find((k) => k.name === "replacementChar")! as LoadKey;
 
@@ -694,7 +694,7 @@ describe("OptionsManagement", () => {
       );
     });
 
-    test("sanitizes a forbidden stored replacementChar (#221)", async () => {
+    test("sanitizes a forbidden stored replacementChar", async () => {
       global.browser.storage.local.get = vi.fn(() => Promise.resolve({ replacementChar: "/" }));
       const resolved = await OptionsManagement.loadOptions();
       expect(resolved.replacementChar).toBe("_");
