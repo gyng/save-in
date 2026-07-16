@@ -3842,6 +3842,12 @@
   "ruleTemplateYoutubeMaxResDescription": {
     "message": "YouTube 썸네일 링크를 최대 해상도 이미지로 재작성합니다"
   },
+  "ruleTemplatePixivOriginalName": {
+    "message": "Pixiv 원본 화질 이미지"
+  },
+  "ruleTemplatePixivOriginalDescription": {
+    "message": "Pixiv 미리보기 이미지를 전체 해상도 원본 파일로 재작성합니다 (i.pximg.net에 대해 Referer 옵션을 켜야 합니다)"
+  },
   "ruleTemplateYoutubeMaxResName": {
     "message": "YouTube 썸네일 최대 해상도"
   },

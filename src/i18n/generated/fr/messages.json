@@ -3842,6 +3842,12 @@
   "ruleTemplateYoutubeMaxResDescription": {
     "message": "Réécrit les liens de vignettes YouTube vers l’image en résolution maximale"
   },
+  "ruleTemplatePixivOriginalName": {
+    "message": "Image Pixiv en qualité originale"
+  },
+  "ruleTemplatePixivOriginalDescription": {
+    "message": "Réécrit une image d’aperçu Pixiv vers le fichier original en pleine résolution (nécessite l’option Referer activée pour i.pximg.net)"
+  },
   "ruleTemplateYoutubeMaxResName": {
     "message": "Vignette YouTube en résolution maximale"
   },

@@ -439,6 +439,26 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     },
   },
   {
+    category: "Site originals",
+    name: "Pixiv original-quality image",
+    description:
+      "Rewrites a Pixiv preview image to the full-resolution original file (needs the Referer option on for i.pximg.net)",
+    example: "Example: pixiv/74391008_p0.jpg",
+    // Pixiv's img-master preview is always JPEG, but the original keeps its
+    // uploaded extension, so the fetch line assumes .jpg — change it for a PNG
+    // or GIF work. i.pximg.net serves nothing without a pixiv.net Referer, so
+    // this needs the Referer option enabled for *://i.pximg.net/* (#66).
+    rule: "sourceurl: ^https://i\\.pximg\\.net/img-master/img/(.+)/(\\d+_p\\d+)_master1200\\.(\\w+)\ncapturegroups: sourceurl\nfetch: https://i.pximg.net/img-original/img/:$1:/:$2:.jpg\ninto: pixiv/:$2:.:$3:",
+    proof: {
+      info: {
+        sourceUrl:
+          "https://i.pximg.net/img-master/img/2019/04/26/22/08/07/74391008_p0_master1200.jpg",
+      },
+      destination: "pixiv/74391008_p0.jpg",
+      fetch: "https://i.pximg.net/img-original/img/2019/04/26/22/08/07/74391008_p0.jpg",
+    },
+  },
+  {
     category: "Site filing",
     name: "Twitter/X handle prefix",
     description: "Prefixes saved files with the Twitter or X handle from the page URL",
@@ -807,6 +827,15 @@ export const localizeRuleTemplates = (getMessage: GetMessage): LocalizedRuleTemp
         description:
           getMessage("ruleTemplateYoutubeMaxResDescription") ||
           "Rewrites YouTube thumbnail links to the maximum-resolution image",
+      },
+    ],
+    [
+      "Pixiv original-quality image",
+      {
+        name: getMessage("ruleTemplatePixivOriginalName") || "Pixiv original-quality image",
+        description:
+          getMessage("ruleTemplatePixivOriginalDescription") ||
+          "Rewrites a Pixiv preview image to the full-resolution original file (needs the Referer option on for i.pximg.net)",
       },
     ],
     [

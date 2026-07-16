@@ -2627,6 +2627,14 @@
     "message": "Rewrites YouTube thumbnail links to the maximum-resolution image",
     "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
   },
+  "ruleTemplatePixivOriginalName": {
+    "message": "Pixiv original-quality image",
+    "description": "Title of a built-in routing-template card. \"Pixiv\" is the proper name of an art-hosting website; keep it as-is. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplatePixivOriginalDescription": {
+    "message": "Rewrites a Pixiv preview image to the full-resolution original file (needs the Referer option on for i.pximg.net)",
+    "description": "Description on a built-in routing-template card. Assumes a JPEG original. \"Referer\" is the deliberately misspelled HTTP header name; keep it as-is. \"Pixiv\" is a website name; keep it as-is. Used in src/options/rule-templates.ts."
+  },
   "ruleTemplateTwitterHandlePrefixName": {
     "message": "Twitter/X handle prefix",
     "description": "Title of a built-in routing-template card. \"X\" is the current name of the Twitter social network, kept alongside the older name; do not translate as the letter or algebraic variable X. Used in src/options/rule-templates.ts."

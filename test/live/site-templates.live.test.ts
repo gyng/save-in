@@ -21,6 +21,23 @@ type LiveSample = {
   // Env var that overrides `before` with a fresh URL when the baked one rots
   // or none can be baked in.
   env: string;
+  // Assert the rewrite target is no smaller than the source preview. Off for
+  // sites where a smaller-byte original is expected (Pixiv's re-encoded
+  // master1200 can outweigh a sub-1200px original even though the original is
+  // full resolution).
+  checkSize?: boolean;
+};
+
+// Pixiv serves i.pximg.net only when the request carries a pixiv.net Referer;
+// otherwise every URL is 403 regardless of whether it exists. This mirrors
+// Save In's default Referer filter (*://i.pximg.net/*, option-defaults.ts) and
+// the feature the CDN forces (#66). Nothing else here is referer-gated.
+const refererFor = (url: string): Record<string, string> => {
+  try {
+    return new URL(url).hostname.endsWith("pximg.net") ? { Referer: "https://www.pixiv.net/" } : {};
+  } catch {
+    return {};
+  }
 };
 
 // Keyed by template.name for the "Site originals" category.
@@ -50,6 +67,18 @@ const SAMPLES: Record<string, LiveSample> = {
     before: process.env.LIVE_YOUTUBE_URL ?? "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg",
     env: "LIVE_YOUTUBE_URL",
   },
+  "Pixiv original-quality image": {
+    // Illust 74391008_p0 — the exact image from issue #66's screencast, a
+    // permanent Pixiv work (Pixiv keeps originals indefinitely). Both the
+    // master preview and the rewritten original need the pixiv.net Referer
+    // (see refererFor). Size check off: the sub-1200px original is smaller in
+    // bytes than the re-encoded master1200 even though it is full resolution.
+    before:
+      process.env.LIVE_PIXIV_URL ??
+      "https://i.pximg.net/img-master/img/2019/04/26/22/08/07/74391008_p0_master1200.jpg",
+    env: "LIVE_PIXIV_URL",
+    checkSize: false,
+  },
 };
 
 const FETCH_TIMEOUT_MS = 15_000;
@@ -59,7 +88,7 @@ type Probe = { ok: boolean; status: number; contentType: string; bytes: number }
 const probe = async (url: string): Promise<Probe> => {
   const response = await fetch(url, {
     redirect: "follow",
-    headers: { "User-Agent": "save-in-live-template-test/1.0" },
+    headers: { "User-Agent": "save-in-live-template-test/1.0", ...refererFor(url) },
     signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
   });
   const body = await response.arrayBuffer();
@@ -113,14 +142,16 @@ describe("Site originals — live CDN rewrites", () => {
       } catch {
         beforeProbe = undefined;
       }
-      if (beforeProbe?.ok) {
+      if (beforeProbe?.ok && sample?.checkSize !== false) {
         expect(
           afterProbe.bytes,
           `rewritten (${afterProbe.bytes}B) should be >= source (${beforeProbe.bytes}B)`,
         ).toBeGreaterThanOrEqual(beforeProbe.bytes);
       }
 
-      // Visible evidence in the run log.
+      // Visible evidence in the run log (this suite's whole point is the
+      // real network result, so the log is deliberate).
+      // eslint-disable-next-line no-console
       console.log(
         `[live] ${template.name}\n        ${before} (${beforeProbe?.bytes ?? "?"}B)\n     -> ${after} (${afterProbe.bytes}B, ${afterProbe.contentType})`,
       );

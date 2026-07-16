@@ -3842,6 +3842,12 @@
   "ruleTemplateYoutubeMaxResDescription": {
     "message": "YouTubeのサムネイルリンクを最大解像度の画像に書き換えます"
   },
+  "ruleTemplatePixivOriginalName": {
+    "message": "Pixivのオリジナル画質の画像"
+  },
+  "ruleTemplatePixivOriginalDescription": {
+    "message": "Pixivのプレビュー画像をフル解像度のオリジナルファイルに書き換えます（i.pximg.net に対して Referer オプションを有効にする必要があります）"
+  },
   "ruleTemplateYoutubeMaxResName": {
     "message": "YouTubeサムネイルの最大解像度"
   },

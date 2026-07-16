@@ -3842,6 +3842,12 @@
   "ruleTemplateYoutubeMaxResDescription": {
     "message": "Skriver om YouTubes miniatyrlänkar till bilden med maximal upplösning"
   },
+  "ruleTemplatePixivOriginalName": {
+    "message": "Pixiv-bild i originalkvalitet"
+  },
+  "ruleTemplatePixivOriginalDescription": {
+    "message": "Skriver om en förhandsgranskningsbild från Pixiv till originalfilen i full upplösning (kräver att Referer-alternativet är aktiverat för i.pximg.net)"
+  },
   "ruleTemplateYoutubeMaxResName": {
     "message": "YouTube-miniatyr med maximal upplösning"
   },

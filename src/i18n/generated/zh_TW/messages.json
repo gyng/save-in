@@ -3842,6 +3842,12 @@
   "ruleTemplateYoutubeMaxResDescription": {
     "message": "將 YouTube 縮圖連結改寫為最高解析度圖片"
   },
+  "ruleTemplatePixivOriginalName": {
+    "message": "Pixiv 原始畫質圖片"
+  },
+  "ruleTemplatePixivOriginalDescription": {
+    "message": "將 Pixiv 預覽圖片改寫為完整解析度原始檔案（需要為 i.pximg.net 啟用 Referer 選項）"
+  },
   "ruleTemplateYoutubeMaxResName": {
     "message": "YouTube 縮圖最高解析度"
   },

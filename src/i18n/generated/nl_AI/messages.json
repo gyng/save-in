@@ -3842,6 +3842,12 @@
   "ruleTemplateYoutubeMaxResDescription": {
     "message": "Herschrijft miniatuurlinks van YouTube naar de afbeelding met maximale resolutie"
   },
+  "ruleTemplatePixivOriginalName": {
+    "message": "Pixiv-afbeelding in originele kwaliteit"
+  },
+  "ruleTemplatePixivOriginalDescription": {
+    "message": "Herschrijft een Pixiv-voorbeeldafbeelding naar het originele bestand op volledige resolutie (vereist de ingeschakelde Referer-optie voor i.pximg.net)"
+  },
   "ruleTemplateYoutubeMaxResName": {
     "message": "YouTube-miniatuur met maximale resolutie"
   },
