@@ -1,75 +1,3 @@
-# 4.1.0
-
-- Tightened routing-rule validation. Every clause line is now parsed on CRLF,
-  LF, CR, and Unicode line boundaries; malformed lines, unresolved captures,
-  unsafe destinations, and malformed known variables make only their containing
-  rule inert. Earlier versions could silently ignore or partially execute those
-  invalid rules. Existing valid rules remain compatible; repair any newly
-  reported rule in the route debugger before relying on it after the upgrade.
-- Added the `rename:` routing clause (#187): a matching rule can rewrite the
-  final filename with a regular-expression find and replace
-  (`rename/gi: find -> replacement`), with captures and routing variables
-  expanding in the replacement. It applies to Save In saves, automatic Page
-  Sources saves, and routed ordinary browser downloads, and only ever changes
-  the filename — never the destination folder. The visual editor, autocomplete,
-  route debugger, and references cover the new clause.
-- Automatic Page Sources saves can now cover more of a page, each behind its
-  own off-by-default control: linked documents and streaming playlists
-  (`.pdf`, HLS/DASH manifests — the manifest file itself, not an assembled
-  stream), CSS background images, and detected streaming playlists. A stale
-  or tampered page cannot bypass the controls: the background re-checks every
-  candidate against your settings before saving.
-- Automatic saves can optionally include inline `data:` images and media (up
-  to 2 MB each, off by default). History shows a shortened form of these
-  addresses instead of the full inline payload.
-- Added opt-in **Quick Save** and an optional keyboard command for saving
-  directly to the effective default through the normal routing pipeline
-  (#144, #162). A menu
-  toggle switches that default between Downloads and the configured folder
-  (#201, #213), while per-location `(tab: close)` and `(tab: return)` actions
-  can close or refocus the source tab after a successful save (#115).
-- Added **Move** to completed History rows: Save In downloads the source again
-  into a chosen folder, then removes the verified original and links both
-  History entries (#102). Automatic Page Sources saves expose the same per-row
-  Undo action as interactive saves.
-- Added `finalfilename:` for matching the browser-resolved name after
-  Content-Disposition (#178, #189), plus `:menupath:` for including the chosen
-  Save In folder in a destination or filename (#208). Both are available in
-  the editors, debugger, autocomplete, and references.
-- Parallelized Referer-protected metadata and content requests over a bounded
-  rule-ID pool (#193). Conflicting URL sets still wait, every operation removes
-  only its own temporary rule, and redirected HEAD requests stay protected.
-- Added the `fetch:` routing clause: a matching rule can rewrite the download
-  address before saving, using captures and routing variables (#137). Save In
-  saves and automatic Page Sources saves honor the rewrite; ordinary browser
-  download routing skips rewriting rules because a started download can only
-  be renamed. The visual editor, autocomplete, route debugger, and references
-  cover the new clause.
-- Added two rule template collections: **Site originals** rewrites Twitter/X,
-  Reddit, Wikimedia, and YouTube media to their original-quality URLs, and
-  **Site filing** names saves after site context for Twitter/X, Instagram,
-  and DeviantArt, including scheme-free and slugged page names (#187, #189,
-  #209, #210, #211).
-- Added six themes: the One Dark, Tokyo Night, and Catppuccin classics, and
-  three Save In themes — Glacier (cool light blue), Matcha (soft light green),
-  and Ember (warm dark amber). Pastel pink's pressed button color now darkens
-  like the other light themes.
-- Automatic Page Sources saves can now adopt linked media through the opt-in
-  **Include media that pages link to** control (off by default): with it on,
-  anchors that point at an image, video, or audio file count as sources, while
-  plain, document, and stream links stay out. Left off, automatic rules keep
-  matching embedded media only. Eligibility, dedup, and per-page limits are
-  unchanged.
-- Added undo for a completed save (#102): a button on the success
-  notification (Chrome) and a History row action (both browsers) remove the
-  file, clear it from the browser's download list, and mark the History entry
-  undone. A file already moved or removed still gets marked, with distinct
-  feedback.
-- Added a per-site disable list (#183): pages matching the listed
-  WebExtension match patterns get no click-to-save, Page Sources panel, or
-  automatic saves. Invalid lines report a diagnostic and never broaden the
-  match.
-
 # 4.0.0
 
 > _Rebuilt from the first character to the last for Manifest V3, and still
@@ -103,6 +31,17 @@ rules.
 - Migrated path-component truncation from character counts to UTF-8 byte limits,
   applied it consistently to files and folders, and preserved filename
   extensions within the configured limit.
+- Expanded the routing grammar with `fetch:` URL rewriting, `rename:` filename
+  find-and-replace, `finalfilename:` matching, and a `:menupath:` variable,
+  alongside tighter rule validation and new site template collections.
+- Widened automatic Page Sources saves with per-channel opt-in coverage for
+  linked media, documents, and streams, CSS backgrounds, playlist hints, and
+  inline `data:` sources.
+- Streamlined saving with opt-in Quick Save and a keyboard command, a
+  switchable default destination, and post-save tab actions, plus History undo
+  and move.
+- Added a per-site disable list, six new themes, and parallelized
+  Referer-protected metadata and content requests.
 
 <details>
 <summary>Detailed changes</summary>
@@ -160,6 +99,34 @@ rules.
   consistently, and invalid regular expressions, URLs, capture groups, and
   routing variables produce contained validation errors instead of broad
   matches or aborted downloads.
+- Tightened routing-rule validation. Every clause line is now parsed on CRLF,
+  LF, CR, and Unicode line boundaries; malformed lines, unresolved captures,
+  unsafe destinations, and malformed known variables make only their containing
+  rule inert. Earlier versions could silently ignore or partially execute those
+  invalid rules. Existing valid rules remain compatible; repair any newly
+  reported rule in the route debugger before relying on it after the upgrade.
+- Added the `fetch:` routing clause: a matching rule can rewrite the download
+  address before saving, using captures and routing variables (#137). Save In
+  saves and automatic Page Sources saves honor the rewrite; ordinary browser
+  download routing skips rewriting rules because a started download can only
+  be renamed. The visual editor, autocomplete, route debugger, and references
+  cover the new clause.
+- Added the `rename:` routing clause (#187): a matching rule can rewrite the
+  final filename with a regular-expression find and replace
+  (`rename/gi: find -> replacement`), with captures and routing variables
+  expanding in the replacement. It applies to Save In saves, automatic Page
+  Sources saves, and routed ordinary browser downloads, and only ever changes
+  the filename — never the destination folder. The visual editor, autocomplete,
+  route debugger, and references cover the new clause.
+- Added `finalfilename:` for matching the browser-resolved name after
+  Content-Disposition (#178, #189), plus `:menupath:` for including the chosen
+  Save In folder in a destination or filename (#208). Both are available in
+  the editors, debugger, autocomplete, and references.
+- Added two rule template collections: **Site originals** rewrites Twitter/X,
+  Reddit, Wikimedia, and YouTube media to their original-quality URLs, and
+  **Site filing** names saves after site context for Twitter/X, Instagram,
+  and DeviantArt, including scheme-free and slugged page names (#187, #189,
+  #209, #210, #211).
 
 ### Page Sources and downloads
 
@@ -209,6 +176,46 @@ rules.
   and Last used routing metadata survive background shutdowns and concurrent
   activity without being attributed to the wrong request.
 - “Close tab on save” now applies to page saves (#115).
+- Automatic Page Sources saves can now cover more of a page, each behind its
+  own off-by-default control: linked documents and streaming playlists
+  (`.pdf`, HLS/DASH manifests — the manifest file itself, not an assembled
+  stream), CSS background images, and detected streaming playlists. A stale
+  or tampered page cannot bypass the controls: the background re-checks every
+  candidate against your settings before saving.
+- Automatic Page Sources saves can now adopt linked media through the opt-in
+  **Include media that pages link to** control (off by default): with it on,
+  anchors that point at an image, video, or audio file count as sources, while
+  plain, document, and stream links stay out. Left off, automatic rules keep
+  matching embedded media only. Eligibility, dedup, and per-page limits are
+  unchanged.
+- Automatic saves can optionally include inline `data:` images and media (up
+  to 2 MB each, off by default). History shows a shortened form of these
+  addresses instead of the full inline payload.
+- Parallelized Referer-protected metadata and content requests over a bounded
+  rule-ID pool (#193). Conflicting URL sets still wait, every operation removes
+  only its own temporary rule, and redirected HEAD requests stay protected.
+
+### Saving workflow and History
+
+- Added opt-in **Quick Save** and an optional keyboard command for saving
+  directly to the effective default through the normal routing pipeline
+  (#144, #162). A menu toggle switches that default between Downloads and the
+  configured folder (#201, #213), while per-location `(tab: close)` and
+  `(tab: return)` actions can close or refocus the source tab after a
+  successful save (#115).
+- Added undo for a completed save (#102): a button on the success
+  notification (Chrome) and a History row action (both browsers) remove the
+  file, clear it from the browser's download list, and mark the History entry
+  undone. A file already moved or removed still gets marked, with distinct
+  feedback.
+- Added **Move** to completed History rows: Save In downloads the source again
+  into a chosen folder, then removes the verified original and links both
+  History entries (#102). Automatic Page Sources saves expose the same per-row
+  Undo action as interactive saves.
+- Added a per-site disable list (#183): pages matching the listed
+  WebExtension match patterns get no click-to-save, Page Sources panel, or
+  automatic saves. Invalid lines report a diagnostic and never broaden the
+  match.
 
 ### Integrations and privacy
 
@@ -252,6 +259,10 @@ rules.
 - Fixed the Firefox dark-mode Last used icon (#184), restored first-party
   autocomplete, and made ordinary text settings autosave after typing pauses
   (#205).
+- Added six themes: the One Dark, Tokyo Night, and Catppuccin classics, and
+  three Save In themes — Glacier (cool light blue), Matcha (soft light green),
+  and Ember (warm dark amber). Pastel pink's pressed button color now darkens
+  like the other light themes.
 
 ### Developer and release process
 

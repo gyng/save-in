@@ -86,8 +86,8 @@ this condition.
 `audio`, `stream`, `document`, and `link`. The automatic page scanner always
 queues previewable HTTP(S) image, video, and audio elements. Three further
 content options each open one additional discovery channel, all off by
-default so pre-4.1 rules keep matching embedded media only until a channel is
-turned on:
+default so existing rules keep matching embedded media only until a channel
+is turned on:
 
 - **Include media that pages link to** adopts anchors (`<a href>`) the shared
   collector classifies as previewable media — `image`, `video`, or `audio` by
