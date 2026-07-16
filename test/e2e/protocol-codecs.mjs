@@ -67,6 +67,7 @@ export const createProtocolCodecs = () => {
       case "EXTERNAL_DOWNLOAD_REJECTION_CLEAR":
         return isRecord(value.body) && typeof value.body.senderId === "string";
       case "HISTORY_CANCEL":
+      case "HISTORY_UNDO":
         return isRecord(value.body) && typeof value.body.historyId === "string";
       case "DOWNLOAD":
         return (
@@ -212,6 +213,13 @@ export const createProtocolCodecs = () => {
           value.type === "HISTORY_CANCEL" &&
           isRecord(value.body) &&
           typeof value.body.canceled === "boolean"
+        );
+      case "HISTORY_UNDO":
+        return (
+          value.type === "HISTORY_UNDO" &&
+          isRecord(value.body) &&
+          typeof value.body.undone === "boolean" &&
+          typeof value.body.fileMissing === "boolean"
         );
       case "EXTERNAL_DOWNLOAD_REJECTIONS_GET":
         return (
