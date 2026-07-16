@@ -3,16 +3,16 @@
 // round-trip the textarea syntax losslessly, and the visual editor must
 // serialize every edit back to the textarea (the source of truth).
 
-import { PathEditor, setupPathEditor } from "../../../src/options/path-editor.ts";
+import { PathEditor, setupPathEditor } from "../../../src/options/path-editor/path-editor.ts";
 import {
   createSyntaxEditor,
   setSyntaxEditorDiagnostics,
-} from "../../../src/options/syntax-editor.ts";
+} from "../../../src/options/syntax-editor/syntax-editor.ts";
 import {
   dispatchEditorValidation,
   EDITOR_VALIDATION_EVENT,
   markValidationField,
-} from "../../../src/options/editor-validation.ts";
+} from "../../../src/options/syntax-editor/editor-validation.ts";
 
 const element = <T extends Element>(selector: string): T => {
   const match = document.querySelector<T>(selector);

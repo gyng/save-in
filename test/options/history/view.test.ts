@@ -19,7 +19,7 @@ import {
   progressCell,
   statusClass,
   statusLabel,
-} from "../../../src/options/history-view.ts";
+} from "../../../src/options/history/history-view.ts";
 
 test("missing legacy timestamps render as blank", () => {
   expect(formatHistoryDisplayTime()).toBe("");

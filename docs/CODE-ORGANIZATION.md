@@ -86,28 +86,47 @@ touches many import specifiers and will conflict with any open branch.
    the existing `test/options/` taxonomy. Each feature directory holds its TS
    *and* its `style-*.css` so a feature is one directory:
 
-   | Directory | Contents (today's flat files) |
+   | Directory | Contents (actual placement) |
    | --- | --- |
-   | `core/` | the `options-*` family, `options.ts`, `tabs.ts`, `tab-controls.ts`, `tab-context-controls.ts`, `theme.ts`, `l10n.ts`, `language-selector.ts`, `saved-indicator.ts`, `field-save-state.ts`, `option-search.ts`, `option-navigation.ts`, `reset-options.ts`, `settings-transfer.ts`, `deferred-page-reload.ts` |
-   | `path-editor/` | `path-editor{,-model,-insert-menu}.ts`, `path-source-selection.ts`, `style-path-editor.css` |
+   | `core/` | the `options-*` family, `options.ts`, `tabs.ts`, `tab-controls.ts`, `tab-context-controls.ts`, `theme.ts`, `l10n.ts`, `language-selector.ts`, `saved-indicator.ts`, `field-save-state.ts`, `option-search.ts`, `option-navigation.ts`, `reset-options.ts`, `settings-transfer.ts`, `deferred-page-reload.ts`, `shortcut-options.ts`, `source-shortcut.ts`, `style-option-tools.css`, `style-source-settings.css`, `style-workflows.css`, `style-automation.css`, `style-advanced.css`, `style-advanced-responsive.css` |
+   | `path-editor/` | `path-editor{,-model,-insert-menu}.ts`, `path-source-selection.ts`, `style-path-editor.css`, `style-editor-actions.css`, `style-editor-responsive.css`, `style-menu-preview.css` |
    | `rule-editor/` | `rule-visual-editor{,-model}.ts`, `rule-builder.ts`, `rule-templates.ts`, `source-rule-draft.ts`, `style-rule-editor*.css`, `style-template-library.css` |
    | `syntax-editor/` | `syntax-editor{,-model}.ts`, `editor-validation.ts`, `manual-editor-state.ts`, `autocomplete.ts`, `style-syntax-editor.css`, `style-syntax-popovers.css` |
    | `route-debugger/` | `route-debugger{,-model}.ts`, `style-route-debugger*.css` |
    | `history/` | `history-panel.ts`, `history-view.ts`, `history-feedback.ts`, `style-history*.css` |
    | `integrations/` | `webmcp.ts`, `webhook-panel.ts`, `integration-panel.ts`, `debug-log-panel.ts`, `counter-panel.ts`, `style-advanced-integrations.css` |
-   | `dialogs/` | `*-dialog.ts`, `welcome-dialog.css`, `style-dialogs.css`, `style-about.css` |
-   | `reference/` | `reference-page.ts`, `reference-descriptions.ts`, `matcher-descriptions.ts`, `vocabulary-groups.ts`, `variables-preview.ts`, `reference.css` |
-   | `ui/` | shared UI primitives: `typeahead.ts`, `anchored-floating-surface.ts`, `details-menu-positioning.ts`, `dismissible-details.ts`, `clipboard.ts`, `click-to-copy.ts`, `latest-only.ts`, `latest-task.ts`, `checkbox-rows.ts`, `permissions-banner.ts`, `style-typeahead.css` |
-   | `styles/` | non-feature CSS: tokens, base, themes, palettes, shell, layout, components, utilities, accessibility, status, feedback |
+   | `dialogs/` | `*-dialog.ts` (`about-dialog.ts`, `privacy-dialog.ts`, `unsaved-changes-dialog.ts`, `welcome-dialog.ts`), `welcome-dialog.css`, `style-welcome.css`, `style-dialogs.css`, `style-about.css` |
+   | `reference/` | `reference-page.ts`, `reference-descriptions.ts`, `matcher-descriptions.ts`, `vocabulary-groups.ts`, `variables-preview.ts`, `reference.css`, `style-reference.css`, `style-variables-preview.css`, `style-editor-reference.css` |
+   | `ui/` | shared UI primitives: `typeahead.ts`, `anchored-floating-surface.ts`, `details-menu-positioning.ts`, `dismissible-details.ts`, `clipboard.ts`, `click-to-copy.ts`, `latest-only.ts`, `latest-task.ts`, `checkbox-rows.ts`, `permissions-banner.ts`, `floating-position.ts`, `style-typeahead.css` |
+   | `styles/` | non-feature CSS: tokens, base, themes, palettes, shell (+responsive), layout (+responsive), components, utilities, accessibility, status, feedback, `style-option-rows.css` |
 
-   Leftovers (`shortcut-options.ts`, `source-shortcut.ts`,
-   `style-automation.css`, `style-workflows.css`, …) get placed with their
-   closest owner during the move; nothing stays at the top level except
-   `style.css`, `options.html`, `clauselist.html`, `assets/`, `i/`.
+   Every one of the ~120 flat files landed in a feature directory; nothing
+   stays at the top level except `style.css`, `options.html`,
+   `clauselist.html`, `favicon.png`, `assets/`, `i/`. A few files span more
+   than one plausible owner (mixed-content CSS grab-bags, or `.ts` files
+   wired from multiple features); those were placed with their dominant
+   or most-specific concern rather than split, since Phase 1 is a pure move
+   with no content changes. Notably: `style-editor-actions.css` and
+   `style-editor-responsive.css` style both the path and rule editors but
+   lean path-editor by selector count; `style-advanced.css` mixes the theme
+   picker (core) with integration-only chrome, and stayed with `core/`
+   alongside the page-level "Advanced" tab nav it also owns;
+   `shortcut-options.ts`/`source-shortcut.ts` and their paired CSS are
+   options-page-level settings wired directly from `options.ts`, so they
+   went to `core/` rather than a new single-purpose directory.
 2. **Align `test/options/` to the same names** and fold the 43 flat test files
    into the matching subdirectories. Group the five scattered
    `test/content/source-panel*.test.ts` files into
-   `test/content/source-panel/`.
+   `test/content/source-panel/`. Landed alignment: `test/options/page/` was
+   renamed to `test/options/core/` (its `shell.test.ts` group of `.cases.ts`
+   fixtures matches `core/`'s composition-root tests), except its
+   `about-dialog*` files, which moved to `test/options/dialogs/` alongside
+   their source; `test/options/routing-editor/` was split along the actual
+   src taxonomy into `test/options/route-debugger/` (the
+   `route-debugger*.test.ts` files) and `test/options/rule-editor/` (the
+   `rule-builder*`/`rule-visual-editor*` files), rather than a single rename,
+   since it already mixed both features; `test/options/webhooks/` was folded
+   into `test/options/integrations/` to match `src/options/integrations/`.
 3. **Move `src/offscreen.ts` → `src/offscreen/offscreen.ts`** and update the
    `entries/offscreen.ts` shim and the listener-owner allowlist in
    `check-import-cycles.js`.

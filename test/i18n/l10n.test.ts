@@ -7,7 +7,7 @@ import {
   localizeString,
   localizeDocument,
   setDocumentLanguage,
-} from "../../src/options/l10n.ts";
+} from "../../src/options/core/l10n.ts";
 
 describe("l10n", () => {
   beforeEach(() => {

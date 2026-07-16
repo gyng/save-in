@@ -95,7 +95,11 @@ forbidText(
   'Symbol.for("save-in.backgroundRuntime")',
   "background runtime state must remain module-owned",
 );
-for (const name of ["src/options/options.ts", "src/options/tabs.ts", "types/platform.d.ts"]) {
+for (const name of [
+  "src/options/core/options.ts",
+  "src/options/core/tabs.ts",
+  "types/platform.d.ts",
+]) {
   forbidText(name, "window.confirmPendingChanges", "must not use Window as an options message bus");
 }
 forbidText(
@@ -143,15 +147,15 @@ requireText(
   "options entry must own DOM-ready registration",
 );
 for (const name of [
-  "src/options/l10n.ts",
-  "src/options/history-panel.ts",
-  "src/options/option-search.ts",
-  "src/options/options-reference.ts",
-  "src/options/path-editor.ts",
-  "src/options/permissions-banner.ts",
-  "src/options/rule-builder.ts",
-  "src/options/source-shortcut.ts",
-  "src/options/options-bootstrap.ts",
+  "src/options/core/l10n.ts",
+  "src/options/history/history-panel.ts",
+  "src/options/core/option-search.ts",
+  "src/options/core/options-reference.ts",
+  "src/options/path-editor/path-editor.ts",
+  "src/options/ui/permissions-banner.ts",
+  "src/options/rule-editor/rule-builder.ts",
+  "src/options/core/source-shortcut.ts",
+  "src/options/core/options-bootstrap.ts",
 ]) {
   forbidText(name, /addEventListener\(\s*["']DOMContentLoaded["']/, "DOM-ready is entry-owned");
 }
@@ -239,9 +243,9 @@ const listenerOwners = new Set([
   "src/downloads/notification.ts",
   "src/entries/offscreen.ts",
   "src/offscreen.ts",
-  "src/options/options.ts",
-  "src/options/permissions-banner.ts",
-  "src/options/source-rule-draft.ts",
+  "src/options/core/options.ts",
+  "src/options/ui/permissions-banner.ts",
+  "src/options/rule-editor/source-rule-draft.ts",
 ]);
 for (const file of files) {
   const source = fs.readFileSync(file, "utf8");
@@ -259,7 +263,10 @@ for (const file of files) {
 
 const compositionCallOwners = new Map([
   ["configureDownloadPorts", new Set(["src/background/ports.ts"])],
-  ["configureRoutingPorts", new Set(["src/background/ports.ts", "src/options/options-runtime.ts"])],
+  [
+    "configureRoutingPorts",
+    new Set(["src/background/ports.ts", "src/options/core/options-runtime.ts"]),
+  ],
   ["registerBackgroundE2ECommand", new Set(["src/entries/background.e2e.ts"])],
 ]);
 for (const file of files) {

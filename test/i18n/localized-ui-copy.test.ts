@@ -1,5 +1,8 @@
-import { historyCsv, localizeHistoryColumns } from "../../src/options/history-view.ts";
-import { localizeRuleTemplates, RULE_TEMPLATES } from "../../src/options/rule-templates.ts";
+import { historyCsv, localizeHistoryColumns } from "../../src/options/history/history-view.ts";
+import {
+  localizeRuleTemplates,
+  RULE_TEMPLATES,
+} from "../../src/options/rule-editor/rule-templates.ts";
 
 const translated = (key: string): string => `translated:${key}`;
 

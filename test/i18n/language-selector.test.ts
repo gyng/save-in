@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { setupLanguageSelector } from "../../src/options/language-selector.ts";
+import { setupLanguageSelector } from "../../src/options/core/language-selector.ts";
 
 const render = () => {
   document.body.innerHTML = `

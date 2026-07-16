@@ -1,8 +1,8 @@
 import { getMessage, initializeLocalization } from "../platform/localization.ts";
 import { webExtensionApi } from "../platform/web-extension-api.ts";
-import { localizeDocument, setDocumentLanguage } from "../options/l10n.ts";
-import { setupReferencePage } from "../options/reference-page.ts";
-import { applyUiTheme } from "../options/theme.ts";
+import { localizeDocument, setDocumentLanguage } from "../options/core/l10n.ts";
+import { setupReferencePage } from "../options/reference/reference-page.ts";
+import { applyUiTheme } from "../options/core/theme.ts";
 
 document.addEventListener(
   "DOMContentLoaded",

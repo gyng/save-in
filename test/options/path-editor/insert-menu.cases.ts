@@ -1,5 +1,5 @@
 // Cases imported by ui.test.ts to share one jsdom environment.
-import { setupPathInsertMenu } from "../../../src/options/path-editor-insert-menu.ts";
+import { setupPathInsertMenu } from "../../../src/options/path-editor/path-editor-insert-menu.ts";
 
 const input = (selector = ".clause-preview-filter") =>
   document.querySelector<HTMLInputElement>(selector)!;

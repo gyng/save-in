@@ -1,0 +1,158 @@
+/* Live context-menu tree preview (below the paths textarea) */
+.menu-preview {
+  margin-top: var(--space-2);
+}
+
+.menu-preview-tree ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* Reads like a real context menu: floating panel with a soft shadow and
+   rounded, highlight-on-hover rows */
+.menu-preview-tree > ul {
+  display: inline-block;
+  min-inline-size: 220px;
+  max-inline-size: 100%;
+  max-block-size: min(32rem, 55dvh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  padding: var(--space-1);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  background-color: var(--page-bg);
+  box-shadow: var(--preview-shadow);
+  font-size: var(--text-base);
+}
+
+/* Nested submenus indent with a faint guide line */
+.menu-preview-tree li ul {
+  margin-block: 2px;
+  margin-inline: var(--space-3) 0;
+  padding-inline-start: var(--space-2);
+  border-inline-start: 1px solid var(--panel-border);
+}
+
+.menu-preview-tree li ul:empty {
+  display: none;
+}
+
+.menu-preview-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  padding: 4px var(--space-2);
+  border-radius: var(--radius);
+  cursor: default;
+}
+
+/* Rows that jump to their editor line are clickable */
+.menu-preview-row[role="button"] {
+  cursor: pointer;
+}
+
+.menu-preview-row[role="button"]:hover {
+  background-color: var(--panel-bg);
+}
+
+.menu-preview-row[role="button"]:focus-visible {
+  outline: 2px solid var(--link-color);
+  outline-offset: -1px;
+}
+
+.menu-preview-row.is-source-selected {
+  color: var(--color-text);
+  border-inline-start: 3px solid var(--color-selection);
+  background: color-mix(in srgb, var(--color-selection) 14%, var(--page-bg));
+}
+
+.menu-preview-separator.is-source-selected {
+  border-inline-start: 3px solid var(--color-selection);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--color-selection) 10%, var(--page-bg));
+}
+
+.menu-preview-title {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+.menu-preview-dir {
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.menu-preview-access-key {
+  flex: none;
+  align-self: center;
+  margin-inline-start: auto;
+  padding: 1px 5px;
+  border: 1px solid var(--panel-border);
+  border-radius: 4px;
+  background-color: var(--panel-bg);
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.menu-preview-lastused .menu-preview-title,
+.menu-preview-recent .menu-preview-title {
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.menu-preview-separator hr {
+  /* Base hr is width: 100%, which overflows once side margins apply */
+  inline-size: auto;
+  margin: var(--space-1);
+  border: none;
+  border-top: 1px solid var(--panel-border);
+  background: none;
+}
+
+/* Invalid path: a red, clickable row (jumps to the editor); the full message is
+   the row's tooltip */
+.menu-preview-error > .menu-preview-row {
+  gap: var(--space-1);
+  color: var(--error-fg);
+  background-color: var(--error-bg);
+  cursor: pointer;
+}
+
+.menu-preview-error > .menu-preview-row::before {
+  content: "";
+  flex: none;
+  align-self: center;
+  inline-size: 13px;
+  block-size: 13px;
+  background-color: var(--color-validation);
+  -webkit-mask: url(../i/warning-16.svg) center / contain no-repeat;
+  mask: url(../i/warning-16.svg) center / contain no-repeat;
+}
+
+.menu-preview-error > .menu-preview-row:hover {
+  outline: 1px solid var(--error-border);
+}
+
+.menu-preview-error .menu-preview-title {
+  color: var(--error-fg);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.menu-preview-error:focus-visible {
+  outline: 2px solid var(--color-validation);
+  outline-offset: 1px;
+  border-radius: var(--radius);
+}

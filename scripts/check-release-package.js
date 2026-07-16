@@ -257,24 +257,29 @@ for (const name of [
   "offscreen.js",
   "src/options/options.html",
   "src/options/style.css",
-  "src/options/style-reference.css",
-  "src/options/style-welcome.css",
-  "src/options/welcome-dialog.css",
+  "src/options/reference/style-reference.css",
+  "src/options/dialogs/style-welcome.css",
+  "src/options/dialogs/welcome-dialog.css",
 ]) {
   check(fs.existsSync(path.join(stageRoot, name)), `staged package is missing ${name}`);
 }
 const stagedOptionsRoot = path.join(stageRoot, "src/options");
-const stagedStyles = fs.existsSync(stagedOptionsRoot)
-  ? fs.readdirSync(stagedOptionsRoot).filter((name) => name.endsWith(".css"))
-  : [];
-for (const style of stagedStyles) {
-  const source = fs.readFileSync(path.join(stagedOptionsRoot, style), "utf8");
+/** @param {string} dir @returns {string[]} */
+const walkCssFiles = (dir) =>
+  fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) return walkCssFiles(full);
+    return entry.isFile() && entry.name.endsWith(".css") ? [full] : [];
+  });
+const stagedStyles = fs.existsSync(stagedOptionsRoot) ? walkCssFiles(stagedOptionsRoot) : [];
+for (const styleFile of stagedStyles) {
+  const source = fs.readFileSync(styleFile, "utf8");
   for (const match of source.matchAll(/@import url\("([^"]+\.css)"\)/g)) {
     const importedStyle = match[1];
     if (!importedStyle) continue;
     check(
-      fs.existsSync(path.join(stagedOptionsRoot, importedStyle)),
-      `staged package is missing ${style} import ${importedStyle}`,
+      fs.existsSync(path.join(path.dirname(styleFile), importedStyle)),
+      `staged package is missing ${path.relative(stageRoot, styleFile)} import ${importedStyle}`,
     );
   }
 }
@@ -298,7 +303,7 @@ const finish = async () => {
     "explicit Vitest worker limits must override defaults with a floor",
   );
   const coverageExclude = vitestConfig.test?.coverage?.exclude || [];
-  for (const excluded of ["src/entries/**", "src/options/options.ts"]) {
+  for (const excluded of ["src/entries/**", "src/options/core/options.ts"]) {
     check(coverageExclude.includes(excluded), `Vitest coverage must exclude ${excluded}`);
   }
   check(

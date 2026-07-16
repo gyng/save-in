@@ -7,42 +7,45 @@
 
 // <head> scripts
 import "../platform/web-extension-api.ts";
-import { initializeLocalizedDocument, localizeDocument } from "../options/l10n.ts";
+import { initializeLocalizedDocument, localizeDocument } from "../options/core/l10n.ts";
 import { getMessage, initializeLocalization } from "../platform/localization.ts";
 import { webExtensionApi } from "../platform/web-extension-api.ts";
 import "../platform/chrome-detector.ts";
 
 // <body> scripts (options.html load order)
-import "../options/options-logic.ts";
-import "../options/history-view.ts";
-import { renderHistory, setHistoryLocalizer } from "../options/history-panel.ts";
+import "../options/core/options-logic.ts";
+import "../options/history/history-view.ts";
+import { renderHistory, setHistoryLocalizer } from "../options/history/history-panel.ts";
 import {
   confirmPendingChanges,
   setupOptionsPage,
   syncOptionsPageAfterWebMcpApply,
-} from "../options/options.ts";
-import "../options/dismissible-details.ts";
-import { setupPermissionsBanner } from "../options/permissions-banner.ts";
-import "../options/click-to-copy.ts";
-import "../options/autocomplete.ts";
-import { setupPathEditor } from "../options/path-editor.ts";
-import { setupRuleBuilder } from "../options/rule-builder.ts";
-import { setupOptionsReferences } from "../options/options-reference.ts";
-import { setupTabs } from "../options/tabs.ts";
-import { setupOptionSearch } from "../options/option-search.ts";
-import { setupSourceShortcut } from "../options/source-shortcut.ts";
-import { setupWebMcpStatus } from "../options/webmcp.ts";
-import { setupAboutDialog } from "../options/about-dialog.ts";
-import { setupPrivacyDialog } from "../options/privacy-dialog.ts";
-import { setupLanguageSelector } from "../options/language-selector.ts";
-import { applyUiTheme } from "../options/theme.ts";
-import { setupSyntaxEditors } from "../options/syntax-editor.ts";
-import { setupRouteDebugger } from "../options/route-debugger.ts";
-import { setupRuleVisualEditor } from "../options/rule-visual-editor.ts";
-import { showWelcomeDialog, setupWelcomeDialog } from "../options/welcome-dialog.ts";
-import { optionsRuntime } from "../options/options-runtime.ts";
-import { assertApplySucceeded } from "../options/options-save.ts";
-import { applySourceRuleDraft, setupSourceRuleDraft } from "../options/source-rule-draft.ts";
+} from "../options/core/options.ts";
+import "../options/ui/dismissible-details.ts";
+import { setupPermissionsBanner } from "../options/ui/permissions-banner.ts";
+import "../options/ui/click-to-copy.ts";
+import "../options/syntax-editor/autocomplete.ts";
+import { setupPathEditor } from "../options/path-editor/path-editor.ts";
+import { setupRuleBuilder } from "../options/rule-editor/rule-builder.ts";
+import { setupOptionsReferences } from "../options/core/options-reference.ts";
+import { setupTabs } from "../options/core/tabs.ts";
+import { setupOptionSearch } from "../options/core/option-search.ts";
+import { setupSourceShortcut } from "../options/core/source-shortcut.ts";
+import { setupWebMcpStatus } from "../options/integrations/webmcp.ts";
+import { setupAboutDialog } from "../options/dialogs/about-dialog.ts";
+import { setupPrivacyDialog } from "../options/dialogs/privacy-dialog.ts";
+import { setupLanguageSelector } from "../options/core/language-selector.ts";
+import { applyUiTheme } from "../options/core/theme.ts";
+import { setupSyntaxEditors } from "../options/syntax-editor/syntax-editor.ts";
+import { setupRouteDebugger } from "../options/route-debugger/route-debugger.ts";
+import { setupRuleVisualEditor } from "../options/rule-editor/rule-visual-editor.ts";
+import { showWelcomeDialog, setupWelcomeDialog } from "../options/dialogs/welcome-dialog.ts";
+import { optionsRuntime } from "../options/core/options-runtime.ts";
+import { assertApplySucceeded } from "../options/core/options-save.ts";
+import {
+  applySourceRuleDraft,
+  setupSourceRuleDraft,
+} from "../options/rule-editor/source-rule-draft.ts";
 
 const applyWelcomePreset = async (paths: string): Promise<void> => {
   const response = assertApplySucceeded(await optionsRuntime.apply({ paths }));

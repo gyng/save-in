@@ -70,7 +70,7 @@ catalog keys — each with unit coverage, plus both browsers' e2e suites. The
 ### Site template collections (#187, #189, #209, #210, #211)
 
 Two new categories in the template catalog
-(`src/options/rule-templates.ts`); pure data and copy, no engine change.
+(`src/options/rule-editor/rule-templates.ts`); pure data and copy, no engine change.
 
 - Site originals — `fetch:`-based templates that rewrite to the
   original-quality asset URL (Twitter `?name=orig`, Reddit, Wikimedia,
@@ -150,7 +150,7 @@ Implementation:
   sender-tab URL against the list, so a stale content script cannot keep
   automatic saves alive on a disabled site.
 - Options UI: a `match-patterns` syntax-editor textarea (same wiring as the
-  ordinary-download filters in `src/options/syntax-editor.ts`) beside the
+  ordinary-download filters in `src/options/syntax-editor/syntax-editor.ts`) beside the
   other content controls, plus an `options-dependencies.ts` entry.
 
 Tests: normalization matrix in `test/config/content-options.test.ts`; live
@@ -190,7 +190,7 @@ Implementation:
   `background/history.ts`. A file already deleted out-of-band still erases
   and marks, with a distinct response so the UI can say so.
 - History UI: the row action plus an `undone` status label and class in
-  `src/options/history-view.ts` and `history-panel.ts`, with feedback through
+  `src/options/history/history-view.ts` and `history-panel.ts`, with feedback through
   the existing history toast channel.
 - Explicit browser checks (the open question this feature carries): verify
   `removeFile`/`erase` semantics in both browsers' e2e suites, including

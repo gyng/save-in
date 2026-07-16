@@ -1,6 +1,6 @@
 // Drag cases use their own jsdom boundary so the expensive visual-editor
 // interactions can run in parallel with the rest of the path editor suite.
-import { PathEditor } from "../../../src/options/path-editor.ts";
+import { PathEditor } from "../../../src/options/path-editor/path-editor.ts";
 
 const element = <T extends Element>(selector: string): T => {
   const match = document.querySelector<T>(selector);

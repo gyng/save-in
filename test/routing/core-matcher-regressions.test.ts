@@ -1,4 +1,4 @@
-import { RULE_TEMPLATES } from "../../src/options/rule-templates.ts";
+import { RULE_TEMPLATES } from "../../src/options/rule-editor/rule-templates.ts";
 import { applyConfigSerialized } from "../../src/background/config-apply.ts";
 import { Path } from "../../src/routing/path.ts";
 import {

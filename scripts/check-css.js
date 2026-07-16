@@ -4,18 +4,41 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const root = path.resolve(__dirname, "..");
-const styles = fs
-  .readdirSync(path.join(root, "src", "options"), { withFileTypes: true })
-  .filter((entry) => entry.isFile() && entry.name.endsWith(".css"))
-  .map((entry) => path.join(root, "src", "options", entry.name));
+const optionsRoot = path.join(root, "src", "options");
+
+/**
+ * @param {string} dir
+ * @param {(name: string) => boolean} matches
+ * @returns {string[]}
+ */
+const listOptionFiles = (dir, matches) =>
+  fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const file = path.join(dir, entry.name);
+    if (entry.isDirectory()) return listOptionFiles(file, matches);
+    return entry.isFile() && matches(entry.name) ? [file] : [];
+  });
+
+/** Resolve a src/options file by its unique basename, wherever its owning
+ * feature subdirectory placed it. Basenames are unique across src/options. */
+const optionsFileByName = new Map(
+  listOptionFiles(optionsRoot, () => true).map((file) => [path.basename(file), file]),
+);
+/** @param {string} name */
+const optionFile = (name) => {
+  const file = optionsFileByName.get(name);
+  if (!file) throw new Error(`No src/options file named ${name}`);
+  return file;
+};
+
+const styles = listOptionFiles(optionsRoot, (name) => name.endsWith(".css"));
 
 const violations = [];
-const styleEntryPath = path.join(root, "src", "options", "style.css");
-const tokenStylePath = path.join(root, "src", "options", "style-tokens.css");
-const themeStylePath = path.join(root, "src", "options", "style-themes.css");
-const themePalettesStylePath = path.join(root, "src", "options", "style-theme-palettes.css");
-const optionsDocumentPath = path.join(root, "src", "options", "options.html");
-const clauseListDocumentPath = path.join(root, "src", "options", "clauselist.html");
+const styleEntryPath = optionFile("style.css");
+const tokenStylePath = optionFile("style-tokens.css");
+const themeStylePath = optionFile("style-themes.css");
+const themePalettesStylePath = optionFile("style-theme-palettes.css");
+const optionsDocumentPath = optionFile("options.html");
+const clauseListDocumentPath = optionFile("clauselist.html");
 const sourcePanelPath = path.join(root, "src", "content", "source-panel.ts");
 const sourcePanelStylePaths = [
   "source-panel-tokens.css",
@@ -184,55 +207,81 @@ const resolvedCustomPropertyValue = (value, properties, resolving = new Set()) =
 
 /** @type {Array<[string, string[]]>} */
 const styleLayers = [
-  ["tokens", ["style-tokens.css", "style-themes.css", "style-theme-palettes.css"]],
-  ["base", ["style-base.css"]],
+  [
+    "tokens",
+    ["styles/style-tokens.css", "styles/style-themes.css", "styles/style-theme-palettes.css"],
+  ],
+  ["base", ["styles/style-base.css"]],
   [
     "shell",
-    ["style-shell.css", "style-about.css", "style-shell-responsive.css", "style-dialogs.css"],
+    [
+      "styles/style-shell.css",
+      "dialogs/style-about.css",
+      "styles/style-shell-responsive.css",
+      "dialogs/style-dialogs.css",
+    ],
   ],
   [
     "components",
     [
-      "style-components.css",
-      "style-feedback.css",
-      "style-option-rows.css",
-      "style-workflows.css",
-      "style-status.css",
-      "style-syntax-editor.css",
-      "style-syntax-popovers.css",
-      "style-typeahead.css",
-      "style-source-settings.css",
-      "style-automation.css",
+      "styles/style-components.css",
+      "styles/style-feedback.css",
+      "styles/style-option-rows.css",
+      "core/style-workflows.css",
+      "styles/style-status.css",
+      "syntax-editor/style-syntax-editor.css",
+      "syntax-editor/style-syntax-popovers.css",
+      "ui/style-typeahead.css",
+      "core/style-source-settings.css",
+      "core/style-automation.css",
     ],
   ],
-  ["layout", ["style-layout.css", "style-variables-preview.css", "style-layout-responsive.css"]],
+  [
+    "layout",
+    [
+      "styles/style-layout.css",
+      "reference/style-variables-preview.css",
+      "styles/style-layout-responsive.css",
+    ],
+  ],
   [
     "editors",
     [
-      "style-rule-editor.css",
-      "style-rule-editor-clauses.css",
-      "style-rule-editor-create.css",
-      "style-route-debugger.css",
-      "style-route-debugger-trace.css",
-      "style-route-debugger-tools.css",
-      "style-route-debugger-responsive.css",
-      "style-template-library.css",
-      "style-option-tools.css",
-      "style-editor-actions.css",
-      "style-path-editor.css",
-      "style-menu-preview.css",
-      "style-editor-reference.css",
-      "style-editor-responsive.css",
+      "rule-editor/style-rule-editor.css",
+      "rule-editor/style-rule-editor-clauses.css",
+      "rule-editor/style-rule-editor-create.css",
+      "route-debugger/style-route-debugger.css",
+      "route-debugger/style-route-debugger-trace.css",
+      "route-debugger/style-route-debugger-tools.css",
+      "route-debugger/style-route-debugger-responsive.css",
+      "rule-editor/style-template-library.css",
+      "core/style-option-tools.css",
+      "path-editor/style-editor-actions.css",
+      "path-editor/style-path-editor.css",
+      "path-editor/style-menu-preview.css",
+      "reference/style-editor-reference.css",
+      "path-editor/style-editor-responsive.css",
     ],
   ],
   [
     "advanced",
-    ["style-advanced.css", "style-advanced-integrations.css", "style-advanced-responsive.css"],
+    [
+      "core/style-advanced.css",
+      "integrations/style-advanced-integrations.css",
+      "core/style-advanced-responsive.css",
+    ],
   ],
-  ["history", ["style-history.css", "style-history-metadata.css", "style-history-responsive.css"]],
+  [
+    "history",
+    [
+      "history/style-history.css",
+      "history/style-history-metadata.css",
+      "history/style-history-responsive.css",
+    ],
+  ],
   ["welcome", []],
   ["reference", []],
-  ["utilities", ["style-accessibility.css", "style-utilities.css"]],
+  ["utilities", ["styles/style-accessibility.css", "styles/style-utilities.css"]],
 ];
 const styleEntry = fs.readFileSync(styleEntryPath, "utf8");
 const layerNames = styleLayers.map(([layer]) => layer);
@@ -259,7 +308,7 @@ const pageStyleLayers = [
   ["style-reference.css", "reference.css", "reference"],
 ];
 for (const [entry, file, layer] of pageStyleLayers) {
-  const source = fs.readFileSync(path.join(root, "src", "options", entry), "utf8");
+  const source = fs.readFileSync(optionFile(entry), "utf8");
   if (source !== `@import url("${file}") layer(${layer});\n`) {
     violations.push(`src/options/${entry} must import ${file} into the ${layer} layer`);
   }
@@ -267,8 +316,11 @@ for (const [entry, file, layer] of pageStyleLayers) {
 
 /** @type {Array<[string, string[]]>} */
 const expectedDocumentStyles = [
-  [optionsDocumentPath, ["style.css", "style-welcome.css", "style-reference.css"]],
-  [clauseListDocumentPath, ["style.css", "style-reference.css"]],
+  [
+    optionsDocumentPath,
+    ["style.css", "dialogs/style-welcome.css", "reference/style-reference.css"],
+  ],
+  [clauseListDocumentPath, ["style.css", "reference/style-reference.css"]],
 ];
 for (const [documentPath, expected] of expectedDocumentStyles) {
   const source = fs.readFileSync(documentPath, "utf8");
@@ -461,15 +513,12 @@ for (const file of styles) {
     violations.push(`${relative}:${line} uses a numeric z-index; use a semantic stacking token`);
   }
 
-  if (
-    file !== path.join(root, "src", "options", "style-base.css") &&
-    /box-sizing\s*:/.test(source)
-  ) {
+  if (file !== optionFile("style-base.css") && /box-sizing\s*:/.test(source)) {
     violations.push(`${relative} overrides the shared border-box sizing contract`);
   }
 
   for (const match of source.matchAll(/[^{}]+\{[^{}]*overflow(?:-y)?\s*:\s*auto;[^{}]*\}/g)) {
-    if (file === path.join(root, "src", "options", "style-base.css") && match[0].includes("html")) {
+    if (file === optionFile("style-base.css") && match[0].includes("html")) {
       continue;
     }
     if (match[0].includes("overscroll-behavior:")) continue;
@@ -486,12 +535,12 @@ for (const file of styles) {
   }
 }
 
-const baseStyle = fs.readFileSync(path.join(root, "src", "options", "style-base.css"), "utf8");
+const baseStyle = fs.readFileSync(optionFile("style-base.css"), "utf8");
 if (!/html\s*\{[^}]*box-sizing:\s*border-box;/.test(baseStyle)) {
   violations.push("src/options/style-base.css must establish the shared border-box model");
 }
 
-const shellStyle = fs.readFileSync(path.join(root, "src", "options", "style-shell.css"), "utf8");
+const shellStyle = fs.readFileSync(optionFile("style-shell.css"), "utf8");
 if (!/body\s*\{[^}]*isolation:\s*isolate;/.test(shellStyle)) {
   violations.push("src/options/style-shell.css must isolate the application stacking context");
 }
@@ -507,10 +556,7 @@ if (!/html\s*\{[^}]*overflow-y:\s*auto;/.test(baseStyle)) {
 if (!/\.app-dialog\s*\{[^}]*container:\s*app-dialog\s*\/\s*inline-size;/.test(shellStyle)) {
   violations.push("shared dialogs must expose their inline size as the app-dialog container");
 }
-const optionToolStyle = fs.readFileSync(
-  path.join(root, "src", "options", "style-option-tools.css"),
-  "utf8",
-);
+const optionToolStyle = fs.readFileSync(optionFile("style-option-tools.css"), "utf8");
 if (/button:disabled/.test(optionToolStyle)) {
   violations.push("global disabled-button styling must stay in the base control primitive");
 }
@@ -523,18 +569,9 @@ if (!/a\.external::after\s*\{[^}]*background-color:\s*currentColor;[^}]*mask:/.t
   );
 }
 
-const accessibilityStyle = fs.readFileSync(
-  path.join(root, "src", "options", "style-accessibility.css"),
-  "utf8",
-);
-const sharedComponentStyle = fs.readFileSync(
-  path.join(root, "src", "options", "style-components.css"),
-  "utf8",
-);
-const feedbackStyle = fs.readFileSync(
-  path.join(root, "src", "options", "style-feedback.css"),
-  "utf8",
-);
+const accessibilityStyle = fs.readFileSync(optionFile("style-accessibility.css"), "utf8");
+const sharedComponentStyle = fs.readFileSync(optionFile("style-components.css"), "utf8");
+const feedbackStyle = fs.readFileSync(optionFile("style-feedback.css"), "utf8");
 for (const selector of [".error-notification", ".error-row", ".feedback", ".click-to-copy"]) {
   if (!feedbackStyle.includes(selector)) {
     violations.push(`src/options/style-feedback.css must own ${selector}`);
@@ -552,10 +589,7 @@ if (
 ) {
   violations.push("links in prose and help content must remain visibly identifiable");
 }
-const optionsLayoutStyle = fs.readFileSync(
-  path.join(root, "src", "options", "style-layout.css"),
-  "utf8",
-);
+const optionsLayoutStyle = fs.readFileSync(optionFile("style-layout.css"), "utf8");
 if (
   !optionsLayoutStyle.includes(":where(#options) {") ||
   sharedComponentStyle.includes("#options {")
@@ -596,9 +630,9 @@ if (
   violations.push("scripted scrolling must share the reduced-motion preference");
 }
 for (const file of ["welcome-dialog.ts", "rule-visual-editor.ts", "tabs.ts"]) {
-  const source = fs.readFileSync(path.join(root, "src", "options", file), "utf8");
+  const source = fs.readFileSync(optionFile(file), "utf8");
   if (
-    !source.includes('from "../shared/motion-preference.ts"') ||
+    !source.includes('from "../../shared/motion-preference.ts"') ||
     !source.includes("preferredScrollBehavior()") ||
     /behavior:\s*["']smooth["']/.test(source)
   ) {
@@ -654,10 +688,7 @@ for (const contract of [
   }
 }
 
-const componentStyle = fs.readFileSync(
-  path.join(root, "src", "options", "style-components.css"),
-  "utf8",
-);
+const componentStyle = fs.readFileSync(optionFile("style-components.css"), "utf8");
 if (
   !componentStyle.includes(
     "@supports (interpolate-size: allow-keywords) and selector(details::details-content)",
@@ -666,10 +697,7 @@ if (
   violations.push("intrinsic disclosure animation must test every progressive CSS feature it uses");
 }
 
-const routeDebuggerStyle = fs.readFileSync(
-  path.join(root, "src", "options", "style-route-debugger.css"),
-  "utf8",
-);
+const routeDebuggerStyle = fs.readFileSync(optionFile("style-route-debugger.css"), "utf8");
 if (/@media\s*\(max-width:/.test(routeDebuggerStyle)) {
   violations.push("route debugger responsiveness must follow its routing-workspace container");
 }
@@ -680,21 +708,21 @@ if (routeDebuggerStyle.includes(".route-debugger-rule-list")) {
   violations.push("route debugger trace styles must stay in style-route-debugger-trace.css");
 }
 const routeDebuggerTraceStyle = fs.readFileSync(
-  path.join(root, "src", "options", "style-route-debugger-trace.css"),
+  optionFile("style-route-debugger-trace.css"),
   "utf8",
 );
 if (!routeDebuggerTraceStyle.includes(".route-debugger-rule-list")) {
   violations.push("route debugger trace styles must own the evaluated rule list");
 }
 const routeDebuggerResponsiveStyle = fs.readFileSync(
-  path.join(root, "src", "options", "style-route-debugger-responsive.css"),
+  optionFile("style-route-debugger-responsive.css"),
   "utf8",
 );
 if (!routeDebuggerResponsiveStyle.includes("@container routing-workspace")) {
   violations.push("route debugger responsive rules must follow the routing-workspace container");
 }
 
-const layoutStyle = fs.readFileSync(path.join(root, "src", "options", "style-layout.css"), "utf8");
+const layoutStyle = fs.readFileSync(optionFile("style-layout.css"), "utf8");
 const mainTablistStyle = /\.tablist\s*\{([^}]*)\}/.exec(layoutStyle)?.[1] ?? "";
 const tablistStyles = styles.flatMap((file) => [
   ...fs.readFileSync(file, "utf8").matchAll(/^\s*\.tablist\s*\{([^}]*)\}/gm),
@@ -722,18 +750,12 @@ if (layoutStyle.includes(".variables-preview-list")) {
   violations.push("variables preview styles must stay in style-variables-preview.css");
 }
 
-const utilityStyle = fs.readFileSync(
-  path.join(root, "src", "options", "style-utilities.css"),
-  "utf8",
-);
+const utilityStyle = fs.readFileSync(optionFile("style-utilities.css"), "utf8");
 if (!utilityStyle.includes(".visually-hidden") || !utilityStyle.includes("clip-path: inset(50%)")) {
   violations.push("visually hidden content must use the shared modern clipping utility");
 }
 
-const templateLibraryStyle = fs.readFileSync(
-  path.join(root, "src", "options", "style-template-library.css"),
-  "utf8",
-);
+const templateLibraryStyle = fs.readFileSync(optionFile("style-template-library.css"), "utf8");
 if (
   !templateLibraryStyle.includes(".reference-dialog[open]") ||
   !templateLibraryStyle.includes("minmax(0, 1fr)")
@@ -744,41 +766,26 @@ if (/height:\s*calc\(100%\s*-\s*\d+px\)/.test(templateLibraryStyle)) {
   violations.push("the reference dialog must not subtract a fixed header height");
 }
 
-const ruleEditorStyle = fs.readFileSync(
-  path.join(root, "src", "options", "style-rule-editor.css"),
-  "utf8",
-);
+const ruleEditorStyle = fs.readFileSync(optionFile("style-rule-editor.css"), "utf8");
 if (ruleEditorStyle.includes(".rule-clause-row")) {
   violations.push("routing clause styles must stay in style-rule-editor-clauses.css");
 }
-const ruleEditorClauseStyle = fs.readFileSync(
-  path.join(root, "src", "options", "style-rule-editor-clauses.css"),
-  "utf8",
-);
+const ruleEditorClauseStyle = fs.readFileSync(optionFile("style-rule-editor-clauses.css"), "utf8");
 if (!ruleEditorClauseStyle.includes("grid-template-columns: subgrid;")) {
   violations.push("routing clause rows must share the card column contract through subgrid");
 }
 
-const advancedStyle = fs.readFileSync(
-  path.join(root, "src", "options", "style-advanced.css"),
-  "utf8",
-);
+const advancedStyle = fs.readFileSync(optionFile("style-advanced.css"), "utf8");
 if (advancedStyle.includes(".webhook-section")) {
   violations.push("external integration styles must stay in style-advanced-integrations.css");
 }
 
-const syntaxEditorStyle = fs.readFileSync(
-  path.join(root, "src", "options", "style-syntax-editor.css"),
-  "utf8",
-);
+const syntaxEditorStyle = fs.readFileSync(optionFile("style-syntax-editor.css"), "utf8");
 if (syntaxEditorStyle.includes(".typeahead-")) {
   violations.push("shared typeahead styles must stay in style-typeahead.css");
 }
 
-const pathEditorStyle = fs.readFileSync(
-  path.join(root, "src", "options", "style-path-editor.css"),
-  "utf8",
-);
+const pathEditorStyle = fs.readFileSync(optionFile("style-path-editor.css"), "utf8");
 if (/@container\s+path-editor/.test(pathEditorStyle)) {
   violations.push("path editor responsive rules must stay in style-editor-responsive.css");
 }
@@ -825,7 +832,7 @@ const responsiveContainerContracts = [
   ["style-template-library.css", "container: reference-content / inline-size"],
 ];
 for (const [file, contract] of responsiveContainerContracts) {
-  const source = fs.readFileSync(path.join(root, "src", "options", file), "utf8");
+  const source = fs.readFileSync(optionFile(file), "utf8");
   if (!source.includes(contract)) {
     violations.push(`src/options/${file} is missing responsive container contract ${contract}`);
   }
@@ -1199,10 +1206,14 @@ if (
   violations.push("source-panel menus must use shared collision-aware floating positioning");
 }
 
-for (const file of ["autocomplete.ts", "typeahead.ts", "syntax-editor.ts"]) {
-  const source = fs.readFileSync(path.join(root, "src", "options", file), "utf8");
+for (const [file, floatingPositionSpecifier] of /** @type {Array<[string, string]>} */ ([
+  ["autocomplete.ts", "../ui/floating-position.ts"],
+  ["typeahead.ts", "./floating-position.ts"],
+  ["syntax-editor.ts", "../ui/floating-position.ts"],
+])) {
+  const source = fs.readFileSync(optionFile(file), "utf8");
   if (
-    !source.includes('from "./floating-position.ts"') ||
+    !source.includes(`from "${floatingPositionSpecifier}"`) ||
     !source.includes("positionFloatingElement(")
   ) {
     violations.push(`src/options/${file} must use the shared collision-aware floating positioner`);
@@ -1216,10 +1227,7 @@ const floatingPositionSource = fs.readFileSync(
 if (!floatingPositionSource.includes('element.style.position = "fixed"')) {
   violations.push("shared floating surfaces must escape clipping ancestors with fixed positioning");
 }
-const floatingSurfacesSource = fs.readFileSync(
-  path.join(root, "src", "options", "details-menu-positioning.ts"),
-  "utf8",
-);
+const floatingSurfacesSource = fs.readFileSync(optionFile("details-menu-positioning.ts"), "utf8");
 for (const contract of [
   "details.details-popup[open]",
   ":scope > .menu-popover",
@@ -1230,9 +1238,9 @@ for (const contract of [
     violations.push(`shared floating-surface positioning is missing ${contract}`);
   }
 }
-const optionsPageSource = fs.readFileSync(path.join(root, "src", "options", "options.ts"), "utf8");
+const optionsPageSource = fs.readFileSync(optionFile("options.ts"), "utf8");
 if (
-  !optionsPageSource.includes('from "./details-menu-positioning.ts"') ||
+  !optionsPageSource.includes('from "../ui/details-menu-positioning.ts"') ||
   !optionsPageSource.includes("setupDetailsMenuPositioning,")
 ) {
   violations.push("the options page must initialize shared details-menu positioning");
@@ -1240,10 +1248,7 @@ if (
 if (!/:not\(:has\(> \.menu-popover\)\)::details-content/.test(sharedComponentStyle)) {
   violations.push("menu disclosures must stay outside intrinsic-size clipping animations");
 }
-const anchoredSurfaceSource = fs.readFileSync(
-  path.join(root, "src", "options", "anchored-floating-surface.ts"),
-  "utf8",
-);
+const anchoredSurfaceSource = fs.readFileSync(optionFile("anchored-floating-surface.ts"), "utf8");
 if (
   !anchoredSurfaceSource.includes("positionFloatingElement(") ||
   !anchoredSurfaceSource.includes("window.visualViewport")
@@ -1251,8 +1256,8 @@ if (
   violations.push("non-menu floating surfaces must use shared viewport-aware positioning");
 }
 for (const file of ["option-search.ts", "saved-indicator.ts"]) {
-  const source = fs.readFileSync(path.join(root, "src", "options", file), "utf8");
-  if (!source.includes('from "./anchored-floating-surface.ts"')) {
+  const source = fs.readFileSync(optionFile(file), "utf8");
+  if (!source.includes('from "../ui/anchored-floating-surface.ts"')) {
     violations.push(`src/options/${file} must use shared anchored floating positioning`);
   }
 }
@@ -1267,7 +1272,7 @@ const floatingMenuOwners = [
   ["rule-visual-editor.ts", "rule-editor-card-action-menu menu-popover"],
 ];
 for (const [file, className] of floatingMenuOwners) {
-  const source = fs.readFileSync(path.join(root, "src", "options", file), "utf8");
+  const source = fs.readFileSync(optionFile(file), "utf8");
   if (!source.includes(className)) {
     violations.push(
       `src/options/${file} must apply the shared menu-popover surface to ${className}`,
@@ -1275,10 +1280,10 @@ for (const [file, className] of floatingMenuOwners) {
   }
 }
 
-const optionEntries = fs.readdirSync(path.join(root, "src", "options"), { withFileTypes: true });
-for (const entry of optionEntries) {
-  if (!entry.isFile() || !entry.name.endsWith(".ts")) continue;
-  const file = path.join(root, "src", "options", entry.name);
+const optionTsFiles = listOptionFiles(optionsRoot, (name) => name.endsWith(".ts"));
+const optionHtmlFiles = listOptionFiles(optionsRoot, (name) => name.endsWith(".html"));
+
+for (const file of optionTsFiles) {
   const relative = path.relative(root, file);
   const source = fs.readFileSync(file, "utf8");
   const runtimeTypography =
@@ -1289,9 +1294,7 @@ for (const entry of optionEntries) {
   }
 }
 
-for (const entry of optionEntries) {
-  if (!entry.isFile() || !entry.name.endsWith(".html")) continue;
-  const file = path.join(root, "src", "options", entry.name);
+for (const file of optionHtmlFiles) {
   const relative = path.relative(root, file);
   const source = fs.readFileSync(file, "utf8");
   const inlineTypography = /style\s*=\s*["'][^"']*\bfont(?:-|\s*:)/gi;
@@ -1306,9 +1309,7 @@ for (const entry of optionEntries) {
   }
 }
 
-for (const entry of optionEntries) {
-  if (!entry.isFile() || !entry.name.endsWith(".ts")) continue;
-  const file = path.join(root, "src", "options", entry.name);
+for (const file of optionTsFiles) {
   const relative = path.relative(root, file);
   const source = fs.readFileSync(file, "utf8");
   if (source.includes('createElement("dialog")') && !source.includes('"app-dialog ')) {

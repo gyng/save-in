@@ -15,7 +15,7 @@ import {
   setPathAccessKey,
   setPathEnabled,
   setPathDialog,
-} from "../../../src/options/path-editor-model.ts";
+} from "../../../src/options/path-editor/path-editor-model.ts";
 
 describe("path editor model", () => {
   const edit = (

@@ -47,11 +47,11 @@ const confirmHistoryClear = () => {
   document.querySelector<HTMLButtonElement>(".history-clear-dialog .danger-button")!.click();
 };
 
-let historyPanel: typeof import("../../../src/options/history-panel.ts");
+let historyPanel: typeof import("../../../src/options/history/history-panel.ts");
 
 describe("history filter controls", () => {
   beforeAll(async () => {
-    historyPanel = await import("../../../src/options/history-panel.ts");
+    historyPanel = await import("../../../src/options/history/history-panel.ts");
   });
 
   beforeEach(() => {

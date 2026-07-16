@@ -1,5 +1,5 @@
 // Cases imported by panel.test.ts to share one jsdom environment.
-import { renderHistoryFeedback } from "../../../src/options/history-feedback.ts";
+import { renderHistoryFeedback } from "../../../src/options/history/history-feedback.ts";
 
 test("renders an actionable error and clears it accessibly", () => {
   document.body.innerHTML = '<div id="feedback" aria-live="polite"></div>';

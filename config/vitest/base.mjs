@@ -44,7 +44,7 @@ export default defineConfig({
         "src/offscreen.ts",
         // The options composition root runs top-level against the real document;
         // pure models and controllers remain visible to unit coverage.
-        "src/options/options.ts",
+        "src/options/core/options.ts",
       ],
       thresholds: {
         statements: 100,
