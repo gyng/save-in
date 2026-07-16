@@ -179,6 +179,22 @@ export const toTld = (hostname: string | null | undefined) => {
   return labels.length >= 2 ? labels[labels.length - 1] : "";
 };
 
+// Content-Types that mean "I don't know what this is". Their subtype is not an
+// extension, and octet-stream is the likeliest answer for exactly the URLs that
+// carry no extension — the case appendMimeExtension exists for. Deriving from
+// the subtype there yields "foo.octet", which is worse than "foo": it looks
+// like a real extension, so the user must remove it before adding the right
+// one. An unknown type earns no extension.
+const OPAQUE_MIME_TYPES = new Set([
+  "application/octet-stream",
+  "binary/octet-stream",
+  "application/octetstream",
+  "application/download",
+  "application/force-download",
+  "application/x-download",
+  "application/unknown",
+]);
+
 // Common Content-Type -> file extension. The subtype fallback in
 // mimeToExtension covers the long tail, so this only needs the cases where
 // the subtype is not the extension people expect.
@@ -197,6 +213,11 @@ export const MIME_EXTENSIONS: Record<string, string> = {
   "application/pdf": "pdf",
   "application/zip": "zip",
   "application/gzip": "gz",
+  // Subtype and extension diverge on these, so the fallback would produce
+  // "bittorrent", "msdownload", and "shockwave".
+  "application/x-bittorrent": "torrent",
+  "application/x-msdownload": "exe",
+  "application/x-shockwave-flash": "swf",
   "application/javascript": "js",
   "application/xml": "xml",
   "text/plain": "txt",
@@ -213,6 +234,9 @@ export const mimeToExtension = (mime: string | null | undefined) => {
   }
   if (MIME_EXTENSIONS[mime]) {
     return MIME_EXTENSIONS[mime];
+  }
+  if (OPAQUE_MIME_TYPES.has(mime)) {
+    return "";
   }
   const sub = mime.split("/")[1];
   if (!sub) {

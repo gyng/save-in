@@ -878,6 +878,47 @@ describe(":mime: / :contenttype: / :mimeext: (async HEAD)", () => {
     expect(Variable.mimeToExtension("")).toBe("");
     expect(Variable.mimeToExtension("invalid")).toBe("");
   });
+
+  // The subtype fallback only works where the subtype IS the extension. These
+  // are the two families where it is not, and both reach a real filename:
+  // appendMimeExtension runs on any save whose name has no extension.
+  describe("mimeToExtension refuses to invent an extension", () => {
+    // "I don't know what this is" — the likeliest answer for exactly the URLs
+    // that have no extension. "foo.octet" is worse than "foo": it looks like a
+    // real extension, so the user has to remove it before adding the right one.
+    test.each([
+      "application/octet-stream",
+      "binary/octet-stream",
+      "application/octetstream",
+      "application/force-download",
+      "application/x-download",
+      "application/download",
+      "application/unknown",
+    ])("leaves the name bare for %s", (mime) => {
+      expect(Variable.mimeToExtension(mime)).toBe("");
+    });
+
+    test.each([
+      ["application/x-bittorrent", "torrent"],
+      ["application/x-msdownload", "exe"],
+      ["application/x-shockwave-flash", "swf"],
+    ])("maps %s to %s rather than its subtype", (mime, extension) => {
+      expect(Variable.mimeToExtension(mime)).toBe(extension);
+    });
+
+    // The fallback's real wins must survive: these are types where the subtype
+    // is the extension, including ones added after this table was written.
+    test.each([
+      ["image/webp", "webp"],
+      ["image/avif", "avif"],
+      ["video/webm", "webm"],
+      ["application/x-7z-compressed", "7z"],
+      ["application/vnd.rar", "rar"],
+      ["font/woff2", "woff2"],
+    ])("still derives %s from its subtype", (mime, extension) => {
+      expect(Variable.mimeToExtension(mime)).toBe(extension);
+    });
+  });
 });
 
 describe(":sha256: (async content hash)", () => {
