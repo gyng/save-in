@@ -162,8 +162,8 @@ rules.
 - Fixed History so entries accumulate instead of replacing one another, capped
   it at 10,000 entries, and added search, filtering, pagination, localized
   statuses, download actions, copy actions for the saved path and source URL,
-  and **Export all** in JSON or formula-safe CSV and TSV formats (#159). Table
-  headings now use **Started** and **Routing**.
+  and **Export all** in JSON or formula-safe CSV and TSV formats (#159, #216).
+  Table headings now use **Started** and **Routing**.
 - Wake the background as soon as the click-to-save modifier is held, making
   Chrome saves more reliable (thanks @rudolphos, #230). Click-to-save also
   falls back to the link under the cursor when link saving is enabled (#226).
@@ -268,8 +268,8 @@ rules.
   **Started**, **Routing**, and **Export all** labels.
 - Expanded Advanced **Diagnostics** with MV3 background health, bounded lifecycle
   events, configuration issue counts, copyable support details, and recent
-  session failures. It loads only when opened and excludes private activity
-  (#216). The Options page now opens in a browser tab.
+  session failures. It loads only when opened and excludes private activity.
+  The Options page now opens in a browser tab.
 - The **About** page now lists each requested browser permission with a plain
   explanation of why Save In needs it.
 - Fixed the Firefox dark-mode Last used icon (#184), restored first-party

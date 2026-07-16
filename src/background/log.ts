@@ -1,7 +1,8 @@
-// Session-scoped debug log (#159/#216): a small ring buffer in
-// storage.session so entries survive MV3 service worker restarts but never
-// leave the machine and clear on browser exit. Viewable from the options
-// page. No-op where storage.session is unavailable.
+// Session-scoped debug log: a small ring buffer in storage.session so entries
+// survive MV3 service worker restarts but never leave the machine and clear on
+// browser exit. Viewable from the options page. No-op where storage.session is
+// unavailable. This is a log of the extension's own behaviour; the log of saved
+// files that #159/#216 asked for is History (see background/history.ts).
 
 import { sessionWriteState } from "./application-state.ts";
 import { getSession, updateSession } from "../shared/session-state.ts";
