@@ -270,7 +270,13 @@ export const addQuickSaveToDirectory = (contexts: readonly MenuContext[]) => {
     id: MENU_IDS.QUICK_SAVE_TO_DIRECTORY,
     type: "checkbox",
     checked: options.quickSaveUseDirectory,
-    title: getMessage("contextMenuQuickSaveToDirectory", [directory]) || `Save to ${directory}`,
+    // The folder name is user text landing in access-key markup, where a lone
+    // "&" flags the next character and disappears. setAccesskey with no key
+    // escapes without claiming one, as the recent destinations do.
+    title: setAccesskey(
+      getMessage("contextMenuQuickSaveToDirectory", [directory]) || `Save to ${directory}`,
+      "",
+    ),
     contexts: asMenuContexts(contexts),
     parentId: MENU_IDS.ROOT,
   });

@@ -305,6 +305,25 @@ describe("menu creation", () => {
       expect(item.checked).toBe(false);
     });
 
+    // A menu title is access-key markup: a lone "&" flags the next character
+    // and is eaten, so a literal one in a user-configured folder name has to be
+    // doubled. Every other user-controlled title escapes for this reason.
+    test("addQuickSaveToDirectory escapes ampersands in the configured directory", () => {
+      options.quickSaveDirectory = "Rock & Roll";
+      options.quickSaveUseDirectory = true;
+      vi.mocked(global.browser.i18n.getMessage).mockReturnValueOnce("");
+      menu.addQuickSaveToDirectory(["image"]);
+      expect(created()[0]!.title).toBe("Save to Rock && Roll");
+    });
+
+    test("addQuickSaveToDirectory escapes an ampersand a localization substituted in", () => {
+      options.quickSaveDirectory = "Rock & Roll";
+      options.quickSaveUseDirectory = true;
+      vi.mocked(global.browser.i18n.getMessage).mockReturnValueOnce("Save to Rock & Roll");
+      menu.addQuickSaveToDirectory(["image"]);
+      expect(created()[0]!.title).toBe("Save to Rock && Roll");
+    });
+
     test("setQuickSaveUseDirectory updates the bag and persists to storage.local", async () => {
       options.quickSaveUseDirectory = false;
       await menu.setQuickSaveUseDirectory(true);
