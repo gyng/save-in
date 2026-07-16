@@ -270,6 +270,23 @@ test("rejects a valid response containing more than one rule", async () => {
   expect(mocks.sendMessage.mock.calls.some(([message]) => message.type === "VALIDATE")).toBe(false);
 });
 
+test("rejects a syntactically valid draft that broadens explicit constraints", async () => {
+  mocks.runPrompt.mockResolvedValue("fileext/i: ^(?:png|jpe?g)$\ninto: Images/:filename:");
+  setup();
+  await enable();
+
+  submitRequest("save png into /dongs");
+
+  await vi.waitFor(() =>
+    expect(element("prompt-assistant-status").textContent).toContain(
+      "file types do not exactly match",
+    ),
+  );
+  expect(element("prompt-assistant-result").hidden).toBe(false);
+  expect(element<HTMLButtonElement>("prompt-assistant-add").disabled).toBe(true);
+  expect(mocks.sendMessage.mock.calls.some(([message]) => message.type === "VALIDATE")).toBe(false);
+});
+
 test("rechecks availability while the on-device model is downloading", async () => {
   vi.useFakeTimers();
   try {

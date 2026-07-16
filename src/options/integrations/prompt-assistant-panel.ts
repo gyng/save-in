@@ -13,6 +13,7 @@ import {
   buildRuleAuthoringPrompt,
   cleanRuleSuggestion,
   isSingleRuleSuggestion,
+  ruleSuggestionFidelityError,
   type RuleAuthoringVocabulary,
 } from "./prompt-assistant-model.ts";
 
@@ -192,6 +193,7 @@ export const setupPromptAssistantPanel = (
   form.addEventListener("submit", (event) => {
     event.preventDefault();
     if (submit.disabled) return;
+    const request = input.value;
     const version = ++requestVersion;
     const controller = new AbortController();
     activeController = controller;
@@ -204,7 +206,7 @@ export const setupPromptAssistantPanel = (
     void Promise.all([routingGrammar(), ruleAuthoringVocabulary()])
       .then(([grammar, vocabulary]) => {
         if (version !== requestVersion || controller.signal.aborted) return null;
-        return runPrompt(buildRuleAuthoringPrompt(input.value, grammar, vocabulary), {
+        return runPrompt(buildRuleAuthoringPrompt(request, grammar, vocabulary), {
           allowDownload: true,
           signal: controller.signal,
           onDownloadProgress: (loaded) => {
@@ -228,6 +230,12 @@ export const setupPromptAssistantPanel = (
         suggestedRule = cleaned;
         rule.textContent = cleaned;
         result.hidden = false;
+        const fidelityError = ruleSuggestionFidelityError(request, cleaned);
+        if (fidelityError) {
+          add.disabled = true;
+          setStatus(copy.invalid(fidelityError), "error");
+          return;
+        }
         const invalidCss = cssSelectorErrors(cleaned)[0];
         if (invalidCss) {
           add.disabled = true;
