@@ -157,6 +157,18 @@ describe("message protocol runtime validation", () => {
     },
     { type: MESSAGE_TYPES.VALIDATE, body: { info: { now: "today" } } },
     { type: MESSAGE_TYPES.VALIDATE, body: { info: { currentTab: { title: 42 } } } },
+    // The trace spreads info straight into the rule matcher, which reads this
+    // field as groups of selectors. A flat array turns its Array.includes subset
+    // test into String.includes, matching a css clause on a substring; a bare
+    // string makes it throw. The other two entry points already reject both.
+    {
+      type: MESSAGE_TYPES.VALIDATE,
+      body: { info: { matchedCssSelectorsByOrigin: ["article img"] } },
+    },
+    {
+      type: MESSAGE_TYPES.VALIDATE,
+      body: { info: { matchedCssSelectorsByOrigin: "img" } },
+    },
     {
       type: MESSAGE_TYPES.VALIDATE,
       body: {

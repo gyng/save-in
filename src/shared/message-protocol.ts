@@ -494,6 +494,11 @@ const isValidationInfo = (value: unknown): value is ValidationInfo =>
   (typeof value.counter === "undefined" || isRoutingCounter(value.counter)) &&
   (typeof value.now === "undefined" ||
     (typeof value.now === "string" && Number.isFinite(new Date(value.now).getTime()))) &&
+  // The trace spreads this info straight into the rule matcher, which reads
+  // this field as groups of selectors. It rides through as an unchecked extra
+  // key otherwise, so guard it here as the other two entry points already do.
+  (typeof value.matchedCssSelectorsByOrigin === "undefined" ||
+    isCssSelectorAttestation(value.matchedCssSelectorsByOrigin)) &&
   (typeof value.currentTab === "undefined" ||
     value.currentTab === null ||
     isWireCurrentTab(value.currentTab));
