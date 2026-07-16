@@ -252,6 +252,41 @@ describe("built-in matcher templates", () => {
     ).toBeNull();
   });
 
+  test("the Google Images template accepts opened source images but not result thumbnails", () => {
+    const rules = rulesFor("Google Images source image");
+    const source = {
+      pageUrl: "https://www.google.com/search?udm=2&q=landscape",
+      sourceUrl: "https://images.example.test/photos/landscape.jpg",
+      filename: "landscape.jpg",
+    };
+
+    expect(matchRules(rules, { ...source, sourceKind: "image" })).toBe("google-images/:filename:");
+    expect(matchRules(rules, { ...source, mediaType: "image" })).toBe("google-images/:filename:");
+    expect(
+      matchRules(rules, {
+        ...source,
+        pageUrl: "https://www.google.co.uk/search?q=landscape&tbm=isch",
+        sourceKind: "image",
+      }),
+    ).toBe("google-images/:filename:");
+    expect(
+      matchRules(rules, {
+        ...source,
+        sourceKind: "image",
+        sourceUrl: "https://encrypted-tbn0.gstatic.com/images?q=tbn:preview",
+      }),
+    ).toBeNull();
+    expect(
+      matchRules(rules, {
+        ...source,
+        pageUrl: "https://www.google.com/search?q=landscape",
+        sourceKind: "image",
+      }),
+    ).toBeNull();
+    expect(matchRules(rules, { ...source, sourceKind: "link" })).toBeNull();
+    expect(matchRules(rules, { ...source, sourceKind: "link", mediaType: "image" })).toBeNull();
+  });
+
   test("actual extension matching can use a resolved preview filename", () => {
     expect(
       matchRules(rulesFor("PDFs into a documents folder"), {

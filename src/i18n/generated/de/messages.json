@@ -3854,6 +3854,12 @@
   "ruleTemplateGoogleOriginalDescription": {
     "message": "Schreibt ein von Google gehostetes Vorschaubild auf seine volle Originalgröße um"
   },
+  "ruleTemplateGoogleImagesSourceName": {
+    "message": "Quellbild aus Google Bilder"
+  },
+  "ruleTemplateGoogleImagesSourceDescription": {
+    "message": "Speichert ein in Google Bilder geöffnetes Bild von der veröffentlichenden Website statt des Such-Miniaturbilds"
+  },
   "ruleTemplateFlickrLargeName": {
     "message": "Größeres Flickr-Bild"
   },

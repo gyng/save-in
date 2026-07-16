@@ -3854,6 +3854,12 @@
   "ruleTemplateGoogleOriginalDescription": {
     "message": "將 Google 託管的預覽圖片改寫為完整原始尺寸"
   },
+  "ruleTemplateGoogleImagesSourceName": {
+    "message": "Google 圖片來源影像"
+  },
+  "ruleTemplateGoogleImagesSourceDescription": {
+    "message": "從發佈者網站儲存已在 Google 圖片中開啟的影像，而不是搜尋縮圖"
+  },
   "ruleTemplateFlickrLargeName": {
     "message": "Flickr 更大圖片"
   },

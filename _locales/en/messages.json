@@ -2643,6 +2643,14 @@
     "message": "Rewrites a Google-hosted preview image to its full original size",
     "description": "Description on a built-in routing-template card. \"Google\" is a product name; keep it as-is. Used in src/options/rule-templates.ts."
   },
+  "ruleTemplateGoogleImagesSourceName": {
+    "message": "Google Images source image",
+    "description": "Title of a built-in routing-template card for saving the publisher image shown in the Google Images details pane. \"Google Images\" is a product name; keep it as-is. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateGoogleImagesSourceDescription": {
+    "message": "Saves an image opened in Google Images from its publisher instead of the search thumbnail",
+    "description": "Description on a built-in routing-template card. The opened image is the large image in the Google Images details pane, and the search thumbnail is the smaller result-grid copy. \"Google Images\" is a product name; keep it as-is. Used in src/options/rule-templates.ts."
+  },
   "ruleTemplateFlickrLargeName": {
     "message": "Flickr larger image",
     "description": "Title of a built-in routing-template card. \"Flickr\" is a website name; keep it as-is. Used in src/options/rule-templates.ts."

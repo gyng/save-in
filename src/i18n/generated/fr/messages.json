@@ -3854,6 +3854,12 @@
   "ruleTemplateGoogleOriginalDescription": {
     "message": "Réécrit une image d’aperçu hébergée par Google vers sa taille originale complète"
   },
+  "ruleTemplateGoogleImagesSourceName": {
+    "message": "Image source de Google Images"
+  },
+  "ruleTemplateGoogleImagesSourceDescription": {
+    "message": "Enregistre une image ouverte dans Google Images depuis le site de l’éditeur au lieu de la vignette de recherche"
+  },
   "ruleTemplateFlickrLargeName": {
     "message": "Image Flickr plus grande"
   },

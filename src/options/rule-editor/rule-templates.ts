@@ -477,6 +477,27 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
   },
   {
     category: "Site originals",
+    name: "Google Images source image",
+    description:
+      "Saves an image opened in Google Images from its publisher instead of the search thumbnail",
+    example: "Example: google-images/landscape.jpg",
+    // The result grid uses encrypted-tbn*.gstatic.com thumbnails. Once a
+    // result is opened, Google places the publisher URL directly on the large
+    // image. Match that stable URL distinction instead of volatile DOM class
+    // names. Keep both the current udm=2 and legacy tbm=isch search forms.
+    rule: "pageurl: ^https://(?:www\\.)?google\\.[a-z]{2,3}(?:\\.[a-z]{2})?/search\\?(?:[^#]*&)?(?:udm=2|tbm=isch)(?:&|#|$)\nsourcekind: ^image$\nsourceurl: ^https://(?!(?:encrypted-tbn\\d+|ssl)\\.gstatic\\.com/)\ninto: google-images/:filename:",
+    proof: {
+      info: {
+        pageUrl: "https://www.google.com/search?udm=2&q=landscape",
+        sourceUrl: "https://images.example.test/photos/landscape.jpg",
+        sourceKind: "image",
+        filename: "landscape.jpg",
+      },
+      destination: "google-images/:filename:",
+    },
+  },
+  {
+    category: "Site originals",
     name: "Flickr larger image",
     description: "Rewrites a Flickr image link to a larger 1024px version",
     example: "Example: flickr/55392836202_97bdf7986a_b.jpg",
@@ -895,6 +916,15 @@ export const localizeRuleTemplates = (getMessage: GetMessage): LocalizedRuleTemp
         description:
           getMessage("ruleTemplateGoogleOriginalDescription") ||
           "Rewrites a Google-hosted preview image to its full original size",
+      },
+    ],
+    [
+      "Google Images source image",
+      {
+        name: getMessage("ruleTemplateGoogleImagesSourceName") || "Google Images source image",
+        description:
+          getMessage("ruleTemplateGoogleImagesSourceDescription") ||
+          "Saves an image opened in Google Images from its publisher instead of the search thumbnail",
       },
     ],
     [

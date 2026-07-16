@@ -208,7 +208,17 @@ export const matcherFunctions = {
           )
         : missingEvaluation("context", null),
     ),
-  sourcekind: makeInfoMatcherFactory("sourceKind"),
+  // Browser context-menu saves report mediaType, while content-originated
+  // saves report the more precise sourceKind. Treat mediaType as the legacy
+  // host-boundary fallback so one rule can describe the same image in both
+  // paths.
+  sourcekind: (regex) =>
+    explainableMatcher((info) => {
+      const candidate = firstStringCandidate(info, ["sourceKind", "mediaType"]);
+      return candidate
+        ? evaluateCandidates(regex, info, [candidate], candidate.source)
+        : missingEvaluation("sourceKind", null);
+    }),
   menuindex: (regex) =>
     explainableMatcher((info, { menuIndex } = EMPTY_INFO) =>
       typeof menuIndex === "string"

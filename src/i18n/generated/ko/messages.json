@@ -3854,6 +3854,12 @@
   "ruleTemplateGoogleOriginalDescription": {
     "message": "Google에서 호스팅하는 미리보기 이미지를 원본 전체 크기로 재작성합니다"
   },
+  "ruleTemplateGoogleImagesSourceName": {
+    "message": "Google 이미지 원본"
+  },
+  "ruleTemplateGoogleImagesSourceDescription": {
+    "message": "Google 이미지에서 연 이미지를 검색 썸네일 대신 게시자 사이트에서 저장합니다"
+  },
   "ruleTemplateFlickrLargeName": {
     "message": "Flickr 더 큰 이미지"
   },

@@ -16,6 +16,7 @@ const allowedOwners = new Set([
   "fuzz",
   "i18n",
   "integration",
+  "live",
   "options",
   "platform",
   "routing",

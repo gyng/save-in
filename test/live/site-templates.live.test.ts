@@ -139,7 +139,12 @@ const rewriteUrl = (templateName: string, before: string): string => {
   return detail.fetch;
 };
 
-const siteOriginals = RULE_TEMPLATES.filter((template) => template.category === "Site originals");
+// This suite probes deterministic fetch: rewrites. The Google Images details
+// template selects a publisher URL that is already present in the page and has
+// no rewritten endpoint to probe.
+const siteOriginals = RULE_TEMPLATES.filter(
+  (template) => template.category === "Site originals" && template.proof.fetch !== undefined,
+);
 const withSample = siteOriginals.filter((template) => Boolean(SAMPLES[template.name]?.before));
 const withoutSample = siteOriginals
   .filter((template) => !SAMPLES[template.name]?.before)

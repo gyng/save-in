@@ -3854,6 +3854,12 @@
   "ruleTemplateGoogleOriginalDescription": {
     "message": "Herschrijft een door Google gehoste voorbeeldafbeelding naar de volledige originele grootte"
   },
+  "ruleTemplateGoogleImagesSourceName": {
+    "message": "Bronafbeelding uit Google Afbeeldingen"
+  },
+  "ruleTemplateGoogleImagesSourceDescription": {
+    "message": "Slaat een in Google Afbeeldingen geopende afbeelding op vanaf de website van de uitgever in plaats van de zoekminiatuur"
+  },
   "ruleTemplateFlickrLargeName": {
     "message": "Grotere Flickr-afbeelding"
   },

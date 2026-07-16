@@ -3854,6 +3854,12 @@
   "ruleTemplateGoogleOriginalDescription": {
     "message": "Riscrive un'immagine di anteprima ospitata da Google verso le sue dimensioni originali complete"
   },
+  "ruleTemplateGoogleImagesSourceName": {
+    "message": "Immagine sorgente di Google Immagini"
+  },
+  "ruleTemplateGoogleImagesSourceDescription": {
+    "message": "Salva un'immagine aperta in Google Immagini dal sito dell'editore invece della miniatura di ricerca"
+  },
   "ruleTemplateFlickrLargeName": {
     "message": "Immagine Flickr più grande"
   },

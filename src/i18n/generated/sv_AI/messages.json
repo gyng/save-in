@@ -3854,6 +3854,12 @@
   "ruleTemplateGoogleOriginalDescription": {
     "message": "Skriver om en förhandsgranskningsbild som Google är värd för till dess fullständiga originalstorlek"
   },
+  "ruleTemplateGoogleImagesSourceName": {
+    "message": "Källbild från Google Bilder"
+  },
+  "ruleTemplateGoogleImagesSourceDescription": {
+    "message": "Sparar en bild som öppnats i Google Bilder från utgivarens webbplats i stället för sökminiatyren"
+  },
   "ruleTemplateFlickrLargeName": {
     "message": "Större Flickr-bild"
   },

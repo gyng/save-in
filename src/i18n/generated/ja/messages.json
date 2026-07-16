@@ -3854,6 +3854,12 @@
   "ruleTemplateGoogleOriginalDescription": {
     "message": "Google がホストするプレビュー画像を元のフルサイズに書き換えます"
   },
+  "ruleTemplateGoogleImagesSourceName": {
+    "message": "Google 画像検索の元画像"
+  },
+  "ruleTemplateGoogleImagesSourceDescription": {
+    "message": "Google 画像検索で開いた画像を、検索結果のサムネイルではなく公開元から保存します"
+  },
   "ruleTemplateFlickrLargeName": {
     "message": "Flickr の大きい画像"
   },
