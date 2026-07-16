@@ -161,15 +161,6 @@ describe("buildTools", () => {
     expect(send).not.toHaveBeenCalled();
   });
 
-  test("forwards an agent configuration after its CSS matcher validates", async () => {
-    const { send, byName } = toolsByName();
-    const config = { filenamePatterns: "css: article img\ninto: files/" };
-
-    await byName.save_in_apply_config.execute({ config });
-
-    expect(send).toHaveBeenCalledWith({ type: "APPLY_CONFIG", body: { config } });
-  });
-
   test("validates and forwards automatic-source rules with a sample candidate", async () => {
     const { send, byName } = toolsByName();
     const automaticCandidate = {

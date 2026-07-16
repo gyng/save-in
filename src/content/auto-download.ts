@@ -5,11 +5,7 @@ import {
   normalizeAutomaticSourceUrl,
   type AutomaticRoutingCandidate,
 } from "../automation/automatic-routing.ts";
-import {
-  collectPageSourceCandidates,
-  mergePageSourcesByUrl,
-  type PageSource,
-} from "./source-panel-model.ts";
+import { collectPageSourceCandidates } from "./source-panel-model.ts";
 import { parseRulesCollecting } from "../routing/rule-parser.ts";
 import { isAutomaticRuleClauses } from "../routing/automatic-rule.ts";
 import { normalizeAutoDownloadLimit } from "../config/content-options.ts";
