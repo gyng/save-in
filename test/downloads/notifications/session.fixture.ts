@@ -41,8 +41,13 @@ let Runtime: any;
 
 const loadNotification = async () => {
   const mod = await import("../../../src/downloads/notification.ts");
+  const events = await import("../../../src/downloads/notification-events.ts");
   await mod.recoverNotificationState();
-  Notifier = mod;
+  // notification-events.ts holds onDownloadCreated/onDownloadChanged/
+  // onNotificationClicked; merged onto the same Notifier facade the tests
+  // already import from this fixture so call sites don't need to know which
+  // file a given export physically lives in.
+  Notifier = { ...mod, ...events };
   ({ options } = await import("../../../src/config/options-data.ts"));
   Log = await import("../../../src/background/log.ts");
   SaveHistory = await import("../../../src/background/history.ts");

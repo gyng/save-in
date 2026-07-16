@@ -3,10 +3,16 @@ import { getMessage } from "../platform/localization.ts";
 
 // https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/notifications
 
-import { downloadsState, sessionWriteState } from "./download-state-instances.ts";
-import { getDownload, mergeDownload } from "./download-state.ts";
+import {
+  cancelExpectedDownload,
+  expectDownload,
+  findExpectedDownload,
+  getTrackedDownload,
+  mergeTrackedDownload,
+} from "./expected-downloads.ts";
 import { isPrivateDownloadRecord } from "./download-state.ts";
-import type { DownloadRecord, DownloadRecordUpdate } from "./download-state.ts";
+import type { DownloadRecord } from "./download-state.ts";
+import { sessionWriteState } from "./download-state-instances.ts";
 import { getSession, normalizeSessionCounter, updateSession } from "../shared/session-state.ts";
 import { options } from "../config/options-data.ts";
 import { PENDING_DOWNLOADS_SESSION_KEY } from "../shared/storage-keys.ts";
@@ -26,16 +32,16 @@ import { downloadPorts } from "./ports.ts";
 import {
   buildSuccessNotificationTitle,
   downloadFailureReason,
-  getDownloadFailure,
+  getDownloadFailure as isDownloadFailure,
   isRetryableDownloadFailure,
 } from "./notification-model.ts";
-import { runEventTask } from "../shared/event-task.ts";
+import {
+  createNotification,
+  ERROR_ICON_URL,
+  EXTENSION_NOTIFICATION_STREAMS,
+} from "./notification-runtime.ts";
 import { resolveFirefoxDownloadContext } from "./auth-context.ts";
 import { OffscreenClient } from "../platform/offscreen-client.ts";
-export {
-  recoverNotificationState,
-  resetNotificationRecoveryState,
-} from "./notification-recovery.ts";
 
 type HostDownloadItem = Parameters<
   Parameters<typeof webExtensionApi.downloads.onCreated.addListener>[0]
@@ -48,180 +54,21 @@ type HostDownloadDelta = Parameters<
 // download all specified images". Use the shipped raster app icon for the
 // native notification surface; status remains explicit in the title and the
 // SVG variants remain available to HTML UI where vector images are reliable.
-const INFO_ICON_URL = "icons/ic_archive_black_128px.png";
 const SUCCESS_ICON_URL = "icons/ic_archive_black_128px.png";
-const ERROR_ICON_URL = "icons/ic_archive_black_128px.png";
-const EXTENSION_NOTIFICATION_DEBOUNCE_MS = 250;
-
-export const EXTENSION_NOTIFICATION_STREAMS = Object.freeze({
-  DOWNLOAD_FAILURE: "download-failure",
-  EXTERNAL_DOWNLOAD_REJECTION: "external-download-rejection",
-  LINK_PREFERRED: "link-preferred",
-  PREFER_LINKS_PATTERN_ERROR: "prefer-links-pattern-error",
-  ROUTE_MATCH: "route-match",
-  ROUTE_MISS: "route-miss",
-});
-
-type ExtensionNotificationStream =
-  | (typeof EXTENSION_NOTIFICATION_STREAMS)[keyof typeof EXTENSION_NOTIFICATION_STREAMS]
-  | "general";
-type TimerHandle = ReturnType<typeof globalThis.setTimeout>;
 
 const historyPort = downloadPorts.history;
 const logPort = downloadPorts.log;
 const backgroundRuntime = downloadPorts.runtime;
-const notificationClearTimers = new Map<string, TimerHandle>();
-const extensionNotificationDebounceTimers = new Map<string, TimerHandle>();
 
 const addDownloadLog = (record: DownloadRecord, message: string, data?: unknown): unknown =>
   isPrivateDownloadRecord(record)
     ? logPort.add(message, data, { privateContext: true })
     : logPort.add(message, data);
 
-const createNotification = (
-  id: string,
-  details: SaveInNotificationOptions,
-  duration = options.notifyDuration,
-) => {
-  const previousClearTimer = notificationClearTimers.get(id);
-  if (previousClearTimer !== undefined) {
-    globalThis.clearTimeout(previousClearTimer);
-    notificationClearTimers.delete(id);
-  }
-
-  const created = Promise.resolve(webExtensionApi.notifications.create(id, details)).then(
-    () => undefined,
-    (error) => {
-      logPort.add("notification create failed", String(error));
-    },
-  );
-  if (duration > 0) {
-    const clearTimer = globalThis.setTimeout(() => {
-      notificationClearTimers.delete(id);
-      void Promise.resolve(webExtensionApi.notifications.clear(id)).catch((error) =>
-        logPort.add("notification clear failed", String(error)),
-      );
-    }, duration);
-    notificationClearTimers.set(id, clearTimer);
-  }
-  return created;
-};
-
-const queueExtensionNotification = (
-  id: string,
-  details: SaveInNotificationOptions,
-  duration = options.notifyDuration,
-) => {
-  const previousClearTimer = notificationClearTimers.get(id);
-  if (previousClearTimer !== undefined) {
-    globalThis.clearTimeout(previousClearTimer);
-    notificationClearTimers.delete(id);
-  }
-
-  const previousDebounceTimer = extensionNotificationDebounceTimers.get(id);
-  if (previousDebounceTimer !== undefined) globalThis.clearTimeout(previousDebounceTimer);
-
-  const debounceTimer = globalThis.setTimeout(() => {
-    extensionNotificationDebounceTimers.delete(id);
-    createNotification(id, details, duration);
-  }, EXTENSION_NOTIFICATION_DEBOUNCE_MS);
-  extensionNotificationDebounceTimers.set(id, debounceTimer);
-};
-
-// Membership ("this download is ours, watch it for a completion notification")
-// lives on the DownloadState record as `adopted`, so there is no second
-// per-download structure to keep in sync — download.js's started record and the
-// notifier's watch list are the same record. `currentFilename` caches the
-// browser's actual path (Chrome only reveals it via onChanged deltas) for the
-// notification body, distinct from the record's intended `filename`.
-
-// Downloads handed to downloads.download that onCreated has not yet seen.
-// URL correlation prevents a rejected or unrelated request from consuming a
-// different attempt; the persisted counter remains the worker-restart fallback.
-type ExpectedDownload = {
-  url?: string | undefined;
-  record?: Partial<DownloadRecord> | undefined;
-};
-const expectedDownloads: ExpectedDownload[] = [];
-
-export const resetNotifierTransientState = (): void => {
-  for (const timer of notificationClearTimers.values()) globalThis.clearTimeout(timer);
-  for (const timer of extensionNotificationDebounceTimers.values()) globalThis.clearTimeout(timer);
-  notificationClearTimers.clear();
-  extensionNotificationDebounceTimers.clear();
-  expectedDownloads.length = 0;
-};
-
-// Recovery of adopted and pending records is owned by notification-recovery.ts.
-const mergeTrackedDownload = (downloadId: number, partial: DownloadRecordUpdate) =>
-  mergeDownload(downloadsState, sessionWriteState, extensionSessionStorage, downloadId, partial);
-
-const getTrackedDownload = (downloadId: number) =>
-  getDownload(downloadsState, extensionSessionStorage, downloadId);
-
-export const createExtensionNotification = (
-  title: string | null,
-  message?: string | null,
-  error?: unknown,
-  stream: ExtensionNotificationStream = "general",
-) => {
-  // WebExtension notifications use their caller-supplied ID as the stable
-  // replacement key (the equivalent of a Service Worker notification tag).
-  // Keep streams distinct while coalescing bursts before they reach the OS.
-  const id = `save-in-not-${stream}`;
-  queueExtensionNotification(id, {
-    type: "basic",
-    title: title || getMessage("extensionName"),
-    iconUrl: error ? ERROR_ICON_URL : INFO_ICON_URL,
-    message: message || getMessage("genericUnknownError"),
-  });
-};
-
-export const reportExternalDownloadRejection = (senderId: string): Promise<void> =>
-  createNotification(`save-in-not-${EXTENSION_NOTIFICATION_STREAMS.EXTERNAL_DOWNLOAD_REJECTION}`, {
-    type: "basic",
-    title: getMessage("notificationExternalDownloadBlockedTitle"),
-    iconUrl: ERROR_ICON_URL,
-    message: getMessage("notificationExternalDownloadBlockedMessage", [senderId]),
-  });
-
-// Single user-facing path for a TERMINAL download failure that happens before
-// a download is even created (the pipeline throwing, or downloads.download
-// rejecting after the fetch fallback is exhausted) — cases onDownloadChanged
-// never sees. Gated on notifyOnFailure so it stays consistent with the
-// post-creation failure notification.
-export const reportDownloadFailure = (name: string, message?: string) => {
-  if (!(options && options.notifyOnFailure)) {
-    return;
-  }
-  createExtensionNotification(
-    getMessage("notificationFailureTitle", [name || ""]),
-    message || getMessage("genericUnknownError"),
-    true,
-    EXTENSION_NOTIFICATION_STREAMS.DOWNLOAD_FAILURE,
-  );
-};
-
-// Returns Firefox/Chrome error deltas ({ current }) or a boolean.
-export const isDownloadFailure = getDownloadFailure;
-
-// Handlers are registered once at load (bottom of this file): MV3 workers
-// must register listeners synchronously or they miss the very event that
-// woke them. Notifier options are read from the shared `options`
+// Handlers are registered once at load, by registerNotifier in notification.ts:
+// MV3 workers must register listeners synchronously or they miss the very
+// event that woke them. Notifier options are read from the shared `options`
 // global at event time, after awaiting init.
-// Call before webExtensionApi.downloads.download() so onDownloadCreated knows
-// the next created download is ours
-export const expectDownload = (url?: string, record?: DownloadRecordUpdate): ExpectedDownload => {
-  const expected = { url, record };
-  expectedDownloads.push(expected);
-  return expected;
-};
-
-export const cancelExpectedDownload = (expected: ExpectedDownload): void => {
-  const index = expectedDownloads.indexOf(expected);
-  if (index !== -1) expectedDownloads.splice(index, 1);
-};
-
 export const onDownloadCreated = async (item: HostDownloadItem) => {
   if (backgroundRuntime.ready) {
     await backgroundRuntime.ready.catch(() => {});
@@ -242,18 +89,13 @@ export const onDownloadCreated = async (item: HostDownloadItem) => {
 
   const finalUrlValue: unknown = Reflect.get(item, "finalUrl");
   const finalUrl = typeof finalUrlValue === "string" ? finalUrlValue : undefined;
-  const expectedIndex = expectedDownloads.findIndex(
-    (expected) => expected.url == null || expected.url === item.url || expected.url === finalUrl,
-  );
+  const matched = findExpectedDownload(item.url, finalUrl);
   // Private ordinary downloads are neither tracked nor experimentally
   // replaced. Save In-owned private downloads are handled by the in-memory
   // expected record below, without writing their metadata to storage.session.
-  if (item.incognito && !isPrivateDownloadRecord(expectedDownloads[expectedIndex]?.record || {}))
-    return;
-  if (expectedIndex !== -1) {
-    const [matched] = expectedDownloads.splice(expectedIndex, 1);
-    /* v8 ignore next -- A valid index into expectedDownloads always removes one record. */
-    if (!matched) return;
+  if (item.incognito && !isPrivateDownloadRecord(matched?.record || {})) return;
+  if (matched) {
+    cancelExpectedDownload(matched);
     const observedBrowserDownload = matched.record?.observedBrowserDownload === true;
     await mergeTrackedDownload(item.id, {
       ...matched.record,
@@ -659,37 +501,5 @@ export const onDownloadChanged = async (downloadDelta: HostDownloadDelta) => {
         pendingSourceSidecar: undefined,
       });
     }
-  }
-};
-
-// MV3: entry.background calls this synchronously at startup so a worker woken BY
-// a download event still has the handler attached (guards exist only for the
-// partial test mocks).
-export const registerNotifier = () => {
-  if (
-    webExtensionApi.downloads &&
-    webExtensionApi.downloads.onCreated &&
-    webExtensionApi.downloads.onChanged
-  ) {
-    webExtensionApi.downloads.onCreated.addListener((item) =>
-      runEventTask(
-        () => onDownloadCreated(item),
-        (error) => logPort.add("download created event failed", String(error)),
-      ),
-    );
-    webExtensionApi.downloads.onChanged.addListener((delta) =>
-      runEventTask(
-        () => onDownloadChanged(delta),
-        (error) => logPort.add("download changed event failed", String(error)),
-      ),
-    );
-  }
-  if (webExtensionApi.notifications && webExtensionApi.notifications.onClicked) {
-    webExtensionApi.notifications.onClicked.addListener((notificationId) =>
-      runEventTask(
-        () => onNotificationClicked(notificationId),
-        (error) => logPort.add("notification click event failed", String(error)),
-      ),
-    );
   }
 };

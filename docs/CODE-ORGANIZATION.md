@@ -548,6 +548,52 @@ move with their code. Order by value and by how much other work each unblocks.
    core file alongside the existing `notification-model.ts` and
    `notification-recovery.ts`.
 
+   **Landed**, with two extra extractions the acyclic-import constraint
+   forced: `notification.ts` (695 lines) is now four files. `notification-events.ts`
+   (505 lines, `git mv`'d from `notification.ts` as the largest share) holds
+   `onDownloadCreated`, `onDownloadChanged`, and `onNotificationClicked`
+   exactly as scoped, plus `addDownloadLog` and the `historyPort`/
+   `backgroundRuntime` port bindings, which only those handlers used.
+   `notification.ts` (128 lines) keeps `EXTENSION_NOTIFICATION_STREAMS`,
+   `createExtensionNotification`, `reportExternalDownloadRejection`,
+   `reportDownloadFailure`, `isDownloadFailure`, `resetNotifierTransientState`,
+   and `registerNotifier` as the sole registrar, importing the three handlers
+   from `notification-events.ts` for that wiring.
+
+   `registerNotifier` needs the handlers and the handlers need
+   `createNotification`/`EXTENSION_NOTIFICATION_STREAMS`/expected-download
+   tracking, so leaving those three groups physically in `notification.ts`
+   would have made `notification.ts` and `notification-events.ts` import each
+   other — forbidden by `check-import-cycles.js`, the same shape the
+   `download.ts` split hit. Two dependency-free modules absorb them, mirroring
+   `download-pipeline-state.ts`: `notification-runtime.ts` (96 lines) holds
+   `EXTENSION_NOTIFICATION_STREAMS`, the notification timer maps,
+   `createNotification`, `queueExtensionNotification`, and
+   `resetNotificationTimers`; `expected-downloads.ts` (57 lines) holds the
+   `ExpectedDownload` tracking (`mergeTrackedDownload`, `getTrackedDownload`,
+   `expectDownload`, `cancelExpectedDownload`, `findExpectedDownload`,
+   `resetExpectedDownloads`) — the "another cohesive extract" this phase's
+   scope allowed for. `notification.ts` re-exports `EXTENSION_NOTIFICATION_STREAMS`,
+   `expectDownload`, and `cancelExpectedDownload` from these two files (its
+   `resetNotifierTransientState` calls `resetNotificationTimers` and
+   `resetExpectedDownloads`) because `menu-click.ts`, `filename-listener.ts`,
+   `download.ts`, and `download-execution.ts` all import them via
+   `"./notification.ts"` and that path is a preserved compatibility contract;
+   `onDownloadCreated`/`onDownloadChanged`/`onNotificationClicked` are not
+   re-exported since nothing in `src/` imports them from `notification.ts` —
+   only two test call sites did, and those were repointed at
+   `notification-events.ts` directly (`test/downloads/notifications/notification.test.ts`,
+   `session.fixture.ts`), the same "update the test import path, don't add a
+   barrel" rule the `download.ts` split used.
+
+   Verified with `npm run lint`, `npm run typecheck`, and `npm test` (2923
+   passed, including the unchanged 108 `test/downloads/notifications/` cases).
+   Removing the now-dead `/* v8 ignore next */` guard in `onDownloadCreated`
+   (a `findExpectedDownload`/`cancelExpectedDownload` pair replaced the old
+   `findIndex`/`splice` that needed it) dropped the reviewed-ignore count from
+   74 to 73; `scripts/check-coverage-policy.js`'s recorded ceiling was lowered
+   to match, per that script's own policy.
+
 Verification: unchanged unit tests must pass before and after each split
 (splits are refactors, not behavior changes); watch the listener-owner and
 composition-call allowlists in `check-import-cycles.js` — moving a listener

@@ -4,6 +4,7 @@ import { options } from "../../../src/config/options-data.ts";
 import type { SaveInOptions } from "../../../src/config/option-schema.ts";
 import * as notification from "../../../src/downloads/notification.ts";
 import { resetNotifierTransientState } from "../../../src/downloads/notification.ts";
+import { onNotificationClicked } from "../../../src/downloads/notification-events.ts";
 
 const setOptions = (overrides: Partial<SaveInOptions> = {}) => {
   const mutableOptions = options as unknown as Record<string, unknown>;
@@ -229,7 +230,7 @@ describe("createExtensionNotification", () => {
   test("opens options when the rejected-download notification is clicked", async () => {
     global.browser.runtime.openOptionsPage = vi.fn(() => Promise.resolve());
 
-    await notification.onNotificationClicked("save-in-not-external-download-rejection");
+    await onNotificationClicked("save-in-not-external-download-rejection");
 
     expect(global.browser.runtime.openOptionsPage).toHaveBeenCalledOnce();
   });
@@ -237,7 +238,7 @@ describe("createExtensionNotification", () => {
   test.each(["legacy", "", "-1", "1.5", "1e2", "01", "9007199254740992"])(
     "ignores malformed download notification id %j",
     async (notificationId) => {
-      await notification.onNotificationClicked(notificationId);
+      await onNotificationClicked(notificationId);
 
       expect(global.browser.downloads.show).not.toHaveBeenCalled();
     },
