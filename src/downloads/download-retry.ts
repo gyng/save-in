@@ -173,9 +173,13 @@ export const retryViaFetch = async (
         ...(offscreenRequestId ? { offscreenRequestId } : {}),
       }),
     );
+    // An abort landing after the replacement was accepted is still handled,
+    // exactly as one landing before it resolves. The caller reports the
+    // original browser failure for an unhandled retry, which would overwrite
+    // the USER_CANCELED the cancel just wrote and tell the user their own
+    // cancel failed.
     if (controller.signal.aborted) {
       await webExtensionApi.downloads.cancel(newId).catch(() => {});
-      return false;
     }
     return true;
   } catch (error) {

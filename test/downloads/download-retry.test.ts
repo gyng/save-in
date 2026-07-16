@@ -441,7 +441,10 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
     controller.abort();
     acceptDownload(213);
 
-    await expect(retry).resolves.toBe(false);
+    // Handled, exactly as when the abort lands before the download resolves:
+    // the caller reports a failure for an unhandled retry, which would overwrite
+    // the user's own USER_CANCELED and notify them their cancel failed.
+    await expect(retry).resolves.toBe(true);
     expect(global.browser.downloads.cancel).toHaveBeenCalledWith(213);
     expect(ActiveTransfers.getActiveTransfer(historyEntryId)).toBeUndefined();
   });
