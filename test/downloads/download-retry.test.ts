@@ -74,12 +74,32 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
     // The retry is adopted as its own download and marks itself so a second
     // failure cannot loop
     expect(downloadState.records.get(202)).toMatchObject({ viaFetch: true, adopted: true });
-    expect(Object.values(sessionStore.siFinalFilenames || {}).flat()).toContain(
-      "downloads/file.png",
-    );
+    // The name is queued for onDeterminingFilename to consume, but Firefox has
+    // no such listener, so the retry must clear its own entry — nothing else
+    // ever would, and the dead blob URL would key it for the whole session.
+    // The Chrome case below covers the queueing this must not defeat.
+    expect(sessionStore.siFinalFilenames).toEqual({});
 
     // Only one retry per download
     await expect(Download.retryViaFetch(101)).resolves.toBe(false);
+  });
+
+  test("leaves a retry's queued filename for Chrome's listener to consume", async () => {
+    setCurrentBrowser("CHROME");
+    await seedStartedDownload();
+    vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:chrome-retry");
+    global.fetch = vi.fn(() =>
+      Promise.resolve({ ok: true, blob: () => Promise.resolve(new Blob(["bytes"])) }),
+    ) as any;
+    (global.browser.downloads as any).download = vi.fn(() => Promise.resolve(203));
+
+    await expect(Download.retryViaFetch(101)).resolves.toBe(true);
+
+    // downloads.download can resolve before Chrome dispatches
+    // onDeterminingFilename; clearing here would race it.
+    expect(Object.values(sessionStore.siFinalFilenames || {}).flat()).toContain(
+      "downloads/file.png",
+    );
   });
 
   test("rebinds the history entry to the replacement download with its startTime", async () => {

@@ -199,10 +199,14 @@ export const retryViaFetch = async (
     if (record.historyEntryId) finishActiveTransfer(record.historyEntryId, controller);
     else releaseTransferKeepalive(controller);
     const cleanupUrl = blobUrl;
-    if (cleanupUrl) {
-      const filenameListenerWillConsume =
-        newId != null && WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion;
-      if (!filenameListenerWillConsume) runtime.pendingRetryFilenames.delete(cleanupUrl);
+    // Only Chrome's onDeterminingFilename consumes a queued name. Firefox
+    // never registers that listener, so there the retry must clear both
+    // mirrors itself or the entry outlives the session, keyed by a dead blob
+    // URL.
+    const filenameListenerWillConsume =
+      newId != null && WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion;
+    if (cleanupUrl && !filenameListenerWillConsume) {
+      runtime.pendingRetryFilenames.delete(cleanupUrl);
     }
     if (cleanupUrl && !privateContext) {
       const cleanup: Promise<unknown>[] = [
@@ -218,7 +222,7 @@ export const retryViaFetch = async (
       // listener consumes it; deleting it here races Chrome and produces a
       // root-level file named "download". Rejected starts have no future
       // listener, so clean their queue entry immediately.
-      if (newId == null) {
+      if (!filenameListenerWillConsume) {
         cleanup.push(
           updateSession<FinalFilenameMap>(
             sessionWriteState,
