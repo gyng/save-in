@@ -153,7 +153,7 @@ const makeProfile = (baseProfileDir, downloadDir, unique = false) => {
   return { profileDir, downloadDir: downloads };
 };
 
-/** @param {string} profileDir @param {number} port @param {boolean} [headless] @param {boolean} [noSandbox] @param {string} [legacyExtensionDir] @param {boolean} [disableGpu] */
+/** @param {string} profileDir @param {number} port @param {boolean} [headless] @param {boolean} [noSandbox] @param {string} [legacyExtensionDir] @param {boolean} [disableGpu] @param {string[]} [extraArgs] */
 const chromeArgs = (
   profileDir,
   port,
@@ -161,6 +161,7 @@ const chromeArgs = (
   noSandbox = false,
   legacyExtensionDir = undefined,
   disableGpu = true,
+  extraArgs = [],
 ) => {
   const args = [
     `--user-data-dir=${profileDir}`,
@@ -179,6 +180,7 @@ const chromeArgs = (
   if (noSandbox) args.push("--no-sandbox");
   if (headless) args.push("--headless=new");
   if (legacyExtensionDir) args.push(`--load-extension=${legacyExtensionDir}`);
+  args.push(...extraArgs);
   args.push("about:blank");
   return args;
 };
@@ -209,7 +211,7 @@ const startupError = (error, proc, logPath) => {
   );
 };
 
-/** @param {{port?: number, profileDir: string, downloadDir?: string, extensionDir?: string, fresh?: boolean, preserveProfile?: boolean, enableGpu?: boolean}} settings */
+/** @param {{port?: number, profileDir: string, downloadDir?: string, extensionDir?: string, fresh?: boolean, preserveProfile?: boolean, enableGpu?: boolean, extraArgs?: string[], environment?: NodeJS.ProcessEnv}} settings */
 const launch = async ({
   port: requestedPort = undefined,
   profileDir,
@@ -218,6 +220,8 @@ const launch = async ({
   fresh = true,
   preserveProfile = false,
   enableGpu = false,
+  extraArgs = [],
+  environment = {},
 }) => {
   let resolvedProfile = profileDir;
   let resolvedDownloads = downloadDir;
@@ -246,6 +250,7 @@ const launch = async ({
     Boolean(process.env.CODEX_SHELL || process.env.CHROME_E2E_NO_SANDBOX),
     legacyExtensionDir,
     !enableGpu,
+    extraArgs,
   );
   fs.mkdirSync(ARTIFACTS, { recursive: true });
   const logPath = path.join(ARTIFACTS, `chrome-${port}.log`);
@@ -253,6 +258,7 @@ const launch = async ({
   const proc = spawn(chromePath, args, {
     stdio: ["ignore", log, log],
     detached: process.platform !== "win32",
+    env: { ...process.env, ...environment },
   });
   fs.closeSync(log);
   try {
