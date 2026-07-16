@@ -393,6 +393,18 @@ export const executeBrowserDownload = async (
   }
 };
 
+// Both of renameAndDownload's containment paths report a terminal failure the
+// same way: name the routed destination, or the URL itself when routing never
+// produced one. A sidecar stays silent — the user asked for the primary save,
+// and its own failure is reported separately.
+const reportPreparationFailure = (plan: DownloadPlan, error: unknown): void => {
+  if (isSourceSidecar(plan.state)) return;
+  reportDownloadFailure(
+    plan.finalFullPath || truncateDataUrlForDisplay(requireDownloadUrl(plan.state)),
+    String(error),
+  );
+};
+
 // async because applyVariables may await a
 // :counter:/:mime: transformer). Callers fire-and-forget, so awaiting the
 // path/route interpolation here before the download is safe.
@@ -492,12 +504,7 @@ export const renameAndDownload = async (
     }
     await historyPort.setStatus(plan.historyEntryId, "DOWNLOAD_PREPARATION_FAILED");
     addDownloadLog(state, "download preparation failed", String(error));
-    if (!isSourceSidecar(state)) {
-      reportDownloadFailure(
-        plan.finalFullPath || truncateDataUrlForDisplay(requireDownloadUrl(state)),
-        String(error),
-      );
-    }
+    reportPreparationFailure(plan, error);
     finishPreparation();
     return { status: "failed" };
   }
@@ -520,12 +527,7 @@ export const renameAndDownload = async (
     }
     await historyPort.setStatus(plan.historyEntryId, "DOWNLOAD_API_FAILED");
     addDownloadLog(state, "download execution failed", String(error));
-    if (!isSourceSidecar(state)) {
-      reportDownloadFailure(
-        plan.finalFullPath || truncateDataUrlForDisplay(requireDownloadUrl(state)),
-        String(error),
-      );
-    }
+    reportPreparationFailure(plan, error);
     finishPreparation();
     return { status: "failed" };
   }
