@@ -33,18 +33,9 @@
 
 # 4.0.0
 
-> _Version 4 is the same extension it always was, in the way that a ship is the
-> same ship after every last plank has been replaced. The nine-year-old
-> ManifestV2 machinery was lifted out, plank by plank, and rebuilt in
-> TypeScript for the browsers of the present day. Tens of thousands of lines
-> were written; a fair number did not last the week, which is the customary
-> fate of code that wanders into a rewrite without a map. Yet the router — the
-> small, stubborn engine that decides where a file comes to rest — thinks
-> exactly as it did in 2017: every matcher keeps its name, `into:` still means
-> into, first rule wins, all matchers must agree, and `:$1:` still drops a
-> captured fragment neatly into a folder. The code was replaced to the last
-> character; the logic simply declined to notice. (The full dig is in
-> [docs/V4-ARCHAEOLOGY.md](docs/V4-ARCHAEOLOGY.md).)_
+> _Rebuilt from the first character to the last for Manifest V3, and still
+> filing your downloads with the same stubborn logic it has used since 2017.
+> (The full dig is in [docs/V4-ARCHAEOLOGY.md](docs/V4-ARCHAEOLOGY.md).)_
 
 Version 4 is an extensive revamp. It modernizes browser support and makes
 complex download organization easier while preserving existing settings and
