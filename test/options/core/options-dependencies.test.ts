@@ -16,6 +16,7 @@ describe("option dependencies", () => {
       <input type="checkbox" id="autoDownloadDocuments">
       <input type="checkbox" id="autoDownloadBackgrounds">
       <input type="checkbox" id="autoDownloadManifests">
+      <input type="checkbox" id="autoDownloadDataUrls">
       <input id="autoDownloadMaxPerPage">
       <input type="checkbox" id="sourcePanelEnabled">
       <input type="checkbox" id="sourcePanelLive">
@@ -109,6 +110,7 @@ describe("option dependencies", () => {
     const documents = document.querySelector("#autoDownloadDocuments") as HTMLInputElement;
     const backgrounds = document.querySelector("#autoDownloadBackgrounds") as HTMLInputElement;
     const manifests = document.querySelector("#autoDownloadManifests") as HTMLInputElement;
+    const dataUrls = document.querySelector("#autoDownloadDataUrls") as HTMLInputElement;
 
     enabled.checked = true;
     enabled.dispatchEvent(new Event("change"));
@@ -116,6 +118,7 @@ describe("option dependencies", () => {
     expect(documents.disabled).toBe(false);
     expect(backgrounds.disabled).toBe(false);
     expect(manifests.disabled).toBe(false);
+    expect(dataUrls.disabled).toBe(false);
 
     enabled.checked = false;
     enabled.dispatchEvent(new Event("change"));
@@ -123,6 +126,7 @@ describe("option dependencies", () => {
     expect(documents.disabled).toBe(true);
     expect(backgrounds.disabled).toBe(true);
     expect(manifests.disabled).toBe(true);
+    expect(dataUrls.disabled).toBe(true);
   });
 
   test("enables fetch credentials when either Save In fetch mode is active", () => {

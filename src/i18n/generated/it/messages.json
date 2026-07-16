@@ -2666,6 +2666,10 @@
   "autoDownloadManifestsHelp": {
     "message": "Salva il file manifest stesso, non lo stream assemblato."
   },
+  "autoDownloadDataUrls": { "message": "Includi immagini e contenuti data: incorporati" },
+  "autoDownloadDataUrlsHelp": {
+    "message": "Acquisisce URL data: autonomi, fino a 2 MB ciascuno; quelli più grandi vengono ignorati."
+  },
   "autoDownloadLimit": {
     "message": "Numero massimo di salvataggi per visita alla pagina"
   },

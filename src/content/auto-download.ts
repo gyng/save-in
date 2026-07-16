@@ -7,6 +7,7 @@ import { collectPageSourceCandidates } from "./source-panel-model.ts";
 import { parseRulesCollecting } from "../routing/rule-parser.ts";
 import { isAutomaticRuleClauses } from "../routing/automatic-rule.ts";
 import { normalizeAutoDownloadLimit } from "../config/content-options.ts";
+import { automaticSeenKey, isDataUrl, isDataUrlWithinCap } from "../shared/data-url.ts";
 
 export type AutoDownloadSendResult = "started" | "skipped" | "failed";
 
@@ -37,6 +38,11 @@ export type AutoDownloadDiscoveryOptions = {
   includeDocuments: boolean;
   includeBackgrounds: boolean;
   resourceHints: boolean;
+  // Phase C (4.2): a protocol gate, not a fifth channel. When on, self-contained
+  // data: URLs are admitted through whatever channel discovered them (an inline
+  // <img src="data:…"> stays channel-absent embedded media; a data: anchor still
+  // needs its channel gate). blob: is never admitted. Off by default.
+  includeDataUrls: boolean;
   // Enforced at dispatch time against the live URL so a single-page-app
   // navigation onto the disable list stops queued saves without an options
   // change, and one off it resumes them.
@@ -51,7 +57,16 @@ export type AutoDownloadDiscovery = {
   stop(): void;
 };
 
-const automaticUrl = (value: string): string | null => {
+const automaticUrl = (value: string, includeDataUrls: boolean): string | null => {
+  // data: is opt-in and capped. The raw string is the URL — do not run it
+  // through URL() (that would strip a trailing #fragment from the payload). An
+  // oversize candidate is dropped here before it can ride a runtime message;
+  // the background backstop logs the same rejection. blob: falls through to the
+  // http(s)-only branch below and is rejected there.
+  if (isDataUrl(value)) {
+    if (!includeDataUrls || !isDataUrlWithinCap(value)) return null;
+    return value;
+  }
   try {
     const url = new URL(value);
     if (url.protocol !== "http:" && url.protocol !== "https:") return null;
@@ -90,21 +105,29 @@ export const setupAutoDownloadDiscovery = (
       if (!candidate) break;
       // Re-check between queueing and dispatch: the page may have navigated
       // onto the disable list while earlier candidates were being sent. A
-      // dropped candidate is un-consumed — its dedup slot and budget return —
-      // so a rescan after the page leaves the list can still save it.
+      // dropped candidate is un-consumed — its dedup slot and budget return,
+      // and the limit notice may fire again for the refilled budget — so a
+      // rescan after the page leaves the list can still save it.
       if (options.isPageDisabled()) {
-        seen.delete(candidate.sourceUrl);
+        seen.delete(automaticSeenKey(candidate.sourceUrl));
+        dedup.limitNotified = false;
         continue;
       }
       try {
-        await options.send(candidate);
+        const result = await options.send(candidate);
+        // A teardown mid-send force-skips delivery, so the shifted candidate
+        // never reached a download; return its slot like the still-queued
+        // ones in stop(), or a disable-list-only remount would skip it.
+        if (stopped && result !== "started") {
+          seen.delete(automaticSeenKey(candidate.sourceUrl));
+          dedup.limitNotified = false;
+        }
       } catch {
         // The content script must keep observing even if its extension context
         // is reloaded or one automatic download is rejected by the background.
       }
     }
     draining = false;
-    if (stopped) queue.length = 0;
     settleIdle();
   };
 
@@ -136,8 +159,12 @@ export const setupAutoDownloadDiscovery = (
         })
       )
         continue;
-      const sourceUrl = automaticUrl(source.url);
-      if (!sourceUrl || seen.has(sourceUrl)) continue;
+      const sourceUrl = automaticUrl(source.url, options.includeDataUrls);
+      if (!sourceUrl) continue;
+      // A long data: URL keys the dedup set on its hash so the set never holds a
+      // megabyte string; http(s) and short data: URLs key on the string itself.
+      const seenKey = automaticSeenKey(sourceUrl);
+      if (seen.has(seenKey)) continue;
       const candidate: AutomaticRoutingCandidate = {
         pageUrl,
         sourceUrl,
@@ -152,7 +179,7 @@ export const setupAutoDownloadDiscovery = (
         }
         continue;
       }
-      seen.add(sourceUrl);
+      seen.add(seenKey);
       queue.push(candidate);
     }
     void drain();
@@ -191,7 +218,15 @@ export const setupAutoDownloadDiscovery = (
       stopped = true;
       observer.disconnect();
       window.clearTimeout(refreshTimer);
-      queue.length = 0;
+      // The dedup outlives this instance across a remount, so queued-but-
+      // unsent candidates must return their slot and budget (symmetric with
+      // the dispatch-time drop) or the remounted rescan would skip them
+      // forever; the limit notice may then fire again for the refill.
+      if (queue.length > 0) {
+        for (const candidate of queue) seen.delete(automaticSeenKey(candidate.sourceUrl));
+        dedup.limitNotified = false;
+        queue.length = 0;
+      }
       settleIdle();
     },
   };

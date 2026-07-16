@@ -52,6 +52,7 @@ export const setupOptionDependencies = () => {
         "autoDownloadDocuments",
         "autoDownloadBackgrounds",
         "autoDownloadManifests",
+        "autoDownloadDataUrls",
         "autoDownloadMaxPerPage",
       ],
     },

@@ -2542,6 +2542,10 @@
   "autoDownloadManifestsHelp": {
     "message": "Enregistre le fichier manifeste lui-même, pas le flux assemblé."
   },
+  "autoDownloadDataUrls": { "message": "Inclure les images et médias data: en ligne" },
+  "autoDownloadDataUrlsHelp": {
+    "message": "Récupère les URL data: autonomes, jusqu'à 2 Mo chacune ; les plus grandes sont ignorées."
+  },
   "autoDownloadLimit": { "message": "Nombre maximal d’enregistrements par consultation de page" },
   "autoDownloadLimitHelp": {
     "message": "Save In cesse d’ajouter de nouvelles sources correspondantes à la file lorsque cette limite est atteinte. Rechargez la page pour commencer une nouvelle consultation."

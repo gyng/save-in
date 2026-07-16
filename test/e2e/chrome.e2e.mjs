@@ -223,10 +223,17 @@ const startSourcePanelServer = async () => {
     // only adopted by the automatic scan when a test explicitly turns on
     // autoDownloadDocuments/autoDownloadBackgrounds — every other case here
     // leaves both content options off, so they add no candidates.
+    // A dedicated /automatic-data-sources page carries an inline data: image so
+    // the phase-C scan can adopt it without perturbing the shared page's
+    // discovered image set (asserted exactly by the panel discovery test).
+    const inlineDataImage = req.url?.includes("data-sources")
+      ? `<img id="phase-c-data" src="data:image/png;base64,${SOURCE_PNG.toString("base64")}" alt="inline">`
+      : "";
     res.end(`<!doctype html><title>Page Sources e2e</title>
       <img src="/first.png" alt="first"><img src="/second.png" alt="second">
       <a href="/doc.pdf">document</a>
-      <div id="phase-b-background" style="width:10px;height:10px;background-image:url('/bg.png')"></div>`);
+      <div id="phase-b-background" style="width:10px;height:10px;background-image:url('/bg.png')"></div>
+      ${inlineDataImage}`);
   });
   return { server, port: await listenLocal(server) };
 };
@@ -1872,6 +1879,57 @@ into: e2e/automatic-phase-b-chrome/:filename:`,
     expect(completed.filter((row) => row.state === "complete")).toHaveLength(2);
     expect(completed.some((row) => row.filename.endsWith("doc.pdf"))).toBe(true);
     expect(completed.some((row) => row.filename.endsWith("bg.png"))).toBe(true);
+  } finally {
+    await Promise.all([
+      control.storage.local.set(previous),
+      control.storage.local.remove(missingAutomaticKeys),
+    ]);
+    const fixtureIds = (await control.tabs.query())
+      .filter((tab) => tab.url?.includes(target))
+      .map((tab) => tab.id)
+      .filter((id) => id !== undefined);
+    if (fixtureIds.length) await control.tabs.remove(fixtureIds);
+    await control.runtime.reset();
+    await closeLocal(server);
+  }
+});
+
+test("automatic scan phase C adopts an inline data: image and names it by its parsed mediatype", async () => {
+  const { server, port } = await startSourcePanelServer();
+  const target = `127.0.0.1:${port}/automatic-data-sources`;
+  const pageUrl = `http://${target}`;
+  const automaticKeys = [
+    "autoDownloadEnabled",
+    "autoDownloadLive",
+    "autoDownloadDataUrls",
+    "autoDownloadMaxPerPage",
+    "filenamePatterns",
+  ];
+  const previous = await control.storage.local.get(automaticKeys);
+  const missingAutomaticKeys = automaticKeys.filter((key) => !(key in previous));
+
+  try {
+    await control.options.set({
+      autoDownloadEnabled: true,
+      autoDownloadLive: false,
+      autoDownloadDataUrls: true,
+      autoDownloadMaxPerPage: 3,
+      // The inline data:image/png source has no path, so :mimeext: resolves from
+      // the mediatype the background parses out of the data: URL header.
+      filenamePatterns: `context: ^auto$
+pageurl: ^http://127\\.0\\.0\\.1:${port}/automatic-data-sources$
+sourcekind: ^image$
+sourceurl: ^data:image/png
+into: e2e/automatic-phase-c-chrome/inline.:mimeext:`,
+    });
+    await cdp.openTab(PORT, pageUrl);
+    const completed = await control.downloads.wait({
+      filenameRegex: "automatic-phase-c-chrome",
+      minimumComplete: 1,
+      timeoutMs: 10000,
+    });
+    expect(completed.filter((row) => row.state === "complete")).toHaveLength(1);
+    expect(completed.some((row) => row.filename.endsWith("inline.png"))).toBe(true);
   } finally {
     await Promise.all([
       control.storage.local.set(previous),

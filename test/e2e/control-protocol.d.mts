@@ -4,6 +4,7 @@ export type StorageRecord = Record<string, unknown>;
 
 export interface E2EStoredOptionValues {
   autoDownloadBackgrounds: boolean;
+  autoDownloadDataUrls: boolean;
   autoDownloadDocuments: boolean;
   autoDownloadEnabled: boolean;
   autoDownloadLive: boolean;

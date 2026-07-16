@@ -2695,6 +2695,10 @@
   "autoDownloadBackgrounds": { "message": "包含 CSS 背景圖片" },
   "autoDownloadManifests": { "message": "盡可能尋找串流影片播放清單（HLS/DASH）" },
   "autoDownloadManifestsHelp": { "message": "儲存清單檔案本身，而非組合後的串流。" },
+  "autoDownloadDataUrls": { "message": "包含內嵌 data: 圖片與媒體" },
+  "autoDownloadDataUrlsHelp": {
+    "message": "擷取自包含的 data: URL，每個最多 2 MB；較大的會略過。"
+  },
   "autoDownloadLimit": { "message": "每次頁面瀏覽的最大儲存數" },
   "autoDownloadLimitHelp": {
     "message": "達到此限制時，Save In 將停止把新的符合項目加入佇列。重新載入頁面即可開始新的瀏覽。"

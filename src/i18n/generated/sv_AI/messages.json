@@ -2526,6 +2526,10 @@
   "autoDownloadManifestsHelp": {
     "message": "Sparar själva manifestfilen, inte den sammansatta strömmen."
   },
+  "autoDownloadDataUrls": { "message": "Inkludera inbäddade data:-bilder och media" },
+  "autoDownloadDataUrlsHelp": {
+    "message": "Hämtar fristående data:-URL:er, upp till 2 MB styck; större hoppas över."
+  },
   "autoDownloadLimit": { "message": "Maximalt antal sparningar per sidbesök" },
   "autoDownloadLimitHelp": {
     "message": "Save In slutar köa nya träffar när gränsen nås. Läs in sidan igen för att starta ett nytt besök."

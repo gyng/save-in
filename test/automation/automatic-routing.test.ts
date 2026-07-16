@@ -81,6 +81,59 @@ into: unsafe/
     expect(automaticRoutingRuleIssues(source)).toContain(issue);
     expect(parseRulesCollecting(source).errors).toHaveLength(1);
   });
+
+  describe("data: candidates", () => {
+    const dataCandidate = (sourceUrl: string) => ({
+      pageUrl: "https://gallery.example.test/post/42",
+      sourceUrl,
+      sourceKind: "image" as const,
+    });
+
+    test("matches a mime: rule and names via :mimeext: from the parsed mediatype", () => {
+      // A data: URL has no path, so the mediatype must come from its header for
+      // mime-based matching and :mimeext: naming to resolve — the same info the
+      // background re-match sees, keyed off the URL itself.
+      const parsed = parseRulesCollecting(`
+context: ^auto$
+pageurl: ^https://gallery\\.example\\.test/
+sourcekind: ^image$
+mime: ^image/png$
+into: inline/:mimeext:/
+`);
+      expect(parsed.errors.filter((error) => !error.warning)).toEqual([]);
+      expect(
+        matchAutomaticRoutingRule(parsed.rules, dataCandidate("data:image/png;base64,iVBORw0KGgo="))
+          ?.destination,
+      ).toBe("inline/:mimeext:/");
+    });
+
+    test("a mime: rule does not match a data: URL of a different mediatype", () => {
+      const parsed = parseRulesCollecting(`
+context: ^auto$
+pageurl: ^https://gallery\\.example\\.test/
+sourcekind: ^image$
+mime: ^image/png$
+into: inline/
+`);
+      expect(
+        matchAutomaticRoutingRule(parsed.rules, dataCandidate("data:image/gif;base64,R0lGOD")),
+      ).toBeNull();
+    });
+
+    test("treats a data: URL with no parseable mediatype as application/octet-stream", () => {
+      const parsed = parseRulesCollecting(`
+context: ^auto$
+pageurl: ^https://gallery\\.example\\.test/
+sourcekind: ^image$
+mime: ^application/octet-stream$
+into: inline/
+`);
+      expect(
+        matchAutomaticRoutingRule(parsed.rules, dataCandidate("data:;base64,SGVsbG8="))
+          ?.destination,
+      ).toBe("inline/");
+    });
+  });
 });
 
 describe("isAdmittedAutomaticSource", () => {

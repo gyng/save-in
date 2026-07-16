@@ -183,6 +183,7 @@ type ResolvedAutoDownloadOptions = Pick<
   | "autoDownloadDocuments"
   | "autoDownloadBackgrounds"
   | "autoDownloadManifests"
+  | "autoDownloadDataUrls"
   | "autoDownloadMaxPerPage"
 > & { filenamePatterns: string };
 type ResolvedContentScriptOptions = ResolvedContentOptions & ResolvedAutoDownloadOptions;
@@ -340,6 +341,7 @@ const setupAutoDownload = (options: ResolvedAutoDownloadOptions, dedup: AutoDown
     includeDocuments: options.autoDownloadDocuments,
     includeBackgrounds: options.autoDownloadBackgrounds,
     resourceHints: options.autoDownloadManifests,
+    includeDataUrls: options.autoDownloadDataUrls,
     isPageDisabled: isCurrentPageDisabled,
     send,
     dedup,
@@ -419,6 +421,7 @@ const applyOptions = (next: ContentOptions) => {
       "autoDownloadDocuments",
       "autoDownloadBackgrounds",
       "autoDownloadManifests",
+      "autoDownloadDataUrls",
       "autoDownloadMaxPerPage",
     ] as const
   ).some((key) => previous[key] !== currentOptions[key]);

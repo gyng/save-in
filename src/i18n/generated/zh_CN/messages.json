@@ -2597,6 +2597,10 @@
   "autoDownloadBackgrounds": { "message": "包含 CSS 背景图像" },
   "autoDownloadManifests": { "message": "尽可能查找流媒体视频播放列表（HLS/DASH）" },
   "autoDownloadManifestsHelp": { "message": "保存清单文件本身，而非合成后的流媒体。" },
+  "autoDownloadDataUrls": { "message": "包含内联 data: 图像和媒体" },
+  "autoDownloadDataUrlsHelp": {
+    "message": "采集自包含的 data: URL，每个最大 2 MB；更大的会被跳过。"
+  },
   "autoDownloadLimit": { "message": "每次页面访问的最大保存数" },
   "autoDownloadLimitHelp": {
     "message": "达到此限制时，Save In 将停止将新匹配项加入队列。重新加载页面即可开始新的访问。"

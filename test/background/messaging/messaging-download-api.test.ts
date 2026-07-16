@@ -611,6 +611,96 @@ into: automatic/:pagedomain:/
       expect(Download.launchDownload).toHaveBeenCalledOnce();
     });
   });
+
+  describe("phase-C data: backstop", () => {
+    const senderTab = { id: 7, url: "https://example.test/gallery/", incognito: false };
+    const configureData = (sourcePattern = "^data:image/") => {
+      options.autoDownloadEnabled = true;
+      options.autoDownloadPrivate = false;
+      options.autoDownloadDataUrls = false;
+      options.perSiteDisableList = "";
+      options.filenamePatterns = parseRulesCollecting(`
+context: ^auto$
+pageurl: ^https://example\\.test/gallery/
+sourcekind: image
+sourceurl: ${sourcePattern}
+into: automatic/
+`).rules;
+    };
+    const dataRequest = (sourceUrl: string) => ({
+      type: MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
+      body: { pageUrl: senderTab.url, sourceUrl, sourceKind: "image" as const },
+    });
+
+    test("refuses a data: source until the option is on, then launches it with the parsed mime", async () => {
+      configureData();
+      const dataUrl = "data:image/png;base64,iVBORw0KGgo=";
+      const refused = vi.fn();
+      onMessage(dataRequest(dataUrl), { tab: senderTab }, refused);
+      await waitForCall(refused);
+      expect(Download.launchDownload).not.toHaveBeenCalled();
+      expect(refused).toHaveBeenCalledWith({
+        type: MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
+        body: { status: "skipped" },
+      });
+
+      options.autoDownloadDataUrls = true;
+      const allowed = vi.fn();
+      onMessage(dataRequest(dataUrl), { tab: senderTab }, allowed);
+      await waitForCall(allowed);
+      expect(Download.launchDownload).toHaveBeenCalledOnce();
+      const state = vi.mocked(Download.launchDownload).mock.calls[0]![0]!;
+      // The mediatype is parsed on the trusted side from the URL header, so
+      // mime-based matching and :mimeext: naming resolve without a HEAD fetch.
+      expect(state.info.mime).toBe("image/png");
+      expect(state.info.url).toBe(dataUrl);
+      expect(state.info.context).toBe(DOWNLOAD_TYPES.AUTO);
+    });
+
+    test("treats a data: URL with no parseable mediatype as application/octet-stream", async () => {
+      configureData("^data:");
+      options.autoDownloadDataUrls = true;
+      const sendResponse = vi.fn();
+      onMessage(dataRequest("data:;base64,SGVsbG8="), { tab: senderTab }, sendResponse);
+      await waitForCall(sendResponse);
+      expect(Download.launchDownload).toHaveBeenCalledOnce();
+      expect(vi.mocked(Download.launchDownload).mock.calls[0]![0]!.info.mime).toBe(
+        "application/octet-stream",
+      );
+    });
+
+    test("rejects an oversize data: source, logging one debug entry and never launching", async () => {
+      configureData();
+      options.autoDownloadDataUrls = true;
+      const oversize = `data:image/png;base64,${"A".repeat(2 * 1024 * 1024 + 10)}`;
+      const sendResponse = vi.fn();
+      onMessage(dataRequest(oversize), { tab: senderTab }, sendResponse);
+      await waitForCall(sendResponse);
+      expect(Download.launchDownload).not.toHaveBeenCalled();
+      expect(Log.addLogEntry).toHaveBeenCalledWith(
+        "automatic data: source rejected: exceeds size cap",
+        { length: oversize.length },
+        { privateContext: false },
+      );
+      expect(sendResponse).toHaveBeenCalledWith({
+        type: MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
+        body: { status: "skipped" },
+      });
+    });
+
+    test("never adopts a blob: source, even with the data: option on", async () => {
+      configureData("^blob:");
+      options.autoDownloadDataUrls = true;
+      const sendResponse = vi.fn();
+      onMessage(dataRequest("blob:https://example.test/2b8c"), { tab: senderTab }, sendResponse);
+      await waitForCall(sendResponse);
+      expect(Download.launchDownload).not.toHaveBeenCalled();
+      expect(sendResponse).toHaveBeenCalledWith({
+        type: MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
+        body: { status: "skipped" },
+      });
+    });
+  });
 });
 
 // Official versioned external API (#110)

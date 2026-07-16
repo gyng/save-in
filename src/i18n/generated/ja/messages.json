@@ -2607,6 +2607,10 @@
   "autoDownloadManifestsHelp": {
     "message": "組み立て済みのストリームではなく、マニフェストファイル自体を保存します。"
   },
+  "autoDownloadDataUrls": { "message": "インライン data: 画像とメディアを含める" },
+  "autoDownloadDataUrlsHelp": {
+    "message": "自己完結型の data: URL を 1 件あたり最大 2 MB まで取り込みます。それより大きいものはスキップされます。"
+  },
   "autoDownloadLimit": { "message": "1 回のページ訪問での最大保存数" },
   "autoDownloadLimitHelp": {
     "message": "この上限に達すると、Save In は新しい一致項目のキューへの追加を停止します。新しい訪問を開始するにはページを再読み込みしてください。"

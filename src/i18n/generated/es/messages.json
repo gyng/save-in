@@ -2517,6 +2517,10 @@
   "autoDownloadManifestsHelp": {
     "message": "Guarda el propio archivo de manifiesto, no la transmisión ensamblada."
   },
+  "autoDownloadDataUrls": { "message": "Incluir imágenes y medios data: incrustados" },
+  "autoDownloadDataUrlsHelp": {
+    "message": "Adopta URL data: autónomas de hasta 2 MB cada una; las mayores se omiten."
+  },
   "autoDownloadLimit": { "message": "Máximo de guardados por visita a la página" },
   "autoDownloadLimitHelp": {
     "message": "Save In deja de poner nuevas coincidencias en cola al alcanzar este límite. Recargue la página para iniciar una nueva visita."

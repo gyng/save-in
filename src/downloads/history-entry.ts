@@ -2,17 +2,23 @@ import type { HistoryEntryInput } from "../shared/history-types.ts";
 import type { DownloadPipelineState } from "./download-types.ts";
 import { downloadPorts } from "./ports.ts";
 import { isPrivateDownloadState, isSourceSidecar } from "./download-pipeline-state.ts";
+import { historyDisplayUrl } from "../shared/data-url.ts";
 
 const historyPort = downloadPorts.history;
 
+// A data: download's URL is its multi-kilobyte payload. History is persisted in
+// storage.local and shown/exported, so store only a truncated display form —
+// never the payload. History has no fetch-by-URL action (undo/show-in-folder
+// gate on downloadId, not URL), so a truncated, non-fetchable data: string is
+// safe to round-trip. http(s) URLs are stored unchanged.
 const historyEntry = (state: DownloadPipelineState, finalFullPath: string): HistoryEntryInput => ({
   timestamp: new Date().toISOString(),
   initiatedAt: state.info.now?.toISOString(),
-  url: state.info.url,
+  url: historyDisplayUrl(state.info.url),
   finalFullPath,
   routed: Boolean(state.route),
   info: {
-    sourceUrl: state.info.sourceUrl || state.info.selectedUrl,
+    sourceUrl: historyDisplayUrl(state.info.sourceUrl || state.info.selectedUrl),
     pageUrl: state.info.pageUrl,
     context: state.info.context,
   },
@@ -28,7 +34,7 @@ const historyEntry = (state: DownloadPipelineState, finalFullPath: string): Hist
       suggestedfilename: state.info.suggestedFilename,
       pagetitle: state.info.currentTab?.title,
       pageurl: state.info.pageUrl,
-      sourceurl: state.info.sourceUrl,
+      sourceurl: historyDisplayUrl(state.info.sourceUrl),
       linktext: state.info.linkText,
       selection: state.info.selectionText,
       context: state.info.context,

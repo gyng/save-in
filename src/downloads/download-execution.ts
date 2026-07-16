@@ -46,6 +46,7 @@ import {
   requireDownloadUrl,
   throwIfAborted,
 } from "./download-pipeline-state.ts";
+import { isDataUrl } from "../shared/data-url.ts";
 import {
   createDeferredRouteRecovery,
   enqueueFilename,
@@ -159,6 +160,19 @@ export const acquireDownloadUrl = async (
     state.info.contentPromise = undefined;
   }
   const url = requireDownloadUrl(state);
+  // Firefox's downloads.download rejects data: URLs — its shortcut/object-URL
+  // path never hands the API a data: URL either — so convert to a blob object
+  // URL first. The Firefox event page has URL.createObjectURL; Chrome's worker
+  // does not and its downloads.download accepts data: directly, so Chrome keeps
+  // the direct path below. The bytes are self-contained (data: fetch is local:
+  // no network, referer, or DNR rule).
+  if (isDataUrl(url) && typeof URL.createObjectURL === "function") {
+    // A data: fetch is local and effectively instant, so it needs no abort
+    // signal; cancellation is already checked before and after acquisition.
+    const blob = await (await fetch(url)).blob();
+    const objectUrl = URL.createObjectURL(blob);
+    return { url: objectUrl, source: "direct", ownedObjectUrl: objectUrl };
+  }
   const fetchReferer = state.info.protectedFetchReferer ?? getFetchReferer(state);
   if (fetchReferer && !WEB_EXTENSION_CAPABILITIES.downloadRequestHeaders) {
     return acquireFetchedUrl(url, isPrivateDownloadState(state), signal, requestId, fetchReferer);

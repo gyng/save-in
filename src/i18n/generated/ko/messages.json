@@ -2605,6 +2605,10 @@
   "autoDownloadManifestsHelp": {
     "message": "조립된 스트림이 아니라 매니페스트 파일 자체를 저장합니다."
   },
+  "autoDownloadDataUrls": { "message": "인라인 data: 이미지 및 미디어 포함" },
+  "autoDownloadDataUrlsHelp": {
+    "message": "자체 포함된 data: URL을 개당 최대 2 MB까지 가져옵니다. 더 큰 것은 건너뜁니다."
+  },
   "autoDownloadLimit": { "message": "페이지 방문당 최대 저장 수" },
   "autoDownloadLimitHelp": {
     "message": "이 한도에 도달하면 Save In이 새 일치 항목을 대기열에 추가하지 않습니다. 새 방문을 시작하려면 페이지를 다시 로드하세요."

@@ -20,6 +20,7 @@ import {
   statusClass,
   statusLabel,
 } from "../../../src/options/history/history-view.ts";
+import { normalizeHistoryEntry } from "../../../src/shared/history-normalization.ts";
 
 test("missing legacy timestamps render as blank", () => {
   expect(formatHistoryDisplayTime()).toBe("");
@@ -205,6 +206,31 @@ describe("history row flatteners", () => {
       size: 2048,
       mechanism: "Fetch + downloads API",
     });
+  });
+
+  test("a truncated data: URL round-trips through normalization and gates actions on downloadId, not the URL", () => {
+    const displayUrl = `data:image/png;base64,${"A".repeat(100 - "data:image/png;base64,".length)}…`;
+    const stored = {
+      id: "h-data-1",
+      status: "complete",
+      finalFullPath: "inline/pic.png",
+      downloadId: 12,
+      url: displayUrl,
+      info: { context: "AUTO", sourceUrl: displayUrl },
+    };
+    // Persisted, reloaded, then flattened for the table: the truncated form is a
+    // plain string and survives unchanged.
+    const normalized = normalizeHistoryEntry(stored);
+    expect(normalized).not.toBeNull();
+    const row = historyRow(normalized!);
+    expect(row.url).toBe(displayUrl);
+    // Undo and Show in folder gate on status === "complete" && downloadId (see
+    // history-panel.ts); the URL is only ever a display/copy value, never used
+    // to re-fetch. There is no re-download-by-URL action, so the truncated,
+    // non-fetchable data: string cannot trigger a save.
+    expect(row.status).toBe("complete");
+    expect(row.downloadId).toBe(12);
+    expect(row.url.endsWith("…")).toBe(true);
   });
 
   test("prefers initiation time and formats menu and variable details", () => {

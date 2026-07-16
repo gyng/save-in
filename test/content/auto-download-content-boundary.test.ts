@@ -6,6 +6,7 @@ vi.mock("../../src/content/source-panel-model.ts", () => ({
 }));
 
 import {
+  createAutoDownloadDedup,
   setupAutoDownloadDiscovery as rawSetupAutoDownloadDiscovery,
   type AutoDownloadDiscoveryOptions,
 } from "../../src/content/auto-download.ts";
@@ -16,6 +17,7 @@ type DefaultedOption =
   | "includeDocuments"
   | "includeBackgrounds"
   | "resourceHints"
+  | "includeDataUrls"
   | "isPageDisabled";
 
 const setupAutoDownloadDiscovery = (
@@ -27,6 +29,7 @@ const setupAutoDownloadDiscovery = (
     includeDocuments: false,
     includeBackgrounds: false,
     resourceHints: false,
+    includeDataUrls: false,
     isPageDisabled: () => false,
     ...options,
   });
@@ -133,6 +136,34 @@ test.each([
     on.stop();
   },
 );
+
+test("a send force-skipped at teardown returns its dedup slot", async () => {
+  fixture.candidates = [{ url: "https://cdn.test/inflight.png", kind: "image", previewable: true }];
+  const dedup = createAutoDownloadDedup();
+  let resolveSend!: (result: "skipped") => void;
+  const send = vi.fn(
+    () =>
+      new Promise<"skipped">((resolve) => {
+        resolveSend = resolve;
+      }),
+  );
+  const controller = setupAutoDownloadDiscovery({
+    rules,
+    live: false,
+    maxPerPage: 10,
+    send,
+    dedup,
+  });
+  await vi.waitFor(() => expect(send).toHaveBeenCalledOnce());
+  expect(dedup.seen.size).toBe(1);
+
+  // Teardown force-skips the in-flight delivery; the shifted candidate never
+  // reached a download, so its slot must return like the still-queued ones,
+  // or a disable-list-only remount's rescan would skip it forever.
+  controller.stop();
+  resolveSend("skipped");
+  await vi.waitFor(() => expect(dedup.seen.size).toBe(0));
+});
 
 test("a plain link anchor is never adopted, even with every channel enabled", async () => {
   fixture.candidates = [
@@ -260,6 +291,72 @@ test("applies the per-page limit after the media-kind filter", async () => {
     "https://cdn.test/first.jpg",
   ]);
   expect(onLimitReached).toHaveBeenCalledOnce();
+  controller.stop();
+});
+
+test("teardown returns queued-but-unsent slots and re-arms the limit notice", async () => {
+  fixture.candidates = [
+    { url: "https://cdn.test/inflight.png", kind: "image", previewable: true },
+    { url: "https://cdn.test/queued.png", kind: "image", previewable: true },
+    { url: "https://cdn.test/over.png", kind: "image", previewable: true },
+  ];
+  const dedup = createAutoDownloadDedup();
+  // The first candidate is shifted and in flight (it stays consumed); the
+  // second waits in the queue; the third trips the limit notice.
+  const send = vi.fn(() => new Promise<never>(() => {}));
+  const onLimitReached = vi.fn();
+  const controller = setupAutoDownloadDiscovery({
+    rules: anyMediaRules,
+    live: false,
+    maxPerPage: 2,
+    send,
+    onLimitReached,
+    dedup,
+  });
+  expect(onLimitReached).toHaveBeenCalledOnce();
+
+  controller.stop();
+
+  // The dedup outlives the instance across a remount: the queued candidate
+  // must return its slot and the limit notice must be able to fire again.
+  expect(dedup.seen).toEqual(new Set(["https://cdn.test/inflight.png"]));
+  expect(dedup.limitNotified).toBe(false);
+});
+
+test("a dispatch-time drop re-arms the limit notice with the returned slot", async () => {
+  fixture.candidates = [
+    { url: "https://cdn.test/sent.png", kind: "image", previewable: true },
+    { url: "https://cdn.test/blocked.png", kind: "image", previewable: true },
+    { url: "https://cdn.test/over.png", kind: "image", previewable: true },
+  ];
+  const dedup = createAutoDownloadDedup();
+  let disabled = false;
+  let release!: () => void;
+  const gate = new Promise<"started">((resolve) => {
+    release = () => resolve("started");
+  });
+  const send = vi.fn(() => gate);
+  const onLimitReached = vi.fn();
+  const controller = setupAutoDownloadDiscovery({
+    rules: anyMediaRules,
+    live: false,
+    maxPerPage: 2,
+    isPageDisabled: () => disabled,
+    send,
+    onLimitReached,
+    dedup,
+  });
+  expect(onLimitReached).toHaveBeenCalledOnce();
+
+  // The page moves onto the disable list while the first send is in flight;
+  // the queued candidate is dropped at dispatch and returns its slot.
+  disabled = true;
+  release();
+  await controller.idle();
+
+  expect(send).toHaveBeenCalledOnce();
+  expect(dedup.seen).toEqual(new Set(["https://cdn.test/sent.png"]));
+  expect(dedup.limitNotified).toBe(false);
   controller.stop();
 });
 

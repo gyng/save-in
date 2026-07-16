@@ -12,6 +12,7 @@ type DefaultedOption =
   | "includeDocuments"
   | "includeBackgrounds"
   | "resourceHints"
+  | "includeDataUrls"
   | "isPageDisabled";
 
 const setupAutoDownloadDiscovery = (
@@ -23,6 +24,7 @@ const setupAutoDownloadDiscovery = (
     includeDocuments: false,
     includeBackgrounds: false,
     resourceHints: false,
+    includeDataUrls: false,
     isPageDisabled: () => false,
     ...options,
   });
@@ -519,6 +521,123 @@ describe("automatic source discovery", () => {
     document.body.append(document.createTextNode("text only"));
     await flushLiveScan();
 
+    expect(send).not.toHaveBeenCalled();
+    controller.stop();
+  });
+});
+
+describe("inline data: sources", () => {
+  // Matches an inline data: image by kind and the data: scheme. A data: URL has
+  // no extension, so kind comes from the <img>, not the URL.
+  const dataRules = `
+context: ^auto$
+pageurl: ^http://localhost/
+sourcekind: image
+sourceurl: ^data:image/
+into: automatic/
+`;
+  const bigDataUrl = (payloadLength: number): string =>
+    `data:image/png;base64,${"A".repeat(payloadLength)}`;
+
+  afterEach(() => {
+    document.body.innerHTML = "";
+    vi.useRealTimers();
+  });
+
+  test("adopts an inline data: image only when the option is enabled", async () => {
+    document.body.innerHTML = '<img src="data:image/png;base64,iVBORw0KGgoAAAA">';
+
+    const off = vi.fn(() => Promise.resolve("started" as const));
+    const controllerOff = setupAutoDownloadDiscovery({
+      rules: dataRules,
+      live: false,
+      maxPerPage: 20,
+      send: off,
+    });
+    await controllerOff.idle();
+    expect(off).not.toHaveBeenCalled();
+    controllerOff.stop();
+
+    const on = vi.fn(() => Promise.resolve("started" as const));
+    const controllerOn = setupAutoDownloadDiscovery({
+      rules: dataRules,
+      live: false,
+      maxPerPage: 20,
+      includeDataUrls: true,
+      send: on,
+    });
+    await controllerOn.idle();
+    // An inline <img src="data:…"> is embedded media: no channel marker, so it
+    // rides the same admission as an embedded http image, gated only by the
+    // data: protocol option.
+    expect(on).toHaveBeenCalledOnce();
+    expect(on).toHaveBeenCalledWith({
+      pageUrl: "http://localhost/",
+      sourceUrl: "data:image/png;base64,iVBORw0KGgoAAAA",
+      sourceKind: "image",
+    });
+    controllerOn.stop();
+  });
+
+  test("drops an oversize data: URL before sending, even with the option on", async () => {
+    // Just over the 2 MB cap: rejected at the content gate so it never rides a
+    // runtime message.
+    document.body.innerHTML = `<img src="${bigDataUrl(2 * 1024 * 1024 + 10)}">`;
+    const send = vi.fn(() => Promise.resolve("started" as const));
+    const controller = setupAutoDownloadDiscovery({
+      rules: dataRules,
+      live: false,
+      maxPerPage: 20,
+      includeDataUrls: true,
+      send,
+    });
+    await controller.idle();
+    expect(send).not.toHaveBeenCalled();
+    controller.stop();
+  });
+
+  test("dedups a long data: URL on its hash, never holding the payload in the seen set", async () => {
+    const payload = bigDataUrl(4000);
+    document.body.innerHTML = `<img src="${payload}"><img src="${payload}">`;
+    const dedup = { seen: new Set<string>(), limitNotified: false };
+    const send = vi.fn(() => Promise.resolve("started" as const));
+    const controller = setupAutoDownloadDiscovery({
+      rules: dataRules,
+      live: false,
+      maxPerPage: 20,
+      includeDataUrls: true,
+      send,
+      dedup,
+    });
+    await controller.idle();
+
+    // Two identical large data: images collapse to a single save.
+    expect(send).toHaveBeenCalledOnce();
+    // The dedup set holds only the short hash key, not the multi-kilobyte URL.
+    const keys = [...dedup.seen];
+    expect(keys).toHaveLength(1);
+    expect(keys[0]).toMatch(/^sha256:[0-9a-f]{64}$/);
+    expect(keys[0]!.length).toBeLessThan(payload.length);
+    controller.stop();
+  });
+
+  test("never adopts a blob: source, even with the data: option on", async () => {
+    document.body.innerHTML = '<img src="blob:http://localhost/2b8c">';
+    const send = vi.fn(() => Promise.resolve("started" as const));
+    const controller = setupAutoDownloadDiscovery({
+      rules: `
+context: ^auto$
+pageurl: ^http://localhost/
+sourcekind: image
+sourceurl: ^blob:
+into: automatic/
+`,
+      live: false,
+      maxPerPage: 20,
+      includeDataUrls: true,
+      send,
+    });
+    await controller.idle();
     expect(send).not.toHaveBeenCalled();
     controller.stop();
   });

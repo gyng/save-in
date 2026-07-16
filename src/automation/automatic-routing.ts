@@ -8,6 +8,7 @@ import {
   type AutomaticRuleIssue,
 } from "../routing/automatic-rule.ts";
 import type { PageSourceChannel, PageSourceKind } from "../shared/page-source.ts";
+import { isDataUrl, parseDataUrlMediaType } from "../shared/data-url.ts";
 
 export type AutomaticRoutingCandidate = {
   pageUrl: string;
@@ -71,6 +72,12 @@ const candidateInfo = (candidate: AutomaticRoutingCandidate): RoutingInfo => ({
   sourceKind: candidate.sourceKind,
   sourceUrl: candidate.sourceUrl,
   url: candidate.sourceUrl,
+  // A data: URL has no path (fileext:/urlfileext: are empty), so mime-based
+  // matching and :mimeext: naming rely on the mediatype parsed from its header.
+  // Deriving it from the URL itself keeps the content pre-match and the
+  // background re-match agreeing, and — because info.mime is set — no HTTP-only
+  // HEAD fetch is needed to resolve it (resolveMime short-circuits on mime).
+  ...(isDataUrl(candidate.sourceUrl) ? { mime: parseDataUrlMediaType(candidate.sourceUrl) } : {}),
 });
 
 export const matchAutomaticRoutingRule = (

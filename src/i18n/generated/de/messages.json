@@ -2513,6 +2513,10 @@
   "autoDownloadManifestsHelp": {
     "message": "Speichert die Manifestdatei selbst, nicht den zusammengesetzten Stream."
   },
+  "autoDownloadDataUrls": { "message": "Inline-data:-Bilder und -Medien einbeziehen" },
+  "autoDownloadDataUrlsHelp": {
+    "message": "Übernimmt eigenständige data:-URLs bis zu je 2 MB; größere werden übersprungen."
+  },
   "autoDownloadLimit": {
     "message": "Maximal gespeicherte Quellen pro Seitenbesuch"
   },

@@ -446,3 +446,88 @@ describe("renameAndDownload: fetchViaFetch", () => {
     );
   });
 });
+
+describe("renameAndDownload: data: acquisition", () => {
+  const dataUrl = "data:image/png;base64,iVBORw0KGgoAAAA";
+  // The Firefox event page has URL.createObjectURL; the Chrome MV3 worker does
+  // not. The download tests run under Node, which provides createObjectURL, so
+  // the Chrome-worker branch is simulated by removing it (mirrors download-mv3).
+  let originalCreateObjectURL: PropertyDescriptor | undefined;
+  const removeCreateObjectUrl = () => {
+    originalCreateObjectURL = Object.getOwnPropertyDescriptor(URL, "createObjectURL");
+    Object.defineProperty(URL, "createObjectURL", { value: undefined, configurable: true });
+  };
+  afterEach(() => {
+    if (originalCreateObjectURL) {
+      Object.defineProperty(URL, "createObjectURL", originalCreateObjectURL);
+      originalCreateObjectURL = undefined;
+    }
+  });
+
+  test("Firefox converts a data: URL to a blob object URL, with no HEAD fetch and no Referer/DNR rule", async () => {
+    // Firefox's downloads.download rejects data: URLs, so the pipeline hands it a
+    // blob object URL instead (its event page has URL.createObjectURL). The
+    // Content-Disposition HEAD and the Referer/DNR session rule are HTTP-only and
+    // must not fire; only the local data: fetch that produces the blob runs.
+    setCurrentBrowser("FIREFOX");
+    const updateRules = vi.mocked(global.chrome.declarativeNetRequest.updateSessionRules);
+    updateRules.mockClear();
+    global.fetch = vi.fn(() =>
+      Promise.resolve({ blob: () => Promise.resolve(new Blob(["png"])) }),
+    ) as any;
+    vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:data-object-url");
+    // The automatic handler seeds the mediatype for data: sources; mirror it so
+    // any :mimeext:/mime work resolves from the header, never a HEAD.
+    const state = makeState({ info: { url: dataUrl, mime: "image/png", context: "AUTO" } });
+
+    await Download.renameAndDownload(state);
+
+    // No HEAD request: the only fetch is the local data: GET for the blob bytes.
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(global.fetch).toHaveBeenCalledWith(dataUrl);
+    expect(updateRules).not.toHaveBeenCalled();
+    expect(global.browser.downloads.download).toHaveBeenCalledWith(
+      expect.objectContaining({ url: "blob:data-object-url" }),
+    );
+  });
+
+  test("Chrome downloads a data: URL directly (its worker has no URL.createObjectURL)", async () => {
+    setCurrentBrowser("CHROME");
+    removeCreateObjectUrl();
+    const updateRules = vi.mocked(global.chrome.declarativeNetRequest.updateSessionRules);
+    updateRules.mockClear();
+    const state = makeState({ info: { url: dataUrl, mime: "image/png", context: "AUTO" } });
+
+    await Download.renameAndDownload(state);
+
+    expect(global.fetch).not.toHaveBeenCalled();
+    expect(updateRules).not.toHaveBeenCalled();
+    expect(global.browser.downloads.download).toHaveBeenCalledWith(
+      expect.objectContaining({ url: dataUrl }),
+    );
+  });
+
+  test("keeps a private data: acquisition out of the shared log and history", async () => {
+    setCurrentBrowser("FIREFOX");
+    // Private saves never reach history (addHistoryEntry returns null).
+    vi.mocked(SaveHistory.addHistoryEntry).mockReturnValue(null);
+    global.fetch = vi.fn(() =>
+      Promise.resolve({ blob: () => Promise.resolve(new Blob(["png"])) }),
+    ) as any;
+    vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:private-data-object-url");
+    const state = makeState({
+      info: { url: dataUrl, mime: "image/png", context: "AUTO", currentTab: { incognito: true } },
+    });
+
+    await Download.renameAndDownload(state);
+
+    // The private data: URL is never written to the shared debug log.
+    expect(Log.addLogEntry).not.toHaveBeenCalledWith(
+      "download requested",
+      expect.objectContaining({ url: expect.stringContaining("data:") }),
+    );
+    expect(global.browser.downloads.download).toHaveBeenCalledWith(
+      expect.objectContaining({ url: "blob:private-data-object-url" }),
+    );
+  });
+});

@@ -8,6 +8,8 @@ import {
 } from "../../automation/automatic-routing.ts";
 import { matchesAnyPattern } from "../../shared/match-pattern.ts";
 import { normalizeContentOption } from "../../config/content-options.ts";
+import { isDataUrl, isDataUrlWithinCap, parseDataUrlMediaType } from "../../shared/data-url.ts";
+import { addLogEntry } from "../log.ts";
 import type { MessageOf } from "../../shared/message-protocol.ts";
 import type { MessageSender, ProtocolSendResponse } from "./protocol.ts";
 
@@ -40,16 +42,36 @@ export const handleAutoDownloadSource = async (
     skip();
     return;
   }
-  let sourceProtocol = "";
-  try {
-    sourceProtocol = new URL(sourceUrl).protocol;
-  } catch {
-    skip();
-    return;
-  }
-  if (sourceProtocol !== "http:" && sourceProtocol !== "https:") {
-    skip();
-    return;
+  // Backstop the protocol gate. data: is opt-in and capped identically to the
+  // content side; an oversize data: URL from a stale content script is rejected
+  // here and logged once (the length only, never the payload — and marked
+  // private when the sender tab is). blob: and every other scheme stay rejected.
+  if (isDataUrl(sourceUrl)) {
+    if (normalizeContentOption("autoDownloadDataUrls", options.autoDownloadDataUrls) !== true) {
+      skip();
+      return;
+    }
+    if (!isDataUrlWithinCap(sourceUrl)) {
+      void addLogEntry(
+        "automatic data: source rejected: exceeds size cap",
+        { length: sourceUrl.length },
+        { privateContext: senderTab.incognito === true },
+      );
+      skip();
+      return;
+    }
+  } else {
+    let sourceProtocol = "";
+    try {
+      sourceProtocol = new URL(sourceUrl).protocol;
+    } catch {
+      skip();
+      return;
+    }
+    if (sourceProtocol !== "http:" && sourceProtocol !== "https:") {
+      skip();
+      return;
+    }
   }
   // Backstop: a stale content script cannot adopt a kind/channel combination
   // the current options forbid, even if it was allowed when the page loaded.
@@ -97,6 +119,10 @@ export const handleAutoDownloadSource = async (
       sourceKind: request.body.sourceKind,
       url: sourceUrl,
       context: DOWNLOAD_TYPES.AUTO,
+      // A data: URL carries no path, so seed the mediatype parsed from its
+      // header as the download's mime. mime-based matching and :mimeext: naming
+      // resolve from it, and resolveMime short-circuits — no HTTP-only HEAD.
+      ...(isDataUrl(sourceUrl) ? { mime: parseDataUrlMediaType(sourceUrl) } : {}),
     },
   });
   sendResponse({

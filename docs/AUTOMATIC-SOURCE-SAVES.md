@@ -91,6 +91,16 @@ turned on:
   `sourcekind: stream`. Saving one of these matches downloads the manifest
   (playlist) file itself — Save In does not fetch or assemble the segmented
   media the manifest describes.
+- **Include inline data: images and media** adopts self-contained `data:`
+  URLs — for example an inline `<img src="data:…">` — up to 2 MB each; larger
+  ones are skipped and noted in the debug log. A `data:` source is adopted
+  through whatever channel discovered it: an inline image is embedded media and
+  needs no other channel, while a `data:` anchor still needs its own anchor
+  channel to be on. Because a `data:` URL has no path, `fileext:` and
+  `urlfileext:` are empty; Save In reads the mediatype from the URL header, so
+  `mediatype:`, `mime:`, and `:mimeext:` naming work (a URL with no parseable
+  mediatype is treated as `application/octet-stream`). `blob:` URLs are never
+  adopted: they cannot be resolved outside the page that created them.
 
 Each channel is gated independently by its own option and by where a
 candidate actually came from, not only by its `sourcekind`. A `.m3u8`
@@ -98,7 +108,11 @@ discovered as a page anchor is gated by **Include linked documents and
 streams**; the same URL discovered as a resource-timing hint is gated by
 **Look for streaming-video playlists**. Turning on one of these options never
 adopts a kind through a channel it does not gate — for example, enabling only
-the playlist option does not adopt a linked `.m3u8` anchor.
+the playlist option does not adopt a linked `.m3u8` anchor. **Include inline
+data: images and media** is a protocol gate layered on top of these channels,
+not a fifth channel: it admits `data:` URLs through whichever channel found
+them, and its 2 MB cap is enforced both before the source leaves the page and
+again in the background.
 
 ## Safety controls
 
@@ -106,10 +120,12 @@ the playlist option does not adopt a linked `.m3u8` anchor.
 - **Include sources added after the page loads** keeps watching dynamic pages.
 - **Allow in private windows** is a separate opt-in and defaults to off.
 - **Include media that pages link to**, **Include linked documents and
-  streams**, **Include CSS background images**, and **Look for
-  streaming-video playlists** are grouped under **Automatic scan coverage**.
-  Each is a separate opt-in and defaults to off; when all are off, only media
-  embedded on the page is adopted.
+  streams**, **Include CSS background images**, **Look for streaming-video
+  playlists**, and **Include inline data: images and media** are grouped under
+  **Automatic scan coverage**. Each is a separate opt-in and defaults to off;
+  when all are off, only HTTP(S) media embedded on the page is adopted.
+  **Include inline data: images and media** admits `data:` URLs up to 2 MB
+  each; `blob:` URLs are never adopted.
 - **Maximum saves per page visit** defaults to 20 and accepts 1–500. Reloading
   the page starts a new visit.
 - A source URL is queued once per page visit, and only after a guarded automatic
@@ -147,7 +163,9 @@ compatibility, but new configurations should put all automatic rules in
 - If saving stops after several matches, check the per-page maximum and reload
   the page to begin a new visit.
 - If a resource never appears, confirm the page exposes a previewable HTTP(S)
-  source rather than a `data:`, `blob:`, or page-script-only resource.
+  source, or an inline `data:` source under 2 MB with **Include inline data:
+  images and media** enabled. `blob:` and page-script-only resources are never
+  adopted.
 
 The machine-facing validation and vocabulary contract is documented in
 [Integrations](INTEGRATIONS.md#config-messages).

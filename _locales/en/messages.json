@@ -4165,6 +4165,14 @@
     "message": "Saves the manifest file itself, not the assembled stream.",
     "description": "Clarifies that Save In downloads the playlist file and does not assemble segmented media. Used in src/options/options.html."
   },
+  "autoDownloadDataUrls": {
+    "message": "Include inline data: images and media",
+    "description": "Checkbox label that opts in to adopting self-contained inline data: image, video, and audio URLs during automatic saving. Off by default. Used in src/options/options.html."
+  },
+  "autoDownloadDataUrlsHelp": {
+    "message": "Adopts self-contained data: URLs, up to 2 MB each; larger ones are skipped.",
+    "description": "Explains that inline data: sources are adopted with a 2 MB per-URL size limit. Used in src/options/options.html."
+  },
   "autoDownloadLimit": {
     "message": "Maximum saves per page visit",
     "description": "Label for the automatic-download safety limit. Used in src/options/options.html."

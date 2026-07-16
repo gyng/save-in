@@ -2507,6 +2507,10 @@
   "autoDownloadManifestsHelp": {
     "message": "Salva o próprio arquivo de manifesto, não a transmissão remontada."
   },
+  "autoDownloadDataUrls": { "message": "Incluir imagens e mídias data: embutidas" },
+  "autoDownloadDataUrlsHelp": {
+    "message": "Adota URLs data: autônomas, até 2 MB cada; as maiores são ignoradas."
+  },
   "autoDownloadLimit": { "message": "Máximo de salvamentos por visita à página" },
   "autoDownloadLimitHelp": {
     "message": "O Save In deixa de colocar novas correspondências na fila quando esse limite é atingido. Recarregue a página para iniciar uma nova visita."

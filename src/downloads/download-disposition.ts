@@ -7,6 +7,7 @@ import { EXTENSION_REGEX } from "../routing/filename.ts";
 import { sanitizeFilename } from "../routing/path.ts";
 import { resolveHead } from "../routing/variable.ts";
 import { options } from "../config/options-data.ts";
+import { isHttpDownloadUrl } from "./download-pipeline-state.ts";
 import type { DownloadPipelineState, FinalizableDownloadState } from "./download-types.ts";
 
 const FIREFOX_CONTENT_DISPOSITION_COMPATIBILITY: ContentDispositionParseOptions = {
@@ -32,7 +33,16 @@ export const getFilenameFromContentDisposition = (
 // and again after a fetch: rewrite retargets the URL. Chrome must defer this
 // to onDeterminingFilename, which runs after the browser download starts.
 export const resolveDispositionFilename = async (state: DownloadPipelineState): Promise<void> => {
-  if (WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion || state.info.contentFetchDisabled) {
+  // The Content-Disposition HEAD is an HTTP-only optimization. A non-HTTP URL
+  // (a data: source, a blob:) carries no server filename, so skip the fetch
+  // entirely — a data: acquisition must never issue a lazy-metadata HEAD.
+  /* v8 ignore next -- requireDownloadUrl guarantees info.url before the plan reaches disposition; the fallback only satisfies the optional type. */
+  const downloadUrl = state.info.url ?? "";
+  if (
+    WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion ||
+    state.info.contentFetchDisabled ||
+    !isHttpDownloadUrl(downloadUrl)
+  ) {
     return;
   }
   try {
