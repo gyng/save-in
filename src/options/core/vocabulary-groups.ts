@@ -14,6 +14,7 @@ const VARIABLE_ORDER = [
   "isodate",
   "unixdate",
   "year",
+  "isoyear",
   "month",
   "monthname",
   "day",
@@ -63,7 +64,7 @@ export const variableGroup = (variable: string): VariableGroup => {
   const name = variableName(variable);
   if (/^\$\d+$/.test(name)) return "Capture groups";
   if (
-    /^(date|isodate|unixdate|year|month|day|hour|minute|second|weekday|monthname|ampm|iso?week)$/.test(
+    /^(date|isodate|unixdate|year|isoyear|month|day|hour|minute|second|weekday|monthname|ampm|iso?week)$/.test(
       name,
     )
   )
@@ -171,7 +172,7 @@ export const sortClauses = (clauses: string[]): string[] => clauses.toSorted(com
 export const variableExample = (variable: string): string => {
   const name = variableName(variable);
   if (name === "date") return "2026-07-12";
-  if (name === "year") return "2026";
+  if (name === "year" || name === "isoyear") return "2026";
   if (name === "month" || name === "day") return "07";
   if (/^(hour|minute|second)$/.test(name)) return "09";
   if (name === "counter") return "42";

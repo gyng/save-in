@@ -5,17 +5,11 @@
   "ruleTemplatePdfsByContentTypeDescription": {
     "message": "Identifica PDFs pelo tipo de conteúdo informado em vez do nome do arquivo"
   },
-  "ruleTemplatePerSourceRootDomainName": {
-    "message": "Uma pasta por domínio raiz de origem"
-  },
-  "ruleTemplatePerSourceRootDomainDescription": {
-    "message": "Agrupa downloads de subdomínios do mesmo site de origem"
-  },
   "ruleTemplateDownloadsFromSiteSectionName": {
     "message": "Downloads de uma seção do site"
   },
   "ruleTemplateDownloadsFromSiteSectionDescription": {
-    "message": "Direciona downloads indicados por uma seção de URL específica para uma pasta própria"
+    "message": "Direciona downloads associados a uma seção do URL da página para uma pasta própria"
   },
   "html_matchesTheMimeContentType": {
     "message": "Corresponde ao MIME Content-Type determinado. O Save In pode solicitar os cabeçalhos do servidor."
@@ -69,25 +63,25 @@
     "message": "Imagens em pastas por site"
   },
   "ruleTemplateImagesPerSiteDescription": {
-    "message": "Organiza cada imagem salva pelo site de origem"
+    "message": "Organiza imagens salvas pelo nome do host da página"
   },
   "ruleTemplateVideosPerSiteName": {
     "message": "Vídeos em pastas por site"
   },
   "ruleTemplateVideosPerSiteDescription": {
-    "message": "Organiza cada vídeo salvo pelo site de origem"
+    "message": "Organiza vídeos salvos pelo nome do host da página"
   },
   "ruleTemplateAudioPerSiteName": {
     "message": "Áudio em pastas por site"
   },
   "ruleTemplateAudioPerSiteDescription": {
-    "message": "Agrupa o áudio salvo pela página onde foi encontrado"
+    "message": "Organiza o áudio salvo pelo nome do host da página"
   },
   "ruleTemplateScreenshotsByMonthName": {
     "message": "Capturas de tela por mês"
   },
   "ruleTemplateScreenshotsByMonthDescription": {
-    "message": "Mantém em pastas datadas os nomes de arquivo que começam com screenshot"
+    "message": "Mantém nomes de arquivo de capturas de tela em pastas datadas"
   },
   "ruleTemplatePdfsName": {
     "message": "PDFs em uma pasta de documentos"
@@ -1782,6 +1776,9 @@
   },
   "html_currentYear": {
     "message": "Ano atual"
+  },
+  "html_iso8601WeekYear": {
+    "message": "Ano de numeração das semanas ISO 8601"
   },
   "html_hostnameOfThePage": {
     "message": "Nome do host da página"
@@ -3830,20 +3827,8 @@
   "ruleTemplateCategorySiteOriginals": {
     "message": "Originais por site"
   },
-  "ruleTemplateDeviantArtRenameDescription": {
-    "message": "Renomeia o nome de arquivo com hash de downloads do DeviantArt para o título da obra e o código curto"
-  },
-  "ruleTemplateDeviantArtRenameName": {
-    "message": "Renomeação de nome de arquivo com hash do DeviantArt"
-  },
-  "ruleTemplateInstagramUsernamePrefixDescription": {
-    "message": "Adiciona antes dos arquivos salvos o nome de usuário do Instagram obtido do título da página"
-  },
-  "ruleTemplateInstagramUsernamePrefixName": {
-    "message": "Prefixo com nome de usuário do Instagram"
-  },
   "ruleTemplatePagePathNoSchemeDescription": {
-    "message": "Cria pastas a partir do host e do caminho da URL da página, removendo o esquema https:// que, caso contrário, corromperia os nomes de arquivo"
+    "message": "Cria pastas a partir do host e do caminho da página, sem credenciais ou sufixos de URL"
   },
   "ruleTemplatePagePathNoSchemeName": {
     "message": "Caminho da página sem o esquema"
@@ -3855,13 +3840,13 @@
     "message": "Originais de imagens do Reddit"
   },
   "ruleTemplateSluggedTitleRenameDescription": {
-    "message": "Substitui o nome de arquivo por um slug em minúsculas e com hifens do título da página, mantendo a extensão original (não há suporte para busca e substituição genérica em nomes de arquivo)"
+    "message": "Substitui o nome de arquivo pelo título da página em minúsculas e com hifens, mantendo a extensão identificada"
   },
   "ruleTemplateSluggedTitleRenameName": {
     "message": "Renomeação por slug do título"
   },
   "ruleTemplateTwitterHandlePrefixDescription": {
-    "message": "Adiciona antes dos arquivos salvos o identificador do Twitter ou X obtido da URL da página"
+    "message": "Adiciona o identificador da conta aos arquivos salvos de uma publicação do Twitter ou X"
   },
   "ruleTemplateTwitterHandlePrefixName": {
     "message": "Prefixo com identificador do Twitter/X"

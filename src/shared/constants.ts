@@ -18,6 +18,7 @@ export const SPECIAL_DIRS = {
   ISO8601_DATE: ":isodate:",
   UNIX_DATE: ":unixdate:",
   YEAR: ":year:",
+  ISO_YEAR: ":isoyear:",
   MONTH: ":month:",
   DAY: ":day:",
   HOUR: ":hour:",

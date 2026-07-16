@@ -26,9 +26,9 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
   {
     category: "Media",
     name: "Images into per-site folders",
-    description: "Sorts every saved image by the site it came from",
+    description: "Sorts saved images by the page hostname",
     example: "Example: images/example.com/photo.jpg",
-    rule: "mediatype: image\ninto: images/:pagedomain:/:filename:",
+    rule: "sourcekind: ^image$\npagedomain: .+\ninto: images/:pagedomain:/:filename:",
     proof: {
       info: {
         mediaType: "image",
@@ -41,9 +41,9 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
   {
     category: "Media",
     name: "Videos into per-site folders",
-    description: "Sorts every saved video by the site it came from",
+    description: "Sorts saved videos by the page hostname",
     example: "Example: videos/example.com/clip.mp4",
-    rule: "mediatype: video\ninto: videos/:pagedomain:/:filename:",
+    rule: "sourcekind: ^video$\npagedomain: .+\ninto: videos/:pagedomain:/:filename:",
     proof: {
       info: {
         mediaType: "video",
@@ -56,9 +56,9 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
   {
     category: "Media",
     name: "Audio into per-site folders",
-    description: "Groups saved audio by the page where it was found",
+    description: "Sorts saved audio by the page hostname",
     example: "Example: audio/example.com/podcast.mp3",
-    rule: "mediatype: audio\ninto: audio/:pagedomain:/:filename:",
+    rule: "sourcekind: ^audio$\npagedomain: .+\ninto: audio/:pagedomain:/:filename:",
     proof: {
       info: {
         mediaType: "audio",
@@ -71,9 +71,9 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
   {
     category: "Media",
     name: "Screenshots by month",
-    description: "Keeps filenames beginning with screenshot in dated folders",
+    description: "Keeps screenshot and screen-capture filenames in dated folders",
     example: "Example: screenshots/2026/07/Screenshot 42.png",
-    rule: "filename/i: ^screen([ _-]?shot|capture)\ninto: screenshots/:year:/:month:/:filename:",
+    rule: "filename/i: ^screen[ _-]?(?:shot|capture)(?:[ _.-]|\\d)\ninto: screenshots/:year:/:month:/:filename:",
     proof: {
       info: { filename: "Screenshot 42.png", now: new Date(2026, 6, 12, 12) },
       destination: "screenshots/:year:/:month:/:filename:",
@@ -221,14 +221,14 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     name: "Weekly inbox",
     description: "Creates one inbox folder for each ISO week",
     example: "Example: inbox/2026-w28/report.pdf",
-    rule: "filename: .*\ninto: inbox/:year:-w:isoweek:/:filename:",
+    rule: "filename: .*\ninto: inbox/:isoyear:-w:isoweek:/:filename:",
     proof: {
       info: {
         sourceUrl: "https://example.test/report.pdf",
         filename: "report.pdf",
         now: new Date(2026, 6, 12, 12),
       },
-      destination: "inbox/:year:-w:isoweek:/:filename:",
+      destination: "inbox/:isoyear:-w:isoweek:/:filename:",
     },
   },
   {
@@ -251,7 +251,7 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     name: "One site, one folder",
     description: "Routes one chosen website into its own folder",
     example: "Example: example/an-interesting-page/report.pdf",
-    rule: "pagerootdomain: ^example\\.com$\ninto: example/:pagetitleslug:/:filename:",
+    rule: "pagedomain: ^(?:[^.]+\\.)*example\\.com$\ninto: example/:pagetitleslug:/:filename:",
     proof: {
       info: {
         pageUrl: "https://news.example.com/an-interesting-page",
@@ -266,7 +266,7 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     name: "One folder per source site",
     description: "Groups downloads by the hostname serving the file",
     example: "Example: sites/cdn.example.com/photo.jpg",
-    rule: "sourceurl: .*\ninto: sites/:sourcedomain:/:filename:",
+    rule: "sourcedomain: .+\ninto: sites/:sourcedomain:/:filename:",
     proof: {
       info: {
         sourceUrl: "https://cdn.example.com/photo.jpg",
@@ -278,25 +278,10 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
   },
   {
     category: "Sites and URLs",
-    name: "One folder per source root domain",
-    description: "Combines downloads from subdomains of the same source site",
-    example: "Example: sites/example.com/photo.jpg",
-    rule: "sourcerootdomain: .+\ninto: sites/:sourcerootdomain:/:filename:",
-    proof: {
-      info: {
-        sourceUrl: "https://media.cdn.example.com/photo.jpg",
-        url: "https://media.cdn.example.com/photo.jpg",
-        filename: "photo.jpg",
-      },
-      destination: "sites/:sourcerootdomain:/:filename:",
-    },
-  },
-  {
-    category: "Sites and URLs",
     name: "One folder per page site",
     description: "Groups files by the website you were browsing rather than the file host",
     example: "Example: sites/example.com/photo.jpg",
-    rule: "pageurl: .*\ninto: sites/:pagedomain:/:filename:",
+    rule: "pagedomain: .+\ninto: sites/:pagedomain:/:filename:",
     proof: {
       info: { pageUrl: "https://example.com/gallery", filename: "photo.jpg" },
       destination: "sites/:pagedomain:/:filename:",
@@ -321,17 +306,20 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     category: "Sites and URLs",
     name: "Capture part of the URL",
     description: "Uses a regex capture group in the saved filename",
-    example: "Example: imgur/abc123-photo.jpg",
-    rule: "sourceurl: imgur\\.com/(\\w+)\ncapturegroups: sourceurl\ninto: imgur/:$1:-:filename:",
+    example: "Example: albums/summer-2026-photo.jpg",
+    rule: "sourceurl: ^https://images\\.example\\.com/albums/([^/?#]+)/\ncapturegroups: sourceurl\ninto: albums/:$1:-:filename:",
     proof: {
-      info: { sourceUrl: "https://imgur.com/abc123", filename: "photo.jpg" },
-      destination: "imgur/abc123-:filename:",
+      info: {
+        sourceUrl: "https://images.example.com/albums/summer-2026/photo.jpg",
+        filename: "photo.jpg",
+      },
+      destination: "albums/summer-2026-:filename:",
     },
   },
   {
     category: "Sites and URLs",
     name: "Downloads from a site section",
-    description: "Routes downloads referred from one URL section into its own folder",
+    description: "Routes downloads associated with one page URL section into its own folder",
     example: "Example: projects/report.pdf",
     rule: "referrerurl: ^https://example\\.com/projects/\ninto: projects/:filename:",
     proof: {
@@ -347,7 +335,7 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     name: "Browser downloads inbox",
     description: "Keeps tracked browser-owned downloads in a separate folder",
     example: "Example: browser-downloads/archive.zip",
-    rule: "context: browser\ninto: browser-downloads/:filename:",
+    rule: "context: ^browser$\ninto: browser-downloads/:filename:",
     proof: {
       info: { context: "browser", filename: "archive.zip" },
       destination: "browser-downloads/:filename:",
@@ -358,7 +346,7 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     name: "Link downloads inbox",
     description: "Separates files saved from links from embedded media",
     example: "Example: links/report.pdf",
-    rule: "context: link\ninto: links/:filename:",
+    rule: "context: ^link$\ninto: links/:filename:",
     proof: { info: { context: "link", filename: "report.pdf" }, destination: "links/:filename:" },
   },
   {
@@ -366,7 +354,7 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     name: "Selected text inbox",
     description: "Keeps files created from selected page text together",
     example: "Example: selections/2026-07-12-selection.txt",
-    rule: "context: selection\ninto: selections/:date:-:filename:",
+    rule: "context: ^selection$\ninto: selections/:date:-:filename:",
     proof: {
       info: {
         context: "selection",
@@ -381,7 +369,7 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     name: "Tab saves inbox",
     description: "Keeps files saved from tab actions together",
     example: "Example: tabs/page.html",
-    rule: "context: tab\ninto: tabs/:filename:",
+    rule: "context: ^tab$\ninto: tabs/:filename:",
     proof: { info: { context: "tab", filename: "page.html" }, destination: "tabs/:filename:" },
   },
   {
@@ -544,9 +532,9 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
   {
     category: "Site filing",
     name: "Twitter/X handle prefix",
-    description: "Prefixes saved files with the Twitter or X handle from the page URL",
+    description: "Prefixes files saved from a Twitter or X post with its account handle",
     example: "Example: twitter/exampleuser-photo.jpg",
-    rule: "pageurl: ^https://(?:x|twitter)\\.com/(\\w+)/\ncapturegroups: pageurl\ninto: twitter/:$1:-:filename:",
+    rule: "pageurl: ^https://(?:www\\.)?(?:x|twitter)\\.com/([A-Za-z0-9_]{1,15})/status/\\d+(?:[/?#]|$)\ncapturegroups: pageurl\ninto: twitter/:$1:-:filename:",
     proof: {
       info: { pageUrl: "https://x.com/exampleuser/status/123456789", filename: "photo.jpg" },
       destination: "twitter/exampleuser-:filename:",
@@ -554,56 +542,25 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
   },
   {
     category: "Site filing",
-    name: "Instagram username prefix",
-    description: "Prefixes saved files with the Instagram username from the page title",
-    example: "Example: instagram/janedoe-photo.jpg",
-    rule: "pagerootdomain: ^instagram\\.com$\npagetitle: @(\\w+)\ncapturegroups: pagetitle\ninto: instagram/:$1:-:filename:",
-    proof: {
-      info: {
-        pageUrl: "https://www.instagram.com/p/Cx1234567/",
-        filename: "photo.jpg",
-        currentTab: { title: "Jane Doe (@janedoe) • Instagram photos and videos" },
-      },
-      destination: "instagram/janedoe-:filename:",
-    },
-  },
-  {
-    category: "Site filing",
-    name: "DeviantArt hashed-filename rename",
-    description:
-      "Renames DeviantArt's hashed download filename to the artwork title and short code",
-    example: "Example: deviantart/Sunset over the lake-dcror1m.png",
-    rule: "filename: ^([a-z0-9]+)-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\\.(\\w+)$\npagetitle: (.+) on DeviantArt\ncapturegroups: filename,pagetitle\ninto: deviantart/:$3:-:$1:.:$2:",
-    proof: {
-      info: {
-        filename: "dcror1m-bd1fe78d-cf2b-4c0f-ab93-08eaadfc4e88.png",
-        currentTab: { title: "Sunset over the lake on DeviantArt" },
-      },
-      destination: "deviantart/Sunset over the lake-dcror1m.png",
-    },
-  },
-  {
-    category: "Site filing",
     name: "Page path without the scheme",
-    description:
-      "Builds folders from the page URL's host and path while dropping the https:// scheme that otherwise corrupts filenames",
+    description: "Builds folders from the page host and path without URL credentials or suffixes",
     example: "Example: pages/example.com/articles/great-article/photo.jpg",
-    rule: "pageurl: ^https?://([^?]+)\ncapturegroups: pageurl\ninto: pages/:$1:/:filename:",
+    rule: "pageurl: ^https?://[^/?#]+/?([^?#]*)\ncapturegroups: pageurl\ninto: pages/:pagedomain:/:$1:/:filename:",
     proof: {
       info: {
         pageUrl: "https://example.com/articles/great-article?utm_source=x",
         filename: "photo.jpg",
       },
-      destination: "pages/example.com/articles/great-article/:filename:",
+      destination: "pages/:pagedomain:/articles/great-article/:filename:",
     },
   },
   {
     category: "Site filing",
     name: "Slugged title rename",
     description:
-      "Replaces the filename with a lowercase, hyphenated slug of the page title, keeping the original extension (a general find-and-replace on filenames isn't supported)",
+      "Replaces the filename with a lowercase, hyphenated page title while keeping the resolved extension",
     example: "Example: my-great-article.jpg",
-    rule: "pagetitle: .+\nfilename: \\.(\\w+)$\ncapturegroups: filename\ninto: :pagetitleslug:.:$1:",
+    rule: "pagetitle: .+\nactualfileext/i: ^([a-z0-9]+)$\ncapturegroups: actualfileext\ninto: :pagetitleslug:.:$1:",
     proof: {
       info: {
         filename: "My-Great-Article.jpg",
@@ -631,7 +588,7 @@ export const localizeRuleTemplates = (getMessage: GetMessage): LocalizedRuleTemp
         name: getMessage("ruleTemplateImagesPerSiteName") || "Images into per-site folders",
         description:
           getMessage("ruleTemplateImagesPerSiteDescription") ||
-          "Sorts every saved image by the site it came from",
+          "Sorts saved images by the page hostname",
       },
     ],
     [
@@ -640,7 +597,7 @@ export const localizeRuleTemplates = (getMessage: GetMessage): LocalizedRuleTemp
         name: getMessage("ruleTemplateVideosPerSiteName") || "Videos into per-site folders",
         description:
           getMessage("ruleTemplateVideosPerSiteDescription") ||
-          "Sorts every saved video by the site it came from",
+          "Sorts saved videos by the page hostname",
       },
     ],
     [
@@ -649,7 +606,7 @@ export const localizeRuleTemplates = (getMessage: GetMessage): LocalizedRuleTemp
         name: getMessage("ruleTemplateAudioPerSiteName") || "Audio into per-site folders",
         description:
           getMessage("ruleTemplateAudioPerSiteDescription") ||
-          "Groups saved audio by the page where it was found",
+          "Sorts saved audio by the page hostname",
       },
     ],
     [
@@ -658,7 +615,7 @@ export const localizeRuleTemplates = (getMessage: GetMessage): LocalizedRuleTemp
         name: getMessage("ruleTemplateScreenshotsByMonthName") || "Screenshots by month",
         description:
           getMessage("ruleTemplateScreenshotsByMonthDescription") ||
-          "Keeps filenames beginning with screenshot in dated folders",
+          "Keeps screenshot and screen-capture filenames in dated folders",
       },
     ],
     [
@@ -794,16 +751,6 @@ export const localizeRuleTemplates = (getMessage: GetMessage): LocalizedRuleTemp
       },
     ],
     [
-      "One folder per source root domain",
-      {
-        name:
-          getMessage("ruleTemplatePerSourceRootDomainName") || "One folder per source root domain",
-        description:
-          getMessage("ruleTemplatePerSourceRootDomainDescription") ||
-          "Combines downloads from subdomains of the same source site",
-      },
-    ],
-    [
       "One folder per page site",
       {
         name: getMessage("ruleTemplatePerPageSiteName") || "One folder per page site",
@@ -837,7 +784,7 @@ export const localizeRuleTemplates = (getMessage: GetMessage): LocalizedRuleTemp
           getMessage("ruleTemplateDownloadsFromSiteSectionName") || "Downloads from a site section",
         description:
           getMessage("ruleTemplateDownloadsFromSiteSectionDescription") ||
-          "Routes downloads referred from one URL section into its own folder",
+          "Routes downloads associated with one page URL section into its own folder",
       },
     ],
     [
@@ -964,25 +911,7 @@ export const localizeRuleTemplates = (getMessage: GetMessage): LocalizedRuleTemp
         name: getMessage("ruleTemplateTwitterHandlePrefixName") || "Twitter/X handle prefix",
         description:
           getMessage("ruleTemplateTwitterHandlePrefixDescription") ||
-          "Prefixes saved files with the Twitter or X handle from the page URL",
-      },
-    ],
-    [
-      "Instagram username prefix",
-      {
-        name: getMessage("ruleTemplateInstagramUsernamePrefixName") || "Instagram username prefix",
-        description:
-          getMessage("ruleTemplateInstagramUsernamePrefixDescription") ||
-          "Prefixes saved files with the Instagram username from the page title",
-      },
-    ],
-    [
-      "DeviantArt hashed-filename rename",
-      {
-        name: getMessage("ruleTemplateDeviantArtRenameName") || "DeviantArt hashed-filename rename",
-        description:
-          getMessage("ruleTemplateDeviantArtRenameDescription") ||
-          "Renames DeviantArt's hashed download filename to the artwork title and short code",
+          "Prefixes files saved from a Twitter or X post with its account handle",
       },
     ],
     [
@@ -991,7 +920,7 @@ export const localizeRuleTemplates = (getMessage: GetMessage): LocalizedRuleTemp
         name: getMessage("ruleTemplatePagePathNoSchemeName") || "Page path without the scheme",
         description:
           getMessage("ruleTemplatePagePathNoSchemeDescription") ||
-          "Builds folders from the page URL's host and path while dropping the https:// scheme that otherwise corrupts filenames",
+          "Builds folders from the page host and path without URL credentials or suffixes",
       },
     ],
     [
@@ -1000,7 +929,7 @@ export const localizeRuleTemplates = (getMessage: GetMessage): LocalizedRuleTemp
         name: getMessage("ruleTemplateSluggedTitleRenameName") || "Slugged title rename",
         description:
           getMessage("ruleTemplateSluggedTitleRenameDescription") ||
-          "Replaces the filename with a lowercase, hyphenated slug of the page title, keeping the original extension (a general find-and-replace on filenames isn't supported)",
+          "Replaces the filename with a lowercase, hyphenated page title while keeping the resolved extension",
       },
     ],
   ]);

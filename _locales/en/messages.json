@@ -647,6 +647,10 @@
     "message": "Current year",
     "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
+  "html_iso8601WeekYear": {
+    "message": "ISO 8601 week-numbering year",
+    "description": "Text in the filename-variable reference. This is the year paired with an ISO week number and can differ from the calendar year near New Year. Used in src/options/options.html."
+  },
   "html_hostnameOfThePage": {
     "message": "Hostname of the page",
     "description": "Text in the filename-variable reference. Used in src/options/options.html."
@@ -2404,7 +2408,7 @@
     "description": "Title of a built-in routing-template card. Used in src/options/rule-templates.ts."
   },
   "ruleTemplateImagesPerSiteDescription": {
-    "message": "Sorts every saved image by the site it came from",
+    "message": "Sorts saved images by the page hostname",
     "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
   },
   "ruleTemplateVideosPerSiteName": {
@@ -2412,7 +2416,7 @@
     "description": "Title of a built-in routing-template card. Used in src/options/rule-templates.ts."
   },
   "ruleTemplateVideosPerSiteDescription": {
-    "message": "Sorts every saved video by the site it came from",
+    "message": "Sorts saved videos by the page hostname",
     "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
   },
   "ruleTemplateAudioPerSiteName": {
@@ -2420,7 +2424,7 @@
     "description": "Title of a built-in routing-template card. Used in src/options/rule-templates.ts."
   },
   "ruleTemplateAudioPerSiteDescription": {
-    "message": "Groups saved audio by the page where it was found",
+    "message": "Sorts saved audio by the page hostname",
     "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
   },
   "ruleTemplateScreenshotsByMonthName": {
@@ -2428,7 +2432,7 @@
     "description": "Title of a built-in routing-template card. Used in src/options/rule-templates.ts."
   },
   "ruleTemplateScreenshotsByMonthDescription": {
-    "message": "Keeps filenames beginning with screenshot in dated folders",
+    "message": "Keeps screenshot and screen-capture filenames in dated folders",
     "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
   },
   "ruleTemplatePdfsName": {
@@ -2551,14 +2555,6 @@
     "message": "Groups downloads by the hostname serving the file",
     "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
   },
-  "ruleTemplatePerSourceRootDomainName": {
-    "message": "One folder per source root domain",
-    "description": "Title of a built-in routing-template card. Used in src/options/rule-templates.ts."
-  },
-  "ruleTemplatePerSourceRootDomainDescription": {
-    "message": "Combines downloads from subdomains of the same source site",
-    "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
-  },
   "ruleTemplatePerPageSiteName": {
     "message": "One folder per page site",
     "description": "Title of a built-in routing-template card. Used in src/options/rule-templates.ts."
@@ -2588,7 +2584,7 @@
     "description": "Title of a built-in routing-template card. Used in src/options/rule-templates.ts."
   },
   "ruleTemplateDownloadsFromSiteSectionDescription": {
-    "message": "Routes downloads referred from one URL section into its own folder",
+    "message": "Routes downloads associated with one page URL section into its own folder",
     "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
   },
   "ruleTemplateBrowserInboxName": {
@@ -2708,23 +2704,7 @@
     "description": "Title of a built-in routing-template card. \"X\" is the current name of the Twitter social network, kept alongside the older name; do not translate as the letter or algebraic variable X. Used in src/options/rule-templates.ts."
   },
   "ruleTemplateTwitterHandlePrefixDescription": {
-    "message": "Prefixes saved files with the Twitter or X handle from the page URL",
-    "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
-  },
-  "ruleTemplateInstagramUsernamePrefixName": {
-    "message": "Instagram username prefix",
-    "description": "Title of a built-in routing-template card. Used in src/options/rule-templates.ts."
-  },
-  "ruleTemplateInstagramUsernamePrefixDescription": {
-    "message": "Prefixes saved files with the Instagram username from the page title",
-    "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
-  },
-  "ruleTemplateDeviantArtRenameName": {
-    "message": "DeviantArt hashed-filename rename",
-    "description": "Title of a built-in routing-template card; DeviantArt is a proper noun and should stay untranslated. Used in src/options/rule-templates.ts."
-  },
-  "ruleTemplateDeviantArtRenameDescription": {
-    "message": "Renames DeviantArt's hashed download filename to the artwork title and short code",
+    "message": "Prefixes files saved from a Twitter or X post with its account handle",
     "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
   },
   "ruleTemplatePagePathNoSchemeName": {
@@ -2732,7 +2712,7 @@
     "description": "Title of a built-in routing-template card; \"scheme\" means the URL protocol prefix (such as https://). Used in src/options/rule-templates.ts."
   },
   "ruleTemplatePagePathNoSchemeDescription": {
-    "message": "Builds folders from the page URL's host and path while dropping the https:// scheme that otherwise corrupts filenames",
+    "message": "Builds folders from the page host and path without URL credentials or suffixes",
     "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
   },
   "ruleTemplateSluggedTitleRenameName": {
@@ -2740,7 +2720,7 @@
     "description": "Title of a built-in routing-template card; \"slugged\" refers to a URL-safe, hyphenated form of text. Used in src/options/rule-templates.ts."
   },
   "ruleTemplateSluggedTitleRenameDescription": {
-    "message": "Replaces the filename with a lowercase, hyphenated slug of the page title, keeping the original extension (a general find-and-replace on filenames isn't supported)",
+    "message": "Replaces the filename with a lowercase, hyphenated page title while keeping the resolved extension",
     "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
   },
   "ruleTemplateAdded": {

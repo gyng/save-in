@@ -5,17 +5,11 @@
   "ruleTemplatePdfsByContentTypeDescription": {
     "message": "依回報的內容類型而非檔案名稱識別 PDF"
   },
-  "ruleTemplatePerSourceRootDomainName": {
-    "message": "每個來源根網域使用一個資料夾"
-  },
-  "ruleTemplatePerSourceRootDomainDescription": {
-    "message": "合併來自相同來源網站不同子網域的下載項目"
-  },
   "ruleTemplateDownloadsFromSiteSectionName": {
     "message": "來自網站區段的下載項目"
   },
   "ruleTemplateDownloadsFromSiteSectionDescription": {
-    "message": "將特定 URL 區段所參照的下載項目路由到專用資料夾"
+    "message": "將與某個頁面 URL 區段相關的下載項目路由到專用資料夾"
   },
   "html_matchesTheMimeContentType": {
     "message": "符合解析後的 MIME Content-Type。Save In 可能會要求伺服器標頭。"
@@ -1373,6 +1367,9 @@
   "html_currentYear": {
     "message": "本年度"
   },
+  "html_iso8601WeekYear": {
+    "message": "ISO 8601 週次年份"
+  },
   "html_hostnameOfThePage": {
     "message": "頁面的主機名稱"
   },
@@ -1913,25 +1910,25 @@
     "message": "將圖片儲存至各網站的資料夾"
   },
   "ruleTemplateImagesPerSiteDescription": {
-    "message": "依來源網站整理儲存的圖片"
+    "message": "依頁面主機名稱整理儲存的圖片"
   },
   "ruleTemplateVideosPerSiteName": {
     "message": "將影片儲存至各網站的資料夾"
   },
   "ruleTemplateVideosPerSiteDescription": {
-    "message": "依來源網站整理儲存的影片"
+    "message": "依頁面主機名稱整理儲存的影片"
   },
   "ruleTemplateAudioPerSiteName": {
     "message": "將音訊儲存至各網站的資料夾"
   },
   "ruleTemplateAudioPerSiteDescription": {
-    "message": "依發現音訊的頁面整理儲存的音訊"
+    "message": "依頁面主機名稱整理儲存的音訊"
   },
   "ruleTemplateScreenshotsByMonthName": {
     "message": "依月份整理螢幕截圖"
   },
   "ruleTemplateScreenshotsByMonthDescription": {
-    "message": "將以 screenshot 開頭的檔名儲存至日期資料夾"
+    "message": "將螢幕截圖和畫面擷取檔名儲存至日期資料夾"
   },
   "ruleTemplatePdfsName": {
     "message": "將 PDF 儲存至文件資料夾"
@@ -3830,20 +3827,8 @@
   "ruleTemplateCategorySiteOriginals": {
     "message": "網站原始檔"
   },
-  "ruleTemplateDeviantArtRenameDescription": {
-    "message": "將 DeviantArt 的雜湊下載檔名重新命名為作品標題與短代碼"
-  },
-  "ruleTemplateDeviantArtRenameName": {
-    "message": "DeviantArt 雜湊檔名重新命名"
-  },
-  "ruleTemplateInstagramUsernamePrefixDescription": {
-    "message": "為儲存的檔案加上從頁面標題擷取的 Instagram 使用者名稱前綴"
-  },
-  "ruleTemplateInstagramUsernamePrefixName": {
-    "message": "Instagram 使用者名稱前綴"
-  },
   "ruleTemplatePagePathNoSchemeDescription": {
-    "message": "根據頁面 URL 的主機名稱與路徑建立資料夾，並移除會破壞檔名的 https:// 通訊協定"
+    "message": "根據頁面主機名稱與路徑建立資料夾，不包含 URL 憑證或後綴"
   },
   "ruleTemplatePagePathNoSchemeName": {
     "message": "不含通訊協定的頁面路徑"
@@ -3855,13 +3840,13 @@
     "message": "Reddit 圖片原始檔"
   },
   "ruleTemplateSluggedTitleRenameDescription": {
-    "message": "將檔名替換為頁面標題的小寫連字號 slug，並保留原始副檔名（不支援對檔名進行一般尋找取代）"
+    "message": "將檔名替換為小寫並以連字號連接的頁面標題，同時保留已解析的副檔名"
   },
   "ruleTemplateSluggedTitleRenameName": {
     "message": "以標題 slug 重新命名"
   },
   "ruleTemplateTwitterHandlePrefixDescription": {
-    "message": "為儲存的檔案加上從頁面 URL 擷取的 Twitter 或 X 使用者名稱前綴"
+    "message": "為從 Twitter 或 X 貼文儲存的檔案加上其帳號名稱前綴"
   },
   "ruleTemplateTwitterHandlePrefixName": {
     "message": "Twitter/X 使用者名稱前綴"

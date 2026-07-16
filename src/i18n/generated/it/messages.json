@@ -425,6 +425,9 @@
   "html_currentYear": {
     "message": "Anno in corso"
   },
+  "html_iso8601WeekYear": {
+    "message": "Anno di numerazione delle settimane ISO 8601"
+  },
   "html_hostnameOfThePage": {
     "message": "Nome host della pagina"
   },
@@ -1686,25 +1689,25 @@
     "message": "Immagini in cartelle per sito"
   },
   "ruleTemplateImagesPerSiteDescription": {
-    "message": "Ordina ogni immagine salvata in base al sito da cui proviene"
+    "message": "Ordina le immagini salvate in base al nome host della pagina"
   },
   "ruleTemplateVideosPerSiteName": {
     "message": "Video in cartelle per sito"
   },
   "ruleTemplateVideosPerSiteDescription": {
-    "message": "Ordina tutti i video salvati in base al sito da cui provengono"
+    "message": "Ordina i video salvati in base al nome host della pagina"
   },
   "ruleTemplateAudioPerSiteName": {
     "message": "Audio in cartelle per sito"
   },
   "ruleTemplateAudioPerSiteDescription": {
-    "message": "Raggruppa i file audio salvati in base alla pagina in cui sono stati trovati"
+    "message": "Ordina i file audio salvati in base al nome host della pagina"
   },
   "ruleTemplateScreenshotsByMonthName": {
     "message": "Screenshot per mese"
   },
   "ruleTemplateScreenshotsByMonthDescription": {
-    "message": "Organizza in cartelle mensili i file il cui nome inizia con screenshot"
+    "message": "Organizza i nomi file di screenshot e acquisizioni schermo in cartelle datate"
   },
   "ruleTemplatePdfsName": {
     "message": "PDF in una cartella Documenti"
@@ -1796,12 +1799,6 @@
   "ruleTemplatePerSourceSiteDescription": {
     "message": "Raggruppa i download in base al nome host che serve il file"
   },
-  "ruleTemplatePerSourceRootDomainName": {
-    "message": "Una cartella per dominio radice della sorgente"
-  },
-  "ruleTemplatePerSourceRootDomainDescription": {
-    "message": "Combina i download dai sottodomini dello stesso sito sorgente"
-  },
   "ruleTemplatePerPageSiteName": {
     "message": "Una cartella per sito della pagina"
   },
@@ -1824,7 +1821,7 @@
     "message": "Download da una sezione del sito"
   },
   "ruleTemplateDownloadsFromSiteSectionDescription": {
-    "message": "Instrada in una cartella dedicata i download provenienti da una sezione dell'URL"
+    "message": "Instrada in una cartella dedicata i download associati a una sezione dell'URL della pagina"
   },
   "ruleTemplateBrowserInboxName": {
     "message": "Raccolta dei download del browser"
@@ -3830,20 +3827,8 @@
   "ruleTemplateCategorySiteOriginals": {
     "message": "Originali per sito"
   },
-  "ruleTemplateDeviantArtRenameDescription": {
-    "message": "Rinomina il nome file con hash dei download di DeviantArt nel titolo dell'opera e nel codice breve"
-  },
-  "ruleTemplateDeviantArtRenameName": {
-    "message": "Rinomina nome file con hash di DeviantArt"
-  },
-  "ruleTemplateInstagramUsernamePrefixDescription": {
-    "message": "Antepone ai file salvati il nome utente Instagram ricavato dal titolo della pagina"
-  },
-  "ruleTemplateInstagramUsernamePrefixName": {
-    "message": "Prefisso nome utente Instagram"
-  },
   "ruleTemplatePagePathNoSchemeDescription": {
-    "message": "Crea cartelle dall'host e dal percorso dell'URL della pagina, eliminando lo schema https:// che altrimenti danneggerebbe i nomi file"
+    "message": "Crea cartelle dall'host e dal percorso della pagina, senza credenziali o suffissi dell'URL"
   },
   "ruleTemplatePagePathNoSchemeName": {
     "message": "Percorso pagina senza schema"
@@ -3855,13 +3840,13 @@
     "message": "Originali immagini Reddit"
   },
   "ruleTemplateSluggedTitleRenameDescription": {
-    "message": "Sostituisce il nome file con uno slug in minuscolo e trattini ricavato dal titolo della pagina, mantenendo l'estensione originale (non è supportata una sostituzione generale nei nomi file)"
+    "message": "Sostituisce il nome file con il titolo della pagina in minuscolo e con trattini, mantenendo l'estensione rilevata"
   },
   "ruleTemplateSluggedTitleRenameName": {
     "message": "Rinomina con slug del titolo"
   },
   "ruleTemplateTwitterHandlePrefixDescription": {
-    "message": "Antepone ai file salvati l'handle di Twitter o X ricavato dall'URL della pagina"
+    "message": "Antepone l'handle dell'account ai file salvati da un post di Twitter o X"
   },
   "ruleTemplateTwitterHandlePrefixName": {
     "message": "Prefisso handle Twitter/X"

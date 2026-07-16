@@ -5,17 +5,11 @@
   "ruleTemplatePdfsByContentTypeDescription": {
     "message": "Erkennt PDFs anhand des gemeldeten Inhaltstyps statt anhand des Dateinamens"
   },
-  "ruleTemplatePerSourceRootDomainName": {
-    "message": "Ein Ordner pro Stammdomain der Quelle"
-  },
-  "ruleTemplatePerSourceRootDomainDescription": {
-    "message": "Fasst Downloads von Subdomains derselben Quellwebsite zusammen"
-  },
   "ruleTemplateDownloadsFromSiteSectionName": {
     "message": "Downloads aus einem Websitebereich"
   },
   "ruleTemplateDownloadsFromSiteSectionDescription": {
-    "message": "Leitet Downloads, die von einem bestimmten URL-Bereich verwiesen wurden, in einen eigenen Ordner weiter"
+    "message": "Leitet Downloads aus einem Seiten-URL-Bereich in einen eigenen Ordner weiter"
   },
   "html_matchesTheMimeContentType": {
     "message": "Stimmt mit dem ermittelten MIME Content-Type überein. Save In kann Server-Header anfordern."
@@ -69,25 +63,25 @@
     "message": "Bilder in Ordnern pro Website"
   },
   "ruleTemplateImagesPerSiteDescription": {
-    "message": "Sortiert jedes gespeicherte Bild nach seiner Herkunftswebsite"
+    "message": "Sortiert gespeicherte Bilder nach dem Hostnamen der Seite"
   },
   "ruleTemplateVideosPerSiteName": {
     "message": "Videos in Ordnern pro Website"
   },
   "ruleTemplateVideosPerSiteDescription": {
-    "message": "Sortiert jedes gespeicherte Video nach seiner Herkunftswebsite"
+    "message": "Sortiert gespeicherte Videos nach dem Hostnamen der Seite"
   },
   "ruleTemplateAudioPerSiteName": {
     "message": "Audio in Ordnern pro Website"
   },
   "ruleTemplateAudioPerSiteDescription": {
-    "message": "Gruppiert gespeicherte Audiodateien nach der Seite, auf der sie gefunden wurden"
+    "message": "Sortiert gespeicherte Audiodateien nach dem Hostnamen der Seite"
   },
   "ruleTemplateScreenshotsByMonthName": {
     "message": "Screenshots nach Monat"
   },
   "ruleTemplateScreenshotsByMonthDescription": {
-    "message": "Legt Dateinamen, die mit screenshot beginnen, in datierten Ordnern ab"
+    "message": "Legt Screenshot- und Bildschirmaufnahme-Dateinamen in datierten Ordnern ab"
   },
   "ruleTemplatePdfsName": {
     "message": "PDFs in einem Dokumentenordner"
@@ -1782,6 +1776,9 @@
   },
   "html_currentYear": {
     "message": "Aktuelles Jahr"
+  },
+  "html_iso8601WeekYear": {
+    "message": "ISO 8601-Wochenjahr"
   },
   "html_hostnameOfThePage": {
     "message": "Hostname der Seite"
@@ -3830,20 +3827,8 @@
   "ruleTemplateCategorySiteOriginals": {
     "message": "Website-Originale"
   },
-  "ruleTemplateDeviantArtRenameDescription": {
-    "message": "Benennt den gehashten Download-Dateinamen von DeviantArt in Kunstwerktitel und Kurzcode um"
-  },
-  "ruleTemplateDeviantArtRenameName": {
-    "message": "DeviantArt: gehashten Dateinamen umbenennen"
-  },
-  "ruleTemplateInstagramUsernamePrefixDescription": {
-    "message": "Stellt gespeicherten Dateien den Instagram-Benutzernamen aus dem Seitentitel voran"
-  },
-  "ruleTemplateInstagramUsernamePrefixName": {
-    "message": "Instagram-Benutzername als Präfix"
-  },
   "ruleTemplatePagePathNoSchemeDescription": {
-    "message": "Erstellt Ordner aus Host und Pfad der Seiten-URL und entfernt dabei das Schema https://, das sonst Dateinamen beschädigt"
+    "message": "Erstellt Ordner aus Host und Pfad der Seite, ohne URL-Zugangsdaten oder Suffixe"
   },
   "ruleTemplatePagePathNoSchemeName": {
     "message": "Seitenpfad ohne Schema"
@@ -3855,13 +3840,13 @@
     "message": "Reddit-Bildoriginale"
   },
   "ruleTemplateSluggedTitleRenameDescription": {
-    "message": "Ersetzt den Dateinamen durch einen kleingeschriebenen, mit Bindestrichen versehenen Slug des Seitentitels und behält die ursprüngliche Erweiterung bei (ein allgemeines Suchen-und-Ersetzen für Dateinamen wird nicht unterstützt)"
+    "message": "Ersetzt den Dateinamen durch den kleingeschriebenen, mit Bindestrichen versehenen Seitentitel und behält die ermittelte Erweiterung bei"
   },
   "ruleTemplateSluggedTitleRenameName": {
     "message": "Umbenennung nach Titel-Slug"
   },
   "ruleTemplateTwitterHandlePrefixDescription": {
-    "message": "Stellt gespeicherten Dateien das Twitter- oder X-Handle aus der Seiten-URL voran"
+    "message": "Stellt Dateien aus einem Twitter- oder X-Beitrag das Handle des Kontos voran"
   },
   "ruleTemplateTwitterHandlePrefixName": {
     "message": "Twitter/X-Handle als Präfix"

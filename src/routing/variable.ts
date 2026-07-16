@@ -155,6 +155,12 @@ export const toISOWeek = (d: Date) => {
   return 1 + Math.round((day.getTime() - firstThursday.getTime()) / (7 * 24 * 3600 * 1000));
 };
 
+export const toISOWeekYear = (d: Date) => {
+  const day = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  day.setDate(day.getDate() - ((day.getDay() + 6) % 7) + 3);
+  return day.getFullYear();
+};
+
 // "My Webpage: Title!" -> "my-webpage-title" (slug) / "my_webpage_title"
 // (snake); keeps unicode letters/digits so non-latin titles survive
 export const toDelimited = (str: string | null | undefined, delimiter: string) =>
@@ -316,6 +322,8 @@ export const transformers: TransformerRegistry = {
       opts => stringSegment(Math.floor(opts.now.getTime() / 1000)),
     [SPECIAL_DIRS.YEAR]:
       opts => stringSegment(opts.now.getFullYear()),
+    [SPECIAL_DIRS.ISO_YEAR]:
+      opts => stringSegment(toISOWeekYear(opts.now)),
     [SPECIAL_DIRS.MONTH]:
       opts => stringSegment(padDateComponent(opts.now.getMonth() + 1)),
     [SPECIAL_DIRS.DAY]:

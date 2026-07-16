@@ -92,12 +92,12 @@ describe("built-in matcher templates", () => {
   test.each(RULE_TEMPLATES.filter((template) => template.rule.includes("actualfileext")))(
     "$name handles an extension before a query string",
     (template) => {
-      const sourceUrl = template.proof.info.sourceUrl;
-      expect(sourceUrl).toBeTypeOf("string");
+      const sourceUrl = template.proof.info.sourceUrl ?? "https://files.example/download.jpg";
       const rules = parseRulesCollecting(template.rule).rules;
 
       expect(
         matchRules(rules, {
+          ...template.proof.info,
           url: `${sourceUrl}?token=abc`,
           sourceUrl: `${sourceUrl}?token=abc`,
           filename: template.proof.info.filename || "report.pdf",
@@ -115,6 +115,7 @@ describe("built-in matcher templates", () => {
 
       expect(
         matchRules(rules, {
+          ...template.proof.info,
           url: "https://files.example/download?id=42",
           sourceUrl: "https://files.example/download?id=42",
           filename,
@@ -155,6 +156,134 @@ describe("built-in matcher templates", () => {
     ["Tab saves inbox", { ...templateNamed("Tab saves inbox").proof.info, context: "page" }],
   ])("%s rejects an input outside its advertised media or save context", (name, info) => {
     expect(matchRules(rulesFor(name), info)).toBeNull();
+  });
+
+  test.each([
+    ["Images into per-site folders", "image", "images/:pagedomain:/:filename:"],
+    ["Videos into per-site folders", "video", "videos/:pagedomain:/:filename:"],
+    ["Audio into per-site folders", "audio", "audio/:pagedomain:/:filename:"],
+  ] as const)(
+    "%s accepts a content-script source kind without mediaType",
+    (name, sourceKind, expected) => {
+      expect(
+        matchRules(rulesFor(name), {
+          sourceKind,
+          pageUrl: "https://example.com/post",
+          filename: "asset.bin",
+        }),
+      ).toBe(expected);
+    },
+  );
+
+  test.each([
+    ["Images into per-site folders", "image"],
+    ["Videos into per-site folders", "video"],
+    ["Audio into per-site folders", "audio"],
+  ] as const)("%s requires a usable page hostname", (name, sourceKind) => {
+    expect(matchRules(rulesFor(name), { sourceKind, filename: "asset.bin" })).toBeNull();
+  });
+
+  test("the screenshot template accepts common prefixes with a filename boundary", () => {
+    const rules = rulesFor("Screenshots by month");
+    const matches = (filename: string) => matchRules(rules, { filename });
+
+    for (const filename of [
+      "Screenshot 42.png",
+      "Screen Shot 42.png",
+      "Screen Capture 42.png",
+      "screen-capture_42.png",
+      "screenshot42.png",
+    ]) {
+      expect(matches(filename)).toBe("screenshots/:year:/:month:/:filename:");
+    }
+    for (const filename of ["screenshotted.png", "screencaptured.png", "screenplay.png"]) {
+      expect(matches(filename)).toBeNull();
+    }
+  });
+
+  test("the weekly inbox keeps an ISO week together across a calendar-year boundary", async () => {
+    const rules = rulesFor("Weekly inbox");
+    const destination = matchRules(rules, { filename: "report.pdf" });
+    expect(destination).not.toBeNull();
+
+    for (const now of [new Date(2024, 11, 30), new Date(2025, 0, 2)]) {
+      expect(
+        (await applyVariables(new Path(destination), { filename: "report.pdf", now })).finalize(),
+      ).toBe("inbox/2025-w01/report.pdf");
+    }
+  });
+
+  test("the URL-capture example is scoped to the complete example host and album segment", () => {
+    const rules = rulesFor("Capture part of the URL");
+    const matches = (sourceUrl: string) => matchRules(rules, { sourceUrl, filename: "photo.jpg" });
+
+    expect(matches("https://images.example.com/albums/summer-2026/photo.jpg")).toBe(
+      "albums/summer-2026-:filename:",
+    );
+    expect(matches("https://images.example.com.evil.test/albums/summer-2026/photo.jpg")).toBeNull();
+    expect(matches("https://notimages.example.com/albums/summer-2026/photo.jpg")).toBeNull();
+    expect(matches("https://images.example.com/albums/?name=summer-2026")).toBeNull();
+  });
+
+  test("the Twitter/X handle template matches post URLs but not reserved site routes", () => {
+    const rules = rulesFor("Twitter/X handle prefix");
+    const matches = (pageUrl: string) => matchRules(rules, { pageUrl, filename: "photo.jpg" });
+
+    expect(matches("https://x.com/example_user/status/123456789")).toBe(
+      "twitter/example_user-:filename:",
+    );
+    expect(matches("https://www.twitter.com/ExampleUser/status/42/photo/1")).toBe(
+      "twitter/ExampleUser-:filename:",
+    );
+    for (const pageUrl of [
+      "https://x.com/home/",
+      "https://x.com/explore/",
+      "https://x.com/example_user/media",
+      "https://x.com/example_user/status/not-a-number",
+      "https://x.com.evil.test/example_user/status/42",
+    ]) {
+      expect(matches(pageUrl)).toBeNull();
+    }
+  });
+
+  test("templates with inherently ambiguous inputs are not offered", () => {
+    expect(RULE_TEMPLATES.map(({ name }) => name)).not.toEqual(
+      expect.arrayContaining([
+        "Instagram username prefix",
+        "DeviantArt hashed-filename rename",
+        "One folder per source root domain",
+      ]),
+    );
+  });
+
+  test("the page-path template omits URL credentials, ports, query strings, and fragments", async () => {
+    const rules = rulesFor("Page path without the scheme");
+    const info = {
+      pageUrl:
+        "https://user:secret@sub.example.com:8443/articles/great-article?utm_source=x#comments",
+      filename: "photo.jpg",
+    };
+    const destination = matchRules(rules, info);
+
+    expect(destination).toBe("pages/:pagedomain:/articles/great-article/:filename:");
+    expect((await applyVariables(new Path(destination), info)).finalize()).toBe(
+      "pages/sub.example.com/articles/great-article/photo.jpg",
+    );
+  });
+
+  test("the slugged-title template keeps the resolved extension", async () => {
+    const rules = rulesFor("Slugged title rename");
+    const info = {
+      filename: "download",
+      resolvedFilename: "server-name.PNG",
+      currentTab: { title: "A Useful Page" },
+    };
+    const destination = matchRules(rules, info);
+
+    expect(destination).toBe(":pagetitleslug:.PNG");
+    expect((await applyVariables(new Path(destination), info)).finalize()).toBe(
+      "a-useful-page.PNG",
+    );
   });
 
   test.each([
@@ -222,16 +351,26 @@ describe("built-in matcher templates", () => {
     expect(matchRules(rules, { ...info, mime: "image/png" })).toBeNull();
   });
 
-  test("the source root-domain template combines CDN subdomains", () => {
-    const rules = rulesFor("One folder per source root domain");
-
+  test("the per-site templates require a parsed source or page hostname", () => {
     expect(
-      matchRules(rules, {
-        sourceUrl: "https://media.cdn.example.co.uk/report.pdf",
+      matchRules(rulesFor("One folder per source site"), {
+        sourceUrl: "https://cdn.example.com/report.pdf",
         filename: "report.pdf",
       }),
-    ).toBe("sites/:sourcerootdomain:/:filename:");
-    expect(matchRules(rules, { filename: "report.pdf" })).toBeNull();
+    ).toBe("sites/:sourcedomain:/:filename:");
+    expect(
+      matchRules(rulesFor("One folder per source site"), {
+        sourceUrl: "data:text/plain,report",
+        filename: "report.txt",
+      }),
+    ).toBeNull();
+    expect(
+      matchRules(rulesFor("One folder per page site"), {
+        pageUrl: "https://example.com/report",
+        filename: "report.pdf",
+      }),
+    ).toBe("sites/:pagedomain:/:filename:");
+    expect(matchRules(rulesFor("One folder per page site"), { filename: "report.pdf" })).toBeNull();
   });
 
   test("the referrer-section template matches only that URL section", () => {

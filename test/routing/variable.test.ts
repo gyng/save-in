@@ -383,7 +383,7 @@ describe("variables", () => {
   });
 });
 
-describe("date-name variables (:weekday:, :monthname:, :ampm:, :isoweek:)", () => {
+describe("date-name variables (:weekday:, :monthname:, :ampm:, :isoyear:, :isoweek:)", () => {
   const interpolate = async (variable: string, now: Date) => {
     const input = new Path.Path(variable);
     return (await Variable.applyVariables(input, { now })).finalize();
@@ -413,6 +413,12 @@ describe("date-name variables (:weekday:, :monthname:, :ampm:, :isoweek:)", () =
     expect(await interpolate(":isoweek:", new Date(2026, 6, 10))).toBe("28");
     // 2024-12-30 (Monday) -> ISO week 1 of 2025
     expect(await interpolate(":isoweek:", new Date(2024, 11, 30))).toBe("01");
+  });
+
+  test(":isoyear: is the year paired with the ISO week number", async () => {
+    expect(await interpolate(":isoyear:", new Date(2021, 0, 1))).toBe("2020");
+    expect(await interpolate(":isoyear:", new Date(2026, 6, 10))).toBe("2026");
+    expect(await interpolate(":isoyear:", new Date(2024, 11, 30))).toBe("2025");
   });
 });
 

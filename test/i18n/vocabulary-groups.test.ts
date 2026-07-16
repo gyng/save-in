@@ -11,6 +11,7 @@ import {
 
 test("groups variables by user task rather than implementation scope", () => {
   expect(variableGroup(":date:")).toBe("Date and time");
+  expect(variableGroup(":isoyear:")).toBe("Date and time");
   expect(variableGroup(":pagetitle:")).toBe("Page context");
   expect(variableGroup(":menupath:")).toBe("Page context");
   expect(variableGroup(":sourceurl:")).toBe("Source URL");
@@ -31,8 +32,26 @@ test("groups clauses by routing intent", () => {
 
 test("orders variables by meaning within each task group", () => {
   expect(
-    sortVariables([":day:", ":minute:", ":date:", ":monthname:", ":year:", ":month:", ":hour:"]),
-  ).toEqual([":date:", ":year:", ":month:", ":monthname:", ":day:", ":hour:", ":minute:"]);
+    sortVariables([
+      ":day:",
+      ":minute:",
+      ":date:",
+      ":monthname:",
+      ":isoyear:",
+      ":year:",
+      ":month:",
+      ":hour:",
+    ]),
+  ).toEqual([
+    ":date:",
+    ":year:",
+    ":isoyear:",
+    ":month:",
+    ":monthname:",
+    ":day:",
+    ":hour:",
+    ":minute:",
+  ]);
   expect(
     sortVariables([":sha256full:", ":sha256:", ":filename:", ":mimeext:", ":fileext:"]),
   ).toEqual([":filename:", ":fileext:", ":mimeext:", ":sha256:", ":sha256full:"]);
@@ -69,6 +88,7 @@ test("orders task groups, unknown terms, and numbered captures deterministically
 test.each([
   [":date:", "2026-07-12"],
   [":year:", "2026"],
+  [":isoyear:", "2026"],
   [":month:", "07"],
   [":day:", "07"],
   [":hour:", "09"],

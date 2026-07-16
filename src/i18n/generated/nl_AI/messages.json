@@ -5,17 +5,11 @@
   "ruleTemplatePdfsByContentTypeDescription": {
     "message": "Herkent PDF's aan het opgegeven inhoudstype in plaats van aan de bestandsnaam"
   },
-  "ruleTemplatePerSourceRootDomainName": {
-    "message": "Eén map per hoofdbrondomein"
-  },
-  "ruleTemplatePerSourceRootDomainDescription": {
-    "message": "Voegt downloads van subdomeinen van dezelfde bronsite samen"
-  },
   "ruleTemplateDownloadsFromSiteSectionName": {
     "message": "Downloads uit een sitesectie"
   },
   "ruleTemplateDownloadsFromSiteSectionDescription": {
-    "message": "Plaatst downloads die vanuit één URL-sectie worden verwezen in een eigen map"
+    "message": "Plaatst downloads die bij één pagina-URL-sectie horen in een eigen map"
   },
   "html_matchesTheMimeContentType": {
     "message": "Komt overeen met het vastgestelde MIME Content-Type. Save In kan serverheaders opvragen."
@@ -69,25 +63,25 @@
     "message": "Afbeeldingen in mappen per site"
   },
   "ruleTemplateImagesPerSiteDescription": {
-    "message": "Sorteert elke opgeslagen afbeelding op de site van herkomst"
+    "message": "Sorteert opgeslagen afbeeldingen op de hostnaam van de pagina"
   },
   "ruleTemplateVideosPerSiteName": {
     "message": "Video's in mappen per site"
   },
   "ruleTemplateVideosPerSiteDescription": {
-    "message": "Sorteert elke opgeslagen video op de site van herkomst"
+    "message": "Sorteert opgeslagen video's op de hostnaam van de pagina"
   },
   "ruleTemplateAudioPerSiteName": {
     "message": "Audio in mappen per site"
   },
   "ruleTemplateAudioPerSiteDescription": {
-    "message": "Groepeert opgeslagen audio op de pagina waar deze is gevonden"
+    "message": "Sorteert opgeslagen audio op de hostnaam van de pagina"
   },
   "ruleTemplateScreenshotsByMonthName": {
     "message": "Schermafbeeldingen per maand"
   },
   "ruleTemplateScreenshotsByMonthDescription": {
-    "message": "Plaatst bestandsnamen die met screenshot beginnen in gedateerde mappen"
+    "message": "Plaatst bestandsnamen van schermafbeeldingen en schermopnamen in gedateerde mappen"
   },
   "ruleTemplatePdfsName": {
     "message": "PDF's in een documentenmap"
@@ -1782,6 +1776,9 @@
   },
   "html_currentYear": {
     "message": "Huidig jaar"
+  },
+  "html_iso8601WeekYear": {
+    "message": "ISO 8601-weekjaar"
   },
   "html_hostnameOfThePage": {
     "message": "Hostnaam van de pagina"
@@ -3830,20 +3827,8 @@
   "ruleTemplateCategorySiteOriginals": {
     "message": "Originelen per site"
   },
-  "ruleTemplateDeviantArtRenameDescription": {
-    "message": "Hernoemt de gehashte downloadbestandsnaam van DeviantArt naar de titel van het werk en de korte code"
-  },
-  "ruleTemplateDeviantArtRenameName": {
-    "message": "DeviantArt gehashte bestandsnaam hernoemen"
-  },
-  "ruleTemplateInstagramUsernamePrefixDescription": {
-    "message": "Plaatst de Instagram-gebruikersnaam uit de paginatitel vóór opgeslagen bestanden"
-  },
-  "ruleTemplateInstagramUsernamePrefixName": {
-    "message": "Instagram-gebruikersnaam als voorvoegsel"
-  },
   "ruleTemplatePagePathNoSchemeDescription": {
-    "message": "Bouwt mappen op basis van de host en het pad van de pagina-URL, zonder het schema https:// dat anders bestandsnamen beschadigt"
+    "message": "Bouwt mappen op basis van de host en het pad van de pagina, zonder URL-inloggegevens of achtervoegsels"
   },
   "ruleTemplatePagePathNoSchemeName": {
     "message": "Paginapad zonder schema"
@@ -3855,13 +3840,13 @@
     "message": "Originele Reddit-afbeeldingen"
   },
   "ruleTemplateSluggedTitleRenameDescription": {
-    "message": "Vervangt de bestandsnaam door een kleine letters, met koppeltekens gescheiden slug van de paginatitel, met behoud van de oorspronkelijke extensie (algemeen zoeken-en-vervangen in bestandsnamen wordt niet ondersteund)"
+    "message": "Vervangt de bestandsnaam door de paginatitel in kleine letters met koppeltekens en behoudt de bepaalde extensie"
   },
   "ruleTemplateSluggedTitleRenameName": {
     "message": "Hernoemen met titel-slug"
   },
   "ruleTemplateTwitterHandlePrefixDescription": {
-    "message": "Plaatst de Twitter- of X-handle uit de pagina-URL vóór opgeslagen bestanden"
+    "message": "Plaatst de account-handle vóór bestanden die vanuit een Twitter- of X-bericht zijn opgeslagen"
   },
   "ruleTemplateTwitterHandlePrefixName": {
     "message": "Twitter/X-handle als voorvoegsel"
