@@ -722,9 +722,19 @@ export const runLegacyProfileRoutingScenario = async ({ control, waitForDownload
   const port = await listenLocal(server);
   const url = `http://127.0.0.1:${port}/${filename}`;
   const previous = /** @type {Record<string, unknown>} */ (
-    await control.storage.local.get(["paths", "filenamePatterns", "contentClickToSaveCombo"])
+    await control.storage.local.get([
+      "paths",
+      "filenamePatterns",
+      "contentClickToSaveCombo",
+      "appendMimeExtension",
+    ])
   );
-  const legacyKeys = ["paths", "filenamePatterns", "contentClickToSaveCombo"];
+  const legacyKeys = [
+    "paths",
+    "filenamePatterns",
+    "contentClickToSaveCombo",
+    "appendMimeExtension",
+  ];
   const missingLegacyKeys = legacyKeys.filter((key) => !(key in previous));
 
   try {
@@ -732,6 +742,14 @@ export const runLegacyProfileRoutingScenario = async ({ control, waitForDownload
       paths: "e2e/legacy-custom",
       filenamePatterns: "mime: ^image/png$\ninto: legacy-custom/:filename:",
       contentClickToSaveCombo: 18,
+      // The extension repair below is what this option does, and it is off by
+      // default, so the scenario has to ask for it. A legacy profile does not
+      // carry the key and so does not get the repair either — that is the
+      // deliberate 4.0 behavior, not something this case should assert away.
+      // Only Firefox depends on the option: Save In hands downloads.download an
+      // exact name there, while Chrome's downloads API infers .png from the
+      // Content-Type itself and would name the file the same way regardless.
+      appendMimeExtension: true,
     });
     const resolved = {
       paths: await control.options.get("paths"),

@@ -3,6 +3,7 @@ export type StorageKeys = string | string[] | Record<string, unknown> | null;
 export type StorageRecord = Record<string, unknown>;
 
 export interface E2EStoredOptionValues {
+  appendMimeExtension: boolean;
   autoDownloadBackgrounds: boolean;
   autoDownloadDataUrls: boolean;
   autoDownloadDocuments: boolean;
