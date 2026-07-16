@@ -184,13 +184,22 @@ export const acquireDownloadUrl = async (
     const objectUrl = URL.createObjectURL(blob);
     return { url: objectUrl, source: "direct", ownedObjectUrl: objectUrl };
   }
-  const fetchReferer = state.info.protectedFetchReferer ?? getFetchReferer(state);
-  if (fetchReferer && !WEB_EXTENSION_CAPABILITIES.downloadRequestHeaders) {
-    return acquireFetchedUrl(url, isPrivateDownloadState(state), signal, requestId, fetchReferer);
-  }
-  if (options.fetchViaFetch && !getDownloadHeaders(state))
-    return acquireFetchedUrl(url, isPrivateDownloadState(state), signal, requestId);
+  // An object URL this extension generated (a shortcut or a saved selection)
+  // is already local, self-contained bytes it owns — like data: above, there
+  // is no network, referer or DNR rule involved. Handing it to a fetch path
+  // would copy it into a second blob, download the copy, and strand the
+  // original in generatedObjectUrls: unrevoked, and unreachable by the revoke
+  // sites that only run on a plan failure or route miss. Taking ownership here
+  // keeps every generated URL on the direct path that releases it.
   const ownedObjectUrl = downloadRuntime.generatedObjectUrls.delete(url) ? url : undefined;
+  if (!ownedObjectUrl) {
+    const fetchReferer = state.info.protectedFetchReferer ?? getFetchReferer(state);
+    if (fetchReferer && !WEB_EXTENSION_CAPABILITIES.downloadRequestHeaders) {
+      return acquireFetchedUrl(url, isPrivateDownloadState(state), signal, requestId, fetchReferer);
+    }
+    if (options.fetchViaFetch && !getDownloadHeaders(state))
+      return acquireFetchedUrl(url, isPrivateDownloadState(state), signal, requestId);
+  }
   return { url, source: "direct", ownedObjectUrl };
 };
 

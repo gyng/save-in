@@ -217,6 +217,32 @@ describe("renameAndDownload: browserDownload", () => {
     expect(ActiveTransfers.cancelActiveTransfer("h-test")).toBe(false);
   });
 
+  // A generated object URL is local bytes this extension already owns, so the
+  // Fetch API path would copy it into a second blob and strand the original.
+  test("does not re-fetch a generated object URL when fetching via the Fetch API", async () => {
+    setCurrentBrowser("FIREFOX");
+    let made = 0;
+    vi.spyOn(URL, "createObjectURL").mockImplementation(() => `blob:made-${++made}`);
+    vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {});
+    vi.mocked(global.fetch).mockResolvedValue({
+      headers: { has: () => false, get: () => null },
+      blob: async () => ({ type: "text/plain" }),
+    } as any);
+    options.fetchViaFetch = true;
+    const url = Download.makeObjectUrl("selected text");
+    const state = makeState({ info: { url, suggestedFilename: "selection.txt" } });
+
+    await expect(Download.renameAndDownload(state)).resolves.toEqual({
+      status: "started",
+      downloadId: 101,
+    });
+
+    expect(global.fetch).not.toHaveBeenCalledWith(url, expect.anything());
+    expect(global.browser.downloads.download).toHaveBeenCalledWith(
+      expect.objectContaining({ url }),
+    );
+  });
+
   test("treats an invalid acquired URL as ineligible for HTTP fallback", async () => {
     setCurrentBrowser("CHROME");
     const state = makeState({ info: { url: "not a URL" } });
