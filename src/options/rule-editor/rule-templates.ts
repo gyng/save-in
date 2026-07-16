@@ -431,14 +431,17 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
   },
   {
     category: "Site originals",
-    name: "YouTube thumbnail max resolution",
-    description: "Requests YouTube's maximum-resolution thumbnail when that rendition exists",
-    example: "Example: youtube/dQw4w9WgXcQ-maxresdefault.jpg",
-    rule: "sourceurl: ^https://i\\.ytimg\\.com/vi/([\\w-]+)/(?:default|mqdefault|hqdefault|sddefault|[0-3])\\.(jpg)(?:[?#]|$)\ncapturegroups: sourceurl\nfetch: https://i.ytimg.com/vi/:$1:/maxresdefault.:$2:\ninto: youtube/:$1:-maxresdefault.:$2:",
+    name: "YouTube larger thumbnail",
+    description: "Rewrites a smaller YouTube thumbnail to the standard 480px rendition",
+    example: "Example: youtube/dQw4w9WgXcQ-hqdefault.jpg",
+    // maxresdefault exists only for some videos. hqdefault is the standard
+    // 480px video thumbnail, so upgrade only the tiers known to be below it and
+    // leave equal, larger, and unknown renditions untouched.
+    rule: "sourceurl: ^https://i\\.ytimg\\.com/vi/([\\w-]+)/(?:default|mqdefault|[1-3])\\.(jpg)(?:[?#]|$)\ncapturegroups: sourceurl\nfetch: https://i.ytimg.com/vi/:$1:/hqdefault.:$2:\ninto: youtube/:$1:-hqdefault.:$2:",
     proof: {
-      info: { sourceUrl: "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg" },
-      destination: "youtube/dQw4w9WgXcQ-maxresdefault.jpg",
-      fetch: "https://i.ytimg.com/vi/dQw4w9WgXcQ/maxresdefault.jpg",
+      info: { sourceUrl: "https://i.ytimg.com/vi/dQw4w9WgXcQ/mqdefault.jpg" },
+      destination: "youtube/dQw4w9WgXcQ-hqdefault.jpg",
+      fetch: "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg",
     },
   },
   {
@@ -916,12 +919,12 @@ export const localizeRuleTemplates = (getMessage: GetMessage): LocalizedRuleTemp
       },
     ],
     [
-      "YouTube thumbnail max resolution",
+      "YouTube larger thumbnail",
       {
-        name: getMessage("ruleTemplateYoutubeMaxResName") || "YouTube thumbnail max resolution",
+        name: getMessage("ruleTemplateYoutubeMaxResName") || "YouTube larger thumbnail",
         description:
           getMessage("ruleTemplateYoutubeMaxResDescription") ||
-          "Requests YouTube's maximum-resolution thumbnail when that rendition exists",
+          "Rewrites a smaller YouTube thumbnail to the standard 480px rendition",
       },
     ],
     [

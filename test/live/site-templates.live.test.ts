@@ -49,9 +49,10 @@ const SAMPLES: Record<string, LiveSample> = {
       process.env.LIVE_WIKIMEDIA_URL ??
       "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Example.jpg/250px-Example.jpg",
   },
-  "YouTube thumbnail max resolution": {
-    // A long-lived public video; maxresdefault exists for it.
-    before: process.env.LIVE_YOUTUBE_URL ?? "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg",
+  "YouTube larger thumbnail": {
+    // A long-lived public video; mqdefault -> hqdefault exercises the safe,
+    // standard 320px-to-480px upgrade without relying on optional maxres.
+    before: process.env.LIVE_YOUTUBE_URL ?? "https://i.ytimg.com/vi/dQw4w9WgXcQ/mqdefault.jpg",
   },
   "Bluesky full-size image": {
     // Public sample used in Bluesky API examples. The fullsize endpoint is an

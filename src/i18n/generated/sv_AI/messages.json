@@ -3840,7 +3840,7 @@
     "message": "Wikimedia-bild i full storlek"
   },
   "ruleTemplateYoutubeMaxResDescription": {
-    "message": "Begär YouTubes miniatyr med maximal upplösning när den versionen finns"
+    "message": "Skriver om en mindre YouTube-miniatyr till standardversionen på 480 px"
   },
   "ruleTemplateBlueskyFullsizeName": {
     "message": "Bluesky-bild i full storlek"
@@ -3879,7 +3879,7 @@
     "message": "Skriver om en Flickr-bildlänk till en större version på 1024 px"
   },
   "ruleTemplateYoutubeMaxResName": {
-    "message": "YouTube-miniatyr med maximal upplösning"
+    "message": "Större YouTube-miniatyr"
   },
   "ruleExtraFetch": {
     "message": "En regel kan bara innehålla en fetch:-sats"

@@ -3840,7 +3840,7 @@
     "message": "Wikimedia-Bild in voller Größe"
   },
   "ruleTemplateYoutubeMaxResDescription": {
-    "message": "Fordert YouTubes Miniaturbild mit maximaler Auflösung an, wenn diese Darstellung verfügbar ist"
+    "message": "Schreibt ein kleineres YouTube-Miniaturbild auf die standardmäßige 480-px-Darstellung um"
   },
   "ruleTemplateBlueskyFullsizeName": {
     "message": "Bluesky-Bild in voller Größe"
@@ -3879,7 +3879,7 @@
     "message": "Schreibt einen Flickr-Bildlink auf eine größere 1024-px-Version um"
   },
   "ruleTemplateYoutubeMaxResName": {
-    "message": "YouTube-Miniaturbild in maximaler Auflösung"
+    "message": "Größeres YouTube-Miniaturbild"
   },
   "ruleExtraFetch": {
     "message": "Eine Regel kann nur eine fetch:-Klausel enthalten"

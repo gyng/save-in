@@ -2636,12 +2636,12 @@
     "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
   },
   "ruleTemplateYoutubeMaxResName": {
-    "message": "YouTube thumbnail max resolution",
+    "message": "YouTube larger thumbnail",
     "description": "Title of a built-in routing-template card. Used in src/options/rule-templates.ts."
   },
   "ruleTemplateYoutubeMaxResDescription": {
-    "message": "Requests YouTube's maximum-resolution thumbnail when that rendition exists",
-    "description": "Description on a built-in routing-template card. YouTube does not provide the maximum-resolution rendition for every video. Used in src/options/rule-templates.ts."
+    "message": "Rewrites a smaller YouTube thumbnail to the standard 480px rendition",
+    "description": "Description on a built-in routing-template card. The rule targets YouTube's standard hqdefault video thumbnail and deliberately avoids the optional maxresdefault rendition. \"px\" abbreviates pixels. Used in src/options/rule-templates.ts."
   },
   "ruleTemplateBlueskyFullsizeName": {
     "message": "Bluesky full-size image",

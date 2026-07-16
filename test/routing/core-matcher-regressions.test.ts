@@ -360,20 +360,20 @@ describe("built-in matcher templates", () => {
     ).toBeNull();
   });
 
-  test("the YouTube template rewrites only lower JPEG thumbnail tiers", () => {
-    const rules = rulesFor("YouTube thumbnail max resolution");
+  test("the YouTube template upgrades only thumbnails below the standard 480px tier", () => {
+    const rules = rulesFor("YouTube larger thumbnail");
 
-    for (const tier of ["default", "mqdefault", "hqdefault", "sddefault", "0", "3"]) {
+    for (const tier of ["default", "mqdefault", "1", "2", "3"]) {
       expect(
         matchRulesDetailed(rules, {
           sourceUrl: `https://i.ytimg.com/vi/dQw4w9WgXcQ/${tier}.jpg`,
         }),
       ).toMatchObject({
-        destination: "youtube/dQw4w9WgXcQ-maxresdefault.jpg",
-        fetch: "https://i.ytimg.com/vi/dQw4w9WgXcQ/maxresdefault.jpg",
+        destination: "youtube/dQw4w9WgXcQ-hqdefault.jpg",
+        fetch: "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg",
       });
     }
-    for (const tier of ["maxresdefault", "hq720", "poster"]) {
+    for (const tier of ["0", "hqdefault", "sddefault", "maxresdefault", "hq720", "poster"]) {
       expect(
         matchRules(rules, {
           sourceUrl: `https://i.ytimg.com/vi/dQw4w9WgXcQ/${tier}.jpg`,

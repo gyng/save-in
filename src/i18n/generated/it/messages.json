@@ -3840,7 +3840,7 @@
     "message": "Immagine Wikimedia a piena dimensione"
   },
   "ruleTemplateYoutubeMaxResDescription": {
-    "message": "Richiede la miniatura YouTube alla massima risoluzione quando tale versione è disponibile"
+    "message": "Riscrive una miniatura YouTube più piccola verso la versione standard da 480 px"
   },
   "ruleTemplateBlueskyFullsizeName": {
     "message": "Immagine Bluesky a piena dimensione"
@@ -3879,7 +3879,7 @@
     "message": "Riscrive un link a un'immagine di Flickr verso una versione più grande da 1024 px"
   },
   "ruleTemplateYoutubeMaxResName": {
-    "message": "Miniatura YouTube risoluzione massima"
+    "message": "Miniatura YouTube più grande"
   },
   "ruleExtraFetch": {
     "message": "Una regola può contenere una sola clausola fetch:"
