@@ -47,9 +47,11 @@ test("Chrome offers the prompt conflict action", () => {
   expect(promptOption().disabled).toBe(false);
 });
 
-const shortcutOptions = () =>
-  [...document.querySelectorAll<HTMLOptionElement>(".shortcut-extension-only")];
-const unavailableNote = () => document.querySelector<HTMLElement>(".shortcut-extension-unavailable")!;
+const shortcutOptions = () => [
+  ...document.querySelectorAll<HTMLOptionElement>(".shortcut-extension-only"),
+];
+const unavailableNote = () =>
+  document.querySelector<HTMLElement>(".shortcut-extension-unavailable")!;
 
 // Firefox rejects a download whose filename ends .url or .desktop outright
 // (#207, reproduced on a current Firefox), so those formats cannot be offered
