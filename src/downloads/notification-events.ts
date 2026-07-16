@@ -12,6 +12,7 @@ import {
 } from "./expected-downloads.ts";
 import { isPrivateDownloadRecord } from "./download-state.ts";
 import type { DownloadRecord } from "./download-state.ts";
+import type { HistoryEntry } from "../shared/history-types.ts";
 import { sessionWriteState } from "./download-state-instances.ts";
 import { getSession, normalizeSessionCounter, updateSession } from "../shared/session-state.ts";
 import { options } from "../config/options-data.ts";
@@ -232,26 +233,32 @@ export const onNotificationButtonClicked = async (notId: string, buttonIndex: nu
   const downloadId = Number(notId);
   if (!Number.isSafeInteger(downloadId)) return;
   const record = await getTrackedDownload(downloadId);
-  // The session record can be evicted between completion and the click; fall
-  // back to the History entry by downloadId so the row is still marked and
-  // the identity check still has something to verify against. Ids can repeat
-  // across Firefox sessions (and after a Chrome downloads-DB reset), so the
-  // NEWEST completed entry is the one this button can belong to.
-  let historyEntryId = record?.historyEntryId;
-  let expected: ExpectedDownloadIdentity = { url: record?.url, filename: record?.filename };
-  if (!historyEntryId) {
-    const entry = (await historyPort.entries()).findLast(
-      (candidate) => candidate.downloadId === downloadId && candidate.status === "complete",
-    );
-    if (entry?.id) {
-      historyEntryId = entry.id;
-      expected = {
-        startTime: entry.downloadStartTime,
-        url: entry.url,
-        filename: entry.finalFullPath,
-      };
-    }
+  // Identity evidence merges both stores: the History entry carries the
+  // authoritative startTime, while the session record's url/filename are
+  // fresher (onChanged deltas update them). A record holding only its
+  // historyEntryId must not degrade the evidence to nothing. Ids can repeat
+  // across Firefox sessions (and after a Chrome downloads-DB reset), so
+  // without a record the NEWEST entry that is not already undone is the one
+  // this button can belong to — a failed completion write can leave a
+  // pending status, which still deserves an undo.
+  let entry: HistoryEntry | undefined;
+  try {
+    const entries = await historyPort.entries();
+    entry = record?.historyEntryId
+      ? entries.find((candidate) => candidate.id === record.historyEntryId)
+      : entries.findLast(
+          (candidate) => candidate.downloadId === downloadId && candidate.status !== "undone",
+        );
+  } catch {
+    // History being unreadable degrades to record-only evidence; the undo
+    // still refuses when that leaves nothing to verify.
   }
+  const historyEntryId = record?.historyEntryId ?? entry?.id;
+  const expected: ExpectedDownloadIdentity = {
+    startTime: entry?.downloadStartTime,
+    url: record?.url ?? entry?.url,
+    filename: record?.filename ?? entry?.finalFullPath,
+  };
   // A refused undo must not be a silent no-op: the notification stays, so the
   // user needs to hear that clicking it did nothing.
   const reportUndoRefused = () =>

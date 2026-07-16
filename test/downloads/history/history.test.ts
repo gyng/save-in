@@ -129,6 +129,77 @@ describe("SaveHistory", () => {
     });
   });
 
+  test("patch merges a plain field object into the matching entry", async () => {
+    const id = SaveHistory.addHistoryEntry({ url: "https://a/1" });
+    await flushWrites();
+
+    SaveHistory.patchHistoryEntry(id, { fileSize: 4096 });
+    await flushWrites();
+
+    expect(store[HISTORY_KEY]![0]!).toMatchObject({ url: "https://a/1", fileSize: 4096 });
+  });
+
+  test("setDownloadId keeps a captured start time on a same-id bind without one", async () => {
+    const id = SaveHistory.addHistoryEntry({ url: "https://a/1" });
+    await flushWrites();
+    SaveHistory.setHistoryDownloadId(id, 7, "2026-07-17T01:02:03.000Z");
+    await flushWrites();
+
+    // The launch path binds the bare id; onDownloadCreated supplied the time.
+    // Whichever order they land in, the time survives.
+    SaveHistory.setHistoryDownloadId(id, 7);
+    await flushWrites();
+
+    expect(store[HISTORY_KEY]![0]!).toMatchObject({
+      downloadId: 7,
+      downloadStartTime: "2026-07-17T01:02:03.000Z",
+    });
+  });
+
+  test("setDownloadId rebinding a different id without a time clears the stale one", async () => {
+    const id = SaveHistory.addHistoryEntry({ url: "https://a/1" });
+    await flushWrites();
+    SaveHistory.setHistoryDownloadId(id, 7, "2026-07-17T01:02:03.000Z");
+    await flushWrites();
+
+    SaveHistory.setHistoryDownloadId(id, 8);
+    await flushWrites();
+
+    // A stale time would refuse undo of the download the entry now points at.
+    expect(store[HISTORY_KEY]![0]!).toMatchObject({ downloadId: 8 });
+    expect(store[HISTORY_KEY]![0]!).not.toHaveProperty("downloadStartTime");
+  });
+
+  test("setStatus rebinding a different id clears the stale start time", async () => {
+    const id = SaveHistory.addHistoryEntry({ url: "https://a/1" });
+    await flushWrites();
+    SaveHistory.setHistoryDownloadId(id, 7, "2026-07-17T01:02:03.000Z");
+    await flushWrites();
+
+    // The fetch-retry replacement completes under its new download id.
+    SaveHistory.setHistoryStatus(id, "complete", 8);
+    await flushWrites();
+
+    expect(store[HISTORY_KEY]![0]!).toMatchObject({ status: "complete", downloadId: 8 });
+    expect(store[HISTORY_KEY]![0]!).not.toHaveProperty("downloadStartTime");
+  });
+
+  test("setStatus with the same id keeps the captured start time", async () => {
+    const id = SaveHistory.addHistoryEntry({ url: "https://a/1" });
+    await flushWrites();
+    SaveHistory.setHistoryDownloadId(id, 7, "2026-07-17T01:02:03.000Z");
+    await flushWrites();
+
+    SaveHistory.setHistoryStatus(id, "complete", 7);
+    await flushWrites();
+
+    expect(store[HISTORY_KEY]![0]!).toMatchObject({
+      status: "complete",
+      downloadId: 7,
+      downloadStartTime: "2026-07-17T01:02:03.000Z",
+    });
+  });
+
   test("get returns the entry list", async () => {
     store[HISTORY_KEY] = [{ url: "https://a/1" }];
     await expect(SaveHistory.getHistoryEntries()).resolves.toEqual([{ url: "https://a/1" }]);

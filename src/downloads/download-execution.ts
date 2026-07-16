@@ -25,7 +25,6 @@ import {
   PENDING_DOWNLOADS_SESSION_KEY,
 } from "../shared/storage-keys.ts";
 import { emitDownloaded } from "./download-events.ts";
-import { searchDownloadStartTime } from "./undo-download.ts";
 import { extensionSessionStorage } from "../platform/storage-areas.ts";
 import type {
   AcquiredDownload,
@@ -274,13 +273,11 @@ export const executeBrowserDownload = async (
     });
     if (historyEntryId) {
       updateActiveTransfer(historyEntryId, { downloadId });
-      // downloads.download resolves with the bare id; the identity check
-      // wants the item's startTime, so look it up while the id is fresh.
-      await historyPort.setDownloadId(
-        historyEntryId,
-        downloadId,
-        await searchDownloadStartTime(downloadId),
-      );
+      // This bind only publishes the bare id early so the options page can
+      // poll progress; onDownloadCreated supplies the item's startTime from
+      // the event payload, and a same-id bind without a time never clobbers
+      // one already captured.
+      await historyPort.setDownloadId(historyEntryId, downloadId);
     }
     if (signal?.aborted) {
       await webExtensionApi.downloads.cancel(downloadId).catch(() => {});

@@ -152,6 +152,60 @@ describe("automatic source discovery", () => {
     controller.stop();
   });
 
+  test("a candidate dropped mid-drain is un-consumed for later rescans", async () => {
+    document.body.innerHTML =
+      '<img src="https://cdn.test/one.png"><img src="https://cdn.test/two.png">';
+    let disabled = false;
+    const send = vi.fn(() => {
+      disabled = true;
+      return Promise.resolve("started" as const);
+    });
+    const controller = setupAutoDownloadDiscovery({
+      rules,
+      live: false,
+      maxPerPage: 2,
+      isPageDisabled: () => disabled,
+      send,
+    });
+    await controller.idle();
+    expect(send).toHaveBeenCalledOnce();
+
+    // The dropped candidate returned its dedup slot and budget, so a rescan
+    // after the page leaves the list still saves it.
+    disabled = false;
+    controller.scan();
+    await controller.idle();
+    expect(send).toHaveBeenCalledTimes(2);
+    expect(send).toHaveBeenLastCalledWith(
+      expect.objectContaining({ sourceUrl: "https://cdn.test/two.png" }),
+    );
+    controller.stop();
+  });
+
+  test("a shared dedup state survives a remount without re-sending saved sources", async () => {
+    document.body.innerHTML = '<img src="https://cdn.test/cat.png">';
+    const send = vi.fn(() => Promise.resolve("started" as const));
+    const dedup = { seen: new Set<string>(), limitNotified: false };
+    const first = setupAutoDownloadDiscovery({ rules, live: false, maxPerPage: 5, send, dedup });
+    await first.idle();
+    expect(send).toHaveBeenCalledOnce();
+    first.stop();
+
+    // A disable-list edit remounts discovery with the page-owned dedup state:
+    // the initial rescan must not re-download what this page already saved.
+    const second = setupAutoDownloadDiscovery({ rules, live: false, maxPerPage: 5, send, dedup });
+    await second.idle();
+    expect(send).toHaveBeenCalledOnce();
+
+    document.body.insertAdjacentHTML("beforeend", '<img src="https://cdn.test/new.png">');
+    second.scan();
+    await second.idle();
+    expect(send).toHaveBeenLastCalledWith(
+      expect.objectContaining({ sourceUrl: "https://cdn.test/new.png" }),
+    );
+    second.stop();
+  });
+
   test("a disabled page consumes neither dedup state nor the page budget", async () => {
     document.body.innerHTML =
       '<img src="https://cdn.test/one.png"><img src="https://cdn.test/two.png">';

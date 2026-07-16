@@ -198,6 +198,59 @@ describe("undo on the success notification", () => {
     expect(history.setHistoryStatus).toHaveBeenCalledWith("h-new", "undone", 7);
   });
 
+  test("a record holding only its entry id borrows the entry's evidence", async () => {
+    const history = await import("../../../src/background/history.ts");
+    vi.spyOn(history, "setHistoryStatus").mockResolvedValue(undefined);
+    vi.spyOn(history, "getHistoryEntries").mockResolvedValue([
+      {
+        id: "h-undo",
+        url: "https://x/p.png",
+        downloadId: 7,
+        status: "complete",
+        downloadStartTime: "2026-07-17T01:02:03.000Z",
+      },
+    ] as never);
+    vi.mocked(global.browser.downloads.search).mockResolvedValue([
+      // blob-acquired: neither url nor filename would match; only the
+      // entry's startTime can verify this download.
+      { id: 7, url: "blob:chrome-extension/1", startTime: "2026-07-17T01:02:03.000Z" } as never,
+    ]);
+    sessionStore.siDownloads = { 7: { adopted: true, historyEntryId: "h-undo" } };
+
+    await onButtonClicked("7", 0);
+
+    expect(global.browser.downloads.removeFile).toHaveBeenCalledWith(7);
+    expect(history.setHistoryStatus).toHaveBeenCalledWith("h-undo", "undone", 7);
+  });
+
+  test("an unreadable history degrades to record-only evidence", async () => {
+    const history = await import("../../../src/background/history.ts");
+    vi.spyOn(history, "setHistoryStatus").mockResolvedValue(undefined);
+    vi.spyOn(history, "getHistoryEntries").mockRejectedValue(new Error("storage gone"));
+    sessionStore.siDownloads = {
+      7: { adopted: true, historyEntryId: "h-undo", url: "https://x/p.png" },
+    };
+
+    await onButtonClicked("7", 0);
+
+    expect(global.browser.downloads.removeFile).toHaveBeenCalledWith(7);
+    expect(history.setHistoryStatus).toHaveBeenCalledWith("h-undo", "undone", 7);
+  });
+
+  test("the fallback accepts an entry whose completion write was lost", async () => {
+    const history = await import("../../../src/background/history.ts");
+    vi.spyOn(history, "setHistoryStatus").mockResolvedValue(undefined);
+    // A swallowed storage failure can leave the entry pending even though its
+    // download completed and carries the Undo button.
+    vi.spyOn(history, "getHistoryEntries").mockResolvedValue([
+      { id: "h-pending", url: "https://x/p.png", downloadId: 7, status: "pending" },
+    ] as never);
+
+    await onButtonClicked("7", 0);
+
+    expect(history.setHistoryStatus).toHaveBeenCalledWith("h-pending", "undone", 7);
+  });
+
   test("a reused id pointing at a foreign download is refused from the button", async () => {
     const history = await import("../../../src/background/history.ts");
     vi.spyOn(history, "setHistoryStatus").mockResolvedValue(undefined);

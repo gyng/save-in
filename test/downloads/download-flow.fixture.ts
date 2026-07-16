@@ -218,8 +218,8 @@ beforeEach(() => {
     },
   );
 
-  // setDownloadId is never asserted; add returns a stable id so the started
-  // record carries a truthy historyEntryId
+  // add returns a stable id so the started record carries a truthy
+  // historyEntryId; the retry suite asserts setDownloadId's rebind with it
   vi.spyOn(SaveHistory, "addHistoryEntry").mockReturnValue("h-test");
   vi.spyOn(SaveHistory, "patchHistoryEntry").mockImplementation(() => Promise.resolve());
   vi.spyOn(SaveHistory, "setHistoryDownloadId").mockImplementation(() => Promise.resolve());

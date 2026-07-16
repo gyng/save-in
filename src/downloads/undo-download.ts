@@ -12,11 +12,18 @@ export type ExpectedDownloadIdentity = {
   filename?: string | undefined;
 };
 
-// The browser resolves an on-disk filename collision by inserting " (n)"
-// before the extension; history keeps the pre-collision routed name, so only
-// the browser item's basename may carry the suffix.
+// The browser resolves an on-disk filename collision by inserting "(n)"
+// before the extension — Chrome with a leading space, Firefox without one.
+// History keeps the pre-collision routed name, so only the browser item's
+// basename may carry the suffix.
 const withoutUniquifySuffix = (name: string): string =>
-  name.replace(/ \(\d+\)(?=(?:\.[^.]*)?$)/, "");
+  name.replace(/ ?\(\d+\)(?=(?:\.[^.]*)?$)/, "");
+
+// A stored path ending in a separator names a directory, not a file; taking
+// its last real segment would make "a/foo/" match any file named "foo", so
+// such paths compare whole.
+const comparableFilename = (path: string): string =>
+  /[\\/]$/.test(path) ? path : proposedFilename(path);
 
 // startTime is the one browser-assigned field that survives redirects,
 // blob/data-URL acquisition, and filename uniquification, so when both sides
@@ -39,8 +46,8 @@ export const matchesDownloadIdentity = (
   if (!url && !filename) return false;
   if (url && (item.url === url || item.finalUrl === url)) return true;
   if (filename && item.filename) {
-    const itemBase = proposedFilename(item.filename);
-    const expectedBase = proposedFilename(filename);
+    const itemBase = comparableFilename(item.filename);
+    const expectedBase = comparableFilename(filename);
     if (itemBase === expectedBase) return true;
     if (withoutUniquifySuffix(itemBase) === expectedBase) return true;
   }
@@ -82,10 +89,16 @@ export const undoBrowserDownload = async (
   if (!item) return { undone: false, fileMissing: false };
   if (!matchesDownloadIdentity(item, expected)) return { undone: false, fileMissing: false };
 
+  // Success needs at least one confirmed fact: the browser reported the file
+  // gone, removeFile resolved, or erase actually erased. A removeFile
+  // rejection alone is a claim, not confirmation — the download can vanish
+  // between the identity search and the undo, and then nothing was done.
   let fileMissing = item.exists === false;
+  let confirmed = fileMissing;
   if (!fileMissing) {
     try {
       await webExtensionApi.downloads.removeFile(downloadId);
+      confirmed = true;
     } catch {
       // removeFile rejects when the file was already moved or deleted
       // out-of-band; the shelf entry and the History mark must still happen,
@@ -94,14 +107,15 @@ export const undoBrowserDownload = async (
     }
   }
   try {
-    // The search above already proved the download is real, so an empty erase
-    // result only means the shelf entry vanished concurrently — the undo's
-    // goal state (file handled, shelf entry gone) holds either way. Only a
-    // rejection is a failure.
-    await webExtensionApi.downloads.erase({ id: downloadId });
+    // The search above already proved the download was real, so an empty
+    // erase result after a confirmed removal only means the shelf entry
+    // vanished concurrently — the undo's goal state holds either way.
+    const erased = await webExtensionApi.downloads.erase({ id: downloadId });
+    if (erased.length > 0) confirmed = true;
   } catch {
     return { undone: false, fileMissing };
   }
+  if (!confirmed) return { undone: false, fileMissing: false };
   return { undone: true, fileMissing };
 };
 

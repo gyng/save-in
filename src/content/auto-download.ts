@@ -8,6 +8,18 @@ import { isAutomaticRuleClauses } from "../routing/automatic-rule.ts";
 import { normalizeAutoDownloadLimit } from "../config/content-options.ts";
 
 export type AutoDownloadSendResult = "started" | "skipped" | "failed";
+
+// The once-per-visit dedup set and its consumed budget (seen.size) outlive a
+// discovery instance: a disable-list edit remounts discovery, and a fresh set
+// there would re-download everything already saved on every open matching
+// tab. Rule, limit, and toggle edits reset it (the 4.0 contract: edited rules
+// apply to media already on the page).
+export type AutoDownloadDedup = { seen: Set<string>; limitNotified: boolean };
+export const createAutoDownloadDedup = (): AutoDownloadDedup => ({
+  seen: new Set<string>(),
+  limitNotified: false,
+});
+
 export type AutoDownloadDiscoveryOptions = {
   rules: string;
   live: boolean;
@@ -22,6 +34,7 @@ export type AutoDownloadDiscoveryOptions = {
   isPageDisabled: () => boolean;
   send: (candidate: AutomaticRoutingCandidate) => Promise<AutoDownloadSendResult>;
   onLimitReached?: (() => void) | undefined;
+  dedup?: AutoDownloadDedup | undefined;
 };
 export type AutoDownloadDiscovery = {
   scan(root?: ParentNode): void;
@@ -51,13 +64,13 @@ export const setupAutoDownloadDiscovery = (
 ): AutoDownloadDiscovery => {
   const parsed = parseRulesCollecting(options.rules);
   const automaticRules = parsed.rules.filter(isAutomaticRuleClauses);
-  const seen = new Set<string>();
+  const dedup = options.dedup ?? createAutoDownloadDedup();
+  const seen = dedup.seen;
   const queue: AutomaticRoutingCandidate[] = [];
   const idleWaiters = new Set<() => void>();
   const maxPerPage = normalizeAutoDownloadLimit(options.maxPerPage);
   let stopped = false;
   let draining = false;
-  let limitNotified = false;
   let refreshTimer = 0;
 
   const settleIdle = () => {
@@ -73,8 +86,13 @@ export const setupAutoDownloadDiscovery = (
       const candidate = queue.shift();
       if (!candidate) break;
       // Re-check between queueing and dispatch: the page may have navigated
-      // onto the disable list while earlier candidates were being sent.
-      if (options.isPageDisabled()) continue;
+      // onto the disable list while earlier candidates were being sent. A
+      // dropped candidate is un-consumed — its dedup slot and budget return —
+      // so a rescan after the page leaves the list can still save it.
+      if (options.isPageDisabled()) {
+        seen.delete(candidate.sourceUrl);
+        continue;
+      }
       try {
         await options.send(candidate);
       } catch {
@@ -110,8 +128,8 @@ export const setupAutoDownloadDiscovery = (
       const candidate = { pageUrl, sourceUrl, sourceKind: source.kind };
       if (!matchAutomaticRoutingRule(automaticRules, candidate)) continue;
       if (seen.size >= maxPerPage) {
-        if (!limitNotified) {
-          limitNotified = true;
+        if (!dedup.limitNotified) {
+          dedup.limitNotified = true;
           options.onLimitReached?.();
         }
         continue;

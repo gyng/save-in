@@ -82,6 +82,28 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
     await expect(Download.retryViaFetch(101)).resolves.toBe(false);
   });
 
+  test("rebinds the history entry to the replacement download with its startTime", async () => {
+    const SaveHistory = await import("../../src/background/history.ts");
+    await seedStartedDownload();
+    global.fetch = vi.fn(() =>
+      Promise.resolve({ ok: true, blob: () => Promise.resolve(new Blob(["bytes"])) }),
+    ) as any;
+    vi.mocked(global.browser.downloads.download).mockResolvedValue(202);
+    (global.browser.downloads as any).search = vi.fn(() =>
+      Promise.resolve([{ id: 202, startTime: "2026-07-17T04:05:06.000Z" }]),
+    );
+
+    await expect(Download.retryViaFetch(101)).resolves.toBe(true);
+
+    // Without the rebind the entry would keep the dead original's identity
+    // and the startTime-decides undo check would refuse the retried save.
+    expect(SaveHistory.setHistoryDownloadId).toHaveBeenCalledWith(
+      "h-test",
+      202,
+      "2026-07-17T04:05:06.000Z",
+    );
+  });
+
   test("re-derives Referer protection for the retry fetch", async () => {
     await seedStartedDownload();
     options.setRefererHeader = true;

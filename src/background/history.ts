@@ -61,7 +61,7 @@ export const addHistoryEntry = (
 // entries, so it goes through the same queue as addHistoryEntry())
 export const patchHistoryEntry = (
   id: string | null | undefined,
-  fields: Partial<HistoryEntry>,
+  fields: Partial<HistoryEntry> | ((entry: HistoryEntry) => Partial<HistoryEntry>),
 ): Promise<unknown> => {
   if (!id) {
     return writeQueue;
@@ -70,7 +70,19 @@ export const patchHistoryEntry = (
     .then(() => webExtensionApi.storage.local.get(HISTORY_STORAGE_KEY))
     .then((res) => {
       const history = normalizeHistory(res?.[HISTORY_STORAGE_KEY]);
-      const next = history.map((e) => (e.id === id ? Object.assign({}, e, fields) : e));
+      const next = history.map((e) => {
+        if (e.id !== id) return e;
+        const resolved = typeof fields === "function" ? fields(e) : fields;
+        const merged = Object.assign({}, e, resolved);
+        // An explicitly-undefined field means "remove": Firefox's structured
+        // clone would otherwise persist the key, and normalization must never
+        // see a stale value in its place.
+        const mergedRecord = merged as Record<string, unknown>;
+        for (const key of Object.keys(resolved)) {
+          if (mergedRecord[key] === undefined) delete mergedRecord[key];
+        }
+        return merged;
+      });
       return webExtensionApi.storage.local.set({ [HISTORY_STORAGE_KEY]: next });
     })
     .catch((error) => recordHistoryFailure("write", error));
@@ -86,16 +98,24 @@ export const setHistoryStatus = (
   status: string,
   downloadId?: number,
   fileSize?: number,
-) => {
-  const fields: Partial<HistoryEntry> = { status };
-  if (downloadId != null) {
-    fields.downloadId = downloadId;
-  }
-  if (fileSize != null) {
-    fields.fileSize = fileSize;
-  }
-  return patchHistoryEntry(id, fields);
-};
+) =>
+  patchHistoryEntry(id, (entry) => {
+    const fields: Partial<HistoryEntry> = { status };
+    if (downloadId != null) {
+      fields.downloadId = downloadId;
+      // Rebinding to a different browser download (the fetch-retry
+      // replacement) without a fresh startTime must clear the stored one — a
+      // stale time refuses undo of the very download the entry now points
+      // at, while no time still leaves the field fallback working.
+      if (entry.downloadId != null && entry.downloadId !== downloadId) {
+        fields.downloadStartTime = undefined;
+      }
+    }
+    if (fileSize != null) {
+      fields.fileSize = fileSize;
+    }
+    return fields;
+  });
 
 // Binds the browser download id to the entry as soon as the download starts,
 // so the options page can poll its progress while it is still in flight
@@ -103,7 +123,19 @@ export const setHistoryDownloadId = (
   id: string | null | undefined,
   downloadId: number,
   startTime?: string,
-) => patchHistoryEntry(id, { downloadId, ...(startTime ? { downloadStartTime: startTime } : {}) });
+) =>
+  patchHistoryEntry(id, (entry) => ({
+    downloadId,
+    // A bind for the same download without a startTime must not clobber one
+    // already captured (the launch path binds the bare id; onDownloadCreated
+    // supplies the time). A different id without a time is a rebind — clear
+    // the stale time rather than let it refuse undo of the new download.
+    ...(startTime
+      ? { downloadStartTime: startTime }
+      : entry.downloadId != null && entry.downloadId !== downloadId
+        ? { downloadStartTime: undefined }
+        : {}),
+  }));
 
 export const getHistoryEntries = async (): Promise<HistoryEntry[]> => {
   // Reads requested by the options page must observe every write that was

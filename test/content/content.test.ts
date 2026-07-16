@@ -418,6 +418,7 @@ describe("content.js initialisation", () => {
         }) => Promise<string>)
       | undefined;
     vi.doMock("../../src/content/auto-download.ts", () => ({
+      createAutoDownloadDedup: () => ({ seen: new Set<string>(), limitNotified: false }),
       setupAutoDownloadDiscovery: vi.fn((options) => {
         discoverySend = options.send;
         return { stop: vi.fn() };
@@ -520,6 +521,29 @@ describe("content.js initialisation", () => {
       "local",
     );
     await vi.waitFor(() => expect(autoSends()).toHaveLength(1));
+
+    // A later disable-list edit that does not touch this page remounts with
+    // the page-owned dedup state: the already-saved image is not re-sent.
+    storageListener!(
+      { perSiteDisableList: { oldValue: "", newValue: "*://unrelated.example/*" } },
+      "local",
+    );
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(autoSends()).toHaveLength(1);
+
+    // Editing the rules resets the dedup state (the 4.0 contract: edited
+    // rules apply to media already on the page), so the image is re-sent.
+    storageListener!(
+      {
+        filenamePatterns: {
+          newValue:
+            "context: ^auto$\npageurl: ^http://localhost/\nsourceurl: automatic\\.png$\ninto: rescan/",
+        },
+      },
+      "local",
+    );
+    await vi.waitFor(() => expect(autoSends()).toHaveLength(2));
   });
 
   test("mounts click-to-save on a disabled page but ignores the click", async () => {

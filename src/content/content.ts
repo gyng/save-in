@@ -21,7 +21,12 @@ import {
   isSourcePanelCopy,
   type SourcePanelCopy,
 } from "../shared/source-panel-copy.ts";
-import { setupAutoDownloadDiscovery, type AutoDownloadSendResult } from "./auto-download.ts";
+import {
+  createAutoDownloadDedup,
+  setupAutoDownloadDiscovery,
+  type AutoDownloadDedup,
+  type AutoDownloadSendResult,
+} from "./auto-download.ts";
 import { matchesAnyPattern } from "../shared/match-pattern.ts";
 import type { AutomaticRoutingCandidate } from "../automation/automatic-routing.ts";
 
@@ -282,7 +287,7 @@ const setupClickToSave = (
   };
 };
 
-const setupAutoDownload = (options: ResolvedAutoDownloadOptions) => {
+const setupAutoDownload = (options: ResolvedAutoDownloadOptions, dedup: AutoDownloadDedup) => {
   const controller = new AbortController();
   const retryTimers = new Set<number>();
   const pendingResolvers = new Set<(result: AutoDownloadSendResult) => void>();
@@ -329,6 +334,7 @@ const setupAutoDownload = (options: ResolvedAutoDownloadOptions) => {
     includeLinks: options.autoDownloadLinks,
     isPageDisabled: isCurrentPageDisabled,
     send,
+    dedup,
   });
   return () => {
     controller.abort();
@@ -346,6 +352,9 @@ let currentOptions: ResolvedContentScriptOptions = {
 };
 let removeClickToSave: (() => void) | null = null;
 let removeAutoDownload: (() => void) | null = null;
+// Owned per page load, not per discovery mount, so remounts cannot re-send
+// sources this page already saved (see AutoDownloadDedup).
+let autoDownloadDedup: AutoDownloadDedup = createAutoDownloadDedup();
 let receivedInitialOptions = false;
 let sourcePanelListenerReady = false;
 let announcedSourcePanelReady = false;
@@ -390,20 +399,19 @@ const applyOptions = (next: ContentOptions) => {
   const clickOptionsChanged = (
     ["contentClickToSave", "contentClickToSaveCombo", "contentClickToSaveButton", "links"] as const
   ).some((key) => previous[key] !== currentOptions[key]);
-  // A disable-list change remounts discovery: a fresh instance rescans media
-  // already on the page, so removing the site from the list resumes automatic
-  // saves without a reload.
-  const autoDownloadOptionsChanged =
-    disableListChanged ||
-    (
-      [
-        "autoDownloadEnabled",
-        "filenamePatterns",
-        "autoDownloadLive",
-        "autoDownloadLinks",
-        "autoDownloadMaxPerPage",
-      ] as const
-    ).some((key) => previous[key] !== currentOptions[key]);
+  // A disable-list change remounts discovery so removing the site from the
+  // list resumes automatic saves without a reload — but the dedup state
+  // survives that remount, so nothing already saved is re-sent.
+  const autoDownloadConfigChanged = (
+    [
+      "autoDownloadEnabled",
+      "filenamePatterns",
+      "autoDownloadLive",
+      "autoDownloadLinks",
+      "autoDownloadMaxPerPage",
+    ] as const
+  ).some((key) => previous[key] !== currentOptions[key]);
+  const autoDownloadOptionsChanged = disableListChanged || autoDownloadConfigChanged;
   const sourcePanelOptionsChanged =
     disableListChanged ||
     (
@@ -420,10 +428,15 @@ const applyOptions = (next: ContentOptions) => {
     ).some((key) => previous[key] !== currentOptions[key]);
   if (sourcePanelOptionsChanged) reconfigureOpenSourcePanel?.();
   if (autoDownloadOptionsChanged) {
+    // Rule, limit, and toggle edits reset the dedup state (the 4.0 contract:
+    // edited rules apply to media already on the page); a disable-list-only
+    // edit keeps it, so toggling an unrelated site cannot re-download
+    // everything this page already saved.
+    if (autoDownloadConfigChanged) autoDownloadDedup = createAutoDownloadDedup();
     removeAutoDownload?.();
     removeAutoDownload =
       currentOptions.autoDownloadEnabled && currentOptions.filenamePatterns.trim()
-        ? setupAutoDownload(currentOptions)
+        ? setupAutoDownload(currentOptions, autoDownloadDedup)
         : null;
   }
   if (clickOptionsChanged) {

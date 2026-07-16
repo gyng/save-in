@@ -63,6 +63,12 @@ describe("matchesDownloadIdentity", () => {
       true,
     ],
     [
+      "Firefox's spaceless uniquify format also matches",
+      { filename: "gallery/photo.jpg" },
+      { url: "blob:moz-extension/2", filename: "/dl/photo(1).jpg" },
+      true,
+    ],
+    [
       "an extensionless uniquified basename matches",
       { filename: "archive" },
       { filename: "/dl/archive (10)" },
@@ -93,10 +99,16 @@ describe("matchesDownloadIdentity", () => {
       false,
     ],
     [
-      "trailing separators compare by the last real segment",
+      "identical directory-shaped paths compare whole and match",
       { filename: "gallery/" },
       { filename: "gallery/" },
       true,
+    ],
+    [
+      "a directory-shaped path never matches a file sharing its last segment",
+      { filename: "images/" },
+      { filename: "/dl/images" },
+      false,
     ],
   ])("%s", (_name, expected, item, outcome) => {
     expect(matchesDownloadIdentity(item, expected)).toBe(outcome);
@@ -217,6 +229,32 @@ describe("undoBrowserDownload", () => {
       undone: false,
       fileMissing: false,
     });
+  });
+
+  test("a rejecting removeFile with an empty erase confirms nothing", async () => {
+    // The download vanished between the identity search and the undo: the
+    // removeFile rejection is a claim, not a confirmation, and the empty
+    // erase proves the shelf entry was already gone — nothing verifiably
+    // happened, so neither success nor a file-missing report may be claimed.
+    seedSearch([{ id: 3, url: "https://a/photo.jpg" }]);
+    vi.mocked(global.browser.downloads.removeFile).mockRejectedValue(new Error("gone"));
+    vi.mocked(global.browser.downloads.erase).mockResolvedValue([]);
+
+    await expect(undoBrowserDownload(3, { url: "https://a/photo.jpg" })).resolves.toEqual({
+      undone: false,
+      fileMissing: false,
+    });
+  });
+
+  test("an observed missing file with an empty erase is still confirmed", async () => {
+    seedSearch([{ id: 3, url: "https://a/photo.jpg", exists: false }]);
+    vi.mocked(global.browser.downloads.erase).mockResolvedValue([]);
+
+    await expect(undoBrowserDownload(3, { url: "https://a/photo.jpg" })).resolves.toEqual({
+      undone: true,
+      fileMissing: true,
+    });
+    expect(global.browser.downloads.removeFile).not.toHaveBeenCalled();
   });
 });
 

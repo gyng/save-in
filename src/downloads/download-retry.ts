@@ -16,6 +16,8 @@ import {
 } from "./active-transfers.ts";
 import { OffscreenClient } from "../platform/offscreen-client.ts";
 import { getDownload, mergeDownload } from "./download-state.ts";
+import { downloadPorts } from "./ports.ts";
+import { searchDownloadStartTime } from "./undo-download.ts";
 import { isPrivateDownloadRecord } from "./download-state.ts";
 import type { DownloadRecordUpdate } from "./download-state.ts";
 import {
@@ -137,7 +139,17 @@ export const retryViaFetch = async (
     services.notifier.cancelExpectedDownload(expected);
     expected = undefined;
     if (content.ownedObjectUrl) runtime.ownedObjectUrls.set(newId, content.ownedObjectUrl);
-    if (record.historyEntryId) updateActiveTransfer(record.historyEntryId, { downloadId: newId });
+    if (record.historyEntryId) {
+      updateActiveTransfer(record.historyEntryId, { downloadId: newId });
+      // The replacement is a different browser download: rebind the history
+      // entry with its own startTime, or the startTime-decides identity check
+      // would refuse undo of the retried save against the dead original's.
+      await downloadPorts.history.setDownloadId(
+        record.historyEntryId,
+        newId,
+        await searchDownloadStartTime(newId),
+      );
+    }
     await rememberStartedDownload(
       newId,
       Object.assign({}, record, {
