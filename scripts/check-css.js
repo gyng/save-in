@@ -19,10 +19,21 @@ const listOptionFiles = (dir, matches) =>
   });
 
 /** Resolve a src/options file by its unique basename, wherever its owning
- * feature subdirectory placed it. Basenames are unique across src/options. */
-const optionsFileByName = new Map(
-  listOptionFiles(optionsRoot, () => true).map((file) => [path.basename(file), file]),
-);
+ * feature subdirectory placed it. Basename-anchored checks silently validate
+ * the wrong file if two directories ever reuse a name, so uniqueness is
+ * asserted rather than assumed. */
+const optionsFileByName = new Map();
+for (const file of listOptionFiles(optionsRoot, () => true)) {
+  const name = path.basename(file);
+  const existing = optionsFileByName.get(name);
+  if (existing) {
+    throw new Error(
+      `Duplicate src/options basename "${name}" (${existing} and ${file}); ` +
+        "basename-anchored CSS checks require unique names",
+    );
+  }
+  optionsFileByName.set(name, file);
+}
 /** @param {string} name */
 const optionFile = (name) => {
   const file = optionsFileByName.get(name);

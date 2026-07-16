@@ -558,6 +558,26 @@ describe("menu creation", () => {
       expect(global.browser.contextMenus.removeAll).toHaveBeenCalledTimes(2);
     });
 
+    test("runs a queued rebuild even when the in-flight rebuild fails", async () => {
+      let rejectFirst!: (error: Error) => void;
+      const firstRemoval = new Promise<void>((_resolve, reject) => {
+        rejectFirst = reject;
+      });
+      vi.mocked(global.browser.contextMenus.removeAll)
+        .mockReturnValueOnce(firstRemoval)
+        .mockResolvedValueOnce(undefined);
+
+      const first = rebuildMenus();
+      const second = rebuildMenus();
+      await vi.waitFor(() => expect(global.browser.contextMenus.removeAll).toHaveBeenCalledOnce());
+
+      rejectFirst(new Error("menu host unavailable"));
+      await expect(first).resolves.toBeUndefined();
+      await expect(second).resolves.toBeUndefined();
+
+      expect(global.browser.contextMenus.removeAll).toHaveBeenCalledTimes(2);
+    });
+
     test("continues the rebuild queue after a failed generation", async () => {
       vi.mocked(global.browser.contextMenus.removeAll)
         .mockRejectedValueOnce(new Error("menu host unavailable"))
