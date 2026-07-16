@@ -2,7 +2,7 @@ import {
   matchAutomaticRoutingRule,
   type AutomaticRoutingCandidate,
 } from "../automation/automatic-routing.ts";
-import { collectPageSourceCandidates } from "./source-panel-model.ts";
+import { collectPageSourceCandidates, type PageSource } from "./source-panel-model.ts";
 import { parseRulesCollecting } from "../routing/rule-parser.ts";
 import { isAutomaticRuleClauses } from "../routing/automatic-rule.ts";
 import { normalizeAutoDownloadLimit } from "../config/content-options.ts";
@@ -20,6 +20,12 @@ export type AutoDownloadDiscovery = {
   idle(): Promise<void>;
   stop(): void;
 };
+
+// Phase A of scan coverage: the automatic scan adopts anchors only when the
+// shared collector classified them as previewable media by URL extension.
+// Anchors classified stream/document/plain link stay out until 4.2, so the scan
+// keeps only image/video/audio candidates.
+const AUTOMATIC_MEDIA_KINDS: ReadonlySet<PageSource["kind"]> = new Set(["image", "video", "audio"]);
 
 const automaticUrl = (value: string): string | null => {
   try {
@@ -76,10 +82,11 @@ export const setupAutoDownloadDiscovery = (
     const candidates = collectPageSourceCandidates(root, {
       includeBackgrounds: false,
       resourceHints: false,
-      includeLinks: false,
+      includeLinks: true,
     });
     for (const source of candidates) {
       if (source.previewable === false) continue;
+      if (!AUTOMATIC_MEDIA_KINDS.has(source.kind)) continue;
       const sourceUrl = automaticUrl(source.url);
       if (!sourceUrl || seen.has(sourceUrl)) continue;
       const candidate = { pageUrl, sourceUrl, sourceKind: source.kind };

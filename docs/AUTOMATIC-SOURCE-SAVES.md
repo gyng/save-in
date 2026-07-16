@@ -70,10 +70,13 @@ and automatic rules may be interleaved in the same editor without ordinary
 rules becoming eligible for unattended saves.
 
 `sourcekind:` uses the shared Page Sources vocabulary: `image`, `video`,
-`audio`, `stream`, `document`, and `link`. The automatic page scanner currently
-queues previewable HTTP(S) image, video, and audio elements. It deliberately
-does not adopt Page Sources found only through links, CSS backgrounds, or
-resource-timing playlist hints.
+`audio`, `stream`, `document`, and `link`. The automatic page scanner queues
+previewable HTTP(S) image, video, and audio elements, and also adopts anchors
+(`<a href>`) the shared collector classifies as previewable media — `image`,
+`video`, or `audio` by URL extension. A media anchor flows through with that
+kind, so a linked `.jpg` is queued as `sourcekind: image`. Anchors classified
+`stream`, `document`, or plain `link`, along with CSS backgrounds and
+resource-timing playlist hints, are still not adopted.
 
 ## Safety controls
 

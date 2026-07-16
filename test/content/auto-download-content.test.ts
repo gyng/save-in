@@ -29,7 +29,6 @@ describe("automatic source discovery", () => {
     document.body.innerHTML = `
       <img src="https://cdn.test/cat.png">
       <img src="https://cdn.test/readme.txt">
-      <a href="https://cdn.test/linked.jpg">linked image</a>
     `;
     const send = vi.fn(() => Promise.resolve("started" as const));
     const controller = setupAutoDownloadDiscovery({ rules, live: false, maxPerPage: 20, send });
@@ -40,6 +39,25 @@ describe("automatic source discovery", () => {
     expect(send).toHaveBeenCalledWith({
       pageUrl: "http://localhost/",
       sourceUrl: "https://cdn.test/cat.png",
+      sourceKind: "image",
+    });
+    controller.stop();
+  });
+
+  test("adopts a previewable-media anchor discovered by the scan", async () => {
+    document.body.innerHTML = `
+      <a href="https://cdn.test/linked.jpg">image link</a>
+      <a href="https://cdn.test/page.html">plain link</a>
+    `;
+    const send = vi.fn(() => Promise.resolve("started" as const));
+    const controller = setupAutoDownloadDiscovery({ rules, live: false, maxPerPage: 20, send });
+
+    await controller.idle();
+
+    expect(send).toHaveBeenCalledOnce();
+    expect(send).toHaveBeenCalledWith({
+      pageUrl: "http://localhost/",
+      sourceUrl: "https://cdn.test/linked.jpg",
       sourceKind: "image",
     });
     controller.stop();
