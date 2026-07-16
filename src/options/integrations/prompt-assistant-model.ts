@@ -274,8 +274,12 @@ const explicitExtensions = (request: string): string[] => {
   const target = request.match(
     /\b(?:save|route|move|put|send|download)\s+(.{1,100}?)\s+(?:into|in|to|under)\b/i,
   )?.[1];
-  if (target && !/\b(?:from|matching|named|on|where|whose|with)\b/i.test(target)) {
-    const tokens = target
+  // Everything from the first qualifier onward describes where a source came
+  // from or how it matches, not what type it is: "PDF from docs.example.com"
+  // names the pdf type, and never the doc type.
+  const named = target?.split(/\b(?:from|matching|named|on|where|whose|with)\b/i)[0];
+  if (named) {
+    const tokens = named
       .toLowerCase()
       .split(/(?:\s*(?:,|\/|\band\b|\bor\b)\s*)|\s+/)
       .map((token) => token.replace(/^\.|[^a-z0-9+_-]/g, ""))

@@ -167,6 +167,23 @@ describe("Prompt API rule-authoring model", () => {
       "fileext/i: ^pdf$\npagedomain: ^other\\.example$\ninto: archive/:filename:",
       ["The matchers do not contain the requested docs.example.com site."],
     ],
+    // A site clause after the file type must not cost the request its file-type
+    // anchor, and must not be read as a type itself.
+    [
+      "save PDF from docs.example.com into /archive",
+      "fileext/i: ^(?:pdf|png|jpg)$\npagedomain: ^docs\\.example\\.com$\ninto: archive/:filename:",
+      ["The fileext matcher also matches unrequested file types (jpg, png)."],
+    ],
+    [
+      "save PDF from docs.example.com into /archive",
+      "fileext/i: ^pdf$\npagedomain: ^docs\\.example\\.com$\ninto: archive/:filename:",
+      [],
+    ],
+    [
+      "save png on example.com into /archive",
+      "fileext/i: ^png$\npagedomain: ^example\\.com$\ninto: archive/:filename:",
+      [],
+    ],
     [
       "save .png from https://docs.example.com into /archive",
       "fileext: ^png$\npagedomain: ^docs\\.example\\.com$\ninto: archive/:filename:",
