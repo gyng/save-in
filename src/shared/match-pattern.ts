@@ -8,6 +8,18 @@ export type ParsedMatchPattern = {
   readonly regexp: RegExp;
 };
 
+// Punycode a pattern host the way the URL parser canonicalises a page host.
+// A host the parser rejects is left as written: it simply will not match, which
+// is what it did before.
+const toAsciiHost = (value: string): string => {
+  if (!value) return value;
+  try {
+    return new URL(`https://${value}`).host;
+  } catch {
+    return value;
+  }
+};
+
 export const parseMatchPattern = (pattern: string): ParsedMatchPattern | Error => {
   const parts = pattern.match(/^(\*|https?|file|ftp):\/\/([^/]*)(\/.*)$/);
   if (!parts) return new Error("Invalid WebExtension match pattern");
@@ -36,12 +48,18 @@ export const parseMatchPattern = (pattern: string): ParsedMatchPattern | Error =
   if (hostLiteral.includes("*")) {
     return new Error("Host wildcards are only allowed as '*' or a leading '*.'");
   }
+  // canonicalForMatch compares against a URL-parsed host, which is punycode, so
+  // compile the pattern's host through the same parser. A user writes the host
+  // the way their address bar shows it ("例え.jp"); left as the raw unicode it
+  // could never meet "xn--r8jz45g.jp" and the entry silently never fired. ASCII
+  // hosts round-trip unchanged, so existing patterns compile identically.
+  const asciiLiteral = toAsciiHost(hostLiteral);
   const hostPattern =
     matchHost === "*"
       ? "[^/]+"
       : matchHost.startsWith("*.")
-        ? `([^/]+\\.)?${escapeRegExp(hostLiteral)}`
-        : escapeRegExp(matchHost);
+        ? `([^/]+\\.)?${escapeRegExp(asciiLiteral)}`
+        : escapeRegExp(asciiLiteral);
   const pathPattern = path.split("*").map(escapeRegExp).join(".*");
   const port = rawScheme === "file" ? "" : "(?::\\d+)?";
   return {

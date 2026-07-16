@@ -105,6 +105,25 @@ describe("pattern list grammar", () => {
     expect(matchesAnyPattern("https://example.com/Private", "*://example.com/private")).toBe(false);
   });
 
+  test("matches an internationalised host written the way the address bar shows it", () => {
+    // The URL parser canonicalises a host to punycode, so a pattern compiled
+    // from the raw unicode the user typed could never meet it: the disable-list
+    // entry silently never fired and the content script kept running on a site
+    // the user had opted out of.
+    expect(matchesAnyPattern("https://例え.jp/a", "*://例え.jp/*")).toBe(true);
+    expect(matchesAnyPattern("https://xn--r8jz45g.jp/a", "*://例え.jp/*")).toBe(true);
+    expect(matchesAnyPattern("https://sub.例え.jp/a", "*://*.例え.jp/*")).toBe(true);
+    // Punycode written directly keeps working, from either side.
+    expect(matchesAnyPattern("https://例え.jp/a", "*://xn--r8jz45g.jp/*")).toBe(true);
+    // A different IDN host must still not match.
+    expect(matchesAnyPattern("https://別.jp/a", "*://例え.jp/*")).toBe(false);
+    // A host the URL parser rejects — "xn--a" is not decodable punycode — must
+    // not throw out of the matcher and into isCurrentPageDisabled. It stays as
+    // written and compares textually, exactly as it did before.
+    expect(() => matchesAnyPattern("https://xn--a.com/a", "*://xn--a.com/*")).not.toThrow();
+    expect(matchesAnyPattern("https://xn--a.com/a", "*://xn--a.com/*")).toBe(true);
+  });
+
   test("rejects host wildcards the spec does not allow", () => {
     // `*` is legal in a host only as the entire host or as a leading `*.`
     // label. Escaped nowhere and quantifying the character before it, an
