@@ -213,6 +213,21 @@ describe("menu creation", () => {
     test("matches access keys without changing title case", () => {
       expect(menu.setAccesskey("Cats", "c")).toBe("&Cats");
     });
+
+    // "İ" (U+0130) is the only character in Unicode whose lowercase is longer
+    // than itself (i + U+0307), so an offset taken from a lowercased copy runs
+    // one unit ahead of the original for every "İ" before the match. Both of
+    // these reach the menu on the shipped default keyLastUsed of "e".
+    test("locates access keys past a character that lowercases to two units", () => {
+      expect(menu.setAccesskey("İzmir Belediyesi", "e")).toBe("İzmir B&elediyesi");
+    });
+
+    // Marking the last character overran the string entirely, leaving a lone
+    // trailing "&": markup flagging nothing, so the key is lost and the "&"
+    // is eaten.
+    test("marks a trailing access key instead of dangling an ampersand", () => {
+      expect(menu.setAccesskey("İndirme", "e")).toBe("İndirm&e");
+    });
   });
 
   describe("static menu items", () => {

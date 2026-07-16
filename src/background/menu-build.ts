@@ -220,12 +220,29 @@ export const setAccesskey = (str: string, key: string | number, override?: strin
   const escapeAmpersands = (value: string) => value.replaceAll("&", "&&");
   if (accessKey === null) return escapeAmpersands(str);
 
-  const matchIndex = str.toLowerCase().indexOf(accessKey.toLowerCase());
+  // Search the original string per code point rather than a lowercased copy:
+  // U+0130 "İ" is the one character whose lowercase is longer than itself
+  // (i + U+0307), so an offset taken from str.toLowerCase() runs a unit ahead
+  // of str for every "İ" before the match — marking the neighbouring character
+  // or, at the end of a title, overrunning it and leaving a lone "&".
+  const needle = accessKey.toLowerCase();
+  let matchIndex = -1;
+  let matchLength = 0;
+  let offset = 0;
+  for (const character of str) {
+    if (character.toLowerCase() === needle) {
+      matchIndex = offset;
+      matchLength = character.length;
+      break;
+    }
+    offset += character.length;
+  }
+
   if (matchIndex === -1) return `${escapeAmpersands(str)} (&${accessKey})`;
   return `${escapeAmpersands(str.slice(0, matchIndex))}&${str.slice(
     matchIndex,
-    matchIndex + accessKey.length,
-  )}${escapeAmpersands(str.slice(matchIndex + accessKey.length))}`;
+    matchIndex + matchLength,
+  )}${escapeAmpersands(str.slice(matchIndex + matchLength))}`;
 };
 
 export const addRoot = (contexts: readonly MenuContext[]) => {
