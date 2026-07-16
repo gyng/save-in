@@ -11,8 +11,11 @@ const knownPathVariables = new Set<string>(Object.values(SPECIAL_DIRS));
 const isInsideBracketedHost = (value: string, index: number): boolean =>
   value.lastIndexOf("[", index) > value.lastIndexOf("]", index);
 
-export const findUnknownPathVariables = (path: string): UnknownPathVariable[] =>
-  [...path.matchAll(/:[A-Za-z$][A-Za-z0-9_$-]*(?::|(?=[/\\]|$))/g)]
+const isKnownVariableBody = (body: string): boolean =>
+  knownPathVariables.has(`:${body}:`) || /^\$\d+$/.test(body);
+
+export const findUnknownPathVariables = (path: string): UnknownPathVariable[] => {
+  const completeOrTerminal = [...path.matchAll(/:[A-Za-z$][A-Za-z0-9_$-]*(?::|(?=[/\\]|$))/g)]
     .filter(
       (match) =>
         !isInsideBracketedHost(path, match.index) &&
@@ -24,6 +27,30 @@ export const findUnknownPathVariables = (path: string): UnknownPathVariable[] =>
       start: match.index,
       end: match.index + match[0].length,
     }));
+  const missingClosers = [...path.matchAll(/:([A-Za-z$][A-Za-z0-9_$-]*)/g)]
+    .filter((match) => {
+      const body = match[1];
+      const end = match.index + match[0].length;
+      return (
+        body !== undefined &&
+        path[end] !== ":" &&
+        !isInsideBracketedHost(path, match.index) &&
+        isKnownVariableBody(body)
+      );
+    })
+    .map((match) => ({
+      value: match[0],
+      start: match.index,
+      end: match.index + match[0].length,
+    }));
+  return [...completeOrTerminal, ...missingClosers]
+    .filter(
+      (candidate, index, all) =>
+        all.findIndex((other) => other.start === candidate.start && other.end === candidate.end) ===
+        index,
+    )
+    .toSorted((left, right) => left.start - right.start || left.end - right.end);
+};
 
 // These variables trigger a metadata or content fetch of the current download
 // URL. A fetch: template exists to CHOOSE that URL, so allowing them would

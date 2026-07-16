@@ -30,6 +30,7 @@ describe("Prompt API rule-authoring model", () => {
     expect(result).toContain(":filename:, :pagedomain:");
     expect(result).toContain("Return JSON matching the supplied response schema");
     expect(result).toContain("Do not add file types, sites, folders, renames, or behavior");
+    expect(result).toContain("categories, not filename extensions");
   });
 
   test("extracts a fenced rule without retaining Markdown", () => {
@@ -141,6 +142,8 @@ describe("Prompt API rule-authoring model", () => {
     ],
     ["save pngs into /archive", "fileext: ^png$\ninto: archive/:filename:", []],
     ["save foobar into /archive", "fileext: ^foobar$\ninto: archive/:filename:", []],
+    ["save images into /Pictures", "sourcekind: ^image$\ninto: Pictures/:filename:", []],
+    ["save photos into /Pictures please", "sourcekind: ^image$\ninto: Pictures/:filename:", []],
     ["save a b c d e f into /archive", "filename: .*\ninto: archive/:filename:", []],
     ['save png into "archive"', "fileext: ^png$\ninto: archive/:filename:", []],
     [
@@ -157,4 +160,16 @@ describe("Prompt API rule-authoring model", () => {
     const issues = ruleRequestGuardrailIssues(request, rule);
     expect(issues).toEqual(expected);
   });
+
+  test.each(["\r", "\u2028", "\u2029"])(
+    "checks request anchors across %j rule line boundaries",
+    (terminator) => {
+      expect(
+        ruleRequestGuardrailIssues(
+          "save PNG into /Pictures",
+          `fileext/i: ^png$${terminator}into: Pictures/:filename:`,
+        ),
+      ).toEqual([]);
+    },
+  );
 });

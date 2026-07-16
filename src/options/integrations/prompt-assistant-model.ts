@@ -3,6 +3,7 @@ import { parseRulesCollecting } from "../../routing/rule-parser.ts";
 
 const MAX_USER_REQUEST_CHARACTERS = 4_000;
 const MAX_VALIDATION_ISSUES = 8;
+const RULE_LINE_BREAKS = /\r\n|[\n\r\u2028\u2029]/;
 
 export type RuleAuthoringVocabulary = {
   matchers: string[];
@@ -69,6 +70,8 @@ export const buildRuleAuthoringPrompt = (
     "Use only the grammar and semantics below. Preserve regular-expression backslashes.",
     "Preserve every explicit file type, site, path, filename, and requested distinction exactly.",
     "Do not add file types, sites, folders, renames, or behavior that the user did not request.",
+    "Treat image, photo, audio, video, document, and media as categories, not filename extensions.",
+    "Infer a file extension only from an explicit extension or a named file format.",
     "A request to save into a folder keeps the original filename unless the user explicitly asks to rename it.",
     "A leading slash in a requested folder is shorthand for an extension-relative folder, not an absolute path.",
     "The result is an untrusted draft; never claim that it has been applied.",
@@ -209,6 +212,19 @@ const FILE_TYPE_FILLER = new Set([
   "types",
 ]);
 
+const FILE_TYPE_CATEGORIES = new Set([
+  "audio",
+  "document",
+  "documents",
+  "image",
+  "images",
+  "media",
+  "photo",
+  "photos",
+  "video",
+  "videos",
+]);
+
 const explicitExtensions = (request: string): string[] => {
   const extensions: string[] = [];
   for (const match of request.matchAll(/(?:^|\s)\.([a-z0-9][a-z0-9+_-]{0,9})\b/gi)) {
@@ -224,7 +240,7 @@ const explicitExtensions = (request: string): string[] => {
       .toLowerCase()
       .split(/(?:\s*(?:,|\/|\band\b|\bor\b)\s*)|\s+/)
       .map((token) => token.replace(/^\.|[^a-z0-9+_-]/g, ""))
-      .filter((token) => token && !FILE_TYPE_FILLER.has(token));
+      .filter((token) => token && !FILE_TYPE_FILLER.has(token) && !FILE_TYPE_CATEGORIES.has(token));
     if (tokens.length > 0 && tokens.length <= 5 && tokens.every((token) => token.length <= 10)) {
       for (const token of tokens) {
         const singular = token.endsWith("s") ? token.slice(0, -1) : token;
@@ -238,7 +254,7 @@ const explicitExtensions = (request: string): string[] => {
 const fileExtensionMatcher = (
   rule: string,
 ): { expression: string; insensitive: boolean } | null => {
-  for (const line of rule.split(/\r?\n/)) {
+  for (const line of rule.split(RULE_LINE_BREAKS)) {
     const match = line.match(/^\s*fileext(?:\/([a-z]+))?:\s*(.*?)\s*$/i);
     if (match?.[2] !== undefined) {
       return { expression: match[2], insensitive: match[1]?.includes("i") ?? false };
@@ -248,22 +264,27 @@ const fileExtensionMatcher = (
 };
 
 const explicitFolder = (request: string): string | null => {
+  const trimFolder = (value: string): string =>
+    value
+      .replace(/\s+(?:please|thanks|thank you)\s*$/i, "")
+      .trim()
+      .replace(/^\/+|\/+$/g, "");
   const slashFolder = request.match(
     /\b(?:into|in|to|under)\s+(?:the\s+)?(?:folder\s+)?\/(?!\/)([^\n,;.!?]+)/i,
   )?.[1];
-  if (slashFolder) return slashFolder.trim().replace(/\/+$/, "");
+  if (slashFolder) return trimFolder(slashFolder) || null;
   const quotedFolder = request.match(
     /\b(?:into|in|to|under)\s+(?:the\s+)?(?:folder\s+)?["'`]([^"'`]+)["'`]/i,
   )?.[1];
-  if (quotedFolder) return quotedFolder.trim().replace(/^\/+|\/+$/g, "");
+  if (quotedFolder) return trimFolder(quotedFolder) || null;
   const simpleFolder = request.match(
     /\b(?:into|in|to|under)\s+(?:the\s+)?(?:folder\s+)?([a-z0-9_-]+(?:\/[a-z0-9_-]+)*)\s*[.!?]?$/i,
   )?.[1];
-  return simpleFolder?.trim().replace(/^\/+|\/+$/g, "") || null;
+  return simpleFolder ? trimFolder(simpleFolder) || null : null;
 };
 
 const destination = (rule: string): string | null => {
-  for (const line of rule.split(/\r?\n/)) {
+  for (const line of rule.split(RULE_LINE_BREAKS)) {
     const match = line.match(/^\s*into:\s*(.*?)\s*$/i);
     if (match?.[1] !== undefined) return match[1];
   }
@@ -289,7 +310,7 @@ const explicitSites = (request: string): string[] => {
 
 const matcherText = (rule: string): string =>
   rule
-    .split(/\r?\n/)
+    .split(RULE_LINE_BREAKS)
     .filter((line) => !/^\s*(?:into|fetch|rename|disabled|capture|capturegroups):/i.test(line))
     .join("\n")
     .replaceAll("\\", "")

@@ -59,7 +59,12 @@ export const sourcePointAt = (source: string, offset: number): SourcePoint => {
   let line = 1;
   let column = 0;
   for (let index = 0; index < bounded; index += 1) {
-    if (source[index] === "\n") {
+    const character = source[index];
+    if (character === "\r") {
+      if (source[index + 1] === "\n" && index + 1 < bounded) index += 1;
+      line += 1;
+      column = 0;
+    } else if (character === "\n" || character === "\u2028" || character === "\u2029") {
       line += 1;
       column = 0;
     } else {

@@ -1,5 +1,11 @@
 # 4.1.0
 
+- Tightened routing-rule validation. Every clause line is now parsed on CRLF,
+  LF, CR, and Unicode line boundaries; malformed lines, unresolved captures,
+  unsafe destinations, and malformed known variables make only their containing
+  rule inert. Earlier versions could silently ignore or partially execute those
+  invalid rules. Existing valid rules remain compatible; repair any newly
+  reported rule in the route debugger before relying on it after the upgrade.
 - Added the `rename:` routing clause (#187): a matching rule can rewrite the
   final filename with a regular-expression find and replace
   (`rename/gi: find -> replacement`), with captures and routing variables

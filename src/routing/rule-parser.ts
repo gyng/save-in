@@ -654,13 +654,16 @@ export const parseRulesCollecting = (
   const errors: RuleError[] = [];
   appendSyntaxErrors(syntax.issues, errors);
   const parsedRules = syntax.ast.rules
-    .map((ast) => ({
+    .map((ast, sourceIndex) => ({
       ast,
+      sourceIndex,
       rule: syntax.issues.some((issue) => issueFallsWithinRule(issue, ast))
         ? false
         : parseSemanticRule(ast, errors),
     }))
-    .filter((entry): entry is { ast: RoutingRuleNode; rule: RoutingRule } => Boolean(entry.rule));
+    .filter((entry): entry is { ast: RoutingRuleNode; sourceIndex: number; rule: RoutingRule } =>
+      Boolean(entry.rule),
+    );
   const cssNodes = parsedRules.flatMap(({ ast }) =>
     ast.clauses.filter((clause) => clause.name === "css"),
   );
@@ -712,7 +715,7 @@ export const parseRulesCollecting = (
       appendError(
         errors,
         routingPorts.getMessage("ruleShadowed"),
-        `rule ${index + 1}`,
+        `rule ${laterEntry.sourceIndex + 1}`,
         laterEntry.ast.span,
         true,
       );
