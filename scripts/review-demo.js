@@ -97,6 +97,12 @@ const promptRuntimeSettings = (
   }
   const inheritedLibraries = baseEnvironment.LD_LIBRARY_PATH;
   return {
+    // ANGLE stays on GL because GL is what reaches D3D12 here: it renders
+    // through Mesa's Gallium d3d12 driver below, and reports itself as
+    // "ANGLE (Microsoft Corporation, D3D12 (<adapter>), OpenGL 4.6)". Asking
+    // ANGLE for the D3D12 it already uses does not work — d3d12 is not an
+    // ANGLE backend, and vulkan reaches no device once Dozen is bound to
+    // ChromeML. Either one leaves the browser with no GPU context at all.
     extraArgs: ["--use-angle=gl"],
     environment: {
       GALLIUM_DRIVER: "d3d12",

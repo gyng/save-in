@@ -247,6 +247,17 @@ browsers before reporting it as confirmed.
   check; pass `--allow-no-prompt-api` to record an unavailable or failed model
   without failing the round. Reports and failure artifacts are written under
   `dist/dogfood-artifacts`.
+- On-device Prompt review needs both a provisioned profile and its provisioned
+  runtime (`SAVE_IN_PROMPT_PROFILE`, `SAVE_IN_PROMPT_RUNTIME`; by default
+  `~/.cache/save-in-nano-profile` and `~/.cache/save-in-nano-runtime`). Launch
+  the model only through `promptRuntimeSettings()`: ChromeML owns its own
+  Vulkan device, and without that runtime it reaches no device and the model
+  process crashes. `availability()` still answers "available" because the
+  weights are present, so the failure surfaces only at `prompt()`. Three
+  crashes trip Chrome's per-profile cutoff and every later call fails with
+  "the model process crashed too many times for this version" until the
+  profile is reprovisioned — repair the launch rather than the counter. Keep
+  ANGLE on `gl`, which is already what reaches D3D12 through Mesa.
 - `npm run d:chrome` and `npm run d`: auto-rebuilding Chrome and Firefox dev
   loops.
 - `npm run bundle`: emit readable bundles. `npm run build` also stages and
