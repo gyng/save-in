@@ -731,6 +731,49 @@ registration requires updating the owner list deliberately, not reflexively.
    rule engine needs. This must not introduce a second automation grammar —
    it is a relocation, not a redesign (see the AGENTS.md constraint).
 
+   **Assessed; not cleanly achievable — documented instead.** Three of the
+   five pieces already live under `src/automation/`
+   (`automatic-routing.ts`, `auto-download-rules.ts`, `source-rule-draft.ts`
+   — the last is the pure `createSourceRuleDraft` template builder, imported
+   by `background/messaging/index.ts`; do not confuse it with the unrelated
+   `options/rule-editor/source-rule-draft.ts`, which *consumes* a stored draft
+   into the rule editor UI and is correctly an options-page concern). The two
+   remaining candidates both have a real dependency that blocks the move,
+   checked by enumerating every importer:
+   - `routing/automatic-rule.ts`: `routing/rule-parser.ts` — a routing-internal
+     module, not just a downstream automation consumer — imports
+     `automaticRuleClauseIssues`/`isAutomaticRuleClauses` to validate an
+     AUTO-context rule's clauses inline while parsing. Moving the file to
+     `automation/` would force `rule-parser.ts` to import `automation/`,
+     inverting the intended direction (automation depends on the generic
+     routing engine, not the reverse) and contradicting AGENTS.md's own
+     framing of this file as what "the generic rule engine needs" to
+     recognize AUTO-context eligibility. Confirmed via `grep` that no other
+     `routing/` file imports `automation/` today, so this stays a routing/
+     module by design, not by drift.
+   - `background/messaging/auto-download.ts`: `handleAutoDownloadSource`'s
+     signature (`MessageSender`, `ProtocolSendResponse` from
+     `background/messaging/protocol.ts`) is a background message-handler
+     shape, registered into `background/messaging/index.ts`'s
+     `internalHandlers` dispatch table — the sole reviewable listener owner
+     per AGENTS.md's "listener registration ... restricted to named
+     composition owners." Moving it into `automation/` would require
+     `automation/` to import background-messaging protocol types, the same
+     kind of inversion as above. Phase 2.1's Landed note already anticipated
+     this file would grow as the automation-orchestration seam; it grows in
+     place, not by relocating.
+
+   Both boundaries this assessment surfaced are now enforced mechanically,
+   not just documented in prose: `check-import-cycles.js` gained
+   `src/automation/` to the existing "routing must depend only on shared
+   contracts and injected ports" forbidden-dependency list, plus a new
+   symmetric rule forbidding `src/automation/` from importing
+   `src/background/` or `src/downloads/` implementations. Both were verified
+   to fire (temporarily added an unauthorized edge in each direction,
+   confirmed the violation was reported, then reverted) and both are green
+   against the current tree — no existing import needed to change. No rule
+   grammar, editor behavior, or message payload changed in this step.
+
 ## Non-goals
 
 - No behavior, message-payload, storage-shape, or manifest changes; all

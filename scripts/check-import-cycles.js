@@ -301,11 +301,34 @@ for (const [file, dependencies] of imports) {
   if (!relative(file).startsWith("src/routing/")) continue;
   for (const dependency of dependencies) {
     if (
-      ["src/background/", "src/downloads/", "src/platform/"].some((boundary) =>
+      ["src/background/", "src/downloads/", "src/platform/", "src/automation/"].some((boundary) =>
         relative(dependency).startsWith(boundary),
       )
     ) {
       report(file, "routing must depend only on shared contracts and injected ports", dependency);
+    }
+  }
+}
+
+// automation/ is the feature layer built on the generic routing engine, not
+// the other way around: background/messaging/{handlers,auto-download}.ts and
+// content/auto-download.ts consume it. It must not depend upward into
+// background/ or downloads/ implementations (see docs/CODE-ORGANIZATION.md
+// Phase 3.4 for why routing/automatic-rule.ts and
+// background/messaging/auto-download.ts stayed put rather than moving here).
+for (const [file, dependencies] of imports) {
+  if (!relative(file).startsWith("src/automation/")) continue;
+  for (const dependency of dependencies) {
+    if (
+      ["src/background/", "src/downloads/"].some((boundary) =>
+        relative(dependency).startsWith(boundary),
+      )
+    ) {
+      report(
+        file,
+        "automation must not import background or downloads implementations",
+        dependency,
+      );
     }
   }
 }
