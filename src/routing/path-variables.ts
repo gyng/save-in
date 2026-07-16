@@ -49,7 +49,7 @@ export const findUnknownPathVariables = (path: string): UnknownPathVariable[] =>
         all.findIndex((other) => other.start === candidate.start && other.end === candidate.end) ===
         index,
     )
-    .toSorted((left, right) => left.start - right.start || left.end - right.end);
+    .toSorted((left, right) => left.start - right.start);
 };
 
 // These variables trigger a metadata or content fetch of the current download

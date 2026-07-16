@@ -201,6 +201,16 @@ describe("routing grammar hardening", () => {
     },
   );
 
+  test("reports multiple malformed destination variables in source order", () => {
+    const parsed = parseRulesCollecting("filename: .*\ninto: output/:$1.jpg/:filename.txt");
+    expect(parsed.rules).toEqual([]);
+    expect(
+      parsed.errors
+        .filter((error) => error.message === "ruleUnknownDestinationVariable")
+        .map((error) => error.error),
+    ).toEqual([":$1", ":filename"]);
+  });
+
   test("does not reinterpret an IPv6 host segment as a variable", () => {
     const parsed = parseRulesCollecting(
       "filename: .*\nfetch: https://[2001:db8::1]/file\ninto: output/:filename:",

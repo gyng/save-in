@@ -144,6 +144,8 @@ describe("Prompt API rule-authoring model", () => {
     ["save foobar into /archive", "fileext: ^foobar$\ninto: archive/:filename:", []],
     ["save images into /Pictures", "sourcekind: ^image$\ninto: Pictures/:filename:", []],
     ["save photos into /Pictures please", "sourcekind: ^image$\ninto: Pictures/:filename:", []],
+    ["save png into / please", "fileext: ^png$\ninto: elsewhere/:filename:", []],
+    ['save png into "/"', "fileext: ^png$\ninto: elsewhere/:filename:", []],
     ["save a b c d e f into /archive", "filename: .*\ninto: archive/:filename:", []],
     ['save png into "archive"', "fileext: ^png$\ninto: archive/:filename:", []],
     [

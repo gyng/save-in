@@ -280,7 +280,7 @@ const explicitFolder = (request: string): string | null => {
   const simpleFolder = request.match(
     /\b(?:into|in|to|under)\s+(?:the\s+)?(?:folder\s+)?([a-z0-9_-]+(?:\/[a-z0-9_-]+)*)\s*[.!?]?$/i,
   )?.[1];
-  return simpleFolder ? trimFolder(simpleFolder) || null : null;
+  return simpleFolder ? trimFolder(simpleFolder) : null;
 };
 
 const destination = (rule: string): string | null => {
