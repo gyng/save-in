@@ -418,7 +418,11 @@ export const renameAndDownload = async (
     );
     registerTransfer(requestId);
     // Make an open options page render the cancellable preparation row.
-    emitDownloaded(state);
+    // Never for a private save: the wire state carries the page URL, selection
+    // text and tab title, and ensureHistoryEntry above returns null for one, so
+    // there is no row to render — only a payload to leak. recordDownloadRequest
+    // guards the identical emit the same way.
+    if (!isPrivateDownloadState(state)) emitDownloaded(state);
   };
   const finishPreparation = () => {
     if (registeredHistoryId) finishActiveTransfer(registeredHistoryId, preparationController);

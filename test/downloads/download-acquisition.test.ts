@@ -2,6 +2,7 @@
 import {
   ActiveTransfers,
   Download,
+  downloaded,
   getFilenameFromContentDispositionHeader,
   Log,
   makeState,
@@ -52,6 +53,23 @@ describe("renameAndDownload: shared :sha256: fetch reuse", () => {
 
     expect(hold).toHaveBeenCalledOnce();
     expect(release).toHaveBeenCalledOnce();
+  });
+
+  test("never emits a private preparation onto the message bus", async () => {
+    vi.mocked(SaveHistory.addHistoryEntry).mockReturnValue(null);
+    vi.spyOn(Variable, "applyVariables").mockImplementationOnce(async (path, info) => {
+      await info?.onContentFetchStart?.("private-request");
+      return path as any;
+    });
+    const state = makeState({ info: { currentTab: { incognito: true } } });
+
+    await Download.renameAndDownload(state);
+
+    // recordDownloadRequest guards the identical emit, and the wire state
+    // carries the page URL, selection text and tab title. A private save has
+    // no preparation row to render either — ensureHistoryEntry returns null
+    // for it — so the emit would be pure leak.
+    expect(downloaded).not.toHaveBeenCalled();
   });
 
   test("reuses the already-fetched download URL instead of fetching the file again", async () => {
