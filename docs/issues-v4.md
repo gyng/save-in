@@ -447,16 +447,69 @@ This matters beyond the annoyance: a suite that fails ~25% of the time trains
 people to re-run until green, which is exactly how a real regression gets waved
 through. Worth fixing before the release gate leans on it.
 
+## #196 — a feature request, mis-shelved as a breakage report
+
+`ROADMAP.md` filed this under "ask the reporters to retest on 4.0; those Firefox
+breakage reports predate the rewrite". Nothing broke, and a retest is the worst
+available reply — they would re-enter the same rule, still not get what they
+asked for, and report it a third time.
+
+**Read the thread, not the body.** The body looks like a syntax question
+(`fileext: stl` / `into: STL`, "what am I doing wrong?"). The five comments
+between 2022 and 2024 say otherwise: *"an alternative way to auto organize
+downloads"*, *"migrating from Chrome, where I used Downloads Router"*, *"route
+from site to folder within downloads"*. Every one is on Firefox. They want
+routing applied to downloads **the browser starts**, not to Save In menu saves.
+
+**Two independent problems, and both are real.**
+
+1. The rule is genuinely wrong. `into: STL` has no trailing slash, so the
+   destination *is* the filename and every match collapses onto one file named
+   `STL`. `rule-parser.ts` now warns on exactly this and cites #196.
+2. Even corrected, it would not do what they want. Routing ordinary downloads is
+   **new in v4** — `trackBrowserDownloads`/`routeBrowserDownloads` first appear
+   in `1e9afaee` (2026-07-12) and v3 has no such option (its
+   `onDeterminingFilename` only ever named Save In's own downloads). So when
+   this was filed the capability did not exist at all. It does now: Chrome
+   routes them opt-in; Firefox only through the experimental replacement mode.
+
+**Verdict: fixed on Chrome, partial on Firefox.** The reply must correct the
+rule *and* name the option. Either alone leaves them stuck.
+
+**Fixed this pass:** the routing section's lead promised "Move or rename
+downloads automatically" while the switch that widens rules to ordinary
+downloads lives in a sibling tab, unreachable from where that sentence is read.
+Added a caption stating the default scope and an "Open browser downloads" button
+mirroring the existing "Open routing rules" one. Note the lead itself was never
+wrong — rules *do* cover browser downloads once the option is on
+(`browser-downloads.ts` calls the same `getRoutingMatches`, and `context:
+browser` exists to target them) — so it stays as written and the scope lives in
+the caption beside the switch.
+
+**Demand evidence for a gated decision.** The Firefox cancel-and-redownload
+verdict retires the mode if it "sees no adoption". #196 is five users over two
+years asking for precisely it, one leaving for a Chrome equivalent. Together
+with #106/#146/#152 that argues **do not retire** — and note the trap: while the
+option stays this hard to find, "no adoption" is a result we manufactured.
+
 ## Not yet validated
 
-- The ~28 reports the 4.0.0 CHANGELOG is said to resolve (`ROADMAP.md:47-49`).
-  This is a **bulk claim** and the weakest category — the #178 finding shows a
-  correct mechanism can still need a rule change in the reply.
-- **#205** — real title is *"option hotkey … kept turning off when extension
-  settings tab is closed"*, which does not obviously match the existing draft's
-  framing (access keys + click-to-save state). Re-read before using that draft.
-- **#104** (close as by-design), **#207 / #196 / #143** (retest asks).
+- **43 open issues are not cited by the 4.0.0 changelog at all** and were never
+  in this pass's scope. About 19 have a position already (non-goals, genuinely
+  blocked, the stale-label set, #104, #201, #166, #212, #125). **21 have
+  nothing** — no assessment, no code reference, no stated position.
+- Of those, five look like "already fixed, never credited", the same shape as
+  #216: **#73** ("parse content-disposition" — that is #178/#212's machinery),
+  **#74** ("Sanitize filename" — that is #220's), **#68** ("close tab upon
+  saving" — that is `(tab: close)`, shipped for #115), **#66** ("Not work on
+  pixiv" — there is a pximg Referer preset), **#28** (a test cites it for the
+  resumable-interruption fix).
+- **#126 / #135 / #43** are tagged together at `routing/variable.ts` for
+  `:mimeext:` — *"useful for naming extensionless CDN/query-suffix URLs"* — and
+  cited in no changelog entry. #135 still carries `blocked upstream` while
+  having a fix in the tree.
+- **#104** (close as by-design), **#207 / #143** (retest asks).
 - Non-goals whose reasons cite external facts and can age out silently:
   **#148** ("no WebExtension API exists"), **#121** (clipboard). Neither is
   checkable from the repo.
-- Every verdict above is code-side only. None retested in a live browser.
+- Every verdict here is code-side only. None retested in a live browser.

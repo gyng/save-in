@@ -57,8 +57,15 @@ Not features — release hygiene that gates the close-out of everything above.
   source shortcuts resolve roughly 28 open reports).
 - Close #104 as by-design: the Last used access key is its own setting
   (`keyLastUsed`), deliberately independent of the numbered-shortcut toggle.
-- Ask the reporters of #207, #196, and #143 to retest on 4.0; those Firefox
-  breakage reports predate the rewrite.
+- Ask the reporters of #207 and #143 to retest on 4.0; those Firefox breakage
+  reports predate the rewrite. **#196 is not one of them** and a retest is the
+  wrong reply: nothing broke. Its thread (five people, 2022–2024, one migrating
+  to Chrome for a downloads router) wants routing applied to downloads the
+  browser starts, which v4 added — Chrome routes them opt-in, Firefox only
+  through the experimental replacement mode. Their posted rules are also wrong
+  independently (`into: STL` files every match onto one file named STL; the
+  editor now warns), so a reply must correct the rule *and* name the option, or
+  they will bounce off a third time.
 - The wider verify-and-close sweep for the landed features is drafted and waits
   for the release. Several reports are already fixed by the rebuild or by the
   later sanitization and match-pattern hardening but were never cited closed:

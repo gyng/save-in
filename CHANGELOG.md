@@ -162,7 +162,7 @@ rules.
   routing grammar, require explicit `context: ^auto$`, page, and source
   conditions, and cannot be triggered by broad ordinary rules. Valid settings
   from the earlier dedicated automation field migrate automatically.
-- Added opt-in handling for ordinary browser downloads (#106, #146, #152).
+- Added opt-in handling for ordinary browser downloads (#106, #146, #152, #196).
   Chrome can record or route matching downloads before they are saved. Firefox
   can record them and offers a separately labelled experimental mode that
   cancels a matching HTTP(S) download and starts a routed replacement; that
