@@ -374,7 +374,7 @@ test("background event page initialises cleanly", async () => {
     conflictActionPrompt: false,
     downloadRequestHeaders: true,
   });
-  expect(state.promptConflictAction).toBe("prompt");
+  expect(state.promptConflictAction).toBe("uniquify");
   // Event pages keep a real DOM (unlike Chrome's service worker)...
   expect(state.hasObjectUrl).toBe(true);
   expect((await control.logs.get()).some((entry) => entry.message === "init failed")).toBe(false);

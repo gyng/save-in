@@ -678,7 +678,7 @@ export const dispatchControlRequest = async (
             conflictActionPrompt: !firefox,
             downloadRequestHeaders: firefox,
           },
-          promptConflictAction: firefox ? "prompt" : "uniquify",
+          promptConflictAction: firefox ? "uniquify" : "prompt",
           hasObjectUrl: typeof URL.createObjectURL === "function",
         };
         break;

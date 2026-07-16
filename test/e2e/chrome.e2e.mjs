@@ -512,7 +512,7 @@ test("service worker initialises cleanly", async () => {
     conflictActionPrompt: true,
     downloadRequestHeaders: false,
   });
-  expect(state.promptConflictAction).toBe("uniquify");
+  expect(state.promptConflictAction).toBe("prompt");
   // Running in a real service worker, with the MV3 fallbacks in play
   expect(noObjectUrl).toBe(true);
   expect((await control.logs.get()).some((entry) => entry.message === "init failed")).toBe(false);
