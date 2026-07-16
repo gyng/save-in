@@ -50,8 +50,19 @@ export default defineConfig({
         // deterministic DOM helpers (option-field-sync.ts,
         // download-refresh.ts, ui/disclosure-help.ts) stay covered.
         "src/options/core/options.ts",
-        "src/options/core/pending-changes.ts",
+        // Composes complex live DOM (path/rule editors, menu tree, error
+        // panels) from many document.querySelector reads plus a
+        // VALIDATE/CHECK_ROUTES message round trip; covering it at the unit
+        // level would mean re-driving that whole page shape and message
+        // contract through brittle DOM assertions instead of exercising
+        // real behavior. Exercised end to end by the e2e suites.
         "src/options/core/routing-preview-panel.ts",
+        // Renders the live context-menu tree preview by reading several
+        // other page-level fields (#enableLastLocation,
+        // #enableNumberedItems, #recentDestinationCount) and delegating to
+        // menu-tree/access-key/path-source-selection composition; same
+        // brittle-DOM-composition tradeoff as routing-preview-panel.ts
+        // above. Exercised end to end by the e2e suites.
         "src/options/core/menu-preview.ts",
         "src/options/core/manual-editor-actions.ts",
         "src/options/core/browser-capability-ui.ts",

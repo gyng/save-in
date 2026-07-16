@@ -116,6 +116,12 @@ export const createPendingChangesTracker = (ports: PendingChangesPorts) => {
         fieldSaveState.markDirty(el.id);
         cancelPending?.();
         const timer = window.setTimeout(() => {
+          // This callback only runs when the debounce completed uninterrupted,
+          // so `cancelPending` still holds this same timer's own cancel
+          // closure (any restart or flush would have nulled it via that
+          // closure first). The guard proves the value to the type checker
+          // without a non-null assertion; it cannot observe null here.
+          /* v8 ignore next -- see comment above: always true when reached. */
           if (cancelPending) pendingSaveCancellers.delete(cancelPending);
           cancelPending = null;
           debounceTimer = null;
@@ -125,6 +131,10 @@ export const createPendingChangesTracker = (ports: PendingChangesPorts) => {
         cancelPending = () => {
           window.clearTimeout(timer);
           debounceTimer = null;
+          // Only ever invoked as `cancelPending()` itself (from the input
+          // restart above, blur-flush, or a pending-changes discard), so
+          // `cancelPending` still equals this very closure when it runs.
+          /* v8 ignore next -- see comment above: always true when reached. */
           if (cancelPending) pendingSaveCancellers.delete(cancelPending);
           cancelPending = null;
         };
