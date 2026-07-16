@@ -1278,7 +1278,7 @@ test("Referer-protected downloads use a scoped DNR offscreen fetch", async () =>
   }
 });
 
-test("concurrent Referer-protected fetches keep their exact headers serialized", async () => {
+test("distinct Referer-protected fetches overlap while keeping exact headers", async () => {
   /** @type {Array<{path: string, method: string, referer: string}>} */
   const requests = [];
   let activeRequests = 0;
@@ -1325,7 +1325,7 @@ test("concurrent Referer-protected fetches keep their exact headers serialized",
     );
     await Promise.all(fixtures.map(({ name }) => waitForDownloads(name)));
 
-    expect(maxActiveRequests).toBe(1);
+    expect(maxActiveRequests).toBe(2);
     for (const fixture of fixtures) {
       const matching = requests.filter(({ path: requestPath }) =>
         requestPath.includes(fixture.name),
@@ -1334,7 +1334,9 @@ test("concurrent Referer-protected fetches keep their exact headers serialized",
       expect(matching.every(({ referer }) => referer === fixture.referer)).toBe(true);
     }
     const remainingRules = (await control.dnr.getSessionRules()).map((rule) => rule.id);
-    expect(remainingRules).not.toContain(66_000_001);
+    for (let id = 66_000_001; id < 66_000_007; id += 1) {
+      expect(remainingRules).not.toContain(id);
+    }
   } finally {
     await control.options.set({ ...previous, fetchViaFetch: false });
     await closeLocal(server);
