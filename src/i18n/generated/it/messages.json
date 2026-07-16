@@ -4093,6 +4093,9 @@
   "promptAssistantStatusUnusable": {
     "message": "Il modello non ha restituito una regola utilizzabile"
   },
+  "promptAssistantStatusUnusableReview": {
+    "message": "Il modello non ha completato il controllo della bozza"
+  },
   "promptAssistantStatusWorking": {
     "message": "Creazione e controllo di una bozza…"
   },

@@ -27,6 +27,7 @@ const copy: Record<string, string> = {
   promptAssistantStatusDownloading: "Chrome is downloading the on-device model",
   promptAssistantStatusUnavailable: "Not available in this browser or on this device",
   promptAssistantStatusUnusable: "The model did not return a usable rule",
+  promptAssistantStatusUnusableReview: "The model did not finish checking the draft",
   promptAssistantStatusWorking: "Creating and checking a draft…",
   promptAssistantStatusInvalid: "The draft needs another try: $ERROR$",
   promptAssistantSingleRule: "The draft must contain exactly one rule",
@@ -252,7 +253,9 @@ test("rejects a malformed structured semantic review", async () => {
   submitRequest();
 
   await vi.waitFor(() => expect(element("prompt-assistant-status").dataset.state).toBe("error"));
-  expect(element("prompt-assistant-status").textContent).toContain("invalid review");
+  expect(element("prompt-assistant-status").textContent).toContain(
+    "did not finish checking the draft",
+  );
   expect(element<HTMLButtonElement>("prompt-assistant-add").disabled).toBe(true);
 });
 
@@ -264,7 +267,9 @@ test("rejects an absent structured semantic review", async () => {
   submitRequest();
 
   await vi.waitFor(() => expect(element("prompt-assistant-status").dataset.state).toBe("error"));
-  expect(element("prompt-assistant-status").textContent).toContain("invalid review");
+  expect(element("prompt-assistant-status").textContent).toContain(
+    "did not finish checking the draft",
+  );
 });
 
 test("rejects an absent final structured review", async () => {
@@ -278,7 +283,9 @@ test("rejects an absent final structured review", async () => {
   submitRequest();
 
   await vi.waitFor(() => expect(element("prompt-assistant-status").dataset.state).toBe("error"));
-  expect(element("prompt-assistant-status").textContent).toContain("invalid final review");
+  expect(element("prompt-assistant-status").textContent).toContain(
+    "did not finish checking the draft",
+  );
 });
 
 test.each([

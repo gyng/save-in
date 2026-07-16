@@ -4093,6 +4093,9 @@
   "promptAssistantStatusUnusable": {
     "message": "모델이 사용할 수 있는 규칙을 반환하지 않았습니다"
   },
+  "promptAssistantStatusUnusableReview": {
+    "message": "모델이 초안 확인을 완료하지 못했습니다"
+  },
   "promptAssistantStatusWorking": {
     "message": "초안 생성 및 확인 중…"
   },

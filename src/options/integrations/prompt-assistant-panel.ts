@@ -99,6 +99,9 @@ export const setupPromptAssistantPanel = (
       localize("promptAssistantStatusUnavailable") ||
       "Not available in this browser or on this device",
     unusable: localize("promptAssistantStatusUnusable") || "The model did not return a usable rule",
+    unusableReview:
+      localize("promptAssistantStatusUnusableReview") ||
+      "The model did not finish checking the draft",
     working: localize("promptAssistantStatusWorking") || "Creating and checking a draft…",
     invalid: (error: string) =>
       localize("promptAssistantStatusInvalid", error) || `The draft needs another try: ${error}`,
@@ -272,7 +275,7 @@ export const setupPromptAssistantPanel = (
       );
       if (!isCurrent()) return;
       const critique = critiqueOutput ? parseRuleCritique(critiqueOutput) : null;
-      if (!critique) throw new Error("The model returned an invalid review");
+      if (!critique) throw new Error(copy.unusableReview);
       if (issues.length === 0 && critique.accepted && critique.repairedRule === candidate) {
         showCandidate(candidate);
         add.disabled = false;
@@ -295,7 +298,7 @@ export const setupPromptAssistantPanel = (
       );
       if (!isCurrent()) return;
       const finalReview = finalReviewOutput ? parseRuleCritique(finalReviewOutput) : null;
-      if (!finalReview) throw new Error("The model returned an invalid final review");
+      if (!finalReview) throw new Error(copy.unusableReview);
       showCandidate(candidate);
       if (issues.length === 0 && finalReview.accepted && finalReview.repairedRule === candidate) {
         add.disabled = false;

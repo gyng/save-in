@@ -4093,6 +4093,9 @@
   "promptAssistantStatusUnusable": {
     "message": "モデルは使用可能なルールを返しませんでした"
   },
+  "promptAssistantStatusUnusableReview": {
+    "message": "モデルは下書きの確認を完了しませんでした"
+  },
   "promptAssistantStatusWorking": {
     "message": "下書きを作成して確認しています…"
   },

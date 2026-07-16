@@ -5269,6 +5269,10 @@
     "message": "The model did not return a usable rule",
     "description": "Failure status when the experimental local rule-authoring assistant returns empty output or text that is not a routing rule. Used in src/options/integrations/prompt-assistant-panel.ts."
   },
+  "promptAssistantStatusUnusableReview": {
+    "message": "The model did not finish checking the draft",
+    "description": "Failure status when the experimental local rule-authoring assistant returns a check of its draft that cannot be read. Used in src/options/integrations/prompt-assistant-panel.ts."
+  },
   "promptAssistantStatusWorking": {
     "message": "Creating and checking a draft…",
     "description": "Inference and validation progress status for the experimental local rule-authoring assistant. Used in src/options/integrations/prompt-assistant-panel.ts."

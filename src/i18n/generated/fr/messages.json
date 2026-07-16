@@ -4093,6 +4093,9 @@
   "promptAssistantStatusUnusable": {
     "message": "Le modèle n’a pas renvoyé de règle utilisable"
   },
+  "promptAssistantStatusUnusableReview": {
+    "message": "Le modèle n’a pas terminé la vérification du brouillon"
+  },
   "promptAssistantStatusWorking": {
     "message": "Création et vérification d’un brouillon…"
   },

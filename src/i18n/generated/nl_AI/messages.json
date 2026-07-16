@@ -4093,6 +4093,9 @@
   "promptAssistantStatusUnusable": {
     "message": "Het model heeft geen bruikbare regel geretourneerd"
   },
+  "promptAssistantStatusUnusableReview": {
+    "message": "Het model heeft het controleren van het concept niet voltooid"
+  },
   "promptAssistantStatusWorking": {
     "message": "Concept maken en controleren…"
   },

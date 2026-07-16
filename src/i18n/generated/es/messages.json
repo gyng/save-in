@@ -4093,6 +4093,9 @@
   "promptAssistantStatusUnusable": {
     "message": "El modelo no devolvió una regla utilizable"
   },
+  "promptAssistantStatusUnusableReview": {
+    "message": "El modelo no terminó de comprobar el borrador"
+  },
   "promptAssistantStatusWorking": {
     "message": "Creando y comprobando un borrador…"
   },

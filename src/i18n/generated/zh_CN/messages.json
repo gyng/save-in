@@ -4093,6 +4093,9 @@
   "promptAssistantStatusUnusable": {
     "message": "模型未返回可用的规则"
   },
+  "promptAssistantStatusUnusableReview": {
+    "message": "模型未完成对草稿的检查"
+  },
   "promptAssistantStatusWorking": {
     "message": "正在创建并检查草稿…"
   },

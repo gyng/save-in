@@ -4093,6 +4093,9 @@
   "promptAssistantStatusUnusable": {
     "message": "Das Modell hat keine verwendbare Regel zurückgegeben"
   },
+  "promptAssistantStatusUnusableReview": {
+    "message": "Das Modell hat die Prüfung des Entwurfs nicht abgeschlossen"
+  },
   "promptAssistantStatusWorking": {
     "message": "Entwurf wird erstellt und geprüft…"
   },

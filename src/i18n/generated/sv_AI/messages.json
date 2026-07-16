@@ -4093,6 +4093,9 @@
   "promptAssistantStatusUnusable": {
     "message": "Modellen returnerade ingen användbar regel"
   },
+  "promptAssistantStatusUnusableReview": {
+    "message": "Modellen slutförde inte kontrollen av utkastet"
+  },
   "promptAssistantStatusWorking": {
     "message": "Skapar och kontrollerar ett utkast…"
   },

@@ -4093,6 +4093,9 @@
   "promptAssistantStatusUnusable": {
     "message": "O modelo não retornou uma regra utilizável"
   },
+  "promptAssistantStatusUnusableReview": {
+    "message": "O modelo não terminou de verificar o rascunho"
+  },
   "promptAssistantStatusWorking": {
     "message": "Criando e verificando um rascunho…"
   },
