@@ -171,6 +171,95 @@ for (const [file, dependencies] of imports) {
   }
 }
 
+// Options feature subdirectories are siblings, not a flat namespace: each may
+// depend on core/, ui/, styles/ (CSS), and any cross-layer directory, but not
+// reach into another feature directory's internals. A short, exact allowlist
+// covers real infrastructure reuse that predates this rule — one editor
+// feature building on another's engine or pure model, not a data-sharing
+// shortcut (genuinely shared data/vocabulary was moved to core/ instead, see
+// docs/CODE-ORGANIZATION.md Phase 3.1/3.3). Extend the allowlist only for the
+// same kind of documented, load-bearing reuse; do not widen it to a whole
+// directory pair.
+const optionsFeatureDirs = [
+  "dialogs",
+  "history",
+  "integrations",
+  "path-editor",
+  "reference",
+  "route-debugger",
+  "rule-editor",
+  "syntax-editor",
+];
+const allowedCrossFeatureImports = new Map([
+  // path-editor's text-mode textarea reuses the syntax editor's autocomplete
+  // popover, validation, and pure model rather than duplicating them.
+  [
+    "src/options/path-editor/path-editor.ts",
+    new Set([
+      "src/options/syntax-editor/autocomplete.ts",
+      "src/options/syntax-editor/editor-validation.ts",
+      "src/options/syntax-editor/syntax-editor-model.ts",
+    ]),
+  ],
+  // rule-editor's text-mode textarea reuses the same syntax-editor engine.
+  [
+    "src/options/rule-editor/rule-visual-editor.ts",
+    new Set([
+      "src/options/syntax-editor/autocomplete.ts",
+      "src/options/syntax-editor/editor-validation.ts",
+      "src/options/syntax-editor/syntax-editor-model.ts",
+    ]),
+  ],
+  // The template-library rule builder inserts generated rule text through
+  // PathEditor.insertText and highlights it via the syntax editor's renderer.
+  [
+    "src/options/rule-editor/rule-builder.ts",
+    new Set([
+      "src/options/path-editor/path-editor.ts",
+      "src/options/syntax-editor/syntax-editor.ts",
+    ]),
+  ],
+  // The variables-preview panel inserts a clicked variable into whichever
+  // path-editor field currently has focus.
+  [
+    "src/options/reference/variables-preview.ts",
+    new Set(["src/options/path-editor/path-editor.ts"]),
+  ],
+  // The route debugger reuses the rule visual editor's pure rule parser to
+  // resolve which rule a simulated request would match.
+  [
+    "src/options/route-debugger/route-debugger-model.ts",
+    new Set(["src/options/rule-editor/rule-visual-editor-model.ts"]),
+  ],
+  // The shared manual (text) editor dirty-state tracker diffs visual rows for
+  // both grammar editors, so it reads each editor's pure model.
+  [
+    "src/options/syntax-editor/manual-editor-controller.ts",
+    new Set([
+      "src/options/path-editor/path-editor-model.ts",
+      "src/options/rule-editor/rule-visual-editor-model.ts",
+    ]),
+  ],
+]);
+for (const [file, dependencies] of imports) {
+  const fileRelative = relative(file);
+  if (!fileRelative.startsWith("src/options/")) continue;
+  const sourceFeature = optionsFeatureDirs.find((dir) =>
+    fileRelative.startsWith(`src/options/${dir}/`),
+  );
+  if (!sourceFeature) continue;
+  const allowed = allowedCrossFeatureImports.get(fileRelative);
+  for (const dependency of dependencies) {
+    const dependencyRelative = relative(dependency);
+    const dependencyFeature = optionsFeatureDirs.find((dir) =>
+      dependencyRelative.startsWith(`src/options/${dir}/`),
+    );
+    if (!dependencyFeature || dependencyFeature === sourceFeature) continue;
+    if (allowed?.has(dependencyRelative)) continue;
+    report(file, "options feature directories must not import each other's internals", dependency);
+  }
+}
+
 // Config owns schemas, normalization and stored values. Application services
 // may consume config, but config must not reach upward into execution-context
 // or download/background implementations.

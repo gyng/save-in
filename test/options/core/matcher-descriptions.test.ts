@@ -3,7 +3,7 @@
 import {
   matcherDescription,
   matcherTestValue,
-} from "../../../src/options/reference/matcher-descriptions.ts";
+} from "../../../src/options/core/matcher-descriptions.ts";
 
 beforeEach(() => {
   document.body.innerHTML = `

@@ -18,12 +18,12 @@ import {
   updateRoutingClause,
   type VisualRoutingRule,
 } from "./rule-visual-editor-model.ts";
-import { clauseGroup, sortClauses, sortVariables } from "../reference/vocabulary-groups.ts";
+import { clauseGroup, sortClauses, sortVariables } from "../core/vocabulary-groups.ts";
 import { isAutomaticRuleClauses } from "../../routing/automatic-rule.ts";
 import { completeDirectorySyntax } from "../syntax-editor/syntax-editor-model.ts";
 import { bindTabInteractions, syncTabSelection } from "../core/tab-controls.ts";
 import { attachTypeahead } from "../ui/typeahead.ts";
-import { matcherDescription, matcherTestValue } from "../reference/matcher-descriptions.ts";
+import { matcherDescription, matcherTestValue } from "../core/matcher-descriptions.ts";
 import {
   clearValidationFields,
   EDITOR_VALIDATION_EVENT,

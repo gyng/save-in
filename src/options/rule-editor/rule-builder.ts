@@ -8,7 +8,7 @@ import { sendInternalMessage } from "../../platform/messaging.ts";
 // all react as if the user had typed the rule.
 
 import { PathEditor } from "../path-editor/path-editor.ts";
-import { sortClauses } from "../reference/vocabulary-groups.ts";
+import { sortClauses } from "../core/vocabulary-groups.ts";
 import { getMessage } from "../../platform/localization.ts";
 import { localizeRuleTemplates, type LocalizedRuleTemplate } from "./rule-templates.ts";
 import { renderSyntaxHighlight } from "../syntax-editor/syntax-editor.ts";

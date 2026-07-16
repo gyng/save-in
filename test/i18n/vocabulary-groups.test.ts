@@ -7,7 +7,7 @@ import {
   sortVariables,
   variableExample,
   variableGroup,
-} from "../../src/options/reference/vocabulary-groups.ts";
+} from "../../src/options/core/vocabulary-groups.ts";
 
 test("groups variables by user task rather than implementation scope", () => {
   expect(variableGroup(":date:")).toBe("Date and time");

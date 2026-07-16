@@ -678,6 +678,52 @@ registration requires updating the owner list deliberately, not reflexively.
    `ui/`, and cross-layer modules), mirroring how the checker already
    protects the top-level directories. Add the rule after Phase 1 so the new
    boundaries cannot silently erode.
+
+   **Landed.** Measured first with a throwaway script that walked every
+   `.ts` import under each of the eight feature directories (`dialogs/`,
+   `history/`, `integrations/`, `path-editor/`, `reference/`,
+   `route-debugger/`, `rule-editor/`, `syntax-editor/`) and flagged any target
+   in a *different* feature directory: 22 existing cross-feature edges, too
+   many and too varied to add as a blanket rule exception.
+
+   Three files were genuinely shared data/vocabulary, not feature logic, and
+   moved out of `reference/` into `core/` instead of being exempted:
+   `matcher-descriptions.ts`, `reference-descriptions.ts`, and
+   `vocabulary-groups.ts` (with their tests, `test/options/reference/{matcher,
+   reference}-descriptions.test.ts` → `test/options/core/`, and
+   `test/i18n/vocabulary-groups.test.ts`'s import path updated in place). All
+   three had zero or trivial same-directory dependencies and were already
+   imported by three or more unrelated features (`path-editor`, `rule-editor`,
+   `syntax-editor`, plus `reference/` itself) — the same "no single owning
+   feature directory" shape as Phase 3.1, resolved the same way Phase 3.1's
+   own reasoning suggested: relocate to `core/` when the layering allows every
+   importer to reach it there (it does — `core/` is always a legal cross-
+   feature target). This dropped the count from 22 to 12. Phase 1's
+   file-placement table and the "Problems" list (both above) still describe
+   `reference/` as it was when Phase 1 landed; they were not rewritten, same
+   as the `manual-editor-state.ts` precedent in 3.2.
+
+   The remaining 12 edges are real infrastructure reuse — one editor feature
+   built on another editor's engine or pure model (`path-editor.ts` and
+   `rule-visual-editor.ts` both drive their text-mode textarea through
+   `syntax-editor/{autocomplete,editor-validation,syntax-editor-model}.ts`;
+   `rule-builder.ts` inserts generated rule text through `PathEditor
+   .insertText` and highlights it via `syntax-editor.ts`;
+   `reference/variables-preview.ts` inserts a clicked variable into the
+   focused path-editor field; `route-debugger-model.ts` reuses
+   `rule-visual-editor-model.ts`'s pure rule parser to resolve which rule a
+   simulated request matches; `manual-editor-controller.ts` reads both
+   editors' pure models to diff visual rows). None of this is a second
+   grammar or a redesign target — it is the same kind of load-bearing reuse
+   Phase 1 already described for the `-model.ts` pattern, just crossing a
+   feature-directory line the checker had never enforced before. These landed
+   as an exact, file-to-file `allowedCrossFeatureImports` allowlist in
+   `check-import-cycles.js` (12 entries, one per real edge, each with a
+   one-line comment on why it exists) rather than a directory-level exception,
+   so a new, unrelated cross-feature import still fails the check. Verified
+   the rule actually fires by temporarily adding an unauthorized edge
+   (`history-panel.ts` importing `path-editor.ts`) and confirming it was
+   reported, then reverting.
 4. **Consolidate the automation concern.** Gather
    `routing/automatic-rule.ts` eligibility, `automation/*`, and the
    `handleAutoDownloadSource` orchestration (Phase 2.1) so `automation/`

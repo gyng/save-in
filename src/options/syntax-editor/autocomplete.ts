@@ -1,8 +1,8 @@
 import { webExtensionApi } from "../../platform/web-extension-api.ts";
 import { MESSAGE_TYPES } from "../../shared/constants.ts";
 import { sendInternalMessage } from "../../platform/messaging.ts";
-import { matcherDescription, matcherTestValue } from "../reference/matcher-descriptions.ts";
-import { referenceDescription } from "../reference/reference-descriptions.ts";
+import { matcherDescription, matcherTestValue } from "../core/matcher-descriptions.ts";
+import { referenceDescription } from "../core/reference-descriptions.ts";
 import {
   clauseGroup,
   isLazyVariable,
@@ -10,7 +10,7 @@ import {
   sortVariables,
   variableExample,
   variableGroup,
-} from "../reference/vocabulary-groups.ts";
+} from "../core/vocabulary-groups.ts";
 import {
   completeDirectorySyntax,
   completeRoutingSyntax,

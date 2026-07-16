@@ -2,9 +2,9 @@ import { webExtensionApi } from "../../platform/web-extension-api.ts";
 import { getMessage } from "../../platform/localization.ts";
 import { MESSAGE_TYPES } from "../../shared/constants.ts";
 import { sendInternalMessage } from "../../platform/messaging.ts";
-import { compareClauses, CLAUSE_GROUPS, clauseGroup } from "../reference/vocabulary-groups.ts";
-import { matcherTestValue } from "../reference/matcher-descriptions.ts";
-import { referenceDescription } from "../reference/reference-descriptions.ts";
+import { compareClauses, CLAUSE_GROUPS, clauseGroup } from "../core/vocabulary-groups.ts";
+import { matcherTestValue } from "../core/matcher-descriptions.ts";
+import { referenceDescription } from "../core/reference-descriptions.ts";
 import { closeDetailsAndRestoreFocus } from "../ui/dismissible-details.ts";
 
 export const setupPathInsertMenu = (

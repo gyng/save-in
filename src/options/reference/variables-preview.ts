@@ -8,8 +8,8 @@ import {
   isLazyVariable,
   variableExample,
   variableGroup,
-} from "./vocabulary-groups.ts";
-import { referenceDescription } from "./reference-descriptions.ts";
+} from "../core/vocabulary-groups.ts";
+import { referenceDescription } from "../core/reference-descriptions.ts";
 import { getMessage } from "../../platform/localization.ts";
 import { closeDetailsAndRestoreFocus, setupOutsideDismiss } from "../ui/dismissible-details.ts";
 

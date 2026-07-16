@@ -17,7 +17,7 @@ import { setupPathInsertMenu } from "./path-editor-insert-menu.ts";
 import { completeDirectorySyntax } from "../syntax-editor/syntax-editor-model.ts";
 import { bindTabInteractions, syncTabSelection } from "../core/tab-controls.ts";
 import { registerPathSourceElement, selectPathSource } from "./path-source-selection.ts";
-import { sortVariables } from "../reference/vocabulary-groups.ts";
+import { sortVariables } from "../core/vocabulary-groups.ts";
 import {
   deletePathNode,
   dropPathNode,

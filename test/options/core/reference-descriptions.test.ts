@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { referenceDescription } from "../../../src/options/reference/reference-descriptions.ts";
+import { referenceDescription } from "../../../src/options/core/reference-descriptions.ts";
 
 describe("reference descriptions", () => {
   test("skips incomplete rows and normalizes matching descriptions", () => {

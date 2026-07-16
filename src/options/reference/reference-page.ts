@@ -3,7 +3,7 @@ import {
   compareClauses,
   compareVariables,
   variableGroup,
-} from "./vocabulary-groups.ts";
+} from "../core/vocabulary-groups.ts";
 import { webExtensionApi } from "../../platform/web-extension-api.ts";
 import { MESSAGE_TYPES } from "../../shared/constants.ts";
 import { sendInternalMessage } from "../../platform/messaging.ts";
