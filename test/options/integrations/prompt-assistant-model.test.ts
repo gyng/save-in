@@ -225,6 +225,9 @@ describe("Prompt API rule-authoring model", () => {
       "fileext/i: ^(?:pdf|png)$\ninto: archive/:filename:",
       [],
     ],
+    // jpg and jpeg spell one format, so covering both is not a broadening.
+    ["save jpg into /photos", "fileext/i: ^jpe?g$\ninto: photos/:filename:", []],
+    ["save jpeg into /photos", "fileext/i: ^jpe?g$\ninto: photos/:filename:", []],
     [
       "save images from docs.example.com into /archive",
       "sourcekind: ^image$\npagedomain: ^docs\\.example\\.com$\ninto: archive/:filename:",

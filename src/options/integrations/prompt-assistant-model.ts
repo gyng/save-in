@@ -236,6 +236,18 @@ const COMMON_FILE_EXTENSIONS = [
 ] as const;
 const COMMON_FILE_EXTENSION_SET: ReadonlySet<string> = new Set(COMMON_FILE_EXTENSIONS);
 
+// Spellings of one format. Covering the whole group is not a broadening, so a
+// request for jpg is still served exactly by a matcher that accepts jpeg.
+const FILE_EXTENSION_ALIASES = [["jpeg", "jpg"]];
+
+const withAliases = (extensions: string[]): ReadonlySet<string> => {
+  const requested = new Set(extensions);
+  for (const group of FILE_EXTENSION_ALIASES) {
+    if (group.some((name) => requested.has(name))) for (const name of group) requested.add(name);
+  }
+  return requested;
+};
+
 const FILE_TYPE_FILLER = new Set([
   "all",
   "any",
@@ -387,8 +399,9 @@ export const ruleRequestGuardrailIssues = (request: string, rule: string): strin
             issues.push(`The fileext matcher does not match the requested ${extension} type.`);
           }
         }
+        const requested = withAliases(extensions);
         const unexpected = COMMON_FILE_EXTENSIONS.filter(
-          (extension) => !extensions.includes(extension) && expression.test(extension),
+          (extension) => !requested.has(extension) && expression.test(extension),
         );
         if (unexpected.length > 0) {
           issues.push(
