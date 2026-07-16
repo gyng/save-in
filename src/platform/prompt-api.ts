@@ -16,13 +16,25 @@
 export type PromptAvailability = "unavailable" | "downloadable" | "downloading" | "available";
 
 type LanguageModelSession = {
-  prompt: (input: string) => Promise<string>;
+  prompt: (input: string, options?: { signal?: AbortSignal }) => Promise<string>;
   destroy: () => void;
+};
+
+type LanguageModelDownloadMonitor = {
+  addEventListener: (
+    type: "downloadprogress",
+    listener: (event: { loaded: number }) => void,
+  ) => void;
+};
+
+type LanguageModelCreateOptions = {
+  signal?: AbortSignal;
+  monitor?: (monitor: LanguageModelDownloadMonitor) => void;
 };
 
 type LanguageModelStatic = {
   availability: () => Promise<PromptAvailability>;
-  create: (options?: unknown) => Promise<LanguageModelSession>;
+  create: (options?: LanguageModelCreateOptions) => Promise<LanguageModelSession>;
 };
 
 // The global is a platform declaration gap (not in the TS lib). Read it as
@@ -58,7 +70,11 @@ export const promptAvailability = async (): Promise<PromptAvailability> => {
 // destroys a session per call; batch callers should hold their own session.
 export const runPrompt = async (
   input: string,
-  options: { allowDownload?: boolean } = {},
+  options: {
+    allowDownload?: boolean;
+    signal?: AbortSignal;
+    onDownloadProgress?: (loaded: number) => void;
+  } = {},
 ): Promise<string | null> => {
   const model = getLanguageModel();
   if (!model) return null;
@@ -66,9 +82,23 @@ export const runPrompt = async (
   if (availability !== "available" && !(options.allowDownload && availability === "downloadable")) {
     return null;
   }
-  const session = await model.create();
+  const createOptions: LanguageModelCreateOptions = {
+    ...(options.signal ? { signal: options.signal } : {}),
+    ...(options.onDownloadProgress
+      ? {
+          monitor: (monitor) => {
+            monitor.addEventListener("downloadprogress", (event) => {
+              options.onDownloadProgress?.(event.loaded);
+            });
+          },
+        }
+      : {}),
+  };
+  const session = await model.create(createOptions);
   try {
-    return await session.prompt(input);
+    return options.signal
+      ? await session.prompt(input, { signal: options.signal })
+      : await session.prompt(input);
   } finally {
     session.destroy();
   }

@@ -38,5 +38,6 @@ describe("Prompt API rule-authoring model", () => {
       "fileext: ^png$\ninto: Images",
     );
     expect(cleanRuleSuggestion("  \n ")).toBeNull();
+    expect(cleanRuleSuggestion("```text\n   \n```")).toBeNull();
   });
 });

@@ -2881,7 +2881,7 @@
   },
   "historyCancelDownload": {
     "message": "Cancel",
-    "description": "History action that cancels an active download. Used in src/options/history-panel.ts."
+    "description": "Action that cancels an active download or on-device assistant request. Used in src/options/history-panel.ts and src/options/options.html."
   },
   "historyCancelDownloadTitle": {
     "message": "Cancel this download",

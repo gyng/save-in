@@ -2873,6 +2873,7 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
             <textarea
               id="prompt-assistant-input"
               rows="3"
+              maxlength="4000"
               data-no-autosave
               aria-describedby="prompt-assistant-prompt-help"
               placeholder="__MSG_promptAssistantPromptPlaceholder__"
@@ -2885,7 +2886,17 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
               <button id="prompt-assistant-submit" class="button primary" type="submit" disabled>
                 __MSG_promptAssistantSuggest__
               </button>
+              <button id="prompt-assistant-cancel" class="button" type="button" hidden disabled>
+                __MSG_historyCancelDownload__
+              </button>
             </div>
+            <progress
+              id="prompt-assistant-progress"
+              class="prompt-assistant-progress"
+              max="1"
+              aria-label="__MSG_promptAssistantStatusDownloading__"
+              hidden
+            ></progress>
           </form>
 
           <section
