@@ -21,15 +21,14 @@ Not features — release hygiene that unblocks everything below.
 
 ## 4.1 — coverage and control
 
-Shipped while 4.0.x patches absorb feedback. Five tracks. The first two are
-implemented (see the 4.1.0 changelog); the remaining three are independent
-of each other and can land in any order.
+Shipped while 4.0.x patches absorb feedback. Five tracks, all implemented
+(see the 4.1.0 changelog).
 
 1. Routing grammar: `fetch:` URL rewriting (#137) — landed.
 2. Site template collections (#187, #189, #209, #210, #211) — landed.
-3. Page Sources automatic scan: link-discovered sources.
-4. Per-site disable list (#183).
-5. Undo last save (#102).
+3. Page Sources automatic scan: link-discovered sources — landed.
+4. Per-site disable list (#183) — landed.
+5. Undo last save (#102) — landed.
 
 ### Routing grammar: `fetch:` URL rewriting (#137)
 

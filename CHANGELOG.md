@@ -15,6 +15,19 @@
   three Save In themes — Glacier (cool light blue), Matcha (soft light green),
   and Ember (warm dark amber). Pastel pink's pressed button color now darkens
   like the other light themes.
+- Automatic Page Sources saves now adopt linked media: anchors that point at
+  an image, video, or audio file count as sources, while plain, document, and
+  stream links stay out. Eligibility, dedup, and per-page limits are
+  unchanged.
+- Added undo for a completed save (#102): a button on the success
+  notification (Chrome) and a History row action (both browsers) remove the
+  file, clear it from the browser's download list, and mark the History entry
+  undone. A file already moved or removed still gets marked, with distinct
+  feedback.
+- Added a per-site disable list (#183): pages matching the listed
+  WebExtension match patterns get no click-to-save, Page Sources panel, or
+  automatic saves. Invalid lines report a diagnostic and never broaden the
+  match.
 
 # 4.0.0
 
