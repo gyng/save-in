@@ -8,9 +8,12 @@ const root = path.resolve(__dirname, "..");
 const configPath = path.join(root, "config", "vitest", "base.mjs");
 const sourceRoot = path.join(root, "src");
 // Reviewed ceiling after the 4.2 parser/finalization/data-URL cleanup removed ten
-// obsolete ignores. New ignores require an explicit rationale and a deliberate
-// ceiling update so uncovered branches cannot accumulate silently.
-const ignoreCeiling = 74;
+// obsolete ignores, plus one for the rule-plan assembler: the assistant's
+// single-rule check is unreachable while every candidate is assembled from a
+// checked plan, and is kept for a future non-plan caller rather than deleted.
+// New ignores require an explicit rationale and a deliberate ceiling update so
+// uncovered branches cannot accumulate silently.
+const ignoreCeiling = 75;
 
 const errors = [];
 const config = fs.readFileSync(configPath, "utf8");

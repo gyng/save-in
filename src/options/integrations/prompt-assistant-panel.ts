@@ -151,6 +151,8 @@ export const setupPromptAssistantPanel = (
 
   const validationIssues = async (request: string, candidate: string): Promise<string[]> => {
     const issues = ruleRequestGuardrailIssues(request, candidate);
+    // Kept so a candidate from any future non-plan source is checked, not trusted.
+    /* v8 ignore next -- assembleRule emits one rule by construction: every plan field reaching the text rejects \p{Cc}, so none can open a second rule. */
     if (!isSingleRuleSuggestion(candidate)) return [copy.singleRule, ...issues];
     const invalidCss = cssSelectorErrors(candidate)[0];
     if (invalidCss) return [...issues, invalidCss.message];
