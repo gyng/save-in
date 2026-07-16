@@ -36,22 +36,21 @@ export const expandFetchUrl = async (
   return resolved.join("");
 };
 
-// The WHATWG parser strips tab/CR/LF anywhere in the string before parsing,
-// so "https://\t/x" would reparse with host "x"; every C0 control in an
-// expanded URL is substitution garbage that must fail closed rather than
-// restructure the request. Space stays allowed: it cannot survive in an
-// authority (parsing fails) and is legitimate, percent-encoded, in paths.
-const hasControlCharacter = (value: string): boolean =>
-  [...value].some((char) => {
-    const code = char.charCodeAt(0);
-    return code <= 0x1f || code === 0x7f;
-  });
+// Characters the WHATWG URL parser rewrites the authority boundary around for
+// special (http/https) schemes, any of which can promote a path segment to the
+// host when a substituted value contains them: tab/CR/LF are stripped and C0
+// controls trimmed anywhere in the string, and "\" is treated as "/". Reject
+// every one so the string we validate is the string the parser parses. A
+// legitimate backslash in a path is percent-encoded (%5C) and still passes; a
+// space cannot survive in an authority (parsing fails) and is fine in a path.
+// eslint-disable-next-line no-control-regex -- rejecting the control range is the point
+const RESTRUCTURES_AUTHORITY = /[\x00-\x1f\x7f\\]/;
 
 // An expanded template is only usable when its authority is literally
-// present and the string contains nothing the parser would restructure. An
+// present and the string carries nothing the parser would restructure. An
 // empty substitution can collapse "https:///path" into a URL whose HOST
 // becomes the first path segment even though the WHATWG parser accepts it.
 export const isUsableFetchRewrite = (value: string): boolean =>
   /^https?:\/\/[^/?#]/i.test(value) &&
-  !hasControlCharacter(value) &&
+  !RESTRUCTURES_AUTHORITY.test(value) &&
   withUrl(value, (url) => url.protocol === "https:" || url.protocol === "http:", false);

@@ -84,3 +84,13 @@ test("rejects characters the URL parser strips before restructuring", () => {
   // and is legitimate, percent-encoded, in a path.
   expect(isUsableFetchRewrite("https://mirror.example/a b.png")).toBe(true);
 });
+
+test("rejects a backslash the parser folds into an authority slash", () => {
+  // For http(s) the WHATWG parser treats "\\" as "/", so "https://\\/orig.png"
+  // reparses with host "orig.png" — the same authority collapse as tab/CR/LF.
+  expect(isUsableFetchRewrite("https://\\/orig.png")).toBe(false);
+  expect(isUsableFetchRewrite("https:/\\orig.png")).toBe(false);
+  expect(isUsableFetchRewrite("https://mirror.example\\@evil.example/x")).toBe(false);
+  // A percent-encoded backslash is a normal path character and stays usable.
+  expect(isUsableFetchRewrite("https://mirror.example/a%5Cb.png")).toBe(true);
+});
