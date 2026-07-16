@@ -321,13 +321,22 @@ const STRUCTURED_SUFFIX_EXTENSIONS: Record<string, string> = {
   gzip: "gz",
 };
 
+// Both tables are object literals, so they inherit Object.prototype. The server
+// chooses Content-Type, and "constructor" and "__proto__" are already lowercase,
+// so they survive normalizeMimeType and reach a plain lookup intact — each
+// resolves to an inherited value that is truthy and is not a string, which
+// appendMimeExtension would then stringify onto the filename. Only an own key
+// names a type Save In knows.
+const ownExtension = (table: Record<string, string>, key: string): string =>
+  (Object.hasOwn(table, key) && table[key]) || "";
+
 // "image/jpeg" -> "jpg". Returns "" for anything not known: see MIME_EXTENSIONS.
 export const mimeToExtension = (mime: string | null | undefined): string => {
   if (!mime) return "";
-  const known = MIME_EXTENSIONS[mime];
+  const known = ownExtension(MIME_EXTENSIONS, mime);
   if (known) return known;
   const suffix = mime.split("+")[1];
-  return (suffix && STRUCTURED_SUFFIX_EXTENSIONS[suffix]) || "";
+  return (suffix && ownExtension(STRUCTURED_SUFFIX_EXTENSIONS, suffix)) || "";
 };
 
 // Lazily HEAD the URL once per download (cached as a promise on the info bag,

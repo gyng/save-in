@@ -979,6 +979,22 @@ describe(":mime: / :contenttype: / :mimeext: (async HEAD)", () => {
     ])("gives no extension for %s", (mime) => {
       expect(Variable.mimeToExtension(mime)).toBe("");
     });
+
+    // The table is an object literal, so it inherits Object.prototype. A server
+    // controls Content-Type, and normalizeMimeType lowercases it, so the two
+    // inherited names that are already lowercase reach the lookup intact. Both
+    // are truthy and neither is a string: appendMimeExtension would have
+    // stringified them onto the filename.
+    // The structured-suffix table is reached with the text after "+", so it
+    // takes the same names by the same route.
+    test.each([
+      "constructor",
+      "__proto__",
+      "application/vnd.foo+constructor",
+      "application/vnd.foo+__proto__",
+    ])("gives no extension for inherited %s", (mime) => {
+      expect(Variable.mimeToExtension(mime)).toBe("");
+    });
   });
 });
 
