@@ -42,8 +42,8 @@ type LanguageModelStatic = {
 const getLanguageModel = (): LanguageModelStatic | null => {
   const candidate: unknown = Reflect.get(globalThis, "LanguageModel");
   if (
-    typeof candidate === "object" &&
     candidate !== null &&
+    (typeof candidate === "object" || typeof candidate === "function") &&
     typeof (candidate as { availability?: unknown }).availability === "function" &&
     typeof (candidate as { create?: unknown }).create === "function"
   ) {

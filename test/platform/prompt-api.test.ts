@@ -51,6 +51,17 @@ describe("prompt-api capability layer", () => {
     }
   });
 
+  test("accepts Chrome's function-shaped LanguageModel global", async () => {
+    const model = Object.assign(function LanguageModel() {}, {
+      availability: vi.fn(async () => "available" as const),
+      create: vi.fn(async () => ({ prompt: vi.fn(), destroy: vi.fn() })),
+    });
+    Reflect.set(globalThis, "LanguageModel", model);
+
+    expect(hasPromptApi()).toBe(true);
+    await expect(promptAvailability()).resolves.toBe("available");
+  });
+
   test("treats a throwing availability() as unavailable, never an error", async () => {
     install(async () => {
       throw new Error("model check failed");
