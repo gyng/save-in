@@ -107,7 +107,10 @@ export const mergePageSourcesByUrl = (sources: PageSource[]): PageSource[] => {
   // Source records are reused by the live collector and captured by cached row
   // controls. Rebuild their derived origin list on every commit so those
   // controls keep a live record without retaining removed duplicate elements.
-  sources.forEach((source) => (source.originElements = [source.element]));
+  sources.forEach(
+    (source) =>
+      (source.originElements = source.channel === "resource-hint" ? [] : [source.element]),
+  );
   sources.forEach((source) => {
     const existing = merged.get(source.url);
     if (!existing) {

@@ -8,7 +8,7 @@ import {
   matchAutomaticRoutingRule,
   type AutomaticRoutingCandidate,
 } from "../automation/automatic-routing.ts";
-import { collectPageSourceCandidates } from "./source-panel-model.ts";
+import { collectPageSourceCandidates, mergePageSourcesByUrl } from "./source-panel-model.ts";
 import { parseRulesCollecting } from "../routing/rule-parser.ts";
 import { isAutomaticRuleClauses } from "../routing/automatic-rule.ts";
 import { normalizeAutoDownloadLimit } from "../config/content-options.ts";
@@ -154,6 +154,7 @@ export const setupAutoDownloadDiscovery = (
       // anchor collection by itself — it does not require includeLinks.
       includeLinks: options.includeLinks || options.includeDocuments,
     });
+    const admittedSources = [];
     for (const source of candidates) {
       if (source.previewable === false) continue;
       if (
@@ -167,6 +168,20 @@ export const setupAutoDownloadDiscovery = (
         continue;
       const sourceUrl = automaticUrl(source.url, options.includeDataUrls);
       if (!sourceUrl) continue;
+      admittedSources.push({ ...source, url: sourceUrl });
+    }
+    // A URL can be declared by several elements. Route it with the complete
+    // origin set so configured rule order—not collector traversal order—picks
+    // the destination. Keep each admitted kind/channel variant for the normal
+    // non-CSS matchers; only the DOM-origin evidence is shared by URL.
+    const originsByUrl = new Map(
+      mergePageSourcesByUrl(admittedSources).map((source) => [
+        source.url,
+        sourceOriginElements(source),
+      ]),
+    );
+    for (const source of admittedSources) {
+      const sourceUrl = source.url;
       // A long data: URL keys the dedup set on its hash so the set never holds a
       // megabyte string; http(s) and short data: URLs key on the string itself.
       const seenKey = automaticSeenKey(sourceUrl);
@@ -179,7 +194,7 @@ export const setupAutoDownloadDiscovery = (
         ...(cssSelectors.length > 0
           ? {
               matchedCssSelectorsByOrigin: matchedCssSelectorsByOrigin(
-                sourceOriginElements(source),
+                originsByUrl.get(sourceUrl) ?? sourceOriginElements(source),
                 cssSelectors,
               ),
             }

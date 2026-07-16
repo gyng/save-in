@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
 const fixture = vi.hoisted(() => ({ candidates: [] as Array<Record<string, unknown>> }));
 
-vi.mock("../../src/content/source-panel-model.ts", () => ({
+vi.mock("../../src/content/source-panel-model.ts", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../../src/content/source-panel-model.ts")>()),
   collectPageSourceCandidates: () => fixture.candidates,
 }));
 
@@ -11,6 +12,8 @@ import {
   type AutoDownloadDiscoveryOptions,
 } from "../../src/content/auto-download.ts";
 import type { AutomaticRoutingCandidate } from "../../src/automation/automatic-routing.ts";
+import { matchAutomaticRoutingRule } from "../../src/automation/automatic-routing.ts";
+import { parseRulesCollecting } from "../../src/routing/rule-parser.ts";
 
 type DefaultedOption =
   | "includeLinks"
@@ -106,6 +109,53 @@ test("attests selectors per origin and only queues a complete same-element CSS m
       matchedCssSelectorsByOrigin: [["article img", "img:not(.avatar)"]],
     }),
   );
+  controller.stop();
+});
+
+test("preserves rule order when duplicate URLs have different matching origins", async () => {
+  const article = document.createElement("article");
+  const articleImage = document.createElement("img");
+  article.append(articleImage);
+  const aside = document.createElement("aside");
+  const avatar = document.createElement("img");
+  avatar.className = "avatar";
+  aside.append(avatar);
+  fixture.candidates = [
+    { url: "https://cdn.test/shared.png", kind: "image", element: articleImage },
+    { url: "https://cdn.test/shared.png", kind: "image", element: avatar },
+  ];
+  const orderedRules = String.raw`
+context: ^auto$
+pageurl: ^http://localhost/
+css: aside img.avatar
+into: first/
+
+context: ^auto$
+pageurl: ^http://localhost/
+css: article img
+into: second/
+`;
+  const parsed = parseRulesCollecting(orderedRules);
+  const destinations: Array<string | undefined> = [];
+  const send = vi.fn(async (candidate: AutomaticRoutingCandidate) => {
+    destinations.push(matchAutomaticRoutingRule(parsed.rules, candidate)?.destination);
+    return "started" as const;
+  });
+  const controller = setupAutoDownloadDiscovery({
+    rules: orderedRules,
+    live: false,
+    maxPerPage: 10,
+    send,
+  });
+  await controller.idle();
+
+  expect(send).toHaveBeenCalledOnce();
+  expect(send).toHaveBeenCalledWith(
+    expect.objectContaining({
+      matchedCssSelectorsByOrigin: [["article img"], ["aside img.avatar"]],
+    }),
+  );
+  expect(destinations).toEqual(["first/"]);
   controller.stop();
 });
 
