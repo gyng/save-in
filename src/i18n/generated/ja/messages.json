@@ -3828,10 +3828,10 @@
     "message": "Twitter/Xのハンドルを先頭に追加"
   },
   "ruleTemplateTwitterOriginalsDescription": {
-    "message": "Twitter と X の画像リンクを公開されている最大サイズの画像に書き換えます"
+    "message": "TwitterとXの画像リンクを元のフル解像度ファイルに書き換えます"
   },
   "ruleTemplateTwitterOriginalsName": {
-    "message": "Twitter/X の最大画像"
+    "message": "Twitter/X画像の元データ"
   },
   "ruleTemplateWikimediaOriginalDescription": {
     "message": "Wikimedia Commonsのサムネイルリンクを元のフルサイズファイルに書き換えます"
@@ -3938,32 +3938,54 @@
   "routeDebuggerRenamedName": {
     "message": "変更後の名前"
   },
-  "promptAssistantTitle": { "message": "デバイス上のルールアシスタント" },
+  "promptAssistantTitle": {
+    "message": "デバイス上のルールアシスタント"
+  },
   "promptAssistantIntro": {
     "message": "ファイルの保存先を説明すると、確認用の振り分けルールを1つ提案します。"
   },
-  "promptAssistantEnable": { "message": "デバイス上のアシスタントを有効にする" },
+  "promptAssistantEnable": {
+    "message": "デバイス上のアシスタントを有効にする"
+  },
   "promptAssistantEnableHelp": {
     "message": "オフの場合、Save In はモデルの確認、セッションの作成、プロンプトの送信を行いません。"
   },
-  "promptAssistantStatusLabel": { "message": "状態" },
-  "promptAssistantPromptLabel": { "message": "振り分けルールを説明" },
+  "promptAssistantStatusLabel": {
+    "message": "状態"
+  },
+  "promptAssistantPromptLabel": {
+    "message": "振り分けルールを説明"
+  },
   "promptAssistantPromptPlaceholder": {
     "message": "example.com の PNG ファイルを Images/example に保存"
   },
   "promptAssistantPromptHelp": {
     "message": "このリクエストはすべてのタブに共通で、保存されません。アシスタントは開いているタブを読み取りません。対象サイト、ファイル形式、保存先フォルダーを入力してください。"
   },
-  "promptAssistantSuggest": { "message": "ルールを提案" },
-  "promptAssistantGeneratedDraft": { "message": "生成された下書き" },
-  "promptAssistantAddToRules": { "message": "ルールに追加" },
-  "promptAssistantClearDraft": { "message": "下書きを消去" },
+  "promptAssistantSuggest": {
+    "message": "ルールを提案"
+  },
+  "promptAssistantGeneratedDraft": {
+    "message": "生成された下書き"
+  },
+  "promptAssistantAddToRules": {
+    "message": "ルールに追加"
+  },
+  "promptAssistantClearDraft": {
+    "message": "下書きを消去"
+  },
   "promptAssistantPrivacy": {
     "message": "Chrome はこのデバイス上でモデルを実行します。Save In はプロンプトや結果をサーバーに送信しません。生成されたルールが自動的に適用されることはありません。"
   },
-  "promptAssistantStatusOff": { "message": "オフ — モデルの確認もプロンプトの送信も行いません" },
-  "promptAssistantStatusChecking": { "message": "デバイス上のモデルを確認しています…" },
-  "promptAssistantStatusReady": { "message": "このデバイスで使用できます" },
+  "promptAssistantStatusOff": {
+    "message": "オフ — モデルの確認もプロンプトの送信も行いません"
+  },
+  "promptAssistantStatusChecking": {
+    "message": "デバイス上のモデルを確認しています…"
+  },
+  "promptAssistantStatusReady": {
+    "message": "このデバイスで使用できます"
+  },
   "promptAssistantStatusDownloadable": {
     "message": "最初のルールを提案するときにモデルをダウンロードします"
   },
@@ -3973,25 +3995,76 @@
   "promptAssistantStatusUnavailable": {
     "message": "このブラウザーまたはデバイスでは利用できません"
   },
-  "promptAssistantStatusWorking": { "message": "下書きを作成して確認しています…" },
+  "promptAssistantStatusWorking": {
+    "message": "下書きを作成して確認しています…"
+  },
   "promptAssistantStatusInvalid": {
     "message": "下書きの再生成が必要です：$ERROR$",
-    "placeholders": { "error": { "content": "$1", "example": "The rule needs an into clause" } }
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "The rule needs an into clause"
+      }
+    }
   },
   "promptAssistantStatusFailed": {
     "message": "下書きを作成できませんでした：$ERROR$",
-    "placeholders": { "error": { "content": "$1", "example": "The model session ended" } }
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "The model session ended"
+      }
+    }
   },
   "promptAssistantStatusDraftReady": {
     "message": "下書きの準備ができました — 追加する前に確認してください"
   },
-  "promptAssistantStatusAdded": { "message": "未保存の下書きとしてルールエディターに追加しました" },
+  "promptAssistantStatusAdded": {
+    "message": "未保存の下書きとしてルールエディターに追加しました"
+  },
   "html_cssMatcherDescription": {
     "message": "ソースを検出したページ要素に一致します。自動ページソース、クリック保存、ページソースパネルからの保存で利用できます。"
   },
   "html_cssMatcherSyntax": {
     "message": "css: マッチャーは正規表現ではなく CSS セレクター構文を使用し、フラグは指定できません。"
   },
-  "ruleInvalidCssSelector": { "message": "CSS セレクターが無効です" },
-  "ruleCssFlags": { "message": "css: には正規表現フラグを指定できません" }
+  "ruleInvalidCssSelector": {
+    "message": "CSS セレクターが無効です"
+  },
+  "ruleCssFlags": {
+    "message": "css: には正規表現フラグを指定できません"
+  },
+  "ruleTemplateYoutubeMaxResDescription": {
+    "message": "YouTubeのサムネイルリンクを最大解像度の画像に書き換えます"
+  },
+  "ruleTemplateYoutubeMaxResName": {
+    "message": "YouTubeサムネイルの最大解像度"
+  },
+  "contextMenuQuickSave": {
+    "message": "クイック保存"
+  },
+  "contextMenuQuickSaveToDirectory": {
+    "message": "$DIRECTORY$ に保存",
+    "placeholders": {
+      "directory": {
+        "content": "$1",
+        "example": "Photos"
+      }
+    }
+  },
+  "manifestCommandQuickSave": {
+    "message": "現在のページをクイック保存"
+  },
+  "o_cQuickSave": {
+    "message": "クイック保存の項目を表示する"
+  },
+  "o_cQuickSaveHelp": {
+    "message": "フォルダー一覧を省略して既定のフォルダーに直接保存するメニュー項目を追加します。"
+  },
+  "o_lQuickSaveDirectory": {
+    "message": "クイック保存フォルダー"
+  },
+  "o_cQuickSaveUseDirectory": {
+    "message": "ダウンロードではなくこのフォルダーに保存する"
+  }
 }

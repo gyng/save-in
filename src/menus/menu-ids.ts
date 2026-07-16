@@ -14,6 +14,8 @@ export const MENU_IDS = {
   },
   ROUTE_EXCLUSIVE: "save-in-route-exclusive",
   ROOT: "save-in-root",
+  QUICK_SAVE: "save-in-quick-save",
+  QUICK_SAVE_TO_DIRECTORY: "save-in-quick-save-to-directory",
   LAST_USED: "save-in-last-used",
   RECENT: "save-in-recent",
   recentDestination: (index: number) => `save-in-recent-${index}`,
@@ -25,3 +27,7 @@ export const MENU_IDS = {
     ACTIONS: "save-in-separator-actions",
   },
 } as const;
+
+// Keyboard command name; must match the manifest `commands` key. Distinct from
+// the MENU_IDS.QUICK_SAVE menu-item id.
+export const QUICK_SAVE_COMMAND = "quick-save";

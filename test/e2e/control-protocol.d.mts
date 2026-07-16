@@ -25,6 +25,9 @@ export interface E2EStoredOptionValues {
   notifyOnSuccess: boolean;
   paths: string;
   promptOnShift: boolean;
+  quickSaveDirectory: string;
+  quickSaveEnabled: boolean;
+  quickSaveUseDirectory: boolean;
   routeBrowserDownloads: boolean;
   routeBrowserDownloadsFirefox: boolean;
   selection: boolean;

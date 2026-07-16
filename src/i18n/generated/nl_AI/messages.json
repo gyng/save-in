@@ -3828,10 +3828,10 @@
     "message": "Twitter/X-handle als voorvoegsel"
   },
   "ruleTemplateTwitterOriginalsDescription": {
-    "message": "Herschrijft Twitter- en X-afbeeldingslinks naar hun grootste openbare versie"
+    "message": "Herschrijft Twitter- en X-afbeeldingslinks naar het originele bestand op volledige resolutie"
   },
   "ruleTemplateTwitterOriginalsName": {
-    "message": "Grootste Twitter/X-afbeelding"
+    "message": "Originele Twitter/X-afbeeldingen"
   },
   "ruleTemplateWikimediaOriginalDescription": {
     "message": "Herschrijft miniatuurlinks van Wikimedia Commons naar het originele bestand op volledige grootte"
@@ -3938,47 +3938,83 @@
   "routeDebuggerRenamedName": {
     "message": "Hernoemde naam"
   },
-  "promptAssistantTitle": { "message": "Regelassistent op het apparaat" },
+  "promptAssistantTitle": {
+    "message": "Regelassistent op het apparaat"
+  },
   "promptAssistantIntro": {
     "message": "Beschrijf waar bestanden naartoe moeten en ontvang één routeringsregel om te controleren."
   },
-  "promptAssistantEnable": { "message": "Assistent op het apparaat inschakelen" },
+  "promptAssistantEnable": {
+    "message": "Assistent op het apparaat inschakelen"
+  },
   "promptAssistantEnableHelp": {
     "message": "Als dit uitstaat, controleert Save In het model niet, maakt het geen sessies en verzendt het geen prompts."
   },
-  "promptAssistantStatusLabel": { "message": "Status" },
-  "promptAssistantPromptLabel": { "message": "Beschrijf een routeringsregel" },
+  "promptAssistantStatusLabel": {
+    "message": "Status"
+  },
+  "promptAssistantPromptLabel": {
+    "message": "Beschrijf een routeringsregel"
+  },
   "promptAssistantPromptPlaceholder": {
     "message": "PNG-bestanden van example.com opslaan in Images/example"
   },
   "promptAssistantPromptHelp": {
     "message": "Deze aanvraag is globaal en wordt niet opgeslagen. De assistent leest uw open tabbladen niet; vermeld de gewenste site, het bestandstype en de map."
   },
-  "promptAssistantSuggest": { "message": "Regel voorstellen" },
-  "promptAssistantGeneratedDraft": { "message": "Gegenereerd concept" },
-  "promptAssistantAddToRules": { "message": "Aan regels toevoegen" },
-  "promptAssistantClearDraft": { "message": "Concept wissen" },
+  "promptAssistantSuggest": {
+    "message": "Regel voorstellen"
+  },
+  "promptAssistantGeneratedDraft": {
+    "message": "Gegenereerd concept"
+  },
+  "promptAssistantAddToRules": {
+    "message": "Aan regels toevoegen"
+  },
+  "promptAssistantClearDraft": {
+    "message": "Concept wissen"
+  },
   "promptAssistantPrivacy": {
     "message": "Chrome voert het model op dit apparaat uit. Save In verzendt de prompt of het resultaat niet naar een server. Gegenereerde regels worden nooit automatisch toegepast."
   },
-  "promptAssistantStatusOff": { "message": "Uit — geen modelcontroles of prompts" },
-  "promptAssistantStatusChecking": { "message": "Model op het apparaat controleren…" },
-  "promptAssistantStatusReady": { "message": "Gereed op dit apparaat" },
+  "promptAssistantStatusOff": {
+    "message": "Uit — geen modelcontroles of prompts"
+  },
+  "promptAssistantStatusChecking": {
+    "message": "Model op het apparaat controleren…"
+  },
+  "promptAssistantStatusReady": {
+    "message": "Gereed op dit apparaat"
+  },
   "promptAssistantStatusDownloadable": {
     "message": "Het model wordt gedownload wanneer u uw eerste regel voorstelt"
   },
-  "promptAssistantStatusDownloading": { "message": "Chrome downloadt het model op het apparaat" },
+  "promptAssistantStatusDownloading": {
+    "message": "Chrome downloadt het model op het apparaat"
+  },
   "promptAssistantStatusUnavailable": {
     "message": "Niet beschikbaar in deze browser of op dit apparaat"
   },
-  "promptAssistantStatusWorking": { "message": "Concept maken en controleren…" },
+  "promptAssistantStatusWorking": {
+    "message": "Concept maken en controleren…"
+  },
   "promptAssistantStatusInvalid": {
     "message": "Het concept moet opnieuw worden geprobeerd: $ERROR$",
-    "placeholders": { "error": { "content": "$1", "example": "The rule needs an into clause" } }
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "The rule needs an into clause"
+      }
+    }
   },
   "promptAssistantStatusFailed": {
     "message": "Kan geen concept maken: $ERROR$",
-    "placeholders": { "error": { "content": "$1", "example": "The model session ended" } }
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "The model session ended"
+      }
+    }
   },
   "promptAssistantStatusDraftReady": {
     "message": "Concept gereed — controleer het voordat u het toevoegt"
@@ -3992,8 +4028,43 @@
   "html_cssMatcherSyntax": {
     "message": "De matcher css: gebruikt CSS-selectorsyntaxis in plaats van een reguliere expressie en accepteert geen vlaggen."
   },
-  "ruleInvalidCssSelector": { "message": "Ongeldige CSS-selector" },
+  "ruleInvalidCssSelector": {
+    "message": "Ongeldige CSS-selector"
+  },
   "ruleCssFlags": {
     "message": "css: accepteert geen vlaggen voor reguliere expressies"
+  },
+  "ruleTemplateYoutubeMaxResDescription": {
+    "message": "Herschrijft miniatuurlinks van YouTube naar de afbeelding met maximale resolutie"
+  },
+  "ruleTemplateYoutubeMaxResName": {
+    "message": "YouTube-miniatuur met maximale resolutie"
+  },
+  "contextMenuQuickSave": {
+    "message": "Snel opslaan"
+  },
+  "contextMenuQuickSaveToDirectory": {
+    "message": "Opslaan in $DIRECTORY$",
+    "placeholders": {
+      "directory": {
+        "content": "$1",
+        "example": "Photos"
+      }
+    }
+  },
+  "manifestCommandQuickSave": {
+    "message": "Huidige pagina snel opslaan"
+  },
+  "o_cQuickSave": {
+    "message": "Een item voor snel opslaan tonen"
+  },
+  "o_cQuickSaveHelp": {
+    "message": "Voegt een menu-item toe dat direct in de standaardmap opslaat en de mappenlijst overslaat."
+  },
+  "o_lQuickSaveDirectory": {
+    "message": "Map voor snel opslaan"
+  },
+  "o_cQuickSaveUseDirectory": {
+    "message": "Opslaan in deze map in plaats van Downloads"
   }
 }

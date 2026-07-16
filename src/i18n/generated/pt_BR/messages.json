@@ -3828,10 +3828,10 @@
     "message": "Prefixo com identificador do Twitter/X"
   },
   "ruleTemplateTwitterOriginalsDescription": {
-    "message": "Reescreve links de imagem do Twitter e X para a maior versão pública"
+    "message": "Reescreve links de imagem do Twitter e X para o arquivo original em resolução completa"
   },
   "ruleTemplateTwitterOriginalsName": {
-    "message": "Maior imagem do Twitter/X"
+    "message": "Originais de imagens do Twitter/X"
   },
   "ruleTemplateWikimediaOriginalDescription": {
     "message": "Reescreve links de miniaturas do Wikimedia Commons para o arquivo original em tamanho completo"
@@ -3938,49 +3938,87 @@
   "routeDebuggerRenamedName": {
     "message": "Nome renomeado"
   },
-  "promptAssistantTitle": { "message": "Assistente de regras no dispositivo" },
+  "promptAssistantTitle": {
+    "message": "Assistente de regras no dispositivo"
+  },
   "promptAssistantIntro": {
     "message": "Descreva onde os arquivos devem ser salvos e receba uma regra de roteamento para revisar."
   },
-  "promptAssistantEnable": { "message": "Ativar o assistente no dispositivo" },
+  "promptAssistantEnable": {
+    "message": "Ativar o assistente no dispositivo"
+  },
   "promptAssistantEnableHelp": {
     "message": "Quando desativado, o Save In não verifica o modelo, não cria sessões nem envia prompts."
   },
-  "promptAssistantStatusLabel": { "message": "Status" },
-  "promptAssistantPromptLabel": { "message": "Descreva uma regra de roteamento" },
+  "promptAssistantStatusLabel": {
+    "message": "Status"
+  },
+  "promptAssistantPromptLabel": {
+    "message": "Descreva uma regra de roteamento"
+  },
   "promptAssistantPromptPlaceholder": {
     "message": "Salvar arquivos PNG de example.com em Images/example"
   },
   "promptAssistantPromptHelp": {
     "message": "Esta solicitação é global e não é salva. O assistente não lê suas abas abertas; inclua o site, o tipo de arquivo e a pasta desejados."
   },
-  "promptAssistantSuggest": { "message": "Sugerir regra" },
-  "promptAssistantGeneratedDraft": { "message": "Rascunho gerado" },
-  "promptAssistantAddToRules": { "message": "Adicionar às regras" },
-  "promptAssistantClearDraft": { "message": "Limpar rascunho" },
+  "promptAssistantSuggest": {
+    "message": "Sugerir regra"
+  },
+  "promptAssistantGeneratedDraft": {
+    "message": "Rascunho gerado"
+  },
+  "promptAssistantAddToRules": {
+    "message": "Adicionar às regras"
+  },
+  "promptAssistantClearDraft": {
+    "message": "Limpar rascunho"
+  },
   "promptAssistantPrivacy": {
     "message": "O Chrome executa o modelo neste dispositivo. O Save In não envia o prompt nem o resultado a um servidor. As regras geradas nunca são aplicadas automaticamente."
   },
-  "promptAssistantStatusOff": { "message": "Desativado — sem verificações do modelo ou prompts" },
-  "promptAssistantStatusChecking": { "message": "Verificando o modelo no dispositivo…" },
-  "promptAssistantStatusReady": { "message": "Pronto neste dispositivo" },
+  "promptAssistantStatusOff": {
+    "message": "Desativado — sem verificações do modelo ou prompts"
+  },
+  "promptAssistantStatusChecking": {
+    "message": "Verificando o modelo no dispositivo…"
+  },
+  "promptAssistantStatusReady": {
+    "message": "Pronto neste dispositivo"
+  },
   "promptAssistantStatusDownloadable": {
     "message": "O modelo é baixado quando você sugere sua primeira regra"
   },
   "promptAssistantStatusDownloading": {
     "message": "O Chrome está baixando o modelo no dispositivo"
   },
-  "promptAssistantStatusUnavailable": { "message": "Indisponível neste navegador ou dispositivo" },
-  "promptAssistantStatusWorking": { "message": "Criando e verificando um rascunho…" },
+  "promptAssistantStatusUnavailable": {
+    "message": "Indisponível neste navegador ou dispositivo"
+  },
+  "promptAssistantStatusWorking": {
+    "message": "Criando e verificando um rascunho…"
+  },
   "promptAssistantStatusInvalid": {
     "message": "O rascunho precisa de outra tentativa: $ERROR$",
-    "placeholders": { "error": { "content": "$1", "example": "The rule needs an into clause" } }
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "The rule needs an into clause"
+      }
+    }
   },
   "promptAssistantStatusFailed": {
     "message": "Não foi possível criar um rascunho: $ERROR$",
-    "placeholders": { "error": { "content": "$1", "example": "The model session ended" } }
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "The model session ended"
+      }
+    }
   },
-  "promptAssistantStatusDraftReady": { "message": "Rascunho pronto — revise antes de adicionar" },
+  "promptAssistantStatusDraftReady": {
+    "message": "Rascunho pronto — revise antes de adicionar"
+  },
   "promptAssistantStatusAdded": {
     "message": "Adicionado como rascunho não salvo no editor de regras"
   },
@@ -3990,8 +4028,43 @@
   "html_cssMatcherSyntax": {
     "message": "O correspondente css: usa a sintaxe de seletor CSS em vez de uma expressão regular e não aceita sinalizadores."
   },
-  "ruleInvalidCssSelector": { "message": "Seletor CSS inválido" },
+  "ruleInvalidCssSelector": {
+    "message": "Seletor CSS inválido"
+  },
   "ruleCssFlags": {
     "message": "css: não aceita sinalizadores de expressão regular"
+  },
+  "ruleTemplateYoutubeMaxResDescription": {
+    "message": "Reescreve links de miniaturas do YouTube para a imagem em resolução máxima"
+  },
+  "ruleTemplateYoutubeMaxResName": {
+    "message": "Miniatura do YouTube em resolução máxima"
+  },
+  "contextMenuQuickSave": {
+    "message": "Salvamento rápido"
+  },
+  "contextMenuQuickSaveToDirectory": {
+    "message": "Salvar em $DIRECTORY$",
+    "placeholders": {
+      "directory": {
+        "content": "$1",
+        "example": "Photos"
+      }
+    }
+  },
+  "manifestCommandQuickSave": {
+    "message": "Salvar rapidamente a página atual"
+  },
+  "o_cQuickSave": {
+    "message": "Mostrar um item de salvamento rápido"
+  },
+  "o_cQuickSaveHelp": {
+    "message": "Adiciona um item de menu que salva diretamente na pasta padrão, ignorando a lista de pastas."
+  },
+  "o_lQuickSaveDirectory": {
+    "message": "Pasta de salvamento rápido"
+  },
+  "o_cQuickSaveUseDirectory": {
+    "message": "Salvar nesta pasta em vez de Downloads"
   }
 }

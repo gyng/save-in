@@ -236,6 +236,72 @@ describe("menu creation", () => {
       expect(item.parentId).toBe(menu.IDS.ROOT);
     });
 
+    test("addQuickSave creates the quick save item under the root", () => {
+      menu.addQuickSave(["image", "link"]);
+
+      const item = created()[0]!;
+      expect(item.id).toBe(menu.IDS.QUICK_SAVE);
+      expect(item.parentId).toBe(menu.IDS.ROOT);
+      expect(item.contexts).toEqual(["image", "link"]);
+      expect(item.title).toContain("Translated<contextMenuQuickSave>");
+    });
+
+    test("addQuickSave falls back to an English title when localization is empty", () => {
+      vi.mocked(global.browser.i18n.getMessage).mockReturnValueOnce("");
+      menu.addQuickSave(["image"]);
+      expect(created()[0]!.title).toBe("Quick save");
+    });
+
+    test("quickSaveDirectoryConfigured reports only a valid non-root directory", () => {
+      options.quickSaveDirectory = "Photos";
+      expect(menu.quickSaveDirectoryConfigured()).toBe(true);
+      options.quickSaveDirectory = "  Photos  ";
+      expect(menu.quickSaveDirectoryConfigured()).toBe(true);
+      options.quickSaveDirectory = ".";
+      expect(menu.quickSaveDirectoryConfigured()).toBe(false);
+      options.quickSaveDirectory = "   ";
+      expect(menu.quickSaveDirectoryConfigured()).toBe(false);
+      options.quickSaveDirectory = "../escape";
+      expect(menu.quickSaveDirectoryConfigured()).toBe(false);
+    });
+
+    test("addQuickSaveToDirectory creates a checkbox reflecting the toggle", () => {
+      options.quickSaveDirectory = "Photos";
+      options.quickSaveUseDirectory = true;
+      menu.addQuickSaveToDirectory(["image"]);
+
+      const item = created()[0]!;
+      expect(item.id).toBe(menu.IDS.QUICK_SAVE_TO_DIRECTORY);
+      expect(item.type).toBe("checkbox");
+      expect(item.checked).toBe(true);
+      expect(item.parentId).toBe(menu.IDS.ROOT);
+    });
+
+    test("addQuickSaveToDirectory falls back to an English title when localization is empty", () => {
+      options.quickSaveDirectory = "Photos";
+      options.quickSaveUseDirectory = false;
+      vi.mocked(global.browser.i18n.getMessage).mockReturnValueOnce("");
+      menu.addQuickSaveToDirectory(["image"]);
+      const item = created()[0]!;
+      expect(item.title).toBe("Save to Photos");
+      expect(item.checked).toBe(false);
+    });
+
+    test("setQuickSaveUseDirectory updates the bag and persists to storage.local", async () => {
+      options.quickSaveUseDirectory = false;
+      await menu.setQuickSaveUseDirectory(true);
+      expect(options.quickSaveUseDirectory).toBe(true);
+      expect(global.browser.storage.local.set).toHaveBeenCalledWith({
+        quickSaveUseDirectory: true,
+      });
+    });
+
+    test("setQuickSaveUseDirectory swallows a storage rejection", async () => {
+      vi.mocked(global.browser.storage.local.set).mockRejectedValueOnce(new Error("quota"));
+      await expect(menu.setQuickSaveUseDirectory(false)).resolves.toBeUndefined();
+      expect(options.quickSaveUseDirectory).toBe(false);
+    });
+
     test("addSelectionType describes media+link, selection and page contexts", () => {
       menu.addSelectionType(["link", "selection", "page"]);
 
@@ -422,6 +488,13 @@ describe("menu creation", () => {
       expect(menu.pathMappings["save-in-0"]!.menuIndex).toBe("1");
     });
 
+    test("carries a per-item tab action into the path mapping, omitting it otherwise", () => {
+      menu.addPaths(["a // (tab: close)", "b"], ["link"]);
+
+      expect(menu.pathMappings["save-in-0"]!.tabAction).toBe("close");
+      expect(Object.hasOwn(menu.pathMappings["save-in-1"]!, "tabAction")).toBe(false);
+    });
+
     test("nests items by depth arrows: deeper, back out, and back to root", () => {
       menu.addPaths(["a", ">b", ">>c", ">d", "e"], ["link"]);
 
@@ -520,6 +593,30 @@ describe("menu creation", () => {
       expect(created().map((item) => item.id)).toContain(menu.IDS.ROUTE_EXCLUSIVE);
       expect(created().map((item) => item.id)).toContain(menu.IDS.ROOT);
       expect(created().map((item) => item.id)).toContain(menu.IDS.TOGGLE_SOURCE_PANEL);
+    });
+
+    test("adds quick save items only when enabled, with the toggle gated on a folder", async () => {
+      options.quickSaveEnabled = false;
+      await rebuildMenus();
+      expect(created().map((item) => item.id)).not.toContain(menu.IDS.QUICK_SAVE);
+
+      vi.mocked(global.browser.contextMenus.create).mockClear();
+      options.quickSaveEnabled = true;
+      options.quickSaveDirectory = ".";
+      await rebuildMenus();
+      let ids = created().map((item) => item.id);
+      expect(ids).toContain(menu.IDS.QUICK_SAVE);
+      expect(ids).not.toContain(menu.IDS.QUICK_SAVE_TO_DIRECTORY);
+
+      vi.mocked(global.browser.contextMenus.create).mockClear();
+      options.quickSaveDirectory = "Photos";
+      await rebuildMenus();
+      ids = created().map((item) => item.id);
+      expect(ids).toContain(menu.IDS.QUICK_SAVE);
+      expect(ids).toContain(menu.IDS.QUICK_SAVE_TO_DIRECTORY);
+
+      options.quickSaveEnabled = false;
+      options.quickSaveDirectory = ".";
     });
 
     test("uses deterministic separator ids for every rebuild", async () => {
@@ -842,6 +939,16 @@ describe("buildTree", () => {
 
     expect("title" in items[0]! && items[0]!.title).toBe("Nice Name");
     expect("accessKeyOverride" in items[0]! && items[0]!.accessKeyOverride).toBe("g");
+  });
+
+  test("carries an opt-in post-save tab action from metadata", () => {
+    const close = menu.buildTree(["dogs // (tab: close)"]).items[0]!;
+    const back = menu.buildTree(["dogs // (tab: return)"]).items[0]!;
+    const plain = menu.buildTree(["dogs"]).items[0]!;
+
+    expect("tabAction" in close && close.tabAction).toBe("close");
+    expect("tabAction" in back && back.tabAction).toBe("return");
+    expect(Object.hasOwn(plain, "tabAction")).toBe(false);
   });
 
   test("numbers items per depth for menuIndex routing", () => {

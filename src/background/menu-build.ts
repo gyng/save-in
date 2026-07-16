@@ -15,7 +15,7 @@ import { MAX_RECENT_DESTINATIONS, MEDIA_TYPES } from "../shared/constants.ts";
 import { Path } from "../routing/path.ts";
 import { isStringKeyedRecord } from "../shared/util.ts";
 import { backgroundRuntime } from "./runtime.ts";
-import type { MenuTree } from "../menus/menu-tree.ts";
+import type { MenuTree, TabAction } from "../menus/menu-tree.ts";
 import { MENU_IDS } from "../menus/menu-ids.ts";
 import { resolveMenuAccessKey } from "../menus/access-key.ts";
 
@@ -45,6 +45,7 @@ type MenuPathMapping = {
   menuIndex: string;
   title: string;
   prompt?: boolean;
+  tabAction?: TabAction;
 };
 
 // This is genuine mutable application state shared by menu construction and
@@ -72,6 +73,14 @@ export const setLastUsed = (path: string, meta: LastUsedMeta, privateContext = f
   return webExtensionApi.storage.local
     .set({ [LAST_USED_PATH_STORAGE_KEY]: path, [LAST_USED_META_STORAGE_KEY]: meta })
     .catch(() => {});
+};
+
+// The dynamic-default menu checkbox flips the effective Quick save destination
+// at runtime. Mirroring it to storage.local (the same area options load from)
+// is what lets the choice survive an MV3 service-worker restart.
+export const setQuickSaveUseDirectory = (active: boolean): Promise<void> => {
+  options.quickSaveUseDirectory = active;
+  return webExtensionApi.storage.local.set({ quickSaveUseDirectory: active }).catch(() => {});
 };
 
 const normalizeLastUsedMeta = (value: unknown): LastUsedMeta | null => {
@@ -227,6 +236,36 @@ export const addRoot = (contexts: readonly MenuContext[]) => {
   });
 };
 
+export const addQuickSave = (contexts: readonly MenuContext[]) => {
+  webExtensionApi.contextMenus.create({
+    id: MENU_IDS.QUICK_SAVE,
+    title: setAccesskey(getMessage("contextMenuQuickSave") || "Quick save", ""),
+    contexts: asMenuContexts(contexts),
+    parentId: MENU_IDS.ROOT,
+  });
+};
+
+// A configured Quick save folder is only worth surfacing as a runtime toggle
+// when it differs from the Downloads root; a checkbox that switched between two
+// identical destinations would be noise. Invalid stored paths are ignored so a
+// corrupt profile value never shows an unusable toggle.
+export const quickSaveDirectoryConfigured = (): boolean => {
+  const directory = options.quickSaveDirectory.trim();
+  return directory !== "" && directory !== "." && new Path(directory).validate().valid;
+};
+
+export const addQuickSaveToDirectory = (contexts: readonly MenuContext[]) => {
+  const directory = options.quickSaveDirectory.trim();
+  webExtensionApi.contextMenus.create({
+    id: MENU_IDS.QUICK_SAVE_TO_DIRECTORY,
+    type: "checkbox",
+    checked: options.quickSaveUseDirectory,
+    title: getMessage("contextMenuQuickSaveToDirectory", [directory]) || `Save to ${directory}`,
+    contexts: asMenuContexts(contexts),
+    parentId: MENU_IDS.ROOT,
+  });
+};
+
 export const addRouteExclusive = (contexts: readonly MenuContext[]) => {
   webExtensionApi.contextMenus.create({
     id: MENU_IDS.ROUTE_EXCLUSIVE,
@@ -366,6 +405,7 @@ export const renderPathTree = ({ items, errors }: MenuTree, contexts: readonly M
       menuIndex: item.menuIndex,
       title: item.title,
       ...(item.prompt === true ? { prompt: true } : {}),
+      ...(item.tabAction ? { tabAction: item.tabAction } : {}),
     };
 
     webExtensionApi.contextMenus.create({

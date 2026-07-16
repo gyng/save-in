@@ -7,6 +7,8 @@ import { buildTree } from "../menus/menu-tree.ts";
 import {
   addLastUsed,
   addOptions,
+  addQuickSave,
+  addQuickSaveToDirectory,
   addRecentDestinations,
   addRoot,
   addRouteExclusive,
@@ -15,6 +17,7 @@ import {
   addSourcePanel,
   clearPathMappings,
   makeSeparator,
+  quickSaveDirectoryConfigured,
   renderPathTree,
   type MenuContext,
   menuState,
@@ -34,6 +37,13 @@ const performMenuRebuild = async (): Promise<void> => {
 
   addTabMenus();
   addRoot(actionContexts);
+
+  if (options.quickSaveEnabled) {
+    addQuickSave(downloadContexts);
+    if (quickSaveDirectoryConfigured()) {
+      addQuickSaveToDirectory(downloadContexts);
+    }
+  }
 
   if (options.routeHideFolderChoices) {
     addRouteExclusive(downloadContexts);

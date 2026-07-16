@@ -3828,10 +3828,10 @@
     "message": "Préfixe de l’identifiant Twitter/X"
   },
   "ruleTemplateTwitterOriginalsDescription": {
-    "message": "Réécrit les liens d’images Twitter et X vers leur plus grande version publique"
+    "message": "Réécrit les liens d’images Twitter et X vers le fichier d’origine en pleine résolution"
   },
   "ruleTemplateTwitterOriginalsName": {
-    "message": "Image Twitter/X la plus grande"
+    "message": "Originaux d’images Twitter/X"
   },
   "ruleTemplateWikimediaOriginalDescription": {
     "message": "Réécrit les liens de vignettes Wikimedia Commons vers le fichier d’origine en taille réelle"
@@ -3938,49 +3938,83 @@
   "routeDebuggerRenamedName": {
     "message": "Nom renommé"
   },
-  "promptAssistantTitle": { "message": "Assistant de règles sur l’appareil" },
+  "promptAssistantTitle": {
+    "message": "Assistant de règles sur l’appareil"
+  },
   "promptAssistantIntro": {
     "message": "Décrivez où enregistrer les fichiers et obtenez une règle de routage à vérifier."
   },
-  "promptAssistantEnable": { "message": "Activer l’assistant sur l’appareil" },
+  "promptAssistantEnable": {
+    "message": "Activer l’assistant sur l’appareil"
+  },
   "promptAssistantEnableHelp": {
     "message": "Lorsque cette option est désactivée, Save In ne vérifie pas le modèle, ne crée aucune session et n’envoie aucune instruction."
   },
-  "promptAssistantStatusLabel": { "message": "État" },
-  "promptAssistantPromptLabel": { "message": "Décrire une règle de routage" },
+  "promptAssistantStatusLabel": {
+    "message": "État"
+  },
+  "promptAssistantPromptLabel": {
+    "message": "Décrire une règle de routage"
+  },
   "promptAssistantPromptPlaceholder": {
     "message": "Enregistrer les fichiers PNG de example.com dans Images/example"
   },
   "promptAssistantPromptHelp": {
     "message": "Cette demande est globale et n’est pas enregistrée. L’assistant ne lit pas vos onglets ouverts ; indiquez le site, le type de fichier et le dossier souhaités."
   },
-  "promptAssistantSuggest": { "message": "Suggérer une règle" },
-  "promptAssistantGeneratedDraft": { "message": "Brouillon généré" },
-  "promptAssistantAddToRules": { "message": "Ajouter aux règles" },
-  "promptAssistantClearDraft": { "message": "Effacer le brouillon" },
+  "promptAssistantSuggest": {
+    "message": "Suggérer une règle"
+  },
+  "promptAssistantGeneratedDraft": {
+    "message": "Brouillon généré"
+  },
+  "promptAssistantAddToRules": {
+    "message": "Ajouter aux règles"
+  },
+  "promptAssistantClearDraft": {
+    "message": "Effacer le brouillon"
+  },
   "promptAssistantPrivacy": {
     "message": "Chrome exécute le modèle sur cet appareil. Save In n’envoie ni l’instruction ni le résultat à un serveur. Les règles générées ne sont jamais appliquées automatiquement."
   },
   "promptAssistantStatusOff": {
     "message": "Désactivé — aucune vérification du modèle ni instruction"
   },
-  "promptAssistantStatusChecking": { "message": "Vérification du modèle sur l’appareil…" },
-  "promptAssistantStatusReady": { "message": "Prêt sur cet appareil" },
+  "promptAssistantStatusChecking": {
+    "message": "Vérification du modèle sur l’appareil…"
+  },
+  "promptAssistantStatusReady": {
+    "message": "Prêt sur cet appareil"
+  },
   "promptAssistantStatusDownloadable": {
     "message": "Le modèle est téléchargé lorsque vous suggérez votre première règle"
   },
-  "promptAssistantStatusDownloading": { "message": "Chrome télécharge le modèle sur l’appareil" },
+  "promptAssistantStatusDownloading": {
+    "message": "Chrome télécharge le modèle sur l’appareil"
+  },
   "promptAssistantStatusUnavailable": {
     "message": "Indisponible dans ce navigateur ou sur cet appareil"
   },
-  "promptAssistantStatusWorking": { "message": "Création et vérification d’un brouillon…" },
+  "promptAssistantStatusWorking": {
+    "message": "Création et vérification d’un brouillon…"
+  },
   "promptAssistantStatusInvalid": {
     "message": "Le brouillon doit être réessayé : $ERROR$",
-    "placeholders": { "error": { "content": "$1", "example": "The rule needs an into clause" } }
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "The rule needs an into clause"
+      }
+    }
   },
   "promptAssistantStatusFailed": {
     "message": "Impossible de créer un brouillon : $ERROR$",
-    "placeholders": { "error": { "content": "$1", "example": "The model session ended" } }
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "The model session ended"
+      }
+    }
   },
   "promptAssistantStatusDraftReady": {
     "message": "Brouillon prêt — vérifiez-le avant de l’ajouter"
@@ -3994,8 +4028,43 @@
   "html_cssMatcherSyntax": {
     "message": "Le critère css: utilise la syntaxe des sélecteurs CSS au lieu d’une expression régulière et n’accepte aucun indicateur."
   },
-  "ruleInvalidCssSelector": { "message": "Sélecteur CSS non valide" },
+  "ruleInvalidCssSelector": {
+    "message": "Sélecteur CSS non valide"
+  },
   "ruleCssFlags": {
     "message": "css: n’accepte pas les indicateurs d’expression régulière"
+  },
+  "ruleTemplateYoutubeMaxResDescription": {
+    "message": "Réécrit les liens de vignettes YouTube vers l’image en résolution maximale"
+  },
+  "ruleTemplateYoutubeMaxResName": {
+    "message": "Vignette YouTube en résolution maximale"
+  },
+  "contextMenuQuickSave": {
+    "message": "Enregistrement rapide"
+  },
+  "contextMenuQuickSaveToDirectory": {
+    "message": "Enregistrer dans $DIRECTORY$",
+    "placeholders": {
+      "directory": {
+        "content": "$1",
+        "example": "Photos"
+      }
+    }
+  },
+  "manifestCommandQuickSave": {
+    "message": "Enregistrer rapidement la page actuelle"
+  },
+  "o_cQuickSave": {
+    "message": "Afficher un élément d'enregistrement rapide"
+  },
+  "o_cQuickSaveHelp": {
+    "message": "Ajoute un élément de menu qui enregistre directement dans le dossier par défaut, en ignorant la liste des dossiers."
+  },
+  "o_lQuickSaveDirectory": {
+    "message": "Dossier d'enregistrement rapide"
+  },
+  "o_cQuickSaveUseDirectory": {
+    "message": "Enregistrer dans ce dossier au lieu de Téléchargements"
   }
 }

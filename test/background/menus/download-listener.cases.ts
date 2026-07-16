@@ -760,6 +760,150 @@ describe("addDownloadListener", () => {
       expect(lastState().info.suggestedFilename).toBe("shortcut.url");
     });
   });
+
+  describe("quick save", () => {
+    beforeEach(() => {
+      options.quickSaveEnabled = true;
+      options.quickSaveDirectory = ".";
+      options.quickSaveUseDirectory = false;
+    });
+
+    test("reuses the ordinary pipeline, saving to the Downloads root without routing exclusivity", async () => {
+      await listener(
+        { menuItemId: Menus.IDS.QUICK_SAVE, pageUrl: "https://example.com/" },
+        { id: 3, title: "Title" },
+      );
+
+      expect(Download.launchDownload).toHaveBeenCalledOnce();
+      expect(lastState().path.raw).toBe(".");
+      expect(lastState().needRouteMatch).toBe(false);
+      expect(lastState().info.url).toBe("https://example.com/");
+      expect(lastState().info.menuItemTitle).toBe("Quick save");
+      // Quick save is not a folder pick, so it leaves Last used untouched.
+      expect(global.browser.storage.local.set).not.toHaveBeenCalled();
+      expect(global.browser.contextMenus.update).not.toHaveBeenCalled();
+    });
+
+    test("routes to the configured folder when the directory toggle is on", async () => {
+      options.quickSaveDirectory = "Photos/cats";
+      options.quickSaveUseDirectory = true;
+
+      await listener(
+        { menuItemId: Menus.IDS.QUICK_SAVE, pageUrl: "https://example.com/" },
+        { id: 3, title: "Title" },
+      );
+
+      expect(lastState().path.raw).toBe("Photos/cats");
+    });
+
+    test("the directory checkbox persists the toggle without starting a save", async () => {
+      await listener({ menuItemId: Menus.IDS.QUICK_SAVE_TO_DIRECTORY, checked: true });
+
+      expect(options.quickSaveUseDirectory).toBe(true);
+      expect(global.browser.storage.local.set).toHaveBeenCalledWith({
+        quickSaveUseDirectory: true,
+      });
+      expect(Download.launchDownload).not.toHaveBeenCalled();
+
+      await listener({ menuItemId: Menus.IDS.QUICK_SAVE_TO_DIRECTORY, checked: false });
+      expect(options.quickSaveUseDirectory).toBe(false);
+    });
+
+    test("the keyboard command quick-saves the active tab's page", async () => {
+      (global.browser as any).tabs = {
+        query: vi.fn(() =>
+          Promise.resolve([{ id: 9, url: "https://example.com/page", title: "P" }]),
+        ),
+      };
+
+      await Menus.quickSaveActiveTab();
+
+      expect(Download.launchDownload).toHaveBeenCalledOnce();
+      expect(lastState().info.url).toBe("https://example.com/page");
+      expect(lastState().info.menuItemTitle).toBe("Quick save");
+    });
+
+    test("the keyboard command respects the opt-in and a missing tab or url", async () => {
+      options.quickSaveEnabled = false;
+      // A cold start can wake the worker for the command before init assigns
+      // the ready promise; the guard must tolerate its absence.
+      Reflect.deleteProperty(Runtime, "ready");
+      (global.browser as any).tabs = {
+        query: vi.fn(() => Promise.resolve([{ id: 9, url: "https://example.com/page" }])),
+      };
+      await Menus.quickSaveActiveTab();
+      expect(Download.launchDownload).not.toHaveBeenCalled();
+
+      options.quickSaveEnabled = true;
+      (global.browser as any).tabs = { query: vi.fn(() => Promise.resolve([])) };
+      await Menus.quickSaveActiveTab();
+      expect(Download.launchDownload).not.toHaveBeenCalled();
+
+      (global.browser as any).tabs = {
+        query: vi.fn(() => Promise.resolve([{ id: 9, title: "no url" }])),
+      };
+      await Menus.quickSaveActiveTab();
+      expect(Download.launchDownload).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("per-menu-item post-save tab action", () => {
+    beforeEach(() => {
+      (global.browser as any).tabs = { remove: vi.fn(), update: vi.fn() };
+    });
+
+    const pageClick = (tab: Record<string, unknown>) =>
+      listener({ menuItemId: "save-in-0", pageUrl: "https://example.com/" }, tab);
+
+    test("closes the source tab after a successful save when the item opts in", async () => {
+      Menus.addPaths(["dir1 // (tab: close)"], ["page"]);
+      await pageClick({ id: 42, title: "Title" });
+
+      expect(global.browser.tabs.remove).toHaveBeenCalledWith(42);
+      expect(global.browser.tabs.update).not.toHaveBeenCalled();
+    });
+
+    test("re-activates the source tab for the return action", async () => {
+      Menus.addPaths(["dir1 // (tab: return)"], ["page"]);
+      await pageClick({ id: 42, title: "Title" });
+
+      expect(global.browser.tabs.update).toHaveBeenCalledWith(42, { active: true });
+      expect(global.browser.tabs.remove).not.toHaveBeenCalled();
+    });
+
+    test("does nothing for an item without the opt-in", async () => {
+      Menus.addPaths(["dir1"], ["page"]);
+      await pageClick({ id: 42, title: "Title" });
+
+      expect(global.browser.tabs.remove).not.toHaveBeenCalled();
+      expect(global.browser.tabs.update).not.toHaveBeenCalled();
+    });
+
+    test("does not act when the save did not start", async () => {
+      vi.mocked(Download.launchDownload).mockResolvedValueOnce({ status: "failed" });
+      Menus.addPaths(["dir1 // (tab: close)"], ["page"]);
+      await pageClick({ id: 42, title: "Title" });
+
+      expect(global.browser.tabs.remove).not.toHaveBeenCalled();
+    });
+
+    test("still acts on the already-known tab id in a private context", async () => {
+      Menus.addPaths(["dir1 // (tab: close)"], ["page"]);
+      await pageClick({ id: 42, title: "Title", incognito: true });
+
+      expect(global.browser.tabs.remove).toHaveBeenCalledWith(42);
+    });
+
+    test("contains a rejected tabs API call without failing the handler", async () => {
+      (global.browser as any).tabs = {
+        remove: vi.fn(() => Promise.reject(new Error("tab already closed"))),
+        update: vi.fn(),
+      };
+      Menus.addPaths(["dir1 // (tab: close)"], ["page"]);
+
+      await expect(pageClick({ id: 42, title: "Title" })).resolves.toBeUndefined();
+    });
+  });
 });
 
 // The click handler's tangled "what does this click save?" decision, extracted

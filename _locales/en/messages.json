@@ -3240,7 +3240,12 @@
   "sourcePanelDockPosition": {
     "message": "Dock: $POSITION$ — change to the next position",
     "description": "Tooltip for the Page Sources dock-position button. Used in src/shared/source-panel-copy.ts.",
-    "placeholders": { "position": { "content": "$1", "example": "Right" } }
+    "placeholders": {
+      "position": {
+        "content": "$1",
+        "example": "Right"
+      }
+    }
   },
   "sourcePanelDockRight": {
     "message": "Right",
@@ -3333,7 +3338,12 @@
   "sourcePanelNoMatchesFilter": {
     "message": "No sources match “$FILTER$”.",
     "description": "Empty state for a text-filtered Page Sources result. Used in src/shared/source-panel-copy.ts.",
-    "placeholders": { "filter": { "content": "$1", "example": "poster" } }
+    "placeholders": {
+      "filter": {
+        "content": "$1",
+        "example": "poster"
+      }
+    }
   },
   "sourcePanelNoSources": {
     "message": "No page media or streaming-video playlists detected yet.",
@@ -3346,7 +3356,12 @@
   "sourcePanelSourceCount": {
     "message": "Sources found: $COUNT$",
     "description": "Accessible Page Sources result count. Used in src/shared/source-panel-copy.ts.",
-    "placeholders": { "count": { "content": "$1", "example": "12" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "12"
+      }
+    }
   },
   "sourcePanelEmbeddedSource": {
     "message": "Embedded page source",
@@ -3355,7 +3370,12 @@
   "sourcePanelSourceInstructions": {
     "message": "$URL$. Right-click for Save In; Alt+click to save immediately.",
     "description": "Accessible instructions for a Page Sources result. Used in src/shared/source-panel-copy.ts.",
-    "placeholders": { "url": { "content": "$1", "example": "https://example.com/cat.jpg" } }
+    "placeholders": {
+      "url": {
+        "content": "$1",
+        "example": "https://example.com/cat.jpg"
+      }
+    }
   },
   "sourcePanelSizeUnknown": {
     "message": "size unknown",
@@ -3364,7 +3384,12 @@
   "sourcePanelDetectedAt": {
     "message": "Detected at $TIME$",
     "description": "Page Sources detection-time label. Used in src/shared/source-panel-copy.ts.",
-    "placeholders": { "time": { "content": "$1", "example": "14:30" } }
+    "placeholders": {
+      "time": {
+        "content": "$1",
+        "example": "14:30"
+      }
+    }
   },
   "sourcePanelPreviewUnavailable": {
     "message": "Preview unavailable",
@@ -3409,7 +3434,12 @@
   "sourcePanelCopiedUrls": {
     "message": "Copied $COUNT$ URLs",
     "description": "Page Sources URL-copy success status. Used in src/shared/source-panel-copy.ts.",
-    "placeholders": { "count": { "content": "$1", "example": "3" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
   },
   "html_webhooks": {
     "message": "Webhooks",
@@ -4435,28 +4465,40 @@
     "message": "$COUNT$ result",
     "description": "Singular result count below a filtered reference table. Used in src/options/reference-page.ts.",
     "placeholders": {
-      "count": { "content": "$1", "example": "1" }
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
     }
   },
   "referenceResults": {
     "message": "$COUNT$ results",
     "description": "Plural result count below a filtered reference table. Used in src/options/reference-page.ts.",
     "placeholders": {
-      "count": { "content": "$1", "example": "12" }
+      "count": {
+        "content": "$1",
+        "example": "12"
+      }
     }
   },
   "referenceCopyValue": {
     "message": "Copy $VALUE$",
     "description": "Accessible action for copying a value from an options or reference surface. Used in src/options/click-to-copy.ts and src/options/reference-page.ts.",
     "placeholders": {
-      "value": { "content": "$1", "example": ":filename:" }
+      "value": {
+        "content": "$1",
+        "example": ":filename:"
+      }
     }
   },
   "referenceCopiedValue": {
     "message": "Copied $VALUE$",
     "description": "Status after copying a token from a reference table. Used in src/options/reference-page.ts.",
     "placeholders": {
-      "value": { "content": "$1", "example": ":filename:" }
+      "value": {
+        "content": "$1",
+        "example": ":filename:"
+      }
     }
   },
   "welcomeTitle": {
@@ -4570,7 +4612,12 @@
   "pathVisualAlwaysAskAccessible": {
     "message": "Always ask where to save $ROW$",
     "description": "Accessible path editor action naming the destination that will open Save As. Used in src/options/path-editor.ts.",
-    "placeholders": { "row": { "content": "$1", "example": "Work" } }
+    "placeholders": {
+      "row": {
+        "content": "$1",
+        "example": "Work"
+      }
+    }
   },
   "o_cSaveSourceSidecar": {
     "message": "Save a source link beside downloaded media",
@@ -4667,22 +4714,42 @@
   "diagnosticsDurationMs": {
     "message": "$COUNT$ ms",
     "description": "A diagnostic duration in milliseconds. Used in src/options/debug-log-panel.ts.",
-    "placeholders": { "count": { "content": "$1", "example": "42" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "42"
+      }
+    }
   },
   "diagnosticsDurationSeconds": {
     "message": "$COUNT$ s",
     "description": "A diagnostic duration in seconds. Used in src/options/debug-log-panel.ts.",
-    "placeholders": { "count": { "content": "$1", "example": "4" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "4"
+      }
+    }
   },
   "diagnosticsDurationMinutes": {
     "message": "$COUNT$ min",
     "description": "A diagnostic duration in minutes. Used in src/options/debug-log-panel.ts.",
-    "placeholders": { "count": { "content": "$1", "example": "3" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
   },
   "diagnosticsLifecycleBackgroundReady": {
     "message": "Background became ready in $DURATION$.",
     "description": "Lifecycle entry for successful background startup. Used in src/options/debug-log-panel.ts.",
-    "placeholders": { "duration": { "content": "$1", "example": "120 ms" } }
+    "placeholders": {
+      "duration": {
+        "content": "$1",
+        "example": "120 ms"
+      }
+    }
   },
   "diagnosticsLifecycleBackgroundFailed": {
     "message": "Background startup failed.",
@@ -4699,7 +4766,12 @@
   "diagnosticsLifecycleExtensionUpdatedFrom": {
     "message": "Extension updated from $VERSION$.",
     "description": "Lifecycle entry for an update with the previous version. Used in src/options/debug-log-panel.ts.",
-    "placeholders": { "version": { "content": "$1", "example": "3.9.1" } }
+    "placeholders": {
+      "version": {
+        "content": "$1",
+        "example": "3.9.1"
+      }
+    }
   },
   "diagnosticsLifecycleExtensionUpdated": {
     "message": "Extension updated.",
@@ -4741,16 +4813,28 @@
     "message": "$TIME$ · up for $UPTIME$",
     "description": "Background start time followed by current uptime. Used in src/options/debug-log-panel.ts.",
     "placeholders": {
-      "time": { "content": "$1", "example": "Jul 15, 2026, 4:10 PM" },
-      "uptime": { "content": "$2", "example": "3 min" }
+      "time": {
+        "content": "$1",
+        "example": "Jul 15, 2026, 4:10 PM"
+      },
+      "uptime": {
+        "content": "$2",
+        "example": "3 min"
+      }
     }
   },
   "diagnosticsConfigurationIssueCount": {
     "message": "$PATHS$ path · $ROUTING$ routing",
     "description": "Counts of invalid path and routing configuration entries. Used in src/options/debug-log-panel.ts.",
     "placeholders": {
-      "paths": { "content": "$1", "example": "0" },
-      "routing": { "content": "$2", "example": "1" }
+      "paths": {
+        "content": "$1",
+        "example": "0"
+      },
+      "routing": {
+        "content": "$2",
+        "example": "1"
+      }
     }
   },
   "diagnosticsAvailable": {
@@ -4780,7 +4864,12 @@
   "diagnosticsCheckedAt": {
     "message": "Checked $TIME$",
     "description": "Status after Diagnostics loads. Used in src/options/debug-log-panel.ts.",
-    "placeholders": { "time": { "content": "$1", "example": "Jul 15, 2026, 4:10 PM" } }
+    "placeholders": {
+      "time": {
+        "content": "$1",
+        "example": "Jul 15, 2026, 4:10 PM"
+      }
+    }
   },
   "diagnosticsLoadFailed": {
     "message": "Could not load diagnostics.",
@@ -4813,12 +4902,22 @@
   "sourcePanelSelectedCount": {
     "message": "$COUNT$ selected",
     "description": "Page Sources selected-source count. Used in src/shared/source-panel-copy.ts.",
-    "placeholders": { "count": { "content": "$1", "example": "3" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
   },
   "sourcePanelHiddenSelectedCount": {
     "message": "$COUNT$ hidden",
     "description": "Page Sources count of selected sources hidden by the current filter. Used in src/shared/source-panel-copy.ts.",
-    "placeholders": { "count": { "content": "$1", "example": "2" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
   },
   "sourcePanelSaveSelected": {
     "message": "Save selected",
@@ -4827,7 +4926,12 @@
   "sourcePanelBatchConfirm": {
     "message": "Save $COUNT$ selected sources?",
     "description": "Page Sources confirmation before starting a large batch. Used in src/shared/source-panel-copy.ts.",
-    "placeholders": { "count": { "content": "$1", "example": "24" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "24"
+      }
+    }
   },
   "sourcePanelBatchContinue": {
     "message": "Save sources",
@@ -4840,12 +4944,22 @@
   "sourcePanelBatchSaving": {
     "message": "Saving $COUNT$ sources…",
     "description": "Page Sources progress text while a selected batch is submitted. Used in src/shared/source-panel-copy.ts.",
-    "placeholders": { "count": { "content": "$1", "example": "8" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "8"
+      }
+    }
   },
   "sourcePanelBatchSaved": {
     "message": "Started $COUNT$ downloads",
     "description": "Page Sources completion status after submitting a selected batch. Used in src/shared/source-panel-copy.ts.",
-    "placeholders": { "count": { "content": "$1", "example": "8" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "8"
+      }
+    }
   },
   "sourcePanelCreateAutomaticRule": {
     "message": "Create automatic rule",
@@ -4858,7 +4972,12 @@
   "savedSettingsUpdated": {
     "message": "$COUNT$ settings updated",
     "description": "Saved-change popover heading for multiple updated settings. Used in src/options/saved-indicator.ts.",
-    "placeholders": { "count": { "content": "$1", "example": "3" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
   },
   "savedUndo": {
     "message": "Undo",
@@ -4883,12 +5002,22 @@
   "externalBlockedAttemptOne": {
     "message": "$COUNT$ blocked attempt",
     "description": "Singular count of blocked requests from an unapproved extension. Used in src/options/integration-panel.ts.",
-    "placeholders": { "count": { "content": "$1", "example": "1" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
   },
   "externalBlockedAttemptMany": {
     "message": "$COUNT$ blocked attempts",
     "description": "Plural count of blocked requests from an unapproved extension. Used in src/options/integration-panel.ts.",
-    "placeholders": { "count": { "content": "$1", "example": "3" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
   },
   "externalRequestActiveTab": {
     "message": "Active-tab request",
@@ -4913,7 +5042,12 @@
   "externalApprovalFailed": {
     "message": "Could not approve $ID$.",
     "description": "Error shown when an extension approval could not be saved. Used in src/options/integration-panel.ts.",
-    "placeholders": { "id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" } }
+    "placeholders": {
+      "id": {
+        "content": "$1",
+        "example": "abcdefghijklmnopabcdefghijklmnop"
+      }
+    }
   },
   "externalRejectionsLoadFailed": {
     "message": "Could not load rejected requests.",
@@ -4922,7 +5056,12 @@
   "referenceInsertValue": {
     "message": "Insert $VALUE$",
     "description": "Accessible action for inserting a variable or clause into an editor. Used in src/options/path-editor-insert-menu.ts and src/options/variables-preview.ts.",
-    "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
+    "placeholders": {
+      "value": {
+        "content": "$1",
+        "example": ":filename:"
+      }
+    }
   },
   "promptAssistantTitle": {
     "message": "On-device rule assistant",
@@ -5025,6 +5164,45 @@
   "versionViewReleases": {
     "message": "Save In v$VERSION$ — view releases",
     "description": "Tooltip for the current version link that opens the release list. Used in src/options/integration-panel.ts.",
-    "placeholders": { "version": { "content": "$1", "example": "4.0.0" } }
+    "placeholders": {
+      "version": {
+        "content": "$1",
+        "example": "4.0.0"
+      }
+    }
+  },
+  "contextMenuQuickSave": {
+    "message": "Quick save",
+    "description": "Context menu item that saves straight to the default destination without opening the folder list. Used in src/background/menu-build.ts."
+  },
+  "contextMenuQuickSaveToDirectory": {
+    "message": "Save to $DIRECTORY$",
+    "description": "Checkbox context menu item that switches quick save between the Downloads root and a configured folder. $DIRECTORY$ is the configured folder path. Used in src/background/menu-build.ts.",
+    "placeholders": {
+      "directory": {
+        "content": "$1",
+        "example": "Photos"
+      }
+    }
+  },
+  "manifestCommandQuickSave": {
+    "message": "Quick save the current page",
+    "description": "Description of the browser keyboard command that quick-saves the active tab's page. Used in manifest.json."
+  },
+  "o_cQuickSave": {
+    "message": "Show a quick save item",
+    "description": "Option checkbox label for enabling the quick save menu item. Used in src/options/options.html."
+  },
+  "o_cQuickSaveHelp": {
+    "message": "Adds a menu item that saves straight to the default folder, skipping the folder list.",
+    "description": "Help caption for the quick save option. Used in src/options/options.html."
+  },
+  "o_lQuickSaveDirectory": {
+    "message": "Quick save folder",
+    "description": "Label for the text field that sets the quick save destination folder. Used in src/options/options.html."
+  },
+  "o_cQuickSaveUseDirectory": {
+    "message": "Save to this folder instead of Downloads",
+    "description": "Option checkbox label that routes quick save to the configured folder instead of the Downloads root. Used in src/options/options.html."
   }
 }

@@ -129,6 +129,9 @@ export type ResolvedContentOptions = {
   contentClickToSaveButton: ClickType;
   links: boolean;
   perSiteDisableList: string;
+  quickSaveEnabled: boolean;
+  quickSaveDirectory: string;
+  quickSaveUseDirectory: boolean;
 };
 
 export const CONTENT_OPTION_DEFAULTS: ResolvedContentOptions = {
@@ -155,6 +158,13 @@ export const CONTENT_OPTION_DEFAULTS: ResolvedContentOptions = {
   contentClickToSaveButton: CLICK_TYPES.LEFT_CLICK,
   links: true,
   perSiteDisableList: "",
+  // Quick save keeps the menu unchanged until explicitly opted into, so the
+  // context menu never grows a root save item without the user asking for it.
+  quickSaveEnabled: false,
+  // "." is the Downloads root, matching the effective default before this
+  // option existed; an absent stored key preserves that behavior.
+  quickSaveDirectory: ".",
+  quickSaveUseDirectory: false,
 };
 
 export type ContentOptionName = keyof typeof CONTENT_OPTION_DEFAULTS;
@@ -221,6 +231,9 @@ const CONTENT_OPTION_NORMALIZERS: ContentOptionNormalizers = {
     isClickType(stored) ? stored : CONTENT_OPTION_DEFAULTS.contentClickToSaveButton,
   links: booleanOption(CONTENT_OPTION_DEFAULTS.links),
   perSiteDisableList: stringOption(CONTENT_OPTION_DEFAULTS.perSiteDisableList),
+  quickSaveEnabled: booleanOption(CONTENT_OPTION_DEFAULTS.quickSaveEnabled),
+  quickSaveDirectory: stringOption(CONTENT_OPTION_DEFAULTS.quickSaveDirectory),
+  quickSaveUseDirectory: booleanOption(CONTENT_OPTION_DEFAULTS.quickSaveUseDirectory),
 };
 
 export const normalizeContentOption = <Name extends ContentOptionName>(

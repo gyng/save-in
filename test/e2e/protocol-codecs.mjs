@@ -270,7 +270,7 @@ export const createProtocolCodecs = () => {
       ? typeof value === "string" || typeof value === "number"
       : name === "notifyDuration" || name === "autoDownloadMaxPerPage"
         ? typeof value === "number"
-        : name === "paths" || name === "setRefererHeaderFilter"
+        : name === "paths" || name === "setRefererHeaderFilter" || name === "quickSaveDirectory"
           ? typeof value === "string"
           : name === "shortcutType"
             ? typeof value === "string" &&

@@ -135,6 +135,12 @@ export const OptionsManagement: OptionsManagementApi = {
     setRefererHeaderFilter: "URL match patterns for the Referer header.",
     perSiteDisableList:
       "URL match patterns where click to save, Page Sources, and automatic saves stay off.",
+    quickSaveEnabled:
+      "Show a Quick save item at the top of the menu that saves straight to the default destination.",
+    quickSaveDirectory:
+      "Destination Quick save uses when 'save to this folder' is on ('.' is the Downloads root).",
+    quickSaveUseDirectory:
+      "Route Quick save to the configured folder instead of the Downloads root.",
   } satisfies Record<SaveInOptionName, string>,
 
   getKeys: () => OptionsManagement.OPTION_KEYS.map((option) => option.name),

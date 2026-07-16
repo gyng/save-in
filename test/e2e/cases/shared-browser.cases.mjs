@@ -6,6 +6,7 @@ import {
   runAutomaticRetryScenario,
   runContextMenuScenario,
   runCssRoutingScenario,
+  runQuickSaveScenario,
   runFailedDownloadLogScenario,
   runHistoryCancellationScenario,
   runLegacyProfileRoutingScenario,
@@ -80,6 +81,10 @@ export const registerSharedBrowserCases = (adapters) => {
 
   test("production context-menu handler completes a selection save", async () => {
     await runContextMenuScenario({ control, waitForDownloads });
+  });
+
+  test("Quick save routes straight to the configured default destination", async () => {
+    await runQuickSaveScenario({ control, waitForDownloads });
   });
 
   test("production tab-strip handler saves the selected real tab", async () => {

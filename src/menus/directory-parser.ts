@@ -28,6 +28,25 @@ export type ParsedPath = {
     sourceRange?: { start: number; end: number } | undefined;
   };
 };
+// A per-menu-item, opt-in post-save action on the tab the save came from:
+// "close" removes it, "return" re-activates it. Never a default — only an item
+// whose (tab: …) metadata requests it acts, so an ordinary save never disturbs
+// the source tab.
+export type TabAction = "close" | "return";
+
+export const parseTabAction = (value: string | undefined): TabAction | undefined => {
+  switch (value?.trim().toLowerCase()) {
+    case "close":
+      return "close";
+    case "return":
+    case "focus":
+    case "activate":
+      return "return";
+    default:
+      return undefined;
+  }
+};
+
 export type MenuTreeItem =
   | { kind: "separator"; sourceIndex: number; id: string; parentId: string }
   | {
@@ -38,6 +57,7 @@ export type MenuTreeItem =
       number: number;
       accessKeyOverride?: string | undefined;
       prompt?: boolean | undefined;
+      tabAction?: TabAction | undefined;
       parsedDir: string;
       comment: string;
       menuIndex: string;
@@ -183,6 +203,7 @@ export const buildTree = (pathsArray: string[]): MenuTree => {
       number,
       accessKeyOverride: meta.key,
       ...(meta.dialog?.toLowerCase() === "true" ? { prompt: true } : {}),
+      ...(parseTabAction(meta.tab) ? { tabAction: parseTabAction(meta.tab) } : {}),
       parsedDir,
       comment: `${index}${comment.replaceAll("-", "_")}`,
       menuIndex: menuItemCounter.join("."),

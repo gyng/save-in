@@ -3828,10 +3828,10 @@
     "message": "Prefijo con el identificador de Twitter/X"
   },
   "ruleTemplateTwitterOriginalsDescription": {
-    "message": "Reescribe los enlaces de imágenes de Twitter y X a su versión pública más grande"
+    "message": "Reescribe los enlaces de imágenes de Twitter y X al archivo original de resolución completa"
   },
   "ruleTemplateTwitterOriginalsName": {
-    "message": "Imagen más grande de Twitter/X"
+    "message": "Originales de imágenes de Twitter/X"
   },
   "ruleTemplateWikimediaOriginalDescription": {
     "message": "Reescribe los enlaces de miniaturas de Wikimedia Commons al archivo original de tamaño completo"
@@ -3938,34 +3938,54 @@
   "routeDebuggerRenamedName": {
     "message": "Nombre renombrado"
   },
-  "promptAssistantTitle": { "message": "Asistente de reglas en el dispositivo" },
+  "promptAssistantTitle": {
+    "message": "Asistente de reglas en el dispositivo"
+  },
   "promptAssistantIntro": {
     "message": "Describe dónde deben guardarse los archivos y obtén una regla de enrutamiento para revisarla."
   },
-  "promptAssistantEnable": { "message": "Activar el asistente en el dispositivo" },
+  "promptAssistantEnable": {
+    "message": "Activar el asistente en el dispositivo"
+  },
   "promptAssistantEnableHelp": {
     "message": "Cuando está desactivado, Save In no comprueba el modelo, no crea sesiones ni envía instrucciones."
   },
-  "promptAssistantStatusLabel": { "message": "Estado" },
-  "promptAssistantPromptLabel": { "message": "Describe una regla de enrutamiento" },
+  "promptAssistantStatusLabel": {
+    "message": "Estado"
+  },
+  "promptAssistantPromptLabel": {
+    "message": "Describe una regla de enrutamiento"
+  },
   "promptAssistantPromptPlaceholder": {
     "message": "Guardar archivos PNG de example.com en Images/example"
   },
   "promptAssistantPromptHelp": {
     "message": "Esta solicitud es global y no se guarda. El asistente no lee tus pestañas abiertas; incluye el sitio, el tipo de archivo y la carpeta que quieres."
   },
-  "promptAssistantSuggest": { "message": "Sugerir regla" },
-  "promptAssistantGeneratedDraft": { "message": "Borrador generado" },
-  "promptAssistantAddToRules": { "message": "Añadir a las reglas" },
-  "promptAssistantClearDraft": { "message": "Borrar borrador" },
+  "promptAssistantSuggest": {
+    "message": "Sugerir regla"
+  },
+  "promptAssistantGeneratedDraft": {
+    "message": "Borrador generado"
+  },
+  "promptAssistantAddToRules": {
+    "message": "Añadir a las reglas"
+  },
+  "promptAssistantClearDraft": {
+    "message": "Borrar borrador"
+  },
   "promptAssistantPrivacy": {
     "message": "Chrome ejecuta el modelo en este dispositivo. Save In no envía la instrucción ni el resultado a un servidor. Las reglas generadas nunca se aplican automáticamente."
   },
   "promptAssistantStatusOff": {
     "message": "Desactivado — sin comprobaciones del modelo ni instrucciones"
   },
-  "promptAssistantStatusChecking": { "message": "Comprobando el modelo del dispositivo…" },
-  "promptAssistantStatusReady": { "message": "Listo en este dispositivo" },
+  "promptAssistantStatusChecking": {
+    "message": "Comprobando el modelo del dispositivo…"
+  },
+  "promptAssistantStatusReady": {
+    "message": "Listo en este dispositivo"
+  },
   "promptAssistantStatusDownloadable": {
     "message": "El modelo se descarga cuando sugieres tu primera regla"
   },
@@ -3975,16 +3995,30 @@
   "promptAssistantStatusUnavailable": {
     "message": "No disponible en este navegador o dispositivo"
   },
-  "promptAssistantStatusWorking": { "message": "Creando y comprobando un borrador…" },
+  "promptAssistantStatusWorking": {
+    "message": "Creando y comprobando un borrador…"
+  },
   "promptAssistantStatusInvalid": {
     "message": "El borrador necesita otro intento: $ERROR$",
-    "placeholders": { "error": { "content": "$1", "example": "The rule needs an into clause" } }
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "The rule needs an into clause"
+      }
+    }
   },
   "promptAssistantStatusFailed": {
     "message": "No se pudo crear un borrador: $ERROR$",
-    "placeholders": { "error": { "content": "$1", "example": "The model session ended" } }
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "The model session ended"
+      }
+    }
   },
-  "promptAssistantStatusDraftReady": { "message": "Borrador listo — revísalo antes de añadirlo" },
+  "promptAssistantStatusDraftReady": {
+    "message": "Borrador listo — revísalo antes de añadirlo"
+  },
   "promptAssistantStatusAdded": {
     "message": "Añadido como borrador sin guardar en el editor de reglas"
   },
@@ -3994,8 +4028,43 @@
   "html_cssMatcherSyntax": {
     "message": "El comparador css: usa sintaxis de selector CSS en lugar de una expresión regular y no admite indicadores."
   },
-  "ruleInvalidCssSelector": { "message": "Selector CSS no válido" },
+  "ruleInvalidCssSelector": {
+    "message": "Selector CSS no válido"
+  },
   "ruleCssFlags": {
     "message": "css: no admite indicadores de expresiones regulares"
+  },
+  "ruleTemplateYoutubeMaxResDescription": {
+    "message": "Reescribe los enlaces de miniaturas de YouTube a la imagen de máxima resolución"
+  },
+  "ruleTemplateYoutubeMaxResName": {
+    "message": "Miniatura de YouTube en máxima resolución"
+  },
+  "contextMenuQuickSave": {
+    "message": "Guardado rápido"
+  },
+  "contextMenuQuickSaveToDirectory": {
+    "message": "Guardar en $DIRECTORY$",
+    "placeholders": {
+      "directory": {
+        "content": "$1",
+        "example": "Photos"
+      }
+    }
+  },
+  "manifestCommandQuickSave": {
+    "message": "Guardar rápidamente la página actual"
+  },
+  "o_cQuickSave": {
+    "message": "Mostrar un elemento de guardado rápido"
+  },
+  "o_cQuickSaveHelp": {
+    "message": "Agrega un elemento de menú que guarda directamente en la carpeta predeterminada, omitiendo la lista de carpetas."
+  },
+  "o_lQuickSaveDirectory": {
+    "message": "Carpeta de guardado rápido"
+  },
+  "o_cQuickSaveUseDirectory": {
+    "message": "Guardar en esta carpeta en lugar de Descargas"
   }
 }

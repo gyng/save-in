@@ -3828,10 +3828,10 @@
     "message": "Twitter/X 用户名前缀"
   },
   "ruleTemplateTwitterOriginalsDescription": {
-    "message": "将 Twitter 和 X 的图片链接改写为公开可用的最大版本"
+    "message": "将 Twitter 和 X 的图片链接改写为原始全分辨率文件"
   },
   "ruleTemplateTwitterOriginalsName": {
-    "message": "Twitter/X 最大图片"
+    "message": "Twitter/X 图片原图"
   },
   "ruleTemplateWikimediaOriginalDescription": {
     "message": "将 Wikimedia Commons 的缩略图链接改写为原始完整尺寸文件"
@@ -3938,48 +3938,133 @@
   "routeDebuggerRenamedName": {
     "message": "重命名后的名称"
   },
-  "promptAssistantTitle": { "message": "设备端规则助手" },
-  "promptAssistantIntro": { "message": "描述文件的保存位置，获取一条可供检查的路由规则。" },
-  "promptAssistantEnable": { "message": "启用设备端助手" },
-  "promptAssistantEnableHelp": { "message": "关闭后，Save In 不会检查模型、创建会话或发送提示。" },
-  "promptAssistantStatusLabel": { "message": "状态" },
-  "promptAssistantPromptLabel": { "message": "描述路由规则" },
+  "promptAssistantTitle": {
+    "message": "设备端规则助手"
+  },
+  "promptAssistantIntro": {
+    "message": "描述文件的保存位置，获取一条可供检查的路由规则。"
+  },
+  "promptAssistantEnable": {
+    "message": "启用设备端助手"
+  },
+  "promptAssistantEnableHelp": {
+    "message": "关闭后，Save In 不会检查模型、创建会话或发送提示。"
+  },
+  "promptAssistantStatusLabel": {
+    "message": "状态"
+  },
+  "promptAssistantPromptLabel": {
+    "message": "描述路由规则"
+  },
   "promptAssistantPromptPlaceholder": {
     "message": "将 example.com 的 PNG 文件保存到 Images/example"
   },
   "promptAssistantPromptHelp": {
     "message": "此请求全局有效且不会保存。助手不会读取您打开的标签页；请说明所需的网站、文件类型和文件夹。"
   },
-  "promptAssistantSuggest": { "message": "建议规则" },
-  "promptAssistantGeneratedDraft": { "message": "生成的草稿" },
-  "promptAssistantAddToRules": { "message": "添加到规则" },
-  "promptAssistantClearDraft": { "message": "清除草稿" },
+  "promptAssistantSuggest": {
+    "message": "建议规则"
+  },
+  "promptAssistantGeneratedDraft": {
+    "message": "生成的草稿"
+  },
+  "promptAssistantAddToRules": {
+    "message": "添加到规则"
+  },
+  "promptAssistantClearDraft": {
+    "message": "清除草稿"
+  },
   "promptAssistantPrivacy": {
     "message": "Chrome 在此设备上运行模型。Save In 不会将提示或结果发送到服务器。生成的规则绝不会自动应用。"
   },
-  "promptAssistantStatusOff": { "message": "已关闭 — 不检查模型或发送提示" },
-  "promptAssistantStatusChecking": { "message": "正在检查设备端模型…" },
-  "promptAssistantStatusReady": { "message": "已在此设备上就绪" },
-  "promptAssistantStatusDownloadable": { "message": "建议第一条规则时会下载模型" },
-  "promptAssistantStatusDownloading": { "message": "Chrome 正在下载设备端模型" },
-  "promptAssistantStatusUnavailable": { "message": "此浏览器或设备不可用" },
-  "promptAssistantStatusWorking": { "message": "正在创建并检查草稿…" },
+  "promptAssistantStatusOff": {
+    "message": "已关闭 — 不检查模型或发送提示"
+  },
+  "promptAssistantStatusChecking": {
+    "message": "正在检查设备端模型…"
+  },
+  "promptAssistantStatusReady": {
+    "message": "已在此设备上就绪"
+  },
+  "promptAssistantStatusDownloadable": {
+    "message": "建议第一条规则时会下载模型"
+  },
+  "promptAssistantStatusDownloading": {
+    "message": "Chrome 正在下载设备端模型"
+  },
+  "promptAssistantStatusUnavailable": {
+    "message": "此浏览器或设备不可用"
+  },
+  "promptAssistantStatusWorking": {
+    "message": "正在创建并检查草稿…"
+  },
   "promptAssistantStatusInvalid": {
     "message": "草稿需要重试：$ERROR$",
-    "placeholders": { "error": { "content": "$1", "example": "The rule needs an into clause" } }
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "The rule needs an into clause"
+      }
+    }
   },
   "promptAssistantStatusFailed": {
     "message": "无法创建草稿：$ERROR$",
-    "placeholders": { "error": { "content": "$1", "example": "The model session ended" } }
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "The model session ended"
+      }
+    }
   },
-  "promptAssistantStatusDraftReady": { "message": "草稿已就绪 — 添加前请先检查" },
-  "promptAssistantStatusAdded": { "message": "已作为未保存的草稿添加到规则编辑器" },
+  "promptAssistantStatusDraftReady": {
+    "message": "草稿已就绪 — 添加前请先检查"
+  },
+  "promptAssistantStatusAdded": {
+    "message": "已作为未保存的草稿添加到规则编辑器"
+  },
   "html_cssMatcherDescription": {
     "message": "匹配发现该来源的页面元素。适用于自动页面来源、点击保存以及从“页面来源”面板保存。"
   },
   "html_cssMatcherSyntax": {
     "message": "css: 匹配器使用 CSS 选择器语法，而不是正则表达式，并且不接受标志。"
   },
-  "ruleInvalidCssSelector": { "message": "CSS 选择器无效" },
-  "ruleCssFlags": { "message": "css: 不接受正则表达式标志" }
+  "ruleInvalidCssSelector": {
+    "message": "CSS 选择器无效"
+  },
+  "ruleCssFlags": {
+    "message": "css: 不接受正则表达式标志"
+  },
+  "ruleTemplateYoutubeMaxResDescription": {
+    "message": "将 YouTube 缩略图链接改写为最高分辨率图片"
+  },
+  "ruleTemplateYoutubeMaxResName": {
+    "message": "YouTube 缩略图最高分辨率"
+  },
+  "contextMenuQuickSave": {
+    "message": "快速保存"
+  },
+  "contextMenuQuickSaveToDirectory": {
+    "message": "保存到 $DIRECTORY$",
+    "placeholders": {
+      "directory": {
+        "content": "$1",
+        "example": "Photos"
+      }
+    }
+  },
+  "manifestCommandQuickSave": {
+    "message": "快速保存当前页面"
+  },
+  "o_cQuickSave": {
+    "message": "显示快速保存菜单项"
+  },
+  "o_cQuickSaveHelp": {
+    "message": "添加一个菜单项，直接保存到默认文件夹，跳过文件夹列表。"
+  },
+  "o_lQuickSaveDirectory": {
+    "message": "快速保存文件夹"
+  },
+  "o_cQuickSaveUseDirectory": {
+    "message": "保存到此文件夹而非下载文件夹"
+  }
 }

@@ -6,8 +6,15 @@ import { toggleSourcePanelForTab } from "./source-panel-state.ts";
 // items (and last-used/route-exclusive) into renameAndDownload.
 // Tab-strip clicks are handled in menu-tabs.ts.
 
-import { menuState, recordRecentDestination, setAccesskey, setLastUsed } from "./menu-build.ts";
+import {
+  menuState,
+  recordRecentDestination,
+  setAccesskey,
+  setLastUsed,
+  setQuickSaveUseDirectory,
+} from "./menu-build.ts";
 import { MENU_IDS } from "../menus/menu-ids.ts";
+import { resolveDefaultDestination } from "../menus/quick-save-target.ts";
 import { DOWNLOAD_TYPES } from "../shared/constants.ts";
 import { Path, sanitizeFilename } from "../routing/path.ts";
 import { launchDownload, makeObjectUrl } from "../downloads/download.ts";
@@ -54,6 +61,14 @@ export const handleContextMenuClick = async (
     return;
   }
 
+  // The dynamic-default checkbox only flips which destination Quick save
+  // resolves to; the browser already toggled its own checked state, so the
+  // click state (post-toggle) is authoritative.
+  if (info.menuItemId === MENU_IDS.QUICK_SAVE_TO_DIRECTORY) {
+    await setQuickSaveUseDirectory(Reflect.get(info, "checked") === true);
+    return;
+  }
+
   // MV3 service workers restart between events: wait for options
   // and menus to be reinitialised before handling the click
   if (backgroundRuntime.ready) {
@@ -66,7 +81,7 @@ export const handleContextMenuClick = async (
   const clickTab = tab || currentTab;
 
   const menuInfo = menuState.pathMappings[info.menuItemId];
-  const isSpecialItem = [MENU_IDS.ROUTE_EXCLUSIVE, MENU_IDS.LAST_USED].some(
+  const isSpecialItem = [MENU_IDS.ROUTE_EXCLUSIVE, MENU_IDS.LAST_USED, MENU_IDS.QUICK_SAVE].some(
     (id) => id === info.menuItemId,
   );
 
@@ -118,6 +133,10 @@ export const handleContextMenuClick = async (
 
     if (info.menuItemId === MENU_IDS.ROUTE_EXCLUSIVE) {
       saveIntoPath = ".";
+    } else if (info.menuItemId === MENU_IDS.QUICK_SAVE) {
+      // Quick save reuses the ordinary pipeline: routing rules still run on top
+      // of the resolved default destination, only the folder tree is skipped.
+      saveIntoPath = resolveDefaultDestination(options);
     } else if (info.menuItemId === MENU_IDS.LAST_USED) {
       saveIntoPath = menuState.lastUsedPath;
       if (!saveIntoPath) return;
@@ -190,7 +209,11 @@ export const handleContextMenuClick = async (
       menuItemId: String(info.menuItemId),
       menuItemTitle:
         selectedLocation?.title ||
-        (info.menuItemId === MENU_IDS.LAST_USED ? "Last used location" : "Routing rules"),
+        (info.menuItemId === MENU_IDS.LAST_USED
+          ? "Last used location"
+          : info.menuItemId === MENU_IDS.QUICK_SAVE
+            ? "Quick save"
+            : "Routing rules"),
       menuItemPath: saveIntoPath,
       comment,
       forcePrompt:
@@ -256,7 +279,41 @@ export const handleContextMenuClick = async (
         }
       }
     }
+
+    // Per-menu-item post-save tab action (#115): only the clicked folder's own
+    // opt-in acts, only after the browser accepted the save. tabs.remove and
+    // tabs.update need no "tabs" permission (it gates url/title metadata, not
+    // these operations), so both browsers behave identically. The source tab id
+    // is already known from the click, so acting on it leaks nothing new about a
+    // private context.
+    const tabAction = menuInfo?.tabAction;
+    if (tabAction && result.status === "started" && clickTab && clickTab.id != null) {
+      const tabId = clickTab.id;
+      try {
+        if (tabAction === "close") {
+          await webExtensionApi.tabs.remove(tabId);
+        } else {
+          await webExtensionApi.tabs.update(tabId, { active: true });
+        }
+      } catch (error) {
+        void addLogEntry("post-save tab action failed", String(error), { privateContext });
+      }
+    }
   }
+};
+
+// Keyboard-command entry point (#144): the command has no click context, so it
+// saves the active tab's page to the resolved default destination through the
+// same handler the menu item uses. Gated on the opt-in so an unbound-by-default
+// command that a user assigns still respects the feature toggle.
+export const quickSaveActiveTab = async (): Promise<void> => {
+  if (backgroundRuntime.ready) {
+    await backgroundRuntime.ready;
+  }
+  if (!options.quickSaveEnabled) return;
+  const [tab] = await webExtensionApi.tabs.query({ active: true, currentWindow: true });
+  if (!tab || tab.url == null) return;
+  await handleContextMenuClick({ menuItemId: MENU_IDS.QUICK_SAVE, pageUrl: tab.url }, tab);
 };
 
 export const addDownloadListener = () => {

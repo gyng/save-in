@@ -853,6 +853,40 @@ export const runContextMenuScenario = async ({ control, waitForDownloads }) => {
 };
 
 /**
+ * Drives the production Quick save path: the root-level Quick save item routes a
+ * save straight to the resolved default destination, and the dynamic-default
+ * toggle redirects that default from the Downloads root to a configured folder.
+ *
+ * @param {{
+ *   control: ReturnType<typeof import("./control-client.mjs").createE2EControlClient>,
+ *   waitForDownloads: (filename: string) => Promise<DownloadSummary[]>,
+ * }} adapters
+ */
+export const runQuickSaveScenario = async ({ control, waitForDownloads }) => {
+  await control.options.set({
+    quickSaveEnabled: true,
+    quickSaveDirectory: "e2e/quick-save",
+    quickSaveUseDirectory: true,
+    selection: true,
+  });
+  await control.background.clickContextMenu({
+    info: {
+      menuItemId: "save-in-quick-save",
+      selectionText: "quick save content",
+      pageUrl: "https://example.com/",
+    },
+    tab: { id: 1, title: "quick-save-smoke", url: "https://example.com/" },
+  });
+
+  const downloads = await waitForDownloads("quick-save-smoke");
+  expect(downloads).toHaveLength(1);
+  const completed = requireValue(downloads[0], "Quick save download was not captured");
+  expect(completed.state).toBe("complete");
+  expect(completed.filename).toMatch(/e2e[\\/]quick-save[\\/]quick-save-smoke\.selection\.txt$/);
+  expect(fs.readFileSync(completed.filename, "utf8")).toBe("quick save content");
+};
+
+/**
  * Dispatches the production tab-strip handler with a real browser tab and
  * verifies the selected-tab shortcut reaches the download pipeline.
  *

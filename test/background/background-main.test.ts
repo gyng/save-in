@@ -3,7 +3,10 @@
 // background-main.ts exports start(); each test resets the owner-controlled
 // runtime/tab state and calls start() through importIndex() below.
 
-vi.mock("../../src/background/menu-click.ts", () => ({ addDownloadListener: vi.fn() }));
+vi.mock("../../src/background/menu-click.ts", () => ({
+  addDownloadListener: vi.fn(),
+  quickSaveActiveTab: vi.fn(() => Promise.resolve()),
+}));
 vi.mock("../../src/menus/menu-tree.ts", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../../src/menus/menu-tree.ts")>();
   return { ...actual, buildTree: vi.fn(actual.buildTree) };
@@ -318,6 +321,18 @@ describe("startup", () => {
     vi.mocked(global.browser.tabs.query).mockResolvedValueOnce([]);
     await command(Menus.MENU_IDS.TOGGLE_SOURCE_PANEL, mockTab());
     expect(sourcePanelMocks.toggle).toHaveBeenCalledTimes(2);
+  });
+
+  test("the quick save command delegates to the active-tab quick save", async () => {
+    const { QUICK_SAVE_COMMAND } = await import("../../src/menus/menu-ids.ts");
+    const { quickSaveActiveTab } = await import("../../src/background/menu-click.ts");
+    await setupGlobals();
+    await importIndex();
+    await Runtime.ready;
+
+    const command = capturedCommand();
+    await command(QUICK_SAVE_COMMAND, mockTab());
+    expect(quickSaveActiveTab).toHaveBeenCalledTimes(1);
   });
 });
 

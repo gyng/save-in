@@ -41,6 +41,40 @@ test("content schema normalizes legacy automatic rules and shortcut keycodes", (
   expect("onLoad" in theme && theme.onLoad("forest")).toBe("pastel-pink");
 });
 
+test("normalizes the quick save toggles and directory", () => {
+  expect(
+    resolveContentOptions({
+      quickSaveEnabled: "yes",
+      quickSaveDirectory: 5,
+      quickSaveUseDirectory: true,
+    }),
+  ).toMatchObject({
+    quickSaveEnabled: false,
+    quickSaveDirectory: ".",
+    quickSaveUseDirectory: true,
+  });
+
+  expect(
+    resolveContentOptions({ quickSaveEnabled: true, quickSaveDirectory: "Photos" }),
+  ).toMatchObject({
+    quickSaveEnabled: true,
+    quickSaveDirectory: "Photos",
+    quickSaveUseDirectory: false,
+  });
+});
+
+test("the quick save directory trims and falls back to the Downloads root on save", () => {
+  const directory = CONTENT_FEATURE_OPTION_DEFINITIONS.find(
+    ({ name }) => name === "quickSaveDirectory",
+  )! as Extract<
+    (typeof CONTENT_FEATURE_OPTION_DEFINITIONS)[number],
+    { name: "quickSaveDirectory" }
+  >;
+
+  expect("onSave" in directory && directory.onSave("  Photos  ")).toBe("Photos");
+  expect("onSave" in directory && directory.onSave("   ")).toBe(".");
+});
+
 test("normalizes malformed values and preserves legacy numeric shortcut keycodes", () => {
   expect(
     resolveContentOptions({

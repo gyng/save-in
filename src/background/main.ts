@@ -8,7 +8,7 @@ import { hydrateDownloads } from "../downloads/download-state.ts";
 import { setHistoryStatus } from "./history.ts";
 import { extensionSessionStorage } from "../platform/storage-areas.ts";
 import { restoreLastUsed } from "./menu-build.ts";
-import { addDownloadListener } from "./menu-click.ts";
+import { addDownloadListener, quickSaveActiveTab } from "./menu-click.ts";
 import { addTabHighlightListener, addTabMenuListener } from "./menu-tabs.ts";
 import {
   LAST_USED_META_STORAGE_KEY,
@@ -26,7 +26,7 @@ import { runBackgroundTask } from "./background-event-task.ts";
 import { recoverActiveTransfers } from "../downloads/active-transfers.ts";
 import { OffscreenClient } from "../platform/offscreen-client.ts";
 import { rebuildMenus } from "./menu-rebuild.ts";
-import { MENU_IDS } from "../menus/menu-ids.ts";
+import { MENU_IDS, QUICK_SAVE_COMMAND } from "../menus/menu-ids.ts";
 import { cleanupStaleRefererRule } from "../downloads/referer-rules.ts";
 import {
   markBackgroundFailed,
@@ -140,11 +140,16 @@ export const start = () => {
   };
   webExtensionApi.action?.onClicked.addListener(toggleSources);
   webExtensionApi.commands?.onCommand.addListener((command): Promise<void> | undefined => {
-    if (command !== MENU_IDS.TOGGLE_SOURCE_PANEL) return undefined;
-    return runBackgroundTask("source panel command failed", async () => {
-      const [tab] = await webExtensionApi.tabs.query({ active: true, currentWindow: true });
-      if (tab) await toggleSources(tab);
-    });
+    if (command === MENU_IDS.TOGGLE_SOURCE_PANEL) {
+      return runBackgroundTask("source panel command failed", async () => {
+        const [tab] = await webExtensionApi.tabs.query({ active: true, currentWindow: true });
+        if (tab) await toggleSources(tab);
+      });
+    }
+    if (command === QUICK_SAVE_COMMAND) {
+      return runBackgroundTask("quick save command failed", quickSaveActiveTab);
+    }
+    return undefined;
   });
 
   const initialTab = webExtensionApi.tabs

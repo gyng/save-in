@@ -392,6 +392,22 @@ Briefly explain the structure, check that every line follows this syntax, then p
 
         <fieldset class="option-group">
           <legend>
+            <label><input type="checkbox" id="quickSaveEnabled" />__MSG_o_cQuickSave__</label>
+          </legend>
+          <div class="caption caption-line">
+            <div class="caption">__MSG_o_cQuickSaveHelp__</div>
+            <label class="inline-control-label">
+              <span>__MSG_o_lQuickSaveDirectory__</span>
+              <input type="text" id="quickSaveDirectory" spellcheck="false" />
+            </label>
+            <label>
+              <input type="checkbox" id="quickSaveUseDirectory" />__MSG_o_cQuickSaveUseDirectory__
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset class="option-group">
+          <legend>
             <label><input type="checkbox" id="links" />__MSG_o_cSaveLinks__</label>
           </legend>
           <div class="caption caption-line">

@@ -54,6 +54,9 @@
         "mac": "Command+Shift+Y"
       },
       "description": "__MSG_manifestCommandTogglePageSources__"
+    },
+    "quick-save": {
+      "description": "__MSG_manifestCommandQuickSave__"
     }
   },
   "icons": {

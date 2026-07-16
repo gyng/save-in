@@ -3828,10 +3828,10 @@
     "message": "Twitter/X-användarnamn som prefix"
   },
   "ruleTemplateTwitterOriginalsDescription": {
-    "message": "Skriver om Twitter- och X-bildlänkar till deras största offentliga version"
+    "message": "Skriver om Twitter- och X-bildlänkar till originalfilen i full upplösning"
   },
   "ruleTemplateTwitterOriginalsName": {
-    "message": "Största Twitter/X-bilden"
+    "message": "Twitter/X-bildoriginal"
   },
   "ruleTemplateWikimediaOriginalDescription": {
     "message": "Skriver om Wikimedia Commons miniatyrlänkar till originalfilen i full storlek"
@@ -3938,58 +3938,133 @@
   "routeDebuggerRenamedName": {
     "message": "Nytt namn"
   },
-  "promptAssistantTitle": { "message": "Regelassistent på enheten" },
+  "promptAssistantTitle": {
+    "message": "Regelassistent på enheten"
+  },
   "promptAssistantIntro": {
     "message": "Beskriv var filer ska sparas och få en dirigeringsregel att granska."
   },
-  "promptAssistantEnable": { "message": "Aktivera assistenten på enheten" },
+  "promptAssistantEnable": {
+    "message": "Aktivera assistenten på enheten"
+  },
   "promptAssistantEnableHelp": {
     "message": "När den är avstängd kontrollerar Save In inte modellen, skapar inga sessioner och skickar inga prompter."
   },
-  "promptAssistantStatusLabel": { "message": "Status" },
-  "promptAssistantPromptLabel": { "message": "Beskriv en dirigeringsregel" },
+  "promptAssistantStatusLabel": {
+    "message": "Status"
+  },
+  "promptAssistantPromptLabel": {
+    "message": "Beskriv en dirigeringsregel"
+  },
   "promptAssistantPromptPlaceholder": {
     "message": "Spara PNG-filer från example.com i Images/example"
   },
   "promptAssistantPromptHelp": {
     "message": "Begäran är global och sparas inte. Assistenten läser inte dina öppna flikar. Ange önskad webbplats, filtyp och mapp."
   },
-  "promptAssistantSuggest": { "message": "Föreslå regel" },
-  "promptAssistantGeneratedDraft": { "message": "Genererat utkast" },
-  "promptAssistantAddToRules": { "message": "Lägg till i regler" },
-  "promptAssistantClearDraft": { "message": "Rensa utkast" },
+  "promptAssistantSuggest": {
+    "message": "Föreslå regel"
+  },
+  "promptAssistantGeneratedDraft": {
+    "message": "Genererat utkast"
+  },
+  "promptAssistantAddToRules": {
+    "message": "Lägg till i regler"
+  },
+  "promptAssistantClearDraft": {
+    "message": "Rensa utkast"
+  },
   "promptAssistantPrivacy": {
     "message": "Chrome kör modellen på den här enheten. Save In skickar inte prompten eller resultatet till en server. Genererade regler tillämpas aldrig automatiskt."
   },
-  "promptAssistantStatusOff": { "message": "Av — inga modellkontroller eller prompter" },
-  "promptAssistantStatusChecking": { "message": "Kontrollerar modellen på enheten…" },
-  "promptAssistantStatusReady": { "message": "Redo på den här enheten" },
+  "promptAssistantStatusOff": {
+    "message": "Av — inga modellkontroller eller prompter"
+  },
+  "promptAssistantStatusChecking": {
+    "message": "Kontrollerar modellen på enheten…"
+  },
+  "promptAssistantStatusReady": {
+    "message": "Redo på den här enheten"
+  },
   "promptAssistantStatusDownloadable": {
     "message": "Modellen hämtas när du föreslår din första regel"
   },
-  "promptAssistantStatusDownloading": { "message": "Chrome hämtar modellen till enheten" },
+  "promptAssistantStatusDownloading": {
+    "message": "Chrome hämtar modellen till enheten"
+  },
   "promptAssistantStatusUnavailable": {
     "message": "Inte tillgänglig i den här webbläsaren eller på enheten"
   },
-  "promptAssistantStatusWorking": { "message": "Skapar och kontrollerar ett utkast…" },
+  "promptAssistantStatusWorking": {
+    "message": "Skapar och kontrollerar ett utkast…"
+  },
   "promptAssistantStatusInvalid": {
     "message": "Utkastet behöver ett nytt försök: $ERROR$",
-    "placeholders": { "error": { "content": "$1", "example": "The rule needs an into clause" } }
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "The rule needs an into clause"
+      }
+    }
   },
   "promptAssistantStatusFailed": {
     "message": "Det gick inte att skapa ett utkast: $ERROR$",
-    "placeholders": { "error": { "content": "$1", "example": "The model session ended" } }
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "The model session ended"
+      }
+    }
   },
   "promptAssistantStatusDraftReady": {
     "message": "Utkastet är klart — granska det innan du lägger till det"
   },
-  "promptAssistantStatusAdded": { "message": "Tillagt som ett osparat utkast i regelredigeraren" },
+  "promptAssistantStatusAdded": {
+    "message": "Tillagt som ett osparat utkast i regelredigeraren"
+  },
   "html_cssMatcherDescription": {
     "message": "Matchar sidelementet som hittade källan. Tillgängligt för automatiska sidkällor, klickspara och sparningar från panelen Sidkällor."
   },
   "html_cssMatcherSyntax": {
     "message": "Matcharen css: använder CSS-selektorsyntax i stället för ett reguljärt uttryck och accepterar inga flaggor."
   },
-  "ruleInvalidCssSelector": { "message": "Ogiltig CSS-selektor" },
-  "ruleCssFlags": { "message": "css: accepterar inte flaggor för reguljära uttryck" }
+  "ruleInvalidCssSelector": {
+    "message": "Ogiltig CSS-selektor"
+  },
+  "ruleCssFlags": {
+    "message": "css: accepterar inte flaggor för reguljära uttryck"
+  },
+  "ruleTemplateYoutubeMaxResDescription": {
+    "message": "Skriver om YouTubes miniatyrlänkar till bilden med maximal upplösning"
+  },
+  "ruleTemplateYoutubeMaxResName": {
+    "message": "YouTube-miniatyr med maximal upplösning"
+  },
+  "contextMenuQuickSave": {
+    "message": "Snabbspara"
+  },
+  "contextMenuQuickSaveToDirectory": {
+    "message": "Spara i $DIRECTORY$",
+    "placeholders": {
+      "directory": {
+        "content": "$1",
+        "example": "Photos"
+      }
+    }
+  },
+  "manifestCommandQuickSave": {
+    "message": "Snabbspara den aktuella sidan"
+  },
+  "o_cQuickSave": {
+    "message": "Visa ett objekt för snabbspara"
+  },
+  "o_cQuickSaveHelp": {
+    "message": "Lägger till ett menyalternativ som sparar direkt i standardmappen och hoppar över mapplistan."
+  },
+  "o_lQuickSaveDirectory": {
+    "message": "Mapp för snabbspara"
+  },
+  "o_cQuickSaveUseDirectory": {
+    "message": "Spara i den här mappen i stället för Hämtade filer"
+  }
 }

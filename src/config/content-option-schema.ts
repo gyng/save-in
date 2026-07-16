@@ -116,6 +116,18 @@ export const CONTENT_FEATURE_OPTION_DEFINITIONS = [
     type: "VALUE",
     default: CONTENT_OPTION_DEFAULTS.perSiteDisableList,
   },
+  { name: "quickSaveEnabled", type: "BOOL", default: CONTENT_OPTION_DEFAULTS.quickSaveEnabled },
+  {
+    name: "quickSaveDirectory",
+    type: "VALUE",
+    onSave: (value: string) => value.trim() || ".",
+    default: CONTENT_OPTION_DEFAULTS.quickSaveDirectory,
+  },
+  {
+    name: "quickSaveUseDirectory",
+    type: "BOOL",
+    default: CONTENT_OPTION_DEFAULTS.quickSaveUseDirectory,
+  },
 ] as const;
 
 export const LINKS_OPTION_DEFINITION = {

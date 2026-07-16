@@ -73,6 +73,10 @@ export const setupOptionDependencies = () => {
     },
     { parent: "tabEnabled", children: ["closeTabOnSave"] },
     {
+      parent: "quickSaveEnabled",
+      children: ["quickSaveDirectory", "quickSaveUseDirectory"],
+    },
+    {
       parent: "setRefererHeader",
       children: ["setRefererHeaderFilter"],
     },
