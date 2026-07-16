@@ -1,10 +1,11 @@
 # Roadmap
 
-Planned work after the 4.0.0 release. The 4.1 section is an implementation
-plan rather than a directional list: the routing-grammar decision is made and
-part of the work is in flight, so items name the modules they change and the
-tests that gate them. Nothing lands without the usual test, lint, and review
-gates. Issue numbers refer to the GitHub tracker.
+Planned work after the 4.0.0 release. The 4.1 section is the record of what
+shipped in 4.1.0; the 4.2 section is the current implementation plan —
+items name the modules they change and the tests that gate them, and the
+decision-gated tracks fix their designs and criteria in advance. Nothing
+lands without the usual test, lint, and review gates. Issue numbers refer
+to the GitHub tracker.
 
 ## 4.0 release follow-through
 
@@ -200,16 +201,155 @@ privacy; click removes, erases, and marks), history persistence (the undone
 state survives normalization), history-panel row-action delegation and
 failure containment, message-protocol validation, one e2e smoke per browser.
 
-## 4.2 candidates
+## 4.2 — scan completion and verdicts
 
-- Remaining automatic-scan phases: anchors beyond previewable media
-  (`stream`, `document`), CSS backgrounds, playlist hints, and
-  `data:`/`blob:` acquisition.
-- Grammar follow-up only if 4.1 feedback shows template-resistant demand
-  (for example #187's general value transforms). Any extension must stay
-  inside the single `filenamePatterns` grammar and its editor.
-- Promote or retire the experimental Firefox cancel-and-redownload mode based
-  on 4.0/4.1 reports.
+Four tracks. The scan phases are planned work; the last two are
+decision-gated, with the designs and decision criteria fixed now so 4.1
+feedback converts directly into action instead of reopening design.
+
+1. Automatic scan phase B: linked documents and streams, CSS backgrounds,
+   playlist hints.
+2. Automatic scan phase C: `data:` sources. (`blob:` acquisition is a
+   non-goal — rationale below.)
+3. Grammar: general value transforms (#187) — gated on template-resistant
+   demand.
+4. Firefox cancel-and-redownload verdict — gated on 4.0/4.1 field evidence.
+
+### Automatic scan phase B: documents, streams, backgrounds, hints
+
+Discovery already exists; phase B is gating work, not collector work. The
+shared collector classifies anchors into all six kinds
+(`src/content/source-panel-model.ts` — `stream` is `.m3u8`/`.mpd`,
+`document` is `.pdf`), collects CSS backgrounds
+(`collectBackgroundElements` + `urlsFromCss`, emitted as `kind: image`) and
+HLS/DASH resource-timing hints (`collectResourceHintSources`, emitted as
+`kind: stream`). Routing needs no new vocabulary: `sourcekind:` is a plain
+info matcher and every editor/WebMCP enumeration already lists `stream` and
+`document`. The automatic scan currently forces these channels off
+(`src/content/auto-download.ts`: the `AUTOMATIC_MEDIA_KINDS` filter, plus
+`includeBackgrounds: false` and `resourceHints: false` in its collector
+call).
+
+Adopting new kinds silently would broaden existing rules — a profile with
+`urlfileext: pdf$` and link adoption on would start firing on `.pdf` anchors
+that phase A deliberately dropped. Each channel is therefore its own
+content option, default off, beside `autoDownloadLinks`:
+
+- Linked documents and streams: anchors classified `stream` or `document`
+  pass the kind filter. Plain `link` anchors stay out permanently
+  (non-goal below).
+- Page backgrounds: the scan's collector call turns `includeBackgrounds`
+  on; candidates arrive as `kind: image` and existing image rules match
+  only if their matchers do.
+- Streaming manifests: `resourceHints` on; candidates arrive as
+  `kind: stream`. A saved manifest is the playlist file itself — the
+  description must say so (Save In does not assemble segmented media).
+
+The options UI groups the three with the existing link control under one
+"Automatic scan coverage" cluster in the content settings, wired through
+`content-options.ts` defaults/keys/normalizers and the schema-alignment
+test like `autoDownloadLinks`. Everything else is deliberately unchanged:
+eligibility, the HTTP(S) gate (`automaticUrl`), the background re-match and
+protocol backstop (`background/messaging/auto-download.ts`), per-page
+limit, once-per-visit dedup, and the live-discovery `MutationObserver`
+(which already observes attribute mutations; background/hint changes ride
+the existing debounced rescan).
+
+Tests: extend the discovery matrices in
+`test/content/auto-download-content*.test.ts` (kind × channel toggle ×
+per-page limit) and `test/content/source-panel-model.test.ts` where the
+collector gains no behavior but the scan's option plumbing does; a
+background-backstop case per new channel; one e2e smoke covering a linked
+document and a background image. Update
+[AUTOMATIC-SOURCE-SAVES](AUTOMATIC-SOURCE-SAVES.md): retire the
+"backgrounds and playlist hints are not adopted" sentence, state the
+channel-toggle rule, keep the `data:`/`blob:` exclusion wording until
+phase C.
+
+### Automatic scan phase C: `data:` sources
+
+`data:` and `blob:` differ fundamentally and split here. A `data:` URL is
+self-contained — the browser can download it from any context — while a
+`blob:` URL is resolvable only inside the page that minted it; adopting
+`blob:` needs a content-to-background byte-transfer protocol that does not
+exist (`runtime.sendMessage` carries JSON candidates only, and
+`shared/streaming-content.ts` serves the background/offscreen fetch paths,
+not content scripts). `data:` lands in 4.2; `blob:` is a non-goal.
+
+Design: a content option (default off) admits `data:` URLs through the
+scan. The collector already resolves them (`absoluteUrl` accepts `data:`);
+the two protocol gates open conditionally — `automaticUrl` on the content
+side and the background handler's protocol check
+(`background/messaging/auto-download.ts`). Bounds and semantics:
+
+- Size cap: the URL string is the payload and rides a runtime message; a
+  fixed cap (order of 2 MB) is enforced at both gates, rejected candidates
+  logged to the debug log, never a broad failure.
+- Dedup: the `seen` set and history keying cannot hold megabyte URLs;
+  candidates above a small threshold dedup on a `sha256` of the URL
+  (`shared/sha256.ts`) computed content-side, and history stores the
+  truncated form with the hash.
+- Rule matching and naming: `data:` has no path, so `fileext:`/
+  `urlfileext:` are empty; the background parses the mediatype from the
+  URL header into the candidate info so `mime`-derived matching and
+  `:mimeext:` naming work. Rules key on `sourcekind:` plus mime.
+- Pipeline: `downloads.download` accepts `data:` URLs in both browsers;
+  the plan/execution path already treats non-HTTP URLs as direct
+  acquisitions with HTTP-only optimizations off (`isHttpDownloadUrl`
+  gates in `download-plan.ts` and `download-execution.ts`). Verify the
+  Referer/DNR path is never engaged for them.
+
+Tests: gate matrix (cap, protocol, dedup-by-hash) at the content and
+messaging boundaries; a pipeline case proving direct acquisition with no
+DNR rule; one e2e smoke saving a small inline `data:` image.
+
+### Grammar: general value transforms (#187) — gated
+
+Trigger: proceed only if post-4.1 reports show repeated asks that a Site
+filing template cannot express and that reduce to a pure value edit
+(find/replace, case, trim) on one expanded value — #187's general form.
+Template-expressible asks keep landing as templates.
+
+Shape, fixed now: one new clause (working name `rename:`), at most one per
+rule like `fetch:`, holding a find → replacement applied to the expanded
+filename component before truncation — never through `Path`, so slashes
+stay literal. No variable-modifier syntax: the `:name:` token grammar
+(`routing/path-variables.ts`) stays untouched, which is what keeps the
+editor surfaces cheap. The surface checklist is exactly the `fetch:` one
+from 4.1: `rule-syntax.ts` clause kind, `rule-parser.ts` validation,
+runtime application beside `applyVariables`, autocomplete and syntax
+tokens, a visual-editor row, a debugger stage row, vocabulary groups,
+clause references and guides, catalog keys, and template proofs. Anything
+beyond a single find/replace per rule (chains, conditionals, cross-rule
+state) stays rejected under the 4.1 non-goals.
+
+### Firefox cancel-and-redownload verdict — gated
+
+The experimental mode is `routeBrowserDownloadsFirefox`
+(`config/option-schema.ts`; runtime path in
+`downloads/notification-events.ts`: route, record
+`mechanism: "firefox-replacement"`, cancel, erase, re-download with
+`allowOriginalUrlFallback: false` and a 10-second adoption window).
+Evidence already exists on both sides: history records successful
+replacements (`firefox-replacement` + complete) and failures
+(`FIREFOX_REROUTE_FAILED` plus a debug-log entry), so no new telemetry is
+needed — the verdict reads issue reports against those records.
+
+- Promote when reports show completions dominate and failures stay inside
+  the documented classes (POST bodies, expiring URLs, custom headers,
+  authenticated downloads): remove the `o_lExperimental` badge and warning
+  styling from the `options.html` block, keep the risk help text and the
+  Mozilla bug 1245652 link, reword the option description in
+  `config/option.ts`. No schema or behavior change.
+- Retire when failures dominate, or the mode sees no adoption, or Mozilla
+  ships filename suggestion (bug 1245652 — the
+  `WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion` gate already
+  turns the path off automatically the moment it exists): remove the
+  schema entry, UI block, and runtime branch; keep tolerating the stored
+  key at the config boundary (the `combineRoutingAndMenus` precedent);
+  `history-normalization.ts` keeps accepting `firefox-replacement`
+  records and `history-view.ts` keeps their labels so old history renders.
+  Regression tests cover stored profiles from both states.
 
 ## Non-goals
 
@@ -226,6 +366,17 @@ failure containment, message-protocol validation, one e2e smoke per browser.
   debugger's single-selected-rule trace, and make results depend on rule
   outputs instead of rule order. The cited use cases are served by capture
   groups and the template collections.
+- Plain `link` anchors in the automatic scan: an anchor with no
+  classifiable extension carries no media signal, and adopting it turns
+  every page's navigation into download candidates — unbounded noise for
+  no expressible rule.
+- `blob:` acquisition: page-minted object URLs cannot be resolved outside
+  their page, so adoption requires a chunked content-to-background byte
+  protocol with its own size, privacy, and lifetime rules. Revisit only
+  with a concrete streaming design and demonstrated demand.
+- Variable-modifier syntax (e.g. `:pagetitle|slug:`): changes the token
+  grammar every editor surface parses; the `rename:` clause shape covers
+  the demonstrated asks without touching it.
 - Clipboard-based variables (#121): MV3 backgrounds have no clean clipboard
   access, and the privacy cost outweighs the value.
 - Downloading from the browser cache (#148): no WebExtension API exists.
@@ -234,6 +385,10 @@ failure containment, message-protocol validation, one e2e smoke per browser.
 
 ## Watch items
 
+- Mozilla bug 1245652 (native filename suggestion on Firefox): shipping it
+  auto-disables the cancel-and-redownload path via the
+  `downloadFilenameSuggestion` capability gate and makes the retire branch
+  of the 4.2 verdict free.
 - WebMCP remains an experimental Chrome origin trial; the
   `navigator.*` → `document.*` move is shimmed, but the API can still change
   mid-cycle.
