@@ -11,7 +11,7 @@ import type {
 } from "./rule-types.ts";
 import { routingPorts } from "./ports.ts";
 import { expandFetchUrl, isUsableFetchRewrite } from "./fetch-url.ts";
-import { getFilenameFromUrl } from "./filename.ts";
+import { deriveUrlFilenames } from "./filename.ts";
 import { applyVariables } from "./variable.ts";
 import { isStringKeyedRecord } from "../shared/util.ts";
 
@@ -153,14 +153,16 @@ export const traceRules = async (
     expandedFetchUrl !== null && isUsableFetchRewrite(expandedFetchUrl) ? expandedFetchUrl : null;
   let destinationInfo = traceInfo;
   if (rewrittenUrl) {
-    const naiveFilename = getFilenameFromUrl(rewrittenUrl);
-    const rewrittenFilename = info.suggestedFilename || naiveFilename || rewrittenUrl;
+    const { naiveFilename, initialFilename } = deriveUrlFilenames(
+      rewrittenUrl,
+      info.suggestedFilename,
+    );
     destinationInfo = {
       ...traceInfo,
       url: rewrittenUrl,
       naiveFilename,
-      filename: rewrittenFilename,
-      initialFilename: rewrittenFilename,
+      filename: initialFilename,
+      initialFilename,
     };
   }
   const expandedPath = destination

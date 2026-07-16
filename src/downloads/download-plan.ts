@@ -10,7 +10,7 @@ import { expandFetchUrl, isUsableFetchRewrite } from "../routing/fetch-url.ts";
 import { Path, sanitizeFilename } from "../routing/path.ts";
 import { applyVariables, mimeToExtension, resolveMime } from "../routing/variable.ts";
 import { options } from "../config/options-data.ts";
-import { EXTENSION_REGEX, getFilenameFromUrl } from "../routing/filename.ts";
+import { deriveUrlFilenames, EXTENSION_REGEX } from "../routing/filename.ts";
 import { DOWNLOAD_TYPES } from "../shared/constants.ts";
 import type { DownloadPipelineState, DownloadPlan } from "./download-types.ts";
 import { downloadRuntime } from "./download-runtime-instance.ts";
@@ -65,8 +65,10 @@ export const applyFetchRewrite = async (
     downloadRuntime.movePendingState(state, rewrittenUrl);
   }
   state.info.url = rewrittenUrl;
-  const naiveFilename = getFilenameFromUrl(rewrittenUrl);
-  const initialFilename = state.info.suggestedFilename || naiveFilename || rewrittenUrl;
+  const { naiveFilename, initialFilename } = deriveUrlFilenames(
+    rewrittenUrl,
+    state.info.suggestedFilename,
+  );
   Object.assign(state.info, { naiveFilename, filename: initialFilename, initialFilename });
 };
 
@@ -74,8 +76,7 @@ export const resolveDownloadPlan = async (
   state: DownloadPipelineState,
 ): Promise<DownloadPlan | null> => {
   const url = requireDownloadUrl(state);
-  const naiveFilename = getFilenameFromUrl(url);
-  const initialFilename = state.info.suggestedFilename || naiveFilename || url;
+  const { naiveFilename, initialFilename } = deriveUrlFilenames(url, state.info.suggestedFilename);
   Object.assign(state.info, { naiveFilename, filename: initialFilename, initialFilename });
   if (state.path instanceof Path && typeof state.path.raw === "string") {
     state.scratch.pathTemplateRaw = state.path.raw;

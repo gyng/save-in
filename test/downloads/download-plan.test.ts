@@ -216,6 +216,18 @@ describe("fetch rewrite", () => {
     expect(plan?.finalFullPath).toBe("downloads/routed");
   });
 
+  test("rejects an expansion carrying characters the URL parser would strip", async () => {
+    // new URL("https://\t/orig.png") strips the tab and parses with host
+    // "orig.png" — the rewrite must fail closed, not retarget the download.
+    fetchMatch("routed", "https://\t/orig.png");
+    const state = makeState();
+
+    await Download.resolveDownloadPlan(state);
+
+    expect(state.info.url).toBe("https://example.com/dir/file.png");
+    expect(state.info.naiveFilename).not.toBe("orig.png");
+  });
+
   test("rejects an expansion whose authority collapsed into a path segment", async () => {
     // "https:///orig.png" WHATWG-parses with host "orig.png" — the rewrite
     // must fail closed instead of silently retargeting to a bogus host.

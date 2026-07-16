@@ -1,4 +1,5 @@
 import { SPECIAL_DIRS } from "../shared/constants.ts";
+import { withUrl } from "../shared/util.ts";
 import { FETCH_URL_BANNED_VARIABLES } from "./path-variables.ts";
 import type { RoutingDownloadInfo } from "./rule-types.ts";
 import { ensureTransformerInfo, transformers } from "./variable.ts";
@@ -35,17 +36,22 @@ export const expandFetchUrl = async (
   return resolved.join("");
 };
 
+// The WHATWG parser strips tab/CR/LF anywhere in the string before parsing,
+// so "https://\t/x" would reparse with host "x"; every C0 control in an
+// expanded URL is substitution garbage that must fail closed rather than
+// restructure the request. Space stays allowed: it cannot survive in an
+// authority (parsing fails) and is legitimate, percent-encoded, in paths.
+const hasControlCharacter = (value: string): boolean =>
+  [...value].some((char) => {
+    const code = char.charCodeAt(0);
+    return code <= 0x1f || code === 0x7f;
+  });
+
 // An expanded template is only usable when its authority is literally
-// present. An empty substitution can otherwise collapse "https:///path" into
-// a URL whose HOST becomes the first path segment — the WHATWG parser accepts
-// it, silently retargeting the download — and whitespace or other artifacts
-// from raw substitution must fail closed rather than corrupt the request.
-export const isUsableFetchRewrite = (value: string): boolean => {
-  if (!/^https?:\/\/[^/?#]/i.test(value)) return false;
-  try {
-    const protocol = new URL(value).protocol;
-    return protocol === "https:" || protocol === "http:";
-  } catch {
-    return false;
-  }
-};
+// present and the string contains nothing the parser would restructure. An
+// empty substitution can collapse "https:///path" into a URL whose HOST
+// becomes the first path segment even though the WHATWG parser accepts it.
+export const isUsableFetchRewrite = (value: string): boolean =>
+  /^https?:\/\/[^/?#]/i.test(value) &&
+  !hasControlCharacter(value) &&
+  withUrl(value, (url) => url.protocol === "https:" || url.protocol === "http:", false);

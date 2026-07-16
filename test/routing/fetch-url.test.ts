@@ -70,3 +70,17 @@ test("accepts exactly the expansions whose HTTP(S) authority is literally presen
   // Substitution artifacts that break URL parsing fail closed too.
   expect(isUsableFetchRewrite("https://exa mple.com/x")).toBe(false);
 });
+
+test("rejects characters the URL parser strips before restructuring", () => {
+  // The WHATWG parser removes tab/CR/LF anywhere in the string first, so
+  // "https://\t/orig.png" would reparse with host "orig.png" — the same
+  // authority collapse as an empty capture, reached through whitespace.
+  for (const stripped of ["\t", "\n", "\r"]) {
+    expect(isUsableFetchRewrite(`https://${stripped}/orig.png`)).toBe(false);
+    expect(isUsableFetchRewrite(`https://mirror.example/${stripped}orig.png`)).toBe(false);
+  }
+  expect(isUsableFetchRewrite("https://mirror.example/\u0000orig.png")).toBe(false);
+  // A space cannot restructure the URL: it fails authority parsing outright
+  // and is legitimate, percent-encoded, in a path.
+  expect(isUsableFetchRewrite("https://mirror.example/a b.png")).toBe(true);
+});
