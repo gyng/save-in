@@ -1,4 +1,4 @@
-import { positionFloatingElement, type FloatingPlacement } from "./floating-position.ts";
+import { positionFloatingElement, type FloatingPlacement } from "../../shared/floating-position.ts";
 
 const popupSurface = (details: HTMLDetailsElement): HTMLElement | null =>
   details.querySelector<HTMLElement>(":scope > .menu-popover, :scope > .variables-preview-list");

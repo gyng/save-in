@@ -129,18 +129,65 @@ touches many import specifiers and will conflict with any open branch.
    into `test/options/integrations/` to match `src/options/integrations/`.
 3. **Move `src/offscreen.ts` → `src/offscreen/offscreen.ts`** and update the
    `entries/offscreen.ts` shim and the listener-owner allowlist in
-   `check-import-cycles.js`.
-4. **Delete the three one-line shims.** Point the five options importers of
-   `floating-position.ts` at `../shared/floating-position.ts`; rename
-   `welcome-dialog.css` / `reference.css` (or the shims) so `style.css`
-   imports real files directly.
-5. **Rename the accidental collisions:** merge or rename the two
-   `event-task.ts` files (they are both 22 lines — check if one can import
-   the other), and give `background/state.ts` / `downloads/state.ts` more
-   specific names if a cheap rename is possible (`menu-state.ts`,
-   `download-map.ts` or similar). Keep the intentional per-layer `ports.ts`
-   pattern.
-6. **Sweep stale `.js` references in comments** while touching these files.
+   `check-import-cycles.js`. Landed as described; also updated the coverage
+   exclusion path in `config/vitest/base.mjs` and the direct-source-file
+   import in `test/downloads/offscreen-document.test.ts` (that test stays
+   under `test/downloads/`, matching where the offscreen-fetch contract is
+   exercised from).
+4. **Delete the one-line `floating-position.ts` shim.** Pointed all five
+   `src/options/**` importers (`anchored-floating-surface.ts`,
+   `details-menu-positioning.ts`, `syntax-editor.ts`, `autocomplete.ts`,
+   `typeahead.ts`) at `../../shared/floating-position.ts` directly, deleted
+   `src/options/ui/floating-position.ts`, moved its test to
+   `test/shared/floating-position.test.ts` (it exercises the shared module,
+   not an options-only concern), and updated the import-string contract in
+   `scripts/check-css.js`.
+
+   `style-welcome.css` and `style-reference.css` turned out **not** to be
+   redundant shims, so they were kept as-is. `style.css` declares the
+   document-wide `@layer` order (`tokens, base, …, welcome, reference,
+   utilities`) but deliberately imports nothing into the `welcome`/`reference`
+   layers itself; `options.html` (and, for `reference`, `clauselist.html`)
+   loads `welcome-dialog.css`/`reference.css` into those layers by linking a
+   tiny `@import url(...) layer(name);` entry file instead. This is load-
+   bearing: the HTML `<link>` element has no shipped way to assign a layer to
+   a linked stylesheet (the `layer` attribute on `<link>` is only a WHATWG
+   proposal, not implemented in any shipping browser — see
+   https://github.com/whatwg/html/issues/7540), so a same-document `@import
+   … layer(...)` is the only mechanism available. Removing the entry files
+   would either lose the layer assignment (a real cascade-order/behavior
+   change, out of scope for Phase 1) or require wrapping ~160–260 lines of
+   each real stylesheet in a new `@layer name { … }` block, a pattern used
+   nowhere else in this codebase. Left in place.
+5. **Rename the accidental collisions:**
+   - `event-task.ts`: `src/background/event-task.ts` already built on
+     `src/shared/event-task.ts` (`runBackgroundTask` wraps the shared
+     `runEventTask` with background-specific logging) rather than
+     duplicating it, so there was nothing to merge. Renamed it to
+     `src/background/background-event-task.ts` to describe what it actually
+     is: the background's logged event-task wrapper. The shared file keeps
+     its name.
+   - `state.ts`: renamed `src/background/state.ts` →
+     `src/background/application-state.ts` (it aggregates every background
+     write-state instance — session, counter, config, and the downloads
+     record map — into the frozen `BackgroundState` object; `menu-state.ts`
+     from the original plan would have been misleading, since menu state
+     actually lives in `background/menu-build.ts`'s `menuState`). Renamed
+     `src/downloads/state.ts` → `src/downloads/download-state-instances.ts`
+     (it owns the two live singleton instances — `downloadsState` and
+     `sessionWriteState` — consumed by `download-state.ts`'s pure
+     hydrate/merge functions; `download-map.ts` was rejected as a name
+     because it would not have covered `sessionWriteState`, and plain
+     `download-state.ts` was already taken by the pure-logic module). Updated
+     every importer in `src/` and `test/`, plus the `downloads/state.ts`
+     reference in AGENTS.md's MV3 service-worker rules.
+   - Kept the intentional per-layer `ports.ts` pattern untouched.
+6. **Swept stale `.js` references in comments** in `src/options/history/history-view.ts`,
+   `src/options/core/options-logic.ts`, `test/options/core/options-logic.test.ts`, and
+   `test/options/history/view.test.ts` (all said "extracted from options.js"; the
+   source has been `options.ts` since the JS→TS migration). Left
+   `src/options/options.html`'s `<script src="../../options.js">` alone — that is the
+   real bundled runtime filename, not a stale comment.
 
 Verification: `npm run lint && npm run typecheck && npm test` after each
 commit; `check-import-cycles.js` and `check-css.js` must stay green;

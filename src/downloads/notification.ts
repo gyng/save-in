@@ -3,7 +3,7 @@ import { getMessage } from "../platform/localization.ts";
 
 // https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/notifications
 
-import { downloadsState, sessionWriteState } from "./state.ts";
+import { downloadsState, sessionWriteState } from "./download-state-instances.ts";
 import { getDownload, mergeDownload } from "./download-state.ts";
 import { isPrivateDownloadRecord } from "./download-state.ts";
 import type { DownloadRecord, DownloadRecordUpdate } from "./download-state.ts";

@@ -32,7 +32,7 @@ import { respondAsync, type SendResponse } from "./message-dispatch.ts";
 import { addLogEntry, clearLog } from "./log.ts";
 import { clearHistory, getHistoryEntries, setHistoryStatus } from "./history.ts";
 import { applyConfigSerialized } from "./config-apply.ts";
-import { configWriteState } from "./state.ts";
+import { configWriteState } from "./application-state.ts";
 import { getPersistenceDiagnostics } from "../shared/persistence-diagnostics.ts";
 import { syncSourcePanelToTab, setSourcePanelOpenState } from "./source-panel-state.ts";
 import { previewRoutes } from "./route-preview.ts";

@@ -128,9 +128,10 @@ to Firefox too.
 2. **Globals die between events.** Persist cross-wakeup state through the
    helpers in `shared/session-state.ts`. Last-used menu data lives in
    storage.local; per-download records and transient pending/final-filename
-   state use storage.session. `downloads/state.ts` owns the in-memory download
-   map; `hydrateDownloads()` rebuilds it at startup and `mergeDownload()`
-   combines partial records from the download and notification event paths.
+   state use storage.session. `downloads/download-state-instances.ts` owns the
+   in-memory download map; `hydrateDownloads()` (in `downloads/download-state.ts`)
+   rebuilds it at startup and `mergeDownload()` combines partial records from
+   the download and notification event paths.
 3. **No `URL.createObjectURL`, no DOM, no `window`.** Shared background code
    uses worker-safe globals and capability detection; do not add a `window` shim.
 4. **`chrome.downloads.onDeterminingFilename`** listeners must `return true`

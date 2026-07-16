@@ -23,7 +23,7 @@ import type { CurrentTab } from "../platform/current-tab.ts";
 import type { DownloadInfo, DownloadPipelineState } from "../downloads/download-types.ts";
 import { backgroundRuntime } from "./runtime.ts";
 import { addLogEntry } from "./log.ts";
-import { runBackgroundTask } from "./event-task.ts";
+import { runBackgroundTask } from "./background-event-task.ts";
 import { resolveClickTarget, type ClickInfo } from "./menu-target.ts";
 import { rebuildMenus } from "./menu-rebuild.ts";
 

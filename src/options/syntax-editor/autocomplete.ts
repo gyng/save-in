@@ -16,7 +16,7 @@ import {
   completeRoutingSyntax,
   type SyntaxCompletion,
 } from "./syntax-editor-model.ts";
-import { positionFloatingElement } from "../ui/floating-position.ts";
+import { positionFloatingElement } from "../../shared/floating-position.ts";
 
 export type AutocompleteStrategy = {
   match: RegExp;

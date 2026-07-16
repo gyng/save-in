@@ -6,7 +6,7 @@ import {
   calculateFloatingPlacement,
   floatingViewport,
   positionFloatingElement,
-} from "../../../src/options/ui/floating-position.ts";
+} from "../../src/shared/floating-position.ts";
 
 const viewport = { left: 0, top: 0, width: 320, height: 240 };
 

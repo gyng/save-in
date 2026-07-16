@@ -7,14 +7,14 @@ import {
   resetNotificationRecoveryState,
   resetNotifierTransientState,
 } from "../downloads/notification.ts";
-import { downloadsState, sessionWriteState } from "../downloads/state.ts";
+import { downloadsState, sessionWriteState } from "../downloads/download-state-instances.ts";
 import { makeShortcut } from "../downloads/shortcut.ts";
 import { Path } from "../routing/path.ts";
 import type { CurrentTab } from "../platform/current-tab.ts";
 import { backgroundRuntime } from "./runtime.ts";
 import { handleContextMenuClick, type ContextMenuClickInfo } from "./menu-click.ts";
 import { handleTabMenuClick, type HostTab, type TabMenuClickInfo } from "./menu-tabs.ts";
-import { configWriteState, counterWriteState } from "./state.ts";
+import { configWriteState, counterWriteState } from "./application-state.ts";
 import { resetMessagingTransientState } from "./messaging.ts";
 import { resetSourcePanelState } from "./source-panel-state.ts";
 import { resetRefererRules } from "../downloads/referer-rules.ts";

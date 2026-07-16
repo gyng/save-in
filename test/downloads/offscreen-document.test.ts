@@ -1,7 +1,7 @@
 // The offscreen document's message contract: HTTP failures carry the status
 // and redirected final URL so the background can extend Referer protection
 // and retry (#193).
-import "../../src/offscreen.ts";
+import "../../src/offscreen/offscreen.ts";
 
 type OffscreenListener = (
   message: unknown,

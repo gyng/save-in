@@ -1,6 +1,6 @@
 import { hydrateDownloads, mergeDownload } from "../../src/downloads/download-state.ts";
 import { normalizeSessionCounter, updateSession } from "../../src/shared/session-state.ts";
-import { BackgroundState } from "../../src/background/state.ts";
+import { BackgroundState } from "../../src/background/application-state.ts";
 
 describe("state service instances", () => {
   test("session counters reject malformed and fractional persisted values", () => {

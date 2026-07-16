@@ -1,6 +1,6 @@
 import { webExtensionApi } from "../platform/web-extension-api.ts";
 import { WEB_EXTENSION_CAPABILITIES } from "../platform/chrome-detector.ts";
-import { downloadsState, sessionWriteState } from "./state.ts";
+import { downloadsState, sessionWriteState } from "./download-state-instances.ts";
 import { normalizeSessionCounter, updateSession } from "../shared/session-state.ts";
 import { extensionSessionStorage } from "../platform/storage-areas.ts";
 import { options } from "../config/options-data.ts";

@@ -10,7 +10,7 @@ import {
   NOTIFICATION_RECOVERY_SESSION_KEY,
   PENDING_DOWNLOADS_SESSION_KEY,
 } from "../shared/storage-keys.ts";
-import { downloadsState, sessionWriteState } from "./state.ts";
+import { downloadsState, sessionWriteState } from "./download-state-instances.ts";
 import { hydrateDownloads, mergeDownload } from "./download-state.ts";
 import { OffscreenClient } from "../platform/offscreen-client.ts";
 import { downloadPorts } from "./ports.ts";

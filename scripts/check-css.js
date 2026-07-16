@@ -1207,9 +1207,9 @@ if (
 }
 
 for (const [file, floatingPositionSpecifier] of /** @type {Array<[string, string]>} */ ([
-  ["autocomplete.ts", "../ui/floating-position.ts"],
-  ["typeahead.ts", "./floating-position.ts"],
-  ["syntax-editor.ts", "../ui/floating-position.ts"],
+  ["autocomplete.ts", "../../shared/floating-position.ts"],
+  ["typeahead.ts", "../../shared/floating-position.ts"],
+  ["syntax-editor.ts", "../../shared/floating-position.ts"],
 ])) {
   const source = fs.readFileSync(optionFile(file), "utf8");
   if (

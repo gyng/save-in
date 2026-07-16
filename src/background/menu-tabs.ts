@@ -13,7 +13,7 @@ import { launchDownload } from "../downloads/download.ts";
 import type { DownloadInfo } from "../downloads/download-types.ts";
 import { addLogEntry } from "./log.ts";
 import { backgroundRuntime } from "./runtime.ts";
-import { runBackgroundTask } from "./event-task.ts";
+import { runBackgroundTask } from "./background-event-task.ts";
 import { isDownloadableTab } from "./downloadable-tab.ts";
 import type { ClickInfo } from "./menu-target.ts";
 

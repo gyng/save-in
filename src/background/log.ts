@@ -3,7 +3,7 @@
 // leave the machine and clear on browser exit. Viewable from the options
 // page. No-op where storage.session is unavailable.
 
-import { sessionWriteState } from "./state.ts";
+import { sessionWriteState } from "./application-state.ts";
 import { getSession, updateSession } from "../shared/session-state.ts";
 import { extensionSessionStorage } from "../platform/storage-areas.ts";
 

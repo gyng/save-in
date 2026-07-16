@@ -1,4 +1,4 @@
-import { downloadsState, sessionWriteState } from "./state.ts";
+import { downloadsState, sessionWriteState } from "./download-state-instances.ts";
 import { getSession, updateSession } from "../shared/session-state.ts";
 import { options } from "../config/options-data.ts";
 import { webExtensionApi } from "../platform/web-extension-api.ts";

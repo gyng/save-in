@@ -1,4 +1,4 @@
-import { runBackgroundTask } from "../../src/background/event-task.ts";
+import { runBackgroundTask } from "../../src/background/background-event-task.ts";
 import * as Log from "../../src/background/log.ts";
 import { runEventTask } from "../../src/shared/event-task.ts";
 

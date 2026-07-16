@@ -5,7 +5,7 @@ import {
   type SyntaxEditorLanguage,
   type SyntaxSnapshot,
 } from "./syntax-editor-model.ts";
-import { positionFloatingElement } from "../ui/floating-position.ts";
+import { positionFloatingElement } from "../../shared/floating-position.ts";
 
 export type SyntaxEditorController = {
   readonly textarea: HTMLTextAreaElement;

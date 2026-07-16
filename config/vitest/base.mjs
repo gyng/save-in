@@ -41,7 +41,7 @@ export default defineConfig({
         // Chrome offscreen-document bootstrap (message listener doing
         // fetch/createObjectURL/crypto.subtle in a separate document context):
         // exercised by the Chrome e2e sha256/offscreen path
-        "src/offscreen.ts",
+        "src/offscreen/offscreen.ts",
         // The options composition root runs top-level against the real document;
         // pure models and controllers remain visible to unit coverage.
         "src/options/core/options.ts",

@@ -1,6 +1,6 @@
 import type { CounterWriteState } from "./counter.ts";
 import type { ConfigWriteState } from "./config-apply.ts";
-import { downloadsState, sessionWriteState } from "../downloads/state.ts";
+import { downloadsState, sessionWriteState } from "../downloads/download-state-instances.ts";
 
 export { sessionWriteState, downloadsState };
 export const counterWriteState: CounterWriteState = { queue: Promise.resolve() };

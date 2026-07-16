@@ -1,7 +1,7 @@
 import { webExtensionApi } from "../platform/web-extension-api.ts";
 import { getMessage } from "../platform/localization.ts";
 
-import { downloadsState, sessionWriteState } from "./state.ts";
+import { downloadsState, sessionWriteState } from "./download-state-instances.ts";
 import { getDownload, mergeDownload } from "./download-state.ts";
 import type { DownloadRecordUpdate } from "./download-state.ts";
 import { DOWNLOAD_TYPES } from "../shared/constants.ts";

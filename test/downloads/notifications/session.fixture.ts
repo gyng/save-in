@@ -5,7 +5,7 @@
 // persistence + record hydration/pruning); notification.ts is re-imported per
 // test for its module-load side effects, and its other deps are imported real
 // alongside it.
-import { BackgroundState } from "../../../src/background/state.ts";
+import { BackgroundState } from "../../../src/background/application-state.ts";
 
 const downloadState = BackgroundState.downloads;
 

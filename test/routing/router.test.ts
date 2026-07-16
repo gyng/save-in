@@ -10,7 +10,7 @@ import { currentTab, setCurrentTab } from "../../src/platform/current-tab.ts";
 import type { MockInstance } from "vitest";
 import { configureRoutingPorts } from "../../src/routing/ports.ts";
 import { nextCounter, peekCounter } from "../../src/background/counter.ts";
-import { counterWriteState } from "../../src/background/state.ts";
+import { counterWriteState } from "../../src/background/application-state.ts";
 import { resolveContent } from "../../src/downloads/content-fetch.ts";
 import { options } from "../../src/config/options-data.ts";
 import fixtures from "./fixtures/click-info.ts";

@@ -1,6 +1,6 @@
-// Pure, DOM-free history-table logic extracted from options.js so it can be
-// unit-tested (options.js runs top-level against the real options.html DOM and
-// is covered only by the e2e). options.js keeps the mutable view state and the
+// Pure, DOM-free history-table logic extracted from options.ts so it can be
+// unit-tested (options.ts runs top-level against the real options.html DOM and
+// is covered only by the e2e). options.ts keeps the mutable view state and the
 // DOM rendering; everything here is data-in/data-out.
 
 import type {

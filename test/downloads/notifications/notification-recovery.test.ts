@@ -332,7 +332,8 @@ describe("startup restore", () => {
     });
 
     await vi.advanceTimersByTimeAsync(10_000);
-    const { sessionWriteState } = await import("../../../src/downloads/state.ts");
+    const { sessionWriteState } =
+      await import("../../../src/downloads/download-state-instances.ts");
     await vi.waitFor(() => expect(sessionWriteState.queues.has("siPendingDownloads")).toBe(true));
     const newerQueue = Promise.resolve();
     sessionWriteState.queues.set("siPendingDownloads", newerQueue);

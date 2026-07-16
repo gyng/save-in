@@ -1,4 +1,4 @@
-import { positionFloatingElement } from "./floating-position.ts";
+import { positionFloatingElement } from "../../shared/floating-position.ts";
 
 export type TypeaheadItem = {
   value: string;

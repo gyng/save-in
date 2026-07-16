@@ -13,12 +13,12 @@ import {
   isOffscreenBlobReleaseRequest,
   isOffscreenFetchRequest,
   type OffscreenFetchResponse,
-} from "./shared/content-fetch-types.ts";
+} from "../shared/content-fetch-types.ts";
 import {
   DEFAULT_FETCH_RESPONSE_TIMEOUT_MS,
   fetchFollowingRedirects,
-} from "./shared/redirect-fetch.ts";
-import { readResponseContent } from "./shared/streaming-content.ts";
+} from "../shared/redirect-fetch.ts";
+import { readResponseContent } from "../shared/streaming-content.ts";
 
 const activeFetches = new Map<string, AbortController>();
 const blobUrls = new Map<string, string>();

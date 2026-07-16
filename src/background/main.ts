@@ -3,7 +3,7 @@ import { webExtensionApi } from "../platform/web-extension-api.ts";
 import { initializeLocalization } from "../platform/localization.ts";
 
 import { OptionsManagement } from "../config/option.ts";
-import { downloadsState } from "./state.ts";
+import { downloadsState } from "./application-state.ts";
 import { hydrateDownloads } from "../downloads/download-state.ts";
 import { setHistoryStatus } from "./history.ts";
 import { extensionSessionStorage } from "../platform/storage-areas.ts";
@@ -22,7 +22,7 @@ import { currentTab, setCurrentTab, type CurrentTab } from "../platform/current-
 import { syncSourcePanelToTab, toggleSourcePanelForTab } from "./source-panel-state.ts";
 import { backgroundRuntime, resetRuntimeDiagnostics } from "./runtime.ts";
 import { recoverNotificationState } from "../downloads/notification-recovery.ts";
-import { runBackgroundTask } from "./event-task.ts";
+import { runBackgroundTask } from "./background-event-task.ts";
 import { recoverActiveTransfers } from "../downloads/active-transfers.ts";
 import { OffscreenClient } from "../platform/offscreen-client.ts";
 import { rebuildMenus } from "./menu-rebuild.ts";

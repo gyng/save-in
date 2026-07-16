@@ -1,4 +1,4 @@
-// Pure options-page helpers extracted from options.js (options-logic.js).
+// Pure options-page helpers extracted from options.ts (options-logic.ts).
 import { normalizeKeyComboForDisplay } from "../../../src/options/core/options-logic.ts";
 
 describe("normalizeKeyComboForDisplay (upgraders)", () => {

@@ -1,4 +1,4 @@
-// Pure history-table helpers extracted from options.js (history-view.js).
+// Pure history-table helpers extracted from options.ts (history-view.ts).
 import {
   formatBytes,
   formatHistoryDisplayTime,

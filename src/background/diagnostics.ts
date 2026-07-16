@@ -9,7 +9,7 @@ import {
 } from "../shared/diagnostics-types.ts";
 import { DIAGNOSTIC_LIFECYCLE_SESSION_KEY } from "../shared/storage-keys.ts";
 import { getSession, updateSession } from "../shared/session-state.ts";
-import { sessionWriteState } from "./state.ts";
+import { sessionWriteState } from "./application-state.ts";
 import { getLogEntries } from "./log.ts";
 import { backgroundRuntime } from "./runtime.ts";
 

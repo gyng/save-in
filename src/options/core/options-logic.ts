@@ -1,5 +1,5 @@
-// Pure, DOM-free helpers split out of options.js so they can be unit-tested.
-// options.js itself runs top-level against the real options.html DOM and is
+// Pure, DOM-free helpers split out of options.ts so they can be unit-tested.
+// options.ts itself runs top-level against the real options.html DOM and is
 // covered only by the e2e; anything here is plain data-in/data-out logic.
 
 const KEYCODE_NAMES: Record<string, string> = {

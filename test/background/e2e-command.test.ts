@@ -1,8 +1,8 @@
 import * as Download from "../../src/downloads/download.ts";
 import * as Notifier from "../../src/downloads/notification.ts";
 import * as ActiveTransfers from "../../src/downloads/active-transfers.ts";
-import { downloadsState } from "../../src/downloads/state.ts";
-import { counterWriteState } from "../../src/background/state.ts";
+import { downloadsState } from "../../src/downloads/download-state-instances.ts";
+import { counterWriteState } from "../../src/background/application-state.ts";
 import { backgroundRuntime } from "../../src/background/runtime.ts";
 import {
   BACKGROUND_E2E_COMMAND,

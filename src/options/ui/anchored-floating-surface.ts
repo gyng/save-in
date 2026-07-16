@@ -1,4 +1,4 @@
-import { positionFloatingElement, type FloatingPlacement } from "./floating-position.ts";
+import { positionFloatingElement, type FloatingPlacement } from "../../shared/floating-position.ts";
 
 type LogicalAlignment = "start" | "end";
 

@@ -16,7 +16,7 @@ import {
 } from "./history.ts";
 import { addLogEntry } from "./log.ts";
 import { backgroundRuntime } from "./runtime.ts";
-import { counterWriteState } from "./state.ts";
+import { counterWriteState } from "./application-state.ts";
 
 export const configureBackgroundPorts = () => {
   configureDownloadPorts({
