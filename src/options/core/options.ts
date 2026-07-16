@@ -6,7 +6,7 @@ import { webExtensionApi } from "../../platform/web-extension-api.ts";
 import { getMessage } from "../../platform/localization.ts";
 import { renderHistory } from "../history/history-panel.ts";
 import { CURRENT_BROWSER } from "../../platform/chrome-detector.ts";
-import { createManualEditorState } from "../syntax-editor/manual-editor-state.ts";
+import { createManualEditorState } from "../syntax-editor/manual-editor-controller.ts";
 import { assertApplySucceeded, collectOptionConfig } from "./options-save.ts";
 import { setupOptionDependencies } from "./options-dependencies.ts";
 import { refreshCounterPanel, setupCounterPanel } from "../integrations/counter-panel.ts";

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { createManualEditorState } from "../../../src/options/syntax-editor/manual-editor-state.ts";
+import { createManualEditorState } from "../../../src/options/syntax-editor/manual-editor-controller.ts";
 
 describe("manual editor state", () => {
   beforeEach(() => {

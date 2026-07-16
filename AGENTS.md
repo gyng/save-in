@@ -318,6 +318,27 @@ vitest specifics (`test/**/*.test.ts`, typed; `tsc` covers them):
 ## Conventions
 
 - oxfmt (prettier-compatible) + oxlint; `npm run lint:fix` before commit.
+- File-suffix naming is a contract, not decoration: `-model.ts` is pure,
+  DOM-free, unit-tested logic, paired with a view file of the same base name
+  that owns DOM/browser events (`path-editor.ts`/`path-editor-model.ts`,
+  `rule-visual-editor.ts`/`rule-visual-editor-model.ts`,
+  `syntax-editor.ts`/`syntax-editor-model.ts`,
+  `route-debugger.ts`/`route-debugger-model.ts`). `-state.ts` is reserved for
+  genuinely pure state containers with no DOM references (e.g.
+  `field-save-state.ts`, `download-state.ts`); a module that queries or wires
+  DOM is a controller/view file even if it tracks state, and should not use
+  the `-state` suffix (see `syntax-editor/manual-editor-controller.ts`).
+  `-panel.ts` names a module that wires one distinct options-page panel
+  (`history-panel.ts`, `webhook-panel.ts`, `integration-panel.ts`), not any
+  structurally-panel-shaped module. A per-layer `ports.ts` (`background/`,
+  `downloads/`, `options/core/`) is the intentional dependency-injection
+  pattern, not a naming collision. `shared/` hosts cross-context contracts and
+  pure helpers only — a module belongs there because two or more directories
+  that cannot legally import each other both need it, not because it is
+  merely reused; when that happens, add a short header comment on the file
+  explaining which importers force it to stay (see `shared/webhook.ts`,
+  `shared/source-panel-copy.ts`, `shared/history-normalization.ts`,
+  `shared/streaming-content.ts` for the pattern).
 - UI copy must be concise, concrete, and action-oriented. Use sentence case for headings,
   labels, and buttons; name the user-visible outcome rather than the implementation; avoid
   jargon, idioms, unnecessary punctuation, and text assembled from translated fragments.

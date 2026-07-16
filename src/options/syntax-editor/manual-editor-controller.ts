@@ -24,6 +24,11 @@ const visualRowSources = (id: string, source: string): string[] => {
 // Owns the dirty/baseline state shared by the text and visual representations
 // of the two manual-save editors. DOM ids and Apply/Discard attributes remain
 // the stable boundary used by the existing options page and older profiles.
+// Named "-controller", not "-state" (AGENTS.md Conventions): it queries and
+// wires DOM directly rather than staying a pure state container. The
+// exported factory name (`createManualEditorState`) is an established call
+// site across options.ts and its test and stays as-is; only the file name
+// changed to match the convention.
 export const createManualEditorState = (unsavedLabel: string | (() => string)) => {
   const editors: ManualEditor[] = [];
   const getUnsavedLabel = () =>

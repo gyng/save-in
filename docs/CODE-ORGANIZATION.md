@@ -650,6 +650,29 @@ registration requires updating the owner list deliberately, not reflexively.
    `manual-editor-state.ts` accordingly); `-panel.ts` only for modules that
    wire a distinct options-page panel; per-layer `ports.ts` is the injection
    pattern. Conventions that are only in people's heads regress.
+
+   **Landed.** Added a bullet to AGENTS.md's Conventions section covering all
+   four points, plus the `shared/` membership rule from 3.1 (a module belongs
+   there because two-or-more mutually-unreachable directories need it, not
+   because it's merely reused — with a pointer to the four files' header
+   comments as the pattern to follow). `manual-editor-state.ts` was renamed to
+   `manual-editor-controller.ts`: it has 14 DOM references
+   (`getElementById`/`querySelectorAll`/`addEventListener`/
+   `dispatchEvent`/`insertBefore`) and is a stateful DOM controller, not a
+   pure container, unlike every other `*-state.ts` file in `src/` (checked:
+   `application-state.ts`, `source-panel-state.ts`, `download-pipeline-state.ts`,
+   `download-runtime-state.ts`, `download-state.ts`, `wire-state.ts`,
+   `field-save-state.ts`, `shared/session-state.ts` are all DOM-free). The
+   rename was cheap — one production importer (`options/core/options.ts`) and
+   its own test file — so it landed rather than being left as a documented
+   exception; `git mv` preserved history for both files. The exported factory
+   name `createManualEditorState` was left unchanged (it is an established
+   call site, and the naming rule governs file suffixes, not every internal
+   identifier); the file now carries a comment pointing at this distinction so
+   a future reader doesn't assume the export needs to match. The "Problems" list
+   (item 4, above) and Phase 1's file-placement table were left referencing
+   the original filename, since both describe what existed at the time they
+   were written; only live importers were updated.
 3. **Extend `check-import-cycles.js`** for the new structure: options feature
    subdirectories should not import each other's internals (only `core/`,
    `ui/`, and cross-layer modules), mirroring how the checker already
