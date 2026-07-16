@@ -3,6 +3,7 @@
 const fs = require("fs");
 const path = require("path");
 const { pathToFileURL } = require("node:url");
+const { walkFiles } = require("./lib/walk-files.js");
 
 const root = path.resolve(__dirname, "..");
 /** @type {string[]} */
@@ -264,14 +265,9 @@ for (const name of [
   check(fs.existsSync(path.join(stageRoot, name)), `staged package is missing ${name}`);
 }
 const stagedOptionsRoot = path.join(stageRoot, "src/options");
-/** @param {string} dir @returns {string[]} */
-const walkCssFiles = (dir) =>
-  fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
-    const full = path.join(dir, entry.name);
-    if (entry.isDirectory()) return walkCssFiles(full);
-    return entry.isFile() && entry.name.endsWith(".css") ? [full] : [];
-  });
-const stagedStyles = fs.existsSync(stagedOptionsRoot) ? walkCssFiles(stagedOptionsRoot) : [];
+const stagedStyles = fs.existsSync(stagedOptionsRoot)
+  ? walkFiles(stagedOptionsRoot, (name) => name.endsWith(".css"))
+  : [];
 for (const styleFile of stagedStyles) {
   const source = fs.readFileSync(styleFile, "utf8");
   for (const match of source.matchAll(/@import url\("([^"]+\.css)"\)/g)) {

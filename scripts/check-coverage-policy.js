@@ -2,18 +2,12 @@
 
 const fs = require("node:fs");
 const path = require("node:path");
+const { walkFiles } = require("./lib/walk-files.js");
 
 const root = path.resolve(__dirname, "..");
 const configPath = path.join(root, "config", "vitest", "base.mjs");
 const sourceRoot = path.join(root, "src");
 const ignoreCeiling = 73;
-
-/** @param {string} directory @returns {string[]} */
-const listFiles = (directory) =>
-  fs.readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
-    const file = path.join(directory, entry.name);
-    return entry.isDirectory() ? listFiles(file) : [file];
-  });
 
 const errors = [];
 const config = fs.readFileSync(configPath, "utf8");
@@ -24,7 +18,7 @@ for (const metric of ["statements", "branches", "functions", "lines"]) {
 }
 
 const ignoreLocations = [];
-for (const file of listFiles(sourceRoot).filter((candidate) => candidate.endsWith(".ts"))) {
+for (const file of walkFiles(sourceRoot).filter((candidate) => candidate.endsWith(".ts"))) {
   const lines = fs.readFileSync(file, "utf8").split(/\r?\n/);
   lines.forEach((line, index) => {
     if (!line.includes("v8 ignore")) return;

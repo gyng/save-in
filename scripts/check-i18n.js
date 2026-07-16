@@ -2,6 +2,7 @@
 
 const fs = require("node:fs");
 const path = require("node:path");
+const { walkFiles } = require("./lib/walk-files.js");
 
 const root = path.resolve(__dirname, "..");
 /** @type {string[]} */
@@ -21,17 +22,10 @@ const checkDuplicateCatalogKeys = (label, source) => {
   }
 };
 
-/** @param {string} directory @returns {string[]} */
-const listFiles = (directory) =>
-  fs.readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
-    const file = path.join(directory, entry.name);
-    return entry.isDirectory() ? listFiles(file) : [file];
-  });
-
 const manifestFile = path.join(root, "manifest.json");
 const manifestSource = fs.readFileSync(manifestFile, "utf8");
 const manifest = JSON.parse(manifestSource);
-const sourceFiles = listFiles(path.join(root, "src")).filter((file) => /\.(?:html|ts)$/.test(file));
+const sourceFiles = walkFiles(path.join(root, "src")).filter((file) => /\.(?:html|ts)$/.test(file));
 const runtimeKeys = new Set();
 for (const file of [manifestFile, ...sourceFiles]) {
   const source = file === manifestFile ? manifestSource : fs.readFileSync(file, "utf8");

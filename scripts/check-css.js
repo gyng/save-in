@@ -2,28 +2,17 @@
 
 const fs = require("node:fs");
 const path = require("node:path");
+const { walkFiles } = require("./lib/walk-files.js");
 
 const root = path.resolve(__dirname, "..");
 const optionsRoot = path.join(root, "src", "options");
-
-/**
- * @param {string} dir
- * @param {(name: string) => boolean} matches
- * @returns {string[]}
- */
-const listOptionFiles = (dir, matches) =>
-  fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
-    const file = path.join(dir, entry.name);
-    if (entry.isDirectory()) return listOptionFiles(file, matches);
-    return entry.isFile() && matches(entry.name) ? [file] : [];
-  });
 
 /** Resolve a src/options file by its unique basename, wherever its owning
  * feature subdirectory placed it. Basename-anchored checks silently validate
  * the wrong file if two directories ever reuse a name, so uniqueness is
  * asserted rather than assumed. */
 const optionsFileByName = new Map();
-for (const file of listOptionFiles(optionsRoot, () => true)) {
+for (const file of walkFiles(optionsRoot)) {
   const name = path.basename(file);
   const existing = optionsFileByName.get(name);
   if (existing) {
@@ -41,7 +30,7 @@ const optionFile = (name) => {
   return file;
 };
 
-const styles = listOptionFiles(optionsRoot, (name) => name.endsWith(".css"));
+const styles = walkFiles(optionsRoot, (name) => name.endsWith(".css"));
 
 const violations = [];
 const styleEntryPath = optionFile("style.css");
@@ -1296,8 +1285,8 @@ for (const [file, className] of floatingMenuOwners) {
   }
 }
 
-const optionTsFiles = listOptionFiles(optionsRoot, (name) => name.endsWith(".ts"));
-const optionHtmlFiles = listOptionFiles(optionsRoot, (name) => name.endsWith(".html"));
+const optionTsFiles = walkFiles(optionsRoot, (name) => name.endsWith(".ts"));
+const optionHtmlFiles = walkFiles(optionsRoot, (name) => name.endsWith(".html"));
 
 for (const file of optionTsFiles) {
   const relative = path.relative(root, file);

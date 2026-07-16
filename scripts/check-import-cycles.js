@@ -8,18 +8,12 @@ const {
   hasDynamicImport,
   hasGlobalNamespaceMutation,
 } = require("./lib/architecture-checks.js");
+const { walkFiles } = require("./lib/walk-files.js");
 
 const root = path.resolve(__dirname, "..");
 const srcRoot = path.join(root, "src");
 
-/** @param {string} dir @returns {string[]} */
-const listFiles = (dir) =>
-  fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
-    const file = path.join(dir, entry.name);
-    return entry.isDirectory() ? listFiles(file) : entry.name.endsWith(".ts") ? [file] : [];
-  });
-
-const files = listFiles(srcRoot);
+const files = walkFiles(srcRoot, (name) => name.endsWith(".ts"));
 const known = new Set(files);
 /** @type {Map<string, string[]>} */
 const graph = new Map(files.map((file) => [file, []]));
