@@ -43,6 +43,13 @@ describe("finalizeFullPath: MIME extension append (§8.1)", () => {
     );
   });
 
+  test("can finalize the same candidate before applying its resolved MIME extension", () => {
+    const pending = state("image", { mimeExtension: "jpg" });
+
+    expect(Download.finalizeFullPathWithoutMimeExtension(pending)).toBe("dir/image");
+    expect(Download.finalizeFullPath(pending)).toBe("dir/image.jpg");
+  });
+
   test("appends onto a routed/renamed filename", () => {
     expect(Download.finalizeFullPath(state("renamed", { mimeExtension: "mp4" }))).toBe(
       "dir/renamed.mp4",

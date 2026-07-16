@@ -1,22 +1,25 @@
 import { WEB_EXTENSION_CAPABILITIES } from "../platform/chrome-detector.ts";
 import { getDownloadHeaders, getFetchReferer } from "./headers.ts";
 import {
-  applyRenameTransform,
   expandRenameTransform,
+  isRenameOnlyEligibleMatch,
   isRenameOnlyEligibleRule,
   matchRulesDetailed,
-  type RenameTransform,
   type RuleMatch,
 } from "../routing/router.ts";
 import { expandFetchUrl, isUsableFetchRewrite } from "../routing/fetch-url.ts";
-import { Path, sanitizeFilename } from "../routing/path.ts";
+import { Path } from "../routing/path.ts";
 import { applyVariables, mimeToExtension, resolveMime } from "../routing/variable.ts";
 import { options } from "../config/options-data.ts";
 import { deriveUrlFilenames, EXTENSION_REGEX } from "../routing/filename.ts";
 import { DOWNLOAD_TYPES } from "../shared/constants.ts";
 import type { DownloadPipelineState, DownloadPlan } from "./download-types.ts";
 import { downloadRuntime } from "./download-runtime-instance.ts";
-import { finalizeFullPath, resolveDispositionFilename } from "./download-disposition.ts";
+import {
+  finalizeFullPath,
+  finalizeFullPathWithoutMimeExtension,
+  resolveDispositionFilename,
+} from "./download-disposition.ts";
 import { ensureHistoryEntry } from "./history-entry.ts";
 import {
   addDownloadLog,
@@ -24,9 +27,6 @@ import {
   releaseUnusedContent,
   requireDownloadUrl,
 } from "./download-pipeline-state.ts";
-
-const applyRenameIfResolved = (value: string, transform: RenameTransform | undefined): string =>
-  transform ? applyRenameTransform(value, transform) : value;
 
 export const getRoutingMatch = (state: Pick<DownloadPipelineState, "info">): RuleMatch | null => {
   if (state.info.routingDisabled) return null;
@@ -54,7 +54,12 @@ export const getRoutingMatches = (
     return null;
   }
 
-  const match = matchRulesDetailed(filenamePatterns, state.info, isRenameOnlyEligibleRule);
+  const match = matchRulesDetailed(
+    filenamePatterns,
+    state.info,
+    isRenameOnlyEligibleRule,
+    isRenameOnlyEligibleMatch,
+  );
   if (match?.rename) state.scratch.renameTemplate = match.rename;
   return match?.destination ?? null;
 };
@@ -219,28 +224,7 @@ export const resolveDownloadPlan = async (
   await resolveRenameTransform(state);
 
   if (options.appendMimeExtension !== false) {
-    const renameResolved = state.scratch.renameResolved;
-    const tentative =
-      state.route && !state.routeIsFolder
-        ? state.route.finalize({
-            finalComponentIsFilename: true,
-            // Mirror finalizeFullPath: a rename may add or remove the
-            // extension the MIME append decision depends on.
-            ...(renameResolved
-              ? {
-                  transformFinalComponent: (value: string) =>
-                    applyRenameTransform(value, renameResolved),
-                }
-              : {}),
-          })
-        : // The fetch: rewrite may have replaced the resolved filename.
-          sanitizeFilename(
-            /* v8 ignore next -- Both filename writers since the assignment above (applyFetchRewrite, resolveDispositionFilename) only ever store strings. */
-            applyRenameIfResolved(state.info.filename ?? resolvedFilename, renameResolved),
-            options.truncateLength,
-            true,
-            true,
-          );
+    const tentative = finalizeFullPathWithoutMimeExtension(state);
     if (tentative && !EXTENSION_REGEX.test(tentative)) {
       const ext = mimeToExtension(await resolveMime(state.info));
       if (ext) {

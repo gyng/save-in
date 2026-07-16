@@ -42,9 +42,25 @@ export const findFetchClause = (rule: RoutingRule): FetchClause | undefined =>
 export const findRenameClause = (rule: RoutingRule): RenameClause | undefined =>
   rule.find((clause): clause is RenameClause => clause.type === RULE_TYPES.RENAME);
 
-// Ordinary browser downloads can only be renamed, never re-requested, so
-// rules that rewrite the download URL must be invisible to those pipelines.
-export const isRenameOnlyEligibleRule = (rule: RoutingRule): boolean => !findFetchClause(rule);
+const CONTENT_HASH_VARIABLE = /:sha256(?:full)?:/;
+
+const needsContentHash = (rule: RoutingRule): boolean =>
+  rule.some(
+    (clause) =>
+      (clause.type === RULE_TYPES.DESTINATION && CONTENT_HASH_VARIABLE.test(clause.value)) ||
+      (clause.type === RULE_TYPES.RENAME && CONTENT_HASH_VARIABLE.test(clause.replacement)),
+  );
+
+export const isRenameOnlyEligibleMatch = (match: RuleMatch): boolean =>
+  !CONTENT_HASH_VARIABLE.test(match.destination) &&
+  !(match.rename && CONTENT_HASH_VARIABLE.test(match.rename.replacement));
+
+// Ordinary browser downloads can only be renamed, never re-requested. A
+// content hash would re-fetch and buffer the browser-owned download merely to
+// name it, so URL rewrites and content-dependent rules are both invisible to
+// this seam; ordered matching can continue at the next eligible rule.
+export const isRenameOnlyEligibleRule = (rule: RoutingRule): boolean =>
+  !findFetchClause(rule) && !needsContentHash(rule);
 
 type CaptureMatcherResults = {
   declaration: CaptureClause;
@@ -181,9 +197,10 @@ export const matchRule = (rule: RoutingRule, info: RoutingInfo): string | false 
   evaluateRule(rule, info).destination;
 
 export const matchRulesDetailed = (
-  rules: RoutingRule[],
+  rules: readonly RoutingRule[],
   info: RoutingInfo,
   isEligible: (rule: RoutingRule) => boolean = () => true,
+  isMatchEligible: (match: RuleMatch) => boolean = () => true,
 ): RuleMatch | null => {
   // Routing is ordered and intentionally non-chaining: the first complete
   // match owns the destination, and later rules never inspect its output.
@@ -193,19 +210,22 @@ export const matchRulesDetailed = (
     if (!isEligible(rule)) continue;
     const evaluation = evaluateRule(rule, info);
     if (evaluation.destination) {
-      return {
+      const match = {
         rule,
         destination: evaluation.destination,
         fetch: evaluation.fetch || null,
         rename: evaluation.rename || null,
       };
+      if (isMatchEligible(match)) return match;
     }
   }
   return null;
 };
 
 export const matchRules = (
-  rules: RoutingRule[],
+  rules: readonly RoutingRule[],
   info: RoutingInfo,
   isEligible?: (rule: RoutingRule) => boolean,
-): string | null => matchRulesDetailed(rules, info, isEligible)?.destination ?? null;
+  isMatchEligible?: (match: RuleMatch) => boolean,
+): string | null =>
+  matchRulesDetailed(rules, info, isEligible, isMatchEligible)?.destination ?? null;

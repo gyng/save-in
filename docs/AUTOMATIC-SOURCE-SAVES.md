@@ -112,8 +112,11 @@ turned on:
   channel to be on. Because a `data:` URL has no path, `fileext:` and
   `urlfileext:` are empty; Save In reads the mediatype from the URL header, so
   `mediatype:`, `mime:`, and `:mimeext:` naming work (a URL with no parseable
-  mediatype is treated as `application/octet-stream`). `blob:` URLs are never
-  adopted: they cannot be resolved outside the page that created them.
+  mediatype is treated as `application/octet-stream`). Save In uses `download`
+  as the neutral base filename and skips data-source rules that use payload-
+  derived URL variables, or capture `sourceurl:`, `fileext:`, or `urlfileext:`
+  into output; this keeps the payload out of filenames and History. `blob:` URLs
+  are never adopted: they cannot be resolved outside the page that created them.
 
 Each channel is gated independently by its own option and by where a
 candidate actually came from, not only by its `sourcekind`. A `.m3u8`

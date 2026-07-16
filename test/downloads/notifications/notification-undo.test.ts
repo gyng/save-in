@@ -88,6 +88,34 @@ describe("undo on the success notification", () => {
     expect(global.browser.notifications.clear).toHaveBeenCalledWith("7");
   });
 
+  test("concurrent button clicks share one undo attempt", async () => {
+    const history = await import("../../../src/background/history.ts");
+    vi.spyOn(history, "setHistoryStatus").mockResolvedValue(undefined);
+    sessionStore.siDownloads = {
+      7: { adopted: true, historyEntryId: "h-undo", url: "https://x/p.png" },
+    };
+    let releaseSearch: ((items: unknown[]) => void) | undefined;
+    vi.mocked(global.browser.downloads.search).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          releaseSearch = resolve as (items: unknown[]) => void;
+        }),
+    );
+
+    const first = onButtonClicked("7", 0);
+    const second = onButtonClicked("7", 0);
+    await vi.waitFor(() => expect(global.browser.downloads.search).toHaveBeenCalledOnce());
+    if (!releaseSearch) throw new Error("search did not start");
+    releaseSearch([{ id: 7, url: "https://x/p.png" }]);
+    await Promise.all([first, second]);
+
+    expect(global.browser.downloads.removeFile).toHaveBeenCalledOnce();
+    expect(global.browser.downloads.erase).toHaveBeenCalledOnce();
+    expect(history.setHistoryStatus).toHaveBeenCalledOnce();
+    expect(global.browser.notifications.clear).toHaveBeenCalledOnce();
+    expect(global.browser.notifications.create).not.toHaveBeenCalled();
+  });
+
   test("a file already removed out-of-band still erases and marks", async () => {
     const history = await import("../../../src/background/history.ts");
     vi.spyOn(history, "setHistoryStatus").mockResolvedValue(undefined);
@@ -234,6 +262,31 @@ describe("undo on the success notification", () => {
       { id: 7, url: "blob:chrome-extension/1", startTime: "2026-07-17T01:02:03.000Z" } as never,
     ]);
     sessionStore.siDownloads = { 7: { adopted: true, historyEntryId: "h-undo" } };
+
+    await onButtonClicked("7", 0);
+
+    expect(global.browser.downloads.removeFile).toHaveBeenCalledWith(7);
+    expect(history.setHistoryStatus).toHaveBeenCalledWith("h-undo", "undone", 7);
+  });
+
+  test("a stale history rebind cannot veto the current record's evidence", async () => {
+    const history = await import("../../../src/background/history.ts");
+    vi.spyOn(history, "setHistoryStatus").mockResolvedValue(undefined);
+    vi.spyOn(history, "getHistoryEntries").mockResolvedValue([
+      {
+        id: "h-undo",
+        url: "https://x/p.png",
+        downloadId: 6,
+        status: "complete",
+        downloadStartTime: "2020-01-01T00:00:00.000Z",
+      },
+    ] as never);
+    sessionStore.siDownloads = {
+      7: { adopted: true, historyEntryId: "h-undo", url: "https://x/p.png" },
+    };
+    vi.mocked(global.browser.downloads.search).mockResolvedValue([
+      { id: 7, url: "https://x/p.png", startTime: "2026-07-17T01:02:03.000Z" } as never,
+    ]);
 
     await onButtonClicked("7", 0);
 

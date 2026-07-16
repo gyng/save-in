@@ -60,7 +60,10 @@ export const resolveDispositionFilename = async (state: DownloadPipelineState): 
   }
 };
 
-export const finalizeFullPath = (_state: FinalizableDownloadState): string => {
+const finalizeFullPathWithMimeExtension = (
+  _state: FinalizableDownloadState,
+  mimeExtension: string | undefined,
+): string => {
   let finalDir = _state.path.finalize();
   let finalFilename;
   let finalFilenameIsRoutePath = false;
@@ -95,13 +98,8 @@ export const finalizeFullPath = (_state: FinalizableDownloadState): string => {
   // §8.1: append a MIME-derived extension when the resolved filename has none
   // (extensionless CDN / query-suffix URLs). The extension is resolved once,
   // asynchronously, in renameAndDownload and stashed on scratch.
-  if (
-    _state.scratch &&
-    _state.scratch.mimeExtension &&
-    finalFilename &&
-    !EXTENSION_REGEX.test(finalFilename)
-  ) {
-    finalFilename = `${finalFilename}.${_state.scratch.mimeExtension}`;
+  if (mimeExtension && finalFilename && !EXTENSION_REGEX.test(finalFilename)) {
+    finalFilename = `${finalFilename}.${mimeExtension}`;
   }
 
   if (finalFilename) {
@@ -124,3 +122,9 @@ export const finalizeFullPath = (_state: FinalizableDownloadState): string => {
 
   return finalFullPath.replace(/^\.\//, "").replace(/^\//, "");
 };
+
+export const finalizeFullPathWithoutMimeExtension = (state: FinalizableDownloadState): string =>
+  finalizeFullPathWithMimeExtension(state, undefined);
+
+export const finalizeFullPath = (state: FinalizableDownloadState): string =>
+  finalizeFullPathWithMimeExtension(state, state.scratch?.mimeExtension);

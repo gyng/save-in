@@ -19,7 +19,7 @@ import { applyConfigSerialized } from "../config-apply.ts";
 import { configWriteState } from "../application-state.ts";
 import { getPersistenceDiagnostics } from "../../shared/persistence-diagnostics.ts";
 import { previewRoutes } from "../route-preview.ts";
-import { isEligibleAutomaticRoutingRule } from "../../automation/automatic-routing.ts";
+import { isEligibleAutomaticRoutingRuleForCandidate } from "../../automation/automatic-routing.ts";
 import { PAGE_SOURCE_KINDS } from "../../shared/page-source.ts";
 import { INTEGRATION_GRAMMARS } from "../integration-grammars.ts";
 import {
@@ -28,6 +28,7 @@ import {
   AUTOMATIC_SOURCE_MATCHERS,
 } from "../../routing/automatic-rule.ts";
 import { getFilenameFromUrl } from "../../routing/filename.ts";
+import { isDataUrl } from "../../shared/data-url.ts";
 import {
   createExternalValidationRateLimiter,
   externalValidationRequestError,
@@ -271,7 +272,8 @@ export const handleValidate = async (
     if (body.automaticCandidate) {
       const candidate = body.automaticCandidate;
       const suggestedFilename =
-        candidate.suggestedFilename || getFilenameFromUrl(candidate.sourceUrl);
+        candidate.suggestedFilename ||
+        (isDataUrl(candidate.sourceUrl) ? "download" : getFilenameFromUrl(candidate.sourceUrl));
       result.automaticTrace = await traceRules(
         parsed.rules,
         {
@@ -289,7 +291,7 @@ export const handleValidate = async (
               }
             : {}),
         },
-        isEligibleAutomaticRoutingRule,
+        (rule) => isEligibleAutomaticRoutingRuleForCandidate(rule, candidate),
       );
     }
   }

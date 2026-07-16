@@ -2,6 +2,7 @@ import {
   automaticRoutingRuleIssues,
   isAdmittedAutomaticSource,
   matchAutomaticRoutingRule,
+  normalizeAutomaticSourceUrl,
   type AutomaticScanGates,
 } from "../../src/automation/automatic-routing.ts";
 import { parseRulesCollecting } from "../../src/routing/rule-parser.ts";
@@ -162,6 +163,56 @@ into: inline/
           ?.destination,
       ).toBe("inline/");
     });
+
+    test("skips source-payload capture rules and selects a safe fallback", () => {
+      const parsed = parseRulesCollecting(`
+context: ^auto$
+pageurl: gallery
+sourceurl: ^(data:.*)$
+capturegroups: sourceurl
+into: :$1:
+
+context: ^auto$
+pageurl: gallery
+fileext: ^(jpg)$
+capturegroups: fileext
+into: :$1:
+
+context: ^auto$
+pageurl: gallery
+urlfileext: ^(jpg)$
+capturegroups: urlfileext
+into: :$1:
+
+context: ^auto$
+pageurl: gallery
+sourcekind: image
+into: :sourceurl:
+
+context: ^auto$
+pageurl: gallery
+sourcekind: image
+rename: x -> :sourcepath:
+into: inline/download
+
+context: ^auto$
+pageurl: gallery
+sourcekind: image
+fetch: https://example.invalid/:sourceurl:
+into: inline/download
+
+context: ^auto$
+pageurl: gallery
+sourcekind: image
+into: inline/download
+`);
+      const match = matchAutomaticRoutingRule(
+        parsed.rules,
+        dataCandidate(`data:image/png;base64,${"SECRET/".repeat(1000)}file.jpg`),
+      );
+
+      expect(match?.destination).toBe("inline/download");
+    });
   });
 });
 
@@ -171,12 +222,14 @@ describe("isAdmittedAutomaticSource", () => {
     includeDocuments: false,
     includeBackgrounds: false,
     resourceHints: false,
+    includeDataUrls: false,
   };
   const ALL_ON: AutomaticScanGates = {
     includeLinks: true,
     includeDocuments: true,
     includeBackgrounds: true,
     resourceHints: true,
+    includeDataUrls: true,
   };
 
   test.each<[PageSourceKind]>([["image"], ["video"], ["audio"]])(
@@ -288,4 +341,30 @@ describe("isAdmittedAutomaticSource", () => {
       }
     },
   );
+});
+
+describe("normalizeAutomaticSourceUrl", () => {
+  const dataOff = { includeDataUrls: false };
+  const dataOn = { includeDataUrls: true };
+
+  test("normalizes HTTP sources while dropping their fragment", () => {
+    expect(normalizeAutomaticSourceUrl("https://cdn.test/a b.png#preview", dataOff)).toBe(
+      "https://cdn.test/a%20b.png",
+    );
+  });
+
+  test("preserves an admitted data: payload including a trailing hash", () => {
+    expect(normalizeAutomaticSourceUrl("data:text/plain,hello#payload", dataOn)).toBe(
+      "data:text/plain,hello#payload",
+    );
+  });
+
+  test("rejects disabled, oversize, blob, and malformed sources", () => {
+    expect(normalizeAutomaticSourceUrl("data:text/plain,hello", dataOff)).toBeNull();
+    expect(
+      normalizeAutomaticSourceUrl(`data:text/plain,${"x".repeat(2 * 1024 * 1024)}`, dataOn),
+    ).toBeNull();
+    expect(normalizeAutomaticSourceUrl("blob:https://cdn.test/1", dataOn)).toBeNull();
+    expect(normalizeAutomaticSourceUrl("not a URL", dataOn)).toBeNull();
+  });
 });

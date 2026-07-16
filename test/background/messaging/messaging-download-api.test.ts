@@ -795,6 +795,7 @@ into: automatic/
       // mime-based matching and :mimeext: naming resolve without a HEAD fetch.
       expect(state.info.mime).toBe("image/png");
       expect(state.info.url).toBe(dataUrl);
+      expect(state.info.suggestedFilename).toBe("download");
       expect(state.info.context).toBe(DOWNLOAD_TYPES.AUTO);
     });
 

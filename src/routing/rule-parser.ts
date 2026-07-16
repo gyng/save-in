@@ -1,7 +1,12 @@
 import { RULE_TYPES } from "../shared/constants.ts";
 import { matcherFunctions } from "./matchers.ts";
 import { routingPorts } from "./ports.ts";
-import { parseRoutingRuleAst, type RoutingRuleNode, type RuleSyntaxIssue } from "./rule-syntax.ts";
+import {
+  parseRoutingRuleAst,
+  type RoutingClauseNode,
+  type RoutingRuleNode,
+  type RuleSyntaxIssue,
+} from "./rule-syntax.ts";
 import type { SourceSpan } from "../shared/syntax-parser.ts";
 import type {
   MatcherClause,
@@ -16,6 +21,7 @@ import { MAX_CSS_SELECTOR_LENGTH } from "../shared/css-selector-attestation.ts";
 import { automaticRuleClauseIssues, isAutomaticRuleClauses } from "./automatic-rule.ts";
 import { findBannedFetchVariables, findUnknownPathVariables } from "./path-variables.ts";
 import { RENAME_SEPARATOR, splitRenameValue } from "./rename.ts";
+import { isRenameOnlyEligibleRule } from "./rule-matcher.ts";
 
 const errorLocation = (span: SourceSpan): RuleErrorLocation => ({
   start: span.start.offset,
@@ -58,6 +64,49 @@ const appendSyntaxErrors = (issues: RuleSyntaxIssue[], errors: RuleError[]): voi
   });
 };
 
+const appendDuplicateClauseError = (
+  nodes: readonly RoutingClauseNode[],
+  errors: RuleError[],
+  message: string,
+  lines: readonly RoutingClauseNode[],
+): boolean => {
+  const duplicate = nodes[1];
+  if (!duplicate) return false;
+  appendError(errors, message, JSON.stringify(lines.map((line) => line.raw)), duplicate.span);
+  return true;
+};
+
+const appendMissingCaptureError = (value: string, span: SourceSpan, errors: RuleError[]): void => {
+  appendError(errors, routingPorts.getMessage("ruleMissingCapture"), value, span);
+};
+
+const appendUncapturedReferenceError = (
+  referenceValue: string,
+  span: SourceSpan,
+  hasCapture: boolean,
+  errors: RuleError[],
+  reportedValue = referenceValue,
+): void => {
+  if (/:\$\d+:/.test(referenceValue) && !hasCapture) {
+    appendMissingCaptureError(reportedValue, span, errors);
+  }
+};
+
+const hasOutOfRangeCapture = (value: string, availableIndexes: number): boolean =>
+  [...value.matchAll(/:\$(\d+):/g)].some((match) => Number(match[1]) >= availableIndexes);
+
+const rejectOutOfRangeCapture = (
+  value: string,
+  span: SourceSpan,
+  availableIndexes: number,
+  errors: RuleError[],
+  reportedValue = value,
+): boolean => {
+  if (!hasOutOfRangeCapture(value, availableIndexes)) return false;
+  appendMissingCaptureError(reportedValue, span, errors);
+  return true;
+};
+
 const captureGroupCount = (regex: RegExp): number => {
   const source = regex.source;
   let groups = 0;
@@ -77,8 +126,15 @@ const captureGroupCount = (regex: RegExp): number => {
 
 const isPlainMatchAll = (regex: RegExp): boolean => /^(?:\.\*|\^\.\*\$)$/.test(regex.source);
 
-const ruleHasFetchClause = (rule: readonly RuleClause[]): boolean =>
-  rule.some((clause) => clause.type === RULE_TYPES.FETCH);
+const hasDynamicOutputCapture = (rule: readonly RuleClause[]): boolean =>
+  rule.some(
+    (clause) =>
+      (clause.type === RULE_TYPES.DESTINATION && /:\$\d+:/.test(clause.value)) ||
+      (clause.type === RULE_TYPES.RENAME && /:\$\d+:/.test(clause.replacement)),
+  );
+
+const isAlwaysRenameOnlyEligibleRule = (rule: RoutingRule): boolean =>
+  isRenameOnlyEligibleRule(rule) && !hasDynamicOutputCapture(rule);
 
 const isMatcherName = (name: string): name is keyof typeof matcherFunctions =>
   Object.hasOwn(matcherFunctions, name);
@@ -261,16 +317,9 @@ const parseSemanticRule = (
   if (unknownVariables.length > 0) return false;
   const fetchClauses = valid.filter((clause) => clause.type === RULE_TYPES.FETCH);
   const fetchNodes = lines.filter((line) => line.name === "fetch");
-  if (fetchClauses.length >= 2) {
-    const duplicateFetch = fetchNodes[1];
-    /* v8 ignore next -- Two parsed fetch clauses necessarily provide a second fetch node. */
-    if (!duplicateFetch) return false;
-    appendError(
-      errors,
-      routingPorts.getMessage("ruleExtraFetch"),
-      JSON.stringify(lines.map((line) => line.raw)),
-      duplicateFetch.span,
-    );
+  if (
+    appendDuplicateClauseError(fetchNodes, errors, routingPorts.getMessage("ruleExtraFetch"), lines)
+  ) {
     return false;
   }
   const fetchClause = fetchClauses[0];
@@ -308,29 +357,23 @@ const parseSemanticRule = (
       );
     }
     if (unknownFetchVariables.length > 0 || bannedFetchVariables.length > 0) return false;
-    if (
-      fetchClause.value.match(/:\$\d+:/) &&
-      !valid.some((clause) => clause.type === RULE_TYPES.CAPTURE)
-    )
-      appendError(
-        errors,
-        routingPorts.getMessage("ruleMissingCapture"),
-        fetchClause.value,
-        fetchNode.valueSpan,
-      );
+    appendUncapturedReferenceError(
+      fetchClause.value,
+      fetchNode.valueSpan,
+      valid.some((clause) => clause.type === RULE_TYPES.CAPTURE),
+      errors,
+    );
   }
   const renameClauses = valid.filter((clause) => clause.type === RULE_TYPES.RENAME);
   const renameNodes = lines.filter((line) => line.name === "rename");
-  if (renameClauses.length >= 2) {
-    const duplicateRename = renameNodes[1];
-    /* v8 ignore next -- Two parsed rename clauses necessarily provide a second rename node. */
-    if (!duplicateRename) return false;
-    appendError(
+  if (
+    appendDuplicateClauseError(
+      renameNodes,
       errors,
       routingPorts.getMessage("ruleExtraRename"),
-      JSON.stringify(lines.map((line) => line.raw)),
-      duplicateRename.span,
-    );
+      lines,
+    )
+  ) {
     return false;
   }
   const renameClause = renameClauses[0];
@@ -356,27 +399,20 @@ const parseSemanticRule = (
       );
     }
     if (unknownRenameVariables.length > 0) return false;
-    if (
-      renameClause.replacement.match(/:\$\d+:/) &&
-      !valid.some((clause) => clause.type === RULE_TYPES.CAPTURE)
-    )
-      appendError(
-        errors,
-        routingPorts.getMessage("ruleMissingCapture"),
-        renameClause.value,
-        renameNode.valueSpan,
-      );
-  }
-  if (
-    destination.value.match(/:\$\d+:/) &&
-    !valid.some((clause) => clause.type === RULE_TYPES.CAPTURE)
-  )
-    appendError(
+    appendUncapturedReferenceError(
+      renameClause.replacement,
+      renameNode.valueSpan,
+      valid.some((clause) => clause.type === RULE_TYPES.CAPTURE),
       errors,
-      routingPorts.getMessage("ruleMissingCapture"),
-      destination.value,
-      destinationNode.valueSpan,
+      renameClause.value,
     );
+  }
+  appendUncapturedReferenceError(
+    destination.value,
+    destinationNode.valueSpan,
+    valid.some((clause) => clause.type === RULE_TYPES.CAPTURE),
+    errors,
+  );
   if (!valid.some((clause) => clause.type === RULE_TYPES.MATCHER)) {
     appendError(
       errors,
@@ -386,32 +422,28 @@ const parseSemanticRule = (
     );
     return false;
   }
-  if (destinations.length >= 2) {
-    const duplicateDestination = destinationNodes[1];
-    /* v8 ignore next -- Two parsed destinations necessarily provide a second destination node. */
-    if (!duplicateDestination) return false;
-    appendError(
+  if (
+    appendDuplicateClauseError(
+      destinationNodes,
       errors,
       routingPorts.getMessage("ruleExtraInto"),
-      JSON.stringify(lines.map((line) => line.raw)),
-      duplicateDestination.span,
-    );
+      lines,
+    )
+  ) {
     return false;
   }
   const captures = valid.filter((clause) => clause.type === RULE_TYPES.CAPTURE);
   const captureNodes = lines.filter(
     (line) => line.name === "capture" || line.name === "capturegroups",
   );
-  if (captures.length >= 2) {
-    const duplicateCapture = captureNodes[1];
-    /* v8 ignore next -- Two parsed captures necessarily provide a second capture node. */
-    if (!duplicateCapture) return false;
-    appendError(
+  if (
+    appendDuplicateClauseError(
+      captureNodes,
       errors,
       routingPorts.getMessage("ruleMultipleCapture"),
-      JSON.stringify(lines.map((line) => line.raw)),
-      duplicateCapture.span,
-    );
+      lines,
+    )
+  ) {
     return false;
   }
   if (captures.length === 1) {
@@ -465,42 +497,34 @@ const parseSemanticRule = (
       (total, clause) => total + captureGroupCount(clause.value) + 1,
       capture.name === "capturegroups" ? 1 - capturedMatchers.length : 0,
     );
-    const indexes = [...destination.value.matchAll(/:\$(\d+):/g)].map((match) => Number(match[1]));
-    if (indexes.some((index) => index >= availableIndexes)) {
-      appendError(
-        errors,
-        routingPorts.getMessage("ruleMissingCapture"),
+    if (
+      rejectOutOfRangeCapture(
         destination.value,
         destinationNode.valueSpan,
-      );
+        availableIndexes,
+        errors,
+      )
+    ) {
       return false;
     }
-    const fetchIndexes = fetchClause
-      ? [...fetchClause.value.matchAll(/:\$(\d+):/g)].map((match) => Number(match[1]))
-      : [];
-    if (fetchIndexes.some((index) => index >= availableIndexes)) {
-      appendError(
-        errors,
-        routingPorts.getMessage("ruleMissingCapture"),
-        /* v8 ignore next -- A non-empty fetchIndexes list proves fetchClause exists. */
-        fetchClause?.value ?? "",
-        /* v8 ignore next -- Parsed fetch clauses and fetch nodes come one-for-one from the same lines. */
-        fetchNode?.valueSpan ?? rule.span,
-      );
+    if (
+      fetchClause &&
+      fetchNode &&
+      rejectOutOfRangeCapture(fetchClause.value, fetchNode.valueSpan, availableIndexes, errors)
+    ) {
       return false;
     }
-    const renameIndexes = renameClause
-      ? [...renameClause.replacement.matchAll(/:\$(\d+):/g)].map((match) => Number(match[1]))
-      : [];
-    if (renameIndexes.some((index) => index >= availableIndexes)) {
-      appendError(
+    if (
+      renameClause &&
+      renameNode &&
+      rejectOutOfRangeCapture(
+        renameClause.replacement,
+        renameNode.valueSpan,
+        availableIndexes,
         errors,
-        routingPorts.getMessage("ruleMissingCapture"),
-        /* v8 ignore next -- A non-empty renameIndexes list proves renameClause exists. */
-        renameClause?.value ?? "",
-        /* v8 ignore next -- Parsed rename clauses and rename nodes come one-for-one from the same lines. */
-        renameNode?.valueSpan ?? rule.span,
-      );
+        renameClause.value,
+      )
+    ) {
       return false;
     }
   }
@@ -526,11 +550,16 @@ export const parseRulesCollecting = (
     const laterRule = laterEntry.rule;
     const shadowed = parsedRules.slice(0, index).some(({ rule: earlier }) => {
       if (isAutomaticRuleClauses(earlier) !== isAutomaticRuleClauses(laterRule)) return false;
-      // A fetch rule ahead of a plain twin leaves the plain rule live in
-      // ordinary browser-download routing, which skips fetch rules. A plain
-      // rule ahead of a fetch twin wins in every pipeline the fetch rule is
-      // eligible for, so that fetch rule is genuinely dead and stays flagged.
-      if (ruleHasFetchClause(earlier) && !ruleHasFetchClause(laterRule)) return false;
+      // A rule that ordinary browser routing may skip leaves an always-eligible
+      // plain twin live in that pipeline. This includes fetch/hash rules and a
+      // captured output that can become a hash token after matching. The
+      // reverse order is genuinely shadowed in every shared pipeline.
+      if (
+        !isAutomaticRuleClauses(laterRule) &&
+        !isAlwaysRenameOnlyEligibleRule(earlier) &&
+        isRenameOnlyEligibleRule(laterRule)
+      )
+        return false;
       const earlierMatchers = earlier.filter((clause) => clause.type === RULE_TYPES.MATCHER);
       const laterMatchers = laterRule.filter((clause) => clause.type === RULE_TYPES.MATCHER);
       return earlierMatchers.every((earlierClause) =>

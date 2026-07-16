@@ -304,6 +304,62 @@ describe("filename rewrite and routing", () => {
       expect(diagnostics.filenamePatterns).toEqual([]);
     });
 
+    test("ordinary routing skips content-hash destinations and rename replacements", () => {
+      const rules = router.parseRules(
+        "filename: \\.jpg$\ninto: hashes/:sha256:/:filename:\n\n" +
+          "filename: \\.jpg$\nrename: cat -> :sha256full:\ninto: renamed/:filename:\n\n" +
+          "filename: \\.jpg$\ninto: images/:filename:",
+      );
+
+      expect(rules).toHaveLength(3);
+      expect(router.isRenameOnlyEligibleRule(rules[0]!)).toBe(false);
+      expect(router.isRenameOnlyEligibleRule(rules[1]!)).toBe(false);
+      expect(
+        router.matchRules(rules, { filename: "cat.jpg" }, router.isRenameOnlyEligibleRule),
+      ).toBe("images/:filename:");
+      expect(diagnostics.filenamePatterns).toEqual([
+        expect.objectContaining({ warning: true, error: "rule 2" }),
+      ]);
+
+      diagnostics = { filenamePatterns: [], paths: [] };
+      router.parseRules(
+        "filename: ^(.+)$\ninto: hashes/:sha256:\n\n" +
+          "filename: ^(.+)$\ncapturegroups: filename\ninto: safe/:$1:",
+      );
+      expect(diagnostics.filenamePatterns).toEqual([]);
+    });
+
+    test("ordinary routing skips a hash token introduced by capture substitution", () => {
+      const rules = router.parseRules(
+        "filename: ^(:sha256:)$\ncapturegroups: filename\ninto: routed/:$1:\n\n" +
+          "filename: .*\ninto: safe/:filename:",
+      );
+
+      expect(rules).toHaveLength(2);
+      expect(
+        router.matchRules(
+          rules,
+          { filename: ":sha256:" },
+          router.isRenameOnlyEligibleRule,
+          router.isRenameOnlyEligibleMatch,
+        ),
+      ).toBe("safe/:filename:");
+
+      const renameRules = router.parseRules(
+        "filename: ^(:sha256:)\\.jpg$\ncapturegroups: filename\nrename: cat -> :$1:\ninto: routed/:filename:\n\n" +
+          "filename: .*\ninto: safe/:filename:",
+      );
+      const renameMatch = router.matchRulesDetailed(
+        renameRules,
+        { filename: ":sha256:.jpg" },
+        router.isRenameOnlyEligibleRule,
+        router.isRenameOnlyEligibleMatch,
+      );
+      expect(renameMatch?.destination).toBe("safe/:filename:");
+      expect(renameMatch?.rename).toBeNull();
+      expect(diagnostics.filenamePatterns).toEqual([]);
+    });
+
     test("rejects a second fetch clause", () => {
       const rules = router.parseRules(
         "filename: a\nfetch: https://x.example/a\nfetch: https://x.example/b\ninto: x",
@@ -343,6 +399,7 @@ describe("filename rewrite and routing", () => {
       const uncaptured = router.parseRules("filename: (a)\nfetch: https://x.example/:$1:\ninto: x");
       expect(uncaptured).toHaveLength(1);
       expect(diagnostics.filenamePatterns.at(-1)?.message).toBe("ruleMissingCapture");
+      expect(diagnostics.filenamePatterns.at(-1)?.error).toBe("https://x.example/:$1:");
 
       // An out-of-range index is fatal.
       const outOfRange = router.parseRules(
@@ -350,6 +407,7 @@ describe("filename rewrite and routing", () => {
       );
       expect(outOfRange).toEqual([]);
       expect(diagnostics.filenamePatterns.at(-1)?.message).toBe("ruleMissingCapture");
+      expect(diagnostics.filenamePatterns.at(-1)?.error).toBe("https://x.example/:$5:");
     });
 
     test("a fetch rule ahead of a plain twin is exempt from shadow warnings", () => {
@@ -360,8 +418,24 @@ describe("filename rewrite and routing", () => {
       );
       expect(diagnostics.filenamePatterns).toEqual([]);
 
+      router.parseRules(
+        "filename: ^(.+)$\nfetch: https://cdn.example/full.jpg\ninto: originals\n\n" +
+          "filename: ^(.+)$\ncapturegroups: filename\ninto: images/:$1:",
+      );
+      expect(diagnostics.filenamePatterns).toEqual([]);
+
       // The warning still fires for two plain twins.
       router.parseRules("filename: \\.jpg$\ninto: a\n\nfilename: \\.jpg$\ninto: b");
+      expect(diagnostics.filenamePatterns.at(-1)?.message).toBe("ruleShadowed");
+      expect(diagnostics.filenamePatterns.at(-1)?.warning).toBe(true);
+    });
+
+    test("automatic twins retain shadow warnings because browser routing cannot use them", () => {
+      router.parseRules(
+        "context: ^auto$\npageurl: example\nsourcekind: image\nfetch: https://cdn.example/full.jpg\ninto: originals\n\n" +
+          "context: ^auto$\npageurl: example\nsourcekind: image\ninto: images",
+      );
+
       expect(diagnostics.filenamePatterns.at(-1)?.message).toBe("ruleShadowed");
       expect(diagnostics.filenamePatterns.at(-1)?.warning).toBe(true);
     });
@@ -497,6 +571,7 @@ describe("filename rewrite and routing", () => {
       const uncaptured = router.parseRules("filename: (a)\nrename: a -> :$1:\ninto: x");
       expect(uncaptured).toHaveLength(1);
       expect(diagnostics.filenamePatterns.at(-1)?.message).toBe("ruleMissingCapture");
+      expect(diagnostics.filenamePatterns.at(-1)?.error).toBe("a -> :$1:");
 
       // An out-of-range index is fatal.
       const outOfRange = router.parseRules(
@@ -504,6 +579,7 @@ describe("filename rewrite and routing", () => {
       );
       expect(outOfRange).toEqual([]);
       expect(diagnostics.filenamePatterns.at(-1)?.message).toBe("ruleMissingCapture");
+      expect(diagnostics.filenamePatterns.at(-1)?.error).toBe("a -> :$5:");
     });
 
     test("rename does not change matching, so shadow analysis is unaffected", () => {
@@ -622,6 +698,7 @@ describe("filename rewrite and routing", () => {
       const matcher = router.matcherFunctions.sourcekind(new RegExp("^image$"));
       expect(expectMatch(matcher({ ...info, sourceKind: "image" }))[0]!).toBe("image");
       expect(matcher({ ...info, sourceKind: "video" })).toBeNull();
+      expect(matcher({})).toBeNull();
     });
 
     test("menuindex", () => {

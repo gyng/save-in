@@ -26,6 +26,7 @@ import { createExtensionNotification, EXTENSION_NOTIFICATION_STREAMS } from "./n
 import { isWireDownloadState, type WireDownloadState } from "../shared/message-protocol.ts";
 import { fromWireDownloadState, toWireDownloadState } from "./wire-state.ts";
 import { isStringKeyedRecord } from "../shared/util.ts";
+import { historyDisplayUrl } from "../shared/data-url.ts";
 
 const historyPort = downloadPorts.history;
 const logPort = downloadPorts.log;
@@ -285,7 +286,9 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
       if (options.notifyOnFailure) {
         createExtensionNotification(
           getMessage("notificationRuleMatchFailedExclusiveTitle"),
-          getMessage("notificationRuleMatchFailedExclusiveMessage", [state.info.url ?? ""]),
+          getMessage("notificationRuleMatchFailedExclusiveMessage", [
+            historyDisplayUrl(state.info.url) ?? "",
+          ]),
           true,
           EXTENSION_NOTIFICATION_STREAMS.ROUTE_MISS,
         );

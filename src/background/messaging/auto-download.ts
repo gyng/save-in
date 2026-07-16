@@ -5,6 +5,7 @@ import { launchDownload } from "../../downloads/download.ts";
 import {
   isAdmittedAutomaticSource,
   matchAutomaticRoutingRule,
+  normalizeAutomaticSourceUrl,
 } from "../../automation/automatic-routing.ts";
 import { matchesAnyPattern } from "../../shared/match-pattern.ts";
 import { normalizeContentOption } from "../../config/content-options.ts";
@@ -25,7 +26,7 @@ export const handleAutoDownloadSource = async (
       body: { status: "skipped" },
     });
   const senderTab = sender.tab;
-  const sourceUrl = request.body.sourceUrl;
+  const requestedSourceUrl = request.body.sourceUrl;
   if (
     options.autoDownloadEnabled !== true ||
     !senderTab?.url ||
@@ -43,37 +44,6 @@ export const handleAutoDownloadSource = async (
     skip();
     return;
   }
-  // Backstop the protocol gate. data: is opt-in and capped identically to the
-  // content side; an oversize data: URL from a stale content script is rejected
-  // here and logged once (the length only, never the payload — and marked
-  // private when the sender tab is). blob: and every other scheme stay rejected.
-  if (isDataUrl(sourceUrl)) {
-    if (normalizeContentOption("autoDownloadDataUrls", options.autoDownloadDataUrls) !== true) {
-      skip();
-      return;
-    }
-    if (!isDataUrlWithinCap(sourceUrl)) {
-      void addLogEntry(
-        "automatic data: source rejected: exceeds size cap",
-        { length: sourceUrl.length },
-        { privateContext: senderTab.incognito === true },
-      );
-      skip();
-      return;
-    }
-  } else {
-    let sourceProtocol = "";
-    try {
-      sourceProtocol = new URL(sourceUrl).protocol;
-    } catch {
-      skip();
-      return;
-    }
-    if (sourceProtocol !== "http:" && sourceProtocol !== "https:") {
-      skip();
-      return;
-    }
-  }
   // Backstop: a stale content script cannot adopt a kind/channel combination
   // the current options forbid, even if it was allowed when the page loaded.
   // Mirrors the disable-list backstop above by re-deriving the same gates a
@@ -89,8 +59,23 @@ export const handleAutoDownloadSource = async (
       options.autoDownloadBackgrounds,
     ),
     resourceHints: normalizeContentOption("autoDownloadManifests", options.autoDownloadManifests),
+    includeDataUrls: normalizeContentOption("autoDownloadDataUrls", options.autoDownloadDataUrls),
   };
   if (!isAdmittedAutomaticSource(request.body.sourceKind, request.body.sourceChannel, gates)) {
+    skip();
+    return;
+  }
+  const sourceUrl = normalizeAutomaticSourceUrl(requestedSourceUrl, gates);
+  if (!sourceUrl) {
+    // Log only an oversize data: payload. Disabled data: support, blob:, and
+    // malformed URLs are ordinary policy skips and must not expose content.
+    if (isDataUrl(requestedSourceUrl) && !isDataUrlWithinCap(requestedSourceUrl)) {
+      void addLogEntry(
+        "automatic data: source rejected: exceeds size cap",
+        { length: requestedSourceUrl.length },
+        { privateContext: senderTab.incognito === true },
+      );
+    }
     skip();
     return;
   }
@@ -126,6 +111,7 @@ export const handleAutoDownloadSource = async (
       matchedCssSelectorsByOrigin: cssAttestation,
       url: sourceUrl,
       context: DOWNLOAD_TYPES.AUTO,
+      ...(isDataUrl(sourceUrl) ? { suggestedFilename: "download" } : {}),
       // A data: URL carries no path, so seed the mediatype parsed from its
       // header as the download's mime. mime-based matching and :mimeext: naming
       // resolve from it, and resolveMime short-circuits — no HTTP-only HEAD.

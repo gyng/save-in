@@ -533,7 +533,13 @@ describe("content.js initialisation", () => {
     let storageListener: ((changes: Record<string, any>, area: string) => void) | undefined;
     vi.resetModules();
     document.body.innerHTML = '<img src="https://cdn.test/automatic.png">';
-    global.chrome.runtime.sendMessage = vi.fn((_message, callback) => callback?.()) as any;
+    global.chrome.runtime.sendMessage = vi.fn((message, callback) =>
+      callback?.(
+        (message as any)?.type === "AUTO_DOWNLOAD_SOURCE"
+          ? { type: "AUTO_DOWNLOAD_SOURCE", body: { status: "started" } }
+          : undefined,
+      ),
+    ) as any;
     global.chrome.runtime.onMessage.addListener = vi.fn();
     global.chrome.storage.local.get = vi.fn((_keys, callback) =>
       callback({

@@ -48,6 +48,7 @@ import {
   undoDownloadAndMark,
   type ExpectedDownloadIdentity,
 } from "./undo-download.ts";
+import { isDataUrl } from "../shared/data-url.ts";
 
 type HostDownloadItem = Parameters<
   Parameters<typeof webExtensionApi.downloads.onCreated.addListener>[0]
@@ -65,6 +66,7 @@ const SUCCESS_ICON_URL = "icons/ic_archive_black_128px.png";
 const historyPort = downloadPorts.history;
 const logPort = downloadPorts.log;
 const backgroundRuntime = downloadPorts.runtime;
+const notificationUndoTasks = new Map<number, Promise<void>>();
 
 const addDownloadLog = (record: DownloadRecord, message: string, data?: unknown): unknown =>
   isPrivateDownloadRecord(record)
@@ -227,11 +229,7 @@ export const onDownloadCreated = async (item: HostDownloadItem) => {
 // Undo is the only button the success notification carries (Chrome-only; see
 // registerNotifier). The notification ID is the download ID, same contract as
 // onNotificationClicked below.
-export const onNotificationButtonClicked = async (notId: string, buttonIndex: number) => {
-  if (buttonIndex !== 0) return;
-  if (!/^(0|[1-9]\d*)$/.test(notId)) return;
-  const downloadId = Number(notId);
-  if (!Number.isSafeInteger(downloadId)) return;
+const undoFromNotification = async (notId: string, downloadId: number) => {
   const record = await getTrackedDownload(downloadId);
   // Identity evidence follows the record when one exists: its url and
   // currentFilename track onChanged deltas, and its historyEntryId names the
@@ -260,7 +258,10 @@ export const onNotificationButtonClicked = async (notId: string, buttonIndex: nu
   }
   const historyEntryId = record?.historyEntryId ?? entry?.id;
   const expected: ExpectedDownloadIdentity = {
-    startTime: entry?.downloadStartTime,
+    // A failed history rebind can leave the named entry pointing at an older
+    // browser download id. Its timestamp must not veto the current record's
+    // URL or filename evidence.
+    startTime: entry?.downloadId === downloadId ? entry.downloadStartTime : undefined,
     url: record?.url || entry?.url,
     // || not ??: Chrome's onDownloadCreated merges an empty-string filename at
     // creation, which must fall through to the routed record.filename.
@@ -302,6 +303,22 @@ export const onNotificationButtonClicked = async (notId: string, buttonIndex: nu
   }
   logPort.add("undo refused", { downloadId });
   await reportUndoRefused();
+};
+
+export const onNotificationButtonClicked = (notId: string, buttonIndex: number) => {
+  if (buttonIndex !== 0) return;
+  if (!/^(0|[1-9]\d*)$/.test(notId)) return;
+  const downloadId = Number(notId);
+  if (!Number.isSafeInteger(downloadId)) return;
+
+  const pending = notificationUndoTasks.get(downloadId);
+  if (pending) return pending;
+
+  const task = undoFromNotification(notId, downloadId).finally(() => {
+    notificationUndoTasks.delete(downloadId);
+  });
+  notificationUndoTasks.set(downloadId, task);
+  return task;
 };
 
 export const onNotificationClicked = (notId: string) => {
@@ -594,6 +611,7 @@ export const onDownloadChanged = async (downloadDelta: HostDownloadDelta) => {
       await mergeTrackedDownload(downloadDelta.id, {
         adopted: false,
         pendingSourceSidecar: undefined,
+        ...(record.url && isDataUrl(record.url) ? { url: undefined } : {}),
       });
     }
   }

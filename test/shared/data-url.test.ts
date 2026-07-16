@@ -1,6 +1,5 @@
 import {
   DATA_URL_DEDUP_THRESHOLD,
-  DATA_URL_DISPLAY_LENGTH,
   DATA_URL_MAX_LENGTH,
   automaticSeenKey,
   historyDisplayUrl,
@@ -50,33 +49,35 @@ describe("parseDataUrlMediaType", () => {
     // malformed: no comma at all, or a header with no type/subtype
     ["data:image-png", "application/octet-stream"],
     ["data:notamediatype,x", "application/octet-stream"],
+    [`data:image/${"x".repeat(200)},x`, "application/octet-stream"],
+    [`data:image/png;${";".repeat(20_000)},x`, "image/png"],
+    ["data:IMAGE/PNG,x", "image/png"],
   ])("%s -> %s", (value, expected) => {
     expect(parseDataUrlMediaType(value)).toBe(expected);
   });
 });
 
 describe("truncateDataUrlForDisplay", () => {
-  test("leaves a short value untouched and truncates a long one with an ellipsis", () => {
-    const short = "data:text/plain,hi";
-    expect(truncateDataUrlForDisplay(short)).toBe(short);
-
-    const long = dataUrl(500);
-    const truncated = truncateDataUrlForDisplay(long);
-    expect(truncated).toBe(`${long.slice(0, DATA_URL_DISPLAY_LENGTH)}…`);
-    expect(truncated.length).toBe(DATA_URL_DISPLAY_LENGTH + 1);
-    // The truncated form is not a usable, fetchable URL.
-    expect(truncated.endsWith("…")).toBe(true);
+  test("shows only normalized media metadata, never payload or arbitrary parameters", () => {
+    expect(truncateDataUrlForDisplay("data:text/plain,TOP_SECRET")).toBe("data:text/plain,…");
+    expect(truncateDataUrlForDisplay("data:text/html;charset=TOP_SECRET;base64,TOP_SECRET")).toBe(
+      "data:text/html;base64,…",
+    );
+    expect(truncateDataUrlForDisplay("data:;base64,TOP_SECRET")).toBe(
+      "data:application/octet-stream;base64,…",
+    );
+    expect(truncateDataUrlForDisplay("data:malformed")).toBe("data:…");
+    expect(truncateDataUrlForDisplay("https://cdn.test/cat.png")).toBe("https://cdn.test/cat.png");
   });
 });
 
 describe("historyDisplayUrl", () => {
-  test("truncates only long data: URLs, passing http(s) and short values through", () => {
+  test("redacts every data: payload while passing http(s) through", () => {
     expect(historyDisplayUrl(undefined)).toBeUndefined();
     expect(historyDisplayUrl("https://cdn.test/cat.png")).toBe("https://cdn.test/cat.png");
-    const short = "data:text/plain,hi";
-    expect(historyDisplayUrl(short)).toBe(short);
+    expect(historyDisplayUrl("data:text/plain,hi")).toBe("data:text/plain,…");
     const long = dataUrl(4000);
-    expect(historyDisplayUrl(long)).toBe(`${long.slice(0, DATA_URL_DISPLAY_LENGTH)}…`);
+    expect(historyDisplayUrl(long)).toBe("data:image/png;base64,…");
   });
 });
 

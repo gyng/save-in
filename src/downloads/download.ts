@@ -12,6 +12,7 @@ import { getRoutingMatches, resolveRenameTransform } from "./download-plan.ts";
 import { finalizeFullPath } from "./download-disposition.ts";
 import { renameAndDownload } from "./download-execution.ts";
 import { addDownloadLog, isSourceSidecar } from "./download-pipeline-state.ts";
+import { historyDisplayUrl } from "../shared/data-url.ts";
 import type { DownloadPipelineState, DownloadLaunchResult } from "./download-types.ts";
 
 const logPort = downloadPorts.log;
@@ -56,7 +57,11 @@ export const makeObjectUrl = (content: string, mime = "text/plain"): string => {
 export const launchDownload = (state: DownloadPipelineState): Promise<DownloadLaunchResult> =>
   renameAndDownload(state).catch((e) => {
     addDownloadLog(state, "renameAndDownload failed", String(e));
-    const name = state.info.suggestedFilename || state.info.url || "";
+    // An automatic data: save has no suggestedFilename, so the URL fallback
+    // would otherwise interpolate the multi-kilobyte payload into the failure
+    // notification title; historyDisplayUrl truncates data: URLs (http(s) stay
+    // whole).
+    const name = state.info.suggestedFilename || historyDisplayUrl(state.info.url) || "";
     if (!isSourceSidecar(state)) reportDownloadFailure(name, String(e));
     return { status: "failed" as const };
   });

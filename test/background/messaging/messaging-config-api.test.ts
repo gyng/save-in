@@ -207,6 +207,46 @@ describe("config API", () => {
     });
   });
 
+  test("external VALIDATE rejects an unsafe rename find behind a safe matcher", async () => {
+    // A safe matcher lets the rule reach trace selection, where
+    // applyRenameTransform would run the catastrophic find against an
+    // attacker-supplied filename. The gate must reject before tracing.
+    const rules = [
+      [
+        { name: "sourceurl", value: /./, type: "MATCHER", matcher: vi.fn(() => ["x"]) },
+        { name: "rename", value: "(a+)+$ -> x", find: /(a+)+$/, replacement: "x", type: "RENAME" },
+        { name: "into", value: "images/", type: "DESTINATION" },
+      ],
+    ] as any;
+    vi.mocked(router.parseRulesCollecting).mockReturnValue({ rules, errors: [] });
+    const sendResponse = vi.fn();
+
+    expect(
+      onMessageExternal(
+        {
+          type: MESSAGE_TYPES.VALIDATE,
+          body: {
+            filenamePatterns: "sourceurl: .\nrename: (a+)+$ -> x\ninto: images/",
+            info: { filename: "aaaaaaaaaaaaaaaaaaaa!" },
+          },
+        },
+        { id: "validation-client" },
+        sendResponse,
+      ),
+    ).toBe(true);
+    await waitForCall(sendResponse);
+
+    expect(router.traceRules).not.toHaveBeenCalled();
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.VALIDATE,
+      body: {
+        status: MESSAGE_TYPES.ERROR,
+        error: "BAD_REQUEST",
+        message: "Validation rules contain an unsafe regular expression",
+      },
+    });
+  });
+
   test("WebMCP VALIDATE uses the external regex safeguards", async () => {
     const rules = [
       [
@@ -321,6 +361,60 @@ describe("config API", () => {
     expect(sendResponse.mock.calls[0]![0]!.body).toMatchObject({
       automaticTrace: { selectedRule: 1, destination: "Images" },
     });
+  });
+
+  test("automatic data validation uses execution's neutral filename and payload-safe eligibility", async () => {
+    const filenamePatterns = [
+      "context: ^auto$",
+      "pageurl: example",
+      "sourcekind: image",
+      "into: :sourceurl:",
+      "",
+      "context: ^auto$",
+      "pageurl: example",
+      "sourcekind: image",
+      "into: Images/download",
+    ].join("\n");
+    const rule = (destination: string) => [
+      { name: "context", value: /^auto$/, type: "MATCHER" },
+      { name: "pageurl", value: /example/, type: "MATCHER" },
+      { name: "sourcekind", value: /image/, type: "MATCHER" },
+      { name: "into", value: destination, type: "DESTINATION" },
+    ];
+    vi.mocked(router.parseRulesCollecting).mockReturnValue({
+      rules: [rule(":sourceurl:"), rule("Images/download")] as any,
+      errors: [],
+    });
+    vi.mocked(router.traceRules).mockResolvedValue({ selectedRule: 2 } as any);
+    const sendResponse = vi.fn();
+
+    expect(
+      onMessageExternal(
+        {
+          type: MESSAGE_TYPES.VALIDATE,
+          body: {
+            filenamePatterns,
+            automaticCandidate: {
+              pageUrl: "https://example.test/gallery",
+              sourceUrl: "data:image/png;base64,SECRET",
+              sourceKind: "image",
+            },
+          },
+        },
+        {},
+        sendResponse,
+      ),
+    ).toBe(true);
+    await waitForCall(sendResponse);
+
+    const [rules, info, eligible] = vi.mocked(router.traceRules).mock.calls.at(-1)!;
+    expect(info).toMatchObject({
+      suggestedFilename: "download",
+      filename: "download",
+      initialFilename: "download",
+    });
+    expect(eligible?.(rules[0]!)).toBe(false);
+    expect(eligible?.(rules[1]!)).toBe(true);
   });
 
   test("VALIDATE is exposed on the internal listener too", async () => {

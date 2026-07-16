@@ -9,6 +9,8 @@ const MAX_URL_CHARACTERS = 8_192;
 const MAX_FILENAME_CHARACTERS = 1_024;
 const MAX_TOTAL_CHARACTERS = 65_536;
 const MAX_REGEX_CHARACTERS = 1_024;
+const MAX_REGEX_QUANTIFIERS = 8;
+const MAX_REPEATING_REGEX_QUANTIFIERS = 1;
 
 type ExternalValidationBody = {
   paths?: string | undefined;
@@ -119,6 +121,8 @@ export const isSafeExternalRegex = (regex: RegExp | string): boolean => {
     { hasAlternation: false, hasQuantifier: false },
   ];
   let inCharacterClass = false;
+  let quantifierCount = 0;
+  let repeatingQuantifierCount = 0;
   for (let index = 0; index < source.length; index += 1) {
     const token = source[index];
     /* v8 ignore next -- The loop bound guarantees a character at this index. */
@@ -166,21 +170,50 @@ export const isSafeExternalRegex = (regex: RegExp | string): boolean => {
     /* v8 ignore next -- The root group keeps the stack non-empty. */
     if (!current) return false;
     if (token === "|") current.hasAlternation = true;
-    if (
-      token === "*" ||
-      token === "+" ||
-      (token === "?" && source[index - 1] !== "(") ||
-      token === "{"
-    ) {
+    const previous = source[index - 1];
+    const lazyModifier =
+      token === "?" &&
+      (previous === "*" || previous === "+" || previous === "?" || previous === "}");
+    const quantifier =
+      !lazyModifier &&
+      (token === "*" || token === "+" || (token === "?" && previous !== "(") || token === "{");
+    if (quantifier) {
+      quantifierCount += 1;
+      if (quantifierCount > MAX_REGEX_QUANTIFIERS) return false;
+      if (
+        token === "*" ||
+        token === "+" ||
+        (token === "{" && repeatingQuantifierAt(source, index))
+      ) {
+        repeatingQuantifierCount += 1;
+        // Multiple repeated atoms can produce catastrophic polynomial
+        // backtracking without nesting (`a*a*b`). The external API favors a
+        // conservative grammar over blocking the background event loop.
+        if (repeatingQuantifierCount > MAX_REPEATING_REGEX_QUANTIFIERS) return false;
+      }
       current.hasQuantifier = true;
     }
   }
+  // Optional branches multiply the work of an otherwise linear `*`/`+` scan.
+  // Keep a repeating atom only when it is the expression's sole quantifier;
+  // optional/bounded-only patterns retain the separate eight-atom ceiling.
+  if (repeatingQuantifierCount > 0 && quantifierCount > 1) return false;
   return true;
 };
 
+// An untrusted external VALIDATE compiles and executes two classes of
+// attacker-supplied regex: matcher clause patterns, and the rename: clause's
+// `find` pattern (applyRenameTransform runs it against an attacker-controlled
+// filename during traceRules). Both must pass the ReDoS gate. Capture clauses
+// store a plain string and fetch templates expand through a fixed variable
+// pattern, so neither compiles an attacker regex.
 export const hasUnsafeExternalRegex = (rules: RoutingRule[]): boolean =>
   rules.some((rule) =>
-    rule.some((clause) => clause.type === RULE_TYPES.MATCHER && !isSafeExternalRegex(clause.value)),
+    rule.some((clause) => {
+      if (clause.type === RULE_TYPES.MATCHER) return !isSafeExternalRegex(clause.value);
+      if (clause.type === RULE_TYPES.RENAME) return !isSafeExternalRegex(clause.find);
+      return false;
+    }),
   );
 
 export const createExternalValidationRateLimiter = ({

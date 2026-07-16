@@ -37,6 +37,7 @@ import type {
 import { downloadRuntime } from "./download-runtime-instance.ts";
 import { resolveDownloadPlan } from "./download-plan.ts";
 import { ensureHistoryEntry } from "./history-entry.ts";
+import { historyDisplayUrl, isDataUrl, truncateDataUrlForDisplay } from "../shared/data-url.ts";
 import {
   addDownloadLog,
   isHttpDownloadUrl,
@@ -46,7 +47,6 @@ import {
   requireDownloadUrl,
   throwIfAborted,
 } from "./download-pipeline-state.ts";
-import { isDataUrl } from "../shared/data-url.ts";
 import {
   createDeferredRouteRecovery,
   enqueueFilename,
@@ -93,14 +93,25 @@ const recordDownloadRequest = (plan: DownloadPlan): void => {
   const privateContext = isPrivateDownloadState(state);
   if (!privateContext) {
     logPort.add("download requested", {
-      url: state.info.url && String(state.info.url).slice(0, 200),
+      url: historyDisplayUrl(state.info.url)?.slice(0, 200),
       path: plan.finalFullPath,
       route: state.route
         ? String(state.route.finalize({ finalComponentIsFilename: !state.routeIsFolder }))
         : null,
     });
   }
-  if (backgroundRuntime.debug && !privateContext) console.log(state, plan.finalFullPath); // eslint-disable-line
+  if (backgroundRuntime.debug && !privateContext) {
+    const dataUrl = [state.info.url, state.info.sourceUrl, state.info.selectedUrl].find(
+      (value) => typeof value === "string" && isDataUrl(value),
+    );
+    // Debug consoles retain object graphs. Never hand a page-controlled data:
+    // payload (or a path/capture derived from it) to DevTools.
+    if (dataUrl) {
+      console.log({ context: state.info.context, url: truncateDataUrlForDisplay(dataUrl) }); // eslint-disable-line
+    } else {
+      console.log(state, plan.finalFullPath); // eslint-disable-line
+    }
+  }
 
   if (!privateContext && !isSourceSidecar(state)) {
     emitDownloaded(state);
@@ -203,6 +214,10 @@ export const executeBrowserDownload = async (
   const deferredRouteRecovery = state.scratch.deferredRouteRequirement
     ? createDeferredRouteRecovery(state)
     : undefined;
+  // data: is the payload, not a compact identifier. It already receives an
+  // explicit downloads.download filename and cannot use HTTP retry, so the
+  // restart filename map gains nothing by persisting it as a multi-MiB key.
+  const persistFilenameKey = !isDataUrl(acquired.url);
   throwIfAborted(signal);
   await Promise.all(
     privateContext
@@ -214,12 +229,16 @@ export const executeBrowserDownload = async (
             PENDING_DOWNLOADS_SESSION_KEY,
             (n) => normalizeSessionCounter(n) + 1,
           ),
-          updateSession<FinalFilenameMap>(
-            sessionWriteState,
-            extensionSessionStorage,
-            FINAL_FILENAMES_SESSION_KEY,
-            (m) => enqueueFilename(m, acquired.url, filename),
-          ),
+          ...(persistFilenameKey
+            ? [
+                updateSession<FinalFilenameMap>(
+                  sessionWriteState,
+                  extensionSessionStorage,
+                  FINAL_FILENAMES_SESSION_KEY,
+                  (m) => enqueueFilename(m, acquired.url, filename),
+                ),
+              ]
+            : []),
           ...(deferredRouteRecovery
             ? [
                 updateSession(
@@ -322,7 +341,10 @@ export const executeBrowserDownload = async (
       downloadRuntime.forgetPendingState(state);
       await historyPort.setStatus(historyEntryId, "DOWNLOAD_API_FAILED");
       if (!isSourceSidecar(state)) {
-        reportDownloadFailure(finalFullPath || requireDownloadUrl(state), String(e));
+        reportDownloadFailure(
+          finalFullPath || truncateDataUrlForDisplay(requireDownloadUrl(state)),
+          String(e),
+        );
       }
       return { status: "failed" };
     }
@@ -337,12 +359,16 @@ export const executeBrowserDownload = async (
               PENDING_DOWNLOADS_SESSION_KEY,
               (n) => Math.max(0, normalizeSessionCounter(n) - 1),
             ),
-            updateSession<FinalFilenameMap>(
-              sessionWriteState,
-              extensionSessionStorage,
-              FINAL_FILENAMES_SESSION_KEY,
-              (m) => removeFilename(m, acquired.url, filename),
-            ),
+            ...(persistFilenameKey
+              ? [
+                  updateSession<FinalFilenameMap>(
+                    sessionWriteState,
+                    extensionSessionStorage,
+                    FINAL_FILENAMES_SESSION_KEY,
+                    (m) => removeFilename(m, acquired.url, filename),
+                  ),
+                ]
+              : []),
             ...(deferredRouteRecovery
               ? [
                   updateSession(
@@ -426,7 +452,9 @@ export const renameAndDownload = async (
     if ((state.needRouteMatch || options.routeSkipUnmatched) && options.notifyOnFailure) {
       createExtensionNotification(
         getMessage("notificationRuleMatchFailedExclusiveTitle"),
-        getMessage("notificationRuleMatchFailedExclusiveMessage", [requireDownloadUrl(state)]),
+        getMessage("notificationRuleMatchFailedExclusiveMessage", [
+          truncateDataUrlForDisplay(requireDownloadUrl(state)),
+        ]),
         true,
         EXTENSION_NOTIFICATION_STREAMS.ROUTE_MISS,
       );
@@ -452,7 +480,10 @@ export const renameAndDownload = async (
     await historyPort.setStatus(plan.historyEntryId, "DOWNLOAD_PREPARATION_FAILED");
     addDownloadLog(state, "download preparation failed", String(error));
     if (!isSourceSidecar(state)) {
-      reportDownloadFailure(plan.finalFullPath || requireDownloadUrl(state), String(error));
+      reportDownloadFailure(
+        plan.finalFullPath || truncateDataUrlForDisplay(requireDownloadUrl(state)),
+        String(error),
+      );
     }
     finishPreparation();
     return { status: "failed" };

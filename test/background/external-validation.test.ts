@@ -27,6 +27,20 @@ describe("external validation safeguards", () => {
     expect(isSafeExternalRegex(regex)).toBe(false);
   });
 
+  test("bounds non-nested backtracking without double-counting lazy modifiers", () => {
+    expect(isSafeExternalRegex(/a*a*b/)).toBe(false);
+    expect(isSafeExternalRegex(/a*?a*?b/)).toBe(false);
+    expect(isSafeExternalRegex(/^a*a*a*b$/)).toBe(false);
+    expect(isSafeExternalRegex(/^a*a*a*a*a*a*a*a*b$/)).toBe(false);
+    expect(isSafeExternalRegex(/a*?b+?/)).toBe(false);
+    expect(isSafeExternalRegex(/a*?/)).toBe(true);
+    expect(isSafeExternalRegex(/a*?b?/)).toBe(false);
+    expect(isSafeExternalRegex(new RegExp(`${"a?".repeat(7)}a*b`))).toBe(false);
+    expect(isSafeExternalRegex(new RegExp(`^(?:${"a?b".repeat(8)})$`))).toBe(true);
+    expect(isSafeExternalRegex(new RegExp(`${"a?".repeat(16)}${"a".repeat(16)}b`))).toBe(false);
+    expect(isSafeExternalRegex(new RegExp(`^${"a?".repeat(9)}${"a".repeat(9)}$`))).toBe(false);
+  });
+
   test("rejects oversized external validation fields before parsing", () => {
     expect(externalValidationRequestError(undefined)).toBeNull();
     expect(externalValidationRequestError({ paths: "x".repeat(32_769) })).toBe(
@@ -109,7 +123,7 @@ describe("external validation safeguards", () => {
 
   test("rejects oversized regexes and unsafe matcher rules", () => {
     expect(isSafeExternalRegex(new RegExp("a".repeat(1_025)))).toBe(false);
-    expect(isSafeExternalRegex({ source: "(a+){" } as RegExp)).toBe(true);
+    expect(isSafeExternalRegex({ source: "(a+){" } as RegExp)).toBe(false);
     expect(
       hasUnsafeExternalRegex([
         [
@@ -119,6 +133,27 @@ describe("external validation safeguards", () => {
       ] as never),
     ).toBe(true);
     expect(hasUnsafeExternalRegex([[{ type: "DESTINATION", value: "safe" }]] as never)).toBe(false);
+  });
+
+  test("rejects an unsafe rename find pattern, not only matcher patterns", () => {
+    // rename:'s find regex is compiled and executed against an attacker-supplied
+    // filename during traceRules, so it must pass the same ReDoS gate as a
+    // matcher. A safe matcher must not launder a catastrophic rename find past
+    // the gate.
+    expect(
+      hasUnsafeExternalRegex([
+        [
+          { type: "MATCHER", value: /safe/ },
+          { type: "RENAME", value: "(a+)+$ -> x", find: /(a+)+$/, replacement: "x" },
+          { type: "DESTINATION", value: "out/" },
+        ],
+      ] as never),
+    ).toBe(true);
+    expect(
+      hasUnsafeExternalRegex([
+        [{ type: "RENAME", value: "\\d+ -> x", find: /\d+/, replacement: "x" }],
+      ] as never),
+    ).toBe(false);
   });
 
   test("limits bursts per browser-authenticated sender ID", () => {

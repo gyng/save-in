@@ -4,6 +4,7 @@ import type { StorageReader, StorageWriter } from "../platform/storage-areas.ts"
 import { DOWNLOADS_SESSION_KEY } from "../shared/storage-keys.ts";
 import type { ConflictAction } from "../shared/constants.ts";
 import type { SourceSidecarRequest } from "./download-types.ts";
+import { isDataUrl } from "../shared/data-url.ts";
 
 const MAX_INACTIVE_RECORDS = 50;
 
@@ -77,7 +78,12 @@ function normalizeDownloadRecord(value: unknown): PersistedDownloadRecord | null
     "sourceSidecar",
   ] as const;
   strings.forEach((key) => {
-    if (typeof value[key] === "string") record[key] = value[key];
+    const item = value[key];
+    // A data: URL is the complete payload (up to 2 MiB for automatic saves).
+    // Never mirror it into storage.session or rehydrate a legacy copy.
+    // Non-HTTP records cannot use original-URL retry, and filename/path
+    // evidence still anchors undo.
+    if (typeof item === "string" && !(key === "url" && isDataUrl(item))) record[key] = item;
   });
   booleans.forEach((key) => {
     if (typeof value[key] === "boolean") record[key] = value[key];
@@ -154,6 +160,10 @@ export const mergeDownload = (
   partial: DownloadRecordUpdate,
 ) => {
   const merged = Object.assign({}, state.records.get(downloadId), partial);
+  // A data: URL is the payload and is not retryable. Expected-download state
+  // owns it only while correlating the browser event; the longer-lived active
+  // record needs no copy in memory or storage.
+  if (merged.url && isDataUrl(merged.url)) delete merged.url;
   state.records.set(downloadId, merged);
   const inactiveIds = [...state.records]
     .filter(([, record]) => !record.adopted && !record.observedBrowserDownload)

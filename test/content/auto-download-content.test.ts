@@ -2,7 +2,9 @@
 import {
   setupAutoDownloadDiscovery as rawSetupAutoDownloadDiscovery,
   type AutoDownloadDiscoveryOptions,
+  type AutoDownloadSendResult,
 } from "../../src/content/auto-download.ts";
+import { Sha256 } from "../../src/shared/sha256.ts";
 
 // Link adoption, the phase-B channel toggles, and the disable-list predicate
 // are wired in from content.ts; default them here so each case only states
@@ -297,6 +299,59 @@ describe("automatic source discovery", () => {
     expect(send).toHaveBeenLastCalledWith(
       expect.objectContaining({ sourceUrl: "https://cdn.test/two.png" }),
     );
+    controller.stop();
+  });
+
+  test("a failed send frees its dedup slot and is re-offered on the next scan", async () => {
+    document.body.innerHTML = '<img src="https://cdn.test/cat.png">';
+    const results: AutoDownloadSendResult[] = ["failed", "started"];
+    let index = 0;
+    const send = vi.fn(() => Promise.resolve(results[index++] ?? "started"));
+    const controller = setupAutoDownloadDiscovery({ rules, live: false, maxPerPage: 20, send });
+    await controller.idle();
+    expect(send).toHaveBeenCalledOnce();
+
+    // The terminal "failed" result returned the once-per-visit slot, so a later
+    // rescan re-offers the same source instead of skipping it forever.
+    controller.scan();
+    await controller.idle();
+    expect(send).toHaveBeenCalledTimes(2);
+    expect(send).toHaveBeenLastCalledWith(
+      expect.objectContaining({ sourceUrl: "https://cdn.test/cat.png" }),
+    );
+    controller.stop();
+  });
+
+  test("a backstop-skipped save frees its slot and is re-offered after re-enable", async () => {
+    document.body.innerHTML = '<img src="https://cdn.test/cat.png">';
+    const results: AutoDownloadSendResult[] = ["skipped", "started"];
+    let index = 0;
+    const send = vi.fn(() => Promise.resolve(results[index++] ?? "started"));
+    const controller = setupAutoDownloadDiscovery({ rules, live: false, maxPerPage: 20, send });
+    await controller.idle();
+    expect(send).toHaveBeenCalledOnce();
+
+    // A background backstop that skips the save (e.g. the channel was toggled
+    // off) must not permanently consume the dedup slot: re-enabling and
+    // rescanning re-offers the source.
+    controller.scan();
+    await controller.idle();
+    expect(send).toHaveBeenCalledTimes(2);
+    controller.stop();
+  });
+
+  test("a started save stays deduped across rescans", async () => {
+    document.body.innerHTML = '<img src="https://cdn.test/cat.png">';
+    const send = vi.fn(() => Promise.resolve("started" as const));
+    const controller = setupAutoDownloadDiscovery({ rules, live: false, maxPerPage: 20, send });
+    await controller.idle();
+    expect(send).toHaveBeenCalledOnce();
+
+    // A successful start holds the once-per-visit slot: rescanning the same page
+    // must not re-send it.
+    controller.scan();
+    await controller.idle();
+    expect(send).toHaveBeenCalledOnce();
     controller.stop();
   });
 
@@ -648,6 +703,89 @@ into: automatic/
     expect(keys[0]).toMatch(/^sha256:[0-9a-f]{64}$/);
     expect(keys[0]!.length).toBeLessThan(payload.length);
     controller.stop();
+  });
+
+  test("does not re-hash an already-seen large data: URL on a rescan", async () => {
+    const payload = bigDataUrl(4000);
+    document.body.innerHTML = `<img src="${payload}">`;
+    const hex = vi.spyOn(Sha256.prototype, "hex");
+    const send = vi.fn(() => Promise.resolve("started" as const));
+    const controller = setupAutoDownloadDiscovery({
+      rules: dataRules,
+      live: false,
+      maxPerPage: 20,
+      includeDataUrls: true,
+      send,
+    });
+    await controller.idle();
+    expect(send).toHaveBeenCalledOnce();
+    const afterFirstScan = hex.mock.calls.length;
+    expect(afterFirstScan).toBeGreaterThan(0);
+
+    // The dedup key is memoized per instance, so a rescan re-derives it from the
+    // cache instead of running the pure-JS SHA-256 over the megabyte payload
+    // again.
+    controller.scan();
+    await controller.idle();
+    expect(hex).toHaveBeenCalledTimes(afterFirstScan);
+    controller.stop();
+    hex.mockRestore();
+  });
+
+  test("bounds retained data: candidates while allowing a later rescan", async () => {
+    const payloads = Array.from({ length: 3 }, (_, index) => bigDataUrl(1_500_000 + index));
+    document.body.innerHTML = payloads.map((payload) => `<img src="${payload}">`).join("");
+    const hex = vi.spyOn(Sha256.prototype, "hex");
+    const send = vi.fn(() => Promise.resolve("started" as const));
+    const controller = setupAutoDownloadDiscovery({
+      rules: dataRules,
+      live: false,
+      maxPerPage: 20,
+      includeDataUrls: true,
+      send,
+    });
+    await controller.idle();
+    const afterFirstScan = hex.mock.calls.length;
+    // Two payloads fit the 4 MiB outstanding-character budget; the third is
+    // deferred instead of making the queue retain every page-controlled URL.
+    expect(send).toHaveBeenCalledTimes(2);
+
+    controller.scan();
+    await controller.idle();
+
+    // Once the first batch settles, a later scan can offer the deferred source.
+    expect(send).toHaveBeenCalledTimes(3);
+    // Crossing the same character budget evicts at least one raw cache key.
+    expect(hex.mock.calls.length).toBeGreaterThan(afterFirstScan);
+    controller.stop();
+    hex.mockRestore();
+  });
+
+  test("returns queued data: payload budget when discovery stops", async () => {
+    const first = bigDataUrl(4000);
+    const second = bigDataUrl(4001);
+    document.body.innerHTML = `<img src="${first}"><img src="${second}">`;
+    let release: (() => void) | undefined;
+    const send = vi.fn(
+      () =>
+        new Promise<"started">((resolve) => {
+          release = () => resolve("started");
+        }),
+    );
+    const controller = setupAutoDownloadDiscovery({
+      rules: dataRules,
+      live: false,
+      maxPerPage: 20,
+      includeDataUrls: true,
+      send,
+    });
+    await vi.waitFor(() => expect(send).toHaveBeenCalledOnce());
+
+    controller.stop();
+    release?.();
+    await settle();
+
+    expect(send).toHaveBeenCalledOnce();
   });
 
   test("never adopts a blob: source, even with the data: option on", async () => {

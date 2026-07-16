@@ -7,10 +7,10 @@ const { walkFiles } = require("./lib/walk-files.js");
 const root = path.resolve(__dirname, "..");
 const configPath = path.join(root, "config", "vitest", "base.mjs");
 const sourceRoot = path.join(root, "src");
-// 79 pre-4.2 reviewed ignores, +2 data:-scan (phase C), +4 rename:-clause
-// parser invariants mirroring the reviewed fetch-clause precedents (the
-// second duplicate node, the flags span, the one-for-one clause/node pairing).
-const ignoreCeiling = 85;
+// Reviewed ceiling after the 4.2 parser/finalization/data-URL cleanup removed ten
+// obsolete ignores. New ignores require an explicit rationale and a deliberate
+// ceiling update so uncovered branches cannot accumulate silently.
+const ignoreCeiling = 75;
 
 const errors = [];
 const config = fs.readFileSync(configPath, "utf8");

@@ -78,6 +78,30 @@ describe("renameAndDownload: browserDownload", () => {
     expect(sessionStore.siFinalFilenames).toEqual({});
   });
 
+  test("does not persist a data payload as a filename-map key or download-record URL", async () => {
+    setCurrentBrowser("CHROME");
+    (global.browser.downloads as any).download = vi.fn(() => Promise.resolve(556));
+    const url = `data:image/png;base64,${"A".repeat(4000)}`;
+    const state = makeState({ info: { url } });
+    const plan = Download.createDownloadPlan(state);
+
+    await Download.executeBrowserDownload(plan, { url, source: "direct" });
+
+    expect(SessionState.updateSession).not.toHaveBeenCalledWith(
+      expect.anything(),
+      extensionSessionStorage,
+      "siFinalFilenames",
+      expect.any(Function),
+    );
+    expect([...downloadState.records.entries()]).toContainEqual([
+      556,
+      expect.not.objectContaining({ url }),
+    ]);
+    expect(downloadState.records.get(556)).toMatchObject({ adopted: true });
+    expect(sessionStore.siDownloads[556]).toMatchObject({ adopted: true });
+    expect(sessionStore.siDownloads[556]).not.toHaveProperty("url");
+  });
+
   test("contains a downloads.download rejection and clears pending state", async () => {
     setCurrentBrowser("CHROME");
     (global.browser.downloads as any).download = vi.fn(() =>
@@ -388,6 +412,35 @@ describe("renameAndDownload: notification triggers", () => {
     expect(global.browser.downloads.download).not.toHaveBeenCalled();
   });
 
+  test("truncates a data URL in the unmatched-route notification", async () => {
+    setCurrentBrowser("CHROME");
+    options.routeSkipUnmatched = true;
+    options.notifyOnFailure = true;
+    const getMessage = vi.fn((key: string) => key);
+    (global.browser.i18n as any).getMessage = getMessage;
+    const url = `data:image/png;base64,${"A".repeat(4000)}`;
+
+    await Download.renameAndDownload(makeState({ info: { url } }));
+
+    expect(getMessage).toHaveBeenCalledWith("notificationRuleMatchFailedExclusiveMessage", [
+      "data:image/png;base64,…",
+    ]);
+    expect(getMessage.mock.calls.flatMap((call) => call.slice(1)).join(" ")).not.toContain(url);
+  });
+
+  test("preserves a long HTTP URL in the unmatched-route notification", async () => {
+    setCurrentBrowser("CHROME");
+    options.routeSkipUnmatched = true;
+    options.notifyOnFailure = true;
+    const getMessage = vi.fn((key: string) => key);
+    (global.browser.i18n as any).getMessage = getMessage;
+    const url = `https://cdn.test/${"A".repeat(4000)}.png`;
+
+    await Download.renameAndDownload(makeState({ info: { url } }));
+
+    expect(getMessage).toHaveBeenCalledWith("notificationRuleMatchFailedExclusiveMessage", [url]);
+  });
+
   test("does not notify failure when unmatched files are allowed", async () => {
     setCurrentBrowser("CHROME");
     options.routeSkipUnmatched = false;
@@ -408,6 +461,23 @@ describe("renameAndDownload: Log integration", () => {
     expect(Log.addLogEntry).toHaveBeenCalledWith(
       "download requested",
       expect.objectContaining({ url: expect.any(String), path: expect.any(String), route: null }),
+    );
+  });
+
+  test("keeps an automatic data payload out of logs and the browser filename", async () => {
+    setCurrentBrowser("CHROME");
+    const marker = "TOP_SECRET_PAYLOAD";
+    const url = `data:image/png;base64,${marker.repeat(300)}`;
+
+    await Download.renameAndDownload(
+      makeState({
+        info: { url, context: "AUTO", suggestedFilename: "download", mime: "image/png" },
+      }),
+    );
+
+    expect(JSON.stringify(vi.mocked(Log.addLogEntry).mock.calls)).not.toContain(marker);
+    expect(JSON.stringify(vi.mocked(global.browser.downloads.download).mock.calls)).not.toContain(
+      marker,
     );
   });
 
@@ -434,6 +504,27 @@ describe("renameAndDownload: backgroundRuntime.debug", () => {
 
     expect(consoleSpy).toHaveBeenCalled();
     consoleSpy.mockRestore();
+    backgroundRuntime.debug = false;
+  });
+
+  test("redacts automatic data payloads from debug console output", async () => {
+    setCurrentBrowser("CHROME");
+    backgroundRuntime.debug = true;
+    const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    const marker = "TOP_SECRET_DEBUG_PAYLOAD";
+    const url = `data:image/png;base64,${marker.repeat(100)}`;
+
+    await Download.renameAndDownload(
+      makeState({
+        info: { url, sourceUrl: url, context: "AUTO", suggestedFilename: "download" },
+      }),
+    );
+
+    expect(JSON.stringify(consoleSpy.mock.calls)).not.toContain(marker);
+    expect(consoleSpy).toHaveBeenCalledWith({
+      context: "AUTO",
+      url: "data:image/png;base64,…",
+    });
     backgroundRuntime.debug = false;
   });
 });
@@ -788,6 +879,36 @@ describe("onDeterminingFilename listener: sync path", () => {
       true,
       "route-miss",
     );
+  });
+
+  test("truncates a data URL in a deferred route-miss notification", async () => {
+    setCurrentBrowser("CHROME");
+    options.routeSkipUnmatched = true;
+    options.notifyOnFailure = true;
+    options.filenamePatterns = [routingRule("actualfileext")];
+    vi.mocked(router.matchRules).mockReturnValue(null);
+    const getMessage = vi.fn((key: string) => key);
+    (global.browser.i18n as any).getMessage = getMessage;
+    const url = `data:image/png;base64,${"B".repeat(4000)}`;
+    const state = makeState({ path: new Path.Path("downloads"), info: { url } });
+
+    await Download.renameAndDownload(state);
+    capturedListener(
+      {
+        id: 102,
+        byExtensionId: global.browser.runtime.id,
+        url,
+        filename: "server-name.exe",
+      },
+      vi.fn(),
+    );
+
+    await vi.waitFor(() =>
+      expect(getMessage).toHaveBeenCalledWith("notificationRuleMatchFailedExclusiveMessage", [
+        "data:image/png;base64,…",
+      ]),
+    );
+    expect(getMessage.mock.calls.flatMap((call) => call.slice(1)).join(" ")).not.toContain(url);
   });
 
   test("keeps the state's filename when the download item has none", async () => {

@@ -1,3 +1,4 @@
+import { isRenameTransform, type RenameTransform } from "../../routing/rename.ts";
 import { parseRoutingRuleAst } from "../../routing/rule-syntax.ts";
 import type { PageSourceKind } from "../../shared/page-source.ts";
 import type { ValidationInfo } from "../../shared/message-protocol.ts";
@@ -30,12 +31,6 @@ export type RouteDebuggerRule = {
   clauses: RouteDebuggerClause[];
 };
 
-export type RouteDebuggerRename = {
-  find: string;
-  flags: string;
-  replacement: string;
-};
-
 export type RouteDebuggerTrace = {
   selectedRule: number | null;
   // Optional so a trace from an older background that predates fetch: routing
@@ -44,7 +39,7 @@ export type RouteDebuggerTrace = {
   rewrittenUrl?: string | null | undefined;
   // Same aging contract for rename: — absent means an older background or a
   // winning rule without a rename transform.
-  selectedRename?: RouteDebuggerRename | null | undefined;
+  selectedRename?: RenameTransform | null | undefined;
   renamedFrom?: string | null | undefined;
   renamedTo?: string | null | undefined;
   destination: string | null;
@@ -92,12 +87,6 @@ const isAttemptStatus = (value: unknown): value is RouteDebuggerAttempt["status"
 const isNullableStringArray = (value: unknown): value is Array<string | null> =>
   Array.isArray(value) && value.every(nullableString);
 
-const isRouteDebuggerRename = (value: unknown): value is RouteDebuggerRename =>
-  isStringKeyedRecord(value) &&
-  typeof value.find === "string" &&
-  typeof value.flags === "string" &&
-  typeof value.replacement === "string";
-
 const parseAttempts = (value: unknown): RouteDebuggerAttempt[] | null => {
   if (!Array.isArray(value)) return null;
   const attempts: RouteDebuggerAttempt[] = [];
@@ -136,7 +125,7 @@ export const parseRouteDebuggerTrace = (value: unknown): RouteDebuggerTrace | nu
     !(
       value.selectedRename === undefined ||
       value.selectedRename === null ||
-      isRouteDebuggerRename(value.selectedRename)
+      isRenameTransform(value.selectedRename)
     ) ||
     !(value.renamedFrom === undefined || nullableString(value.renamedFrom)) ||
     !(value.renamedTo === undefined || nullableString(value.renamedTo)) ||

@@ -286,6 +286,50 @@ describe("state service instances", () => {
     expect(persisted[61]).toEqual({ adopted: true });
   });
 
+  test("omits a data URL from both active memory and session storage", async () => {
+    const state = { records: new Map(), hydration: null };
+    const writes = { queues: new Map<string, Promise<unknown>>() };
+    const dataUrl = `data:image/png;base64,${"A".repeat(4000)}`;
+    let persisted: Record<string, any> = {};
+    const storage = {
+      get: vi.fn(() => Promise.resolve({ siDownloads: persisted })),
+      set: vi.fn((value: Record<string, any>) => {
+        persisted = value.siDownloads;
+        return Promise.resolve();
+      }),
+    };
+
+    await mergeDownload(state, writes, storage, 70, {
+      adopted: true,
+      url: dataUrl,
+      filename: "image.png",
+    });
+
+    expect(state.records.get(70)).toEqual({ adopted: true, filename: "image.png" });
+    expect(persisted[70]).toEqual({ adopted: true, filename: "image.png" });
+  });
+
+  test("drops a legacy persisted data URL during hydration", async () => {
+    const state = { records: new Map(), hydration: null };
+    const storage = {
+      get: vi.fn(() =>
+        Promise.resolve({
+          siDownloads: {
+            71: {
+              adopted: true,
+              url: `data:image/png;base64,${"B".repeat(4000)}`,
+              filename: "legacy.png",
+            },
+          },
+        }),
+      ),
+    };
+
+    await hydrateDownloads(state, storage);
+
+    expect(state.records.get(71)).toEqual({ adopted: true, filename: "legacy.png" });
+  });
+
   test("in-memory active download records are never evicted", async () => {
     const records = new Map(
       Array.from({ length: 50 }, (_, index) => [index + 1, { adopted: true }] as const),

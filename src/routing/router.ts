@@ -23,6 +23,7 @@ export {
   findFetchClause,
   findRenameClause,
   getCaptureMatches,
+  isRenameOnlyEligibleMatch,
   isRenameOnlyEligibleRule,
   matchRule,
   matchRules,

@@ -2,6 +2,7 @@ import { Path } from "../routing/path.ts";
 import { applyVariables, normalizeMimeType } from "../routing/variable.ts";
 import { matchesAnyPattern } from "../shared/match-pattern.ts";
 import type { DownloadPipelineState } from "./download-types.ts";
+import { releaseUnusedContent } from "./download-pipeline-state.ts";
 
 export type BrowserDownloadItem = {
   url: string;
@@ -82,12 +83,19 @@ export const routeBrowserDownload = async (
   item: BrowserDownloadItem,
 ): Promise<string | null> => {
   const state = createBrowserDownloadState(item);
-  const route = Download.getRoutingMatches(state);
-  if (!route) return null;
-  state.routeIsFolder = /\/\s*$/.test(route);
-  state.route = await applyVariables(new Path(route), state.info);
-  // Ordinary browser downloads can only be renamed, and rename: is exactly a
-  // rename — the matched rule's transform applies to the suggested name too.
-  await Download.resolveRenameTransform(state);
-  return Download.finalizeFullPath(state);
+  try {
+    const route = Download.getRoutingMatches(state);
+    if (!route) return null;
+    state.routeIsFolder = /\/\s*$/.test(route);
+    state.route = await applyVariables(new Path(route), state.info);
+    // Ordinary browser downloads can only be renamed, and rename: is exactly a
+    // rename — the matched rule's transform applies to the suggested name too.
+    await Download.resolveRenameTransform(state);
+    return Download.finalizeFullPath(state);
+  } finally {
+    // No ordinary-routing variable currently retains fetched content, but keep
+    // this boundary symmetric with the normal plan so a future lazy-content
+    // variable cannot strand a blob/offscreen request.
+    await releaseUnusedContent(state);
+  }
 };

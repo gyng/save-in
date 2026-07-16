@@ -315,6 +315,26 @@ describe("download lifecycle notifications", () => {
     expect(sessionStore.siDownloads[7]).toMatchObject({ adopted: false });
   });
 
+  test("drops a live data payload from the record after completion", async () => {
+    const url = `data:image/png;base64,${"A".repeat(4000)}`;
+    const { BackgroundState } = await import("../../../src/background/application-state.ts");
+    const activeDownloadState = BackgroundState.downloads;
+    activeDownloadState.records.set(7, {
+      adopted: true,
+      url,
+      filename: "automatic/download.png",
+    });
+
+    await onChanged({
+      id: 7,
+      filename: { current: "C:\\Downloads\\automatic\\download.png" },
+      state: { current: "complete", previous: "in_progress" },
+    });
+
+    expect(activeDownloadState.records.get(7)).toMatchObject({ adopted: false });
+    expect(activeDownloadState.records.get(7)?.url).toBeUndefined();
+  });
+
   test("drops pending sidecar intent when the primary is canceled", async () => {
     const { downloadPorts } = await import("../../../src/downloads/ports.ts");
     const sourceSidecar = vi.spyOn(downloadPorts, "sourceSidecar").mockResolvedValue(undefined);

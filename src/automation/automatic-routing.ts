@@ -1,6 +1,5 @@
-import { evaluateRule } from "../routing/rule-matcher.ts";
+import { matchRulesDetailed, type RuleMatch } from "../routing/rule-matcher.ts";
 import { parseRoutingRuleAst } from "../routing/rule-syntax.ts";
-import type { RenameTransform } from "../routing/rename.ts";
 import type { RoutingInfo, RoutingRule } from "../routing/rule-types.ts";
 import {
   AUTOMATIC_CONTEXT,
@@ -9,7 +8,8 @@ import {
   type AutomaticRuleIssue,
 } from "../routing/automatic-rule.ts";
 import type { PageSourceChannel, PageSourceKind } from "../shared/page-source.ts";
-import { isDataUrl, parseDataUrlMediaType } from "../shared/data-url.ts";
+import { isDataUrl, isDataUrlWithinCap, parseDataUrlMediaType } from "../shared/data-url.ts";
+import { RULE_TYPES } from "../shared/constants.ts";
 
 export type AutomaticRoutingCandidate = {
   pageUrl: string;
@@ -24,15 +24,34 @@ export type AutomaticRoutingCandidate = {
   matchedCssSelectorsByOrigin?: string[][] | undefined;
 };
 
-// The three phase-B content options, plus the phase-A link option, expressed
-// as a plain gate record so the content scan and the background backstop
-// (background/messaging/auto-download.ts) can share one admission rule
-// instead of drifting out of sync.
+// The phase-A link gate, phase-B channel gates, and phase-C data: protocol gate
+// expressed as one record so the content scan and background backstop
+// (background/messaging/auto-download.ts) cannot drift apart.
 export type AutomaticScanGates = {
   includeLinks: boolean;
   includeDocuments: boolean;
   includeBackgrounds: boolean;
   resourceHints: boolean;
+  includeDataUrls: boolean;
+};
+
+export const normalizeAutomaticSourceUrl = (
+  value: string,
+  gates: Pick<AutomaticScanGates, "includeDataUrls">,
+): string | null => {
+  // The raw data: string is the URL. URL() would treat a trailing # as a
+  // fragment and change the self-contained payload.
+  if (isDataUrl(value)) {
+    return gates.includeDataUrls && isDataUrlWithinCap(value) ? value : null;
+  }
+  try {
+    const url = new URL(value);
+    if (url.protocol !== "http:" && url.protocol !== "https:") return null;
+    url.hash = "";
+    return url.href;
+  } catch {
+    return null;
+  }
 };
 
 // Per-channel x kind admission for the automatic scan. A candidate with no
@@ -58,15 +77,39 @@ export const isAdmittedAutomaticSource = (
   return kind === "image" || kind === "video" || kind === "audio";
 };
 
-export type AutomaticRoutingMatch = {
-  rule: RoutingRule;
-  destination: string;
-  fetch: string | null;
-  rename: RenameTransform | null;
-};
+export type AutomaticRoutingMatch = RuleMatch;
 
 export const isEligibleAutomaticRoutingRule = (rule: RoutingRule): boolean =>
   isAutomaticRuleClauses(rule) && automaticRuleClauseIssues(rule).length === 0;
+
+const hasDataPayloadCapture = (rule: RoutingRule): boolean => {
+  const capture = rule.find((clause) => clause.type === RULE_TYPES.CAPTURE);
+  if (!capture) return false;
+  const capturedMatchers = capture.value.split(",").map((name) => name.trim().toLowerCase());
+  return capturedMatchers.some(
+    (name) => name === "sourceurl" || name === "fileext" || name === "urlfileext",
+  );
+};
+
+const DATA_PAYLOAD_OUTPUT_VARIABLE =
+  /:(?:sourceurl|sourcepath|naivefilename|naivefileext|urlfileext|finalurl|redirecturl):/;
+
+const hasDataPayloadOutput = (rule: RoutingRule): boolean =>
+  rule.some(
+    (clause) =>
+      (clause.type === RULE_TYPES.DESTINATION && DATA_PAYLOAD_OUTPUT_VARIABLE.test(clause.value)) ||
+      (clause.type === RULE_TYPES.RENAME &&
+        DATA_PAYLOAD_OUTPUT_VARIABLE.test(clause.replacement)) ||
+      (clause.type === RULE_TYPES.FETCH && DATA_PAYLOAD_OUTPUT_VARIABLE.test(clause.value)),
+  );
+
+export const isEligibleAutomaticRoutingRuleForCandidate = (
+  rule: RoutingRule,
+  candidate: AutomaticRoutingCandidate,
+): boolean =>
+  isEligibleAutomaticRoutingRule(rule) &&
+  (!isDataUrl(candidate.sourceUrl) ||
+    (!hasDataPayloadCapture(rule) && !hasDataPayloadOutput(rule)));
 
 const candidateInfo = (candidate: AutomaticRoutingCandidate): RoutingInfo => ({
   context: AUTOMATIC_CONTEXT,
@@ -87,22 +130,10 @@ const candidateInfo = (candidate: AutomaticRoutingCandidate): RoutingInfo => ({
 export const matchAutomaticRoutingRule = (
   rules: readonly RoutingRule[],
   candidate: AutomaticRoutingCandidate,
-): AutomaticRoutingMatch | null => {
-  const info = candidateInfo(candidate);
-  for (const rule of rules) {
-    if (!isEligibleAutomaticRoutingRule(rule)) continue;
-    const evaluation = evaluateRule(rule, info);
-    if (evaluation.destination) {
-      return {
-        rule,
-        destination: evaluation.destination,
-        fetch: evaluation.fetch || null,
-        rename: evaluation.rename || null,
-      };
-    }
-  }
-  return null;
-};
+): AutomaticRoutingMatch | null =>
+  matchRulesDetailed(rules, candidateInfo(candidate), (rule) =>
+    isEligibleAutomaticRoutingRuleForCandidate(rule, candidate),
+  );
 
 export const automaticRoutingRuleIssues = (source: string): AutomaticRuleIssue[] => {
   const parsed = parseRoutingRuleAst(source);

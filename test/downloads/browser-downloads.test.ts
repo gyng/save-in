@@ -149,6 +149,60 @@ describe("browser download routing", () => {
     expect(download.finalizeFullPath).toHaveBeenCalledOnce();
   });
 
+  test("releases content a future ordinary-routing variable may prepare", async () => {
+    vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {});
+    const download = {
+      getRoutingMatches: vi.fn((state) => {
+        state.info.contentPromise = Promise.resolve({
+          blob: new Blob(["content"]),
+          ownedObjectUrl: "blob:ordinary-routing",
+        });
+        return "browser/:filename:";
+      }),
+      resolveRenameTransform: vi.fn(() => Promise.resolve()),
+      finalizeFullPath: vi.fn(() => "browser/cat.jpg"),
+    };
+
+    await expect(routeBrowserDownload(download as any, item as any)).resolves.toBe(
+      "browser/cat.jpg",
+    );
+
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:ordinary-routing");
+  });
+
+  test("ordinary routing skips hash-dependent rules without fetching content", async () => {
+    const { getRoutingMatches, resolveRenameTransform } =
+      await import("../../src/downloads/download-plan.ts");
+    const { finalizeFullPath } = await import("../../src/downloads/download-disposition.ts");
+    const { options } = await import("../../src/config/options-data.ts");
+    const previous = {
+      filenamePatterns: options.filenamePatterns,
+      truncateLength: options.truncateLength,
+      replacementChar: options.replacementChar,
+    };
+    const fetchSpy = vi.spyOn(globalThis, "fetch");
+    Object.assign(options, {
+      filenamePatterns: parseRules(
+        "fileext: jpg\ninto: hashes/:sha256:/:filename:\n\n" +
+          "fileext: jpg\nrename: cat -> :sha256full:\ninto: renamed/:filename:\n\n" +
+          "fileext: jpg\ninto: browser/:filename:",
+      ),
+      truncateLength: 0,
+      replacementChar: "_",
+    });
+    try {
+      await expect(
+        routeBrowserDownload(
+          { getRoutingMatches, resolveRenameTransform, finalizeFullPath },
+          { url: item.url, filename: item.filename },
+        ),
+      ).resolves.toBe("browser/cat.jpg");
+      expect(fetchSpy).not.toHaveBeenCalled();
+    } finally {
+      Object.assign(options, previous);
+    }
+  });
+
   test("ordinary rename-only routing honors a rename: rule end to end", async () => {
     // Representative pipeline case: unlike fetch:, a rename: rule stays
     // eligible for browser-owned downloads and edits the suggested name.
