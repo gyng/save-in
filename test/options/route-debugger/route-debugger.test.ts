@@ -1292,6 +1292,46 @@ test("a checkbox change never resurrects a trace an error message replaced", asy
   expect(result.querySelector(".route-debugger-message")).not.toBeNull();
 });
 
+test("a displayed trace's note follows a programmatic settings restore", async () => {
+  renderWorkbench();
+  document.body.insertAdjacentHTML(
+    "beforeend",
+    `<input type="checkbox" id="autoDownloadEnabled" checked>
+     <input type="checkbox" id="autoDownloadDocuments">`,
+  );
+  vi.spyOn(webExtensionApi.runtime, "sendMessage").mockImplementation(async (message: any) => {
+    if (message.type === MESSAGE_TYPES.CHECK_ROUTES) return checkResponse();
+    if (message.type === MESSAGE_TYPES.VALIDATE) {
+      return {
+        type: MESSAGE_TYPES.VALIDATE_RESULT,
+        body: { version: 1, ruleErrors: [], ruleTrace: noMatchTrace },
+      };
+    }
+    throw new Error(`Unexpected message: ${message.type}`);
+  });
+
+  setupRouteDebugger();
+  await new Promise((resolve) => setTimeout(resolve));
+  const context = document.querySelector<HTMLSelectElement>("#route-debugger-context")!;
+  context.insertAdjacentHTML("beforeend", '<option value="auto">Automatic</option>');
+  context.value = "auto";
+  const sourceKind = document.querySelector<HTMLSelectElement>("#route-debugger-source-kind")!;
+  sourceKind.insertAdjacentHTML("beforeend", '<option value="document">Document</option>');
+  sourceKind.value = "document";
+  document.querySelector<HTMLButtonElement>("#route-debugger-run")!.click();
+
+  const result = document.querySelector<HTMLElement>("#route-debugger-result")!;
+  await vi.waitFor(() =>
+    expect(result.querySelector(".route-debugger-reachability-note")).not.toBeNull(),
+  );
+
+  // A settings import sets .checked without firing change and announces
+  // itself with "options-restored"; the displayed advice must follow.
+  document.querySelector<HTMLInputElement>("#autoDownloadDocuments")!.checked = true;
+  document.dispatchEvent(new Event("options-restored"));
+  expect(result.querySelector(".route-debugger-reachability-note")).toBeNull();
+});
+
 test("a displayed trace's note follows the named checkboxes without a rerun", async () => {
   renderWorkbench();
   document.body.insertAdjacentHTML(

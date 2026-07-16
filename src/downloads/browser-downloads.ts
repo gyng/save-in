@@ -1,5 +1,6 @@
 import { Path } from "../routing/path.ts";
 import { applyVariables, normalizeMimeType } from "../routing/variable.ts";
+import { BROWSER_DOWNLOAD_CONTEXT } from "../shared/constants.ts";
 import { matchesAnyPattern } from "../shared/match-pattern.ts";
 import type { DownloadPipelineState } from "./download-types.ts";
 import { releaseUnusedContent } from "./download-pipeline-state.ts";
@@ -73,7 +74,7 @@ export const createBrowserDownloadState = (item: BrowserDownloadItem): DownloadP
       naiveFilename: filename,
       suggestedFilename: filename,
       initialFilename: filename,
-      context: "browser",
+      context: BROWSER_DOWNLOAD_CONTEXT,
       now: new Date(),
     },
   };

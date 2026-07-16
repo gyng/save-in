@@ -16,6 +16,7 @@ import type { HistoryEntry } from "../shared/history-types.ts";
 import { sessionWriteState } from "./download-state-instances.ts";
 import { getSession, normalizeSessionCounter, updateSession } from "../shared/session-state.ts";
 import { options } from "../config/options-data.ts";
+import { BROWSER_DOWNLOAD_CONTEXT } from "../shared/constants.ts";
 import { PENDING_DOWNLOADS_SESSION_KEY } from "../shared/storage-keys.ts";
 import {
   BROWSERS,
@@ -168,7 +169,7 @@ export const onDownloadCreated = async (item: HostDownloadItem) => {
           finalFullPath: filename,
           routed: true,
           mechanism: "firefox-replacement",
-          info: { context: "browser" },
+          info: { context: BROWSER_DOWNLOAD_CONTEXT },
         },
         { privateContext: item.incognito === true },
       );
@@ -211,7 +212,7 @@ export const onDownloadCreated = async (item: HostDownloadItem) => {
         finalFullPath: item.filename,
         routed: false,
         mechanism: "browser-download",
-        info: { context: "browser" },
+        info: { context: BROWSER_DOWNLOAD_CONTEXT },
       },
       { privateContext: item.incognito === true },
     );

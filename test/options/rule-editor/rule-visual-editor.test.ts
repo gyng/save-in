@@ -917,6 +917,47 @@ describe("routing visual editor", () => {
     expect(element<HTMLElement>("#rule-editor-cards").children.length).toBe(cardCount);
   });
 
+  test("a disabled rule carries no reachability notes until re-enabled", () => {
+    element<HTMLTextAreaElement>("#filenamePatterns").value =
+      "context: ^auto$\npageurl: ^https://example\\.test/\nsourcekind: ^stream$\ndisabled: true\ninto: streams/";
+    setupRuleVisualEditor({ matchers: ["filename", "sourcekind"] });
+
+    // A disabled rule cannot save whatever the options say; unlock advice
+    // would be false until the rule is back on.
+    expect(document.querySelector(".rule-editor-reachability")).toBeNull();
+
+    const enabled = element<HTMLInputElement>(".rule-editor-enabled");
+    enabled.checked = true;
+    enabled.dispatchEvent(new Event("change"));
+    expect(document.querySelector(".rule-editor-reachability")).not.toBeNull();
+  });
+
+  test("an autoDownloadDataUrls toggle never rebuilds the rule cards", () => {
+    document.body.insertAdjacentHTML(
+      "beforeend",
+      `<input type="checkbox" id="autoDownloadEnabled" checked>
+       <input type="checkbox" id="autoDownloadDocuments">
+       <input type="checkbox" id="autoDownloadDataUrls">`,
+    );
+    element<HTMLTextAreaElement>("#filenamePatterns").value =
+      "context: ^auto$\npageurl: ^https://example\\.test/\nsourcekind: ^stream$\ninto: streams/";
+    setupRuleVisualEditor({ matchers: ["filename", "sourcekind"] });
+    const cardBefore = element<HTMLElement>("#rule-editor-cards").firstElementChild;
+
+    // The data gate cannot affect any rule-card diagnostic, so the editor
+    // does not subscribe to it: the card node survives the toggle untouched.
+    const dataUrls = element<HTMLInputElement>("#autoDownloadDataUrls");
+    dataUrls.checked = true;
+    dataUrls.dispatchEvent(new Event("change"));
+    expect(element<HTMLElement>("#rule-editor-cards").firstElementChild).toBe(cardBefore);
+
+    // A subscribed channel still re-renders.
+    const documents = element<HTMLInputElement>("#autoDownloadDocuments");
+    documents.checked = true;
+    documents.dispatchEvent(new Event("change"));
+    expect(element<HTMLElement>("#rule-editor-cards").firstElementChild).not.toBe(cardBefore);
+  });
+
   test("each reachability sentence renders for its rule shape", () => {
     document.body.insertAdjacentHTML(
       "beforeend",

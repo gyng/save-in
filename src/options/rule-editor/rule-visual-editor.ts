@@ -21,12 +21,15 @@ import {
 import { clauseGroup, sortClauses, sortVariables } from "../core/vocabulary-groups.ts";
 import { isAutomaticRuleClauses } from "../../routing/automatic-rule.ts";
 import {
-  REACHABILITY_OPTION_IDS,
-  readReachabilityOptions,
+  RULE_REACHABILITY_OPTION_IDS,
   ruleReachabilityDiagnostics,
   type ReachabilityOptions,
   type RuleReachabilityDiagnostic,
 } from "../core/rule-reachability-model.ts";
+import {
+  readReachabilityControls,
+  subscribeReachabilityControls,
+} from "../core/reachability-controls.ts";
 import { completeDirectorySyntax } from "../syntax-editor/syntax-editor-model.ts";
 import { bindTabInteractions, syncTabSelection } from "../core/tab-controls.ts";
 import { attachTypeahead } from "../ui/typeahead.ts";
@@ -129,13 +132,7 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
   const openMenuSelector = ".rule-add-menu[open], .rule-editor-card-actions[open]";
   let matcherSuggestions = [...matchers];
 
-  const optionChecked = (id: string): boolean => {
-    const control = document.getElementById(id);
-    return control instanceof HTMLInputElement && control.type === "checkbox" && control.checked;
-  };
-  // Reachability reads the live checkboxes on this same page, so the hints
-  // always describe the state the user is editing, saved or not.
-  const reachabilityOptions = (): ReachabilityOptions => readReachabilityOptions(optionChecked);
+  const reachabilityOptions = (): ReachabilityOptions => readReachabilityControls();
   const optionLabel = (id: string): string => localize(id, id);
   const reachabilityText = (diagnostic: RuleReachabilityDiagnostic): string => {
     switch (diagnostic.kind) {
@@ -186,6 +183,10 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
     rule: VisualRoutingRule,
     reachability: ReachabilityOptions,
   ): HTMLElement | null => {
+    // A disabled rule cannot save no matter what the discovery options say;
+    // the card is already dimmed, and actionable unlock advice would be
+    // false until the rule is re-enabled.
+    if (!rule.enabled) return null;
     const diagnostics = ruleReachabilityDiagnostics(rule.clauses, reachability);
     if (diagnostics.length === 0) return null;
     const notes = document.createElement("div");
@@ -850,15 +851,16 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
   });
   document.addEventListener("options-restored", render);
   // Reachability hints follow the discovery checkboxes live, so toggling a
-  // channel updates the open Visual editor without a reload.
-  REACHABILITY_OPTION_IDS.forEach((id) => {
-    const control = document.getElementById(id);
-    if (control instanceof HTMLInputElement) {
-      control.addEventListener("change", () => {
-        if (visual) render();
-      });
-    }
-  });
+  // channel updates the open Visual editor without a reload. The
+  // options-restored listener above already re-renders after programmatic
+  // restores, so the subscription skips its own restore hook.
+  subscribeReachabilityControls(
+    RULE_REACHABILITY_OPTION_IDS,
+    () => {
+      if (visual) render();
+    },
+    false,
+  );
   document.addEventListener("route-debugger-source-selected", (event) => {
     if (!(event instanceof CustomEvent) || !visual) return;
     const detail = event.detail ?? {};

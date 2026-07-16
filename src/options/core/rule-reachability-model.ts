@@ -4,7 +4,8 @@ import {
   isPageSourceKind,
   type PageSourceKind,
 } from "../../shared/page-source.ts";
-import { DOWNLOAD_TYPES, SPECIAL_DIRS } from "../../shared/constants.ts";
+import { BROWSER_DOWNLOAD_CONTEXT, DOWNLOAD_TYPES, SPECIAL_DIRS } from "../../shared/constants.ts";
+import { isDataUrl, isDataUrlWithinCap } from "../../shared/data-url.ts";
 import { isAutomaticRuleClauses } from "../../routing/automatic-rule.ts";
 import {
   isAdmittedAutomaticSource,
@@ -47,6 +48,13 @@ export const REACHABILITY_OPTION_IDS = [
   "autoDownloadManifests",
   "autoDownloadDataUrls",
 ] as const;
+
+// Rule-card diagnostics never consult the data: gate (the admission probe
+// filters channel options only), so the Visual editor subscribes to these
+// five and never re-renders every card for an autoDownloadDataUrls toggle.
+export const RULE_REACHABILITY_OPTION_IDS = REACHABILITY_OPTION_IDS.filter(
+  (id) => id !== "autoDownloadDataUrls",
+);
 
 // Surfaces inject their own control reader so this model stays DOM-free.
 export const readReachabilityOptions = (
@@ -159,18 +167,24 @@ export const matchableSourceKinds = (
 // lowercase and every context clause must match, so a rule such as
 // `context: auto|click` still fires on interactive saves and must stay
 // silent here — interactive saves are never gated by discovery options.
-const INTERACTIVE_CONTEXTS = Object.values(DOWNLOAD_TYPES)
-  .filter((value) => value !== DOWNLOAD_TYPES.AUTO)
+// Adopted ordinary browser downloads are a non-automatic entry point too:
+// `context: auto|browser` rules keep routing them, so they are equally
+// exempt (the round-two refutation held only for the kind warnings, not the
+// master-switch note).
+const NON_AUTOMATIC_CONTEXTS = [
+  ...Object.values(DOWNLOAD_TYPES).filter((value) => value !== DOWNLOAD_TYPES.AUTO),
+  BROWSER_DOWNLOAD_CONTEXT,
+]
   // Locale-insensitive on purpose: the router lowercases contexts with
   // toLowerCase (routing/matchers.ts), and a Turkish/Azerbaijani host locale
   // would otherwise probe "clıck" and reintroduce mixed-context false hints.
   .map((value) => value.toLowerCase());
 
-const firesInteractively = (clauses: readonly ReachabilityClause[]): boolean => {
+const firesOutsideAutomaticDiscovery = (clauses: readonly ReachabilityClause[]): boolean => {
   const contextClauses = clauses.filter((clause) => clause.name === "context");
   // Compile once per clause, not once per clause × probed context.
   const regexes = contextClauses.map((clause) => compileClausePattern(clause));
-  return INTERACTIVE_CONTEXTS.some((context) =>
+  return NON_AUTOMATIC_CONTEXTS.some((context) =>
     regexes.every((regex) => {
       // An uncompilable context clause is the validator's report; assume it
       // constrains nothing so the diagnostics stay conservative.
@@ -212,24 +226,22 @@ export const ruleReachabilityDiagnostics = (
   clauses: readonly ReachabilityClause[],
   options: ReachabilityOptions,
 ): RuleReachabilityDiagnostic[] => {
-  if (!isAutomaticRuleClauses(clauses) || firesInteractively(clauses)) return [];
+  if (!isAutomaticRuleClauses(clauses) || firesOutsideAutomaticDiscovery(clauses)) return [];
   const diagnostics: RuleReachabilityDiagnostic[] = [];
-  if (!options.autoDownloadEnabled) {
-    // The authoring flow deliberately drafts rules with the master switch
-    // off, so this is information, not a warning.
-    diagnostics.push({ kind: "automatic-saves-off", level: "info" });
-  }
   const matchable = matchableSourceKinds(clauses);
+  let neverSavable = false;
   if (matchable !== null) {
     const producible = producibleSourceKinds(options);
     const reachable = [...matchable].some((kind) => producible.has(kind));
     if (matchable.size === 0) {
+      neverSavable = true;
       diagnostics.push({ kind: "no-kinds", level: "warning" });
     } else if (!reachable) {
       const [firstUnlock, ...restUnlock] = unlockOptionsFor(matchable, options);
       if (firstUnlock === undefined) {
         // No channel option ever supplies the matched kinds: only plain
         // links have no discovery channel at all.
+        neverSavable = true;
         diagnostics.push({ kind: "link-only", level: "warning" });
       } else {
         diagnostics.push({
@@ -239,6 +251,13 @@ export const ruleReachabilityDiagnostics = (
         });
       }
     }
+  }
+  if (!options.autoDownloadEnabled && !neverSavable) {
+    // The authoring flow deliberately drafts rules with the master switch
+    // off, so this is information, not a warning — and it is withheld when
+    // an adjacent warning already says the rule can never save (mirroring
+    // the debugger: advice is pointless for a rule nothing can feed).
+    diagnostics.unshift({ kind: "automatic-saves-off", level: "info" });
   }
   for (const variable of emptyVariablesUsed(clauses)) {
     diagnostics.push({ kind: "empty-variable", level: "warning", variable });
@@ -267,6 +286,13 @@ export const inputDiscoveryDiagnostics = (
   options: ReachabilityOptions,
 ): InputDiscoveryDiagnostics | null => {
   if ((input.context ?? "").toLowerCase() !== "auto") return null;
+  const sourceUrl = input.sourceUrl ?? "";
+  // The scan detects data: case-insensitively (shared isDataUrl), and it
+  // rejects an over-cap payload regardless of any option — every sentence
+  // this note could offer for one would be false advice, and the debug log
+  // already records oversize skips, so the honest rendering is no note.
+  const dataSource = isDataUrl(sourceUrl);
+  if (dataSource && !isDataUrlWithinCap(sourceUrl)) return null;
   const automaticSavesOff = !options.autoDownloadEnabled;
   let neverAdopted = false;
   let channelOptions: ReachabilityUnlockOption[] = [];
@@ -277,8 +303,7 @@ export const inputDiscoveryDiagnostics = (
   }
   // Advice is pointless for a source nothing can discover, so the data gate
   // is only surfaced alongside actionable channel advice (or on its own).
-  const requiresDataGate =
-    !neverAdopted && (input.sourceUrl ?? "").startsWith("data:") && !options.autoDownloadDataUrls;
+  const requiresDataGate = !neverAdopted && dataSource && !options.autoDownloadDataUrls;
   if (!automaticSavesOff && !neverAdopted && channelOptions.length === 0 && !requiresDataGate) {
     return null;
   }

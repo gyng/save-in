@@ -14,8 +14,11 @@ import { isPageSourceKind } from "../../shared/page-source.ts";
 import {
   inputDiscoveryDiagnostics,
   REACHABILITY_OPTION_IDS,
-  readReachabilityOptions,
 } from "../core/rule-reachability-model.ts";
+import {
+  readReachabilityControls,
+  subscribeReachabilityControls,
+} from "../core/reachability-controls.ts";
 
 type MessageSubstitutions = string | number | Array<string | number>;
 
@@ -354,12 +357,7 @@ export const setupRouteDebugger = (): void => {
     // advice follows the named controls.
     const discovery = inputDiscoveryDiagnostics(
       { context: fields.context, sourceKind: fields.sourceKind, sourceUrl: fields.sourceUrl },
-      readReachabilityOptions((id) => {
-        const control = document.getElementById(id);
-        return (
-          control instanceof HTMLInputElement && control.type === "checkbox" && control.checked
-        );
-      }),
+      readReachabilityControls(),
     );
     if (discovery) {
       const appendNote = (level: "info" | "warning", text: string): void => {
@@ -757,15 +755,11 @@ export const setupRouteDebugger = (): void => {
   });
   // The reachability note names live discovery checkboxes; toggling one must
   // refresh a displayed trace without re-running it (the trace stays exact
-  // for its snapshot). Registered once here so debugger reruns never stack
-  // duplicate listeners.
-  REACHABILITY_OPTION_IDS.forEach((id) => {
-    const control = document.getElementById(id);
-    if (control instanceof HTMLInputElement) {
-      control.addEventListener("change", () => {
-        if (lastTrace && lastRunFields) renderTrace(lastTrace, lastRunFields);
-      });
-    }
+  // for its snapshot), and a settings import writes .checked without firing
+  // change, so the shared subscription also follows "options-restored".
+  // Registered once here so debugger reruns never stack duplicate listeners.
+  subscribeReachabilityControls(REACHABILITY_OPTION_IDS, () => {
+    if (lastTrace && lastRunFields) renderTrace(lastTrace, lastRunFields);
   });
   clearButton.addEventListener("click", () => {
     generation += 1;

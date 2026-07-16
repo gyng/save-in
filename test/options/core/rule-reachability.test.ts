@@ -6,6 +6,8 @@ import {
   matchableSourceKinds,
   producibleSourceKinds,
   readReachabilityOptions,
+  REACHABILITY_OPTION_IDS,
+  RULE_REACHABILITY_OPTION_IDS,
   ruleReachabilityDiagnostics,
   type ReachabilityOptions,
 } from "../../../src/options/core/rule-reachability-model.ts";
@@ -154,6 +156,48 @@ describe("ruleReachabilityDiagnostics", () => {
       String.prototype.toLocaleLowerCase = original;
       vi.resetModules();
     }
+  });
+
+  test("a mixed auto|browser context suppresses every diagnostic", () => {
+    // Adopted ordinary browser downloads keep routing through such a rule, so
+    // idle/dead hints would be false. The earlier refutation of this case
+    // held only for the kind warnings, not the master-switch note — do not
+    // "fix" this back to DOWNLOAD_TYPES-only probing.
+    const clauses = [
+      { name: "context", value: "auto|browser" },
+      { name: "pageurl", value: "." },
+      { name: "sourcekind", value: "^document$" },
+      { name: "into", value: "docs/:menupath:" },
+    ];
+    expect(ruleReachabilityDiagnostics(clauses, { ...allOff, autoDownloadEnabled: false })).toEqual(
+      [],
+    );
+  });
+
+  test("a never-savable rule withholds the master-switch note", () => {
+    // Advice to flip the master switch is pointless when the adjacent
+    // warning already says the rule can never save; unlockable kinds keep
+    // the note (info first).
+    const offMaster = { ...allOff, autoDownloadEnabled: false };
+    expect(
+      ruleReachabilityDiagnostics(automatic({ name: "sourcekind", value: "^link$" }), offMaster),
+    ).toEqual([{ kind: "link-only", level: "warning" }]);
+    expect(
+      ruleReachabilityDiagnostics(automatic({ name: "sourcekind", value: "^nothing$" }), offMaster),
+    ).toEqual([{ kind: "no-kinds", level: "warning" }]);
+    expect(
+      ruleReachabilityDiagnostics(
+        automatic({ name: "sourcekind", value: "^document$" }),
+        offMaster,
+      ),
+    ).toEqual([
+      { kind: "automatic-saves-off", level: "info" },
+      {
+        kind: "unreachable-kinds",
+        level: "warning",
+        unlockOptions: ["autoDownloadDocuments"],
+      },
+    ]);
   });
 
   test("contexts match lowercased, so an uppercase alternative stays exclusive", () => {
@@ -427,6 +471,36 @@ describe("inputDiscoveryDiagnostics", () => {
     expect(inputDiscoveryDiagnostics({ context: "auto", sourceKind: "image" }, allOff)).toBeNull();
   });
 
+  test("data: detection matches the scan's case-insensitive gate", () => {
+    // The scanner uses the shared isDataUrl (/^data:/i); startsWith("data:")
+    // would silently drop the required gate advice for pasted DATA: schemes.
+    expect(
+      inputDiscoveryDiagnostics(
+        { context: "auto", sourceKind: "image", sourceUrl: "DATA:image/png;base64,AA==" },
+        allOff,
+      ),
+    ).toEqual({ ...none, channelOptions: [], requiresDataGate: true });
+  });
+
+  test("an over-cap data: payload gets no advice at all", () => {
+    // The scan rejects it regardless of any option, so every sentence —
+    // channel, gate, or master switch — would be false advice; the debug log
+    // already records the oversize skip.
+    const overCap = `data:image/png;base64,${"A".repeat(2 * 1024 * 1024 + 1)}`;
+    expect(
+      inputDiscoveryDiagnostics(
+        { context: "auto", sourceKind: "image", sourceUrl: overCap },
+        allOff,
+      ),
+    ).toBeNull();
+    expect(
+      inputDiscoveryDiagnostics(
+        { context: "auto", sourceKind: "stream", sourceUrl: overCap },
+        { ...allOff, autoDownloadEnabled: false },
+      ),
+    ).toBeNull();
+  });
+
   test("an automatic document input names only the documents option", () => {
     expect(inputDiscoveryDiagnostics({ context: "auto", sourceKind: "document" }, allOff)).toEqual({
       ...none,
@@ -496,5 +570,16 @@ describe("readReachabilityOptions", () => {
       autoDownloadManifests: true,
       autoDownloadDataUrls: false,
     });
+  });
+});
+
+describe("subscription id lists", () => {
+  test("rule cards exclude only the data gate", () => {
+    // The gate cannot affect a rule-card diagnostic; everything else must
+    // stay subscribed or the hints go stale.
+    expect(RULE_REACHABILITY_OPTION_IDS).toEqual(
+      REACHABILITY_OPTION_IDS.filter((id) => id !== "autoDownloadDataUrls"),
+    );
+    expect(RULE_REACHABILITY_OPTION_IDS).toHaveLength(REACHABILITY_OPTION_IDS.length - 1);
   });
 });

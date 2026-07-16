@@ -87,6 +87,12 @@ export const DOWNLOAD_TYPES = {
   SIDECAR: "SIDECAR",
 } as const;
 
+// Routing context of an adopted ordinary browser download. It is not a menu
+// DOWNLOAD_TYPE — no Save In surface initiates it — but rules may match it,
+// so option-reachability suppression must treat it as a non-automatic entry
+// point exactly like the interactive contexts above.
+export const BROWSER_DOWNLOAD_CONTEXT = "browser";
+
 export const CONFLICT_ACTION = {
   UNIQUIFY: "uniquify",
   OVERWRITE: "overwrite",
