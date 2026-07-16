@@ -424,7 +424,7 @@ export const transformers: TransformerRegistry = {
 const VARIABLE_TEMPLATE_PATTERN = new RegExp(
   `(${Object.values(SPECIAL_DIRS)
     .filter((value) => value !== SPECIAL_DIRS.SEPARATOR)
-    .sort((a, b) => b.length - a.length)
+    .toSorted((a, b) => b.length - a.length)
     .join("|")})`,
 );
 

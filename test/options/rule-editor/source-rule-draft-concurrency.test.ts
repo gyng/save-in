@@ -20,7 +20,7 @@ test("consumes a draft once when startup and storage notifications overlap", asy
 
   const results = await Promise.all([applySourceRuleDraft(), applySourceRuleDraft()]);
 
-  expect(results.sort()).toEqual([false, true]);
+  expect(results.toSorted()).toEqual([false, true]);
   expect(document.querySelector<HTMLTextAreaElement>("#filenamePatterns")?.value).toBe(
     "context: ^auto$\ninto: Images/\n",
   );

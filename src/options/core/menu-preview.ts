@@ -176,7 +176,7 @@ const renderMenuPreview = (container: Element, tree: MenuTree): void => {
       quickLocations.push(sep);
     }
     // Prepend the quick-location slots, preserving order, above the paths
-    [...quickLocations].reverse().forEach((node) => rootUl.insertBefore(node, rootUl.firstChild));
+    quickLocations.toReversed().forEach((node) => rootUl.insertBefore(node, rootUl.firstChild));
   }
 
   container.appendChild(rootUl);
