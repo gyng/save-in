@@ -105,6 +105,29 @@ describe("pattern list grammar", () => {
     expect(matchesAnyPattern("https://example.com/Private", "*://example.com/private")).toBe(false);
   });
 
+  test("rejects host wildcards the spec does not allow", () => {
+    // `*` is legal in a host only as the entire host or as a leading `*.`
+    // label. Escaped nowhere and quantifying the character before it, an
+    // embedded `*` compiles `foo*.example.com` to /foo*\.example\.com/, which
+    // matches fo.example.com — a host the user never wrote — while missing
+    // every host they meant. Both browsers reject these outright.
+    expect(matchesAnyPattern("https://fo.example.com/x", "*://foo*.example.com/*")).toBe(false);
+    expect(matchesAnyPattern("https://foo.example.com/x", "*://foo*.example.com/*")).toBe(false);
+    expect(matchesAnyPattern("https://secur.bank.com/x", "*://secure*.bank.com/*")).toBe(false);
+    expect(matchesAnyPattern("https://a.foo.com/x", "*://*.foo*.com/*")).toBe(false);
+
+    // The editor learns about it, rather than the entry being silently dropped.
+    const result = parseMatchPatternList("*://foo*.example.com/*");
+    expect(result.entries).toEqual([]);
+    expect(result.issues).toEqual([
+      expect.objectContaining({ line: 1, source: "*://foo*.example.com/*" }),
+    ]);
+
+    // The two legal wildcard forms are unaffected.
+    expect(matchesAnyPattern("https://a.example.com/x", "*://*.example.com/*")).toBe(true);
+    expect(matchesAnyPattern("https://example.com/x", "*://*/*")).toBe(true);
+  });
+
   test("ignores userinfo so credentials cannot shift the apparent host", () => {
     // The parser resolves the host to evil.com regardless of "user@"; a textual
     // match on the raw string would have missed the disable/exclude entry.

@@ -25,11 +25,22 @@ export const parseMatchPattern = (pattern: string): ParsedMatchPattern | Error =
   // lowercases them, so compile the host lowercased to match. The path stays
   // case-sensitive, and `host` is returned unchanged for the editor's offsets.
   const matchHost = host.toLowerCase();
+  // The spec allows `*` in a host only as the entire host or as a leading `*.`
+  // label, and both browsers reject anything else. Accepting it here would be
+  // worse than useless: escapeRegExp deliberately leaves `*` alone so the path
+  // can split on it, so an embedded `*` reaches the regexp as a quantifier on
+  // the character before it. `foo*.example.com` compiles to
+  // /foo*\.example\.com/, which matches fo.example.com — a host the user never
+  // wrote — and misses every host they meant.
+  const hostLiteral = matchHost === "*" ? "" : matchHost.replace(/^\*\./, "");
+  if (hostLiteral.includes("*")) {
+    return new Error("Host wildcards are only allowed as '*' or a leading '*.'");
+  }
   const hostPattern =
     matchHost === "*"
       ? "[^/]+"
       : matchHost.startsWith("*.")
-        ? `([^/]+\\.)?${escapeRegExp(matchHost.slice(2))}`
+        ? `([^/]+\\.)?${escapeRegExp(hostLiteral)}`
         : escapeRegExp(matchHost);
   const pathPattern = path.split("*").map(escapeRegExp).join(".*");
   const port = rawScheme === "file" ? "" : "(?::\\d+)?";
