@@ -1286,7 +1286,13 @@
     "message": "Bitten Sie einen KI-Agenten, Routing-Regeln zu entwerfen"
   },
   "html_automaticallyMoveOrRenameDownloadsWhenTheirFilenameSource": {
-    "message": "Downloads automatisch verschieben oder umbenennen, wenn Dateiname, Quelle, Seite oder Kontext passen."
+    "message": "Speichervorgänge automatisch verschieben oder umbenennen, wenn Dateiname, Quelle, Seite oder Kontext passen. Regeln gelten für Speichervorgänge über Save In."
+  },
+  "o_lRouteBrowserDownloadsFromRules": {
+    "message": "Auch Downloads weiterleiten, die der Browser selbst startet"
+  },
+  "o_lOpenBrowserDownloads": {
+    "message": "Browser-Downloads öffnen"
   },
   "html_becomes": {
     "message": "wird"

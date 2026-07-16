@@ -876,7 +876,13 @@
     "message": "請 AI 代理程式起草路由規則"
   },
   "html_automaticallyMoveOrRenameDownloadsWhenTheirFilenameSource": {
-    "message": "當檔案名稱、來源、頁面或上下文符合時，自動移動或重新命名下載。"
+    "message": "當檔名、來源、頁面或情境相符時，自動移動或重新命名儲存。規則適用於透過 Save In 進行的儲存。"
+  },
+  "o_lRouteBrowserDownloadsFromRules": {
+    "message": "同時對瀏覽器自行開始的下載套用規則"
+  },
+  "o_lOpenBrowserDownloads": {
+    "message": "開啟瀏覽器下載"
   },
   "html_becomes": {
     "message": "變成"

@@ -37,6 +37,7 @@ import { updateMenuPreview, setupPathsPreviewWiring } from "./menu-preview.ts";
 import { createManualEditorActions } from "./manual-editor-actions.ts";
 import { setOptionFieldValue } from "./option-field-sync.ts";
 import { applyBrowserCapabilityUi } from "./browser-capability-ui.ts";
+import { setupOptionJumpLinks } from "./option-navigation.ts";
 
 const setupLastDownloadState = () => {
   document.querySelector("#last-dl-url")?.classList.add("is-empty");
@@ -235,6 +236,7 @@ export const setupOptionsPage = bootstrapOptionsPage({
     setupIntegrationPanel,
     setupCounterPanel,
     setupDefaultDownloadsFolderLinks,
+    setupOptionJumpLinks,
     setupDetailsMenuPositioning,
     setupVariablesPreview,
     setupDebugLogPanel,

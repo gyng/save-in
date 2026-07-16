@@ -1286,7 +1286,13 @@
     "message": "Pídale a un agente de IA que redacte reglas de enrutamiento"
   },
   "html_automaticallyMoveOrRenameDownloadsWhenTheirFilenameSource": {
-    "message": "Mueva o cambie el nombre de las descargas automáticamente cuando coincida su nombre de archivo, fuente, página o contexto."
+    "message": "Mueve o renombra los guardados automáticamente cuando su nombre de archivo, origen, página o contexto coincide. Las reglas se aplican a los guardados hechos con Save In."
+  },
+  "o_lRouteBrowserDownloadsFromRules": {
+    "message": "Enrutar también las descargas que inicia el propio navegador"
+  },
+  "o_lOpenBrowserDownloads": {
+    "message": "Abrir descargas del navegador"
   },
   "html_becomes": {
     "message": "se convierte"

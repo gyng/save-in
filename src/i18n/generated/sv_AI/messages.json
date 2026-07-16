@@ -1286,7 +1286,13 @@
     "message": "Be en AI-agent att utarbeta routningsregler"
   },
   "html_automaticallyMoveOrRenameDownloadsWhenTheirFilenameSource": {
-    "message": "Flytta eller byt namn på nedladdningar automatiskt när deras filnamn, källa, sida eller sammanhang matchar."
+    "message": "Flytta eller byt namn på sparningar automatiskt när filnamn, källa, sida eller kontext matchar. Regler gäller sparningar som görs via Save In."
+  },
+  "o_lRouteBrowserDownloadsFromRules": {
+    "message": "Dirigera även nedladdningar som webbläsaren startar själv"
+  },
+  "o_lOpenBrowserDownloads": {
+    "message": "Öppna webbläsarnedladdningar"
   },
   "html_becomes": {
     "message": "blir"
