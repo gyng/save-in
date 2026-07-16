@@ -12,6 +12,7 @@ import {
   runShortcutScenario,
   runSymlinkDestinationScenario,
   runTabStripScenario,
+  runUndoLastSaveScenario,
 } from "../shared-scenarios.mjs";
 import { runTemplateLibraryScenario } from "../template-library-scenario.mjs";
 import { runRoutingVisualEditorScenario } from "../routing-visual-editor-scenario.mjs";
@@ -61,6 +62,14 @@ export const registerSharedBrowserCases = (adapters) => {
       control,
       evaluate,
       filename: `cancel-${browserLabel}.bin`,
+    });
+  });
+
+  test("undo removes the saved file and marks the History entry undone", async () => {
+    await runUndoLastSaveScenario({
+      control,
+      waitForDownloads,
+      filename: `undo-${browserLabel}`,
     });
   });
 

@@ -65,6 +65,7 @@
       }
     }
   },
+  "notificationUndoSave": { "message": "Annulla salvataggio" },
   "notificationExternalDownloadBlockedTitle": {
     "message": "Download esterno bloccato"
   },
@@ -1876,6 +1877,16 @@
     "placeholders": { "file": { "content": "$1", "example": "photo.jpg" } }
   },
   "historyCancelingDownload": { "message": "Annullamento…" },
+  "historyUndoSave": { "message": "Annulla salvataggio" },
+  "historyUndoSaveNamed": {
+    "message": "Annulla il salvataggio di $FILE$",
+    "placeholders": { "file": { "content": "$1", "example": "photo.jpg" } }
+  },
+  "historyUndoDone": { "message": "Salvataggio annullato. Il file è stato rimosso." },
+  "historyUndoFileMissing": {
+    "message": "Salvataggio annullato. Il file era già stato spostato o rimosso."
+  },
+  "historyUndoFailed": { "message": "Impossibile annullare questo salvataggio." },
   "historyRoutingApplied": { "message": "Applicato" },
   "historyRoutingAppliedTitle": {
     "message": "È stata applicata una regola di instradamento o ridenominazione."
@@ -1901,6 +1912,7 @@
   "historyClearFailed": { "message": "Impossibile eliminare la cronologia." },
   "historyStatusSaving": { "message": "Salvataggio…" },
   "historyStatusCanceled": { "message": "Annullato" },
+  "historyStatusUndone": { "message": "Annullato" },
   "historyStatusNetworkFailed": { "message": "Errore di rete" },
   "historyStatusDownloadFailed": { "message": "Download non riuscito" },
   "historyStatusPreparationFailed": { "message": "Preparazione non riuscita" },
@@ -2776,6 +2788,18 @@
   },
   "o_cBrowserDownloadExcludeFilterInvalid": {
     "message": "Pattern non valido. Quando il filtro URL è attivo, questa riga viene ignorata finché non viene corretta."
+  },
+  "o_lPerSiteDisableHeading": {
+    "message": "Disattiva Save In su alcuni siti"
+  },
+  "o_cPerSiteDisableList": {
+    "message": "Disattiva Save In sui siti corrispondenti (facoltativo)"
+  },
+  "o_cPerSiteDisableListHelp": {
+    "message": "Inserisci un criterio di corrispondenza WebExtension per riga. Il clic per salvare, le sorgenti della pagina e i salvataggi automatici restano disattivati nelle pagine corrispondenti."
+  },
+  "o_cPerSiteDisableListInvalid": {
+    "message": "Pattern non valido. Questa riga viene ignorata finché non viene corretta."
   },
   "o_lBrowserDownloadVariablesHeading": {
     "message": "Dati di routing disponibili"

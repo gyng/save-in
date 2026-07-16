@@ -42,6 +42,7 @@ import {
 } from "./notification-runtime.ts";
 import { resolveFirefoxDownloadContext } from "./auth-context.ts";
 import { OffscreenClient } from "../platform/offscreen-client.ts";
+import { undoBrowserDownload } from "./undo-download.ts";
 
 type HostDownloadItem = Parameters<
   Parameters<typeof webExtensionApi.downloads.onCreated.addListener>[0]
@@ -211,6 +212,24 @@ export const onDownloadCreated = async (item: HostDownloadItem) => {
       allowOriginalUrlFallback: false,
     });
     void historyPort.setDownloadId(historyEntryId, item.id);
+  }
+};
+
+// Undo is the only button the success notification carries (Chrome-only; see
+// registerNotifier). The notification ID is the download ID, same contract as
+// onNotificationClicked below.
+export const onNotificationButtonClicked = async (notId: string, buttonIndex: number) => {
+  if (buttonIndex !== 0) return;
+  if (!/^(0|[1-9]\d*)$/.test(notId)) return;
+  const downloadId = Number(notId);
+  if (!Number.isSafeInteger(downloadId)) return;
+  const record = await getTrackedDownload(downloadId);
+  const result = await undoBrowserDownload(downloadId);
+  if (result.undone) {
+    if (record?.historyEntryId) {
+      await historyPort.setStatus(record.historyEntryId, "undone", downloadId);
+    }
+    await Promise.resolve(webExtensionApi.notifications.clear(notId)).catch(() => {});
   }
 };
 
@@ -464,16 +483,21 @@ export const onDownloadChanged = async (downloadDelta: HostDownloadDelta) => {
       const successfulLabel = getMessage("notificationSuccessTitle");
       const title = buildSuccessNotificationTitle(successfulLabel, completedItem?.fileSize, mime);
 
-      createNotification(
-        String(downloadDelta.id),
-        {
-          type: "basic",
-          title,
-          iconUrl: SUCCESS_ICON_URL,
-          message: filename,
-        },
-        notifyDuration,
-      );
+      const successDetails: SaveInNotificationOptions = {
+        type: "basic",
+        title,
+        iconUrl: SUCCESS_ICON_URL,
+        message: filename,
+      };
+      // Undo button: Chrome-only (Firefox rejects `buttons`), and suppressed
+      // for private records to match the exclusion of private activity from
+      // history — undo marks a History entry, which private saves never have.
+      if (WEB_EXTENSION_CAPABILITIES.notificationButtons && !isPrivateDownloadRecord(record)) {
+        Object.assign(successDetails, {
+          buttons: [{ title: getMessage("notificationUndoSave") || "Undo save" }],
+        });
+      }
+      createNotification(String(downloadDelta.id), successDetails, notifyDuration);
 
       if (backgroundRuntime.debug && !isPrivateDownloadRecord(record)) {
         /* eslint-disable no-console */

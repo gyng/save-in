@@ -62,7 +62,9 @@ describe("history filter controls", () => {
           ? { type: "HISTORY_GET", body: { entries: historyRuntime.entries } }
           : message.type === "HISTORY_CANCEL"
             ? { type: "HISTORY_CANCEL", body: { canceled: true } }
-            : { type: "OK" },
+            : message.type === "HISTORY_UNDO"
+              ? { type: "HISTORY_UNDO", body: { undone: true, fileMissing: false } }
+              : { type: "OK" },
       );
     historyRuntime.search.mockReset().mockResolvedValue([]);
     historyRuntime.show.mockReset().mockResolvedValue(undefined);
@@ -350,6 +352,56 @@ describe("history filter controls", () => {
     cancel.click();
 
     await vi.waitFor(() => expect(cancel.disabled).toBe(false));
+  });
+
+  test("undo row action delegates to the background and reports the outcome", async () => {
+    historyRuntime.entries = [
+      { id: "h-complete", status: "complete", downloadId: 42, finalFullPath: "done.png" },
+    ];
+    const { renderHistory } = historyPanel;
+    await renderHistory();
+
+    document.querySelector<HTMLButtonElement>(".history-undo")!.click();
+
+    await vi.waitFor(() =>
+      expect(historyRuntime.sendMessage).toHaveBeenCalledWith({
+        type: "HISTORY_UNDO",
+        body: { historyId: "h-complete" },
+      }),
+    );
+    const feedback = document.querySelector<HTMLElement>("#history-feedback")!;
+    await vi.waitFor(() => expect(feedback.hidden).toBe(false));
+    expect(feedback.classList.contains("feedback-error")).toBe(false);
+    expect(feedback.textContent).toContain("Save undone");
+  });
+
+  test("undo failure is contained and re-enables the row action", async () => {
+    historyRuntime.entries = [
+      { id: "h-complete", status: "complete", downloadId: 42, finalFullPath: "done.png" },
+    ];
+    const { renderHistory } = historyPanel;
+    await renderHistory();
+    historyRuntime.sendMessage.mockRejectedValueOnce(new Error("worker stopped"));
+    const undo = document.querySelector<HTMLButtonElement>(".history-undo")!;
+
+    undo.click();
+
+    await vi.waitFor(() => expect(undo.disabled).toBe(false));
+    const feedback = document.querySelector<HTMLElement>("#history-feedback")!;
+    expect(feedback.hidden).toBe(false);
+    expect(feedback.classList.contains("feedback-error")).toBe(true);
+  });
+
+  test("rows without a completed browser download offer no undo action", async () => {
+    historyRuntime.entries = [
+      { id: "h-pending", status: "pending", finalFullPath: "later.iso" },
+      { id: "h-undone", status: "undone", downloadId: 9, finalFullPath: "gone.png" },
+      { id: "h-no-id", status: "complete", finalFullPath: "old.png" },
+    ];
+    const { renderHistory } = historyPanel;
+    await renderHistory();
+
+    expect(document.querySelector(".history-undo")).toBeNull();
   });
 
   test("delegates show-in-folder and contains browser failures", async () => {

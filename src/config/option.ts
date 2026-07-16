@@ -123,6 +123,8 @@ export const OptionsManagement: OptionsManagementApi = {
     closeTabOnSave: "Close a tab after saving it.",
     setRefererHeader: "Set the Referer header to the page URL for matching sites.",
     setRefererHeaderFilter: "URL match patterns for the Referer header.",
+    perSiteDisableList:
+      "URL match patterns where click to save, Page Sources, and automatic saves stay off.",
   } satisfies Record<SaveInOptionName, string>,
 
   getKeys: () => OptionsManagement.OPTION_KEYS.map((option) => option.name),

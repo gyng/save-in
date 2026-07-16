@@ -202,6 +202,16 @@
     "placeholders": { "file": { "content": "$1", "example": "photo.jpg" } }
   },
   "historyCancelingDownload": { "message": "Cancelando…" },
+  "historyUndoSave": { "message": "Desfazer salvamento" },
+  "historyUndoSaveNamed": {
+    "message": "Desfazer o salvamento de $FILE$",
+    "placeholders": { "file": { "content": "$1", "example": "photo.jpg" } }
+  },
+  "historyUndoDone": { "message": "Salvamento desfeito. O arquivo foi removido." },
+  "historyUndoFileMissing": {
+    "message": "Salvamento desfeito. O arquivo já havia sido movido ou removido."
+  },
+  "historyUndoFailed": { "message": "Não foi possível desfazer este salvamento." },
   "historyRoutingApplied": { "message": "Aplicado" },
   "historyRoutingAppliedTitle": {
     "message": "Uma regra de roteamento ou renomeação foi aplicada."
@@ -227,6 +237,7 @@
   "historyClearFailed": { "message": "Não foi possível excluir o histórico." },
   "historyStatusSaving": { "message": "Salvando…" },
   "historyStatusCanceled": { "message": "Cancelado" },
+  "historyStatusUndone": { "message": "Desfeito" },
   "historyStatusNetworkFailed": { "message": "Falha de rede" },
   "historyStatusDownloadFailed": { "message": "Falha no download" },
   "historyStatusPreparationFailed": { "message": "Falha na preparação" },
@@ -279,6 +290,7 @@
       }
     }
   },
+  "notificationUndoSave": { "message": "Desfazer salvamento" },
   "notificationRuleMatchedTitle": {
     "message": "Save In: regra aplicada"
   },
@@ -2575,6 +2587,18 @@
   },
   "o_cBrowserDownloadExcludeFilterInvalid": {
     "message": "Padrão inválido. Quando a filtragem de URL estiver ativada, esta linha será ignorada até que seja corrigida."
+  },
+  "o_lPerSiteDisableHeading": {
+    "message": "Desativar o Save In em sites"
+  },
+  "o_cPerSiteDisableList": {
+    "message": "Desativar o Save In nos sites correspondentes (opcional)"
+  },
+  "o_cPerSiteDisableListHelp": {
+    "message": "Insira um padrão de correspondência do WebExtension por linha. O clique para salvar, as fontes da página e os salvamentos automáticos permanecem desativados nas páginas correspondentes."
+  },
+  "o_cPerSiteDisableListInvalid": {
+    "message": "Padrão inválido. Esta linha será ignorada até que seja corrigida."
   },
   "o_lBrowserDownloadVariablesHeading": {
     "message": "Dados de roteamento disponíveis"

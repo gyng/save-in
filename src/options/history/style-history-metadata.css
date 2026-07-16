@@ -143,6 +143,12 @@
   text-transform: capitalize;
 }
 
+/* A deliberate user action: neutral like pending, not an error */
+.status-badge.status-undone {
+  color: var(--color-text-muted);
+  background-color: color-mix(in srgb, var(--color-text-muted) 14%, transparent);
+}
+
 .history-file {
   font-family: var(--font-mono);
 }

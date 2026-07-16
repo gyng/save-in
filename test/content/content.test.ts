@@ -464,6 +464,80 @@ describe("content.js initialisation", () => {
     );
   });
 
+  test("keeps automatic saving off on a disabled site until the list clears", async () => {
+    vi.resetModules();
+    document.body.innerHTML = '<img src="https://cdn.test/automatic.png">';
+    let storageListener: ((changes: Record<string, any>, area: string) => void) | undefined;
+    global.chrome.runtime.sendMessage = vi.fn((message, callback) => {
+      if (message.type !== "AUTO_DOWNLOAD_SOURCE") callback?.();
+    }) as any;
+    global.chrome.runtime.onMessage.addListener = vi.fn();
+    global.chrome.storage.local.get = vi.fn((_keys, callback) =>
+      callback({
+        autoDownloadEnabled: true,
+        autoDownloadLive: false,
+        filenamePatterns:
+          "context: ^auto$\npageurl: ^http://localhost/\nsourceurl: automatic\\.png$\ninto: automatic/",
+        perSiteDisableList: "*://localhost/*",
+      }),
+    ) as any;
+    (global.chrome.storage as any).onChanged = {
+      addListener: vi.fn((listener) => {
+        storageListener = listener;
+      }),
+    };
+    await import("../../src/content/content.ts");
+    await Promise.resolve();
+
+    expect(global.chrome.runtime.sendMessage).not.toHaveBeenCalledWith(
+      expect.objectContaining({ type: "AUTO_DOWNLOAD_SOURCE" }),
+      expect.any(Function),
+    );
+
+    storageListener!(
+      { perSiteDisableList: { oldValue: "*://localhost/*", newValue: "" } },
+      "local",
+    );
+    await vi.waitFor(() =>
+      expect(global.chrome.runtime.sendMessage).toHaveBeenCalledWith(
+        expect.objectContaining({ type: "AUTO_DOWNLOAD_SOURCE" }),
+        expect.any(Function),
+      ),
+    );
+  });
+
+  test("does not install click-to-save on a disabled page", async () => {
+    const addEventListener = vi.spyOn(window, "addEventListener");
+    await importContentWithOptions({
+      contentClickToSave: true,
+      contentClickToSaveCombo: 17,
+      contentClickToSaveButton: "RIGHT_CLICK",
+      perSiteDisableList: "*://localhost/*",
+    });
+
+    // Only setupClickToSave installs a mousedown listener; a disabled page must
+    // not reach it.
+    expect(addEventListener.mock.calls.some(([type]) => type === "mousedown")).toBe(false);
+  });
+
+  test("does not announce Page Sources readiness on a disabled page", async () => {
+    const calls: string[] = [];
+    vi.resetModules();
+    global.chrome.runtime.sendMessage = vi.fn((message, callback) => {
+      calls.push(message.type);
+      callback?.();
+    }) as any;
+    global.chrome.runtime.onMessage.addListener = vi.fn(() => calls.push("LISTENER"));
+    global.chrome.storage.local.get = vi.fn((_keys, callback) =>
+      callback({ sourcePanelEnabled: true, perSiteDisableList: "*://localhost/*" }),
+    ) as any;
+    (global.chrome.storage as any).onChanged = { addListener: vi.fn() };
+
+    await import("../../src/content/content.ts");
+
+    expect(calls).toEqual(["LISTENER"]);
+  });
+
   test("lets an explicit user toggle open Page Sources while it is disabled", async () => {
     let runtimeListener: ((message: any) => void) | undefined;
     let storageListener: ((changes: Record<string, any>, area: string) => void) | undefined;

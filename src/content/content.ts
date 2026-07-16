@@ -22,6 +22,7 @@ import {
   type SourcePanelCopy,
 } from "../shared/source-panel-copy.ts";
 import { setupAutoDownloadDiscovery, type AutoDownloadSendResult } from "./auto-download.ts";
+import { matchesAnyPattern } from "../shared/match-pattern.ts";
 import type { AutomaticRoutingCandidate } from "../automation/automatic-routing.ts";
 
 // Runs in every page. Uses callback-style chrome.* APIs: available in both
@@ -343,12 +344,20 @@ let receivedInitialOptions = false;
 let sourcePanelListenerReady = false;
 let announcedSourcePanelReady = false;
 let reconfigureOpenSourcePanel: (() => void) | null = null;
+// The per-site disable list turns off every content-script surface on matching
+// pages. It is evaluated once per options application against this page's URL;
+// invalid pattern lines are ignored rather than treated as a broad match.
+let pageDisabled = false;
+
+const isPageDisabled = (patterns: string): boolean =>
+  matchesAnyPattern(`${window.location}`, patterns);
 
 const announceSourcePanelReady = () => {
   if (
     !receivedInitialOptions ||
     !sourcePanelListenerReady ||
     announcedSourcePanelReady ||
+    pageDisabled ||
     currentOptions.sourcePanelEnabled !== true
   )
     return;
@@ -362,36 +371,52 @@ const announceSourcePanelReady = () => {
 
 const applyOptions = (next: ContentOptions) => {
   const previous = currentOptions;
+  const previousPageDisabled = pageDisabled;
   currentOptions = { ...currentOptions, ...next };
-  const clickOptionsChanged = (
-    ["contentClickToSave", "contentClickToSaveCombo", "contentClickToSaveButton", "links"] as const
-  ).some((key) => previous[key] !== currentOptions[key]);
-  const autoDownloadOptionsChanged = (
-    [
-      "autoDownloadEnabled",
-      "filenamePatterns",
-      "autoDownloadLive",
-      "autoDownloadPrivate",
-      "autoDownloadMaxPerPage",
-    ] as const
-  ).some((key) => previous[key] !== currentOptions[key]);
-  const sourcePanelOptionsChanged = (
-    [
-      "sourcePanelEnabled",
-      "sourcePanelBackgrounds",
-      "sourcePanelLive",
-      "sourcePanelPreviews",
-      "sourcePanelResourceHints",
-      "sourcePanelLinks",
-      "uiLocale",
-      "uiTheme",
-    ] as const
-  ).some((key) => previous[key] !== currentOptions[key]);
+  pageDisabled = isPageDisabled(currentOptions.perSiteDisableList);
+  // A disable-list transition must re-run every mount gate below even when no
+  // feature-specific option changed alongside it.
+  const pageDisabledChanged = previousPageDisabled !== pageDisabled;
+  const clickOptionsChanged =
+    pageDisabledChanged ||
+    (
+      [
+        "contentClickToSave",
+        "contentClickToSaveCombo",
+        "contentClickToSaveButton",
+        "links",
+      ] as const
+    ).some((key) => previous[key] !== currentOptions[key]);
+  const autoDownloadOptionsChanged =
+    pageDisabledChanged ||
+    (
+      [
+        "autoDownloadEnabled",
+        "filenamePatterns",
+        "autoDownloadLive",
+        "autoDownloadPrivate",
+        "autoDownloadMaxPerPage",
+      ] as const
+    ).some((key) => previous[key] !== currentOptions[key]);
+  const sourcePanelOptionsChanged =
+    pageDisabledChanged ||
+    (
+      [
+        "sourcePanelEnabled",
+        "sourcePanelBackgrounds",
+        "sourcePanelLive",
+        "sourcePanelPreviews",
+        "sourcePanelResourceHints",
+        "sourcePanelLinks",
+        "uiLocale",
+        "uiTheme",
+      ] as const
+    ).some((key) => previous[key] !== currentOptions[key]);
   if (sourcePanelOptionsChanged) reconfigureOpenSourcePanel?.();
   if (autoDownloadOptionsChanged) {
     removeAutoDownload?.();
     removeAutoDownload =
-      currentOptions.autoDownloadEnabled && currentOptions.filenamePatterns.trim()
+      !pageDisabled && currentOptions.autoDownloadEnabled && currentOptions.filenamePatterns.trim()
         ? setupAutoDownload(currentOptions)
         : null;
   }
@@ -400,7 +425,8 @@ const applyOptions = (next: ContentOptions) => {
     return;
   }
   removeClickToSave?.();
-  removeClickToSave = currentOptions.contentClickToSave ? setupClickToSave(currentOptions) : null;
+  removeClickToSave =
+    !pageDisabled && currentOptions.contentClickToSave ? setupClickToSave(currentOptions) : null;
   announceSourcePanelReady();
 };
 
@@ -561,7 +587,9 @@ try {
   };
   reconfigureOpenSourcePanel = () => {
     if (!sourcePanelIsOpen) return;
-    if (currentOptions.sourcePanelEnabled !== true && !sourcePanelForcedOpen) {
+    // A page moved onto the disable list closes an open panel even if it was
+    // force-opened, matching the readiness and creation gates.
+    if (pageDisabled || (currentOptions.sourcePanelEnabled !== true && !sourcePanelForcedOpen)) {
       setSourcePanelOpen(
         false,
         sendDownload,
@@ -578,6 +606,9 @@ try {
   };
   chrome.runtime.onMessage.addListener((message) => {
     if (!["TOGGLE_SOURCE_PANEL", "SET_SOURCE_PANEL"].includes(message?.type)) return;
+    // The disable list keeps the panel from opening at all, including a forced
+    // open from the context menu or keyboard shortcut.
+    if (pageDisabled) return;
     if (message.type === "SET_SOURCE_PANEL" && !message.body?.open) {
       setSourcePanelOpen(
         false,

@@ -200,6 +200,16 @@
     "placeholders": { "file": { "content": "$1", "example": "photo.jpg" } }
   },
   "historyCancelingDownload": { "message": "Wird abgebrochen…" },
+  "historyUndoSave": { "message": "Speichern rückgängig machen" },
+  "historyUndoSaveNamed": {
+    "message": "Speichern von $FILE$ rückgängig machen",
+    "placeholders": { "file": { "content": "$1", "example": "photo.jpg" } }
+  },
+  "historyUndoDone": { "message": "Speichern rückgängig gemacht. Die Datei wurde entfernt." },
+  "historyUndoFileMissing": {
+    "message": "Speichern rückgängig gemacht. Die Datei war bereits verschoben oder entfernt."
+  },
+  "historyUndoFailed": { "message": "Dieses Speichern konnte nicht rückgängig gemacht werden." },
   "historyRoutingApplied": { "message": "Angewendet" },
   "historyRoutingAppliedTitle": {
     "message": "Eine Routing- oder Umbenennungsregel wurde angewendet."
@@ -225,6 +235,7 @@
   "historyClearFailed": { "message": "Der Verlauf konnte nicht gelöscht werden." },
   "historyStatusSaving": { "message": "Wird gespeichert…" },
   "historyStatusCanceled": { "message": "Abgebrochen" },
+  "historyStatusUndone": { "message": "Rückgängig gemacht" },
   "historyStatusNetworkFailed": { "message": "Netzwerkfehler" },
   "historyStatusDownloadFailed": { "message": "Download fehlgeschlagen" },
   "historyStatusPreparationFailed": { "message": "Vorbereitung fehlgeschlagen" },
@@ -277,6 +288,7 @@
       }
     }
   },
+  "notificationUndoSave": { "message": "Speichern rückgängig machen" },
   "notificationRuleMatchedTitle": {
     "message": "Save In: Passende Regel gefunden"
   },
@@ -2589,6 +2601,18 @@
   },
   "o_cBrowserDownloadExcludeFilterInvalid": {
     "message": "Ungültiges Muster. Wenn der URL-Filter aktiviert ist, wird diese Zeile ignoriert, bis sie korrigiert wurde."
+  },
+  "o_lPerSiteDisableHeading": {
+    "message": "Save In auf Websites deaktivieren"
+  },
+  "o_cPerSiteDisableList": {
+    "message": "Save In auf passenden Websites ausschalten (optional)"
+  },
+  "o_cPerSiteDisableListHelp": {
+    "message": "Geben Sie ein WebExtension-Übereinstimmungsmuster pro Zeile ein. Speichern per Klick, Seitenquellen und automatische Speicherungen bleiben auf passenden Seiten deaktiviert."
+  },
+  "o_cPerSiteDisableListInvalid": {
+    "message": "Ungültiges Muster. Diese Zeile wird ignoriert, bis sie korrigiert wurde."
   },
   "o_lBrowserDownloadVariablesHeading": {
     "message": "Verfügbare Routing-Daten"

@@ -94,6 +94,7 @@
       }
     }
   },
+  "notificationUndoSave": { "message": "저장 취소" },
   "notificationRuleMatchedTitle": {
     "message": "Save In: 규칙이 일치함"
   },
@@ -2066,6 +2067,16 @@
     "placeholders": { "file": { "content": "$1", "example": "photo.jpg" } }
   },
   "historyCancelingDownload": { "message": "취소 중…" },
+  "historyUndoSave": { "message": "저장 취소" },
+  "historyUndoSaveNamed": {
+    "message": "$FILE$ 저장 취소",
+    "placeholders": { "file": { "content": "$1", "example": "photo.jpg" } }
+  },
+  "historyUndoDone": { "message": "저장이 취소되었습니다. 파일이 삭제되었습니다." },
+  "historyUndoFileMissing": {
+    "message": "저장이 취소되었습니다. 파일은 이미 이동되었거나 삭제되어 있었습니다."
+  },
+  "historyUndoFailed": { "message": "이 저장을 취소하지 못했습니다." },
   "historyRoutingApplied": { "message": "적용됨" },
   "historyRoutingAppliedTitle": {
     "message": "라우팅 또는 이름 바꾸기 규칙이 적용되었습니다."
@@ -2091,6 +2102,7 @@
   "historyClearFailed": { "message": "기록을 삭제할 수 없습니다." },
   "historyStatusSaving": { "message": "저장 중…" },
   "historyStatusCanceled": { "message": "취소됨" },
+  "historyStatusUndone": { "message": "취소됨" },
   "historyStatusNetworkFailed": { "message": "네트워크 실패" },
   "historyStatusDownloadFailed": { "message": "다운로드 실패" },
   "historyStatusPreparationFailed": { "message": "준비 실패" },
@@ -2671,6 +2683,18 @@
   },
   "o_cBrowserDownloadExcludeFilterInvalid": {
     "message": "잘못된 패턴입니다. URL 필터링이 켜져 있으면 수정할 때까지 이 줄이 무시됩니다."
+  },
+  "o_lPerSiteDisableHeading": {
+    "message": "특정 사이트에서 Save In 비활성화"
+  },
+  "o_cPerSiteDisableList": {
+    "message": "일치하는 사이트에서 Save In 끄기(선택 사항)"
+  },
+  "o_cPerSiteDisableListHelp": {
+    "message": "한 줄에 하나씩 WebExtension 일치 패턴을 입력하세요. 일치하는 페이지에서는 클릭하여 저장, 페이지 소스, 자동 저장이 꺼집니다."
+  },
+  "o_cPerSiteDisableListInvalid": {
+    "message": "잘못된 패턴입니다. 수정할 때까지 이 줄이 무시됩니다."
   },
   "o_lBrowserDownloadVariablesHeading": {
     "message": "사용 가능한 라우팅 데이터"

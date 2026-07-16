@@ -85,6 +85,10 @@
       }
     }
   },
+  "notificationUndoSave": {
+    "message": "Undo save",
+    "description": "Button on the success notification that removes the just-saved file and marks its history entry as undone. Chrome only; Firefox notifications cannot carry buttons. Used in src/downloads/notification-events.ts."
+  },
   "notificationExternalDownloadBlockedTitle": {
     "message": "External download blocked",
     "description": "Notification title for a rejected external-extension download request. Used in src/downloads/notification.ts."
@@ -318,6 +322,22 @@
   "o_cBrowserDownloadExcludeFilterInvalid": {
     "message": "Invalid pattern. When URL filtering is on, this line is ignored until it is fixed.",
     "description": "Persistent validation error below the browser-download exclude-pattern editor. Used in src/options/options.html."
+  },
+  "o_lPerSiteDisableHeading": {
+    "message": "Disable Save In on sites",
+    "description": "Heading for the per-site disable list, where the extension turns itself off on chosen pages. Used in src/options/options.html."
+  },
+  "o_cPerSiteDisableList": {
+    "message": "Turn off Save In on matching sites (optional)",
+    "description": "Label above the per-site disable-list match-pattern editor. Used in src/options/options.html."
+  },
+  "o_cPerSiteDisableListHelp": {
+    "message": "Enter one WebExtension match pattern per line. Click-to-save, page sources, and automatic saves stay off on matching pages.",
+    "description": "Help below the per-site disable-list editor naming the three content features it turns off. 'WebExtension' is a product term kept in English. Used in src/options/options.html."
+  },
+  "o_cPerSiteDisableListInvalid": {
+    "message": "Invalid pattern. This line is ignored until it is fixed.",
+    "description": "Persistent validation error below the per-site disable-list editor. Used in src/options/options.html."
   },
   "o_lBrowserDownloadVariablesHeading": {
     "message": "Available routing data",
@@ -2817,6 +2837,32 @@
     "message": "Canceling…",
     "description": "History action state while an active download is being canceled. Used in src/options/history-panel.ts."
   },
+  "historyUndoSave": {
+    "message": "Undo save",
+    "description": "History row action that removes the saved file and marks the entry as undone. Used in src/options/history/history-panel.ts."
+  },
+  "historyUndoSaveNamed": {
+    "message": "Undo save of $FILE$",
+    "description": "Accessible label for the undo action on one history row, including its filename. Used in src/options/history/history-panel.ts.",
+    "placeholders": {
+      "file": {
+        "content": "$1",
+        "example": "photo.jpg"
+      }
+    }
+  },
+  "historyUndoDone": {
+    "message": "Save undone. The file was removed.",
+    "description": "History confirmation after an undo removed the saved file. Used in src/options/history/history-panel.ts."
+  },
+  "historyUndoFileMissing": {
+    "message": "Save undone. The file had already been moved or removed.",
+    "description": "History confirmation after an undo where the saved file was already gone; the entry is still marked undone. Used in src/options/history/history-panel.ts."
+  },
+  "historyUndoFailed": {
+    "message": "Could not undo this save.",
+    "description": "History error shown when the undo action fails. Used in src/options/history/history-panel.ts."
+  },
   "historyRoutingApplied": {
     "message": "Applied",
     "description": "History table badge showing that routing changed the download path or filename. Used in src/options/history-panel.ts."
@@ -2886,6 +2932,10 @@
   "historyStatusCanceled": {
     "message": "Canceled",
     "description": "History status badge for a download canceled by the user. Used in src/options/history-view.ts."
+  },
+  "historyStatusUndone": {
+    "message": "Undone",
+    "description": "History status badge for a save the user undid: the file was removed and the entry kept. Used in src/options/history/history-view.ts."
   },
   "historyStatusNetworkFailed": {
     "message": "Network failed",

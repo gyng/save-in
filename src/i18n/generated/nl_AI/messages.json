@@ -200,6 +200,16 @@
     "placeholders": { "file": { "content": "$1", "example": "photo.jpg" } }
   },
   "historyCancelingDownload": { "message": "Annuleren…" },
+  "historyUndoSave": { "message": "Opslaan ongedaan maken" },
+  "historyUndoSaveNamed": {
+    "message": "Opslaan van $FILE$ ongedaan maken",
+    "placeholders": { "file": { "content": "$1", "example": "photo.jpg" } }
+  },
+  "historyUndoDone": { "message": "Opslaan ongedaan gemaakt. Het bestand is verwijderd." },
+  "historyUndoFileMissing": {
+    "message": "Opslaan ongedaan gemaakt. Het bestand was al verplaatst of verwijderd."
+  },
+  "historyUndoFailed": { "message": "Dit opslaan kon niet ongedaan worden gemaakt." },
   "historyRoutingApplied": { "message": "Toegepast" },
   "historyRoutingAppliedTitle": {
     "message": "Er is een routerings- of hernoemingsregel toegepast."
@@ -225,6 +235,7 @@
   "historyClearFailed": { "message": "De geschiedenis kon niet worden verwijderd." },
   "historyStatusSaving": { "message": "Opslaan…" },
   "historyStatusCanceled": { "message": "Geannuleerd" },
+  "historyStatusUndone": { "message": "Ongedaan gemaakt" },
   "historyStatusNetworkFailed": { "message": "Netwerkfout" },
   "historyStatusDownloadFailed": { "message": "Download mislukt" },
   "historyStatusPreparationFailed": { "message": "Voorbereiding mislukt" },
@@ -277,6 +288,7 @@
       }
     }
   },
+  "notificationUndoSave": { "message": "Opslaan ongedaan maken" },
   "notificationRuleMatchedTitle": {
     "message": "Save In: regel toegepast"
   },
@@ -2575,6 +2587,18 @@
   },
   "o_cBrowserDownloadExcludeFilterInvalid": {
     "message": "Ongeldig patroon. Als URL-filtering is ingeschakeld, wordt deze regel genegeerd totdat deze is gecorrigeerd."
+  },
+  "o_lPerSiteDisableHeading": {
+    "message": "Save In uitschakelen op sites"
+  },
+  "o_cPerSiteDisableList": {
+    "message": "Save In uitschakelen op overeenkomende sites (optioneel)"
+  },
+  "o_cPerSiteDisableListHelp": {
+    "message": "Voer één WebExtension-overeenkomstpatroon per regel in. Opslaan met één klik, paginabronnen en automatische opslag blijven uitgeschakeld op overeenkomende pagina's."
+  },
+  "o_cPerSiteDisableListInvalid": {
+    "message": "Ongeldig patroon. Deze regel wordt genegeerd totdat deze is gecorrigeerd."
   },
   "o_lBrowserDownloadVariablesHeading": {
     "message": "Beschikbare routeringsgegevens"

@@ -94,6 +94,7 @@
       }
     }
   },
+  "notificationUndoSave": { "message": "撤销保存" },
   "notificationRuleMatchedTitle": {
     "message": "Save In：规则匹配"
   },
@@ -2064,6 +2065,14 @@
     "placeholders": { "file": { "content": "$1", "example": "photo.jpg" } }
   },
   "historyCancelingDownload": { "message": "正在取消…" },
+  "historyUndoSave": { "message": "撤销保存" },
+  "historyUndoSaveNamed": {
+    "message": "撤销 $FILE$ 的保存",
+    "placeholders": { "file": { "content": "$1", "example": "photo.jpg" } }
+  },
+  "historyUndoDone": { "message": "已撤销保存。文件已删除。" },
+  "historyUndoFileMissing": { "message": "已撤销保存。文件此前已被移动或删除。" },
+  "historyUndoFailed": { "message": "无法撤销此次保存。" },
   "historyRoutingApplied": { "message": "已应用" },
   "historyRoutingAppliedTitle": { "message": "已应用路由或重命名规则。" },
   "historyNewer": { "message": "‹ 较新" },
@@ -2087,6 +2096,7 @@
   "historyClearFailed": { "message": "无法删除历史记录。" },
   "historyStatusSaving": { "message": "保存中…" },
   "historyStatusCanceled": { "message": "已取消" },
+  "historyStatusUndone": { "message": "已撤销" },
   "historyStatusNetworkFailed": { "message": "网络错误" },
   "historyStatusDownloadFailed": { "message": "下载失败" },
   "historyStatusPreparationFailed": { "message": "准备失败" },
@@ -2665,6 +2675,18 @@
   },
   "o_cBrowserDownloadExcludeFilterInvalid": {
     "message": "无效的模式。启用 URL 过滤时，在修复之前会忽略此行。"
+  },
+  "o_lPerSiteDisableHeading": {
+    "message": "在指定网站上停用 Save In"
+  },
+  "o_cPerSiteDisableList": {
+    "message": "在匹配的网站上关闭 Save In（可选）"
+  },
+  "o_cPerSiteDisableListHelp": {
+    "message": "每行输入一个 WebExtension 匹配模式。在匹配的页面上，点击保存、页面来源和自动保存都会关闭。"
+  },
+  "o_cPerSiteDisableListInvalid": {
+    "message": "无效的模式。在修复之前会忽略此行。"
   },
   "o_lBrowserDownloadVariablesHeading": {
     "message": "可用的路由数据"

@@ -195,17 +195,19 @@ const folderIcon = () => {
   return svg;
 };
 
-const historyActionIcon = (kind: "copy" | "link") => {
+const historyActionIcon = (kind: "copy" | "link" | "undo") => {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.setAttribute("viewBox", "0 0 24 24");
   svg.setAttribute("aria-hidden", "true");
   const paths =
     kind === "copy"
       ? ["M8 8h11v11H8z", "M5 16H3V3h13v2"]
-      : [
-          "M10 13a5 5 0 0 0 7 0l2-2a5 5 0 0 0-7-7l-1 1",
-          "M14 11a5 5 0 0 0-7 0l-2 2a5 5 0 0 0 7 7l1-1",
-        ];
+      : kind === "undo"
+        ? ["M3 7v6h6", "M3 13a9 9 0 1 0 2.6-7L3 8.4"]
+        : [
+            "M10 13a5 5 0 0 0 7 0l2-2a5 5 0 0 0-7-7l-1 1",
+            "M14 11a5 5 0 0 0-7 0l-2 2a5 5 0 0 0 7 7l1-1",
+          ];
   paths.forEach((data) => {
     const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
     path.setAttribute("d", data);
@@ -238,6 +240,46 @@ const showInFolder = async (downloadId: number | null) => {
         "historyShowFolderFailed",
         "Could not open the folder. The file may have moved or been removed.",
       ),
+      error: true,
+    });
+  }
+};
+
+// Undo marks the entry, never deletes it, so failures and the
+// file-already-gone case can both be reported against a surviving row.
+const undoSave = async (historyId: string): Promise<void> => {
+  try {
+    const response = await sendInternalMessage(webExtensionApi.runtime, {
+      type: MESSAGE_TYPES.HISTORY_UNDO,
+      body: { historyId },
+    });
+    // The protocol error variant shares the response type; the body's shape
+    // is the discriminant
+    if (
+      response.type !== MESSAGE_TYPES.HISTORY_UNDO ||
+      !("undone" in response.body) ||
+      !response.body.undone
+    ) {
+      renderHistoryFeedback(historyFeedback(), {
+        message: historyMessage("historyUndoFailed", "Could not undo this save."),
+        error: true,
+      });
+      return;
+    }
+    // Re-render first: renderHistory clears the feedback area, so the
+    // outcome message must land after the refreshed rows
+    await renderHistory();
+    renderHistoryFeedback(historyFeedback(), {
+      message: response.body.fileMissing
+        ? historyMessage(
+            "historyUndoFileMissing",
+            "Save undone. The file had already been moved or removed.",
+          )
+        : historyMessage("historyUndoDone", "Save undone. The file was removed."),
+    });
+  } catch {
+    renderHistoryFeedback(historyFeedback(), {
+      message: historyMessage("historyUndoFailed", "Could not undo this save."),
       error: true,
     });
   }
@@ -512,6 +554,28 @@ const renderHistoryTable = () => {
       open.appendChild(folderIcon());
       open.addEventListener("click", () => void showInFolder(r.downloadId));
       status.appendChild(open);
+    }
+    // Same gate as Show in folder: only a completed save the browser still
+    // knows can be undone, and the message needs the entry's history id.
+    if (r.status === "complete" && r.downloadId != null && r.historyId) {
+      const undoHistoryId = r.historyId;
+      const undo = document.createElement("button");
+      undo.type = "button";
+      undo.className = "history-open history-undo";
+      const undoLabel = historyMessage("historyUndoSave", "Undo save");
+      undo.title = undoLabel;
+      undo.setAttribute(
+        "aria-label",
+        historyMessage("historyUndoSaveNamed", `Undo save of ${r.file}`, r.file),
+      );
+      undo.append(historyActionIcon("undo"));
+      undo.addEventListener("click", () => {
+        undo.disabled = true;
+        void undoSave(undoHistoryId).finally(() => {
+          undo.disabled = false;
+        });
+      });
+      status.appendChild(undo);
     }
     if (r.fullPath) {
       const copyPath = document.createElement("button");

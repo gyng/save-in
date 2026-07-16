@@ -66,6 +66,7 @@ const setupGlobals = () => {
     conflictAction: "uniquify",
     externalDownloadAllowlist: "trusted-extension",
     saveSourceSidecar: false,
+    perSiteDisableList: "",
   });
   vi.spyOn(Download, "launchDownload").mockResolvedValue({ status: "started", downloadId: 1 });
   // The message entry point launchDownload is stubbed so handler tests never

@@ -20,7 +20,11 @@ vi.mock("../../../src/platform/chrome-detector.ts", () => ({
     return browserState.current;
   },
   get WEB_EXTENSION_CAPABILITIES() {
-    return { downloadDeltaFilename: browserState.current === "CHROME" };
+    return {
+      downloadDeltaFilename: browserState.current === "CHROME",
+      // Mirrors production: the Undo button is Chrome-only enhancement
+      notificationButtons: browserState.current === "CHROME",
+    };
   },
 }));
 
@@ -128,10 +132,18 @@ const setupGlobals = (sessionStore: Record<string, any>, searchResults: (query: 
   (global.browser.downloads as any).download = vi.fn();
   (global.browser.downloads as any).cancel = vi.fn(() => Promise.resolve());
   (global.browser.downloads as any).erase = vi.fn(() => Promise.resolve([]));
+  (global.browser.downloads as any).removeFile = vi.fn(() => Promise.resolve());
   (global.browser as any).notifications = {
     create: vi.fn(),
     clear: vi.fn(),
     onClicked: {
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      hasListener: vi.fn(() => true),
+    },
+    // Chrome-only in production (Firefox has no notification buttons); present
+    // here so registerNotifier's runtime probe finds and registers it.
+    onButtonClicked: {
       addListener: vi.fn(),
       removeListener: vi.fn(),
       hasListener: vi.fn(() => true),

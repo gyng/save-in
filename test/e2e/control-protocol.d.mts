@@ -107,6 +107,7 @@ export type RuntimeMessage =
   | { type: "OPTIONS" }
   | { type: "HISTORY_GET" }
   | { type: "HISTORY_CANCEL"; body: { historyId: string } }
+  | { type: "HISTORY_UNDO"; body: { historyId: string } }
   | { type: "EXTERNAL_DOWNLOAD_REJECTIONS_GET" }
   | { type: "EXTERNAL_DOWNLOAD_REJECTION_CLEAR"; body: { senderId: string } }
   | {
@@ -180,6 +181,7 @@ export interface RuntimeResponseMap {
   OPTIONS: { type: "OPTIONS"; body: Record<string, unknown> };
   HISTORY_GET: { type: "HISTORY_GET"; body: { entries: HistoryEntry[] } };
   HISTORY_CANCEL: { type: "HISTORY_CANCEL"; body: { canceled: boolean } };
+  HISTORY_UNDO: { type: "HISTORY_UNDO"; body: { undone: boolean; fileMissing: boolean } };
   EXTERNAL_DOWNLOAD_REJECTIONS_GET: {
     type: "EXTERNAL_DOWNLOAD_REJECTIONS_GET";
     body: { rejections: ExternalDownloadRejection[] };

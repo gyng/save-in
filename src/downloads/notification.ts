@@ -20,8 +20,17 @@ import type { ExtensionNotificationStream } from "./notification-runtime.ts";
 import {
   onDownloadChanged,
   onDownloadCreated,
+  onNotificationButtonClicked,
   onNotificationClicked,
 } from "./notification-events.ts";
+import { isStringKeyedRecord } from "../shared/util.ts";
+
+type NotificationButtonEvent = {
+  addListener(listener: (notificationId: string, buttonIndex: number) => void): void;
+};
+
+const isNotificationButtonEvent = (value: unknown): value is NotificationButtonEvent =>
+  isStringKeyedRecord(value) && typeof value.addListener === "function";
 export {
   recoverNotificationState,
   resetNotificationRecoveryState,
@@ -126,6 +135,22 @@ export const registerNotifier = () => {
       runEventTask(
         () => onNotificationClicked(notificationId),
         (error) => logPort.add("notification click event failed", String(error)),
+      ),
+    );
+  }
+  // Chrome-only Undo button: Firefox has no notifications.onButtonClicked, and
+  // its host type declarations omit the event, so this is a runtime probe
+  // rather than a typed property access. Still registered synchronously here —
+  // a worker woken by the button press must already have the handler.
+  const onButtonClicked: unknown = Reflect.get(
+    webExtensionApi.notifications ?? {},
+    "onButtonClicked",
+  );
+  if (isNotificationButtonEvent(onButtonClicked)) {
+    onButtonClicked.addListener((notificationId, buttonIndex) =>
+      runEventTask(
+        () => onNotificationButtonClicked(notificationId, buttonIndex),
+        (error) => logPort.add("notification button event failed", String(error)),
       ),
     );
   }
