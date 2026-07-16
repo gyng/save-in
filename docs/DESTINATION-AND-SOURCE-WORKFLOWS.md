@@ -99,8 +99,8 @@ Private activity is excluded from Save In History.
 
 ## Source-link sidecars
 
-Enable **Save a source link beside downloaded media** under **Options → Save as
-shortcuts** to create a shortcut beside a media file saved from the context menu
+Enable **Save a source link beside downloaded media** under **Options → Shortcut
+files** to create a shortcut beside a media file saved from the context menu
 or manually from Page Sources. The sidecar:
 
 - uses the selected shortcut format (`.url`, `.webloc`, `.desktop`, or `.html`);

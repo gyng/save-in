@@ -84,10 +84,10 @@ this condition.
 
 `sourcekind:` uses the shared Page Sources vocabulary: `image`, `video`,
 `audio`, `stream`, `document`, and `link`. The automatic page scanner always
-queues previewable HTTP(S) image, video, and audio elements. Three further
-content options each open one additional discovery channel, all off by
-default so existing rules keep matching embedded media only until a channel
-is turned on:
+queues previewable HTTP(S) image, video, and audio elements. Four further
+content options each open one additional discovery channel, and a fifth admits
+`data:` URLs through whichever channel found them. All are off by default so
+existing rules keep matching embedded media only until a channel is turned on:
 
 - **Include media that pages link to** adopts anchors (`<a href>`) the shared
   collector classifies as previewable media — `image`, `video`, or `audio` by
@@ -110,9 +110,11 @@ is turned on:
   through whatever channel discovered it: an inline image is embedded media and
   needs no other channel, while a `data:` anchor still needs its own anchor
   channel to be on. Because a `data:` URL has no path, `fileext:` and
-  `urlfileext:` are empty; Save In reads the mediatype from the URL header, so
-  `mediatype:`, `mime:`, and `:mimeext:` naming work (a URL with no parseable
-  mediatype is treated as `application/octet-stream`). Save In uses `download`
+  `urlfileext:` are empty; Save In reads the media type from the URL header into
+  `mime:`, so `mime:` matching and `:mimeext:` naming work (a URL with no
+  parseable media type is treated as `application/octet-stream`). Match the
+  header with `mime:`, not `mediatype:` — `mediatype:` carries the source kind
+  (`image`, `video`, …), so `mediatype: ^image/png$` never fires. Save In uses `download`
   as the neutral base filename and skips data-source rules that use payload-
   derived URL variables, or capture `sourceurl:`, `fileext:`, or `urlfileext:`
   into output; this keeps the payload out of filenames and History. `blob:` URLs

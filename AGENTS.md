@@ -15,9 +15,10 @@ production background entry and adds the browser-test command only to e2e
 builds.
 
 `background/main.ts` is the background composition root. Source is grouped by
-ownership under `background`, `config`, `downloads`, `i18n`, `menus`,
-`platform`, `routing`, and `shared`, plus the execution-context directories
-`content`, `entries`, `options`, and `vendor`. The import graph is acyclic and
+ownership under `automation`, `background`, `config`, `downloads`, `i18n`,
+`menus`, `platform`, `routing`, and `shared`, plus the execution-context
+directories `content`, `entries`, `offscreen`, `options`, and `vendor`. The
+import graph is acyclic and
 checked by `scripts/check-import-cycles.js`. Mutable cross-file state uses
 explicit records or owner-controlled live bindings such as `options`,
 `currentTab`, and `CURRENT_BROWSER`.
@@ -40,8 +41,8 @@ The main options tabstrip must wrap at every viewport width and must never be a
 horizontal or vertical scroll container; `scripts/check-css.js` enforces this.
 Native nesting is allowed for short state/pseudo-element groups; do not build
 deeply nested selector trees or create catch-all override stylesheets.
-`@scope` is documented as a future migration in `docs/UI.md`; do not use it for
-essential styling while Firefox 121 remains supported.
+`@scope` is documented as a future migration in `docs/UI.md`; `scripts/check-css.js`
+rejects it outright while Firefox 121 remains supported.
 
 **Build, ship, and browser tests target the staged bundle** in
 `dist/bundled-pkg`. `npm run typecheck` covers source and the TypeScript test
@@ -56,6 +57,10 @@ Execution contexts:
   callback-style `chrome.*` APIs, which work in both browsers.
 - **Options page** (`src/options/*`): talks to the background exclusively
   via `runtime.sendMessage` (never `getBackgroundPage()`, which MV3 lacks).
+- **Offscreen document** (`src/offscreen/offscreen.ts`, `src/offscreen.html`):
+  Chrome-only. Lends the service worker a DOM so a fetched download becomes a
+  blob object URL instead of a base64 data URL; it also hashes the same bytes
+  and runs Prompt API calls.
 
 Automatic Page Sources saves reuse the normal `filenamePatterns` routing
 language and editor. Eligibility is deliberately narrower than ordinary
@@ -371,7 +376,11 @@ vitest specifics (`test/**/*.test.ts`, typed; `tsc` covers them):
   that owns DOM/browser events (`path-editor.ts`/`path-editor-model.ts`,
   `rule-visual-editor.ts`/`rule-visual-editor-model.ts`,
   `syntax-editor.ts`/`syntax-editor-model.ts`,
-  `route-debugger.ts`/`route-debugger-model.ts`). `-state.ts` is reserved for
+  `route-debugger.ts`/`route-debugger-model.ts`).
+  `content/source-panel-model.ts` is the sole exception: page-DOM source
+  discovery is its subject matter, so it reads the document and its test runs
+  under jsdom. It is not licence to add DOM to any other `-model.ts`.
+  `-state.ts` is reserved for
   genuinely pure state containers with no DOM references (e.g.
   `field-save-state.ts`, `download-state.ts`); a module that queries or wires
   DOM is a controller/view file even if it tracks state, and should not use
@@ -379,7 +388,7 @@ vitest specifics (`test/**/*.test.ts`, typed; `tsc` covers them):
   `-panel.ts` names a module that wires one distinct options-page panel
   (`history-panel.ts`, `webhook-panel.ts`, `integration-panel.ts`), not any
   structurally-panel-shaped module. A per-layer `ports.ts` (`background/`,
-  `downloads/`, `options/core/`) is the intentional dependency-injection
+  `downloads/`, `routing/`) is the intentional dependency-injection
   pattern, not a naming collision. `shared/` hosts cross-context contracts and
   pure helpers only — a module belongs there because two or more directories
   that cannot legally import each other both need it, not because it is
@@ -443,8 +452,9 @@ vitest specifics (`test/**/*.test.ts`, typed; `tsc` covers them):
   listener setup already proves the value exists. Behavior at malformed or stale
   runtime boundaries belongs in a regression test when it has a meaningful
   failure mode.
-  Runtime globals must not reuse platform class names (that is why they are
-  `Notifier`/`RequestHeaders`, not `Notification`/`Headers`).
+  Runtime globals must not reuse platform class names such as `Notification` or
+  `Headers`; that is why `downloads/notification.ts` keeps the `Notifier`
+  spelling in `registerNotifier`.
 
 ## Release checklist
 

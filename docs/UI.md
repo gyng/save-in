@@ -37,8 +37,9 @@ Cascade layers are the supported ownership boundary for the declared Firefox
 121 and Chrome 123 minimums. Keep selectors local to their feature file and put
 cross-feature precedence in the layer order instead of escalating specificity.
 CSS `@scope` is a future simplification for component-local element selectors,
-but it must not carry essential styling until the minimum Firefox version is
-deliberately raised to a release that supports it.
+but the CSS policy rejects it outright — including behind a feature query —
+until the minimum Firefox version is deliberately raised to a release that
+supports it.
 
 ## Hierarchy
 
@@ -48,8 +49,8 @@ Tokens are CSS custom properties. Components consume semantic roles, never raw
 palette values or color literals.
 
 - Spacing: `--space-1` through `--space-6`, based on 4px.
-- Type: `--text-xs` through `--text-xl`; `--leading-ui`,
-  `--leading-copy`, and `--leading-code`.
+- Type: `--text-xs` through `--text-2xl`; `--leading-ui`, `--leading-copy`,
+  `--leading-reading`, and `--leading-code`.
 - Shape and size: control, compact-row, radius, dialog-radius, and content-width
   tokens.
 - Semantic color: page, raised, floating, border, control, text, muted, link,
