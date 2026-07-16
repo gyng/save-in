@@ -91,3 +91,28 @@ test("keeps the original when its persisted identity no longer matches", async (
   expect(global.browser.downloads.removeFile).not.toHaveBeenCalled();
   expect(history.setStatus).not.toHaveBeenCalled();
 });
+
+test("serializes concurrent completion observers for the same move", async () => {
+  await registerPendingHistoryMove(14, {
+    historyId: "old-history",
+    downloadId: 13,
+    filename: "old/photo.png",
+  });
+  let finishSearch!: (items: unknown[]) => void;
+  vi.mocked(global.browser.downloads.search).mockReturnValue(
+    new Promise((resolve) => {
+      finishSearch = resolve;
+    }) as never,
+  );
+
+  const first = completePendingHistoryMove(14);
+  const second = completePendingHistoryMove(14);
+  expect(second).toBe(first);
+  finishSearch([{ id: 13, filename: "/downloads/photo.png" }]);
+
+  await expect(Promise.all([first, second])).resolves.toEqual([
+    expect.objectContaining({ handled: true, oldRemoved: true }),
+    expect.objectContaining({ handled: true, oldRemoved: true }),
+  ]);
+  expect(global.browser.downloads.removeFile).toHaveBeenCalledTimes(1);
+});

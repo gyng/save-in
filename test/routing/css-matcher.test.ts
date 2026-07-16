@@ -24,7 +24,7 @@ test("rejects CSS matcher counts that cannot fit in a bounded attestation", () =
   expect(oneRuleResult.rules).toEqual([]);
   expect(oneRuleResult.errors).toEqual(
     expect.arrayContaining([
-      expect.objectContaining({ error: "a rule may contain at most 64 css: matchers" }),
+      expect.objectContaining({ message: "ruleTooManyCssSelectors", error: ".item-64" }),
     ]),
   );
 
@@ -36,7 +36,7 @@ test("rejects CSS matcher counts that cannot fit in a bounded attestation", () =
   expect(manyRulesResult.rules).toEqual([]);
   expect(manyRulesResult.errors).toEqual(
     expect.arrayContaining([
-      expect.objectContaining({ error: "routing rules may contain at most 256 css: matchers" }),
+      expect.objectContaining({ message: "ruleTooManyCssSelectors", error: ".item-256" }),
     ]),
   );
 });
