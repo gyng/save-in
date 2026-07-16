@@ -14,8 +14,15 @@ import {
 import { parseRulesCollecting } from "../../../src/routing/rule-parser.ts";
 import { options } from "../../../src/config/options-data.ts";
 import * as DownloadDisposition from "../../../src/downloads/download-disposition.ts";
+import { isPageContentSender } from "../../../src/background/messaging/protocol.ts";
 
 beforeEach(() => setupGlobals());
+
+test("malformed matching sender URLs cannot attest CSS selectors", () => {
+  expect(isPageContentSender({ tab: { url: "not a url" }, url: "not a url" }, "not a url")).toBe(
+    false,
+  );
+});
 
 describe("handleDownloadMessage", () => {
   const request = (overrides = {}) => ({
