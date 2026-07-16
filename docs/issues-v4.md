@@ -223,6 +223,11 @@ retryable) plus `a29a4467` (Referer-protected downloads reach the retry). That
 makes **8 of 11** open labels stale. **#125** ("Forward slash will open quick
 find") remains unassessed and needs a browser retest.
 
+**#135 is now confirmed stale rather than assumed stale** (see below): its label
+rests on *"blocked on `onDeterminingFilename`"*, and v4 resolves it without that
+API at all. That is the pattern to look for in the rest — a label recording a
+route that was blocked, kept after a different route was taken.
+
 ## #53, closed `wontfix` — reason held, silent half now fixed
 
 *"Ascii Character 160 causes issues in certain paths"* (U+00A0, non-breaking
@@ -492,6 +497,81 @@ years asking for precisely it, one leaving for a Chrome equivalent. Together
 with #106/#146/#152 that argues **do not retire** — and note the trap: while the
 option stays this hard to find, "no adoption" is a result we manufactured.
 
+## #43 / #126 / #135 — one capability, three reports
+
+All three are tagged together at `routing/variable.ts` for `:mimeext:`. They are
+really one ask — *get an extension when the URL will not give you one* — and v3
+could not do it at all: it has no `appendMimeExtension`, no `:mimeext:`, no MIME
+variables of any kind.
+
+**The tag points at the lesser mechanism.** `:mimeext:` is the manual version,
+usable only if you write a rule. What actually resolves all three is
+**`appendMimeExtension`**, which defaults to **on** (`config/option-defaults.ts`)
+and appends a Content-Type-derived extension whenever the finalized path has
+none (`downloads/download-plan.ts`, tested at
+`test/downloads/download-plan.test.ts:390`). No rule required.
+
+### #43 — FIXED, and better than asked
+
+*"Is there a way to auto apply an extension to a file without one?"* That is
+`appendMimeExtension`, on by default.
+
+The 2017 blocker was gyng's own: *"Firefox also doesn't seem to populate the mime
+field in the download item right now, so that will require yet another request
+to get the mimetype."* v4 makes that request — `resolveMime` HEADs the URL.
+
+Better than the ask on two counts: DanaMW wanted to hand-switch a rule between
+`.jpg` and `.mp4` per session, and gyng's offered workaround was a regex that
+*"doesn't account for the file mimetype, so it can sometimes get it wrong."* v4
+reads the real Content-Type, so there is no rule to switch and no wrong guess.
+**The reply must tell them to delete that workaround** — it is still in their
+config, and its `filename: ^[^\.]+[^\.]{0,5}$` rules will now fight the
+automatic extension.
+
+### #135 — FIXED, and `blocked upstream` is wrong
+
+*"This particular site has urls to image files which end in '/' or 'full' … the
+file is downloaded as a blank file because it has no extension assigned to it."*
+
+Labelled `blocked upstream` on gyng's reading: *"I believe this is blocked on
+`onDeterminingFilename`. WebExtensions in FF don't have the same access as the
+browser does to the filename."*
+
+**v4 never needed `onDeterminingFilename` for this.** Firefox HEADs for
+`Content-Disposition` (`downloads/download-disposition.ts`) and, failing that,
+`appendMimeExtension` derives the extension from Content-Type. Their `…/full`
+URL finalizes with no extension, so the HEAD fires and `image/jpeg` becomes
+`jpg`. It was never blocked on Mozilla — it needed the extra request gyng
+identified in #43 two years earlier. **The label outlived its reason**, which is
+the same shape as the seven other stale ones.
+
+Not verified: Tynach's second comment, *"the `mediatype` matcher never seems to
+be filled in at all"*. v4 passes `info.mediaType` from the click
+(`background/menu-click.ts`), but I did not prove his symptom is gone. Do not
+answer that half without checking it.
+
+### #126 — PARTIAL, and the reporter's diagnosis was wrong
+
+Two complaints, and they need different answers:
+
+1. `cdnb.artstation.com/…/mei-mo-af-small.jpg?1530540305` → *"Failed - Download
+   Error"*. That path already ends in `.jpg`, so naming was never the problem —
+   this is not the `:mimeext:` bug it is filed under. edjroot tested **both**
+   URLs on Chrome in 2020: *"it worked fine."* No repro, no identified cause,
+   possibly never Save In's.
+2. Squarespace `…/Squarespace+Coffee+Shop+Website+Example?format=1500w` → the
+   path carries no extension, so this **is** fixed by `appendMimeExtension`.
+
+But the reporter diagnosed (2) as a *resolution* bug: *"I assume the extension
+just removes the parameter and thus saves the low resolution image."* That is
+wrong, and was wrong then. `getFilenameFromUrl` reads `new URL(url).pathname` —
+the query is dropped from the **name** only; the download keeps the full URL. He
+was getting the 1500w bytes in a badly-named file and blamed the wrong thing.
+
+So a "fixed by `:mimeext:`" close answers the real defect and contradicts the
+complaint as written. The reply has to say the parameter was never stripped from
+the download, or it reads as a non-answer. Ask about (1) or close on (2) alone.
+
 ## Not yet validated
 
 - **43 open issues are not cited by the 4.0.0 changelog at all** and were never
@@ -504,10 +584,6 @@ option stays this hard to find, "no adoption" is a result we manufactured.
   saving" — that is `(tab: close)`, shipped for #115), **#66** ("Not work on
   pixiv" — there is a pximg Referer preset), **#28** (a test cites it for the
   resumable-interruption fix).
-- **#126 / #135 / #43** are tagged together at `routing/variable.ts` for
-  `:mimeext:` — *"useful for naming extensionless CDN/query-suffix URLs"* — and
-  cited in no changelog entry. #135 still carries `blocked upstream` while
-  having a fix in the tree.
 - **#104** (close as by-design), **#207 / #143** (retest asks).
 - Non-goals whose reasons cite external facts and can age out silently:
   **#148** ("no WebExtension API exists"), **#121** (clipboard). Neither is

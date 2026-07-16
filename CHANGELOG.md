@@ -90,6 +90,11 @@ rules.
   `:pagetitleslug:`, `:pagetitlesnake:`, `:sourcepath:`, and `:tld:`
   variables. `:pagerootdomain:` and `:sourcerootdomain:` give the
   registrable domain without its subdomains (#221).
+- A save whose filename has no extension now gets one from the server's
+  Content-Type (#43, #126, #135). Extensionless CDN and query-suffixed URLs used
+  to save bare, leaving a file the system would not open. This is on by default
+  and needs no rule; `:mimeext:` and `actualfileext:` expose the same resolved
+  extension to rules that want it.
 - Page titles now come from the clicked tab (#172, #188). Server-provided
   names, including extensionless and PHP download URLs, now reach routing:
   Firefox resolves the `Content-Disposition` name before rules run, and Chrome
