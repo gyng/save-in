@@ -295,7 +295,7 @@ test("uses one shared container for each external integration", () => {
   const integrations = document.querySelectorAll(
     "#advanced-integrations > .advanced-integration-section",
   );
-  expect(integrations).toHaveLength(3);
+  expect(integrations).toHaveLength(4);
   expect(document.querySelector(".webmcp-developer-details")?.hasAttribute("open")).toBe(false);
   expect(document.querySelector("#webhook-state-badge")?.getAttribute("data-state")).toBe("off");
   const pending = document.querySelector("#external-download-rejections");
@@ -303,6 +303,22 @@ test("uses one shared container for each external integration", () => {
   expect(pending?.querySelector("#external-download-rejection-status")?.getAttribute("role")).toBe(
     "status",
   );
+});
+
+test("keeps the on-device rule assistant opt-in, ephemeral, and review-first", () => {
+  const document = documentForOptions();
+  const enabled = document.querySelector<HTMLInputElement>("#promptAssistantEnabled");
+  const prompt = document.querySelector<HTMLTextAreaElement>("#prompt-assistant-input");
+  const status = document.querySelector("#prompt-assistant-status");
+  const result = document.querySelector("#prompt-assistant-result");
+
+  expect(enabled?.getAttribute("aria-describedby")).toBe("prompt-assistant-enable-help");
+  expect(prompt?.hasAttribute("data-no-autosave")).toBe(true);
+  expect(prompt?.getAttribute("aria-describedby")).toBe("prompt-assistant-prompt-help");
+  expect(status?.getAttribute("role")).toBe("status");
+  expect(status?.getAttribute("aria-live")).toBe("polite");
+  expect(result?.hasAttribute("hidden")).toBe(true);
+  expect(document.querySelector("#prompt-assistant-form")?.tagName).toBe("FORM");
 });
 
 test("marks conditional tab-context requirements without describing supported controls", () => {

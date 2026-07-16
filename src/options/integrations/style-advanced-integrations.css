@@ -45,7 +45,7 @@
   font-family: var(--font-mono);
 }
 
-.webhook-enable-row {
+:is(.webhook-enable-row, .prompt-assistant-enable-row) {
   display: flex;
   align-items: flex-start;
   gap: var(--space-2);
@@ -56,11 +56,11 @@
   background: var(--panel-bg);
 }
 
-.webhook-enable-row > input {
+:is(.webhook-enable-row, .prompt-assistant-enable-row) > input {
   margin-top: 3px;
 }
 
-.webhook-enable-row label {
+:is(.webhook-enable-row, .prompt-assistant-enable-row) label {
   margin: 0;
   padding: 0;
 }

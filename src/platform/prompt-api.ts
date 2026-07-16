@@ -56,10 +56,16 @@ export const promptAvailability = async (): Promise<PromptAvailability> => {
 // Runs one prompt against the on-device model, or returns null when the model
 // is not ready so the caller falls back to hand-authoring. Creates and
 // destroys a session per call; batch callers should hold their own session.
-export const runPrompt = async (input: string): Promise<string | null> => {
+export const runPrompt = async (
+  input: string,
+  options: { allowDownload?: boolean } = {},
+): Promise<string | null> => {
   const model = getLanguageModel();
   if (!model) return null;
-  if ((await model.availability()) !== "available") return null;
+  const availability = await model.availability();
+  if (availability !== "available" && !(options.allowDownload && availability === "downloadable")) {
+    return null;
+  }
   const session = await model.create();
   try {
     return await session.prompt(input);

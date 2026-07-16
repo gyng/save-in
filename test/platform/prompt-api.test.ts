@@ -72,6 +72,14 @@ describe("prompt-api capability layer", () => {
     expect(session.prompt).not.toHaveBeenCalled();
   });
 
+  test("allows a user-activated caller to start a downloadable model", async () => {
+    const session = install("downloadable");
+    await expect(runPrompt("suggest a rule", { allowDownload: true })).resolves.toBe(
+      "a suggested rule",
+    );
+    expect(session.prompt).toHaveBeenCalledWith("suggest a rule");
+  });
+
   test("destroys the session even when the prompt itself rejects", async () => {
     const session: Session = {
       prompt: vi.fn(async () => {

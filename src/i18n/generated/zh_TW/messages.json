@@ -3949,5 +3949,43 @@
   },
   "routeDebuggerRenamedName": {
     "message": "重新命名後的名稱"
-  }
+  },
+  "promptAssistantTitle": { "message": "裝置端規則助理" },
+  "promptAssistantIntro": { "message": "描述檔案的儲存位置，取得一條可供檢查的路由規則。" },
+  "promptAssistantEnable": { "message": "啟用裝置端助理" },
+  "promptAssistantEnableHelp": {
+    "message": "關閉後，Save In 不會檢查模型、建立工作階段或傳送提示。"
+  },
+  "promptAssistantStatusLabel": { "message": "狀態" },
+  "promptAssistantPromptLabel": { "message": "描述路由規則" },
+  "promptAssistantPromptPlaceholder": {
+    "message": "將 example.com 的 PNG 檔案儲存到 Images/example"
+  },
+  "promptAssistantPromptHelp": {
+    "message": "此要求為全域且不會儲存。助理不會讀取您開啟的分頁；請說明所需的網站、檔案類型和資料夾。"
+  },
+  "promptAssistantSuggest": { "message": "建議規則" },
+  "promptAssistantGeneratedDraft": { "message": "產生的草稿" },
+  "promptAssistantAddToRules": { "message": "加入規則" },
+  "promptAssistantClearDraft": { "message": "清除草稿" },
+  "promptAssistantPrivacy": {
+    "message": "Chrome 會在此裝置上執行模型。Save In 不會將提示或結果傳送到伺服器。產生的規則絕不會自動套用。"
+  },
+  "promptAssistantStatusOff": { "message": "已關閉 — 不檢查模型或傳送提示" },
+  "promptAssistantStatusChecking": { "message": "正在檢查裝置端模型…" },
+  "promptAssistantStatusReady": { "message": "已在此裝置上就緒" },
+  "promptAssistantStatusDownloadable": { "message": "建議第一條規則時會下載模型" },
+  "promptAssistantStatusDownloading": { "message": "Chrome 正在下載裝置端模型" },
+  "promptAssistantStatusUnavailable": { "message": "此瀏覽器或裝置無法使用" },
+  "promptAssistantStatusWorking": { "message": "正在建立並檢查草稿…" },
+  "promptAssistantStatusInvalid": {
+    "message": "草稿需要重試：$ERROR$",
+    "placeholders": { "error": { "content": "$1", "example": "The rule needs an into clause" } }
+  },
+  "promptAssistantStatusFailed": {
+    "message": "無法建立草稿：$ERROR$",
+    "placeholders": { "error": { "content": "$1", "example": "The model session ended" } }
+  },
+  "promptAssistantStatusDraftReady": { "message": "草稿已就緒 — 加入前請先檢查" },
+  "promptAssistantStatusAdded": { "message": "已作為未儲存的草稿加入規則編輯器" }
 }

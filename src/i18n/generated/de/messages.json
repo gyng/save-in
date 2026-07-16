@@ -3949,5 +3949,53 @@
   },
   "routeDebuggerRenamedName": {
     "message": "Umbenannter Name"
+  },
+  "promptAssistantTitle": { "message": "Regelassistent auf dem Gerät" },
+  "promptAssistantIntro": {
+    "message": "Beschreiben Sie, wohin Dateien gespeichert werden sollen, und erhalten Sie eine Routing-Regel zur Überprüfung."
+  },
+  "promptAssistantEnable": { "message": "Assistenten auf dem Gerät aktivieren" },
+  "promptAssistantEnableHelp": {
+    "message": "Wenn diese Option aus ist, prüft Save In das Modell nicht, erstellt keine Sitzungen und sendet keine Eingaben."
+  },
+  "promptAssistantStatusLabel": { "message": "Status" },
+  "promptAssistantPromptLabel": { "message": "Eine Routing-Regel beschreiben" },
+  "promptAssistantPromptPlaceholder": {
+    "message": "PNG-Dateien von example.com unter Images/example speichern"
+  },
+  "promptAssistantPromptHelp": {
+    "message": "Diese Anfrage gilt global und wird nicht gespeichert. Der Assistent liest Ihre geöffneten Tabs nicht; geben Sie die gewünschte Website, den Dateityp und den Ordner an."
+  },
+  "promptAssistantSuggest": { "message": "Regel vorschlagen" },
+  "promptAssistantGeneratedDraft": { "message": "Erzeugter Entwurf" },
+  "promptAssistantAddToRules": { "message": "Zu Regeln hinzufügen" },
+  "promptAssistantClearDraft": { "message": "Entwurf löschen" },
+  "promptAssistantPrivacy": {
+    "message": "Chrome führt das Modell auf diesem Gerät aus. Save In sendet weder die Eingabe noch das Ergebnis an einen Server. Erzeugte Regeln werden nie automatisch angewendet."
+  },
+  "promptAssistantStatusOff": { "message": "Aus — keine Modellprüfungen oder Eingaben" },
+  "promptAssistantStatusChecking": { "message": "Modell auf dem Gerät wird geprüft…" },
+  "promptAssistantStatusReady": { "message": "Auf diesem Gerät bereit" },
+  "promptAssistantStatusDownloadable": {
+    "message": "Das Modell wird heruntergeladen, wenn Sie Ihre erste Regel vorschlagen"
+  },
+  "promptAssistantStatusDownloading": {
+    "message": "Chrome lädt das Modell auf das Gerät herunter"
+  },
+  "promptAssistantStatusUnavailable": {
+    "message": "In diesem Browser oder auf diesem Gerät nicht verfügbar"
+  },
+  "promptAssistantStatusWorking": { "message": "Entwurf wird erstellt und geprüft…" },
+  "promptAssistantStatusInvalid": {
+    "message": "Der Entwurf muss überarbeitet werden: $ERROR$",
+    "placeholders": { "error": { "content": "$1", "example": "The rule needs an into clause" } }
+  },
+  "promptAssistantStatusFailed": {
+    "message": "Entwurf konnte nicht erstellt werden: $ERROR$",
+    "placeholders": { "error": { "content": "$1", "example": "The model session ended" } }
+  },
+  "promptAssistantStatusDraftReady": { "message": "Entwurf bereit — vor dem Hinzufügen prüfen" },
+  "promptAssistantStatusAdded": {
+    "message": "Als ungespeicherter Entwurf im Regel-Editor hinzugefügt"
   }
 }

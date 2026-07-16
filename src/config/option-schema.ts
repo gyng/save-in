@@ -210,6 +210,11 @@ export const OPTION_KEYS = defineOptions([
     type: OPTION_TYPES.BOOL,
     default: OPTION_DEFAULTS.notifyOnLinkPreferred,
   },
+  {
+    name: "promptAssistantEnabled",
+    type: OPTION_TYPES.BOOL,
+    default: OPTION_DEFAULTS.promptAssistantEnabled,
+  },
   { name: "page", type: OPTION_TYPES.BOOL, default: OPTION_DEFAULTS.page },
   {
     name: "paths",

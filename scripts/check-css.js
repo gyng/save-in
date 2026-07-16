@@ -268,6 +268,7 @@ const styleLayers = [
     [
       "core/style-advanced.css",
       "integrations/style-advanced-integrations.css",
+      "integrations/style-prompt-assistant.css",
       "core/style-advanced-responsive.css",
     ],
   ],

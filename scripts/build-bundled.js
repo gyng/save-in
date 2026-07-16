@@ -42,6 +42,7 @@ const optionStyleFiles = [
   "dialogs/style-about.css",
   "core/style-advanced.css",
   "integrations/style-advanced-integrations.css",
+  "integrations/style-prompt-assistant.css",
   "core/style-advanced-responsive.css",
   "core/style-automation.css",
   "styles/style-base.css",

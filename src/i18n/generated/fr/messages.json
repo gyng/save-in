@@ -3949,5 +3949,55 @@
   },
   "routeDebuggerRenamedName": {
     "message": "Nom renommé"
+  },
+  "promptAssistantTitle": { "message": "Assistant de règles sur l’appareil" },
+  "promptAssistantIntro": {
+    "message": "Décrivez où enregistrer les fichiers et obtenez une règle de routage à vérifier."
+  },
+  "promptAssistantEnable": { "message": "Activer l’assistant sur l’appareil" },
+  "promptAssistantEnableHelp": {
+    "message": "Lorsque cette option est désactivée, Save In ne vérifie pas le modèle, ne crée aucune session et n’envoie aucune instruction."
+  },
+  "promptAssistantStatusLabel": { "message": "État" },
+  "promptAssistantPromptLabel": { "message": "Décrire une règle de routage" },
+  "promptAssistantPromptPlaceholder": {
+    "message": "Enregistrer les fichiers PNG de example.com dans Images/example"
+  },
+  "promptAssistantPromptHelp": {
+    "message": "Cette demande est globale et n’est pas enregistrée. L’assistant ne lit pas vos onglets ouverts ; indiquez le site, le type de fichier et le dossier souhaités."
+  },
+  "promptAssistantSuggest": { "message": "Suggérer une règle" },
+  "promptAssistantGeneratedDraft": { "message": "Brouillon généré" },
+  "promptAssistantAddToRules": { "message": "Ajouter aux règles" },
+  "promptAssistantClearDraft": { "message": "Effacer le brouillon" },
+  "promptAssistantPrivacy": {
+    "message": "Chrome exécute le modèle sur cet appareil. Save In n’envoie ni l’instruction ni le résultat à un serveur. Les règles générées ne sont jamais appliquées automatiquement."
+  },
+  "promptAssistantStatusOff": {
+    "message": "Désactivé — aucune vérification du modèle ni instruction"
+  },
+  "promptAssistantStatusChecking": { "message": "Vérification du modèle sur l’appareil…" },
+  "promptAssistantStatusReady": { "message": "Prêt sur cet appareil" },
+  "promptAssistantStatusDownloadable": {
+    "message": "Le modèle est téléchargé lorsque vous suggérez votre première règle"
+  },
+  "promptAssistantStatusDownloading": { "message": "Chrome télécharge le modèle sur l’appareil" },
+  "promptAssistantStatusUnavailable": {
+    "message": "Indisponible dans ce navigateur ou sur cet appareil"
+  },
+  "promptAssistantStatusWorking": { "message": "Création et vérification d’un brouillon…" },
+  "promptAssistantStatusInvalid": {
+    "message": "Le brouillon doit être réessayé : $ERROR$",
+    "placeholders": { "error": { "content": "$1", "example": "The rule needs an into clause" } }
+  },
+  "promptAssistantStatusFailed": {
+    "message": "Impossible de créer un brouillon : $ERROR$",
+    "placeholders": { "error": { "content": "$1", "example": "The model session ended" } }
+  },
+  "promptAssistantStatusDraftReady": {
+    "message": "Brouillon prêt — vérifiez-le avant de l’ajouter"
+  },
+  "promptAssistantStatusAdded": {
+    "message": "Ajouté comme brouillon non enregistré dans l’éditeur de règles"
   }
 }

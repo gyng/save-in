@@ -3949,5 +3949,57 @@
   },
   "routeDebuggerRenamedName": {
     "message": "Nome rinominato"
+  },
+  "promptAssistantTitle": { "message": "Assistente regole sul dispositivo" },
+  "promptAssistantIntro": {
+    "message": "Descrivi dove salvare i file e ottieni una regola di instradamento da controllare."
+  },
+  "promptAssistantEnable": { "message": "Attiva l’assistente sul dispositivo" },
+  "promptAssistantEnableHelp": {
+    "message": "Quando è disattivato, Save In non controlla il modello, non crea sessioni e non invia richieste."
+  },
+  "promptAssistantStatusLabel": { "message": "Stato" },
+  "promptAssistantPromptLabel": { "message": "Descrivi una regola di instradamento" },
+  "promptAssistantPromptPlaceholder": {
+    "message": "Salva i file PNG di example.com in Images/example"
+  },
+  "promptAssistantPromptHelp": {
+    "message": "Questa richiesta è globale e non viene salvata. L’assistente non legge le schede aperte; includi il sito, il tipo di file e la cartella desiderati."
+  },
+  "promptAssistantSuggest": { "message": "Suggerisci regola" },
+  "promptAssistantGeneratedDraft": { "message": "Bozza generata" },
+  "promptAssistantAddToRules": { "message": "Aggiungi alle regole" },
+  "promptAssistantClearDraft": { "message": "Cancella bozza" },
+  "promptAssistantPrivacy": {
+    "message": "Chrome esegue il modello su questo dispositivo. Save In non invia la richiesta o il risultato a un server. Le regole generate non vengono mai applicate automaticamente."
+  },
+  "promptAssistantStatusOff": {
+    "message": "Disattivato — nessun controllo del modello o richiesta"
+  },
+  "promptAssistantStatusChecking": { "message": "Controllo del modello sul dispositivo…" },
+  "promptAssistantStatusReady": { "message": "Pronto su questo dispositivo" },
+  "promptAssistantStatusDownloadable": {
+    "message": "Il modello viene scaricato quando suggerisci la prima regola"
+  },
+  "promptAssistantStatusDownloading": {
+    "message": "Chrome sta scaricando il modello sul dispositivo"
+  },
+  "promptAssistantStatusUnavailable": {
+    "message": "Non disponibile in questo browser o dispositivo"
+  },
+  "promptAssistantStatusWorking": { "message": "Creazione e controllo di una bozza…" },
+  "promptAssistantStatusInvalid": {
+    "message": "La bozza richiede un altro tentativo: $ERROR$",
+    "placeholders": { "error": { "content": "$1", "example": "The rule needs an into clause" } }
+  },
+  "promptAssistantStatusFailed": {
+    "message": "Impossibile creare una bozza: $ERROR$",
+    "placeholders": { "error": { "content": "$1", "example": "The model session ended" } }
+  },
+  "promptAssistantStatusDraftReady": {
+    "message": "Bozza pronta — controllala prima di aggiungerla"
+  },
+  "promptAssistantStatusAdded": {
+    "message": "Aggiunta come bozza non salvata nell’editor delle regole"
   }
 }

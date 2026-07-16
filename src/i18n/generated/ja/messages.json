@@ -3949,5 +3949,53 @@
   },
   "routeDebuggerRenamedName": {
     "message": "変更後の名前"
-  }
+  },
+  "promptAssistantTitle": { "message": "デバイス上のルールアシスタント" },
+  "promptAssistantIntro": {
+    "message": "ファイルの保存先を説明すると、確認用の振り分けルールを1つ提案します。"
+  },
+  "promptAssistantEnable": { "message": "デバイス上のアシスタントを有効にする" },
+  "promptAssistantEnableHelp": {
+    "message": "オフの場合、Save In はモデルの確認、セッションの作成、プロンプトの送信を行いません。"
+  },
+  "promptAssistantStatusLabel": { "message": "状態" },
+  "promptAssistantPromptLabel": { "message": "振り分けルールを説明" },
+  "promptAssistantPromptPlaceholder": {
+    "message": "example.com の PNG ファイルを Images/example に保存"
+  },
+  "promptAssistantPromptHelp": {
+    "message": "このリクエストはすべてのタブに共通で、保存されません。アシスタントは開いているタブを読み取りません。対象サイト、ファイル形式、保存先フォルダーを入力してください。"
+  },
+  "promptAssistantSuggest": { "message": "ルールを提案" },
+  "promptAssistantGeneratedDraft": { "message": "生成された下書き" },
+  "promptAssistantAddToRules": { "message": "ルールに追加" },
+  "promptAssistantClearDraft": { "message": "下書きを消去" },
+  "promptAssistantPrivacy": {
+    "message": "Chrome はこのデバイス上でモデルを実行します。Save In はプロンプトや結果をサーバーに送信しません。生成されたルールが自動的に適用されることはありません。"
+  },
+  "promptAssistantStatusOff": { "message": "オフ — モデルの確認もプロンプトの送信も行いません" },
+  "promptAssistantStatusChecking": { "message": "デバイス上のモデルを確認しています…" },
+  "promptAssistantStatusReady": { "message": "このデバイスで使用できます" },
+  "promptAssistantStatusDownloadable": {
+    "message": "最初のルールを提案するときにモデルをダウンロードします"
+  },
+  "promptAssistantStatusDownloading": {
+    "message": "Chrome がデバイス上のモデルをダウンロードしています"
+  },
+  "promptAssistantStatusUnavailable": {
+    "message": "このブラウザーまたはデバイスでは利用できません"
+  },
+  "promptAssistantStatusWorking": { "message": "下書きを作成して確認しています…" },
+  "promptAssistantStatusInvalid": {
+    "message": "下書きの再生成が必要です：$ERROR$",
+    "placeholders": { "error": { "content": "$1", "example": "The rule needs an into clause" } }
+  },
+  "promptAssistantStatusFailed": {
+    "message": "下書きを作成できませんでした：$ERROR$",
+    "placeholders": { "error": { "content": "$1", "example": "The model session ended" } }
+  },
+  "promptAssistantStatusDraftReady": {
+    "message": "下書きの準備ができました — 追加する前に確認してください"
+  },
+  "promptAssistantStatusAdded": { "message": "未保存の下書きとしてルールエディターに追加しました" }
 }

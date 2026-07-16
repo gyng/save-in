@@ -83,6 +83,8 @@ export const OptionsManagement: OptionsManagementApi = {
     notifyOnRuleMatch: "Notify when a routing rule matches.",
     notifyOnSuccess: "Notify when a download completes.",
     notifyOnLinkPreferred: "Notify when a link was saved instead of the source.",
+    promptAssistantEnabled:
+      "Enable the experimental on-device assistant for drafting routing rules.",
     page: "Enable saving of the current page.",
     paths: "The directory menu structure (one path per line; '>' for submenus).",
     prompt: "Always open the Save As dialog.",

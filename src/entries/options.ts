@@ -27,11 +27,13 @@ import "../options/ui/click-to-copy.ts";
 import "../options/syntax-editor/autocomplete.ts";
 import { setupPathEditor } from "../options/path-editor/path-editor.ts";
 import { setupRuleBuilder } from "../options/rule-editor/rule-builder.ts";
+import { appendRule } from "../options/rule-editor/rule-builder.ts";
 import { setupOptionsReferences } from "../options/core/options-reference.ts";
 import { setupTabs } from "../options/core/tabs.ts";
 import { setupOptionSearch } from "../options/core/option-search.ts";
 import { setupSourceShortcut } from "../options/core/source-shortcut.ts";
 import { setupWebMcpStatus } from "../options/integrations/webmcp.ts";
+import { setupPromptAssistantPanel } from "../options/integrations/prompt-assistant-panel.ts";
 import { setupAboutDialog } from "../options/dialogs/about-dialog.ts";
 import { setupPrivacyDialog } from "../options/dialogs/privacy-dialog.ts";
 import { setupLanguageSelector } from "../options/core/language-selector.ts";
@@ -101,6 +103,7 @@ document.addEventListener(
       setupLanguageSelector();
       void setupWelcomeDialog(undefined, undefined, applyWelcomePreset);
       await optionsReady;
+      setupPromptAssistantPanel(getMessage, { appendRule });
       setupSourceRuleDraft();
       await applySourceRuleDraft();
     } finally {

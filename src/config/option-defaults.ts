@@ -24,6 +24,7 @@ export const OPTION_DEFAULTS = {
   notifyOnRuleMatch: true,
   notifyOnSuccess: true,
   notifyOnLinkPreferred: true,
+  promptAssistantEnabled: false,
   page: true,
   paths: ". // (alias: Downloads)\nImages\nVideos\nAudio\nDocuments",
   prompt: false,

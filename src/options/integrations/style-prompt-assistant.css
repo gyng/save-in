@@ -1,0 +1,76 @@
+/* ── Advanced → On-device rule assistant ─────────────────────────── */
+
+.prompt-assistant-form {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.prompt-assistant-form > label,
+.prompt-assistant-form > .caption,
+.prompt-assistant-privacy {
+  margin: 0;
+}
+
+.tab-panel #prompt-assistant-input {
+  inline-size: 100%;
+  max-inline-size: none;
+  min-block-size: 6.5rem;
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--font-stack);
+  line-height: var(--leading-copy);
+  resize: vertical;
+}
+
+.prompt-assistant-status-row {
+  padding: 0;
+}
+
+.prompt-assistant-status-row .dev-api-value {
+  font-family: var(--font-stack);
+  word-break: normal;
+}
+
+#prompt-assistant-status[data-state="ready"],
+#prompt-assistant-status[data-state="success"] {
+  color: var(--success-fg);
+}
+
+#prompt-assistant-status[data-state="error"] {
+  color: var(--error-fg);
+}
+
+.prompt-assistant-result {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--panel-border);
+  border-inline-start: 3px solid var(--color-accent);
+  border-radius: var(--radius);
+  background: var(--panel-bg);
+}
+
+.prompt-assistant-result > h5 {
+  margin: 0;
+}
+
+.prompt-assistant-result pre {
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  margin: 0;
+  padding: var(--space-2) 0;
+  font-size: var(--text-base);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.prompt-assistant-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+@media (forced-colors: active) {
+  .prompt-assistant-result {
+    border-inline-start-color: Highlight;
+  }
+}

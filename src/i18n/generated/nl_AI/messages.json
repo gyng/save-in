@@ -3949,5 +3949,53 @@
   },
   "routeDebuggerRenamedName": {
     "message": "Hernoemde naam"
+  },
+  "promptAssistantTitle": { "message": "Regelassistent op het apparaat" },
+  "promptAssistantIntro": {
+    "message": "Beschrijf waar bestanden naartoe moeten en ontvang één routeringsregel om te controleren."
+  },
+  "promptAssistantEnable": { "message": "Assistent op het apparaat inschakelen" },
+  "promptAssistantEnableHelp": {
+    "message": "Als dit uitstaat, controleert Save In het model niet, maakt het geen sessies en verzendt het geen prompts."
+  },
+  "promptAssistantStatusLabel": { "message": "Status" },
+  "promptAssistantPromptLabel": { "message": "Beschrijf een routeringsregel" },
+  "promptAssistantPromptPlaceholder": {
+    "message": "PNG-bestanden van example.com opslaan in Images/example"
+  },
+  "promptAssistantPromptHelp": {
+    "message": "Deze aanvraag is globaal en wordt niet opgeslagen. De assistent leest uw open tabbladen niet; vermeld de gewenste site, het bestandstype en de map."
+  },
+  "promptAssistantSuggest": { "message": "Regel voorstellen" },
+  "promptAssistantGeneratedDraft": { "message": "Gegenereerd concept" },
+  "promptAssistantAddToRules": { "message": "Aan regels toevoegen" },
+  "promptAssistantClearDraft": { "message": "Concept wissen" },
+  "promptAssistantPrivacy": {
+    "message": "Chrome voert het model op dit apparaat uit. Save In verzendt de prompt of het resultaat niet naar een server. Gegenereerde regels worden nooit automatisch toegepast."
+  },
+  "promptAssistantStatusOff": { "message": "Uit — geen modelcontroles of prompts" },
+  "promptAssistantStatusChecking": { "message": "Model op het apparaat controleren…" },
+  "promptAssistantStatusReady": { "message": "Gereed op dit apparaat" },
+  "promptAssistantStatusDownloadable": {
+    "message": "Het model wordt gedownload wanneer u uw eerste regel voorstelt"
+  },
+  "promptAssistantStatusDownloading": { "message": "Chrome downloadt het model op het apparaat" },
+  "promptAssistantStatusUnavailable": {
+    "message": "Niet beschikbaar in deze browser of op dit apparaat"
+  },
+  "promptAssistantStatusWorking": { "message": "Concept maken en controleren…" },
+  "promptAssistantStatusInvalid": {
+    "message": "Het concept moet opnieuw worden geprobeerd: $ERROR$",
+    "placeholders": { "error": { "content": "$1", "example": "The rule needs an into clause" } }
+  },
+  "promptAssistantStatusFailed": {
+    "message": "Kan geen concept maken: $ERROR$",
+    "placeholders": { "error": { "content": "$1", "example": "The model session ended" } }
+  },
+  "promptAssistantStatusDraftReady": {
+    "message": "Concept gereed — controleer het voordat u het toevoegt"
+  },
+  "promptAssistantStatusAdded": {
+    "message": "Als niet-opgeslagen concept toegevoegd aan de regeleditor"
   }
 }

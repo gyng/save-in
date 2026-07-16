@@ -36,6 +36,7 @@
 @import url("path-editor/style-editor-responsive.css") layer(editors);
 @import url("core/style-advanced.css") layer(advanced);
 @import url("integrations/style-advanced-integrations.css") layer(advanced);
+@import url("integrations/style-prompt-assistant.css") layer(advanced);
 @import url("core/style-advanced-responsive.css") layer(advanced);
 @import url("history/style-history.css") layer(history);
 @import url("history/style-history-metadata.css") layer(history);

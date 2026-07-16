@@ -4924,6 +4924,104 @@
     "description": "Accessible action for inserting a variable or clause into an editor. Used in src/options/path-editor-insert-menu.ts and src/options/variables-preview.ts.",
     "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
   },
+  "promptAssistantTitle": {
+    "message": "On-device rule assistant",
+    "description": "Heading for the experimental local rule-authoring assistant in Advanced settings. Used in src/options/options.html."
+  },
+  "promptAssistantIntro": {
+    "message": "Describe where files should go and get one routing rule to review.",
+    "description": "Introduction for the experimental local rule-authoring assistant. Used in src/options/options.html."
+  },
+  "promptAssistantEnable": {
+    "message": "Enable the on-device assistant",
+    "description": "Opt-in checkbox for the experimental local rule-authoring assistant. Used in src/options/options.html."
+  },
+  "promptAssistantEnableHelp": {
+    "message": "When off, Save In does not check the model, create sessions, or send prompts.",
+    "description": "Explains the cost-free disabled state of the experimental local rule-authoring assistant. Used in src/options/options.html."
+  },
+  "promptAssistantStatusLabel": {
+    "message": "Status",
+    "description": "Status row label for the experimental local rule-authoring assistant. Used in src/options/options.html."
+  },
+  "promptAssistantPromptLabel": {
+    "message": "Describe a routing rule",
+    "description": "Label for the global prompt input in the experimental local rule-authoring assistant. Used in src/options/options.html."
+  },
+  "promptAssistantPromptPlaceholder": {
+    "message": "Save PNG files from example.com in Images/example",
+    "description": "Example request shown in the experimental rule-assistant prompt input. Used in src/options/options.html."
+  },
+  "promptAssistantPromptHelp": {
+    "message": "This request is global and is not saved. The assistant does not read your open tabs; include the site, file type, and folder you want.",
+    "description": "Scope and persistence explanation below the experimental rule-assistant prompt. Used in src/options/options.html."
+  },
+  "promptAssistantSuggest": {
+    "message": "Suggest rule",
+    "description": "Action that asks the local model to draft one routing rule. Used in src/options/options.html."
+  },
+  "promptAssistantGeneratedDraft": {
+    "message": "Generated draft",
+    "description": "Heading above the rule produced by the experimental local assistant. Used in src/options/options.html."
+  },
+  "promptAssistantAddToRules": {
+    "message": "Add to rules",
+    "description": "Action that appends a validated generated rule as an unsaved editor draft. Used in src/options/options.html."
+  },
+  "promptAssistantClearDraft": {
+    "message": "Clear draft",
+    "description": "Action that dismisses a generated rule draft. Used in src/options/options.html."
+  },
+  "promptAssistantPrivacy": {
+    "message": "Chrome runs the model on this device. Save In does not send the prompt or result to a server. Generated rules are never applied automatically.",
+    "description": "Privacy and review disclosure for the experimental local rule-authoring assistant. Used in src/options/options.html."
+  },
+  "promptAssistantStatusOff": {
+    "message": "Off — no model checks or prompts",
+    "description": "Disabled status for the experimental local rule-authoring assistant. Used in src/options/integrations/prompt-assistant-panel.ts."
+  },
+  "promptAssistantStatusChecking": {
+    "message": "Checking on-device model…",
+    "description": "Model capability check status for the experimental local rule-authoring assistant. Used in src/options/integrations/prompt-assistant-panel.ts."
+  },
+  "promptAssistantStatusReady": {
+    "message": "Ready on this device",
+    "description": "Ready status for the experimental local rule-authoring assistant. Used in src/options/integrations/prompt-assistant-panel.ts."
+  },
+  "promptAssistantStatusDownloadable": {
+    "message": "The model downloads when you suggest your first rule",
+    "description": "Status shown when Chrome can download its local model after a user action. Used in src/options/integrations/prompt-assistant-panel.ts."
+  },
+  "promptAssistantStatusDownloading": {
+    "message": "Chrome is downloading the on-device model",
+    "description": "Model download status for the experimental local rule-authoring assistant. Used in src/options/integrations/prompt-assistant-panel.ts."
+  },
+  "promptAssistantStatusUnavailable": {
+    "message": "Not available in this browser or on this device",
+    "description": "Unavailable status for the experimental local rule-authoring assistant. Used in src/options/integrations/prompt-assistant-panel.ts."
+  },
+  "promptAssistantStatusWorking": {
+    "message": "Creating and checking a draft…",
+    "description": "Inference and validation progress status for the experimental local rule-authoring assistant. Used in src/options/integrations/prompt-assistant-panel.ts."
+  },
+  "promptAssistantStatusInvalid": {
+    "message": "The draft needs another try: $ERROR$",
+    "description": "Validation failure for a locally generated routing rule. Used in src/options/integrations/prompt-assistant-panel.ts.",
+    "placeholders": { "error": { "content": "$1", "example": "The rule needs an into clause" } }
+  },
+  "promptAssistantStatusFailed": {
+    "message": "Could not create a draft: $ERROR$",
+    "description": "Inference failure for the experimental local rule-authoring assistant. Used in src/options/integrations/prompt-assistant-panel.ts.",
+    "placeholders": { "error": { "content": "$1", "example": "The model session ended" } }
+  },
+  "promptAssistantStatusDraftReady": {
+    "message": "Draft ready — review it before adding",
+    "description": "Successful validation status for a locally generated routing rule. Used in src/options/integrations/prompt-assistant-panel.ts."
+  },
+  "promptAssistantStatusAdded": {
+    "message": "Added as an unsaved draft in the rules editor",
+    "description": "Status after a generated rule is appended for review without saving it. Used in src/options/integrations/prompt-assistant-panel.ts."
+  },
   "versionViewReleases": {
     "message": "Save In v$VERSION$ — view releases",
     "description": "Tooltip for the current version link that opens the release list. Used in src/options/integration-panel.ts.",

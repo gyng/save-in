@@ -3949,5 +3949,51 @@
   },
   "routeDebuggerRenamedName": {
     "message": "Nome renomeado"
+  },
+  "promptAssistantTitle": { "message": "Assistente de regras no dispositivo" },
+  "promptAssistantIntro": {
+    "message": "Descreva onde os arquivos devem ser salvos e receba uma regra de roteamento para revisar."
+  },
+  "promptAssistantEnable": { "message": "Ativar o assistente no dispositivo" },
+  "promptAssistantEnableHelp": {
+    "message": "Quando desativado, o Save In não verifica o modelo, não cria sessões nem envia prompts."
+  },
+  "promptAssistantStatusLabel": { "message": "Status" },
+  "promptAssistantPromptLabel": { "message": "Descreva uma regra de roteamento" },
+  "promptAssistantPromptPlaceholder": {
+    "message": "Salvar arquivos PNG de example.com em Images/example"
+  },
+  "promptAssistantPromptHelp": {
+    "message": "Esta solicitação é global e não é salva. O assistente não lê suas abas abertas; inclua o site, o tipo de arquivo e a pasta desejados."
+  },
+  "promptAssistantSuggest": { "message": "Sugerir regra" },
+  "promptAssistantGeneratedDraft": { "message": "Rascunho gerado" },
+  "promptAssistantAddToRules": { "message": "Adicionar às regras" },
+  "promptAssistantClearDraft": { "message": "Limpar rascunho" },
+  "promptAssistantPrivacy": {
+    "message": "O Chrome executa o modelo neste dispositivo. O Save In não envia o prompt nem o resultado a um servidor. As regras geradas nunca são aplicadas automaticamente."
+  },
+  "promptAssistantStatusOff": { "message": "Desativado — sem verificações do modelo ou prompts" },
+  "promptAssistantStatusChecking": { "message": "Verificando o modelo no dispositivo…" },
+  "promptAssistantStatusReady": { "message": "Pronto neste dispositivo" },
+  "promptAssistantStatusDownloadable": {
+    "message": "O modelo é baixado quando você sugere sua primeira regra"
+  },
+  "promptAssistantStatusDownloading": {
+    "message": "O Chrome está baixando o modelo no dispositivo"
+  },
+  "promptAssistantStatusUnavailable": { "message": "Indisponível neste navegador ou dispositivo" },
+  "promptAssistantStatusWorking": { "message": "Criando e verificando um rascunho…" },
+  "promptAssistantStatusInvalid": {
+    "message": "O rascunho precisa de outra tentativa: $ERROR$",
+    "placeholders": { "error": { "content": "$1", "example": "The rule needs an into clause" } }
+  },
+  "promptAssistantStatusFailed": {
+    "message": "Não foi possível criar um rascunho: $ERROR$",
+    "placeholders": { "error": { "content": "$1", "example": "The model session ended" } }
+  },
+  "promptAssistantStatusDraftReady": { "message": "Rascunho pronto — revise antes de adicionar" },
+  "promptAssistantStatusAdded": {
+    "message": "Adicionado como rascunho não salvo no editor de regras"
   }
 }
