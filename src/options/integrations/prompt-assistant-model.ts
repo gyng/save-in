@@ -189,6 +189,21 @@ export const sanitizeRuleDraft = (
   return clauses > 0 ? kept.join("\n").trim() : null;
 };
 
+// Whether two drafts say the same thing. A reviewer that agrees still retypes
+// the rule, and indentation, blank lines, and a trailing newline are trivia the
+// routing parser discards — so comparing the text byte for byte reads a small
+// model's typing as disagreement and spends another round repairing nothing.
+// Only that trivia is normalized: a regex keeps its own spacing and its case.
+const ruleShape = (rule: string): string =>
+  rule
+    .split(RULE_LINE_BREAKS)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .join("\n");
+
+export const describesSameRule = (candidate: string, other: string): boolean =>
+  ruleShape(candidate) === ruleShape(other);
+
 export const isSingleRuleSuggestion = (source: string): boolean =>
   parseRulesCollecting(source).rules.length === 1;
 

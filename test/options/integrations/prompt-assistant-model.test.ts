@@ -2,6 +2,7 @@ import {
   buildRuleAuthoringPrompt,
   buildRuleCritiquePrompt,
   cleanRuleSuggestion,
+  describesSameRule,
   isSingleRuleSuggestion,
   parseRuleCritique,
   parseRuleDraft,
@@ -154,6 +155,22 @@ describe("Prompt API rule-authoring model", () => {
   test("rejects a draft that keeps no clause at all", () => {
     expect(sanitizeRuleDraft("I cannot create that rule.", vocabulary)).toBeNull();
     expect(sanitizeRuleDraft("   \n\n  ", vocabulary)).toBeNull();
+  });
+
+  test("reads a reviewer's agreement through its typing", () => {
+    const candidate = "fileext/i: ^png$\ninto: dongs/:filename:";
+
+    // Indentation, a trailing newline, and a stray blank line are how a small
+    // model retypes a rule it agrees with.
+    expect(describesSameRule(candidate, "  fileext/i: ^png$\n\n  into: dongs/:filename:  \n")).toBe(
+      true,
+    );
+    // A different rule stays a different rule, and a regex is case sensitive.
+    expect(describesSameRule(candidate, "fileext/i: ^jpg$\ninto: dongs/:filename:")).toBe(false);
+    expect(describesSameRule(candidate, "fileext/i: ^PNG$\ninto: dongs/:filename:")).toBe(false);
+    expect(describesSameRule(candidate, "fileext/i: ^png$\ninto: Downloads/:filename:")).toBe(
+      false,
+    );
   });
 
   test("distinguishes one semantic rule from a multi-rule response", () => {

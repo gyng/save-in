@@ -14,6 +14,7 @@ import {
   RULE_DRAFT_RESPONSE_CONSTRAINT,
   buildRuleAuthoringPrompt,
   buildRuleCritiquePrompt,
+  describesSameRule,
   isSingleRuleSuggestion,
   parseRuleCritique,
   parseRuleDraft,
@@ -276,7 +277,11 @@ export const setupPromptAssistantPanel = (
       if (!isCurrent()) return;
       const critique = critiqueOutput ? parseRuleCritique(critiqueOutput) : null;
       if (!critique) throw new Error(copy.unusableReview);
-      if (issues.length === 0 && critique.accepted && critique.repairedRule === candidate) {
+      if (
+        issues.length === 0 &&
+        critique.accepted &&
+        describesSameRule(candidate, critique.repairedRule)
+      ) {
         showCandidate(candidate);
         add.disabled = false;
         setStatus(copy.draftReady, "success");
@@ -300,7 +305,11 @@ export const setupPromptAssistantPanel = (
       const finalReview = finalReviewOutput ? parseRuleCritique(finalReviewOutput) : null;
       if (!finalReview) throw new Error(copy.unusableReview);
       showCandidate(candidate);
-      if (issues.length === 0 && finalReview.accepted && finalReview.repairedRule === candidate) {
+      if (
+        issues.length === 0 &&
+        finalReview.accepted &&
+        describesSameRule(candidate, finalReview.repairedRule)
+      ) {
         add.disabled = false;
         setStatus(copy.draftReady, "success");
         return;

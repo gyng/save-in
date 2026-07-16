@@ -557,6 +557,24 @@ test("refuses a draft whose unknown clause would silently match every download",
   expect(mocks.appendRule).not.toHaveBeenCalled();
 });
 
+test("accepts a reviewer that agrees but retypes the rule", async () => {
+  mocks.runPrompt
+    .mockResolvedValueOnce(authorResponse())
+    .mockResolvedValueOnce(
+      JSON.stringify({ accepted: true, issues: [], repairedRule: `  ${defaultRule}  \n` }),
+    );
+  setup();
+  await enable();
+  submitRequest();
+
+  await vi.waitFor(() => expect(element("prompt-assistant-status").dataset.state).toBe("success"));
+  // The reviewed rule, not the reviewer's retyping of it.
+  expect(element("prompt-assistant-rule").textContent).toBe(defaultRule);
+  expect(element<HTMLButtonElement>("prompt-assistant-add").disabled).toBe(false);
+  // Agreement reached without spending a repair and a second review on spacing.
+  expect(mocks.runPrompt).toHaveBeenCalledTimes(2);
+});
+
 test("supports an initially enabled control and turning the assistant off", async () => {
   const control = element<HTMLInputElement>("promptAssistantEnabled");
   control.checked = true;
