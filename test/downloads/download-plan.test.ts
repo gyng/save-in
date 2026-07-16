@@ -5,6 +5,7 @@ import {
   Download,
   downloaded,
   getFilenameFromContentDispositionHeader,
+  Log,
   makeState,
   OffscreenClient,
   options,
@@ -214,6 +215,12 @@ describe("fetch rewrite", () => {
     expect(state.scratch.fetchTemplateRaw).toBe("https://:$1:/x");
     // The rule still routes; only the rewrite is dropped.
     expect(plan?.finalFullPath).toBe("downloads/routed");
+    // The skip is logged with the expanded address so a stray character is
+    // diagnosable, not just the unexpanded template.
+    expect(Log.addLogEntry).toHaveBeenCalledWith(
+      "fetch rewrite skipped: expanded address is not usable HTTP(S)",
+      expect.objectContaining({ template: "https://:$1:/x", expanded: "https://:$1:/x" }),
+    );
   });
 
   test("rejects an expansion carrying characters the URL parser would strip", async () => {

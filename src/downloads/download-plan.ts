@@ -145,9 +145,12 @@ export const resolveDownloadPlan = async (
         await resolveDispositionFilename(state);
       }
     } else {
-      // The rule still renames and routes; only the rewrite is dropped.
+      // The rule still renames and routes; only the rewrite is dropped. Log
+      // the expanded address alongside the template so a stray character a
+      // capture or variable introduced is visible when diagnosing the skip.
       addDownloadLog(state, "fetch rewrite skipped: expanded address is not usable HTTP(S)", {
         template: fetchTemplate,
+        expanded: rewrittenUrl,
       });
     }
   }
