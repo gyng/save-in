@@ -21,9 +21,10 @@ const grammar = {
 
 describe("Prompt API rule-authoring model", () => {
   test("builds a bounded grammar-grounded request for one rule", () => {
+    // GET_KEYWORDS sends variables already delimited, as SPECIAL_DIRS spells them.
     const result = buildRuleAuthoringPrompt("Put PNG files in Images", grammar, {
       matchers: ["fileext", "pagedomain"],
-      variables: ["filename", "pagedomain"],
+      variables: [":filename:", ":pagedomain:"],
     });
 
     expect(result).toContain("Put PNG files in Images");
@@ -31,6 +32,7 @@ describe("Prompt API rule-authoring model", () => {
     expect(result).not.toContain(grammar.examples[0]);
     expect(result).toContain("fileext, pagedomain");
     expect(result).toContain(":filename:, :pagedomain:");
+    expect(result).not.toContain("::");
     expect(result).toContain("Return JSON matching the supplied response schema");
     expect(result).toContain("Do not add file types, sites, folders, renames, or behavior");
     expect(result).toContain("categories, not filename extensions");

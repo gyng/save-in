@@ -43,6 +43,10 @@ export const RULE_CRITIQUE_RESPONSE_CONSTRAINT: Record<string, unknown> = {
 const boundedRequest = (request: string): string =>
   [...request.trim()].slice(0, MAX_USER_REQUEST_CHARACTERS).join("");
 
+// The keyword vocabulary spells a variable with its delimiters (":filename:"),
+// so wrapping it again would offer the model a name no destination accepts.
+const variableToken = (name: string): string => `:${name.replace(/^:+|:+$/g, "")}:`;
+
 const sharedRuleReference = (
   grammar: WireIntegrationGrammar,
   vocabulary: RuleAuthoringVocabulary,
@@ -55,7 +59,7 @@ const sharedRuleReference = (
   "",
   `Valid matcher clause names: ${vocabulary.matchers.join(", ")}`,
   "Destination clause name: into",
-  `Valid destination variables: ${vocabulary.variables.map((name) => `:${name}:`).join(", ")}`,
+  `Valid destination variables: ${vocabulary.variables.map(variableToken).join(", ")}`,
 ];
 
 export const buildRuleAuthoringPrompt = (
