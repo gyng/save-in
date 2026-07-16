@@ -19,7 +19,7 @@ export const cssSelectorsForRules = (rules: readonly RoutingRule[]): string[] =>
 ];
 
 export const sourceOriginElements = (source: PageSource): Element[] =>
-  source.channel === "resource-hint" ? [] : (source.originElements ?? [source.element]);
+  source.originElements ?? (source.channel === "resource-hint" ? [] : [source.element]);
 
 export const matchedCssSelectorsByOrigin = (
   elements: Iterable<Element>,

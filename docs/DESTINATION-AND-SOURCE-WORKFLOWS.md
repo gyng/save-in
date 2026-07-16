@@ -69,10 +69,11 @@ into: Articles/:filename:
 ```
 
 Comma-separated selectors use normal CSS OR behavior. Multiple `css:` clauses
-must all match the same originating element. If the same source URL appears in
-several elements, any one origin may satisfy the rule. DOM matching is available
-for automatic Page Sources, click-to-save, and Page Sources panel saves; routes
-without page-element context do not match `css:`.
+must all match the same originating element. Automatic discovery and the Page
+Sources panel combine every current element that declares the same source URL;
+any one of those origins may satisfy a rule, and routing-rule order still wins
+over DOM traversal order. Click-to-save evaluates the element that was clicked.
+Routes without page-element context do not match `css:`.
 
 ## History actions
 

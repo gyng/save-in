@@ -940,8 +940,8 @@ export const runTabStripScenario = async ({ control, waitForDownloads, filename 
 
 /**
  * Verifies CSS routing in both content-owned paths: automatic discovery and a
- * manual Page Sources save. The duplicate URL proves a panel row retains all
- * origins rather than making selector results depend on traversal order.
+ * manual Page Sources save. The duplicate URL proves both paths retain all
+ * origins and preserve routing-rule order rather than DOM traversal order.
  *
  * @param {{
  *   control: ReturnType<typeof import("./control-client.mjs").createE2EControlClient>,
@@ -987,8 +987,13 @@ export const runCssRoutingScenario = async ({ control, evaluatePage, browserLabe
         autoDownloadMaxPerPage: 4,
         filenamePatterns: `context: ^auto$
 pageurl: /css-routing$
+css: aside img.avatar
+into: e2e/css-auto-${browserLabel}/:filename:
+
+context: ^auto$
+pageurl: /css-routing$
 css: article img
-into: e2e/css-auto-${browserLabel}/:filename:`,
+into: e2e/css-auto-traversal-order-${browserLabel}/:filename:`,
       }),
       control.storage.local.set({
         sourcePanelEnabled: true,

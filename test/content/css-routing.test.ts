@@ -39,6 +39,27 @@ describe("content CSS routing", () => {
     ).toEqual([]);
   });
 
+  test("does not turn a merged resource hint placeholder into a DOM origin", () => {
+    const image = document.createElement("img");
+    const timingPlaceholder = document.body;
+    const real = { url: "https://example.test/shared.png", kind: "image" as const, element: image };
+    const hint = {
+      url: "https://example.test/shared.png",
+      kind: "stream" as const,
+      channel: "resource-hint" as const,
+      element: timingPlaceholder,
+    };
+
+    for (const sources of [
+      [real, hint],
+      [hint, real],
+    ]) {
+      const merged = mergePageSourcesByUrl(sources);
+      expect(sourceOriginElements(merged[0]!)).toEqual([image]);
+      expect(matchedCssSelectorsByOrigin(sourceOriginElements(merged[0]!), ["body"])).toEqual([]);
+    }
+  });
+
   test("uses the owning image as the origin for picture source candidates", () => {
     document.body.innerHTML = `
       <article>
