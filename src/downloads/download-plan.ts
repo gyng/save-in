@@ -158,19 +158,29 @@ export const resolveDownloadPlan = async (
 
   let routeMatches: string | null = state.scratch.routeTemplateRaw ?? null;
   let fetchTemplate: string | null = state.scratch.fetchTemplateRaw ?? null;
+  // A rule the late filename pass would skip cannot survive a re-match there,
+  // so the plan has to hand its winning template forward. Already-persisted
+  // templates were classified by the run that stored them.
+  let lateReMatchLosesRule = false;
   if (routeMatches === null) {
     const match = getRoutingMatch(state);
     routeMatches = match?.destination ?? null;
     fetchTemplate = match?.fetch ?? null;
+    lateReMatchLosesRule =
+      match !== null && (match.fetch !== null || !isRenameOnlyEligibleMatch(match));
     if (match?.rename) state.scratch.renameTemplate = match.rename;
     else delete state.scratch.renameTemplate;
   }
-  if (routeMatches !== null && fetchTemplate !== null) {
-    // Persist both raw templates in every outcome: Chrome's late filename
-    // resolution skips fetch rules (a started download can no longer honor a
-    // URL rewrite), so it must re-expand this rule's destination from the
-    // scratch instead of re-matching and losing or replacing the route.
+  if (routeMatches !== null && lateReMatchLosesRule) {
+    // Persist the raw template in every outcome the late pass cannot reproduce:
+    // it skips both fetch rules (a started download can no longer honor a URL
+    // rewrite) and content-hash rules (it will not re-fetch a download merely
+    // to name it). Re-expanding this template there keeps the plan's rule
+    // instead of re-matching and losing or replacing the route. Persisting it
+    // also preserves scratch.renameTemplate, which a re-match would clear.
     state.scratch.routeTemplateRaw = routeMatches;
+  }
+  if (routeMatches !== null && fetchTemplate !== null) {
     state.scratch.fetchTemplateRaw = fetchTemplate;
     const rewrittenUrl = await expandFetchUrl(fetchTemplate, state.info);
     if (isUsableFetchRewrite(rewrittenUrl)) {

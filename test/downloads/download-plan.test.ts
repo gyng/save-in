@@ -1,5 +1,6 @@
 // Focused plan coverage extracted from the pipeline suite.
 import type { SaveInOptions } from "../../src/config/option-schema.ts";
+import type { RuleMatch } from "../../src/routing/router.ts";
 import { DOWNLOAD_TYPES } from "../../src/shared/constants.ts";
 import {
   Download,
@@ -111,6 +112,53 @@ describe("getRoutingMatch", () => {
 
     expect(Download.getRoutingMatch(state)).toBe(match);
     expect(router.matchRulesDetailed).toHaveBeenCalledWith(options.filenamePatterns, state.info);
+  });
+});
+
+describe("templates the late filename pass cannot re-derive", () => {
+  const planMatch = (match: Partial<RuleMatch> & { destination: string }) => {
+    options.filenamePatterns = [routingRule()];
+    vi.mocked(router.matchRulesDetailed).mockReturnValue({
+      rule: options.filenamePatterns[0]!,
+      fetch: null,
+      rename: null,
+      ...match,
+    });
+  };
+
+  // Chrome's onDeterminingFilename pass re-matches with the rename-only
+  // predicates, which skip content-hash rules: without the raw template it
+  // would lose this rule's route and report the download as unmatched.
+  test("persists a :sha256: destination template the re-match would drop", async () => {
+    planMatch({ destination: "hashes/:sha256:/:filename:" });
+    const state = makeState({ info: { url: "https://cdn.example/cat.jpg", filename: "cat.jpg" } });
+
+    await Download.resolveDownloadPlan(state);
+
+    expect(state.scratch.routeTemplateRaw).toBe("hashes/:sha256:/:filename:");
+  });
+
+  test("persists the template when only the rename replacement needs a hash", async () => {
+    planMatch({
+      destination: "plain/:filename:",
+      rename: { find: "^", flags: "", replacement: ":sha256:-" },
+    });
+    const state = makeState({ info: { url: "https://cdn.example/cat.jpg", filename: "cat.jpg" } });
+
+    await Download.resolveDownloadPlan(state);
+
+    expect(state.scratch.routeTemplateRaw).toBe("plain/:filename:");
+  });
+
+  // The re-match reproduces a plain rule faithfully, so persisting it would
+  // force the late pass for every ordinary download.
+  test("leaves a plain route to the re-match", async () => {
+    planMatch({ destination: "plain/:filename:" });
+    const state = makeState({ info: { url: "https://cdn.example/cat.jpg", filename: "cat.jpg" } });
+
+    await Download.resolveDownloadPlan(state);
+
+    expect(state.scratch.routeTemplateRaw).toBeUndefined();
   });
 });
 

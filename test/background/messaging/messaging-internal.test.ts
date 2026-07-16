@@ -258,6 +258,53 @@ describe("onMessage", () => {
     });
   });
 
+  // A move routes a replacement and then deletes the original. Options stay at
+  // their seeded defaults when init fails, so an ungated handler would drop
+  // every routing rule and still destroy the only copy.
+  test("HISTORY_REROUTE refuses instead of routing when initialization failed", async () => {
+    const previousReady = backgroundRuntime.ready;
+    backgroundRuntime.ready = Promise.reject(new Error("init failed"));
+    backgroundRuntime.ready.catch(() => {});
+    vi.mocked(SaveHistory.getHistoryEntries).mockResolvedValue([
+      {
+        id: "history-init-failed",
+        url: "https://x.test/original.png",
+        finalFullPath: "from/original.png",
+        downloadId: 70,
+        status: "complete",
+      },
+    ]);
+    vi.mocked(global.browser.downloads.search).mockResolvedValue([
+      { id: 70, url: "https://x.test/original.png" } as never,
+    ]);
+    vi.mocked(Download.launchDownload).mockResolvedValue({ status: "started", downloadId: 71 });
+    vi.mocked(Download.launchDownload).mockClear();
+    vi.mocked(global.browser.downloads.removeFile).mockClear();
+    const sendResponse = vi.fn();
+
+    onMessage(
+      {
+        type: MESSAGE_TYPES.HISTORY_REROUTE,
+        body: { historyId: "history-init-failed", destination: "moved/here" },
+      },
+      {},
+      sendResponse,
+    );
+    await waitForCall(sendResponse);
+
+    expect(Download.launchDownload).not.toHaveBeenCalled();
+    expect(global.browser.downloads.removeFile).not.toHaveBeenCalled();
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.HISTORY_REROUTE,
+      body: {
+        status: MESSAGE_TYPES.ERROR,
+        error: "INTERNAL_ERROR",
+        message: "Save In could not complete the request",
+      },
+    });
+    if (previousReady) backgroundRuntime.ready = previousReady;
+  });
+
   test("HISTORY_REROUTE keeps the original when the accepted replacement later fails", async () => {
     vi.mocked(SaveHistory.getHistoryEntries).mockResolvedValue([
       {

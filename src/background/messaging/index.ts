@@ -407,6 +407,10 @@ const READY_MESSAGE_TYPES = new Set<InternalMessage["type"]>([
   MESSAGE_TYPES.DOWNLOAD,
   MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
   MESSAGE_TYPES.CREATE_SOURCE_RULE,
+  // A move re-downloads through the routing rules and then deletes the
+  // original, so an ungated handler on a failed init would route with seeded
+  // defaults (no filenamePatterns, uniquify) and still destroy the only copy.
+  MESSAGE_TYPES.HISTORY_REROUTE,
 ]);
 
 const dispatchMessage = <M extends InternalMessage>(

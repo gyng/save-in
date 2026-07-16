@@ -206,6 +206,20 @@ describe("Prompt API rule-authoring model", () => {
     ['save png into "/"', "fileext: ^png$\ninto: elsewhere/:filename:", []],
     ["save a b c d e f into /archive", "filename: .*\ninto: archive/:filename:", []],
     ['save png into "archive"', "fileext: ^png$\ninto: archive/:filename:", []],
+    // A slash folder ends at the path token. Words after it describe the rest
+    // of the request, and are not part of the folder name.
+    [
+      "save PNG into /Pictures and rename it cover.png",
+      "fileext/i: ^png$\ninto: Pictures/cover.png",
+      [],
+    ],
+    [
+      "save PNG into /Pictures and rename it cover.png",
+      "fileext/i: ^png$\ninto: Downloads/cover.png",
+      ["The destination must use the requested Pictures/ folder."],
+    ],
+    // A folder name may still contain spaces when no conjunction follows it.
+    ["save png into /My Documents", "fileext: ^png$\ninto: My Documents/:filename:", []],
     [
       "save png into /archive",
       "fileext: ^png$\ninto: archive/custom-name",
