@@ -4,6 +4,6 @@ export default {
   ...baseConfig,
   test: {
     ...baseConfig.test,
-    exclude: ["test/integration/**"],
+    exclude: ["test/integration/**", "test/live/**"],
   },
 };

@@ -27,6 +27,9 @@ export default defineConfig({
     },
     setupFiles: ["./test/support/vitest.setup.ts"],
     include: ["test/**/*.test.ts"],
+    // The live suite makes real outbound requests; it runs only via
+    // `npm run test:live` (config/vitest/live.mjs), never in test/test:all.
+    exclude: ["test/live/**"],
     coverage: {
       provider: "v8",
       include: ["src/**/*.ts"],

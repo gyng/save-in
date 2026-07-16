@@ -48,6 +48,7 @@
     "test:coverage": "vitest run --config config/vitest/base.mjs --coverage",
     "test:fuzz": "vitest run --config config/vitest/fuzz.mjs",
     "test:integration": "vitest run --config config/vitest/integration.mjs",
+    "test:live": "vitest run --config config/vitest/live.mjs",
     "test:profile": "node scripts/profile-tests.js",
     "test:watch": "vitest --config config/vitest/unit.mjs",
     "typecheck": "tsc --noEmit -p config/typescript/browser.json && tsc --noEmit -p config/typescript/chrome.json && tsc --noEmit -p config/typescript/worker.json && tsc --noEmit -p config/typescript/tools.json && tsc --noEmit -p config/typescript/dev-tools.json && tsc --noEmit -p config/typescript/e2e.json && tsc --noEmit -p config/typescript/test.json"
