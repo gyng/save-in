@@ -7,6 +7,7 @@ import {
   updateDirectoryLine,
   updateDirectoryMetadata,
 } from "../../src/config/path-syntax.ts";
+import { setAccesskey } from "../../src/background/menu-build.ts";
 import { seedOptions } from "../../src/config/option.ts";
 import { options } from "../../src/config/options-data.ts";
 import { FORBIDDEN_FILENAME_CHARS, RULE_TYPES } from "../../src/shared/constants.ts";
@@ -100,6 +101,67 @@ const metadataValueArbitrary = fc.oneof(
     .tuple(metadataAtomArbitrary, metadataAtomArbitrary)
     .map(([outer, nested]) => `${outer} (${nested})`),
 );
+
+// Both browsers read a menu title as access-key markup: "&&" is a literal
+// ampersand and a lone "&" flags the next character and vanishes. Decode a
+// title the way they do, so the property can state what the user actually
+// reads rather than how the markup happens to be spelled.
+const decodeAccessKeyMarkup = (
+  title: string,
+): { literal: string; accelerators: number; dangling: boolean } => {
+  let literal = "";
+  let accelerators = 0;
+  let dangling = false;
+  for (let index = 0; index < title.length; index++) {
+    if (title[index] !== "&") {
+      literal += title[index];
+      continue;
+    }
+    if (title[index + 1] === "&") {
+      literal += "&";
+      index++;
+      continue;
+    }
+    if (index + 1 >= title.length) {
+      dangling = true;
+      continue;
+    }
+    accelerators++;
+    literal += title[index + 1];
+    index++;
+  }
+  return { literal, accelerators, dangling };
+};
+
+// "İ" and U+0307 are deliberate: "İ" is the one character whose lowercase is
+// longer than itself, which is what made the access-key search disagree with
+// the string it indexes.
+const menuTitleArbitrary = fc
+  .array(fc.constantFrom("a", "Z", "0", " ", "&", ".", "é", "界", "😀", "İ", "ß", "̇"), {
+    maxLength: 24,
+  })
+  .map((characters) => characters.join(""));
+const menuAccessKeyArbitrary = fc.oneof(
+  fc.constantFrom("a", "Z", "0", "&", "é", "界", "😀", "İ", "ß", "", "ab"),
+  fc.integer({ min: 0, max: 12 }),
+);
+
+const menuAccessKeyMarkup: FuzzTarget = {
+  name: "menu-access-key-markup",
+  run: (parameters) =>
+    fc.check(
+      fc.property(menuTitleArbitrary, menuAccessKeyArbitrary, (title, key) => {
+        const { literal, accelerators, dangling } = decodeAccessKeyMarkup(setAccesskey(title, key));
+        invariant(!dangling, "menu title ended in a lone ampersand");
+        invariant(accelerators <= 1, "menu title flagged more than one access key");
+        invariant(
+          literal === title || literal.startsWith(`${title} (`),
+          "menu title changed the text the user reads",
+        );
+      }),
+      parameters,
+    ),
+};
 
 const directoryLossless: FuzzTarget = {
   name: "directory-lossless",
@@ -381,10 +443,11 @@ const targets: FuzzTarget[] = [
   routingLossless,
   routingSemantic,
   filenameSafety,
+  menuAccessKeyMarkup,
   webhookUrlPolicy,
 ];
 
-test("fuzzes parser, routing, filename, and webhook invariants within the time budget", () => {
+test("fuzzes parser, routing, filename, menu, and webhook invariants within the time budget", () => {
   const totalTimeMs = parseInteger("FUZZ_TIME_MS", DEFAULT_FUZZ_TIME_MS);
   invariant(totalTimeMs !== undefined && totalTimeMs > 0, "FUZZ_TIME_MS must be positive");
   const requestedSeed = parseInteger("FUZZ_SEED");
