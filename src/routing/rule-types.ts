@@ -100,7 +100,22 @@ export type FetchClause = {
   value: string;
   type: typeof RULE_TYPES.FETCH;
 };
-export type RuleClause = MatcherClause | CaptureClause | DestinationClause | FetchClause;
+export type RenameClause = {
+  name: "rename";
+  // Raw clause value ("find -> replacement"); find compiles with the clause
+  // flags, replacement stays a literal template until captures and variables
+  // expand in the download pipeline.
+  value: string;
+  find: RegExp;
+  replacement: string;
+  type: typeof RULE_TYPES.RENAME;
+};
+export type RuleClause =
+  | MatcherClause
+  | CaptureClause
+  | DestinationClause
+  | FetchClause
+  | RenameClause;
 
 declare const parsedRoutingRule: unique symbol;
 export type RoutingRule = RuleClause[] & { readonly [parsedRoutingRule]: true };

@@ -420,6 +420,32 @@ into: automatic/:$1:
     expect(state.scratch.fetchTemplateRaw).toBe("https://cdn.test/full/cat.png");
   });
 
+  test("passes a matched rule's rename transform through to the launch scratch", async () => {
+    options.autoDownloadEnabled = true;
+    options.autoDownloadPrivate = false;
+    options.filenamePatterns = parseRulesCollecting(`
+context: ^auto$
+pageurl: ^https://example\\.test/gallery/
+sourceurl: ^https://cdn\\.test/original/([\\w.]+)$
+capturegroups: sourceurl
+rename/i: ^cat -> pet-:$1:
+into: automatic/:filename:
+`).rules;
+    const sendResponse = vi.fn();
+    const senderTab = { id: 7, url: "https://example.test/gallery/", incognito: false };
+
+    expect(onMessage(request, { tab: senderTab }, sendResponse)).toBe(true);
+    await waitForCall(sendResponse);
+
+    const state = vi.mocked(Download.launchDownload).mock.calls[0]![0]!;
+    expect(state.scratch.routeTemplateRaw).toBe("automatic/:filename:");
+    expect(state.scratch.renameTemplate).toEqual({
+      find: "^cat",
+      flags: "i",
+      replacement: "pet-cat.png",
+    });
+  });
+
   test.each([
     ["the feature is disabled", () => (options.autoDownloadEnabled = false)],
     ["no rule matches", () => (options.filenamePatterns = [])],

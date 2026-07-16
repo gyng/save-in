@@ -1,9 +1,13 @@
 import type { CurrentTab } from "../platform/current-tab.ts";
 import type { LazyDownloadMetadata } from "../shared/lazy-download-metadata.ts";
+import type { RenameTransform } from "../routing/rename.ts";
 import type { RoutingDownloadInfo } from "../routing/rule-types.ts";
 
 export type PathValue = {
-  finalize: (options?: { finalComponentIsFilename?: boolean }) => string;
+  finalize: (options?: {
+    finalComponentIsFilename?: boolean;
+    transformFinalComponent?: (value: string) => string;
+  }) => string;
   toString: () => string;
 };
 
@@ -26,6 +30,11 @@ export type DownloadScratch = {
   pathTemplateRaw?: string | undefined;
   routeTemplateRaw?: string | undefined;
   fetchTemplateRaw?: string | undefined;
+  // Capture-substituted rename transform of the matched rule (variables still
+  // unexpanded), and the same transform with its replacement expanded against
+  // this download — the value finalizeFullPath applies synchronously.
+  renameTemplate?: RenameTransform | undefined;
+  renameResolved?: RenameTransform | undefined;
   historyEntryId?: string | null | undefined;
   browserFilenameResolution?: boolean | undefined;
   deferredRouteRequirement?: boolean | undefined;

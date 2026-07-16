@@ -308,6 +308,83 @@ test("shows the fetch rewrite stages for a rule that rewrites the URL", async ()
   );
 });
 
+test("shows the rename stages for a rule that renames the final component", async () => {
+  renderWorkbench();
+  vi.mocked(browser.i18n.getMessage).mockImplementation((key: string) => {
+    if (key === "routeDebuggerRenameTemplate") return "Rename";
+    if (key === "routeDebuggerRenamedName") return "Renamed name";
+    return "";
+  });
+  vi.spyOn(webExtensionApi.runtime, "sendMessage").mockImplementation(
+    fetchTraceResponse({
+      selectedRule: 1,
+      selectedRename: { find: "^img_", flags: "gi", replacement: "photo-" },
+      renamedFrom: "img_042.jpg",
+      renamedTo: "photo-042.jpg",
+      destination: "pics/:filename:",
+      expandedDestination: "pics/img_042.jpg",
+      sanitizedDestination: "pics/photo-042.jpg",
+      finalPath: "pics/photo-042.jpg",
+      rules: [
+        {
+          index: 1,
+          matched: true,
+          destination: "pics/:filename:",
+          fetch: "",
+          rename: "^img_ -> photo-",
+          clauses: [{ name: "filename", pattern: "^img_", matched: true }],
+        },
+      ],
+    }) as never,
+  );
+
+  setupRouteDebugger();
+  document.querySelector<HTMLButtonElement>("#route-debugger-run")?.click();
+  const result = document.querySelector<HTMLElement>("#route-debugger-result")!;
+  await vi.waitFor(() => expect(result.dataset.state).toBe("matched"));
+  const pipeline = result.querySelector(".route-debugger-pipeline");
+  expect(pipeline?.textContent).toContain("Rename^img_/gi → photo-");
+  expect(pipeline?.textContent).toContain("Renamed nameimg_042.jpg → photo-042.jpg");
+});
+
+test("renders a flagless rename template without a flags suffix", async () => {
+  renderWorkbench();
+  vi.mocked(browser.i18n.getMessage).mockImplementation((key: string) => {
+    if (key === "routeDebuggerRenameTemplate") return "Rename";
+    return "";
+  });
+  vi.spyOn(webExtensionApi.runtime, "sendMessage").mockImplementation(
+    fetchTraceResponse({
+      selectedRule: 1,
+      selectedRename: { find: "cat", flags: "", replacement: "dog" },
+      renamedFrom: "cat.jpg",
+      renamedTo: "dog.jpg",
+      destination: "pics/:filename:",
+      expandedDestination: "pics/cat.jpg",
+      sanitizedDestination: "pics/dog.jpg",
+      finalPath: "pics/dog.jpg",
+      rules: [
+        {
+          index: 1,
+          matched: true,
+          destination: "pics/:filename:",
+          fetch: "",
+          rename: "cat -> dog",
+          clauses: [{ name: "filename", pattern: "cat", matched: true }],
+        },
+      ],
+    }) as never,
+  );
+
+  setupRouteDebugger();
+  document.querySelector<HTMLButtonElement>("#route-debugger-run")?.click();
+  const result = document.querySelector<HTMLElement>("#route-debugger-result")!;
+  await vi.waitFor(() => expect(result.dataset.state).toBe("matched"));
+  expect(result.querySelector(".route-debugger-pipeline")?.textContent).toContain(
+    "Renamecat → dog",
+  );
+});
+
 test("hides the fetch rewrite stages for a rule that keeps the source URL", async () => {
   renderWorkbench();
   vi.mocked(browser.i18n.getMessage).mockImplementation((key: string) => {

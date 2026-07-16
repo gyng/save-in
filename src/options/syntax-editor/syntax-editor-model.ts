@@ -1,5 +1,6 @@
 import { parsePathLineAst } from "../../config/path-syntax.ts";
 import { FETCH_URL_BANNED_VARIABLES } from "../../routing/path-variables.ts";
+import { RENAME_SEPARATOR } from "../../routing/rename.ts";
 import { parseRoutingRuleAst, type RoutingLineNode } from "../../routing/rule-syntax.ts";
 import { parseMatchPatternList } from "../../shared/match-pattern.ts";
 import { parseRegularExpressionList, type PatternListIssue } from "../../shared/pattern-list.ts";
@@ -196,9 +197,10 @@ const addRoutingClauseTokens = (
   tokens: SyntaxToken[],
 ): void => {
   // fetch: is a URL template with the same variable-expansion behaviour as
-  // into:, so it reuses the destination highlighting rather than a bespoke token.
+  // into:, so it reuses the destination highlighting rather than a bespoke
+  // token. rename: produces output too, so its name shares that kind.
   const nameKind =
-    line.clauseKind === "destination" || line.clauseKind === "fetch"
+    line.clauseKind === "destination" || line.clauseKind === "fetch" || line.clauseKind === "rename"
       ? "destination"
       : line.clauseKind === "capture"
         ? "capture"
@@ -218,6 +220,26 @@ const addRoutingClauseTokens = (
   tokens.push(
     token("punctuation", line.cst.colon.span.start.offset, line.cst.colon.span.end.offset),
   );
+
+  if (line.clauseKind === "rename") {
+    // The value is two-sided: a regex before the first " -> " separator and a
+    // literal replacement (with variable expansion) after it.
+    const valueStart = line.valueSpan.start.offset;
+    const separator = line.value.indexOf(RENAME_SEPARATOR);
+    if (separator < 0) {
+      tokens.push(token("regex", valueStart, line.valueSpan.end.offset));
+      return;
+    }
+    const separatorStart = valueStart + separator;
+    const replacementStart = separatorStart + RENAME_SEPARATOR.length;
+    tokens.push(
+      token("regex", valueStart, separatorStart),
+      token("punctuation", separatorStart, replacementStart),
+      token("destination-value", replacementStart, line.valueSpan.end.offset),
+    );
+    addVariableTokens(source, replacementStart, line.valueSpan.end.offset, tokens);
+    return;
+  }
 
   const valueKind =
     line.clauseKind === "destination" || line.clauseKind === "fetch"
@@ -516,6 +538,15 @@ export const completeRoutingSyntax = (
       node.valueSpan.start.offset,
       vocabulary.variables.filter((name) => !FETCH_URL_BANNED_VARIABLES.has(name)),
     );
+  }
+  if (node.name === "rename") {
+    // Only the replacement side (after " -> ") expands variables; before the
+    // separator the value is a regex where ":name:" is ordinary pattern text.
+    const separator = node.value.indexOf(RENAME_SEPARATOR);
+    if (separator < 0) return null;
+    const replacementStart = node.valueSpan.start.offset + separator + RENAME_SEPARATOR.length;
+    if (caret < replacementStart) return null;
+    return variableCompletion(source, caret, replacementStart, vocabulary.variables);
   }
   if (node.name === "capture" || node.name === "capturegroups") {
     return captureMatcherCompletion(

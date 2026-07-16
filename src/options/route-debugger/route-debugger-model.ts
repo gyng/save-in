@@ -30,12 +30,23 @@ export type RouteDebuggerRule = {
   clauses: RouteDebuggerClause[];
 };
 
+export type RouteDebuggerRename = {
+  find: string;
+  flags: string;
+  replacement: string;
+};
+
 export type RouteDebuggerTrace = {
   selectedRule: number | null;
   // Optional so a trace from an older background that predates fetch: routing
   // still validates; absent means the winning rule did not rewrite the URL.
   selectedFetchTemplate?: string | null | undefined;
   rewrittenUrl?: string | null | undefined;
+  // Same aging contract for rename: — absent means an older background or a
+  // winning rule without a rename transform.
+  selectedRename?: RouteDebuggerRename | null | undefined;
+  renamedFrom?: string | null | undefined;
+  renamedTo?: string | null | undefined;
   destination: string | null;
   expandedDestination: string | null;
   sanitizedDestination: string | null;
@@ -81,6 +92,12 @@ const isAttemptStatus = (value: unknown): value is RouteDebuggerAttempt["status"
 const isNullableStringArray = (value: unknown): value is Array<string | null> =>
   Array.isArray(value) && value.every(nullableString);
 
+const isRouteDebuggerRename = (value: unknown): value is RouteDebuggerRename =>
+  isStringKeyedRecord(value) &&
+  typeof value.find === "string" &&
+  typeof value.flags === "string" &&
+  typeof value.replacement === "string";
+
 const parseAttempts = (value: unknown): RouteDebuggerAttempt[] | null => {
   if (!Array.isArray(value)) return null;
   const attempts: RouteDebuggerAttempt[] = [];
@@ -116,6 +133,13 @@ export const parseRouteDebuggerTrace = (value: unknown): RouteDebuggerTrace | nu
     !nullableString(value.finalPath) ||
     !(value.selectedFetchTemplate === undefined || nullableString(value.selectedFetchTemplate)) ||
     !(value.rewrittenUrl === undefined || nullableString(value.rewrittenUrl)) ||
+    !(
+      value.selectedRename === undefined ||
+      value.selectedRename === null ||
+      isRouteDebuggerRename(value.selectedRename)
+    ) ||
+    !(value.renamedFrom === undefined || nullableString(value.renamedFrom)) ||
+    !(value.renamedTo === undefined || nullableString(value.renamedTo)) ||
     !Array.isArray(value.rules)
   ) {
     return null;
@@ -168,6 +192,9 @@ export const parseRouteDebuggerTrace = (value: unknown): RouteDebuggerTrace | nu
       ? {}
       : { selectedFetchTemplate: value.selectedFetchTemplate }),
     ...(value.rewrittenUrl === undefined ? {} : { rewrittenUrl: value.rewrittenUrl }),
+    ...(value.selectedRename === undefined ? {} : { selectedRename: value.selectedRename }),
+    ...(value.renamedFrom === undefined ? {} : { renamedFrom: value.renamedFrom }),
+    ...(value.renamedTo === undefined ? {} : { renamedTo: value.renamedTo }),
     destination: value.destination,
     expandedDestination: value.expandedDestination,
     sanitizedDestination: value.sanitizedDestination,

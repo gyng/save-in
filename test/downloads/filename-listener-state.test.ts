@@ -64,6 +64,7 @@ describe("persisted deferred-route queues", () => {
       scratch: {
         pathTemplateRaw: "downloads/:filename:",
         routeTemplateRaw: "routed/:filename:",
+        renameTemplate: { find: "a", flags: "g", replacement: "b" },
         mimeExtension: "jpg",
         historyEntryId: "history-1",
       },
@@ -71,6 +72,7 @@ describe("persisted deferred-route queues", () => {
     expect(full).toMatchObject({
       pathTemplateRaw: "downloads/:filename:",
       routeTemplateRaw: "routed/:filename:",
+      renameTemplate: { find: "a", flags: "g", replacement: "b" },
       mimeExtension: "jpg",
       historyEntryId: "history-1",
     });
@@ -92,10 +94,15 @@ describe("persisted deferred-route queues", () => {
           invalidId: { ...recovery("bad"), id: 7 },
           invalidState: { ...recovery("bad"), state: null },
           emptyQueue: [],
+          malformedRename: {
+            ...recovery("bad-rename"),
+            renameTemplate: { find: "a", flags: "g" },
+          },
           valid: {
             ...recovery("one"),
             pathTemplateRaw: "path",
             routeTemplateRaw: "route",
+            renameTemplate: { find: "a", flags: "g", replacement: "b" },
             mimeExtension: "jpg",
             historyEntryId: "history-1",
           },
@@ -104,8 +111,16 @@ describe("persisted deferred-route queues", () => {
         recovery("two"),
       ),
     ).toEqual({
+      // A malformed persisted rename transform is dropped, not fatal: the
+      // recovery entry itself stays usable.
+      malformedRename: expect.not.objectContaining({ renameTemplate: expect.anything() }),
       valid: [
-        expect.objectContaining({ id: "one", pathTemplateRaw: "path", mimeExtension: "jpg" }),
+        expect.objectContaining({
+          id: "one",
+          pathTemplateRaw: "path",
+          renameTemplate: { find: "a", flags: "g", replacement: "b" },
+          mimeExtension: "jpg",
+        }),
         recovery("two"),
       ],
     });

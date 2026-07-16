@@ -643,6 +643,7 @@ describe("onDeterminingFilename listener (Chrome)", () => {
       await import("../../src/downloads/browser-downloads.ts");
     const routedDownload = {
       getRoutingMatches: (state: any) => freshDownload.getRoutingMatches(state),
+      resolveRenameTransform: (state: any) => freshDownload.resolveRenameTransform(state),
       finalizeFullPath: (state: any) => freshDownload.finalizeFullPath(state),
     };
     BrowserDownloadRouting.route = (item) => routeBrowserDownload(routedDownload, item);
@@ -1059,6 +1060,7 @@ describe("onDeterminingFilename listener (Chrome)", () => {
         version: 1,
         id: "recovery-final-url",
         state: { info: {} },
+        renameTemplate: { find: "recovered", flags: "", replacement: "renamed" },
       },
     };
     freshOptions.filenamePatterns = [[{ name: "actualfileext" }]] as any;
@@ -1100,6 +1102,19 @@ describe("onDeterminingFilename listener (Chrome)", () => {
       }),
     );
     expect(sessionStore.siDeferredRoutes).toEqual({});
+    // The persisted rename transform survives the recovery record round-trip
+    // and is re-expanded before the final path settles.
+    const finalized = vi.mocked(freshDownload.finalizeFullPath).mock.calls[0]![0]!;
+    expect(finalized.scratch?.renameTemplate).toEqual({
+      find: "recovered",
+      flags: "",
+      replacement: "renamed",
+    });
+    expect(finalized.scratch?.renameResolved).toEqual({
+      find: "recovered",
+      flags: "",
+      replacement: "renamed",
+    });
   });
 
   test("notifies for an unrecoverable legacy deferred route without a source URL", async () => {
@@ -1152,6 +1167,7 @@ describe("onDeterminingFilename listener (Chrome)", () => {
       ...freshDownload.downloadRuntime,
       retryViaFetch: freshDownload.retryViaFetch,
       getRoutingMatches: freshDownload.getRoutingMatches,
+      resolveRenameTransform: freshDownload.resolveRenameTransform,
       finalizeFullPath: freshDownload.finalizeFullPath,
     });
 

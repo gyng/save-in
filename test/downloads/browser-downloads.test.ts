@@ -140,11 +140,44 @@ describe("browser download routing", () => {
   test("returns the finalized filename for a matching rule", async () => {
     const download = {
       getRoutingMatches: vi.fn(() => "browser/:filename:"),
+      resolveRenameTransform: vi.fn(() => Promise.resolve()),
       finalizeFullPath: vi.fn(() => "browser/cat.jpg"),
     };
     await expect(routeBrowserDownload(download as any, item as any)).resolves.toBe(
       "browser/cat.jpg",
     );
     expect(download.finalizeFullPath).toHaveBeenCalledOnce();
+  });
+
+  test("ordinary rename-only routing honors a rename: rule end to end", async () => {
+    // Representative pipeline case: unlike fetch:, a rename: rule stays
+    // eligible for browser-owned downloads and edits the suggested name.
+    const { getRoutingMatches, resolveRenameTransform } =
+      await import("../../src/downloads/download-plan.ts");
+    const { finalizeFullPath } = await import("../../src/downloads/download-disposition.ts");
+    const { options } = await import("../../src/config/options-data.ts");
+    const previous = {
+      filenamePatterns: options.filenamePatterns,
+      truncateLength: options.truncateLength,
+      replacementChar: options.replacementChar,
+    };
+    Object.assign(options, {
+      filenamePatterns: parseRules("fileext: jpg\nrename/g: cat -> dog\ninto: browser/:filename:"),
+      truncateLength: 0,
+      replacementChar: "_",
+    });
+    try {
+      await expect(
+        routeBrowserDownload(
+          { getRoutingMatches, resolveRenameTransform, finalizeFullPath },
+          {
+            url: "https://cdn.example/files/cat.jpg",
+            filename: "cat.jpg",
+          },
+        ),
+      ).resolves.toBe("browser/dog.jpg");
+    } finally {
+      Object.assign(options, previous);
+    }
   });
 });

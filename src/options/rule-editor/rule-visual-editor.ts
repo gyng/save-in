@@ -298,7 +298,9 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
           ? "$"
           : clause.kind === "fetch"
             ? "⇄"
-            : "if";
+            : clause.kind === "rename"
+              ? "✎"
+              : "if";
     marker.setAttribute("aria-hidden", "true");
     row.append(marker);
 
@@ -315,7 +317,9 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
       name.textContent =
         clause.kind === "fetch"
           ? localize("routeVisualFetchLabel", "Rewrite download URL")
-          : clause.name;
+          : clause.kind === "rename"
+            ? localize("routeVisualRenameLabel", "Rename the file")
+            : clause.name;
       row.append(name);
     }
 
@@ -330,7 +334,9 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
         ? "folder/:filename:"
         : clause.kind === "fetch"
           ? "https://example.com/:$1:"
-          : ".*";
+          : clause.kind === "rename"
+            ? "find -> replacement"
+            : ".*";
     value.setAttribute(
       "aria-label",
       clause.kind === "destination"
@@ -357,7 +363,16 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
                 ),
                 rule.index + 1,
               )
-            : clause.name,
+            : clause.kind === "rename"
+              ? contextualLabel(
+                  localize(
+                    "routeVisualRenameAccessible",
+                    "Rule $RULE$: rename the file",
+                    rule.index + 1,
+                  ),
+                  rule.index + 1,
+                )
+              : clause.name,
     );
     value.addEventListener("input", () => {
       commit(

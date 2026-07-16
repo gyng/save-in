@@ -1,5 +1,7 @@
 {
-  "ruleTemplatePdfsByContentTypeName": { "message": "PDF's op inhoudstype" },
+  "ruleTemplatePdfsByContentTypeName": {
+    "message": "PDF's op inhoudstype"
+  },
   "ruleTemplatePdfsByContentTypeDescription": {
     "message": "Herkent PDF's aan het opgegeven inhoudstype in plaats van aan de bestandsnaam"
   },
@@ -27,7 +29,6 @@
   "html_matchesTheRootHostname": {
     "message": "Komt overeen met de hostnaam zonder subdomeinen."
   },
-
   "extensionName": {
     "message": "Save In"
   },
@@ -49,124 +50,219 @@
   "referenceRuntimeRuleMatcher": {
     "message": "Runtime-regelmatcher"
   },
-  "ruleTemplateCategoryMedia": { "message": "Media" },
-  "ruleTemplateCategoryFileTypes": { "message": "Bestandstypen" },
-  "ruleTemplateCategoryDateAndSequence": { "message": "Datum en volgorde" },
-  "ruleTemplateCategorySitesAndUrls": { "message": "Sites en URL's" },
-  "ruleTemplateCategorySaveContext": { "message": "Opslagcontext" },
-  "ruleTemplateImagesPerSiteName": { "message": "Afbeeldingen in mappen per site" },
+  "ruleTemplateCategoryMedia": {
+    "message": "Media"
+  },
+  "ruleTemplateCategoryFileTypes": {
+    "message": "Bestandstypen"
+  },
+  "ruleTemplateCategoryDateAndSequence": {
+    "message": "Datum en volgorde"
+  },
+  "ruleTemplateCategorySitesAndUrls": {
+    "message": "Sites en URL's"
+  },
+  "ruleTemplateCategorySaveContext": {
+    "message": "Opslagcontext"
+  },
+  "ruleTemplateImagesPerSiteName": {
+    "message": "Afbeeldingen in mappen per site"
+  },
   "ruleTemplateImagesPerSiteDescription": {
     "message": "Sorteert elke opgeslagen afbeelding op de site van herkomst"
   },
-  "ruleTemplateVideosPerSiteName": { "message": "Video's in mappen per site" },
+  "ruleTemplateVideosPerSiteName": {
+    "message": "Video's in mappen per site"
+  },
   "ruleTemplateVideosPerSiteDescription": {
     "message": "Sorteert elke opgeslagen video op de site van herkomst"
   },
-  "ruleTemplateAudioPerSiteName": { "message": "Audio in mappen per site" },
+  "ruleTemplateAudioPerSiteName": {
+    "message": "Audio in mappen per site"
+  },
   "ruleTemplateAudioPerSiteDescription": {
     "message": "Groepeert opgeslagen audio op de pagina waar deze is gevonden"
   },
-  "ruleTemplateScreenshotsByMonthName": { "message": "Schermafbeeldingen per maand" },
+  "ruleTemplateScreenshotsByMonthName": {
+    "message": "Schermafbeeldingen per maand"
+  },
   "ruleTemplateScreenshotsByMonthDescription": {
     "message": "Plaatst bestandsnamen die met screenshot beginnen in gedateerde mappen"
   },
-  "ruleTemplatePdfsName": { "message": "PDF's in een documentenmap" },
-  "ruleTemplatePdfsDescription": { "message": "Verzamelt alle PDF's op één plek" },
-  "ruleTemplateArchivesName": { "message": "Archieven in één map" },
+  "ruleTemplatePdfsName": {
+    "message": "PDF's in een documentenmap"
+  },
+  "ruleTemplatePdfsDescription": {
+    "message": "Verzamelt alle PDF's op één plek"
+  },
+  "ruleTemplateArchivesName": {
+    "message": "Archieven in één map"
+  },
   "ruleTemplateArchivesDescription": {
     "message": "Verzamelt zip-, rar-, 7z-, tar- en andere gecomprimeerde archieven"
   },
-  "ruleTemplateDocumentsName": { "message": "Documenten in één map" },
+  "ruleTemplateDocumentsName": {
+    "message": "Documenten in één map"
+  },
   "ruleTemplateDocumentsDescription": {
     "message": "Verzamelt gangbare kantoor- en tekstdocumenten"
   },
-  "ruleTemplateEbooksName": { "message": "E-books en strips" },
+  "ruleTemplateEbooksName": {
+    "message": "E-books en strips"
+  },
   "ruleTemplateEbooksDescription": {
     "message": "Verzamelt gangbare e-book- en digitale stripformaten"
   },
-  "ruleTemplateInstallersName": { "message": "Apps en installatieprogramma's" },
+  "ruleTemplateInstallersName": {
+    "message": "Apps en installatieprogramma's"
+  },
   "ruleTemplateInstallersDescription": {
     "message": "Houdt installatiepakketten voor desktop en mobiel bij elkaar"
   },
-  "ruleTemplateFontsName": { "message": "Lettertypen in één map" },
+  "ruleTemplateFontsName": {
+    "message": "Lettertypen in één map"
+  },
   "ruleTemplateFontsDescription": {
     "message": "Verzamelt lettertypebestanden voor desktop en web"
   },
-  "ruleTemplatePerExtensionName": { "message": "Eén map per bestandsextensie" },
+  "ruleTemplatePerExtensionName": {
+    "message": "Eén map per bestandsextensie"
+  },
   "ruleTemplatePerExtensionDescription": {
     "message": "Legt de bestandsextensie vast en gebruikt deze als mapnaam"
   },
-  "ruleTemplateDateStampName": { "message": "Elke download van een datum voorzien" },
+  "ruleTemplateDateStampName": {
+    "message": "Elke download van een datum voorzien"
+  },
   "ruleTemplateDateStampDescription": {
     "message": "Plaatst de opslagdatum vóór de oorspronkelijke bestandsnaam"
   },
-  "ruleTemplateDailyInboxName": { "message": "Dagelijkse inbox" },
-  "ruleTemplateDailyInboxDescription": { "message": "Maakt één map voor elke kalenderdag" },
-  "ruleTemplateDownloadsByMonthName": { "message": "Downloads per maand" },
+  "ruleTemplateDailyInboxName": {
+    "message": "Dagelijkse inbox"
+  },
+  "ruleTemplateDailyInboxDescription": {
+    "message": "Maakt één map voor elke kalenderdag"
+  },
+  "ruleTemplateDownloadsByMonthName": {
+    "message": "Downloads per maand"
+  },
   "ruleTemplateDownloadsByMonthDescription": {
     "message": "Maakt jaar- en maandmappen met behoud van de oorspronkelijke bestandsnaam"
   },
-  "ruleTemplateWeeklyInboxName": { "message": "Wekelijkse inbox" },
-  "ruleTemplateWeeklyInboxDescription": { "message": "Maakt één inboxmap voor elke ISO-week" },
-  "ruleTemplateSequentialArchiveName": { "message": "Opeenvolgend archief" },
+  "ruleTemplateWeeklyInboxName": {
+    "message": "Wekelijkse inbox"
+  },
+  "ruleTemplateWeeklyInboxDescription": {
+    "message": "Maakt één inboxmap voor elke ISO-week"
+  },
+  "ruleTemplateSequentialArchiveName": {
+    "message": "Opeenvolgend archief"
+  },
   "ruleTemplateSequentialArchiveDescription": {
     "message": "Plaatst de permanente downloadteller van Save In vóór bestandsnamen"
   },
-  "ruleTemplateOneSiteName": { "message": "Eén site, één map" },
+  "ruleTemplateOneSiteName": {
+    "message": "Eén site, één map"
+  },
   "ruleTemplateOneSiteDescription": {
     "message": "Routeert één gekozen website naar een eigen map"
   },
-  "ruleTemplatePerSourceSiteName": { "message": "Eén map per bronsite" },
+  "ruleTemplatePerSourceSiteName": {
+    "message": "Eén map per bronsite"
+  },
   "ruleTemplatePerSourceSiteDescription": {
     "message": "Groepeert downloads op de hostnaam die het bestand aanbiedt"
   },
-  "ruleTemplatePerPageSiteName": { "message": "Eén map per paginasite" },
+  "ruleTemplatePerPageSiteName": {
+    "message": "Eén map per paginasite"
+  },
   "ruleTemplatePerPageSiteDescription": {
     "message": "Groepeert bestanden op de bezochte website in plaats van op de bestandshost"
   },
-  "ruleTemplatePageTitlePrefixName": { "message": "Paginatitel als voorvoegsel" },
+  "ruleTemplatePageTitlePrefixName": {
+    "message": "Paginatitel als voorvoegsel"
+  },
   "ruleTemplatePageTitlePrefixDescription": {
     "message": "Plaatst een bestandssysteemveilige paginatitel vóór de oorspronkelijke bestandsnaam"
   },
-  "ruleTemplateCaptureUrlName": { "message": "Deel van de URL vastleggen" },
+  "ruleTemplateCaptureUrlName": {
+    "message": "Deel van de URL vastleggen"
+  },
   "ruleTemplateCaptureUrlDescription": {
     "message": "Gebruikt een regex-vanggroep in de opgeslagen bestandsnaam"
   },
-  "ruleTemplateBrowserInboxName": { "message": "Inbox voor browserdownloads" },
+  "ruleTemplateBrowserInboxName": {
+    "message": "Inbox voor browserdownloads"
+  },
   "ruleTemplateBrowserInboxDescription": {
     "message": "Houdt bijgehouden downloads van de browser zelf in een aparte map"
   },
-  "ruleTemplateLinkInboxName": { "message": "Inbox voor linkdownloads" },
+  "ruleTemplateLinkInboxName": {
+    "message": "Inbox voor linkdownloads"
+  },
   "ruleTemplateLinkInboxDescription": {
     "message": "Scheidt bestanden die via links zijn opgeslagen van ingesloten media"
   },
-  "ruleTemplateSelectionInboxName": { "message": "Inbox voor geselecteerde tekst" },
+  "ruleTemplateSelectionInboxName": {
+    "message": "Inbox voor geselecteerde tekst"
+  },
   "ruleTemplateSelectionInboxDescription": {
     "message": "Houdt bestanden bij elkaar die uit geselecteerde paginatekst zijn gemaakt"
   },
-  "ruleTemplateTabInboxName": { "message": "Inbox voor opgeslagen tabbladen" },
+  "ruleTemplateTabInboxName": {
+    "message": "Inbox voor opgeslagen tabbladen"
+  },
   "ruleTemplateTabInboxDescription": {
     "message": "Houdt bestanden bij elkaar die via tabbladacties zijn opgeslagen"
   },
-  "ruleTemplateAdded": { "message": "Toegevoegd" },
-  "ruleTemplateAdd": { "message": "Toevoegen" },
-  "ruleTemplateAddedFeedback": { "message": "Toegevoegd" },
-  "ruleTemplateViewInEditor": { "message": "In de regeleditor bekijken" },
-  "historyActiveFilters": { "message": "Actieve geschiedenisfilters" },
-  "historyExportAll": { "message": "Alles exporteren" },
+  "ruleTemplateAdded": {
+    "message": "Toegevoegd"
+  },
+  "ruleTemplateAdd": {
+    "message": "Toevoegen"
+  },
+  "ruleTemplateAddedFeedback": {
+    "message": "Toegevoegd"
+  },
+  "ruleTemplateViewInEditor": {
+    "message": "In de regeleditor bekijken"
+  },
+  "historyActiveFilters": {
+    "message": "Actieve geschiedenisfilters"
+  },
+  "historyExportAll": {
+    "message": "Alles exporteren"
+  },
   "historyFilterSearch": {
     "message": "Zoeken: ‘$QUERY$’",
-    "placeholders": { "query": { "content": "$1", "example": "invoice" } }
+    "placeholders": {
+      "query": {
+        "content": "$1",
+        "example": "invoice"
+      }
+    }
   },
   "historyFilterSince": {
     "message": "Sinds $DATE$",
-    "placeholders": { "date": { "content": "$1", "example": "2026-07-01" } }
+    "placeholders": {
+      "date": {
+        "content": "$1",
+        "example": "2026-07-01"
+      }
+    }
   },
   "historyFilterThrough": {
     "message": "Tot en met $DATE$",
-    "placeholders": { "date": { "content": "$1", "example": "2026-07-31" } }
+    "placeholders": {
+      "date": {
+        "content": "$1",
+        "example": "2026-07-31"
+      }
+    }
   },
-  "historyDateRangeInvalid": { "message": "De begindatum moet op of vóór de einddatum liggen." },
+  "historyDateRangeInvalid": {
+    "message": "De begindatum moet op of vóór de einddatum liggen."
+  },
   "historyShowFolderUnavailable": {
     "message": "De map kon niet worden geopend. De browser kent deze download niet meer."
   },
@@ -176,73 +272,161 @@
   "historyFilteredResultsCount": {
     "message": "$MATCHES$ van $TOTAL$ resultaten",
     "placeholders": {
-      "matches": { "content": "$1", "example": "12" },
-      "total": { "content": "$2", "example": "50" }
+      "matches": {
+        "content": "$1",
+        "example": "12"
+      },
+      "total": {
+        "content": "$2",
+        "example": "50"
+      }
     }
   },
   "historyResultCountOne": {
     "message": "$COUNT$ resultaat",
-    "placeholders": { "count": { "content": "$1", "example": "1" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
   },
   "historyResultCount": {
     "message": "$COUNT$ resultaten",
-    "placeholders": { "count": { "content": "$1", "example": "24" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "24"
+      }
+    }
   },
   "historyStorageLimit": {
     "message": "De geschiedenis blijft op dit apparaat staan, tot maximaal 10.000 items."
   },
-  "historyTableCaption": { "message": "Geschiedenis van opgeslagen downloads" },
-  "historyShowInFolder": { "message": "In map tonen" },
-  "historyCancelDownload": { "message": "Annuleren" },
-  "historyCancelDownloadTitle": { "message": "Deze download annuleren" },
+  "historyTableCaption": {
+    "message": "Geschiedenis van opgeslagen downloads"
+  },
+  "historyShowInFolder": {
+    "message": "In map tonen"
+  },
+  "historyCancelDownload": {
+    "message": "Annuleren"
+  },
+  "historyCancelDownloadTitle": {
+    "message": "Deze download annuleren"
+  },
   "historyCancelDownloadNamed": {
     "message": "$FILE$ annuleren",
-    "placeholders": { "file": { "content": "$1", "example": "photo.jpg" } }
+    "placeholders": {
+      "file": {
+        "content": "$1",
+        "example": "photo.jpg"
+      }
+    }
   },
-  "historyCancelingDownload": { "message": "Annuleren…" },
-  "historyUndoSave": { "message": "Opslaan ongedaan maken" },
+  "historyCancelingDownload": {
+    "message": "Annuleren…"
+  },
+  "historyUndoSave": {
+    "message": "Opslaan ongedaan maken"
+  },
   "historyUndoSaveNamed": {
     "message": "Opslaan van $FILE$ ongedaan maken",
-    "placeholders": { "file": { "content": "$1", "example": "photo.jpg" } }
+    "placeholders": {
+      "file": {
+        "content": "$1",
+        "example": "photo.jpg"
+      }
+    }
   },
-  "historyUndoDone": { "message": "Opslaan ongedaan gemaakt. Het bestand is verwijderd." },
+  "historyUndoDone": {
+    "message": "Opslaan ongedaan gemaakt. Het bestand is verwijderd."
+  },
   "historyUndoFileMissing": {
     "message": "Opslaan ongedaan gemaakt. Het bestand was al verplaatst of verwijderd."
   },
-  "historyUndoFailed": { "message": "Dit opslaan kon niet ongedaan worden gemaakt." },
-  "historyRoutingApplied": { "message": "Toegepast" },
+  "historyUndoFailed": {
+    "message": "Dit opslaan kon niet ongedaan worden gemaakt."
+  },
+  "historyRoutingApplied": {
+    "message": "Toegepast"
+  },
   "historyRoutingAppliedTitle": {
     "message": "Er is een routerings- of hernoemingsregel toegepast."
   },
-  "historyNewer": { "message": "‹ Nieuwer" },
+  "historyNewer": {
+    "message": "‹ Nieuwer"
+  },
   "historyPageCount": {
     "message": "Pagina $PAGE$ van $TOTAL$",
     "placeholders": {
-      "page": { "content": "$1", "example": "2" },
-      "total": { "content": "$2", "example": "5" }
+      "page": {
+        "content": "$1",
+        "example": "2"
+      },
+      "total": {
+        "content": "$2",
+        "example": "5"
+      }
     }
   },
-  "historyOlder": { "message": "Ouder ›" },
-  "historyLoadFailed": { "message": "De geschiedenis kon niet worden geladen." },
-  "historyRetry": { "message": "Opnieuw proberen" },
-  "historyDeleteConfirmTitle": { "message": "Alle geschiedenis verwijderen?" },
+  "historyOlder": {
+    "message": "Ouder ›"
+  },
+  "historyLoadFailed": {
+    "message": "De geschiedenis kon niet worden geladen."
+  },
+  "historyRetry": {
+    "message": "Opnieuw proberen"
+  },
+  "historyDeleteConfirmTitle": {
+    "message": "Alle geschiedenis verwijderen?"
+  },
   "historyDeleteConfirmDescription": {
     "message": "Hiermee worden alle opgeslagen geschiedenisitems permanent verwijderd. Dit kan niet ongedaan worden gemaakt."
   },
-  "historyKeepHistory": { "message": "Geschiedenis behouden" },
-  "historyDeleteAll": { "message": "Alle geschiedenis verwijderen" },
-  "historyClearing": { "message": "Geschiedenis verwijderen…" },
-  "historyClearFailed": { "message": "De geschiedenis kon niet worden verwijderd." },
-  "historyStatusSaving": { "message": "Opslaan…" },
-  "historyStatusCanceled": { "message": "Geannuleerd" },
-  "historyStatusUndone": { "message": "Ongedaan gemaakt" },
-  "historyStatusNetworkFailed": { "message": "Netwerkfout" },
-  "historyStatusDownloadFailed": { "message": "Download mislukt" },
-  "historyStatusPreparationFailed": { "message": "Voorbereiding mislukt" },
-  "historyStatusPreparationInterrupted": { "message": "Onderbroken" },
-  "historyStatusStateLost": { "message": "Downloadstatus verloren" },
-  "historyStatusRoutingFailed": { "message": "Routering mislukt" },
-  "historyStatusNoRuleMatch": { "message": "Geen overeenkomende regel" },
+  "historyKeepHistory": {
+    "message": "Geschiedenis behouden"
+  },
+  "historyDeleteAll": {
+    "message": "Alle geschiedenis verwijderen"
+  },
+  "historyClearing": {
+    "message": "Geschiedenis verwijderen…"
+  },
+  "historyClearFailed": {
+    "message": "De geschiedenis kon niet worden verwijderd."
+  },
+  "historyStatusSaving": {
+    "message": "Opslaan…"
+  },
+  "historyStatusCanceled": {
+    "message": "Geannuleerd"
+  },
+  "historyStatusUndone": {
+    "message": "Ongedaan gemaakt"
+  },
+  "historyStatusNetworkFailed": {
+    "message": "Netwerkfout"
+  },
+  "historyStatusDownloadFailed": {
+    "message": "Download mislukt"
+  },
+  "historyStatusPreparationFailed": {
+    "message": "Voorbereiding mislukt"
+  },
+  "historyStatusPreparationInterrupted": {
+    "message": "Onderbroken"
+  },
+  "historyStatusStateLost": {
+    "message": "Downloadstatus verloren"
+  },
+  "historyStatusRoutingFailed": {
+    "message": "Routering mislukt"
+  },
+  "historyStatusNoRuleMatch": {
+    "message": "Geen overeenkomende regel"
+  },
   "genericUnknownError": {
     "message": "Onbekende fout"
   },
@@ -288,7 +472,9 @@
       }
     }
   },
-  "notificationUndoSave": { "message": "Opslaan ongedaan maken" },
+  "notificationUndoSave": {
+    "message": "Opslaan ongedaan maken"
+  },
   "notificationRuleMatchedTitle": {
     "message": "Save In: regel toegepast"
   },
@@ -1329,24 +1515,51 @@
   },
   "externalApprovedCountOne": {
     "message": "$COUNT$ goedgekeurde extensie",
-    "placeholders": { "count": { "content": "$1", "example": "1" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
   },
   "externalApprovedCountMany": {
     "message": "$COUNT$ goedgekeurde extensies",
-    "placeholders": { "count": { "content": "$1", "example": "3" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
   },
-  "externalRemoveApproval": { "message": "Verwijderen" },
+  "externalRemoveApproval": {
+    "message": "Verwijderen"
+  },
   "externalRemoveApprovalFor": {
     "message": "Goedkeuring voor $ID$ verwijderen",
-    "placeholders": { "id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" } }
+    "placeholders": {
+      "id": {
+        "content": "$1",
+        "example": "abcdefghijklmnopabcdefghijklmnop"
+      }
+    }
   },
   "externalApprovalRemoved": {
     "message": "$ID$ is niet langer goedgekeurd.",
-    "placeholders": { "id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" } }
+    "placeholders": {
+      "id": {
+        "content": "$1",
+        "example": "abcdefghijklmnopabcdefghijklmnop"
+      }
+    }
   },
   "externalApprovalAdded": {
     "message": "$ID$ is nu goedgekeurd.",
-    "placeholders": { "id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" } }
+    "placeholders": {
+      "id": {
+        "content": "$1",
+        "example": "abcdefghijklmnopabcdefghijklmnop"
+      }
+    }
   },
   "html_oneExtensionIdPerLine": {
     "message": "Eén extensie-ID per regel"
@@ -1759,18 +1972,36 @@
   "html_toRouteIntoAFolder": {
     "message": "om de download naar een map te verplaatsen"
   },
-  "sourcePanelDockFloating": { "message": "Zwevend" },
+  "sourcePanelDockFloating": {
+    "message": "Zwevend"
+  },
   "sourcePanelNoMatchesFilter": {
     "message": "Geen bronnen komen overeen met ‘$FILTER$’.",
-    "placeholders": { "filter": { "content": "$1", "example": "poster" } }
+    "placeholders": {
+      "filter": {
+        "content": "$1",
+        "example": "poster"
+      }
+    }
   },
-  "sourcePanelClearFilters": { "message": "Filters wissen" },
+  "sourcePanelClearFilters": {
+    "message": "Filters wissen"
+  },
   "sourcePanelSourceCount": {
     "message": "Gevonden bronnen: $COUNT$",
-    "placeholders": { "count": { "content": "$1", "example": "12" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "12"
+      }
+    }
   },
-  "sourcePanelEmbeddedSource": { "message": "Ingesloten paginabron" },
-  "sourcePanelMoreActions": { "message": "Meer acties" },
+  "sourcePanelEmbeddedSource": {
+    "message": "Ingesloten paginabron"
+  },
+  "sourcePanelMoreActions": {
+    "message": "Meer acties"
+  },
   "html_webhooks": {
     "message": "Webhooks"
   },
@@ -2037,82 +2268,196 @@
   "o_lShortcutFormatLinux": {
     "message": "Linux-snelkoppeling voor het bureaublad"
   },
-  "html_closePrivacyPolicy": { "message": "Privacybeleid sluiten" },
-  "historyColumnInitiated": { "message": "Gestart" },
-  "historyColumnSource": { "message": "Bron" },
-  "historyColumnMethod": { "message": "Methode" },
-  "historyColumnStatus": { "message": "Status" },
-  "historyColumnSize": { "message": "Grootte" },
-  "historyColumnType": { "message": "Type" },
-  "historyColumnRule": { "message": "Routering" },
-  "historyColumnFile": { "message": "Bestand" },
-  "historyColumnFolder": { "message": "Map" },
-  "historyColumnUrl": { "message": "URL" },
-  "historyColumnFullPath": { "message": "Volledig pad" },
-  "historyColumnDownloadId": { "message": "Download-ID" },
-  "historyColumnMenuItem": { "message": "Menu-item" },
-  "historyColumnVariables": { "message": "Variabelen" },
+  "html_closePrivacyPolicy": {
+    "message": "Privacybeleid sluiten"
+  },
+  "historyColumnInitiated": {
+    "message": "Gestart"
+  },
+  "historyColumnSource": {
+    "message": "Bron"
+  },
+  "historyColumnMethod": {
+    "message": "Methode"
+  },
+  "historyColumnStatus": {
+    "message": "Status"
+  },
+  "historyColumnSize": {
+    "message": "Grootte"
+  },
+  "historyColumnType": {
+    "message": "Type"
+  },
+  "historyColumnRule": {
+    "message": "Routering"
+  },
+  "historyColumnFile": {
+    "message": "Bestand"
+  },
+  "historyColumnFolder": {
+    "message": "Map"
+  },
+  "historyColumnUrl": {
+    "message": "URL"
+  },
+  "historyColumnFullPath": {
+    "message": "Volledig pad"
+  },
+  "historyColumnDownloadId": {
+    "message": "Download-ID"
+  },
+  "historyColumnMenuItem": {
+    "message": "Menu-item"
+  },
+  "historyColumnVariables": {
+    "message": "Variabelen"
+  },
   "o_lSourcePanelShortcutResetHelp": {
     "message": "Opnieuw instellen herstelt de door de browser voorgestelde standaardwaarde."
   },
-  "o_sAppearance": { "message": "Uiterlijk" },
-  "o_lUiTheme": { "message": "Thema" },
-  "o_lUiThemeSystem": { "message": "Systeem" },
-  "o_lUiThemeDark": { "message": "Donker" },
-  "o_lUiThemeLight": { "message": "Licht" },
-  "o_lUiThemeGroupDefault": { "message": "Standaard" },
-  "o_lUiThemeGroupAccessibility": { "message": "Hoog contrast" },
-  "o_lUiThemeGroupClassics": { "message": "Klassieke thema's" },
-  "o_lUiThemeGroupSaveIn": { "message": "Op maat" },
-  "o_lUiThemeHighContrastDark": { "message": "Hoog contrast – donker" },
-  "o_lUiThemeHighContrastLight": { "message": "Hoog contrast – licht" },
-  "o_lUiThemeHighContrastYellow": { "message": "Hoog contrast – geel" },
-  "o_lUiThemeSolarizedDark": { "message": "Solarized Dark" },
-  "o_lUiThemeSolarizedLight": { "message": "Solarized Light" },
-  "o_lUiThemeNord": { "message": "Nord" },
-  "o_lUiThemeDracula": { "message": "Dracula" },
-  "o_lUiThemeGruvbox": { "message": "Gruvbox" },
-  "o_lUiThemeMonokai": { "message": "Monokai" },
-  "o_lUiThemeOneDark": { "message": "One Dark" },
-  "o_lUiThemeTokyoNight": { "message": "Tokyo Night" },
-  "o_lUiThemeCatppuccin": { "message": "Catppuccin" },
-  "o_lUiThemeMidnight": { "message": "Middernacht" },
-  "o_lUiThemePastelPink": { "message": "Blos" },
-  "o_lUiThemePaper": { "message": "Papier" },
-  "o_lUiThemeTerminal": { "message": "Terminal" },
-  "o_lUiThemeBerry": { "message": "Bes" },
-  "o_lUiThemeNebula": { "message": "Nebula" },
-  "o_lUiThemeGlacier": { "message": "Gletsjer" },
-  "o_lUiThemeMatcha": { "message": "Matcha" },
-  "o_lUiThemeEmber": { "message": "Gloed" },
+  "o_sAppearance": {
+    "message": "Uiterlijk"
+  },
+  "o_lUiTheme": {
+    "message": "Thema"
+  },
+  "o_lUiThemeSystem": {
+    "message": "Systeem"
+  },
+  "o_lUiThemeDark": {
+    "message": "Donker"
+  },
+  "o_lUiThemeLight": {
+    "message": "Licht"
+  },
+  "o_lUiThemeGroupDefault": {
+    "message": "Standaard"
+  },
+  "o_lUiThemeGroupAccessibility": {
+    "message": "Hoog contrast"
+  },
+  "o_lUiThemeGroupClassics": {
+    "message": "Klassieke thema's"
+  },
+  "o_lUiThemeGroupSaveIn": {
+    "message": "Op maat"
+  },
+  "o_lUiThemeHighContrastDark": {
+    "message": "Hoog contrast – donker"
+  },
+  "o_lUiThemeHighContrastLight": {
+    "message": "Hoog contrast – licht"
+  },
+  "o_lUiThemeHighContrastYellow": {
+    "message": "Hoog contrast – geel"
+  },
+  "o_lUiThemeSolarizedDark": {
+    "message": "Solarized Dark"
+  },
+  "o_lUiThemeSolarizedLight": {
+    "message": "Solarized Light"
+  },
+  "o_lUiThemeNord": {
+    "message": "Nord"
+  },
+  "o_lUiThemeDracula": {
+    "message": "Dracula"
+  },
+  "o_lUiThemeGruvbox": {
+    "message": "Gruvbox"
+  },
+  "o_lUiThemeMonokai": {
+    "message": "Monokai"
+  },
+  "o_lUiThemeOneDark": {
+    "message": "One Dark"
+  },
+  "o_lUiThemeTokyoNight": {
+    "message": "Tokyo Night"
+  },
+  "o_lUiThemeCatppuccin": {
+    "message": "Catppuccin"
+  },
+  "o_lUiThemeMidnight": {
+    "message": "Middernacht"
+  },
+  "o_lUiThemePastelPink": {
+    "message": "Blos"
+  },
+  "o_lUiThemePaper": {
+    "message": "Papier"
+  },
+  "o_lUiThemeTerminal": {
+    "message": "Terminal"
+  },
+  "o_lUiThemeBerry": {
+    "message": "Bes"
+  },
+  "o_lUiThemeNebula": {
+    "message": "Nebula"
+  },
+  "o_lUiThemeGlacier": {
+    "message": "Gletsjer"
+  },
+  "o_lUiThemeMatcha": {
+    "message": "Matcha"
+  },
+  "o_lUiThemeEmber": {
+    "message": "Gloed"
+  },
   "o_lUiThemeHelp": {
     "message": "Kies een kleurenthema voor de instellingen en Paginabronnen."
   },
-  "notificationExternalDownloadBlockedTitle": { "message": "Externe download geblokkeerd" },
+  "notificationExternalDownloadBlockedTitle": {
+    "message": "Externe download geblokkeerd"
+  },
   "notificationExternalDownloadBlockedMessage": {
     "message": "Een verzoek van $SENDER_ID$ is geblokkeerd. Klik om het in Opties te bekijken.",
     "placeholders": {
-      "sender_id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" }
+      "sender_id": {
+        "content": "$1",
+        "example": "abcdefghijklmnopabcdefghijklmnop"
+      }
     }
   },
-  "historyEmptyNoDownloads": { "message": "Nog geen downloads opgeslagen." },
-  "historyEmptyNoMatches": { "message": "Geen geschiedenis komt overeen met deze filters." },
-  "webMcpStatusRegistering": { "message": "Registreren…" },
+  "historyEmptyNoDownloads": {
+    "message": "Nog geen downloads opgeslagen."
+  },
+  "historyEmptyNoMatches": {
+    "message": "Geen geschiedenis komt overeen met deze filters."
+  },
+  "webMcpStatusRegistering": {
+    "message": "Registreren…"
+  },
   "webMcpStatusActive": {
     "message": "Actief — $COUNT$ tools geregistreerd",
-    "placeholders": { "count": { "content": "$1", "example": "5" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "5"
+      }
+    }
   },
   "webMcpStatusLimited": {
     "message": "Beperkt — $REGISTERED$ van $TOTAL$ tools geregistreerd",
     "placeholders": {
-      "registered": { "content": "$1", "example": "4" },
-      "total": { "content": "$2", "example": "5" }
+      "registered": {
+        "content": "$1",
+        "example": "4"
+      },
+      "total": {
+        "content": "$2",
+        "example": "5"
+      }
     }
   },
   "webMcpStatusRegistrationFailed": {
     "message": "Niet beschikbaar — registreren van tools mislukt"
   },
-  "webMcpStatusUnavailableBrowser": { "message": "Niet beschikbaar in deze browser" },
+  "webMcpStatusUnavailableBrowser": {
+    "message": "Niet beschikbaar in deze browser"
+  },
   "sourcePanelResizeLabel": {
     "message": "Formaat van het paneel Paginabronnen wijzigen"
   },
@@ -2260,9 +2605,15 @@
   "routeDebuggerTitle": {
     "message": "Routeringsregels testen"
   },
-  "routeDebuggerUseSource": { "message": "Gebruiken" },
-  "routeDebuggerLatestDownload": { "message": "Meest recente" },
-  "routeDebuggerUseSampleDownload": { "message": "Voorbeeld" },
+  "routeDebuggerUseSource": {
+    "message": "Gebruiken"
+  },
+  "routeDebuggerLatestDownload": {
+    "message": "Meest recente"
+  },
+  "routeDebuggerUseSampleDownload": {
+    "message": "Voorbeeld"
+  },
   "routeDebuggerFilename": {
     "message": "Bestandsnaam"
   },
@@ -2292,15 +2643,30 @@
   },
   "routeDebuggerOneRuleMatched": {
     "message": "$COUNT$ regel kwam overeen en werd gebruikt.",
-    "placeholders": { "count": { "content": "$1", "example": "1" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
   },
   "routeDebuggerOneLaterRuleMatches": {
     "message": "1 regel gebruikt; $COUNT$ latere regel komt ook overeen.",
-    "placeholders": { "count": { "content": "$1", "example": "1" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
   },
   "routeDebuggerLaterRulesMatch": {
     "message": "1 regel gebruikt; $COUNT$ latere regels komen ook overeen.",
-    "placeholders": { "count": { "content": "$1", "example": "2" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
   },
   "routeDebuggerExpanded": {
     "message": "Uitgevouwen pad"
@@ -2404,43 +2770,82 @@
   },
   "routeVisualRuleEnabledAccessible": {
     "message": "Regel $RULE$ ingeschakeld",
-    "placeholders": { "rule": { "content": "$1", "example": "2" } }
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
   },
   "routeVisualRuleActionsAccessible": {
     "message": "Meer acties voor regel $RULE$",
-    "placeholders": { "rule": { "content": "$1", "example": "2" } }
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
   },
   "routeVisualMatcherAccessible": {
     "message": "Regel $RULE$, voorwaarde $CONDITION$: matcher",
     "placeholders": {
-      "rule": { "content": "$1", "example": "2" },
-      "condition": { "content": "$2", "example": "1" }
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      },
+      "condition": {
+        "content": "$2",
+        "example": "1"
+      }
     }
   },
   "routeVisualPatternAccessible": {
     "message": "Regel $RULE$, voorwaarde $CONDITION$: patroon",
     "placeholders": {
-      "rule": { "content": "$1", "example": "2" },
-      "condition": { "content": "$2", "example": "1" }
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      },
+      "condition": {
+        "content": "$2",
+        "example": "1"
+      }
     }
   },
   "routeVisualIgnoreCaseAccessible": {
     "message": "Regel $RULE$, voorwaarde $CONDITION$: hoofdlettergebruik negeren",
     "placeholders": {
-      "rule": { "content": "$1", "example": "2" },
-      "condition": { "content": "$2", "example": "1" }
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      },
+      "condition": {
+        "content": "$2",
+        "example": "1"
+      }
     }
   },
   "routeVisualDeleteConditionAccessible": {
     "message": "Voorwaarde $CONDITION$ uit regel $RULE$ verwijderen",
     "placeholders": {
-      "condition": { "content": "$2", "example": "1" },
-      "rule": { "content": "$1", "example": "2" }
+      "condition": {
+        "content": "$2",
+        "example": "1"
+      },
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      }
     }
   },
   "routeVisualDestinationAccessible": {
     "message": "Bestemming van regel $RULE$",
-    "placeholders": { "rule": { "content": "$1", "example": "2" } }
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
   },
   "routeVisualIgnoreCaseHelp": {
     "message": "Hoofdletters en kleine letters als gelijk behandelen"
@@ -2478,120 +2883,230 @@
   "routeVisualEmpty": {
     "message": "Er zijn nog geen routeringsregels. Voeg een regel toe om te beginnen."
   },
-  "visualEditorEnabled": { "message": "Ingeschakeld" },
+  "visualEditorEnabled": {
+    "message": "Ingeschakeld"
+  },
   "html_disableThisDestinationAndItsChildren": {
     "message": "Deze bestemming en onderliggende items niet in het menu tonen"
   },
   "html_keepsARuleWithoutRunningIt": {
     "message": "behoudt de regel zonder deze uit te voeren"
   },
-  "autoDownloadHeading": { "message": "Paginabronnen automatisch opslaan" },
+  "autoDownloadHeading": {
+    "message": "Paginabronnen automatisch opslaan"
+  },
   "autoDownloadHelp": {
     "message": "Sla nieuw ontdekte paginabronnen alleen op wanneer een ingeschakelde regel overeenkomt met zowel de pagina als de bron."
   },
-  "autoDownloadEnabled": { "message": "Overeenkomende bronnen automatisch opslaan" },
+  "autoDownloadEnabled": {
+    "message": "Overeenkomende bronnen automatisch opslaan"
+  },
   "autoDownloadLive": {
     "message": "Bronnen opnemen die na het laden van de pagina worden toegevoegd"
   },
-  "autoDownloadPrivate": { "message": "Toestaan in privévensters" },
-  "autoDownloadLinks": { "message": "Gekoppelde media opnemen" },
-  "autoDownloadCoverageHeading": { "message": "Bereik van automatische scan" },
-  "autoDownloadDocuments": { "message": "Gekoppelde documenten en streams opnemen" },
+  "autoDownloadPrivate": {
+    "message": "Toestaan in privévensters"
+  },
+  "autoDownloadLinks": {
+    "message": "Gekoppelde media opnemen"
+  },
+  "autoDownloadCoverageHeading": {
+    "message": "Bereik van automatische scan"
+  },
+  "autoDownloadDocuments": {
+    "message": "Gekoppelde documenten en streams opnemen"
+  },
   "autoDownloadDocumentsHelp": {
     "message": "Neemt gekoppelde PDF- en HLS/DASH-manifestbestanden over, ongeacht of gekoppelde media is opgenomen."
   },
-  "autoDownloadBackgrounds": { "message": "CSS-achtergrondafbeeldingen opnemen" },
+  "autoDownloadBackgrounds": {
+    "message": "CSS-achtergrondafbeeldingen opnemen"
+  },
   "autoDownloadManifests": {
     "message": "Zoeken naar afspeellijsten voor streamingvideo indien mogelijk (HLS/DASH)"
   },
   "autoDownloadManifestsHelp": {
     "message": "Slaat het manifestbestand zelf op, niet de samengestelde stream."
   },
-  "autoDownloadDataUrls": { "message": "Inline data:-afbeeldingen en -media opnemen" },
+  "autoDownloadDataUrls": {
+    "message": "Inline data:-afbeeldingen en -media opnemen"
+  },
   "autoDownloadDataUrlsHelp": {
     "message": "Neemt op zichzelf staande data:-URL's over, tot 2 MB per stuk; grotere worden overgeslagen."
   },
-  "autoDownloadLimit": { "message": "Maximumaantal opgeslagen items per paginabezoek" },
+  "autoDownloadLimit": {
+    "message": "Maximumaantal opgeslagen items per paginabezoek"
+  },
   "autoDownloadLimitHelp": {
     "message": "Save In stopt met het toevoegen van nieuwe overeenkomsten aan de wachtrij wanneer deze limiet is bereikt. Herlaad de pagina om een nieuw bezoek te starten."
   },
-  "autoDownloadRulesHeading": { "message": "Automatiseringsregels" },
+  "autoDownloadRulesHeading": {
+    "message": "Automatiseringsregels"
+  },
   "autoDownloadRulesHelp": {
     "message": "Elke regel heeft een paginavoorwaarde, een bronvoorwaarde en een bestemming nodig. De eerste overeenkomende regel wordt uitgevoerd."
   },
-  "autoDownloadEditorMode": { "message": "Editormodus voor automatiseringsregels" },
-  "autoDownloadVisual": { "message": "Visueel" },
-  "autoDownloadText": { "message": "Tekst" },
-  "autoDownloadAddRule": { "message": "Automatiseringsregel toevoegen" },
-  "autoDownloadGrammar": { "message": "Regelsyntaxis" },
-  "autoDownloadCondition": { "message": "Voorwaarde" },
-  "autoDownloadPattern": { "message": "Patroon" },
-  "autoDownloadIgnoreCase": { "message": "Hoofdlettergebruik negeren" },
+  "autoDownloadEditorMode": {
+    "message": "Editormodus voor automatiseringsregels"
+  },
+  "autoDownloadVisual": {
+    "message": "Visueel"
+  },
+  "autoDownloadText": {
+    "message": "Tekst"
+  },
+  "autoDownloadAddRule": {
+    "message": "Automatiseringsregel toevoegen"
+  },
+  "autoDownloadGrammar": {
+    "message": "Regelsyntaxis"
+  },
+  "autoDownloadCondition": {
+    "message": "Voorwaarde"
+  },
+  "autoDownloadPattern": {
+    "message": "Patroon"
+  },
+  "autoDownloadIgnoreCase": {
+    "message": "Hoofdlettergebruik negeren"
+  },
   "autoDownloadIgnoreCaseHelp": {
     "message": "Hoofdletters en kleine letters als gelijk behandelen"
   },
-  "autoDownloadDeleteCondition": { "message": "Voorwaarde verwijderen" },
+  "autoDownloadDeleteCondition": {
+    "message": "Voorwaarde verwijderen"
+  },
   "autoDownloadVisualInvalid": {
     "message": "Los de fouten in de tekstmodus op voordat u naar de visuele modus schakelt."
   },
   "autoDownloadEmpty": {
     "message": "Er zijn nog geen automatiseringsregels. Voeg een regel toe, kies de site en bronnen en schakel de regel daarna in."
   },
-  "autoDownloadRule": { "message": "Regel" },
-  "autoDownloadMoveUp": { "message": "Regel omhoog verplaatsen" },
-  "autoDownloadMoveDown": { "message": "Regel omlaag verplaatsen" },
-  "autoDownloadDeleteRule": { "message": "Regel verwijderen" },
-  "autoDownloadRuleName": { "message": "Regelnaam" },
-  "autoDownloadAddCondition": { "message": "Voorwaarde toevoegen" },
-  "autoDownloadDestination": { "message": "Opslaan in" },
-  "autoDownloadNewRule": { "message": "Nieuwe regel" },
+  "autoDownloadRule": {
+    "message": "Regel"
+  },
+  "autoDownloadMoveUp": {
+    "message": "Regel omhoog verplaatsen"
+  },
+  "autoDownloadMoveDown": {
+    "message": "Regel omlaag verplaatsen"
+  },
+  "autoDownloadDeleteRule": {
+    "message": "Regel verwijderen"
+  },
+  "autoDownloadRuleName": {
+    "message": "Regelnaam"
+  },
+  "autoDownloadAddCondition": {
+    "message": "Voorwaarde toevoegen"
+  },
+  "autoDownloadDestination": {
+    "message": "Opslaan in"
+  },
+  "autoDownloadNewRule": {
+    "message": "Nieuwe regel"
+  },
   "ruleAutomaticMissingPage": {
     "message": "Voeg een voorwaarde pageurl:, pagedomain: of pagerootdomain: toe"
   },
   "ruleAutomaticMissingSource": {
     "message": "Voeg een voorwaarde voor bronadres, brondomein, brontype of bestandsextensie toe"
   },
-  "autoDownloadRoutingBadge": { "message": "Automatische bron" },
-  "autoDownloadManageRules": { "message": "Routeringsregels openen" },
+  "autoDownloadRoutingBadge": {
+    "message": "Automatische bron"
+  },
+  "autoDownloadManageRules": {
+    "message": "Routeringsregels openen"
+  },
   "autoDownloadRoutingHelp": {
     "message": "Gebruik context: auto met pagina- en bronvoorwaarden om automatische downloads te vinden. De eerste overeenkomende regel bepaalt de opslaglocatie."
   },
-  "html_openInFirefoxAddons": { "message": "Openen in Firefox Add-ons" },
-  "html_openInChromeWebStore": { "message": "Openen in de Chrome Web Store" },
-  "html_downloadRequestHeaders": { "message": "Headers van downloadverzoeken" },
+  "html_openInFirefoxAddons": {
+    "message": "Openen in Firefox Add-ons"
+  },
+  "html_openInChromeWebStore": {
+    "message": "Openen in de Chrome Web Store"
+  },
+  "html_downloadRequestHeaders": {
+    "message": "Headers van downloadverzoeken"
+  },
   "html_temporarilyAddsThePageUrlAsRefererForExactSaveInRequests": {
     "message": "Voegt tijdelijk de pagina-URL als Referer toe aan exact overeenkomende Save In-verzoeken wanneer een site dit vereist."
   },
-  "matchPatternInvalid": { "message": "Ongeldig WebExtension-matchpatroon" },
-  "regularExpressionInvalid": { "message": "Ongeldige reguliere expressie" },
-  "validationJumpToIssue": { "message": "Naar dit probleem gaan" },
-  "optionsKeepEditing": { "message": "Doorgaan met bewerken" },
-  "optionsDiscardChanges": { "message": "Wijzigingen verwerpen" },
+  "matchPatternInvalid": {
+    "message": "Ongeldig WebExtension-matchpatroon"
+  },
+  "regularExpressionInvalid": {
+    "message": "Ongeldige reguliere expressie"
+  },
+  "validationJumpToIssue": {
+    "message": "Naar dit probleem gaan"
+  },
+  "optionsKeepEditing": {
+    "message": "Doorgaan met bewerken"
+  },
+  "optionsDiscardChanges": {
+    "message": "Wijzigingen verwerpen"
+  },
   "restoreDefaultsConfirm": {
     "message": "Alle instellingen herstellen naar de standaardwaarden? De downloadgeschiedenis blijft behouden."
   },
-  "restoreDefaultsCancel": { "message": "Huidige instellingen behouden" },
-  "restoreDefaultsSuccess": { "message": "Standaardinstellingen hersteld." },
-  "restoreDefaultsFailure": { "message": "De standaardinstellingen konden niet worden hersteld." },
-  "referenceCaption": { "message": "Referentie" },
-  "referenceColumnSyntax": { "message": "Syntaxis" },
-  "referenceColumnExample": { "message": "Voorbeeld" },
-  "referenceColumnMeaning": { "message": "Betekenis" },
+  "restoreDefaultsCancel": {
+    "message": "Huidige instellingen behouden"
+  },
+  "restoreDefaultsSuccess": {
+    "message": "Standaardinstellingen hersteld."
+  },
+  "restoreDefaultsFailure": {
+    "message": "De standaardinstellingen konden niet worden hersteld."
+  },
+  "referenceCaption": {
+    "message": "Referentie"
+  },
+  "referenceColumnSyntax": {
+    "message": "Syntaxis"
+  },
+  "referenceColumnExample": {
+    "message": "Voorbeeld"
+  },
+  "referenceColumnMeaning": {
+    "message": "Betekenis"
+  },
   "referenceResult": {
     "message": "$COUNT$ resultaat",
-    "placeholders": { "count": { "content": "$1", "example": "1" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
   },
   "referenceResults": {
     "message": "$COUNT$ resultaten",
-    "placeholders": { "count": { "content": "$1", "example": "12" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "12"
+      }
+    }
   },
   "referenceCopyValue": {
     "message": "$VALUE$ kopiëren",
-    "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
+    "placeholders": {
+      "value": {
+        "content": "$1",
+        "example": ":filename:"
+      }
+    }
   },
   "referenceCopiedValue": {
     "message": "$VALUE$ gekopieerd",
-    "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
+    "placeholders": {
+      "value": {
+        "content": "$1",
+        "example": ":filename:"
+      }
+    }
   },
   "o_cBrowserDownloadFiltersEnabled": {
     "message": "Alleen overeenkomende download-URL's verwerken"
@@ -2623,39 +3138,69 @@
   "o_lBrowserDownloadVariablesUnavailable": {
     "message": "Paginatitel, pagina-URL, linktekst, selectie, menumetagegevens en modificatietoetsen zijn niet beschikbaar."
   },
-  "welcomeTitle": { "message": "Welkom bij Save In" },
+  "welcomeTitle": {
+    "message": "Welkom bij Save In"
+  },
   "welcomeIntro": {
     "message": "Save In is klaar. Gebruik het rechtermuisknopmenu om afbeeldingen, links, geselecteerde tekst, media en pagina's op te slaan in mappen van uw keuze."
   },
   "welcomeStepRightClick": {
     "message": "Klik met de rechtermuisknop op iets dat u wilt opslaan."
   },
-  "welcomeStepChooseSaveIn": { "message": "Kies Save In… in het menu." },
-  "welcomeStepPickFolder": { "message": "Kies een startmap." },
+  "welcomeStepChooseSaveIn": {
+    "message": "Kies Save In… in het menu."
+  },
+  "welcomeStepPickFolder": {
+    "message": "Kies een startmap."
+  },
   "welcomeStarterNote": {
     "message": "De startmappen zijn nu actief. U kunt ze op elk moment aanpassen."
   },
   "welcomeToolbarNote": {
     "message": "De werkbalkknop opent Paginabronnen om media op de huidige pagina te vinden."
   },
-  "welcomePermissions": { "message": "Waarom zijn deze machtigingen nodig?" },
-  "welcomeCustomizeFolders": { "message": "Mappen aanpassen" },
-  "welcomeUseEmptyPreset": { "message": "Alleen de map Downloads gebruiken" },
+  "welcomePermissions": {
+    "message": "Waarom zijn deze machtigingen nodig?"
+  },
+  "welcomeCustomizeFolders": {
+    "message": "Mappen aanpassen"
+  },
+  "welcomeUseEmptyPreset": {
+    "message": "Alleen de map Downloads gebruiken"
+  },
   "welcomeEmptyPresetFailed": {
     "message": "Kan niet overschakelen naar alleen de map Downloads. Uw mappen zijn niet gewijzigd."
   },
-  "welcomeEmptyConfirmTitle": { "message": "Huidige mappen vervangen?" },
+  "welcomeEmptyConfirmTitle": {
+    "message": "Huidige mappen vervangen?"
+  },
   "welcomeEmptyConfirmDescription": {
     "message": "Hiermee wordt uw huidige mapconfiguratie vervangen en blijft alleen de bestemming Downloads van de browser behouden."
   },
-  "welcomeKeepCurrentFolders": { "message": "Huidige mappen behouden" },
-  "welcomeUseStarterFolders": { "message": "Startmappen behouden" },
-  "welcomeUsingStarterSettings": { "message": "Zojuist" },
-  "html_showWelcomeGuide": { "message": "Welkomstgids tonen" },
-  "advancedFilesDownloads": { "message": "Bestanden en downloads" },
-  "advancedMaintenanceDiagnostics": { "message": "Onderhoud en diagnostiek" },
-  "webhookStateOn": { "message": "Aan" },
-  "webhookStateOff": { "message": "Uit" },
+  "welcomeKeepCurrentFolders": {
+    "message": "Huidige mappen behouden"
+  },
+  "welcomeUseStarterFolders": {
+    "message": "Startmappen behouden"
+  },
+  "welcomeUsingStarterSettings": {
+    "message": "Zojuist"
+  },
+  "html_showWelcomeGuide": {
+    "message": "Welkomstgids tonen"
+  },
+  "advancedFilesDownloads": {
+    "message": "Bestanden en downloads"
+  },
+  "advancedMaintenanceDiagnostics": {
+    "message": "Onderhoud en diagnostiek"
+  },
+  "webhookStateOn": {
+    "message": "Aan"
+  },
+  "webhookStateOff": {
+    "message": "Uit"
+  },
   "pathTextEmptyExample": {
     "message": "images\ndocuments/:year:/:month:"
   },
@@ -2848,40 +3393,86 @@
   "diagnosticsSummaryHelp": {
     "message": "Status van worker, levenscyclus en recente fouten"
   },
-  "diagnosticsRefresh": { "message": "Vernieuwen" },
-  "diagnosticsCopy": { "message": "Diagnostische gegevens kopiëren" },
-  "diagnosticsBackground": { "message": "Achtergrond" },
-  "diagnosticsHost": { "message": "Host" },
-  "diagnosticsExtension": { "message": "Extensie" },
-  "diagnosticsBrowser": { "message": "Browser" },
-  "diagnosticsWorkerStarted": { "message": "Worker gestart" },
-  "diagnosticsSessionStorage": { "message": "Sessieopslag" },
-  "diagnosticsVerboseLogging": { "message": "Uitgebreide logboekregistratie" },
-  "diagnosticsConfigurationIssues": { "message": "Configuratieproblemen" },
-  "diagnosticsLifecycle": { "message": "Levenscyclus" },
+  "diagnosticsRefresh": {
+    "message": "Vernieuwen"
+  },
+  "diagnosticsCopy": {
+    "message": "Diagnostische gegevens kopiëren"
+  },
+  "diagnosticsBackground": {
+    "message": "Achtergrond"
+  },
+  "diagnosticsHost": {
+    "message": "Host"
+  },
+  "diagnosticsExtension": {
+    "message": "Extensie"
+  },
+  "diagnosticsBrowser": {
+    "message": "Browser"
+  },
+  "diagnosticsWorkerStarted": {
+    "message": "Worker gestart"
+  },
+  "diagnosticsSessionStorage": {
+    "message": "Sessieopslag"
+  },
+  "diagnosticsVerboseLogging": {
+    "message": "Uitgebreide logboekregistratie"
+  },
+  "diagnosticsConfigurationIssues": {
+    "message": "Configuratieproblemen"
+  },
+  "diagnosticsLifecycle": {
+    "message": "Levenscyclus"
+  },
   "diagnosticsLifecycleHelp": {
     "message": "Recente starts van de achtergrond, herladen configuraties en extensie-updates. Door Diagnostiek te openen wordt de achtergrond geactiveerd."
   },
   "diagnosticsFailuresHelp": {
     "message": "Recente lokale fouten uit deze browsersessie. Controleer de tekst voordat u deze deelt, want browserfouten kunnen details over sites of bestanden bevatten."
   },
-  "diagnosticsClearFailures": { "message": "Fouten wissen" },
-  "diagnosticsDeveloperLogging": { "message": "Logboekregistratie voor ontwikkelaars" },
+  "diagnosticsClearFailures": {
+    "message": "Fouten wissen"
+  },
+  "diagnosticsDeveloperLogging": {
+    "message": "Logboekregistratie voor ontwikkelaars"
+  },
   "diagnosticsDurationMs": {
     "message": "$COUNT$ milliseconden",
-    "placeholders": { "count": { "content": "$1", "example": "42" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "42"
+      }
+    }
   },
   "diagnosticsDurationSeconds": {
     "message": "$COUNT$ seconden",
-    "placeholders": { "count": { "content": "$1", "example": "4" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "4"
+      }
+    }
   },
   "diagnosticsDurationMinutes": {
     "message": "$COUNT$ minuten",
-    "placeholders": { "count": { "content": "$1", "example": "3" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
   },
   "diagnosticsLifecycleBackgroundReady": {
     "message": "Achtergrond was na $DURATION$ gereed.",
-    "placeholders": { "duration": { "content": "$1", "example": "120 ms" } }
+    "placeholders": {
+      "duration": {
+        "content": "$1",
+        "example": "120 ms"
+      }
+    }
   },
   "diagnosticsLifecycleBackgroundFailed": {
     "message": "Opstarten van de achtergrond is mislukt."
@@ -2889,49 +3480,113 @@
   "diagnosticsLifecycleConfigurationReloaded": {
     "message": "Configuratie opnieuw geladen."
   },
-  "diagnosticsLifecycleExtensionInstalled": { "message": "Extensie geïnstalleerd." },
+  "diagnosticsLifecycleExtensionInstalled": {
+    "message": "Extensie geïnstalleerd."
+  },
   "diagnosticsLifecycleExtensionUpdatedFrom": {
     "message": "Extensie bijgewerkt vanaf $VERSION$.",
-    "placeholders": { "version": { "content": "$1", "example": "3.9.1" } }
+    "placeholders": {
+      "version": {
+        "content": "$1",
+        "example": "3.9.1"
+      }
+    }
   },
-  "diagnosticsLifecycleExtensionUpdated": { "message": "Extensie bijgewerkt." },
-  "diagnosticsLifecycleFailuresCleared": { "message": "Recente fouten gewist." },
-  "diagnosticsLifecycleEmpty": { "message": "Nog geen levenscyclusgebeurtenissen." },
-  "diagnosticsWorkerStarting": { "message": "Wordt gestart" },
-  "diagnosticsWorkerReady": { "message": "Actief · gereed" },
-  "diagnosticsWorkerFailed": { "message": "Opstarten mislukt" },
-  "diagnosticsHostServiceWorker": { "message": "MV3-serviceworker" },
-  "diagnosticsHostEventPage": { "message": "MV3-gebeurtenispagina" },
-  "diagnosticsBrowserUnknown": { "message": "Onbekende browser" },
+  "diagnosticsLifecycleExtensionUpdated": {
+    "message": "Extensie bijgewerkt."
+  },
+  "diagnosticsLifecycleFailuresCleared": {
+    "message": "Recente fouten gewist."
+  },
+  "diagnosticsLifecycleEmpty": {
+    "message": "Nog geen levenscyclusgebeurtenissen."
+  },
+  "diagnosticsWorkerStarting": {
+    "message": "Wordt gestart"
+  },
+  "diagnosticsWorkerReady": {
+    "message": "Actief · gereed"
+  },
+  "diagnosticsWorkerFailed": {
+    "message": "Opstarten mislukt"
+  },
+  "diagnosticsHostServiceWorker": {
+    "message": "MV3-serviceworker"
+  },
+  "diagnosticsHostEventPage": {
+    "message": "MV3-gebeurtenispagina"
+  },
+  "diagnosticsBrowserUnknown": {
+    "message": "Onbekende browser"
+  },
   "diagnosticsStartedWithUptime": {
     "message": "$TIME$ · $UPTIME$ actief",
     "placeholders": {
-      "time": { "content": "$1", "example": "Jul 15, 2026, 4:10 PM" },
-      "uptime": { "content": "$2", "example": "3 min" }
+      "time": {
+        "content": "$1",
+        "example": "Jul 15, 2026, 4:10 PM"
+      },
+      "uptime": {
+        "content": "$2",
+        "example": "3 min"
+      }
     }
   },
   "diagnosticsConfigurationIssueCount": {
     "message": "$PATHS$ pad · $ROUTING$ routering",
     "placeholders": {
-      "paths": { "content": "$1", "example": "0" },
-      "routing": { "content": "$2", "example": "1" }
+      "paths": {
+        "content": "$1",
+        "example": "0"
+      },
+      "routing": {
+        "content": "$2",
+        "example": "1"
+      }
     }
   },
-  "diagnosticsAvailable": { "message": "Beschikbaar" },
-  "diagnosticsUnavailable": { "message": "Niet beschikbaar" },
-  "diagnosticsOn": { "message": "Aan" },
-  "diagnosticsOff": { "message": "Uit" },
-  "diagnosticsFailuresEmpty": { "message": "Geen recente fouten." },
-  "diagnosticsChecking": { "message": "Achtergrond controleren…" },
+  "diagnosticsAvailable": {
+    "message": "Beschikbaar"
+  },
+  "diagnosticsUnavailable": {
+    "message": "Niet beschikbaar"
+  },
+  "diagnosticsOn": {
+    "message": "Aan"
+  },
+  "diagnosticsOff": {
+    "message": "Uit"
+  },
+  "diagnosticsFailuresEmpty": {
+    "message": "Geen recente fouten."
+  },
+  "diagnosticsChecking": {
+    "message": "Achtergrond controleren…"
+  },
   "diagnosticsCheckedAt": {
     "message": "Gecontroleerd om $TIME$",
-    "placeholders": { "time": { "content": "$1", "example": "Jul 15, 2026, 4:10 PM" } }
+    "placeholders": {
+      "time": {
+        "content": "$1",
+        "example": "Jul 15, 2026, 4:10 PM"
+      }
+    }
   },
-  "diagnosticsLoadFailed": { "message": "Kon diagnostische gegevens niet laden." },
-  "diagnosticsCopySuccess": { "message": "Diagnostische gegevens gekopieerd." },
-  "diagnosticsCopyFailed": { "message": "Kon diagnostische gegevens niet kopiëren." },
-  "diagnosticsClearSuccess": { "message": "Recente fouten gewist." },
-  "diagnosticsClearFailed": { "message": "Kon recente fouten niet wissen." },
+  "diagnosticsLoadFailed": {
+    "message": "Kon diagnostische gegevens niet laden."
+  },
+  "diagnosticsCopySuccess": {
+    "message": "Diagnostische gegevens gekopieerd."
+  },
+  "diagnosticsCopyFailed": {
+    "message": "Kon diagnostische gegevens niet kopiëren."
+  },
+  "diagnosticsClearSuccess": {
+    "message": "Recente fouten gewist."
+  },
+  "diagnosticsClearFailed": {
+    "message": "Kon recente fouten niet wissen."
+  },
   "sourcePanelSelectFiltered": {
     "message": "Gefilterde bronnen selecteren"
   },
@@ -2949,7 +3604,12 @@
   },
   "sourcePanelHiddenSelectedCount": {
     "message": "$COUNT$ verborgen",
-    "placeholders": { "count": { "content": "$1", "example": "2" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
   },
   "sourcePanelSaveSelected": {
     "message": "Geselecteerde bronnen opslaan"
@@ -2990,37 +3650,73 @@
   "sourcePanelCreateAutomaticRule": {
     "message": "Automatische regel maken"
   },
-  "savedSettingUpdated": { "message": "Instelling bijgewerkt" },
+  "savedSettingUpdated": {
+    "message": "Instelling bijgewerkt"
+  },
   "savedSettingsUpdated": {
     "message": "$COUNT$ instellingen bijgewerkt",
-    "placeholders": { "count": { "content": "$1", "example": "3" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
   },
-  "savedUndo": { "message": "Ongedaan maken" },
+  "savedUndo": {
+    "message": "Ongedaan maken"
+  },
   "savedUndoFailed": {
     "message": "Ongedaan maken mislukt — selecteer om opnieuw te proberen"
   },
   "savedUndoBlocked": {
     "message": "Voltooi of verwerp uw andere bewerkingen voordat u iets ongedaan maakt."
   },
-  "externalApiUnknown": { "message": "Onbekend" },
-  "externalApiUnavailable": { "message": "Niet beschikbaar" },
+  "externalApiUnknown": {
+    "message": "Onbekend"
+  },
+  "externalApiUnavailable": {
+    "message": "Niet beschikbaar"
+  },
   "externalBlockedAttemptOne": {
     "message": "$COUNT$ geblokkeerde poging",
-    "placeholders": { "count": { "content": "$1", "example": "1" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
   },
   "externalBlockedAttemptMany": {
     "message": "$COUNT$ geblokkeerde pogingen",
-    "placeholders": { "count": { "content": "$1", "example": "3" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
   },
-  "externalRequestActiveTab": { "message": "Verzoek voor actief tabblad" },
-  "externalRequestUrl": { "message": "URL-verzoek" },
-  "externalRequestDownload": { "message": "Downloadverzoek" },
-  "externalApprove": { "message": "Goedkeuren" },
-  "externalApproving": { "message": "Goedkeuren…" },
+  "externalRequestActiveTab": {
+    "message": "Verzoek voor actief tabblad"
+  },
+  "externalRequestUrl": {
+    "message": "URL-verzoek"
+  },
+  "externalRequestDownload": {
+    "message": "Downloadverzoek"
+  },
+  "externalApprove": {
+    "message": "Goedkeuren"
+  },
+  "externalApproving": {
+    "message": "Goedkeuren…"
+  },
   "externalApprovalFailed": {
     "message": "$ID$ kon niet worden goedgekeurd.",
     "placeholders": {
-      "id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" }
+      "id": {
+        "content": "$1",
+        "example": "abcdefghijklmnopabcdefghijklmnop"
+      }
     }
   },
   "externalRejectionsLoadFailed": {
@@ -3028,13 +3724,25 @@
   },
   "referenceInsertValue": {
     "message": "$VALUE$ invoegen",
-    "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
+    "placeholders": {
+      "value": {
+        "content": "$1",
+        "example": ":filename:"
+      }
+    }
   },
   "versionViewReleases": {
     "message": "Save In v$VERSION$ — releases bekijken",
-    "placeholders": { "version": { "content": "$1", "example": "4.0.0" } }
+    "placeholders": {
+      "version": {
+        "content": "$1",
+        "example": "4.0.0"
+      }
+    }
   },
-  "html_advancedFetchADifferentUrl": { "message": "Geavanceerd: een andere URL ophalen" },
+  "html_advancedFetchADifferentUrl": {
+    "message": "Geavanceerd: een andere URL ophalen"
+  },
   "html_captureReferencesAndRoutingVariablesSubstituteVerbatim": {
     "message": "; vastlegverwijzingen en routeringsvariabelen worden letterlijk ingevuld, zonder opschoning van de bestandsnaam."
   },
@@ -3050,26 +3758,45 @@
   "html_fetchClauseCompatibility": {
     "message": "Wordt overgeslagen door gewone routering van browserdownloads, die alleen kan hernoemen, geen URL's kan vervangen. Menu, opslaan met één klik en automatisch opslaan gebruiken deze nog steeds."
   },
-  "html_orLiteral": { "message": "of" },
+  "html_orLiteral": {
+    "message": "of"
+  },
   "html_stillControlsTheDestinationAndFilename": {
     "message": "bepaalt nog steeds de bestemming en bestandsnaam."
   },
   "html_stillSetsTheDestinationAndFilenameMustStartWith": {
     "message": "stelt nog steeds de bestemming en bestandsnaam in. Moet beginnen met"
   },
-  "routeDebuggerFetchTemplate": { "message": "Herschrijfsjabloon" },
-  "routeDebuggerRewrittenUrl": { "message": "Herschreven URL" },
+  "routeDebuggerFetchTemplate": {
+    "message": "Herschrijfsjabloon"
+  },
+  "routeDebuggerRewrittenUrl": {
+    "message": "Herschreven URL"
+  },
   "routeVisualFetchAccessible": {
     "message": "Regel $RULE$: download-URL herschrijven",
-    "placeholders": { "rule": { "content": "$1", "example": "2" } }
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
   },
-  "routeVisualFetchLabel": { "message": "Download-URL herschrijven" },
-  "ruleTemplateCategorySiteFiling": { "message": "Indeling per site" },
-  "ruleTemplateCategorySiteOriginals": { "message": "Originelen per site" },
+  "routeVisualFetchLabel": {
+    "message": "Download-URL herschrijven"
+  },
+  "ruleTemplateCategorySiteFiling": {
+    "message": "Indeling per site"
+  },
+  "ruleTemplateCategorySiteOriginals": {
+    "message": "Originelen per site"
+  },
   "ruleTemplateDeviantArtRenameDescription": {
     "message": "Hernoemt de gehashte downloadbestandsnaam van DeviantArt naar de titel van het werk en de korte code"
   },
-  "ruleTemplateDeviantArtRenameName": { "message": "DeviantArt gehashte bestandsnaam hernoemen" },
+  "ruleTemplateDeviantArtRenameName": {
+    "message": "DeviantArt gehashte bestandsnaam hernoemen"
+  },
   "ruleTemplateInstagramUsernamePrefixDescription": {
     "message": "Plaatst de Instagram-gebruikersnaam uit de paginatitel vóór opgeslagen bestanden"
   },
@@ -3079,39 +3806,106 @@
   "ruleTemplatePagePathNoSchemeDescription": {
     "message": "Bouwt mappen op basis van de host en het pad van de pagina-URL, zonder het schema https:// dat anders bestandsnamen beschadigt"
   },
-  "ruleTemplatePagePathNoSchemeName": { "message": "Paginapad zonder schema" },
+  "ruleTemplatePagePathNoSchemeName": {
+    "message": "Paginapad zonder schema"
+  },
   "ruleTemplateRedditOriginalsDescription": {
     "message": "Herschrijft voorvertoningsafbeeldingslinks van Reddit naar het originele bestand op i.redd.it"
   },
-  "ruleTemplateRedditOriginalsName": { "message": "Originele Reddit-afbeeldingen" },
+  "ruleTemplateRedditOriginalsName": {
+    "message": "Originele Reddit-afbeeldingen"
+  },
   "ruleTemplateSluggedTitleRenameDescription": {
     "message": "Vervangt de bestandsnaam door een kleine letters, met koppeltekens gescheiden slug van de paginatitel, met behoud van de oorspronkelijke extensie (algemeen zoeken-en-vervangen in bestandsnamen wordt niet ondersteund)"
   },
-  "ruleTemplateSluggedTitleRenameName": { "message": "Hernoemen met titel-slug" },
+  "ruleTemplateSluggedTitleRenameName": {
+    "message": "Hernoemen met titel-slug"
+  },
   "ruleTemplateTwitterHandlePrefixDescription": {
     "message": "Plaatst de Twitter- of X-handle uit de pagina-URL vóór opgeslagen bestanden"
   },
-  "ruleTemplateTwitterHandlePrefixName": { "message": "Twitter/X-handle als voorvoegsel" },
+  "ruleTemplateTwitterHandlePrefixName": {
+    "message": "Twitter/X-handle als voorvoegsel"
+  },
   "ruleTemplateTwitterOriginalsDescription": {
     "message": "Herschrijft Twitter- en X-afbeeldingslinks naar het originele bestand op volledige resolutie"
   },
-  "ruleTemplateTwitterOriginalsName": { "message": "Originele Twitter/X-afbeeldingen" },
+  "ruleTemplateTwitterOriginalsName": {
+    "message": "Originele Twitter/X-afbeeldingen"
+  },
   "ruleTemplateWikimediaOriginalDescription": {
     "message": "Herschrijft miniatuurlinks van Wikimedia Commons naar het originele bestand op volledige grootte"
   },
-  "ruleTemplateWikimediaOriginalName": { "message": "Wikimedia-afbeelding op volledige grootte" },
+  "ruleTemplateWikimediaOriginalName": {
+    "message": "Wikimedia-afbeelding op volledige grootte"
+  },
   "ruleTemplateYoutubeMaxResDescription": {
     "message": "Herschrijft miniatuurlinks van YouTube naar de afbeelding met maximale resolutie"
   },
-  "ruleTemplateYoutubeMaxResName": { "message": "YouTube-miniatuur met maximale resolutie" },
-  "ruleExtraFetch": { "message": "Een regel kan slechts één fetch:-clausule bevatten" },
-  "ruleFetchNotHttp": { "message": "Het fetch:-adres moet beginnen met http:// of https://" },
+  "ruleTemplateYoutubeMaxResName": {
+    "message": "YouTube-miniatuur met maximale resolutie"
+  },
+  "ruleExtraFetch": {
+    "message": "Een regel kan slechts één fetch:-clausule bevatten"
+  },
+  "ruleFetchNotHttp": {
+    "message": "Het fetch:-adres moet beginnen met http:// of https://"
+  },
   "ruleFetchUnsupportedVariable": {
     "message": "Variabele wordt niet ondersteund in een fetch:-adres"
   },
-  "savedValueOff": { "message": "Uit" },
-  "savedValueOn": { "message": "Aan" },
-  "o_lUiThemeGildedMosaic": { "message": "Verguld mozaïek" },
-  "o_lUiThemeBlueHouse": { "message": "Blauw huis" },
-  "o_lUiThemePrimaryGrid": { "message": "Primair raster" }
+  "savedValueOff": {
+    "message": "Uit"
+  },
+  "savedValueOn": {
+    "message": "Aan"
+  },
+  "o_lUiThemeGildedMosaic": {
+    "message": "Verguld mozaïek"
+  },
+  "o_lUiThemeBlueHouse": {
+    "message": "Blauw huis"
+  },
+  "o_lUiThemePrimaryGrid": {
+    "message": "Primair raster"
+  },
+  "ruleExtraRename": {
+    "message": "Een regel kan slechts één rename:-clausule bevatten"
+  },
+  "ruleRenameMissingSeparator": {
+    "message": "Scheid het patroon en de vervanging met ' -> '"
+  },
+  "html_renameReplacesMatchesInTheFinalFilename": {
+    "message": "Vervangt overeenkomsten van een reguliere expressie in de uiteindelijke bestandsnaam door de letterlijke tekst na"
+  },
+  "html_renameReplacementExpandsVariables": {
+    "message": "; een lege vervanging verwijdert overeenkomsten, en in de vervanging worden routeringsvariabelen en capture-verwijzingen uitgevouwen zoals"
+  },
+  "html_renameClauseCompatibility": {
+    "message": "Wordt toegepast nadat de bestandsnaam volledig is bepaald (inclusief fetch:-herschrijvingen) en vóór lengtelimieten — mappen worden nooit gewijzigd. Hernoemt ook geregistreerde gewone browserdownloads. Schrijf een letterlijke ' -> ' in het patroon met een ge-escapete spatie (\\x20->)."
+  },
+  "html_advancedRenameTheSavedFile": {
+    "message": "Geavanceerd: het opgeslagen bestand hernoemen"
+  },
+  "html_renameGuideDescription": {
+    "message": "bewerkt de uiteindelijke bestandsnaam: het patroon vóór ' -> ' is een reguliere expressie, en de letterlijke vervanging erna kan routeringsvariabelen en capture-verwijzingen gebruiken. Mappen worden nooit gewijzigd."
+  },
+  "routeVisualRenameLabel": {
+    "message": "Bestand hernoemen"
+  },
+  "routeVisualRenameAccessible": {
+    "message": "Regel $RULE$: bestand hernoemen",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "routeDebuggerRenameTemplate": {
+    "message": "Hernoemen"
+  },
+  "routeDebuggerRenamedName": {
+    "message": "Hernoemde naam"
+  }
 }

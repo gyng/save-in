@@ -58,6 +58,8 @@ const setupGlobals = () => {
     parseRules: vi.fn((v) => v),
     matchRule: vi.fn(),
     getCaptureMatches: vi.fn(),
+    expandRenameTransform: vi.fn(async (transform: unknown) => transform),
+    applyRenameTransform: vi.fn((value: string) => value),
   });
   mocks.applyVariables.mockReset();
   mocks.Path.mockReset();
@@ -470,6 +472,82 @@ describe("OptionsManagement", () => {
       );
 
       expect(result).toEqual({ path: "finalized:routed/dir", captures: ["cap1"] });
+    });
+
+    test("applies the winning rule's rename to the previewed final component", async () => {
+      const rule = routingRule("rule-a");
+      OptionsManagement.setOption("filenamePatterns", [rule]);
+      mocks.Download.getRoutingMatch.mockReturnValue({
+        rule,
+        destination: "routed/name.txt",
+        fetch: null,
+        rename: { find: "name", flags: "", replacement: ":pagedomain:" },
+      });
+      mocks.router.expandRenameTransform = vi.fn(async (transform: Record<string, string>) => ({
+        ...transform,
+        replacement: "example.com",
+      }));
+      mocks.router.applyRenameTransform = vi.fn((value: string) => `renamed(${value})`);
+      mocks.Path.mockImplementation(function fakePath(
+        this: { routingMatches: unknown },
+        routingMatches: unknown,
+      ) {
+        this.routingMatches = routingMatches;
+      });
+      const finalize = vi.fn(
+        (options: { transformFinalComponent?: (value: string) => string }) =>
+          options.transformFinalComponent?.("name.txt") ?? "no-transform",
+      );
+      mocks.applyVariables.mockImplementation(() => ({ finalize }));
+
+      const result = await previewRoutes({
+        info: { filename: "name.txt", url: "https://x/name.txt" },
+      });
+
+      // The replacement expands in preview mode before the transform applies.
+      expect(mocks.router.expandRenameTransform).toHaveBeenCalledWith(
+        { find: "name", flags: "", replacement: ":pagedomain:" },
+        expect.objectContaining({ preview: true }),
+      );
+      expect(finalize).toHaveBeenCalledWith(
+        expect.objectContaining({
+          finalComponentIsFilename: true,
+          transformFinalComponent: expect.any(Function),
+        }),
+      );
+      expect(mocks.router.applyRenameTransform).toHaveBeenCalledWith("name.txt", {
+        find: "name",
+        flags: "",
+        replacement: "example.com",
+      });
+      expect(result.path).toBe("renamed(name.txt)");
+    });
+
+    test("a folder-only route ignores the rename in the preview path", async () => {
+      const rule = routingRule("rule-a");
+      OptionsManagement.setOption("filenamePatterns", [rule]);
+      mocks.Download.getRoutingMatch.mockReturnValue({
+        rule,
+        destination: "routed/dir/",
+        fetch: null,
+        rename: { find: "a", flags: "", replacement: "b" },
+      });
+      mocks.Path.mockImplementation(function fakePath(
+        this: { routingMatches: unknown },
+        routingMatches: unknown,
+      ) {
+        this.routingMatches = routingMatches;
+      });
+      const finalize = vi.fn(() => "routed/dir/");
+      mocks.applyVariables.mockImplementation(() => ({ finalize }));
+
+      await previewRoutes({ info: { filename: "name.txt", url: "https://x/name.txt" } });
+
+      // The folder route keeps the download's own name, so the previewed
+      // directory must not receive the filename transform.
+      expect(finalize).toHaveBeenCalledWith(
+        expect.not.objectContaining({ transformFinalComponent: expect.anything() }),
+      );
     });
 
     test("prefers initialFilename over filename (Chrome mutates filename with `_`)", async () => {

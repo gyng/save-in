@@ -8,6 +8,7 @@ import {
   runFailedDownloadLogScenario,
   runHistoryCancellationScenario,
   runLegacyProfileRoutingScenario,
+  runRenameRoutingScenario,
   runRoutingScenario,
   runShortcutScenario,
   runSymlinkDestinationScenario,
@@ -93,6 +94,17 @@ export const registerSharedBrowserCases = (adapters) => {
       content: routingContent,
     });
     const completed = requireValue(downloads[0], "Routed download was not captured");
+    expect(fs.readFileSync(completed.filename, "utf8")).toBe(routingContent);
+  });
+
+  test("a rename: clause edits the final filename of a routed save", async () => {
+    const downloads = await runRenameRoutingScenario({
+      control,
+      waitForDownloads,
+      content: routingContent,
+    });
+    const completed = requireValue(downloads[0], "Renamed download was not captured");
+    expect(completed.filename.endsWith("save-renamed.txt")).toBe(true);
     expect(fs.readFileSync(completed.filename, "utf8")).toBe(routingContent);
   });
 

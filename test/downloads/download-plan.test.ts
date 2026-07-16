@@ -57,10 +57,10 @@ describe("getFilenameFromContentDisposition", () => {
 describe("getRoutingMatches", () => {
   test("returns null when there are no filename patterns", () => {
     delete (options as Partial<SaveInOptions>).filenamePatterns;
-    expect(Download.getRoutingMatches({ info: {} })).toBe(null);
+    expect(Download.getRoutingMatches({ info: {}, scratch: {} })).toBe(null);
 
     options.filenamePatterns = [];
-    expect(Download.getRoutingMatches({ info: {} })).toBe(null);
+    expect(Download.getRoutingMatches({ info: {}, scratch: {} })).toBe(null);
 
     expect(router.matchRules).not.toHaveBeenCalled();
   });
@@ -68,14 +68,14 @@ describe("getRoutingMatches", () => {
   test("skips routing when the caller disables it", () => {
     options.filenamePatterns = [routingRule()];
 
-    expect(Download.getRoutingMatches({ info: { routingDisabled: true } })).toBeNull();
+    expect(Download.getRoutingMatches({ info: { routingDisabled: true }, scratch: {} })).toBeNull();
     expect(router.matchRules).not.toHaveBeenCalled();
   });
 
   test("delegates to matchRules with the rename-only predicate", () => {
     options.filenamePatterns = [routingRule()];
     vi.mocked(router.matchRules).mockReturnValue("the/route");
-    const state = { info: { url: "x" } };
+    const state = { info: { url: "x" }, scratch: {} };
 
     expect(Download.getRoutingMatches(state)).toBe("the/route");
     // Callers of this seam rename downloads that already started, so rules
@@ -104,6 +104,7 @@ describe("getRoutingMatch", () => {
       rule: options.filenamePatterns[0]!,
       destination: "the/route",
       fetch: "https://mirror.example/orig.png",
+      rename: null,
     };
     vi.mocked(router.matchRulesDetailed).mockReturnValue(match);
     const state = { info: { url: "x" } };
@@ -120,6 +121,7 @@ describe("fetch rewrite", () => {
       rule: options.filenamePatterns[0]!,
       destination,
       fetch,
+      rename: null,
     });
   };
 
@@ -278,6 +280,106 @@ describe("fetch rewrite", () => {
     expect(router.matchRulesDetailed).not.toHaveBeenCalled();
     expect(state.info.url).toBe("https://mirror.example/orig.png");
     expect(plan?.finalFullPath).toBe("downloads/auto/orig.png");
+  });
+});
+
+describe("rename transform in the plan", () => {
+  const renameMatch = (
+    destination: string,
+    rename: { find: string; flags: string; replacement: string } | null,
+    fetch: string | null = null,
+  ) => {
+    options.filenamePatterns = [routingRule()];
+    vi.mocked(router.matchRulesDetailed).mockReturnValue({
+      rule: options.filenamePatterns[0]!,
+      destination,
+      fetch,
+      rename,
+    });
+  };
+
+  test("expands the replacement and renames the plan's final filename component", async () => {
+    renameMatch("routed/:filename:", {
+      find: "file",
+      flags: "",
+      replacement: "doc-:sourcedomain:",
+    });
+    const state = makeState({ info: { url: "https://example.com/dir/file.png" } });
+
+    const plan = await Download.resolveDownloadPlan(state);
+
+    // The capture-substituted template persists for Chrome's late filename
+    // resolution; the expanded transform is what finalizeFullPath applied.
+    expect(state.scratch.renameTemplate).toEqual({
+      find: "file",
+      flags: "",
+      replacement: "doc-:sourcedomain:",
+    });
+    expect(state.scratch.renameResolved).toEqual({
+      find: "file",
+      flags: "",
+      replacement: "doc-example.com",
+    });
+    expect(plan?.finalFullPath).toBe("downloads/routed/doc-example.com.png");
+  });
+
+  test("clears stale rename scratch when the winning rule has none", async () => {
+    renameMatch("routed", null);
+    const state = makeState({
+      scratch: {
+        renameTemplate: { find: "a", flags: "", replacement: "b" },
+        renameResolved: { find: "a", flags: "", replacement: "b" },
+      },
+    });
+
+    const plan = await Download.resolveDownloadPlan(state);
+
+    expect(state.scratch.renameTemplate).toBeUndefined();
+    expect(state.scratch.renameResolved).toBeUndefined();
+    expect(plan?.finalFullPath).toBe("downloads/routed");
+  });
+
+  test("a rename that strips the extension still gets the MIME-derived one appended", async () => {
+    renameMatch("routed/:filename:", { find: "\\.png$", flags: "", replacement: "" });
+    options.appendMimeExtension = true;
+    vi.spyOn(Variable, "resolveMime").mockResolvedValue("image/png");
+    const state = makeState({ info: { url: "https://example.com/dir/file.png" } });
+
+    const plan = await Download.resolveDownloadPlan(state);
+
+    // The tentative extension check sees the renamed component, so the MIME
+    // append decision reflects the rename's output rather than the raw route.
+    expect(state.scratch.mimeExtension).toBe("png");
+    expect(plan?.finalFullPath).toBe("downloads/routed/file.png");
+  });
+
+  test("a folder-only route renames the download's own name before the MIME check", async () => {
+    renameMatch("routed/", { find: "\\.png$", flags: "", replacement: "" });
+    options.appendMimeExtension = true;
+    vi.spyOn(Variable, "resolveMime").mockResolvedValue("image/png");
+    const state = makeState({ info: { url: "https://example.com/dir/file.png" } });
+
+    const plan = await Download.resolveDownloadPlan(state);
+
+    expect(state.scratch.mimeExtension).toBe("png");
+    expect(plan?.finalFullPath).toBe("downloads/routed/file.png");
+  });
+
+  test("with fetch:, renames the fetched resource's final name", async () => {
+    renameMatch(
+      "routed/:naivefilename:",
+      // :sourcedomain: must expand against the REWRITTEN URL, proving the
+      // rename resolves after the fetch rewrite retargets the download.
+      { find: "orig", flags: "", replacement: ":sourcedomain:" },
+      "https://mirror.example/orig.png",
+    );
+    const state = makeState({ info: { url: "https://cdn.example/small.png" } });
+
+    const plan = await Download.resolveDownloadPlan(state);
+
+    expect(state.info.url).toBe("https://mirror.example/orig.png");
+    expect(state.scratch.renameResolved?.replacement).toBe("mirror.example");
+    expect(plan?.finalFullPath).toBe("downloads/routed/mirror.example.png");
   });
 });
 

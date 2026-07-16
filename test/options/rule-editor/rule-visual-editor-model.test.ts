@@ -167,6 +167,23 @@ describe("routing visual editor model", () => {
     ).toBe("filename: jpg\nfetch: https://x.example/full.jpg\ninto: images");
   });
 
+  test("inserts a rename clause after capture but immediately before the destination", () => {
+    expect(addRoutingClause(source, 1, { name: "rename", value: "^doc -> file" })).toContain(
+      [
+        "fileext: pdf",
+        "capturegroups: fileext",
+        "rename: ^doc -> file",
+        "into: documents/:filename:",
+      ].join("\n"),
+    );
+    expect(
+      addRoutingClause("filename: jpg\ninto: images", 0, {
+        name: "rename",
+        value: "cat -> dog",
+      }),
+    ).toBe("filename: jpg\nrename: cat -> dog\ninto: images");
+  });
+
   test("deletes one clause line without disturbing comments or other rules", () => {
     expect(deleteRoutingClause(source, 1, 1)).toBe(source.replace("capturegroups: fileext\n", ""));
   });

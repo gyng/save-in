@@ -1,5 +1,7 @@
 {
-  "ruleTemplatePdfsByContentTypeName": { "message": "依內容類型分類 PDF" },
+  "ruleTemplatePdfsByContentTypeName": {
+    "message": "依內容類型分類 PDF"
+  },
   "ruleTemplatePdfsByContentTypeDescription": {
     "message": "依回報的內容類型而非檔案名稱識別 PDF"
   },
@@ -27,7 +29,6 @@
   "html_matchesTheRootHostname": {
     "message": "符合不含子網域的主機名稱。"
   },
-
   "extensionName": {
     "message": "Save In"
   },
@@ -94,7 +95,9 @@
       }
     }
   },
-  "notificationUndoSave": { "message": "復原儲存" },
+  "notificationUndoSave": {
+    "message": "復原儲存"
+  },
   "notificationRuleMatchedTitle": {
     "message": "Save In：規則相符"
   },
@@ -1135,24 +1138,51 @@
   },
   "externalApprovedCountOne": {
     "message": "已核准 $COUNT$ 個擴充功能",
-    "placeholders": { "count": { "content": "$1", "example": "1" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
   },
   "externalApprovedCountMany": {
     "message": "已核准 $COUNT$ 個擴充功能",
-    "placeholders": { "count": { "content": "$1", "example": "3" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
   },
-  "externalRemoveApproval": { "message": "移除" },
+  "externalRemoveApproval": {
+    "message": "移除"
+  },
   "externalRemoveApprovalFor": {
     "message": "取消核准 $ID$",
-    "placeholders": { "id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" } }
+    "placeholders": {
+      "id": {
+        "content": "$1",
+        "example": "abcdefghijklmnopabcdefghijklmnop"
+      }
+    }
   },
   "externalApprovalRemoved": {
     "message": "已取消核准 $ID$。",
-    "placeholders": { "id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" } }
+    "placeholders": {
+      "id": {
+        "content": "$1",
+        "example": "abcdefghijklmnopabcdefghijklmnop"
+      }
+    }
   },
   "externalApprovalAdded": {
     "message": "已核准 $ID$。",
-    "placeholders": { "id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" } }
+    "placeholders": {
+      "id": {
+        "content": "$1",
+        "example": "abcdefghijklmnopabcdefghijklmnop"
+      }
+    }
   },
   "html_oneExtensionIdPerLine": {
     "message": "每行一個擴充功能 ID"
@@ -1565,18 +1595,36 @@
   "html_toRouteIntoAFolder": {
     "message": "即可移至資料夾，"
   },
-  "sourcePanelDockFloating": { "message": "浮動" },
+  "sourcePanelDockFloating": {
+    "message": "浮動"
+  },
   "sourcePanelNoMatchesFilter": {
     "message": "沒有符合「$FILTER$」的來源。",
-    "placeholders": { "filter": { "content": "$1", "example": "poster" } }
+    "placeholders": {
+      "filter": {
+        "content": "$1",
+        "example": "poster"
+      }
+    }
   },
-  "sourcePanelClearFilters": { "message": "清除篩選條件" },
+  "sourcePanelClearFilters": {
+    "message": "清除篩選條件"
+  },
   "sourcePanelSourceCount": {
     "message": "找到的來源：$COUNT$ 個",
-    "placeholders": { "count": { "content": "$1", "example": "12" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "12"
+      }
+    }
   },
-  "sourcePanelEmbeddedSource": { "message": "頁面內嵌來源" },
-  "sourcePanelMoreActions": { "message": "更多操作" },
+  "sourcePanelEmbeddedSource": {
+    "message": "頁面內嵌來源"
+  },
+  "sourcePanelMoreActions": {
+    "message": "更多操作"
+  },
   "html_webhooks": {
     "message": "Webhook"
   },
@@ -2117,14 +2165,27 @@
   "historyCancelingDownload": {
     "message": "正在取消…"
   },
-  "historyUndoSave": { "message": "復原儲存" },
+  "historyUndoSave": {
+    "message": "復原儲存"
+  },
   "historyUndoSaveNamed": {
     "message": "復原 $FILE$ 的儲存",
-    "placeholders": { "file": { "content": "$1", "example": "photo.jpg" } }
+    "placeholders": {
+      "file": {
+        "content": "$1",
+        "example": "photo.jpg"
+      }
+    }
   },
-  "historyUndoDone": { "message": "已復原儲存。檔案已刪除。" },
-  "historyUndoFileMissing": { "message": "已復原儲存。檔案先前已被移動或刪除。" },
-  "historyUndoFailed": { "message": "無法復原此次儲存。" },
+  "historyUndoDone": {
+    "message": "已復原儲存。檔案已刪除。"
+  },
+  "historyUndoFileMissing": {
+    "message": "已復原儲存。檔案先前已被移動或刪除。"
+  },
+  "historyUndoFailed": {
+    "message": "無法復原此次儲存。"
+  },
   "historyRoutingApplied": {
     "message": "已套用"
   },
@@ -2180,7 +2241,9 @@
   "historyStatusCanceled": {
     "message": "已取消"
   },
-  "historyStatusUndone": { "message": "已復原" },
+  "historyStatusUndone": {
+    "message": "已復原"
+  },
   "historyStatusNetworkFailed": {
     "message": "網路失敗"
   },
@@ -2250,63 +2313,151 @@
   "o_lShortcutFormatLinux": {
     "message": "Linux 桌面捷徑"
   },
-  "html_closePrivacyPolicy": { "message": "關閉隱私權政策" },
-  "o_sAppearance": { "message": "外觀" },
-  "o_lUiTheme": { "message": "主題" },
-  "o_lUiThemeSystem": { "message": "系統" },
-  "o_lUiThemeDark": { "message": "深色" },
-  "o_lUiThemeLight": { "message": "淺色" },
-  "o_lUiThemeGroupDefault": { "message": "標準" },
-  "o_lUiThemeGroupAccessibility": { "message": "高對比" },
-  "o_lUiThemeGroupClassics": { "message": "經典主題" },
-  "o_lUiThemeGroupSaveIn": { "message": "客製化" },
-  "o_lUiThemeHighContrastDark": { "message": "高對比深色" },
-  "o_lUiThemeHighContrastLight": { "message": "高對比淺色" },
-  "o_lUiThemeHighContrastYellow": { "message": "高對比黃色" },
-  "o_lUiThemeSolarizedDark": { "message": "Solarized Dark" },
-  "o_lUiThemeSolarizedLight": { "message": "Solarized Light" },
-  "o_lUiThemeNord": { "message": "Nord" },
-  "o_lUiThemeDracula": { "message": "Dracula" },
-  "o_lUiThemeGruvbox": { "message": "Gruvbox" },
-  "o_lUiThemeMonokai": { "message": "Monokai" },
-  "o_lUiThemeOneDark": { "message": "One Dark" },
-  "o_lUiThemeTokyoNight": { "message": "Tokyo Night" },
-  "o_lUiThemeCatppuccin": { "message": "Catppuccin" },
-  "o_lUiThemeMidnight": { "message": "午夜" },
-  "o_lUiThemePastelPink": { "message": "胭脂" },
-  "o_lUiThemePaper": { "message": "紙張" },
-  "o_lUiThemeTerminal": { "message": "終端機" },
-  "o_lUiThemeBerry": { "message": "莓果" },
-  "o_lUiThemeNebula": { "message": "Nebula" },
-  "o_lUiThemeGlacier": { "message": "冰川" },
-  "o_lUiThemeMatcha": { "message": "抹茶" },
-  "o_lUiThemeEmber": { "message": "餘燼" },
+  "html_closePrivacyPolicy": {
+    "message": "關閉隱私權政策"
+  },
+  "o_sAppearance": {
+    "message": "外觀"
+  },
+  "o_lUiTheme": {
+    "message": "主題"
+  },
+  "o_lUiThemeSystem": {
+    "message": "系統"
+  },
+  "o_lUiThemeDark": {
+    "message": "深色"
+  },
+  "o_lUiThemeLight": {
+    "message": "淺色"
+  },
+  "o_lUiThemeGroupDefault": {
+    "message": "標準"
+  },
+  "o_lUiThemeGroupAccessibility": {
+    "message": "高對比"
+  },
+  "o_lUiThemeGroupClassics": {
+    "message": "經典主題"
+  },
+  "o_lUiThemeGroupSaveIn": {
+    "message": "客製化"
+  },
+  "o_lUiThemeHighContrastDark": {
+    "message": "高對比深色"
+  },
+  "o_lUiThemeHighContrastLight": {
+    "message": "高對比淺色"
+  },
+  "o_lUiThemeHighContrastYellow": {
+    "message": "高對比黃色"
+  },
+  "o_lUiThemeSolarizedDark": {
+    "message": "Solarized Dark"
+  },
+  "o_lUiThemeSolarizedLight": {
+    "message": "Solarized Light"
+  },
+  "o_lUiThemeNord": {
+    "message": "Nord"
+  },
+  "o_lUiThemeDracula": {
+    "message": "Dracula"
+  },
+  "o_lUiThemeGruvbox": {
+    "message": "Gruvbox"
+  },
+  "o_lUiThemeMonokai": {
+    "message": "Monokai"
+  },
+  "o_lUiThemeOneDark": {
+    "message": "One Dark"
+  },
+  "o_lUiThemeTokyoNight": {
+    "message": "Tokyo Night"
+  },
+  "o_lUiThemeCatppuccin": {
+    "message": "Catppuccin"
+  },
+  "o_lUiThemeMidnight": {
+    "message": "午夜"
+  },
+  "o_lUiThemePastelPink": {
+    "message": "胭脂"
+  },
+  "o_lUiThemePaper": {
+    "message": "紙張"
+  },
+  "o_lUiThemeTerminal": {
+    "message": "終端機"
+  },
+  "o_lUiThemeBerry": {
+    "message": "莓果"
+  },
+  "o_lUiThemeNebula": {
+    "message": "Nebula"
+  },
+  "o_lUiThemeGlacier": {
+    "message": "冰川"
+  },
+  "o_lUiThemeMatcha": {
+    "message": "抹茶"
+  },
+  "o_lUiThemeEmber": {
+    "message": "餘燼"
+  },
   "o_lUiThemeHelp": {
     "message": "選擇用於設定和「頁面來源」的色彩主題。"
   },
-  "notificationExternalDownloadBlockedTitle": { "message": "已封鎖外部下載" },
+  "notificationExternalDownloadBlockedTitle": {
+    "message": "已封鎖外部下載"
+  },
   "notificationExternalDownloadBlockedMessage": {
     "message": "已封鎖來自 $SENDER_ID$ 的請求。按一下即可在選項中檢視。",
     "placeholders": {
-      "sender_id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" }
+      "sender_id": {
+        "content": "$1",
+        "example": "abcdefghijklmnopabcdefghijklmnop"
+      }
     }
   },
-  "historyEmptyNoDownloads": { "message": "尚未儲存任何下載。" },
-  "historyEmptyNoMatches": { "message": "沒有符合這些篩選條件的歷史記錄。" },
-  "webMcpStatusRegistering": { "message": "正在註冊…" },
+  "historyEmptyNoDownloads": {
+    "message": "尚未儲存任何下載。"
+  },
+  "historyEmptyNoMatches": {
+    "message": "沒有符合這些篩選條件的歷史記錄。"
+  },
+  "webMcpStatusRegistering": {
+    "message": "正在註冊…"
+  },
   "webMcpStatusActive": {
     "message": "已啟用 — 已註冊 $COUNT$ 個工具",
-    "placeholders": { "count": { "content": "$1", "example": "5" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "5"
+      }
+    }
   },
   "webMcpStatusLimited": {
     "message": "受限 — 已註冊 $TOTAL$ 個工具中的 $REGISTERED$ 個",
     "placeholders": {
-      "registered": { "content": "$1", "example": "4" },
-      "total": { "content": "$2", "example": "5" }
+      "registered": {
+        "content": "$1",
+        "example": "4"
+      },
+      "total": {
+        "content": "$2",
+        "example": "5"
+      }
     }
   },
-  "webMcpStatusRegistrationFailed": { "message": "無法使用 — 工具註冊失敗" },
-  "webMcpStatusUnavailableBrowser": { "message": "此瀏覽器不支援" },
+  "webMcpStatusRegistrationFailed": {
+    "message": "無法使用 — 工具註冊失敗"
+  },
+  "webMcpStatusUnavailableBrowser": {
+    "message": "此瀏覽器不支援"
+  },
   "sourcePanelResizeLabel": {
     "message": "調整「頁面來源」大小"
   },
@@ -2454,9 +2605,15 @@
   "routeDebuggerTitle": {
     "message": "測試路由規則"
   },
-  "routeDebuggerUseSource": { "message": "使用" },
-  "routeDebuggerLatestDownload": { "message": "最新" },
-  "routeDebuggerUseSampleDownload": { "message": "範例" },
+  "routeDebuggerUseSource": {
+    "message": "使用"
+  },
+  "routeDebuggerLatestDownload": {
+    "message": "最新"
+  },
+  "routeDebuggerUseSampleDownload": {
+    "message": "範例"
+  },
   "routeDebuggerFilename": {
     "message": "檔案名稱"
   },
@@ -2486,15 +2643,30 @@
   },
   "routeDebuggerOneRuleMatched": {
     "message": "$COUNT$ 個規則相符並已使用。",
-    "placeholders": { "count": { "content": "$1", "example": "1" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
   },
   "routeDebuggerOneLaterRuleMatches": {
     "message": "已使用 1 個規則；後面的 $COUNT$ 個規則也相符。",
-    "placeholders": { "count": { "content": "$1", "example": "1" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
   },
   "routeDebuggerLaterRulesMatch": {
     "message": "已使用 1 個規則；後面的 $COUNT$ 個規則也相符。",
-    "placeholders": { "count": { "content": "$1", "example": "2" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
   },
   "routeDebuggerExpanded": {
     "message": "展開後的路徑"
@@ -2598,43 +2770,82 @@
   },
   "routeVisualRuleEnabledAccessible": {
     "message": "規則 $RULE$ 已啟用",
-    "placeholders": { "rule": { "content": "$1", "example": "2" } }
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
   },
   "routeVisualRuleActionsAccessible": {
     "message": "規則 $RULE$ 的更多操作",
-    "placeholders": { "rule": { "content": "$1", "example": "2" } }
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
   },
   "routeVisualMatcherAccessible": {
     "message": "規則 $RULE$，條件 $CONDITION$：比對器",
     "placeholders": {
-      "rule": { "content": "$1", "example": "2" },
-      "condition": { "content": "$2", "example": "1" }
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      },
+      "condition": {
+        "content": "$2",
+        "example": "1"
+      }
     }
   },
   "routeVisualPatternAccessible": {
     "message": "規則 $RULE$，條件 $CONDITION$：模式",
     "placeholders": {
-      "rule": { "content": "$1", "example": "2" },
-      "condition": { "content": "$2", "example": "1" }
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      },
+      "condition": {
+        "content": "$2",
+        "example": "1"
+      }
     }
   },
   "routeVisualIgnoreCaseAccessible": {
     "message": "規則 $RULE$，條件 $CONDITION$：忽略大小寫",
     "placeholders": {
-      "rule": { "content": "$1", "example": "2" },
-      "condition": { "content": "$2", "example": "1" }
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      },
+      "condition": {
+        "content": "$2",
+        "example": "1"
+      }
     }
   },
   "routeVisualDeleteConditionAccessible": {
     "message": "從規則 $RULE$ 刪除條件 $CONDITION$",
     "placeholders": {
-      "condition": { "content": "$2", "example": "1" },
-      "rule": { "content": "$1", "example": "2" }
+      "condition": {
+        "content": "$2",
+        "example": "1"
+      },
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      }
     }
   },
   "routeVisualDestinationAccessible": {
     "message": "規則 $RULE$ 的目的地",
-    "placeholders": { "rule": { "content": "$1", "example": "2" } }
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
   },
   "routeVisualIgnoreCaseHelp": {
     "message": "將大寫與小寫字母視為相同"
@@ -2672,110 +2883,234 @@
   "routeVisualEmpty": {
     "message": "尚無路由規則。新增一個規則即可開始。"
   },
-  "visualEditorEnabled": { "message": "已啟用" },
+  "visualEditorEnabled": {
+    "message": "已啟用"
+  },
   "html_disableThisDestinationAndItsChildren": {
     "message": "不在選單中顯示此目的地及其子項目"
   },
   "html_keepsARuleWithoutRunningIt": {
     "message": "保留規則但不執行"
   },
-  "autoDownloadHeading": { "message": "自動儲存來源" },
+  "autoDownloadHeading": {
+    "message": "自動儲存來源"
+  },
   "autoDownloadHelp": {
     "message": "僅在已啟用的規則同時符合頁面和來源時，才儲存新發現的頁面來源。"
   },
-  "autoDownloadEnabled": { "message": "自動儲存符合項目" },
-  "autoDownloadLive": { "message": "監看頁面載入後新增的來源" },
-  "autoDownloadPrivate": { "message": "允許在隱私視窗中自動儲存" },
-  "autoDownloadLinks": { "message": "包含頁面連結的媒體" },
-  "autoDownloadCoverageHeading": { "message": "自動掃描涵蓋範圍" },
-  "autoDownloadDocuments": { "message": "包含連結的文件與串流" },
+  "autoDownloadEnabled": {
+    "message": "自動儲存符合項目"
+  },
+  "autoDownloadLive": {
+    "message": "監看頁面載入後新增的來源"
+  },
+  "autoDownloadPrivate": {
+    "message": "允許在隱私視窗中自動儲存"
+  },
+  "autoDownloadLinks": {
+    "message": "包含頁面連結的媒體"
+  },
+  "autoDownloadCoverageHeading": {
+    "message": "自動掃描涵蓋範圍"
+  },
+  "autoDownloadDocuments": {
+    "message": "包含連結的文件與串流"
+  },
   "autoDownloadDocumentsHelp": {
     "message": "無論是否包含連結的媒體，都會擷取連結的 PDF 與 HLS/DASH 清單檔案。"
   },
-  "autoDownloadBackgrounds": { "message": "包含 CSS 背景圖片" },
-  "autoDownloadManifests": { "message": "盡可能尋找串流影片播放清單（HLS/DASH）" },
-  "autoDownloadManifestsHelp": { "message": "儲存清單檔案本身，而非組合後的串流。" },
-  "autoDownloadDataUrls": { "message": "包含內嵌 data: 圖片與媒體" },
+  "autoDownloadBackgrounds": {
+    "message": "包含 CSS 背景圖片"
+  },
+  "autoDownloadManifests": {
+    "message": "盡可能尋找串流影片播放清單（HLS/DASH）"
+  },
+  "autoDownloadManifestsHelp": {
+    "message": "儲存清單檔案本身，而非組合後的串流。"
+  },
+  "autoDownloadDataUrls": {
+    "message": "包含內嵌 data: 圖片與媒體"
+  },
   "autoDownloadDataUrlsHelp": {
     "message": "擷取自包含的 data: URL，每個最多 2 MB；較大的會略過。"
   },
-  "autoDownloadLimit": { "message": "每次頁面瀏覽的最大儲存數" },
+  "autoDownloadLimit": {
+    "message": "每次頁面瀏覽的最大儲存數"
+  },
   "autoDownloadLimitHelp": {
     "message": "達到此限制時，Save In 將停止把新的符合項目加入佇列。重新載入頁面即可開始新的瀏覽。"
   },
-  "autoDownloadRulesHeading": { "message": "自動化規則" },
+  "autoDownloadRulesHeading": {
+    "message": "自動化規則"
+  },
   "autoDownloadRulesHelp": {
     "message": "每項規則都需要頁面條件、來源條件和目的地。第一個相符的規則會執行。"
   },
-  "autoDownloadEditorMode": { "message": "自動化規則編輯器模式" },
-  "autoDownloadVisual": { "message": "視覺化" },
-  "autoDownloadText": { "message": "文字" },
-  "autoDownloadAddRule": { "message": "新增自動化規則" },
-  "autoDownloadGrammar": { "message": "規則語法" },
-  "autoDownloadCondition": { "message": "條件" },
-  "autoDownloadPattern": { "message": "模式" },
-  "autoDownloadIgnoreCase": { "message": "忽略大小寫" },
-  "autoDownloadIgnoreCaseHelp": { "message": "將大寫與小寫字母視為相同" },
-  "autoDownloadDeleteCondition": { "message": "刪除條件" },
+  "autoDownloadEditorMode": {
+    "message": "自動化規則編輯器模式"
+  },
+  "autoDownloadVisual": {
+    "message": "視覺化"
+  },
+  "autoDownloadText": {
+    "message": "文字"
+  },
+  "autoDownloadAddRule": {
+    "message": "新增自動化規則"
+  },
+  "autoDownloadGrammar": {
+    "message": "規則語法"
+  },
+  "autoDownloadCondition": {
+    "message": "條件"
+  },
+  "autoDownloadPattern": {
+    "message": "模式"
+  },
+  "autoDownloadIgnoreCase": {
+    "message": "忽略大小寫"
+  },
+  "autoDownloadIgnoreCaseHelp": {
+    "message": "將大寫與小寫字母視為相同"
+  },
+  "autoDownloadDeleteCondition": {
+    "message": "刪除條件"
+  },
   "autoDownloadVisualInvalid": {
     "message": "切換到視覺化模式前，請先在文字模式中修正錯誤。"
   },
   "autoDownloadEmpty": {
     "message": "尚無自動化規則。請新增規則、選擇網站與來源，然後啟用該規則。"
   },
-  "autoDownloadRule": { "message": "規則" },
-  "autoDownloadMoveUp": { "message": "上移規則" },
-  "autoDownloadMoveDown": { "message": "下移規則" },
-  "autoDownloadDeleteRule": { "message": "刪除規則" },
-  "autoDownloadRuleName": { "message": "規則名稱" },
-  "autoDownloadAddCondition": { "message": "新增條件" },
-  "autoDownloadDestination": { "message": "儲存至" },
-  "autoDownloadNewRule": { "message": "新規則" },
+  "autoDownloadRule": {
+    "message": "規則"
+  },
+  "autoDownloadMoveUp": {
+    "message": "上移規則"
+  },
+  "autoDownloadMoveDown": {
+    "message": "下移規則"
+  },
+  "autoDownloadDeleteRule": {
+    "message": "刪除規則"
+  },
+  "autoDownloadRuleName": {
+    "message": "規則名稱"
+  },
+  "autoDownloadAddCondition": {
+    "message": "新增條件"
+  },
+  "autoDownloadDestination": {
+    "message": "儲存至"
+  },
+  "autoDownloadNewRule": {
+    "message": "新規則"
+  },
   "ruleAutomaticMissingPage": {
     "message": "新增 pageurl:、pagedomain: 或 pagerootdomain: 條件"
   },
-  "ruleAutomaticMissingSource": { "message": "新增來源位址、網域、類型或副檔名條件" },
-  "autoDownloadRoutingBadge": { "message": "自動來源" },
-  "autoDownloadManageRules": { "message": "開啟路由規則" },
+  "ruleAutomaticMissingSource": {
+    "message": "新增來源位址、網域、類型或副檔名條件"
+  },
+  "autoDownloadRoutingBadge": {
+    "message": "自動來源"
+  },
+  "autoDownloadManageRules": {
+    "message": "開啟路由規則"
+  },
   "autoDownloadRoutingHelp": {
     "message": "使用 context: auto 搭配頁面與來源條件來比對自動下載。第一個相符的規則會決定儲存位置。"
   },
-  "html_openInFirefoxAddons": { "message": "在 Firefox Add-ons 中開啟" },
-  "html_openInChromeWebStore": { "message": "在 Chrome Web Store 中開啟" },
-  "html_downloadRequestHeaders": { "message": "下載要求標頭" },
+  "html_openInFirefoxAddons": {
+    "message": "在 Firefox Add-ons 中開啟"
+  },
+  "html_openInChromeWebStore": {
+    "message": "在 Chrome Web Store 中開啟"
+  },
+  "html_downloadRequestHeaders": {
+    "message": "下載要求標頭"
+  },
   "html_temporarilyAddsThePageUrlAsRefererForExactSaveInRequests": {
     "message": "網站需要時，會暫時為完全符合的 Save In 要求加入頁面 URL 作為 Referer。"
   },
-  "matchPatternInvalid": { "message": "無效的 WebExtension 比對模式" },
-  "regularExpressionInvalid": { "message": "無效的正規表示式" },
-  "validationJumpToIssue": { "message": "跳至此問題" },
-  "optionsKeepEditing": { "message": "繼續編輯" },
-  "optionsDiscardChanges": { "message": "捨棄變更" },
-  "restoreDefaultsConfirm": { "message": "要將所有設定還原為預設值嗎？下載記錄將會保留。" },
-  "restoreDefaultsCancel": { "message": "保留目前設定" },
-  "restoreDefaultsSuccess": { "message": "已還原預設設定。" },
-  "restoreDefaultsFailure": { "message": "無法還原預設設定。" },
-  "referenceCaption": { "message": "參考" },
-  "referenceColumnSyntax": { "message": "語法" },
-  "referenceColumnExample": { "message": "範例" },
-  "referenceColumnMeaning": { "message": "說明" },
+  "matchPatternInvalid": {
+    "message": "無效的 WebExtension 比對模式"
+  },
+  "regularExpressionInvalid": {
+    "message": "無效的正規表示式"
+  },
+  "validationJumpToIssue": {
+    "message": "跳至此問題"
+  },
+  "optionsKeepEditing": {
+    "message": "繼續編輯"
+  },
+  "optionsDiscardChanges": {
+    "message": "捨棄變更"
+  },
+  "restoreDefaultsConfirm": {
+    "message": "要將所有設定還原為預設值嗎？下載記錄將會保留。"
+  },
+  "restoreDefaultsCancel": {
+    "message": "保留目前設定"
+  },
+  "restoreDefaultsSuccess": {
+    "message": "已還原預設設定。"
+  },
+  "restoreDefaultsFailure": {
+    "message": "無法還原預設設定。"
+  },
+  "referenceCaption": {
+    "message": "參考"
+  },
+  "referenceColumnSyntax": {
+    "message": "語法"
+  },
+  "referenceColumnExample": {
+    "message": "範例"
+  },
+  "referenceColumnMeaning": {
+    "message": "說明"
+  },
   "referenceResult": {
     "message": "$COUNT$ 筆結果",
-    "placeholders": { "count": { "content": "$1", "example": "1" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
   },
   "referenceResults": {
     "message": "$COUNT$ 筆結果",
-    "placeholders": { "count": { "content": "$1", "example": "12" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "12"
+      }
+    }
   },
   "referenceCopyValue": {
     "message": "複製 $VALUE$",
-    "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
+    "placeholders": {
+      "value": {
+        "content": "$1",
+        "example": ":filename:"
+      }
+    }
   },
   "referenceCopiedValue": {
     "message": "已複製 $VALUE$",
-    "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
+    "placeholders": {
+      "value": {
+        "content": "$1",
+        "example": ":filename:"
+      }
+    }
   },
-  "o_cBrowserDownloadFiltersEnabled": { "message": "僅處理相符的下載 URL" },
+  "o_cBrowserDownloadFiltersEnabled": {
+    "message": "僅處理相符的下載 URL"
+  },
   "o_cBrowserDownloadFiltersEnabledHelp": {
     "message": "適用於 Save In 歷史記錄追蹤和路由。"
   },
@@ -2803,37 +3138,69 @@
   "o_lBrowserDownloadVariablesUnavailable": {
     "message": "頁面標題、頁面 URL、連結文字、選取的文字、選單中繼資料和輔助按鍵無法使用。"
   },
-  "welcomeTitle": { "message": "歡迎使用 Save In" },
+  "welcomeTitle": {
+    "message": "歡迎使用 Save In"
+  },
   "welcomeIntro": {
     "message": "Save In 已準備就緒。使用右鍵選單可將圖片、連結、選取的文字、媒體和頁面儲存到您選擇的資料夾。"
   },
-  "welcomeStepRightClick": { "message": "在要儲存的內容上按一下滑鼠右鍵。" },
-  "welcomeStepChooseSaveIn": { "message": "從選單中選擇 Save In…。" },
-  "welcomeStepPickFolder": { "message": "選擇一個初始資料夾。" },
+  "welcomeStepRightClick": {
+    "message": "在要儲存的內容上按一下滑鼠右鍵。"
+  },
+  "welcomeStepChooseSaveIn": {
+    "message": "從選單中選擇 Save In…。"
+  },
+  "welcomeStepPickFolder": {
+    "message": "選擇一個初始資料夾。"
+  },
   "welcomeStarterNote": {
     "message": "初始資料夾現已啟用。您可以隨時自訂。"
   },
   "welcomeToolbarNote": {
     "message": "工具列按鈕會開啟「頁面來源」，用來尋找目前頁面上的媒體。"
   },
-  "welcomePermissions": { "message": "為什麼需要這些權限？" },
-  "welcomeCustomizeFolders": { "message": "自訂資料夾" },
-  "welcomeUseEmptyPreset": { "message": "僅使用「下載」資料夾" },
+  "welcomePermissions": {
+    "message": "為什麼需要這些權限？"
+  },
+  "welcomeCustomizeFolders": {
+    "message": "自訂資料夾"
+  },
+  "welcomeUseEmptyPreset": {
+    "message": "僅使用「下載」資料夾"
+  },
   "welcomeEmptyPresetFailed": {
     "message": "無法切換為僅使用「下載」資料夾。您的資料夾未變更。"
   },
-  "welcomeEmptyConfirmTitle": { "message": "取代目前的資料夾？" },
+  "welcomeEmptyConfirmTitle": {
+    "message": "取代目前的資料夾？"
+  },
   "welcomeEmptyConfirmDescription": {
     "message": "這會取代目前的資料夾設定，只保留瀏覽器的「下載」目的地。"
   },
-  "welcomeKeepCurrentFolders": { "message": "保留目前的資料夾" },
-  "welcomeUseStarterFolders": { "message": "保留初始資料夾" },
-  "welcomeUsingStarterSettings": { "message": "剛剛" },
-  "html_showWelcomeGuide": { "message": "顯示歡迎指南" },
-  "advancedFilesDownloads": { "message": "檔案與下載" },
-  "advancedMaintenanceDiagnostics": { "message": "維護與診斷" },
-  "webhookStateOn": { "message": "開" },
-  "webhookStateOff": { "message": "關" },
+  "welcomeKeepCurrentFolders": {
+    "message": "保留目前的資料夾"
+  },
+  "welcomeUseStarterFolders": {
+    "message": "保留初始資料夾"
+  },
+  "welcomeUsingStarterSettings": {
+    "message": "剛剛"
+  },
+  "html_showWelcomeGuide": {
+    "message": "顯示歡迎指南"
+  },
+  "advancedFilesDownloads": {
+    "message": "檔案與下載"
+  },
+  "advancedMaintenanceDiagnostics": {
+    "message": "維護與診斷"
+  },
+  "webhookStateOn": {
+    "message": "開"
+  },
+  "webhookStateOff": {
+    "message": "關"
+  },
   "pathTextEmptyExample": {
     "message": "images\ndocuments/:year:/:month:"
   },
@@ -3026,40 +3393,86 @@
   "diagnosticsSummaryHelp": {
     "message": "背景程序的健康狀態、生命週期與近期失敗"
   },
-  "diagnosticsRefresh": { "message": "重新整理" },
-  "diagnosticsCopy": { "message": "複製診斷資訊" },
-  "diagnosticsBackground": { "message": "背景程序" },
-  "diagnosticsHost": { "message": "主機" },
-  "diagnosticsExtension": { "message": "擴充功能" },
-  "diagnosticsBrowser": { "message": "瀏覽器" },
-  "diagnosticsWorkerStarted": { "message": "背景程序啟動時間" },
-  "diagnosticsSessionStorage": { "message": "工作階段儲存空間" },
-  "diagnosticsVerboseLogging": { "message": "詳細記錄" },
-  "diagnosticsConfigurationIssues": { "message": "設定問題" },
-  "diagnosticsLifecycle": { "message": "生命週期" },
+  "diagnosticsRefresh": {
+    "message": "重新整理"
+  },
+  "diagnosticsCopy": {
+    "message": "複製診斷資訊"
+  },
+  "diagnosticsBackground": {
+    "message": "背景程序"
+  },
+  "diagnosticsHost": {
+    "message": "主機"
+  },
+  "diagnosticsExtension": {
+    "message": "擴充功能"
+  },
+  "diagnosticsBrowser": {
+    "message": "瀏覽器"
+  },
+  "diagnosticsWorkerStarted": {
+    "message": "背景程序啟動時間"
+  },
+  "diagnosticsSessionStorage": {
+    "message": "工作階段儲存空間"
+  },
+  "diagnosticsVerboseLogging": {
+    "message": "詳細記錄"
+  },
+  "diagnosticsConfigurationIssues": {
+    "message": "設定問題"
+  },
+  "diagnosticsLifecycle": {
+    "message": "生命週期"
+  },
   "diagnosticsLifecycleHelp": {
     "message": "最近的背景程序啟動、設定重新載入與擴充功能更新。開啟「診斷」會喚醒背景程序。"
   },
   "diagnosticsFailuresHelp": {
     "message": "此瀏覽器工作階段中的近期本機失敗。分享前請檢查文字，因為瀏覽器錯誤可能包含網站或檔案詳細資訊。"
   },
-  "diagnosticsClearFailures": { "message": "清除失敗記錄" },
-  "diagnosticsDeveloperLogging": { "message": "開發人員記錄" },
+  "diagnosticsClearFailures": {
+    "message": "清除失敗記錄"
+  },
+  "diagnosticsDeveloperLogging": {
+    "message": "開發人員記錄"
+  },
   "diagnosticsDurationMs": {
     "message": "$COUNT$ 毫秒",
-    "placeholders": { "count": { "content": "$1", "example": "42" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "42"
+      }
+    }
   },
   "diagnosticsDurationSeconds": {
     "message": "$COUNT$ 秒",
-    "placeholders": { "count": { "content": "$1", "example": "4" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "4"
+      }
+    }
   },
   "diagnosticsDurationMinutes": {
     "message": "$COUNT$ 分鐘",
-    "placeholders": { "count": { "content": "$1", "example": "3" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
   },
   "diagnosticsLifecycleBackgroundReady": {
     "message": "背景程序於 $DURATION$ 後就緒。",
-    "placeholders": { "duration": { "content": "$1", "example": "120 ms" } }
+    "placeholders": {
+      "duration": {
+        "content": "$1",
+        "example": "120 ms"
+      }
+    }
   },
   "diagnosticsLifecycleBackgroundFailed": {
     "message": "背景程序啟動失敗。"
@@ -3067,49 +3480,113 @@
   "diagnosticsLifecycleConfigurationReloaded": {
     "message": "已重新載入設定。"
   },
-  "diagnosticsLifecycleExtensionInstalled": { "message": "已安裝擴充功能。" },
+  "diagnosticsLifecycleExtensionInstalled": {
+    "message": "已安裝擴充功能。"
+  },
   "diagnosticsLifecycleExtensionUpdatedFrom": {
     "message": "已從 $VERSION$ 更新擴充功能。",
-    "placeholders": { "version": { "content": "$1", "example": "3.9.1" } }
+    "placeholders": {
+      "version": {
+        "content": "$1",
+        "example": "3.9.1"
+      }
+    }
   },
-  "diagnosticsLifecycleExtensionUpdated": { "message": "擴充功能已更新。" },
-  "diagnosticsLifecycleFailuresCleared": { "message": "已清除近期失敗記錄。" },
-  "diagnosticsLifecycleEmpty": { "message": "尚無生命週期事件。" },
-  "diagnosticsWorkerStarting": { "message": "啟動中" },
-  "diagnosticsWorkerReady": { "message": "執行中 · 已就緒" },
-  "diagnosticsWorkerFailed": { "message": "啟動失敗" },
-  "diagnosticsHostServiceWorker": { "message": "MV3 Service Worker" },
-  "diagnosticsHostEventPage": { "message": "MV3 事件頁面" },
-  "diagnosticsBrowserUnknown": { "message": "未知瀏覽器" },
+  "diagnosticsLifecycleExtensionUpdated": {
+    "message": "擴充功能已更新。"
+  },
+  "diagnosticsLifecycleFailuresCleared": {
+    "message": "已清除近期失敗記錄。"
+  },
+  "diagnosticsLifecycleEmpty": {
+    "message": "尚無生命週期事件。"
+  },
+  "diagnosticsWorkerStarting": {
+    "message": "啟動中"
+  },
+  "diagnosticsWorkerReady": {
+    "message": "執行中 · 已就緒"
+  },
+  "diagnosticsWorkerFailed": {
+    "message": "啟動失敗"
+  },
+  "diagnosticsHostServiceWorker": {
+    "message": "MV3 Service Worker"
+  },
+  "diagnosticsHostEventPage": {
+    "message": "MV3 事件頁面"
+  },
+  "diagnosticsBrowserUnknown": {
+    "message": "未知瀏覽器"
+  },
   "diagnosticsStartedWithUptime": {
     "message": "$TIME$ · 已執行 $UPTIME$",
     "placeholders": {
-      "time": { "content": "$1", "example": "Jul 15, 2026, 4:10 PM" },
-      "uptime": { "content": "$2", "example": "3 min" }
+      "time": {
+        "content": "$1",
+        "example": "Jul 15, 2026, 4:10 PM"
+      },
+      "uptime": {
+        "content": "$2",
+        "example": "3 min"
+      }
     }
   },
   "diagnosticsConfigurationIssueCount": {
     "message": "$PATHS$ 個路徑 · $ROUTING$ 個路由",
     "placeholders": {
-      "paths": { "content": "$1", "example": "0" },
-      "routing": { "content": "$2", "example": "1" }
+      "paths": {
+        "content": "$1",
+        "example": "0"
+      },
+      "routing": {
+        "content": "$2",
+        "example": "1"
+      }
     }
   },
-  "diagnosticsAvailable": { "message": "可用" },
-  "diagnosticsUnavailable": { "message": "無法使用" },
-  "diagnosticsOn": { "message": "開" },
-  "diagnosticsOff": { "message": "關" },
-  "diagnosticsFailuresEmpty": { "message": "沒有近期失敗。" },
-  "diagnosticsChecking": { "message": "正在檢查背景程序…" },
+  "diagnosticsAvailable": {
+    "message": "可用"
+  },
+  "diagnosticsUnavailable": {
+    "message": "無法使用"
+  },
+  "diagnosticsOn": {
+    "message": "開"
+  },
+  "diagnosticsOff": {
+    "message": "關"
+  },
+  "diagnosticsFailuresEmpty": {
+    "message": "沒有近期失敗。"
+  },
+  "diagnosticsChecking": {
+    "message": "正在檢查背景程序…"
+  },
   "diagnosticsCheckedAt": {
     "message": "檢查時間：$TIME$",
-    "placeholders": { "time": { "content": "$1", "example": "Jul 15, 2026, 4:10 PM" } }
+    "placeholders": {
+      "time": {
+        "content": "$1",
+        "example": "Jul 15, 2026, 4:10 PM"
+      }
+    }
   },
-  "diagnosticsLoadFailed": { "message": "無法載入診斷資訊。" },
-  "diagnosticsCopySuccess": { "message": "已複製診斷資訊。" },
-  "diagnosticsCopyFailed": { "message": "無法複製診斷資訊。" },
-  "diagnosticsClearSuccess": { "message": "已清除近期失敗記錄。" },
-  "diagnosticsClearFailed": { "message": "無法清除近期失敗記錄。" },
+  "diagnosticsLoadFailed": {
+    "message": "無法載入診斷資訊。"
+  },
+  "diagnosticsCopySuccess": {
+    "message": "已複製診斷資訊。"
+  },
+  "diagnosticsCopyFailed": {
+    "message": "無法複製診斷資訊。"
+  },
+  "diagnosticsClearSuccess": {
+    "message": "已清除近期失敗記錄。"
+  },
+  "diagnosticsClearFailed": {
+    "message": "無法清除近期失敗記錄。"
+  },
   "sourcePanelSelectFiltered": {
     "message": "選取篩選結果"
   },
@@ -3127,7 +3604,12 @@
   },
   "sourcePanelHiddenSelectedCount": {
     "message": "已隱藏 $COUNT$ 個",
-    "placeholders": { "count": { "content": "$1", "example": "2" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
   },
   "sourcePanelSaveSelected": {
     "message": "儲存選取的來源"
@@ -3168,45 +3650,99 @@
   "sourcePanelCreateAutomaticRule": {
     "message": "建立自動規則"
   },
-  "savedSettingUpdated": { "message": "設定已更新" },
+  "savedSettingUpdated": {
+    "message": "設定已更新"
+  },
   "savedSettingsUpdated": {
     "message": "已更新 $COUNT$ 項設定",
-    "placeholders": { "count": { "content": "$1", "example": "3" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
   },
-  "savedUndo": { "message": "復原" },
-  "savedUndoFailed": { "message": "復原失敗 — 選取以重試" },
-  "savedUndoBlocked": { "message": "請先完成或捨棄其他編輯，再執行復原。" },
-  "externalApiUnknown": { "message": "未知" },
-  "externalApiUnavailable": { "message": "無法使用" },
+  "savedUndo": {
+    "message": "復原"
+  },
+  "savedUndoFailed": {
+    "message": "復原失敗 — 選取以重試"
+  },
+  "savedUndoBlocked": {
+    "message": "請先完成或捨棄其他編輯，再執行復原。"
+  },
+  "externalApiUnknown": {
+    "message": "未知"
+  },
+  "externalApiUnavailable": {
+    "message": "無法使用"
+  },
   "externalBlockedAttemptOne": {
     "message": "$COUNT$ 次遭封鎖的嘗試",
-    "placeholders": { "count": { "content": "$1", "example": "1" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
   },
   "externalBlockedAttemptMany": {
     "message": "$COUNT$ 次遭封鎖的嘗試",
-    "placeholders": { "count": { "content": "$1", "example": "3" } }
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
   },
-  "externalRequestActiveTab": { "message": "使用中分頁請求" },
-  "externalRequestUrl": { "message": "URL 請求" },
-  "externalRequestDownload": { "message": "下載請求" },
-  "externalApprove": { "message": "核准" },
-  "externalApproving": { "message": "正在核准…" },
+  "externalRequestActiveTab": {
+    "message": "使用中分頁請求"
+  },
+  "externalRequestUrl": {
+    "message": "URL 請求"
+  },
+  "externalRequestDownload": {
+    "message": "下載請求"
+  },
+  "externalApprove": {
+    "message": "核准"
+  },
+  "externalApproving": {
+    "message": "正在核准…"
+  },
   "externalApprovalFailed": {
     "message": "無法核准 $ID$。",
     "placeholders": {
-      "id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" }
+      "id": {
+        "content": "$1",
+        "example": "abcdefghijklmnopabcdefghijklmnop"
+      }
     }
   },
-  "externalRejectionsLoadFailed": { "message": "無法載入遭拒絕的請求。" },
+  "externalRejectionsLoadFailed": {
+    "message": "無法載入遭拒絕的請求。"
+  },
   "referenceInsertValue": {
     "message": "插入 $VALUE$",
-    "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
+    "placeholders": {
+      "value": {
+        "content": "$1",
+        "example": ":filename:"
+      }
+    }
   },
   "versionViewReleases": {
     "message": "Save In v$VERSION$ — 查看版本",
-    "placeholders": { "version": { "content": "$1", "example": "4.0.0" } }
+    "placeholders": {
+      "version": {
+        "content": "$1",
+        "example": "4.0.0"
+      }
+    }
   },
-  "html_advancedFetchADifferentUrl": { "message": "進階：擷取其他 URL" },
+  "html_advancedFetchADifferentUrl": {
+    "message": "進階：擷取其他 URL"
+  },
   "html_captureReferencesAndRoutingVariablesSubstituteVerbatim": {
     "message": "；擷取參照與路由變數會原樣替換，不會清理檔名。"
   },
@@ -3222,60 +3758,154 @@
   "html_fetchClauseCompatibility": {
     "message": "一般瀏覽器下載路由會略過此項，因為它只能重新命名，無法替換 URL。選單、點選儲存與自動儲存仍會使用它。"
   },
-  "html_orLiteral": { "message": "或" },
-  "html_stillControlsTheDestinationAndFilename": { "message": "仍控制目的地與檔名。" },
+  "html_orLiteral": {
+    "message": "或"
+  },
+  "html_stillControlsTheDestinationAndFilename": {
+    "message": "仍控制目的地與檔名。"
+  },
   "html_stillSetsTheDestinationAndFilenameMustStartWith": {
     "message": "仍設定目的地與檔名。必須以"
   },
-  "routeDebuggerFetchTemplate": { "message": "改寫範本" },
-  "routeDebuggerRewrittenUrl": { "message": "改寫後的 URL" },
+  "routeDebuggerFetchTemplate": {
+    "message": "改寫範本"
+  },
+  "routeDebuggerRewrittenUrl": {
+    "message": "改寫後的 URL"
+  },
   "routeVisualFetchAccessible": {
     "message": "規則 $RULE$：改寫下載 URL",
-    "placeholders": { "rule": { "content": "$1", "example": "2" } }
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
   },
-  "routeVisualFetchLabel": { "message": "改寫下載 URL" },
-  "ruleTemplateCategorySiteFiling": { "message": "依網站歸檔" },
-  "ruleTemplateCategorySiteOriginals": { "message": "網站原始檔" },
+  "routeVisualFetchLabel": {
+    "message": "改寫下載 URL"
+  },
+  "ruleTemplateCategorySiteFiling": {
+    "message": "依網站歸檔"
+  },
+  "ruleTemplateCategorySiteOriginals": {
+    "message": "網站原始檔"
+  },
   "ruleTemplateDeviantArtRenameDescription": {
     "message": "將 DeviantArt 的雜湊下載檔名重新命名為作品標題與短代碼"
   },
-  "ruleTemplateDeviantArtRenameName": { "message": "DeviantArt 雜湊檔名重新命名" },
+  "ruleTemplateDeviantArtRenameName": {
+    "message": "DeviantArt 雜湊檔名重新命名"
+  },
   "ruleTemplateInstagramUsernamePrefixDescription": {
     "message": "為儲存的檔案加上從頁面標題擷取的 Instagram 使用者名稱前綴"
   },
-  "ruleTemplateInstagramUsernamePrefixName": { "message": "Instagram 使用者名稱前綴" },
+  "ruleTemplateInstagramUsernamePrefixName": {
+    "message": "Instagram 使用者名稱前綴"
+  },
   "ruleTemplatePagePathNoSchemeDescription": {
     "message": "根據頁面 URL 的主機名稱與路徑建立資料夾，並移除會破壞檔名的 https:// 通訊協定"
   },
-  "ruleTemplatePagePathNoSchemeName": { "message": "不含通訊協定的頁面路徑" },
+  "ruleTemplatePagePathNoSchemeName": {
+    "message": "不含通訊協定的頁面路徑"
+  },
   "ruleTemplateRedditOriginalsDescription": {
     "message": "將 Reddit 預覽圖片連結改寫為 i.redd.it 上的原始檔案"
   },
-  "ruleTemplateRedditOriginalsName": { "message": "Reddit 圖片原始檔" },
+  "ruleTemplateRedditOriginalsName": {
+    "message": "Reddit 圖片原始檔"
+  },
   "ruleTemplateSluggedTitleRenameDescription": {
     "message": "將檔名替換為頁面標題的小寫連字號 slug，並保留原始副檔名（不支援對檔名進行一般尋找取代）"
   },
-  "ruleTemplateSluggedTitleRenameName": { "message": "以標題 slug 重新命名" },
+  "ruleTemplateSluggedTitleRenameName": {
+    "message": "以標題 slug 重新命名"
+  },
   "ruleTemplateTwitterHandlePrefixDescription": {
     "message": "為儲存的檔案加上從頁面 URL 擷取的 Twitter 或 X 使用者名稱前綴"
   },
-  "ruleTemplateTwitterHandlePrefixName": { "message": "Twitter/X 使用者名稱前綴" },
+  "ruleTemplateTwitterHandlePrefixName": {
+    "message": "Twitter/X 使用者名稱前綴"
+  },
   "ruleTemplateTwitterOriginalsDescription": {
     "message": "將 Twitter 與 X 的圖片連結改寫為原始全解析度檔案"
   },
-  "ruleTemplateTwitterOriginalsName": { "message": "Twitter/X 圖片原始檔" },
+  "ruleTemplateTwitterOriginalsName": {
+    "message": "Twitter/X 圖片原始檔"
+  },
   "ruleTemplateWikimediaOriginalDescription": {
     "message": "將 Wikimedia Commons 的縮圖連結改寫為原始完整尺寸檔案"
   },
-  "ruleTemplateWikimediaOriginalName": { "message": "Wikimedia 完整尺寸圖片" },
-  "ruleTemplateYoutubeMaxResDescription": { "message": "將 YouTube 縮圖連結改寫為最高解析度圖片" },
-  "ruleTemplateYoutubeMaxResName": { "message": "YouTube 縮圖最高解析度" },
-  "ruleExtraFetch": { "message": "一條規則只能包含一個 fetch: 子句" },
-  "ruleFetchNotHttp": { "message": "fetch: 網址必須以 http:// 或 https:// 開頭" },
-  "ruleFetchUnsupportedVariable": { "message": "fetch: 網址中不支援此變數" },
-  "savedValueOff": { "message": "關" },
-  "savedValueOn": { "message": "開" },
-  "o_lUiThemeGildedMosaic": { "message": "鎏金馬賽克" },
-  "o_lUiThemeBlueHouse": { "message": "藍屋" },
-  "o_lUiThemePrimaryGrid": { "message": "原色網格" }
+  "ruleTemplateWikimediaOriginalName": {
+    "message": "Wikimedia 完整尺寸圖片"
+  },
+  "ruleTemplateYoutubeMaxResDescription": {
+    "message": "將 YouTube 縮圖連結改寫為最高解析度圖片"
+  },
+  "ruleTemplateYoutubeMaxResName": {
+    "message": "YouTube 縮圖最高解析度"
+  },
+  "ruleExtraFetch": {
+    "message": "一條規則只能包含一個 fetch: 子句"
+  },
+  "ruleFetchNotHttp": {
+    "message": "fetch: 網址必須以 http:// 或 https:// 開頭"
+  },
+  "ruleFetchUnsupportedVariable": {
+    "message": "fetch: 網址中不支援此變數"
+  },
+  "savedValueOff": {
+    "message": "關"
+  },
+  "savedValueOn": {
+    "message": "開"
+  },
+  "o_lUiThemeGildedMosaic": {
+    "message": "鎏金馬賽克"
+  },
+  "o_lUiThemeBlueHouse": {
+    "message": "藍屋"
+  },
+  "o_lUiThemePrimaryGrid": {
+    "message": "原色網格"
+  },
+  "ruleExtraRename": {
+    "message": "一條規則只能包含一個 rename: 子句"
+  },
+  "ruleRenameMissingSeparator": {
+    "message": "請用 ' -> ' 分隔模式與取代文字"
+  },
+  "html_renameReplacesMatchesInTheFinalFilename": {
+    "message": "將最終檔名中符合正規表示式的部分取代為分隔符號之後的字面文字，分隔符號為"
+  },
+  "html_renameReplacementExpandsVariables": {
+    "message": "；取代文字為空會刪除相符項目，取代文字中會展開路由變數與擷取參照，例如"
+  },
+  "html_renameClauseCompatibility": {
+    "message": "在檔名完全確定之後（包括 fetch: 改寫）、長度限制之前套用——資料夾不受影響。也會重新命名已記錄的一般瀏覽器下載。若要在模式中寫入字面的 ' -> '，請將空格跳脫（\\x20->）。"
+  },
+  "html_advancedRenameTheSavedFile": {
+    "message": "進階：重新命名儲存的檔案"
+  },
+  "html_renameGuideDescription": {
+    "message": "編輯最終檔名：' -> ' 之前的模式是正規表示式，之後的字面取代文字可以使用路由變數與擷取參照。資料夾不受影響。"
+  },
+  "routeVisualRenameLabel": {
+    "message": "重新命名檔案"
+  },
+  "routeVisualRenameAccessible": {
+    "message": "規則 $RULE$：重新命名檔案",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "routeDebuggerRenameTemplate": {
+    "message": "重新命名"
+  },
+  "routeDebuggerRenamedName": {
+    "message": "重新命名後的名稱"
+  }
 }

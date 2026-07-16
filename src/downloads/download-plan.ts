@@ -1,9 +1,11 @@
 import { WEB_EXTENSION_CAPABILITIES } from "../platform/chrome-detector.ts";
 import { getDownloadHeaders, getFetchReferer } from "./headers.ts";
 import {
+  applyRenameTransform,
+  expandRenameTransform,
   isRenameOnlyEligibleRule,
-  matchRules,
   matchRulesDetailed,
+  type RenameTransform,
   type RuleMatch,
 } from "../routing/router.ts";
 import { expandFetchUrl, isUsableFetchRewrite } from "../routing/fetch-url.ts";
@@ -23,6 +25,9 @@ import {
   requireDownloadUrl,
 } from "./download-pipeline-state.ts";
 
+const applyRenameIfResolved = (value: string, transform: RenameTransform | undefined): string =>
+  transform ? applyRenameTransform(value, transform) : value;
+
 export const getRoutingMatch = (state: Pick<DownloadPipelineState, "info">): RuleMatch | null => {
   if (state.info.routingDisabled) return null;
   const filenamePatterns = Array.isArray(options.filenamePatterns) ? options.filenamePatterns : [];
@@ -35,15 +40,36 @@ export const getRoutingMatch = (state: Pick<DownloadPipelineState, "info">): Rul
 
 // Ordinary browser downloads and post-start filename re-evaluation can only
 // rename a download that is already in flight, so URL-rewriting rules are
-// skipped there instead of consuming the match.
-export const getRoutingMatches = (state: Pick<DownloadPipelineState, "info">): string | null => {
+// skipped there instead of consuming the match. rename: only edits the final
+// name, so rename rules stay eligible; the winning rule's transform is
+// stashed on scratch for the synchronous finalizeFullPath call.
+export const getRoutingMatches = (
+  state: Pick<DownloadPipelineState, "info" | "scratch">,
+): string | null => {
+  delete state.scratch.renameTemplate;
+  delete state.scratch.renameResolved;
   if (state.info.routingDisabled) return null;
   const filenamePatterns = Array.isArray(options.filenamePatterns) ? options.filenamePatterns : [];
   if (filenamePatterns.length === 0) {
     return null;
   }
 
-  return matchRules(filenamePatterns, state.info, isRenameOnlyEligibleRule);
+  const match = matchRulesDetailed(filenamePatterns, state.info, isRenameOnlyEligibleRule);
+  if (match?.rename) state.scratch.renameTemplate = match.rename;
+  return match?.destination ?? null;
+};
+
+// Expands the matched rule's rename replacement (variables may await
+// metadata) so finalizeFullPath can apply the transform synchronously.
+export const resolveRenameTransform = async (
+  state: Pick<DownloadPipelineState, "info" | "scratch">,
+): Promise<void> => {
+  const template = state.scratch.renameTemplate;
+  if (!template) {
+    delete state.scratch.renameResolved;
+    return;
+  }
+  state.scratch.renameResolved = await expandRenameTransform(template, state.info);
 };
 
 // A fetch: rewrite retargets the download, so every artifact derived from the
@@ -130,6 +156,8 @@ export const resolveDownloadPlan = async (
     const match = getRoutingMatch(state);
     routeMatches = match?.destination ?? null;
     fetchTemplate = match?.fetch ?? null;
+    if (match?.rename) state.scratch.renameTemplate = match.rename;
+    else delete state.scratch.renameTemplate;
   }
   if (routeMatches !== null && fetchTemplate !== null) {
     // Persist both raw templates in every outcome: Chrome's late filename
@@ -186,14 +214,29 @@ export const resolveDownloadPlan = async (
     return null;
   }
 
+  // Expanded after the fetch: rewrite so replacement variables resolve
+  // against the URL actually being downloaded.
+  await resolveRenameTransform(state);
+
   if (options.appendMimeExtension !== false) {
+    const renameResolved = state.scratch.renameResolved;
     const tentative =
       state.route && !state.routeIsFolder
-        ? state.route.finalize({ finalComponentIsFilename: true })
+        ? state.route.finalize({
+            finalComponentIsFilename: true,
+            // Mirror finalizeFullPath: a rename may add or remove the
+            // extension the MIME append decision depends on.
+            ...(renameResolved
+              ? {
+                  transformFinalComponent: (value: string) =>
+                    applyRenameTransform(value, renameResolved),
+                }
+              : {}),
+          })
         : // The fetch: rewrite may have replaced the resolved filename.
           sanitizeFilename(
             /* v8 ignore next -- Both filename writers since the assignment above (applyFetchRewrite, resolveDispositionFilename) only ever store strings. */
-            state.info.filename ?? resolvedFilename,
+            applyRenameIfResolved(state.info.filename ?? resolvedFilename, renameResolved),
             options.truncateLength,
             true,
             true,

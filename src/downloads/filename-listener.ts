@@ -5,6 +5,7 @@ import { webExtensionApi } from "../platform/web-extension-api.ts";
 import { WEB_EXTENSION_CAPABILITIES } from "../platform/chrome-detector.ts";
 import { extensionSessionStorage } from "../platform/storage-areas.ts";
 import { Path } from "../routing/path.ts";
+import { isRenameTransform, type RenameTransform } from "../routing/rename.ts";
 import { applyVariables, mimeToExtension, resolveMime } from "../routing/variable.ts";
 import { EXTENSION_REGEX } from "../routing/filename.ts";
 import { mergeDownload } from "./download-state.ts";
@@ -57,6 +58,7 @@ export type DeferredRouteRecovery = {
   state: WireDownloadState;
   pathTemplateRaw?: string | undefined;
   routeTemplateRaw?: string | undefined;
+  renameTemplate?: RenameTransform | undefined;
   mimeExtension?: string | undefined;
   historyEntryId?: string | undefined;
 };
@@ -79,6 +81,9 @@ const normalizeDeferredRoute = (value: unknown): DeferredRouteRecovery | null =>
       : {}),
     ...(typeof candidate.routeTemplateRaw === "string"
       ? { routeTemplateRaw: candidate.routeTemplateRaw }
+      : {}),
+    ...(isRenameTransform(candidate.renameTemplate)
+      ? { renameTemplate: candidate.renameTemplate }
       : {}),
     ...(typeof candidate.mimeExtension === "string"
       ? { mimeExtension: candidate.mimeExtension }
@@ -113,6 +118,7 @@ export const createDeferredRouteRecovery = (
   state: toWireDownloadState(state),
   ...(state.scratch.pathTemplateRaw ? { pathTemplateRaw: state.scratch.pathTemplateRaw } : {}),
   ...(state.scratch.routeTemplateRaw ? { routeTemplateRaw: state.scratch.routeTemplateRaw } : {}),
+  ...(state.scratch.renameTemplate ? { renameTemplate: state.scratch.renameTemplate } : {}),
   ...(state.scratch.mimeExtension ? { mimeExtension: state.scratch.mimeExtension } : {}),
   ...(state.scratch.historyEntryId ? { historyEntryId: state.scratch.historyEntryId } : {}),
 });
@@ -150,6 +156,7 @@ const restoreDeferredRoute = (recovery: DeferredRouteRecovery): DownloadPipeline
       deferredRouteRequirement: true,
       pathTemplateRaw,
       ...(recovery.routeTemplateRaw ? { routeTemplateRaw: recovery.routeTemplateRaw } : {}),
+      ...(recovery.renameTemplate ? { renameTemplate: recovery.renameTemplate } : {}),
       ...(recovery.mimeExtension ? { mimeExtension: recovery.mimeExtension } : {}),
       ...(recovery.historyEntryId ? { historyEntryId: recovery.historyEntryId } : {}),
     },
@@ -195,6 +202,7 @@ export const removeFilename = (map: unknown, url: string, filename?: string): Fi
 type FilenameDownload = DownloadRuntimeState & {
   retryViaFetch(downloadId: number): Promise<boolean>;
   getRoutingMatches(state: DownloadPipelineState): string | null | undefined;
+  resolveRenameTransform(state: DownloadPipelineState): Promise<void>;
   finalizeFullPath(state: DownloadPipelineState): string;
 };
 
@@ -339,6 +347,7 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
               new Path(routeMatches),
               recoveredState.info,
             );
+            await Download.resolveRenameTransform(recoveredState);
             recoveredState.scratch.deferredRouteRequirement = false;
             const filename = Download.finalizeFullPath(recoveredState);
             rememberResolvedFilename(recoveredState, filename);
@@ -444,6 +453,9 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
           await rejectDeferredRoute(pendingState);
           return;
         }
+        // Re-expand the rename replacement against the browser-resolved
+        // filename, exactly like the route template re-expansion above.
+        await Download.resolveRenameTransform(pendingState);
         pendingState.scratch.deferredRouteRequirement = false;
         const filename = Download.finalizeFullPath(pendingState);
         rememberResolvedFilename(pendingState, filename);

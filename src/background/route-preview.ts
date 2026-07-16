@@ -2,7 +2,11 @@ import type { DownloadInfo } from "../downloads/download-types.ts";
 import { getRoutingMatch } from "../downloads/download-plan.ts";
 import { options } from "../config/options-data.ts";
 import { Path } from "../routing/path.ts";
-import { getCaptureMatches } from "../routing/router.ts";
+import {
+  applyRenameTransform,
+  expandRenameTransform,
+  getCaptureMatches,
+} from "../routing/router.ts";
 import { applyVariables } from "../routing/variable.ts";
 
 export type RoutePreviewState = { info: DownloadInfo };
@@ -32,9 +36,20 @@ export const previewRoutes = async (state?: RoutePreviewState | null): Promise<R
   const matchedRoute = match?.destination ?? null;
   const path = await applyVariables(new Path(matchedRoute), info);
   const captures = match ? getCaptureMatches(match.rule, info) : null;
+  // Mirror finalizeFullPath: the winning rule's rename edits the final
+  // filename component of the previewed route before sanitization.
+  const rename = match?.rename ? await expandRenameTransform(match.rename, info) : null;
+  const finalComponentIsFilename = !/\/\s*$/.test(matchedRoute || "");
 
   return {
-    path: path.finalize({ finalComponentIsFilename: !/\/\s*$/.test(matchedRoute || "") }),
+    path: path.finalize({
+      finalComponentIsFilename,
+      ...(rename && finalComponentIsFilename
+        ? {
+            transformFinalComponent: (value: string) => applyRenameTransform(value, rename),
+          }
+        : {}),
+    }),
     captures,
   };
 };
