@@ -3,9 +3,11 @@
 Planned work after the 4.0.0 release. The 4.1 section is the record of what
 shipped in 4.1.0; the 4.2 section is the current implementation plan —
 items name the modules they change and the tests that gate them, and the
-decision-gated tracks fix their designs and criteria in advance. Nothing
-lands without the usual test, lint, and review gates. Issue numbers refer
-to the GitHub tracker.
+decision-gated tracks fix their designs and criteria in advance. The 4.3
+section is directional: a theme with designs sketched at module depth, not
+yet fixed for implementation, and reshaped by 4.1/4.2 field feedback before
+it becomes a plan. Nothing lands without the usual test, lint, and review
+gates. Issue numbers refer to the GitHub tracker.
 
 ## 4.0 release follow-through
 
@@ -350,6 +352,143 @@ needed — the verdict reads issue reports against those records.
   `history-normalization.ts` keeps accepting `firefox-replacement`
   records and `history-view.ts` keeps their labels so old history renders.
   Regression tests cover stored profiles from both states.
+
+## 4.3 — save workflow and acquisition maturity
+
+Directional. Most of the pre-4.0 backlog is already resolved by the rebuild
+or slotted into 4.1/4.2; what remains and is not a non-goal clusters into one
+user-facing theme plus engine-maturity follow-ons to work this session
+stabilized. The primary theme is self-contained and touches no routing
+internals; the engine tracks are gated on 4.2 landing first. Every track ends
+with the tracker-hygiene sweep that pairs a feature release with citeable
+closures, the way 4.0 did.
+
+### Save workflow: fewer clicks to a save (#144, #162, #201, #213, #115)
+
+The most-repeated workflow gap. Three additions, none touching the routing
+engine — all in the menu build and the content/menu-click handlers:
+
+- **Quick Save** (#144, #162): a root-level menu entry (and an optional
+  command shortcut) that saves straight to the resolved default without
+  expanding the folder tree. `background/menu-build.ts` already composes the
+  menu from `addRoot`/`addRecentDestinations`/`buildTree`; Quick Save is one
+  more top-level item whose click routes through the existing
+  `menu-click.ts` path with the default destination pre-selected, so routing
+  rules, Last used, and Recent locations are unchanged. A content option
+  toggles it, defaulting off so no menu grows without opt-in.
+- **Dynamic default destination** (#201, #213): today the default-destination
+  option normalizes to `.` (Downloads) at the config boundary
+  (`config/option-schema.ts`). This exposes a menu toggle — or a second
+  Quick Save target — that switches the effective default between Downloads
+  and a configured directory without editing rules, persisted through the
+  same option so it survives restarts.
+- **Post-save tab action** (#115), gated on a permission decision: closing or
+  returning to the source tab after a save needs `tabs.remove`/`tabs.update`,
+  which the manifest does not currently request (`permissions` today:
+  `contextMenus`, `declarativeNetRequestWithHostAccess`, `downloads`,
+  `notifications`, `storage`, `offscreen`). Adding `tabs` is a store-review
+  and user-facing-warning cost; this ships only if demand justifies the
+  permission, and if so it is a per-menu-item opt-in, never a default.
+
+Tests: menu-tree composition (Quick Save present only when enabled; default
+target resolution) at the pure `buildTree` boundary; menu-click delegation
+that Quick Save reuses the normal pipeline; a content-options normalization
+case for the default-destination toggle; one e2e smoke per browser saving via
+Quick Save. No engine or grammar change, so the routing suites are untouched.
+
+### Acquisition robustness: parallel Referer protection (#193)
+
+Engine maturity with no new user surface. Two items in the Referer subsystem
+this session worked adjacent to:
+
+- **Parallelize protected fetches.** `downloads/referer-rules.ts` protects one
+  extension-owned request at a time through a single reserved DNR rule ID
+  behind `createSerialQueue` (`shared/serial-queue.ts`), because one shared
+  rule cannot carry two Referer values at once (AGENTS.md documents the
+  serialization). Allocating a rule ID per in-flight protected operation —
+  bounded by a small pool, each removed in its own `finally`, cold-start
+  recovery clearing the whole pool instead of one reserved ID — removes the
+  bottleneck for a page whose save triggers many referred metadata/hash
+  fetches. The invariant that must survive: no two concurrent rules may target
+  overlapping request URLs with different Referer values, so the pool keys on
+  the exact request URL set the existing rule already bounds
+  (`MAX_PROTECTED_URL_EXTENSIONS`).
+- **Referer on HEAD redirect hops (#193):** the redirect-following HEAD path
+  should carry the Referer across hops the same way the download path does.
+  `referer-rules.ts` already extends the rule to server-redirected URLs
+  (`normalizeExtensionCandidate`); #193 is closing the same extension for the
+  metadata HEAD in `routing/variable.ts`'s `resolveHead`, so a lazily fetched
+  `:mime:`/`:sha256:` on a referred asset does not lose the Referer mid-redirect.
+
+Tests: a concurrency case proving two protected fetches to distinct URLs each
+keep their own Referer with no rule collision, plus the cold-start pool-clear;
+a redirect case asserting the HEAD hop stays protected. Serialization behavior
+stays covered so the fallback path is not lost.
+
+### Grammar follow-through beyond `rename:` — gated on 4.2
+
+Proceed only after the 4.2 `rename:` value-transform clause lands and settles;
+these are the asks value transforms still cannot express:
+
+- **Final-filename matching (#178, #189):** `filename:` matches the name Save In
+  resolves before the download starts, not the browser's post-`Content-Disposition`
+  result — the DeviantArt case where the server renames after matching. The
+  re-resolution machinery already exists (`downloads/filename-listener.ts`
+  re-runs routing under `needsActualFilenameResolution` with
+  `downloadItem.filename` available), and `actualfileext:` already reads the
+  resolved extension. This adds a `finalfilename:` matcher that matches against
+  the browser's actual name in that same late pass, following the `actualfileext:`
+  deferral precedent so it never blocks the plan. It is a matcher addition, not
+  a chaining or timing-model change, so the ordered first-match router is
+  untouched.
+- **Menu folder-name variable (#208):** expose the chosen menu directory as a
+  routing variable. History already records `menuItemPath`; there is no
+  variable for it today (`shared/constants.ts` has no menu-path entry). This
+  adds one `SPECIAL_DIRS` variable plus its transformer
+  (`routing/variable.ts`), riding the same reference/editor/catalog surface
+  checklist as any variable addition.
+
+Tests: matcher matrix for `finalfilename:` (matches the browser name, not the
+suggested one; the deferred late-pass path) in the router and filename-listener
+suites; a variable-expansion case for the menu-path variable; template proofs
+if a Site filing template adopts either.
+
+### Undo and history maturity — builds on 4.1 undo
+
+- **Move / re-route last save:** #102's own stated alternative ("a Move last
+  save might be just as useful"). The downloads API has no move, so this is
+  `downloads.removeFile` + a re-issued download to the new destination, reusing
+  the `HISTORY_UNDO` plumbing (`background/messaging`, `background/history.ts`)
+  with a `HISTORY_REROUTE` sibling that re-runs the routing pipeline for the
+  recorded source URL against a chosen destination, marks the original entry
+  moved, and links the new one. Same privacy rule as undo: private saves have
+  no history surface. The honest constraint — a re-download, not a filesystem
+  move — goes in the button help text.
+- **Per-auto-save undo:** as the automatic-scan surface grows through 4.2, each
+  automatic save is a History entry with a `downloadId`, so the existing undo
+  row action already applies; this track is verifying it reads correctly for
+  `context: auto` entries and surfacing an undo affordance in any automatic-save
+  summary, not new pipeline work.
+
+Tests: `HISTORY_REROUTE` protocol validation and handler (resolve source,
+remove old file, re-route, relink) modeled on the undo tests; a privacy case;
+history-panel row-action coverage.
+
+### Release hygiene: verify-and-close the resolved tail
+
+Several open reports are already fixed by the 4.0 rebuild or by this session's
+sanitization and match-pattern hardening but were never cited closed. Confirm
+and close with a reproduction note, the way 4.0 follow-through did:
+
+- #221 (domain without subdomain) is the existing `:pagerootdomain:` /
+  `:sourcerootdomain:` variables — close as answered with a doc pointer.
+- #220 (control/"secret" characters in the page title breaking rules) is
+  covered by the filename control-character sanitization; verify with a
+  regression case, then close.
+- Sweep the remaining pre-rewrite bug/question reports (e.g. #172, #178
+  matching, #186 Waterfox detection, #212, #205) against 4.x behavior, closing
+  the fixed ones and asking the rest to retest, mirroring the #207/#196/#143
+  retest asks in the 4.0 follow-through.
 
 ## Non-goals
 
