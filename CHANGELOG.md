@@ -223,11 +223,10 @@ rules.
 ### Saving workflow and History
 
 - Added opt-in **Quick Save** and an optional keyboard command for saving
-  directly to the effective default through the normal routing pipeline
-  (#144, #162). A menu toggle switches that default between Downloads and the
-  configured folder (#201, #213), while per-location `(tab: close)` and
-  `(tab: return)` actions can close or refocus the source tab after a
-  successful save (#115).
+  directly to the effective default through the normal routing pipeline. A menu
+  toggle switches that default between Downloads and the configured folder,
+  while per-location `(tab: close)` and `(tab: return)` actions can close or
+  refocus the source tab after a successful save (#115).
 - Added undo for a completed save (#102): a button on the success
   notification (Chrome) and a History row action (both browsers) remove the
   file, clear it from the browser's download list, and mark the History entry

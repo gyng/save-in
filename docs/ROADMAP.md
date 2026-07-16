@@ -39,11 +39,8 @@ did not land; it remains the one evidence-gated decision (see below).
    not resolved by it, and were finished afterwards: `quickSaveOnly` offers Quick
    save alone at top level (browsers only skip the submenu for a single item),
    and `contentClickToSaveUseDefault` opts click-to-save out of inheriting the
-   last folder. #201 remains **unresolved** — `setLastUsed` is only ever called
-   from a context-menu click, so a browser Save As dialog cannot update Last
-   used. It also needs a decision first: `downloads.download` paths are relative
-   to the Downloads root, so a dialog target outside it could never be reused as
-   a Save In destination.
+   last folder. #201 was cited too and is **not** resolved; it is planned for
+   after 4.0 (see below).
 2. Parallel Referer protection (#193).
 3. Grammar follow-through: `finalfilename:` matching (#178, #189) and the
    `:menupath:` variable (#208).
@@ -71,6 +68,53 @@ Not features — release hygiene that gates the close-out of everything above.
   (#172, #178 matching, #186 Waterfox detection, #212, #205) need a close or a
   retest ask. Verification is complete; the close/retest drafts live outside the
   repo, and posting them stays an explicit outward action.
+
+## Planned after 4.0: Last used follows a browser Save As (#201)
+
+Deferred, not rejected. It is a feature, and 4.0 is already carrying a version
+bump, the issue sweep, and an unpushed branch; it earns a place in the first
+release after, not ahead of any of that.
+
+**The ask.** An option so that saving through the browser's own Save As dialog
+retargets the **Last used** menu item to that folder. Napoli0n seconded it and
+offered an alternative — have Save In open its *own* dialog on a modified click
+— and anticipated the constraint below ("within default directory or symlink").
+
+**Why it is not there today.** `setLastUsed` / `recordRecentDestination` have one
+caller: `background/menu-click.ts`, inside `handleContextMenuClick`. Last used
+only ever learns from a Save In menu click. `trackBrowserDownloads` already
+watches ordinary downloads but only feeds History.
+
+**The constraint that shapes it.** The downloads API is asymmetric:
+`DownloadItem.filename` is an *absolute* path; `downloads.download({filename})`
+takes a path *relative to the Downloads directory* and rejects absolute paths and
+`..`; and nothing reports where that directory is — `showDefaultFolder()` returns
+`void`. So a dialog target outside Downloads can never become a Save In
+destination, in principle and not just today.
+
+**Design.**
+
+- Take the reporter's literal ask, not the alternative. The seam already exists
+  and already holds the data: `downloads/notification-events.ts` merges
+  `downloadDelta.filename?.current` — the final absolute path — for tracked
+  browser downloads. That is roughly ten lines. Napoli0n's variant needs a whole
+  new interaction (modifier, click, dialog, remember) for the same outcome, and
+  both variants need the derivation below anyway.
+- Derive the Downloads root **by subtraction, on every Save In save**: each one
+  hands over both halves for free — the relative path requested and the absolute
+  path reported. Compare directory portions only, since `uniquify` renames the
+  leaf. Re-deriving each time keeps it correct when the user moves their download
+  directory. Do not cache it once: a stale root yields a *wrong relative path*,
+  and saves then land somewhere the user did not choose. That silent
+  misplacement is the only way this feature does real harm, and designing it out
+  is free.
+- Say so when the target is outside Downloads. Silence there repeats #53 — the
+  user picks a folder, nothing happens, nothing explains why.
+
+**Decide before writing code.** It only works when `trackBrowserDownloads` is on,
+which is off by default, so the user opts in twice — once to something framed as
+history tracking — before Last used moves. Unsolved, the feature reads as broken
+to exactly the people who asked for it.
 
 ## Gated: Firefox cancel-and-redownload verdict
 
