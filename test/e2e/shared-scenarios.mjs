@@ -970,3 +970,85 @@ export const runAutomaticRetryScenario = async ({ control, waitForDownloads, fil
     }
   }
 };
+
+/**
+ * Completes a real save, undoes it through the History protocol, and proves
+ * the file is removed while the History entry is marked undone rather than
+ * deleted. A second save covers the degraded path: a file removed out of band
+ * with its shelf entry already erased still resolves as undone, with the
+ * missing file reported.
+ *
+ * @param {{
+ *   control: ReturnType<typeof import("./control-client.mjs").createE2EControlClient>,
+ *   waitForDownloads: (filename: string, timeoutMs?: number) => Promise<DownloadSummary[]>,
+ *   filename: string,
+ * }} adapters
+ */
+export const runUndoLastSaveScenario = async ({ control, waitForDownloads, filename }) => {
+  const server = http.createServer((_req, res) => {
+    res.writeHead(200, { "Content-Type": "application/octet-stream" });
+    res.end("undo scenario content");
+  });
+  const port = await listenLocal(server);
+  const optionKeys = ["filenamePatterns"];
+  const previous = await control.storage.local.get(optionKeys);
+  const missingKeys = optionKeys.filter((key) => !Object.hasOwn(previous, key));
+
+  /** @param {string} name */
+  const saveAndFindEntry = async (name) => {
+    const url = `http://127.0.0.1:${port}/${name}`;
+    await control.background.startDownload({
+      url,
+      suggestedFilename: name,
+      pageUrl: "https://undo.example/",
+      path: "e2e/undo",
+    });
+    const downloads = await waitForDownloads(name);
+    const completed = requireValue(
+      downloads.find((row) => row.state === "complete"),
+      "Undo scenario download did not complete",
+    );
+    const entries = await control.history.wait({ url, status: "complete" });
+    const entry = requireValue(
+      entries.find((row) => row.url === url && typeof row.downloadId === "number"),
+      "Undo scenario History entry was not recorded with a download id",
+    );
+    return {
+      completed,
+      historyId: decodeString(entry.id),
+      downloadId: decodeNumber(entry.downloadId),
+    };
+  };
+
+  try {
+    await control.options.set({ filenamePatterns: "" });
+
+    const first = await saveAndFindEntry(`${filename}.bin`);
+    expect(fs.existsSync(first.completed.filename)).toBe(true);
+    const undone = await control.runtime.send({
+      type: "HISTORY_UNDO",
+      body: { historyId: first.historyId },
+    });
+    expect(undone).toEqual({ type: "HISTORY_UNDO", body: { undone: true, fileMissing: false } });
+    expect(fs.existsSync(first.completed.filename)).toBe(false);
+    await control.history.wait({ id: first.historyId, status: "undone" });
+
+    const second = await saveAndFindEntry(`${filename}-missing.bin`);
+    fs.rmSync(second.completed.filename);
+    await control.downloads.erase({ id: second.downloadId });
+    const missing = await control.runtime.send({
+      type: "HISTORY_UNDO",
+      body: { historyId: second.historyId },
+    });
+    expect(missing).toEqual({ type: "HISTORY_UNDO", body: { undone: true, fileMissing: true } });
+    await control.history.wait({ id: second.historyId, status: "undone" });
+  } finally {
+    try {
+      await control.storage.local.set(previous);
+      if (missingKeys.length > 0) await control.storage.local.remove(missingKeys);
+      await control.runtime.reset();
+    } finally {
+      await closeLocal(server);
+    }
+  }
+};
