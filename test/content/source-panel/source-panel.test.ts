@@ -1003,6 +1003,26 @@ describe("Page Sources panel interactions", () => {
     ).not.toContain("http://localhost/shared.jpg");
   });
 
+  test("cached save actions drop a duplicate origin after it leaves the page", async () => {
+    vi.useFakeTimers();
+    document.body.innerHTML = `
+      <article><img id="retained" src="shared.jpg"></article>
+      <aside><img id="removed" class="avatar" src="shared.jpg"></aside>`;
+    const sendDownload = vi.fn();
+    toggleSourcePanel(sendDownload, { includeBackgrounds: false, live: true });
+    const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
+    const row = shadow.querySelector<HTMLElement>(".row")!;
+
+    document.querySelector("#removed")!.remove();
+    await Promise.resolve();
+    vi.advanceTimersByTime(200);
+    expect(shadow.querySelector(".row")).toBe(row);
+    row.querySelector<HTMLButtonElement>(".primary-action")!.click();
+
+    const source = sendDownload.mock.calls[0]?.[0];
+    expect(source?.originElements).toEqual([document.querySelector("#retained")]);
+  });
+
   test("coalesces nested, disconnected, and text-only live mutations", async () => {
     vi.useFakeTimers();
     toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: true });

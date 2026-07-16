@@ -309,7 +309,7 @@ describe("handleDownloadMessage", () => {
         matchedCssSelectorsByOrigin: [["article img"]],
       },
     });
-    onMessage(cssRequest, { tab: { id: 8 } }, vi.fn());
+    onMessage(cssRequest, { url: "https://x/", tab: { id: 8, url: "https://x/" } }, vi.fn());
     expect(vi.mocked(Download.launchDownload).mock.calls[0]![0]!.info).toMatchObject({
       matchedCssSelectorsByOrigin: [["article img"]],
     });
@@ -318,6 +318,48 @@ describe("handleDownloadMessage", () => {
     const response = vi.fn();
     onMessageExternal(cssRequest, { id: "trusted-extension", tab: { id: 9 } }, response);
     await waitForCall(response);
+    expect(
+      vi.mocked(Download.launchDownload).mock.calls[0]![0]!.info.matchedCssSelectorsByOrigin,
+    ).toBeUndefined();
+  });
+
+  test("rejects CSS attestations forged by another internal extension page", () => {
+    onMessage(
+      request({
+        info: {
+          pageUrl: "https://x/",
+          srcUrl: "https://x/file.png",
+          matchedCssSelectorsByOrigin: [["article img"]],
+        },
+      }),
+      {
+        url: "chrome-extension://save-in/src/options/options.html",
+        tab: { id: 8, url: "chrome-extension://save-in/src/options/options.html" },
+      },
+      vi.fn(),
+    );
+
+    expect(
+      vi.mocked(Download.launchDownload).mock.calls[0]![0]!.info.matchedCssSelectorsByOrigin,
+    ).toBeUndefined();
+  });
+
+  test("rejects CSS attestations sent from a subframe", () => {
+    onMessage(
+      request({
+        info: {
+          pageUrl: "https://frame.test/",
+          srcUrl: "https://frame.test/file.png",
+          matchedCssSelectorsByOrigin: [["article img"]],
+        },
+      }),
+      {
+        url: "https://frame.test/",
+        tab: { id: 8, url: "https://top.test/" },
+      },
+      vi.fn(),
+    );
+
     expect(
       vi.mocked(Download.launchDownload).mock.calls[0]![0]!.info.matchedCssSelectorsByOrigin,
     ).toBeUndefined();
@@ -433,7 +475,7 @@ into: automatic/
     const senderTab = { id: 7, url: request.body.pageUrl, incognito: false };
 
     const stale = vi.fn();
-    onMessage(request, { tab: senderTab }, stale);
+    onMessage(request, { url: senderTab.url, tab: senderTab }, stale);
     await waitForCall(stale);
     expect(Download.launchDownload).not.toHaveBeenCalled();
 
@@ -446,7 +488,7 @@ into: automatic/
           matchedCssSelectorsByOrigin: [["article img"], ["img:not(.avatar)"]],
         },
       },
-      { tab: senderTab },
+      { url: senderTab.url, tab: senderTab },
       splitOrigins,
     );
     await waitForCall(splitOrigins);
@@ -461,7 +503,7 @@ into: automatic/
           matchedCssSelectorsByOrigin: [["article img", "img:not(.avatar)"]],
         },
       },
-      { tab: senderTab },
+      { url: senderTab.url, tab: senderTab },
       matched,
     );
     await waitForCall(matched);

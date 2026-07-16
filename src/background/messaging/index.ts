@@ -34,6 +34,7 @@ import {
   API_ERRORS,
   API_VERSION,
   isExternalDownloadAllowed,
+  isPageContentSender,
   type MessageSender,
   type ProtocolSendResponse,
 } from "./protocol.ts";
@@ -224,7 +225,12 @@ const internalHandlers = {
   [MESSAGE_TYPES.VALIDATE]: handleValidate,
   [MESSAGE_TYPES.APPLY_CONFIG]: handleApplyConfig,
   [MESSAGE_TYPES.DOWNLOAD]: (request, sender, sendResponse) =>
-    handleDownloadMessage(request, sender, sendResponse, true),
+    handleDownloadMessage(
+      request,
+      sender,
+      sendResponse,
+      isPageContentSender(sender, request.body?.info?.pageUrl),
+    ),
 } satisfies HandlerTable<InternalMessage>;
 
 const externalHandlers = {

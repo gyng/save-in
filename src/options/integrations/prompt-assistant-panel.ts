@@ -8,6 +8,7 @@ import { getMessage } from "../../platform/localization.ts";
 import { sendInternalMessage } from "../../platform/messaging.ts";
 import { MESSAGE_TYPES } from "../../shared/constants.ts";
 import type { WireIntegrationGrammar } from "../../shared/message-protocol.ts";
+import { cssSelectorErrors } from "../core/css-selector-validation.ts";
 import {
   buildRuleAuthoringPrompt,
   cleanRuleSuggestion,
@@ -161,6 +162,12 @@ export const setupPromptAssistantPanel = (
         suggestedRule = cleaned;
         rule.textContent = cleaned;
         result.hidden = false;
+        const invalidCss = cssSelectorErrors(cleaned)[0];
+        if (invalidCss) {
+          add.disabled = true;
+          setStatus(copy.invalid(invalidCss.message), "error");
+          return;
+        }
         const response = await sendInternalMessage(webExtensionApi.runtime, {
           type: MESSAGE_TYPES.VALIDATE,
           body: { filenamePatterns: cleaned },

@@ -396,6 +396,35 @@ describe("automatic source discovery", () => {
     controller.stop();
   });
 
+  test("rescans when an arbitrary attribute change makes a CSS selector match", async () => {
+    vi.useFakeTimers();
+    document.body.innerHTML = '<img class="avatar" src="https://cdn.test/profile.png">';
+    const send = vi.fn(() => Promise.resolve("started" as const));
+    const controller = setupAutoDownloadDiscovery({
+      rules: `context: ^auto$
+pageurl: ^http://localhost/$
+css: img[data-save]
+into: automatic/`,
+      live: true,
+      maxPerPage: 20,
+      send,
+    });
+    await controller.idle();
+    expect(send).not.toHaveBeenCalled();
+
+    document.querySelector("img")!.setAttribute("data-save", "");
+    await flushLiveScan();
+    await controller.idle();
+
+    expect(send).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sourceUrl: "https://cdn.test/profile.png",
+        matchedCssSelectorsByOrigin: [["img[data-save]"]],
+      }),
+    );
+    controller.stop();
+  });
+
   test("does not observe later insertions when live discovery is off", async () => {
     vi.useFakeTimers();
     const send = vi.fn(() => Promise.resolve("started" as const));

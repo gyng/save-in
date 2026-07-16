@@ -4,7 +4,11 @@ import type { CurrentTab } from "../../platform/current-tab.ts";
 import type { InternalMessage, ResponseFor } from "../../shared/message-protocol.ts";
 import type { SendResponse } from "../message-dispatch.ts";
 
-export type MessageSender = { id?: string | undefined; tab?: CurrentTab | undefined };
+export type MessageSender = {
+  id?: string | undefined;
+  tab?: CurrentTab | undefined;
+  url?: string | undefined;
+};
 export type ProtocolSendResponse<Request extends InternalMessage> = SendResponse<
   ResponseFor<Request>
 >;
@@ -43,6 +47,23 @@ export const API_ERRORS = {
 export const isExternalDownloadAllowed = (sender: MessageSender): boolean =>
   typeof sender.id === "string" &&
   splitLines(options.externalDownloadAllowlist).some((id) => id === sender.id);
+
+// DOM-selector attestations are meaningful only when they came from the
+// content script running in the exact top-level page described by the request.
+// Extension pages share runtime.onMessage but cannot inspect that page's DOM.
+export const isPageContentSender = (
+  sender: MessageSender,
+  pageUrl: string | undefined,
+): boolean => {
+  if (typeof pageUrl !== "string" || sender.tab?.url !== pageUrl || sender.url !== pageUrl) {
+    return false;
+  }
+  try {
+    return !["chrome-extension:", "moz-extension:"].includes(new URL(pageUrl).protocol);
+  } catch {
+    return false;
+  }
+};
 
 // Only schemes the downloads pipeline can actually fetch are accepted from
 // external callers — this keeps javascript:/file:/extension: URLs from being

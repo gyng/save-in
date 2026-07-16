@@ -7,6 +7,7 @@ import {
   sourceOriginElements,
 } from "../../src/content/css-routing.ts";
 import { mergePageSourcesByUrl } from "../../src/content/source-panel-model.ts";
+import { collectPageSourceCandidates } from "../../src/content/source-panel-model.ts";
 
 describe("content CSS routing", () => {
   test("uses native comma-list semantics and keeps matches grouped by origin", () => {
@@ -38,6 +39,26 @@ describe("content CSS routing", () => {
     ).toEqual([]);
   });
 
+  test("uses the owning image as the origin for picture source candidates", () => {
+    document.body.innerHTML = `
+      <article>
+        <picture><source srcset="large.jpg 2x"><img src="fallback.jpg"></picture>
+      </article>`;
+    const image = document.querySelector("img");
+    const responsive = collectPageSourceCandidates(document, {
+      includeBackgrounds: false,
+      resourceHints: false,
+    }).find(({ url }) => url.endsWith("large.jpg"));
+
+    expect(image).toBeInstanceOf(HTMLImageElement);
+    expect(responsive?.element).toBe(image);
+    expect(
+      responsive
+        ? matchedCssSelectorsByOrigin(sourceOriginElements(responsive), ["article picture img"])
+        : [],
+    ).toEqual([["article picture img"]]);
+  });
+
   test("retains every origin when panel rows merge duplicate URLs", () => {
     const first = document.createElement("img");
     const second = document.createElement("img");
@@ -46,6 +67,25 @@ describe("content CSS routing", () => {
       { url: "https://example.test/shared.jpg", kind: "image", element: second },
     ]);
     expect(sourceOriginElements(merged[0]!)).toEqual([first, second]);
+  });
+
+  test("does not persist removed origins on reusable collector records", () => {
+    const retained = document.createElement("img");
+    const removed = document.createElement("img");
+    removed.className = "avatar";
+    const retainedCandidate = {
+      url: "https://example.test/shared.jpg",
+      kind: "image" as const,
+      element: retained,
+    };
+    mergePageSourcesByUrl([retainedCandidate, { ...retainedCandidate, element: removed }]);
+
+    expect(sourceOriginElements(retainedCandidate)).toEqual([retained, removed]);
+    const rescanned = mergePageSourcesByUrl([retainedCandidate]);
+    expect(sourceOriginElements(rescanned[0]!)).toEqual([retained]);
+    expect(matchedCssSelectorsByOrigin(sourceOriginElements(rescanned[0]!), [".avatar"])).toEqual(
+      [],
+    );
   });
 
   test("extracts unique raw CSS selectors from parsed rules", () => {

@@ -216,3 +216,20 @@ test("shows an invalid suggestion but does not let it enter the editor", async (
   expect(element<HTMLButtonElement>("prompt-assistant-add").disabled).toBe(true);
   expect(mocks.appendRule).not.toHaveBeenCalled();
 });
+
+test("rejects invalid generated CSS before background validation", async () => {
+  mocks.runPrompt.mockResolvedValue("css: [\ninto: Images/:filename:");
+  setup();
+  await enable();
+  const input = element<HTMLTextAreaElement>("prompt-assistant-input");
+  input.value = "Use a CSS selector";
+  input.dispatchEvent(new InputEvent("input"));
+  element<HTMLFormElement>("prompt-assistant-form").dispatchEvent(
+    new SubmitEvent("submit", { cancelable: true }),
+  );
+
+  await vi.waitFor(() => expect(element("prompt-assistant-status").dataset.state).toBe("error"));
+  expect(element<HTMLButtonElement>("prompt-assistant-add").disabled).toBe(true);
+  expect(mocks.sendMessage.mock.calls.some(([message]) => message.type === "VALIDATE")).toBe(false);
+  expect(mocks.appendRule).not.toHaveBeenCalled();
+});

@@ -12,6 +12,7 @@ import { isDataUrl, isDataUrlWithinCap, parseDataUrlMediaType } from "../../shar
 import { addLogEntry } from "../log.ts";
 import type { MessageOf } from "../../shared/message-protocol.ts";
 import type { MessageSender, ProtocolSendResponse } from "./protocol.ts";
+import { isPageContentSender } from "./protocol.ts";
 
 export const handleAutoDownloadSource = async (
   request: MessageOf<typeof MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE>,
@@ -94,11 +95,14 @@ export const handleAutoDownloadSource = async (
     return;
   }
   const rules = Array.isArray(options.filenamePatterns) ? options.filenamePatterns : [];
+  const cssAttestation = isPageContentSender(sender, request.body.pageUrl)
+    ? request.body.matchedCssSelectorsByOrigin
+    : undefined;
   const match = matchAutomaticRoutingRule(rules, {
     pageUrl: senderTab.url,
     sourceUrl,
     sourceKind: request.body.sourceKind,
-    matchedCssSelectorsByOrigin: request.body.matchedCssSelectorsByOrigin,
+    matchedCssSelectorsByOrigin: cssAttestation,
   });
   if (!match) {
     skip();
@@ -119,7 +123,7 @@ export const handleAutoDownloadSource = async (
       selectedUrl: sourceUrl,
       sourceUrl,
       sourceKind: request.body.sourceKind,
-      matchedCssSelectorsByOrigin: request.body.matchedCssSelectorsByOrigin,
+      matchedCssSelectorsByOrigin: cssAttestation,
       url: sourceUrl,
       context: DOWNLOAD_TYPES.AUTO,
       // A data: URL carries no path, so seed the mediatype parsed from its

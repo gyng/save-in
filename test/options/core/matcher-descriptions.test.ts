@@ -48,6 +48,7 @@ test.each([
   ["pagerootdomain", "example.com"],
   ["pagetitle", "Quarterly report"],
   ["frameurl", "https://frame.example/embed"],
+  ["css", "DOM context unavailable"],
   ["sourceurl", "https://cdn.example.com/files/photo.jpg"],
   ["sourcedomain", "cdn.example.com"],
   ["sourcerootdomain", "example.com"],

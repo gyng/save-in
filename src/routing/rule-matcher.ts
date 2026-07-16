@@ -87,11 +87,8 @@ const evaluateCssClauses = (
       ? groups.map((group, index) => ({
           source: `pageElement[${index}]`,
           value: clause.value,
-          status:
-            matchingGroup === group && group.includes(clause.value) ? "matched" : "not-matched",
-          ...(matchingGroup === group && group.includes(clause.value)
-            ? { matchedText: clause.value, captures: [] }
-            : {}),
+          status: group.includes(clause.value) ? "matched" : "not-matched",
+          ...(group.includes(clause.value) ? { matchedText: clause.value, captures: [] } : {}),
         }))
       : [{ source: "pageElement", value: null, status: "missing" }],
   }));
