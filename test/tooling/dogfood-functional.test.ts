@@ -30,6 +30,8 @@ const runtime = {
   environment: { VK_DRIVER_FILES: "/runtime/icd.json" },
 };
 
+const WEBMCP_FLAG = "--enable-blink-features=WebMCP";
+
 describe("functional dogfood CLI", () => {
   test("uses the isolated fast-path defaults", () => {
     expect(parseArgs([])).toEqual({
@@ -65,15 +67,27 @@ describe("functional dogfood CLI", () => {
       profileDir: "/profiles/nano",
       preserve: true,
       enableGpu: true,
-      ...runtime,
+      extraArgs: [WEBMCP_FLAG, ...runtime.extraArgs],
+      environment: runtime.environment,
     });
     expect(selectDogfoodProfile(false, "/profiles/nano", exists, () => runtime)).toEqual({
       profileDir: expect.stringMatching(/[\\/]dist[\\/]dogfood-profile$/),
       preserve: false,
       enableGpu: false,
-      extraArgs: [],
+      extraArgs: [WEBMCP_FLAG],
       environment: {},
     });
+  });
+
+  // Chrome ships document.modelContext behind a blink runtime feature, so a
+  // round that does not ask for it can only ever report WebMCP as unavailable.
+  test("always enables the WebMCP runtime feature the round asserts on", () => {
+    const rounds = [
+      selectDogfoodProfile(true, "/profiles/nano", () => true, () => runtime),
+      selectDogfoodProfile(false, "/profiles/nano", () => true, () => runtime),
+      selectDogfoodProfile(true, "/profiles/nano", () => false, () => null),
+    ];
+    for (const round of rounds) expect(round.extraArgs).toContain(WEBMCP_FLAG);
   });
 
   test("keeps the on-device profile out of a launch that lacks its runtime", () => {
@@ -86,7 +100,7 @@ describe("functional dogfood CLI", () => {
       profileDir: expect.stringMatching(/[\\/]dist[\\/]dogfood-profile$/),
       preserve: false,
       enableGpu: false,
-      extraArgs: [],
+      extraArgs: [WEBMCP_FLAG],
       environment: {},
     });
   });

@@ -26,6 +26,10 @@ const ARTIFACTS = path.join(chrome.ROOT, "dist", "dogfood-artifacts");
 const REPORT_FILE = path.join(ARTIFACTS, "functional-latest.json");
 const FAILURE_FILE = path.join(ARTIFACTS, "functional-failure.json");
 const FAILURE_SCREENSHOT = path.join(ARTIFACTS, "functional-failure.png");
+// document.modelContext is a blink runtime feature, off by default for the
+// whole origin trial. Without this the round's WebMCP checks assert against a
+// browser that could never have registered a tool.
+const WEBMCP_ARGS = ["--enable-blink-features=WebMCP"];
 const WATCH_DIRECTORIES = ["src", "icons", "_locales"];
 const WATCH_FILES = ["manifest.json", "config/rolldown.config.mjs"];
 
@@ -92,7 +96,7 @@ const selectDogfoodProfile = (
   const runtime = headed && profileExists(promptProfile) ? promptRuntime() : null;
   const preserve = runtime !== null;
   return {
-    extraArgs: runtime?.extraArgs ?? [],
+    extraArgs: [...WEBMCP_ARGS, ...(runtime?.extraArgs ?? [])],
     environment: runtime?.environment ?? {},
     profileDir: preserve ? promptProfile : PROFILE,
     preserve,
