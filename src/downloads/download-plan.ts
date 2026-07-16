@@ -78,10 +78,24 @@ export const resolveRenameTransform = async (
   state.scratch.renameResolved = await expandRenameTransform(template, state.info);
 };
 
+// Referer eligibility is scoped by a filter tested against the download URL, so
+// it is a URL-derived artifact like any other: it must be re-derived whenever
+// that URL changes. getDownloadHeaders and retryViaFetch already re-check the
+// live option and filter at their own call sites; caching a stale verdict here
+// would both carry the page URL to a host the filter excludes and withhold it
+// from one the filter covers.
+const resolveRefererState = (state: DownloadPipelineState): void => {
+  const downloadHeaders = getDownloadHeaders(state);
+  const protectedFetchReferer = getFetchReferer(state);
+  state.info.contentFetchDisabled = Boolean(downloadHeaders && !protectedFetchReferer);
+  if (protectedFetchReferer) state.info.protectedFetchReferer = protectedFetchReferer;
+  else delete state.info.protectedFetchReferer;
+};
+
 // A fetch: rewrite retargets the download, so every artifact derived from the
 // original URL — resolved head metadata, hash, prefetched content, the
-// MIME-derived extension, and URL-derived names — is stale and must be
-// recomputed against the rewritten URL.
+// MIME-derived extension, Referer eligibility, and URL-derived names — is stale
+// and must be recomputed against the rewritten URL.
 export const applyFetchRewrite = async (
   state: DownloadPipelineState,
   rewrittenUrl: string,
@@ -97,6 +111,7 @@ export const applyFetchRewrite = async (
     downloadRuntime.movePendingState(state, rewrittenUrl);
   }
   state.info.url = rewrittenUrl;
+  resolveRefererState(state);
   const { naiveFilename, initialFilename } = deriveUrlFilenames(
     rewrittenUrl,
     state.info.suggestedFilename,
@@ -122,11 +137,7 @@ export const resolveDownloadPlan = async (
 
   // Firefox attaches Referer to a direct downloads.download request; both
   // browsers use an exact DNR rule for extension-owned metadata/content.
-  const downloadHeaders = getDownloadHeaders(state);
-  const protectedFetchReferer = getFetchReferer(state);
-  state.info.contentFetchDisabled = Boolean(downloadHeaders && !protectedFetchReferer);
-  if (protectedFetchReferer) state.info.protectedFetchReferer = protectedFetchReferer;
-  else delete state.info.protectedFetchReferer;
+  resolveRefererState(state);
 
   await resolveDispositionFilename(state);
   /* v8 ignore next -- The initial filename assignment above always populates this field. */

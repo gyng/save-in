@@ -216,6 +216,39 @@ describe("fetch rewrite", () => {
     expect(state.scratch.mimeExtension).toBeUndefined();
   });
 
+  test("withholds Referer protection the rewritten URL falls outside the filter for", async () => {
+    options.setRefererHeader = true;
+    options.setRefererHeaderFilter = "*://cdn.example/*";
+    fetchMatch("routed", "https://mirror.example/orig.png");
+    const state = makeState({
+      info: { url: "https://cdn.example/small.png", pageUrl: "https://gallery.example/view" },
+    });
+
+    await Download.resolveDownloadPlan(state);
+
+    // The filter scopes the page URL to cdn.example. Once the rewrite retargets
+    // the download at mirror.example, the decision taken against the original
+    // URL would hand a DNR rule the page URL for a host the user excluded.
+    expect(state.info.protectedFetchReferer).toBeUndefined();
+  });
+
+  test("grants Referer protection the rewritten URL falls inside the filter for", async () => {
+    options.setRefererHeader = true;
+    options.setRefererHeaderFilter = "*://mirror.example/*";
+    fetchMatch("routed", "https://mirror.example/orig.png");
+    const state = makeState({
+      info: { url: "https://cdn.example/small.png", pageUrl: "https://gallery.example/view" },
+    });
+
+    await Download.resolveDownloadPlan(state);
+
+    // The mirror is the host the filter covers, so its metadata fetches must be
+    // protected even though the original URL was ineligible. getDownloadHeaders
+    // already re-derives here; leaving this stale splits the two browsers'
+    // verdicts on one URL.
+    expect(state.info.protectedFetchReferer).toBe("https://gallery.example/view");
+  });
+
   test("falls back to the rewritten URL as the name when it has no path filename", async () => {
     fetchMatch("routed/:naivefilename:", "https://mirror.example/");
     const state = makeState({ info: { url: "https://cdn.example/small.png" } });
