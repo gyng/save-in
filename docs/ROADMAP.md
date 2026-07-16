@@ -57,15 +57,21 @@ Not features — release hygiene that gates the close-out of everything above.
   source shortcuts resolve roughly 28 open reports).
 - Close #104 as by-design: the Last used access key is its own setting
   (`keyLastUsed`), deliberately independent of the numbered-shortcut toggle.
-- Ask the reporters of #207 and #143 to retest on 4.0; those Firefox breakage
-  reports predate the rewrite. **#196 is not one of them** and a retest is the
-  wrong reply: nothing broke. Its thread (five people, 2022–2024, one migrating
-  to Chrome for a downloads router) wants routing applied to downloads the
-  browser starts, which v4 added — Chrome routes them opt-in, Firefox only
-  through the experimental replacement mode. Their posted rules are also wrong
-  independently (`into: STL` files every match onto one file named STL; the
-  editor now warns), so a reply must correct the rule *and* name the option, or
-  they will bounce off a third time.
+- **Neither #207 nor #143 is a retest ask, and #196 was not either.** All three
+  sat under a "Firefox breakage reports predate the rewrite" line that was wrong
+  about every one of them. #207 **still reproduced on 4.0** — Firefox refuses a
+  filename ending .url or .desktop, which is what its shortcut formats produce;
+  fixed in `9dcbbddb`, so the reply is an apology and a fix, not a retest. #143's
+  author is gyng: it is the maintainer's own tracking issue for Bugzilla 1245652
+  (still NEW), so there is no reporter to ask. #196 is a feature request: its
+  thread (five people, 2022–2024, one migrating to Chrome for a downloads
+  router) wants routing applied to downloads the browser starts, which v4 added
+  — Chrome routes them opt-in, Firefox only through the experimental replacement
+  mode. Their posted rules are also wrong independently (`into: STL` files every
+  match onto one file named STL; the editor now warns), so a reply must correct
+  the rule *and* name the option, or they will bounce off a third time.
+  The pattern is worth naming: every issue on that line was mis-shelved, and the
+  shelf was the only thing they had in common.
 - The wider verify-and-close sweep for the landed features is drafted and waits
   for the release. Several reports are already fixed by the rebuild or by the
   later sanitization and match-pattern hardening but were never cited closed:

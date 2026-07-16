@@ -595,6 +595,101 @@ So a "fixed by `:mimeext:`" close answers the real defect and contradicts the
 complaint as written. The reply has to say the parameter was never stripped from
 the download, or it reads as a non-answer. Ask about (1) or close on (2) alone.
 
+## The 43 the changelog never cited — validated
+
+The 4.0.0 changelog cites 45 issues (43 open). These are the other 43. Verdicts
+come from reading each reporter's body **and comments** against current code —
+#196 taught that the body is where a reporter starts and the thread is where
+they explain.
+
+### Live bugs found
+
+**#207 — NOT FIXED. v4 reproduces it, and the roadmap says to ask the reporter
+to retest.** Firefox 112 (bug 1815062 / CVE-2023-29542) moved the
+dangerous-extension check into the sanitizer `downloads.download` validates
+against. Reproduced on a current Firefox:
+
+| extension | result |
+|---|---|
+| `.html`, `.webloc` | saves |
+| `.url`, `.desktop`, `.lnk`, `.scf`, `.local` | **"filename must not contain illegal characters"** |
+
+That is #207's error verbatim. Fixed in `9dcbbddb`: capability + in-memory
+downgrade + the formats removed from the UI on Firefox. Hidden for three years
+because `shortcutType` defaults to `.html`, **the unit tests assert the broken
+string** (`"cat.large.url"`), and the Firefox e2e only exercises `.html`.
+
+**#100 — a live v4 regression**, fixed in `e2ffb443`. The engine grants the ask
+(`menu-target.ts` evaluates the page filter independently of `preferLinks`, and
+`menu-resolver.test.ts` pins it), but the options page chained the filter behind
+`preferLinks`, which prefers links *everywhere* — so "Only on matching pages"
+was reachable only where it cannot narrow anything. v3 had no such gating.
+
+### #66 — FIXED on Chrome, verified against real pixiv
+
+Not code reading. curl, live: `403` without a Referer, `200` (276790 bytes) with
+one — the premise still holds in 2026, no cookies or IP reputation involved.
+Then a real Chrome driving the real extension at the real host: **option on →
+COMPLETE, 276790 bytes, `ffd8ffe0` (JPEG magic), byte-identical to curl; option
+off → interrupted**, reproducing the eight-year-old bug and proving the option
+is what saves it.
+
+The v3 mechanism that kept regressing (`webRequest.onBeforeSendHeaders` +
+`extraHeaders`) is gone with MV3; v4 uses DNR-protected fetch → blob → downloads
+API. **Needs one switch:** `setRefererHeader` (default off). No filter edit —
+the shipped default already covers `*://i.pximg.net/*`. Pinned by
+`test/live/pixiv-referer.live.test.ts` (on-demand suite), which asserts the
+Referer the extension's *own* `getReferer()` derives from shipped defaults, so
+it fails if either pixiv or the default filter changes.
+
+### Clean closes
+
+**#74** (v3 genuinely could not sanitize; v4 implements the whole
+`DownloadPaths.jsm` behaviour the reporter linked) · **#28** (v3's global
+`requestedDownloadFlag` adopted whatever download appeared next; v4 matches by
+URL) · **#82** (v3's single `globalChromeState` leaked names across downloads;
+the requested "default to false" option is exactly what shipped).
+
+### Fixed, but the reply must name a setting
+
+**#73** — the *titled* ask (Content-Disposition parsing) shipped in **v3 2.7.0**;
+the live ask is in the comments — *"I think you should definitely add the
+referrer"* — which is new in v4 but needs `setRefererHeader` **and** their host
+added to a filter that ships pximg/mangadex only. **#136** — the default-on
+auto-retry now covers `SERVER_FORBIDDEN`; the Referer angle predates the report.
+**#43/#126/#135** — see above; `appendMimeExtension` is now off by default.
+
+### Do not close
+
+**#145** — Firefox screenshots are `blob:`, excluded by a *tested contract*
+(`browser-downloads.test.ts` asserts it). **#50** — not a prefix rule; the ask is
+a prefix that *varies by directory*, and no `directory:` matcher exists.
+**#68/#47** — each has a live sub-ask the code does not satisfy; #47 is
+self-authored by the maintainer. **#25/#87** — genuinely platform-blocked (both
+need native messaging), and notably neither is in the roadmap's non-goals.
+**#57** — "to the right" shipped in v3; "to the left" never existed.
+
+### Stale reasons worth retracting
+
+**#65** ("no access to the title attribute") and **#77** ("if accesskeys still
+don't show up") — both owner reasons that v4 has since invalidated: the content
+script now reads page DOM, and access keys shipped. The asks remain unbuilt; only
+the excuses expired. **#86** (Vivaldi) — the mechanism is right (Chromium forks
+take the Chrome path via the `getBrowserInfo` absence), the 2020 polyfill error
+is gone by construction, but Vivaldi is in no test matrix — ask, do not assert.
+
+### Not reproducible
+
+**#111** — maintainer could not reproduce, reporter later called it "a one-off"
+that worked. Close as not-reproducible, not as fixed. **#45/#92** — each has a
+genuinely-fixed half and a still-open half.
+
+### #143 is not a report
+
+Its author is **gyng**. It is the maintainer's own tracking issue for Bugzilla
+1245652 (still NEW after ~10 years). "Ask the reporter to retest" is incoherent
+when the reporter is you.
+
 ## Not yet validated
 
 - **43 open issues are not cited by the 4.0.0 changelog at all** and were never
