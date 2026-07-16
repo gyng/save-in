@@ -10,8 +10,8 @@ import { MESSAGE_TYPES } from "../../shared/constants.ts";
 import type { WireIntegrationGrammar } from "../../shared/message-protocol.ts";
 import { cssSelectorErrors } from "../core/css-selector-validation.ts";
 import {
-  RULE_CRITIQUE_RESPONSE_CONSTRAINT,
-  RULE_PLAN_RESPONSE_CONSTRAINT,
+  ruleCritiqueConstraint,
+  rulePlanConstraint,
   assembleRule,
   buildRuleCritiquePrompt,
   buildRulePlanPrompt,
@@ -249,7 +249,7 @@ export const setupPromptAssistantPanel = (
       const authorOutput = await runPrompt(buildRulePlanPrompt(request), {
         allowDownload: true,
         signal: controller.signal,
-        responseConstraint: RULE_PLAN_RESPONSE_CONSTRAINT,
+        responseConstraint: rulePlanConstraint(request),
         onDownloadProgress: (loaded) => {
           if (!isCurrent()) return;
           progress.hidden = false;
@@ -274,21 +274,19 @@ export const setupPromptAssistantPanel = (
         {
           allowDownload: true,
           signal: controller.signal,
-          responseConstraint: RULE_CRITIQUE_RESPONSE_CONSTRAINT,
+          responseConstraint: ruleCritiqueConstraint(request),
         },
       );
       if (!isCurrent()) return;
       const critique = critiqueOutput ? parseRuleCritique(critiqueOutput) : null;
       if (!critique) throw new Error(copy.unusableReview);
       // The reviewer's repair is a plan too, so agreement is decided on the rule
-      // its plan assembles to, not on how it retyped one.
+      // its plan assembles to, not on how it retyped one. Measured: it answers
+      // "accepted" and then hands back a plan naming the folder as the site, so
+      // an approval is read as an approval of the candidate — its repair is what
+      // it offers when it declines, and only then.
       const critiqueRule = assembleRule(critique.repairedPlan);
-      if (
-        issues.length === 0 &&
-        critique.accepted &&
-        critiqueRule !== null &&
-        describesSameRule(candidate, critiqueRule)
-      ) {
+      if (issues.length === 0 && critique.accepted) {
         showCandidate(candidate);
         add.disabled = false;
         setStatus(copy.draftReady, "success");
@@ -305,7 +303,7 @@ export const setupPromptAssistantPanel = (
         {
           allowDownload: true,
           signal: controller.signal,
-          responseConstraint: RULE_CRITIQUE_RESPONSE_CONSTRAINT,
+          responseConstraint: ruleCritiqueConstraint(request),
         },
       );
       if (!isCurrent()) return;

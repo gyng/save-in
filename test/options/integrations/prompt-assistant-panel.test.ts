@@ -1001,3 +1001,25 @@ test("add refuses a vanished editor after a draft validates", async () => {
   element<HTMLButtonElement>("prompt-assistant-add").click();
   expect(mocks.appendRule).not.toHaveBeenCalled();
 });
+
+test("keeps a draft the reviewer approved, however it retyped the plan", async () => {
+  // Measured against the on-device model: asked to review a correct png plan it
+  // answered accepted with a repairedPlan naming the folder as the site and
+  // adding a category. An approval is an approval of the candidate; the repair
+  // is what the reviewer offers when it declines.
+  mocks.runPrompt.mockResolvedValueOnce(authorResponse()).mockResolvedValueOnce(
+    JSON.stringify({
+      accepted: true,
+      issues: [],
+      repairedPlan: { folder: "Images", fileExtensions: ["png"], site: "Images" },
+    }),
+  );
+  setup();
+  await enable();
+  submitRequest();
+
+  await vi.waitFor(() => expect(element("prompt-assistant-status").dataset.state).toBe("success"));
+  expect(element("prompt-assistant-rule").textContent).toBe(defaultRule);
+  expect(element<HTMLButtonElement>("prompt-assistant-add").disabled).toBe(false);
+  expect(mocks.runPrompt).toHaveBeenCalledTimes(2);
+});

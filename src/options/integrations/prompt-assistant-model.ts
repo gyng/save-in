@@ -62,6 +62,39 @@ const RULE_PLAN_SCHEMA: Record<string, unknown> = {
 
 export const RULE_PLAN_RESPONSE_CONSTRAINT: Record<string, unknown> = RULE_PLAN_SCHEMA;
 
+// The schema for one request. Measured against Gemini Nano: every request that
+// named a file type scored 0/5 and every one that named a category scored 5/5,
+// because asked for "png" the model answers sourceKind "image" — true, and not
+// what was asked — leaving fileExtensions empty and the rule without its type.
+// It is not talked out of that: the schema is the instruction it follows. So
+// when the request itself names a file type, do not offer the field it would
+// answer with. The same extraction decides this and checks the draft, so the
+// model is never offered a field the review would reject it for using.
+export const rulePlanConstraint = (request: string): Record<string, unknown> => {
+  if (explicitExtensions(request).length === 0) return RULE_PLAN_SCHEMA;
+  const { sourceKind: _sourceKind, ...properties } = RULE_PLAN_SCHEMA.properties as Record<
+    string,
+    unknown
+  >;
+  return {
+    ...RULE_PLAN_SCHEMA,
+    properties,
+    required: (RULE_PLAN_SCHEMA.required as string[]).filter((name) => name !== "sourceKind"),
+  };
+};
+
+// The critique's repairedPlan is a plan, so it is offered exactly the schema the
+// author was offered for this request. Sharing the full schema here re-opened the
+// field the request-specific one withholds: asked to review a correct png plan,
+// the model accepted it and repaired it into one matching sourceKind image.
+export const ruleCritiqueConstraint = (request: string): Record<string, unknown> => ({
+  ...RULE_CRITIQUE_RESPONSE_CONSTRAINT,
+  properties: {
+    ...(RULE_CRITIQUE_RESPONSE_CONSTRAINT.properties as Record<string, unknown>),
+    repairedPlan: rulePlanConstraint(request),
+  },
+});
+
 export const RULE_CRITIQUE_RESPONSE_CONSTRAINT: Record<string, unknown> = {
   type: "object",
   properties: {

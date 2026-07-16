@@ -8,6 +8,7 @@ import {
   parseRuleCritique,
   parseRulePlan,
   ruleRequestGuardrailIssues,
+  rulePlanConstraint,
   type RulePlan,
 } from "../../../src/options/integrations/prompt-assistant-model.ts";
 import { parseRulesCollecting } from "../../../src/routing/rule-parser.ts";
@@ -565,5 +566,25 @@ describe("matchers the request never asked for", () => {
         "sourcekind: ^image$\npagedomain: (?:^|\\.)docs\\.example\\.com$\ninto: archive/:filename:",
       ),
     ).toEqual([]);
+  });
+});
+
+describe("the schema offered for one request", () => {
+  test("withholds the category field from a request that names a file type", () => {
+    // Measured: asked for "png" the model answers sourceKind "image" and leaves
+    // fileExtensions empty — 0/5 for every file-type request. It cannot use a
+    // field it is not offered.
+    const constraint = rulePlanConstraint("save png into /dongs");
+
+    expect(Object.keys(constraint.properties as object)).not.toContain("sourceKind");
+    expect(constraint.required).not.toContain("sourceKind");
+    expect(Object.keys(constraint.properties as object)).toContain("fileExtensions");
+  });
+
+  test("offers the category field to a request that names no file type", () => {
+    const constraint = rulePlanConstraint("save images from docs.example.com into /archive");
+
+    expect(Object.keys(constraint.properties as object)).toContain("sourceKind");
+    expect(constraint.required).toContain("sourceKind");
   });
 });
