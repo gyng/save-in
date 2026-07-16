@@ -2,6 +2,35 @@ import * as Download from "../../src/downloads/download-disposition.ts";
 import { EXTENSION_REGEX, getFilenameFromUrl } from "../../src/routing/filename.ts";
 import { options } from "../../src/config/options-data.ts";
 import { Path } from "../../src/routing/path.ts";
+import {
+  BROWSERS,
+  CURRENT_BROWSER,
+  setCurrentBrowser,
+} from "../../src/platform/chrome-detector.ts";
+
+test("metadata-disabled Firefox naming still records the exact supplied filename", async () => {
+  const previousBrowser = CURRENT_BROWSER;
+  const downloads = global.chrome.downloads as unknown as Record<string, unknown>;
+  const determiningFilename = downloads.onDeterminingFilename;
+  const state = {
+    scratch: {},
+    info: { filename: "supplied-name.pdf", contentFetchDisabled: true },
+  } as never;
+
+  Reflect.deleteProperty(downloads, "onDeterminingFilename");
+  setCurrentBrowser(BROWSERS.FIREFOX);
+  try {
+    await Download.resolveDispositionFilename(state);
+  } finally {
+    downloads.onDeterminingFilename = determiningFilename;
+    setCurrentBrowser(previousBrowser);
+  }
+
+  expect(Reflect.get(state, "info")).toMatchObject({
+    filename: "supplied-name.pdf",
+    resolvedFilename: "supplied-name.pdf",
+  });
+});
 
 test("extension detection regex", () => {
   const match = "abc.xyz".match(EXTENSION_REGEX);

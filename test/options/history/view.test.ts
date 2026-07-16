@@ -172,15 +172,19 @@ describe("history row flatteners", () => {
     expect(statusClass("SERVER_FORBIDDEN")).toBe("status-fail");
     expect(statusLabel("undone")).toBe("Undone");
     expect(statusClass("undone")).toBe("status-undone");
+    expect(statusLabel("moved")).toBe("Moved");
+    expect(statusClass("moved")).toBe("status-moved");
   });
 
-  test("undone rows filter as their own status, not as failures", () => {
+  test("undone and moved rows filter as deliberate actions, not as failures", () => {
     const entries = [
       { id: "a", status: "undone", timestamp: "2024-01-01T00:00:00Z" },
+      { id: "m", status: "moved", timestamp: "2024-01-01T00:00:00Z" },
       { id: "b", status: "SERVER_FORBIDDEN", timestamp: "2024-01-01T00:00:00Z" },
     ];
     expect(paginateHistory(entries, { statusFilter: "failed" }).matchCount).toBe(1);
     expect(paginateHistory(entries, { statusFilter: "undone" }).matchCount).toBe(1);
+    expect(paginateHistory(entries, { statusFilter: "moved" }).matchCount).toBe(1);
   });
 
   test("row flattens an entry to its table fields", () => {

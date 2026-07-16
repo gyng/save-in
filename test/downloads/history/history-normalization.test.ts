@@ -36,6 +36,16 @@ describe("history normalization", () => {
     ]);
   });
 
+  test("preserves valid reroute links and drops malformed relationship fields", () => {
+    expect(
+      normalizeHistory([
+        { id: "old", rerouteTo: "new" },
+        { id: "new", rerouteOf: "old" },
+        { id: "empty", rerouteOf: "", rerouteTo: 7 },
+      ]),
+    ).toEqual([{ id: "old", rerouteTo: "new" }, { id: "new", rerouteOf: "old" }, { id: "empty" }]);
+  });
+
   test("detects and migrates legacy local date-only timestamps", () => {
     const stored = [{ id: "old", timestamp: "2024-02-29" }];
     expect(hasLegacyDateOnlyTimestamp(stored)).toBe(true);

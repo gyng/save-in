@@ -409,7 +409,7 @@ describe("history filter controls", () => {
       },
     ];
     document.querySelector<HTMLTextAreaElement>("#paths")!.value =
-      "Pictures // (alias: Images)\n> Pictures/Archive";
+      "Pictures // (alias: Images)\n> Pictures/Archive\nPictures // duplicate destination";
     historyRuntime.sendMessage.mockImplementation(async (message: { type: string }) => {
       if (message.type === "HISTORY_REROUTE") {
         return {
@@ -441,6 +441,114 @@ describe("history filter controls", () => {
     await vi.waitFor(() =>
       expect(document.querySelector("#history-feedback")?.textContent).toContain("Save moved"),
     );
+  });
+
+  test("dismisses an open move destination picker", async () => {
+    historyRuntime.entries = [
+      {
+        id: "h-picker",
+        status: "complete",
+        downloadId: 45,
+        finalFullPath: "from/photo.png",
+        url: "https://cdn.test/photo.png",
+      },
+    ];
+    await historyPanel.renderHistory();
+    const move = document.querySelector<HTMLButtonElement>(".history-move")!;
+
+    move.click();
+    expect(document.querySelector(".history-move-picker")).not.toBeNull();
+    move.click();
+    expect(document.querySelector(".history-move-picker")).toBeNull();
+  });
+
+  test.each([
+    { type: "OK", body: {} },
+    { type: "HISTORY_REROUTE", body: {} },
+    { type: "HISTORY_REROUTE", body: { rerouted: false, oldRemoved: false } },
+  ])("reports a refused move response %#", async (refusal) => {
+    historyRuntime.entries = [
+      {
+        id: "h-refused",
+        status: "complete",
+        downloadId: 46,
+        finalFullPath: "from/photo.png",
+        url: "https://cdn.test/photo.png",
+      },
+    ];
+    document.querySelector("#paths")?.remove();
+    historyRuntime.sendMessage.mockImplementation(async (message: { type: string }) =>
+      message.type === "HISTORY_GET"
+        ? { type: "HISTORY_GET", body: { entries: historyRuntime.entries } }
+        : refusal,
+    );
+    await historyPanel.renderHistory();
+
+    document.querySelector<HTMLButtonElement>(".history-move")!.click();
+    const picker = document.querySelector<HTMLElement>(".history-move-picker")!;
+    expect([...picker.querySelectorAll("option")].map((option) => option.value)).toEqual(["."]);
+    picker.querySelector<HTMLButtonElement>(".history-move-confirm")!.click();
+
+    await vi.waitFor(() =>
+      expect(document.querySelector("#history-feedback")?.textContent).toContain("Could not move"),
+    );
+  });
+
+  test("reports a rejected move request", async () => {
+    historyRuntime.entries = [
+      {
+        id: "h-rejected",
+        status: "complete",
+        downloadId: 47,
+        finalFullPath: "from/photo.png",
+        url: "https://cdn.test/photo.png",
+      },
+    ];
+    historyRuntime.sendMessage.mockImplementation(async (message: { type: string }) => {
+      if (message.type === "HISTORY_GET") {
+        return { type: "HISTORY_GET", body: { entries: historyRuntime.entries } };
+      }
+      throw new Error("worker stopped");
+    });
+    await historyPanel.renderHistory();
+
+    document.querySelector<HTMLButtonElement>(".history-move")!.click();
+    document.querySelector<HTMLButtonElement>(".history-move-confirm")!.click();
+
+    await vi.waitFor(() =>
+      expect(document.querySelector("#history-feedback")?.textContent).toContain("Could not move"),
+    );
+  });
+
+  test("reports when rerouting succeeds but the original is kept", async () => {
+    historyRuntime.entries = [
+      {
+        id: "h-kept",
+        status: "complete",
+        downloadId: 48,
+        finalFullPath: "from/photo.png",
+        url: "https://cdn.test/photo.png",
+      },
+    ];
+    historyRuntime.sendMessage.mockImplementation(async (message: { type: string }) => {
+      if (message.type === "HISTORY_REROUTE") {
+        return {
+          type: "HISTORY_REROUTE",
+          body: { rerouted: true, oldRemoved: false, newHistoryId: "h-copy" },
+        };
+      }
+      return { type: "HISTORY_GET", body: { entries: historyRuntime.entries } };
+    });
+    await historyPanel.renderHistory();
+
+    document.querySelector<HTMLButtonElement>(".history-move")!.click();
+    document.querySelector<HTMLButtonElement>(".history-move-confirm")!.click();
+
+    const feedback = document.querySelector<HTMLElement>("#history-feedback")!;
+    await vi.waitFor(() =>
+      expect(feedback.textContent).toContain("The original file could not be removed"),
+    );
+    expect(feedback.classList).toContain("feedback-error");
   });
 
   test("undo failure is contained and re-enables the row action", async () => {

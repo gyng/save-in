@@ -201,7 +201,7 @@ describe("onMessage", () => {
         downloadId: 41,
         status: "complete",
         downloadStartTime: "2026-07-17T01:02:03.000Z",
-        variables: { suggestedfilename: "moved.png" },
+        variables: { suggestedfilename: "moved.png", comment: "archive" },
       },
     ]);
     vi.mocked(global.browser.downloads.search).mockResolvedValue([
@@ -229,6 +229,7 @@ describe("onMessage", () => {
     expect(state.path.finalize()).toBe("moved/here");
     expect(state.info.url).toBe("https://x.test/moved.png");
     expect(state.info.suggestedFilename).toBe("moved.png");
+    expect(state.info.comment).toBe("archive");
     // A reroute re-issues an existing save; it must not double-report through
     // the webhook.
     expect(state.info.webhookEligible).toBe(false);
@@ -381,6 +382,39 @@ describe("onMessage", () => {
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.HISTORY_REROUTE,
       body: { rerouted: true, oldRemoved: false, newHistoryId: "history-new-2" },
+    });
+  });
+
+  test("HISTORY_REROUTE succeeds without links when the replacement has no history row", async () => {
+    vi.mocked(SaveHistory.getHistoryEntries).mockResolvedValue([
+      {
+        id: "history-24",
+        url: "https://x.test/unlinked.png",
+        downloadId: 48,
+        status: "complete",
+      },
+    ]);
+    vi.mocked(global.browser.downloads.search).mockResolvedValue([
+      { id: 48, url: "https://x.test/unlinked.png" } as never,
+    ]);
+    vi.mocked(Download.launchDownload).mockResolvedValue({ status: "started", downloadId: 49 });
+    vi.mocked(SaveHistory.patchHistoryEntry).mockClear();
+    const sendResponse = vi.fn();
+
+    onMessage(
+      {
+        type: MESSAGE_TYPES.HISTORY_REROUTE,
+        body: { historyId: "history-24", destination: "moved/here" },
+      },
+      {},
+      sendResponse,
+    );
+    await waitForCall(sendResponse);
+
+    expect(SaveHistory.patchHistoryEntry).not.toHaveBeenCalled();
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.HISTORY_REROUTE,
+      body: { rerouted: true, oldRemoved: true },
     });
   });
 
