@@ -140,10 +140,6 @@ details[open] > .menu-trigger::after {
   transform: translateY(2px) rotate(225deg);
 }
 
-.menu-trigger::-webkit-details-marker {
-  display: none;
-}
-
 .menu-trigger:hover,
 details[open] > .menu-trigger {
   background: var(--hover-bg);
@@ -236,7 +232,7 @@ details[open] > .menu-trigger {
 }
 
 li {
-  margin-bottom: var(--space-1);
+  margin-block-end: var(--space-1);
 }
 
 .editor-field-label {
@@ -247,7 +243,7 @@ li {
 }
 
 .save {
-  margin-top: var(--space-6);
+  margin-block-start: var(--space-6);
 }
 
 .help {

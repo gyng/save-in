@@ -41,7 +41,7 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     gap: 2px;
-    margin-bottom: var(--space-2);
+    margin-block-end: var(--space-2);
   }
 
   .last-download-table > tbody > tr > .last-download-label {

@@ -37,14 +37,14 @@
     grid-column: 4;
     grid-row: 2;
     inline-size: 100%;
-    margin-top: var(--space-1);
+    margin-block-start: var(--space-1);
   }
 
   .path-editor-actions {
     grid-column: 4 / -1;
     grid-row: 2;
     justify-self: end;
-    margin-top: var(--space-1);
+    margin-block-start: var(--space-1);
   }
 
   .path-editor-alias.is-open ~ .path-editor-actions {
@@ -59,7 +59,7 @@
   .path-editor-row:has(.path-editor-separator) .path-editor-actions {
     grid-column: 5;
     grid-row: 1;
-    margin-top: 0;
+    margin-block-start: 0;
   }
 }
 
@@ -105,7 +105,7 @@
     align-self: start;
     grid-column: 1;
     grid-row: 1;
-    margin-top: 4px;
+    margin-block-start: 4px;
   }
 
   .rule-clause-row .rule-clause-name,

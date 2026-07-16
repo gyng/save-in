@@ -32,7 +32,6 @@ a.external::after {
   content: "";
   pointer-events: none;
   transform: translateY(-50%);
-  -webkit-mask: url(../i/open-in-new-16.svg) center / contain no-repeat;
   mask: url(../i/open-in-new-16.svg) center / contain no-repeat;
 }
 

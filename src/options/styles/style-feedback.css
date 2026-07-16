@@ -60,7 +60,6 @@
   block-size: 15px;
   background-color: var(--color-validation);
   content: "";
-  -webkit-mask: url(../i/warning-16.svg) center / contain no-repeat;
   mask: url(../i/warning-16.svg) center / contain no-repeat;
 }
 

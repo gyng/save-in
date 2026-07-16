@@ -40,7 +40,7 @@ fieldset.click-to-save-controls {
 
 .click-to-save-controls > legend {
   inline-size: 100%;
-  margin-bottom: var(--space-1);
+  margin-block-end: var(--space-1);
 }
 
 .click-to-save-controls > button {
@@ -98,7 +98,7 @@ fieldset.click-to-save-controls {
 
 .inline-guide {
   max-inline-size: var(--content-max-width);
-  margin-top: var(--space-3);
+  margin-block-start: var(--space-3);
 }
 
 .inline-guide > summary {
@@ -117,7 +117,7 @@ fieldset.click-to-save-controls {
 }
 
 .inline-guide > .guide-body {
-  margin-top: var(--space-1);
+  margin-block-start: var(--space-1);
   padding: var(--space-3);
   border: 1px solid var(--panel-border);
   border-radius: var(--radius);
@@ -127,11 +127,11 @@ fieldset.click-to-save-controls {
 }
 
 .guide-body > :first-child {
-  margin-top: 0;
+  margin-block-start: 0;
 }
 
 .guide-body > :last-child {
-  margin-bottom: 0;
+  margin-block-end: 0;
 }
 
 .guide-steps {
@@ -144,13 +144,13 @@ fieldset.click-to-save-controls {
 .guide-step {
   min-inline-size: 0;
   padding: var(--space-3) 0;
-  border-top: 1px solid var(--panel-border);
+  border-block-start: 1px solid var(--panel-border);
 }
 
 .guide-step strong,
 .guide-command-grid strong {
   display: block;
-  margin-bottom: var(--space-1);
+  margin-block-end: var(--space-1);
   font-size: var(--text-base);
   font-weight: 600;
 }
@@ -191,7 +191,7 @@ fieldset.click-to-save-controls {
 .guide-more,
 .agent-prompt-guide {
   margin: 0;
-  border-top: 1px solid var(--panel-border);
+  border-block-start: 1px solid var(--panel-border);
 }
 
 :is(.guide-more, .agent-prompt-guide) > summary {
@@ -234,7 +234,7 @@ fieldset.click-to-save-controls {
 }
 
 .edge-case-guide {
-  margin-bottom: var(--space-5);
+  margin-block-end: var(--space-5);
 }
 
 @container options-panel (max-width: 640px) {

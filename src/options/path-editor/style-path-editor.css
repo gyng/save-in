@@ -101,7 +101,7 @@
 }
 
 .path-editor-help {
-  margin-top: var(--space-2);
+  margin-block-start: var(--space-2);
 }
 
 .path-editor-help p {
@@ -215,10 +215,6 @@
   list-style: none;
   font-size: var(--text-lg);
   opacity: 1;
-}
-
-.path-editor-more-trigger::-webkit-details-marker {
-  display: none;
 }
 
 .path-editor-more-trigger:hover,

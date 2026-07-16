@@ -28,11 +28,11 @@
 }
 
 .routing-reference-column > .editor-field-label {
-  margin-top: 0;
+  margin-block-start: 0;
 }
 
 .rules-editor-main > .last-download-row {
-  margin-top: var(--space-4);
+  margin-block-start: var(--space-4);
 }
 
 .routing-ide {
@@ -47,7 +47,7 @@
 }
 
 .routing-editor-heading .editor-field-label {
-  margin-bottom: 0;
+  margin-block-end: 0;
 }
 
 .routing-ide-actions {
@@ -224,10 +224,6 @@
   position: relative;
   flex: none;
   margin: 0;
-}
-
-.rule-editor-actions-trigger::-webkit-details-marker {
-  display: none;
 }
 
 .rule-editor-actions-trigger:hover,

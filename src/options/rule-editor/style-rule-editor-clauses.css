@@ -69,8 +69,8 @@
 }
 
 .rule-clause-destination {
-  margin-top: var(--space-1);
-  border-top: 1px dashed var(--panel-border);
+  margin-block-start: var(--space-1);
+  border-block-start: 1px dashed var(--panel-border);
   border-radius: 0 0 var(--radius) var(--radius);
   background: color-mix(in srgb, var(--syntax-variable) 3%, transparent);
 }

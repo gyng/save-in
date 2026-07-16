@@ -8,7 +8,7 @@
 }
 
 .source-browser > .section-task-heading {
-  margin-bottom: var(--space-1);
+  margin-block-end: var(--space-1);
 }
 
 .source-panel-intro {
@@ -39,14 +39,14 @@
 
 .source-browser .source-panel-dependent {
   gap: var(--space-5);
-  margin-top: var(--space-5);
+  margin-block-start: var(--space-5);
   margin-inline-start: var(--space-2);
   padding-inline-start: var(--space-4);
   border-inline-start: 1px solid var(--panel-border);
 }
 
 .source-panel-discovery > .source-panel-dependent {
-  margin-top: 0;
+  margin-block-start: 0;
 }
 
 .source-browser:has(#sourcePanelEnabled:not(:checked))
@@ -55,14 +55,13 @@
   color: var(--disabled-control-color);
 }
 
-.source-browser .source-panel-settings,
-.source-result-settings {
+.source-browser .source-panel-settings {
   display: grid;
   gap: var(--space-1);
 }
 
 .option-group-heading {
-  margin-bottom: var(--space-2);
+  margin-block-end: var(--space-2);
   color: var(--color-text);
   font-size: var(--text-base);
   font-weight: 600;
@@ -94,7 +93,7 @@
   align-items: center;
   flex-wrap: wrap;
   gap: var(--space-2);
-  margin-top: var(--space-3);
+  margin-block-start: var(--space-3);
 }
 
 #sourcePanelShortcutStatus:not(:empty) {
@@ -107,7 +106,7 @@
 
 .source-shortcut-settings > .caption-line {
   max-inline-size: 68ch;
-  margin-top: var(--space-2);
+  margin-block-start: var(--space-2);
   color: var(--color-text-muted);
   line-height: 1.4;
 }
@@ -117,7 +116,7 @@
   grid-template-columns: minmax(340px, 2fr) minmax(260px, 1fr);
   align-items: start;
   gap: var(--space-5);
-  margin-bottom: var(--space-5);
+  margin-block-end: var(--space-5);
 }
 
 .source-panel-demo {
@@ -138,7 +137,7 @@
   gap: var(--space-2);
   min-block-size: var(--control-height);
   padding: 6px 10px 3px;
-  border-bottom: 1px solid var(--panel-border);
+  border-block-end: 1px solid var(--panel-border);
 }
 
 .source-panel-demo-title {
@@ -232,7 +231,7 @@
   flex-wrap: wrap;
   gap: 4px;
   padding: 0 var(--space-3) var(--space-2);
-  border-bottom: 1px solid var(--panel-border);
+  border-block-end: 1px solid var(--panel-border);
 }
 
 .source-panel-demo-facets span {
@@ -265,11 +264,11 @@
   gap: var(--space-2);
   min-block-size: 44px;
   padding: 3px 10px;
-  border-bottom: 1px solid var(--panel-border);
+  border-block-end: 1px solid var(--panel-border);
 }
 
 .source-panel-demo-row:last-child {
-  border-bottom: 0;
+  border-block-end: 0;
 }
 
 .source-panel-demo-check {
@@ -352,13 +351,13 @@
 }
 
 .source-disable {
-  margin-top: var(--space-6);
-  padding-top: var(--space-5);
-  border-top: 1px solid var(--panel-border);
+  margin-block-start: var(--space-6);
+  padding-block-start: var(--space-5);
+  border-block-start: 1px solid var(--panel-border);
 }
 
 .source-disable > .section-task-heading {
-  margin-bottom: var(--space-2);
+  margin-block-end: var(--space-2);
 }
 
 .per-site-disable-field {

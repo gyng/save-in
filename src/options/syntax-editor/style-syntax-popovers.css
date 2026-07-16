@@ -29,9 +29,9 @@
 }
 
 .syntax-editor-tooltip-item + .syntax-editor-tooltip-item {
-  margin-top: var(--space-1);
-  padding-top: var(--space-1);
-  border-top: 1px solid var(--panel-border);
+  margin-block-start: var(--space-1);
+  padding-block-start: var(--space-1);
+  border-block-start: 1px solid var(--panel-border);
 }
 
 .syntax-editor-tooltip-warning {
@@ -102,13 +102,13 @@
   gap: 1px var(--space-3);
   min-inline-size: 0;
   padding: var(--space-2) var(--space-3);
-  border-bottom: 1px solid var(--panel-border);
+  border-block-end: 1px solid var(--panel-border);
   color: var(--color-text);
   cursor: pointer;
 }
 
 .autocomplete-option:last-child {
-  border-bottom: 0;
+  border-block-end: 0;
 }
 
 .autocomplete-option:hover {

@@ -1,5 +1,5 @@
 .visual-editor-toolbar.rule-editor-toolbar {
-  margin-top: var(--space-4);
+  margin-block-start: var(--space-4);
 }
 
 .rule-editor-create-actions {
@@ -26,10 +26,6 @@
   font-weight: 600;
   line-height: 1;
   list-style: none;
-}
-
-.rule-add-menu-trigger::-webkit-details-marker {
-  display: none;
 }
 
 .rule-add-menu-trigger:hover,

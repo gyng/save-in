@@ -5,7 +5,7 @@
   gap: var(--space-1);
   inline-size: 100%;
   margin: var(--space-3) 0;
-  border-bottom: 1px solid var(--panel-border);
+  border-block-end: 1px solid var(--panel-border);
 }
 
 .editor-actions {
@@ -22,7 +22,7 @@
   align-items: center;
   flex-wrap: wrap;
   gap: var(--space-2);
-  margin-top: 0;
+  margin-block-start: 0;
 }
 
 /* Shared quiet controls for both visual editors. */
@@ -118,8 +118,8 @@
 .editor-actions > *,
 .visual-editor-toolbar > *,
 .editor-save-actions > * {
-  margin-top: 0;
-  margin-bottom: 0;
+  margin-block-start: 0;
+  margin-block-end: 0;
 }
 
 .discard-button {
@@ -256,7 +256,7 @@
   content: "";
   top: 50%;
   inset-inline: 0;
-  border-top: 2px solid var(--color-selection);
+  border-block-start: 2px solid var(--color-selection);
 }
 
 .path-editor-drop-zone .path-editor-drop-indicator {

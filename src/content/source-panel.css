@@ -141,6 +141,11 @@
   block-size: 18px;
   cursor: nwse-resize;
 }
+/* Physical on purpose, unlike the rest of these styles: the floating panel is
+   pinned to the viewport's bottom-right corner in any direction, so this grip
+   and its nwse-resize cursor are corners of the screen rather than of the text.
+   A logical inline-end border would send the chevron to the left in RTL while
+   the grip it draws stayed on the right. */
 :host(.floating) .resize::after {
   position: absolute;
   right: 3px;

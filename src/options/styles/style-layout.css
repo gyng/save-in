@@ -35,7 +35,7 @@
   inline-size: calc(100% + 2 * var(--space-5));
   margin: 0 calc(-1 * var(--space-5)) var(--space-5);
   padding: 0 var(--space-5);
-  border-bottom: 1px solid var(--panel-border);
+  border-block-end: 1px solid var(--panel-border);
   position: sticky;
   top: 0;
   /* Solid, not inherit: content must not show through while scrolling */
@@ -46,10 +46,10 @@
 :where(.tablist .tab, .editor-tab, .reference-dialog-tabs [role="tab"]) {
   appearance: none;
   border: none;
-  border-bottom: 2px solid transparent;
+  border-block-end: 2px solid transparent;
   border-radius: var(--radius) var(--radius) 0 0;
   background: transparent;
-  margin-bottom: -1px;
+  margin-block-end: -1px;
   font-size: var(--text-base);
   font-weight: 500;
   color: var(--color-text-muted);
@@ -80,7 +80,7 @@
 
 :where(.tablist .tab, .editor-tab, .reference-dialog-tabs [role="tab"])[aria-selected="true"] {
   color: var(--link-color);
-  border-bottom-color: var(--link-color);
+  border-block-end-color: var(--link-color);
 }
 
 :where(.tablist .tab, .editor-tab, .reference-dialog-tabs [role="tab"]):focus-visible {
@@ -214,13 +214,13 @@
 /* In-tab hierarchy and shared wide-row placement belong to panel layout, not
    a late override layer. */
 .tab-panel h3:not(.section-task-heading) {
-  margin-top: var(--space-6);
+  margin-block-start: var(--space-6);
 }
 
 .tab-heading-hidden + h3,
 .tab-panel > h3:first-child,
 .tab-panel > .column > h3:first-child {
-  margin-top: 0;
+  margin-block-start: 0;
 }
 
 .last-download-row {
@@ -294,7 +294,7 @@
 /* Menu preview is collapsible (open by default); separate its tree from the
    title so the header reads as a header, not a caption glued to the box. */
 .menu-preview[open] > .menu-preview-tree {
-  margin-top: var(--space-3);
+  margin-block-start: var(--space-3);
 }
 
 /* Source-order <hr> section separators are redundant once sections

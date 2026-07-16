@@ -473,6 +473,22 @@ for (const file of styles) {
     violations.push(`${relative}:${line} uses a physical direction; use a flow-relative property`);
   }
 
+  // The inline axis above is a rendering rule — it is what breaks RTL. This is
+  // a vocabulary one: these pages are horizontal-tb, so the block longhands
+  // render identically and the only question is which name the file uses. It is
+  // still worth pinning, because the answer was previously both — 167 physical
+  // declarations sat beside 27 logical ones for the same axis, and a reader had
+  // to know they were synonyms. src/content is checked separately and stays
+  // physical where it anchors to the viewport rather than to the text.
+  const physicalBlockAxis =
+    /^\s*(?:scroll-)?(?:margin|padding|border)-(?:top|bottom)(?:-width|-color|-style)?\s*:/gm;
+  for (const match of source.matchAll(physicalBlockAxis)) {
+    const line = source.slice(0, match.index).split("\n").length;
+    violations.push(
+      `${relative}:${line} names a block edge physically; use the -block-start/-block-end longhand`,
+    );
+  }
+
   for (const match of source.matchAll(/^\s*(margin|padding|border-radius)\s*:\s*([^;]+);/gm)) {
     const property = match[1] || "";
     const values = splitTopLevelWhitespace((match[2] || "").trim());

@@ -14,7 +14,7 @@
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   padding: 2px 0;
-  border-bottom: 1px solid var(--color-border);
+  border-block-end: 1px solid var(--color-border);
 }
 .row[data-selected="true"] {
   background: color-mix(in srgb, var(--color-accent) 7%, transparent);
@@ -123,7 +123,7 @@ video,
   align-items: center;
   gap: var(--source-space-1);
   min-inline-size: 0;
-  margin-top: 2px;
+  margin-block-start: 2px;
   overflow: clip;
   color: var(--color-text-meta);
   font-size: var(--text-xs);
@@ -300,7 +300,7 @@ video,
 }
 .empty button {
   min-block-size: var(--compact-control-size);
-  margin-top: var(--source-space-3);
+  margin-block-start: var(--source-space-3);
   padding: 4px 9px;
   color: var(--color-link);
   border: 1px solid var(--color-control-border);

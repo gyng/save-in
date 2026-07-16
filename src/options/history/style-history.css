@@ -6,7 +6,7 @@
   table-layout: fixed;
   border-collapse: collapse;
   inline-size: 100%;
-  margin-top: var(--space-2);
+  margin-block-start: var(--space-2);
   font-size: var(--text-base);
 }
 
@@ -16,7 +16,7 @@
   align-items: baseline;
   gap: var(--space-3);
   min-inline-size: 0;
-  margin-top: var(--space-3);
+  margin-block-start: var(--space-3);
   padding: 0;
   border: 0;
 }
@@ -47,7 +47,7 @@
   display: flex;
   justify-content: flex-end;
   gap: var(--space-2);
-  margin-top: var(--space-3);
+  margin-block-start: var(--space-3);
 }
 
 .history-table-tools > details > summary {
@@ -62,7 +62,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-2);
-  margin-top: var(--space-3);
+  margin-block-start: var(--space-3);
   padding: var(--space-3);
   border: 1px solid var(--panel-border);
   border-radius: var(--radius);
@@ -95,7 +95,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-1);
-  margin-top: var(--space-2);
+  margin-block-start: var(--space-2);
   color: var(--color-text-muted);
   font-size: var(--text-sm);
 }
@@ -128,7 +128,7 @@
   font-weight: 600;
   padding-block: 0 var(--space-1);
   padding-inline: 0 var(--space-3);
-  border-bottom: 1px solid var(--panel-border);
+  border-block-end: 1px solid var(--panel-border);
   white-space: nowrap;
 }
 
@@ -168,7 +168,7 @@
 .history-table td {
   padding-block: var(--space-2);
   padding-inline: 0 var(--space-3);
-  border-bottom: 1px solid var(--panel-border);
+  border-block-end: 1px solid var(--panel-border);
   vertical-align: top;
   overflow: hidden;
   text-overflow: ellipsis;

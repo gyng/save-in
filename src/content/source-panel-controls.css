@@ -106,10 +106,6 @@ summary:focus-visible {
   cursor: pointer;
   list-style: none;
 }
-.dock-picker > summary::-webkit-details-marker,
-.row-more > summary::-webkit-details-marker {
-  display: none;
-}
 .dock-menu,
 .action-menu {
   position: absolute;
@@ -175,7 +171,7 @@ summary:focus-visible {
   flex-wrap: wrap;
   gap: var(--source-space-1);
   padding: 0 10px 6px;
-  border-bottom: 1px solid var(--color-border);
+  border-block-end: 1px solid var(--color-border);
 }
 .facet {
   display: inline-flex;

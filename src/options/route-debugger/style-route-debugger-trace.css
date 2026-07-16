@@ -54,10 +54,6 @@
   list-style: none;
 }
 
-.route-debugger-rule > summary::-webkit-details-marker {
-  display: none;
-}
-
 .route-debugger-rule-header,
 .route-debugger-clause {
   display: flex;
@@ -81,8 +77,8 @@
   flex: none;
   inline-size: 0;
   block-size: 0;
-  border-top: 4px solid transparent;
-  border-bottom: 4px solid transparent;
+  border-block-start: 4px solid transparent;
+  border-block-end: 4px solid transparent;
   border-inline-start: 6px solid var(--color-text-muted);
   content: "";
   transition: transform var(--motion-duration-fast) ease;
@@ -176,16 +172,16 @@
 .route-debugger-clauses {
   margin: 0 var(--space-3);
   padding: var(--space-1) 0 var(--space-2);
-  border-top: 1px solid var(--panel-border);
+  border-block-start: 1px solid var(--panel-border);
   list-style: none;
 }
 
 .route-debugger-rule-output + .route-debugger-clauses {
-  border-top: 0;
+  border-block-start: 0;
 }
 
 .route-debugger-clauses > li + li {
-  border-top: 1px solid color-mix(in srgb, var(--panel-border) 70%, transparent);
+  border-block-start: 1px solid color-mix(in srgb, var(--panel-border) 70%, transparent);
 }
 
 .route-debugger-clause {

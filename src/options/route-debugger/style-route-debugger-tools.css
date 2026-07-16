@@ -1,5 +1,5 @@
 .routing-tool {
-  margin-top: var(--space-3);
+  margin-block-start: var(--space-3);
   border: 0;
   background: transparent;
 }
@@ -38,7 +38,7 @@
 .route-debugger-variable-actions {
   display: flex;
   justify-content: flex-end;
-  padding-bottom: var(--space-3);
+  padding-block-end: var(--space-3);
 }
 
 .route-debugger-variable-actions > button {

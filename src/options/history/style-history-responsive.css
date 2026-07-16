@@ -21,7 +21,7 @@
 
   .history-table {
     display: block;
-    margin-top: var(--space-3);
+    margin-block-start: var(--space-3);
   }
 
   .history-table thead {

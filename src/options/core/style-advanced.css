@@ -7,19 +7,19 @@
   max-inline-size: var(--content-max-width);
   margin: 0 0 var(--space-5);
   padding: var(--space-2) 0 var(--space-3);
-  border-bottom: 1px solid var(--panel-border);
+  border-block-end: 1px solid var(--panel-border);
   font-size: var(--text-sm);
 }
 
 .advanced-section {
   inline-size: min(var(--content-max-width), 100%);
-  scroll-margin-top: var(--sticky-header-offset);
+  scroll-margin-block-start: var(--sticky-header-offset);
 }
 
 .advanced-section + .advanced-section {
-  margin-top: var(--space-6);
-  padding-top: var(--space-5);
-  border-top: 1px solid var(--panel-border);
+  margin-block-start: var(--space-6);
+  padding-block-start: var(--space-5);
+  border-block-start: 1px solid var(--panel-border);
 }
 
 .tab-panel .advanced-section > h3 {
@@ -31,12 +31,12 @@
 }
 
 .advanced-section > h3 + h4 {
-  margin-top: 0;
+  margin-block-start: 0;
 }
 
 .advanced-option-row {
   max-inline-size: 48rem;
-  margin-bottom: var(--space-3);
+  margin-block-end: var(--space-3);
 }
 
 .advanced-option-row > label {
@@ -253,7 +253,7 @@
 
 .advanced-option-help {
   max-inline-size: 68ch;
-  margin-top: var(--space-1);
+  margin-block-start: var(--space-1);
   color: var(--color-text-muted);
   line-height: var(--leading-copy);
 }
@@ -314,7 +314,7 @@ code.click-to-copy {
 }
 
 .dev-api-snippet {
-  margin-top: var(--space-2);
+  margin-block-start: var(--space-2);
 }
 
 .dev-api-snippet pre {
