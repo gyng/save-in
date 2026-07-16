@@ -331,6 +331,17 @@ describe("Prompt API rule-authoring model", () => {
     ],
     // A request that does name a new filename still renames.
     ["save png into /archive, name it cover.png", "fileext: ^png$\ninto: archive/cover.png", []],
+    // "with" opens a clause about the file, not more folder name.
+    [
+      "save png into /archive with filename cover.png",
+      "fileext: ^png$\ninto: archive/cover.png",
+      [],
+    ],
+    [
+      "save png into /archive with the same filename",
+      "fileext: ^png$\ninto: archive/:filename:",
+      [],
+    ],
     [
       "save png into /archive",
       "fileext: ^png$",

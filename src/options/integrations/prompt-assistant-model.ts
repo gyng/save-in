@@ -343,11 +343,12 @@ const explicitFolder = (request: string): string | null => {
       .replace(/\s+(?:please|thanks|thank you)\s*$/i, "")
       .trim()
       .replace(/^\/+|\/+$/g, "");
-  // A folder runs to the end of its clause. A conjunction starts the next part
-  // of the request ("into /Pictures and rename it cover.png"), so it ends the
-  // folder rather than becoming part of its name.
+  // A folder runs to the end of its clause. A conjunction or a preposition
+  // opens the next part of the request ("into /Pictures and rename it
+  // cover.png", "into /archive with the same filename"), so it ends the folder
+  // rather than becoming part of its name.
   const slashFolder = request.match(
-    /\b(?:into|in|to|under)\s+(?:the\s+)?(?:folder\s+)?\/(?!\/)([^\n,;.!?]+?)(?=\s+(?:and|then|also|plus|but|please|thanks)\b|[,;.!?]|$)/i,
+    /\b(?:into|in|to|under)\s+(?:the\s+)?(?:folder\s+)?\/(?!\/)([^\n,;.!?]+?)(?=\s+(?:and|then|also|plus|but|with|without|using|keeping|named|called|please|thanks)\b|[,;.!?]|$)/i,
   )?.[1];
   if (slashFolder) return trimFolder(slashFolder) || null;
   const quotedFolder = request.match(
