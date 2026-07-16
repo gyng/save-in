@@ -13,6 +13,7 @@ export type WebExtensionCapabilities = {
   downloadDeltaFilename: boolean;
   conflictActionPrompt: boolean;
   downloadRequestHeaders: boolean;
+  notificationButtons: boolean;
 };
 
 // Mutable cross-file state: reassigned only in this module (by the detection
@@ -24,6 +25,7 @@ export let WEB_EXTENSION_CAPABILITIES: WebExtensionCapabilities = {
   downloadDeltaFilename: false,
   conflictActionPrompt: false,
   downloadRequestHeaders: false,
+  notificationButtons: false,
 };
 export let CURRENT_BROWSER = BROWSERS.UNKNOWN;
 export let CURRENT_BROWSER_VERSION: number | undefined;
@@ -52,6 +54,10 @@ export const detectCapabilities = (currentBrowser: string): WebExtensionCapabili
   conflictActionPrompt: currentBrowser === BROWSERS.FIREFOX,
   // Chrome rejects Referer in downloads.DownloadOptions as an unsafe header.
   downloadRequestHeaders: currentBrowser === BROWSERS.FIREFOX,
+  // Firefox's notifications.create rejects the buttons property outright
+  // (and exposes no onButtonClicked), so button-bearing notifications are
+  // Chrome-only progressive enhancement.
+  notificationButtons: currentBrowser === BROWSERS.CHROME,
 });
 
 // The write-half of the browser identity/capability live bindings: they

@@ -12,6 +12,14 @@ describe("history normalization", () => {
     ]);
   });
 
+  test("keeps the undone status through normalization", () => {
+    // Undo marks entries rather than deleting them; a persisted undone entry
+    // must survive the storage round-trip
+    expect(normalizeHistory([{ id: "u1", status: "undone", downloadId: 3 }])).toEqual([
+      { id: "u1", status: "undone", downloadId: 3 },
+    ]);
+  });
+
   test("detects and migrates legacy local date-only timestamps", () => {
     const stored = [{ id: "old", timestamp: "2024-02-29" }];
     expect(hasLegacyDateOnlyTimestamp(stored)).toBe(true);

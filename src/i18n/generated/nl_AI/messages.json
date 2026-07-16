@@ -200,6 +200,16 @@
     "placeholders": { "file": { "content": "$1", "example": "photo.jpg" } }
   },
   "historyCancelingDownload": { "message": "Annuleren…" },
+  "historyUndoSave": { "message": "Opslaan ongedaan maken" },
+  "historyUndoSaveNamed": {
+    "message": "Opslaan van $FILE$ ongedaan maken",
+    "placeholders": { "file": { "content": "$1", "example": "photo.jpg" } }
+  },
+  "historyUndoDone": { "message": "Opslaan ongedaan gemaakt. Het bestand is verwijderd." },
+  "historyUndoFileMissing": {
+    "message": "Opslaan ongedaan gemaakt. Het bestand was al verplaatst of verwijderd."
+  },
+  "historyUndoFailed": { "message": "Dit opslaan kon niet ongedaan worden gemaakt." },
   "historyRoutingApplied": { "message": "Toegepast" },
   "historyRoutingAppliedTitle": {
     "message": "Er is een routerings- of hernoemingsregel toegepast."
@@ -225,6 +235,7 @@
   "historyClearFailed": { "message": "De geschiedenis kon niet worden verwijderd." },
   "historyStatusSaving": { "message": "Opslaan…" },
   "historyStatusCanceled": { "message": "Geannuleerd" },
+  "historyStatusUndone": { "message": "Ongedaan gemaakt" },
   "historyStatusNetworkFailed": { "message": "Netwerkfout" },
   "historyStatusDownloadFailed": { "message": "Download mislukt" },
   "historyStatusPreparationFailed": { "message": "Voorbereiding mislukt" },
@@ -277,6 +288,7 @@
       }
     }
   },
+  "notificationUndoSave": { "message": "Opslaan ongedaan maken" },
   "notificationRuleMatchedTitle": {
     "message": "Save In: regel toegepast"
   },

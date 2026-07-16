@@ -175,6 +175,10 @@ export type InternalResponseMap = {
     typeof MESSAGE_TYPES.HISTORY_CANCEL,
     { canceled: boolean }
   >;
+  [MESSAGE_TYPES.HISTORY_UNDO]: Response<
+    typeof MESSAGE_TYPES.HISTORY_UNDO,
+    { undone: boolean; fileMissing: boolean }
+  >;
   [MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTIONS_GET]: Response<
     typeof MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTIONS_GET,
     { rejections: ExternalDownloadRejection[] }
@@ -298,6 +302,7 @@ export type InternalMessage =
   | Message<typeof MESSAGE_TYPES.HISTORY_GET>
   | Message<typeof MESSAGE_TYPES.HISTORY_CLEAR>
   | RequiredBodyMessage<typeof MESSAGE_TYPES.HISTORY_CANCEL, { historyId: string }>
+  | RequiredBodyMessage<typeof MESSAGE_TYPES.HISTORY_UNDO, { historyId: string }>
   | Message<typeof MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTIONS_GET>
   | RequiredBodyMessage<
       typeof MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTION_CLEAR,
@@ -367,6 +372,7 @@ const INTERNAL_MESSAGE_TYPE_MAP = {
   [MESSAGE_TYPES.HISTORY_GET]: true,
   [MESSAGE_TYPES.HISTORY_CLEAR]: true,
   [MESSAGE_TYPES.HISTORY_CANCEL]: true,
+  [MESSAGE_TYPES.HISTORY_UNDO]: true,
   [MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTIONS_GET]: true,
   [MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTION_CLEAR]: true,
   [MESSAGE_TYPES.OPTIONS_LOADED]: true,
@@ -567,6 +573,7 @@ const isMessageBodyValid = (message: Record<string, unknown> & { type: string })
     case MESSAGE_TYPES.DOWNLOAD:
       return hasOptionalBody(message, isDownloadBody);
     case MESSAGE_TYPES.HISTORY_CANCEL:
+    case MESSAGE_TYPES.HISTORY_UNDO:
       return isStringKeyedRecord(message.body) && typeof message.body.historyId === "string";
     case MESSAGE_TYPES.SOURCE_PANEL_STATE:
       return hasOptionalBody(

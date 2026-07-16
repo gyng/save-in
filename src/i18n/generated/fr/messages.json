@@ -210,6 +210,16 @@
     "placeholders": { "file": { "content": "$1", "example": "photo.jpg" } }
   },
   "historyCancelingDownload": { "message": "Annulation…" },
+  "historyUndoSave": { "message": "Annuler l’enregistrement" },
+  "historyUndoSaveNamed": {
+    "message": "Annuler l’enregistrement de $FILE$",
+    "placeholders": { "file": { "content": "$1", "example": "photo.jpg" } }
+  },
+  "historyUndoDone": { "message": "Enregistrement annulé. Le fichier a été supprimé." },
+  "historyUndoFileMissing": {
+    "message": "Enregistrement annulé. Le fichier avait déjà été déplacé ou supprimé."
+  },
+  "historyUndoFailed": { "message": "Impossible d’annuler cet enregistrement." },
   "historyRoutingApplied": { "message": "Appliqué" },
   "historyRoutingAppliedTitle": {
     "message": "Une règle de routage ou de renommage a été appliquée."
@@ -235,6 +245,7 @@
   "historyClearFailed": { "message": "Impossible de supprimer l’historique." },
   "historyStatusSaving": { "message": "Enregistrement…" },
   "historyStatusCanceled": { "message": "Annulé" },
+  "historyStatusUndone": { "message": "Annulé" },
   "historyStatusNetworkFailed": { "message": "Échec réseau" },
   "historyStatusDownloadFailed": { "message": "Échec du téléchargement" },
   "historyStatusPreparationFailed": { "message": "Échec de la préparation" },
@@ -287,6 +298,7 @@
       }
     }
   },
+  "notificationUndoSave": { "message": "Annuler l’enregistrement" },
   "notificationExternalDownloadBlockedTitle": {
     "message": "Téléchargement externe bloqué"
   },

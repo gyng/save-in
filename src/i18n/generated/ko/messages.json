@@ -94,6 +94,7 @@
       }
     }
   },
+  "notificationUndoSave": { "message": "저장 취소" },
   "notificationRuleMatchedTitle": {
     "message": "Save In: 규칙이 일치함"
   },
@@ -2066,6 +2067,16 @@
     "placeholders": { "file": { "content": "$1", "example": "photo.jpg" } }
   },
   "historyCancelingDownload": { "message": "취소 중…" },
+  "historyUndoSave": { "message": "저장 취소" },
+  "historyUndoSaveNamed": {
+    "message": "$FILE$ 저장 취소",
+    "placeholders": { "file": { "content": "$1", "example": "photo.jpg" } }
+  },
+  "historyUndoDone": { "message": "저장이 취소되었습니다. 파일이 삭제되었습니다." },
+  "historyUndoFileMissing": {
+    "message": "저장이 취소되었습니다. 파일은 이미 이동되었거나 삭제되어 있었습니다."
+  },
+  "historyUndoFailed": { "message": "이 저장을 취소하지 못했습니다." },
   "historyRoutingApplied": { "message": "적용됨" },
   "historyRoutingAppliedTitle": {
     "message": "라우팅 또는 이름 바꾸기 규칙이 적용되었습니다."
@@ -2091,6 +2102,7 @@
   "historyClearFailed": { "message": "기록을 삭제할 수 없습니다." },
   "historyStatusSaving": { "message": "저장 중…" },
   "historyStatusCanceled": { "message": "취소됨" },
+  "historyStatusUndone": { "message": "취소됨" },
   "historyStatusNetworkFailed": { "message": "네트워크 실패" },
   "historyStatusDownloadFailed": { "message": "다운로드 실패" },
   "historyStatusPreparationFailed": { "message": "준비 실패" },

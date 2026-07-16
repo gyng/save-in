@@ -196,6 +196,16 @@
     "placeholders": { "file": { "content": "$1", "example": "photo.jpg" } }
   },
   "historyCancelingDownload": { "message": "Avbryter…" },
+  "historyUndoSave": { "message": "Ångra sparning" },
+  "historyUndoSaveNamed": {
+    "message": "Ångra sparningen av $FILE$",
+    "placeholders": { "file": { "content": "$1", "example": "photo.jpg" } }
+  },
+  "historyUndoDone": { "message": "Sparningen ångrades. Filen togs bort." },
+  "historyUndoFileMissing": {
+    "message": "Sparningen ångrades. Filen hade redan flyttats eller tagits bort."
+  },
+  "historyUndoFailed": { "message": "Det gick inte att ångra den här sparningen." },
   "historyRoutingApplied": { "message": "Tillämpad" },
   "historyRoutingAppliedTitle": { "message": "En regel för routning eller namnbyte tillämpades." },
   "historyNewer": { "message": "‹ Nyare" },
@@ -219,6 +229,7 @@
   "historyClearFailed": { "message": "Det gick inte att ta bort historiken." },
   "historyStatusSaving": { "message": "Sparar…" },
   "historyStatusCanceled": { "message": "Avbruten" },
+  "historyStatusUndone": { "message": "Ångrad" },
   "historyStatusNetworkFailed": { "message": "Nätverksfel" },
   "historyStatusDownloadFailed": { "message": "Hämtningen misslyckades" },
   "historyStatusPreparationFailed": { "message": "Förberedelsen misslyckades" },
@@ -271,6 +282,7 @@
       }
     }
   },
+  "notificationUndoSave": { "message": "Ångra sparning" },
   "notificationRuleMatchedTitle": {
     "message": "Save In: Regel matchad"
   },

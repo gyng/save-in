@@ -198,6 +198,16 @@
     "placeholders": { "file": { "content": "$1", "example": "photo.jpg" } }
   },
   "historyCancelingDownload": { "message": "Cancelando…" },
+  "historyUndoSave": { "message": "Deshacer guardado" },
+  "historyUndoSaveNamed": {
+    "message": "Deshacer el guardado de $FILE$",
+    "placeholders": { "file": { "content": "$1", "example": "photo.jpg" } }
+  },
+  "historyUndoDone": { "message": "Guardado deshecho. El archivo se eliminó." },
+  "historyUndoFileMissing": {
+    "message": "Guardado deshecho. El archivo ya se había movido o eliminado."
+  },
+  "historyUndoFailed": { "message": "No se pudo deshacer este guardado." },
   "historyRoutingApplied": { "message": "Aplicado" },
   "historyRoutingAppliedTitle": {
     "message": "Se aplicó una regla de enrutamiento o cambio de nombre."
@@ -223,6 +233,7 @@
   "historyClearFailed": { "message": "No se pudo eliminar el historial." },
   "historyStatusSaving": { "message": "Guardando…" },
   "historyStatusCanceled": { "message": "Cancelado" },
+  "historyStatusUndone": { "message": "Deshecho" },
   "historyStatusNetworkFailed": { "message": "Error de red" },
   "historyStatusDownloadFailed": { "message": "Error de descarga" },
   "historyStatusPreparationFailed": { "message": "Error de preparación" },
@@ -275,6 +286,7 @@
       }
     }
   },
+  "notificationUndoSave": { "message": "Deshacer guardado" },
   "notificationRuleMatchedTitle": {
     "message": "Save In: regla aplicada"
   },

@@ -94,6 +94,7 @@
       }
     }
   },
+  "notificationUndoSave": { "message": "復原儲存" },
   "notificationRuleMatchedTitle": {
     "message": "Save In：規則相符"
   },
@@ -2116,6 +2117,14 @@
   "historyCancelingDownload": {
     "message": "正在取消…"
   },
+  "historyUndoSave": { "message": "復原儲存" },
+  "historyUndoSaveNamed": {
+    "message": "復原 $FILE$ 的儲存",
+    "placeholders": { "file": { "content": "$1", "example": "photo.jpg" } }
+  },
+  "historyUndoDone": { "message": "已復原儲存。檔案已刪除。" },
+  "historyUndoFileMissing": { "message": "已復原儲存。檔案先前已被移動或刪除。" },
+  "historyUndoFailed": { "message": "無法復原此次儲存。" },
   "historyRoutingApplied": {
     "message": "已套用"
   },
@@ -2171,6 +2180,7 @@
   "historyStatusCanceled": {
     "message": "已取消"
   },
+  "historyStatusUndone": { "message": "已復原" },
   "historyStatusNetworkFailed": {
     "message": "網路失敗"
   },

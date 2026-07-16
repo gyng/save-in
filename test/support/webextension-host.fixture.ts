@@ -124,6 +124,7 @@ const createTestHost = (kind: TestHostKind): Record<string, unknown> => {
     search: vi.fn(async () => []),
     cancel: vi.fn(async () => undefined),
     erase: vi.fn(async () => []),
+    removeFile: vi.fn(async () => undefined),
     open: vi.fn(),
     show: vi.fn(),
     showDefaultFolder: vi.fn(),

@@ -139,6 +139,77 @@ describe("onMessage", () => {
     });
   });
 
+  test("HISTORY_UNDO removes the file, erases the shelf entry, and marks the entry", async () => {
+    vi.mocked(SaveHistory.getHistoryEntries).mockResolvedValue([
+      { id: "history-9", url: "https://x.test/file.png", downloadId: 31, status: "complete" },
+    ]);
+    const sendResponse = vi.fn();
+
+    expect(
+      onMessage(
+        { type: MESSAGE_TYPES.HISTORY_UNDO, body: { historyId: "history-9" } },
+        {},
+        sendResponse,
+      ),
+    ).toBe(true);
+    await waitForCall(sendResponse);
+
+    expect(global.browser.downloads.removeFile).toHaveBeenCalledWith(31);
+    expect(global.browser.downloads.erase).toHaveBeenCalledWith({ id: 31 });
+    expect(SaveHistory.setHistoryStatus).toHaveBeenCalledWith("history-9", "undone", 31);
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.HISTORY_UNDO,
+      body: { undone: true, fileMissing: false },
+    });
+  });
+
+  test("HISTORY_UNDO still erases and marks when the file is already gone", async () => {
+    vi.mocked(SaveHistory.getHistoryEntries).mockResolvedValue([
+      { id: "history-10", url: "https://x.test/gone.png", downloadId: 32, status: "complete" },
+    ]);
+    vi.mocked(global.browser.downloads.removeFile).mockRejectedValueOnce(new Error("no such file"));
+    const sendResponse = vi.fn();
+
+    onMessage(
+      { type: MESSAGE_TYPES.HISTORY_UNDO, body: { historyId: "history-10" } },
+      {},
+      sendResponse,
+    );
+    await waitForCall(sendResponse);
+
+    expect(global.browser.downloads.erase).toHaveBeenCalledWith({ id: 32 });
+    expect(SaveHistory.setHistoryStatus).toHaveBeenCalledWith("history-10", "undone", 32);
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.HISTORY_UNDO,
+      body: { undone: true, fileMissing: true },
+    });
+  });
+
+  test("HISTORY_UNDO reports failure for an entry without a known download id", async () => {
+    vi.mocked(SaveHistory.getHistoryEntries).mockResolvedValue([
+      { id: "history-11", url: "https://x.test/old.png", status: "complete" },
+    ]);
+    // setupGlobals keeps host mocks across tests in this file; the negative
+    // assertions below need a clean slate
+    vi.mocked(global.browser.downloads.removeFile).mockClear();
+    vi.mocked(SaveHistory.setHistoryStatus).mockClear();
+    const sendResponse = vi.fn();
+
+    onMessage(
+      { type: MESSAGE_TYPES.HISTORY_UNDO, body: { historyId: "history-11" } },
+      {},
+      sendResponse,
+    );
+    await waitForCall(sendResponse);
+
+    expect(global.browser.downloads.removeFile).not.toHaveBeenCalled();
+    expect(SaveHistory.setHistoryStatus).not.toHaveBeenCalled();
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.HISTORY_UNDO,
+      body: { undone: false, fileMissing: false },
+    });
+  });
+
   test("HISTORY_CANCEL uses a stored download id without overwriting completion", async () => {
     vi.mocked(SaveHistory.getHistoryEntries).mockResolvedValue([
       { id: "history-2", url: "https://x.test/file", downloadId: 23 },
