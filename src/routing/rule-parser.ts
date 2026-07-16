@@ -580,6 +580,19 @@ export const parseRulesCollecting = (
     return { rules: [], errors };
   }
   const rules = parsedRules.map((entry) => entry.rule);
+  const cssNodes = parsedRules.flatMap(({ ast }) =>
+    ast.clauses.filter((clause) => clause.name === "css"),
+  );
+  const excessCssNode = cssNodes[MAX_CSS_SELECTOR_MATCHES];
+  if (excessCssNode) {
+    appendError(
+      errors,
+      routingPorts.getMessage("ruleBadClause"),
+      `routing rules may contain at most ${MAX_CSS_SELECTOR_MATCHES} css: matchers`,
+      excessCssNode.span,
+    );
+    return { rules: [], errors };
+  }
   for (let index = 1; index < parsedRules.length; index += 1) {
     const laterEntry = parsedRules[index];
     /* v8 ignore next -- The loop bound guarantees an entry at this index. */

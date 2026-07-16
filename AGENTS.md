@@ -256,6 +256,43 @@ MV3 service worker is absent from the CDP target list — wake it with a
 runtime message first (`scripts/lib/cdp.js` does this). Set `HEADLESS=1`
 for CI runs of either e2e suite.
 
+### Commit cadence and boundaries
+
+Commit at completed, reviewable boundaries rather than by elapsed time or file
+count. A commit should have one reason to exist, leave the repository in a
+working state, and be independently understandable and revertible.
+
+- Keep mechanical moves and import/path updates separate from behavior changes.
+  Use `git mv`, preserve history, and avoid opportunistic cleanup in a move-only
+  commit.
+- Commit one cohesive extraction or refactor at a time. Add or tighten an
+  architecture check after the code satisfies the boundary, and verify that a
+  temporary representative violation makes the check fail before reverting it.
+- Keep a behavior change and the regression test that proves it in the same
+  final commit. Do not mix unrelated fixes, broad formatting, generated churn,
+  or follow-on cleanup into that commit.
+- Land cleanup enabled by a refactor (dead shims, obsolete exclusions, duplicate
+  code) separately when it has its own review or revert value. Documentation may
+  accompany the implementation it precisely describes; broader plans and
+  retrospectives belong in their own commit.
+- Run focused tests while iterating, then the architecture/type/format checks
+  proportionate to the boundary before committing. Mass moves also require a
+  bundle/staging check; listener, lifecycle, HTML/CSS entry, or browser-owned
+  behavior changes require the relevant browser e2e coverage. Run the full
+  task-appropriate gate before handoff or merge.
+- Never make a knowingly broken intermediate commit on a shared or merge-ready
+  branch. On a private branch, temporary `fixup!` commits are acceptable while
+  exploring; squash them into the commit they correct before integration.
+- Recheck `git status` immediately before staging and again before committing.
+  In a dirty or concurrently used worktree, stage explicit task-owned pathspecs,
+  inspect the staged diff, and never absorb, restore, stash, reformat, or commit
+  another session's work.
+
+As a rule of thumb, commit whenever the current state is something a reviewer
+might reasonably approve, reject, or revert on its own. Use imperative commit
+subjects that name the outcome, such as `Separate options composition from
+shared foundation`.
+
 ## Testing practices
 
 Test-first is a way to prove meaningful behavior, not a requirement to create

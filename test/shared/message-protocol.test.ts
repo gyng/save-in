@@ -1,6 +1,7 @@
 import { describe, expect, test } from "vitest";
 
 import { MESSAGE_TYPES } from "../../src/shared/constants.ts";
+import { isCssSelectorAttestation } from "../../src/shared/css-selector-attestation.ts";
 import {
   getMessageType,
   isExternalMessage,
