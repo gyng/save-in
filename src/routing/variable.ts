@@ -263,6 +263,15 @@ export const MIME_EXTENSIONS: Record<string, string> = {
   "application/x-bittorrent": "torrent",
   "application/x-msdownload": "exe",
   "application/x-shockwave-flash": "swf",
+  // Streaming manifests. Save In finds and saves these itself
+  // (autoDownloadManifests; content/source-panel-model.ts matches m3u8/mpd), so
+  // its own feature must not land them bare or, worse, as .xml — the structured
+  // suffix below would answer "xml" for dash+xml.
+  "application/dash+xml": "mpd",
+  "application/vnd.apple.mpegurl": "m3u8",
+  "application/x-mpegurl": "m3u8",
+  // Likewise "+xml" here would mean .xml, and the extension is .xhtml.
+  "application/xhtml+xml": "xhtml",
 };
 
 // RFC 6839 structured syntax suffixes: "+json" and friends define the format by

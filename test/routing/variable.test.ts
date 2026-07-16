@@ -903,6 +903,13 @@ describe(":mime: / :contenttype: / :mimeext: (async HEAD)", () => {
       ["application/x-bittorrent", "torrent"],
       ["application/x-msdownload", "exe"],
       ["application/x-shockwave-flash", "swf"],
+      // Save In discovers and saves HLS/DASH manifests itself
+      // (autoDownloadManifests, and source-panel-model matches /\.(m3u8|mpd)/),
+      // so its own feature must not land them as .xml or bare.
+      ["application/dash+xml", "mpd"],
+      ["application/vnd.apple.mpegurl", "m3u8"],
+      ["application/x-mpegurl", "m3u8"],
+      ["application/xhtml+xml", "xhtml"],
     ])("maps %s to %s", (mime, extension) => {
       expect(Variable.mimeToExtension(mime)).toBe(extension);
     });

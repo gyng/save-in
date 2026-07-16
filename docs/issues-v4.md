@@ -517,6 +517,23 @@ LICENSE and Makefile are spelled, and answering it costs a HEAD to the origin.
 Both halves are pinned by a test, since flipping it back is a one-character
 change nothing else would fail on.
 
+Validating these three also turned up what the extension lookup itself was
+doing. It derived an extension from the MIME subtype whenever the table had no
+entry, which is right only where the subtype IS the extension. It gave "octet"
+for `application/octet-stream` — the type a server sends when it does not know
+what the file is, which is the same case as "this URL has no extension", the
+case the option exists for. So its likeliest output was `foo.octet`. It also had
+no entry for `application/x-bittorrent`, which is #178's own file type, and
+answered "bittorrent".
+
+Replaced with a table plus RFC 6839 structured suffixes; anything unknown now
+names nothing. Probing the result against Save In's *own* features found one
+more: `application/dash+xml` resolved through `+xml` to "xml", so a DASH
+manifest — which `autoDownloadManifests` exists to save — would have landed as
+`.xml`, and the two HLS types named nothing at all. The lesson repeated at a
+smaller scale: a general rule that is right most of the time is still silently
+wrong for the cases someone will actually hit.
+
 ### #43 — FIXED (needs the setting on), and better than asked
 
 *"Is there a way to auto apply an extension to a file without one?"* That is

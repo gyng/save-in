@@ -111,8 +111,11 @@ existing rules keep matching embedded media only until a channel is turned on:
   needs no other channel, while a `data:` anchor still needs its own anchor
   channel to be on. Because a `data:` URL has no path, `fileext:` and
   `urlfileext:` are empty; Save In reads the media type from the URL header into
-  `mime:`, so `mime:` matching and `:mimeext:` naming work (a URL with no
-  parseable media type is treated as `application/octet-stream`). Match the
+  `mime:`, so `mime:` matching and `:mimeext:` naming work. A URL with no
+  parseable media type is treated as `application/octet-stream`, which `mime:`
+  can still match, but which names nothing: `:mimeext:` is empty for it, and
+  **Add an extension when the filename has none** leaves the name alone rather
+  than invent one from a type that means "unknown". Match the
   header with `mime:`, not `mediatype:` — `mediatype:` carries the source kind
   (`image`, `video`, …), so `mediatype: ^image/png$` never fires. Save In uses `download`
   as the neutral base filename and skips data-source rules that use payload-
