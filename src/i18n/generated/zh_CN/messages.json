@@ -876,10 +876,10 @@
     "message": "请 AI 智能体起草路由规则"
   },
   "html_automaticallyMoveOrRenameDownloadsWhenTheirFilenameSource": {
-    "message": "当文件名、来源、页面或上下文匹配时，自动移动或重命名保存。规则适用于通过 Save In 进行的保存。"
+    "message": "当文件名、源、页面或上下文匹配时，自动移动或重命名下载。"
   },
   "o_lRouteBrowserDownloadsFromRules": {
-    "message": "同时对浏览器自行开始的下载应用规则"
+    "message": "规则适用于你通过 Save In 进行的保存。浏览器自行开始的下载只有在你启用后才会被处理。"
   },
   "o_lOpenBrowserDownloads": {
     "message": "打开浏览器下载"

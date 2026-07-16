@@ -1298,10 +1298,10 @@
     "message": "Demander à un agent IA de rédiger des règles de routage"
   },
   "html_automaticallyMoveOrRenameDownloadsWhenTheirFilenameSource": {
-    "message": "Déplace ou renomme les enregistrements automatiquement quand leur nom de fichier, source, page ou contexte correspond. Les règles s'appliquent aux enregistrements faits avec Save In."
+    "message": "Déplace ou renomme automatiquement les téléchargements lorsque leur nom de fichier, leur source, leur page ou leur contexte correspondent."
   },
   "o_lRouteBrowserDownloadsFromRules": {
-    "message": "Router aussi les téléchargements lancés par le navigateur lui-même"
+    "message": "Les règles couvrent les enregistrements faits avec Save In. Les téléchargements lancés par le navigateur lui-même ne sont couverts qu'une fois cette option activée."
   },
   "o_lOpenBrowserDownloads": {
     "message": "Ouvrir les téléchargements du navigateur"

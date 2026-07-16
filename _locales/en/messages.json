@@ -1920,12 +1920,12 @@
     "description": "Text in the options page. Used in src/options/options.html."
   },
   "html_automaticallyMoveOrRenameDownloadsWhenTheirFilenameSource": {
-    "message": "Move or rename saves automatically when their filename, source, page, or context matches. Rules apply to saves made through Save In.",
+    "message": "Move or rename downloads automatically when their filename, source, page, or context matches.",
     "description": "Text in the options page. Used in src/options/options.html."
   },
   "o_lRouteBrowserDownloadsFromRules": {
-    "message": "Also route downloads the browser starts on its own",
-    "description": "Link in the routing section that jumps to the Browser downloads section, where routing ordinary browser-started downloads is turned on. Those switches live in a sibling tab, so a rule author cannot see them. Used in src/options/options.html."
+    "message": "Rules cover saves you make through Save In. Downloads the browser starts on its own are covered only once you turn that on.",
+    "description": "Help text above the button that opens the Browser downloads section. States which downloads routing rules cover by default, because rules also cover browser-started downloads once that option is on. Used in src/options/options.html."
   },
   "o_lOpenBrowserDownloads": {
     "message": "Open browser downloads",

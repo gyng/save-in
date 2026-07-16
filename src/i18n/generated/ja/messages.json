@@ -876,10 +876,10 @@
     "message": "AI エージェントにルーティング ルールの草案を依頼する"
   },
   "html_automaticallyMoveOrRenameDownloadsWhenTheirFilenameSource": {
-    "message": "ファイル名・ソース・ページ・コンテキストが一致したとき、保存を自動で移動または名前変更します。ルールは Save In から行った保存に適用されます。"
+    "message": "ファイル名、ソース、ページ、またはコンテキストが一致すると、ダウンロードの移動または名前変更が自動的に行われます。"
   },
   "o_lRouteBrowserDownloadsFromRules": {
-    "message": "ブラウザーが自分で開始したダウンロードも振り分ける"
+    "message": "ルールは Save In から行った保存に適用されます。ブラウザーが自分で開始したダウンロードは、その設定を有効にしたときだけ対象になります。"
   },
   "o_lOpenBrowserDownloads": {
     "message": "ブラウザーのダウンロードを開く"

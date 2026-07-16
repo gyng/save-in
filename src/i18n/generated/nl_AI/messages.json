@@ -1286,10 +1286,10 @@
     "message": "Vraag een AI-agent om routeringsregels op te stellen"
   },
   "html_automaticallyMoveOrRenameDownloadsWhenTheirFilenameSource": {
-    "message": "Verplaats of hernoem opslagacties automatisch wanneer hun bestandsnaam, bron, pagina of context overeenkomt. Regels gelden voor opslagacties via Save In."
+    "message": "Verplaats of hernoem downloads automatisch wanneer hun bestandsnaam, bron, pagina of context overeenkomt."
   },
   "o_lRouteBrowserDownloadsFromRules": {
-    "message": "Ook downloads routeren die de browser zelf start"
+    "message": "Regels gelden voor opslagacties via Save In. Downloads die de browser zelf start, vallen er pas onder zodra je dat inschakelt."
   },
   "o_lOpenBrowserDownloads": {
     "message": "Browserdownloads openen"

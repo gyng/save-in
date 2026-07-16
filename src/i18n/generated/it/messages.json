@@ -1245,10 +1245,10 @@
     "message": "Chiedi a un agente AI di redigere le regole di routing"
   },
   "html_automaticallyMoveOrRenameDownloadsWhenTheirFilenameSource": {
-    "message": "Sposta o rinomina i salvataggi automaticamente quando nome file, origine, pagina o contesto corrispondono. Le regole valgono per i salvataggi fatti con Save In."
+    "message": "Sposta o rinomina automaticamente i download quando il nome file, l'origine, la pagina o il contesto corrispondono."
   },
   "o_lRouteBrowserDownloadsFromRules": {
-    "message": "Instrada anche i download avviati dal browser stesso"
+    "message": "Le regole valgono per i salvataggi fatti con Save In. I download avviati dal browser stesso sono inclusi solo dopo averlo attivato."
   },
   "o_lOpenBrowserDownloads": {
     "message": "Apri i download del browser"

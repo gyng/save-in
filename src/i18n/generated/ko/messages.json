@@ -876,10 +876,10 @@
     "message": "AI 에이전트에게 라우팅 규칙 초안을 요청하세요."
   },
   "html_automaticallyMoveOrRenameDownloadsWhenTheirFilenameSource": {
-    "message": "파일 이름, 소스, 페이지 또는 컨텍스트가 일치하면 저장을 자동으로 이동하거나 이름을 바꿉니다. 규칙은 Save In으로 저장한 항목에 적용됩니다."
+    "message": "파일 이름, 소스, 페이지 또는 컨텍스트가 일치하면 다운로드를 자동으로 이동하거나 이름을 바꿉니다."
   },
   "o_lRouteBrowserDownloadsFromRules": {
-    "message": "브라우저가 직접 시작한 다운로드도 경로 지정"
+    "message": "규칙은 Save In으로 저장한 항목에 적용됩니다. 브라우저가 직접 시작한 다운로드는 해당 설정을 켰을 때만 포함됩니다."
   },
   "o_lOpenBrowserDownloads": {
     "message": "브라우저 다운로드 열기"

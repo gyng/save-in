@@ -1286,10 +1286,10 @@
     "message": "Peça a um agente de IA para elaborar regras de roteamento"
   },
   "html_automaticallyMoveOrRenameDownloadsWhenTheirFilenameSource": {
-    "message": "Move ou renomeia os salvamentos automaticamente quando nome do arquivo, origem, página ou contexto corresponde. As regras valem para salvamentos feitos pelo Save In."
+    "message": "Mova ou renomeie downloads automaticamente quando o nome do arquivo, a fonte, a página ou o contexto corresponderem."
   },
   "o_lRouteBrowserDownloadsFromRules": {
-    "message": "Encaminhar também os downloads que o navegador inicia sozinho"
+    "message": "As regras valem para salvamentos feitos pelo Save In. Downloads que o navegador inicia sozinho só são incluídos depois que você ativa isso."
   },
   "o_lOpenBrowserDownloads": {
     "message": "Abrir downloads do navegador"
