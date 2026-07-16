@@ -49,6 +49,7 @@ export const OptionsManagement: OptionsManagementApi = {
       "Legacy automatic-source rule field; valid stored rules migrate into filenamePatterns.",
     autoDownloadLive: "Watch for matching sources added after the page initially loads.",
     autoDownloadPrivate: "Allow automatic source saving in private browsing windows.",
+    autoDownloadLinks: "Also adopt anchors that link to previewable image, video, or audio files.",
     autoDownloadMaxPerPage: "Maximum automatic saves allowed during one page visit.",
     sourcePanelEnabled: "Enable the toolbar source browser for DOM-visible page media.",
     sourcePanelBackgrounds: "Include URLs found in computed CSS background images.",

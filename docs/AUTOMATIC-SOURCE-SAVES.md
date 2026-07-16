@@ -70,11 +70,13 @@ and automatic rules may be interleaved in the same editor without ordinary
 rules becoming eligible for unattended saves.
 
 `sourcekind:` uses the shared Page Sources vocabulary: `image`, `video`,
-`audio`, `stream`, `document`, and `link`. The automatic page scanner queues
-previewable HTTP(S) image, video, and audio elements, and also adopts anchors
+`audio`, `stream`, `document`, and `link`. The automatic page scanner always
+queues previewable HTTP(S) image, video, and audio elements. When **Include
+media that pages link to** is enabled it additionally adopts anchors
 (`<a href>`) the shared collector classifies as previewable media — `image`,
 `video`, or `audio` by URL extension. A media anchor flows through with that
-kind, so a linked `.jpg` is queued as `sourcekind: image`. Anchors classified
+kind, so a linked `.jpg` is queued as `sourcekind: image`. That option is off by
+default, so pre-4.1 rules keep matching embedded media only. Anchors classified
 `stream`, `document`, or plain `link`, along with CSS backgrounds and
 resource-timing playlist hints, are still not adopted.
 
@@ -83,6 +85,8 @@ resource-timing playlist hints, are still not adopted.
 - **Save matches automatically** is the master switch and defaults to off.
 - **Include sources added after the page loads** keeps watching dynamic pages.
 - **Allow in private windows** is a separate opt-in and defaults to off.
+- **Include media that pages link to** is a separate opt-in and defaults to off;
+  when off, only media embedded on the page is adopted.
 - **Maximum saves per page visit** defaults to 20 and accepts 1–500. Reloading
   the page starts a new visit.
 - A source URL is queued once per page visit, and only after a guarded automatic

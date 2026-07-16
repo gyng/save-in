@@ -111,6 +111,7 @@ export type ResolvedContentOptions = {
   autoDownloadRules: string;
   autoDownloadLive: boolean;
   autoDownloadPrivate: boolean;
+  autoDownloadLinks: boolean;
   autoDownloadMaxPerPage: number;
   sourcePanelEnabled: boolean;
   sourcePanelBackgrounds: boolean;
@@ -132,6 +133,7 @@ export const CONTENT_OPTION_DEFAULTS: ResolvedContentOptions = {
   autoDownloadRules: "",
   autoDownloadLive: true,
   autoDownloadPrivate: false,
+  autoDownloadLinks: false,
   autoDownloadMaxPerPage: 20,
   sourcePanelEnabled: false,
   sourcePanelBackgrounds: true,
@@ -186,6 +188,7 @@ const CONTENT_OPTION_NORMALIZERS: ContentOptionNormalizers = {
   autoDownloadRules: stringOption(CONTENT_OPTION_DEFAULTS.autoDownloadRules),
   autoDownloadLive: booleanOption(CONTENT_OPTION_DEFAULTS.autoDownloadLive),
   autoDownloadPrivate: booleanOption(CONTENT_OPTION_DEFAULTS.autoDownloadPrivate),
+  autoDownloadLinks: booleanOption(CONTENT_OPTION_DEFAULTS.autoDownloadLinks),
   autoDownloadMaxPerPage: (stored) =>
     normalizeAutoDownloadLimit(
       typeof stored === "string" || typeof stored === "number"

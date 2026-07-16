@@ -245,7 +245,7 @@
   "historyClearFailed": { "message": "Impossible de supprimer l’historique." },
   "historyStatusSaving": { "message": "Enregistrement…" },
   "historyStatusCanceled": { "message": "Annulé" },
-  "historyStatusUndone": { "message": "Annulé" },
+  "historyStatusUndone": { "message": "Défait" },
   "historyStatusNetworkFailed": { "message": "Échec réseau" },
   "historyStatusDownloadFailed": { "message": "Échec du téléchargement" },
   "historyStatusPreparationFailed": { "message": "Échec de la préparation" },
@@ -2529,6 +2529,7 @@
   "autoDownloadPrivate": {
     "message": "Autoriser dans les fenêtres privées"
   },
+  "autoDownloadLinks": { "message": "Inclure les médias liés" },
   "autoDownloadLimit": { "message": "Nombre maximal d’enregistrements par consultation de page" },
   "autoDownloadLimitHelp": {
     "message": "Save In cesse d’ajouter de nouvelles sources correspondantes à la file lorsque cette limite est atteinte. Rechargez la page pour commencer une nouvelle consultation."

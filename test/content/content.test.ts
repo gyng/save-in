@@ -464,49 +464,27 @@ describe("content.js initialisation", () => {
     );
   });
 
-  test("keeps automatic saving off on a disabled site until the list clears", async () => {
-    vi.resetModules();
+  test("gates automatic-save dispatch while the page is on the disable list", async () => {
+    // Discovery mounts by its own options; the disable list is enforced at
+    // dispatch time, so a matching page never sends AUTO_DOWNLOAD_SOURCE.
     document.body.innerHTML = '<img src="https://cdn.test/automatic.png">';
-    let storageListener: ((changes: Record<string, any>, area: string) => void) | undefined;
-    global.chrome.runtime.sendMessage = vi.fn((message, callback) => {
-      if (message.type !== "AUTO_DOWNLOAD_SOURCE") callback?.();
-    }) as any;
-    global.chrome.runtime.onMessage.addListener = vi.fn();
-    global.chrome.storage.local.get = vi.fn((_keys, callback) =>
-      callback({
-        autoDownloadEnabled: true,
-        autoDownloadLive: false,
-        filenamePatterns:
-          "context: ^auto$\npageurl: ^http://localhost/\nsourceurl: automatic\\.png$\ninto: automatic/",
-        perSiteDisableList: "*://localhost/*",
-      }),
-    ) as any;
-    (global.chrome.storage as any).onChanged = {
-      addListener: vi.fn((listener) => {
-        storageListener = listener;
-      }),
-    };
-    await import("../../src/content/content.ts");
+    await importContentWithOptions({
+      autoDownloadEnabled: true,
+      autoDownloadLive: false,
+      filenamePatterns:
+        "context: ^auto$\npageurl: ^http://localhost/\nsourceurl: automatic\\.png$\ninto: automatic/",
+      perSiteDisableList: "*://localhost/*",
+    });
+    await Promise.resolve();
     await Promise.resolve();
 
     expect(global.chrome.runtime.sendMessage).not.toHaveBeenCalledWith(
       expect.objectContaining({ type: "AUTO_DOWNLOAD_SOURCE" }),
       expect.any(Function),
     );
-
-    storageListener!(
-      { perSiteDisableList: { oldValue: "*://localhost/*", newValue: "" } },
-      "local",
-    );
-    await vi.waitFor(() =>
-      expect(global.chrome.runtime.sendMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: "AUTO_DOWNLOAD_SOURCE" }),
-        expect.any(Function),
-      ),
-    );
   });
 
-  test("does not install click-to-save on a disabled page", async () => {
+  test("mounts click-to-save on a disabled page but ignores the click", async () => {
     const addEventListener = vi.spyOn(window, "addEventListener");
     await importContentWithOptions({
       contentClickToSave: true,
@@ -514,10 +492,83 @@ describe("content.js initialisation", () => {
       contentClickToSaveButton: "RIGHT_CLICK",
       perSiteDisableList: "*://localhost/*",
     });
+    document.body.innerHTML = '<img id="disabled-img" src="http://x.test/pic.png">';
+    vi.mocked(global.chrome.runtime.sendMessage).mockClear();
+    const keydown = addEventListener.mock.calls.findLast(([type]) => type === "keydown")?.[1] as (
+      event: unknown,
+    ) => void;
+    const mousedown = addEventListener.mock.calls.findLast(
+      ([type]) => type === "mousedown",
+    )?.[1] as ((event: unknown) => void) | undefined;
 
-    // Only setupClickToSave installs a mousedown listener; a disabled page must
-    // not reach it.
-    expect(addEventListener.mock.calls.some(([type]) => type === "mousedown")).toBe(false);
+    // The feature installs its listeners regardless of the disable list.
+    expect(mousedown).toBeTypeOf("function");
+    keydown({ isTrusted: true, keyCode: 17, key: "Control" });
+    const img = document.getElementById("disabled-img");
+    mousedown!({
+      isTrusted: true,
+      buttons: 2,
+      target: img,
+      clientX: 0,
+      clientY: 0,
+      composedPath: () => [img],
+      preventDefault: vi.fn(),
+      stopImmediatePropagation: vi.fn(),
+    });
+
+    expect(
+      vi
+        .mocked(global.chrome.runtime.sendMessage)
+        .mock.calls.filter(([message]) => (message as any)?.type === "DOWNLOAD"),
+    ).toHaveLength(0);
+  });
+
+  test("re-enables click-to-save after a pushState navigation off the disable list", async () => {
+    const addEventListener = vi.spyOn(window, "addEventListener");
+    history.pushState(null, "", "/disabled/");
+    await importContentWithOptions({
+      contentClickToSave: true,
+      contentClickToSaveCombo: 17,
+      contentClickToSaveButton: "LEFT_CLICK",
+      perSiteDisableList: "*://localhost/disabled/*",
+    });
+    document.body.innerHTML = '<img id="spa-img" src="http://x.test/pic.png">';
+    vi.mocked(global.chrome.runtime.sendMessage).mockClear();
+    const keydown = addEventListener.mock.calls.findLast(([type]) => type === "keydown")?.[1] as (
+      event: unknown,
+    ) => void;
+    const mousedown = addEventListener.mock.calls.findLast(
+      ([type]) => type === "mousedown",
+    )?.[1] as (event: unknown) => void;
+    const img = document.getElementById("spa-img");
+    const click = () =>
+      mousedown({
+        isTrusted: true,
+        buttons: 1,
+        target: img,
+        clientX: 0,
+        clientY: 0,
+        composedPath: () => [img],
+        preventDefault: vi.fn(),
+        stopImmediatePropagation: vi.fn(),
+      });
+    const downloads = () =>
+      vi
+        .mocked(global.chrome.runtime.sendMessage)
+        .mock.calls.filter(([message]) => (message as any)?.type === "DOWNLOAD");
+    keydown({ isTrusted: true, keyCode: 17, key: "Control" });
+
+    // Still on the disabled path: the click is ignored.
+    click();
+    expect(downloads()).toHaveLength(0);
+
+    // A single-page-app navigation moves off the disable list with no options
+    // change; the same interaction now saves.
+    history.pushState(null, "", "/allowed/");
+    click();
+    expect(downloads()).toHaveLength(1);
+
+    history.pushState(null, "", "/");
   });
 
   test("does not announce Page Sources readiness on a disabled page", async () => {
@@ -538,7 +589,7 @@ describe("content.js initialisation", () => {
     expect(calls).toEqual(["LISTENER"]);
   });
 
-  test("a disabled page blocks even a forced Page Sources open", async () => {
+  test("lets an explicit forced toggle open Page Sources on a disabled page", async () => {
     document.getElementById("save-in-source-panel")?.remove();
     let runtimeListener: ((message: any) => void) | undefined;
     vi.resetModules();
@@ -552,9 +603,66 @@ describe("content.js initialisation", () => {
     (global.chrome.storage as any).onChanged = { addListener: vi.fn() };
     await import("../../src/content/content.ts");
 
+    // TOGGLE_SOURCE_PANEL is only sent by the context menu / keyboard command, so
+    // a forced toggle is an explicit user action that opens even a disabled page.
     runtimeListener!({ type: "TOGGLE_SOURCE_PANEL", body: { force: true } });
 
+    expect(document.getElementById("save-in-source-panel")).not.toBeNull();
+
+    // An explicit close is always honored, even while disabled.
+    runtimeListener!({ type: "SET_SOURCE_PANEL", body: { open: false } });
+    expect(document.getElementById("save-in-source-panel")?.classList).toContain("closing");
+  });
+
+  test("keeps an ambient state restore gated on a disabled page", async () => {
+    document.getElementById("save-in-source-panel")?.remove();
+    let runtimeListener: ((message: any) => void) | undefined;
+    vi.resetModules();
+    global.chrome.runtime.sendMessage = vi.fn((_message, callback) => callback?.()) as any;
+    global.chrome.runtime.onMessage.addListener = vi.fn((listener) => {
+      runtimeListener = listener;
+    });
+    global.chrome.storage.local.get = vi.fn((_keys, callback) =>
+      callback({ sourcePanelEnabled: true, perSiteDisableList: "*://localhost/*" }),
+    ) as any;
+    (global.chrome.storage as any).onChanged = { addListener: vi.fn() };
+    await import("../../src/content/content.ts");
+
+    // A background-initiated open (state restore) stays gated on a disabled page.
+    runtimeListener!({ type: "SET_SOURCE_PANEL", body: { open: true } });
+
     expect(document.getElementById("save-in-source-panel")).toBeNull();
+  });
+
+  test("closes an open Page Sources panel when the disable list newly matches", async () => {
+    document.getElementById("save-in-source-panel")?.remove();
+    let runtimeListener: ((message: any) => void) | undefined;
+    let storageListener: ((changes: Record<string, any>, area: string) => void) | undefined;
+    vi.resetModules();
+    document.body.innerHTML = '<img src="cat.jpg">';
+    global.chrome.runtime.sendMessage = vi.fn((_message, callback) => callback?.()) as any;
+    global.chrome.runtime.onMessage.addListener = vi.fn((listener) => {
+      runtimeListener = listener;
+    });
+    global.chrome.storage.local.get = vi.fn((_keys, callback) =>
+      callback({ sourcePanelEnabled: true, sourcePanelBackgrounds: false }),
+    ) as any;
+    (global.chrome.storage as any).onChanged = {
+      addListener: vi.fn((listener) => {
+        storageListener = listener;
+      }),
+    };
+    await import("../../src/content/content.ts");
+
+    runtimeListener!({ type: "SET_SOURCE_PANEL", body: { open: true } });
+    expect(document.getElementById("save-in-source-panel")).not.toBeNull();
+
+    storageListener!(
+      { perSiteDisableList: { oldValue: "", newValue: "*://localhost/*" } },
+      "local",
+    );
+
+    expect(document.getElementById("save-in-source-panel")?.classList).toContain("closing");
   });
 
   test("lets an explicit user toggle open Page Sources while it is disabled", async () => {

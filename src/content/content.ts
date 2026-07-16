@@ -173,13 +173,14 @@ type ResolvedClickToSaveOptions = Pick<
 >;
 type ResolvedAutoDownloadOptions = Pick<
   ResolvedContentOptions,
-  "autoDownloadLive" | "autoDownloadMaxPerPage"
+  "autoDownloadLive" | "autoDownloadLinks" | "autoDownloadMaxPerPage"
 > & { filenamePatterns: string };
 type ResolvedContentScriptOptions = ResolvedContentOptions & ResolvedAutoDownloadOptions;
 
 const setupClickToSave = (
   options: ResolvedClickToSaveOptions,
   acceptInput: (event: KeyboardEvent | MouseEvent) => boolean = (event) => event.isTrusted,
+  isDisabled: () => boolean = () => false,
 ) => {
   const controller = new AbortController();
   const listenerOptions = { capture: true, signal: controller.signal };
@@ -244,6 +245,9 @@ const setupClickToSave = (
     "mousedown",
     (e) => {
       if (!acceptInput(e)) return;
+      // Enforced at click time against the live URL so a single-page-app
+      // navigation onto or off the disable list takes effect immediately.
+      if (isDisabled()) return;
       if (
         ClickToSave.isMouseButtonActive(shortcutOptions.button, e.buttons) &&
         ClickToSave.isKeyboardComboActive(shortcutOptions.combo, active)
@@ -322,6 +326,8 @@ const setupAutoDownload = (options: ResolvedAutoDownloadOptions) => {
     rules: options.filenamePatterns,
     live: options.autoDownloadLive,
     maxPerPage: options.autoDownloadMaxPerPage,
+    includeLinks: options.autoDownloadLinks,
+    isPageDisabled: isCurrentPageDisabled,
     send,
   });
   return () => {
@@ -344,20 +350,21 @@ let receivedInitialOptions = false;
 let sourcePanelListenerReady = false;
 let announcedSourcePanelReady = false;
 let reconfigureOpenSourcePanel: (() => void) | null = null;
-// The per-site disable list turns off every content-script surface on matching
-// pages. It is evaluated once per options application against this page's URL;
-// invalid pattern lines are ignored rather than treated as a broad match.
-let pageDisabled = false;
 
-const isPageDisabled = (patterns: string): boolean =>
-  matchesAnyPattern(`${window.location}`, patterns);
+// The per-site disable list turns off every content-script surface on matching
+// pages. Feature mounts follow their own options; this predicate is re-evaluated
+// at action time against the live URL so a single-page-app navigation that moves
+// on or off the list takes effect without an options change. Invalid pattern
+// lines are ignored rather than treated as a broad match.
+const isCurrentPageDisabled = (): boolean =>
+  matchesAnyPattern(`${window.location}`, currentOptions.perSiteDisableList);
 
 const announceSourcePanelReady = () => {
   if (
     !receivedInitialOptions ||
     !sourcePanelListenerReady ||
     announcedSourcePanelReady ||
-    pageDisabled ||
+    isCurrentPageDisabled() ||
     currentOptions.sourcePanelEnabled !== true
   )
     return;
@@ -371,35 +378,25 @@ const announceSourcePanelReady = () => {
 
 const applyOptions = (next: ContentOptions) => {
   const previous = currentOptions;
-  const previousPageDisabled = pageDisabled;
   currentOptions = { ...currentOptions, ...next };
-  pageDisabled = isPageDisabled(currentOptions.perSiteDisableList);
-  // A disable-list transition must re-run every mount gate below even when no
-  // feature-specific option changed alongside it.
-  const pageDisabledChanged = previousPageDisabled !== pageDisabled;
-  const clickOptionsChanged =
-    pageDisabledChanged ||
-    (
-      [
-        "contentClickToSave",
-        "contentClickToSaveCombo",
-        "contentClickToSaveButton",
-        "links",
-      ] as const
-    ).some((key) => previous[key] !== currentOptions[key]);
-  const autoDownloadOptionsChanged =
-    pageDisabledChanged ||
-    (
-      [
-        "autoDownloadEnabled",
-        "filenamePatterns",
-        "autoDownloadLive",
-        "autoDownloadPrivate",
-        "autoDownloadMaxPerPage",
-      ] as const
-    ).some((key) => previous[key] !== currentOptions[key]);
+  // Features mount by their own options; the disable list is enforced at action
+  // time. A changed list still re-runs the open-panel gate so newly matching the
+  // current page closes an open panel.
+  const disableListChanged = previous.perSiteDisableList !== currentOptions.perSiteDisableList;
+  const clickOptionsChanged = (
+    ["contentClickToSave", "contentClickToSaveCombo", "contentClickToSaveButton", "links"] as const
+  ).some((key) => previous[key] !== currentOptions[key]);
+  const autoDownloadOptionsChanged = (
+    [
+      "autoDownloadEnabled",
+      "filenamePatterns",
+      "autoDownloadLive",
+      "autoDownloadLinks",
+      "autoDownloadMaxPerPage",
+    ] as const
+  ).some((key) => previous[key] !== currentOptions[key]);
   const sourcePanelOptionsChanged =
-    pageDisabledChanged ||
+    disableListChanged ||
     (
       [
         "sourcePanelEnabled",
@@ -416,17 +413,16 @@ const applyOptions = (next: ContentOptions) => {
   if (autoDownloadOptionsChanged) {
     removeAutoDownload?.();
     removeAutoDownload =
-      !pageDisabled && currentOptions.autoDownloadEnabled && currentOptions.filenamePatterns.trim()
+      currentOptions.autoDownloadEnabled && currentOptions.filenamePatterns.trim()
         ? setupAutoDownload(currentOptions)
         : null;
   }
-  if (!clickOptionsChanged) {
-    announceSourcePanelReady();
-    return;
+  if (clickOptionsChanged) {
+    removeClickToSave?.();
+    removeClickToSave = currentOptions.contentClickToSave
+      ? setupClickToSave(currentOptions, undefined, isCurrentPageDisabled)
+      : null;
   }
-  removeClickToSave?.();
-  removeClickToSave =
-    !pageDisabled && currentOptions.contentClickToSave ? setupClickToSave(currentOptions) : null;
   announceSourcePanelReady();
 };
 
@@ -589,7 +585,10 @@ try {
     if (!sourcePanelIsOpen) return;
     // A page moved onto the disable list closes an open panel even if it was
     // force-opened, matching the readiness and creation gates.
-    if (pageDisabled || (currentOptions.sourcePanelEnabled !== true && !sourcePanelForcedOpen)) {
+    if (
+      isCurrentPageDisabled() ||
+      (currentOptions.sourcePanelEnabled !== true && !sourcePanelForcedOpen)
+    ) {
       setSourcePanelOpen(
         false,
         sendDownload,
@@ -606,9 +605,7 @@ try {
   };
   chrome.runtime.onMessage.addListener((message) => {
     if (!["TOGGLE_SOURCE_PANEL", "SET_SOURCE_PANEL"].includes(message?.type)) return;
-    // The disable list keeps the panel from opening at all, including a forced
-    // open from the context menu or keyboard shortcut.
-    if (pageDisabled) return;
+    // An explicit close (SET_SOURCE_PANEL open:false) is always honored.
     if (message.type === "SET_SOURCE_PANEL" && !message.body?.open) {
       setSourcePanelOpen(
         false,
@@ -617,6 +614,10 @@ try {
       );
       return;
     }
+    // TOGGLE_SOURCE_PANEL is only sent by the context menu or keyboard command,
+    // so it is an explicit user action that opens even a disabled page. An
+    // ambient SET_SOURCE_PANEL open:true (background state restore) stays gated.
+    if (message.type === "SET_SOURCE_PANEL" && isCurrentPageDisabled()) return;
     withPanelCopy((panelOptions) => {
       if (message.type === "SET_SOURCE_PANEL") {
         setSourcePanelOpen(true, sendDownload, panelOptions);

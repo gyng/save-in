@@ -2588,6 +2588,7 @@
   "autoDownloadEnabled": { "message": "自动保存匹配项" },
   "autoDownloadLive": { "message": "包含页面加载后添加的来源" },
   "autoDownloadPrivate": { "message": "允许在隐私窗口中自动保存" },
+  "autoDownloadLinks": { "message": "包含页面链接的媒体" },
   "autoDownloadLimit": { "message": "每次页面访问的最大保存数" },
   "autoDownloadLimitHelp": {
     "message": "达到此限制时，Save In 将停止将新匹配项加入队列。重新加载页面即可开始新的访问。"

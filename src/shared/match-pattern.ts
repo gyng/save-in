@@ -47,5 +47,21 @@ export const parseMatchPatternList = (
   patterns: string | null | undefined,
 ): PatternListResult<ParsedMatchPattern> => parsePatternList(patterns, parseMatchPattern);
 
-export const matchesAnyPattern = (url: string, patterns: string): boolean =>
-  parseMatchPatternList(patterns).entries.some(({ value }) => value.regexp.test(url));
+// WebExtension match patterns are specified to ignore the URL fragment
+// (https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Match_patterns),
+// but the compiled regexps are $-anchored, so a trailing #fragment would defeat
+// them. Strip it here — the one place every consumer shares — so a page URL
+// carrying a fragment cannot bypass the per-site disable list. Network URLs the
+// Referer/ordinary-download filter passes are already fragment-free, so this is
+// behavior-preserving there.
+const withoutFragment = (url: string): string => {
+  const hash = url.indexOf("#");
+  return hash === -1 ? url : url.slice(0, hash);
+};
+
+export const matchesAnyPattern = (url: string, patterns: string): boolean => {
+  const withoutHash = withoutFragment(url);
+  return parseMatchPatternList(patterns).entries.some(({ value }) =>
+    value.regexp.test(withoutHash),
+  );
+};

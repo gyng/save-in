@@ -2686,6 +2686,7 @@
   "autoDownloadEnabled": { "message": "自動儲存符合項目" },
   "autoDownloadLive": { "message": "監看頁面載入後新增的來源" },
   "autoDownloadPrivate": { "message": "允許在隱私視窗中自動儲存" },
+  "autoDownloadLinks": { "message": "包含頁面連結的媒體" },
   "autoDownloadLimit": { "message": "每次頁面瀏覽的最大儲存數" },
   "autoDownloadLimitHelp": {
     "message": "達到此限制時，Save In 將停止把新的符合項目加入佇列。重新載入頁面即可開始新的瀏覽。"

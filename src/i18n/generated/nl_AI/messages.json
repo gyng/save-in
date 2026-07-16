@@ -2494,6 +2494,7 @@
     "message": "Bronnen opnemen die na het laden van de pagina worden toegevoegd"
   },
   "autoDownloadPrivate": { "message": "Toestaan in privévensters" },
+  "autoDownloadLinks": { "message": "Gekoppelde media opnemen" },
   "autoDownloadLimit": { "message": "Maximumaantal opgeslagen items per paginabezoek" },
   "autoDownloadLimitHelp": {
     "message": "Save In stopt met het toevoegen van nieuwe overeenkomsten aan de wachtrij wanneer deze limiet is bereikt. Herlaad de pagina om een nieuw bezoek te starten."

@@ -4,6 +4,7 @@ import { options } from "../../config/options-data.ts";
 import { launchDownload } from "../../downloads/download.ts";
 import { matchAutomaticRoutingRule } from "../../automation/automatic-routing.ts";
 import { matchesAnyPattern } from "../../shared/match-pattern.ts";
+import { normalizeContentOption } from "../../config/content-options.ts";
 import type { MessageOf } from "../../shared/message-protocol.ts";
 import type { MessageSender, ProtocolSendResponse } from "./protocol.ts";
 
@@ -28,9 +29,10 @@ export const handleAutoDownloadSource = async (
     return;
   }
   // Backstop: a stale content script cannot keep automatic saves alive on a
-  // site the user has since added to the per-site disable list.
-  const disableList =
-    typeof options.perSiteDisableList === "string" ? options.perSiteDisableList : "";
+  // site the user has since added to the per-site disable list. Coerce a
+  // malformed stored value through the shared normalizer so the background and
+  // content bundle agree on "nothing disabled" for non-string data.
+  const disableList = normalizeContentOption("perSiteDisableList", options.perSiteDisableList);
   if (disableList && matchesAnyPattern(senderTab.url, disableList)) {
     skip();
     return;

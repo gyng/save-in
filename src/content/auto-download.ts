@@ -12,6 +12,14 @@ export type AutoDownloadDiscoveryOptions = {
   rules: string;
   live: boolean;
   maxPerPage: number;
+  // Adopting anchors that point at previewable media is opt-in: pre-4.1 rules
+  // matched only media embedded on the page, so link adoption stays off unless
+  // the user enabled the autoDownloadLinks content option.
+  includeLinks: boolean;
+  // Enforced at dispatch time against the live URL so a single-page-app
+  // navigation onto the disable list stops queued saves without an options
+  // change, and one off it resumes them.
+  isPageDisabled: () => boolean;
   send: (candidate: AutomaticRoutingCandidate) => Promise<AutoDownloadSendResult>;
   onLimitReached?: (() => void) | undefined;
 };
@@ -21,10 +29,10 @@ export type AutoDownloadDiscovery = {
   stop(): void;
 };
 
-// Phase A of scan coverage: the automatic scan adopts anchors only when the
-// shared collector classified them as previewable media by URL extension.
-// Anchors classified stream/document/plain link stay out until 4.2, so the scan
-// keeps only image/video/audio candidates.
+// Phase A of scan coverage: when link adoption is enabled the automatic scan
+// adopts anchors only where the shared collector classified them as previewable
+// media by URL extension. Anchors classified stream/document/plain link stay
+// out until 4.2, so the scan keeps only image/video/audio candidates.
 const AUTOMATIC_MEDIA_KINDS: ReadonlySet<PageSource["kind"]> = new Set(["image", "video", "audio"]);
 
 const automaticUrl = (value: string): string | null => {
@@ -64,6 +72,9 @@ export const setupAutoDownloadDiscovery = (
     while (true) {
       const candidate = queue.shift();
       if (!candidate) break;
+      // Re-check at dispatch time: the page may have navigated onto the disable
+      // list since this candidate was queued.
+      if (options.isPageDisabled()) continue;
       try {
         await options.send(candidate);
       } catch {
@@ -82,7 +93,7 @@ export const setupAutoDownloadDiscovery = (
     const candidates = collectPageSourceCandidates(root, {
       includeBackgrounds: false,
       resourceHints: false,
-      includeLinks: true,
+      includeLinks: options.includeLinks,
     });
     for (const source of candidates) {
       if (source.previewable === false) continue;

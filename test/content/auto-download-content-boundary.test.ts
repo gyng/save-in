@@ -5,8 +5,17 @@ vi.mock("../../src/content/source-panel-model.ts", () => ({
   collectPageSourceCandidates: () => fixture.candidates,
 }));
 
-import { setupAutoDownloadDiscovery } from "../../src/content/auto-download.ts";
+import {
+  setupAutoDownloadDiscovery as rawSetupAutoDownloadDiscovery,
+  type AutoDownloadDiscoveryOptions,
+} from "../../src/content/auto-download.ts";
 import type { AutomaticRoutingCandidate } from "../../src/automation/automatic-routing.ts";
+
+const setupAutoDownloadDiscovery = (
+  options: Omit<AutoDownloadDiscoveryOptions, "includeLinks" | "isPageDisabled"> &
+    Partial<Pick<AutoDownloadDiscoveryOptions, "includeLinks" | "isPageDisabled">>,
+) =>
+  rawSetupAutoDownloadDiscovery({ includeLinks: false, isPageDisabled: () => false, ...options });
 
 const rules = String.raw`
 context: ^auto$

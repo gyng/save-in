@@ -2594,6 +2594,7 @@
   "autoDownloadEnabled": { "message": "一致した項目を自動保存" },
   "autoDownloadLive": { "message": "ページの読み込み後に追加されたソースも含める" },
   "autoDownloadPrivate": { "message": "プライベートウィンドウでの自動保存を許可" },
+  "autoDownloadLinks": { "message": "リンク先のメディアも含める" },
   "autoDownloadLimit": { "message": "1 回のページ訪問での最大保存数" },
   "autoDownloadLimitHelp": {
     "message": "この上限に達すると、Save In は新しい一致項目のキューへの追加を停止します。新しい訪問を開始するにはページを再読み込みしてください。"

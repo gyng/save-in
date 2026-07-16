@@ -15,9 +15,11 @@
   three Save In themes — Glacier (cool light blue), Matcha (soft light green),
   and Ember (warm dark amber). Pastel pink's pressed button color now darkens
   like the other light themes.
-- Automatic Page Sources saves now adopt linked media: anchors that point at
-  an image, video, or audio file count as sources, while plain, document, and
-  stream links stay out. Eligibility, dedup, and per-page limits are
+- Automatic Page Sources saves can now adopt linked media through the opt-in
+  **Include media that pages link to** control (off by default): with it on,
+  anchors that point at an image, video, or audio file count as sources, while
+  plain, document, and stream links stay out. Left off, automatic rules keep
+  matching embedded media only. Eligibility, dedup, and per-page limits are
   unchanged.
 - Added undo for a completed save (#102): a button on the success
   notification (Chrome) and a History row action (both browsers) remove the

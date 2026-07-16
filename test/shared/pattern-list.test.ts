@@ -1,4 +1,4 @@
-import { parseMatchPatternList } from "../../src/shared/match-pattern.ts";
+import { matchesAnyPattern, parseMatchPatternList } from "../../src/shared/match-pattern.ts";
 import { parsePatternList, parseRegularExpressionList } from "../../src/shared/pattern-list.ts";
 
 describe("pattern list grammar", () => {
@@ -76,6 +76,20 @@ describe("pattern list grammar", () => {
     expect(invalid.issues[0]).toEqual(
       expect.objectContaining({ line: 2, source: "(", error: expect.any(Error) }),
     );
+  });
+
+  test("ignores the URL fragment when matching, per the match-pattern spec", () => {
+    // A page URL carrying a #fragment must still match a disable-list entry;
+    // WebExtension match patterns are specified to ignore the fragment.
+    expect(matchesAnyPattern("https://example.com/gallery#photo-3", "*://example.com/*")).toBe(
+      true,
+    );
+    expect(matchesAnyPattern("https://example.com/#/spa/route", "*://example.com/")).toBe(true);
+    // The fragment must not smuggle a false match past a path-anchored pattern.
+    expect(matchesAnyPattern("https://other.test/#https://example.com/", "*://example.com/*")).toBe(
+      false,
+    );
+    expect(matchesAnyPattern("https://example.com/gallery", "")).toBe(false);
   });
 
   test("normalizes non-Error regular expression failures", () => {

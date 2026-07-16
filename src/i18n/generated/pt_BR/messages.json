@@ -2494,6 +2494,7 @@
   "autoDownloadEnabled": { "message": "Salvar correspondências automaticamente" },
   "autoDownloadLive": { "message": "Incluir fontes adicionadas após o carregamento da página" },
   "autoDownloadPrivate": { "message": "Permitir salvamento automático em janelas privativas" },
+  "autoDownloadLinks": { "message": "Incluir mídia vinculada" },
   "autoDownloadLimit": { "message": "Máximo de salvamentos por visita à página" },
   "autoDownloadLimitHelp": {
     "message": "O Save In deixa de colocar novas correspondências na fila quando esse limite é atingido. Recarregue a página para iniciar uma nova visita."

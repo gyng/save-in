@@ -2500,6 +2500,7 @@
   "autoDownloadEnabled": { "message": "Treffer automatisch speichern" },
   "autoDownloadLive": { "message": "Nach dem Laden hinzugefügte Quellen einbeziehen" },
   "autoDownloadPrivate": { "message": "In privaten Fenstern zulassen" },
+  "autoDownloadLinks": { "message": "Verlinkte Medien einbeziehen" },
   "autoDownloadLimit": {
     "message": "Maximal gespeicherte Quellen pro Seitenbesuch"
   },

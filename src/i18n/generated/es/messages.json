@@ -2504,6 +2504,7 @@
     "message": "Incluir fuentes añadidas después de que se cargue la página"
   },
   "autoDownloadPrivate": { "message": "Permitir en ventanas privadas" },
+  "autoDownloadLinks": { "message": "Incluir medios enlazados" },
   "autoDownloadLimit": { "message": "Máximo de guardados por visita a la página" },
   "autoDownloadLimitHelp": {
     "message": "Save In deja de poner nuevas coincidencias en cola al alcanzar este límite. Recargue la página para iniciar una nueva visita."

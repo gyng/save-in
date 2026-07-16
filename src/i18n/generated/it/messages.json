@@ -1912,7 +1912,7 @@
   "historyClearFailed": { "message": "Impossibile eliminare la cronologia." },
   "historyStatusSaving": { "message": "Salvataggio…" },
   "historyStatusCanceled": { "message": "Annullato" },
-  "historyStatusUndone": { "message": "Annullato" },
+  "historyStatusUndone": { "message": "Disfatto" },
   "historyStatusNetworkFailed": { "message": "Errore di rete" },
   "historyStatusDownloadFailed": { "message": "Download non riuscito" },
   "historyStatusPreparationFailed": { "message": "Preparazione non riuscita" },
@@ -2653,6 +2653,7 @@
   "autoDownloadPrivate": {
     "message": "Consenti nelle finestre private"
   },
+  "autoDownloadLinks": { "message": "Includi i media collegati" },
   "autoDownloadLimit": {
     "message": "Numero massimo di salvataggi per visita alla pagina"
   },

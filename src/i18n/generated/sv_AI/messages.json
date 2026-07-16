@@ -2513,6 +2513,7 @@
   "autoDownloadEnabled": { "message": "Spara träffar automatiskt" },
   "autoDownloadLive": { "message": "Bevaka källor som läggs till efter att sidan har lästs in" },
   "autoDownloadPrivate": { "message": "Tillåt automatiskt sparande i privata fönster" },
+  "autoDownloadLinks": { "message": "Inkludera länkad media" },
   "autoDownloadLimit": { "message": "Maximalt antal sparningar per sidbesök" },
   "autoDownloadLimitHelp": {
     "message": "Save In slutar köa nya träffar när gränsen nås. Läs in sidan igen för att starta ett nytt besök."

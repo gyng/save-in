@@ -2102,7 +2102,7 @@
   "historyClearFailed": { "message": "기록을 삭제할 수 없습니다." },
   "historyStatusSaving": { "message": "저장 중…" },
   "historyStatusCanceled": { "message": "취소됨" },
-  "historyStatusUndone": { "message": "취소됨" },
+  "historyStatusUndone": { "message": "되돌림" },
   "historyStatusNetworkFailed": { "message": "네트워크 실패" },
   "historyStatusDownloadFailed": { "message": "다운로드 실패" },
   "historyStatusPreparationFailed": { "message": "준비 실패" },
@@ -2594,6 +2594,7 @@
   "autoDownloadEnabled": { "message": "일치 항목 자동 저장" },
   "autoDownloadLive": { "message": "페이지가 로드된 후 추가된 소스 포함" },
   "autoDownloadPrivate": { "message": "비공개 창에서 자동 저장 허용" },
+  "autoDownloadLinks": { "message": "링크된 미디어 포함" },
   "autoDownloadLimit": { "message": "페이지 방문당 최대 저장 수" },
   "autoDownloadLimitHelp": {
     "message": "이 한도에 도달하면 Save In이 새 일치 항목을 대기열에 추가하지 않습니다. 새 방문을 시작하려면 페이지를 다시 로드하세요."

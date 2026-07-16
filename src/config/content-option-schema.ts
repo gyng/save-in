@@ -37,6 +37,11 @@ export const CONTENT_FEATURE_OPTION_DEFINITIONS = [
     default: CONTENT_OPTION_DEFAULTS.autoDownloadPrivate,
   },
   {
+    name: "autoDownloadLinks",
+    type: "BOOL",
+    default: CONTENT_OPTION_DEFAULTS.autoDownloadLinks,
+  },
+  {
     name: "autoDownloadMaxPerPage",
     type: "VALUE",
     onLoad: normalizeAutoDownloadLimit,

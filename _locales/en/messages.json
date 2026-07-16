@@ -4137,6 +4137,10 @@
     "message": "Allow in private windows",
     "description": "Checkbox label that independently permits automatic saves in private browsing. Used in src/options/options.html."
   },
+  "autoDownloadLinks": {
+    "message": "Include media that pages link to",
+    "description": "Checkbox label that opts in to adopting anchors (<a href>) pointing at previewable image, video, or audio files during automatic saving, in addition to media embedded on the page. Off by default. Used in src/options/options.html."
+  },
   "autoDownloadLimit": {
     "message": "Maximum saves per page visit",
     "description": "Label for the automatic-download safety limit. Used in src/options/options.html."

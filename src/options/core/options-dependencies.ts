@@ -45,7 +45,12 @@ export const setupOptionDependencies = () => {
     },
     {
       parent: "autoDownloadEnabled",
-      children: ["autoDownloadLive", "autoDownloadPrivate", "autoDownloadMaxPerPage"],
+      children: [
+        "autoDownloadLive",
+        "autoDownloadPrivate",
+        "autoDownloadLinks",
+        "autoDownloadMaxPerPage",
+      ],
     },
     {
       parent: "sourcePanelEnabled",

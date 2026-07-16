@@ -1,5 +1,16 @@
 // @vitest-environment jsdom
-import { setupAutoDownloadDiscovery } from "../../src/content/auto-download.ts";
+import {
+  setupAutoDownloadDiscovery as rawSetupAutoDownloadDiscovery,
+  type AutoDownloadDiscoveryOptions,
+} from "../../src/content/auto-download.ts";
+
+// Link adoption and the disable-list predicate are wired in from content.ts;
+// default them here so each case only states what it exercises.
+const setupAutoDownloadDiscovery = (
+  options: Omit<AutoDownloadDiscoveryOptions, "includeLinks" | "isPageDisabled"> &
+    Partial<Pick<AutoDownloadDiscoveryOptions, "includeLinks" | "isPageDisabled">>,
+) =>
+  rawSetupAutoDownloadDiscovery({ includeLinks: false, isPageDisabled: () => false, ...options });
 
 const rules = `
 context: ^auto$
@@ -44,13 +55,19 @@ describe("automatic source discovery", () => {
     controller.stop();
   });
 
-  test("adopts a previewable-media anchor discovered by the scan", async () => {
+  test("adopts a previewable-media anchor only when link adoption is enabled", async () => {
     document.body.innerHTML = `
       <a href="https://cdn.test/linked.jpg">image link</a>
       <a href="https://cdn.test/page.html">plain link</a>
     `;
     const send = vi.fn(() => Promise.resolve("started" as const));
-    const controller = setupAutoDownloadDiscovery({ rules, live: false, maxPerPage: 20, send });
+    const controller = setupAutoDownloadDiscovery({
+      rules,
+      live: false,
+      maxPerPage: 20,
+      includeLinks: true,
+      send,
+    });
 
     await controller.idle();
 
@@ -58,6 +75,56 @@ describe("automatic source discovery", () => {
     expect(send).toHaveBeenCalledWith({
       pageUrl: "http://localhost/",
       sourceUrl: "https://cdn.test/linked.jpg",
+      sourceKind: "image",
+    });
+    controller.stop();
+  });
+
+  test("leaves linked media alone by default (pre-4.1 rules match embedded media only)", async () => {
+    document.body.innerHTML = `
+      <a href="https://cdn.test/linked.jpg">image link</a>
+      <a href="https://cdn.test/page.html">plain link</a>
+    `;
+    const send = vi.fn(() => Promise.resolve("started" as const));
+    // includeLinks defaults to false in the wrapper, matching autoDownloadLinks.
+    const controller = setupAutoDownloadDiscovery({ rules, live: false, maxPerPage: 20, send });
+
+    await controller.idle();
+
+    expect(send).not.toHaveBeenCalled();
+    controller.stop();
+  });
+
+  test("skips dispatch for a candidate once the page is on the disable list", async () => {
+    document.body.innerHTML = '<img src="https://cdn.test/cat.png">';
+    let disabled = false;
+    const send = vi.fn(() => Promise.resolve("started" as const));
+    const controller = setupAutoDownloadDiscovery({
+      rules,
+      live: false,
+      maxPerPage: 20,
+      isPageDisabled: () => disabled,
+      send,
+    });
+    await controller.idle();
+    expect(send).toHaveBeenCalledOnce();
+
+    // A single-page-app navigation moves the page onto the disable list; a fresh
+    // scan of a new image must not dispatch while disabled.
+    disabled = true;
+    document.body.insertAdjacentHTML("beforeend", '<img src="https://cdn.test/dog.png">');
+    controller.scan();
+    await controller.idle();
+    expect(send).toHaveBeenCalledOnce();
+
+    // Navigating back off the list resumes dispatch for newly discovered media.
+    disabled = false;
+    document.body.insertAdjacentHTML("beforeend", '<img src="https://cdn.test/fox.png">');
+    controller.scan();
+    await controller.idle();
+    expect(send).toHaveBeenLastCalledWith({
+      pageUrl: "http://localhost/",
+      sourceUrl: "https://cdn.test/fox.png",
       sourceKind: "image",
     });
     controller.stop();
