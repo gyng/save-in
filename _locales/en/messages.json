@@ -2635,6 +2635,30 @@
     "message": "Rewrites a Pixiv preview image to the full-resolution original file (needs the Referer option on for i.pximg.net)",
     "description": "Description on a built-in routing-template card. Assumes a JPEG original. \"Referer\" is the deliberately misspelled HTTP header name; keep it as-is. \"Pixiv\" is a website name; keep it as-is. Used in src/options/rule-templates.ts."
   },
+  "ruleTemplateGoogleOriginalName": {
+    "message": "Google original-size image",
+    "description": "Title of a built-in routing-template card. Covers Google-hosted image CDNs (googleusercontent, ggpht) used by Google Photos, Blogger, and profile avatars. \"Google\" is a product name; keep it as-is. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateGoogleOriginalDescription": {
+    "message": "Rewrites a Google-hosted preview image to its full original size",
+    "description": "Description on a built-in routing-template card. \"Google\" is a product name; keep it as-is. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateFlickrLargeName": {
+    "message": "Flickr larger image",
+    "description": "Title of a built-in routing-template card. \"Flickr\" is a website name; keep it as-is. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateFlickrLargeDescription": {
+    "message": "Rewrites a Flickr image link to a larger 1024px version",
+    "description": "Description on a built-in routing-template card. \"px\" abbreviates pixels. \"Flickr\" is a website name; keep it as-is. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateTumblrHighResName": {
+    "message": "Tumblr high-resolution image",
+    "description": "Title of a built-in routing-template card. \"Tumblr\" is a website name; keep it as-is. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateTumblrHighResDescription": {
+    "message": "Rewrites a Tumblr image link to the highest available resolution",
+    "description": "Description on a built-in routing-template card. \"Tumblr\" is a website name; keep it as-is. Used in src/options/rule-templates.ts."
+  },
   "ruleTemplateTwitterHandlePrefixName": {
     "message": "Twitter/X handle prefix",
     "description": "Title of a built-in routing-template card. \"X\" is the current name of the Twitter social network, kept alongside the older name; do not translate as the letter or algebraic variable X. Used in src/options/rule-templates.ts."

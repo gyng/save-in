@@ -3848,6 +3848,24 @@
   "ruleTemplatePixivOriginalDescription": {
     "message": "Pixiv 미리보기 이미지를 전체 해상도 원본 파일로 재작성합니다 (i.pximg.net에 대해 Referer 옵션을 켜야 합니다)"
   },
+  "ruleTemplateGoogleOriginalName": {
+    "message": "Google 원본 크기 이미지"
+  },
+  "ruleTemplateGoogleOriginalDescription": {
+    "message": "Google에서 호스팅하는 미리보기 이미지를 원본 전체 크기로 재작성합니다"
+  },
+  "ruleTemplateFlickrLargeName": {
+    "message": "Flickr 더 큰 이미지"
+  },
+  "ruleTemplateFlickrLargeDescription": {
+    "message": "Flickr 이미지 링크를 1024픽셀의 더 큰 버전으로 재작성합니다"
+  },
+  "ruleTemplateTumblrHighResName": {
+    "message": "Tumblr 고해상도 이미지"
+  },
+  "ruleTemplateTumblrHighResDescription": {
+    "message": "Tumblr 이미지 링크를 사용 가능한 최고 해상도로 재작성합니다"
+  },
   "ruleTemplateYoutubeMaxResName": {
     "message": "YouTube 썸네일 최대 해상도"
   },

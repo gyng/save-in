@@ -459,6 +459,56 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     },
   },
   {
+    category: "Site originals",
+    name: "Google original-size image",
+    description: "Rewrites a Google-hosted preview image to its full original size",
+    example: "Example: google/AbCd_1234",
+    // googleusercontent/ggpht append a size directive after "="; "=s0" returns
+    // the original. The saved name is the opaque token with no extension, so
+    // Save In derives the type from the response. Matches only the flat
+    // host/token=size form (Photos, Blogger avatars, Play), not path-based
+    // blogger URLs.
+    rule: "sourceurl: ^https://([a-z0-9-]+\\.(?:googleusercontent|ggpht)\\.com)/([\\w-]+)=[\\w-]+\ncapturegroups: sourceurl\nfetch: https://:$1:/:$2:=s0\ninto: google/:$2:",
+    proof: {
+      info: { sourceUrl: "https://lh3.googleusercontent.com/AbCd_1234=s400-c" },
+      destination: "google/AbCd_1234",
+      fetch: "https://lh3.googleusercontent.com/AbCd_1234=s0",
+    },
+  },
+  {
+    category: "Site originals",
+    name: "Flickr larger image",
+    description: "Rewrites a Flickr image link to a larger 1024px version",
+    example: "Example: flickr/55392836202_97bdf7986a_b.jpg",
+    // Flickr's size suffix (_z, _n, _c, ...) selects a rendition; _b is the
+    // universally available 1024px version and is always JPEG.
+    rule: "sourceurl: ^https://live\\.staticflickr\\.com/(\\d+)/(\\d+_[a-z0-9]+)_\\w+\\.(\\w+)\ncapturegroups: sourceurl\nfetch: https://live.staticflickr.com/:$1:/:$2:_b.jpg\ninto: flickr/:$2:_b.:$3:",
+    proof: {
+      info: { sourceUrl: "https://live.staticflickr.com/65535/55392836202_97bdf7986a_z.jpg" },
+      destination: "flickr/55392836202_97bdf7986a_b.jpg",
+      fetch: "https://live.staticflickr.com/65535/55392836202_97bdf7986a_b.jpg",
+    },
+  },
+  {
+    category: "Site originals",
+    name: "Tumblr high-resolution image",
+    description: "Rewrites a Tumblr image link to the highest available resolution",
+    example: "Example: tumblr/2177496b02726f8a3da8975056fc1be0b62ec694.png",
+    // Tumblr serves only pre-generated renditions; s2048x3072 is the standard
+    // high-res breakpoint. Very small images may not have it and keep the
+    // requested size.
+    rule: "sourceurl: ^https://(\\d+\\.media\\.tumblr\\.com/[a-f0-9]+/[a-z0-9-]+)/s\\d+x\\d+/([^/?]+)\ncapturegroups: sourceurl\nfetch: https://:$1:/s2048x3072/:$2:\ninto: tumblr/:$2:",
+    proof: {
+      info: {
+        sourceUrl:
+          "https://64.media.tumblr.com/abc123def/0011deadbeef-aa/s540x810/2177496b02726f8a3da8975056fc1be0b62ec694.png",
+      },
+      destination: "tumblr/2177496b02726f8a3da8975056fc1be0b62ec694.png",
+      fetch:
+        "https://64.media.tumblr.com/abc123def/0011deadbeef-aa/s2048x3072/2177496b02726f8a3da8975056fc1be0b62ec694.png",
+    },
+  },
+  {
     category: "Site filing",
     name: "Twitter/X handle prefix",
     description: "Prefixes saved files with the Twitter or X handle from the page URL",
@@ -836,6 +886,33 @@ export const localizeRuleTemplates = (getMessage: GetMessage): LocalizedRuleTemp
         description:
           getMessage("ruleTemplatePixivOriginalDescription") ||
           "Rewrites a Pixiv preview image to the full-resolution original file (needs the Referer option on for i.pximg.net)",
+      },
+    ],
+    [
+      "Google original-size image",
+      {
+        name: getMessage("ruleTemplateGoogleOriginalName") || "Google original-size image",
+        description:
+          getMessage("ruleTemplateGoogleOriginalDescription") ||
+          "Rewrites a Google-hosted preview image to its full original size",
+      },
+    ],
+    [
+      "Flickr larger image",
+      {
+        name: getMessage("ruleTemplateFlickrLargeName") || "Flickr larger image",
+        description:
+          getMessage("ruleTemplateFlickrLargeDescription") ||
+          "Rewrites a Flickr image link to a larger 1024px version",
+      },
+    ],
+    [
+      "Tumblr high-resolution image",
+      {
+        name: getMessage("ruleTemplateTumblrHighResName") || "Tumblr high-resolution image",
+        description:
+          getMessage("ruleTemplateTumblrHighResDescription") ||
+          "Rewrites a Tumblr image link to the highest available resolution",
       },
     ],
     [

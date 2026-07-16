@@ -3848,6 +3848,24 @@
   "ruleTemplatePixivOriginalDescription": {
     "message": "Herschrijft een Pixiv-voorbeeldafbeelding naar het originele bestand op volledige resolutie (vereist de ingeschakelde Referer-optie voor i.pximg.net)"
   },
+  "ruleTemplateGoogleOriginalName": {
+    "message": "Google-afbeelding op originele grootte"
+  },
+  "ruleTemplateGoogleOriginalDescription": {
+    "message": "Herschrijft een door Google gehoste voorbeeldafbeelding naar de volledige originele grootte"
+  },
+  "ruleTemplateFlickrLargeName": {
+    "message": "Grotere Flickr-afbeelding"
+  },
+  "ruleTemplateFlickrLargeDescription": {
+    "message": "Herschrijft een Flickr-afbeeldingslink naar een grotere versie van 1024 px"
+  },
+  "ruleTemplateTumblrHighResName": {
+    "message": "Tumblr-afbeelding in hoge resolutie"
+  },
+  "ruleTemplateTumblrHighResDescription": {
+    "message": "Herschrijft een Tumblr-afbeeldingslink naar de hoogst beschikbare resolutie"
+  },
   "ruleTemplateYoutubeMaxResName": {
     "message": "YouTube-miniatuur met maximale resolutie"
   },

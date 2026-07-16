@@ -3848,6 +3848,24 @@
   "ruleTemplatePixivOriginalDescription": {
     "message": "Pixivのプレビュー画像をフル解像度のオリジナルファイルに書き換えます（i.pximg.net に対して Referer オプションを有効にする必要があります）"
   },
+  "ruleTemplateGoogleOriginalName": {
+    "message": "Google 画像を元のサイズに"
+  },
+  "ruleTemplateGoogleOriginalDescription": {
+    "message": "Google がホストするプレビュー画像を元のフルサイズに書き換えます"
+  },
+  "ruleTemplateFlickrLargeName": {
+    "message": "Flickr の大きい画像"
+  },
+  "ruleTemplateFlickrLargeDescription": {
+    "message": "Flickr の画像リンクを 1024 ピクセルの大きいバージョンに書き換えます"
+  },
+  "ruleTemplateTumblrHighResName": {
+    "message": "Tumblr の高解像度画像"
+  },
+  "ruleTemplateTumblrHighResDescription": {
+    "message": "Tumblr の画像リンクを利用可能な最高解像度に書き換えます"
+  },
   "ruleTemplateYoutubeMaxResName": {
     "message": "YouTubeサムネイルの最大解像度"
   },

@@ -79,6 +79,33 @@ const SAMPLES: Record<string, LiveSample> = {
     env: "LIVE_PIXIV_URL",
     checkSize: false,
   },
+  "Google original-size image": {
+    // A YouTube channel avatar on yt3.googleusercontent.com; =s0 returns the
+    // original. Channels rarely change avatars, but a token rotation just
+    // needs a fresh URL via the env var.
+    before:
+      process.env.LIVE_GOOGLEUSERCONTENT_URL ??
+      "https://yt3.googleusercontent.com/eIf5fNPcIcj9ig-wZBeq4stFy1lgjWTW1nLT5dYlFkHZprZ03QBiMcbpwNMB6XSBjrSFGtAGQg=s900-c-k-c0x00ffffff-no-rj",
+    env: "LIVE_GOOGLEUSERCONTENT_URL",
+  },
+  "Flickr larger image": {
+    // A photo on Flickr's own account (id 55392836202); _z -> _b is the 1024px
+    // rendition, always available and always JPEG.
+    before:
+      process.env.LIVE_FLICKR_URL ??
+      "https://live.staticflickr.com/65535/55392836202_97bdf7986a_z.jpg",
+    env: "LIVE_FLICKR_URL",
+  },
+  "Tumblr high-resolution image": {
+    // Tumblr serves only pre-generated renditions; this image exposes exactly
+    // s2048x3072, so the rewrite is idempotent here and the case verifies the
+    // target resolves live. Size check off (no smaller rendition to compare).
+    before:
+      process.env.LIVE_TUMBLR_URL ??
+      "https://64.media.tumblr.com/16d61a423f0ea35748d8de1c8db30bee/26bb002b0950f666-8e/s2048x3072/2177496b02726f8a3da8975056fc1be0b62ec694.png",
+    env: "LIVE_TUMBLR_URL",
+    checkSize: false,
+  },
 };
 
 const FETCH_TIMEOUT_MS = 15_000;

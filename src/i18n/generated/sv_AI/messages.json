@@ -3848,6 +3848,24 @@
   "ruleTemplatePixivOriginalDescription": {
     "message": "Skriver om en förhandsgranskningsbild från Pixiv till originalfilen i full upplösning (kräver att Referer-alternativet är aktiverat för i.pximg.net)"
   },
+  "ruleTemplateGoogleOriginalName": {
+    "message": "Google-bild i originalstorlek"
+  },
+  "ruleTemplateGoogleOriginalDescription": {
+    "message": "Skriver om en förhandsgranskningsbild som Google är värd för till dess fullständiga originalstorlek"
+  },
+  "ruleTemplateFlickrLargeName": {
+    "message": "Större Flickr-bild"
+  },
+  "ruleTemplateFlickrLargeDescription": {
+    "message": "Skriver om en Flickr-bildlänk till en större version på 1024 px"
+  },
+  "ruleTemplateTumblrHighResName": {
+    "message": "Tumblr-bild i hög upplösning"
+  },
+  "ruleTemplateTumblrHighResDescription": {
+    "message": "Skriver om en Tumblr-bildlänk till den högsta tillgängliga upplösningen"
+  },
   "ruleTemplateYoutubeMaxResName": {
     "message": "YouTube-miniatyr med maximal upplösning"
   },

@@ -3848,6 +3848,24 @@
   "ruleTemplatePixivOriginalDescription": {
     "message": "將 Pixiv 預覽圖片改寫為完整解析度原始檔案（需要為 i.pximg.net 啟用 Referer 選項）"
   },
+  "ruleTemplateGoogleOriginalName": {
+    "message": "Google 原始尺寸圖片"
+  },
+  "ruleTemplateGoogleOriginalDescription": {
+    "message": "將 Google 託管的預覽圖片改寫為完整原始尺寸"
+  },
+  "ruleTemplateFlickrLargeName": {
+    "message": "Flickr 更大圖片"
+  },
+  "ruleTemplateFlickrLargeDescription": {
+    "message": "將 Flickr 圖片連結改寫為更大的 1024 像素版本"
+  },
+  "ruleTemplateTumblrHighResName": {
+    "message": "Tumblr 高解析度圖片"
+  },
+  "ruleTemplateTumblrHighResDescription": {
+    "message": "將 Tumblr 圖片連結改寫為可用的最高解析度"
+  },
   "ruleTemplateYoutubeMaxResName": {
     "message": "YouTube 縮圖最高解析度"
   },

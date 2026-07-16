@@ -3848,6 +3848,24 @@
   "ruleTemplatePixivOriginalDescription": {
     "message": "Schreibt ein Pixiv-Vorschaubild auf die Originaldatei in voller Auflösung um (erfordert die aktivierte Referer-Option für i.pximg.net)"
   },
+  "ruleTemplateGoogleOriginalName": {
+    "message": "Google-Bild in Originalgröße"
+  },
+  "ruleTemplateGoogleOriginalDescription": {
+    "message": "Schreibt ein von Google gehostetes Vorschaubild auf seine volle Originalgröße um"
+  },
+  "ruleTemplateFlickrLargeName": {
+    "message": "Größeres Flickr-Bild"
+  },
+  "ruleTemplateFlickrLargeDescription": {
+    "message": "Schreibt einen Flickr-Bildlink auf eine größere 1024-px-Version um"
+  },
+  "ruleTemplateTumblrHighResName": {
+    "message": "Tumblr-Bild in hoher Auflösung"
+  },
+  "ruleTemplateTumblrHighResDescription": {
+    "message": "Schreibt einen Tumblr-Bildlink auf die höchste verfügbare Auflösung um"
+  },
   "ruleTemplateYoutubeMaxResName": {
     "message": "YouTube-Miniaturbild in maximaler Auflösung"
   },
