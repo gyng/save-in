@@ -146,6 +146,46 @@ describe("Prompt API rule-authoring model", () => {
     ).toBe("// Save PDFs\ncss: div > a\nrename/i: ^(.*)$ -> cover.png\ninto: archive/:filename:");
   });
 
+  test("splits clauses the model joined with commas, as the grammar's own syntax does", () => {
+    const wide = { matchers: ["fileext", "sourcekind", "pagedomain"], variables: [":filename:"] };
+
+    // Each split clause is then spaced off its colon, as the parser needs.
+    expect(sanitizeRuleDraft("sourcekind:image, fileext:png, into:dongs/:filename:", wide)).toBe(
+      "sourcekind: image\nfileext: png\ninto: dongs/:filename:",
+    );
+  });
+
+  test("spaces a clause value the model pushed against the colon", () => {
+    const wide = { matchers: ["fileext", "sourcekind", "pagedomain"], variables: [":filename:"] };
+
+    // The grammar calls the space optional, but a value written against the
+    // colon loses its leading "/" to the regex-flags separator and the clause
+    // dies as an invalid regex.
+    expect(sanitizeRuleDraft("fileext:png\ninto:dongs/:filename:", wide)).toBe(
+      "fileext: png\ninto: dongs/:filename:",
+    );
+    // An existing space is left exactly as it is: a second one would become
+    // part of the value.
+    expect(sanitizeRuleDraft("fileext/i: ^png$\ninto: dongs/:filename:", wide)).toBe(
+      "fileext/i: ^png$\ninto: dongs/:filename:",
+    );
+    expect(sanitizeRuleDraft("fileext/i:^png$\ninto: dongs/", wide)).toBe(
+      "fileext/i: ^png$\ninto: dongs/",
+    );
+  });
+
+  test("splits only at a comma that opens another clause", () => {
+    const wide = { matchers: ["fileext", "sourcekind", "pagedomain"], variables: [":filename:"] };
+
+    // A comma inside a regex is part of the regex, not a separator.
+    expect(sanitizeRuleDraft("fileext: ^(?:a,b)$\ninto: x/:filename:", wide)).toBe(
+      "fileext: ^(?:a,b)$\ninto: x/:filename:",
+    );
+    expect(sanitizeRuleDraft("fileext: ^png$\ninto: my, files/:filename:", wide)).toBe(
+      "fileext: ^png$\ninto: my, files/:filename:",
+    );
+  });
+
   test("rejects unknown clause-looking text instead of silently dropping it", () => {
     // Dropping a misnamed matcher would leave a rule that matches every file.
     expect(sanitizeRuleDraft("extension: ^png$\ninto: archive/:filename:", vocabulary)).toBeNull();
