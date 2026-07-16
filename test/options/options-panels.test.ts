@@ -512,6 +512,30 @@ describe("variables preview", () => {
     expect(browser.runtime.sendMessage).not.toHaveBeenCalled();
   });
 
+  test("falls back to an English variable insertion label", async () => {
+    vi.mocked(browser.i18n.getMessage).mockImplementation((key) =>
+      key === "referenceInsertValue" ? "" : `Translated<${key}>`,
+    );
+    document.body.innerHTML = `
+      <textarea id="paths"></textarea>
+      <section class="variables-preview" data-insert-target="paths">
+        <div class="variables-preview-list"></div>
+      </section>`;
+    vi.mocked(browser.runtime.sendMessage)
+      .mockResolvedValueOnce({ body: { variables: [":year:"] } })
+      .mockResolvedValueOnce({ body: { interpolatedVariables: {} } });
+
+    await renderVariablesPreview();
+
+    expect(
+      document
+        .querySelector(
+          ".variables-preview-row:not(.variables-preview-command) .variables-preview-insert",
+        )
+        ?.getAttribute("aria-label"),
+    ).toBe("Insert :year:");
+  });
+
   test("closes an open live-variable list when clicking outside", () => {
     document.body.innerHTML = `
       <details class="variables-preview" open>

@@ -56,7 +56,9 @@ export const recordDiagnosticLifecycle = (
     sessionWriteState,
     extensionSessionStorage,
     DIAGNOSTIC_LIFECYCLE_SESSION_KEY,
-    (stored) => normalizeDiagnosticLifecycle([...normalizeDiagnosticLifecycle(stored), entry]),
+    // stored is already the output of a prior normalize; only guard array-ness
+    // here and let the single outer normalize filter and re-cap.
+    (stored) => normalizeDiagnosticLifecycle([...(Array.isArray(stored) ? stored : []), entry]),
   );
   return latestWrite;
 };

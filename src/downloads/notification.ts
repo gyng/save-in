@@ -506,6 +506,10 @@ export const onDownloadChanged = async (downloadDelta: HostDownloadDelta) => {
       await recordHistoryStatus("complete");
     }
 
+    // Deliberately write the source shortcut only after the media download
+    // completes: it is named from the resolved on-disk filename (which does
+    // not exist until completion), and a shortcut beside media that never
+    // saved would be an orphan. A failed save intentionally writes no sidecar.
     if (completed && record.pendingSourceSidecar) {
       try {
         await downloadPorts.sourceSidecar(

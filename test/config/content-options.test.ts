@@ -6,7 +6,6 @@ import {
 } from "../../src/config/content-options.ts";
 import { OPTION_KEYS } from "../../src/config/option-schema.ts";
 import { CONTENT_FEATURE_OPTION_DEFINITIONS } from "../../src/config/content-option-schema.ts";
-import { MAX_RECENT_DESTINATIONS } from "../../src/shared/constants.ts";
 
 test("content option definitions stay aligned with the background schema", () => {
   const schema = new Map(OPTION_KEYS.map((definition) => [definition.name, definition.default]));
@@ -93,11 +92,9 @@ test("validates the bounded recent-destination count", () => {
   const definition = OPTION_KEYS.find(({ name }) => name === "recentDestinationCount")!;
   const validate = "validate" in definition ? definition.validate : () => false;
 
-  expect([0, MAX_RECENT_DESTINATIONS, " 3 "].every((value) => validate(value))).toBe(true);
+  expect([0, 5, " 3 "].every((value) => validate(value))).toBe(true);
   expect(
-    [null, "", "   ", 1.5, -1, MAX_RECENT_DESTINATIONS + 1, Number.MAX_SAFE_INTEGER + 1].some(
-      (value) => validate(value),
-    ),
+    [null, "", "   ", 1.5, -1, 6, Number.MAX_SAFE_INTEGER + 1].some((value) => validate(value)),
   ).toBe(false);
 });
 

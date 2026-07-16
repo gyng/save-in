@@ -103,7 +103,8 @@
   line-height: 1.2;
 }
 
-.menu-preview-lastused .menu-preview-title {
+.menu-preview-lastused .menu-preview-title,
+.menu-preview-recent .menu-preview-title {
   color: var(--color-text-muted);
   font-style: italic;
 }

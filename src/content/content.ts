@@ -62,14 +62,21 @@ const ClickToSave = {
       composedPath?: () => Array<EventTarget | null>;
     },
     allowLinks: boolean,
-  ): string | undefined => {
-    let source: string | undefined;
+  ): { url: string; kind: PageSource["kind"] } | undefined => {
+    let source: { url: string; kind: PageSource["kind"] } | undefined;
     const path = typeof e.composedPath === "function" ? e.composedPath() : [];
-    const mediaSource = (element: unknown): string | undefined => {
-      if (!(element instanceof HTMLImageElement) && !(element instanceof HTMLMediaElement))
-        return undefined;
+    // Report the element's kind so a saved click carries its true source kind:
+    // the `sourcekind:` routing matcher and the source sidecar both read it.
+    const mediaSource = (
+      element: unknown,
+    ): { url: string; kind: PageSource["kind"] } | undefined => {
+      let kind: "image" | "video" | "audio";
+      if (element instanceof HTMLVideoElement) kind = "video";
+      else if (element instanceof HTMLAudioElement) kind = "audio";
+      else if (element instanceof HTMLImageElement) kind = "image";
+      else return undefined;
       const candidate = element.currentSrc || element.src;
-      return /^(https?|ftp|blob|data):/i.test(candidate) ? candidate : undefined;
+      return /^(https?|ftp|blob|data):/i.test(candidate) ? { url: candidate, kind } : undefined;
     };
 
     // Shadow-DOM retargeting can hide the actual media element from e.target.
@@ -100,11 +107,11 @@ const ClickToSave = {
         e.target instanceof Element ? e.target.closest<HTMLAnchorElement>("a[href]") : null;
       const href = (pathAnchor ?? targetAnchor)?.href;
       if (href && /^(https?|ftp|blob|data):/i.test(href)) {
-        source = href;
+        source = { url: href, kind: "link" };
       }
     }
 
-    return source || undefined;
+    return source;
   },
 };
 
@@ -246,7 +253,14 @@ const setupClickToSave = (
           e.preventDefault();
           e.stopImmediatePropagation();
           void sendRuntimeDownload(
-            { url: source, info: { pageUrl: `${window.location}`, srcUrl: source } },
+            {
+              url: source.url,
+              info: {
+                pageUrl: `${window.location}`,
+                srcUrl: source.url,
+                sourceKind: source.kind,
+              },
+            },
             2,
             downloadLifecycle,
           );

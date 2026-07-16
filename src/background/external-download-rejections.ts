@@ -3,6 +3,7 @@ import { EXTERNAL_DOWNLOAD_REJECTIONS_STORAGE_KEY } from "../shared/storage-keys
 import { recordPersistenceFailure } from "../shared/persistence-diagnostics.ts";
 import type { DownloadRequestBody } from "../shared/message-protocol.ts";
 import type { ExternalDownloadRejection } from "../shared/external-download-rejection-types.ts";
+import { createSerialQueue } from "../shared/serial-queue.ts";
 
 type RejectionStorage = {
   get(key: string): Promise<Record<string, unknown>>;
@@ -43,7 +44,7 @@ export const createExternalDownloadRejections = (
   storage: RejectionStorage,
   now: () => Date = () => new Date(),
 ) => {
-  let writes: Promise<unknown> = Promise.resolve();
+  const { enqueue, settled } = createSerialQueue();
 
   const read = async (): Promise<ExternalDownloadRejection[]> => {
     try {
@@ -77,15 +78,9 @@ export const createExternalDownloadRejections = (
     }
   };
 
-  const enqueue = <T>(task: () => Promise<T>): Promise<T> => {
-    const next = writes.catch(() => {}).then(task);
-    writes = next;
-    return next;
-  };
-
   return {
     get: async (): Promise<ExternalDownloadRejection[]> => {
-      await writes.catch(() => {});
+      await settled();
       return read();
     },
 

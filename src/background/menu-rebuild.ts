@@ -67,10 +67,28 @@ const performMenuRebuild = async (): Promise<void> => {
   addSourcePanel(actionContexts);
 };
 
-let rebuildQueue = Promise.resolve();
+let runningRebuild: Promise<void> | null = null;
+let rebuildQueued = false;
+
+// Serialize rebuilds (removeAll + recreate must never interleave) and coalesce a
+// burst during an in-flight rebuild into a single trailing pass — only the final
+// menu state is observable, so N back-to-back requests need one extra rebuild,
+// not N. `runningRebuild` is cleared only after the loop fully drains (a
+// synchronous check with no awaited gap in between), so a fresh request can
+// never start a second concurrent rebuild.
+const drainRebuilds = async (): Promise<void> => {
+  try {
+    do {
+      rebuildQueued = false;
+      await performMenuRebuild();
+    } while (rebuildQueued);
+  } finally {
+    runningRebuild = null;
+  }
+};
 
 export const rebuildMenus = (): Promise<void> => {
-  const next = rebuildQueue.catch(() => {}).then(performMenuRebuild);
-  rebuildQueue = next;
-  return next;
+  rebuildQueued = true;
+  runningRebuild ??= drainRebuilds();
+  return runningRebuild;
 };

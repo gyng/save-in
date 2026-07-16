@@ -95,10 +95,22 @@ test("lists rejected callers and adds an approved caller to the allowlist", asyn
           body: {
             rejections: [
               {
+                senderId: "active-tab-extension",
+                attempts: 1,
+                lastRejectedAt: "2026-07-13T09:00:00.000Z",
+                requestType: "activeTab",
+              },
+              {
                 senderId: "blocked-extension",
                 attempts: 3,
                 lastRejectedAt: "2026-07-13T10:00:00.000Z",
                 requestType: "url",
+              },
+              {
+                senderId: "download-extension",
+                attempts: 2,
+                lastRejectedAt: "2026-07-13T11:00:00.000Z",
+                requestType: "unknown",
               },
             ],
           },
@@ -126,6 +138,13 @@ test("lists rejected callers and adds an approved caller to the allowlist", asyn
     expect(document.querySelector("[data-rejected-sender-id='blocked-extension']")).not.toBeNull(),
   );
   const row = document.querySelector<HTMLElement>("[data-rejected-sender-id='blocked-extension']")!;
+  expect(
+    document.querySelector("[data-rejected-sender-id='active-tab-extension']")?.textContent,
+  ).toContain("Active-tab request");
+  expect(row.textContent).toContain("URL request");
+  expect(
+    document.querySelector("[data-rejected-sender-id='download-extension']")?.textContent,
+  ).toContain("Download request");
 
   row.querySelector<HTMLButtonElement>("button")?.click();
 

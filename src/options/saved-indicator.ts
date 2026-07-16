@@ -47,8 +47,8 @@ const displayName = (name: string): string => {
 };
 
 const displayValue = (value: unknown): string => {
-  if (value === true) return getMessage("webhookStateOn") || "On";
-  if (value === false) return getMessage("webhookStateOff") || "Off";
+  if (value === true) return getMessage("savedValueOn") || "On";
+  if (value === false) return getMessage("savedValueOff") || "Off";
   if (value == null || value === "") return getMessage("html_none") || "None";
   const text = typeof value === "string" ? value : JSON.stringify(value);
   return text.length > 48 ? `${text.slice(0, 45)}…` : text;

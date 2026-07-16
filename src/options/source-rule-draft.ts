@@ -2,6 +2,7 @@ import { webExtensionApi } from "../platform/web-extension-api.ts";
 import { SOURCE_RULE_DRAFT_SESSION_KEY } from "../shared/storage-keys.ts";
 import { isStringKeyedRecord } from "../shared/util.ts";
 import { appendRule } from "./rule-builder.ts";
+import { createSerialQueue } from "../shared/serial-queue.ts";
 
 const readDraft = async (): Promise<string | null> => {
   const areas = webExtensionApi.storage.session
@@ -35,15 +36,9 @@ const consumeSourceRuleDraft = async (): Promise<boolean> => {
   return true;
 };
 
-let applyQueue = Promise.resolve();
-export const applySourceRuleDraft = (): Promise<boolean> => {
-  const task = applyQueue.then(consumeSourceRuleDraft, consumeSourceRuleDraft);
-  applyQueue = task.then(
-    () => undefined,
-    () => undefined,
-  );
-  return task;
-};
+const sourceRuleDraftQueue = createSerialQueue();
+export const applySourceRuleDraft = (): Promise<boolean> =>
+  sourceRuleDraftQueue.enqueue(consumeSourceRuleDraft);
 
 let listenerInstalled = false;
 export const setupSourceRuleDraft = (): void => {

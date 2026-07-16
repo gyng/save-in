@@ -141,4 +141,14 @@ test("tolerates partial markup and reports unavailable version metadata", () => 
   setCurrentBrowser(BROWSERS.CHROME);
   setupAboutDialog();
   expect(document.querySelector("#about-version")?.textContent).toBe("Nicht verfügbar");
+
+  vi.mocked(webExtensionApi.i18n.getMessage).mockReturnValue("");
+  document.body.innerHTML = `
+    <button id="about-open">About</button>
+    <dialog id="about-dialog">
+      <button class="about-close">Close</button>
+      <span id="about-version"></span>
+    </dialog>`;
+  setupAboutDialog();
+  expect(document.querySelector("#about-version")?.textContent).toBe("Unavailable");
 });

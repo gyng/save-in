@@ -101,6 +101,10 @@ export const retryViaFetch = async (
     expected = services.notifier.expectDownload(downloadUrl, {
       privateContext,
       ...(record.sourceSidecar === true ? { sourceSidecar: true } : {}),
+      // Carry the pending sidecar so a completion merged from the provisional
+      // record (before rememberStartedDownload persists the full one) still
+      // writes the source shortcut for a retried save.
+      ...(record.pendingSourceSidecar ? { pendingSourceSidecar: record.pendingSourceSidecar } : {}),
     });
     await Promise.all(
       privateContext

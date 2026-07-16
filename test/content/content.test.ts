@@ -20,7 +20,10 @@ describe("findSource", () => {
     document.body.innerHTML = '<img id="i" src="http://x.test/pic.png">';
     const img = document.getElementById("i");
 
-    expect(ClickToSave.findSource(event(img), false)).toBe("http://x.test/pic.png");
+    expect(ClickToSave.findSource(event(img), false)).toEqual({
+      url: "http://x.test/pic.png",
+      kind: "image",
+    });
   });
 
   test("finds media in a composed event path before coordinate fallback", () => {
@@ -34,7 +37,7 @@ describe("findSource", () => {
         { ...event(host), composedPath: () => [host, img, document, window] },
         false,
       ),
-    ).toBe("http://x.test/path.png");
+    ).toEqual({ url: "http://x.test/path.png", kind: "image" });
   });
 
   test("finds a composed-path link when the event target is not an element", () => {
@@ -46,7 +49,7 @@ describe("findSource", () => {
         { ...event(window), composedPath: () => [window, link, document] },
         true,
       ),
-    ).toBe("https://example.test/file.pdf");
+    ).toEqual({ url: "https://example.test/file.pdf", kind: "link" });
   });
 
   test("finds media below an overlay via elementsFromPoint", () => {
@@ -57,14 +60,20 @@ describe("findSource", () => {
       [overlay, img].filter((element): element is HTMLElement => element != null),
     );
 
-    expect(ClickToSave.findSource(event(overlay), false)).toBe("http://x.test/pic.png");
+    expect(ClickToSave.findSource(event(overlay), false)).toEqual({
+      url: "http://x.test/pic.png",
+      kind: "image",
+    });
   });
 
   test("falls back to the enclosing link when no media is found (#226)", () => {
     document.body.innerHTML = '<a href="/files/doc.pdf"><span id="s">PDF</span></a>';
     const span = document.getElementById("s");
 
-    expect(ClickToSave.findSource(event(span), true)).toBe("http://localhost/files/doc.pdf");
+    expect(ClickToSave.findSource(event(span), true)).toEqual({
+      url: "http://localhost/files/doc.pdf",
+      kind: "link",
+    });
   });
 
   test("finds a link in the composed path across a shadow boundary", () => {
@@ -78,7 +87,7 @@ describe("findSource", () => {
         { ...event(host), composedPath: () => [host, anchor, document, window] },
         true,
       ),
-    ).toBe("http://localhost/shadow.pdf");
+    ).toEqual({ url: "http://localhost/shadow.pdf", kind: "link" });
   });
 
   test("does not fall back to links when links are disabled", () => {
@@ -92,7 +101,10 @@ describe("findSource", () => {
     document.body.innerHTML = '<a href="/page.html"><img id="i" src="http://x.test/pic.png"></a>';
     const img = document.getElementById("i");
 
-    expect(ClickToSave.findSource(event(img), true)).toBe("http://x.test/pic.png");
+    expect(ClickToSave.findSource(event(img), true)).toEqual({
+      url: "http://x.test/pic.png",
+      kind: "image",
+    });
   });
 
   test("ignores non-downloadable link schemes", () => {
@@ -107,7 +119,10 @@ describe("findSource", () => {
       '<a href="/files/document.pdf"><iframe id="frame" src="/embedded/page.html"></iframe></a>';
     const frame = document.querySelector("iframe");
 
-    expect(ClickToSave.findSource(event(frame), true)).toBe("http://localhost/files/document.pdf");
+    expect(ClickToSave.findSource(event(frame), true)).toEqual({
+      url: "http://localhost/files/document.pdf",
+      kind: "link",
+    });
     expect(ClickToSave.findSource(event(frame), false)).toBeUndefined();
   });
 
@@ -1151,7 +1166,11 @@ describe("setupClickToSave", () => {
         type: "DOWNLOAD",
         body: {
           url: "http://x.test/pic.png",
-          info: { pageUrl: `${window.location}`, srcUrl: "http://x.test/pic.png" },
+          info: {
+            pageUrl: `${window.location}`,
+            srcUrl: "http://x.test/pic.png",
+            sourceKind: "image",
+          },
         },
       },
       expect.any(Function),

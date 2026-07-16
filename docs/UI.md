@@ -26,8 +26,9 @@ production styles retain a clear owner.
 Keep syntax-editor surfaces split between the editor/highlighting core and
 `style-syntax-popovers.css`. Keep History table controls in `style-history.css`
 and rich column metadata/status presentation in `style-history-metadata.css`.
-Keep foundational Options tokens in `style-tokens.css` and custom presets in
-`style-themes.css`. Page Sources follows the same token/theme split; its header,
+Keep foundational Options tokens in `style-tokens.css`, the theme role mapping
+and accessibility palettes in `style-themes.css`, and the named preset palettes
+in `style-theme-palettes.css`. Page Sources follows the same token/theme split; its header,
 menus, toolbar, and facets belong in `source-panel-controls.css`, while viewport,
 container, pointer, motion, and forced-color adaptations belong in
 `source-panel-responsive.css` after its result styles.

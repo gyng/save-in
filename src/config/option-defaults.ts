@@ -11,7 +11,7 @@ export const OPTION_DEFAULTS = {
   conflictAction: CONFLICT_ACTION.UNIQUIFY,
   debug: false,
   enableLastLocation: true,
-  recentDestinationCount: 3,
+  recentDestinationCount: 1,
   enableNumberedItems: true,
   filenamePatterns: "",
   keyLastUsed: "e",

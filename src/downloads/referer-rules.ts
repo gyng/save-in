@@ -1,6 +1,7 @@
 import { BROWSERS, CURRENT_BROWSER } from "../platform/chrome-detector.ts";
 import type { ProtectedRequestMethod } from "../routing/ports.ts";
 import { MAX_PROTECTED_URL_EXTENSIONS, type RefererProtection } from "../shared/protected-fetch.ts";
+import { createSerialQueue } from "../shared/serial-queue.ts";
 
 export const REFERER_SESSION_RULE_ID = 66_000_001;
 
@@ -35,7 +36,9 @@ type ExtensionHost = {
   };
 };
 
-let ruleQueue: Promise<void> = Promise.resolve();
+// Referer session rules are shared state that must never carry two values at
+// once, so every rule mutation runs through one serial queue.
+const { enqueue, settled } = createSerialQueue();
 
 const extensionHost = (): ExtensionHost | undefined => {
   if (CURRENT_BROWSER === BROWSERS.FIREFOX) {
@@ -114,15 +117,6 @@ export const buildRule = (
   };
 };
 
-const enqueue = <T>(operation: () => Promise<T>): Promise<T> => {
-  const result = ruleQueue.then(operation, operation);
-  ruleQueue = result.then(
-    () => undefined,
-    () => undefined,
-  );
-  return result;
-};
-
 const removeRule = async (): Promise<void> => {
   const api = dnrApi();
   if (!api) return;
@@ -140,7 +134,7 @@ export const cleanupStaleRefererRule = (): Promise<void> =>
   canUseRefererRules() ? enqueue(removeRule) : Promise.resolve();
 
 export const resetRefererRules = async (): Promise<void> => {
-  await ruleQueue;
+  await settled();
   if (canUseRefererRules()) await enqueue(removeRule);
 };
 

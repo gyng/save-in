@@ -115,6 +115,12 @@ label:has(> input[type="checkbox"]) > .caption-line {
   gap: var(--space-2);
 }
 
+/* Nest the Recent locations count under "Show last used menu item": its label
+   aligns with that checkbox's text (checkbox box width + label gap). */
+.inline-control-label.recent-locations {
+  margin-inline-start: calc(1em + var(--space-2));
+}
+
 .badge {
   padding: var(--space-1);
   border-radius: var(--radius);

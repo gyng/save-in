@@ -56,25 +56,28 @@ export const makeUrlFromBlob = (blob: BlobContent): Promise<string> => {
   });
 };
 
-export const resolveContent = (
-  url: string,
-  privateContext = false,
-  signal?: AbortSignal,
-  requestId: string = crypto.randomUUID(),
-  referer?: string,
-): Promise<ContentFetchResult | null> => {
-  const credentials = getExtensionFetchCredentials(privateContext);
-  const fetchContent = async (protection?: RefererProtection): Promise<ContentFetchResult> => {
+// resolveContent (hashing) and fetchUrlForDownload (direct) share the same
+// offscreen-vs-fetchProtected dispatch and Referer plumbing; only hashing, the
+// sha, and the object-URL strategy differ. One fetcher keeps the two protected
+// paths from drifting and reintroducing the unprotected-redirect bug (#193).
+const makeContentFetcher =
+  (
+    url: string,
+    credentials: ExtensionFetchCredentials,
+    requestId: string,
+    signal: AbortSignal | undefined,
+    hash: boolean,
+  ) =>
+  async (protection?: RefererProtection): Promise<ContentFetchResult> => {
     if (OffscreenClient.canUse()) {
       return offscreenFetchProtected(
         url,
         credentials,
-        { requestId, hash: true, ...(signal ? { signal } : {}) },
+        { requestId, ...(hash ? { hash: true } : {}), ...(signal ? { signal } : {}) },
         protection,
       );
     }
-
-    const res = await fetchProtected(
+    const response = await fetchProtected(
       () =>
         fetchFollowingRedirects(
           url,
@@ -83,16 +86,25 @@ export const resolveContent = (
         ),
       protection,
     );
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const content = await readResponseContent(res, true, signal);
-    const downloadUrl = URL.createObjectURL(content.blob);
+    if (response.ok === false) throw new Error(`HTTP ${response.status}`);
+    const content = await readResponseContent(response, hash, signal);
+    const downloadUrl = await makeUrlFromBlob(content.blob);
     return {
-      sha256: content.sha256,
+      sha256: hash ? content.sha256 : "",
       downloadUrl,
-      ownedObjectUrl: downloadUrl,
+      ...(downloadUrl.startsWith("blob:") ? { ownedObjectUrl: downloadUrl } : {}),
     };
   };
 
+export const resolveContent = (
+  url: string,
+  privateContext = false,
+  signal?: AbortSignal,
+  requestId: string = crypto.randomUUID(),
+  referer?: string,
+): Promise<ContentFetchResult | null> => {
+  const credentials = getExtensionFetchCredentials(privateContext);
+  const fetchContent = makeContentFetcher(url, credentials, requestId, signal, true);
   const task = referer ? withRequestReferer(url, referer, fetchContent) : fetchContent();
   return task.catch((error): ContentFetchResult | null => {
     if (signal?.aborted) throw error;
@@ -108,32 +120,6 @@ export const fetchUrlForDownload = async (
   referer?: string,
 ): Promise<ContentFetchResult> => {
   const credentials = getExtensionFetchCredentials(privateContext);
-  const fetchContent = async (protection?: RefererProtection): Promise<ContentFetchResult> => {
-    if (OffscreenClient.canUse()) {
-      return offscreenFetchProtected(
-        url,
-        credentials,
-        { requestId, ...(signal ? { signal } : {}) },
-        protection,
-      );
-    }
-    const response = await fetchProtected(
-      () =>
-        fetchFollowingRedirects(
-          url,
-          { credentials, ...(signal ? { signal } : {}) },
-          HASH_FETCH_TIMEOUT_MS,
-        ),
-      protection,
-    );
-    if (response.ok === false) throw new Error(`HTTP ${response.status}`);
-    const content = await readResponseContent(response, false, signal);
-    const downloadUrl = await makeUrlFromBlob(content.blob);
-    return {
-      sha256: "",
-      downloadUrl,
-      ...(downloadUrl.startsWith("blob:") ? { ownedObjectUrl: downloadUrl } : {}),
-    };
-  };
+  const fetchContent = makeContentFetcher(url, credentials, requestId, signal, false);
   return referer ? withRequestReferer(url, referer, fetchContent) : fetchContent();
 };
