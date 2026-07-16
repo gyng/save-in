@@ -11,15 +11,15 @@ import type { WireIntegrationGrammar } from "../../shared/message-protocol.ts";
 import { cssSelectorErrors } from "../core/css-selector-validation.ts";
 import {
   RULE_CRITIQUE_RESPONSE_CONSTRAINT,
-  RULE_DRAFT_RESPONSE_CONSTRAINT,
-  buildRuleAuthoringPrompt,
+  RULE_PLAN_RESPONSE_CONSTRAINT,
+  assembleRule,
   buildRuleCritiquePrompt,
+  buildRulePlanPrompt,
   describesSameRule,
   isSingleRuleSuggestion,
   parseRuleCritique,
-  parseRuleDraft,
+  parseRulePlan,
   ruleRequestGuardrailIssues,
-  sanitizeRuleDraft,
   type RuleAuthoringVocabulary,
 } from "./prompt-assistant-model.ts";
 
@@ -243,10 +243,13 @@ export const setupPromptAssistantPanel = (
         ruleAuthoringVocabulary(),
       ]);
       if (!isCurrent()) return;
-      const authorOutput = await runPrompt(buildRuleAuthoringPrompt(request, grammar, vocabulary), {
+      // The model reports the facts of the request; the rule text is assembled
+      // here. A small on-device model honours a response schema reliably and
+      // spells the routing grammar unreliably, so nothing it returns is syntax.
+      const authorOutput = await runPrompt(buildRulePlanPrompt(request), {
         allowDownload: true,
         signal: controller.signal,
-        responseConstraint: RULE_DRAFT_RESPONSE_CONSTRAINT,
+        responseConstraint: RULE_PLAN_RESPONSE_CONSTRAINT,
         onDownloadProgress: (loaded) => {
           if (!isCurrent()) return;
           progress.hidden = false;
@@ -260,8 +263,8 @@ export const setupPromptAssistantPanel = (
         },
       });
       if (!isCurrent()) return;
-      const draft = authorOutput ? parseRuleDraft(authorOutput) : null;
-      let candidate = draft ? sanitizeRuleDraft(draft, vocabulary) : null;
+      const plan = authorOutput ? parseRulePlan(authorOutput) : null;
+      let candidate = plan ? assembleRule(plan) : null;
       if (!candidate) throw new Error(copy.unusable);
 
       let issues = await validationIssues(request, candidate);
@@ -277,10 +280,14 @@ export const setupPromptAssistantPanel = (
       if (!isCurrent()) return;
       const critique = critiqueOutput ? parseRuleCritique(critiqueOutput) : null;
       if (!critique) throw new Error(copy.unusableReview);
+      // The reviewer's repair is a plan too, so agreement is decided on the rule
+      // its plan assembles to, not on how it retyped one.
+      const critiqueRule = assembleRule(critique.repairedPlan);
       if (
         issues.length === 0 &&
         critique.accepted &&
-        describesSameRule(candidate, critique.repairedRule)
+        critiqueRule !== null &&
+        describesSameRule(candidate, critiqueRule)
       ) {
         showCandidate(candidate);
         add.disabled = false;
@@ -288,7 +295,7 @@ export const setupPromptAssistantPanel = (
         return;
       }
 
-      const repaired = sanitizeRuleDraft(critique.repairedRule, vocabulary);
+      const repaired = critiqueRule;
       if (!repaired) throw new Error(copy.unusable);
       candidate = repaired;
       issues = await validationIssues(request, candidate);
@@ -305,10 +312,12 @@ export const setupPromptAssistantPanel = (
       const finalReview = finalReviewOutput ? parseRuleCritique(finalReviewOutput) : null;
       if (!finalReview) throw new Error(copy.unusableReview);
       showCandidate(candidate);
+      const finalReviewRule = assembleRule(finalReview.repairedPlan);
       if (
         issues.length === 0 &&
         finalReview.accepted &&
-        describesSameRule(candidate, finalReview.repairedRule)
+        finalReviewRule !== null &&
+        describesSameRule(candidate, finalReviewRule)
       ) {
         add.disabled = false;
         setStatus(copy.draftReady, "success");

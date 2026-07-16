@@ -1,18 +1,19 @@
 import {
-  buildRuleAuthoringPrompt,
+  RULE_PLAN_RESPONSE_CONSTRAINT,
+  assembleRule,
   buildRuleCritiquePrompt,
-  cleanRuleSuggestion,
+  buildRulePlanPrompt,
   describesSameRule,
   isSingleRuleSuggestion,
   parseRuleCritique,
-  parseRuleDraft,
+  parseRulePlan,
   ruleRequestGuardrailIssues,
-  sanitizeRuleDraft,
+  type RulePlan,
 } from "../../../src/options/integrations/prompt-assistant-model.ts";
+import { parseRulesCollecting } from "../../../src/routing/rule-parser.ts";
+import { PAGE_SOURCE_KINDS } from "../../../src/shared/page-source.ts";
 import { transformers } from "../../../src/routing/variable.ts";
 import { matcherFunctions } from "../../../src/routing/matchers.ts";
-
-const vocabulary = { matchers: ["fileext", "pagedomain", "css"], variables: ["filename"] };
 
 const grammar = {
   id: "routing" as const,
@@ -22,179 +23,259 @@ const grammar = {
   examples: ["fileext: ^png$\ninto: Images/:filename:"],
 };
 
-describe("Prompt API rule-authoring model", () => {
-  test("builds a bounded grammar-grounded request for one rule", () => {
-    // GET_KEYWORDS sends variables already delimited, as SPECIAL_DIRS spells them.
-    const result = buildRuleAuthoringPrompt("Put PNG files in Images", grammar, {
-      matchers: ["fileext", "pagedomain"],
-      variables: [":filename:", ":pagedomain:"],
-    });
+describe("Prompt API rule-plan model", () => {
+  test("asks for the facts of the request instead of for rule syntax", () => {
+    const result = buildRulePlanPrompt("Put PNG files in Images");
 
     expect(result).toContain("Put PNG files in Images");
-    expect(result).toContain(grammar.ebnf);
-    expect(result).not.toContain(grammar.examples[0]);
-    expect(result).toContain("fileext, pagedomain");
-    expect(result).toContain(":filename:, :pagedomain:");
-    expect(result).not.toContain("::");
+    expect(result).toContain("You are not writing rule syntax");
     expect(result).toContain("Return JSON matching the supplied response schema");
-    expect(result).toContain("Do not add file types, sites, folders, renames, or behavior");
-    expect(result).toContain("categories, not filename extensions");
-  });
-
-  test("names the vocabulary the background actually sends", () => {
-    // Built the way the GET_KEYWORDS handler builds it, so a change to
-    // SPECIAL_DIRS or the registries cannot drift the reference the model reads
-    // without failing here first.
-    const wireVocabulary = {
-      matchers: [...Object.keys(matcherFunctions), "css"],
-      variables: Object.keys(transformers),
-    };
-    const result = buildRuleAuthoringPrompt("save png into /dongs", grammar, wireVocabulary);
-
-    expect(result).not.toContain("::");
-    expect(result).toContain(":filename:");
-    expect(result).toContain("fileext");
+    // The grammar is what the model cannot spell. Showing it to the author step
+    // would only invite it back into a field that is no longer rule text.
+    expect(result).not.toContain(grammar.ebnf);
+    expect(result).not.toContain("into:");
+    expect(result).toContain("sourceKind");
+    expect(result).toContain("never expand a category into fileExtensions");
   });
 
   test("states the requirements it will enforce, last, where the model reads them", () => {
-    const vocabulary = { matchers: ["fileext", "sourcekind"], variables: [":filename:"] };
-    const result = buildRuleAuthoringPrompt("save png into /dongs", grammar, vocabulary);
+    const result = buildRulePlanPrompt("save png into /dongs");
 
-    expect(result).toContain("Match only these file types: png.");
-    expect(result).toContain("Save into the dongs/ folder.");
-    expect(result).toContain("dongs/:filename:");
+    expect(result).toContain("fileExtensions must be exactly: png.");
+    expect(result).toContain("folder must be dongs.");
+    expect(result).toContain("Leave filename out");
     expect(result.indexOf("This request requires exactly:")).toBeGreaterThan(
       result.indexOf("User request"),
     );
   });
 
-  // A request that asks for a rename must not also be told to keep the
-  // original filename: the two requirements contradict each other.
+  // A request that asks for a rename must not also be told to leave the
+  // filename out: the two requirements contradict each other.
   test("omits the keep-the-filename requirement when the request asks for a rename", () => {
-    const vocabulary = { matchers: ["fileext"], variables: [":filename:", ":sha256:"] };
-    const result = buildRuleAuthoringPrompt(
-      "save png into /dongs and rename to :sha256:",
-      grammar,
-      vocabulary,
-    );
+    const result = buildRulePlanPrompt("save png into /dongs and rename to :sha256:");
 
-    expect(result).toContain("Save into the dongs/ folder.");
-    expect(result).not.toContain("Keep the original filename");
+    expect(result).toContain("folder must be dongs.");
+    expect(result).not.toContain("Leave filename out");
   });
 
   test("still requires the filename when the request asks to keep it", () => {
-    const vocabulary = { matchers: ["fileext"], variables: [":filename:"] };
-    const result = buildRuleAuthoringPrompt(
-      "save png into /dongs and keep the original filename",
-      grammar,
-      vocabulary,
+    expect(buildRulePlanPrompt("save png into /dongs and keep the original filename")).toContain(
+      "Leave filename out",
     );
-
-    expect(result).toContain("Keep the original filename");
   });
 
   test("states a category requirement without inventing a file type", () => {
-    const vocabulary = { matchers: ["fileext", "sourcekind"], variables: [":filename:"] };
-    const result = buildRuleAuthoringPrompt(
-      "save images from docs.example.com into /archive",
-      grammar,
-      vocabulary,
-    );
+    const result = buildRulePlanPrompt("save images from docs.example.com into /archive");
 
-    expect(result).toContain("sourcekind");
-    expect(result).toContain("Match only the docs.example.com site.");
-    expect(result).toContain("Save into the archive/ folder.");
-    expect(result).not.toContain("Match only these file types");
+    expect(result).toContain("is a category, not a file type");
+    expect(result).toContain("site must be docs.example.com.");
+    expect(result).toContain("folder must be archive.");
+    expect(result).not.toContain("fileExtensions must be exactly");
   });
 
   test("adds no requirements it cannot prove from the request", () => {
-    const vocabulary = { matchers: ["fileext"], variables: [":filename:"] };
-    const result = buildRuleAuthoringPrompt("sort my downloads sensibly", grammar, vocabulary);
-
-    expect(result).not.toContain("This request requires exactly:");
-  });
-
-  test("extracts a fenced rule without retaining Markdown", () => {
-    expect(
-      cleanRuleSuggestion("Here is the rule:\n```text\nfileext: ^png$\ninto: Images\n```"),
-    ).toBe("fileext: ^png$\ninto: Images");
-  });
-
-  test("preserves an unfenced rule and rejects empty output", () => {
-    expect(cleanRuleSuggestion("  fileext: ^png$\ninto: Images  ")).toBe(
-      "fileext: ^png$\ninto: Images",
+    expect(buildRulePlanPrompt("sort my downloads sensibly")).not.toContain(
+      "This request requires exactly:",
     );
-    expect(cleanRuleSuggestion("  \n ")).toBeNull();
-    expect(cleanRuleSuggestion("```text\n   \n```")).toBeNull();
   });
 
-  test("drops explanatory prose the model adds around recognized clauses", () => {
+  test("narrows a constrained plan response at the runtime boundary", () => {
     expect(
-      sanitizeRuleDraft(
-        "Here is your rule:\nfileext/i: ^(?:pdf|png)$\ninto: archive/:filename:\n\nrule, context, sourcekind, fileext, ...",
-        vocabulary,
+      parseRulePlan(
+        JSON.stringify({ folder: "archive", fileExtensions: ["png", 7], sourceKind: "image" }),
       ),
-    ).toBe("fileext/i: ^(?:pdf|png)$\ninto: archive/:filename:");
+    ).toEqual({ folder: "archive", fileExtensions: ["png"], sourceKind: "image" });
+    // folder is the one field every plan needs; the rest are absent, not
+    // undefined, when the model leaves them out.
+    expect(parseRulePlan(JSON.stringify({ folder: "archive" }))).toEqual({ folder: "archive" });
+    expect(parseRulePlan(JSON.stringify({ fileExtensions: ["png"] }))).toBeNull();
+    expect(parseRulePlan(JSON.stringify({ folder: 7 }))).toBeNull();
+    expect(parseRulePlan("not JSON")).toBeNull();
+    expect(parseRulePlan("[]")).toBeNull();
   });
+});
 
-  test("retains comments, flags, and clause values containing separators", () => {
+const assembled = (plan: RulePlan): string => {
+  const rule = assembleRule(plan);
+  if (rule === null) throw new Error(`assembleRule returned null for ${JSON.stringify(plan)}`);
+  return rule;
+};
+
+describe("deterministic rule assembly", () => {
+  test("anchors a file-type plan so a neighbouring extension cannot match", () => {
+    // Unanchored "png" also takes apng, which is the broadening the model kept
+    // producing when it wrote the matcher itself.
+    expect(assembled({ folder: "archive", fileExtensions: ["png", "pdf"] })).toBe(
+      "fileext/i: ^(?:png|pdf)$\ninto: archive/:filename:",
+    );
     expect(
-      sanitizeRuleDraft(
-        "// Save PDFs\ncss: div > a\nrename/i: ^(.*)$ -> cover.png\ninto: archive/:filename:",
-        vocabulary,
+      ruleRequestGuardrailIssues(
+        "save png into /archive",
+        assembled({
+          folder: "archive",
+          fileExtensions: ["png"],
+        }),
       ),
-    ).toBe("// Save PDFs\ncss: div > a\nrename/i: ^(.*)$ -> cover.png\ninto: archive/:filename:");
+    ).toEqual([]);
   });
 
-  test("splits clauses the model joined with commas, as the grammar's own syntax does", () => {
-    const wide = { matchers: ["fileext", "sourcekind", "pagedomain"], variables: [":filename:"] };
-
-    // Each split clause is then spaced off its colon, as the parser needs.
-    expect(sanitizeRuleDraft("sourcekind:image, fileext:png, into:dongs/:filename:", wide)).toBe(
-      "sourcekind: image\nfileext: png\ninto: dongs/:filename:",
+  test("normalizes the spellings of an extension the model may return", () => {
+    expect(assembled({ folder: "a", fileExtensions: [".PNG", "png", " jpg "] })).toBe(
+      "fileext/i: ^(?:png|jpg)$\ninto: a/:filename:",
     );
-  });
-
-  test("spaces a clause value the model pushed against the colon", () => {
-    const wide = { matchers: ["fileext", "sourcekind", "pagedomain"], variables: [":filename:"] };
-
-    // The grammar calls the space optional, but a value written against the
-    // colon loses its leading "/" to the regex-flags separator and the clause
-    // dies as an invalid regex.
-    expect(sanitizeRuleDraft("fileext:png\ninto:dongs/:filename:", wide)).toBe(
-      "fileext: png\ninto: dongs/:filename:",
-    );
-    // An existing space is left exactly as it is: a second one would become
-    // part of the value.
-    expect(sanitizeRuleDraft("fileext/i: ^png$\ninto: dongs/:filename:", wide)).toBe(
-      "fileext/i: ^png$\ninto: dongs/:filename:",
-    );
-    expect(sanitizeRuleDraft("fileext/i:^png$\ninto: dongs/", wide)).toBe(
-      "fileext/i: ^png$\ninto: dongs/",
+    // One type needs no alternation group around it.
+    expect(assembled({ folder: "a", fileExtensions: ["PNG", "png"] })).toBe(
+      "fileext/i: ^png$\ninto: a/:filename:",
     );
   });
 
-  test("splits only at a comma that opens another clause", () => {
-    const wide = { matchers: ["fileext", "sourcekind", "pagedomain"], variables: [":filename:"] };
-
-    // A comma inside a regex is part of the regex, not a separator.
-    expect(sanitizeRuleDraft("fileext: ^(?:a,b)$\ninto: x/:filename:", wide)).toBe(
-      "fileext: ^(?:a,b)$\ninto: x/:filename:",
+  test("escapes regex metacharacters in an extracted value", () => {
+    // A value from the model is untrusted input, not a pattern.
+    expect(assembled({ folder: "a", fileExtensions: ["c++"] })).toBe(
+      "fileext/i: ^c\\+\\+$\ninto: a/:filename:",
     );
-    expect(sanitizeRuleDraft("fileext: ^png$\ninto: my, files/:filename:", wide)).toBe(
-      "fileext: ^png$\ninto: my, files/:filename:",
+    expect(assembled({ folder: "a", site: "docs.example.com" })).toContain(
+      "(?:^|\\.)docs\\.example\\.com$",
     );
   });
 
-  test("rejects unknown clause-looking text instead of silently dropping it", () => {
-    // Dropping a misnamed matcher would leave a rule that matches every file.
-    expect(sanitizeRuleDraft("extension: ^png$\ninto: archive/:filename:", vocabulary)).toBeNull();
-    expect(sanitizeRuleDraft("Note: this saves PNG files\nfileext: ^png$", vocabulary)).toBeNull();
+  test("matches a category with sourcekind for every kind the collector reports", () => {
+    for (const kind of PAGE_SOURCE_KINDS) {
+      expect(assembled({ folder: "a", sourceKind: kind })).toBe(
+        `sourcekind: ^${kind}$\ninto: a/:filename:`,
+      );
+    }
   });
 
-  test("rejects a draft that keeps no clause at all", () => {
-    expect(sanitizeRuleDraft("I cannot create that rule.", vocabulary)).toBeNull();
-    expect(sanitizeRuleDraft("   \n\n  ", vocabulary)).toBeNull();
+  test("reads a named site as the page being browsed unless the request says otherwise", () => {
+    // pageUrl is present for every save, and "from example.com" almost always
+    // names the site the user is on rather than the host serving the bytes.
+    expect(assembled({ folder: "a", site: "example.com" })).toContain("pagedomain: ");
+    expect(assembled({ folder: "a", site: "example.com", siteScope: "page" })).toContain(
+      "pagedomain: ",
+    );
+    expect(assembled({ folder: "a", site: "cdn.example.com", siteScope: "source" })).toContain(
+      "sourcedomain: ",
+    );
+  });
+
+  test("accepts a subdomain of the named site but not a lookalike host", () => {
+    const rule = assembled({ folder: "a", site: "example.com" });
+    const expression = new RegExp(rule.split("pagedomain: ")[1]?.split("\n")[0] ?? "");
+
+    expect(expression.test("example.com")).toBe(true);
+    expect(expression.test("docs.example.com")).toBe(true);
+    expect(expression.test("notexample.com")).toBe(false);
+    expect(expression.test("example.com.attacker.test")).toBe(false);
+  });
+
+  test("keeps the original filename unless the plan renames the file", () => {
+    expect(assembled({ folder: "archive", fileExtensions: ["png"] })).toContain(
+      "into: archive/:filename:",
+    );
+    expect(
+      assembled({ folder: "Pictures", fileExtensions: ["png"], filename: "cover.png" }),
+    ).toContain("into: Pictures/cover.png");
+  });
+
+  test("roots a folder inside the extension's directory however the model spells it", () => {
+    // A leading slash is the request's shorthand for an extension-relative
+    // folder; passed through, the destination is rejected as non-relative.
+    for (const folder of ["/archive", "archive/", " /archive/ ", "//archive//"]) {
+      expect(assembled({ folder, fileExtensions: ["png"] })).toContain("into: archive/:filename:");
+    }
+    expect(assembled({ folder: "/a/b/c", fileExtensions: ["png"] })).toContain(
+      "into: a/b/c/:filename:",
+    );
+    expect(assembled({ folder: "My Documents", fileExtensions: ["png"] })).toContain(
+      "into: My Documents/:filename:",
+    );
+  });
+
+  test.each<[RulePlan, string]>([
+    // Nothing to match on: the rule would route every download.
+    [{ folder: "archive" }, "no matcher"],
+    [{ folder: "archive", fileExtensions: [] }, "no matcher"],
+    // A dot inside an extension names something fileext never reads.
+    [{ folder: "a", fileExtensions: ["tar.gz"] }, "multi-part extension"],
+    [{ folder: "a", fileExtensions: ["not an extension"] }, "prose extension"],
+    [{ folder: "a", fileExtensions: [".*"] }, "regex smuggled as an extension"],
+    [{ folder: "a", sourceKind: "photo" }, "kind the matcher never reports"],
+    [{ folder: "a", site: "not a host" }, "prose site"],
+    // A domain matcher cannot express a path, and dropping the path would
+    // route more than the request asked for.
+    [{ folder: "a", site: "example.com/docs" }, "site carrying a path"],
+    [{ folder: "a", site: "https://example.com:8443" }, "site carrying a port"],
+    [{ folder: "", fileExtensions: ["png"] }, "empty folder"],
+    [{ folder: "/", fileExtensions: ["png"] }, "root-only folder"],
+    [{ folder: "../secrets", fileExtensions: ["png"] }, "folder escaping upwards"],
+    // ":" opens a variable and "/" a path segment: a literal carrying either
+    // would silently mean something other than its own text.
+    [{ folder: "a:pagetitle:", fileExtensions: ["png"] }, "folder smuggling a variable"],
+    [{ folder: "a", fileExtensions: ["png"], filename: ":filename:.bak" }, "filename variable"],
+    [{ folder: "a", fileExtensions: ["png"], filename: "b/c.png" }, "filename with a path"],
+    [{ folder: "a", fileExtensions: ["png"], filename: "" }, "empty rename"],
+  ])("refuses to assemble a plan it cannot express exactly (%#: %s)", (plan) => {
+    expect(assembleRule(plan)).toBeNull();
+  });
+
+  // The whole point of the plan: the assembler's output is valid because of how
+  // it is built, not because a model typed it correctly. Checked against the
+  // real routing parser, which is what the background VALIDATE gate runs.
+  test.each<RulePlan>([
+    { folder: "archive", fileExtensions: ["pdf", "png"], site: "docs.example.com" },
+    { folder: "Pictures", sourceKind: "image" },
+    { folder: "dongs", fileExtensions: ["png"], filename: "cover.png" },
+    { folder: "a/b", sourceKind: "video", site: "cdn.example.com", siteScope: "source" },
+    { folder: "My Documents", fileExtensions: ["c++"] },
+  ])("assembles rule text the routing parser accepts (%#)", (plan) => {
+    const rule = assembled(plan);
+    const { rules, errors } = parseRulesCollecting(rule);
+
+    expect(errors.filter((error) => !error.warning)).toEqual([]);
+    expect(rules).toHaveLength(1);
+    expect(isSingleRuleSuggestion(rule)).toBe(true);
+  });
+
+  // The four acceptance requests, planned as the model reads them. Every rule
+  // the plan produces has to survive the deterministic gate the panel applies
+  // before Add is enabled.
+  test.each<[string, RulePlan]>([
+    [
+      "from docs.example.com, save PDF and PNG files into /archive",
+      { folder: "archive", fileExtensions: ["pdf", "png"], site: "docs.example.com" },
+    ],
+    ["save images into /Pictures", { folder: "Pictures", sourceKind: "image" }],
+    ["save png into /dongs", { folder: "dongs", fileExtensions: ["png"] }],
+    [
+      "save PNG into /Pictures and rename it cover.png",
+      { folder: "Pictures", fileExtensions: ["png"], filename: "cover.png" },
+    ],
+  ])("passes the request guardrails for %s", (request, plan) => {
+    expect(ruleRequestGuardrailIssues(request, assembled(plan))).toEqual([]);
+  });
+});
+
+describe("Prompt API rule review", () => {
+  test("names the vocabulary the background actually sends", () => {
+    // Built the way the GET_KEYWORDS handler builds it, so a change to
+    // SPECIAL_DIRS or the registries cannot drift the reference the reviewer
+    // reads without failing here first.
+    const wireVocabulary = {
+      matchers: [...Object.keys(matcherFunctions), "css"],
+      variables: Object.keys(transformers),
+    };
+    const result = buildRuleCritiquePrompt(
+      "save png into /dongs",
+      "fileext: ^png$",
+      [],
+      grammar,
+      wireVocabulary,
+    );
+
+    expect(result).not.toContain("::");
+    expect(result).toContain(":filename:");
+    expect(result).toContain("fileext");
   });
 
   test("reads a reviewer's agreement through its typing", () => {
@@ -220,28 +301,30 @@ describe("Prompt API rule-authoring model", () => {
     ).toBe(false);
   });
 
-  test("parses constrained author and critic responses at the runtime boundary", () => {
-    expect(parseRuleDraft(JSON.stringify({ rule: "fileext: ^png$\ninto: dongs/" }))).toBe(
-      "fileext: ^png$\ninto: dongs/",
-    );
+  test("carries a reviewer's repair as a plan, not as rule text", () => {
+    // A reviewer that can only correct the facts cannot reintroduce the syntax
+    // mistakes the plan step removed.
     expect(
       parseRuleCritique(
         JSON.stringify({
           accepted: false,
           issues: ["Wrong folder"],
-          repairedRule: "fileext: ^png$\ninto: dongs/",
+          repairedPlan: { folder: "dongs", fileExtensions: ["png"] },
         }),
       ),
     ).toEqual({
       accepted: false,
       issues: ["Wrong folder"],
-      repairedRule: "fileext: ^png$\ninto: dongs/",
+      repairedPlan: { folder: "dongs", fileExtensions: ["png"] },
     });
-    expect(parseRuleDraft("not JSON")).toBeNull();
-    expect(parseRuleDraft("[]")).toBeNull();
     expect(parseRuleCritique(JSON.stringify({ accepted: true, issues: [] }))).toBeNull();
     expect(
-      parseRuleCritique(JSON.stringify({ accepted: false, issues: [], repairedRule: "  " })),
+      parseRuleCritique(
+        JSON.stringify({ accepted: false, issues: [], repairedPlan: "fileext: ^png$" }),
+      ),
+    ).toBeNull();
+    expect(
+      parseRuleCritique(JSON.stringify({ accepted: true, issues: [], repairedPlan: {} })),
     ).toBeNull();
   });
 
@@ -261,8 +344,16 @@ describe("Prompt API rule-authoring model", () => {
     expect(result).toContain(JSON.stringify("fileext/i: ^(?:png|jpe?g)$\ninto: Images/:filename:"));
     expect(result).toContain("all and only the requested behavior");
     expect(result).toContain("The destination must use the requested dongs/ folder.");
+    // The reviewer judges the rule that will actually run, so it still needs
+    // the grammar the assembler wrote it in.
+    expect(result).toContain(grammar.ebnf);
+    expect(result).toContain("repairedPlan is not rule syntax");
   });
+});
 
+// The deterministic gate, which reads the assembled rule text and does not care
+// which step produced it.
+describe("rule request guardrails", () => {
   test.each([
     [
       "save png into /dongs",
@@ -420,4 +511,59 @@ describe("Prompt API rule-authoring model", () => {
       ).toEqual([]);
     },
   );
+});
+
+describe("plan fields the model must fill in", () => {
+  test("requires every field so the model cannot answer with the folder alone", () => {
+    // Constrained decoding lets the model stop once the required fields are
+    // emitted. Asked for "save png into /dongs" with only folder required, an
+    // on-device model answered {"folder":"dongs","filename":""} and dropped the
+    // file type — leaving a plan with no matcher, which assembleRule refuses.
+    const required = (RULE_PLAN_RESPONSE_CONSTRAINT as { required: string[] }).required;
+
+    expect(required).toContain("fileExtensions");
+    expect(required).toContain("sourceKind");
+    expect(required).toContain("site");
+    expect(required).toContain("folder");
+  });
+
+  test("reads an empty answer to a required field as the request not naming it", () => {
+    expect(
+      parseRulePlan(
+        JSON.stringify({
+          folder: "dongs",
+          fileExtensions: ["png"],
+          sourceKind: "",
+          site: "",
+          siteScope: "page",
+          filename: "",
+        }),
+      ),
+    ).toEqual({ folder: "dongs", fileExtensions: ["png"], siteScope: "page" });
+  });
+});
+
+describe("matchers the request never asked for", () => {
+  test("rejects a category matcher the request does not name", () => {
+    // Measured against the on-device model: asked for "save PDF and PNG files
+    // into /archive" it produced fileext ^(?:pdf|png)$ AND sourcekind ^document$
+    // — a rule that can never route a PNG, because a PNG is not a document
+    // source. Add was enabled. A matcher the request never named narrows the
+    // rule to something the user did not ask for and cannot see.
+    expect(
+      ruleRequestGuardrailIssues(
+        "save PDF and PNG files into /archive",
+        "fileext/i: ^(?:pdf|png)$\nsourcekind: ^document$\ninto: archive/:filename:",
+      ),
+    ).toContain("The rule matches a source category the request does not name.");
+  });
+
+  test("keeps the category matcher a request does name", () => {
+    expect(
+      ruleRequestGuardrailIssues(
+        "save images from docs.example.com into /archive",
+        "sourcekind: ^image$\npagedomain: (?:^|\\.)docs\\.example\\.com$\ninto: archive/:filename:",
+      ),
+    ).toEqual([]);
+  });
 });

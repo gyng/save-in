@@ -86,12 +86,19 @@ const submitRequest = (request = "Put PNG files in Images") => {
   );
 };
 
-const defaultRule = "fileext: ^png$\ninto: Images/:filename:";
+// The model returns the facts of the request; the panel assembles the rule.
+// The text below is what assembleRule builds from defaultPlan, spelled out so a
+// change to the assembled shape has to be read and agreed to here.
+const defaultPlan = { folder: "Images", fileExtensions: ["png"] };
+const defaultRule = "fileext/i: ^png$\ninto: Images/:filename:";
 
-const authorResponse = (rule = defaultRule) => JSON.stringify({ rule });
+const authorResponse = (plan: Record<string, unknown> = defaultPlan) => JSON.stringify(plan);
 
-const critiqueResponse = (rule = defaultRule, accepted = true, issues: string[] = []) =>
-  JSON.stringify({ accepted, issues, repairedRule: rule });
+const critiqueResponse = (
+  plan: Record<string, unknown> = defaultPlan,
+  accepted = true,
+  issues: string[] = [],
+) => JSON.stringify({ accepted, issues, repairedPlan: plan });
 
 beforeEach(() => {
   vi.restoreAllMocks();
@@ -174,34 +181,37 @@ test("generates, validates, and appends only a reviewable draft", async () => {
     onDownloadProgress: expect.any(Function),
   });
   expect(mocks.runPrompt).toHaveBeenCalledTimes(2);
+  // The rule the background validates is assembled here from the model's plan,
+  // so it is the same text whatever the model's typing.
   expect(mocks.sendMessage).toHaveBeenCalledWith(
     expect.objectContaining({
       type: "VALIDATE",
-      body: { filenamePatterns: "fileext: ^png$\ninto: Images/:filename:" },
+      body: { filenamePatterns: defaultRule },
     }),
   );
-  expect(element("prompt-assistant-rule").textContent).toBe(
-    "fileext: ^png$\ninto: Images/:filename:",
-  );
+  expect(element("prompt-assistant-rule").textContent).toBe(defaultRule);
   expect(mocks.appendRule).not.toHaveBeenCalled();
 
   element<HTMLButtonElement>("prompt-assistant-add").click();
   expect(mocks.appendRule).toHaveBeenCalledWith(
     element<HTMLTextAreaElement>("filenamePatterns"),
-    "fileext: ^png$\ninto: Images/:filename:",
+    defaultRule,
   );
   expect(element<HTMLButtonElement>("prompt-assistant-add").disabled).toBe(true);
 });
 
-test("repairs example-copy drift and independently reviews the repaired rule", async () => {
-  const copiedExample = "fileext/i: ^(?:png|jpe?g)$\ninto: Images/:filename:";
+test("repairs a drifted plan and independently reviews the repaired rule", async () => {
+  // The model can still get the facts wrong; only the syntax is out of its
+  // hands now.
+  const drifted = { folder: "Images", fileExtensions: ["png", "jpg"] };
+  const repairedPlan = { folder: "dongs", fileExtensions: ["png"] };
   const repaired = "fileext/i: ^png$\ninto: dongs/:filename:";
   mocks.runPrompt
-    .mockResolvedValueOnce(authorResponse(copiedExample))
+    .mockResolvedValueOnce(authorResponse(drifted))
     .mockResolvedValueOnce(
-      critiqueResponse(repaired, false, ["JPEG and Images were not requested"]),
+      critiqueResponse(repairedPlan, false, ["JPEG and Images were not requested"]),
     )
-    .mockResolvedValueOnce(critiqueResponse(repaired));
+    .mockResolvedValueOnce(critiqueResponse(repairedPlan));
   setup();
   await enable();
 
@@ -218,16 +228,17 @@ test("repairs example-copy drift and independently reviews the repaired rule", a
   });
 });
 
-test("keeps a syntactically valid but semantically rejected repair out of the editor", async () => {
-  const copiedExample = "fileext/i: ^(?:png|jpe?g)$\ninto: Images/:filename:";
-  const incompleteRepair = "fileext/i: ^(?:png|jpe?g)$\ninto: dongs/:filename:";
+test("keeps a valid but semantically rejected repair out of the editor", async () => {
+  const drifted = { folder: "Images", fileExtensions: ["png", "jpg"] };
+  const incompletePlan = { folder: "dongs", fileExtensions: ["png", "jpg"] };
+  const incompleteRepair = "fileext/i: ^(?:png|jpg)$\ninto: dongs/:filename:";
   mocks.runPrompt
-    .mockResolvedValueOnce(authorResponse(copiedExample))
+    .mockResolvedValueOnce(authorResponse(drifted))
     .mockResolvedValueOnce(
-      critiqueResponse(incompleteRepair, false, ["The destination was incorrect"]),
+      critiqueResponse(incompletePlan, false, ["The destination was incorrect"]),
     )
     .mockResolvedValueOnce(
-      critiqueResponse("fileext/i: ^png$\ninto: dongs/:filename:", false, [
+      critiqueResponse({ folder: "dongs", fileExtensions: ["png"] }, false, [
         "JPEG is still included",
       ]),
     );
@@ -275,7 +286,7 @@ test("rejects an absent structured semantic review", async () => {
 test("rejects an absent final structured review", async () => {
   mocks.runPrompt
     .mockResolvedValueOnce(authorResponse())
-    .mockResolvedValueOnce(critiqueResponse(defaultRule, false, ["Review again"]))
+    .mockResolvedValueOnce(critiqueResponse(defaultPlan, false, ["Review again"]))
     .mockResolvedValueOnce(null);
   setupPromptAssistantPanel(() => "", { appendRule: mocks.appendRule });
   await enable();
@@ -297,8 +308,8 @@ test.each([
   async (finalIssues, initialIssues, expected) => {
     mocks.runPrompt
       .mockResolvedValueOnce(authorResponse())
-      .mockResolvedValueOnce(critiqueResponse(defaultRule, false, [...initialIssues]))
-      .mockResolvedValueOnce(critiqueResponse(defaultRule, false, [...finalIssues]));
+      .mockResolvedValueOnce(critiqueResponse(defaultPlan, false, [...initialIssues]))
+      .mockResolvedValueOnce(critiqueResponse(defaultPlan, false, [...finalIssues]));
     setup();
     await enable();
 
@@ -400,23 +411,21 @@ test("rejects invalid generated CSS before background validation", async () => {
   expect(mocks.appendRule).not.toHaveBeenCalled();
 });
 
-test("rejects a valid response containing more than one rule", async () => {
-  const multipleRules = "fileext: ^png$\ninto: Images/\n\nfileext: ^jpg$\ninto: Photos/";
-  mocks.runPrompt
-    .mockResolvedValueOnce(authorResponse(multipleRules))
-    .mockResolvedValueOnce(critiqueResponse(multipleRules, false, ["More than one rule"]))
-    .mockResolvedValueOnce(critiqueResponse(multipleRules, false, ["More than one rule"]));
+// A blank line is what separates two rules, so a plan value carrying one is
+// how a second rule could reach the editor. The assembler refuses the plan
+// instead, and nothing is validated or shown.
+test("rejects a plan whose value would open a second rule", async () => {
+  const smuggled = { folder: "Images/\n\nfileext: ^jpg$\ninto: Photos", fileExtensions: ["png"] };
+  mocks.runPrompt.mockResolvedValueOnce(authorResponse(smuggled));
   setup();
   await enable();
-  const input = element<HTMLTextAreaElement>("prompt-assistant-input");
-  input.value = "Sort images";
-  input.dispatchEvent(new InputEvent("input"));
-  element<HTMLFormElement>("prompt-assistant-form").dispatchEvent(
-    new SubmitEvent("submit", { cancelable: true }),
-  );
+
+  submitRequest("Sort images");
 
   await vi.waitFor(() =>
-    expect(element("prompt-assistant-status").textContent).toContain("exactly one rule"),
+    expect(element("prompt-assistant-status").textContent).toContain(
+      "did not return a usable rule",
+    ),
   );
   expect(element<HTMLButtonElement>("prompt-assistant-add").disabled).toBe(true);
   expect(mocks.sendMessage.mock.calls.some(([message]) => message.type === "VALIDATE")).toBe(false);
@@ -495,22 +504,6 @@ test.each([
   expect(element<HTMLButtonElement>("prompt-assistant-submit").disabled).toBe(disabled);
 });
 
-test("strips model prose around a valid rule instead of failing validation", async () => {
-  const rule = "fileext/i: ^png$\ninto: dongs/:filename:";
-  mocks.runPrompt.mockImplementation(async (prompt: string) =>
-    prompt.startsWith("Review one proposed")
-      ? critiqueResponse(rule)
-      : authorResponse(`${rule}\n\nrule, context, sourcekind, fileext, ...`),
-  );
-  setup();
-  await enable();
-  submitRequest("save png into /dongs");
-
-  await vi.waitFor(() => expect(element("prompt-assistant-status").dataset.state).toBe("success"));
-  expect(element("prompt-assistant-rule").textContent).toBe(rule);
-  expect(element<HTMLButtonElement>("prompt-assistant-add").disabled).toBe(false);
-});
-
 test("reports empty model output as an unusable draft, not as lost availability", async () => {
   mocks.runPrompt.mockResolvedValue("");
   setup();
@@ -524,12 +517,12 @@ test("reports empty model output as an unusable draft, not as lost availability"
   expect(element("prompt-assistant-status").textContent).not.toContain("Not available");
 });
 
-// The repair pass is model output too, so it gets the same sanitising as the
-// first draft rather than being trusted because a critique produced it.
-test("refuses a repaired rule whose unknown clause would silently match every download", async () => {
+// The repair pass is model output too, so its plan is assembled under the same
+// rules rather than being trusted because a critique produced it.
+test("refuses a repaired plan the assembler cannot express exactly", async () => {
   mocks.runPrompt.mockImplementation(async (prompt: string) =>
     prompt.startsWith("Review one proposed")
-      ? critiqueResponse("extension: ^png$\ninto: dongs/:filename:", false, ["wrong matcher"])
+      ? critiqueResponse({ folder: "dongs", sourceKind: "photo" }, false, ["wrong matcher"])
       : authorResponse(),
   );
   setup();
@@ -542,11 +535,12 @@ test("refuses a repaired rule whose unknown clause would silently match every do
   );
 });
 
-test("refuses a draft whose unknown clause would silently match every download", async () => {
+// A plan with no matcher would assemble a rule that routes every download.
+test("refuses a draft plan that would silently match every download", async () => {
   mocks.runPrompt.mockImplementation(async (prompt: string) =>
     prompt.startsWith("Review one proposed")
       ? critiqueResponse()
-      : authorResponse("extension: ^png$\ninto: dongs/:filename:"),
+      : authorResponse({ folder: "dongs" }),
   );
   setup();
   await enable();
@@ -557,18 +551,18 @@ test("refuses a draft whose unknown clause would silently match every download",
   expect(mocks.appendRule).not.toHaveBeenCalled();
 });
 
-test("accepts a reviewer that agrees but retypes the rule", async () => {
-  mocks.runPrompt
-    .mockResolvedValueOnce(authorResponse())
-    .mockResolvedValueOnce(
-      JSON.stringify({ accepted: true, issues: [], repairedRule: `  ${defaultRule}  \n` }),
-    );
+test("accepts a reviewer that agrees but describes the plan differently", async () => {
+  mocks.runPrompt.mockResolvedValueOnce(authorResponse()).mockResolvedValueOnce(
+    // The same rule, spelled the way a small model varies run to run. Agreement
+    // is decided on what the plans assemble to, not on how they were written.
+    critiqueResponse({ folder: "/Images/", fileExtensions: [".PNG"] }),
+  );
   setup();
   await enable();
   submitRequest();
 
   await vi.waitFor(() => expect(element("prompt-assistant-status").dataset.state).toBe("success"));
-  // The reviewed rule, not the reviewer's retyping of it.
+  // The reviewed rule, not the reviewer's restatement of it.
   expect(element("prompt-assistant-rule").textContent).toBe(defaultRule);
   expect(element<HTMLButtonElement>("prompt-assistant-add").disabled).toBe(false);
   // Agreement reached without spending a repair and a second review on spacing.
@@ -726,7 +720,7 @@ test("disabling during generation discards the stale completion", async () => {
   const control = element<HTMLInputElement>("promptAssistantEnabled");
   control.checked = false;
   control.dispatchEvent(new Event("change"));
-  resolvePrompt(authorResponse("fileext: png\ninto: images/"));
+  resolvePrompt(authorResponse());
 
   await vi.waitFor(() => expect(element("prompt-assistant-status").dataset.state).toBe("off"));
   expect(element("prompt-assistant-result").hidden).toBe(true);
@@ -757,7 +751,7 @@ test("shows bounded download progress while Chrome prepares the model", async ()
   expect(progress.hasAttribute("value")).toBe(false);
   expect(element("prompt-assistant-status").textContent).toBe("Creating and checking a draft…");
 
-  resolvePrompt(authorResponse("fileext: png\ninto: images/"));
+  resolvePrompt(authorResponse());
   await vi.waitFor(() => expect(progress.hidden).toBe(true));
   expect(progress.hasAttribute("value")).toBe(false);
 });
@@ -932,7 +926,7 @@ test("disabling during repaired-rule validation discards the stale result", asyn
   });
   mocks.runPrompt
     .mockResolvedValueOnce(authorResponse())
-    .mockResolvedValueOnce(critiqueResponse(defaultRule, false, ["Review again"]));
+    .mockResolvedValueOnce(critiqueResponse(defaultPlan, false, ["Review again"]));
   setup();
   await enable();
   submitRequest();
@@ -951,7 +945,7 @@ test("disabling during final semantic review discards the stale result", async (
   let resolveFinalReview!: (value: string) => void;
   mocks.runPrompt
     .mockResolvedValueOnce(authorResponse())
-    .mockResolvedValueOnce(critiqueResponse(defaultRule, false, ["Review again"]))
+    .mockResolvedValueOnce(critiqueResponse(defaultPlan, false, ["Review again"]))
     .mockReturnValueOnce(new Promise((resolve) => (resolveFinalReview = resolve)));
   setup();
   await enable();
