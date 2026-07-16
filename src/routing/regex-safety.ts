@@ -21,10 +21,11 @@ const repeatingQuantifierAt = (source: string, index: number): boolean => {
 
 const trailingDelimiterIsExcluded = (body: string): boolean => {
   const tail = /(?:\[\^([^\]]*)\]|\\([dws]))(?:[+*]|\{[^}]+\})(\\.|[^\\()[\]{}?+*|^$])$/.exec(body);
-  if (!tail) return false;
-  // The final regex group is mandatory whenever the expression matches.
-  const rawDelimiter = tail[3];
-  if (rawDelimiter === undefined) return false;
+  // The final group is mandatory whenever the expression matches, so it is only
+  // absent when the match itself is: read it through the same guard rather than
+  // asserting it separately.
+  const rawDelimiter = tail?.[3];
+  if (!tail || rawDelimiter === undefined) return false;
   const delimiter = rawDelimiter.startsWith("\\") ? rawDelimiter.slice(1) : rawDelimiter;
   if (delimiter.length !== 1 || /[dDsSwWbB]/.test(rawDelimiter.slice(1))) return false;
   const excluded = tail[1];
@@ -80,9 +81,11 @@ export const isSafeRoutingRegex = (regex: RegExp | string): boolean => {
       current = { hasAlternation: false, hasQuantifier: false, start: index };
       continue;
     }
-    if (token === ")") {
-      const parent = parents.pop();
-      if (!parent) continue;
+    // A valid RegExp source cannot close a group it never opened, so an empty
+    // stack yields undefined and the token falls through to the checks below
+    // untouched — the same handling the old length guard gave it.
+    const parent = token === ")" ? parents.pop() : undefined;
+    if (parent) {
       const group = current;
       current = parent;
       const repeated = repeatingQuantifierAt(source, index + 1);
