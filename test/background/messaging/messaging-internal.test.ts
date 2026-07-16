@@ -295,6 +295,42 @@ describe("onMessage", () => {
     });
   });
 
+  test("HISTORY_REROUTE treats an already-handled completion race as pending, not failure", async () => {
+    vi.mocked(SaveHistory.getHistoryEntries).mockResolvedValue([
+      {
+        id: "history-completion-race",
+        url: "https://x.test/original.png",
+        finalFullPath: "from/original.png",
+        downloadId: 66,
+        status: "complete",
+      },
+    ]);
+    vi.mocked(global.browser.downloads.search).mockResolvedValue([
+      { id: 66, url: "https://x.test/original.png", state: "complete" } as never,
+    ]);
+    vi.mocked(Download.launchDownload).mockResolvedValue({ status: "started", downloadId: 67 });
+    vi.mocked(HistoryMove.completePendingHistoryMove).mockResolvedValue({
+      handled: false,
+      oldRemoved: false,
+    });
+    const sendResponse = vi.fn();
+
+    onMessage(
+      {
+        type: MESSAGE_TYPES.HISTORY_REROUTE,
+        body: { historyId: "history-completion-race", destination: "moved/here" },
+      },
+      {},
+      sendResponse,
+    );
+    await waitForCall(sendResponse);
+
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.HISTORY_REROUTE,
+      body: { rerouted: true, oldRemoved: false, pending: true },
+    });
+  });
+
   test("HISTORY_REROUTE restores recorded routing context and menu variables", async () => {
     vi.mocked(SaveHistory.getHistoryEntries).mockResolvedValue([
       {

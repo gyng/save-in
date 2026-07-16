@@ -7,6 +7,14 @@ import { getDownload, mergeDownload, type PendingHistoryMove } from "./download-
 import { downloadPorts } from "./ports.ts";
 import { undoBrowserDownload } from "./undo-download.ts";
 
+export type CompletedHistoryMove = {
+  handled: boolean;
+  oldRemoved: boolean;
+  newHistoryId?: string;
+};
+
+const completionTasks = new Map<number, Promise<CompletedHistoryMove>>();
+
 export const registerPendingHistoryMove = (
   replacementDownloadId: number,
   pending: PendingHistoryMove,
@@ -20,9 +28,9 @@ export const abandonPendingHistoryMove = (replacementDownloadId: number): Promis
     pendingHistoryMove: undefined,
   });
 
-export const completePendingHistoryMove = async (
+const runPendingHistoryMove = async (
   replacementDownloadId: number,
-): Promise<{ handled: boolean; oldRemoved: boolean; newHistoryId?: string }> => {
+): Promise<CompletedHistoryMove> => {
   const record = await getDownload(downloadsState, extensionSessionStorage, replacementDownloadId);
   const pending = record?.pendingHistoryMove;
   if (!pending) return { handled: false, oldRemoved: false };
@@ -45,4 +53,19 @@ export const completePendingHistoryMove = async (
     oldRemoved: removal.undone,
     ...(newHistoryId ? { newHistoryId } : {}),
   };
+};
+
+export const completePendingHistoryMove = (
+  replacementDownloadId: number,
+): Promise<CompletedHistoryMove> => {
+  const active = completionTasks.get(replacementDownloadId);
+  if (active) return active;
+  const task = runPendingHistoryMove(replacementDownloadId);
+  completionTasks.set(replacementDownloadId, task);
+  void task.finally(() => {
+    if (completionTasks.get(replacementDownloadId) === task) {
+      completionTasks.delete(replacementDownloadId);
+    }
+  });
+  return task;
 };

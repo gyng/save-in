@@ -217,7 +217,8 @@ const internalHandlers = {
     // Verify the original BEFORE issuing the replacement: an unverifiable row
     // (reused Firefox id, cleared shelf) must refuse outright, or the reroute
     // would create a duplicate file it can never clean up.
-    if ((await findVerifiedDownload(downloadId, expected)) === null) {
+    const verifiedOriginal = await findVerifiedDownload(downloadId, expected);
+    if (verifiedOriginal === null) {
       refuse();
       return;
     }
@@ -271,8 +272,8 @@ const internalHandlers = {
     await registerPendingHistoryMove(replacement.downloadId, {
       historyId,
       downloadId,
-      startTime: entry.downloadStartTime,
-      filename: entry.finalFullPath,
+      startTime: entry.downloadStartTime || verifiedOriginal.startTime,
+      filename: entry.finalFullPath || verifiedOriginal.filename,
     });
 
     // Close the fast-completion race: the terminal event may have fired before
@@ -293,6 +294,7 @@ const internalHandlers = {
         body: {
           rerouted: true,
           oldRemoved: completedMove.oldRemoved,
+          ...(completedMove.handled ? {} : { pending: true }),
           ...(completedMove.newHistoryId ? { newHistoryId: completedMove.newHistoryId } : {}),
         },
       });

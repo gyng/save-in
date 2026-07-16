@@ -106,7 +106,12 @@ export const backfillDownloadStartTime = (
 export const findVerifiedDownload = async (
   downloadId: number,
   expected: ExpectedDownloadIdentity = {},
-): Promise<{ id: number; exists?: boolean | undefined } | null> => {
+): Promise<{
+  id: number;
+  exists?: boolean | undefined;
+  startTime?: string | undefined;
+  filename?: string | undefined;
+} | null> => {
   let item;
   try {
     [item] = await webExtensionApi.downloads.search({ id: downloadId });
