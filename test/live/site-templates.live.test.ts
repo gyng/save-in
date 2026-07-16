@@ -103,6 +103,15 @@ const SAMPLES: Record<string, LiveSample> = {
     checkSize: false,
     checkDimensions: true,
   },
+  "Mastodon full-size attachment": {
+    // Public attachment on mastodon.sdf.org. This exercises the self-hosted
+    // /system prefix; object-storage hosts use the same small/original pair.
+    before:
+      process.env.LIVE_MASTODON_URL ??
+      "https://mastodon.sdf.org/system/media_attachments/files/112/491/034/261/391/490/small/ea9b9dc3b3c9a611.jpeg",
+    env: "LIVE_MASTODON_URL",
+    checkDimensions: true,
+  },
   "Google original-size image": {
     // A YouTube channel avatar on yt3.googleusercontent.com; =s0 returns the
     // original. Channels rarely change avatars, but a token rotation just

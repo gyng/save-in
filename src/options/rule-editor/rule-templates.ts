@@ -498,6 +498,26 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
   },
   {
     category: "Site originals",
+    name: "Mastodon full-size attachment",
+    description: "Rewrites a Mastodon attachment preview to its full-size file",
+    example: "Example: mastodon/bb2447eee900fe87.png",
+    // Mastodon storage can live on the instance, under /system, or behind an
+    // object-storage prefix on another host. Preserve everything around the
+    // documented media_attachments/files/.../small pair and change only the
+    // rendition segment to `original`.
+    rule: "sourceurl: ^https://([^/]+)/((?:[^/?#]+/)*media_attachments/files/(?:\\d+/)+)small/([^?#]+)(?:[?#]|$)\ncapturegroups: sourceurl\nfetch: https://:$1:/:$2:original/:$3:\ninto: mastodon/:$3:",
+    proof: {
+      info: {
+        sourceUrl:
+          "https://files.mastodon.social/media_attachments/files/112/859/957/767/662/021/small/bb2447eee900fe87.png",
+      },
+      destination: "mastodon/bb2447eee900fe87.png",
+      fetch:
+        "https://files.mastodon.social/media_attachments/files/112/859/957/767/662/021/original/bb2447eee900fe87.png",
+    },
+  },
+  {
+    category: "Site originals",
     name: "Google original-size image",
     description: "Rewrites a Google-hosted preview image to its full original size",
     example: "Example: google/AbCd_1234",
@@ -964,6 +984,15 @@ export const localizeRuleTemplates = (getMessage: GetMessage): LocalizedRuleTemp
         description:
           getMessage("ruleTemplateArtStationHighestDescription") ||
           "Rewrites an ArtStation preview image to its highest available rendition",
+      },
+    ],
+    [
+      "Mastodon full-size attachment",
+      {
+        name: getMessage("ruleTemplateMastodonFullsizeName") || "Mastodon full-size attachment",
+        description:
+          getMessage("ruleTemplateMastodonFullsizeDescription") ||
+          "Rewrites a Mastodon attachment preview to its full-size file",
       },
     ],
     [

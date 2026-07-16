@@ -335,6 +335,31 @@ describe("built-in matcher templates", () => {
     }
   });
 
+  test("the Mastodon template preserves the instance media prefix and rewrites only small attachments", () => {
+    const rules = rulesFor("Mastodon full-size attachment");
+    const file = "112/859/957/767/662/021/small/bb2447eee900fe87.png";
+
+    for (const prefix of [
+      "media_attachments/files",
+      "system/media_attachments/files",
+      "mstdn-media/media_attachments/files",
+    ]) {
+      expect(
+        matchRulesDetailed(rules, {
+          sourceUrl: `https://media.example/${prefix}/${file}?cache=1`,
+        }),
+      ).toMatchObject({
+        destination: "mastodon/bb2447eee900fe87.png",
+        fetch: `https://media.example/${prefix}/${file.replace("/small/", "/original/")}`,
+      });
+    }
+    expect(
+      matchRules(rules, {
+        sourceUrl: `https://media.example/system/media_attachments/files/${file.replace("/small/", "/original/")}`,
+      }),
+    ).toBeNull();
+  });
+
   test("actual extension matching can use a resolved preview filename", () => {
     expect(
       matchRules(rulesFor("PDFs into a documents folder"), {

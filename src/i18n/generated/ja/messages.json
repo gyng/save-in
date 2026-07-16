@@ -3860,6 +3860,12 @@
   "ruleTemplateArtStationHighestDescription": {
     "message": "ArtStation のプレビュー画像を利用可能な最高画質版に書き換えます"
   },
+  "ruleTemplateMastodonFullsizeName": {
+    "message": "Mastodon のフルサイズ添付ファイル"
+  },
+  "ruleTemplateMastodonFullsizeDescription": {
+    "message": "Mastodon の添付ファイルのプレビューをフルサイズ版に書き換えます"
+  },
   "ruleTemplateGoogleOriginalName": {
     "message": "Google 画像を元のサイズに"
   },

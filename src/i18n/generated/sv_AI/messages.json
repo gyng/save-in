@@ -3860,6 +3860,12 @@
   "ruleTemplateArtStationHighestDescription": {
     "message": "Skriver om en förhandsgranskningsbild från ArtStation till den högsta tillgängliga versionen"
   },
+  "ruleTemplateMastodonFullsizeName": {
+    "message": "Mastodon-bilaga i full storlek"
+  },
+  "ruleTemplateMastodonFullsizeDescription": {
+    "message": "Skriver om förhandsgranskningen av en Mastodon-bilaga till filen i full storlek"
+  },
   "ruleTemplateGoogleOriginalName": {
     "message": "Google-bild i originalstorlek"
   },

@@ -3860,6 +3860,12 @@
   "ruleTemplateArtStationHighestDescription": {
     "message": "ArtStation 미리보기 이미지를 사용 가능한 최고 화질 버전으로 재작성합니다"
   },
+  "ruleTemplateMastodonFullsizeName": {
+    "message": "Mastodon 전체 크기 첨부 파일"
+  },
+  "ruleTemplateMastodonFullsizeDescription": {
+    "message": "Mastodon 첨부 파일 미리보기를 전체 크기 파일로 재작성합니다"
+  },
   "ruleTemplateGoogleOriginalName": {
     "message": "Google 원본 크기 이미지"
   },

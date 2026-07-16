@@ -2651,6 +2651,14 @@
     "message": "Rewrites an ArtStation preview image to its highest available rendition",
     "description": "Description on a built-in routing-template card. Highest available rendition means the site's 4K image endpoint, which may keep the preview dimensions for smaller uploads and is not necessarily the exact uploaded file. \"ArtStation\" is a website name; keep it as-is. Used in src/options/rule-templates.ts."
   },
+  "ruleTemplateMastodonFullsizeName": {
+    "message": "Mastodon full-size attachment",
+    "description": "Title of a built-in routing-template card. \"Mastodon\" is the proper name of federated social-network software; keep it as-is. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateMastodonFullsizeDescription": {
+    "message": "Rewrites a Mastodon attachment preview to its full-size file",
+    "description": "Description on a built-in routing-template card. The rule preserves the user's Mastodon instance or media-storage host. \"Mastodon\" is a software name; keep it as-is. Used in src/options/rule-templates.ts."
+  },
   "ruleTemplateGoogleOriginalName": {
     "message": "Google original-size image",
     "description": "Title of a built-in routing-template card. Covers Google-hosted image CDNs (googleusercontent, ggpht) used by Google Photos, Blogger, and profile avatars. \"Google\" is a product name; keep it as-is. Used in src/options/rule-templates.ts."

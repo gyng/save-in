@@ -3860,6 +3860,12 @@
   "ruleTemplateArtStationHighestDescription": {
     "message": "將 ArtStation 預覽圖片改寫為最高可用畫質版本"
   },
+  "ruleTemplateMastodonFullsizeName": {
+    "message": "Mastodon 完整尺寸附件"
+  },
+  "ruleTemplateMastodonFullsizeDescription": {
+    "message": "將 Mastodon 附件預覽改寫為完整尺寸檔案"
+  },
   "ruleTemplateGoogleOriginalName": {
     "message": "Google 原始尺寸圖片"
   },

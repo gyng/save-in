@@ -3860,6 +3860,12 @@
   "ruleTemplateArtStationHighestDescription": {
     "message": "Reescreve uma imagem de prévia do ArtStation para a melhor versão disponível"
   },
+  "ruleTemplateMastodonFullsizeName": {
+    "message": "Anexo do Mastodon em tamanho completo"
+  },
+  "ruleTemplateMastodonFullsizeDescription": {
+    "message": "Reescreve a prévia de um anexo do Mastodon para o arquivo em tamanho completo"
+  },
   "ruleTemplateGoogleOriginalName": {
     "message": "Imagem do Google em tamanho original"
   },
