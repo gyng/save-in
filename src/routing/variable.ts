@@ -410,6 +410,38 @@ export const transformers: TransformerRegistry = {
       async opts => stringSegment(opts.preview ? resolvedHeadPreview(opts)?.finalUrl : (await resolveHead(opts)).finalUrl)
   };
 
+// Longest-first so ":sha256full:" is never consumed as ":sha256:" + "full:".
+const VARIABLE_TEMPLATE_PATTERN = new RegExp(
+  `(${Object.values(SPECIAL_DIRS)
+    .filter((value) => value !== SPECIAL_DIRS.SEPARATOR)
+    .sort((a, b) => b.length - a.length)
+    .join("|")})`,
+);
+
+// Expands routing variables inside a plain string template (a fetch: URL or a
+// rename: replacement). This deliberately never goes through Path: template
+// text must stay literal, and filename sanitization would corrupt it. Values
+// are substituted verbatim; the caller decides what sanitization the result
+// needs. skipTokens keeps known-but-banned variables literal so a stale
+// stored rule cannot trigger the fetch the ban exists to prevent.
+export const expandVariableTemplate = async (
+  template: string,
+  info: RoutingDownloadInfo,
+  skipTokens?: ReadonlySet<string>,
+): Promise<string> => {
+  ensureTransformerInfo(info);
+  const tokens = template.split(VARIABLE_TEMPLATE_PATTERN).filter(Boolean);
+  const resolved = await Promise.all(
+    tokens.map(async (token) => {
+      if (skipTokens?.has(token)) return token;
+      const transformer = transformers[token];
+      if (!transformer) return token;
+      return String(await transformer(info));
+    }),
+  );
+  return resolved.join("");
+};
+
 // Async so a transformer may await (e.g. a :counter: read-modify-write or a
 // :mime: HEAD request). Sync transformers resolve instantly through
 // Promise.all, so paths built only from today's variables are byte-identical.

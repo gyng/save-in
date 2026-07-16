@@ -12,6 +12,7 @@ import type {
 } from "./rule-types.ts";
 import { automaticRuleClauseIssues, isAutomaticRuleClauses } from "./automatic-rule.ts";
 import { findBannedFetchVariables, findUnknownPathVariables } from "./path-variables.ts";
+import { RENAME_SEPARATOR, splitRenameValue } from "./rename.ts";
 
 const errorLocation = (span: SourceSpan): RuleErrorLocation => ({
   start: span.start.offset,
@@ -139,6 +140,38 @@ const parseSemanticRule = (
       // template is accidental and would corrupt the request line.
       return { name, value: rawValue.trim(), type: RULE_TYPES.FETCH };
     }
+    if (name === "rename") {
+      const parts = splitRenameValue(rawValue);
+      if (!parts) {
+        appendError(
+          errors,
+          routingPorts.getMessage("ruleRenameMissingSeparator"),
+          rawValue,
+          line.valueSpan,
+        );
+        return false;
+      }
+      let find: RegExp;
+      try {
+        find = new RegExp(parts.find, flags);
+      } catch (error) {
+        appendError(
+          errors,
+          routingPorts.getMessage("ruleInvalidRegex"),
+          flags ? `invalid regex flags: ${flags} (${error})` : `${error}`,
+          /* v8 ignore next -- Parsed flags always carry a flags span. */
+          flags ? (line.flagsSpan ?? line.valueSpan) : line.valueSpan,
+        );
+        return false;
+      }
+      return {
+        name,
+        value: rawValue,
+        find,
+        replacement: parts.replacement,
+        type: RULE_TYPES.RENAME,
+      };
+    }
 
     let value: RegExp;
     try {
@@ -245,6 +278,54 @@ const parseSemanticRule = (
         routingPorts.getMessage("ruleMissingCapture"),
         fetchClause.value,
         fetchNode.valueSpan,
+      );
+  }
+  const renameClauses = valid.filter((clause) => clause.type === RULE_TYPES.RENAME);
+  const renameNodes = lines.filter((line) => line.name === "rename");
+  if (renameClauses.length >= 2) {
+    const duplicateRename = renameNodes[1];
+    /* v8 ignore next -- Two parsed rename clauses necessarily provide a second rename node. */
+    if (!duplicateRename) return false;
+    appendError(
+      errors,
+      routingPorts.getMessage("ruleExtraRename"),
+      JSON.stringify(lines.map((line) => line.raw)),
+      duplicateRename.span,
+    );
+    return false;
+  }
+  const renameClause = renameClauses[0];
+  const renameNode = renameNodes[0];
+  if (renameClause && renameNode) {
+    // Only the replacement side expands variables; the find side is a regex
+    // where ":name:" is ordinary pattern text. Scan the raw node text so the
+    // reported spans line up with the source.
+    const separatorEnd = renameNode.value.indexOf(RENAME_SEPARATOR) + RENAME_SEPARATOR.length;
+    const unknownRenameVariables = findUnknownPathVariables(
+      renameNode.value.slice(separatorEnd),
+    ).map((variable) => ({
+      ...variable,
+      start: variable.start + separatorEnd,
+      end: variable.end + separatorEnd,
+    }));
+    for (const variable of unknownRenameVariables) {
+      appendError(
+        errors,
+        routingPorts.getMessage("ruleUnknownDestinationVariable"),
+        variable.value,
+        spanWithin(renameNode.valueSpan, variable.start, variable.value.length),
+      );
+    }
+    if (unknownRenameVariables.length > 0) return false;
+    if (
+      renameClause.replacement.match(/:\$\d+:/) &&
+      !valid.some((clause) => clause.type === RULE_TYPES.CAPTURE)
+    )
+      appendError(
+        errors,
+        routingPorts.getMessage("ruleMissingCapture"),
+        renameClause.value,
+        renameNode.valueSpan,
       );
   }
   if (
@@ -355,6 +436,20 @@ const parseSemanticRule = (
         fetchClause?.value ?? "",
         /* v8 ignore next -- Parsed fetch clauses and fetch nodes come one-for-one from the same lines. */
         fetchNode?.valueSpan ?? rule.span,
+      );
+      return false;
+    }
+    const renameIndexes = renameClause
+      ? [...renameClause.replacement.matchAll(/:\$(\d+):/g)].map((match) => Number(match[1]))
+      : [];
+    if (renameIndexes.some((index) => index >= availableIndexes)) {
+      appendError(
+        errors,
+        routingPorts.getMessage("ruleMissingCapture"),
+        /* v8 ignore next -- A non-empty renameIndexes list proves renameClause exists. */
+        renameClause?.value ?? "",
+        /* v8 ignore next -- Parsed rename clauses and rename nodes come one-for-one from the same lines. */
+        renameNode?.valueSpan ?? rule.span,
       );
       return false;
     }

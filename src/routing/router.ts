@@ -13,6 +13,7 @@ import { routingPorts } from "./ports.ts";
 import { expandFetchUrl, isUsableFetchRewrite } from "./fetch-url.ts";
 import { deriveUrlFilenames } from "./filename.ts";
 import { applyVariables } from "./variable.ts";
+import { applyRenameTransform, expandRenameTransform, type RenameTransform } from "./rename.ts";
 import { isStringKeyedRecord } from "../shared/util.ts";
 
 export type * from "./rule-types.ts";
@@ -20,6 +21,7 @@ export { matcherFunctions } from "./matchers.ts";
 export {
   evaluateRule,
   findFetchClause,
+  findRenameClause,
   getCaptureMatches,
   isRenameOnlyEligibleRule,
   matchRule,
@@ -27,6 +29,14 @@ export {
   matchRulesDetailed,
   type RuleMatch,
 } from "./rule-matcher.ts";
+export {
+  applyRenameTransform,
+  expandRenameTransform,
+  isRenameTransform,
+  RENAME_SEPARATOR,
+  splitRenameValue,
+  type RenameTransform,
+} from "./rename.ts";
 export { parseRulesCollecting } from "./rule-parser.ts";
 export {
   parseRoutingRuleAst,
@@ -61,6 +71,12 @@ export type RuleTrace = {
   // runs against the rewritten URL so the preview matches the pipeline.
   selectedFetchTemplate: string | null;
   rewrittenUrl: string | null;
+  // Capture-substituted rename transform of the winning rule and the final
+  // filename component before/after it applied, mirroring the pipeline seam
+  // (after expansion and disposition resolution, before sanitization).
+  selectedRename: RenameTransform | null;
+  renamedFrom: string | null;
+  renamedTo: string | null;
   destination: string | null;
   expandedDestination: string | null;
   sanitizedDestination: string | null;
@@ -71,6 +87,7 @@ export type RuleTrace = {
     matched: boolean;
     destination: string;
     fetch: string;
+    rename: string;
     clauses: Array<{
       name: string;
       pattern: string;
@@ -98,7 +115,7 @@ export const traceRules = async (
   const evaluations = rules.map((rule, index) =>
     eligibility[index]
       ? evaluateRule(rule, info)
-      : { destination: false as const, fetch: false as const, clauses: [] },
+      : { destination: false as const, fetch: false as const, rename: false as const, clauses: [] },
   );
   const matchedDestinations = evaluations.map(({ destination }) => destination);
   const traced = rules.map((rule, index) => {
@@ -118,11 +135,13 @@ export const traceRules = async (
       });
     const destination = rule.find((clause) => clause.type === RULE_TYPES.DESTINATION)?.value ?? "";
     const fetch = rule.find((clause) => clause.type === RULE_TYPES.FETCH)?.value ?? "";
+    const rename = rule.find((clause) => clause.type === RULE_TYPES.RENAME)?.value ?? "";
     return {
       index: index + 1,
       matched: Boolean(matchedDestinations[index]),
       destination,
       fetch,
+      rename,
       clauses,
     };
   });
@@ -170,13 +189,39 @@ export const traceRules = async (
     : null;
   const expandedDestination = expandedPath?.toString() ?? null;
   const finalComponentIsFilename = typeof destination === "string" && !/\/\s*$/.test(destination);
-  const sanitizedDestination = expandedPath?.finalize({ finalComponentIsFilename }) ?? null;
+  const selectedRename = selectedEvaluation ? selectedEvaluation.rename || null : null;
+  const expandedRename = selectedRename
+    ? await expandRenameTransform(selectedRename, destinationInfo)
+    : null;
+  let renamedFrom: string | null = null;
+  let renamedTo: string | null = null;
+  const transformFinalComponent = expandedRename
+    ? (value: string): string => {
+        renamedFrom = value;
+        renamedTo = applyRenameTransform(value, expandedRename);
+        return renamedTo;
+      }
+    : undefined;
+  const sanitizedDestination =
+    expandedPath?.finalize({
+      finalComponentIsFilename,
+      ...(transformFinalComponent && finalComponentIsFilename ? { transformFinalComponent } : {}),
+    }) ?? null;
+  // A folder-only destination keeps the download's own resolved name, so the
+  // rename applies to that name instead of a route component (§finalizeFullPath).
+  if (expandedRename && destination && !finalComponentIsFilename) {
+    renamedFrom = destinationInfo.filename ?? "";
+    renamedTo = applyRenameTransform(renamedFrom, expandedRename);
+  }
   return {
     initialFilename: info.initialFilename,
     actualFilename: info.filename,
     selectedRule,
     selectedFetchTemplate,
     rewrittenUrl,
+    selectedRename,
+    renamedFrom,
+    renamedTo,
     destination,
     expandedDestination: expandedDestination || null,
     sanitizedDestination,

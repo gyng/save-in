@@ -642,6 +642,7 @@ describe("onDeterminingFilename listener (Chrome)", () => {
       await import("../../src/downloads/browser-downloads.ts");
     const routedDownload = {
       getRoutingMatches: (state: any) => freshDownload.getRoutingMatches(state),
+      resolveRenameTransform: (state: any) => freshDownload.resolveRenameTransform(state),
       finalizeFullPath: (state: any) => freshDownload.finalizeFullPath(state),
     };
     BrowserDownloadRouting.route = (item) => routeBrowserDownload(routedDownload, item);
@@ -1148,6 +1149,7 @@ describe("onDeterminingFilename listener (Chrome)", () => {
       ...freshDownload.downloadRuntime,
       retryViaFetch: freshDownload.retryViaFetch,
       getRoutingMatches: freshDownload.getRoutingMatches,
+      resolveRenameTransform: freshDownload.resolveRenameTransform,
       finalizeFullPath: freshDownload.finalizeFullPath,
     });
 

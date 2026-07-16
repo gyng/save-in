@@ -8,7 +8,7 @@ import {
   removeFilename,
 } from "./filename-listener.ts";
 import { BrowserDownloadRouting, routeBrowserDownload } from "./browser-downloads.ts";
-import { getRoutingMatches } from "./download-plan.ts";
+import { getRoutingMatches, resolveRenameTransform } from "./download-plan.ts";
 import { finalizeFullPath } from "./download-disposition.ts";
 import { renameAndDownload } from "./download-execution.ts";
 import { addDownloadLog, isSourceSidecar } from "./download-pipeline-state.ts";
@@ -65,11 +65,12 @@ export const launchDownload = (state: DownloadPipelineState): Promise<DownloadLa
 // onDeterminingFilename listener is attached before any download event fires.
 export const registerDownloadListener = () => {
   BrowserDownloadRouting.route = (item) =>
-    routeBrowserDownload({ getRoutingMatches, finalizeFullPath }, item);
+    routeBrowserDownload({ getRoutingMatches, resolveRenameTransform, finalizeFullPath }, item);
   registerFilenameAndObjectUrlListeners({
     ...downloadRuntime,
     retryViaFetch,
     getRoutingMatches,
+    resolveRenameTransform,
     finalizeFullPath,
   });
 };

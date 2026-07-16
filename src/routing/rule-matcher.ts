@@ -1,10 +1,12 @@
 import { RULE_TYPES } from "../shared/constants.ts";
+import type { RenameTransform } from "./rename.ts";
 import type {
   CaptureClause,
   FetchClause,
   MatcherAttempt,
   MatcherClause,
   MatcherResult,
+  RenameClause,
   RoutingInfo,
   RoutingRule,
 } from "./rule-types.ts";
@@ -17,9 +19,11 @@ export type EvaluatedMatcherClause = {
 
 export type RuleEvaluation = {
   destination: string | false;
-  // Capture-substituted fetch template; routing variables stay unexpanded
-  // because their resolution is async and happens in the download pipeline.
+  // Capture-substituted fetch template and rename replacement; routing
+  // variables stay unexpanded because their resolution is async and happens
+  // in the download pipeline.
   fetch: string | false;
+  rename: RenameTransform | false;
   clauses: EvaluatedMatcherClause[];
 };
 
@@ -27,10 +31,14 @@ export type RuleMatch = {
   rule: RoutingRule;
   destination: string;
   fetch: string | null;
+  rename: RenameTransform | null;
 };
 
 export const findFetchClause = (rule: RoutingRule): FetchClause | undefined =>
   rule.find((clause): clause is FetchClause => clause.type === RULE_TYPES.FETCH);
+
+export const findRenameClause = (rule: RoutingRule): RenameClause | undefined =>
+  rule.find((clause): clause is RenameClause => clause.type === RULE_TYPES.RENAME);
 
 // Ordinary browser downloads can only be renamed, never re-requested, so
 // rules that rewrite the download URL must be invisible to those pipelines.
@@ -98,17 +106,27 @@ const substituteCaptures = (template: string, captured: (string | undefined)[] |
 
 export const evaluateRule = (rule: RoutingRule, info: RoutingInfo): RuleEvaluation => {
   const clauses = evaluateMatcherClauses(rule, info);
-  if (clauses.some(({ result }) => !result)) return { destination: false, fetch: false, clauses };
+  if (clauses.some(({ result }) => !result)) {
+    return { destination: false, fetch: false, rename: false, clauses };
+  }
   const destinationClause = rule.find((clause) => clause.type === RULE_TYPES.DESTINATION);
   if (!destinationClause || typeof destinationClause.value !== "string") {
-    return { destination: false, fetch: false, clauses };
+    return { destination: false, fetch: false, rename: false, clauses };
   }
   const capture = getCaptureMatcherResults(rule, clauses);
   const captured = capture ? captureValues(capture) : null;
   const fetchClause = findFetchClause(rule);
+  const renameClause = findRenameClause(rule);
   return {
     destination: substituteCaptures(destinationClause.value, captured),
     fetch: fetchClause ? substituteCaptures(fetchClause.value, captured) : false,
+    rename: renameClause
+      ? {
+          find: renameClause.find.source,
+          flags: renameClause.find.flags,
+          replacement: substituteCaptures(renameClause.replacement, captured),
+        }
+      : false,
     clauses,
   };
 };
@@ -129,7 +147,12 @@ export const matchRulesDetailed = (
     if (!isEligible(rule)) continue;
     const evaluation = evaluateRule(rule, info);
     if (evaluation.destination) {
-      return { rule, destination: evaluation.destination, fetch: evaluation.fetch || null };
+      return {
+        rule,
+        destination: evaluation.destination,
+        fetch: evaluation.fetch || null,
+        rename: evaluation.rename || null,
+      };
     }
   }
   return null;

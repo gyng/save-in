@@ -14,6 +14,7 @@ export type BrowserDownloadItem = {
 
 type BrowserDownloadRouter = {
   getRoutingMatches(state: DownloadPipelineState): string | null | undefined;
+  resolveRenameTransform(state: DownloadPipelineState): Promise<void>;
   finalizeFullPath(state: DownloadPipelineState): string;
 };
 
@@ -85,5 +86,8 @@ export const routeBrowserDownload = async (
   if (!route) return null;
   state.routeIsFolder = /\/\s*$/.test(route);
   state.route = await applyVariables(new Path(route), state.info);
+  // Ordinary browser downloads can only be renamed, and rename: is exactly a
+  // rename — the matched rule's transform applies to the suggested name too.
+  await Download.resolveRenameTransform(state);
   return Download.finalizeFullPath(state);
 };

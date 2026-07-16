@@ -39,7 +39,12 @@ export type FilenameDiagnostics = {
   limitBytes: number;
   exceedsLimit: boolean;
 };
-export type PathFinalizeOptions = { finalComponentIsFilename?: boolean };
+export type PathFinalizeOptions = {
+  finalComponentIsFilename?: boolean;
+  // rename: edits the final filename component after expansion but before
+  // sanitization and truncation, so the hook runs on the raw component value.
+  transformFinalComponent?: (value: string) => string;
+};
 
 // These regexes are exported because they define the platform-neutral path
 // policy; callers should normally use the sanitizing functions below.
@@ -257,15 +262,16 @@ export class Path {
       .map((item, index) => {
         if (item.type === PATH_SEGMENT_TYPES.SEPARATOR) return item;
         const isLeadingDot = index === 0 && item.val === ".";
+        const isFinalFilename =
+          finalizeOptions.finalComponentIsFilename === true && index === finalComponentIndex;
+        const value =
+          isFinalFilename && finalizeOptions.transformFinalComponent && !isLeadingDot
+            ? finalizeOptions.transformFinalComponent(item.val)
+            : item.val;
         return stringSegment(
           isLeadingDot
             ? item.val
-            : sanitizeFilename(
-                item.val,
-                options.truncateLength,
-                true,
-                finalizeOptions.finalComponentIsFilename && index === finalComponentIndex,
-              ),
+            : sanitizeFilename(value, options.truncateLength, true, isFinalFilename),
         );
       })
       .join("");

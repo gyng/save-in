@@ -64,6 +64,7 @@ export const handleAutoDownloadSource = async (
     scratch: {
       routeTemplateRaw: match.destination,
       ...(match.fetch !== null ? { fetchTemplateRaw: match.fetch } : {}),
+      ...(match.rename !== null ? { renameTemplate: match.rename } : {}),
     },
     info: {
       currentTab: senderTab,

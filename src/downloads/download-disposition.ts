@@ -5,6 +5,7 @@ import {
 } from "../vendor/content-disposition.ts";
 import { EXTENSION_REGEX } from "../routing/filename.ts";
 import { sanitizeFilename } from "../routing/path.ts";
+import { applyRenameTransform } from "../routing/rename.ts";
 import { resolveHead } from "../routing/variable.ts";
 import { options } from "../config/options-data.ts";
 import type { DownloadPipelineState, FinalizableDownloadState } from "./download-types.ts";
@@ -53,6 +54,13 @@ export const finalizeFullPath = (_state: FinalizableDownloadState): string => {
   let finalDir = _state.path.finalize();
   let finalFilename;
   let finalFilenameIsRoutePath = false;
+  // rename: edits only the final filename component of the matched rule's
+  // output — after variable/capture expansion and disposition resolution,
+  // before truncation and sanitization. The directory part is never parsed:
+  // slashes a replacement introduces are sanitized as ordinary characters.
+  const renameResolved = _state.scratch?.renameResolved;
+  const renameComponent = (value: string): string =>
+    renameResolved ? applyRenameTransform(value, renameResolved) : value;
 
   if (_state.route && _state.routeIsFolder) {
     // §8.1: a folder-only rule (its `into:` ends with "/") routes into a
@@ -61,10 +69,14 @@ export const finalizeFullPath = (_state: FinalizableDownloadState): string => {
     // Firefox) — instead of naming the file after the folder.
     const routeDir = String(_state.route.finalize()).replace(/\/+$/, "");
     finalDir = [finalDir, routeDir].filter((x) => x != null && x !== "").join("/");
-    finalFilename = typeof _state.info.filename === "string" ? _state.info.filename : undefined;
+    finalFilename =
+      typeof _state.info.filename === "string" ? renameComponent(_state.info.filename) : undefined;
   } else if (_state.route) {
     // The rule sets the whole name (which may itself include subdirectories)
-    finalFilename = _state.route.finalize({ finalComponentIsFilename: true });
+    finalFilename = _state.route.finalize({
+      finalComponentIsFilename: true,
+      ...(renameResolved ? { transformFinalComponent: renameComponent } : {}),
+    });
     finalFilenameIsRoutePath = true;
   } else {
     finalFilename = typeof _state.info.filename === "string" ? _state.info.filename : undefined;

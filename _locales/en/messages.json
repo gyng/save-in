@@ -169,6 +169,14 @@
     "message": "Variable is not supported in a fetch: address",
     "description": "Error message for an unsupported variable inside a fetch clause URL. Used in src/routing/rule-parser.ts."
   },
+  "ruleExtraRename": {
+    "message": "A rule can contain only one rename: clause",
+    "description": "Error message for multiple rename clauses in a rule. Used in src/routing/rule-parser.ts."
+  },
+  "ruleRenameMissingSeparator": {
+    "message": "Separate the pattern and replacement with ' -> '",
+    "description": "Error message for a rename clause without the ' -> ' separator between the find pattern and the replacement. Keep the literal ' -> ' token. Used in src/routing/rule-parser.ts."
+  },
   "ruleUnknownMatcher": {
     "message": "Matcher name is not supported",
     "description": "Error message for an unknown matcher. Used in src/routing/rule-parser.ts."

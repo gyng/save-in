@@ -388,6 +388,141 @@ describe("filename rewrite and routing", () => {
     });
   });
 
+  describe("rename clause", () => {
+    beforeEach(() => {
+      diagnostics = { filenamePatterns: [], paths: [] };
+    });
+
+    test("parses find/flags/replacement and substitutes captures into the replacement", () => {
+      const rules = router.parseRules(
+        "filename/i: ^img_(\\d+)\ncapture: filename\nrename/gi: img -> photo-:$1:-\ninto: pics/:filename:",
+      );
+
+      expect(rules).toHaveLength(1);
+      const evaluation = router.evaluateRule(rules[0]!, { filename: "IMG_042.jpg" });
+      expect(evaluation.destination).toBe("pics/:filename:");
+      expect(evaluation.rename).toEqual({
+        find: "img",
+        flags: "gi",
+        replacement: "photo-042-",
+      });
+    });
+
+    test("matchRulesDetailed carries the rename transform of the winning rule", () => {
+      const rules = router.parseRules("filename: a\nrename: a -> b\ninto: x");
+      const match = router.matchRulesDetailed(rules, { filename: "a.txt" });
+      expect(match?.rename).toEqual({ find: "a", flags: "", replacement: "b" });
+
+      const plain = router.parseRules("filename: a\ninto: x");
+      expect(router.matchRulesDetailed(plain, { filename: "a.txt" })?.rename).toBeNull();
+    });
+
+    test("splits on the first separator so the replacement may contain ' -> '", () => {
+      const rules = router.parseRules("filename: a\nrename: a -> b -> c\ninto: x");
+      const match = router.matchRulesDetailed(rules, { filename: "a.txt" });
+      expect(match?.rename).toEqual({ find: "a", flags: "", replacement: "b -> c" });
+    });
+
+    test("an empty replacement is valid and deletes matches", () => {
+      const rules = router.parseRules("filename: a\nrename/g: -draft -> \ninto: x");
+      const match = router.matchRulesDetailed(rules, { filename: "a.txt" });
+      expect(match?.rename).toEqual({ find: "-draft", flags: "g", replacement: "" });
+    });
+
+    test("rename rules stay eligible for rename-only ordinary-download routing", () => {
+      // Unlike fetch:, rename: never re-requests the download, so
+      // downloads.onDeterminingFilename can still honor it.
+      const rules = router.parseRules("filename: \\.jpg$\nrename: cat -> dog\ninto: images");
+      expect(rules).toHaveLength(1);
+      expect(router.isRenameOnlyEligibleRule(rules[0]!)).toBe(true);
+      expect(
+        router.matchRules(rules, { filename: "cat.jpg" }, router.isRenameOnlyEligibleRule),
+      ).toBe("images");
+    });
+
+    test("rejects a second rename clause", () => {
+      const rules = router.parseRules("filename: a\nrename: a -> b\nrename: b -> c\ninto: x");
+
+      expect(rules).toEqual([]);
+      expect(diagnostics.filenamePatterns.at(-1)?.message).toBe("ruleExtraRename");
+    });
+
+    test("rejects a value without the separator", () => {
+      for (const value of ["a->b", "a - > b", "a"]) {
+        expect(router.parseRules(`filename: a\nrename: ${value}\ninto: x`)).toEqual([]);
+        expect(diagnostics.filenamePatterns.at(-1)?.message).toBe("ruleRenameMissingSeparator");
+      }
+    });
+
+    test("rejects a non-compiling find pattern or invalid flags", () => {
+      expect(router.parseRules("filename: a\nrename: ( -> b\ninto: x")).toEqual([]);
+      expect(diagnostics.filenamePatterns.at(-1)?.message).toBe("ruleInvalidRegex");
+
+      const source = "filename: a\nrename/zz: a -> b\ninto: x";
+      expect(router.parseRules(source)).toEqual([]);
+      const error = diagnostics.filenamePatterns.at(-1);
+      expect(error?.message).toBe("ruleInvalidRegex");
+      // Bad flags anchor on the flags span, like matcher clauses.
+      expect(error?.location?.start).toBe(source.indexOf("zz"));
+    });
+
+    test("rejects unknown variables in the replacement side only", () => {
+      const source = "filename: a\nrename: a -> :nope:\ninto: x";
+      expect(router.parseRules(source)).toEqual([]);
+      const error = diagnostics.filenamePatterns.at(-1);
+      expect(error?.message).toBe("ruleUnknownDestinationVariable");
+      expect(error?.error).toBe(":nope:");
+      expect(error?.location?.start).toBe(source.indexOf(":nope:"));
+      expect(error?.location?.end).toBe(source.indexOf(":nope:") + ":nope:".length);
+
+      // The find side is a regex; ":nope:" there is ordinary pattern text.
+      diagnostics = { filenamePatterns: [], paths: [] };
+      expect(router.parseRules("filename: a\nrename: :nope: -> b\ninto: x")).toHaveLength(1);
+      expect(diagnostics.filenamePatterns).toEqual([]);
+    });
+
+    test("metadata-dependent variables are allowed in the replacement", () => {
+      // The rename applies after disposition resolution, when the pipeline
+      // can resolve metadata for the URL actually being downloaded.
+      const rules = router.parseRules(
+        "filename: a\nrename: \\.bin$ -> .:mimeext:\ninto: x/\n\nfilename: b\nrename: $ -> -:sha256:\ninto: y",
+      );
+      expect(rules).toHaveLength(2);
+      expect(diagnostics.filenamePatterns).toEqual([]);
+    });
+
+    test("capture references in the replacement mirror the destination rules", () => {
+      // Without a capture clause the reference is reported but, matching
+      // into:'s historical behavior, the rule stays active.
+      const uncaptured = router.parseRules("filename: (a)\nrename: a -> :$1:\ninto: x");
+      expect(uncaptured).toHaveLength(1);
+      expect(diagnostics.filenamePatterns.at(-1)?.message).toBe("ruleMissingCapture");
+
+      // An out-of-range index is fatal.
+      const outOfRange = router.parseRules(
+        "filename: (a)\ncapture: filename\nrename: a -> :$5:\ninto: x",
+      );
+      expect(outOfRange).toEqual([]);
+      expect(diagnostics.filenamePatterns.at(-1)?.message).toBe("ruleMissingCapture");
+    });
+
+    test("rename does not change matching, so shadow analysis is unaffected", () => {
+      // A rename rule ahead of a plain twin is dead weight for the plain rule
+      // in every pipeline (both stay eligible everywhere), so it still shadows.
+      router.parseRules(
+        "filename: \\.jpg$\nrename: a -> b\ninto: images\n\nfilename: \\.jpg$\ninto: other",
+      );
+      expect(diagnostics.filenamePatterns.at(-1)?.message).toBe("ruleShadowed");
+      expect(diagnostics.filenamePatterns.at(-1)?.warning).toBe(true);
+
+      diagnostics = { filenamePatterns: [], paths: [] };
+      router.parseRules(
+        "filename: \\.jpg$\ninto: images\n\nfilename: \\.jpg$\nrename: a -> b\ninto: other",
+      );
+      expect(diagnostics.filenamePatterns.at(-1)?.message).toBe("ruleShadowed");
+    });
+  });
+
   describe("browser context menu click integration", () => {
     test("parses Firefox clicks", () => {
       const twitterRulesFirefox = router.parseRules(
@@ -928,6 +1063,63 @@ into: captures/:$1:/:$2:`,
           finalPath: "twitter/EQEN6n3U.jpg",
         }),
       );
+    });
+
+    test("traces the rename of the final filename component", async () => {
+      const rules = router.parseRules(
+        "filename: ^IMG_(\\d+)\ncapture: filename\nrename/i: ^img_ -> photo-:pagedomain:-\ninto: pics/:filename:",
+      );
+
+      const trace = await router.traceRules(rules, {
+        url: "https://cdn.example/IMG_042.jpg",
+        filename: "IMG_042.jpg",
+        pageUrl: "https://site.example/album",
+      });
+
+      expect(trace).toEqual(
+        expect.objectContaining({
+          selectedRule: 1,
+          selectedRename: {
+            find: "^img_",
+            flags: "i",
+            replacement: "photo-:pagedomain:-",
+          },
+          renamedFrom: "IMG_042.jpg",
+          renamedTo: "photo-site.example-042.jpg",
+          expandedDestination: "pics/IMG_042.jpg",
+          sanitizedDestination: "pics/photo-site.example-042.jpg",
+          finalPath: "pics/photo-site.example-042.jpg",
+        }),
+      );
+      expect(trace.rules[0]!.rename).toBe("^img_ -> photo-:pagedomain:-");
+    });
+
+    test("renames the download's own name for a folder-only destination", async () => {
+      const rules = router.parseRules(
+        "filename: \\.pdf$\nrename: \\.pdf$ -> .archive.pdf\ninto: pdfs/",
+      );
+
+      const trace = await router.traceRules(rules, {
+        url: "https://x.example/report.pdf",
+        filename: "report.pdf",
+      });
+
+      // The directory route is untouched; the rename applies to the name the
+      // browser keeps, mirroring finalizeFullPath's folder-only branch.
+      expect(trace.sanitizedDestination).toBe("pdfs/");
+      expect(trace.renamedFrom).toBe("report.pdf");
+      expect(trace.renamedTo).toBe("report.archive.pdf");
+    });
+
+    test("rules without rename trace null rename fields", async () => {
+      const rules = router.parseRules("filename: .*\ninto: files/:filename:");
+
+      const trace = await router.traceRules(rules, { filename: "a.txt" });
+
+      expect(trace.selectedRename).toBeNull();
+      expect(trace.renamedFrom).toBeNull();
+      expect(trace.renamedTo).toBeNull();
+      expect(trace.rules[0]!.rename).toBe("");
     });
 
     test("explains the values and fallbacks tested by each matcher", async () => {

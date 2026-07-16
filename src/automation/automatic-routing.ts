@@ -1,5 +1,6 @@
 import { evaluateRule } from "../routing/rule-matcher.ts";
 import { parseRoutingRuleAst } from "../routing/rule-syntax.ts";
+import type { RenameTransform } from "../routing/rename.ts";
 import type { RoutingInfo, RoutingRule } from "../routing/rule-types.ts";
 import {
   AUTOMATIC_CONTEXT,
@@ -19,6 +20,7 @@ export type AutomaticRoutingMatch = {
   rule: RoutingRule;
   destination: string;
   fetch: string | null;
+  rename: RenameTransform | null;
 };
 
 export const isEligibleAutomaticRoutingRule = (rule: RoutingRule): boolean =>
@@ -42,7 +44,12 @@ export const matchAutomaticRoutingRule = (
     if (!isEligibleAutomaticRoutingRule(rule)) continue;
     const evaluation = evaluateRule(rule, info);
     if (evaluation.destination) {
-      return { rule, destination: evaluation.destination, fetch: evaluation.fetch || null };
+      return {
+        rule,
+        destination: evaluation.destination,
+        fetch: evaluation.fetch || null,
+        rename: evaluation.rename || null,
+      };
     }
   }
   return null;

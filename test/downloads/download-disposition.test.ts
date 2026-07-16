@@ -193,6 +193,97 @@ describe("finalizeFullPath: folder-only route keeps the real filename (§8.1)", 
   });
 });
 
+describe("finalizeFullPath: rename transform (rename:)", () => {
+  const rename = (find: string, replacement: string, flags = "") => ({
+    find,
+    flags,
+    replacement,
+  });
+  const routed = (
+    route: string,
+    renameResolved?: ReturnType<typeof rename>,
+    scratch: Record<string, unknown> = {},
+  ) =>
+    Download.finalizeFullPath({
+      path: { finalize: () => "dir" },
+      route: new Path(route),
+      routeIsFolder: false,
+      info: { filename: "orig.txt" },
+      scratch: { ...scratch, ...(renameResolved ? { renameResolved } : {}) },
+    });
+
+  beforeEach(() => {
+    Object.assign(options, { replacementChar: "_", truncateLength: 0 });
+  });
+
+  test("renames only the final filename component of a route path", () => {
+    expect(routed("cat/cat.jpg", rename("cat", "dog"))).toBe("dir/cat/dog.jpg");
+  });
+
+  test("applies regex flags from the clause (global, case-insensitive)", () => {
+    expect(routed("AAa.txt", rename("a", "b", "gi"))).toBe("dir/bbb.txt");
+    expect(routed("AAa.txt", rename("a", "b", "g"))).toBe("dir/AAb.txt");
+  });
+
+  test("an empty replacement deletes matches", () => {
+    expect(routed("report-draft.pdf", rename("-draft", ""))).toBe("dir/report.pdf");
+  });
+
+  test("slashes from the replacement are sanitized as ordinary characters", () => {
+    // The rename never introduces directories: the produced component is
+    // sanitized as one filename, so "/" becomes the replacement character.
+    expect(routed("cat.jpg", rename("cat", "a/b"))).toBe("dir/a_b.jpg");
+  });
+
+  test("applies before truncation, then the result is truncated", () => {
+    const previous = options.truncateLength;
+    options.truncateLength = 8;
+    try {
+      // The find matches the pre-truncation component (an 8-byte limit would
+      // have removed "hijkl" before an after-truncation match could see it).
+      expect(routed("abcdefghijkl.txt", rename("abcdefghijkl", "ok"))).toBe("dir/ok.txt");
+      // A replacement that grows the name is still bounded afterwards.
+      expect(routed("abc.txt", rename("abc", "abcdefghij"))).toBe("dir/abcd.txt");
+    } finally {
+      options.truncateLength = previous;
+    }
+  });
+
+  test("folder-only routes rename the download's own resolved name", () => {
+    const result = Download.finalizeFullPath({
+      path: { finalize: () => "menu" },
+      route: { finalize: () => "pdfs/" },
+      routeIsFolder: true,
+      info: { filename: "report.pdf" },
+      scratch: { renameResolved: rename("^report", "archive") },
+    });
+    expect(result).toBe("menu/pdfs/archive.pdf");
+  });
+
+  test("runs before the MIME extension append and can supersede it", () => {
+    expect(routed("image", rename("$", "-x"), { mimeExtension: "jpg" })).toBe("dir/image-x.jpg");
+    // When the rename itself supplies an extension, nothing is appended.
+    expect(routed("image", rename("$", ".png"), { mimeExtension: "jpg" })).toBe("dir/image.png");
+  });
+
+  test("deleting the entire component falls back to _ instead of a directory-only path", () => {
+    expect(routed("cat.jpg", rename(".*", "", "s"))).toBe("dir/_");
+  });
+
+  test("never applies to an unrouted download, even with stale scratch", () => {
+    const result = Download.finalizeFullPath({
+      path: { finalize: () => "dir" },
+      info: { filename: "cat.jpg" },
+      scratch: { renameResolved: rename("cat", "dog") },
+    });
+    expect(result).toBe("dir/cat.jpg");
+  });
+
+  test("a stale non-compiling stored pattern keeps the resolved name", () => {
+    expect(routed("cat.jpg", rename("(", "dog"))).toBe("dir/cat.jpg");
+  });
+});
+
 describe("filename from URL", () => {
   test("extracts filenames from URL", () => {
     expect(getFilenameFromUrl("https://baz.com/foo.bar")).toBe("foo.bar");
