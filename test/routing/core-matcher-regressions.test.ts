@@ -759,7 +759,7 @@ describe("matcher authoring and validation", () => {
     const filenamePatterns = "sourceurl: example\\.test\ninto: files/:$1:";
 
     const parsed = parseRulesCollecting(filenamePatterns);
-    expect(parsed.rules).toHaveLength(1);
+    expect(parsed.rules).toHaveLength(0);
     const captureError = parsed.errors.find((error) => error.error === "files/:$1:");
     expect(captureError).toBeDefined();
     expect(captureError).not.toHaveProperty("warning");

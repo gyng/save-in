@@ -835,18 +835,18 @@ Goal: [describe which downloads to match and where they should be saved]
 
 Save In syntax:
 - Write one clause per line and separate rules with a blank line.
-- Every matcher in one rule must match. Matcher values are JavaScript regular expressions except css:, which takes a CSS selector and no flags.
+- Every matcher in one rule must match. Matcher values are JavaScript regular expressions except css:, which takes a CSS selector and no flags. Do not leave a regex matcher empty; write .* explicitly for a match-all condition. Use at most 64 css: matchers in one rule and 256 across the configuration.
 - Common matchers include filename:, finalfilename:, actualfileext:, mime:, sourceurl:, sourcedomain:, sourcerootdomain:, sourcekind:, css:, pageurl:, pagedomain:, pagerootdomain:, referrerurl:, referrerdomain:, pagetitle:, context:, and mediatype:.
-- Add /i to a matcher name for case-insensitive matching, for example filename/i: \.pdf$.
-- Every rule must contain exactly one into: clause. Its value is a relative destination or filename template.
+- Add /i to a matcher name for case-insensitive matching, for example filename/i: \.pdf$. Regex flags are allowed only on matcher names and rename:.
+- Every rule must contain exactly one into: clause. Its value is a relative destination or filename template and cannot contain .. path components.
 - End into: with / to move the file while preserving its resolved filename.
 - Otherwise include :filename: unless the goal explicitly requests renaming.
 - Variables use :name: syntax. Useful choices include :filename:, :fileext:, :sourcedomain:, :year:, :month:, :day:, :counter:, and :uuid:.
 - To reuse regex groups in new rules, add capturegroups: followed by the matcher name, then use :$1:, :$2:, and so on in into:. capture: is only for compatibility with legacy flattened indexes.
-- Add an optional fetch: clause with a literal http:// or https:// URL template to download from that address instead of the matched source; into: still sets the destination. It may reuse :$1:, :$2:, and other routing variables except :mime:, :contenttype:, :mimeext:, :sha256:, :sha256full:, :finalurl:, and :redirecturl:. A rule may contain at most one fetch: clause.
-- Add an optional rename: clause written as "find -> replacement" to edit the final filename: find is a regular expression (add flags after the name, for example rename/gi:), and replacement is literal text where routing variables and :$1: expand. An empty replacement deletes matches; folders are never affected. A rule may contain at most one rename: clause.
-- Add disabled: true to a rule to keep it without running it.
-- Lines beginning with // are comments. Never use absolute paths, .., or unsupported clause names.
+- Add an optional fetch: clause with a literal http:// or https:// URL template to download from that address instead of the matched source; into: still sets the destination. It may reuse :$1:, :$2:, and other routing variables except :mime:, :contenttype:, :mimeext:, :sha256:, :sha256full:, :finalurl:, and :redirecturl:. The save fails if expansion does not produce a usable HTTP(S) URL. A rule may contain at most one fetch: clause.
+- Add an optional rename: clause written as "find -> replacement" to edit the final filename: find is a regular expression (add flags after the name, for example rename/gi:), and replacement is literal text where routing variables and :$1: expand. An empty replacement deletes matches; folders are never affected. Rules that need a content hash are skipped for ordinary browser downloads already in flight. A rule may contain at most one rename: clause.
+- Add disabled: true to a valid rule to keep it without running it. Disabled rules are still validated.
+- Lines beginning with // are comments. Never use absolute paths, parent path components, or unsupported clause names.
 
 If more syntax detail is needed, consult https://github.com/gyng/save-in/wiki/Clause-and-Variable-list before answering.
 

@@ -3792,7 +3792,7 @@
     "message": "Hämtar bilden i originalupplösning istället för den lilla förhandsvisningen."
   },
   "html_fetchClauseCompatibility": {
-    "message": "Hoppas över av vanlig webbläsarnedladdningsroutning, som bara kan byta namn – inte byta ut URL:er. Meny, klicka för att spara och automatiska sparningar använder den fortfarande."
+    "message": "Hoppas över av vanlig webbläsarnedladdningsroutning, som bara kan byta namn – inte byta ut URL:er. Meny, klicka för att spara och automatiska sparningar använder den fortfarande; sparningen misslyckas om expansionen inte ger en användbar HTTP(S)-URL."
   },
   "html_orLiteral": {
     "message": "eller"
@@ -3903,7 +3903,7 @@
     "message": "En regel kan bara innehålla en fetch:-sats"
   },
   "ruleFetchNotHttp": {
-    "message": "fetch:-adressen måste börja med http:// eller https://"
+    "message": "fetch:-adressen måste vara en användbar http://- eller https://-URL"
   },
   "ruleFetchUnsupportedVariable": {
     "message": "Variabeln stöds inte i en fetch:-adress"
@@ -3936,7 +3936,7 @@
     "message": "; en tom ersättning tar bort träffar, och i ersättningen expanderas routningsvariabler och fångstreferenser som"
   },
   "html_renameClauseCompatibility": {
-    "message": "Tillämpas efter att filnamnet är helt bestämt (inklusive fetch:-omskrivningar) och före längdgränser — mappar påverkas aldrig. Byter även namn på spårade vanliga webbläsarnedladdningar. Skriv ett literalt ' -> ' i mönstret med ett escapat mellanslag (\\x20->)."
+    "message": "Tillämpas efter att filnamnet är helt bestämt (inklusive fetch:-omskrivningar) och före längdgränser — mappar påverkas aldrig. Spårade vanliga webbläsarnedladdningar använder den bara när ersättningen inte behöver en innehållshash. Skriv ett literalt ' -> ' i mönstret med ett escapat mellanslag (\\x20->)."
   },
   "html_advancedRenameTheSavedFile": {
     "message": "Avancerat: byt namn på den sparade filen"
@@ -4099,5 +4099,20 @@
   },
   "ruleTooManyCssSelectors": {
     "message": "För många olika css:-väljare"
+  },
+  "ruleClauseFlags": {
+    "message": "Den här satsen accepterar inte flaggor för reguljära uttryck"
+  },
+  "ruleEmptyMatcher": {
+    "message": "Ett tomt villkor matchar allt; skriv .* uttryckligen"
+  },
+  "ruleSuspiciousWhitespace": {
+    "message": "Mönstret börjar eller slutar med blanksteg"
+  },
+  "ruleUnsafeRegex": {
+    "message": "Mönstret kan ta för lång tid med lång indata"
+  },
+  "ruleDestinationMustBeRelative": {
+    "message": "Målet måste vara relativt och får inte innehålla ..-sökvägskomponenter"
   }
 }

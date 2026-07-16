@@ -3792,7 +3792,7 @@
     "message": "下载原始分辨率的图片，而不是小尺寸预览图。"
   },
   "html_fetchClauseCompatibility": {
-    "message": "普通浏览器下载路由会跳过它，因为该路由只能重命名，不能替换 URL。菜单、点击保存和自动保存仍会使用它。"
+    "message": "普通浏览器下载路由会跳过它，因为该路由只能重命名，不能替换 URL。菜单、点击保存和自动保存仍会使用它；如果展开后未得到可用的 HTTP(S) URL，保存将失败。"
   },
   "html_orLiteral": {
     "message": "或"
@@ -3903,7 +3903,7 @@
     "message": "一条规则只能包含一个 fetch: 子句"
   },
   "ruleFetchNotHttp": {
-    "message": "fetch: 网址必须以 http:// 或 https:// 开头"
+    "message": "fetch: 网址必须是可用的 http:// 或 https:// URL"
   },
   "ruleFetchUnsupportedVariable": {
     "message": "fetch: 网址中不支持该变量"
@@ -3936,7 +3936,7 @@
     "message": "；替换文本为空会删除匹配项，替换文本中会展开路由变量和捕获引用，例如"
   },
   "html_renameClauseCompatibility": {
-    "message": "在文件名完全确定之后（包括 fetch: 改写）、长度限制之前应用——文件夹不受影响。也会重命名已记录的普通浏览器下载。要在模式中书写字面的 ' -> '，请转义空格（\\x20->）。"
+    "message": "在文件名完全确定之后（包括 fetch: 改写）、长度限制之前应用——文件夹不受影响。已记录的普通浏览器下载仅在替换内容不需要内容哈希时使用它。要在模式中书写字面的 ' -> '，请转义空格（\\x20->）。"
   },
   "html_advancedRenameTheSavedFile": {
     "message": "高级：重命名保存的文件"
@@ -4099,5 +4099,20 @@
   },
   "ruleTooManyCssSelectors": {
     "message": "不同的 css: 选择器过多"
+  },
+  "ruleClauseFlags": {
+    "message": "此子句不接受正则表达式标志"
+  },
+  "ruleEmptyMatcher": {
+    "message": "空条件会匹配所有内容；请明确写出 .*"
+  },
+  "ruleSuspiciousWhitespace": {
+    "message": "模式的开头或结尾包含空白字符"
+  },
+  "ruleUnsafeRegex": {
+    "message": "处理较长输入时，此模式可能耗时过久"
+  },
+  "ruleDestinationMustBeRelative": {
+    "message": "目标必须是相对路径，且不能包含 .. 路径组件"
   }
 }

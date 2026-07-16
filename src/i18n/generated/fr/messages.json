@@ -3792,7 +3792,7 @@
     "message": "Télécharge l’image en résolution d’origine au lieu de l’aperçu réduit."
   },
   "html_fetchClauseCompatibility": {
-    "message": "Ignorée par le routage habituel des téléchargements du navigateur, qui peut seulement renommer, pas remplacer les URL. Le menu, l’enregistrement au clic et les enregistrements automatiques continuent de l’utiliser."
+    "message": "Ignorée par le routage habituel des téléchargements du navigateur, qui peut seulement renommer, pas remplacer les URL. Le menu, l’enregistrement au clic et les enregistrements automatiques continuent de l’utiliser ; l’enregistrement échoue si l’expansion ne produit pas une URL HTTP(S) utilisable."
   },
   "html_orLiteral": {
     "message": "ou"
@@ -3903,7 +3903,7 @@
     "message": "Une règle ne peut contenir qu’une seule clause fetch:"
   },
   "ruleFetchNotHttp": {
-    "message": "L’adresse de fetch: doit commencer par http:// ou https://"
+    "message": "L’adresse de fetch: doit être une URL http:// ou https:// utilisable"
   },
   "ruleFetchUnsupportedVariable": {
     "message": "La variable n’est pas prise en charge dans une adresse fetch:"
@@ -3936,7 +3936,7 @@
     "message": "; un remplacement vide supprime les correspondances, et le remplacement développe les variables de routage et les références de capture telles que"
   },
   "html_renameClauseCompatibility": {
-    "message": "S’applique après la résolution complète du nom de fichier (y compris les réécritures fetch:) et avant les limites de longueur — les dossiers ne sont jamais modifiés. Renomme aussi les téléchargements ordinaires du navigateur suivis. Écrivez un ' -> ' littéral dans le motif avec une espace échappée (\\x20->)."
+    "message": "S’applique après la résolution complète du nom de fichier (y compris les réécritures fetch:) et avant les limites de longueur — les dossiers ne sont jamais modifiés. Les téléchargements ordinaires du navigateur suivis ne l’utilisent que si le remplacement ne nécessite aucun hachage du contenu. Écrivez un ' -> ' littéral dans le motif avec une espace échappée (\\x20->)."
   },
   "html_advancedRenameTheSavedFile": {
     "message": "Avancé : renommer le fichier enregistré"
@@ -4099,5 +4099,20 @@
   },
   "ruleTooManyCssSelectors": {
     "message": "Trop de sélecteurs css: distincts"
+  },
+  "ruleClauseFlags": {
+    "message": "Cette clause n’accepte pas les indicateurs d’expression régulière"
+  },
+  "ruleEmptyMatcher": {
+    "message": "Une condition vide correspond à tout ; écrivez .* explicitement"
+  },
+  "ruleSuspiciousWhitespace": {
+    "message": "Le motif commence ou se termine par un espace"
+  },
+  "ruleUnsafeRegex": {
+    "message": "Le motif peut prendre trop de temps sur une longue entrée"
+  },
+  "ruleDestinationMustBeRelative": {
+    "message": "La destination doit être relative et ne peut pas contenir de composants de chemin .."
   }
 }

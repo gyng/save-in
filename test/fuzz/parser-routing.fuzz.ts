@@ -239,6 +239,7 @@ const routingSemantic: FuzzTarget = {
       fc.property(sourceTextArbitrary, (source) => {
         const first = semanticSignature(source);
         const second = semanticSignature(source);
+        const syntax = parseRoutingRuleAst(source);
         invariant(
           JSON.stringify(first) === JSON.stringify(second),
           "semantic parsing was unstable",
@@ -260,6 +261,19 @@ const routingSemantic: FuzzTarget = {
           invariant(
             rule.some((clause) => clause.type === RULE_TYPES.MATCHER),
             `routing rule ${index} has no matcher`,
+          );
+        });
+        syntax.ast.rules.forEach((rule, index) => {
+          const hasFatalSyntax = syntax.issues.some(
+            (issue) =>
+              issue.span.start.offset >= rule.span.start.offset &&
+              issue.span.end.offset <= rule.span.end.offset,
+          );
+          if (!hasFatalSyntax) return;
+          const isolated = source.slice(rule.span.start.offset, rule.span.end.offset);
+          invariant(
+            parseRulesCollecting(isolated).rules.length === 0,
+            `routing rule ${index} remained executable after a syntax error`,
           );
         });
       }),

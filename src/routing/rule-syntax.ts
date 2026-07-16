@@ -14,13 +14,20 @@ import {
   type SourceSpan,
 } from "../shared/syntax-parser.ts";
 export const ROUTING_RULE_GRAMMAR = String.raw`
-routing-document = { ignored-line | rule } ;
-rule             = clause, { clause } ;
-clause           = clause-name, [ "/", regex-flags ], ":", [ " " ], value ;
-clause-name      = { non-whitespace } ;
-regex-flags      = { non-whitespace } ;
-value            = { character } ;
-ignored-line     = blank-line | optional-whitespace, "//", { character } ;
+routing-document = { blank-line | comment-line | rule } ;
+rule             = clause-line, { comment-line | clause-line } ;
+clause-line      = matcher-clause | css-clause | capture-clause | into-clause
+                 | fetch-clause | rename-clause | disabled-clause ;
+matcher-clause   = matcher-name, [ "/", regex-flags ], ":", [ " " ], regex ;
+css-clause       = "css:", [ " " ], selector ;
+capture-clause   = ( "capture:" | "capturegroups:" ), [ " " ], matcher-list ;
+into-clause      = "into:", [ " " ], relative-template ;
+fetch-clause     = "fetch:", [ " " ], http-template ;
+rename-clause    = "rename", [ "/", regex-flags ], ":", [ " " ], regex,
+                   " -> ", template ;
+disabled-clause  = "disabled:", [ " " ], ( "true" | "false" ) ;
+regex-flags      = non-whitespace, { non-whitespace } ;
+comment-line     = optional-whitespace, "//", { character } ;
 `;
 
 export type RuleSyntaxIssue = {

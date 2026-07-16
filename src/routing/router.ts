@@ -171,6 +171,7 @@ export const traceRules = async (
   // destination expands (applyFetchRewrite does the same for real downloads).
   const rewrittenUrl =
     expandedFetchUrl !== null && isUsableFetchRewrite(expandedFetchUrl) ? expandedFetchUrl : null;
+  const fetchRewriteFailed = selectedFetchTemplate !== null && rewrittenUrl === null;
   let destinationInfo = traceInfo;
   if (rewrittenUrl) {
     const { naiveFilename, initialFilename } = deriveUrlFilenames(
@@ -185,15 +186,17 @@ export const traceRules = async (
       initialFilename,
     };
   }
-  const expandedPath = destination
-    ? await applyVariables(new Path(destination), destinationInfo)
-    : null;
+  const expandedPath =
+    destination && !fetchRewriteFailed
+      ? await applyVariables(new Path(destination), destinationInfo)
+      : null;
   const expandedDestination = expandedPath?.toString() ?? null;
   const finalComponentIsFilename = typeof destination === "string" && !/\/\s*$/.test(destination);
   const selectedRename = selectedEvaluation ? selectedEvaluation.rename || null : null;
-  const expandedRename = selectedRename
-    ? await expandRenameTransform(selectedRename, destinationInfo)
-    : null;
+  const expandedRename =
+    selectedRename && !fetchRewriteFailed
+      ? await expandRenameTransform(selectedRename, destinationInfo)
+      : null;
   let renamedFrom: string | null = null;
   let renamedTo: string | null = null;
   const transformFinalComponent = expandedRename

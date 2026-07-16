@@ -3792,7 +3792,7 @@
     "message": "Downloadt de afbeelding op originele resolutie in plaats van de kleine voorvertoning."
   },
   "html_fetchClauseCompatibility": {
-    "message": "Wordt overgeslagen door gewone routering van browserdownloads, die alleen kan hernoemen, geen URL's kan vervangen. Menu, opslaan met één klik en automatisch opslaan gebruiken deze nog steeds."
+    "message": "Wordt overgeslagen door gewone routering van browserdownloads, die alleen kan hernoemen, geen URL's kan vervangen. Menu, opslaan met één klik en automatisch opslaan gebruiken deze nog steeds; opslaan mislukt als de uitbreiding geen bruikbare HTTP(S)-URL oplevert."
   },
   "html_orLiteral": {
     "message": "of"
@@ -3903,7 +3903,7 @@
     "message": "Een regel kan slechts één fetch:-clausule bevatten"
   },
   "ruleFetchNotHttp": {
-    "message": "Het fetch:-adres moet beginnen met http:// of https://"
+    "message": "Het fetch:-adres moet een bruikbare http://- of https://-URL zijn"
   },
   "ruleFetchUnsupportedVariable": {
     "message": "Variabele wordt niet ondersteund in een fetch:-adres"
@@ -3936,7 +3936,7 @@
     "message": "; een lege vervanging verwijdert overeenkomsten, en in de vervanging worden routeringsvariabelen en capture-verwijzingen uitgevouwen zoals"
   },
   "html_renameClauseCompatibility": {
-    "message": "Wordt toegepast nadat de bestandsnaam volledig is bepaald (inclusief fetch:-herschrijvingen) en vóór lengtelimieten — mappen worden nooit gewijzigd. Hernoemt ook geregistreerde gewone browserdownloads. Schrijf een letterlijke ' -> ' in het patroon met een ge-escapete spatie (\\x20->)."
+    "message": "Wordt toegepast nadat de bestandsnaam volledig is bepaald (inclusief fetch:-herschrijvingen) en vóór lengtelimieten — mappen worden nooit gewijzigd. Geregistreerde gewone browserdownloads gebruiken dit alleen als de vervanging geen inhoudshash nodig heeft. Schrijf een letterlijke ' -> ' in het patroon met een ge-escapete spatie (\\x20->)."
   },
   "html_advancedRenameTheSavedFile": {
     "message": "Geavanceerd: het opgeslagen bestand hernoemen"
@@ -4099,5 +4099,20 @@
   },
   "ruleTooManyCssSelectors": {
     "message": "Te veel verschillende css:-selectors"
+  },
+  "ruleClauseFlags": {
+    "message": "Deze clausule accepteert geen vlaggen voor reguliere expressies"
+  },
+  "ruleEmptyMatcher": {
+    "message": "Een lege voorwaarde komt met alles overeen; schrijf .* expliciet"
+  },
+  "ruleSuspiciousWhitespace": {
+    "message": "Het patroon begint of eindigt met witruimte"
+  },
+  "ruleUnsafeRegex": {
+    "message": "Het patroon kan te lang duren bij lange invoer"
+  },
+  "ruleDestinationMustBeRelative": {
+    "message": "De bestemming moet relatief zijn en mag geen ..-padcomponenten bevatten"
   }
 }

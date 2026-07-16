@@ -26,6 +26,9 @@ import { automaticRuleClauseIssues, isAutomaticRuleClauses } from "./automatic-r
 import { findBannedFetchVariables, findUnknownPathVariables } from "./path-variables.ts";
 import { RENAME_SEPARATOR, splitRenameValue } from "./rename.ts";
 import { isRenameOnlyEligibleRule } from "./rule-matcher.ts";
+import { isSafeRoutingRegex } from "./regex-safety.ts";
+import { isUsableFetchTemplate } from "./fetch-url.ts";
+import { invalidDestinationRange } from "./destination-safety.ts";
 
 const errorLocation = (span: SourceSpan): RuleErrorLocation => ({
   start: span.start.offset,
@@ -90,10 +93,10 @@ const appendUncapturedReferenceError = (
   hasCapture: boolean,
   errors: RuleError[],
   reportedValue = referenceValue,
-): void => {
-  if (/:\$\d+:/.test(referenceValue) && !hasCapture) {
-    appendMissingCaptureError(reportedValue, span, errors);
-  }
+): boolean => {
+  if (!/:\$\d+:/.test(referenceValue) || hasCapture) return false;
+  appendMissingCaptureError(reportedValue, span, errors);
+  return true;
 };
 
 const hasOutOfRangeCapture = (value: string, availableIndexes: number): boolean =>
@@ -128,7 +131,12 @@ const captureGroupCount = (regex: RegExp): number => {
   return groups;
 };
 
-const isPlainMatchAll = (regex: RegExp): boolean => /^(?:\.\*|\^\.\*\$)$/.test(regex.source);
+const isPlainMatchAll = (regex: RegExp): boolean =>
+  /^(?:\(\?:\)|\.\*|\^\.\*\$)$/.test(regex.source);
+
+const clauseAcceptsRegexFlags = (line: RoutingRuleNode["clauses"][number]): boolean =>
+  line.name === "rename" ||
+  !["capture", "capturegroups", "css", "disabled", "fetch", "into"].includes(line.name);
 
 const hasDynamicOutputCapture = (rule: readonly RuleClause[]): boolean =>
   rule.some(
@@ -139,6 +147,10 @@ const hasDynamicOutputCapture = (rule: readonly RuleClause[]): boolean =>
 
 const isAlwaysRenameOnlyEligibleRule = (rule: RoutingRule): boolean =>
   isRenameOnlyEligibleRule(rule) && !hasDynamicOutputCapture(rule);
+
+const issueFallsWithinRule = (issue: RuleSyntaxIssue, rule: RoutingRuleNode): boolean =>
+  issue.span.start.offset >= rule.span.start.offset &&
+  issue.span.end.offset <= rule.span.end.offset;
 
 const isMatcherName = (name: string): name is keyof typeof matcherFunctions =>
   Object.hasOwn(matcherFunctions, name);
@@ -155,6 +167,30 @@ const parseSemanticRule = (
   rule: RoutingRuleNode,
   errors: RuleError[] = [],
 ): RoutingRule | false => {
+  let invalidFlags = false;
+  rule.clauses.forEach((line) => {
+    if (line.flagsSpan === null) return;
+    if (!line.flags) {
+      appendError(
+        errors,
+        routingPorts.getMessage("ruleInvalidRegex"),
+        "empty regular-expression flags after /",
+        line.flagsSpan,
+      );
+      invalidFlags = true;
+      return;
+    }
+    if (!clauseAcceptsRegexFlags(line)) {
+      const message =
+        line.name === "css"
+          ? routingPorts.getMessage("ruleCssFlags")
+          : routingPorts.getMessage("ruleClauseFlags");
+      appendError(errors, message, `${line.name}/${line.flags}:`, line.flagsSpan);
+      invalidFlags = true;
+    }
+  });
+  if (invalidFlags) return false;
+
   const controls = rule.clauses.filter((line) => line.name === "disabled");
   if (controls.length > 1) {
     const duplicateControl = controls[1];
@@ -169,6 +205,7 @@ const parseSemanticRule = (
     return false;
   }
   const control = controls[0];
+  let disabled = false;
   if (control) {
     const value = control.value.trim().toLowerCase();
     if (value !== "true" && value !== "false") {
@@ -180,7 +217,7 @@ const parseSemanticRule = (
       );
       return false;
     }
-    if (value === "true") return false;
+    disabled = value === "true";
   }
   const lines = rule.clauses.filter((line) => line.name !== "disabled");
   const excessCssLine = lines.filter((line) => line.name === "css")[MAX_CSS_SELECTORS_PER_ORIGIN];
@@ -245,6 +282,15 @@ const parseSemanticRule = (
         );
         return false;
       }
+      if (!isSafeRoutingRegex(find)) {
+        appendError(
+          errors,
+          routingPorts.getMessage("ruleUnsafeRegex"),
+          parts.find,
+          spanWithin(line.valueSpan, 0, parts.find.length),
+          true,
+        );
+      }
       return {
         name,
         value: rawValue,
@@ -259,16 +305,6 @@ const parseSemanticRule = (
       // a space). The syntax parser already removes the grammar's one trivia
       // space after the colon, so preserve the selector value byte-for-byte.
       const selector = rawValue;
-      if (flags) {
-        appendError(
-          errors,
-          routingPorts.getMessage("ruleCssFlags"),
-          `css/${flags}:`,
-          /* v8 ignore next -- Non-empty parsed flags always carry a flags span. */
-          line.flagsSpan ?? line.nameSpan,
-        );
-        return false;
-      }
       if (!selector.trim() || selector.length > MAX_CSS_SELECTOR_LENGTH) {
         appendError(
           errors,
@@ -304,6 +340,32 @@ const parseSemanticRule = (
       appendError(errors, routingPorts.getMessage("ruleUnknownMatcher"), `${name}:`, line.nameSpan);
       return false;
     }
+    if (rawValue === "") {
+      appendError(
+        errors,
+        routingPorts.getMessage("ruleEmptyMatcher"),
+        `${name}:`,
+        line.valueSpan,
+        true,
+      );
+    } else if (rawValue !== rawValue.trim()) {
+      appendError(
+        errors,
+        routingPorts.getMessage("ruleSuspiciousWhitespace"),
+        rawValue,
+        line.valueSpan,
+        true,
+      );
+    }
+    if (!isSafeRoutingRegex(value)) {
+      appendError(
+        errors,
+        routingPorts.getMessage("ruleUnsafeRegex"),
+        rawValue,
+        line.valueSpan,
+        true,
+      );
+    }
     return { name, value, type: RULE_TYPES.MATCHER, matcher: factory(value) };
   });
   const valid = clauses.filter((clause): clause is RuleClause => clause !== false);
@@ -318,6 +380,23 @@ const parseSemanticRule = (
       routingPorts.getMessage("ruleMissingInto"),
       destination ? destination.value : "",
       destinationNode?.valueSpan ?? rule.span,
+    );
+    return false;
+  }
+  const relativePrefixLength = destinationNode.value.startsWith("./") ? 2 : 0;
+  const invalidDestination = invalidDestinationRange(
+    destinationNode.value.slice(relativePrefixLength),
+  );
+  if (invalidDestination) {
+    appendError(
+      errors,
+      routingPorts.getMessage("ruleDestinationMustBeRelative"),
+      destinationNode.value,
+      spanWithin(
+        destinationNode.valueSpan,
+        relativePrefixLength + invalidDestination.start,
+        invalidDestination.length,
+      ),
     );
     return false;
   }
@@ -362,7 +441,7 @@ const parseSemanticRule = (
   if (fetchClause && fetchNode) {
     // The scheme and authority marker must be literal so no expansion can
     // reintroduce data:, javascript:, or file: requests at runtime.
-    if (!/^https?:\/\//.test(fetchClause.value)) {
+    if (!isUsableFetchTemplate(fetchClause.value)) {
       appendError(
         errors,
         routingPorts.getMessage("ruleFetchNotHttp"),
@@ -392,12 +471,16 @@ const parseSemanticRule = (
       );
     }
     if (unknownFetchVariables.length > 0 || bannedFetchVariables.length > 0) return false;
-    appendUncapturedReferenceError(
-      fetchClause.value,
-      fetchNode.valueSpan,
-      valid.some((clause) => clause.type === RULE_TYPES.CAPTURE),
-      errors,
-    );
+    if (
+      appendUncapturedReferenceError(
+        fetchClause.value,
+        fetchNode.valueSpan,
+        valid.some((clause) => clause.type === RULE_TYPES.CAPTURE),
+        errors,
+      )
+    ) {
+      return false;
+    }
   }
   const renameClauses = valid.filter((clause) => clause.type === RULE_TYPES.RENAME);
   const renameNodes = lines.filter((line) => line.name === "rename");
@@ -434,20 +517,28 @@ const parseSemanticRule = (
       );
     }
     if (unknownRenameVariables.length > 0) return false;
+    if (
+      appendUncapturedReferenceError(
+        renameClause.replacement,
+        renameNode.valueSpan,
+        valid.some((clause) => clause.type === RULE_TYPES.CAPTURE),
+        errors,
+        renameClause.value,
+      )
+    ) {
+      return false;
+    }
+  }
+  if (
     appendUncapturedReferenceError(
-      renameClause.replacement,
-      renameNode.valueSpan,
+      destination.value,
+      destinationNode.valueSpan,
       valid.some((clause) => clause.type === RULE_TYPES.CAPTURE),
       errors,
-      renameClause.value,
-    );
+    )
+  ) {
+    return false;
   }
-  appendUncapturedReferenceError(
-    destination.value,
-    destinationNode.valueSpan,
-    valid.some((clause) => clause.type === RULE_TYPES.CAPTURE),
-    errors,
-  );
   if (!valid.some((clause) => clause.type === RULE_TYPES.MATCHER)) {
     appendError(
       errors,
@@ -553,7 +644,7 @@ const parseSemanticRule = (
   }
   // Fatal whole-rule cardinality and capture-target invariants cannot be
   // expressed by the clause union; issue the parser brand only after checking them.
-  return valid as RoutingRule;
+  return disabled ? false : (valid as RoutingRule);
 };
 
 export const parseRulesCollecting = (
@@ -562,10 +653,14 @@ export const parseRulesCollecting = (
   const syntax = parseRoutingRuleAst(raw);
   const errors: RuleError[] = [];
   appendSyntaxErrors(syntax.issues, errors);
-  const semanticRules = syntax.ast.rules
-    .map((ast) => ({ ast, rule: parseSemanticRule(ast, errors) }))
+  const parsedRules = syntax.ast.rules
+    .map((ast) => ({
+      ast,
+      rule: syntax.issues.some((issue) => issueFallsWithinRule(issue, ast))
+        ? false
+        : parseSemanticRule(ast, errors),
+    }))
     .filter((entry): entry is { ast: RoutingRuleNode; rule: RoutingRule } => Boolean(entry.rule));
-  const parsedRules = semanticRules;
   const cssNodes = parsedRules.flatMap(({ ast }) =>
     ast.clauses.filter((clause) => clause.name === "css"),
   );

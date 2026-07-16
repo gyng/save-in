@@ -252,7 +252,7 @@ describe("settings transfer", () => {
   test("rejects imported invalid CSS selectors before applying them", async () => {
     importMarkup();
     vi.spyOn(window, "prompt").mockReturnValue(
-      JSON.stringify({ filenamePatterns: "css: [\ninto: files/" }),
+      JSON.stringify({ filenamePatterns: "css: [\ninto: files/\ndisabled: true" }),
     );
     const alert = vi.spyOn(window, "alert").mockImplementation(() => {});
     const apply = vi.fn();

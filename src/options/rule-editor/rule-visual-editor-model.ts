@@ -123,10 +123,13 @@ const supportsDisabledControl = (clauses: RoutingClauseNode[]): boolean => {
 };
 
 const hasUnsupportedFlags = (clauses: RoutingClauseNode[]): boolean =>
-  clauses.some((clause) => clause.flags !== "" && (clause.flags !== "i" || clause.name === "css"));
-
-const hasLossyVisualCssValue = (clauses: RoutingClauseNode[]): boolean =>
-  clauses.some((clause) => clause.name === "css" && /\\\s$/.test(clause.value));
+  clauses.some(
+    (clause) =>
+      clause.flagsSpan !== null &&
+      (clause.flags !== "i" ||
+        clause.name === "css" ||
+        (clause.clauseKind !== "matcher" && clause.clauseKind !== "rename")),
+  );
 
 export const parseVisualRoutingRules = (source: string): VisualRoutingDocument => {
   const { parsed, units } = parseWithUnits(source);
@@ -153,14 +156,11 @@ export const parseVisualRoutingRules = (source: string): VisualRoutingDocument =
             kind: clause.clauseKind,
             name: clause.name,
             flags: clause.flags,
-            value: clause.value.trimEnd(),
+            value: clause.value,
             line: clause.span.start.line,
           })),
         editable:
-          issues.length === 0 &&
-          !unsupportedFlags &&
-          !hasLossyVisualCssValue(unit.rule.clauses) &&
-          supportsDisabledControl(unit.rule.clauses),
+          issues.length === 0 && !unsupportedFlags && supportsDisabledControl(unit.rule.clauses),
         issues,
         source: unit.content,
       };
@@ -174,12 +174,7 @@ const editableRule = (source: string, ruleIndex: number) => {
   if (!unit) throw new RangeError(`Routing rule ${ruleIndex + 1} does not exist.`);
   const issues = result.parsed.issues.filter((issue) => issueInRule(issue, unit));
   const unsupportedFlags = hasUnsupportedFlags(unit.rule.clauses);
-  if (
-    issues.length > 0 ||
-    unsupportedFlags ||
-    hasLossyVisualCssValue(unit.rule.clauses) ||
-    !supportsDisabledControl(unit.rule.clauses)
-  ) {
+  if (issues.length > 0 || unsupportedFlags || !supportsDisabledControl(unit.rule.clauses)) {
     throw new Error("Edit this rule in Text mode before using visual controls.");
   }
   return { ...result, unit };
@@ -273,12 +268,11 @@ export const updateRoutingClause = (
     });
   }
   if (update.value !== undefined) {
-    const trailingWhitespace = clause.value.match(/\s+$/)?.[0].length ?? 0;
     const leadingSeparator =
       update.value.startsWith(":") && clause.cst.valueLeadingTrivia.raw.length === 0 ? " " : "";
     patches.push({
       start: clause.valueSpan.start.offset,
-      end: clause.valueSpan.end.offset - trailingWhitespace,
+      end: clause.valueSpan.end.offset,
       value: `${leadingSeparator}${update.value}`,
     });
   }

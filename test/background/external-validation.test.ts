@@ -8,6 +8,10 @@ import {
 } from "../../src/background/external-validation.ts";
 
 describe("external validation safeguards", () => {
+  test("accepts a literal template string that is never executed as a regex", () => {
+    expect(isSafeExternalRegex("literal")).toBe(true);
+  });
+
   test.each([/^https?:\/\//, /(?:jpg|png)$/i, /(?:ab)+/, /[a-z]+/, /a{1,3}/, /(ab){1}/])(
     "accepts bounded regexes %#",
     (regex) => {

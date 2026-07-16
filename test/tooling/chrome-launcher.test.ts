@@ -15,6 +15,7 @@ const { buildOutputForMode, chromeArgs, findChrome, parseChromeMajorVersion, rem
       noSandbox?: boolean,
       legacyExtensionDir?: string,
       disableGpu?: boolean,
+      extraArgs?: string[],
     ) => string[];
     findChrome: () => string;
     parseChromeMajorVersion: (version: string) => number;
@@ -59,6 +60,12 @@ describe("isolated Chrome launcher", () => {
     expect(chromeArgs("profile", 9555, false, false, undefined, false)).not.toContain(
       "--disable-gpu",
     );
+  });
+
+  test("adds caller-owned graphics arguments before the initial URL", () => {
+    const args = chromeArgs("profile", 9555, false, false, undefined, false, ["--use-angle=gl"]);
+
+    expect(args.slice(-2)).toEqual(["--use-angle=gl", "about:blank"]);
   });
 
   test("finds a per-user Chrome installation through PATH", () => {

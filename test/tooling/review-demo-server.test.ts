@@ -1,18 +1,52 @@
 import { createRequire } from "node:module";
+import { join } from "node:path";
 
 const require = createRequire(import.meta.url);
-const { createReviewKeyHandler } = require("../../scripts/review-demo.js") as {
-  createReviewKeyHandler: (actions: {
-    enableHotReload: () => void;
-    openFirefox: () => void;
-    reload: () => void;
-    setTerminalFocused: (focused: boolean) => void;
-    stop: () => void;
-    togglePromptSupport: () => void;
-  }) => (input: string) => void;
-};
+const { createReviewKeyHandler, promptRuntimeSettings } =
+  require("../../scripts/review-demo.js") as {
+    createReviewKeyHandler: (actions: {
+      enableHotReload: () => void;
+      openFirefox: () => void;
+      reload: () => void;
+      setTerminalFocused: (focused: boolean) => void;
+      stop: () => void;
+      togglePromptSupport: () => void;
+    }) => (input: string) => void;
+    promptRuntimeSettings: (
+      runtimeRoot: string,
+      environment?: NodeJS.ProcessEnv,
+      exists?: (filename: string) => boolean,
+    ) => { extraArgs: string[]; environment: NodeJS.ProcessEnv };
+  };
 
 describe("review demo server", () => {
+  test("scopes WSLg ANGLE and Dozen settings to the Prompt browser", () => {
+    const root = "/profiles/prompt-runtime";
+    const settings = promptRuntimeSettings(
+      root,
+      { LD_LIBRARY_PATH: "/existing/lib", SAVE_IN_PROMPT_ADAPTER: "NVIDIA RTX" },
+      () => true,
+    );
+
+    expect(settings).toEqual({
+      extraArgs: ["--use-angle=gl"],
+      environment: {
+        GALLIUM_DRIVER: "d3d12",
+        MESA_D3D12_DEFAULT_ADAPTER_NAME: "NVIDIA RTX",
+        VK_DRIVER_FILES: join(root, "share", "vulkan", "icd.d", "dzn_icd.json"),
+        VK_INSTANCE_LAYERS: "VK_LAYER_LOCAL_compute_feature",
+        VK_LAYER_PATH: join(root, "layer"),
+        LD_LIBRARY_PATH: `${join(root, "lib")}:/usr/lib/wsl/lib:/existing/lib`,
+      },
+    });
+  });
+
+  test("rejects an incomplete Prompt review runtime before launching Chrome", () => {
+    expect(() => promptRuntimeSettings("/missing/runtime", {}, () => false)).toThrow(
+      /libvulkan_dzn\.so.*libvulkan-feature-shim\.so/,
+    );
+  });
+
   test("reloads on r or R and ignores unrelated input", () => {
     const enableHotReload = vi.fn();
     const openFirefox = vi.fn();

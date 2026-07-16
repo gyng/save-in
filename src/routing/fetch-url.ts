@@ -30,3 +30,13 @@ export const isUsableFetchRewrite = (value: string): boolean =>
   /^https?:\/\/[^/?#]/i.test(value) &&
   !RESTRUCTURES_AUTHORITY.test(value) &&
   withUrl(value, (url) => url.protocol === "https:" || url.protocol === "http:", false);
+
+// Validate the parts that are knowable before captures and variables expand.
+// A numeric placeholder remains valid in a host, port, path, query, or fragment.
+export const isUsableFetchTemplate = (value: string): boolean =>
+  isUsableFetchRewrite(
+    value.replace(/:[A-Za-z$][A-Za-z0-9_$]*:/g, (token, offset: number) => {
+      const insideBracketedHost = value.lastIndexOf("[", offset) > value.lastIndexOf("]", offset);
+      return insideBracketedHost && !token.startsWith(":$") ? token : "80";
+    }),
+  );

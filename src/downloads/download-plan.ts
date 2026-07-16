@@ -178,13 +178,15 @@ export const resolveDownloadPlan = async (
         await resolveDispositionFilename(state);
       }
     } else {
-      // The rule still renames and routes; only the rewrite is dropped. Log
-      // the expanded address alongside the template so a stray character a
-      // capture or variable introduced is visible when diagnosing the skip.
+      // A fetch rule promises a different resource. Applying its destination
+      // or rename to the original URL would silently mislabel a preview as an
+      // original, so an unusable expansion makes the whole plan fail closed.
       addDownloadLog(state, "fetch rewrite skipped: expanded address is not usable HTTP(S)", {
         template: fetchTemplate,
         expanded: rewrittenUrl,
       });
+      downloadRuntime.forgetPendingState(state);
+      return null;
     }
   }
   // Click-to-save reuses the previous menu directory only as its unmatched

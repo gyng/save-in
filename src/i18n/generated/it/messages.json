@@ -3792,7 +3792,7 @@
     "message": "Scarica l'immagine alla risoluzione originale invece dell'anteprima piccola."
   },
   "html_fetchClauseCompatibility": {
-    "message": "Ignorata dal normale instradamento dei download del browser, che può solo rinominare, non sostituire gli URL. Menu, clic per salvare e salvataggi automatici continuano a usarla."
+    "message": "Ignorata dal normale instradamento dei download del browser, che può solo rinominare, non sostituire gli URL. Menu, clic per salvare e salvataggi automatici continuano a usarla; il salvataggio non riesce se l’espansione non produce un URL HTTP(S) utilizzabile."
   },
   "html_orLiteral": {
     "message": "o"
@@ -3903,7 +3903,7 @@
     "message": "Una regola può contenere una sola clausola fetch:"
   },
   "ruleFetchNotHttp": {
-    "message": "L'indirizzo di fetch: deve iniziare con http:// o https://"
+    "message": "L'indirizzo di fetch: deve essere un URL http:// o https:// utilizzabile"
   },
   "ruleFetchUnsupportedVariable": {
     "message": "La variabile non è supportata in un indirizzo fetch:"
@@ -3936,7 +3936,7 @@
     "message": "; una sostituzione vuota elimina le corrispondenze e la sostituzione espande variabili di instradamento e riferimenti di cattura come"
   },
   "html_renameClauseCompatibility": {
-    "message": "Si applica dopo che il nome file è completamente risolto (incluse le riscritture fetch:) e prima dei limiti di lunghezza — le cartelle non vengono mai toccate. Rinomina anche i download comuni del browser registrati. Scrivi un ' -> ' letterale nel pattern con uno spazio con escape (\\x20->)."
+    "message": "Si applica dopo che il nome file è completamente risolto (incluse le riscritture fetch:) e prima dei limiti di lunghezza — le cartelle non vengono mai toccate. I download comuni del browser registrati la usano solo quando la sostituzione non richiede un hash del contenuto. Scrivi un ' -> ' letterale nel pattern con uno spazio con escape (\\x20->)."
   },
   "html_advancedRenameTheSavedFile": {
     "message": "Avanzato: rinomina il file salvato"
@@ -4099,5 +4099,20 @@
   },
   "ruleTooManyCssSelectors": {
     "message": "Troppi selettori css: distinti"
+  },
+  "ruleClauseFlags": {
+    "message": "Questa clausola non accetta flag per espressioni regolari"
+  },
+  "ruleEmptyMatcher": {
+    "message": "Una condizione vuota corrisponde a tutto; scrivi .* esplicitamente"
+  },
+  "ruleSuspiciousWhitespace": {
+    "message": "Il modello inizia o termina con uno spazio"
+  },
+  "ruleUnsafeRegex": {
+    "message": "Il modello può richiedere troppo tempo con input lunghi"
+  },
+  "ruleDestinationMustBeRelative": {
+    "message": "La destinazione deve essere relativa e non può contenere componenti di percorso .."
   }
 }

@@ -19,6 +19,8 @@ const firefox = require("./lib/firefox");
 const PROFILE = path.join(chrome.ROOT, "dist", "review-profile");
 const PROMPT_PROFILE =
   process.env.SAVE_IN_PROMPT_PROFILE || path.join(os.homedir(), ".cache", "save-in-nano-profile");
+const PROMPT_RUNTIME =
+  process.env.SAVE_IN_PROMPT_RUNTIME || path.join(os.homedir(), ".cache", "save-in-nano-runtime");
 const DEMO_PHOTO = fs.readFileSync(
   path.join(chrome.ROOT, "docs", "store-assets", "demo-photo.avif"),
 );
@@ -61,6 +63,56 @@ const writeReviewMessage = (output, values) => {
 const reviewLog = (...values) => writeReviewMessage(console.log, values);
 /** @param {...unknown} values */
 const reviewError = (...values) => writeReviewMessage(console.error, values);
+
+/**
+ * ChromeML owns a separate Dawn/Vulkan device from browser ANGLE. Ubuntu's WSL
+ * packages do not currently ship Dozen, so Prompt review uses a pre-provisioned,
+ * isolated runtime rather than changing the system Vulkan configuration.
+ *
+ * @param {string} runtimeRoot
+ * @param {NodeJS.ProcessEnv} [baseEnvironment]
+ * @param {(filename: string) => boolean} [fileExists]
+ */
+const promptRuntimeSettings = (
+  runtimeRoot,
+  baseEnvironment = process.env,
+  fileExists = fs.existsSync,
+) => {
+  const libraryDir = path.join(runtimeRoot, "lib");
+  const layerDir = path.join(runtimeRoot, "layer");
+  const driver = path.join(runtimeRoot, "share", "vulkan", "icd.d", "dzn_icd.json");
+  const required = [
+    driver,
+    path.join(libraryDir, "libvulkan_dzn.so"),
+    path.join(libraryDir, "libvulkan-feature-shim.so"),
+    path.join(layerDir, "VkLayer_LOCAL_compute_feature.json"),
+  ];
+  const missing = required.filter((filename) => !fileExists(filename));
+  if (missing.length) {
+    throw new Error(
+      `Prompt review runtime is incomplete at ${runtimeRoot}: missing ${missing
+        .map((filename) => path.relative(runtimeRoot, filename))
+        .join(", ")}. Set SAVE_IN_PROMPT_RUNTIME to the provisioned runtime.`,
+    );
+  }
+  const inheritedLibraries = baseEnvironment.LD_LIBRARY_PATH;
+  return {
+    extraArgs: ["--use-angle=gl"],
+    environment: {
+      GALLIUM_DRIVER: "d3d12",
+      MESA_D3D12_DEFAULT_ADAPTER_NAME:
+        baseEnvironment.SAVE_IN_PROMPT_ADAPTER ||
+        baseEnvironment.MESA_D3D12_DEFAULT_ADAPTER_NAME ||
+        "NVIDIA",
+      VK_DRIVER_FILES: driver,
+      VK_INSTANCE_LAYERS: "VK_LAYER_LOCAL_compute_feature",
+      VK_LAYER_PATH: layerDir,
+      LD_LIBRARY_PATH: [libraryDir, "/usr/lib/wsl/lib", inheritedLibraries]
+        .filter(Boolean)
+        .join(":"),
+    },
+  };
+};
 
 const SHOWCASE_PATHS = [
   ".",
@@ -563,6 +615,9 @@ const launchChromeReview = async (demoPort, promptSupport) => {
   }
   const profileDir = promptSupport ? PROMPT_PROFILE : PROFILE;
   const downloadDir = promptSupport ? path.join(profileDir, "downloads") : undefined;
+  const runtime = promptSupport
+    ? promptRuntimeSettings(PROMPT_RUNTIME)
+    : { extraArgs: [], environment: {} };
   if (downloadDir) fs.mkdirSync(downloadDir, { recursive: true });
   const launched = await chrome.launch({
     profileDir,
@@ -570,6 +625,8 @@ const launchChromeReview = async (demoPort, promptSupport) => {
     fresh: !promptSupport,
     preserveProfile: promptSupport,
     enableGpu: promptSupport,
+    extraArgs: runtime.extraArgs,
+    environment: runtime.environment,
   });
   const browser = Object.assign(launched, {
     preserveProfile: promptSupport,
@@ -610,7 +667,7 @@ const launchChromeReview = async (demoPort, promptSupport) => {
       await waitForChromeReviewContent(port, extensionId, demoPort);
     });
     if (promptSupport) {
-      browser.promptAvailability = String(
+      const readiness = /** @type {{availability: string, output: string}} */ (
         await cdp.callFunctionInTarget(
           port,
           optionsTarget,
@@ -622,12 +679,26 @@ const launchChromeReview = async (demoPort, promptSupport) => {
               await new Promise((resolve) => setTimeout(resolve, 1_000));
               availability = await LanguageModel.availability();
             }
-            return availability;
+            if (availability !== "available") return {availability, output: ""};
+            const session = await LanguageModel.create();
+            try {
+              const output = await session.prompt("Reply with exactly these three words: SAVE IN READY");
+              return {availability, output};
+            } finally {
+              session.destroy();
+            }
           }`,
           [],
-          75_000,
-        ),
+          180_000,
+        )
       );
+      if (readiness.availability !== "available" || readiness.output.trim() !== "SAVE IN READY") {
+        throw new Error(
+          `Prompt API did not complete its review probe (${readiness.availability}: ${readiness.output.trim() || "no output"})`,
+        );
+      }
+      browser.promptAvailability = readiness.availability;
+      await cdp.reloadTargets(port, optionsTarget);
     }
     return browser;
   } catch (error) {
@@ -799,7 +870,7 @@ const main = async () => {
             if (previous) await cleanupReviewBrowser(previous);
             reviewLog(
               targetPromptSupport
-                ? `Prompt support is on (${replacement.promptAvailability}). Using preserved profile: ${replacement.profileDir}`
+                ? `Prompt support is on (${replacement.promptAvailability}; completion verified). Using preserved profile: ${replacement.profileDir}`
                 : "Prompt support is off. Using a throwaway review profile.",
             );
             reviewLog(`Downloads land in: ${replacement.downloadDir}`);
@@ -900,6 +971,7 @@ module.exports = {
   cleanupReviewSession,
   createReviewKeyHandler,
   createDemoServer,
+  promptRuntimeSettings,
   startDemoServer,
   startDemoServerSession,
 };

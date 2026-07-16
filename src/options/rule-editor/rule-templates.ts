@@ -502,7 +502,7 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     // result is opened, Google places the publisher URL directly on the large
     // image. Match that stable URL distinction instead of volatile DOM class
     // names. Keep both the current udm=2 and legacy tbm=isch search forms.
-    rule: "pageurl: ^https://(?:www\\.)?google\\.[a-z]{2,3}(?:\\.[a-z]{2})?/search\\?(?:[^#]*&)?(?:udm=2|tbm=isch)(?:&|#|$)\nsourcekind: ^image$\nsourceurl: ^https://(?!(?:[^/]+\\.)*gstatic\\.com/)\ninto: google-images/:filename:",
+    rule: "pageurl: ^https://(?:www\\.)?google\\.[a-z]{2,3}(?:\\.[a-z]{2})?/search\\?(?:[^#]*&)?(?:udm=2|tbm=isch)(?:&|#|$)\nsourcekind: ^image$\nsourceurl: ^https://(?!(?:[^/.]+\\.)*gstatic\\.com/)\ninto: google-images/:filename:",
     proof: {
       info: {
         pageUrl: "https://www.google.com/search?udm=2&q=landscape",
