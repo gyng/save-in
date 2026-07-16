@@ -236,12 +236,22 @@ export const addRoot = (contexts: readonly MenuContext[]) => {
   });
 };
 
-export const addQuickSave = (contexts: readonly MenuContext[]) => {
+export const addQuickSave = (
+  contexts: readonly MenuContext[],
+  { topLevel = false }: { topLevel?: boolean } = {},
+) => {
   webExtensionApi.contextMenus.create({
     id: MENU_IDS.QUICK_SAVE,
-    title: setAccesskey(getMessage("contextMenuQuickSave") || "Quick save", ""),
+    // Top-level Quick save stands alone in the menu, so it has to name the
+    // extension the way the root item otherwise would.
+    title: setAccesskey(
+      topLevel
+        ? getMessage("contextMenuQuickSaveOnly") || "Quick save (Save In)"
+        : getMessage("contextMenuQuickSave") || "Quick save",
+      topLevel ? options.keyRoot : "",
+    ),
     contexts: asMenuContexts(contexts),
-    parentId: MENU_IDS.ROOT,
+    ...(topLevel ? {} : { parentId: MENU_IDS.ROOT }),
   });
 };
 

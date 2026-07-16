@@ -35,12 +35,15 @@ did not land; it remains the one evidence-gated decision (see below).
 ### Save workflow and acquisition maturity
 
 1. Save workflow: Quick Save, switchable default destination, and post-save tab
-   actions (#213, #115). #144, #162, and #201 were cited by this track but are
-   **not** resolved by it: Quick Save still sits inside the Save In submenu, so
-   #144's extra step remains; click-to-save still takes `last?.path`
-   unconditionally with no option to prefer the download folder (#162); and
-   `setLastUsed` is only ever called from a context-menu click, so a browser
-   Save As dialog cannot update Last used (#201).
+   actions (#213, #115, #144, #162). #144 and #162 were cited by this track but
+   not resolved by it, and were finished afterwards: `quickSaveOnly` offers Quick
+   save alone at top level (browsers only skip the submenu for a single item),
+   and `contentClickToSaveUseDefault` opts click-to-save out of inheriting the
+   last folder. #201 remains **unresolved** — `setLastUsed` is only ever called
+   from a context-menu click, so a browser Save As dialog cannot update Last
+   used. It also needs a decision first: `downloads.download` paths are relative
+   to the Downloads root, so a dialog target outside it could never be reused as
+   a Save In destination.
 2. Parallel Referer protection (#193).
 3. Grammar follow-through: `finalfilename:` matching (#178, #189) and the
    `:menupath:` variable (#208).

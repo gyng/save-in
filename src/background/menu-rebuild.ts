@@ -36,6 +36,19 @@ const performMenuRebuild = async (): Promise<void> => {
     : [...downloadContexts, "page"];
 
   addTabMenus();
+
+  // #144 asked to drop the submenu hop before a save. Both browsers collapse an
+  // extension's items into a submenu named after it only once there is more than
+  // one, so a single top-level Quick save is the only shape that reaches a save
+  // in one click — every extra item here would rebuild the very submenu this
+  // removes. That is the whole trade: no folders, no Last used, no Options or
+  // Source panel in the page menu. Tab menus keep their own context and do not
+  // count toward this one.
+  if (options.quickSaveEnabled && options.quickSaveOnly) {
+    addQuickSave(downloadContexts, { topLevel: true });
+    return;
+  }
+
   addRoot(actionContexts);
 
   if (options.quickSaveEnabled) {

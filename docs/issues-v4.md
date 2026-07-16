@@ -284,17 +284,18 @@ undercounted by half before it began. Verdicts below come from reading each
 reporter's body against current code; each was required to cite `file:line` and
 was barred from inferring "fixed" from a feature's existence.
 
-**Do not close** (cited as landed, but not implemented):
+**Cited as landed but not implemented.** All three were cited by `07f09f17` and
+listed as landed at `ROADMAP.md:35` — a self-consistent but incorrect claim, and
+the exact failure mode this document exists for. **#162 and #144 have since been
+implemented**; #201 has not.
 
-| # | Verdict | Why |
+| # | Then | Now |
 |---|---|---|
-| 162 | **NOT-FIXED** | Asked for a toggle between last-used and default dir for click-to-save. `messaging/handlers.ts:456` is `path: last?.path \|\| new Path(".")` — unconditional. No option gates it; `resolveDefaultDestination` has one caller, the Quick Save *menu item* (`menu-click.ts:140`). Complaint reproduces verbatim. |
-| 201 | **NOT-FIXED** | Asked that Last used follow a browser Save As dialog. `setLastUsed`/`recordRecentDestination` have exactly one caller — `menu-click.ts:251-252`, inside `handleContextMenuClick`. Browser-download tracking never feeds Last used. What shipped is a static two-way Quick Save switch. |
-| 144 | **PARTIAL** | Asked to remove the secondary submenu. `menu-build.ts:244` gives Quick save `parentId: ROOT`, so it is still Save in → Quick save — the same two hops. The keyboard command bypasses the menu but only saves the active tab's page, not the link/image under the cursor. |
+| 162 | Asked for a toggle between last-used and default dir for click-to-save. `handlers.ts` took `last?.path` unconditionally; no option gated it, and `resolveDefaultDestination` had one caller — the Quick Save *menu item*. | **Fixed.** `contentClickToSaveUseDefault` routes click-to-save through `resolveDefaultDestination`, so it resolves the same folder Quick save does. |
+| 144 | Asked to remove the secondary submenu. Quick save was created with `parentId: ROOT`, so it stayed Save in → Quick save — the same two hops. | **Fixed.** `quickSaveOnly` emits Quick save alone at top level. Browsers collapse an extension's items into a submenu only past one, so this is the only shape that reaches a save in one click — and the trade is the whole rest of the page menu. Needs e2e before release: the collapse rule is browser-owned and unit tests can only assert the item count. |
+| 201 | Asked that Last used follow a browser Save As dialog. `setLastUsed`/`recordRecentDestination` have exactly one caller — `menu-click.ts`, inside `handleContextMenuClick`. Browser-download tracking never feeds Last used. | **Still open, and needs a decision first.** `downloads.download` paths are relative to the Downloads root, so a dialog target outside it could never be reused as a Save In destination. Targets under Downloads are feasible; what to do with the rest is a product call. |
 
-All three are cited by `07f09f17` and listed as landed at `ROADMAP.md:35` — a
-self-consistent but incorrect claim, and the exact failure mode this document
-exists for.
+#211 stays a genuine won't-fix — see below.
 
 **Close, but the reply must tell them to change something:**
 

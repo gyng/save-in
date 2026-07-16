@@ -619,6 +619,49 @@ describe("menu creation", () => {
       options.quickSaveDirectory = ".";
     });
 
+    test("offers quick save alone, with no root, in quick-save-only mode (#144)", async () => {
+      options.quickSaveEnabled = true;
+      options.quickSaveOnly = true;
+      options.quickSaveDirectory = "Photos";
+      vi.mocked(global.browser.contextMenus.create).mockClear();
+
+      await rebuildMenus();
+
+      // The whole point is one page-context item: browsers rebuild the submenu
+      // the moment there are two, so a count is the assertion, not a detail.
+      const pageItems = created().filter((item) => !item.contexts?.includes("tab"));
+      expect(pageItems).toHaveLength(1);
+      expect(pageItems[0]!.id).toBe(menu.IDS.QUICK_SAVE);
+      expect(pageItems[0]!.parentId).toBeUndefined();
+      // Its own directory toggle would be a second item, so it cannot ship here
+      // even though a folder is configured.
+      expect(pageItems[0]!.id).not.toBe(menu.IDS.QUICK_SAVE_TO_DIRECTORY);
+
+      options.quickSaveOnly = false;
+      options.quickSaveEnabled = false;
+      options.quickSaveDirectory = ".";
+    });
+
+    test("keeps the root submenu when quick-save-only is off or quick save is disabled", async () => {
+      options.quickSaveEnabled = true;
+      options.quickSaveOnly = false;
+      vi.mocked(global.browser.contextMenus.create).mockClear();
+      await rebuildMenus();
+      expect(created().map((item) => item.id)).toContain(menu.IDS.ROOT);
+
+      // quickSaveOnly alone must not strip the menu: without quick save there
+      // would be nothing left to click.
+      options.quickSaveEnabled = false;
+      options.quickSaveOnly = true;
+      vi.mocked(global.browser.contextMenus.create).mockClear();
+      await rebuildMenus();
+      const ids = created().map((item) => item.id);
+      expect(ids).toContain(menu.IDS.ROOT);
+      expect(ids).not.toContain(menu.IDS.QUICK_SAVE);
+
+      options.quickSaveOnly = false;
+    });
+
     test("uses deterministic separator ids for every rebuild", async () => {
       await rebuildMenus();
       const firstIds = created()
