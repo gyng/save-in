@@ -6,7 +6,6 @@ import type {
   MatcherAttempt,
   MatcherClause,
   MatcherResult,
-  CssMatcherClause,
   RenameClause,
   RoutingInfo,
   RoutingRule,
@@ -119,6 +118,28 @@ const evaluateMatchersWithCssOrigins = (
   return clauses.map((clause) =>
     isCssMatcherClause(clause) ? evaluateCssClause(clause) : evaluateMatcherClause(clause, info),
   );
+  return clauses.map((clause) => {
+    if (!isCssMatcherClause(clause)) return evaluateMatcherClause(clause, info);
+    if (!groups) {
+      return {
+        clause,
+        result: null,
+        attempts: [{ source: "pageElement", value: null, status: "missing" }],
+      };
+    }
+    return {
+      clause,
+      result: matchingGroup ? /^([\s\S]*)$/.exec(clause.value) : null,
+      attempts: groups.length
+        ? groups.map((group, index) => ({
+            source: `pageElement[${index}]`,
+            value: clause.value,
+            status: group.includes(clause.value) ? "matched" : "not-matched",
+            ...(group.includes(clause.value) ? { matchedText: clause.value, captures: [] } : {}),
+          }))
+        : [{ source: "pageElement", value: null, status: "missing" }],
+    };
+  });
 };
 
 const getCaptureMatcherResults = (

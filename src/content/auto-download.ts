@@ -197,11 +197,11 @@ export const setupAutoDownloadDiscovery = (
     // non-CSS matchers; only the DOM-origin evidence is shared by URL.
     const sourcesByUrl = new Map<string, typeof admittedSources>();
     for (const source of admittedSources) {
-      const variants = sourcesByUrl.get(source.url);
-      if (variants) variants.push(source);
-      else sourcesByUrl.set(source.url, [source]);
+      const group = sourcesByUrl.get(source.url);
+      if (group) group.variants.push(source);
+      else sourcesByUrl.set(source.url, { representative: source, variants: [source] });
     }
-    for (const [sourceUrl, sources] of sourcesByUrl) {
+    for (const [sourceUrl, { representative, variants }] of sourcesByUrl) {
       // A long data: URL keys the dedup set on its hash so the set never holds a
       // megabyte string; http(s) and short data: URLs key on the string itself.
       const seenKey = seenKeyFor(sourceUrl);

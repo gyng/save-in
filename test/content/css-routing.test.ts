@@ -164,6 +164,11 @@ describe("content CSS routing", () => {
   test("bounds selector attestations and drops duplicate origin groups", () => {
     expect(matchedCssSelectorsByOrigin([document.body], [])).toEqual([]);
 
+    const ruleWithoutCss = parseRulesCollecting("context: ^link$\ninto: ordinary/").rules;
+    expect(ruleWithoutCss).toHaveLength(1);
+    expect(matchedCssSelectorsByOrigin([document.body], ruleWithoutCss)).toEqual([]);
+    expect(matchedCssSelectorsByOrigin([document.body], rulesWithCss("img"))).toEqual([]);
+
     const duplicateA = document.createElement("img");
     const duplicateB = document.createElement("img");
     expect(matchedCssSelectorsByOrigin([duplicateA, duplicateB], rulesWithCss("img"))).toEqual([

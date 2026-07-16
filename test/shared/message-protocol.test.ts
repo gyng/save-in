@@ -1,6 +1,7 @@
 import { describe, expect, test } from "vitest";
 
 import { MESSAGE_TYPES } from "../../src/shared/constants.ts";
+import { isCssSelectorAttestation } from "../../src/shared/css-selector-attestation.ts";
 import {
   getMessageType,
   isExternalMessage,
@@ -10,6 +11,16 @@ import {
 } from "../../src/shared/message-protocol.ts";
 
 describe("message protocol runtime validation", () => {
+  test("rejects malformed and over-budget CSS proof groups", () => {
+    expect(isCssSelectorAttestation(["img"])).toBe(false);
+    expect(isCssSelectorAttestation([Array.from({ length: 65 }, () => "img")])).toBe(false);
+    expect(
+      isCssSelectorAttestation(
+        Array.from({ length: 5 }, () => Array.from({ length: 64 }, () => "img")),
+      ),
+    ).toBe(false);
+  });
+
   test("accepts the bounded CSS proof maximum and rejects one group beyond it", () => {
     const message = (groups: string[][]) => ({
       type: MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
