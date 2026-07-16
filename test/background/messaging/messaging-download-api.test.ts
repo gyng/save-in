@@ -484,6 +484,22 @@ into: automatic/:$1:
     });
   });
 
+  test("a malformed stored disable list never blocks automatic saves", async () => {
+    configure();
+    // Legacy or corrupted storage can hold a non-string here; the backstop must
+    // fall back to "nothing disabled" rather than guessing a match.
+    options.perSiteDisableList = ["*://example.test/*"] as unknown as string;
+    const sendResponse = vi.fn();
+    onMessage(
+      request,
+      { tab: { id: 7, url: "https://example.test/gallery/", incognito: false } },
+      sendResponse,
+    );
+
+    await waitForCall(sendResponse);
+    expect(Download.launchDownload).toHaveBeenCalledOnce();
+  });
+
   test("allows private automatic saves only when explicitly enabled", async () => {
     configure();
     options.autoDownloadPrivate = true;

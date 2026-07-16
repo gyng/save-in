@@ -725,5 +725,10 @@ describe("listener registration", () => {
     (global.browser.notifications as any).onClicked = undefined;
 
     expect(() => registerNotifier()).not.toThrow();
+
+    // Firefox has no notifications.onButtonClicked, and some embedders omit
+    // the notifications namespace entirely; the button probe must stay quiet.
+    (global.browser as any).notifications = undefined;
+    expect(() => registerNotifier()).not.toThrow();
   });
 });

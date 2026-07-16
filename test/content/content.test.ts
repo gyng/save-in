@@ -538,6 +538,25 @@ describe("content.js initialisation", () => {
     expect(calls).toEqual(["LISTENER"]);
   });
 
+  test("a disabled page blocks even a forced Page Sources open", async () => {
+    document.getElementById("save-in-source-panel")?.remove();
+    let runtimeListener: ((message: any) => void) | undefined;
+    vi.resetModules();
+    global.chrome.runtime.sendMessage = vi.fn((_message, callback) => callback?.()) as any;
+    global.chrome.runtime.onMessage.addListener = vi.fn((listener) => {
+      runtimeListener = listener;
+    });
+    global.chrome.storage.local.get = vi.fn((_keys, callback) =>
+      callback({ sourcePanelEnabled: true, perSiteDisableList: "*://localhost/*" }),
+    ) as any;
+    (global.chrome.storage as any).onChanged = { addListener: vi.fn() };
+    await import("../../src/content/content.ts");
+
+    runtimeListener!({ type: "TOGGLE_SOURCE_PANEL", body: { force: true } });
+
+    expect(document.getElementById("save-in-source-panel")).toBeNull();
+  });
+
   test("lets an explicit user toggle open Page Sources while it is disabled", async () => {
     let runtimeListener: ((message: any) => void) | undefined;
     let storageListener: ((changes: Record<string, any>, area: string) => void) | undefined;

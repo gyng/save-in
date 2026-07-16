@@ -392,6 +392,44 @@ describe("history filter controls", () => {
     expect(feedback.classList.contains("feedback-error")).toBe(true);
   });
 
+  test("an already-removed file reports the distinct undo outcome", async () => {
+    historyRuntime.entries = [
+      { id: "h-complete", status: "complete", downloadId: 42, finalFullPath: "done.png" },
+    ];
+    const { renderHistory } = historyPanel;
+    await renderHistory();
+    historyRuntime.sendMessage.mockResolvedValueOnce({
+      type: "HISTORY_UNDO",
+      body: { undone: true, fileMissing: true },
+    });
+
+    document.querySelector<HTMLButtonElement>(".history-undo")!.click();
+
+    const feedback = document.querySelector<HTMLElement>("#history-feedback")!;
+    await vi.waitFor(() => expect(feedback.hidden).toBe(false));
+    expect(feedback.classList.contains("feedback-error")).toBe(false);
+    expect(feedback.textContent).toContain("already been moved or removed");
+  });
+
+  test("a background refusal reports the undo failure", async () => {
+    historyRuntime.entries = [
+      { id: "h-complete", status: "complete", downloadId: 42, finalFullPath: "done.png" },
+    ];
+    const { renderHistory } = historyPanel;
+    await renderHistory();
+    historyRuntime.sendMessage.mockResolvedValueOnce({
+      type: "HISTORY_UNDO",
+      body: { undone: false, fileMissing: false },
+    });
+
+    document.querySelector<HTMLButtonElement>(".history-undo")!.click();
+
+    const feedback = document.querySelector<HTMLElement>("#history-feedback")!;
+    await vi.waitFor(() => expect(feedback.hidden).toBe(false));
+    expect(feedback.classList.contains("feedback-error")).toBe(true);
+    expect(feedback.textContent).toContain("Could not undo");
+  });
+
   test("rows without a completed browser download offer no undo action", async () => {
     historyRuntime.entries = [
       { id: "h-pending", status: "pending", finalFullPath: "later.iso" },

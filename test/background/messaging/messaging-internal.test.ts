@@ -185,6 +185,30 @@ describe("onMessage", () => {
     });
   });
 
+  test("HISTORY_UNDO reports failure when the shelf entry cannot be erased", async () => {
+    vi.mocked(SaveHistory.getHistoryEntries).mockResolvedValue([
+      { id: "history-12", url: "https://x.test/stuck.png", downloadId: 33, status: "complete" },
+    ]);
+    vi.mocked(global.browser.downloads.erase).mockRejectedValueOnce(new Error("shelf locked"));
+    vi.mocked(SaveHistory.setHistoryStatus).mockClear();
+    const sendResponse = vi.fn();
+
+    onMessage(
+      { type: MESSAGE_TYPES.HISTORY_UNDO, body: { historyId: "history-12" } },
+      {},
+      sendResponse,
+    );
+    await waitForCall(sendResponse);
+
+    // A failed erase must not mark the entry undone — the shelf record still
+    // points at the (removed) file and the user needs the true state.
+    expect(SaveHistory.setHistoryStatus).not.toHaveBeenCalled();
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.HISTORY_UNDO,
+      body: { undone: false, fileMissing: false },
+    });
+  });
+
   test("HISTORY_UNDO reports failure for an entry without a known download id", async () => {
     vi.mocked(SaveHistory.getHistoryEntries).mockResolvedValue([
       { id: "history-11", url: "https://x.test/old.png", status: "complete" },
