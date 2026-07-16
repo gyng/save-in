@@ -46,6 +46,25 @@ describe("option jump links (#196)", () => {
     document.removeEventListener("save-in:navigate-option", navigate);
     link.remove();
   });
+
+  // An attribute written without a value names no option at all, so it gets the
+  // same inert treatment rather than a lookup for the empty id.
+  test("a button with an empty data-goto-option stays inert", () => {
+    const link = document.createElement("button");
+    link.setAttribute("data-goto-option", "");
+    document.body.append(link);
+    const navigate = vi.fn();
+    document.addEventListener("save-in:navigate-option", navigate);
+
+    setupOptionJumpLinks();
+    const event = new MouseEvent("click", { bubbles: true, cancelable: true });
+    link.dispatchEvent(event);
+
+    expect(navigate).not.toHaveBeenCalled();
+    expect(event.defaultPrevented).toBe(false);
+    document.removeEventListener("save-in:navigate-option", navigate);
+    link.remove();
+  });
 });
 
 test("preview links navigate to their option by click or keyboard", () => {

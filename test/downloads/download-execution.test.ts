@@ -762,6 +762,51 @@ describe("onDeterminingFilename listener: sync path", () => {
     );
   });
 
+  // The persisted state carries an optional filename, so a record written by an
+  // older version can come back without one. Recovering it against a download
+  // Chrome also resolved namelessly leaves the MIME type as the only thing to
+  // route on, rather than a name to test for an extension.
+  test("resolves MIME when a recovered route and Chrome both have no filename", async () => {
+    setCurrentBrowser("CHROME");
+    options.appendMimeExtension = true;
+    options.routeSkipUnmatched = true;
+    options.filenamePatterns = [routingRule("actualfileext")];
+    vi.spyOn(Variable, "mimeToExtension").mockReturnValue("pdf");
+    vi.mocked(router.matchRules).mockImplementation((_rules, info) =>
+      info.mimeExtension === "pdf" ? "pdf/" : null,
+    );
+    let resolveDownload!: (downloadId: number) => void;
+    global.browser.downloads.download = vi.fn(
+      () =>
+        new Promise<number>((resolve) => {
+          resolveDownload = resolve;
+        }),
+    );
+    const state = makeState({
+      path: new Path.Path("downloads"),
+      info: { url: "https://example.com/download" },
+    });
+
+    const launch = Download.renameAndDownload(state);
+    await vi.waitFor(() => expect(sessionStore.siDeferredRoutes).toBeDefined());
+    // An older record simply never stored the field.
+    for (const entry of Object.values<any>(sessionStore.siDeferredRoutes))
+      for (const record of [entry].flat()) delete record.state.info.filename;
+    Download.downloadRuntime.pendingStates.clear();
+
+    const suggest = vi.fn();
+    capturedListener(
+      { id: 101, byExtensionId: global.browser.runtime.id, url: state.info.url, filename: "" },
+      suggest,
+    );
+
+    await vi.waitFor(() =>
+      expect(suggest).toHaveBeenCalledWith(expect.objectContaining({ filename: "downloads/pdf" })),
+    );
+    resolveDownload(101);
+    await launch;
+  });
+
   test("re-evaluates an automatic destination with Chrome's server filename", async () => {
     setCurrentBrowser("CHROME");
     const state = makeState({
