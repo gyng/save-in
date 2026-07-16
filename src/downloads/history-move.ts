@@ -39,13 +39,15 @@ const runPendingHistoryMove = async (
     startTime: pending.startTime,
     filename: pending.filename,
   });
-  if (removal.undone) {
-    await downloadPorts.history.setStatus(pending.historyId, "moved", pending.downloadId);
-  }
   const newHistoryId = record.historyEntryId;
   if (newHistoryId) {
     await downloadPorts.history.patch(newHistoryId, { rerouteOf: pending.historyId });
     await downloadPorts.history.patch(pending.historyId, { rerouteTo: newHistoryId });
+  }
+  // Publish the terminal moved status only after the relationship is durable;
+  // History observers can then treat that status as the completed transaction.
+  if (removal.undone) {
+    await downloadPorts.history.setStatus(pending.historyId, "moved", pending.downloadId);
   }
   await abandonPendingHistoryMove(replacementDownloadId);
   return {

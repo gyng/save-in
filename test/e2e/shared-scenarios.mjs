@@ -1330,7 +1330,10 @@ export const runRerouteLastSaveScenario = async ({ control, waitForDownloads, fi
 
     // The replacement completes under the new folder while the original file
     // is gone and its row is marked moved and linked, never deleted.
-    const rerouted = await waitForDownloads(name, 8000);
+    const rerouted = await control.downloads.wait({
+      filenameIncludes: "e2e/reroute-to",
+      timeoutMs: 8000,
+    });
     const replacement = requireValue(
       rerouted.find(
         (row) => row.state === "complete" && /reroute-to/.test(row.filename.replaceAll("\\", "/")),
@@ -1338,8 +1341,8 @@ export const runRerouteLastSaveScenario = async ({ control, waitForDownloads, fi
       "Rerouted download did not complete in the destination folder",
     );
     expect(fs.readFileSync(replacement.filename, "utf8")).toBe("reroute scenario content");
-    expect(fs.existsSync(original.filename)).toBe(false);
     const moved = await control.history.wait({ id: historyId, status: "moved" });
+    expect(fs.existsSync(original.filename)).toBe(false);
     expect(moved.some((row) => row.id === historyId && row.rerouteTo === newHistoryId)).toBe(true);
     const linked = await control.history.wait({ id: newHistoryId, status: "complete" });
     expect(linked.some((row) => row.id === newHistoryId && row.rerouteOf === historyId)).toBe(true);
