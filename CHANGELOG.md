@@ -86,9 +86,10 @@ rules.
   warn before unsaved drafts are abandoned. Other settings continue to
   autosave.
 - Added `:counter:`, `:uuid:`, `:mime:`, `:contenttype:`, `:mimeext:`,
-  `:pagerootdomain:`, `:sourcerootdomain:`, `:weekday:`, `:monthname:`,
-  `:ampm:`, `:isoweek:`/`:week:`, `:pagetitleslug:`, `:pagetitlesnake:`,
-  `:sourcepath:`, and `:tld:` variables (#221).
+  `:weekday:`, `:monthname:`, `:ampm:`, `:isoweek:`/`:week:`,
+  `:pagetitleslug:`, `:pagetitlesnake:`, `:sourcepath:`, and `:tld:`
+  variables. `:pagerootdomain:` and `:sourcerootdomain:` give the
+  registrable domain without its subdomains (#221).
 - Page titles now come from the clicked tab (#172, #188). Server-provided
   names, including extensionless and PHP download URLs, are resolved before
   routing, and literal `%` characters no longer cause an error (#178).
