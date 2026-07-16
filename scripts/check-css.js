@@ -639,13 +639,18 @@ for (const file of ["welcome-dialog.ts", "rule-visual-editor.ts", "tabs.ts"]) {
     violations.push(`src/options/${file} must honor reduced motion for scripted scrolling`);
   }
 }
-const sourcePanelSource = fs.readFileSync(
-  path.join(root, "src", "content", "source-panel.ts"),
-  "utf8",
-);
+// source-panel.ts owns CSS wiring (imports, the inline-style assembly, and
+// stylesheet ordering); panel *behavior* contracts (reduced motion, menu
+// positioning, custom-property tokens) live in its builder modules under
+// src/content/, so those checks scan every source-panel-*.ts file together.
+const sourcePanelFeatureSource = fs
+  .readdirSync(path.join(root, "src", "content"))
+  .filter((name) => name.startsWith("source-panel") && name.endsWith(".ts"))
+  .map((name) => fs.readFileSync(path.join(root, "src", "content", name), "utf8"))
+  .join("\n");
 if (
-  !sourcePanelSource.includes('from "../shared/motion-preference.ts"') ||
-  /behavior:\s*["']smooth["']/.test(sourcePanelSource)
+  !sourcePanelFeatureSource.includes('from "../shared/motion-preference.ts"') ||
+  /behavior:\s*["']smooth["']/.test(sourcePanelFeatureSource)
 ) {
   violations.push("the Page Sources panel must honor reduced motion for scripted scrolling");
 }
@@ -1199,9 +1204,9 @@ if (
   violations.push("Page Sources responsive CSS must follow the result styles it adapts");
 }
 if (
-  !sourcePanel.includes('from "../shared/floating-position.ts"') ||
-  !sourcePanel.includes("positionPanelMenus") ||
-  !sourcePanel.includes("positionFloatingElement(")
+  !sourcePanelFeatureSource.includes('from "../shared/floating-position.ts"') ||
+  !sourcePanelFeatureSource.includes("positionPanelMenus") ||
+  !sourcePanelFeatureSource.includes("positionFloatingElement(")
 ) {
   violations.push("source-panel menus must use shared collision-aware floating positioning");
 }
@@ -1332,7 +1337,7 @@ sourcePanelStyles.forEach((source, index) => {
     sourcePanelUses.set(token, locations);
   }
 });
-for (const match of sourcePanel.matchAll(/host\.style\.setProperty\("(--[\w-]+)"/g)) {
+for (const match of sourcePanelFeatureSource.matchAll(/host\.style\.setProperty\("(--[\w-]+)"/g)) {
   sourcePanelDefinitions.add(match[1] || "");
 }
 for (const token of [...sourcePanelCssDefinitions].toSorted()) {

@@ -6,7 +6,7 @@ const path = require("node:path");
 const root = path.resolve(__dirname, "..");
 const configPath = path.join(root, "config", "vitest", "base.mjs");
 const sourceRoot = path.join(root, "src");
-const ignoreCeiling = 72;
+const ignoreCeiling = 74;
 
 /** @param {string} directory @returns {string[]} */
 const listFiles = (directory) =>

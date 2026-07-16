@@ -286,6 +286,79 @@ move with their code. Order by value and by how much other work each unblocks.
    The pure logic largely already lives in `source-panel-model.ts`; this step
    is about making the view navigable. Split the 2287-line
    `test/content/source-panel.test.ts` along the same seams.
+
+   **Landed** (module-level seams and the panel-context builder split; the
+   test file was left as-is — see below). `source-panel-layout.ts`,
+   `source-panel-icons.ts`, `source-panel-format.ts`, and
+   `source-panel-host.ts` landed first, as a dedicated commit, exactly as
+   scoped above (the `activePanelHost` WeakMap-adjacent live binding moved to
+   `source-panel-host.ts` and gained a `setActivePanelHost` owner-controlled
+   setter, following the `currentTab` pattern in
+   `platform/current-tab.ts`, since `toggleSourcePanel` needed to reassign it
+   from outside its owning module).
+
+   `toggleSourcePanel` (1730 lines) is now under 200 lines of orchestration.
+   `source-panel-context.ts` defines `SourcePanelContext`: one mutable object
+   per panel instance carrying every field two or more builders read or
+   write (DOM elements, the mutable `panelOptions`/`copy`/`formatters`/
+   `panelSendDownload`/`layout`, and behavior hooks like `render`,
+   `refreshSources`, `closeOpenMenus`, `applyLayout`). `createSourcePanelContext`
+   seeds every field with a real value (for the handful created before any
+   builder runs — `host`, `shadow`, `panel`, `list`, `liveStatus`, `announce`,
+   `cleanupTasks`) or a safe no-op placeholder (a shared `noop`, plus three
+   typed one-offs for non-`void`-returning fields), because every placeholder
+   is overwritten by its owning builder before `toggleSourcePanel` returns and
+   before any panel event can fire — the same pattern the original code used
+   for its one forward-declared closure (`updatePlacementControls`), just
+   generalized to every cross-builder field instead of threading setters.
+   Builders run in one fixed, dependency-ordered sequence from
+   `toggleSourcePanel`: `wirePanelMenus` → `wirePanelResize` →
+   `wirePanelHeader` → `wirePanelFilterSort` → `wirePanelPreview` →
+   `wirePanelSelection` → `wirePanelRowRender` → `wirePanelRefresh` (`header`
+   depends on `menus`+`resize`; `row-render` depends on everything before it;
+   `refresh` depends on `row-render`). `wirePanelViewportLock` and
+   `buildPanelUpdate` (the options-diffing update path, plus
+   `applyStaticCopy`, which touches controls owned by five different
+   builders and has no other caller) run outside that sequence, at the same
+   relative points the original code did. Each builder pushes its own
+   teardown into `ctx.cleanupTasks`; `toggleSourcePanel` aggregates them into
+   the single `panelCleanups` entry instead of one large inline closure.
+   `source-panel.ts` itself keeps only: the existing-panel reopen/close
+   guard, host/shadow/style/panel/list/liveStatus construction (the inline
+   style-array assembly and CSS imports stay here — `scripts/check-css.js`
+   parses this exact file for them), the builder call sequence, final DOM
+   assembly (`panel.append`/`shadow.append`/`document.documentElement.append`),
+   and `replaceSourcePanel`/`setSourcePanelOpen` (unchanged).
+   `scripts/check-css.js` had three checks (menu floating-positioning,
+   reduced-motion scroll behavior, `--source-panel-*` custom-property
+   tokens) that read `source-panel.ts` alone for behavior its builders now
+   own; they were repointed at a `sourcePanelFeatureSource` aggregate of
+   every `src/content/source-panel*.ts` file, while the CSS-wiring checks
+   (owned stylesheet imports, the forbidden-inline-style check, stylesheet
+   order) stayed scoped to `source-panel.ts` alone, since that file still
+   owns those literally. `scripts/check-coverage-policy.js`'s reviewed-ignore
+   ceiling moved from 72 to 74: dropped the one ignore tied to the original
+   single forward-declared closure, gained three covering the shared `noop`
+   placeholder and the two non-`void` one-off placeholders (`currentDock`,
+   `closeOpenMenus`), all annotated the same way the original ignore was.
+
+   The test file was **not** split. `test/content/source-panel/source-panel.test.ts`
+   is a single flat list of ~90 `test()` calls under one
+   `describe("Page Sources panel interactions")` with one shared `afterEach`
+   — it was never organized into per-seam `describe` blocks the way the
+   task assumed, so there is no existing structural boundary to move
+   mechanically. Its tests are black-box/integration style (drive
+   `toggleSourcePanel` and assert on the rendered shadow DOM), and many
+   individual tests exercise two or more builders at once (e.g. the
+   options-diffing update path together with row re-rendering, or row
+   actions together with menu wiring), so assigning each test to one seam
+   would be a judgment call, not a mechanical line-range cut, and risks
+   silently mis-categorizing or duplicating coverage in a suite that
+   currently passes at 100%. The shared `afterEach` itself is small and
+   self-contained (not the "heavily entangled" case the task named as the
+   reason to fall back to a fixture-helper file), so that specific
+   complication did not apply here — the blocker was the test-to-seam
+   mapping, not the setup.
 4. **`options/options.ts`:** move top-level DOM side effects into named setup
    functions registered through the existing `options-bootstrap.ts` ports
    pattern; extract autosave/dirty-state tracking into a `core/` module and
