@@ -2713,6 +2713,9 @@
   "routeDebuggerExpanded": {
     "message": "Caminho expandido"
   },
+  "routeDebuggerPathBase": {
+    "message": "Salvar pelo menu adiciona a pasta escolhida antes deste caminho. Ao salvar com um clique e nos salvamentos automáticos, o caminho começa na sua pasta de downloads."
+  },
   "routeDebuggerFinalPath": {
     "message": "Caminho final"
   },

@@ -2713,6 +2713,9 @@
   "routeDebuggerExpanded": {
     "message": "Chemin développé"
   },
+  "routeDebuggerPathBase": {
+    "message": "Un enregistrement depuis le menu ajoute le dossier choisi devant ce chemin. Pour l’enregistrement par clic et les enregistrements automatiques, le chemin part de votre dossier de téléchargement."
+  },
   "routeDebuggerFinalPath": {
     "message": "Chemin final"
   },

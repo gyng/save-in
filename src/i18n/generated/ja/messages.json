@@ -2713,6 +2713,9 @@
   "routeDebuggerExpanded": {
     "message": "展開後のパス"
   },
+  "routeDebuggerPathBase": {
+    "message": "メニューから保存すると、選んだフォルダーがこのパスの前に付きます。クリックして保存する場合と自動保存の場合は、ダウンロードフォルダーが起点になります。"
+  },
   "routeDebuggerFinalPath": {
     "message": "最終パス"
   },

@@ -2713,6 +2713,9 @@
   "routeDebuggerExpanded": {
     "message": "展開後的路徑"
   },
+  "routeDebuggerPathBase": {
+    "message": "透過選單儲存時，會在此路徑前加上您選擇的資料夾。點擊儲存和自動儲存時，路徑會從下載資料夾開始。"
+  },
   "routeDebuggerFinalPath": {
     "message": "最終路徑"
   },

@@ -557,7 +557,23 @@ export const setupRouteDebugger = (): void => {
       if (pipeline || sourceLink) {
         const output = document.createElement("div");
         output.className = "route-debugger-rule-output";
-        if (pipeline) output.append(pipeline);
+        if (pipeline) {
+          output.append(pipeline);
+          // The pipeline ends at the rule's own destination, which is the whole
+          // path only for click-to-save and automatic saves: those are rooted at
+          // the download folder (downloads/download-plan.ts, #190), while a menu
+          // save has the chosen folder composed in front of it
+          // (downloads/download-disposition.ts joins [menu path, route]). The
+          // trace has no menu folder to add — the debugger never asks for one —
+          // so name the base instead of inventing a folder the user never picked.
+          const base = document.createElement("div");
+          base.className = "route-debugger-message route-debugger-path-base";
+          base.textContent = localize(
+            "routeDebuggerPathBase",
+            "A menu save adds the folder you pick in front of this path. Click-to-save and automatic saves start at your download folder.",
+          );
+          output.append(base);
+        }
         if (sourceLink) output.append(sourceLink);
         card.append(output);
       }

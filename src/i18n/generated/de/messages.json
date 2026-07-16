@@ -2713,6 +2713,9 @@
   "routeDebuggerExpanded": {
     "message": "Aufgelöster Pfad"
   },
+  "routeDebuggerPathBase": {
+    "message": "Ein Speichern über das Menü stellt diesem Pfad den gewählten Ordner voran. Beim Speichern per Klick und bei automatischen Speichervorgängen beginnt er im Downloads-Ordner."
+  },
   "routeDebuggerFinalPath": {
     "message": "Endgültiger Pfad"
   },

@@ -2713,6 +2713,9 @@
   "routeDebuggerExpanded": {
     "message": "Expanderad sökväg"
   },
+  "routeDebuggerPathBase": {
+    "message": "Att spara via menyn lägger den valda mappen framför den här sökvägen. Vid spara med klick och automatiska sparanden börjar sökvägen i din nedladdningsmapp."
+  },
   "routeDebuggerFinalPath": {
     "message": "Slutlig sökväg"
   },

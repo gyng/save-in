@@ -2713,6 +2713,9 @@
   "routeDebuggerExpanded": {
     "message": "확장된 경로"
   },
+  "routeDebuggerPathBase": {
+    "message": "메뉴에서 저장하면 선택한 폴더가 이 경로 앞에 붙습니다. 클릭하여 저장 및 자동 저장은 다운로드 폴더에서 시작합니다."
+  },
   "routeDebuggerFinalPath": {
     "message": "최종 경로"
   },

@@ -2713,6 +2713,9 @@
   "routeDebuggerExpanded": {
     "message": "展开后的路径"
   },
+  "routeDebuggerPathBase": {
+    "message": "通过菜单保存时，会在此路径前加上您选择的文件夹。点击保存和自动保存时，路径从下载文件夹开始。"
+  },
   "routeDebuggerFinalPath": {
     "message": "最终路径"
   },

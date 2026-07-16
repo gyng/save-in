@@ -2727,6 +2727,9 @@
   "routeDebuggerExpanded": {
     "message": "Percorso espanso"
   },
+  "routeDebuggerPathBase": {
+    "message": "Un salvataggio dal menu antepone a questo percorso la cartella scelta. Con il salvataggio con un clic e con i salvataggi automatici il percorso parte dalla cartella dei download."
+  },
   "routeDebuggerFinalPath": {
     "message": "Percorso finale"
   },

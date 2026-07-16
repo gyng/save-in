@@ -2713,6 +2713,9 @@
   "routeDebuggerExpanded": {
     "message": "Uitgevouwen pad"
   },
+  "routeDebuggerPathBase": {
+    "message": "Bij opslaan via het menu wordt de gekozen map voor dit pad geplaatst. Bij opslaan met een klik en bij automatisch opslaan begint het pad in je downloadmap."
+  },
   "routeDebuggerFinalPath": {
     "message": "Definitief pad"
   },

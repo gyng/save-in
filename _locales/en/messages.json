@@ -4227,6 +4227,10 @@
     "message": "Expanded path",
     "description": "Route debugger pipeline label after variables are expanded. Used in src/options/route-debugger.ts."
   },
+  "routeDebuggerPathBase": {
+    "message": "A menu save adds the folder you pick in front of this path. Click-to-save and automatic saves start at your download folder.",
+    "description": "Note under the route debugger's pipeline explaining what the final path is relative to. The debugger traces a rule, which cannot know which menu folder the user would pick, so the path shown is the rule's own destination. Matches the wording of html_intoDestinationsStartFromTheMenuFolder. Used in src/options/route-debugger/route-debugger.ts."
+  },
   "routeDebuggerFinalPath": {
     "message": "Final path",
     "description": "Route debugger pipeline label after path sanitization. Used in src/options/route-debugger.ts."

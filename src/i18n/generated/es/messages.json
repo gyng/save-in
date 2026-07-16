@@ -2713,6 +2713,9 @@
   "routeDebuggerExpanded": {
     "message": "Ruta expandida"
   },
+  "routeDebuggerPathBase": {
+    "message": "Al guardar desde el menú se antepone a esta ruta la carpeta que elija. Al guardar con un clic y en los guardados automáticos, la ruta empieza en su carpeta de descargas."
+  },
   "routeDebuggerFinalPath": {
     "message": "Ruta final"
   },
