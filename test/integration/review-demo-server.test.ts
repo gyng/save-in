@@ -5,7 +5,7 @@ const require = createRequire(import.meta.url);
 const { cleanupReviewSession, createDemoServer } = require("../../scripts/review-demo.js") as {
   cleanupReviewSession: (
     session: {
-      browser?: { proc: object; profileDir: string };
+      browser?: { proc: object; profileDir: string; preserveProfile?: boolean };
       server: import("node:http").Server;
     },
     cleanup: {
@@ -57,6 +57,30 @@ describe("review demo server over HTTP", () => {
       ).rejects.toMatchObject({ errors: [terminationFailure] });
 
       expect(removeProfile).toHaveBeenCalledWith("review-profile-failed-cleanup");
+      expect(server.listening).toBe(false);
+    } finally {
+      await closeServer(server);
+    }
+  });
+
+  test("stops Chrome without deleting a preserved Prompt profile", async () => {
+    const server = createDemoServer();
+    await listenOnLoopback(server);
+    const proc = {};
+    const killTree = vi.fn(async () => undefined);
+    const removeProfile = vi.fn(async () => undefined);
+
+    try {
+      await cleanupReviewSession(
+        {
+          browser: { proc, profileDir: "provisioned-prompt-profile", preserveProfile: true },
+          server,
+        },
+        { killTree, removeProfile },
+      );
+
+      expect(killTree).toHaveBeenCalledWith(proc);
+      expect(removeProfile).not.toHaveBeenCalled();
       expect(server.listening).toBe(false);
     } finally {
       await closeServer(server);

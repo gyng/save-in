@@ -4,10 +4,12 @@
 // seeds a showcase configuration (nested menus, aliases, separators, the
 // new :variables:, a routing rule), and opens the options page plus a
 // local demo page with media/links/text to right-click. Run with
-// `npm run review`. The profile is throwaway (dist/review-profile).
+// `npm run review`. Chrome normally uses a throwaway profile; the terminal
+// prompt-support toggle relaunches it with the provisioned Gemini Nano profile.
 
 const http = require("http");
 const fs = require("fs");
+const os = require("os");
 const path = require("path");
 
 const cdp = require("./lib/cdp");
@@ -15,6 +17,8 @@ const chrome = require("./lib/chrome");
 const firefox = require("./lib/firefox");
 
 const PROFILE = path.join(chrome.ROOT, "dist", "review-profile");
+const PROMPT_PROFILE =
+  process.env.SAVE_IN_PROMPT_PROFILE || path.join(os.homedir(), ".cache", "save-in-nano-profile");
 const DEMO_PHOTO = fs.readFileSync(
   path.join(chrome.ROOT, "docs", "store-assets", "demo-photo.avif"),
 );
@@ -313,7 +317,32 @@ const closeDemoServer = (server) =>
   });
 
 /**
- * @param {{browser: {proc: import("node:child_process").ChildProcess, profileDir: string} | undefined, server: import("node:http").Server}} session
+ * @param {{proc: import("node:child_process").ChildProcess, profileDir: string, preserveProfile?: boolean}} browser
+ * @param {{killTree?: typeof chrome.killTree, removeProfile?: typeof chrome.removeProfile}} [cleanup]
+ */
+const cleanupReviewBrowser = async (
+  browser,
+  { killTree = chrome.killTree, removeProfile = chrome.removeProfile } = {},
+) => {
+  /** @type {unknown[]} */
+  const failures = [];
+  try {
+    await killTree(browser.proc);
+  } catch (error) {
+    failures.push(error);
+  }
+  if (!browser.preserveProfile) {
+    try {
+      await removeProfile(browser.profileDir);
+    } catch (error) {
+      failures.push(error);
+    }
+  }
+  if (failures.length) throw new AggregateError(failures, "Review browser cleanup failed");
+};
+
+/**
+ * @param {{browser: {proc: import("node:child_process").ChildProcess, profileDir: string, preserveProfile?: boolean} | undefined, server: import("node:http").Server}} session
  * @param {{killTree?: typeof chrome.killTree, removeProfile?: typeof chrome.removeProfile}} [cleanup]
  */
 const cleanupReviewSession = async (
@@ -324,22 +353,16 @@ const cleanupReviewSession = async (
   const failures = [];
   if (browser) {
     try {
-      await killTree(browser.proc);
+      await cleanupReviewBrowser(browser, { killTree, removeProfile });
     } catch (error) {
-      failures.push(error);
+      if (error instanceof AggregateError) failures.push(...error.errors);
+      else failures.push(error);
     }
   }
   try {
     await closeDemoServer(server);
   } catch (error) {
     failures.push(error);
-  }
-  if (browser) {
-    try {
-      await removeProfile(browser.profileDir);
-    } catch (error) {
-      failures.push(error);
-    }
   }
   if (failures.length) throw new AggregateError(failures, "Review session cleanup failed");
 };
@@ -370,11 +393,11 @@ const TERMINAL_FOCUS_IN = "\u001B[I";
 const TERMINAL_FOCUS_OUT = "\u001B[O";
 
 /**
- * @param {{enableHotReload: () => void, openFirefox: () => void, reload: () => void, setTerminalFocused: (focused: boolean) => void, stop: () => void}} actions
+ * @param {{enableHotReload: () => void, openFirefox: () => void, reload: () => void, setTerminalFocused: (focused: boolean) => void, stop: () => void, togglePromptSupport: () => void}} actions
  * @returns {(input: string) => void}
  */
 const createReviewKeyHandler =
-  ({ enableHotReload, openFirefox, reload, setTerminalFocused, stop }) =>
+  ({ enableHotReload, openFirefox, reload, setTerminalFocused, stop, togglePromptSupport }) =>
   (input) => {
     let keys = input;
     if (keys.includes(TERMINAL_FOCUS_OUT)) {
@@ -401,11 +424,14 @@ const createReviewKeyHandler =
       if (key.toLowerCase() === "r") {
         reload();
       }
+      if (key.toLowerCase() === "p") {
+        togglePromptSupport();
+      }
     }
   };
 
 /**
- * @param {{enableHotReload: () => void, openFirefox: () => void, reload: () => void, setTerminalFocused: (focused: boolean) => void, stop: () => void}} actions
+ * @param {{enableHotReload: () => void, openFirefox: () => void, reload: () => void, setTerminalFocused: (focused: boolean) => void, stop: () => void, togglePromptSupport: () => void}} actions
  * @returns {(() => void) | undefined}
  */
 const installReviewControls = (actions) => {
@@ -528,47 +554,30 @@ const launchFirefoxReview = async (demoPort) => {
   }
 };
 
-const main = async () => {
-  setReviewTerminalTitle(true);
-  chrome.stageBuild();
-  const { port: demoPort, server } = await startDemoServerSession();
-  /** @type {Awaited<ReturnType<typeof chrome.launch>> | undefined} */
-  let browser;
-  let cleanupControls = () => {};
-  let cleanupHotReload = () => {};
-  let removeSignalHandlers = () => {};
-  let hotReloadEnabled = false;
-  let stopping = false;
-  let exitCode = 0;
-  let activeReviewWork = 0;
-  /** @type {Awaited<ReturnType<typeof firefox.launch>> | undefined} */
-  let activeFirefox;
-  /** @type {Promise<void> | undefined} */
-  let firefoxLaunch;
-  /** @type {Set<Awaited<ReturnType<typeof firefox.launch>>>} */
-  const firefoxSessions = new Set();
-
-  const beginReviewWork = () => {
-    activeReviewWork += 1;
-    setReviewTerminalTitle(true);
-    let finished = false;
-    return () => {
-      if (finished) return;
-      finished = true;
-      activeReviewWork -= 1;
-      if (activeReviewWork === 0) setReviewTerminalTitle(false);
-    };
-  };
-
+/** @param {number} demoPort @param {boolean} promptSupport */
+const launchChromeReview = async (demoPort, promptSupport) => {
+  if (promptSupport && !fs.existsSync(PROMPT_PROFILE)) {
+    throw new Error(
+      `Prompt profile not found at ${PROMPT_PROFILE}. Provision it first or set SAVE_IN_PROMPT_PROFILE.`,
+    );
+  }
+  const profileDir = promptSupport ? PROMPT_PROFILE : PROFILE;
+  const downloadDir = promptSupport ? path.join(profileDir, "downloads") : undefined;
+  if (downloadDir) fs.mkdirSync(downloadDir, { recursive: true });
+  const launched = await chrome.launch({
+    profileDir,
+    ...(downloadDir ? { downloadDir } : {}),
+    fresh: !promptSupport,
+    preserveProfile: promptSupport,
+    enableGpu: promptSupport,
+  });
+  const browser = Object.assign(launched, {
+    preserveProfile: promptSupport,
+    promptSupport,
+    promptAvailability: /** @type {string | undefined} */ (undefined),
+  });
   try {
-    reviewLog("Launching Chrome (throwaway review profile)...");
-    browser = await chrome.launch({
-      profileDir: PROFILE,
-      fresh: true,
-    });
-    const { proc, extensionId, port, downloadDir } = browser;
-    const exited = new Promise((resolve) => proc.once("exit", resolve));
-
+    const { extensionId, port } = browser;
     const optionsTarget = `${extensionId}/src/options/options.html`;
     // Fresh installs open Options themselves. Reuse that first-run tab, with
     // an explicit fallback for hosts that do not dispatch the install event.
@@ -600,11 +609,90 @@ const main = async () => {
       await cdp.reloadTargets(port, `127.0.0.1:${demoPort}`);
       await waitForChromeReviewContent(port, extensionId, demoPort);
     });
+    if (promptSupport) {
+      browser.promptAvailability = String(
+        await cdp.callFunctionInTarget(
+          port,
+          optionsTarget,
+          `async function () {
+            if (typeof LanguageModel === "undefined") return "missing";
+            let availability = await LanguageModel.availability();
+            const deadline = Date.now() + 60_000;
+            while (availability === "downloading" && Date.now() < deadline) {
+              await new Promise((resolve) => setTimeout(resolve, 1_000));
+              availability = await LanguageModel.availability();
+            }
+            return availability;
+          }`,
+          [],
+          75_000,
+        ),
+      );
+    }
+    return browser;
+  } catch (error) {
+    await cleanupReviewBrowser(browser);
+    throw error;
+  }
+};
+
+const main = async () => {
+  setReviewTerminalTitle(true);
+  chrome.stageBuild();
+  const { port: demoPort, server } = await startDemoServerSession();
+  /** @type {Awaited<ReturnType<typeof launchChromeReview>> | undefined} */
+  let browser;
+  let cleanupControls = () => {};
+  let cleanupHotReload = () => {};
+  let removeSignalHandlers = () => {};
+  let hotReloadEnabled = false;
+  let stopping = false;
+  let switchingChrome = false;
+  let desiredPromptSupport = false;
+  let chromeSwitch = Promise.resolve();
+  let exitCode = 0;
+  let activeReviewWork = 0;
+  /** @type {Awaited<ReturnType<typeof firefox.launch>> | undefined} */
+  let activeFirefox;
+  /** @type {Promise<void> | undefined} */
+  let firefoxLaunch;
+  /** @type {Set<Awaited<ReturnType<typeof firefox.launch>>>} */
+  const firefoxSessions = new Set();
+  /** @type {() => void} */
+  let resolveReviewExit = () => {};
+  const reviewExit = new Promise((resolve) => {
+    resolveReviewExit = () => resolve(undefined);
+  });
+
+  const beginReviewWork = () => {
+    activeReviewWork += 1;
+    setReviewTerminalTitle(true);
+    let finished = false;
+    return () => {
+      if (finished) return;
+      finished = true;
+      activeReviewWork -= 1;
+      if (activeReviewWork === 0) setReviewTerminalTitle(false);
+    };
+  };
+
+  /** @param {Awaited<ReturnType<typeof launchChromeReview>>} session */
+  const trackChromeExit = (session) => {
+    session.proc.once("exit", () => {
+      if (browser !== session) return;
+      if (!switchingChrome || stopping) resolveReviewExit();
+    });
+  };
+
+  try {
+    reviewLog("Launching Chrome (throwaway review profile)...");
+    browser = await launchChromeReview(demoPort, false);
+    trackChromeExit(browser);
 
     let reloading = false;
     let pendingReload = false;
     const requestReload = () => {
-      if (reloading) {
+      if (reloading || switchingChrome) {
         pendingReload = true;
         return;
       }
@@ -617,7 +705,9 @@ const main = async () => {
             pendingReload = false;
             reviewLog("\nRestaging and reloading the review extension...");
             try {
-              const result = await reloadReviewSession(port, demoPort);
+              const session = browser;
+              if (!session) throw new Error("Chrome is not running");
+              const result = await reloadReviewSession(session.port, demoPort);
               reviewLog(
                 `Reloaded ${result.extensionId} (${result.optionsTabs} options tab, ${result.demoTabs} demo tab).`,
               );
@@ -630,6 +720,7 @@ const main = async () => {
         } finally {
           reloading = false;
           finishReviewWork();
+          if (pendingReload && !switchingChrome) requestReload();
         }
       })();
     };
@@ -667,12 +758,74 @@ const main = async () => {
       })();
     };
 
+    const togglePromptSupport = () => {
+      desiredPromptSupport = !desiredPromptSupport;
+      if (switchingChrome) {
+        reviewLog(
+          `Prompt support ${desiredPromptSupport ? "enable" : "disable"} queued until Chrome finishes relaunching.`,
+        );
+        return;
+      }
+
+      switchingChrome = true;
+      const finishReviewWork = beginReviewWork();
+      chromeSwitch = (async () => {
+        try {
+          while (browser?.promptSupport !== desiredPromptSupport) {
+            if (stopping) break;
+            const targetPromptSupport = desiredPromptSupport;
+            reviewLog(
+              `\nRelaunching Chrome with Prompt support ${targetPromptSupport ? "on" : "off"}...`,
+            );
+            let replacement;
+            try {
+              replacement = await launchChromeReview(demoPort, targetPromptSupport);
+            } catch (error) {
+              desiredPromptSupport = browser?.promptSupport ?? false;
+              reviewError(
+                `Prompt-support relaunch failed; the current Chrome remains open: ${
+                  error instanceof Error ? error.message : String(error)
+                }`,
+              );
+              return;
+            }
+            if (stopping) {
+              await cleanupReviewBrowser(replacement);
+              return;
+            }
+            const previous = browser;
+            browser = replacement;
+            trackChromeExit(replacement);
+            if (previous) await cleanupReviewBrowser(previous);
+            reviewLog(
+              targetPromptSupport
+                ? `Prompt support is on (${replacement.promptAvailability}). Using preserved profile: ${replacement.profileDir}`
+                : "Prompt support is off. Using a throwaway review profile.",
+            );
+            reviewLog(`Downloads land in: ${replacement.downloadDir}`);
+          }
+        } catch (error) {
+          reviewError(
+            `Chrome relaunch cleanup failed: ${error instanceof Error ? error.message : String(error)}`,
+          );
+        } finally {
+          switchingChrome = false;
+          finishReviewWork();
+          if (pendingReload) requestReload();
+          if (browser?.proc.exitCode !== null) resolveReviewExit();
+        }
+      })();
+      void chromeSwitch;
+    };
+
     const stop = (requestedExitCode = 130) => {
       if (stopping) return;
       stopping = true;
       exitCode = requestedExitCode;
       cleanupControls();
-      void chrome.killTree(proc);
+      const session = browser;
+      if (session) void chrome.killTree(session.proc);
+      else resolveReviewExit();
     };
     const onSigint = () => stop(130);
     const onSigterm = () => stop(143);
@@ -695,14 +848,15 @@ const main = async () => {
       reload: requestReload,
       setTerminalFocused: setReviewTerminalFocused,
       stop: () => stop(130),
+      togglePromptSupport,
     });
     if (installedControls) {
       cleanupControls = installedControls;
     }
 
     reviewLog(`
-Extension loaded: ${extensionId}
-Downloads land in: ${downloadDir}
+Extension loaded: ${browser.extensionId}
+Downloads land in: ${browser.downloadDir}
 
 Two tabs are open:
   1. Options page — the Directories tab shows the seeded paths with the
@@ -711,10 +865,10 @@ Two tabs are open:
   2. Demo page — follow the numbered checklist on the page (nested menus,
      aliases, :variables:, PDF routing rule, alt+click, selection/page save).
 
-${installedControls ? "Press [f] to open Firefox, [h] to enable hot reload, [r] to reload Chrome, or Ctrl+C to exit." : "Close the Chrome window to exit."}`);
+${installedControls ? "Press [p] to toggle Prompt support, [f] to open Firefox, [h] to enable hot reload, [r] to reload Chrome, or Ctrl+C to exit." : "Close the Chrome window to exit."}`);
 
     setReviewTerminalTitle(false);
-    await exited;
+    await reviewExit;
     cleanupControls();
     reviewLog("Chrome closed");
     return exitCode;
@@ -723,6 +877,7 @@ ${installedControls ? "Press [f] to open Firefox, [h] to enable hot reload, [r] 
     cleanupControls();
     removeSignalHandlers();
     if (firefoxLaunch) await firefoxLaunch;
+    await chromeSwitch;
     await cleanupReviewBrowsers(firefoxSessions, () => cleanupReviewSession({ browser, server }));
   }
 };

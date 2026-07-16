@@ -8,6 +8,7 @@ const { createReviewKeyHandler } = require("../../scripts/review-demo.js") as {
     reload: () => void;
     setTerminalFocused: (focused: boolean) => void;
     stop: () => void;
+    togglePromptSupport: () => void;
   }) => (input: string) => void;
 };
 
@@ -18,12 +19,14 @@ describe("review demo server", () => {
     const reload = vi.fn();
     const setTerminalFocused = vi.fn();
     const stop = vi.fn();
+    const togglePromptSupport = vi.fn();
     const handleKey = createReviewKeyHandler({
       enableHotReload,
       openFirefox,
       reload,
       setTerminalFocused,
       stop,
+      togglePromptSupport,
     });
 
     handleKey("rxR");
@@ -32,6 +35,7 @@ describe("review demo server", () => {
     expect(enableHotReload).not.toHaveBeenCalled();
     expect(openFirefox).not.toHaveBeenCalled();
     expect(stop).not.toHaveBeenCalled();
+    expect(togglePromptSupport).not.toHaveBeenCalled();
   });
 
   test("enables hot reload on h or H", () => {
@@ -40,12 +44,14 @@ describe("review demo server", () => {
     const reload = vi.fn();
     const setTerminalFocused = vi.fn();
     const stop = vi.fn();
+    const togglePromptSupport = vi.fn();
     const handleKey = createReviewKeyHandler({
       enableHotReload,
       openFirefox,
       reload,
       setTerminalFocused,
       stop,
+      togglePromptSupport,
     });
 
     handleKey("hH");
@@ -54,6 +60,7 @@ describe("review demo server", () => {
     expect(openFirefox).not.toHaveBeenCalled();
     expect(reload).not.toHaveBeenCalled();
     expect(stop).not.toHaveBeenCalled();
+    expect(togglePromptSupport).not.toHaveBeenCalled();
   });
 
   test("opens Firefox on f or F", () => {
@@ -62,12 +69,14 @@ describe("review demo server", () => {
     const reload = vi.fn();
     const setTerminalFocused = vi.fn();
     const stop = vi.fn();
+    const togglePromptSupport = vi.fn();
     const handleKey = createReviewKeyHandler({
       enableHotReload,
       openFirefox,
       reload,
       setTerminalFocused,
       stop,
+      togglePromptSupport,
     });
 
     handleKey("fF");
@@ -76,6 +85,23 @@ describe("review demo server", () => {
     expect(enableHotReload).not.toHaveBeenCalled();
     expect(reload).not.toHaveBeenCalled();
     expect(stop).not.toHaveBeenCalled();
+    expect(togglePromptSupport).not.toHaveBeenCalled();
+  });
+
+  test("toggles Prompt support on p or P", () => {
+    const togglePromptSupport = vi.fn();
+    const handleKey = createReviewKeyHandler({
+      enableHotReload: vi.fn(),
+      openFirefox: vi.fn(),
+      reload: vi.fn(),
+      setTerminalFocused: vi.fn(),
+      stop: vi.fn(),
+      togglePromptSupport,
+    });
+
+    handleKey("pP");
+
+    expect(togglePromptSupport).toHaveBeenCalledTimes(2);
   });
 
   test("tracks terminal focus and treats keyboard input as active", () => {
@@ -84,12 +110,14 @@ describe("review demo server", () => {
     const reload = vi.fn();
     const setTerminalFocused = vi.fn();
     const stop = vi.fn();
+    const togglePromptSupport = vi.fn();
     const handleKey = createReviewKeyHandler({
       enableHotReload,
       openFirefox,
       reload,
       setTerminalFocused,
       stop,
+      togglePromptSupport,
     });
 
     handleKey("\u001B[O");
@@ -101,6 +129,7 @@ describe("review demo server", () => {
     expect(openFirefox).not.toHaveBeenCalled();
     expect(reload).not.toHaveBeenCalled();
     expect(stop).not.toHaveBeenCalled();
+    expect(togglePromptSupport).not.toHaveBeenCalled();
   });
 
   test("stops on Ctrl+C without processing later input", () => {
@@ -109,12 +138,14 @@ describe("review demo server", () => {
     const reload = vi.fn();
     const setTerminalFocused = vi.fn();
     const stop = vi.fn();
+    const togglePromptSupport = vi.fn();
     const handleKey = createReviewKeyHandler({
       enableHotReload,
       openFirefox,
       reload,
       setTerminalFocused,
       stop,
+      togglePromptSupport,
     });
 
     handleKey(`r\u0003f`);
@@ -122,5 +153,6 @@ describe("review demo server", () => {
     expect(reload).toHaveBeenCalledOnce();
     expect(openFirefox).not.toHaveBeenCalled();
     expect(stop).toHaveBeenCalledOnce();
+    expect(togglePromptSupport).not.toHaveBeenCalled();
   });
 });
