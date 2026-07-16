@@ -81,6 +81,17 @@ describe("Prompt API rule-authoring model", () => {
     expect(result).not.toContain("Keep the original filename");
   });
 
+  test("still requires the filename when the request asks to keep it", () => {
+    const vocabulary = { matchers: ["fileext"], variables: [":filename:"] };
+    const result = buildRuleAuthoringPrompt(
+      "save png into /dongs and keep the original filename",
+      grammar,
+      vocabulary,
+    );
+
+    expect(result).toContain("Keep the original filename");
+  });
+
   test("states a category requirement without inventing a file type", () => {
     const vocabulary = { matchers: ["fileext", "sourcekind"], variables: [":filename:"] };
     const result = buildRuleAuthoringPrompt(
@@ -311,6 +322,15 @@ describe("Prompt API rule-authoring model", () => {
       "fileext: ^png$\ninto: archive/custom-name",
       ["Saving into a folder must preserve the original filename."],
     ],
+    // Asking to keep the filename is the opposite of asking to rename, even
+    // though both name the filename.
+    [
+      "save png into /archive and keep the filename",
+      "fileext: ^png$\ninto: archive/custom-name",
+      ["Saving into a folder must preserve the original filename."],
+    ],
+    // A request that does name a new filename still renames.
+    ["save png into /archive, name it cover.png", "fileext: ^png$\ninto: archive/cover.png", []],
     [
       "save png into /archive",
       "fileext: ^png$",

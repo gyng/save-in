@@ -368,7 +368,17 @@ const destination = (rule: string): string | null => {
   return null;
 };
 
+// Naming the filename usually asks for a new one ("with filename cover.png"),
+// which is why the word counts as a rename at all. Asking to keep it says the
+// opposite with the same word, and reading that as a rename would drop the one
+// requirement the request actually spelled out.
+const asksToKeepFilename = (request: string): boolean =>
+  /\b(?:keep|keeps|keeping|preserve|preserves|preserving|same|original|unchanged)\b[^.!?]{0,20}\bfilenames?\b/i.test(
+    request,
+  );
+
 const asksForRename = (request: string): boolean =>
+  !asksToKeepFilename(request) &&
   /\b(?:rename|renamed|name (?:it|them)|filename|called)\b/i.test(request);
 
 const explicitSites = (request: string): string[] => {
