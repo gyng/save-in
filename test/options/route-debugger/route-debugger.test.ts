@@ -1241,6 +1241,55 @@ test("conjunctive gates, link inputs, and the parked master switch each note pre
     expect(notes[1]!.dataset.level).toBe("info");
     expect(notes[1]!.textContent).toContain("Automatic saving is off");
   });
+
+  // Master-switch advice is pointless for a source nothing can discover: a
+  // never-adopted link keeps only its own note even with the switch off.
+  sourceKind.value = "link";
+  sourceUrl.value = "https://example.test/other";
+  run.click();
+  await vi.waitFor(() => expect(noteText()).toContain("plain links"));
+  expect(result.querySelectorAll(".route-debugger-reachability-note").length).toBe(1);
+});
+
+test("a checkbox change never resurrects a trace an error message replaced", async () => {
+  renderWorkbench();
+  document.body.insertAdjacentHTML(
+    "beforeend",
+    `<input type="checkbox" id="autoDownloadEnabled" checked>
+     <input type="checkbox" id="autoDownloadDocuments">`,
+  );
+  let ruleErrors: unknown[] = [];
+  vi.spyOn(webExtensionApi.runtime, "sendMessage").mockImplementation(async (message: any) => {
+    if (message.type === MESSAGE_TYPES.CHECK_ROUTES) return checkResponse();
+    if (message.type === MESSAGE_TYPES.VALIDATE) {
+      return {
+        type: MESSAGE_TYPES.VALIDATE_RESULT,
+        body: { version: 1, ruleErrors, ruleTrace: noMatchTrace },
+      };
+    }
+    throw new Error(`Unexpected message: ${message.type}`);
+  });
+
+  setupRouteDebugger();
+  await new Promise((resolve) => setTimeout(resolve));
+  const run = document.querySelector<HTMLButtonElement>("#route-debugger-run")!;
+  const result = document.querySelector<HTMLElement>("#route-debugger-result")!;
+
+  run.click();
+  await vi.waitFor(() => expect(result.querySelector(".route-debugger-message")).toBeNull());
+
+  // The rules went invalid; the message replaces the trace on screen.
+  ruleErrors = [{ line: 1, message: "broken", warning: false }];
+  run.click();
+  await vi.waitFor(() => expect(result.querySelector(".route-debugger-message")).not.toBeNull());
+
+  // A discovery change must not swap the error for the superseded trace,
+  // whose jump offsets were computed against the old rule text.
+  const docs = document.querySelector<HTMLInputElement>("#autoDownloadDocuments")!;
+  docs.checked = true;
+  docs.dispatchEvent(new Event("change", { bubbles: true }));
+  await new Promise((resolve) => setTimeout(resolve));
+  expect(result.querySelector(".route-debugger-message")).not.toBeNull();
 });
 
 test("a displayed trace's note follows the named checkboxes without a rerun", async () => {

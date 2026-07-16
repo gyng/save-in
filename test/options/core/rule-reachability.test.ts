@@ -132,6 +132,30 @@ describe("ruleReachabilityDiagnostics", () => {
     );
   });
 
+  test("mixed-context suppression survives a Turkish host locale", async () => {
+    // The router lowercases contexts locale-insensitively; probing with
+    // toLocaleLowerCase would turn CLICK into "clıck" under tr/az and
+    // reintroduce the mixed-context false hints for those users.
+    const original = String.prototype.toLocaleLowerCase;
+    String.prototype.toLocaleLowerCase = function (this: string) {
+      return original.call(this).replace(/i/g, "ı");
+    } as typeof String.prototype.toLocaleLowerCase;
+    try {
+      vi.resetModules();
+      const model = await import("../../../src/options/core/rule-reachability-model.ts");
+      const clauses = [
+        { name: "context", value: "auto|click" },
+        { name: "pageurl", value: "." },
+        { name: "sourcekind", value: "^stream$" },
+        { name: "into", value: "streams/" },
+      ];
+      expect(model.ruleReachabilityDiagnostics(clauses, allOff)).toEqual([]);
+    } finally {
+      String.prototype.toLocaleLowerCase = original;
+      vi.resetModules();
+    }
+  });
+
   test("contexts match lowercased, so an uppercase alternative stays exclusive", () => {
     // The router tests the user pattern against lowercase context values;
     // without the i flag, CLICK can never fire and the rule is auto-only.

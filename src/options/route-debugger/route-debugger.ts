@@ -275,6 +275,11 @@ export const setupRouteDebugger = (): void => {
   };
 
   const renderMessage = (state: string, title: string): void => {
+    // A message replaces whatever trace was on screen; keeping the stale
+    // trace would let a discovery-checkbox change resurrect it over this
+    // message with jump offsets computed against superseded rule text.
+    lastTrace = null;
+    lastRunFields = null;
     setState(state);
     const message = document.createElement("div");
     message.className = "route-debugger-message";
@@ -424,8 +429,9 @@ export const setupRouteDebugger = (): void => {
         );
       }
       // The parked master switch reads as a footnote after the actionable
-      // discovery advice above.
-      if (discovery.automaticSavesOff) {
+      // discovery advice above. Advice is pointless for a source nothing can
+      // discover, so a never-adopted input keeps only its own note.
+      if (discovery.automaticSavesOff && !discovery.neverAdopted) {
         const master = localize("autoDownloadEnabled", "autoDownloadEnabled");
         appendNote(
           "info",

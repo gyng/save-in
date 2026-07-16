@@ -161,13 +161,17 @@ export const matchableSourceKinds = (
 // silent here — interactive saves are never gated by discovery options.
 const INTERACTIVE_CONTEXTS = Object.values(DOWNLOAD_TYPES)
   .filter((value) => value !== DOWNLOAD_TYPES.AUTO)
-  .map((value) => value.toLocaleLowerCase());
+  // Locale-insensitive on purpose: the router lowercases contexts with
+  // toLowerCase (routing/matchers.ts), and a Turkish/Azerbaijani host locale
+  // would otherwise probe "clıck" and reintroduce mixed-context false hints.
+  .map((value) => value.toLowerCase());
 
 const firesInteractively = (clauses: readonly ReachabilityClause[]): boolean => {
   const contextClauses = clauses.filter((clause) => clause.name === "context");
+  // Compile once per clause, not once per clause × probed context.
+  const regexes = contextClauses.map((clause) => compileClausePattern(clause));
   return INTERACTIVE_CONTEXTS.some((context) =>
-    contextClauses.every((clause) => {
-      const regex = compileClausePattern(clause);
+    regexes.every((regex) => {
       // An uncompilable context clause is the validator's report; assume it
       // constrains nothing so the diagnostics stay conservative.
       if (!regex) return true;
