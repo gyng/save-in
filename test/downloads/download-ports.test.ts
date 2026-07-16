@@ -32,6 +32,7 @@ describe("download ports", () => {
       patch: vi.fn(() => Promise.resolve()),
       setDownloadId: vi.fn(() => Promise.resolve()),
       setStatus: vi.fn(() => Promise.resolve()),
+      entries: vi.fn(() => Promise.resolve([])),
     };
     const log = { add: vi.fn() };
     const retry = vi.fn(() => Promise.resolve(true));

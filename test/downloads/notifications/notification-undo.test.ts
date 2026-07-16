@@ -122,17 +122,56 @@ describe("undo on the success notification", () => {
     expect(global.browser.downloads.erase).not.toHaveBeenCalled();
   });
 
-  test("a lost session record still undoes without marking history", async () => {
+  test("a lost session record falls back to the history entry and marks it", async () => {
     const history = await import("../../../src/background/history.ts");
     vi.spyOn(history, "setHistoryStatus").mockResolvedValue(undefined);
+    vi.spyOn(history, "getHistoryEntries").mockResolvedValue([
+      { id: "h-fallback", url: "https://x/p.png", downloadId: 7, status: "complete" } as never,
+    ]);
+    vi.mocked(global.browser.downloads.search).mockResolvedValue([
+      { id: 7, url: "https://x/p.png" } as never,
+    ]);
     // No siDownloads entry: the worker restarted and the per-download record
-    // is gone, but the browser download id on the notification stays valid.
+    // is gone, but the history entry still knows the download id.
     await onButtonClicked("7", 0);
 
     expect(global.browser.downloads.removeFile).toHaveBeenCalledWith(7);
     expect(global.browser.downloads.erase).toHaveBeenCalledWith({ id: 7 });
-    expect(history.setHistoryStatus).not.toHaveBeenCalled();
+    expect(history.setHistoryStatus).toHaveBeenCalledWith("h-fallback", "undone", 7);
     expect(global.browser.notifications.clear).toHaveBeenCalledWith("7");
+  });
+
+  test("with no record and no history entry, undo proceeds and logs the unmarked entry", async () => {
+    const history = await import("../../../src/background/history.ts");
+    vi.spyOn(history, "setHistoryStatus").mockResolvedValue(undefined);
+    vi.spyOn(history, "getHistoryEntries").mockResolvedValue([]);
+
+    await onButtonClicked("7", 0);
+
+    // Chrome download ids are stable across sessions, so the undo itself is
+    // safe; only the History mark has nothing to attach to.
+    expect(global.browser.downloads.removeFile).toHaveBeenCalledWith(7);
+    expect(history.setHistoryStatus).not.toHaveBeenCalled();
+    expect(Log.addLogEntry).toHaveBeenCalledWith("undo could not mark history", { downloadId: 7 });
+    expect(global.browser.notifications.clear).toHaveBeenCalledWith("7");
+  });
+
+  test("a reused id pointing at a foreign download is refused from the button", async () => {
+    const history = await import("../../../src/background/history.ts");
+    vi.spyOn(history, "setHistoryStatus").mockResolvedValue(undefined);
+    sessionStore.siDownloads = {
+      7: { adopted: true, historyEntryId: "h-undo", url: "https://x/p.png" },
+    };
+    vi.mocked(global.browser.downloads.search).mockResolvedValue([
+      { id: 7, url: "https://elsewhere/report.pdf", filename: "/dl/report.pdf" } as never,
+    ]);
+
+    await onButtonClicked("7", 0);
+
+    expect(global.browser.downloads.removeFile).not.toHaveBeenCalled();
+    expect(global.browser.downloads.erase).not.toHaveBeenCalled();
+    expect(history.setHistoryStatus).not.toHaveBeenCalled();
+    expect(global.browser.notifications.clear).not.toHaveBeenCalled();
   });
 
   test("a failed erase from the button neither marks nor clears", async () => {

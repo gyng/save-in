@@ -21,7 +21,7 @@ import { addLogEntry } from "../log.ts";
 import { clearHistory, getHistoryEntries, setHistoryStatus } from "../history.ts";
 import { syncSourcePanelToTab, setSourcePanelOpenState } from "../source-panel-state.ts";
 import { cancelActiveTransfer, getActiveTransfer } from "../../downloads/active-transfers.ts";
-import { undoBrowserDownload } from "../../downloads/undo-download.ts";
+import { undoDownloadAndMark } from "../../downloads/undo-download.ts";
 import { OffscreenClient } from "../../platform/offscreen-client.ts";
 import { ExternalDownloadRejections } from "../external-download-rejections.ts";
 import { getMessage } from "../../platform/localization.ts";
@@ -165,7 +165,7 @@ const internalHandlers = {
     const { historyId } = request.body;
     const entry = (await getHistoryEntries()).find((candidate) => candidate.id === historyId);
     const downloadId = entry?.downloadId;
-    if (downloadId == null) {
+    if (entry === undefined || downloadId == null) {
       // Stale UI: the entry vanished or predates download-id tracking.
       sendResponse({
         type: MESSAGE_TYPES.HISTORY_UNDO,
@@ -173,10 +173,11 @@ const internalHandlers = {
       });
       return;
     }
-    const result = await undoBrowserDownload(downloadId);
-    if (result.undone) {
-      await setHistoryStatus(historyId, "undone", downloadId);
-    }
+    const result = await undoDownloadAndMark(
+      downloadId,
+      { url: entry.url, filename: entry.finalFullPath },
+      () => setHistoryStatus(historyId, "undone", downloadId),
+    );
     sendResponse({ type: MESSAGE_TYPES.HISTORY_UNDO, body: result });
   },
   [MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTIONS_GET]: async (_request, _sender, sendResponse) => {

@@ -897,6 +897,7 @@ describe("concurrent downloads (pendingStates)", () => {
           freshHistory.setHistoryDownloadId(...a),
         setStatus: (...a: Parameters<typeof freshHistory.setHistoryStatus>) =>
           freshHistory.setHistoryStatus(...a),
+        entries: () => freshHistory.getHistoryEntries(),
       },
       log: {
         add: (...args: Parameters<typeof freshLog.addLogEntry>) => freshLog.addLogEntry(...args),

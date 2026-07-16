@@ -18,6 +18,8 @@ export type DownloadPorts = {
       downloadId?: number,
       fileSize?: number,
     ): Promise<unknown>;
+    // Undo resolves a lost session record back to its entry by downloadId.
+    entries(): Promise<HistoryEntry[]>;
   };
   log: {
     add(message: string, data?: unknown, options?: { privateContext?: boolean }): unknown;
@@ -65,6 +67,7 @@ export const createDownloadPortRegistry = (): DownloadPortRegistry => {
       patch: (...args) => requirePort("history").patch(...args),
       setDownloadId: (...args) => requirePort("history").setDownloadId(...args),
       setStatus: (...args) => requirePort("history").setStatus(...args),
+      entries: () => requirePort("history").entries(),
     },
     log: { add: (...args) => requirePort("log").add(...args) },
     retry: (...args) => requirePort("retry")(...args),

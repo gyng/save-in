@@ -65,6 +65,7 @@ const loadNotification = async () => {
       patch: (...a: unknown[]) => SaveHistory.patchHistoryEntry(...a),
       setDownloadId: (...a: unknown[]) => SaveHistory.setHistoryDownloadId(...a),
       setStatus: (...a: unknown[]) => SaveHistory.setHistoryStatus(...a),
+      entries: () => SaveHistory.getHistoryEntries(),
     },
     log: { add: (...args: unknown[]) => Log.addLogEntry(...args) },
     retry: (downloadId) => retryHolder.retry(downloadId),
@@ -131,7 +132,11 @@ const setupGlobals = (sessionStore: Record<string, any>, searchResults: (query: 
   (global.browser.downloads as any).show = vi.fn();
   (global.browser.downloads as any).download = vi.fn();
   (global.browser.downloads as any).cancel = vi.fn(() => Promise.resolve());
-  (global.browser.downloads as any).erase = vi.fn(() => Promise.resolve([]));
+  // Echo the queried id like a real browser erasing an existing item; undo
+  // treats an empty erase result as failure, so [] would fail every test.
+  (global.browser.downloads as any).erase = vi.fn((query: any) =>
+    Promise.resolve(query?.id != null ? [query.id] : []),
+  );
   (global.browser.downloads as any).removeFile = vi.fn(() => Promise.resolve());
   (global.browser as any).notifications = {
     create: vi.fn(),

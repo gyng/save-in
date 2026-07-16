@@ -123,7 +123,9 @@ const createTestHost = (kind: TestHostKind): Record<string, unknown> => {
     download: vi.fn(async () => 1),
     search: vi.fn(async () => []),
     cancel: vi.fn(async () => undefined),
-    erase: vi.fn(async () => []),
+    // Echoes the queried id like a real browser erasing an existing item;
+    // undo treats an empty erase result as failure.
+    erase: vi.fn(async (query?: { id?: number }) => (query?.id != null ? [query.id] : [])),
     removeFile: vi.fn(async () => undefined),
     open: vi.fn(),
     show: vi.fn(),

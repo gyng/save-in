@@ -151,6 +151,7 @@ beforeEach(() => {
         SaveHistory.setHistoryDownloadId(...a),
       setStatus: (...a: Parameters<typeof SaveHistory.setHistoryStatus>) =>
         SaveHistory.setHistoryStatus(...a),
+      entries: () => SaveHistory.getHistoryEntries(),
     },
     log: { add: (...args: Parameters<typeof Log.addLogEntry>) => Log.addLogEntry(...args) },
     retry: Download.retryViaFetch,

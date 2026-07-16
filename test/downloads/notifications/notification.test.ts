@@ -211,6 +211,7 @@ describe("createExtensionNotification", () => {
         patch: () => Promise.resolve(),
         setDownloadId: () => Promise.resolve(),
         setStatus: () => Promise.resolve(),
+        entries: () => Promise.resolve([]),
       },
       log: { add: vi.fn() },
       retry: () => Promise.resolve(false),

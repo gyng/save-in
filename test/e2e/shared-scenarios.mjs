@@ -1035,13 +1035,28 @@ export const runUndoLastSaveScenario = async ({ control, waitForDownloads, filen
 
     const second = await saveAndFindEntry(`${filename}-missing.bin`);
     fs.rmSync(second.completed.filename);
-    await control.downloads.erase({ id: second.downloadId });
     const missing = await control.runtime.send({
       type: "HISTORY_UNDO",
       body: { historyId: second.historyId },
     });
     expect(missing).toEqual({ type: "HISTORY_UNDO", body: { undone: true, fileMissing: true } });
     await control.history.wait({ id: second.historyId, status: "undone" });
+
+    // Once the shelf entry is erased the extension can no longer verify the
+    // download's identity or reach its file, so undo must refuse honestly
+    // rather than claim success — the entry stays complete.
+    const third = await saveAndFindEntry(`${filename}-erased.bin`);
+    await control.downloads.erase({ id: third.downloadId });
+    const refused = await control.runtime.send({
+      type: "HISTORY_UNDO",
+      body: { historyId: third.historyId },
+    });
+    expect(refused).toEqual({ type: "HISTORY_UNDO", body: { undone: false, fileMissing: false } });
+    expect(fs.existsSync(third.completed.filename)).toBe(true);
+    const entries = await control.history.wait({ id: third.historyId, status: "complete" });
+    expect(entries.some((row) => row.id === third.historyId && row.status === "complete")).toBe(
+      true,
+    );
   } finally {
     try {
       await control.storage.local.set(previous);

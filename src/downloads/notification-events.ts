@@ -42,7 +42,7 @@ import {
 } from "./notification-runtime.ts";
 import { resolveFirefoxDownloadContext } from "./auth-context.ts";
 import { OffscreenClient } from "../platform/offscreen-client.ts";
-import { undoBrowserDownload } from "./undo-download.ts";
+import { undoDownloadAndMark, type ExpectedDownloadIdentity } from "./undo-download.ts";
 
 type HostDownloadItem = Parameters<
   Parameters<typeof webExtensionApi.downloads.onCreated.addListener>[0]
@@ -224,11 +224,31 @@ export const onNotificationButtonClicked = async (notId: string, buttonIndex: nu
   const downloadId = Number(notId);
   if (!Number.isSafeInteger(downloadId)) return;
   const record = await getTrackedDownload(downloadId);
-  const result = await undoBrowserDownload(downloadId);
-  if (result.undone) {
-    if (record?.historyEntryId) {
-      await historyPort.setStatus(record.historyEntryId, "undone", downloadId);
+  // The session record can be evicted between completion and the click; fall
+  // back to the History entry by downloadId so the row is still marked and
+  // the identity check still has something to verify against.
+  let historyEntryId = record?.historyEntryId;
+  let expected: ExpectedDownloadIdentity = { url: record?.url, filename: record?.filename };
+  if (!historyEntryId) {
+    const entry = (await historyPort.entries()).find(
+      (candidate) => candidate.downloadId === downloadId,
+    );
+    if (entry?.id) {
+      historyEntryId = entry.id;
+      expected = { url: entry.url, filename: entry.finalFullPath };
     }
+  }
+  const entryToMark = historyEntryId;
+  const result = await undoDownloadAndMark(downloadId, expected, async () => {
+    if (entryToMark) {
+      await historyPort.setStatus(entryToMark, "undone", downloadId);
+      return;
+    }
+    // Chrome ids are stable across sessions, so the undo itself is safe; only
+    // the History mark has nothing to attach to.
+    logPort.add("undo could not mark history", { downloadId });
+  });
+  if (result.undone) {
     await Promise.resolve(webExtensionApi.notifications.clear(notId)).catch(() => {});
   }
 };

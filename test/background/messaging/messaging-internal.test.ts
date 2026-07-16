@@ -143,6 +143,9 @@ describe("onMessage", () => {
     vi.mocked(SaveHistory.getHistoryEntries).mockResolvedValue([
       { id: "history-9", url: "https://x.test/file.png", downloadId: 31, status: "complete" },
     ]);
+    vi.mocked(global.browser.downloads.search).mockResolvedValue([
+      { id: 31, url: "https://x.test/file.png" } as never,
+    ]);
     const sendResponse = vi.fn();
 
     expect(
@@ -167,6 +170,9 @@ describe("onMessage", () => {
     vi.mocked(SaveHistory.getHistoryEntries).mockResolvedValue([
       { id: "history-10", url: "https://x.test/gone.png", downloadId: 32, status: "complete" },
     ]);
+    vi.mocked(global.browser.downloads.search).mockResolvedValue([
+      { id: 32, url: "https://x.test/gone.png" } as never,
+    ]);
     vi.mocked(global.browser.downloads.removeFile).mockRejectedValueOnce(new Error("no such file"));
     const sendResponse = vi.fn();
 
@@ -189,6 +195,9 @@ describe("onMessage", () => {
     vi.mocked(SaveHistory.getHistoryEntries).mockResolvedValue([
       { id: "history-12", url: "https://x.test/stuck.png", downloadId: 33, status: "complete" },
     ]);
+    vi.mocked(global.browser.downloads.search).mockResolvedValue([
+      { id: 33, url: "https://x.test/stuck.png" } as never,
+    ]);
     vi.mocked(global.browser.downloads.erase).mockRejectedValueOnce(new Error("shelf locked"));
     vi.mocked(SaveHistory.setHistoryStatus).mockClear();
     const sendResponse = vi.fn();
@@ -202,6 +211,70 @@ describe("onMessage", () => {
 
     // A failed erase must not mark the entry undone — the shelf record still
     // points at the (removed) file and the user needs the true state.
+    expect(SaveHistory.setHistoryStatus).not.toHaveBeenCalled();
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.HISTORY_UNDO,
+      body: { undone: false, fileMissing: false },
+    });
+  });
+
+  test("HISTORY_UNDO refuses an id the browser no longer tracks", async () => {
+    vi.mocked(SaveHistory.getHistoryEntries).mockResolvedValue([
+      { id: "history-13", url: "https://x.test/old.png", downloadId: 34, status: "complete" },
+    ]);
+    // Untracked id: extensions cannot stat the filesystem, so the file's fate
+    // is unknowable and nothing may be destroyed or marked.
+    vi.mocked(global.browser.downloads.search).mockResolvedValue([]);
+    vi.mocked(global.browser.downloads.removeFile).mockClear();
+    vi.mocked(global.browser.downloads.erase).mockClear();
+    vi.mocked(SaveHistory.setHistoryStatus).mockClear();
+    const sendResponse = vi.fn();
+
+    onMessage(
+      { type: MESSAGE_TYPES.HISTORY_UNDO, body: { historyId: "history-13" } },
+      {},
+      sendResponse,
+    );
+    await waitForCall(sendResponse);
+
+    expect(global.browser.downloads.removeFile).not.toHaveBeenCalled();
+    expect(global.browser.downloads.erase).not.toHaveBeenCalled();
+    expect(SaveHistory.setHistoryStatus).not.toHaveBeenCalled();
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.HISTORY_UNDO,
+      body: { undone: false, fileMissing: false },
+    });
+  });
+
+  test("HISTORY_UNDO refuses a reused id whose download is not the entry's", async () => {
+    vi.mocked(SaveHistory.getHistoryEntries).mockResolvedValue([
+      {
+        id: "history-14",
+        url: "https://x.test/photo.jpg",
+        finalFullPath: "gallery/photo.jpg",
+        downloadId: 3,
+        status: "complete",
+      },
+    ]);
+    // Firefox reuses session-scoped ids after a restart: id 3 now names an
+    // unrelated download that must not be deleted.
+    vi.mocked(global.browser.downloads.search).mockResolvedValue([
+      { id: 3, url: "https://elsewhere.test/report.pdf", filename: "/dl/report.pdf" } as never,
+    ]);
+    vi.mocked(global.browser.downloads.removeFile).mockClear();
+    vi.mocked(global.browser.downloads.erase).mockClear();
+    vi.mocked(SaveHistory.setHistoryStatus).mockClear();
+    const sendResponse = vi.fn();
+
+    onMessage(
+      { type: MESSAGE_TYPES.HISTORY_UNDO, body: { historyId: "history-14" } },
+      {},
+      sendResponse,
+    );
+    await waitForCall(sendResponse);
+
+    expect(global.browser.downloads.removeFile).not.toHaveBeenCalled();
+    expect(global.browser.downloads.erase).not.toHaveBeenCalled();
     expect(SaveHistory.setHistoryStatus).not.toHaveBeenCalled();
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.HISTORY_UNDO,
