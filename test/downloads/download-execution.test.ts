@@ -879,6 +879,8 @@ describe("concurrent downloads (pendingStates)", () => {
     // nothing routes, conflictAction "uniquify", and the identity-ish real Path.
     // Register onDeterminingFilename from this fresh instance before capture.
     const dl = await import("../../src/downloads/download.ts");
+    const dlExecution = await import("../../src/downloads/download-execution.ts");
+    const dlRuntimeInstance = await import("../../src/downloads/download-runtime-instance.ts");
     const { configureDownloadPorts: configureFreshDownloadPorts } =
       await import("../../src/downloads/ports.ts");
     const { backgroundRuntime: freshRuntime } = await import("../../src/background/runtime.ts");
@@ -902,7 +904,7 @@ describe("concurrent downloads (pendingStates)", () => {
       retry: dl.retryViaFetch,
       sourceSidecar: () => Promise.resolve(),
     });
-    concurrentDownload = dl;
+    concurrentDownload = { ...dlExecution, ...dlRuntimeInstance, ...dl };
     dl.registerDownloadListener();
     [[listener]] = vi.mocked(
       (global.chrome as any).downloads.onDeterminingFilename.addListener,

@@ -47,7 +47,7 @@ vi.mock("../../src/platform/chrome-detector.ts", () => ({
 vi.mock("../../src/routing/router.ts", () => mocks.router);
 vi.mock("../../src/routing/variable.ts", () => ({ applyVariables: mocks.applyVariables }));
 vi.mock("../../src/routing/path.ts", () => ({ Path: mocks.Path }));
-vi.mock("../../src/downloads/download.ts", () => ({
+vi.mock("../../src/downloads/download-plan.ts", () => ({
   getRoutingMatches: (...args: unknown[]) => mocks.Download.getRoutingMatches(...args),
 }));
 

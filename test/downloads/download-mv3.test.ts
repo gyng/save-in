@@ -553,7 +553,15 @@ describe("onDeterminingFilename listener (Chrome)", () => {
     suggest: (suggestion?: { filename: string; conflictAction: string }) => void,
   ) => boolean;
   let sessionStore: Record<string, any>;
-  let freshDownload: typeof import("../../src/downloads/download.ts");
+  // download.ts was split into download-plan.ts / download-disposition.ts /
+  // download-execution.ts and the downloadRuntime singleton moved to
+  // download-runtime-instance.ts (Phase 2.5); this describe block merges a
+  // fresh import of each into one object so its many `freshDownload.X`
+  // references don't need to track which file now owns which export.
+  let freshDownload: typeof import("../../src/downloads/download.ts") &
+    typeof import("../../src/downloads/download-plan.ts") &
+    typeof import("../../src/downloads/download-disposition.ts") &
+    typeof import("../../src/downloads/download-runtime-instance.ts");
   let freshOptions: typeof import("../../src/config/options-data.ts").options;
 
   beforeEach(async () => {
@@ -602,6 +610,9 @@ describe("onDeterminingFilename listener (Chrome)", () => {
 
     // Attach onDeterminingFilename against the fresh Chrome stub, then capture.
     const currentDownload = await import("../../src/downloads/download.ts");
+    const currentPlan = await import("../../src/downloads/download-plan.ts");
+    const currentDisposition = await import("../../src/downloads/download-disposition.ts");
+    const currentRuntimeInstance = await import("../../src/downloads/download-runtime-instance.ts");
     const { configureDownloadPorts } = await import("../../src/downloads/ports.ts");
     configureDownloadPorts({
       runtime: { ready: Promise.resolve(), debug: false },
@@ -615,7 +626,12 @@ describe("onDeterminingFilename listener (Chrome)", () => {
       retry: currentDownload.retryViaFetch,
       sourceSidecar: () => Promise.resolve(),
     });
-    freshDownload = currentDownload;
+    freshDownload = {
+      ...currentPlan,
+      ...currentDisposition,
+      ...currentRuntimeInstance,
+      ...currentDownload,
+    };
     // Register with deferred lookups instead of registerDownloadListener():
     // the production records capture module locals at build time, which a
     // later vi.spyOn on the namespace cannot reach.
@@ -629,7 +645,7 @@ describe("onDeterminingFilename listener (Chrome)", () => {
     };
     BrowserDownloadRouting.route = (item) => routeBrowserDownload(routedDownload, item);
     registerFilenameAndObjectUrlListeners({
-      ...currentDownload.downloadRuntime,
+      ...currentRuntimeInstance.downloadRuntime,
       retryViaFetch: (downloadId: number) => freshDownload.retryViaFetch(downloadId),
       ...routedDownload,
     });

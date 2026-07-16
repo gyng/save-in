@@ -75,10 +75,27 @@ Object.assign(hostBrowser, {
   },
 } as any);
 
-// Importing download.ts loads the rest of the (real) cyclic module graph;
-// grab the same singleton instances it binds to.
-const Download = await import("../../src/downloads/download.ts");
-const { registerDownloadListener } = Download;
+// Importing download.ts loads the rest of the (real) module graph; grab the
+// same singleton instances it binds to. download.ts was split into
+// download-plan.ts / download-disposition.ts / download-execution.ts
+// (Phase 2.5); this suite still drives the pipeline as one `Download` object
+// so its many call sites (`Download.resolveDownloadPlan`, `.renameAndDownload`,
+// `.finalizeFullPath`, ...) don't need to track which file now owns which
+// export — cheaper here than updating every call site across five large test
+// files that share this fixture.
+const DownloadCore = await import("../../src/downloads/download.ts");
+const DownloadPlan = await import("../../src/downloads/download-plan.ts");
+const DownloadDisposition = await import("../../src/downloads/download-disposition.ts");
+const DownloadExecution = await import("../../src/downloads/download-execution.ts");
+const DownloadRuntimeInstance = await import("../../src/downloads/download-runtime-instance.ts");
+const Download = {
+  ...DownloadPlan,
+  ...DownloadDisposition,
+  ...DownloadExecution,
+  ...DownloadRuntimeInstance,
+  ...DownloadCore,
+};
+const { registerDownloadListener } = DownloadCore;
 const ActiveTransfers = await import("../../src/downloads/active-transfers.ts");
 const { BrowserDownloadRouting } = await import("../../src/downloads/browser-downloads.ts");
 const { options } = await import("../../src/config/options-data.ts");

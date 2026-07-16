@@ -1,9 +1,9 @@
 import { webExtensionApi } from "../platform/web-extension-api.ts";
 import { getMessage } from "../platform/localization.ts";
 
-import { downloadsState, sessionWriteState } from "./download-state-instances.ts";
 import { getDownload, mergeDownload } from "./download-state.ts";
 import type { DownloadRecordUpdate } from "./download-state.ts";
+import { downloadsState, sessionWriteState } from "./download-state-instances.ts";
 import { DOWNLOAD_TYPES } from "../shared/constants.ts";
 import { normalizeSessionCounter, updateSession } from "../shared/session-state.ts";
 import { getDownloadHeaders, getFetchReferer } from "./headers.ts";
@@ -14,32 +14,17 @@ import {
   expectDownload,
   reportDownloadFailure,
 } from "./notification.ts";
-import {
-  isRenameOnlyEligibleRule,
-  matchRules,
-  matchRulesDetailed,
-  type RuleMatch,
-} from "../routing/router.ts";
-import { expandFetchUrl } from "../routing/fetch-url.ts";
-import { Path, sanitizeFilename } from "../routing/path.ts";
-import { applyVariables, mimeToExtension, resolveHead, resolveMime } from "../routing/variable.ts";
 import { options } from "../config/options-data.ts";
 import { downloadPorts } from "./ports.ts";
 import { WEB_EXTENSION_CAPABILITIES } from "../platform/chrome-detector.ts";
-import {
-  getFilenameFromContentDispositionHeader,
-  type ContentDispositionParseOptions,
-} from "../vendor/content-disposition.ts";
 import { fetchUrlForDownload } from "./content-fetch.ts";
 import { OffscreenClient } from "../platform/offscreen-client.ts";
-import { EXTENSION_REGEX, getFilenameFromUrl } from "../routing/filename.ts";
 import {
   DEFERRED_ROUTES_SESSION_KEY,
   FINAL_FILENAMES_SESSION_KEY,
   PENDING_DOWNLOADS_SESSION_KEY,
 } from "../shared/storage-keys.ts";
 import { emitDownloaded } from "./download-events.ts";
-import { retryViaFetch as runRetryViaFetch } from "./download-retry.ts";
 import { extensionSessionStorage } from "../platform/storage-areas.ts";
 import type {
   AcquiredDownload,
@@ -47,18 +32,27 @@ import type {
   DownloadPlan,
   DownloadExecutionResult,
   DownloadLaunchResult,
-  FinalizableDownloadState,
 } from "./download-types.ts";
-import { createDownloadRuntimeState } from "./download-runtime-state.ts";
+import { downloadRuntime } from "./download-runtime-instance.ts";
+import { resolveDownloadPlan } from "./download-plan.ts";
+import { ensureHistoryEntry } from "./history-entry.ts";
+import {
+  addDownloadLog,
+  isHttpDownloadUrl,
+  isPrivateDownloadState,
+  isSourceSidecar,
+  releaseUnusedContent,
+  requireDownloadUrl,
+  throwIfAborted,
+} from "./download-pipeline-state.ts";
 import {
   createDeferredRouteRecovery,
   enqueueFilename,
   enqueueDeferredRoute,
-  registerFilenameAndObjectUrlListeners,
   removeDeferredRoute,
   removeFilename,
+  type FinalFilenameMap,
 } from "./filename-listener.ts";
-import { BrowserDownloadRouting, routeBrowserDownload } from "./browser-downloads.ts";
 import { resolveFirefoxDownloadContext } from "./auth-context.ts";
 import {
   finishActiveTransfer,
@@ -67,19 +61,8 @@ import {
   releaseTransferKeepalive,
   updateActiveTransfer,
 } from "./active-transfers.ts";
-import type { HistoryEntryInput } from "../shared/history-types.ts";
 import { deliverSaveWebhook } from "./webhook-delivery.ts";
 
-const FIREFOX_CONTENT_DISPOSITION_COMPATIBILITY: ContentDispositionParseOptions = {
-  // Firefox's native HTTP path accepts quoted ext-values and URI-unescapes a
-  // decoded extended value again. Its HEAD-based Save In path must agree.
-  allowQuotedExtendedValue: true,
-  unescapeExtendedValueAgain: true,
-};
-
-// url -> state for in-flight downloads, so onDeterminingFilename can
-// attribute the right state when two Chrome downloads overlap.
-export const downloadRuntime = createDownloadRuntimeState();
 const logPort = downloadPorts.log;
 const historyPort = downloadPorts.history;
 const backgroundRuntime = downloadPorts.runtime;
@@ -94,108 +77,6 @@ export const rememberStartedDownload = (downloadId: number, partial: DownloadRec
 export const getStartedDownload = (downloadId: number) =>
   getDownload(downloadsState, extensionSessionStorage, downloadId);
 
-const requireDownloadUrl = (state: Pick<DownloadPipelineState, "info">): string => {
-  if (!state.info.url) throw new Error("Download URL is required");
-  return state.info.url;
-};
-
-const isSourceSidecar = (state: Pick<DownloadPipelineState, "info">): boolean =>
-  state.info.context === DOWNLOAD_TYPES.SIDECAR;
-
-const isPrivateDownloadState = (state: Pick<DownloadPipelineState, "info">): boolean =>
-  state.info.currentTab?.incognito === true;
-
-const addDownloadLog = (
-  state: Pick<DownloadPipelineState, "info">,
-  message: string,
-  data?: unknown,
-): unknown =>
-  isPrivateDownloadState(state)
-    ? logPort.add(message, data, { privateContext: true })
-    : logPort.add(message, data);
-
-const isHttpDownloadUrl = (value: string): boolean => {
-  try {
-    const protocol = new URL(value).protocol;
-    return protocol === "https:" || protocol === "http:";
-  } catch {
-    return false;
-  }
-};
-
-const historyEntry = (state: DownloadPipelineState, finalFullPath: string): HistoryEntryInput => ({
-  timestamp: new Date().toISOString(),
-  initiatedAt: state.info.now?.toISOString(),
-  url: state.info.url,
-  finalFullPath,
-  routed: Boolean(state.route),
-  info: {
-    sourceUrl: state.info.sourceUrl || state.info.selectedUrl,
-    pageUrl: state.info.pageUrl,
-    context: state.info.context,
-  },
-  menu: {
-    id: state.info.menuItemId,
-    title: state.info.menuItemTitle,
-    path: state.info.menuItemPath,
-  },
-  variables: Object.fromEntries(
-    Object.entries({
-      filename: state.info.filename,
-      initialfilename: state.info.initialFilename,
-      suggestedfilename: state.info.suggestedFilename,
-      pagetitle: state.info.currentTab?.title,
-      pageurl: state.info.pageUrl,
-      sourceurl: state.info.sourceUrl,
-      linktext: state.info.linkText,
-      selection: state.info.selectionText,
-      context: state.info.context,
-      comment: state.info.comment,
-      menuindex: state.info.menuIndex,
-      counter: state.info.counter,
-    })
-      .filter(
-        (entry): entry is [string, string | number] =>
-          typeof entry[1] === "string" || typeof entry[1] === "number",
-      )
-      .map(([key, value]) => [key, String(value)]),
-  ),
-});
-
-const ensureHistoryEntry = (state: DownloadPipelineState, finalFullPath: string) => {
-  if (isSourceSidecar(state)) return null;
-  const fields = historyEntry(state, finalFullPath);
-  if (typeof state.scratch.historyEntryId !== "undefined") {
-    void historyPort.patch(state.scratch.historyEntryId, fields);
-    return state.scratch.historyEntryId;
-  }
-  const id = historyPort.add(fields, { privateContext: isPrivateDownloadState(state) });
-  state.scratch.historyEntryId = id;
-  return id;
-};
-
-const releaseUnusedContent = async (state: DownloadPipelineState): Promise<void> => {
-  const contentPromise = state.info.contentPromise;
-  state.info.contentPromise = undefined;
-  if (!contentPromise) return;
-  try {
-    const content = await contentPromise;
-    if (content?.ownedObjectUrl && typeof URL.revokeObjectURL === "function") {
-      URL.revokeObjectURL(content.ownedObjectUrl);
-    }
-    if (content?.offscreenRequestId) await OffscreenClient.release(content.offscreenRequestId);
-  } catch {
-    // The pipeline's original error remains authoritative.
-  }
-};
-
-const abortError = (signal: AbortSignal): unknown =>
-  signal.reason ?? new DOMException("The operation was aborted", "AbortError");
-
-const throwIfAborted = (signal?: AbortSignal): void => {
-  if (signal?.aborted) throw abortError(signal);
-};
-
 const releaseAcquiredDownload = async (acquired: AcquiredDownload): Promise<void> => {
   if (acquired.ownedObjectUrl && typeof URL.revokeObjectURL === "function") {
     URL.revokeObjectURL(acquired.ownedObjectUrl);
@@ -204,32 +85,6 @@ const releaseAcquiredDownload = async (acquired: AcquiredDownload): Promise<void
     await OffscreenClient.release(acquired.offscreenRequestId).catch(() => {});
   }
 };
-
-// A fetch: rewrite retargets the download, so every artifact derived from the
-// original URL — resolved head metadata, hash, prefetched content, the
-// MIME-derived extension, and URL-derived names — is stale and must be
-// recomputed against the rewritten URL.
-const applyFetchRewrite = async (
-  state: DownloadPipelineState,
-  rewrittenUrl: string,
-): Promise<void> => {
-  await releaseUnusedContent(state);
-  delete state.info.headPromise;
-  delete state.info.resolvedHead;
-  delete state.info.sha256;
-  delete state.info.mime;
-  delete state.info.mimeExtension;
-  delete state.scratch.mimeExtension;
-  if (WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion) {
-    downloadRuntime.movePendingState(state, rewrittenUrl);
-  }
-  state.info.url = rewrittenUrl;
-  const naiveFilename = getFilenameFromUrl(rewrittenUrl);
-  const initialFilename = state.info.suggestedFilename || naiveFilename || rewrittenUrl;
-  Object.assign(state.info, { naiveFilename, filename: initialFilename, initialFilename });
-};
-
-import type { FinalFilenameMap } from "./filename-listener.ts";
 
 const recordDownloadRequest = (plan: DownloadPlan): void => {
   const { state } = plan;
@@ -249,321 +104,6 @@ const recordDownloadRequest = (plan: DownloadPlan): void => {
     emitDownloaded(state);
     backgroundRuntime.lastDownloadState = state;
   }
-};
-
-export const DISPOSITION_FILENAME_REGEX = /filename[^;=\n]*=((['"])(.*)?\2|(.+'')?([^;\n]*))/i;
-
-// blob/data URL -> final filename for retry downloads, so Chrome's
-// onDeterminingFilename suggests the intended path instead of falling
-// back to an unrelated pending state
-// Automatic fallback chain: a browser-initiated download that failed with
-// a network/server error is retried once through a background fetch. Resolves
-// true when a retry was started. Downloads that attached native request
-// headers opt out because extension fetch cannot replay arbitrary headers;
-// DNR Referer protection alone is re-derived for the retry fetch.
-export const retryViaFetch = (downloadId: number): Promise<boolean> =>
-  runRetryViaFetch(
-    downloadRuntime,
-    { notifier: { expectDownload, cancelExpectedDownload }, log: logPort },
-    downloadId,
-    enqueueFilename,
-    removeFilename,
-  );
-
-export const makeObjectUrl = (content: string, mime = "text/plain"): string => {
-  if (typeof URL.createObjectURL === "function") {
-    const objectUrl = URL.createObjectURL(
-      new Blob([content], {
-        type: `${mime};charset=utf-8`,
-      }),
-    );
-    downloadRuntime.generatedObjectUrls.add(objectUrl);
-    return objectUrl;
-  }
-
-  // MV3 service workers have no URL.createObjectURL: use a data URL
-  const bytes = new TextEncoder().encode(content);
-  let binary = "";
-  for (const byte of bytes) binary += String.fromCharCode(byte);
-  return `data:${mime};charset=utf-8;base64,${btoa(binary)}`;
-};
-
-export const finalizeFullPath = (_state: FinalizableDownloadState): string => {
-  let finalDir = _state.path.finalize();
-  let finalFilename;
-  let finalFilenameIsRoutePath = false;
-
-  if (_state.route && _state.routeIsFolder) {
-    // §8.1: a folder-only rule (its `into:` ends with "/") routes into a
-    // directory and keeps the download's real name — the browser's
-    // Content-Disposition/MIME-resolved filename (or the URL/CD name on
-    // Firefox) — instead of naming the file after the folder.
-    const routeDir = String(_state.route.finalize()).replace(/\/+$/, "");
-    finalDir = [finalDir, routeDir].filter((x) => x != null && x !== "").join("/");
-    finalFilename = typeof _state.info.filename === "string" ? _state.info.filename : undefined;
-  } else if (_state.route) {
-    // The rule sets the whole name (which may itself include subdirectories)
-    finalFilename = _state.route.finalize({ finalComponentIsFilename: true });
-    finalFilenameIsRoutePath = true;
-  } else {
-    finalFilename = typeof _state.info.filename === "string" ? _state.info.filename : undefined;
-  }
-
-  // §8.1: append a MIME-derived extension when the resolved filename has none
-  // (extensionless CDN / query-suffix URLs). The extension is resolved once,
-  // asynchronously, in renameAndDownload and stashed on scratch.
-  if (
-    _state.scratch &&
-    _state.scratch.mimeExtension &&
-    finalFilename &&
-    !EXTENSION_REGEX.test(finalFilename)
-  ) {
-    finalFilename = `${finalFilename}.${_state.scratch.mimeExtension}`;
-  }
-
-  if (finalFilename) {
-    if (finalFilenameIsRoutePath) {
-      const components = finalFilename.split("/");
-      const filename = components.pop();
-      /* v8 ignore next -- Splitting a string always yields at least one component to pop. */
-      if (filename !== undefined) {
-        components.push(sanitizeFilename(filename, options.truncateLength, true, true));
-      }
-      finalFilename = components.join("/");
-    } else {
-      // Server-, URL-, and browser-derived names are one untrusted component.
-      // Only explicit route paths may introduce destination subdirectories.
-      finalFilename = sanitizeFilename(finalFilename, options.truncateLength, true, true);
-    }
-  }
-
-  const finalFullPath = [finalDir, finalFilename].filter((x) => x != null).join("/");
-
-  return finalFullPath.replace(/^\.\//, "").replace(/^\//, "");
-};
-
-export const getFilenameFromContentDisposition = (
-  disposition: unknown,
-  parseOptions: ContentDispositionParseOptions = {},
-): string | null => {
-  if (typeof disposition !== "string") return null;
-
-  const filenameFromLib = getFilenameFromContentDispositionHeader(disposition, parseOptions);
-  return filenameFromLib || null;
-};
-
-// Firefox resolves a server-provided filename before finalizing the plan —
-// and again after a fetch: rewrite retargets the URL. Chrome must defer this
-// to onDeterminingFilename, which runs after the browser download starts.
-export const resolveDispositionFilename = async (state: DownloadPipelineState): Promise<void> => {
-  if (WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion || state.info.contentFetchDisabled) {
-    return;
-  }
-  try {
-    const metadata = await resolveHead(state.info);
-    if (metadata.contentDisposition) {
-      const dispositionName = getFilenameFromContentDisposition(
-        metadata.contentDisposition,
-        FIREFOX_CONTENT_DISPOSITION_COMPATIBILITY,
-      );
-      state.info.filename = dispositionName || state.info.filename;
-    }
-  } catch {
-    // HEAD is best-effort; acquisition still proceeds with the resolved name.
-  }
-};
-
-export const getRoutingMatch = (state: Pick<DownloadPipelineState, "info">): RuleMatch | null => {
-  if (state.info.routingDisabled) return null;
-  const filenamePatterns = Array.isArray(options.filenamePatterns) ? options.filenamePatterns : [];
-  if (filenamePatterns.length === 0) {
-    return null;
-  }
-
-  return matchRulesDetailed(filenamePatterns, state.info);
-};
-
-// Ordinary browser downloads and post-start filename re-evaluation can only
-// rename a download that is already in flight, so URL-rewriting rules are
-// skipped there instead of consuming the match.
-export const getRoutingMatches = (state: Pick<DownloadPipelineState, "info">): string | null => {
-  if (state.info.routingDisabled) return null;
-  const filenamePatterns = Array.isArray(options.filenamePatterns) ? options.filenamePatterns : [];
-  if (filenamePatterns.length === 0) {
-    return null;
-  }
-
-  return matchRules(filenamePatterns, state.info, isRenameOnlyEligibleRule);
-};
-
-// Single entry point for firing a download from a menu/message click:
-// fire-and-forget (renameAndDownload is async) but with one place that both
-// logs and surfaces a terminal pipeline failure to the user. Callers still
-// Browser-attempt ownership is registered later, immediately around
-// downloads.download(), so planning failures cannot leak an expectation.
-export const launchDownload = (state: DownloadPipelineState): Promise<DownloadLaunchResult> =>
-  renameAndDownload(state).catch((e) => {
-    addDownloadLog(state, "renameAndDownload failed", String(e));
-    const name = state.info.suggestedFilename || state.info.url || "";
-    if (!isSourceSidecar(state)) reportDownloadFailure(name, String(e));
-    return { status: "failed" as const };
-  });
-
-export const resolveDownloadPlan = async (
-  state: DownloadPipelineState,
-): Promise<DownloadPlan | null> => {
-  const url = requireDownloadUrl(state);
-  const naiveFilename = getFilenameFromUrl(url);
-  const initialFilename = state.info.suggestedFilename || naiveFilename || url;
-  Object.assign(state.info, { naiveFilename, filename: initialFilename, initialFilename });
-  if (state.path instanceof Path && typeof state.path.raw === "string") {
-    state.scratch.pathTemplateRaw = state.path.raw;
-  }
-
-  // This must precede the first await so onDeterminingFilename can correlate
-  // a download even when variable interpolation yields control.
-  if (WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion) {
-    downloadRuntime.rememberPendingState(state);
-  }
-
-  // Firefox attaches Referer to a direct downloads.download request; both
-  // browsers use an exact DNR rule for extension-owned metadata/content.
-  const downloadHeaders = getDownloadHeaders(state);
-  const protectedFetchReferer = getFetchReferer(state);
-  state.info.contentFetchDisabled = Boolean(downloadHeaders && !protectedFetchReferer);
-  if (protectedFetchReferer) state.info.protectedFetchReferer = protectedFetchReferer;
-  else delete state.info.protectedFetchReferer;
-
-  await resolveDispositionFilename(state);
-  /* v8 ignore next -- The initial filename assignment above always populates this field. */
-  const resolvedFilename = state.info.filename ?? initialFilename;
-  state.info.filename = resolvedFilename;
-
-  const filenamePatterns = Array.isArray(options.filenamePatterns) ? options.filenamePatterns : [];
-  const usesMime = filenamePatterns.some((rule) =>
-    rule.some((clause) => clause.name === "mime" || clause.name === "contenttype"),
-  );
-  if (usesMime) state.info.mime = await resolveMime(state.info);
-  const usesResolvedFilename = filenamePatterns.some((rule) =>
-    rule.some((clause) => clause.name === "filename" || clause.name === "actualfileext"),
-  );
-  const usesActualFileExtension = filenamePatterns.some((rule) =>
-    rule.some((clause) => clause.name === "actualfileext"),
-  );
-  if (
-    options.appendMimeExtension !== false &&
-    usesActualFileExtension &&
-    !EXTENSION_REGEX.test(resolvedFilename)
-  ) {
-    const extension = mimeToExtension(await resolveMime(state.info));
-    if (extension) {
-      state.info.mimeExtension = extension;
-      state.scratch.mimeExtension = extension;
-    }
-  }
-
-  let routeMatches: string | null = state.scratch.routeTemplateRaw ?? null;
-  let fetchTemplate: string | null = state.scratch.fetchTemplateRaw ?? null;
-  if (routeMatches === null) {
-    const match = getRoutingMatch(state);
-    routeMatches = match?.destination ?? null;
-    fetchTemplate = match?.fetch ?? null;
-  }
-  if (routeMatches !== null && fetchTemplate !== null) {
-    const rewrittenUrl = await expandFetchUrl(fetchTemplate, state.info);
-    if (isHttpDownloadUrl(rewrittenUrl)) {
-      // Persist both raw templates: Chrome's late filename resolution must
-      // re-expand this rule's destination instead of re-matching, because a
-      // download that already started can no longer honor a URL rewrite.
-      state.scratch.routeTemplateRaw = routeMatches;
-      state.scratch.fetchTemplateRaw = fetchTemplate;
-      if (rewrittenUrl !== requireDownloadUrl(state)) {
-        await applyFetchRewrite(state, rewrittenUrl);
-        await resolveDispositionFilename(state);
-      }
-    } else {
-      // The rule still renames and routes; only the rewrite is dropped.
-      addDownloadLog(state, "fetch rewrite skipped: expanded address is not HTTP(S)", {
-        template: fetchTemplate,
-      });
-    }
-  }
-  // Click-to-save reuses the previous menu directory only as its unmatched
-  // fallback. A matched `into:` route is rooted at Downloads so an earlier
-  // folder choice cannot be prefixed onto every later dynamic route (#190).
-  if (
-    routeMatches &&
-    (state.info.context === DOWNLOAD_TYPES.CLICK || state.info.context === DOWNLOAD_TYPES.AUTO)
-  )
-    state.path = new Path(".");
-  state.path = await applyVariables(state.path, state.info);
-  if (routeMatches) {
-    state.routeIsFolder = /\/\s*$/.test(routeMatches);
-    state.route = await applyVariables(new Path(routeMatches), state.info);
-  }
-  const routeRequired =
-    !state.info.routingDisabled && (state.needRouteMatch || options.routeSkipUnmatched);
-  // Re-read the URL: a fetch: rewrite above may have retargeted it.
-  const downloadUrl = requireDownloadUrl(state);
-  const deferRouteRequirement =
-    routeRequired &&
-    WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion &&
-    isHttpDownloadUrl(downloadUrl) &&
-    usesResolvedFilename;
-  const persistAutomaticRoute =
-    typeof state.scratch.routeTemplateRaw === "string" &&
-    WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion &&
-    isHttpDownloadUrl(downloadUrl);
-  if (deferRouteRequirement || persistAutomaticRoute) state.scratch.deferredRouteRequirement = true;
-  if (routeRequired && !routeMatches && !deferRouteRequirement) {
-    downloadRuntime.forgetPendingState(state);
-    return null;
-  }
-
-  if (options.appendMimeExtension !== false) {
-    const tentative =
-      state.route && !state.routeIsFolder
-        ? state.route.finalize({ finalComponentIsFilename: true })
-        : // The fetch: rewrite may have replaced the resolved filename.
-          sanitizeFilename(
-            state.info.filename ?? resolvedFilename,
-            options.truncateLength,
-            true,
-            true,
-          );
-    if (tentative && !EXTENSION_REGEX.test(tentative)) {
-      const ext = mimeToExtension(await resolveMime(state.info));
-      if (ext) {
-        state.info.mimeExtension = ext;
-        state.scratch.mimeExtension = ext;
-      }
-    }
-  }
-
-  return createDownloadPlan(state);
-};
-
-export const createDownloadPlan = (state: DownloadPipelineState): DownloadPlan => {
-  const finalFullPath = finalizeFullPath(state);
-  state.scratch.hasExtension = finalFullPath && finalFullPath.match(EXTENSION_REGEX);
-  const noExtensionPrompt = options.promptIfNoExtension && !state.scratch.hasExtension;
-  const shiftHeldPrompt =
-    options.promptOnShift &&
-    state.info.modifiers &&
-    typeof state.info.modifiers.find((m) => m === "Shift") !== "undefined";
-  const noRuleMatchedPrompt = options.routeFailurePrompt && !state.route;
-  const prompt =
-    state.info.suppressPrompt === true
-      ? false
-      : state.info.forcePrompt === true ||
-        options.prompt ||
-        noExtensionPrompt ||
-        shiftHeldPrompt ||
-        noRuleMatchedPrompt;
-
-  const historyEntryId = ensureHistoryEntry(state, finalFullPath);
-
-  return { state, finalFullPath, prompt, historyEntryId };
 };
 
 export const acquireFetchedUrl = async (
@@ -916,17 +456,4 @@ export const renameAndDownload = async (
     }
   }
   return result;
-};
-
-// MV3 (Chrome): entry.background calls this synchronously at startup so the
-// onDeterminingFilename listener is attached before any download event fires.
-export const registerDownloadListener = () => {
-  BrowserDownloadRouting.route = (item) =>
-    routeBrowserDownload({ getRoutingMatches, finalizeFullPath }, item);
-  registerFilenameAndObjectUrlListeners({
-    ...downloadRuntime,
-    retryViaFetch,
-    getRoutingMatches,
-    finalizeFullPath,
-  });
 };

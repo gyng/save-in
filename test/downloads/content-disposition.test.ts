@@ -104,12 +104,12 @@ describe("vendored content-disposition parser", () => {
 });
 
 describe("Download.getFilenameFromContentDisposition with the real parser", () => {
-  let Download: typeof import("../../src/downloads/download.ts");
+  let Download: typeof import("../../src/downloads/download-disposition.ts");
 
   beforeAll(async () => {
     vi.resetModules();
     (global as any).chrome = {};
-    Download = await import("../../src/downloads/download.ts");
+    Download = await import("../../src/downloads/download-disposition.ts");
   });
 
   test("returns the decoded server-provided filename", () => {

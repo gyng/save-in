@@ -454,6 +454,94 @@ move with their code. Order by value and by how much other work each unblocks.
    (`executeBrowserDownload`, `renameAndDownload`). Note
    `test/downloads/download-plan.test.ts` and `download-execution.test.ts`
    already exist — the test boundary predicts the module boundary.
+
+   **Landed**, with the boundary adapted once the acyclic-import constraint
+   was applied literally: `download.ts` (932 lines) is now six files totaling
+   998 lines. `download-plan.ts` (228 lines) holds `resolveDownloadPlan`,
+   `createDownloadPlan`, `applyFetchRewrite`, and `getRoutingMatch`/
+   `getRoutingMatches`, exactly as scoped. `download-disposition.ts`
+   (104 lines) holds `DISPOSITION_FILENAME_REGEX`,
+   `getFilenameFromContentDisposition`, `resolveDispositionFilename`, and
+   `finalizeFullPath` — `finalizeFullPath` moved here rather than staying
+   with plan/execution because it is pure filename-finalization logic with no
+   dependency on routing, ports, or `downloadRuntime`, and both `download-plan.ts`
+   (`createDownloadPlan`) and `browser-downloads.ts`'s routing (via
+   `registerDownloadListener`) call it without needing anything else this
+   file owns; `makeObjectUrl` stayed in `download.ts` instead (see below).
+   `download-execution.ts` (459 lines, `git mv`'d from `download.ts` as the
+   largest share) holds `executeBrowserDownload` and `renameAndDownload` as
+   scoped, plus `acquireFetchedUrl`/`acquireDownloadUrl` and
+   `rememberStartedDownload`/`getStartedDownload`: the original plan listed
+   these under "`download.ts` keeps," but their only production callers are
+   `executeBrowserDownload`/`renameAndDownload` themselves, and `download.ts`
+   already has to import `renameAndDownload` back for `launchDownload` — so
+   leaving the acquisition/record helpers in `download.ts` would have made
+   `download.ts` and `download-execution.ts` import each other, which
+   `check-import-cycles.js` forbids. `download.ts` (75 lines) keeps
+   `launchDownload`, `retryViaFetch`, `makeObjectUrl` (its only state is
+   `downloadRuntime.generatedObjectUrls`, so it stays beside the runtime glue
+   rather than moving to execution), and `registerDownloadListener`,
+   importing `getRoutingMatches`/`finalizeFullPath`/`renameAndDownload` from
+   their new homes for that wiring.
+
+   Three more small files fell out of the same acyclic-graph requirement,
+   since `requireDownloadUrl`, `isSourceSidecar`, `isPrivateDownloadState`,
+   `addDownloadLog`, `isHttpDownloadUrl`, `throwIfAborted`,
+   `releaseUnusedContent`, and `ensureHistoryEntry`/`historyEntry` are each
+   called from two or more of `download.ts`/`download-plan.ts`/
+   `download-execution.ts` and none of those three may import another:
+   `download-pipeline-state.ts` (63 lines) holds the state guards and cleanup
+   helper; `history-entry.ts` (60 lines, matching the doc's suggested name)
+   holds the history-entry builder; `download-runtime-instance.ts` (9 lines)
+   holds the `downloadRuntime` singleton, mirroring the existing
+   `download-state.ts` (functions) vs. `download-state-instances.ts`
+   (singleton) split. All three are leaves with no `downloads/` peer
+   dependencies, so `download.ts`, `download-plan.ts`, and
+   `download-execution.ts` each import downward from them without importing
+   each other.
+
+   The only production importer that needed an updated path was
+   `background/route-preview.ts` (`getRoutingMatches` now from
+   `download-plan.ts`); every other external importer
+   (`background/ports.ts`, `background/e2e-command.ts`,
+   `background/menu-click.ts`, `background/menu-tabs.ts`,
+   `background/messaging/{auto-download,handlers}.ts`,
+   `downloads/shortcut.ts`, `downloads/source-sidecar.ts`,
+   `entries/background.ts`) imports `retryViaFetch`, `launchDownload`,
+   `makeObjectUrl`, or `registerDownloadListener`, all of which stayed in
+   `download.ts` unchanged. No barrel re-export was added to `download.ts`
+   for the moved symbols; test fixtures update their import paths instead,
+   per the no-barrel rule. The one deliberate exception is
+   `test/downloads/download-flow.fixture.ts`, which merges fresh imports of
+   `download-plan.ts`/`download-disposition.ts`/`download-execution.ts`/
+   `download-runtime-instance.ts`/`download.ts` into one plain `Download`
+   object — it backs five large test files
+   (`download-plan.test.ts`, `download-execution.test.ts`,
+   `download-flow.test.ts`, `download-retry.test.ts`,
+   `download-acquisition.test.ts`, plus `history-source-url.test.ts` and
+   `webhooks/download-webhook.test.ts`) that call `Download.<fn>` directly;
+   updating every call site to import from the right one of five files would
+   have been pure churn for the same coverage. `test/downloads/download-mv3.test.ts`
+   and the `download-execution.test.ts` "concurrent downloads" describe block
+   build the same kind of per-test merged object from fresh (`vi.resetModules()`)
+   imports for the same reason. Two test files were `git mv`'d to match the
+   symbols they actually exercise: `download.test.ts` →
+   `download-disposition.test.ts` (it only ever tested `finalizeFullPath` and
+   `getFilenameFromContentDisposition`), and `content-disposition.test.ts`'s
+   inner "real parser" describe block now imports `download-disposition.ts`
+   directly. `test/config/option.test.ts`'s `vi.mock` of `download.ts` (for
+   `getRoutingMatches`, consumed via `route-preview.ts`) was repointed at
+   `download-plan.ts`.
+
+   Verified with `npm run lint`, `npm run typecheck`, `npm test` (2923
+   passed), `npm run test:coverage` (99.97/99.9/99.96/99.99%, matching the
+   pre-existing baseline exactly — including the same three now-relocated
+   partially-covered branches in `download-plan.ts` and the unrelated
+   `shared/serial-queue.ts` gap), `npm run check:coverage-policy` (74
+   reviewed ignores, unchanged), and a full `npm run e2e` pass (Firefox
+   32/32; Chrome 49/49 on rerun — one run had an unrelated flaky timeout in
+   the template-library scenario, reproduced as a pass in isolation and on a
+   clean rerun of the full suite).
 6. **`downloads/notification.ts`:** extract `notification-events.ts` for the
    `onDownloadCreated` / `onDownloadChanged` / `onNotificationClicked`
    handlers, leaving creation/queueing and expected-download tracking in the

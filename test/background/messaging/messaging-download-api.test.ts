@@ -13,6 +13,7 @@ import {
 } from "./messaging.fixture.ts";
 import { parseRulesCollecting } from "../../../src/routing/rule-parser.ts";
 import { options } from "../../../src/config/options-data.ts";
+import * as DownloadDisposition from "../../../src/downloads/download-disposition.ts";
 
 beforeEach(() => setupGlobals());
 
@@ -162,7 +163,7 @@ describe("handleDownloadMessage", () => {
 
   test("defers sidecar preparation until after the accepted primary save completes", async () => {
     options.saveSourceSidecar = true;
-    const finalize = vi.spyOn(Download, "finalizeFullPath");
+    const finalize = vi.spyOn(DownloadDisposition, "finalizeFullPath");
     const sendResponse = vi.fn();
 
     expect(
