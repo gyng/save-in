@@ -18,8 +18,6 @@ const FIREFOX_CONTENT_DISPOSITION_COMPATIBILITY: ContentDispositionParseOptions 
   unescapeExtendedValueAgain: true,
 };
 
-export const DISPOSITION_FILENAME_REGEX = /filename[^;=\n]*=((['"])(.*)?\2|(.+'')?([^;\n]*))/i;
-
 export const getFilenameFromContentDisposition = (
   disposition: unknown,
   parseOptions: ContentDispositionParseOptions = {},
