@@ -674,6 +674,32 @@ export const runRoutingScenario = async ({ control, waitForDownloads, content })
 };
 
 /**
+ * Proves a rename: clause edits the final filename component of a real save:
+ * the into: template expands first, then the transform rewrites the matched
+ * text before the browser download starts.
+ *
+ * @param {{
+ *   control: ReturnType<typeof import("./control-client.mjs").createE2EControlClient>,
+ *   waitForDownloads: (filename: string) => Promise<DownloadSummary[]>,
+ *   content: string,
+ * }} adapters
+ */
+export const runRenameRoutingScenario = async ({ control, waitForDownloads, content }) => {
+  await control.options.set({
+    filenamePatterns:
+      "filename: renameme\nrename/g: renameme -> renamed\ninto: routed/save-:filename:",
+  });
+  await control.background.startDownload({
+    content,
+    suggestedFilename: "renameme.txt",
+    pageUrl: "https://example.com/",
+  });
+  const downloads = await waitForDownloads("save-renamed");
+  expect(downloads.map((entry) => entry.state)).toEqual(["complete"]);
+  return downloads;
+};
+
+/**
  * Replays the durable settings that matter most when a 3.7 profile first runs
  * version 4, then proves that an extensionless response still reaches its
  * configured folder with the MIME-derived extension.

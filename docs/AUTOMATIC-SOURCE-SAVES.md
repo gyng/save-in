@@ -44,6 +44,13 @@ rewrite applies to unattended saves the same way it applies to interactive
 ones; see [Integrations](INTEGRATIONS.md#config-messages) for the clause's
 syntax and error identifiers.
 
+A `rename:` clause (`find -> replacement`) also applies to unattended saves the
+same way it applies to interactive ones: after the filename fully resolves and
+before length limits, the matched rule's transform edits the final filename
+component without touching its folders. See
+[Integrations](INTEGRATIONS.md#config-messages) for the clause's syntax and
+error identifiers.
+
 ## Matching rules
 
 Automatic discovery supplies the synthetic routing context `AUTO`. The

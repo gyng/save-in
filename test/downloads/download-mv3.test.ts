@@ -1101,12 +1101,12 @@ describe("onDeterminingFilename listener (Chrome)", () => {
     // The persisted rename transform survives the recovery record round-trip
     // and is re-expanded before the final path settles.
     const finalized = vi.mocked(freshDownload.finalizeFullPath).mock.calls[0]![0]!;
-    expect(finalized.scratch.renameTemplate).toEqual({
+    expect(finalized.scratch?.renameTemplate).toEqual({
       find: "recovered",
       flags: "",
       replacement: "renamed",
     });
-    expect(finalized.scratch.renameResolved).toEqual({
+    expect(finalized.scratch?.renameResolved).toEqual({
       find: "recovered",
       flags: "",
       replacement: "renamed",
