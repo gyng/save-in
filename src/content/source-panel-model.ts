@@ -103,22 +103,23 @@ export const urlsFromSrcset = (input: string): string[] =>
   candidatesFromSrcset(input).map(({ url }) => url);
 
 export const mergePageSourcesByUrl = (sources: PageSource[]): PageSource[] => {
-  const merged = new Map<string, PageSource>();
   // Source records are reused by the live collector and captured by cached row
   // controls. Rebuild their derived origin list on every commit so those
   // controls keep a live record without retaining removed duplicate elements.
-  sources.forEach(
-    (source) =>
-      (source.originElements = source.channel === "resource-hint" ? [] : [source.element]),
+  const normalizedSources = sources.map((source) =>
+    Object.assign(source, {
+      originElements: source.channel === "resource-hint" ? [] : [source.element],
+    }),
   );
-  sources.forEach((source) => {
+  const merged = new Map<string, PageSource & { originElements: Element[] }>();
+  normalizedSources.forEach((source) => {
     const existing = merged.get(source.url);
     if (!existing) {
       merged.set(source.url, source);
       return;
     }
-    const origins = existing.originElements ?? [existing.element];
-    for (const element of source.originElements ?? [source.element]) {
+    const origins = existing.originElements;
+    for (const element of source.originElements) {
       if (!origins.includes(element)) origins.push(element);
     }
     existing.originElements = origins;

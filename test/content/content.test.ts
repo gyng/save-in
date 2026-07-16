@@ -1408,6 +1408,44 @@ describe("content.js initialisation", () => {
     ).toHaveLength(3);
   });
 
+  test("Page Sources saves the selected element's CSS routing proof", async () => {
+    let runtimeListener: ((message: any) => void) | undefined;
+    vi.resetModules();
+    document.getElementById("save-in-source-panel")?.remove();
+    global.chrome.runtime.sendMessage = vi.fn((_message, callback) => callback?.()) as any;
+    global.chrome.runtime.onMessage.addListener = vi.fn((listener) => {
+      runtimeListener = listener;
+    });
+    global.chrome.storage.local.get = vi.fn((_keys, callback) =>
+      callback({
+        sourcePanelEnabled: true,
+        sourcePanelBackgrounds: false,
+        sourcePanelLive: false,
+        filenamePatterns: "css: article img\ninto: articles/",
+      }),
+    ) as any;
+    (global.chrome.storage as any).onChanged = { addListener: vi.fn() };
+    document.body.innerHTML = `<article><img src="cat.jpg"></article>`;
+    await import("../../src/content/content.ts");
+    runtimeListener!({ type: "SET_SOURCE_PANEL", body: { open: true } });
+    vi.mocked(global.chrome.runtime.sendMessage).mockClear();
+
+    document
+      .getElementById("save-in-source-panel")!
+      .shadowRoot!.querySelector<HTMLButtonElement>(".primary-action")!
+      .click();
+
+    expect(global.chrome.runtime.sendMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: "DOWNLOAD",
+        body: expect.objectContaining({
+          info: expect.objectContaining({ matchedCssSelectorsByOrigin: [["article img"]] }),
+        }),
+      }),
+      expect.any(Function),
+    );
+  });
+
   test("waits for a complete snapshot before announcing a concurrently enabled panel", async () => {
     vi.resetModules();
     let storageCallback: ((stored: Record<string, unknown>) => void) | undefined;

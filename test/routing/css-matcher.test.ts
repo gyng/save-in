@@ -1,5 +1,24 @@
 import { evaluateRule } from "../../src/routing/rule-matcher.ts";
 import { parseRulesCollecting } from "../../src/routing/rule-parser.ts";
+import { RULE_TYPES } from "../../src/shared/constants.ts";
+
+test("the legacy CSS matcher function follows attested selector groups", () => {
+  const parsed = parseRulesCollecting("css: article img\ninto: articles/");
+  const clause = parsed.rules[0]?.[0];
+  expect(clause).toMatchObject({ type: RULE_TYPES.MATCHER, name: "css" });
+  if (!clause || clause.type !== RULE_TYPES.MATCHER || clause.name !== "css") return;
+
+  expect(clause.matcher({ matchedCssSelectorsByOrigin: [["article img"]] })).not.toBeNull();
+  expect(clause.matcher({ matchedCssSelectorsByOrigin: [["aside img"]] })).toBeNull();
+  expect(clause.matcher({})).toBeNull();
+});
+
+test("rejects empty and overlong CSS selectors at the grammar boundary", () => {
+  expect(parseRulesCollecting("css:\ninto: empty/").rules).toEqual([]);
+  expect(parseRulesCollecting(`css: .${"x".repeat(512)}\ninto: too-long/`).errors).toEqual(
+    expect.arrayContaining([expect.objectContaining({ error: expect.any(String) })]),
+  );
+});
 
 test("CSS trace attempts expose individual origins without weakening same-origin AND", () => {
   const parsed = parseRulesCollecting("css: article img\ncss: img:not(.avatar)\ninto: articles/");

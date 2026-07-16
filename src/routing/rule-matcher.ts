@@ -6,7 +6,6 @@ import type {
   MatcherAttempt,
   MatcherClause,
   MatcherResult,
-  CssMatcherClause,
   RenameClause,
   RoutingInfo,
   RoutingRule,
@@ -67,46 +66,37 @@ const evaluateMatcherClauses = (rule: RoutingRule, info: RoutingInfo): Evaluated
     info,
   );
 
-const evaluateCssClauses = (
-  clauses: CssMatcherClause[],
-  info: RoutingInfo,
-): EvaluatedMatcherClause[] => {
-  const groups = info.matchedCssSelectorsByOrigin;
-  if (!groups) {
-    return clauses.map((clause) => ({
-      clause,
-      result: null,
-      attempts: [{ source: "pageElement", value: null, status: "missing" }],
-    }));
-  }
-  const matchingGroup = groups.find((group) => clauses.every(({ value }) => group.includes(value)));
-  return clauses.map((clause) => ({
-    clause,
-    result: matchingGroup ? /^([\s\S]*)$/.exec(clause.value) : null,
-    attempts: groups.length
-      ? groups.map((group, index) => ({
-          source: `pageElement[${index}]`,
-          value: clause.value,
-          status: group.includes(clause.value) ? "matched" : "not-matched",
-          ...(group.includes(clause.value) ? { matchedText: clause.value, captures: [] } : {}),
-        }))
-      : [{ source: "pageElement", value: null, status: "missing" }],
-  }));
-};
-
 const evaluateMatchersWithCssOrigins = (
   clauses: MatcherClause[],
   info: RoutingInfo,
 ): EvaluatedMatcherClause[] => {
   const cssClauses = clauses.filter(isCssMatcherClause);
-  const cssEvaluations = new Map(
-    evaluateCssClauses(cssClauses, info).map((evaluation) => [evaluation.clause, evaluation]),
+  const groups = info.matchedCssSelectorsByOrigin;
+  const matchingGroup = groups?.find((group) =>
+    cssClauses.every(({ value }) => group.includes(value)),
   );
-  return clauses.map((clause) =>
-    isCssMatcherClause(clause)
-      ? (cssEvaluations.get(clause) ?? evaluateMatcherClause(clause, info))
-      : evaluateMatcherClause(clause, info),
-  );
+  return clauses.map((clause) => {
+    if (!isCssMatcherClause(clause)) return evaluateMatcherClause(clause, info);
+    if (!groups) {
+      return {
+        clause,
+        result: null,
+        attempts: [{ source: "pageElement", value: null, status: "missing" }],
+      };
+    }
+    return {
+      clause,
+      result: matchingGroup ? /^([\s\S]*)$/.exec(clause.value) : null,
+      attempts: groups.length
+        ? groups.map((group, index) => ({
+            source: `pageElement[${index}]`,
+            value: clause.value,
+            status: group.includes(clause.value) ? "matched" : "not-matched",
+            ...(group.includes(clause.value) ? { matchedText: clause.value, captures: [] } : {}),
+          }))
+        : [{ source: "pageElement", value: null, status: "missing" }],
+    };
+  });
 };
 
 const getCaptureMatcherResults = (

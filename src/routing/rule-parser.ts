@@ -11,7 +11,7 @@ import type {
   RuleErrorLocation,
   RoutingRule,
 } from "./rule-types.ts";
-import { isCssMatcherClause, isRegexMatcherClause } from "./rule-types.ts";
+import { isRegexMatcherClause } from "./rule-types.ts";
 import {
   MAX_CSS_SELECTOR_LENGTH,
   MAX_CSS_SELECTOR_MATCHES,
@@ -206,7 +206,8 @@ const parseSemanticRule = (
           errors,
           routingPorts.getMessage("ruleCssFlags"),
           `css/${flags}:`,
-          line.flagsSpan ?? line.nameSpan,
+          // The syntax parser creates the span together with non-empty flags.
+          line.flagsSpan as SourceSpan,
         );
         return false;
       }
@@ -447,14 +448,6 @@ const parseSemanticRule = (
       /* v8 ignore next -- matcherCandidates is mapped one-for-one from names. */
       const candidates = matcherCandidates[index] ?? [];
       if (!capturedMatchers[index] || (capture.name === "capturegroups" && candidates.length > 1)) {
-        appendError(
-          errors,
-          routingPorts.getMessage("ruleCaptureMissingMatcher"),
-          `${capture.name}: ${name}`,
-          captureNode.valueSpan,
-        );
-        missing = true;
-      } else if (candidates.some(isCssMatcherClause)) {
         appendError(
           errors,
           routingPorts.getMessage("ruleCaptureMissingMatcher"),

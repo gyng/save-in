@@ -157,6 +157,11 @@ describe("content CSS routing", () => {
   test("bounds selector attestations and drops duplicate origin groups", () => {
     expect(matchedCssSelectorsByOrigin([document.body], [])).toEqual([]);
 
+    const ruleWithoutCss = parseRulesCollecting("context: ^link$\ninto: ordinary/").rules;
+    expect(ruleWithoutCss).toHaveLength(1);
+    expect(matchedCssSelectorsByOrigin([document.body], ruleWithoutCss)).toEqual([]);
+    expect(matchedCssSelectorsByOrigin([document.body], rulesWithCss("img"))).toEqual([]);
+
     const duplicateA = document.createElement("img");
     const duplicateB = document.createElement("img");
     expect(matchedCssSelectorsByOrigin([duplicateA, duplicateB], rulesWithCss("img"))).toEqual([
@@ -183,5 +188,22 @@ describe("content CSS routing", () => {
       selectors.map((selector, index) => `css: ${selector}\ninto: ${index}/`).join("\n\n"),
     ).rules;
     expect(matchedCssSelectorsByOrigin(origins, rules)).toHaveLength(33);
+  });
+
+  test("stops before matcher groups can exceed either attestation limit", () => {
+    const element = document.createElement("div");
+    const singletonRules = Array.from({ length: 257 }, (_value, index) => {
+      const selector = `.single-${index}`;
+      element.classList.add(selector.slice(1));
+      return rulesWithCss(selector)[0]!;
+    });
+    expect(matchedCssSelectorsByOrigin([element], singletonRules)).toHaveLength(256);
+
+    const initialRules = singletonRules.slice(0, 193);
+    const finalSelectors = Array.from({ length: 64 }, (_value, index) => `.final-${index}`);
+    for (const selector of finalSelectors) element.classList.add(selector.slice(1));
+    const finalRule = rulesWithCss(...finalSelectors)[0]!;
+
+    expect(matchedCssSelectorsByOrigin([element], [...initialRules, finalRule])).toHaveLength(193);
   });
 });
