@@ -3848,6 +3848,18 @@
   "ruleTemplatePixivOriginalDescription": {
     "message": "Skriver om en förhandsgranskningsbild från Pixiv till originalfilen i full upplösning (kräver att Referer-alternativet är aktiverat för i.pximg.net)"
   },
+  "ruleTemplateBlueskyFullsizeName": {
+    "message": "Bluesky-bild i full storlek"
+  },
+  "ruleTemplateBlueskyFullsizeDescription": {
+    "message": "Skriver om en miniatyrbild i Bluesky-flödet till versionen i full storlek"
+  },
+  "ruleTemplateArtStationHighestName": {
+    "message": "ArtStation-bild i högsta tillgängliga kvalitet"
+  },
+  "ruleTemplateArtStationHighestDescription": {
+    "message": "Skriver om en förhandsgranskningsbild från ArtStation till den högsta tillgängliga versionen"
+  },
   "ruleTemplateGoogleOriginalName": {
     "message": "Google-bild i originalstorlek"
   },

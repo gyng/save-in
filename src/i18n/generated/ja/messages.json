@@ -3848,6 +3848,18 @@
   "ruleTemplatePixivOriginalDescription": {
     "message": "Pixivのプレビュー画像をフル解像度のオリジナルファイルに書き換えます（i.pximg.net に対して Referer オプションを有効にする必要があります）"
   },
+  "ruleTemplateBlueskyFullsizeName": {
+    "message": "Bluesky のフルサイズ画像"
+  },
+  "ruleTemplateBlueskyFullsizeDescription": {
+    "message": "Bluesky のフィードサムネイルをフルサイズ版に書き換えます"
+  },
+  "ruleTemplateArtStationHighestName": {
+    "message": "ArtStation の利用可能な最高画質の画像"
+  },
+  "ruleTemplateArtStationHighestDescription": {
+    "message": "ArtStation のプレビュー画像を利用可能な最高画質版に書き換えます"
+  },
   "ruleTemplateGoogleOriginalName": {
     "message": "Google 画像を元のサイズに"
   },

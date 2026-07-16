@@ -3848,6 +3848,18 @@
   "ruleTemplatePixivOriginalDescription": {
     "message": "Reescribe una imagen de vista previa de Pixiv al archivo original en máxima resolución (requiere la opción Referer activada para i.pximg.net)"
   },
+  "ruleTemplateBlueskyFullsizeName": {
+    "message": "Imagen de Bluesky a tamaño completo"
+  },
+  "ruleTemplateBlueskyFullsizeDescription": {
+    "message": "Reescribe una miniatura del feed de Bluesky a su versión de tamaño completo"
+  },
+  "ruleTemplateArtStationHighestName": {
+    "message": "Imagen de ArtStation con la máxima calidad disponible"
+  },
+  "ruleTemplateArtStationHighestDescription": {
+    "message": "Reescribe una imagen de vista previa de ArtStation a la versión de máxima calidad disponible"
+  },
   "ruleTemplateGoogleOriginalName": {
     "message": "Imagen de Google en tamaño original"
   },

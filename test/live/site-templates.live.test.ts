@@ -26,6 +26,10 @@ type LiveSample = {
   // master1200 can outweigh a sub-1200px original even though the original is
   // full resolution).
   checkSize?: boolean;
+  // Compare decoded JPEG dimensions as well as bytes. This matters for CDNs
+  // such as ArtStation, where the same-size 4k rendition may use fewer bytes
+  // than `large` because it is encoded differently.
+  checkDimensions?: boolean;
 };
 
 // Pixiv serves i.pximg.net only when the request carries a pixiv.net Referer;
@@ -79,6 +83,26 @@ const SAMPLES: Record<string, LiveSample> = {
     env: "LIVE_PIXIV_URL",
     checkSize: false,
   },
+  "Bluesky full-size image": {
+    // Public sample used in Bluesky API examples. The fullsize endpoint is an
+    // official App View rendition and may not be the exact uploaded blob.
+    before:
+      process.env.LIVE_BLUESKY_URL ??
+      "https://cdn.bsky.app/img/feed_thumbnail/plain/did:plc:xbtmt2zjwlrfegqvch7fboei/bafkreiae4rcokecag5qlpvg6l3otzulqn3hllnazmz2ezyqfl6xzpy5noe@jpeg",
+    env: "LIVE_BLUESKY_URL",
+    checkDimensions: true,
+  },
+  "ArtStation highest available image": {
+    // Public portfolio asset: the large rendition is 1920x1080 and the 4k
+    // endpoint is 3840x2160. ArtStation may return the same dimensions for
+    // uploads that are already below its larger tier.
+    before:
+      process.env.LIVE_ARTSTATION_URL ??
+      "https://cdnb.artstation.com/p/assets/images/images/064/942/263/large/sketchy-pigeon-lorenz-beernaert-bccfinalpsd.jpg",
+    env: "LIVE_ARTSTATION_URL",
+    checkSize: false,
+    checkDimensions: true,
+  },
   "Google original-size image": {
     // A YouTube channel avatar on yt3.googleusercontent.com; =s0 returns the
     // original. Channels rarely change avatars, but a token rotation just
@@ -110,7 +134,40 @@ const SAMPLES: Record<string, LiveSample> = {
 
 const FETCH_TIMEOUT_MS = 15_000;
 
-type Probe = { ok: boolean; status: number; contentType: string; bytes: number };
+type Probe = {
+  ok: boolean;
+  status: number;
+  contentType: string;
+  bytes: number;
+  width?: number;
+  height?: number;
+};
+
+const jpegDimensions = (body: ArrayBuffer): { width: number; height: number } | undefined => {
+  const bytes = new Uint8Array(body);
+  if (bytes[0] !== 0xff || bytes[1] !== 0xd8) return undefined;
+  const view = new DataView(body);
+  const startOfFrame = new Set([
+    0xc0, 0xc1, 0xc2, 0xc3, 0xc5, 0xc6, 0xc7, 0xc9, 0xca, 0xcb, 0xcd, 0xce, 0xcf,
+  ]);
+  let offset = 2;
+  while (offset + 8 < bytes.length) {
+    if (bytes[offset] !== 0xff) {
+      offset += 1;
+      continue;
+    }
+    while (bytes[offset] === 0xff) offset += 1;
+    const marker = bytes[offset];
+    if (marker === undefined || marker === 0xd9 || marker === 0xda) return undefined;
+    if (startOfFrame.has(marker)) {
+      return { height: view.getUint16(offset + 4), width: view.getUint16(offset + 6) };
+    }
+    const length = view.getUint16(offset + 1);
+    if (length < 2) return undefined;
+    offset += length + 1;
+  }
+  return undefined;
+};
 
 const probe = async (url: string): Promise<Probe> => {
   const response = await fetch(url, {
@@ -119,11 +176,13 @@ const probe = async (url: string): Promise<Probe> => {
     signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
   });
   const body = await response.arrayBuffer();
+  const dimensions = jpegDimensions(body);
   return {
     ok: response.ok,
     status: response.status,
     contentType: response.headers.get("content-type") ?? "",
     bytes: body.byteLength,
+    ...dimensions,
   };
 };
 
@@ -180,12 +239,22 @@ describe("Site originals — live CDN rewrites", () => {
           `rewritten (${afterProbe.bytes}B) should be >= source (${beforeProbe.bytes}B)`,
         ).toBeGreaterThanOrEqual(beforeProbe.bytes);
       }
+      if (beforeProbe?.ok && sample?.checkDimensions) {
+        expect(beforeProbe.width, `source ${before} JPEG width`).toBeTypeOf("number");
+        expect(beforeProbe.height, `source ${before} JPEG height`).toBeTypeOf("number");
+        expect(afterProbe.width, `rewritten ${after} JPEG width`).toBeGreaterThanOrEqual(
+          beforeProbe.width ?? Infinity,
+        );
+        expect(afterProbe.height, `rewritten ${after} JPEG height`).toBeGreaterThanOrEqual(
+          beforeProbe.height ?? Infinity,
+        );
+      }
 
       // Visible evidence in the run log (this suite's whole point is the
       // real network result, so the log is deliberate).
       // eslint-disable-next-line no-console
       console.log(
-        `[live] ${template.name}\n        ${before} (${beforeProbe?.bytes ?? "?"}B)\n     -> ${after} (${afterProbe.bytes}B, ${afterProbe.contentType})`,
+        `[live] ${template.name}\n        ${before} (${beforeProbe?.bytes ?? "?"}B, ${beforeProbe?.width ?? "?"}x${beforeProbe?.height ?? "?"})\n     -> ${after} (${afterProbe.bytes}B, ${afterProbe.width ?? "?"}x${afterProbe.height ?? "?"}, ${afterProbe.contentType})`,
       );
     },
     30_000,

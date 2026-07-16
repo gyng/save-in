@@ -3848,6 +3848,18 @@
   "ruleTemplatePixivOriginalDescription": {
     "message": "Pixiv 미리보기 이미지를 전체 해상도 원본 파일로 재작성합니다 (i.pximg.net에 대해 Referer 옵션을 켜야 합니다)"
   },
+  "ruleTemplateBlueskyFullsizeName": {
+    "message": "Bluesky 전체 크기 이미지"
+  },
+  "ruleTemplateBlueskyFullsizeDescription": {
+    "message": "Bluesky 피드 썸네일을 전체 크기 버전으로 재작성합니다"
+  },
+  "ruleTemplateArtStationHighestName": {
+    "message": "ArtStation 최고 가용 화질 이미지"
+  },
+  "ruleTemplateArtStationHighestDescription": {
+    "message": "ArtStation 미리보기 이미지를 사용 가능한 최고 화질 버전으로 재작성합니다"
+  },
   "ruleTemplateGoogleOriginalName": {
     "message": "Google 원본 크기 이미지"
   },

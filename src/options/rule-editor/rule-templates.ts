@@ -460,6 +460,44 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
   },
   {
     category: "Site originals",
+    name: "Bluesky full-size image",
+    description: "Rewrites a Bluesky feed thumbnail to its full-size rendition",
+    example: "Example: bluesky/bafkreiexample.jpeg",
+    // Bluesky's public schema names this rendition `fullsize`, but explicitly
+    // says it may not be the exact original blob. Preserve the complete CDN
+    // tail because it carries the DID, content ID, and optional format hint.
+    rule: "sourceurl: ^https://cdn\\.bsky\\.app/img/feed_thumbnail/([^?#]+)(?:[?#]|$)\ncapturegroups: sourceurl\nfetch: https://cdn.bsky.app/img/feed_fullsize/:$1:\ninto: bluesky/:filename:",
+    proof: {
+      info: {
+        sourceUrl:
+          "https://cdn.bsky.app/img/feed_thumbnail/plain/did:plc:example/bafkreiexample@jpeg",
+        filename: "bafkreiexample.jpeg",
+      },
+      destination: "bluesky/:filename:",
+      fetch: "https://cdn.bsky.app/img/feed_fullsize/plain/did:plc:example/bafkreiexample@jpeg",
+    },
+  },
+  {
+    category: "Site originals",
+    name: "ArtStation highest available image",
+    description: "Rewrites an ArtStation preview image to its highest available rendition",
+    example: "Example: artstation/sketchy-pigeon-lorenz-beernaert-bccfinalpsd.jpg",
+    // ArtStation serves the 4k path even when the upload is smaller, in which
+    // case it keeps the available dimensions. Do not rewrite `original` assets
+    // such as animated GIFs or claim that the 4k rendition is the upload.
+    rule: "sourceurl: ^https://(cdn[ab]\\.artstation\\.com)/(p/assets/images/images/\\d+/\\d+/\\d+)/(?:small|medium|large)/([^?#]+)(?:[?#]|$)\ncapturegroups: sourceurl\nfetch: https://:$1:/:$2:/4k/:$3:\ninto: artstation/:$3:",
+    proof: {
+      info: {
+        sourceUrl:
+          "https://cdnb.artstation.com/p/assets/images/images/064/942/263/large/sketchy-pigeon-lorenz-beernaert-bccfinalpsd.jpg?1688506847",
+      },
+      destination: "artstation/sketchy-pigeon-lorenz-beernaert-bccfinalpsd.jpg",
+      fetch:
+        "https://cdnb.artstation.com/p/assets/images/images/064/942/263/4k/sketchy-pigeon-lorenz-beernaert-bccfinalpsd.jpg",
+    },
+  },
+  {
+    category: "Site originals",
     name: "Google original-size image",
     description: "Rewrites a Google-hosted preview image to its full original size",
     example: "Example: google/AbCd_1234",
@@ -907,6 +945,25 @@ export const localizeRuleTemplates = (getMessage: GetMessage): LocalizedRuleTemp
         description:
           getMessage("ruleTemplatePixivOriginalDescription") ||
           "Rewrites a Pixiv preview image to the full-resolution original file (needs the Referer option on for i.pximg.net)",
+      },
+    ],
+    [
+      "Bluesky full-size image",
+      {
+        name: getMessage("ruleTemplateBlueskyFullsizeName") || "Bluesky full-size image",
+        description:
+          getMessage("ruleTemplateBlueskyFullsizeDescription") ||
+          "Rewrites a Bluesky feed thumbnail to its full-size rendition",
+      },
+    ],
+    [
+      "ArtStation highest available image",
+      {
+        name:
+          getMessage("ruleTemplateArtStationHighestName") || "ArtStation highest available image",
+        description:
+          getMessage("ruleTemplateArtStationHighestDescription") ||
+          "Rewrites an ArtStation preview image to its highest available rendition",
       },
     ],
     [

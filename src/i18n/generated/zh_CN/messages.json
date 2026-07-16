@@ -3848,6 +3848,18 @@
   "ruleTemplatePixivOriginalDescription": {
     "message": "将 Pixiv 预览图片改写为全分辨率原始文件（需要为 i.pximg.net 启用 Referer 选项）"
   },
+  "ruleTemplateBlueskyFullsizeName": {
+    "message": "Bluesky 完整尺寸图片"
+  },
+  "ruleTemplateBlueskyFullsizeDescription": {
+    "message": "将 Bluesky 动态缩略图改写为完整尺寸版本"
+  },
+  "ruleTemplateArtStationHighestName": {
+    "message": "ArtStation 最高可用画质图片"
+  },
+  "ruleTemplateArtStationHighestDescription": {
+    "message": "将 ArtStation 预览图片改写为最高可用画质版本"
+  },
   "ruleTemplateGoogleOriginalName": {
     "message": "Google 原始尺寸图片"
   },

@@ -287,6 +287,54 @@ describe("built-in matcher templates", () => {
     expect(matchRules(rules, { ...source, sourceKind: "link", mediaType: "image" })).toBeNull();
   });
 
+  test("the Bluesky template rewrites only feed thumbnails", () => {
+    const rules = rulesFor("Bluesky full-size image");
+    const tail = "plain/did:plc:example/bafkreiexample@jpeg";
+
+    expect(
+      matchRulesDetailed(rules, {
+        sourceUrl: `https://cdn.bsky.app/img/feed_thumbnail/${tail}`,
+        filename: "bafkreiexample.jpeg",
+      }),
+    ).toMatchObject({
+      destination: "bluesky/:filename:",
+      fetch: `https://cdn.bsky.app/img/feed_fullsize/${tail}`,
+    });
+    expect(
+      matchRules(rules, {
+        sourceUrl: `https://cdn.bsky.app/img/feed_fullsize/${tail}`,
+        filename: "bafkreiexample.jpeg",
+      }),
+    ).toBeNull();
+  });
+
+  test("the ArtStation template rewrites preview tiers but leaves 4K and original assets alone", () => {
+    const rules = rulesFor("ArtStation highest available image");
+    const asset =
+      "p/assets/images/images/064/942/263/large/sketchy-pigeon-lorenz-beernaert-bccfinalpsd.jpg";
+
+    for (const tier of ["small", "medium", "large"]) {
+      expect(
+        matchRulesDetailed(rules, {
+          sourceUrl: `https://cdnb.artstation.com/${asset.replace("/large/", `/${tier}/`)}?1688506847`,
+          filename: "sketchy-pigeon-lorenz-beernaert-bccfinalpsd.jpg",
+        }),
+      ).toMatchObject({
+        destination: "artstation/sketchy-pigeon-lorenz-beernaert-bccfinalpsd.jpg",
+        fetch:
+          "https://cdnb.artstation.com/p/assets/images/images/064/942/263/4k/sketchy-pigeon-lorenz-beernaert-bccfinalpsd.jpg",
+      });
+    }
+    for (const tier of ["4k", "original"]) {
+      expect(
+        matchRules(rules, {
+          sourceUrl: `https://cdnb.artstation.com/${asset.replace("/large/", `/${tier}/`)}`,
+          filename: "sketchy-pigeon-lorenz-beernaert-bccfinalpsd.jpg",
+        }),
+      ).toBeNull();
+    }
+  });
+
   test("actual extension matching can use a resolved preview filename", () => {
     expect(
       matchRules(rulesFor("PDFs into a documents folder"), {

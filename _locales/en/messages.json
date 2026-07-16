@@ -2635,6 +2635,22 @@
     "message": "Rewrites a Pixiv preview image to the full-resolution original file (needs the Referer option on for i.pximg.net)",
     "description": "Description on a built-in routing-template card. Assumes a JPEG original. \"Referer\" is the deliberately misspelled HTTP header name; keep it as-is. \"Pixiv\" is a website name; keep it as-is. Used in src/options/rule-templates.ts."
   },
+  "ruleTemplateBlueskyFullsizeName": {
+    "message": "Bluesky full-size image",
+    "description": "Title of a built-in routing-template card. \"Bluesky\" is the proper name of a social network; keep it as-is. Full-size means the network's larger rendition, which may not be the exact uploaded file. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateBlueskyFullsizeDescription": {
+    "message": "Rewrites a Bluesky feed thumbnail to its full-size rendition",
+    "description": "Description on a built-in routing-template card. \"Bluesky\" is the proper name of a social network; keep it as-is. Full-size means the network's larger rendition, which may not be the exact uploaded file. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateArtStationHighestName": {
+    "message": "ArtStation highest available image",
+    "description": "Title of a built-in routing-template card. \"ArtStation\" is the proper name of an art-hosting website; keep it as-is. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateArtStationHighestDescription": {
+    "message": "Rewrites an ArtStation preview image to its highest available rendition",
+    "description": "Description on a built-in routing-template card. Highest available rendition means the site's 4K image endpoint, which may keep the preview dimensions for smaller uploads and is not necessarily the exact uploaded file. \"ArtStation\" is a website name; keep it as-is. Used in src/options/rule-templates.ts."
+  },
   "ruleTemplateGoogleOriginalName": {
     "message": "Google original-size image",
     "description": "Title of a built-in routing-template card. Covers Google-hosted image CDNs (googleusercontent, ggpht) used by Google Photos, Blogger, and profile avatars. \"Google\" is a product name; keep it as-is. Used in src/options/rule-templates.ts."
