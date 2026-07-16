@@ -69,6 +69,7 @@ export const createBrowserDownloadState = (item: BrowserDownloadItem): DownloadP
       ...(mime ? { mime } : {}),
       ...(item.referrer ? { referrerUrl: item.referrer } : {}),
       filename,
+      resolvedFilename: filename,
       naiveFilename: filename,
       suggestedFilename: filename,
       initialFilename: filename,

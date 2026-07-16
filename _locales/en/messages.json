@@ -667,6 +667,10 @@
     "message": "Path part of the source URL (separators are sanitized)",
     "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
+  "html_selectedMenuDirectoryPath": {
+    "message": "Folder path chosen from the Save In menu",
+    "description": "Description of the :menupath: variable in the filename-variable reference. Used in src/options/options.html."
+  },
   "html_sourceHostnameWithoutSubdomains": {
     "message": "Source hostname without subdomains",
     "description": "Text in the filename-variable reference. Used in src/options/options.html."
@@ -836,8 +840,12 @@
     "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_matchesTheFinalFilename": {
-    "message": "Matches the final filename.",
-    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
+    "message": "Matches the browser-resolved filename after Content-Disposition.",
+    "description": "Description of the finalfilename routing matcher. It runs when the browser-provided name is available, after server Content-Disposition naming. Used in src/options/clauselist.html and src/options/options.html."
+  },
+  "html_matchesTheResolvedFilenameBeforeBrowserNaming": {
+    "message": "Matches Save In's resolved filename before final browser naming.",
+    "description": "Description of the filename routing matcher, distinguished from finalfilename. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_linkTextMatcherDescription": {
     "message": "Matches link text when the browser provides it; tab saves use the tab title.",

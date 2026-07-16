@@ -1524,7 +1524,13 @@
     "message": "符合目前頁面 URL。"
   },
   "html_matchesTheFinalFilename": {
-    "message": "比對最終檔名。"
+    "message": "比對瀏覽器處理 Content-Disposition 後決定的檔名。"
+  },
+  "html_matchesTheResolvedFilenameBeforeBrowserNaming": {
+    "message": "比對 Save In 在瀏覽器最終命名前解析的檔名。"
+  },
+  "html_selectedMenuDirectoryPath": {
+    "message": "從 Save In 選單中選取的資料夾路徑"
   },
   "html_linkTextMatcherDescription": {
     "message": "比對瀏覽器提供的連結文字；儲存分頁時使用分頁標題。"

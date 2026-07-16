@@ -13,6 +13,7 @@ import { downloadPorts } from "./ports.ts";
 import {
   isOrdinaryBrowserDownload,
   matchesBrowserDownloadFilter,
+  proposedFilename,
   routeBrowserDownload,
 } from "./browser-downloads.ts";
 import type { DownloadRuntimeState } from "./download-runtime-state.ts";
@@ -328,6 +329,9 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
 
         if (recovery && deferredUrl) {
           const recoveredState = restoreDeferredRoute(recovery);
+          recoveredState.info.resolvedFilename = downloadItem.filename
+            ? proposedFilename(downloadItem.filename)
+            : undefined;
           recoveredState.info.filename =
             downloadItem.filename ||
             recoveredState.info.suggestedFilename ||
@@ -427,6 +431,9 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
 
     pendingState.info = pendingState.info || {};
     const previousFilename = pendingState.info.filename;
+    pendingState.info.resolvedFilename = downloadItem.filename
+      ? proposedFilename(downloadItem.filename)
+      : undefined;
     pendingState.info.filename = pendingState.scratch?.browserFilenameResolution
       ? downloadItem.filename || pendingState.info.suggestedFilename || pendingState.info.filename
       : pendingState.info.suggestedFilename || downloadItem.filename || pendingState.info.filename;
@@ -434,8 +441,15 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
     const pathTemplateRaw = pendingState.scratch?.pathTemplateRaw;
     const routeTemplateRaw = pendingState.scratch?.routeTemplateRaw;
     const filenameChanged = pendingState.info.filename !== previousFilename;
+    const usesFinalFilename = Array.isArray(options.filenamePatterns)
+      ? options.filenamePatterns.some((rule) =>
+          Array.isArray(rule) ? rule.some((clause) => clause.name === "finalfilename") : false,
+        )
+      : false;
     const needsActualFilenameResolution =
-      (filenameChanged || pendingState.scratch?.deferredRouteRequirement === true) &&
+      (filenameChanged ||
+        usesFinalFilename ||
+        pendingState.scratch?.deferredRouteRequirement === true) &&
       ((Array.isArray(options.filenamePatterns) && options.filenamePatterns.length > 0) ||
         (typeof pathTemplateRaw === "string" && /:(?:filename|fileext):/.test(pathTemplateRaw)) ||
         (typeof routeTemplateRaw === "string" && /:(?:filename|fileext):/.test(routeTemplateRaw)));

@@ -1934,7 +1934,13 @@
     "message": "Corresponde ao URL da página atual."
   },
   "html_matchesTheFinalFilename": {
-    "message": "Corresponde ao nome do arquivo final."
+    "message": "Corresponde ao nome de arquivo definido pelo navegador após Content-Disposition."
+  },
+  "html_matchesTheResolvedFilenameBeforeBrowserNaming": {
+    "message": "Corresponde ao nome de arquivo definido pelo Save In antes da nomeação final pelo navegador."
+  },
+  "html_selectedMenuDirectoryPath": {
+    "message": "Caminho da pasta escolhido no menu do Save In"
   },
   "html_linkTextMatcherDescription": {
     "message": "Corresponde ao texto do link quando fornecido pelo navegador; ao salvar abas, o título da aba é usado."

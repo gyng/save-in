@@ -836,7 +836,7 @@ Goal: [describe which downloads to match and where they should be saved]
 Save In syntax:
 - Write one clause per line and separate rules with a blank line.
 - Every matcher in one rule must match. Matcher values are JavaScript regular expressions except css:, which takes a CSS selector and no flags.
-- Common matchers include filename:, actualfileext:, mime:, sourceurl:, sourcedomain:, sourcerootdomain:, sourcekind:, css:, pageurl:, pagedomain:, pagerootdomain:, referrerurl:, referrerdomain:, pagetitle:, context:, and mediatype:.
+- Common matchers include filename:, finalfilename:, actualfileext:, mime:, sourceurl:, sourcedomain:, sourcerootdomain:, sourcekind:, css:, pageurl:, pagedomain:, pagerootdomain:, referrerurl:, referrerdomain:, pagetitle:, context:, and mediatype:.
 - Add /i to a matcher name for case-insensitive matching, for example filename/i: \.pdf$.
 - Every rule must contain exactly one into: clause. Its value is a relative destination or filename template.
 - End into: with / to move the file while preserving its resolved filename.
@@ -3308,6 +3308,14 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
 
               <tr>
                 <td>
+                  <code class="click-to-copy">:menupath:</code>
+                </td>
+                <td>Images/Favorites</td>
+                <td>__MSG_html_selectedMenuDirectoryPath__</td>
+              </tr>
+
+              <tr>
+                <td>
                   <code class="click-to-copy">:fileext:</code>
                 </td>
                 <td>jpg</td>
@@ -3570,6 +3578,15 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
               <tr>
                 <td>
                   <code class="click-to-copy">filename:</code>
+                </td>
+                <td>
+                  <code>suggested_filename.jpg</code>
+                </td>
+                <td>__MSG_html_matchesTheResolvedFilenameBeforeBrowserNaming__</td>
+              </tr>
+              <tr>
+                <td>
+                  <code class="click-to-copy">finalfilename:</code>
                 </td>
                 <td>
                   <code>actual_filename.jpg</code>

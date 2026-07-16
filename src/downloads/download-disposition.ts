@@ -39,25 +39,24 @@ export const resolveDispositionFilename = async (state: DownloadPipelineState): 
   // entirely — a data: acquisition must never issue a lazy-metadata HEAD.
   /* v8 ignore next -- requireDownloadUrl guarantees info.url before the plan reaches disposition; the fallback only satisfies the optional type. */
   const downloadUrl = state.info.url ?? "";
-  if (
-    WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion ||
-    state.info.contentFetchDisabled ||
-    !isHttpDownloadUrl(downloadUrl)
-  ) {
-    return;
-  }
-  try {
-    const metadata = await resolveHead(state.info);
-    if (metadata.contentDisposition) {
-      const dispositionName = getFilenameFromContentDisposition(
-        metadata.contentDisposition,
-        FIREFOX_CONTENT_DISPOSITION_COMPATIBILITY,
-      );
-      state.info.filename = dispositionName || state.info.filename;
+  if (WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion) return;
+  if (!state.info.contentFetchDisabled && isHttpDownloadUrl(downloadUrl)) {
+    try {
+      const metadata = await resolveHead(state.info);
+      if (metadata.contentDisposition) {
+        const dispositionName = getFilenameFromContentDisposition(
+          metadata.contentDisposition,
+          FIREFOX_CONTENT_DISPOSITION_COMPATIBILITY,
+        );
+        state.info.filename = dispositionName || state.info.filename;
+      }
+    } catch {
+      // HEAD is best-effort; acquisition still proceeds with the resolved name.
     }
-  } catch {
-    // HEAD is best-effort; acquisition still proceeds with the resolved name.
   }
+  // Firefox supplies this exact name to downloads.download. Chrome leaves it
+  // unset until onDeterminingFilename reports the browser's resolved name.
+  state.info.resolvedFilename = state.info.filename;
 };
 
 const finalizeFullPathWithMimeExtension = (

@@ -1524,7 +1524,13 @@
     "message": "匹配当前页面 URL。"
   },
   "html_matchesTheFinalFilename": {
-    "message": "匹配最终文件名。"
+    "message": "匹配浏览器在处理 Content-Disposition 后确定的文件名。"
+  },
+  "html_matchesTheResolvedFilenameBeforeBrowserNaming": {
+    "message": "匹配 Save In 在浏览器最终命名前解析的文件名。"
+  },
+  "html_selectedMenuDirectoryPath": {
+    "message": "从 Save In 菜单中选择的文件夹路径"
   },
   "html_linkTextMatcherDescription": {
     "message": "匹配浏览器提供的链接文本；保存标签页时使用标签页标题。"

@@ -2,6 +2,24 @@ import { createBrowserDownloadState } from "../../src/downloads/browser-download
 import { matchRules, parseRules } from "../../src/routing/router.ts";
 
 describe("routing metadata matchers", () => {
+  test("finalfilename matches only the browser-resolved name", () => {
+    const rules = parseRules("finalfilename: ^server-name\\.pdf$\ninto: resolved/:filename:");
+
+    expect(matchRules(rules, { filename: "suggested-name.pdf" })).toBeNull();
+    expect(
+      matchRules(rules, {
+        filename: "suggested-name.pdf",
+        resolvedFilename: "server-name.pdf",
+      }),
+    ).toBe("resolved/:filename:");
+    expect(
+      matchRules(rules, {
+        filename: "server-name.pdf",
+        resolvedFilename: "different-name.pdf",
+      }),
+    ).toBeNull();
+  });
+
   test.each(["mime", "contenttype"])("%s matches the normalized MIME type", (matcher) => {
     const rules = parseRules(`${matcher}: ^image/webp$\ninto: images/:filename:`);
 
@@ -101,6 +119,7 @@ describe("routing metadata matchers", () => {
     expect(state.info).toMatchObject({
       mime: "application/pdf",
       referrerUrl: "https://mail.example.test/thread/7",
+      resolvedFilename: "report.pdf",
     });
     expect(matchRules(rules, state.info)).toBe("browser/:filename:");
   });

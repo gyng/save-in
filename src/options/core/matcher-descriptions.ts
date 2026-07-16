@@ -60,6 +60,7 @@ export const matcherTestValue = (matcher: string, root: ParentNode = document): 
     case "sourcekind":
       return testFieldValue(root, "route-debugger-source-kind");
     case "filename":
+    case "finalfilename":
       return filename;
     case "naivefilename":
       return sourceUrl ? getFilenameFromUrl(sourceUrl) : "";

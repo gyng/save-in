@@ -52,6 +52,7 @@ const DEFAULT_MATCHERS = [
   "sourcerootdomain",
   "sourcekind",
   "filename",
+  "finalfilename",
   "naivefilename",
   "fileext",
   "urlfileext",

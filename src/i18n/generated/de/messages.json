@@ -1934,7 +1934,13 @@
     "message": "Entspricht der aktuellen Seiten-URL."
   },
   "html_matchesTheFinalFilename": {
-    "message": "Entspricht dem endgültigen Dateinamen."
+    "message": "Entspricht dem vom Browser nach Content-Disposition aufgelösten Dateinamen."
+  },
+  "html_matchesTheResolvedFilenameBeforeBrowserNaming": {
+    "message": "Entspricht dem von Save In aufgelösten Dateinamen vor der endgültigen Benennung durch den Browser."
+  },
+  "html_selectedMenuDirectoryPath": {
+    "message": "Im Menü von Save In ausgewählter Ordnerpfad"
   },
   "html_linkTextMatcherDescription": {
     "message": "Entspricht dem Linktext, sofern vom Browser bereitgestellt; beim Speichern von Tabs wird der Tabtitel verwendet."

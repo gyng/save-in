@@ -1524,7 +1524,13 @@
     "message": "現在のページの URL と一致します。"
   },
   "html_matchesTheFinalFilename": {
-    "message": "最終的なファイル名と一致します。"
+    "message": "Content-Disposition の処理後にブラウザーが決定したファイル名と一致します。"
+  },
+  "html_matchesTheResolvedFilenameBeforeBrowserNaming": {
+    "message": "ブラウザーが最終的な名前を決める前に Save In が解決したファイル名と一致します。"
+  },
+  "html_selectedMenuDirectoryPath": {
+    "message": "Save In メニューで選択したフォルダーのパス"
   },
   "html_linkTextMatcherDescription": {
     "message": "ブラウザーから提供されるリンクテキストと一致します。タブの保存ではタブのタイトルが使用されます。"

@@ -645,6 +645,86 @@ describe("onDeterminingFilename listener: sync path", () => {
     );
   });
 
+  test("defers finalfilename and matches Chrome's browser-resolved name", async () => {
+    setCurrentBrowser("CHROME");
+    options.routeSkipUnmatched = true;
+    options.filenamePatterns = [routingRule("finalfilename")];
+    vi.mocked(router.matchRules).mockImplementation((_rules, info) =>
+      info.resolvedFilename === "server-name.pdf" ? "pdf/:filename:" : null,
+    );
+    const state = makeState({
+      path: new Path.Path("downloads"),
+      info: {
+        url: "https://example.com/download",
+        suggestedFilename: "suggested-name.txt",
+      },
+    });
+
+    await expect(Download.renameAndDownload(state)).resolves.toEqual({
+      status: "started",
+      downloadId: 101,
+    });
+    expect(state.scratch.deferredRouteRequirement).toBe(true);
+
+    const suggest = vi.fn();
+    expect(
+      capturedListener(
+        {
+          id: 101,
+          byExtensionId: global.browser.runtime.id,
+          url: state.info.url,
+          filename: "server-name.pdf",
+        },
+        suggest,
+      ),
+    ).toBe(true);
+    await vi.waitFor(() =>
+      expect(router.matchRules).toHaveBeenCalledWith(
+        options.filenamePatterns,
+        expect.objectContaining({ resolvedFilename: "server-name.pdf" }),
+        expect.anything(),
+      ),
+    );
+    await vi.waitFor(() =>
+      expect(suggest).toHaveBeenCalledWith(
+        expect.objectContaining({ filename: "downloads/pdf/server-name.pdf" }),
+      ),
+    );
+  });
+
+  test("rechecks finalfilename even when Chrome keeps the pre-final name", async () => {
+    setCurrentBrowser("CHROME");
+    options.filenamePatterns = [routingRule("finalfilename"), routingRule("filename")];
+    vi.mocked(router.matchRules).mockImplementation((_rules, info) =>
+      info.resolvedFilename === "server-name.pdf" ? "resolved/:filename:" : "fallback/:filename:",
+    );
+    const state = makeState({
+      path: new Path.Path("downloads"),
+      info: { url: "https://example.com/server-name.pdf" },
+    });
+
+    await Download.renameAndDownload(state);
+    expect(state.info.filename).toBe("server-name.pdf");
+
+    const suggest = vi.fn();
+    expect(
+      capturedListener(
+        {
+          id: 101,
+          byExtensionId: global.browser.runtime.id,
+          url: state.info.url,
+          filename: "server-name.pdf",
+        },
+        suggest,
+      ),
+    ).toBe(true);
+    await vi.waitFor(() =>
+      expect(suggest).toHaveBeenCalledWith(
+        expect.objectContaining({ filename: "downloads/resolved/server-name.pdf" }),
+      ),
+    );
+  });
+
   test("resolves MIME only when Chrome's final filename loses its extension", async () => {
     setCurrentBrowser("CHROME");
     options.appendMimeExtension = true;
@@ -946,7 +1026,7 @@ describe("onDeterminingFilename listener: sync path", () => {
     );
 
     expect(returned).toBe(false);
-    expect(state.info).toEqual({ filename: "item.bin" });
+    expect(state.info).toEqual({ filename: "item.bin", resolvedFilename: "item.bin" });
     expect(suggest).toHaveBeenCalledWith({
       filename: "downloads/item.bin",
       conflictAction: "uniquify",

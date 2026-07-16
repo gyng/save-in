@@ -1524,7 +1524,13 @@
     "message": "현재 페이지 URL과 일치합니다."
   },
   "html_matchesTheFinalFilename": {
-    "message": "최종 파일 이름과 일치합니다."
+    "message": "Content-Disposition 처리 후 브라우저가 결정한 파일 이름과 일치합니다."
+  },
+  "html_matchesTheResolvedFilenameBeforeBrowserNaming": {
+    "message": "브라우저의 최종 이름 지정 전에 Save In이 확인한 파일 이름과 일치합니다."
+  },
+  "html_selectedMenuDirectoryPath": {
+    "message": "Save In 메뉴에서 선택한 폴더 경로"
   },
   "html_linkTextMatcherDescription": {
     "message": "브라우저에서 제공하는 링크 텍스트와 일치합니다. 탭 저장에는 탭 제목을 사용합니다."

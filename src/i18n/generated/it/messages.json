@@ -576,7 +576,13 @@
     "message": "Corrisponde all'URL della pagina corrente."
   },
   "html_matchesTheFinalFilename": {
-    "message": "Corrisponde al nome file finale."
+    "message": "Corrisponde al nome file risolto dal browser dopo Content-Disposition."
+  },
+  "html_matchesTheResolvedFilenameBeforeBrowserNaming": {
+    "message": "Corrisponde al nome file risolto da Save In prima della denominazione finale del browser."
+  },
+  "html_selectedMenuDirectoryPath": {
+    "message": "Percorso della cartella scelto dal menu di Save In"
   },
   "html_linkTextMatcherDescription": {
     "message": "Corrisponde al testo del collegamento quando fornito dal browser; per il salvataggio delle schede viene usato il titolo della scheda."

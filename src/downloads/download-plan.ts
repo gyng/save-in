@@ -138,7 +138,7 @@ export const resolveDownloadPlan = async (
   );
   if (usesMime) state.info.mime = await resolveMime(state.info);
   const usesResolvedFilename = filenamePatterns.some((rule) =>
-    rule.some((clause) => clause.name === "filename" || clause.name === "actualfileext"),
+    rule.some((clause) => ["filename", "finalfilename", "actualfileext"].includes(clause.name)),
   );
   const usesActualFileExtension = filenamePatterns.some((rule) =>
     rule.some((clause) => clause.name === "actualfileext"),

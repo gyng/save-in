@@ -350,6 +350,8 @@ export const transformers: TransformerRegistry = {
       opts => stringSegment(opts.linkText),
     [SPECIAL_DIRS.SELECTION_TEXT]:
       opts => stringSegment((opts.selectionText && opts.selectionText.trim()) || ""),
+    [SPECIAL_DIRS.MENU_PATH]:
+      opts => stringSegment(opts.menuItemPath),
     [SPECIAL_DIRS.NAIVE_FILENAME]:
       opts => {
         const naiveFilename = getFilenameFromUrl(opts.url ?? "");

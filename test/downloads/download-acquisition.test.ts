@@ -148,8 +148,32 @@ describe("renameAndDownload: Chrome vs Firefox entry", () => {
     );
 
     expect(state.info.filename).toBe("server-name.pdf");
+    expect(state.info.resolvedFilename).toBe("server-name.pdf");
     expect(global.browser.downloads.download).toHaveBeenCalledWith(
       expect.objectContaining({ filename: expect.stringContaining("server-name.pdf") }),
+    );
+  });
+
+  test("Firefox matches finalfilename after resolving Content-Disposition", async () => {
+    setCurrentBrowser("FIREFOX");
+    options.filenamePatterns = [routingRule("finalfilename")];
+    vi.mocked(getFilenameFromContentDispositionHeader).mockReturnValue("server-name.pdf");
+    global.fetch = vi.fn(() =>
+      Promise.resolve({
+        headers: { has: () => true, get: () => 'attachment; filename="server-name.pdf"' },
+      }),
+    ) as any;
+    vi.mocked(router.matchRules).mockImplementation((_rules, info) =>
+      info.resolvedFilename === "server-name.pdf" ? "resolved/:filename:" : null,
+    );
+
+    const state = makeState({
+      info: { url: "https://downloads.example/id/42", suggestedFilename: "suggested.txt" },
+    });
+    await Download.renameAndDownload(state);
+
+    expect(global.browser.downloads.download).toHaveBeenCalledWith(
+      expect.objectContaining({ filename: "downloads/resolved/server-name.pdf" }),
     );
   });
 

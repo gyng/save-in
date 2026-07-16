@@ -28,7 +28,9 @@ the default download location.
   `:mime:`, `:mimeext:`, and other variables. Open **Reference** in Options for
   the maintained variable and matcher list.
 - Match normalized MIME types (`mime:` / `contenttype:`), referrer URLs and
-  hostnames, and page or source root domains in routing rules.
+  hostnames, page or source root domains, and the browser-resolved
+  `finalfilename:` in routing rules. Use `:menupath:` in a destination to
+  include the folder chosen from the Save In menu.
 - Inspect MV3 background health, lifecycle events, configuration issue counts,
   and recent session failures from the collapsed Diagnostics panel in Advanced.
 

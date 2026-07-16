@@ -1946,7 +1946,13 @@
     "message": "Correspond à l'URL de la page actuelle."
   },
   "html_matchesTheFinalFilename": {
-    "message": "Correspond au nom de fichier final."
+    "message": "Correspond au nom de fichier déterminé par le navigateur après Content-Disposition."
+  },
+  "html_matchesTheResolvedFilenameBeforeBrowserNaming": {
+    "message": "Correspond au nom de fichier déterminé par Save In avant le nommage final du navigateur."
+  },
+  "html_selectedMenuDirectoryPath": {
+    "message": "Chemin du dossier choisi dans le menu Save In"
   },
   "html_linkTextMatcherDescription": {
     "message": "Correspond au texte du lien lorsque le navigateur le fournit ; l’enregistrement d’un onglet utilise son titre."

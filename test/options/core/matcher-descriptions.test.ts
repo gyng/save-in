@@ -54,6 +54,7 @@ test.each([
   ["sourcerootdomain", "example.com"],
   ["sourcekind", "image"],
   ["filename", "archive.tar.gz"],
+  ["finalfilename", "archive.tar.gz"],
   ["naivefilename", "photo.jpg"],
   ["fileext", "jpg"],
   ["urlfileext", "jpg"],

@@ -1934,7 +1934,13 @@
     "message": "Matchar den aktuella sidans URL."
   },
   "html_matchesTheFinalFilename": {
-    "message": "Matchar det slutliga filnamnet."
+    "message": "Matchar filnamnet som webbläsaren fastställer efter Content-Disposition."
+  },
+  "html_matchesTheResolvedFilenameBeforeBrowserNaming": {
+    "message": "Matchar filnamnet som Save In fastställer före webbläsarens slutliga namngivning."
+  },
+  "html_selectedMenuDirectoryPath": {
+    "message": "Mappsökväg som valts i Save In-menyn"
   },
   "html_linkTextMatcherDescription": {
     "message": "Matchar länktexten när webbläsaren tillhandahåller den; när flikar sparas används flikens titel."

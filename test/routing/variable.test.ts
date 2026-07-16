@@ -123,6 +123,17 @@ describe("variables", () => {
       expect(output).toBe("selectionfoobar");
     });
 
+    test("interpolates the chosen menu directory with :menupath:", async () => {
+      const input = new Path.Path("archive/:menupath:/:filename:");
+      const output = (
+        await Variable.applyVariables(input, {
+          ...info,
+          menuItemPath: "Images/Favorites",
+        })
+      ).finalize();
+      expect(output).toBe("archive/Images_Favorites/lol.jpeg");
+    });
+
     test("interpolates :filename:", async () => {
       const input = new Path.Path(":filename::filename:");
       const output = (await Variable.applyVariables(input, info)).finalize();
@@ -349,10 +360,10 @@ describe("variables", () => {
 
     test("normalizes missing inputs for URL and filename-derived variables", async () => {
       const input = new Path.Path(
-        ":fileext:/:actualfileext:/:sourcedomain:/:pagedomain:/:sourcerootdomain:/:pagerootdomain:/:sourcepath:/:tld:/:naivefilename:/:naivefileext:/:urlfileext:/:pagetitlesnake:",
+        ":fileext:/:actualfileext:/:sourcedomain:/:pagedomain:/:sourcerootdomain:/:pagerootdomain:/:sourcepath:/:tld:/:naivefilename:/:naivefileext:/:urlfileext:/:pagetitlesnake:/:menupath:",
       );
       await expect(Variable.applyVariables(input, {})).resolves.toBe(input);
-      expect(input.finalize()).toBe("_/_/_/_/_/_/_/_/_/_/_/_");
+      expect(input.finalize()).toBe("_/_/_/_/_/_/_/_/_/_/_/_/_");
     });
   });
 });

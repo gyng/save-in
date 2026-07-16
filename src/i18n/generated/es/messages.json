@@ -1934,7 +1934,13 @@
     "message": "Coincide con la URL de la página actual."
   },
   "html_matchesTheFinalFilename": {
-    "message": "Coincide con el nombre del archivo final."
+    "message": "Coincide con el nombre de archivo resuelto por el navegador después de Content-Disposition."
+  },
+  "html_matchesTheResolvedFilenameBeforeBrowserNaming": {
+    "message": "Coincide con el nombre de archivo resuelto por Save In antes del nombre final del navegador."
+  },
+  "html_selectedMenuDirectoryPath": {
+    "message": "Ruta de carpeta elegida en el menú de Save In"
   },
   "html_linkTextMatcherDescription": {
     "message": "Coincide con el texto del enlace cuando el navegador lo proporciona; al guardar pestañas se usa el título de la pestaña."

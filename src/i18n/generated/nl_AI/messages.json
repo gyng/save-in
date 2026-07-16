@@ -1934,7 +1934,13 @@
     "message": "Komt overeen met de huidige pagina-URL."
   },
   "html_matchesTheFinalFilename": {
-    "message": "Komt overeen met de uiteindelijke bestandsnaam."
+    "message": "Komt overeen met de door de browser bepaalde bestandsnaam na Content-Disposition."
+  },
+  "html_matchesTheResolvedFilenameBeforeBrowserNaming": {
+    "message": "Komt overeen met de door Save In bepaalde bestandsnaam vóór de definitieve naamgeving door de browser."
+  },
+  "html_selectedMenuDirectoryPath": {
+    "message": "Mappad dat in het Save In-menu is gekozen"
   },
   "html_linkTextMatcherDescription": {
     "message": "Komt overeen met de linktekst wanneer de browser die verstrekt; bij het opslaan van tabbladen wordt de tabtitel gebruikt."

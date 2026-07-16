@@ -288,6 +288,7 @@ export const matcherFunctions = {
         ? evaluateCandidates(regex, info, [{ source: "filename", value }], "filename")
         : missingEvaluation("filename");
     }),
+  finalfilename: makeInfoMatcherFactory("resolvedFilename"),
   frameurl: makeInfoMatcherFactory("frameUrl"),
   linktext: makeInfoMatcherFactory("linkText"),
   mediatype: makeInfoMatcherFactory("mediaType"),

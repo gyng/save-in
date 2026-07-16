@@ -12,6 +12,7 @@ import {
 test("groups variables by user task rather than implementation scope", () => {
   expect(variableGroup(":date:")).toBe("Date and time");
   expect(variableGroup(":pagetitle:")).toBe("Page context");
+  expect(variableGroup(":menupath:")).toBe("Page context");
   expect(variableGroup(":sourceurl:")).toBe("Source URL");
   expect(variableGroup(":filename:")).toBe("Resolved file");
   expect(variableGroup(":sha256full:")).toBe("Resolved file");
@@ -45,13 +46,16 @@ test("orders clauses by routing workflow within each task group", () => {
     "linktext",
     "selectiontext",
   ]);
-  expect(sortClauses(["actualfileext", "sourcekind", "mediatype", "filename", "fileext"])).toEqual([
-    "sourcekind",
-    "filename",
-    "fileext",
-    "actualfileext",
-    "mediatype",
-  ]);
+  expect(
+    sortClauses([
+      "actualfileext",
+      "sourcekind",
+      "mediatype",
+      "filename",
+      "finalfilename",
+      "fileext",
+    ]),
+  ).toEqual(["sourcekind", "filename", "finalfilename", "fileext", "actualfileext", "mediatype"]);
 });
 
 test("orders task groups, unknown terms, and numbered captures deterministically", () => {
@@ -87,6 +91,7 @@ test.each([
   [":$1:", "captured-text"],
   [":uuid:", "f47ac10b-…"],
   [":selectiontext:", "example"],
+  [":menupath:", "example"],
 ])("provides a representative example for %s", (variable, expected) => {
   expect(variableExample(variable)).toBe(expected);
 });
