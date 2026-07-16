@@ -56,22 +56,9 @@ type SequenceValues<Parsers extends readonly SyntaxParser<unknown>[]> = {
 
 export const sourcePointAt = (source: string, offset: number): SourcePoint => {
   const bounded = Math.max(0, Math.min(offset, source.length));
-  let line = 1;
-  let column = 0;
-  for (let index = 0; index < bounded; index += 1) {
-    const character = source[index];
-    if (character === "\r") {
-      if (source[index + 1] === "\n" && index + 1 < bounded) index += 1;
-      line += 1;
-      column = 0;
-    } else if (character === "\n" || character === "\u2028" || character === "\u2029") {
-      line += 1;
-      column = 0;
-    } else {
-      column += 1;
-    }
-  }
-  return { offset: bounded, line, column };
+  const lines = source.slice(0, bounded).split(/\r\n|[\n\r\u2028\u2029]/);
+  const column = lines.reduce((_previous, current) => current, "").length;
+  return { offset: bounded, line: lines.length, column };
 };
 
 export const sourceSpan = (source: string, start: number, end: number): SourceSpan => ({
