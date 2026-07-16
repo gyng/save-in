@@ -5,17 +5,11 @@
   "ruleTemplatePdfsByContentTypeDescription": {
     "message": "Detecta los PDF por el tipo de contenido indicado en lugar de por el nombre del archivo"
   },
-  "ruleTemplatePerSourceRootDomainName": {
-    "message": "Una carpeta por dominio raíz de origen"
-  },
-  "ruleTemplatePerSourceRootDomainDescription": {
-    "message": "Agrupa las descargas de subdominios del mismo sitio de origen"
-  },
   "ruleTemplateDownloadsFromSiteSectionName": {
     "message": "Descargas de una sección del sitio"
   },
   "ruleTemplateDownloadsFromSiteSectionDescription": {
-    "message": "Envía las descargas procedentes de una sección de URL concreta a su propia carpeta"
+    "message": "Envía las descargas asociadas a una sección de URL de página a su propia carpeta"
   },
   "html_matchesTheMimeContentType": {
     "message": "Coincide con el MIME Content-Type determinado. Save In puede solicitar los encabezados del servidor."
@@ -69,25 +63,25 @@
     "message": "Imágenes en carpetas por sitio"
   },
   "ruleTemplateImagesPerSiteDescription": {
-    "message": "Clasifica cada imagen guardada según su sitio de origen"
+    "message": "Clasifica las imágenes guardadas según el nombre de host de la página"
   },
   "ruleTemplateVideosPerSiteName": {
     "message": "Vídeos en carpetas por sitio"
   },
   "ruleTemplateVideosPerSiteDescription": {
-    "message": "Clasifica cada vídeo guardado según su sitio de origen"
+    "message": "Clasifica los vídeos guardados según el nombre de host de la página"
   },
   "ruleTemplateAudioPerSiteName": {
     "message": "Audio en carpetas por sitio"
   },
   "ruleTemplateAudioPerSiteDescription": {
-    "message": "Agrupa el audio guardado según la página donde se encontró"
+    "message": "Clasifica el audio guardado según el nombre de host de la página"
   },
   "ruleTemplateScreenshotsByMonthName": {
     "message": "Capturas de pantalla por mes"
   },
   "ruleTemplateScreenshotsByMonthDescription": {
-    "message": "Guarda en carpetas con fecha los nombres de archivo que empiezan por screenshot"
+    "message": "Guarda los nombres de archivo de capturas de pantalla en carpetas con fecha"
   },
   "ruleTemplatePdfsName": {
     "message": "PDFs en una carpeta de documentos"
@@ -1749,6 +1743,9 @@
   },
   "html_currentYear": {
     "message": "Año actual"
+  },
+  "html_iso8601WeekYear": {
+    "message": "Año de numeración semanal ISO 8601"
   },
   "html_hostnameOfThePage": {
     "message": "Nombre de host de la página"
@@ -3791,20 +3788,8 @@
   "ruleTemplateCategorySiteOriginals": {
     "message": "Originales por sitio"
   },
-  "ruleTemplateDeviantArtRenameDescription": {
-    "message": "Cambia el nombre de archivo con hash de descarga de DeviantArt por el título de la obra y el código corto"
-  },
-  "ruleTemplateDeviantArtRenameName": {
-    "message": "Renombrado de archivo con hash de DeviantArt"
-  },
-  "ruleTemplateInstagramUsernamePrefixDescription": {
-    "message": "Antepone a los archivos guardados el nombre de usuario de Instagram tomado del título de la página"
-  },
-  "ruleTemplateInstagramUsernamePrefixName": {
-    "message": "Prefijo con el nombre de usuario de Instagram"
-  },
   "ruleTemplatePagePathNoSchemeDescription": {
-    "message": "Crea carpetas a partir del host y la ruta de la URL de la página, y elimina el esquema https://, que de otro modo dañaría los nombres de archivo"
+    "message": "Crea carpetas a partir del host y la ruta de la página, sin credenciales ni sufijos de URL"
   },
   "ruleTemplatePagePathNoSchemeName": {
     "message": "Ruta de página sin el esquema"
@@ -3816,13 +3801,13 @@
     "message": "Originales de imágenes de Reddit"
   },
   "ruleTemplateSluggedTitleRenameDescription": {
-    "message": "Sustituye el nombre de archivo por un slug en minúsculas y con guiones del título de la página, conservando la extensión original (no se admite una búsqueda y reemplazo general de nombres de archivo)"
+    "message": "Sustituye el nombre de archivo por el título de la página en minúsculas y con guiones, conservando la extensión resuelta"
   },
   "ruleTemplateSluggedTitleRenameName": {
     "message": "Renombrado con slug del título"
   },
   "ruleTemplateTwitterHandlePrefixDescription": {
-    "message": "Antepone a los archivos guardados el identificador de Twitter o X tomado de la URL de la página"
+    "message": "Antepone el identificador de la cuenta a los archivos guardados desde una publicación de Twitter o X"
   },
   "ruleTemplateTwitterHandlePrefixName": {
     "message": "Prefijo con el identificador de Twitter/X"

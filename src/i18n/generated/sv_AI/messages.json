@@ -5,17 +5,11 @@
   "ruleTemplatePdfsByContentTypeDescription": {
     "message": "Identifierar PDF-filer efter rapporterad innehållstyp i stället för filnamn"
   },
-  "ruleTemplatePerSourceRootDomainName": {
-    "message": "En mapp per rotkälldomän"
-  },
-  "ruleTemplatePerSourceRootDomainDescription": {
-    "message": "Samlar hämtningar från underdomäner på samma källwebbplats"
-  },
   "ruleTemplateDownloadsFromSiteSectionName": {
     "message": "Hämtningar från en webbplatssektion"
   },
   "ruleTemplateDownloadsFromSiteSectionDescription": {
-    "message": "Dirigerar hämtningar som hänvisas från en viss URL-sektion till en egen mapp"
+    "message": "Dirigerar hämtningar som hör till en sid-URL-sektion till en egen mapp"
   },
   "html_matchesTheMimeContentType": {
     "message": "Matchar fastställt MIME Content-Type. Save In kan begära serverhuvuden."
@@ -69,25 +63,25 @@
     "message": "Bilder i mappar per webbplats"
   },
   "ruleTemplateImagesPerSiteDescription": {
-    "message": "Sorterar varje sparad bild efter ursprungswebbplats"
+    "message": "Sorterar sparade bilder efter sidans värdnamn"
   },
   "ruleTemplateVideosPerSiteName": {
     "message": "Videor i mappar per webbplats"
   },
   "ruleTemplateVideosPerSiteDescription": {
-    "message": "Sorterar varje sparad video efter ursprungswebbplats"
+    "message": "Sorterar sparade videor efter sidans värdnamn"
   },
   "ruleTemplateAudioPerSiteName": {
     "message": "Ljud i mappar per webbplats"
   },
   "ruleTemplateAudioPerSiteDescription": {
-    "message": "Grupperar sparat ljud efter sidan där det hittades"
+    "message": "Sorterar sparat ljud efter sidans värdnamn"
   },
   "ruleTemplateScreenshotsByMonthName": {
     "message": "Skärmbilder per månad"
   },
   "ruleTemplateScreenshotsByMonthDescription": {
-    "message": "Lägger filnamn som börjar med screenshot i daterade mappar"
+    "message": "Lägger filnamn för skärmbilder och skärminspelningar i daterade mappar"
   },
   "ruleTemplatePdfsName": {
     "message": "PDF-filer i en dokumentmapp"
@@ -1749,6 +1743,9 @@
   },
   "html_currentYear": {
     "message": "Innevarande år"
+  },
+  "html_iso8601WeekYear": {
+    "message": "ISO 8601-veckonumreringsår"
   },
   "html_hostnameOfThePage": {
     "message": "Sidans värdnamn"
@@ -3791,20 +3788,8 @@
   "ruleTemplateCategorySiteOriginals": {
     "message": "Original per webbplats"
   },
-  "ruleTemplateDeviantArtRenameDescription": {
-    "message": "Byter namn på DeviantArts hashade nedladdningsfilnamn till konstverkets titel och kortkod"
-  },
-  "ruleTemplateDeviantArtRenameName": {
-    "message": "Byt namn på hashat DeviantArt-filnamn"
-  },
-  "ruleTemplateInstagramUsernamePrefixDescription": {
-    "message": "Lägger Instagram-användarnamnet från sidtiteln före sparade filer"
-  },
-  "ruleTemplateInstagramUsernamePrefixName": {
-    "message": "Instagram-användarnamn som prefix"
-  },
   "ruleTemplatePagePathNoSchemeDescription": {
-    "message": "Bygger mappar av värdnamnet och sökvägen i sidans URL, utan schemat https:// som annars förstör filnamn"
+    "message": "Bygger mappar av sidans värdnamn och sökväg utan URL-inloggningsuppgifter eller suffix"
   },
   "ruleTemplatePagePathNoSchemeName": {
     "message": "Sidsökväg utan schema"
@@ -3816,13 +3801,13 @@
     "message": "Reddit-bildoriginal"
   },
   "ruleTemplateSluggedTitleRenameDescription": {
-    "message": "Ersätter filnamnet med en gemen, bindestreckad slug av sidtiteln och behåller den ursprungliga filändelsen (allmän sök-och-ersätt för filnamn stöds inte)"
+    "message": "Ersätter filnamnet med sidtiteln i gemener och med bindestreck, och behåller den fastställda filändelsen"
   },
   "ruleTemplateSluggedTitleRenameName": {
     "message": "Namnbyte med titel-slug"
   },
   "ruleTemplateTwitterHandlePrefixDescription": {
-    "message": "Lägger Twitter- eller X-användarnamnet från sidans URL före sparade filer"
+    "message": "Lägger kontots användarnamn före filer som sparats från ett Twitter- eller X-inlägg"
   },
   "ruleTemplateTwitterHandlePrefixName": {
     "message": "Twitter/X-användarnamn som prefix"

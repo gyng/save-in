@@ -5,17 +5,11 @@
   "ruleTemplatePdfsByContentTypeDescription": {
     "message": "ファイル名ではなく、報告されたコンテンツタイプで PDF を検出します"
   },
-  "ruleTemplatePerSourceRootDomainName": {
-    "message": "ソースのルートドメインごとにフォルダーを作成"
-  },
-  "ruleTemplatePerSourceRootDomainDescription": {
-    "message": "同じソースサイトのサブドメインからのダウンロードをまとめます"
-  },
   "ruleTemplateDownloadsFromSiteSectionName": {
     "message": "サイト内のセクションからのダウンロード"
   },
   "ruleTemplateDownloadsFromSiteSectionDescription": {
-    "message": "特定の URL セクションから参照されたダウンロードを専用フォルダーに振り分けます"
+    "message": "ページ URL の1つのセクションに関連するダウンロードを専用フォルダーに振り分けます"
   },
   "html_matchesTheMimeContentType": {
     "message": "解決済みの MIME Content-Type と照合します。Save In がサーバーヘッダーを要求する場合があります。"
@@ -1373,6 +1367,9 @@
   "html_currentYear": {
     "message": "今年"
   },
+  "html_iso8601WeekYear": {
+    "message": "ISO 8601週番号の年"
+  },
   "html_hostnameOfThePage": {
     "message": "ページのホスト名"
   },
@@ -1907,25 +1904,25 @@
     "message": "サイト別フォルダーに画像を保存"
   },
   "ruleTemplateImagesPerSiteDescription": {
-    "message": "保存した画像を取得元サイト別に整理します"
+    "message": "保存した画像をページのホスト名別に整理します"
   },
   "ruleTemplateVideosPerSiteName": {
     "message": "サイト別フォルダーに動画を保存"
   },
   "ruleTemplateVideosPerSiteDescription": {
-    "message": "保存した動画を取得元サイト別に整理します"
+    "message": "保存した動画をページのホスト名別に整理します"
   },
   "ruleTemplateAudioPerSiteName": {
     "message": "サイト別フォルダーに音声を保存"
   },
   "ruleTemplateAudioPerSiteDescription": {
-    "message": "保存した音声を見つけたページ別に整理します"
+    "message": "保存した音声をページのホスト名別に整理します"
   },
   "ruleTemplateScreenshotsByMonthName": {
     "message": "スクリーンショットを月別に整理"
   },
   "ruleTemplateScreenshotsByMonthDescription": {
-    "message": "screenshot で始まるファイル名を日付別フォルダーに保存します"
+    "message": "スクリーンショットと画面キャプチャのファイル名を日付別フォルダーに保存します"
   },
   "ruleTemplatePdfsName": {
     "message": "PDF をドキュメントフォルダーに保存"
@@ -3791,20 +3788,8 @@
   "ruleTemplateCategorySiteOriginals": {
     "message": "サイトの元データ"
   },
-  "ruleTemplateDeviantArtRenameDescription": {
-    "message": "DeviantArtのハッシュ化されたダウンロードファイル名を作品タイトルと短縮コードに変更します"
-  },
-  "ruleTemplateDeviantArtRenameName": {
-    "message": "DeviantArtのハッシュファイル名を変更"
-  },
-  "ruleTemplateInstagramUsernamePrefixDescription": {
-    "message": "保存したファイルにページタイトルから取得したInstagramのユーザー名を先頭に追加します"
-  },
-  "ruleTemplateInstagramUsernamePrefixName": {
-    "message": "Instagramのユーザー名を先頭に追加"
-  },
   "ruleTemplatePagePathNoSchemeDescription": {
-    "message": "ページURLのホストとパスからフォルダーを作成し、ファイル名を壊す原因となる https:// のスキームを除きます"
+    "message": "URLの認証情報やサフィックスを除き、ページのホストとパスからフォルダーを作成します"
   },
   "ruleTemplatePagePathNoSchemeName": {
     "message": "スキームを除いたページパス"
@@ -3816,13 +3801,13 @@
     "message": "Reddit画像の元データ"
   },
   "ruleTemplateSluggedTitleRenameDescription": {
-    "message": "ファイル名をページタイトルの小文字ハイフン区切りスラッグに置き換え、元の拡張子は保持します(ファイル名の汎用的な検索置換には対応していません)"
+    "message": "ファイル名をページタイトルの小文字ハイフン区切りに置き換え、判定された拡張子を保持します"
   },
   "ruleTemplateSluggedTitleRenameName": {
     "message": "タイトルスラッグへのファイル名変更"
   },
   "ruleTemplateTwitterHandlePrefixDescription": {
-    "message": "保存したファイルにページURLから取得したTwitterまたはXのハンドルを先頭に追加します"
+    "message": "TwitterまたはXの投稿から保存したファイルにアカウントのハンドルを先頭に追加します"
   },
   "ruleTemplateTwitterHandlePrefixName": {
     "message": "Twitter/Xのハンドルを先頭に追加"

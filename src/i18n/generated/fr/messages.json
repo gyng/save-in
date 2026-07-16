@@ -5,17 +5,11 @@
   "ruleTemplatePdfsByContentTypeDescription": {
     "message": "Détecte les PDF d’après leur type de contenu déclaré plutôt que leur nom de fichier"
   },
-  "ruleTemplatePerSourceRootDomainName": {
-    "message": "Un dossier par domaine racine source"
-  },
-  "ruleTemplatePerSourceRootDomainDescription": {
-    "message": "Regroupe les téléchargements provenant de sous-domaines d’un même site source"
-  },
   "ruleTemplateDownloadsFromSiteSectionName": {
     "message": "Téléchargements provenant d’une section de site"
   },
   "ruleTemplateDownloadsFromSiteSectionDescription": {
-    "message": "Place dans un dossier dédié les téléchargements provenant d’une section d’URL donnée"
+    "message": "Place dans un dossier dédié les téléchargements associés à une section d’URL de page"
   },
   "html_matchesTheMimeContentType": {
     "message": "Correspond au Content-Type MIME déterminé. Save In peut demander les en-têtes du serveur."
@@ -69,25 +63,25 @@
     "message": "Images dans des dossiers par site"
   },
   "ruleTemplateImagesPerSiteDescription": {
-    "message": "Classe chaque image enregistrée selon son site d’origine"
+    "message": "Classe les images enregistrées selon le nom d’hôte de la page"
   },
   "ruleTemplateVideosPerSiteName": {
     "message": "Vidéos dans des dossiers par site"
   },
   "ruleTemplateVideosPerSiteDescription": {
-    "message": "Classe chaque vidéo enregistrée selon son site d’origine"
+    "message": "Classe les vidéos enregistrées selon le nom d’hôte de la page"
   },
   "ruleTemplateAudioPerSiteName": {
     "message": "Audio dans des dossiers par site"
   },
   "ruleTemplateAudioPerSiteDescription": {
-    "message": "Regroupe les fichiers audio enregistrés selon la page où ils ont été trouvés"
+    "message": "Classe les fichiers audio enregistrés selon le nom d’hôte de la page"
   },
   "ruleTemplateScreenshotsByMonthName": {
     "message": "Captures d’écran par mois"
   },
   "ruleTemplateScreenshotsByMonthDescription": {
-    "message": "Range dans des dossiers datés les noms de fichiers commençant par screenshot"
+    "message": "Range les noms de fichiers de captures d’écran dans des dossiers datés"
   },
   "ruleTemplatePdfsName": {
     "message": "PDF dans un dossier de documents"
@@ -1761,6 +1755,9 @@
   },
   "html_currentYear": {
     "message": "Année en cours"
+  },
+  "html_iso8601WeekYear": {
+    "message": "Année de numérotation des semaines ISO 8601"
   },
   "html_hostnameOfThePage": {
     "message": "Nom d'hôte de la page"
@@ -3791,20 +3788,8 @@
   "ruleTemplateCategorySiteOriginals": {
     "message": "Originaux par site"
   },
-  "ruleTemplateDeviantArtRenameDescription": {
-    "message": "Renomme le nom de fichier haché des téléchargements DeviantArt en titre de l’œuvre et code court"
-  },
-  "ruleTemplateDeviantArtRenameName": {
-    "message": "Renommage du nom de fichier haché DeviantArt"
-  },
-  "ruleTemplateInstagramUsernamePrefixDescription": {
-    "message": "Ajoute en préfixe des fichiers enregistrés le nom d’utilisateur Instagram tiré du titre de la page"
-  },
-  "ruleTemplateInstagramUsernamePrefixName": {
-    "message": "Préfixe du nom d’utilisateur Instagram"
-  },
   "ruleTemplatePagePathNoSchemeDescription": {
-    "message": "Construit des dossiers à partir de l’hôte et du chemin de l’URL de la page, en supprimant le schéma https:// qui corromprait sinon les noms de fichiers"
+    "message": "Construit des dossiers à partir de l’hôte et du chemin de la page, sans identifiants ni suffixes d’URL"
   },
   "ruleTemplatePagePathNoSchemeName": {
     "message": "Chemin de page sans le schéma"
@@ -3816,13 +3801,13 @@
     "message": "Originaux d’images Reddit"
   },
   "ruleTemplateSluggedTitleRenameDescription": {
-    "message": "Remplace le nom de fichier par un slug en minuscules et séparé par des tirets du titre de la page, en conservant l’extension d’origine (la recherche-remplacement générale sur les noms de fichiers n’est pas prise en charge)"
+    "message": "Remplace le nom de fichier par le titre de la page en minuscules et séparé par des tirets, en conservant l’extension déterminée"
   },
   "ruleTemplateSluggedTitleRenameName": {
     "message": "Renommage par slug du titre"
   },
   "ruleTemplateTwitterHandlePrefixDescription": {
-    "message": "Ajoute en préfixe des fichiers enregistrés l’identifiant Twitter ou X tiré de l’URL de la page"
+    "message": "Ajoute l’identifiant du compte aux fichiers enregistrés depuis une publication Twitter ou X"
   },
   "ruleTemplateTwitterHandlePrefixName": {
     "message": "Préfixe de l’identifiant Twitter/X"
