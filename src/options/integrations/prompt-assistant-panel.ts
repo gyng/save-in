@@ -52,11 +52,25 @@ export const setupPromptAssistantPanel = (
   const form = document.querySelector<HTMLFormElement>("#prompt-assistant-form");
   const input = document.querySelector<HTMLTextAreaElement>("#prompt-assistant-input");
   const submit = document.querySelector<HTMLButtonElement>("#prompt-assistant-submit");
+  const cancel = document.querySelector<HTMLButtonElement>("#prompt-assistant-cancel");
+  const progress = document.querySelector<HTMLProgressElement>("#prompt-assistant-progress");
   const result = document.querySelector<HTMLElement>("#prompt-assistant-result");
   const rule = document.querySelector<HTMLElement>("#prompt-assistant-rule");
   const add = document.querySelector<HTMLButtonElement>("#prompt-assistant-add");
   const clear = document.querySelector<HTMLButtonElement>("#prompt-assistant-clear");
-  if (!enabled || !status || !form || !input || !submit || !result || !rule || !add || !clear) {
+  if (
+    !enabled ||
+    !status ||
+    !form ||
+    !input ||
+    !submit ||
+    !cancel ||
+    !progress ||
+    !result ||
+    !rule ||
+    !add ||
+    !clear
+  ) {
     return;
   }
 
@@ -65,6 +79,7 @@ export const setupPromptAssistantPanel = (
   let requestVersion = 0;
   let working = false;
   let availabilityTimer: ReturnType<typeof setTimeout> | undefined;
+  let activeController: AbortController | null = null;
   const copy = {
     off: localize("promptAssistantStatusOff") || "Off — no model checks or prompts",
     checking: localize("promptAssistantStatusChecking") || "Checking on-device model…",
@@ -105,6 +120,9 @@ export const setupPromptAssistantPanel = (
       working ||
       !input.value.trim() ||
       (availability !== "available" && availability !== "downloadable");
+    cancel.hidden = !working;
+    cancel.disabled = !working;
+    form.setAttribute("aria-busy", String(working));
   };
 
   const clearResult = () => {
@@ -128,8 +146,9 @@ export const setupPromptAssistantPanel = (
     }
     setStatus(copy.checking, "checking");
     updateControls();
-    availability = await promptAvailability();
+    const nextAvailability = await promptAvailability();
     if (version !== requestVersion || !enabled.checked) return;
+    availability = nextAvailability;
     if (availability === "available") setStatus(copy.ready, "ready");
     else if (availability === "downloadable") {
       setStatus(copy.downloadable, "notice");
@@ -143,12 +162,27 @@ export const setupPromptAssistantPanel = (
     updateControls();
   };
 
-  enabled.addEventListener("change", () => {
+  const cancelCurrentRequest = () => {
+    if (!working) return;
+    requestVersion += 1;
+    activeController?.abort();
+    activeController = null;
     working = false;
+    progress.hidden = true;
+    progress.removeAttribute("value");
+    if (availability === "available") setStatus(copy.ready, "ready");
+    else if (availability === "downloadable") setStatus(copy.downloadable, "notice");
+    else setStatus(copy.unavailable, "error");
+    updateControls();
+  };
+
+  enabled.addEventListener("change", () => {
+    cancelCurrentRequest();
     clearResult();
     void refreshAvailability();
   });
   input.addEventListener("input", updateControls);
+  cancel.addEventListener("click", cancelCurrentRequest);
   clear.addEventListener("click", () => {
     clearResult();
     input.focus();
@@ -158,16 +192,33 @@ export const setupPromptAssistantPanel = (
     event.preventDefault();
     if (submit.disabled) return;
     const version = ++requestVersion;
+    const controller = new AbortController();
+    activeController = controller;
     working = true;
+    progress.hidden = true;
+    progress.removeAttribute("value");
     clearResult();
     setStatus(copy.working, "working");
     updateControls();
     void Promise.all([routingGrammar(), ruleAuthoringVocabulary()])
-      .then(([grammar, vocabulary]) =>
-        runPrompt(buildRuleAuthoringPrompt(input.value, grammar, vocabulary), {
+      .then(([grammar, vocabulary]) => {
+        if (version !== requestVersion || controller.signal.aborted) return null;
+        return runPrompt(buildRuleAuthoringPrompt(input.value, grammar, vocabulary), {
           allowDownload: true,
-        }),
-      )
+          signal: controller.signal,
+          onDownloadProgress: (loaded) => {
+            if (version !== requestVersion || controller.signal.aborted) return;
+            progress.hidden = false;
+            if (loaded < 1) {
+              progress.value = Math.max(0, loaded);
+              setStatus(copy.downloading, "notice");
+            } else {
+              progress.removeAttribute("value");
+              setStatus(copy.working, "working");
+            }
+          },
+        });
+      })
       .then(async (output) => {
         if (version !== requestVersion || !enabled.checked) return;
         const cleaned = output ? cleanRuleSuggestion(output) : null;
@@ -203,7 +254,10 @@ export const setupPromptAssistantPanel = (
       })
       .finally(() => {
         if (version !== requestVersion) return;
+        activeController = null;
         working = false;
+        progress.hidden = true;
+        progress.removeAttribute("value");
         updateControls();
       });
   });

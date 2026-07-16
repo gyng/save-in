@@ -69,6 +69,12 @@
   gap: var(--space-2);
 }
 
+.prompt-assistant-progress {
+  inline-size: min(24rem, 100%);
+  block-size: var(--space-2);
+  accent-color: var(--color-accent);
+}
+
 @media (forced-colors: active) {
   .prompt-assistant-result {
     border-inline-start-color: Highlight;

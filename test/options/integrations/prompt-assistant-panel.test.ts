@@ -17,6 +17,7 @@ vi.mock("../../../src/platform/web-extension-api.ts", () => ({
 }));
 
 import { setupPromptAssistantPanel } from "../../../src/options/integrations/prompt-assistant-panel.ts";
+import * as CssValidation from "../../../src/options/core/css-selector-validation.ts";
 
 const copy: Record<string, string> = {
   promptAssistantStatusOff: "Off — no model checks or prompts",
@@ -46,6 +47,8 @@ const markup = () => {
     <form id="prompt-assistant-form">
       <textarea id="prompt-assistant-input"></textarea>
       <button id="prompt-assistant-submit" type="submit">Suggest rule</button>
+      <button id="prompt-assistant-cancel" type="button" hidden disabled>Cancel</button>
+      <progress id="prompt-assistant-progress" max="1" hidden></progress>
     </form>
     <section id="prompt-assistant-result" hidden>
       <pre id="prompt-assistant-rule"></pre>
@@ -72,7 +75,17 @@ const enable = async () => {
 
 const setup = () => setupPromptAssistantPanel(localize, { appendRule: mocks.appendRule });
 
+const submitRequest = (request = "Put PNG files in Images") => {
+  const input = element<HTMLTextAreaElement>("prompt-assistant-input");
+  input.value = request;
+  input.dispatchEvent(new InputEvent("input"));
+  element<HTMLFormElement>("prompt-assistant-form").dispatchEvent(
+    new SubmitEvent("submit", { cancelable: true }),
+  );
+};
+
 beforeEach(() => {
+  vi.restoreAllMocks();
   markup();
   mocks.availability.mockReset();
   mocks.runPrompt.mockReset();
@@ -145,6 +158,8 @@ test("generates, validates, and appends only a reviewable draft", async () => {
   await vi.waitFor(() => expect(element("prompt-assistant-result").hidden).toBe(false));
   expect(mocks.runPrompt).toHaveBeenCalledWith(expect.stringContaining(input.value), {
     allowDownload: true,
+    signal: expect.any(AbortSignal),
+    onDownloadProgress: expect.any(Function),
   });
   expect(mocks.sendMessage).toHaveBeenCalledWith(
     expect.objectContaining({
@@ -219,8 +234,10 @@ test("shows an invalid suggestion but does not let it enter the editor", async (
 });
 
 test("rejects invalid generated CSS before background validation", async () => {
-  mocks.runPrompt.mockResolvedValue("css: [\ninto: Images/:filename:");
-  setup();
+  vi.spyOn(CssValidation, "cssSelectorErrors").mockReturnValue([
+    { message: "Invalid CSS selector", error: ":save-in-unknown" },
+  ]);
+  setupPromptAssistantPanel(() => "", { appendRule: mocks.appendRule });
   await enable();
   const input = element<HTMLTextAreaElement>("prompt-assistant-input");
   input.value = "Use a CSS selector";
@@ -270,4 +287,363 @@ test("rechecks availability while the on-device model is downloading", async () 
   } finally {
     vi.useRealTimers();
   }
+});
+
+test.each([
+  "promptAssistantEnabled",
+  "prompt-assistant-status",
+  "prompt-assistant-form",
+  "prompt-assistant-input",
+  "prompt-assistant-submit",
+  "prompt-assistant-cancel",
+  "prompt-assistant-progress",
+  "prompt-assistant-result",
+  "prompt-assistant-rule",
+  "prompt-assistant-add",
+  "prompt-assistant-clear",
+])("stays inert when #%s is absent", (id) => {
+  document.getElementById(id)?.remove();
+  expect(() => setup()).not.toThrow();
+  expect(mocks.availability).not.toHaveBeenCalled();
+});
+
+test.each([
+  ["downloadable", "The model downloads when you suggest your first rule", false],
+  ["downloading", "Chrome is downloading the on-device model", true],
+  ["unavailable", "Not available in this browser or on this device", true],
+] as const)("renders the %s availability state", async (availability, status, disabled) => {
+  mocks.availability.mockResolvedValue(availability);
+  setupPromptAssistantPanel(() => "", { appendRule: mocks.appendRule });
+  await enable();
+
+  expect(element("prompt-assistant-status").textContent).toBe(status);
+  const input = element<HTMLTextAreaElement>("prompt-assistant-input");
+  input.value = "Make a rule";
+  input.dispatchEvent(new InputEvent("input"));
+  expect(element<HTMLButtonElement>("prompt-assistant-submit").disabled).toBe(disabled);
+});
+
+test("supports an initially enabled control and turning the assistant off", async () => {
+  const control = element<HTMLInputElement>("promptAssistantEnabled");
+  control.checked = true;
+  setup();
+  await vi.waitFor(() => expect(element("prompt-assistant-status").dataset.state).toBe("ready"));
+
+  control.checked = false;
+  control.dispatchEvent(new Event("change"));
+  await vi.waitFor(() => expect(element("prompt-assistant-status").dataset.state).toBe("off"));
+  expect(element<HTMLTextAreaElement>("prompt-assistant-input").disabled).toBe(true);
+});
+
+test("ignores a stale availability result after the control is disabled", async () => {
+  let resolveAvailability!: (value: string) => void;
+  mocks.availability.mockReturnValue(
+    new Promise((resolve) => {
+      resolveAvailability = resolve;
+    }),
+  );
+  setup();
+  const control = element<HTMLInputElement>("promptAssistantEnabled");
+  control.checked = true;
+  control.dispatchEvent(new Event("change"));
+  await vi.waitFor(() => expect(mocks.availability).toHaveBeenCalled());
+  control.checked = false;
+  control.dispatchEvent(new Event("change"));
+  resolveAvailability("available");
+
+  await vi.waitFor(() => expect(element("prompt-assistant-status").dataset.state).toBe("off"));
+});
+
+test("clear removes a generated draft and focuses the request", async () => {
+  setup();
+  await enable();
+  submitRequest();
+  await vi.waitFor(() => expect(element("prompt-assistant-result").hidden).toBe(false));
+
+  element<HTMLButtonElement>("prompt-assistant-clear").click();
+  expect(element("prompt-assistant-result").hidden).toBe(true);
+  expect(element("prompt-assistant-rule").textContent).toBe("");
+  expect(document.activeElement).toBe(element("prompt-assistant-input"));
+});
+
+test("a disabled submit and add button remain inert", () => {
+  setup();
+  element<HTMLFormElement>("prompt-assistant-form").dispatchEvent(
+    new SubmitEvent("submit", { cancelable: true }),
+  );
+  element<HTMLButtonElement>("prompt-assistant-add").click();
+
+  expect(mocks.sendMessage).not.toHaveBeenCalled();
+  expect(mocks.appendRule).not.toHaveBeenCalled();
+});
+
+test.each(["missing-list", "missing-routing", "missing-vocabulary"])(
+  "reports a %s authoring metadata failure",
+  async (failure) => {
+    mocks.sendMessage.mockImplementation(async (message: { type: string }) => {
+      if (message.type === "GET_GRAMMARS") {
+        if (failure === "missing-list") return { type: "ERROR", body: { status: "ERROR" } };
+        return {
+          type: "GRAMMAR_LIST",
+          body: {
+            version: 1,
+            grammars:
+              failure === "missing-routing"
+                ? []
+                : [
+                    {
+                      id: "routing",
+                      option: "filenamePatterns",
+                      ebnf: "grammar",
+                      semantics: [],
+                      examples: [],
+                    },
+                  ],
+          },
+        };
+      }
+      return { type: "ERROR", body: { status: "ERROR" } };
+    });
+    setup();
+    await enable();
+    submitRequest();
+
+    await vi.waitFor(() => expect(element("prompt-assistant-status").dataset.state).toBe("error"));
+    expect(element("prompt-assistant-status").textContent).toContain(
+      failure === "missing-vocabulary" ? "vocabulary" : "grammar",
+    );
+  },
+);
+
+test.each([
+  ["empty output", () => mocks.runPrompt.mockResolvedValue("")],
+  [
+    "invalid validation response",
+    () =>
+      mocks.sendMessage.mockImplementation(async (message: { type: string }) =>
+        message.type === "VALIDATE"
+          ? { type: "ERROR", body: { status: "ERROR" } }
+          : message.type === "GET_GRAMMARS"
+            ? {
+                type: "GRAMMAR_LIST",
+                body: {
+                  version: 1,
+                  grammars: [
+                    {
+                      id: "routing",
+                      option: "filenamePatterns",
+                      ebnf: "grammar",
+                      semantics: [],
+                      examples: [],
+                    },
+                  ],
+                },
+              }
+            : {
+                type: "KEYWORD_LIST",
+                body: { matchers: [], variables: [], automaticMatchers: [], sourceKinds: [] },
+              },
+      ),
+  ],
+] as const)("reports %s", async (_label, arrange) => {
+  arrange();
+  setupPromptAssistantPanel(() => "", { appendRule: mocks.appendRule });
+  await enable();
+  submitRequest();
+
+  await vi.waitFor(() => expect(element("prompt-assistant-status").dataset.state).toBe("error"));
+  expect(element("prompt-assistant-status").textContent).toContain("Could not create a draft");
+});
+
+test("disabling during generation discards the stale completion", async () => {
+  let resolvePrompt!: (value: string) => void;
+  mocks.runPrompt.mockReturnValue(
+    new Promise((resolve) => {
+      resolvePrompt = resolve;
+    }),
+  );
+  setup();
+  await enable();
+  submitRequest();
+  await vi.waitFor(() => expect(mocks.runPrompt).toHaveBeenCalled());
+  const control = element<HTMLInputElement>("promptAssistantEnabled");
+  control.checked = false;
+  control.dispatchEvent(new Event("change"));
+  resolvePrompt("fileext: png\ninto: images/");
+
+  await vi.waitFor(() => expect(element("prompt-assistant-status").dataset.state).toBe("off"));
+  expect(element("prompt-assistant-result").hidden).toBe(true);
+});
+
+test("shows bounded download progress while Chrome prepares the model", async () => {
+  let resolvePrompt!: (value: string) => void;
+  mocks.runPrompt.mockReturnValue(
+    new Promise((resolve) => {
+      resolvePrompt = resolve;
+    }),
+  );
+  setup();
+  await enable();
+  submitRequest();
+  await vi.waitFor(() => expect(mocks.runPrompt).toHaveBeenCalled());
+  const options = mocks.runPrompt.mock.calls[0]![1];
+  options.onDownloadProgress(0.4);
+
+  const progress = element<HTMLProgressElement>("prompt-assistant-progress");
+  expect(progress.hidden).toBe(false);
+  expect(progress.value).toBe(0.4);
+  expect(element("prompt-assistant-status").textContent).toBe(
+    "Chrome is downloading the on-device model",
+  );
+
+  options.onDownloadProgress(1.4);
+  expect(progress.hasAttribute("value")).toBe(false);
+  expect(element("prompt-assistant-status").textContent).toBe("Creating and checking a draft…");
+
+  resolvePrompt("fileext: png\ninto: images/");
+  await vi.waitFor(() => expect(progress.hidden).toBe(true));
+  expect(progress.hasAttribute("value")).toBe(false);
+});
+
+test("cancel aborts the active model request and restores ready controls", async () => {
+  let signal: AbortSignal | undefined;
+  mocks.runPrompt.mockImplementation(
+    (_input: string, options: { signal?: AbortSignal; onDownloadProgress?: (n: number) => void }) =>
+      new Promise((_resolve, reject) => {
+        signal = options.signal;
+        options.onDownloadProgress?.(0.25);
+        signal?.addEventListener("abort", () => reject(new DOMException("Canceled", "AbortError")));
+      }),
+  );
+  setup();
+  await enable();
+  submitRequest();
+  await vi.waitFor(() => expect(mocks.runPrompt).toHaveBeenCalled());
+  await vi.waitFor(() =>
+    expect(element<HTMLButtonElement>("prompt-assistant-cancel").hidden).toBe(false),
+  );
+
+  element<HTMLButtonElement>("prompt-assistant-cancel").click();
+
+  expect(signal?.aborted).toBe(true);
+  expect(element<HTMLButtonElement>("prompt-assistant-cancel").hidden).toBe(true);
+  expect(element<HTMLTextAreaElement>("prompt-assistant-input").disabled).toBe(false);
+  expect(element("prompt-assistant-form").getAttribute("aria-busy")).toBe("false");
+  expect(element("prompt-assistant-status").textContent).toBe("Ready on this device");
+});
+
+test("cancel before authoring metadata arrives never starts the model", async () => {
+  let resolveGrammar!: (value: unknown) => void;
+  mocks.sendMessage.mockImplementation((message: { type: string }) => {
+    if (message.type === "GET_GRAMMARS") {
+      return new Promise((resolve) => {
+        resolveGrammar = resolve;
+      });
+    }
+    return Promise.resolve({
+      type: "KEYWORD_LIST",
+      body: { matchers: [], variables: [], automaticMatchers: [], sourceKinds: [] },
+    });
+  });
+  setup();
+  await enable();
+  submitRequest();
+  await vi.waitFor(() =>
+    expect(element<HTMLButtonElement>("prompt-assistant-cancel").hidden).toBe(false),
+  );
+
+  element<HTMLButtonElement>("prompt-assistant-cancel").click();
+  resolveGrammar({
+    type: "GRAMMAR_LIST",
+    body: {
+      version: 1,
+      grammars: [
+        { id: "routing", option: "filenamePatterns", ebnf: "grammar", semantics: [], examples: [] },
+      ],
+    },
+  });
+
+  await vi.waitFor(() => expect(element("prompt-assistant-status").dataset.state).toBe("ready"));
+  expect(mocks.runPrompt).not.toHaveBeenCalled();
+});
+
+test("disabling during validation discards the stale validation result", async () => {
+  let resolveValidation!: (value: unknown) => void;
+  mocks.sendMessage.mockImplementation(async (message: { type: string }) => {
+    if (message.type === "VALIDATE") {
+      return new Promise((resolve) => {
+        resolveValidation = resolve;
+      });
+    }
+    if (message.type === "GET_GRAMMARS") {
+      return {
+        type: "GRAMMAR_LIST",
+        body: {
+          version: 1,
+          grammars: [
+            {
+              id: "routing",
+              option: "filenamePatterns",
+              ebnf: "grammar",
+              semantics: [],
+              examples: [],
+            },
+          ],
+        },
+      };
+    }
+    return {
+      type: "KEYWORD_LIST",
+      body: { matchers: [], variables: [], automaticMatchers: [], sourceKinds: [] },
+    };
+  });
+  setup();
+  await enable();
+  submitRequest();
+  await vi.waitFor(() =>
+    expect(mocks.sendMessage).toHaveBeenCalledWith(expect.objectContaining({ type: "VALIDATE" })),
+  );
+  const control = element<HTMLInputElement>("promptAssistantEnabled");
+  control.checked = false;
+  control.dispatchEvent(new Event("change"));
+  resolveValidation({ type: "VALIDATE_RESULT", body: { version: 1, ruleErrors: [] } });
+
+  await vi.waitFor(() => expect(element("prompt-assistant-status").dataset.state).toBe("off"));
+  expect(element<HTMLButtonElement>("prompt-assistant-add").disabled).toBe(true);
+});
+
+test("disabling while metadata rejects suppresses the stale failure", async () => {
+  let rejectGrammar!: (error: Error) => void;
+  mocks.sendMessage.mockImplementation((message: { type: string }) =>
+    message.type === "GET_GRAMMARS"
+      ? new Promise((_resolve, reject) => {
+          rejectGrammar = reject;
+        })
+      : Promise.resolve({
+          type: "KEYWORD_LIST",
+          body: { matchers: [], variables: [], automaticMatchers: [], sourceKinds: [] },
+        }),
+  );
+  setup();
+  await enable();
+  submitRequest();
+  await vi.waitFor(() => expect(mocks.sendMessage).toHaveBeenCalled());
+  const control = element<HTMLInputElement>("promptAssistantEnabled");
+  control.checked = false;
+  control.dispatchEvent(new Event("change"));
+  rejectGrammar(new Error("late failure"));
+
+  await vi.waitFor(() => expect(element("prompt-assistant-status").dataset.state).toBe("off"));
+});
+
+test("add refuses a vanished editor after a draft validates", async () => {
+  setup();
+  await enable();
+  submitRequest();
+  await vi.waitFor(() =>
+    expect(element<HTMLButtonElement>("prompt-assistant-add").disabled).toBe(false),
+  );
+  element("filenamePatterns").remove();
+  element<HTMLButtonElement>("prompt-assistant-add").click();
+  expect(mocks.appendRule).not.toHaveBeenCalled();
 });

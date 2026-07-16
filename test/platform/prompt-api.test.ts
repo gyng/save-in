@@ -80,6 +80,32 @@ describe("prompt-api capability layer", () => {
     expect(session.prompt).toHaveBeenCalledWith("suggest a rule");
   });
 
+  test("forwards cancellation and model download progress", async () => {
+    const session = install("downloadable");
+    const model = Reflect.get(globalThis, "LanguageModel") as {
+      create: ReturnType<typeof vi.fn>;
+    };
+    const controller = new AbortController();
+    const progress = vi.fn();
+    const pending = runPrompt("suggest a rule", {
+      allowDownload: true,
+      signal: controller.signal,
+      onDownloadProgress: progress,
+    });
+    await vi.waitFor(() => expect(model.create).toHaveBeenCalled());
+    const createOptions = model.create.mock.calls[0]![0]!;
+    const addEventListener = vi.fn();
+    createOptions.monitor({ addEventListener });
+    expect(addEventListener).toHaveBeenCalledWith("downloadprogress", expect.any(Function));
+    const listener = addEventListener.mock.calls[0]![1];
+    listener({ loaded: 0.42 });
+
+    await expect(pending).resolves.toBe("a suggested rule");
+    expect(createOptions.signal).toBe(controller.signal);
+    expect(session.prompt).toHaveBeenCalledWith("suggest a rule", { signal: controller.signal });
+    expect(progress).toHaveBeenCalledWith(0.42);
+  });
+
   test("destroys the session even when the prompt itself rejects", async () => {
     const session: Session = {
       prompt: vi.fn(async () => {
