@@ -41,6 +41,13 @@ describe("Prompt API rule-authoring model", () => {
     expect(result).toContain("into destination folder must be exactly: dongs");
     expect(result).toContain("bare into: dongs would rename the file and is wrong");
     expect(result.indexOf("Exact constraints")).toBeGreaterThan(result.indexOf("User request:"));
+
+    const unconstrained = buildRuleAuthoringPrompt("!!!", grammar, {
+      matchers: ["fileext"],
+      variables: ["filename"],
+    });
+    expect(unconstrained).toContain("no explicit file extension constraint was detected");
+    expect(unconstrained).toContain("no slash-prefixed destination folder was detected");
   });
 
   test("rejects a model draft that broadens an explicit file type", () => {
@@ -56,6 +63,12 @@ describe("Prompt API rule-authoring model", () => {
         "fileext/i: ^png$\ninto: dongs/:filename:",
       ),
     ).toBeNull();
+    expect(ruleSuggestionFidelityError("save png", "into: Images/")).toBe(
+      "The generated rule does not include the requested file type",
+    );
+    expect(ruleSuggestionFidelityError("save png", "fileext: [\ninto: Images/")).toBe(
+      "The generated rule does not include the requested file type",
+    );
   });
 
   test("rejects a model draft that changes an explicit slash-prefixed folder", () => {
@@ -73,6 +86,9 @@ describe("Prompt API rule-authoring model", () => {
     ).toBeNull();
     expect(ruleSuggestionFidelityError("save png into /dongs", "fileext: ^png$\ninto: dongs")).toBe(
       "The generated destination would rename the file instead of saving it in /dongs",
+    );
+    expect(ruleSuggestionFidelityError("save this into /dongs", "filename: .*\ninto:")).toBe(
+      "The generated destination does not match /dongs",
     );
   });
 

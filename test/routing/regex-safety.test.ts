@@ -27,6 +27,7 @@ test.each([
   /(?:\d+1)+$/,
   /(?:\w+_)+$/,
   /(?:\s+ )+$/,
+  /(?:[^/]+\d)+$/,
   /^(a+)\1$/,
   /^(?<part>a+)\k<part>$/,
 ])("rejects ambiguous repetition and backreferences %#", (regex) => {

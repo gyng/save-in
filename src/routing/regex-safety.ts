@@ -13,8 +13,9 @@ const repeatingQuantifierAt = (source: string, index: number): boolean => {
   const token = source[index];
   if (token === "*" || token === "+") return true;
   if (token !== "{") return false;
+  // RegExp#source escapes a literal brace; an unescaped brace here is a
+  // compiled quantifier and therefore always has its closing delimiter.
   const end = source.indexOf("}", index + 1);
-  if (end < 0) return false;
   const bounds = source.slice(index + 1, end).split(",");
   if (bounds.length === 1) return Number(bounds[0]) > 1;
   const maximum = bounds[1];
@@ -24,8 +25,8 @@ const repeatingQuantifierAt = (source: string, index: number): boolean => {
 const trailingDelimiterIsExcluded = (body: string): boolean => {
   const tail = /(?:\[\^([^\]]*)\]|\\([dws]))(?:[+*]|\{[^}]+\})(\\.|[^\\()[\]{}?+*|^$])$/.exec(body);
   if (!tail) return false;
-  const rawDelimiter = tail[3];
-  if (!rawDelimiter) return false;
+  // The final regex group is mandatory whenever the expression matches.
+  const rawDelimiter = tail[3] as string;
   const delimiter = rawDelimiter.startsWith("\\") ? rawDelimiter.slice(1) : rawDelimiter;
   if (delimiter.length !== 1 || /[dDsSwWbB]/.test(rawDelimiter.slice(1))) return false;
   const excluded = tail[1];
