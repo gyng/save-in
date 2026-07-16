@@ -20,6 +20,8 @@ Saves images, videos, audio, links, selected text, and pages to folders inside y
 ## Firefox description
 
 ```text
+Rebuilt from the first character to the last for Manifest V3, and still filing your downloads with the same stubborn logic it has used since 2017.
+
 Save In adds configurable context-menu destinations for images, videos, audio, links, selected text, and pages. Choose organized folders without repeatedly navigating the Save As dialog.
 
 Features
@@ -51,6 +53,8 @@ Requires Firefox 121 or later.
 ## Chrome description
 
 ```text
+Rebuilt from the first character to the last for Manifest V3, and still filing your downloads with the same stubborn logic it has used since 2017.
+
 Save In adds configurable context-menu destinations for images, videos, audio, links, selected text, and pages. Choose organized folders without repeatedly navigating the Save As dialog.
 
 Features
