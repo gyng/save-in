@@ -242,11 +242,18 @@ export const withRequestReferer = async <T>(
     const api = dnrApi();
     if (!api) return operation();
     const install = async (urls: readonly string[]): Promise<void> => {
-      const sweeping = [...staleRuleIds];
+      // A stale ID another operation currently holds is that operation's to
+      // resolve: the pool reissues the lowest free ID, so it has already
+      // reinstalled a live rule under it. Sweeping it here would delete that
+      // rule rather than the leaked one, sending its request with no Referer.
+      const sweeping = [...staleRuleIds].filter((stale) => stale !== id && !inFlight.has(stale));
       await api.updateSessionRules({
         removeRuleIds: [id, ...sweeping],
         addRules: [buildRule(urls, referer, requestMethods, id)],
       });
+      // This update replaced the rule under `id`, so a leak recorded against
+      // it is resolved whether or not another operation left it behind.
+      staleRuleIds.delete(id);
       // Only drop the IDs this update actually removed; a concurrent failure
       // may have recorded more while it was in flight.
       for (const stale of sweeping) staleRuleIds.delete(stale);

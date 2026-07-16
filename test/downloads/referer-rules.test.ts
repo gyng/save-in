@@ -183,6 +183,63 @@ test("sweeps a rule left behind by a rejected cleanup on the next install", asyn
   expect(updateSessionRules().mock.calls[0]![0]!.removeRuleIds).toEqual([REFERER_SESSION_RULE_ID]);
 });
 
+// The pool hands out the lowest free ID, so a leaked ID is the first one
+// reissued: the next operation installs its own rule under it. A concurrent
+// operation that snapshotted the same leaked ID must not sweep it, or its
+// update deletes the live rule and that request goes out with no Referer.
+test("a stale sweep leaves a rule a concurrent operation reinstalled alone", async () => {
+  const leakedId = REFERER_SESSION_RULE_ID;
+  // Only a cleanup rejects: a removal carries no addRules.
+  updateSessionRules().mockImplementation(async (update) => {
+    if (!update.addRules && update.removeRuleIds?.includes(leakedId)) {
+      throw new Error("worker stopped");
+    }
+  });
+  await RefererRules.withRequestReferer(
+    "https://cdn.example/leak.jpg",
+    "https://gallery.example/view",
+    async () => "leaker",
+  );
+
+  // Model the session rule store, so the assertion is what the browser would
+  // actually be left holding once it applies the updates in the issued order.
+  const rules = new Map<number, chrome.declarativeNetRequest.Rule>();
+  updateSessionRules().mockImplementation(async (update) => {
+    for (const id of update.removeRuleIds ?? []) rules.delete(id);
+    for (const rule of update.addRules ?? []) rules.set(rule.id, rule);
+  });
+
+  let releaseReuser!: () => void;
+  const reuserPending = new Promise<void>((resolve) => {
+    releaseReuser = resolve;
+  });
+  let rulesWhileReuserRan: chrome.declarativeNetRequest.Rule[] = [];
+  // Takes the leaked ID back and reinstalls its own rule under it.
+  const reuser = RefererRules.withRequestReferer(
+    "https://cdn.example/reuser.jpg",
+    "https://reuser.example/view",
+    async () => {
+      rulesWhileReuserRan = [...rules.values()];
+      await reuserPending;
+      return "reuser";
+    },
+  );
+  // A distinct URL, so it runs concurrently on the next pool ID while holding
+  // the same snapshot of the leaked ID.
+  await RefererRules.withRequestReferer(
+    "https://cdn.example/sweeper.jpg",
+    "https://sweeper.example/view",
+    async () => "sweeper",
+  );
+  releaseReuser();
+  await expect(reuser).resolves.toBe("reuser");
+
+  const protectingReuser = rulesWhileReuserRan.find((rule) =>
+    new RegExp(rule.condition.regexFilter!).test("https://cdn.example/reuser.jpg"),
+  );
+  expect(protectingReuser?.action.requestHeaders?.[0]?.value).toBe("https://reuser.example/view");
+});
+
 test("degrades to an unprotected request when the first rule would be oversized", async () => {
   const longUrl = `https://cdn.example/${"a".repeat(2000)}.jpg`;
   updateSessionRules().mockClear();
