@@ -70,10 +70,17 @@ into: Articles/:filename:
 
 Comma-separated selectors use normal CSS OR behavior. Multiple `css:` clauses
 must all match the same originating element. Automatic discovery and the Page
-Sources panel combine every current element that declares the same source URL;
-any one of those origins may satisfy a rule, and routing-rule order still wins
-over DOM traversal order. Click-to-save evaluates the element that was clicked.
-Routes without page-element context do not match `css:`.
+Sources panel combine every current element that declares the same source URL,
+so any one of those origins may satisfy a rule without making routing depend on
+DOM traversal order. Automatic discovery also compares duplicate source-kind
+variants before choosing the first matching rule. Click-to-save evaluates the
+element that was clicked. Routes without page-element context do not match
+`css:`.
+
+For bounded content-to-background messages, one rule may contain up to 64
+`css:` matchers and the complete routing configuration may contain up to 256.
+The validator rejects larger configurations instead of silently dropping
+selector matches.
 
 ## History actions
 

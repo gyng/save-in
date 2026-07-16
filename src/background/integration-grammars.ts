@@ -27,6 +27,7 @@ export const INTEGRATION_GRAMMARS: readonly IntegrationGrammar[] = [
     semantics: [
       "Blank lines separate rules; matcher clauses in one rule must all match.",
       "Matcher values are regular expressions except css:, whose value is a CSS selector without regex flags.",
+      "CSS routing is bounded to 64 css: matchers per rule and 256 across the configuration.",
       "A rule may contain capture clauses and ends with an into destination.",
       "Automatic source rules use context: ^auto$ and require page and source constraints.",
     ],

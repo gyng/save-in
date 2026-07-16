@@ -9,6 +9,10 @@ import {
 import { mergePageSourcesByUrl } from "../../src/content/source-panel-model.ts";
 import { collectPageSourceCandidates } from "../../src/content/source-panel-model.ts";
 
+const rulesWithCss = (...selectors: string[]) =>
+  parseRulesCollecting(`${selectors.map((selector) => `css: ${selector}`).join("\n")}\ninto: x/`)
+    .rules;
+
 describe("content CSS routing", () => {
   test("uses native comma-list semantics and keeps matches grouped by origin", () => {
     document.body.innerHTML = `
@@ -22,13 +26,33 @@ describe("content CSS routing", () => {
     if (!(hero instanceof Element) || !(avatar instanceof Element)) return;
 
     expect(
-      matchedCssSelectorsByOrigin([hero, avatar], ["article img, video", "img:not(.avatar)"]),
+      matchedCssSelectorsByOrigin(
+        [hero, avatar],
+        rulesWithCss("article img, video", "img:not(.avatar)"),
+      ),
     ).toEqual([["article img, video", "img:not(.avatar)"]]);
+  });
+
+  test("emits a rule proof only when one origin satisfies every CSS clause", () => {
+    const articleImage = document.createElement("img");
+    articleImage.className = "article";
+    const fullSizeImage = document.createElement("img");
+    fullSizeImage.className = "full-size";
+    const rules = rulesWithCss(".article", ".full-size");
+
+    expect(matchedCssSelectorsByOrigin([articleImage, fullSizeImage], rules)).toEqual([]);
+    fullSizeImage.classList.add("article");
+    expect(matchedCssSelectorsByOrigin([articleImage, fullSizeImage], rules)).toEqual([
+      [".article", ".full-size"],
+    ]);
   });
 
   test("contains invalid stored selectors and omits resource hints", () => {
     const image = document.createElement("img");
-    expect(matchedCssSelectorsByOrigin([image], ["[", "img"])).toEqual([["img"]]);
+    const storedRules = parseRulesCollecting(
+      "css: [\ninto: invalid/\n\ncss: img\ninto: valid/",
+    ).rules;
+    expect(matchedCssSelectorsByOrigin([image], storedRules)).toEqual([["img"]]);
     expect(
       sourceOriginElements({
         url: "https://example.test/stream.m3u8",
@@ -37,6 +61,15 @@ describe("content CSS routing", () => {
         element: image,
       }),
     ).toEqual([]);
+  });
+
+  test("preserves escaped trailing whitespace in native CSS selectors", () => {
+    const element = document.createElement("div");
+    element.id = "escaped ";
+    const parsed = parseRulesCollecting("css: #escaped\\ \ninto: escaped/");
+
+    expect(parsed.rules[0]?.[0]).toMatchObject({ value: "#escaped\\ " });
+    expect(matchedCssSelectorsByOrigin([element], parsed.rules)).toEqual([["#escaped\\ "]]);
   });
 
   test("does not turn a merged resource hint placeholder into a DOM origin", () => {
@@ -56,7 +89,9 @@ describe("content CSS routing", () => {
     ]) {
       const merged = mergePageSourcesByUrl(sources);
       expect(sourceOriginElements(merged[0]!)).toEqual([image]);
-      expect(matchedCssSelectorsByOrigin(sourceOriginElements(merged[0]!), ["body"])).toEqual([]);
+      expect(
+        matchedCssSelectorsByOrigin(sourceOriginElements(merged[0]!), rulesWithCss("body")),
+      ).toEqual([]);
     }
   });
 
@@ -75,7 +110,10 @@ describe("content CSS routing", () => {
     expect(responsive?.element).toBe(image);
     expect(
       responsive
-        ? matchedCssSelectorsByOrigin(sourceOriginElements(responsive), ["article picture img"])
+        ? matchedCssSelectorsByOrigin(
+            sourceOriginElements(responsive),
+            rulesWithCss("article picture img"),
+          )
         : [],
     ).toEqual([["article picture img"]]);
   });
@@ -104,9 +142,9 @@ describe("content CSS routing", () => {
     expect(sourceOriginElements(retainedCandidate)).toEqual([retained, removed]);
     const rescanned = mergePageSourcesByUrl([retainedCandidate]);
     expect(sourceOriginElements(rescanned[0]!)).toEqual([retained]);
-    expect(matchedCssSelectorsByOrigin(sourceOriginElements(rescanned[0]!), [".avatar"])).toEqual(
-      [],
-    );
+    expect(
+      matchedCssSelectorsByOrigin(sourceOriginElements(rescanned[0]!), rulesWithCss(".avatar")),
+    ).toEqual([]);
   });
 
   test("extracts unique raw CSS selectors from parsed rules", () => {
@@ -114,5 +152,36 @@ describe("content CSS routing", () => {
       "css: article img\ninto: a/\n\ncss: article img\ncss: .hero\ninto: b/",
     );
     expect(cssSelectorsForRules(parsed.rules)).toEqual(["article img", ".hero"]);
+  });
+
+  test("bounds selector attestations and drops duplicate origin groups", () => {
+    expect(matchedCssSelectorsByOrigin([document.body], [])).toEqual([]);
+
+    const duplicateA = document.createElement("img");
+    const duplicateB = document.createElement("img");
+    expect(matchedCssSelectorsByOrigin([duplicateA, duplicateB], rulesWithCss("img"))).toEqual([
+      ["img"],
+    ]);
+
+    const one = document.createElement("div");
+    const selectorsAtLimit = Array.from({ length: 256 }, (_value, index) => `.match-${index}`);
+    one.className = selectorsAtLimit.map((selector) => selector.slice(1)).join(" ");
+    const rulesAtLimit = parseRulesCollecting(
+      selectorsAtLimit
+        .map((selector, index) => `css: ${selector}\ninto: match-${index}/`)
+        .join("\n\n"),
+    ).rules;
+    expect(matchedCssSelectorsByOrigin([one], rulesAtLimit)).toHaveLength(256);
+
+    const origins = Array.from({ length: 33 }, (_, index) => {
+      const element = document.createElement("div");
+      element.className = `origin-${index}`;
+      return element;
+    });
+    const selectors = origins.map((_, index) => `.origin-${index}`);
+    const rules = parseRulesCollecting(
+      selectors.map((selector, index) => `css: ${selector}\ninto: ${index}/`).join("\n\n"),
+    ).rules;
+    expect(matchedCssSelectorsByOrigin(origins, rules)).toHaveLength(33);
   });
 });

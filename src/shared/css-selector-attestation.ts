@@ -2,7 +2,10 @@
 // message protocol consume them in contexts that cannot import content code.
 
 export const MAX_CSS_SELECTOR_LENGTH = 512;
-export const MAX_CSS_SELECTOR_ORIGINS = 32;
+// Attestation groups are same-origin proofs for configured CSS rule groups,
+// not a dump of every matching DOM element. The parser keeps their total
+// selector count bounded by MAX_CSS_SELECTOR_MATCHES.
+export const MAX_CSS_SELECTOR_ORIGINS = 256;
 export const MAX_CSS_SELECTORS_PER_ORIGIN = 64;
 export const MAX_CSS_SELECTOR_MATCHES = 256;
 

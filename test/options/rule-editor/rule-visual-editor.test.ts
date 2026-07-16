@@ -144,6 +144,16 @@ describe("routing visual editor", () => {
     expect(value.getAttribute("aria-label")).toBe("Rule 1: rewrite download URL");
   });
 
+  test("shows a selector example for a CSS matcher row", () => {
+    element<HTMLTextAreaElement>("#filenamePatterns").value = "css: article img\ninto: images/";
+    setupRuleVisualEditor({ matchers: ["css"] });
+
+    expect(element<HTMLInputElement>(".rule-clause-value").placeholder).toBe(
+      "article img, .gallery video",
+    );
+    expect(document.querySelector(".rule-clause-flag")).toBeNull();
+  });
+
   test("renders a rename clause as a dedicated rename-the-file row", () => {
     vi.mocked(browser.i18n.getMessage).mockImplementation((key: string) => {
       if (key === "routeVisualRenameLabel") return "Rename the file";

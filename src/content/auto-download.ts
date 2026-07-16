@@ -8,7 +8,11 @@ import {
   matchAutomaticRoutingRule,
   type AutomaticRoutingCandidate,
 } from "../automation/automatic-routing.ts";
-import { collectPageSourceCandidates, mergePageSourcesByUrl } from "./source-panel-model.ts";
+import {
+  collectPageSourceCandidates,
+  mergePageSourcesByUrl,
+  type PageSource,
+} from "./source-panel-model.ts";
 import { parseRulesCollecting } from "../routing/rule-parser.ts";
 import { isAutomaticRuleClauses } from "../routing/automatic-rule.ts";
 import { normalizeAutoDownloadLimit } from "../config/content-options.ts";
@@ -154,7 +158,7 @@ export const setupAutoDownloadDiscovery = (
       // anchor collection by itself — it does not require includeLinks.
       includeLinks: options.includeLinks || options.includeDocuments,
     });
-    const admittedSources = [];
+    const admittedSources: PageSource[] = [];
     for (const source of candidates) {
       if (source.previewable === false) continue;
       if (
@@ -180,27 +184,37 @@ export const setupAutoDownloadDiscovery = (
         sourceOriginElements(source),
       ]),
     );
+    const sourcesByUrl = new Map<string, PageSource[]>();
     for (const source of admittedSources) {
-      const sourceUrl = source.url;
+      const variants = sourcesByUrl.get(source.url);
+      if (variants) variants.push(source);
+      else sourcesByUrl.set(source.url, [source]);
+    }
+    for (const [sourceUrl, sources] of sourcesByUrl) {
       // A long data: URL keys the dedup set on its hash so the set never holds a
       // megabyte string; http(s) and short data: URLs key on the string itself.
       const seenKey = automaticSeenKey(sourceUrl);
       if (seen.has(seenKey)) continue;
-      const candidate: AutomaticRoutingCandidate = {
-        pageUrl,
-        sourceUrl,
-        sourceKind: source.kind,
-        ...(source.channel ? { sourceChannel: source.channel } : {}),
-        ...(cssSelectors.length > 0
-          ? {
-              matchedCssSelectorsByOrigin: matchedCssSelectorsByOrigin(
-                originsByUrl.get(sourceUrl) ?? sourceOriginElements(source),
-                cssSelectors,
-              ),
-            }
-          : {}),
-      };
-      if (!matchAutomaticRoutingRule(automaticRules, candidate)) continue;
+      const origins = originsByUrl.get(sourceUrl);
+      if (!origins) continue;
+      const cssAttestation =
+        cssSelectors.length > 0 ? matchedCssSelectorsByOrigin(origins, automaticRules) : undefined;
+      let selected: { candidate: AutomaticRoutingCandidate; ruleIndex: number } | undefined;
+      for (const source of sources) {
+        const candidate: AutomaticRoutingCandidate = {
+          pageUrl,
+          sourceUrl,
+          sourceKind: source.kind,
+          ...(source.channel ? { sourceChannel: source.channel } : {}),
+          ...(cssAttestation ? { matchedCssSelectorsByOrigin: cssAttestation } : {}),
+        };
+        const match = matchAutomaticRoutingRule(automaticRules, candidate);
+        if (!match) continue;
+        const ruleIndex = automaticRules.indexOf(match.rule);
+        if (ruleIndex < 0) continue;
+        if (!selected || ruleIndex < selected.ruleIndex) selected = { candidate, ruleIndex };
+      }
+      if (!selected) continue;
       if (seen.size >= maxPerPage) {
         if (!dedup.limitNotified) {
           dedup.limitNotified = true;
@@ -209,7 +223,7 @@ export const setupAutoDownloadDiscovery = (
         continue;
       }
       seen.add(seenKey);
-      queue.push(candidate);
+      queue.push(selected.candidate);
     }
     void drain();
   };

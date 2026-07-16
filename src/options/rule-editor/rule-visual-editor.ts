@@ -392,7 +392,7 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
       );
     }
 
-    if (clause.kind === "matcher" && conditionNumber !== undefined) {
+    if (clause.kind === "matcher" && clause.name !== "css" && conditionNumber !== undefined) {
       const insensitive = document.createElement("label");
       insensitive.className = "rule-clause-flag";
       insensitive.title = localize(

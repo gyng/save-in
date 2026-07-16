@@ -12,7 +12,11 @@ import type {
   RoutingRule,
 } from "./rule-types.ts";
 import { isCssMatcherClause, isRegexMatcherClause } from "./rule-types.ts";
-import { MAX_CSS_SELECTOR_LENGTH } from "../shared/css-selector-attestation.ts";
+import {
+  MAX_CSS_SELECTOR_LENGTH,
+  MAX_CSS_SELECTOR_MATCHES,
+  MAX_CSS_SELECTORS_PER_ORIGIN,
+} from "../shared/css-selector-attestation.ts";
 import { automaticRuleClauseIssues, isAutomaticRuleClauses } from "./automatic-rule.ts";
 import { findBannedFetchVariables, findUnknownPathVariables } from "./path-variables.ts";
 import { RENAME_SEPARATOR, splitRenameValue } from "./rename.ts";
@@ -123,6 +127,17 @@ const parseSemanticRule = (
     if (value === "true") return false;
   }
   const lines = rule.clauses.filter((line) => line.name !== "disabled");
+  const cssLines = lines.filter((line) => line.name === "css");
+  const excessCssLine = cssLines[MAX_CSS_SELECTORS_PER_ORIGIN];
+  if (excessCssLine) {
+    appendError(
+      errors,
+      routingPorts.getMessage("ruleBadClause"),
+      `a rule may contain at most ${MAX_CSS_SELECTORS_PER_ORIGIN} css: matchers`,
+      excessCssLine.span,
+    );
+    return false;
+  }
   const automaticIssues = automaticRuleClauseIssues(lines);
   automaticIssues.forEach((issue) =>
     appendError(
@@ -185,7 +200,7 @@ const parseSemanticRule = (
     }
 
     if (name === "css") {
-      const selector = rawValue.trim();
+      const selector = rawValue;
       if (flags) {
         appendError(
           errors,
@@ -195,7 +210,7 @@ const parseSemanticRule = (
         );
         return false;
       }
-      if (!selector || selector.length > MAX_CSS_SELECTOR_LENGTH) {
+      if (!selector.trim() || selector.length > MAX_CSS_SELECTOR_LENGTH) {
         appendError(
           errors,
           routingPorts.getMessage("ruleInvalidCssSelector"),
@@ -519,6 +534,19 @@ export const parseRulesCollecting = (
     .map((ast) => ({ ast, rule: parseSemanticRule(ast, errors) }))
     .filter((entry): entry is { ast: RoutingRuleNode; rule: RoutingRule } => Boolean(entry.rule));
   const rules = parsedRules.map((entry) => entry.rule);
+  const cssNodes = parsedRules.flatMap(({ ast }) =>
+    ast.clauses.filter((clause) => clause.name === "css"),
+  );
+  const excessCssNode = cssNodes[MAX_CSS_SELECTOR_MATCHES];
+  if (excessCssNode) {
+    appendError(
+      errors,
+      routingPorts.getMessage("ruleBadClause"),
+      `routing rules may contain at most ${MAX_CSS_SELECTOR_MATCHES} css: matchers`,
+      excessCssNode.span,
+    );
+    return { rules: [], errors };
+  }
   for (let index = 1; index < parsedRules.length; index += 1) {
     const laterEntry = parsedRules[index];
     /* v8 ignore next -- The loop bound guarantees an entry at this index. */
