@@ -233,6 +233,13 @@ describe("Prompt API rule-authoring model", () => {
       "fileext/i: ^pdf$\npagedomain: ^other\\.example$\ninto: archive/:filename:",
       ["The matchers do not contain the requested docs.example.com site."],
     ],
+    // Naming the site in a rename template does not match on it, so a rule that
+    // only spells it there still routes every site's PNGs into the folder.
+    [
+      "save png from example.com into /archive",
+      "fileext: ^png$\nrename/i: ^(.*)$ -> example.com-:filename:\ninto: archive/:filename:",
+      ["The matchers do not contain the requested example.com site."],
+    ],
     // A site clause after the file type must not cost the request its file-type
     // anchor, and must not be read as a type itself.
     [

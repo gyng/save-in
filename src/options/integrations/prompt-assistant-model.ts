@@ -388,7 +388,12 @@ const explicitSites = (request: string): string[] => {
 const matcherText = (rule: string): string =>
   rule
     .split(RULE_LINE_BREAKS)
-    .filter((line) => !/^\s*(?:into|fetch|rename|disabled|capture|capturegroups):/i.test(line))
+    // rename takes regex flags, so its clause name is not always followed by
+    // the colon directly. Missing the flagged spelling would count a site named
+    // in a rename template as a site the rule matches on.
+    .filter(
+      (line) => !/^\s*(?:into|fetch|rename|disabled|capture|capturegroups)(?:\/\S+)?:/i.test(line),
+    )
     .join("\n")
     .replaceAll("\\", "")
     .toLowerCase();
