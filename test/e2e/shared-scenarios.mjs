@@ -884,6 +884,50 @@ export const runQuickSaveScenario = async ({ control, waitForDownloads }) => {
   expect(completed.state).toBe("complete");
   expect(completed.filename).toMatch(/e2e[\\/]quick-save[\\/]quick-save-smoke\.selection\.txt$/);
   expect(fs.readFileSync(completed.filename, "utf8")).toBe("quick save content");
+
+  // #144 offers this same item alone at top level, with no root around it.
+  // Whether the browser then skips the submenu is NOT checkable here — no
+  // WebExtension API enumerates menu items, and native menus are not in the DOM.
+  // What is checkable is the half that broke real installs: rebuilding into a
+  // shape where MENU_IDS.ROOT never exists, against the live contextMenus API.
+  // Any item still claiming it as a parent fails there and not in jsdom, and an
+  // option change routes through backgroundRuntime.reset(), so a throwing
+  // rebuild surfaces as "init failed".
+  await control.options.set({ quickSaveOnly: true });
+  await control.background.clickContextMenu({
+    info: {
+      menuItemId: "save-in-quick-save",
+      selectionText: "top level quick save",
+      pageUrl: "https://example.com/",
+    },
+    tab: { id: 1, title: "quick-save-only", url: "https://example.com/" },
+  });
+
+  const topLevel = await waitForDownloads("quick-save-only");
+  expect(topLevel).toHaveLength(1);
+  const topLevelSave = requireValue(topLevel[0], "Top-level Quick save download was not captured");
+  expect(topLevelSave.state).toBe("complete");
+  expect(topLevelSave.filename).toMatch(/e2e[\\/]quick-save[\\/]quick-save-only\.selection\.txt$/);
+  expect((await control.logs.get()).some((entry) => entry.message === "init failed")).toBe(false);
+
+  // Leaving the mode has to put the root back: this rebuild recreates the very
+  // parent the previous one skipped, and every other item depends on it.
+  await control.options.set({ quickSaveOnly: false });
+  await control.background.clickContextMenu({
+    info: {
+      menuItemId: "save-in-quick-save",
+      selectionText: "root restored",
+      pageUrl: "https://example.com/",
+    },
+    tab: { id: 1, title: "quick-save-restored", url: "https://example.com/" },
+  });
+
+  const restored = await waitForDownloads("quick-save-restored");
+  expect(restored).toHaveLength(1);
+  expect(requireValue(restored[0], "Restored Quick save download was not captured").state).toBe(
+    "complete",
+  );
+  expect((await control.logs.get()).some((entry) => entry.message === "init failed")).toBe(false);
 };
 
 /**
