@@ -626,6 +626,53 @@ describe(":mime: / :contenttype: / :mimeext: (async HEAD)", () => {
     }
   });
 
+  test("a rejected redirect hop extends the Referer rule and refetches (#193)", async () => {
+    // First HEAD lands on an unprotected redirected hop and is refused; after
+    // the rule extends to the hop URL, the refetch succeeds with metadata.
+    global.fetch = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: false,
+        url: "https://s3.example/signed/file",
+        headers: { get: () => null },
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        url: "https://s3.example/signed/file",
+        headers: { get: (h: string) => (h === "Content-Type" ? "image/webp" : null) },
+      }) as any;
+    const extended: string[] = [];
+    const withRequestReferer: RoutingPorts["withRequestReferer"] = async <T>(
+      _url: string,
+      _referer: string,
+      operation: (protection?: { extend(url: string): Promise<boolean> }) => Promise<T>,
+    ): Promise<T> =>
+      operation({
+        extend: async (hop) => {
+          extended.push(hop);
+          return true;
+        },
+      });
+    configureRoutingPorts({ withRequestReferer });
+
+    try {
+      const out = (
+        await Variable.applyVariables(new Path.Path(":mimeext:"), {
+          url: "https://cdn.example/file",
+          protectedFetchReferer: "https://gallery.example/view",
+        })
+      ).finalize();
+
+      expect(out).toBe("webp");
+      expect(extended).toEqual(["https://s3.example/signed/file"]);
+      expect(global.fetch).toHaveBeenCalledTimes(2);
+    } finally {
+      configureRoutingPorts({
+        withRequestReferer: async (_url, _referer, operation) => operation(),
+      });
+    }
+  });
+
   test("a failed HEAD yields an empty value (-> replacement char)", async () => {
     global.fetch = vi.fn(() => Promise.reject(new Error("CORS"))) as any;
     const out = (

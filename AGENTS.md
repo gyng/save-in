@@ -109,8 +109,12 @@ the unextended rule). Firefox still sets it natively on
 a direct final `downloads.download` request; if hashing fetched the content, that
 blob is reused instead. Chrome rejects the header on `downloads.download`, so its
 final acquisition is also protected by DNR and passed to the downloads API as a
-blob. Each operation removes its session rule. Protected operations are serialized
-because the shared rule cannot safely carry two Referer values at once. The extension
+blob. Each operation removes its session rule. Protected operations run
+concurrently, each under its own rule ID from a small fixed pool; a single rule
+still never carries two Referer values, and an operation whose exact URL is
+already covered by an in-flight rule with a different Referer waits for it (a
+mid-flight redirect extension toward such a URL degrades to the unextended rule
+instead — waiting there could deadlock two extending operations). The extension
 requests `declarativeNetRequestWithHostAccess`, but not `webRequest` or
 `webRequestBlocking`.
 Other shared code must **feature-detect, not sniff**:
@@ -142,12 +146,16 @@ to Firefox too.
    invalidated") — wrap `runtime.sendMessage` in try/catch, retry on
    failure, and prewarm the worker (`WAKE_WARM` message on combo keydown)
    so clicks don't race SW cold starts.
-6. **Referer DNR rules are temporary shared state.** Both browsers protect one
-   exact extension-origin HEAD/GET operation at a time, serialize protected fetches,
-   removes the rule in `finally`, and clears the reserved rule ID during cold
-   start recovery. The rule may grow only to exact URLs the server redirected
-   the protected request to, bounded per operation. Do not broaden the rule to
-   page traffic or allow concurrent protected fetches to overwrite it.
+6. **Referer DNR rules are temporary shared state.** Each protected
+   extension-origin HEAD/GET operation holds its own rule ID from a small fixed
+   pool (`REFERER_SESSION_RULE_IDS`), removes its rule in `finally`, and cold
+   start recovery clears the whole pool range. A rule may grow only to exact
+   URLs the server redirected that operation's request to, bounded per
+   operation. The safety invariant: no two concurrent rules may cover the same
+   exact URL with different Referer values — a conflicting start waits, a
+   conflicting mid-flight extension refuses and degrades. Do not broaden a rule
+   to page traffic, share one rule between operations, or let rules overwrite
+   each other.
 
 ### Cross-browser gotchas
 

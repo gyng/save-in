@@ -1,5 +1,9 @@
 import * as RefererRules from "../../src/downloads/referer-rules.ts";
-import { REFERER_SESSION_RULE_ID } from "../../src/downloads/referer-rules.ts";
+import {
+  REFERER_RULE_POOL_SIZE,
+  REFERER_SESSION_RULE_ID,
+  REFERER_SESSION_RULE_IDS,
+} from "../../src/downloads/referer-rules.ts";
 import { BROWSERS, setCurrentBrowser } from "../../src/platform/chrome-detector.ts";
 import type { RefererProtection } from "../../src/shared/protected-fetch.ts";
 
@@ -115,7 +119,7 @@ test("does not fail a completed transfer when rule cleanup fails", async () => {
   ).resolves.toBe("fetched");
 });
 
-test("serializes protected fetches so the shared rule cannot change mid-request", async () => {
+test("protects fetches to distinct URLs in parallel, each with its own pool rule", async () => {
   let releaseFirst!: () => void;
   const firstPending = new Promise<void>((resolve) => {
     releaseFirst = resolve;
@@ -139,6 +143,54 @@ test("serializes protected fetches so the shared rule cannot change mid-request"
     },
   );
 
+  // The second operation no longer waits for the first: it runs under its own
+  // rule ID while the first still holds its slot.
+  await vi.waitFor(() => expect(order).toEqual(["first-start", "second"]));
+  const installs = updateSessionRules()
+    .mock.calls.filter(([update]) => update.addRules)
+    .map(([update]) => update.addRules![0]!);
+  expect(installs).toHaveLength(2);
+  expect(new Set(installs.map((rule) => rule.id)).size).toBe(2);
+  expect(installs.map((rule) => rule.action.requestHeaders![0]!.value)).toEqual([
+    "https://gallery.example/a",
+    "https://gallery.example/b",
+  ]);
+  releaseFirst();
+  await Promise.all([first, second]);
+
+  expect(order).toEqual(["first-start", "second", "first-end"]);
+  // Each operation removed exactly its own rule.
+  const removals = updateSessionRules().mock.calls.filter(([update]) => !update.addRules);
+  expect(removals.map(([update]) => update.removeRuleIds)).toEqual(
+    expect.arrayContaining([[installs[0]!.id], [installs[1]!.id]]),
+  );
+});
+
+test("serializes conflicting operations: same URL with a different Referer waits", async () => {
+  let releaseFirst!: () => void;
+  const firstPending = new Promise<void>((resolve) => {
+    releaseFirst = resolve;
+  });
+  const order: string[] = [];
+
+  const first = RefererRules.withRequestReferer(
+    "https://cdn.example/shared.jpg",
+    "https://gallery.example/a",
+    async () => {
+      order.push("first-start");
+      await firstPending;
+      order.push("first-end");
+    },
+  );
+  const second = RefererRules.withRequestReferer(
+    "https://cdn.example/shared.jpg",
+    "https://gallery.example/b",
+    async () => {
+      order.push("second");
+    },
+  );
+
+  // One URL must never be covered by two rules carrying different Referers.
   await vi.waitFor(() => expect(order).toEqual(["first-start"]));
   expect(updateSessionRules()).toHaveBeenCalledTimes(1);
   releaseFirst();
@@ -148,11 +200,111 @@ test("serializes protected fetches so the shared rule cannot change mid-request"
   expect(updateSessionRules()).toHaveBeenCalledTimes(4);
 });
 
-test("startup cleanup removes the reserved session rule", async () => {
-  await RefererRules.cleanupStaleRefererRule();
-  expect(updateSessionRules()).toHaveBeenCalledWith({
-    removeRuleIds: [REFERER_SESSION_RULE_ID],
+test("the same URL with the same Referer runs concurrently", async () => {
+  let releaseFirst!: () => void;
+  const firstPending = new Promise<void>((resolve) => {
+    releaseFirst = resolve;
   });
+  const order: string[] = [];
+
+  const first = RefererRules.withRequestReferer(
+    "https://cdn.example/shared.jpg",
+    "https://gallery.example/view",
+    async () => {
+      order.push("first-start");
+      await firstPending;
+    },
+  );
+  const second = RefererRules.withRequestReferer(
+    "https://cdn.example/shared.jpg",
+    "https://gallery.example/view",
+    async () => {
+      order.push("second");
+    },
+  );
+
+  // Identical header values: whichever rule wins the DNR tie produces the
+  // same request, so there is nothing to serialize.
+  await vi.waitFor(() => expect(order).toEqual(["first-start", "second"]));
+  releaseFirst();
+  await Promise.all([first, second]);
+});
+
+test("pool exhaustion queues the next operation until a slot frees", async () => {
+  const releases: Array<() => void> = [];
+  const started: number[] = [];
+  const operations = Array.from({ length: REFERER_RULE_POOL_SIZE + 1 }, (_, index) =>
+    RefererRules.withRequestReferer(
+      `https://cdn.example/${index}.jpg`,
+      "https://gallery.example/view",
+      () =>
+        new Promise<void>((resolve) => {
+          started.push(index);
+          releases.push(resolve);
+        }),
+    ),
+  );
+
+  await vi.waitFor(() => expect(started).toHaveLength(REFERER_RULE_POOL_SIZE));
+  const installedIds = updateSessionRules()
+    .mock.calls.filter(([update]) => update.addRules)
+    .map(([update]) => update.addRules![0]!.id);
+  expect(new Set(installedIds).size).toBe(REFERER_RULE_POOL_SIZE);
+  expect(installedIds.every((id) => REFERER_SESSION_RULE_IDS.includes(id))).toBe(true);
+  expect(started).not.toContain(REFERER_RULE_POOL_SIZE);
+
+  releases[0]!();
+  await vi.waitFor(() => expect(started).toContain(REFERER_RULE_POOL_SIZE));
+  // The freed slot's rule ID is reused by the queued operation.
+  const lastInstall = updateSessionRules()
+    .mock.calls.filter(([update]) => update.addRules)
+    .at(-1)![0].addRules![0]!;
+  expect(lastInstall.id).toBe(installedIds[0]);
+
+  for (const release of releases.slice(1)) release();
+  await Promise.all(operations);
+});
+
+test("a mid-flight extension toward another operation's URL degrades instead of waiting", async () => {
+  let releaseHolder!: () => void;
+  const holderPending = new Promise<void>((resolve) => {
+    releaseHolder = resolve;
+  });
+  const holder = RefererRules.withRequestReferer(
+    "https://cdn.example/held.jpg",
+    "https://gallery.example/a",
+    () => holderPending,
+  );
+
+  let firstAttempt: boolean | undefined;
+  let secondAttempt: boolean | undefined;
+  const extender = RefererRules.withRequestReferer(
+    "https://cdn.example/other.jpg",
+    "https://gallery.example/b",
+    async (protection) => {
+      // Waiting here while both operations hold slots could deadlock two
+      // operations extending toward each other, so a conflict refuses.
+      firstAttempt = await protection?.extend("https://cdn.example/held.jpg");
+      releaseHolder();
+      await holder;
+      secondAttempt = await protection?.extend("https://cdn.example/held.jpg");
+    },
+  );
+  await extender;
+
+  expect(firstAttempt).toBe(false);
+  expect(secondAttempt).toBe(true);
+});
+
+test("startup cleanup removes the whole pool's session rules", async () => {
+  await RefererRules.cleanupStaleRefererRule();
+  // A killed worker can strand any subset of the pool, so recovery clears the
+  // entire ID range, not one reserved ID.
+  expect(updateSessionRules()).toHaveBeenCalledWith({
+    removeRuleIds: [...REFERER_SESSION_RULE_IDS],
+  });
+  expect(REFERER_SESSION_RULE_IDS).toHaveLength(REFERER_RULE_POOL_SIZE);
+  expect(REFERER_SESSION_RULE_IDS[0]).toBe(REFERER_SESSION_RULE_ID);
 });
 
 test("worker reset drains protected work before removing the shared rule", async () => {
@@ -177,7 +329,7 @@ test("worker reset drains protected work before removing the shared rule", async
 
   expect(updateSessionRules()).toHaveBeenCalledTimes(3);
   expect(updateSessionRules()).toHaveBeenLastCalledWith({
-    removeRuleIds: [REFERER_SESSION_RULE_ID],
+    removeRuleIds: [...REFERER_SESSION_RULE_IDS],
   });
 });
 
