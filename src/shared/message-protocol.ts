@@ -136,6 +136,9 @@ export type AutomaticRoutingValidationCandidate = {
   sourceUrl: string;
   sourceKind: PageSourceKind;
   suggestedFilename?: string | undefined;
+  // A real automatic save carries the sender tab, so a trace that cannot be
+  // told about one cannot model pagetitle: or :pagetitleslug:.
+  currentTab?: WireCurrentTab | null | undefined;
 };
 
 export type ProtocolErrorResponse<Type extends string> = Response<
@@ -502,7 +505,10 @@ const isAutomaticRoutingValidationCandidate = (
   typeof value.pageUrl === "string" &&
   typeof value.sourceUrl === "string" &&
   isPageSourceKind(value.sourceKind) &&
-  hasOptionalString(value, "suggestedFilename");
+  hasOptionalString(value, "suggestedFilename") &&
+  (typeof value.currentTab === "undefined" ||
+    value.currentTab === null ||
+    isWireCurrentTab(value.currentTab));
 
 const isWireDownloadInfo = (value: unknown): value is WireDownloadInfo =>
   isStringKeyedRecord(value) &&

@@ -237,6 +237,40 @@ describe("config API", () => {
     );
   });
 
+  // A real automatic save carries the sender tab, so a caller that names the
+  // page it is asking about must get a trace that models :pagetitle: naming.
+  test("external automatic VALIDATE traces against a named candidate tab", async () => {
+    const rules = [[{ name: "into", value: "images", type: "DESTINATION" }]] as any;
+    vi.mocked(router.parseRulesCollecting).mockReturnValue({ rules, errors: [] });
+    const sendResponse = vi.fn();
+
+    expect(
+      onMessageExternal(
+        {
+          type: MESSAGE_TYPES.VALIDATE,
+          body: {
+            filenamePatterns: "x",
+            automaticCandidate: {
+              pageUrl: "https://example.com/gallery",
+              sourceUrl: "https://example.com/img/cat.png",
+              sourceKind: "image",
+              currentTab: { title: "Cat Gallery" },
+            },
+          },
+        },
+        { id: "validation-client" },
+        sendResponse,
+      ),
+    ).toBe(true);
+    await waitForCall(sendResponse);
+
+    expect(router.traceRules).toHaveBeenCalledWith(
+      rules,
+      expect.objectContaining({ currentTab: { title: "Cat Gallery" } }),
+      expect.any(Function),
+    );
+  });
+
   test("external VALIDATE rejects unsafe regexes before tracing", async () => {
     const rules = [
       [

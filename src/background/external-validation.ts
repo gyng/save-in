@@ -86,11 +86,16 @@ export const externalValidationRequestError = (
     return "Validation sample fields are too large";
   }
   if (isStringKeyedRecord(body.automaticCandidate)) {
-    const { pageUrl, sourceUrl, suggestedFilename } = body.automaticCandidate;
+    const { pageUrl, sourceUrl, suggestedFilename, currentTab } = body.automaticCandidate;
     if (
       (typeof pageUrl === "string" && pageUrl.length > MAX_URL_CHARACTERS) ||
       (typeof sourceUrl === "string" && sourceUrl.length > MAX_URL_CHARACTERS) ||
-      (typeof suggestedFilename === "string" && suggestedFilename.length > MAX_FILENAME_CHARACTERS)
+      (typeof suggestedFilename === "string" &&
+        suggestedFilename.length > MAX_FILENAME_CHARACTERS) ||
+      (isStringKeyedRecord(currentTab) &&
+        Object.values(currentTab).some(
+          (item) => typeof item === "string" && item.length > MAX_SAMPLE_FIELD_CHARACTERS,
+        ))
     ) {
       return "Automatic validation fields are too large";
     }

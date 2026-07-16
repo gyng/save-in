@@ -87,6 +87,16 @@ describe("external validation safeguards", () => {
         automaticCandidate: { suggestedFilename: "x".repeat(1_025) },
       }),
     ).toBe("Automatic validation fields are too large");
+    expect(
+      externalValidationRequestError({
+        automaticCandidate: {
+          pageUrl: "https://example.test/",
+          sourceUrl: "https://example.test/a.png",
+          sourceKind: "image",
+          currentTab: { title: "x".repeat(4_097) },
+        },
+      }),
+    ).toBe("Automatic validation fields are too large");
 
     const cyclic: Record<string, unknown> = {};
     cyclic.self = cyclic;

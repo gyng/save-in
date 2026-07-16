@@ -187,6 +187,59 @@ describe("buildTools", () => {
     });
   });
 
+  test("forwards a candidate page title so an automatic trace can model :pagetitle:", async () => {
+    const { send, byName } = toolsByName();
+    const automaticCandidate = {
+      pageUrl: "https://example.test/gallery",
+      sourceUrl: "https://cdn.test/cat.png",
+      sourceKind: "image",
+      currentTab: { title: "Cat Gallery" },
+    };
+
+    await byName.save_in_validate_config.execute({
+      filenamePatterns: "context: ^auto$\npagedomain: example\\.test\ninto: :pagetitleslug:",
+      automaticCandidate,
+    });
+
+    expect(send).toHaveBeenCalledWith({
+      type: "VALIDATE",
+      body: {
+        filenamePatterns: "context: ^auto$\npagedomain: example\\.test\ninto: :pagetitleslug:",
+        automaticCandidate,
+        validationSource: "webmcp",
+      },
+    });
+  });
+
+  test("rejects an unusable candidate page title", async () => {
+    const { byName } = toolsByName();
+    const candidate = {
+      pageUrl: "https://example.test/gallery",
+      sourceUrl: "https://cdn.test/cat.png",
+      sourceKind: "image",
+    };
+
+    await expect(
+      byName.save_in_validate_config.execute({
+        filenamePatterns: "context: ^auto$\ninto: x",
+        automaticCandidate: { ...candidate, currentTab: { title: 7 } },
+      }),
+    ).resolves.toEqual({
+      status: "ERROR",
+      errors: [{ field: "automaticCandidate.currentTab.title", message: "Expected a string" }],
+    });
+
+    await expect(
+      byName.save_in_validate_config.execute({
+        filenamePatterns: "context: ^auto$\ninto: x",
+        automaticCandidate: { ...candidate, currentTab: { url: "https://example.test/" } },
+      }),
+    ).resolves.toEqual({
+      status: "ERROR",
+      errors: [{ field: "automaticCandidate.currentTab.url", message: "Unknown property" }],
+    });
+  });
+
   test("passes every matcher input needed for a representative rule trace", async () => {
     const { send, byName } = toolsByName();
     const info = {

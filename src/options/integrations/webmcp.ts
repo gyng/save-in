@@ -102,6 +102,7 @@ const AUTOMATIC_CANDIDATE_PROPERTIES = new Set([
   "sourceUrl",
   "sourceKind",
   "suggestedFilename",
+  "currentTab",
 ]);
 const TRACE_STRING_FIELDS = [
   "srcUrl",
@@ -229,6 +230,12 @@ export const buildTools = (send: WebMcpSend): WebMcpTool[] => {
                 type: "string",
                 description: "Optional filename hint; defaults to the source URL filename",
               },
+              currentTab: {
+                type: "object",
+                description: "The page being saved from; supplies :pagetitle: naming",
+                properties: { title: { type: "string" } },
+                additionalProperties: false,
+              },
             },
             additionalProperties: false,
             required: ["pageUrl", "sourceUrl", "sourceKind"],
@@ -343,6 +350,29 @@ export const buildTools = (send: WebMcpSend): WebMcpTool[] => {
           const filenameError = invalidOptionalString(candidate, "suggestedFilename");
           if (filenameError) {
             return inputError(`automaticCandidate.${filenameError.field}`, filenameError.message);
+          }
+          const candidateTab = candidate.currentTab;
+          if (typeof candidateTab !== "undefined") {
+            if (!isStringKeyedRecord(candidateTab)) {
+              return inputError("automaticCandidate.currentTab", "Expected an object");
+            }
+            const unknownTab = firstUnknownProperty(candidateTab, TRACE_CURRENT_TAB_PROPERTIES);
+            if (unknownTab) {
+              return inputError(
+                `automaticCandidate.currentTab.${unknownTab.field}`,
+                unknownTab.message,
+              );
+            }
+            const tabError = firstInvalidOptionalString(
+              candidateTab,
+              TRACE_CURRENT_TAB_STRING_FIELDS,
+            );
+            if (tabError) {
+              return inputError(
+                `automaticCandidate.currentTab.${tabError.field}`,
+                tabError.message,
+              );
+            }
           }
           if (!hasOwn(input, "filenamePatterns")) {
             return inputError("automaticCandidate", "Provide filenamePatterns to trace");
