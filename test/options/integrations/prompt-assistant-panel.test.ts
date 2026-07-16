@@ -255,6 +255,71 @@ test("rejects a malformed structured semantic review", async () => {
   expect(element<HTMLButtonElement>("prompt-assistant-add").disabled).toBe(true);
 });
 
+test("rejects an absent structured semantic review", async () => {
+  mocks.runPrompt.mockResolvedValueOnce(authorResponse()).mockResolvedValueOnce(null);
+  setupPromptAssistantPanel(() => "", { appendRule: mocks.appendRule });
+  await enable();
+
+  submitRequest();
+
+  await vi.waitFor(() => expect(element("prompt-assistant-status").dataset.state).toBe("error"));
+  expect(element("prompt-assistant-status").textContent).toContain("invalid review");
+});
+
+test("rejects an absent final structured review", async () => {
+  mocks.runPrompt
+    .mockResolvedValueOnce(authorResponse())
+    .mockResolvedValueOnce(critiqueResponse(defaultRule, false, ["Review again"]))
+    .mockResolvedValueOnce(null);
+  setupPromptAssistantPanel(() => "", { appendRule: mocks.appendRule });
+  await enable();
+
+  submitRequest();
+
+  await vi.waitFor(() => expect(element("prompt-assistant-status").dataset.state).toBe("error"));
+  expect(element("prompt-assistant-status").textContent).toContain("invalid final review");
+});
+
+test.each([
+  [["Final review concern"], ["Initial review concern"], "Final review concern"],
+  [[], ["Initial review concern"], "Initial review concern"],
+  [[], [], "The draft does not match the request"],
+] as const)(
+  "uses the best available semantic-review diagnostic %#",
+  async (finalIssues, initialIssues, expected) => {
+    mocks.runPrompt
+      .mockResolvedValueOnce(authorResponse())
+      .mockResolvedValueOnce(critiqueResponse(defaultRule, false, [...initialIssues]))
+      .mockResolvedValueOnce(critiqueResponse(defaultRule, false, [...finalIssues]));
+    setup();
+    await enable();
+
+    submitRequest();
+
+    await vi.waitFor(() =>
+      expect(element("prompt-assistant-status").textContent).toContain(expected),
+    );
+    expect(element<HTMLButtonElement>("prompt-assistant-add").disabled).toBe(true);
+  },
+);
+
+test("accepts a validation response with no diagnostic list", async () => {
+  const defaultSend = mocks.sendMessage.getMockImplementation();
+  mocks.sendMessage.mockImplementation(async (message: { type: string }) =>
+    message.type === "VALIDATE"
+      ? { type: "VALIDATE_RESULT", body: { version: 1 } }
+      : defaultSend?.(message),
+  );
+  setup();
+  await enable();
+
+  submitRequest();
+
+  await vi.waitFor(() =>
+    expect(element<HTMLButtonElement>("prompt-assistant-add").disabled).toBe(false),
+  );
+});
+
 test("shows an invalid suggestion but does not let it enter the editor", async () => {
   mocks.sendMessage.mockImplementation(async (message: { type: string }) =>
     message.type === "GET_GRAMMARS"
@@ -729,6 +794,74 @@ test("disabling during validation discards the stale validation result", async (
 
   await vi.waitFor(() => expect(element("prompt-assistant-status").dataset.state).toBe("off"));
   expect(element<HTMLButtonElement>("prompt-assistant-add").disabled).toBe(true);
+});
+
+test("disabling during semantic critique discards the stale review", async () => {
+  let resolveCritique!: (value: string) => void;
+  mocks.runPrompt
+    .mockResolvedValueOnce(authorResponse())
+    .mockReturnValueOnce(new Promise((resolve) => (resolveCritique = resolve)));
+  setup();
+  await enable();
+  submitRequest();
+  await vi.waitFor(() => expect(mocks.runPrompt).toHaveBeenCalledTimes(2));
+
+  const control = element<HTMLInputElement>("promptAssistantEnabled");
+  control.checked = false;
+  control.dispatchEvent(new Event("change"));
+  resolveCritique(critiqueResponse());
+
+  await vi.waitFor(() => expect(element("prompt-assistant-status").dataset.state).toBe("off"));
+  expect(element("prompt-assistant-result").hidden).toBe(true);
+});
+
+test("disabling during repaired-rule validation discards the stale result", async () => {
+  let resolveValidation!: (value: unknown) => void;
+  let validationCount = 0;
+  const defaultSend = mocks.sendMessage.getMockImplementation();
+  mocks.sendMessage.mockImplementation(async (message: { type: string }) => {
+    if (message.type !== "VALIDATE") return defaultSend?.(message);
+    validationCount += 1;
+    if (validationCount === 1) {
+      return { type: "VALIDATE_RESULT", body: { version: 1, ruleErrors: [] } };
+    }
+    return new Promise((resolve) => (resolveValidation = resolve));
+  });
+  mocks.runPrompt
+    .mockResolvedValueOnce(authorResponse())
+    .mockResolvedValueOnce(critiqueResponse(defaultRule, false, ["Review again"]));
+  setup();
+  await enable();
+  submitRequest();
+  await vi.waitFor(() => expect(validationCount).toBe(2));
+
+  const control = element<HTMLInputElement>("promptAssistantEnabled");
+  control.checked = false;
+  control.dispatchEvent(new Event("change"));
+  resolveValidation({ type: "VALIDATE_RESULT", body: { version: 1, ruleErrors: [] } });
+
+  await vi.waitFor(() => expect(element("prompt-assistant-status").dataset.state).toBe("off"));
+  expect(mocks.runPrompt).toHaveBeenCalledTimes(2);
+});
+
+test("disabling during final semantic review discards the stale result", async () => {
+  let resolveFinalReview!: (value: string) => void;
+  mocks.runPrompt
+    .mockResolvedValueOnce(authorResponse())
+    .mockResolvedValueOnce(critiqueResponse(defaultRule, false, ["Review again"]))
+    .mockReturnValueOnce(new Promise((resolve) => (resolveFinalReview = resolve)));
+  setup();
+  await enable();
+  submitRequest();
+  await vi.waitFor(() => expect(mocks.runPrompt).toHaveBeenCalledTimes(3));
+
+  const control = element<HTMLInputElement>("promptAssistantEnabled");
+  control.checked = false;
+  control.dispatchEvent(new Event("change"));
+  resolveFinalReview(critiqueResponse());
+
+  await vi.waitFor(() => expect(element("prompt-assistant-status").dataset.state).toBe("off"));
+  expect(element("prompt-assistant-result").hidden).toBe(true);
 });
 
 test("disabling while metadata rejects suppresses the stale failure", async () => {

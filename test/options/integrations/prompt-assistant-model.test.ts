@@ -71,7 +71,11 @@ describe("Prompt API rule-authoring model", () => {
       repairedRule: "fileext: ^png$\ninto: dongs/",
     });
     expect(parseRuleDraft("not JSON")).toBeNull();
+    expect(parseRuleDraft("[]")).toBeNull();
     expect(parseRuleCritique(JSON.stringify({ accepted: true, issues: [] }))).toBeNull();
+    expect(
+      parseRuleCritique(JSON.stringify({ accepted: false, issues: [], repairedRule: "  " })),
+    ).toBeNull();
   });
 
   test("grounds the independent review in the request, candidate, and validator findings", () => {
@@ -129,6 +133,25 @@ describe("Prompt API rule-authoring model", () => {
       "from docs.example.com, save PDF into /archive",
       "fileext/i: ^pdf$\npagedomain: ^other\\.example$\ninto: archive/:filename:",
       ["The matchers do not contain the requested docs.example.com site."],
+    ],
+    [
+      "save .png from https://docs.example.com into /archive",
+      "fileext: ^png$\npagedomain: ^docs\\.example\\.com$\ninto: archive/:filename:",
+      [],
+    ],
+    ["save pngs into /archive", "fileext: ^png$\ninto: archive/:filename:", []],
+    ["save foobar into /archive", "fileext: ^foobar$\ninto: archive/:filename:", []],
+    ["save a b c d e f into /archive", "filename: .*\ninto: archive/:filename:", []],
+    ['save png into "archive"', "fileext: ^png$\ninto: archive/:filename:", []],
+    [
+      "save png into /archive",
+      "fileext: ^png$\ninto: archive/custom-name",
+      ["Saving into a folder must preserve the original filename."],
+    ],
+    [
+      "save png into /archive",
+      "fileext: ^png$",
+      ["The destination must use the requested archive/ folder."],
     ],
   ] as const)("checks explicit request anchors for %s", (request, rule, expected) => {
     const issues = ruleRequestGuardrailIssues(request, rule);

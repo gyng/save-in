@@ -212,8 +212,9 @@ const FILE_TYPE_FILLER = new Set([
 const explicitExtensions = (request: string): string[] => {
   const extensions: string[] = [];
   for (const match of request.matchAll(/(?:^|\s)\.([a-z0-9][a-z0-9+_-]{0,9})\b/gi)) {
-    const extension = match[1];
-    if (extension) extensions.push(extension.toLowerCase());
+    // The expression's first capture is mandatory for every match.
+    const extension = match[1] as string;
+    extensions.push(extension.toLowerCase());
   }
   const target = request.match(
     /\b(?:save|route|move|put|send|download)\s+(.{1,100}?)\s+(?:into|in|to|under)\b/i,
@@ -275,12 +276,13 @@ const asksForRename = (request: string): boolean =>
 const explicitSites = (request: string): string[] => {
   const sites: string[] = [];
   for (const match of request.matchAll(/https?:\/\/([a-z0-9.-]+)(?=[:/\s]|$)/gi)) {
-    if (match[1]) sites.push(match[1].toLowerCase());
+    // Both expressions require their hostname capture when they match.
+    sites.push((match[1] as string).toLowerCase());
   }
   for (const match of request.matchAll(
     /\b(?:from|on|site|domain)\s+(?:https?:\/\/)?([a-z0-9-]+(?:\.[a-z0-9-]+)+)\b/gi,
   )) {
-    if (match[1]) sites.push(match[1].toLowerCase());
+    sites.push((match[1] as string).toLowerCase());
   }
   return unique(sites);
 };
