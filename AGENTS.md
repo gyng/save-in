@@ -62,6 +62,15 @@ Execution contexts:
   blob object URL instead of a base64 data URL; it also hashes the same bytes
   and runs Prompt API calls.
 
+The on-device rule assistant asks Gemini Nano for the facts of a request under a
+response schema and assembles the rule text itself; it never asks the model to
+write routing syntax, which it cannot do. Read
+[docs/ON-DEVICE-PROMPT.md](docs/ON-DEVICE-PROMPT.md) before changing the prompts,
+the response schemas, or the guardrails: what governs this model is measured
+there, and prefer a schema change to a sentence — a sentence has never moved it.
+Nothing reaches the rules editor until the deterministic guardrails, the
+background `VALIDATE`, and the review all agree.
+
 Automatic Page Sources saves reuse the normal `filenamePatterns` routing
 language and editor. Eligibility is deliberately narrower than ordinary
 routing: `routing/automatic-rule.ts` recognizes only rules with an explicit
@@ -247,20 +256,21 @@ browsers before reporting it as confirmed.
   check; pass `--allow-no-prompt-api` to record an unavailable or failed model
   without failing the round. Reports and failure artifacts are written under
   `dist/dogfood-artifacts`.
-- On-device Prompt review needs both a provisioned profile and its provisioned
-  runtime (`SAVE_IN_PROMPT_PROFILE`, `SAVE_IN_PROMPT_RUNTIME`; by default
-  `~/.cache/save-in-nano-profile` and `~/.cache/save-in-nano-runtime`). Run it
-  with `npm run review`, then press `p`. Launch the model only through
-  `promptRuntimeSettings()`: ChromeML owns its own Vulkan device, and on
-  WSL/WSLg — where Ubuntu ships no Dozen — it reaches no device without that
-  runtime and the model process crashes. `availability()` still answers
-  "available" because the weights are present, so the failure surfaces only at
-  `prompt()`. Three crashes trip Chrome's per-profile cutoff and every later
-  call fails with "the model process crashed too many times for this version"
-  until the profile is reprovisioned — repair the launch rather than the
-  counter. The Dozen/Gallium settings and `--use-angle=gl` are WSL/WSLg
-  specific; under WSLg `gl` is already what reaches D3D12 through Mesa, so
-  asking ANGLE for `d3d12` or `vulkan` only removes the GPU context.
+- `npm run review`, then `p`: run the options page against the real on-device
+  model. Needs both a provisioned profile and its provisioned runtime
+  (`SAVE_IN_PROMPT_PROFILE`, `SAVE_IN_PROMPT_RUNTIME`; by default
+  `~/.cache/save-in-nano-profile` and `~/.cache/save-in-nano-runtime`). Launch
+  the model only through `promptRuntimeSettings()`: ChromeML owns its own Vulkan
+  device, and on WSL/WSLg — where Ubuntu ships no Dozen — it reaches no device
+  without that runtime and the model process crashes. `availability()` still
+  answers "available" because the weights are present, so the failure surfaces
+  only at `prompt()`, and three crashes trip Chrome's per-profile cutoff until
+  the profile is reprovisioned — repair the launch, never the counter. The
+  Dozen/Gallium settings and `--use-angle=gl` are WSL/WSLg specific; under WSLg
+  `gl` is already what reaches D3D12 through Mesa, so asking ANGLE for `d3d12`
+  or `vulkan` only removes the GPU context. What the model does with a prompt,
+  and how to measure it, is in
+  [docs/ON-DEVICE-PROMPT.md](docs/ON-DEVICE-PROMPT.md).
 - `npm run d:chrome` and `npm run d`: auto-rebuilding Chrome and Firefox dev
   loops.
 - `npm run bundle`: emit readable bundles. `npm run build` also stages and
