@@ -2,27 +2,46 @@
 
 Canonical English store copy for Save In. Copy these fields into AMO and the
 Chrome Web Store during release preparation, then update the version and review
-date below. Keep the short description aligned with `extensionDescription` in
-`_locales/en/messages.json`.
+date below.
+
+The manifest description and the store summary are deliberately different
+fields. The manifest description names what the extension does for someone who
+already has it installed and is reading their extensions list, and it is
+translated into every catalog. The store summary is read by someone who does not
+have it yet and is scanning search results, so it leads with the action and the
+outcome. Keep the manifest one aligned with `extensionDescription` in
+`_locales/en/messages.json`; the summary answers to the stores alone.
 
 - Version: 4.0.0
-- Last reviewed: 2026-07-15
+- Last reviewed: 2026-07-17
 - Listing name: Save In
 
-## Short description
+## Manifest description
 
-Use this for the manifest description and each store's summary field.
+Mirrors `extensionDescription` in `_locales/en/messages.json`. Change both
+together, and retranslate the generated catalogs when it changes.
 
 ```text
 Saves images, videos, audio, links, selected text, and pages to folders inside your default download folder.
 ```
 
+## Store summary
+
+Use this for each store's summary field. Chrome caps it at 132 characters and
+AMO at 250, so it is written to the shorter limit. It names the gesture people
+search for and the thing only this extension does, rather than listing what it
+saves — the first line of the description below already does that.
+
+```text
+Right-click to save images, video, audio, links and pages into organized folders, with rules to sort and rename them automatically.
+```
+
 ## Firefox description
 
 ```text
-Rebuilt from the first character to the last for Manifest V3, and still filing your downloads with the same stubborn logic it has used since 2017.
+Right-click anything worth keeping and file it exactly where it belongs — no Save As dialog, no downloads folder to dig through later.
 
-Save In adds configurable context-menu destinations for images, videos, audio, links, selected text, and pages. Choose organized folders without repeatedly navigating the Save As dialog.
+Save In adds configurable context-menu destinations for images, videos, audio, links, selected text, and pages, and can sort and rename them automatically with rules you write once. Rebuilt from the first character to the last for Manifest V3, and still filing your downloads with the same stubborn logic it has used since 2017.
 
 Features
 
@@ -53,9 +72,9 @@ Requires Firefox 121 or later.
 ## Chrome description
 
 ```text
-Rebuilt from the first character to the last for Manifest V3, and still filing your downloads with the same stubborn logic it has used since 2017.
+Right-click anything worth keeping and file it exactly where it belongs — no Save As dialog, no downloads folder to dig through later.
 
-Save In adds configurable context-menu destinations for images, videos, audio, links, selected text, and pages. Choose organized folders without repeatedly navigating the Save As dialog.
+Save In adds configurable context-menu destinations for images, videos, audio, links, selected text, and pages, and can sort and rename them automatically with rules you write once. Rebuilt from the first character to the last for Manifest V3, and still filing your downloads with the same stubborn logic it has used since 2017.
 
 Features
 
@@ -116,6 +135,9 @@ Firefox versions use the labelled in-product opt-in.
 
 Before each upload:
 
+1. Check the store summary against each store's limit before pasting: Chrome
+   truncates at 132 characters and AMO at 250, and the summary is written to the
+   shorter one.
 1. Compare both descriptions with `manifest.json`, `PRIVACY.md`, and the current
    browser-specific behavior documented in `AGENTS.md`.
 2. Update the version, review date, minimum browser versions, feature list, and
