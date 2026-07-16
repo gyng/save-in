@@ -206,8 +206,11 @@ export const FORBIDDEN_FILENAME_CHARS = /[<>:"/\\|?*\x00-\x1f]/;
 
 // Format controls and variation selectors are legal on some filesystems but
 // can make downloads fail or produce deceptive/inaccessible names in browser
-// filename APIs (#220). The surrogate-pair alternative covers the supplemental
-// variation-selector block without requiring mutable RegExp flags.
+// filename APIs (#220). The surrogate-pair alternative covers two supplemental
+// blocks that share a high surrogate, without requiring mutable RegExp flags:
+// the tags block (U+E0000-U+E007F, \udc00-\udc7f), whose characters render as
+// nothing and can hide text inside an innocuous-looking server filename, and
+// the variation selectors (U+E0100-U+E01EF, \udd00-\uddef).
 export const UNSAFE_INVISIBLE_FILENAME_CHARS =
   // eslint-disable-next-line no-misleading-character-class -- combining variation selectors are intentionally matched as code points
-  /[\u00ad\u061c\u180e\u200b-\u200f\u202a-\u202e\u2060-\u2064\u2066-\u206f\ufeff\ufe00-\ufe0f]|\udb40[\udd00-\uddef]/;
+  /[\u00ad\u061c\u180e\u200b-\u200f\u202a-\u202e\u2060-\u2064\u2066-\u206f\ufeff\ufe00-\ufe0f]|\udb40[\udc00-\udc7f\udd00-\uddef]/;

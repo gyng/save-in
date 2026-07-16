@@ -244,6 +244,20 @@ describe("sanitizeFilename", () => {
     expect(Path.sanitizeFilename(invisible, 0, false)).toBe("_");
   });
 
+  // A server filename may carry Tag characters, which render as nothing at all:
+  // the name reads "invoice.pdf" while the bytes on disk say otherwise. They sit
+  // in the same supplementary plane as the variation selectors above and are
+  // format controls just like the BMP ones, so they strip the same way.
+  test("removes tag characters from a filename", () => {
+    const tagged = [..."SECRET"]
+      .map((c) => String.fromCodePoint(0xe0000 + c.charCodeAt(0)))
+      .join("");
+
+    expect(Path.sanitizeFilename(`invoice${tagged}.pdf`, 0, false)).toBe("invoice.pdf");
+    expect(Path.sanitizeFilename(`a\u{e0001}b\u{e0020}c\u{e007f}d`, 0, false)).toBe("abcd");
+    expect(Path.sanitizeFilename(tagged, 0, false)).toBe("_");
+  });
+
   test("neutralizes reserved device names", () => {
     expect(Path.sanitizeFilename("CON", 0, false)).toBe("_CON");
     expect(Path.sanitizeFilename("con.txt", 0, false)).toBe("_con.txt");
