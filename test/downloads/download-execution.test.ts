@@ -243,6 +243,32 @@ describe("renameAndDownload: browserDownload", () => {
     );
   });
 
+  // The session writes that precede browser setup are outside
+  // executeBrowserDownload's own try, so a storage failure there escapes it.
+  test("contains a session write that fails before the browser download starts", async () => {
+    setCurrentBrowser("CHROME");
+    const update = vi.mocked(SessionState.updateSession);
+    const realUpdate = update.getMockImplementation()!;
+    update.mockImplementation((...args) =>
+      args[2] === "siPendingDownloads"
+        ? Promise.reject(new Error("session storage unavailable"))
+        : realUpdate(...args),
+    );
+    const state = makeState();
+
+    await expect(Download.renameAndDownload(state)).resolves.toEqual({ status: "failed" });
+
+    expect(global.browser.downloads.download).not.toHaveBeenCalled();
+    expect(SaveHistory.setHistoryStatus).toHaveBeenCalledWith("h-test", "DOWNLOAD_API_FAILED");
+    expect(Notifier.reportDownloadFailure).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.stringContaining("session storage unavailable"),
+    );
+    // The preparation is retired rather than left cancellable forever.
+    expect(state.info.abortSignal).toBeUndefined();
+    expect(ActiveTransfers.cancelActiveTransfer("h-test")).toBe(false);
+  });
+
   test("treats an invalid acquired URL as ineligible for HTTP fallback", async () => {
     setCurrentBrowser("CHROME");
     const state = makeState({ info: { url: "not a URL" } });
