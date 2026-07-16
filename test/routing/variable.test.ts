@@ -914,6 +914,45 @@ describe(":mime: / :contenttype: / :mimeext: (async HEAD)", () => {
       expect(Variable.mimeToExtension(mime)).toBe(extension);
     });
 
+    // Types the removed subtype fallback happened to get right. Dropping it
+    // must not cost them: x-zip-compressed in particular is what IIS serves for
+    // an ordinary .zip.
+    test.each([
+      ["application/x-zip-compressed", "zip"],
+      ["application/x-rar", "rar"],
+      ["image/jxl", "jxl"],
+      ["image/apng", "apng"],
+      ["image/x-png", "png"],
+      ["video/x-flv", "flv"],
+      ["audio/midi", "mid"],
+      ["application/x-rpm", "rpm"],
+      ["application/x-msi", "msi"],
+      ["text/vtt", "vtt"],
+      ["application/x-sh", "sh"],
+    ])("keeps %s at %s", (mime, extension) => {
+      expect(Variable.mimeToExtension(mime)).toBe(extension);
+    });
+
+    // Types the fallback answered with a vendor word rather than an extension:
+    // "android", "apple", "oasis", "ms", "java". The table gives the real one.
+    test.each([
+      ["application/vnd.android.package-archive", "apk"],
+      ["application/x-apple-diskimage", "dmg"],
+      ["application/vnd.debian.binary-package", "deb"],
+      ["application/vnd.oasis.opendocument.text", "odt"],
+      ["application/java-archive", "jar"],
+      ["application/x-iso9660-image", "iso"],
+      ["application/x-subrip", "srt"],
+      ["video/x-ms-wmv", "wmv"],
+      ["audio/x-ms-wma", "wma"],
+      ["image/vnd.adobe.photoshop", "psd"],
+      ["application/postscript", "ps"],
+      ["video/mp2t", "ts"],
+      ["video/3gpp", "3gp"],
+    ])("names %s correctly as %s", (mime, extension) => {
+      expect(Variable.mimeToExtension(mime)).toBe(extension);
+    });
+
     // RFC 6839 structured suffixes: the suffix is the format by definition, so
     // an unlisted vendor type still resolves. The table wins first, which is
     // why image/svg+xml is svg and application/epub+zip is epub, not xml/zip.

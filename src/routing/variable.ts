@@ -198,10 +198,14 @@ export const MIME_EXTENSIONS: Record<string, string> = {
   "image/bmp": "bmp",
   "image/heic": "heic",
   "image/heif": "heif",
+  "image/jxl": "jxl",
+  "image/apng": "apng",
+  "image/x-png": "png",
   "image/svg+xml": "svg",
   "image/x-icon": "ico",
   "image/vnd.microsoft.icon": "ico",
   "image/tiff": "tif",
+  "image/vnd.adobe.photoshop": "psd",
   // Video
   "video/mp4": "mp4",
   "video/webm": "webm",
@@ -210,6 +214,11 @@ export const MIME_EXTENSIONS: Record<string, string> = {
   "video/x-matroska": "mkv",
   "video/mpeg": "mpg",
   "video/x-msvideo": "avi",
+  "video/x-flv": "flv",
+  "video/x-ms-wmv": "wmv",
+  "video/3gpp": "3gp",
+  // An HLS media segment; Save In saves the manifest that lists these.
+  "video/mp2t": "ts",
   // Audio
   "audio/mpeg": "mp3",
   "audio/mp4": "m4a",
@@ -221,6 +230,11 @@ export const MIME_EXTENSIONS: Record<string, string> = {
   "audio/opus": "opus",
   "audio/wav": "wav",
   "audio/x-wav": "wav",
+  "audio/webm": "weba",
+  "audio/midi": "mid",
+  "audio/x-midi": "mid",
+  "audio/x-ms-wma": "wma",
+  "audio/3gpp": "3gp",
   // Documents
   "application/pdf": "pdf",
   "application/rtf": "rtf",
@@ -231,8 +245,17 @@ export const MIME_EXTENSIONS: Record<string, string> = {
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": "xlsx",
   "application/vnd.ms-powerpoint": "ppt",
   "application/vnd.openxmlformats-officedocument.presentationml.presentation": "pptx",
-  // Archives
+  "application/vnd.oasis.opendocument.text": "odt",
+  "application/vnd.oasis.opendocument.spreadsheet": "ods",
+  "application/vnd.oasis.opendocument.presentation": "odp",
+  "application/postscript": "ps",
+  // Subtitles travel with the media people save here.
+  "text/vtt": "vtt",
+  "application/x-subrip": "srt",
+  // Archives and installers
   "application/zip": "zip",
+  // What IIS serves for an ordinary .zip.
+  "application/x-zip-compressed": "zip",
   "application/gzip": "gz",
   "application/x-gzip": "gz",
   "application/x-tar": "tar",
@@ -241,6 +264,15 @@ export const MIME_EXTENSIONS: Record<string, string> = {
   "application/x-rar-compressed": "rar",
   "application/x-bzip2": "bz2",
   "application/x-xz": "xz",
+  "application/x-lzma": "lzma",
+  "application/x-rar": "rar",
+  "application/java-archive": "jar",
+  "application/vnd.android.package-archive": "apk",
+  "application/x-apple-diskimage": "dmg",
+  "application/x-iso9660-image": "iso",
+  "application/vnd.debian.binary-package": "deb",
+  "application/x-rpm": "rpm",
+  "application/x-msi": "msi",
   // Text and data
   "text/plain": "txt",
   "text/html": "html",
@@ -253,11 +285,15 @@ export const MIME_EXTENSIONS: Record<string, string> = {
   "application/xml": "xml",
   "text/xml": "xml",
   "application/wasm": "wasm",
+  "application/x-sh": "sh",
+  "application/ogg": "ogx",
   // Fonts
   "font/woff": "woff",
   "font/woff2": "woff2",
   "font/ttf": "ttf",
   "font/otf": "otf",
+  "font/collection": "ttc",
+  "application/vnd.ms-fontobject": "eot",
   // Subtype and extension diverge on these, so a subtype rule would give
   // "bittorrent", "msdownload", and "shockwave".
   "application/x-bittorrent": "torrent",
