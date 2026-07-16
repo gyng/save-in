@@ -2603,6 +2603,18 @@
   "o_cBrowserDownloadExcludeFilterInvalid": {
     "message": "Ogiltigt mönster. När URL-filtrering är aktiverad ignoreras den här raden tills den har åtgärdats."
   },
+  "o_lPerSiteDisableHeading": {
+    "message": "Inaktivera Save In på webbplatser"
+  },
+  "o_cPerSiteDisableList": {
+    "message": "Stäng av Save In på matchande webbplatser (valfritt)"
+  },
+  "o_cPerSiteDisableListHelp": {
+    "message": "Ange ett WebExtension-matchningsmönster per rad. Klicka för att spara, sidresurser och automatiska sparningar förblir avstängda på matchande sidor."
+  },
+  "o_cPerSiteDisableListInvalid": {
+    "message": "Ogiltigt mönster. Den här raden ignoreras tills den har åtgärdats."
+  },
   "o_lBrowserDownloadVariablesHeading": {
     "message": "Tillgängliga routningsdata"
   },

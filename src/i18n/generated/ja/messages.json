@@ -2684,6 +2684,18 @@
   "o_cBrowserDownloadExcludeFilterInvalid": {
     "message": "無効なパターンです。URL フィルターがオンの場合、修正するまでこの行は無視されます。"
   },
+  "o_lPerSiteDisableHeading": {
+    "message": "特定のサイトで Save In を無効化"
+  },
+  "o_cPerSiteDisableList": {
+    "message": "一致するサイトで Save In をオフにする（任意）"
+  },
+  "o_cPerSiteDisableListHelp": {
+    "message": "1 行につき 1 つの WebExtension 一致パターンを入力します。一致するページでは、クリックして保存、ページソース、自動保存がオフになります。"
+  },
+  "o_cPerSiteDisableListInvalid": {
+    "message": "無効なパターンです。修正するまでこの行は無視されます。"
+  },
   "o_lBrowserDownloadVariablesHeading": {
     "message": "使用可能なルーティングデータ"
   },

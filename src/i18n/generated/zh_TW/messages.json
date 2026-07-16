@@ -2772,6 +2772,18 @@
   "o_cBrowserDownloadExcludeFilterInvalid": {
     "message": "模式無效。啟用 URL 篩選時，在修正前會忽略此行。"
   },
+  "o_lPerSiteDisableHeading": {
+    "message": "在指定網站上停用 Save In"
+  },
+  "o_cPerSiteDisableList": {
+    "message": "在符合的網站上關閉 Save In（選填）"
+  },
+  "o_cPerSiteDisableListHelp": {
+    "message": "每行輸入一個 WebExtension 比對模式。在符合的頁面上，點選儲存、頁面來源與自動儲存都會關閉。"
+  },
+  "o_cPerSiteDisableListInvalid": {
+    "message": "模式無效。在修正前會忽略此行。"
+  },
   "o_lBrowserDownloadVariablesHeading": {
     "message": "可用的路由資料"
   },

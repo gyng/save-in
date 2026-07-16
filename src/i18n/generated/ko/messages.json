@@ -2684,6 +2684,18 @@
   "o_cBrowserDownloadExcludeFilterInvalid": {
     "message": "잘못된 패턴입니다. URL 필터링이 켜져 있으면 수정할 때까지 이 줄이 무시됩니다."
   },
+  "o_lPerSiteDisableHeading": {
+    "message": "특정 사이트에서 Save In 비활성화"
+  },
+  "o_cPerSiteDisableList": {
+    "message": "일치하는 사이트에서 Save In 끄기(선택 사항)"
+  },
+  "o_cPerSiteDisableListHelp": {
+    "message": "한 줄에 하나씩 WebExtension 일치 패턴을 입력하세요. 일치하는 페이지에서는 클릭하여 저장, 페이지 소스, 자동 저장이 꺼집니다."
+  },
+  "o_cPerSiteDisableListInvalid": {
+    "message": "잘못된 패턴입니다. 수정할 때까지 이 줄이 무시됩니다."
+  },
   "o_lBrowserDownloadVariablesHeading": {
     "message": "사용 가능한 라우팅 데이터"
   },

@@ -2598,6 +2598,18 @@
   "o_cBrowserDownloadExcludeFilterInvalid": {
     "message": "Patrón no válido. Cuando el filtro de URL está activado, esta línea se ignora hasta que se corrija."
   },
+  "o_lPerSiteDisableHeading": {
+    "message": "Desactivar Save In en sitios"
+  },
+  "o_cPerSiteDisableList": {
+    "message": "Desactivar Save In en los sitios coincidentes (opcional)"
+  },
+  "o_cPerSiteDisableListHelp": {
+    "message": "Introduce un patrón de coincidencia de WebExtension por línea. Guardar con un clic, los recursos de la página y los guardados automáticos permanecen desactivados en las páginas coincidentes."
+  },
+  "o_cPerSiteDisableListInvalid": {
+    "message": "Patrón no válido. Esta línea se ignora hasta que se corrija."
+  },
   "o_lBrowserDownloadVariablesHeading": {
     "message": "Datos de enrutamiento disponibles"
   },

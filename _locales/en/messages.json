@@ -323,6 +323,22 @@
     "message": "Invalid pattern. When URL filtering is on, this line is ignored until it is fixed.",
     "description": "Persistent validation error below the browser-download exclude-pattern editor. Used in src/options/options.html."
   },
+  "o_lPerSiteDisableHeading": {
+    "message": "Disable Save In on sites",
+    "description": "Heading for the per-site disable list, where the extension turns itself off on chosen pages. Used in src/options/options.html."
+  },
+  "o_cPerSiteDisableList": {
+    "message": "Turn off Save In on matching sites (optional)",
+    "description": "Label above the per-site disable-list match-pattern editor. Used in src/options/options.html."
+  },
+  "o_cPerSiteDisableListHelp": {
+    "message": "Enter one WebExtension match pattern per line. Click-to-save, page sources, and automatic saves stay off on matching pages.",
+    "description": "Help below the per-site disable-list editor naming the three content features it turns off. 'WebExtension' is a product term kept in English. Used in src/options/options.html."
+  },
+  "o_cPerSiteDisableListInvalid": {
+    "message": "Invalid pattern. This line is ignored until it is fixed.",
+    "description": "Persistent validation error below the per-site disable-list editor. Used in src/options/options.html."
+  },
   "o_lBrowserDownloadVariablesHeading": {
     "message": "Available routing data",
     "description": "Heading for data available to routing rules that handle browser downloads. Used in src/options/options.html."

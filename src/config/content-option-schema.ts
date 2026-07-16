@@ -83,6 +83,14 @@ export const CONTENT_FEATURE_OPTION_DEFINITIONS = [
     validate: isClickType,
     default: CONTENT_OPTION_DEFAULTS.contentClickToSaveButton,
   },
+  {
+    // Stored as raw newline-delimited match patterns: the content bundle parses
+    // it with parseMatchPatternList, and the background backstop re-tests the
+    // sender-tab URL against the same string, so no onLoad transform is applied.
+    name: "perSiteDisableList",
+    type: "VALUE",
+    default: CONTENT_OPTION_DEFAULTS.perSiteDisableList,
+  },
 ] as const;
 
 export const LINKS_OPTION_DEFINITION = {

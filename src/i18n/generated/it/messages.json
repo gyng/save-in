@@ -2789,6 +2789,18 @@
   "o_cBrowserDownloadExcludeFilterInvalid": {
     "message": "Pattern non valido. Quando il filtro URL è attivo, questa riga viene ignorata finché non viene corretta."
   },
+  "o_lPerSiteDisableHeading": {
+    "message": "Disattiva Save In su alcuni siti"
+  },
+  "o_cPerSiteDisableList": {
+    "message": "Disattiva Save In sui siti corrispondenti (facoltativo)"
+  },
+  "o_cPerSiteDisableListHelp": {
+    "message": "Inserisci un criterio di corrispondenza WebExtension per riga. Il clic per salvare, le sorgenti della pagina e i salvataggi automatici restano disattivati nelle pagine corrispondenti."
+  },
+  "o_cPerSiteDisableListInvalid": {
+    "message": "Pattern non valido. Questa riga viene ignorata finché non viene corretta."
+  },
   "o_lBrowserDownloadVariablesHeading": {
     "message": "Dati di routing disponibili"
   },

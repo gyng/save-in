@@ -1733,6 +1733,36 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
         </div>
       </section>
 
+      <section class="source-disable" aria-labelledby="per-site-disable-heading">
+        <h3 class="section-task-heading" id="per-site-disable-heading">
+          __MSG_o_lPerSiteDisableHeading__
+        </h3>
+        <div class="per-site-disable-field">
+          <label for="perSiteDisableList">__MSG_o_cPerSiteDisableList__</label>
+          <textarea
+            class="full-width"
+            id="perSiteDisableList"
+            rows="3"
+            placeholder="*://*.example.com/*"
+            spellcheck="false"
+            aria-describedby="per-site-disable-list-help per-site-disable-list-error"
+            data-syntax-validation-summary="per-site-disable-list-error"
+          ></textarea>
+          <div class="caption caption-line" id="per-site-disable-list-help">
+            __MSG_o_cPerSiteDisableListHelp__
+          </div>
+          <div
+            class="feedback feedback-inline feedback-error"
+            id="per-site-disable-list-error"
+            role="status"
+            aria-live="polite"
+            hidden
+          >
+            __MSG_o_cPerSiteDisableListInvalid__
+          </div>
+        </div>
+      </section>
+
       <hr />
 
       <h2 id="section-history">__MSG_o_sHistory__</h2>

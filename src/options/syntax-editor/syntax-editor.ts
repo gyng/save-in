@@ -533,6 +533,7 @@ export const setupSyntaxEditors = (): SyntaxEditorController[] => {
     ["#browserDownloadFilter", "match-patterns"],
     ["#browserDownloadExcludeFilter", "match-patterns"],
     ["#setRefererHeaderFilter", "match-patterns"],
+    ["#perSiteDisableList", "match-patterns"],
   ];
   editors.forEach(([selector, language]) => {
     const textarea = document.querySelector<HTMLTextAreaElement>(selector);

@@ -140,6 +140,30 @@ test("normalizes interface locale and theme overrides", () => {
   expect("validate" in themeDefinition && themeDefinition.validate("auto")).toBe(false);
 });
 
+test("normalizes the per-site disable list and defaults older profiles to empty", () => {
+  // Older stored profiles predate the key: it must resolve to the safe default
+  // (empty list, nothing disabled) rather than a broad match.
+  expect(resolveContentOptions({}).perSiteDisableList).toBe("");
+  expect(
+    resolveContentOptions({ perSiteDisableList: "*://example.com/*" }).perSiteDisableList,
+  ).toBe("*://example.com/*");
+  for (const value of [null, 42, true, ["*://x/*"], { pattern: "*://x/*" }]) {
+    expect(resolveContentOptions({ perSiteDisableList: value }).perSiteDisableList).toBe("");
+  }
+
+  const definition = CONTENT_FEATURE_OPTION_DEFINITIONS.find(
+    ({ name }) => name === "perSiteDisableList",
+  )! as Extract<
+    (typeof CONTENT_FEATURE_OPTION_DEFINITIONS)[number],
+    { name: "perSiteDisableList" }
+  >;
+  // The background keeps the raw string (no onLoad/onSave) so the backstop can
+  // re-test the sender-tab URL against the same list the content bundle parses.
+  expect(definition.type).toBe("VALUE");
+  expect("onLoad" in definition).toBe(false);
+  expect("onSave" in definition).toBe(false);
+});
+
 test("normalizes the automatic-save visit limit without reinterpreting malformed settings", () => {
   expect(resolveContentOptions({ autoDownloadMaxPerPage: 1 }).autoDownloadMaxPerPage).toBe(1);
   expect(resolveContentOptions({ autoDownloadMaxPerPage: "40" }).autoDownloadMaxPerPage).toBe(40);

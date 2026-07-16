@@ -2676,6 +2676,18 @@
   "o_cBrowserDownloadExcludeFilterInvalid": {
     "message": "无效的模式。启用 URL 过滤时，在修复之前会忽略此行。"
   },
+  "o_lPerSiteDisableHeading": {
+    "message": "在指定网站上停用 Save In"
+  },
+  "o_cPerSiteDisableList": {
+    "message": "在匹配的网站上关闭 Save In（可选）"
+  },
+  "o_cPerSiteDisableListHelp": {
+    "message": "每行输入一个 WebExtension 匹配模式。在匹配的页面上，点击保存、页面来源和自动保存都会关闭。"
+  },
+  "o_cPerSiteDisableListInvalid": {
+    "message": "无效的模式。在修复之前会忽略此行。"
+  },
   "o_lBrowserDownloadVariablesHeading": {
     "message": "可用的路由数据"
   },

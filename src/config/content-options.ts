@@ -123,6 +123,7 @@ export type ResolvedContentOptions = {
   contentClickToSaveCombo: string | number;
   contentClickToSaveButton: ClickType;
   links: boolean;
+  perSiteDisableList: string;
 };
 
 export const CONTENT_OPTION_DEFAULTS: ResolvedContentOptions = {
@@ -143,6 +144,7 @@ export const CONTENT_OPTION_DEFAULTS: ResolvedContentOptions = {
   contentClickToSaveCombo: DEFAULT_CONTENT_CLICK_COMBO,
   contentClickToSaveButton: CLICK_TYPES.LEFT_CLICK,
   links: true,
+  perSiteDisableList: "",
 };
 
 export type ContentOptionName = keyof typeof CONTENT_OPTION_DEFAULTS;
@@ -203,6 +205,7 @@ const CONTENT_OPTION_NORMALIZERS: ContentOptionNormalizers = {
   contentClickToSaveButton: (stored) =>
     isClickType(stored) ? stored : CONTENT_OPTION_DEFAULTS.contentClickToSaveButton,
   links: booleanOption(CONTENT_OPTION_DEFAULTS.links),
+  perSiteDisableList: stringOption(CONTENT_OPTION_DEFAULTS.perSiteDisableList),
 };
 
 export const normalizeContentOption = <Name extends ContentOptionName>(

@@ -2623,6 +2623,18 @@
   "o_cBrowserDownloadExcludeFilterInvalid": {
     "message": "Modèle non valide. Lorsque le filtrage des URL est activé, cette ligne est ignorée tant qu’elle n’est pas corrigée."
   },
+  "o_lPerSiteDisableHeading": {
+    "message": "Désactiver Save In sur des sites"
+  },
+  "o_cPerSiteDisableList": {
+    "message": "Désactiver Save In sur les sites correspondants (facultatif)"
+  },
+  "o_cPerSiteDisableListHelp": {
+    "message": "Saisissez un modèle de correspondance WebExtension par ligne. L’enregistrement au clic, les sources de la page et les enregistrements automatiques restent désactivés sur les pages correspondantes."
+  },
+  "o_cPerSiteDisableListInvalid": {
+    "message": "Modèle non valide. Cette ligne est ignorée tant qu’elle n’est pas corrigée."
+  },
   "o_lBrowserDownloadVariablesHeading": {
     "message": "Données de routage disponibles"
   },

@@ -2588,6 +2588,18 @@
   "o_cBrowserDownloadExcludeFilterInvalid": {
     "message": "Padrão inválido. Quando a filtragem de URL estiver ativada, esta linha será ignorada até que seja corrigida."
   },
+  "o_lPerSiteDisableHeading": {
+    "message": "Desativar o Save In em sites"
+  },
+  "o_cPerSiteDisableList": {
+    "message": "Desativar o Save In nos sites correspondentes (opcional)"
+  },
+  "o_cPerSiteDisableListHelp": {
+    "message": "Insira um padrão de correspondência do WebExtension por linha. O clique para salvar, as fontes da página e os salvamentos automáticos permanecem desativados nas páginas correspondentes."
+  },
+  "o_cPerSiteDisableListInvalid": {
+    "message": "Padrão inválido. Esta linha será ignorada até que seja corrigida."
+  },
   "o_lBrowserDownloadVariablesHeading": {
     "message": "Dados de roteamento disponíveis"
   },

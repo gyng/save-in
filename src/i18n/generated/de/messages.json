@@ -2602,6 +2602,18 @@
   "o_cBrowserDownloadExcludeFilterInvalid": {
     "message": "Ungültiges Muster. Wenn der URL-Filter aktiviert ist, wird diese Zeile ignoriert, bis sie korrigiert wurde."
   },
+  "o_lPerSiteDisableHeading": {
+    "message": "Save In auf Websites deaktivieren"
+  },
+  "o_cPerSiteDisableList": {
+    "message": "Save In auf passenden Websites ausschalten (optional)"
+  },
+  "o_cPerSiteDisableListHelp": {
+    "message": "Geben Sie ein WebExtension-Übereinstimmungsmuster pro Zeile ein. Speichern per Klick, Seitenquellen und automatische Speicherungen bleiben auf passenden Seiten deaktiviert."
+  },
+  "o_cPerSiteDisableListInvalid": {
+    "message": "Ungültiges Muster. Diese Zeile wird ignoriert, bis sie korrigiert wurde."
+  },
   "o_lBrowserDownloadVariablesHeading": {
     "message": "Verfügbare Routing-Daten"
   },

@@ -464,6 +464,26 @@ into: automatic/:$1:
     },
   );
 
+  test("backstops a stale content script on a disabled site", async () => {
+    configure();
+    // The sender-tab page matches the per-site disable list, so a save request
+    // from a content script that has not yet torn down must be refused.
+    options.perSiteDisableList = "*://example.test/*";
+    const sendResponse = vi.fn();
+    onMessage(
+      request,
+      { tab: { id: 7, url: "https://example.test/gallery/", incognito: false } },
+      sendResponse,
+    );
+
+    await waitForCall(sendResponse);
+    expect(Download.launchDownload).not.toHaveBeenCalled();
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
+      body: { status: "skipped" },
+    });
+  });
+
   test("allows private automatic saves only when explicitly enabled", async () => {
     configure();
     options.autoDownloadPrivate = true;
