@@ -112,6 +112,21 @@ describe("SaveHistory", () => {
     await flushWrites();
 
     expect(store[HISTORY_KEY]![0]!).toMatchObject({ status: "pending", downloadId: 7 });
+    // Without a startTime the undo-identity field must not be written at all.
+    expect(store[HISTORY_KEY]![0]!).not.toHaveProperty("downloadStartTime");
+  });
+
+  test("setDownloadId persists the start time for the undo identity check", async () => {
+    const id = SaveHistory.addHistoryEntry({ url: "https://a/1" });
+    await flushWrites();
+
+    SaveHistory.setHistoryDownloadId(id, 7, "2026-07-17T01:02:03.000Z");
+    await flushWrites();
+
+    expect(store[HISTORY_KEY]![0]!).toMatchObject({
+      downloadId: 7,
+      downloadStartTime: "2026-07-17T01:02:03.000Z",
+    });
   });
 
   test("get returns the entry list", async () => {

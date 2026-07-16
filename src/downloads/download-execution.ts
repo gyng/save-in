@@ -25,6 +25,7 @@ import {
   PENDING_DOWNLOADS_SESSION_KEY,
 } from "../shared/storage-keys.ts";
 import { emitDownloaded } from "./download-events.ts";
+import { searchDownloadStartTime } from "./undo-download.ts";
 import { extensionSessionStorage } from "../platform/storage-areas.ts";
 import type {
   AcquiredDownload,
@@ -273,7 +274,13 @@ export const executeBrowserDownload = async (
     });
     if (historyEntryId) {
       updateActiveTransfer(historyEntryId, { downloadId });
-      await historyPort.setDownloadId(historyEntryId, downloadId);
+      // downloads.download resolves with the bare id; the identity check
+      // wants the item's startTime, so look it up while the id is fresh.
+      await historyPort.setDownloadId(
+        historyEntryId,
+        downloadId,
+        await searchDownloadStartTime(downloadId),
+      );
     }
     if (signal?.aborted) {
       await webExtensionApi.downloads.cancel(downloadId).catch(() => {});

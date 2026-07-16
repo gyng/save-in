@@ -72,8 +72,8 @@ export const setupAutoDownloadDiscovery = (
     while (true) {
       const candidate = queue.shift();
       if (!candidate) break;
-      // Re-check at dispatch time: the page may have navigated onto the disable
-      // list since this candidate was queued.
+      // Re-check between queueing and dispatch: the page may have navigated
+      // onto the disable list while earlier candidates were being sent.
       if (options.isPageDisabled()) continue;
       try {
         await options.send(candidate);
@@ -89,6 +89,13 @@ export const setupAutoDownloadDiscovery = (
 
   const scan = (root: ParentNode = document) => {
     if (stopped || automaticRules.length === 0) return;
+    // A disabled page must consume nothing: recording sources or per-page
+    // budget here would block their adoption after the page leaves the list.
+    // Every relevant DOM mutation rescans the whole document, so discovery
+    // resumes on the next mutation after a pushState navigation off the list;
+    // a perfectly static page stays idle until an option change remounts
+    // discovery (content scripts get no navigation event for pushState).
+    if (options.isPageDisabled()) return;
     const pageUrl = `${window.location}`;
     const candidates = collectPageSourceCandidates(root, {
       includeBackgrounds: false,

@@ -31,6 +31,10 @@ export type HistoryEntry = HistoryEntryInput & {
   id?: string | undefined;
   status?: string | undefined;
   downloadId?: number | undefined;
+  // Browser-assigned start timestamp of the bound download; the undo identity
+  // check uses it because ids are session-scoped in Firefox. Additive — absent
+  // on entries written before it was captured.
+  downloadStartTime?: string | undefined;
   fileSize?: number | undefined;
 };
 

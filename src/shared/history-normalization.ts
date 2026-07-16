@@ -77,6 +77,9 @@ export const normalizeHistoryEntry = (value: unknown): HistoryEntry | null => {
   ) {
     entry.downloadId = value.downloadId;
   }
+  if (typeof value.downloadStartTime === "string" && value.downloadStartTime.length > 0) {
+    entry.downloadStartTime = value.downloadStartTime;
+  }
   if (
     typeof value.fileSize === "number" &&
     Number.isSafeInteger(value.fileSize) &&

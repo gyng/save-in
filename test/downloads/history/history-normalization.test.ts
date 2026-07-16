@@ -20,6 +20,22 @@ describe("history normalization", () => {
     ]);
   });
 
+  test("preserves the download start time and tolerates its absence", () => {
+    // The undo identity check depends on the persisted startTime; legacy
+    // entries without one (or with a malformed one) must still round-trip.
+    expect(
+      normalizeHistory([
+        { id: "s1", downloadId: 3, downloadStartTime: "2026-07-17T01:02:03.000Z" },
+        { id: "legacy", downloadId: 4 },
+        { id: "bad", downloadId: 5, downloadStartTime: 12345 },
+      ]),
+    ).toEqual([
+      { id: "s1", downloadId: 3, downloadStartTime: "2026-07-17T01:02:03.000Z" },
+      { id: "legacy", downloadId: 4 },
+      { id: "bad", downloadId: 5 },
+    ]);
+  });
+
   test("detects and migrates legacy local date-only timestamps", () => {
     const stored = [{ id: "old", timestamp: "2024-02-29" }];
     expect(hasLegacyDateOnlyTimestamp(stored)).toBe(true);

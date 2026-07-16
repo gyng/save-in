@@ -484,6 +484,44 @@ describe("content.js initialisation", () => {
     );
   });
 
+  test("removing the site from the disable list resumes automatic saves without a reload", async () => {
+    let storageListener: ((changes: Record<string, any>, area: string) => void) | undefined;
+    vi.resetModules();
+    document.body.innerHTML = '<img src="https://cdn.test/automatic.png">';
+    global.chrome.runtime.sendMessage = vi.fn((_message, callback) => callback?.()) as any;
+    global.chrome.runtime.onMessage.addListener = vi.fn();
+    global.chrome.storage.local.get = vi.fn((_keys, callback) =>
+      callback({
+        autoDownloadEnabled: true,
+        autoDownloadLive: false,
+        filenamePatterns:
+          "context: ^auto$\npageurl: ^http://localhost/\nsourceurl: automatic\\.png$\ninto: automatic/",
+        perSiteDisableList: "*://localhost/*",
+      }),
+    ) as any;
+    (global.chrome.storage as any).onChanged = {
+      addListener: vi.fn((listener) => {
+        storageListener = listener;
+      }),
+    };
+    await import("../../src/content/content.ts");
+    await Promise.resolve();
+    await Promise.resolve();
+    const autoSends = () =>
+      vi
+        .mocked(global.chrome.runtime.sendMessage)
+        .mock.calls.filter(([message]) => (message as any)?.type === "AUTO_DOWNLOAD_SOURCE");
+    expect(autoSends()).toHaveLength(0);
+
+    // The disabled scan consumed nothing, so the option change remounts
+    // discovery and the already-present image is adopted immediately.
+    storageListener!(
+      { perSiteDisableList: { oldValue: "*://localhost/*", newValue: "" } },
+      "local",
+    );
+    await vi.waitFor(() => expect(autoSends()).toHaveLength(1));
+  });
+
   test("mounts click-to-save on a disabled page but ignores the click", async () => {
     const addEventListener = vi.spyOn(window, "addEventListener");
     await importContentWithOptions({
@@ -663,6 +701,47 @@ describe("content.js initialisation", () => {
     );
 
     expect(document.getElementById("save-in-source-panel")?.classList).toContain("closing");
+  });
+
+  test("a force-opened panel on a disabled page survives unrelated option changes", async () => {
+    let runtimeListener: ((message: any) => void) | undefined;
+    let storageListener: ((changes: Record<string, any>, area: string) => void) | undefined;
+    vi.resetModules();
+    document.body.innerHTML = '<img src="cat.jpg">';
+    global.chrome.runtime.sendMessage = vi.fn((_message, callback) => callback?.()) as any;
+    global.chrome.runtime.onMessage.addListener = vi.fn((listener) => {
+      runtimeListener = listener;
+    });
+    global.chrome.storage.local.get = vi.fn((_keys, callback) =>
+      callback({ sourcePanelEnabled: true, perSiteDisableList: "*://localhost/*" }),
+    ) as any;
+    (global.chrome.storage as any).onChanged = {
+      addListener: vi.fn((listener) => {
+        storageListener = listener;
+      }),
+    };
+    await import("../../src/content/content.ts");
+
+    runtimeListener!({ type: "TOGGLE_SOURCE_PANEL", body: { force: true } });
+    expect(document.getElementById("save-in-source-panel")).not.toBeNull();
+
+    // The page never transitioned onto the list (it was already on it when
+    // the panel was deliberately opened), so unrelated option edits must not
+    // revoke the explicit open.
+    storageListener!({ sourcePanelBackgrounds: { newValue: true } }, "local");
+    storageListener!(
+      {
+        perSiteDisableList: {
+          oldValue: "*://localhost/*",
+          newValue: "*://localhost/*\n*://other.example/*",
+        },
+      },
+      "local",
+    );
+
+    const panel = document.getElementById("save-in-source-panel");
+    expect(panel).not.toBeNull();
+    expect(panel?.classList).not.toContain("closing");
   });
 
   test("lets an explicit user toggle open Page Sources while it is disabled", async () => {

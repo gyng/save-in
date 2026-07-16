@@ -11,7 +11,11 @@ export type DownloadPorts = {
   history: {
     add(entry: HistoryEntryInput, options?: PrivateWriteOptions): string | null;
     patch(id: string | null | undefined, fields: Partial<HistoryEntry>): Promise<unknown>;
-    setDownloadId(id: string | null | undefined, downloadId: number): Promise<unknown>;
+    setDownloadId(
+      id: string | null | undefined,
+      downloadId: number,
+      startTime?: string,
+    ): Promise<unknown>;
     setStatus(
       id: string | null | undefined,
       status: string,

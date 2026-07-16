@@ -42,7 +42,11 @@ import {
 } from "./notification-runtime.ts";
 import { resolveFirefoxDownloadContext } from "./auth-context.ts";
 import { OffscreenClient } from "../platform/offscreen-client.ts";
-import { undoDownloadAndMark, type ExpectedDownloadIdentity } from "./undo-download.ts";
+import {
+  searchDownloadStartTime,
+  undoDownloadAndMark,
+  type ExpectedDownloadIdentity,
+} from "./undo-download.ts";
 
 type HostDownloadItem = Parameters<
   Parameters<typeof webExtensionApi.downloads.onCreated.addListener>[0]
@@ -106,7 +110,7 @@ export const onDownloadCreated = async (item: HostDownloadItem) => {
       privateContext: item.incognito === true || isPrivateDownloadRecord(matched.record || {}),
     });
     if (matched.record?.historyEntryId) {
-      void historyPort.setDownloadId(matched.record.historyEntryId, item.id);
+      void historyPort.setDownloadId(matched.record.historyEntryId, item.id, item.startTime);
     }
     return;
   }
@@ -181,7 +185,11 @@ export const onDownloadCreated = async (item: HostDownloadItem) => {
           conflictAction: options.conflictAction,
         });
         setTimeout(() => cancelExpectedDownload(expected), 10000);
-        void historyPort.setDownloadId(historyEntryId, replacementId);
+        void historyPort.setDownloadId(
+          historyEntryId,
+          replacementId,
+          await searchDownloadStartTime(replacementId),
+        );
       } catch (error) {
         cancelExpectedDownload(expected);
         await historyPort.setStatus(historyEntryId, "FIREFOX_REROUTE_FAILED");
@@ -211,7 +219,7 @@ export const onDownloadCreated = async (item: HostDownloadItem) => {
       ...(historyEntryId ? { historyEntryId } : {}),
       allowOriginalUrlFallback: false,
     });
-    void historyPort.setDownloadId(historyEntryId, item.id);
+    void historyPort.setDownloadId(historyEntryId, item.id, item.startTime);
   }
 };
 
@@ -226,17 +234,43 @@ export const onNotificationButtonClicked = async (notId: string, buttonIndex: nu
   const record = await getTrackedDownload(downloadId);
   // The session record can be evicted between completion and the click; fall
   // back to the History entry by downloadId so the row is still marked and
-  // the identity check still has something to verify against.
+  // the identity check still has something to verify against. Ids can repeat
+  // across Firefox sessions (and after a Chrome downloads-DB reset), so the
+  // NEWEST completed entry is the one this button can belong to.
   let historyEntryId = record?.historyEntryId;
   let expected: ExpectedDownloadIdentity = { url: record?.url, filename: record?.filename };
   if (!historyEntryId) {
-    const entry = (await historyPort.entries()).find(
-      (candidate) => candidate.downloadId === downloadId,
+    const entry = (await historyPort.entries()).findLast(
+      (candidate) => candidate.downloadId === downloadId && candidate.status === "complete",
     );
     if (entry?.id) {
       historyEntryId = entry.id;
-      expected = { url: entry.url, filename: entry.finalFullPath };
+      expected = {
+        startTime: entry.downloadStartTime,
+        url: entry.url,
+        filename: entry.finalFullPath,
+      };
     }
+  }
+  // A refused undo must not be a silent no-op: the notification stays, so the
+  // user needs to hear that clicking it did nothing.
+  const reportUndoRefused = () =>
+    createNotification(
+      `save-in-not-${EXTENSION_NOTIFICATION_STREAMS.DOWNLOAD_FAILURE}`,
+      {
+        type: "basic",
+        title: getMessage("extensionName"),
+        iconUrl: ERROR_ICON_URL,
+        message: getMessage("historyUndoFailed") || "Could not undo this save.",
+      },
+      options && options.notifyDuration,
+    );
+  if (!expected.startTime && !expected.url && !expected.filename) {
+    // Firefox ids are session-scoped; with no record and no entry there is
+    // nothing to verify the id against, so undo must refuse outright.
+    logPort.add("undo refused: no identity evidence", { downloadId });
+    await reportUndoRefused();
+    return;
   }
   const entryToMark = historyEntryId;
   const result = await undoDownloadAndMark(downloadId, expected, async () => {
@@ -244,13 +278,16 @@ export const onNotificationButtonClicked = async (notId: string, buttonIndex: nu
       await historyPort.setStatus(entryToMark, "undone", downloadId);
       return;
     }
-    // Chrome ids are stable across sessions, so the undo itself is safe; only
-    // the History mark has nothing to attach to.
+    // A record without a history entry (never persisted): the undo itself is
+    // identity-verified, only the History mark has nothing to attach to.
     logPort.add("undo could not mark history", { downloadId });
   });
   if (result.undone) {
     await Promise.resolve(webExtensionApi.notifications.clear(notId)).catch(() => {});
+    return;
   }
+  logPort.add("undo refused", { downloadId });
+  await reportUndoRefused();
 };
 
 export const onNotificationClicked = (notId: string) => {

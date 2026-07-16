@@ -30,7 +30,9 @@ export const isReroutableBrowserDownload = (item: BrowserDownloadItem): boolean 
   }
 };
 
-const proposedFilename = (filename: string): string =>
+// Shared with undo-download.ts's identity check: both need the last real path
+// segment regardless of platform separators or a trailing separator.
+export const proposedFilename = (filename: string): string =>
   filename.split(/[\\/]/).filter(Boolean).at(-1) || filename;
 
 export const isOrdinaryBrowserDownload = (

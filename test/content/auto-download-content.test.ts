@@ -130,6 +130,53 @@ describe("automatic source discovery", () => {
     controller.stop();
   });
 
+  test("stops dispatching mid-drain when the page becomes disabled", async () => {
+    document.body.innerHTML =
+      '<img src="https://cdn.test/one.png"><img src="https://cdn.test/two.png">';
+    let disabled = false;
+    // The first send flips the predicate, standing in for a pushState
+    // navigation onto the disable list while the queue is draining.
+    const send = vi.fn(() => {
+      disabled = true;
+      return Promise.resolve("started" as const);
+    });
+    const controller = setupAutoDownloadDiscovery({
+      rules,
+      live: false,
+      maxPerPage: 5,
+      isPageDisabled: () => disabled,
+      send,
+    });
+    await controller.idle();
+    expect(send).toHaveBeenCalledOnce();
+    controller.stop();
+  });
+
+  test("a disabled page consumes neither dedup state nor the page budget", async () => {
+    document.body.innerHTML =
+      '<img src="https://cdn.test/one.png"><img src="https://cdn.test/two.png">';
+    let disabled = true;
+    const send = vi.fn(() => Promise.resolve("started" as const));
+    const controller = setupAutoDownloadDiscovery({
+      rules,
+      live: false,
+      maxPerPage: 2,
+      isPageDisabled: () => disabled,
+      send,
+    });
+    await controller.idle();
+    expect(send).not.toHaveBeenCalled();
+
+    // Un-disabling and rescanning must adopt both images: had the disabled
+    // scan recorded them as seen or spent the two-slot budget, nothing would
+    // ever save on this page again without a reload.
+    disabled = false;
+    controller.scan();
+    await controller.idle();
+    expect(send).toHaveBeenCalledTimes(2);
+    controller.stop();
+  });
+
   test("keeps valid automation active when an unrelated routing rule is invalid", async () => {
     document.body.innerHTML = '<img src="https://cdn.test/cat.png">';
     const send = vi.fn(() => Promise.resolve("started" as const));

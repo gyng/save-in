@@ -282,6 +282,77 @@ describe("onMessage", () => {
     });
   });
 
+  test("HISTORY_UNDO refuses when the stored start time contradicts the browser item", async () => {
+    vi.mocked(SaveHistory.getHistoryEntries).mockResolvedValue([
+      {
+        id: "history-13",
+        url: "https://x.test/file.png",
+        downloadId: 34,
+        status: "complete",
+        downloadStartTime: "2026-07-17T01:02:03.000Z",
+      },
+    ]);
+    // Same url, different start time: a reused session-scoped id pointing at a
+    // re-download of the same address must still refuse.
+    vi.mocked(global.browser.downloads.search).mockResolvedValue([
+      { id: 34, url: "https://x.test/file.png", startTime: "2026-07-18T09:08:07.000Z" } as never,
+    ]);
+    vi.mocked(global.browser.downloads.removeFile).mockClear();
+    vi.mocked(SaveHistory.setHistoryStatus).mockClear();
+    const sendResponse = vi.fn();
+
+    onMessage(
+      { type: MESSAGE_TYPES.HISTORY_UNDO, body: { historyId: "history-13" } },
+      {},
+      sendResponse,
+    );
+    await waitForCall(sendResponse);
+
+    expect(global.browser.downloads.removeFile).not.toHaveBeenCalled();
+    expect(SaveHistory.setHistoryStatus).not.toHaveBeenCalled();
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.HISTORY_UNDO,
+      body: { undone: false, fileMissing: false },
+    });
+  });
+
+  test("HISTORY_UNDO matches a blob-acquired download through its start time", async () => {
+    vi.mocked(SaveHistory.getHistoryEntries).mockResolvedValue([
+      {
+        id: "history-14",
+        url: "https://x.test/file.png",
+        finalFullPath: "gallery/file.png",
+        downloadId: 35,
+        status: "complete",
+        downloadStartTime: "2026-07-17T01:02:03.000Z",
+      },
+    ]);
+    // Chrome's Referer-protected acquisition downloads a blob: URL and the
+    // browser may have uniquified the on-disk name; startTime still matches.
+    vi.mocked(global.browser.downloads.search).mockResolvedValue([
+      {
+        id: 35,
+        url: "blob:chrome-extension/9",
+        filename: "/dl/file (1).png",
+        startTime: "2026-07-17T01:02:03.000Z",
+      } as never,
+    ]);
+    const sendResponse = vi.fn();
+
+    onMessage(
+      { type: MESSAGE_TYPES.HISTORY_UNDO, body: { historyId: "history-14" } },
+      {},
+      sendResponse,
+    );
+    await waitForCall(sendResponse);
+
+    expect(SaveHistory.setHistoryStatus).toHaveBeenCalledWith("history-14", "undone", 35);
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.HISTORY_UNDO,
+      body: { undone: true, fileMissing: false },
+    });
+  });
+
   test("HISTORY_UNDO reports failure for an entry without a known download id", async () => {
     vi.mocked(SaveHistory.getHistoryEntries).mockResolvedValue([
       { id: "history-11", url: "https://x.test/old.png", status: "complete" },

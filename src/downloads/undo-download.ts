@@ -1,39 +1,61 @@
 import { webExtensionApi } from "../platform/web-extension-api.ts";
+import { proposedFilename } from "./browser-downloads.ts";
 
 export type UndoDownloadResult = { undone: boolean; fileMissing: boolean };
 
 // What the caller knows about the download it intends to undo, from the
 // History entry or the per-download session record. Undo refuses to act when
-// the browser's record contradicts every provided field.
+// the browser's record contradicts the evidence — or when there is none.
 export type ExpectedDownloadIdentity = {
+  startTime?: string | undefined;
   url?: string | undefined;
   filename?: string | undefined;
 };
 
-const basename = (path: string): string => {
-  const segments = path.split(/[\\/]/);
-  // A trailing separator yields an empty last segment; compare the full path
-  // then rather than treating every such pair as equal.
-  return segments[segments.length - 1] || path;
-};
+// The browser resolves an on-disk filename collision by inserting " (n)"
+// before the extension; history keeps the pre-collision routed name, so only
+// the browser item's basename may carry the suffix.
+const withoutUniquifySuffix = (name: string): string =>
+  name.replace(/ \(\d+\)(?=(?:\.[^.]*)?$)/, "");
 
-// Lenient on purpose: history stores the routed path while the browser item
-// holds the absolute on-disk path (separators differ by platform), and a
-// redirect can leave the entry's url on either side of item.url/finalUrl.
-// Any agreeing field is proof enough; refusing requires every provided field
-// to disagree.
+// startTime is the one browser-assigned field that survives redirects,
+// blob/data-URL acquisition, and filename uniquification, so when both sides
+// know it, it alone decides. The field arms exist for legacy entries stored
+// before startTime was captured: url must match one side of a redirect
+// exactly, filenames compare by basename (history stores the routed path,
+// the browser the absolute on-disk path). No evidence at all must refuse —
+// Firefox downloads-API ids are session-scoped, so a bare id proves nothing.
 export const matchesDownloadIdentity = (
-  item: { url?: string | undefined; finalUrl?: string | undefined; filename?: string | undefined },
+  item: {
+    startTime?: string | undefined;
+    url?: string | undefined;
+    finalUrl?: string | undefined;
+    filename?: string | undefined;
+  },
   expected: ExpectedDownloadIdentity,
 ): boolean => {
-  const expectedUrl = expected.url;
-  const expectedFilename = expected.filename;
-  if (!expectedUrl && !expectedFilename) return true;
-  if (expectedUrl && (item.url === expectedUrl || item.finalUrl === expectedUrl)) return true;
-  if (expectedFilename && item.filename && basename(item.filename) === basename(expectedFilename)) {
-    return true;
+  const { startTime, url, filename } = expected;
+  if (startTime && item.startTime) return item.startTime === startTime;
+  if (!url && !filename) return false;
+  if (url && (item.url === url || item.finalUrl === url)) return true;
+  if (filename && item.filename) {
+    const itemBase = proposedFilename(item.filename);
+    const expectedBase = proposedFilename(filename);
+    if (itemBase === expectedBase) return true;
+    if (withoutUniquifySuffix(itemBase) === expectedBase) return true;
   }
   return false;
+};
+
+// Callers bind a downloadId to a history entry at several points but do not
+// always hold the DownloadItem; the identity check wants its startTime.
+export const searchDownloadStartTime = async (downloadId: number): Promise<string | undefined> => {
+  try {
+    const [item] = await webExtensionApi.downloads.search({ id: downloadId });
+    return item?.startTime;
+  } catch {
+    return undefined;
+  }
 };
 
 // Undoing a save removes the file and erases the browser's shelf entry, in
@@ -72,10 +94,11 @@ export const undoBrowserDownload = async (
     }
   }
   try {
-    // erase resolves with the erased ids and never rejects for a
-    // non-matching query, so an empty result is a failure, not a success.
-    const erased = await webExtensionApi.downloads.erase({ id: downloadId });
-    if (erased.length === 0) return { undone: false, fileMissing };
+    // The search above already proved the download is real, so an empty erase
+    // result only means the shelf entry vanished concurrently — the undo's
+    // goal state (file handled, shelf entry gone) holds either way. Only a
+    // rejection is a failure.
+    await webExtensionApi.downloads.erase({ id: downloadId });
   } catch {
     return { undone: false, fileMissing };
   }

@@ -90,6 +90,10 @@ describe("pattern list grammar", () => {
       false,
     );
     expect(matchesAnyPattern("https://example.com/gallery", "")).toBe(false);
+    // A value the URL parser rejects still gets its fragment stripped before
+    // the textual fallback comparison (and never matches a real pattern).
+    expect(matchesAnyPattern("not a url#fragment", "*://example.com/*")).toBe(false);
+    expect(matchesAnyPattern("not a url", "*://example.com/*")).toBe(false);
   });
 
   test("matches hosts case-insensitively but keeps the path case-sensitive", () => {

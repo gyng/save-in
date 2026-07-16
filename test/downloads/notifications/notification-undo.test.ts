@@ -19,7 +19,9 @@ describe("undo on the success notification", () => {
     vi.resetModules();
     browserState.current = "CHROME";
     sessionStore = {};
-    setupGlobals(sessionStore, () => [{ id: 7, fileSize: 2048, mime: "image/png" }]);
+    setupGlobals(sessionStore, () => [
+      { id: 7, fileSize: 2048, mime: "image/png", url: "https://x/p.png" },
+    ]);
     await loadNotification();
     Object.assign(options, {
       notifyOnSuccess: true,
@@ -74,7 +76,9 @@ describe("undo on the success notification", () => {
   test("button click removes the file, erases the shelf entry, and marks history", async () => {
     const history = await import("../../../src/background/history.ts");
     vi.spyOn(history, "setHistoryStatus").mockResolvedValue(undefined);
-    sessionStore.siDownloads = { 7: { adopted: true, historyEntryId: "h-undo" } };
+    sessionStore.siDownloads = {
+      7: { adopted: true, historyEntryId: "h-undo", url: "https://x/p.png" },
+    };
 
     await onButtonClicked("7", 0);
 
@@ -88,7 +92,9 @@ describe("undo on the success notification", () => {
     const history = await import("../../../src/background/history.ts");
     vi.spyOn(history, "setHistoryStatus").mockResolvedValue(undefined);
     vi.mocked(global.browser.downloads.removeFile).mockRejectedValueOnce(new Error("file missing"));
-    sessionStore.siDownloads = { 7: { adopted: true, historyEntryId: "h-undo" } };
+    sessionStore.siDownloads = {
+      7: { adopted: true, historyEntryId: "h-undo", url: "https://x/p.png" },
+    };
 
     await onButtonClicked("7", 0);
 
@@ -99,7 +105,9 @@ describe("undo on the success notification", () => {
   test("a rejecting undo handler is contained and logged", async () => {
     const history = await import("../../../src/background/history.ts");
     vi.spyOn(history, "setHistoryStatus").mockRejectedValue(new Error("storage gone"));
-    sessionStore.siDownloads = { 7: { adopted: true, historyEntryId: "h-undo" } };
+    sessionStore.siDownloads = {
+      7: { adopted: true, historyEntryId: "h-undo", url: "https://x/p.png" },
+    };
 
     // The registered listener wraps the handler in runEventTask, so a
     // rejection resolves after logging instead of surfacing to the host.
@@ -141,19 +149,53 @@ describe("undo on the success notification", () => {
     expect(global.browser.notifications.clear).toHaveBeenCalledWith("7");
   });
 
-  test("with no record and no history entry, undo proceeds and logs the unmarked entry", async () => {
+  test("with no record and no history entry, undo refuses for lack of evidence", async () => {
     const history = await import("../../../src/background/history.ts");
     vi.spyOn(history, "setHistoryStatus").mockResolvedValue(undefined);
     vi.spyOn(history, "getHistoryEntries").mockResolvedValue([]);
 
     await onButtonClicked("7", 0);
 
-    // Chrome download ids are stable across sessions, so the undo itself is
-    // safe; only the History mark has nothing to attach to.
+    // A bare download id proves nothing (Firefox ids are session-scoped), so
+    // with nothing to verify against the undo must not touch the download.
+    expect(global.browser.downloads.removeFile).not.toHaveBeenCalled();
+    expect(global.browser.downloads.erase).not.toHaveBeenCalled();
+    expect(history.setHistoryStatus).not.toHaveBeenCalled();
+    expect(global.browser.notifications.clear).not.toHaveBeenCalled();
+    expect(Log.addLogEntry).toHaveBeenCalledWith("undo refused: no identity evidence", {
+      downloadId: 7,
+    });
+    expect(global.browser.notifications.create).toHaveBeenCalledWith(
+      "save-in-not-download-failure",
+      expect.objectContaining({ message: "Translated<historyUndoFailed>" }),
+    );
+  });
+
+  test("a record without a history entry still undoes and logs the unmarked row", async () => {
+    const history = await import("../../../src/background/history.ts");
+    vi.spyOn(history, "setHistoryStatus").mockResolvedValue(undefined);
+    sessionStore.siDownloads = { 7: { adopted: true, url: "https://x/p.png" } };
+
+    await onButtonClicked("7", 0);
+
     expect(global.browser.downloads.removeFile).toHaveBeenCalledWith(7);
     expect(history.setHistoryStatus).not.toHaveBeenCalled();
     expect(Log.addLogEntry).toHaveBeenCalledWith("undo could not mark history", { downloadId: 7 });
     expect(global.browser.notifications.clear).toHaveBeenCalledWith("7");
+  });
+
+  test("the fallback marks the newest completed entry sharing the download id", async () => {
+    const history = await import("../../../src/background/history.ts");
+    vi.spyOn(history, "setHistoryStatus").mockResolvedValue(undefined);
+    vi.spyOn(history, "getHistoryEntries").mockResolvedValue([
+      { id: "h-old", url: "https://x/old.png", downloadId: 7, status: "complete" },
+      { id: "h-undone", url: "https://x/p.png", downloadId: 7, status: "undone" },
+      { id: "h-new", url: "https://x/p.png", downloadId: 7, status: "complete" },
+    ] as never);
+
+    await onButtonClicked("7", 0);
+
+    expect(history.setHistoryStatus).toHaveBeenCalledWith("h-new", "undone", 7);
   });
 
   test("a reused id pointing at a foreign download is refused from the button", async () => {
@@ -172,13 +214,35 @@ describe("undo on the success notification", () => {
     expect(global.browser.downloads.erase).not.toHaveBeenCalled();
     expect(history.setHistoryStatus).not.toHaveBeenCalled();
     expect(global.browser.notifications.clear).not.toHaveBeenCalled();
+    // A refused undo is not a silent no-op: the user hears why nothing happened.
+    expect(Log.addLogEntry).toHaveBeenCalledWith("undo refused", { downloadId: 7 });
+    expect(global.browser.notifications.create).toHaveBeenCalledWith(
+      "save-in-not-download-failure",
+      expect.objectContaining({ message: "Translated<historyUndoFailed>" }),
+    );
+  });
+
+  test("the refusal message falls back when the catalog has no entry", async () => {
+    const localization = await import("../../../src/platform/localization.ts");
+    vi.spyOn(localization, "getMessage").mockReturnValue("");
+    const history = await import("../../../src/background/history.ts");
+    vi.spyOn(history, "getHistoryEntries").mockResolvedValue([]);
+
+    await onButtonClicked("7", 0);
+
+    expect(global.browser.notifications.create).toHaveBeenCalledWith(
+      "save-in-not-download-failure",
+      expect.objectContaining({ message: "Could not undo this save." }),
+    );
   });
 
   test("a failed erase from the button neither marks nor clears", async () => {
     const history = await import("../../../src/background/history.ts");
     vi.spyOn(history, "setHistoryStatus").mockResolvedValue(undefined);
     vi.mocked(global.browser.downloads.erase).mockRejectedValueOnce(new Error("shelf locked"));
-    sessionStore.siDownloads = { 7: { adopted: true, historyEntryId: "h-undo" } };
+    sessionStore.siDownloads = {
+      7: { adopted: true, historyEntryId: "h-undo", url: "https://x/p.png" },
+    };
 
     await onButtonClicked("7", 0);
 
@@ -190,7 +254,9 @@ describe("undo on the success notification", () => {
     const history = await import("../../../src/background/history.ts");
     vi.spyOn(history, "setHistoryStatus").mockResolvedValue(undefined);
     vi.mocked(global.browser.notifications.clear).mockRejectedValueOnce(new Error("gone"));
-    sessionStore.siDownloads = { 7: { adopted: true, historyEntryId: "h-undo" } };
+    sessionStore.siDownloads = {
+      7: { adopted: true, historyEntryId: "h-undo", url: "https://x/p.png" },
+    };
 
     await expect(onButtonClicked("7", 0)).resolves.toBeUndefined();
 

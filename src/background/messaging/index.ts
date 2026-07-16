@@ -175,7 +175,7 @@ const internalHandlers = {
     }
     const result = await undoDownloadAndMark(
       downloadId,
-      { url: entry.url, filename: entry.finalFullPath },
+      { startTime: entry.downloadStartTime, url: entry.url, filename: entry.finalFullPath },
       () => setHistoryStatus(historyId, "undone", downloadId),
     );
     sendResponse({ type: MESSAGE_TYPES.HISTORY_UNDO, body: result });

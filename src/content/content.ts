@@ -359,6 +359,10 @@ let reconfigureOpenSourcePanel: (() => void) | null = null;
 const isCurrentPageDisabled = (): boolean =>
   matchesAnyPattern(`${window.location}`, currentOptions.perSiteDisableList);
 
+// Readiness is evaluated when options arrive or change; a pushState
+// navigation off the disable list cannot re-trigger it (content scripts get
+// no navigation event), so such a page announces only after a reload or the
+// next option change.
 const announceSourcePanelReady = () => {
   if (
     !receivedInitialOptions ||
@@ -386,15 +390,20 @@ const applyOptions = (next: ContentOptions) => {
   const clickOptionsChanged = (
     ["contentClickToSave", "contentClickToSaveCombo", "contentClickToSaveButton", "links"] as const
   ).some((key) => previous[key] !== currentOptions[key]);
-  const autoDownloadOptionsChanged = (
-    [
-      "autoDownloadEnabled",
-      "filenamePatterns",
-      "autoDownloadLive",
-      "autoDownloadLinks",
-      "autoDownloadMaxPerPage",
-    ] as const
-  ).some((key) => previous[key] !== currentOptions[key]);
+  // A disable-list change remounts discovery: a fresh instance rescans media
+  // already on the page, so removing the site from the list resumes automatic
+  // saves without a reload.
+  const autoDownloadOptionsChanged =
+    disableListChanged ||
+    (
+      [
+        "autoDownloadEnabled",
+        "filenamePatterns",
+        "autoDownloadLive",
+        "autoDownloadLinks",
+        "autoDownloadMaxPerPage",
+      ] as const
+    ).some((key) => previous[key] !== currentOptions[key]);
   const sourcePanelOptionsChanged =
     disableListChanged ||
     (
@@ -581,12 +590,20 @@ try {
       })
       .catch(() => {});
   };
+  let panelPageWasDisabled: boolean | null = null;
   reconfigureOpenSourcePanel = () => {
-    if (!sourcePanelIsOpen) return;
-    // A page moved onto the disable list closes an open panel even if it was
-    // force-opened, matching the readiness and creation gates.
+    if (!sourcePanelIsOpen) {
+      panelPageWasDisabled = null;
+      return;
+    }
+    // Only a TRANSITION onto the disable list closes an open panel: a panel
+    // force-opened on an already-disabled page (the explicit TOGGLE contract)
+    // must survive unrelated option changes.
+    const pageDisabled = isCurrentPageDisabled();
+    const movedOntoDisableList = pageDisabled && panelPageWasDisabled === false;
+    panelPageWasDisabled = pageDisabled;
     if (
-      isCurrentPageDisabled() ||
+      movedOntoDisableList ||
       (currentOptions.sourcePanelEnabled !== true && !sourcePanelForcedOpen)
     ) {
       setSourcePanelOpen(
@@ -628,6 +645,10 @@ try {
           sourcePanelForcedOpen ? { ...panelOptions, enabled: true } : panelOptions,
         );
       }
+      // Baseline for the transition-close rule: a panel opened on an
+      // already-disabled page must not be closed by later unrelated option
+      // changes, only by the page newly matching the list.
+      panelPageWasDisabled = sourcePanelIsOpen ? isCurrentPageDisabled() : null;
     });
   });
   // Unlike timer retries in the service worker, this handshake is emitted

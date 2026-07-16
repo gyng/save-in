@@ -99,8 +99,11 @@ export const setHistoryStatus = (
 
 // Binds the browser download id to the entry as soon as the download starts,
 // so the options page can poll its progress while it is still in flight
-export const setHistoryDownloadId = (id: string | null | undefined, downloadId: number) =>
-  patchHistoryEntry(id, { downloadId });
+export const setHistoryDownloadId = (
+  id: string | null | undefined,
+  downloadId: number,
+  startTime?: string,
+) => patchHistoryEntry(id, { downloadId, ...(startTime ? { downloadStartTime: startTime } : {}) });
 
 export const getHistoryEntries = async (): Promise<HistoryEntry[]> => {
   // Reads requested by the options page must observe every write that was
