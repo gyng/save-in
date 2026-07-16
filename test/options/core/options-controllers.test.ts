@@ -269,6 +269,25 @@ describe("settings transfer", () => {
     expect(apply).not.toHaveBeenCalled();
   });
 
+  test("imports a valid CSS selector configuration", async () => {
+    importMarkup();
+    const settings = { filenamePatterns: "css: article img\ninto: files/" };
+    vi.spyOn(window, "prompt").mockReturnValue(JSON.stringify(settings));
+    const alert = vi.spyOn(window, "alert").mockImplementation(() => {});
+    const apply = vi.fn().mockResolvedValue(applyResult());
+    setupSettingsTransfer({
+      getSchema: () => Promise.resolve({ keys: [{ name: "filenamePatterns" }] }),
+      getStored: vi.fn(),
+      apply,
+      restore: restore(),
+    });
+
+    document.querySelector<HTMLButtonElement>("#settings-import")!.click();
+
+    await vi.waitFor(() => expect(alert).toHaveBeenCalledWith("Settings loaded."));
+    expect(apply).toHaveBeenCalledWith(settings);
+  });
+
   test.each([
     ["schema", () => Promise.reject(new Error("schema unavailable")), vi.fn()],
     [

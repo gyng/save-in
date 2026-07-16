@@ -358,7 +358,10 @@ describe("onMessage", () => {
     vi.mocked(global.browser.downloads.search).mockResolvedValue([
       { id: 62, url: "https://cdn.test/photo.png" } as never,
     ]);
-    vi.mocked(Download.launchDownload).mockResolvedValue({ status: "started", downloadId: 63 });
+    vi.mocked(Download.launchDownload).mockImplementation(async (state) => {
+      state.scratch.historyEntryId = "history-context-new";
+      return { status: "started", downloadId: 63 };
+    });
     const sendResponse = vi.fn();
 
     onMessage(
@@ -385,7 +388,12 @@ describe("onMessage", () => {
     });
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.HISTORY_REROUTE,
-      body: { rerouted: true, oldRemoved: false, pending: true },
+      body: {
+        rerouted: true,
+        oldRemoved: false,
+        pending: true,
+        newHistoryId: "history-context-new",
+      },
     });
   });
 

@@ -118,10 +118,12 @@ describe("buildTools", () => {
       body: { paths: "dogs", validationSource: "webmcp" },
     });
 
-    byName.save_in_apply_config.execute({ config: { prompt: true } });
+    byName.save_in_apply_config.execute({
+      config: { prompt: true, filenamePatterns: "css: img\ninto: images/" },
+    });
     expect(send).toHaveBeenCalledWith({
       type: "APPLY_CONFIG",
-      body: { config: { prompt: true } },
+      body: { config: { prompt: true, filenamePatterns: "css: img\ninto: images/" } },
     });
 
     byName.save_in_download.execute({

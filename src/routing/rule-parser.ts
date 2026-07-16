@@ -16,7 +16,7 @@ import type {
   RuleErrorLocation,
   RoutingRule,
 } from "./rule-types.ts";
-import { isCssMatcherClause, isRegexMatcherClause } from "./rule-types.ts";
+import { isRegexMatcherClause } from "./rule-types.ts";
 import {
   MAX_CSS_SELECTOR_LENGTH,
   MAX_CSS_SELECTOR_MATCHES,
@@ -264,6 +264,7 @@ const parseSemanticRule = (
           errors,
           routingPorts.getMessage("ruleCssFlags"),
           `css/${flags}:`,
+          /* v8 ignore next -- Non-empty parsed flags always carry a flags span. */
           line.flagsSpan ?? line.nameSpan,
         );
         return false;
@@ -486,18 +487,15 @@ const parseSemanticRule = (
     /* v8 ignore next -- A parsed capture clause supplies both representations. */
     if (!capture || !captureNode) return false;
     const names = capture.value.split(",").map((name) => name.trim().toLowerCase());
-    const matcherCandidates = names.map((name) =>
-      valid.filter(
+    const capturedMatchers: RegexMatcherClause[] = [];
+    let missing = false;
+    names.forEach((name) => {
+      const candidates = valid.filter(
         (clause): clause is MatcherClause =>
           clause.type === RULE_TYPES.MATCHER && clause.name === name,
-      ),
-    );
-    const capturedMatchers = matcherCandidates.map((matches) => matches.find(isRegexMatcherClause));
-    let missing = false;
-    names.forEach((name, index) => {
-      /* v8 ignore next -- matcherCandidates is mapped one-for-one from names. */
-      const candidates = matcherCandidates[index] ?? [];
-      if (!capturedMatchers[index] || (capture.name === "capturegroups" && candidates.length > 1)) {
+      );
+      const capturedMatcher = candidates.find(isRegexMatcherClause);
+      if (!capturedMatcher || (capture.name === "capturegroups" && candidates.length > 1)) {
         appendError(
           errors,
           routingPorts.getMessage("ruleCaptureMissingMatcher"),
@@ -505,15 +503,9 @@ const parseSemanticRule = (
           captureNode.valueSpan,
         );
         missing = true;
-      } else if (candidates.some(isCssMatcherClause)) {
-        appendError(
-          errors,
-          routingPorts.getMessage("ruleCaptureMissingMatcher"),
-          `${capture.name}: ${name}`,
-          captureNode.valueSpan,
-        );
-        missing = true;
-      } else if (capture.name === "capture" && candidates.length > 1) {
+      } else {
+        capturedMatchers.push(capturedMatcher);
+        if (capture.name !== "capture" || candidates.length <= 1) return;
         appendError(
           errors,
           routingPorts.getMessage("ruleCaptureAmbiguousMatcher"),
@@ -524,10 +516,7 @@ const parseSemanticRule = (
       }
     });
     if (missing) return false;
-    const definiteCapturedMatchers = capturedMatchers.filter(
-      (clause): clause is RegexMatcherClause => clause !== undefined,
-    );
-    const availableIndexes = definiteCapturedMatchers.reduce(
+    const availableIndexes = capturedMatchers.reduce(
       (total, clause) => total + captureGroupCount(clause.value) + 1,
       capture.name === "capturegroups" ? 1 - capturedMatchers.length : 0,
     );

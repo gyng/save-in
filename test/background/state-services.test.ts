@@ -161,6 +161,26 @@ describe("state service instances", () => {
             },
             11: { pendingSourceSidecar: { sourceUrl: 4 } },
             12: { pendingSourceSidecar: { sourceUrl: "https://example.com", title: 4 } },
+            13: {
+              pendingHistoryMove: {
+                historyId: "old-history",
+                downloadId: 12,
+                startTime: 42,
+              },
+            },
+            14: {
+              pendingHistoryMove: {
+                historyId: "old-history",
+                downloadId: 12,
+                filename: 42,
+              },
+            },
+            15: {
+              pendingHistoryMove: {
+                historyId: "old-history",
+                downloadId: 12,
+              },
+            },
             nope: { adopted: true },
             8: "not-a-record",
           },
@@ -188,6 +208,17 @@ describe("state service instances", () => {
       [9, { filename: "valid.txt" }],
       [11, {}],
       [12, {}],
+      [13, {}],
+      [14, {}],
+      [
+        15,
+        {
+          pendingHistoryMove: {
+            historyId: "old-history",
+            downloadId: 12,
+          },
+        },
+      ],
     ]);
   });
 

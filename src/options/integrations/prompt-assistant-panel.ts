@@ -170,9 +170,10 @@ export const setupPromptAssistantPanel = (
     working = false;
     progress.hidden = true;
     progress.removeAttribute("value");
-    if (availability === "available") setStatus(copy.ready, "ready");
-    else if (availability === "downloadable") setStatus(copy.downloadable, "notice");
-    else setStatus(copy.unavailable, "error");
+    // Submit is enabled only in these two states, so a working request always
+    // returns to one of them when canceled.
+    if (availability === "downloadable") setStatus(copy.downloadable, "notice");
+    else setStatus(copy.ready, "ready");
     updateControls();
   };
 

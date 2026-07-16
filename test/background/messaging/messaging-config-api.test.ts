@@ -109,6 +109,7 @@ describe("config API", () => {
   });
 
   test("external VALIDATE reports CSS syntax as unverified in a DOM-free background", async () => {
+    vi.spyOn(global.browser.i18n, "getMessage").mockReturnValue("");
     vi.mocked(router.parseRulesCollecting).mockReturnValue({
       rules: [
         [
@@ -133,7 +134,11 @@ describe("config API", () => {
     await waitForCall(sendResponse);
 
     expect(sendResponse.mock.calls[0]![0]!.body.ruleErrors).toEqual([
-      expect.objectContaining({ error: "[", warning: true }),
+      {
+        error: "[",
+        message: "CSS selector syntax is not verified in background validation",
+        warning: true,
+      },
     ]);
   });
 

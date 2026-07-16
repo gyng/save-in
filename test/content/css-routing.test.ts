@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 
 import { parseRulesCollecting } from "../../src/routing/rule-parser.ts";
+import type { RoutingRule } from "../../src/routing/rule-types.ts";
 import {
   cssSelectorsForRules,
   matchedCssSelectorsByOrigin,
@@ -14,6 +15,12 @@ const rulesWithCss = (...selectors: string[]) =>
     .rules;
 
 describe("content CSS routing", () => {
+  test("ignores routing rules without CSS matchers", () => {
+    const rules = parseRulesCollecting("filename: .*\ninto: ordinary/").rules;
+    expect(rules).toHaveLength(1);
+    expect(matchedCssSelectorsByOrigin([document.body], rules)).toEqual([]);
+  });
+
   test("uses native comma-list semantics and keeps matches grouped by origin", () => {
     document.body.innerHTML = `
       <article><img id="hero"></article>
@@ -199,5 +206,23 @@ describe("content CSS routing", () => {
         error: "img:not([data-256])",
       }),
     );
+  });
+
+  test("fails closed on directly stored rules beyond the attestation bounds", () => {
+    const storedRule = (selectors: string[]): RoutingRule =>
+      [
+        ...selectors.map((value) => ({ name: "css", value, type: "MATCHER" as const })),
+        { name: "into", value: "stored/", type: "DESTINATION" as const },
+      ] as unknown as RoutingRule;
+
+    const tooManyGroups = Array.from({ length: 257 }, (_value, index) =>
+      storedRule([`body:not([data-group-${index}])`]),
+    );
+    expect(matchedCssSelectorsByOrigin([document.body], tooManyGroups)).toHaveLength(256);
+
+    const oversizedGroup = storedRule(
+      Array.from({ length: 65 }, (_value, index) => `body:not([data-selector-${index}])`),
+    );
+    expect(matchedCssSelectorsByOrigin([document.body], [oversizedGroup])).toEqual([]);
   });
 });

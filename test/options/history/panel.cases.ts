@@ -569,6 +569,36 @@ describe("history filter controls", () => {
     expect(feedback.classList).toContain("feedback-error");
   });
 
+  test("reports a move that is waiting for its replacement download", async () => {
+    historyRuntime.entries = [
+      {
+        id: "h-pending",
+        status: "complete",
+        downloadId: 49,
+        finalFullPath: "from/photo.png",
+        url: "https://cdn.test/photo.png",
+      },
+    ];
+    historyRuntime.sendMessage.mockImplementation(async (message: { type: string }) =>
+      message.type === "HISTORY_REROUTE"
+        ? {
+            type: "HISTORY_REROUTE",
+            body: { rerouted: true, oldRemoved: false, pending: true },
+          }
+        : { type: "HISTORY_GET", body: { entries: historyRuntime.entries } },
+    );
+    await historyPanel.renderHistory();
+
+    document.querySelector<HTMLButtonElement>(".history-move")!.click();
+    document.querySelector<HTMLButtonElement>(".history-move-confirm")!.click();
+
+    await vi.waitFor(() =>
+      expect(document.querySelector("#history-feedback")?.textContent).toContain(
+        "The original will be removed after it completes",
+      ),
+    );
+  });
+
   test("undo failure is contained and re-enables the row action", async () => {
     historyRuntime.entries = [
       { id: "h-complete", status: "complete", downloadId: 42, finalFullPath: "done.png" },

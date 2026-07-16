@@ -65,9 +65,7 @@ export const completePendingHistoryMove = (
   const task = runPendingHistoryMove(replacementDownloadId);
   completionTasks.set(replacementDownloadId, task);
   void task.finally(() => {
-    if (completionTasks.get(replacementDownloadId) === task) {
-      completionTasks.delete(replacementDownloadId);
-    }
+    completionTasks.delete(replacementDownloadId);
   });
   return task;
 };

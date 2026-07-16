@@ -15,3 +15,10 @@ test("Options uses the browser selector parser to reject invalid css matchers", 
   escaped.id = "escaped ";
   expect(cssSelectorErrors("css: #escaped\\ \ninto: escaped/", escaped)).toEqual([]);
 });
+
+test("Options supplies a stable CSS error when localization is unavailable", () => {
+  vi.spyOn(global.browser.i18n, "getMessage").mockReturnValue("");
+  expect(cssSelectorErrors("css: [\ninto: files/")).toEqual([
+    expect.objectContaining({ message: "Invalid CSS selector" }),
+  ]);
+});

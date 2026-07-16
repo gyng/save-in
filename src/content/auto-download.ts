@@ -1,15 +1,11 @@
-import {
-  cssSelectorsForRules,
-  matchedCssSelectorsByOrigin,
-  sourceOriginElements,
-} from "./css-routing.ts";
+import { cssSelectorsForRules, matchedCssSelectorsByOrigin } from "./css-routing.ts";
 import {
   isAdmittedAutomaticSource,
   matchAutomaticRoutingRule,
   normalizeAutomaticSourceUrl,
   type AutomaticRoutingCandidate,
 } from "../automation/automatic-routing.ts";
-import { collectPageSourceCandidates, mergePageSourcesByUrl } from "./source-panel-model.ts";
+import { collectPageSourceCandidates } from "./source-panel-model.ts";
 import { parseRulesCollecting } from "../routing/rule-parser.ts";
 import { isAutomaticRuleClauses } from "../routing/automatic-rule.ts";
 import { normalizeAutoDownloadLimit } from "../config/content-options.ts";
@@ -199,12 +195,6 @@ export const setupAutoDownloadDiscovery = (
     // origin set so configured rule order—not collector traversal order—picks
     // the destination. Keep each admitted kind/channel variant for the normal
     // non-CSS matchers; only the DOM-origin evidence is shared by URL.
-    const originsByUrl = new Map(
-      mergePageSourcesByUrl(admittedSources).map((source) => [
-        source.url,
-        sourceOriginElements(source),
-      ]),
-    );
     const sourcesByUrl = new Map<string, typeof admittedSources>();
     for (const source of admittedSources) {
       const variants = sourcesByUrl.get(source.url);
@@ -216,24 +206,26 @@ export const setupAutoDownloadDiscovery = (
       // megabyte string; http(s) and short data: URLs key on the string itself.
       const seenKey = seenKeyFor(sourceUrl);
       if (seen.has(seenKey)) continue;
-      const origins = originsByUrl.get(sourceUrl);
-      if (!origins) continue;
+      const origins = sources.flatMap((source) =>
+        source.channel === "resource-hint" ? [] : [source.element],
+      );
       const cssAttestation =
         cssSelectors.length > 0 ? matchedCssSelectorsByOrigin(origins, automaticRules) : undefined;
-      let selected: { candidate: AutomaticRoutingCandidate; ruleIndex: number } | undefined;
-      for (const source of sources) {
-        const candidate: AutomaticRoutingCandidate = {
+      const candidatesForUrl = sources.map(
+        (source): AutomaticRoutingCandidate => ({
           pageUrl,
           sourceUrl,
           sourceKind: source.kind,
           ...(source.channel ? { sourceChannel: source.channel } : {}),
           ...(cssAttestation ? { matchedCssSelectorsByOrigin: cssAttestation } : {}),
-        };
-        const match = matchAutomaticRoutingRule(automaticRules, candidate);
-        if (!match) continue;
-        const ruleIndex = automaticRules.indexOf(match.rule);
-        if (ruleIndex < 0) continue;
-        if (!selected || ruleIndex < selected.ruleIndex) selected = { candidate, ruleIndex };
+        }),
+      );
+      let selected: AutomaticRoutingCandidate | undefined;
+      for (const rule of automaticRules) {
+        selected = candidatesForUrl.find((candidate) =>
+          Boolean(matchAutomaticRoutingRule([rule], candidate)),
+        );
+        if (selected) break;
       }
       if (!selected) continue;
       if (
@@ -249,7 +241,7 @@ export const setupAutoDownloadDiscovery = (
         continue;
       }
       seen.add(seenKey);
-      queue.push(selected.candidate);
+      queue.push(selected);
       if (isDataUrl(sourceUrl)) outstandingDataCharacters += sourceUrl.length;
     }
     void drain();

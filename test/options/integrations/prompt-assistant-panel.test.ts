@@ -289,6 +289,26 @@ test("rechecks availability while the on-device model is downloading", async () 
   }
 });
 
+test("stops a pending availability recheck when the assistant is disabled", async () => {
+  vi.useFakeTimers();
+  try {
+    mocks.availability.mockResolvedValue("downloading");
+    setup();
+    const control = element<HTMLInputElement>("promptAssistantEnabled");
+    control.checked = true;
+    control.dispatchEvent(new Event("change"));
+    await vi.advanceTimersByTimeAsync(0);
+
+    control.checked = false;
+    control.dispatchEvent(new Event("change"));
+    await vi.advanceTimersByTimeAsync(1_000);
+    expect(mocks.availability).toHaveBeenCalledTimes(1);
+    expect(element("prompt-assistant-status").dataset.state).toBe("off");
+  } finally {
+    vi.useRealTimers();
+  }
+});
+
 test.each([
   "promptAssistantEnabled",
   "prompt-assistant-status",
@@ -507,10 +527,12 @@ test("shows bounded download progress while Chrome prepares the model", async ()
 
 test("cancel aborts the active model request and restores ready controls", async () => {
   let signal: AbortSignal | undefined;
+  let reportProgress: ((loaded: number) => void) | undefined;
   mocks.runPrompt.mockImplementation(
     (_input: string, options: { signal?: AbortSignal; onDownloadProgress?: (n: number) => void }) =>
       new Promise((_resolve, reject) => {
         signal = options.signal;
+        reportProgress = options.onDownloadProgress;
         options.onDownloadProgress?.(0.25);
         signal?.addEventListener("abort", () => reject(new DOMException("Canceled", "AbortError")));
       }),
@@ -530,6 +552,24 @@ test("cancel aborts the active model request and restores ready controls", async
   expect(element<HTMLTextAreaElement>("prompt-assistant-input").disabled).toBe(false);
   expect(element("prompt-assistant-form").getAttribute("aria-busy")).toBe("false");
   expect(element("prompt-assistant-status").textContent).toBe("Ready on this device");
+  reportProgress?.(0.75);
+  expect(element("prompt-assistant-status").textContent).toBe("Ready on this device");
+});
+
+test("cancel restores the downloadable availability state", async () => {
+  mocks.availability.mockResolvedValue("downloadable");
+  mocks.runPrompt.mockReturnValue(new Promise(() => {}));
+  setup();
+  await enable();
+  submitRequest();
+  await vi.waitFor(() =>
+    expect(element<HTMLButtonElement>("prompt-assistant-cancel").hidden).toBe(false),
+  );
+
+  element<HTMLButtonElement>("prompt-assistant-cancel").click();
+  expect(element("prompt-assistant-status").textContent).toBe(
+    "The model downloads when you suggest your first rule",
+  );
 });
 
 test("cancel before authoring metadata arrives never starts the model", async () => {

@@ -83,20 +83,20 @@ const evaluateMatcherClauses = (rule: RoutingRule, info: RoutingInfo): Evaluated
     info,
   );
 
-const evaluateCssClauses = (
+const cssClauseEvaluator = (
   clauses: CssMatcherClause[],
   info: RoutingInfo,
-): EvaluatedMatcherClause[] => {
+): ((clause: CssMatcherClause) => EvaluatedMatcherClause) => {
   const groups = info.matchedCssSelectorsByOrigin;
   if (!groups) {
-    return clauses.map((clause) => ({
+    return (clause) => ({
       clause,
       result: null,
       attempts: [{ source: "pageElement", value: null, status: "missing" }],
-    }));
+    });
   }
   const matchingGroup = groups.find((group) => clauses.every(({ value }) => group.includes(value)));
-  return clauses.map((clause) => ({
+  return (clause) => ({
     clause,
     result: matchingGroup ? /^([\s\S]*)$/.exec(clause.value) : null,
     attempts: groups.length
@@ -107,7 +107,7 @@ const evaluateCssClauses = (
           ...(group.includes(clause.value) ? { matchedText: clause.value, captures: [] } : {}),
         }))
       : [{ source: "pageElement", value: null, status: "missing" }],
-  }));
+  });
 };
 
 const evaluateMatchersWithCssOrigins = (
@@ -115,13 +115,9 @@ const evaluateMatchersWithCssOrigins = (
   info: RoutingInfo,
 ): EvaluatedMatcherClause[] => {
   const cssClauses = clauses.filter(isCssMatcherClause);
-  const cssEvaluations = new Map(
-    evaluateCssClauses(cssClauses, info).map((evaluation) => [evaluation.clause, evaluation]),
-  );
+  const evaluateCssClause = cssClauseEvaluator(cssClauses, info);
   return clauses.map((clause) =>
-    isCssMatcherClause(clause)
-      ? (cssEvaluations.get(clause) ?? evaluateMatcherClause(clause, info))
-      : evaluateMatcherClause(clause, info),
+    isCssMatcherClause(clause) ? evaluateCssClause(clause) : evaluateMatcherClause(clause, info),
   );
 };
 

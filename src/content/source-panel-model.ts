@@ -103,32 +103,30 @@ export const urlsFromSrcset = (input: string): string[] =>
   candidatesFromSrcset(input).map(({ url }) => url);
 
 export const mergePageSourcesByUrl = (sources: PageSource[]): PageSource[] => {
-  const merged = new Map<string, PageSource>();
+  const merged = new Map<string, { source: PageSource; origins: Element[] }>();
   // Source records are reused by the live collector and captured by cached row
   // controls. Rebuild their derived origin list on every commit so those
   // controls keep a live record without retaining removed duplicate elements.
-  sources.forEach(
-    (source) =>
-      (source.originElements = source.channel === "resource-hint" ? [] : [source.element]),
-  );
   sources.forEach((source) => {
+    const sourceOrigins = source.channel === "resource-hint" ? [] : [source.element];
+    source.originElements = sourceOrigins;
     const existing = merged.get(source.url);
     if (!existing) {
-      merged.set(source.url, source);
+      merged.set(source.url, { source, origins: sourceOrigins });
       return;
     }
-    const origins = existing.originElements ?? [existing.element];
-    for (const element of source.originElements ?? [source.element]) {
-      if (!origins.includes(element)) origins.push(element);
+    for (const element of sourceOrigins) {
+      if (!existing.origins.includes(element)) existing.origins.push(element);
     }
-    existing.originElements = origins;
-    if (!existing.responsive && source.responsive) existing.responsive = source.responsive;
-    else if (existing.responsive && source.responsive) {
-      existing.responsive.selected ||= source.responsive.selected;
-      existing.responsive.descriptor ||= source.responsive.descriptor;
+    existing.source.originElements = existing.origins;
+    if (!existing.source.responsive && source.responsive)
+      existing.source.responsive = source.responsive;
+    else if (existing.source.responsive && source.responsive) {
+      existing.source.responsive.selected ||= source.responsive.selected;
+      existing.source.responsive.descriptor ||= source.responsive.descriptor;
     }
   });
-  return [...merged.values()];
+  return [...merged.values()].map(({ source }) => source);
 };
 
 const absoluteUrl = (value: string): string | null => {

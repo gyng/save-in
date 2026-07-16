@@ -218,6 +218,28 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
     });
   });
 
+  test("carries a pending history move to a fetch retry", async () => {
+    await seedStartedDownload();
+    const pendingHistoryMove = {
+      historyId: "old-history",
+      downloadId: 100,
+      filename: "old/file.png",
+    };
+    await Download.rememberStartedDownload(101, { pendingHistoryMove });
+    global.fetch = vi.fn(() =>
+      Promise.resolve({ ok: true, blob: () => Promise.resolve(new Blob(["bytes"])) }),
+    ) as any;
+    vi.mocked(global.browser.downloads.download).mockResolvedValue(202);
+
+    await expect(Download.retryViaFetch(101)).resolves.toBe(true);
+
+    expect(Notifier.expectDownload).toHaveBeenCalledWith(expect.stringMatching(/^blob:/), {
+      privateContext: false,
+      historyEntryId: "h-test",
+      pendingHistoryMove,
+    });
+  });
+
   test("keeps a Firefox private retry private and clears its transient filename", async () => {
     setCurrentBrowser("FIREFOX");
     const state = makeState({
