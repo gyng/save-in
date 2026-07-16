@@ -46,7 +46,10 @@ permission justifications, and data-use answers are current.
 ## GitHub release provenance
 
 Create a `vX.Y.Z` tag only after `package.json` and `manifest.json` both contain
-`X.Y.Z`. A tag push runs `.github/workflows/release.yml`, which:
+`X.Y.Z`, and drop the `(unreleased)` marker from that version's CHANGELOG
+heading in the same commit — the tag is what makes the version real, so nothing
+else records that a written-up version has not shipped yet. A tag push runs
+`.github/workflows/release.yml`, which:
 
 1. validates the tag against both manifests;
 2. runs coverage, typecheck, lint, and serial Chrome/Firefox e2e;

@@ -4,6 +4,9 @@ A WebExtension that adds a context menu to save media/links/pages into
 chosen directories, with pattern-based routing and renaming. Ships to both
 Firefox (AMO) and Chrome (Web Store).
 
+This guide is the entry point for development. [docs/](docs/README.md) indexes
+the deeper contracts it links to throughout.
+
 ## Architecture
 
 **The code is ESM + TypeScript, shipped as readable, non-minified bundles.**

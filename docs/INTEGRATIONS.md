@@ -91,6 +91,7 @@ There is no `externally_connectable` declaration, so web pages cannot call Save 
 - `GET_KEYWORDS` returns path variables, routing matchers, automatic-routing matchers and context, and supported source kinds.
 - `GET_GRAMMARS` returns the EBNF, semantic constraints, option name, and examples for the directory and unified routing languages.
 - `VALIDATE` dry-runs `paths` and/or `filenamePatterns`. It returns structured errors, a menu preview, and optional sample traces without saving.
+- `GET_CONFIG` returns the current saved values in apply-ready form. It is same-extension only and unavailable through `onMessageExternal`.
 - `APPLY_CONFIG` validates and persists a partial configuration. It is same-extension only and unavailable through `onMessageExternal`.
 
 Unknown options and type mismatches are rejected. Omitted options remain unchanged. Use the default from `GET_SCHEMA` to restore one setting.

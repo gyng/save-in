@@ -1,4 +1,4 @@
-# 4.0.0
+# 4.0.0 (unreleased)
 
 > _Rebuilt from the first character to the last for Manifest V3, and still
 > filing your downloads with the same stubborn logic it has used since 2017.

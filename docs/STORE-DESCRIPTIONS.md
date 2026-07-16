@@ -51,7 +51,7 @@ Features
 - Preview the destination menu and final routed filename while editing.
 - Use click-to-save for quick downloads and Page Sources to find media exposed by the current page.
 - Optionally save newly discovered Page Sources automatically with site-scoped routing rules, private-window controls, and a per-page limit.
-- Save links or pages as .url, .desktop, or HTML redirect shortcuts.
+- Save links or pages as .url, .webloc, .desktop, or HTML redirect shortcuts.
 - Search and filter local download history, with JSON and spreadsheet-safe CSV/TSV export.
 - Optionally record matching ordinary Firefox downloads in Save In history.
 - Connect other extensions through an explicitly approved, versioned integration API.
@@ -84,7 +84,7 @@ Features
 - Preview the destination menu and final routed filename while editing.
 - Use click-to-save for quick downloads and Page Sources to find media exposed by the current page.
 - Optionally save newly discovered Page Sources automatically with site-scoped routing rules, private-window controls, and a per-page limit.
-- Save links or pages as .url, .desktop, or HTML redirect shortcuts.
+- Save links or pages as .url, .webloc, .desktop, or HTML redirect shortcuts.
 - Search and filter local download history, with JSON and spreadsheet-safe CSV/TSV export.
 - Optionally record or route matching ordinary Chrome downloads before they are saved.
 - Connect other extensions through an explicitly approved, versioned integration API.

@@ -91,11 +91,13 @@ the target is missing or inaccessible.
 
 ## Integrations
 
-Save In exposes a versioned external API (`PING` + `DOWNLOAD`) to explicitly
-approved extensions, an internal configuration API (`GET_SCHEMA` / `VALIDATE` /
-`APPLY_CONFIG`), and experimental WebMCP tools for compatible in-browser agents.
-See the source-controlled [integration contract](docs/INTEGRATIONS.md) for the
-protocol, availability, and trust model.
+Save In exposes a versioned external API to other extensions. `PING`,
+`GET_SCHEMA`, `GET_KEYWORDS`, `GET_GRAMMARS`, and `VALIDATE` are open for
+discovery and validation; `DOWNLOAD` additionally requires an explicitly
+approved extension ID. `GET_CONFIG` and `APPLY_CONFIG` are same-extension only.
+Experimental WebMCP tools serve compatible in-browser agents. See the
+source-controlled [integration contract](docs/INTEGRATIONS.md) for the protocol,
+availability, and trust model.
 
 ## Notes for reviewers
 
@@ -118,3 +120,5 @@ file per execution target; the shipped bundle remains suitable for review.
 Pull requests, bug reports, and issues are welcome.
 See the [contributor guide](AGENTS.md) for development setup and validation, and
 the [release workflow](docs/RELEASE.md) for packaging and store submissions.
+[docs/](docs/README.md) indexes the rest, including the UI, integration, and
+security review contracts.
