@@ -797,7 +797,10 @@ describe("onDeterminingFilename listener (Chrome)", () => {
     // Module-fresh download.js has empty globalChromeState (no .path),
     // simulating a service worker that restarted mid-download. The filename map
     // is keyed by the download URL so overlapping downloads don't clobber it.
-    sessionStore.siFinalFilenames = { "https://x/recover.png": "route/recovered.txt" };
+    sessionStore.siFinalFilenames = {
+      version: 1,
+      names: { "https://x/recover.png": "route/recovered.txt" },
+    };
 
     const suggest = vi.fn();
     const returned = listener(
@@ -825,7 +828,10 @@ describe("onDeterminingFilename listener (Chrome)", () => {
     // in memory, so after a wakeup the record cannot say the download is
     // private. downloadItem.incognito is the only surviving evidence, and
     // storage.session is restart state, which private activity stays out of.
-    sessionStore.siFinalFilenames = { "https://x/private.png": "route/recovered.txt" };
+    sessionStore.siFinalFilenames = {
+      version: 1,
+      names: { "https://x/private.png": "route/recovered.txt" },
+    };
 
     const suggest = vi.fn();
     listener(
@@ -868,7 +874,7 @@ describe("onDeterminingFilename listener (Chrome)", () => {
   test("an in-memory retry consumes its persisted filename only when Chrome asks", async () => {
     const url = "blob:retry-url";
     freshDownload.downloadRuntime.pendingRetryFilenames.set(url, "route/retried.txt");
-    sessionStore.siFinalFilenames = { [url]: "route/retried.txt" };
+    sessionStore.siFinalFilenames = { version: 1, names: { [url]: "route/retried.txt" } };
     const suggest = vi.fn();
 
     expect(
@@ -878,12 +884,15 @@ describe("onDeterminingFilename listener (Chrome)", () => {
       filename: "route/retried.txt",
       conflictAction: "uniquify",
     });
-    await vi.waitFor(() => expect(sessionStore.siFinalFilenames).toEqual({}));
+    await vi.waitFor(() =>
+      expect(sessionStore.siFinalFilenames).toEqual({ version: 1, names: {} }),
+    );
   });
 
   test("recovers same-URL persisted filenames in request order", async () => {
     sessionStore.siFinalFilenames = {
-      "https://x/same.png": ["first/a.png", "second/b.png"],
+      version: 1,
+      names: { "https://x/same.png": ["first/a.png", "second/b.png"] },
     };
 
     const first = vi.fn();
@@ -898,7 +907,10 @@ describe("onDeterminingFilename listener (Chrome)", () => {
       filename: "first/a.png",
       conflictAction: "uniquify",
     });
-    expect(sessionStore.siFinalFilenames).toEqual({ "https://x/same.png": "second/b.png" });
+    expect(sessionStore.siFinalFilenames).toEqual({
+      version: 1,
+      names: { "https://x/same.png": "second/b.png" },
+    });
 
     const second = vi.fn();
     listener(
@@ -910,7 +922,7 @@ describe("onDeterminingFilename listener (Chrome)", () => {
       filename: "second/b.png",
       conflictAction: "uniquify",
     });
-    expect(sessionStore.siFinalFilenames).toEqual({});
+    expect(sessionStore.siFinalFilenames).toEqual({ version: 1, names: {} });
   });
 
   test("falls back to default naming when nothing was persisted", async () => {
@@ -927,7 +939,8 @@ describe("onDeterminingFilename listener (Chrome)", () => {
 
   test("falls back to default naming for malformed persisted filename maps", async () => {
     sessionStore.siFinalFilenames = {
-      "https://x/recover.png": [{ filename: "not-a-string" }],
+      version: 1,
+      names: { "https://x/recover.png": [{ filename: "not-a-string" }] },
     };
     const suggest = vi.fn();
 

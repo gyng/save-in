@@ -52,7 +52,17 @@ const resolveFinalMimeExtension = async (state: DownloadPipelineState): Promise<
   }
 };
 
-export type FinalFilenameMap = Record<string, string | string[]>;
+// Bump when a stored name stops meaning what this version reads it as — a
+// route resolved under different rules, say. A map stamped with anything else
+// is read as empty, so the recovery below can treat a name it does find as
+// this version's own work and honour it, instead of refusing every restart in
+// case one entry was somebody else's.
+export const FINAL_FILENAME_MAP_VERSION = 1;
+
+export type FinalFilenameMap = {
+  version: typeof FINAL_FILENAME_MAP_VERSION;
+  names: Record<string, string | string[]>;
+};
 
 export type DeferredRouteRecovery = {
   version: 1;
@@ -165,40 +175,55 @@ const restoreDeferredRoute = (recovery: DeferredRouteRecovery): DownloadPipeline
   };
 };
 
+// An empty name is not one: it could never be suggested, and admitting it would
+// leave a queue whose head is falsy — which the recovery below reads as having
+// found nothing while still holding the entry.
+const isFilename = (value: unknown): value is string => typeof value === "string" && value !== "";
+
 export const filenameQueue = (value: unknown): string[] =>
-  Array.isArray(value)
-    ? value.filter((item): item is string => typeof item === "string")
-    : typeof value === "string"
-      ? [value]
-      : [];
+  Array.isArray(value) ? value.filter(isFilename) : isFilename(value) ? [value] : [];
+
+const emptyFilenameMap = (): FinalFilenameMap => ({
+  version: FINAL_FILENAME_MAP_VERSION,
+  names: {},
+});
 
 const safeFilenameMap = (value: unknown): FinalFilenameMap => {
-  if (value == null || typeof value !== "object" || Array.isArray(value)) return {};
+  // A map this version did not stamp is read as empty rather than repaired:
+  // its names were resolved by rules this build no longer knows, so honouring
+  // them could route a save somewhere the current rules never named.
+  if (!isStringKeyedRecord(value) || value.version !== FINAL_FILENAME_MAP_VERSION) {
+    return emptyFilenameMap();
+  }
+  if (!isStringKeyedRecord(value.names)) return emptyFilenameMap();
   const entries: Array<[string, string | string[]]> = [];
-  for (const [url, stored] of Object.entries(value)) {
+  for (const [url, stored] of Object.entries(value.names)) {
     const queue = filenameQueue(stored);
     const first = queue[0];
     if (first !== undefined) entries.push([url, queue.length === 1 ? first : queue]);
   }
-  return Object.fromEntries(entries);
+  return { version: FINAL_FILENAME_MAP_VERSION, names: Object.fromEntries(entries) };
 };
 
 export const enqueueFilename = (map: unknown, url: string, filename: string): FinalFilenameMap => {
   const safeMap = safeFilenameMap(map);
-  const queue = [...filenameQueue(safeMap[url]), filename];
+  const queue = [...filenameQueue(safeMap.names[url]), filename];
   const first = queue[0];
-  return { ...safeMap, [url]: queue.length === 1 && first !== undefined ? first : queue };
+  return {
+    version: FINAL_FILENAME_MAP_VERSION,
+    names: { ...safeMap.names, [url]: queue.length === 1 && first !== undefined ? first : queue },
+  };
 };
 
 export const removeFilename = (map: unknown, url: string, filename?: string): FinalFilenameMap => {
-  const copy = { ...safeFilenameMap(map) };
-  const queue = filenameQueue(copy[url]);
+  const names = { ...safeFilenameMap(map).names };
+  const queue = filenameQueue(names[url]);
   const index = filename == null ? 0 : queue.indexOf(filename);
   if (index >= 0) queue.splice(index, 1);
   const first = queue[0];
-  if (first !== undefined) copy[url] = queue.length === 1 ? first : queue;
-  else delete copy[url];
-  return copy;
+  if (first !== undefined) names[url] = queue.length === 1 ? first : queue;
+  else delete names[url];
+  return { version: FINAL_FILENAME_MAP_VERSION, names };
 };
 
 type FilenameDownload = DownloadRuntimeState & {
@@ -326,9 +351,9 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
         const urls = [downloadItem.url, downloadItem.finalUrl].filter(
           (url): url is string => typeof url === "string" && Boolean(url),
         );
-        const recoveredUrl = urls.find((url) => Boolean(map[url]));
+        const recoveredUrl = urls.find((url) => Boolean(map.names[url]));
         const deferredUrl = urls.find((url) => Boolean(deferredMap[url]));
-        const recovered = recoveredUrl ? filenameQueue(map[recoveredUrl])[0] : undefined;
+        const recovered = recoveredUrl ? filenameQueue(map.names[recoveredUrl])[0] : undefined;
         const recovery = deferredUrl ? deferredRouteQueue(deferredMap[deferredUrl])[0] : undefined;
 
         if (recovery && deferredUrl) {
@@ -390,7 +415,14 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
           return;
         }
 
-        if (initiatedBySaveIn && options.routeSkipUnmatched) {
+        // A name recovered here is proof the plan matched: resolveDownloadPlan
+        // never starts a download that needs a route and lacks one, a deferred
+        // requirement persists a recovery the branch above consumes first, and
+        // safeFilenameMap only returns names this version stamped. Cancelling
+        // one would discard a correctly-routed save and report it as a rule
+        // miss. Without that proof the route cannot be shown to have held, so
+        // the download still fails closed.
+        if (initiatedBySaveIn && options.routeSkipUnmatched && !recovered) {
           await rejectDeferredRoute({
             path: new Path(""),
             scratch: {},
@@ -400,14 +432,9 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
               currentTab: downloadItem.incognito ? { incognito: true } : null,
             },
           });
-          if (recoveredUrl) {
-            await updateSession<FinalFilenameMap>(
-              sessionWriteState,
-              extensionSessionStorage,
-              FINAL_FILENAMES_SESSION_KEY,
-              (stored) => removeFilename(stored, recoveredUrl, recovered),
-            );
-          }
+          // Nothing to clean up: safeFilenameMap keeps an entry only when its
+          // queue has a name, so reaching here without one means there is no
+          // entry under either URL.
           return;
         }
 

@@ -78,7 +78,7 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
     // no such listener, so the retry must clear its own entry — nothing else
     // ever would, and the dead blob URL would key it for the whole session.
     // The Chrome case below covers the queueing this must not defeat.
-    expect(sessionStore.siFinalFilenames).toEqual({});
+    expect(sessionStore.siFinalFilenames).toEqual({ version: 1, names: {} });
 
     // Only one retry per download
     await expect(Download.retryViaFetch(101)).resolves.toBe(false);
@@ -97,7 +97,7 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
 
     // downloads.download can resolve before Chrome dispatches
     // onDeterminingFilename; clearing here would race it.
-    expect(Object.values(sessionStore.siFinalFilenames || {}).flat()).toContain(
+    expect(Object.values(sessionStore.siFinalFilenames?.names || {}).flat()).toContain(
       "downloads/file.png",
     );
   });
@@ -347,7 +347,7 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
     await expect(Download.retryViaFetch(101)).resolves.toBe(false);
 
     expect(sessionStore.siPendingDownloads).toBe(0);
-    expect(sessionStore.siFinalFilenames).toEqual({});
+    expect(sessionStore.siFinalFilenames).toEqual({ version: 1, names: {} });
     expect(Download.downloadRuntime.pendingRetryFilenames.has("blob:retry-rejected")).toBe(false);
     expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:retry-rejected");
   });

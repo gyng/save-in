@@ -75,7 +75,7 @@ describe("renameAndDownload: browserDownload", () => {
     expect(downloadState.records.get(555)).toMatchObject({ adopted: true });
     // incremented then cleared -> back to 0, and the filename key removed
     await vi.waitFor(() => expect(sessionStore.siPendingDownloads).toBe(0));
-    expect(sessionStore.siFinalFilenames).toEqual({});
+    expect(sessionStore.siFinalFilenames).toEqual({ version: 1, names: {} });
   });
 
   test("does not persist a data payload as a filename-map key or download-record URL", async () => {
@@ -322,7 +322,7 @@ describe("renameAndDownload: browserDownload", () => {
     const fnameUpdate = vi
       .mocked(SessionState.updateSession)
       .mock.calls.find((call: any) => call[2] === "siFinalFilenames");
-    expect(fnameUpdate![3]({})).toEqual({ [state.info.url]: "_" });
+    expect(fnameUpdate![3]({})).toEqual({ version: 1, names: { [state.info.url]: "_" } });
     const [downloadOptions] = vi.mocked(global.browser.downloads.download).mock.calls[0]!;
     expect(downloadOptions).not.toHaveProperty("filename");
   });
@@ -1010,40 +1010,64 @@ describe("onDeterminingFilename listener: sync path", () => {
     await vi.waitFor(() => expect(sessionStore.siDeferredRoutes).toEqual({}));
   });
 
-  test.each([
-    { label: "private state", incognito: true, persistedFilename: false },
-    { label: "a legacy filename entry", incognito: false, persistedFilename: true },
-  ])(
-    "fails closed when exclusive routing has only $label",
-    async ({ incognito, persistedFilename }) => {
-      setCurrentBrowser("CHROME");
-      options.routeSkipUnmatched = true;
-      const url = "https://example.com/unrecoverable-download";
-      if (persistedFilename) sessionStore.siFinalFilenames = { [url]: "downloads/server-name.exe" };
-      const cancel = vi.fn(() => Promise.resolve());
-      global.browser.downloads.cancel = cancel;
+  test("fails closed when exclusive routing has nothing to prove the route held", async () => {
+    // A private download persists nothing, so a restart leaves no name and no
+    // deferred recovery: the mandatory route cannot be shown to have matched,
+    // and guessing a destination is what routeSkipUnmatched exists to refuse.
+    setCurrentBrowser("CHROME");
+    options.routeSkipUnmatched = true;
+    const url = "https://example.com/unrecoverable-download";
+    const cancel = vi.fn(() => Promise.resolve());
+    global.browser.downloads.cancel = cancel;
 
-      const suggest = vi.fn();
-      expect(
-        capturedListener(
-          {
-            id: 101,
-            byExtensionId: global.browser.runtime.id,
-            url,
-            filename: "server-name.exe",
-            incognito,
-          },
-          suggest,
-        ),
-      ).toBe(true);
+    const suggest = vi.fn();
+    expect(
+      capturedListener(
+        {
+          id: 101,
+          byExtensionId: global.browser.runtime.id,
+          url,
+          filename: "server-name.exe",
+          incognito: true,
+        },
+        suggest,
+      ),
+    ).toBe(true);
 
-      await vi.waitFor(() => expect(cancel).toHaveBeenCalledWith(101));
-      expect(suggest).toHaveBeenCalledWith();
-      if (persistedFilename) {
-        await vi.waitFor(() => expect(sessionStore.siFinalFilenames).toEqual({}));
-      }
-    },
-  );
+    await vi.waitFor(() => expect(cancel).toHaveBeenCalledWith(101));
+    expect(suggest).toHaveBeenCalledWith();
+  });
+
+  test("honours a stamped filename when exclusive routing is on", async () => {
+    // The mirror of the case above. resolveDownloadPlan never starts a download
+    // that needs a route and lacks one, and safeFilenameMap only returns names
+    // this version stamped — so a name recovered here is proof the route already
+    // matched. Cancelling it discarded a correctly-routed save and reported it
+    // to the user as a rule miss.
+    setCurrentBrowser("CHROME");
+    options.routeSkipUnmatched = true;
+    const url = "https://example.com/recoverable-download";
+    sessionStore.siFinalFilenames = {
+      version: 1,
+      names: { [url]: "downloads/server-name.exe" },
+    };
+    const cancel = vi.fn(() => Promise.resolve());
+    global.browser.downloads.cancel = cancel;
+
+    const suggest = vi.fn();
+    capturedListener(
+      { id: 102, byExtensionId: global.browser.runtime.id, url, filename: "server-name.exe" },
+      suggest,
+    );
+
+    await vi.waitFor(() =>
+      expect(suggest).toHaveBeenCalledWith({
+        filename: "downloads/server-name.exe",
+        conflictAction: "uniquify",
+      }),
+    );
+    expect(cancel).not.toHaveBeenCalled();
+  });
 
   test("cancels a deferred exclusive download when the resolved filename still misses", async () => {
     setCurrentBrowser("CHROME");

@@ -25,7 +25,10 @@ import {
   PENDING_DOWNLOADS_SESSION_KEY,
 } from "../shared/storage-keys.ts";
 
-type FinalFilenameMap = Record<string, string | string[]>;
+// Mirrors downloads/filename-listener.ts, which owns the shape and its version
+// stamp; this layer only hands the map back through the injected helpers, so it
+// stays structural rather than importing across the seam.
+type FinalFilenameMap = { version: number; names: Record<string, string | string[]> };
 
 export type RetryRuntime = {
   pendingRetryFilenames: Map<string, string>;

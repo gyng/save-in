@@ -821,7 +821,9 @@ test("download completes through the real pipeline with session tracking", async
     .filter(([, record]) => decodeRecord(record).adopted === true)
     .map(([id]) => id);
   const pending = decodeNumber(sessionState.siPendingDownloads ?? 0);
-  const finalFilenames = decodeRecord(sessionState.siFinalFilenames ?? {});
+  const finalFilenames = decodeRecord(
+    decodeRecord(sessionState.siFinalFilenames ?? {}).names ?? {},
+  );
   const entry = history.filter((row) => row.finalFullPath?.includes("smoke")).at(-1);
 
   expect(downloadState).toBe("complete");
