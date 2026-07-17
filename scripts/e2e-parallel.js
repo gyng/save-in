@@ -238,14 +238,31 @@ const main = async () => {
     // suite process itself, which relaunches the browser from scratch. Default
     // 0 so local runs surface a flake immediately; CI opts in with E2E_RETRY.
     const suiteRetries = Math.max(0, Number.parseInt(process.env.E2E_RETRY || "0", 10) || 0);
+    // A retry that quietly turns a run green hides the flake it should expose, so
+    // record every one: a GitHub warning annotation surfaces it in the run
+    // summary, and run.json (uploaded with the timings on every run) keeps a
+    // durable record to trend and hunt down after release. A suite that flaked
+    // even once is listed whether or not the retry recovered it.
+    /** @type {{suite: string, attempts: number, recovered: boolean, firstExitCode: number}[]} */
+    const retriedSuites = [];
+    runMetadata.retriedSuites = retriedSuites;
     /** @param {string} suite */
     const runSuiteWithRetry = async (suite) => {
+      const label = path.basename(suite);
       let code = Number(await startSuite(suite, childEnv, options.vitestArgs).done);
+      const firstExitCode = code;
+      let attempts = 0;
       for (let attempt = 1; code !== 0 && attempt <= suiteRetries; attempt += 1) {
-        console.error(
-          `E2E suite ${suite} exited ${code}; retrying (${attempt}/${suiteRetries}) with a fresh launch`,
-        );
+        attempts = attempt;
+        const detail = `E2E suite ${label} exited ${code}; retrying (${attempt}/${suiteRetries}) with a fresh launch`;
+        console.error(detail);
+        // GitHub renders ::warning:: in the job summary and annotations list.
+        console.log(`::warning title=E2E flake retry (${label})::${detail}`);
         code = Number(await startSuite(suite, childEnv, options.vitestArgs).done);
+      }
+      if (attempts > 0) {
+        retriedSuites.push({ suite: label, attempts, recovered: code === 0, firstExitCode });
+        writeRunMetadata();
       }
       return code;
     };
@@ -257,6 +274,12 @@ const main = async () => {
       }
     } else {
       codes.push(...(await Promise.all(suites.map((suite) => runSuiteWithRetry(suite)))));
+    }
+    // Signal a flake to the workflow so it preserves the failure diagnostics even
+    // when the retry recovered — otherwise a green run drops the captures that
+    // show what flaked, which is exactly what a post-release flake hunt needs.
+    if (retriedSuites.length && process.env.GITHUB_OUTPUT) {
+      fs.appendFileSync(process.env.GITHUB_OUTPUT, "flaked=true\n");
     }
   } catch (error) {
     runError = error;

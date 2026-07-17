@@ -86,10 +86,12 @@ jobs:
           google-chrome --version
           firefox --version
       - name: Chrome and Firefox e2e
+        id: e2e
         # Retry a suite once: a shared runner occasionally fails a whole suite
         # before any test — a Firefox event page that misses its launch budget —
         # which is a resource signal, not a defect, and re-runs clean. Genuine
         # bugs fail every attempt and still surface. Timing is judged separately.
+        # A retry sets outputs.flaked so the diagnostics are kept even when green.
         run: HEADLESS=1 E2E_RETRY=1 npm run e2e
       - name: Compare e2e timing with successful master
         if: github.event_name == 'pull_request'
@@ -106,8 +108,8 @@ jobs:
             dist/e2e-artifacts/run-*/timings-*.json
             dist/e2e-artifacts/run-*/*-environment.json
           if-no-files-found: warn
-      - name: Preserve browser diagnostics on failure
-        if: failure()
+      - name: Preserve browser diagnostics on failure or flake
+        if: failure() || steps.e2e.outputs.flaked == 'true'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: e2e-failure-${{ github.sha }}
@@ -155,6 +157,7 @@ jobs:
           /tmp/save-in-minimum-browsers/chrome-linux64/chrome --version
           /tmp/save-in-minimum-browsers/firefox/firefox --version
       - name: Pinned Chrome 150 and minimum Firefox 140 e2e
+        id: e2e-minimum
         env:
           CHROME_PATH: /tmp/save-in-minimum-browsers/chrome-linux64/chrome
           FIREFOX_PATH: /tmp/save-in-minimum-browsers/firefox/firefox
@@ -185,8 +188,8 @@ jobs:
             dist/e2e-artifacts/run-*/timings-*.json
             dist/e2e-artifacts/run-*/*-environment.json
           if-no-files-found: warn
-      - name: Preserve minimum-browser diagnostics on failure
-        if: failure()
+      - name: Preserve minimum-browser diagnostics on failure or flake
+        if: failure() || steps.e2e-minimum.outputs.flaked == 'true'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: e2e-minimum-failure-${{ github.sha }}
