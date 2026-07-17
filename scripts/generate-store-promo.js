@@ -105,7 +105,7 @@ const marqueeTile = () =>
     .sub{margin-top:22px;font-size:21px;line-height:1.5;font-weight:500;color:#47536b;max-width:540px}
     .menuStage{position:relative;flex:1;height:100%}
     .primary{top:96px;left:96px;width:260px;z-index:1}
-    .submenu{top:176px;left:344px;width:268px;z-index:2}
+    .submenu{top:176px;left:344px;width:184px;z-index:2}
     ${contextMenuCss(1)}
     .cursor{position:absolute;top:214px;left:470px;width:22px;height:22px;z-index:3;filter:drop-shadow(0 1px 1px rgba(0,0,0,0.35))}`,
     1400,
@@ -167,7 +167,7 @@ const heroScreenshot = () =>
     .byline{font-size:26px;color:#7b8494;margin-top:16px}
     .photo{margin-top:40px;width:100%;height:760px;border-radius:16px;object-fit:cover;display:block;box-shadow:0 10px 30px rgba(0,0,0,0.14)}
     .primary{top:560px;left:250px;width:430px;z-index:2}
-    .submenu{top:690px;left:672px;width:452px;z-index:3}
+    .submenu{top:690px;left:672px;width:306px;z-index:3}
     ${contextMenuCss(1.66)}
     .cursor{position:absolute;top:756px;left:930px;width:40px;height:40px;z-index:4;filter:drop-shadow(0 2px 2px rgba(0,0,0,0.35))}`,
     2400,

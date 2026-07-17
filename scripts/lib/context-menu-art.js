@@ -35,10 +35,6 @@ const GLYPH = (() => {
 const glyph = (fill, cls = "") =>
   `<svg${cls ? ` class="${cls}"` : ""} viewBox="0 0 24 24"><path fill="${fill}" d="${GLYPH}"/></svg>`;
 
-/** A folder tab in one of the media-kind colours. @param {string} fill */
-const folder = (fill) =>
-  `<svg class="fico" viewBox="0 0 36 30"><path fill="${fill}" d="M3 3h10l3 4h14a3 3 0 0 1 3 3v16a3 3 0 0 1-3 3H3a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3z"/></svg>`;
-
 // `scale` maps the 1x pixel sizes up for the larger canvases.
 /** @param {number} scale */
 const contextMenuCss = (scale) => {
@@ -50,12 +46,10 @@ const contextMenuCss = (scale) => {
   .mi{display:flex;align-items:center;gap:${s(11)};padding:${s(8)} ${s(12)};border-radius:${s(5)};
     white-space:nowrap;line-height:1}
   .mi .label{flex:1}.mi .arrow{color:#8a929e;font-size:${s(12)}}
-  .mi.on{background:${ACCENT};color:#fff}.mi.on .arrow{color:#cfe0ff}.mi.on .path{color:#d8e6ff}
+  .mi.on{background:${ACCENT};color:#fff}.mi.on .arrow{color:#cfe0ff}
   .mi.dim{color:#b7bcc6}
   .sep{height:1px;background:#e7e9ee;margin:${s(5)} ${s(8)}}
-  .ico{width:${s(16)};height:${s(16)};flex:none;fill:#6b7280}
-  .fico{width:${s(17)};height:${s(14)};flex:none}
-  .mi .path{margin-left:${s(8)};font-size:${s(12.5)};color:#99a0ad;font-weight:500}`;
+  .ico{width:${s(16)};height:${s(16)};flex:none;fill:#6b7280}`;
 };
 
 const primaryMenu = `
@@ -71,13 +65,13 @@ const primaryMenu = `
 
 const submenu = `
   <div class="menu submenu">
-    <div class="mi on">${folder("#fff")}<span class="label">Images</span><span class="path">~/Downloads/Images</span></div>
-    <div class="mi">${folder(KIND.video)}<span class="label">Video</span><span class="path">~/Downloads/Video</span></div>
-    <div class="mi">${folder(KIND.audio)}<span class="label">Audio</span><span class="path">~/Downloads/Music</span></div>
-    <div class="mi">${folder(KIND.document)}<span class="label">Documents</span><span class="path">~/Downloads/Docs</span></div>
+    <div class="mi on"><span class="label">Images</span></div>
+    <div class="mi"><span class="label">Video</span></div>
+    <div class="mi"><span class="label">Audio</span></div>
+    <div class="mi"><span class="label">Documents</span></div>
     <div class="sep"></div>
-    <div class="mi">${folder(KIND.other)}<span class="label">Choose folder&hellip;</span></div>
-    <div class="mi">${folder(KIND.stream)}<span class="label">Add rule&hellip;</span><span class="path">sort &amp; rename</span></div>
+    <div class="mi"><span class="label">Choose folder&hellip;</span></div>
+    <div class="mi"><span class="label">Add rule&hellip;</span></div>
   </div>`;
 
 /** @param {string} cls */
@@ -97,7 +91,7 @@ const menuOverlayDoc = () => `<!doctype html><html><head><meta charset="utf-8"><
   body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;position:relative}
   ${contextMenuCss(1)}
   .primary{top:18px;left:18px;width:258px;z-index:1}
-  .submenu{top:96px;left:268px;width:268px;z-index:2}
+  .submenu{top:96px;left:268px;width:186px;z-index:2}
   .cursor{position:absolute;top:132px;left:396px;width:22px;height:22px;z-index:3;filter:drop-shadow(0 1px 1px rgba(0,0,0,0.35))}
 </style></head><body>${primaryMenu}${submenu}${cursor("cursor")}</body></html>`;
 
@@ -106,7 +100,6 @@ module.exports = {
   KIND,
   GLYPH,
   glyph,
-  folder,
   cursor,
   contextMenuCss,
   primaryMenu,
