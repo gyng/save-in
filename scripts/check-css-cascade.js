@@ -144,11 +144,14 @@ const parseCompound = (selector) => {
   return rebuilt === selector ? { classes, pseudos } : null;
 };
 
-/** @returns {Set<string>} */
-const elementClassSets = () => {
+/**
+ * @param {string} markupRoot
+ * @returns {Set<string>}
+ */
+const elementClassSets = (markupRoot) => {
   /** @type {Set<string>} */
   const sets = new Set();
-  const files = walkFiles(optionsRoot, (name) => name.endsWith(".ts") || name.endsWith(".html"));
+  const files = walkFiles(markupRoot, (name) => name.endsWith(".ts") || name.endsWith(".html"));
   for (const file of files) {
     const source = fs.readFileSync(file, "utf8");
     for (const match of source.matchAll(/(?:className\s*=\s*|class=)"([a-z0-9 _-]+)"/g)) {
@@ -163,7 +166,8 @@ const elementClassSets = () => {
   return sets;
 };
 
-const main = () => {
+/** The options page: layers declared in style.css, filled in import order. */
+const optionsSheets = () => {
   const entry = fs.readFileSync(path.join(optionsRoot, "style.css"), "utf8");
   const layerNames = (entry.match(/@layer ([^;]+);/)?.[1] || "")
     .split(",")
@@ -176,11 +180,39 @@ const main = () => {
   // options.html links these two separately; they fill the layers style.css declares.
   imports.push({ file: "dialogs/welcome-dialog.css", layer: "welcome" });
   imports.push({ file: "reference/reference.css", layer: "reference" });
+  return { layerNames, imports, styleRoot: optionsRoot, markupRoot: optionsRoot };
+};
 
+/**
+ * The drawer: no layers at all. source-panel.ts imports these as strings and
+ * joins them into one shadow-root stylesheet, so concatenation order is the
+ * only thing settling a tie — the options page at least has layers above it.
+ * The order below is that join, and check-css.js pins the same list.
+ */
+const panelSheets = () => ({
+  layerNames: ["panel"],
+  imports: [
+    "source-panel-tokens.css",
+    "source-panel-themes.css",
+    "source-panel.css",
+    "source-panel-controls.css",
+    "source-panel-results.css",
+    "source-panel-responsive.css",
+    "source-panel-preview.css",
+  ].map((file) => ({ file, layer: "panel" })),
+  styleRoot: path.join(root, "src", "content"),
+  markupRoot: path.join(root, "src", "content"),
+});
+
+/**
+ * @param {{layerNames: string[], imports: Array<{file: string, layer: string}>, styleRoot: string, markupRoot: string}} sheets
+ * @returns {Map<string, string>}
+ */
+const silentOrderOverrides = ({ layerNames, imports, styleRoot, markupRoot }) => {
   /** @type {Array<{file: string, layerIndex: number, importIndex: number, ruleIndex: number, selector: string, classes: string[], pseudos: string[], specificity: number, declarations: Map<string, string>}>} */
   const rules = [];
   imports.forEach(({ file, layer }, importIndex) => {
-    const stylePath = path.join(optionsRoot, file);
+    const stylePath = path.join(styleRoot, file);
     if (!fs.existsSync(stylePath)) return;
     const source = stripAtRuleBlocks(stripComments(fs.readFileSync(stylePath, "utf8")));
     parseRules(source).forEach(({ selector, declarations }, ruleIndex) => {
@@ -204,7 +236,7 @@ const main = () => {
 
   /** @type {Map<string, string>} */
   const found = new Map();
-  for (const key of elementClassSets()) {
+  for (const key of elementClassSets(markupRoot)) {
     const element = new Set(key.split(" "));
     const applicable = rules.filter((rule) => rule.classes.every((name) => element.has(name)));
     /** @type {Map<string, typeof applicable>} */
@@ -244,6 +276,16 @@ const main = () => {
         }
       }
     }
+  }
+
+  return found;
+};
+
+const main = () => {
+  /** @type {Map<string, string>} */
+  const found = new Map();
+  for (const sheets of [optionsSheets(), panelSheets()]) {
+    for (const [key, message] of silentOrderOverrides(sheets)) found.set(key, message);
   }
 
   const reviewed = new Set(REVIEWED_ORDER_OVERRIDES.map((override) => override.key));
