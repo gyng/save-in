@@ -1262,7 +1262,7 @@
     "message": "um verschachtelte Untermenüs zu erstellen; verwenden Sie ein"
   },
   "html_toReachAnotherLocationCreateASymlinkInsideDownloads": {
-    "message": ". Um einen anderen Speicherort zu erreichen, erstellen Sie einen Symlink in „Downloads“ und verwenden Sie diesen relativen Symlink-Pfad als Ziel. Der Zielordner muss bereits vorhanden sein."
+    "message": ". Um einen anderen Speicherort zu erreichen, leiten Sie einen Unterordner davon auf das Ziel um und verwenden Sie diesen relativen Pfad als Ziel. Was funktioniert, hängt von Ihrem Browser und System ab, und einige Methoden sind riskant, lesen Sie daher die Anleitung unten. Der Zielordner muss bereits vorhanden sein."
   },
   "html_useAVariable": {
     "message": "Verwenden Sie eine Variable"

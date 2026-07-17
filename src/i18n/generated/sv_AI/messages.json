@@ -1262,7 +1262,7 @@
     "message": "för att skapa nästlade undermenyer, med ett"
   },
   "html_toReachAnotherLocationCreateASymlinkInsideDownloads": {
-    "message": ". För att nå en annan plats, skapa en symbollänk i Downloads och använd den relativa symbollänkssökvägen som en destination. Målmappen måste redan finnas."
+    "message": ". För att nå en annan plats, omdirigera en undermapp av den till målet och använd den relativa sökvägen som destination. Vad som fungerar beror på din webbläsare och ditt system, och vissa metoder är riskabla, så läs guiden nedan. Målmappen måste redan finnas."
   },
   "html_useAVariable": {
     "message": "Använd en variabel"

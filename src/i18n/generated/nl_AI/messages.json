@@ -1262,7 +1262,7 @@
     "message": "om geneste submenu's te maken, met één"
   },
   "html_toReachAnotherLocationCreateASymlinkInsideDownloads": {
-    "message": ". Om een andere locatie te bereiken, maakt u een symlink binnen Downloads en gebruikt u dat relatieve symlinkpad als bestemming. De doelmap moet al bestaan."
+    "message": ". Om een andere locatie te bereiken, verwijst u een submap ervan door naar het doel en gebruikt u dat relatieve pad als bestemming. Wat werkt, hangt af van uw browser en systeem, en sommige methoden zijn riskant, dus raadpleeg de handleiding hieronder. De doelmap moet al bestaan."
   },
   "html_useAVariable": {
     "message": "Gebruik een variabele"

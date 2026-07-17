@@ -852,7 +852,7 @@
     "message": "；每深入一级，就多使用一个"
   },
   "html_toReachAnotherLocationCreateASymlinkInsideDownloads": {
-    "message": "。要保存到其他位置，请在“下载”文件夹内创建符号链接，并将该链接的相对路径用作保存位置。链接指向的文件夹必须已经存在。"
+    "message": "。要保存到其他位置，请将其中的子文件夹重定向到目标位置，并将该相对路径用作保存位置。哪种方法可行取决于您的浏览器和系统，且部分方法存在风险，请查看下方的指南。目标文件夹必须已经存在。"
   },
   "html_useAVariable": {
     "message": "使用变量"

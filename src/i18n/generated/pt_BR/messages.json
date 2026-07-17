@@ -1262,7 +1262,7 @@
     "message": "e adicione outro"
   },
   "html_toReachAnotherLocationCreateASymlinkInsideDownloads": {
-    "message": ". Para chegar a outro local, crie um link simbólico dentro de Downloads e use esse caminho do link simbólico relativo como destino. A pasta de destino já deve existir."
+    "message": ". Para chegar a outro local, redirecione uma subpasta dele para o destino e use esse caminho relativo como destino. O que funciona depende do seu navegador e sistema, e alguns métodos são arriscados, então consulte o guia abaixo. A pasta de destino já deve existir."
   },
   "html_useAVariable": {
     "message": "Use uma variável"

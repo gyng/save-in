@@ -852,7 +852,7 @@
     "message": "；每深入一個層級，就多使用一個"
   },
   "html_toReachAnotherLocationCreateASymlinkInsideDownloads": {
-    "message": "。若要儲存到其他位置，請在「下載」資料夾內建立符號連結，並將該連結的相對路徑用作儲存位置。連結指向的資料夾必須已經存在。"
+    "message": "。若要儲存到其他位置，請將其中的子資料夾重新導向到目標位置，並將該相對路徑用作儲存位置。哪種方法可行取決於您的瀏覽器與系統，且部分方法有風險，請參閱下方的指南。目標資料夾必須已經存在。"
   },
   "html_useAVariable": {
     "message": "使用變數"
