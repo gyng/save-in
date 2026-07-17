@@ -167,6 +167,24 @@ describe("pattern list grammar", () => {
     expect(matchesAnyPattern("http://example.com/x", "http://example.com:443/*")).toBe(false);
   });
 
+  // The two remaining ways the borrowed "https://" scheme lets the parser read
+  // more than a bare host.
+  test("reads a bracketed IPv6 host's colons as its own, not as a port", () => {
+    // The colons inside the brackets are the host, so the entry canonicalises
+    // like any other: "[::0001]" is the same address the browser reports as
+    // "[::1]". Mistaking them for a port would leave the entry as raw text,
+    // which matches only the spelling the user happened to choose.
+    expect(matchesAnyPattern("http://[::1]/x", "*://[::0001]/*")).toBe(true);
+    expect(matchesAnyPattern("http://[::1]/x", "*://[::1]/*")).toBe(true);
+  });
+
+  test("refuses a pattern host the parser only read by absorbing a query", () => {
+    // The parser answers host "example.com" for both of these, so canonicalising
+    // would widen each entry to the whole host — which is not what it says.
+    expect(matchesAnyPattern("https://example.com/x", "*://example.com?x=1/*")).toBe(false);
+    expect(matchesAnyPattern("https://example.com/x", "*://example.com#f/*")).toBe(false);
+  });
+
   test("falls back to the raw string when the URL does not parse", () => {
     // A non-URL value still tests textually (fragment-stripped) as before, so
     // no previously matching input silently stops matching.
