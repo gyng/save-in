@@ -228,8 +228,15 @@ the extension's own validation, and the user's review all agree.
 
 ## Screenshot captions
 
-One caption per store screenshot, in order. The files live in
-`docs/store/screenshots/`.
+One caption per store screenshot, in order. Two sets exist, same content and
+captions:
+
+- `docs/store/screenshots/` — 1280×800, for the **Chrome Web Store** (it requires
+  exactly that size).
+- `docs/store/screenshots-firefox/` — 2400×1500, for **AMO** (which accepts up to
+  2400×1800); re-rendered at 1.875× device scale, so it is crisp on high-DPI
+  displays rather than an upscale. Regenerate with
+  `npm run screenshots:store -- --scale 1.875 --output-dir docs/store/screenshots-firefox`.
 
 ```text
 01-right-click-save.png   Right-click anything to save it — save any image, link, selection, or page straight into the folder you choose.

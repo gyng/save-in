@@ -32,8 +32,13 @@ const SCREENSHOTS = Object.freeze([
 
 const PNG_SIGNATURE = Buffer.from("89504e470d0a1a0a", "hex");
 
-/** @param {Buffer} png @param {string} [filename] */
-const assertPngDimensions = (png, filename = "Screenshot") => {
+/** @param {Buffer} png @param {string} [filename] @param {number} [expectedWidth] @param {number} [expectedHeight] */
+const assertPngDimensions = (
+  png,
+  filename = "Screenshot",
+  expectedWidth = SCREENSHOT_WIDTH,
+  expectedHeight = SCREENSHOT_HEIGHT,
+) => {
   if (
     !Buffer.isBuffer(png) ||
     png.length < 24 ||
@@ -45,9 +50,9 @@ const assertPngDimensions = (png, filename = "Screenshot") => {
 
   const width = png.readUInt32BE(16);
   const height = png.readUInt32BE(20);
-  if (width !== SCREENSHOT_WIDTH || height !== SCREENSHOT_HEIGHT) {
+  if (width !== expectedWidth || height !== expectedHeight) {
     throw new Error(
-      `${filename} is ${width}x${height}; expected ${SCREENSHOT_WIDTH}x${SCREENSHOT_HEIGHT}`,
+      `${filename} is ${width}x${height}; expected ${expectedWidth}x${expectedHeight}`,
     );
   }
 };

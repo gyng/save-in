@@ -33,6 +33,20 @@ const outputArgument = () => {
   return output;
 };
 
+// Device-scale multiplier for the capture. 1 is the Chrome Web Store's required
+// 1280x800; a higher scale renders the same layout at more device pixels for
+// stores that accept larger images (Firefox AMO, up to 2400x1800). At 1.875 the
+// output is 2400x1500 — the largest 16:10 that fits AMO's box, crisp because it
+// is re-rendered, not upscaled.
+const scaleArgument = () => {
+  const index = process.argv.indexOf("--scale");
+  if (index < 0) return 1;
+  const value = Number(process.argv[index + 1]);
+  if (!Number.isFinite(value) || value <= 0) throw new Error("--scale requires a positive number");
+  return value;
+};
+const SCALE = scaleArgument();
+
 /** @param {() => unknown | Promise<unknown>} callback @param {string} description @param {number} [timeoutMs] */
 const waitFor = async (callback, description, timeoutMs = 10_000) => {
   const deadline = Date.now() + timeoutMs;
@@ -65,16 +79,19 @@ const listen = (server) =>
 
 /** @param {number} port @param {string} target @param {string} outputDir @param {Screenshot} screenshot */
 const capture = async (port, target, outputDir, screenshot) => {
+  const expectedWidth = Math.round(SCREENSHOT_WIDTH * SCALE);
+  const expectedHeight = Math.round(SCREENSHOT_HEIGHT * SCALE);
   const captured = Buffer.from(
     await cdp.captureScreenshot(port, target, {
       width: SCREENSHOT_WIDTH,
       height: SCREENSHOT_HEIGHT,
+      deviceScaleFactor: SCALE,
     }),
     "base64",
   );
-  assertPngDimensions(captured, screenshot.filename);
+  assertPngDimensions(captured, screenshot.filename, expectedWidth, expectedHeight);
   const { png, savedBytes } = optimizePngLosslessly(captured);
-  assertPngDimensions(png, screenshot.filename);
+  assertPngDimensions(png, screenshot.filename, expectedWidth, expectedHeight);
   const output = path.join(outputDir, screenshot.filename);
   fs.writeFileSync(output, png);
   process.stdout.write(
