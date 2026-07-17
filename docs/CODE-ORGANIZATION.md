@@ -846,10 +846,37 @@ the list was written before that file grew: by the time Phases 1–3 had landed,
    was cheap, so it landed rather than becoming a documented exception. Its
    header comment was stale in the same way and was rewritten.
 
-   A convention that only a reviewer enforces will drift again. The durable fix
-   is mechanical — a check asserting that `*-model.ts` and `*-state.ts` contain
-   no DOM references, the way `check-import-cycles.js` enforces layering — and
-   is **not** done.
+3. **Make the suffix prove itself.** A convention that only a reviewer enforces
+   drifts again — 4.2 is the evidence. The durable fix is mechanical: a check
+   that `*-model.ts` and `*-state.ts` contain no DOM references, the way
+   `check-import-cycles.js` already enforces layering.
+
+   **Landed** in `check-import-cycles.js`, which already walks every module and
+   owns the per-file text rules. `scripts/lib/architecture-checks.js` gained
+   `domReferences`, which reports the DOM globals (`document`, `window`,
+   `navigator`, `localStorage`, `sessionStorage`, and their `globalThis.` forms)
+   and DOM element types (`HTML*Element`, `SVG*Element`, `ShadowRoot`,
+   `NodeList`, `HTMLCollection`, `DOMParser`, `DOMRect`) a module references.
+   `src/content/source-panel-model.ts` is the one exception, carrying AGENTS.md's
+   documented reason inline; removing it was verified to make the check fire.
+
+   The scanner reads code, not text. Three of the eighteen `-model.ts`/`-state.ts`
+   files mention "document" in prose or in a string — `prompt-assistant-model.ts`
+   has it as a *vocabulary term* in the on-device prompts, and it is a
+   source-kind the DSL offers — so a word match would have failed the build on
+   correct code. `domReferences` therefore strips comments and string literals
+   first, keeping `${...}` substitutions (`` `${document.title}` `` is real DOM
+   usage) and skipping regex literals whole, since a quote inside `/["']/` would
+   otherwise open a phantom string and hide the code after it. Bare `Node`,
+   `Element`, and `Event` are deliberately not flagged: a pure model may name its
+   own AST node or domain event type.
+
+   Verified by construction rather than by assertion: the rule was confirmed to
+   fire on real DOM access, on a DOM type, and on a template substitution; to
+   stay silent on comments, strings, and a regex containing quotes; and to be
+   green across the tree as it stands. `test/contracts/architecture-checks.test.ts`
+   covers `domReferences` and `stripCommentsAndStrings` at the pure-function
+   boundary, where the existing scanners are already tested.
 
 Verification: `npm run lint`, `npm run typecheck`, `npm test`,
 `npm run test:coverage` (`options/history` at 100% on all four metrics; global

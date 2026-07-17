@@ -412,6 +412,11 @@ vitest specifics (`test/**/*.test.ts`, typed; `tsc` covers them):
   `field-save-state.ts`, `download-state.ts`); a module that queries or wires
   DOM is a controller/view file even if it tracks state, and should not use
   the `-state` suffix (see `syntax-editor/manual-editor-controller.ts`).
+  Both suffixes are enforced: `scripts/check-import-cycles.js` fails a
+  `-model.ts` or `-state.ts` that references the DOM, reading only real code
+  (comments and string literals are ignored, so prose about a "document" is
+  fine) and allowing the one exception named above. Renaming the file is the
+  usual fix; widening the exception set needs a reason as specific as that one.
   `-panel.ts` names a module that wires one distinct options-page panel
   (`history-panel.ts`, `webhook-panel.ts`, `integration-panel.ts`), not any
   structurally-panel-shaped module. A per-layer `ports.ts` (`background/`,

@@ -2,9 +2,11 @@ import checks from "../../scripts/lib/architecture-checks.js";
 
 const {
   callsIdentifier,
+  domReferences,
   hasBrowserListenerRegistration,
   hasDynamicImport,
   hasGlobalNamespaceMutation,
+  stripCommentsAndStrings,
 } = checks;
 
 describe("architecture listener registration scanner", () => {
@@ -56,5 +58,50 @@ describe("architecture module scanner", () => {
         "configureRoutingPorts",
       ),
     ).toBe(false);
+  });
+});
+
+describe("architecture DOM-reference scanner", () => {
+  test("detects DOM access and DOM element types", () => {
+    expect(domReferences("const list = document.querySelector('#history')")).toEqual(["document"]);
+    expect(domReferences("const save = () => localStorage.setItem(key, value)")).toEqual([
+      "localStorage",
+    ]);
+    expect(domReferences("type Row = { input: HTMLInputElement }")).toEqual(["HTMLInputElement"]);
+    expect(domReferences("const icon = (): SVGSVGElement => build()")).toEqual(["SVGSVGElement"]);
+    expect(domReferences("globalThis.document.title = name")).toEqual(["globalThis.document"]);
+  });
+
+  test("ignores the word in comments, strings, and template text", () => {
+    expect(domReferences("// options.ts keeps the DOM rendering; document. It does.")).toEqual([]);
+    expect(domReferences("/* a document. and an HTMLElement in prose */")).toEqual([]);
+    expect(domReferences('const category = "document"')).toEqual([]);
+    expect(domReferences("const help = `image, document, and media are categories`")).toEqual([]);
+  });
+
+  test("sees DOM access inside a template substitution", () => {
+    expect(domReferences("const title = `page: ${document.title}`")).toEqual(["document"]);
+    expect(domReferences("const nested = `a ${`b ${window.name}`}`")).toEqual(["window"]);
+  });
+
+  test("does not treat a domain name that merely contains a DOM word as DOM", () => {
+    expect(domReferences("const documentKind = entry.documentKind")).toEqual([]);
+    expect(domReferences("const kind = source.document")).toEqual([]);
+    expect(domReferences("type Node = { left: Node | null }")).toEqual([]);
+  });
+
+  test("a quote inside a regex literal does not swallow the code after it", () => {
+    // Without regex-literal handling the `"` below opens a phantom string and
+    // the document.body call after it goes unseen.
+    const source = String.raw`const quoted = /["']/; const body = document.body;`;
+    expect(domReferences(source)).toEqual(["document"]);
+  });
+
+  test("keeps code and drops literal text when stripping", () => {
+    expect(stripCommentsAndStrings("const a = 1; // trailing")).toContain("const a = 1;");
+    expect(stripCommentsAndStrings('const a = "text"; const b = 2;')).toContain("const b = 2;");
+    expect(stripCommentsAndStrings('const a = "text";')).not.toContain("text");
+    expect(stripCommentsAndStrings("const a = `x ${b} y`;")).toContain("b");
+    expect(stripCommentsAndStrings("const a = `x ${b} y`;")).not.toContain("x");
   });
 });

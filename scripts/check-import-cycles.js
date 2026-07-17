@@ -4,6 +4,7 @@ const fs = require("fs");
 const path = require("path");
 const {
   callsIdentifier,
+  domReferences,
   hasBrowserListenerRegistration,
   hasDynamicImport,
   hasGlobalNamespaceMutation,
@@ -436,6 +437,25 @@ const visit = (file) => {
 
 for (const file of files) {
   if (!indexes.has(file)) visit(file);
+}
+
+// The -model.ts / -state.ts suffixes are a contract, not decoration: they
+// promise pure, DOM-free, unit-testable logic (see AGENTS.md's Conventions).
+// A promise only a reviewer enforces drifts — history-view.ts sat misnamed for
+// exactly that reason — so the suffix has to prove itself.
+const DOM_FREE_SUFFIXES = ["-model.ts", "-state.ts"];
+// AGENTS.md's sole documented exception: page-DOM source discovery is this
+// module's subject matter, and its test runs under jsdom for that reason.
+const DOM_FREE_EXCEPTIONS = new Set(["src/content/source-panel-model.ts"]);
+
+for (const file of files) {
+  const name = relative(file);
+  const suffix = DOM_FREE_SUFFIXES.find((candidate) => name.endsWith(candidate));
+  if (!suffix || DOM_FREE_EXCEPTIONS.has(name)) continue;
+  const found = domReferences(fs.readFileSync(file, "utf8"));
+  if (found.length > 0) {
+    report(file, `${suffix} must stay DOM-free (found ${found.join(", ")})`);
+  }
 }
 
 if (cycles.length || architectureViolations.length) {
