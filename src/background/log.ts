@@ -77,5 +77,17 @@ export const getLogEntries = async () => {
 };
 
 // Clearing is an explicit user action, so surface storage failures to the
-// diagnostics panel instead of reporting success for a failed removal.
-export const clearLog = () => extensionSessionStorage.remove(LOG_STORAGE_KEY);
+// diagnostics panel instead of reporting success for a failed removal — which
+// is why this does not go through updateSession, whose contract is to swallow
+// them. It still has to take that queue's turn: an add already holds the
+// entries this is removing and would write them straight back.
+export const clearLog = () => {
+  // Every writer puts a settled promise on this queue, so waiting on it cannot
+  // inherit their failure.
+  const queued = sessionWriteState.queues.get(LOG_STORAGE_KEY) ?? Promise.resolve();
+  const cleared = queued.then(() => extensionSessionStorage.remove(LOG_STORAGE_KEY));
+  // The queue only sequences turns, so it carries a settled promise; this
+  // removal's own failure still reaches the caller through `cleared`.
+  sessionWriteState.queues.set(LOG_STORAGE_KEY, cleared.catch(() => {}));
+  return cleared;
+};

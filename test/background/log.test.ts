@@ -135,6 +135,33 @@ describe("Log", () => {
     await expect(Log.getLogEntries()).resolves.toEqual([]);
   });
 
+  // An add already holds the pre-clear entries and is about to write them back,
+  // so a clear that does not follow it hands them all back to the user.
+  test("clear is serialized after already queued writes", async () => {
+    await Log.addLogEntry("secret-diagnostic");
+
+    const queuedAdd = Log.addLogEntry("in-flight");
+    await Log.clearLog();
+    await queuedAdd;
+
+    await expect(Log.getLogEntries()).resolves.toEqual([]);
+  });
+
+  // Clearing is an explicit user action, so its failure has to reach the
+  // diagnostics panel rather than report a removal that did not happen — and
+  // must not leave the queue holding a rejection for the next writer.
+  test("a failed clear surfaces to the caller without poisoning the queue", async () => {
+    await Log.addLogEntry("one");
+    vi.mocked(global.browser.storage.session!.remove).mockRejectedValueOnce(
+      new Error("remove denied"),
+    );
+
+    await expect(Log.clearLog()).rejects.toThrow("remove denied");
+
+    await Log.addLogEntry("after");
+    expect(entries().map(({ message }) => message)).toEqual(["one", "after"]);
+  });
+
   test("is a no-op without storage.session (older Firefox)", async () => {
     (global.browser.storage as any).session = undefined;
     vi.resetModules();
