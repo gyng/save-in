@@ -30,6 +30,7 @@ import {
 import { matchesAnyPattern } from "../shared/match-pattern.ts";
 import type { AutomaticRoutingCandidate } from "../automation/automatic-routing.ts";
 import { parseRulesCollecting } from "../routing/rule-parser.ts";
+import { configureContentPorts } from "./ports.ts";
 import {
   cssSelectorsForRules,
   matchedCssSelectorsByOrigin,
@@ -40,6 +41,10 @@ import {
 // Chrome and Firefox content scripts (no polyfill is loaded here). try/catch
 // guards cover the extension being reloaded underneath the page
 // ("Extension context invalidated").
+
+// This file is the content bundle's entry, so it composes the layer before
+// anything below it runs, as the background and options entries do.
+configureContentPorts();
 
 const ClickToSave = {
   isKeyboardComboActive: (combo: number[], activeKeys: Record<number, boolean>) =>

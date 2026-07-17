@@ -415,8 +415,12 @@ vitest specifics (`test/**/*.test.ts`, typed; `tsc` covers them):
   `-panel.ts` names a module that wires one distinct options-page panel
   (`history-panel.ts`, `webhook-panel.ts`, `integration-panel.ts`), not any
   structurally-panel-shaped module. A per-layer `ports.ts` (`background/`,
-  `downloads/`, `routing/`) is the intentional dependency-injection
-  pattern, not a naming collision. `shared/` hosts cross-context contracts and
+  `content/`, `downloads/`, `routing/`) is the intentional dependency-injection
+  pattern, not a naming collision. A context's `ports.ts` is also its
+  composition owner: `scripts/check-import-cycles.js` names the only files
+  allowed to call each `configure*Ports`, so a new caller belongs in that list
+  rather than beside the code that needs it.
+  `shared/` hosts cross-context contracts and
   pure helpers only — a module belongs there because two or more directories
   that cannot legally import each other both need it, not because it is
   merely reused; when that happens, add a short header comment on the file

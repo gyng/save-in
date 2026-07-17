@@ -212,6 +212,17 @@ const importContentWithOptions = async (optionsBody: Record<string, unknown>) =>
 };
 
 describe("content.js initialisation", () => {
+  test("gives routing this page's title, so an automatic pagetitle rule can match", async () => {
+    // The scan pre-matches candidates and the background re-matches them against
+    // the sending tab. Without this the library default answers undefined, the
+    // scan drops every source a pagetitle: rule selects, and the rule saves
+    // nothing while the background and the route debugger both say it matches.
+    document.title = "Cat Gallery";
+    const { routingPorts } = await import("../../src/routing/ports.ts");
+
+    expect(routingPorts.getCurrentTab()).toEqual({ title: "Cat Gallery" });
+  });
+
   const originalSendMessage = global.chrome.runtime.sendMessage;
   const originalAddListener = global.chrome.runtime.onMessage.addListener;
   const originalStorageGet = global.chrome.storage.local.get;
