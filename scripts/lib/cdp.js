@@ -58,6 +58,7 @@
  *   "Page.enable": {params: Record<string, never>, result: Record<string, unknown>},
  *   "Page.bringToFront": {params: Record<string, never>, result: Record<string, unknown>},
  *   "Page.reload": {params: {ignoreCache?: boolean}, result: Record<string, unknown>},
+ *   "Page.handleJavaScriptDialog": {params: {accept: boolean}, result: Record<string, unknown>},
  *   "Page.captureScreenshot": {
  *     params: {
  *       format: "png", fromSurface: boolean, captureBeyondViewport: boolean
@@ -642,6 +643,27 @@ const stopServiceWorker = async (port, extensionId) => {
 // Reloads every open page target whose URL contains urlSubstr, in place
 // (so a reloaded unpacked extension is picked up without opening a new
 // tab). Returns how many were reloaded.
+
+// A reload runs the page's beforeunload handlers, and the options page guards
+// unsaved edits with one. Headless Chrome only dismisses the resulting modal by
+// itself while no client owns the Page domain: enabling it — as the screenshot
+// path already does — makes the dialog this client's to answer, and an
+// unanswered one blocks the renderer, so every later Runtime.evaluate on the
+// target times out with the page still listed and CDP still healthy. Answer the
+// dialog rather than avoid Page.enable: whether some other caller has enabled it
+// is not something a reload can know, and a reload that can deadlock the whole
+// browser is not worth the coupling. Accepting matches the reload the caller
+// asked for; a scenario that needs the edits kept has to save them first.
+/** @param {Cdp} connection */
+const acceptDialogs = (connection) => {
+  connection.ws.addEventListener("message", (ev) => {
+    /** @type {unknown} */
+    const parsed = JSON.parse(String(ev.data));
+    if (!isRecord(parsed) || parsed.method !== "Page.javascriptDialogOpening") return;
+    void connection.send("Page.handleJavaScriptDialog", { accept: true }).catch(() => {});
+  });
+};
+
 /** @param {number} port @param {string} urlSubstr */
 const reloadTargets = async (port, urlSubstr) => {
   const targets = (await listTargets(port)).filter(
@@ -651,6 +673,8 @@ const reloadTargets = async (port, urlSubstr) => {
   for (const t of targets) {
     const c = await Cdp.connect(t.webSocketDebuggerUrl);
     try {
+      await c.send("Page.enable");
+      acceptDialogs(c);
       await c.send("Page.reload", { ignoreCache: true });
       count += 1;
     } finally {
