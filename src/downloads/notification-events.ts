@@ -208,6 +208,24 @@ export const onDownloadCreated = async (item: HostDownloadItem) => {
     }
   }
 
+  // KNOWN RESIDUAL, Chrome only: a private save of ours can be recorded here.
+  // Every tell that would stop it is absent at once. Chrome has no Incognito
+  // selector on downloads.download, so the item is not incognito and the guard
+  // above lets it by; onCreated omits byExtensionId even for our own downloads,
+  // so isOrdinaryBrowserDownload says true; and a private save deliberately
+  // persists nothing, so once a worker restart has taken the in-memory record
+  // there is no counter to catch it either. The privacy measure is what removes
+  // the evidence.
+  //
+  // Left as it is on purpose. Closing it needs a private counter — a bare
+  // integer, since a URL here is the thing being avoided — incremented beside
+  // siPendingDownloads, consumed here, and expired by the same recovery lease,
+  // which trades "private activity leaves no restart state" for "leaves no
+  // identifying restart state". That is a bigger promise to reopen than this
+  // costs: trackBrowserDownloads is off by default, the window is one worker
+  // restart between downloads.download and this event, and Chrome has already
+  // put the file in its own download manager, which is where the disclosure
+  // actually happens.
   if (options.trackBrowserDownloads) {
     const historyEntryId = historyPort.add(
       {

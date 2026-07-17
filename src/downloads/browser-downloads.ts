@@ -38,6 +38,11 @@ export const isReroutableBrowserDownload = (item: BrowserDownloadItem): boolean 
 export const proposedFilename = (filename: string): string =>
   filename.split(/[\\/]/).filter(Boolean).at(-1) || filename;
 
+// Absence of an extension id is the only tell a browser-started download has,
+// and on Chrome it is not a reliable one: onCreated omits the key for our own
+// downloads too (measured on 150), so this answers true for them as well. What
+// separates them there is siPendingDownloads, which the caller checks first —
+// not this. See the note on the private residual in notification-events.ts.
 export const isOrdinaryBrowserDownload = (
   item: Pick<BrowserDownloadItem, "byExtensionId">,
   runtimeId?: string,
