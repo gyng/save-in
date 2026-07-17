@@ -238,12 +238,20 @@ into: e2e/private-auto/:filename:`,
     });
     await evaluatePrivatePage(
       privatePage.target,
+      // The deadline must be able to fire on its own: requestAnimationFrame is
+      // paused in a background or non-rendering tab, so a timeout observed only
+      // from inside the callback can never be reached and the page hangs instead
+      // of failing. setTimeout still runs when frames do not.
       `new Promise((resolve, reject) => {
         const timeout = AbortSignal.timeout(8000);
+        timeout.addEventListener(
+          "abort",
+          () => reject(new Error("Private content script did not become ready")),
+          { once: true },
+        );
         const check = () => {
           if (document.querySelector("#save-in-source-panel")?.shadowRoot) resolve(true);
-          else if (timeout.aborted) reject(new Error("Private content script did not become ready"));
-          else requestAnimationFrame(check);
+          else if (!timeout.aborted) setTimeout(check, 50);
         };
         check();
       })`,
@@ -1098,6 +1106,10 @@ into: e2e/css-manual-${browserLabel}/:filename:`,
     await control.tabs.sendMessage(tab.id, { type: "SET_SOURCE_PANEL", body: { open: true } });
     await evaluatePage(
       manualTarget,
+      // setTimeout rather than requestAnimationFrame: frames are paused in a
+      // background or non-rendering tab, so a deadline checked only inside the
+      // callback would never be reached and the page would hang instead of
+      // failing.
       `new Promise((resolve, reject) => {
         const deadline = Date.now() + 5000;
         const check = () => {
@@ -1107,7 +1119,7 @@ into: e2e/css-manual-${browserLabel}/:filename:`,
             row.querySelector(".actions .primary-action")?.click();
             resolve(true);
           } else if (Date.now() >= deadline) reject(new Error("Page Sources row did not appear"));
-          else requestAnimationFrame(check);
+          else setTimeout(check, 50);
         };
         check();
       })`,
