@@ -595,15 +595,23 @@ const FILE_TYPE_FILLER = new Set([
   "types",
 ]);
 
+// Every PAGE_SOURCE_KIND a request can name, plus the plurals and synonyms it
+// gets named by. A kind missing here is read as a file extension instead, and
+// the plan then withholds sourceKind — the only field that could route it — so
+// the rule anchors fileext to a word no URL ever ends in and matches nothing.
 const FILE_TYPE_CATEGORIES = new Set([
   "audio",
   "document",
   "documents",
   "image",
   "images",
+  "link",
+  "links",
   "media",
   "photo",
   "photos",
+  "stream",
+  "streams",
   "video",
   "videos",
 ]);

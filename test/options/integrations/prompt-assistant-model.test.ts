@@ -508,6 +508,18 @@ describe("rule request guardrails", () => {
       "fileext/i: ^(?:png|jpe?g|gif)$\ninto: Pictures/:filename:",
       ["The request names images as a media category, not a file type."],
     ],
+    // link and stream are page-source kinds like image and video, so a rule
+    // reading one as a file extension matches nothing, forever.
+    [
+      "save links into /Links",
+      "fileext/i: ^links$\ninto: Links/:filename:",
+      ["The request names links as a media category, not a file type."],
+    ],
+    [
+      "save streams into /Live",
+      "fileext/i: ^streams$\ninto: Live/:filename:",
+      ["The request names streams as a media category, not a file type."],
+    ],
     // An explicit type alongside the category still anchors a fileext matcher.
     ["save PNG images into /Pictures", "fileext/i: ^png$\ninto: Pictures/:filename:", []],
     ["save photos into /Pictures please", "sourcekind: ^image$\ninto: Pictures/:filename:", []],
