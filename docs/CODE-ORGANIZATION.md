@@ -1002,7 +1002,8 @@ and its import-time call exactly, and the panel is options-page DOM covered by
    sections cannot be lifted without threading handled/continue signals back to
    the caller — a design change (a pipeline of steps, say), not a rename, in the
    file where a subtle mistake silently breaks downloads. It needs its own step
-   with `npm run e2e`, not the end of a sweep.
+   with `npm run e2e`, not the end of a sweep. (It got one: 4.8 below, where the
+   "threading signals" prediction turned out to be wrong.)
 
 7. **The last accidental name collision.** Phase 1.5 renamed the collisions it
    found (`event-task.ts`, `state.ts`) and kept the intentional `ports.ts`
@@ -1036,6 +1037,45 @@ and its import-time call exactly, and the panel is options-page DOM covered by
    rewrite import paths across the layer and every path-based rule in
    `check-import-cycles.js` for a directory a reader can already scan. Revisit
    if a cluster grows, not before.
+
+8. **The last god function.** `downloads/notification-events.ts`'s
+   `onDownloadChanged` (287 lines), deferred by 4.6 above and named in this
+   document's original problem statement.
+
+   **Landed, and 4.6's reasoning for deferring it was half wrong.** The fear was
+   that its sections could not be lifted without threading handled/continue
+   signals back to the caller. Reading it closely, its control flow is much
+   smaller than its size: the early returns are all *one question* — is this
+   delta ours? — answered three ways (no record, a browser-owned download, one we
+   no longer adopt). They stay in the orchestrator, where a reader can see them,
+   and everything after them is straight-line. No signal threading was needed;
+   what looked like tangled control flow was branches that had never been named.
+
+   So the branches became steps: `handleObservedBrowserDownload`,
+   `syncChromeDeltaFilename`, `writeSourceSidecar`, `handleFailedDownload` (which
+   owns the retry-then-report chain), `notifyDownloadFailure`,
+   `notifyDownloadSuccess`, `releaseTerminalDownload`, and `recordHistoryStatus`,
+   which now takes the download id instead of closing over the delta.
+   `onDownloadChanged` is 63 lines. The helpers are deliberately unexported —
+   4.6's own export rule would flag them otherwise, which is the rule doing its
+   job on the next change after it landed.
+
+   The behavior-preserving subtlety worth knowing: the four notify settings were
+   read once at the top, ahead of 31 awaits. A helper reading `options` live
+   would let a settings change mid-download report one save two different ways,
+   so `readNotifySettings` snapshots them and each step takes the snapshot.
+
+   Verified as 4.6 said it must be: the 135 notification tests and all 746
+   download tests pass untouched, and both browser suites pass on the staged
+   bundle — Chrome 56/56, Firefox 39/39. A first Chrome run failed the
+   template-library scenario, the same flake Phase 2.5 records; it passes on a
+   clean rerun and does not touch this file.
+
+   **`src/` now has no god module and no god function.** The largest functions
+   left are the decomposed container closures this work produces
+   (`setupRuleVisualEditor`, `setupRouteDebugger`, `wirePanelRowRender`) and two
+   declaration tables (`localizeRuleTemplates`, `buildTools`) that are long
+   rather than tangled.
 
 ## Non-goals
 
