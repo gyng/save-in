@@ -30,7 +30,7 @@ import {
   AUTOMATIC_SOURCE_MATCHERS,
 } from "../../routing/automatic-rule.ts";
 import { getFilenameFromUrl } from "../../routing/filename.ts";
-import { isDataUrl } from "../../shared/data-url.ts";
+import { isDataUrl, parseDataUrlMediaType } from "../../shared/data-url.ts";
 import {
   createExternalValidationRateLimiter,
   externalValidationRequestError,
@@ -313,6 +313,13 @@ export const handleValidate = async (
           url: candidate.sourceUrl,
           sourceKind: candidate.sourceKind,
           mediaType: candidate.sourceKind,
+          // A data: URL has no path, so mime: is how a rule matches one, and
+          // the automatic save seeds it from the header (automatic-routing.ts's
+          // candidateInfo). The trace has to seed it the same way or it answers
+          // that the one clause such a rule can use never matched.
+          ...(isDataUrl(candidate.sourceUrl)
+            ? { mime: parseDataUrlMediaType(candidate.sourceUrl) }
+            : {}),
           ...(suggestedFilename
             ? {
                 suggestedFilename,

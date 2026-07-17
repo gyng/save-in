@@ -87,6 +87,34 @@ describe("onMessage", () => {
     });
   });
 
+  // A data: URL has no path, so mime: is the documented way to match one. The
+  // trace must seed it from the header exactly as the real automatic match
+  // does, or the dry-run reports a working rule as broken.
+  test("VALIDATE traces a data: candidate with the mediatype the save would match", async () => {
+    const sendResponse = vi.fn();
+    expect(
+      onMessage(
+        {
+          type: MESSAGE_TYPES.VALIDATE,
+          body: {
+            filenamePatterns: "context: ^auto$",
+            automaticCandidate: {
+              pageUrl: "https://example.test/gallery",
+              sourceUrl: "data:image/png;base64,iVBORw0KGgo=",
+              sourceKind: "image",
+            },
+          },
+        },
+        {},
+        sendResponse,
+      ),
+    ).toBe(true);
+    await waitForCall(sendResponse);
+    expect(vi.mocked(router.traceRules).mock.calls[0]![1]).toMatchObject({
+      mime: "image/png",
+    });
+  });
+
   test("HISTORY_GET returns normalized history from its background owner", async () => {
     vi.mocked(SaveHistory.getHistoryEntries).mockResolvedValue([
       { id: "h1", url: "https://x.test/a" },
