@@ -160,7 +160,13 @@ export const deliverDownloadOutcomeWebhook = async (
     outcome.status === "complete" ? configuration.webhookOnComplete : configuration.webhookOnFailed;
   if (!configuration.webhookEnabled || !wanted || record.webhookEligible !== true) return;
 
-  const url = record.url;
+  // Fall back to the page the way the save event does. Keeping an inline
+  // payload out of the request is why the record persists no data: url at all,
+  // so reading only the url would drop the outcome of every such save rather
+  // than report it without the payload — a start with no complete, and with
+  // webhookOnStart off by default no event for that save at all.
+  const recordUrl = record.url;
+  const url = recordUrl && !OPAQUE_URL_REGEX.test(recordUrl) ? recordUrl : record.pageUrl;
   if (!url || OPAQUE_URL_REGEX.test(url)) return;
 
   const policy = { allowInsecure: configuration.webhookAllowInsecure };

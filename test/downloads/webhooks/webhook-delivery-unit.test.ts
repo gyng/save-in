@@ -281,6 +281,30 @@ describe("multiple endpoints", () => {
 describe("download outcome events", () => {
   const eligible = () => ({ url: "https://cdn.example/a", webhookEligible: true }) as const;
 
+  test("reports the outcome of a save whose own url is an inline payload", async () => {
+    // The save event names the page when the source is a data: payload, and the
+    // record never persists such a url at all — for the same reason. Reading
+    // only the record's url therefore drops every one of these outcomes, so a
+    // receiver gets a start with no complete, and with webhookOnStart off by
+    // default the save is invisible to the webhook entirely.
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue({ ok: true } as Response);
+
+    await deliverDownloadOutcomeWebhook(
+      configuration(),
+      { pageUrl: "https://page.example/gallery", webhookEligible: true },
+      9,
+      { status: "complete", path: "Images/inline.png" },
+      { add: vi.fn() },
+    );
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(JSON.parse(String(fetchMock.mock.calls[0]![1]!.body))).toMatchObject({
+      event: "complete",
+      id: 9,
+      url: "https://page.example/gallery",
+    });
+  });
+
   test("reports the resolved path a receiver is waiting for", async () => {
     const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue({ ok: true } as Response);
 
