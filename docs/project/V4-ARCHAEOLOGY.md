@@ -180,6 +180,77 @@ naivefilename pagedomain pagetitle pageurl selectiontext sourcedomain sourceurl
 - ~22 new path variables: `:uuid:`, `:sha:`, `:counter:`, `:tld:`, `:mime:`,
   `:pagetitleslug:`, `:isoweek:`, `:redirecturl:`, and more.
 
+## The v3 code, reviewed
+
+The pre-v4 codebase was roughly 3,000 lines of application JavaScript (excluding
+vendored libraries) that shipped and worked for nine years. Reviewed against what
+the rewrite kept and discarded.
+
+**What held up**
+
+- **The rule grammar.** Matcher clauses, `into:`, `capture:`, `:$N:`
+  back-references, blank-line-separated rules — well shaped and durable. It
+  survived the rewrite in logic wholesale (above), which is the strongest evidence
+  a design was right. v4 kept it and extended it (`fetch:`, `capturegroups:`, ~22
+  new variables).
+- **The matcher abstraction.** `Router.matcherFunctions` was a flat table of named
+  matchers with a compact `matchRules` loop — clear enough that reimplementing it
+  in typed TypeScript was a translation, not a redesign.
+- **Tests where they mattered.** Seven test files, concentrated on the router,
+  variables, and paths — the pure logic. That coverage is why the behaviour could
+  be carried across faithfully rather than guessed.
+
+**What didn't, and what v4 did about it**
+
+- **Global mutable state.** `let currentTab = null; // global variable`,
+  `window.init`, `window.reset`, `window.optionErrors` — the code assumed MV2's
+  persistent background page, where a global set once stays set. This is the
+  single feature most incompatible with MV3, whose service worker has no `window`
+  and loses globals between events. → v4 uses no `window` shim; cross-wakeup state
+  lives in `shared/session-state.ts`, and `currentTab` / `options` are
+  owner-controlled live bindings rebuilt at each wakeup.
+- **Debug logging as control flow.** `window.SI_DEBUG && console.log("matched",
+  …)` appeared in every matcher — a scattered, stringly-typed stand-in for a real
+  debugging surface. → replaced by the interactive `route-debugger/` subsystem.
+- **Untyped duck-typing.** `info[propertyName]` access throughout, zero type
+  declarations, and hazards noted in comments rather than the type system
+  (`// Hack for sourceUrl, srcUrl`). → typed `RoutingInfo` / `MatcherClause` /
+  `FetchClause` discriminated types under strict TypeScript.
+- **Closure-of-closures.** Matchers were built as
+  `(propertyName) => (regex) => (info) => …` — DRY, but hard to read and
+  impossible to type well. → flat typed `matcherFunctions` over candidate/source
+  records.
+- **A monolithic menu.** `menu.js` was 615 lines with ~28 `window`/`browser`
+  references, the largest single file and the busiest with side effects. → split
+  across `menus/` and `background/`.
+- **Vendored dependencies.** `browser-polyfill.js` (1,277 lines),
+  `content-disposition.js`, and Textcomplete were checked in as source. → no
+  runtime dependencies at all; the host `browser`/`chrome` namespace is selected
+  by capability detection.
+
+**Nasty bugs it shipped, since fixed**
+
+- **The page title came from the wrong tab (#172, #188).** `:pagetitle:` read the
+  global `currentTab` — the last-activated tab — rather than the one the user
+  right-clicked, so on Chrome and across windows it could capture a different
+  tab's title. A direct consequence of the global-state design above; v4 uses the
+  click's own tab.
+- **Gecko forks were treated as Chrome (#186).** Detection keyed off the reported
+  product name, so Waterfox and LibreWolf took Chrome's feature paths and
+  behaved wrongly. v4 keys off the Gecko-only `runtime.getBrowserInfo` and
+  ignores the name.
+- **Firefox silently refused shortcut saves (#207).** Firefox 112 moved the
+  dangerous-extension check into the sanitizer `downloads.download` validates
+  against, so a `.url` / `.desktop` filename failed the entire download without a
+  clear reason. v4 stops offering the formats Firefox rejects.
+- **Server-named downloads were mislabelled (#178).** Extensionless and PHP URLs
+  (`td.php?token=…`) were saved literally as `td.php`; v4 resolves the
+  `Content-Disposition` name before routing so the real filename reaches the
+  rules.
+- **Invisible characters broke saves (#220).** Zero-width and directional-format
+  characters in a page title produced filenames the OS rejected outright. v4
+  strips the full range of invisible and control characters.
+
 ## Summary
 
 `v4` is a 9-day branch — a 6-day, ~104k-line rewrite plus 3 days of
