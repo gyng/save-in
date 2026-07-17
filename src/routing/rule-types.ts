@@ -38,6 +38,7 @@ export type RoutingDownloadInfo = LazyDownloadMetadata<RoutingContent> & {
   preview?: boolean | undefined;
   resolvedFilename?: string | undefined;
   counter?: number | undefined;
+  counterPromise?: Promise<number> | undefined;
   abortSignal?: AbortSignal | undefined;
   onContentFetchStart?: ((requestId: string) => void | Promise<void>) | undefined;
   contentFetchDisabled?: boolean | undefined;

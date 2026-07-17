@@ -493,16 +493,22 @@ export const transformers: TransformerRegistry = {
     // Async: an atomic, persistent counter (needs storage). Cached on the info
     // bag so every :counter: in one download shares a value and the stored
     // counter advances exactly once; the options-page preview peeks instead.
+    // The tokens of one path resolve concurrently, so the cache must be the
+    // promise, assigned before the first await — a value written after it is
+    // not yet there when the sibling token looks (as resolveHead does above).
     [SPECIAL_DIRS.COUNTER]:
       async opts => {
         if (opts.counter != null) return stringSegment(opts.counter);
         if (opts.preview) {
           return stringSegment((await routingPorts.peekCounter()) + 1);
         }
-        opts.counter = opts.currentTab?.incognito
-          ? await routingPorts.nextPrivateCounter()
-          : await routingPorts.nextCounter();
-        return stringSegment(opts.counter);
+        opts.counterPromise ??= (async () => {
+          opts.counter = opts.currentTab?.incognito
+            ? await routingPorts.nextPrivateCounter()
+            : await routingPorts.nextCounter();
+          return opts.counter;
+        })();
+        return stringSegment(await opts.counterPromise);
       },
     // A fresh random v4 UUID (crypto.randomUUID is available in the SW, the
     // event page, and Node/vitest — all secure contexts)

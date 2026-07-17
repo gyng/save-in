@@ -497,6 +497,23 @@ describe(":counter: (async, persistent)", () => {
     expect(Counter.nextCounter).toHaveBeenCalledTimes(1);
   });
 
+  // The tokens of one path are resolved concurrently, so a cache written only
+  // after the counter await is not seen by the sibling token.
+  test("shares one value between two :counter: tokens in one path", async () => {
+    let issued = 0;
+    vi.spyOn(Counter, "nextCounter").mockImplementation(async () => (issued += 1));
+
+    const out = (
+      await Variable.applyVariables(new Path.Path(":counter:/img-:counter:.jpg"), {
+        now: new Date(),
+      })
+    ).finalize();
+
+    expect(out).toBe("1/img-1.jpg");
+    // The persistent counter must advance exactly once, not once per token.
+    expect(Counter.nextCounter).toHaveBeenCalledTimes(1);
+  });
+
   test("preview mode peeks the next value without consuming", async () => {
     const out = (
       await Variable.applyVariables(new Path.Path("n-:counter:"), { preview: true })
