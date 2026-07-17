@@ -35,15 +35,15 @@ and `src/background/` trees are new files.
 ### Cadence (commits/day)
 
 ```
-07-10  ██          87   (day 1)
-07-11  ██          75
-07-12  █████      187
-07-13  ████       140
-07-14  ████       154
-07-15  ███████████ 449   ← peak: 30% of the branch in one day
-07-16  ███        112
-07-17  ███████    262   ← release-hardening begins
-07-18  ▏           25   (tag v4.0.0)
+07-10  ██          87   day 1: features — :sha256:, History tab, offscreen fetch
+07-11  ██          75   state architecture (BackgroundState) — mostly reworked later; ~6% survives
+07-12  █████      187   hardening: history migration, undo, template insertion
+07-13  ████       140   localization, interactive review reload, docs
+07-14  ████       154   tests, source coverage, type boundaries
+07-15  ███████████ 449   peak (30% of the branch): namespace objects → named exports
+07-16  ███        112   on-device Prompt/grammar fidelity hardening
+07-17  ███████    262   e2e flake fixes → first green CI
+07-18  ▏           25   docs, 2x store assets, tag v4.0.0
 ```
 
 ## Code survival
@@ -128,19 +128,28 @@ preserved.
 
 The `routing/` directory (`rule-matcher.ts`, `matchers.ts`, `rule-parser.ts`,
 `variable.ts`, …) is new files reimplementing the old `router.js` /
-`variable.js` behaviour:
+`variable.js` behaviour. What crossed unchanged, and how the expression changed:
 
-| Concept | master `router.js` | v4 `routing/*.ts` | Survived? |
-| --- | --- | --- | --- |
-| Matcher vocabulary | 15 names | same 15 (+ ~9 new) | ✅ 15/15 |
-| Rule = typed clauses | `RULE_TYPES` MATCHER/DESTINATION/CAPTURE | same enum (+ `FETCH`) | ✅ |
-| All matchers must pass (AND) | `matches.some(m => !m)` | `.filter(...MATCHER).map(...)` | ✅ |
-| First matching rule wins | `matchRules` loop | `matchRulesDetailed` | ✅ |
-| Capture substitution `:$N:` | `split(...).join(...)` | `.replace(/:\$(\d+):/g, ...)` | ✅ |
-| `into:` strips `./`, comma-separated `capture:` | ✅ | ✅ | ✅ |
-| Validation taxonomy (`ruleMissingInto`, `ruleExtraInto`, `ruleMissingCapture`, `ruleCaptureMissingMatcher`, …) | ✅ | ✅ same i18n keys | ✅ |
-| Blank-line-separated rules, `//` comments | ✅ | ✅ | ✅ |
-| Path variable tokens (`SPECIAL_DIRS`) | 20 | ~42 (all 20 kept) | ✅ |
+- **Matcher vocabulary** — all 15 of master's matcher names survive verbatim
+  (`fileext`, `pagedomain`, `selectiontext`, …), plus ~9 new ones.
+- **Rule = typed clauses** — a rule is still a set of typed clauses. The
+  `RULE_TYPES` enum (`MATCHER` / `DESTINATION` / `CAPTURE`) is the same, now with
+  `FETCH` added.
+- **AND semantics** — every matcher in a rule must pass. `router.js` wrote this as
+  `matches.some(m => !m)`; v4 filters the matcher clauses and maps them
+  (`.filter(...MATCHER).map(...)`) for the same result.
+- **First match wins** — the `matchRules` loop became `matchRulesDetailed`, same
+  first-hit selection.
+- **Capture substitution** — `:$N:` back-references. `router.js` used
+  `split(...).join(...)`; v4 uses `.replace(/:\$(\d+):/g, ...)`.
+- **Destination syntax** — `into:` still strips a leading `./`, and `capture:`
+  still takes comma-separated groups.
+- **Validation taxonomy** — the same error identities (`ruleMissingInto`,
+  `ruleExtraInto`, `ruleMissingCapture`, `ruleCaptureMissingMatcher`, …) under the
+  same i18n keys.
+- **Rule syntax** — blank-line-separated rules with `//` comments, unchanged.
+- **Path variables** — `SPECIAL_DIRS` grew from 20 tokens to ~42, all 20
+  originals kept.
 
 The 15 matcher names carried over verbatim:
 
