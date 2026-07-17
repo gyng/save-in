@@ -56,6 +56,7 @@ export const setupPromptAssistantPanel = (
 ): void => {
   const enabled = document.querySelector<HTMLInputElement>("#promptAssistantEnabled");
   const status = document.querySelector<HTMLElement>("#prompt-assistant-status");
+  const details = document.querySelector<HTMLDetailsElement>("#prompt-assistant-details");
   const form = document.querySelector<HTMLFormElement>("#prompt-assistant-form");
   const input = document.querySelector<HTMLTextAreaElement>("#prompt-assistant-input");
   const submit = document.querySelector<HTMLButtonElement>("#prompt-assistant-submit");
@@ -68,6 +69,7 @@ export const setupPromptAssistantPanel = (
   if (
     !enabled ||
     !status ||
+    !details ||
     !form ||
     !input ||
     !submit ||
@@ -86,6 +88,7 @@ export const setupPromptAssistantPanel = (
   let requestVersion = 0;
   let working = false;
   let availabilityTimer: ReturnType<typeof setTimeout> | undefined;
+  let disclosureUsable: boolean | undefined;
   let activeController: AbortController | null = null;
   const copy = {
     off: localize("promptAssistantStatusOff") || "Off — no model checks or prompts",
@@ -123,7 +126,19 @@ export const setupPromptAssistantPanel = (
     status.dataset.state = state;
   };
 
+  // The disclosure follows usability, but only when usability changes. Writing
+  // `open` on every updateControls would reopen a section the reader had just
+  // collapsed, since typing in the prompt calls this on each keystroke.
+  const syncDisclosure = () => {
+    const usable =
+      enabled.checked && (availability === "available" || availability === "downloadable");
+    if (usable === disclosureUsable) return;
+    disclosureUsable = usable;
+    details.open = usable;
+  };
+
   const updateControls = () => {
+    syncDisclosure();
     const active = enabled.checked;
     input.disabled = !active || working;
     submit.disabled =

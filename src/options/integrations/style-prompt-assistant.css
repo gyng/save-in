@@ -1,5 +1,19 @@
 /* ── Advanced → On-device rule assistant ─────────────────────────── */
 
+/* Holds the prompt box and the draft. The panel opens it once the model is
+   usable, so a browser without the Prompt API shows the requirement, the
+   switch, and the status rather than a form it can never submit. */
+.prompt-assistant-details {
+  padding-block-start: var(--space-2);
+  border-block-start: 1px solid var(--panel-border);
+}
+
+.prompt-assistant-details-content {
+  display: grid;
+  gap: var(--space-3);
+  margin-block-start: var(--space-2);
+}
+
 .prompt-assistant-form {
   display: grid;
   gap: var(--space-2);

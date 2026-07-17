@@ -350,6 +350,9 @@ const intentionallyLiteralText = new Set([
   "JSON",
   "macOS / Linux",
   "MDN",
+  // Chrome's name for the API, like WebMCP below: the link reads the same in
+  // every locale because that is what the browser calls the thing.
+  "Prompt API",
   "Save In",
   "TSV",
   "WebMCP",

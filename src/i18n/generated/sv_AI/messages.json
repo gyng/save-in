@@ -4144,6 +4144,15 @@
   "promptAssistantIntro": {
     "message": "Beskriv var filer ska sparas och få en dirigeringsregel att granska."
   },
+  "html_theAssistantNeedsChromesBuiltIn": {
+    "message": "Assistenten kräver Chromes inbyggda"
+  },
+  "html_whichOnlySomeBrowsersAndDevicesProvide": {
+    "message": ", som bara vissa webbläsare och enheter har."
+  },
+  "promptAssistantDisclosure": {
+    "message": "Utkast till en regel"
+  },
   "promptAssistantEnable": {
     "message": "Aktivera assistenten på enheten"
   },

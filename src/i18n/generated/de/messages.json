@@ -4144,6 +4144,15 @@
   "promptAssistantIntro": {
     "message": "Beschreiben Sie, wohin Dateien gespeichert werden sollen, und erhalten Sie eine Routing-Regel zur Überprüfung."
   },
+  "html_theAssistantNeedsChromesBuiltIn": {
+    "message": "Der Assistent benötigt die in Chrome integrierte"
+  },
+  "html_whichOnlySomeBrowsersAndDevicesProvide": {
+    "message": ", die nur einige Browser und Geräte bereitstellen."
+  },
+  "promptAssistantDisclosure": {
+    "message": "Regel entwerfen"
+  },
   "promptAssistantEnable": {
     "message": "Assistenten auf dem Gerät aktivieren"
   },

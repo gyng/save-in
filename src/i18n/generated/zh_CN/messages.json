@@ -4144,6 +4144,15 @@
   "promptAssistantIntro": {
     "message": "描述文件的保存位置，获取一条可供检查的路由规则。"
   },
+  "html_theAssistantNeedsChromesBuiltIn": {
+    "message": "此助手需要 Chrome 内置的"
+  },
+  "html_whichOnlySomeBrowsersAndDevicesProvide": {
+    "message": "，只有部分浏览器和设备提供该功能。"
+  },
+  "promptAssistantDisclosure": {
+    "message": "起草规则"
+  },
   "promptAssistantEnable": {
     "message": "启用设备端助手"
   },

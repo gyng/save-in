@@ -32,7 +32,8 @@
     .webhook-preview-details,
     .external-raw-editor,
     .external-api-details,
-    .webmcp-developer-details
+    .webmcp-developer-details,
+    .prompt-assistant-details
   )
   > summary {
   color: var(--color-text-muted);

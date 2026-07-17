@@ -46,17 +46,20 @@ const markup = () => {
   document.body.innerHTML = `
     <input id="promptAssistantEnabled" type="checkbox">
     <span id="prompt-assistant-status"></span>
-    <form id="prompt-assistant-form">
-      <textarea id="prompt-assistant-input"></textarea>
-      <button id="prompt-assistant-submit" type="submit">Suggest rule</button>
-      <button id="prompt-assistant-cancel" type="button" hidden disabled>Cancel</button>
-      <progress id="prompt-assistant-progress" max="1" hidden></progress>
-    </form>
-    <section id="prompt-assistant-result" hidden>
-      <pre id="prompt-assistant-rule"></pre>
-      <button id="prompt-assistant-add" type="button">Add to rules</button>
-      <button id="prompt-assistant-clear" type="button">Clear</button>
-    </section>
+    <details id="prompt-assistant-details">
+      <summary>Draft a rule</summary>
+      <form id="prompt-assistant-form">
+        <textarea id="prompt-assistant-input"></textarea>
+        <button id="prompt-assistant-submit" type="submit">Suggest rule</button>
+        <button id="prompt-assistant-cancel" type="button" hidden disabled>Cancel</button>
+        <progress id="prompt-assistant-progress" max="1" hidden></progress>
+      </form>
+      <section id="prompt-assistant-result" hidden>
+        <pre id="prompt-assistant-rule"></pre>
+        <button id="prompt-assistant-add" type="button">Add to rules</button>
+        <button id="prompt-assistant-clear" type="button">Clear</button>
+      </section>
+    </details>
     <textarea id="filenamePatterns"></textarea>
     <button id="tab-section-dynamic-downloads"></button>
     <button id="rules-mode-text"></button>`;
@@ -1022,4 +1025,38 @@ test("keeps a draft the reviewer approved, however it retyped the plan", async (
   expect(element("prompt-assistant-rule").textContent).toBe(defaultRule);
   expect(element<HTMLButtonElement>("prompt-assistant-add").disabled).toBe(false);
   expect(mocks.runPrompt).toHaveBeenCalledTimes(2);
+});
+
+test("opens the draft disclosure only once the model can answer", async () => {
+  setup();
+  const details = element<HTMLDetailsElement>("prompt-assistant-details");
+  expect(details.open).toBe(false);
+
+  await enable();
+  expect(details.open).toBe(true);
+});
+
+test("keeps the draft disclosure shut on a browser without the model", async () => {
+  mocks.availability.mockResolvedValue("unavailable");
+  setup();
+  await enable();
+
+  const details = element<HTMLDetailsElement>("prompt-assistant-details");
+  expect(details.open).toBe(false);
+  expect(element("prompt-assistant-status").textContent).toBe(
+    "Not available in this browser or on this device",
+  );
+});
+
+test("leaves a collapsed draft disclosure collapsed while typing", async () => {
+  setup();
+  await enable();
+  const details = element<HTMLDetailsElement>("prompt-assistant-details");
+  details.open = false;
+
+  const input = element<HTMLTextAreaElement>("prompt-assistant-input");
+  input.value = "Put PNG files in Images";
+  input.dispatchEvent(new InputEvent("input"));
+
+  expect(details.open).toBe(false);
 });

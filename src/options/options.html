@@ -2923,6 +2923,11 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
             </div>
             <span class="warning badge">__MSG_o_lExperimental__</span>
           </div>
+          <p class="caption">
+            __MSG_html_theAssistantNeedsChromesBuiltIn__
+            <a class="external" href="https://developer.chrome.com/docs/ai/prompt-api">Prompt API</a
+            >__MSG_html_whichOnlySomeBrowsersAndDevicesProvide__
+          </p>
 
           <div class="prompt-assistant-enable-row">
             <input
@@ -2950,56 +2955,66 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
             ></span>
           </div>
 
-          <form id="prompt-assistant-form" class="prompt-assistant-form">
-            <label for="prompt-assistant-input"
-              ><strong>__MSG_promptAssistantPromptLabel__</strong></label
-            >
-            <textarea
-              id="prompt-assistant-input"
-              rows="3"
-              maxlength="4000"
-              data-no-autosave
-              aria-describedby="prompt-assistant-prompt-help"
-              placeholder="__MSG_promptAssistantPromptPlaceholder__"
-              disabled
-            ></textarea>
-            <div class="caption" id="prompt-assistant-prompt-help">
-              __MSG_promptAssistantPromptHelp__
-            </div>
-            <div class="prompt-assistant-actions">
-              <button id="prompt-assistant-submit" class="button primary" type="submit" disabled>
-                __MSG_promptAssistantSuggest__
-              </button>
-              <button id="prompt-assistant-cancel" class="button" type="button" hidden disabled>
-                __MSG_historyCancelDownload__
-              </button>
-            </div>
-            <progress
-              id="prompt-assistant-progress"
-              class="prompt-assistant-progress"
-              max="1"
-              aria-label="__MSG_promptAssistantStatusDownloading__"
-              hidden
-            ></progress>
-          </form>
+          <details id="prompt-assistant-details" class="prompt-assistant-details">
+            <summary>__MSG_promptAssistantDisclosure__</summary>
+            <div class="prompt-assistant-details-content">
+              <form id="prompt-assistant-form" class="prompt-assistant-form">
+                <label for="prompt-assistant-input"
+                  ><strong>__MSG_promptAssistantPromptLabel__</strong></label
+                >
+                <textarea
+                  id="prompt-assistant-input"
+                  rows="3"
+                  maxlength="4000"
+                  data-no-autosave
+                  aria-describedby="prompt-assistant-prompt-help"
+                  placeholder="__MSG_promptAssistantPromptPlaceholder__"
+                  disabled
+                ></textarea>
+                <div class="caption" id="prompt-assistant-prompt-help">
+                  __MSG_promptAssistantPromptHelp__
+                </div>
+                <div class="prompt-assistant-actions">
+                  <button
+                    id="prompt-assistant-submit"
+                    class="button primary"
+                    type="submit"
+                    disabled
+                  >
+                    __MSG_promptAssistantSuggest__
+                  </button>
+                  <button id="prompt-assistant-cancel" class="button" type="button" hidden disabled>
+                    __MSG_historyCancelDownload__
+                  </button>
+                </div>
+                <progress
+                  id="prompt-assistant-progress"
+                  class="prompt-assistant-progress"
+                  max="1"
+                  aria-label="__MSG_promptAssistantStatusDownloading__"
+                  hidden
+                ></progress>
+              </form>
 
-          <section
-            id="prompt-assistant-result"
-            class="prompt-assistant-result"
-            aria-labelledby="prompt-assistant-result-heading"
-            hidden
-          >
-            <h5 id="prompt-assistant-result-heading">__MSG_promptAssistantGeneratedDraft__</h5>
-            <pre id="prompt-assistant-rule" data-technical-literal></pre>
-            <div class="prompt-assistant-actions">
-              <button id="prompt-assistant-add" class="button primary" type="button" disabled>
-                __MSG_promptAssistantAddToRules__
-              </button>
-              <button id="prompt-assistant-clear" class="button" type="button">
-                __MSG_promptAssistantClearDraft__
-              </button>
+              <section
+                id="prompt-assistant-result"
+                class="prompt-assistant-result"
+                aria-labelledby="prompt-assistant-result-heading"
+                hidden
+              >
+                <h5 id="prompt-assistant-result-heading">__MSG_promptAssistantGeneratedDraft__</h5>
+                <pre id="prompt-assistant-rule" data-technical-literal></pre>
+                <div class="prompt-assistant-actions">
+                  <button id="prompt-assistant-add" class="button primary" type="button" disabled>
+                    __MSG_promptAssistantAddToRules__
+                  </button>
+                  <button id="prompt-assistant-clear" class="button" type="button">
+                    __MSG_promptAssistantClearDraft__
+                  </button>
+                </div>
+              </section>
             </div>
-          </section>
+          </details>
 
           <p class="caption caption-line prompt-assistant-privacy">
             __MSG_promptAssistantPrivacy__

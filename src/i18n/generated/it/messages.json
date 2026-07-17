@@ -4144,6 +4144,15 @@
   "promptAssistantIntro": {
     "message": "Descrivi dove salvare i file e ottieni una regola di instradamento da controllare."
   },
+  "html_theAssistantNeedsChromesBuiltIn": {
+    "message": "L'assistente richiede che Chrome includa la"
+  },
+  "html_whichOnlySomeBrowsersAndDevicesProvide": {
+    "message": ", disponibile solo su alcuni browser e dispositivi."
+  },
+  "promptAssistantDisclosure": {
+    "message": "Crea una bozza di regola"
+  },
   "promptAssistantEnable": {
     "message": "Attiva l'assistente sul dispositivo"
   },

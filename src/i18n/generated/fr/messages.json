@@ -4144,6 +4144,15 @@
   "promptAssistantIntro": {
     "message": "Décrivez où enregistrer les fichiers et obtenez une règle de routage à vérifier."
   },
+  "html_theAssistantNeedsChromesBuiltIn": {
+    "message": "L'assistant nécessite que Chrome intègre la"
+  },
+  "html_whichOnlySomeBrowsersAndDevicesProvide": {
+    "message": ", disponible uniquement sur certains navigateurs et appareils."
+  },
+  "promptAssistantDisclosure": {
+    "message": "Rédiger une règle"
+  },
   "promptAssistantEnable": {
     "message": "Activer l’assistant sur l’appareil"
   },
