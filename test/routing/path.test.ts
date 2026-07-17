@@ -274,6 +274,21 @@ describe("sanitizeFilename", () => {
     expect(Path.sanitizeFilename("CON.txt", 7, false)).toHaveLength(7);
   });
 
+  test("does not leave a leading space when a custom replacement is whitespace", () => {
+    // #53: browsers strip whitespace from a component's edges, so a name left
+    // edged with it is saved somewhere other than the path the editor previewed.
+    // The leading-dot guard substitutes the user's replacement, which the only
+    // trim has already run past — so the guard can put back what it removed.
+    const previous = options.replacementChar;
+    options.replacementChar = " ";
+    try {
+      expect(Path.sanitizeFilename(".hidden.txt", 240, true, true)).not.toMatch(/^\s/);
+      expect(new Path.Path("a/.git/config").finalize()).not.toMatch(/(^|\/)\s/);
+    } finally {
+      options.replacementChar = previous;
+    }
+  });
+
   test("does not recreate a reserved name when a custom replacement is truncated", () => {
     const previous = options.replacementChar;
     options.replacementChar = "CON";

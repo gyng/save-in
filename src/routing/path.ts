@@ -179,7 +179,13 @@ export function sanitizeFilename(
   // leading-dot guard: whitespace must not hide a dot from that guard's `^`
   // anchor and carry a hidden-file or traversal name past it.
   const edgeSafe = trimLeadingWhitespace(fsSafe);
-  const dotsHandled = leadingDotsForbidden ? replaceLeadingDots(edgeSafe) : edgeSafe;
+  // Trim again after the guard, not only before it: the replacement is the
+  // user's, so the guard can put back the whitespace this just took off and
+  // leave the edge #53 forbids. The final leading-dot pass below cannot catch
+  // that — by then the component starts with the replacement, not a dot.
+  const dotsHandled = leadingDotsForbidden
+    ? trimLeadingWhitespace(replaceLeadingDots(edgeSafe))
+    : edgeSafe;
   const trimmed = trimTrailingDotsAndSpaces(dotsHandled);
   const truncated = preserveExtension
     ? truncatePreservingExtension(trimmed, max)
