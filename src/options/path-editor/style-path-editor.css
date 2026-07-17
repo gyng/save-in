@@ -154,10 +154,8 @@
   flex: 0 0 0;
   inline-size: 0;
   min-inline-size: 0;
-  padding-inline-end: 0;
-  padding-inline-start: 0;
-  border-inline-end-width: 0;
-  border-inline-start-width: 0;
+  padding-inline: 0;
+  border-inline-width: 0;
   opacity: 0;
   transition:
     flex-basis var(--motion-duration-quick) ease-out,
@@ -169,10 +167,8 @@
 .path-editor-alias.is-open {
   flex: 0 1 10rem;
   inline-size: clamp(8rem, 24%, 12rem);
-  padding-inline-end: var(--space-1);
-  padding-inline-start: var(--space-1);
-  border-inline-end-width: 1px;
-  border-inline-start-width: 1px;
+  padding-inline: var(--space-1);
+  border-inline-width: 1px;
   opacity: 1;
 }
 
