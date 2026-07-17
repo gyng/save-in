@@ -247,6 +247,15 @@ const launch = async ({ extensionDir = ROOT } = {}) => {
       // Send the readiness probe from an extension page. A background context's
       // runtime.sendMessage does not loop back to its own onMessage listener.
       let lastProbe = "options target was not attachable";
+      // One probe is worth far less than the budget for all of them: an event
+      // page that has not finished starting answers nothing, and waiting out a
+      // full RDP timeout for that silence spends the whole budget on a single
+      // question. evaluate's own default is longer than the budget below, which
+      // made this a retry that could never reach its second attempt -- the first
+      // one returned past the deadline and retryUntil, which only checks the
+      // deadline after an attempt, gave up. That is why a slow runner failed
+      // here at ~30s against a 10s budget.
+      const PROBE_TIMEOUT_MS = 2000;
       await retryUntil(
         async () => {
           let tabConsole = await connectedRdp.getTabConsoleActor("src/options/options.html");
@@ -254,20 +263,20 @@ const launch = async ({ extensionDir = ROOT } = {}) => {
               .then((response) => JSON.stringify({ response }))
               .catch((error) => JSON.stringify({ error: String(error) }))`;
           try {
-            lastProbe = await connectedRdp.evaluate(tabConsole, probe);
+            lastProbe = await connectedRdp.evaluate(tabConsole, probe, PROBE_TIMEOUT_MS);
           } catch (error) {
             if (!String(error).includes("noSuchActor")) throw error;
             tabConsole = await connectedRdp.refreshTabConsoleActor(
               "src/options/options.html",
               tabConsole,
             );
-            lastProbe = await connectedRdp.evaluate(tabConsole, probe);
+            lastProbe = await connectedRdp.evaluate(tabConsole, probe, PROBE_TIMEOUT_MS);
           }
           const result = JSON.parse(lastProbe);
           if (result?.response?.type === "OK") return;
           throw new Error(`background readiness probe returned ${lastProbe}`);
         },
-        10000,
+        30000,
         "background page never became ready",
       );
     };
