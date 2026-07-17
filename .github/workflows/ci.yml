@@ -123,13 +123,20 @@ jobs:
           cache: npm
       - name: Install pinned dependencies
         run: npm ci
-      - name: Download declared minimum browsers
+      # Firefox is the declared minimum, 140.0. Chrome is NOT: the suite cannot
+      # drive Chrome 123 (it evaluates page code against a `browser` global that
+      # only later Chrome provides, and Extensions.loadUnpacked/triggerAction
+      # answer "Method not available" below Chrome 149). save-in's own source
+      # selects `browser ?? chrome`, so 123 is not disproven -- only unverified.
+      # Pinning Chrome for Testing keeps this job's timings comparable anyway,
+      # which the drifting host Chrome in the `e2e` job cannot do.
+      - name: Download pinned browsers
         run: |
           mkdir -p /tmp/save-in-minimum-browsers
           curl --fail --location --retry 3 \
-            https://storage.googleapis.com/chrome-for-testing-public/123.0.6312.122/linux64/chrome-linux64.zip \
+            https://storage.googleapis.com/chrome-for-testing-public/150.0.7871.124/linux64/chrome-linux64.zip \
             --output /tmp/save-in-minimum-browsers/chrome.zip
-          echo "97d7925c795786f235f86973d1f60a70ad9613e96b22fee084720b3c6ba0701b  /tmp/save-in-minimum-browsers/chrome.zip" \
+          echo "ccb11556d5946fcf15f09d175c34d8e4b4293a8ef2eb7c4efc28cb60ac4d12fd  /tmp/save-in-minimum-browsers/chrome.zip" \
             | sha256sum --check --strict
           unzip -q /tmp/save-in-minimum-browsers/chrome.zip -d /tmp/save-in-minimum-browsers
           curl --fail --location --retry 3 \
@@ -139,11 +146,11 @@ jobs:
             | sha256sum --check --strict
           tar -xJf /tmp/save-in-minimum-browsers/firefox.tar.xz \
             -C /tmp/save-in-minimum-browsers
-      - name: Record minimum browser versions
+      - name: Record pinned browser versions
         run: |
           /tmp/save-in-minimum-browsers/chrome-linux64/chrome --version
           /tmp/save-in-minimum-browsers/firefox/firefox --version
-      - name: Chrome 123 and Firefox 140 e2e
+      - name: Pinned Chrome 150 and minimum Firefox 140 e2e
         env:
           CHROME_PATH: /tmp/save-in-minimum-browsers/chrome-linux64/chrome
           FIREFOX_PATH: /tmp/save-in-minimum-browsers/firefox/firefox
