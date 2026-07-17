@@ -5,8 +5,8 @@
 // generated catalog may be missing the key.
 
 import { getMessage } from "../../platform/localization.ts";
-import { localizeHistoryColumns } from "./history-view.ts";
-import type { HistoryDisplayColumn } from "./history-view.ts";
+import { localizeHistoryColumns } from "./history-model.ts";
+import type { HistoryDisplayColumn } from "./history-model.ts";
 
 export type HistorySubstitutions = string | number | Array<string | number>;
 export type HistoryLocalize = (key: string, substitutions?: HistorySubstitutions) => string;

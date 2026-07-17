@@ -1,7 +1,7 @@
 // Composition root for the options page's history panel: it wires the table,
 // filters, columns, and toolbar together and owns nothing else.
 //
-// The panel's pieces each own one concern — history-view.ts (pure row/sort/
+// The panel's pieces each own one concern — history-model.ts (pure row/sort/
 // format logic), history-panel-state.ts (view state), history-table.ts +
 // history-row.ts (rendering), history-filters.ts, history-columns.ts,
 // history-toolbar.ts, history-actions.ts (row actions), history-progress.ts

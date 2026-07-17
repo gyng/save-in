@@ -8,7 +8,7 @@ import { webExtensionApi } from "../../platform/web-extension-api.ts";
 import { sendInternalMessage } from "../../platform/messaging.ts";
 import { MESSAGE_TYPES } from "../../shared/constants.ts";
 import { closeDetailsAndRestoreFocus } from "../ui/dismissible-details.ts";
-import { historyCsv, historyTsv } from "./history-view.ts";
+import { historyCsv, historyTsv } from "./history-model.ts";
 import { historyColumns, historyMessage } from "./history-messages.ts";
 import { historyState } from "./history-panel-state.ts";
 import { historyFeedback, renderHistoryFeedback } from "./history-feedback.ts";

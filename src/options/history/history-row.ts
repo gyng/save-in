@@ -3,13 +3,13 @@
 // declared column order.
 
 import type { HistoryRow } from "../../shared/history-types.ts";
-import type { HistoryColumnKey, HistoryDisplayColumn } from "./history-view.ts";
+import type { HistoryColumnKey, HistoryDisplayColumn } from "./history-model.ts";
 import {
   formatBytes,
   formatHistoryDisplayTime,
   formatHistoryTime,
   relativeHistoryTime,
-} from "./history-view.ts";
+} from "./history-model.ts";
 import { historyMessage, historyTypeLabel } from "./history-messages.ts";
 import { isHistoryColumnVisible } from "./history-columns.ts";
 import { HISTORY_PAGE_SIZE, historyState } from "./history-panel-state.ts";

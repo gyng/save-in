@@ -5,8 +5,8 @@
 // fetched entries in historyState; reloading from the background is
 // history-refresh.ts's job.
 
-import type { HistoryDisplayColumn } from "./history-view.ts";
-import { paginateHistory } from "./history-view.ts";
+import type { HistoryDisplayColumn } from "./history-model.ts";
+import { paginateHistory } from "./history-model.ts";
 import { historyColumns, historyMessage } from "./history-messages.ts";
 import { HISTORY_PAGE_SIZE, historyDateIsValid, historyState } from "./history-panel-state.ts";
 import {

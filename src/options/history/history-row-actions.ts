@@ -5,7 +5,7 @@
 // move additionally needs the recorded source URL, because it re-downloads.
 
 import type { HistoryRow } from "../../shared/history-types.ts";
-import { statusClass, statusLabel } from "./history-view.ts";
+import { statusClass, statusLabel } from "./history-model.ts";
 import { historyLocalize, historyMessage } from "./history-messages.ts";
 import { folderIcon, historyActionIcon } from "./history-icons.ts";
 import {

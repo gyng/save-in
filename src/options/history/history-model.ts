@@ -1,7 +1,10 @@
-// Pure, DOM-free history-table logic extracted from options.ts so it can be
-// unit-tested (options.ts runs top-level against the real options.html DOM and
-// is covered only by the e2e). options.ts keeps the mutable view state and the
-// DOM rendering; everything here is data-in/data-out.
+// The history panel's pure model: row flattening, sort/filter/paginate, the
+// column declarations, the export serializers, and byte/time/progress
+// formatting. Everything here is data-in/data-out and DOM-free, so it is unit
+// tested directly (the -model.ts convention in AGENTS.md).
+//
+// Its callers own the DOM: history-panel-state.ts keeps the mutable view state,
+// history-table.ts and history-row.ts render it.
 
 import type {
   DownloadProgress,

@@ -2,7 +2,7 @@
 // The selection is a local view preference, not a synced setting, so it
 // persists to localStorage rather than through the options schema.
 
-import { HISTORY_COLUMNS } from "./history-view.ts";
+import { HISTORY_COLUMNS } from "./history-model.ts";
 import { historyColumns } from "./history-messages.ts";
 
 const HISTORY_COLUMNS_KEY = "si-history-columns";

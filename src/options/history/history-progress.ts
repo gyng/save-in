@@ -5,7 +5,7 @@
 
 import { webExtensionApi } from "../../platform/web-extension-api.ts";
 import type { DownloadProgress } from "../../shared/history-types.ts";
-import { progressCell } from "./history-view.ts";
+import { progressCell } from "./history-model.ts";
 import { renderHistory } from "./history-refresh.ts";
 
 const POLL_INTERVAL_MS = 1000;

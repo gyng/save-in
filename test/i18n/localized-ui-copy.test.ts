@@ -1,4 +1,4 @@
-import { historyCsv, localizeHistoryColumns } from "../../src/options/history/history-view.ts";
+import { historyCsv, localizeHistoryColumns } from "../../src/options/history/history-model.ts";
 import {
   localizeRuleTemplates,
   RULE_TEMPLATES,

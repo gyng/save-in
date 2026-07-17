@@ -4,7 +4,7 @@
 // setupHistoryFilters takes the repaint callback rather than importing
 // history-table.ts, which imports updateHistoryFilterUi from here.
 
-import { historyDateRange } from "./history-view.ts";
+import { historyDateRange } from "./history-model.ts";
 import { historyMessage } from "./history-messages.ts";
 import { historyDateIsValid, historyState } from "./history-panel-state.ts";
 

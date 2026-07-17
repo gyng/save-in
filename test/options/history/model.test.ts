@@ -1,4 +1,4 @@
-// Pure history-table helpers extracted from options.ts (history-view.ts).
+// Pure history-table helpers extracted from options.ts (history-model.ts).
 import {
   formatBytes,
   formatHistoryDisplayTime,
@@ -19,7 +19,7 @@ import {
   progressCell,
   statusClass,
   statusLabel,
-} from "../../../src/options/history/history-view.ts";
+} from "../../../src/options/history/history-model.ts";
 import { normalizeHistoryEntry } from "../../../src/shared/history-normalization.ts";
 
 test("missing legacy timestamps render as blank", () => {

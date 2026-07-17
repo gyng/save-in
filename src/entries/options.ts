@@ -14,7 +14,7 @@ import "../platform/chrome-detector.ts";
 
 // <body> scripts (options.html load order)
 import "../options/core/options-logic.ts";
-import "../options/history/history-view.ts";
+import "../options/history/history-model.ts";
 import { renderHistory, setHistoryLocalizer } from "../options/history/history-panel.ts";
 import {
   confirmPendingChanges,
