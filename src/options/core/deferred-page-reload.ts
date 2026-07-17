@@ -1,3 +1,12 @@
+// Options the page can only answer while it loads. uiLocale picks the catalog
+// the document is built from. webmcpEnabled is read once, at registration:
+// Chrome's ModelContext registers a tool and offers no way to take one back, so
+// neither switching agent access on nor off can reach an open page.
+const PAGE_LOAD_OPTIONS: ReadonlySet<string> = new Set(["uiLocale", "webmcpEnabled"]);
+
+export const changesNeedPageReload = (changes: readonly { name: string }[] = []): boolean =>
+  changes.some(({ name }) => PAGE_LOAD_OPTIONS.has(name));
+
 type DeferredPageReloadPorts = {
   isBlocked(): boolean;
   reload(): void;

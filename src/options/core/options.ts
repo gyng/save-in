@@ -27,7 +27,7 @@ import { optionsRuntime } from "./options-runtime.ts";
 import { bootstrapOptionsPage } from "./options-bootstrap.ts";
 import { setupIntegrationPanel } from "../integrations/integration-panel.ts";
 import { applyUiTheme, setupUiThemeControl } from "./theme.ts";
-import { createDeferredPageReload } from "./deferred-page-reload.ts";
+import { changesNeedPageReload, createDeferredPageReload } from "./deferred-page-reload.ts";
 import { setupDetailsMenuPositioning } from "../ui/details-menu-positioning.ts";
 import { refreshRouteDebuggerLatestDownload } from "../route-debugger/route-debugger.ts";
 import { subscribeDownloadRefresh, notifyDownloadRefresh } from "./download-refresh.ts";
@@ -64,7 +64,12 @@ const optionsPersistence = createOptionsPersistence({
   apply: (config, expected) => optionsRuntime.apply(config, expected),
   collect: collectOptionConfig,
   assertApplied: assertApplySucceeded,
-  markSaved: markSavedNow,
+  // Autosave is the only place a user's switch reaches storage, so it is where
+  // a page-load option earns its reload.
+  markSaved: (changes, undo) => {
+    markSavedNow(changes, undo);
+    if (changesNeedPageReload(changes)) optionPageReload.request();
+  },
   assertUndoSafe: () =>
     assertSettingsUndoSafe(pendingChanges.hasUnsavedField(), manualEditorState.anyDirty()),
   onRestore: restoreOptionsHandler,
@@ -98,7 +103,7 @@ export const syncOptionsPageAfterWebMcpApply = async (
   updateOptionDependencies();
   document.dispatchEvent(new Event("options-restored"));
   markSavedNow(changes);
-  if (changes.some(({ name }) => name === "uiLocale")) localePageReload.request();
+  if (changesNeedPageReload(changes)) optionPageReload.request();
 };
 const saveOptions = (e?: Event, scope?: string, scopeValue?: unknown): Promise<unknown> => {
   e?.preventDefault();
@@ -134,7 +139,7 @@ const pendingChanges = createPendingChangesTracker({
 });
 export const confirmPendingChanges = pendingChanges.confirmPendingChanges;
 
-const localePageReload = createDeferredPageReload({
+const optionPageReload = createDeferredPageReload({
   isBlocked: () =>
     pendingChanges.hasUnsavedField() ||
     pendingChanges.anyFieldSaving() ||

@@ -1,4 +1,23 @@
-import { createDeferredPageReload } from "../../../src/options/core/deferred-page-reload.ts";
+import {
+  changesNeedPageReload,
+  createDeferredPageReload,
+} from "../../../src/options/core/deferred-page-reload.ts";
+
+describe("options a reload has to answer for", () => {
+  test.each([
+    [[{ name: "webmcpEnabled" }], true],
+    [[{ name: "uiLocale" }], true],
+    [[{ name: "paths" }, { name: "webmcpEnabled" }], true],
+    [[{ name: "paths" }], false],
+    [[], false],
+    [undefined, false],
+  ] satisfies [{ name: string }[] | undefined, boolean][])(
+    "%j needs a reload: %s",
+    (changes, expected) => {
+      expect(changesNeedPageReload(changes)).toBe(expected);
+    },
+  );
+});
 
 describe("deferred page reload", () => {
   test("returns to the event loop before reloading an unblocked page", () => {
