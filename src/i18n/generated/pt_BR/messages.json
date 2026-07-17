@@ -947,7 +947,7 @@
     "message": "Salvar páginas como arquivos de atalho"
   },
   "o_cSaveShortcutsTabsInstead": {
-    "message": "Salvar abas como arquivos de atalho pelo menu de contexto das abas"
+    "message": "Salvar guias como arquivos de atalho pelo menu de contexto das guias"
   },
   "o_cKeyboardShortcutSaveInMenu": {
     "message": "Item do menu de contexto do Save In"
@@ -1820,7 +1820,7 @@
     "message": "Padrão"
   },
   "html_linkTextVariableDescription": {
-    "message": "Texto do link quando fornecido pelo navegador; ao salvar abas, o título da aba é usado."
+    "message": "Texto do link quando fornecido pelo navegador; ao salvar guias, o título da guia é usado."
   },
   "html_theCurrentlySelectedTextOnThePage": {
     "message": "O texto atualmente selecionado na página"
@@ -1949,7 +1949,7 @@
     "message": "Caminho da pasta escolhido no menu do Save In"
   },
   "html_linkTextMatcherDescription": {
-    "message": "Corresponde ao texto do link quando fornecido pelo navegador; ao salvar abas, o título da aba é usado."
+    "message": "Corresponde ao texto do link quando fornecido pelo navegador; ao salvar guias, o título da guia é usado."
   },
   "html_matchesTheMediaType": {
     "message": "Corresponde ao tipo de mídia:"
@@ -1985,7 +1985,7 @@
     "message": "Corresponde ao URL do quadro atual."
   },
   "html_contextMatcherDescription": {
-    "message": "Corresponde a como o salvamento foi iniciado: media, link, selection, page, click, auto, browser ou tab. Salvar abas requer Firefox ou Chrome 150+."
+    "message": "Corresponde a como o salvamento foi iniciado: media, link, selection, page, click, auto, browser ou tab. Salvar guias requer Firefox ou Chrome 150+."
   },
   "html_or": {
     "message": ", ou"
@@ -3857,7 +3857,7 @@
     }
   },
   "externalRequestActiveTab": {
-    "message": "Solicitação da aba ativa"
+    "message": "Solicitação da guia ativa"
   },
   "externalRequestUrl": {
     "message": "Solicitação de URL"
@@ -4109,7 +4109,7 @@
     "message": "Salvar arquivos PNG de example.com em Images/example"
   },
   "promptAssistantPromptHelp": {
-    "message": "Esta solicitação é global e não é salva. O assistente não lê suas abas abertas; inclua o site, o tipo de arquivo e a pasta desejados."
+    "message": "Esta solicitação é global e não é salva. O assistente não lê suas guias abertas; inclua o site, o tipo de arquivo e a pasta desejados."
   },
   "promptAssistantSuggest": {
     "message": "Sugerir regra"

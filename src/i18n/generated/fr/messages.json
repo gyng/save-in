@@ -3073,7 +3073,7 @@
     }
   },
   "ruleReachabilityChannelOff": {
-    "message": "Avec les réglages actuels, aucune source correspondant à cette règle n’est découverte. Activez « $OPTION$ » pour les fournir.",
+    "message": "Avec les paramètres actuels, aucune source correspondant à cette règle n’est découverte. Activez « $OPTION$ » pour les fournir.",
     "placeholders": {
       "option": {
         "content": "$1",
@@ -3082,7 +3082,7 @@
     }
   },
   "ruleReachabilityChannelOffEither": {
-    "message": "Avec les réglages actuels, aucune source correspondant à cette règle n’est découverte. Activez « $OPTION$ » ou « $OPTION2$ » pour les fournir.",
+    "message": "Avec les paramètres actuels, aucune source correspondant à cette règle n’est découverte. Activez « $OPTION$ » ou « $OPTION2$ » pour les fournir.",
     "placeholders": {
       "option": {
         "content": "$1",
@@ -3110,7 +3110,7 @@
     }
   },
   "routeDebuggerReachabilityOff": {
-    "message": "Avec les réglages actuels, cette source ne serait pas découverte automatiquement. Activez « $OPTION$ » pour l’inclure.",
+    "message": "Avec les paramètres actuels, cette source ne serait pas découverte automatiquement. Activez « $OPTION$ » pour l’inclure.",
     "placeholders": {
       "option": {
         "content": "$1",
@@ -3119,7 +3119,7 @@
     }
   },
   "routeDebuggerReachabilityOffEither": {
-    "message": "Avec les réglages actuels, cette source ne serait pas découverte automatiquement. Activez « $OPTION$ » ou « $OPTION2$ » pour l’inclure.",
+    "message": "Avec les paramètres actuels, cette source ne serait pas découverte automatiquement. Activez « $OPTION$ » ou « $OPTION2$ » pour l’inclure.",
     "placeholders": {
       "option": {
         "content": "$1",
@@ -3132,7 +3132,7 @@
     }
   },
   "routeDebuggerReachabilityOffData": {
-    "message": "Avec les réglages actuels, cette source ne serait pas découverte automatiquement. Activez « $OPTION$ » et « $DATAOPTION$ » pour l’inclure.",
+    "message": "Avec les paramètres actuels, cette source ne serait pas découverte automatiquement. Activez « $OPTION$ » et « $DATAOPTION$ » pour l’inclure.",
     "placeholders": {
       "option": {
         "content": "$1",
@@ -3145,7 +3145,7 @@
     }
   },
   "routeDebuggerReachabilityOffEitherData": {
-    "message": "Avec les réglages actuels, cette source ne serait pas découverte automatiquement. Activez « $OPTION$ » ou « $OPTION2$ », ainsi que « $DATAOPTION$ », pour l’inclure.",
+    "message": "Avec les paramètres actuels, cette source ne serait pas découverte automatiquement. Activez « $OPTION$ » ou « $OPTION2$ », ainsi que « $DATAOPTION$ », pour l’inclure.",
     "placeholders": {
       "option": {
         "content": "$1",
