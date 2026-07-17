@@ -317,9 +317,15 @@ const waitForExtensionId = (port) =>
 /** @param {number} port @param {string} urlSubstr @param {string} expression @returns {Promise<any>} */
 const evalInTarget = async (port, urlSubstr, expression) => {
   let lastError = null;
-  for (let attempt = 0; attempt < 3; attempt += 1) {
-    // A document reload can leave its old WebSocket in /json briefly. Refresh
-    // the target list between attempts instead of retrying a dead endpoint.
+  // A missing target or a dead endpoint is transient: the options page drops
+  // out of the target list momentarily across a reload or a service-worker
+  // respawn, and the old fixed three setImmediate retries could all fall inside
+  // that gap (this is what evalOptions lacked and the control transport gets
+  // from its recovery). Wait those out to a deadline. A genuine evaluation
+  // exception is not transient, so cap those separately and surface them fast.
+  const deadline = Date.now() + 10000;
+  let evalExceptions = 0;
+  for (;;) {
     const targets = (await listTargets(port)).filter((t) => t.url.includes(urlSubstr));
     if (targets.length === 0) lastError = new Error(`No target matching "${urlSubstr}"`);
     for (const target of targets) {
@@ -335,18 +341,21 @@ const evalInTarget = async (port, urlSubstr, expression) => {
         if (!result.exceptionDetails) {
           return result.result.value;
         }
+        evalExceptions += 1;
         lastError = new Error(
           result.exceptionDetails.exception?.description || "evaluation failed",
         );
       } catch (error) {
+        // A connect/transport failure is the dead-endpoint case, not the page's
+        // own error; keep waiting for a fresh target rather than counting it.
         lastError = error;
       } finally {
         cdp?.close();
       }
     }
-    if (attempt < 2) await nextTurn();
+    if (evalExceptions >= 3 || Date.now() >= deadline) throw lastError;
+    await nextTurn();
   }
-  throw lastError;
 };
 
 /**
