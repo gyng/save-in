@@ -47,7 +47,7 @@ import { assertApplySucceeded } from "../options/core/options-save.ts";
 import {
   applySourceRuleDraft,
   setupSourceRuleDraft,
-} from "../options/rule-editor/source-rule-draft.ts";
+} from "../options/rule-editor/source-rule-draft-intake.ts";
 
 const applyWelcomePreset = async (paths: string): Promise<void> => {
   const response = assertApplySucceeded(await optionsRuntime.apply({ paths }));

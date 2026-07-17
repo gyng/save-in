@@ -1004,6 +1004,39 @@ and its import-time call exactly, and the panel is options-page DOM covered by
    file where a subtle mistake silently breaks downloads. It needs its own step
    with `npm run e2e`, not the end of a sweep.
 
+7. **The last accidental name collision.** Phase 1.5 renamed the collisions it
+   found (`event-task.ts`, `state.ts`) and kept the intentional `ports.ts`
+   triplet. It missed one, because both halves sit in different top-level
+   directories rather than side by side: `automation/source-rule-draft.ts`
+   (the pure `createSourceRuleDraft` builder that writes a draft rule) and
+   `options/rule-editor/source-rule-draft.ts` (which picks a stored draft up and
+   applies it to the editor). Unrelated jobs, same name — and Phase 3.4's own
+   prose above is the evidence, since it has to tell the reader "do not confuse
+   it with" the other one.
+
+   **Landed.** The consumer is now
+   `options/rule-editor/source-rule-draft-intake.ts`, named for what it does:
+   `applySourceRuleDraft`/`setupSourceRuleDraft` take in a draft made elsewhere.
+   The builder keeps its name, which matches its export, and the "draft"
+   vocabulary still finds both. The test files moved with it
+   (`source-rule-draft-intake{,-concurrency}.test.ts`), which retires the same
+   collision in the test tree. `check-import-cycles.js`'s listener-owner
+   allowlist names this file by path and had to be updated — it reported the
+   rename, which is the rule working.
+
+   Phase 3.4's text above still says the old path, per this document's rule that
+   a phase names files as they were when it landed.
+
+   Two flat directories were measured and deliberately left: `src/shared/` (34
+   files) and `src/downloads/` (33, with `test/downloads/` already grouped into
+   `notifications/`, `webhooks/`, and `history/`). That is Phase 1's own problem
+   statement — a test tree with subdirectories the source lacks — recurring at
+   a tenth of the scale: `downloads/`'s biggest cluster is 5 `notification*.ts`
+   files against the ~120 that justified splitting `options/`. Subdividing would
+   rewrite import paths across the layer and every path-based rule in
+   `check-import-cycles.js` for a directory a reader can already scan. Revisit
+   if a cluster grows, not before.
+
 ## Non-goals
 
 - No behavior, message-payload, storage-shape, or manifest changes; all

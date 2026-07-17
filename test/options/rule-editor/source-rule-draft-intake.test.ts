@@ -40,7 +40,7 @@ test("applies a session draft and opens the visual routing editor", async () => 
   const navigation = vi.fn();
   document.addEventListener("save-in:navigate-option", navigation);
   const { applySourceRuleDraft } =
-    await import("../../../src/options/rule-editor/source-rule-draft.ts");
+    await import("../../../src/options/rule-editor/source-rule-draft-intake.ts");
 
   await expect(applySourceRuleDraft()).resolves.toBe(true);
 
@@ -60,7 +60,7 @@ test("falls back to local storage when session storage rejects", async () => {
   });
   document.body.innerHTML = '<textarea id="filenamePatterns"></textarea>';
   const { applySourceRuleDraft } =
-    await import("../../../src/options/rule-editor/source-rule-draft.ts");
+    await import("../../../src/options/rule-editor/source-rule-draft-intake.ts");
 
   await expect(applySourceRuleDraft()).resolves.toBe(true);
 
@@ -74,7 +74,7 @@ test("uses local storage directly when session storage is unavailable", async ()
   });
   document.body.innerHTML = '<textarea id="filenamePatterns"></textarea>';
   const { applySourceRuleDraft } =
-    await import("../../../src/options/rule-editor/source-rule-draft.ts");
+    await import("../../../src/options/rule-editor/source-rule-draft-intake.ts");
 
   await expect(applySourceRuleDraft()).resolves.toBe(true);
   expect(browser.storage.local.get).toHaveBeenCalledOnce();
@@ -87,7 +87,7 @@ test("rejects malformed, non-string, and blank stored drafts", async () => {
   vi.mocked(browser.storage.local.get).mockResolvedValue({
     [SOURCE_RULE_DRAFT_SESSION_KEY]: { rule: 7 },
   });
-  let module = await import("../../../src/options/rule-editor/source-rule-draft.ts");
+  let module = await import("../../../src/options/rule-editor/source-rule-draft-intake.ts");
   await expect(module.applySourceRuleDraft()).resolves.toBe(false);
 
   vi.resetModules();
@@ -95,7 +95,7 @@ test("rejects malformed, non-string, and blank stored drafts", async () => {
     [SOURCE_RULE_DRAFT_SESSION_KEY]: { rule: "   " },
   });
   vi.mocked(browser.storage.local.get).mockResolvedValue({});
-  module = await import("../../../src/options/rule-editor/source-rule-draft.ts");
+  module = await import("../../../src/options/rule-editor/source-rule-draft-intake.ts");
   await expect(module.applySourceRuleDraft()).resolves.toBe(false);
 });
 
@@ -104,7 +104,7 @@ test("consumes a valid draft even when its editor is missing", async () => {
     [SOURCE_RULE_DRAFT_SESSION_KEY]: { rule: "context: ^auto$" },
   });
   const { applySourceRuleDraft } =
-    await import("../../../src/options/rule-editor/source-rule-draft.ts");
+    await import("../../../src/options/rule-editor/source-rule-draft-intake.ts");
 
   await expect(applySourceRuleDraft()).resolves.toBe(false);
   expect(browser.storage.session.remove).toHaveBeenCalledOnce();
@@ -120,7 +120,7 @@ test("recovers the serialized apply queue after an editor failure", async () => 
     throw new Error("editor unavailable");
   });
   const { applySourceRuleDraft } =
-    await import("../../../src/options/rule-editor/source-rule-draft.ts");
+    await import("../../../src/options/rule-editor/source-rule-draft-intake.ts");
 
   await expect(applySourceRuleDraft()).rejects.toThrow("editor unavailable");
   await expect(applySourceRuleDraft()).resolves.toBe(true);
@@ -135,7 +135,7 @@ test("installs one change listener and reacts only to the draft key", async () =
   vi.mocked(browser.storage.session.get).mockResolvedValue({});
   vi.mocked(browser.storage.local.get).mockResolvedValue({});
   const { setupSourceRuleDraft } =
-    await import("../../../src/options/rule-editor/source-rule-draft.ts");
+    await import("../../../src/options/rule-editor/source-rule-draft-intake.ts");
 
   setupSourceRuleDraft();
   setupSourceRuleDraft();

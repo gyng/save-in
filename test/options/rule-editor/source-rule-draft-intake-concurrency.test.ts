@@ -16,7 +16,7 @@ test("consumes a draft once when startup and storage notifications overlap", asy
     stored = undefined;
   });
   const { applySourceRuleDraft } =
-    await import("../../../src/options/rule-editor/source-rule-draft.ts");
+    await import("../../../src/options/rule-editor/source-rule-draft-intake.ts");
 
   const results = await Promise.all([applySourceRuleDraft(), applySourceRuleDraft()]);
 
