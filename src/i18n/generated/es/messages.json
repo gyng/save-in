@@ -1262,7 +1262,7 @@
     "message": "para crear submenús anidados; use un"
   },
   "html_toReachAnotherLocationCreateASymlinkInsideDownloads": {
-    "message": ". Para llegar a otra ubicación, redirige una subcarpeta de ella al destino y usa esa ruta relativa como destino. Lo que funciona depende de tu navegador y sistema, y algunos métodos son arriesgados, así que consulta la guía de abajo. La carpeta de destino ya debe existir."
+    "message": ". Para llegar a otra ubicación, redirige una de sus subcarpetas hacia la carpeta deseada y usa esa ruta relativa como destino. Lo que funciona depende de tu navegador y sistema, y algunos métodos son arriesgados, así que consulta la guía de abajo. La carpeta deseada ya debe existir."
   },
   "html_useAVariable": {
     "message": "Usar una variable"

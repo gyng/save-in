@@ -1233,7 +1233,7 @@
     "message": "per creare sottomenu nidificati, utilizzando uno"
   },
   "html_toReachAnotherLocationCreateASymlinkInsideDownloads": {
-    "message": ". Per raggiungere un'altra posizione, reindirizza una sua sottocartella verso la destinazione e usa quel percorso relativo come destinazione. Ciò che funziona dipende dal browser e dal sistema, e alcuni metodi sono rischiosi, quindi consulta la guida qui sotto. La cartella di destinazione deve già esistere."
+    "message": ". Per raggiungere un'altra posizione, reindirizza una delle sue sottocartelle verso la cartella desiderata e usa quel percorso relativo come destinazione. Ciò che funziona dipende dal browser e dal sistema, e alcuni metodi sono rischiosi, quindi consulta la guida qui sotto. La cartella desiderata deve già esistere."
   },
   "html_useAVariable": {
     "message": "Utilizza una variabile"

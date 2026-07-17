@@ -1274,7 +1274,7 @@
     "message": "et ajoutez un autre"
   },
   "html_toReachAnotherLocationCreateASymlinkInsideDownloads": {
-    "message": ". Pour atteindre un autre emplacement, redirigez-en un sous-dossier vers la cible et utilisez ce chemin relatif comme destination. Ce qui fonctionne dépend de votre navigateur et de votre système, et certaines méthodes sont risquées, alors consultez le guide ci-dessous. Le dossier cible doit déjà exister."
+    "message": ". Pour atteindre un autre emplacement, redirigez l'un de ses sous-dossiers vers le dossier cible et utilisez ce chemin relatif comme destination. Ce qui fonctionne dépend de votre navigateur et de votre système, et certaines méthodes sont risquées, alors consultez le guide ci-dessous. Le dossier cible doit déjà exister."
   },
   "html_useAVariable": {
     "message": "Utiliser une variable"
