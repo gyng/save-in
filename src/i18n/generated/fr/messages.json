@@ -578,13 +578,7 @@
     "message": "Enregistrer l'onglet sélectionné"
   },
   "tabstripMenuMultipleSelectedTab": {
-    "message": "Enregistrer les onglets sélectionnés ($COUNT$)",
-    "placeholders": {
-      "count": {
-        "content": "$1",
-        "example": "5"
-      }
-    }
+    "message": "Enregistrer les onglets sélectionnés"
   },
   "tabstripMenuSaveChildrenTabs": {
     "message": "Enregistrer les onglets ouverts à partir de cet onglet"

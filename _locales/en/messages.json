@@ -356,14 +356,8 @@
     "description": "Tabstrip context menu label for saving selected tab. Used in src/background/menu-tabs.ts."
   },
   "tabstripMenuMultipleSelectedTab": {
-    "message": "Save highlighted tabs ($COUNT$)",
-    "description": "Tabstrip context menu label for saving one or more highlighted tab. Used in src/background/menu-tabs.ts.",
-    "placeholders": {
-      "count": {
-        "content": "$1",
-        "example": "5"
-      }
-    }
+    "message": "Save highlighted tabs",
+    "description": "Tabstrip context menu label for saving one or more highlighted tab. Used in src/background/menu-tabs.ts."
   },
   "tabstripMenuSaveChildrenTabs": {
     "message": "Save tabs opened from this tab",

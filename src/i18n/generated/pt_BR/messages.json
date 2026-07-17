@@ -566,13 +566,7 @@
     "message": "Salvar guia selecionada"
   },
   "tabstripMenuMultipleSelectedTab": {
-    "message": "Salvar guias destacadas ($COUNT$)",
-    "placeholders": {
-      "count": {
-        "content": "$1",
-        "example": "5"
-      }
-    }
+    "message": "Salvar guias destacadas"
   },
   "tabstripMenuSaveChildrenTabs": {
     "message": "Salvar guias abertas nesta guia"

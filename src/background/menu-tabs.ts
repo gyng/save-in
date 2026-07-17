@@ -35,7 +35,7 @@ export const addTabMenus = () => {
 
   webExtensionApi.contextMenus.create({
     id: MENU_IDS.TABSTRIP.SELECTED_MULTIPLE_TABS,
-    title: getMessage("tabstripMenuMultipleSelectedTab", [1]),
+    title: getMessage("tabstripMenuMultipleSelectedTab"),
     contexts: ["tab"],
   });
 
@@ -56,31 +56,6 @@ export const addTabMenus = () => {
     title: getMessage("tabstripMenuSaveRightTabsMatched"),
     contexts: ["tab"],
   });
-};
-
-export const addTabHighlightListener = () => {
-  webExtensionApi.tabs.onHighlighted.addListener((highlightInfo) =>
-    runBackgroundTask("tab highlight failed", async () => {
-      if (backgroundRuntime.ready) {
-        try {
-          await backgroundRuntime.ready;
-        } catch {
-          return;
-        }
-      }
-      if (!options.tabEnabled || !WEB_EXTENSION_CAPABILITIES.tabContextMenus) {
-        return;
-      }
-
-      const length = highlightInfo.tabIds.length;
-      await Promise.resolve(
-        webExtensionApi.contextMenus.update(MENU_IDS.TABSTRIP.SELECTED_MULTIPLE_TABS, {
-          title: getMessage("tabstripMenuMultipleSelectedTab", [length]),
-          contexts: ["tab"],
-        }),
-      ).catch(() => {});
-    }),
-  );
 };
 
 export const handleTabMenuClick = async (

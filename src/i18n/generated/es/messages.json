@@ -566,13 +566,7 @@
     "message": "Guardar pestaña seleccionada"
   },
   "tabstripMenuMultipleSelectedTab": {
-    "message": "Guardar pestañas resaltadas ($COUNT$)",
-    "placeholders": {
-      "count": {
-        "content": "$1",
-        "example": "5"
-      }
-    }
+    "message": "Guardar pestañas resaltadas"
   },
   "tabstripMenuSaveChildrenTabs": {
     "message": "Guardar pestañas abiertas desde esta pestaña"

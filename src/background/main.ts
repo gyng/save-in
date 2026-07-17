@@ -9,7 +9,7 @@ import { setHistoryStatus } from "./history.ts";
 import { extensionSessionStorage } from "../platform/storage-areas.ts";
 import { restoreLastUsed } from "./menu-build.ts";
 import { addDownloadListener, quickSaveActiveTab } from "./menu-click.ts";
-import { addTabHighlightListener, addTabMenuListener } from "./menu-tabs.ts";
+import { addTabMenuListener } from "./menu-tabs.ts";
 import {
   LAST_USED_META_STORAGE_KEY,
   LAST_USED_PATH_STORAGE_KEY,
@@ -114,7 +114,6 @@ backgroundRuntime.reset = () => {
 export const start = () => {
   addDownloadListener();
   addTabMenuListener();
-  addTabHighlightListener();
   webExtensionApi.runtime.onInstalled.addListener((details) => {
     if (details.reason === "install") {
       void recordDiagnosticLifecycle("extension_installed");

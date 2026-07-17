@@ -566,13 +566,7 @@
     "message": "Spara vald flik"
   },
   "tabstripMenuMultipleSelectedTab": {
-    "message": "Spara markerade flikar ($COUNT$)",
-    "placeholders": {
-      "count": {
-        "content": "$1",
-        "example": "5"
-      }
-    }
+    "message": "Spara markerade flikar"
   },
   "tabstripMenuSaveChildrenTabs": {
     "message": "Spara flikar som öppnats från den här fliken"

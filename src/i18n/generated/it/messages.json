@@ -144,13 +144,7 @@
     "message": "Salva la scheda selezionata"
   },
   "tabstripMenuMultipleSelectedTab": {
-    "message": "Salva le schede evidenziate ($COUNT$)",
-    "placeholders": {
-      "count": {
-        "content": "$1",
-        "example": "5"
-      }
-    }
+    "message": "Salva le schede evidenziate"
   },
   "tabstripMenuSaveChildrenTabs": {
     "message": "Salva le schede aperte da questa scheda"

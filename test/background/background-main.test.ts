@@ -13,7 +13,6 @@ vi.mock("../../src/menus/menu-tree.ts", async (importOriginal) => {
 });
 vi.mock("../../src/background/menu-tabs.ts", () => ({
   addTabMenuListener: vi.fn(),
-  addTabHighlightListener: vi.fn(),
   addTabMenus: vi.fn(),
 }));
 const sourcePanelMocks = vi.hoisted(() => ({
@@ -222,7 +221,6 @@ describe("startup", () => {
 
     expect(Menus.addDownloadListener).toHaveBeenCalledTimes(1);
     expect(Menus.addTabMenuListener).toHaveBeenCalledTimes(1);
-    expect(Menus.addTabHighlightListener).toHaveBeenCalledTimes(1);
     expect(global.browser.tabs.onActivated.addListener).toHaveBeenCalledTimes(1);
     expect(global.browser.tabs.onUpdated.addListener).toHaveBeenCalledTimes(1);
     expect(global.browser.action.onClicked.addListener).toHaveBeenCalledTimes(1);

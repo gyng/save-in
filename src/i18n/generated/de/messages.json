@@ -566,13 +566,7 @@
     "message": "Ausgewählten Tab speichern"
   },
   "tabstripMenuMultipleSelectedTab": {
-    "message": "Markierte Tabs speichern ($COUNT$)",
-    "placeholders": {
-      "count": {
-        "content": "$1",
-        "example": "5"
-      }
-    }
+    "message": "Markierte Tabs speichern"
   },
   "tabstripMenuSaveChildrenTabs": {
     "message": "Über diesen Tab geöffnete Tabs speichern"

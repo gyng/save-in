@@ -156,13 +156,7 @@
     "message": "선택한 탭 저장"
   },
   "tabstripMenuMultipleSelectedTab": {
-    "message": "선택한 탭 저장($COUNT$)",
-    "placeholders": {
-      "count": {
-        "content": "$1",
-        "example": "5"
-      }
-    }
+    "message": "선택한 탭 저장"
   },
   "tabstripMenuSaveChildrenTabs": {
     "message": "이 탭에서 열린 탭 저장"

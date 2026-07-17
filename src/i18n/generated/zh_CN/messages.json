@@ -156,13 +156,7 @@
     "message": "保存选定的选项卡"
   },
   "tabstripMenuMultipleSelectedTab": {
-    "message": "保存选中的选项卡（$COUNT$）",
-    "placeholders": {
-      "count": {
-        "content": "$1",
-        "example": "5"
-      }
-    }
+    "message": "保存选中的选项卡"
   },
   "tabstripMenuSaveChildrenTabs": {
     "message": "保存从此选项卡打开的选项卡"

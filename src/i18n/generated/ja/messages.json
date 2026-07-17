@@ -156,13 +156,7 @@
     "message": "選択したタブを保存する"
   },
   "tabstripMenuMultipleSelectedTab": {
-    "message": "選択したタブを保存（$COUNT$）",
-    "placeholders": {
-      "count": {
-        "content": "$1",
-        "example": "5"
-      }
-    }
+    "message": "選択したタブを保存"
   },
   "tabstripMenuSaveChildrenTabs": {
     "message": "このタブから開いたタブを保存する"

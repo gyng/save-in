@@ -156,13 +156,7 @@
     "message": "儲存選取的分頁"
   },
   "tabstripMenuMultipleSelectedTab": {
-    "message": "儲存選取的分頁（$COUNT$）",
-    "placeholders": {
-      "count": {
-        "content": "$1",
-        "example": "5"
-      }
-    }
+    "message": "儲存選取的分頁"
   },
   "tabstripMenuSaveChildrenTabs": {
     "message": "儲存從此分頁開啟的分頁"

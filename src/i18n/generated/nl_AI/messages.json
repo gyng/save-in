@@ -566,13 +566,7 @@
     "message": "Geselecteerd tabblad opslaan"
   },
   "tabstripMenuMultipleSelectedTab": {
-    "message": "Gemarkeerde tabbladen opslaan ($COUNT$)",
-    "placeholders": {
-      "count": {
-        "content": "$1",
-        "example": "5"
-      }
-    }
+    "message": "Gemarkeerde tabbladen opslaan"
   },
   "tabstripMenuSaveChildrenTabs": {
     "message": "Tabbladen opslaan die vanuit dit tabblad zijn geopend"
