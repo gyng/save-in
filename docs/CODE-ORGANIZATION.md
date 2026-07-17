@@ -1,14 +1,16 @@
-# Code organization improvement plan
+# Code organization decisions
 
-A phased plan for improving how Save In's source is arranged. Scope is
+A record of how Save In's source came to be arranged. Scope is
 file/directory layout, module boundaries, and naming — not runtime behavior,
 features, or the build model. The ESM + readable-bundle architecture,
 the enforced import layering, and the execution-context split described in
-[AGENTS.md](../AGENTS.md) stay as they are; this plan strengthens them.
+[AGENTS.md](../AGENTS.md) stay as they are; the work below strengthens them.
 
-**All four phases have landed.** This is now a record of what was decided and
-why, not pending work: each step carries a "Landed" note describing what
-actually happened, including where the plan was adapted or rejected. Source
+**All four phases have landed**, so this is a record, not pending work: each
+step carries a "Landed" note describing what actually happened, including where
+the plan was adapted, rejected, or wrong. It is kept because the reasoning is
+not recoverable from the code — the code shows a file sitting in `shared/`, not
+why moving it out was tried and refused. Source
 files and `scripts/check-import-cycles.js` cite these phase numbers, so they are
 stable references. The problem statements and phase scopes deliberately name
 files by their **pre-move** paths — a rename is only legible if it names what it
@@ -1085,17 +1087,3 @@ and its import-time call exactly, and the panel is options-page DOM covered by
   sake, no bundling/minification changes — bundles stay readable.
 - No mass renaming beyond the specific collisions listed; churn without a
   navigation payoff is a cost.
-
-## Sequencing and risk
-
-- **Phase 1 is one merge hazard.** It rewrites import paths across the
-  options tree; land it as its own PR on a quiet worktree, after in-flight
-  branches (currently the v4 namespace-export work) merge. Everything in
-  Phases 2–3 can then proceed incrementally, one module per PR.
-- **Mechanical checks are the safety net.** Every phase must keep
-  `npm run lint`, `npm run typecheck`, `npm test`, and the bundle build
-  green; Phase 1 and each Phase 2 split should also get one
-  `npm run e2e` pass since entry resolution and listener registration are
-  exactly the things file moves can break.
-- **History preservation:** use `git mv`, keep move-commits free of content
-  edits so `git log --follow` and blame stay useful.
