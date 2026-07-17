@@ -63,6 +63,49 @@ describe("download lifecycle notifications", () => {
     expect(adoptedIds(sessionStore)).toEqual([7]);
   });
 
+  test("puts a webhook diagnostic from a completed save in the download log", async () => {
+    // The outcome webhook reports through the log the rest of this download
+    // already writes to, so a receiver that never heard about the save is
+    // explained in the same place as everything else that happened to it.
+    Object.assign(options, {
+      webhookEnabled: true,
+      webhookUrl: "https://hooks.example/save",
+      webhookOnComplete: true,
+      webhookOnFailed: true,
+    });
+    vi.mocked(global.browser.permissions.getAll).mockResolvedValue({
+      permissions: [],
+      origins: [],
+      data_collection: [],
+    } as any);
+    const { mergeTrackedDownload } = await import("../../../src/downloads/expected-downloads.ts");
+    sessionStore.siPendingDownloads = 1;
+    await onCreated({ id: 61, filename: "C:\\dl\\a.png", url: "https://x/a.png" });
+    await mergeTrackedDownload(61, { webhookEligible: true });
+
+    await onChanged({ id: 61, state: { current: "complete", previous: "in_progress" } });
+
+    await vi.waitFor(() =>
+      expect(Log.addLogEntry).toHaveBeenCalledWith(
+        "webhook skipped: data permission not granted",
+        undefined,
+      ),
+    );
+
+    // The failure outcome reports through the same log: a receiver waiting on a
+    // save it never heard fail is explained where the failure itself is.
+    vi.mocked(Log.addLogEntry).mockClear();
+    await mergeTrackedDownload(61, { adopted: true });
+    await onChanged({ id: 61, error: { current: "NETWORK_FAILED" } });
+
+    await vi.waitFor(() =>
+      expect(Log.addLogEntry).toHaveBeenCalledWith(
+        "webhook skipped: data permission not granted",
+        undefined,
+      ),
+    );
+  });
+
   test("tracks Save In private downloads without a session record", async () => {
     Notifier.expectDownload("https://private.example/p.png", { privateContext: true });
 

@@ -281,6 +281,30 @@ describe("multiple endpoints", () => {
 describe("download outcome events", () => {
   const eligible = () => ({ url: "https://cdn.example/a", webhookEligible: true }) as const;
 
+  test("withholds an outcome the data permission was refused for", async () => {
+    // The outcome asks for no page data, but it still reports that a save
+    // happened and where it landed, so a refused permission has to stop it —
+    // and say so, the way the save event does.
+    const log = { add: vi.fn() };
+    vi.mocked(browser.permissions.getAll).mockResolvedValueOnce({
+      permissions: [],
+      origins: [],
+      data_collection: [],
+    } as Awaited<ReturnType<typeof browser.permissions.getAll>>);
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue({ ok: true } as Response);
+
+    await deliverDownloadOutcomeWebhook(
+      configuration(),
+      eligible(),
+      7,
+      { status: "complete", path: "Images/cat.jpg" },
+      log,
+    );
+
+    expect(log.add).toHaveBeenCalledWith("webhook skipped: data permission not granted");
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   test("reports the outcome of a save whose own url is an inline payload", async () => {
     // The save event names the page when the source is a data: payload, and the
     // record never persists such a url at all — for the same reason. Reading
@@ -303,6 +327,54 @@ describe("download outcome events", () => {
       id: 9,
       url: "https://page.example/gallery",
     });
+  });
+
+  test("names the page rather than the payload a blob record still carries", async () => {
+    // A record can hold an opaque url outright — only data: is dropped on the
+    // way to storage — so the scheme has to be tested, not just its absence.
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue({ ok: true } as Response);
+
+    await deliverDownloadOutcomeWebhook(
+      configuration(),
+      { url: "blob:x", pageUrl: "https://page.example/gallery", webhookEligible: true },
+      9,
+      { status: "complete", path: "Images/inline.png" },
+      { add: vi.fn() },
+    );
+
+    expect(JSON.parse(String(fetchMock.mock.calls[0]![1]!.body))).toMatchObject({
+      url: "https://page.example/gallery",
+    });
+  });
+
+  test("withholds an outcome when no endpoint is usable", async () => {
+    // Switching webhooks on before naming an endpoint is the ordinary order to
+    // do it in, so the outcome has to find nowhere to send and say nothing.
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue({ ok: true } as Response);
+
+    await deliverDownloadOutcomeWebhook(
+      { ...configuration(), webhookUrl: "" },
+      eligible(),
+      9,
+      { status: "complete", path: "Images/cat.jpg" },
+      { add: vi.fn() },
+    );
+
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  test("withholds an outcome that names nothing shareable at all", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue({ ok: true } as Response);
+
+    await deliverDownloadOutcomeWebhook(
+      configuration(),
+      { url: "blob:x", pageUrl: "data:text/plain,x", webhookEligible: true },
+      9,
+      { status: "complete", path: "Images/inline.png" },
+      { add: vi.fn() },
+    );
+
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   test("reports the resolved path a receiver is waiting for", async () => {
