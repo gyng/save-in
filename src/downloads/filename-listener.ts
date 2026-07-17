@@ -52,11 +52,18 @@ const resolveFinalMimeExtension = async (state: DownloadPipelineState): Promise<
   }
 };
 
-// Bump when a stored name stops meaning what this version reads it as — a
-// route resolved under different rules, say. A map stamped with anything else
-// is read as empty, so the recovery below can treat a name it does find as
-// this version's own work and honour it, instead of refusing every restart in
-// case one entry was somebody else's.
+// A map stamped with anything else is read as empty, so the recovery below can
+// treat a name it does find as this version's own work and honour it, instead
+// of refusing every restart in case one entry was somebody else's.
+//
+// This is not what carries the map across an update: measured against Chrome
+// 141, storage.session is emptied when the extension reloads, so a previous
+// version's names are already gone before this one runs. (A worker suspend and
+// wake keeps them — that is the whole point of the area, and what the recovery
+// reads.) The stamp guards the other way in: a value that reached the area
+// malformed, which is the untrusted-input rule every other reader here follows.
+// Bump it anyway if a stored name ever stops meaning what this version reads it
+// as; that costs one restart's recovery and nothing else.
 export const FINAL_FILENAME_MAP_VERSION = 1;
 
 export type FinalFilenameMap = {
