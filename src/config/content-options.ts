@@ -5,7 +5,7 @@ import { isStringKeyedRecord, isStringMember } from "../shared/util.ts";
 export const isClickType = (value: unknown): value is ClickType =>
   isStringMember(Object.values(CLICK_TYPES), value);
 
-export const UI_THEMES = [
+const UI_THEMES = [
   "system",
   "dark",
   "light",
@@ -35,7 +35,7 @@ export const UI_THEMES = [
   "gilded-mosaic",
 ] as const;
 export type UiTheme = (typeof UI_THEMES)[number];
-export const isUiTheme = (value: unknown): value is UiTheme => isStringMember(UI_THEMES, value);
+const isUiTheme = (value: unknown): value is UiTheme => isStringMember(UI_THEMES, value);
 export const isStoredUiTheme = (value: unknown): value is UiTheme | "forest" =>
   value === "forest" || isUiTheme(value);
 export const normalizeUiTheme = (value: unknown): UiTheme => {

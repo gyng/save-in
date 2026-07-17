@@ -469,6 +469,42 @@ for (const file of files) {
   if (!indexes.has(file)) visit(file);
 }
 
+// An export is an invitation: it says another module may reach for this. One
+// that nothing outside the file names is surface no reader asked for, and it
+// lets a later edit couple to an internal without anyone deciding to — the same
+// erosion the layer rules above exist to stop, one module down.
+//
+// Types are exempt on purpose: a type named in an exported signature is part of
+// the contract even when no importer ever spells it, because callers need it to
+// name what they receive. This covers values only.
+const referenceRoots = ["test", "scripts", "config"]
+  .map((dir) => path.join(root, dir))
+  .filter((dir) => fs.existsSync(dir));
+const referenceFiles = [
+  ...files,
+  ...referenceRoots.flatMap((dir) => walkFiles(dir, (name) => /\.(?:ts|mjs|js|html)$/.test(name))),
+];
+/** @type {Map<string, Set<string>>} */
+const identifiersByFile = new Map(
+  referenceFiles.map((file) => [
+    file,
+    new Set(fs.readFileSync(file, "utf8").match(/[A-Za-z_$][\w$]*/g) ?? []),
+  ]),
+);
+for (const file of files) {
+  const source = fs.readFileSync(file, "utf8");
+  for (const match of source.matchAll(
+    /^export (?:const|function|class|async function) ([A-Za-z0-9_$]+)/gm,
+  )) {
+    const name = match[1];
+    if (name === undefined) continue;
+    const used = referenceFiles.some(
+      (other) => other !== file && identifiersByFile.get(other)?.has(name),
+    );
+    if (!used) report(file, `${name} is exported but nothing outside this module names it`);
+  }
+}
+
 // The -model.ts / -state.ts suffixes are a contract, not decoration: they
 // promise pure, DOM-free, unit-testable logic (see AGENTS.md's Conventions).
 // A promise only a reviewer enforces drifts — history-view.ts sat misnamed for

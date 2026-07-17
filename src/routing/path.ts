@@ -48,18 +48,18 @@ export type PathFinalizeOptions = {
 
 // These regexes are exported because they define the platform-neutral path
 // policy; callers should normally use the sanitizing functions below.
-export const SPECIAL_CHARACTERS_REGEX = new RegExp(FORBIDDEN_FILENAME_CHARS.source, "g");
-export const INVISIBLE_CHARACTERS_REGEX = new RegExp(UNSAFE_INVISIBLE_FILENAME_CHARS.source, "g");
-export const BAD_LEADING_CHARACTERS = /^[./\\]/g;
+const SPECIAL_CHARACTERS_REGEX = new RegExp(FORBIDDEN_FILENAME_CHARS.source, "g");
+const INVISIBLE_CHARACTERS_REGEX = new RegExp(UNSAFE_INVISIBLE_FILENAME_CHARS.source, "g");
+const BAD_LEADING_CHARACTERS = /^[./\\]/g;
 // Browsers strip whitespace from the edges of a path component, so a component
 // left edged with it is silently altered or dropped instead of being saved
 // where the rule says (#53). `\s` matters more than the ASCII space here: the
 // report was about U+00A0, which no filesystem rule forbids and which nothing
 // else in this file removes.
-export const LEADING_WHITESPACE_REGEX = /^\s+/;
-export const TRAILING_DOTS_AND_SPACES_REGEX = /[.\s]+$/;
+const LEADING_WHITESPACE_REGEX = /^\s+/;
+const TRAILING_DOTS_AND_SPACES_REGEX = /[.\s]+$/;
 export const RESERVED_DEVICE_NAME_REGEX = /^(CON|PRN|AUX|NUL|COM[1-9¹²³]|LPT[1-9¹²³])$/i;
-export const SEPARATOR_REGEX_INCLUSIVE = /([/\\])/g;
+const SEPARATOR_REGEX_INCLUSIVE = /([/\\])/g;
 // A destination ending in a separator names a folder and keeps the download's
 // own name. It must accept every separator the line above splits on, or the
 // router reads a folder the parser normalized as a filename. Deliberately not
@@ -80,11 +80,11 @@ export function stringSegment(value: unknown): PathSegment {
   return segment(PATH_SEGMENT_TYPES.STRING, value == null ? "" : value.toString());
 }
 
-export function variableSegment(value: string): PathSegment {
+function variableSegment(value: string): PathSegment {
   return segment(PATH_SEGMENT_TYPES.VARIABLE, value);
 }
 
-export function separatorSegment(): PathSegment {
+function separatorSegment(): PathSegment {
   return segment(PATH_SEGMENT_TYPES.SEPARATOR, "/");
 }
 
@@ -96,11 +96,11 @@ export function replaceFsBadChars(value: string, replacement?: string) {
   return value.replace(SPECIAL_CHARACTERS_REGEX, replacementChar(replacement));
 }
 
-export function removeUnsafeInvisibleChars(value: string) {
+function removeUnsafeInvisibleChars(value: string) {
   return value.replace(INVISIBLE_CHARACTERS_REGEX, "");
 }
 
-export function replaceLeadingDots(value: string, replacement?: string) {
+function replaceLeadingDots(value: string, replacement?: string) {
   return value.replace(BAD_LEADING_CHARACTERS, replacementChar(replacement));
 }
 
@@ -134,15 +134,15 @@ export function getFilenameDiagnostics(value: string, limitBytes = 255): Filenam
   return { utf8Bytes, limitBytes, exceedsLimit: limitBytes > 0 && utf8Bytes > limitBytes };
 }
 
-export function trimTrailingDotsAndSpaces(value: string) {
+function trimTrailingDotsAndSpaces(value: string) {
   return value.replace(TRAILING_DOTS_AND_SPACES_REGEX, "");
 }
 
-export function trimLeadingWhitespace(value: string) {
+function trimLeadingWhitespace(value: string) {
   return value.replace(LEADING_WHITESPACE_REGEX, "");
 }
 
-export function neutralizeReservedDeviceName(value: string, replacement?: string) {
+function neutralizeReservedDeviceName(value: string, replacement?: string) {
   const baseName = value.split(".")[0] || value;
   if (!RESERVED_DEVICE_NAME_REGEX.test(baseName)) {
     return value;

@@ -1,6 +1,6 @@
 import type { PageSourceKind } from "./source-panel-model.ts";
 
-export const ICON_PATHS = {
+const ICON_PATHS = {
   copy: ["M8 8h10v10H8z", "M5 15H3V3h12v2"],
   dock: ["M3 4h18v16H3z", "M15 4v16"],
   popout: ["M13 4h7v7", "M20 4 10 14", "M17 13v7H4V7h7"],
@@ -10,7 +10,7 @@ export const ICON_PATHS = {
   more: ["M6 12h.01", "M12 12h.01", "M18 12h.01"],
 } as const;
 
-export const SOURCE_KIND_ICON_PATHS: Record<PageSourceKind, readonly string[]> = {
+const SOURCE_KIND_ICON_PATHS: Record<PageSourceKind, readonly string[]> = {
   image: ["M3 5h18v14H3z", "m3 11 4-4 4 4 3-3 5 5", "M8 9h.01"],
   video: ["M4 6h12v12H4z", "M16 9l4-3v12l-4-3z"],
   audio: [

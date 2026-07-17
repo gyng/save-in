@@ -11,7 +11,7 @@ import { readResponseContent } from "../shared/streaming-content.ts";
 import type { BlobContent, ContentFetchResult } from "../shared/content-fetch-types.ts";
 import { withRequestReferer } from "./referer-rules.ts";
 
-export const HASH_FETCH_TIMEOUT_MS = 30000;
+const HASH_FETCH_TIMEOUT_MS = 30000;
 
 // The offscreen document reports an HTTP failure's redirected final URL;
 // extending the Referer rule to that target lets a retry match it (#193).

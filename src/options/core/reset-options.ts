@@ -13,7 +13,7 @@ type ResetOptionsDependencies = {
   localize?: Localize;
 };
 
-export const showRestoreDefaultsDialog = (localize: Localize = getMessage): Promise<boolean> =>
+const showRestoreDefaultsDialog = (localize: Localize = getMessage): Promise<boolean> =>
   new Promise((resolve) => {
     const dialog = document.createElement("dialog");
     dialog.className = "app-dialog reset-settings-dialog";

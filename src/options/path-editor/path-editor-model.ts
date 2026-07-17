@@ -24,7 +24,7 @@ export const pathNodesToLines = (nodes: DirectoryLineNode[]): string[] =>
 
 export type PathDropPlacement = "before" | "after" | "inside";
 
-export const normalizePathHierarchy = (
+const normalizePathHierarchy = (
   nodes: readonly DirectoryLineNode[],
 ): DirectoryLineNode[] => {
   const normalized: DirectoryLineNode[] = [];

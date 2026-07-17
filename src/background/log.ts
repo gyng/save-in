@@ -32,7 +32,7 @@ const normalizeLogEntries = (value: unknown): LogEntry[] =>
 
 export const LOG_LIMIT = 200;
 
-export const serializeLogData = (data: unknown): string | undefined => {
+const serializeLogData = (data: unknown): string | undefined => {
   if (typeof data === "undefined") {
     return undefined;
   }

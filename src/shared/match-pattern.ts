@@ -32,7 +32,7 @@ const toAsciiHost = (value: string): string => {
   }
 };
 
-export const parseMatchPattern = (pattern: string): ParsedMatchPattern | Error => {
+const parseMatchPattern = (pattern: string): ParsedMatchPattern | Error => {
   const parts = pattern.match(/^(\*|https?|file|ftp):\/\/([^/]*)(\/.*)$/);
   if (!parts) return new Error("Invalid WebExtension match pattern");
   const [, rawScheme, host, path] = parts;

@@ -3,7 +3,7 @@ import type { PageSource, SourcePanelOptions } from "./source-panel-model.ts";
 export const PANEL_HOST_ID = "save-in-source-panel";
 
 export const panelCleanups = new WeakMap<Element, () => void>();
-export const panelCloseTimers = new WeakMap<Element, number>();
+const panelCloseTimers = new WeakMap<Element, number>();
 export const panelPreviousFocus = new WeakMap<Element, HTMLElement>();
 export const panelRoots = new WeakMap<HTMLElement, ShadowRoot>();
 export const panelOpenChanges = new WeakMap<HTMLElement, (open: boolean) => void>();
@@ -36,7 +36,7 @@ export const cancelPanelRemoval = (host: Element) => {
   panelCloseTimers.delete(host);
 };
 
-export const schedulePanelRemoval = (host: HTMLElement) => {
+const schedulePanelRemoval = (host: HTMLElement) => {
   cancelPanelRemoval(host);
   panelCloseTimers.set(
     host,

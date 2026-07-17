@@ -12,7 +12,7 @@ type PermissionButtonElement = {
 // one-click request from the button's user gesture (permissions.request must be
 // called synchronously inside a gesture handler, so no await precedes it).
 
-export const PERMISSIONS_BANNER_ORIGINS = ["<all_urls>"];
+const PERMISSIONS_BANNER_ORIGINS = ["<all_urls>"];
 
 // Resolves true when the extension currently holds the host access it needs.
 // Old browsers without the permissions API, or an errored check, resolve true

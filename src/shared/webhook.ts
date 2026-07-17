@@ -65,7 +65,7 @@ export type WebhookEndpointReason =
 // expression dialects are content with: they have one reason each. Webhook
 // endpoints have several, so the reason rides on the error rather than widening
 // PatternListIssue for the one consumer that needs it.
-export class WebhookEndpointError extends Error {
+class WebhookEndpointError extends Error {
   readonly reason: WebhookEndpointReason;
 
   constructor(reason: WebhookEndpointReason, message: string) {

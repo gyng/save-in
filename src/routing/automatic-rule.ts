@@ -24,7 +24,7 @@ const patternParts = (clause: PatternClause): { source: string; flags: string | 
     ? { source: clause.value.source, flags: clause.value.flags }
     : { source: clause.value, flags: clause.flags };
 
-export const isAutomaticContextClause = (clause: PatternClause): boolean => {
+const isAutomaticContextClause = (clause: PatternClause): boolean => {
   if (clause.name !== "context") return false;
   const { source, flags } = patternParts(clause);
   if (!/(^|[^a-z0-9_])auto([^a-z0-9_]|$)/i.test(source)) return false;

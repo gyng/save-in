@@ -27,7 +27,7 @@ export const DEFAULT_SOURCE_PANEL_LAYOUT: SourcePanelLayout = {
 };
 const finiteLayoutNumber = (value: unknown, fallback: number): number =>
   typeof value === "number" && Number.isFinite(value) ? value : fallback;
-export const normalizeSourcePanelLayout = (value: unknown): SourcePanelLayout => {
+const normalizeSourcePanelLayout = (value: unknown): SourcePanelLayout => {
   const stored =
     value != null && typeof value === "object" ? (value as Record<string, unknown>) : {};
   const placement = [...PANEL_DOCKS, "floating"].includes(stored.placement as PanelPlacement)

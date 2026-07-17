@@ -100,7 +100,7 @@ export const makeShortcutContent = (
 
 // The download URL's mime must match the intended extension, or browsers
 // rewrite it (e.g. .desktop/.html shortcuts saved as .txt, #161)
-export const mimeForType = (type: string | undefined): string =>
+const mimeForType = (type: string | undefined): string =>
   isShortcutType(type) ? SHORTCUT_MIME_TYPES[type] : "text/plain";
 
 export const makeShortcut = (

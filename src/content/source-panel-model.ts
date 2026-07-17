@@ -164,7 +164,7 @@ export const filterPageSources = (
   );
 };
 
-export const SOURCE_SORTS = [
+const SOURCE_SORTS = [
   "relevance",
   "detected-desc",
   "detected-asc",

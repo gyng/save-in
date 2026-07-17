@@ -4,7 +4,7 @@ import type { SourcePanelOptions } from "./source-panel-model.ts";
 export const resolvedPanelTheme = (theme: SourcePanelOptions["theme"]): UiTheme =>
   normalizeUiTheme(theme);
 
-export const panelLocale = (locale?: string): string | undefined => {
+const panelLocale = (locale?: string): string | undefined => {
   if (!locale) return undefined;
   if (locale.endsWith("_AI")) return locale.slice(0, -3);
   return locale.replace("_", "-");

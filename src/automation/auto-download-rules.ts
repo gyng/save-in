@@ -10,15 +10,15 @@ import type { PageSourceKind } from "../shared/page-source.ts";
 import type { SourceSpan } from "../shared/syntax-parser.ts";
 import { isStringMember } from "../shared/util.ts";
 
-export const AUTO_DOWNLOAD_PAGE_MATCHERS = ["pageurl", "pagedomain", "pagerootdomain"] as const;
-export const AUTO_DOWNLOAD_SOURCE_MATCHERS = [
+const AUTO_DOWNLOAD_PAGE_MATCHERS = ["pageurl", "pagedomain", "pagerootdomain"] as const;
+const AUTO_DOWNLOAD_SOURCE_MATCHERS = [
   "sourceurl",
   "sourcedomain",
   "sourcerootdomain",
   "sourcekind",
   "fileext",
 ] as const;
-export const AUTO_DOWNLOAD_MATCHERS = [
+const AUTO_DOWNLOAD_MATCHERS = [
   ...AUTO_DOWNLOAD_PAGE_MATCHERS,
   ...AUTO_DOWNLOAD_SOURCE_MATCHERS,
 ] as const;

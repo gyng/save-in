@@ -1,4 +1,4 @@
-export const MAX_ROUTING_REGEX_CHARACTERS = 1_024;
+const MAX_ROUTING_REGEX_CHARACTERS = 1_024;
 
 type RegexGroupState = {
   hasAlternation: boolean;

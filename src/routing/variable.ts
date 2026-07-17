@@ -26,7 +26,7 @@ type TransformerRegistry = Record<string, Transformer> &
   Record<TransformableSpecialDirectory, Transformer>;
 const PATH_SEGMENT_TYPE_VALUES = Object.values(PATH_SEGMENT_TYPES);
 
-export function ensureTransformerInfo(opts: RoutingDownloadInfo): asserts opts is TransformerInfo {
+function ensureTransformerInfo(opts: RoutingDownloadInfo): asserts opts is TransformerInfo {
   if (!(opts.now instanceof Date) || !Number.isFinite(opts.now.getTime())) {
     opts.now = new Date();
   }
@@ -97,10 +97,10 @@ export const withUrl = <T>(str: string, cb: (url: URL) => T) => parseUrl(str, cb
 
 export const padDateComponent = (num: number) => num.toString().padStart(2, "0");
 
-export const toDateString = (d: Date) =>
+const toDateString = (d: Date) =>
   [d.getFullYear(), padDateComponent(d.getMonth() + 1), padDateComponent(d.getDate())].join("-");
 
-export const toISODateString = (d: Date) =>
+const toISODateString = (d: Date) =>
   [
     d.getUTCFullYear(),
     padDateComponent(d.getUTCMonth() + 1),
@@ -112,16 +112,16 @@ export const toISODateString = (d: Date) =>
     "Z",
   ].join("");
 
-export const getFileExtension = (filename: string) => {
+const getFileExtension = (filename: string) => {
   const fileExtensionMatches = filename.match(EXTENSION_REGEX);
   return (fileExtensionMatches && fileExtensionMatches[1]) || "";
 };
 
-export const IPV4_REGEX = /^\d{1,3}(\.\d{1,3}){3}$/;
+const IPV4_REGEX = /^\d{1,3}(\.\d{1,3}){3}$/;
 
 // English on purpose: locale-dependent names would make the same rule
 // produce different paths on different machines
-export const WEEKDAY_NAMES = [
+const WEEKDAY_NAMES = [
   "sunday",
   "monday",
   "tuesday",
@@ -130,7 +130,7 @@ export const WEEKDAY_NAMES = [
   "friday",
   "saturday",
 ];
-export const MONTH_NAMES = [
+const MONTH_NAMES = [
   "january",
   "february",
   "march",
@@ -147,7 +147,7 @@ export const MONTH_NAMES = [
 
 // ISO-8601 week number (week 1 contains the year's first Thursday),
 // computed from local date parts like :year:/:month:/:day:
-export const toISOWeek = (d: Date) => {
+const toISOWeek = (d: Date) => {
   const day = new Date(d.getFullYear(), d.getMonth(), d.getDate());
   day.setDate(day.getDate() - ((day.getDay() + 6) % 7) + 3); // nearest Thursday
   const firstThursday = new Date(day.getFullYear(), 0, 4);
@@ -155,7 +155,7 @@ export const toISOWeek = (d: Date) => {
   return 1 + Math.round((day.getTime() - firstThursday.getTime()) / (7 * 24 * 3600 * 1000));
 };
 
-export const toISOWeekYear = (d: Date) => {
+const toISOWeekYear = (d: Date) => {
   const day = new Date(d.getFullYear(), d.getMonth(), d.getDate());
   day.setDate(day.getDate() - ((day.getDay() + 6) % 7) + 3);
   return day.getFullYear();
@@ -163,14 +163,14 @@ export const toISOWeekYear = (d: Date) => {
 
 // "My Webpage: Title!" -> "my-webpage-title" (slug) / "my_webpage_title"
 // (snake); keeps unicode letters/digits so non-latin titles survive
-export const toDelimited = (str: string | null | undefined, delimiter: string) =>
+const toDelimited = (str: string | null | undefined, delimiter: string) =>
   (str || "")
     .toLowerCase()
     .replace(/[^\p{L}\p{N}]+/gu, delimiter)
     .replace(new RegExp(`^\\${delimiter}+|\\${delimiter}+$`, "g"), "");
 
 // Last hostname label; empty for IPs and single-label hosts (localhost)
-export const toTld = (hostname: string | null | undefined) => {
+const toTld = (hostname: string | null | undefined) => {
   if (!hostname || IPV4_REGEX.test(hostname)) {
     return "";
   }
@@ -188,7 +188,7 @@ export const toTld = (hostname: string | null | undefined) => {
 // no extension". A name like "foo.octet" is worse than "foo": it looks real, so
 // the user has to strip it before adding the right one. An unknown type earns
 // no extension.
-export const MIME_EXTENSIONS: Record<string, string> = {
+const MIME_EXTENSIONS: Record<string, string> = {
   // Images
   "image/jpeg": "jpg",
   "image/png": "png",

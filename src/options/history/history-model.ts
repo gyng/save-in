@@ -117,7 +117,7 @@ export const historyDateRange = (preset: string, now = Date.now()) => {
 
 // info.context holds a DOWNLOAD_TYPES value; older entries kept the whole
 // state, so fall back to state.info
-export const historyInfo = (entry: HistoryEntry): HistoryInfo => historyEntryInfo(entry);
+const historyInfo = (entry: HistoryEntry): HistoryInfo => historyEntryInfo(entry);
 
 export const historyType = (entry: HistoryEntry): string => {
   const context = historyInfo(entry).context;

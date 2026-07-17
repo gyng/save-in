@@ -1,4 +1,4 @@
-export const GENERATED_LOCALES = [
+const GENERATED_LOCALES = [
   { locale: "de", label: "Deutsch (AI)" },
   { locale: "es", label: "Español (AI)" },
   { locale: "fr", label: "Français (AI)" },

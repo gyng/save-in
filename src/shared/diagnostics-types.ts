@@ -1,4 +1,4 @@
-export const DIAGNOSTIC_LIFECYCLE_KINDS = [
+const DIAGNOSTIC_LIFECYCLE_KINDS = [
   "background_ready",
   "background_failed",
   "configuration_reloaded",

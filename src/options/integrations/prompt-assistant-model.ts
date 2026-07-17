@@ -188,7 +188,7 @@ export const ruleCritiqueConstraint = (request: string): Record<string, unknown>
   },
 });
 
-export const RULE_CRITIQUE_RESPONSE_CONSTRAINT: Record<string, unknown> = {
+const RULE_CRITIQUE_RESPONSE_CONSTRAINT: Record<string, unknown> = {
   type: "object",
   properties: {
     accepted: { type: "boolean" },

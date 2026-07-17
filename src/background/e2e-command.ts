@@ -28,9 +28,9 @@ import { resetRefererRules } from "../downloads/referer-rules.ts";
 export const BACKGROUND_E2E_COMMAND = "SAVE_IN_E2E_START_DOWNLOAD";
 export const BACKGROUND_E2E_CONTEXT_MENU_COMMAND = "SAVE_IN_E2E_CONTEXT_MENU_CLICK";
 export const BACKGROUND_E2E_NOTIFICATION_COMMAND = "SAVE_IN_E2E_NOTIFICATION_CALLS";
-export const BACKGROUND_E2E_TAB_MENU_COMMAND = "SAVE_IN_E2E_TAB_MENU_CLICK";
+const BACKGROUND_E2E_TAB_MENU_COMMAND = "SAVE_IN_E2E_TAB_MENU_CLICK";
 export const BACKGROUND_E2E_RESET_COMMAND = "SAVE_IN_E2E_RESET_STATE";
-export const BACKGROUND_E2E_INSPECT_COMMAND = "SAVE_IN_E2E_INSPECT";
+const BACKGROUND_E2E_INSPECT_COMMAND = "SAVE_IN_E2E_INSPECT";
 
 export type BackgroundE2EDownload = {
   path?: string;
@@ -230,7 +230,7 @@ const isBackgroundE2EInspectCommand = (value: unknown): value is BackgroundE2EIn
 // live bindings, so a detector that misfires on a host fails the suite.
 // `hasObjectUrl` is likewise resolved in the real background global, which is
 // the only place the Chrome service worker's missing DOM is observable.
-export const handleBackgroundE2EInspectCommand = async (
+const handleBackgroundE2EInspectCommand = async (
   rawRequest: unknown,
 ): Promise<BackgroundE2EInspectResponse | null> => {
   if (!isBackgroundE2EInspectCommand(rawRequest)) return null;
@@ -366,7 +366,7 @@ export const handleBackgroundE2ENotificationCommand = (
   };
 };
 
-export const handleBackgroundE2ETabMenuCommand = async (
+const handleBackgroundE2ETabMenuCommand = async (
   rawRequest: unknown,
   dispatch: typeof handleTabMenuClick = handleTabMenuClick,
 ): Promise<BackgroundE2ETabMenuResponse | null> => {

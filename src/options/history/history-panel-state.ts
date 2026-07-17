@@ -17,7 +17,7 @@ export type HistoryPanelState = {
   page: number;
 };
 
-export const createHistoryPanelState = (): HistoryPanelState => ({
+const createHistoryPanelState = (): HistoryPanelState => ({
   entries: [],
   sort: { key: "time", dir: "desc" },
   filter: "",
