@@ -23,8 +23,9 @@ these documents assume.
 
 ## Contributing
 
-- [UI system](UI.md) — the options UI contract: cascade-layer order, tokens,
-  interaction and accessibility rules, and the checklist new UI must satisfy.
+- [UI system](UI.md) — the contract for the options, reference, and in-page
+  surfaces: cascade-layer order, tokens, interaction and accessibility rules,
+  and the checklist new UI must satisfy.
 - [Code organization](CODE-ORGANIZATION.md) — the module boundaries, layering,
   and naming decisions, and why each was made. A completed plan kept as a
   rationale record; source files and `scripts/check-import-cycles.js` cite its
@@ -53,8 +54,9 @@ these documents assume.
 ## Project history and direction
 
 - [Roadmap](ROADMAP.md) — what landed in 4.0.0, the one open evidence-gated
-  decision, and the non-goals with the API-level reasons they were rejected.
-  The place to look before reopening a recurring request.
+  decision, and the non-goals with the reason each was rejected: grammar cost, a
+  design objection, or a missing WebExtension API. The place to look before
+  reopening a recurring request.
 - [V4 archaeology](V4-ARCHAEOLOGY.md) — a retrospective on the six-day MV3
   rewrite. A snapshot: its numbers are dated and drift with the branch.
 - [Issue validation](issues-v4.md) — working notes for the unposted 4.0.0
