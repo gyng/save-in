@@ -360,290 +360,345 @@ export const onNotificationClicked = (notId: string) => {
   return webExtensionApi.downloads.show(downloadId);
 };
 
+// How this delta's outcome gets reported, read once when it arrives. The
+// handler awaits repeatedly, so reading these live would let an options change
+// mid-download report one save two different ways.
+const readNotifySettings = () => ({
+  onSuccess: options && options.notifyOnSuccess,
+  onFailure: options && options.notifyOnFailure,
+  duration: options && options.notifyDuration,
+  promptOnFailure: options && options.promptOnFailure,
+});
+type NotifySettings = ReturnType<typeof readNotifySettings>;
+
+// Record the final outcome against the history entry, independent of whether
+// success/failure notifications are enabled.
+const recordHistoryStatus = async (downloadId: number, status: string): Promise<void> => {
+  // Read from memory, or the persisted copy if the worker restarted since
+  // the download started (so a mid-restart download still gets its status)
+  const started = await getTrackedDownload(downloadId);
+  if (!started || !started.historyEntryId) return;
+  if (status === "complete") {
+    try {
+      const items = await webExtensionApi.downloads.search({ id: downloadId });
+      const item = items && items[0];
+      const size = item ? (item.fileSize > 0 ? item.fileSize : item.totalBytes) : 0;
+      await historyPort.setStatus(
+        started.historyEntryId,
+        status,
+        downloadId,
+        size > 0 ? size : undefined,
+      );
+    } catch {
+      await historyPort.setStatus(started.historyEntryId, status, downloadId);
+    }
+    return;
+  }
+  await historyPort.setStatus(started.historyEntryId, status, downloadId);
+};
+
+// A download Save In only watches: the browser owns it, so none of the
+// adoption pipeline below applies — just keep its history entry current.
+const handleObservedBrowserDownload = async (
+  downloadDelta: HostDownloadDelta,
+  record: DownloadRecord,
+): Promise<void> => {
+  const currentFilename = downloadDelta.filename?.current;
+  if (currentFilename && record.historyEntryId) {
+    await mergeTrackedDownload(downloadDelta.id, { currentFilename });
+    await historyPort.patch(record.historyEntryId, { finalFullPath: currentFilename });
+  }
+  const complete = downloadDelta.state?.current === "complete";
+  const failed = isDownloadFailure(downloadDelta, WEB_EXTENSION_CAPABILITIES.downloadDeltaFilename);
+  if (!complete && !failed) return;
+
+  let fileSize: number | undefined;
+  if (complete) {
+    try {
+      const [item] = await webExtensionApi.downloads.search({ id: downloadDelta.id });
+      const bytes = item && (item.fileSize > 0 ? item.fileSize : item.totalBytes);
+      fileSize = bytes !== undefined && bytes > 0 ? bytes : undefined;
+    } catch {
+      // Completion remains valid when size lookup is unavailable.
+    }
+  }
+  await historyPort.setStatus(
+    record.historyEntryId,
+    complete ? "complete" : downloadFailureReason(failed) || "failed",
+    downloadDelta.id,
+    fileSize,
+  );
+  await mergeTrackedDownload(downloadDelta.id, { observedBrowserDownload: false });
+};
+
+// CHROME
+// Chrome does not have the filename in the initial DownloadItem,
+// so extract it from the DownloadDelta
+const syncChromeDeltaFilename = async (
+  downloadDelta: HostDownloadDelta,
+  record: DownloadRecord,
+): Promise<void> => {
+  if (!WEB_EXTENSION_CAPABILITIES.downloadDeltaFilename) return;
+  if (!downloadDelta || !downloadDelta.filename || !downloadDelta.filename.current) return;
+  record.currentFilename = downloadDelta.filename.current;
+  await mergeTrackedDownload(downloadDelta.id, {
+    currentFilename: downloadDelta.filename.current,
+  });
+};
+
+// Deliberately written only after the media download completes: the shortcut is
+// named from the resolved on-disk filename (which does not exist until
+// completion), and a shortcut beside media that never saved would be an orphan.
+// A failed save intentionally writes no sidecar.
+const writeSourceSidecar = async (
+  downloadDelta: HostDownloadDelta,
+  record: DownloadRecord,
+  pendingSourceSidecar: NonNullable<DownloadRecord["pendingSourceSidecar"]>,
+): Promise<void> => {
+  try {
+    await downloadPorts.sourceSidecar(
+      pendingSourceSidecar,
+      record.filename || "",
+      record.currentFilename,
+    );
+  } catch (error) {
+    addDownloadLog(record, "source sidecar failed", String(error));
+  } finally {
+    await mergeTrackedDownload(downloadDelta.id, { pendingSourceSidecar: undefined });
+  }
+};
+
+// What the user sees when a save fails, plus the optional Save As prompt that
+// lets them retry it themselves against the original URL.
+const notifyDownloadFailure = async (
+  downloadDelta: HostDownloadDelta,
+  record: DownloadRecord,
+  filename: string,
+  failed: ReturnType<typeof isDownloadFailure>,
+  notify: NotifySettings,
+): Promise<void> => {
+  if (notify.onFailure && record.sourceSidecar !== true) {
+    createNotification(
+      String(downloadDelta.id),
+      {
+        type: "basic",
+        title: getMessage("notificationFailureTitle", [filename]),
+        iconUrl: ERROR_ICON_URL,
+        message: downloadFailureReason(failed) || getMessage("genericUnknownError"),
+      },
+      notify.duration,
+    );
+  }
+
+  if (
+    record.sourceSidecar !== true &&
+    notify.promptOnFailure &&
+    record.url &&
+    record.allowOriginalUrlFallback !== false
+  ) {
+    const downloadOptions: Parameters<typeof webExtensionApi.downloads.download>[0] = {
+      url: record.url,
+      saveAs: true,
+    };
+    Object.assign(
+      downloadOptions,
+      await resolveFirefoxDownloadContext({
+        incognito: isPrivateDownloadRecord(record),
+      }),
+    );
+    try {
+      await webExtensionApi.downloads.download(downloadOptions);
+    } catch (error) {
+      addDownloadLog(record, "failure Save As download failed", String(error));
+    }
+  }
+
+  if (backgroundRuntime.debug && !isPrivateDownloadRecord(record)) {
+    /* eslint-disable no-console */
+    console.log(
+      "notification: created failure",
+      String(downloadDelta.id),
+      notify.duration,
+      downloadDelta.id,
+    );
+    /* eslint-enable no-console */
+  }
+};
+
+// Automatic fallback chain: network/server failures get one retry through the
+// background fetch before the user sees a failure. A retry keeps the record's
+// history entry and hands the download back to the pipeline, so nothing is
+// reported yet; anything else is final.
+const handleFailedDownload = async (
+  downloadDelta: HostDownloadDelta,
+  record: DownloadRecord,
+  filename: string,
+  failed: ReturnType<typeof isDownloadFailure>,
+  notify: NotifySettings,
+): Promise<void> => {
+  addDownloadLog(record, "download failed", {
+    id: downloadDelta.id,
+    error: downloadFailureReason(failed) || failed,
+  });
+
+  const errorName = downloadFailureReason(failed) || "";
+  if (isRetryableDownloadFailure(failed)) {
+    const retried = await downloadPorts.retry(downloadDelta.id);
+    if (retried) {
+      addDownloadLog(record, "retrying failed download via fetch", { id: downloadDelta.id });
+      await mergeTrackedDownload(downloadDelta.id, {
+        adopted: false,
+        pendingHistoryMove: undefined,
+      });
+      return;
+    }
+    // Retryable failures always have a concrete browser error name.
+    await recordHistoryStatus(downloadDelta.id, errorName);
+  } else {
+    await recordHistoryStatus(downloadDelta.id, errorName || "failed");
+  }
+  await notifyDownloadFailure(downloadDelta, record, filename, failed, notify);
+  await abandonPendingHistoryMove(downloadDelta.id);
+};
+
+// Only the in_progress -> complete transition is a save finishing; any other
+// delta that mentions "complete" is describing a download already done.
+const isSuccessNotificationDelta = (
+  downloadDelta: HostDownloadDelta,
+  record: DownloadRecord,
+  isFromSelf: boolean,
+  notify: NotifySettings,
+): boolean =>
+  Boolean(
+    notify.onSuccess &&
+    record.sourceSidecar !== true &&
+    isFromSelf &&
+    downloadDelta &&
+    downloadDelta.state &&
+    downloadDelta.state.current === "complete" &&
+    downloadDelta.state.previous === "in_progress",
+  );
+
+const notifyDownloadSuccess = async (
+  downloadDelta: HostDownloadDelta,
+  record: DownloadRecord,
+  filename: string,
+  notify: NotifySettings,
+): Promise<void> => {
+  addDownloadLog(record, "download complete", { id: downloadDelta.id, filename });
+  const res = await webExtensionApi.downloads.search({ id: downloadDelta.id });
+  const completedItem = res[0];
+  const mime = completedItem?.mime;
+  const successfulLabel = getMessage("notificationSuccessTitle");
+  const title = buildSuccessNotificationTitle(successfulLabel, completedItem?.fileSize, mime);
+
+  const successDetails: SaveInNotificationOptions = {
+    type: "basic",
+    title,
+    iconUrl: SUCCESS_ICON_URL,
+    message: filename,
+  };
+  // Undo button: Chrome-only (Firefox rejects `buttons`), and suppressed
+  // for private records to match the exclusion of private activity from
+  // history — undo marks a History entry, which private saves never have.
+  if (WEB_EXTENSION_CAPABILITIES.notificationButtons && !isPrivateDownloadRecord(record)) {
+    Object.assign(successDetails, {
+      buttons: [{ title: getMessage("notificationUndoSave") || "Undo save" }],
+    });
+  }
+  createNotification(String(downloadDelta.id), successDetails, notify.duration);
+
+  if (backgroundRuntime.debug && !isPrivateDownloadRecord(record)) {
+    /* eslint-disable no-console */
+    console.log(
+      "notification: created success",
+      String(downloadDelta.id),
+      notify.duration,
+      downloadDelta.id,
+    );
+    /* eslint-enable no-console */
+  }
+};
+
+// The download reached a terminal state: give back anything it was holding.
+const releaseTerminalDownload = async (
+  downloadDelta: HostDownloadDelta,
+  record: DownloadRecord,
+): Promise<void> => {
+  if (record.offscreenRequestId) {
+    await OffscreenClient.release(record.offscreenRequestId).catch((error) =>
+      addDownloadLog(record, "offscreen blob release failed", String(error)),
+    );
+  }
+  // Clear adoption but keep the record: recordHistoryStatus (above) and any
+  // in-flight retry still read its historyEntryId; the cap evicts it later
+  await mergeTrackedDownload(downloadDelta.id, {
+    adopted: false,
+    pendingSourceSidecar: undefined,
+    ...(record.url && isDataUrl(record.url) ? { url: undefined } : {}),
+  });
+};
+
 export const onDownloadChanged = async (downloadDelta: HostDownloadDelta) => {
   if (backgroundRuntime.ready) {
     await backgroundRuntime.ready.catch(() => {});
   }
+  const notify = readNotifySettings();
 
-  const notifyOnSuccess = options && options.notifyOnSuccess;
-  const notifyOnFailure = options && options.notifyOnFailure;
-  const notifyDuration = options && options.notifyDuration;
-  const promptOnFailure = options && options.promptOnFailure;
+  // The record IS the membership check: no record (or one whose adoption was
+  // cleared at a prior terminal delta) means this download is not ours. After
+  // a worker restart the in-memory mirror is gone, so this falls back to the
+  // persisted copy — that is how a mid-restart download keeps its notification.
+  const record = await getTrackedDownload(downloadDelta.id);
+  if (!record) return;
 
-  {
-    // The record IS the membership check: no record (or one whose adoption was
-    // cleared at a prior terminal delta) means this download is not ours. After
-    // a worker restart the in-memory mirror is gone, so this falls back to the
-    // persisted copy — that is how a mid-restart download keeps its notification.
-    const record = await getTrackedDownload(downloadDelta.id);
+  if (record.observedBrowserDownload) {
+    await handleObservedBrowserDownload(downloadDelta, record);
+    return;
+  }
+  if (!record.adopted) return;
 
-    if (!record) {
-      return;
-    }
+  await syncChromeDeltaFilename(downloadDelta, record);
 
-    if (record.observedBrowserDownload) {
-      const currentFilename = downloadDelta.filename?.current;
-      if (currentFilename && record.historyEntryId) {
-        await mergeTrackedDownload(downloadDelta.id, { currentFilename });
-        await historyPort.patch(record.historyEntryId, { finalFullPath: currentFilename });
-      }
-      const complete = downloadDelta.state?.current === "complete";
-      const failed = isDownloadFailure(
-        downloadDelta,
-        WEB_EXTENSION_CAPABILITIES.downloadDeltaFilename,
-      );
-      if (complete || failed) {
-        let fileSize: number | undefined;
-        if (complete) {
-          try {
-            const [item] = await webExtensionApi.downloads.search({ id: downloadDelta.id });
-            const bytes = item && (item.fileSize > 0 ? item.fileSize : item.totalBytes);
-            fileSize = bytes !== undefined && bytes > 0 ? bytes : undefined;
-          } catch {
-            // Completion remains valid when size lookup is unavailable.
-          }
-        }
-        await historyPort.setStatus(
-          record.historyEntryId,
-          complete ? "complete" : downloadFailureReason(failed) || "failed",
-          downloadDelta.id,
-          fileSize,
-        );
-        await mergeTrackedDownload(downloadDelta.id, { observedBrowserDownload: false });
-      }
-      return;
-    }
+  // Filename can be missing on entries restored after a service worker
+  // restart until a filename delta arrives; fall back to the intended path
+  const fullFilename = record.currentFilename || record.filename || "";
+  // The browser reports an absolute on-disk path, backslash-separated on
+  // Windows; proposedFilename takes the last segment whatever the separator.
+  const filename = proposedFilename(fullFilename);
 
-    if (!record.adopted) {
-      return;
-    }
+  const failed = isDownloadFailure(downloadDelta, WEB_EXTENSION_CAPABILITIES.downloadDeltaFilename);
+  const isFromSelf = record.adopted === true;
+  const isUserCancelled = downloadDelta.error && downloadDelta.error.current === "USER_CANCELED";
+  const completed = isFromSelf && downloadDelta.state?.current === "complete" && !isUserCancelled;
 
-    // CHROME
-    // Chrome does not have the filename in the initial DownloadItem,
-    // so extract it from the DownloadDelta
-    if (WEB_EXTENSION_CAPABILITIES.downloadDeltaFilename) {
-      if (downloadDelta && downloadDelta.filename && downloadDelta.filename.current) {
-        record.currentFilename = downloadDelta.filename.current;
-        await mergeTrackedDownload(downloadDelta.id, {
-          currentFilename: downloadDelta.filename.current,
-        });
-      }
-    }
+  if (isFromSelf && isUserCancelled) {
+    await recordHistoryStatus(downloadDelta.id, "USER_CANCELED");
+  }
 
-    // Filename can be missing on entries restored after a service worker
-    // restart until a filename delta arrives; fall back to the intended path
-    const fullFilename = record.currentFilename || record.filename || "";
-    // The browser reports an absolute on-disk path, backslash-separated on
-    // Windows; proposedFilename takes the last segment whatever the separator.
-    const filename = proposedFilename(fullFilename);
+  if (completed) {
+    await recordHistoryStatus(downloadDelta.id, "complete");
+    await completePendingHistoryMove(downloadDelta.id);
+  }
 
-    const failed = isDownloadFailure(
-      downloadDelta,
-      WEB_EXTENSION_CAPABILITIES.downloadDeltaFilename,
-    );
+  if (completed && record.pendingSourceSidecar) {
+    await writeSourceSidecar(downloadDelta, record, record.pendingSourceSidecar);
+  }
 
-    const isFromSelf = record.adopted === true;
-    const isUserCancelled = downloadDelta.error && downloadDelta.error.current === "USER_CANCELED";
-    const completed = isFromSelf && downloadDelta.state?.current === "complete" && !isUserCancelled;
+  if (backgroundRuntime.debug && !isPrivateDownloadRecord(record)) {
+    /* eslint-disable no-console */
+    console.log("notification", failed, isFromSelf, record, downloadDelta, notify.onSuccess);
+    /* eslint-enable no-console */
+  }
 
-    // Record the final outcome against the history entry (independent of
-    // whether success/failure notifications are enabled)
-    const recordHistoryStatus = async (status: string) => {
-      // Read from memory, or the persisted copy if the worker restarted since
-      // the download started (so a mid-restart download still gets its status)
-      const started = await getTrackedDownload(downloadDelta.id);
-      if (!started || !started.historyEntryId) return;
-      if (status === "complete") {
-        try {
-          const items = await webExtensionApi.downloads.search({ id: downloadDelta.id });
-          const item = items && items[0];
-          const size = item ? (item.fileSize > 0 ? item.fileSize : item.totalBytes) : 0;
-          await historyPort.setStatus(
-            started.historyEntryId,
-            status,
-            downloadDelta.id,
-            size > 0 ? size : undefined,
-          );
-        } catch {
-          await historyPort.setStatus(started.historyEntryId, status, downloadDelta.id);
-        }
-        return;
-      }
-      await historyPort.setStatus(started.historyEntryId, status, downloadDelta.id);
-    };
+  if (isFromSelf && failed && !isUserCancelled) {
+    await handleFailedDownload(downloadDelta, record, filename, failed, notify);
+  } else if (isSuccessNotificationDelta(downloadDelta, record, isFromSelf, notify)) {
+    await notifyDownloadSuccess(downloadDelta, record, filename, notify);
+  }
 
-    if (isFromSelf && isUserCancelled) {
-      await recordHistoryStatus("USER_CANCELED");
-    }
-
-    if (completed) {
-      await recordHistoryStatus("complete");
-      await completePendingHistoryMove(downloadDelta.id);
-    }
-
-    // Deliberately write the source shortcut only after the media download
-    // completes: it is named from the resolved on-disk filename (which does
-    // not exist until completion), and a shortcut beside media that never
-    // saved would be an orphan. A failed save intentionally writes no sidecar.
-    if (completed && record.pendingSourceSidecar) {
-      try {
-        await downloadPorts.sourceSidecar(
-          record.pendingSourceSidecar,
-          record.filename || "",
-          record.currentFilename,
-        );
-      } catch (error) {
-        addDownloadLog(record, "source sidecar failed", String(error));
-      } finally {
-        await mergeTrackedDownload(downloadDelta.id, { pendingSourceSidecar: undefined });
-      }
-    }
-
-    if (backgroundRuntime.debug && !isPrivateDownloadRecord(record)) {
-      /* eslint-disable no-console */
-      console.log("notification", failed, isFromSelf, record, downloadDelta, notifyOnSuccess);
-      /* eslint-enable no-console */
-    }
-
-    if (isFromSelf && failed && !isUserCancelled) {
-      addDownloadLog(record, "download failed", {
-        id: downloadDelta.id,
-        error: downloadFailureReason(failed) || failed,
-      });
-
-      const notifyFailure = async (): Promise<void> => {
-        if (notifyOnFailure && record.sourceSidecar !== true) {
-          createNotification(
-            String(downloadDelta.id),
-            {
-              type: "basic",
-              title: getMessage("notificationFailureTitle", [filename]),
-              iconUrl: ERROR_ICON_URL,
-              message: downloadFailureReason(failed) || getMessage("genericUnknownError"),
-            },
-            notifyDuration,
-          );
-        }
-
-        if (
-          record.sourceSidecar !== true &&
-          promptOnFailure &&
-          record.url &&
-          record.allowOriginalUrlFallback !== false
-        ) {
-          const downloadOptions: Parameters<typeof webExtensionApi.downloads.download>[0] = {
-            url: record.url,
-            saveAs: true,
-          };
-          Object.assign(
-            downloadOptions,
-            await resolveFirefoxDownloadContext({
-              incognito: isPrivateDownloadRecord(record),
-            }),
-          );
-          try {
-            await webExtensionApi.downloads.download(downloadOptions);
-          } catch (error) {
-            addDownloadLog(record, "failure Save As download failed", String(error));
-          }
-        }
-
-        if (backgroundRuntime.debug && !isPrivateDownloadRecord(record)) {
-          /* eslint-disable no-console */
-          console.log(
-            "notification: created failure",
-            String(downloadDelta.id),
-            notifyDuration,
-            downloadDelta.id,
-          );
-          /* eslint-enable no-console */
-        }
-      };
-
-      // Automatic fallback chain: network/server failures get one retry
-      // through the background fetch before the user sees a failure
-      const errorName = downloadFailureReason(failed) || "";
-      const canRetry = isRetryableDownloadFailure(failed);
-
-      if (canRetry) {
-        const retried = await downloadPorts.retry(downloadDelta.id);
-        if (retried) {
-          addDownloadLog(record, "retrying failed download via fetch", {
-            id: downloadDelta.id,
-          });
-          await mergeTrackedDownload(downloadDelta.id, {
-            adopted: false,
-            pendingHistoryMove: undefined,
-          });
-        } else {
-          // Retryable failures always have a concrete browser error name.
-          await recordHistoryStatus(errorName);
-          await notifyFailure();
-          await abandonPendingHistoryMove(downloadDelta.id);
-        }
-      } else {
-        await recordHistoryStatus(errorName || "failed");
-        await notifyFailure();
-        await abandonPendingHistoryMove(downloadDelta.id);
-      }
-    } else if (
-      notifyOnSuccess &&
-      record.sourceSidecar !== true &&
-      isFromSelf &&
-      downloadDelta &&
-      downloadDelta.state &&
-      downloadDelta.state.current === "complete" &&
-      downloadDelta.state.previous === "in_progress"
-    ) {
-      addDownloadLog(record, "download complete", { id: downloadDelta.id, filename });
-      const res = await webExtensionApi.downloads.search({ id: downloadDelta.id });
-      const completedItem = res[0];
-      const mime = completedItem?.mime;
-      const successfulLabel = getMessage("notificationSuccessTitle");
-      const title = buildSuccessNotificationTitle(successfulLabel, completedItem?.fileSize, mime);
-
-      const successDetails: SaveInNotificationOptions = {
-        type: "basic",
-        title,
-        iconUrl: SUCCESS_ICON_URL,
-        message: filename,
-      };
-      // Undo button: Chrome-only (Firefox rejects `buttons`), and suppressed
-      // for private records to match the exclusion of private activity from
-      // history — undo marks a History entry, which private saves never have.
-      if (WEB_EXTENSION_CAPABILITIES.notificationButtons && !isPrivateDownloadRecord(record)) {
-        Object.assign(successDetails, {
-          buttons: [{ title: getMessage("notificationUndoSave") || "Undo save" }],
-        });
-      }
-      createNotification(String(downloadDelta.id), successDetails, notifyDuration);
-
-      if (backgroundRuntime.debug && !isPrivateDownloadRecord(record)) {
-        /* eslint-disable no-console */
-        console.log(
-          "notification: created success",
-          String(downloadDelta.id),
-          notifyDuration,
-          downloadDelta.id,
-        );
-        /* eslint-enable no-console */
-      }
-    }
-
-    const isComplete = downloadDelta.state && downloadDelta.state.current === "complete";
-    if (failed || isComplete) {
-      if (record.offscreenRequestId) {
-        await OffscreenClient.release(record.offscreenRequestId).catch((error) =>
-          addDownloadLog(record, "offscreen blob release failed", String(error)),
-        );
-      }
-      // Clear adoption but keep the record: recordHistoryStatus (above) and any
-      // in-flight retry still read its historyEntryId; the cap evicts it later
-      await mergeTrackedDownload(downloadDelta.id, {
-        adopted: false,
-        pendingSourceSidecar: undefined,
-        ...(record.url && isDataUrl(record.url) ? { url: undefined } : {}),
-      });
-    }
+  const isComplete = downloadDelta.state && downloadDelta.state.current === "complete";
+  if (failed || isComplete) {
+    await releaseTerminalDownload(downloadDelta, record);
   }
 };
