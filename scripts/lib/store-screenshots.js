@@ -25,8 +25,8 @@ const SCREENSHOTS = Object.freeze([
     description: "Tracking and routing ordinary browser downloads with a match-pattern filter",
   }),
   Object.freeze({
-    filename: "05-history.png",
-    description: "Searchable download history with routed results",
+    filename: "05-right-click-save.png",
+    description: "Right-clicking an image to save it into a folder with the Save In menu",
   }),
 ]);
 

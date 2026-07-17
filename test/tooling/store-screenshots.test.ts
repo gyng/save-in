@@ -70,8 +70,8 @@ describe("Chrome Web Store screenshot plan", () => {
         description: "Tracking and routing ordinary browser downloads with a match-pattern filter",
       },
       {
-        filename: "05-history.png",
-        description: "Searchable download history with routed results",
+        filename: "05-right-click-save.png",
+        description: "Right-clicking an image to save it into a folder with the Save In menu",
       },
     ]);
   });

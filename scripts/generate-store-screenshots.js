@@ -11,6 +11,7 @@ const path = require("path");
 
 const cdp = require("./lib/cdp");
 const chrome = require("./lib/chrome");
+const { menuOverlayDoc, OVERLAY_WIDTH, OVERLAY_HEIGHT } = require("./lib/context-menu-art");
 const { createDemoServer, SHOWCASE_PATHS, SHOWCASE_RULES } = require("./review-demo");
 const {
   SCREENSHOT_HEIGHT,
@@ -361,8 +362,66 @@ const main = async () => {
     await cdp.evalInTarget(port, demoTarget, "scrollTo(0, 0); document.activeElement?.blur()");
     await capture(port, demoTarget, outputDir, SCREENSHOTS[2]);
 
-    await activateOptionsTab(port, optionsTarget, "section-history");
-    await capture(port, optionsTarget, outputDir, SCREENSHOTS[4]);
+    // Right-click save: close the Page Sources panel and float the Save In
+    // context menu over Miso's photo to show the core gesture on a real page.
+    await cdp.evalInServiceWorker(
+      port,
+      extensionId,
+      `chrome.tabs.query({}).then(async (tabs) => {
+        const tab = tabs.find((candidate) => candidate.url?.includes(${JSON.stringify(demoTarget)}));
+        if (!tab?.id) throw new Error("Showcase tab missing");
+        await chrome.storage.session.set({ sourcePanelOpen: false });
+        await chrome.tabs.sendMessage(tab.id, { type: "SET_SOURCE_PANEL", body: { open: false } });
+        return "closed";
+      })`,
+    );
+    await waitFor(
+      () =>
+        cdp.evalInTarget(
+          port,
+          demoTarget,
+          `!document.querySelector("#save-in-source-panel")?.shadowRoot?.querySelector(".panel")`,
+        ),
+      "Page Sources panel closed",
+    );
+    await cdp.evalInTarget(
+      port,
+      demoTarget,
+      `(() => {
+        document.getElementById("save-in-menu-overlay")?.remove();
+        const img = document.querySelector(".hero")
+          || document.querySelector("article img")
+          || document.querySelector("img");
+        const rect = img
+          ? img.getBoundingClientRect()
+          : { left: 120, top: 200, width: 700, height: 400 };
+        const W = ${OVERLAY_WIDTH}, H = ${OVERLAY_HEIGHT};
+        // Anchor the menu a little inside the image, then clamp so the whole
+        // menu stays inside the viewport.
+        let left = rect.left + Math.min(64, rect.width * 0.12) - 18;
+        let top = rect.top + Math.min(60, rect.height * 0.14) - 18;
+        left = Math.max(8, Math.min(left, innerWidth - W - 8));
+        top = Math.max(8, Math.min(top, innerHeight - H - 8));
+        const frame = document.createElement("iframe");
+        frame.id = "save-in-menu-overlay";
+        frame.style.cssText =
+          "position:fixed;border:0;background:transparent;pointer-events:none;z-index:2147483000;left:"
+          + left + "px;top:" + top + "px;width:" + W + "px;height:" + H + "px";
+        frame.srcdoc = ${JSON.stringify(menuOverlayDoc())};
+        document.body.appendChild(frame);
+        return "added";
+      })()`,
+    );
+    await waitFor(
+      () =>
+        cdp.evalInTarget(
+          port,
+          demoTarget,
+          `!!document.getElementById("save-in-menu-overlay")?.contentDocument?.querySelector(".menu")`,
+        ),
+      "context-menu overlay",
+    );
+    await capture(port, demoTarget, outputDir, SCREENSHOTS[4]);
 
     process.stdout.write(
       `\nChrome Web Store screenshots are ready in ${path.relative(chrome.ROOT, outputDir)}\n`,

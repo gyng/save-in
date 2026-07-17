@@ -238,7 +238,8 @@ and writes five 1280×800 PNGs to `docs/store-screenshots/` in listing order:
 - `03-page-sources.png`: Page Sources on the in-repo demo page;
 - `04-browser-downloads.png`: tracking and routing ordinary browser downloads
   with a match-pattern filter; and
-- `05-history.png`: searchable history with representative routed downloads.
+- `05-right-click-save.png`: the Save In context menu over a demo-page image,
+  showing the right-click save gesture.
 
 It losslessly recompresses each PNG and validates its dimensions. To use another
 destination:
