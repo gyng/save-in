@@ -204,26 +204,8 @@
   margin: 0;
 }
 
-.path-editor-more-trigger {
-  display: inline-grid;
-  place-items: center;
-  inline-size: var(--compact-control-size);
-  min-block-size: var(--compact-control-size);
-  block-size: var(--compact-control-size);
-  padding: 0;
-  border: 1px solid transparent;
-  list-style: none;
-  font-size: var(--text-lg);
-  opacity: 1;
-}
-
-.path-editor-more-trigger:hover,
-.path-editor-more-trigger:focus-visible {
-  color: var(--color-text);
-  border-color: var(--panel-border);
-  background: var(--hover-bg);
-}
-
+/* The trigger itself is .visual-editor-more-trigger, shared with Routing
+   rules'; .path-editor-more-trigger is left as the hook this menu anchors to. */
 .path-editor-action-menu {
   --menu-popover-min-inline: 10.5rem;
 

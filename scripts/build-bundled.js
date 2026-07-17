@@ -62,6 +62,7 @@ const optionStyleFiles = [
   "styles/style-layout-responsive.css",
   "rule-editor/style-template-library.css",
   "core/style-option-tools.css",
+  "core/style-visual-editor-controls.css",
   "path-editor/style-editor-actions.css",
   "path-editor/style-path-editor.css",
   "path-editor/style-menu-preview.css",

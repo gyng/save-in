@@ -198,31 +198,13 @@
   font-size: var(--text-sm);
 }
 
-.rule-editor-actions-trigger {
-  display: inline-grid;
-  place-items: center;
-  inline-size: var(--compact-control-size);
-  block-size: var(--compact-control-size);
-  padding: 0;
-  color: var(--color-text-muted);
-  border-color: transparent;
-  background: transparent;
-  font-size: var(--text-lg);
-  line-height: 1;
-  list-style: none;
-}
-
+/* The trigger itself is .visual-editor-more-trigger, shared with the Save
+   menu's; .rule-editor-actions-trigger is left as the hook the card and its
+   test address it by. */
 .rule-editor-card-actions {
   position: relative;
   flex: none;
   margin: 0;
-}
-
-.rule-editor-actions-trigger:hover,
-.rule-editor-actions-trigger:focus-visible {
-  color: var(--color-text);
-  border-color: var(--panel-border);
-  background: var(--hover-bg);
 }
 
 .rule-editor-card-action-menu {

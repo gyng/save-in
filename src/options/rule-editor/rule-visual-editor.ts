@@ -654,7 +654,8 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
     const actions = document.createElement("details");
     actions.className = "visual-editor-row-actions rule-editor-card-actions details-popup";
     const actionsTrigger = document.createElement("summary");
-    actionsTrigger.className = "visual-editor-control rule-editor-actions-trigger";
+    actionsTrigger.className =
+      "visual-editor-control visual-editor-more-trigger rule-editor-actions-trigger";
     actionsTrigger.textContent = "⋯";
     const actionsLabel = contextualLabel(
       localize("routeVisualRuleActionsAccessible", "More actions for rule $RULE$", rule.index + 1),

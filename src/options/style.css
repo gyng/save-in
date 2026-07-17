@@ -20,6 +20,7 @@
 @import url("styles/style-layout.css") layer(layout);
 @import url("reference/style-variables-preview.css") layer(layout);
 @import url("styles/style-layout-responsive.css") layer(layout);
+@import url("core/style-visual-editor-controls.css") layer(editors);
 @import url("rule-editor/style-rule-editor.css") layer(editors);
 @import url("rule-editor/style-rule-editor-clauses.css") layer(editors);
 @import url("rule-editor/style-rule-editor-create.css") layer(editors);

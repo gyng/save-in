@@ -25,31 +25,8 @@
   margin-block-start: 0;
 }
 
-/* Shared quiet controls for both visual editors. */
-.visual-editor-control {
-  min-inline-size: var(--compact-control-size);
-  min-block-size: var(--compact-control-size);
-  padding: 4px 6px;
-  border: none;
-  border-radius: var(--radius-sm);
-  color: var(--color-text-muted);
-  background-color: transparent;
-  font-size: var(--text-xs);
-  line-height: 1;
-  opacity: 0.75;
-}
-
-.visual-editor-control:hover {
-  color: inherit;
-  background-color: var(--hover-bg);
-  opacity: 1;
-}
-
-.visual-editor-control:disabled {
-  cursor: default;
-  opacity: 0.25;
-}
-
+/* The .visual-editor-control atom these rules decorate is owned by
+   core/style-visual-editor-controls.css, which loads before both editors. */
 :is(.path-editor-action-menu, .rule-editor-card-action-menu) .visual-editor-control {
   gap: var(--space-2);
 }

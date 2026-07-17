@@ -247,6 +247,9 @@ const styleLayers = [
   [
     "editors",
     [
+      // First, and deliberately: it owns the atom both editors extend, so it
+      // has to lose to both of them rather than to whichever loads later.
+      "core/style-visual-editor-controls.css",
       "rule-editor/style-rule-editor.css",
       "rule-editor/style-rule-editor-clauses.css",
       "rule-editor/style-rule-editor-create.css",

@@ -713,7 +713,8 @@ const PathEditorHelpers = {
         const more = document.createElement("details");
         more.className = "path-editor-more details-popup";
         const moreTrigger = document.createElement("summary");
-        moreTrigger.className = "visual-editor-control path-editor-more-trigger";
+        moreTrigger.className =
+          "visual-editor-control visual-editor-more-trigger path-editor-more-trigger";
         moreTrigger.textContent = "⋯";
         const moreLabel = localize(
           "pathVisualMoreActionsAccessible",
