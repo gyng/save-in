@@ -9,7 +9,7 @@ complex download organization easier while preserving existing settings and
 rules.
 
 - Rebuilt for current Firefox and Chrome MV3 extension platforms; now requires
-  Firefox 121+ or Chrome 123+.
+  Firefox 140+ or Chrome 123+.
 - Redesigned Options with clearer navigation, visual directory editing, rule
   templates, previews, a route debugger, search, first-run guidance, improved
   localization, and better dark mode.
@@ -48,8 +48,9 @@ rules.
 
 ### Platform and compatibility
 
-- Migrated to Manifest V3 and raised the minimum versions to Firefox 121 and
-  Chrome 123 (#225, #227).
+- Migrated to Manifest V3 and raised the minimum versions to Firefox 140 and
+  Chrome 123 (#225, #227). Firefox below 140 cannot install this manifest at
+  all, and keeps 3.7.3 from AMO.
 - Unified Firefox and Chrome releases into one readable, reproducible package
   with browser-specific background handling.
 - Moved cross-origin acquisition from the old content-script path into the

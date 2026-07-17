@@ -34,7 +34,7 @@ container, pointer, motion, and forced-color adaptations belong in
 `source-panel-responsive.css` after its result styles.
 
 Cascade layers are the supported ownership boundary for the declared Firefox
-121 and Chrome 123 minimums. Keep selectors local to their feature file and put
+140 and Chrome 123 minimums. Keep selectors local to their feature file and put
 cross-feature precedence in the layer order instead of escalating specificity.
 CSS `@scope` is a future simplification for component-local element selectors,
 but the CSS policy rejects it outright — including behind a feature query —
