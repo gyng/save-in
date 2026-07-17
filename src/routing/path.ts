@@ -60,6 +60,11 @@ export const LEADING_WHITESPACE_REGEX = /^\s+/;
 export const TRAILING_DOTS_AND_SPACES_REGEX = /[.\s]+$/;
 export const RESERVED_DEVICE_NAME_REGEX = /^(CON|PRN|AUX|NUL|COM[1-9¹²³]|LPT[1-9¹²³])$/i;
 export const SEPARATOR_REGEX_INCLUSIVE = /([/\\])/g;
+// A destination ending in a separator names a folder and keeps the download's
+// own name. It must accept every separator the line above splits on, or the
+// router reads a folder the parser normalized as a filename. Deliberately not
+// global: callers share it, so it must hold no lastIndex.
+export const ROUTES_TO_FOLDER_REGEX = /[/\\]\s*$/;
 
 function segment(type: PathSegmentType, val: string): PathSegment {
   return {

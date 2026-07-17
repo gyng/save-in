@@ -4,7 +4,7 @@ import { options } from "../config/options-data.ts";
 import { webExtensionApi } from "../platform/web-extension-api.ts";
 import { WEB_EXTENSION_CAPABILITIES } from "../platform/chrome-detector.ts";
 import { extensionSessionStorage } from "../platform/storage-areas.ts";
-import { Path } from "../routing/path.ts";
+import { Path, ROUTES_TO_FOLDER_REGEX } from "../routing/path.ts";
 import { isRenameTransform, type RenameTransform } from "../routing/rename.ts";
 import { applyVariables, mimeToExtension, resolveMime } from "../routing/variable.ts";
 import { EXTENSION_REGEX } from "../routing/filename.ts";
@@ -353,7 +353,7 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
               await rejectDeferredRoute(recoveredState);
               return;
             }
-            recoveredState.routeIsFolder = /\/\s*$/.test(routeMatches);
+            recoveredState.routeIsFolder = ROUTES_TO_FOLDER_REGEX.test(routeMatches);
             recoveredState.route = await applyVariables(
               new Path(routeMatches),
               recoveredState.info,
@@ -472,7 +472,7 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
         pendingState.route = undefined;
         pendingState.routeIsFolder = false;
         if (routeMatches) {
-          pendingState.routeIsFolder = /\/\s*$/.test(routeMatches);
+          pendingState.routeIsFolder = ROUTES_TO_FOLDER_REGEX.test(routeMatches);
           pendingState.route = await applyVariables(new Path(routeMatches), pendingState.info);
         }
         if (pendingState.scratch?.deferredRouteRequirement && !routeMatches) {

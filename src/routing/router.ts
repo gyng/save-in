@@ -1,6 +1,6 @@
 import { RULE_TYPES } from "../shared/constants.ts";
 import { options } from "../config/options-data.ts";
-import { getFilenameDiagnostics, Path } from "./path.ts";
+import { getFilenameDiagnostics, Path, ROUTES_TO_FOLDER_REGEX } from "./path.ts";
 import { parseRulesCollecting } from "./rule-parser.ts";
 import { evaluateRule } from "./rule-matcher.ts";
 import type {
@@ -191,7 +191,8 @@ export const traceRules = async (
       ? await applyVariables(new Path(destination), destinationInfo)
       : null;
   const expandedDestination = expandedPath?.toString() ?? null;
-  const finalComponentIsFilename = typeof destination === "string" && !/\/\s*$/.test(destination);
+  const finalComponentIsFilename =
+    typeof destination === "string" && !ROUTES_TO_FOLDER_REGEX.test(destination);
   const selectedRename = selectedEvaluation ? selectedEvaluation.rename || null : null;
   const expandedRename =
     selectedRename && !fetchRewriteFailed

@@ -1,7 +1,7 @@
 import type { DownloadInfo } from "../downloads/download-types.ts";
 import { getRoutingMatch } from "../downloads/download-plan.ts";
 import { options } from "../config/options-data.ts";
-import { Path } from "../routing/path.ts";
+import { Path, ROUTES_TO_FOLDER_REGEX } from "../routing/path.ts";
 import {
   applyRenameTransform,
   expandRenameTransform,
@@ -39,7 +39,7 @@ export const previewRoutes = async (state?: RoutePreviewState | null): Promise<R
   // Mirror finalizeFullPath: the winning rule's rename edits the final
   // filename component of the previewed route before sanitization.
   const rename = match?.rename ? await expandRenameTransform(match.rename, info) : null;
-  const finalComponentIsFilename = !/\/\s*$/.test(matchedRoute || "");
+  const finalComponentIsFilename = !ROUTES_TO_FOLDER_REGEX.test(matchedRoute || "");
 
   return {
     path: path.finalize({

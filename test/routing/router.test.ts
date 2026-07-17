@@ -1260,6 +1260,23 @@ into: captures/:$1:/:$2:`,
       expect(nameless.renamedFrom).toBe("");
     });
 
+    // Path treats "\" as a separator (a\b/c finalizes to a/b/c), so a
+    // destination ending in one names a folder just as "/" does.
+    test("renames the download's own name for a backslash-terminated folder", async () => {
+      const rules = router.parseRules(
+        "filename: \\.pdf$\nrename: \\.pdf$ -> .archive.pdf\ninto: pdfs\\",
+      );
+
+      const trace = await router.traceRules(rules, {
+        url: "https://x.example/report.pdf",
+        filename: "report.pdf",
+      });
+
+      expect(trace.sanitizedDestination).toBe("pdfs/");
+      expect(trace.renamedFrom).toBe("report.pdf");
+      expect(trace.renamedTo).toBe("report.archive.pdf");
+    });
+
     test("rules without rename trace null rename fields", async () => {
       const rules = router.parseRules("filename: .*\ninto: files/:filename:");
 

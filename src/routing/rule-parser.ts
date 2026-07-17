@@ -29,10 +29,12 @@ import { isRenameOnlyEligibleRule } from "./rule-matcher.ts";
 import { isSafeRoutingRegex } from "./regex-safety.ts";
 import { isUsableFetchTemplate } from "./fetch-url.ts";
 import { invalidDestinationRange } from "./destination-safety.ts";
+import { ROUTES_TO_FOLDER_REGEX } from "./path.ts";
 
-// Mirrors the folder-route test in downloads/download-plan.ts: a trailing
-// slash routes into a directory and keeps the download's own name.
-const ROUTES_TO_FOLDER = /\/\s*$/;
+// A trailing separator routes into a directory and keeps the download's own
+// name. Shared with the router and the download plan so the warning below can
+// never disagree with where the file actually lands.
+const ROUTES_TO_FOLDER = ROUTES_TO_FOLDER_REGEX;
 // A routing variable or capture reference, i.e. a component that expands to a
 // different value per download rather than a fixed literal.
 const EXPANDING_DESTINATION_TOKEN = /:(?:[A-Za-z][A-Za-z0-9_]*|\$\d+):/;

@@ -8,7 +8,7 @@ import {
   type RuleMatch,
 } from "../routing/router.ts";
 import { expandFetchUrl, isUsableFetchRewrite } from "../routing/fetch-url.ts";
-import { Path } from "../routing/path.ts";
+import { Path, ROUTES_TO_FOLDER_REGEX } from "../routing/path.ts";
 import { applyVariables, mimeToExtension, resolveMime } from "../routing/variable.ts";
 import { options } from "../config/options-data.ts";
 import { deriveUrlFilenames, EXTENSION_REGEX } from "../routing/filename.ts";
@@ -221,7 +221,7 @@ export const resolveDownloadPlan = async (
     state.path = new Path(".");
   state.path = await applyVariables(state.path, state.info);
   if (routeMatches) {
-    state.routeIsFolder = /\/\s*$/.test(routeMatches);
+    state.routeIsFolder = ROUTES_TO_FOLDER_REGEX.test(routeMatches);
     state.route = await applyVariables(new Path(routeMatches), state.info);
   }
   const routeRequired =

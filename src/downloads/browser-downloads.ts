@@ -1,4 +1,4 @@
-import { Path } from "../routing/path.ts";
+import { Path, ROUTES_TO_FOLDER_REGEX } from "../routing/path.ts";
 import { applyVariables, normalizeMimeType } from "../routing/variable.ts";
 import { BROWSER_DOWNLOAD_CONTEXT } from "../shared/constants.ts";
 import { matchesAnyPattern } from "../shared/match-pattern.ts";
@@ -88,7 +88,7 @@ export const routeBrowserDownload = async (
   try {
     const route = Download.getRoutingMatches(state);
     if (!route) return null;
-    state.routeIsFolder = /\/\s*$/.test(route);
+    state.routeIsFolder = ROUTES_TO_FOLDER_REGEX.test(route);
     state.route = await applyVariables(new Path(route), state.info);
     // Ordinary browser downloads can only be renamed, and rename: is exactly a
     // rename — the matched rule's transform applies to the suggested name too.
