@@ -939,6 +939,32 @@ and its import-time call exactly, and the panel is options-page DOM covered by
    pair still fails when it needs a value. Green across 255 modules, with
    `npm run lint`, `npm run typecheck`, `npm test` (4014), and `npm run bundle`.
 
+5. **`options/path-editor/path-editor.ts` — decomposed, not split.** Phase 2.4's
+   note called this "an 867-line file slated for its own future split." Measuring
+   it first changed the verdict, and the note should not be read as a standing
+   plan.
+
+   **Landed as a decomposition.** The file's concerns are not mixed: everything
+   in it serves the drag-and-drop directory-tree editor. What it had was a god
+   *function* — `setupVisualEditor`'s `render` closure ran ~480 lines and built
+   every part of every row in one pass (indent, handle, enabled toggle, directory
+   input, alias and its toggle, access key, the six "more" actions, and the drop
+   zones between rows), naming none of it. Its two sibling editors do not work
+   that way: `rule-visual-editor.ts` is longer still and stays legible because its
+   closure is ~17 named helpers.
+
+   So sixteen named builders now sit in that same closure and `render` is 30
+   lines. The shared state (`nodes`, `dragFrom`, `deletedNodes`) never moved,
+   which is why this needed no context object and no module boundary — unlike
+   Phase 4.1, where the concerns genuinely were unrelated. Splitting the file
+   would have invented seams the feature does not have, and the line count is not
+   the defect: a file that does one job thoroughly is not a god module at 900
+   lines.
+
+   The 87 existing tests passed untouched. Coverage is 100% statements and
+   functions; `check-import-cycles.js`'s cross-feature allowlist was unaffected,
+   since no import moved.
+
 ## Non-goals
 
 - No behavior, message-payload, storage-shape, or manifest changes; all
