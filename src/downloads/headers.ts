@@ -1,7 +1,6 @@
 import { options } from "../config/options-data.ts";
 import { WEB_EXTENSION_CAPABILITIES } from "../platform/chrome-detector.ts";
-import { matchPatternToRegExp } from "../shared/match-pattern.ts";
-import { parsePatternList } from "../shared/pattern-list.ts";
+import { matchesAnyPattern } from "../shared/match-pattern.ts";
 import { canUseRefererRules } from "./referer-rules.ts";
 import type { DownloadInfo } from "./download-types.ts";
 
@@ -22,14 +21,14 @@ const getHttpReferer = (value: string | undefined): string | undefined => {
   }
 };
 
+// The same match-pattern syntax as the per-site disable list, so it goes
+// through the same matcher: compiling the patterns here separately meant the
+// filter tested the raw URL while the list tested the canonical one, and an
+// allowlist entry a user wrote once meant two different things. An empty list
+// still allows nothing — the filter is an allowlist for a header the user only
+// wants sent where they said.
 export const matchesRefererFilter = (url: string): boolean =>
-  parsePatternList(options.setRefererHeaderFilter, (pattern) => {
-    try {
-      return matchPatternToRegExp(pattern) ?? new Error("Invalid WebExtension match pattern");
-    } catch (error) {
-      return error instanceof Error ? error : new Error(String(error));
-    }
-  }).entries.some(({ value }) => value.test(url));
+  matchesAnyPattern(url, options.setRefererHeaderFilter);
 
 export const getReferer = (state: RefererState): string | undefined => {
   if (!options.setRefererHeader) return undefined;

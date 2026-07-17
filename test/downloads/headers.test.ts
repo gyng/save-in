@@ -26,6 +26,28 @@ describe("matchesRefererFilter", () => {
     expect(matchesRefererFilter("https://evil.com/?u=https://i.pximg.net/")).toBe(false);
   });
 
+  // The filter and the per-site disable list are the same pattern syntax, so an
+  // entry a user writes once must mean the same thing in both. The filter read
+  // the raw URL rather than the canonical one, so a host the URL parser
+  // rewrites — userinfo, uppercase, punycode — silently failed the allowlist
+  // and the download went out with no Referer.
+  test("canonicalizes the URL the way the disable list does", () => {
+    expect(matchesRefererFilter("https://user@i.pximg.net/img.jpg")).toBe(true);
+    expect(matchesRefererFilter("https://I.PXimg.NET/img.jpg")).toBe(true);
+
+    options.setRefererHeaderFilter = "*://例え.jp/*";
+    expect(matchesRefererFilter("https://例え.jp/img.jpg")).toBe(true);
+
+    // The fragment is ignored per the spec, so it cannot defeat an exact path.
+    options.setRefererHeaderFilter = "*://i.pximg.net/img.jpg";
+    expect(matchesRefererFilter("https://i.pximg.net/img.jpg#frag")).toBe(true);
+
+    // Canonicalizing must not widen the allowlist: a lookalike host that only
+    // appears in the userinfo still sends nothing.
+    options.setRefererHeaderFilter = "*://i.pximg.net/*";
+    expect(matchesRefererFilter("https://i.pximg.net@evil.com/img.jpg")).toBe(false);
+  });
+
   test("supports multiple patterns and wildcard paths", () => {
     options.setRefererHeaderFilter = "*://i.pximg.net/*\n*://example.org/downloads/*";
     expect(matchesRefererFilter("https://example.org/downloads/a")).toBe(true);
@@ -38,21 +60,12 @@ describe("matchesRefererFilter", () => {
     expect(matchesRefererFilter("https://axb/cxd=e")).toBe(false);
   });
 
-  test("rejects empty, malformed, and throwing patterns", () => {
-    for (const pattern of ["", "\n  \n", "not-a-match-pattern"]) {
+  // An allowlist that parses to nothing allows nothing: a malformed entry must
+  // never widen the filter into sending the header everywhere.
+  test("rejects empty and malformed patterns", () => {
+    for (const pattern of ["", "\n  \n", "not-a-match-pattern", "*://foo*.bar.com/*"]) {
       options.setRefererHeaderFilter = pattern;
       expect(matchesRefererFilter("https://i.pximg.net/a.png")).toBe(false);
-    }
-    for (const failure of [new Error("bad pattern"), "bad pattern"]) {
-      const spy = vi.spyOn(MatchPattern, "matchPatternToRegExp").mockImplementation(() => {
-        throw failure;
-      });
-      try {
-        options.setRefererHeaderFilter = "*://i.pximg.net/*";
-        expect(matchesRefererFilter("https://i.pximg.net/a.png")).toBe(false);
-      } finally {
-        spy.mockRestore();
-      }
     }
   });
 });
