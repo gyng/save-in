@@ -390,18 +390,12 @@ export const closeLocal = (server) =>
       resolve();
       return;
     }
-    /** @type {ReturnType<typeof setTimeout> | undefined} */
-    let force;
-    server.close((error) => {
-      if (force) clearTimeout(force);
-      if (error) reject(error);
-      else resolve();
-    });
+    server.close((error) => (error ? reject(error) : resolve()));
     server.closeIdleConnections?.();
     // close() resolves only once EVERY connection has ended, and a request still
     // in flight -- a fixture tab mid-load on a slow runner -- never counts as
-    // idle, so cleanup would hang until the test's own timeout instead. Let the
-    // graceful close win when it can, then force whatever is left.
-    force = setTimeout(() => server.closeAllConnections?.(), 2000);
-    force.unref?.();
+    // idle, so closing only the idle ones leaves cleanup hanging until the test's
+    // own timeout. The scenario has already awaited whatever it needed from this
+    // server, so drop the rest rather than wait on the browser to let go.
+    server.closeAllConnections?.();
   });
