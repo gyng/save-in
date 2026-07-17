@@ -108,6 +108,29 @@ describe("Counter", () => {
     expect(await nextCounter(writes, browser.storage.local)).toBe(1);
   });
 
+  // The write queue is shared by every :counter: save for the life of the
+  // worker, so a rejected promise parked in it fails every later download too —
+  // long after the storage itself recovered, and only healed by a restart.
+  // A failure must not outlive the call that hit it.
+  test("a storage failure does not poison later counter writes", async () => {
+    const broken = {
+      get: vi.fn(() => Promise.reject(new Error("quota exceeded"))),
+      set: vi.fn(() => Promise.resolve()),
+    };
+
+    expect(await nextCounter(writes, browser.storage.local)).toBe(1);
+    await expect(nextCounter(writes, broken)).rejects.toThrow("quota exceeded");
+    expect(await nextCounter(writes, browser.storage.local)).toBe(2);
+
+    await expect(nextPrivateCounter(writes, broken)).rejects.toThrow("quota exceeded");
+    expect(await nextPrivateCounter(writes, browser.storage.local)).toBe(3);
+
+    await expect(resetCounter(writes, { ...broken, set: broken.get })).rejects.toThrow(
+      "quota exceeded",
+    );
+    expect(await nextCounter(writes, browser.storage.local)).toBe(3);
+  });
+
   test("normalizes malformed persisted counters", async () => {
     const storage = {
       get: vi.fn(() => Promise.resolve({ "save-in-counter": "corrupt" })),
