@@ -65,9 +65,13 @@ const endOfRegex = (source, start) => {
   while (i < source.length) {
     const c = source[i];
     if (c === "\\") i += 2;
-    else if (c === "[") ((inClass = true), i++);
-    else if (c === "]") ((inClass = false), i++);
-    else if (c === "/" && !inClass) return i + 1;
+    else if (c === "[") {
+      inClass = true;
+      i++;
+    } else if (c === "]") {
+      inClass = false;
+      i++;
+    } else if (c === "/" && !inClass) return i + 1;
     else if (c === "\n") return i;
     else i++;
   }
@@ -92,8 +96,10 @@ const stripCommentsAndStrings = (source) => {
     if (inTemplateText) {
       const c = source[i];
       if (c === "\\") i += 2;
-      else if (c === "`") ((inTemplateText = false), i++);
-      else if (c === "$" && source[i + 1] === "{") {
+      else if (c === "`") {
+        inTemplateText = false;
+        i++;
+      } else if (c === "$" && source[i + 1] === "{") {
         templates.push(braceDepth);
         braceDepth++;
         inTemplateText = false;
