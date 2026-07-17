@@ -56,6 +56,8 @@ const localize = (
   substitutions?: string | number | Array<string | number>,
 ): string => getMessage(key, substitutions) || fallback;
 
+const ALIAS_UNBALANCED = "Not saved: parentheses must be balanced.";
+
 const PathEditorHelpers = {
   parseLine: parseDirectoryLine,
   serializeLine: serializeDirectoryLine,
@@ -559,13 +561,30 @@ const PathEditorHelpers = {
               index + 1,
             ),
           );
+          // setAlias only writes a name the stored syntax can give back, so an
+          // unbalanced one leaves the node untouched. Report that on the field
+          // itself: the value never reaches the text the routing validation
+          // reads, so its error pass cannot see this and would clear an
+          // aria-invalid mark on its next run.
+          const markAliasRejected = (): void => {
+            const stored = nodes[index];
+            const rejected = stored !== undefined && alias.value !== PathEditorHelpers.getAlias(stored);
+            alias.classList.toggle("path-editor-alias-rejected", rejected);
+            if (rejected) alias.title = localize("pathVisualAliasUnbalanced", ALIAS_UNBALANCED);
+            else alias.removeAttribute("title");
+          };
           alias.addEventListener("input", () => {
             const current = nodes[index];
             if (!current) return;
             aliasToggle.classList.toggle("has-value", Boolean(alias.value));
             nodes[index] = PathEditorHelpers.setAlias(current, alias.value);
+            // A name with parentheses is transiently unbalanced while it is
+            // typed, so only a finished one is judged; clear a stale mark as
+            // soon as the name becomes storable again.
+            if (alias.classList.contains("path-editor-alias-rejected")) markAliasRejected();
             commit();
           });
+          alias.addEventListener("blur", markAliasRejected);
           const aliasToggle = document.createElement("button");
           aliasToggle.type = "button";
           aliasToggle.className = "path-editor-alias-toggle";

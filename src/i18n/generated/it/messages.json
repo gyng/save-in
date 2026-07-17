@@ -3422,6 +3422,9 @@
   "pathVisualAliasPlaceholder": {
     "message": "Nome visualizzato"
   },
+  "pathVisualAliasUnbalanced": {
+    "message": "Non salvato: le parentesi devono essere bilanciate."
+  },
   "pathVisualAliasAccessible": {
     "message": "Nome visualizzato della cartella $NUMBER$",
     "placeholders": {

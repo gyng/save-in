@@ -3422,6 +3422,9 @@
   "pathVisualAliasPlaceholder": {
     "message": "Anzeigename"
   },
+  "pathVisualAliasUnbalanced": {
+    "message": "Nicht gespeichert: Klammern müssen paarweise gesetzt sein."
+  },
   "pathVisualAliasAccessible": {
     "message": "Anzeigename für Ordner $NUMBER$",
     "placeholders": {

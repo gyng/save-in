@@ -3422,6 +3422,9 @@
   "pathVisualAliasPlaceholder": {
     "message": "显示名称"
   },
+  "pathVisualAliasUnbalanced": {
+    "message": "未保存：括号必须成对。"
+  },
   "pathVisualAliasAccessible": {
     "message": "文件夹 $NUMBER$ 的显示名称",
     "placeholders": {

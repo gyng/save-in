@@ -3422,6 +3422,9 @@
   "pathVisualAliasPlaceholder": {
     "message": "Weergavenaam"
   },
+  "pathVisualAliasUnbalanced": {
+    "message": "Niet opgeslagen: haakjes moeten in paren staan."
+  },
   "pathVisualAliasAccessible": {
     "message": "Weergavenaam voor map $NUMBER$",
     "placeholders": {

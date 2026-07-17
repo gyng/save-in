@@ -198,6 +198,31 @@ describe("visual editor", () => {
   const controls = (row: number, title: string) =>
     rows()[row]!.querySelector<HTMLElement>(`[data-path-action="${title}"]`)!;
 
+  // The stored syntax cannot give back an unbalanced name, so setAlias refuses
+  // it and the line keeps its old value. Silently dropping what the user typed
+  // is the failure this marks.
+  test("marks a display name the stored syntax cannot keep, once it is finished", () => {
+    const alias = rows()[1]!.querySelector<HTMLInputElement>(".path-editor-alias")!;
+
+    alias.value = "Photos (draft";
+    alias.dispatchEvent(new Event("input", { bubbles: true }));
+    // Mid-typing a name with parentheses is transiently unbalanced, so nothing
+    // is claimed until the value is finished.
+    expect(alias.classList.contains("path-editor-alias-rejected")).toBe(false);
+
+    alias.dispatchEvent(new Event("blur"));
+    expect(alias.classList.contains("path-editor-alias-rejected")).toBe(true);
+    expect(alias.title).toBe("Not saved: parentheses must be balanced.");
+    expect(textarea().value).not.toContain("Photos (draft");
+
+    // A storable name clears the mark and lands.
+    alias.value = "Photos (draft)";
+    alias.dispatchEvent(new Event("input", { bubbles: true }));
+    expect(alias.classList.contains("path-editor-alias-rejected")).toBe(false);
+    expect(alias.hasAttribute("title")).toBe(false);
+    expect(textarea().value).toContain("(alias: Photos (draft))");
+  });
+
   test("renders one row per line, separators included", () => {
     expect(rows()).toHaveLength(3);
     expect(rows()[0]!.querySelector<HTMLInputElement>(".path-editor-dir")!.value).toBe("a");

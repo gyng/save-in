@@ -3422,6 +3422,9 @@
   "pathVisualAliasPlaceholder": {
     "message": "表示名"
   },
+  "pathVisualAliasUnbalanced": {
+    "message": "保存されていません: 括弧の対応が取れていません。"
+  },
   "pathVisualAliasAccessible": {
     "message": "フォルダー $NUMBER$ の表示名",
     "placeholders": {

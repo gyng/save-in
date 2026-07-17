@@ -3422,6 +3422,9 @@
   "pathVisualAliasPlaceholder": {
     "message": "Nom affiché"
   },
+  "pathVisualAliasUnbalanced": {
+    "message": "Non enregistré : les parenthèses doivent être équilibrées."
+  },
   "pathVisualAliasAccessible": {
     "message": "Nom affiché du dossier $NUMBER$",
     "placeholders": {

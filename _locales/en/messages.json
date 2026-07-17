@@ -3827,6 +3827,10 @@
     "message": "Display name",
     "description": "Placeholder for an optional folder-menu display name. Used in src/options/path-editor.ts."
   },
+  "pathVisualAliasUnbalanced": {
+    "message": "Not saved: parentheses must be balanced.",
+    "description": "Error shown beside a folder-menu display name that cannot be stored because its parentheses do not match, so the name was not saved. Used in src/options/path-editor/path-editor.ts."
+  },
   "pathVisualAliasAccessible": {
     "message": "Display name for folder $NUMBER$",
     "description": "Accessible name for a folder-menu display-name field. Used in src/options/path-editor.ts.",

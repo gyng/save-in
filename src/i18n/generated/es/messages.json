@@ -3422,6 +3422,9 @@
   "pathVisualAliasPlaceholder": {
     "message": "Nombre visible"
   },
+  "pathVisualAliasUnbalanced": {
+    "message": "No se guardó: los paréntesis deben estar equilibrados."
+  },
   "pathVisualAliasAccessible": {
     "message": "Nombre visible de la carpeta $NUMBER$",
     "placeholders": {

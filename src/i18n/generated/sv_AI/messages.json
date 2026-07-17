@@ -3422,6 +3422,9 @@
   "pathVisualAliasPlaceholder": {
     "message": "Visningsnamn"
   },
+  "pathVisualAliasUnbalanced": {
+    "message": "Inte sparad: parenteserna måste vara balanserade."
+  },
   "pathVisualAliasAccessible": {
     "message": "Visningsnamn för mapp $NUMBER$",
     "placeholders": {

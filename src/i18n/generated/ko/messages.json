@@ -3422,6 +3422,9 @@
   "pathVisualAliasPlaceholder": {
     "message": "표시 이름"
   },
+  "pathVisualAliasUnbalanced": {
+    "message": "저장되지 않았습니다: 괄호의 짝이 맞아야 합니다."
+  },
   "pathVisualAliasAccessible": {
     "message": "폴더 $NUMBER$의 표시 이름",
     "placeholders": {

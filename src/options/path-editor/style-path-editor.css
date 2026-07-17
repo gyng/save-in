@@ -34,6 +34,13 @@
   font-size: var(--text-base);
 }
 
+/* A display name the stored syntax cannot give back is not saved. Borrows the
+   validation border the rule editor marks a rejected field with, because it is
+   the same message: this value did not land. */
+.path-editor-alias.path-editor-alias-rejected {
+  border-color: var(--color-validation);
+}
+
 .path-editor-alias-toggle {
   display: inline-flex;
   align-items: center;

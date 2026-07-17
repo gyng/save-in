@@ -3422,6 +3422,9 @@
   "pathVisualAliasPlaceholder": {
     "message": "Nome de exibição"
   },
+  "pathVisualAliasUnbalanced": {
+    "message": "Não salvo: os parênteses precisam estar balanceados."
+  },
   "pathVisualAliasAccessible": {
     "message": "Nome de exibição da pasta $NUMBER$",
     "placeholders": {

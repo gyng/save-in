@@ -3422,6 +3422,9 @@
   "pathVisualAliasPlaceholder": {
     "message": "顯示名稱"
   },
+  "pathVisualAliasUnbalanced": {
+    "message": "未儲存：括號必須成對。"
+  },
   "pathVisualAliasAccessible": {
     "message": "資料夾 $NUMBER$ 的顯示名稱",
     "placeholders": {
