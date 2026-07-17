@@ -1172,7 +1172,7 @@
     "message": "Elija las carpetas y submenús que se muestran en el menú contextual de Save In."
   },
   "html_butShowsCatPictures": {
-    "message": ", pero muestra “Imágenes de gatos”."
+    "message": ", pero muestra «Imágenes de gatos»."
   },
   "html_changeADisplayedName": {
     "message": "Cambiar un nombre mostrado"
@@ -2174,7 +2174,7 @@
     "message": "Editar"
   },
   "routeDebuggerAttemptMatched": {
-    "message": "Se probó “$VALUE$” de $SOURCE$: hubo coincidencia.",
+    "message": "Se probó «$VALUE$» de $SOURCE$: hubo coincidencia.",
     "placeholders": {
       "value": {
         "content": "$1",
@@ -2187,7 +2187,7 @@
     }
   },
   "routeDebuggerAttemptDidNotMatch": {
-    "message": "Se probó “$VALUE$” de $SOURCE$: no hubo coincidencia.",
+    "message": "Se probó «$VALUE$» de $SOURCE$: no hubo coincidencia.",
     "placeholders": {
       "value": {
         "content": "$1",
@@ -2209,7 +2209,7 @@
     }
   },
   "routeDebuggerAttemptInvalid": {
-    "message": "No se pudo leer un valor válido de $SOURCE$: “$VALUE$”.",
+    "message": "No se pudo leer un valor válido de $SOURCE$: «$VALUE$».",
     "placeholders": {
       "source": {
         "content": "$1",

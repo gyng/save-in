@@ -231,7 +231,7 @@
     "message": "File di collegamento"
   },
   "o_lShortcutFilesHelp": {
-    "message": "Salva pagine, link e contenuti multimediali come file di collegamento che aprono l’indirizzo originale."
+    "message": "Salva pagine, link e contenuti multimediali come file di collegamento che aprono l'indirizzo originale."
   },
   "o_sKeyboardShortcuts": {
     "message": "Salvataggio con clic"
@@ -366,10 +366,10 @@
     "message": "Archiviazione"
   },
   "html_theSessionLogBelowAlwaysKeepsASmallLocal": {
-    "message": "Gli errori recenti rimangono su questo dispositivo fino al termine della sessione del browser. La registrazione dettagliata scrive anche i dettagli di routing e download nella console per sviluppatori del browser e rimane attiva finché non la disattivi. L’attività privata è esclusa."
+    "message": "Gli errori recenti rimangono su questo dispositivo fino al termine della sessione del browser. La registrazione dettagliata scrive anche i dettagli di routing e download nella console per sviluppatori del browser e rimane attiva finché non la disattivi. L'attività privata è esclusa."
   },
   "html_toConnectOpenThisPageInABrowserThat": {
-    "message": "Per connetterti: apri questa pagina in un browser che supporta WebMCP, mantienila aperta e punta l'agente interno al browser su questa scheda. Chiedilo in un linguaggio semplice, ad es. \"ordina i miei download in cartelle per sito web e data, numera ogni file e avvisami solo quando uno fallisce.\""
+    "message": "Per connetterti: apri questa pagina in un browser che supporta WebMCP, mantienila aperta e punta l'agente interno al browser su questa scheda. Chiedilo in un linguaggio semplice, ad es. «ordina i miei download in cartelle per sito web e data, numera ogni file e avvisami solo quando uno fallisce.»"
   },
   "html_tools": {
     "message": "Strumenti"
@@ -609,13 +609,13 @@
     "message": "Corrisponde al nome host del referrer o, se assente, al nome host della pagina."
   },
   "html_referrerUrlMatcherDescription": {
-    "message": "Corrisponde all’URL del referrer o, se assente, all’URL della pagina."
+    "message": "Corrisponde all'URL del referrer o, se assente, all'URL della pagina."
   },
   "html_matchesTheRootHostname": {
     "message": "Corrisponde al nome host senza sottodomini."
   },
   "html_actualFileExtensionMatcherDescription": {
-    "message": "Corrisponde all’estensione risolta dal nome file o dal tipo MIME."
+    "message": "Corrisponde all'estensione risolta dal nome file o dal tipo MIME."
   },
   "html_matchesTheSelectionText": {
     "message": "Corrisponde al testo selezionato."
@@ -624,7 +624,7 @@
     "message": "Corrisponde al nome host della sorgente salvata."
   },
   "html_sourceUrlMatcherDescription": {
-    "message": "Corrisponde all’URL della sorgente salvata."
+    "message": "Corrisponde all'URL della sorgente salvata."
   },
   "html_matchesTheUrlDerivedExtensionLegacyNameUse": {
     "message": "Corrisponde all'estensione derivata da URL (nome legacy). Usa"
@@ -1134,7 +1134,7 @@
     "message": "Scegli le cartelle e i sottomenu visualizzati nel menu contestuale di Save In."
   },
   "html_butShowsCatPictures": {
-    "message": ", ma mostra \"Immagini di gatti\"."
+    "message": ", ma mostra «Immagini di gatti»."
   },
   "html_changeADisplayedName": {
     "message": "Modifica un nome visualizzato"
@@ -1359,7 +1359,7 @@
     "message": "Command / Windows key"
   },
   "html_copy0LeavesDismissalToTheBrowserOrOperatingSystem": {
-    "message": "0 usa l’impostazione predefinita del browser o del sistema operativo."
+    "message": "0 usa l'impostazione predefinita del browser o del sistema operativo."
   },
   "html_ctrl": {
     "message": "Ctrl"
@@ -1533,7 +1533,7 @@
     "message": "Rimuovi"
   },
   "externalRemoveApprovalFor": {
-    "message": "Rimuovi l’autorizzazione per $ID$",
+    "message": "Rimuovi l'autorizzazione per $ID$",
     "placeholders": {
       "id": {
         "content": "$1",
@@ -1878,7 +1878,7 @@
     "message": "Esporta tutto"
   },
   "historyFilterSearch": {
-    "message": "Cerca: “$QUERY$”",
+    "message": "Cerca: «$QUERY$»",
     "placeholders": {
       "query": {
         "content": "$1",
@@ -2424,7 +2424,7 @@
     "message": "Fluttuante"
   },
   "sourcePanelNoMatchesFilter": {
-    "message": "Nessuna sorgente corrisponde a “$FILTER$”.",
+    "message": "Nessuna sorgente corrisponde a «$FILTER$».",
     "placeholders": {
       "filter": {
         "content": "$1",
@@ -2867,7 +2867,7 @@
     "message": "Modifica"
   },
   "routeDebuggerAttemptMatched": {
-    "message": "Testato “$VALUE$” da $SOURCE$ — corrispondenza trovata.",
+    "message": "Testato «$VALUE$» da $SOURCE$ — corrispondenza trovata.",
     "placeholders": {
       "value": {
         "content": "$1",
@@ -2880,7 +2880,7 @@
     }
   },
   "routeDebuggerAttemptDidNotMatch": {
-    "message": "Testato “$VALUE$” da $SOURCE$ — nessuna corrispondenza.",
+    "message": "Testato «$VALUE$» da $SOURCE$ — nessuna corrispondenza.",
     "placeholders": {
       "value": {
         "content": "$1",
@@ -2902,7 +2902,7 @@
     }
   },
   "routeDebuggerAttemptInvalid": {
-    "message": "Impossibile leggere un valore valido da $SOURCE$: “$VALUE$”.",
+    "message": "Impossibile leggere un valore valido da $SOURCE$: «$VALUE$».",
     "placeholders": {
       "source": {
         "content": "$1",
@@ -3393,7 +3393,7 @@
     }
   },
   "pathVisualNestUnder": {
-    "message": "Annida sotto “$NAME$”",
+    "message": "Annida sotto «$NAME$»",
     "placeholders": {
       "name": {
         "content": "$1",
@@ -3588,7 +3588,7 @@
     "message": "Ciclo di vita"
   },
   "diagnosticsLifecycleHelp": {
-    "message": "Avvii recenti in background, ricaricamenti della configurazione e aggiornamenti dell’estensione. L’apertura di Diagnostica riattiva lo sfondo."
+    "message": "Avvii recenti in background, ricaricamenti della configurazione e aggiornamenti dell'estensione. L'apertura di Diagnostica riattiva lo sfondo."
   },
   "diagnosticsFailuresHelp": {
     "message": "Errori locali recenti di questa sessione del browser. Controlla il testo prima di condividerlo, perché gli errori del browser possono includere dettagli su siti o file."
@@ -3917,7 +3917,7 @@
     "message": "Scarica l'immagine alla risoluzione originale invece dell'anteprima piccola."
   },
   "html_fetchClauseCompatibility": {
-    "message": "Ignorata dal normale instradamento dei download del browser, che può solo rinominare, non sostituire gli URL. Menu, clic per salvare e salvataggi automatici continuano a usarla; il salvataggio non riesce se l’espansione non produce un URL HTTP(S) utilizzabile."
+    "message": "Ignorata dal normale instradamento dei download del browser, che può solo rinominare, non sostituire gli URL. Menu, clic per salvare e salvataggi automatici continuano a usarla; il salvataggio non riesce se l'espansione non produce un URL HTTP(S) utilizzabile."
   },
   "html_orLiteral": {
     "message": "o"
@@ -4004,7 +4004,7 @@
     "message": "Immagine JPEG Mastodon a piena dimensione"
   },
   "ruleTemplateMastodonFullsizeDescription": {
-    "message": "Riscrive l’anteprima di un’immagine JPEG Mastodon verso il file JPEG a piena dimensione"
+    "message": "Riscrive l'anteprima di un'immagine JPEG Mastodon verso il file JPEG a piena dimensione"
   },
   "ruleTemplateGoogleOriginalName": {
     "message": "Immagine Google a dimensione originale"
@@ -4094,7 +4094,7 @@
     "message": "Descrivi dove salvare i file e ottieni una regola di instradamento da controllare."
   },
   "promptAssistantEnable": {
-    "message": "Attiva l’assistente sul dispositivo"
+    "message": "Attiva l'assistente sul dispositivo"
   },
   "promptAssistantEnableHelp": {
     "message": "Quando è disattivato, Save In non controlla il modello, non crea sessioni e non invia richieste."
@@ -4109,7 +4109,7 @@
     "message": "Salva i file PNG di example.com in Images/example"
   },
   "promptAssistantPromptHelp": {
-    "message": "Questa richiesta è globale e non viene salvata. L’assistente non legge le schede aperte; includi il sito, il tipo di file e la cartella desiderati."
+    "message": "Questa richiesta è globale e non viene salvata. L'assistente non legge le schede aperte; includi il sito, il tipo di file e la cartella desiderati."
   },
   "promptAssistantSuggest": {
     "message": "Suggerisci regola"
@@ -4175,13 +4175,13 @@
     "message": "Bozza pronta — controllala prima di aggiungerla"
   },
   "promptAssistantStatusAdded": {
-    "message": "Aggiunta come bozza non salvata nell’editor delle regole"
+    "message": "Aggiunta come bozza non salvata nell'editor delle regole"
   },
   "html_cssMatcherDescription": {
-    "message": "Corrisponde all’elemento della pagina che ha rilevato la sorgente. Disponibile per Sorgenti pagina automatiche, salvataggio con clic e salvataggi dal pannello Sorgenti pagina."
+    "message": "Corrisponde all'elemento della pagina che ha rilevato la sorgente. Disponibile per Sorgenti pagina automatiche, salvataggio con clic e salvataggi dal pannello Sorgenti pagina."
   },
   "html_cssMatcherSyntax": {
-    "message": "Il criterio css: usa la sintassi dei selettori CSS invece di un’espressione regolare e non accetta flag."
+    "message": "Il criterio css: usa la sintassi dei selettori CSS invece di un'espressione regolare e non accetta flag."
   },
   "ruleInvalidCssSelector": {
     "message": "Selettore CSS non valido"

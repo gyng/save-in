@@ -1172,7 +1172,7 @@
     "message": "Välj de mappar och undermenyer som visas i Save Ins snabbmeny."
   },
   "html_butShowsCatPictures": {
-    "message": ", men visar \"Kattbilder.\""
+    "message": ", men visar ”Kattbilder.”"
   },
   "html_changeADisplayedName": {
     "message": "Ändra ett visat namn"
@@ -1733,7 +1733,7 @@
     "message": "De senaste felen lagras på den här enheten tills webbläsarsessionen avslutas. Utförlig loggning skriver även information om dirigering och nedladdningar till webbläsarens utvecklarkonsol och förblir aktiverad tills du stänger av den. Privat aktivitet undantas."
   },
   "html_toConnectOpenThisPageInABrowserThat": {
-    "message": "För att ansluta: öppna den här sidan i en webbläsare som stöder WebMCP, håll den öppen och peka din webbläsaragent på den här fliken. Fråga det i klartext — t.ex. \"Sortera mina nedladdningar i mappar efter webbplats och datum, numrera varje fil och meddela mig bara när en misslyckas.\""
+    "message": "För att ansluta: öppna den här sidan i en webbläsare som stöder WebMCP, håll den öppen och peka din webbläsaragent på den här fliken. Fråga det i klartext — t.ex. ”Sortera mina nedladdningar i mappar efter webbplats och datum, numrera varje fil och meddela mig bara när en misslyckas.”"
   },
   "html_tools": {
     "message": "Verktyg"
@@ -2174,7 +2174,7 @@
     "message": "Redigera"
   },
   "routeDebuggerAttemptMatched": {
-    "message": "Testade “$VALUE$” från $SOURCE$ — matchade.",
+    "message": "Testade ”$VALUE$” från $SOURCE$ — matchade.",
     "placeholders": {
       "value": {
         "content": "$1",
@@ -2187,7 +2187,7 @@
     }
   },
   "routeDebuggerAttemptDidNotMatch": {
-    "message": "Testade “$VALUE$” från $SOURCE$ — matchade inte.",
+    "message": "Testade ”$VALUE$” från $SOURCE$ — matchade inte.",
     "placeholders": {
       "value": {
         "content": "$1",
@@ -2209,7 +2209,7 @@
     }
   },
   "routeDebuggerAttemptInvalid": {
-    "message": "Kunde inte läsa ett giltigt värde från $SOURCE$: “$VALUE$”.",
+    "message": "Kunde inte läsa ett giltigt värde från $SOURCE$: ”$VALUE$”.",
     "placeholders": {
       "source": {
         "content": "$1",

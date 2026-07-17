@@ -228,7 +228,7 @@
     "message": "Alles exporteren"
   },
   "historyFilterSearch": {
-    "message": "Zoeken: ‘$QUERY$’",
+    "message": "Zoeken: “$QUERY$”",
     "placeholders": {
       "query": {
         "content": "$1",
@@ -623,7 +623,7 @@
     "message": "Overeenkomende browserdownloads omleiden"
   },
   "o_cRouteBrowserDownloadsFirefoxHelp": {
-    "message": "Firefox heeft geen ingebouwde bestandsnaamroutering, dus Save In annuleert elke overeenkomende download en start een vervangende download. Dit kan mislukken bij POST-verzoeken, verlopende URL’s, aangepaste headers of geverifieerde downloads."
+    "message": "Firefox heeft geen ingebouwde bestandsnaamroutering, dus Save In annuleert elke overeenkomende download en start een vervangende download. Dit kan mislukken bij POST-verzoeken, verlopende URL's, aangepaste headers of geverifieerde downloads."
   },
   "o_lFirefoxFilenameApiBug": {
     "message": "Mozilla-bug 1245652"
@@ -653,7 +653,7 @@
     "message": "Snelkoppelingsbestanden"
   },
   "o_lShortcutFilesHelp": {
-    "message": "Sla pagina’s, links en media op als snelkoppelingsbestanden die het oorspronkelijke adres openen."
+    "message": "Sla pagina's, links en media op als snelkoppelingsbestanden die het oorspronkelijke adres openen."
   },
   "o_sKeyboardShortcuts": {
     "message": "Opslaan met één klik"
@@ -944,7 +944,7 @@
     "message": "Links opslaan als snelkoppelingsbestanden"
   },
   "o_cSaveShortcutsPagesInstead": {
-    "message": "Pagina’s opslaan als snelkoppelingsbestanden"
+    "message": "Pagina's opslaan als snelkoppelingsbestanden"
   },
   "o_cSaveShortcutsTabsInstead": {
     "message": "Tabbladen vanuit het contextmenu voor tabbladen opslaan als snelkoppelingsbestanden"
@@ -1172,7 +1172,7 @@
     "message": "Kies de mappen en submenu's die worden weergegeven in het contextmenu van Save In."
   },
   "html_butShowsCatPictures": {
-    "message": ", maar toont 'Kattenfoto's'."
+    "message": ", maar toont “Kattenfoto's”."
   },
   "html_changeADisplayedName": {
     "message": "Wijzig een weergegeven naam"
@@ -2024,7 +2024,7 @@
     "message": "Zwevend"
   },
   "sourcePanelNoMatchesFilter": {
-    "message": "Geen bronnen komen overeen met ‘$FILTER$’.",
+    "message": "Geen bronnen komen overeen met “$FILTER$”.",
     "placeholders": {
       "filter": {
         "content": "$1",
@@ -2132,7 +2132,7 @@
     "message": "Bestand"
   },
   "routeDebuggerUrlData": {
-    "message": "URL’s"
+    "message": "URL's"
   },
   "routeDebuggerPageData": {
     "message": "Paginatekst"
@@ -3393,7 +3393,7 @@
     }
   },
   "pathVisualNestUnder": {
-    "message": "Nesten onder ‘$NAME$’",
+    "message": "Nesten onder “$NAME$”",
     "placeholders": {
       "name": {
         "content": "$1",
