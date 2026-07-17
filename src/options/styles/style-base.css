@@ -17,21 +17,21 @@ a:active {
   text-underline-offset: 0.12em;
 }
 
-a.external {
-  position: relative;
-  padding-inline-end: calc(16px + var(--space-1));
-}
-
+/* The icon rides in the text rather than being positioned against the link's
+   box. A link that wraps has a box two lines tall, so an absolute icon centred
+   in it floated beside the middle of the link, nowhere near the end of it. As
+   inline content the icon simply follows the last word onto whichever line that
+   word lands on, and the empty ::after leaves no space beside it to break at,
+   so it cannot be orphaned onto a line of its own. */
 a.external::after {
-  position: absolute;
-  inset-block-start: 50%;
-  inset-inline-end: 0;
+  display: inline-block;
   inline-size: 16px;
   block-size: 16px;
+  margin-inline-start: var(--space-1);
+  vertical-align: -0.2em;
   background-color: currentColor;
   content: "";
   pointer-events: none;
-  transform: translateY(-50%);
   mask: url(../i/open-in-new-16.svg) center / contain no-repeat;
 }
 

@@ -190,9 +190,8 @@ details[open] > .menu-trigger {
   text-decoration: none;
 }
 
-.menu-popover > a.external {
-  padding-inline-end: calc(20px + var(--space-2));
-}
+/* Reserved the gap the icon used to be positioned into. The icon is inline
+   now and brings its own margin, so the padding only pushed the row wider. */
 
 /* Modern engines can interpolate intrinsic sizes directly, so disclosure
    panels do not need JavaScript measurements or a stale max-height guess. */
