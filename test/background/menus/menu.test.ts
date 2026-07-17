@@ -678,6 +678,19 @@ describe("menu creation", () => {
       expect(created().map((item) => item.id)).toContain(menu.IDS.TOGGLE_SOURCE_PANEL);
     });
 
+    test("reports one path error per bad line however often the menus rebuild", async () => {
+      // A save rebuilds the menus to reorder recent destinations, and that path
+      // never reaches resetRuntimeDiagnostics. Counting the same bad line again
+      // on every save would grow the reported total for the whole background
+      // lifetime, which is the number a user copies into a bug report.
+      options.paths = "<invalid>";
+
+      await rebuildMenus();
+      await rebuildMenus();
+
+      expect(backgroundRuntime.optionErrors.paths).toHaveLength(1);
+    });
+
     test("adds quick save items only when enabled, with the toggle gated on a folder", async () => {
       options.quickSaveEnabled = false;
       await rebuildMenus();

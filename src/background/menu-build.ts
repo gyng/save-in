@@ -421,6 +421,15 @@ export const clearPathMappings = () => {
   }
 };
 
+// renderPathTree only appends, so the list has to be emptied by whoever is
+// about to re-render the tree it describes. resetRuntimeDiagnostics covers
+// init and reset, but a save rebuilds the menus to reorder recent
+// destinations without passing through either — so without this the same bad
+// line is counted again on every save, for the whole background lifetime.
+export const clearPathErrors = () => {
+  backgroundRuntime.optionErrors.paths.length = 0;
+};
+
 export const renderPathTree = ({ items, errors }: MenuTree, contexts: readonly MenuContext[]) => {
   errors.forEach((error) => {
     backgroundRuntime.optionErrors.paths.push(error);

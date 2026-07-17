@@ -15,6 +15,7 @@ import {
   addSelectionType,
   addShowDefaultFolder,
   addSourcePanel,
+  clearPathErrors,
   clearPathMappings,
   makeSeparator,
   quickSaveDirectoryConfigured,
@@ -27,6 +28,7 @@ import { addTabMenus } from "./menu-tabs.ts";
 const performMenuRebuild = async (): Promise<void> => {
   await webExtensionApi.contextMenus.removeAll();
   clearPathMappings();
+  clearPathErrors();
 
   let downloadContexts: MenuContext[] = options.links ? [...MEDIA_TYPES, "link"] : [...MEDIA_TYPES];
   downloadContexts = options.selection ? [...downloadContexts, "selection"] : downloadContexts;
