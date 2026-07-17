@@ -2,8 +2,13 @@
 import { setOptionFieldValue } from "../../../src/options/core/option-field-sync.ts";
 import type { OptionSchema } from "../../../src/options/core/options-persistence.ts";
 import { BROWSERS, setCurrentBrowser } from "../../../src/platform/chrome-detector.ts";
+import {
+  LEGACY_REFERER_HEADER_FILTER,
+  OPTION_DEFAULTS,
+} from "../../../src/config/option-defaults.ts";
 
 const schema: OptionSchema = { keys: [], types: { BOOL: "BOOL", VALUE: "VALUE" } };
+const UPGRADED_REFERER_FILTER = OPTION_DEFAULTS.setRefererHeaderFilter;
 
 afterEach(() => setCurrentBrowser(BROWSERS.UNKNOWN));
 
@@ -100,6 +105,55 @@ test("keeps a Windows shortcut format on Chrome, which accepts the extension", (
     schema,
   );
   expect(document.querySelector<HTMLSelectElement>("#shortcutType")!.value).toBe("WINDOWS");
+});
+
+// replacementChar has no validate, so APPLY_CONFIG stores whatever is typed and
+// only onLoad coerces it. The field showed the typed value forever while every
+// path used "_".
+test("shows the replacement char the background actually uses for a forbidden one", () => {
+  document.body.innerHTML = `<input id="replacementChar">`;
+  setOptionFieldValue({ name: "replacementChar", type: "VALUE", default: "_" }, "/", schema);
+  expect(document.querySelector<HTMLInputElement>("#replacementChar")!.value).toBe("_");
+});
+
+test("keeps an empty replacement char, which means deletion rather than invalid", () => {
+  document.body.innerHTML = `<input id="replacementChar">`;
+  setOptionFieldValue({ name: "replacementChar", type: "VALUE", default: "_" }, "", schema);
+  expect(document.querySelector<HTMLInputElement>("#replacementChar")!.value).toBe("");
+});
+
+test("keeps a valid replacement char", () => {
+  document.body.innerHTML = `<input id="replacementChar">`;
+  setOptionFieldValue({ name: "replacementChar", type: "VALUE", default: "_" }, "-", schema);
+  expect(document.querySelector<HTMLInputElement>("#replacementChar")!.value).toBe("-");
+});
+
+// onLoad extends the untouched pre-v4 preset with the MangaDex host (#218). It
+// matches on exact equality, so a page that shows the legacy string invites an
+// edit that no longer matches — silently dropping the host the upgrade granted.
+test("shows the upgraded Referer filter for an untouched pre-v4 preset", () => {
+  document.body.innerHTML = `<textarea id="setRefererHeaderFilter"></textarea>`;
+  setOptionFieldValue(
+    { name: "setRefererHeaderFilter", type: "VALUE", default: UPGRADED_REFERER_FILTER },
+    LEGACY_REFERER_HEADER_FILTER,
+    schema,
+  );
+  expect(document.querySelector<HTMLTextAreaElement>("#setRefererHeaderFilter")!.value).toBe(
+    UPGRADED_REFERER_FILTER,
+  );
+});
+
+test("preserves a customized Referer filter rather than upgrading it", () => {
+  const customized = `${LEGACY_REFERER_HEADER_FILTER}\n*://example.test/*`;
+  document.body.innerHTML = `<textarea id="setRefererHeaderFilter"></textarea>`;
+  setOptionFieldValue(
+    { name: "setRefererHeaderFilter", type: "VALUE", default: UPGRADED_REFERER_FILTER },
+    customized,
+    schema,
+  );
+  expect(document.querySelector<HTMLTextAreaElement>("#setRefererHeaderFilter")!.value).toBe(
+    customized,
+  );
 });
 
 test("returns false when the target element is missing", () => {

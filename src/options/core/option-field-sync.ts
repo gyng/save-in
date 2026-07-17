@@ -5,22 +5,29 @@
 import { normalizeKeyComboForDisplay } from "./options-logic.ts";
 import type { OptionSchema } from "./options-persistence.ts";
 import { WEB_EXTENSION_CAPABILITIES } from "../../platform/chrome-detector.ts";
+import { LEGACY_REFERER_HEADER_FILTER } from "../../config/option-defaults.ts";
 import {
   CONFLICT_ACTION,
+  FORBIDDEN_FILENAME_CHARS,
   isShortcutType,
   REJECTED_SHORTCUT_TYPES,
   SHORTCUT_TYPES,
+  UNSAFE_INVISIBLE_FILENAME_CHARS,
 } from "../../shared/constants.ts";
 
-// Keyed by option name; an entry mirrors that option's schema onLoad. The
-// capability-gated pair below must agree with option-schema.ts exactly: the
-// page reads raw storage.local, so a stored value the current browser cannot
-// honour would otherwise be shown as selected while the background already
-// coerced it to something else. applyBrowserCapabilityUi hides and disables
-// those <option>s, but neither deselects one, so the coercion has to happen
-// here. Browser detection is synchronous at chrome-detector import, so
-// capabilities are settled before any restore reaches this.
-const OPTION_FIELD_DISPLAY_TRANSFORMS: Record<string, (value: unknown) => unknown> = {
+type OptionDefinition = OptionSchema["keys"][number];
+
+// Keyed by option name; an entry mirrors that option's schema onLoad, and must
+// agree with option-schema.ts exactly. The page reads raw storage.local, so an
+// option the background coerces on load is otherwise displayed as its stored
+// value while every code path already uses another. An option whose onSave
+// normalizes the same way needs no entry: storage already holds the coerced
+// value. Browser detection is synchronous at chrome-detector import, so the
+// capability-gated pair below is settled before any restore reaches this.
+const OPTION_FIELD_DISPLAY_TRANSFORMS: Record<
+  string,
+  (value: unknown, option: OptionDefinition) => unknown
+> = {
   contentClickToSaveCombo: (value: unknown) =>
     typeof value === "string" || typeof value === "number"
       ? normalizeKeyComboForDisplay(value)
@@ -37,6 +44,22 @@ const OPTION_FIELD_DISPLAY_TRANSFORMS: Record<string, (value: unknown) => unknow
     REJECTED_SHORTCUT_TYPES.has(value)
       ? SHORTCUT_TYPES.HTML_REDIRECT
       : value,
+  // Empty is deletion, not an invalid replacement. The literal "_" mirrors the
+  // schema rather than option.default so the two cannot drift apart.
+  replacementChar: (value: unknown) =>
+    typeof value === "string" &&
+    value !== "" &&
+    (FORBIDDEN_FILENAME_CHARS.test(value) ||
+      UNSAFE_INVISIBLE_FILENAME_CHARS.test(value) ||
+      value === "." ||
+      value === "..")
+      ? "_"
+      : value,
+  // The upgrade extends only the untouched pre-v4 preset (#218), and matches it
+  // by exact equality — so showing the stored legacy string invites an edit that
+  // no longer matches and silently drops the host the upgrade added.
+  setRefererHeaderFilter: (value: unknown, option: OptionDefinition) =>
+    value === LEGACY_REFERER_HEADER_FILTER ? option.default : value,
 };
 
 export const setOptionFieldValue = (
@@ -56,7 +79,7 @@ export const setOptionFieldValue = (
     typeof storedValue === "undefined"
       ? option.default
       : transform
-        ? transform(storedValue)
+        ? transform(storedValue, option)
         : storedValue;
   if (option.type === schema.types.BOOL && el instanceof HTMLInputElement) {
     el.checked = Boolean(value);
