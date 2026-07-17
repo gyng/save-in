@@ -519,7 +519,7 @@ export const dispatchControlRequest = async (
       });
     }
     await attempt("runtime reset", () => send({ type: "OPTIONS_LOADED" }));
-    await attempt("post-reset verification", async () => {
+    const collectDirty = async () => {
       const [downloads, tabs, session, notifications, rules, hasOffscreenDocument] =
         await Promise.all([
           browserApi.downloads.search({}),
@@ -533,7 +533,7 @@ export const dispatchControlRequest = async (
       const unexpectedSessionKeys = Object.keys(session).filter(
         (key) => key !== "siDiagnosticLifecycle",
       );
-      const dirty = {
+      return {
         ...(downloads.length ? { downloadIds: downloads.map(({ id }) => id) } : {}),
         ...(unexpectedTabs.length
           ? { tabs: unexpectedTabs.map(({ id, title, url }) => ({ id, title, url })) }
@@ -545,6 +545,31 @@ export const dispatchControlRequest = async (
         ...(rules.length ? { sessionRuleIds: rules.map(({ id }) => id) } : {}),
         ...(hasOffscreenDocument ? { offscreenDocument: true } : {}),
       };
+    };
+    // A download that failed just before the case ended settles asynchronously:
+    // the "download failed" log the scenario waited for is written before the
+    // handler's mergeTrackedDownload flushes to siDownloads and before Chrome
+    // finalises the interrupted item. That event can therefore land after the
+    // sweep above cleared everything, leaving exactly the {downloadIds,
+    // sessionKeys:["siDownloads"]} residue. Re-sweep and re-verify: erasing the
+    // downloads and re-running the background reset drains that late write (the
+    // drain is the synchronisation point, not a timer), then session.clear
+    // removes what it wrote. Bounded, so a genuine leak that keeps regenerating
+    // still fails rather than looping.
+    await attempt("post-reset verification", async () => {
+      let dirty = await collectDirty();
+      for (let sweep = 0; sweep < 2 && Object.keys(dirty).length; sweep += 1) {
+        const inProgress = (await browserApi.downloads.search({})).filter(
+          (download) => download.state === "in_progress",
+        );
+        await Promise.all(
+          inProgress.map((download) => browserApi.downloads.cancel(download.id).catch(() => {})),
+        );
+        await browserApi.downloads.erase({});
+        await send({ type: "SAVE_IN_E2E_RESET_STATE" });
+        await browserApi.storage.session?.clear?.();
+        dirty = await collectDirty();
+      }
       if (Object.keys(dirty).length) {
         throw new Error(`Case state remained after reset: ${JSON.stringify(dirty)}`);
       }
