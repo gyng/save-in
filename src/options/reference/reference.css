@@ -129,8 +129,7 @@ body:has(.reference-header) {
   position: sticky;
   top: 0;
   z-index: var(--z-local);
-  padding-block-start: var(--space-3);
-  padding-block-end: var(--space-2);
+  padding-block: var(--space-3) var(--space-2);
   border-block-end: 1px solid var(--panel-border);
   background: var(--page-bg);
   box-shadow: 0 3px 6px -4px color-mix(in srgb, var(--color-text) 18%, transparent);

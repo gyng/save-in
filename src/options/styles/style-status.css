@@ -200,7 +200,11 @@
   font-size: var(--text-sm);
 }
 
-@media (max-width: 42rem) {
+/* These rows stack when the panel runs out of room, which is a question about
+   the panel and not about the window: Diagnostics sits in a tab panel whose
+   width the shell, not the viewport, decides. Asking the viewport also meant
+   answering at 42rem, a breakpoint no other rule here uses. */
+@container options-panel (max-width: 640px) {
   .diagnostics-core > div {
     display: grid;
     gap: var(--space-1);
@@ -276,8 +280,7 @@ textarea.saved-base {
 
 input.key {
   max-inline-size: 2em;
-  margin-inline-start: var(--space-1);
-  margin-inline-end: 8px;
+  margin-inline: var(--space-1) 8px;
   text-align: center;
   padding: 4px 8px;
 }

@@ -1,6 +1,5 @@
 .source-automation {
-  margin-block-start: var(--space-6);
-  margin-block-end: var(--space-6);
+  margin-block: var(--space-6);
   padding-block-start: var(--space-5);
   border-block-start: 1px solid var(--panel-border);
 }

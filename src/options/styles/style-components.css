@@ -92,8 +92,7 @@ label input[type="checkbox"] {
 
 label input[type="number"],
 label input[type="text"] {
-  margin-inline-start: var(--space-1);
-  margin-inline-end: var(--space-1);
+  margin-inline: var(--space-1);
 }
 
 /* Shared disclosure header. Feature variants only adjust hierarchy or intent. */

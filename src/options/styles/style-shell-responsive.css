@@ -38,8 +38,7 @@
   }
 
   .nav-resources-menu {
-    inset-inline-end: 0;
-    inset-inline-start: auto;
+    inset-inline: auto 0;
     max-inline-size: calc(100dvi - 2 * var(--space-3));
   }
 
