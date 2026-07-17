@@ -3,8 +3,7 @@
 // and options/integrations/webhook-panel.ts renders the UI. config/ may only
 // reach shared/platform (scripts/check-import-cycles.js), so this cannot move
 // into downloads/ or options/ without breaking that boundary; it stays here
-// as a cross-context contract plus pure helper (docs/CODE-ORGANIZATION.md
-// Phase 3.1).
+// as a cross-context contract plus pure helper.
 import { parsePatternList, type PatternListResult } from "./pattern-list.ts";
 
 export const WEBHOOK_DATA_TYPES = {

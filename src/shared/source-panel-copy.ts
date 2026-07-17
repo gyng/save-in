@@ -3,8 +3,7 @@
 // content/source-panel*.ts render it. Background importing a content/
 // implementation module would invert the execution-context boundary AGENTS.md
 // establishes, so this stays here as a cross-context contract plus pure
-// helper rather than moving into either owner (docs/CODE-ORGANIZATION.md
-// Phase 3.1).
+// helper rather than moving into either owner.
 import { isStringKeyedRecord } from "./util.ts";
 
 export type SourcePanelLocalize = (key: string, substitutions?: string | string[]) => string;

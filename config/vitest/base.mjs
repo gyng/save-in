@@ -46,7 +46,7 @@ export default defineConfig({
         // exercised by the Chrome e2e sha256/offscreen path
         "src/offscreen/offscreen.ts",
         // The options composition root and the wiring modules it delegates
-        // to (Phase 2.4 of docs/CODE-ORGANIZATION.md) run top-level DOM/
+        // to run top-level DOM/
         // message-round-trip wiring against the real options.html document;
         // they are exercised by the e2e suites, not unit coverage. Pieces
         // split out alongside them that are plain data-in/data-out or

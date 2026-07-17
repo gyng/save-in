@@ -1,4 +1,12 @@
 // @vitest-environment jsdom
+//
+// Deliberately one flat file, though the panel it drives is now many builders.
+// These are black-box tests: they call toggleSourcePanel and assert on the
+// rendered shadow DOM, and most exercise two or more builders at once (the
+// options-diffing update path together with row re-rendering, row actions
+// together with menu wiring). Splitting them per builder would be a judgment
+// call about which seam each test belongs to, not a mechanical cut, and would
+// risk mis-filing or duplicating coverage that currently passes at 100%.
 import {
   getSourcePanelHostForTesting,
   replaceSourcePanel,

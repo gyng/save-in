@@ -171,8 +171,8 @@ for (const [file, dependencies] of imports) {
 // reach into another feature directory's internals. A short, exact allowlist
 // covers real infrastructure reuse that predates this rule — one editor
 // feature building on another's engine or pure model, not a data-sharing
-// shortcut (genuinely shared data/vocabulary was moved to core/ instead, see
-// docs/CODE-ORGANIZATION.md Phase 3.1/3.3). Extend the allowlist only for the
+// shortcut (genuinely shared data/vocabulary belongs in core/, which every
+// feature may reach, and was moved there instead). Extend the allowlist only for the
 // same kind of documented, load-bearing reuse; do not widen it to a whole
 // directory pair.
 const optionsFeatureDirs = [
@@ -297,7 +297,7 @@ const runtimeLayerRules = [
 // The wire contract describes shapes their producing layer still declares.
 // Each entry is type-only and reviewed; a new one is a design decision, not a
 // convenience. Inverting the rest means deciding which of these are wire
-// contracts in their own right — see Phase 4.4 in docs/CODE-ORGANIZATION.md.
+// contracts in their own right, which is a design question, not a rename.
 const allowedUpwardTypeEdges = new Set([
   // A DOWNLOAD request body carries the downloads pipeline's own DownloadInfo.
   "src/shared/message-protocol.ts -> src/downloads/download-types.ts",
@@ -345,9 +345,12 @@ for (const [file, dependencies] of imports) {
 // automation/ is the feature layer built on the generic routing engine, not
 // the other way around: background/messaging/{handlers,auto-download}.ts and
 // content/auto-download.ts consume it. It must not depend upward into
-// background/ or downloads/ implementations (see docs/CODE-ORGANIZATION.md
-// Phase 3.4 for why routing/automatic-rule.ts and
-// background/messaging/auto-download.ts stayed put rather than moving here).
+// background/ or downloads/ implementations. Gathering the whole feature here
+// was tried and refused: routing/rule-parser.ts validates an AUTO rule's
+// clauses inline while parsing, so moving routing/automatic-rule.ts would make
+// routing depend on automation — the inversion this rule exists to stop — and
+// background/messaging/auto-download.ts is a registered message handler, which
+// only its composition owner may hold.
 for (const [file, dependencies] of imports) {
   if (!relative(file).startsWith("src/automation/")) continue;
   for (const dependency of dependencies) {

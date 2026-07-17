@@ -26,10 +26,6 @@ these documents assume.
 - [UI system](UI.md) — the contract for the options, reference, and in-page
   surfaces: cascade-layer order, tokens, interaction and accessibility rules,
   and the checklist new UI must satisfy.
-- [Code organization](CODE-ORGANIZATION.md) — the module boundaries, layering,
-  and naming decisions, and why each was made. A completed plan kept as a
-  rationale record; source files and `scripts/check-import-cycles.js` cite its
-  phase numbers.
 - [Translations](TRANSLATIONS.md) — the English-canonical catalog workflow and
   the policy for the opt-in generated locales.
 - [On-device prompt](ON-DEVICE-PROMPT.md) — what Gemini Nano measurably does

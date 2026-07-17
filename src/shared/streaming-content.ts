@@ -3,7 +3,8 @@
 // only through platform/offscreen-client.ts message passing, never by
 // importing one another's implementation. This response-streaming/hashing
 // helper has no single owning feature directory both can legally reach, so
-// it stays here (docs/CODE-ORGANIZATION.md Phase 3.1).
+// it stays here. Moving it into either was considered and refused for that
+// reason; it is a decision, not a default.
 import { Sha256 } from "./sha256.ts";
 
 type StreamableResponse = Pick<Response, "body" | "headers"> &

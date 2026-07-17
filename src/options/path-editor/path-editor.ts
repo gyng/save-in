@@ -1,3 +1,9 @@
+// This file is long and stays one file on purpose. Everything in it serves one
+// job — the drag-and-drop directory-tree editor — so its row rendering was
+// decomposed into named builders rather than split into modules, the same shape
+// rule-visual-editor.ts has. Long is not the same as tangled; splitting here
+// would invent seams the feature does not have.
+//
 // Directory-list editing helpers for the options page:
 // - an insert menu ("+ Add") for the paths textarea: variables (with their
 //   current values from the last download), separators, submenu lines

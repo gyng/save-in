@@ -20,8 +20,13 @@ builds.
 `background/main.ts` is the background composition root. Source is grouped by
 ownership under `automation`, `background`, `config`, `downloads`, `i18n`,
 `menus`, `platform`, `routing`, and `shared`, plus the execution-context
-directories `content`, `entries`, `offscreen`, `options`, and `vendor`. The
-import graph is acyclic and
+directories `content`, `entries`, `offscreen`, `options`, and `vendor`. Only
+`options/` is split into feature subdirectories, because only it grew to the
+~120 files that made prefixes a poor index; `downloads/` and `shared/` are flat
+by decision at ~33 each, where the biggest cluster is five files. Subdividing
+them would rewrite import paths across a layer and every path-based rule in
+`check-import-cycles.js` for a directory a reader can already scan — revisit if
+a cluster grows, not before. The import graph is acyclic and
 checked by `scripts/check-import-cycles.js`. Mutable cross-file state uses
 explicit records or owner-controlled live bindings such as `options`,
 `currentTab`, and `CURRENT_BROWSER`.
