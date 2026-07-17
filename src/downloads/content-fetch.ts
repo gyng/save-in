@@ -1,8 +1,6 @@
 import { OffscreenClient, OffscreenHttpError } from "../platform/offscreen-client.ts";
-import {
-  getExtensionFetchCredentials,
-  type ExtensionFetchCredentials,
-} from "../config/fetch-credentials.ts";
+import { getExtensionFetchCredentials } from "../config/fetch-credentials.ts";
+import type { ExtensionFetchCredentials } from "../shared/content-fetch-types.ts";
 import {
   fetchProtected,
   MAX_PROTECTED_URL_EXTENSIONS,

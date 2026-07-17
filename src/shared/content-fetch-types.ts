@@ -1,5 +1,10 @@
 import { MESSAGE_TYPES } from "./constants.ts";
 
+// Which credentials an extension-owned fetch sends. The type is a fetch
+// contract, so it lives here with the rest of them; config/fetch-credentials.ts
+// keeps getExtensionFetchCredentials, which is the part that reads the option.
+export type ExtensionFetchCredentials = "include" | "omit";
+
 export type ContentFetchResult = {
   sha256: string;
   downloadUrl: string;

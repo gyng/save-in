@@ -1,4 +1,5 @@
 import type { DownloadInfo } from "../downloads/download-types.ts";
+import type { RoutePreview } from "../shared/route-preview-types.ts";
 import { getRoutingMatch } from "../downloads/download-plan.ts";
 import { options } from "../config/options-data.ts";
 import { Path, ROUTES_TO_FOLDER_REGEX } from "../routing/path.ts";
@@ -10,10 +11,6 @@ import {
 import { applyVariables } from "../routing/variable.ts";
 
 export type RoutePreviewState = { info: DownloadInfo };
-export type RoutePreview = {
-  path: string | null;
-  captures: (string | undefined)[] | null;
-};
 
 export const previewRoutes = async (state?: RoutePreviewState | null): Promise<RoutePreview> => {
   if (!state) return { path: null, captures: null };

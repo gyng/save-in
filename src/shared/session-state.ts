@@ -3,7 +3,7 @@ import type {
   StorageRemover,
   StorageSetter,
   StorageWriter,
-} from "../platform/storage-areas.ts";
+} from "./storage-types.ts";
 import { recordPersistenceFailure } from "./persistence-diagnostics.ts";
 
 export type SessionWriteState = { queues: Map<string, Promise<unknown>> };

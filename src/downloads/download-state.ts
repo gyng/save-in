@@ -1,6 +1,6 @@
 import { getSession, updateSession } from "../shared/session-state.ts";
 import type { SessionWriteState } from "../shared/session-state.ts";
-import type { StorageReader, StorageWriter } from "../platform/storage-areas.ts";
+import type { StorageReader, StorageWriter } from "../shared/storage-types.ts";
 import { DOWNLOADS_SESSION_KEY } from "../shared/storage-keys.ts";
 import type { ConflictAction } from "../shared/constants.ts";
 import type { SourceSidecarRequest } from "./download-types.ts";

@@ -9,7 +9,7 @@ import { MESSAGE_TYPES } from "../shared/constants.ts";
 import { isOffscreenFetchResponse } from "../shared/content-fetch-types.ts";
 import type { ContentFetchResult } from "../shared/content-fetch-types.ts";
 import { isOffscreenPromptResponse } from "../shared/prompt-message-types.ts";
-import type { ExtensionFetchCredentials } from "../config/fetch-credentials.ts";
+import type { ExtensionFetchCredentials } from "../shared/content-fetch-types.ts";
 
 type OffscreenClientApi = {
   canUse: () => boolean;

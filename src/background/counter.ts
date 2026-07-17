@@ -1,4 +1,4 @@
-import type { StorageReader, StorageWriter } from "../platform/storage-areas.ts";
+import type { StorageReader, StorageWriter } from "../shared/storage-types.ts";
 export { COUNTER_KEY } from "../shared/storage-keys.ts";
 import { COUNTER_KEY } from "../shared/storage-keys.ts";
 import { normalizeSessionCounter } from "../shared/session-state.ts";

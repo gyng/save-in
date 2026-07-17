@@ -4,7 +4,7 @@ import type { HistoryEntry } from "./history-types.ts";
 import type { MenuTree, MenuTreeError, MenuTreeItem } from "../menus/menu-tree.ts";
 import type { RuleError } from "../routing/rule-types.ts";
 import type { OptionErrors } from "../background/runtime.ts";
-import type { RoutePreview } from "../background/route-preview.ts";
+import type { RoutePreview } from "./route-preview-types.ts";
 import type { PersistenceFailure } from "./persistence-diagnostics.ts";
 import type { ExternalDownloadRejection } from "./external-download-rejection-types.ts";
 import type { SourcePanelCopy } from "./source-panel-copy.ts";

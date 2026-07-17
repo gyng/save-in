@@ -1,19 +1,5 @@
 import { webExtensionApi } from "./web-extension-api.ts";
-
-export type StorageReader = {
-  get(keys?: string | string[] | Record<string, unknown> | null): Promise<Record<string, unknown>>;
-};
-
-export type StorageSetter = {
-  set(items: Record<string, unknown>): Promise<void>;
-};
-
-export type StorageRemover = {
-  remove(keys: string | string[]): Promise<void>;
-};
-
-export type StorageWriter = StorageReader & StorageSetter;
-export type StorageArea = StorageWriter & StorageRemover;
+import type { StorageArea } from "../shared/storage-types.ts";
 
 // Resolve the platform API at call time: MV3 module tests and partial browser
 // hosts can load the graph before a storage area is present.
