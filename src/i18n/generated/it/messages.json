@@ -360,7 +360,7 @@
     "message": "Consenti a un agente IA di leggere e modificare le impostazioni di Save In"
   },
   "o_cWebmcpEnabledHelp": {
-    "message": "Gli strumenti includono l’avvio di download e la modifica di ogni impostazione, compresa la destinazione dei webhook."
+    "message": "Gli strumenti includono l'avvio di download e la modifica di ogni impostazione, compresa la destinazione dei webhook."
   },
   "webMcpStatusOff": {
     "message": "Disattivato"
