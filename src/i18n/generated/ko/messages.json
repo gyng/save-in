@@ -4147,8 +4147,8 @@
   "promptAssistantIntro": {
     "message": "파일을 저장할 위치를 설명하고 검토할 라우팅 규칙 하나를 제안받으세요."
   },
-  "html_theAssistantNeedsChromesBuiltIn": {
-    "message": "이 어시스턴트에는 Chrome에 내장된"
+  "html_theAssistantNeedsTheBrowsersBuiltIn": {
+    "message": "이 어시스턴트에는 브라우저에 내장된"
   },
   "html_whichOnlySomeBrowsersAndDevicesProvide": {
     "message": "이(가) 필요하며, 일부 브라우저와 기기에서만 제공됩니다."

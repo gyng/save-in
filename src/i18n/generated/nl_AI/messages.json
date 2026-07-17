@@ -4147,8 +4147,8 @@
   "promptAssistantIntro": {
     "message": "Beschrijf waar bestanden naartoe moeten en ontvang één routeringsregel om te controleren."
   },
-  "html_theAssistantNeedsChromesBuiltIn": {
-    "message": "De assistent vereist de in Chrome ingebouwde"
+  "html_theAssistantNeedsTheBrowsersBuiltIn": {
+    "message": "De assistent vereist de ingebouwde"
   },
   "html_whichOnlySomeBrowsersAndDevicesProvide": {
     "message": ", die maar in sommige browsers en op sommige apparaten beschikbaar is."

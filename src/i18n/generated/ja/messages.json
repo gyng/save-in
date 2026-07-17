@@ -4147,8 +4147,8 @@
   "promptAssistantIntro": {
     "message": "ファイルの保存先を説明すると、確認用の振り分けルールを1つ提案します。"
   },
-  "html_theAssistantNeedsChromesBuiltIn": {
-    "message": "このアシスタントには Chrome 内蔵の"
+  "html_theAssistantNeedsTheBrowsersBuiltIn": {
+    "message": "このアシスタントにはブラウザー内蔵の"
   },
   "html_whichOnlySomeBrowsersAndDevicesProvide": {
     "message": "が必要です。対応するブラウザーとデバイスは限られます。"

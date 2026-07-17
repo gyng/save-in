@@ -4147,8 +4147,8 @@
   "promptAssistantIntro": {
     "message": "Descreva onde os arquivos devem ser salvos e receba uma regra de roteamento para revisar."
   },
-  "html_theAssistantNeedsChromesBuiltIn": {
-    "message": "O assistente precisa que o Chrome forneça a"
+  "html_theAssistantNeedsTheBrowsersBuiltIn": {
+    "message": "O assistente precisa da"
   },
   "html_whichOnlySomeBrowsersAndDevicesProvide": {
     "message": ", disponível apenas em alguns navegadores e dispositivos."

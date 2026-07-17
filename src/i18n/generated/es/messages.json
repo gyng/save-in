@@ -4147,8 +4147,8 @@
   "promptAssistantIntro": {
     "message": "Describe dónde deben guardarse los archivos y obtén una regla de enrutamiento para revisarla."
   },
-  "html_theAssistantNeedsChromesBuiltIn": {
-    "message": "El asistente necesita que Chrome incluya la"
+  "html_theAssistantNeedsTheBrowsersBuiltIn": {
+    "message": "El asistente necesita la"
   },
   "html_whichOnlySomeBrowsersAndDevicesProvide": {
     "message": ", disponible solo en algunos navegadores y dispositivos."

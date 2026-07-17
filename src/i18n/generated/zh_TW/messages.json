@@ -4147,8 +4147,8 @@
   "promptAssistantIntro": {
     "message": "描述檔案的儲存位置，取得一條可供檢查的路由規則。"
   },
-  "html_theAssistantNeedsChromesBuiltIn": {
-    "message": "此助理需要 Chrome 內建的"
+  "html_theAssistantNeedsTheBrowsersBuiltIn": {
+    "message": "此助理需要瀏覽器內建的"
   },
   "html_whichOnlySomeBrowsersAndDevicesProvide": {
     "message": "，只有部分瀏覽器和裝置提供此功能。"

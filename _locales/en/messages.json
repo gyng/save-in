@@ -5337,13 +5337,13 @@
     "message": "Describe where files should go and get one routing rule to review.",
     "description": "Introduction for the experimental local rule-authoring assistant. Used in src/options/options.html."
   },
-  "html_theAssistantNeedsChromesBuiltIn": {
-    "message": "The assistant needs Chrome's built-in",
-    "description": "Start of the help text under the on-device rule assistant heading. The sentence continues with a link reading \"Prompt API\" (Chrome's feature name, left in English) and then html_whichOnlySomeBrowsersAndDevicesProvide. Translate so the three read as one sentence with the link in the middle. Used in src/options/options.html."
+  "html_theAssistantNeedsTheBrowsersBuiltIn": {
+    "message": "The assistant needs the browser's built-in",
+    "description": "Start of the help text under the on-device rule assistant heading. The sentence continues with a link reading \"Prompt API\" (the browser feature name, left in English) and then html_whichOnlySomeBrowsersAndDevicesProvide. Translate so the three read as one sentence with the link in the middle: the link is the object of this clause, so the head must be able to precede it in your language. Used in src/options/options.html."
   },
   "html_whichOnlySomeBrowsersAndDevicesProvide": {
     "message": ", which only some browsers and devices provide.",
-    "description": "End of the help text begun by html_theAssistantNeedsChromesBuiltIn, following the \"Prompt API\" link. Keep the leading comma and spacing that join it to the link. Used in src/options/options.html."
+    "description": "End of the help text begun by html_theAssistantNeedsTheBrowsersBuiltIn, following the \"Prompt API\" link. Keep the leading comma and spacing that join it to the link. Used in src/options/options.html."
   },
   "promptAssistantDisclosure": {
     "message": "Draft a rule",
