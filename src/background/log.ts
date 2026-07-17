@@ -88,9 +88,16 @@ export const clearLog = () => {
   const cleared = queued.then(() => extensionSessionStorage.remove(LOG_STORAGE_KEY));
   // The queue only sequences turns, so it carries a settled promise; this
   // removal's own failure still reaches the caller through `cleared`.
-  sessionWriteState.queues.set(
-    LOG_STORAGE_KEY,
-    cleared.catch(() => {}),
-  );
+  const turn = cleared.catch(() => {});
+  sessionWriteState.queues.set(LOG_STORAGE_KEY, turn);
+  // Taking a turn also means releasing it. updateSession drops its entry once
+  // the turn settles, and a drain waits for the map to empty — so a settled
+  // promise left parked here is not a stale byte, it is a wait that never ends.
+  // The identity check leaves a later writer's turn alone, as updateSession's does.
+  void turn.finally(() => {
+    if (sessionWriteState.queues.get(LOG_STORAGE_KEY) === turn) {
+      sessionWriteState.queues.delete(LOG_STORAGE_KEY);
+    }
+  });
   return cleared;
 };

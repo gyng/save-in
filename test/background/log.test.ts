@@ -135,6 +135,33 @@ describe("Log", () => {
     await expect(Log.getLogEntries()).resolves.toEqual([]);
   });
 
+  // Taking a turn on the shared queue means releasing it too. Every other taker
+  // deletes its entry once the turn settles; a clear that keeps its entry parks
+  // a settled promise there forever, and drainBackgroundWrites waits for the map
+  // to empty — so the leak is a hang, not a stale byte.
+  test("clear releases its turn on the shared write queue", async () => {
+    const { sessionWriteState } = await import("../../src/downloads/download-state-instances.ts");
+    await Log.addLogEntry("one");
+    await vi.waitFor(() => expect(sessionWriteState.queues.has(LOG_KEY)).toBe(false));
+
+    await Log.clearLog();
+
+    await vi.waitFor(() => expect(sessionWriteState.queues.has(LOG_KEY)).toBe(false));
+  });
+
+  test("clear releasing its turn leaves a later writer's turn alone", async () => {
+    const { sessionWriteState } = await import("../../src/downloads/download-state-instances.ts");
+    const cleared = Log.clearLog();
+    // The add takes the queue before the clear's turn settles, so the clear's
+    // release must drop its own entry and not the one now standing there.
+    const added = Log.addLogEntry("after");
+    await cleared;
+    await added;
+
+    expect(entries().map(({ message }) => message)).toEqual(["after"]);
+    await vi.waitFor(() => expect(sessionWriteState.queues.has(LOG_KEY)).toBe(false));
+  });
+
   // An add already holds the pre-clear entries and is about to write them back,
   // so a clear that does not follow it hands them all back to the user.
   test("clear is serialized after already queued writes", async () => {
