@@ -1,0 +1,8 @@
+{
+  "manifest_version": 3,
+  "name": "Save In downloads symlink probe",
+  "version": "1.0",
+  "permissions": ["downloads"],
+  "background": { "scripts": ["bg.js"], "service_worker": "bg.js" },
+  "browser_specific_settings": { "gecko": { "id": "{72d92df5-2aa0-4b06-b807-aa21767545cd}" } }
+}

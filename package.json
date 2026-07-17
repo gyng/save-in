@@ -44,6 +44,7 @@
     "review": "node scripts/review-demo.js",
     "screenshots:store": "node scripts/generate-store-screenshots.js",
     "promo:store": "node scripts/generate-store-promo.js",
+    "probe:symlink": "node scripts/platform-symlink-probe.js",
     "reload": "node scripts/reload.js",
     "test": "vitest run --config config/vitest/unit.mjs",
     "test:all": "vitest run --config config/vitest/base.mjs",
