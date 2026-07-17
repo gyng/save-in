@@ -3209,6 +3209,21 @@
   "regularExpressionInvalid": {
     "message": "잘못된 정규식"
   },
+  "webhookEndpointMalformed": {
+    "message": "유효한 HTTPS URL을 입력하세요"
+  },
+  "webhookEndpointNotHttps": {
+    "message": "https:// URL을 사용하세요"
+  },
+  "webhookEndpointCredentials": {
+    "message": "인증 정보는 URL이 아니라 쿼리 문자열에 넣으세요"
+  },
+  "webhookEndpointFragment": {
+    "message": "# 프래그먼트를 제거하세요"
+  },
+  "webhookEndpointOverLimit": {
+    "message": "엔드포인트 한도를 초과하여 이 줄은 전송되지 않습니다"
+  },
   "validationJumpToIssue": {
     "message": "이 문제로 이동"
   },

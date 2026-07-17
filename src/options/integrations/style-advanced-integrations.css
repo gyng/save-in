@@ -36,6 +36,9 @@
 .webhook-endpoint-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
+  /* The endpoint list is a syntax editor, so this row is as tall as the list is
+     long. Without this the button stretches to match it. */
+  align-items: start;
   gap: var(--space-2);
 }
 
@@ -326,6 +329,13 @@
 
   .webhook-fields {
     grid-template-columns: 1fr;
+  }
+
+  /* Endpoints do not wrap, so a squeezed editor hides the end of every URL.
+     Give it the width and let the button sit under it. */
+  .webhook-endpoint-row {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: start;
   }
 }
 

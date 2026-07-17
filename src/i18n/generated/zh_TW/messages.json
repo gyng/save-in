@@ -3209,6 +3209,21 @@
   "regularExpressionInvalid": {
     "message": "無效的正規表示式"
   },
+  "webhookEndpointMalformed": {
+    "message": "請輸入有效的 HTTPS URL"
+  },
+  "webhookEndpointNotHttps": {
+    "message": "請使用 https:// 開頭的 URL"
+  },
+  "webhookEndpointCredentials": {
+    "message": "請將驗證資訊放在查詢字串中，而非 URL 中"
+  },
+  "webhookEndpointFragment": {
+    "message": "請移除 # 片段"
+  },
+  "webhookEndpointOverLimit": {
+    "message": "超出端點數量上限，此行不會傳送"
+  },
   "validationJumpToIssue": {
     "message": "跳至此問題"
   },

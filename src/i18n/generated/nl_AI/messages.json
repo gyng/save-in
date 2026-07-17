@@ -3209,6 +3209,21 @@
   "regularExpressionInvalid": {
     "message": "Ongeldige reguliere expressie"
   },
+  "webhookEndpointMalformed": {
+    "message": "Voer een geldige HTTPS-URL in"
+  },
+  "webhookEndpointNotHttps": {
+    "message": "Gebruik een https://-URL"
+  },
+  "webhookEndpointCredentials": {
+    "message": "Zet de authenticatie in de querystring, niet in de URL"
+  },
+  "webhookEndpointFragment": {
+    "message": "Verwijder het #-fragment"
+  },
+  "webhookEndpointOverLimit": {
+    "message": "Voorbij de eindpuntlimiet, dus deze regel wordt niet verzonden"
+  },
   "validationJumpToIssue": {
     "message": "Naar dit probleem gaan"
   },

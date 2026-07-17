@@ -5,7 +5,9 @@ import {
   parseWebhookEndpoints,
   postWebhook,
   validateWebhookUrl,
+  WEBHOOK_ENDPOINT_REASONS,
   WEBHOOK_TARGET_LIMIT,
+  webhookEndpointReason,
 } from "../../../src/shared/webhook.ts";
 
 describe("webhook endpoint list", () => {
@@ -83,14 +85,49 @@ describe("webhook endpoint validation", () => {
     expect(validateWebhookUrl(value)).toEqual({ ok: true, url: value });
   });
 
+  // The reason is the editor's message key, so each rejection has to keep
+  // naming the same one: it is what the bad line says about itself.
   test.each([
-    "",
-    "http://hooks.example.com/save",
-    "https://user:secret@hooks.example.com/save",
-    "https://hooks.example.com/save#fragment",
-    "not a URL",
-  ])("rejects unsafe or ambiguous endpoint %s", (value) => {
-    expect(validateWebhookUrl(value)).toEqual({ ok: false, message: expect.any(String) });
+    ["", WEBHOOK_ENDPOINT_REASONS.EMPTY],
+    ["http://hooks.example.com/save", WEBHOOK_ENDPOINT_REASONS.NOT_HTTPS],
+    ["https://user:secret@hooks.example.com/save", WEBHOOK_ENDPOINT_REASONS.CREDENTIALS],
+    ["https://hooks.example.com/save#fragment", WEBHOOK_ENDPOINT_REASONS.FRAGMENT],
+    ["not a URL", WEBHOOK_ENDPOINT_REASONS.MALFORMED],
+  ])("rejects unsafe or ambiguous endpoint %s", (value, reason) => {
+    expect(validateWebhookUrl(value)).toEqual({
+      ok: false,
+      reason,
+      message: expect.any(String),
+    });
+  });
+
+  test("reports each rejected line's own reason", () => {
+    const { issues } = parseWebhookEndpoints(
+      ["https://hooks.example.com/save", "http://insecure.example.com/save", "not a URL"].join(
+        "\n",
+      ),
+    );
+    expect(issues.map((issue) => [issue.line, webhookEndpointReason(issue.error)])).toEqual([
+      [2, WEBHOOK_ENDPOINT_REASONS.NOT_HTTPS],
+      [3, WEBHOOK_ENDPOINT_REASONS.MALFORMED],
+    ]);
+  });
+
+  test("blames an endpoint past the limit on the limit, not on its URL", () => {
+    const lines = Array.from(
+      { length: WEBHOOK_TARGET_LIMIT + 1 },
+      (_unused, index) => `https://hooks.example.com/${index}`,
+    );
+    const { issues } = parseWebhookEndpoints(lines.join("\n"));
+    expect(issues.map((issue) => [issue.line, webhookEndpointReason(issue.error)])).toEqual([
+      [WEBHOOK_TARGET_LIMIT + 1, WEBHOOK_ENDPOINT_REASONS.OVER_LIMIT],
+    ]);
+  });
+
+  test("falls back to the malformed reason for an error it did not raise", () => {
+    expect(webhookEndpointReason(new Error("from somewhere else"))).toBe(
+      WEBHOOK_ENDPOINT_REASONS.MALFORMED,
+    );
   });
 });
 

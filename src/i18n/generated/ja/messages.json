@@ -3209,6 +3209,21 @@
   "regularExpressionInvalid": {
     "message": "無効な正規表現"
   },
+  "webhookEndpointMalformed": {
+    "message": "有効な HTTPS URL を入力してください"
+  },
+  "webhookEndpointNotHttps": {
+    "message": "https:// の URL を使用してください"
+  },
+  "webhookEndpointCredentials": {
+    "message": "認証情報は URL ではなくクエリ文字列に指定してください"
+  },
+  "webhookEndpointFragment": {
+    "message": "# フラグメントを削除してください"
+  },
+  "webhookEndpointOverLimit": {
+    "message": "エンドポイントの上限を超えているため、この行は送信されません"
+  },
   "validationJumpToIssue": {
     "message": "この問題に移動"
   },

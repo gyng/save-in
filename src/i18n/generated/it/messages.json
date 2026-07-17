@@ -3209,6 +3209,21 @@
   "regularExpressionInvalid": {
     "message": "Espressione regolare non valida"
   },
+  "webhookEndpointMalformed": {
+    "message": "Inserisci un URL HTTPS valido"
+  },
+  "webhookEndpointNotHttps": {
+    "message": "Usa un URL https://"
+  },
+  "webhookEndpointCredentials": {
+    "message": "Inserisci l'autenticazione nella stringa di query, non nell'URL"
+  },
+  "webhookEndpointFragment": {
+    "message": "Rimuovi il frammento #"
+  },
+  "webhookEndpointOverLimit": {
+    "message": "Oltre il limite di endpoint, questa riga non viene inviata"
+  },
   "validationJumpToIssue": {
     "message": "Vai a questo problema"
   },

@@ -1575,6 +1575,26 @@
     "message": "Invalid regular expression",
     "description": "Inline editor diagnostic for malformed regular expressions. Used in src/options/syntax-editor-model.ts."
   },
+  "webhookEndpointMalformed": {
+    "message": "Enter a valid HTTPS URL",
+    "description": "Inline editor diagnostic on a webhook endpoint line that is not a URL at all. Used in src/options/syntax-editor/syntax-editor.ts."
+  },
+  "webhookEndpointNotHttps": {
+    "message": "Use an https:// URL",
+    "description": "Inline editor diagnostic on a webhook endpoint line using a scheme other than HTTPS. Used in src/options/syntax-editor/syntax-editor.ts."
+  },
+  "webhookEndpointCredentials": {
+    "message": "Put authentication in the query string, not the URL",
+    "description": "Inline editor diagnostic on a webhook endpoint line carrying a username or password before the host, as in https://user:pass@example.com. Used in src/options/syntax-editor/syntax-editor.ts."
+  },
+  "webhookEndpointFragment": {
+    "message": "Remove the # fragment",
+    "description": "Inline editor diagnostic on a webhook endpoint line ending in a URL fragment, which is never sent to a server. Used in src/options/syntax-editor/syntax-editor.ts."
+  },
+  "webhookEndpointOverLimit": {
+    "message": "Past the endpoint limit, so this line is not sent",
+    "description": "Inline editor diagnostic on webhook endpoint lines beyond the maximum number Save In delivers to. Deliberately states no number so it cannot drift from WEBHOOK_TARGET_LIMIT in src/shared/webhook.ts. Used in src/options/syntax-editor/syntax-editor.ts."
+  },
   "notificationLinkPreferred": {
     "message": "Downloaded the link target instead",
     "description": "Notification title when link was downloaded over a source. Used in src/background/menu-click.ts."

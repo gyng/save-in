@@ -3209,6 +3209,21 @@
   "regularExpressionInvalid": {
     "message": "Ogiltigt reguljärt uttryck"
   },
+  "webhookEndpointMalformed": {
+    "message": "Ange en giltig HTTPS-URL"
+  },
+  "webhookEndpointNotHttps": {
+    "message": "Använd en https://-URL"
+  },
+  "webhookEndpointCredentials": {
+    "message": "Lägg autentiseringen i frågesträngen, inte i URL:en"
+  },
+  "webhookEndpointFragment": {
+    "message": "Ta bort #-fragmentet"
+  },
+  "webhookEndpointOverLimit": {
+    "message": "Över slutpunktsgränsen, den här raden skickas inte"
+  },
   "validationJumpToIssue": {
     "message": "Gå till det här problemet"
   },

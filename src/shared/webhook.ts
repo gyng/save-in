@@ -46,23 +46,83 @@ export type TestWebhookPayload = {
 
 export type WebhookPayload = SaveWebhookPayload | TestWebhookPayload;
 
-export type WebhookUrlValidation = { ok: true; url: string } | { ok: false; message: string };
+// Each rejection names its reason so the editor can translate it. The reason is
+// the i18n key: validateWebhookUrl's English `message` is the fallback for
+// callers with nowhere to render a translated one (postWebhook throws it).
+export const WEBHOOK_ENDPOINT_REASONS = {
+  EMPTY: "webhookEndpointEmpty",
+  MALFORMED: "webhookEndpointMalformed",
+  NOT_HTTPS: "webhookEndpointNotHttps",
+  CREDENTIALS: "webhookEndpointCredentials",
+  FRAGMENT: "webhookEndpointFragment",
+  OVER_LIMIT: "webhookEndpointOverLimit",
+} as const;
+
+export type WebhookEndpointReason =
+  (typeof WEBHOOK_ENDPOINT_REASONS)[keyof typeof WEBHOOK_ENDPOINT_REASONS];
+
+// PatternListIssue carries a bare Error, which the match-pattern and regular
+// expression dialects are content with: they have one reason each. Webhook
+// endpoints have several, so the reason rides on the error rather than widening
+// PatternListIssue for the one consumer that needs it.
+export class WebhookEndpointError extends Error {
+  readonly reason: WebhookEndpointReason;
+
+  constructor(reason: WebhookEndpointReason, message: string) {
+    super(message);
+    this.name = "WebhookEndpointError";
+    this.reason = reason;
+  }
+}
+
+export const webhookEndpointReason = (error: Error): WebhookEndpointReason =>
+  error instanceof WebhookEndpointError ? error.reason : WEBHOOK_ENDPOINT_REASONS.MALFORMED;
+
+export type WebhookUrlValidation =
+  | { ok: true; url: string }
+  | { ok: false; reason: WebhookEndpointReason; message: string };
 
 export const validateWebhookUrl = (value: string): WebhookUrlValidation => {
   const candidate = value.trim();
-  if (!candidate) return { ok: false, message: "Enter an HTTPS webhook URL" };
+  if (!candidate) {
+    return {
+      ok: false,
+      reason: WEBHOOK_ENDPOINT_REASONS.EMPTY,
+      message: "Enter an HTTPS webhook URL",
+    };
+  }
 
   let url: URL;
   try {
     url = new URL(candidate);
   } catch {
-    return { ok: false, message: "Enter a valid HTTPS webhook URL" };
+    return {
+      ok: false,
+      reason: WEBHOOK_ENDPOINT_REASONS.MALFORMED,
+      message: "Enter a valid HTTPS webhook URL",
+    };
   }
-  if (url.protocol !== "https:") return { ok: false, message: "Use an HTTPS webhook URL" };
+  if (url.protocol !== "https:") {
+    return {
+      ok: false,
+      reason: WEBHOOK_ENDPOINT_REASONS.NOT_HTTPS,
+      message: "Use an HTTPS webhook URL",
+    };
+  }
   if (url.username || url.password) {
-    return { ok: false, message: "Put authentication in the query string" };
+    return {
+      ok: false,
+      reason: WEBHOOK_ENDPOINT_REASONS.CREDENTIALS,
+      message: "Put authentication in the query string",
+    };
   }
-  if (url.hash) return { ok: false, message: "Remove the URL fragment" };
+  if (url.hash) {
+    return {
+      ok: false,
+      reason: WEBHOOK_ENDPOINT_REASONS.FRAGMENT,
+      message: "Remove the URL fragment",
+    };
+  }
   return { ok: true, url: candidate };
 };
 
@@ -80,9 +140,13 @@ export const WEBHOOK_TARGET_LIMIT = 10;
 export const parseWebhookEndpoints = (
   value: string | null | undefined,
 ): PatternListResult<string> => {
-  const parsed = parsePatternList(value, (line) => {
+  // Pinned: WebhookEndpointError is an Error subtype, so an inferred Value
+  // would widen to string | WebhookEndpointError instead of the error branch.
+  const parsed = parsePatternList<string>(value, (line) => {
     const validation = validateWebhookUrl(line);
-    return validation.ok ? validation.url : new Error(validation.message);
+    return validation.ok
+      ? validation.url
+      : new WebhookEndpointError(validation.reason, validation.message);
   });
   if (parsed.entries.length <= WEBHOOK_TARGET_LIMIT) return parsed;
 
@@ -92,7 +156,10 @@ export const parseWebhookEndpoints = (
     .slice(WEBHOOK_TARGET_LIMIT)
     .map(({ value: _endpoint, ...rest }) => ({
       ...rest,
-      error: new Error(`Only the first ${WEBHOOK_TARGET_LIMIT} endpoints are sent`),
+      error: new WebhookEndpointError(
+        WEBHOOK_ENDPOINT_REASONS.OVER_LIMIT,
+        `Only the first ${WEBHOOK_TARGET_LIMIT} endpoints are sent`,
+      ),
     }));
   return {
     entries: parsed.entries.slice(0, WEBHOOK_TARGET_LIMIT),

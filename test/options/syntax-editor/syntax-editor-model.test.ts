@@ -135,6 +135,38 @@ describe("syntax editor model", () => {
     ]);
   });
 
+  test("highlights webhook endpoints and blames each bad line for its own reason", () => {
+    const source =
+      "  https://hooks.example.com/save?token=1  \nhttp://insecure.example.com/save\n\nnot a URL";
+    const snapshot = analyzeSyntax("webhook-endpoints", source);
+    const byKind = (kind: string) =>
+      snapshot.tokens
+        .filter((candidate) => candidate.kind === kind)
+        .map(({ start, end }) => tokenText(source, start, end));
+
+    expect(byKind("matcher")).toEqual(["https"]);
+    expect(byKind("punctuation")).toEqual(["://"]);
+    expect(byKind("destination-value")).toEqual(["hooks.example.com"]);
+    expect(byKind("path")).toEqual(["/save?token=1"]);
+    expect(byKind("invalid")).toEqual(["http://insecure.example.com/save", "not a URL"]);
+    expect(snapshot.diagnostics).toEqual([
+      expect.objectContaining({ line: 2, column: 0, message: "webhookEndpointNotHttps" }),
+      expect.objectContaining({ line: 4, column: 0, message: "webhookEndpointMalformed" }),
+    ]);
+  });
+
+  test("highlights an accepted endpoint that has no :// as one span", () => {
+    // new URL() accepts this and normalizes it to https://hooks.example.com/save,
+    // so the endpoint is valid but has no scheme separator to split on.
+    const source = "https:/hooks.example.com/save";
+    const snapshot = analyzeSyntax("webhook-endpoints", source);
+
+    expect(
+      snapshot.tokens.map(({ kind, start, end }) => [kind, tokenText(source, start, end)]),
+    ).toEqual([["destination-value", "https:/hooks.example.com/save"]]);
+    expect(snapshot.diagnostics).toEqual([]);
+  });
+
   test("uses grammar context for directory and routing completions", () => {
     const variables = [":date:", ":day:", ":filename:"];
     const matchers = ["into", "capturegroups", "fileext", "filename"];

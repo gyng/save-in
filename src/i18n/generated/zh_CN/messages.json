@@ -3209,6 +3209,21 @@
   "regularExpressionInvalid": {
     "message": "无效的正则表达式"
   },
+  "webhookEndpointMalformed": {
+    "message": "请输入有效的 HTTPS URL"
+  },
+  "webhookEndpointNotHttps": {
+    "message": "请使用 https:// 开头的 URL"
+  },
+  "webhookEndpointCredentials": {
+    "message": "请将身份验证放在查询字符串中，而不是 URL 中"
+  },
+  "webhookEndpointFragment": {
+    "message": "请移除 # 片段"
+  },
+  "webhookEndpointOverLimit": {
+    "message": "超出端点数量上限，此行不会发送"
+  },
   "validationJumpToIssue": {
     "message": "跳转到此问题"
   },

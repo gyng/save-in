@@ -30,6 +30,18 @@ const diagnosticText = (message: string): string => {
       return getMessage("regularExpressionInvalid") || message;
     case "ruleBadClause":
       return getMessage("ruleBadClause") || message;
+    // Literal keys, like the cases above: scripts/check-i18n.js reads these
+    // call sites to decide a catalog entry is used.
+    case "webhookEndpointMalformed":
+      return getMessage("webhookEndpointMalformed") || message;
+    case "webhookEndpointNotHttps":
+      return getMessage("webhookEndpointNotHttps") || message;
+    case "webhookEndpointCredentials":
+      return getMessage("webhookEndpointCredentials") || message;
+    case "webhookEndpointFragment":
+      return getMessage("webhookEndpointFragment") || message;
+    case "webhookEndpointOverLimit":
+      return getMessage("webhookEndpointOverLimit") || message;
     default:
       return message;
   }
@@ -534,6 +546,7 @@ export const setupSyntaxEditors = (): SyntaxEditorController[] => {
     ["#browserDownloadExcludeFilter", "match-patterns"],
     ["#setRefererHeaderFilter", "match-patterns"],
     ["#perSiteDisableList", "match-patterns"],
+    ["#webhookUrl", "webhook-endpoints"],
   ];
   editors.forEach(([selector, language]) => {
     const textarea = document.querySelector<HTMLTextAreaElement>(selector);

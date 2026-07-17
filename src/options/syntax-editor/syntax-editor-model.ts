@@ -4,12 +4,14 @@ import { RENAME_SEPARATOR } from "../../routing/rename.ts";
 import { parseRoutingRuleAst, type RoutingLineNode } from "../../routing/rule-syntax.ts";
 import { parseMatchPatternList } from "../../shared/match-pattern.ts";
 import { parseRegularExpressionList, type PatternListIssue } from "../../shared/pattern-list.ts";
+import { parseWebhookEndpoints, webhookEndpointReason } from "../../shared/webhook.ts";
 
 export type SyntaxEditorLanguage =
   | "directories"
   | "routing"
   | "match-patterns"
-  | "regular-expressions";
+  | "regular-expressions"
+  | "webhook-endpoints";
 
 export type SyntaxTokenKind =
   | "nesting"
@@ -348,6 +350,46 @@ const regularExpressionSnapshot = (
   };
 };
 
+const webhookEndpointSnapshot = (source: string, lines: readonly SyntaxLine[]): SyntaxSnapshot => {
+  const parsed = parseWebhookEndpoints(source);
+  const tokens: SyntaxToken[] = [];
+  parsed.entries.forEach((entry) => {
+    // An accepted endpoint is an absolute https URL, but "https:/host" also
+    // parses as one, so the "://" this splits on is not guaranteed to be there.
+    const separator = entry.source.indexOf("://");
+    if (separator === -1) {
+      tokens.push(token("destination-value", entry.start, entry.end));
+      return;
+    }
+    const separatorStart = entry.start + separator;
+    const hostStart = separatorStart + 3;
+    const slash = entry.source.indexOf("/", separator + 3);
+    const pathStart = slash === -1 ? entry.end : entry.start + slash;
+    tokens.push(
+      token("matcher", entry.start, separatorStart),
+      token("punctuation", separatorStart, hostStart),
+      token("destination-value", hostStart, pathStart),
+    );
+    if (pathStart < entry.end) tokens.push(token("path", pathStart, entry.end));
+  });
+  parsed.issues.forEach((issue) => tokens.push(token("invalid", issue.start, issue.end)));
+  return {
+    source,
+    lines,
+    tokens,
+    // Unlike the other list dialects, each line names why it was rejected: the
+    // reason is the message key.
+    diagnostics: parsed.issues.map((issue) => ({
+      start: issue.start,
+      end: issue.end,
+      line: issue.line,
+      column: issue.column,
+      message: webhookEndpointReason(issue.error),
+      severity: "error" as const,
+    })),
+  };
+};
+
 export const analyzeSyntax = (language: SyntaxEditorLanguage, source: string): SyntaxSnapshot => {
   const lines = sourceLines(source);
   switch (language) {
@@ -359,6 +401,8 @@ export const analyzeSyntax = (language: SyntaxEditorLanguage, source: string): S
       return matchPatternSnapshot(source, lines);
     case "regular-expressions":
       return regularExpressionSnapshot(source, lines);
+    case "webhook-endpoints":
+      return webhookEndpointSnapshot(source, lines);
   }
 };
 
