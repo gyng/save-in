@@ -275,20 +275,50 @@ for (const [file, dependencies] of imports) {
   }
 }
 
-// Low-level runtime layers cannot point back into feature or composition
-// layers. Type-only contract references remain erased from this graph.
+// Low-level layers cannot point back into feature or composition layers. This
+// covers type-only edges too: they are erased at runtime, but a contract that
+// names a type owned by a higher layer still describes an inverted dependency,
+// and nothing stops the next edit from needing the value as well as the type.
+// The routing rule below has always been checked this way; shared/ and
+// platform/ are lower still, so they are held to it rather than exempted.
 /** @type {Array<[string, string[]]>} */
 const runtimeLayerRules = [
   ["src/shared/", ["src/shared/", "src/vendor/"]],
   ["src/platform/", ["src/platform/", "src/shared/", "src/vendor/"]],
 ];
-for (const [file, dependencies] of graph) {
+
+// The wire contract describes shapes their producing layer still declares.
+// Each entry is type-only and reviewed; a new one is a design decision, not a
+// convenience. Inverting the rest means deciding which of these are wire
+// contracts in their own right — see Phase 4.4 in docs/CODE-ORGANIZATION.md.
+const allowedUpwardTypeEdges = new Set([
+  // A DOWNLOAD request body carries the downloads pipeline's own DownloadInfo.
+  "src/shared/message-protocol.ts -> src/downloads/download-types.ts",
+  // PREVIEW_MENUS answers with the menu builder's tree verbatim.
+  "src/shared/message-protocol.ts -> src/menus/menu-tree.ts",
+  // VALIDATE reports the rule parser's own error shape.
+  "src/shared/message-protocol.ts -> src/routing/rule-types.ts",
+  // VALIDATE and CHECK_ROUTES report OptionErrors, which background/runtime.ts
+  // also holds as live state. This is the next edge worth inverting: it is the
+  // only one reaching the composition layer, and it is blocked on whether
+  // MenuTreeError is itself a wire contract.
+  "src/shared/message-protocol.ts -> src/background/runtime.ts",
+]);
+
+for (const [file, dependencies] of imports) {
   const sourceLayer = runtimeLayerRules.find(([prefix]) => relative(file).startsWith(prefix));
   if (!sourceLayer) continue;
-  for (const dependency of dependencies) {
-    if (!sourceLayer[1].some((prefix) => relative(dependency).startsWith(prefix))) {
-      report(file, `${sourceLayer[0]} runtime imports must point downward`, dependency);
-    }
+  const runtimeDependencies = graph.get(file) ?? [];
+  // One target can arrive on several import statements; report it once.
+  for (const dependency of new Set(dependencies)) {
+    if (sourceLayer[1].some((prefix) => relative(dependency).startsWith(prefix))) continue;
+    // An allowance covers the erased type edge only; needing the value too is
+    // exactly the escalation this rule exists to catch.
+    const typeOnly = !runtimeDependencies.includes(dependency);
+    const edge = `${relative(file)} -> ${relative(dependency)}`;
+    if (typeOnly && allowedUpwardTypeEdges.has(edge)) continue;
+    const kind = typeOnly ? "type" : "runtime";
+    report(file, `${sourceLayer[0]} ${kind} imports must point downward`, dependency);
   }
 }
 

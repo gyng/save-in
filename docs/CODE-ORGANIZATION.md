@@ -886,6 +886,59 @@ resolution. No e2e run: the split preserves `setupHistoryPanel`'s wiring order
 and its import-time call exactly, and the panel is options-page DOM covered by
 90 jsdom tests rather than browser-owned behavior.
 
+4. **Make `shared/` actually point downward.** Phase 2.2 left this as its one
+   unfinished bullet: `shared/message-protocol.ts` `import type`s upward into
+   four feature directories, "legal only because the checker erases type edges,
+   which weakens the `shared` points downward guarantee."
+
+   **Landed**, in the form the problem turned out to have. The guarantee was
+   enforced by two different maps: the `routing/` rule iterates `imports`
+   (every edge, type included), while the `shared/`/`platform/` rule iterated
+   `graph`, whose own comment said "Type-only contract references remain erased
+   from this graph." The lower layers had the weaker check. Both now run over
+   `imports`, and the violation names whether the edge was `type` or `runtime`.
+
+   Three edges were inverted rather than exempted, each a pure contract that had
+   simply been declared beside its implementation:
+   - `RoutePreview` (`background/route-preview.ts` → `shared/route-preview-types.ts`).
+     Four lines, no dependencies, and literally the CHECK_ROUTES response
+     payload. `RoutePreviewState` stayed in `background/` — it is `previewRoutes`'
+     own argument and never travels.
+   - `ExtensionFetchCredentials` (`config/fetch-credentials.ts` →
+     `shared/content-fetch-types.ts`). A one-line `"include" | "omit"` union,
+     joining the fetch contracts its only consumers already imported from there.
+     `getExtensionFetchCredentials` stays in `config/`: reading the option is
+     config's job, naming the mode is not.
+   - The storage port shapes (`platform/storage-areas.ts` →
+     `shared/storage-types.ts`). `StorageReader`/`Writer`/`Setter`/`Remover`/
+     `Area` are structural "something with a `.get()`" contracts with no browser
+     dependency, and `shared/session-state.ts` accepts them as injected ports.
+     Only the two live areas needed `webExtensionApi`, and they stayed. This
+     edge was **not** in the original problem statement — the stricter rule
+     found it, because a `grep` for `^import type` misses inline `{ type X }`
+     specifiers.
+
+   The four remaining edges are an exact `allowedUpwardTypeEdges` allowlist, one
+   entry per real edge with its reason, mirroring Phase 3.3's
+   `allowedCrossFeatureImports`. Each covers the **erased type edge only**: the
+   same file pair still fails if it ever needs the value, which was verified.
+   They are `DownloadInfo` (a DOWNLOAD body carries the pipeline's own type),
+   `MenuTree` (PREVIEW_MENUS answers with the builder's tree verbatim),
+   `RuleError` (VALIDATE reports the parser's error shape), and `OptionErrors`.
+
+   `OptionErrors` is the one left worth inverting — the only remaining edge into
+   the composition layer — and it is deliberately not done here. It is
+   `{ paths: MenuTreeError[]; filenamePatterns: OptionError[] }`, so moving it
+   would trade a `shared → background` edge for a `shared → menus` one unless
+   `MenuTreeError` moves too. Whether the menu tree is a wire contract in its own
+   right is the design question Phase 2.2 named, and it deserves its own step
+   rather than being smuggled into an enforcement change.
+
+   Verified by construction: the rule fires on a new upward type edge and on a
+   new upward runtime edge, reports each with the right kind, and an allowlisted
+   pair still fails when it needs a value. Green across 255 modules, with
+   `npm run lint`, `npm run typecheck`, `npm test` (4014), and `npm run bundle`.
+
 ## Non-goals
 
 - No behavior, message-payload, storage-shape, or manifest changes; all
