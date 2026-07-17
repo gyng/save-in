@@ -16,7 +16,7 @@ export type ProtocolSendResponse<Request extends InternalMessage> = SendResponse
 // ─── External DOWNLOAD API (issue #110) ────────────────────────────────
 // Versioned, supported contract for other extensions to push a URL into
 // save-in's routing/rename pipeline. Callers should PING first to discover
-// the version and capabilities. Documented in docs/INTEGRATIONS.md.
+// the version and capabilities. Documented in docs/integrating/INTEGRATIONS.md.
 export const API_VERSION = 1;
 export const API_CAPABILITIES = [
   "download", // { type: "DOWNLOAD", body: { url, info?, comment?, version? } }

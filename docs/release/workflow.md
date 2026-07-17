@@ -13,7 +13,7 @@ reproducible source ZIP required for the AMO submission.
 
 Run the release gates in `AGENTS.md`, then upload the same reviewed runtime ZIP
 to AMO and the Chrome Web Store. Attach the source ZIP to the AMO submission.
-Use the [store descriptions](STORE-DESCRIPTIONS.md) as the canonical English
+Use the [store descriptions](../store/descriptions.md) as the canonical English
 listing copy and store-facing release note; update its version and review date
 for each release.
 Keep store data-use answers aligned with `PRIVACY.md`: Save In processes website
@@ -230,7 +230,7 @@ npm run screenshots:store
 ```
 
 The command launches isolated headless Chrome, seeds the review configuration,
-and writes five 1280×800 PNGs to `docs/store-screenshots/` in listing order:
+and writes five 1280×800 PNGs to `docs/store/screenshots/` in listing order:
 
 - `01-right-click-save.png`: the Save In context menu over a demo-page image,
   showing the right-click save gesture;

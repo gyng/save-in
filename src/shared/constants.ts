@@ -161,10 +161,10 @@ export const MESSAGE_TYPES = {
   HISTORY_REROUTE: "HISTORY_REROUTE",
   EXTERNAL_DOWNLOAD_REJECTIONS_GET: "EXTERNAL_DOWNLOAD_REJECTIONS_GET",
   EXTERNAL_DOWNLOAD_REJECTION_CLEAR: "EXTERNAL_DOWNLOAD_REJECTION_CLEAR",
-  // External DOWNLOAD API handshake (see docs/INTEGRATIONS.md)
+  // External DOWNLOAD API handshake (see docs/integrating/INTEGRATIONS.md)
   PING: "PING",
   PONG: "PONG",
-  // Scriptable / AI-assisted configuration API (docs/INTEGRATIONS.md §4)
+  // Scriptable / AI-assisted configuration API (docs/integrating/INTEGRATIONS.md §4)
   GET_SCHEMA: "GET_SCHEMA",
   SCHEMA: "SCHEMA",
   GET_CONFIG: "GET_CONFIG",

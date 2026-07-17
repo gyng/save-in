@@ -9,7 +9,7 @@ user-facing guide and recipe collection; if its protocol details differ, this
 document is authoritative.
 
 For the in-product setup workflow, safety controls, matching semantics, and
-legacy-setting migration, see [Automatic source saves](AUTOMATIC-SOURCE-SAVES.md).
+legacy-setting migration, see [Automatic source saves](../using/AUTOMATIC-SOURCE-SAVES.md).
 
 External Download API v1, including its externally exposed read-only discovery
 and validation messages, remains backward compatible within the declared

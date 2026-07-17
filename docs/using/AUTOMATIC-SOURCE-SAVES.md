@@ -41,14 +41,14 @@ In downloads from the expanded template instead of the discovered source URL —
 for example, to save the original-resolution asset behind a preview the page
 linked to — while `into:` still chooses the destination and filename. The
 rewrite applies to unattended saves the same way it applies to interactive
-ones; see [Integrations](INTEGRATIONS.md#config-messages) for the clause's
+ones; see [Integrations](../integrating/INTEGRATIONS.md#config-messages) for the clause's
 syntax and error identifiers.
 
 A `rename:` clause (`find -> replacement`) also applies to unattended saves the
 same way it applies to interactive ones: after the filename fully resolves and
 before length limits, the matched rule's transform edits the final filename
 component without touching its folders. See
-[Integrations](INTEGRATIONS.md#config-messages) for the clause's syntax and
+[Integrations](../integrating/INTEGRATIONS.md#config-messages) for the clause's syntax and
 error identifiers.
 
 ## Matching rules
@@ -202,7 +202,7 @@ compatibility, but new configurations should put all automatic rules in
   adopted.
 
 The machine-facing validation and vocabulary contract is documented in
-[Integrations](INTEGRATIONS.md#config-messages).
+[Integrations](../integrating/INTEGRATIONS.md#config-messages).
 
 Manual selection, batch saving, and source-row actions are covered in
 [Destination and source workflows](DESTINATION-AND-SOURCE-WORKFLOWS.md#page-sources).

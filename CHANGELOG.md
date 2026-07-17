@@ -2,7 +2,7 @@
 
 > _Rebuilt from the first character to the last for Manifest V3, and still
 > filing your downloads with the same stubborn logic it has used since 2017.
-> (The full dig is in [docs/V4-ARCHAEOLOGY.md](docs/V4-ARCHAEOLOGY.md).)_
+> (The full dig is in [docs/project/V4-ARCHAEOLOGY.md](docs/project/V4-ARCHAEOLOGY.md).)_
 
 Version 4 is an extensive revamp. It modernizes browser support and makes
 complex download organization easier while preserving existing settings and

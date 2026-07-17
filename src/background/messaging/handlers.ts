@@ -136,7 +136,7 @@ export const handleCheckRoutes = async (
   });
 };
 
-// ─── Scriptable / AI-assisted configuration (docs/INTEGRATIONS.md §4) ───
+// ─── Scriptable / AI-assisted configuration (docs/integrating/INTEGRATIONS.md §4) ───
 
 // Read-only: the option schema (name, type, default, human description) so an
 // agent knows what it may set. Safe to expose externally.
@@ -389,7 +389,7 @@ export const emitDownloaded = (state: DownloadPipelineState): void => {
  * Response: { type: "DOWNLOAD", body: { status: "OK", version, url } }
  *      or:  { type: "DOWNLOAD", body: { status: "ERROR", error, message, version } }
  *
- * See docs/INTEGRATIONS.md and
+ * See docs/integrating/INTEGRATIONS.md and
  * https://github.com/gyng/save-in/wiki/Integrations
  *
  * In Foxy Gestures:

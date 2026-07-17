@@ -2,13 +2,13 @@
 
 // Regenerates the store marketing assets that are drawn art rather than
 // product UI — promo tiles, listing icons, and the "right-click" hero mock —
-// into docs/store-assets/. These are rendered from self-contained HTML, so
+// into docs/store/assets/. These are rendered from self-contained HTML, so
 // they need no build, profile, or loaded extension. The archive glyph is read
 // from the shipped toolbar icon so the marketing art can never drift from it.
 //
 // The real product screenshots are the extension's own UI and belong to
 // scripts/generate-store-screenshots.js — those 1280x800 PNGs under
-// docs/store-screenshots/ are the screenshots for both stores. This script
+// docs/store/screenshots/ are the screenshots for both stores. This script
 // deliberately does not re-render them. The right-click menu art is shared
 // with that script through scripts/lib/context-menu-art.js.
 //
@@ -36,7 +36,7 @@ const {
 } = require("./lib/context-menu-art");
 
 const ROOT = path.join(__dirname, "..");
-const OUT_DIR = path.join(ROOT, "docs", "store-assets");
+const OUT_DIR = path.join(ROOT, "docs", "store", "assets");
 const DEMO_PHOTO = path.join(OUT_DIR, "demo-photo.avif");
 
 const ICON_BLACK = "#474747";

@@ -231,7 +231,7 @@ for (const excluded of ['"docs/"']) {
 }
 contains(".github/workflows/ci.yml", "npm run build:source");
 
-const docs = `${read("README.md")}\n${read("docs/INTEGRATIONS.md")}`;
+const docs = `${read("README.md")}\n${read("docs/integrating/INTEGRATIONS.md")}`;
 for (const fact of [
   "Chrome 123+",
   "Firefox",

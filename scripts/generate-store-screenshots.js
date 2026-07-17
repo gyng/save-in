@@ -22,7 +22,7 @@ const {
 } = require("./lib/store-screenshots");
 
 const PROFILE = path.join(chrome.ROOT, "dist", "store-screenshot-profile");
-const DEFAULT_OUTPUT = path.join(chrome.ROOT, "docs", "store-screenshots");
+const DEFAULT_OUTPUT = path.join(chrome.ROOT, "docs", "store", "screenshots");
 /** @typedef {{filename: string, description: string}} Screenshot */
 
 const outputArgument = () => {

@@ -151,7 +151,7 @@ const isValidDownloadUrl = (url: string) =>
 // Registers save-in's config + download tools on this page's document so an
 // in-browser AI agent can discover and call them. It wraps the same messaging
 // API (GET_SCHEMA / GET_CONFIG / VALIDATE / APPLY_CONFIG / DOWNLOAD) documented in
-// docs/INTEGRATIONS.md. No-op wherever document.modelContext is absent, and the
+// docs/integrating/INTEGRATIONS.md. No-op wherever document.modelContext is absent, and the
 // API surface is explicitly "subject to change" — treat this as a preview.
 
 // The imperative API moved from navigator.* to document.* (Chrome 150); try

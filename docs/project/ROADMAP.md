@@ -193,7 +193,7 @@ needed — the verdict reads issue reports against those records.
   directories; and nothing even reports where Downloads is. Native messaging is
   the only route, and it means shipping and maintaining a separate native binary
   per platform — a different product, which is why the 2017 answer to #25 was
-  "not in the near future" and why `docs/INTEGRATIONS.md` frames the yt-dlp
+  "not in the near future" and why `docs/integrating/INTEGRATIONS.md` frames the yt-dlp
   hand-off as deliberately avoiding the permission. #87 also has a design
   objection independent of the API: enumerating subfolders "would end up reading
   in an entire drive", as a commenter pointed out. Both were left unrejected for
@@ -201,7 +201,7 @@ needed — the verdict reads issue reports against those records.
   Note the same wall bounds #201: a Save As target outside Downloads could only
   ever be reused if this changed.
 - CSS `@scope` migration: deferred until the minimum Firefox version rises
-  (see [UI](UI.md)); a v5-era change.
+  (see [UI](../contributing/UI.md)); a v5-era change.
 
 ## Watch items
 

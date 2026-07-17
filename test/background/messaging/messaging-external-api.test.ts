@@ -242,4 +242,4 @@ describe("external DOWNLOAD API v1", () => {
   });
 });
 
-// Scriptable / AI-assisted config API (#89, docs/INTEGRATIONS.md §4)
+// Scriptable / AI-assisted config API (#89, docs/integrating/INTEGRATIONS.md §4)

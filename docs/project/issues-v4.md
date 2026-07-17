@@ -795,7 +795,7 @@ drops an ask the maintainer said he would track.
 
 **#47** — self-authored by the maintainer, zero comments, so nobody is waiting.
 The intent shipped: automatic saves of everything matching a rule, as
-`context: ^auto$` (`routing/automatic-rule.ts`, `docs/AUTOMATIC-SOURCE-SAVES.md`),
+`context: ^auto$` (`routing/automatic-rule.ts`, `docs/using/AUTOMATIC-SOURCE-SAVES.md`),
 off by default. The *design in the body* did not and should not: it asked to
 *"add `webRequest` permissions"* and *"listen to all URLs"*, and AGENTS.md makes
 that a standing architectural refusal — Save In requests

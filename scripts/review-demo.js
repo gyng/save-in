@@ -22,7 +22,7 @@ const PROMPT_PROFILE =
 const PROMPT_RUNTIME =
   process.env.SAVE_IN_PROMPT_RUNTIME || path.join(os.homedir(), ".cache", "save-in-nano-runtime");
 const DEMO_PHOTO = fs.readFileSync(
-  path.join(chrome.ROOT, "docs", "store-assets", "demo-photo.avif"),
+  path.join(chrome.ROOT, "docs", "store", "assets", "demo-photo.avif"),
 );
 
 const REVIEW_TITLE = "Save In review";

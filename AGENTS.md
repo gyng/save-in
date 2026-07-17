@@ -49,7 +49,7 @@ The main options tabstrip must wrap at every viewport width and must never be a
 horizontal or vertical scroll container; `scripts/check-css.js` enforces this.
 Native nesting is allowed for short state/pseudo-element groups; do not build
 deeply nested selector trees or create catch-all override stylesheets.
-`@scope` is documented as a future migration in `docs/UI.md`; `scripts/check-css.js`
+`@scope` is documented as a future migration in `docs/contributing/UI.md`; `scripts/check-css.js`
 rejects it outright while Firefox below 146 remains supported (Chrome has it since
 118, so the declared Firefox minimum is what gates it).
 
@@ -74,7 +74,7 @@ Execution contexts:
 The on-device rule assistant asks Gemini Nano for the facts of a request under a
 response schema and assembles the rule text itself; it never asks the model to
 write routing syntax, which it cannot do. Read
-[docs/ON-DEVICE-PROMPT.md](docs/ON-DEVICE-PROMPT.md) before changing the prompts,
+[docs/contributing/ON-DEVICE-PROMPT.md](docs/contributing/ON-DEVICE-PROMPT.md) before changing the prompts,
 the response schemas, or the guardrails: what governs this model is measured
 there, and prefer a schema change to a sentence — a sentence has never moved it.
 Nothing reaches the rules editor until the deterministic guardrails, the
@@ -221,7 +221,7 @@ cleanup:
 
 ## Security and privacy reviews
 
-Read [docs/SECURITY-PRIVACY-REVIEWS.md](docs/SECURITY-PRIVACY-REVIEWS.md) before
+Read [docs/reviewing/SECURITY-PRIVACY-REVIEWS.md](docs/reviewing/SECURITY-PRIVACY-REVIEWS.md) before
 performing a security or privacy scan. It defines the client-extension threat
 model, severity calibration, high-value boundaries, safe reproduction rules,
 and the required fix-versus-acceptance analysis. In particular, distinguish
@@ -252,7 +252,7 @@ browsers before reporting it as confirmed.
 - `npm run test:fuzz`: run the replayable property fuzz suite for one second.
   Override `FUZZ_TIME_MS` for longer runs; failures print `FUZZ_PROPERTY`,
   `FUZZ_SEED`, and `FUZZ_PATH` values for exact replay. See the
-  [fuzzing guide](docs/FUZZING.md) for campaign and replay details.
+  [fuzzing guide](docs/contributing/FUZZING.md) for campaign and replay details.
 - `npm run e2e`: stage once and run Chrome and Firefox in parallel. Use
   `e2e:chrome`, `e2e:firefox`, or `e2e:serial` when isolating failures or
   machine-resource issues.
@@ -279,7 +279,7 @@ browsers before reporting it as confirmed.
   `gl` is already what reaches D3D12 through Mesa, so asking ANGLE for `d3d12`
   or `vulkan` only removes the GPU context. What the model does with a prompt,
   and how to measure it, is in
-  [docs/ON-DEVICE-PROMPT.md](docs/ON-DEVICE-PROMPT.md).
+  [docs/contributing/ON-DEVICE-PROMPT.md](docs/contributing/ON-DEVICE-PROMPT.md).
 - `npm run d:chrome` and `npm run d`: auto-rebuilding Chrome and Firefox dev
   loops.
 - `npm run bundle`: emit readable bundles. `npm run build` also stages and
@@ -451,7 +451,7 @@ vitest specifics (`test/**/*.test.ts`, typed; `tsc` covers them):
   disclosures, borders, and feedback patterns of adjacent settings before adding component-specific
   variants; verify new states alongside the surrounding page in both themes and at narrow widths.
   Follow the hierarchy, interaction contracts, responsive rules, and anti-drift checklist in
-  [docs/UI.md](docs/UI.md); update that contract before introducing a legitimate new variant.
+  [docs/contributing/UI.md](docs/contributing/UI.md); update that contract before introducing a legitimate new variant.
 - Keep terminology consistent across settings, menus, notifications, help text, and
   accessibility labels. Give translators enough context in message descriptions when a label
   is ambiguous, preserve placeholders exactly, and write complete strings that allow languages
@@ -461,7 +461,7 @@ vitest specifics (`test/**/*.test.ts`, typed; `tsc` covers them):
   locally without runtime AI or network access, and fall back to English for missing messages. Add
   or update the `check:i18n` catalog/runtime-key policy when UI copy changes. Follow the authoring,
   semantic-review, concurrency, and staged-snapshot workflow in
-  [docs/TRANSLATIONS.md](docs/TRANSLATIONS.md).
+  [docs/contributing/TRANSLATIONS.md](docs/contributing/TRANSLATIONS.md).
 - When the user asks for repository changes, commit the completed, verified
   work before handing it back unless they explicitly ask to leave it uncommitted.
   Stage only task-related changes when the worktree contains unrelated edits.
@@ -500,7 +500,7 @@ vitest specifics (`test/**/*.test.ts`, typed; `tsc` covers them):
 
 ## Release checklist
 
-Read [docs/RELEASE.md](docs/RELEASE.md) when preparing a release or changing
+Read [docs/release/workflow.md](docs/release/workflow.md) when preparing a release or changing
 release automation, provenance, screenshots, or browser-owned checks.
 
 1. `npm run test:all && npm run lint && npm run typecheck && npm run e2e`

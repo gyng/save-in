@@ -249,6 +249,6 @@ Before each upload:
 2. Update the version, review date, minimum browser versions, feature list, and
    release note.
 3. Confirm the listing links, screenshots, permission explanations, and
-   data-use declarations using `docs/RELEASE.md`.
+   data-use declarations using `docs/release/workflow.md`.
 4. Paste the descriptions into the stores as plain text and check their rendered
    formatting before submission.

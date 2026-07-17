@@ -6,7 +6,7 @@
 
 [Privacy policy](PRIVACY.md) · [Manual install](#manual-install)
 
-![Save In options](docs/store-screenshots/01-downloads-menu.png)
+![Save In options](docs/store/screenshots/03-downloads-menu.png)
 
 A WebExtension for Firefox and Chrome that adds a context menu for saving images,
 video, audio, links, selected text, and pages into user-defined folders inside
@@ -36,7 +36,7 @@ the default download location.
 - Inspect MV3 background health, lifecycle events, configuration issue counts,
   and recent session failures from the collapsed Diagnostics panel in Advanced.
 
-See [Destination and source workflows](docs/DESTINATION-AND-SOURCE-WORKFLOWS.md)
+See [Destination and source workflows](docs/using/DESTINATION-AND-SOURCE-WORKFLOWS.md)
 for destination-specific Save As behavior, recent locations, Page Sources
 batches, History actions, and source-link sidecars.
 
@@ -46,7 +46,7 @@ explicit `context: ^auto$`, a page condition, and a source condition. Rules can
 be created from a Page Sources row or in **Visual** mode under **Routing rules**
 and remain subject to
 private-window and per-page safety limits. See
-[Automatic source saves](docs/AUTOMATIC-SOURCE-SAVES.md).
+[Automatic source saves](docs/using/AUTOMATIC-SOURCE-SAVES.md).
 
 Optionally include matching ordinary browser downloads in local history. Chrome
 can apply routing rules before saving; Firefox offers a separately
@@ -54,7 +54,7 @@ labelled experimental cancel-and-redownload mode for matching HTTP(S) downloads.
 
 A versioned external API plus configuration tools support scripts and compatible
 in-browser AI agents through WebMCP. See the source-controlled
-[integration contract](docs/INTEGRATIONS.md).
+[integration contract](docs/integrating/INTEGRATIONS.md).
 
 Version 4 is a [Manifest V3](https://github.com/gyng/save-in/wiki/Manifest-V3) extension on Firefox 140+ and Chrome 123+.
 
@@ -144,7 +144,7 @@ Save In exposes a versioned external API to other extensions. `PING`,
 discovery and validation; `DOWNLOAD` additionally requires an explicitly
 approved extension ID. `GET_CONFIG` and `APPLY_CONFIG` are same-extension only.
 Experimental WebMCP tools serve compatible in-browser agents. See the
-source-controlled [integration contract](docs/INTEGRATIONS.md) for the protocol,
+source-controlled [integration contract](docs/integrating/INTEGRATIONS.md) for the protocol,
 availability, and trust model.
 
 ## Notes for reviewers
@@ -167,6 +167,6 @@ file per execution target; the shipped bundle remains suitable for review.
 
 Pull requests, bug reports, and issues are welcome.
 See the [contributor guide](AGENTS.md) for development setup and validation, and
-the [release workflow](docs/RELEASE.md) for packaging and store submissions.
+the [release workflow](docs/release/workflow.md) for packaging and store submissions.
 [docs/](docs/README.md) indexes the rest, including the UI, integration, and
 security review contracts.

@@ -54,7 +54,7 @@ function prepare(root, tag) {
     // is a ZIP, so this is a copy rather than a second build: one artifact to
     // attest, and SHA256SUMS shows the two names carry one package. Unsigned,
     // so it installs only where signature enforcement can be turned off --
-    // see docs/RELEASE.md. Chrome has no counterpart: a CRX must be signed to
+    // see docs/release/workflow.md. Chrome has no counterpart: a CRX must be signed to
     // exist at all, and Chrome refuses sideloaded ones anyway, so its manual
     // install is Load unpacked from the ZIP.
     {
