@@ -2075,13 +2075,34 @@
     "message": "Webhooks"
   },
   "html_webhooksHelp": {
-    "message": "Envoie une requête JSON chaque fois que Save In lance un téléchargement."
+    "message": "Signalez les téléchargements de Save In à votre propre point de terminaison, en JSON."
   },
   "html_webhookDocumentation": {
     "message": "Lire la documentation sur les webhooks"
   },
   "html_webhookEndpoint": {
-    "message": "Points de terminaison HTTPS"
+    "message": "Points de terminaison"
+  },
+  "html_webhookEvents": {
+    "message": "Événements"
+  },
+  "html_webhookOnStart": {
+    "message": "Le téléchargement démarre"
+  },
+  "html_webhookOnComplete": {
+    "message": "Le téléchargement se termine"
+  },
+  "html_webhookOnFailed": {
+    "message": "Le téléchargement échoue"
+  },
+  "html_webhookEventsHelp": {
+    "message": "Chaque événement porte le même identifiant de téléchargement, ce qui permet à un destinataire de les associer. Les données de page ci-dessous sont envoyées au démarrage d’un téléchargement ; un événement de fin porte à la place le chemin enregistré, connu seulement une fois le fichier écrit."
+  },
+  "html_webhookAllowInsecure": {
+    "message": "Autoriser les points de terminaison http://"
+  },
+  "html_webhookAllowInsecureHelp": {
+    "message": "Les requêtes vers un point de terminaison http:// sont envoyées en clair, y compris les données de page que vous ajoutez ci-dessous. Ne l’utilisez que sur un réseau de confiance."
   },
   "html_webhookEndpointHelp": {
     "message": "Un par ligne. Les requêtes sont envoyées directement de votre navigateur à chaque adresse."
@@ -2093,10 +2114,10 @@
     "message": "Le test contient uniquement un événement de test et un horodatage."
   },
   "html_webhookEnabled": {
-    "message": "Envoyer un webhook au démarrage d’un téléchargement Save In"
+    "message": "Signaler les téléchargements de Save In à un webhook"
   },
   "html_webhookAlwaysIncludes": {
-    "message": "Chaque requête comprend l’URL de la ressource sélectionnée, un événement d’enregistrement et un horodatage ISO 8601."
+    "message": "Chaque requête contient l’URL de la ressource, l’événement dont il s’agit, un identifiant de téléchargement et un horodatage ISO 8601."
   },
   "html_webhookAdditionalData": {
     "message": "Données supplémentaires"
@@ -3214,6 +3235,9 @@
   },
   "webhookEndpointNotHttps": {
     "message": "Utilisez une URL https://"
+  },
+  "webhookEndpointNotHttpOrHttps": {
+    "message": "Utilisez une URL https:// ou http://"
   },
   "webhookEndpointCredentials": {
     "message": "Placez l’authentification dans la chaîne de requête, pas dans l’URL"

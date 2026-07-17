@@ -1653,13 +1653,34 @@
     "message": "Webhook"
   },
   "html_webhooksHelp": {
-    "message": "Save In がダウンロードを開始するたびに JSON リクエストを送信します。"
+    "message": "Save In のダウンロードを独自のエンドポイントへ JSON で通知します。"
   },
   "html_webhookDocumentation": {
     "message": "Webhook のドキュメントを読む"
   },
   "html_webhookEndpoint": {
-    "message": "HTTPS エンドポイント"
+    "message": "エンドポイント"
+  },
+  "html_webhookEvents": {
+    "message": "イベント"
+  },
+  "html_webhookOnStart": {
+    "message": "ダウンロードの開始時"
+  },
+  "html_webhookOnComplete": {
+    "message": "ダウンロードの完了時"
+  },
+  "html_webhookOnFailed": {
+    "message": "ダウンロードの失敗時"
+  },
+  "html_webhookEventsHelp": {
+    "message": "すべてのイベントに同じダウンロード ID が含まれるため、受信側で対応付けられます。下のページデータはダウンロードの開始時に送信されます。完了イベントには代わりに保存先パスが含まれますが、これはファイルが書き込まれるまで確定しません。"
+  },
+  "html_webhookAllowInsecure": {
+    "message": "http:// のエンドポイントを許可する"
+  },
+  "html_webhookAllowInsecureHelp": {
+    "message": "http:// のエンドポイントへのリクエストは、下で追加するページデータも含めて暗号化されずに送信されます。信頼できるネットワークでのみ使用してください。"
   },
   "html_webhookEndpointHelp": {
     "message": "1 行に 1 つ。リクエストはブラウザーから各アドレスへ直接送信されます。"
@@ -1671,10 +1692,10 @@
     "message": "テストにはテストイベントとタイムスタンプのみが含まれます。"
   },
   "html_webhookEnabled": {
-    "message": "Save In のダウンロード開始時に Webhook を送信"
+    "message": "Save In のダウンロードを Webhook に通知する"
   },
   "html_webhookAlwaysIncludes": {
-    "message": "各リクエストには、選択したリソースの URL、保存イベント、ISO 8601 タイムスタンプが含まれます。"
+    "message": "すべてのリクエストにリソース URL、どのイベントか、ダウンロード ID、ISO 8601 のタイムスタンプが含まれます。"
   },
   "html_webhookAdditionalData": {
     "message": "追加データ"
@@ -3214,6 +3235,9 @@
   },
   "webhookEndpointNotHttps": {
     "message": "https:// の URL を使用してください"
+  },
+  "webhookEndpointNotHttpOrHttps": {
+    "message": "https:// または http:// の URL を使用してください"
   },
   "webhookEndpointCredentials": {
     "message": "認証情報は URL ではなくクエリ文字列に指定してください"

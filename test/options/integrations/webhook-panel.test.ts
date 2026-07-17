@@ -11,6 +11,9 @@ const markup = () => {
   document.body.innerHTML = `
     <textarea id="webhookUrl"></textarea>
     <input type="checkbox" id="webhookAllowInsecure">
+    <input type="checkbox" id="webhookOnStart">
+    <input type="checkbox" id="webhookOnComplete" checked>
+    <input type="checkbox" id="webhookOnFailed">
     <input type="checkbox" id="webhookEnabled" disabled>
     <span id="webhook-state-badge"></span>
     <button id="webhook-test" disabled>Send test</button>

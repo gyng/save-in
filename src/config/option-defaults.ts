@@ -60,6 +60,14 @@ export const OPTION_DEFAULTS = {
   webmcpEnabled: false,
   webhookEnabled: false,
   webhookUrl: "",
+  // The events a save can report. Completion is the useful one and the default:
+  // it is the only moment the routed path exists, which is what an indexer or a
+  // post-processing watcher is waiting for. Start answers a different question
+  // ("I saved this, from this page") and failure is an alerting opt-in, so both
+  // are off until asked for.
+  webhookOnStart: false,
+  webhookOnComplete: true,
+  webhookOnFailed: false,
   // Off, so an endpoint list only ever names plaintext targets because the user
   // asked for them: the default cannot be talked into leaving encryption.
   webhookAllowInsecure: false,

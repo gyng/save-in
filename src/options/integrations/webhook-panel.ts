@@ -105,6 +105,10 @@ export const setupWebhookPanel = (
   const endpoint = document.querySelector<HTMLTextAreaElement>("#webhookUrl");
   const enabled = document.querySelector<HTMLInputElement>("#webhookEnabled");
   const allowInsecure = document.querySelector<HTMLInputElement>("#webhookAllowInsecure");
+  // Each id is its own option name, so the change handler needs no mapping.
+  const eventControls = ["webhookOnStart", "webhookOnComplete", "webhookOnFailed"].map((name) =>
+    document.querySelector<HTMLInputElement>(`#${name}`),
+  );
   const test = document.querySelector<HTMLButtonElement>("#webhook-test");
   const status = document.querySelector<HTMLElement>("#webhook-status");
   const stateBadge = document.querySelector<HTMLElement>("#webhook-state-badge");
@@ -119,6 +123,7 @@ export const setupWebhookPanel = (
     !endpoint ||
     !enabled ||
     !allowInsecure ||
+    eventControls.some((control) => !control) ||
     !test ||
     !status ||
     !preview ||
@@ -163,6 +168,9 @@ export const setupWebhookPanel = (
     const body = JSON.stringify(
       createSaveWebhookPayload(
         {
+          // A stand-in id: the real one is the browser's, and no download has
+          // started when the preview is drawn.
+          id: 1,
           selectedUrl: "https://cdn.example.com/image.jpg",
           pageUrl: "https://example.com/gallery",
           pageTitle: "Example gallery",
@@ -293,6 +301,27 @@ export const setupWebhookPanel = (
     endpointValidation(false);
     renderPreview();
   };
+
+  // Which events a save reports. None of them changes the data the payloads
+  // carry, so unlike the fields below they ask for no further consent.
+  eventControls.forEach((control) => {
+    control?.addEventListener("change", async () => {
+      const next = control.checked;
+      control.disabled = true;
+      try {
+        await dependencies.apply({ [control.id]: next });
+        setStatus(dependencies.message("webhookFieldsSaved", "Webhook data updated."));
+      } catch {
+        control.checked = !next;
+        setStatus(
+          dependencies.message("webhookSaveFailed", "Could not save the webhook setting."),
+          true,
+        );
+      } finally {
+        control.disabled = false;
+      }
+    });
+  });
 
   allowInsecure.addEventListener("change", async () => {
     const next = allowInsecure.checked;

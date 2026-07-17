@@ -167,6 +167,7 @@ describe("webhook endpoint validation", () => {
 
 describe("webhook payload", () => {
   const source = {
+    id: 7,
     selectedUrl: "https://cdn.example/cat.jpg",
     pageUrl: "https://example/gallery",
     pageTitle: "Cats",
@@ -212,6 +213,7 @@ describe("webhook payload", () => {
       version: 1,
       event: "save",
       timestamp: "2026-07-14T10:00:00.000Z",
+      id: 7,
       url: "https://cdn.example/cat.jpg",
       ...optionalFields,
     });
@@ -220,13 +222,14 @@ describe("webhook payload", () => {
   test("does not emit absent optional values", () => {
     expect(
       createSaveWebhookPayload(
-        { selectedUrl: "https://example/file" },
+        { id: 7, selectedUrl: "https://example/file" },
         { includePageUrl: true, includePageTitle: true, includeSelectionText: true },
         new Date("2026-07-14T10:00:00.000Z"),
       ),
     ).toEqual({
       version: 1,
       event: "save",
+      id: 7,
       timestamp: "2026-07-14T10:00:00.000Z",
       url: "https://example/file",
     });

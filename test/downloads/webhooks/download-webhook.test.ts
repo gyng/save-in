@@ -4,6 +4,8 @@ const enableWebhook = () => {
   vi.mocked(global.browser.permissions.getAll).mockResolvedValue({ permissions: [], origins: [] });
   Object.assign(options, {
     webhookEnabled: true,
+    // The start event is opt-in now; these cover the save path specifically.
+    webhookOnStart: true,
     webhookUrl: "https://hooks.example/save?token=secret",
     webhookIncludePageUrl: true,
     webhookIncludePageTitle: true,

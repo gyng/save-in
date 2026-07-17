@@ -16,6 +16,7 @@ import type { HistoryEntry } from "../shared/history-types.ts";
 import { sessionWriteState } from "./download-state-instances.ts";
 import { getSession, normalizeSessionCounter, updateSession } from "../shared/session-state.ts";
 import { options } from "../config/options-data.ts";
+import { deliverDownloadOutcomeWebhook } from "./webhook-delivery.ts";
 import { BROWSER_DOWNLOAD_CONTEXT } from "../shared/constants.ts";
 import { PENDING_DOWNLOADS_SESSION_KEY } from "../shared/storage-keys.ts";
 import {
@@ -679,6 +680,28 @@ export const onDownloadChanged = async (downloadDelta: HostDownloadDelta) => {
   if (completed) {
     await recordHistoryStatus(downloadDelta.id, "complete");
     await completePendingHistoryMove(downloadDelta.id);
+  }
+
+  // The outcome events, reported once the download has actually ended. Like the
+  // save event they are a side effect and never gate the download: fullFilename
+  // is the resolved on-disk path, which is the whole reason a receiver waits for
+  // this rather than acting on the save event.
+  if (completed) {
+    void deliverDownloadOutcomeWebhook(
+      options,
+      record,
+      downloadDelta.id,
+      { status: "complete", path: fullFilename },
+      { add: (message, data) => addDownloadLog(record, message, data) },
+    );
+  } else if (isFromSelf && failed && !isUserCancelled) {
+    void deliverDownloadOutcomeWebhook(
+      options,
+      record,
+      downloadDelta.id,
+      { status: "failed", reason: downloadFailureReason(failed) || "failed" },
+      { add: (message, data) => addDownloadLog(record, message, data) },
+    );
   }
 
   if (completed && record.pendingSourceSidecar) {

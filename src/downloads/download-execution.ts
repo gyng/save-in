@@ -311,6 +311,9 @@ export const executeBrowserDownload = async (
       ...(historyEntryId ? { historyEntryId } : {}),
       ...(isSourceSidecar(state) ? { sourceSidecar: true } : {}),
       ...(pendingSourceSidecar ? { pendingSourceSidecar } : {}),
+      // Answered here, where the tab and the save command are still in reach.
+      // The completion path has neither, and must not have to guess.
+      webhookEligible: state.info.webhookEligible === true && privateContext !== true,
       privateContext,
       adopted: true,
     });
@@ -536,7 +539,9 @@ export const renameAndDownload = async (
 
   // Webhooks are an optional side effect of the user's save command. They
   // never change, delay, or retry the browser download that already started.
-  void deliverSaveWebhook(options, plan, logPort);
+  // The id is the browser's, so every later event about this download can be
+  // joined to this one.
+  void deliverSaveWebhook(options, plan, result.downloadId, logPort);
 
   // Trigger notifications
   if (state.route) {

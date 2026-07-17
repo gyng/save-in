@@ -1653,13 +1653,34 @@
     "message": "웹후크"
   },
   "html_webhooksHelp": {
-    "message": "Save In이 다운로드를 시작할 때마다 JSON 요청을 하나 보냅니다."
+    "message": "Save In 다운로드를 사용자의 엔드포인트에 JSON으로 보고합니다."
   },
   "html_webhookDocumentation": {
     "message": "웹후크 문서 보기"
   },
   "html_webhookEndpoint": {
-    "message": "HTTPS 엔드포인트"
+    "message": "엔드포인트"
+  },
+  "html_webhookEvents": {
+    "message": "이벤트"
+  },
+  "html_webhookOnStart": {
+    "message": "다운로드 시작"
+  },
+  "html_webhookOnComplete": {
+    "message": "다운로드 완료"
+  },
+  "html_webhookOnFailed": {
+    "message": "다운로드 실패"
+  },
+  "html_webhookEventsHelp": {
+    "message": "모든 이벤트에 같은 다운로드 ID가 포함되므로 수신 측에서 서로 연결할 수 있습니다. 아래의 페이지 데이터는 다운로드가 시작될 때 전송되며, 완료 이벤트에는 대신 저장 경로가 포함됩니다. 저장 경로는 파일이 기록된 후에야 확정됩니다."
+  },
+  "html_webhookAllowInsecure": {
+    "message": "http:// 엔드포인트 허용"
+  },
+  "html_webhookAllowInsecureHelp": {
+    "message": "http:// 엔드포인트로 보내는 요청은 아래에서 추가하는 페이지 데이터를 포함해 암호화되지 않은 상태로 전송됩니다. 신뢰할 수 있는 네트워크에서만 사용하세요."
   },
   "html_webhookEndpointHelp": {
     "message": "한 줄에 하나씩. 요청은 브라우저에서 각 주소로 직접 전송됩니다."
@@ -1671,10 +1692,10 @@
     "message": "테스트에는 테스트 이벤트와 타임스탬프만 포함됩니다."
   },
   "html_webhookEnabled": {
-    "message": "Save In 다운로드가 시작될 때 웹후크 보내기"
+    "message": "Save In 다운로드를 웹후크로 보고"
   },
   "html_webhookAlwaysIncludes": {
-    "message": "각 요청에는 선택한 리소스 URL, 저장 이벤트, ISO 8601 타임스탬프가 포함됩니다."
+    "message": "모든 요청에는 리소스 URL, 어떤 이벤트인지, 다운로드 ID, ISO 8601 타임스탬프가 포함됩니다."
   },
   "html_webhookAdditionalData": {
     "message": "추가 데이터"
@@ -3214,6 +3235,9 @@
   },
   "webhookEndpointNotHttps": {
     "message": "https:// URL을 사용하세요"
+  },
+  "webhookEndpointNotHttpOrHttps": {
+    "message": "https:// 또는 http:// URL을 사용하세요"
   },
   "webhookEndpointCredentials": {
     "message": "인증 정보는 URL이 아니라 쿼리 문자열에 넣으세요"

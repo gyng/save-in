@@ -118,6 +118,9 @@ export const OptionsManagement: OptionsManagementApi = {
     webmcpEnabled: "Register the WebMCP tools an AI agent can call on the options page.",
     webhookEnabled: "Send one HTTPS webhook after a non-private direct Save In save command.",
     webhookUrl: "User-selected endpoints for save webhooks, one per line.",
+    webhookOnStart: "Send a webhook when a Save In download starts.",
+    webhookOnComplete: "Send a webhook with the saved path when a Save In download completes.",
+    webhookOnFailed: "Send a webhook when a Save In download fails.",
     webhookAllowInsecure:
       "Accept plaintext http:// webhook endpoints in addition to https:// ones.",
     webhookIncludePageUrl: "Include the containing page URL in save webhooks.",

@@ -27,6 +27,12 @@ export type DownloadRecord = {
   observedBrowserDownload?: boolean | undefined;
   adopted?: boolean | undefined;
   sourceSidecar?: boolean | undefined;
+  // Whether this download's outcome may be reported to a webhook, decided when
+  // it started and persisted as the decision rather than the privacy state it
+  // came from: privateContext is deliberately not persisted, so a rehydrated
+  // record cannot tell a private download from a public one. Absent means no,
+  // which is what a record written before this existed should mean.
+  webhookEligible?: boolean | undefined;
   pendingSourceSidecar?: SourceSidecarRequest | undefined;
   historyEntryId?: string | undefined;
   offscreenRequestId?: string | undefined;
@@ -109,6 +115,7 @@ function normalizeDownloadRecord(value: unknown): PersistedDownloadRecord | null
     "observedBrowserDownload",
     "adopted",
     "sourceSidecar",
+    "webhookEligible",
   ] as const;
   strings.forEach((key) => {
     const item = value[key];

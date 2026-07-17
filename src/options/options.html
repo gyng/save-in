@@ -2867,6 +2867,23 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
           </div>
 
           <fieldset class="webhook-fields">
+            <legend>__MSG_html_webhookEvents__</legend>
+            <label>
+              <input type="checkbox" id="webhookOnStart" data-no-autosave />
+              __MSG_html_webhookOnStart__
+            </label>
+            <label>
+              <input type="checkbox" id="webhookOnComplete" data-no-autosave />
+              __MSG_html_webhookOnComplete__
+            </label>
+            <label>
+              <input type="checkbox" id="webhookOnFailed" data-no-autosave />
+              __MSG_html_webhookOnFailed__
+            </label>
+          </fieldset>
+          <p class="caption caption-line">__MSG_html_webhookEventsHelp__</p>
+
+          <fieldset class="webhook-fields">
             <legend>__MSG_html_webhookAdditionalData__</legend>
             <label>
               <input type="checkbox" id="webhookIncludePageUrl" data-no-autosave />

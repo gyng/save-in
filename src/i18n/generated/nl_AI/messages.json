@@ -2063,13 +2063,34 @@
     "message": "Webhooks"
   },
   "html_webhooksHelp": {
-    "message": "Stuur één JSON-verzoek wanneer Save In een download start."
+    "message": "Meld Save In-downloads als JSON aan uw eigen eindpunt."
   },
   "html_webhookDocumentation": {
     "message": "Webhookdocumentatie lezen"
   },
   "html_webhookEndpoint": {
-    "message": "HTTPS-eindpunten"
+    "message": "Eindpunten"
+  },
+  "html_webhookEvents": {
+    "message": "Gebeurtenissen"
+  },
+  "html_webhookOnStart": {
+    "message": "Download begint"
+  },
+  "html_webhookOnComplete": {
+    "message": "Download wordt voltooid"
+  },
+  "html_webhookOnFailed": {
+    "message": "Download mislukt"
+  },
+  "html_webhookEventsHelp": {
+    "message": "Elke gebeurtenis bevat dezelfde download-ID, zodat een ontvanger ze aan elkaar kan koppelen. De paginagegevens hieronder worden verzonden wanneer een download begint; een voltooiingsgebeurtenis bevat in plaats daarvan het opgeslagen pad, dat pas bekend is zodra het bestand is weggeschreven."
+  },
+  "html_webhookAllowInsecure": {
+    "message": "http://-eindpunten toestaan"
+  },
+  "html_webhookAllowInsecureHelp": {
+    "message": "Verzoeken aan een http://-eindpunt worden onversleuteld verzonden, inclusief de paginagegevens die u hieronder toevoegt. Gebruik dit alleen op een netwerk dat u vertrouwt."
   },
   "html_webhookEndpointHelp": {
     "message": "Eén per regel. Verzoeken gaan rechtstreeks vanuit uw browser naar elk adres."
@@ -2081,10 +2102,10 @@
     "message": "De test bevat alleen een testgebeurtenis en een tijdstempel."
   },
   "html_webhookEnabled": {
-    "message": "Een webhook verzenden wanneer een Save In-download start"
+    "message": "Save In-downloads aan een webhook melden"
   },
   "html_webhookAlwaysIncludes": {
-    "message": "Elk verzoek bevat de URL van de geselecteerde bron, een opslaggebeurtenis en een ISO 8601-tijdstempel."
+    "message": "Elk verzoek bevat de resource-URL, om welke gebeurtenis het gaat, een download-ID en een ISO 8601-tijdstempel."
   },
   "html_webhookAdditionalData": {
     "message": "Aanvullende gegevens"
@@ -3214,6 +3235,9 @@
   },
   "webhookEndpointNotHttps": {
     "message": "Gebruik een https://-URL"
+  },
+  "webhookEndpointNotHttpOrHttps": {
+    "message": "Gebruik een https://- of http://-URL"
   },
   "webhookEndpointCredentials": {
     "message": "Zet de authenticatie in de querystring, niet in de URL"

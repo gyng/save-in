@@ -2063,13 +2063,34 @@
     "message": "Webhooks"
   },
   "html_webhooksHelp": {
-    "message": "Envía una solicitud JSON cada vez que Save In inicia una descarga."
+    "message": "Informe de las descargas de Save In a su propio punto de conexión en JSON."
   },
   "html_webhookDocumentation": {
     "message": "Leer la documentación sobre webhooks"
   },
   "html_webhookEndpoint": {
-    "message": "Puntos de conexión HTTPS"
+    "message": "Puntos de conexión"
+  },
+  "html_webhookEvents": {
+    "message": "Eventos"
+  },
+  "html_webhookOnStart": {
+    "message": "La descarga comienza"
+  },
+  "html_webhookOnComplete": {
+    "message": "La descarga se completa"
+  },
+  "html_webhookOnFailed": {
+    "message": "La descarga falla"
+  },
+  "html_webhookEventsHelp": {
+    "message": "Todos los eventos llevan el mismo ID de descarga, para que un receptor pueda relacionarlos. Los datos de la página de abajo se envían cuando comienza una descarga; un evento de finalización lleva en su lugar la ruta guardada, que solo se conoce una vez escrito el archivo."
+  },
+  "html_webhookAllowInsecure": {
+    "message": "Permitir puntos de conexión http://"
+  },
+  "html_webhookAllowInsecureHelp": {
+    "message": "Las solicitudes a un punto de conexión http:// se envían sin cifrar, incluidos los datos de la página que agregue a continuación. Use esta opción solo en una red de confianza."
   },
   "html_webhookEndpointHelp": {
     "message": "Uno por línea. Las solicitudes se envían directamente desde su navegador a cada dirección."
@@ -2081,10 +2102,10 @@
     "message": "La prueba solo contiene un evento de prueba y una marca de tiempo."
   },
   "html_webhookEnabled": {
-    "message": "Enviar un webhook cuando se inicia una descarga de Save In"
+    "message": "Informar de las descargas de Save In a un webhook"
   },
   "html_webhookAlwaysIncludes": {
-    "message": "Cada solicitud incluye la URL del recurso seleccionado, un evento de guardado y una marca de tiempo ISO 8601."
+    "message": "Todas las solicitudes incluyen la URL del recurso, de qué evento se trata, un ID de descarga y una marca de tiempo ISO 8601."
   },
   "html_webhookAdditionalData": {
     "message": "Datos adicionales"
@@ -3214,6 +3235,9 @@
   },
   "webhookEndpointNotHttps": {
     "message": "Use una URL https://"
+  },
+  "webhookEndpointNotHttpOrHttps": {
+    "message": "Use una URL https:// o http://"
   },
   "webhookEndpointCredentials": {
     "message": "Ponga la autenticación en la cadena de consulta, no en la URL"

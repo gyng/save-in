@@ -1653,13 +1653,34 @@
     "message": "Webhook"
   },
   "html_webhooksHelp": {
-    "message": "Save In 每次开始下载时发送一项 JSON 请求。"
+    "message": "以 JSON 格式将 Save In 的下载报告到您自己的端点。"
   },
   "html_webhookDocumentation": {
     "message": "阅读 Webhook 文档"
   },
   "html_webhookEndpoint": {
-    "message": "HTTPS 端点"
+    "message": "端点"
+  },
+  "html_webhookEvents": {
+    "message": "事件"
+  },
+  "html_webhookOnStart": {
+    "message": "下载开始时"
+  },
+  "html_webhookOnComplete": {
+    "message": "下载完成时"
+  },
+  "html_webhookOnFailed": {
+    "message": "下载失败时"
+  },
+  "html_webhookEventsHelp": {
+    "message": "每个事件都包含相同的下载 ID，接收方可据此将它们对应起来。下面的页面数据会在下载开始时发送；完成事件则包含保存路径，而该路径要等到文件写入后才能确定。"
+  },
+  "html_webhookAllowInsecure": {
+    "message": "允许 http:// 端点"
+  },
+  "html_webhookAllowInsecureHelp": {
+    "message": "发送到 http:// 端点的请求不会加密，其中包括您在下面添加的页面数据。请仅在您信任的网络中使用。"
   },
   "html_webhookEndpointHelp": {
     "message": "每行一个。请求会从您的浏览器直接发送到每个地址。"
@@ -1671,10 +1692,10 @@
     "message": "测试仅包含测试事件和时间戳。"
   },
   "html_webhookEnabled": {
-    "message": "Save In 开始下载时发送 Webhook"
+    "message": "将 Save In 的下载报告到 Webhook"
   },
   "html_webhookAlwaysIncludes": {
-    "message": "每项请求都包含所选资源的 URL、保存事件和 ISO 8601 时间戳。"
+    "message": "每个请求都包含资源 URL、属于哪个事件、下载 ID 和 ISO 8601 时间戳。"
   },
   "html_webhookAdditionalData": {
     "message": "其他数据"
@@ -3214,6 +3235,9 @@
   },
   "webhookEndpointNotHttps": {
     "message": "请使用 https:// 开头的 URL"
+  },
+  "webhookEndpointNotHttpOrHttps": {
+    "message": "请使用 https:// 或 http:// 开头的 URL"
   },
   "webhookEndpointCredentials": {
     "message": "请将身份验证放在查询字符串中，而不是 URL 中"

@@ -2063,13 +2063,34 @@
     "message": "Webhooks"
   },
   "html_webhooksHelp": {
-    "message": "Envie uma solicitação JSON sempre que o Save In iniciar um download."
+    "message": "Informe os downloads do Save In ao seu próprio endpoint em JSON."
   },
   "html_webhookDocumentation": {
     "message": "Ler a documentação de webhooks"
   },
   "html_webhookEndpoint": {
-    "message": "Endpoints HTTPS"
+    "message": "Endpoints"
+  },
+  "html_webhookEvents": {
+    "message": "Eventos"
+  },
+  "html_webhookOnStart": {
+    "message": "O download começa"
+  },
+  "html_webhookOnComplete": {
+    "message": "O download é concluído"
+  },
+  "html_webhookOnFailed": {
+    "message": "O download falha"
+  },
+  "html_webhookEventsHelp": {
+    "message": "Todos os eventos levam o mesmo ID de download, para que um receptor possa relacioná-los. Os dados da página abaixo são enviados quando um download começa; um evento de conclusão leva o caminho salvo, que só é conhecido depois que o arquivo é gravado."
+  },
+  "html_webhookAllowInsecure": {
+    "message": "Permitir endpoints http://"
+  },
+  "html_webhookAllowInsecureHelp": {
+    "message": "As solicitações para um endpoint http:// são enviadas sem criptografia, incluindo os dados da página que você adicionar abaixo. Use apenas em uma rede confiável."
   },
   "html_webhookEndpointHelp": {
     "message": "Um por linha. As solicitações são enviadas diretamente do seu navegador para cada endereço."
@@ -2081,10 +2102,10 @@
     "message": "O teste contém apenas um evento de teste e um carimbo de data e hora."
   },
   "html_webhookEnabled": {
-    "message": "Enviar um webhook quando um download do Save In for iniciado"
+    "message": "Informar os downloads do Save In a um webhook"
   },
   "html_webhookAlwaysIncludes": {
-    "message": "Cada solicitação inclui a URL do recurso selecionado, um evento de salvamento e um carimbo de data e hora ISO 8601."
+    "message": "Toda solicitação inclui a URL do recurso, de qual evento se trata, um ID de download e um carimbo de data/hora ISO 8601."
   },
   "html_webhookAdditionalData": {
     "message": "Dados adicionais"
@@ -3214,6 +3235,9 @@
   },
   "webhookEndpointNotHttps": {
     "message": "Use uma URL https://"
+  },
+  "webhookEndpointNotHttpOrHttps": {
+    "message": "Use uma URL https:// ou http://"
   },
   "webhookEndpointCredentials": {
     "message": "Coloque a autenticação na string de consulta, não na URL"

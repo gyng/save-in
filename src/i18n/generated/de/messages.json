@@ -2063,13 +2063,34 @@
     "message": "Webhooks"
   },
   "html_webhooksHelp": {
-    "message": "Eine JSON-Anfrage senden, wenn Save In einen Download startet."
+    "message": "Save In-Downloads als JSON an Ihren eigenen Endpunkt melden."
   },
   "html_webhookDocumentation": {
     "message": "Webhook-Dokumentation lesen"
   },
   "html_webhookEndpoint": {
-    "message": "HTTPS-Endpunkte"
+    "message": "Endpunkte"
+  },
+  "html_webhookEvents": {
+    "message": "Ereignisse"
+  },
+  "html_webhookOnStart": {
+    "message": "Download beginnt"
+  },
+  "html_webhookOnComplete": {
+    "message": "Download wird abgeschlossen"
+  },
+  "html_webhookOnFailed": {
+    "message": "Download schlägt fehl"
+  },
+  "html_webhookEventsHelp": {
+    "message": "Jedes Ereignis enthält dieselbe Download-ID, sodass ein Empfänger sie einander zuordnen kann. Die Seitendaten unten werden beim Start eines Downloads gesendet; ein Abschlussereignis enthält stattdessen den Speicherpfad, der erst feststeht, wenn die Datei geschrieben ist."
+  },
+  "html_webhookAllowInsecure": {
+    "message": "http://-Endpunkte zulassen"
+  },
+  "html_webhookAllowInsecureHelp": {
+    "message": "Anfragen an einen http://-Endpunkt werden unverschlüsselt gesendet, einschließlich der Seitendaten, die Sie unten hinzufügen. Verwenden Sie dies nur in einem Netzwerk, dem Sie vertrauen."
   },
   "html_webhookEndpointHelp": {
     "message": "Einer pro Zeile. Anfragen werden direkt von Ihrem Browser an jede Adresse gesendet."
@@ -2081,10 +2102,10 @@
     "message": "Der Test enthält nur ein Testereignis und einen Zeitstempel."
   },
   "html_webhookEnabled": {
-    "message": "Webhook senden, wenn ein Save In-Download startet"
+    "message": "Save In-Downloads an einen Webhook melden"
   },
   "html_webhookAlwaysIncludes": {
-    "message": "Jede Anfrage enthält die URL der ausgewählten Ressource, ein Speicherereignis und einen ISO 8601-Zeitstempel."
+    "message": "Jede Anfrage enthält die Ressourcen-URL, um welches Ereignis es sich handelt, eine Download-ID und einen ISO 8601-Zeitstempel."
   },
   "html_webhookAdditionalData": {
     "message": "Zusätzliche Daten"
@@ -3214,6 +3235,9 @@
   },
   "webhookEndpointNotHttps": {
     "message": "Verwenden Sie eine https://-URL"
+  },
+  "webhookEndpointNotHttpOrHttps": {
+    "message": "Verwenden Sie eine https://- oder http://-URL"
   },
   "webhookEndpointCredentials": {
     "message": "Geben Sie die Authentifizierung in der Abfragezeichenfolge an, nicht in der URL"

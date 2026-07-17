@@ -2463,13 +2463,34 @@
     "message": "Webhook"
   },
   "html_webhooksHelp": {
-    "message": "Invia una richiesta JSON ogni volta che Save In avvia un download."
+    "message": "Segnala i download di Save In al tuo endpoint in formato JSON."
   },
   "html_webhookDocumentation": {
     "message": "Leggi la documentazione sui webhook"
   },
   "html_webhookEndpoint": {
-    "message": "Endpoint HTTPS"
+    "message": "Endpoint"
+  },
+  "html_webhookEvents": {
+    "message": "Eventi"
+  },
+  "html_webhookOnStart": {
+    "message": "Il download inizia"
+  },
+  "html_webhookOnComplete": {
+    "message": "Il download viene completato"
+  },
+  "html_webhookOnFailed": {
+    "message": "Il download non riesce"
+  },
+  "html_webhookEventsHelp": {
+    "message": "Ogni evento porta lo stesso ID del download, così chi lo riceve può metterli in relazione. I dati della pagina qui sotto vengono inviati all'inizio di un download; un evento di completamento porta invece il percorso salvato, che si conosce solo quando il file è stato scritto."
+  },
+  "html_webhookAllowInsecure": {
+    "message": "Consenti endpoint http://"
+  },
+  "html_webhookAllowInsecureHelp": {
+    "message": "Le richieste a un endpoint http:// vengono inviate senza crittografia, compresi i dati della pagina che aggiungi qui sotto. Usa questa opzione solo su una rete affidabile."
   },
   "html_webhookEndpointHelp": {
     "message": "Uno per riga. Le richieste vengono inviate direttamente dal browser a ogni indirizzo."
@@ -2481,10 +2502,10 @@
     "message": "Il test contiene solo un evento di test e un timestamp."
   },
   "html_webhookEnabled": {
-    "message": "Invia un webhook quando inizia un download di Save In"
+    "message": "Segnala i download di Save In a un webhook"
   },
   "html_webhookAlwaysIncludes": {
-    "message": "Ogni richiesta include l'URL della risorsa selezionata, un evento di salvataggio e un timestamp ISO 8601."
+    "message": "Ogni richiesta include l'URL della risorsa, di quale evento si tratta, un ID del download e una marca temporale ISO 8601."
   },
   "html_webhookAdditionalData": {
     "message": "Dati aggiuntivi"
@@ -3214,6 +3235,9 @@
   },
   "webhookEndpointNotHttps": {
     "message": "Usa un URL https://"
+  },
+  "webhookEndpointNotHttpOrHttps": {
+    "message": "Usa un URL https:// o http://"
   },
   "webhookEndpointCredentials": {
     "message": "Inserisci l'autenticazione nella stringa di query, non nell'URL"

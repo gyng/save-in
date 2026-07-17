@@ -3672,8 +3672,8 @@
     "description": "Heading for the user-configured webhook integration in Options. Used in src/options/options.html."
   },
   "html_webhooksHelp": {
-    "message": "Send one JSON request whenever Save In starts a download.",
-    "description": "Short explanation of when a configured webhook runs. Used in src/options/options.html."
+    "message": "Report Save In downloads to your own endpoint as JSON.",
+    "description": "Help text under the Webhooks heading. Deliberately does not name a moment: which events are sent is the user's choice below. Used in src/options/options.html."
   },
   "html_webhookDocumentation": {
     "message": "Read webhook documentation",
@@ -3682,6 +3682,26 @@
   "html_webhookEndpoint": {
     "message": "Endpoints",
     "description": "Label for the user-provided webhook destination URLs, one per line. Deliberately does not name a scheme: HTTPS is required unless the user allows plain HTTP below, so a heading naming one would contradict the list under it. Used in src/options/options.html."
+  },
+  "html_webhookEvents": {
+    "message": "Events",
+    "description": "Legend for the checkboxes choosing which moments of a save send a webhook. Used in src/options/options.html."
+  },
+  "html_webhookOnStart": {
+    "message": "Download starts",
+    "description": "Checkbox for the webhook sent when a Save In download begins. Off by default. Used in src/options/options.html."
+  },
+  "html_webhookOnComplete": {
+    "message": "Download completes",
+    "description": "Checkbox for the webhook sent when a Save In download finishes successfully, carrying the saved path. On by default. Used in src/options/options.html."
+  },
+  "html_webhookOnFailed": {
+    "message": "Download fails",
+    "description": "Checkbox for the webhook sent when a Save In download fails, carrying the reason. Off by default. Used in src/options/options.html."
+  },
+  "html_webhookEventsHelp": {
+    "message": "Every event carries the same download id, so a receiver can match them up. The page data below is sent when a download starts; a completed event carries the saved path instead, which is only known once the file is written.",
+    "description": "Help text under the webhook event checkboxes. Says why the id is there, and why the Additional data below only reaches the start event. Used in src/options/options.html."
   },
   "html_webhookAllowInsecure": {
     "message": "Allow http:// endpoints",
@@ -3704,12 +3724,12 @@
     "description": "Privacy explanation beneath the webhook test button. Used in src/options/options.html."
   },
   "html_webhookEnabled": {
-    "message": "Send a webhook when a Save In download starts",
-    "description": "Explicit opt-in label that enables save webhooks. Used in src/options/options.html."
+    "message": "Report Save In downloads to a webhook",
+    "description": "Label for the master webhook switch. The events it reports are chosen separately, so this names neither start nor completion. Used in src/options/options.html."
   },
   "html_webhookAlwaysIncludes": {
-    "message": "Each request includes the selected resource URL, a save event, and an ISO 8601 timestamp.",
-    "description": "Disclosure of fields always sent in a save webhook. Used in src/options/options.html."
+    "message": "Every request includes the resource URL, which event it is, a download id, and an ISO 8601 timestamp.",
+    "description": "Help text under the master webhook switch, naming what every payload carries whichever event it is. Used in src/options/options.html."
   },
   "html_webhookAdditionalData": {
     "message": "Additional data",

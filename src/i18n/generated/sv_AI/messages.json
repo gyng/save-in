@@ -2063,13 +2063,34 @@
     "message": "Webhooks"
   },
   "html_webhooksHelp": {
-    "message": "Skicka en JSON-begäran varje gång Save In startar en nedladdning."
+    "message": "Rapportera Save In-nedladdningar till din egen slutpunkt som JSON."
   },
   "html_webhookDocumentation": {
     "message": "Läs dokumentationen om webhooks"
   },
   "html_webhookEndpoint": {
-    "message": "HTTPS-slutpunkter"
+    "message": "Slutpunkter"
+  },
+  "html_webhookEvents": {
+    "message": "Händelser"
+  },
+  "html_webhookOnStart": {
+    "message": "Nedladdningen börjar"
+  },
+  "html_webhookOnComplete": {
+    "message": "Nedladdningen slutförs"
+  },
+  "html_webhookOnFailed": {
+    "message": "Nedladdningen misslyckas"
+  },
+  "html_webhookEventsHelp": {
+    "message": "Varje händelse innehåller samma nedladdnings-ID, så att en mottagare kan koppla ihop dem. Siddata nedan skickas när en nedladdning börjar; en slutförandehändelse innehåller i stället den sparade sökvägen, som är känd först när filen har skrivits."
+  },
+  "html_webhookAllowInsecure": {
+    "message": "Tillåt http://-slutpunkter"
+  },
+  "html_webhookAllowInsecureHelp": {
+    "message": "Begäranden till en http://-slutpunkt skickas okrypterade, inklusive de siddata du lägger till nedan. Använd bara detta i ett nätverk du litar på."
   },
   "html_webhookEndpointHelp": {
     "message": "En per rad. Begäranden skickas direkt från webbläsaren till varje adress."
@@ -2081,10 +2102,10 @@
     "message": "Testet innehåller bara en testhändelse och en tidsstämpel."
   },
   "html_webhookEnabled": {
-    "message": "Skicka en webhook när en Save In-nedladdning startar"
+    "message": "Rapportera Save In-nedladdningar till en webhook"
   },
   "html_webhookAlwaysIncludes": {
-    "message": "Varje begäran innehåller den valda resursens URL, en sparhändelse och en ISO 8601-tidsstämpel."
+    "message": "Varje begäran innehåller resursens URL, vilken händelse det gäller, ett nedladdnings-ID och en ISO 8601-tidsstämpel."
   },
   "html_webhookAdditionalData": {
     "message": "Ytterligare data"
@@ -3214,6 +3235,9 @@
   },
   "webhookEndpointNotHttps": {
     "message": "Använd en https://-URL"
+  },
+  "webhookEndpointNotHttpOrHttps": {
+    "message": "Använd en https://- eller http://-URL"
   },
   "webhookEndpointCredentials": {
     "message": "Lägg autentiseringen i frågesträngen, inte i URL:en"

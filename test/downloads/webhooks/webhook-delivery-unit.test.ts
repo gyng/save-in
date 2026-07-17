@@ -1,13 +1,19 @@
 import { defaultOptions } from "../../../src/config/option-defaults.ts";
 import type { DownloadInfo, DownloadPlan } from "../../../src/downloads/download-types.ts";
-import { deliverSaveWebhook } from "../../../src/downloads/webhook-delivery.ts";
+import {
+  deliverDownloadOutcomeWebhook,
+  deliverSaveWebhook,
+} from "../../../src/downloads/webhook-delivery.ts";
 
 const configuration = () => ({
   ...defaultOptions(),
   webhookEnabled: true,
   webhookUrl: "https://hooks.example/save",
-  // Named here so it widens to boolean: the default's literal type is false,
-  // and these tests turn it on.
+  // Named here so they widen to boolean: each default is a literal type, and
+  // these tests turn them on and off.
+  webhookOnStart: true,
+  webhookOnComplete: true as boolean,
+  webhookOnFailed: true as boolean,
   webhookAllowInsecure: false,
   webhookIncludePageUrl: true,
   webhookIncludePageTitle: true,
@@ -43,7 +49,7 @@ test.each([
   async (info, expectedUrl) => {
     const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue({ ok: true } as Response);
 
-    await deliverSaveWebhook(configuration(), plan(info), { add: vi.fn() });
+    await deliverSaveWebhook(configuration(), plan(info), 7, { add: vi.fn() });
 
     expect(JSON.parse(String(fetchMock.mock.calls[0]![1]!.body))).toMatchObject({
       url: expectedUrl,
@@ -69,7 +75,7 @@ test.each([
   async (info, expectedUrl) => {
     const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue({ ok: true } as Response);
 
-    await deliverSaveWebhook(configuration(), plan(info), { add: vi.fn() });
+    await deliverSaveWebhook(configuration(), plan(info), 7, { add: vi.fn() });
 
     expect(JSON.parse(String(fetchMock.mock.calls[0]![1]!.body))).toMatchObject({
       url: expectedUrl,
@@ -86,6 +92,7 @@ test("sends nothing when every source is an inline data: payload", async () => {
   await deliverSaveWebhook(
     configuration(),
     plan({ selectedUrl: inline, url: inline, sourceUrl: inline }),
+    7,
     { add: vi.fn() },
   );
 
@@ -100,7 +107,7 @@ test("contains permission failures and rejected webhook responses", async () => 
     status: 429,
   } as Response);
 
-  await deliverSaveWebhook(configuration(), plan({ selectedUrl: "https://cdn.example/a" }), log);
+  await deliverSaveWebhook(configuration(), plan({ selectedUrl: "https://cdn.example/a" }), 7, log);
   expect(log.add).toHaveBeenCalledWith("webhook skipped: data permission not granted");
   expect(fetchMock).not.toHaveBeenCalled();
 
@@ -109,7 +116,7 @@ test("contains permission failures and rejected webhook responses", async () => 
     origins: [],
     data_collection: ["browsingActivity", "websiteActivity", "websiteContent"],
   } as Awaited<ReturnType<typeof browser.permissions.getAll>>);
-  await deliverSaveWebhook(configuration(), plan({ selectedUrl: "https://cdn.example/a" }), log);
+  await deliverSaveWebhook(configuration(), plan({ selectedUrl: "https://cdn.example/a" }), 7, log);
   // The line names which endpoint refused, now that there can be more than one.
   expect(log.add).toHaveBeenCalledWith("webhook rejected", { line: 1, status: 429 });
 });
@@ -126,7 +133,7 @@ test.each([
   vi.mocked(browser.permissions.getAll).mockResolvedValueOnce(permissions as never);
   const fetchMock = vi.spyOn(globalThis, "fetch");
 
-  await deliverSaveWebhook(configuration(), plan({ selectedUrl: "https://cdn.example/a" }), log);
+  await deliverSaveWebhook(configuration(), plan({ selectedUrl: "https://cdn.example/a" }), 7, log);
 
   expect(log.add).toHaveBeenCalledWith("webhook skipped: data permission not granted");
   expect(fetchMock).not.toHaveBeenCalled();
@@ -139,7 +146,7 @@ test.each([undefined, {}])(
     Object.defineProperty(browser, "permissions", { configurable: true, value: hostPermissions });
     const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue({ ok: true } as Response);
     try {
-      await deliverSaveWebhook(configuration(), plan({ selectedUrl: "https://cdn.example/a" }), {
+      await deliverSaveWebhook(configuration(), plan({ selectedUrl: "https://cdn.example/a" }), 7, {
         add: vi.fn(),
       });
     } finally {
@@ -153,10 +160,12 @@ test.each([undefined, {}])(
 test("rejects invalid endpoints and absent public URLs before requesting permission", async () => {
   const invalid = configuration();
   invalid.webhookUrl = "http://localhost/private";
-  await deliverSaveWebhook(invalid, plan({ selectedUrl: "https://cdn.example/a" }), {
+  await deliverSaveWebhook(invalid, plan({ selectedUrl: "https://cdn.example/a" }), 7, {
     add: vi.fn(),
   });
-  await deliverSaveWebhook(configuration(), plan({ url: "data:text/plain,x" }), { add: vi.fn() });
+  await deliverSaveWebhook(configuration(), plan({ url: "data:text/plain,x" }), 7, {
+    add: vi.fn(),
+  });
 
   expect(browser.permissions.getAll).not.toHaveBeenCalled();
 });
@@ -171,7 +180,7 @@ describe("multiple endpoints", () => {
   test("posts the same payload to every configured endpoint", async () => {
     const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue({ ok: true } as Response);
 
-    await deliverSaveWebhook(twoHooks(), plan({ selectedUrl: "https://cdn.example/a" }), {
+    await deliverSaveWebhook(twoHooks(), plan({ selectedUrl: "https://cdn.example/a" }), 7, {
       add: vi.fn(),
     });
 
@@ -191,7 +200,9 @@ describe("multiple endpoints", () => {
       .mockResolvedValue({ ok: true } as Response);
     const add = vi.fn();
 
-    await deliverSaveWebhook(twoHooks(), plan({ selectedUrl: "https://cdn.example/a" }), { add });
+    await deliverSaveWebhook(twoHooks(), plan({ selectedUrl: "https://cdn.example/a" }), 7, {
+      add,
+    });
 
     expect(fetchMock).toHaveBeenCalledTimes(2);
     expect(add).toHaveBeenCalledWith("webhook delivery failed", { line: 1 });
@@ -203,7 +214,9 @@ describe("multiple endpoints", () => {
     const configured = configuration();
     configured.webhookUrl = "https://a.example/save?token=secret";
 
-    await deliverSaveWebhook(configured, plan({ selectedUrl: "https://cdn.example/a" }), { add });
+    await deliverSaveWebhook(configured, plan({ selectedUrl: "https://cdn.example/a" }), 7, {
+      add,
+    });
 
     // A query-string secret must not reach the debug log through a report.
     expect(JSON.stringify(add.mock.calls)).not.toContain("secret");
@@ -213,7 +226,7 @@ describe("multiple endpoints", () => {
   test("asks for data permission once, not once per endpoint", async () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue({ ok: true } as Response);
 
-    await deliverSaveWebhook(twoHooks(), plan({ selectedUrl: "https://cdn.example/a" }), {
+    await deliverSaveWebhook(twoHooks(), plan({ selectedUrl: "https://cdn.example/a" }), 7, {
       add: vi.fn(),
     });
 
@@ -225,7 +238,7 @@ describe("multiple endpoints", () => {
     const configured = configuration();
     configured.webhookUrl = "http://insecure.example/save\nhttps://ok.example/save";
 
-    await deliverSaveWebhook(configured, plan({ selectedUrl: "https://cdn.example/a" }), {
+    await deliverSaveWebhook(configured, plan({ selectedUrl: "https://cdn.example/a" }), 7, {
       add: vi.fn(),
     });
 
@@ -237,7 +250,7 @@ describe("multiple endpoints", () => {
     configured.webhookUrl = "http://insecure.example/save";
     configured.webhookAllowInsecure = true;
 
-    await deliverSaveWebhook(configured, plan({ selectedUrl: "https://cdn.example/a" }), {
+    await deliverSaveWebhook(configured, plan({ selectedUrl: "https://cdn.example/a" }), 7, {
       add: vi.fn(),
     });
     expect(fetchMock.mock.calls.map((call) => call[0])).toEqual(["http://insecure.example/save"]);
@@ -246,7 +259,7 @@ describe("multiple endpoints", () => {
     // endpoint, and the delivery re-reads the policy rather than a saved verdict.
     fetchMock.mockClear();
     configured.webhookAllowInsecure = false;
-    await deliverSaveWebhook(configured, plan({ selectedUrl: "https://cdn.example/a" }), {
+    await deliverSaveWebhook(configured, plan({ selectedUrl: "https://cdn.example/a" }), 7, {
       add: vi.fn(),
     });
     expect(fetchMock).not.toHaveBeenCalled();
@@ -258,9 +271,118 @@ describe("multiple endpoints", () => {
     configured.webhookUrl = "ftp://files.example/save\nfile:///etc/passwd";
     configured.webhookAllowInsecure = true;
 
-    await deliverSaveWebhook(configured, plan({ selectedUrl: "https://cdn.example/a" }), {
+    await deliverSaveWebhook(configured, plan({ selectedUrl: "https://cdn.example/a" }), 7, {
       add: vi.fn(),
     });
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+});
+
+describe("download outcome events", () => {
+  const eligible = () => ({ url: "https://cdn.example/a", webhookEligible: true }) as const;
+
+  test("reports the resolved path a receiver is waiting for", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue({ ok: true } as Response);
+
+    await deliverDownloadOutcomeWebhook(
+      configuration(),
+      eligible(),
+      7,
+      { status: "complete", path: "Images/cat(1).jpg" },
+      { add: vi.fn() },
+    );
+
+    expect(JSON.parse(String(fetchMock.mock.calls[0]![1]!.body))).toEqual({
+      version: 1,
+      event: "complete",
+      timestamp: expect.any(String),
+      id: 7,
+      url: "https://cdn.example/a",
+      path: "Images/cat(1).jpg",
+    });
+  });
+
+  // The record cannot tell a private download from a public one after a worker
+  // restart, so an outcome is only reported when the start path said it could
+  // be. A record that never answered is not an invitation to guess.
+  test.each([{ webhookEligible: false }, {}])(
+    "sends no outcome for a download the start path did not clear (%o)",
+    async (overrides) => {
+      const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue({ ok: true } as Response);
+
+      await deliverDownloadOutcomeWebhook(
+        configuration(),
+        { url: "https://cdn.example/a", ...overrides },
+        7,
+        { status: "complete", path: "Images/cat.jpg" },
+        { add: vi.fn() },
+      );
+
+      expect(fetchMock).not.toHaveBeenCalled();
+    },
+  );
+
+  test("each outcome answers to its own checkbox", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue({ ok: true } as Response);
+    const configured = configuration();
+    configured.webhookOnFailed = false;
+
+    await deliverDownloadOutcomeWebhook(
+      configured,
+      eligible(),
+      7,
+      { status: "failed", reason: "NETWORK_FAILED" },
+      { add: vi.fn() },
+    );
+    expect(fetchMock).not.toHaveBeenCalled();
+
+    configured.webhookOnFailed = true;
+    await deliverDownloadOutcomeWebhook(
+      configured,
+      eligible(),
+      7,
+      { status: "failed", reason: "NETWORK_FAILED" },
+      { add: vi.fn() },
+    );
+    expect(JSON.parse(String(fetchMock.mock.calls[0]![1]!.body))).toMatchObject({
+      event: "failed",
+      id: 7,
+      reason: "NETWORK_FAILED",
+    });
+
+    // Completion is the default, and start is not.
+    configured.webhookOnComplete = false;
+    fetchMock.mockClear();
+    await deliverDownloadOutcomeWebhook(
+      configured,
+      eligible(),
+      7,
+      { status: "complete", path: "a.jpg" },
+      { add: vi.fn() },
+    );
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  test("carries no page context, so it asks for no page-data consent", async () => {
+    vi.mocked(browser.permissions.getAll).mockResolvedValue({
+      permissions: [],
+      origins: [],
+      data_collection: ["browsingActivity", "websiteActivity"],
+    } as Awaited<ReturnType<typeof browser.permissions.getAll>>);
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue({ ok: true } as Response);
+    const configured = configuration();
+    configured.webhookIncludePageTitle = true;
+
+    await deliverDownloadOutcomeWebhook(
+      configured,
+      eligible(),
+      7,
+      { status: "complete", path: "a.jpg" },
+      { add: vi.fn() },
+    );
+
+    // websiteContent is not granted, and the save event would have been skipped.
+    expect(fetchMock).toHaveBeenCalledOnce();
+    expect(JSON.parse(String(fetchMock.mock.calls[0]![1]!.body))).not.toHaveProperty("pageUrl");
   });
 });

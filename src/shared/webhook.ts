@@ -21,20 +21,50 @@ export type WebhookFieldSelection = {
 };
 
 export type SaveWebhookSource = {
+  id: number;
   selectedUrl: string;
   pageUrl?: string | undefined;
   pageTitle?: string | undefined;
   selectionText?: string | undefined;
 };
 
+// Every event about one download carries the same id, because a receiver that
+// asked for more than one of them gets no other way to join them: the URL is
+// not a key, and saving the same URL twice would be two indistinguishable
+// pairs. It is the browser's download id, which both the save path and the
+// completion delta already hold.
 export type SaveWebhookPayload = {
   version: 1;
   event: "save";
   timestamp: string;
+  id: number;
   url: string;
   pageUrl?: string | undefined;
   pageTitle?: string | undefined;
   selectionText?: string | undefined;
+};
+
+// The outcome events deliberately carry no page context. What the containing
+// page was is live at save time and gone by the time a download ends: keeping
+// it would mean writing page titles and selected text to storage.session for
+// every download, and this event's reason to exist is the routed path, which
+// does not exist until completion.
+export type CompleteWebhookPayload = {
+  version: 1;
+  event: "complete";
+  timestamp: string;
+  id: number;
+  url: string;
+  path: string;
+};
+
+export type FailedWebhookPayload = {
+  version: 1;
+  event: "failed";
+  timestamp: string;
+  id: number;
+  url: string;
+  reason: string;
 };
 
 export type TestWebhookPayload = {
@@ -43,7 +73,11 @@ export type TestWebhookPayload = {
   timestamp: string;
 };
 
-export type WebhookPayload = SaveWebhookPayload | TestWebhookPayload;
+export type WebhookPayload =
+  | SaveWebhookPayload
+  | CompleteWebhookPayload
+  | FailedWebhookPayload
+  | TestWebhookPayload;
 
 // Each rejection names its reason so the editor can translate it. The reason is
 // the i18n key: validateWebhookUrl's English `message` is the fallback for
@@ -203,6 +237,30 @@ export const getWebhookDataTypes = (fields: WebhookFieldSelection): WebhookDataT
     : []),
 ];
 
+export const createCompleteWebhookPayload = (
+  source: { id: number; url: string; path: string },
+  now = new Date(),
+): CompleteWebhookPayload => ({
+  version: 1,
+  event: "complete",
+  timestamp: now.toISOString(),
+  id: source.id,
+  url: source.url,
+  path: source.path,
+});
+
+export const createFailedWebhookPayload = (
+  source: { id: number; url: string; reason: string },
+  now = new Date(),
+): FailedWebhookPayload => ({
+  version: 1,
+  event: "failed",
+  timestamp: now.toISOString(),
+  id: source.id,
+  url: source.url,
+  reason: source.reason,
+});
+
 export const createSaveWebhookPayload = (
   source: SaveWebhookSource,
   fields: WebhookFieldSelection,
@@ -211,6 +269,7 @@ export const createSaveWebhookPayload = (
   version: 1,
   event: "save",
   timestamp: now.toISOString(),
+  id: source.id,
   url: source.selectedUrl,
   ...(fields.includePageUrl && source.pageUrl ? { pageUrl: source.pageUrl } : {}),
   ...(fields.includePageTitle && source.pageTitle ? { pageTitle: source.pageTitle } : {}),

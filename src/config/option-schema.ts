@@ -324,6 +324,21 @@ export const OPTION_KEYS = defineOptions([
     default: OPTION_DEFAULTS.webhookEnabled,
   },
   {
+    name: "webhookOnStart",
+    type: OPTION_TYPES.BOOL,
+    default: OPTION_DEFAULTS.webhookOnStart,
+  },
+  {
+    name: "webhookOnComplete",
+    type: OPTION_TYPES.BOOL,
+    default: OPTION_DEFAULTS.webhookOnComplete,
+  },
+  {
+    name: "webhookOnFailed",
+    type: OPTION_TYPES.BOOL,
+    default: OPTION_DEFAULTS.webhookOnFailed,
+  },
+  {
     name: "webhookAllowInsecure",
     type: OPTION_TYPES.BOOL,
     default: OPTION_DEFAULTS.webhookAllowInsecure,
