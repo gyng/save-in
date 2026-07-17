@@ -42,6 +42,12 @@
   gap: var(--space-2);
 }
 
+/* The row starts at the editor's margin edge, not its border, so the button
+   needs the same margin to line up with the top of the box it tests. */
+.webhook-endpoint-row #webhook-test {
+  margin-block-start: var(--space-2);
+}
+
 .tab-panel .webhook-endpoint-row #webhookUrl {
   inline-size: 100%;
   max-inline-size: none;
@@ -336,6 +342,11 @@
   .webhook-endpoint-row {
     grid-template-columns: minmax(0, 1fr);
     justify-items: start;
+  }
+
+  /* Stacked, there is no top edge to line up with -- only a gap to widen. */
+  .webhook-endpoint-row #webhook-test {
+    margin-block-start: 0;
   }
 }
 
