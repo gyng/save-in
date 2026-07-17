@@ -6,7 +6,7 @@
 
 [Privacy policy](PRIVACY.md) · [Manual install](#manual-install)
 
-![Save In options](docs/store/screenshots/03-downloads-menu.png)
+![Saving a link with the Save In right-click menu](docs/store/screenshots/01-right-click-save.png)
 
 A WebExtension for Firefox and Chrome that adds a context menu for saving images,
 video, audio, links, selected text, and pages into user-defined folders inside
