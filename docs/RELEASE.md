@@ -30,15 +30,34 @@ In history and diagnostics, while Chrome may show an Incognito save in its
 regular download manager because the downloads API cannot select an Incognito
 context. Use these permission rationales:
 
-- `contextMenus`: show Save In commands on pages and tabs.
+- `contextMenus`: show Save In commands on pages, and on tabs where the browser
+  offers a tab-strip menu (Firefox, and Chrome 150+).
 - `declarativeNetRequestWithHostAccess`: attach the containing page as the
   Referer only while Save In fetches requested metadata or content for a
   matching user-selected resource.
 - `downloads`: start, name, monitor, retry, and record downloads locally.
 - `notifications`: report completion and actionable failures.
 - `storage`: store settings, rules, local history, and recovery state.
-- `offscreen`: create temporary Blob URLs for Chrome downloads.
+- `offscreen`: lend the Chrome service worker a document, which has no DOM of
+  its own. It creates the temporary Blob URL a fetched download is handed to
+  Chrome as, hashes those same bytes for the SHA-256 variables, and runs the
+  on-device rule assistant's prompts, because Chrome's Prompt API requires a
+  responsible document and refuses to run in a worker. Name all three: a
+  justification that omits the model is the one a re-review finds.
 - `<all_urls>`: identify and fetch user-selected resources on arbitrary sites.
+
+Firefox additionally declares `data_collection_permissions`. `required` is
+`none` — Save In collects nothing to function. The three `optional` entries are
+requested only from the user action that enables webhooks, and only for the
+fields that user chose, because a webhook is the one feature that sends anything
+off the device:
+
+- `browsingActivity`: a webhook payload names the resource URL the save was for,
+  and, where the user chose it, the containing page URL.
+- `websiteActivity`: a webhook payload reports that a save happened and what
+  became of it — the event, the download id, and the folder path it landed in.
+- `websiteContent`: requested only for the optional page-title and selected-text
+  fields, which are page content the user opted to include.
 
 Before upload, confirm listing metadata, support/privacy links, screenshots,
 permission justifications, and data-use answers are current.
