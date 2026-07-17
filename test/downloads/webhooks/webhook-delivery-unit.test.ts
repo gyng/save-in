@@ -48,6 +48,47 @@ test.each([
   },
 );
 
+// Every webhook-eligible caller sets selectedUrl (menu-click.ts, menu-tabs.ts,
+// and the same-extension DOWNLOAD handler), so these are the shapes delivery
+// actually sees. A data: URL is its own payload: reporting one verbatim POSTs
+// the whole inline image to the endpoint.
+test.each([
+  [
+    { selectedUrl: "data:image/png;base64,AAAA", sourceUrl: "https://cdn.example/from-source" },
+    "https://cdn.example/from-source",
+  ],
+  [
+    { selectedUrl: "blob:https://example/uuid", pageUrl: "https://example/from-page" },
+    "https://example/from-page",
+  ],
+] satisfies [Partial<DownloadInfo>, string][])(
+  "skips past an opaque selectedUrl to the first shareable source",
+  async (info, expectedUrl) => {
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue({ ok: true } as Response);
+
+    await deliverSaveWebhook(configuration(), plan(info), { add: vi.fn() });
+
+    expect(JSON.parse(String(fetchMock.mock.calls[0]![1]!.body))).toMatchObject({
+      url: expectedUrl,
+    });
+  },
+);
+
+// Saving an inline image names every source with the same data: URL. Reporting
+// one verbatim would POST the whole payload to the endpoint.
+test("sends nothing when every source is an inline data: payload", async () => {
+  const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue({ ok: true } as Response);
+  const inline = "data:image/png;base64,AAAA";
+
+  await deliverSaveWebhook(
+    configuration(),
+    plan({ selectedUrl: inline, url: inline, sourceUrl: inline }),
+    { add: vi.fn() },
+  );
+
+  expect(fetchMock).not.toHaveBeenCalled();
+});
+
 test("contains permission failures and rejected webhook responses", async () => {
   const log = { add: vi.fn() };
   vi.mocked(browser.permissions.getAll).mockRejectedValueOnce(new Error("unavailable"));

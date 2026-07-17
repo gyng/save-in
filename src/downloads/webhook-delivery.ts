@@ -17,11 +17,20 @@ const fieldSelection = (configuration: SaveInOptions): WebhookFieldSelection => 
   includeSelectionText: configuration.webhookIncludeSelectionText,
 });
 
+const OPAQUE_URL_REGEX = /^(?:blob|data):/i;
+
+// Every webhook-eligible caller sets selectedUrl (menus, tab menus, and the
+// same-extension DOWNLOAD handler), so testing one field for an opaque scheme
+// never rejected anything: the filter has to apply wherever the candidate came
+// from. A data: URL is its own payload — reporting one verbatim POSTs the whole
+// inline image to the endpoint — and a blob: URL names nothing outside the page
+// that made it.
 const selectedUrl = (plan: DownloadPlan): string | undefined => {
   const info = plan.state.info;
-  if (info.selectedUrl) return info.selectedUrl;
-  if (info.url && !/^(?:blob|data):/i.test(info.url)) return info.url;
-  return info.sourceUrl || info.pageUrl;
+  return [info.selectedUrl, info.url, info.sourceUrl, info.pageUrl].find(
+    (value): value is string =>
+      typeof value === "string" && value !== "" && !OPAQUE_URL_REGEX.test(value),
+  );
 };
 
 const hasDataCollectionConsent = async (types: WebhookDataType[]): Promise<boolean> => {
