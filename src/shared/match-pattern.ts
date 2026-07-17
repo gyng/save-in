@@ -13,8 +13,20 @@ export type ParsedMatchPattern = {
 // is what it did before.
 const toAsciiHost = (value: string): string => {
   if (!value) return value;
+  // Only text that really was a bare host may canonicalise. The parser resolves
+  // userinfo, so `i.pximg.net@evil.com` would compile to `evil.com` — an entry
+  // scoping somewhere other than where it reads. It also drops a port matching
+  // the scheme borrowed below, which would widen the entry to every port the
+  // host answers on. Neither is part of the pattern grammar, so read them off
+  // the raw text and leave it as written, matching nothing as it did before.
+  const hostEnd = value.startsWith("[") ? value.indexOf("]") + 1 : 0;
+  if (value.includes("@") || value.includes(":", hostEnd)) return value;
   try {
-    return new URL(`https://${value}`).host;
+    const url = new URL(`https://${value}`);
+    // Anything the borrowed scheme let the parser absorb — a query or fragment
+    // the host regexp allowed through — means the text was never a bare host.
+    if (url.href !== `https://${url.host}/`) return value;
+    return url.host;
   } catch {
     return value;
   }

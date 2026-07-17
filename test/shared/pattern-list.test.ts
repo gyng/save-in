@@ -154,6 +154,17 @@ describe("pattern list grammar", () => {
     expect(matchesAnyPattern("https://user:pw@evil.com/x", "*://evil.com/*")).toBe(true);
     // Credentials naming a different host do not make an unrelated pattern match.
     expect(matchesAnyPattern("https://good.example@evil.com/x", "*://good.example/*")).toBe(false);
+
+    // The same invariant on the pattern side: canonicalising the host must not
+    // resolve an entry's own credentials, or an entry that reads i.pximg.net
+    // silently scopes to evil.com. These matched nothing before the host was
+    // canonicalised, and must not start now — for setRefererHeaderFilter the
+    // wrong direction sends the page URL to a host the allowlist never named.
+    expect(matchesAnyPattern("https://evil.com/x", "*://i.pximg.net@evil.com/*")).toBe(false);
+    expect(matchesAnyPattern("https://example.com/x", "*://user@example.com/*")).toBe(false);
+    // A port is not part of the pattern grammar either; dropping a default one
+    // silently widens the entry to every port the host answers on.
+    expect(matchesAnyPattern("http://example.com/x", "http://example.com:443/*")).toBe(false);
   });
 
   test("falls back to the raw string when the URL does not parse", () => {
