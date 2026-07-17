@@ -185,6 +185,19 @@ describe("deterministic rule assembly", () => {
     );
   });
 
+  // Whether the model answers with the site as typed or as the origin it was
+  // shown is incidental, so the two must not disagree. pagedomain matches on
+  // URL.hostname, which is punycode, so that is the form the rule has to carry
+  // for the site the request actually named.
+  test("accepts an internationalized site in either form and matches its punycode host", () => {
+    expect(assembled({ folder: "a", site: "münchen.de" })).toContain(
+      "(?:^|\\.)xn--mnchen-3ya\\.de$",
+    );
+    expect(assembled({ folder: "a", site: "https://münchen.de" })).toContain(
+      "(?:^|\\.)xn--mnchen-3ya\\.de$",
+    );
+  });
+
   test("reads a named site as the page being browsed unless the request says otherwise", () => {
     // pageUrl is present for every save, and "from example.com" almost always
     // names the site the user is on rather than the host serving the bytes.

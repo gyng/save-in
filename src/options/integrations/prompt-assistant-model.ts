@@ -375,24 +375,25 @@ const normalizedExtension = (value: string): string | null => {
   return FILE_EXTENSION_SHAPE.test(extension) ? extension : null;
 };
 
+// Every site goes through URL, whether or not the model wrote a scheme: the
+// answer must not depend on that. HOSTNAME_SHAPE is ASCII, so testing a bare
+// site directly rejected every internationalized one the origin form already
+// accepted — URL is what folds a host to the punycode pagedomain matches on.
 const normalizedSite = (value: string): string | null => {
   const site = value.trim().toLowerCase().replace(/\.$/, "");
   if (!site) return null;
-  if (site.includes("/") || site.includes(":")) {
-    try {
-      const url = new URL(site.includes("://") ? site : `https://${site}`);
-      // A path, query, or port narrows what the request asked for, and a domain
-      // matcher cannot express any of them. Dropping them silently would
-      // broaden the rule past the request.
-      if ((url.pathname !== "" && url.pathname !== "/") || url.search || url.hash || url.port) {
-        return null;
-      }
-      return HOSTNAME_SHAPE.test(url.hostname) ? url.hostname : null;
-    } catch {
+  try {
+    const url = new URL(site.includes("://") ? site : `https://${site}`);
+    // A path, query, or port narrows what the request asked for, and a domain
+    // matcher cannot express any of them. Dropping them silently would
+    // broaden the rule past the request.
+    if ((url.pathname !== "" && url.pathname !== "/") || url.search || url.hash || url.port) {
       return null;
     }
+    return HOSTNAME_SHAPE.test(url.hostname) ? url.hostname : null;
+  } catch {
+    return null;
   }
-  return HOSTNAME_SHAPE.test(site) ? site : null;
 };
 
 const normalizedFolder = (value: string): string | null => {
