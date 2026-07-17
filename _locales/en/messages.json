@@ -1714,7 +1714,7 @@
     "description": "Label, status, or help text in the options interface. Used in src/options/shortcut-options.ts."
   },
   "o_lShortcutFormatLegacyInternet": {
-    "message": "Legacy Internet Shortcut",
+    "message": "Legacy internet shortcut",
     "description": "Label, status, or help text in the options interface. Used in src/options/shortcut-options.ts."
   },
   "o_lShortcutFormatMac": {
@@ -1722,7 +1722,7 @@
     "description": "Label, status, or help text in the options interface. Used in src/options/shortcut-options.ts."
   },
   "o_lShortcutFormatWindows": {
-    "message": "Windows Internet Shortcut",
+    "message": "Windows internet shortcut",
     "description": "Label, status, or help text in the options interface. Used in src/options/shortcut-options.ts."
   },
   "o_lShortcutFormatLinux": {

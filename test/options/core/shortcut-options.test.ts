@@ -88,9 +88,9 @@ describe("shortcut option controller", () => {
     const preview = document.querySelector("#shortcut-format-preview")!;
     const expected = new Map([
       ["HTML_REDIRECT", "Works in any browser"],
-      ["MAC", "Legacy Internet Shortcut"],
+      ["MAC", "Legacy internet shortcut"],
       ["MAC_WEBLOC", "Native macOS shortcut"],
-      ["WINDOWS", "Windows Internet Shortcut"],
+      ["WINDOWS", "Windows internet shortcut"],
       ["FREEDESKTOP", "Linux desktop shortcut"],
     ]);
     for (const [value, meaning] of expected) {

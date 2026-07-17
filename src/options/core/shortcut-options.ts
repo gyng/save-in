@@ -15,11 +15,11 @@ const shortcutFormatMeaning = (key: (typeof FORMAT_GUIDANCE)[ShortcutType]["mean
     case "o_lShortcutFormatAnyBrowser":
       return getMessage("o_lShortcutFormatAnyBrowser") || "Works in any browser";
     case "o_lShortcutFormatLegacyInternet":
-      return getMessage("o_lShortcutFormatLegacyInternet") || "Legacy Internet Shortcut";
+      return getMessage("o_lShortcutFormatLegacyInternet") || "Legacy internet shortcut";
     case "o_lShortcutFormatMac":
       return getMessage("o_lShortcutFormatMac") || "Native macOS shortcut";
     case "o_lShortcutFormatWindows":
-      return getMessage("o_lShortcutFormatWindows") || "Windows Internet Shortcut";
+      return getMessage("o_lShortcutFormatWindows") || "Windows internet shortcut";
     case "o_lShortcutFormatLinux":
       return getMessage("o_lShortcutFormatLinux") || "Linux desktop shortcut";
   }
