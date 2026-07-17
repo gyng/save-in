@@ -3,7 +3,12 @@ import {
   getPersistenceDiagnostics,
   recordPersistenceFailure,
 } from "../../src/shared/persistence-diagnostics.ts";
-import { getSession, removeSession, setSession } from "../../src/shared/session-state.ts";
+import {
+  getSession,
+  removeSession,
+  setSession,
+  updateSession,
+} from "../../src/shared/session-state.ts";
 
 describe("persistence diagnostics", () => {
   beforeEach(clearPersistenceDiagnostics);
@@ -52,6 +57,32 @@ describe("persistence diagnostics", () => {
         expect.objectContaining({ area: "session", operation: "read", key: "state" }),
         expect.objectContaining({ area: "session", operation: "write", key: "state" }),
         expect.objectContaining({ area: "session", operation: "remove", key: "state" }),
+      ]),
+    );
+  });
+
+  // A reader may degrade to {}, but an update that rebased onto {} would write
+  // a value computed from nothing over everything the read failed to return.
+  test("a failed read leaves the stored value alone instead of rebasing onto it", async () => {
+    let persisted: unknown = { 7: "seven", 8: "eight" };
+    const storage = {
+      get: vi.fn(() => Promise.reject(new Error("read denied"))),
+      set: vi.fn((obj: Record<string, unknown>) => {
+        persisted = obj.state;
+        return Promise.resolve();
+      }),
+    };
+
+    await updateSession({ queues: new Map() }, storage, "state", (value) => ({
+      ...(value as Record<string, unknown> | undefined),
+      9: "nine",
+    }));
+
+    expect(storage.set).not.toHaveBeenCalled();
+    expect(persisted).toEqual({ 7: "seven", 8: "eight" });
+    expect(getPersistenceDiagnostics()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ area: "session", operation: "update", key: "state" }),
       ]),
     );
   });

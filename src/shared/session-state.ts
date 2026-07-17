@@ -43,6 +43,15 @@ export const removeSession = (storage: StorageRemover | undefined, key: string |
       })
     : Promise.resolve();
 
+// getSession degrades a failed read to {}, which is right for a reader but not
+// for the read half of a read-modify-write: rebasing onto {} would compute the
+// new value from nothing and write it over every entry the read did not return.
+// Let the rejection through so the update is skipped and the stored value kept.
+const readSessionToUpdate = (
+  storage: StorageReader | undefined,
+  key: string,
+): Promise<Record<string, unknown>> => (storage ? storage.get(key) : Promise.resolve({}));
+
 export const updateSession = <T>(
   writes: SessionWriteState,
   storage: StorageWriter | undefined,
@@ -50,7 +59,7 @@ export const updateSession = <T>(
   update: (value: unknown) => T,
 ) => {
   const queue = (writes.queues.get(key) || Promise.resolve())
-    .then(() => getSession(storage, key))
+    .then(() => readSessionToUpdate(storage, key))
     .then((stored) => setSession(storage, { [key]: update(stored[key]) }, key))
     .catch((error) => {
       recordPersistenceFailure({ area: "session", operation: "update", key }, error);
