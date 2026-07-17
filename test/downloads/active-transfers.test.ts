@@ -156,3 +156,30 @@ test.each([null, "invalid", []])("normalizes a malformed transfer snapshot %j", 
   vi.mocked(browser.storage.session.remove).mockResolvedValue();
   await expect(ActiveTransfers.recoverActiveTransfers()).resolves.toEqual({});
 });
+
+test("keeps the snapshot a failed read could not return", async () => {
+  // Recovery reads to consume, so a read that degrades to {} and removes anyway
+  // destroys the very records it could not see. Unlike the pending counter this
+  // state has no second source: every interrupted transfer would keep its
+  // pre-interruption status forever, and no later startup could recover it.
+  vi.mocked(browser.storage.session.get).mockRejectedValue(new Error("session unavailable"));
+  vi.mocked(browser.storage.session.remove).mockResolvedValue();
+
+  await expect(ActiveTransfers.recoverActiveTransfers()).resolves.toEqual({});
+  expect(browser.storage.session.remove).not.toHaveBeenCalled();
+});
+
+test("contains a failed removal instead of failing cold-start recovery", async () => {
+  // recoverColdStartState awaits this, and every menu handler awaits the init
+  // promise it settles. A transient remove rejection must not brick every save
+  // for the rest of the worker's life; the other cold-start members all contain
+  // their own storage failures the same way.
+  vi.mocked(browser.storage.session.get).mockResolvedValue({
+    [ACTIVE_TRANSFERS_SESSION_KEY]: { h1: { requestId: "req", updatedAt: 10 } },
+  });
+  vi.mocked(browser.storage.session.remove).mockRejectedValue(new Error("session unavailable"));
+
+  await expect(ActiveTransfers.recoverActiveTransfers()).resolves.toEqual({
+    h1: { requestId: "req", updatedAt: 10 },
+  });
+});

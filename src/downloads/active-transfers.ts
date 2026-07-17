@@ -1,7 +1,8 @@
 import { webExtensionApi } from "../platform/web-extension-api.ts";
 import { extensionSessionStorage } from "../platform/storage-areas.ts";
-import { getSession, updateSession } from "../shared/session-state.ts";
+import { readSessionToUpdate, removeSession, updateSession } from "../shared/session-state.ts";
 import type { SessionWriteState } from "../shared/session-state.ts";
+import { recordPersistenceFailure } from "../shared/persistence-diagnostics.ts";
 import { ACTIVE_TRANSFERS_SESSION_KEY } from "../shared/storage-keys.ts";
 import { isStringKeyedRecord } from "../shared/util.ts";
 
@@ -143,9 +144,24 @@ export const releaseTransferKeepalive = (controller: AbortController): void => {
 };
 
 export const recoverActiveTransfers = async (): Promise<Record<string, ActiveTransferRecord>> => {
-  const stored = await getSession(extensionSessionStorage, ACTIVE_TRANSFERS_SESSION_KEY);
+  // This reads to consume, so it is the read half of a read-modify-write: a
+  // read degraded to {} would remove the records it could not see, and unlike
+  // the pending counter this snapshot has no second source to rebuild from.
+  let stored: Record<string, unknown>;
+  try {
+    stored = await readSessionToUpdate(extensionSessionStorage, ACTIVE_TRANSFERS_SESSION_KEY);
+  } catch (error) {
+    recordPersistenceFailure(
+      { area: "session", operation: "read", key: ACTIVE_TRANSFERS_SESSION_KEY },
+      error,
+    );
+    return {};
+  }
   const records = storedRecords(stored[ACTIVE_TRANSFERS_SESSION_KEY]);
-  await extensionSessionStorage.remove(ACTIVE_TRANSFERS_SESSION_KEY);
+  // Cold-start recovery awaits this, and every menu handler awaits the init
+  // promise it settles, so a failed removal is recorded rather than thrown —
+  // as the other members of that recovery already do.
+  await removeSession(extensionSessionStorage, ACTIVE_TRANSFERS_SESSION_KEY);
   return records;
 };
 
