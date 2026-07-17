@@ -73,9 +73,10 @@ else records that a written-up version has not shipped yet. A tag push runs
 1. validates the tag against both manifests;
 2. runs coverage, typecheck, lint, and serial Chrome/Firefox e2e;
 3. builds reproducible runtime and AMO source ZIPs;
-4. copies them to stable `save-in-X.Y.Z*.zip` names and writes `SHA256SUMS`;
-5. creates GitHub provenance attestations; and
-6. creates or updates a draft GitHub Release with those assets.
+4. signs the Chromium sideload CRX, when `CRX_PRIVATE_KEY` is set;
+5. copies them to stable `save-in-X.Y.Z*` names and writes `SHA256SUMS`;
+6. creates GitHub provenance attestations; and
+7. creates or updates a draft GitHub Release with those assets.
 
 Inspect the draft before publishing it. A rerun may replace assets while the
 release remains a draft; the workflow refuses to modify a published release.
@@ -94,6 +95,44 @@ gh attestation verify save-in-X.Y.Z.zip -R gyng/save-in
 Protect `v*` with a GitHub tag ruleset so only maintainers can create or delete
 release tags. Release actions are pinned to immutable commits; update those
 pins deliberately during workflow maintenance.
+
+## The Chromium sideload key
+
+`scripts/pack-crx.js` prepends a CRX3 signature header to the runtime ZIP, so
+the packaged and reviewed bytes stay identical — strip the header and the
+remainder is `save-in-X.Y.Z.zip`. It reads the PEM from `CRX_PRIVATE_KEY` into
+memory and never writes it to disk, and does nothing when the variable is
+absent, so ordinary builds need no key.
+
+**This key is permanent.** A Chromium extension's ID is the hash of its signing
+key, and browsers store an extension's settings against its ID. Signing a later
+release with a different key therefore does not update the installed extension:
+it installs a second one, and the first user's rules, history, and options stay
+stranded in an extension nothing will ever open again. There is no migration
+and no recovery. Losing the key ends the sideload channel permanently.
+
+The key is not a store credential and grants no authority over the published
+extension. It only names the sideload build. Treat it as unrecoverable rather
+than as high-value: back it up somewhere durable and offline.
+
+Generate it once, off CI, and keep it out of the working tree:
+
+```sh
+openssl genrsa -out ~/save-in-crx.pem 2048   # back this up, then:
+gh secret set CRX_PRIVATE_KEY -R gyng/save-in < ~/save-in-crx.pem
+```
+
+Print the ID it will produce, which the README documents and users see in
+Options:
+
+```sh
+CRX_PRIVATE_KEY="$(cat ~/save-in-crx.pem)" node scripts/pack-crx.js 4.0.0
+```
+
+Only a tag push signs. `workflow_dispatch` skips the step, so a manual build
+cannot mint a signed package. Harden the secret further by moving it to a
+GitHub Environment restricted to `v*` tags and adding the `environment:` key to
+the release job, which also makes signing an approvable step.
 
 ## Browser-owned surface checks
 

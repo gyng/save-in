@@ -44,10 +44,29 @@ function prepare(root, tag) {
   const version = readVersion(root, tag);
   const artifacts = path.join(root, "web-ext-artifacts");
   const output = path.join(artifacts, "release");
+  const runtime = path.join(artifacts, `save-in-${version}.zip`);
   const files = [
     {
-      source: path.join(artifacts, `save-in-${version}.zip`),
+      source: runtime,
       name: `save-in-${version}.zip`,
+    },
+    // The same bytes under the extension Firefox will offer to install. An XPI
+    // is a ZIP, so this is a copy rather than a second build: one artifact to
+    // attest, and SHA256SUMS shows the two names carry one package. Unsigned,
+    // so it installs only where signature enforcement can be turned off --
+    // see docs/RELEASE.md. Chrome has no counterpart: a CRX must be signed to
+    // exist at all, and Chrome refuses sideloaded ones anyway, so its manual
+    // install is Load unpacked from the ZIP.
+    {
+      source: runtime,
+      name: `save-in-${version}.xpi`,
+    },
+    // Present only when the maintainer's signing key was available, so a build
+    // without it still produces a complete release rather than failing.
+    {
+      source: path.join(artifacts, `save-in-${version}-chromium.crx`),
+      name: `save-in-${version}-chromium.crx`,
+      optional: true,
     },
     {
       source: path.join(artifacts, "source", `save-in-${version}-source.zip`),
@@ -55,19 +74,19 @@ function prepare(root, tag) {
     },
   ];
 
-  for (const file of files) {
-    if (!fs.existsSync(file.source)) {
-      throw new Error(`Missing release artifact: ${file.source}`);
-    }
-  }
+  const published = files.filter((file) => {
+    if (fs.existsSync(file.source)) return true;
+    if (file.optional) return false;
+    throw new Error(`Missing release artifact: ${file.source}`);
+  });
 
   fs.rmSync(output, { recursive: true, force: true });
   fs.mkdirSync(output, { recursive: true });
-  for (const file of files) {
+  for (const file of published) {
     fs.copyFileSync(file.source, path.join(output, file.name));
   }
 
-  const checksums = files
+  const checksums = published
     .map(({ name }) => {
       const contents = fs.readFileSync(path.join(output, name));
       return `${crypto.createHash("sha256").update(contents).digest("hex")}  ${name}`;

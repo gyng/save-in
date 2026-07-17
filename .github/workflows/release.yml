@@ -57,7 +57,22 @@ jobs:
         run: |
           npm run package:runtime
           npm run build:source
-          npm run release:prepare -- "$RELEASE_TAG"
+
+      # Sideload signing, not store signing: it gives Chromium-based browsers a
+      # file they will install, under an id that must never change or every
+      # installed copy is orphaned from its settings. Tag pushes only, so a
+      # workflow_dispatch build cannot mint a signed package, and the key is
+      # read from the environment straight into memory -- it never reaches the
+      # runner's disk. Absent the secret the step is a no-op and the release
+      # simply carries no CRX.
+      - name: Sign the Chromium sideload package
+        if: github.event_name == 'push'
+        env:
+          CRX_PRIVATE_KEY: ${{ secrets.CRX_PRIVATE_KEY }}
+        run: node scripts/pack-crx.js "${RELEASE_TAG#v}"
+
+      - name: Name and checksum release artifacts
+        run: npm run release:prepare -- "$RELEASE_TAG"
 
       - name: Attest release artifacts
         if: github.event_name == 'push'

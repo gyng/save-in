@@ -4,7 +4,7 @@
 [Chrome Web Store](https://chromewebstore.google.com/detail/save-in/jpblofcpgfjikaapfedldfeilmpgkedf)<br />
 [Releases](https://github.com/gyng/save-in/releases/)
 
-[Privacy policy](PRIVACY.md)
+[Privacy policy](PRIVACY.md) · [Manual install](#manual-install)
 
 ![Save In options](docs/store-screenshots/01-downloads-menu.png)
 
@@ -88,6 +88,54 @@ the target is missing or inaccessible.
   extension requests are always anonymous because the shared background cannot
   select a private cookie store, so authenticated resources that require Fetch
   mode may fail there. Firefox direct downloads use the private session.
+
+## Manual install
+
+Install from [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/save-in)
+or the [Chrome Web Store](https://chromewebstore.google.com/detail/save-in/jpblofcpgfjikaapfedldfeilmpgkedf)
+if you can. Only the stores can ship an extension the browsers will install
+permanently, keep updated, and trust by default. Each
+[release](https://github.com/gyng/save-in/releases/) also attaches the exact
+package it sent to the stores, for testing a build before it is reviewed or
+running one the stores never carried.
+
+`save-in-X.Y.Z.zip` and `save-in-X.Y.Z.xpi` are the same bytes under two names,
+and `save-in-X.Y.Z-chromium.crx` is that ZIP behind a signature header.
+`SHA256SUMS` covers all three.
+
+**Chromium-based browsers** (Chromium, ungoogled-chromium, Brave, Vivaldi) —
+open `chrome://extensions`, turn on **Developer mode**, and drag
+`save-in-X.Y.Z-chromium.crx` onto the page.
+
+**Google Chrome** installs extensions only from the Web Store, and no file
+changes that. Use the Web Store link above, or unzip `save-in-X.Y.Z.zip` and
+choose **Load unpacked** on the folder with **Developer mode** on. Keep the
+folder where it is: an unpacked extension's ID is derived from its path, so
+moving it makes Chrome treat it as a new extension and its settings disappear.
+
+**Firefox** — open `about:debugging#/runtime/this-firefox`, choose **Load
+Temporary Add-on**, and pick `save-in-X.Y.Z.xpi`. It is removed when Firefox
+closes. Installing it permanently needs a signed package, so it works only on
+Developer Edition, Nightly, or ESR with `xpinstall.signatures.required` set to
+`false` in `about:config`; release and beta Firefox refuse the file.
+
+### Sideloaded builds have their own extension ID
+
+An extension's ID comes from whoever signed it, and only the stores can sign as
+the store. So a sideloaded Save In is a **separate extension** from the store
+one: install both and you get two, each with its own settings, history, and
+rules. Nothing transfers between them, and uninstalling one leaves the other.
+
+This matters if another extension talks to Save In. Integration recipes address
+the store build, so on a sideloaded build point them at the ID shown at the top
+of Save In's own Options page instead of the published one.
+
+| Install                   | Extension ID                                                                            |
+| ------------------------- | --------------------------------------------------------------------------------------- |
+| Firefox, any of the above | `{72d92df5-2aa0-4b06-b807-aa21767545cd}` — declared in the manifest, so it never varies |
+| Chrome Web Store          | `jpblofcpgfjikaapfedldfeilmpgkedf`                                                      |
+| `-chromium.crx`           | Fixed, and the same for everyone. Shown in Options.                                     |
+| Load unpacked             | Derived from the folder path, so it differs on every machine                            |
 
 ## Integrations
 

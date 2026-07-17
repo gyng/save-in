@@ -59,6 +59,11 @@ rules.
   extension context. “Always download through Save In” is now available on
   Chrome as well as Firefox.
 - Waterfox and other Gecko forks are detected as Firefox (#186).
+- Attached the packages to each release for manual install: an `.xpi` for
+  Firefox, and a `-chromium.crx` for Chromium-based browsers. Both carry the
+  same reviewed bytes as the store ZIP. A sideloaded build is a separate
+  extension from the store one, with its own ID and its own settings — see
+  [manual install](README.md#manual-install).
 - Split “Exclusively use routing and renaming rules” into “Hide folder choices”
   and “Do not save the file”, which are now independent. Upgraded profiles get
   both, so a file that matches no rule is no longer saved to the Downloads root
