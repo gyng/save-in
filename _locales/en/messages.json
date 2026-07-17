@@ -1922,8 +1922,8 @@
     "description": "Text in the options page. Used in src/options/options.html."
   },
   "html_toReachAnotherLocationCreateASymlinkInsideDownloads": {
-    "message": ". To reach another location, create a symlink inside Downloads and use that relative symlink path as a destination. The target folder must already exist.",
-    "description": "Text in the options page. Used in src/options/options.html."
+    "message": ". To reach another location, redirect a subfolder of it to the target and use that relative path as a destination. What works depends on your browser and system, and some methods are risky, so check the guide below. The target folder must already exist.",
+    "description": "Text in the options page explaining how to point a destination outside the download folder, and that the safe method depends on the browser and OS. Used in src/options/options.html."
   },
   "html_useAVariable": {
     "message": "Use a variable",

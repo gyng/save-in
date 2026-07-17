@@ -135,8 +135,7 @@ fieldset.click-to-save-controls {
   border-block-start: 1px solid var(--panel-border);
 }
 
-.guide-step strong,
-.guide-command-grid strong {
+.guide-step strong {
   display: block;
   margin-block-end: var(--space-1);
   font-size: var(--text-base);
@@ -144,7 +143,6 @@ fieldset.click-to-save-controls {
 }
 
 .guide-step pre,
-.guide-command-grid pre,
 .guide-more pre,
 .agent-prompt-guide pre {
   max-inline-size: 100%;
@@ -208,17 +206,6 @@ fieldset.click-to-save-controls {
 .guide-rules {
   padding-inline-start: var(--space-5);
   margin: 0;
-}
-
-.guide-command-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--space-3);
-}
-
-.guide-command-grid pre {
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
 }
 
 .edge-case-guide {
