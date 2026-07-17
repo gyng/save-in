@@ -59,6 +59,12 @@ rules.
   extension context. “Always download through Save In” is now available on
   Chrome as well as Firefox.
 - Waterfox and other Gecko forks are detected as Firefox (#186).
+- Split “Exclusively use routing and renaming rules” into “Hide folder choices”
+  and “Do not save the file”, which are now independent. Upgraded profiles get
+  both, so a file that matches no rule is no longer saved to the Downloads root
+  as version 3 did — it reported that file as a failure and then saved it
+  anyway. Untick “Do not save the file” under **When no rule matches** to get
+  the old behaviour back.
 - Downgraded the Chrome-only conflict action on Firefox, where it could break
   downloads (#89, #217). Fresh installs also show “Downloads” instead of “.”
   for the default destination (#213).

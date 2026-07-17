@@ -548,9 +548,24 @@ describe("addDownloadListener", () => {
 
     expect(lastState().path.raw).toBe(".");
     expect(lastState().info.url).toBe("https://example.com/f.png");
-    expect(lastState().needRouteMatch).toBe(true);
     // Route-exclusive clicks do not update the last used path
     expect(global.browser.storage.local.set).not.toHaveBeenCalled();
+  });
+
+  // Hiding the folder choices is a menu-shape setting; whether an unmatched
+  // file is saved belongs to routeSkipUnmatched, which download-plan already
+  // reads for every save path. Forcing needRouteMatch here made the routing
+  // options unable to answer for the one menu item this mode offers.
+  test("route-exclusive clicks leave the no-match decision to the routing options", async () => {
+    options.routeSkipUnmatched = false;
+
+    await listener({
+      menuItemId: Menus.IDS.ROUTE_EXCLUSIVE,
+      linkUrl: "https://example.com/f.png",
+      pageUrl: "https://example.com/",
+    });
+
+    expect(lastState().needRouteMatch).toBeFalsy();
   });
 
   test("last-used clicks reuse the previous path, comment and menu index", async () => {
@@ -802,7 +817,7 @@ describe("addDownloadListener", () => {
 
       expect(Download.launchDownload).toHaveBeenCalledOnce();
       expect(lastState().path.raw).toBe(".");
-      expect(lastState().needRouteMatch).toBe(false);
+      expect(lastState().needRouteMatch).toBeFalsy();
       expect(lastState().info.url).toBe("https://example.com/");
       expect(lastState().info.menuItemTitle).toBe("Quick save");
       // Quick save is not a folder pick, so it leaves Last used untouched.

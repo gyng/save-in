@@ -226,11 +226,14 @@ export const handleContextMenuClick = async (
     };
 
     // keeps track of state of the final path
+    // No needRouteMatch: a menu click never requires a route of its own.
+    // routeHideFolderChoices only removes the folder submenu, so forcing one
+    // here would let a menu-shape setting answer for routeSkipUnmatched and
+    // routeFailurePrompt, which own the no-match behavior for every save path.
     const state: DownloadPipelineState = {
       path: parsedPath,
       scratch: {},
       info: opts,
-      needRouteMatch: info.menuItemId === MENU_IDS.ROUTE_EXCLUSIVE,
     };
 
     const privateContext = clickTab?.incognito === true;

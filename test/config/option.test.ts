@@ -200,7 +200,12 @@ describe("OptionsManagement", () => {
       expect(global.browser.storage.local.set).not.toHaveBeenCalled();
     });
 
-    test("splits the legacy routing-only setting without changing its behavior", async () => {
+    // The split is not behavior-preserving, and deliberately so: v3 named this
+    // mode "Exclusively use routing and renaming rules", reported an unmatched
+    // file through notifyOnFailure, and then saved it to the Downloads root
+    // anyway. Migrating to routeSkipUnmatched closes that, so an upgraded
+    // profile stops saving unmatched files where v3 would have.
+    test("splits the legacy routing-only setting, closing its unmatched save", async () => {
       global.browser.storage.local.get = vi.fn(() =>
         Promise.resolve({
           routeExclusive: true,
