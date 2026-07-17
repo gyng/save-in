@@ -75,7 +75,7 @@ chrome.runtime.onMessage.addListener(
       return false;
     }
 
-    const requestId = message.requestId ?? `${Date.now()}-${Math.random()}`;
+    const requestId = message.requestId;
     const controller = new AbortController();
     activeFetches.set(requestId, controller);
 

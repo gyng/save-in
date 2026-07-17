@@ -12,7 +12,9 @@ export type BlobContent = Pick<Blob, "type" | "size" | "arrayBuffer">;
 export type OffscreenFetchRequest = {
   type: typeof MESSAGE_TYPES.OFFSCREEN_FETCH;
   url: string;
-  requestId?: string;
+  // Required: the response cannot carry it back, so a request the sender did
+  // not name is a blob it can never release.
+  requestId: string;
   hash?: string;
   // Accepted for compatibility with a background from an older extension
   // instance. Streaming hashing no longer applies this limit.
@@ -48,7 +50,7 @@ export const isOffscreenFetchRequest = (value: unknown): value is OffscreenFetch
   isRecord(value) &&
   value.type === MESSAGE_TYPES.OFFSCREEN_FETCH &&
   typeof value.url === "string" &&
-  (typeof value.requestId === "undefined" || typeof value.requestId === "string") &&
+  typeof value.requestId === "string" &&
   (typeof value.hash === "undefined" || typeof value.hash === "string") &&
   (typeof value.credentials === "undefined" ||
     value.credentials === "include" ||

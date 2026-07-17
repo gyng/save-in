@@ -13,13 +13,19 @@ describe("offscreen message runtime validation", () => {
       isOffscreenFetchRequest({
         type: "OFFSCREEN_FETCH",
         url: "https://x/image.png",
+        requestId: "r1",
         hash: "SHA-256",
         maxBytes: 1024,
         credentials: "omit",
       }),
     ).toBe(true);
     expect(
-      isOffscreenFetchRequest({ type: "OFFSCREEN_FETCH", url: "https://x/empty", maxBytes: 0 }),
+      isOffscreenFetchRequest({
+        type: "OFFSCREEN_FETCH",
+        url: "https://x/empty",
+        requestId: "r2",
+        maxBytes: 0,
+      }),
     ).toBe(true);
     expect(isOffscreenFetchResponse({ blobUrl: "blob:https://x/id", hash: "abcd" })).toBe(true);
     expect(isOffscreenFetchResponse({ error: "fetch failed" })).toBe(true);
@@ -41,18 +47,26 @@ describe("offscreen message runtime validation", () => {
   test.each([
     null,
     [],
-    { type: "OFFSCREEN_FETCH", url: 42 },
-    { type: "OTHER", url: "https://x/image.png" },
+    { type: "OFFSCREEN_FETCH", url: 42, requestId: "r" },
+    { type: "OTHER", url: "https://x/image.png", requestId: "r" },
     { type: "OFFSCREEN_FETCH", url: "https://x/image.png", requestId: 42 },
-    { type: "OFFSCREEN_FETCH", url: "https://x/image.png", maxBytes: -1 },
-    { type: "OFFSCREEN_FETCH", url: "https://x/image.png", maxBytes: 1.5 },
+    // A request nobody can name is a blob nobody can release.
+    { type: "OFFSCREEN_FETCH", url: "https://x/image.png" },
+    { type: "OFFSCREEN_FETCH", url: "https://x/image.png", requestId: "r", maxBytes: -1 },
+    { type: "OFFSCREEN_FETCH", url: "https://x/image.png", requestId: "r", maxBytes: 1.5 },
     {
       type: "OFFSCREEN_FETCH",
       url: "https://x/image.png",
+      requestId: "r",
       maxBytes: Number.MAX_SAFE_INTEGER + 1,
     },
-    { type: "OFFSCREEN_FETCH", url: "https://x/image.png", maxBytes: Number.NaN },
-    { type: "OFFSCREEN_FETCH", url: "https://x/image.png", credentials: "same-origin" },
+    { type: "OFFSCREEN_FETCH", url: "https://x/image.png", requestId: "r", maxBytes: Number.NaN },
+    {
+      type: "OFFSCREEN_FETCH",
+      url: "https://x/image.png",
+      requestId: "r",
+      credentials: "same-origin",
+    },
   ])("rejects malformed fetch request %#", (value) => {
     expect(isOffscreenFetchRequest(value)).toBe(false);
   });
