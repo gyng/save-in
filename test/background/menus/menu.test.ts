@@ -112,6 +112,26 @@ describe("menu parsing", () => {
     expect(tree.items[0]).toMatchObject({ kind: "path", parsedDir: "documents" });
   });
 
+  // A skipped nesting level still renders the deeper item as a child (see the
+  // effective-depth cases), so disabling the parent must take it too.
+  test("disabled entries suppress a subtree that skipped a nesting level", () => {
+    const rendered = menu.buildTree(["photos", ">>>raw", ">>private"]);
+    // The premise: without the disable, private is raw's child.
+    expect(rendered.items).toHaveLength(3);
+    expect(rendered.items[2]).toMatchObject({
+      parsedDir: "private",
+      parentId: rendered.items[1]!.id,
+    });
+
+    const tree = menu.buildTree(["photos", ">>>raw // (disabled: true)", ">>private", "documents"]);
+
+    expect(tree.errors).toEqual([]);
+    expect(tree.items.map((item) => (item as { parsedDir?: string }).parsedDir)).toEqual([
+      "photos",
+      "documents",
+    ]);
+  });
+
   test("carries per-destination Save As metadata into the menu tree", () => {
     const tree = menu.buildTree(["photos // (alias: Photos) (dialog: true)"]);
 

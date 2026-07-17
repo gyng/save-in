@@ -130,6 +130,10 @@ export const parsePath = (dir: string): ParsedPath => {
   };
 };
 
+// Occupies a disabled item's place in the nesting stack. Never a real menu id:
+// nothing that could reach it as a parent survives the disabled check.
+const DISABLED_SLOT = "";
+
 export const buildTree = (pathsArray: string[]): MenuTree => {
   const items: MenuTreeItem[] = [];
   const errors: MenuTreeError[] = [];
@@ -140,11 +144,23 @@ export const buildTree = (pathsArray: string[]): MenuTree => {
   pathsArray.forEach((dir, index) => {
     const parsed = parsePath(dir);
     const { comment, depth, meta, validation, parsedDir } = parsed;
-    if (disabledDepth !== null && depth > disabledDepth) return;
+    // Manual/imported configurations may skip a nesting level. The rendered
+    // tree has always attached such an item to the deepest available parent;
+    // use that effective depth for numbering too, so the menuindex value
+    // matches the visible position instead of containing empty components.
+    const effectiveDepth = depth === 0 ? 0 : Math.min(depth, pathsNestingStack.length);
+    if (disabledDepth !== null && effectiveDepth > disabledDepth) return;
     disabledDepth = null;
     if (meta.disabled?.toLowerCase() === "true") {
-      disabledDepth = depth;
-      pathsNestingStack = pathsNestingStack.slice(0, depth);
+      disabledDepth = effectiveDepth;
+      // Hold the slot this item would have filled. A descendant that skipped a
+      // level is only nested under it because the rendered item occupies that
+      // slot; vacating it would collapse the descendant to this same depth and
+      // let it survive the check above — rendering a destination inside the
+      // subtree the user disabled. Nothing reads the placeholder as a parent:
+      // anything deep enough to reach it is suppressed first.
+      pathsNestingStack = pathsNestingStack.slice(0, effectiveDepth);
+      pathsNestingStack[effectiveDepth] = DISABLED_SLOT;
       return;
     }
     if (dir === SPECIAL_DIRS.SEPARATOR) {
@@ -157,11 +173,6 @@ export const buildTree = (pathsArray: string[]): MenuTree => {
       });
       return;
     }
-    // Manual/imported configurations may skip a nesting level. The rendered
-    // tree has always attached such an item to the deepest available parent;
-    // use that effective depth for numbering too, so the menuindex value
-    // matches the visible position instead of containing empty components.
-    const effectiveDepth = depth === 0 ? 0 : Math.min(depth, pathsNestingStack.length);
     const parentId =
       effectiveDepth === 0 ? MENU_IDS.ROOT : (pathsNestingStack[effectiveDepth - 1] as string);
     if (!validation.valid) {
