@@ -206,20 +206,28 @@ export const isSafeExternalRegex = (regex: RegExp | string): boolean => {
   return true;
 };
 
+const regexSource = (value: RegExp | string): string =>
+  typeof value === "string" ? value : value.source;
+
 // An untrusted external VALIDATE compiles and executes two classes of
 // attacker-supplied regex: matcher clause patterns, and the rename: clause's
 // `find` pattern (applyRenameTransform runs it against an attacker-controlled
 // filename during traceRules). Both must pass the ReDoS gate. Capture clauses
 // store a plain string and fetch templates expand through a fixed variable
 // pattern, so neither compiles an attacker regex.
-export const hasUnsafeExternalRegex = (rules: RoutingRule[]): boolean =>
-  rules.some((rule) =>
-    rule.some((clause) => {
-      if (clause.type === RULE_TYPES.MATCHER) return !isSafeExternalRegex(clause.value);
-      if (clause.type === RULE_TYPES.RENAME) return !isSafeExternalRegex(clause.find);
-      return false;
-    }),
-  );
+//
+// Returns the offending patterns rather than a verdict: a caller cannot fix a
+// rule the response refuses to name.
+export const unsafeExternalRegexSources = (rule: RoutingRule): string[] =>
+  rule.flatMap((clause) => {
+    if (clause.type === RULE_TYPES.MATCHER && !isSafeExternalRegex(clause.value)) {
+      return [regexSource(clause.value)];
+    }
+    if (clause.type === RULE_TYPES.RENAME && !isSafeExternalRegex(clause.find)) {
+      return [regexSource(clause.find)];
+    }
+    return [];
+  });
 
 export const createExternalValidationRateLimiter = ({
   maxRequests = 20,

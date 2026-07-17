@@ -4240,6 +4240,9 @@
   "ruleCssSyntaxUnverified": {
     "message": "バックグラウンド検証では CSS セレクターの構文は確認されません"
   },
+  "ruleRegexUnverifiedExternal": {
+    "message": "正規表現が複雑すぎるため、ここでは検証できません。このルールはスキップされました。パターンを簡略化するか、オプションページで確認してください。"
+  },
   "ruleFetchFinalFilenameUnsupported": {
     "message": "fetch: と finalfilename: は組み合わせられません"
   },

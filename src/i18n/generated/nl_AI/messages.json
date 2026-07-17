@@ -4240,6 +4240,9 @@
   "ruleCssSyntaxUnverified": {
     "message": "De syntaxis van de CSS-selector wordt niet gecontroleerd bij validatie op de achtergrond"
   },
+  "ruleRegexUnverifiedExternal": {
+    "message": "De reguliere expressie is te complex om hier te valideren. Deze regel is overgeslagen; vereenvoudig het patroon of controleer het op de optiepagina."
+  },
   "ruleFetchFinalFilenameUnsupported": {
     "message": "fetch: kan niet worden gecombineerd met finalfilename:"
   },

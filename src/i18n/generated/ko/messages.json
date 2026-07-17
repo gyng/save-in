@@ -4240,6 +4240,9 @@
   "ruleCssSyntaxUnverified": {
     "message": "백그라운드 유효성 검사에서는 CSS 선택자 구문을 확인하지 않습니다"
   },
+  "ruleRegexUnverifiedExternal": {
+    "message": "정규식이 너무 복잡하여 여기에서 검증할 수 없습니다. 이 규칙은 건너뛰었습니다. 패턴을 단순화하거나 옵션 페이지에서 확인하세요."
+  },
   "ruleFetchFinalFilenameUnsupported": {
     "message": "fetch:는 finalfilename:과 함께 사용할 수 없습니다"
   },

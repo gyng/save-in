@@ -4240,6 +4240,9 @@
   "ruleCssSyntaxUnverified": {
     "message": "La sintaxis del selector CSS no se verifica en la validación en segundo plano"
   },
+  "ruleRegexUnverifiedExternal": {
+    "message": "La expresión regular es demasiado compleja para validarla aquí. Se omitió esta regla; simplifica el patrón o compruébalo en la página de opciones."
+  },
   "ruleFetchFinalFilenameUnsupported": {
     "message": "fetch: no se puede combinar con finalfilename:"
   },

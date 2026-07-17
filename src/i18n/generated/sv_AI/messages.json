@@ -6,10 +6,10 @@
     "message": "Identifierar PDF-filer efter rapporterad innehållstyp i stället för filnamn"
   },
   "ruleTemplateDownloadsFromSiteSectionName": {
-    "message": "Hämtningar från en webbplatssektion"
+    "message": "Nedladdningar från en webbplatssektion"
   },
   "ruleTemplateDownloadsFromSiteSectionDescription": {
-    "message": "Dirigerar hämtningar som hör till en sid-URL-sektion till en egen mapp"
+    "message": "Dirigerar nedladdningar som hör till en sid-URL-sektion till en egen mapp"
   },
   "html_matchesTheMimeContentType": {
     "message": "Matchar fastställt MIME Content-Type. Save In kan begära serverhuvuden."
@@ -258,7 +258,7 @@
     "message": "Startdatumet måste vara samma som eller före slutdatumet."
   },
   "historyShowFolderUnavailable": {
-    "message": "Det gick inte att öppna mappen. Webbläsaren känner inte längre till hämtningen."
+    "message": "Det gick inte att öppna mappen. Webbläsaren känner inte längre till nedladdningen."
   },
   "historyShowFolderFailed": {
     "message": "Det gick inte att öppna mappen. Filen kan ha flyttats eller tagits bort."
@@ -298,7 +298,7 @@
     "message": "Historiken lagras på den här enheten, upp till 10 000 poster."
   },
   "historyTableCaption": {
-    "message": "Historik över sparade hämtningar"
+    "message": "Historik över sparade nedladdningar"
   },
   "historyShowInFolder": {
     "message": "Visa i mapp"
@@ -307,7 +307,7 @@
     "message": "Avbryt"
   },
   "historyCancelDownloadTitle": {
-    "message": "Avbryt den här hämtningen"
+    "message": "Avbryt den här nedladdningen"
   },
   "historyCancelDownloadNamed": {
     "message": "Avbryt $FILE$",
@@ -437,7 +437,7 @@
     "message": "Nätverksfel"
   },
   "historyStatusDownloadFailed": {
-    "message": "Hämtningen misslyckades"
+    "message": "Nedladdningen misslyckades"
   },
   "historyStatusPreparationFailed": {
     "message": "Förberedelsen misslyckades"
@@ -446,7 +446,7 @@
     "message": "Avbruten"
   },
   "historyStatusStateLost": {
-    "message": "Hämtningsstatus förlorad"
+    "message": "Nedladdningsstatus förlorad"
   },
   "historyStatusRoutingFailed": {
     "message": "Routningen misslyckades"
@@ -611,7 +611,7 @@
     "message": "Lägg till webbläsarnedladdningar i Save In-historiken"
   },
   "o_cTrackBrowserDownloadsHelp": {
-    "message": "Registrerar matchande nedladdningar i Save In-historiken utan att ta över dem. Save In försöker inte hämta dem igen och visar inga uppmaningar eller aviseringar för dem."
+    "message": "Registrerar matchande nedladdningar i Save In-historiken utan att ta över dem. Save In försöker inte ladda ner dem igen och visar inga uppmaningar eller aviseringar för dem."
   },
   "o_cRouteBrowserDownloads": {
     "message": "Dirigera webbläsarnedladdningar med routningsregler"
@@ -677,7 +677,7 @@
     "message": "Bläddra bland bilder, video, ljud, dokument och nedladdningsbara länkar på den aktuella sidan. Sparade objekt använder dina vanliga routnings- och namnbytesregler."
   },
   "o_lPageSourcesNetworkLimit": {
-    "message": "Vissa videospelare använder tillfälliga URL:er eller läser in media via skript, så Save In kanske inte hittar alla videor. Ibland hittas spellistor för strömmande video (HLS/DASH), men de innehåller bara separata videosegment; att spara en spellista hämtar inte hela videon."
+    "message": "Vissa videospelare använder tillfälliga URL:er eller läser in media via skript, så Save In kanske inte hittar alla videor. Ibland hittas spellistor för strömmande video (HLS/DASH), men de innehåller bara separata videosegment; att spara en spellista laddar inte ner hela videon."
   },
   "o_cSourcePanelEnabled": {
     "message": "Aktivera sidresurser"
@@ -1010,13 +1010,13 @@
     "message": "För URL:er utan filändelse, härled en från serverns Content-Type. Detta medför en liten fördröjning endast när det behövs."
   },
   "o_cFallbackFetch": {
-    "message": "Försök misslyckade hämtningar igen via Save In"
+    "message": "Försök misslyckade nedladdningar igen via Save In"
   },
   "o_cFallbackFetchHelp": {
-    "message": "Om en webbläsarhämtning misslyckas på grund av ett nätverks- eller serverfel hämtar Save In filen och försöker en gång till."
+    "message": "Om en webbläsarnedladdning misslyckas på grund av ett nätverks- eller serverfel hämtar Save In filen och försöker en gång till."
   },
   "o_cFetchViaFetchAPI": {
-    "message": "Hämta alltid via Save In"
+    "message": "Ladda alltid ner via Save In"
   },
   "o_cFetchViaFetchAPIHelp": {
     "message": "Save In hämtar filen och skickar den till webbläsaren. Använd detta endast när normala nedladdningar misslyckas. Det är långsammare och Chrome håller filen i minnet medan den sparas, så undvik den för mycket stora filer."
@@ -1031,7 +1031,7 @@
     "message": "Använd sidans URL när Referer saknas"
   },
   "o_cSetRefererHeaderHelp": {
-    "message": "Aktivera detta om en fil kan öppnas från webbplatsen men Save In inte kan hämta den, rapporterar 403 eller Åtkomst nekad, eller sparar en felsida. Lägg bara till de berörda filvärdarna nedan. Sidans URL skickas då till dessa värdar; i Chrome håller Save In även varje matchande fil i minnet medan den sparas."
+    "message": "Aktivera detta om en fil kan öppnas från webbplatsen men Save In inte kan ladda ner den, rapporterar 403 eller Åtkomst nekad, eller sparar en felsida. Lägg bara till de berörda filvärdarna nedan. Sidans URL skickas då till dessa värdar; i Chrome håller Save In även varje matchande fil i minnet medan den sparas."
   },
   "o_cSetRefererHeaderFilter": {
     "message": "Ange Referer för dessa webbplatser"
@@ -1088,7 +1088,7 @@
     "message": "Inga valideringsfel"
   },
   "notificationLinkPreferred": {
-    "message": "Länkmålet hämtades i stället"
+    "message": "Länkmålet laddades ner i stället"
   },
   "o_cPreferLinksFilterEnabled": {
     "message": "Endast på matchande sidor"
@@ -1199,7 +1199,7 @@
     "message": "Diskussioner"
   },
   "html_downloadsFolder": {
-    "message": "hämtningsmapp"
+    "message": "nedladdningsmapp"
   },
   "html_each": {
     "message": "Varje"
@@ -1274,7 +1274,7 @@
     "message": "Avancerat: använd fångstgrupper"
   },
   "html_andItsSubdomainsUse": {
-    "message": "Matchar HTTPS-hämtningar från example.com och dess underdomäner."
+    "message": "Matchar HTTPS-nedladdningar från example.com och dess underdomäner."
   },
   "html_andLaterGroupsIn": {
     "message": ", och senare grupper i"
@@ -1304,10 +1304,10 @@
     "message": "mål."
   },
   "html_destinationsAreRelativeToTheDownloadsMenuDestinationYou": {
-    "message": "Destinationerna är relativa till mappen du väljer i menyn, men utgår från din hämtningsmapp när du klickar för att spara och vid automatiska sparningar. Matchningsvärden är reguljära uttryck; se"
+    "message": "Destinationerna är relativa till mappen du väljer i menyn, men utgår från din nedladdningsmapp när du klickar för att spara och vid automatiska sparningar. Matchningsvärden är reguljära uttryck; se"
   },
   "html_intoDestinationsStartFromTheMenuFolder": {
-    "message": "Destinationerna är relativa till mappen du väljer i menyn, men utgår från din hämtningsmapp när du klickar för att spara och vid automatiska sparningar."
+    "message": "Destinationerna är relativa till mappen du väljer i menyn, men utgår från din nedladdningsmapp när du klickar för att spara och vid automatiska sparningar."
   },
   "html_enterOneUrlLikeBrowserMatchPatternPerLine": {
     "message": "Lägg till ett WebExtension-matchningsmönster per rad. De är inte reguljära uttryck. Varje mönster använder ett schema, en värd och en sökväg."
@@ -1331,7 +1331,7 @@
     "message": "Matchar HTTP och HTTPS."
   },
   "html_howDoDownloadUrlFiltersWork": {
-    "message": "Så matchar URL-filter hämtningar"
+    "message": "Så matchar URL-filter nedladdningar"
   },
   "html_howRoutingRulesWork": {
     "message": "Så fungerar routningsregler"
@@ -1730,7 +1730,7 @@
     "message": "Lagring"
   },
   "html_theSessionLogBelowAlwaysKeepsASmallLocal": {
-    "message": "De senaste felen lagras på den här enheten tills webbläsarsessionen avslutas. Utförlig loggning skriver även information om dirigering och hämtningar till webbläsarens utvecklarkonsol och förblir aktiverad tills du stänger av den. Privat aktivitet undantas."
+    "message": "De senaste felen lagras på den här enheten tills webbläsarsessionen avslutas. Utförlig loggning skriver även information om dirigering och nedladdningar till webbläsarens utvecklarkonsol och förblir aktiverad tills du stänger av den. Privat aktivitet undantas."
   },
   "html_toConnectOpenThisPageInABrowserThat": {
     "message": "För att ansluta: öppna den här sidan i en webbläsare som stöder WebMCP, håll den öppen och peka din webbläsaragent på den här fliken. Fråga det i klartext — t.ex. \"Sortera mina nedladdningar i mappar efter webbplats och datum, numrera varje fil och meddela mig bara när en misslyckas.\""
@@ -2054,7 +2054,7 @@
     "message": "Webhooks"
   },
   "html_webhooksHelp": {
-    "message": "Skicka en JSON-begäran varje gång Save In startar en hämtning."
+    "message": "Skicka en JSON-begäran varje gång Save In startar en nedladdning."
   },
   "html_webhookDocumentation": {
     "message": "Läs dokumentationen om webhooks"
@@ -2072,7 +2072,7 @@
     "message": "Testet innehåller bara en testhändelse och en tidsstämpel."
   },
   "html_webhookEnabled": {
-    "message": "Skicka en webhook när en Save In-hämtning startar"
+    "message": "Skicka en webhook när en Save In-nedladdning startar"
   },
   "html_webhookAlwaysIncludes": {
     "message": "Varje begäran innehåller den valda resursens URL, en sparhändelse och en ISO 8601-tidsstämpel."
@@ -2968,7 +2968,7 @@
     "message": "Inkludera länkade dokument och strömmar"
   },
   "autoDownloadDocumentsHelp": {
-    "message": "Hämtar länkade PDF- och HLS/DASH-manifestfiler, oavsett om länkad media är inkluderad."
+    "message": "Tar med länkade PDF- och HLS/DASH-manifestfiler, oavsett om länkad media är inkluderad."
   },
   "autoDownloadBackgrounds": {
     "message": "Inkludera CSS-bakgrundsbilder"
@@ -2983,7 +2983,7 @@
     "message": "Inkludera inbäddade data:-bilder och media"
   },
   "autoDownloadDataUrlsHelp": {
-    "message": "Hämtar fristående data:-URL:er, upp till 2 MB styck; större hoppas över."
+    "message": "Tar med fristående data:-URL:er, upp till 2 MB styck; större hoppas över."
   },
   "autoDownloadLimit": {
     "message": "Maximalt antal sparningar per sidbesök"
@@ -3189,7 +3189,7 @@
     "message": "Öppna i Chrome Web Store"
   },
   "html_downloadRequestHeaders": {
-    "message": "Huvuden för hämtningsbegäranden"
+    "message": "Huvuden för nedladdningsbegäranden"
   },
   "html_temporarilyAddsThePageUrlAsRefererForExactSaveInRequests": {
     "message": "Sidans URL läggs till tillfälligt som Referer för exakta Save In-begäranden när en webbplats kräver det."
@@ -3351,7 +3351,7 @@
     "message": "Visa välkomstguiden"
   },
   "advancedFilesDownloads": {
-    "message": "Filer och hämtningar"
+    "message": "Filer och nedladdningar"
   },
   "advancedMaintenanceDiagnostics": {
     "message": "Underhåll och diagnostik"
@@ -3531,10 +3531,10 @@
     }
   },
   "o_cSaveSourceSidecar": {
-    "message": "Spara en källänk bredvid hämtade medier"
+    "message": "Spara en källänk bredvid nedladdade medier"
   },
   "o_cSaveSourceSidecarHelp": {
-    "message": "Använder det valda genvägsformatet och den hämtade filens namn."
+    "message": "Använder det valda genvägsformatet och den nedladdade filens namn."
   },
   "historyCopyPath": {
     "message": "Kopiera sparad sökväg"
@@ -3800,7 +3800,7 @@
     }
   },
   "sourcePanelBatchSaved": {
-    "message": "$COUNT$ hämtningar startades",
+    "message": "$COUNT$ nedladdningar startades",
     "placeholders": {
       "count": {
         "content": "$1",
@@ -3908,13 +3908,13 @@
     "message": "; fångstreferenser och routningsvariabler ersätts ordagrant, utan sanering av filnamnet."
   },
   "html_downloadsFromAnExpandedUrlTemplateInsteadOfTheMatched": {
-    "message": "hämtar från en expanderad URL-mall istället för den matchade källan;"
+    "message": "laddar ner från en expanderad URL-mall istället för den matchade källan;"
   },
   "html_downloadsFromThisUrlTemplateInsteadOfTheMatchedSource": {
-    "message": "Hämtar från den här URL-mallen istället för den matchade källan;"
+    "message": "Laddar ner från den här URL-mallen istället för den matchade källan;"
   },
   "html_downloadsTheOriginalResolutionImageInstead": {
-    "message": "Hämtar bilden i originalupplösning istället för den lilla förhandsvisningen."
+    "message": "Laddar ner bilden i originalupplösning istället för den lilla förhandsvisningen."
   },
   "html_fetchClauseCompatibility": {
     "message": "Hoppas över av vanlig webbläsarnedladdningsroutning, som bara kan byta namn – inte byta ut URL:er. Meny, klicka för att spara och automatiska sparningar använder den fortfarande; sparningen misslyckas om expansionen inte ger en användbar HTTP(S)-URL."
@@ -4136,10 +4136,10 @@
     "message": "Redo på den här enheten"
   },
   "promptAssistantStatusDownloadable": {
-    "message": "Modellen hämtas när du föreslår din första regel"
+    "message": "Modellen laddas ner när du föreslår din första regel"
   },
   "promptAssistantStatusDownloading": {
-    "message": "Chrome hämtar modellen till enheten"
+    "message": "Chrome laddar ner modellen till enheten"
   },
   "promptAssistantStatusUnavailable": {
     "message": "Inte tillgänglig i den här webbläsaren eller på enheten"
@@ -4232,13 +4232,16 @@
     "message": "Annars återanvänder klicka för att spara den mapp du senast valde i menyn."
   },
   "historyMovePending": {
-    "message": "Hämtar till den nya mappen. Originalfilen tas bort när hämtningen är klar."
+    "message": "Laddar ner till den nya mappen. Originalfilen tas bort när nedladdningen är klar."
   },
   "promptAssistantSingleRule": {
     "message": "Utkastet måste innehålla exakt en regel"
   },
   "ruleCssSyntaxUnverified": {
     "message": "CSS-väljarsyntaxen verifieras inte vid bakgrundsvalidering"
+  },
+  "ruleRegexUnverifiedExternal": {
+    "message": "Det reguljära uttrycket är för komplext för att valideras här. Regeln hoppades över; förenkla mönstret eller kontrollera det på alternativsidan."
   },
   "ruleFetchFinalFilenameUnsupported": {
     "message": "fetch: kan inte kombineras med finalfilename:"

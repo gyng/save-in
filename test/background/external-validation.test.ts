@@ -3,7 +3,7 @@ import { describe, expect, test } from "vitest";
 import {
   createExternalValidationRateLimiter,
   externalValidationRequestError,
-  hasUnsafeExternalRegex,
+  unsafeExternalRegexSources,
   isSafeExternalRegex,
 } from "../../src/background/external-validation.ts";
 
@@ -138,15 +138,16 @@ describe("external validation safeguards", () => {
   test("rejects oversized regexes and unsafe matcher rules", () => {
     expect(isSafeExternalRegex(new RegExp("a".repeat(1_025)))).toBe(false);
     expect(isSafeExternalRegex({ source: "(a+){" } as RegExp)).toBe(false);
+    // The caller is told which pattern it must fix, not merely that one exists.
     expect(
-      hasUnsafeExternalRegex([
-        [
-          { type: "MATCHER", value: /(a+)+$/ },
-          { type: "DESTINATION", value: "safe" },
-        ],
+      unsafeExternalRegexSources([
+        { type: "MATCHER", value: /(a+)+$/ },
+        { type: "DESTINATION", value: "safe" },
       ] as never),
-    ).toBe(true);
-    expect(hasUnsafeExternalRegex([[{ type: "DESTINATION", value: "safe" }]] as never)).toBe(false);
+    ).toEqual(["(a+)+$"]);
+    expect(unsafeExternalRegexSources([{ type: "DESTINATION", value: "safe" }] as never)).toEqual(
+      [],
+    );
   });
 
   test("rejects an unsafe rename find pattern, not only matcher patterns", () => {
@@ -155,19 +156,17 @@ describe("external validation safeguards", () => {
     // matcher. A safe matcher must not launder a catastrophic rename find past
     // the gate.
     expect(
-      hasUnsafeExternalRegex([
-        [
-          { type: "MATCHER", value: /safe/ },
-          { type: "RENAME", value: "(a+)+$ -> x", find: /(a+)+$/, replacement: "x" },
-          { type: "DESTINATION", value: "out/" },
-        ],
+      unsafeExternalRegexSources([
+        { type: "MATCHER", value: /safe/ },
+        { type: "RENAME", value: "(a+)+$ -> x", find: /(a+)+$/, replacement: "x" },
+        { type: "DESTINATION", value: "out/" },
       ] as never),
-    ).toBe(true);
+    ).toEqual(["(a+)+$"]);
     expect(
-      hasUnsafeExternalRegex([
-        [{ type: "RENAME", value: "\\d+ -> x", find: /\d+/, replacement: "x" }],
+      unsafeExternalRegexSources([
+        { type: "RENAME", value: "\\d+ -> x", find: /\d+/, replacement: "x" },
       ] as never),
-    ).toBe(false);
+    ).toEqual([]);
   });
 
   test("limits bursts per browser-authenticated sender ID", () => {

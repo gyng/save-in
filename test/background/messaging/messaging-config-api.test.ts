@@ -298,21 +298,17 @@ describe("config API", () => {
     ).toBe(true);
     await waitForCall(sendResponse);
 
-    expect(router.traceRules).not.toHaveBeenCalled();
-    expect(sendResponse).toHaveBeenCalledWith({
-      type: MESSAGE_TYPES.VALIDATE,
-      body: {
-        status: MESSAGE_TYPES.ERROR,
-        error: "BAD_REQUEST",
-        message: "Validation rules contain an unsafe regular expression",
-      },
-    });
+    // Reported and dropped, never executed: the trace runs with the rule gone.
+    expect(router.traceRules).toHaveBeenCalledWith([], expect.anything());
+    expect(sendResponse.mock.calls[0]![0]!.body.ruleErrors).toEqual([
+      expect.objectContaining({ error: "(a+)+$" }),
+    ]);
   });
 
-  test("external VALIDATE rejects an unsafe rename find behind a safe matcher", async () => {
+  test("external VALIDATE reports an unsafe rename find behind a safe matcher", async () => {
     // A safe matcher lets the rule reach trace selection, where
     // applyRenameTransform would run the catastrophic find against an
-    // attacker-supplied filename. The gate must reject before tracing.
+    // attacker-supplied filename. The rule must never reach the tracer.
     const rules = [
       [
         { name: "sourceurl", value: /./, type: "MATCHER", matcher: vi.fn(() => ["x"]) },
@@ -338,15 +334,10 @@ describe("config API", () => {
     ).toBe(true);
     await waitForCall(sendResponse);
 
-    expect(router.traceRules).not.toHaveBeenCalled();
-    expect(sendResponse).toHaveBeenCalledWith({
-      type: MESSAGE_TYPES.VALIDATE,
-      body: {
-        status: MESSAGE_TYPES.ERROR,
-        error: "BAD_REQUEST",
-        message: "Validation rules contain an unsafe regular expression",
-      },
-    });
+    expect(router.traceRules).toHaveBeenCalledWith([], expect.anything());
+    expect(sendResponse.mock.calls[0]![0]!.body.ruleErrors).toEqual([
+      expect.objectContaining({ error: "(a+)+$" }),
+    ]);
   });
 
   test("WebMCP VALIDATE uses the external regex safeguards", async () => {
@@ -380,15 +371,10 @@ describe("config API", () => {
     ).toBe(true);
     await waitForCall(sendResponse);
 
-    expect(router.traceRules).not.toHaveBeenCalled();
-    expect(sendResponse).toHaveBeenCalledWith({
-      type: MESSAGE_TYPES.VALIDATE,
-      body: {
-        status: MESSAGE_TYPES.ERROR,
-        error: "BAD_REQUEST",
-        message: "Validation rules contain an unsafe regular expression",
-      },
-    });
+    expect(router.traceRules).toHaveBeenCalledWith([], expect.anything());
+    expect(sendResponse.mock.calls[0]![0]!.body.ruleErrors).toEqual([
+      expect.objectContaining({ error: "(a+)+$" }),
+    ]);
   });
 
   test("external VALIDATE rejects oversized input before parsing", () => {

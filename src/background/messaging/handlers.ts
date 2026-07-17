@@ -34,7 +34,7 @@ import { isDataUrl, parseDataUrlMediaType } from "../../shared/data-url.ts";
 import {
   createExternalValidationRateLimiter,
   externalValidationRequestError,
-  hasUnsafeExternalRegex,
+  unsafeExternalRegexSources,
 } from "../external-validation.ts";
 import { createSourcePanelCopy } from "../../shared/source-panel-copy.ts";
 import {
@@ -247,19 +247,25 @@ export const handleValidate = async (
   }
   if (typeof body.filenamePatterns === "string") {
     const parsed = parseRulesCollecting(body.filenamePatterns);
-    if (external && hasUnsafeExternalRegex(parsed.rules)) {
-      sendResponse({
-        type: MESSAGE_TYPES.VALIDATE,
-        body: {
-          status: MESSAGE_TYPES.ERROR,
-          error: API_ERRORS.BAD_REQUEST,
-          message: "Validation rules contain an unsafe regular expression",
-        },
-      });
-      return;
-    }
     result.ruleErrors = parsed.errors;
+    // A rule an external trace must not execute is reported and dropped, the
+    // same way the parser drops any other invalid rule: inert, without
+    // consuming a later match. Rejecting the whole request instead told the
+    // caller only that something, somewhere, was too complex.
+    let traceableRules = parsed.rules;
     if (external) {
+      traceableRules = parsed.rules.filter((rule) => {
+        const unsafe = unsafeExternalRegexSources(rule);
+        for (const source of unsafe) {
+          result.ruleErrors?.push({
+            message:
+              getMessage("ruleRegexUnverifiedExternal") ||
+              "Regular expression is too complex to validate here",
+            error: source,
+          });
+        }
+        return unsafe.length === 0;
+      });
       const cssWarnings = parsed.rules.flatMap((rule) =>
         rule.flatMap((clause) =>
           clause.type === "MATCHER" && clause.name === "css" && typeof clause.value === "string"
@@ -287,7 +293,7 @@ export const handleValidate = async (
         external && !Object.hasOwn(body.info, "currentTab")
           ? { ...normalizedInfo, currentTab: null }
           : normalizedInfo;
-      result.ruleTrace = await traceRules(parsed.rules, traceInfo);
+      result.ruleTrace = await traceRules(traceableRules, traceInfo);
     }
     if (body.automaticCandidate) {
       const candidate = body.automaticCandidate;
@@ -295,7 +301,7 @@ export const handleValidate = async (
         candidate.suggestedFilename ||
         (isDataUrl(candidate.sourceUrl) ? "download" : getFilenameFromUrl(candidate.sourceUrl));
       result.automaticTrace = await traceRules(
-        parsed.rules,
+        traceableRules,
         {
           context: AUTOMATIC_CONTEXT,
           // A real automatic save carries the sender tab, so a caller may name

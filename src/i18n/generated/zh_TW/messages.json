@@ -4240,6 +4240,9 @@
   "ruleCssSyntaxUnverified": {
     "message": "背景驗證不會檢查 CSS 選取器語法"
   },
+  "ruleRegexUnverifiedExternal": {
+    "message": "正規表示式過於複雜，無法在此驗證。已略過該規則；請簡化表示式，或在選項頁中檢查。"
+  },
   "ruleFetchFinalFilenameUnsupported": {
     "message": "fetch: 不能與 finalfilename: 搭配使用"
   },

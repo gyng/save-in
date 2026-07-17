@@ -331,6 +331,10 @@
     "message": "CSS selector syntax is not verified in background validation",
     "description": "Warning returned by the background integration API because a service worker has no DOM selector parser. Used in src/background/messaging/handlers.ts."
   },
+  "ruleRegexUnverifiedExternal": {
+    "message": "Regular expression is too complex to validate here. This rule was skipped; simplify the pattern or check it in the options page.",
+    "description": "Error returned by the background integration API when an external caller's rule uses a regular expression outside the narrower grammar external validation will run. Used in src/background/messaging/handlers.ts."
+  },
   "ruleFetchFinalFilenameUnsupported": {
     "message": "fetch: cannot be combined with finalfilename:",
     "description": "Cross-browser validation error for a routing rule that tries to rewrite a URL after Chrome learns the final filename. Keep the literal clause names. Used in src/routing/rule-parser.ts."
