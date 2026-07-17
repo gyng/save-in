@@ -45,6 +45,8 @@ export interface E2EStoredOptionValues {
   webhookIncludePageTitle: boolean;
   webhookIncludePageUrl: boolean;
   webhookIncludeSelectionText: boolean;
+  webhookOnComplete: boolean;
+  webhookOnStart: boolean;
   webhookUrl: string;
 }
 

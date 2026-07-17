@@ -1505,6 +1505,8 @@ test("a bundled direct save delivers the configured webhook payload once", async
   const keys = [
     "webhookEnabled",
     "webhookUrl",
+    "webhookOnStart",
+    "webhookOnComplete",
     "webhookIncludePageUrl",
     "webhookIncludePageTitle",
     "webhookIncludeSelectionText",
@@ -1513,9 +1515,15 @@ test("a bundled direct save delivers the configured webhook payload once", async
   const missing = keys.filter((key) => !(key in previous));
 
   try {
+    // The save event is this case's subject: it is the only one that carries the
+    // page data asserted below. Name both toggles rather than lean on their
+    // defaults — a save now reports at start and at completion independently, so
+    // leaving the outcome on would deliver a second call and defeat the "once".
     await control.options.set({
       webhookEnabled: true,
       webhookUrl: "https://webhook.invalid/save?token=secret",
+      webhookOnStart: true,
+      webhookOnComplete: false,
       webhookIncludePageUrl: true,
       webhookIncludePageTitle: false,
       webhookIncludeSelectionText: false,
