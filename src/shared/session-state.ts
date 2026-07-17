@@ -47,7 +47,10 @@ export const removeSession = (storage: StorageRemover | undefined, key: string |
 // for the read half of a read-modify-write: rebasing onto {} would compute the
 // new value from nothing and write it over every entry the read did not return.
 // Let the rejection through so the update is skipped and the stored value kept.
-const readSessionToUpdate = (
+// Exported for the one read-modify-write that cannot use updateSession —
+// downloads/notification-recovery.ts writes two keys under one queued read —
+// so both derive their read from this rule rather than restating it.
+export const readSessionToUpdate = (
   storage: StorageReader | undefined,
   key: string,
 ): Promise<Record<string, unknown>> => (storage ? storage.get(key) : Promise.resolve({}));

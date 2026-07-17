@@ -3,9 +3,11 @@ import { extensionSessionStorage } from "../platform/storage-areas.ts";
 import {
   getSession,
   normalizeSessionCounter,
+  readSessionToUpdate,
   removeSession,
   setSession,
 } from "../shared/session-state.ts";
+import { recordPersistenceFailure } from "../shared/persistence-diagnostics.ts";
 import {
   NOTIFICATION_RECOVERY_SESSION_KEY,
   PENDING_DOWNLOADS_SESSION_KEY,
@@ -66,7 +68,10 @@ const queuePendingRecovery = (expected: NotificationRecovery): Promise<void> => 
   const prior = sessionWriteState.queues.get(PENDING_DOWNLOADS_SESSION_KEY) ?? Promise.resolve();
   const queued = prior.then(async () => {
     const [pendingStored, current] = await Promise.all([
-      getSession(extensionSessionStorage, PENDING_DOWNLOADS_SESSION_KEY),
+      // The read half of this read-modify-write, so it must not degrade to {}:
+      // the count is the minuend, and rebasing it onto nothing subtracts the
+      // recovered downloads from 0 and writes that over the real total.
+      readSessionToUpdate(extensionSessionStorage, PENDING_DOWNLOADS_SESSION_KEY),
       readRecovery(),
     ]);
     if (!current || !sameRecovery(current, expected) || current.pendingDownloads === 0) return;
@@ -80,13 +85,23 @@ const queuePendingRecovery = (expected: NotificationRecovery): Promise<void> => 
       `${PENDING_DOWNLOADS_SESSION_KEY},${NOTIFICATION_RECOVERY_SESSION_KEY}`,
     );
   });
-  sessionWriteState.queues.set(PENDING_DOWNLOADS_SESSION_KEY, queued);
-  void queued.finally(() => {
-    if (sessionWriteState.queues.get(PENDING_DOWNLOADS_SESSION_KEY) === queued) {
+  // The read above can now reject, and this promise is both awaited by the
+  // recovery flow and parked in the shared queue. Contain it exactly as
+  // updateSession does: skip the write, record the failure, settle — so the
+  // rejection neither fails recovery nor is chained onto by the next write.
+  const settled = queued.catch((error: unknown) => {
+    recordPersistenceFailure(
+      { area: "session", operation: "update", key: PENDING_DOWNLOADS_SESSION_KEY },
+      error,
+    );
+  });
+  sessionWriteState.queues.set(PENDING_DOWNLOADS_SESSION_KEY, settled);
+  void settled.finally(() => {
+    if (sessionWriteState.queues.get(PENDING_DOWNLOADS_SESSION_KEY) === settled) {
       sessionWriteState.queues.delete(PENDING_DOWNLOADS_SESSION_KEY);
     }
   });
-  return queued;
+  return settled;
 };
 
 const reconcileAdoptedDownloads = async (expected: NotificationRecovery) => {

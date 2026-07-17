@@ -343,4 +343,36 @@ describe("startup restore", () => {
 
     expect(sessionWriteState.queues.get("siPendingDownloads")).toBe(newerQueue);
   });
+
+  // 232a5887 stopped updateSession rebasing a read-modify-write onto getSession's
+  // degraded {}. This is the same read-modify-write written out by hand, so it
+  // needs the same rule: a rejected read of the count made the minuend 0, and
+  // the write still landed, erasing every download the recovery did not account
+  // for. The count cannot be recomputed from a read that failed, so the write is
+  // skipped and the stored value left for the next pass to reconcile.
+  test("a failed pending read leaves the pending counter alone", async () => {
+    const sessionStore: Record<string, any> = {
+      siPendingDownloads: 5,
+      siNotificationRecovery: {
+        version: 1,
+        token: "tok",
+        deadline: Date.now() - 1,
+        pendingDownloads: 3,
+        adoptedDownloadIds: [],
+      },
+    };
+    setupGlobals(sessionStore, () => []);
+    const originalGet = vi.mocked(global.browser.storage.session.get).getMockImplementation()!;
+    vi.mocked(global.browser.storage.session.get).mockImplementation((key: any) =>
+      key === "siPendingDownloads"
+        ? Promise.reject(new Error("session read failed"))
+        : originalGet(key),
+    );
+
+    await loadNotification();
+
+    // Five were pending; three belong to this recovery. Rebasing onto the failed
+    // read wrote max(0, 0 - 3) and lost the other two.
+    expect(sessionStore.siPendingDownloads).toBe(5);
+  });
 });
