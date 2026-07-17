@@ -177,7 +177,13 @@ const storedDownloadEntries = (value: unknown): Array<[number, PersistedDownload
   const inactive = entries.filter(
     ([, record]) => !record.adopted && !record.observedBrowserDownload,
   );
-  return [...active, ...inactive.slice(-MAX_INACTIVE_RECORDS)];
+  // Partitioning decides what survives, sorting decides what "oldest" means.
+  // The memory cap reads Map insertion order and the stored cap reads object
+  // keys, which the engine always gives back in numeric order for these ids —
+  // so seeding active-first would leave an active record in the Map's oldest
+  // slot, and the two caps would drop different records the moment it went
+  // inactive. Ordering the seed by id is what makes them agree.
+  return [...active, ...inactive.slice(-MAX_INACTIVE_RECORDS)].toSorted(([a], [b]) => a - b);
 };
 
 export const hydrateDownloads = (state: DownloadsState, storage: StorageReader | undefined) => {

@@ -190,8 +190,11 @@ describe("state service instances", () => {
 
     await hydrateDownloads(state, storage);
 
+    // Seeded by id, not active-first: the caps in memory and storage only agree
+    // on which record is oldest when the Map's order is the numeric one.
     expect([...state.records.entries()]).toEqual([
       [7, { adopted: true }],
+      [9, { filename: "valid.txt" }],
       [
         10,
         {
@@ -205,7 +208,6 @@ describe("state service instances", () => {
           },
         },
       ],
-      [9, { filename: "valid.txt" }],
       [11, {}],
       [12, {}],
       [13, {}],
@@ -399,5 +401,34 @@ describe("state service instances", () => {
     expect(Object.keys(stored)).toHaveLength(50);
     expect(stored[1]).toBeUndefined();
     expect(stored[56]).toEqual({ filename: "new.txt" });
+  });
+
+  test("memory and storage cap the same record after a cold start", async () => {
+    // Hydration seeds active records first, so one that later goes inactive
+    // holds the Map's oldest slot. Memory caps by insertion order and storage
+    // by numeric key, so the two would drop different records and leave
+    // getDownload reading a record mergeDownload can no longer see.
+    const persisted: Record<string, any> = Object.fromEntries(
+      Array.from({ length: 50 }, (_, index) => [index + 1, { filename: `${index}.txt` }]),
+    );
+    persisted[100] = { adopted: true, filename: "inflight.txt" };
+    const state = { records: new Map<number, any>(), hydration: null };
+    const writes = { queues: new Map<string, Promise<unknown>>() };
+    const storage = {
+      get: vi.fn(() => Promise.resolve({ siDownloads: persisted })),
+      set: vi.fn<(value: Record<string, any>) => Promise<void>>().mockResolvedValue(),
+    };
+
+    await hydrateDownloads(state, storage);
+    // The download ends: adoption is cleared, so record 100 crosses to inactive
+    // and the 51st inactive record trips the cap.
+    await mergeDownload(state, writes, storage, 100, { adopted: false });
+
+    const stored = vi.mocked(storage.set).mock.calls[0]![0].siDownloads;
+    expect([...state.records.keys()].toSorted((a, b) => a - b)).toEqual(
+      Object.keys(stored)
+        .map(Number)
+        .toSorted((a, b) => a - b),
+    );
   });
 });
