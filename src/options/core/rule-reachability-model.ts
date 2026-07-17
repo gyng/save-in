@@ -5,7 +5,8 @@ import {
   type PageSourceKind,
 } from "../../shared/page-source.ts";
 import { BROWSER_DOWNLOAD_CONTEXT, DOWNLOAD_TYPES, SPECIAL_DIRS } from "../../shared/constants.ts";
-import { isDataUrl, isDataUrlWithinCap } from "../../shared/data-url.ts";
+import { isDataUrl } from "../../shared/data-url.ts";
+import { normalizeAutomaticSourceUrl } from "../../automation/automatic-routing.ts";
 import { isAutomaticRuleClauses } from "../../routing/automatic-rule.ts";
 import {
   isAdmittedAutomaticSource,
@@ -287,12 +288,16 @@ export const inputDiscoveryDiagnostics = (
 ): InputDiscoveryDiagnostics | null => {
   if ((input.context ?? "").toLowerCase() !== "auto") return null;
   const sourceUrl = input.sourceUrl ?? "";
-  // The scan detects data: case-insensitively (shared isDataUrl), and it
-  // rejects an over-cap payload regardless of any option — every sentence
-  // this note could offer for one would be false advice, and the debug log
-  // already records oversize skips, so the honest rendering is no note.
+  // The scan detects data: case-insensitively (shared isDataUrl).
   const dataSource = isDataUrl(sourceUrl);
-  if (dataSource && !isDataUrlWithinCap(sourceUrl)) return null;
+  // Ask the scan's own normalizer, with the data gate open, whether any
+  // configuration could adopt this source at all. An over-cap payload, a blob:,
+  // an ftp:, and an unparseable URL are all rejected regardless of every option
+  // a note could name, so each sentence one offered would be false advice — the
+  // debug log already records the skip, and the honest rendering is no note.
+  // Deriving it here rather than restating the gates keeps the advice from
+  // drifting away from what the scan and the background backstop actually do.
+  if (sourceUrl && !normalizeAutomaticSourceUrl(sourceUrl, { includeDataUrls: true })) return null;
   const automaticSavesOff = !options.autoDownloadEnabled;
   let neverAdopted = false;
   let channelOptions: ReachabilityUnlockOption[] = [];

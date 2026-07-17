@@ -501,6 +501,26 @@ describe("inputDiscoveryDiagnostics", () => {
     ).toBeNull();
   });
 
+  // Same reasoning as the over-cap payload above: the scan only ever adopts
+  // http(s) and data:, so no option a note could name makes a blob:, an ftp:,
+  // or an unparseable URL fire. Advising "turn automatic saves on" for one is
+  // the false advice that rule exists to avoid.
+  test.each([
+    ["blob:https://example.com/9f2c-ab", "blob:"],
+    ["ftp://example.com/a.png", "ftp:"],
+    ["not a url at all", "an unparseable URL"],
+  ])("a source the scan can never adopt (%s) gets no advice at all", (sourceUrl) => {
+    expect(
+      inputDiscoveryDiagnostics(
+        { context: "auto", sourceKind: "image", sourceUrl },
+        { ...allOff, autoDownloadEnabled: false },
+      ),
+    ).toBeNull();
+    expect(
+      inputDiscoveryDiagnostics({ context: "auto", sourceKind: "stream", sourceUrl }, allOff),
+    ).toBeNull();
+  });
+
   test("an automatic document input names only the documents option", () => {
     expect(inputDiscoveryDiagnostics({ context: "auto", sourceKind: "document" }, allOff)).toEqual({
       ...none,
