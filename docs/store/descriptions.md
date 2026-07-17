@@ -13,7 +13,7 @@ outcome. Keep the manifest one aligned with `extensionDescription` in
 `_locales/en/messages.json`; the summary answers to the stores alone.
 
 - Version: 4.0.0
-- Last reviewed: 2026-07-17
+- Last reviewed: 2026-07-18
 - Listing name: Save In
 
 ## Manifest description
@@ -39,31 +39,29 @@ Right-click to save images, video, audio, links and pages into organized folders
 ## Firefox description
 
 ```text
-Right-click anything worth keeping and file it exactly where it belongs — no Save As dialog, no downloads folder to dig through later.
-
-Save In adds configurable context-menu destinations for images, videos, audio, links, selected text, and pages, and can sort and rename them automatically with rules you write once. Rebuilt from the first character to the last for Manifest V3, and still filing your downloads with the same stubborn logic it has used since 2017.
+Save In helps manage and organize your downloads. It adds configurable context-menu destinations for images, videos, audio, links, selected text, and pages, and can sort and rename them automatically with rules you write once. Rebuilt from the first character to the last for Manifest V3, and still filing your downloads with the same stubborn logic it has used since 2017.
 
 Features
 
 - Build a hierarchical destination menu with aliases, separators, submenus, and a last-used location.
 - Route and rename downloads with rules based on the page, source URL, filename, media type, date, counters, and other variables.
 - Start from searchable rule templates, add common matchers with Quick add, insert variables and clauses with autocomplete, and test unsaved rules in the route debugger.
-- Preview the destination menu and final routed filename while editing.
 - Use click-to-save for quick downloads and Page Sources to find media exposed by the current page.
 - Optionally save newly discovered Page Sources automatically with site-scoped routing rules, private-window controls, and a per-page limit.
 - Save links or pages as .webloc or HTML redirect shortcuts.
 - Search and filter local download history, with JSON and spreadsheet-safe CSV/TSV export.
 - Optionally record matching ordinary Firefox downloads in Save In history.
-- Connect other extensions through an explicitly approved, versioned integration API.
-- Optionally report a save to webhook endpoints you configure, when it starts, completes, or fails.
 
-Save In can use the page URL as the Referer for matching downloads when you enable that option. Firefox protects exact metadata and content requests so MIME, final-URL, and SHA-256 variables remain available, while retaining its native browser download whenever the content was not already fetched for hashing. Experimental routing of ordinary Firefox downloads works by cancelling a matching HTTP(S) download and starting a replacement. That replacement can lose POST bodies, temporary URLs, custom request context, or authentication, so enable it only for compatible downloads.
+Browsers only allow for saving into directories relative to the default download directory. Symlinks can be used to get around this limitation:
 
-Browser security limits extensions to folders inside the configured default download directory. Open Save In's Options after installation to configure destinations, and make sure the destination folders exist. A filesystem symlink can point a destination to another location.
+Windows: mklink /D C:\path\to\symlink D:\path\to\actual
+macOS/Unix: ln -s /path/to/actual /path/to/symlink
+
+Make sure the actual directories exist, or downloads will silently fail.
 
 Privacy and permissions
 
-Save In uses site access only to identify and fetch resources that you choose directly or configure site-scoped rules to save automatically. Settings, history, recovery state, and diagnostics remain on your device and are not sent to the developer. Save In contains no telemetry, advertising, remote code, or developer-operated service. Private Browsing activity is excluded from Save In history, diagnostics, and webhooks. Optional webhooks go directly from your browser to the endpoints you configure — HTTPS unless you separately allow http:// for a network you trust — and automatic saves do not trigger them. The options page states the always-sent fields and previews every event before the feature is enabled; a completed save reports the folder path it landed in.
+Save In does not collect or transmit any data. All data is stored and kept on device. If you use any external integrations data will be transmitted to them.
 
 Requires Firefox 140 or later.
 ```
@@ -71,33 +69,24 @@ Requires Firefox 140 or later.
 ## Chrome description
 
 ```text
-Right-click anything worth keeping and file it exactly where it belongs — no Save As dialog, no downloads folder to dig through later.
-
-Save In adds configurable context-menu destinations for images, videos, audio, links, selected text, and pages, and can sort and rename them automatically with rules you write once. Rebuilt from the first character to the last for Manifest V3, and still filing your downloads with the same stubborn logic it has used since 2017.
+Save In helps manage and organize your downloads. It adds configurable context-menu destinations for images, videos, audio, links, selected text, and pages, and can sort and rename them automatically with rules you write once. Rebuilt from the first character to the last for Manifest V3, and still filing your downloads with the same stubborn logic it has used since 2017.
 
 Features
 
 - Build a hierarchical destination menu with aliases, separators, submenus, and a last-used location.
 - Route and rename downloads with rules based on the page, source URL, filename, media type, date, counters, and other variables.
 - Start from searchable rule templates, add common matchers with Quick add, insert variables and clauses with autocomplete, and test unsaved rules in the route debugger.
-- Preview the destination menu and final routed filename while editing.
 - Use click-to-save for quick downloads and Page Sources to find media exposed by the current page.
 - Optionally save newly discovered Page Sources automatically with site-scoped routing rules, private-window controls, and a per-page limit.
 - Save links or pages as .url, .webloc, .desktop, or HTML redirect shortcuts.
 - Search and filter local download history, with JSON and spreadsheet-safe CSV/TSV export.
 - Optionally record or route matching ordinary Chrome downloads before they are saved.
-- Connect other extensions through an explicitly approved, versioned integration API.
-- Optionally let compatible in-browser agents inspect or update settings and start routed downloads through experimental WebMCP tools while Options is open.
-- Optionally draft routing rules from a plain-language request with Chrome's on-device model, which runs on your device and sends nothing anywhere.
-- Optionally report a save to webhook endpoints you configure, when it starts, completes, or fails.
 
-Chrome does not allow extensions to set a Referer directly on their own downloads. When the optional Referer filter matches, Save In instead applies the page URL only to its protected metadata and file fetches, holds that file in memory, and passes the resulting file to Chrome. MIME, final-URL, and SHA-256 variables remain available for these downloads. Chrome also cannot assign an extension-started download to its Incognito download context. A download requested through Save In from Incognito may therefore appear in the regular Chrome download manager, although Save In still excludes private activity from its own history and diagnostics.
-
-Browser security limits extensions to folders inside the configured default download directory. Open Save In's Options after installation to configure destinations, and make sure the destination folders exist. Current Chrome versions reject downloads through symlinked destinations, so Chrome cannot use a symlink to escape that directory.
+Browsers only allow saving into directories relative to the default download directory. Chrome rejects symlinked destinations, so on Chrome your destinations must be real subfolders of the download directory.
 
 Privacy and permissions
 
-Save In uses site access only to identify and fetch resources that you choose directly or configure site-scoped rules to save automatically. Settings, history, recovery state, and diagnostics remain on your device and are not sent to the developer. Save In contains no telemetry, advertising, remote code, or developer-operated service. Optional webhooks go directly from your browser to the endpoints you configure — HTTPS unless you separately allow http:// for a network you trust — and automatic saves do not trigger them. The options page states the always-sent fields and previews every event before the feature is enabled; a completed save reports the folder path it landed in. Incognito activity is never sent to webhooks. The optional rule assistant uses Chrome's own on-device model: turning it on can ask Chrome to download that model, after which requests are answered on your device and no prompt text leaves it. In a browser that provides WebMCP, a compatible in-browser agent can read the complete saved configuration and invoke Save In tools only while Options is open. Save In adds no separate consent prompt; the browser or agent controls access and confirmation.
+Save In does not collect or transmit any data. All data is stored and kept on device. If you use any external integrations data will be transmitted to them.
 
 Requires Chrome 123 or later.
 ```
