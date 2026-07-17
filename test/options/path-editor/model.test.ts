@@ -41,6 +41,33 @@ describe("path editor model", () => {
     ]);
   });
 
+  // The editor rewrites the alias on every keystroke, feeding the previous
+  // node back in, so a name with parens is written through states that are
+  // transiently unbalanced. Each of those must not strand an entry the next
+  // keystroke can no longer find and replace.
+  test("typing an alias with parens replaces it instead of stranding each prefix", () => {
+    let node = parseDirectoryLine("path // note");
+    for (const keystroke of [
+      "C",
+      "Ca",
+      "Cat",
+      "Cats",
+      "Cats ",
+      "Cats (",
+      "Cats (t",
+      "Cats (ta",
+      "Cats (tab",
+      "Cats (tabb",
+      "Cats (tabby",
+      "Cats (tabby)",
+    ]) {
+      node = setPathAlias(node, keystroke);
+    }
+
+    expect(serializeDirectoryLine(node)).toBe("path // note (alias: Cats (tabby))");
+    expect(getPathAlias(node)).toBe("Cats (tabby)");
+  });
+
   test("updates aliases without disturbing other comment metadata", () => {
     const node = parseDirectoryLine("path // cute (edited) (alias: Cats (tabby)) (key: c)");
     expect(getPathAlias(node)).toBe("Cats (tabby)");

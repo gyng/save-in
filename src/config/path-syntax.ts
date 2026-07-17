@@ -334,6 +334,13 @@ export const updateDirectoryMetadata = (
   key: string,
   value: string,
 ): DirectoryLineNode => {
+  // Only write a value the reader gives back. Metadata needs balanced parens,
+  // so an unbalanced one parses to nothing or to less than was written — and
+  // the removal below works off the parsed entries, so the next edit cannot
+  // find that entry to replace and appends beside it instead. An editor that
+  // rewrites on every keystroke would strand one orphan per character of a
+  // name like "Cats (tabby)", and bake them into the user's own comment.
+  if (value && parseMetadataEntries(`(${key}: ${value})`)[0]?.value !== value) return node;
   const commentAst = node.comment;
   let comment = commentAst?.value ?? "";
   const contentStart = commentAst?.contentSpan.start.offset ?? 0;
