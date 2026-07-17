@@ -118,9 +118,10 @@ test("a webhook failure does not change the successful download result or expose
     Download.renameAndDownload(webhookState({ selectedUrl: "https://cdn.example/cat.jpg" })),
   ).resolves.toMatchObject({ status: "started" });
 
-  await vi.waitFor(() => expect(Log.addLogEntry).toHaveBeenCalledWith("webhook delivery failed"));
-  expect(Log.addLogEntry).not.toHaveBeenCalledWith(
-    "webhook delivery failed",
-    expect.stringContaining("secret"),
+  await vi.waitFor(() =>
+    expect(Log.addLogEntry).toHaveBeenCalledWith("webhook delivery failed", { line: 1 }),
   );
+  // The endpoint is named by its line, never by its URL: the rejection above
+  // carries a query-string token, and nothing it says may reach the log.
+  expect(JSON.stringify(vi.mocked(Log.addLogEntry).mock.calls)).not.toContain("secret");
 });

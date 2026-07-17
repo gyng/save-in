@@ -4,8 +4,8 @@ import { isStringKeyedRecord } from "../shared/util.ts";
 import {
   createSaveWebhookPayload,
   getWebhookDataTypes,
+  parseWebhookEndpoints,
   postWebhook,
-  validateWebhookUrl,
   type WebhookDataType,
   type WebhookFieldSelection,
 } from "../shared/webhook.ts";
@@ -63,11 +63,14 @@ export const deliverSaveWebhook = async (
     plan.state.info.currentTab?.incognito === true
   )
     return;
-  const endpoint = validateWebhookUrl(configuration.webhookUrl);
+  // A line the parser rejected is reported to the editor and never sent to.
+  const endpoints = parseWebhookEndpoints(configuration.webhookUrl).entries;
   const url = selectedUrl(plan);
-  if (!endpoint.ok || !url) return;
+  if (endpoints.length === 0 || !url) return;
 
   const fields = fieldSelection(configuration);
+  // The fields are one selection for every endpoint, so this is one consent
+  // question however many endpoints it is answered for.
   if (!(await hasDataCollectionConsent(getWebhookDataTypes(fields)))) {
     log.add("webhook skipped: data permission not granted");
     return;
@@ -83,11 +86,19 @@ export const deliverSaveWebhook = async (
     fields,
   );
 
-  try {
-    const response = await postWebhook(endpoint.url, payload);
-    if (!response.ok) log.add("webhook rejected", { status: response.status });
-  } catch {
-    // Fetch errors can include the endpoint, including query-string secrets.
-    log.add("webhook delivery failed");
-  }
+  // Each endpoint is delivered and reported independently: one that refuses or
+  // never answers must not cost the others their request, and postWebhook
+  // bounds each one's wait on its own. An endpoint is identified by the line it
+  // was written on — the URL itself can carry a query-string secret, which is
+  // why the failure paths have never named it.
+  await Promise.all(
+    endpoints.map(async ({ value: endpoint, line }) => {
+      try {
+        const response = await postWebhook(endpoint, payload);
+        if (!response.ok) log.add("webhook rejected", { line, status: response.status });
+      } catch {
+        log.add("webhook delivery failed", { line });
+      }
+    }),
+  );
 };

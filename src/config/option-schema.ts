@@ -21,7 +21,7 @@ import {
   OPTION_DEFAULTS,
   defaultOptions,
 } from "./option-defaults.ts";
-import { validateWebhookUrl } from "../shared/webhook.ts";
+import { parseWebhookEndpoints } from "../shared/webhook.ts";
 import { isStringMember } from "../shared/util.ts";
 
 export { defaultOptions };
@@ -322,8 +322,14 @@ export const OPTION_KEYS = defineOptions([
     name: "webhookUrl",
     type: OPTION_TYPES.VALUE,
     onSave: (v: string) => v.trim(),
+    // One endpoint per line. A stored value from when this held a single URL is
+    // a one-line list, so it still validates exactly as it did. Endpoints reach
+    // this from imported configuration, which is untrusted for them, so the
+    // whole value is refused unless every line is an endpoint the extension
+    // will actually send to — a list must not name one it silently drops.
     validate: (value: unknown): value is string =>
-      typeof value === "string" && (value.trim() === "" || validateWebhookUrl(value).ok),
+      typeof value === "string" &&
+      (value.trim() === "" || parseWebhookEndpoints(value).issues.length === 0),
     default: OPTION_DEFAULTS.webhookUrl,
   },
   {

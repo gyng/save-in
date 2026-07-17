@@ -5,6 +5,8 @@
 // into downloads/ or options/ without breaking that boundary; it stays here
 // as a cross-context contract plus pure helper (docs/CODE-ORGANIZATION.md
 // Phase 3.1).
+import { parsePatternList, type PatternListResult } from "./pattern-list.ts";
+
 export const WEBHOOK_DATA_TYPES = {
   BROWSING_ACTIVITY: "browsingActivity",
   WEBSITE_ACTIVITY: "websiteActivity",
@@ -62,6 +64,40 @@ export const validateWebhookUrl = (value: string): WebhookUrlValidation => {
   }
   if (url.hash) return { ok: false, message: "Remove the URL fragment" };
   return { ok: true, url: candidate };
+};
+
+// Endpoints are stored the way the other list-shaped options are: newline
+// delimited text, parsed through parsePatternList so the editor can report a
+// bad line where the user wrote it. A profile saved when this held one URL
+// parses as a one-entry list, so it keeps working with no migration.
+//
+// The list is bounded because it comes from configuration, which is untrusted:
+// an imported profile naming an endpoint per line would otherwise turn one save
+// into a fan-out to all of them. Lines past the limit are reported rather than
+// dropped silently, so the list never claims to send more than it sends.
+export const WEBHOOK_TARGET_LIMIT = 10;
+
+export const parseWebhookEndpoints = (
+  value: string | null | undefined,
+): PatternListResult<string> => {
+  const parsed = parsePatternList(value, (line) => {
+    const validation = validateWebhookUrl(line);
+    return validation.ok ? validation.url : new Error(validation.message);
+  });
+  if (parsed.entries.length <= WEBHOOK_TARGET_LIMIT) return parsed;
+
+  // Only usable endpoints count against the limit: a rejected line is already
+  // an issue and was never going to be sent to.
+  const overflow = parsed.entries
+    .slice(WEBHOOK_TARGET_LIMIT)
+    .map(({ value: _endpoint, ...rest }) => ({
+      ...rest,
+      error: new Error(`Only the first ${WEBHOOK_TARGET_LIMIT} endpoints are sent`),
+    }));
+  return {
+    entries: parsed.entries.slice(0, WEBHOOK_TARGET_LIMIT),
+    issues: [...parsed.issues, ...overflow].sort((a, b) => a.start - b.start),
+  };
 };
 
 export const getWebhookDataTypes = (fields: WebhookFieldSelection): WebhookDataType[] => [
