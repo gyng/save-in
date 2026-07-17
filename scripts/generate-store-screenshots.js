@@ -246,13 +246,23 @@ const main = async () => {
       () => cdp.evalInTarget(port, optionsTarget, "document.readyState === 'complete'"),
       "first-install options page",
     );
-    await cdp.evalInTarget(
-      port,
-      optionsTarget,
-      `document.querySelector(".welcome-accept")?.click(); "welcome dismissed"`,
+    // The dialog renders after the page reads its pending-welcome flag, so a
+    // ready document does not mean the button exists yet. Clicking once at
+    // readyState hit the optional chain instead: the click no-opped, the dialog
+    // arrived afterwards, and the wait for its absence could never come true.
+    // Wait for the button, then re-assert the click until the dialog is gone.
+    await waitFor(
+      () =>
+        cdp.evalInTarget(port, optionsTarget, 'Boolean(document.querySelector(".welcome-accept"))'),
+      "first-install welcome dialog",
     );
     await waitFor(
-      () => cdp.evalInTarget(port, optionsTarget, '!document.querySelector("#welcome-dialog")'),
+      () =>
+        cdp.evalInTarget(
+          port,
+          optionsTarget,
+          `document.querySelector(".welcome-accept")?.click(); !document.querySelector("#welcome-dialog")`,
+        ),
       "welcome dialog dismissal",
     );
     await waitFor(
