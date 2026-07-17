@@ -51,7 +51,12 @@ vi.mock("../../src/platform/chrome-detector.ts", () => ({
 }));
 vi.mock("../../src/routing/router.ts", () => mocks.router);
 vi.mock("../../src/routing/variable.ts", () => ({ applyVariables: mocks.applyVariables }));
-vi.mock("../../src/routing/path.ts", () => ({ Path: mocks.Path }));
+// Only Path is stubbed; the module's real constants (the separator policy the
+// route preview reads) stay live so this mock cannot drift from them.
+vi.mock("../../src/routing/path.ts", async (importActual) => ({
+  ...(await importActual<typeof import("../../src/routing/path.ts")>()),
+  Path: mocks.Path,
+}));
 vi.mock("../../src/downloads/download-plan.ts", () => ({
   getRoutingMatches: (...args: unknown[]) => mocks.Download.getRoutingMatches(...args),
   getRoutingMatch: (...args: unknown[]) => mocks.Download.getRoutingMatch(...args),
