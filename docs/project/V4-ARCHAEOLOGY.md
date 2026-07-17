@@ -1,34 +1,42 @@
 # v4 archaeology
 
-_Version 4 is the same extension it always was, in the way that a ship is the
-same ship after every last plank has been replaced. The nine-year-old
-ManifestV2 machinery was lifted out, plank by plank, and rebuilt in TypeScript
-for the browsers of the present day. Tens of thousands of lines were written; a
-fair number did not last the week, which is the customary fate of code that
-wanders into a rewrite without a map. Yet the router — the small, stubborn
-engine that decides where a file comes to rest — thinks exactly as it did in
-2017._
+_A thing can be replaced entirely and remain, stubbornly, itself. Swap every
+plank of a ship one at a time and it sails back out under the same name, and
+nobody writes in to complain. Version 4 is that ship. The nine-year-old
+Manifest V2 machinery was carried out plank by plank, and something in
+TypeScript was nailed together in the hole where it had been. Tens of thousands
+of lines were written. A great many did not survive the week — the customary
+fate of code that sets off into a rewrite without a map, a compass, or any firm
+evidence that the rewrite has an end. And yet the router — the small, stubborn
+engine that decides where a downloaded file finally comes to rest — thinks
+precisely the thoughts it thought in 2017, having noticed none of this._
 
-This is a for-fun retrospective on the `v4` branch: how much code was written,
-how much of it survived to the tip, and — more interestingly — how much of the
-*behavior* survived even where none of the *code* did. Numbers are measured at
-the `v4.0.0` tag on 2026-07-18; regenerate with the commands at the bottom.
+A retrospective on the `v4` branch, undertaken for no better reason than that
+the numbers were sitting there and someone wanted to know: how much code was
+written, how much of it was still breathing at the tip, and — the genuinely
+interesting part — how much of the *behaviour* outlived the *code* that used to
+express it. Everything below was measured at the `v4.0.0` tag on 2026-07-18. The
+commands to regenerate it, for the suspicious, are at the bottom.
 
 ## The shape of it
 
-**9 days · 1,491 commits · +208,286 / −15,377 · a full ManifestV2-JS → MV3-TS
-rewrite, then shipped.**
+**9 days · 1,491 commits · +208,286 / −15,377 · a complete ManifestV2-JS → MV3-TS
+rewrite that then, against the odds, shipped.**
 
-Two phases hide inside that span. Days 07-10 through 07-15 are the rewrite
-proper — the from-scratch TypeScript reimplementation. Days 07-16 through 07-18
-are release-hardening: the first green CI the branch ever had, the e2e flake
-hunt, store assets, the docs reorganization, and the release itself. The rewrite
-was six days; making it shippable took three more.
+Two phases are folded into that span, and it is only polite to keep them apart.
+Days 07-10 through 07-15 were the rewrite proper: the from-scratch
+reimplementation, carried out at the pace of someone who has not yet discovered
+how much is left to do. Days 07-16 through 07-18 were release-hardening — the
+first continuous-integration run that ever went green, the search for the tests
+that failed only on other people's machines, the store assets, the documentation
+reshuffle, and the release itself. Six days to build the thing; three more to
+persuade everyone, the CI included, that it was allowed to exist.
 
-At the merge base (`master`), the extension was the original MV2 codebase in
-plain JavaScript (`src/router.js`, `src/variable.js`, `src/path.js`, and
-friends). `v4` is a ground-up TypeScript rebuild: the entire `src/routing/`,
-`src/options/`, `src/downloads/`, and `src/background/` trees are new files.
+At the merge base (`master`) the extension was the original MV2 codebase in plain
+JavaScript — `src/router.js`, `src/variable.js`, `src/path.js`, and the rest of
+that generation. `v4` is a rebuild from the ground up: the entire `src/routing/`,
+`src/options/`, `src/downloads/`, and `src/background/` trees are files that did
+not previously exist.
 
 | Metric | Value |
 | --- | --- |
@@ -38,6 +46,11 @@ friends). `v4` is a ground-up TypeScript rebuild: the entire `src/routing/`,
 | Source files at tip | 313 `.ts`/`.css` under `src/` |
 | Most-churned file | `src/options/style.css` — touched 211 times |
 | Peak commit hour | 03:00 🦉 (130 commits) |
+
+The single most-edited file was a stylesheet, revised 211 times, which is either
+a tribute to the difficulty of making things look correct or a warning about it.
+The busiest hour for committing was three in the morning, a figure that declines
+to explain itself.
 
 ### Cadence
 
@@ -55,9 +68,10 @@ friends). `v4` is a ground-up TypeScript rebuild: the entire `src/routing/`,
 
 ## Code survival — half didn't make it
 
-Roughly **103,500 lines** were written into `src/` over the branch; **~52,600
-survive** at the tip. Attributing each surviving line to the day it was *last*
-written (via `git blame`):
+Roughly **103,500 lines** were written into `src/` over the branch. About
+**52,600** are still there. The remainder were, in the fullness of a week,
+thought better of. Crediting each surviving line to the day it was *last* touched
+(`git blame`, which is less of an accusation than it sounds):
 
 | Day | Written | Surviving | Rate |
 | --- | ---: | ---: | ---: |
@@ -71,18 +85,22 @@ written (via `git blame`):
 | 07-17 | 7,948 | 6,432 | ~81% |
 | 07-18 | 7 | 7 | 100% |
 
-Blame credits a surviving line to its *most recent* edit, so early days are
-understated — a line written on the 11th and revised on the 15th counts as a
-15th survivor. That caveat aside, the pattern is plain: the further from the
-tip, the more of that day's work was later rewritten, and day 11 in particular
-was almost entirely superseded. The high survival of the last three days is the
-release tail — hardening rarely rewrites itself.
+Blame credits a line to its most recent edit, so the early days come off worse
+than they deserve: a line written on the 11th and tidied on the 15th is recorded
+as a citizen of the 15th, with no memory of where it came from. Allowing for
+that, the shape is honest enough. The further a day sits from the tip, the more
+thoroughly its work was later reconsidered, and the 11th in particular was very
+nearly erased from the record. The unusually high survival of the final three
+days is not virtue — it is that hardening rarely turns around and rewrites
+itself.
 
 ### The oldest survivors 🪦
 
-Not everything is new. Blame turned up **~355 lines that predate `v4`
-entirely**, the oldest dated **2017-04-21** — original Save In code that has
-outlived nine years and an entire MV3 rewrite:
+Not everything is new, and some of it is startlingly old. Blame turned up
+**~355 lines that predate `v4` entirely**, the eldest dated **2017-04-21** —
+original Save In code that has now outlived nine years, a change of manifest
+version, and a rewrite that replaced everything around it without once looking
+down:
 
 ```
 2017-12-05:   47 lines
@@ -91,11 +109,12 @@ outlived nine years and an entire MV3 rewrite:
 2021-06-13:   19 lines
 ```
 
-What are they? Three examples, all still load-bearing:
+They are not museum pieces. Three, all still bearing weight:
 
-**A browser fact from October 2017** — `downloads/notification-events.ts`. The
-code around it is new TypeScript gated on a capability flag, but the observation
-survived verbatim, because Chrome still behaves this way:
+**A fact about a browser, written down in October 2017** —
+`downloads/notification-events.ts`. The code around it is new TypeScript behind a
+capability check, but the observation itself was copied across untouched, for the
+uncomplicated reason that Chrome has never stopped doing this:
 
 ```ts
 // CHROME
@@ -103,10 +122,11 @@ survived verbatim, because Chrome still behaves this way:
 // so extract it from the DownloadDelta
 ```
 
-**The routing date variables from January 2018** — `routing/variable.ts`, the
-largest ancient block. `:year:`, `:month:`, `:day:`, `:hour:`, … were defined
-then and are defined the same way now (blame ignores whitespace, so a reformat
-doesn't reset authorship — the *logic* is 2018):
+**The routing date variables, January 2018** — `routing/variable.ts`, the largest
+ancient block. `:year:`, `:month:`, `:day:`, `:hour:`, and their relatives were
+defined then and are defined identically now. (Blame ignores whitespace, so
+reformatting a line does not reset its birthday: the *logic* is genuinely 2018,
+merely better dressed.)
 
 ```ts
 [SPECIAL_DIRS.YEAR]:   opts => stringSegment(opts.now.getFullYear()),
@@ -114,8 +134,9 @@ doesn't reset authorship — the *logic* is 2018):
 [SPECIAL_DIRS.SECOND]: opts => stringSegment(padDateComponent(opts.now.getSeconds())),
 ```
 
-**The shortcut vocabulary from November 2017** — `shared/constants.ts`. The set
-of shortcut file kinds a user can save has not changed in nine years:
+**The shortcut vocabulary, November 2017** — `shared/constants.ts`. The kinds of
+shortcut a user may save have not changed in nine years, the world having quietly
+reached a consensus on the matter:
 
 ```ts
 [SHORTCUT_TYPES.MAC]:           ".url",
@@ -125,18 +146,19 @@ of shortcut file kinds a user can save has not changed in nine years:
 
 ## Logic survival — the inverse story 🧬
 
-The router is the sharpest contrast on the branch. By line count it is the
-*least* surviving code in the project; by behavior it is the *most* surviving
-logic.
+The router is the sharpest paradox on the branch. Measured in lines, it is the
+*least*-surviving code in the project. Measured in behaviour, it is the
+*most*-surviving thing in it.
 
-- **Code survival: 0 lines.** Different files, different language — `git blame`
-  credits none of the tip's routing code to `master`.
-- **Logic survival: near-total.** The matching semantics came through the
-  rewrite essentially unchanged, then were extended.
+- **Code survival: 0 lines.** Different files, a different language; `git blame`
+  attributes not one line of the tip's routing to `master`, and is quite firm
+  about it.
+- **Logic survival: very nearly total.** The matching rules crossed the rewrite
+  essentially unchanged and then, having arrived safely, were handed more to do.
 
 The whole `routing/` directory (`rule-matcher.ts`, `matchers.ts`,
-`rule-parser.ts`, `variable.ts`, …) is new files that reimplement the old
-`router.js` / `variable.js` behavior:
+`rule-parser.ts`, `variable.ts`, …) is a set of new files dutifully
+reimplementing what `router.js` / `variable.js` already did:
 
 | Concept | master `router.js` | v4 `routing/*.ts` | Survived? |
 | --- | --- | --- | --- |
@@ -150,7 +172,7 @@ The whole `routing/` directory (`rule-matcher.ts`, `matchers.ts`,
 | Blank-line-separated rules, `//` comments | ✅ | ✅ | ✅ |
 | Path variable tokens (`SPECIAL_DIRS`) | 20 | ~42 (all 20 kept) | ✅ |
 
-The 15 matcher names that carried over verbatim:
+The 15 matcher names that came across word for word:
 
 ```
 comment context fileext filename frameurl linktext mediatype menuindex
@@ -159,16 +181,22 @@ naivefilename pagedomain pagetitle pageurl selectiontext sourcedomain sourceurl
 
 ### What genuinely didn't survive
 
+Some things were not worth carrying, and were left where they lay:
+
 - `window.SI_DEBUG` + `console.log("matched", …)` noise scattered through every
-  matcher — replaced by the interactive `route-debugger/` subsystem.
+  matcher — replaced by the interactive `route-debugger/` subsystem, which at
+  least keeps its opinions in one place.
 - The `RouterFactory` closure-of-closures style (`regex => info => …`) —
   flattened into typed `matcherFunctions` over candidate/source records.
 - Untyped `info[propertyName]` duck-typing — replaced by `RoutingInfo` /
-  `MatcherClause` / `FetchClause` discriminated types.
-- `JSON.stringify(lines)` error dumps — replaced by span-tracked editor
-  positions (`valueSpan`).
+  `MatcherClause` / `FetchClause` discriminated types, which now object in
+  advance rather than at runtime.
+- `JSON.stringify(lines)` error dumps — replaced by span-tracked editor positions
+  (`valueSpan`), so an error can point at the thing it means.
 
 ### What is entirely new (no master ancestor)
+
+Things with no ancestor to survive, being new:
 
 - The `fetch:` clause (`RULE_TYPES.FETCH`) — rewrite the download address before
   saving (#137).
@@ -181,16 +209,18 @@ naivefilename pagedomain pagetitle pageurl selectiontext sourcedomain sourceurl
 
 ## The one-liner
 
-`v4` is a 9-day branch — a 6-day, ~104k-line rewrite followed by 3 days of
-release-hardening — where **half the code didn't survive its own branch** and
-**not one line of the router survived** — yet the router's *behavior* is the
-most-preserved thing in the whole project. Least-surviving code, most-surviving
-logic.
+If it must be said in a breath: `v4` is a 9-day branch — a 6-day, ~104k-line
+rewrite trailed by 3 days of release-hardening — in which **half the code did not
+survive its own branch** and **not a single line of the router did**, yet the
+router's *behaviour* is the best-preserved thing in the entire project. The
+least-surviving code carried the most-surviving idea across. Make of that what
+you will.
 
 ## Reproducing these numbers
 
-`BASE` is the pre-v4 master (the v3.7.3-era tip, commit `4efb1cc2`, before the
-rewrite merged); `END` is the `v4.0.0` release tag.
+For the suspicious, or the merely curious. `BASE` is the pre-v4 master (the
+v3.7.3-era tip, commit `4efb1cc2`, before the rewrite merged); `END` is the
+`v4.0.0` release tag.
 
 ```bash
 BASE=4efb1cc2
