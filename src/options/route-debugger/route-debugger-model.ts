@@ -1,5 +1,7 @@
 import { isRenameTransform, type RenameTransform } from "../../routing/rename.ts";
+import { AUTOMATIC_CONTEXT } from "../../routing/automatic-rule.ts";
 import { parseRoutingRuleAst } from "../../routing/rule-syntax.ts";
+import { isDataUrl, parseDataUrlMediaType } from "../../shared/data-url.ts";
 import type { PageSourceKind } from "../../shared/page-source.ts";
 import type { ValidationInfo } from "../../shared/message-protocol.ts";
 import { isStringKeyedRecord } from "../../shared/message-protocol.ts";
@@ -261,7 +263,18 @@ export const routeDebuggerInfo = (fields: RouteDebuggerFields): ValidationInfo =
     info.url = fields.sourceUrl;
   }
   if (fields.pageUrl) info.pageUrl = fields.pageUrl;
-  if (fields.mime) info.mime = fields.mime;
+  // An automatic save never carries these two: it derives mediaType from the
+  // kind discovery found, and mime from a data: header, because such a URL has
+  // no path to read an extension from (automation/automatic-routing.ts's
+  // candidateInfo). Deriving them the same way is what makes the trace agree
+  // with the save — without it a mediatype: or mime: rule is reported dead
+  // while the router routes it, and the Media type field cannot even name the
+  // document, stream and link kinds the source-kind field offers.
+  const automatic = fields.context === AUTOMATIC_CONTEXT;
+  const mime =
+    fields.mime ||
+    (automatic && isDataUrl(fields.sourceUrl) ? parseDataUrlMediaType(fields.sourceUrl) : "");
+  if (mime) info.mime = mime;
   if (fields.context) info.context = fields.context;
   // Name the tab even when the field is blank: an absent key makes pagetitle:
   // fall back to the tracked tab, which while the debugger is open is the
@@ -274,7 +287,8 @@ export const routeDebuggerInfo = (fields: RouteDebuggerFields): ValidationInfo =
   if (fields.frameUrl) info.frameUrl = fields.frameUrl;
   if (fields.linkText) info.linkText = fields.linkText;
   if (fields.selectionText) info.selectionText = fields.selectionText;
-  if (fields.mediaType) info.mediaType = fields.mediaType;
+  const mediaType = fields.mediaType || (automatic ? fields.sourceKind : "");
+  if (mediaType) info.mediaType = mediaType;
   if (fields.sourceKind) info.sourceKind = fields.sourceKind;
   if (fields.menuIndex) info.menuIndex = fields.menuIndex;
   if (fields.comment) info.comment = fields.comment;

@@ -267,6 +267,42 @@ test("leaves unmatched trace rows and clauses without source locations", () => {
 // An absent currentTab key makes pagetitle: fall back to the tracked tab —
 // which, while the user is in the debugger, is the options page itself. The
 // trace must answer about the input it was given, not the tab it is shown in.
+// An automatic save derives mediaType from the discovered sourceKind and mime
+// from a data: header (automation/automatic-routing.ts's candidateInfo). The
+// trace has to derive both the same way, or it reports rules dead that route.
+test("an automatic trace derives mediatype and mime the way the save does", () => {
+  const kind = routeDebuggerInfo({
+    filename: "",
+    sourceUrl: "https://cdn.example/report.pdf",
+    pageUrl: "https://example.com/reports",
+    mime: "",
+    context: "AUTO",
+    sourceKind: "document",
+  });
+  expect(kind.mediaType).toBe("document");
+
+  const data = routeDebuggerInfo({
+    filename: "",
+    sourceUrl: "data:image/png;base64,AA==",
+    pageUrl: "https://example.com/gallery",
+    mime: "",
+    context: "AUTO",
+    sourceKind: "image",
+  });
+  expect(data.mime).toBe("image/png");
+
+  // An explicit field still wins, and a non-automatic context derives nothing.
+  const explicit = routeDebuggerInfo({
+    filename: "",
+    sourceUrl: "https://cdn.example/a.png",
+    pageUrl: "https://example.com/",
+    mime: "",
+    context: "link",
+    sourceKind: "document",
+  });
+  expect(explicit.mediaType).toBeUndefined();
+});
+
 test("a blank page title names no tab rather than falling back to the tracked one", () => {
   const info = routeDebuggerInfo({
     filename: "report.pdf",
