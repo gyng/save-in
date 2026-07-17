@@ -192,13 +192,14 @@ export const wirePanelRowRender = (ctx: SourcePanelContext): void => {
       source.previewable !== false &&
       ["image", "video"].includes(source.kind);
     if (previewable) {
-      const media = document.createElement(source.kind === "image" ? "img" : "video");
-      if (media instanceof HTMLImageElement) {
-        media.loading = "lazy";
-      } else if (media instanceof HTMLVideoElement) {
-        media.preload = "metadata";
-        media.muted = true;
-      }
+      // Name each tag rather than choose one inside createElement: the tag-name
+      // overload is what types the element, and a computed tag erases it back to
+      // HTMLElement — which is why this used to re-narrow with instanceof and
+      // carry a third case createElement cannot produce.
+      const media =
+        source.kind === "image"
+          ? Object.assign(document.createElement("img"), { loading: "lazy" })
+          : Object.assign(document.createElement("video"), { preload: "metadata", muted: true });
       ctx.queuePreview(media, source.url);
       return media;
     }
