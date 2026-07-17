@@ -91,6 +91,9 @@ describe("persistence diagnostics", () => {
     await getSession(undefined, "state");
     await setSession(undefined, { state: 1 }, "state");
     await removeSession(undefined, "state");
+    // A host without storage.session is probed for, not broken: an update
+    // there is a no-op, unlike the rejected read above.
+    await updateSession({ queues: new Map() }, undefined, "state", () => 1);
 
     expect(getPersistenceDiagnostics()).toEqual([]);
   });
