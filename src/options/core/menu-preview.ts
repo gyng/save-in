@@ -79,10 +79,13 @@ const renderMenuPreview = (container: Element, tree: MenuTree): void => {
         row.appendChild(dir);
       }
 
+      // Mirror renderPathTree: the toggle gates only the automatic number, so
+      // an explicit (key:) still shows with numbering off.
       const numberedItems = document.querySelector<HTMLInputElement>("#enableNumberedItems");
-      const accessKey = numberedItems?.checked
-        ? resolveMenuAccessKey(entry.number, entry.accessKeyOverride)
-        : null;
+      const accessKey = resolveMenuAccessKey(
+        numberedItems?.checked ? entry.number : "",
+        entry.accessKeyOverride,
+      );
       if (accessKey !== null) {
         const key = document.createElement("kbd");
         key.className = "menu-preview-access-key";

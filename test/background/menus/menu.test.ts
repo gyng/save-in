@@ -626,6 +626,17 @@ describe("menu creation", () => {
       expect(created()[0]!.title).toBe("dogs");
     });
 
+    // The toggle chooses whether items get an automatic number. An explicit
+    // (key:) is a per-item request the user wrote by hand, so turning
+    // numbering off must not silently discard it.
+    test("meta key applies when numbered access keys are off", () => {
+      options.enableNumberedItems = false;
+
+      menu.addPaths(["dogs // (key: g)"], ["link"]);
+
+      expect(created()[0]!.title).toBe("do&gs");
+    });
+
     test("escapes ampersands in aliases when numbered access keys are off", () => {
       options.enableNumberedItems = false;
 

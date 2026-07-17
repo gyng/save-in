@@ -443,10 +443,14 @@ export const renderPathTree = ({ items, errors }: MenuTree, contexts: readonly M
 
     webExtensionApi.contextMenus.create({
       id: item.id,
+      // The toggle only chooses whether items get an automatic number. An
+      // explicit (key:) is a per-item request the user wrote by hand, so it
+      // still applies with numbering off — an empty key resolves to no
+      // access key at all.
       title: setAccesskey(
         item.title,
         options.enableNumberedItems ? item.number : "",
-        options.enableNumberedItems ? item.accessKeyOverride : "",
+        item.accessKeyOverride,
       ),
       contexts: asMenuContexts(contexts),
       parentId: item.parentId,
