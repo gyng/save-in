@@ -310,6 +310,52 @@ describe("syntax editor surface", () => {
     editor.destroy();
   });
 
+  test("asks for each webhook rejection's own message", () => {
+    // The reason a rejected endpoint carries is the catalog key, and every
+    // reason has to fetch its own: a mapping that reached for a neighbour's
+    // would show the wrong cause, and one that reached for nothing would put a
+    // bare identifier in front of the user. Echoing the key back proves which
+    // was asked for. The literals here are also what check-i18n reads to call a
+    // catalog entry used.
+    const reasons = [
+      "webhookEndpointMalformed",
+      "webhookEndpointNotHttps",
+      "webhookEndpointNotHttpOrHttps",
+      "webhookEndpointCredentials",
+      "webhookEndpointFragment",
+      "webhookEndpointOverLimit",
+    ];
+    document.body.innerHTML = '<textarea id="webhookUrl">bad</textarea>';
+    const textarea = document.querySelector("textarea")!;
+    vi.mocked(global.browser.i18n.getMessage).mockImplementation(
+      (key: string) => `translated:${key}`,
+    );
+    createSyntaxEditor(textarea, "webhook-endpoints");
+
+    reasons.forEach((reason) => {
+      setSyntaxEditorDiagnostics(textarea, [
+        { start: 0, end: 3, line: 1, column: 0, message: reason, severity: "error" },
+      ]);
+      expect(
+        document.querySelector(`[data-diagnostic="L1: translated:${reason}"]`),
+        `${reason} must render its own message`,
+      ).not.toBeNull();
+    });
+
+    // A catalog that has not caught up yet leaves the reason itself on screen:
+    // unhelpful, but the line still says which endpoint it blames.
+    vi.mocked(global.browser.i18n.getMessage).mockReturnValue("");
+    reasons.forEach((reason) => {
+      setSyntaxEditorDiagnostics(textarea, [
+        { start: 0, end: 3, line: 1, column: 0, message: reason, severity: "error" },
+      ]);
+      expect(
+        document.querySelector(`[data-diagnostic="L1: ${reason}"]`),
+        `${reason} must fall back to its own reason`,
+      ).not.toBeNull();
+    });
+  });
+
   test("deduplicates diagnostics and contains malformed gutter targets", () => {
     document.body.innerHTML = '<textarea id="paths">abc\ndef</textarea>';
     const textarea = document.querySelector("textarea")!;

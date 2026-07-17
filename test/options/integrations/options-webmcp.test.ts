@@ -186,6 +186,25 @@ describe("buildTools", () => {
     });
   });
 
+  test("hands back an apply response it cannot add its own rejections to", async () => {
+    // The tool appends the switches it refused to the background's own list.
+    // An answer that carries no list is not a shape to graft onto, so it has to
+    // reach the agent as the background sent it rather than gain a field the
+    // background never wrote.
+    const refusal = { status: "ERROR", error: "BAD_REQUEST" };
+    const send = vi.fn(() => Promise.resolve(refusal));
+    const byName = Object.fromEntries(buildTools(send).map((tool) => [tool.name, tool])) as Record<
+      SaveInToolName,
+      SaveInTool
+    >;
+
+    const result = await byName.save_in_apply_config.execute({
+      config: { paths: "Keep", webmcpEnabled: false },
+    });
+
+    expect(result).toEqual(refusal);
+  });
+
   test("blocks applying an invalid CSS matcher from an agent", async () => {
     const { send, byName } = toolsByName();
     await expect(

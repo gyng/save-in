@@ -155,6 +155,22 @@ describe("syntax editor model", () => {
     ]);
   });
 
+  test("highlights a bare-host endpoint without inventing a path to colour", () => {
+    // A receiver mounted at the root is an ordinary endpoint, and the host runs
+    // to the end of the line: there is no separator left to split on, so the
+    // path token has to be omitted rather than span an empty range.
+    const source = "https://hooks.example.com";
+    const snapshot = analyzeSyntax("webhook-endpoints", source);
+    const byKind = (kind: string) =>
+      snapshot.tokens
+        .filter((candidate) => candidate.kind === kind)
+        .map(({ start, end }) => tokenText(source, start, end));
+
+    expect(byKind("destination-value")).toEqual(["hooks.example.com"]);
+    expect(byKind("path")).toEqual([]);
+    expect(snapshot.diagnostics).toEqual([]);
+  });
+
   test("marks a URL that only new URL() would repair", () => {
     // new URL("https:/hooks.example.com/save") parses, and its href is the
     // two-slash form. The line is still a typo, so it is reported rather than

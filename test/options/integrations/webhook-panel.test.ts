@@ -583,3 +583,29 @@ test("previews one request per chosen event, and says so when there is none", as
   onFailed.dispatchEvent(new Event("change"));
   expect(preview.textContent).toBe("No events selected, so nothing is sent.");
 });
+
+test("a refused save puts each webhook switch back where the stored value is", async () => {
+  // The box is the user's picture of what is stored. A save that did not happen
+  // must not leave it claiming otherwise -- and has to say so, because nothing
+  // else on the page would.
+  const ports = dependencies({
+    apply: vi.fn(async () => {
+      throw new Error("storage refused");
+    }),
+  });
+  setupWebhookPanel(ports);
+  const status = document.querySelector<HTMLElement>("#webhook-status")!;
+
+  const onStart = document.querySelector<HTMLInputElement>("#webhookOnStart")!;
+  onStart.checked = true;
+  onStart.dispatchEvent(new Event("change"));
+  await vi.waitFor(() => expect(status.textContent).toBe("Could not save the webhook setting."));
+  expect(onStart.checked).toBe(false);
+  expect(onStart.disabled).toBe(false);
+
+  const allowInsecure = document.querySelector<HTMLInputElement>("#webhookAllowInsecure")!;
+  allowInsecure.checked = true;
+  allowInsecure.dispatchEvent(new Event("change"));
+  await vi.waitFor(() => expect(allowInsecure.checked).toBe(false));
+  expect(status.textContent).toBe("Could not save the webhook setting.");
+});
