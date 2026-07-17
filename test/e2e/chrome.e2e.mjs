@@ -99,6 +99,20 @@ const optionsPage = createLazyPageEvaluator({
   prepare: reloadOptionsPage,
 });
 const evalOptions = optionsPage.evaluate;
+// The options page injects its search box and fills the header version link
+// during async init, and the tab order is unstable until both land: a test that
+// touches the page too early races it — a null #option-search, or an empty
+// #version-label whose zero size drops it from the tab order so the first Tab
+// falls through to a nav disclosure summary. Wait for both, the late-wired
+// pieces, as the "fully interactive" signal before interacting.
+const waitForOptionsInteractive = () =>
+  waitForPageCondition(
+    evalOptions,
+    `document.readyState === "complete" &&
+     Boolean(document.querySelector("#option-search")) &&
+     Boolean(document.querySelector("#version-label")?.textContent)`,
+    { description: "options page interactive" },
+  );
 // App control travels through production runtime messages from an extension
 // page. Raw worker evaluation remains only for worker-specific assertions.
 /** @param {string} expr @returns {Promise<unknown>} */
@@ -463,6 +477,7 @@ test("first install starts with a focused welcome", async () => {
 
 test("option search shows detailed locations and navigates indexed actions", async () => {
   await evalOptions(`document.querySelector(".welcome-accept")?.click()`);
+  await waitForOptionsInteractive();
   const result = await evaluateJson(
     evalOptions,
     `JSON.stringify((() => {
@@ -664,6 +679,9 @@ test("options page works under MV3 CSP with live first-party autocomplete", asyn
 });
 
 test("options page keeps keyboard focus and core layout accessible", async () => {
+  // Tab into a fully wired page, or the first stop can be a transient element
+  // (a nav disclosure summary before the header link and search settle).
+  await waitForOptionsInteractive();
   await evalOptions(`(() => {
     document.activeElement?.blur();
     document.body.focus();
