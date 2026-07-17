@@ -90,6 +90,12 @@ export const setupResetOptions = ({
       await webExtensionApi.storage.local.remove(names);
       await sendInternalMessage(webExtensionApi.runtime, { type: MESSAGE_TYPES.OPTIONS_LOADED });
 
+      // Reset clears storage directly rather than saving values, so it reports
+      // no changes and never reaches the page-load reload that options.ts asks
+      // for on a webmcpEnabled change. webmcpEnabled does go back to its
+      // default of off, but Chrome cannot unregister a tool, so tools this page
+      // already registered stay live and callable until it is reloaded.
+      // Accepted: reloading here would take the success message with it.
       markSavedNow();
       restoreOptions();
       updateErrors();
