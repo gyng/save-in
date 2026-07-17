@@ -759,7 +759,12 @@ into: automatic/
     expect(hex.mock.calls.length).toBeGreaterThan(afterFirstScan);
     controller.stop();
     hex.mockRestore();
-  });
+    // The budget this pins is measured in characters, so the case has to move
+    // 4.5 MB through jsdom and SHA-256 to cross it -- shrinking the payloads
+    // would test a different bound. That is ~0.5s alone here and ~7s on a
+    // 2-vCPU runner sharing itself with every other worker, so the default 5s
+    // makes a correct test fail on the runner and nowhere else.
+  }, 20_000);
 
   test("returns queued data: payload budget when discovery stops", async () => {
     const first = bigDataUrl(4000);
