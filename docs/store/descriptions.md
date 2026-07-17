@@ -82,7 +82,7 @@ Features
 - Search and filter local download history, with JSON and spreadsheet-safe CSV/TSV export.
 - Optionally record or route matching ordinary Chrome downloads before they are saved.
 
-Browsers only allow saving into directories relative to the default download directory. Chrome rejects symlinked destinations, so on Chrome your destinations must be real subfolders of the download directory.
+Browsers only allow saving into directories relative to the default download directory. Chrome rejects symlinked destinations, so use real subfolders of the download directory — or, on Linux, bind-mount another folder onto one (sudo mount --bind /target ~/Downloads/sub).
 
 Privacy and permissions
 
