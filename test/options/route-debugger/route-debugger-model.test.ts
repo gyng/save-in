@@ -264,6 +264,23 @@ test("leaves unmatched trace rows and clauses without source locations", () => {
   expect(mapped.rules[1]?.source).toBeUndefined();
 });
 
+// An absent currentTab key makes pagetitle: fall back to the tracked tab —
+// which, while the user is in the debugger, is the options page itself. The
+// trace must answer about the input it was given, not the tab it is shown in.
+test("a blank page title names no tab rather than falling back to the tracked one", () => {
+  const info = routeDebuggerInfo({
+    filename: "report.pdf",
+    sourceUrl: "https://cdn.example/report.pdf",
+    pageUrl: "https://example/reports",
+    mime: "application/pdf",
+    context: "link",
+    pageTitle: "",
+  });
+
+  expect(Object.hasOwn(info, "currentTab")).toBe(true);
+  expect(info.currentTab).toBeNull();
+});
+
 test("normalizes debugger fields into the routing engine input aliases", () => {
   expect(
     routeDebuggerInfo({
@@ -309,6 +326,8 @@ test("normalizes debugger fields into the routing engine input aliases", () => {
   });
 });
 
+// currentTab is the exception: it is named even when blank, because an absent
+// key is what makes pagetitle: fall back to the tracked tab.
 test("omits blank debugger fields", () => {
   expect(
     routeDebuggerInfo({
@@ -320,7 +339,7 @@ test("omits blank debugger fields", () => {
       now: "not-a-date",
       counter: "not-a-number",
     }),
-  ).toEqual({});
+  ).toEqual({ currentTab: null });
 });
 
 test.each(["-1", "1.5", "9007199254740992"])(
@@ -335,7 +354,7 @@ test.each(["-1", "1.5", "9007199254740992"])(
         context: "",
         counter,
       }),
-    ).toEqual({});
+    ).toEqual({ currentTab: null });
   },
 );
 

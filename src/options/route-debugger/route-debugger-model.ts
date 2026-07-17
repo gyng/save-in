@@ -263,7 +263,13 @@ export const routeDebuggerInfo = (fields: RouteDebuggerFields): ValidationInfo =
   if (fields.pageUrl) info.pageUrl = fields.pageUrl;
   if (fields.mime) info.mime = fields.mime;
   if (fields.context) info.context = fields.context;
-  if (fields.pageTitle) info.currentTab = { title: fields.pageTitle };
+  // Name the tab even when the field is blank: an absent key makes pagetitle:
+  // fall back to the tracked tab, which while the debugger is open is the
+  // options page itself, so a blank title would match "Save In" and report a
+  // destination no real save reaches. Every production save attaches the key
+  // explicitly for the same reason (see the external caller's guard in
+  // background/messaging/handlers.ts).
+  info.currentTab = fields.pageTitle ? { title: fields.pageTitle } : null;
   if (fields.referrerUrl) info.referrerUrl = fields.referrerUrl;
   if (fields.frameUrl) info.frameUrl = fields.frameUrl;
   if (fields.linkText) info.linkText = fields.linkText;
