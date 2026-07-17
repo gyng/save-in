@@ -28,7 +28,10 @@ access, confirmation, and its handling of returned data.
 Chrome's listing should disclose that Incognito activity is excluded from Save
 In history and diagnostics, while Chrome may show an Incognito save in its
 regular download manager because the downloads API cannot select an Incognito
-context. Use these permission rationales:
+context. These terse rationales are the source of truth; the full paste-ready
+justifications for the Chrome privacy-practices tab, plus the single-purpose
+text, live in [store/permission-justifications.md](../store/permission-justifications.md).
+Use these permission rationales:
 
 - `contextMenus`: show Save In commands on pages, and on tabs where the browser
   offers a tab-strip menu (Firefox, and Chrome 150+).
