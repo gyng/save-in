@@ -2806,6 +2806,22 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
             >
           </div>
 
+          <div class="webhook-enable-row">
+            <input
+              type="checkbox"
+              id="webhookEnabled"
+              data-no-autosave
+              aria-describedby="webhookEnabledHelp"
+              disabled
+            />
+            <span>
+              <label for="webhookEnabled"><strong>__MSG_html_webhookEnabled__</strong></label>
+              <span class="caption advanced-option-help" id="webhookEnabledHelp"
+                >__MSG_html_webhookAlwaysIncludes__</span
+              >
+            </span>
+          </div>
+
           <label class="webhook-endpoint-label" for="webhookUrl">
             <span class="external-control-label">__MSG_html_webhookEndpoint__</span>
             <span class="caption">__MSG_html_webhookEndpointHelp__</span>
@@ -2837,22 +2853,6 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
           <p id="webhook-endpoint-note" class="caption webhook-endpoint-note">
             __MSG_html_webhookTestHelp__
           </p>
-
-          <div class="webhook-enable-row">
-            <input
-              type="checkbox"
-              id="webhookEnabled"
-              data-no-autosave
-              aria-describedby="webhookEnabledHelp"
-              disabled
-            />
-            <span>
-              <label for="webhookEnabled"><strong>__MSG_html_webhookEnabled__</strong></label>
-              <span class="caption advanced-option-help" id="webhookEnabledHelp"
-                >__MSG_html_webhookAlwaysIncludes__</span
-              >
-            </span>
-          </div>
 
           <fieldset class="webhook-fields">
             <legend>__MSG_html_webhookAdditionalData__</legend>
