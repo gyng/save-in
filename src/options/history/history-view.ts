@@ -16,11 +16,18 @@ import {
   isReroutableHistoryEntry,
 } from "../../shared/history-normalization.ts";
 
+// A routed entry stores Save In's own "/"-separated path, but a tracked
+// browser download stores the browser's absolute on-disk path, which is
+// backslash-separated on Windows — so both separators split a row. A path
+// ending in a separator names no file and stays whole, as it always has.
+const lastSeparator = (fullPath: string): number =>
+  Math.max(fullPath.lastIndexOf("/"), fullPath.lastIndexOf("\\"));
+
 export const historyFilename = (fullPath?: string): string => {
   if (!fullPath) {
     return "(unnamed)";
   }
-  const parts = fullPath.split("/");
+  const parts = fullPath.split(/[\\/]/);
   return parts[parts.length - 1] || fullPath;
 };
 
@@ -28,7 +35,7 @@ export const historyFolder = (fullPath?: string): string => {
   if (!fullPath) {
     return "";
   }
-  const idx = fullPath.lastIndexOf("/");
+  const idx = lastSeparator(fullPath);
   return idx === -1 ? "." : fullPath.slice(0, idx);
 };
 

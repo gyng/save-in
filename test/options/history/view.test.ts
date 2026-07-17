@@ -148,6 +148,14 @@ describe("history row flatteners", () => {
     expect(historyFolder("")).toBe("");
   });
 
+  // A tracked browser download stores the browser's absolute on-disk path,
+  // which is backslash-separated on Windows.
+  test("filename / folder split a Windows path", () => {
+    expect(historyFilename("C:\\Users\\me\\Downloads\\cat.png")).toBe("cat.png");
+    expect(historyFolder("C:\\Users\\me\\Downloads\\cat.png")).toBe("C:\\Users\\me\\Downloads");
+    expect(historyFilename("C:\\Downloads\\")).toBe("C:\\Downloads\\");
+  });
+
   test("type maps media->image and lowercases, defaults empty", () => {
     expect(historyType({ info: { context: "MEDIA" } })).toBe("image");
     expect(historyType({ info: { context: "LINK" } })).toBe("link");
