@@ -680,15 +680,21 @@ test("options page keeps keyboard focus and core layout accessible", async () =>
   ]);
 
   // dispatchInput resolves when the CDP command is acknowledged, not when the
-  // browser has processed the key and moved focus. Read activeElement too soon
-  // on a slow runner and it is still BODY. Wait for focus to leave BODY before
-  // measuring, so the assertion sees where Tab actually landed.
+  // browser has processed the key and moved focus, and the options layout is
+  // still reflowing during init. Read too soon on a slow runner and focus is
+  // still BODY or the page is mid-reflow (a transient horizontal overflow).
+  // Wait for both to settle before measuring, so the assertions see the settled
+  // state; a layout that never settles still fails, here with its overflow named.
   await evalOptions(`new Promise((resolve, reject) => {
     const timeout = AbortSignal.timeout(5000);
     const check = () => {
-      if (document.activeElement && document.activeElement !== document.body) resolve(true);
-      else if (timeout.aborted) reject(new Error("focus did not leave body after Tab"));
-      else requestAnimationFrame(check);
+      const focusMoved = document.activeElement && document.activeElement !== document.body;
+      const overflow = document.documentElement.scrollWidth - document.documentElement.clientWidth;
+      if (focusMoved && overflow <= 1) resolve(true);
+      else if (timeout.aborted) {
+        reject(new Error("options page did not settle after Tab: " +
+          JSON.stringify({ focusMoved: Boolean(focusMoved), overflow })));
+      } else requestAnimationFrame(check);
     };
     check();
   })`);
