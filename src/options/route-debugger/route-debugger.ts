@@ -532,8 +532,8 @@ export const setupRouteDebugger = (): void => {
 
   // How the winning rule turned the request into a path, stage by stage. A
   // stage with no value never ran, so it is left out rather than shown empty.
-  const buildRulePipeline = (trace: RouteDebuggerTrace): HTMLDListElement | null => {
-    if (!trace.destination) return null;
+  // The caller owns the precondition: this renders whatever the trace reached.
+  const buildRulePipeline = (trace: RouteDebuggerTrace): HTMLDListElement => {
     const routePipeline = document.createElement("dl");
     routePipeline.className = "route-debugger-pipeline";
     const rename = trace.selectedRename ?? null;
@@ -700,7 +700,7 @@ export const setupRouteDebugger = (): void => {
     card.append(buildRuleHeader(rule, selected));
     // Only the winning rule produced a path, so only it shows the pipeline.
     const output = buildRuleOutput(
-      selected ? buildRulePipeline(trace) : null,
+      selected && trace.destination ? buildRulePipeline(trace) : null,
       buildRuleSourceLink(rule),
     );
     if (output) card.append(output);
