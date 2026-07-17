@@ -91,6 +91,38 @@ outlived nine years and an entire MV3 rewrite:
 2021-06-13:   19 lines
 ```
 
+What are they? Three examples, all still load-bearing:
+
+**A browser fact from October 2017** — `downloads/notification-events.ts`. The
+code around it is new TypeScript gated on a capability flag, but the observation
+survived verbatim, because Chrome still behaves this way:
+
+```ts
+// CHROME
+// Chrome does not have the filename in the initial DownloadItem,
+// so extract it from the DownloadDelta
+```
+
+**The routing date variables from January 2018** — `routing/variable.ts`, the
+largest ancient block. `:year:`, `:month:`, `:day:`, `:hour:`, … were defined
+then and are defined the same way now (blame ignores whitespace, so a reformat
+doesn't reset authorship — the *logic* is 2018):
+
+```ts
+[SPECIAL_DIRS.YEAR]:   opts => stringSegment(opts.now.getFullYear()),
+[SPECIAL_DIRS.MONTH]:  opts => stringSegment(padDateComponent(opts.now.getMonth() + 1)),
+[SPECIAL_DIRS.SECOND]: opts => stringSegment(padDateComponent(opts.now.getSeconds())),
+```
+
+**The shortcut vocabulary from November 2017** — `shared/constants.ts`. The set
+of shortcut file kinds a user can save has not changed in nine years:
+
+```ts
+[SHORTCUT_TYPES.MAC]:           ".url",
+[SHORTCUT_TYPES.FREEDESKTOP]:   ".desktop",
+[SHORTCUT_TYPES.HTML_REDIRECT]: ".html",
+```
+
 ## Logic survival — the inverse story 🧬
 
 The router is the sharpest contrast on the branch. By line count it is the

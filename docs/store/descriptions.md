@@ -226,6 +226,62 @@ text itself, and nothing reaches the rules editor until deterministic guardrails
 the extension's own validation, and the user's review all agree.
 ```
 
+## Screenshot captions
+
+One caption per store screenshot, in order. The files live in
+`docs/store/screenshots/`.
+
+```text
+01-right-click-save.png   Right-click anything to save it — save any image, link, selection, or page straight into the folder you choose.
+02-page-sources.png       Find every saveable source on a page — Page Sources lists the images, video, and files a page offers, to batch-save or auto-save.
+03-downloads-menu.png     Build your own folder menu — configure destination folders and preview exactly how the menu appears as you edit.
+04-routing-rules.png      Route and rename automatically — pattern-based rules file each download into the right folder under the name you want.
+05-browser-downloads.png  Organize ordinary downloads too — optionally track and route normal browser downloads, limited to the sites you pick.
+```
+
+## AMO source submission
+
+The add-on is bundled with rolldown, so AMO requires the source ZIP (attached to
+each GitHub release) plus build instructions. Paste these into the source-code
+step; they also live in the source package README.
+
+**Build instructions**
+
+```text
+Requirements
+- Node.js 24 or newer. No other system dependencies; no network access beyond the
+  dependency install below.
+
+Steps
+1. Unzip the submitted source package and open the directory in a terminal.
+2. Install the exact, locked dependencies:  npm ci
+3. Build the extension:                     npm run build
+4. The packaged add-on is written to:       web-ext-artifacts/save-in-<version>.zip
+
+The build transpiles the TypeScript in src/ and scope-hoists each entry point
+into one readable, non-minified file under dist/bundled/, then stages and
+packages it. There is no minification or obfuscation; the ZIP is canonicalized
+for reproducible bytes.
+```
+
+**Reviewer note (Firefox)**
+
+```text
+- Source and build: built from TypeScript, bundled with rolldown into readable,
+  non-minified files; npm ci uses the committed package-lock.json; no build-time
+  network access or code generation beyond that.
+- Webhooks (the only feature that can send data off the device) are disabled by
+  default, have no developer endpoint, require the user to add an endpoint and
+  enable them, require HTTPS unless the user opts into http, omit credentials and
+  referrers, reject redirects, never retry, and never read responses. Private
+  browsing never triggers delivery. Save In receives none of this data.
+- Some code paths feature-detect Chrome-only APIs (WebMCP document.modelContext,
+  the Prompt API LanguageModel) that Firefox does not implement, so on Firefox
+  they never register and never run — there is no on-device model to assess here.
+- Data use matches PRIVACY.md: all local, nothing sent to the developer, no
+  remote code.
+```
+
 ## Maintenance
 
 Before each upload:
