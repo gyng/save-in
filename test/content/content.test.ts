@@ -540,6 +540,27 @@ describe("content.js initialisation", () => {
     );
   });
 
+  test("gates automatic-save dispatch while the disable list cannot be read", async () => {
+    // A line the parser rejects — here the ordinary scheme-less mistake — used
+    // to match nothing and so disable nothing, saving on the very site the user
+    // wrote it to exclude. An unreadable list withholds every surface instead.
+    document.body.innerHTML = '<img src="https://cdn.test/automatic.png">';
+    await importContentWithOptions({
+      autoDownloadEnabled: true,
+      autoDownloadLive: false,
+      filenamePatterns:
+        "context: ^auto$\npageurl: ^http://localhost/\nsourceurl: automatic\\.png$\ninto: automatic/",
+      perSiteDisableList: "localhost/*",
+    });
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(global.chrome.runtime.sendMessage).not.toHaveBeenCalledWith(
+      expect.objectContaining({ type: "AUTO_DOWNLOAD_SOURCE" }),
+      expect.any(Function),
+    );
+  });
+
   test("removing the site from the disable list resumes automatic saves without a reload", async () => {
     let storageListener: ((changes: Record<string, any>, area: string) => void) | undefined;
     vi.resetModules();

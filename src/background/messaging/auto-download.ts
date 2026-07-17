@@ -7,7 +7,7 @@ import {
   matchAutomaticRoutingRule,
   normalizeAutomaticSourceUrl,
 } from "../../automation/automatic-routing.ts";
-import { matchesAnyPattern } from "../../shared/match-pattern.ts";
+import { matchesAnyPatternOrUnreadable } from "../../shared/match-pattern.ts";
 import { normalizeContentOption } from "../../config/content-options.ts";
 import { isDataUrl, isDataUrlWithinCap, parseDataUrlMediaType } from "../../shared/data-url.ts";
 import { addLogEntry } from "../log.ts";
@@ -38,9 +38,14 @@ export const handleAutoDownloadSource = async (
   // Backstop: a stale content script cannot keep automatic saves alive on a
   // site the user has since added to the per-site disable list. Coerce a
   // malformed stored value through the shared normalizer so the background and
-  // content bundle agree on "nothing disabled" for non-string data.
+  // content bundle agree on "nothing disabled" for non-string data — a storage
+  // shape error resolves to the documented default, not to a list.
+  // A list that is a string but does not parse is the opposite case: a rejected
+  // line reads as "no match", which would save on the one site the line was
+  // written to exclude, and no gesture asked for this, so nobody would see it
+  // happen. An unreadable list refuses every automatic save until it is fixed.
   const disableList = normalizeContentOption("perSiteDisableList", options.perSiteDisableList);
-  if (disableList && matchesAnyPattern(senderTab.url, disableList)) {
+  if (disableList && matchesAnyPatternOrUnreadable(senderTab.url, disableList)) {
     skip();
     return;
   }

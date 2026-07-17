@@ -680,6 +680,27 @@ into: automatic/:filename:
     });
   });
 
+  test("backstops a stale content script when the disable list cannot be read", async () => {
+    configure();
+    // A line the parser rejects reads as "no match", which used to let the save
+    // through on the very site the line was written to exclude — and automatic
+    // saves take no gesture, so nobody would see it happen.
+    options.perSiteDisableList = "example.test/*";
+    const sendResponse = vi.fn();
+    onMessage(
+      request,
+      { tab: { id: 7, url: "https://example.test/gallery/", incognito: false } },
+      sendResponse,
+    );
+
+    await waitForCall(sendResponse);
+    expect(Download.launchDownload).not.toHaveBeenCalled();
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
+      body: { status: "skipped" },
+    });
+  });
+
   test("a malformed stored disable list never blocks automatic saves", async () => {
     configure();
     // Legacy or corrupted storage can hold a non-string here; the backstop must

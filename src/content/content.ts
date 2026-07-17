@@ -27,7 +27,7 @@ import {
   type AutoDownloadDedup,
   type AutoDownloadSendResult,
 } from "./auto-download.ts";
-import { matchesAnyPattern } from "../shared/match-pattern.ts";
+import { matchesAnyPatternOrUnreadable } from "../shared/match-pattern.ts";
 import type { AutomaticRoutingCandidate } from "../automation/automatic-routing.ts";
 import { parseRulesCollecting } from "../routing/rule-parser.ts";
 import { configureContentPorts } from "./ports.ts";
@@ -413,10 +413,12 @@ let reconfigureOpenSourcePanel: (() => void) | null = null;
 // The per-site disable list turns off every content-script surface on matching
 // pages. Feature mounts follow their own options; this predicate is re-evaluated
 // at action time against the live URL so a single-page-app navigation that moves
-// on or off the list takes effect without an options change. Invalid pattern
-// lines are ignored rather than treated as a broad match.
+// on or off the list takes effect without an options change. A list the parser
+// cannot read in full disables every surface everywhere: a rejected line reads
+// as "no match", which would keep running on the one site the line was written
+// to exclude, and the list is only ever consulted to decide what to leave alone.
 const isCurrentPageDisabled = (): boolean =>
-  matchesAnyPattern(`${window.location}`, currentOptions.perSiteDisableList);
+  matchesAnyPatternOrUnreadable(`${window.location}`, currentOptions.perSiteDisableList);
 
 // Readiness is evaluated when options arrive or change; a pushState
 // navigation off the disable list cannot re-trigger it (content scripts get
