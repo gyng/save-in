@@ -6,7 +6,7 @@ features, or the build model. The ESM + readable-bundle architecture,
 the enforced import layering, and the execution-context split described in
 [AGENTS.md](../AGENTS.md) stay as they are; this plan strengthens them.
 
-**All three phases have landed.** This is now a record of what was decided and
+**All four phases have landed.** This is now a record of what was decided and
 why, not pending work: each step carries a "Landed" note describing what
 actually happened, including where the plan was adapted or rejected. Source
 files and `scripts/check-import-cycles.js` cite these phase numbers, so they are
@@ -782,6 +782,82 @@ registration requires updating the owner list deliberately, not reflexively.
    confirmed the violation was reported, then reverted) and both are green
    against the current tree — no existing import needed to change. No rule
    grammar, editor behavior, or message payload changed in this step.
+
+## Phase 4 — the sixth god module
+
+Phase 2 named five god modules and split all five. It missed a sixth, because
+the list was written before that file grew: by the time Phases 1–3 had landed,
+`src/options/history/history-panel.ts` (1155 lines) was the largest file in
+`src/` — larger than any of the five had been except `source-panel.ts`.
+
+1. **`options/history/history-panel.ts` → the concerns it had accumulated.**
+   It had the Phase 2 shape exactly: `renderHistoryTable` alone ran ~470 lines
+   and 49 `createElement` calls, and the file also owned the filter bar, inline
+   SVG icons, a `setInterval` progress poller, reroute destinations, CSV/JSON/
+   TSV export, and a clear-history dialog.
+
+   **Landed**, following the Phase 2 pattern: pure logic stayed in the existing
+   `history-view.ts`, view state moved to a DOM-free `history-panel-state.ts`,
+   and each concern became a module — `history-icons.ts`, `history-messages.ts`
+   (the localizer seam), `history-columns.ts`, `history-filters.ts`,
+   `history-row.ts`, `history-row-actions.ts`, `history-table.ts`,
+   `history-toolbar.ts`, `history-actions.ts`, `history-progress.ts`,
+   `history-clear-dialog.ts`. `history-panel.ts` is now a 46-line composition
+   root.
+
+   The same acyclic-import wall the `download.ts` and `notification.ts` splits
+   hit shaped the result: the table, its row actions, and the progress poller
+   all need to reload history, and `renderHistory` needs to repaint the table.
+   `renderHistory` therefore lives in a leaf `history-refresh.ts`, and
+   `history-panel.ts` registers the table renderer through an owner-controlled
+   live binding — the `activePanelHost` pattern from Phase 2.3. For the same
+   reason `setupHistoryFilters`/`setupHistoryColumnOptions` take the repaint
+   callback instead of importing `history-table.ts`. `renderHistory`,
+   `setHistoryLocalizer`, and `showClearHistoryDialog` are re-exported from
+   `history-panel.ts` because `entries/options.ts`, `core/options.ts`, and the
+   panel tests import them from that path (the `notification.ts` precedent); no
+   other barrel was added.
+
+   Two dead branches the split introduced were removed rather than annotated.
+   `HistoryDisplayColumn["key"]` was `keyof HistoryRow | "index"`, always looser
+   than reality — it admits `historyId`, `reroutable`, and `variableEntries`,
+   none of which are columns. `HistoryColumnKey` now excludes them, which makes
+   the cell-builder table total: a column added without a builder is a compile
+   error instead of a silently missing cell. Building each cell only when its
+   column is visible also let the row builder read its label off the column it
+   was already iterating, retiring the `columnLabels` lookup and its `v8 ignore`;
+   the reviewed-ignore ceiling stays at 76 because `history-refresh.ts`'s
+   placeholder renderer gained one, annotated as `source-panel-context.ts`'s
+   placeholders are.
+
+   The 89 existing panel/view tests passed untouched, which is Phase 2's stated
+   verification rule for a split. Unlike Phase 2.3, the test file did not need
+   splitting: `panel.cases.ts` was already a separate cases file behind a
+   three-line `panel.test.ts`.
+2. **Audit existing names against the Phase 3.2 conventions.** Phase 3.2 wrote
+   the naming rules down but did not check the tree against them.
+
+   **Landed** — one file had drifted. `history-view.ts` was the only
+   `*-view.ts` in `src/` and had zero DOM references, while the eight
+   `*-model.ts` files it sat beside are the pure ones; under 3.2's own rule its
+   name said the opposite of what it was. Renamed to `history-model.ts` with
+   `git mv` (and its test, `view.test.ts` → `model.test.ts`), the same call 3.2
+   made for `manual-editor-state.ts` → `manual-editor-controller.ts`: the rename
+   was cheap, so it landed rather than becoming a documented exception. Its
+   header comment was stale in the same way and was rewritten.
+
+   A convention that only a reviewer enforces will drift again. The durable fix
+   is mechanical — a check asserting that `*-model.ts` and `*-state.ts` contain
+   no DOM references, the way `check-import-cycles.js` enforces layering — and
+   is **not** done.
+
+Verification: `npm run lint`, `npm run typecheck`, `npm test`,
+`npm run test:coverage` (`options/history` at 100% on all four metrics; global
+99.99/99.99/100/99.99, at or above the baseline recorded in Phase 2.5),
+`check-import-cycles.js` across 252 modules, and `npm run bundle` for entry
+resolution. No e2e run: the split preserves `setupHistoryPanel`'s wiring order
+and its import-time call exactly, and the panel is options-page DOM covered by
+90 jsdom tests rather than browser-owned behavior.
 
 ## Non-goals
 
