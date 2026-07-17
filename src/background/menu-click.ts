@@ -174,7 +174,7 @@ export const handleContextMenuClick = async (
       (downloadType === DOWNLOAD_TYPES.PAGE && options.shortcutPage);
 
     if (saveAsShortcut) {
-      url = makeShortcut(options.shortcutType, url);
+      url = makeShortcut(options.shortcutType, url, clickTab?.title);
 
       suggestedFilename = suggestShortcutFilename(
         options.shortcutType,

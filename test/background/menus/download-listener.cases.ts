@@ -717,6 +717,7 @@ describe("addDownloadListener", () => {
       expect(vi.mocked(makeShortcut)).toHaveBeenCalledWith(
         "HTML_REDIRECT",
         "https://example.com/i.png",
+        undefined,
       );
       expect(vi.mocked(suggestShortcutFilename)).toHaveBeenCalledWith(
         "HTML_REDIRECT",
@@ -742,6 +743,7 @@ describe("addDownloadListener", () => {
       expect(vi.mocked(makeShortcut)).toHaveBeenCalledWith(
         "HTML_REDIRECT",
         "https://example.com/f.png",
+        undefined,
       );
       expect(lastState().info.url).toBe("blob:mock-shortcut");
     });
@@ -755,9 +757,33 @@ describe("addDownloadListener", () => {
         { id: 5, title: "Title" },
       );
 
-      expect(vi.mocked(makeShortcut)).toHaveBeenCalledWith("HTML_REDIRECT", "https://example.com/");
+      expect(vi.mocked(makeShortcut)).toHaveBeenCalledWith(
+        "HTML_REDIRECT",
+        "https://example.com/",
+        "Title",
+      );
       expect(lastState().info.url).toBe("blob:mock-shortcut");
       expect(lastState().info.suggestedFilename).toBe("shortcut.url");
+    });
+
+    // The tracked global can lag behind or belong to another window, and its
+    // title is mutated by later tab updates (#172, #188) — the shortcut's
+    // contents must name the tab the click came from, like its filename does.
+    test("a shortcut is titled from the clicked tab, not the tracked one", async () => {
+      options.shortcutPage = true;
+      setCurrentTab({ id: 9, title: "Other window tab", url: "https://other.test/" });
+
+      Menus.addPaths(["dir1"], ["page"]);
+      await listener(
+        { menuItemId: "save-in-0", pageUrl: "https://b.test/page" },
+        { id: 5, title: "Clicked tab" },
+      );
+
+      expect(vi.mocked(makeShortcut)).toHaveBeenCalledWith(
+        "HTML_REDIRECT",
+        "https://b.test/page",
+        "Clicked tab",
+      );
     });
   });
 
