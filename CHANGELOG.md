@@ -25,15 +25,17 @@ rules.
 - Added opt-in tracking and routing for ordinary browser downloads, including a
   separately labelled experimental Firefox replacement mode.
 - Added explicitly approved extension integrations, validated configuration
-  tools, experimental WebMCP support, and disabled-by-default HTTPS webhooks.
+  tools, experimental WebMCP support, disabled-by-default webhooks, and a
+  Chrome-only on-device rule assistant.
 - Unified both browser releases into one readable, reproducible package backed
   by automated Firefox and Chrome end-to-end tests.
 - Migrated path-component truncation from character counts to UTF-8 byte limits,
   applied it consistently to files and folders, and preserved filename
   extensions within the configured limit.
 - Expanded the routing grammar with `fetch:` URL rewriting, `rename:` filename
-  find-and-replace, `finalfilename:` matching, and a `:menupath:` variable,
-  alongside tighter rule validation and new site template collections.
+  find-and-replace, `finalfilename:` and `urlfileext:` matching, `css:` matching
+  on the element a source came from, and a `:menupath:` variable, alongside
+  tighter rule validation and new site template collections.
 - Widened automatic Page Sources saves with per-channel opt-in coverage for
   linked media, documents, and streams, CSS backgrounds, playlist hints, and
   inline `data:` sources.
@@ -103,8 +105,9 @@ rules.
   Firefox resolves the `Content-Disposition` name before rules run, and Chrome
   re-evaluates name-dependent rules once it reports the final name. Match a
   server-provided name with `actualfileext:` or `finalfilename:`; `fileext:`
-  reads the URL and cannot see it (#178). Literal `%` characters no longer
-  cause an error.
+  reads the URL and cannot see it (#178), and `urlfileext:` is the clause to
+  reach for when reading the URL is what you meant. Literal `%` characters no
+  longer cause an error.
 - Hardened Windows filenames against control and invisible format characters,
   variation selectors (#220), trailing dots or spaces, reserved device names,
   and broken replacement characters. Path-component limits now use UTF-8 bytes
@@ -126,7 +129,10 @@ rules.
 - Shortcut files retain their intended extension instead of becoming `.txt`
   (#161). Options now name Windows internet shortcut (`.url`), macOS internet
   location (`.webloc`), Linux desktop shortcut (`.desktop`), and HTML redirect
-  (`.html`) formats explicitly; HTML redirects also escape their target URL.
+  (`.html`) formats explicitly; HTML redirects also escape their target URL. On
+  Firefox only `.webloc` and `.html` are offered: its download API rejects the
+  other two outright, and a format that cannot save is worse than one that is
+  absent (#207).
 - Empty aliases fall back to their path, multi-dash comments are handled
   consistently, and invalid regular expressions, URLs, capture groups, and
   routing variables produce contained validation errors instead of broad
@@ -269,12 +275,25 @@ rules.
 - Added `GET_SCHEMA`, `VALIDATE`, and internal `APPLY_CONFIG` messages (#89),
   plus experimental WebMCP tools for compatible in-browser agents while Options
   is open.
-- Added disabled-by-default HTTPS webhooks for Save In download starts. Requests
-  go directly to the user-selected endpoint, disclose and preview their fields,
-  omit credentials and referrers, reject redirects, and are never retried.
-  Automatic saves, ordinary browser downloads, external-extension requests, and
-  private activity never trigger a webhook. Firefox requests its optional data
-  permissions from the enabling action when the browser supports them.
+- Added disabled-by-default webhooks that report a save you asked for. Choose the
+  events separately: when a download starts (off), when it completes (on), and
+  when it fails (off). A completion reports the folder path the file landed in,
+  which is the reason to wait for it rather than act on the start. Endpoints are
+  one per line, up to ten, each delivered to independently; HTTPS unless you
+  separately allow `http://` for a network you trust. A Test button sends one
+  request on demand. Requests go directly to your endpoints, disclose and preview
+  their fields, omit credentials and referrers, reject redirects, and are never
+  retried. Automatic saves, ordinary browser downloads, external-extension
+  requests, and private activity never trigger a webhook. Firefox requests its
+  optional data permissions from the enabling action when the browser supports
+  them.
+- Added a Chrome-only on-device rule assistant, disabled by default and labelled
+  experimental. Describe what you want filed and it drafts the routing rule.
+  Enabling it can ask Chrome to download its built-in model; every request after
+  that is answered on your device and no prompt text leaves it. The model is
+  never asked to write routing syntax — it answers a response schema, Save In
+  assembles the rule, and nothing reaches the editor until the guardrails,
+  validation, and your own review agree.
 
 ### Options and localization
 
@@ -302,10 +321,11 @@ rules.
   to a folder used to rewrite that menu item with a hardcoded `(&a)`, so a
   custom key stopped working until you re-entered it in Options. The entry also
   survives a browser restart now, instead of coming back disabled.
-- Added six themes: the One Dark, Tokyo Night, and Catppuccin classics, and
-  three Save In themes — Glacier (cool light blue), Matcha (soft light green),
-  and Ember (warm dark amber). Pastel pink's pressed button color now darkens
-  like the other light themes.
+- Added nine themes: the One Dark, Tokyo Night, and Catppuccin classics; three
+  Save In themes — Glacier (cool light blue), Matcha (soft light green), and
+  Ember (warm dark amber); and three art-inspired ones — Primary Grid, Blue
+  House, and Gilded Mosaic. Pastel pink's pressed button color now darkens like
+  the other light themes.
 
 ### Developer and release process
 
