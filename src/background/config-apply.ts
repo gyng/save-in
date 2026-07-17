@@ -1,6 +1,8 @@
 import { OptionsManagement } from "../config/option.ts";
+import { options } from "../config/options-data.ts";
 import { parseRulesCollecting } from "../routing/rule-parser.ts";
 import { parseAutoDownloadRules } from "../automation/auto-download-rules.ts";
+import { parseWebhookEndpoints } from "../shared/webhook.ts";
 
 export type ConfigWriteState = { queue: Promise<unknown> };
 export type ConfigApplyResult = {
@@ -37,10 +39,25 @@ const expandLegacyRouteExclusive = (config: Record<string, unknown>): Record<str
   };
 };
 
+// Whether an http:// endpoint is one Save In will send to is the answer to a
+// different option, so option-schema.ts cannot decide it: its validate hook sees
+// one value at a time. This config is partial, so the flag is whichever the
+// write leaves in place -- the one it names, or the stored one it does not
+// touch. Reading it from the same config that carries the endpoints is what
+// makes importing a profile atomic: allowing plaintext and naming a plaintext
+// endpoint in one write is accepted, and naming one without allowing it is not.
+const webhookPolicyFor = (config: Record<string, unknown>) => ({
+  allowInsecure:
+    typeof config.webhookAllowInsecure === "boolean"
+      ? config.webhookAllowInsecure
+      : options.webhookAllowInsecure,
+});
+
 const validateConfig = (rawConfig: Record<string, unknown>): ConfigApplyResult => {
   const config = expandLegacyRouteExclusive(rawConfig);
   const applied: Record<string, unknown> = {};
   const rejected: ConfigApplyResult["rejected"] = [];
+  const webhookPolicy = webhookPolicyFor(config);
 
   Object.keys(config).forEach((name) => {
     const key = OptionsManagement.OPTION_KEYS.find((definition) => definition.name === name);
@@ -81,6 +98,20 @@ const validateConfig = (rawConfig: Record<string, unknown>): ConfigApplyResult =
         name === "autoDownloadRules" &&
         typeof value === "string" &&
         parseAutoDownloadRules(value).errors.length > 0
+      ) {
+        rejected.push({ name, reason: "invalid value" });
+        return;
+      }
+      // The schema accepted the widest endpoint shape; this is where the policy
+      // is known, so refuse a list naming an endpoint this write would not send
+      // to. Turning the flag off is not refused in turn: a stored list keeps its
+      // now-plaintext lines, the editor marks them, and they stop being sent --
+      // tightening the setting must never be the thing that fails.
+      if (
+        name === "webhookUrl" &&
+        typeof value === "string" &&
+        value.trim() !== "" &&
+        parseWebhookEndpoints(value, webhookPolicy).issues.length > 0
       ) {
         rejected.push({ name, reason: "invalid value" });
         return;

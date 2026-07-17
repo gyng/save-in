@@ -617,7 +617,7 @@
     "message": "Browser-Downloads mit Routing-Regeln weiterleiten"
   },
   "o_cRouteBrowserDownloadsHelp": {
-    "message": "Sofern unterstützt, können passende Regeln Browser-Downloads umbenennen oder in Unterordnern ablegen. Downloads ohne passende Regel bleiben unverändert."
+    "message": "Sofern unterstützt, können passende Regeln Browser-Downloads umbenennen oder in Unterordnern ablegen. Erstellen Sie sie unter Routing-Regeln › + Regel hinzufügen. Downloads ohne passende Regel bleiben unverändert."
   },
   "o_cRouteBrowserDownloadsFirefox": {
     "message": "Passende Browser-Downloads umleiten"

@@ -73,7 +73,11 @@ export const deliverSaveWebhook = async (
   )
     return;
   // A line the parser rejected is reported to the editor and never sent to.
-  const endpoints = parseWebhookEndpoints(configuration.webhookUrl).entries;
+  // The policy is read per delivery rather than at save time, so turning
+  // http:// back off stops the plaintext endpoints a stored list still names:
+  // they parse as issues, and only entries are sent.
+  const policy = { allowInsecure: configuration.webhookAllowInsecure };
+  const endpoints = parseWebhookEndpoints(configuration.webhookUrl, policy).entries;
   const url = selectedUrl(plan);
   if (endpoints.length === 0 || !url) return;
 
@@ -103,7 +107,7 @@ export const deliverSaveWebhook = async (
   await Promise.all(
     endpoints.map(async ({ value: endpoint, line }) => {
       try {
-        const response = await postWebhook(endpoint, payload);
+        const response = await postWebhook(endpoint, payload, { policy });
         if (!response.ok) log.add("webhook rejected", { line, status: response.status });
       } catch {
         log.add("webhook delivery failed", { line });

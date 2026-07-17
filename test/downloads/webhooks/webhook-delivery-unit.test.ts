@@ -6,6 +6,9 @@ const configuration = () => ({
   ...defaultOptions(),
   webhookEnabled: true,
   webhookUrl: "https://hooks.example/save",
+  // Named here so it widens to boolean: the default's literal type is false,
+  // and these tests turn it on.
+  webhookAllowInsecure: false,
   webhookIncludePageUrl: true,
   webhookIncludePageTitle: true,
   webhookIncludeSelectionText: true,
@@ -227,5 +230,37 @@ describe("multiple endpoints", () => {
     });
 
     expect(fetchMock.mock.calls.map((call) => call[0])).toEqual(["https://ok.example/save"]);
+  });
+  test("delivers to a plaintext endpoint only while the setting allows one", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue({ ok: true } as Response);
+    const configured = configuration();
+    configured.webhookUrl = "http://insecure.example/save";
+    configured.webhookAllowInsecure = true;
+
+    await deliverSaveWebhook(configured, plan({ selectedUrl: "https://cdn.example/a" }), {
+      add: vi.fn(),
+    });
+    expect(fetchMock.mock.calls.map((call) => call[0])).toEqual(["http://insecure.example/save"]);
+
+    // Turning it back off is enough on its own: the stored list still names the
+    // endpoint, and the delivery re-reads the policy rather than a saved verdict.
+    fetchMock.mockClear();
+    configured.webhookAllowInsecure = false;
+    await deliverSaveWebhook(configured, plan({ selectedUrl: "https://cdn.example/a" }), {
+      add: vi.fn(),
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  test("does not treat allowing http as allowing any other scheme", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue({ ok: true } as Response);
+    const configured = configuration();
+    configured.webhookUrl = "ftp://files.example/save\nfile:///etc/passwd";
+    configured.webhookAllowInsecure = true;
+
+    await deliverSaveWebhook(configured, plan({ selectedUrl: "https://cdn.example/a" }), {
+      add: vi.fn(),
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });

@@ -6,12 +6,16 @@ import {
   getWebhookDataTypes,
   parseWebhookEndpoints,
   postWebhook,
+  WEBHOOK_CONTENT_TYPE,
   WEBHOOK_DATA_TYPES,
+  WEBHOOK_REQUEST_METHOD,
   type WebhookDataType,
+  type WebhookEndpointPolicy,
   type WebhookFieldSelection,
 } from "../../shared/webhook.ts";
 import { optionsRuntime } from "../core/options-runtime.ts";
 import { assertApplySucceeded } from "../core/options-save.ts";
+import { setSyntaxEditorAnalysisOptions } from "../syntax-editor/syntax-editor.ts";
 
 type DataCollectionPermissions = { data_collection?: string[] | undefined };
 type DataCollectionPermissionsApi = {
@@ -23,7 +27,10 @@ type DataCollectionPermissionsApi = {
 export type WebhookPanelDependencies = {
   permissions?: DataCollectionPermissionsApi | undefined;
   apply(config: Record<string, unknown>): Promise<unknown>;
-  post(endpoint: string): Promise<{ ok: boolean; status: number }>;
+  // The policy travels with the endpoint: postWebhook re-validates before it
+  // fetches and defaults to HTTPS-only, so a test of an allowed http:// target
+  // has to say so or it would be refused here rather than by the server.
+  post(endpoint: string, policy: WebhookEndpointPolicy): Promise<{ ok: boolean; status: number }>;
   message(key: string, fallback: string): string;
 };
 
@@ -87,7 +94,7 @@ const defaultDependencies = (): WebhookPanelDependencies => {
   return {
     permissions: createDataCollectionPermissionsApi(webExtensionApi.permissions),
     apply: async (config) => assertApplySucceeded(await optionsRuntime.apply(config)),
-    post: (endpoint) => postWebhook(endpoint, createTestWebhookPayload()),
+    post: (endpoint, policy) => postWebhook(endpoint, createTestWebhookPayload(), { policy }),
     message: (key, fallback) => messages[key] || fallback,
   };
 };
@@ -97,6 +104,7 @@ export const setupWebhookPanel = (
 ): void => {
   const endpoint = document.querySelector<HTMLTextAreaElement>("#webhookUrl");
   const enabled = document.querySelector<HTMLInputElement>("#webhookEnabled");
+  const allowInsecure = document.querySelector<HTMLInputElement>("#webhookAllowInsecure");
   const test = document.querySelector<HTMLButtonElement>("#webhook-test");
   const status = document.querySelector<HTMLElement>("#webhook-status");
   const stateBadge = document.querySelector<HTMLElement>("#webhook-state-badge");
@@ -110,6 +118,7 @@ export const setupWebhookPanel = (
   if (
     !endpoint ||
     !enabled ||
+    !allowInsecure ||
     !test ||
     !status ||
     !preview ||
@@ -144,8 +153,14 @@ export const setupWebhookPanel = (
       ? dependencies.message("webhookStateOn", "On")
       : dependencies.message("webhookStateOff", "Off");
   };
+  // What the endpoint list currently means. The checkbox is the only thing that
+  // decides it, so every read of the list goes through here rather than
+  // remembering an answer that the next click changes.
+  const policy = () => ({ allowInsecure: allowInsecure.checked });
+
+  const PREVIEW_ENDPOINT_PLACEHOLDER = "https://hooks.example.com/save";
   const renderPreview = () => {
-    preview.textContent = JSON.stringify(
+    const body = JSON.stringify(
       createSaveWebhookPayload(
         {
           selectedUrl: "https://cdn.example.com/image.jpg",
@@ -158,6 +173,14 @@ export const setupWebhookPanel = (
       null,
       2,
     );
+    // The first endpoint the list would actually be sent to, so the preview
+    // names a real target rather than an example the user never typed. The
+    // method and content type come from postWebhook so this cannot describe a
+    // request nobody makes. A request line is wire format, not prose: it is
+    // left untranslated for the same reason the JSON body below it is.
+    const target = parseWebhookEndpoints(endpoint.value, policy()).entries[0]?.value;
+    const requestLine = `${WEBHOOK_REQUEST_METHOD} ${target ?? PREVIEW_ENDPOINT_PLACEHOLDER}`;
+    preview.textContent = `${requestLine}\nContent-Type: ${WEBHOOK_CONTENT_TYPE}\n\n${body}`;
   };
   // One endpoint per line. The field is usable when every line it names is one
   // the extension will send to: a line it would not send to is reported where
@@ -166,7 +189,7 @@ export const setupWebhookPanel = (
   // blur handler validates and then saves, and a save must not erase the
   // message the blur just showed.
   const readEndpoints = () => {
-    const parsed = parseWebhookEndpoints(endpoint.value);
+    const parsed = parseWebhookEndpoints(endpoint.value, policy());
     const firstIssue = parsed.issues[0];
     return {
       ok: parsed.entries.length > 0 && firstIssue === undefined,
@@ -262,8 +285,47 @@ export const setupWebhookPanel = (
       );
     }
   };
+  // The checkbox changes what the lines already in the editor mean, so the
+  // editor has to be told before anything reads them again: a line that just
+  // stopped being an endpoint should be marked as one the moment it does.
+  const syncEndpointGrammar = () => {
+    setSyntaxEditorAnalysisOptions(endpoint, { webhookAllowInsecure: allowInsecure.checked });
+    endpointValidation(false);
+    renderPreview();
+  };
+
+  allowInsecure.addEventListener("change", async () => {
+    const next = allowInsecure.checked;
+    syncEndpointGrammar();
+    allowInsecure.disabled = true;
+    try {
+      const validation = readEndpoints();
+      // Allowing http:// and the list it makes valid go in one write: the write
+      // boundary reads the flag from the config it is handed, so a list refused
+      // a moment ago is accepted here rather than waiting for the next keypress.
+      // Turning it off writes only the flag — the lines stay for the user to fix
+      // and stop being sent to either way.
+      await dependencies.apply({
+        webhookAllowInsecure: next,
+        ...(next && validation.ok ? { webhookUrl: endpoint.value.trim() } : {}),
+      });
+    } catch {
+      allowInsecure.checked = !next;
+      syncEndpointGrammar();
+      setStatus(
+        dependencies.message("webhookSaveFailed", "Could not save the webhook setting."),
+        true,
+      );
+    } finally {
+      allowInsecure.disabled = false;
+    }
+  });
+
   endpoint.addEventListener("input", () => {
     endpointValidation(false);
+    // The preview names the endpoint it would post to, so it follows the list
+    // as it is typed rather than only when a checkbox moves.
+    renderPreview();
     if (endpointSaveTimer !== undefined) window.clearTimeout(endpointSaveTimer);
     endpointSaveTimer = window.setTimeout(() => {
       endpointSaveTimer = undefined;
@@ -289,7 +351,7 @@ export const setupWebhookPanel = (
       // ones that answer and not to the ones that do not.
       const outcomes = await Promise.all(
         validation.endpoints.map((url) =>
-          dependencies.post(url).then(
+          dependencies.post(url, policy()).then(
             (response) => (response.ok ? "delivered" : "rejected"),
             () => "failed",
           ),
@@ -390,13 +452,13 @@ export const setupWebhookPanel = (
   });
 
   document.addEventListener("options-restored", () => {
-    renderPreview();
-    endpointValidation(false);
+    // Restore has just put the stored flag in the checkbox, so the grammar the
+    // editor reports against is settled from the same values.
+    syncEndpointGrammar();
     showPermissionState();
     renderEnabledState();
   });
-  renderPreview();
-  endpointValidation(false);
+  syncEndpointGrammar();
   renderEnabledState();
   void refreshPermissionSupport();
 };

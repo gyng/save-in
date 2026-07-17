@@ -60,6 +60,9 @@ export const OPTION_DEFAULTS = {
   webmcpEnabled: false,
   webhookEnabled: false,
   webhookUrl: "",
+  // Off, so an endpoint list only ever names plaintext targets because the user
+  // asked for them: the default cannot be talked into leaving encryption.
+  webhookAllowInsecure: false,
   webhookIncludePageUrl: false,
   webhookIncludePageTitle: false,
   webhookIncludeSelectionText: false,

@@ -101,6 +101,40 @@ describe("webhook endpoint validation", () => {
     });
   });
 
+  // Allowing plaintext widens the accepted schemes by exactly one. Everything
+  // else a URL can be stays rejected, so configuration cannot name an ftp:,
+  // file:, or javascript: target by ticking a box about http.
+  test.each([
+    ["https://hooks.example.com/save", true],
+    ["http://hooks.example.com/save", true],
+    ["ftp://hooks.example.com/save", false],
+    ["file:///etc/passwd", false],
+    ["javascript:fetch('/')", false],
+    ["data:text/plain,hi", false],
+  ])("with plaintext allowed, accepts %s = %s", (value, accepted) => {
+    expect(validateWebhookUrl(value, { allowInsecure: true }).ok).toBe(accepted);
+  });
+
+  test("names the scheme it would take, which depends on the policy", () => {
+    expect(validateWebhookUrl("http://hooks.example.com/save")).toMatchObject({
+      ok: false,
+      reason: WEBHOOK_ENDPOINT_REASONS.NOT_HTTPS,
+    });
+    expect(
+      validateWebhookUrl("ftp://hooks.example.com/save", { allowInsecure: true }),
+    ).toMatchObject({ ok: false, reason: WEBHOOK_ENDPOINT_REASONS.NOT_HTTP_OR_HTTPS });
+  });
+
+  test("keeps every other endpoint rule when plaintext is allowed", () => {
+    const policy = { allowInsecure: true };
+    expect(validateWebhookUrl("http://user:pw@hooks.example.com/save", policy)).toMatchObject({
+      reason: WEBHOOK_ENDPOINT_REASONS.CREDENTIALS,
+    });
+    expect(validateWebhookUrl("http://hooks.example.com/save#f", policy)).toMatchObject({
+      reason: WEBHOOK_ENDPOINT_REASONS.FRAGMENT,
+    });
+  });
+
   test("reports each rejected line's own reason", () => {
     const { issues } = parseWebhookEndpoints(
       ["https://hooks.example.com/save", "http://insecure.example.com/save", "not a URL"].join(

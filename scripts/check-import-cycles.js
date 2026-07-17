@@ -214,6 +214,13 @@ const allowedCrossFeatureImports = new Map([
       "src/options/syntax-editor/syntax-editor.ts",
     ]),
   ],
+  // The webhook panel's endpoint list is a syntax editor, and the allow-http
+  // checkbox decides which lines that editor may accept, so the panel hands the
+  // editor its dialect's grammar when the checkbox changes.
+  [
+    "src/options/integrations/webhook-panel.ts",
+    new Set(["src/options/syntax-editor/syntax-editor.ts"]),
+  ],
   // The variables-preview panel inserts a clicked variable into whichever
   // path-editor field currently has focus.
   [

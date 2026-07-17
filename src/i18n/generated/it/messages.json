@@ -195,7 +195,7 @@
     "message": "Instrada i download del browser con le regole di routing"
   },
   "o_cRouteBrowserDownloadsHelp": {
-    "message": "Se supportate, le regole di corrispondenza possono rinominare i download del browser o inserirli in sottocartelle. I download senza corrispondenza rimangono invariati."
+    "message": "Se supportate, le regole di corrispondenza possono rinominare i download del browser o inserirli in sottocartelle. Aggiungile in Regole di routing › + Aggiungi regola. I download senza corrispondenza rimangono invariati."
   },
   "o_cRouteBrowserDownloadsFirefox": {
     "message": "Reindirizza i download del browser corrispondenti"

@@ -13,6 +13,11 @@ export type SyntaxEditorLanguage =
   | "regular-expressions"
   | "webhook-endpoints";
 
+// A dialect whose grammar depends on a setting reads it from here. The other
+// four do not need one, so this stays optional and defaults to the safe answer:
+// an analysis with no options rejects plaintext endpoints.
+export type SyntaxAnalysisOptions = { readonly webhookAllowInsecure?: boolean | undefined };
+
 export type SyntaxTokenKind =
   | "nesting"
   | "path"
@@ -350,17 +355,20 @@ const regularExpressionSnapshot = (
   };
 };
 
-const webhookEndpointSnapshot = (source: string, lines: readonly SyntaxLine[]): SyntaxSnapshot => {
-  const parsed = parseWebhookEndpoints(source);
+const webhookEndpointSnapshot = (
+  source: string,
+  lines: readonly SyntaxLine[],
+  options: SyntaxAnalysisOptions,
+): SyntaxSnapshot => {
+  const parsed = parseWebhookEndpoints(source, {
+    allowInsecure: options.webhookAllowInsecure === true,
+  });
   const tokens: SyntaxToken[] = [];
   parsed.entries.forEach((entry) => {
-    // An accepted endpoint is an absolute https URL, but "https:/host" also
-    // parses as one, so the "://" this splits on is not guaranteed to be there.
+    // An accepted endpoint always writes its authority out, so the separator is
+    // there to split on -- validateWebhookUrl rejects "https:/host" rather than
+    // letting new URL() repair it.
     const separator = entry.source.indexOf("://");
-    if (separator === -1) {
-      tokens.push(token("destination-value", entry.start, entry.end));
-      return;
-    }
     const separatorStart = entry.start + separator;
     const hostStart = separatorStart + 3;
     const slash = entry.source.indexOf("/", separator + 3);
@@ -390,7 +398,11 @@ const webhookEndpointSnapshot = (source: string, lines: readonly SyntaxLine[]): 
   };
 };
 
-export const analyzeSyntax = (language: SyntaxEditorLanguage, source: string): SyntaxSnapshot => {
+export const analyzeSyntax = (
+  language: SyntaxEditorLanguage,
+  source: string,
+  options: SyntaxAnalysisOptions = {},
+): SyntaxSnapshot => {
   const lines = sourceLines(source);
   switch (language) {
     case "directories":
@@ -402,7 +414,7 @@ export const analyzeSyntax = (language: SyntaxEditorLanguage, source: string): S
     case "regular-expressions":
       return regularExpressionSnapshot(source, lines);
     case "webhook-endpoints":
-      return webhookEndpointSnapshot(source, lines);
+      return webhookEndpointSnapshot(source, lines, options);
   }
 };
 

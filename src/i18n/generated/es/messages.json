@@ -617,7 +617,7 @@
     "message": "Enrutar descargas del navegador con reglas de enrutamiento"
   },
   "o_cRouteBrowserDownloadsHelp": {
-    "message": "Cuando sea compatible, las reglas coincidentes pueden cambiar el nombre de las descargas del navegador o colocarlas en subcarpetas. Las descargas sin coincidencia no se modifican."
+    "message": "Cuando sea compatible, las reglas coincidentes pueden cambiar el nombre de las descargas del navegador o colocarlas en subcarpetas. Añádalas en Reglas de enrutamiento › + Añadir regla. Las descargas sin coincidencia no se modifican."
   },
   "o_cRouteBrowserDownloadsFirefox": {
     "message": "Redirigir descargas coincidentes del navegador"

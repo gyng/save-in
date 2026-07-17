@@ -617,7 +617,7 @@
     "message": "Browserdownloads routeren met routeringsregels"
   },
   "o_cRouteBrowserDownloadsHelp": {
-    "message": "Indien ondersteund, kunnen overeenkomende regels de naam van browserdownloads wijzigen of deze in submappen plaatsen. Downloads zonder overeenkomst blijven ongewijzigd."
+    "message": "Indien ondersteund, kunnen overeenkomende regels de naam van browserdownloads wijzigen of deze in submappen plaatsen. Voeg ze toe via Routeringsregels › + Regel toevoegen. Downloads zonder overeenkomst blijven ongewijzigd."
   },
   "o_cRouteBrowserDownloadsFirefox": {
     "message": "Overeenkomende browserdownloads omleiden"

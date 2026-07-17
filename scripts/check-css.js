@@ -270,6 +270,7 @@ const styleLayers = [
     "advanced",
     [
       "core/style-advanced.css",
+      "integrations/style-webhook.css",
       "integrations/style-advanced-integrations.css",
       "integrations/style-prompt-assistant.css",
       "core/style-advanced-responsive.css",
@@ -802,7 +803,17 @@ if (!ruleEditorClauseStyle.includes("grid-template-columns: subgrid;")) {
 
 const advancedStyle = fs.readFileSync(optionFile("style-advanced.css"), "utf8");
 if (advancedStyle.includes(".webhook-section")) {
-  violations.push("external integration styles must stay in style-advanced-integrations.css");
+  violations.push("webhook styles must stay in style-webhook.css");
+}
+const advancedIntegrationsStyle = fs.readFileSync(
+  optionFile("style-advanced-integrations.css"),
+  "utf8",
+);
+// The webhook card owns its own file. What is left here is what it shares with
+// the other cards in the panel, so a selector naming only webhook parts is one
+// that drifted back.
+if (/^\.webhook-[a-z-]+\s*\{/m.test(advancedIntegrationsStyle)) {
+  violations.push("webhook-only styles must stay in style-webhook.css");
 }
 
 const syntaxEditorStyle = fs.readFileSync(optionFile("style-syntax-editor.css"), "utf8");

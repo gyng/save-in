@@ -617,7 +617,7 @@
     "message": "Rotear downloads do navegador com regras de roteamento"
   },
   "o_cRouteBrowserDownloadsHelp": {
-    "message": "Quando suportadas, as regras correspondentes podem renomear downloads do navegador ou colocá-los em subpastas. Os downloads sem correspondência permanecem inalterados."
+    "message": "Quando suportadas, as regras correspondentes podem renomear downloads do navegador ou colocá-los em subpastas. Adicione-as em Regras de roteamento › + Adicionar regra. Os downloads sem correspondência permanecem inalterados."
   },
   "o_cRouteBrowserDownloadsFirefox": {
     "message": "Redirecionar downloads correspondentes do navegador"

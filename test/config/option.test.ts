@@ -113,6 +113,34 @@ describe("OptionsManagement", () => {
     });
   });
 
+  describe("stored webhook endpoints", () => {
+    test("keeps a saved plaintext endpoint list across a load", async () => {
+      // The scheme rule depends on webhookAllowInsecure, which this hook cannot
+      // see, and a failed validate silently swaps the value for the default. A
+      // list someone legitimately allowed must not be emptied by reopening the
+      // browser, so the schema accepts it here and the write boundary judges it.
+      global.browser.storage.local.get = vi.fn(() =>
+        Promise.resolve({
+          webhookAllowInsecure: true,
+          webhookUrl: "http://hooks.example/save",
+        }),
+      );
+
+      const resolved = await OptionsManagement.loadOptions();
+
+      expect(resolved.webhookUrl).toBe("http://hooks.example/save");
+      expect(resolved.webhookAllowInsecure).toBe(true);
+    });
+
+    test("still refuses a stored endpoint no policy could allow", async () => {
+      global.browser.storage.local.get = vi.fn(() =>
+        Promise.resolve({ webhookAllowInsecure: true, webhookUrl: "ftp://hooks.example/save" }),
+      );
+
+      expect((await OptionsManagement.loadOptions()).webhookUrl).toBe("");
+    });
+  });
+
   describe("defaults", () => {
     test("every option is seeded with its declared default", async () => {
       const resolved = await OptionsManagement.loadOptions();

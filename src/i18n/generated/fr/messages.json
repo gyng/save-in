@@ -629,7 +629,7 @@
     "message": "Acheminer les téléchargements du navigateur avec les règles de routage"
   },
   "o_cRouteBrowserDownloadsHelp": {
-    "message": "Lorsque cette fonction est prise en charge, les règles correspondantes peuvent renommer les téléchargements du navigateur ou les placer dans des sous-dossiers. Les téléchargements sans correspondance restent inchangés."
+    "message": "Lorsque cette fonction est prise en charge, les règles correspondantes peuvent renommer les téléchargements du navigateur ou les placer dans des sous-dossiers. Ajoutez-les dans Règles de routage › + Ajouter une règle. Les téléchargements sans correspondance restent inchangés."
   },
   "o_cRouteBrowserDownloadsFirefox": {
     "message": "Réacheminer les téléchargements correspondants du navigateur"

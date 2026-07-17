@@ -41,6 +41,7 @@ const optionStyleFiles = [
   "styles/style-accessibility.css",
   "dialogs/style-about.css",
   "core/style-advanced.css",
+  "integrations/style-webhook.css",
   "integrations/style-advanced-integrations.css",
   "integrations/style-prompt-assistant.css",
   "core/style-advanced-responsive.css",

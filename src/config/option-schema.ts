@@ -324,17 +324,29 @@ export const OPTION_KEYS = defineOptions([
     default: OPTION_DEFAULTS.webhookEnabled,
   },
   {
+    name: "webhookAllowInsecure",
+    type: OPTION_TYPES.BOOL,
+    default: OPTION_DEFAULTS.webhookAllowInsecure,
+  },
+  {
     name: "webhookUrl",
     type: OPTION_TYPES.VALUE,
     onSave: (v: string) => v.trim(),
     // One endpoint per line. A stored value from when this held a single URL is
-    // a one-line list, so it still validates exactly as it did. Endpoints reach
-    // this from imported configuration, which is untrusted for them, so the
-    // whole value is refused unless every line is an endpoint the extension
-    // will actually send to — a list must not name one it silently drops.
+    // a one-line list, so it still validates exactly as it did.
+    //
+    // Whether http:// counts as an endpoint depends on webhookAllowInsecure,
+    // and this hook is handed one option with no sight of its siblings. It
+    // therefore checks the widest shape an endpoint can have -- a scheme the
+    // user could legitimately have allowed -- and background/config-apply.ts
+    // applies the actual policy at the write boundary, where the flag is known.
+    // Being permissive here is deliberate: option.ts falls back to the default
+    // when validate fails, so a stricter rule would silently empty a saved list
+    // on load for anyone who had turned http:// on.
     validate: (value: unknown): value is string =>
       typeof value === "string" &&
-      (value.trim() === "" || parseWebhookEndpoints(value).issues.length === 0),
+      (value.trim() === "" ||
+        parseWebhookEndpoints(value, { allowInsecure: true }).issues.length === 0),
     default: OPTION_DEFAULTS.webhookUrl,
   },
   {

@@ -53,6 +53,7 @@ export const WEBHOOK_ENDPOINT_REASONS = {
   EMPTY: "webhookEndpointEmpty",
   MALFORMED: "webhookEndpointMalformed",
   NOT_HTTPS: "webhookEndpointNotHttps",
+  NOT_HTTP_OR_HTTPS: "webhookEndpointNotHttpOrHttps",
   CREDENTIALS: "webhookEndpointCredentials",
   FRAGMENT: "webhookEndpointFragment",
   OVER_LIMIT: "webhookEndpointOverLimit",
@@ -82,7 +83,17 @@ export type WebhookUrlValidation =
   | { ok: true; url: string }
   | { ok: false; reason: WebhookEndpointReason; message: string };
 
-export const validateWebhookUrl = (value: string): WebhookUrlValidation => {
+// What an endpoint is allowed to be. `allowInsecure` widens the accepted set by
+// exactly one scheme -- http:// -- and never to anything else: the point is a
+// plaintext webhook receiver on a trusted network, not a free-for-all that
+// would let stored configuration name ftp:, file:, or javascript: targets.
+// It defaults to off, so a caller that has no policy to apply gets HTTPS only.
+export type WebhookEndpointPolicy = { readonly allowInsecure?: boolean | undefined };
+
+export const validateWebhookUrl = (
+  value: string,
+  policy: WebhookEndpointPolicy = {},
+): WebhookUrlValidation => {
   const candidate = value.trim();
   if (!candidate) {
     return {
@@ -102,12 +113,29 @@ export const validateWebhookUrl = (value: string): WebhookUrlValidation => {
       message: "Enter a valid HTTPS webhook URL",
     };
   }
-  if (url.protocol !== "https:") {
+  // new URL() repairs a missing slash: "https:/host" parses, and its href is
+  // "https://host/". Accepting that would store a typo and quietly send
+  // somewhere the user did not type, so the authority has to be written out.
+  if (!/^[a-z][a-z0-9+.-]*:\/\//i.test(candidate)) {
     return {
       ok: false,
-      reason: WEBHOOK_ENDPOINT_REASONS.NOT_HTTPS,
-      message: "Use an HTTPS webhook URL",
+      reason: WEBHOOK_ENDPOINT_REASONS.MALFORMED,
+      message: "Enter a valid HTTPS webhook URL",
     };
+  }
+  const schemes = policy.allowInsecure ? ["https:", "http:"] : ["https:"];
+  if (!schemes.includes(url.protocol)) {
+    return policy.allowInsecure
+      ? {
+          ok: false,
+          reason: WEBHOOK_ENDPOINT_REASONS.NOT_HTTP_OR_HTTPS,
+          message: "Use an HTTPS or HTTP webhook URL",
+        }
+      : {
+          ok: false,
+          reason: WEBHOOK_ENDPOINT_REASONS.NOT_HTTPS,
+          message: "Use an HTTPS webhook URL",
+        };
   }
   if (url.username || url.password) {
     return {
@@ -139,11 +167,12 @@ export const WEBHOOK_TARGET_LIMIT = 10;
 
 export const parseWebhookEndpoints = (
   value: string | null | undefined,
+  policy: WebhookEndpointPolicy = {},
 ): PatternListResult<string> => {
   // Pinned: WebhookEndpointError is an Error subtype, so an inferred Value
   // would widen to string | WebhookEndpointError instead of the error branch.
   const parsed = parsePatternList<string>(value, (line) => {
-    const validation = validateWebhookUrl(line);
+    const validation = validateWebhookUrl(line, policy);
     return validation.ok
       ? validation.url
       : new WebhookEndpointError(validation.reason, validation.message);
@@ -200,20 +229,34 @@ export const createTestWebhookPayload = (now = new Date()): TestWebhookPayload =
 type WebhookResponse = Pick<Response, "ok" | "status">;
 type WebhookFetch = (input: string, init: RequestInit) => Promise<WebhookResponse>;
 
+// The payload preview shows the request Save In makes, so the request line it
+// prints and the request postWebhook sends read these from the same place: a
+// preview that describes a method or content type nobody sends is worse than no
+// preview at all.
+export const WEBHOOK_REQUEST_METHOD = "POST";
+export const WEBHOOK_CONTENT_TYPE = "application/json";
+
 export const postWebhook = async (
   endpoint: string,
   payload: WebhookPayload,
-  dependencies: { fetcher?: WebhookFetch; timeoutMs?: number } = {},
+  dependencies: {
+    fetcher?: WebhookFetch;
+    timeoutMs?: number;
+    policy?: WebhookEndpointPolicy;
+  } = {},
 ): Promise<WebhookResponse> => {
-  const validation = validateWebhookUrl(endpoint);
+  // Re-validated here rather than trusted from the caller: this is the last
+  // place before the request, and the default policy is HTTPS-only, so a caller
+  // that forgets to pass one cannot post plaintext by omission.
+  const validation = validateWebhookUrl(endpoint, dependencies.policy ?? {});
   if (!validation.ok) throw new Error(validation.message);
 
   const controller = new AbortController();
   const timeout = globalThis.setTimeout(() => controller.abort(), dependencies.timeoutMs ?? 8000);
   try {
     const response = await (dependencies.fetcher ?? globalThis.fetch)(validation.url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+      method: WEBHOOK_REQUEST_METHOD,
+      headers: { "Content-Type": WEBHOOK_CONTENT_TYPE },
       body: JSON.stringify(payload),
       credentials: "omit",
       cache: "no-store",

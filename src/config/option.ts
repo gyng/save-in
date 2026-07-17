@@ -117,7 +117,9 @@ export const OptionsManagement: OptionsManagementApi = {
       "Extension IDs allowed to start downloads through the external API, one per line.",
     webmcpEnabled: "Register the WebMCP tools an AI agent can call on the options page.",
     webhookEnabled: "Send one HTTPS webhook after a non-private direct Save In save command.",
-    webhookUrl: "User-selected HTTPS endpoints for save webhooks, one per line.",
+    webhookUrl: "User-selected endpoints for save webhooks, one per line.",
+    webhookAllowInsecure:
+      "Accept plaintext http:// webhook endpoints in addition to https:// ones.",
     webhookIncludePageUrl: "Include the containing page URL in save webhooks.",
     webhookIncludePageTitle: "Include the containing page title in save webhooks.",
     webhookIncludeSelectionText: "Include selected text in save webhooks when available.",

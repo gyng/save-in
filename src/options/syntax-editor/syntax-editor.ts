@@ -1,6 +1,7 @@
 import { getMessage } from "../../platform/localization.ts";
 import {
   analyzeSyntax,
+  type SyntaxAnalysisOptions,
   type SyntaxEditorDiagnostic,
   type SyntaxEditorLanguage,
   type SyntaxSnapshot,
@@ -19,6 +20,7 @@ export const SYNTAX_EDITOR_LINE_SELECTED_EVENT = "syntax-editor-line-selected";
 
 const controllers = new WeakMap<HTMLTextAreaElement, SyntaxEditorController>();
 const pendingDiagnostics = new WeakMap<HTMLTextAreaElement, readonly SyntaxEditorDiagnostic[]>();
+const analysisOptions = new WeakMap<HTMLTextAreaElement, SyntaxAnalysisOptions>();
 
 const diagnosticText = (message: string): string => {
   switch (message) {
@@ -36,6 +38,8 @@ const diagnosticText = (message: string): string => {
       return getMessage("webhookEndpointMalformed") || message;
     case "webhookEndpointNotHttps":
       return getMessage("webhookEndpointNotHttps") || message;
+    case "webhookEndpointNotHttpOrHttps":
+      return getMessage("webhookEndpointNotHttpOrHttps") || message;
     case "webhookEndpointCredentials":
       return getMessage("webhookEndpointCredentials") || message;
     case "webhookEndpointFragment":
@@ -250,7 +254,7 @@ export const createSyntaxEditor = (
   textarea.setAttribute("wrap", "off");
 
   let externalDiagnostics = pendingDiagnostics.get(textarea) ?? [];
-  let snapshot = analyzeSyntax(language, textarea.value);
+  let snapshot = analyzeSyntax(language, textarea.value, analysisOptions.get(textarea) ?? {});
   let renderedDiagnostics: readonly SyntaxEditorDiagnostic[] = [];
   let characterWidth = 0;
   let tooltipPinned = false;
@@ -316,7 +320,7 @@ export const createSyntaxEditor = (
   };
 
   const refresh = () => {
-    snapshot = analyzeSyntax(language, textarea.value);
+    snapshot = analyzeSyntax(language, textarea.value, analysisOptions.get(textarea) ?? {});
     renderedDiagnostics = renderOverlay(overlay, snapshot, externalDiagnostics);
     renderGutter(gutter, snapshot, renderedDiagnostics);
     syncValidationSummary(renderedDiagnostics);
@@ -534,6 +538,17 @@ export const setSyntaxEditorDiagnostics = (
 ): void => {
   pendingDiagnostics.set(textarea, diagnostics);
   controllers.get(textarea)?.setDiagnostics(diagnostics);
+};
+
+// Stashed against the textarea like pendingDiagnostics, so a panel can settle
+// its dialect's grammar before setupSyntaxEditors() has built the editor, and
+// change it afterwards without holding the controller.
+export const setSyntaxEditorAnalysisOptions = (
+  textarea: HTMLTextAreaElement,
+  options: SyntaxAnalysisOptions,
+): void => {
+  analysisOptions.set(textarea, options);
+  controllers.get(textarea)?.refresh();
 };
 
 export const setupSyntaxEditors = (): SyntaxEditorController[] => {

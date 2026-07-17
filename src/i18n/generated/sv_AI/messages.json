@@ -617,7 +617,7 @@
     "message": "Dirigera webbläsarnedladdningar med routningsregler"
   },
   "o_cRouteBrowserDownloadsHelp": {
-    "message": "När de stöds kan matchande regler byta namn på webbläsarnedladdningar eller placera dem i undermappar. Omatchade nedladdningar är oförändrade."
+    "message": "När de stöds kan matchande regler byta namn på webbläsarnedladdningar eller placera dem i undermappar. Lägg till dem under Rutningsregler › + Lägg till regel. Omatchade nedladdningar är oförändrade."
   },
   "o_cRouteBrowserDownloadsFirefox": {
     "message": "Omdirigera matchande webbläsarnedladdningar"

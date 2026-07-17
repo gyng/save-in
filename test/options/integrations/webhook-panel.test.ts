@@ -10,6 +10,7 @@ import { MESSAGE_TYPES } from "../../../src/shared/constants.ts";
 const markup = () => {
   document.body.innerHTML = `
     <textarea id="webhookUrl"></textarea>
+    <input type="checkbox" id="webhookAllowInsecure">
     <input type="checkbox" id="webhookEnabled" disabled>
     <span id="webhook-state-badge"></span>
     <button id="webhook-test" disabled>Send test</button>
@@ -255,7 +256,7 @@ test("sends a privacy-minimal test and reports endpoint rejection", async () => 
   await vi.waitFor(() =>
     expect(document.querySelector("#webhook-status")?.textContent).toBe("webhookTestRejected"),
   );
-  expect(ports.post).toHaveBeenCalledWith("https://hooks.example/test");
+  expect(ports.post).toHaveBeenCalledWith("https://hooks.example/test", { allowInsecure: false });
   expect(document.querySelector("#webhook-status")?.classList.contains("feedback-error")).toBe(
     true,
   );
@@ -476,4 +477,72 @@ test("saves a list of endpoints, tests every one, and names a bad line", async (
   expect(endpoint.validationMessage).toContain("HTTPS");
   expect(ports.apply).not.toHaveBeenCalled();
   expect(button.disabled).toBe(true);
+});
+
+test("takes an http endpoint only once the checkbox says so, and applies both in one write", async () => {
+  const ports = dependencies();
+  setupWebhookPanel(ports);
+  const endpoint = document.querySelector<HTMLTextAreaElement>("#webhookUrl")!;
+  const allowInsecure = document.querySelector<HTMLInputElement>("#webhookAllowInsecure")!;
+  const button = document.querySelector<HTMLButtonElement>("#webhook-test")!;
+
+  endpoint.value = "http://hooks.example/save";
+  endpoint.dispatchEvent(new FocusEvent("blur"));
+  await Promise.resolve();
+  expect(ports.apply).not.toHaveBeenCalled();
+  expect(button.disabled).toBe(true);
+
+  // Ticking the box has to carry the list with it: the write boundary reads the
+  // flag from the same config, so the line is refused if the flag arrives alone.
+  allowInsecure.checked = true;
+  allowInsecure.dispatchEvent(new Event("change"));
+  await vi.waitFor(() => expect(ports.apply).toHaveBeenCalled());
+  expect(ports.apply).toHaveBeenCalledWith({
+    webhookAllowInsecure: true,
+    webhookUrl: "http://hooks.example/save",
+  });
+  expect(button.disabled).toBe(false);
+});
+
+test("stops trusting a stored http endpoint the moment the checkbox is cleared", async () => {
+  const ports = dependencies();
+  setupWebhookPanel(ports);
+  const endpoint = document.querySelector<HTMLTextAreaElement>("#webhookUrl")!;
+  const allowInsecure = document.querySelector<HTMLInputElement>("#webhookAllowInsecure")!;
+  const button = document.querySelector<HTMLButtonElement>("#webhook-test")!;
+
+  allowInsecure.checked = true;
+  allowInsecure.dispatchEvent(new Event("change"));
+  endpoint.value = "http://hooks.example/save";
+  endpoint.dispatchEvent(new FocusEvent("blur"));
+  await vi.waitFor(() => expect(button.disabled).toBe(false));
+
+  vi.mocked(ports.apply).mockClear();
+  allowInsecure.checked = false;
+  allowInsecure.dispatchEvent(new Event("change"));
+  await vi.waitFor(() => expect(ports.apply).toHaveBeenCalled());
+
+  // Tightening the setting writes only the flag. The line stays for the user to
+  // fix, and says why it is no longer one that would be sent to.
+  expect(ports.apply).toHaveBeenCalledWith({ webhookAllowInsecure: false });
+  expect(button.disabled).toBe(true);
+  endpoint.dispatchEvent(new FocusEvent("blur"));
+  await Promise.resolve();
+  expect(endpoint.validationMessage).toContain("Line 1");
+});
+
+test("previews the request it would make, not just the body", async () => {
+  const ports = dependencies();
+  setupWebhookPanel(ports);
+  const endpoint = document.querySelector<HTMLTextAreaElement>("#webhookUrl")!;
+  const preview = document.querySelector<HTMLElement>("#webhook-payload-preview")!;
+
+  // With nothing usable to send to, the request line still has to name a target.
+  expect(preview.textContent).toContain("POST https://hooks.example.com/save");
+  expect(preview.textContent).toContain("Content-Type: application/json");
+  expect(preview.textContent).toContain('"event": "save"');
+
+  endpoint.value = "https://real.example/save?token=abc";
+  endpoint.dispatchEvent(new Event("input"));
+  expect(preview.textContent).toContain("POST https://real.example/save?token=abc");
 });

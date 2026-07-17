@@ -155,16 +155,36 @@ describe("syntax editor model", () => {
     ]);
   });
 
-  test("highlights an accepted endpoint that has no :// as one span", () => {
-    // new URL() accepts this and normalizes it to https://hooks.example.com/save,
-    // so the endpoint is valid but has no scheme separator to split on.
+  test("marks a URL that only new URL() would repair", () => {
+    // new URL("https:/hooks.example.com/save") parses, and its href is the
+    // two-slash form. The line is still a typo, so it is reported rather than
+    // silently corrected into a URL nobody typed.
     const source = "https:/hooks.example.com/save";
     const snapshot = analyzeSyntax("webhook-endpoints", source);
 
     expect(
       snapshot.tokens.map(({ kind, start, end }) => [kind, tokenText(source, start, end)]),
-    ).toEqual([["destination-value", "https:/hooks.example.com/save"]]);
-    expect(snapshot.diagnostics).toEqual([]);
+    ).toEqual([["invalid", "https:/hooks.example.com/save"]]);
+    expect(snapshot.diagnostics).toEqual([
+      expect.objectContaining({ line: 1, message: "webhookEndpointMalformed" }),
+    ]);
+  });
+
+  test("accepts plaintext endpoints only when the analysis allows them", () => {
+    const source = "http://hooks.example.com/save";
+
+    expect(analyzeSyntax("webhook-endpoints", source).diagnostics).toEqual([
+      expect.objectContaining({ line: 1, message: "webhookEndpointNotHttps" }),
+    ]);
+    expect(
+      analyzeSyntax("webhook-endpoints", source, { webhookAllowInsecure: true }).diagnostics,
+    ).toEqual([]);
+    // Widened by one scheme, not opened up.
+    expect(
+      analyzeSyntax("webhook-endpoints", "ftp://hooks.example.com/save", {
+        webhookAllowInsecure: true,
+      }).diagnostics,
+    ).toEqual([expect.objectContaining({ message: "webhookEndpointNotHttpOrHttps" })]);
   });
 
   test("uses grammar context for directory and routing completions", () => {
