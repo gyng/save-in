@@ -14,6 +14,7 @@ export type WebExtensionCapabilities = {
   conflictActionPrompt: boolean;
   downloadRequestHeaders: boolean;
   notificationButtons: boolean;
+  menuItemIcons: boolean;
   shortcutFileExtensions: boolean;
 };
 
@@ -27,6 +28,7 @@ export let WEB_EXTENSION_CAPABILITIES: WebExtensionCapabilities = {
   conflictActionPrompt: false,
   downloadRequestHeaders: false,
   notificationButtons: false,
+  menuItemIcons: false,
   shortcutFileExtensions: false,
 };
 export let CURRENT_BROWSER = BROWSERS.UNKNOWN;
@@ -63,6 +65,13 @@ export const detectCapabilities = (currentBrowser: string): WebExtensionCapabili
   // (and exposes no onButtonClicked), so button-bearing notifications are
   // Chrome-only progressive enhancement.
   notificationButtons: currentBrowser === BROWSERS.CHROME,
+  // The mirror of notificationButtons: Chrome's contextMenus.create rejects the
+  // icons property outright, and does it by schema validation — a synchronous
+  // throw ("Error at parameter 'createProperties': Unexpected property:
+  // 'icons'", measured on 150), not a lastError. So it cannot be asked politely,
+  // and asking anyway made an exception the control flow of every menu build.
+  // Firefox honours icons on any item, which is what themes the menu (#184).
+  menuItemIcons: currentBrowser === BROWSERS.FIREFOX,
   // Firefox 112 (bug 1815062 / CVE-2023-29542) moved the dangerous-extension
   // check into the sanitizer downloads.download validates its filename against,
   // and never gave the extension API the allowInvalidFilenames opt-out the

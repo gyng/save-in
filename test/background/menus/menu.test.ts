@@ -149,7 +149,7 @@ const setupMenuCreationMocks = () => {
     getMessage: (key) => global.browser.i18n.getMessage(key),
     recordRuleErrors: (errors) => backgroundRuntime.optionErrors.filenamePatterns.push(...errors),
   });
-  detector.features = { tabContextMenus: true };
+  detector.features = { tabContextMenus: true, menuItemIcons: true };
   Object.assign(options, {
     keyRoot: "q",
     keyLastUsed: "a",
@@ -444,17 +444,16 @@ describe("menu creation", () => {
       expect(item.icons).toEqual({ 16: "icons/ic_update_black_24px.svg" });
     });
 
-    test("falls back to an icon-less item on browsers that crash on icons", () => {
-      vi.mocked(global.browser.contextMenus.create).mockImplementationOnce(() => {
-        throw new Error("icons not supported");
-      });
+    test("creates an icon-less item on browsers that take no menu icons", () => {
+      // Chrome rejects `icons` by schema validation, so it is never offered one
+      // rather than asked and caught. The item itself is not optional.
+      detector.features.menuItemIcons = false;
 
       menu.addLastUsed(["link"]);
 
-      expect(created()).toHaveLength(2);
-      expect(created()[0]!.icons).toBeDefined();
-      expect(created()[1]!.icons).toBeUndefined();
-      expect(created()[1]!.id).toBe(menu.IDS.LAST_USED);
+      expect(created()).toHaveLength(1);
+      expect(created()[0]!.id).toBe(menu.IDS.LAST_USED);
+      expect(created()[0]!.icons).toBeUndefined();
     });
 
     test("restores an aliased last-used title after persistence", async () => {

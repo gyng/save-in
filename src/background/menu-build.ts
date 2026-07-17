@@ -1,4 +1,5 @@
 import { webExtensionApi } from "../platform/web-extension-api.ts";
+import { WEB_EXTENSION_CAPABILITIES } from "../platform/chrome-detector.ts";
 import { getMessage } from "../platform/localization.ts";
 
 // Context menu construction: parses the paths option into a menu tree
@@ -246,6 +247,13 @@ export const setAccesskey = (str: string, key: string | number, override?: strin
 };
 
 export const addRoot = (contexts: readonly MenuContext[]) => {
+  // No icons here, and it is not an oversight: Firefox takes a custom icon only
+  // on an item inside a submenu, and this is the top-level one. Giving it icons
+  // makes this create fail, which takes every child keyed to parentId with it —
+  // measured, as a Firefox e2e that goes 3/3 to 1/3 and a background that never
+  // reports ready. So the root wears the manifest icon, which is dark at every
+  // size, and the dark-mode half of #184 the reporter screenshotted is the
+  // browser's to fix rather than ours (its Last used half is fixed below).
   webExtensionApi.contextMenus.create({
     id: MENU_IDS.ROOT,
     title: setAccesskey(getMessage("contextMenuRoot"), options.keyRoot),
@@ -375,44 +383,53 @@ export const addShowDefaultFolder = (contexts: readonly MenuContext[]) => {
   });
 };
 
-export const addLastUsed = (contexts: readonly MenuContext[]) => {
-  const lastUsedTitle =
-    menuState.lastUsedMeta?.title || menuState.lastUsedPath || getMessage("contextMenuLastUsed");
-  const lastUsedMenuOptions = {
-    id: MENU_IDS.LAST_USED,
-    title: setAccesskey(lastUsedTitle, options.keyLastUsed),
-    enabled: Boolean(menuState.lastUsedPath),
-    contexts: asMenuContexts(contexts),
-    parentId: MENU_IDS.ROOT,
-  };
-
-  // Match the menu icon to the browser theme (#184). Chrome's service
-  // worker has no matchMedia (and rejects `icons` anyway — the catch
-  // handles it); Firefox's event page has both.
+// Match the menu icon to the browser theme (#184). Chrome's service worker has
+// no matchMedia, so this reads false there — which costs nothing, because Chrome
+// rejects `icons` outright anyway (measured on 150: contextMenus.create throws
+// "Unexpected property: 'icons'" from schema validation, which is why the
+// caller below asks rather than checks). Firefox's event page has both.
+const prefersDarkMenu = (): boolean => {
   const matchMediaValue = Reflect.get(globalThis, "matchMedia");
   const mediaQuery =
     typeof matchMediaValue === "function"
       ? Reflect.apply(matchMediaValue, globalThis, ["(prefers-color-scheme: dark)"])
       : null;
-  const darkMode =
+  return (
     mediaQuery !== null &&
     typeof mediaQuery === "object" &&
-    Boolean(Reflect.get(mediaQuery, "matches"));
-  const icon = darkMode ? "icons/ic_update_white_24px.svg" : "icons/ic_update_black_24px.svg";
+    Boolean(Reflect.get(mediaQuery, "matches"))
+  );
+};
 
-  // Chrome, FF < 57 crash when icons is supplied
-  // There is no easy way to detect support, so use a try/catch
-  try {
-    webExtensionApi.contextMenus.create(
-      Object.assign({}, lastUsedMenuOptions, {
-        icons: {
-          16: icon,
-        },
-      }),
-    );
-  } catch (e) {
-    webExtensionApi.contextMenus.create(lastUsedMenuOptions);
+// Where the browser takes icons, theme them; where it does not, the plain item
+// is the whole feature. Both callers need that shape, so it lives here once.
+const createMenuWithThemedIcon = (
+  menuOptions: Parameters<typeof webExtensionApi.contextMenus.create>[0],
+  lightIcon: string,
+  darkIcon: string,
+): void => {
+  if (!WEB_EXTENSION_CAPABILITIES.menuItemIcons) {
+    webExtensionApi.contextMenus.create(menuOptions);
+    return;
   }
+  const icon = prefersDarkMenu() ? darkIcon : lightIcon;
+  webExtensionApi.contextMenus.create(Object.assign({}, menuOptions, { icons: { 16: icon } }));
+};
+
+export const addLastUsed = (contexts: readonly MenuContext[]) => {
+  const lastUsedTitle =
+    menuState.lastUsedMeta?.title || menuState.lastUsedPath || getMessage("contextMenuLastUsed");
+  createMenuWithThemedIcon(
+    {
+      id: MENU_IDS.LAST_USED,
+      title: setAccesskey(lastUsedTitle, options.keyLastUsed),
+      enabled: Boolean(menuState.lastUsedPath),
+      contexts: asMenuContexts(contexts),
+      parentId: MENU_IDS.ROOT,
+    },
+    "icons/ic_update_black_24px.svg",
+    "icons/ic_update_white_24px.svg",
+  );
 };
 
 export const clearPathMappings = () => {
