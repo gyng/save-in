@@ -27,7 +27,7 @@
     "message": "Save In"
   },
   "extensionDescription": {
-    "message": "画像、ビデオ、オーディオ、リンク、選択したテキスト、ページをデフォルトのダウンロード フォルダー内のフォルダーに保存します。"
+    "message": "画像、ビデオ、オーディオ、リンク、選択したテキスト、ページをデフォルトのダウンロードフォルダー内のフォルダーに保存します。"
   },
   "manifestActionListPageSources": {
     "message": "ページソースを一覧表示"
@@ -171,7 +171,7 @@
     "message": "このタブとその右側にあるすべてのタブを保存します"
   },
   "tabstripMenuSaveRightTabsMatched": {
-    "message": "このタブとその右側にあるすべてのタブを保存します (ルーティング ルールが必要です)"
+    "message": "このタブとその右側にあるすべてのタブを保存します（ルーティングルールが必要です）"
   },
   "o_sDownloads": {
     "message": "保存メニュー"
@@ -189,7 +189,7 @@
     "message": "既存のファイル"
   },
   "o_lContextMenuBehaviorHelp": {
-    "message": "コンテキスト メニューに表示する Save In アクションを選択します。"
+    "message": "コンテキストメニューに表示する Save In アクションを選択します。"
   },
   "o_lAlsoAskWhen": {
     "message": "また、次の場合に保存場所を尋ねます。"
@@ -444,7 +444,7 @@
     "message": "クリックして表示"
   },
   "o_lAccessKeysInstruction": {
-    "message": "Save In メニュー項目のアクセス キーを設定します。"
+    "message": "Save In メニュー項目のアクセスキーを設定します。"
   },
   "o_cLastUsedMenu": {
     "message": "前回使用したメニュー項目を表示"
@@ -453,7 +453,7 @@
     "message": "リンクのアクションを表示する"
   },
   "o_cPreferLinks": {
-    "message": "埋め込みメディアの代わりにリンク ターゲットを保存する"
+    "message": "埋め込みメディアの代わりにリンクターゲットを保存する"
   },
   "o_cSaveText": {
     "message": "選択したテキストに対するアクションを表示する"
@@ -495,7 +495,7 @@
     "message": "ファイルがすでに存在する場合:"
   },
   "o_cOpenDialogIfNoRulesMatch": {
-    "message": "ルーティング ルールが一致しない場合に保存場所を尋ねる"
+    "message": "ルーティングルールが一致しない場合に保存場所を尋ねる"
   },
   "o_cExclusiveMode": {
     "message": "フォルダーの選択肢を非表示"
@@ -510,7 +510,7 @@
     "message": "ダウンロードが失敗した場合に通知する"
   },
   "o_cNotifyMatch": {
-    "message": "ルーティング ルールが一致した場合に通知する"
+    "message": "ルーティングルールが一致した場合に通知する"
   },
   "o_cSaveShortcutsAs": {
     "message": "ファイル形式"
@@ -546,10 +546,10 @@
     "message": "タブのコンテキストメニューからタブをショートカットファイルとして保存"
   },
   "o_cKeyboardShortcutSaveInMenu": {
-    "message": "Save In コンテキスト メニュー項目"
+    "message": "Save In コンテキストメニュー項目"
   },
   "o_cKeyboardShortcutSubmenu": {
-    "message": "最後に使用したコンテキスト サブメニュー項目"
+    "message": "最後に使用したコンテキストサブメニュー項目"
   },
   "o_cKeyboardShortcutNumbers": {
     "message": "コンテキストサブメニュー項目に数字キーのショートカットを追加する"
@@ -582,7 +582,7 @@
     "message": "進むボタン(5)"
   },
   "o_cKeyboardShortcutModifierHelp": {
-    "message": "選択した修飾キーを押したまま、選択したマウス ボタンをクリックします。マウス ボタンのみを使用するには、両方の修飾キーに「None」を選択します。変更は既存のページに適用されます。"
+    "message": "選択した修飾キーを押したまま、選択したマウスボタンをクリックします。マウスボタンのみを使用するには、両方の修飾キーに「None」を選択します。変更は既存のページに適用されます。"
   },
   "o_cRestoreDefaults": {
     "message": "デフォルトに戻す"
@@ -699,13 +699,13 @@
     "message": "優先リンクの正規表現が無効です"
   },
   "o_cNotifyLinkPreferred": {
-    "message": "埋め込みメディアの代わりにリンク ターゲットがダウンロードされたときに通知する"
+    "message": "埋め込みメディアの代わりにリンクターゲットがダウンロードされたときに通知する"
   },
   "o_cCloseTabOnSave": {
     "message": "保存したら各タブを閉じます"
   },
   "o_lClickToSaveButton": {
-    "message": "クリックして保存するマウス ボタン"
+    "message": "クリックして保存するマウスボタン"
   },
   "o_lDebugLog": {
     "message": "最近の失敗"
@@ -732,10 +732,10 @@
     "message": "フィルター"
   },
   "html_aboutSaveIn": {
-    "message": "Save Inについて"
+    "message": "Save In について"
   },
   "html_absolutePathsAndHiddenPathSegmentsSuchAs": {
-    "message": "、絶対パス、および次のような非表示のパス セグメント"
+    "message": "、絶対パス、および次のような非表示のパスセグメント"
   },
   "html_add": {
     "message": "。コメントを付けるには行末に"
@@ -753,7 +753,7 @@
     "message": "はサポートされていません。"
   },
   "html_askAnAiAgentToDraftADownloadsMenu": {
-    "message": "AI エージェントにフォルダー メニューの下書きを依頼する"
+    "message": "AI エージェントにフォルダーメニューの下書きを依頼する"
   },
   "html_assignAnAccessKey": {
     "message": "アクセスキーを割り当てる"
@@ -765,7 +765,7 @@
     "message": "ブラウザでは、拡張機能の保存先が次のフォルダー内に限定されます："
   },
   "html_buildTheDestinationsAndSubmenusShownInSaveIn": {
-    "message": "Save In のコンテキスト メニューに表示されるフォルダーとサブメニューを選択します。"
+    "message": "Save In のコンテキストメニューに表示されるフォルダーとサブメニューを選択します。"
   },
   "html_butShowsCatPictures": {
     "message": "、ただし「猫の写真」が表示されます。"
@@ -867,7 +867,7 @@
     "message": "ウィキ"
   },
   "html_advancedUseCaptureGroups": {
-    "message": "詳細: キャプチャ グループを使用する"
+    "message": "詳細: キャプチャグループを使用する"
   },
   "html_andItsSubdomainsUse": {
     "message": "example.com とそのサブドメインからの HTTPS ダウンロードに一致します。"
@@ -876,7 +876,7 @@
     "message": "、およびその後のグループ"
   },
   "html_askAnAiAgentToDraftRoutingRules": {
-    "message": "AI エージェントにルーティング ルールの草案を依頼する"
+    "message": "AI エージェントにルーティングルールの草案を依頼する"
   },
   "html_automaticallyMoveOrRenameDownloadsWhenTheirFilenameSource": {
     "message": "ファイル名、ソース、ページ、またはコンテキストが一致すると、ダウンロードの移動または名前変更が自動的に行われます。"
@@ -930,7 +930,7 @@
     "message": "URL フィルターでダウンロードを照合する方法"
   },
   "html_howRoutingRulesWork": {
-    "message": "ルーティング ルールの仕組み"
+    "message": "ルーティングルールの仕組み"
   },
   "html_matchesHttpsFileUrlsOn": {
     "message": "例"
@@ -1134,7 +1134,7 @@
     "message": "統合ガイド"
   },
   "html_letTrustedExtensionsSendUrlsThroughSaveInS": {
-    "message": "信頼できる拡張機能が Save In のルーティング ルールと名前変更ルールを介して URL を送信できるようにします。"
+    "message": "信頼できる拡張機能が Save In のルーティングルールと名前変更ルールを介して URL を送信できるようにします。"
   },
   "html_mdnMatchPatterns": {
     "message": "MDN：マッチパターン"
@@ -1269,10 +1269,10 @@
     "message": "をサポートするブラウザの場合"
   },
   "html_keepsSettingsRoutingRulesLocalHistoryAndRestartSafe": {
-    "message": "設定、ルーティング ルール、ローカル履歴、再起動しても安全な状態を保持します。"
+    "message": "設定、ルーティングルール、ローカル履歴、再起動しても安全な状態を保持します。"
   },
   "html_letsChromeConvertFetchedFileDataIntoTemporaryDownload": {
-    "message": "Chrome で、フェッチしたファイル データを一時的なダウンロード URL に変換します。"
+    "message": "Chrome で、フェッチしたファイルデータを一時的なダウンロード URL に変換します。"
   },
   "html_loadingClauses": {
     "message": "条項をロード中…"
@@ -1314,7 +1314,7 @@
     "message": "Save In はローカル処理を優先するダウンロード支援ツールです。コンテキストメニューのフォルダー、ルーティングルール、名前変更、ページソース、ダウンロード履歴を使ってファイルを整理できます。"
   },
   "html_saveInRegistersToolsAnAiAgentCanCall": {
-    "message": ", Save In は、このオプション ページが開いているときに AI エージェントが呼び出せるツール (設定の変更、フォルダー メニューの構築、ルーティング ルールの作成など) を登録します。"
+    "message": ", Save In は、このオプションページが開いているときに AI エージェントが呼び出せるツール（設定の変更、フォルダーメニューの構築、ルーティングルールの作成など）を登録します。"
   },
   "html_showsSaveInCommandsOnPagesLinksMediaAnd": {
     "message": "ページ、リンク、メディア、タブに Save In コマンドを表示します。"
@@ -1347,7 +1347,7 @@
     "message": "も動作します）"
   },
   "html_amOrPmLocalTime": {
-    "message": "午前または午後 (現地時間)"
+    "message": "午前または午後（現地時間）"
   },
   "html_currentDate": {
     "message": "現在の日付"
@@ -1365,7 +1365,7 @@
     "message": "現在の曜日（英語）"
   },
   "html_currentHour24Hour": {
-    "message": "現在の時間 (24 時間制)"
+    "message": "現在の時間（24 時間制）"
   },
   "html_currentMinute": {
     "message": "現在の分"
@@ -1374,7 +1374,7 @@
     "message": "当月"
   },
   "html_currentMonthNameEnglish": {
-    "message": "現在の月の名前 (英語)"
+    "message": "現在の月の名前（英語）"
   },
   "html_currentSecond": {
     "message": "現在の秒"
@@ -1407,7 +1407,7 @@
     "message": "ページタイトル、小文字でアンダースコア付き"
   },
   "html_pathPartOfTheSourceUrlSeparatorsAreSanitized": {
-    "message": "ソース URL のパス部分 (区切り文字はサニタイズされます)"
+    "message": "ソース URL のパス部分（区切り文字はサニタイズされます）"
   },
   "html_sourceHostnameWithoutSubdomains": {
     "message": "サブドメインのないソースホスト名"
@@ -1422,16 +1422,16 @@
     "message": "ページ上で現在選択されているテキスト"
   },
   "html_theNaiveFilenameUrlBasedUseTheRoutingFeature": {
-    "message": "URL から派生したファイル名。これが不正確な場合は、ルーティング ルールを使用してください。"
+    "message": "URL から派生したファイル名。これが不正確な場合は、ルーティングルールを使用してください。"
   },
   "html_titleOfThePage": {
     "message": "ページのタイトル"
   },
   "html_urlOfThePage": {
-    "message": "ページのURL"
+    "message": "ページの URL"
   },
   "html_urlOfTheSource": {
-    "message": "ソースのURL"
+    "message": "ソースの URL"
   },
   "html_usableEverywhere": {
     "message": "どこでも使える"
@@ -1473,10 +1473,10 @@
     "message": "完全な 64 文字の小文字 SHA-256。と合わせて計算されます。"
   },
   "html_fullActualFilenameAfterContentDisposition": {
-    "message": "解決されたファイル名 (Content-Disposition を含む)"
+    "message": "解決されたファイル名（Content-Disposition を含む）"
   },
   "html_handyForExtensionlessOrQuerySuffixedUrls": {
-    "message": "。拡張子のない URL またはクエリ サフィックスのある URL に便利です。"
+    "message": "。拡張子のない URL またはクエリサフィックスのある URL に便利です。"
   },
   "html_menuStructure": {
     "message": "メニュー構成"
@@ -1509,7 +1509,7 @@
     "message": "両方の変数が使用される場合。"
   },
   "html_clausesAreOnlyUsedInRuleDefinitionsForRouting": {
-    "message": "ルーティング ルールは、句を使用して、どのダウンロードを移動または名前変更するかを決定します。"
+    "message": "ルーティングルールは、句を使用して、どのダウンロードを移動または名前変更するかを決定します。"
   },
   "html_templatesProvideReadyMadeRoutingRulesYouCanAddAndCustomize": {
     "message": "テンプレートにはカスタマイズできる既製のルールがあります。Save In は最初の一致を使用するため、一般的なテンプレートは特定のテンプレートより後に配置してください。"
@@ -1548,10 +1548,10 @@
     "message": "ブラウザーから提供されるリンクテキストと一致します。タブの保存ではタブのタイトルが使用されます。"
   },
   "html_matchesTheMediaType": {
-    "message": "メディア タイプと一致します:"
+    "message": "メディアタイプと一致します:"
   },
   "html_matchesTheMenuIndexOfTheClickedMenuItem": {
-    "message": "選択したメニュー項目のインデックス (1、2、3…) と一致します。"
+    "message": "選択したメニュー項目のインデックス（1、2、3…）と一致します。"
   },
   "html_directoryMatcherDescription": {
     "message": "Save In メニューで選んだフォルダーに一致します。フォルダーを選ばない保存では空になります。"
@@ -1575,7 +1575,7 @@
     "message": "保存対象ソースの URL と一致します。"
   },
   "html_matchesTheUrlDerivedExtensionLegacyNameUse": {
-    "message": "URL 由来の拡張子 (従来の名前) と一致します。使用する"
+    "message": "URL 由来の拡張子（従来の名前）と一致します。使用する"
   },
   "html_matchesTheUrlOfTheCurrentFrame": {
     "message": "現在のフレーム URL と一致します。"
@@ -1602,7 +1602,7 @@
     "message": "ダウンロードを指定したパスへ移動するか、指定したパターンで名前を変更します。フォルダーへ移動するには、パターンの末尾に"
   },
   "html_selectsTheMatcherForRegexCaptureGroupVariables": {
-    "message": "正規表現キャプチャ グループが利用可能なマッチャーを選択します。"
+    "message": "正規表現キャプチャグループが利用可能なマッチャーを選択します。"
   },
   "html_splitMultipleCaptureTargetsWithA": {
     "message": "。複数のキャプチャ対象を区切る"
@@ -1901,13 +1901,13 @@
     "message": "どのブラウザでも動作します"
   },
   "o_lShortcutFormatLegacyInternet": {
-    "message": "従来のインターネット ショートカット"
+    "message": "従来のインターネットショートカット"
   },
   "o_lShortcutFormatMac": {
     "message": "ネイティブ macOS ショートカット"
   },
   "o_lShortcutFormatWindows": {
-    "message": "Windows インターネット ショートカット"
+    "message": "Windows インターネットショートカット"
   },
   "ruleTemplateCategoryMedia": {
     "message": "メディア"
@@ -2365,7 +2365,7 @@
     "message": "リセットすると、ブラウザーが推奨する既定値に戻ります。"
   },
   "o_lShortcutFormatLinux": {
-    "message": "Linux デスクトップ ショートカット"
+    "message": "Linux デスクトップショートカット"
   },
   "html_closePrivacyPolicy": {
     "message": "プライバシーポリシーを閉じる"
@@ -3908,22 +3908,22 @@
     }
   },
   "html_advancedFetchADifferentUrl": {
-    "message": "詳細: 別のURLを取得する"
+    "message": "詳細: 別の URL を取得する"
   },
   "html_captureReferencesAndRoutingVariablesSubstituteVerbatim": {
     "message": "、キャプチャ参照とルーティング変数はそのまま置き換わり、ファイル名のサニタイズは行われません。"
   },
   "html_downloadsFromAnExpandedUrlTemplateInsteadOfTheMatched": {
-    "message": "一致したソースではなく、展開されたURLテンプレートからダウンロードします。"
+    "message": "一致したソースではなく、展開された URL テンプレートからダウンロードします。"
   },
   "html_downloadsFromThisUrlTemplateInsteadOfTheMatchedSource": {
-    "message": "一致したソースではなく、このURLテンプレートからダウンロードします。"
+    "message": "一致したソースではなく、この URL テンプレートからダウンロードします。"
   },
   "html_downloadsTheOriginalResolutionImageInstead": {
     "message": "小さいプレビューではなく、元の解像度の画像をダウンロードします。"
   },
   "html_fetchClauseCompatibility": {
-    "message": "通常のブラウザーダウンロードのルーティングではスキップされます。名前の変更はできますが、URLの置き換えはできません。メニュー、クリックして保存、自動保存では引き続き使用されますが、展開後に使用可能な HTTP(S) URL にならない場合は保存に失敗します。"
+    "message": "通常のブラウザーダウンロードのルーティングではスキップされます。名前の変更はできますが、URL の置き換えはできません。メニュー、クリックして保存、自動保存では引き続き使用されますが、展開後に使用可能な HTTP(S) URL にならない場合は保存に失敗します。"
   },
   "html_orLiteral": {
     "message": "または"
@@ -3938,10 +3938,10 @@
     "message": "書き換えテンプレート"
   },
   "routeDebuggerRewrittenUrl": {
-    "message": "書き換え後のURL"
+    "message": "書き換え後の URL"
   },
   "routeVisualFetchAccessible": {
-    "message": "ルール $RULE$: ダウンロードURLを書き換え",
+    "message": "ルール $RULE$: ダウンロード URL を書き換え",
     "placeholders": {
       "rule": {
         "content": "$1",
@@ -3950,7 +3950,7 @@
     }
   },
   "routeVisualFetchLabel": {
-    "message": "ダウンロードURLを書き換え"
+    "message": "ダウンロード URL を書き換え"
   },
   "ruleTemplateCategorySiteFiling": {
     "message": "サイト別整理"
@@ -3965,10 +3965,10 @@
     "message": "スキームを除いたページパス"
   },
   "ruleTemplateRedditOriginalsDescription": {
-    "message": "Redditのプレビュー画像リンクを i.redd.it の元ファイルに書き換えます"
+    "message": "Reddit のプレビュー画像リンクを i.redd.it の元ファイルに書き換えます"
   },
   "ruleTemplateRedditOriginalsName": {
-    "message": "Reddit画像の元データ"
+    "message": "Reddit 画像の元データ"
   },
   "ruleTemplateSluggedTitleRenameDescription": {
     "message": "ファイル名をページタイトルの小文字ハイフン区切りに置き換え、判定された拡張子を保持します"
@@ -3977,22 +3977,22 @@
     "message": "タイトルスラッグへのファイル名変更"
   },
   "ruleTemplateTwitterHandlePrefixDescription": {
-    "message": "TwitterまたはXの投稿から保存したファイルにアカウントのハンドルを先頭に追加します"
+    "message": "Twitter または X の投稿から保存したファイルにアカウントのハンドルを先頭に追加します"
   },
   "ruleTemplateTwitterHandlePrefixName": {
-    "message": "Twitter/Xのハンドルを先頭に追加"
+    "message": "Twitter/X のハンドルを先頭に追加"
   },
   "ruleTemplateTwitterOriginalsDescription": {
-    "message": "TwitterとXの画像リンクを元のフル解像度ファイルに書き換えます"
+    "message": "Twitter と X の画像リンクを元のフル解像度ファイルに書き換えます"
   },
   "ruleTemplateTwitterOriginalsName": {
-    "message": "Twitter/X画像の元データ"
+    "message": "Twitter/X 画像の元データ"
   },
   "ruleTemplateWikimediaOriginalDescription": {
-    "message": "Wikimedia Commonsのサムネイルリンクを元のフルサイズファイルに書き換えます"
+    "message": "Wikimedia Commons のサムネイルリンクを元のフルサイズファイルに書き換えます"
   },
   "ruleTemplateWikimediaOriginalName": {
-    "message": "Wikimediaのフルサイズ画像"
+    "message": "Wikimedia のフルサイズ画像"
   },
   "ruleTemplateBlueskyFullsizeName": {
     "message": "Bluesky のフルサイズ画像"

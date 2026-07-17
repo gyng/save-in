@@ -1014,7 +1014,7 @@
     "message": "이미지"
   },
   "html_image128Kb1": {
-    "message": "이미지 · 128KB · #1"
+    "message": "이미지 · 128 KB · #1"
   },
   "html_images": {
     "message": "이미지"
@@ -1080,7 +1080,7 @@
     "message": "비디오"
   },
   "html_video24Mb2": {
-    "message": "비디오 · 2.4MB · #2"
+    "message": "비디오 · 2.4 MB · #2"
   },
   "html_advancedEditIdsAsText": {
     "message": "고급: ID를 텍스트로 편집"
