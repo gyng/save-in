@@ -128,6 +128,10 @@ const seedShowcase = (port, optionsTarget) =>
       page: true,
       enableLastLocation: true,
       contentClickToSave: true,
+      trackBrowserDownloads: true,
+      routeBrowserDownloads: true,
+      browserDownloadFiltersEnabled: true,
+      browserDownloadFilter: "https://downloads.example.com/*",
       sourcePanelEnabled: true,
       sourcePanelBackgrounds: true,
       sourcePanelLive: true,
@@ -300,36 +304,21 @@ const main = async () => {
     await activateOptionsTab(port, optionsTarget, "section-dynamic-downloads");
     await capture(port, optionsTarget, outputDir, SCREENSHOTS[1]);
 
-    await cdp.evalInTarget(
-      port,
-      optionsTarget,
-      `(() => {
-        document.querySelector("#route-debugger-filename").value = "report.pdf";
-        document.querySelector("#route-debugger-source-url").value = "https://docs.example/report.pdf";
-        document.querySelector("#route-debugger-page-url").value = "https://example.com/reports";
-        document.querySelector("#route-debugger-mime").value = "application/pdf";
-        document.querySelector("#route-debugger-context").value = "link";
-        document.querySelector("#route-debugger-run").click();
-        return "running";
-      })()`,
-    );
+    // Browser downloads: the seeded options enable tracking, Chrome's routing,
+    // and the match-pattern filter so the panel shows its active state with the
+    // dependent filter field revealed.
+    await activateOptionsTab(port, optionsTarget, "section-browser-downloads");
     await waitFor(
       () =>
         cdp.evalInTarget(
           port,
           optionsTarget,
-          `document.querySelector("#route-debugger-result")?.dataset.state === "matched"`,
+          `document.querySelector("#trackBrowserDownloads")?.checked === true &&
+            document.querySelector("#browserDownloadFilter")?.value.includes("example.com")`,
         ),
-      "route debugger result",
+      "browser-download options seeded",
     );
-    await cdp.evalInTarget(
-      port,
-      optionsTarget,
-      `document.querySelector(".route-debugger-shell")?.scrollIntoView({ block: "start" });
-       scrollBy(0, -112);
-       document.activeElement?.blur();`,
-    );
-    await capture(port, optionsTarget, outputDir, SCREENSHOTS[4]);
+    await capture(port, optionsTarget, outputDir, SCREENSHOTS[3]);
 
     await cdp.openTab(port, `http://${demoTarget}/store-demo`);
     await waitFor(
@@ -373,7 +362,7 @@ const main = async () => {
     await capture(port, demoTarget, outputDir, SCREENSHOTS[2]);
 
     await activateOptionsTab(port, optionsTarget, "section-history");
-    await capture(port, optionsTarget, outputDir, SCREENSHOTS[3]);
+    await capture(port, optionsTarget, outputDir, SCREENSHOTS[4]);
 
     process.stdout.write(
       `\nChrome Web Store screenshots are ready in ${path.relative(chrome.ROOT, outputDir)}\n`,

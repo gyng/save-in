@@ -66,12 +66,12 @@ describe("Chrome Web Store screenshot plan", () => {
         description: "Page Sources open on a representative media page",
       },
       {
-        filename: "04-history.png",
-        description: "Searchable download history with routed results",
+        filename: "04-browser-downloads.png",
+        description: "Tracking and routing ordinary browser downloads with a match-pattern filter",
       },
       {
-        filename: "05-rule-debugger.png",
-        description: "Route debugger showing why a rule matched and the final filename",
+        filename: "05-history.png",
+        description: "Searchable download history with routed results",
       },
     ]);
   });

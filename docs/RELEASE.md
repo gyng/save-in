@@ -236,10 +236,9 @@ and writes five 1280×800 PNGs to `docs/store-screenshots/` in listing order:
   preview;
 - `02-routing-rules.png`: routing and renaming rules;
 - `03-page-sources.png`: Page Sources on the in-repo demo page;
-- `04-history.png`: searchable history with representative routed downloads;
-  and
-- `05-rule-debugger.png`: the route debugger explaining a matching rule and
-  final filename.
+- `04-browser-downloads.png`: tracking and routing ordinary browser downloads
+  with a match-pattern filter; and
+- `05-history.png`: searchable history with representative routed downloads.
 
 It losslessly recompresses each PNG and validates its dimensions. To use another
 destination:
