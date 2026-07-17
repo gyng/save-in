@@ -970,8 +970,10 @@ describe("onMessage", () => {
     vi.mocked(SaveHistory.getHistoryEntries).mockResolvedValue([
       { id: "history-2", url: "https://x.test/file", downloadId: 23 },
     ]);
+    // The item carries the entry's url so the stored id is verifiable: a real
+    // DownloadItem always reports one, and an unverifiable id is refused.
     vi.mocked(global.browser.downloads.search).mockResolvedValue([
-      { id: 23, state: "complete" } as any,
+      { id: 23, state: "complete", url: "https://x.test/file" } as any,
     ]);
     const sendResponse = vi.fn();
 
@@ -987,6 +989,42 @@ describe("onMessage", () => {
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.HISTORY_CANCEL,
       body: { canceled: true },
+    });
+  });
+
+  test("HISTORY_CANCEL refuses a stored download id that no longer names its download", async () => {
+    // Firefox reassigns download ids per session while history keeps them, so a
+    // row left pending by a restart can name a download the user started later.
+    vi.mocked(SaveHistory.getHistoryEntries).mockResolvedValue([
+      {
+        id: "history-stale",
+        url: "https://x.test/file",
+        downloadId: 7,
+        downloadStartTime: "2026-01-01T00:00:00.000Z",
+      },
+    ]);
+    vi.mocked(global.browser.downloads.search).mockResolvedValue([
+      {
+        id: 7,
+        state: "in_progress",
+        url: "https://other.test/unrelated.zip",
+        startTime: "2026-07-17T00:00:00.000Z",
+      } as any,
+    ]);
+    const sendResponse = vi.fn();
+
+    onMessage(
+      { type: MESSAGE_TYPES.HISTORY_CANCEL, body: { historyId: "history-stale" } },
+      {},
+      sendResponse,
+    );
+    await waitForCall(sendResponse);
+
+    expect(global.browser.downloads.cancel).not.toHaveBeenCalledWith(7);
+    expect(SaveHistory.setHistoryStatus).not.toHaveBeenCalled();
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.HISTORY_CANCEL,
+      body: { canceled: false },
     });
   });
 

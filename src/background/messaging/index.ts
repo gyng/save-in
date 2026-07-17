@@ -155,7 +155,25 @@ const internalHandlers = {
     const entry = historyId
       ? (await getHistoryEntries()).find((candidate) => candidate.id === historyId)
       : undefined;
-    const downloadId = entry?.downloadId ?? active?.downloadId;
+    // A stored id outlives the session that issued it, and Firefox reassigns
+    // download ids per session, so a row a restart left pending can name a
+    // download the user started later — cancelling on the bare id would abort
+    // it and then record USER_CANCELED against this entry for it. Prove the id
+    // still names this entry's download first: the same search-first check undo
+    // and reroute already make before they act. An in-memory transfer's id
+    // needs no proof, because that map dies with the worker and so can only
+    // hold ids this session issued.
+    const storedDownloadId = entry?.downloadId;
+    const verifiedStoredId =
+      storedDownloadId != null &&
+      (await findVerifiedDownload(storedDownloadId, {
+        startTime: entry?.downloadStartTime,
+        url: entry?.url,
+        filename: entry?.finalFullPath,
+      }))
+        ? storedDownloadId
+        : undefined;
+    const downloadId = verifiedStoredId ?? active?.downloadId;
     let shouldRecordCanceled = canceled && downloadId == null;
     if (downloadId != null) {
       try {
