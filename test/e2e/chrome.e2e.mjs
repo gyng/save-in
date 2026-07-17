@@ -675,6 +675,20 @@ test("options page keeps keyboard focus and core layout accessible", async () =>
     },
   ]);
 
+  // dispatchInput resolves when the CDP command is acknowledged, not when the
+  // browser has processed the key and moved focus. Read activeElement too soon
+  // on a slow runner and it is still BODY. Wait for focus to leave BODY before
+  // measuring, so the assertion sees where Tab actually landed.
+  await evalOptions(`new Promise((resolve, reject) => {
+    const timeout = AbortSignal.timeout(5000);
+    const check = () => {
+      if (document.activeElement && document.activeElement !== document.body) resolve(true);
+      else if (timeout.aborted) reject(new Error("focus did not leave body after Tab"));
+      else requestAnimationFrame(check);
+    };
+    check();
+  })`);
+
   const result = await evaluateJson(
     evalOptions,
     `JSON.stringify((() => {
