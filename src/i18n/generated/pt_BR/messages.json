@@ -2125,6 +2125,9 @@
   "html_webhookPayloadPreview": {
     "message": "Prévia da carga útil"
   },
+  "webhookPreviewNoEvents": {
+    "message": "Nenhum evento selecionado, portanto nada é enviado."
+  },
   "webhookPermissionDenied": {
     "message": "A permissão do Firefox para os dados de webhook selecionados não foi concedida."
   },

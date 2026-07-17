@@ -2125,6 +2125,9 @@
   "html_webhookPayloadPreview": {
     "message": "Payloadvoorbeeld"
   },
+  "webhookPreviewNoEvents": {
+    "message": "Geen gebeurtenissen geselecteerd, dus er wordt niets verzonden."
+  },
   "webhookPermissionDenied": {
     "message": "Firefox-toestemming voor de geselecteerde webhookgegevens is niet verleend."
   },

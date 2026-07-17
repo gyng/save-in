@@ -2525,6 +2525,9 @@
   "html_webhookPayloadPreview": {
     "message": "Anteprima del payload"
   },
+  "webhookPreviewNoEvents": {
+    "message": "Nessun evento selezionato, quindi non viene inviato nulla."
+  },
   "webhookPermissionDenied": {
     "message": "Non è stata concessa l'autorizzazione di Firefox per i dati del webhook selezionati."
   },

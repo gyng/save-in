@@ -1715,6 +1715,9 @@
   "html_webhookPayloadPreview": {
     "message": "페이로드 미리보기"
   },
+  "webhookPreviewNoEvents": {
+    "message": "선택된 이벤트가 없어 아무것도 전송되지 않습니다."
+  },
   "webhookPermissionDenied": {
     "message": "선택한 웹후크 데이터에 대한 Firefox 권한이 부여되지 않았습니다."
   },

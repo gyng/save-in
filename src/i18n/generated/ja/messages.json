@@ -1715,6 +1715,9 @@
   "html_webhookPayloadPreview": {
     "message": "ペイロードのプレビュー"
   },
+  "webhookPreviewNoEvents": {
+    "message": "イベントが選択されていないため、何も送信されません。"
+  },
   "webhookPermissionDenied": {
     "message": "選択した Webhook データに対する Firefox の許可が得られませんでした。"
   },

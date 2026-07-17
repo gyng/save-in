@@ -1715,6 +1715,9 @@
   "html_webhookPayloadPreview": {
     "message": "有效负载预览"
   },
+  "webhookPreviewNoEvents": {
+    "message": "未选择任何事件，因此不会发送任何内容。"
+  },
   "webhookPermissionDenied": {
     "message": "未获得发送所选 Webhook 数据所需的 Firefox 权限。"
   },

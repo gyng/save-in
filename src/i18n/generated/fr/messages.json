@@ -2137,6 +2137,9 @@
   "html_webhookPayloadPreview": {
     "message": "Aperçu de la charge utile"
   },
+  "webhookPreviewNoEvents": {
+    "message": "Aucun événement sélectionné : rien n’est envoyé."
+  },
   "webhookPermissionDenied": {
     "message": "L’autorisation Firefox n’a pas été accordée pour les données de webhook sélectionnées."
   },

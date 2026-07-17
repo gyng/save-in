@@ -1715,6 +1715,9 @@
   "html_webhookPayloadPreview": {
     "message": "承載資料預覽"
   },
+  "webhookPreviewNoEvents": {
+    "message": "未選取任何事件，因此不會傳送任何內容。"
+  },
   "webhookPermissionDenied": {
     "message": "未取得傳送所選 Webhook 資料所需的 Firefox 權限。"
   },

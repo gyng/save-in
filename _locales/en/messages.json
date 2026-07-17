@@ -3755,6 +3755,10 @@
     "message": "Payload preview",
     "description": "Expandable preview of the configured save webhook JSON. Used in src/options/options.html."
   },
+  "webhookPreviewNoEvents": {
+    "message": "No events selected, so nothing is sent.",
+    "description": "Shown inside the webhook payload preview when none of the event checkboxes are ticked, in place of the example requests. Used in src/options/integrations/webhook-panel.ts."
+  },
   "webhookPermissionDenied": {
     "message": "Firefox permission was not granted for the selected webhook data.",
     "description": "Status after the user declines Firefox data transmission permission. Used in src/options/webhook-panel.ts."

@@ -225,6 +225,11 @@ test("requests website-content access before adding page content", async () => {
   const title = document.querySelector<HTMLInputElement>("#webhookIncludePageTitle")!;
   await vi.waitFor(() => expect(enabled.disabled).toBe(false));
   enabled.checked = true;
+  // Page data rides on the save event, so the preview only shows it when the
+  // start event is one of the chosen ones.
+  const onStart = document.querySelector<HTMLInputElement>("#webhookOnStart")!;
+  onStart.checked = true;
+  onStart.dispatchEvent(new Event("change"));
 
   title.checked = true;
   title.dispatchEvent(new Event("change"));
@@ -439,8 +444,10 @@ test("reverts denied and failed field changes", async () => {
 test("refreshes preview, validation, and permission state after options restore", async () => {
   const ports = dependencies();
   setupWebhookPanel(ports);
-  const title = document.querySelector<HTMLInputElement>("#webhookIncludePageTitle")!;
-  title.checked = true;
+  // Restore puts the stored values in the controls; the panel then redraws what
+  // they mean. Page data only appears when the save event is one being sent.
+  document.querySelector<HTMLInputElement>("#webhookIncludePageTitle")!.checked = true;
+  document.querySelector<HTMLInputElement>("#webhookOnStart")!.checked = true;
   document.dispatchEvent(new Event("options-restored"));
   expect(document.querySelector("#webhook-payload-preview")?.textContent).toContain("pageTitle");
 });
@@ -534,18 +541,45 @@ test("stops trusting a stored http endpoint the moment the checkbox is cleared",
   expect(endpoint.validationMessage).toContain("Line 1");
 });
 
-test("previews the request it would make, not just the body", async () => {
+test("previews one request per chosen event, and says so when there is none", async () => {
   const ports = dependencies();
   setupWebhookPanel(ports);
   const endpoint = document.querySelector<HTMLTextAreaElement>("#webhookUrl")!;
   const preview = document.querySelector<HTMLElement>("#webhook-payload-preview")!;
+  const onStart = document.querySelector<HTMLInputElement>("#webhookOnStart")!;
+  const onComplete = document.querySelector<HTMLInputElement>("#webhookOnComplete")!;
+  const onFailed = document.querySelector<HTMLInputElement>("#webhookOnFailed")!;
 
-  // With nothing usable to send to, the request line still has to name a target.
+  // Completion is the default, so that is the request the preview opens on.
   expect(preview.textContent).toContain("POST https://hooks.example.com/save");
   expect(preview.textContent).toContain("Content-Type: application/json");
-  expect(preview.textContent).toContain('"event": "save"');
+  expect(preview.textContent).toContain('"event": "complete"');
+  expect(preview.textContent).toContain('"path"');
+  expect(preview.textContent).not.toContain('"event": "save"');
 
-  endpoint.value = "https://real.example/save?token=abc";
+  // Each event is a separate request, previewed as one, and they agree on the
+  // download id because one download is what they are all about.
+  onStart.checked = true;
+  onStart.dispatchEvent(new Event("change"));
+  onFailed.checked = true;
+  onFailed.dispatchEvent(new Event("change"));
+  const shown = String(preview.textContent);
+  expect(shown.match(/POST https:\/\/hooks\.example\.com\/save/g)).toHaveLength(3);
+  expect(shown).toContain('"event": "save"');
+  expect(shown).toContain('"event": "failed"');
+  expect(shown).toContain('"reason": "NETWORK_FAILED"');
+  expect(shown.match(/"id": 1/g)).toHaveLength(3);
+
+  // A real endpoint replaces the placeholder in every request.
+  endpoint.value = "https://real.example/save";
   endpoint.dispatchEvent(new Event("input"));
-  expect(preview.textContent).toContain("POST https://real.example/save?token=abc");
+  expect(String(preview.textContent).match(/POST https:\/\/real\.example\/save/g)).toHaveLength(3);
+
+  onStart.checked = false;
+  onStart.dispatchEvent(new Event("change"));
+  onComplete.checked = false;
+  onComplete.dispatchEvent(new Event("change"));
+  onFailed.checked = false;
+  onFailed.dispatchEvent(new Event("change"));
+  expect(preview.textContent).toBe("No events selected, so nothing is sent.");
 });

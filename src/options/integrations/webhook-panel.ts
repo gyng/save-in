@@ -1,6 +1,8 @@
 import { getMessage } from "../../platform/localization.ts";
 import { webExtensionApi } from "../../platform/web-extension-api.ts";
 import {
+  createCompleteWebhookPayload,
+  createFailedWebhookPayload,
   createSaveWebhookPayload,
   createTestWebhookPayload,
   getWebhookDataTypes,
@@ -12,6 +14,7 @@ import {
   type WebhookDataType,
   type WebhookEndpointPolicy,
   type WebhookFieldSelection,
+  type WebhookPayload,
 } from "../../shared/webhook.ts";
 import { optionsRuntime } from "../core/options-runtime.ts";
 import { assertApplySucceeded } from "../core/options-save.ts";
@@ -90,6 +93,7 @@ const defaultDependencies = (): WebhookPanelDependencies => {
     webhookFieldsSaved: getMessage("webhookFieldsSaved"),
     webhookStateOn: getMessage("webhookStateOn"),
     webhookStateOff: getMessage("webhookStateOff"),
+    webhookPreviewNoEvents: getMessage("webhookPreviewNoEvents"),
   };
   return {
     permissions: createDataCollectionPermissionsApi(webExtensionApi.permissions),
@@ -163,24 +167,58 @@ export const setupWebhookPanel = (
   // remembering an answer that the next click changes.
   const policy = () => ({ allowInsecure: allowInsecure.checked });
 
+  const eventChecked = (name: string) =>
+    eventControls.find((control) => control?.id === name)?.checked === true;
+
   const PREVIEW_ENDPOINT_PLACEHOLDER = "https://hooks.example.com/save";
+  // The browser reports where the file actually landed, which is an absolute
+  // path; a relative one here would preview a payload nobody receives.
+  const PREVIEW_SAVED_PATH = "/home/user/Downloads/Images/image.jpg";
+  const PREVIEW_SOURCE_URL = "https://cdn.example.com/image.jpg";
+  const PREVIEW_DOWNLOAD_ID = 1;
+
+  const previewPayloads = (now: Date): WebhookPayload[] => {
+    const wanted: WebhookPayload[] = [];
+    // In the order they happen, and only the ones that would be sent: an
+    // example of an event the user turned off is an example of nothing.
+    if (eventChecked("webhookOnStart")) {
+      wanted.push(
+        createSaveWebhookPayload(
+          {
+            // A stand-in id: the real one is the browser's, and no download has
+            // started when the preview is drawn. It is the same on every event
+            // here because one download is what they would all be about.
+            id: PREVIEW_DOWNLOAD_ID,
+            selectedUrl: PREVIEW_SOURCE_URL,
+            pageUrl: "https://example.com/gallery",
+            pageTitle: "Example gallery",
+            selectionText: "Example selected text",
+          },
+          fields(),
+          now,
+        ),
+      );
+    }
+    if (eventChecked("webhookOnComplete")) {
+      wanted.push(
+        createCompleteWebhookPayload(
+          { id: PREVIEW_DOWNLOAD_ID, url: PREVIEW_SOURCE_URL, path: PREVIEW_SAVED_PATH },
+          now,
+        ),
+      );
+    }
+    if (eventChecked("webhookOnFailed")) {
+      wanted.push(
+        createFailedWebhookPayload(
+          { id: PREVIEW_DOWNLOAD_ID, url: PREVIEW_SOURCE_URL, reason: "NETWORK_FAILED" },
+          now,
+        ),
+      );
+    }
+    return wanted;
+  };
+
   const renderPreview = () => {
-    const body = JSON.stringify(
-      createSaveWebhookPayload(
-        {
-          // A stand-in id: the real one is the browser's, and no download has
-          // started when the preview is drawn.
-          id: 1,
-          selectedUrl: "https://cdn.example.com/image.jpg",
-          pageUrl: "https://example.com/gallery",
-          pageTitle: "Example gallery",
-          selectionText: "Example selected text",
-        },
-        fields(),
-      ),
-      null,
-      2,
-    );
     // The first endpoint the list would actually be sent to, so the preview
     // names a real target rather than an example the user never typed. The
     // method and content type come from postWebhook so this cannot describe a
@@ -188,8 +226,18 @@ export const setupWebhookPanel = (
     // left untranslated for the same reason the JSON body below it is.
     const target = parseWebhookEndpoints(endpoint.value, policy()).entries[0]?.value;
     const requestLine = `${WEBHOOK_REQUEST_METHOD} ${target ?? PREVIEW_ENDPOINT_PLACEHOLDER}`;
-    preview.textContent = `${requestLine}\nContent-Type: ${WEBHOOK_CONTENT_TYPE}\n\n${body}`;
+    const now = new Date();
+    // Each event is its own request, so each is previewed as one rather than as
+    // a body under a shared header.
+    const requests = previewPayloads(now).map(
+      (payload) =>
+        `${requestLine}\nContent-Type: ${WEBHOOK_CONTENT_TYPE}\n\n${JSON.stringify(payload, null, 2)}`,
+    );
+    preview.textContent = requests.length
+      ? requests.join("\n\n")
+      : dependencies.message("webhookPreviewNoEvents", "No events selected, so nothing is sent.");
   };
+
   // One endpoint per line. The field is usable when every line it names is one
   // the extension will send to: a line it would not send to is reported where
   // it was written rather than quietly ignored, so the list never claims more
@@ -308,11 +356,14 @@ export const setupWebhookPanel = (
     control?.addEventListener("change", async () => {
       const next = control.checked;
       control.disabled = true;
+      // The preview shows one request per chosen event, so it follows the box.
+      renderPreview();
       try {
         await dependencies.apply({ [control.id]: next });
         setStatus(dependencies.message("webhookFieldsSaved", "Webhook data updated."));
       } catch {
         control.checked = !next;
+        renderPreview();
         setStatus(
           dependencies.message("webhookSaveFailed", "Could not save the webhook setting."),
           true,

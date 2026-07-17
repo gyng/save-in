@@ -2125,6 +2125,9 @@
   "html_webhookPayloadPreview": {
     "message": "Vorschau der Nutzdaten"
   },
+  "webhookPreviewNoEvents": {
+    "message": "Keine Ereignisse ausgewählt, es wird also nichts gesendet."
+  },
   "webhookPermissionDenied": {
     "message": "Die Firefox-Berechtigung für die ausgewählten Webhook-Daten wurde nicht erteilt."
   },
