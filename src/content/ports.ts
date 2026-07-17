@@ -14,6 +14,13 @@ export const configureContentPorts = (): void => {
     // payload — and the library default answers undefined, which silently drops
     // every source a pagetitle: rule selects while the background and the route
     // debugger both say it matches. In a content script this page is the tab.
+    //
+    // A page with no <title> reports "", where the background's tab.title is
+    // whatever the browser invented for the tab strip (usually the address).
+    // This side is the honest one — "" is what the page declared — so a rule
+    // written against a real title agrees either way, and only one written
+    // against the invented string differs. It fails closed there: the scan
+    // sends nothing rather than saving under a title the page never had.
     getCurrentTab: () => ({ title: document.title }),
   });
 };
