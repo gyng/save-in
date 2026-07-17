@@ -1259,8 +1259,8 @@
   "html_findsAndSavesResourcesTheUserChoosesOnArbitrary": {
     "message": "尋找並儲存使用者在任何網站上選擇的資源。"
   },
-  "html_inABrowserThatSupports": {
-    "message": "在支援的瀏覽器中"
+  "html_saveInUses": {
+    "message": "Save In 使用"
   },
   "html_keepsSettingsRoutingRulesLocalHistoryAndRestartSafe": {
     "message": "保留設定、路由規則、本機歷史記錄，以及可在重新啟動後保留的狀態。"
@@ -1307,8 +1307,8 @@
   "html_saveInIsALocalFirstDownloadsHelperFor": {
     "message": "Save In 是一款以本機處理為優先的下載輔助工具，可透過內容選單資料夾、路由規則、重新命名、頁面資源和下載記錄來整理檔案。"
   },
-  "html_saveInRegistersToolsAnAiAgentCanCall": {
-    "message": "，Save In 註冊 AI 代理程式在此選項頁面開啟時可以呼叫的工具，以變更設定、建立資料夾選單和編寫路由規則。"
+  "html_whichOnlySomeBrowsersProvideItRegisters": {
+    "message": "，只有部分瀏覽器提供此功能。Save In 註冊 AI 代理程式在此選項頁面開啟時可以呼叫的工具，以變更設定、建立資料夾選單和編寫路由規則。"
   },
   "o_cWebmcpEnabled": {
     "message": "允許 AI 代理程式讀取及變更 Save In 設定"

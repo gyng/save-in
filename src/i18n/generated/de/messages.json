@@ -1669,8 +1669,8 @@
   "html_findsAndSavesResourcesTheUserChoosesOnArbitrary": {
     "message": "Findet und speichert Ressourcen, die Sie auf beliebigen Websites auswählen."
   },
-  "html_inABrowserThatSupports": {
-    "message": "In einem Browser mit"
+  "html_saveInUses": {
+    "message": "Save In verwendet"
   },
   "html_keepsSettingsRoutingRulesLocalHistoryAndRestartSafe": {
     "message": "Speichert Einstellungen, Routing-Regeln, den lokalen Verlauf und den über Neustarts hinweg benötigten Zustand."
@@ -1717,8 +1717,8 @@
   "html_saveInIsALocalFirstDownloadsHelperFor": {
     "message": "Save In ist ein lokal arbeitender Download-Helfer zum Organisieren von Dateien mit Kontextmenü-Ordnern, Routing-Regeln, Umbenennung, Seitenquellen und Download-Verlauf."
   },
-  "html_saveInRegistersToolsAnAiAgentCanCall": {
-    "message": "-Unterstützung registriert Save In Werkzeuge, die ein KI-Agent aufrufen kann, solange diese Optionsseite geöffnet ist, um Einstellungen zu ändern, Ordnermenüs zu erstellen und Routing-Regeln zu schreiben."
+  "html_whichOnlySomeBrowsersProvideItRegisters": {
+    "message": ", das nur einige Browser bereitstellen. Damit registriert Save In Werkzeuge, die ein KI-Agent aufrufen kann, solange diese Optionsseite geöffnet ist, um Einstellungen zu ändern, Ordnermenüs zu erstellen und Routing-Regeln zu schreiben."
   },
   "o_cWebmcpEnabled": {
     "message": "Einem KI-Agenten erlauben, Save In-Einstellungen zu lesen und zu ändern"

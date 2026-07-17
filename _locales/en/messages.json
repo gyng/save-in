@@ -679,9 +679,9 @@
     "message": "Search options",
     "description": "Text in the options page. Used in src/options/options.html and src/options/option-search.ts."
   },
-  "html_saveInRegistersToolsAnAiAgentCanCall": {
-    "message": ", Save In registers tools that an AI agent can call while this options page is open—to change settings, build folder menus, and write routing rules.",
-    "description": "Text in the options page. Used in src/options/options.html."
+  "html_whichOnlySomeBrowsersProvideItRegisters": {
+    "message": ", which only some browsers provide. It registers tools that an AI agent can call while this options page is open—to change settings, build folder menus, and write routing rules.",
+    "description": "End of the help text begun by html_saveInUses, following the \"WebMCP\" link. Carries the verb where the language needs it after the name, then what Save In registers. Keep the leading punctuation that joins it to the link, with no leading space. Used in src/options/options.html."
   },
   "o_cWebmcpEnabled": {
     "message": "Let an AI agent read and change Save In settings",
@@ -2499,9 +2499,9 @@
     "message": "Finds and saves resources the user chooses on arbitrary websites.",
     "description": "Text in the options page. Used in src/options/options.html."
   },
-  "html_inABrowserThatSupports": {
-    "message": "In a browser that supports",
-    "description": "Text in the options page. Used in src/options/options.html."
+  "html_saveInUses": {
+    "message": "Save In uses",
+    "description": "Start of the help text under the WebMCP heading. The sentence continues with a link reading \"WebMCP\" (the web API name, left in English) and then html_whichOnlySomeBrowsersProvideItRegisters. The link is the object of this clause, so this head must be able to precede it in your language: put the verb in the tail if your grammar needs it last. Used in src/options/options.html."
   },
   "html_keepsSettingsRoutingRulesLocalHistoryAndRestartSafe": {
     "message": "Keeps settings, routing rules, local history, and restart-safe state.",

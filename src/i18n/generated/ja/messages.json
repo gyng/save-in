@@ -1259,8 +1259,8 @@
   "html_findsAndSavesResourcesTheUserChoosesOnArbitrary": {
     "message": "任意の Web サイト上でユーザーが選択したリソースを検索して保存します。"
   },
-  "html_inABrowserThatSupports": {
-    "message": "をサポートするブラウザの場合"
+  "html_saveInUses": {
+    "message": "Save In は"
   },
   "html_keepsSettingsRoutingRulesLocalHistoryAndRestartSafe": {
     "message": "設定、ルーティングルール、ローカル履歴、再起動しても安全な状態を保持します。"
@@ -1307,8 +1307,8 @@
   "html_saveInIsALocalFirstDownloadsHelperFor": {
     "message": "Save In はローカル処理を優先するダウンロード支援ツールです。コンテキストメニューのフォルダー、ルーティングルール、名前変更、ページソース、ダウンロード履歴を使ってファイルを整理できます。"
   },
-  "html_saveInRegistersToolsAnAiAgentCanCall": {
-    "message": ", Save In は、このオプションページが開いているときに AI エージェントが呼び出せるツール（設定の変更、フォルダーメニューの構築、ルーティングルールの作成など）を登録します。"
+  "html_whichOnlySomeBrowsersProvideItRegisters": {
+    "message": "を使用します。対応するブラウザーは限られます。このオプションページが開いているときに AI エージェントが呼び出せるツール（設定の変更、フォルダーメニューの構築、ルーティングルールの作成など）を登録します。"
   },
   "o_cWebmcpEnabled": {
     "message": "AI エージェントが Save In の設定を読み取り、変更できるようにする"

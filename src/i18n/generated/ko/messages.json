@@ -1259,8 +1259,8 @@
   "html_findsAndSavesResourcesTheUserChoosesOnArbitrary": {
     "message": "임의의 웹사이트에서 사용자가 선택한 리소스를 찾아 저장합니다."
   },
-  "html_inABrowserThatSupports": {
-    "message": "지원하는 브라우저에서"
+  "html_saveInUses": {
+    "message": "Save In은"
   },
   "html_keepsSettingsRoutingRulesLocalHistoryAndRestartSafe": {
     "message": "설정, 라우팅 규칙, 로컬 기록 및 다시 시작해도 안전한 상태를 유지합니다."
@@ -1307,8 +1307,8 @@
   "html_saveInIsALocalFirstDownloadsHelperFor": {
     "message": "Save In은 로컬 처리를 우선하는 다운로드 도우미입니다. 컨텍스트 메뉴 폴더, 라우팅 규칙, 이름 변경, 페이지 소스, 다운로드 기록을 사용해 파일을 정리합니다."
   },
-  "html_saveInRegistersToolsAnAiAgentCanCall": {
-    "message": ", Save In은 이 옵션 페이지가 열려 있는 동안 AI 에이전트가 호출할 수 있는 도구를 등록하여 설정 변경, 폴더 메뉴 구성, 라우팅 규칙 작성을 지원합니다."
+  "html_whichOnlySomeBrowsersProvideItRegisters": {
+    "message": "을(를) 사용하며, 일부 브라우저에서만 제공됩니다. 이 옵션 페이지가 열려 있는 동안 AI 에이전트가 호출할 수 있는 도구를 등록하여 설정 변경, 폴더 메뉴 구성, 라우팅 규칙 작성을 지원합니다."
   },
   "o_cWebmcpEnabled": {
     "message": "AI 에이전트가 Save In 설정을 읽고 변경하도록 허용"

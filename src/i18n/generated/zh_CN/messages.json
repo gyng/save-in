@@ -1259,8 +1259,8 @@
   "html_findsAndSavesResourcesTheUserChoosesOnArbitrary": {
     "message": "查找并保存用户在任意网站上选择的资源。"
   },
-  "html_inABrowserThatSupports": {
-    "message": "在支持的浏览器中"
+  "html_saveInUses": {
+    "message": "Save In 使用"
   },
   "html_keepsSettingsRoutingRulesLocalHistoryAndRestartSafe": {
     "message": "保存设置、路由规则、本地历史记录和可在重启后恢复的状态。"
@@ -1307,8 +1307,8 @@
   "html_saveInIsALocalFirstDownloadsHelperFor": {
     "message": "Save In 是一款本地优先的下载助手，可通过上下文菜单文件夹、路由规则、重命名、页面来源和下载历史记录来整理文件。"
   },
-  "html_saveInRegistersToolsAnAiAgentCanCall": {
-    "message": "，Save In 会注册 AI 智能体可在此选项页面打开时调用的工具，用于更改设置、构建文件夹菜单和编写路由规则。"
+  "html_whichOnlySomeBrowsersProvideItRegisters": {
+    "message": "，只有部分浏览器提供该功能。Save In 会注册 AI 智能体可在此选项页面打开时调用的工具，用于更改设置、构建文件夹菜单和编写路由规则。"
   },
   "o_cWebmcpEnabled": {
     "message": "允许 AI 代理读取和更改 Save In 设置"

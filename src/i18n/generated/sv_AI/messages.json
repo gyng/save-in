@@ -1669,8 +1669,8 @@
   "html_findsAndSavesResourcesTheUserChoosesOnArbitrary": {
     "message": "Hittar och sparar resurser som användaren väljer på godtyckliga webbplatser."
   },
-  "html_inABrowserThatSupports": {
-    "message": "I en webbläsare som stöder"
+  "html_saveInUses": {
+    "message": "Save In använder"
   },
   "html_keepsSettingsRoutingRulesLocalHistoryAndRestartSafe": {
     "message": "Behåller inställningar, routningsregler, lokal historik och tillstånd som överlever omstarter."
@@ -1717,8 +1717,8 @@
   "html_saveInIsALocalFirstDownloadsHelperFor": {
     "message": "Save In är en lokalt körd nedladdningshjälp som ordnar filer med mappar i snabbmenyn, routningsregler, namnbyte, sidresurser och nedladdningshistorik."
   },
-  "html_saveInRegistersToolsAnAiAgentCanCall": {
-    "message": ", Save In registrerar verktyg som en AI-agent kan anropa medan den här alternativsidan är öppen – för att ändra inställningar, bygga mappmenyer och skriva routningsregler."
+  "html_whichOnlySomeBrowsersProvideItRegisters": {
+    "message": ", som bara vissa webbläsare har. Save In registrerar verktyg som en AI-agent kan anropa medan den här alternativsidan är öppen – för att ändra inställningar, bygga mappmenyer och skriva routningsregler."
   },
   "o_cWebmcpEnabled": {
     "message": "Låt en AI-agent läsa och ändra inställningar i Save In"

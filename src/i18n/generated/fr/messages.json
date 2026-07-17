@@ -1681,8 +1681,8 @@
   "html_findsAndSavesResourcesTheUserChoosesOnArbitrary": {
     "message": "Recherche et enregistre les ressources choisies par l’utilisateur sur n’importe quel site Web."
   },
-  "html_inABrowserThatSupports": {
-    "message": "Dans un navigateur prenant en charge"
+  "html_saveInUses": {
+    "message": "Save In utilise"
   },
   "html_keepsSettingsRoutingRulesLocalHistoryAndRestartSafe": {
     "message": "Conserve les paramètres, les règles de routage, l’historique local et l’état nécessaire après un redémarrage."
@@ -1729,8 +1729,8 @@
   "html_saveInIsALocalFirstDownloadsHelperFor": {
     "message": "Save In est un assistant de téléchargement qui privilégie le traitement local et organise les fichiers à l’aide de dossiers du menu contextuel, de règles de routage, du renommage, des sources de la page et de l’historique des téléchargements."
   },
-  "html_saveInRegistersToolsAnAiAgentCanCall": {
-    "message": ", Save In enregistre des outils qu’un agent IA peut appeler tant que cette page d’options reste ouverte, afin de modifier les paramètres, créer des menus de dossiers et écrire des règles de routage."
+  "html_whichOnlySomeBrowsersProvideItRegisters": {
+    "message": ", que seuls certains navigateurs proposent. Save In enregistre des outils qu’un agent IA peut appeler tant que cette page d’options reste ouverte, afin de modifier les paramètres, créer des menus de dossiers et écrire des règles de routage."
   },
   "o_cWebmcpEnabled": {
     "message": "Autoriser un agent IA à lire et modifier les paramètres de Save In"

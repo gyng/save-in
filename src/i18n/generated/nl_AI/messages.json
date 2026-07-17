@@ -1669,8 +1669,8 @@
   "html_findsAndSavesResourcesTheUserChoosesOnArbitrary": {
     "message": "Vindt bronnen die de gebruiker op willekeurige websites kiest en slaat deze op."
   },
-  "html_inABrowserThatSupports": {
-    "message": "In een browser die dit ondersteunt"
+  "html_saveInUses": {
+    "message": "Save In gebruikt"
   },
   "html_keepsSettingsRoutingRulesLocalHistoryAndRestartSafe": {
     "message": "Behoudt instellingen, routeringsregels, lokale geschiedenis en herstartveilige status."
@@ -1717,8 +1717,8 @@
   "html_saveInIsALocalFirstDownloadsHelperFor": {
     "message": "Save In is een lokaal werkende downloadhulp voor het ordenen van bestanden met contextmenumappen, routeringsregels, hernoemen, paginabronnen en downloadgeschiedenis."
   },
-  "html_saveInRegistersToolsAnAiAgentCanCall": {
-    "message": ", registreert Save In tools die een AI-agent kan aanroepen terwijl deze optiepagina geopend is: om instellingen te wijzigen, mapmenu's samen te stellen en routeringsregels te schrijven."
+  "html_whichOnlySomeBrowsersProvideItRegisters": {
+    "message": ", dat maar in sommige browsers beschikbaar is. Save In registreert tools die een AI-agent kan aanroepen terwijl deze optiepagina geopend is: om instellingen te wijzigen, mapmenu's samen te stellen en routeringsregels te schrijven."
   },
   "o_cWebmcpEnabled": {
     "message": "Een AI-agent Save In-instellingen laten lezen en wijzigen"
