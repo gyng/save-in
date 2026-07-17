@@ -29,6 +29,9 @@ export const historyMessage = (
 export const historyColumns = (): HistoryDisplayColumn[] => localizeHistoryColumns(localize);
 
 const TYPE_LABELS: Record<string, [string, string]> = {
+  // Automatic Page Sources saves. The routing badge already names this exact
+  // concept in every locale, so the label reuses it rather than restating it.
+  auto: ["autoDownloadRoutingBadge", "Automatic source"],
   image: ["html_image", "Image"],
   link: ["html_link", "Link"],
   page: ["contextMenuContextPage", "Page"],

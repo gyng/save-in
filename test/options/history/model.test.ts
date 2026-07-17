@@ -1,4 +1,6 @@
 // Pure history-table helpers extracted from options.ts (history-model.ts).
+import { AUTOMATIC_CONTEXT } from "../../../src/routing/automatic-rule.ts";
+import { historyTypeLabel } from "../../../src/options/history/history-messages.ts";
 import {
   formatBytes,
   formatHistoryDisplayTime,
@@ -163,6 +165,16 @@ describe("history row flatteners", () => {
     expect(historyType({})).toBe("");
     // legacy entries kept the whole state
     expect(historyType({ state: { info: { context: "PAGE" } } })).toBe("page");
+  });
+
+  // An unlabelled type falls through to its raw lowercase context, so every
+  // type historyType can produce needs an entry.
+  test("labels every type it can produce, including automatic saves", () => {
+    const automatic = historyType({ info: { context: AUTOMATIC_CONTEXT } });
+    expect(automatic).toBe("auto");
+    expect(historyTypeLabel(automatic)).not.toBe(automatic);
+    // The routing badge already names this concept in every locale.
+    expect(historyTypeLabel(automatic)).toBe("Translated<autoDownloadRoutingBadge>");
   });
 
   test("status defaults legacy entries to complete; labels/classes", () => {
