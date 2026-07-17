@@ -290,8 +290,11 @@ check(
 const finish = async () => {
   const configUrl = pathToFileURL(path.join(root, "config", "vitest", "base.mjs")).href;
   const { default: vitestConfig, resolveMaxWorkers } = await import(configUrl);
-  check(resolveMaxWorkers({ cores: 32 }) === 28, "Vitest must reserve four local CPUs");
-  check(resolveMaxWorkers({ cores: 2 }) === 1, "local Vitest workers need a floor");
+  // resolveMaxWorkers defaults `ci` to process.env.CI, so the checks that
+  // assert local behavior must pin it or they inherit a runner's CI=true and
+  // assert the CI branch instead.
+  check(resolveMaxWorkers({ cores: 32, ci: "" }) === 28, "Vitest must reserve four local CPUs");
+  check(resolveMaxWorkers({ cores: 2, ci: "" }) === 1, "local Vitest workers need a floor");
   check(resolveMaxWorkers({ ci: "true", cores: 8 }) === 8, "CI must use available CPUs");
   check(
     resolveMaxWorkers({ requested: "5", ci: "true", cores: 8 }) === 5 &&
