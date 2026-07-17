@@ -2060,10 +2060,10 @@
     "message": "Webhook-Dokumentation lesen"
   },
   "html_webhookEndpoint": {
-    "message": "HTTPS-Endpunkt"
+    "message": "HTTPS-Endpunkte"
   },
   "html_webhookEndpointHelp": {
-    "message": "Anfragen werden direkt von Ihrem Browser an diese Adresse gesendet."
+    "message": "Einer pro Zeile. Anfragen werden direkt von Ihrem Browser an jede Adresse gesendet."
   },
   "html_testWebhook": {
     "message": "Test senden"

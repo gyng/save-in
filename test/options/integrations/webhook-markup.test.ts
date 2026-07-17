@@ -3,8 +3,9 @@ import { parseOptionsDocument } from "../contracts/markup.fixture.ts";
 
 test("keeps webhook consent, field controls, preview, and status connected", () => {
   const document = parseOptionsDocument();
-  const endpoint = document.querySelector<HTMLInputElement>("#webhookUrl");
-  expect(endpoint?.type).toBe("url");
+  // One endpoint per line, so the field has to accept newlines at all.
+  const endpoint = document.querySelector<HTMLTextAreaElement>("#webhookUrl");
+  expect(endpoint?.type).toBe("textarea");
   expect(endpoint?.getAttribute("aria-describedby")).toContain("webhook-status");
   expect(document.querySelector("#webhookEnabled")?.hasAttribute("data-no-autosave")).toBe(true);
   expect(document.querySelector("#webhookEnabled")?.getAttribute("aria-describedby")).toContain(

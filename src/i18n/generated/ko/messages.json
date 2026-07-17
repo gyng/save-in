@@ -1653,7 +1653,7 @@
     "message": "HTTPS 엔드포인트"
   },
   "html_webhookEndpointHelp": {
-    "message": "요청은 브라우저에서 이 주소로 직접 전송됩니다."
+    "message": "한 줄에 하나씩. 요청은 브라우저에서 각 주소로 직접 전송됩니다."
   },
   "html_testWebhook": {
     "message": "테스트 보내기"

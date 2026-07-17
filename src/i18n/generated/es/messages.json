@@ -2060,10 +2060,10 @@
     "message": "Leer la documentación sobre webhooks"
   },
   "html_webhookEndpoint": {
-    "message": "Punto de conexión HTTPS"
+    "message": "Puntos de conexión HTTPS"
   },
   "html_webhookEndpointHelp": {
-    "message": "Las solicitudes se envían directamente desde su navegador a esta dirección."
+    "message": "Uno por línea. Las solicitudes se envían directamente desde su navegador a cada dirección."
   },
   "html_testWebhook": {
     "message": "Enviar una prueba"

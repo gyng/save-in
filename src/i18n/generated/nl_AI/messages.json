@@ -2060,10 +2060,10 @@
     "message": "Webhookdocumentatie lezen"
   },
   "html_webhookEndpoint": {
-    "message": "HTTPS-eindpunt"
+    "message": "HTTPS-eindpunten"
   },
   "html_webhookEndpointHelp": {
-    "message": "Verzoeken gaan rechtstreeks vanuit uw browser naar dit adres."
+    "message": "Eén per regel. Verzoeken gaan rechtstreeks vanuit uw browser naar elk adres."
   },
   "html_testWebhook": {
     "message": "Test verzenden"

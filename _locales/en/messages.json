@@ -3644,12 +3644,12 @@
     "description": "Link from the Webhooks settings card to the public setup and payload guide. Used in src/options/options.html."
   },
   "html_webhookEndpoint": {
-    "message": "HTTPS endpoint",
-    "description": "Label for the user-provided webhook destination URL. Used in src/options/options.html."
+    "message": "HTTPS endpoints",
+    "description": "Label for the user-provided webhook destination URLs, one per line. Used in src/options/options.html."
   },
   "html_webhookEndpointHelp": {
-    "message": "Requests go directly from your browser to this address.",
-    "description": "Explains that the developer does not receive webhook requests. Used in src/options/options.html."
+    "message": "One per line. Requests go directly from your browser to each address.",
+    "description": "Says one endpoint per line, and that the developer does not receive webhook requests. Used in src/options/options.html."
   },
   "html_testWebhook": {
     "message": "Send test",

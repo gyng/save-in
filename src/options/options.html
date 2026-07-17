@@ -2828,18 +2828,17 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
             <span class="caption">__MSG_html_webhookEndpointHelp__</span>
           </label>
           <div class="webhook-endpoint-row">
-            <input
+            <textarea
               id="webhookUrl"
-              type="url"
+              rows="2"
               data-no-autosave
-              inputmode="url"
               placeholder="https://hooks.example.com/save"
               data-technical-literal
               autocomplete="off"
               autocapitalize="none"
               spellcheck="false"
               aria-describedby="webhook-endpoint-note webhook-status"
-            />
+            ></textarea>
             <button
               id="webhook-test"
               class="button"

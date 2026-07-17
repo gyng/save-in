@@ -2072,10 +2072,10 @@
     "message": "Lire la documentation sur les webhooks"
   },
   "html_webhookEndpoint": {
-    "message": "Point de terminaison HTTPS"
+    "message": "Points de terminaison HTTPS"
   },
   "html_webhookEndpointHelp": {
-    "message": "Les requêtes sont envoyées directement de votre navigateur à cette adresse."
+    "message": "Un par ligne. Les requêtes sont envoyées directement de votre navigateur à chaque adresse."
   },
   "html_testWebhook": {
     "message": "Envoyer un test"

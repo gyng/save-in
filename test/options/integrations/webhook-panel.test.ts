@@ -9,7 +9,7 @@ import { MESSAGE_TYPES } from "../../../src/shared/constants.ts";
 
 const markup = () => {
   document.body.innerHTML = `
-    <input id="webhookUrl">
+    <textarea id="webhookUrl"></textarea>
     <input type="checkbox" id="webhookEnabled" disabled>
     <span id="webhook-state-badge"></span>
     <button id="webhook-test" disabled>Send test</button>
@@ -250,8 +250,12 @@ test("sends a privacy-minimal test and reports endpoint rejection", async () => 
   expect(button.disabled).toBe(false);
   button.click();
 
-  await vi.waitFor(() => expect(ports.post).toHaveBeenCalledWith("https://hooks.example/test"));
-  expect(document.querySelector("#webhook-status")?.textContent).toBe("webhookTestRejected");
+  // Every endpoint is posted and then reported together, so wait for the report
+  // rather than for the request that precedes it.
+  await vi.waitFor(() =>
+    expect(document.querySelector("#webhook-status")?.textContent).toBe("webhookTestRejected"),
+  );
+  expect(ports.post).toHaveBeenCalledWith("https://hooks.example/test");
   expect(document.querySelector("#webhook-status")?.classList.contains("feedback-error")).toBe(
     true,
   );
@@ -435,4 +439,41 @@ test("refreshes preview, validation, and permission state after options restore"
   title.checked = true;
   document.dispatchEvent(new Event("options-restored"));
   expect(document.querySelector("#webhook-payload-preview")?.textContent).toContain("pageTitle");
+});
+
+test("saves a list of endpoints, tests every one, and names a bad line", async () => {
+  const ports = dependencies({
+    post: vi.fn(async () => ({ ok: true, status: 200 })),
+    message: (key) => key,
+  });
+  setupWebhookPanel(ports);
+  const endpoint = document.querySelector<HTMLTextAreaElement>("#webhookUrl")!;
+  const button = document.querySelector<HTMLButtonElement>("#webhook-test")!;
+
+  endpoint.value = "https://a.example/save\nhttps://b.example/save";
+  endpoint.dispatchEvent(new FocusEvent("blur"));
+  await vi.waitFor(() =>
+    expect(ports.apply).toHaveBeenCalledWith({
+      webhookUrl: "https://a.example/save\nhttps://b.example/save",
+    }),
+  );
+
+  button.click();
+  await vi.waitFor(() =>
+    expect(document.querySelector("#webhook-status")?.textContent).toBe("webhookTestDelivered"),
+  );
+  expect(vi.mocked(ports.post).mock.calls.map((call) => call[0])).toEqual([
+    "https://a.example/save",
+    "https://b.example/save",
+  ]);
+
+  // A bad line names itself, and nothing is saved while it is there.
+  vi.mocked(ports.apply).mockClear();
+  endpoint.value = "https://a.example/save\nhttp://b.example/save";
+  endpoint.dispatchEvent(new FocusEvent("blur"));
+  await Promise.resolve();
+  expect(endpoint.validationMessage).toContain("Line 2");
+  expect(endpoint.validationMessage).toContain("HTTPS");
+  expect(ports.apply).not.toHaveBeenCalled();
+  expect(button.disabled).toBe(true);
 });

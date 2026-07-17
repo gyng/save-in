@@ -1653,7 +1653,7 @@
     "message": "HTTPS エンドポイント"
   },
   "html_webhookEndpointHelp": {
-    "message": "リクエストはブラウザーからこのアドレスへ直接送信されます。"
+    "message": "1 行に 1 つ。リクエストはブラウザーから各アドレスへ直接送信されます。"
   },
   "html_testWebhook": {
     "message": "テストを送信"

@@ -2060,10 +2060,10 @@
     "message": "Läs dokumentationen om webhooks"
   },
   "html_webhookEndpoint": {
-    "message": "HTTPS-slutpunkt"
+    "message": "HTTPS-slutpunkter"
   },
   "html_webhookEndpointHelp": {
-    "message": "Begäranden skickas direkt från webbläsaren till den här adressen."
+    "message": "En per rad. Begäranden skickas direkt från webbläsaren till varje adress."
   },
   "html_testWebhook": {
     "message": "Skicka test"

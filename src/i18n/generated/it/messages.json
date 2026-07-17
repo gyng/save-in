@@ -2463,7 +2463,7 @@
     "message": "Endpoint HTTPS"
   },
   "html_webhookEndpointHelp": {
-    "message": "Le richieste vengono inviate direttamente dal browser a questo indirizzo."
+    "message": "Uno per riga. Le richieste vengono inviate direttamente dal browser a ogni indirizzo."
   },
   "html_testWebhook": {
     "message": "Invia test"

@@ -1653,7 +1653,7 @@
     "message": "HTTPS 端點"
   },
   "html_webhookEndpointHelp": {
-    "message": "要求會從您的瀏覽器直接傳送到此位址。"
+    "message": "每行一個。要求會從您的瀏覽器直接傳送到每個位址。"
   },
   "html_testWebhook": {
     "message": "傳送測試"

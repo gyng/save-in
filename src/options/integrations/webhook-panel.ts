@@ -4,8 +4,8 @@ import {
   createSaveWebhookPayload,
   createTestWebhookPayload,
   getWebhookDataTypes,
+  parseWebhookEndpoints,
   postWebhook,
-  validateWebhookUrl,
   WEBHOOK_DATA_TYPES,
   type WebhookDataType,
   type WebhookFieldSelection,
@@ -95,7 +95,7 @@ const defaultDependencies = (): WebhookPanelDependencies => {
 export const setupWebhookPanel = (
   dependencies: WebhookPanelDependencies = defaultDependencies(),
 ): void => {
-  const endpoint = document.querySelector<HTMLInputElement>("#webhookUrl");
+  const endpoint = document.querySelector<HTMLTextAreaElement>("#webhookUrl");
   const enabled = document.querySelector<HTMLInputElement>("#webhookEnabled");
   const test = document.querySelector<HTMLButtonElement>("#webhook-test");
   const status = document.querySelector<HTMLElement>("#webhook-status");
@@ -159,8 +159,27 @@ export const setupWebhookPanel = (
       2,
     );
   };
+  // One endpoint per line. The field is usable when every line it names is one
+  // the extension will send to: a line it would not send to is reported where
+  // it was written rather than quietly ignored, so the list never claims more
+  // than it delivers. Reading the field is separate from reporting on it — the
+  // blur handler validates and then saves, and a save must not erase the
+  // message the blur just showed.
+  const readEndpoints = () => {
+    const parsed = parseWebhookEndpoints(endpoint.value);
+    const firstIssue = parsed.issues[0];
+    return {
+      ok: parsed.entries.length > 0 && firstIssue === undefined,
+      endpoints: parsed.entries.map((entry) => entry.value),
+      // Validation text has always come from validateWebhookUrl untranslated;
+      // the line prefix keeps that, and says which line the reason is about.
+      message: firstIssue
+        ? `Line ${firstIssue.line}: ${firstIssue.error.message}`
+        : "Enter an HTTPS webhook URL",
+    };
+  };
   const endpointValidation = (showError = false) => {
-    const result = validateWebhookUrl(endpoint.value);
+    const result = readEndpoints();
     endpoint.setCustomValidity(result.ok || !showError ? "" : result.message);
     test.disabled = !result.ok || test.dataset.sending === "true";
     return result;
@@ -229,10 +248,13 @@ export const setupWebhookPanel = (
   const saveEndpoint = async () => {
     if (endpointSaveTimer !== undefined) window.clearTimeout(endpointSaveTimer);
     endpointSaveTimer = undefined;
-    const validation = validateWebhookUrl(endpoint.value);
+    const validation = readEndpoints();
     if (!validation.ok && endpoint.value.trim() !== "") return;
     try {
-      await dependencies.apply({ webhookUrl: validation.ok ? validation.url : "" });
+      // The stored value is the text as written, so the lines a user is editing
+      // come back as they left them; the schema accepts it only when every line
+      // is an endpoint that would be sent to.
+      await dependencies.apply({ webhookUrl: validation.ok ? endpoint.value.trim() : "" });
     } catch {
       setStatus(
         dependencies.message("webhookSaveFailed", "Could not save the webhook setting."),
@@ -262,17 +284,28 @@ export const setupWebhookPanel = (
     test.disabled = true;
     setStatus(dependencies.message("webhookSendingTest", "Sending test…"));
     try {
-      const response = await dependencies.post(validation.url);
-      if (response.ok) {
-        setStatus(dependencies.message("webhookTestDelivered", "Test delivered."));
-      } else {
-        setStatus(dependencies.message("webhookTestRejected", "Endpoint rejected the test."), true);
-      }
-    } catch {
-      setStatus(
-        dependencies.message("webhookTestFailed", "Could not deliver the test webhook."),
-        true,
+      // Every endpoint is tested, and each one's outcome is its own: the button
+      // reports what the save path would actually do, which is deliver to the
+      // ones that answer and not to the ones that do not.
+      const outcomes = await Promise.all(
+        validation.endpoints.map((url) =>
+          dependencies.post(url).then(
+            (response) => (response.ok ? "delivered" : "rejected"),
+            () => "failed",
+          ),
+        ),
       );
+      const delivered = outcomes.filter((outcome) => outcome === "delivered").length;
+      if (delivered === outcomes.length) {
+        setStatus(dependencies.message("webhookTestDelivered", "Test delivered."));
+      } else if (outcomes.includes("rejected")) {
+        setStatus(dependencies.message("webhookTestRejected", "Endpoint rejected the test."), true);
+      } else {
+        setStatus(
+          dependencies.message("webhookTestFailed", "Could not deliver the test webhook."),
+          true,
+        );
+      }
     } finally {
       delete test.dataset.sending;
       endpointValidation(false);
