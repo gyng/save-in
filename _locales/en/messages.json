@@ -5390,7 +5390,7 @@
     "description": "Action that dismisses a generated rule draft. Used in src/options/options.html."
   },
   "promptAssistantPrivacy": {
-    "message": "Chrome runs the model on this device. Save In does not send the prompt or result to a server. Generated rules are never applied automatically.",
+    "message": "The browser runs the model on this device. Save In does not send the prompt or result to a server. Generated rules are never applied automatically.",
     "description": "Privacy and review disclosure for the experimental local rule-authoring assistant. Used in src/options/options.html."
   },
   "promptAssistantStatusOff": {
@@ -5410,7 +5410,7 @@
     "description": "Status shown when Chrome can download its local model after a user action. Used in src/options/integrations/prompt-assistant-panel.ts."
   },
   "promptAssistantStatusDownloading": {
-    "message": "Chrome is downloading the on-device model",
+    "message": "The browser is downloading the on-device model",
     "description": "Model download status for the experimental local rule-authoring assistant. Used in src/options/integrations/prompt-assistant-panel.ts."
   },
   "promptAssistantStatusUnavailable": {

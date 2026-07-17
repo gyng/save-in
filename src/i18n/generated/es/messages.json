@@ -4187,7 +4187,7 @@
     "message": "Borrar borrador"
   },
   "promptAssistantPrivacy": {
-    "message": "Chrome ejecuta el modelo en este dispositivo. Save In no envía la instrucción ni el resultado a un servidor. Las reglas generadas nunca se aplican automáticamente."
+    "message": "El navegador ejecuta el modelo en este dispositivo. Save In no envía la instrucción ni el resultado a un servidor. Las reglas generadas nunca se aplican automáticamente."
   },
   "promptAssistantStatusOff": {
     "message": "Desactivado — sin comprobaciones del modelo ni instrucciones"
@@ -4202,7 +4202,7 @@
     "message": "El modelo se descarga cuando sugiere su primera regla"
   },
   "promptAssistantStatusDownloading": {
-    "message": "Chrome está descargando el modelo en el dispositivo"
+    "message": "El navegador está descargando el modelo en el dispositivo"
   },
   "promptAssistantStatusUnavailable": {
     "message": "No disponible en este navegador o dispositivo"

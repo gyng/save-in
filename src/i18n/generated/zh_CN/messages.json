@@ -4187,7 +4187,7 @@
     "message": "清除草稿"
   },
   "promptAssistantPrivacy": {
-    "message": "Chrome 在此设备上运行模型。Save In 不会将提示或结果发送到服务器。生成的规则绝不会自动应用。"
+    "message": "浏览器在此设备上运行模型。Save In 不会将提示或结果发送到服务器。生成的规则绝不会自动应用。"
   },
   "promptAssistantStatusOff": {
     "message": "已关闭 — 不检查模型或发送提示"
@@ -4202,7 +4202,7 @@
     "message": "建议第一条规则时会下载模型"
   },
   "promptAssistantStatusDownloading": {
-    "message": "Chrome 正在下载设备端模型"
+    "message": "浏览器正在下载设备端模型"
   },
   "promptAssistantStatusUnavailable": {
     "message": "此浏览器或设备不可用"

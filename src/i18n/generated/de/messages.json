@@ -4187,7 +4187,7 @@
     "message": "Entwurf löschen"
   },
   "promptAssistantPrivacy": {
-    "message": "Chrome führt das Modell auf diesem Gerät aus. Save In sendet weder die Eingabe noch das Ergebnis an einen Server. Erzeugte Regeln werden nie automatisch angewendet."
+    "message": "Der Browser führt das Modell auf diesem Gerät aus. Save In sendet weder die Eingabe noch das Ergebnis an einen Server. Erzeugte Regeln werden nie automatisch angewendet."
   },
   "promptAssistantStatusOff": {
     "message": "Aus — keine Modellprüfungen oder Eingaben"
@@ -4202,7 +4202,7 @@
     "message": "Das Modell wird heruntergeladen, wenn Sie Ihre erste Regel vorschlagen"
   },
   "promptAssistantStatusDownloading": {
-    "message": "Chrome lädt das Modell auf das Gerät herunter"
+    "message": "Der Browser lädt das Modell auf das Gerät herunter"
   },
   "promptAssistantStatusUnavailable": {
     "message": "In diesem Browser oder auf diesem Gerät nicht verfügbar"

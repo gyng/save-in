@@ -4187,7 +4187,7 @@
     "message": "Effacer le brouillon"
   },
   "promptAssistantPrivacy": {
-    "message": "Chrome exécute le modèle sur cet appareil. Save In n’envoie ni l’instruction ni le résultat à un serveur. Les règles générées ne sont jamais appliquées automatiquement."
+    "message": "Le navigateur exécute le modèle sur cet appareil. Save In n’envoie ni l’instruction ni le résultat à un serveur. Les règles générées ne sont jamais appliquées automatiquement."
   },
   "promptAssistantStatusOff": {
     "message": "Désactivé — aucune vérification du modèle ni instruction"
@@ -4202,7 +4202,7 @@
     "message": "Le modèle est téléchargé lorsque vous suggérez votre première règle"
   },
   "promptAssistantStatusDownloading": {
-    "message": "Chrome télécharge le modèle sur l’appareil"
+    "message": "Le navigateur télécharge le modèle sur l’appareil"
   },
   "promptAssistantStatusUnavailable": {
     "message": "Indisponible dans ce navigateur ou sur cet appareil"

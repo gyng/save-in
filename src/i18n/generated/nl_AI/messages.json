@@ -4187,7 +4187,7 @@
     "message": "Concept wissen"
   },
   "promptAssistantPrivacy": {
-    "message": "Chrome voert het model op dit apparaat uit. Save In verzendt de prompt of het resultaat niet naar een server. Gegenereerde regels worden nooit automatisch toegepast."
+    "message": "De browser voert het model op dit apparaat uit. Save In verzendt de prompt of het resultaat niet naar een server. Gegenereerde regels worden nooit automatisch toegepast."
   },
   "promptAssistantStatusOff": {
     "message": "Uit — geen modelcontroles of prompts"
@@ -4202,7 +4202,7 @@
     "message": "Het model wordt gedownload wanneer u uw eerste regel voorstelt"
   },
   "promptAssistantStatusDownloading": {
-    "message": "Chrome downloadt het model op het apparaat"
+    "message": "De browser downloadt het model op het apparaat"
   },
   "promptAssistantStatusUnavailable": {
     "message": "Niet beschikbaar in deze browser of op dit apparaat"

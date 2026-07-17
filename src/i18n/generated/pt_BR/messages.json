@@ -4187,7 +4187,7 @@
     "message": "Limpar rascunho"
   },
   "promptAssistantPrivacy": {
-    "message": "O Chrome executa o modelo neste dispositivo. O Save In não envia o prompt nem o resultado a um servidor. As regras geradas nunca são aplicadas automaticamente."
+    "message": "O navegador executa o modelo neste dispositivo. O Save In não envia o prompt nem o resultado a um servidor. As regras geradas nunca são aplicadas automaticamente."
   },
   "promptAssistantStatusOff": {
     "message": "Desativado — sem verificações do modelo ou prompts"
@@ -4202,7 +4202,7 @@
     "message": "O modelo é baixado quando você sugere sua primeira regra"
   },
   "promptAssistantStatusDownloading": {
-    "message": "O Chrome está baixando o modelo no dispositivo"
+    "message": "O navegador está baixando o modelo no dispositivo"
   },
   "promptAssistantStatusUnavailable": {
     "message": "Indisponível neste navegador ou dispositivo"

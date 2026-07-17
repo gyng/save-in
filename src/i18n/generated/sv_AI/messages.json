@@ -4187,7 +4187,7 @@
     "message": "Rensa utkast"
   },
   "promptAssistantPrivacy": {
-    "message": "Chrome kör modellen på den här enheten. Save In skickar inte prompten eller resultatet till en server. Genererade regler tillämpas aldrig automatiskt."
+    "message": "Webbläsaren kör modellen på den här enheten. Save In skickar inte prompten eller resultatet till en server. Genererade regler tillämpas aldrig automatiskt."
   },
   "promptAssistantStatusOff": {
     "message": "Av — inga modellkontroller eller prompter"
@@ -4202,7 +4202,7 @@
     "message": "Modellen laddas ner när du föreslår din första regel"
   },
   "promptAssistantStatusDownloading": {
-    "message": "Chrome laddar ner modellen till enheten"
+    "message": "Webbläsaren laddar ner modellen till enheten"
   },
   "promptAssistantStatusUnavailable": {
     "message": "Inte tillgänglig i den här webbläsaren eller på enheten"

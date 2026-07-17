@@ -4187,7 +4187,7 @@
     "message": "Cancella bozza"
   },
   "promptAssistantPrivacy": {
-    "message": "Chrome esegue il modello su questo dispositivo. Save In non invia la richiesta o il risultato a un server. Le regole generate non vengono mai applicate automaticamente."
+    "message": "Il browser esegue il modello su questo dispositivo. Save In non invia la richiesta o il risultato a un server. Le regole generate non vengono mai applicate automaticamente."
   },
   "promptAssistantStatusOff": {
     "message": "Disattivato — nessun controllo del modello o richiesta"
@@ -4202,7 +4202,7 @@
     "message": "Il modello viene scaricato quando suggerisci la prima regola"
   },
   "promptAssistantStatusDownloading": {
-    "message": "Chrome sta scaricando il modello sul dispositivo"
+    "message": "Il browser sta scaricando il modello sul dispositivo"
   },
   "promptAssistantStatusUnavailable": {
     "message": "Non disponibile in questo browser o dispositivo"

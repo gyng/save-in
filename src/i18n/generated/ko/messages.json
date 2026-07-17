@@ -4187,7 +4187,7 @@
     "message": "초안 지우기"
   },
   "promptAssistantPrivacy": {
-    "message": "Chrome은 이 기기에서 모델을 실행합니다. Save In은 프롬프트나 결과를 서버로 보내지 않습니다. 생성된 규칙은 자동으로 적용되지 않습니다."
+    "message": "브라우저는 이 기기에서 모델을 실행합니다. Save In은 프롬프트나 결과를 서버로 보내지 않습니다. 생성된 규칙은 자동으로 적용되지 않습니다."
   },
   "promptAssistantStatusOff": {
     "message": "꺼짐 — 모델 확인이나 프롬프트 없음"
@@ -4202,7 +4202,7 @@
     "message": "첫 번째 규칙을 제안할 때 모델을 다운로드합니다"
   },
   "promptAssistantStatusDownloading": {
-    "message": "Chrome에서 기기 내 모델을 다운로드하는 중"
+    "message": "브라우저에서 기기 내 모델을 다운로드하는 중"
   },
   "promptAssistantStatusUnavailable": {
     "message": "이 브라우저 또는 기기에서 사용할 수 없음"

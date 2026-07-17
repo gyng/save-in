@@ -4187,7 +4187,7 @@
     "message": "下書きを消去"
   },
   "promptAssistantPrivacy": {
-    "message": "Chrome はこのデバイス上でモデルを実行します。Save In はプロンプトや結果をサーバーに送信しません。生成されたルールが自動的に適用されることはありません。"
+    "message": "ブラウザーはこのデバイス上でモデルを実行します。Save In はプロンプトや結果をサーバーに送信しません。生成されたルールが自動的に適用されることはありません。"
   },
   "promptAssistantStatusOff": {
     "message": "オフ — モデルの確認もプロンプトの送信も行いません"
@@ -4202,7 +4202,7 @@
     "message": "最初のルールを提案するときにモデルをダウンロードします"
   },
   "promptAssistantStatusDownloading": {
-    "message": "Chrome がデバイス上のモデルをダウンロードしています"
+    "message": "ブラウザーがデバイス上のモデルをダウンロードしています"
   },
   "promptAssistantStatusUnavailable": {
     "message": "このブラウザーまたはデバイスでは利用できません"
