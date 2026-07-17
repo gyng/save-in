@@ -11,11 +11,15 @@ not, and where a close would be wrong. Treat a verdict as an input to a reply,
 not as the reply.
 
 Prepared 2026-07-17 against branch `v4` at `6d908c58`. Tracker snapshot: 182
-issues, 86 open / 96 closed.
+issues, 86 open / 96 closed. Re-checked the same day at `b1773677`, 208 commits
+later: every citation below was re-resolved against the tree, the verdicts were
+re-read against the code they name, and what had moved on is marked in place.
 
-Line numbers below are anchored to that commit and **drift** — a concurrent
-session moved `shared/constants.ts` by six lines while these notes were being
-written. Trust the quoted symbol names and comment text over the `:NNN`.
+Line numbers **drift** — a concurrent session moved `shared/constants.ts` by six
+lines while these notes were being written, and 208 commits have moved more since.
+Trust the quoted symbol names and comment text over the `:NNN`. Citations into
+`src/menu.js`, `src/messaging.js` and `src/router.js` are v3 (`master`) on
+purpose; they have no v4 counterpart and are not stale.
 
 ## Evidence standard
 
@@ -53,7 +57,7 @@ superfluous.
 
 `:pagerootdomain:` / `:sourcerootdomain:` (`shared/constants.ts:13-14`) resolve
 through `toRootDomain` (`shared/domain.ts:69-77`), wired at
-`routing/variable.ts:309-312`. Traced against the reporter's own cases:
+`routing/variable.ts:424-427`. Traced against the reporter's own cases:
 
 - `dan.tumblr.com` → 3 labels, suffix `tumblr.com` not in the multi-label set → `slice(-2)` → `tumblr.com`
 - `64.media.tumblr.com` → 4 labels → `tumblr.com`
@@ -72,7 +76,7 @@ this is a curated subset and not the full PSL.
 Two distinct symptoms in one report, and both are addressed.
 
 1. *Invisible characters break the save.* The reporter enumerates nine classes.
-   `UNSAFE_INVISIBLE_FILENAME_CHARS` (`shared/constants.ts:188-190`) covers
+   `UNSAFE_INVISIBLE_FILENAME_CHARS` (`shared/constants.ts:214`) covers
    every one — escapes used deliberately below, since the subject matter is
    invisible by definition:
 
@@ -102,7 +106,7 @@ name rather than the URL-derived one. Chrome returns early at line 42 because
 its `onDeterminingFilename` hook owns the final name instead.
 
 **Caveat.** There is no `#212` reference anywhere in `src/`, `test/`, or any
-commit message — the only hit in the repo is `ROADMAP.md:60`. The verdict rests
+commit message — the only hit in the repo is `ROADMAP.md:81`. The verdict rests
 on the mechanism plus the #178 regression test, not on issue-tagged coverage.
 Confidence comes from the body matching the code exactly, which was only
 checkable once the tracker was readable.
@@ -110,9 +114,9 @@ checkable once the tracker was readable.
 ### #186 — Waterfox detected as Chrome
 
 Detection keys off the **presence** of `runtime.getBrowserInfo`
-(`platform/chrome-detector.ts:74-78`), which only Gecko implements. The
+(`platform/chrome-detector.ts:95-99`), which only Gecko implements. The
 reported product name is never read — `browserVersion` touches only
-`value.version`. `setCurrentBrowser(FIREFOX)` runs **synchronously** at line 94,
+`value.version`. `setCurrentBrowser(FIREFOX)` runs **synchronously** at line 115,
 before the async version lookup, so a fork takes the Firefox feature path
 immediately rather than after a promise resolves.
 
@@ -124,8 +128,8 @@ Regression: `test/platform/chrome-detector.test.ts:92` — *"treats Gecko forks
 
 `background/menu-click.ts:82` is `const clickTab = tab || currentTab` — the
 click's own tab wins; the tracked global is only a fallback when the event
-carries no tab. `background/messaging/handlers.ts:422` does the same for the
-message path. The fix is browser-agnostic, so the Chrome 91 framing does not
+carries no tab. `background/messaging/handlers.ts:434` does the same for the
+message path — `(sender && sender.tab) || currentTab`. The fix is browser-agnostic, so the Chrome 91 framing does not
 narrow it.
 
 Regression: `test/background/menus/download-listener.cases.ts:291` seeds the
@@ -138,7 +142,8 @@ companion test at :309 pins the fallback branch.
 **Fixed, but a plain "this is fixed" reply would be wrong.**
 
 The mechanism is real and the regression test matches the report's URL shape
-exactly: `test/downloads/download-acquisition.test.ts:180` routes
+exactly: `test/downloads/download-acquisition.test.ts:198` — *"Firefox routes
+an extensionless PHP download by its Content-Disposition name (#178)"* — routes
 `td.php?token=secret` → `release.torrent` → `_torrents/release.torrent` via
 `actualfileext`.
 
@@ -155,7 +160,7 @@ mediatype: application/x-bittorrent   # (2)
    browser. It is the documented legacy spelling; the clause reference already
    says *"Matches the URL-derived extension (legacy name). Use `urlfileext:` in
    new rules."*
-2. `mediatype:` maps to `info.mediaType` (`routing/matchers.ts:311`) — the
+2. `mediatype:` maps to `info.mediaType` (`routing/matchers.ts:317`) — the
    *context-menu* media type (`image`/`video`/`audio`). It can never match a
    MIME string like `application/x-bittorrent`. This rule was already
    ineffective when filed.
@@ -169,12 +174,12 @@ broken.
 
 Both browsers support the working rules. Firefox resolves the name before
 routing (`download-disposition.ts:36-60`); Chrome defers and re-evaluates, since
-`actualfileext` **is** in the deferral list (`download-plan.ts:142`).
+`actualfileext` **is** in the deferral list (`download-plan.ts:153-156`).
 
 The Chromium path is covered, contrary to a first pass here that called it a
 gap: `test/downloads/download-mv3.test.ts:1055` drives an `actualfileext` rule
 through Chrome's `onDeterminingFilename` listener and asserts the suggestion,
-and `test/downloads/download-plan.test.ts:502-560` pins Chrome + `actualfileext`
+and `test/downloads/download-plan.test.ts:554-576` pins Chrome + `actualfileext`
 deferral. The "missing test" claim came from a narrow grep for a Chromium case
 inside the *acquisition* test file — the same infer-from-absence mistake this
 document exists to prevent, made while writing it. No test is needed; adding one
@@ -184,10 +189,14 @@ would repeat a matrix across layers.
 
 Two disjoint clusters in the tree cite `#221`:
 
+Cluster A's sites are historical — as they stood at `6d908c58`, since those
+four comments have since been deleted (see Consequences) and the lines now hold
+unrelated code. Cluster B's are current.
+
 | Cluster | Subject | Sites |
 |---|---|---|
 | A | filename sanitization / `replacementChar` | `shared/constants.ts:180`, `test/routing/path.test.ts:27`, `test/config/option.test.ts:291`, `test/config/option.test.ts:697` |
-| B | root-domain variables | `test/routing/variable.test.ts:189`, `CHANGELOG.md:91`, `ROADMAP.md:57` |
+| B | root-domain variables | `test/routing/variable.test.ts:189`, `CHANGELOG.md:95`, `ROADMAP.md:78` |
 
 **Cluster B is correct; cluster A is wrong.** Resolved by the introducing
 commit `ef1bae2c` ("feat: root-domain variables, Windows filename hardening,
@@ -206,11 +215,13 @@ Consequences:
   #221; the report asked for one thing. `#221` now scopes to
   `:pagerootdomain:`/`:sourcerootdomain:` only. *(This is the only file changed
   by this pass.)*
-- **Cluster A's four `#221` comments remain wrong** and are unfixed — they are
-  source/test comments, and the correct replacement is not obvious (the
-  sanitization work appears to have had no issue; `#220` covers the page-title
-  half but not `replacementChar` validation). Left alone deliberately rather
-  than guessed at.
+- **Cluster A's four `#221` comments are gone**, dropped in `b6f617ea`. They were
+  left alone by this pass — source/test comments with no obvious right answer,
+  since the sanitization work appears to have had no issue and `#220` covers the
+  page-title half but not `replacementChar` validation — and deleting the wrong
+  tag turned out to be the answer, rather than finding a right one. Source and
+  tests now hold exactly one `#221`, `test/routing/variable.test.ts:189`, which
+  is cluster B.
 
 ## Label hygiene: `blocked upstream` is largely stale
 
@@ -297,16 +308,17 @@ way there.
 
 ## The 4.0.0 bulk claim — validated
 
-`ROADMAP.md:47-49` says the 4.0.0 changelog "resolve[s] roughly 28 open
+`ROADMAP.md:55-57` says the 4.0.0 changelog "resolve[s] roughly 28 open
 reports". It actually cites **45 issues, 43 of them still open**. The sweep was
 undercounted by half before it began. Verdicts below come from reading each
 reporter's body against current code; each was required to cite `file:line` and
 was barred from inferring "fixed" from a feature's existence.
 
 **Cited as landed but not implemented.** All three were cited by `07f09f17` and
-listed as landed at `ROADMAP.md:35` — a self-consistent but incorrect claim, and
-the exact failure mode this document exists for. **#162 and #144 have since been
-implemented**; #201 has not.
+listed as landed under the Save workflow track — a self-consistent but incorrect
+claim, and the exact failure mode this document exists for. **#162 and #144 have
+since been implemented**; #201 has not, and `ROADMAP.md:37-42` now records both
+facts rather than the original claim.
 
 | # | Then | Now |
 |---|---|---|
@@ -333,7 +345,7 @@ implemented**; #201 has not.
 | 106, 146, 152 | **PARTIAL** | Genuinely fixed on Chrome. #146's reporter said *"I have only used the extension with Firefox"* and #106's thread implies it — on Firefox this exists only behind the off-by-default **experimental** reroute that can lose POST bodies and expiring URLs. |
 | 184 | **PARTIAL — and that is the ceiling** | Only the *update* icon got theme detection. The **archive** icon in the reporter's screenshot is the manifest's, drawn on the top-level item, and it cannot be themed: Firefox takes a custom icon only on an item inside a submenu, so giving the root `icons` fails that create and every child keyed to its `parentId` with it — measured 2026-07-17, Firefox e2e 3/3 → 1/3 and a background that never reports ready. Chrome cannot either: `contextMenus.create` rejects `icons` by schema validation (measured on 150: "Unexpected property: 'icons'"). So the remaining half is browser-owned, not unfinished, and his userChrome.css workaround is still the only answer. Do not read "no white asset exists" as a to-do: an asset was written, and the browser refused it. |
 | 218 | **NEEDS-RETEST** | Root cause was never established by the reporter — no diagnostics, no mention of Referer. Both fixes are inert unless `setRefererHeader` is enabled (defaults false). Closing asserts a diagnosis the issue never made. |
-| 226 | FIXED / split | Original (alt-click a PDF link) fixed, `content.ts:127-138`, tested. A second commenter reports alt-click ignoring "prefer link over media" — that is real: `preferLinks` is not a content option, so `findSource` cannot consult it. Close on the original only. |
+| 226 | FIXED / split | Original (alt-click a PDF link) fixed, `content.ts:74-146` (`findSource`), tested. A second commenter reports alt-click ignoring "prefer link over media" — that is real: `preferLinks` is not a content option, so `findSource` cannot consult it. Close on the original only. |
 | 193 | FIXED | Redirect-hop Referer extension is bounded to 3. A per-request-signed S3 URL yields a fresh target each attempt and exhausts the budget; the report says "some s3 storage site". Don't promise success. |
 | 225, 227 | FIXED **on release** | Correct (MV3, `minimum_chrome_version: 123`), but needs the Web Store publish. Closing on branch state leaves both reporters broken. |
 | 102 | FIXED | One-click Undo is the notification button — **Chrome only** (`notificationButtons`). Firefox users must use Options → History → Undo. |
@@ -396,8 +408,8 @@ folder name they asked for; separators sanitize to `_` inside a filename).
 
 **#190 — FIXED.** v3's `messaging.js:64-95` seeded `path: last.path` for
 `CLICK` context and joined it with the rule's `into:` — the only mechanism
-producing the described inheritance. `download-plan.ts:203-210` resets
-`CLICK`/`AUTO` to `Path(".")`; `download-plan.test.ts:804` uses the reporter's
+producing the described inheritance. `download-plan.ts:216-221` resets
+`CLICK`/`AUTO` to `Path(".")`; `download-plan.test.ts:856` uses the reporter's
 literal `Plants/Trees/Baobabs` scenario. Caveat: a later *context-menu* folder
 pick still concatenates with `into:` — by design, unchanged.
 
