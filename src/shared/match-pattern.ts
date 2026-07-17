@@ -123,3 +123,16 @@ export const matchesAnyPattern = (url: string, patterns: string): boolean => {
   const candidate = canonicalForMatch(url);
   return parseMatchPatternList(patterns).entries.some(({ value }) => value.regexp.test(candidate));
 };
+
+// A list that decides what to LEAVE ALONE cannot read a rejected pattern as
+// "no match": that answer silently drops the exclusion and acts on exactly the
+// URL the line was written to protect. A caller whose non-match means "act"
+// asks for this instead, so an unreadable list withholds the action until the
+// user fixes it. matchesAnyPattern stays correct for allowlists, where a
+// rejected pattern already fails closed by matching nothing.
+export const matchesAnyPatternOrUnreadable = (url: string, patterns: string): boolean => {
+  const { entries, issues } = parseMatchPatternList(patterns);
+  if (issues.length > 0) return true;
+  const candidate = canonicalForMatch(url);
+  return entries.some(({ value }) => value.regexp.test(candidate));
+};

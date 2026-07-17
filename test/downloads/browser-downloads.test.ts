@@ -57,6 +57,27 @@ describe("browser download URL filter", () => {
     expect(matchesBrowserDownloadFilter("https://example.com/a.zip", "not a pattern")).toBe(false);
   });
 
+  test("a nonblank invalid exclude filter excludes everything", () => {
+    // Forgetting the scheme is the ordinary mistake, and matchesAnyPattern
+    // reports a rejected pattern as "no match" — which would leave the download
+    // tracked and routed, the one outcome the line was written to prevent.
+    expect(
+      matchesBrowserDownloadFilter(
+        "https://private.example.com/a.zip",
+        "",
+        "private.example.com/*",
+      ),
+    ).toBe(false);
+    // One unreadable line must not quietly narrow the rest of the list either.
+    expect(
+      matchesBrowserDownloadFilter(
+        "https://public.example.com/a.zip",
+        "",
+        "*://private.example.com/*\nnot a pattern",
+      ),
+    ).toBe(false);
+  });
+
   test("exclusions override both blank and matching include filters", () => {
     const excluded = "*://private.example.com/*";
     expect(matchesBrowserDownloadFilter("https://private.example.com/a.zip", "", excluded)).toBe(

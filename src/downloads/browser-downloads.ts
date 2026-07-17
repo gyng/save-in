@@ -1,7 +1,7 @@
 import { Path, ROUTES_TO_FOLDER_REGEX } from "../routing/path.ts";
 import { applyVariables, normalizeMimeType } from "../routing/variable.ts";
 import { BROWSER_DOWNLOAD_CONTEXT } from "../shared/constants.ts";
-import { matchesAnyPattern } from "../shared/match-pattern.ts";
+import { matchesAnyPattern, matchesAnyPatternOrUnreadable } from "../shared/match-pattern.ts";
 import type { DownloadPipelineState } from "./download-types.ts";
 import { releaseUnusedContent } from "./download-pipeline-state.ts";
 
@@ -51,6 +51,11 @@ export const isOrdinaryBrowserDownload = (
   return !item.byExtensionId;
 };
 
+// The two filters fail closed in opposite directions because they are read from
+// opposite sides: an unreadable include matches nothing and so tracks nothing,
+// and an unreadable exclude must likewise withhold tracking rather than report
+// the download as un-excluded. Both leave an ordinary browser download alone
+// until the pattern is fixed, which the field's inline diagnostic asks for.
 export const matchesBrowserDownloadFilter = (
   url: string,
   filter?: string,
@@ -59,7 +64,9 @@ export const matchesBrowserDownloadFilter = (
 ): boolean =>
   !enabled ||
   ((!filter || filter.trim() === "" || matchesAnyPattern(url, filter)) &&
-    (!excludeFilter || excludeFilter.trim() === "" || !matchesAnyPattern(url, excludeFilter)));
+    (!excludeFilter ||
+      excludeFilter.trim() === "" ||
+      !matchesAnyPatternOrUnreadable(url, excludeFilter)));
 
 export const createBrowserDownloadState = (item: BrowserDownloadItem): DownloadPipelineState => {
   const filename = proposedFilename(item.filename || item.url);
