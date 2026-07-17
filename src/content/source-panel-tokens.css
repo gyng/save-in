@@ -1,0 +1,53 @@
+/*
+ * The Page Sources drawer runs in a shadow root, so it cannot inherit the
+ * options stylesheet. Keep semantic roles aligned with the options tokens;
+ * scripts/check-css.js guards the shared contract.
+ */
+:host {
+  --source-panel-motion-transform: translateX(8px);
+  --source-panel-inline-gutter: min(var(--source-space-4), 4dvw);
+  --source-panel-block-gutter: min(var(--source-space-4), 4dvh);
+  --source-panel-floating-left: clamp(var(--source-panel-inline-gutter), 10dvw, 80px);
+  --source-panel-floating-top: clamp(var(--source-panel-block-gutter), 10dvh, 80px);
+  --source-space-1: 4px;
+  --source-space-2: 8px;
+  --source-space-3: 12px;
+  --source-space-4: 16px;
+  --source-space-5: 24px;
+  --font-stack: system-ui, sans-serif;
+  --text-xs: 12px;
+  --text-base: 14px;
+  --text-lg: 16px;
+  --radius: 4px;
+  --radius-sm: 3px;
+  --control-height: 34px;
+  --compact-control-size: 32px;
+  --source-motion-duration-enter: 110ms;
+  --source-motion-duration-exit: 90ms;
+  --color-text: light-dark(#0c0c0d, #ffffff);
+  --color-text-muted: light-dark(#66666b, #b1b1b3);
+  --color-text-meta: light-dark(#55555a, #d7d7db);
+  --color-surface-page: light-dark(#ffffff, #2a2a2e);
+  --color-surface-raised: light-dark(#ededf0, #38383d);
+  --color-border: light-dark(#d7d7db, #4a4a4f);
+  --color-control-border: light-dark(#939395, #737373);
+  --color-hover: light-dark(rgba(0, 0, 0, 0.05), rgba(255, 255, 255, 0.07));
+  --color-accent: light-dark(#0060df, #2f79bc);
+  --color-focus: light-dark(#0a84ff, #5b9fdf);
+  --color-link: light-dark(#0060df, #73afe8);
+  --color-on-accent: #ffffff;
+  --color-kind-other: light-dark(#57606a, #626b75);
+  --color-kind-image: light-dark(#8250df, #7057b5);
+  --color-kind-video: light-dark(#0969da, #2f79bc);
+  --color-kind-audio: light-dark(#b45309, #986020);
+  --color-kind-stream: light-dark(#087f5b, #3f7f62);
+  --color-kind-document: light-dark(#cf222e, #a64b55);
+  --color-preview: light-dark(#ededf0, #38383d);
+  --color-preview-media: #111111;
+  --color-backdrop: rgba(0, 0, 0, 0.35);
+  --panel-shadow: 0 8px 28px rgba(0, 0, 0, 0.2);
+  --floating-shadow: 0 16px 48px rgba(0, 0, 0, 0.32);
+  --z-preview-control: 2;
+  --z-panel-resize: 3;
+  --z-panel-menu: 4;
+}

@@ -1,0 +1,211 @@
+.route-debugger-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.route-debugger-intro {
+  display: grid;
+  gap: 2px;
+}
+
+.route-debugger-intro > p {
+  margin: 0;
+}
+
+.route-debugger-header > button {
+  flex: none;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.route-debugger-source-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.route-debugger-source-picker > span {
+  margin-inline-end: var(--space-1);
+  color: var(--color-text-muted);
+}
+
+.route-debugger-source-picker > button {
+  margin: 0;
+  white-space: nowrap;
+}
+
+#route-debugger-form {
+  padding: var(--space-3) 0 0;
+}
+
+.route-debugger-fields {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.route-debugger-field-group > legend {
+  margin-block-end: var(--space-2);
+  padding: 0;
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.route-debugger-field-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2) var(--space-3);
+}
+
+.route-debugger-field {
+  display: grid;
+  align-content: start;
+  gap: var(--space-1);
+  min-inline-size: 0;
+  margin: 0;
+}
+
+.route-debugger-field > span {
+  display: block;
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.route-debugger-field input,
+.route-debugger-field select {
+  inline-size: auto;
+  min-inline-size: 0;
+  max-inline-size: none;
+  margin: 0;
+  font: inherit;
+}
+
+.route-debugger-field [data-technical-literal] {
+  font-family: var(--font-mono);
+}
+
+#route-debugger-sha256 {
+  font-size: var(--text-sm);
+}
+
+.route-debugger-result {
+  position: relative;
+  overflow: clip;
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  background: var(--panel-bg);
+}
+
+.route-debugger-result:empty {
+  display: none;
+}
+
+.route-debugger-result[data-busy="true"]::before {
+  position: absolute;
+  z-index: var(--z-editor-marker);
+  top: 0;
+  inset-inline-start: 0;
+  inline-size: 38%;
+  block-size: 2px;
+  background: var(--color-info);
+  content: "";
+  animation: route-debugger-progress var(--motion-duration-progress) ease-in-out infinite alternate;
+}
+
+@keyframes route-debugger-progress {
+  from {
+    transform: translateX(-20%);
+  }
+  to {
+    transform: translateX(180%);
+  }
+}
+
+.route-debugger-message {
+  display: grid;
+  gap: 2px;
+  padding: var(--space-3);
+  color: var(--color-text-muted);
+}
+
+.route-debugger-message-title {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.route-debugger-match-summary {
+  padding: var(--space-3) var(--space-4);
+  border-block-end: 1px solid var(--panel-border);
+  background: color-mix(in srgb, var(--success-fg) 8%, var(--page-bg));
+}
+
+.route-debugger-match-summary .route-debugger-message-title {
+  font-size: var(--text-base);
+}
+
+.route-debugger-result[data-state="no-match"] .route-debugger-match-summary {
+  background: color-mix(in srgb, var(--warning-fg) 8%, var(--page-bg));
+}
+
+.route-debugger-reachability-note {
+  color: var(--warning-fg);
+  background: color-mix(in srgb, var(--warning-fg) 8%, var(--page-bg));
+}
+
+/* The master-switch note is informational; meaning stays in the text, so
+   forced-colors mode needs no override. */
+.route-debugger-reachability-note[data-level="info"] {
+  color: var(--color-text-muted);
+  background: color-mix(in srgb, var(--color-text-muted) 8%, var(--page-bg));
+}
+
+.route-debugger-reachability-note .route-debugger-message-title {
+  font-size: var(--text-base);
+}
+
+.route-debugger-result[data-state="error"] .route-debugger-message,
+.route-debugger-result[data-state="invalid"] .route-debugger-message {
+  color: var(--error-fg);
+  background: var(--error-bg);
+}
+
+.route-debugger-pipeline {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+}
+
+.route-debugger-pipeline > div {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  align-items: baseline;
+  min-inline-size: 0;
+  gap: var(--space-3);
+  padding: var(--space-1) 0;
+}
+
+.route-debugger-pipeline dt {
+  color: var(--color-text-muted);
+  font-size: var(--text-base);
+  font-weight: 600;
+}
+
+.route-debugger-pipeline dd {
+  min-inline-size: 0;
+  margin: 0;
+}
+
+.route-debugger-pipeline code {
+  display: block;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  font-family: var(--font-mono);
+  font-size: var(--text-base);
+  overflow-wrap: anywhere;
+}

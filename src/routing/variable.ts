@@ -1,0 +1,606 @@
+import { isStringKeyedRecord, isStringMember, withUrl as parseUrl } from "../shared/util.ts";
+import { EXTENSION_REGEX, getFilenameFromUrl } from "./filename.ts";
+import { SPECIAL_DIRS, PATH_SEGMENT_TYPES } from "../shared/constants.ts";
+import { stringSegment, type PathSegment } from "./path.ts";
+import type { RoutingDownloadInfo } from "./rule-types.ts";
+import { routingPorts } from "./ports.ts";
+import { getExtensionFetchCredentials } from "../config/fetch-credentials.ts";
+import { fetchProtected, type RefererProtection } from "../shared/protected-fetch.ts";
+import { fetchFollowingRedirects } from "../shared/redirect-fetch.ts";
+import type { HeadMetadata } from "../shared/lazy-download-metadata.ts";
+import { toRootDomain } from "../shared/domain.ts";
+
+export { toRootDomain } from "../shared/domain.ts";
+
+type HeadResult = HeadMetadata;
+type TransformerInfo = RoutingDownloadInfo & { now: Date };
+type Transformer = (
+  opts: TransformerInfo,
+  token?: PathSegment,
+  index?: number,
+  tokens?: PathSegment[],
+) => PathSegment | Promise<PathSegment>;
+type SpecialDirectory = (typeof SPECIAL_DIRS)[keyof typeof SPECIAL_DIRS];
+type TransformableSpecialDirectory = Exclude<SpecialDirectory, typeof SPECIAL_DIRS.SEPARATOR>;
+type TransformerRegistry = Record<string, Transformer> &
+  Record<TransformableSpecialDirectory, Transformer>;
+const PATH_SEGMENT_TYPE_VALUES = Object.values(PATH_SEGMENT_TYPES);
+
+function ensureTransformerInfo(opts: RoutingDownloadInfo): asserts opts is TransformerInfo {
+  if (!(opts.now instanceof Date) || !Number.isFinite(opts.now.getTime())) {
+    opts.now = new Date();
+  }
+}
+
+const isPathSegment = (value: unknown): value is PathSegment =>
+  isStringKeyedRecord(value) &&
+  typeof value.val === "string" &&
+  typeof value.toString === "function" &&
+  (typeof value.type === "undefined" || isStringMember(PATH_SEGMENT_TYPE_VALUES, value.type));
+
+export const normalizeMimeType = (value: string | null | undefined): string =>
+  ((value || "").split(";")[0] || "").trim().toLocaleLowerCase();
+
+const metadataFromResponse = async (res: Response): Promise<HeadResult> => {
+  try {
+    const contentDisposition = res.headers.get("Content-Disposition") || "";
+    return {
+      contentType: normalizeMimeType(res.headers.get("Content-Type")),
+      finalUrl: res.url || "",
+      ...(contentDisposition ? { contentDisposition } : {}),
+    };
+  } finally {
+    if (res.body) await res.body.cancel().catch(() => {});
+  }
+};
+
+const fetchHeadMetadata = async (
+  url: string,
+  privateContext = false,
+  protectedReferer?: string,
+): Promise<HeadResult> => {
+  const credentials = getExtensionFetchCredentials(privateContext);
+  const fetchMetadata = async (protection?: RefererProtection): Promise<HeadResult> => {
+    try {
+      const headResponse = await fetchProtected(
+        () => fetchFollowingRedirects(url, { method: "HEAD", credentials }, 5000),
+        protection,
+      );
+      if (headResponse.ok !== false) return metadataFromResponse(headResponse);
+      if (headResponse.body) await headResponse.body.cancel().catch(() => {});
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "TimeoutError") throw error;
+    }
+
+    // Some download servers reject HEAD even though GET works. Fetch resolves as
+    // soon as the GET headers arrive, and metadataFromResponse deliberately
+    // cancels the body instead of retaining it for acquisition: routing may still
+    // reject this candidate, so consuming the body here could turn a metadata
+    // lookup into a speculative full download of a large file. If routing accepts
+    // it, the acquisition stage performs the actual download later.
+    return metadataFromResponse(
+      await fetchProtected(
+        () => fetchFollowingRedirects(url, { method: "GET", credentials }, 5000),
+        protection,
+      ),
+    );
+  };
+
+  return protectedReferer
+    ? routingPorts.withRequestReferer(url, protectedReferer, fetchMetadata, ["head", "get"])
+    : fetchMetadata();
+};
+
+// Thin wrapper over withUrl that keeps this call site's historical behavior of
+// returning the original string on a parse failure.
+export const withUrl = <T>(str: string, cb: (url: URL) => T) => parseUrl(str, cb, str);
+
+export const padDateComponent = (num: number) => num.toString().padStart(2, "0");
+
+const toDateString = (d: Date) =>
+  [d.getFullYear(), padDateComponent(d.getMonth() + 1), padDateComponent(d.getDate())].join("-");
+
+const toISODateString = (d: Date) =>
+  [
+    d.getUTCFullYear(),
+    padDateComponent(d.getUTCMonth() + 1),
+    padDateComponent(d.getUTCDate()),
+    "T",
+    padDateComponent(d.getUTCHours()),
+    padDateComponent(d.getUTCMinutes()),
+    padDateComponent(d.getUTCSeconds()),
+    "Z",
+  ].join("");
+
+const getFileExtension = (filename: string) => {
+  const fileExtensionMatches = filename.match(EXTENSION_REGEX);
+  return (fileExtensionMatches && fileExtensionMatches[1]) || "";
+};
+
+const IPV4_REGEX = /^\d{1,3}(\.\d{1,3}){3}$/;
+
+// English on purpose: locale-dependent names would make the same rule
+// produce different paths on different machines
+const WEEKDAY_NAMES = [
+  "sunday",
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
+];
+const MONTH_NAMES = [
+  "january",
+  "february",
+  "march",
+  "april",
+  "may",
+  "june",
+  "july",
+  "august",
+  "september",
+  "october",
+  "november",
+  "december",
+];
+
+// ISO-8601 week number (week 1 contains the year's first Thursday),
+// computed from local date parts like :year:/:month:/:day:
+const toISOWeek = (d: Date) => {
+  const day = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  day.setDate(day.getDate() - ((day.getDay() + 6) % 7) + 3); // nearest Thursday
+  const firstThursday = new Date(day.getFullYear(), 0, 4);
+  firstThursday.setDate(firstThursday.getDate() - ((firstThursday.getDay() + 6) % 7) + 3);
+  return 1 + Math.round((day.getTime() - firstThursday.getTime()) / (7 * 24 * 3600 * 1000));
+};
+
+const toISOWeekYear = (d: Date) => {
+  const day = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  day.setDate(day.getDate() - ((day.getDay() + 6) % 7) + 3);
+  return day.getFullYear();
+};
+
+// "My Webpage: Title!" -> "my-webpage-title" (slug) / "my_webpage_title"
+// (snake); keeps unicode letters/digits so non-latin titles survive
+const toDelimited = (str: string | null | undefined, delimiter: string) =>
+  (str || "")
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, delimiter)
+    .replace(new RegExp(`^\\${delimiter}+|\\${delimiter}+$`, "g"), "");
+
+// Last hostname label; empty for IPs and single-label hosts (localhost)
+const toTld = (hostname: string | null | undefined) => {
+  if (!hostname || IPV4_REGEX.test(hostname)) {
+    return "";
+  }
+
+  const labels = hostname.split(".");
+  return labels.length >= 2 ? labels[labels.length - 1] : "";
+};
+
+// Content-Type -> file extension, and the whole policy: this value is appended
+// to a real filename by appendMimeExtension, so it only ever names a type it
+// knows. The previous fallback derived an extension from the subtype, which is
+// right only where the subtype IS the extension and silently wrong elsewhere —
+// application/octet-stream became "octet", and octet-stream is what a server
+// sends when it does not know the type, which is the same case as "this URL has
+// no extension". A name like "foo.octet" is worse than "foo": it looks real, so
+// the user has to strip it before adding the right one. An unknown type earns
+// no extension.
+const MIME_EXTENSIONS: Record<string, string> = {
+  // Images
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/gif": "gif",
+  "image/webp": "webp",
+  "image/avif": "avif",
+  "image/bmp": "bmp",
+  "image/heic": "heic",
+  "image/heif": "heif",
+  "image/jxl": "jxl",
+  "image/apng": "apng",
+  "image/x-png": "png",
+  "image/svg+xml": "svg",
+  "image/x-icon": "ico",
+  "image/vnd.microsoft.icon": "ico",
+  "image/tiff": "tif",
+  "image/vnd.adobe.photoshop": "psd",
+  // Video
+  "video/mp4": "mp4",
+  "video/webm": "webm",
+  "video/ogg": "ogv",
+  "video/quicktime": "mov",
+  "video/x-matroska": "mkv",
+  "video/mpeg": "mpg",
+  "video/x-msvideo": "avi",
+  "video/x-flv": "flv",
+  "video/x-ms-wmv": "wmv",
+  "video/3gpp": "3gp",
+  // An HLS media segment; Save In saves the manifest that lists these.
+  "video/mp2t": "ts",
+  // Audio
+  "audio/mpeg": "mp3",
+  "audio/mp4": "m4a",
+  "audio/x-m4a": "m4a",
+  "audio/aac": "aac",
+  "audio/flac": "flac",
+  "audio/x-flac": "flac",
+  "audio/ogg": "ogg",
+  "audio/opus": "opus",
+  "audio/wav": "wav",
+  "audio/x-wav": "wav",
+  "audio/webm": "weba",
+  "audio/midi": "mid",
+  "audio/x-midi": "mid",
+  "audio/x-ms-wma": "wma",
+  "audio/3gpp": "3gp",
+  // Documents
+  "application/pdf": "pdf",
+  "application/rtf": "rtf",
+  "application/epub+zip": "epub",
+  "application/msword": "doc",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "docx",
+  "application/vnd.ms-excel": "xls",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": "xlsx",
+  "application/vnd.ms-powerpoint": "ppt",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation": "pptx",
+  "application/vnd.oasis.opendocument.text": "odt",
+  "application/vnd.oasis.opendocument.spreadsheet": "ods",
+  "application/vnd.oasis.opendocument.presentation": "odp",
+  "application/postscript": "ps",
+  // Subtitles travel with the media people save here.
+  "text/vtt": "vtt",
+  "application/x-subrip": "srt",
+  // Archives and installers
+  "application/zip": "zip",
+  // What IIS serves for an ordinary .zip.
+  "application/x-zip-compressed": "zip",
+  "application/gzip": "gz",
+  "application/x-gzip": "gz",
+  "application/x-tar": "tar",
+  "application/x-7z-compressed": "7z",
+  "application/vnd.rar": "rar",
+  "application/x-rar-compressed": "rar",
+  "application/x-bzip2": "bz2",
+  "application/x-xz": "xz",
+  "application/x-lzma": "lzma",
+  "application/x-rar": "rar",
+  "application/java-archive": "jar",
+  "application/vnd.android.package-archive": "apk",
+  "application/x-apple-diskimage": "dmg",
+  "application/x-iso9660-image": "iso",
+  "application/vnd.debian.binary-package": "deb",
+  "application/x-rpm": "rpm",
+  "application/x-msi": "msi",
+  // Text and data
+  "text/plain": "txt",
+  "text/html": "html",
+  "text/css": "css",
+  "text/csv": "csv",
+  "text/markdown": "md",
+  "text/javascript": "js",
+  "application/javascript": "js",
+  "application/json": "json",
+  "application/xml": "xml",
+  "text/xml": "xml",
+  "application/wasm": "wasm",
+  "application/x-sh": "sh",
+  "application/ogg": "ogx",
+  // Fonts
+  "font/woff": "woff",
+  "font/woff2": "woff2",
+  "font/ttf": "ttf",
+  "font/otf": "otf",
+  "font/collection": "ttc",
+  "application/vnd.ms-fontobject": "eot",
+  // Subtype and extension diverge on these, so a subtype rule would give
+  // "bittorrent", "msdownload", and "shockwave".
+  "application/x-bittorrent": "torrent",
+  "application/x-msdownload": "exe",
+  "application/x-shockwave-flash": "swf",
+  // Streaming manifests. Save In finds and saves these itself
+  // (autoDownloadManifests; content/source-panel-model.ts matches m3u8/mpd), so
+  // its own feature must not land them bare or, worse, as .xml — the structured
+  // suffix below would answer "xml" for dash+xml.
+  "application/dash+xml": "mpd",
+  "application/vnd.apple.mpegurl": "m3u8",
+  "application/x-mpegurl": "m3u8",
+  // Likewise "+xml" here would mean .xml, and the extension is .xhtml.
+  "application/xhtml+xml": "xhtml",
+};
+
+// RFC 6839 structured syntax suffixes: "+json" and friends define the format by
+// standard, so an unlisted vendor type still resolves without guesswork. The
+// table wins first — image/svg+xml is svg, not xml, and application/epub+zip is
+// epub, not zip.
+const STRUCTURED_SUFFIX_EXTENSIONS: Record<string, string> = {
+  json: "json",
+  xml: "xml",
+  zip: "zip",
+  gzip: "gz",
+};
+
+// Both tables are object literals, so they inherit Object.prototype. The server
+// chooses Content-Type, and "constructor" and "__proto__" are already lowercase,
+// so they survive normalizeMimeType and reach a plain lookup intact — each
+// resolves to an inherited value that is truthy and is not a string, which
+// appendMimeExtension would then stringify onto the filename. Only an own key
+// names a type Save In knows.
+const ownExtension = (table: Record<string, string>, key: string): string =>
+  (Object.hasOwn(table, key) && table[key]) || "";
+
+// "image/jpeg" -> "jpg". Returns "" for anything not known: see MIME_EXTENSIONS.
+export const mimeToExtension = (mime: string | null | undefined): string => {
+  if (!mime) return "";
+  const known = ownExtension(MIME_EXTENSIONS, mime);
+  if (known) return known;
+  const suffix = mime.split("+")[1];
+  return (suffix && ownExtension(STRUCTURED_SUFFIX_EXTENSIONS, suffix)) || "";
+};
+
+// Lazily HEAD the URL once per download (cached as a promise on the info bag,
+// so every :mime:/:mimeext:/:finalurl: occurrence — path and route — shares
+// one request) and read its Content-Type and post-redirect URL. Times out so
+// a slow/hanging HEAD can't block the download, and resolves to blanks on any
+// failure (CORS, 405, network).
+export const resolveHead = (opts: RoutingDownloadInfo): Promise<HeadResult> => {
+  if (opts.contentFetchDisabled) return Promise.resolve({ contentType: "", finalUrl: "" });
+  if (opts.resolvedHead) {
+    return Promise.resolve(opts.resolvedHead);
+  }
+  if (opts.headPromise) {
+    return opts.headPromise;
+  }
+  opts.headPromise = (async () => {
+    try {
+      const result = await fetchHeadMetadata(
+        opts.url ?? "",
+        opts.currentTab?.incognito === true,
+        opts.protectedFetchReferer,
+      );
+      opts.resolvedHead = result;
+      return result;
+    } catch {
+      return { contentType: "", finalUrl: "" };
+    }
+  })();
+  return opts.headPromise;
+};
+
+export const resolveMime = async (opts: RoutingDownloadInfo) =>
+  opts.mime ? normalizeMimeType(opts.mime) : (await resolveHead(opts)).contentType;
+
+const resolvedHeadPreview = (opts: RoutingDownloadInfo): HeadResult | null =>
+  opts.resolvedHead || null;
+
+// Fetch the file's content once per download (cached on the info bag so every
+// :sha256: shares it — and the download reuses the same fetch rather than
+// pulling the file down a second time, see content-fetch.ts). Resolves
+// to { sha256, downloadUrl } or null on failure. The response is hashed
+// incrementally, without a file-size ceiling, and reused for the download.
+export const resolveContent = (opts: RoutingDownloadInfo) => {
+  if (opts.contentPromise) {
+    return opts.contentPromise;
+  }
+  if (opts.contentFetchDisabled) return Promise.resolve(null);
+  const requestId = crypto.randomUUID();
+  const url = opts.url;
+  opts.contentPromise = url
+    ? Promise.resolve(opts.onContentFetchStart?.(requestId)).then(() =>
+        routingPorts.resolveContent(
+          url,
+          opts.currentTab?.incognito === true,
+          opts.abortSignal,
+          requestId,
+          opts.protectedFetchReferer,
+        ),
+      )
+    : Promise.resolve(null);
+  return opts.contentPromise;
+};
+
+const resolveSha256 = async (opts: RoutingDownloadInfo): Promise<string> => {
+  if (opts.preview) return opts.sha256 ?? "";
+  const content = await resolveContent(opts);
+  opts.sha256 = content ? content.sha256 : "";
+  return opts.sha256;
+};
+
+// Transformers are called as (info, token, index, tokens); contextual typing
+// lets handlers omit unused trailing parameters while checking every variable.
+/* prettier-ignore */
+export const transformers: TransformerRegistry = {
+    [SPECIAL_DIRS.FILENAME]:
+      opts => stringSegment(opts.filename),
+    [SPECIAL_DIRS.FILE_EXTENSION]:
+      opts => stringSegment(getFileExtension(opts.filename ?? "")),
+    [SPECIAL_DIRS.ACTUAL_FILE_EXTENSION]:
+      opts => stringSegment(getFileExtension(opts.filename ?? "")),
+    [SPECIAL_DIRS.SOURCE_DOMAIN]:
+      opts => stringSegment(withUrl(opts.url ?? "", url => url.hostname)),
+    [SPECIAL_DIRS.PAGE_DOMAIN]:
+      opts => stringSegment(withUrl(opts.pageUrl ?? "", url => url.hostname)),
+    [SPECIAL_DIRS.SOURCE_ROOT_DOMAIN]:
+      opts => stringSegment(withUrl(opts.url ?? "", url => toRootDomain(url.hostname))),
+    [SPECIAL_DIRS.PAGE_ROOT_DOMAIN]:
+      opts => stringSegment(withUrl(opts.pageUrl ?? "", url => toRootDomain(url.hostname))),
+    [SPECIAL_DIRS.PAGE_URL]:
+      opts => stringSegment(opts.pageUrl),
+    [SPECIAL_DIRS.SOURCE_URL]:
+      opts => stringSegment(opts.sourceUrl),
+    [SPECIAL_DIRS.DATE]:
+      opts => stringSegment(toDateString(opts.now)),
+    [SPECIAL_DIRS.ISO8601_DATE]:
+      opts => stringSegment(toISODateString(opts.now)),
+    [SPECIAL_DIRS.UNIX_DATE]:
+      opts => stringSegment(Math.floor(opts.now.getTime() / 1000)),
+    [SPECIAL_DIRS.YEAR]:
+      opts => stringSegment(opts.now.getFullYear()),
+    [SPECIAL_DIRS.ISO_YEAR]:
+      opts => stringSegment(toISOWeekYear(opts.now)),
+    [SPECIAL_DIRS.MONTH]:
+      opts => stringSegment(padDateComponent(opts.now.getMonth() + 1)),
+    [SPECIAL_DIRS.DAY]:
+      opts => stringSegment(padDateComponent(opts.now.getDate())),
+    [SPECIAL_DIRS.HOUR]:
+      opts => stringSegment(padDateComponent(opts.now.getHours())),
+    [SPECIAL_DIRS.MINUTE]:
+      opts => stringSegment(padDateComponent(opts.now.getMinutes())),
+    [SPECIAL_DIRS.SECOND]:
+      opts => stringSegment(padDateComponent(opts.now.getSeconds())),
+    [SPECIAL_DIRS.WEEKDAY]:
+      opts => stringSegment(WEEKDAY_NAMES[opts.now.getDay()]),
+    [SPECIAL_DIRS.MONTH_NAME]:
+      opts => stringSegment(MONTH_NAMES[opts.now.getMonth()]),
+    [SPECIAL_DIRS.AM_PM]:
+      opts => stringSegment(opts.now.getHours() < 12 ? "am" : "pm"),
+    [SPECIAL_DIRS.ISO_WEEK]:
+      opts => stringSegment(padDateComponent(toISOWeek(opts.now))),
+    [SPECIAL_DIRS.WEEK]:
+      opts => stringSegment(padDateComponent(toISOWeek(opts.now))),
+    [SPECIAL_DIRS.PAGE_TITLE]:
+      opts => stringSegment((opts.currentTab && opts.currentTab.title) || ""),
+    [SPECIAL_DIRS.PAGE_TITLE_SLUG]:
+      opts => stringSegment(toDelimited((opts.currentTab && opts.currentTab.title) || "", "-")),
+    [SPECIAL_DIRS.PAGE_TITLE_SNAKE]:
+      opts => stringSegment(toDelimited((opts.currentTab && opts.currentTab.title) || "", "_")),
+    [SPECIAL_DIRS.SOURCE_PATH]:
+      opts => stringSegment(withUrl(opts.url ?? "", url => url.pathname.replace(/^\//, ""))),
+    [SPECIAL_DIRS.TLD]:
+      opts => stringSegment(withUrl(opts.url ?? "", url => toTld(url.hostname))),
+    [SPECIAL_DIRS.LINK_TEXT]:
+      opts => stringSegment(opts.linkText),
+    [SPECIAL_DIRS.SELECTION_TEXT]:
+      opts => stringSegment((opts.selectionText && opts.selectionText.trim()) || ""),
+    [SPECIAL_DIRS.MENU_PATH]:
+      opts => stringSegment(opts.menuItemPath),
+    [SPECIAL_DIRS.NAIVE_FILENAME]:
+      opts => {
+        const naiveFilename = getFilenameFromUrl(opts.url ?? "");
+        return stringSegment(naiveFilename);
+      },
+    [SPECIAL_DIRS.NAIVE_FILE_EXTENSION]:
+      opts => {
+        const naiveFilename = getFilenameFromUrl(opts.url ?? "");
+        return stringSegment(getFileExtension(naiveFilename));
+      },
+    [SPECIAL_DIRS.URL_FILE_EXTENSION]:
+      opts => {
+        const naiveFilename = getFilenameFromUrl(opts.url ?? "");
+        return stringSegment(getFileExtension(naiveFilename));
+      },
+    // Async: an atomic, persistent counter (needs storage). Cached on the info
+    // bag so every :counter: in one download shares a value and the stored
+    // counter advances exactly once; the options-page preview peeks instead.
+    // The tokens of one path resolve concurrently, so the cache must be the
+    // promise, assigned before the first await — a value written after it is
+    // not yet there when the sibling token looks (as resolveHead does above).
+    [SPECIAL_DIRS.COUNTER]:
+      async opts => {
+        if (opts.counter != null) return stringSegment(opts.counter);
+        if (opts.preview) {
+          return stringSegment((await routingPorts.peekCounter()) + 1);
+        }
+        opts.counterPromise ??= (async () => {
+          opts.counter = opts.currentTab?.incognito
+            ? await routingPorts.nextPrivateCounter()
+            : await routingPorts.nextCounter();
+          return opts.counter;
+        })();
+        return stringSegment(await opts.counterPromise);
+      },
+    // A fresh random v4 UUID (crypto.randomUUID is available in the SW, the
+    // event page, and Node/vitest — all secure contexts)
+    [SPECIAL_DIRS.UUID]:
+      () => stringSegment(crypto.randomUUID()),
+    // Async: the server's Content-Type from a HEAD request (see resolveMime).
+    // The options-page preview skips the network and shows nothing.
+    [SPECIAL_DIRS.MIME]:
+      async opts => stringSegment(opts.preview ? resolvedHeadPreview(opts)?.contentType || normalizeMimeType(opts.mime) : await resolveMime(opts)),
+    [SPECIAL_DIRS.CONTENT_TYPE]:
+      async opts => stringSegment(opts.preview ? resolvedHeadPreview(opts)?.contentType || normalizeMimeType(opts.mime) : await resolveMime(opts)),
+    // The extension derived from that Content-Type ("image/jpeg" -> "jpg") —
+    // useful for naming extensionless CDN/query-suffix URLs (#126/#135/#43)
+    [SPECIAL_DIRS.MIME_EXT]:
+      async opts =>
+        stringSegment(
+          opts.preview ? mimeToExtension(normalizeMimeType(resolvedHeadPreview(opts)?.contentType || opts.mime)) : mimeToExtension(await resolveMime(opts)),
+        ),
+    // Async: SHA-256 of the file's content (fetches the bytes once — see
+    // resolveContent). The short form is convenient for filenames; the full
+    // form is available when the complete digest is required. Blank in preview.
+    [SPECIAL_DIRS.SHA256]:
+      async opts => stringSegment((await resolveSha256(opts)).slice(0, 12)),
+    [SPECIAL_DIRS.SHA256_FULL]:
+      async opts => stringSegment(await resolveSha256(opts)),
+    // Async: the URL after following redirects, from the same HEAD as :mime:.
+    [SPECIAL_DIRS.FINAL_URL]:
+      async opts => stringSegment(opts.preview ? resolvedHeadPreview(opts)?.finalUrl : (await resolveHead(opts)).finalUrl),
+    [SPECIAL_DIRS.REDIRECT_URL]:
+      async opts => stringSegment(opts.preview ? resolvedHeadPreview(opts)?.finalUrl : (await resolveHead(opts)).finalUrl)
+  };
+
+// Longest-first so ":sha256full:" is never consumed as ":sha256:" + "full:".
+const VARIABLE_TEMPLATE_PATTERN = new RegExp(
+  `(${Object.values(SPECIAL_DIRS)
+    .filter((value) => value !== SPECIAL_DIRS.SEPARATOR)
+    .toSorted((a, b) => b.length - a.length)
+    .join("|")})`,
+);
+
+// Expands routing variables inside a plain string template (a fetch: URL or a
+// rename: replacement). This deliberately never goes through Path: template
+// text must stay literal, and filename sanitization would corrupt it. Values
+// are substituted verbatim; the caller decides what sanitization the result
+// needs. skipTokens keeps known-but-banned variables literal so a stale
+// stored rule cannot trigger the fetch the ban exists to prevent.
+export const expandVariableTemplate = async (
+  template: string,
+  info: RoutingDownloadInfo,
+  skipTokens?: ReadonlySet<string>,
+): Promise<string> => {
+  ensureTransformerInfo(info);
+  const tokens = template.split(VARIABLE_TEMPLATE_PATTERN).filter(Boolean);
+  const resolved = await Promise.all(
+    tokens.map(async (token) => {
+      if (skipTokens?.has(token)) return token;
+      // split() on a capturing pattern also yields the literal text between the
+      // variables, so that text reaches this lookup. transformers is an object
+      // literal whose own keys are all colon-wrapped, so an Object.prototype
+      // name is never shadowed by a real variable: a rename: replacement of
+      // "constructor" would resolve to Object and stringify as "[object
+      // Object]", and "__proto__" is truthy but not callable, throwing out of
+      // the download pipeline. Only an own key names a variable.
+      const transformer = Object.hasOwn(transformers, token) ? transformers[token] : undefined;
+      if (!transformer) return token;
+      return String(await transformer(info));
+    }),
+  );
+  return resolved.join("");
+};
+
+// Async so a transformer may await (e.g. a :counter: read-modify-write or a
+// :mime: HEAD request). Sync transformers resolve instantly through
+// Promise.all, so paths built only from today's variables are byte-identical.
+export const applyVariables = async <P extends object>(
+  path: P,
+  opts: RoutingDownloadInfo = {},
+): Promise<P> => {
+  const tokens = Reflect.get(path, "buf");
+  if (!Array.isArray(tokens) || !tokens.every(isPathSegment)) return path;
+  ensureTransformerInfo(opts);
+  const resolved = await Promise.all(
+    tokens.map((token, index, allTokens) => {
+      if (token.type === PATH_SEGMENT_TYPES.VARIABLE) {
+        const transformer = transformers[token.val];
+        if (transformer) {
+          return transformer(opts, token, index, allTokens);
+        }
+      }
+      return token;
+    }),
+  );
+  Reflect.set(path, "buf", resolved);
+  return path;
+};

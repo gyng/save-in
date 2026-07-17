@@ -1,0 +1,4330 @@
+{
+  "ruleTemplatePdfsByContentTypeName": {
+    "message": "콘텐츠 유형별 PDF"
+  },
+  "ruleTemplatePdfsByContentTypeDescription": {
+    "message": "파일 이름 대신 보고된 콘텐츠 유형으로 PDF를 감지합니다"
+  },
+  "ruleTemplateDownloadsFromSiteSectionName": {
+    "message": "사이트 섹션에서 받은 다운로드"
+  },
+  "ruleTemplateDownloadsFromSiteSectionDescription": {
+    "message": "페이지 URL의 한 섹션과 관련된 다운로드를 전용 폴더로 보냅니다"
+  },
+  "html_matchesTheMimeContentType": {
+    "message": "확인된 MIME Content-Type과 일치시킵니다. Save In이 서버 헤더를 요청할 수 있습니다."
+  },
+  "html_referrerDomainMatcherDescription": {
+    "message": "리퍼러 호스트 이름과 일치하며, 없으면 페이지 호스트 이름을 사용합니다."
+  },
+  "html_referrerUrlMatcherDescription": {
+    "message": "리퍼러 URL과 일치하며, 없으면 페이지 URL을 사용합니다."
+  },
+  "html_matchesTheRootHostname": {
+    "message": "하위 도메인을 제외한 호스트 이름과 일치시킵니다."
+  },
+  "extensionName": {
+    "message": "Save In"
+  },
+  "extensionDescription": {
+    "message": "이미지, 비디오, 오디오, 링크, 선택한 텍스트 및 페이지를 기본 다운로드 폴더 내의 폴더에 저장합니다."
+  },
+  "manifestActionListPageSources": {
+    "message": "페이지 소스 목록 표시"
+  },
+  "manifestCommandTogglePageSources": {
+    "message": "페이지 소스 표시 또는 숨기기"
+  },
+  "translationCredits": {
+    "message": "​"
+  },
+  "referenceRuntimeVariable": {
+    "message": "런타임 변수"
+  },
+  "referenceRuntimeRuleMatcher": {
+    "message": "런타임 규칙 매처"
+  },
+  "genericUnknownError": {
+    "message": "알 수 없는 오류"
+  },
+  "contextMenuItemOptions": {
+    "message": "옵션"
+  },
+  "contextMenuToggleSourcePanel": {
+    "message": "페이지 소스 표시 또는 숨기기"
+  },
+  "contextMenuExclusive": {
+    "message": "라우팅 규칙으로 저장…"
+  },
+  "contextMenuRoot": {
+    "message": "Save In…"
+  },
+  "contextMenuLastUsed": {
+    "message": "마지막으로 사용됨"
+  },
+  "contextMenuContextMedia": {
+    "message": "미디어"
+  },
+  "contextMenuContextMediaOrLink": {
+    "message": "미디어 또는 링크"
+  },
+  "contextMenuContextSelection": {
+    "message": "선택한 텍스트"
+  },
+  "contextMenuContextPage": {
+    "message": "페이지"
+  },
+  "contextMenuShowDefaultFolder": {
+    "message": "기본 다운로드 폴더 열기"
+  },
+  "notificationSuccessTitle": {
+    "message": "저장됨"
+  },
+  "notificationFailureTitle": {
+    "message": "$FILENAME$을(를) 저장하지 못했습니다.",
+    "placeholders": {
+      "filename": {
+        "content": "$1",
+        "example": "my_filename.jpg"
+      }
+    }
+  },
+  "notificationUndoSave": {
+    "message": "저장 취소"
+  },
+  "notificationRuleMatchedTitle": {
+    "message": "Save In: 규칙이 일치함"
+  },
+  "notificationRuleMatchFailedExclusiveTitle": {
+    "message": "Save In: 다운로드 경로를 지정하거나 이름을 바꾸지 못했습니다."
+  },
+  "notificationRuleMatchFailedExclusiveMessage": {
+    "message": "$URL$에 대해 일치하는 규칙을 찾을 수 없습니다.",
+    "placeholders": {
+      "url": {
+        "content": "$1",
+        "example": "www.google.jpg"
+      }
+    }
+  },
+  "ruleMissingMatcher": {
+    "message": "into: 앞에 일치 조건을 하나 이상 추가하세요"
+  },
+  "ruleCaptureMissingMatcher": {
+    "message": "캡처 대상이 이 규칙의 어떤 조건과도 일치하지 않습니다"
+  },
+  "ruleCaptureAmbiguousMatcher": {
+    "message": "capture:는 이 이름의 첫 번째 조건을 사용합니다"
+  },
+  "ruleMissingCapture": {
+    "message": "캡처 변수를 사용하려면 캡처 절을 추가하세요."
+  },
+  "ruleMultipleCapture": {
+    "message": "규칙에는 하나의 캡처 절만 포함될 수 있습니다."
+  },
+  "ruleMissingInto": {
+    "message": "비어 있지 않은 into: 저장 위치를 하나 추가하세요"
+  },
+  "ruleIntoConstantFilename": {
+    "message": "일치하는 모든 파일의 이름이 같아집니다. 폴더로 보내려면 /로, 다운로드 이름을 유지하려면 :filename:으로 끝내세요"
+  },
+  "ruleExtraInto": {
+    "message": "규칙에는 into: 절이 하나만 포함될 수 있습니다."
+  },
+  "ruleUnknownMatcher": {
+    "message": "매처 이름이 지원되지 않습니다"
+  },
+  "ruleUnknownDestinationVariable": {
+    "message": "경로 변수가 지원되지 않습니다"
+  },
+  "ruleInvalidRegex": {
+    "message": "패턴 또는 플래그가 올바른 정규 표현식이 아닙니다"
+  },
+  "ruleShadowed": {
+    "message": "이전 규칙이 동일하거나 더 많은 다운로드와 일치하므로 이 규칙은 실행되지 않습니다."
+  },
+  "ruleBadClause": {
+    "message": "name: value 구문을 사용하세요"
+  },
+  "rulePathInvalidCharacter": {
+    "message": "경로에 잘못된 문자가 포함되어 있습니다."
+  },
+  "rulePathStartsWithDot": {
+    "message": "경로는 .. 또는 /로 시작할 수 없습니다."
+  },
+  "tabstripMenuSelectedTab": {
+    "message": "선택한 탭 저장"
+  },
+  "tabstripMenuMultipleSelectedTab": {
+    "message": "선택한 탭 저장"
+  },
+  "tabstripMenuSaveChildrenTabs": {
+    "message": "이 탭에서 열린 탭 저장"
+  },
+  "tabstripMenuSaveRightTabs": {
+    "message": "이 탭과 오른쪽의 모든 탭 저장"
+  },
+  "tabstripMenuSaveRightTabsMatched": {
+    "message": "이 탭과 오른쪽의 모든 탭 저장(라우팅 규칙 필요)"
+  },
+  "o_sDownloads": {
+    "message": "저장 메뉴"
+  },
+  "o_sDirectories": {
+    "message": "폴더"
+  },
+  "o_sBehavior": {
+    "message": "저장 동작"
+  },
+  "o_sSaveDialog": {
+    "message": "저장 대화 상자"
+  },
+  "o_sExistingFiles": {
+    "message": "기존 파일"
+  },
+  "o_lContextMenuBehaviorHelp": {
+    "message": "컨텍스트 메뉴에 어떤 Save In 작업을 표시할지 선택하세요."
+  },
+  "o_lAlsoAskWhen": {
+    "message": "또한 다음과 같은 경우 어디에 저장할지 물어보세요."
+  },
+  "o_sDynamicDownloads": {
+    "message": "라우팅 규칙"
+  },
+  "o_sBrowserDownloads": {
+    "message": "브라우저 라우팅"
+  },
+  "o_lBrowserDownloadsHelp": {
+    "message": "선택적으로 웹페이지나 브라우저에서 시작된 다운로드를 추적하거나 라우팅합니다. Save In 또는 다른 확장 프로그램으로 시작된 다운로드는 제외됩니다."
+  },
+  "o_cTrackBrowserDownloads": {
+    "message": "브라우저 다운로드를 Save In 기록에 추가"
+  },
+  "o_cTrackBrowserDownloadsHelp": {
+    "message": "소유권을 갖지 않고 Save In 기록에 일치하는 다운로드를 기록합니다. 재시도되지 않으며 Save In 프롬프트나 알림이 트리거되지 않습니다."
+  },
+  "o_cRouteBrowserDownloads": {
+    "message": "라우팅 규칙으로 브라우저 다운로드 라우팅"
+  },
+  "o_cRouteBrowserDownloadsHelp": {
+    "message": "지원되는 경우 일치 규칙은 브라우저 다운로드의 이름을 바꾸거나 하위 폴더에 배치할 수 있습니다. 라우팅 규칙 › + 규칙 추가에서 추가하세요. 일치하지 않는 다운로드는 변경되지 않습니다."
+  },
+  "o_cRouteBrowserDownloadsFirefox": {
+    "message": "일치하는 브라우저 다운로드 다시 라우팅"
+  },
+  "o_cRouteBrowserDownloadsFirefoxHelp": {
+    "message": "Firefox에는 기본 파일명 라우팅 기능이 없으므로 Save In은 일치하는 다운로드를 취소하고 대체 다운로드를 시작합니다. POST 요청, 만료되는 URL, 사용자 지정 헤더 또는 인증이 필요한 다운로드에서는 실패할 수 있습니다."
+  },
+  "o_lFirefoxFilenameApiBug": {
+    "message": "Mozilla 버그 1245652"
+  },
+  "o_cBrowserDownloadFilter": {
+    "message": "일치하는 다운로드 URL만 포함(선택 사항)"
+  },
+  "o_cBrowserDownloadFilterHelp": {
+    "message": "모든 브라우저 다운로드를 처리하려면 비워 두거나 한 줄에 하나의 WebExtension 일치 패턴을 입력하세요. 이 필터는 기록 추적 및 라우팅에 적용됩니다."
+  },
+  "o_cBrowserDownloadExcludeFilter": {
+    "message": "일치하는 다운로드 URL 제외(선택 사항)"
+  },
+  "o_cBrowserDownloadExcludeFilterHelp": {
+    "message": "WebExtension 일치 패턴을 한 줄에 하나씩 입력하세요. 제외는 위의 일치 URL보다 우선하며 기록 추적 및 라우팅에 모두 적용됩니다."
+  },
+  "o_lBrowserDownloadVariables": {
+    "message": "URL, 제안된 파일 이름, MIME 유형, 현재 시간, 카운터 및 UUID"
+  },
+  "o_sRenameAndRouteDownloads": {
+    "message": "라우팅 및 이름 바꾸기"
+  },
+  "o_sNotifications": {
+    "message": "알림"
+  },
+  "o_sSaveAsShortcuts": {
+    "message": "바로가기 파일"
+  },
+  "o_lShortcutFilesHelp": {
+    "message": "페이지, 링크 및 미디어를 원래 주소를 여는 바로가기 파일로 저장합니다."
+  },
+  "o_sKeyboardShortcuts": {
+    "message": "클릭하여 저장"
+  },
+  "o_sContextMenu": {
+    "message": "컨텍스트 메뉴 액세스 키"
+  },
+  "o_sMoreOptions": {
+    "message": "고급"
+  },
+  "o_sHistory": {
+    "message": "기록"
+  },
+  "o_sPageSources": {
+    "message": "페이지 소스"
+  },
+  "o_sBrowsePageSources": {
+    "message": "페이지 소스 찾아보기"
+  },
+  "o_lPageSourcesHelp": {
+    "message": "현재 페이지에 있는 이미지, 비디오, 오디오, 문서 및 다운로드 가능한 링크를 찾아보세요. 저장된 항목은 일반적인 라우팅 및 이름 변경 규칙을 사용합니다."
+  },
+  "o_lPageSourcesNetworkLimit": {
+    "message": "일부 동영상 플레이어는 임시 URL을 사용하거나 스크립트로 미디어를 불러오므로 Save In이 모든 동영상을 감지하지 못할 수 있습니다. 스트리밍 동영상 재생목록(HLS/DASH)을 찾는 경우도 있지만 여기에는 개별 동영상 세그먼트만 나열됩니다. 재생목록을 저장해도 전체 동영상은 저장되지 않습니다."
+  },
+  "o_cSourcePanelEnabled": {
+    "message": "페이지 소스 사용"
+  },
+  "o_cSourcePanelBackgrounds": {
+    "message": "CSS 배경 이미지 포함"
+  },
+  "o_cSourcePanelLive": {
+    "message": "페이지 미디어가 변경되면 새로 고침"
+  },
+  "o_cSourcePanelPreviews": {
+    "message": "이미지 및 비디오 미리보기 표시"
+  },
+  "o_cSourcePanelResourceHints": {
+    "message": "가능한 범위에서 스트리밍 동영상 재생목록 찾기(HLS/DASH)"
+  },
+  "o_cSourcePanelLinks": {
+    "message": "링크, 연결된 미디어, PDF 문서 포함"
+  },
+  "o_lSourcePanelDiscovery": {
+    "message": "소스 및 미리보기"
+  },
+  "o_lSourcePanelShortcut": {
+    "message": "키보드 단축키"
+  },
+  "o_lSourcePanelShortcutHelp": {
+    "message": "브라우저 단축키 구문(예: Ctrl+Shift+Y 또는 Command+Shift+Y)을 사용합니다. 브라우저는 예약된 단축키를 거부합니다."
+  },
+  "o_lHistoryFilter": {
+    "message": "파일, 폴더, 유형 또는 소스별로 필터링"
+  },
+  "o_lHistoryFacets": {
+    "message": "기록 필터"
+  },
+  "o_lHistorySource": {
+    "message": "출처"
+  },
+  "o_lHistoryStatus": {
+    "message": "상태"
+  },
+  "o_lHistoryType": {
+    "message": "유형"
+  },
+  "o_lHistoryAllSources": {
+    "message": "모든 소스"
+  },
+  "o_lHistoryAllStatuses": {
+    "message": "모든 상태"
+  },
+  "o_lHistoryAllTypes": {
+    "message": "모든 유형"
+  },
+  "o_lHistoryBrowser": {
+    "message": "브라우저"
+  },
+  "o_lHistorySaved": {
+    "message": "저장됨"
+  },
+  "o_lHistorySaving": {
+    "message": "저장 중"
+  },
+  "o_lHistoryFailed": {
+    "message": "실패"
+  },
+  "o_lHistoryDateSaved": {
+    "message": "시작 날짜"
+  },
+  "o_lHistoryAnyTime": {
+    "message": "언제든지"
+  },
+  "o_lHistoryToday": {
+    "message": "오늘"
+  },
+  "o_lHistoryLast7Days": {
+    "message": "지난 7일"
+  },
+  "o_lHistoryLast30Days": {
+    "message": "지난 30일"
+  },
+  "o_lHistoryCustomRange": {
+    "message": "맞춤 기간"
+  },
+  "o_lHistoryStartDate": {
+    "message": "시작일"
+  },
+  "o_lHistoryEndDate": {
+    "message": "종료일"
+  },
+  "o_cClearHistoryFilters": {
+    "message": "필터 지우기"
+  },
+  "o_cDeleteAllHistory": {
+    "message": "모든 기록 삭제…"
+  },
+  "o_lSearchOptions": {
+    "message": "검색 옵션"
+  },
+  "o_lVariableList": {
+    "message": "변수 목록"
+  },
+  "o_lMenuPreview": {
+    "message": "메뉴 미리보기"
+  },
+  "o_lLiveVariables": {
+    "message": "실시간 변수 목록"
+  },
+  "o_sVisualEditor": {
+    "message": "비주얼 편집기"
+  },
+  "o_bAddDirectory": {
+    "message": "폴더"
+  },
+  "o_bAddSeparator": {
+    "message": "구분선"
+  },
+  "o_lClauses": {
+    "message": "절"
+  },
+  "o_lEditorModeText": {
+    "message": "텍스트"
+  },
+  "o_bApply": {
+    "message": "적용"
+  },
+  "o_bDiscard": {
+    "message": "버리기"
+  },
+  "o_lRuleTemplates": {
+    "message": "템플릿 라이브러리"
+  },
+  "o_lClauseList": {
+    "message": "절 목록"
+  },
+  "o_lGithub": {
+    "message": "GitHub"
+  },
+  "o_lChangelog": {
+    "message": "변경 내역"
+  },
+  "o_lHelpResources": {
+    "message": "도움말 및 리소스"
+  },
+  "o_lLanguage": {
+    "message": "언어"
+  },
+  "o_lLanguageChangeFailed": {
+    "message": "언어를 변경할 수 없습니다. 다시 시도해 보세요."
+  },
+  "o_lRoutingLastDownload": {
+    "message": "마지막 다운로드"
+  },
+  "o_lRoutingLastDownloadEmpty": {
+    "message": "아직 없음"
+  },
+  "o_lRoutingRenamedTo": {
+    "message": "변경된 이름"
+  },
+  "o_lRoutingNoMatches": {
+    "message": "일치 항목 없음"
+  },
+  "o_lRoutingCaptureGroups": {
+    "message": "캡처 그룹"
+  },
+  "o_lRoutingVariables": {
+    "message": "변수"
+  },
+  "o_lRoutingVariablesClickToSee": {
+    "message": "표시하려면 클릭하세요."
+  },
+  "o_lAccessKeysInstruction": {
+    "message": "Save In 메뉴 항목에 대한 액세스 키를 설정합니다."
+  },
+  "o_cLastUsedMenu": {
+    "message": "마지막으로 사용한 메뉴 항목 표시"
+  },
+  "o_cSaveLinks": {
+    "message": "링크에 대한 작업 표시"
+  },
+  "o_cPreferLinks": {
+    "message": "내장 미디어 대신 링크 대상 저장"
+  },
+  "o_cSaveText": {
+    "message": "선택한 텍스트에 대한 작업 표시"
+  },
+  "o_cSavePage": {
+    "message": "현재 페이지에 대한 작업 표시"
+  },
+  "o_cSavePageHelp": {
+    "message": "페이지 문서만 저장합니다. 이미지, 스타일시트 및 기타 외부 파일은 포함되지 않습니다."
+  },
+  "o_cSaveTabstrip": {
+    "message": "탭 메뉴에 Save In 작업 표시"
+  },
+  "o_cSaveTabstripHelp": {
+    "message": "탭, 탭 그룹 또는 오른쪽의 탭을 저장합니다."
+  },
+  "o_cOpenDialog": {
+    "message": "어디에 저장할지 항상 물어보세요"
+  },
+  "o_cOpenDialogNoExt": {
+    "message": "파일 이름에는 확장자가 없습니다."
+  },
+  "o_cOpenDialogShift": {
+    "message": "메뉴 항목을 선택하는 동안 Shift를 누르고 있습니다."
+  },
+  "o_cOpenDialogOnFailure": {
+    "message": "다운로드 실패"
+  },
+  "o_cDupeUniquify": {
+    "message": "고유한 이름 만들기"
+  },
+  "o_cDupeOverwrite": {
+    "message": "덮어쓰기"
+  },
+  "o_cDupePrompt": {
+    "message": "매번 물어보세요"
+  },
+  "o_cDupeFilename": {
+    "message": "파일이 이미 존재하는 경우:"
+  },
+  "o_cOpenDialogIfNoRulesMatch": {
+    "message": "일치하는 라우팅 규칙이 없을 때 저장할 위치 묻기"
+  },
+  "o_cExclusiveMode": {
+    "message": "폴더 선택 항목 숨기기"
+  },
+  "o_cExclusiveModeHelp": {
+    "message": "파일 저장 안 함"
+  },
+  "o_cNotifySuccess": {
+    "message": "다운로드가 성공하면 알림"
+  },
+  "o_cNotifyFailure": {
+    "message": "다운로드 실패 시 알림"
+  },
+  "o_cNotifyMatch": {
+    "message": "라우팅 규칙이 일치하면 알림"
+  },
+  "o_cSaveShortcutsAs": {
+    "message": "파일 형식"
+  },
+  "o_cSaveShortcutsTypeHtml": {
+    "message": "HTML 리디렉션(.html)"
+  },
+  "o_lShortcutTypeFirefoxUnavailable": {
+    "message": "Firefox는 .url 또는 .desktop으로 끝나는 파일 저장을 거부하므로 여기서는 해당 형식을 사용할 수 없습니다. 대신 HTML 리디렉션으로 저장됩니다."
+  },
+  "o_cSaveShortcutsTypeMac": {
+    "message": "Legacy macOS shortcut (.url)"
+  },
+  "o_cSaveShortcutsTypeMacWebloc": {
+    "message": "macOS internet location (.webloc)"
+  },
+  "o_cSaveShortcutsTypeWindows": {
+    "message": "Windows internet shortcut (.url)"
+  },
+  "o_cSaveShortcutsTypeFreedesktop": {
+    "message": "Linux desktop shortcut (.desktop)"
+  },
+  "o_cSaveShortcutsMediaInstead": {
+    "message": "미디어를 바로가기 파일로 저장"
+  },
+  "o_cSaveShortcutsLinksInstead": {
+    "message": "링크를 바로가기 파일로 저장"
+  },
+  "o_cSaveShortcutsPagesInstead": {
+    "message": "페이지를 바로가기 파일로 저장"
+  },
+  "o_cSaveShortcutsTabsInstead": {
+    "message": "탭 컨텍스트 메뉴에서 탭을 바로가기 파일로 저장"
+  },
+  "o_cKeyboardShortcutSaveInMenu": {
+    "message": "Save In 컨텍스트 메뉴 항목"
+  },
+  "o_cKeyboardShortcutSubmenu": {
+    "message": "마지막으로 사용한 컨텍스트 하위 메뉴 항목"
+  },
+  "o_cKeyboardShortcutNumbers": {
+    "message": "컨텍스트 하위 메뉴 항목에 숫자 키 단축키 추가"
+  },
+  "o_cKeyboardShortcutClickToSave": {
+    "message": "클릭하여 저장 활성화"
+  },
+  "o_cKeyboardShortcutClickToHelp": {
+    "message": "기본적으로 Alt를 누른 상태에서 이미지나 미디어 항목을 클릭하면 마지막으로 사용한 폴더나 기본 다운로드 폴더에 저장됩니다. Save In은 페이지에 클릭 리스너를 추가합니다. 일부 변수는 사용할 수 없습니다."
+  },
+  "o_cHostPermissionMissing": {
+    "message": "Save In은 페이지 콘텐츠에 액세스할 수 없습니다. 클릭하여 저장을 사용하려면 모든 사이트에 대한 액세스 권한을 부여하세요."
+  },
+  "o_cHostPermissionGrant": {
+    "message": "액세스 권한 부여"
+  },
+  "o_cKeyboardShortcutModifierLeftClick": {
+    "message": "왼쪽 클릭"
+  },
+  "o_cKeyboardShortcutModifierMiddleClick": {
+    "message": "가운데 클릭"
+  },
+  "o_cKeyboardShortcutModifierRightClick": {
+    "message": "오른쪽 클릭"
+  },
+  "o_cKeyboardShortcutModifierBackClick": {
+    "message": "뒤로 버튼(4)"
+  },
+  "o_cKeyboardShortcutModifierForwardClick": {
+    "message": "앞으로 버튼(5)"
+  },
+  "o_cKeyboardShortcutModifierHelp": {
+    "message": "선택한 마우스 버튼을 클릭하는 동안 선택한 보조 키를 누르세요. 마우스 버튼만 사용하려면 두 보조 키를 모두 None으로 선택하세요. 변경 사항은 이미 열린 페이지에도 적용됩니다."
+  },
+  "o_cRestoreDefaults": {
+    "message": "기본값 복원"
+  },
+  "o_cTruncatePath": {
+    "message": "파일 또는 폴더 이름당 최대 UTF-8 바이트"
+  },
+  "o_cTruncatePathHelp": {
+    "message": "기본값: 240. Linux는 일반적으로 이름을 255바이트로 제한합니다. Windows와 macOS는 일반적으로 문자 기반 제한을 사용하므로 더 큰 바이트 값이 작동할 수 있습니다. Save In은 대상 파일 시스템을 감지할 수 없습니다. 0은 제한 없음을 의미합니다."
+  },
+  "o_cReplaceInvalidCharsWith": {
+    "message": "잘못된 문자를 다음으로 바꾸기"
+  },
+  "o_cReplaceInvalidCharsWithHelp": {
+    "message": "삭제하려면 비워두세요. 잘못된 대체 문자는 무시됩니다."
+  },
+  "o_cAppendMimeExtension": {
+    "message": "파일 이름에 확장자가 없으면 확장자 추가"
+  },
+  "o_cAppendMimeExtensionHelp": {
+    "message": "확장자가 없는 URL의 경우 서버의 Content-Type에서 파생됩니다. 이는 필요한 경우에만 약간의 지연을 추가합니다."
+  },
+  "o_cFallbackFetch": {
+    "message": "실패한 다운로드를 Save In을 통해 다시 시도"
+  },
+  "o_cFallbackFetchHelp": {
+    "message": "브라우저 다운로드가 네트워크 또는 서버 오류로 실패하면 Save In이 파일을 가져와 한 번 다시 시도합니다."
+  },
+  "o_cFetchViaFetchAPI": {
+    "message": "항상 Save In을 통해 다운로드"
+  },
+  "o_cFetchViaFetchAPIHelp": {
+    "message": "Save In은 파일을 가져와 브라우저에 전달합니다. 일반 다운로드가 실패한 경우에만 이 기능을 사용하세요. 속도가 느리고 Chrome은 저장하는 동안 파일을 메모리에 유지하므로 매우 큰 파일에는 사용하지 마세요."
+  },
+  "o_cIncludeFetchCredentials": {
+    "message": "웹사이트 로그인 쿠키 포함"
+  },
+  "o_cIncludeFetchCredentialsHelp": {
+    "message": "리디렉션 후를 포함하여 Save In이 백그라운드에서 파일을 가져올 때 적용 가능한 쿠키와 브라우저 관리 로그인 정보를 사용합니다. 비공개 창의 요청은 익명으로 유지됩니다. 브라우저에서 직접 다운로드할 때는 브라우저가 로그인 정보를 관리합니다."
+  },
+  "o_cSetRefererHeader": {
+    "message": "누락된 Referer에 페이지 URL 사용"
+  },
+  "o_cSetRefererHeaderHelp": {
+    "message": "웹사이트에서는 파일이 열리지만 Save In에서 다운로드하지 못하거나 403 또는 접근 거부가 표시되거나 오류 페이지가 저장될 때 켜세요. 아래에는 영향을 받는 파일 호스트만 추가하세요. 페이지 URL이 해당 호스트로 전송됩니다. Chrome에서는 저장하는 동안 일치하는 각 파일도 메모리에 보관됩니다."
+  },
+  "o_cSetRefererHeaderFilter": {
+    "message": "이 사이트에 Referer 설정"
+  },
+  "o_cSetRefererHeaderFilterHelp": {
+    "message": "페이지 URL이 아니라 실패한 파일의 URL 패턴을 입력하세요. 한 줄에 하나의 일치 패턴을 사용하세요(예: *://i.pximg.net/*)."
+  },
+  "o_cImportSettings": {
+    "message": "설정 가져오기"
+  },
+  "o_cExportSettings": {
+    "message": "설정 내보내기"
+  },
+  "o_cDebugMode": {
+    "message": "자세한 개발자 로깅 활성화"
+  },
+  "o_cLastSavedAt": {
+    "message": "마지막 업데이트: "
+  },
+  "o_cLastSavedAtNever": {
+    "message": "없음"
+  },
+  "optionsUnsavedChanges": {
+    "message": "저장하지 않은 변경 사항을 버리거나 계속 편집하시겠습니까?"
+  },
+  "optionsEditorUnsaved": {
+    "message": "저장하지 않은 변경 사항"
+  },
+  "o_lDirectoryDefinitions": {
+    "message": "폴더 메뉴 정의"
+  },
+  "o_lSaving": {
+    "message": "저장 중…"
+  },
+  "o_lSaved": {
+    "message": "저장됨"
+  },
+  "o_lSaveFailed": {
+    "message": "변경사항을 저장할 수 없습니다."
+  },
+  "o_lValidationUnavailable": {
+    "message": "일시적으로 유효성 검사를 사용할 수 없습니다. "
+  },
+  "o_bRetryValidation": {
+    "message": "검증 재시도"
+  },
+  "o_lAutosaveFailed": {
+    "message": "이 설정을 저장할 수 없습니다. "
+  },
+  "o_bRetrySave": {
+    "message": "저장 다시 시도"
+  },
+  "o_lNoValidationErrors": {
+    "message": "유효성 검사 오류 없음"
+  },
+  "notificationLinkPreferred": {
+    "message": "대신 링크 대상을 다운로드했습니다."
+  },
+  "o_cPreferLinksFilterEnabled": {
+    "message": "일치하는 페이지에서만"
+  },
+  "o_cPreferLinksFilter": {
+    "message": "일치하는 페이지 URL"
+  },
+  "o_cPreferLinksFilterHelp": {
+    "message": "한 줄에 하나의 정규식을 입력하세요. 패턴은 페이지 URL과 일치됩니다."
+  },
+  "notificationBadPreferLinksPattern": {
+    "message": "선호 링크에 대한 정규식이 올바르지 않습니다."
+  },
+  "o_cNotifyLinkPreferred": {
+    "message": "내장된 미디어 대신 링크 대상이 다운로드되면 알림"
+  },
+  "o_cCloseTabOnSave": {
+    "message": "저장한 후 각 탭을 닫으세요."
+  },
+  "o_lClickToSaveButton": {
+    "message": "클릭하여 저장하는 마우스 버튼"
+  },
+  "o_lDebugLog": {
+    "message": "최근 실패"
+  },
+  "o_sAdvancedFilenames": {
+    "message": "파일 이름"
+  },
+  "o_sAdvancedDownloading": {
+    "message": "다운로드 처리"
+  },
+  "o_sAdvancedCounter": {
+    "message": "다운로드 카운터"
+  },
+  "o_sAdvancedBackupReset": {
+    "message": "백업 및 재설정"
+  },
+  "o_sAdvancedDiagnostics": {
+    "message": "진단"
+  },
+  "o_lExperimental": {
+    "message": "실험 기능"
+  },
+  "o_lFilterReference": {
+    "message": "필터"
+  },
+  "html_aboutSaveIn": {
+    "message": "Save In 소개"
+  },
+  "html_absolutePathsAndHiddenPathSegmentsSuchAs": {
+    "message": ", 절대 경로 및 숨겨진 경로 세그먼트(예:"
+  },
+  "html_add": {
+    "message": ". 주석을 추가하려면 줄 끝에"
+  },
+  "html_addACommentThatIsNotDisplayed": {
+    "message": "표시되지 않는 댓글을 추가하세요."
+  },
+  "html_addDestinations": {
+    "message": "저장 위치 추가"
+  },
+  "html_addsOneNestingLevel": {
+    "message": "하나의 중첩 수준을 추가합니다."
+  },
+  "html_areNotSupported": {
+    "message": "지원되지 않습니다."
+  },
+  "html_askAnAiAgentToDraftADownloadsMenu": {
+    "message": "AI 에이전트에게 폴더 메뉴 초안 작성을 요청하세요."
+  },
+  "html_assignAnAccessKey": {
+    "message": "액세스 키 할당"
+  },
+  "html_atTheEndForACommentStartWith": {
+    "message": "를 붙입니다. 중첩된 하위 메뉴를 만들려면 줄 앞에"
+  },
+  "html_browsersOnlyLetExtensionsSaveInsideTheDefault": {
+    "message": "브라우저에서는 확장 프로그램이 다음 폴더 안에만 저장할 수 있습니다:"
+  },
+  "html_buildTheDestinationsAndSubmenusShownInSaveIn": {
+    "message": "Save In의 컨텍스트 메뉴에 표시할 폴더와 하위 메뉴를 선택하세요."
+  },
+  "html_butShowsCatPictures": {
+    "message": ", “고양이 사진”이 표시됩니다."
+  },
+  "html_changeADisplayedName": {
+    "message": "표시 이름 변경"
+  },
+  "html_changeTheDisplayedName": {
+    "message": "표시되는 이름 변경"
+  },
+  "html_copyThisPromptThenReplaceTheExampleDestinations": {
+    "message": "이 프롬프트를 복사한 다음 예제 대상을 바꿉니다."
+  },
+  "html_createASubmenu": {
+    "message": "하위 메뉴 만들기"
+  },
+  "html_createsTwoSelectableRowsInTheDownloadsMenu": {
+    "message": "저장 메뉴에 두 개의 폴더를 생성합니다."
+  },
+  "html_defaultDownloadsDirectory": {
+    "message": "기본 다운로드 폴더"
+  },
+  "html_directoryEditorMode": {
+    "message": "폴더 편집 모드"
+  },
+  "html_discussions": {
+    "message": "토론"
+  },
+  "html_downloadsFolder": {
+    "message": "다운로드 폴더"
+  },
+  "html_each": {
+    "message": "각각"
+  },
+  "html_eachLineAddsADestinationRelativeToYourBrowser": {
+    "message": "각 줄에 저장 위치를 추가합니다. 경로는 브라우저의"
+  },
+  "html_forExample": {
+    "message": "예를 들어,"
+  },
+  "html_howToCreateDestinations": {
+    "message": "저장 위치를 만드는 방법"
+  },
+  "html_insertionReferences": {
+    "message": "삽입 참고자료"
+  },
+  "html_issues": {
+    "message": "문제"
+  },
+  "html_itself": {
+    "message": "그 자체"
+  },
+  "html_moreMenuSyntax": {
+    "message": "추가 메뉴 구문"
+  },
+  "html_oneRelativeDirectoryOrMenuInstructionPerLineDownloads": {
+    "message": "상대 폴더 또는 메뉴 지시문을 한 줄에 하나씩 입력하세요. 파일 저장 위치는 다음을 기준으로 합니다:"
+  },
+  "html_openTheDefaultDownloadsDirectory": {
+    "message": "기본 다운로드 폴더 열기"
+  },
+  "html_pathsContaining": {
+    "message": "다음을 포함하는 경로"
+  },
+  "html_perLevel": {
+    "message": "를 하나씩 더 붙입니다."
+  },
+  "html_saveInWiki": {
+    "message": "Save In 위키"
+  },
+  "html_savesTo": {
+    "message": "다음에 저장"
+  },
+  "html_savingOutsideTheDownloadsFolder": {
+    "message": "다운로드 폴더 외부에 저장"
+  },
+  "html_separateGroups": {
+    "message": "별도의 그룹"
+  },
+  "html_settingsSaveIn": {
+    "message": "설정 — Save In"
+  },
+  "html_templates": {
+    "message": "템플릿"
+  },
+  "html_the": {
+    "message": "는"
+  },
+  "html_toCreateNestedSubmenusUsingOne": {
+    "message": "를 붙이고, 단계가 깊어질 때마다"
+  },
+  "html_toReachAnotherLocationCreateASymlinkInsideDownloads": {
+    "message": ". 다른 위치에 저장하려면 하위 폴더 중 하나를 대상 위치로 연결하고 해당 상대 경로를 저장 위치로 사용하세요. 어떤 방법이 통하는지는 브라우저와 시스템에 따라 다르며 일부 방법은 위험하므로 아래 안내를 확인하세요. 대상 폴더는 미리 만들어져 있어야 합니다."
+  },
+  "html_useAVariable": {
+    "message": "변수 사용"
+  },
+  "html_wiki": {
+    "message": "위키"
+  },
+  "html_advancedUseCaptureGroups": {
+    "message": "고급: 캡처 그룹 사용"
+  },
+  "html_andItsSubdomainsUse": {
+    "message": "example.com 및 하위 도메인의 HTTPS 다운로드와 일치합니다."
+  },
+  "html_andLaterGroupsIn": {
+    "message": "및 이후 그룹"
+  },
+  "html_askAnAiAgentToDraftRoutingRules": {
+    "message": "AI 에이전트에게 라우팅 규칙 초안을 요청하세요."
+  },
+  "html_automaticallyMoveOrRenameDownloadsWhenTheirFilenameSource": {
+    "message": "파일 이름, 소스, 페이지 또는 컨텍스트가 일치하면 다운로드를 자동으로 이동하거나 이름을 바꿉니다."
+  },
+  "o_lRouteBrowserDownloadsFromRules": {
+    "message": "규칙은 Save In으로 저장한 항목에 적용됩니다. 브라우저가 직접 시작한 다운로드는 해당 설정을 켰을 때만 포함됩니다."
+  },
+  "o_lOpenBrowserDownloads": {
+    "message": "브라우저 다운로드 열기"
+  },
+  "html_becomes": {
+    "message": "된다"
+  },
+  "html_clauseAndVariableReference": {
+    "message": "절 및 변수 참조"
+  },
+  "html_copyThisPromptIntoAnAgentOrUseWebmcp": {
+    "message": "이 프롬프트를 에이전트에 복사하거나 외부 통합에서 WebMCP를 사용하세요."
+  },
+  "html_destination": {
+    "message": "저장 위치."
+  },
+  "html_destinationsAreRelativeToTheDownloadsMenuDestinationYou": {
+    "message": "저장 위치는 메뉴에서 선택한 폴더를 기준으로 하지만, 클릭하여 저장하거나 자동 저장할 때는 다운로드 폴더에서 시작합니다. 매처 값에는 정규식을 사용합니다. 자세한 내용은"
+  },
+  "html_intoDestinationsStartFromTheMenuFolder": {
+    "message": "저장 위치는 메뉴에서 선택한 폴더를 기준으로 하지만, 클릭하여 저장하거나 자동 저장할 때는 다운로드 폴더에서 시작합니다."
+  },
+  "html_enterOneUrlLikeBrowserMatchPatternPerLine": {
+    "message": "한 줄에 WebExtension 일치 패턴을 하나씩 추가하세요. 정규식이 아닙니다. 각 패턴은 스킴, 호스트, 경로로 구성됩니다."
+  },
+  "html_everyMatcherInARuleMustMatch": {
+    "message": "규칙의 모든 매처가 일치해야 합니다."
+  },
+  "html_everyRuleMustEndWithAn": {
+    "message": "모든 규칙은 다음으로 끝나야 합니다."
+  },
+  "html_filterClauses": {
+    "message": "필터 절"
+  },
+  "html_filterRoutingTemplates": {
+    "message": "라우팅 템플릿 필터링"
+  },
+  "html_forExample2": {
+    "message": "패턴 형식"
+  },
+  "html_forHttpAndHttpsAndEndWith": {
+    "message": "HTTP와 HTTPS에 일치합니다."
+  },
+  "html_howDoDownloadUrlFiltersWork": {
+    "message": "URL 필터로 다운로드를 일치시키는 방법"
+  },
+  "html_howRoutingRulesWork": {
+    "message": "라우팅 규칙의 작동 방식"
+  },
+  "html_matchesHttpsFileUrlsOn": {
+    "message": "예"
+  },
+  "html_moveAndRenameMatchingFiles": {
+    "message": "일치하는 파일 이동 및 이름 바꾸기"
+  },
+  "html_moveMatchingFilesAndKeepTheirNames": {
+    "message": "일치하는 파일을 이동하고 이름을 유지하세요."
+  },
+  "html_optional": {
+    "message": "선택사항"
+  },
+  "html_parenthesesCapturePartsOfAMatcherSelectTheMatcher": {
+    "message": "괄호는 매처의 일부를 캡처합니다. 다음을 사용하여 매처를 선택하세요."
+  },
+  "html_regularExpressionGuide": {
+    "message": "정규식 가이드"
+  },
+  "html_separateRulesWithABlankLine": {
+    "message": "규칙을 빈 줄로 구분하세요."
+  },
+  "html_thenUse": {
+    "message": ", 그런 다음 사용"
+  },
+  "html_toIncludeEveryPathThisIsNotARegular": {
+    "message": "모든 경로에 일치합니다. 쿼리 매개변수와 명시적 포트는 일치시킬 수 없습니다."
+  },
+  "html_trackAndRouteBrowserDownloads": {
+    "message": "브라우저 다운로드"
+  },
+  "html_writeOneClausePerLine": {
+    "message": "한 줄에 한 절씩 작성하세요."
+  },
+  "html_all": {
+    "message": "모두"
+  },
+  "html_altOption": {
+    "message": "Alt / Option"
+  },
+  "html_applyShortcut": {
+    "message": "단축키 적용"
+  },
+  "html_click": {
+    "message": "클릭"
+  },
+  "html_clickToSaveShortcut": {
+    "message": "트리거"
+  },
+  "html_clickToSaveShortcutCombination": {
+    "message": "클릭 저장 단축키 조합"
+  },
+  "html_columns": {
+    "message": "열"
+  },
+  "html_command": {
+    "message": "Command"
+  },
+  "html_commandWindowsKey": {
+    "message": "Command / Windows key"
+  },
+  "html_copy0LeavesDismissalToTheBrowserOrOperatingSystem": {
+    "message": "0은 브라우저 또는 운영 체제 기본값을 사용합니다."
+  },
+  "html_ctrl": {
+    "message": "Ctrl"
+  },
+  "html_dismissEarlyAfter": {
+    "message": "다음 시간 후 닫기"
+  },
+  "html_export": {
+    "message": "내보내기"
+  },
+  "html_filterSources": {
+    "message": "소스 필터링"
+  },
+  "html_historyTableTools": {
+    "message": "기록 테이블 도구"
+  },
+  "html_image": {
+    "message": "이미지"
+  },
+  "html_image128Kb1": {
+    "message": "이미지 · 128 KB · #1"
+  },
+  "html_images": {
+    "message": "이미지"
+  },
+  "html_jsonCompleteData": {
+    "message": "JSON — 완전한 데이터"
+  },
+  "html_key": {
+    "message": "키"
+  },
+  "html_link": {
+    "message": "링크"
+  },
+  "html_links": {
+    "message": "링크"
+  },
+  "html_macctrl": {
+    "message": "MacCtrl"
+  },
+  "html_more": {
+    "message": "더보기"
+  },
+  "html_mouseOnlyLeftClickWillReplaceNormalClicksOn": {
+    "message": "이 기능을 사용하는 동안 보조 키 없이 왼쪽 클릭하면 저장 가능한 미디어와 링크의 일반 클릭 동작이 바뀝니다."
+  },
+  "html_ms": {
+    "message": "초"
+  },
+  "html_none": {
+    "message": "None"
+  },
+  "html_notifyMeWhen": {
+    "message": "알림 이벤트"
+  },
+  "html_previewOfThePageSourcesDrawer": {
+    "message": "페이지 소스 창 미리보기"
+  },
+  "html_primaryModifier": {
+    "message": "주 보조 키"
+  },
+  "html_saveTheseAsShortcutFiles": {
+    "message": "바로가기 파일 사용 대상"
+  },
+  "html_secondModifier": {
+    "message": "두 번째 보조 키"
+  },
+  "html_selection": {
+    "message": "선택"
+  },
+  "html_shift": {
+    "message": "Shift"
+  },
+  "html_shortcutFileBehavior": {
+    "message": "바로가기 파일 설정"
+  },
+  "html_streamHls3": {
+    "message": "스트림 · HLS · #3"
+  },
+  "html_tab": {
+    "message": "탭"
+  },
+  "html_video": {
+    "message": "비디오"
+  },
+  "html_video24Mb2": {
+    "message": "비디오 · 2.4 MB · #2"
+  },
+  "html_advancedEditIdsAsText": {
+    "message": "고급: ID를 텍스트로 편집"
+  },
+  "html_allow": {
+    "message": "허용"
+  },
+  "html_allowedExtensionIds": {
+    "message": "허용되는 확장 프로그램 ID"
+  },
+  "html_apiVersion": {
+    "message": "API 버전"
+  },
+  "html_approvedExtensions": {
+    "message": "승인된 확장 프로그램"
+  },
+  "html_capabilities": {
+    "message": "기능"
+  },
+  "html_clickTheSnippetToCopyIt": {
+    "message": "스니펫을 클릭하여 복사하세요."
+  },
+  "html_counterValue": {
+    "message": "카운터 값"
+  },
+  "html_current": {
+    "message": "현재"
+  },
+  "html_currentValueOfThe": {
+    "message": "변수"
+  },
+  "html_delete": {
+    "message": "삭제"
+  },
+  "html_developerDetails": {
+    "message": "개발자 세부정보"
+  },
+  "html_exampleNegotiateTheVersionThenSaveAUrl": {
+    "message": "예: 버전을 협상한 후 URL을 저장합니다."
+  },
+  "html_extensionId": {
+    "message": "확장 프로그램 ID"
+  },
+  "html_externalDownloadAccess": {
+    "message": "외부 다운로드 접근 권한"
+  },
+  "html_externalIntegrations": {
+    "message": "외부 통합"
+  },
+  "html_integrationGuide": {
+    "message": "통합 가이드"
+  },
+  "html_letTrustedExtensionsSendUrlsThroughSaveInS": {
+    "message": "신뢰할 수 있는 확장 프로그램이 Save In의 라우팅 및 이름 변경 규칙을 통해 URL을 보내도록 허용합니다."
+  },
+  "html_mdnMatchPatterns": {
+    "message": "MDN: 일치 패턴"
+  },
+  "html_noExtensionsAreApprovedExternalDownloadsAreBlockedBy": {
+    "message": "승인된 확장 프로그램이 없습니다. 외부 다운로드는 기본적으로 차단됩니다."
+  },
+  "html_noneApproved": {
+    "message": "승인된 확장 프로그램 없음"
+  },
+  "externalApprovedCountOne": {
+    "message": "승인된 확장 프로그램 $COUNT$개",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
+  },
+  "externalApprovedCountMany": {
+    "message": "승인된 확장 프로그램 $COUNT$개",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "externalRemoveApproval": {
+    "message": "제거"
+  },
+  "externalRemoveApprovalFor": {
+    "message": "$ID$ 승인 제거",
+    "placeholders": {
+      "id": {
+        "content": "$1",
+        "example": "abcdefghijklmnopabcdefghijklmnop"
+      }
+    }
+  },
+  "externalApprovalRemoved": {
+    "message": "$ID$ 확장 프로그램의 승인이 취소되었습니다.",
+    "placeholders": {
+      "id": {
+        "content": "$1",
+        "example": "abcdefghijklmnopabcdefghijklmnop"
+      }
+    }
+  },
+  "externalApprovalAdded": {
+    "message": "$ID$ 확장 프로그램이 승인되었습니다.",
+    "placeholders": {
+      "id": {
+        "content": "$1",
+        "example": "abcdefghijklmnopabcdefghijklmnop"
+      }
+    }
+  },
+  "html_oneExtensionIdPerLine": {
+    "message": "한 줄에 하나의 확장 프로그램 ID"
+  },
+  "html_onlyApprovedExtensionsCanStartDownloadsUseTheCalling": {
+    "message": "승인된 확장 프로그램만 다운로드를 시작할 수 있습니다. Save In의 ID가 아닌 요청한 확장 프로그램의 ID를 사용하세요."
+  },
+  "html_pasteAnExtensionId": {
+    "message": "확장 프로그램 ID 붙여넣기"
+  },
+  "html_pendingApproval": {
+    "message": "승인 대기 중"
+  },
+  "html_resetTo0": {
+    "message": "0으로 재설정"
+  },
+  "html_setValue": {
+    "message": "값 설정"
+  },
+  "html_theseExtensionsTriedToStartADownloadAddOnly": {
+    "message": "이 확장 프로그램들이 다운로드를 시작하려고 했습니다. 신뢰할 수 있는 확장 프로그램만 추가하세요. 요청된 URL은 저장되지 않습니다."
+  },
+  "html_useOneExtensionIdPerLineForBulkChanges": {
+    "message": "대량 변경에는 한 줄에 하나의 확장 프로그램 ID를 사용하세요."
+  },
+  "html_variableItAdvancesOncePerSavedDownloadAndPersists": {
+    "message": "— 다운로드가 저장될 때마다 1씩 증가하며 다시 시작해도 유지됩니다."
+  },
+  "html_webextensionsSuchAsFoxyGesturesCanMessageSaveIn": {
+    "message": "Foxy Gestures 같은 WebExtensions는 Save In에 직접 메시지를 보낼 수 있습니다. Greasemonkey, Tampermonkey 또는 Violentmonkey 사용자 스크립트만으로는 이 작업을 수행할 수 없습니다. 사용자 스크립트에는 확장 프로그램 간 메시지 접근 권한이 없습니다. 작은 보조 WebExtension을 중계로 사용하거나, 해당 기능을 제공하는 확장 프로그램에 URL을 전달하도록 사용자 스크립트를 설정하세요."
+  },
+  "html_whereThisWorks": {
+    "message": "지원 환경"
+  },
+  "html_askTheCommunity": {
+    "message": "커뮤니티에 물어보세요"
+  },
+  "html_aVeryDiligentOrganizer": {
+    "message": "매우 부지런한 조직자"
+  },
+  "html_aWatercolorLuckyCatCarefullyOrganizingDocumentsPhotographsFilm": {
+    "message": "서류, 사진, 필름, 책을 꼼꼼히 정리한 수채화 행운의 고양이"
+  },
+  "html_buildInformation": {
+    "message": "빌드 정보"
+  },
+  "html_checking": {
+    "message": "확인 중…"
+  },
+  "html_closeAboutSaveIn": {
+    "message": "Save In 소개 닫기"
+  },
+  "html_closeReferences": {
+    "message": "참조 닫기"
+  },
+  "html_contextMenus": {
+    "message": "컨텍스트 메뉴"
+  },
+  "html_documentation": {
+    "message": "문서"
+  },
+  "html_downloads": {
+    "message": "다운로드"
+  },
+  "html_filterCurrentReference": {
+    "message": "현재 참조 필터링"
+  },
+  "html_filterVariables": {
+    "message": "변수 필터링"
+  },
+  "html_findsAndSavesResourcesTheUserChoosesOnArbitrary": {
+    "message": "임의의 웹사이트에서 사용자가 선택한 리소스를 찾아 저장합니다."
+  },
+  "html_saveInUses": {
+    "message": "Save In은"
+  },
+  "html_keepsSettingsRoutingRulesLocalHistoryAndRestartSafe": {
+    "message": "설정, 라우팅 규칙, 로컬 기록 및 다시 시작해도 안전한 상태를 유지합니다."
+  },
+  "html_letsChromeConvertFetchedFileDataIntoTemporaryDownload": {
+    "message": "Chrome이 가져온 파일 데이터를 임시 다운로드 URL로 변환할 수 있습니다."
+  },
+  "html_loadingClauses": {
+    "message": "절 로드 중…"
+  },
+  "html_loadingVariables": {
+    "message": "변수 로드 중…"
+  },
+  "html_luckyOrganizingCat": {
+    "message": "행운의 정리 고양이"
+  },
+  "html_messageFirstOrASmallRelayExtensionMustDo": {
+    "message": " 메시지를 보내거나 소규모 중계 확장 프로그램이 대신 보내야 합니다. Video DownloadHelper는 Save In에서 직접 호출할 수 있는 안정적인 통합 API를 제공하지 않습니다."
+  },
+  "html_offscreen": {
+    "message": "오프스크린"
+  },
+  "html_privacyPolicy": {
+    "message": "개인 정보 보호 정책"
+  },
+  "html_references": {
+    "message": "참고자료"
+  },
+  "html_referenceType": {
+    "message": "참조 유형"
+  },
+  "html_reportAnIssue": {
+    "message": "문제 신고"
+  },
+  "html_reportsCompletedSavesAndActionableFailuresWhenEnabled": {
+    "message": "활성화되면 완료된 저장 및 조치 가능한 오류를 보고합니다."
+  },
+  "html_saveInDoesNotAdoptDownloadsThatAnotherExtension": {
+    "message": "Save In은 Video DownloadHelper 등 다른 확장 프로그램이 이미 시작한 다운로드를 넘겨받지 않습니다. 다운로드를 시작하는 확장 프로그램은 먼저 Save In에"
+  },
+  "html_saveInHasNoAnalyticsAdvertisingDeveloperOperatedServer": {
+    "message": "Save In에는 분석, 광고, 개발자 운영 서버 또는 원격 실행 코드가 없습니다. 설정 및 기록은 브라우저 관리 확장 저장소에 유지됩니다."
+  },
+  "html_saveInIsALocalFirstDownloadsHelperFor": {
+    "message": "Save In은 로컬 처리를 우선하는 다운로드 도우미입니다. 컨텍스트 메뉴 폴더, 라우팅 규칙, 이름 변경, 페이지 소스, 다운로드 기록을 사용해 파일을 정리합니다."
+  },
+  "html_whichOnlySomeBrowsersProvideItRegisters": {
+    "message": "을(를) 사용하며, 일부 브라우저에서만 제공됩니다. 이 옵션 페이지가 열려 있는 동안 AI 에이전트가 호출할 수 있는 도구를 등록하여 설정 변경, 폴더 메뉴 구성, 라우팅 규칙 작성을 지원합니다."
+  },
+  "o_cWebmcpEnabled": {
+    "message": "AI 에이전트가 Save In 설정을 읽고 변경하도록 허용"
+  },
+  "o_cWebmcpEnabledHelp": {
+    "message": "도구에는 다운로드 시작과 웹훅 전송 대상을 포함한 모든 설정 변경이 포함됩니다."
+  },
+  "webMcpStatusOff": {
+    "message": "꺼짐"
+  },
+  "html_showsSaveInCommandsOnPagesLinksMediaAnd": {
+    "message": "페이지, 링크, 미디어 및 탭에 Save In 명령을 표시합니다."
+  },
+  "html_startsSavesChoosesFilenamesMonitorsResultsAndSupportsRetries": {
+    "message": "저장을 시작하고, 파일 이름을 선택하고, 결과를 모니터링하고, 재시도를 지원합니다."
+  },
+  "html_storage": {
+    "message": "저장소"
+  },
+  "html_theSessionLogBelowAlwaysKeepsASmallLocal": {
+    "message": "최근 실패는 브라우저 세션이 끝날 때까지 이 기기에 보관됩니다. 상세 로깅을 사용하면 라우팅 및 다운로드 세부 정보도 브라우저 개발자 콘솔에 기록되며, 사용자가 끌 때까지 활성 상태로 유지됩니다. 비공개 활동은 제외됩니다."
+  },
+  "html_toConnectOpenThisPageInABrowserThat": {
+    "message": "연결하려면 WebMCP를 지원하는 브라우저에서 이 페이지를 열어 둔 다음, 브라우저 내 에이전트가 이 탭을 사용하도록 지정하세요. 자연어로 요청할 수 있습니다. 예: “다운로드를 웹사이트와 날짜별 폴더로 정리하고, 각 파일에 번호를 매긴 뒤, 실패할 때만 알려 줘.”"
+  },
+  "html_tools": {
+    "message": "도구"
+  },
+  "html_version": {
+    "message": "버전"
+  },
+  "html_websiteAccess": {
+    "message": "웹사이트 접속"
+  },
+  "html_whyThesePermissionsAreNeeded": {
+    "message": "이러한 권한이 필요한 이유"
+  },
+  "html_alsoWorks": {
+    "message": "또한 작동합니다)"
+  },
+  "html_amOrPmLocalTime": {
+    "message": "오전 또는 오후(현지 시간)"
+  },
+  "html_currentDate": {
+    "message": "현재 날짜"
+  },
+  "html_currentDatetimeAsAUnixTimestamp": {
+    "message": "현재 날짜와 시간의 Unix 타임스탬프"
+  },
+  "html_currentDatetimeAsAUtcIso8601String": {
+    "message": "현재 날짜와 시간의 UTC ISO 8601 문자열"
+  },
+  "html_currentDayOfMonth": {
+    "message": "현재 일(1~31)"
+  },
+  "html_currentDayOfWeekEnglish": {
+    "message": "현재 요일(영어)"
+  },
+  "html_currentHour24Hour": {
+    "message": "현재 시간(24시간)"
+  },
+  "html_currentMinute": {
+    "message": "현재 분"
+  },
+  "html_currentMonth": {
+    "message": "이번 달"
+  },
+  "html_currentMonthNameEnglish": {
+    "message": "이번 달 이름(영문)"
+  },
+  "html_currentSecond": {
+    "message": "현재 초"
+  },
+  "html_currentYear": {
+    "message": "올해"
+  },
+  "html_iso8601WeekYear": {
+    "message": "ISO 8601 주 번호 연도"
+  },
+  "html_hostnameOfThePage": {
+    "message": "페이지의 호스트 이름"
+  },
+  "html_hostnameOfTheSource": {
+    "message": "소스의 호스트 이름"
+  },
+  "html_iso8601WeekNumber": {
+    "message": "ISO 8601 주 번호("
+  },
+  "html_lastLabelOfTheSourceHostname": {
+    "message": "소스 호스트 이름의 마지막 라벨"
+  },
+  "html_pageHostnameWithoutSubdomains": {
+    "message": "하위 도메인이 없는 페이지 호스트 이름"
+  },
+  "html_pageTitleLowercasedAndDashed": {
+    "message": "페이지 제목(소문자, 하이픈으로 연결)"
+  },
+  "html_pageTitleLowercasedWithUnderscores": {
+    "message": "페이지 제목(밑줄 포함 소문자)"
+  },
+  "html_pathPartOfTheSourceUrlSeparatorsAreSanitized": {
+    "message": "소스 URL의 경로 부분(구분자는 안전하게 처리됨)"
+  },
+  "html_sourceHostnameWithoutSubdomains": {
+    "message": "하위 도메인이 없는 소스 호스트 이름"
+  },
+  "html_standard": {
+    "message": "표준"
+  },
+  "html_linkTextVariableDescription": {
+    "message": "브라우저에서 제공하는 링크 텍스트입니다. 탭 저장에는 탭 제목을 사용합니다."
+  },
+  "html_theCurrentlySelectedTextOnThePage": {
+    "message": "페이지에서 현재 선택된 텍스트"
+  },
+  "html_theNaiveFilenameUrlBasedUseTheRoutingFeature": {
+    "message": "URL에서 파생된 파일 이름입니다. 이것이 정확하지 않은 경우 라우팅 규칙을 사용하십시오."
+  },
+  "html_titleOfThePage": {
+    "message": "페이지 제목"
+  },
+  "html_urlOfThePage": {
+    "message": "페이지의 URL"
+  },
+  "html_urlOfTheSource": {
+    "message": "소스의 URL"
+  },
+  "html_usableEverywhere": {
+    "message": "어디서나 사용 가능"
+  },
+  "html_variablesAreUsedInDirectoryAndPathPatterns": {
+    "message": "변수는 폴더 및 파일 이름 패턴에 사용됩니다."
+  },
+  "html_actualResolvedFilenameExtensionAlias": {
+    "message": "실제 확인된 파일 이름 확장자. 별칭:"
+  },
+  "html_aRandomV4UuidUniquePerUse": {
+    "message": "사용 시 고유한 임의의 v4 UUID"
+  },
+  "html_autoIncrementingNumberThatAdvancesOncePerSavedDownload": {
+    "message": "다운로드를 저장할 때마다 증가하고 다시 시작해도 지속되는 숫자입니다. 다운로드 카운터에서 확인하거나 재설정하세요."
+  },
+  "html_blankIfTheServerDoesnTAnswer": {
+    "message": " 사용할 수 없는 경우 비어 있습니다."
+  },
+  "html_captureGroupWhere": {
+    "message": "그룹에서 캡처한 텍스트"
+  },
+  "html_charactersForDeeperNesting": {
+    "message": "문자를 더 추가하면 더 깊게 중첩됩니다."
+  },
+  "html_createsASeparatorInTheContextMenu": {
+    "message": "컨텍스트 메뉴에 구분 기호를 만듭니다."
+  },
+  "html_createsASubmenuItemAddMore": {
+    "message": "하위 메뉴 항목을 만듭니다."
+  },
+  "html_fileExtensionDerivedFromThe": {
+    "message": "다음에서 파생된 파일 확장자"
+  },
+  "html_first12LowercaseHexCharactersOfTheDownloadedFile": {
+    "message": "다운로드한 파일의 SHA-256에서 처음 12자의 소문자 16진수입니다. 이 값을 준비하면 저장하기 전에 파일을 가져와 해시하므로 미리보기에서는 값이 비어 있으며, 사용할 수 없는 경우에도 비어 있습니다. 해싱에 실패해도 다운로드는 계속됩니다. 기록에서 오래 걸리는 준비 작업을 취소할 수 있습니다."
+  },
+  "html_full64CharacterLowercaseSha256ItSharesThe": {
+    "message": "64자의 소문자 SHA-256 전체 값입니다."
+  },
+  "html_fullActualFilenameAfterContentDisposition": {
+    "message": "Content-Disposition를 포함한 확인된 파일 이름"
+  },
+  "html_handyForExtensionlessOrQuerySuffixedUrls": {
+    "message": ". 확장자가 없거나 쿼리 접미사가 있는 URL에 유용합니다."
+  },
+  "html_menuStructure": {
+    "message": "메뉴 구조"
+  },
+  "html_onlyUsableWhenRoutingAndRewritingFilenames": {
+    "message": "파일을 라우팅하거나 이름을 바꾸는 경우에만 사용 가능"
+  },
+  "html_routingAndFilenamesOnly": {
+    "message": "라우팅 및 파일 이름만"
+  },
+  "html_specialRowsUsedOnlyInTheDownloadsMenu": {
+    "message": "저장 메뉴에서만 사용되는 특수 행"
+  },
+  "html_theN": {
+    "message": "; 1을 그룹 번호로 바꿉니다."
+  },
+  "html_theServerS": {
+    "message": "서버의"
+  },
+  "html_theUrlAfterFollowingRedirectsViaTheSameHead": {
+    "message": "리디렉션을 따른 후의 URL입니다. 다음과 동일한 요청을 사용합니다."
+  },
+  "html_urlDerivedExtensionAlias": {
+    "message": "URL에서 파생된 확장자. 별칭:"
+  },
+  "html_viaAHeadRequestAddsASmallDelayAnd": {
+    "message": ". 약간의 지연이 추가되며 사용할 수 없는 경우 비어 있습니다."
+  },
+  "html_whenBothVariablesAreUsed": {
+    "message": "변수를 함께 사용하면 두 값이 동시에 계산됩니다."
+  },
+  "html_clausesAreOnlyUsedInRuleDefinitionsForRouting": {
+    "message": "라우팅 규칙은 절을 사용하여 이동하거나 이름을 바꿀 다운로드를 결정합니다."
+  },
+  "html_templatesProvideReadyMadeRoutingRulesYouCanAddAndCustomize": {
+    "message": "템플릿은 맞춤 설정할 수 있는 미리 만들어진 규칙을 제공합니다. Save In은 첫 번째 일치 항목을 사용하므로 일반 템플릿을 특정 템플릿 뒤에 배치하세요."
+  },
+  "html_forCaseInsensitiveMatching": {
+    "message": "대소문자를 구분하지 않는 일치를 위해."
+  },
+  "html_forExplicitNewRules": {
+    "message": "을 사용하세요."
+  },
+  "html_matcherClausesUse": {
+    "message": "매처 절에는"
+  },
+  "html_matchers": {
+    "message": "매처"
+  },
+  "html_matchesTheCommentOfTheClickedMenuItem": {
+    "message": "선택한 메뉴 항목의 설명과 일치합니다."
+  },
+  "html_matchesTheCurrentPageTitle": {
+    "message": "현재 페이지 제목과 일치합니다."
+  },
+  "html_matchesTheCurrentPageUrl": {
+    "message": "현재 페이지 URL과 일치합니다."
+  },
+  "html_matchesTheFinalFilename": {
+    "message": "Content-Disposition 처리 후 브라우저가 결정한 파일 이름과 일치합니다."
+  },
+  "html_matchesTheResolvedFilenameBeforeBrowserNaming": {
+    "message": "브라우저의 최종 이름 지정 전에 Save In이 확인한 파일 이름과 일치합니다."
+  },
+  "html_selectedMenuDirectoryPath": {
+    "message": "Save In 메뉴에서 선택한 폴더 경로"
+  },
+  "html_linkTextMatcherDescription": {
+    "message": "브라우저에서 제공하는 링크 텍스트와 일치합니다. 탭 저장에는 탭 제목을 사용합니다."
+  },
+  "html_matchesTheMediaType": {
+    "message": "미디어 유형과 일치합니다:"
+  },
+  "html_matchesTheMenuIndexOfTheClickedMenuItem": {
+    "message": "선택한 메뉴 항목의 색인(1, 2, 3…)과 일치합니다."
+  },
+  "html_directoryMatcherDescription": {
+    "message": "Save In 메뉴에서 고른 폴더와 일치합니다. 폴더를 고르지 않는 저장에서는 비어 있습니다."
+  },
+  "html_matchesTheNaiveFilename": {
+    "message": "URL에서 파생된 파일 이름과 일치합니다."
+  },
+  "html_matchesThePageHostname": {
+    "message": "페이지 호스트 이름과 일치합니다."
+  },
+  "html_actualFileExtensionMatcherDescription": {
+    "message": "파일 이름 또는 MIME 형식에서 확인된 확장자와 일치합니다."
+  },
+  "html_matchesTheSelectionText": {
+    "message": "선택한 텍스트와 일치합니다."
+  },
+  "html_sourceDomainMatcherDescription": {
+    "message": "저장할 소스의 호스트 이름과 일치합니다."
+  },
+  "html_sourceUrlMatcherDescription": {
+    "message": "저장할 소스의 URL과 일치합니다."
+  },
+  "html_matchesTheUrlDerivedExtensionLegacyNameUse": {
+    "message": "URL에서 파생된 확장자와 일치합니다(이전 이름). 새 규칙에서는"
+  },
+  "html_matchesTheUrlOfTheCurrentFrame": {
+    "message": "현재 프레임 URL과 일치합니다."
+  },
+  "html_contextMatcherDescription": {
+    "message": "저장이 시작된 방식과 일치합니다: media, link, selection, page, click, auto, browser 또는 tab. 탭 저장에는 Firefox 또는 Chrome 150 이상이 필요합니다."
+  },
+  "html_or": {
+    "message": ", 또는"
+  },
+  "html_outputAndCapture": {
+    "message": "출력 및 캡처"
+  },
+  "html_regularExpression": {
+    "message": "정규 표현식"
+  },
+  "html_renamingTheFileKeepsItsOwnNameEG": {
+    "message": "바꾸지 않으므로 현재 이름이 유지됩니다(예:"
+  },
+  "html_required": {
+    "message": "필수"
+  },
+  "html_routesDownloadsToOrRewritesDownloadFilenamesIntoThe": {
+    "message": "다운로드를 지정한 경로로 이동하거나 지정한 패턴으로 이름을 바꿉니다. 폴더로 이동하려면 패턴 끝에"
+  },
+  "html_selectsTheMatcherForRegexCaptureGroupVariables": {
+    "message": "사용할 정규 표현식 캡처 그룹이 있는 매처를 선택합니다:"
+  },
+  "html_splitMultipleCaptureTargetsWithA": {
+    "message": ". 여러 캡처 대상의 구분 문자는"
+  },
+  "html_captureClauseCompatibility": {
+    "message": "매처 절 전체에서 그룹 번호를 연속으로 지정하려면 capturegroups:를 사용하세요. capture:는 기존의 평면화된 인덱스 배치를 유지합니다."
+  },
+  "html_stringsAddJavascriptRegexFlagsAfterTheMatcherName": {
+    "message": "을 사용합니다. 매처 이름 뒤에 JavaScript 플래그를 추가하세요. 예:"
+  },
+  "html_toRouteIntoAFolder": {
+    "message": "를 붙이면 폴더로 이동합니다."
+  },
+  "sourcePanelDockFloating": {
+    "message": "플로팅"
+  },
+  "sourcePanelNoMatchesFilter": {
+    "message": "검색어 “$FILTER$”와 일치하는 소스가 없습니다.",
+    "placeholders": {
+      "filter": {
+        "content": "$1",
+        "example": "poster"
+      }
+    }
+  },
+  "sourcePanelClearFilters": {
+    "message": "필터 지우기"
+  },
+  "sourcePanelSourceCount": {
+    "message": "찾은 소스: $COUNT$개",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "12"
+      }
+    }
+  },
+  "sourcePanelEmbeddedSource": {
+    "message": "페이지에 삽입된 소스"
+  },
+  "sourcePanelMoreActions": {
+    "message": "추가 작업"
+  },
+  "html_webhooks": {
+    "message": "웹후크"
+  },
+  "html_webhooksHelp": {
+    "message": "Save In 다운로드를 사용자의 엔드포인트에 JSON으로 보고합니다."
+  },
+  "html_webhookDocumentation": {
+    "message": "웹후크 문서 보기"
+  },
+  "html_webhookEndpoint": {
+    "message": "엔드포인트"
+  },
+  "html_webhookEvents": {
+    "message": "이벤트"
+  },
+  "html_webhookOnStart": {
+    "message": "다운로드 시작"
+  },
+  "html_webhookOnComplete": {
+    "message": "다운로드 완료"
+  },
+  "html_webhookOnFailed": {
+    "message": "다운로드 실패"
+  },
+  "html_webhookEventsHelp": {
+    "message": "모든 이벤트에 같은 다운로드 ID가 포함되므로 수신 측에서 서로 연결할 수 있습니다. 아래의 페이지 데이터는 다운로드가 시작될 때 전송되며, 완료 이벤트에는 대신 저장 경로가 포함됩니다. 저장 경로는 파일이 기록된 후에야 확정됩니다."
+  },
+  "html_webhookAllowInsecure": {
+    "message": "http:// 엔드포인트 허용"
+  },
+  "html_webhookAllowInsecureHelp": {
+    "message": "http:// 엔드포인트로 보내는 요청은 아래에서 추가하는 페이지 데이터를 포함해 암호화되지 않은 상태로 전송됩니다. 신뢰할 수 있는 네트워크에서만 사용하세요."
+  },
+  "html_webhookEndpointHelp": {
+    "message": "한 줄에 하나씩. 요청은 브라우저에서 각 주소로 직접 전송됩니다."
+  },
+  "html_testWebhook": {
+    "message": "테스트 보내기"
+  },
+  "html_webhookTestHelp": {
+    "message": "테스트에는 테스트 이벤트와 타임스탬프만 포함됩니다."
+  },
+  "html_webhookEnabled": {
+    "message": "Save In 다운로드를 웹후크로 보고"
+  },
+  "html_webhookAlwaysIncludes": {
+    "message": "모든 요청에는 리소스 URL, 어떤 이벤트인지, 다운로드 ID, ISO 8601 타임스탬프가 포함됩니다."
+  },
+  "html_webhookAdditionalData": {
+    "message": "추가 데이터"
+  },
+  "html_webhookIncludePageUrl": {
+    "message": "페이지 URL"
+  },
+  "html_webhookIncludePageTitle": {
+    "message": "페이지 제목"
+  },
+  "html_webhookIncludeSelectionText": {
+    "message": "선택한 텍스트"
+  },
+  "html_webhookPrivacy": {
+    "message": "Save In은 쿠키나 브라우저 자격 증명을 보내지 않고, 엔드포인트 리디렉션을 따르지 않으며, 실패한 요청을 재시도하지 않습니다. 비공개 창에서는 아무것도 보내지 않습니다. 요청은 브라우저에서 엔드포인트로 직접 전송됩니다."
+  },
+  "html_webhookPayloadPreview": {
+    "message": "페이로드 미리보기"
+  },
+  "webhookPreviewNoEvents": {
+    "message": "선택된 이벤트가 없어 아무것도 전송되지 않습니다."
+  },
+  "webhookPermissionDenied": {
+    "message": "선택한 웹후크 데이터에 대한 Firefox 권한이 부여되지 않았습니다."
+  },
+  "webhookPermissionMissing": {
+    "message": "Firefox 데이터 전송 권한이 꺼져 있습니다. 권한을 부여하려면 웹후크를 껐다가 다시 켜세요."
+  },
+  "webhookPermissionCheckFailed": {
+    "message": "브라우저 데이터 전송 권한을 확인할 수 없습니다."
+  },
+  "webhookSendingTest": {
+    "message": "테스트 전송 중…"
+  },
+  "webhookTestDelivered": {
+    "message": "엔드포인트가 테스트를 수락했습니다."
+  },
+  "webhookTestRejected": {
+    "message": "엔드포인트가 테스트를 거부했습니다."
+  },
+  "webhookTestFailed": {
+    "message": "테스트 웹후크를 전송할 수 없습니다."
+  },
+  "webhookEnabledSaved": {
+    "message": "웹후크를 사용 설정했습니다."
+  },
+  "webhookDisabledSaved": {
+    "message": "웹후크를 사용 중지했습니다."
+  },
+  "webhookSaveFailed": {
+    "message": "웹후크 설정을 저장할 수 없습니다."
+  },
+  "webhookFieldsSaved": {
+    "message": "웹후크 데이터를 업데이트했습니다."
+  },
+  "routeDebuggerFileData": {
+    "message": "파일"
+  },
+  "routeDebuggerUrlData": {
+    "message": "URL"
+  },
+  "routeDebuggerPageData": {
+    "message": "페이지 텍스트"
+  },
+  "routeDebuggerRoutingData": {
+    "message": "라우팅 컨텍스트"
+  },
+  "routeDebuggerSourceKind": {
+    "message": "소스 종류"
+  },
+  "routeDebuggerAnySourceKind": {
+    "message": "모든 소스 종류"
+  },
+  "routeDebuggerMenuIndex": {
+    "message": "메뉴 인덱스"
+  },
+  "routeDebuggerMenuComment": {
+    "message": "메뉴 설명"
+  },
+  "routeDebuggerRuntimeData": {
+    "message": "런타임 값"
+  },
+  "routeDebuggerDateTime": {
+    "message": "날짜 및 시간"
+  },
+  "routeDebuggerSha256": {
+    "message": "SHA-256"
+  },
+  "routeDebuggerRuleDestination": {
+    "message": "$PATH$에 저장",
+    "placeholders": {
+      "path": {
+        "content": "$1",
+        "example": "images/:filename:"
+      }
+    }
+  },
+  "routeDebuggerEditRule": {
+    "message": "편집"
+  },
+  "routeDebuggerAttemptMatched": {
+    "message": "$SOURCE$의 “$VALUE$” 값을 테스트함 — 일치함.",
+    "placeholders": {
+      "value": {
+        "content": "$1",
+        "example": "pdf"
+      },
+      "source": {
+        "content": "$2",
+        "example": "Source URL"
+      }
+    }
+  },
+  "routeDebuggerAttemptDidNotMatch": {
+    "message": "$SOURCE$의 “$VALUE$” 값을 테스트함 — 일치하지 않음.",
+    "placeholders": {
+      "value": {
+        "content": "$1",
+        "example": "jpg"
+      },
+      "source": {
+        "content": "$2",
+        "example": "Source URL"
+      }
+    }
+  },
+  "routeDebuggerAttemptMissing": {
+    "message": "$SOURCE$에서 사용할 수 있는 값이 없습니다.",
+    "placeholders": {
+      "source": {
+        "content": "$1",
+        "example": "Page title"
+      }
+    }
+  },
+  "routeDebuggerAttemptInvalid": {
+    "message": "$SOURCE$에서 유효한 값을 읽을 수 없습니다: “$VALUE$”.",
+    "placeholders": {
+      "source": {
+        "content": "$1",
+        "example": "Page URL"
+      },
+      "value": {
+        "content": "$2",
+        "example": "not a URL"
+      }
+    }
+  },
+  "routeDebuggerConditionMatched": {
+    "message": "$FIELD$: $PATTERN$ 패턴과 일치",
+    "placeholders": {
+      "field": {
+        "content": "$1",
+        "example": "fileext"
+      },
+      "pattern": {
+        "content": "$2",
+        "example": "pdf"
+      }
+    }
+  },
+  "routeDebuggerConditionDidNotMatch": {
+    "message": "$FIELD$: $PATTERN$ 패턴과 일치하지 않음",
+    "placeholders": {
+      "field": {
+        "content": "$1",
+        "example": "fileext"
+      },
+      "pattern": {
+        "content": "$2",
+        "example": "png"
+      }
+    }
+  },
+  "html_without": {
+    "message": "파일 이름은"
+  },
+  "o_lShortcutEnterOrReset": {
+    "message": "단축키를 입력하거나 재설정을 사용하세요."
+  },
+  "o_lShortcutFormat": {
+    "message": "Ctrl+Shift+G와 같은 형식을 사용하세요."
+  },
+  "o_lShortcutPrimaryModifier": {
+    "message": "Ctrl, Alt, Command 또는 MacCtrl을 보조 키로 포함하세요."
+  },
+  "o_lShortcutAddKey": {
+    "message": "보조 키 뒤에 일반 키를 추가하세요."
+  },
+  "o_lShortcutOneKey": {
+    "message": "보조 키와 함께 일반 키 하나를 사용하세요."
+  },
+  "o_lShortcutValidKey": {
+    "message": "Y, 5, F12 또는 PageDown 같은 유효한 키를 선택하세요."
+  },
+  "o_lShortcutNoRepeats": {
+    "message": "키나 보조 키를 반복하지 마세요."
+  },
+  "o_lShortcutReady": {
+    "message": "적용할 준비가 되었습니다."
+  },
+  "o_lShortcutChangeUnsupported": {
+    "message": "이 브라우저에서는 여기서 단축키를 변경할 수 없습니다."
+  },
+  "o_lShortcutRejected": {
+    "message": "브라우저가 이 단축키를 허용하지 않았습니다. 예약되어 있거나 이미 사용 중일 수 있습니다."
+  },
+  "o_lShortcutUpdated": {
+    "message": "단축키가 업데이트되었습니다."
+  },
+  "o_lShortcutResetUnsupported": {
+    "message": "이 브라우저에서는 여기서 단축키를 재설정할 수 없습니다."
+  },
+  "o_lShortcutReset": {
+    "message": "단축키가 재설정되었습니다."
+  },
+  "o_lShortcutLegacyValue": {
+    "message": "이전 형식 값: $VALUE$",
+    "placeholders": {
+      "value": {
+        "content": "$1",
+        "example": "Alt"
+      }
+    }
+  },
+  "o_lAccessKeyInvalid": {
+    "message": "하나의 문자나 숫자를 사용하세요. 기존에 저장된 값은 변경될 때까지 계속 지원됩니다."
+  },
+  "o_lShortcutFormatAnyBrowser": {
+    "message": "모든 브라우저에서 작동"
+  },
+  "o_lShortcutFormatLegacyInternet": {
+    "message": "기존 인터넷 바로가기"
+  },
+  "o_lShortcutFormatMac": {
+    "message": "macOS 네이티브 바로가기"
+  },
+  "o_lShortcutFormatWindows": {
+    "message": "Windows 인터넷 바로가기"
+  },
+  "ruleTemplateCategoryMedia": {
+    "message": "미디어"
+  },
+  "ruleTemplateCategoryFileTypes": {
+    "message": "파일 형식"
+  },
+  "ruleTemplateCategoryDateAndSequence": {
+    "message": "날짜 및 일련번호"
+  },
+  "ruleTemplateCategorySitesAndUrls": {
+    "message": "사이트 및 URL"
+  },
+  "ruleTemplateCategorySaveContext": {
+    "message": "저장 출처"
+  },
+  "ruleTemplateImagesPerSiteName": {
+    "message": "사이트별 폴더에 이미지 저장"
+  },
+  "ruleTemplateImagesPerSiteDescription": {
+    "message": "저장한 이미지를 페이지 호스트 이름별로 정리합니다"
+  },
+  "ruleTemplateVideosPerSiteName": {
+    "message": "사이트별 폴더에 비디오 저장"
+  },
+  "ruleTemplateVideosPerSiteDescription": {
+    "message": "저장한 비디오를 페이지 호스트 이름별로 정리합니다"
+  },
+  "ruleTemplateAudioPerSiteName": {
+    "message": "사이트별 폴더에 오디오 저장"
+  },
+  "ruleTemplateAudioPerSiteDescription": {
+    "message": "저장한 오디오를 페이지 호스트 이름별로 정리합니다"
+  },
+  "ruleTemplateScreenshotsByMonthName": {
+    "message": "월별 스크린샷"
+  },
+  "ruleTemplateScreenshotsByMonthDescription": {
+    "message": "스크린샷과 화면 캡처 파일명을 날짜별 폴더에 저장합니다"
+  },
+  "ruleTemplatePdfsName": {
+    "message": "PDF를 문서 폴더에 저장"
+  },
+  "ruleTemplatePdfsDescription": {
+    "message": "모든 PDF를 한곳에 모읍니다"
+  },
+  "ruleTemplateArchivesName": {
+    "message": "압축 파일을 한 폴더에 저장"
+  },
+  "ruleTemplateArchivesDescription": {
+    "message": "ZIP, RAR, 7z, TAR 및 기타 압축 파일을 모읍니다"
+  },
+  "ruleTemplateDocumentsName": {
+    "message": "문서를 한 폴더에 저장"
+  },
+  "ruleTemplateDocumentsDescription": {
+    "message": "일반적인 오피스 및 텍스트 문서를 모읍니다"
+  },
+  "ruleTemplateEbooksName": {
+    "message": "전자책 및 만화"
+  },
+  "ruleTemplateEbooksDescription": {
+    "message": "일반적인 전자책 및 디지털 만화 형식을 모읍니다"
+  },
+  "ruleTemplateInstallersName": {
+    "message": "앱 및 설치 파일"
+  },
+  "ruleTemplateInstallersDescription": {
+    "message": "데스크톱 및 모바일 설치 패키지를 한곳에 모읍니다"
+  },
+  "ruleTemplateFontsName": {
+    "message": "글꼴을 한 폴더에 저장"
+  },
+  "ruleTemplateFontsDescription": {
+    "message": "데스크톱 및 웹 글꼴 파일을 모읍니다"
+  },
+  "ruleTemplatePerExtensionName": {
+    "message": "확장자별 폴더"
+  },
+  "ruleTemplatePerExtensionDescription": {
+    "message": "확장자를 캡처하여 폴더 이름으로 사용합니다"
+  },
+  "ruleTemplateDateStampName": {
+    "message": "모든 다운로드에 날짜 표시"
+  },
+  "ruleTemplateDateStampDescription": {
+    "message": "저장할 파일명 앞에 저장 날짜를 붙입니다"
+  },
+  "ruleTemplateDailyInboxName": {
+    "message": "일일 보관함"
+  },
+  "ruleTemplateDailyInboxDescription": {
+    "message": "날짜마다 폴더를 하나씩 만듭니다"
+  },
+  "ruleTemplateDownloadsByMonthName": {
+    "message": "월별 다운로드"
+  },
+  "ruleTemplateDownloadsByMonthDescription": {
+    "message": "저장할 파일명을 유지하면서 연도 및 월별 폴더를 만듭니다"
+  },
+  "ruleTemplateWeeklyInboxName": {
+    "message": "주간 보관함"
+  },
+  "ruleTemplateWeeklyInboxDescription": {
+    "message": "ISO 주마다 보관함 폴더를 하나씩 만듭니다"
+  },
+  "ruleTemplateSequentialArchiveName": {
+    "message": "일련번호 아카이브"
+  },
+  "ruleTemplateSequentialArchiveDescription": {
+    "message": "Save In의 영구 다운로드 카운터를 파일명 앞에 붙입니다"
+  },
+  "ruleTemplateOneSiteName": {
+    "message": "사이트 하나당 폴더 하나"
+  },
+  "ruleTemplateOneSiteDescription": {
+    "message": "선택한 웹사이트를 전용 폴더로 라우팅합니다"
+  },
+  "ruleTemplatePerSourceSiteName": {
+    "message": "파일 제공 사이트별 폴더"
+  },
+  "ruleTemplatePerSourceSiteDescription": {
+    "message": "파일을 제공한 호스트 이름별로 다운로드를 정리합니다"
+  },
+  "ruleTemplatePerPageSiteName": {
+    "message": "탐색한 사이트별 폴더"
+  },
+  "ruleTemplatePerPageSiteDescription": {
+    "message": "파일 호스트가 아닌 탐색 중이던 웹사이트별로 파일을 정리합니다"
+  },
+  "ruleTemplatePageTitlePrefixName": {
+    "message": "페이지 제목 접두사"
+  },
+  "ruleTemplatePageTitlePrefixDescription": {
+    "message": "파일 시스템에 안전한 페이지 제목을 저장할 파일명 앞에 붙입니다"
+  },
+  "ruleTemplateCaptureUrlName": {
+    "message": "URL 일부 캡처"
+  },
+  "ruleTemplateCaptureUrlDescription": {
+    "message": "정규식 캡처 그룹을 저장할 파일명에 사용합니다"
+  },
+  "ruleTemplateBrowserInboxName": {
+    "message": "브라우저 다운로드 보관함"
+  },
+  "ruleTemplateBrowserInboxDescription": {
+    "message": "추적 중인 브라우저 다운로드를 별도 폴더에 보관합니다"
+  },
+  "ruleTemplateLinkInboxName": {
+    "message": "링크 다운로드 보관함"
+  },
+  "ruleTemplateLinkInboxDescription": {
+    "message": "링크에서 저장한 파일을 포함된 미디어와 분리합니다"
+  },
+  "ruleTemplateSelectionInboxName": {
+    "message": "선택한 텍스트 보관함"
+  },
+  "ruleTemplateSelectionInboxDescription": {
+    "message": "페이지에서 선택한 텍스트로 만든 파일을 한곳에 모읍니다"
+  },
+  "ruleTemplateTabInboxName": {
+    "message": "탭 저장 보관함"
+  },
+  "ruleTemplateTabInboxDescription": {
+    "message": "탭 작업으로 저장한 파일을 한곳에 모읍니다"
+  },
+  "ruleTemplateAdded": {
+    "message": "추가됨"
+  },
+  "ruleTemplateAdd": {
+    "message": "추가"
+  },
+  "ruleTemplateAddedFeedback": {
+    "message": "추가됨"
+  },
+  "ruleTemplateViewInEditor": {
+    "message": "규칙 편집기에서 보기"
+  },
+  "historyActiveFilters": {
+    "message": "활성 기록 필터"
+  },
+  "historyExportAll": {
+    "message": "모두 내보내기"
+  },
+  "historyFilterSearch": {
+    "message": "검색: “$QUERY$”",
+    "placeholders": {
+      "query": {
+        "content": "$1",
+        "example": "invoice"
+      }
+    }
+  },
+  "historyFilterSince": {
+    "message": "$DATE$ 이후",
+    "placeholders": {
+      "date": {
+        "content": "$1",
+        "example": "2026-07-01"
+      }
+    }
+  },
+  "historyFilterThrough": {
+    "message": "$DATE$까지",
+    "placeholders": {
+      "date": {
+        "content": "$1",
+        "example": "2026-07-31"
+      }
+    }
+  },
+  "historyDateRangeInvalid": {
+    "message": "시작일은 종료일과 같거나 이전이어야 합니다."
+  },
+  "historyShowFolderUnavailable": {
+    "message": "폴더를 열 수 없습니다. 브라우저에 이 다운로드 기록이 더 이상 없습니다."
+  },
+  "historyShowFolderFailed": {
+    "message": "폴더를 열 수 없습니다. 파일이 이동되었거나 삭제되었을 수 있습니다."
+  },
+  "historyFilteredResultsCount": {
+    "message": "전체 $TOTAL$개 중 $MATCHES$개 결과",
+    "placeholders": {
+      "matches": {
+        "content": "$1",
+        "example": "12"
+      },
+      "total": {
+        "content": "$2",
+        "example": "50"
+      }
+    }
+  },
+  "historyResultCountOne": {
+    "message": "$COUNT$개 결과",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
+  },
+  "historyResultCount": {
+    "message": "$COUNT$개 결과",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "24"
+      }
+    }
+  },
+  "historyStorageLimit": {
+    "message": "기록은 이 기기에 최대 10,000개 항목까지 저장됩니다."
+  },
+  "historyTableCaption": {
+    "message": "저장한 다운로드 기록"
+  },
+  "historyShowInFolder": {
+    "message": "폴더에서 보기"
+  },
+  "historyCancelDownload": {
+    "message": "취소"
+  },
+  "historyCancelDownloadTitle": {
+    "message": "이 다운로드 취소"
+  },
+  "historyCancelDownloadNamed": {
+    "message": "$FILE$ 취소",
+    "placeholders": {
+      "file": {
+        "content": "$1",
+        "example": "photo.jpg"
+      }
+    }
+  },
+  "historyCancelingDownload": {
+    "message": "취소 중…"
+  },
+  "historyUndoSave": {
+    "message": "저장 취소"
+  },
+  "historyUndoSaveNamed": {
+    "message": "$FILE$ 저장 취소",
+    "placeholders": {
+      "file": {
+        "content": "$1",
+        "example": "photo.jpg"
+      }
+    }
+  },
+  "historyUndoDone": {
+    "message": "저장이 취소되었습니다. 파일이 삭제되었습니다."
+  },
+  "historyUndoFileMissing": {
+    "message": "저장이 취소되었습니다. 파일은 이미 이동되었거나 삭제되어 있었습니다."
+  },
+  "historyUndoFailed": {
+    "message": "이 저장을 취소하지 못했습니다."
+  },
+  "historyMoveSave": {
+    "message": "저장 이동(선택한 폴더로 파일을 다시 다운로드)"
+  },
+  "historyMoveSaveNamed": {
+    "message": "$FILE$ 저장 이동",
+    "placeholders": {
+      "file": {
+        "content": "$1",
+        "example": "photo.jpg"
+      }
+    }
+  },
+  "historyMoveDestination": {
+    "message": "대상 폴더"
+  },
+  "historyMoveConfirm": {
+    "message": "이동"
+  },
+  "historyMoveDownloadsRoot": {
+    "message": "다운로드"
+  },
+  "historyMoveDone": {
+    "message": "저장을 이동했습니다. 파일이 새 폴더로 다운로드되었습니다."
+  },
+  "historyMoveOriginalKept": {
+    "message": "새 폴더에 저장했습니다. 원본 파일은 제거하지 못했습니다."
+  },
+  "historyMoveFailed": {
+    "message": "이 저장을 이동할 수 없습니다."
+  },
+  "historyRoutingApplied": {
+    "message": "적용됨"
+  },
+  "historyRoutingAppliedTitle": {
+    "message": "라우팅 또는 이름 바꾸기 규칙이 적용되었습니다."
+  },
+  "historyNewer": {
+    "message": "‹ 최신 항목"
+  },
+  "historyPageCount": {
+    "message": "$TOTAL$페이지 중 $PAGE$페이지",
+    "placeholders": {
+      "page": {
+        "content": "$1",
+        "example": "2"
+      },
+      "total": {
+        "content": "$2",
+        "example": "5"
+      }
+    }
+  },
+  "historyOlder": {
+    "message": "이전 항목 ›"
+  },
+  "historyLoadFailed": {
+    "message": "기록을 불러올 수 없습니다."
+  },
+  "historyRetry": {
+    "message": "다시 시도"
+  },
+  "historyDeleteConfirmTitle": {
+    "message": "모든 기록을 삭제할까요?"
+  },
+  "historyDeleteConfirmDescription": {
+    "message": "저장된 모든 기록 항목이 영구적으로 삭제됩니다. 이 작업은 실행 취소할 수 없습니다."
+  },
+  "historyKeepHistory": {
+    "message": "기록 유지"
+  },
+  "historyDeleteAll": {
+    "message": "모든 기록 삭제"
+  },
+  "historyClearing": {
+    "message": "기록 삭제 중…"
+  },
+  "historyClearFailed": {
+    "message": "기록을 삭제할 수 없습니다."
+  },
+  "historyStatusSaving": {
+    "message": "저장 중…"
+  },
+  "historyStatusCanceled": {
+    "message": "취소됨"
+  },
+  "historyStatusUndone": {
+    "message": "되돌림"
+  },
+  "historyStatusMoved": {
+    "message": "이동됨"
+  },
+  "historyStatusNetworkFailed": {
+    "message": "네트워크 실패"
+  },
+  "historyStatusDownloadFailed": {
+    "message": "다운로드 실패"
+  },
+  "historyStatusPreparationFailed": {
+    "message": "준비 실패"
+  },
+  "historyStatusPreparationInterrupted": {
+    "message": "중단됨"
+  },
+  "historyStatusStateLost": {
+    "message": "다운로드 상태가 손실됨"
+  },
+  "historyStatusRoutingFailed": {
+    "message": "라우팅 실패"
+  },
+  "historyStatusNoRuleMatch": {
+    "message": "일치하는 규칙 없음"
+  },
+  "historyColumnInitiated": {
+    "message": "시작"
+  },
+  "historyColumnSource": {
+    "message": "출처"
+  },
+  "historyColumnMethod": {
+    "message": "방식"
+  },
+  "historyColumnStatus": {
+    "message": "상태"
+  },
+  "historyColumnSize": {
+    "message": "크기"
+  },
+  "historyColumnType": {
+    "message": "유형"
+  },
+  "historyColumnRule": {
+    "message": "라우팅"
+  },
+  "historyColumnFile": {
+    "message": "파일"
+  },
+  "historyColumnFolder": {
+    "message": "폴더"
+  },
+  "historyColumnUrl": {
+    "message": "URL"
+  },
+  "historyColumnFullPath": {
+    "message": "전체 경로"
+  },
+  "historyColumnDownloadId": {
+    "message": "다운로드 ID"
+  },
+  "historyColumnMenuItem": {
+    "message": "메뉴 항목"
+  },
+  "historyColumnVariables": {
+    "message": "변수"
+  },
+  "o_lSourcePanelShortcutResetHelp": {
+    "message": "재설정하면 브라우저의 권장 기본값으로 돌아갑니다."
+  },
+  "o_lShortcutFormatLinux": {
+    "message": "Linux 데스크탑 바로가기"
+  },
+  "html_closePrivacyPolicy": {
+    "message": "개인정보 처리방침 닫기"
+  },
+  "o_sAppearance": {
+    "message": "화면 표시"
+  },
+  "o_lUiTheme": {
+    "message": "테마"
+  },
+  "o_lUiThemeSystem": {
+    "message": "시스템"
+  },
+  "o_lUiThemeDark": {
+    "message": "어둡게"
+  },
+  "o_lUiThemeLight": {
+    "message": "밝게"
+  },
+  "o_lUiThemeGroupDefault": {
+    "message": "표준"
+  },
+  "o_lUiThemeGroupAccessibility": {
+    "message": "고대비"
+  },
+  "o_lUiThemeGroupClassics": {
+    "message": "클래식 테마"
+  },
+  "o_lUiThemeGroupSaveIn": {
+    "message": "맞춤형"
+  },
+  "o_lUiThemeHighContrastDark": {
+    "message": "고대비 어둡게"
+  },
+  "o_lUiThemeHighContrastLight": {
+    "message": "고대비 밝게"
+  },
+  "o_lUiThemeHighContrastYellow": {
+    "message": "고대비 노랑"
+  },
+  "o_lUiThemeSolarizedDark": {
+    "message": "Solarized 어둡게"
+  },
+  "o_lUiThemeSolarizedLight": {
+    "message": "Solarized 밝게"
+  },
+  "o_lUiThemeNord": {
+    "message": "Nord"
+  },
+  "o_lUiThemeDracula": {
+    "message": "Dracula"
+  },
+  "o_lUiThemeGruvbox": {
+    "message": "Gruvbox"
+  },
+  "o_lUiThemeMonokai": {
+    "message": "Monokai"
+  },
+  "o_lUiThemeOneDark": {
+    "message": "One Dark"
+  },
+  "o_lUiThemeTokyoNight": {
+    "message": "Tokyo Night"
+  },
+  "o_lUiThemeCatppuccin": {
+    "message": "Catppuccin"
+  },
+  "o_lUiThemeMidnight": {
+    "message": "미드나이트"
+  },
+  "o_lUiThemePastelPink": {
+    "message": "블러시"
+  },
+  "o_lUiThemePaper": {
+    "message": "페이퍼"
+  },
+  "o_lUiThemeTerminal": {
+    "message": "터미널"
+  },
+  "o_lUiThemeBerry": {
+    "message": "베리"
+  },
+  "o_lUiThemeNebula": {
+    "message": "네뷸라"
+  },
+  "o_lUiThemeGlacier": {
+    "message": "글레이셔"
+  },
+  "o_lUiThemeMatcha": {
+    "message": "말차"
+  },
+  "o_lUiThemeEmber": {
+    "message": "엠버"
+  },
+  "o_lUiThemeHelp": {
+    "message": "설정과 페이지 소스에 사용할 색상 테마를 선택합니다."
+  },
+  "notificationExternalDownloadBlockedTitle": {
+    "message": "외부 다운로드 차단됨"
+  },
+  "notificationExternalDownloadBlockedMessage": {
+    "message": "$SENDER_ID$의 요청을 차단했습니다. 클릭하여 옵션에서 검토하세요.",
+    "placeholders": {
+      "sender_id": {
+        "content": "$1",
+        "example": "abcdefghijklmnopabcdefghijklmnop"
+      }
+    }
+  },
+  "historyEmptyNoDownloads": {
+    "message": "아직 저장된 다운로드가 없습니다."
+  },
+  "historyEmptyNoMatches": {
+    "message": "이 필터와 일치하는 기록이 없습니다."
+  },
+  "webMcpStatusRegistering": {
+    "message": "등록 중…"
+  },
+  "webMcpStatusActive": {
+    "message": "활성 — 도구 $COUNT$개 등록됨",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "5"
+      }
+    }
+  },
+  "webMcpStatusLimited": {
+    "message": "제한됨 — 도구 $TOTAL$개 중 $REGISTERED$개 등록됨",
+    "placeholders": {
+      "registered": {
+        "content": "$1",
+        "example": "4"
+      },
+      "total": {
+        "content": "$2",
+        "example": "5"
+      }
+    }
+  },
+  "webMcpStatusRegistrationFailed": {
+    "message": "사용할 수 없음 — 도구 등록 실패"
+  },
+  "webMcpStatusUnavailableBrowser": {
+    "message": "이 브라우저에서는 사용할 수 없음"
+  },
+  "sourcePanelResizeLabel": {
+    "message": "페이지 소스 크기 조절"
+  },
+  "sourcePanelClose": {
+    "message": "닫기"
+  },
+  "sourcePanelCloseLabel": {
+    "message": "페이지 소스 닫기"
+  },
+  "sourcePanelDockPosition": {
+    "message": "도킹 위치: $POSITION$ — 다음 위치로 변경",
+    "placeholders": {
+      "position": {
+        "content": "$1",
+        "example": "Right"
+      }
+    }
+  },
+  "sourcePanelDockRight": {
+    "message": "오른쪽"
+  },
+  "sourcePanelDockBottom": {
+    "message": "아래"
+  },
+  "sourcePanelDockLeft": {
+    "message": "왼쪽"
+  },
+  "sourcePanelDockTop": {
+    "message": "위"
+  },
+  "sourcePanelChangeDockLabel": {
+    "message": "패널 도킹 위치 변경"
+  },
+  "sourcePanelDockPanel": {
+    "message": "페이지 소스 도킹"
+  },
+  "sourcePanelPopOutPanel": {
+    "message": "페이지 소스 분리"
+  },
+  "sourcePanelPopOutHelp": {
+    "message": "드래그 가능한 플로팅 패널로 분리"
+  },
+  "sourcePanelCopyFilteredUrls": {
+    "message": "현재 필터의 URL 복사"
+  },
+  "sourcePanelCopyFilteredUrlsLabel": {
+    "message": "필터링된 소스 URL 복사"
+  },
+  "sourcePanelFilterLabel": {
+    "message": "페이지 소스 필터링"
+  },
+  "sourcePanelSortLabel": {
+    "message": "소스 정렬"
+  },
+  "sourcePanelSortNewest": {
+    "message": "최신순"
+  },
+  "sourcePanelSortRelevance": {
+    "message": "관련성"
+  },
+  "sourcePanelSortOldest": {
+    "message": "오래된순"
+  },
+  "sourcePanelSortLargest": {
+    "message": "큰 항목순"
+  },
+  "sourcePanelSortName": {
+    "message": "이름순"
+  },
+  "sourcePanelKindAudio": {
+    "message": "오디오"
+  },
+  "sourcePanelKindDocument": {
+    "message": "문서"
+  },
+  "sourcePanelKindPlaylist": {
+    "message": "재생목록"
+  },
+  "sourcePanelNoMatches": {
+    "message": "현재 필터와 일치하는 소스가 없습니다."
+  },
+  "sourcePanelNoSources": {
+    "message": "페이지의 미디어 또는 스트리밍 동영상 재생목록이 아직 감지되지 않았습니다."
+  },
+  "sourcePanelSourceInstructions": {
+    "message": "$URL$. 오른쪽 클릭: Save In, Alt+클릭: 바로 저장.",
+    "placeholders": {
+      "url": {
+        "content": "$1",
+        "example": "https://example.com/cat.jpg"
+      }
+    }
+  },
+  "sourcePanelSizeUnknown": {
+    "message": "크기 알 수 없음"
+  },
+  "sourcePanelDetectedAt": {
+    "message": "감지 시각: $TIME$",
+    "placeholders": {
+      "time": {
+        "content": "$1",
+        "example": "14:30"
+      }
+    }
+  },
+  "sourcePanelPreviewUnavailable": {
+    "message": "미리보기 불가"
+  },
+  "sourcePanelLocate": {
+    "message": "페이지에서 보기"
+  },
+  "sourcePanelSave": {
+    "message": "저장"
+  },
+  "sourcePanelSavePlaylist": {
+    "message": "재생목록 저장"
+  },
+  "sourcePanelCopyYtDlp": {
+    "message": "yt-dlp용 URL 복사"
+  },
+  "sourcePanelCopyYtDlpHelp": {
+    "message": "yt-dlp에 사용할 동영상 URL 복사"
+  },
+  "sourcePanelCopied": {
+    "message": "복사됨"
+  },
+  "sourcePanelCopyFailed": {
+    "message": "복사 실패"
+  },
+  "sourcePanelRowInstructions": {
+    "message": "Alt+클릭: 저장, 소스 제목을 오른쪽 클릭: Save In"
+  },
+  "sourcePanelCopiedUrls": {
+    "message": "$COUNT$개 URL 복사됨",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "o_lPathEditorDragHelp": {
+    "message": "점선 핸들을 끕니다. 행 사이의 선에 놓으면 해당 위치로 이동하고, 행 위에 놓으면 그 아래에 중첩됩니다."
+  },
+  "routeDebuggerTitle": {
+    "message": "라우팅 규칙 테스트"
+  },
+  "routeDebuggerUseSource": {
+    "message": "사용"
+  },
+  "routeDebuggerLatestDownload": {
+    "message": "최신"
+  },
+  "routeDebuggerUseSampleDownload": {
+    "message": "예시"
+  },
+  "routeDebuggerFilename": {
+    "message": "파일 이름"
+  },
+  "routeDebuggerSourceUrl": {
+    "message": "소스 URL"
+  },
+  "routeDebuggerPageUrl": {
+    "message": "페이지 URL"
+  },
+  "routeDebuggerContentType": {
+    "message": "콘텐츠 유형"
+  },
+  "routeDebuggerContext": {
+    "message": "컨텍스트"
+  },
+  "routeDebuggerAnyContext": {
+    "message": "모든 컨텍스트"
+  },
+  "routeDebuggerUnsavedNote": {
+    "message": "테스트에는 아직 적용하지 않은 변경 사항을 포함하여 현재 편집 내용이 사용됩니다."
+  },
+  "routeDebuggerRun": {
+    "message": "규칙 테스트"
+  },
+  "routeDebuggerNoMatch": {
+    "message": "일치하는 라우팅 규칙이 없습니다."
+  },
+  "routeDebuggerOneRuleMatched": {
+    "message": "$COUNT$개의 규칙이 일치하여 사용되었습니다.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
+  },
+  "routeDebuggerOneLaterRuleMatches": {
+    "message": "1개의 규칙을 사용했습니다. 이후 $COUNT$개의 규칙도 일치합니다.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
+  },
+  "routeDebuggerLaterRulesMatch": {
+    "message": "1개의 규칙을 사용했습니다. 이후 $COUNT$개의 규칙도 일치합니다.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "routeDebuggerExpanded": {
+    "message": "확장된 경로"
+  },
+  "routeDebuggerPathBase": {
+    "message": "메뉴에서 저장하면 선택한 폴더가 이 경로 앞에 붙습니다. 클릭하여 저장 및 자동 저장은 다운로드 폴더에서 시작합니다."
+  },
+  "routeDebuggerFinalPath": {
+    "message": "최종 경로"
+  },
+  "routeDebuggerRule": {
+    "message": "규칙 $NUMBER$",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "routeDebuggerSelected": {
+    "message": "사용됨"
+  },
+  "routeDebuggerAlsoMatches": {
+    "message": "일치하지만 사용되지 않음"
+  },
+  "routeDebuggerDidNotMatch": {
+    "message": "조건이 충족되지 않음"
+  },
+  "routeDebuggerRunning": {
+    "message": "라우팅 규칙 테스트 중…"
+  },
+  "routeDebuggerFixErrors": {
+    "message": "테스트하기 전에 강조 표시된 라우팅 문제를 수정하세요. 개수: $COUNT$.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "routeDebuggerUnavailable": {
+    "message": "라우팅 규칙을 테스트할 수 없습니다."
+  },
+  "routeDebuggerNoLastDownload": {
+    "message": "사용할 수 있는 최근 다운로드가 없습니다."
+  },
+  "routeDebuggerClear": {
+    "message": "지우기"
+  },
+  "routeDebuggerPageTitle": {
+    "message": "페이지 제목"
+  },
+  "routeDebuggerReferrerUrl": {
+    "message": "리퍼러 URL"
+  },
+  "routeDebuggerFrameUrl": {
+    "message": "프레임 URL"
+  },
+  "routeDebuggerLinkText": {
+    "message": "링크 텍스트"
+  },
+  "routeDebuggerSelectionText": {
+    "message": "선택한 텍스트"
+  },
+  "routeDebuggerMediaType": {
+    "message": "미디어 유형"
+  },
+  "routeDebuggerAnyMediaType": {
+    "message": "모든 미디어 유형"
+  },
+  "routeDebuggerMatcherCount": {
+    "message": "조건 $TOTAL$개 중 $MATCHED$개 일치",
+    "placeholders": {
+      "matched": {
+        "content": "$1",
+        "example": "2"
+      },
+      "total": {
+        "content": "$2",
+        "example": "3"
+      }
+    }
+  },
+  "routeDebuggerGoToLine": {
+    "message": "$LINE$번째 줄로 이동",
+    "placeholders": {
+      "line": {
+        "content": "$1",
+        "example": "8"
+      }
+    }
+  },
+  "routeVisualEditorMode": {
+    "message": "라우팅 규칙 편집기 모드"
+  },
+  "routeVisualAddRule": {
+    "message": "규칙 추가"
+  },
+  "routingNoMatchBehavior": {
+    "message": "일치하는 규칙이 없을 때"
+  },
+  "routeTextEmptyExample": {
+    "message": "// example\nfileext: pdf\ninto: documents/:filename:"
+  },
+  "routeVisualRuleEnabledAccessible": {
+    "message": "규칙 $RULE$ 사용",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "routeVisualRuleActionsAccessible": {
+    "message": "규칙 $RULE$의 추가 작업",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "routeVisualMatcherAccessible": {
+    "message": "규칙 $RULE$, 조건 $CONDITION$: 매처",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      },
+      "condition": {
+        "content": "$2",
+        "example": "1"
+      }
+    }
+  },
+  "routeVisualPatternAccessible": {
+    "message": "규칙 $RULE$, 조건 $CONDITION$: 패턴",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      },
+      "condition": {
+        "content": "$2",
+        "example": "1"
+      }
+    }
+  },
+  "routeVisualIgnoreCaseAccessible": {
+    "message": "규칙 $RULE$, 조건 $CONDITION$: 대소문자 무시",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      },
+      "condition": {
+        "content": "$2",
+        "example": "1"
+      }
+    }
+  },
+  "routeVisualDeleteConditionAccessible": {
+    "message": "규칙 $RULE$에서 조건 $CONDITION$ 삭제",
+    "placeholders": {
+      "condition": {
+        "content": "$2",
+        "example": "1"
+      },
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "routeVisualDestinationAccessible": {
+    "message": "규칙 $RULE$ 대상",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "routeVisualIgnoreCaseHelp": {
+    "message": "대문자와 소문자를 동일하게 일치시킵니다"
+  },
+  "routeVisualDeleteCondition": {
+    "message": "조건 삭제"
+  },
+  "routeVisualUnsupported": {
+    "message": "시각적 모드에서는 $LINE$번째 줄 근처의 이 규칙을 안전하게 편집할 수 없습니다. 텍스트 모드로 전환하세요.",
+    "placeholders": {
+      "line": {
+        "content": "$1",
+        "example": "12"
+      }
+    }
+  },
+  "routeVisualEditText": {
+    "message": "텍스트로 편집"
+  },
+  "routeVisualMoveUp": {
+    "message": "규칙 위로 이동"
+  },
+  "routeVisualMoveDown": {
+    "message": "규칙 아래로 이동"
+  },
+  "routeVisualDuplicate": {
+    "message": "규칙 복제"
+  },
+  "routeVisualDelete": {
+    "message": "규칙 삭제"
+  },
+  "routeVisualAddCondition": {
+    "message": "조건 추가"
+  },
+  "routeVisualEmpty": {
+    "message": "라우팅 규칙이 아직 없습니다. 규칙을 추가하여 시작하세요."
+  },
+  "visualEditorEnabled": {
+    "message": "사용"
+  },
+  "html_disableThisDestinationAndItsChildren": {
+    "message": "이 저장 위치와 하위 항목을 메뉴에서 숨깁니다"
+  },
+  "html_keepsARuleWithoutRunningIt": {
+    "message": "규칙을 실행하지 않고 유지합니다"
+  },
+  "autoDownloadHeading": {
+    "message": "소스 자동 저장"
+  },
+  "autoDownloadHelp": {
+    "message": "활성화된 규칙이 페이지와 소스 모두에 일치할 때만 새로 발견한 페이지 소스를 저장합니다."
+  },
+  "autoDownloadEnabled": {
+    "message": "일치 항목 자동 저장"
+  },
+  "autoDownloadLive": {
+    "message": "페이지가 로드된 후 추가된 소스 포함"
+  },
+  "autoDownloadPrivate": {
+    "message": "비공개 창에서 자동 저장 허용"
+  },
+  "autoDownloadLinks": {
+    "message": "링크된 미디어 포함"
+  },
+  "autoDownloadCoverageHeading": {
+    "message": "자동 스캔 범위"
+  },
+  "autoDownloadDocuments": {
+    "message": "링크된 문서와 스트림 포함"
+  },
+  "autoDownloadDocumentsHelp": {
+    "message": "링크된 미디어 포함 여부와 관계없이 링크된 PDF와 HLS/DASH 매니페스트 파일을 가져옵니다."
+  },
+  "autoDownloadBackgrounds": {
+    "message": "CSS 배경 이미지 포함"
+  },
+  "autoDownloadManifests": {
+    "message": "가능한 범위에서 스트리밍 동영상 재생목록 찾기(HLS/DASH)"
+  },
+  "autoDownloadManifestsHelp": {
+    "message": "조립된 스트림이 아니라 매니페스트 파일 자체를 저장합니다."
+  },
+  "autoDownloadDataUrls": {
+    "message": "인라인 data: 이미지 및 미디어 포함"
+  },
+  "autoDownloadDataUrlsHelp": {
+    "message": "자체 포함된 data: URL을 개당 최대 2 MB까지 가져옵니다. 더 큰 것은 건너뜁니다."
+  },
+  "autoDownloadLimit": {
+    "message": "페이지 방문당 최대 저장 수"
+  },
+  "autoDownloadLimitHelp": {
+    "message": "이 한도에 도달하면 Save In이 새 일치 항목을 대기열에 추가하지 않습니다. 새 방문을 시작하려면 페이지를 다시 로드하세요."
+  },
+  "autoDownloadRulesHeading": {
+    "message": "자동화 규칙"
+  },
+  "autoDownloadRulesHelp": {
+    "message": "각 규칙에는 페이지 조건, 소스 조건, 저장 위치가 필요합니다. 처음 일치하는 규칙이 실행됩니다."
+  },
+  "autoDownloadEditorMode": {
+    "message": "자동화 규칙 편집기 모드"
+  },
+  "autoDownloadVisual": {
+    "message": "시각적"
+  },
+  "autoDownloadText": {
+    "message": "텍스트"
+  },
+  "autoDownloadAddRule": {
+    "message": "자동화 규칙 추가"
+  },
+  "autoDownloadGrammar": {
+    "message": "규칙 구문"
+  },
+  "autoDownloadCondition": {
+    "message": "조건"
+  },
+  "autoDownloadPattern": {
+    "message": "패턴"
+  },
+  "autoDownloadIgnoreCase": {
+    "message": "대소문자 무시"
+  },
+  "autoDownloadIgnoreCaseHelp": {
+    "message": "대문자와 소문자를 동일하게 일치시킵니다"
+  },
+  "autoDownloadDeleteCondition": {
+    "message": "조건 삭제"
+  },
+  "autoDownloadVisualInvalid": {
+    "message": "시각적 모드로 전환하기 전에 텍스트 모드에서 오류를 수정하세요."
+  },
+  "autoDownloadEmpty": {
+    "message": "자동화 규칙이 아직 없습니다. 규칙을 추가하고 사이트와 소스를 선택한 다음 사용 설정하세요."
+  },
+  "autoDownloadRule": {
+    "message": "규칙"
+  },
+  "autoDownloadMoveUp": {
+    "message": "규칙 위로 이동"
+  },
+  "autoDownloadMoveDown": {
+    "message": "규칙 아래로 이동"
+  },
+  "autoDownloadDeleteRule": {
+    "message": "규칙 삭제"
+  },
+  "autoDownloadRuleName": {
+    "message": "규칙 이름"
+  },
+  "autoDownloadAddCondition": {
+    "message": "조건 추가"
+  },
+  "autoDownloadDestination": {
+    "message": "저장 위치"
+  },
+  "autoDownloadNewRule": {
+    "message": "새 규칙"
+  },
+  "ruleAutomaticMissingPage": {
+    "message": "pageurl:, pagedomain: 또는 pagerootdomain: 조건을 추가하세요"
+  },
+  "ruleAutomaticMissingSource": {
+    "message": "소스 주소, 도메인, 종류 또는 확장자 조건을 추가하세요"
+  },
+  "ruleReachabilityAutomaticOff": {
+    "message": "자동 저장이 꺼져 있어 이 규칙은 “$OPTION$”을 켤 때까지 대기합니다.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Save matches automatically"
+      }
+    }
+  },
+  "ruleReachabilityChannelOff": {
+    "message": "현재 설정으로는 이 규칙과 일치하는 소스가 발견되지 않습니다. “$OPTION$”을 켜면 공급됩니다.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      }
+    }
+  },
+  "ruleReachabilityChannelOffEither": {
+    "message": "현재 설정으로는 이 규칙과 일치하는 소스가 발견되지 않습니다. “$OPTION$” 또는 “$OPTION2$”를 켜면 공급됩니다.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      },
+      "option2": {
+        "content": "$2",
+        "example": "Look for streaming-video playlists (HLS/DASH; best effort)"
+      }
+    }
+  },
+  "ruleReachabilityNoKinds": {
+    "message": "소스 종류 조건이 어떤 페이지 소스 종류와도 일치하지 않아 이 규칙은 저장할 수 없습니다."
+  },
+  "ruleReachabilityLinkOnly": {
+    "message": "이 규칙은 일반 링크에만 일치하며, 자동 저장은 이를 채택하지 않습니다."
+  },
+  "ruleReachabilityEmptyVariable": {
+    "message": "$VARIABLE$ 변수는 자동 저장에서 항상 비어 있습니다.",
+    "placeholders": {
+      "variable": {
+        "content": "$1",
+        "example": ":menupath:"
+      }
+    }
+  },
+  "routeDebuggerReachabilityOff": {
+    "message": "현재 설정으로는 이 소스가 자동으로 발견되지 않습니다. “$OPTION$”을 켜면 포함됩니다.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include inline data: images and media"
+      }
+    }
+  },
+  "routeDebuggerReachabilityOffEither": {
+    "message": "현재 설정으로는 이 소스가 자동으로 발견되지 않습니다. “$OPTION$” 또는 “$OPTION2$”를 켜면 포함됩니다.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      },
+      "option2": {
+        "content": "$2",
+        "example": "Look for streaming-video playlists (HLS/DASH; best effort)"
+      }
+    }
+  },
+  "routeDebuggerReachabilityOffData": {
+    "message": "현재 설정으로는 이 소스가 자동으로 발견되지 않습니다. “$OPTION$”과 “$DATAOPTION$”을 켜면 포함됩니다.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      },
+      "dataoption": {
+        "content": "$2",
+        "example": "Include inline data: images and media"
+      }
+    }
+  },
+  "routeDebuggerReachabilityOffEitherData": {
+    "message": "현재 설정으로는 이 소스가 자동으로 발견되지 않습니다. “$OPTION$” 또는 “$OPTION2$”와 함께 “$DATAOPTION$”을 켜면 포함됩니다.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      },
+      "option2": {
+        "content": "$2",
+        "example": "Look for streaming-video playlists (HLS/DASH; best effort)"
+      },
+      "dataoption": {
+        "content": "$3",
+        "example": "Include inline data: images and media"
+      }
+    }
+  },
+  "routeDebuggerReachabilityLink": {
+    "message": "자동 발견은 일반 링크를 채택하지 않으므로 이 소스는 발견되지 않습니다."
+  },
+  "routeDebuggerReachabilityAutomaticOff": {
+    "message": "자동 저장이 꺼져 있어 이 소스는 “$OPTION$”을 켤 때까지 저장되지 않습니다.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Save matches automatically"
+      }
+    }
+  },
+  "autoDownloadRoutingBadge": {
+    "message": "소스 자동 저장"
+  },
+  "autoDownloadManageRules": {
+    "message": "라우팅 규칙 열기"
+  },
+  "autoDownloadRoutingHelp": {
+    "message": "자동 다운로드를 일치시키려면 context: auto를 페이지 및 소스 조건과 함께 사용하세요. 처음 일치하는 규칙이 저장 위치를 설정합니다."
+  },
+  "html_openInFirefoxAddons": {
+    "message": "Firefox Add-ons에서 열기"
+  },
+  "html_openInChromeWebStore": {
+    "message": "Chrome Web Store에서 열기"
+  },
+  "html_downloadRequestHeaders": {
+    "message": "다운로드 요청 헤더"
+  },
+  "html_temporarilyAddsThePageUrlAsRefererForExactSaveInRequests": {
+    "message": "사이트에 필요한 경우 정확히 일치하는 Save In 요청에 페이지 URL을 Referer로 일시적으로 추가합니다."
+  },
+  "matchPatternInvalid": {
+    "message": "잘못된 WebExtension 일치 패턴"
+  },
+  "regularExpressionInvalid": {
+    "message": "잘못된 정규식"
+  },
+  "webhookEndpointMalformed": {
+    "message": "유효한 HTTPS URL을 입력하세요"
+  },
+  "webhookEndpointNotHttps": {
+    "message": "https:// URL을 사용하세요"
+  },
+  "webhookEndpointNotHttpOrHttps": {
+    "message": "https:// 또는 http:// URL을 사용하세요"
+  },
+  "webhookEndpointCredentials": {
+    "message": "인증 정보는 URL이 아니라 쿼리 문자열에 넣으세요"
+  },
+  "webhookEndpointFragment": {
+    "message": "# 프래그먼트를 제거하세요"
+  },
+  "webhookEndpointOverLimit": {
+    "message": "엔드포인트 한도를 초과하여 이 줄은 전송되지 않습니다"
+  },
+  "validationJumpToIssue": {
+    "message": "이 문제로 이동"
+  },
+  "optionsKeepEditing": {
+    "message": "계속 편집"
+  },
+  "optionsDiscardChanges": {
+    "message": "변경 사항 버리기"
+  },
+  "restoreDefaultsConfirm": {
+    "message": "모든 설정을 기본값으로 복원할까요? 다운로드 기록은 유지됩니다."
+  },
+  "restoreDefaultsCancel": {
+    "message": "현재 설정 유지"
+  },
+  "restoreDefaultsSuccess": {
+    "message": "기본 설정을 복원했습니다."
+  },
+  "restoreDefaultsFailure": {
+    "message": "기본 설정을 복원하지 못했습니다."
+  },
+  "referenceCaption": {
+    "message": "참조"
+  },
+  "referenceColumnSyntax": {
+    "message": "구문"
+  },
+  "referenceColumnExample": {
+    "message": "예"
+  },
+  "referenceColumnMeaning": {
+    "message": "의미"
+  },
+  "referenceResult": {
+    "message": "결과 $COUNT$개",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
+  },
+  "referenceResults": {
+    "message": "결과 $COUNT$개",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "12"
+      }
+    }
+  },
+  "referenceCopyValue": {
+    "message": "$VALUE$ 복사",
+    "placeholders": {
+      "value": {
+        "content": "$1",
+        "example": ":filename:"
+      }
+    }
+  },
+  "referenceCopiedValue": {
+    "message": "$VALUE$ 복사됨",
+    "placeholders": {
+      "value": {
+        "content": "$1",
+        "example": ":filename:"
+      }
+    }
+  },
+  "o_cBrowserDownloadFiltersEnabled": {
+    "message": "일치하는 다운로드 URL만 처리"
+  },
+  "o_cBrowserDownloadFiltersEnabledHelp": {
+    "message": "Save In 기록 추적 및 라우팅에 적용됩니다."
+  },
+  "o_cBrowserDownloadFilterInvalid": {
+    "message": "잘못된 패턴입니다. URL 필터링이 켜져 있으면 수정할 때까지 일치하는 다운로드가 없습니다."
+  },
+  "o_cBrowserDownloadExcludeFilterInvalid": {
+    "message": "잘못된 패턴입니다. URL 필터링이 켜져 있으면 수정할 때까지 이 줄이 무시됩니다."
+  },
+  "o_lPerSiteDisableHeading": {
+    "message": "특정 사이트에서 Save In 비활성화"
+  },
+  "o_cPerSiteDisableList": {
+    "message": "일치하는 사이트에서 Save In 끄기(선택 사항)"
+  },
+  "o_cPerSiteDisableListHelp": {
+    "message": "한 줄에 하나씩 WebExtension 일치 패턴을 입력하세요. 일치하는 페이지에서는 클릭하여 저장, 페이지 소스, 자동 저장이 꺼집니다."
+  },
+  "o_cPerSiteDisableListInvalid": {
+    "message": "잘못된 패턴입니다. 수정할 때까지 이 줄이 무시됩니다."
+  },
+  "o_lBrowserDownloadVariablesHeading": {
+    "message": "사용 가능한 라우팅 데이터"
+  },
+  "o_lBrowserDownloadVariablesUnavailable": {
+    "message": "페이지 제목, 페이지 URL, 링크 텍스트, 선택 항목, 메뉴 메타데이터 및 보조 키는 사용할 수 없습니다."
+  },
+  "welcomeTitle": {
+    "message": "Save In에 오신 것을 환영합니다"
+  },
+  "welcomeIntro": {
+    "message": "Save In을 사용할 준비가 되었습니다. 오른쪽 클릭 메뉴를 사용하여 이미지, 링크, 선택한 텍스트, 미디어 및 페이지를 원하는 폴더에 저장하세요."
+  },
+  "welcomeStepRightClick": {
+    "message": "저장할 항목을 마우스 오른쪽 버튼으로 클릭하세요."
+  },
+  "welcomeStepChooseSaveIn": {
+    "message": "메뉴에서 Save In…을 선택하세요."
+  },
+  "welcomeStepPickFolder": {
+    "message": "시작 폴더를 선택하세요."
+  },
+  "welcomeStarterNote": {
+    "message": "시작 폴더가 현재 활성화되어 있습니다. 언제든지 맞춤 설정할 수 있습니다."
+  },
+  "welcomeToolbarNote": {
+    "message": "도구 모음 버튼을 누르면 페이지 소스가 열리고 현재 페이지의 미디어를 찾을 수 있습니다."
+  },
+  "welcomePermissions": {
+    "message": "이 권한이 필요한 이유"
+  },
+  "welcomeCustomizeFolders": {
+    "message": "폴더 맞춤 설정"
+  },
+  "welcomeUseEmptyPreset": {
+    "message": "다운로드 폴더만 사용"
+  },
+  "welcomeEmptyPresetFailed": {
+    "message": "다운로드 폴더만 사용하도록 전환할 수 없습니다. 폴더는 변경되지 않았습니다."
+  },
+  "welcomeEmptyConfirmTitle": {
+    "message": "현재 폴더를 바꾸시겠습니까?"
+  },
+  "welcomeEmptyConfirmDescription": {
+    "message": "현재 폴더 구성을 바꾸고 브라우저의 다운로드 폴더만 남깁니다."
+  },
+  "welcomeKeepCurrentFolders": {
+    "message": "현재 폴더 유지"
+  },
+  "welcomeUseStarterFolders": {
+    "message": "시작 폴더 유지"
+  },
+  "welcomeUsingStarterSettings": {
+    "message": "방금 전"
+  },
+  "html_showWelcomeGuide": {
+    "message": "시작 안내 보기"
+  },
+  "advancedFilesDownloads": {
+    "message": "파일 및 다운로드"
+  },
+  "advancedMaintenanceDiagnostics": {
+    "message": "유지 관리 및 진단"
+  },
+  "webhookStateOn": {
+    "message": "켬"
+  },
+  "webhookStateOff": {
+    "message": "끔"
+  },
+  "pathTextEmptyExample": {
+    "message": "images\ndocuments/:year:/:month:"
+  },
+  "pathVisualUndoDelete": {
+    "message": "삭제 실행 취소"
+  },
+  "pathVisualEmpty": {
+    "message": "사용자 지정 폴더가 없습니다. Save In은 브라우저의 다운로드 폴더만 사용합니다."
+  },
+  "pathVisualReorderHelp": {
+    "message": "드래그하여 순서를 바꿉니다. 행 가운데에 놓으면 그 아래에 중첩됩니다."
+  },
+  "pathVisualReorderAccessible": {
+    "message": "$NAME$의 순서 또는 중첩 수준 변경",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualEnabledAccessible": {
+    "message": "$NAME$ 사용",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualNestUnder": {
+    "message": "“$NAME$” 아래에 중첩",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualMoveHere": {
+    "message": "여기로 이동"
+  },
+  "pathVisualDirectoryPlaceholder": {
+    "message": "폴더/:variables:"
+  },
+  "pathVisualDirectoryAccessible": {
+    "message": "폴더 $NUMBER$",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "pathVisualAlias": {
+    "message": "별칭"
+  },
+  "pathVisualAliasPlaceholder": {
+    "message": "표시 이름"
+  },
+  "pathVisualAliasUnbalanced": {
+    "message": "저장되지 않았습니다: 괄호의 짝이 맞아야 합니다."
+  },
+  "pathVisualAliasAccessible": {
+    "message": "폴더 $NUMBER$의 표시 이름",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "pathVisualAccessKeyAccessible": {
+    "message": "$NAME$에 액세스 키 할당",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualMoreActionsAccessible": {
+    "message": "$NAME$ 추가 작업",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualOutdent": {
+    "message": "내어쓰기"
+  },
+  "pathVisualOutdentAccessible": {
+    "message": "$NAME$ 내어쓰기",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualIndent": {
+    "message": "들여쓰기"
+  },
+  "pathVisualIndentAccessible": {
+    "message": "$NAME$ 들여쓰기",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualMoveUp": {
+    "message": "위로"
+  },
+  "pathVisualMoveUpAccessible": {
+    "message": "$NAME$ 위로 이동",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualMoveDown": {
+    "message": "아래로"
+  },
+  "pathVisualMoveDownAccessible": {
+    "message": "$NAME$ 아래로 이동",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualDelete": {
+    "message": "삭제"
+  },
+  "pathVisualDeleteAccessible": {
+    "message": "$NAME$ 삭제",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "contextMenuRecentLocations": {
+    "message": "최근 저장 위치"
+  },
+  "o_lRecentLocations": {
+    "message": "최근 저장 위치"
+  },
+  "o_lRecentLocationsHelp": {
+    "message": "최근 사용한 저장 위치를 0~5개 표시합니다."
+  },
+  "pathVisualAlwaysAsk": {
+    "message": "저장 위치 항상 묻기"
+  },
+  "pathVisualAlwaysAskAccessible": {
+    "message": "항상 $ROW$의 저장 위치 묻기",
+    "placeholders": {
+      "row": {
+        "content": "$1",
+        "example": "Work"
+      }
+    }
+  },
+  "o_cSaveSourceSidecar": {
+    "message": "다운로드한 미디어 옆에 소스 링크 저장"
+  },
+  "o_cSaveSourceSidecarHelp": {
+    "message": "선택한 바로가기 형식과 다운로드한 파일 이름을 사용합니다."
+  },
+  "historyCopyPath": {
+    "message": "저장 경로 복사"
+  },
+  "historyCopySource": {
+    "message": "소스 URL 복사"
+  },
+  "historyPathCopied": {
+    "message": "저장 경로를 복사했습니다."
+  },
+  "historySourceCopied": {
+    "message": "소스 URL을 복사했습니다."
+  },
+  "historyCopyFailed": {
+    "message": "클립보드에 복사하지 못했습니다."
+  },
+  "diagnosticsSummaryHelp": {
+    "message": "워커 상태, 수명 주기 및 최근 실패"
+  },
+  "diagnosticsRefresh": {
+    "message": "새로고침"
+  },
+  "diagnosticsCopy": {
+    "message": "진단 정보 복사"
+  },
+  "diagnosticsBackground": {
+    "message": "백그라운드"
+  },
+  "diagnosticsHost": {
+    "message": "호스트"
+  },
+  "diagnosticsExtension": {
+    "message": "확장 프로그램"
+  },
+  "diagnosticsBrowser": {
+    "message": "브라우저"
+  },
+  "diagnosticsWorkerStarted": {
+    "message": "워커 시작"
+  },
+  "diagnosticsSessionStorage": {
+    "message": "세션 저장소"
+  },
+  "diagnosticsVerboseLogging": {
+    "message": "상세 로깅"
+  },
+  "diagnosticsConfigurationIssues": {
+    "message": "구성 문제"
+  },
+  "diagnosticsLifecycle": {
+    "message": "수명 주기"
+  },
+  "diagnosticsLifecycleHelp": {
+    "message": "최근 백그라운드 시작, 구성 다시 로드 및 확장 프로그램 업데이트입니다. 진단을 열면 백그라운드를 깨웁니다."
+  },
+  "diagnosticsFailuresHelp": {
+    "message": "이 브라우저 세션의 최근 로컬 실패입니다. 브라우저 오류에 사이트나 파일 세부 정보가 포함될 수 있으므로 공유하기 전에 내용을 검토하세요."
+  },
+  "diagnosticsClearFailures": {
+    "message": "실패 지우기"
+  },
+  "diagnosticsDeveloperLogging": {
+    "message": "개발자 로깅"
+  },
+  "diagnosticsDurationMs": {
+    "message": "$COUNT$밀리초",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "42"
+      }
+    }
+  },
+  "diagnosticsDurationSeconds": {
+    "message": "$COUNT$초",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "4"
+      }
+    }
+  },
+  "diagnosticsDurationMinutes": {
+    "message": "$COUNT$분",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "diagnosticsLifecycleBackgroundReady": {
+    "message": "백그라운드가 $DURATION$ 만에 준비되었습니다.",
+    "placeholders": {
+      "duration": {
+        "content": "$1",
+        "example": "120 ms"
+      }
+    }
+  },
+  "diagnosticsLifecycleBackgroundFailed": {
+    "message": "백그라운드 시작에 실패했습니다."
+  },
+  "diagnosticsLifecycleConfigurationReloaded": {
+    "message": "구성을 다시 불러왔습니다."
+  },
+  "diagnosticsLifecycleExtensionInstalled": {
+    "message": "확장 프로그램이 설치되었습니다."
+  },
+  "diagnosticsLifecycleExtensionUpdatedFrom": {
+    "message": "확장 프로그램이 $VERSION$에서 업데이트되었습니다.",
+    "placeholders": {
+      "version": {
+        "content": "$1",
+        "example": "3.9.1"
+      }
+    }
+  },
+  "diagnosticsLifecycleExtensionUpdated": {
+    "message": "확장 프로그램이 업데이트되었습니다."
+  },
+  "diagnosticsLifecycleFailuresCleared": {
+    "message": "최근 실패를 지웠습니다."
+  },
+  "diagnosticsLifecycleEmpty": {
+    "message": "아직 수명 주기 이벤트가 없습니다."
+  },
+  "diagnosticsWorkerStarting": {
+    "message": "시작 중"
+  },
+  "diagnosticsWorkerReady": {
+    "message": "실행 중 · 준비됨"
+  },
+  "diagnosticsWorkerFailed": {
+    "message": "시작 실패"
+  },
+  "diagnosticsHostServiceWorker": {
+    "message": "MV3 서비스 워커"
+  },
+  "diagnosticsHostEventPage": {
+    "message": "MV3 이벤트 페이지"
+  },
+  "diagnosticsBrowserUnknown": {
+    "message": "알 수 없는 브라우저"
+  },
+  "diagnosticsStartedWithUptime": {
+    "message": "$TIME$ · 가동 시간 $UPTIME$",
+    "placeholders": {
+      "time": {
+        "content": "$1",
+        "example": "Jul 15, 2026, 4:10 PM"
+      },
+      "uptime": {
+        "content": "$2",
+        "example": "3 min"
+      }
+    }
+  },
+  "diagnosticsConfigurationIssueCount": {
+    "message": "경로 $PATHS$개 · 라우팅 $ROUTING$개",
+    "placeholders": {
+      "paths": {
+        "content": "$1",
+        "example": "0"
+      },
+      "routing": {
+        "content": "$2",
+        "example": "1"
+      }
+    }
+  },
+  "diagnosticsAvailable": {
+    "message": "사용 가능"
+  },
+  "diagnosticsUnavailable": {
+    "message": "사용 불가"
+  },
+  "diagnosticsOn": {
+    "message": "켜짐"
+  },
+  "diagnosticsOff": {
+    "message": "꺼짐"
+  },
+  "diagnosticsFailuresEmpty": {
+    "message": "최근 실패가 없습니다."
+  },
+  "diagnosticsChecking": {
+    "message": "백그라운드 확인 중…"
+  },
+  "diagnosticsCheckedAt": {
+    "message": "$TIME$에 확인",
+    "placeholders": {
+      "time": {
+        "content": "$1",
+        "example": "Jul 15, 2026, 4:10 PM"
+      }
+    }
+  },
+  "diagnosticsLoadFailed": {
+    "message": "진단 정보를 불러올 수 없습니다."
+  },
+  "diagnosticsCopySuccess": {
+    "message": "진단 정보를 복사했습니다."
+  },
+  "diagnosticsCopyFailed": {
+    "message": "진단 정보를 복사할 수 없습니다."
+  },
+  "diagnosticsClearSuccess": {
+    "message": "최근 실패를 지웠습니다."
+  },
+  "diagnosticsClearFailed": {
+    "message": "최근 실패를 지울 수 없습니다."
+  },
+  "sourcePanelSelectFiltered": {
+    "message": "필터링된 항목 선택"
+  },
+  "sourcePanelClearSelection": {
+    "message": "선택 해제"
+  },
+  "sourcePanelSelectedCount": {
+    "message": "$COUNT$개 선택됨",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "sourcePanelHiddenSelectedCount": {
+    "message": "$COUNT$개 숨김",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "sourcePanelSaveSelected": {
+    "message": "선택 항목 저장"
+  },
+  "sourcePanelBatchConfirm": {
+    "message": "선택한 소스 $COUNT$개를 저장할까요?",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "24"
+      }
+    }
+  },
+  "sourcePanelBatchContinue": {
+    "message": "소스 저장"
+  },
+  "sourcePanelBatchCancel": {
+    "message": "취소"
+  },
+  "sourcePanelBatchSaving": {
+    "message": "소스 $COUNT$개 저장 중…",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "8"
+      }
+    }
+  },
+  "sourcePanelBatchSaved": {
+    "message": "다운로드 $COUNT$개를 시작했습니다",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "8"
+      }
+    }
+  },
+  "sourcePanelCreateAutomaticRule": {
+    "message": "자동 규칙 만들기"
+  },
+  "savedSettingUpdated": {
+    "message": "설정이 업데이트됨"
+  },
+  "savedSettingsUpdated": {
+    "message": "$COUNT$개 설정이 업데이트됨",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "savedUndo": {
+    "message": "실행 취소"
+  },
+  "savedUndoFailed": {
+    "message": "실행 취소 실패 — 선택하여 다시 시도"
+  },
+  "savedUndoBlocked": {
+    "message": "실행 취소하기 전에 다른 편집을 완료하거나 취소하세요."
+  },
+  "externalApiUnknown": {
+    "message": "알 수 없음"
+  },
+  "externalApiUnavailable": {
+    "message": "사용할 수 없음"
+  },
+  "externalBlockedAttemptOne": {
+    "message": "차단된 시도 $COUNT$회",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
+  },
+  "externalBlockedAttemptMany": {
+    "message": "차단된 시도 $COUNT$회",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "externalRequestActiveTab": {
+    "message": "활성 탭 요청"
+  },
+  "externalRequestUrl": {
+    "message": "URL 요청"
+  },
+  "externalRequestDownload": {
+    "message": "다운로드 요청"
+  },
+  "externalApprove": {
+    "message": "승인"
+  },
+  "externalApproving": {
+    "message": "승인 중…"
+  },
+  "externalApprovalFailed": {
+    "message": "$ID$을(를) 승인할 수 없습니다.",
+    "placeholders": {
+      "id": {
+        "content": "$1",
+        "example": "abcdefghijklmnopabcdefghijklmnop"
+      }
+    }
+  },
+  "externalRejectionsLoadFailed": {
+    "message": "거부된 요청을 불러올 수 없습니다."
+  },
+  "referenceInsertValue": {
+    "message": "$VALUE$ 삽입",
+    "placeholders": {
+      "value": {
+        "content": "$1",
+        "example": ":filename:"
+      }
+    }
+  },
+  "versionViewReleases": {
+    "message": "Save In v$VERSION$ — 릴리스 보기",
+    "placeholders": {
+      "version": {
+        "content": "$1",
+        "example": "4.0.0"
+      }
+    }
+  },
+  "html_advancedFetchADifferentUrl": {
+    "message": "고급: 다른 URL 가져오기"
+  },
+  "html_captureReferencesAndRoutingVariablesSubstituteVerbatim": {
+    "message": "; 캡처 참조와 라우팅 변수는 파일명 정리 없이 그대로 치환됩니다."
+  },
+  "html_downloadsFromAnExpandedUrlTemplateInsteadOfTheMatched": {
+    "message": "일치한 소스 대신 확장된 URL 템플릿에서 다운로드합니다;"
+  },
+  "html_downloadsFromThisUrlTemplateInsteadOfTheMatchedSource": {
+    "message": "일치한 소스 대신 이 URL 템플릿에서 다운로드합니다;"
+  },
+  "html_downloadsTheOriginalResolutionImageInstead": {
+    "message": "작은 미리보기 대신 원본 해상도 이미지를 다운로드합니다."
+  },
+  "html_fetchClauseCompatibility": {
+    "message": "일반 브라우저 다운로드 라우팅에서는 건너뜁니다. 이 라우팅은 이름만 바꿀 수 있고 URL은 바꿀 수 없습니다. 메뉴, 클릭하여 저장, 자동 저장에서는 계속 사용되지만 확장 결과가 사용 가능한 HTTP(S) URL이 아니면 저장에 실패합니다."
+  },
+  "html_orLiteral": {
+    "message": "또는"
+  },
+  "html_stillControlsTheDestinationAndFilename": {
+    "message": "대상과 파일명을 계속 제어합니다."
+  },
+  "html_stillSetsTheDestinationAndFilenameMustStartWith": {
+    "message": "대상과 파일명을 계속 설정합니다. 다음으로 시작해야 합니다"
+  },
+  "routeDebuggerFetchTemplate": {
+    "message": "재작성 템플릿"
+  },
+  "routeDebuggerRewrittenUrl": {
+    "message": "재작성된 URL"
+  },
+  "routeVisualFetchAccessible": {
+    "message": "규칙 $RULE$: 다운로드 URL 재작성",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "routeVisualFetchLabel": {
+    "message": "다운로드 URL 재작성"
+  },
+  "ruleTemplateCategorySiteFiling": {
+    "message": "사이트별 정리"
+  },
+  "ruleTemplateCategorySiteOriginals": {
+    "message": "사이트 원본"
+  },
+  "ruleTemplatePagePathNoSchemeDescription": {
+    "message": "자격 증명, 포트, 쿼리, 프래그먼트를 제외하고 페이지 호스트 이름과 경로로 폴더를 만듭니다"
+  },
+  "ruleTemplatePagePathNoSchemeName": {
+    "message": "스킴을 제외한 페이지 경로"
+  },
+  "ruleTemplateRedditOriginalsDescription": {
+    "message": "Reddit 미리보기 이미지 링크를 i.redd.it의 원본 파일로 재작성합니다"
+  },
+  "ruleTemplateRedditOriginalsName": {
+    "message": "Reddit 이미지 원본"
+  },
+  "ruleTemplateSluggedTitleRenameDescription": {
+    "message": "파일명을 소문자와 하이픈으로 된 페이지 제목으로 바꾸고 확인된 확장자는 유지합니다"
+  },
+  "ruleTemplateSluggedTitleRenameName": {
+    "message": "제목 슬러그로 파일명 변경"
+  },
+  "ruleTemplateTwitterHandlePrefixDescription": {
+    "message": "Twitter 또는 X 게시물에서 저장한 파일 앞에 계정 핸들을 붙입니다"
+  },
+  "ruleTemplateTwitterHandlePrefixName": {
+    "message": "Twitter/X 핸들 접두사"
+  },
+  "ruleTemplateTwitterOriginalsDescription": {
+    "message": "Twitter 및 X 이미지 링크를 원본 풀 해상도 파일로 재작성합니다"
+  },
+  "ruleTemplateTwitterOriginalsName": {
+    "message": "Twitter/X 이미지 원본"
+  },
+  "ruleTemplateWikimediaOriginalDescription": {
+    "message": "Wikimedia Commons 썸네일 링크를 원본 전체 크기 파일로 재작성합니다"
+  },
+  "ruleTemplateWikimediaOriginalName": {
+    "message": "Wikimedia 전체 크기 이미지"
+  },
+  "ruleTemplateBlueskyFullsizeName": {
+    "message": "Bluesky 전체 크기 이미지"
+  },
+  "ruleTemplateBlueskyFullsizeDescription": {
+    "message": "Bluesky 피드 썸네일을 전체 크기 버전으로 재작성합니다"
+  },
+  "ruleTemplateArtStationHighestName": {
+    "message": "ArtStation 최고 가용 화질 이미지"
+  },
+  "ruleTemplateArtStationHighestDescription": {
+    "message": "ArtStation 미리보기 이미지를 사용 가능한 최고 화질 버전으로 재작성합니다"
+  },
+  "ruleTemplateMastodonFullsizeName": {
+    "message": "Mastodon 전체 크기 JPEG 이미지"
+  },
+  "ruleTemplateMastodonFullsizeDescription": {
+    "message": "Mastodon JPEG 이미지 미리보기를 전체 크기 JPEG 파일로 재작성합니다"
+  },
+  "ruleTemplateGoogleOriginalName": {
+    "message": "Google 원본 크기 이미지"
+  },
+  "ruleTemplateGoogleOriginalDescription": {
+    "message": "Google에서 호스팅하는 미리보기 이미지를 원본 전체 크기로 재작성합니다"
+  },
+  "ruleTemplateGoogleImagesSourceName": {
+    "message": "Google 이미지 원본"
+  },
+  "ruleTemplateGoogleImagesSourceDescription": {
+    "message": "Google 이미지에서 연 이미지를 검색 썸네일 대신 게시자 사이트에서 저장합니다"
+  },
+  "ruleTemplateFlickrLargeName": {
+    "message": "Flickr 더 큰 이미지"
+  },
+  "ruleTemplateFlickrLargeDescription": {
+    "message": "Flickr 이미지 링크를 1024픽셀의 더 큰 버전으로 재작성합니다"
+  },
+  "ruleExtraFetch": {
+    "message": "규칙에는 fetch: 절이 하나만 포함될 수 있습니다."
+  },
+  "ruleFetchNotHttp": {
+    "message": "fetch: 주소는 사용 가능한 http:// 또는 https:// URL이어야 합니다"
+  },
+  "ruleFetchUnsupportedVariable": {
+    "message": "fetch: 주소에서는 이 변수가 지원되지 않습니다"
+  },
+  "savedValueOff": {
+    "message": "꺼짐"
+  },
+  "savedValueOn": {
+    "message": "켜짐"
+  },
+  "o_lUiThemeGildedMosaic": {
+    "message": "황금 모자이크"
+  },
+  "o_lUiThemeBlueHouse": {
+    "message": "푸른 집"
+  },
+  "o_lUiThemePrimaryGrid": {
+    "message": "원색 격자"
+  },
+  "ruleExtraRename": {
+    "message": "규칙에는 rename: 절이 하나만 포함될 수 있습니다."
+  },
+  "ruleRenameMissingSeparator": {
+    "message": "패턴과 대체 텍스트는 ' -> '로 구분하세요"
+  },
+  "html_renameReplacesMatchesInTheFinalFilename": {
+    "message": "최종 파일 이름에서 정규 표현식과 일치하는 부분을 다음 구분 기호 뒤의 리터럴 텍스트로 바꿉니다:"
+  },
+  "html_renameReplacementExpandsVariables": {
+    "message": ". 대체 텍스트가 비어 있으면 일치 부분을 삭제하며, 대체 텍스트에서는 라우팅 변수와 다음과 같은 캡처 참조가 확장됩니다:"
+  },
+  "html_renameClauseCompatibility": {
+    "message": "파일 이름이 완전히 결정된 후(fetch: 재작성 포함), 길이 제한 전에 적용됩니다. 폴더에는 영향을 주지 않습니다. 기록된 일반 브라우저 다운로드에서는 대체 내용에 콘텐츠 해시가 필요하지 않을 때만 사용됩니다. 패턴에 리터럴 ' -> '를 쓰려면 공백을 이스케이프하세요(\\x20->)."
+  },
+  "html_advancedRenameTheSavedFile": {
+    "message": "고급: 저장되는 파일 이름 바꾸기"
+  },
+  "html_renameGuideDescription": {
+    "message": "은(는) 최종 파일 이름을 편집합니다. ' -> ' 앞의 패턴은 정규 표현식이고, 그 뒤의 리터럴 대체 텍스트에는 라우팅 변수와 캡처 참조를 사용할 수 있습니다. 폴더에는 영향을 주지 않습니다."
+  },
+  "routeVisualRenameLabel": {
+    "message": "파일 이름 바꾸기"
+  },
+  "routeVisualRenameAccessible": {
+    "message": "규칙 $RULE$: 파일 이름 바꾸기",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "routeDebuggerRenameTemplate": {
+    "message": "이름 바꾸기"
+  },
+  "routeDebuggerRenamedName": {
+    "message": "바뀐 이름"
+  },
+  "promptAssistantTitle": {
+    "message": "기기 내 규칙 도우미"
+  },
+  "promptAssistantIntro": {
+    "message": "파일을 저장할 위치를 설명하고 검토할 라우팅 규칙 하나를 제안받으세요."
+  },
+  "html_theAssistantNeedsTheBrowsersBuiltIn": {
+    "message": "이 어시스턴트에는 브라우저에 내장된"
+  },
+  "html_whichOnlySomeBrowsersAndDevicesProvide": {
+    "message": "이(가) 필요하며, 일부 브라우저와 기기에서만 제공됩니다."
+  },
+  "promptAssistantDisclosure": {
+    "message": "규칙 초안 작성"
+  },
+  "promptAssistantEnable": {
+    "message": "기기 내 도우미 사용"
+  },
+  "promptAssistantEnableHelp": {
+    "message": "끄면 Save In은 모델을 확인하거나 세션을 만들거나 프롬프트를 보내지 않습니다."
+  },
+  "promptAssistantStatusLabel": {
+    "message": "상태"
+  },
+  "promptAssistantPromptLabel": {
+    "message": "라우팅 규칙 설명"
+  },
+  "promptAssistantPromptPlaceholder": {
+    "message": "example.com의 PNG 파일을 Images/example에 저장"
+  },
+  "promptAssistantPromptHelp": {
+    "message": "이 요청은 모든 탭에 적용되며 저장되지 않습니다. 도우미는 열려 있는 탭을 읽지 않습니다. 원하는 사이트, 파일 형식, 폴더를 입력하세요."
+  },
+  "promptAssistantSuggest": {
+    "message": "규칙 제안"
+  },
+  "promptAssistantGeneratedDraft": {
+    "message": "생성된 초안"
+  },
+  "promptAssistantAddToRules": {
+    "message": "규칙에 추가"
+  },
+  "promptAssistantClearDraft": {
+    "message": "초안 지우기"
+  },
+  "promptAssistantPrivacy": {
+    "message": "브라우저는 이 기기에서 모델을 실행합니다. Save In은 프롬프트나 결과를 서버로 보내지 않습니다. 생성된 규칙은 자동으로 적용되지 않습니다."
+  },
+  "promptAssistantStatusOff": {
+    "message": "꺼짐 — 모델 확인이나 프롬프트 없음"
+  },
+  "promptAssistantStatusChecking": {
+    "message": "기기 내 모델 확인 중…"
+  },
+  "promptAssistantStatusReady": {
+    "message": "이 기기에서 준비됨"
+  },
+  "promptAssistantStatusDownloadable": {
+    "message": "첫 번째 규칙을 제안할 때 모델을 다운로드합니다"
+  },
+  "promptAssistantStatusDownloading": {
+    "message": "브라우저에서 기기 내 모델을 다운로드하는 중"
+  },
+  "promptAssistantStatusUnavailable": {
+    "message": "이 브라우저 또는 기기에서 사용할 수 없음"
+  },
+  "promptAssistantStatusUnusable": {
+    "message": "모델이 사용할 수 있는 규칙을 반환하지 않았습니다"
+  },
+  "promptAssistantStatusUnusableReview": {
+    "message": "모델이 초안 확인을 완료하지 못했습니다"
+  },
+  "promptAssistantStatusWorking": {
+    "message": "초안 생성 및 확인 중…"
+  },
+  "promptAssistantStatusInvalid": {
+    "message": "초안을 다시 시도해야 합니다: $ERROR$",
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "The rule needs an into clause"
+      }
+    }
+  },
+  "promptAssistantStatusFailed": {
+    "message": "초안을 만들 수 없습니다: $ERROR$",
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "The model session ended"
+      }
+    }
+  },
+  "promptAssistantStatusDraftReady": {
+    "message": "초안 준비됨 — 추가하기 전에 검토하세요"
+  },
+  "promptAssistantStatusAdded": {
+    "message": "저장하지 않은 초안으로 규칙 편집기에 추가됨"
+  },
+  "html_cssMatcherDescription": {
+    "message": "소스를 발견한 페이지 요소와 일치합니다. 자동 페이지 소스, 클릭하여 저장, 페이지 소스 패널 저장에서 사용할 수 있습니다."
+  },
+  "html_cssMatcherSyntax": {
+    "message": "css: 매처는 정규식 대신 CSS 선택자 구문을 사용하며 플래그를 허용하지 않습니다."
+  },
+  "ruleInvalidCssSelector": {
+    "message": "잘못된 CSS 선택자"
+  },
+  "ruleCssFlags": {
+    "message": "css:에는 정규식 플래그를 사용할 수 없습니다"
+  },
+  "contextMenuQuickSave": {
+    "message": "빠른 저장"
+  },
+  "contextMenuQuickSaveOnly": {
+    "message": "빠른 저장 (Save In)"
+  },
+  "contextMenuQuickSaveToDirectory": {
+    "message": "$DIRECTORY$에 저장",
+    "placeholders": {
+      "directory": {
+        "content": "$1",
+        "example": "Photos"
+      }
+    }
+  },
+  "manifestCommandQuickSave": {
+    "message": "현재 페이지 빠른 저장"
+  },
+  "o_cQuickSave": {
+    "message": "빠른 저장 항목 표시"
+  },
+  "o_cQuickSaveHelp": {
+    "message": "폴더 목록을 건너뛰고 기본 폴더에 바로 저장하는 메뉴 항목을 추가합니다."
+  },
+  "o_lQuickSaveDirectory": {
+    "message": "빠른 저장 폴더"
+  },
+  "o_cQuickSaveUseDirectory": {
+    "message": "다운로드 대신 이 폴더에 저장"
+  },
+  "o_cQuickSaveOnly": {
+    "message": "컨텍스트 메뉴에 빠른 저장만 표시"
+  },
+  "o_cQuickSaveOnlyHelp": {
+    "message": "Save In 하위 메뉴를 없애 한 번의 클릭으로 저장합니다. 브라우저는 항목이 하나일 때만 하위 메뉴를 생략하므로 폴더 목록, 마지막 사용, 나머지 메뉴 동작도 함께 사라집니다."
+  },
+  "o_cClickToSaveUseDefault": {
+    "message": "항상 기본 대상에 저장"
+  },
+  "o_cClickToSaveUseDefaultHelp": {
+    "message": "끄면 클릭하여 저장은 메뉴에서 마지막으로 선택한 폴더를 다시 사용합니다."
+  },
+  "historyMovePending": {
+    "message": "새 폴더로 다운로드 중입니다. 완료되면 원본 파일이 삭제됩니다."
+  },
+  "promptAssistantSingleRule": {
+    "message": "초안에는 규칙이 정확히 하나만 있어야 합니다"
+  },
+  "ruleCssSyntaxUnverified": {
+    "message": "백그라운드 유효성 검사에서는 CSS 선택자 구문을 확인하지 않습니다"
+  },
+  "ruleRegexUnverifiedExternal": {
+    "message": "정규식이 너무 복잡하여 여기에서 검증할 수 없습니다. 이 규칙은 건너뛰었습니다. 패턴을 단순화하거나 옵션 페이지에서 확인하세요."
+  },
+  "ruleFetchFinalFilenameUnsupported": {
+    "message": "fetch:는 finalfilename:과 함께 사용할 수 없습니다"
+  },
+  "ruleTooManyCssSelectors": {
+    "message": "고유한 css: 선택자가 너무 많습니다"
+  },
+  "ruleClauseFlags": {
+    "message": "이 절에는 정규식 플래그를 사용할 수 없습니다"
+  },
+  "ruleEmptyMatcher": {
+    "message": "빈 조건은 모두 일치합니다. .*를 명시적으로 입력하세요"
+  },
+  "ruleSuspiciousWhitespace": {
+    "message": "패턴의 시작이나 끝에 공백이 있습니다"
+  },
+  "ruleUnsafeRegex": {
+    "message": "입력이 길면 패턴 처리에 너무 오래 걸릴 수 있습니다"
+  },
+  "ruleDestinationMustBeRelative": {
+    "message": "대상은 상대 경로여야 하며 .. 경로 구성 요소를 포함할 수 없습니다"
+  }
+}

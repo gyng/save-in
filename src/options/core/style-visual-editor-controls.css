@@ -1,0 +1,55 @@
+/* The control atom both visual editors build on, and the More button they
+   share. It belongs to neither editor, so it lives with neither: UI.md requires
+   Save menu and Routing rules to present the same action rows, and a base owned
+   by one of them cannot be a base for the other. Importing it first in the
+   editors layer is what makes the sharing real. While it lived in the path
+   editor's folder it loaded between the two triggers, so it lost to the path
+   editor and beat the rule editor, and the two rows silently disagreed. */
+.visual-editor-control {
+  min-inline-size: var(--compact-control-size);
+  min-block-size: var(--compact-control-size);
+  padding: 4px 6px;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  background-color: transparent;
+  font-size: var(--text-xs);
+  line-height: 1;
+  opacity: 0.75;
+}
+
+.visual-editor-control:hover {
+  color: inherit;
+  background-color: var(--hover-bg);
+  opacity: 1;
+}
+
+.visual-editor-control:disabled {
+  cursor: default;
+  opacity: 0.25;
+}
+
+/* The More button is the same control in both editors, so it is described once.
+   Its border is spelled out as transparent rather than left as none: the hover
+   below colours that border, and there is nothing to colour on a border-less
+   box. It also opts out of the quiet atom's dimming, because a row's only
+   overflow affordance has to stay findable. */
+.visual-editor-more-trigger {
+  display: inline-grid;
+  place-items: center;
+  inline-size: var(--compact-control-size);
+  min-block-size: var(--compact-control-size);
+  block-size: var(--compact-control-size);
+  padding: 0;
+  border: 1px solid transparent;
+  list-style: none;
+  font-size: var(--text-lg);
+  opacity: 1;
+}
+
+.visual-editor-more-trigger:hover,
+.visual-editor-more-trigger:focus-visible {
+  color: var(--color-text);
+  border-color: var(--panel-border);
+  background: var(--hover-bg);
+}

@@ -1,0 +1,50 @@
+.visual-editor-toolbar.rule-editor-toolbar {
+  margin-block-start: var(--space-4);
+}
+
+.rule-editor-create-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.rule-add-menu {
+  position: relative;
+  margin: 0;
+}
+
+.rule-add-menu-trigger {
+  display: inline-grid;
+  place-items: center;
+  inline-size: var(--control-height);
+  min-block-size: var(--control-height);
+  padding: 0;
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  background: transparent;
+  font-size: var(--text-lg);
+  font-weight: 600;
+  line-height: 1;
+  list-style: none;
+}
+
+.rule-add-menu-trigger:hover,
+.rule-add-menu-trigger:focus-visible {
+  background: var(--hover-bg);
+}
+
+.rule-add-menu-options {
+  --menu-popover-min-inline: 220px;
+
+  position: absolute;
+  z-index: var(--z-menu);
+  top: calc(100% + var(--space-1));
+  inset-inline-start: 0;
+}
+
+.rule-add-menu-options button {
+  justify-content: flex-start;
+  border-color: transparent;
+  background: transparent;
+  text-align: start;
+}

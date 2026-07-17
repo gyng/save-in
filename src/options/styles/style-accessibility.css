@@ -1,0 +1,103 @@
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-duration-fast: 0ms;
+    --motion-duration-quick: 0ms;
+    --motion-duration-instant: 0ms;
+    --motion-duration-feedback: 0ms;
+    --motion-duration-progress: 0ms;
+    --motion-duration-emphasis: 0ms;
+    --motion-duration-highlight: 0ms;
+  }
+}
+
+@media (pointer: coarse) {
+  :root {
+    --control-height: 44px;
+    --compact-control-size: 44px;
+    --compact-row-height: 44px;
+  }
+
+  :where(input[type="checkbox"], input[type="radio"]) {
+    inline-size: 1.25rem;
+    block-size: 1.25rem;
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --color-text-muted: color-mix(in srgb, var(--color-text) 82%, transparent);
+    --color-border: color-mix(in srgb, var(--color-text) 55%, transparent);
+    --color-control-border: color-mix(in srgb, var(--color-text) 75%, transparent);
+  }
+
+  :where(
+    button,
+    input,
+    select,
+    textarea,
+    summary,
+    a,
+    [role="button"],
+    [role="tab"],
+    [tabindex]
+  ):focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+    box-shadow: none;
+  }
+}
+
+@media (forced-colors: active) {
+  :where(
+    button,
+    input,
+    select,
+    textarea,
+    summary,
+    a,
+    [role="button"],
+    [role="tab"],
+    [tabindex]
+  ):focus-visible,
+  :where(.option-search-target, .option-search-target-row) {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+    box-shadow: none;
+  }
+
+  :where(
+    [aria-selected="true"],
+    [aria-pressed="true"],
+    [aria-current="true"],
+    .autocomplete-dropdown .selected
+  ) {
+    color: HighlightText;
+    background: Highlight;
+    outline: 1px solid Highlight;
+  }
+
+  :where(
+    .menu-preview-row.is-preview-selected,
+    .path-editor-row.is-preview-selected,
+    .rule-editor-card.is-debug-selected,
+    .route-debugger-rule.is-selected
+  ) {
+    color: HighlightText;
+    border-color: Highlight;
+    background: Highlight;
+    outline: 1px solid Highlight;
+  }
+
+  .route-debugger-rule.is-selected > .route-debugger-rule-header {
+    background: transparent;
+  }
+
+  :where(.error-row, .has-validation-error, .rule-editor-card-unsupported, .menu-preview-error) {
+    border-color: CanvasText;
+    outline: 1px solid CanvasText;
+  }
+
+  :where(.visual-editor-row, .visual-editor-card).is-dirty-row::before {
+    background: CanvasText;
+  }
+}

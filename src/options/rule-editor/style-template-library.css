@@ -1,0 +1,169 @@
+.tab-panel input[type="search"],
+.tab-panel input[type="text"],
+.tab-panel select,
+.variables-preview-list,
+.history-columns-menu {
+  border-radius: var(--radius);
+}
+
+.history-export-menu {
+  position: relative;
+  margin: 0;
+}
+
+.history-export-options {
+  --menu-popover-min-inline: 180px;
+
+  position: absolute;
+  z-index: var(--z-menu);
+  top: calc(100% + var(--space-1));
+  inset-inline-end: 0;
+}
+
+.history-export-options button {
+  border: 0;
+  text-align: start;
+}
+
+.rule-template-category + .rule-template-category {
+  margin-block-start: var(--space-5);
+}
+
+.rule-template-category > h3 {
+  margin: 0 0 var(--space-2);
+}
+
+.rule-template-category-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  gap: var(--space-3);
+}
+
+.rule-template {
+  display: flex;
+  align-items: flex-start;
+  min-inline-size: 0;
+  overflow: clip;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+}
+
+.rule-template-body {
+  flex: 1;
+  min-inline-size: 0;
+}
+
+.rule-template-rule {
+  display: block;
+  max-inline-size: 100%;
+  overflow-wrap: anywhere;
+  margin: 2px 0 0;
+  padding: 0;
+  border: 0;
+  color: var(--color-text-muted);
+  background: none;
+  font-size: var(--text-sm);
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+.template-feedback {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 var(--space-4) var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius);
+  color: var(--success-fg);
+  background: color-mix(in srgb, var(--color-success) 10%, transparent);
+}
+
+.template-feedback[hidden] {
+  display: none;
+}
+
+.template-feedback button {
+  margin-inline-start: auto;
+  padding: var(--space-1) var(--space-2);
+}
+
+.rule-template-name {
+  font-weight: 600;
+  font-size: var(--text-base);
+}
+
+.rule-template-desc {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.rule-template-add {
+  flex: none;
+  min-inline-size: 60px;
+  padding: 4px 10px;
+}
+
+.reference-dialog {
+  --dialog-inline-size: 1000px;
+  --dialog-inline-gutter: min(var(--space-3), 4dvi);
+  --dialog-block-gutter: min(var(--space-3), 4dvb);
+
+  block-size: min(760px, calc(100dvb - 2 * var(--dialog-block-gutter)));
+  padding: 0;
+  overflow: clip;
+}
+
+.reference-dialog[open] {
+  display: grid;
+  grid-template-rows: auto auto auto auto auto minmax(0, 1fr);
+}
+
+.reference-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  border-block-end: 1px solid var(--panel-border);
+}
+
+#reference-dialog-title {
+  font-size: var(--text-lg);
+  font-weight: 600;
+}
+
+.reference-dialog-tabs {
+  display: flex;
+  gap: var(--space-1);
+  padding: 0 var(--space-4);
+  border-block-end: 1px solid var(--panel-border);
+}
+
+.reference-dialog-filter-label {
+  display: block;
+  padding: var(--space-3) var(--space-4) 0;
+}
+
+.reference-dialog-filter-label .reference-dialog-filter {
+  inline-size: min(28rem, 100%);
+  max-inline-size: none;
+  padding: var(--space-2) var(--space-3);
+}
+
+.reference-dialog-body {
+  container: reference-content / inline-size;
+  min-block-size: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  padding: 0 var(--space-4) var(--space-4);
+}
+
+.reference-dialog .options-reference-panel {
+  max-inline-size: none;
+  margin: 0;
+  padding: var(--space-4) 0 0;
+}

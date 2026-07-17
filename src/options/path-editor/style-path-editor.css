@@ -1,0 +1,244 @@
+.path-editor-row {
+  --path-guide-direction: 90deg;
+  --path-selection-shadow-x: 3px;
+
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  border-radius: var(--radius);
+  background-image: repeating-linear-gradient(
+    var(--path-guide-direction),
+    transparent 0,
+    transparent 19px,
+    color-mix(in srgb, var(--panel-border) 60%, transparent) 19px,
+    color-mix(in srgb, var(--panel-border) 60%, transparent) 20px
+  );
+  background-size: calc(var(--row-depth) * 20px) 100%;
+  background-repeat: no-repeat;
+}
+
+.path-editor-row:dir(rtl) {
+  --path-guide-direction: 270deg;
+  --path-selection-shadow-x: -3px;
+
+  background-position: right top;
+}
+
+.path-editor-empty {
+  padding: var(--space-4);
+  border: 1px dashed var(--panel-border);
+  border-radius: var(--radius);
+  color: var(--color-text-muted);
+  font-size: var(--text-base);
+}
+
+/* A display name the stored syntax cannot give back is not saved. Borrows the
+   validation border the rule editor marks a rejected field with, because it is
+   the same message: this value did not land. */
+.path-editor-alias.path-editor-alias-rejected {
+  border-color: var(--color-validation);
+}
+
+.path-editor-alias-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  min-block-size: var(--compact-control-size);
+  block-size: var(--compact-control-size);
+  padding: 3px 6px;
+  font-size: var(--text-base);
+  line-height: 1.2;
+}
+
+.path-editor-alias-toggle.has-value[aria-expanded="false"] {
+  color: var(--link-color);
+  border-color: color-mix(in srgb, var(--color-selection) 72%, var(--panel-border));
+  background-color: color-mix(in srgb, var(--color-selection) 11%, transparent);
+  font-weight: 500;
+}
+
+.path-editor-alias-toggle.has-value[aria-expanded="false"]:hover {
+  background-color: color-mix(in srgb, var(--color-selection) 17%, transparent);
+}
+
+.visual-editor-row-actions.path-editor-actions {
+  align-items: center;
+}
+
+.path-editor-handle,
+.path-editor-alias-toggle,
+.path-editor-access-key,
+.path-editor-more {
+  align-self: center;
+}
+
+.path-editor-access-key {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  line-height: 1;
+  min-block-size: var(--compact-control-size);
+  margin-block: 0;
+  margin-inline-start: 2px;
+  padding-block: 0;
+}
+
+.path-editor-access-key-label {
+  white-space: nowrap;
+  user-select: none;
+}
+
+.path-editor-access-key > .path-editor-access-key-input {
+  inline-size: var(--compact-control-size);
+  min-inline-size: var(--compact-control-size);
+  block-size: var(--compact-control-size);
+  margin: 0;
+  padding: 2px;
+  font-family: var(--font-mono);
+  line-height: 1.2;
+  text-align: center;
+  text-transform: none;
+  vertical-align: middle;
+}
+
+.path-editor-help {
+  margin-block-start: var(--space-2);
+}
+
+.path-editor-help p {
+  margin: 2px 0;
+  font-size: inherit;
+  line-height: 1.35;
+}
+
+.path-editor-row:hover {
+  background-color: var(--hover-bg);
+}
+
+.path-editor-row.is-preview-selected {
+  background: color-mix(in srgb, var(--color-selection) 7%, var(--page-bg));
+  box-shadow: inset var(--path-selection-shadow-x) 0 0 var(--color-selection);
+}
+
+.path-editor-indent {
+  flex: none;
+  align-self: stretch;
+}
+
+.path-editor-enabled-control {
+  align-self: center;
+  justify-content: center;
+  inline-size: var(--compact-control-size);
+  block-size: var(--compact-control-size);
+  line-height: 0;
+}
+
+.path-editor-enabled {
+  margin: 0;
+}
+
+.path-editor-dir {
+  flex: 1 1 auto;
+  /* Let the input shrink below its intrinsic width so the row (5 fixed control
+     buttons + handle) doesn't overflow a narrow editor column */
+  min-inline-size: 0;
+}
+
+.path-editor-alias {
+  flex: 0 0 0;
+  inline-size: 0;
+  min-inline-size: 0;
+  padding-inline: 0;
+  border-inline-width: 0;
+  opacity: 0;
+  transition:
+    flex-basis var(--motion-duration-quick) ease-out,
+    width var(--motion-duration-quick) ease-out,
+    padding var(--motion-duration-quick) ease-out,
+    opacity var(--motion-duration-instant) ease-out;
+}
+
+.path-editor-alias.is-open {
+  flex: 0 1 10rem;
+  inline-size: clamp(8rem, 24%, 12rem);
+  padding-inline: var(--space-1);
+  border-inline-width: 1px;
+  opacity: 1;
+}
+
+.tab-panel .path-editor-row input[type="text"] {
+  max-inline-size: none;
+}
+
+/* Render a separator row as a centred label on a hairline rule */
+.path-editor-separator {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  user-select: none;
+}
+
+.path-editor-separator::before,
+.path-editor-separator::after {
+  content: "";
+  flex: 1;
+  block-size: 1px;
+  background-color: var(--panel-border);
+}
+
+.path-editor-row.is-disabled > :not(.visual-editor-enabled) {
+  opacity: 0.55;
+}
+
+.path-editor-more {
+  position: relative;
+  flex: none;
+  margin: 0;
+}
+
+/* The trigger itself is .visual-editor-more-trigger, shared with Routing
+   rules'; .path-editor-more-trigger is left as the hook this menu anchors to. */
+.path-editor-action-menu {
+  --menu-popover-min-inline: 10.5rem;
+
+  position: absolute;
+  z-index: var(--z-menu);
+  top: calc(100% + var(--space-1));
+  inset-inline-end: 0;
+}
+
+.path-editor-action-menu .path-editor-control {
+  justify-content: flex-start;
+  padding-inline: var(--space-2);
+  border-color: transparent;
+  color: var(--color-text);
+  background: transparent;
+  font-size: var(--text-base);
+  text-align: start;
+  opacity: 1;
+}
+
+.path-editor-action-menu .danger-button {
+  color: var(--color-danger);
+}
+
+.path-editor-action-menu .danger-button:hover,
+.path-editor-action-menu .danger-button:active {
+  color: var(--color-danger-active);
+  background: transparent;
+}
+
+.tab-heading-hidden {
+  display: none;
+}

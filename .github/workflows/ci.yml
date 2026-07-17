@@ -2,21 +2,196 @@ name: Checks
 
 on:
   pull_request:
-    branches:
-      - master
   push:
     branches:
       - master
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  actions: read
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
-          node-version: "16"
-      - run: yarn
-      - run: yarn build
-      - run: yarn lint
-      - run: yarn test
+          persist-credentials: false
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: "24"
+          cache: npm
+      - name: Install pinned dependencies
+        run: npm ci
+      - name: Stage bundled extension
+        run: npm run stage:bundled
+      - name: Lint staged extension and sources
+        run: npm run lint:staged
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Unit and integration tests with coverage
+        run: npm run test:coverage
+      - name: Short property fuzz
+        env:
+          FUZZ_TIME_MS: "1000"
+        run: npm run test:fuzz
+      - name: Verify store packaging
+        run: |
+          npm run package:runtime
+          npm run build:source
+      - name: Preserve store package
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: store-package-${{ github.sha }}
+          path: web-ext-artifacts/*.zip
+          if-no-files-found: error
+          compression-level: 0
+
+  integration-windows:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: "24"
+          cache: npm
+      - name: Install pinned dependencies
+        run: npm ci
+      - name: Windows integration tests
+        run: npm run test:integration
+
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: "24"
+          cache: npm
+      - name: Install pinned dependencies
+        run: npm ci
+      - name: Record browser versions
+        run: |
+          google-chrome --version
+          firefox --version
+      - name: Chrome and Firefox e2e
+        id: e2e
+        # Retry a suite once: a shared runner occasionally fails a whole suite
+        # before any test — a Firefox event page that misses its launch budget —
+        # which is a resource signal, not a defect, and re-runs clean. Genuine
+        # bugs fail every attempt and still surface. Timing is judged separately.
+        # A retry sets outputs.flaked so the diagnostics are kept even when green.
+        run: HEADLESS=1 E2E_RETRY=1 npm run e2e
+      - name: Compare e2e timing with successful master
+        if: github.event_name == 'pull_request'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/compare-e2e-ci-baseline.js --current dist/e2e-artifacts
+      - name: Preserve browser timing telemetry
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: e2e-timings-${{ github.sha }}
+          path: |
+            dist/e2e-artifacts/run-*/run.json
+            dist/e2e-artifacts/run-*/timings-*.json
+            dist/e2e-artifacts/run-*/*-environment.json
+          if-no-files-found: warn
+      - name: Preserve browser diagnostics on failure or flake
+        if: failure() || steps.e2e.outputs.flaked == 'true'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: e2e-failure-${{ github.sha }}
+          path: dist/e2e-artifacts
+          if-no-files-found: warn
+
+  e2e-minimum:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: "24"
+          cache: npm
+      - name: Install pinned dependencies
+        run: npm ci
+      # Firefox is the declared minimum, 140.0. Chrome is NOT: the suite cannot
+      # drive Chrome 123 (it evaluates page code against a `browser` global that
+      # only later Chrome provides, and Extensions.loadUnpacked/triggerAction
+      # answer "Method not available" below Chrome 149). save-in's own source
+      # selects `browser ?? chrome`, so 123 is not disproven -- only unverified.
+      # Pinning Chrome for Testing keeps this job's timings comparable anyway,
+      # which the drifting host Chrome in the `e2e` job cannot do.
+      - name: Download pinned browsers
+        run: |
+          mkdir -p /tmp/save-in-minimum-browsers
+          curl --fail --location --retry 3 \
+            https://storage.googleapis.com/chrome-for-testing-public/150.0.7871.124/linux64/chrome-linux64.zip \
+            --output /tmp/save-in-minimum-browsers/chrome.zip
+          echo "ccb11556d5946fcf15f09d175c34d8e4b4293a8ef2eb7c4efc28cb60ac4d12fd  /tmp/save-in-minimum-browsers/chrome.zip" \
+            | sha256sum --check --strict
+          unzip -q /tmp/save-in-minimum-browsers/chrome.zip -d /tmp/save-in-minimum-browsers
+          curl --fail --location --retry 3 \
+            https://archive.mozilla.org/pub/firefox/releases/140.0/linux-x86_64/en-US/firefox-140.0.tar.xz \
+            --output /tmp/save-in-minimum-browsers/firefox.tar.xz
+          echo "ca3469774734743b878bca2cfb7efb7b8a8eb4a3c15c2f1f427fbc0472ad3f6e  /tmp/save-in-minimum-browsers/firefox.tar.xz" \
+            | sha256sum --check --strict
+          tar -xJf /tmp/save-in-minimum-browsers/firefox.tar.xz \
+            -C /tmp/save-in-minimum-browsers
+      - name: Record pinned browser versions
+        run: |
+          /tmp/save-in-minimum-browsers/chrome-linux64/chrome --version
+          /tmp/save-in-minimum-browsers/firefox/firefox --version
+      - name: Pinned Chrome 150 and minimum Firefox 140 e2e
+        id: e2e-minimum
+        env:
+          CHROME_PATH: /tmp/save-in-minimum-browsers/chrome-linux64/chrome
+          FIREFOX_PATH: /tmp/save-in-minimum-browsers/firefox/firefox
+          HEADLESS: "1"
+          # The packaged Chrome the e2e job uses ships an AppArmor profile that
+          # permits its sandbox. This unpacked Chrome for Testing has none, and
+          # the runner restricts unprivileged user namespaces, so it aborts with
+          # "No usable sandbox!" before ever opening its debugging port.
+          CHROME_E2E_NO_SANDBOX: "1"
+          # Retry a suite once for the same reason as the e2e job above.
+          E2E_RETRY: "1"
+        run: npm run e2e
+      - name: Compare minimum-browser timing with successful master
+        if: github.event_name == 'pull_request'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: >-
+          node scripts/compare-e2e-ci-baseline.js
+          --current dist/e2e-artifacts
+          --artifact-prefix e2e-minimum-timings-
+      - name: Preserve minimum-browser timing telemetry
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: e2e-minimum-timings-${{ github.sha }}
+          path: |
+            dist/e2e-artifacts/run-*/run.json
+            dist/e2e-artifacts/run-*/timings-*.json
+            dist/e2e-artifacts/run-*/*-environment.json
+          if-no-files-found: warn
+      - name: Preserve minimum-browser diagnostics on failure or flake
+        if: failure() || steps.e2e-minimum.outputs.flaked == 'true'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: e2e-minimum-failure-${{ github.sha }}
+          path: dist/e2e-artifacts
+          if-no-files-found: warn

@@ -1,0 +1,23 @@
+@media (max-width: 640px) {
+  .option-search {
+    order: 10;
+    flex: 0 1 16rem;
+    inline-size: min(16rem, 100%);
+    margin: var(--space-1) 0 0;
+  }
+
+  #options {
+    padding-inline: var(--space-3);
+  }
+
+  .tablist {
+    inline-size: calc(100% + 2 * var(--space-3));
+    margin-inline: calc(-1 * var(--space-3));
+    padding-inline: var(--space-3);
+    flex-wrap: wrap;
+  }
+
+  .tablist .tab {
+    flex: 0 0 auto;
+  }
+}

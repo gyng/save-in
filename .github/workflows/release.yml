@@ -1,0 +1,124 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Install pinned dependencies
+        run: npm ci
+
+      - name: Resolve and validate release version
+        id: release
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            RELEASE_TAG="v$(node -p "require('./package.json').version")"
+          else
+            RELEASE_TAG="$GITHUB_REF_NAME"
+          fi
+          echo "tag=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
+          echo "RELEASE_TAG=$RELEASE_TAG" >> "$GITHUB_ENV"
+          node scripts/prepare-release.js --check "$RELEASE_TAG"
+
+      - name: Stage bundled extension
+        run: npm run stage:bundled
+
+      - name: Unit, type, lint, and browser gates
+        run: |
+          npm run test:coverage
+          npm run typecheck
+          npm run lint:staged
+          HEADLESS=1 npm run e2e:serial
+
+      - name: Build runtime and source archives
+        run: |
+          npm run package:runtime
+          npm run build:source
+
+      # Sideload signing, not store signing: it gives Chromium-based browsers a
+      # file they will install, under an id that must never change or every
+      # installed copy is orphaned from its settings. Tag pushes only, so a
+      # workflow_dispatch build cannot mint a signed package, and the key is
+      # read from the environment straight into memory -- it never reaches the
+      # runner's disk. Absent the secret the step is a no-op and the release
+      # simply carries no CRX.
+      - name: Sign the Chromium sideload package
+        if: github.event_name == 'push'
+        env:
+          CRX_PRIVATE_KEY: ${{ secrets.CRX_PRIVATE_KEY }}
+        run: node scripts/pack-crx.js "${RELEASE_TAG#v}"
+
+      - name: Name and checksum release artifacts
+        run: npm run release:prepare -- "$RELEASE_TAG"
+
+      - name: Attest release artifacts
+        if: github.event_name == 'push'
+        uses: actions/attest@a1948c3f048ba23858d222213b7c278aabede763 # v4.1.1
+        with:
+          subject-path: web-ext-artifacts/release/*
+
+      - name: Preserve workflow artifacts
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: save-in-${{ steps.release.outputs.tag }}
+          path: web-ext-artifacts/release/
+          if-no-files-found: error
+          compression-level: 0
+
+  publish-draft:
+    if: github.event_name == 'push'
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: Download attested release artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: save-in-${{ github.ref_name }}
+          path: release-assets
+
+      - name: Create or update draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          # This job never checks out, so gh cannot infer the repository from a
+          # git remote. Name it explicitly rather than cloning just to be found.
+          GH_REPO: ${{ github.repository }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            if [ "$(gh release view "$GITHUB_REF_NAME" --json isDraft --jq .isDraft)" != "true" ]; then
+              echo "Refusing to replace assets on an already-published release" >&2
+              exit 1
+            fi
+            gh release upload "$GITHUB_REF_NAME" release-assets/* --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" release-assets/* \
+              --draft \
+              --verify-tag \
+              --generate-notes \
+              --title "Save In ${GITHUB_REF_NAME#v}"
+          fi

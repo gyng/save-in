@@ -1,0 +1,249 @@
+// This file is obtained from https://github.com/Rob--W/open-in-browser/blob/master/extension/content-disposition.js
+/**
+ * (c) 2017 Rob Wu <rob@robwu.nl> (https://robwu.nl)
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+/* exported getFilenameFromContentDispositionHeader */
+
+/**
+ * Extract file name from the Content-Disposition HTTP response header.
+ *
+ * @param {string} contentDisposition
+ * @return {string} Filename, if found in the Content-Disposition header.
+ */
+export type ContentDispositionParseOptions = {
+  allowQuotedExtendedValue?: boolean;
+  unescapeExtendedValueAgain?: boolean;
+};
+
+export function getFilenameFromContentDispositionHeader(
+  contentDisposition: string,
+  options: ContentDispositionParseOptions = {},
+): string {
+  // This parser is designed to be tolerant and accepting of headers that do
+  // not comply with the standard, but accepted by Firefox.
+
+  let needsEncodingFixup = true;
+
+  // filename*=ext-value ("ext-value" from RFC 5987, referenced by RFC 6266).
+  const encodedMatch = toParamRegExp("filename\\*", "i").exec(contentDisposition);
+  const encodedValue = encodedMatch?.[1];
+  if (encodedValue !== undefined) {
+    const filename = decodeRfc5987Value(encodedValue);
+    if (filename) return filename;
+  }
+
+  // Continuations (RFC 2231 section 3, referenced by RFC 5987 section 3.1).
+  // filename*n*=part
+  // filename*n=part
+  const continuedValue = rfc2231getparam(contentDisposition);
+  if (continuedValue) {
+    // RFC 2047, section
+    let filename = rfc2047decode(continuedValue);
+    return fixupEncoding(filename);
+  }
+
+  // filename=value (RFC 5987, section 4.1).
+  const plainMatch = toParamRegExp("filename", "i").exec(contentDisposition);
+  const plainValue = plainMatch?.[1];
+  if (plainValue !== undefined) {
+    let filename = rfc2616unquote(plainValue);
+    filename = rfc2047decode(filename);
+    filename = fixupEncoding(filename);
+    try {
+      // Firefox and Chromium both unescape percent-encoded plain filenames
+      // once for compatibility with non-conforming servers.
+      return decodeURIComponent(filename);
+    } catch {
+      return filename;
+    }
+  }
+  return "";
+
+  function toParamRegExp(attributePattern: string, flags: string): RegExp {
+    return new RegExp(
+      "(?:^|;)\\s*" +
+        attributePattern +
+        "\\s*=\\s*" +
+        // Captures: value = token | quoted-string
+        // (RFC 2616, section 3.6 and referenced by RFC 6266 4.1)
+        "(" +
+        '[^";\\s][^;\\s]*' +
+        "|" +
+        '"(?:[^"\\\\]|\\\\"?)+"?' +
+        ")",
+      flags,
+    );
+  }
+  function textdecode(encoding: string, value: string): string {
+    if (encoding) {
+      try {
+        let decoder = new TextDecoder(encoding, { fatal: true });
+        let bytes = Array.from(value, (c) => c.charCodeAt(0));
+        if (bytes.every((code) => code <= 0xff)) {
+          value = decoder.decode(new Uint8Array(bytes));
+          needsEncodingFixup = false;
+        }
+      } catch (e) {
+        // TextDecoder constructor threw - unrecognized encoding.
+      }
+    }
+    return value;
+  }
+  function fixupEncoding(value: string): string {
+    if (needsEncodingFixup && /[\x80-\xff]/.test(value)) {
+      // Maybe multi-byte UTF-8.
+      value = textdecode("utf-8", value);
+      if (needsEncodingFixup) {
+        // Try iso-8859-1 encoding.
+        value = textdecode("iso-8859-1", value);
+      }
+    }
+    return value;
+  }
+  function rfc2231getparam(contentDisposition: string): string {
+    let matches: Array<[string, string] | undefined> = [],
+      match;
+    // Iterate over all filename*n= and filename*n*= with n being an integer
+    // of at least zero. Any non-zero number must not start with '0'.
+    let iter = toParamRegExp("filename\\*((?!0\\d)\\d+)(\\*?)", "ig");
+    while ((match = iter.exec(contentDisposition)) !== null) {
+      let [, index, quot, part] = match;
+      if (index === undefined || quot === undefined || part === undefined) continue;
+      const n = parseInt(index, 10);
+      if (Object.hasOwn(matches, n)) {
+        // Ignore anything after the invalid second filename*0.
+        if (n === 0) break;
+        continue;
+      }
+      matches[n] = [quot, part];
+    }
+    let parts = [];
+    for (let n = 0; n < matches.length; ++n) {
+      const continuation = Object.hasOwn(matches, n) ? matches[n] : undefined;
+      if (!continuation) {
+        // Numbers must be consecutive. Truncate when there is a hole.
+        break;
+      }
+      let [quot, part] = continuation;
+      part = rfc2616unquote(part);
+      if (quot) {
+        part = unescape(part);
+        if (n === 0) {
+          part = rfc5987decode(part);
+        }
+      }
+      parts.push(part);
+    }
+    return parts.join("");
+  }
+  function rfc2616unquote(value: string): string {
+    if (value.startsWith('"')) {
+      let parts = value.slice(1).split('\\"');
+      // Find the first unescaped " and terminate there.
+      for (let i = 0; i < parts.length; ++i) {
+        const currentPart = parts[i];
+        if (currentPart === undefined) continue;
+        let quotindex = currentPart.indexOf('"');
+        if (quotindex !== -1) {
+          parts[i] = currentPart.slice(0, quotindex);
+          parts.length = i + 1; // Truncates and stop the iteration.
+        }
+        parts[i] = (parts[i] ?? "").replace(/\\(.)/g, "$1");
+      }
+      value = parts.join('"');
+    }
+    return value;
+  }
+  function decodeRfc5987Value(extvalue: string): string | null {
+    if (options.allowQuotedExtendedValue) extvalue = rfc2616unquote(extvalue);
+    // RFC 5987 ext-value is not a quoted-string. Rejecting malformed values
+    // lets callers use the RFC 6266 filename fallback instead.
+    const match = /^([^']+)'[^']*'((?:[!#$&+.^_`|~0-9A-Za-z-]|%[0-9A-Fa-f]{2})*)$/.exec(
+      extvalue,
+    );
+    const encoding = match?.[1];
+    const value = match?.[2];
+    if (encoding === undefined || value === undefined) return null;
+
+    const bytes: number[] = [];
+    for (let i = 0; i < value.length; i += 1) {
+      if (value[i] === "%") {
+        bytes.push(parseInt(value.slice(i + 1, i + 3), 16));
+        i += 2;
+      } else {
+        bytes.push(value.charCodeAt(i));
+      }
+    }
+
+    try {
+      const decoded = new TextDecoder(encoding, { fatal: true }).decode(new Uint8Array(bytes));
+      if (!options.unescapeExtendedValueAgain) return decoded;
+      try {
+        return decodeURIComponent(decoded);
+      } catch {
+        return decoded;
+      }
+    } catch {
+      return null;
+    }
+  }
+  function rfc5987decode(extvalue: string): string {
+    // Decodes "ext-value" from RFC 5987.
+    let encodingend = extvalue.indexOf("'");
+    if (encodingend === -1) {
+      // Some servers send "filename*=" without encoding'language' prefix,
+      // e.g. in https://github.com/Rob--W/open-in-browser/issues/26
+      // Let's accept the value like Firefox (57) (Chrome 62 rejects it).
+      return extvalue;
+    }
+    let encoding = extvalue.slice(0, encodingend);
+    let langvalue = extvalue.slice(encodingend + 1);
+    // Ignore language (RFC 5987 section 3.2.1, and RFC 6266 section 4.1 ).
+    let value = langvalue.replace(/^[^']*'/, "");
+    return textdecode(encoding, value);
+  }
+  function rfc2047decode(value: string): string {
+    // RFC 2047-decode the result. Firefox tried to drop support for it, but
+    // backed out because some servers use it - https://bugzil.la/875615
+    // Firefox's condition for decoding is here: https://searchfox.org/mozilla-central/rev/4a590a5a15e35d88a3b23dd6ac3c471cf85b04a8/netwerk/mime/nsMIMEHeaderParamImpl.cpp#742-748
+
+    // We are more strict and only recognize RFC 2047-encoding if the value
+    // starts with "=?", since then it is likely that the full value is
+    // RFC 2047-encoded.
+
+    // Firefox also decodes words even where RFC 2047 section 5 states:
+    // "An 'encoded-word' MUST NOT appear within a 'quoted-string'."
+
+    // eslint-disable-next-line no-control-regex
+    if (!value.startsWith("=?") || /[\x00-\x19\x80-\xff]/.test(value)) {
+      return value;
+    }
+    // RFC 2047, section 2.4
+    // encoded-word = "=?" charset "?" encoding "?" encoded-text "?="
+    // charset = token (but let's restrict to characters that denote a
+    //           possibly valid encoding).
+    // encoding = q or b
+    // encoded-text = any printable ASCII character other than ? or space.
+    //                ... but Firefox permits ? and space.
+    return value.replace(
+      /=\?([\w-]*)\?([QqBb])\?((?:[^?]|\?(?!=))*)\?=/g,
+      function (_: string, charset: string, encoding: string, text: string) {
+        if (encoding === "q" || encoding === "Q") {
+          // RFC 2047 section 4.2.
+          text = text.replace(/_/g, " ");
+          text = text.replace(/=([0-9a-fA-F]{2})/g, (_, hex) =>
+            String.fromCharCode(parseInt(hex, 16)),
+          );
+          return textdecode(charset, text);
+        } // else encoding is b or B - base64 (RFC 2047 section 4.1)
+        try {
+          text = atob(text);
+        } catch (e) {}
+        return textdecode(charset, text);
+      },
+    );
+  }
+}

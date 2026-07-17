@@ -1,0 +1,74 @@
+name: Symlink download contract
+
+# On-demand only. Guards the store-listing claim that a symlinked download
+# destination is a Firefox-only workaround: Chrome must reject a symlinked
+# destination and Firefox must follow it. Browser behaviour drifts on its own as
+# the runners' preinstalled Chrome/Firefox update, so run this by hand (Actions
+# tab -> this workflow -> Run workflow) when the probe, its fixture, or the
+# documented contract change, or to re-check the browsers.
+#
+# Known issue: the windows-latest/chrome cell currently hangs in Chrome launch
+# on the runner (no CDP port); use the inputs to run just the cells you need.
+
+on:
+  workflow_dispatch:
+    inputs:
+      os:
+        description: Operating system
+        type: choice
+        default: all
+        options: [all, ubuntu-latest, windows-latest]
+      browser:
+        description: Browser
+        type: choice
+        default: all
+        options: [all, chrome, firefox]
+
+permissions:
+  contents: read
+
+jobs:
+  matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      include: ${{ steps.build.outputs.include }}
+    steps:
+      - id: build
+        env:
+          OS: ${{ inputs.os }}
+          BROWSER: ${{ inputs.browser }}
+        run: |
+          node -e '
+            const oses = process.env.OS === "all" ? ["ubuntu-latest", "windows-latest"] : [process.env.OS];
+            const browsers = process.env.BROWSER === "all" ? ["chrome", "firefox"] : [process.env.BROWSER];
+            const include = [];
+            for (const os of oses) for (const browser of browsers) include.push({ os, browser });
+            require("node:fs").appendFileSync(process.env.GITHUB_OUTPUT, `include=${JSON.stringify(include)}\n`);
+          '
+
+  probe:
+    needs: matrix
+    name: ${{ matrix.os }} / ${{ matrix.browser }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.matrix.outputs.include) }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: "24"
+          cache: npm
+      - name: Install pinned dependencies
+        run: npm ci
+      - name: Probe symlinked download destinations
+        # A stuck browser launch on a runner should fail the cell, not idle to
+        # the job timeout.
+        timeout-minutes: 8
+        env:
+          HEADLESS: "1"
+        run: node scripts/platform-symlink-probe.js --browser=${{ matrix.browser }}

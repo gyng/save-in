@@ -1,0 +1,45 @@
+{
+  "env": {
+    "browser": true,
+    "webextensions": true
+  },
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn"
+  },
+  "rules": {
+    "no-console": "warn",
+    "no-unused-vars": [
+      "warn",
+      {
+        "caughtErrors": "none"
+      }
+    ],
+    "unicorn/consistent-function-scoping": "off"
+  },
+  "ignorePatterns": ["src/vendor", "web-ext-artifacts", "dist", "docs"],
+  "overrides": [
+    {
+      "files": ["src/**/*.ts"],
+      "rules": {
+        "typescript/no-non-null-assertion": "error"
+      }
+    },
+    {
+      "files": ["scripts/**/*.js", "scripts/**/*.mjs"],
+      "env": {
+        "node": true
+      },
+      "rules": {
+        "no-console": "off"
+      }
+    },
+    {
+      "files": ["e2e/**/*.mjs"],
+      "env": {
+        "node": true,
+        "vitest": true
+      }
+    }
+  ]
+}

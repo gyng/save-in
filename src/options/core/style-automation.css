@@ -1,0 +1,123 @@
+.source-automation {
+  margin-block: var(--space-6);
+  padding-block-start: var(--space-5);
+  border-block-start: 1px solid var(--panel-border);
+}
+
+.browser-download-choice > label {
+  inline-size: fit-content;
+}
+
+.browser-download-route-group {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  justify-items: start;
+  gap: var(--space-2);
+  margin-block-start: var(--space-4);
+}
+
+.browser-download-route-group > .browser-download-choice {
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+}
+
+.browser-download-route-group > button {
+  grid-column: 2;
+}
+
+.browser-download-filter-group {
+  margin-block-start: var(--space-5);
+}
+
+.browser-download-filter-group > .browser-download-filter-options {
+  grid-column: 2;
+}
+
+.browser-download-filter-group > label {
+  inline-size: fit-content;
+}
+
+.browser-download-filter-group > .browser-download-filter-options {
+  margin-inline-start: 0;
+}
+
+.browser-download-routing-data {
+  max-inline-size: 48rem;
+  margin-block-start: var(--space-4);
+}
+
+.browser-download-routing-data > h4,
+.browser-download-routing-data > p {
+  margin: 0;
+}
+
+.browser-download-routing-data > h4 {
+  margin-block-end: var(--space-1);
+  font-size: var(--text-base);
+}
+
+.browser-download-routing-data > .caption {
+  margin-block-start: var(--space-1);
+  color: var(--color-text-muted);
+}
+
+.auto-download-options {
+  display: grid;
+  gap: var(--space-3);
+  max-inline-size: 48rem;
+  margin-block-start: var(--space-3);
+}
+
+.auto-download-master {
+  margin: 0;
+  font-weight: 600;
+}
+
+.dependent-options {
+  display: grid;
+  gap: var(--space-3);
+  margin-inline-start: var(--space-4);
+  transition: opacity var(--motion-duration-fast) ease;
+}
+
+.auto-download-options:has(#autoDownloadEnabled:not(:checked))
+  .auto-download-dependent
+  :is(.option-group-heading, label:has(:disabled), .auto-download-limit > label),
+.browser-download-filter-group:has(#browserDownloadFiltersEnabled:not(:checked))
+  .browser-download-filter-options
+  :is(label:has(:disabled), .browser-download-filter-field > label) {
+  color: var(--disabled-control-color);
+}
+
+@container options-panel (max-width: 640px) {
+  .dependent-options {
+    margin-inline-start: var(--space-2);
+  }
+}
+
+.auto-download-coverage {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.auto-download-limit {
+  padding-block-start: var(--space-2);
+  border-block-start: 1px solid var(--panel-border);
+}
+
+.auto-download-limit input {
+  inline-size: 7rem;
+}
+
+.auto-download-limit-help {
+  grid-column: 1 / -1;
+}
+
+.auto-download-rules {
+  max-inline-size: 48rem;
+  margin-block-start: var(--space-5);
+}
+
+.auto-download-rules h4 {
+  max-inline-size: 68ch;
+}

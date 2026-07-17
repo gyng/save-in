@@ -1,0 +1,96 @@
+.notification-options,
+.shortcut-file-options {
+  display: grid;
+  gap: var(--space-3);
+  max-inline-size: 48rem;
+}
+
+.tab-panel .notification-options,
+.tab-panel .shortcut-file-options {
+  margin-block-start: var(--space-3);
+}
+
+.shortcut-files-lead {
+  max-inline-size: 68ch;
+  margin: 0;
+}
+
+.option-choice-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-2);
+}
+
+.option-choice-grid > label {
+  min-inline-size: 0;
+  margin: 0;
+}
+
+.option-label-content {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.option-subcontrol {
+  display: grid;
+  grid-template-columns: max-content minmax(10rem, max-content) minmax(12rem, 1fr);
+  align-items: baseline;
+  gap: var(--space-2) var(--space-3);
+}
+
+.option-subcontrol > label {
+  margin: 0;
+  font-weight: 600;
+}
+
+.option-subcontrol.is-disabled {
+  opacity: 0.55;
+}
+
+.unit-control {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-1);
+  font-size: var(--text-base);
+}
+
+.unit-control input {
+  inline-size: 7rem;
+  max-inline-size: none;
+}
+
+.unit-control input[type="hidden"] {
+  display: none;
+}
+
+.shortcut-format-control {
+  padding-block-start: 0;
+  border-block-start: 0;
+}
+
+#shortcut-format-preview {
+  color: var(--color-text-muted);
+}
+
+.option-subgroup {
+  margin-block-start: var(--space-2);
+}
+
+.option-subgroup > h3 {
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-base);
+}
+
+#click-to-save-warning {
+  max-inline-size: 100%;
+  overflow-wrap: anywhere;
+}
+
+@container options-panel (max-width: 760px) {
+  .option-subcontrol {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

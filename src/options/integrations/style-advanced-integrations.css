@@ -1,0 +1,276 @@
+/* ── Advanced → External integrations ────────────────────────────── */
+
+.integration-documentation-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-sm);
+}
+
+:is(.webhook-enable-row, .prompt-assistant-enable-row) {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  background: var(--panel-bg);
+}
+
+:is(.webhook-enable-row, .prompt-assistant-enable-row) > input {
+  margin-block-start: 3px;
+}
+
+:is(.webhook-enable-row, .prompt-assistant-enable-row) label {
+  margin: 0;
+  padding: 0;
+}
+
+:is(
+    .webhook-preview-details,
+    .external-raw-editor,
+    .external-api-details,
+    .webmcp-developer-details,
+    .prompt-assistant-details
+  )
+  > summary {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+.external-integrations-content {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.external-access-control {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+}
+
+.external-access-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.external-access-heading h5,
+.external-access-heading p {
+  margin: 0;
+}
+
+.external-control-label {
+  font-weight: 600;
+}
+
+.external-control-help {
+  max-inline-size: 68ch;
+  line-height: 1.4;
+}
+
+.external-approved-count {
+  flex: 0 0 auto;
+  padding: 2px var(--space-2);
+  color: var(--color-text-muted);
+  border: 1px solid var(--panel-border);
+  border-radius: 999px;
+  background: var(--panel-bg);
+  font-size: var(--text-sm);
+  white-space: nowrap;
+}
+
+.external-extension-add-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-2);
+}
+
+.tab-panel #external-extension-id-draft {
+  inline-size: 100%;
+  max-inline-size: none;
+  font-family: var(--font-mono);
+}
+
+.external-approved-list {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.external-approved-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-block-size: var(--control-height);
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  background: var(--panel-bg);
+}
+
+.external-approved-row code {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+.external-approved-remove {
+  flex: 0 0 auto;
+}
+
+.external-approved-empty,
+.external-approved-status {
+  margin: 0;
+}
+
+.external-approved-status:empty {
+  display: none;
+}
+
+.external-raw-editor {
+  padding-block-start: var(--space-2);
+  border-block-start: 1px solid var(--panel-border);
+}
+
+.external-raw-editor > p {
+  margin: var(--space-2) 0 var(--space-1);
+}
+
+.external-raw-editor > label {
+  margin: 0;
+  padding: 0;
+}
+
+.tab-panel .external-allowlist-input {
+  min-block-size: 6.5rem;
+  margin-block-start: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--font-mono);
+  line-height: 1.45;
+  resize: vertical;
+}
+
+.external-download-rejections {
+  margin: 0;
+  padding: var(--space-3);
+  border: 1px solid color-mix(in srgb, var(--color-warning) 55%, var(--panel-border));
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--color-warning) 12%, var(--page-bg));
+}
+
+.external-download-rejections-title {
+  margin-block-end: 2px;
+  font-size: var(--text-base);
+  font-weight: 600;
+}
+
+.external-download-rejection {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-block-start: var(--space-2);
+  padding-block-start: var(--space-2);
+  border-block-start: 1px solid color-mix(in srgb, var(--color-warning) 35%, var(--panel-border));
+}
+
+.external-download-rejection-details {
+  min-inline-size: 0;
+}
+
+.external-download-rejection-details code {
+  overflow-wrap: anywhere;
+}
+
+.external-download-rejection-add {
+  flex: 0 0 auto;
+}
+
+.dev-api {
+  max-inline-size: 640px;
+  margin: var(--space-2) 0 var(--space-4);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  background-color: var(--panel-bg);
+}
+
+.dev-api-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  padding: var(--space-1) 0;
+}
+
+.dev-api-label {
+  flex: 0 0 7em;
+  color: var(--color-text-muted);
+  font-size: var(--text-base);
+}
+
+.dev-api-value {
+  font-family: var(--font-mono);
+  font-size: var(--text-base);
+  overflow-wrap: anywhere;
+}
+
+.external-api-details {
+  border-block-start: 1px solid var(--panel-border);
+  padding-block-start: var(--space-3);
+}
+
+.external-api-details > .dev-api {
+  max-inline-size: none;
+  margin: var(--space-2) 0 0;
+  padding: var(--space-2) 0 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+@container options-panel (max-width: 640px) {
+  .webhook-heading-row,
+  .advanced-integration-heading,
+  .external-access-heading {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .external-approved-count {
+    justify-self: start;
+  }
+
+  .external-download-rejection {
+    align-items: flex-start;
+  }
+}
+
+.webmcp-section > .dev-api-row {
+  padding: 0;
+}
+
+.webmcp-section > .dev-api-row .dev-api-value {
+  font-family: var(--font-stack);
+  word-break: normal;
+}
+
+.webmcp-tool-list {
+  font-family: var(--font-mono);
+  overflow-wrap: anywhere;
+}
+
+.webmcp-developer-details {
+  padding-block-start: var(--space-2);
+  border-block-start: 1px solid var(--panel-border);
+}
+
+.webmcp-developer-content {
+  display: grid;
+  gap: var(--space-2);
+  margin-block-start: var(--space-2);
+}

@@ -1,0 +1,135 @@
+/* ── Advanced → External integrations → Webhooks ──────────────────── */
+/* Split from style-advanced-integrations.css, which keeps the selectors the
+   webhook card shares with the prompt assistant, external access, and WebMCP. */
+
+.webhook-section {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.webhook-heading-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.webhook-heading-row h4,
+.webhook-heading-row p,
+.webhook-endpoint-note {
+  margin: 0;
+}
+
+.webhook-endpoint-label {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+}
+
+.webhook-endpoint-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  /* The endpoint list is a syntax editor, so this row is as tall as the list is
+     long. Without this the button stretches to match it. */
+  align-items: start;
+  gap: var(--space-2);
+}
+
+/* The row starts at the editor's margin edge, not its border, so the button
+   needs the same margin to line up with the top of the box it tests. */
+.webhook-endpoint-row #webhook-test {
+  margin-block-start: var(--space-2);
+}
+
+/* Modifies the list above it rather than switching the feature on, so it is a
+   plain row: the card chrome above belongs to the section's own switch. */
+.webhook-insecure-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin-block: var(--space-3) 0;
+}
+
+.webhook-insecure-row > input {
+  margin-block-start: 3px;
+}
+
+.webhook-insecure-row label {
+  margin: 0;
+  padding: 0;
+}
+
+.webhook-insecure-text {
+  display: grid;
+  gap: 2px;
+}
+
+.webhook-fields {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+}
+
+.webhook-fields legend {
+  padding: 0 var(--space-1);
+  font-weight: 600;
+}
+
+.webhook-fields label {
+  margin: 0;
+  padding: 0;
+}
+
+.webhook-preview-details pre {
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  margin: var(--space-2) 0 0;
+  padding: var(--space-3);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  background: var(--page-bg);
+  font-size: var(--text-sm);
+}
+
+.webhook-status:empty {
+  display: none;
+}
+
+#webhook-state-badge[data-state="on"] {
+  color: var(--success-fg);
+  border-color: color-mix(in srgb, var(--color-success) 45%, var(--panel-border));
+  background: color-mix(in srgb, var(--color-success) 10%, transparent);
+}
+
+.tab-panel .webhook-endpoint-row #webhookUrl {
+  inline-size: 100%;
+  max-inline-size: none;
+  font-family: var(--font-mono);
+}
+
+.webhook-status.is-error {
+  color: var(--error-fg);
+}
+
+@container options-panel (max-width: 640px) {
+  .webhook-fields {
+    grid-template-columns: 1fr;
+  }
+
+  /* Endpoints do not wrap, so a squeezed editor hides the end of every URL.
+     Give it the width and let the button sit under it. */
+  .webhook-endpoint-row {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: start;
+  }
+
+  /* Stacked, there is no top edge to line up with -- only a gap to widen. */
+  .webhook-endpoint-row #webhook-test {
+    margin-block-start: 0;
+  }
+}

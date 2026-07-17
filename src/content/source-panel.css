@@ -1,0 +1,195 @@
+:host {
+  all: initial;
+  box-sizing: border-box;
+  position: fixed;
+  /* The drawer lives inside arbitrary pages, so it must outrank page-owned
+     stacking contexts rather than sharing the options-page z-index scale. */
+  z-index: 2147483647;
+  isolation: isolate;
+  writing-mode: horizontal-tb;
+  container: source-panel / inline-size;
+  inset: 0 0 0 auto;
+  inline-size: min(var(--source-panel-side-size, 360px), 100dvw);
+  color: var(--color-text);
+  accent-color: var(--color-accent);
+  color-scheme: light dark;
+  font: var(--text-base) / 1.35 var(--font-stack);
+  animation: source-panel-in var(--source-motion-duration-enter) ease-out both;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
+:host([data-theme="light"]) {
+  color-scheme: only light;
+}
+
+:host([data-theme="dark"]) {
+  color-scheme: only dark;
+}
+
+:host(.closing) {
+  pointer-events: none;
+  animation: source-panel-out var(--source-motion-duration-exit) ease-in both;
+}
+
+@keyframes source-panel-in {
+  from {
+    opacity: 0;
+    transform: var(--source-panel-motion-transform);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes source-panel-out {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: var(--source-panel-motion-transform);
+  }
+}
+
+:host(.dock-left) {
+  --source-panel-motion-transform: translateX(-8px);
+
+  inset: 0 auto 0 0;
+}
+:host(.dock-bottom) {
+  --source-panel-motion-transform: translateY(8px);
+
+  inset: auto 0 0;
+  inline-size: auto;
+  block-size: min(var(--source-panel-dock-size, 420px), 85dvh);
+}
+:host(.dock-top) {
+  --source-panel-motion-transform: translateY(-8px);
+
+  inset: 0 0 auto;
+  inline-size: auto;
+  block-size: min(var(--source-panel-dock-size, 420px), 85dvh);
+}
+:host(.floating) {
+  inset: var(--source-panel-floating-top) auto auto var(--source-panel-floating-left);
+  inline-size: min(
+    var(--source-panel-floating-width, 520px),
+    calc(100dvw - var(--source-panel-floating-left) - var(--source-panel-inline-gutter))
+  );
+  block-size: min(
+    var(--source-panel-floating-height, 620px),
+    calc(100dvh - var(--source-panel-floating-top) - var(--source-panel-block-gutter))
+  );
+}
+
+.panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-inline-size: 0;
+  block-size: 100dvh;
+  overflow: clip;
+  background: var(--color-surface-page);
+  box-shadow: var(--panel-shadow);
+}
+
+:host(.dock-bottom) .panel,
+:host(.dock-top) .panel,
+:host(.floating) .panel {
+  block-size: 100%;
+}
+
+:host(.floating) .panel {
+  overflow: clip;
+  border: 1px solid var(--color-border);
+  border-radius: calc(var(--radius) * 2);
+  box-shadow: var(--floating-shadow);
+}
+
+.resize {
+  position: absolute;
+  z-index: var(--z-panel-resize);
+  inset: 0 auto 0 -4px;
+  inline-size: 8px;
+  cursor: ew-resize;
+  touch-action: none;
+}
+.resize::before {
+  position: absolute;
+  inset: 0 auto 0 3px;
+  inline-size: 2px;
+  background: var(--color-control-border);
+  content: "";
+  opacity: 0.45;
+}
+.resize:hover::before,
+.resize:focus-visible::before {
+  background: var(--color-focus);
+  opacity: 1;
+}
+:host(.floating) .resize {
+  inset: auto 0 0 auto;
+  z-index: var(--z-panel-resize);
+  inline-size: 18px;
+  block-size: 18px;
+  cursor: nwse-resize;
+}
+/* Physical on purpose, unlike the rest of these styles: the floating panel is
+   pinned to the viewport's bottom-right corner in any direction, so this grip
+   and its nwse-resize cursor are corners of the screen rather than of the text.
+   A logical inline-end border would send the chevron to the left in RTL while
+   the grip it draws stayed on the right. */
+:host(.floating) .resize::after {
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  inline-size: 8px;
+  block-size: 8px;
+  border-right: 2px solid var(--color-text-muted);
+  border-bottom: 2px solid var(--color-text-muted);
+  content: "";
+}
+:host(.floating) .resize::before {
+  display: none;
+}
+.resize:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
+}
+:host(.floating) .resize {
+  border-radius: var(--radius-sm);
+}
+:host(.dock-left) .resize {
+  inset: 0 -4px 0 auto;
+}
+:host(.dock-left) .resize::before {
+  inset: 0 3px 0 auto;
+}
+:host(.dock-bottom) .resize {
+  inset: -4px 0 auto;
+  inline-size: auto;
+  block-size: 8px;
+  cursor: ns-resize;
+}
+:host(.dock-bottom) .resize::before,
+:host(.dock-top) .resize::before {
+  inset: 3px 0 auto;
+  inline-size: auto;
+  block-size: 2px;
+}
+:host(.dock-top) .resize {
+  inset: auto 0 -4px;
+  inline-size: auto;
+  block-size: 8px;
+  cursor: ns-resize;
+}
+:host(.dock-top) .resize::before {
+  inset: auto 0 3px;
+}

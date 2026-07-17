@@ -1,0 +1,239 @@
+/* Rules editor sits left, with compact references to its right. */
+.tab-panel > .wide-column {
+  max-inline-size: 1200px;
+  container: routing-workspace / inline-size;
+}
+
+/* Prose/controls in the wide Dynamic column stay readable; only the
+   two-column editor row is allowed to use the extra width */
+.wide-column > :not(.rules-editor) {
+  max-inline-size: var(--content-max-width);
+}
+
+.rules-editor-main {
+  min-inline-size: 340px;
+}
+
+.routing-reference-column {
+  position: static;
+  max-block-size: none;
+}
+
+.routing-reference-column > .editor-field-label {
+  margin-block-start: 0;
+}
+
+.rules-editor-main > .last-download-row {
+  margin-block-start: var(--space-4);
+}
+
+.routing-ide {
+  min-inline-size: 0;
+}
+
+.routing-editor-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.routing-editor-heading .editor-field-label {
+  margin-block-end: 0;
+}
+
+.routing-ide-actions {
+  min-block-size: var(--control-height);
+}
+
+.rule-editor-cards {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.visual-editor-card {
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--panel-bg) 24%, var(--page-bg));
+}
+
+.visual-editor-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-block-size: 34px;
+  padding-block: var(--space-2);
+  padding-inline: var(--space-3) var(--space-2);
+}
+
+.rule-editor-card.is-debug-selected {
+  border-inline-start: 3px solid var(--color-selection);
+  background: color-mix(in srgb, var(--color-selection) 7%, var(--page-bg));
+}
+
+.rule-editor-drag-handle {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  inline-size: var(--compact-control-size);
+  block-size: var(--compact-control-size);
+  color: var(--color-text-muted);
+  font-size: var(--text-lg);
+  line-height: 1;
+  cursor: grab;
+  user-select: none;
+}
+
+.rule-editor-drag-handle[draggable="false"] {
+  cursor: default;
+  opacity: 0.4;
+}
+
+.rule-editor-drag-handle:active {
+  cursor: grabbing;
+}
+
+.rule-editor-card.is-dragging {
+  opacity: 0.55;
+}
+
+.rule-editor-card.is-drop-before {
+  box-shadow: inset 0 3px var(--color-focus);
+}
+
+.rule-editor-card.is-drop-after {
+  box-shadow: inset 0 -3px var(--color-focus);
+}
+
+.visual-editor-enabled {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  gap: 4px;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  white-space: nowrap;
+}
+
+.rule-editor-enabled-label {
+  display: inline-grid;
+  place-items: center;
+  align-self: center;
+  inline-size: var(--compact-control-size);
+  block-size: var(--compact-control-size);
+  padding: 0;
+  line-height: 0;
+}
+
+.rule-editor-enabled-label input {
+  margin: 0;
+  transform: translateY(2px);
+}
+
+.rule-editor-enabled-label:has(input:checked) {
+  color: var(--color-text);
+}
+
+.rule-editor-enabled-label:hover,
+.rule-editor-enabled-label:focus-within {
+  color: var(--color-text);
+}
+
+.rule-editor-card-body {
+  display: grid;
+  grid-template-columns:
+    var(--compact-control-size) minmax(112px, 0.38fr) minmax(150px, 1fr) 36px
+    var(--compact-control-size);
+  gap: 1px var(--space-2);
+  padding-block: 0 var(--space-2);
+  padding-inline: var(--space-3) var(--space-2);
+}
+
+.rule-editor-card.is-disabled .rule-editor-card-body {
+  opacity: 0.55;
+}
+
+.rule-editor-identity {
+  display: flex;
+  align-items: center;
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  gap: var(--space-2);
+}
+
+.rule-editor-identity h5 {
+  flex: none;
+  margin: 0;
+  font-size: var(--text-base);
+}
+
+.rule-editor-name {
+  flex: 1 1 10rem;
+  min-inline-size: 5rem;
+  max-inline-size: 22rem;
+  block-size: var(--compact-control-size);
+  margin: 0;
+  padding: 3px var(--space-1);
+  color: var(--color-text);
+  border-color: color-mix(in srgb, var(--control-border) 72%, transparent);
+  background: color-mix(in srgb, var(--input-background) 72%, transparent);
+  font-size: var(--text-sm);
+}
+
+.rule-editor-name:hover,
+.rule-editor-name:focus {
+  color: var(--color-text);
+  border-color: var(--panel-border);
+  background: var(--input-background);
+}
+
+.rule-editor-name::placeholder {
+  color: var(--color-text-muted);
+}
+
+.rule-editor-auto-badge {
+  flex: none;
+  color: var(--color-info);
+  font-size: var(--text-sm);
+}
+
+/* The trigger itself is .visual-editor-more-trigger, shared with the Save
+   menu's; .rule-editor-actions-trigger is left as the hook the card and its
+   test address it by. */
+.rule-editor-card-actions {
+  position: relative;
+  flex: none;
+  margin: 0;
+}
+
+.rule-editor-card-action-menu {
+  position: absolute;
+  z-index: var(--z-menu);
+  top: calc(100% + var(--space-1));
+  inset-inline-end: 0;
+}
+
+.rule-editor-card-action-menu .visual-editor-control {
+  justify-content: flex-start;
+  padding-inline: var(--space-2);
+  border-color: transparent;
+  color: var(--color-text);
+  background: transparent;
+  font-size: var(--text-base);
+  text-align: start;
+  opacity: 1;
+}
+
+.rule-editor-card-action-menu .danger-button {
+  color: var(--color-danger);
+  border-color: transparent;
+  background: transparent;
+}
+
+.rule-editor-card-action-menu .danger-button:hover,
+.rule-editor-card-action-menu .danger-button:active {
+  color: var(--color-danger-active);
+  border-color: transparent;
+  background: transparent;
+}

@@ -1,0 +1,233 @@
+#export-target {
+  inline-size: 100%;
+}
+
+/* First-party autocomplete dropdown (autocomplete.js) */
+.syntax-editor {
+  display: flex;
+  inline-size: 100%;
+  min-inline-size: 0;
+  margin: var(--space-2) 0;
+  overflow: clip;
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius);
+  background: var(--input-background);
+  transition:
+    box-shadow var(--motion-duration-fast) ease,
+    border-color var(--motion-duration-fast) ease;
+}
+
+.syntax-editor[hidden] {
+  display: none;
+}
+
+.syntax-editor:focus-within {
+  border-color: var(--color-focus);
+  box-shadow: var(--focus-ring);
+}
+
+.syntax-editor:has(textarea:disabled) {
+  border-color: var(--color-border);
+  background: var(--panel-bg);
+  opacity: 0.62;
+}
+
+.syntax-editor-gutter-viewport {
+  flex: 0 0 3.6rem;
+  overflow: clip;
+  border-inline-end: 1px solid var(--panel-border);
+  background: var(--syntax-gutter-bg);
+  color: var(--color-text-muted);
+  user-select: none;
+}
+
+.syntax-editor:has(textarea:disabled) .syntax-editor-gutter-viewport {
+  background: transparent;
+}
+
+textarea.syntax-editor-input:disabled {
+  caret-color: transparent;
+  cursor: not-allowed;
+}
+
+.syntax-editor-gutter {
+  padding-block: var(--space-2);
+  padding-inline: var(--space-1) var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-base);
+  line-height: var(--leading-code);
+  text-align: end;
+  will-change: transform;
+}
+
+.syntax-editor-line-number {
+  position: relative;
+  display: grid;
+  place-items: center;
+  inline-size: 1.55em;
+  block-size: 1.6em;
+  margin-inline-start: auto;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  cursor: text;
+}
+
+.syntax-editor-line-number.is-current {
+  color: var(--color-text);
+  font-weight: 700;
+}
+
+.syntax-editor-line-number.has-diagnostic {
+  border-color: var(--syntax-error);
+  color: var(--syntax-error);
+  background: var(--syntax-error-soft);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.syntax-editor-line-number.has-diagnostic-warning {
+  border-color: var(--syntax-warning);
+  color: var(--syntax-warning);
+  background: var(--syntax-warning-soft);
+}
+
+.syntax-editor-stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  overflow: clip;
+}
+
+textarea.syntax-editor-input {
+  position: relative;
+  z-index: var(--z-editor-input);
+  display: block;
+  inline-size: 100%;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: transparent;
+  caret-color: var(--color-text);
+  line-height: var(--leading-code);
+  white-space: pre;
+  -webkit-text-fill-color: transparent;
+}
+
+textarea.syntax-editor-input:focus-visible {
+  border-color: transparent;
+  box-shadow: none;
+}
+
+textarea.syntax-editor-input::placeholder {
+  color: var(--color-text-muted);
+  -webkit-text-fill-color: var(--color-text-muted);
+}
+
+.syntax-editor-overlay {
+  position: absolute;
+  z-index: var(--z-local);
+  top: 0;
+  inset-inline-start: 0;
+  min-inline-size: 100%;
+  min-block-size: 100%;
+  margin: 0;
+  padding: var(--space-2);
+  border: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-base);
+  line-height: var(--leading-code);
+  white-space: pre;
+  color: var(--color-text);
+  background-image: linear-gradient(var(--hover-bg), var(--hover-bg));
+  background-repeat: no-repeat;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.visual-editor-row,
+.visual-editor-card {
+  position: relative;
+}
+
+.visual-editor-row.is-dirty-row::before,
+.visual-editor-card.is-dirty-row::before {
+  content: "";
+  position: absolute;
+  z-index: var(--z-editor-marker);
+  top: 0;
+  bottom: 0;
+  inset-inline-start: 0;
+  inline-size: 3px;
+  border-start-start-radius: var(--radius);
+  border-end-start-radius: var(--radius);
+  background: var(--color-accent);
+  pointer-events: none;
+}
+
+.syntax-token-nesting,
+.syntax-token-capture,
+.syntax-token-metadata {
+  color: var(--syntax-variable);
+  font-weight: 600;
+}
+
+.syntax-token-matcher {
+  color: var(--syntax-keyword);
+  font-weight: 600;
+}
+
+.syntax-token-variable {
+  color: var(--syntax-variable);
+  font-weight: 600;
+}
+
+.syntax-token-destination {
+  color: var(--syntax-destination);
+  font-weight: 600;
+}
+
+.syntax-token-destination-value {
+  color: var(--syntax-value);
+}
+
+.syntax-token-comment,
+.syntax-token-comment-delimiter {
+  color: var(--syntax-comment);
+  font-style: italic;
+}
+
+.syntax-token-separator,
+.syntax-token-punctuation {
+  color: var(--syntax-punctuation);
+  font-weight: 700;
+}
+
+.syntax-token-flags,
+.syntax-token-capture-value {
+  color: var(--syntax-warning);
+}
+
+.syntax-token-regex {
+  color: var(--syntax-regex);
+}
+
+.syntax-token-invalid {
+  color: var(--syntax-error);
+}
+
+.syntax-diagnostic {
+  text-decoration-line: underline;
+  text-decoration-style: wavy;
+  text-decoration-thickness: 1.5px;
+  text-decoration-skip-ink: none;
+  text-underline-offset: 3px;
+}
+
+.syntax-diagnostic-error {
+  text-decoration-color: var(--syntax-error);
+}
+
+.syntax-diagnostic-warning {
+  text-decoration-color: var(--syntax-warning);
+}

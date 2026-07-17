@@ -1,0 +1,260 @@
+html:has(.reference-header) {
+  min-inline-size: 0;
+}
+
+body:has(.reference-header) {
+  container: reference-content / inline-size;
+  display: block;
+  max-inline-size: 1100px;
+  margin: 0 auto;
+  padding: var(--space-4) var(--space-5);
+}
+
+.reference-dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+.reference-dialog .reference-dialog-body {
+  flex: 1 1 auto;
+  min-block-size: 0;
+  block-size: auto;
+}
+
+.reference-header {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky-local);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--space-3) var(--space-5);
+  align-items: center;
+  margin: calc(-1 * var(--space-4)) calc(-1 * var(--space-5)) var(--space-5);
+  padding: var(--space-3) var(--space-5);
+  background: var(--page-bg);
+  border-block-end: 1px solid var(--panel-border);
+}
+
+.reference-search-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  grid-column: 2;
+  justify-self: end;
+}
+
+.reference-search-label .reference-search {
+  inline-size: min(28rem, 70dvi);
+  max-inline-size: none;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  font-size: var(--text-base);
+}
+
+.reference-search-label .reference-search:focus-visible,
+.click-to-copy[role="button"]:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.reference-dialog-descriptions {
+  margin: var(--space-3) var(--space-4) 0;
+}
+
+.reference-dialog-description {
+  margin: 0;
+}
+
+.reference-dialog-descriptions + .reference-dialog-filter-label {
+  padding-block-start: var(--space-2);
+}
+
+.reference-count {
+  grid-column: 1;
+  grid-row: 2;
+  align-self: center;
+}
+
+.reference-table {
+  inline-size: 100%;
+  max-inline-size: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.reference-table-scroll {
+  max-inline-size: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+}
+
+.reference-empty-state {
+  margin: var(--space-5) 0 0;
+  padding: var(--space-5);
+  border: 1px dashed var(--panel-border);
+  border-radius: var(--radius);
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+/* Reference popouts are already their own surface; avoid nesting the list in
+   another raised panel. */
+.reference-panel {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+}
+
+.reference-table.box {
+  padding: 0;
+  background: none;
+}
+
+.reference-table th,
+.reference-table td {
+  padding: var(--space-2) var(--space-3);
+  text-align: start;
+  vertical-align: top;
+}
+
+.reference-table tbody th,
+.reference-table tbody td {
+  border-block-end: 0;
+}
+
+.reference-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-local);
+  padding-block: var(--space-3) var(--space-2);
+  border-block-end: 1px solid var(--panel-border);
+  background: var(--page-bg);
+  box-shadow: 0 3px 6px -4px color-mix(in srgb, var(--color-text) 18%, transparent);
+  color: inherit;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.reference-table thead th:nth-child(1) {
+  inline-size: 22%;
+}
+
+.reference-table thead th:nth-child(2) {
+  inline-size: 28%;
+}
+
+.reference-table thead th:nth-child(3) {
+  inline-size: 50%;
+}
+
+.reference-group-row th {
+  padding-block-start: var(--space-4);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.reference-table tbody th {
+  white-space: nowrap;
+  font-weight: 400;
+}
+
+.click-to-copy.copied {
+  color: var(--success-fg);
+  outline: 2px solid currentColor;
+}
+
+@media (max-width: 640px) {
+  body:has(.reference-header) {
+    padding: var(--space-3);
+  }
+
+  .reference-header {
+    position: static;
+    grid-template-columns: 1fr;
+    margin: calc(-1 * var(--space-3)) calc(-1 * var(--space-3)) var(--space-4);
+    padding: var(--space-3);
+  }
+
+  .reference-search-label,
+  .reference-search-label .reference-search {
+    inline-size: 100%;
+  }
+
+  .reference-search-label,
+  .reference-count {
+    grid-column: 1;
+    grid-row: auto;
+    justify-self: stretch;
+  }
+}
+
+@container reference-content (max-width: 640px) {
+  .reference-table-scroll {
+    overflow: visible;
+  }
+
+  .reference-table,
+  .reference-table tbody {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .reference-table thead {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: clip;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .reference-table tbody tr:not(.reference-group-row) {
+    display: grid;
+    gap: var(--space-1);
+    padding: var(--space-3);
+    border: 1px solid var(--panel-border);
+    border-radius: var(--radius);
+    background: var(--page-bg);
+  }
+
+  .reference-table tbody th,
+  .reference-table tbody td {
+    display: grid;
+    grid-template-columns: minmax(5.5rem, 30%) minmax(0, 1fr);
+    gap: var(--space-2);
+    padding: 0;
+    border: 0;
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+
+  .reference-table tbody [data-reference-label]::before {
+    color: var(--color-text-muted);
+    content: attr(data-reference-label);
+    font-family: var(--font-stack);
+    font-size: var(--text-sm);
+    font-weight: 600;
+  }
+
+  .reference-table .reference-cell-content {
+    min-inline-size: 0;
+  }
+
+  .reference-table tbody th code {
+    white-space: nowrap;
+  }
+
+  .reference-table .reference-group-row {
+    display: block;
+  }
+
+  .reference-table .reference-group-row th {
+    display: block;
+    padding: var(--space-3) 0 0;
+  }
+}

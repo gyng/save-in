@@ -1,0 +1,324 @@
+/* ── Tabbed options (tabs.js progressive enhancement) ─────────────── */
+
+/* The shell spans the viewport; readable width is enforced per panel
+   via .tab-panel > * instead */
+#settings-page {
+  inline-size: 100%;
+}
+
+:where(#options) {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  inline-size: 100%;
+  padding: 0 var(--space-5);
+}
+
+:where(#options) > .column {
+  display: flex;
+  flex-direction: column;
+  inline-size: 100%;
+}
+
+.box {
+  inline-size: 100%;
+  margin: var(--space-4) 0;
+  padding: var(--space-1);
+  background-color: var(--chip-bg);
+}
+
+.tablist {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  /* Full-bleed bar: escape the form's horizontal padding */
+  inline-size: calc(100% + 2 * var(--space-5));
+  margin: 0 calc(-1 * var(--space-5)) var(--space-5);
+  padding: 0 var(--space-5);
+  border-block-end: 1px solid var(--panel-border);
+  position: sticky;
+  top: 0;
+  /* Solid, not inherit: content must not show through while scrolling */
+  background-color: var(--page-bg);
+  z-index: var(--z-sticky);
+}
+
+:where(.tablist .tab, .editor-tab, .reference-dialog-tabs [role="tab"]) {
+  appearance: none;
+  border: none;
+  border-block-end: 2px solid transparent;
+  border-radius: var(--radius) var(--radius) 0 0;
+  background: transparent;
+  margin-block-end: -1px;
+  font-size: var(--text-base);
+  font-weight: 500;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition:
+    color var(--motion-duration-fast) ease,
+    border-color var(--motion-duration-fast) ease,
+    background-color var(--motion-duration-fast) ease;
+}
+
+.tablist .tab,
+.reference-dialog-tabs [role="tab"] {
+  padding: var(--space-2) var(--space-3);
+}
+
+.tablist .tab {
+  flex: 0 0 auto;
+}
+
+.editor-tab {
+  padding: var(--space-1) var(--space-3);
+}
+
+:where(.tablist .tab, .editor-tab, .reference-dialog-tabs [role="tab"]):hover {
+  color: var(--link-color);
+  background-color: var(--hover-bg);
+}
+
+:where(.tablist .tab, .editor-tab, .reference-dialog-tabs [role="tab"])[aria-selected="true"] {
+  color: var(--link-color);
+  border-block-end-color: var(--link-color);
+}
+
+:where(.tablist .tab, .editor-tab, .reference-dialog-tabs [role="tab"]):focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.option-search {
+  position: relative;
+  flex: 0 1 16rem;
+  inline-size: min(16rem, 28dvi);
+  max-inline-size: 100%;
+  margin: 0;
+  z-index: var(--z-menu);
+}
+
+.option-search #option-search {
+  inline-size: 100%;
+  max-inline-size: none;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-base);
+}
+
+.option-search:focus-within {
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--link-color) 8%, transparent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--link-color) 12%, transparent);
+}
+
+.option-search-results {
+  position: absolute;
+  top: calc(100% + var(--space-1));
+  inset-inline-end: 0;
+  inline-size: min(22.5rem, calc(100dvi - 2 * var(--space-3)));
+  max-block-size: 20rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  padding: var(--space-1);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  background: var(--floating-bg);
+  box-shadow: var(--floating-shadow);
+}
+
+.option-search-results button {
+  display: grid;
+  gap: 1px;
+  inline-size: 100%;
+  min-block-size: var(--compact-control-size);
+  padding: 6px var(--space-2);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  text-align: start;
+  line-height: 1.25;
+}
+
+.option-search-results button:hover {
+  background: var(--hover-bg);
+}
+
+.option-search-results button[aria-selected="true"] {
+  color: var(--link-color);
+  background: color-mix(in srgb, var(--link-color) 10%, transparent);
+}
+
+.option-search-result-label {
+  overflow: hidden;
+  font-size: var(--text-base);
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.option-search-result-location {
+  overflow: hidden;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: 400;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.option-search-target {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.option-search-target-row {
+  position: relative;
+  z-index: var(--z-local);
+  border-radius: var(--radius-sm);
+  outline: none;
+  box-shadow: var(--focus-ring);
+  animation: option-search-row-flash var(--motion-duration-highlight) ease-out both;
+}
+
+@keyframes option-search-row-flash {
+  from {
+    background: color-mix(in srgb, var(--link-color) 20%, var(--page-bg));
+  }
+
+  70% {
+    background: color-mix(in srgb, var(--link-color) 9%, var(--page-bg));
+  }
+
+  to {
+    background: transparent;
+  }
+}
+
+.tab-panel {
+  display: none;
+  inline-size: 100%;
+  container: options-panel / inline-size;
+  padding-block-end: var(--space-6);
+}
+
+.tab-panel.active {
+  display: block;
+}
+
+/* The shell is full-width; individual panel content stays readable */
+.tab-panel > * {
+  max-inline-size: var(--content-max-width);
+}
+
+/* In-tab hierarchy and shared wide-row placement belong to panel layout, not
+   a late override layer. */
+.tab-panel h3:not(.section-task-heading) {
+  margin-block-start: var(--space-6);
+}
+
+.tab-heading-hidden + h3,
+.tab-panel > h3:first-child,
+.tab-panel > .column > h3:first-child {
+  margin-block-start: 0;
+}
+
+.last-download-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  inline-size: 100%;
+  max-inline-size: none;
+}
+
+.last-download-row .last-download-info,
+.last-download-row .last-download-table {
+  inline-size: 100%;
+}
+
+/* Save menu and Routing rules are sibling editor workspaces: an editor column
+   beside a narrower reference column. UI.md requires them to share that
+   geometry, and this sheet owns options-form and panel geometry, so they read
+   it from one place instead of keeping two copies in step by hand. Each editor
+   layer still owns what is genuinely its own, and outranks this one. */
+.paths-editor,
+.rules-editor {
+  display: grid;
+  grid-template-columns: minmax(340px, 2fr) minmax(260px, 1fr);
+  gap: var(--space-5);
+  align-items: flex-start;
+  inline-size: 100%;
+}
+
+/* Paths textarea and the live menu preview sit side by side, using the
+   width the full-bleed shell frees up; wraps on narrow windows */
+.tab-panel > .paths-editor {
+  max-inline-size: 1200px;
+}
+
+.paths-editor > .column {
+  container: path-editor / inline-size;
+  min-inline-size: 0;
+}
+
+@container options-panel (max-width: 640px) {
+  .paths-editor {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .paths-editor .preview-column {
+    position: static;
+    max-block-size: none;
+  }
+}
+
+/* Right-hand preview stack (menu/template preview + live variables): one
+   sticky column so it stays in view while editing */
+.preview-column {
+  flex: 1 1 300px;
+  min-inline-size: 260px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  position: sticky;
+  top: var(--sticky-header-offset);
+  max-block-size: calc(
+    100dvh - var(--sticky-header-offset) - var(--space-6) - var(--space-6) - var(--space-2)
+  );
+}
+
+.paths-editor > .preview-column {
+  min-inline-size: 0;
+}
+
+.preview-column > .menu-preview {
+  /* Reset the base `details` margin (incl. the 5px left) so the menu preview
+     lines up with the live-variables details below it */
+  margin: 0;
+}
+
+/* Menu preview is collapsible (open by default); separate its tree from the
+   title so the header reads as a header, not a caption glued to the box. */
+.menu-preview[open] > .menu-preview-tree {
+  margin-block-start: var(--space-3);
+}
+
+/* Source-order <hr> section separators are redundant once sections
+   live in separate tab panels */
+.tab-panel > hr {
+  display: none;
+}
+
+/* Panels are block, so their textareas fill the width the old single-column
+   flex layout gave them (align-items: flex-start otherwise shrink-wraps) */
+.tab-panel textarea,
+.tab-panel .column,
+.tab-panel .box {
+  inline-size: 100%;
+}
+
+/* Deliberately narrow inputs (accesskeys, replacement char) keep their
+   own caps; everything else gets a comfortable width */
+.tab-panel input[type="text"]:not(.key):not(#replacementChar) {
+  max-inline-size: 340px;
+}

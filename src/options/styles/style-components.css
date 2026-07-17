@@ -1,0 +1,262 @@
+.code,
+code,
+pre {
+  font-family: var(--font-mono);
+  background: none;
+}
+
+pre {
+  padding: 0;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+}
+
+.code,
+code {
+  padding: 0;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+h2 {
+  inline-size: var(--heading-inline-size, 100%);
+  font-size: var(--text-xl);
+  font-weight: 600;
+  margin: var(--heading-margin, 0 0 var(--space-4));
+}
+
+h1,
+h2,
+h3 {
+  color: var(--color-text);
+}
+
+h3 {
+  inline-size: 100%;
+  font-size: var(--text-lg);
+  font-weight: 600;
+  margin: 0 0 var(--space-1);
+}
+
+h4,
+h5 {
+  font-size: var(--text-base);
+  font-weight: 600;
+  margin: 0 0 var(--space-1);
+}
+
+.tab-panel .section-task-heading {
+  margin: 0 0 var(--space-1);
+}
+
+.section-lead {
+  font-size: var(--text-base);
+  line-height: var(--leading-copy);
+}
+
+.section-task-heading + .section-lead {
+  max-inline-size: 68ch;
+  margin: 0 0 var(--space-3);
+}
+
+hr {
+  block-size: 1px;
+  background-color: var(--color-border);
+  inline-size: 100%;
+  border: none;
+  margin: var(--space-6) 0 0;
+}
+
+p,
+label {
+  margin: 0 0 var(--space-1);
+}
+
+/* Block labels: consecutive controls each get their own row instead of
+   flowing (and wrapping mid-sentence) as one inline paragraph */
+label {
+  display: block;
+  font-size: var(--text-base);
+  padding: 2px 0;
+  user-select: none;
+}
+
+input[type="number"],
+input[type="text"] {
+  max-inline-size: 80px;
+}
+
+label input[type="checkbox"] {
+  margin-inline-end: var(--space-2);
+}
+
+label input[type="number"],
+label input[type="text"] {
+  margin-inline: var(--space-1);
+}
+
+/* Shared disclosure header. Feature variants only adjust hierarchy or intent. */
+summary {
+  padding: var(--space-1) 0;
+  font-size: var(--text-base);
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+}
+
+details {
+  margin: var(--space-1) 0 0;
+}
+
+/* Shared text trigger for details-backed menus. Compact icon triggers retain
+   their feature-owned dimensions but use the same global summary focus ring. */
+.menu-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-block-size: var(--control-height);
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  background: transparent;
+  font-size: var(--text-base);
+  font-weight: 500;
+  line-height: 1;
+  list-style: none;
+}
+
+.menu-trigger::after {
+  inline-size: 6px;
+  block-size: 6px;
+  border-inline-end: 1.5px solid currentColor;
+  border-block-end: 1.5px solid currentColor;
+  content: "";
+  transform: translateY(-2px) rotate(45deg);
+  transition: transform var(--motion-duration-fast) ease;
+}
+
+details[open] > .menu-trigger::after {
+  transform: translateY(2px) rotate(225deg);
+}
+
+.menu-trigger:hover,
+details[open] > .menu-trigger {
+  background: var(--hover-bg);
+}
+
+.menu-trigger:focus-visible {
+  border-color: var(--color-focus);
+}
+
+/* Shared row atom for compact action menus. Feature owners still control
+   anchoring and width, while the surface and interactive rhythm stay uniform. */
+.menu-popover {
+  --menu-popover-min-inline: 170px;
+
+  display: grid;
+  min-inline-size: min(var(--menu-popover-min-inline), calc(100dvi - 2 * var(--space-2)));
+  max-inline-size: calc(100dvi - 2 * var(--space-2));
+  max-block-size: min(20rem, calc(100dvb - 2 * var(--space-2)));
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  padding: var(--space-1);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  background: var(--floating-bg);
+  box-shadow: var(--floating-shadow);
+}
+
+.menu-popover > :where(a, button, label) {
+  display: flex;
+  align-items: center;
+  inline-size: 100%;
+  min-block-size: var(--compact-control-size);
+  margin: 0;
+  padding: var(--space-1) var(--space-2);
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  background: transparent;
+  font-size: var(--text-base);
+  font-weight: 400;
+  line-height: 1.25;
+  text-align: start;
+}
+
+.menu-popover > :where(a, button, label):hover {
+  background: var(--hover-bg);
+  text-decoration: none;
+}
+
+/* Reserved the gap the icon used to be positioned into. The icon is inline
+   now and brings its own margin, so the padding only pushed the row wider. */
+
+/* Modern engines can interpolate intrinsic sizes directly, so disclosure
+   panels do not need JavaScript measurements or a stale max-height guess. */
+@supports (interpolate-size: allow-keywords) and selector(details::details-content) {
+  #settings-page {
+    interpolate-size: allow-keywords;
+  }
+
+  #settings-page
+    details:not(.details-popup, .menu-preview):not(:has(> .menu-popover))::details-content {
+    block-size: 0;
+    overflow: clip;
+    opacity: 0;
+    transition:
+      block-size var(--motion-duration-quick) ease-out,
+      opacity var(--motion-duration-instant) ease-out,
+      content-visibility var(--motion-duration-quick) allow-discrete;
+  }
+
+  #settings-page
+    details[open]:not(.details-popup, .menu-preview):not(:has(> .menu-popover))::details-content {
+    block-size: auto;
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .saved {
+    animation: none;
+  }
+
+  .option-search-target-row {
+    animation: none;
+    background: color-mix(in srgb, var(--link-color) 12%, var(--page-bg));
+  }
+}
+
+li {
+  margin-block-end: var(--space-1);
+}
+
+.editor-field-label {
+  display: block;
+  margin: 0.35rem 0;
+  font-size: var(--text-base);
+  font-weight: 600;
+}
+
+.save {
+  margin-block-start: var(--space-6);
+}
+
+.help {
+  color: var(--link-color);
+  cursor: pointer;
+
+  &:visited {
+    color: var(--link-color);
+  }
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &:active {
+    color: var(--link-color-active);
+  }
+}

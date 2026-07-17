@@ -1,0 +1,49 @@
+/* Host-permission banner is rendered by permissions-banner.ts when broad host
+   access is unavailable. */
+.host-permission-banner {
+  margin: 0 0 var(--space-4);
+}
+
+.host-permission-text {
+  flex: 1;
+}
+
+.host-permission-grant {
+  flex: none;
+  cursor: pointer;
+}
+
+@media (max-width: 640px) {
+  .top-nav {
+    align-items: flex-start;
+    padding-inline: var(--space-3);
+  }
+
+  .save-status {
+    white-space: normal;
+  }
+
+  .top-nav-tools {
+    inline-size: 100%;
+    flex-wrap: wrap;
+    margin-inline-start: 0;
+  }
+
+  .reference-launcher-actions {
+    order: 9;
+    max-inline-size: 100%;
+    margin-inline-start: 0;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+  }
+
+  .nav-resources-menu {
+    inset-inline: auto 0;
+    max-inline-size: calc(100dvi - 2 * var(--space-3));
+  }
+
+  .saved-change-popover {
+    inset-inline-start: 0;
+    inline-size: calc(100dvi - 2 * var(--space-3));
+  }
+}

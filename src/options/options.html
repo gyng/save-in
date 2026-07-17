@@ -1,617 +1,3966 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html class="localization-pending">
+  <head>
+    <meta charset="utf-8" />
+    <title>__MSG_html_settingsSaveIn__</title>
+    <link href="style.css" rel="stylesheet" />
+    <link href="dialogs/style-welcome.css" rel="stylesheet" />
+    <link href="reference/style-reference.css" rel="stylesheet" />
+    <link rel="icon" type="image/png" href="favicon.png" />
+  </head>
 
-<head>
-  <meta charset="utf-8" />
-  <script type="application/javascript" src="../vendor/browser-polyfill.js"></script>
-  <script type="application/javascript" src="./vendor/l10n/l10n.js"></script>
-  <script type="application/javascript" src="../chrome-detector.js"></script>
-  <title>Settings &mdash; Save In</title>
-  <link href="style.css" rel="stylesheet" />
-  <link rel="icon" type="image/png" href="./favicon.png" />
-</head>
-
-<body id="settings-page">
-  <div>
-    <a class="open-settings-in-window" href="options.html" target="_blank">__MSG_o_lPopout__</a>
-    &middot;
-    <a href="variablelist.html" target="_blank">__MSG_o_lVariableList__</a>
-    &middot;
-    <a href="clauselist.html" target="_blank">__MSG_o_lClauseList__</a>
-    &middot;
-    <a class="external" href="https://github.com/gyng/save-in/">__MSG_o_lGithub__</a>
-    &middot;
-    <a class="external" href="https://github.com/gyng/save-in/blob/master/CHANGELOG.md">__MSG_o_lChangelog__</a>
-  </div>
-
-  <form id="options">
-    <h2 id="section-downloads">__MSG_o_sDownloads__</h2>
-
-    <label class="column">
-      <h3>__MSG_o_sDirectories__</h3>
-      <span>
-        <h3 class="popout link" data-popout-for="variablelist.html">
-          📓 __MSG_o_lVariableList__
-        </h3>
-      </span>
-      <p>
-        <a href="#" class="help learn-more" data-help-for="help-paths">__MSG_o_lGuideCreateMenuItems__</a>
-      </p>
-      <div class="help-text" id="help-paths">
-        <h4>Creating context menu items</h4>
-        <p>
-          To create a menu item to save <code>cat.jpg</code> into the
-          directory <code>~/downloads/i/cats</code>, with
-          <code>~/downloads</code> as the default download directory, add the
-          line <code>i/cats</code>.
-        </p>
-
-        <div class="demo-box" style="margin-top: 12px; align-items: flex-start;">
-          <div class="demo-code left ">
-            <pre class="click-to-copy">
-.
-i/dogs
-i/cats // cute!
----
-v/cats
-:date:/:day:/foo
----
-submenu
->mammals
->>i/cats // (alias: cute cats)
->>i/dogs
->i/others
-</pre>
-            <div class="caption">Settings</div>
+  <body id="settings-page">
+    <div class="top-nav">
+      <div>
+        <img class="app-icon" src="../../icons/ic_archive_black_24px.svg" alt="" />
+        <span class="app-title">__MSG_extensionName__</span>
+        <a
+          class="version-label"
+          id="version-label"
+          href="https://github.com/gyng/save-in/releases"
+          target="_blank"
+          rel="noreferrer"
+        ></a>
+        <details class="nav-resources details-popup">
+          <summary class="menu-trigger">__MSG_o_lHelpResources__</summary>
+          <div class="nav-resources-menu menu-popover">
+            <a href="#" data-reference-tab="options-reference-variables">__MSG_o_lVariableList__</a>
+            <a href="#" data-reference-tab="options-reference-clauses">__MSG_o_lClauseList__</a>
+            <a class="external" href="https://github.com/gyng/save-in/">__MSG_o_lGithub__</a>
+            <a class="external" href="https://github.com/gyng/save-in/issues"
+              >__MSG_html_issues__</a
+            >
+            <a class="external" href="https://github.com/gyng/save-in/discussions"
+              >__MSG_html_discussions__</a
+            >
+            <a class="external" href="https://github.com/gyng/save-in/wiki">__MSG_html_wiki__</a>
+            <a class="external" href="https://github.com/gyng/save-in/blob/master/CHANGELOG.md"
+              >__MSG_o_lChangelog__</a
+            >
+            <button type="button" id="privacy-open" class="nav-menu-link">
+              __MSG_html_privacyPolicy__
+            </button>
+            <button type="button" id="about-open" class="nav-menu-link">
+              __MSG_html_aboutSaveIn__
+            </button>
           </div>
-          <div class="demo-arrow">➡</div>
+        </details>
+      </div>
+      <div class="top-nav-tools">
+        <div class="language-selector">
+          <select
+            id="uiLocale"
+            data-no-autosave
+            aria-label="__MSG_o_lLanguage__"
+            aria-describedby="language-error"
+          >
+            <option value="">English</option>
+            <option value="en" hidden>English</option>
+            <option value="de">Deutsch (AI)</option>
+            <option value="es">Español (AI)</option>
+            <option value="fr">Français (AI)</option>
+            <option value="it">Italiano (AI)</option>
+            <option value="nl_AI">Nederlands (AI)</option>
+            <option value="pt_BR">Português (Brasil) (AI)</option>
+            <option value="sv_AI">Svenska (AI)</option>
+            <option value="ja">日本語 (AI)</option>
+            <option value="ko">한국어 (AI)</option>
+            <option value="zh_CN">简体中文 (AI)</option>
+            <option value="zh_TW">繁體中文 (AI)</option>
+          </select>
+        </div>
+        <span
+          id="language-error"
+          class="feedback feedback-error language-error"
+          role="alert"
+          hidden
+        ></span>
+        <div class="reference-launcher-actions" aria-label="__MSG_html_insertionReferences__">
+          <button type="button" data-reference-tab="options-reference-variables">
+            __MSG_o_lRoutingVariables__
+          </button>
+          <button type="button" data-reference-tab="options-reference-clauses">
+            __MSG_o_lClauses__
+          </button>
+          <button type="button" data-reference-tab="options-reference-templates">
+            __MSG_html_templates__
+          </button>
+        </div>
+      </div>
+      <div class="save-status caption" role="status" aria-live="polite">
+        <span>__MSG_o_cLastSavedAt__</span>
+        <span id="lastSavedAt">__MSG_o_cLastSavedAtNever__</span>
+      </div>
+    </div>
 
-          <div class="demo-code">
-            <pre>
-~/downloads/
-~/downloads/i/dogs
-~/downloads/i/cats
+    <div
+      id="host-permission-banner"
+      class="feedback feedback-error feedback-banner host-permission-banner"
+      hidden
+    >
+      <span class="host-permission-text">__MSG_o_cHostPermissionMissing__</span>
+      <button type="button" id="host-permission-grant" class="host-permission-grant">
+        __MSG_o_cHostPermissionGrant__
+      </button>
+    </div>
+
+    <main id="options">
+      <h2 id="section-downloads">__MSG_o_sDownloads__</h2>
+
+      <h3 class="section-task-heading">__MSG_o_sDirectories__</h3>
+      <p class="section-lead">__MSG_html_buildTheDestinationsAndSubmenusShownInSaveIn__</p>
+
+      <div class="paths-editor">
+        <div class="column">
+          <h4 class="editor-field-label" id="paths-editor-label">
+            __MSG_o_lDirectoryDefinitions__
+          </h4>
+          <div class="editor-tabs" role="tablist" aria-label="__MSG_html_directoryEditorMode__">
+            <button
+              type="button"
+              class="editor-tab active"
+              id="paths-mode-text"
+              role="tab"
+              aria-selected="true"
+              aria-controls="paths-text-editor"
+            >
+              __MSG_o_lEditorModeText__
+            </button>
+            <button
+              type="button"
+              class="editor-tab"
+              id="paths-mode-visual"
+              role="tab"
+              aria-selected="false"
+              aria-controls="paths-visual"
+            >
+              __MSG_o_sVisualEditor__
+            </button>
+          </div>
+
+          <div id="paths-text-editor" role="tabpanel" aria-labelledby="paths-mode-text">
+            <textarea
+              required
+              id="paths"
+              data-manual="true"
+              rows="16"
+              placeholder="__MSG_pathTextEmptyExample__"
+              spellcheck="false"
+              aria-labelledby="paths-editor-label"
+              aria-describedby="paths-editor-description error-paths"
+            ></textarea>
+            <div class="editor-actions" id="paths-text-actions">
+              <span class="caption editor-action-help" id="paths-editor-description">
+                __MSG_html_oneRelativeDirectoryOrMenuInstructionPerLineDownloads__
+                <a
+                  href="#"
+                  data-open-default-downloads-folder
+                  title="__MSG_html_openTheDefaultDownloadsDirectory__"
+                  >__MSG_html_defaultDownloadsDirectory__</a
+                >__MSG_html_add__ <code>//</code> __MSG_html_atTheEndForACommentStartWith__
+                <code>&gt;</code> __MSG_html_toCreateNestedSubmenusUsingOne__
+                <code>&gt;</code> __MSG_html_perLevel__
+                <a href="#" data-reference-tab="options-reference-variables"
+                  >__MSG_o_lRoutingVariables__</a
+                >
+              </span>
+              <div class="editor-save-actions">
+                <button type="button" class="discard-button" data-discard="paths" disabled>
+                  __MSG_o_bDiscard__
+                </button>
+                <button
+                  type="button"
+                  class="button-primary apply-button"
+                  data-apply="paths"
+                  disabled
+                >
+                  __MSG_o_bApply__
+                </button>
+              </div>
+            </div>
+
+            <details id="paths-text-help" class="inline-guide editor-guide">
+              <summary>__MSG_html_howToCreateDestinations__</summary>
+              <div class="guide-body">
+                <p>
+                  __MSG_html_eachLineAddsADestinationRelativeToYourBrowser__
+                  <a href="#" data-open-default-downloads-folder>__MSG_html_downloadsFolder__</a>.
+                </p>
+                <div class="guide-steps">
+                  <div class="guide-step">
+                    <strong>__MSG_html_addDestinations__</strong>
+                    <pre class="click-to-copy">
+images
+documents</pre>
+                    <span class="caption"
+                      >__MSG_html_createsTwoSelectableRowsInTheDownloadsMenu__</span
+                    >
+                  </div>
+                  <div class="guide-step">
+                    <strong>__MSG_html_changeADisplayedName__</strong>
+                    <pre class="click-to-copy">images/cats // (alias: Cat pictures)</pre>
+                    <span class="caption"
+                      >__MSG_html_savesTo__
+                      <code>images/cats</code>__MSG_html_butShowsCatPictures__</span
+                    >
+                  </div>
+                  <div class="guide-step">
+                    <strong>__MSG_html_separateGroups__</strong>
+                    <pre class="click-to-copy">
+images
 ---
-~/downloads/v/cats
-~/downloads/2000-01-01/01/foo
----
-(submenu)
-(submenu)
-~/downloads/i/cats (shows up as "cute cats")
-~/downloads/i/dogs
-~/downloads/i/others
-</pre>
-            <div class="caption">
-              Default download dir <code>~/downloads</code>
+documents</pre>
+                  </div>
+                  <div class="guide-step">
+                    <strong>__MSG_html_createASubmenu__</strong>
+                    <pre class="click-to-copy">
+Media
+&gt;images
+&gt;videos</pre>
+                    <span class="caption"
+                      >__MSG_html_each__ <code>&gt;</code> __MSG_html_addsOneNestingLevel__</span
+                    >
+                  </div>
+                  <div class="guide-step">
+                    <strong>__MSG_html_useAVariable__</strong>
+                    <pre class="click-to-copy">images/:year:/:month:</pre>
+                    <span class="caption"
+                      >__MSG_html_forExample__ <code>images/2026/07</code>.</span
+                    >
+                  </div>
+                </div>
+                <details class="guide-more">
+                  <summary>__MSG_html_moreMenuSyntax__</summary>
+                  <dl class="guide-syntax">
+                    <div>
+                      <dt><code>.</code></dt>
+                      <dd>
+                        __MSG_html_the__
+                        <a href="#" data-open-default-downloads-folder
+                          >__MSG_html_downloadsFolder__</a
+                        >
+                        __MSG_html_itself__
+                      </dd>
+                    </div>
+                    <div>
+                      <dt><code>// note</code></dt>
+                      <dd>__MSG_html_addACommentThatIsNotDisplayed__</dd>
+                    </div>
+                    <div>
+                      <dt><code>(alias: Name)</code></dt>
+                      <dd>__MSG_html_changeTheDisplayedName__</dd>
+                    </div>
+                    <div>
+                      <dt><code>(key: f)</code></dt>
+                      <dd>__MSG_html_assignAnAccessKey__</dd>
+                    </div>
+                    <div>
+                      <dt><code>(disabled: true)</code></dt>
+                      <dd>__MSG_html_disableThisDestinationAndItsChildren__</dd>
+                    </div>
+                  </dl>
+                </details>
+                <details class="agent-prompt-guide">
+                  <summary>__MSG_html_askAnAiAgentToDraftADownloadsMenu__</summary>
+                  <p class="caption">
+                    __MSG_html_copyThisPromptThenReplaceTheExampleDestinations__
+                    <a class="external" href="https://github.com/gyng/save-in/wiki" target="_blank"
+                      >__MSG_html_saveInWiki__</a
+                    >
+                  </p>
+                  <pre class="click-to-copy">
+You are writing a Downloads-menu definition for the Save In browser extension.
+
+Create destinations for: images grouped by website, PDFs in documents, and a dated inbox.
+
+Save In syntax:
+- Write one menu instruction per line.
+- A relative path such as images/cats creates a destination with that folder path.
+- A line containing --- creates a separator.
+- Prefix a child with &gt;; use one additional &gt; for each deeper submenu level.
+- Add // (alias: Display name) to show a different menu label without changing the folder path.
+- Add // comments after an instruction; add (key: f) inside the comment to assign an access key.
+- Add (disabled: true) inside the comment to keep a destination and its children out of the menu.
+- Variables use :name: syntax. Useful choices include :sourcedomain:, :year:, :month:, :day:, and :filename:.
+- A single . means the browser's Downloads folder.
+- Paths must be relative. Never use an absolute path, .., or a leading slash.
+
+If more Save In context is needed, consult https://github.com/gyng/save-in/wiki before answering.
+
+Briefly explain the structure, check that every line follows this syntax, then provide one final plain-text, copy-ready definition in a fenced code block.</pre>
+                </details>
+              </div>
+            </details>
+          </div>
+
+          <div
+            id="paths-visual"
+            role="tabpanel"
+            aria-labelledby="paths-mode-visual"
+            aria-describedby="error-paths"
+            hidden
+          >
+            <div id="path-editor-rows"></div>
+            <div class="visual-editor-toolbar path-editor-toolbar">
+              <button type="button" class="button-primary" id="path-editor-add-dir">
+                + __MSG_o_bAddDirectory__
+              </button>
+              <button type="button" id="path-editor-add-sep">+ __MSG_o_bAddSeparator__</button>
+              <a class="toolbar-link" href="#" data-reference-tab="options-reference-variables"
+                >__MSG_o_lRoutingVariables__</a
+              >
+              <div class="editor-save-actions">
+                <button type="button" class="discard-button" data-discard="paths" disabled>
+                  __MSG_o_bDiscard__
+                </button>
+                <button
+                  type="button"
+                  class="button-primary apply-button"
+                  data-apply="paths"
+                  disabled
+                >
+                  __MSG_o_bApply__
+                </button>
+              </div>
+            </div>
+          </div>
+          <div
+            class="error-notification editor-validation-summary"
+            id="error-paths"
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+          ></div>
+        </div>
+
+        <div class="preview-column">
+          <details class="menu-preview" id="menu-preview" open>
+            <summary>__MSG_o_lMenuPreview__</summary>
+            <div class="menu-preview-tree" id="menu-preview-tree"></div>
+          </details>
+
+          <details class="variables-preview details-popup" data-insert-target="paths">
+            <summary>__MSG_o_lLiveVariables__</summary>
+            <div class="variables-preview-list"></div>
+          </details>
+        </div>
+      </div>
+
+      <details class="inline-guide edge-case-guide">
+        <summary>__MSG_html_savingOutsideTheDownloadsFolder__</summary>
+        <div class="guide-body">
+          <p>
+            __MSG_html_browsersOnlyLetExtensionsSaveInsideTheDefault__
+            <a href="#" data-open-default-downloads-folder>__MSG_html_downloadsFolder__</a
+            >__MSG_html_toReachAnotherLocationCreateASymlinkInsideDownloads__
+          </p>
+          <p>
+            __MSG_html_pathsContaining__
+            <code>..</code>__MSG_html_absolutePathsAndHiddenPathSegmentsSuchAs__
+            <code>.private</code> __MSG_html_areNotSupported__
+          </p>
+          <p>
+            <a
+              class="external"
+              href="https://github.com/gyng/save-in/wiki/Saving-outside-the-Downloads-folder"
+              target="_blank"
+              rel="noopener"
+              >__MSG_html_saveInWiki__</a
+            >
+          </p>
+        </div>
+      </details>
+
+      <h3>__MSG_o_sBehavior__</h3>
+
+      <div class="behavior-group" data-behavior-group="context-menu">
+        <h4>__MSG_html_contextMenus__</h4>
+        <div class="caption behavior-group-intro">__MSG_o_lContextMenuBehaviorHelp__</div>
+
+        <label> <input type="checkbox" id="enableLastLocation" />__MSG_o_cLastUsedMenu__ </label>
+        <label class="inline-control-label recent-locations">
+          <span data-saved-target>__MSG_o_lRecentLocations__</span>
+          <input
+            type="number"
+            id="recentDestinationCount"
+            min="0"
+            max="5"
+            step="1"
+            inputmode="numeric"
+          />
+          <span class="caption">__MSG_o_lRecentLocationsHelp__</span>
+        </label>
+
+        <fieldset class="option-group">
+          <legend>
+            <label><input type="checkbox" id="quickSaveEnabled" />__MSG_o_cQuickSave__</label>
+          </legend>
+          <div class="caption caption-line">
+            <div class="caption">__MSG_o_cQuickSaveHelp__</div>
+            <label class="inline-control-label">
+              <span>__MSG_o_lQuickSaveDirectory__</span>
+              <input type="text" id="quickSaveDirectory" spellcheck="false" />
+            </label>
+            <label>
+              <input type="checkbox" id="quickSaveUseDirectory" />__MSG_o_cQuickSaveUseDirectory__
+            </label>
+            <label>
+              <input type="checkbox" id="quickSaveOnly" aria-describedby="quick-save-only-help" />
+              __MSG_o_cQuickSaveOnly__
+            </label>
+            <div class="caption" id="quick-save-only-help">__MSG_o_cQuickSaveOnlyHelp__</div>
+          </div>
+        </fieldset>
+
+        <fieldset class="option-group">
+          <legend>
+            <label><input type="checkbox" id="links" />__MSG_o_cSaveLinks__</label>
+          </legend>
+          <div class="caption caption-line">
+            <label> <input type="checkbox" id="preferLinks" />__MSG_o_cPreferLinks__ </label>
+          </div>
+
+          <div class="caption caption-line prefer-links-filter">
+            <label>
+              <input
+                type="checkbox"
+                id="preferLinksFilterEnabled"
+              />__MSG_o_cPreferLinksFilterEnabled__
+            </label>
+
+            <details class="prefer-links-filter-patterns">
+              <summary>__MSG_o_cPreferLinksFilter__</summary>
+              <textarea
+                class="full-width"
+                id="preferLinksFilter"
+                aria-label="__MSG_o_cPreferLinksFilter__"
+                rows="3"
+                placeholder=""
+                spellcheck="false"
+              ></textarea>
+              <div class="caption">__MSG_o_cPreferLinksFilterHelp__</div>
+            </details>
+          </div>
+        </fieldset>
+
+        <label> <input type="checkbox" id="selection" />__MSG_o_cSaveText__ </label>
+
+        <div class="described-checkbox">
+          <input type="checkbox" id="page" aria-describedby="save-page-help" />
+          <label for="page">__MSG_o_cSavePage__</label>
+          <div class="caption caption-line" id="save-page-help">__MSG_o_cSavePageHelp__</div>
+        </div>
+
+        <fieldset class="option-group">
+          <legend>
+            <label>
+              <input
+                type="checkbox"
+                id="tabEnabled"
+                class="tab-context-required"
+                data-tab-context-requirement="tab-context-requirement"
+              />__MSG_o_cSaveTabstrip__
+              <span
+                class="warning badge chrome-tab-context-badge"
+                id="tab-context-requirement"
+                hidden
+                >Chrome 150+</span
+              >
+            </label>
+          </legend>
+          <div class="caption-line">
+            <label> <input type="checkbox" id="closeTabOnSave" />__MSG_o_cCloseTabOnSave__ </label>
+            <div class="caption">__MSG_o_cSaveTabstripHelp__</div>
+          </div>
+        </fieldset>
+      </div>
+
+      <div class="behavior-group" data-behavior-group="save-dialog">
+        <h4>__MSG_o_sSaveDialog__</h4>
+
+        <label> <input type="checkbox" id="prompt" />__MSG_o_cOpenDialog__ </label>
+        <div class="behavior-group-intro save-dialog-conditions-label">__MSG_o_lAlsoAskWhen__</div>
+
+        <div class="save-dialog-conditions">
+          <label>
+            <input type="checkbox" id="promptIfNoExtension" />__MSG_o_cOpenDialogNoExt__
+          </label>
+
+          <label> <input type="checkbox" id="promptOnShift" />__MSG_o_cOpenDialogShift__ </label>
+
+          <label>
+            <input type="checkbox" id="promptOnFailure" />__MSG_o_cOpenDialogOnFailure__
+          </label>
+        </div>
+      </div>
+
+      <div class="behavior-group" data-behavior-group="existing-files">
+        <h4>__MSG_o_sExistingFiles__</h4>
+
+        <label class="inline-control-label">
+          <span data-saved-target>__MSG_o_cDupeFilename__</span>
+          <select id="conflictAction">
+            <option value="uniquify">__MSG_o_cDupeUniquify__</option>
+            <option value="overwrite">__MSG_o_cDupeOverwrite__</option>
+            <option class="conflict-prompt-only" value="prompt">__MSG_o_cDupePrompt__</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="behavior-group" data-behavior-group="context-menu-access-keys">
+        <h4>__MSG_o_sContextMenu__</h4>
+        <p class="caption caption-line">__MSG_o_lAccessKeysInstruction__</p>
+
+        <label>
+          <input
+            class="key"
+            type="text"
+            id="keyRoot"
+            maxlength="1"
+            aria-describedby="access-key-status"
+          />
+          <span data-saved-target>__MSG_o_cKeyboardShortcutSaveInMenu__</span>
+        </label>
+
+        <label>
+          <input
+            class="key"
+            type="text"
+            id="keyLastUsed"
+            maxlength="1"
+            aria-describedby="access-key-status"
+          />
+          <span data-saved-target>__MSG_o_cKeyboardShortcutSubmenu__</span>
+        </label>
+        <div
+          id="access-key-status"
+          class="caption warning-text"
+          role="status"
+          aria-live="polite"
+        ></div>
+
+        <label>
+          <input type="checkbox" id="enableNumberedItems" />
+          __MSG_o_cKeyboardShortcutNumbers__
+        </label>
+      </div>
+
+      <hr />
+
+      <div class="column wide-column">
+        <h2 id="section-browser-downloads">__MSG_o_sBrowserDownloads__</h2>
+
+        <h3 class="section-task-heading">__MSG_html_trackAndRouteBrowserDownloads__</h3>
+
+        <p class="section-lead">__MSG_o_lBrowserDownloadsHelp__</p>
+
+        <div class="described-checkbox browser-download-choice">
+          <input
+            type="checkbox"
+            id="trackBrowserDownloads"
+            aria-describedby="track-browser-downloads-help"
+          />
+          <label for="trackBrowserDownloads" data-saved-target
+            >__MSG_o_cTrackBrowserDownloads__</label
+          >
+          <div class="caption caption-line" id="track-browser-downloads-help">
+            __MSG_o_cTrackBrowserDownloadsHelp__
+          </div>
+        </div>
+
+        <div class="browser-download-route-group">
+          <div class="described-checkbox browser-download-choice filename-suggestion-only">
+            <input
+              type="checkbox"
+              id="routeBrowserDownloads"
+              aria-describedby="route-browser-downloads-help"
+            />
+            <label for="routeBrowserDownloads" data-saved-target
+              >__MSG_o_cRouteBrowserDownloads__</label
+            >
+            <div class="caption caption-line" id="route-browser-downloads-help">
+              __MSG_o_cRouteBrowserDownloadsHelp__
             </div>
           </div>
 
-          <div class="demo-arrow">➡</div>
+          <div class="described-checkbox browser-download-choice firefox-reroute-only">
+            <input
+              type="checkbox"
+              id="routeBrowserDownloadsFirefox"
+              aria-describedby="route-browser-downloads-firefox-help"
+            />
+            <label
+              for="routeBrowserDownloadsFirefox"
+              class="inline-control-label"
+              data-saved-target
+            >
+              __MSG_o_cRouteBrowserDownloadsFirefox__
+              <span class="badge">Firefox</span>
+              <span class="badge warning">__MSG_o_lExperimental__</span>
+            </label>
+            <div class="caption caption-line warning" id="route-browser-downloads-firefox-help">
+              __MSG_o_cRouteBrowserDownloadsFirefoxHelp__
+              <a
+                class="external"
+                href="https://bugzilla.mozilla.org/show_bug.cgi?id=1245652"
+                target="_blank"
+                rel="noreferrer"
+                >__MSG_o_lFirefoxFilenameApiBug__</a
+              >
+            </div>
+          </div>
 
-          <pre class="demo-pic" style="background-image: url(i/menu-items.png)"></pre>
+          <button type="button" id="browser-download-manage-rules">
+            __MSG_autoDownloadManageRules__
+          </button>
         </div>
 
-        <h4>Comments and aliases</h4>
+        <div class="described-checkbox browser-download-filter-group">
+          <input
+            type="checkbox"
+            id="browserDownloadFiltersEnabled"
+            aria-controls="browser-download-filter-options"
+            aria-describedby="browser-download-filters-help"
+          />
+          <label for="browserDownloadFiltersEnabled" data-saved-target
+            >__MSG_o_cBrowserDownloadFiltersEnabled__</label
+          >
+          <div class="caption caption-line" id="browser-download-filters-help">
+            __MSG_o_cBrowserDownloadFiltersEnabledHelp__
+          </div>
 
-        <p>
-          To add comments, add <code>//</code> to the end of a line. For
-          example, <code>cats // very cute!</code>.
-        </p>
+          <div
+            id="browser-download-filter-options"
+            class="dependent-options browser-download-filter-options"
+          >
+            <div class="browser-download-filter-field">
+              <label for="browserDownloadFilter">__MSG_o_cBrowserDownloadFilter__</label>
+              <textarea
+                class="full-width"
+                id="browserDownloadFilter"
+                rows="3"
+                placeholder="*://*.example.com/*"
+                spellcheck="false"
+                aria-describedby="browser-download-filter-help browser-download-filter-error"
+                data-syntax-validation-summary="browser-download-filter-error"
+              ></textarea>
+              <div class="caption caption-line" id="browser-download-filter-help">
+                __MSG_o_cBrowserDownloadFilterHelp__
+              </div>
+              <div
+                class="feedback feedback-inline feedback-error"
+                id="browser-download-filter-error"
+                role="status"
+                aria-live="polite"
+                hidden
+              >
+                __MSG_o_cBrowserDownloadFilterInvalid__
+              </div>
+            </div>
 
-        <p>
-          To change display names of menu items, add
-          <code>(alias: display name)</code> to comments. For example,
-          <code>cats // very cute! (alias: cute cats)</code>. The menu item
-          will then show "cute cats" instead of "cats".
-        </p>
+            <div class="browser-download-filter-field">
+              <label for="browserDownloadExcludeFilter"
+                >__MSG_o_cBrowserDownloadExcludeFilter__</label
+              >
+              <textarea
+                class="full-width"
+                id="browserDownloadExcludeFilter"
+                rows="3"
+                placeholder="*://private.example.com/*"
+                spellcheck="false"
+                aria-describedby="browser-download-exclude-filter-help browser-download-exclude-filter-error"
+                data-syntax-validation-summary="browser-download-exclude-filter-error"
+              ></textarea>
+              <div class="caption caption-line" id="browser-download-exclude-filter-help">
+                __MSG_o_cBrowserDownloadExcludeFilterHelp__
+              </div>
+              <div
+                class="feedback feedback-inline feedback-error"
+                id="browser-download-exclude-filter-error"
+                role="status"
+                aria-live="polite"
+                hidden
+              >
+                __MSG_o_cBrowserDownloadExcludeFilterInvalid__
+              </div>
+            </div>
+          </div>
+        </div>
 
-        <p>
-          To change the shortcut key, use <code>(key: f)</code> to manually
-          assign one.
-        </p>
+        <section
+          class="info-row browser-download-routing-data"
+          aria-labelledby="browser-download-routing-data-heading"
+        >
+          <h4 id="browser-download-routing-data-heading">
+            __MSG_o_lBrowserDownloadVariablesHeading__
+          </h4>
+          <p>__MSG_o_lBrowserDownloadVariables__</p>
+          <p class="caption">__MSG_o_lBrowserDownloadVariablesUnavailable__</p>
+        </section>
 
-        <h4>Submenus</h4>
-
-        <p>
-          To create submenus, add <code>&gt;</code>s to the line itself. An
-          example can be seen above.
-        </p>
-
-        <p>
-          Note: You can only save relative to the default download directory.
-          See the next guide for a workaround.
-        </p>
-      </div>
-
-      <p>
-        <a href="#" class="help learn-more" data-help-for="help-symlink">__MSG_o_lGuideSymlink__</a>
-      </p>
-      <div class="help-text" id="help-symlink">
-        <h4>Saving outside the default download directory</h4>
-        <p>
-          The WebExtensions API does not allow files to be saved outside of
-          the default download directory. A
-          <a class="external" href="https://en.wikipedia.org/wiki/Symbolic_link" target="_blank">symlink</a>
-          inside the default download directory can be used to get around this
-          limitation.
-        </p>
-
-        <p>
-          Invalid paths ( <code>..</code> and <code>/</code>) are ignored.
-          Files and directories with leading dots ( <code>foo/.hidden</code>)
-          are considered invalid by Firefox and Chrome.
-        </p>
-
-        <br />
-        <a class="external" href="https://technet.microsoft.com/en-us/library/cc753194(v=ws.11).aspx" target="_blank">
-          Windows
-        </a>
-        <pre class="click-to-copy">
-mklink /D C:\path\to\symlink D:\path\to\actual</pre>
-
-        <a class="external" href="http://manpages.ubuntu.com/manpages/xenial/man1/ln.1.html" target="_blank">
-          macOS/Unix
-        </a>
-        <pre class="click-to-copy">
-ln -s /path/to/actual /path/to/symlink</pre>
-
-        <p>
-          Make sure the target directories actually exist, or the extension
-          will silently fail to download.
-        </p>
-      </div>
-
-      <p>
-        __MSG_o_lDirectoryInstructionOnePerLine__
-        <code>.</code> __MSG_o_lDirectoryInstructionDot__
-        <code>//</code> __MSG_o_lDirectoryInstructionComment__
-        <code>&gt;</code> __MSG_o_lSubdirectoryInstructionComment__
-      </p>
-      <p>__MSG_o_lDirectoryInstructionSymlink__</p>
-
-      <textarea required type="textarea" id="paths" rows="10" placeholder="." spellcheck="false"></textarea>
-      <div class="error-notification" id="error-paths">path errors</div>
-    </label>
-
-    <label>
-      <input type="checkbox" id="enableLastLocation" />__MSG_o_cLastUsedMenu__
-    </label>
-
-    <h3>__MSG_o_sBehavior__</h3>
-
-    <label>
-      <input type="checkbox" id="links" />__MSG_o_cSaveLinks__
-      <div class="caption caption-line">
-        <label>
-          <input type="checkbox" id="preferLinks" />__MSG_o_cPreferLinks__
-        </label>
-      </div>
-
-      <div class="caption caption-line">
-        <label>
-          <input type="checkbox" id="preferLinksFilterEnabled" />__MSG_o_cPreferLinksFilterEnabled__
-        </label>
-
-        <details class="caption caption-line">
-          <summary>__MSG_o_cPreferLinksFilter__</summary>
-          <div></div>
-          <textarea style="width: 100%" type="textarea" id="preferLinksFilter" rows="3" placeholder=""
-            spellcheck="false"></textarea>
-          <div class="caption">__MSG_o_cPreferLinksFilterHelp__</div>
+        <details class="inline-guide">
+          <summary>__MSG_html_howDoDownloadUrlFiltersWork__</summary>
+          <div class="guide-body">
+            <p>__MSG_html_enterOneUrlLikeBrowserMatchPatternPerLine__</p>
+            <dl class="guide-syntax">
+              <div>
+                <dt>__MSG_html_forExample2__</dt>
+                <dd><code>&lt;scheme&gt;://&lt;host&gt;/&lt;path&gt;</code></dd>
+              </div>
+              <div>
+                <dt>__MSG_html_matchesHttpsFileUrlsOn__</dt>
+                <dd>
+                  <code>https://*.example.com/files/*</code><br />
+                  __MSG_html_andItsSubdomainsUse__
+                </dd>
+              </div>
+              <div>
+                <dt><code>*://</code></dt>
+                <dd>__MSG_html_forHttpAndHttpsAndEndWith__</dd>
+              </div>
+              <div>
+                <dt><code>/*</code></dt>
+                <dd>__MSG_html_toIncludeEveryPathThisIsNotARegular__</dd>
+              </div>
+            </dl>
+          </div>
         </details>
       </div>
-    </label>
 
-    <label>
-      <input type="checkbox" id="selection" />__MSG_o_cSaveText__
-    </label>
+      <hr />
 
-    <label>
-      <input type="checkbox" id="page" />__MSG_o_cSavePage__
-      <div class="caption caption-line">__MSG_o_cSavePageHelp__</div>
-    </label>
+      <div class="column wide-column">
+        <h2 id="section-dynamic-downloads">__MSG_o_sDynamicDownloads__</h2>
 
-    <label>
-      <input type="checkbox" id="tabEnabled" class="chrome-disabled" />__MSG_o_cSaveTabstrip__ <span
-        class="badge">Firefox</span>
-      <div class="caption-line">
-        <label>
-          <input type="checkbox" id="closeTabOnSave" />__MSG_o_cCloseTabOnSave__
-        </label>
-        <div class="caption">__MSG_o_cSaveTabstripHelp__</div>
-      </div>
-    </label>
+        <h3 class="section-task-heading">__MSG_o_sRenameAndRouteDownloads__</h3>
 
-    <label>
-      <input type="checkbox" id="prompt" />__MSG_o_cOpenDialog__
-    </label>
-
-    <label>
-      <input type="checkbox" id="promptIfNoExtension" />__MSG_o_cOpenDialogNoExt__
-    </label>
-
-    <label>
-      <input type="checkbox" id="promptOnShift" />__MSG_o_cOpenDialogShift__
-    </label>
-
-    <label>
-      <input type="checkbox" id="promptOnFailure" />__MSG_o_cOpenDialogOnFailure__
-    </label>
-
-    <label>
-      <select disabled class="chrome-enabled" id="conflictAction">
-        <option value="uniquify">__MSG_o_cDupeUniquify__</option>
-        <option value="overwrite">__MSG_o_cDupeOverwrite__</option>
-        <option value="prompt">__MSG_o_cDupePrompt__</option>
-      </select>
-      __MSG_o_cDupeFilename__ <span class="badge">Chrome</span>
-    </label>
-
-    <hr />
-
-    <label class="column">
-      <h2>__MSG_o_sDynamicDownloads__</h2>
-
-      <h3>__MSG_o_sRenameAndRouteDownloads__</h3>
-
-      <div style="display: flex; justify-content: flex-start; align-items: baseline;">
-        <h3 style="width: auto;" class="popout link" data-popout-for="variablelist.html">
-          📓 __MSG_o_lVariableList__
-        </h3>
-        &nbsp;&nbsp;&nbsp;
-        <h3 style="width: auto;" class="popout link" data-popout-for="clauselist.html">
-          📓 __MSG_o_lClauseList__
-        </h3>
-      </div>
-
-      <p>
-        <a href="#" class="help learn-more" data-help-for="help-filenames">__MSG_o_lGuideRouting__</a>
-        <a class="external float-right"
-          href="https://github.com/gyng/save-in/wiki/Filename-rewrite">__MSG_o_lRoutingTemplates__</a>
-      </p>
-
-      <div class="help-text" id="help-filenames">
-        <h4>Renaming downloads</h4>
-        <p>
-          Match downloads against
-          <a class="external"
-            href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions">regex patterns</a>.
-          When a download matches all patterns, rename it according to
-          <code class="click-to-copy">into:</code>.
+        <p class="section-lead">
+          __MSG_html_automaticallyMoveOrRenameDownloadsWhenTheirFilenameSource__
         </p>
 
-        <p>This renames all gif files to a UNIX timestamp.</p>
-        <div class="demo-box">
-          <pre class="demo-code left click-to-copy">
-fileext: <span class="demo g3">gif</span>
-into: <span class="demo g4">:unixdate:</span>.<span class="demo g3">:fileext:</span></pre>
-
-          <div class="demo-arrow">=</div>
-
-          <pre class="demo-code right">
-cat.<span class="demo g3">gif</span> ➡ <span class="demo g4">1512136516</span>.<span class="demo g3">gif</span>
- </pre>
-        </div>
-
-        <h4>Moving downloads into different directories</h4>
-
-        <p>
-          The following example moves all <code>.gif</code> files into the
-          <code>gifs</code> subdirectory and renames the moved files to a
-          timestamp.
+        <p class="caption" id="routing-browser-downloads-help">
+          __MSG_o_lRouteBrowserDownloadsFromRules__
         </p>
+        <button
+          type="button"
+          data-goto-option="trackBrowserDownloads"
+          aria-describedby="routing-browser-downloads-help"
+        >
+          __MSG_o_lOpenBrowserDownloads__
+        </button>
 
-        <div class="demo-box">
-          <pre class="demo-code left click-to-copy">
-fileext: <span class="demo g3">gif</span>
-into: <span class="demo g2">gifs</span>/<span class="demo g4">:unixdate:</span>.<span class="demo g3">:fileext:</span></pre>
+        <details class="inline-guide editor-guide">
+          <summary>__MSG_html_howRoutingRulesWork__</summary>
+          <div class="guide-body">
+            <ul class="guide-rules">
+              <li>__MSG_html_writeOneClausePerLine__</li>
+              <li>__MSG_html_separateRulesWithABlankLine__</li>
+              <li>__MSG_html_everyMatcherInARuleMustMatch__</li>
+              <li>
+                __MSG_html_everyRuleMustEndWithAn__ <code>into:</code> __MSG_html_destination__
+              </li>
+              <li><code>disabled: true</code> __MSG_html_keepsARuleWithoutRunningIt__</li>
+            </ul>
+            <div class="guide-steps guide-steps-routing">
+              <div class="guide-step">
+                <strong>__MSG_html_moveMatchingFilesAndKeepTheirNames__</strong>
+                <pre class="click-to-copy">
+fileext: gif
+into: gifs/</pre>
+                <span class="caption"
+                  ><code>cat.gif</code> __MSG_html_becomes__ <code>gifs/cat.gif</code>.</span
+                >
+              </div>
+              <div class="guide-step">
+                <strong>__MSG_html_moveAndRenameMatchingFiles__</strong>
+                <pre class="click-to-copy">
+fileext: gif
+into: gifs/:unixdate:.:fileext:</pre>
+                <span class="caption"
+                  ><code>cat.gif</code> __MSG_html_becomes__ <code>gifs/1783929600.gif</code>.</span
+                >
+              </div>
+            </div>
+            <p class="caption">
+              __MSG_html_destinationsAreRelativeToTheDownloadsMenuDestinationYou__
+              <a
+                class="external"
+                href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions"
+                >__MSG_html_regularExpressionGuide__</a
+              >.
+            </p>
+            <details class="guide-more">
+              <summary>__MSG_html_advancedUseCaptureGroups__</summary>
+              <p class="caption">
+                __MSG_html_parenthesesCapturePartsOfAMatcherSelectTheMatcher__
+                <code>capture:</code>__MSG_html_thenUse__ <code>:$1:</code>,
+                <code>:$2:</code>__MSG_html_andLaterGroupsIn__ <code>into:</code>.
+              </p>
+              <pre class="click-to-copy">
+filename: (.*)\.(v[0-9]+)\.(tar|gz)
+pageurl: example\.com
+capture: filename
+into: :$2:/:$1:.:$3:</pre>
+              <span class="caption"
+                ><code>ubuntu.v2.tar</code> __MSG_html_becomes__ <code>v2/ubuntu.tar</code>.</span
+              >
+            </details>
+            <details class="guide-more">
+              <summary>__MSG_html_advancedFetchADifferentUrl__</summary>
+              <p class="caption">
+                <code>fetch:</code>
+                __MSG_html_downloadsFromAnExpandedUrlTemplateInsteadOfTheMatched__
+                <code>into:</code> __MSG_html_stillControlsTheDestinationAndFilename__
+              </p>
+              <pre class="click-to-copy">
+sourceurl: ^https://pbs\.twimg\.com/media/([\w-]+)\?format=(\w+)
+capture: sourceurl
+fetch: https://pbs.twimg.com/media/:$1:.:$2:?name=orig
+into: twitter/:$1:.:$2:</pre>
+              <span class="caption">__MSG_html_downloadsTheOriginalResolutionImageInstead__</span>
+            </details>
+            <details class="guide-more">
+              <summary>__MSG_html_advancedRenameTheSavedFile__</summary>
+              <p class="caption">
+                <code>rename:</code>
+                __MSG_html_renameGuideDescription__
+              </p>
+              <pre class="click-to-copy">
+filename/i: \.jpe?g$
+rename/i: \.jpe?g$ -> .jpg
+into: images/:filename:</pre>
+              <span class="caption"
+                ><code>photo.JPEG</code> __MSG_html_becomes__ <code>photo.jpg</code>.</span
+              >
+            </details>
+            <details class="agent-prompt-guide">
+              <summary>__MSG_html_askAnAiAgentToDraftRoutingRules__</summary>
+              <p class="caption">
+                __MSG_html_copyThisPromptIntoAnAgentOrUseWebmcp__
+                <a
+                  class="external"
+                  href="https://github.com/gyng/save-in/wiki/Clause-and-Variable-list"
+                  target="_blank"
+                  >__MSG_html_clauseAndVariableReference__</a
+                >
+              </p>
+              <pre class="click-to-copy">
+You are writing Dynamic Downloads routing rules for the Save In browser extension.
 
-          <div class="demo-arrow">=</div>
+Goal: [describe which downloads to match and where they should be saved]
 
-          <pre class="demo-code right">
-cat.<span class="demo g3">gif</span> ➡ <span class="demo g2">gifs</span>/<span class="demo g4">1512136516</span>.<span class="demo g3">gif</span>
-cat.jpg ✘ (no match)</pre>
-        </div>
+Save In syntax:
+- Write one clause per line and separate rules with a blank line.
+- Every matcher in one rule must match. Matcher values are JavaScript regular expressions except css:, which takes a CSS selector and no flags. Do not leave a regex matcher empty; write .* explicitly for a match-all condition. Use at most 64 css: matchers in one rule and 256 across the configuration.
+- Common matchers include filename:, finalfilename:, actualfileext:, mime:, sourceurl:, sourcedomain:, sourcerootdomain:, sourcekind:, css:, pageurl:, pagedomain:, pagerootdomain:, referrerurl:, referrerdomain:, pagetitle:, context:, and mediatype:.
+- Add /i to a matcher name for case-insensitive matching, for example filename/i: \.pdf$. Regex flags are allowed only on matcher names and rename:.
+- Every rule must contain exactly one into: clause. Its value is a relative destination or filename template and cannot contain .. path components.
+- End into: with / to move the file while preserving its resolved filename.
+- Otherwise include :filename: unless the goal explicitly requests renaming.
+- Variables use :name: syntax. Useful choices include :filename:, :fileext:, :sourcedomain:, :year:, :month:, :day:, :counter:, and :uuid:.
+- To reuse regex groups in new rules, add capturegroups: followed by the matcher name, then use :$1:, :$2:, and so on in into:. capture: is only for compatibility with legacy flattened indexes.
+- Add an optional fetch: clause with a literal http:// or https:// URL template to download from that address instead of the matched source; into: still sets the destination. It may reuse :$1:, :$2:, and other routing variables except :mime:, :contenttype:, :mimeext:, :sha256:, :sha256full:, :finalurl:, and :redirecturl:. The save fails if expansion does not produce a usable HTTP(S) URL. A rule may contain at most one fetch: clause.
+- Add an optional rename: clause written as "find -> replacement" to edit the final filename: find is a regular expression (add flags after the name, for example rename/gi:), and replacement is literal text where routing variables and :$1: expand. An empty replacement deletes matches; folders are never affected. Rules that need a content hash are skipped for ordinary browser downloads already in flight. A rule may contain at most one rename: clause.
+- Add disabled: true to a valid rule to keep it without running it. Disabled rules are still validated.
+- Lines beginning with // are comments. Never use absolute paths, parent path components, or unsupported clause names.
 
-        <p>
-          Routing is relative to the selected menu item. When you download a
-          cat gif using the <code>images</code> context menu, the above
-          example will save it as
-          <code>~/downloads/images/gif/946684800.gif</code>.
-        </p>
+If more syntax detail is needed, consult https://github.com/gyng/save-in/wiki/Clause-and-Variable-list before answering.
 
-        <p>
-          This advanced example renames downloads based off captured regex
-          groups &mdash; the stuff inside <code>()</code> &mdash; and moves
-          them into different directories.
-          <code class="click-to-copy">capture:&nbsp;filename</code> selects
-          the filename&rsquo;s capture groups, and finally
-          <code class="click-to-copy">into:</code> renames the files based off
-          them using <code class="click-to-copy">:$1:</code>,
-          <code class="click-to-copy">:$2:</code>, and
-          <code class="click-to-copy">:$3:</code>.
-        </p>
+Explain each rule briefly, check for regex and path mistakes, then provide one final plain-text, copy-ready ruleset in a fenced code block.</pre>
+            </details>
+          </div>
+        </details>
 
-        <div class="demo-box">
-          <pre class="demo-code left click-to-copy">
-// Move downloads based off versions
-<span class="demo g1">filename:</span> <span class="demo g2">(.*)</span>\.<span class="demo g4">(v.)</span>\.<span class="demo g3">(tar|gz)</span>
-pageurl: example.com
-capture: <span class="demo g1">filename</span>
-into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span class="demo g3">:$3:</span></pre>
-          <div class="demo-arrow">=</div>
-
-          <pre class="demo-code right">
-
-<span class="demo g2">ubuntu</span>.<span class="demo g4">v1</span>.<span class="demo g3">tar</span> ➡ <span class="demo g4">v1</span>/<span class="demo g2">ubuntu</span>.<span class="demo g3">tar</span>
-<span class="demo g2">debian</span>.<span class="demo g4">v2</span>.<span class="demo g3">gz</span>  ➡ <span class="demo g4">v2</span>/<span class="demo g2">debian</span>.<span class="demo g3">gz</span>
-<span class="demo g2">debian</span>.zip    ✘ (no match)
- </pre>
-        </div>
-
-        <a class="external"
-          href="https://github.com/gyng/save-in/wiki/Filename-rewrite#migrating-to-the-new-syntax">Migrating rules from
-          the old version</a>
-      </div>
-
-      <p>__MSG_o_lRoutingInstruction__</p>
-
-      <textarea type="textarea" id="filenamePatterns" rows="7" placeholder="Optional" spellcheck="false"></textarea>
-      <div class="error-notification" id="error-filenamePatterns">errors</div>
-      <div style="display: flex; max-width: 100%; align-items: center; flex-wrap: wrap;">
-        <div class="info-row"
-          style="display: flex; flex-direction: column; flex: 1; align-items: baseline; max-width: 100%; overflow: hidden; padding-right: 8px;">
-          <table style="margin: 0; padding: 0; max-width: 100%;">
-            <tbody style="margin: 0; padding: 0; vertical-align: baseline;">
-              <tr>
-                <td div style="font-weight: 600; padding: 0; text-align: left; min-width: 110px;">
-                  __MSG_o_lRoutingLastDownload__
-                </td>
-                <td
-                  style="font-family: monospace; text-overflow: hidden; overflow: hidden; white-space: nowrap; max-width: 80%;"
-                  id="last-dl-url">
-                  __MSG_o_lRoutingLastDownloadEmpty__
-                </td>
-              </tr>
-              <tr id="rules-applied-row">
-                <td style="font-weight: 600; padding: 0; text-align: left;">
-                  __MSG_o_lRoutingRenamedTo__
-                </td>
-                <td style="font-family: monospace; word-break: break-all;" id="last-dl-match">
-                  __MSG_o_lRoutingNoMatches__
-                </td>
-              </tr>
-              <tr class="hide" id="capture-group-rows">
-                <td style="font-weight: 600; padding: 0;">
-                  __MSG_o_lRoutingCaptureGroups__
-                </td>
-                <td style="font-family: monospace; word-break: break-all;" id="last-dl-capture"></td>
-              </tr>
-              <tr class="hide" id="variables-table-row">
-                <td style="font-weight: 600; padding: 0;">
-                  __MSG_o_lRoutingVariables__
-                </td>
-                <td>
-                  <div class="button" id="see-variables-btn">
-                    __MSG_o_lRoutingVariablesClickToSee__
+        <div class="rules-editor">
+          <div class="rules-editor-main">
+            <section class="routing-ide" aria-labelledby="rules-text-label">
+              <div class="routing-editor-heading">
+                <h4 class="editor-field-label" id="rules-text-label">
+                  __MSG_o_sDynamicDownloads__
+                </h4>
+              </div>
+              <div
+                class="editor-tabs routing-editor-tabs"
+                role="tablist"
+                aria-label="__MSG_routeVisualEditorMode__"
+              >
+                <button
+                  type="button"
+                  class="editor-tab"
+                  id="rules-mode-text"
+                  role="tab"
+                  aria-selected="false"
+                  aria-controls="rules-text-editor"
+                  tabindex="-1"
+                >
+                  __MSG_o_lEditorModeText__
+                </button>
+                <button
+                  type="button"
+                  class="editor-tab active"
+                  id="rules-mode-visual"
+                  role="tab"
+                  aria-selected="true"
+                  aria-controls="rules-visual"
+                >
+                  __MSG_o_sVisualEditor__
+                </button>
+              </div>
+              <div id="rules-text-editor" role="tabpanel" aria-labelledby="rules-mode-text" hidden>
+                <textarea
+                  id="filenamePatterns"
+                  data-manual="true"
+                  rows="12"
+                  placeholder="__MSG_routeTextEmptyExample__"
+                  spellcheck="false"
+                  aria-labelledby="rules-text-label"
+                  aria-describedby="error-filenamePatterns"
+                ></textarea>
+                <div class="editor-actions routing-ide-actions">
+                  <span class="editor-action-help editor-reference-links">
+                    <a class="toolbar-link" href="#" data-reference-tab="options-reference-clauses"
+                      >__MSG_o_lClauses__</a
+                    >
+                    <a
+                      class="toolbar-link"
+                      href="#"
+                      data-reference-tab="options-reference-variables"
+                      >__MSG_o_lRoutingVariables__</a
+                    >
+                  </span>
+                  <div class="editor-save-actions">
+                    <button
+                      type="button"
+                      class="discard-button"
+                      data-discard="filenamePatterns"
+                      disabled
+                    >
+                      __MSG_o_bDiscard__
+                    </button>
+                    <button
+                      type="button"
+                      class="button-primary apply-button"
+                      data-apply="filenamePatterns"
+                      disabled
+                    >
+                      __MSG_o_bApply__
+                    </button>
                   </div>
-                  <table id="variables-table">
-                    <tbody class="hide" id="variables-body"></tbody>
-                  </table>
+                </div>
+              </div>
+              <div
+                id="rules-visual"
+                class="routing-visual-editor"
+                role="tabpanel"
+                aria-labelledby="rules-mode-visual"
+                aria-describedby="error-filenamePatterns"
+              >
+                <div id="rule-editor-cards" class="rule-editor-cards"></div>
+                <div class="visual-editor-toolbar rule-editor-toolbar">
+                  <div class="rule-editor-create-actions">
+                    <button type="button" class="button-primary" id="rule-editor-add">
+                      + __MSG_routeVisualAddRule__
+                    </button>
+                    <details class="rule-add-menu details-popup">
+                      <summary
+                        class="rule-add-menu-trigger"
+                        aria-label="__MSG_html_more__"
+                        title="__MSG_html_more__"
+                      >
+                        ⋯
+                      </summary>
+                      <div class="rule-add-menu-options menu-popover">
+                        <button
+                          type="button"
+                          id="rule-editor-add-auto"
+                          class="rule-editor-add-auto"
+                        >
+                          __MSG_autoDownloadAddRule__
+                        </button>
+                        <button
+                          type="button"
+                          id="rule-editor-browse-templates"
+                          data-reference-tab="options-reference-templates"
+                        >
+                          __MSG_o_lRuleTemplates__
+                        </button>
+                      </div>
+                    </details>
+                  </div>
+                  <a class="toolbar-link" href="#" data-reference-tab="options-reference-clauses"
+                    >__MSG_o_lClauses__</a
+                  >
+                  <a class="toolbar-link" href="#" data-reference-tab="options-reference-variables"
+                    >__MSG_o_lRoutingVariables__</a
+                  >
+                  <div class="editor-save-actions">
+                    <button
+                      type="button"
+                      class="discard-button"
+                      data-discard="filenamePatterns"
+                      disabled
+                    >
+                      __MSG_o_bDiscard__
+                    </button>
+                    <button
+                      type="button"
+                      class="button-primary apply-button"
+                      data-apply="filenamePatterns"
+                      disabled
+                    >
+                      __MSG_o_bApply__
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="error-notification editor-validation-summary"
+                id="error-filenamePatterns"
+                role="status"
+                aria-live="polite"
+                aria-atomic="true"
+              ></div>
+            </section>
+
+            <section
+              class="routing-tool route-debugger-shell"
+              aria-labelledby="route-debugger-title"
+            >
+              <header class="route-debugger-header">
+                <div class="route-debugger-intro">
+                  <h4 class="editor-field-label" id="route-debugger-title">
+                    __MSG_routeDebuggerTitle__
+                  </h4>
+                  <p class="caption">__MSG_routeDebuggerUnsavedNote__</p>
+                </div>
+                <button type="button" id="route-debugger-run">__MSG_routeDebuggerRun__</button>
+              </header>
+              <div
+                class="route-debugger-result"
+                id="route-debugger-result"
+                role="region"
+                aria-labelledby="route-debugger-title"
+              ></div>
+              <div class="route-debugger-variables-header">
+                <details class="route-debugger-variables">
+                  <summary>__MSG_o_lRoutingVariables__</summary>
+                  <div
+                    id="route-debugger-form"
+                    role="group"
+                    aria-label="__MSG_routeDebuggerTitle__"
+                  >
+                    <div class="route-debugger-fields">
+                      <fieldset class="route-debugger-field-group route-debugger-file-fields">
+                        <legend>__MSG_routeDebuggerFileData__</legend>
+                        <div class="route-debugger-field-grid">
+                          <label class="route-debugger-field">
+                            <span>__MSG_routeDebuggerFilename__</span>
+                            <input
+                              type="text"
+                              id="route-debugger-filename"
+                              placeholder="report.pdf"
+                              data-technical-literal
+                              data-no-autosave
+                              spellcheck="false"
+                            />
+                          </label>
+                          <label class="route-debugger-field">
+                            <span>__MSG_routeDebuggerContentType__</span>
+                            <input
+                              type="text"
+                              id="route-debugger-mime"
+                              placeholder="application/pdf"
+                              data-technical-literal
+                              data-no-autosave
+                              spellcheck="false"
+                            />
+                          </label>
+                          <label class="route-debugger-field">
+                            <span>__MSG_routeDebuggerContext__</span>
+                            <select id="route-debugger-context" data-no-autosave>
+                              <option value="">__MSG_routeDebuggerAnyContext__</option>
+                              <option value="link">__MSG_html_link__</option>
+                              <option value="image">__MSG_html_image__</option>
+                              <option value="video">__MSG_html_video__</option>
+                              <option value="audio">__MSG_sourcePanelKindAudio__</option>
+                              <option value="page">__MSG_contextMenuContextPage__</option>
+                              <option value="selection">__MSG_contextMenuContextSelection__</option>
+                              <option value="AUTO">__MSG_autoDownloadRoutingBadge__</option>
+                            </select>
+                          </label>
+                          <label class="route-debugger-field">
+                            <span>__MSG_routeDebuggerMediaType__</span>
+                            <select id="route-debugger-media-type" data-no-autosave>
+                              <option value="">__MSG_routeDebuggerAnyMediaType__</option>
+                              <option value="image">__MSG_html_image__</option>
+                              <option value="video">__MSG_html_video__</option>
+                              <option value="audio">__MSG_sourcePanelKindAudio__</option>
+                            </select>
+                          </label>
+                        </div>
+                      </fieldset>
+                      <fieldset class="route-debugger-field-group route-debugger-url-fields">
+                        <legend>__MSG_routeDebuggerUrlData__</legend>
+                        <div class="route-debugger-field-grid">
+                          <label class="route-debugger-field">
+                            <span>__MSG_routeDebuggerSourceUrl__</span>
+                            <input
+                              type="text"
+                              id="route-debugger-source-url"
+                              placeholder="https://cdn.example.com/report.pdf"
+                              data-technical-literal
+                              data-no-autosave
+                              spellcheck="false"
+                            />
+                          </label>
+                          <label class="route-debugger-field">
+                            <span>__MSG_routeDebuggerPageUrl__</span>
+                            <input
+                              type="text"
+                              id="route-debugger-page-url"
+                              placeholder="https://example.com/reports"
+                              data-technical-literal
+                              data-no-autosave
+                              spellcheck="false"
+                            />
+                          </label>
+                          <label class="route-debugger-field">
+                            <span>__MSG_routeDebuggerReferrerUrl__</span>
+                            <input
+                              type="text"
+                              id="route-debugger-referrer-url"
+                              placeholder="https://example.com/previous"
+                              data-technical-literal
+                              data-no-autosave
+                              spellcheck="false"
+                            />
+                          </label>
+                          <label class="route-debugger-field">
+                            <span>__MSG_routeDebuggerFrameUrl__</span>
+                            <input
+                              type="text"
+                              id="route-debugger-frame-url"
+                              placeholder="https://example.com/embed"
+                              data-technical-literal
+                              data-no-autosave
+                              spellcheck="false"
+                            />
+                          </label>
+                        </div>
+                      </fieldset>
+                      <fieldset class="route-debugger-field-group route-debugger-page-fields">
+                        <legend>__MSG_routeDebuggerPageData__</legend>
+                        <div class="route-debugger-field-grid">
+                          <label class="route-debugger-field">
+                            <span>__MSG_routeDebuggerPageTitle__</span>
+                            <input
+                              type="text"
+                              id="route-debugger-page-title"
+                              data-no-autosave
+                              spellcheck="false"
+                            />
+                          </label>
+                          <label class="route-debugger-field">
+                            <span>__MSG_routeDebuggerLinkText__</span>
+                            <input
+                              type="text"
+                              id="route-debugger-link-text"
+                              data-no-autosave
+                              spellcheck="false"
+                            />
+                          </label>
+                          <label class="route-debugger-field">
+                            <span>__MSG_routeDebuggerSelectionText__</span>
+                            <input
+                              type="text"
+                              id="route-debugger-selection-text"
+                              data-no-autosave
+                              spellcheck="false"
+                            />
+                          </label>
+                        </div>
+                      </fieldset>
+                      <fieldset class="route-debugger-field-group route-debugger-context-fields">
+                        <legend>__MSG_routeDebuggerRoutingData__</legend>
+                        <div class="route-debugger-field-grid">
+                          <label class="route-debugger-field">
+                            <span>__MSG_routeDebuggerSourceKind__</span>
+                            <select id="route-debugger-source-kind" data-no-autosave>
+                              <option value="">__MSG_routeDebuggerAnySourceKind__</option>
+                              <option value="image">__MSG_html_image__</option>
+                              <option value="video">__MSG_html_video__</option>
+                              <option value="audio">__MSG_sourcePanelKindAudio__</option>
+                              <option value="stream">__MSG_sourcePanelKindPlaylist__</option>
+                              <option value="document">__MSG_sourcePanelKindDocument__</option>
+                              <option value="link">__MSG_html_link__</option>
+                            </select>
+                          </label>
+                          <label class="route-debugger-field">
+                            <span>__MSG_routeDebuggerMenuIndex__</span>
+                            <input
+                              type="text"
+                              id="route-debugger-menu-index"
+                              data-no-autosave
+                              spellcheck="false"
+                            />
+                          </label>
+                          <label class="route-debugger-field">
+                            <span>__MSG_routeDebuggerMenuComment__</span>
+                            <input
+                              type="text"
+                              id="route-debugger-comment"
+                              data-no-autosave
+                              spellcheck="false"
+                            />
+                          </label>
+                        </div>
+                      </fieldset>
+                      <fieldset class="route-debugger-field-group route-debugger-runtime-fields">
+                        <legend>__MSG_routeDebuggerRuntimeData__</legend>
+                        <div class="route-debugger-field-grid">
+                          <label class="route-debugger-field">
+                            <span>__MSG_routeDebuggerDateTime__</span>
+                            <input
+                              type="datetime-local"
+                              id="route-debugger-now"
+                              step="1"
+                              data-no-autosave
+                            />
+                          </label>
+                          <label class="route-debugger-field">
+                            <span>__MSG_html_counterValue__</span>
+                            <input
+                              type="number"
+                              id="route-debugger-counter"
+                              min="0"
+                              step="1"
+                              data-no-autosave
+                            />
+                          </label>
+                          <label class="route-debugger-field">
+                            <span>__MSG_routeDebuggerSha256__</span>
+                            <input
+                              type="text"
+                              id="route-debugger-sha256"
+                              placeholder="ba7816bf8f01…"
+                              data-technical-literal
+                              data-no-autosave
+                              spellcheck="false"
+                            />
+                          </label>
+                        </div>
+                      </fieldset>
+                    </div>
+                  </div>
+                  <div class="route-debugger-variable-actions">
+                    <button type="button" class="button" id="route-debugger-clear">
+                      __MSG_routeDebuggerClear__
+                    </button>
+                  </div>
+                  <details class="last-download-row route-debugger-last-download">
+                    <summary>__MSG_o_lRoutingLastDownload__</summary>
+                    <div class="info-row last-download-info">
+                      <table class="last-download-table">
+                        <tbody>
+                          <tr>
+                            <th scope="row" class="last-download-label">
+                              __MSG_historyColumnUrl__
+                            </th>
+                            <td class="last-download-url" id="last-dl-url">
+                              __MSG_o_lRoutingLastDownloadEmpty__
+                            </td>
+                          </tr>
+                          <tr id="rules-applied-row">
+                            <th scope="row" class="last-download-label">
+                              __MSG_o_lRoutingRenamedTo__
+                            </th>
+                            <td class="last-download-value" id="last-dl-match">
+                              __MSG_o_lRoutingNoMatches__
+                            </td>
+                          </tr>
+                          <tr id="capture-group-rows" hidden>
+                            <th scope="row" class="last-download-label">
+                              __MSG_o_lRoutingCaptureGroups__
+                            </th>
+                            <td class="last-download-value" id="last-dl-capture"></td>
+                          </tr>
+                          <tr id="variables-table-row" hidden>
+                            <th scope="row" class="last-download-label">
+                              __MSG_o_lRoutingVariables__
+                            </th>
+                            <td>
+                              <button type="button" class="button" id="see-variables-btn">
+                                __MSG_o_lRoutingVariablesClickToSee__
+                              </button>
+                              <table id="variables-table">
+                                <tbody id="variables-body" hidden></tbody>
+                              </table>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </details>
+                </details>
+                <div
+                  class="route-debugger-source-picker"
+                  role="group"
+                  aria-label="__MSG_routeDebuggerUseSource__"
+                >
+                  <span class="caption">__MSG_routeDebuggerUseSource__</span>
+                  <button type="button" class="button" id="route-debugger-use-last" disabled>
+                    __MSG_routeDebuggerLatestDownload__
+                  </button>
+                  <button type="button" class="button" id="route-debugger-use-sample">
+                    __MSG_routeDebuggerUseSampleDownload__
+                  </button>
+                </div>
+              </div>
+            </section>
+
+            <div class="routing-post-options">
+              <section class="option-group" aria-labelledby="routing-no-match-heading">
+                <h4 class="option-group-heading" id="routing-no-match-heading">
+                  __MSG_routingNoMatchBehavior__
+                </h4>
+                <label>
+                  <input type="checkbox" id="routeFailurePrompt" />
+                  __MSG_o_cOpenDialogIfNoRulesMatch__
+                </label>
+                <label>
+                  <input type="checkbox" id="routeSkipUnmatched" />
+                  __MSG_o_cExclusiveModeHelp__
+                </label>
+              </section>
+
+              <section class="option-group" aria-labelledby="routing-menu-mode-heading">
+                <h4 class="option-group-heading" id="routing-menu-mode-heading">
+                  __MSG_html_contextMenus__
+                </h4>
+                <label>
+                  <input type="checkbox" id="routeHideFolderChoices" />
+                  __MSG_o_cExclusiveMode__
+                </label>
+              </section>
+            </div>
+          </div>
+
+          <aside
+            class="preview-column routing-reference-column"
+            aria-labelledby="routing-reference-heading"
+          >
+            <h4 class="editor-field-label" id="routing-reference-heading">
+              __MSG_html_references__
+            </h4>
+            <div class="reference-sections" aria-label="__MSG_html_insertionReferences__">
+              <details
+                class="variables-preview details-popup"
+                data-insert-target="filenamePatterns"
+              >
+                <summary>__MSG_o_lLiveVariables__</summary>
+                <div class="variables-preview-list"></div>
+              </details>
+
+              <details
+                class="variables-preview clause-preview details-popup"
+                id="rules-clause-menu"
+                data-insert-target="filenamePatterns"
+              >
+                <summary>__MSG_o_lClauses__</summary>
+                <div class="variables-preview-list clause-preview-list">
+                  <input
+                    type="search"
+                    class="clause-preview-filter"
+                    name="routing-clause-filter"
+                    aria-label="__MSG_html_filterClauses__"
+                    placeholder="__MSG_html_filterClauses__"
+                    spellcheck="false"
+                  />
+                  <div class="variables-preview-scroll">
+                    <table class="variables-preview-table clause-preview-table">
+                      <tbody></tbody>
+                    </table>
+                  </div>
+                </div>
+              </details>
+            </div>
+          </aside>
+        </div>
+      </div>
+
+      <h2 id="section-save-as-shortcuts">__MSG_o_sSaveAsShortcuts__</h2>
+      <p class="section-lead shortcut-files-lead">__MSG_o_lShortcutFilesHelp__</p>
+      <fieldset class="option-group shortcut-file-options">
+        <legend class="option-group-heading">__MSG_html_shortcutFileBehavior__</legend>
+        <div class="option-subcontrol shortcut-format-control">
+          <label for="shortcutType">__MSG_o_cSaveShortcutsAs__</label>
+          <select id="shortcutType" aria-describedby="shortcut-format-preview">
+            <option value="HTML_REDIRECT">__MSG_o_cSaveShortcutsTypeHtml__</option>
+            <option value="MAC_WEBLOC">__MSG_o_cSaveShortcutsTypeMacWebloc__</option>
+            <option value="WINDOWS" class="shortcut-extension-only">
+              __MSG_o_cSaveShortcutsTypeWindows__
+            </option>
+            <option value="FREEDESKTOP" class="shortcut-extension-only">
+              __MSG_o_cSaveShortcutsTypeFreedesktop__
+            </option>
+            <option value="MAC" class="shortcut-extension-only">
+              __MSG_o_cSaveShortcutsTypeMac__
+            </option>
+          </select>
+          <span id="shortcut-format-preview" class="caption"></span>
+          <div class="caption shortcut-extension-unavailable">
+            __MSG_o_lShortcutTypeFirefoxUnavailable__
+          </div>
+        </div>
+        <div class="option-subgroup">
+          <h3>__MSG_html_saveTheseAsShortcutFiles__</h3>
+          <div class="option-choice-grid">
+            <label>
+              <input type="checkbox" id="shortcutMedia" />
+              __MSG_o_cSaveShortcutsMediaInstead__
+            </label>
+            <label>
+              <input type="checkbox" id="shortcutLink" />
+              __MSG_o_cSaveShortcutsLinksInstead__
+            </label>
+            <label>
+              <input type="checkbox" id="shortcutPage" />
+              __MSG_o_cSaveShortcutsPagesInstead__
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                id="shortcutTab"
+                class="tab-context-required"
+                data-tab-context-requirement="shortcut-tab-context-requirement"
+              />
+              <span class="option-label-content">
+                <span>__MSG_o_cSaveShortcutsTabsInstead__</span>
+                <span
+                  class="warning badge chrome-tab-context-badge"
+                  id="shortcut-tab-context-requirement"
+                  hidden
+                  >Chrome 150+</span
+                >
+              </span>
+            </label>
+            <div class="described-checkbox">
+              <input
+                type="checkbox"
+                id="saveSourceSidecar"
+                aria-describedby="save-source-sidecar-help"
+              />
+              <label for="saveSourceSidecar">__MSG_o_cSaveSourceSidecar__</label>
+              <div class="caption" id="save-source-sidecar-help">
+                __MSG_o_cSaveSourceSidecarHelp__
+              </div>
+            </div>
+          </div>
+        </div>
+      </fieldset>
+
+      <hr />
+
+      <h2 id="section-keyboard-shortcuts">__MSG_o_sKeyboardShortcuts__</h2>
+      <div class="described-checkbox click-to-save-option">
+        <input type="checkbox" id="contentClickToSave" aria-describedby="click-to-save-help" />
+        <div class="click-to-save-option-body">
+          <label for="contentClickToSave" data-saved-target
+            >__MSG_o_cKeyboardShortcutClickToSave__</label
+          >
+          <div class="caption caption-line" id="click-to-save-help">
+            __MSG_o_cKeyboardShortcutClickToHelp__
+          </div>
+
+          <div class="caption caption-line">
+            <label>
+              <input
+                type="checkbox"
+                id="contentClickToSaveUseDefault"
+                aria-describedby="click-to-save-default-help"
+              />
+              __MSG_o_cClickToSaveUseDefault__
+            </label>
+            <div class="caption" id="click-to-save-default-help">
+              __MSG_o_cClickToSaveUseDefaultHelp__
+            </div>
+          </div>
+
+          <fieldset
+            class="option-group inline-option-group source-shortcut-controls click-to-save-controls"
+          >
+            <legend class="option-group-heading">__MSG_html_clickToSaveShortcut__</legend>
+            <input
+              type="hidden"
+              id="contentClickToSaveCombo"
+              aria-label="__MSG_html_clickToSaveShortcutCombination__"
+            />
+            <input
+              type="hidden"
+              id="contentClickToSaveButton"
+              value="LEFT_CLICK"
+              aria-label="__MSG_o_lClickToSaveButton__"
+            />
+            <label>
+              <span class="shortcut-control-label">__MSG_html_primaryModifier__</span>
+              <select id="clickToSaveModifier" data-runtime-control="true">
+                <option value="">__MSG_html_none__</option>
+                <option value="Alt" selected>__MSG_html_altOption__</option>
+                <option value="Ctrl">__MSG_html_ctrl__</option>
+                <option value="Shift">__MSG_html_shift__</option>
+                <option value="Meta">__MSG_html_commandWindowsKey__</option>
+              </select>
+            </label>
+            <label>
+              <span class="shortcut-control-label">__MSG_html_secondModifier__</span>
+              <select id="clickToSaveModifier2" data-runtime-control="true">
+                <option value="">__MSG_html_none__</option>
+                <option value="Shift">__MSG_html_shift__</option>
+                <option value="Alt">__MSG_html_altOption__</option>
+                <option value="Ctrl">__MSG_html_ctrl__</option>
+                <option value="Meta">__MSG_html_commandWindowsKey__</option>
+              </select>
+            </label>
+            <label>
+              <span class="shortcut-control-label">__MSG_o_lClickToSaveButton__</span>
+              <select id="clickToSaveButton" data-runtime-control="true">
+                <option value="LEFT_CLICK">__MSG_o_cKeyboardShortcutModifierLeftClick__</option>
+                <option value="MIDDLE_CLICK">__MSG_o_cKeyboardShortcutModifierMiddleClick__</option>
+                <option value="RIGHT_CLICK">__MSG_o_cKeyboardShortcutModifierRightClick__</option>
+                <option value="BACK_CLICK">__MSG_o_cKeyboardShortcutModifierBackClick__</option>
+                <option value="FORWARD_CLICK">
+                  __MSG_o_cKeyboardShortcutModifierForwardClick__
+                </option>
+              </select>
+            </label>
+            <button type="button" class="button-primary" id="clickToSaveApply">
+              __MSG_o_bApply__
+            </button>
+            <button type="button" id="clickToSaveReset">__MSG_o_cRestoreDefaults__</button>
+            <span id="clickToSaveStatus" class="feedback" role="status" aria-live="polite"></span>
+            <div class="caption caption-line">__MSG_o_cKeyboardShortcutModifierHelp__</div>
+            <div
+              id="click-to-save-warning"
+              class="feedback feedback-warning feedback-inline warning notice"
+              role="status"
+              hidden
+            >
+              __MSG_html_mouseOnlyLeftClickWillReplaceNormalClicksOn__
+            </div>
+          </fieldset>
+        </div>
+      </div>
+
+      <hr />
+
+      <h2 id="section-page-sources">__MSG_o_sPageSources__</h2>
+      <section class="source-browser" aria-labelledby="source-browser-heading">
+        <h3 class="section-task-heading" id="source-browser-heading">
+          __MSG_o_sBrowsePageSources__
+        </h3>
+        <div class="source-panel-overview">
+          <div class="source-panel-overview-copy">
+            <div class="source-panel-intro">
+              <p class="section-lead" id="source-panel-enable-help">__MSG_o_lPageSourcesHelp__</p>
+              <p class="caption section-note">__MSG_o_lPageSourcesNetworkLimit__</p>
+            </div>
+            <div class="source-panel-discovery">
+              <label class="source-panel-master">
+                <input
+                  type="checkbox"
+                  id="sourcePanelEnabled"
+                  aria-controls="source-panel-results-options source-panel-dependent-options"
+                  aria-describedby="source-panel-enable-help"
+                />
+                __MSG_o_cSourcePanelEnabled__
+              </label>
+
+              <fieldset
+                id="source-panel-results-options"
+                class="option-group dependent-options source-panel-dependent source-panel-settings"
+              >
+                <legend class="option-group-heading">__MSG_o_lSourcePanelDiscovery__</legend>
+                <label
+                  ><input type="checkbox" id="sourcePanelLive" /> __MSG_o_cSourcePanelLive__</label
+                >
+                <label
+                  ><input type="checkbox" id="sourcePanelPreviews" />
+                  __MSG_o_cSourcePanelPreviews__</label
+                >
+                <label
+                  ><input type="checkbox" id="sourcePanelBackgrounds" />
+                  __MSG_o_cSourcePanelBackgrounds__</label
+                >
+                <label
+                  ><input type="checkbox" id="sourcePanelResourceHints" />
+                  __MSG_o_cSourcePanelResourceHints__</label
+                >
+                <label
+                  ><input type="checkbox" id="sourcePanelLinks" />
+                  __MSG_o_cSourcePanelLinks__</label
+                >
+              </fieldset>
+            </div>
+          </div>
+
+          <figure class="source-panel-demo">
+            <figcaption class="visually-hidden">
+              __MSG_html_previewOfThePageSourcesDrawer__
+            </figcaption>
+            <div aria-hidden="true">
+              <div class="source-panel-demo-header">
+                <span class="source-panel-demo-title"
+                  ><strong>__MSG_o_sPageSources__</strong><small>8</small></span
+                >
+                <span class="source-panel-demo-actions">
+                  <span
+                    ><svg viewBox="0 0 24 24">
+                      <path d="M8 8h10v10H8z" />
+                      <path d="M5 15H3V3h12v2" /></svg
+                  ></span>
+                  <span
+                    ><svg viewBox="0 0 24 24">
+                      <path d="M3 4h18v16H3z" />
+                      <path d="M15 4v16" /></svg
+                  ></span>
+                  <span
+                    ><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18" /></svg
+                  ></span>
+                </span>
+              </div>
+              <div class="source-panel-demo-toolbar">
+                <span class="source-panel-demo-search">
+                  <svg viewBox="0 0 24 24">
+                    <path d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z" />
+                  </svg>
+                  <span>__MSG_html_filterSources__</span>
+                </span>
+                <span class="source-panel-demo-sort">__MSG_sourcePanelSortRelevance__</span>
+              </div>
+              <div class="source-panel-demo-facets">
+                <span class="active">__MSG_html_all__ <b>8</b></span
+                ><span>__MSG_html_images__ <b>5</b></span
+                ><span>__MSG_html_video__ <b>2</b></span
+                ><span>__MSG_html_links__ <b>1</b></span>
+              </div>
+              <div class="source-panel-demo-row">
+                <span class="source-panel-demo-check"></span>
+                <span class="source-panel-demo-thumb image-thumb"></span>
+                <span class="source-panel-demo-details"
+                  ><strong>hero.webp</strong><small>__MSG_html_image128Kb1__</small></span
+                >
+                <span class="source-panel-demo-row-actions"
+                  ><b>__MSG_sourcePanelSave__</b><i>•••</i></span
+                >
+              </div>
+              <div class="source-panel-demo-row">
+                <span class="source-panel-demo-check"></span>
+                <span class="source-panel-demo-thumb video-thumb">▶</span>
+                <span class="source-panel-demo-details"
+                  ><strong>intro.mp4</strong><small>__MSG_html_video24Mb2__</small></span
+                >
+                <span class="source-panel-demo-row-actions"
+                  ><b>__MSG_sourcePanelSave__</b><i>•••</i></span
+                >
+              </div>
+              <div class="source-panel-demo-row">
+                <span class="source-panel-demo-check"></span>
+                <span class="source-panel-demo-thumb stream-thumb">≈</span>
+                <span class="source-panel-demo-details"
+                  ><strong>playlist.m3u8</strong><small>__MSG_html_streamHls3__</small></span
+                >
+                <span class="source-panel-demo-row-actions"
+                  ><b>__MSG_sourcePanelSave__</b><i>•••</i></span
+                >
+              </div>
+            </div>
+          </figure>
+        </div>
+
+        <div id="source-panel-dependent-options" class="dependent-options source-panel-dependent">
+          <fieldset class="option-group source-shortcut-settings">
+            <legend class="option-group-heading">__MSG_o_lSourcePanelShortcut__</legend>
+            <div class="source-shortcut-fields">
+              <label>
+                <span class="shortcut-control-label">__MSG_html_primaryModifier__</span>
+                <select id="sourcePanelShortcutModifier" data-runtime-control="true">
+                  <option value="Ctrl">__MSG_html_ctrl__</option>
+                  <option value="Alt">__MSG_html_altOption__</option>
+                  <option value="Command">__MSG_html_command__</option>
+                  <option value="MacCtrl">__MSG_html_macctrl__</option>
+                </select>
+              </label>
+              <label>
+                <span class="shortcut-control-label">__MSG_html_secondModifier__</span>
+                <select id="sourcePanelShortcutModifier2" data-runtime-control="true">
+                  <option value="">__MSG_html_none__</option>
+                  <option value="Shift">__MSG_html_shift__</option>
+                  <option value="Alt">__MSG_html_altOption__</option>
+                  <option value="Ctrl">__MSG_html_ctrl__</option>
+                  <option value="Command">__MSG_html_command__</option>
+                  <option value="MacCtrl">__MSG_html_macctrl__</option>
+                </select>
+              </label>
+              <label>
+                <span class="shortcut-control-label">__MSG_html_key__</span>
+                <input
+                  type="text"
+                  id="sourcePanelShortcutKey"
+                  data-runtime-control="true"
+                  placeholder="Y"
+                  spellcheck="false"
+                  autocomplete="off"
+                  list="sourcePanelShortcutKeys"
+                  aria-describedby="sourcePanelShortcutHelp sourcePanelShortcutStatus"
+                />
+              </label>
+            </div>
+            <datalist id="sourcePanelShortcutKeys">
+              <option value="Y"></option>
+              <option value="F1"></option>
+              <option value="F2"></option>
+              <option value="F12"></option>
+              <option value="Space"></option>
+              <option value="PageUp"></option>
+              <option value="PageDown"></option>
+              <option value="Home"></option>
+              <option value="End"></option>
+            </datalist>
+            <div class="source-shortcut-actions">
+              <button type="button" class="button-primary" id="sourcePanelShortcutApply">
+                __MSG_html_applyShortcut__
+              </button>
+              <button type="button" id="sourcePanelShortcutReset">
+                __MSG_o_cRestoreDefaults__
+              </button>
+              <span
+                id="sourcePanelShortcutStatus"
+                class="feedback"
+                role="status"
+                aria-live="polite"
+              ></span>
+            </div>
+            <div class="caption caption-line" id="sourcePanelShortcutHelp">
+              __MSG_o_lSourcePanelShortcutHelp__ __MSG_o_lSourcePanelShortcutResetHelp__
+            </div>
+          </fieldset>
+        </div>
+      </section>
+
+      <section class="source-automation" aria-labelledby="auto-download-heading">
+        <h3 class="section-task-heading" id="auto-download-heading">__MSG_autoDownloadHeading__</h3>
+        <p class="section-lead" id="auto-download-help">__MSG_autoDownloadHelp__</p>
+
+        <fieldset class="option-group auto-download-options">
+          <legend class="visually-hidden">__MSG_autoDownloadHeading__</legend>
+          <label class="auto-download-master">
+            <input type="checkbox" id="autoDownloadEnabled" aria-describedby="auto-download-help" />
+            __MSG_autoDownloadEnabled__
+          </label>
+
+          <div class="dependent-options auto-download-dependent">
+            <div class="option-choice-grid auto-download-choice-grid">
+              <label>
+                <input type="checkbox" id="autoDownloadLive" />
+                __MSG_autoDownloadLive__
+              </label>
+              <label>
+                <input type="checkbox" id="autoDownloadPrivate" />
+                __MSG_autoDownloadPrivate__
+              </label>
+            </div>
+
+            <fieldset class="option-group auto-download-coverage" id="auto-download-coverage">
+              <legend class="option-group-heading">__MSG_autoDownloadCoverageHeading__</legend>
+              <label>
+                <input type="checkbox" id="autoDownloadLinks" />
+                __MSG_autoDownloadLinks__
+              </label>
+              <label>
+                <input
+                  type="checkbox"
+                  id="autoDownloadDocuments"
+                  aria-describedby="auto-download-documents-help"
+                />
+                __MSG_autoDownloadDocuments__
+              </label>
+              <span class="caption caption-line" id="auto-download-documents-help"
+                >__MSG_autoDownloadDocumentsHelp__</span
+              >
+              <label>
+                <input type="checkbox" id="autoDownloadBackgrounds" />
+                __MSG_autoDownloadBackgrounds__
+              </label>
+              <label>
+                <input
+                  type="checkbox"
+                  id="autoDownloadManifests"
+                  aria-describedby="auto-download-manifests-help"
+                />
+                __MSG_autoDownloadManifests__
+              </label>
+              <span class="caption caption-line" id="auto-download-manifests-help"
+                >__MSG_autoDownloadManifestsHelp__</span
+              >
+              <label>
+                <input
+                  type="checkbox"
+                  id="autoDownloadDataUrls"
+                  aria-describedby="auto-download-data-urls-help"
+                />
+                __MSG_autoDownloadDataUrls__
+              </label>
+              <span class="caption caption-line" id="auto-download-data-urls-help"
+                >__MSG_autoDownloadDataUrlsHelp__</span
+              >
+            </fieldset>
+
+            <div class="option-subcontrol auto-download-limit">
+              <label for="autoDownloadMaxPerPage">__MSG_autoDownloadLimit__</label>
+              <span class="unit-control">
+                <input
+                  type="number"
+                  id="autoDownloadMaxPerPage"
+                  min="1"
+                  max="500"
+                  step="1"
+                  inputmode="numeric"
+                  aria-describedby="auto-download-limit-help"
+                />
+              </span>
+              <span class="caption auto-download-limit-help" id="auto-download-limit-help"
+                >__MSG_autoDownloadLimitHelp__</span
+              >
+            </div>
+          </div>
+        </fieldset>
+
+        <div class="option-subgroup auto-download-rules">
+          <h4>__MSG_autoDownloadRulesHeading__</h4>
+          <p class="caption" id="auto-download-routing-help">__MSG_autoDownloadRoutingHelp__</p>
+          <button
+            type="button"
+            id="auto-download-manage-rules"
+            aria-describedby="auto-download-routing-help"
+          >
+            __MSG_autoDownloadManageRules__
+          </button>
+        </div>
+      </section>
+
+      <section class="source-disable" aria-labelledby="per-site-disable-heading">
+        <h3 class="section-task-heading" id="per-site-disable-heading">
+          __MSG_o_lPerSiteDisableHeading__
+        </h3>
+        <div class="per-site-disable-field">
+          <label for="perSiteDisableList">__MSG_o_cPerSiteDisableList__</label>
+          <textarea
+            class="full-width"
+            id="perSiteDisableList"
+            rows="3"
+            placeholder="*://*.example.com/*"
+            spellcheck="false"
+            aria-describedby="per-site-disable-list-help per-site-disable-list-error"
+            data-syntax-validation-summary="per-site-disable-list-error"
+          ></textarea>
+          <div class="caption caption-line" id="per-site-disable-list-help">
+            __MSG_o_cPerSiteDisableListHelp__
+          </div>
+          <div
+            class="feedback feedback-inline feedback-error"
+            id="per-site-disable-list-error"
+            role="status"
+            aria-live="polite"
+            hidden
+          >
+            __MSG_o_cPerSiteDisableListInvalid__
+          </div>
+        </div>
+      </section>
+
+      <hr />
+
+      <h2 id="section-history">__MSG_o_sHistory__</h2>
+      <p class="caption history-storage-note">__MSG_historyStorageLimit__</p>
+      <div class="history-query-row">
+        <input
+          type="search"
+          id="history-filter"
+          class="history-filter"
+          data-runtime-control="true"
+          aria-label="__MSG_o_lHistoryFilter__"
+          placeholder="__MSG_o_lHistoryFilter__"
+          spellcheck="false"
+        />
+        <span id="history-count" class="caption"></span>
+      </div>
+      <fieldset class="history-facets">
+        <legend class="visually-hidden">__MSG_o_lHistoryFacets__</legend>
+        <div class="history-facet">
+          <label for="history-source-filter">__MSG_o_lHistorySource__</label>
+          <select id="history-source-filter" data-runtime-control="true">
+            <option value="">__MSG_o_lHistoryAllSources__</option>
+            <option value="save-in">Save In</option>
+            <option value="browser">__MSG_o_lHistoryBrowser__</option>
+          </select>
+        </div>
+        <div class="history-facet">
+          <label for="history-status-filter">__MSG_o_lHistoryStatus__</label>
+          <select id="history-status-filter" data-runtime-control="true">
+            <option value="">__MSG_o_lHistoryAllStatuses__</option>
+            <option value="complete">__MSG_o_lHistorySaved__</option>
+            <option value="pending">__MSG_o_lHistorySaving__</option>
+            <option value="failed">__MSG_o_lHistoryFailed__</option>
+            <option value="undone">__MSG_historyStatusUndone__</option>
+            <option value="moved">__MSG_historyStatusMoved__</option>
+          </select>
+        </div>
+        <div class="history-facet">
+          <label for="history-type-filter">__MSG_o_lHistoryType__</label>
+          <select id="history-type-filter" data-runtime-control="true">
+            <option value="">__MSG_o_lHistoryAllTypes__</option>
+            <option value="image">__MSG_html_image__</option>
+            <option value="link">__MSG_html_link__</option>
+            <option value="page">__MSG_contextMenuContextPage__</option>
+            <option value="selection">__MSG_html_selection__</option>
+            <option value="click">__MSG_html_click__</option>
+            <option value="tab">__MSG_html_tab__</option>
+            <option value="auto">__MSG_autoDownloadRoutingBadge__</option>
+          </select>
+        </div>
+        <div class="history-facet">
+          <label for="history-date-preset">__MSG_o_lHistoryDateSaved__</label>
+          <select id="history-date-preset" data-runtime-control="true">
+            <option value="any">__MSG_o_lHistoryAnyTime__</option>
+            <option value="today">__MSG_o_lHistoryToday__</option>
+            <option value="7-days">__MSG_o_lHistoryLast7Days__</option>
+            <option value="30-days">__MSG_o_lHistoryLast30Days__</option>
+            <option value="custom">__MSG_o_lHistoryCustomRange__</option>
+          </select>
+        </div>
+        <button
+          type="button"
+          id="history-clear-filters"
+          class="button history-clear-filters-inactive"
+          aria-hidden="true"
+          disabled
+          hidden
+        >
+          __MSG_o_cClearHistoryFilters__
+        </button>
+      </fieldset>
+      <div
+        id="history-custom-date-range"
+        class="history-custom-date-range"
+        role="group"
+        aria-labelledby="history-custom-date-label"
+        hidden
+      >
+        <span id="history-custom-date-label">__MSG_o_lHistoryCustomRange__</span>
+        <label for="history-date-from">__MSG_o_lHistoryStartDate__</label>
+        <input
+          id="history-date-from"
+          type="date"
+          data-runtime-control="true"
+          aria-describedby="history-date-error"
+        />
+        <span aria-hidden="true">–</span>
+        <label for="history-date-to">__MSG_o_lHistoryEndDate__</label>
+        <input
+          id="history-date-to"
+          type="date"
+          data-runtime-control="true"
+          aria-describedby="history-date-error"
+        />
+        <span id="history-date-error" class="history-date-error" role="alert" hidden></span>
+      </div>
+      <div
+        id="history-active-filters"
+        class="history-active-filters"
+        role="status"
+        aria-label="__MSG_historyActiveFilters__"
+        aria-live="polite"
+        hidden
+      ></div>
+      <div class="history-table-tools" role="toolbar" aria-label="__MSG_html_historyTableTools__">
+        <details class="history-columns details-popup">
+          <summary class="menu-trigger">__MSG_html_columns__</summary>
+          <div class="history-columns-menu menu-popover" id="history-column-options"></div>
+        </details>
+        <details class="history-export-menu details-popup" data-history-requires-entries>
+          <summary class="menu-trigger">__MSG_historyExportAll__</summary>
+          <div class="history-export-options menu-popover">
+            <button type="button" id="history-export-json">__MSG_html_jsonCompleteData__</button>
+            <button type="button" id="history-export-csv">CSV</button>
+            <button type="button" id="history-export-tsv">TSV</button>
+          </div>
+        </details>
+        <button
+          type="button"
+          id="history-clear"
+          class="button-danger danger-button"
+          data-history-requires-entries
+          disabled
+        >
+          __MSG_o_cDeleteAllHistory__
+        </button>
+      </div>
+      <div
+        id="history-feedback"
+        class="feedback feedback-inline history-feedback"
+        role="status"
+        aria-live="polite"
+        hidden
+      ></div>
+      <div id="history-list"></div>
+
+      <hr />
+
+      <h2 id="section-more-options">__MSG_o_sMoreOptions__</h2>
+
+      <nav class="advanced-section-nav" aria-label="__MSG_o_sMoreOptions__">
+        <a href="#advanced-appearance">__MSG_o_sAppearance__</a>
+        <a href="#advanced-notifications">__MSG_o_sNotifications__</a>
+        <a href="#advanced-files-downloads">__MSG_advancedFilesDownloads__</a>
+        <a href="#advanced-maintenance">__MSG_advancedMaintenanceDiagnostics__</a>
+        <a href="#advanced-integrations">__MSG_html_externalIntegrations__</a>
+      </nav>
+
+      <section
+        id="advanced-appearance"
+        class="advanced-section"
+        aria-labelledby="advanced-appearance-heading"
+      >
+        <h3 id="advanced-appearance-heading">__MSG_o_sAppearance__</h3>
+        <div class="advanced-option-row advanced-field-option">
+          <fieldset
+            class="theme-picker"
+            aria-label="__MSG_o_lUiTheme__"
+            aria-describedby="uiThemeHelp"
+          >
+            <input id="uiTheme" type="hidden" value="system" />
+            <div class="theme-choice-groups">
+              <div class="theme-choice-group" role="group" aria-labelledby="theme-group-default">
+                <span id="theme-group-default" class="theme-choice-group-title"
+                  >__MSG_o_lUiThemeGroupDefault__</span
+                >
+                <div class="theme-choice-grid">
+                  <label class="theme-choice">
+                    <input type="radio" name="uiThemeChoice" value="system" data-no-autosave />
+                    <span class="theme-swatch" data-theme-swatch="system" aria-hidden="true"></span>
+                    <span>__MSG_o_lUiThemeSystem__</span>
+                  </label>
+                  <label class="theme-choice">
+                    <input type="radio" name="uiThemeChoice" value="dark" data-no-autosave />
+                    <span class="theme-swatch" data-theme-swatch="dark" aria-hidden="true"></span>
+                    <span>__MSG_o_lUiThemeDark__</span>
+                  </label>
+                  <label class="theme-choice">
+                    <input type="radio" name="uiThemeChoice" value="light" data-no-autosave />
+                    <span class="theme-swatch" data-theme-swatch="light" aria-hidden="true"></span>
+                    <span>__MSG_o_lUiThemeLight__</span>
+                  </label>
+                </div>
+              </div>
+              <div
+                class="theme-choice-group"
+                role="group"
+                aria-labelledby="theme-group-accessibility"
+              >
+                <span id="theme-group-accessibility" class="theme-choice-group-title"
+                  >__MSG_o_lUiThemeGroupAccessibility__</span
+                >
+                <div class="theme-choice-grid">
+                  <label class="theme-choice">
+                    <input
+                      type="radio"
+                      name="uiThemeChoice"
+                      value="high-contrast-dark"
+                      data-no-autosave
+                    />
+                    <span
+                      class="theme-swatch"
+                      data-theme-swatch="high-contrast-dark"
+                      aria-hidden="true"
+                    ></span>
+                    <span>__MSG_o_lUiThemeHighContrastDark__</span>
+                  </label>
+                  <label class="theme-choice">
+                    <input
+                      type="radio"
+                      name="uiThemeChoice"
+                      value="high-contrast-light"
+                      data-no-autosave
+                    />
+                    <span
+                      class="theme-swatch"
+                      data-theme-swatch="high-contrast-light"
+                      aria-hidden="true"
+                    ></span>
+                    <span>__MSG_o_lUiThemeHighContrastLight__</span>
+                  </label>
+                  <label class="theme-choice">
+                    <input
+                      type="radio"
+                      name="uiThemeChoice"
+                      value="high-contrast-yellow"
+                      data-no-autosave
+                    />
+                    <span
+                      class="theme-swatch"
+                      data-theme-swatch="high-contrast-yellow"
+                      aria-hidden="true"
+                    ></span>
+                    <span>__MSG_o_lUiThemeHighContrastYellow__</span>
+                  </label>
+                </div>
+              </div>
+              <div class="theme-choice-group" role="group" aria-labelledby="theme-group-classics">
+                <span id="theme-group-classics" class="theme-choice-group-title"
+                  >__MSG_o_lUiThemeGroupClassics__</span
+                >
+                <div class="theme-choice-grid">
+                  <label class="theme-choice">
+                    <input
+                      type="radio"
+                      name="uiThemeChoice"
+                      value="solarized-dark"
+                      data-no-autosave
+                    />
+                    <span
+                      class="theme-swatch"
+                      data-theme-swatch="solarized-dark"
+                      aria-hidden="true"
+                    ></span>
+                    <span>__MSG_o_lUiThemeSolarizedDark__</span>
+                  </label>
+                  <label class="theme-choice">
+                    <input
+                      type="radio"
+                      name="uiThemeChoice"
+                      value="solarized-light"
+                      data-no-autosave
+                    />
+                    <span
+                      class="theme-swatch"
+                      data-theme-swatch="solarized-light"
+                      aria-hidden="true"
+                    ></span>
+                    <span>__MSG_o_lUiThemeSolarizedLight__</span>
+                  </label>
+                  <label class="theme-choice">
+                    <input type="radio" name="uiThemeChoice" value="nord" data-no-autosave />
+                    <span class="theme-swatch" data-theme-swatch="nord" aria-hidden="true"></span>
+                    <span>__MSG_o_lUiThemeNord__</span>
+                  </label>
+                  <label class="theme-choice">
+                    <input type="radio" name="uiThemeChoice" value="dracula" data-no-autosave />
+                    <span
+                      class="theme-swatch"
+                      data-theme-swatch="dracula"
+                      aria-hidden="true"
+                    ></span>
+                    <span>__MSG_o_lUiThemeDracula__</span>
+                  </label>
+                  <label class="theme-choice">
+                    <input type="radio" name="uiThemeChoice" value="gruvbox" data-no-autosave />
+                    <span
+                      class="theme-swatch"
+                      data-theme-swatch="gruvbox"
+                      aria-hidden="true"
+                    ></span>
+                    <span>__MSG_o_lUiThemeGruvbox__</span>
+                  </label>
+                  <label class="theme-choice">
+                    <input type="radio" name="uiThemeChoice" value="monokai" data-no-autosave />
+                    <span
+                      class="theme-swatch"
+                      data-theme-swatch="monokai"
+                      aria-hidden="true"
+                    ></span>
+                    <span>__MSG_o_lUiThemeMonokai__</span>
+                  </label>
+                  <label class="theme-choice">
+                    <input type="radio" name="uiThemeChoice" value="one-dark" data-no-autosave />
+                    <span
+                      class="theme-swatch"
+                      data-theme-swatch="one-dark"
+                      aria-hidden="true"
+                    ></span>
+                    <span>__MSG_o_lUiThemeOneDark__</span>
+                  </label>
+                  <label class="theme-choice">
+                    <input type="radio" name="uiThemeChoice" value="tokyo-night" data-no-autosave />
+                    <span
+                      class="theme-swatch"
+                      data-theme-swatch="tokyo-night"
+                      aria-hidden="true"
+                    ></span>
+                    <span>__MSG_o_lUiThemeTokyoNight__</span>
+                  </label>
+                  <label class="theme-choice">
+                    <input type="radio" name="uiThemeChoice" value="catppuccin" data-no-autosave />
+                    <span
+                      class="theme-swatch"
+                      data-theme-swatch="catppuccin"
+                      aria-hidden="true"
+                    ></span>
+                    <span>__MSG_o_lUiThemeCatppuccin__</span>
+                  </label>
+                </div>
+              </div>
+              <div class="theme-choice-group" role="group" aria-labelledby="theme-group-bespoke">
+                <span id="theme-group-bespoke" class="theme-choice-group-title"
+                  >__MSG_o_lUiThemeGroupSaveIn__</span
+                >
+                <div class="theme-choice-grid">
+                  <label class="theme-choice">
+                    <input type="radio" name="uiThemeChoice" value="midnight" data-no-autosave />
+                    <span
+                      class="theme-swatch"
+                      data-theme-swatch="midnight"
+                      aria-hidden="true"
+                    ></span>
+                    <span>__MSG_o_lUiThemeMidnight__</span>
+                  </label>
+                  <label class="theme-choice">
+                    <input type="radio" name="uiThemeChoice" value="pastel-pink" data-no-autosave />
+                    <span
+                      class="theme-swatch"
+                      data-theme-swatch="pastel-pink"
+                      aria-hidden="true"
+                    ></span>
+                    <span>__MSG_o_lUiThemePastelPink__</span>
+                  </label>
+                  <label class="theme-choice">
+                    <input type="radio" name="uiThemeChoice" value="paper" data-no-autosave />
+                    <span class="theme-swatch" data-theme-swatch="paper" aria-hidden="true"></span>
+                    <span>__MSG_o_lUiThemePaper__</span>
+                  </label>
+                  <label class="theme-choice">
+                    <input type="radio" name="uiThemeChoice" value="terminal" data-no-autosave />
+                    <span
+                      class="theme-swatch"
+                      data-theme-swatch="terminal"
+                      aria-hidden="true"
+                    ></span>
+                    <span>__MSG_o_lUiThemeTerminal__</span>
+                  </label>
+                  <label class="theme-choice">
+                    <input type="radio" name="uiThemeChoice" value="berry" data-no-autosave />
+                    <span class="theme-swatch" data-theme-swatch="berry" aria-hidden="true"></span>
+                    <span>__MSG_o_lUiThemeBerry__</span>
+                  </label>
+                  <label class="theme-choice">
+                    <input type="radio" name="uiThemeChoice" value="nebula" data-no-autosave />
+                    <span class="theme-swatch" data-theme-swatch="nebula" aria-hidden="true"></span>
+                    <span>__MSG_o_lUiThemeNebula__</span>
+                  </label>
+                  <label class="theme-choice">
+                    <input type="radio" name="uiThemeChoice" value="glacier" data-no-autosave />
+                    <span
+                      class="theme-swatch"
+                      data-theme-swatch="glacier"
+                      aria-hidden="true"
+                    ></span>
+                    <span>__MSG_o_lUiThemeGlacier__</span>
+                  </label>
+                  <label class="theme-choice">
+                    <input type="radio" name="uiThemeChoice" value="matcha" data-no-autosave />
+                    <span class="theme-swatch" data-theme-swatch="matcha" aria-hidden="true"></span>
+                    <span>__MSG_o_lUiThemeMatcha__</span>
+                  </label>
+                  <label class="theme-choice">
+                    <input type="radio" name="uiThemeChoice" value="ember" data-no-autosave />
+                    <span class="theme-swatch" data-theme-swatch="ember" aria-hidden="true"></span>
+                    <span>__MSG_o_lUiThemeEmber__</span>
+                  </label>
+                  <label class="theme-choice">
+                    <input
+                      type="radio"
+                      name="uiThemeChoice"
+                      value="primary-grid"
+                      data-no-autosave
+                    />
+                    <span
+                      class="theme-swatch"
+                      data-theme-swatch="primary-grid"
+                      aria-hidden="true"
+                    ></span>
+                    <span>__MSG_o_lUiThemePrimaryGrid__</span>
+                  </label>
+                  <label class="theme-choice">
+                    <input type="radio" name="uiThemeChoice" value="blue-house" data-no-autosave />
+                    <span
+                      class="theme-swatch"
+                      data-theme-swatch="blue-house"
+                      aria-hidden="true"
+                    ></span>
+                    <span>__MSG_o_lUiThemeBlueHouse__</span>
+                  </label>
+                  <label class="theme-choice">
+                    <input
+                      type="radio"
+                      name="uiThemeChoice"
+                      value="gilded-mosaic"
+                      data-no-autosave
+                    />
+                    <span
+                      class="theme-swatch"
+                      data-theme-swatch="gilded-mosaic"
+                      aria-hidden="true"
+                    ></span>
+                    <span>__MSG_o_lUiThemeGildedMosaic__</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </fieldset>
+          <div class="caption advanced-option-help" id="uiThemeHelp">__MSG_o_lUiThemeHelp__</div>
+        </div>
+      </section>
+
+      <section
+        id="advanced-notifications"
+        class="advanced-section"
+        aria-labelledby="section-notifications"
+      >
+        <h3 id="section-notifications">__MSG_o_sNotifications__</h3>
+        <fieldset class="option-group notification-options">
+          <legend class="option-group-heading">__MSG_html_notifyMeWhen__</legend>
+          <div class="option-choice-grid">
+            <label> <input type="checkbox" id="notifyOnFailure" /> __MSG_o_cNotifyFailure__ </label>
+            <label> <input type="checkbox" id="notifyOnSuccess" /> __MSG_o_cNotifySuccess__ </label>
+            <label> <input type="checkbox" id="notifyOnRuleMatch" /> __MSG_o_cNotifyMatch__ </label>
+            <label>
+              <input type="checkbox" id="notifyOnLinkPreferred" />
+              __MSG_o_cNotifyLinkPreferred__
+            </label>
+          </div>
+          <div class="option-subcontrol notification-timing">
+            <label for="notifyDurationSeconds">__MSG_html_dismissEarlyAfter__</label>
+            <span class="unit-control">
+              <input type="hidden" id="notifyDuration" value="7000" />
+              <input
+                type="number"
+                id="notifyDurationSeconds"
+                min="0"
+                step="0.1"
+                inputmode="decimal"
+                data-runtime-control="true"
+                aria-describedby="notify-duration-help"
+              />
+              <span>__MSG_html_ms__</span>
+            </span>
+            <span class="caption" id="notify-duration-help"
+              >__MSG_html_copy0LeavesDismissalToTheBrowserOrOperatingSystem__</span
+            >
+          </div>
+        </fieldset>
+      </section>
+
+      <section
+        id="advanced-files-downloads"
+        class="advanced-section"
+        aria-labelledby="advanced-files-downloads-heading"
+      >
+        <h3 id="advanced-files-downloads-heading">__MSG_advancedFilesDownloads__</h3>
+        <h4>__MSG_o_sAdvancedFilenames__</h4>
+        <div class="advanced-option-row advanced-field-option">
+          <label>
+            <span>__MSG_o_cTruncatePath__</span>
+            <input
+              type="number"
+              id="truncateLength"
+              min="0"
+              step="1"
+              aria-describedby="truncateLengthHelp"
+            />
+          </label>
+          <div class="caption advanced-option-help" id="truncateLengthHelp">
+            __MSG_o_cTruncatePathHelp__
+          </div>
+        </div>
+
+        <div class="advanced-option-row advanced-field-option">
+          <label>
+            <span>__MSG_o_cReplaceInvalidCharsWith__</span>
+            <input
+              type="text"
+              id="replacementChar"
+              placeholder="__MSG_html_delete__"
+              class="mono-input"
+              aria-describedby="replacementCharHelp"
+            />
+          </label>
+          <div class="caption advanced-option-help" id="replacementCharHelp">
+            __MSG_o_cReplaceInvalidCharsWithHelp__
+          </div>
+        </div>
+
+        <div class="advanced-option-row advanced-checkbox-option">
+          <label>
+            <input
+              type="checkbox"
+              id="appendMimeExtension"
+              aria-describedby="appendMimeExtensionHelp"
+            />__MSG_o_cAppendMimeExtension__
+          </label>
+          <div class="caption advanced-option-help" id="appendMimeExtensionHelp">
+            __MSG_o_cAppendMimeExtensionHelp__
+          </div>
+        </div>
+
+        <h4>__MSG_o_sAdvancedDownloading__</h4>
+        <div class="background-fetch-options">
+          <div class="advanced-option-row advanced-checkbox-option">
+            <label>
+              <input type="checkbox" id="fallbackFetch" aria-describedby="fallbackFetchHelp" />
+              <span>__MSG_o_cFallbackFetch__</span>
+            </label>
+            <div class="caption advanced-option-help" id="fallbackFetchHelp">
+              __MSG_o_cFallbackFetchHelp__
+            </div>
+          </div>
+
+          <div class="advanced-option-row advanced-checkbox-option">
+            <label>
+              <input type="checkbox" id="fetchViaFetch" aria-describedby="fetchViaFetchHelp" />
+              <span>__MSG_o_cFetchViaFetchAPI__</span>
+            </label>
+            <div class="caption advanced-option-help" id="fetchViaFetchHelp">
+              __MSG_o_cFetchViaFetchAPIHelp__
+            </div>
+          </div>
+
+          <div class="advanced-option-row advanced-checkbox-option fetch-credentials-option">
+            <label>
+              <input
+                type="checkbox"
+                id="includeFetchCredentials"
+                aria-describedby="includeFetchCredentialsHelp"
+              />
+              <span>__MSG_o_cIncludeFetchCredentials__</span>
+            </label>
+            <div class="caption advanced-option-help" id="includeFetchCredentialsHelp">
+              __MSG_o_cIncludeFetchCredentialsHelp__
+            </div>
+          </div>
+        </div>
+
+        <div class="referer-option-group">
+          <label>
+            <input
+              type="checkbox"
+              id="setRefererHeader"
+              aria-controls="referer-options"
+              aria-describedby="setRefererHeaderHelp"
+            />
+            __MSG_o_cSetRefererHeader__
+          </label>
+          <div id="referer-options" class="dependent-options referer-options">
+            <div class="caption caption-line" id="setRefererHeaderHelp">
+              __MSG_o_cSetRefererHeaderHelp__
+            </div>
+            <label class="caption-line">
+              <div>__MSG_o_cSetRefererHeaderFilter__</div>
+              <textarea
+                class="full-width"
+                id="setRefererHeaderFilter"
+                rows="3"
+                placeholder=""
+                spellcheck="false"
+              ></textarea>
+            </label>
+            <div class="caption caption-line">
+              __MSG_o_cSetRefererHeaderFilterHelp__
+              <a
+                class="external"
+                href="https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Match_patterns"
+                target="_blank"
+                rel="noreferrer"
+                >__MSG_html_mdnMatchPatterns__</a
+              >
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section
+        id="advanced-maintenance"
+        class="advanced-section"
+        aria-labelledby="advanced-maintenance-heading"
+      >
+        <h3 id="advanced-maintenance-heading">__MSG_advancedMaintenanceDiagnostics__</h3>
+        <h4>__MSG_o_sAdvancedCounter__</h4>
+        <p class="caption caption-line">
+          __MSG_html_currentValueOfThe__
+          <code>:counter:</code> __MSG_html_variableItAdvancesOncePerSavedDownloadAndPersists__
+        </p>
+        <div class="dev-api counter-control">
+          <div class="dev-api-row">
+            <span class="dev-api-label">__MSG_html_current__</span>
+            <input
+              id="counter-value"
+              class="dev-api-value"
+              type="number"
+              min="0"
+              step="1"
+              value="0"
+              inputmode="numeric"
+              data-runtime-control="true"
+              aria-label="__MSG_html_counterValue__"
+            />
+            <button type="button" id="counter-set" data-option-search="true">
+              __MSG_html_setValue__
+            </button>
+            <button type="button" id="counter-reset" data-option-search="true">
+              __MSG_html_resetTo0__
+            </button>
+          </div>
+        </div>
+
+        <h4>__MSG_o_sAdvancedBackupReset__</h4>
+        <div class="settings-transfer-actions">
+          <div class="settings-transfer-standard-actions">
+            <button type="button" id="settings-import" class="button" data-option-search="true">
+              __MSG_o_cImportSettings__
+            </button>
+            <button type="button" id="settings-export" class="button" data-option-search="true">
+              __MSG_o_cExportSettings__
+            </button>
+          </div>
+          <button
+            type="button"
+            id="reset"
+            class="button-danger danger-button"
+            data-option-search="true"
+          >
+            __MSG_o_cRestoreDefaults__
+          </button>
+        </div>
+        <div
+          id="settings-reset-status"
+          class="feedback feedback-inline settings-reset-status"
+          role="status"
+          aria-live="polite"
+          hidden
+        ></div>
+
+        <textarea id="export-target" hidden spellcheck="false"></textarea>
+
+        <details class="advanced-integration-section diagnostics-details" id="diagnostics-details">
+          <summary>
+            <span>__MSG_o_sAdvancedDiagnostics__</span>
+            <span class="caption">__MSG_diagnosticsSummaryHelp__</span>
+          </summary>
+          <div class="diagnostics-panel">
+            <div class="diagnostics-toolbar">
+              <span
+                id="diagnostics-status"
+                class="feedback feedback-inline"
+                role="status"
+                aria-live="polite"
+              ></span>
+              <button type="button" id="debug-log-refresh" class="button" data-option-search="true">
+                __MSG_diagnosticsRefresh__
+              </button>
+              <button type="button" id="diagnostics-copy" class="button" data-option-search="true">
+                __MSG_diagnosticsCopy__
+              </button>
+            </div>
+
+            <dl class="diagnostics-core" id="diagnostics-core" aria-busy="false">
+              <div>
+                <dt>__MSG_diagnosticsBackground__</dt>
+                <dd id="diagnostics-background">—</dd>
+              </div>
+              <div>
+                <dt>__MSG_diagnosticsHost__</dt>
+                <dd id="diagnostics-host">—</dd>
+              </div>
+              <div>
+                <dt>__MSG_diagnosticsExtension__</dt>
+                <dd id="diagnostics-extension">—</dd>
+              </div>
+              <div>
+                <dt>__MSG_diagnosticsBrowser__</dt>
+                <dd id="diagnostics-browser">—</dd>
+              </div>
+              <div>
+                <dt>__MSG_diagnosticsWorkerStarted__</dt>
+                <dd id="diagnostics-worker-started">—</dd>
+              </div>
+              <div>
+                <dt>__MSG_diagnosticsSessionStorage__</dt>
+                <dd id="diagnostics-session-storage">—</dd>
+              </div>
+              <div>
+                <dt>__MSG_diagnosticsVerboseLogging__</dt>
+                <dd id="diagnostics-verbose">—</dd>
+              </div>
+              <div>
+                <dt>__MSG_diagnosticsConfigurationIssues__</dt>
+                <dd id="diagnostics-configuration">—</dd>
+              </div>
+            </dl>
+
+            <section class="diagnostics-section" aria-labelledby="diagnostics-lifecycle-heading">
+              <h5 id="diagnostics-lifecycle-heading">__MSG_diagnosticsLifecycle__</h5>
+              <p class="caption">__MSG_diagnosticsLifecycleHelp__</p>
+              <ol class="diagnostics-lifecycle" id="diagnostics-lifecycle"></ol>
+            </section>
+
+            <section class="diagnostics-section" aria-labelledby="diagnostics-failures-heading">
+              <div class="diagnostics-section-heading">
+                <h5 id="diagnostics-failures-heading">__MSG_o_lDebugLog__</h5>
+                <span class="count-badge" id="diagnostics-failure-count">0</span>
+              </div>
+              <p class="caption" id="diagnostics-failures-help">__MSG_diagnosticsFailuresHelp__</p>
+              <textarea
+                class="full-width debug-log-text"
+                id="debug-log"
+                aria-label="__MSG_o_lDebugLog__"
+                aria-describedby="diagnostics-failures-help"
+                spellcheck="false"
+                readonly
+              ></textarea>
+              <div class="diagnostics-section-actions">
+                <button type="button" id="debug-log-clear" class="button" data-option-search="true">
+                  __MSG_diagnosticsClearFailures__
+                </button>
+              </div>
+            </section>
+
+            <section class="diagnostics-section" aria-labelledby="diagnostics-logging-heading">
+              <h5 id="diagnostics-logging-heading">__MSG_diagnosticsDeveloperLogging__</h5>
+              <div class="advanced-option-row advanced-checkbox-option">
+                <label>
+                  <input type="checkbox" id="debug" aria-describedby="debugModeHelp" />
+                  __MSG_o_cDebugMode__
+                </label>
+                <div class="caption advanced-option-help" id="debugModeHelp">
+                  __MSG_html_theSessionLogBelowAlwaysKeepsASmallLocal__
+                </div>
+              </div>
+            </section>
+          </div>
+        </details>
+      </section>
+
+      <section
+        id="advanced-integrations"
+        class="advanced-section"
+        aria-labelledby="external-integrations-heading"
+      >
+        <h3 id="external-integrations-heading">__MSG_html_externalIntegrations__</h3>
+        <nav class="integration-documentation-links" aria-label="__MSG_html_externalIntegrations__">
+          <a
+            class="external"
+            href="https://github.com/gyng/save-in/wiki/Integrations"
+            target="_blank"
+            rel="noreferrer"
+            >__MSG_html_integrationGuide__</a
+          >
+          <a
+            id="webhook-documentation"
+            class="external"
+            href="https://github.com/gyng/save-in/wiki/Webhooks"
+            target="_blank"
+            rel="noreferrer"
+            >__MSG_html_webhookDocumentation__</a
+          >
+        </nav>
+
+        <section
+          class="advanced-integration-section external-integrations-content"
+          aria-labelledby="external-download-access-heading"
+        >
+          <div class="advanced-integration-heading">
+            <div>
+              <h4 id="external-download-access-heading">__MSG_html_externalDownloadAccess__</h4>
+              <p class="caption">__MSG_html_letTrustedExtensionsSendUrlsThroughSaveInS__</p>
+            </div>
+            <span id="external-approved-count" class="external-approved-count"
+              >__MSG_html_noneApproved__</span
+            >
+          </div>
+          <section class="external-access-control" aria-labelledby="external-approved-heading">
+            <div class="external-access-heading">
+              <div>
+                <h5 id="external-approved-heading">__MSG_html_approvedExtensions__</h5>
+                <p class="caption external-control-help">
+                  __MSG_html_onlyApprovedExtensionsCanStartDownloadsUseTheCalling__
+                </p>
+              </div>
+            </div>
+
+            <div class="external-extension-add-row">
+              <label class="visually-hidden" for="external-extension-id-draft"
+                >__MSG_html_extensionId__</label
+              >
+              <input
+                id="external-extension-id-draft"
+                class="external-extension-id-draft"
+                type="text"
+                placeholder="__MSG_html_pasteAnExtensionId__"
+                autocomplete="off"
+                autocapitalize="none"
+                spellcheck="false"
+                data-runtime-control="true"
+              />
+              <button id="external-extension-id-add" class="button" type="button" disabled>
+                __MSG_html_allow__
+              </button>
+            </div>
+
+            <div id="external-approved-list" class="external-approved-list" role="list"></div>
+            <p id="external-approved-empty" class="caption external-approved-empty">
+              __MSG_html_noExtensionsAreApprovedExternalDownloadsAreBlockedBy__
+            </p>
+            <p
+              id="external-approved-status"
+              class="feedback feedback-success feedback-inline external-approved-status"
+              role="status"
+            ></p>
+
+            <details class="external-raw-editor">
+              <summary>__MSG_html_advancedEditIdsAsText__</summary>
+              <p class="caption">__MSG_html_useOneExtensionIdPerLineForBulkChanges__</p>
+              <label>
+                <span class="external-control-label visually-hidden"
+                  >__MSG_html_allowedExtensionIds__</span
+                >
+                <textarea
+                  class="full-width external-allowlist-input"
+                  id="externalDownloadAllowlist"
+                  rows="4"
+                  placeholder="__MSG_html_oneExtensionIdPerLine__"
+                  spellcheck="false"
+                ></textarea>
+              </label>
+            </details>
+          </section>
+
+          <section
+            id="external-download-rejections"
+            class="external-download-rejections"
+            aria-labelledby="external-pending-heading"
+            hidden
+          >
+            <h5 id="external-pending-heading" class="external-download-rejections-title">
+              __MSG_html_pendingApproval__
+            </h5>
+            <div class="caption">__MSG_html_theseExtensionsTriedToStartADownloadAddOnly__</div>
+            <div id="external-download-rejection-list"></div>
+            <div id="external-download-rejection-status" class="caption" role="status"></div>
+          </section>
+
+          <details class="external-api-details">
+            <summary>__MSG_html_developerDetails__</summary>
+            <div class="dev-api">
+              <div class="dev-api-row">
+                <span class="dev-api-label">__MSG_html_extensionId__</span>
+                <code id="ext-id" class="click-to-copy dev-api-value">…</code>
+              </div>
+              <div class="dev-api-row">
+                <span class="dev-api-label">__MSG_html_apiVersion__</span>
+                <span id="api-version" class="dev-api-value">…</span>
+              </div>
+              <div class="dev-api-row">
+                <span class="dev-api-label">__MSG_html_capabilities__</span>
+                <span id="api-capabilities" class="dev-api-value">…</span>
+              </div>
+              <details class="dev-api-snippet">
+                <summary>__MSG_html_exampleNegotiateTheVersionThenSaveAUrl__</summary>
+                <pre
+                  id="api-snippet"
+                  class="click-to-copy"
+                  aria-label="__MSG_html_clickTheSnippetToCopyIt__"
+                ></pre>
+                <div class="caption">__MSG_html_clickTheSnippetToCopyIt__</div>
+              </details>
+              <details class="dev-api-snippet">
+                <summary>__MSG_html_whereThisWorks__</summary>
+                <div class="caption">
+                  __MSG_html_webextensionsSuchAsFoxyGesturesCanMessageSaveIn__
+                </div>
+                <div class="caption caption-line">
+                  __MSG_html_saveInDoesNotAdoptDownloadsThatAnotherExtension__
+                  <code>DOWNLOAD</code> __MSG_html_messageFirstOrASmallRelayExtensionMustDo__
+                </div>
+              </details>
+            </div>
+          </details>
+        </section>
+
+        <section
+          class="advanced-integration-section webhook-section"
+          aria-labelledby="webhook-heading"
+        >
+          <div class="advanced-integration-heading webhook-heading-row">
+            <div>
+              <h4 id="webhook-heading">__MSG_html_webhooks__</h4>
+              <p class="caption">__MSG_html_webhooksHelp__</p>
+            </div>
+            <span id="webhook-state-badge" class="external-approved-count" data-state="off"
+              >__MSG_webhookStateOff__</span
+            >
+          </div>
+
+          <div class="webhook-enable-row">
+            <input
+              type="checkbox"
+              id="webhookEnabled"
+              data-no-autosave
+              aria-describedby="webhookEnabledHelp"
+              disabled
+            />
+            <span>
+              <label for="webhookEnabled"><strong>__MSG_html_webhookEnabled__</strong></label>
+              <span class="caption advanced-option-help" id="webhookEnabledHelp"
+                >__MSG_html_webhookAlwaysIncludes__</span
+              >
+            </span>
+          </div>
+
+          <label class="webhook-endpoint-label" for="webhookUrl">
+            <span class="external-control-label">__MSG_html_webhookEndpoint__</span>
+            <span class="caption">__MSG_html_webhookEndpointHelp__</span>
+          </label>
+          <div class="webhook-endpoint-row">
+            <textarea
+              id="webhookUrl"
+              rows="2"
+              data-no-autosave
+              placeholder="https://hooks.example.com/save"
+              data-technical-literal
+              autocomplete="off"
+              autocapitalize="none"
+              spellcheck="false"
+              aria-describedby="webhook-endpoint-note webhook-status"
+            ></textarea>
+            <button
+              id="webhook-test"
+              class="button"
+              type="button"
+              data-option-search="true"
+              data-option-search-target="webhookUrl"
+              disabled
+            >
+              __MSG_html_testWebhook__
+            </button>
+          </div>
+          <p id="webhook-endpoint-note" class="caption webhook-endpoint-note">
+            __MSG_html_webhookTestHelp__
+          </p>
+
+          <div class="webhook-insecure-row">
+            <input type="checkbox" id="webhookAllowInsecure" data-no-autosave />
+            <span class="webhook-insecure-text">
+              <label for="webhookAllowInsecure">__MSG_html_webhookAllowInsecure__</label>
+              <span class="caption advanced-option-help"
+                >__MSG_html_webhookAllowInsecureHelp__</span
+              >
+            </span>
+          </div>
+
+          <fieldset class="webhook-fields">
+            <legend>__MSG_html_webhookEvents__</legend>
+            <label>
+              <input type="checkbox" id="webhookOnStart" data-no-autosave />
+              __MSG_html_webhookOnStart__
+            </label>
+            <label>
+              <input type="checkbox" id="webhookOnComplete" data-no-autosave />
+              __MSG_html_webhookOnComplete__
+            </label>
+            <label>
+              <input type="checkbox" id="webhookOnFailed" data-no-autosave />
+              __MSG_html_webhookOnFailed__
+            </label>
+          </fieldset>
+          <p class="caption caption-line">__MSG_html_webhookEventsHelp__</p>
+
+          <fieldset class="webhook-fields">
+            <legend>__MSG_html_webhookAdditionalData__</legend>
+            <label>
+              <input type="checkbox" id="webhookIncludePageUrl" data-no-autosave />
+              __MSG_html_webhookIncludePageUrl__
+            </label>
+            <label>
+              <input type="checkbox" id="webhookIncludePageTitle" data-no-autosave />
+              __MSG_html_webhookIncludePageTitle__
+            </label>
+            <label>
+              <input type="checkbox" id="webhookIncludeSelectionText" data-no-autosave />
+              __MSG_html_webhookIncludeSelectionText__
+            </label>
+          </fieldset>
+
+          <p class="caption caption-line webhook-disclosure">__MSG_html_webhookPrivacy__</p>
+          <details class="webhook-preview-details">
+            <summary>__MSG_html_webhookPayloadPreview__</summary>
+            <pre id="webhook-payload-preview"></pre>
+          </details>
+          <div
+            id="webhook-status"
+            class="feedback feedback-inline webhook-status"
+            role="status"
+            aria-live="polite"
+          ></div>
+        </section>
+
+        <section
+          class="advanced-integration-section prompt-assistant-section"
+          aria-labelledby="prompt-assistant-heading"
+        >
+          <div class="advanced-integration-heading">
+            <div>
+              <h4 id="prompt-assistant-heading">__MSG_promptAssistantTitle__</h4>
+              <p class="caption">__MSG_promptAssistantIntro__</p>
+            </div>
+            <span class="warning badge">__MSG_o_lExperimental__</span>
+          </div>
+          <p class="caption">
+            __MSG_html_theAssistantNeedsTheBrowsersBuiltIn__
+            <a class="external" href="https://developer.chrome.com/docs/ai/prompt-api">Prompt API</a
+            >__MSG_html_whichOnlySomeBrowsersAndDevicesProvide__
+          </p>
+
+          <div class="prompt-assistant-enable-row">
+            <input
+              type="checkbox"
+              id="promptAssistantEnabled"
+              aria-describedby="prompt-assistant-enable-help"
+            />
+            <span>
+              <label for="promptAssistantEnabled"
+                ><strong>__MSG_promptAssistantEnable__</strong></label
+              >
+              <span class="caption advanced-option-help" id="prompt-assistant-enable-help"
+                >__MSG_promptAssistantEnableHelp__</span
+              >
+            </span>
+          </div>
+
+          <div class="dev-api-row prompt-assistant-status-row">
+            <span class="dev-api-label">__MSG_promptAssistantStatusLabel__</span>
+            <span
+              id="prompt-assistant-status"
+              class="dev-api-value"
+              role="status"
+              aria-live="polite"
+            ></span>
+          </div>
+
+          <details id="prompt-assistant-details" class="prompt-assistant-details">
+            <summary>__MSG_promptAssistantDisclosure__</summary>
+            <div class="prompt-assistant-details-content">
+              <form id="prompt-assistant-form" class="prompt-assistant-form">
+                <label for="prompt-assistant-input"
+                  ><strong>__MSG_promptAssistantPromptLabel__</strong></label
+                >
+                <textarea
+                  id="prompt-assistant-input"
+                  rows="3"
+                  maxlength="4000"
+                  data-no-autosave
+                  aria-describedby="prompt-assistant-prompt-help"
+                  placeholder="__MSG_promptAssistantPromptPlaceholder__"
+                  disabled
+                ></textarea>
+                <div class="caption" id="prompt-assistant-prompt-help">
+                  __MSG_promptAssistantPromptHelp__
+                </div>
+                <div class="prompt-assistant-actions">
+                  <button
+                    id="prompt-assistant-submit"
+                    class="button primary"
+                    type="submit"
+                    disabled
+                  >
+                    __MSG_promptAssistantSuggest__
+                  </button>
+                  <button id="prompt-assistant-cancel" class="button" type="button" hidden disabled>
+                    __MSG_historyCancelDownload__
+                  </button>
+                </div>
+                <progress
+                  id="prompt-assistant-progress"
+                  class="prompt-assistant-progress"
+                  max="1"
+                  aria-label="__MSG_promptAssistantStatusDownloading__"
+                  hidden
+                ></progress>
+              </form>
+
+              <section
+                id="prompt-assistant-result"
+                class="prompt-assistant-result"
+                aria-labelledby="prompt-assistant-result-heading"
+                hidden
+              >
+                <h5 id="prompt-assistant-result-heading">__MSG_promptAssistantGeneratedDraft__</h5>
+                <pre id="prompt-assistant-rule" data-technical-literal></pre>
+                <div class="prompt-assistant-actions">
+                  <button id="prompt-assistant-add" class="button primary" type="button" disabled>
+                    __MSG_promptAssistantAddToRules__
+                  </button>
+                  <button id="prompt-assistant-clear" class="button" type="button">
+                    __MSG_promptAssistantClearDraft__
+                  </button>
+                </div>
+              </section>
+            </div>
+          </details>
+
+          <p class="caption caption-line prompt-assistant-privacy">
+            __MSG_promptAssistantPrivacy__
+          </p>
+        </section>
+
+        <section
+          class="advanced-integration-section webmcp-section"
+          aria-labelledby="webmcp-heading"
+        >
+          <div class="advanced-integration-heading">
+            <h4 id="webmcp-heading">WebMCP</h4>
+            <span class="warning badge">__MSG_o_lExperimental__</span>
+          </div>
+          <p class="caption">
+            __MSG_html_saveInUses__
+            <a class="external" href="https://developer.chrome.com/docs/ai/webmcp">WebMCP</a
+            >__MSG_html_whichOnlySomeBrowsersProvideItRegisters__
+          </p>
+          <div class="webhook-enable-row">
+            <input type="checkbox" id="webmcpEnabled" aria-describedby="webmcpEnabledHelp" />
+            <span>
+              <label for="webmcpEnabled" data-saved-target
+                ><strong>__MSG_o_cWebmcpEnabled__</strong></label
+              >
+              <span class="caption advanced-option-help" id="webmcpEnabledHelp"
+                >__MSG_o_cWebmcpEnabledHelp__</span
+              >
+            </span>
+          </div>
+          <div class="dev-api-row">
+            <span class="dev-api-label">__MSG_o_lHistoryStatus__</span>
+            <span id="webmcp-status" class="dev-api-value">__MSG_html_checking__</span>
+          </div>
+          <details class="webmcp-developer-details">
+            <summary>__MSG_html_developerDetails__</summary>
+            <div class="webmcp-developer-content">
+              <div class="dev-api-row">
+                <span class="dev-api-label">__MSG_html_tools__</span>
+                <span class="dev-api-value webmcp-tool-list" data-technical-literal
+                  >save_in_get_schema, save_in_get_config, save_in_list_vocabulary,
+                  save_in_get_grammars, save_in_validate_config, save_in_apply_config,
+                  save_in_download</span
+                >
+              </div>
+              <p class="caption">__MSG_html_toConnectOpenThisPageInABrowserThat__</p>
+            </div>
+          </details>
+        </section>
+      </section>
+
+      <p>__MSG_translationCredits__</p>
+    </main>
+
+    <dialog
+      id="reference-dialog"
+      class="app-dialog reference-dialog"
+      aria-labelledby="reference-dialog-title"
+    >
+      <div class="reference-dialog-header">
+        <strong id="reference-dialog-title">__MSG_html_references__</strong>
+        <button
+          type="button"
+          class="dialog-close reference-dialog-close"
+          aria-label="__MSG_html_closeReferences__"
+        >
+          ×
+        </button>
+      </div>
+      <div class="reference-dialog-tabs" role="tablist" aria-label="__MSG_html_referenceType__">
+        <button
+          id="reference-tab-variables"
+          type="button"
+          role="tab"
+          data-reference-tab="options-reference-variables"
+          aria-controls="options-reference-variables"
+          aria-selected="false"
+          tabindex="0"
+        >
+          __MSG_o_lRoutingVariables__
+        </button>
+        <button
+          id="reference-tab-clauses"
+          type="button"
+          role="tab"
+          data-reference-tab="options-reference-clauses"
+          aria-controls="options-reference-clauses"
+          aria-selected="false"
+          tabindex="-1"
+        >
+          __MSG_o_lClauses__
+        </button>
+        <button
+          id="reference-tab-templates"
+          type="button"
+          role="tab"
+          data-reference-tab="options-reference-templates"
+          aria-controls="options-reference-templates"
+          aria-selected="false"
+          tabindex="-1"
+        >
+          __MSG_html_templates__
+        </button>
+      </div>
+      <div class="reference-dialog-descriptions">
+        <p
+          id="reference-dialog-description-variables"
+          class="reference-dialog-description"
+          data-reference-description="options-reference-variables"
+        >
+          __MSG_html_variablesAreUsedInDirectoryAndPathPatterns__
+        </p>
+        <p
+          id="reference-dialog-description-clauses"
+          class="reference-dialog-description"
+          data-reference-description="options-reference-clauses"
+          hidden
+        >
+          __MSG_html_clausesAreOnlyUsedInRuleDefinitionsForRouting__
+        </p>
+        <p
+          id="reference-dialog-description-templates"
+          class="reference-dialog-description"
+          data-reference-description="options-reference-templates"
+          hidden
+        >
+          __MSG_html_templatesProvideReadyMadeRoutingRulesYouCanAddAndCustomize__
+        </p>
+      </div>
+      <label class="reference-dialog-filter-label">
+        <span class="visually-hidden">__MSG_html_filterCurrentReference__</span>
+        <input
+          type="search"
+          class="reference-dialog-filter rule-template-filter"
+          name="reference-filter"
+          data-no-autosave
+          placeholder="__MSG_html_filterVariables__"
+          aria-label="__MSG_html_filterCurrentReference__"
+          aria-describedby="reference-dialog-description-variables"
+          spellcheck="false"
+        />
+      </label>
+      <div class="template-feedback" role="status" aria-live="polite" hidden></div>
+      <div class="reference-dialog-body">
+        <section
+          id="options-reference-variables"
+          class="options-reference-panel"
+          role="tabpanel"
+          aria-labelledby="reference-tab-variables"
+        >
+          <span class="reference-loading-status visually-hidden" role="status"
+            >__MSG_html_loadingVariables__</span
+          >
+          <h3>__MSG_html_standard__</h3>
+          <div class="caption">__MSG_html_usableEverywhere__</div>
+          <table class="box">
+            <tbody>
+              <tr>
+                <td>
+                  <code class="click-to-copy">:date:</code>
+                </td>
+                <td>2000-01-01</td>
+                <td>__MSG_html_currentDate__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:isodate:</code>
+                </td>
+                <td>20170123T123040Z</td>
+                <td>__MSG_html_currentDatetimeAsAUtcIso8601String__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:unixdate:</code>
+                </td>
+                <td>946684800</td>
+                <td>__MSG_html_currentDatetimeAsAUnixTimestamp__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:year:</code>
+                </td>
+                <td>2000</td>
+                <td>__MSG_html_currentYear__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:isoyear:</code>
+                </td>
+                <td>2000</td>
+                <td>__MSG_html_iso8601WeekYear__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:month:</code>
+                </td>
+                <td>01</td>
+                <td>__MSG_html_currentMonth__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:day:</code>
+                </td>
+                <td>24</td>
+                <td>__MSG_html_currentDayOfMonth__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:hour:</code>
+                </td>
+                <td>13</td>
+                <td>__MSG_html_currentHour24Hour__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:minute:</code>
+                </td>
+                <td>46</td>
+                <td>__MSG_html_currentMinute__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:second:</code>
+                </td>
+                <td>05</td>
+                <td>__MSG_html_currentSecond__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:weekday:</code>
+                </td>
+                <td>friday</td>
+                <td>__MSG_html_currentDayOfWeekEnglish__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:monthname:</code>
+                </td>
+                <td>july</td>
+                <td>__MSG_html_currentMonthNameEnglish__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:ampm:</code>
+                </td>
+                <td>pm</td>
+                <td>__MSG_html_amOrPmLocalTime__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:isoweek:</code>
+                </td>
+                <td>28</td>
+                <td>__MSG_html_iso8601WeekNumber__<code>:week:</code> __MSG_html_alsoWorks__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:pageurl:</code>
+                </td>
+                <td>https://xyz.com/abc</td>
+                <td>__MSG_html_urlOfThePage__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:sourcedomain:</code>
+                </td>
+                <td>cdn.xyz.com</td>
+                <td>__MSG_html_hostnameOfTheSource__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:sourcerootdomain:</code>
+                </td>
+                <td>xyz.com</td>
+                <td>__MSG_html_sourceHostnameWithoutSubdomains__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:sourceurl:</code>
+                </td>
+                <td>http://xyz.com/pic.jpg</td>
+                <td>__MSG_html_urlOfTheSource__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:sourcepath:</code>
+                </td>
+                <td>img_gallery_pic.jpg</td>
+                <td>__MSG_html_pathPartOfTheSourceUrlSeparatorsAreSanitized__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:tld:</code>
+                </td>
+                <td>com</td>
+                <td>__MSG_html_lastLabelOfTheSourceHostname__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:pagedomain:</code>
+                </td>
+                <td>xyz.com</td>
+                <td>__MSG_html_hostnameOfThePage__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:pagerootdomain:</code>
+                </td>
+                <td>xyz.com</td>
+                <td>__MSG_html_pageHostnameWithoutSubdomains__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:pagetitle:</code>
+                </td>
+                <td>My Webpage Title!</td>
+                <td>__MSG_html_titleOfThePage__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:pagetitleslug:</code>
+                </td>
+                <td>my-webpage-title</td>
+                <td>__MSG_html_pageTitleLowercasedAndDashed__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:pagetitlesnake:</code>
+                </td>
+                <td>my_webpage_title</td>
+                <td>__MSG_html_pageTitleLowercasedWithUnderscores__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:linktext:</code>
+                </td>
+                <td>Direct link to image</td>
+                <td>__MSG_html_linkTextVariableDescription__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:selectiontext:</code>
+                </td>
+                <td>A swan created using</td>
+                <td>__MSG_html_theCurrentlySelectedTextOnThePage__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:naivefilename:</code>
+                </td>
+                <td>file.jpg</td>
+                <td>__MSG_html_theNaiveFilenameUrlBasedUseTheRoutingFeature__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:naivefileext:</code>
+                </td>
+                <td>jpg</td>
+                <td>__MSG_html_urlDerivedExtensionAlias__ <code>:urlfileext:</code>.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>__MSG_html_routingAndFilenamesOnly__</h3>
+          <div class="caption">__MSG_html_onlyUsableWhenRoutingAndRewritingFilenames__</div>
+          <table class="box">
+            <tbody>
+              <tr>
+                <td>
+                  <code class="click-to-copy">:filename:</code>
+                </td>
+                <td>my_image.jpg</td>
+                <td>__MSG_html_fullActualFilenameAfterContentDisposition__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:menupath:</code>
+                </td>
+                <td>Images/Favorites</td>
+                <td>__MSG_html_selectedMenuDirectoryPath__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:fileext:</code>
+                </td>
+                <td>jpg</td>
+                <td>
+                  __MSG_html_actualResolvedFilenameExtensionAlias__ <code>:actualfileext:</code>.
+                </td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:counter:</code>
+                </td>
+                <td>1, 2, 3…</td>
+                <td>__MSG_html_autoIncrementingNumberThatAdvancesOncePerSavedDownload__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:uuid:</code>
+                </td>
+                <td>f47ac10b-58cc-4372-a567-0e02b2c3d479</td>
+                <td>__MSG_html_aRandomV4UuidUniquePerUse__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:mime:</code>,
+                  <code class="click-to-copy">:contenttype:</code>
+                </td>
+                <td>image/jpeg</td>
+                <td>
+                  __MSG_html_theServerS__
+                  <code>Content-Type</code> __MSG_html_viaAHeadRequestAddsASmallDelayAnd__
+                </td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:mimeext:</code>
+                </td>
+                <td>jpg</td>
+                <td>
+                  __MSG_html_fileExtensionDerivedFromThe__
+                  <code>Content-Type</code> __MSG_html_handyForExtensionlessOrQuerySuffixedUrls__
+                </td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:sha256:</code>
+                </td>
+                <td>ba7816bf8f01…</td>
+                <td>__MSG_html_first12LowercaseHexCharactersOfTheDownloadedFile__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:sha256full:</code>
+                </td>
+                <td>ba7816bf8f01cfea…</td>
+                <td>
+                  __MSG_html_full64CharacterLowercaseSha256ItSharesThe__
+                  <code>:sha256:</code> __MSG_html_whenBothVariablesAreUsed__
+                </td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:finalurl:</code>,
+                  <code class="click-to-copy">:redirecturl:</code>
+                </td>
+                <td>https://cdn.example.com/…</td>
+                <td>
+                  __MSG_html_theUrlAfterFollowingRedirectsViaTheSameHead__
+                  <code>:mime:</code>__MSG_html_blankIfTheServerDoesnTAnswer__
+                </td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:$1:</code>, <code class="click-to-copy">:$2:</code>…
+                </td>
+                <td>cats</td>
+                <td>__MSG_html_captureGroupWhere__ <code>1</code> __MSG_html_theN__</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>__MSG_html_menuStructure__</h3>
+          <div class="caption">__MSG_html_specialRowsUsedOnlyInTheDownloadsMenu__</div>
+          <table class="box">
+            <tbody>
+              <tr>
+                <td>
+                  <code class="click-to-copy">---</code>
+                </td>
+                <td>Separator</td>
+                <td>__MSG_html_createsASeparatorInTheContextMenu__</td>
+              </tr>
+              <tr>
+                <td><code class="click-to-copy">&gt;submenu</code></td>
+                <td>submenu</td>
+                <td>
+                  __MSG_html_createsASubmenuItemAddMore__
+                  <code>&gt;</code> __MSG_html_charactersForDeeperNesting__
                 </td>
               </tr>
             </tbody>
           </table>
+        </section>
+        <section
+          id="options-reference-clauses"
+          class="options-reference-panel"
+          role="tabpanel"
+          aria-labelledby="reference-tab-clauses"
+          hidden
+        >
+          <span class="reference-loading-status visually-hidden" role="status"
+            >__MSG_html_loadingClauses__</span
+          >
+          <h3>__MSG_html_outputAndCapture__</h3>
+          <table class="box">
+            <tbody>
+              <tr>
+                <td>
+                  <code class="click-to-copy">into:</code>
+                </td>
+                <td>
+                  <code>:fileext:/foo</code>
+                </td>
+                <td>
+                  <span class="badge warning">__MSG_html_required__</span>
+                  __MSG_html_routesDownloadsToOrRewritesDownloadFilenamesIntoThe__
+                  <code>/</code> __MSG_html_toRouteIntoAFolder__
+                  <em>__MSG_html_without__</em> __MSG_html_renamingTheFileKeepsItsOwnNameEG__
+                  <code>into: pdfs/</code>). __MSG_html_intoDestinationsStartFromTheMenuFolder__
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <code class="click-to-copy">capture:</code>
+                  <code class="click-to-copy">capturegroups:</code>
+                </td>
+                <td>
+                  <code>pageurl</code>
+                  <code>pageurl,sourceurl</code>
+                </td>
+                <td>
+                  <span class="badge">__MSG_html_optional__</span>
+                  __MSG_html_selectsTheMatcherForRegexCaptureGroupVariables__
+                  <code class="click-to-copy">:$1:</code>,
+                  <code class="click-to-copy">:$2:</code
+                  >__MSG_html_splitMultipleCaptureTargetsWithA__ <code>,</code>.
+                  <div class="caption">__MSG_html_captureClauseCompatibility__</div>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <code class="click-to-copy">fetch:</code>
+                </td>
+                <td>
+                  <code>https://pbs.twimg.com/media/:$1:.:$2:?name=orig</code>
+                </td>
+                <td>
+                  <span class="badge">__MSG_html_optional__</span>
+                  __MSG_html_downloadsFromThisUrlTemplateInsteadOfTheMatchedSource__
+                  <code>into:</code>
+                  __MSG_html_stillSetsTheDestinationAndFilenameMustStartWith__
+                  <code>http://</code> __MSG_html_orLiteral__
+                  <code>https://</code
+                  >__MSG_html_captureReferencesAndRoutingVariablesSubstituteVerbatim__
+                  <div class="caption">__MSG_html_fetchClauseCompatibility__</div>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <code class="click-to-copy">rename:</code>
+                </td>
+                <td>
+                  <code>\.jpe?g$ -> .jpg</code>
+                </td>
+                <td>
+                  <span class="badge">__MSG_html_optional__</span>
+                  __MSG_html_renameReplacesMatchesInTheFinalFilename__
+                  <code>-></code>__MSG_html_renameReplacementExpandsVariables__
+                  <code class="click-to-copy">:$1:</code>.
+                  <div class="caption">__MSG_html_renameClauseCompatibility__</div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>__MSG_html_matchers__</h3>
+          __MSG_html_matcherClausesUse__
+          <a
+            class="external"
+            href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions"
+            target="_blank"
+            >__MSG_html_regularExpression__</a
+          >
+          __MSG_html_stringsAddJavascriptRegexFlagsAfterTheMatcherName__
+          <code class="click-to-copy">filename/i:</code> __MSG_html_forCaseInsensitiveMatching__
+          <p>__MSG_html_cssMatcherSyntax__</p>
+
+          <table class="box">
+            <tbody>
+              <tr>
+                <td>
+                  <code class="click-to-copy">css:</code>
+                </td>
+                <td>
+                  <code>article img, .gallery video</code>
+                </td>
+                <td>__MSG_html_cssMatcherDescription__</td>
+              </tr>
+              <tr>
+                <td>
+                  <code class="click-to-copy">context:</code>
+                </td>
+                <td>
+                  <code>page</code>
+                </td>
+                <td>__MSG_html_contextMatcherDescription__</td>
+              </tr>
+              <tr>
+                <td>
+                  <code class="click-to-copy">menuindex:</code>
+                </td>
+                <td>
+                  <code>1</code>
+                </td>
+                <td>__MSG_html_matchesTheMenuIndexOfTheClickedMenuItem__</td>
+              </tr>
+              <tr>
+                <td>
+                  <code class="click-to-copy">directory:</code>
+                </td>
+                <td>
+                  <code>^photos/</code>
+                </td>
+                <td>__MSG_html_directoryMatcherDescription__</td>
+              </tr>
+              <tr>
+                <td>
+                  <code class="click-to-copy">comment:</code>
+                </td>
+                <td>
+                  <code>a menu item comment</code>
+                </td>
+                <td>__MSG_html_matchesTheCommentOfTheClickedMenuItem__</td>
+              </tr>
+              <tr>
+                <td>
+                  <code class="click-to-copy">fileext:</code>
+                </td>
+                <td>
+                  <code>jpg</code>
+                </td>
+                <td>
+                  __MSG_html_matchesTheUrlDerivedExtensionLegacyNameUse__
+                  <code class="click-to-copy">urlfileext:</code> __MSG_html_forExplicitNewRules__
+                </td>
+              </tr>
+              <tr>
+                <td><code class="click-to-copy">actualfileext:</code></td>
+                <td><code>pdf</code></td>
+                <td>__MSG_html_actualFileExtensionMatcherDescription__</td>
+              </tr>
+              <tr>
+                <td>
+                  <code class="click-to-copy">filename:</code>
+                </td>
+                <td>
+                  <code>suggested_filename.jpg</code>
+                </td>
+                <td>__MSG_html_matchesTheResolvedFilenameBeforeBrowserNaming__</td>
+              </tr>
+              <tr>
+                <td>
+                  <code class="click-to-copy">finalfilename:</code>
+                </td>
+                <td>
+                  <code>actual_filename.jpg</code>
+                </td>
+                <td>__MSG_html_matchesTheFinalFilename__</td>
+              </tr>
+              <tr>
+                <td>
+                  <code class="click-to-copy">frameurl:</code>
+                </td>
+                <td>
+                  <code>http://www.google.com</code>
+                </td>
+                <td>__MSG_html_matchesTheUrlOfTheCurrentFrame__</td>
+              </tr>
+              <tr>
+                <td>
+                  <code class="click-to-copy">linktext:</code>
+                </td>
+                <td>
+                  <code>Click here to download</code>
+                </td>
+                <td>__MSG_html_linkTextMatcherDescription__</td>
+              </tr>
+              <tr>
+                <td>
+                  <code class="click-to-copy">sourcekind:</code>
+                </td>
+                <td>
+                  <code>image|video|audio|stream|document|link</code>
+                </td>
+                <td>
+                  __MSG_autoDownloadRoutingBadge__: <code>image</code>, <code>video</code>,
+                  <code>audio</code>, <code>stream</code>, <code>document</code>, <code>link</code>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <code class="click-to-copy">mediatype:</code>
+                </td>
+                <td>
+                  <code>image</code>
+                </td>
+                <td>
+                  __MSG_html_matchesTheMediaType__ <code>audio</code>,
+                  <code>video</code>__MSG_html_or__
+                  <code>image</code>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <code class="click-to-copy">mime:</code>
+                  <code class="click-to-copy">contenttype:</code>
+                </td>
+                <td><code>image/webp</code></td>
+                <td>__MSG_html_matchesTheMimeContentType__</td>
+              </tr>
+              <tr>
+                <td>
+                  <code class="click-to-copy">naivefilename:</code>
+                </td>
+                <td>
+                  <code>cat.jpg</code>
+                </td>
+                <td>__MSG_html_matchesTheNaiveFilename__</td>
+              </tr>
+              <tr>
+                <td>
+                  <code class="click-to-copy">pagedomain:</code>
+                </td>
+                <td>
+                  <code>xyz.com</code>
+                </td>
+                <td>__MSG_html_matchesThePageHostname__</td>
+              </tr>
+              <tr>
+                <td><code class="click-to-copy">pagerootdomain:</code></td>
+                <td><code>xyz.com</code></td>
+                <td>__MSG_html_matchesTheRootHostname__</td>
+              </tr>
+              <tr>
+                <td>
+                  <code class="click-to-copy">pagetitle:</code>
+                </td>
+                <td>
+                  <code>Welcome to my page!</code>
+                </td>
+                <td>__MSG_html_matchesTheCurrentPageTitle__</td>
+              </tr>
+              <tr>
+                <td>
+                  <code class="click-to-copy">pageurl:</code>
+                </td>
+                <td>
+                  <code>http://www.google.com</code>
+                </td>
+                <td>__MSG_html_matchesTheCurrentPageUrl__</td>
+              </tr>
+              <tr>
+                <td><code class="click-to-copy">referrerdomain:</code></td>
+                <td><code>mail.xyz.com</code></td>
+                <td>__MSG_html_referrerDomainMatcherDescription__</td>
+              </tr>
+              <tr>
+                <td><code class="click-to-copy">referrerurl:</code></td>
+                <td><code>https://mail.xyz.com/thread/42</code></td>
+                <td>__MSG_html_referrerUrlMatcherDescription__</td>
+              </tr>
+              <tr>
+                <td>
+                  <code class="click-to-copy">selectiontext:</code>
+                </td>
+                <td>
+                  <code>"X-Cops" is the twelfth</code>
+                </td>
+                <td>__MSG_html_matchesTheSelectionText__</td>
+              </tr>
+              <tr>
+                <td>
+                  <code class="click-to-copy">sourcedomain:</code>
+                </td>
+                <td>
+                  <code>cdn.xyz.com</code>
+                </td>
+                <td>__MSG_html_sourceDomainMatcherDescription__</td>
+              </tr>
+              <tr>
+                <td><code class="click-to-copy">sourcerootdomain:</code></td>
+                <td><code>xyz.com</code></td>
+                <td>__MSG_html_matchesTheRootHostname__</td>
+              </tr>
+              <tr>
+                <td>
+                  <code class="click-to-copy">sourceurl:</code>
+                </td>
+                <td>
+                  <code>http://cdn.xyz.com/pic.jpg</code>
+                </td>
+                <td>__MSG_html_sourceUrlMatcherDescription__</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+        <section
+          id="options-reference-templates"
+          class="options-reference-panel"
+          role="tabpanel"
+          aria-labelledby="reference-tab-templates"
+          hidden
+        >
+          <div id="rule-templates" class="rule-template-library" data-rule-template-library></div>
+        </section>
+      </div>
+    </dialog>
+
+    <dialog
+      id="privacy-dialog"
+      class="app-dialog about-dialog privacy-dialog"
+      aria-label="__MSG_html_privacyPolicy__"
+    >
+      <button
+        type="button"
+        class="dialog-close about-close privacy-close"
+        aria-label="__MSG_html_closePrivacyPolicy__"
+      >
+        ×
+      </button>
+      <article id="privacy-content" class="privacy-content"></article>
+    </dialog>
+
+    <dialog id="about-dialog" class="app-dialog about-dialog" aria-labelledby="about-title">
+      <button
+        type="button"
+        class="dialog-close about-close"
+        aria-label="__MSG_html_closeAboutSaveIn__"
+      >
+        ×
+      </button>
+      <div class="about-layout">
+        <div class="about-mascot-column">
+          <button
+            type="button"
+            class="about-mascot-button"
+            aria-label="__MSG_html_luckyOrganizingCat__"
+            title="__MSG_html_aVeryDiligentOrganizer__"
+          >
+            <img
+              class="about-mascot"
+              src="assets/save-in-mascot.webp"
+              alt="__MSG_html_aWatercolorLuckyCatCarefullyOrganizingDocumentsPhotographsFilm__"
+            />
+          </button>
         </div>
+        <div class="about-copy">
+          <div class="about-heading">
+            <h2 id="about-title">__MSG_html_aboutSaveIn__</h2>
+            <span class="about-version" role="group" aria-label="__MSG_html_buildInformation__">
+              <span class="visually-hidden">__MSG_html_version__</span>
+              <span id="about-version">—</span>
+            </span>
+          </div>
+          <p>__MSG_html_saveInIsALocalFirstDownloadsHelperFor__</p>
+          <p>__MSG_html_saveInHasNoAnalyticsAdvertisingDeveloperOperatedServer__</p>
+          <div class="about-links">
+            <a id="about-welcome" href="#welcome-dialog">__MSG_html_showWelcomeGuide__</a>
+            <a class="external" href="https://github.com/gyng/save-in/issues"
+              >__MSG_html_reportAnIssue__</a
+            >
+            <a class="external" href="https://github.com/gyng/save-in/discussions"
+              >__MSG_html_askTheCommunity__</a
+            >
+            <a class="external" href="https://github.com/gyng/save-in/wiki"
+              >__MSG_html_documentation__</a
+            >
+            <a
+              id="about-store-firefox"
+              class="external"
+              data-about-store
+              href="https://addons.mozilla.org/firefox/addon/save-in/"
+              hidden
+              >__MSG_html_openInFirefoxAddons__</a
+            >
+            <a
+              id="about-store-chrome"
+              class="external"
+              data-about-store
+              href="https://chromewebstore.google.com/detail/save-in/jpblofcpgfjikaapfedldfeilmpgkedf"
+              hidden
+              >__MSG_html_openInChromeWebStore__</a
+            >
+          </div>
+        </div>
+        <section class="about-permissions" aria-labelledby="about-permissions-title">
+          <h3 id="about-permissions-title">__MSG_html_whyThesePermissionsAreNeeded__</h3>
+          <dl class="permission-rationale">
+            <dt>__MSG_html_contextMenus__</dt>
+            <dd>__MSG_html_showsSaveInCommandsOnPagesLinksMediaAnd__</dd>
+            <dt>__MSG_html_downloadRequestHeaders__</dt>
+            <dd>__MSG_html_temporarilyAddsThePageUrlAsRefererForExactSaveInRequests__</dd>
+            <dt>__MSG_html_downloads__</dt>
+            <dd>__MSG_html_startsSavesChoosesFilenamesMonitorsResultsAndSupportsRetries__</dd>
+            <dt>__MSG_o_sNotifications__</dt>
+            <dd>__MSG_html_reportsCompletedSavesAndActionableFailuresWhenEnabled__</dd>
+            <dt>__MSG_html_storage__</dt>
+            <dd>__MSG_html_keepsSettingsRoutingRulesLocalHistoryAndRestartSafe__</dd>
+            <dt>__MSG_html_offscreen__</dt>
+            <dd>__MSG_html_letsChromeConvertFetchedFileDataIntoTemporaryDownload__</dd>
+            <dt>__MSG_html_websiteAccess__</dt>
+            <dd>__MSG_html_findsAndSavesResourcesTheUserChoosesOnArbitrary__</dd>
+          </dl>
+        </section>
       </div>
-      <div class="caption caption-line">
-        __MSG_o_lRoutingLastDownloadHelp__
-      </div>
-    </label>
+    </dialog>
 
-    <label>
-      <input type="checkbox" id="routeFailurePrompt" />
-      __MSG_o_cOpenDialogIfNoRulesMatch__
-    </label>
-
-    <label>
-      <input type="checkbox" id="routeExclusive" /> __MSG_o_cExclusiveMode__
-      <div class="caption caption-line">__MSG_o_cExclusiveModeHelp__</div>
-    </label>
-
-    <hr />
-
-    <h2 id="section-notifications">__MSG_o_sNotifications__</h2>
-    <label>
-      <input type="checkbox" id="notifyOnSuccess" /> __MSG_o_cNotifySuccess__
-    </label>
-
-    <label>
-      <input type="checkbox" id="notifyOnFailure" /> __MSG_o_cNotifyFailure__
-    </label>
-
-    <label>
-      <input type="checkbox" id="notifyOnRuleMatch" /> __MSG_o_cNotifyMatch__
-    </label>
-
-    <label>
-      <input type="checkbox" id="notifyOnLinkPreferred" />
-      __MSG_o_cNotifyLinkPreferred__
-    </label>
-
-    <label>
-      __MSG_o_cNotifyCloseAfter__
-      <input type="number" id="notifyDuration" min="0" />ms
-      <div class="caption caption-line">__MSG_o_cNotifyCloseAfterHelp__</div>
-    </label>
-
-    <hr />
-
-    <h2 id="section-save-as-shortcuts">__MSG_o_sSaveAsShortcuts__</h2>
-    <label>
-      __MSG_o_cSaveShortcutsAs__
-      <select id="shortcutType">
-        <option value="HTML_REDIRECT">__MSG_o_cSaveShortcutsTypeHtml__</option>
-        <option value="MAC">__MSG_o_cSaveShortcutsTypeMac__</option>
-        <option value="WINDOWS">__MSG_o_cSaveShortcutsTypeWindows__</option>
-        <option value="FREEDESKTOP">__MSG_o_cSaveShortcutsTypeFreedesktop__</option>
-      </select>
-    </label>
-
-    <label>
-      <input type="checkbox" id="shortcutMedia" />
-      __MSG_o_cSaveShortcutsMediaInstead__
-    </label>
-
-    <label>
-      <input type="checkbox" id="shortcutLink" />
-      __MSG_o_cSaveShortcutsLinksInstead__
-    </label>
-
-    <label>
-      <input type="checkbox" id="shortcutPage" />
-      __MSG_o_cSaveShortcutsPagesInstead__
-    </label>
-
-    <label>
-      <input type="checkbox" id="shortcutTab" class="chrome-disabled" />
-      __MSG_o_cSaveShortcutsTabsInstead__ <span class="badge">Firefox</span>
-    </label>
-
-    <hr />
-
-    <h2 id="section-save-as-shortcuts">__MSG_o_sKeyboardShortcuts__</h2>
-
-    <h3>__MSG_o_sContextMenu__</h3>
-    <p>__MSG_o_lAccessKeysInstruction__</p>
-
-    <label>
-      <input class="key" type="text" id="keyRoot" maxlength="1" />
-      __MSG_o_cKeyboardShortcutSaveInMenu__
-    </label>
-
-    <label>
-      <input class="key" type="text" id="keyLastUsed" maxlength="1" />
-      __MSG_o_cKeyboardShortcutSubmenu__
-    </label>
-
-    <label>
-      <input type="checkbox" id="enableNumberedItems" />
-      __MSG_o_cKeyboardShortcutNumbers__
-    </label>
-
-    <h3>__MSG_o_sClickToSave__</h3>
-    <label>
-      <input type="checkbox" id="contentClickToSave" />
-      __MSG_o_cKeyboardShortcutClickToSave__
-      <div class="caption caption-line">
-        __MSG_o_cKeyboardShortcutClickToHelp__
-      </div>
-    </label>
-
-    <label>
-      <input type="number" id="contentClickToSaveCombo" />
-      __MSG_o_cKeyboardShotcutKeycode__ +&nbsp;
-      <select id="contentClickToSaveButton">
-        <option value="LEFT_CLICK">__MSG_o_cKeyboardShortcutModifierLeftClick__</option>
-        <option value="MIDDLE_CLICK">__MSG_o_cKeyboardShortcutModifierMiddleClick__</option>
-        <option value="RIGHT_CLICK">__MSG_o_cKeyboardShortcutModifierRightClick__</option>
-      </select>
-      <div class="caption caption-line">
-        __MSG_o_cKeyboardShortcutModifierHelp__
-        <a class="caption" href="http://keycode.info/">keycode.info</a>
-      </div>
-    </label>
-
-    <hr />
-
-    <h2 id="section-more-options">
-      __MSG_o_sMoreOptions__
-      <div id="reset" class="button float-right">
-        __MSG_o_cRestoreDefaults__
-      </div>
-    </h2>
-
-    <label>
-      <input type="number" id="truncateLength" min="1" />__MSG_o_cTruncatePath__&nbsp;
-      <div class="caption caption-line">__MSG_o_cTruncatePathHelp__</div>
-    </label>
-
-    <label>
-      __MSG_o_cReplaceInvalidCharsWith__
-      <input type="text" id="replacementChar" placeholder="delete" style="font-family: monospace;" />
-      <div class="caption caption-line">
-        __MSG_o_cReplaceInvalidCharsWithHelp__
-      </div>
-    </label>
-
-    <label>
-      <input type="checkbox" id="fetchViaContent" class="chrome-disabled" />
-      <span>__MSG_o_cFetchViaContentScript__</span>
-      <span class="badge">Firefox</span>
-      <div class="caption caption-line">
-        __MSG_o_cFetchViaContentScriptHelp__
-      </div>
-    </label>
-
-    <label>
-      <input type="checkbox" id="fetchViaFetch" class="chrome-disabled" />
-      <span>__MSG_o_cFetchViaFetchAPI__</span>
-      <span class="badge">Firefox</span>
-      <div class="caption caption-line">
-        __MSG_o_cFetchViaFetchAPIHelp__
-      </div>
-    </label>
-
-    <label>
-      <input type="checkbox" id="setRefererHeader" />
-      __MSG_o_cSetRefererHeader__
-      <span class="warning badge">Experimental</span>
-      <div class="caption caption-line">__MSG_o_cSetRefererHeaderHelp__</div>
-      <div class="caption-line">
-        <div>__MSG_o_cSetRefererHeaderFilter__</div>
-        <textarea style="width: 100%" type="textarea" id="setRefererHeaderFilter" rows="3" placeholder=""
-          spellcheck="false"></textarea>
-      </div>
-      <div class="caption caption-line">
-        __MSG_o_cSetRefererHeaderFilterHelp__
-        <a href="https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Match_patterns">MDN: Match
-          patterns</a>
-      </div>
-    </label>
-
-    <div style="display: flex; justify-content: flex-start; align-items: center;">
-      <div id="settings-import" class="button">__MSG_o_cImportSettings__</div>
-      <div style="margin-left: 8px;" id="settings-export" class="button">
-        __MSG_o_cExportSettings__
-      </div>
-    </div>
-
-    <textarea id="export-target" style="display: none;" spellcheck="false"></textarea>
-
-    <label> <input type="checkbox" id="debug" /> __MSG_o_cDebugMode__ </label>
-
-    <p>__MSG_translationCredits__</p>
-
-    <div style="display: flex; width: 100%;">
-      <details style="flex: 1;">
-        <summary>History</summary>
-        <textarea style="width: 100%; min-height: 400px;" type="textarea" id="history" spellcheck="false"
-          readonly></textarea>
-        <div id="history-delete" class="button">Delete history</div>
-      </details>
-    </div>
-
-    <p>
-      <span>__MSG_o_cLastSavedAt__</span>
-      <span id="lastSavedAt">__MSG_o_cLastSavedAtNever__</span>
-    </p>
-  </form>
-
-  <script src="options.js"></script>
-  <script src="clicktocopy.js"></script>
-  <script src="vendor/textcomplete/textcomplete.min.js"></script>
-  <script src="autocomplete.js"></script>
-</body>
-
+    <script src="../../options.js"></script>
+  </body>
 </html>

@@ -1,0 +1,186 @@
+.rule-clause-row {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  align-items: center;
+  row-gap: var(--space-2);
+  min-block-size: 38px;
+  padding: 3px var(--space-1);
+  border-radius: var(--radius);
+}
+
+.rule-clause-row:hover,
+.rule-clause-row.is-active,
+.rule-clause-row:focus-within {
+  background: var(--hover-bg);
+}
+
+.rule-clause-row:focus-within {
+  border-inline-start: 2px solid color-mix(in srgb, var(--color-focus) 72%, transparent);
+}
+
+.rule-clause-marker {
+  display: inline-grid;
+  place-items: center;
+  inline-size: 24px;
+  block-size: 22px;
+  border-radius: 4px;
+  color: var(--syntax-keyword);
+  background: color-mix(in srgb, var(--syntax-keyword) 10%, transparent);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.rule-clause-destination .rule-clause-marker {
+  color: var(--syntax-variable);
+  background: color-mix(in srgb, var(--syntax-variable) 10%, transparent);
+  font-size: var(--text-base);
+}
+
+.visual-editor-row.has-validation-error {
+  border-inline-start: 3px solid var(--color-validation);
+  background-color: var(--error-bg);
+}
+
+.visual-editor-row.has-validation-error:hover,
+.visual-editor-row.has-validation-error:focus-within {
+  background-color: color-mix(in srgb, var(--color-validation) 11%, var(--page-bg));
+}
+
+.visual-editor-row.has-validation-error input[type="text"],
+.visual-editor-row.has-validation-error select {
+  border-color: var(--color-validation);
+}
+
+.visual-editor-row.has-validation-error .rule-clause-marker {
+  color: var(--error-fg);
+  background: color-mix(in srgb, var(--color-validation) 14%, transparent);
+}
+
+.visual-editor-row.has-validation-warning {
+  border-inline-start: 3px solid var(--syntax-warning);
+  background-color: var(--syntax-warning-soft);
+}
+
+.rule-editor-card.has-validation-error {
+  border-inline-start: 3px solid var(--color-validation);
+}
+
+.rule-clause-destination {
+  margin-block-start: var(--space-1);
+  border-block-start: 1px dashed var(--panel-border);
+  border-radius: 0 0 var(--radius) var(--radius);
+  background: color-mix(in srgb, var(--syntax-variable) 3%, transparent);
+}
+
+.rule-clause-capture [data-rule-action="delete-clause"] {
+  grid-column: 5;
+}
+
+.rule-clause-fixed-name {
+  padding-inline-start: var(--space-2);
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-base);
+}
+
+.tab-panel .rule-clause-row input[type="text"],
+.tab-panel .rule-clause-row select {
+  inline-size: 100%;
+  max-inline-size: none;
+}
+
+.rule-clause-flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-block-size: var(--compact-control-size);
+  padding: 0 var(--space-1);
+  border-radius: var(--radius);
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.rule-clause-flag:hover {
+  color: var(--color-text);
+  background: var(--hover-bg);
+}
+
+.rule-clause-flag input {
+  margin: 0;
+}
+
+.rule-editor-add-condition {
+  grid-column: 1 / -1;
+  justify-self: start;
+  margin-block: var(--space-1) 0;
+  margin-inline: 34px 0;
+  padding: 4px 8px;
+  border-color: transparent;
+  color: var(--link-color);
+  background: transparent;
+  font-size: var(--text-sm);
+}
+
+.rule-editor-add-condition:hover {
+  border-color: var(--panel-border);
+  background: var(--hover-bg);
+}
+
+.rule-editor-card-unsupported {
+  border-color: color-mix(in srgb, var(--color-validation) 34%, var(--panel-border));
+}
+
+.rule-editor-unsupported {
+  margin: var(--space-3) var(--space-3) var(--space-2);
+  color: var(--error-fg);
+  font-size: var(--text-base);
+}
+
+.rule-editor-reachability {
+  margin: 0 var(--space-3) var(--space-2);
+}
+
+.rule-editor-reachability-note {
+  margin: 0 0 var(--space-1);
+  color: var(--color-text-muted);
+  font-size: var(--text-base);
+
+  &[data-level="warning"] {
+    color: var(--warning-fg);
+  }
+}
+
+.rule-editor-source-preview {
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  margin: 0 var(--space-3) var(--space-2);
+  padding: var(--space-2);
+  border-radius: var(--radius);
+  color: var(--color-text-muted);
+  background: var(--input-background);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  white-space: pre-wrap;
+}
+
+.rule-editor-edit-text {
+  margin: 0 var(--space-3) var(--space-3);
+}
+
+.rule-editor-empty {
+  padding: var(--space-6) var(--space-4);
+  border: 1px dashed var(--panel-border);
+  border-radius: var(--radius);
+  color: var(--color-text-muted);
+  font-size: var(--text-lg);
+  line-height: var(--leading-copy);
+  text-align: center;
+}

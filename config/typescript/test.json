@@ -1,0 +1,10 @@
+{
+  "extends": "./browser.json",
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    "types": ["firefox-webext-browser", "chrome", "node", "vitest/globals"]
+  },
+  "include": ["../../src/**/*.ts", "../../test/**/*.ts", "../../types/**/*.d.ts"],
+  "exclude": ["../../types/host-chrome.d.ts"]
+}

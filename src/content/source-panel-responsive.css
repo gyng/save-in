@@ -1,0 +1,144 @@
+@container source-panel (max-width: 420px) {
+  header {
+    padding-inline: var(--source-space-2);
+  }
+
+  .header-actions {
+    gap: 0;
+  }
+
+  .facets {
+    padding-inline: var(--source-space-2);
+  }
+}
+
+@container source-panel (max-width: 320px) {
+  .source-count {
+    display: none;
+  }
+
+  .primary-action {
+    padding-inline: 6px;
+  }
+
+  .toolbar {
+    grid-template-columns: minmax(0, 1fr);
+    padding-inline: var(--source-space-2);
+  }
+}
+
+@media (max-width: 480px) {
+  :host,
+  :host(.dock-left),
+  :host(.dock-bottom),
+  :host(.dock-top),
+  :host(.floating) {
+    inset: 0;
+    inline-size: 100dvw;
+    block-size: 100dvh;
+  }
+
+  :host(.floating) .panel {
+    border: 0;
+    border-radius: 0;
+  }
+
+  .resize,
+  :host(.floating) .resize {
+    display: none;
+  }
+
+  :host(.dock-bottom) .list,
+  :host(.dock-top) .list {
+    display: block;
+    padding: 0 7px 8px;
+  }
+
+  :host(.dock-bottom) .row,
+  :host(.dock-top) .row {
+    border: 0;
+    border-block-end: 1px solid var(--color-border);
+    border-radius: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :host,
+  :host(.closing) {
+    animation: none;
+  }
+}
+
+@media (pointer: coarse) {
+  :host {
+    --control-height: 44px;
+    --compact-control-size: 44px;
+  }
+
+  .resize {
+    inset: 0 auto 0 -12px;
+    inline-size: 24px;
+  }
+
+  :host(.dock-left) .resize {
+    inset: 0 -12px 0 auto;
+  }
+
+  :host(.dock-bottom) .resize {
+    inset: -12px 0 auto;
+    inline-size: auto;
+    block-size: 24px;
+  }
+
+  :host(.dock-top) .resize {
+    inset: auto 0 -12px;
+    inline-size: auto;
+    block-size: 24px;
+  }
+
+  :host(.floating) .resize {
+    inset: auto 0 0 auto;
+    inline-size: 44px;
+    block-size: 44px;
+  }
+
+  :host(.floating) .resize::after {
+    right: 8px;
+    bottom: 8px;
+  }
+}
+
+@media (prefers-contrast: more) {
+  :host {
+    --color-text-muted: color-mix(in srgb, var(--color-text) 82%, transparent);
+    --color-text-meta: color-mix(in srgb, var(--color-text) 88%, transparent);
+    --color-border: color-mix(in srgb, var(--color-text) 55%, transparent);
+    --color-control-border: color-mix(in srgb, var(--color-text) 75%, transparent);
+  }
+
+  :where(a, button, input, select, [tabindex]):focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+    box-shadow: none;
+  }
+}
+
+@media (forced-colors: active) {
+  :where(a, button, input, select, [tabindex]):focus-visible {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+    box-shadow: none;
+  }
+
+  .facet[aria-pressed="true"] {
+    color: HighlightText;
+    background: Highlight;
+    outline: 1px solid Highlight;
+  }
+
+  .dock-menu button[aria-checked="true"] {
+    color: HighlightText;
+    background: Highlight;
+    outline: 1px solid Highlight;
+  }
+}

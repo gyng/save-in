@@ -1,0 +1,296 @@
+.last-download-info {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: baseline;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  padding-inline-end: var(--space-2);
+}
+
+.last-download-table {
+  inline-size: 100%;
+  max-inline-size: 100%;
+  margin: 0;
+  padding: 0;
+  border-spacing: 0;
+  table-layout: fixed;
+  font-size: var(--text-base);
+}
+
+.last-download-table tbody {
+  vertical-align: baseline;
+}
+
+.last-download-label {
+  inline-size: 110px;
+  padding: 0;
+  font-weight: 600;
+  text-align: start;
+}
+
+.last-download-url,
+.last-download-value {
+  font-family: var(--font-mono);
+  text-align: start;
+}
+
+.last-download-url.is-empty {
+  font-family: inherit;
+}
+
+.last-download-url {
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.last-download-value {
+  overflow-wrap: anywhere;
+}
+
+.settings-transfer-actions,
+.settings-transfer-standard-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.settings-transfer-actions {
+  inline-size: 100%;
+}
+
+.settings-transfer-actions {
+  gap: var(--space-3);
+}
+
+.diagnostics-details > summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.diagnostics-details > summary .caption {
+  display: block;
+  margin-block-start: 2px;
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+
+.diagnostics-panel {
+  display: grid;
+  gap: var(--space-4);
+  margin-block-start: var(--space-2);
+  padding-block-start: var(--space-3);
+  border-block-start: 1px solid var(--panel-border);
+}
+
+.diagnostics-toolbar,
+.diagnostics-section-heading,
+.diagnostics-section-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.diagnostics-toolbar {
+  justify-content: flex-end;
+}
+
+.diagnostics-toolbar .feedback {
+  flex: 1 1 18rem;
+  margin: 0;
+}
+
+.diagnostics-core {
+  display: grid;
+  margin: 0;
+}
+
+.diagnostics-core > div {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  min-inline-size: 0;
+  padding: var(--space-1) 0;
+}
+
+.diagnostics-core dt {
+  flex: 0 0 10em;
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-base);
+}
+
+.diagnostics-core dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: var(--text-base);
+}
+
+.diagnostics-section {
+  padding-block-start: var(--space-4);
+  border-block-start: 1px solid var(--panel-border);
+}
+
+.diagnostics-section h5,
+.diagnostics-section p {
+  margin-block-start: 0;
+}
+
+.diagnostics-section-heading {
+  justify-content: space-between;
+}
+
+.diagnostics-section-heading h5 {
+  margin-block-end: 0;
+}
+
+.diagnostics-section .count-badge {
+  min-inline-size: 2em;
+  padding: 1px var(--space-2);
+  border: 1px solid var(--panel-border);
+  border-radius: 999px;
+  color: var(--color-text-muted);
+  background: var(--page-bg);
+  font-size: var(--text-sm);
+  text-align: center;
+}
+
+.diagnostics-lifecycle {
+  display: grid;
+  gap: var(--space-2);
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.diagnostics-lifecycle li {
+  display: grid;
+  grid-template-columns: minmax(9rem, auto) 1fr;
+  gap: var(--space-3);
+  margin: 0;
+  padding: var(--space-2) 0;
+  border-block-end: 1px solid var(--panel-border);
+}
+
+.diagnostics-lifecycle li:last-child {
+  border-block-end: 0;
+}
+
+.diagnostics-lifecycle time {
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+}
+
+.diagnostics-lifecycle .diagnostics-empty {
+  display: block;
+  color: var(--color-text-muted);
+}
+
+.diagnostics-section-actions {
+  justify-content: flex-end;
+  margin-block-start: var(--space-2);
+}
+
+.debug-log-text {
+  min-block-size: 12rem;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+}
+
+/* These rows stack when the panel runs out of room, which is a question about
+   the panel and not about the window: Diagnostics sits in a tab panel whose
+   width the shell, not the viewport, decides. Asking the viewport also meant
+   answering at 42rem, a breakpoint no other rule here uses. */
+@container options-panel (max-width: 640px) {
+  .diagnostics-core > div {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  .diagnostics-lifecycle li {
+    grid-template-columns: 1fr;
+    gap: var(--space-1);
+  }
+}
+
+.warning.badge {
+  color: var(--color-on-warning);
+  background-color: var(--color-warning);
+}
+
+@keyframes saved-field-check {
+  from {
+    background-size: 16px 16px;
+    background-position: var(--saved-check-edge) calc(var(--saved-check-offset) + 1px)
+      var(--saved-check-y-from);
+  }
+
+  60% {
+    background-size: 19px 19px;
+    background-position: var(--saved-check-edge) calc(var(--saved-check-offset) - 0.5px)
+      var(--saved-check-y-peak);
+  }
+
+  to {
+    background-size: 18px 18px;
+    background-position: var(--saved-check-edge) var(--saved-check-offset) var(--saved-check-y-rest);
+  }
+}
+
+.saved-base {
+  --saved-check-edge: right;
+  --saved-check-offset: 4px;
+  --saved-check-y-from: center;
+  --saved-check-y-peak: center;
+  --saved-check-y-rest: center;
+
+  background-image: url(../i/check-16.svg);
+  background-position: var(--saved-check-edge) var(--saved-check-offset) var(--saved-check-y-rest);
+  background-size: 18px 18px;
+  background-repeat: no-repeat;
+}
+
+.saved-base:dir(rtl) {
+  --saved-check-edge: left;
+}
+
+label.saved-base,
+.opt-title.saved-base,
+[data-saved-target].saved-base {
+  --saved-check-offset: 2px;
+
+  padding-inline-end: 23px;
+}
+
+textarea.saved-base {
+  --saved-check-offset: 7px;
+  --saved-check-y-from: top 8px;
+  --saved-check-y-peak: top 6.5px;
+  --saved-check-y-rest: top 7px;
+
+  padding-inline-end: 30px;
+}
+
+.saved {
+  animation: saved-field-check var(--motion-duration-feedback) ease-out;
+}
+
+input.key {
+  max-inline-size: 2em;
+  margin-inline: var(--space-1) 8px;
+  text-align: center;
+  padding: 4px 8px;
+}
+
+.match-row {
+  display: flex;
+  align-items: baseline;
+}
+
+.match-row-result {
+  margin-inline-start: 8px;
+  font-family: var(--font-mono);
+}

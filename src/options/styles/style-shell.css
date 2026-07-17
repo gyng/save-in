@@ -1,0 +1,374 @@
+/* Full-bleed shell: the page owns the viewport; content width is capped
+   per tab panel (.tab-panel > *) instead of on the whole form */
+body {
+  isolation: isolate;
+  margin: 0;
+  min-block-size: 100dvb;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  color: var(--color-text);
+  background-color: var(--page-bg);
+}
+
+/* Pages sharing this stylesheet without the tabbed shell (variable and
+   clause list popouts) keep a plain inset */
+body:not(#settings-page) {
+  padding: var(--space-4) var(--space-5);
+}
+
+.localization-pending {
+  background: var(--page-bg);
+}
+
+.localization-pending body {
+  visibility: hidden;
+}
+
+.top-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  padding: var(--space-3) var(--space-5);
+  border-block-end: 1px solid var(--color-border);
+}
+
+.top-nav > div:first-child {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-2);
+  min-inline-size: 0;
+}
+
+.reference-launcher-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  margin-inline-start: 0;
+  padding: 2px;
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+}
+
+.reference-launcher-actions > button {
+  min-block-size: var(--control-height);
+  padding: var(--space-1) var(--space-2);
+  border: 0;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: var(--text-base);
+}
+
+.reference-launcher-actions > button:hover {
+  color: var(--link-color);
+  background: var(--hover-bg);
+}
+
+.save-status {
+  position: relative;
+  display: inline-flex;
+  align-items: baseline;
+  flex: none;
+  gap: var(--space-1);
+  align-self: baseline;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  margin-inline-start: var(--space-1);
+  padding-inline-start: var(--space-3);
+  border-inline-start: 1px solid var(--color-border);
+  font-size: var(--text-sm);
+}
+
+.save-status.saved-has-changes {
+  cursor: help;
+}
+
+.saved-change-popover {
+  display: none;
+  position: absolute;
+  z-index: var(--z-status);
+  top: calc(100% + var(--space-1));
+  inset-inline-start: 4.5rem;
+  inline-size: min(26rem, calc(100dvi - 2 * var(--space-5)));
+  padding: var(--space-2) var(--space-3);
+  color: var(--color-text);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  background: var(--floating-bg);
+  box-shadow: var(--floating-shadow);
+  font-size: var(--text-sm);
+  white-space: normal;
+}
+
+.save-status:focus-within .saved-change-popover {
+  display: block;
+}
+
+@media (hover: hover) {
+  .save-status:hover .saved-change-popover {
+    display: block;
+  }
+}
+
+.saved-change-popover > strong {
+  display: block;
+  margin-block-end: var(--space-1);
+  font-size: var(--text-sm);
+}
+
+.saved-change-popover ul {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.saved-change-popover li {
+  display: grid;
+  grid-template-columns: minmax(8rem, 0.8fr) minmax(0, 1.2fr);
+  gap: var(--space-3);
+  padding-block: 2px;
+  align-items: baseline;
+}
+
+.saved-change-popover li > span:last-child {
+  overflow-wrap: anywhere;
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+}
+
+.saved-change-undo {
+  position: absolute;
+  bottom: -1px;
+  inset-inline-start: calc(100% + var(--space-1));
+  z-index: var(--z-status-action);
+  min-block-size: 0;
+  margin: 0;
+  padding: 1px var(--space-2);
+  color: var(--link-color);
+  border: 0;
+  background: transparent;
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+.saved-change-undo:hover {
+  background: var(--hover-bg);
+}
+
+.top-nav-tools {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  min-inline-size: 0;
+  margin-inline-start: auto;
+}
+
+.language-selector {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.language-selector select {
+  inline-size: 10rem;
+  max-inline-size: 100%;
+  padding: var(--space-2) var(--space-3);
+}
+
+.save-status span {
+  font-size: inherit;
+}
+
+#lastSavedAt {
+  display: inline;
+  position: relative;
+}
+
+@keyframes saved-time-confirmation {
+  from,
+  25% {
+    color: var(--success-fg);
+  }
+
+  to {
+    color: inherit;
+  }
+}
+
+#lastSavedAt.saved-confirmed {
+  animation: saved-time-confirmation var(--motion-duration-highlight) ease-out;
+}
+
+.app-icon {
+  inline-size: 18px;
+  block-size: 18px;
+  vertical-align: text-bottom;
+  margin-inline-end: var(--space-2);
+  align-self: center;
+  filter: var(--app-icon-filter);
+}
+
+.app-title {
+  font-weight: 600;
+  font-size: var(--text-lg);
+  letter-spacing: -0.01em;
+}
+
+.version-label {
+  margin-inline: var(--space-2) var(--space-1);
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+}
+
+.nav-resources > summary {
+  color: var(--link-color);
+  font-size: var(--text-base);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.nav-resources {
+  position: relative;
+  display: inline-block;
+  margin-inline-start: var(--space-2);
+}
+
+.nav-resources-menu {
+  position: absolute;
+  z-index: var(--z-menu);
+  margin-block-start: var(--space-1);
+}
+
+.nav-resources-menu > :is(a, button) {
+  line-height: 1;
+}
+
+.nav-resources-menu > :is(a, button):hover {
+  background-color: var(--hover-bg);
+}
+
+.app-dialog {
+  --dialog-inline-size: 32rem;
+  --dialog-inline-gutter: min(var(--space-5), 4dvi);
+  --dialog-block-gutter: min(var(--space-5), 4dvb);
+
+  container: app-dialog / inline-size;
+  inline-size: min(var(--dialog-inline-size), calc(100dvi - 2 * var(--dialog-inline-gutter)));
+  max-block-size: calc(100dvb - 2 * var(--dialog-block-gutter));
+  overscroll-behavior: contain;
+  color: var(--color-text);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-dialog);
+  background: var(--floating-bg);
+  box-shadow: var(--dialog-shadow);
+}
+
+.app-dialog:not(.reference-dialog) {
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+.app-dialog::backdrop {
+  background: var(--backdrop-bg);
+}
+
+.about-dialog {
+  --dialog-inline-size: 780px;
+
+  padding: var(--space-5);
+}
+
+.privacy-dialog {
+  --dialog-inline-size: 680px;
+
+  max-block-size: min(680px, 80dvb);
+}
+
+.privacy-content {
+  max-inline-size: 60ch;
+  margin-inline: auto;
+  font-size: var(--text-base);
+  line-height: var(--leading-reading);
+}
+
+.privacy-content h1 {
+  margin-block: 0 var(--space-2);
+  margin-inline: 0 var(--space-6);
+  font-size: var(--text-2xl);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+}
+
+.privacy-content p,
+.privacy-content ul {
+  margin: 0 0 var(--space-4);
+}
+
+.privacy-content ul {
+  padding-inline-start: var(--space-5);
+}
+
+.privacy-content li + li {
+  margin-block-start: var(--space-1);
+}
+
+.privacy-content h1 + p {
+  margin-block-end: var(--space-6);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  line-height: var(--leading-ui);
+  letter-spacing: 0.01em;
+}
+
+.privacy-content h2 {
+  margin: var(--space-6) 0 var(--space-3);
+  font-size: var(--text-lg);
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+}
+
+.privacy-content a {
+  overflow-wrap: anywhere;
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.16em;
+}
+
+.privacy-content > :last-child {
+  margin-block-end: 0;
+}
+
+@supports (text-wrap: balance) {
+  .privacy-content :is(h1, h2) {
+    text-wrap: balance;
+  }
+}
+
+@supports (text-wrap: pretty) {
+  .privacy-content p {
+    text-wrap: pretty;
+  }
+}
+
+.dialog-close,
+.about-close,
+.reference-dialog-close {
+  display: grid;
+  place-items: center;
+  inline-size: var(--control-height);
+  block-size: var(--control-height);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-size: var(--text-lg);
+}

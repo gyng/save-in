@@ -1,0 +1,66 @@
+[data-manual="true"] {
+  display: block;
+  margin-block-end: 0;
+}
+
+#path-editor-rows {
+  margin-block-end: var(--space-4);
+}
+
+.editor-action-help {
+  flex: 1 1 7rem;
+  min-inline-size: 6rem;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  line-height: 1.35;
+}
+
+.editor-reference-links {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.variables-preview-list {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: clip;
+}
+
+.variables-preview-scroll {
+  min-block-size: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  /* Overlay scrollbars ignore scrollbar-gutter, so keep values clear of the painted track. */
+  padding-inline-end: var(--space-3);
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+}
+
+.variables-preview-reference-row {
+  padding-block: 6px;
+}
+
+.variables-preview-filter,
+.clause-preview-filter {
+  display: block;
+  inline-size: auto;
+  min-inline-size: 0;
+  max-inline-size: none;
+  margin: var(--space-2);
+}
+
+.clause-preview {
+  margin: 0;
+}
+
+.reference-sections {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.clause-preview-description {
+  font-family: inherit;
+}

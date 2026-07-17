@@ -1,0 +1,4330 @@
+{
+  "ruleTemplatePdfsByContentTypeName": {
+    "message": "PDF-filer efter innehållstyp"
+  },
+  "ruleTemplatePdfsByContentTypeDescription": {
+    "message": "Identifierar PDF-filer efter rapporterad innehållstyp i stället för filnamn"
+  },
+  "ruleTemplateDownloadsFromSiteSectionName": {
+    "message": "Nedladdningar från en webbplatssektion"
+  },
+  "ruleTemplateDownloadsFromSiteSectionDescription": {
+    "message": "Dirigerar nedladdningar som hör till en sid-URL-sektion till en egen mapp"
+  },
+  "html_matchesTheMimeContentType": {
+    "message": "Matchar fastställt MIME Content-Type. Save In kan begära serverhuvuden."
+  },
+  "html_referrerDomainMatcherDescription": {
+    "message": "Matchar hänvisarens värdnamn; annars används sidans värdnamn."
+  },
+  "html_referrerUrlMatcherDescription": {
+    "message": "Matchar hänvisarens URL; annars används sidans URL."
+  },
+  "html_matchesTheRootHostname": {
+    "message": "Matchar värdnamnet utan underdomäner."
+  },
+  "extensionName": {
+    "message": "Save In"
+  },
+  "extensionDescription": {
+    "message": "Sparar bilder, videor, ljud, länkar, markerad text och sidor i mappar i din standardnedladdningsmapp."
+  },
+  "manifestActionListPageSources": {
+    "message": "Visa sidresurser"
+  },
+  "manifestCommandTogglePageSources": {
+    "message": "Visa eller dölj sidresurser"
+  },
+  "translationCredits": {
+    "message": "​"
+  },
+  "referenceRuntimeVariable": {
+    "message": "Körtidsvariabel"
+  },
+  "referenceRuntimeRuleMatcher": {
+    "message": "Regelmatchare vid körning"
+  },
+  "ruleTemplateCategoryMedia": {
+    "message": "Media"
+  },
+  "ruleTemplateCategoryFileTypes": {
+    "message": "Filtyper"
+  },
+  "ruleTemplateCategoryDateAndSequence": {
+    "message": "Datum och ordning"
+  },
+  "ruleTemplateCategorySitesAndUrls": {
+    "message": "Webbplatser och URL:er"
+  },
+  "ruleTemplateCategorySaveContext": {
+    "message": "Sparsammanhang"
+  },
+  "ruleTemplateImagesPerSiteName": {
+    "message": "Bilder i mappar per webbplats"
+  },
+  "ruleTemplateImagesPerSiteDescription": {
+    "message": "Sorterar sparade bilder efter sidans värdnamn"
+  },
+  "ruleTemplateVideosPerSiteName": {
+    "message": "Videor i mappar per webbplats"
+  },
+  "ruleTemplateVideosPerSiteDescription": {
+    "message": "Sorterar sparade videor efter sidans värdnamn"
+  },
+  "ruleTemplateAudioPerSiteName": {
+    "message": "Ljud i mappar per webbplats"
+  },
+  "ruleTemplateAudioPerSiteDescription": {
+    "message": "Sorterar sparat ljud efter sidans värdnamn"
+  },
+  "ruleTemplateScreenshotsByMonthName": {
+    "message": "Skärmbilder per månad"
+  },
+  "ruleTemplateScreenshotsByMonthDescription": {
+    "message": "Lägger filnamn för skärmbilder och skärminspelningar i daterade mappar"
+  },
+  "ruleTemplatePdfsName": {
+    "message": "PDF-filer i en dokumentmapp"
+  },
+  "ruleTemplatePdfsDescription": {
+    "message": "Samlar alla PDF-filer på ett ställe"
+  },
+  "ruleTemplateArchivesName": {
+    "message": "Arkiv i en mapp"
+  },
+  "ruleTemplateArchivesDescription": {
+    "message": "Samlar zip-, rar-, 7z-, tar- och andra komprimerade arkiv"
+  },
+  "ruleTemplateDocumentsName": {
+    "message": "Dokument i en mapp"
+  },
+  "ruleTemplateDocumentsDescription": {
+    "message": "Samlar vanliga kontors- och textdokument"
+  },
+  "ruleTemplateEbooksName": {
+    "message": "E-böcker och serier"
+  },
+  "ruleTemplateEbooksDescription": {
+    "message": "Samlar vanliga format för e-böcker och digitala serier"
+  },
+  "ruleTemplateInstallersName": {
+    "message": "Appar och installationsprogram"
+  },
+  "ruleTemplateInstallersDescription": {
+    "message": "Håller installationspaket för dator och mobil samlade"
+  },
+  "ruleTemplateFontsName": {
+    "message": "Typsnitt i en mapp"
+  },
+  "ruleTemplateFontsDescription": {
+    "message": "Samlar typsnittsfiler för dator och webb"
+  },
+  "ruleTemplatePerExtensionName": {
+    "message": "En mapp per filändelse"
+  },
+  "ruleTemplatePerExtensionDescription": {
+    "message": "Fångar filändelsen och använder den som mappnamn"
+  },
+  "ruleTemplateDateStampName": {
+    "message": "Datumstämpla varje nedladdning"
+  },
+  "ruleTemplateDateStampDescription": {
+    "message": "Lägger sparandedatumet före det sparade filnamnet"
+  },
+  "ruleTemplateDailyInboxName": {
+    "message": "Daglig inkorg"
+  },
+  "ruleTemplateDailyInboxDescription": {
+    "message": "Skapar en mapp för varje kalenderdag"
+  },
+  "ruleTemplateDownloadsByMonthName": {
+    "message": "Nedladdningar per månad"
+  },
+  "ruleTemplateDownloadsByMonthDescription": {
+    "message": "Skapar års- och månadsmappar och behåller det sparade filnamnet"
+  },
+  "ruleTemplateWeeklyInboxName": {
+    "message": "Veckovis inkorg"
+  },
+  "ruleTemplateWeeklyInboxDescription": {
+    "message": "Skapar en inkorgsmapp för varje ISO-vecka"
+  },
+  "ruleTemplateSequentialArchiveName": {
+    "message": "Sekventiellt arkiv"
+  },
+  "ruleTemplateSequentialArchiveDescription": {
+    "message": "Lägger Save Ins beständiga nedladdningsräknare före filnamnen"
+  },
+  "ruleTemplateOneSiteName": {
+    "message": "En webbplats, en mapp"
+  },
+  "ruleTemplateOneSiteDescription": {
+    "message": "Dirigerar en vald webbplats till en egen mapp"
+  },
+  "ruleTemplatePerSourceSiteName": {
+    "message": "En mapp per källwebbplats"
+  },
+  "ruleTemplatePerSourceSiteDescription": {
+    "message": "Grupperar nedladdningar efter värdnamnet som levererar filen"
+  },
+  "ruleTemplatePerPageSiteName": {
+    "message": "En mapp per sidwebbplats"
+  },
+  "ruleTemplatePerPageSiteDescription": {
+    "message": "Grupperar filer efter webbplatsen du besökte i stället för filvärden"
+  },
+  "ruleTemplatePageTitlePrefixName": {
+    "message": "Sidtitel som prefix"
+  },
+  "ruleTemplatePageTitlePrefixDescription": {
+    "message": "Lägger en filsystemsäkert formaterad sidtitel före det sparade filnamnet"
+  },
+  "ruleTemplateCaptureUrlName": {
+    "message": "Fånga en del av URL:en"
+  },
+  "ruleTemplateCaptureUrlDescription": {
+    "message": "Använder en regex-fångstgrupp i det sparade filnamnet"
+  },
+  "ruleTemplateBrowserInboxName": {
+    "message": "Inkorg för webbläsarnedladdningar"
+  },
+  "ruleTemplateBrowserInboxDescription": {
+    "message": "Håller spårade nedladdningar som ägs av webbläsaren i en separat mapp"
+  },
+  "ruleTemplateLinkInboxName": {
+    "message": "Inkorg för länknedladdningar"
+  },
+  "ruleTemplateLinkInboxDescription": {
+    "message": "Skiljer filer som sparats från länkar från inbäddade medier"
+  },
+  "ruleTemplateSelectionInboxName": {
+    "message": "Inkorg för markerad text"
+  },
+  "ruleTemplateSelectionInboxDescription": {
+    "message": "Håller filer som skapats från markerad sidtext samlade"
+  },
+  "ruleTemplateTabInboxName": {
+    "message": "Inkorg för fliksparningar"
+  },
+  "ruleTemplateTabInboxDescription": {
+    "message": "Håller filer som sparats via flikåtgärder samlade"
+  },
+  "ruleTemplateAdded": {
+    "message": "Tillagd"
+  },
+  "ruleTemplateAdd": {
+    "message": "Lägg till"
+  },
+  "ruleTemplateAddedFeedback": {
+    "message": "Tillagd"
+  },
+  "ruleTemplateViewInEditor": {
+    "message": "Visa i regelredigeraren"
+  },
+  "historyActiveFilters": {
+    "message": "Aktiva historikfilter"
+  },
+  "historyExportAll": {
+    "message": "Exportera allt"
+  },
+  "historyFilterSearch": {
+    "message": "Sök: ”$QUERY$”",
+    "placeholders": {
+      "query": {
+        "content": "$1",
+        "example": "invoice"
+      }
+    }
+  },
+  "historyFilterSince": {
+    "message": "Sedan $DATE$",
+    "placeholders": {
+      "date": {
+        "content": "$1",
+        "example": "2026-07-01"
+      }
+    }
+  },
+  "historyFilterThrough": {
+    "message": "Till och med $DATE$",
+    "placeholders": {
+      "date": {
+        "content": "$1",
+        "example": "2026-07-31"
+      }
+    }
+  },
+  "historyDateRangeInvalid": {
+    "message": "Startdatumet måste vara samma som eller före slutdatumet."
+  },
+  "historyShowFolderUnavailable": {
+    "message": "Det gick inte att öppna mappen. Webbläsaren känner inte längre till nedladdningen."
+  },
+  "historyShowFolderFailed": {
+    "message": "Det gick inte att öppna mappen. Filen kan ha flyttats eller tagits bort."
+  },
+  "historyFilteredResultsCount": {
+    "message": "$MATCHES$ av $TOTAL$ resultat",
+    "placeholders": {
+      "matches": {
+        "content": "$1",
+        "example": "12"
+      },
+      "total": {
+        "content": "$2",
+        "example": "50"
+      }
+    }
+  },
+  "historyResultCountOne": {
+    "message": "$COUNT$ resultat",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
+  },
+  "historyResultCount": {
+    "message": "$COUNT$ resultat",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "24"
+      }
+    }
+  },
+  "historyStorageLimit": {
+    "message": "Historiken lagras på den här enheten, upp till 10 000 poster."
+  },
+  "historyTableCaption": {
+    "message": "Historik över sparade nedladdningar"
+  },
+  "historyShowInFolder": {
+    "message": "Visa i mapp"
+  },
+  "historyCancelDownload": {
+    "message": "Avbryt"
+  },
+  "historyCancelDownloadTitle": {
+    "message": "Avbryt den här nedladdningen"
+  },
+  "historyCancelDownloadNamed": {
+    "message": "Avbryt $FILE$",
+    "placeholders": {
+      "file": {
+        "content": "$1",
+        "example": "photo.jpg"
+      }
+    }
+  },
+  "historyCancelingDownload": {
+    "message": "Avbryter…"
+  },
+  "historyUndoSave": {
+    "message": "Ångra sparning"
+  },
+  "historyUndoSaveNamed": {
+    "message": "Ångra sparningen av $FILE$",
+    "placeholders": {
+      "file": {
+        "content": "$1",
+        "example": "photo.jpg"
+      }
+    }
+  },
+  "historyUndoDone": {
+    "message": "Sparningen ångrades. Filen togs bort."
+  },
+  "historyUndoFileMissing": {
+    "message": "Sparningen ångrades. Filen hade redan flyttats eller tagits bort."
+  },
+  "historyUndoFailed": {
+    "message": "Det gick inte att ångra den här sparningen."
+  },
+  "historyMoveSave": {
+    "message": "Flytta sparning (laddar ner filen igen till den valda mappen)"
+  },
+  "historyMoveSaveNamed": {
+    "message": "Flytta sparningen av $FILE$",
+    "placeholders": {
+      "file": {
+        "content": "$1",
+        "example": "photo.jpg"
+      }
+    }
+  },
+  "historyMoveDestination": {
+    "message": "Målmapp"
+  },
+  "historyMoveConfirm": {
+    "message": "Flytta"
+  },
+  "historyMoveDownloadsRoot": {
+    "message": "Hämtade filer"
+  },
+  "historyMoveDone": {
+    "message": "Sparningen flyttades. Filen laddades ner till den nya mappen."
+  },
+  "historyMoveOriginalKept": {
+    "message": "Sparad i den nya mappen. Den ursprungliga filen kunde inte tas bort."
+  },
+  "historyMoveFailed": {
+    "message": "Den här sparningen kunde inte flyttas."
+  },
+  "historyRoutingApplied": {
+    "message": "Tillämpad"
+  },
+  "historyRoutingAppliedTitle": {
+    "message": "En regel för routning eller namnbyte tillämpades."
+  },
+  "historyNewer": {
+    "message": "‹ Nyare"
+  },
+  "historyPageCount": {
+    "message": "Sida $PAGE$ av $TOTAL$",
+    "placeholders": {
+      "page": {
+        "content": "$1",
+        "example": "2"
+      },
+      "total": {
+        "content": "$2",
+        "example": "5"
+      }
+    }
+  },
+  "historyOlder": {
+    "message": "Äldre ›"
+  },
+  "historyLoadFailed": {
+    "message": "Det gick inte att läsa in historiken."
+  },
+  "historyRetry": {
+    "message": "Försök igen"
+  },
+  "historyDeleteConfirmTitle": {
+    "message": "Ta bort all historik?"
+  },
+  "historyDeleteConfirmDescription": {
+    "message": "Detta tar permanent bort alla sparade historikposter. Åtgärden kan inte ångras."
+  },
+  "historyKeepHistory": {
+    "message": "Behåll historiken"
+  },
+  "historyDeleteAll": {
+    "message": "Ta bort all historik"
+  },
+  "historyClearing": {
+    "message": "Tar bort historik…"
+  },
+  "historyClearFailed": {
+    "message": "Det gick inte att ta bort historiken."
+  },
+  "historyStatusSaving": {
+    "message": "Sparar…"
+  },
+  "historyStatusCanceled": {
+    "message": "Avbruten"
+  },
+  "historyStatusUndone": {
+    "message": "Ångrad"
+  },
+  "historyStatusMoved": {
+    "message": "Flyttad"
+  },
+  "historyStatusNetworkFailed": {
+    "message": "Nätverksfel"
+  },
+  "historyStatusDownloadFailed": {
+    "message": "Nedladdningen misslyckades"
+  },
+  "historyStatusPreparationFailed": {
+    "message": "Förberedelsen misslyckades"
+  },
+  "historyStatusPreparationInterrupted": {
+    "message": "Avbruten"
+  },
+  "historyStatusStateLost": {
+    "message": "Nedladdningsstatus förlorad"
+  },
+  "historyStatusRoutingFailed": {
+    "message": "Routningen misslyckades"
+  },
+  "historyStatusNoRuleMatch": {
+    "message": "Ingen matchande regel"
+  },
+  "genericUnknownError": {
+    "message": "Okänt fel"
+  },
+  "contextMenuItemOptions": {
+    "message": "Alternativ"
+  },
+  "contextMenuToggleSourcePanel": {
+    "message": "Visa eller dölj sidresurser"
+  },
+  "contextMenuExclusive": {
+    "message": "Spara med en routningsregel…"
+  },
+  "contextMenuRoot": {
+    "message": "Save In…"
+  },
+  "contextMenuLastUsed": {
+    "message": "Senast använd"
+  },
+  "contextMenuContextMedia": {
+    "message": "Media"
+  },
+  "contextMenuContextMediaOrLink": {
+    "message": "Media eller länk"
+  },
+  "contextMenuContextSelection": {
+    "message": "Markerad text"
+  },
+  "contextMenuContextPage": {
+    "message": "Sida"
+  },
+  "contextMenuShowDefaultFolder": {
+    "message": "Öppna standardmappen för nedladdningar"
+  },
+  "notificationSuccessTitle": {
+    "message": "Sparad"
+  },
+  "notificationFailureTitle": {
+    "message": "Det gick inte att spara $FILENAME$.",
+    "placeholders": {
+      "filename": {
+        "content": "$1",
+        "example": "my_filename.jpg"
+      }
+    }
+  },
+  "notificationUndoSave": {
+    "message": "Ångra sparning"
+  },
+  "notificationRuleMatchedTitle": {
+    "message": "Save In: Regel matchad"
+  },
+  "notificationRuleMatchFailedExclusiveTitle": {
+    "message": "Save In: Det gick inte att dirigera eller byta namn på nedladdningen"
+  },
+  "notificationRuleMatchFailedExclusiveMessage": {
+    "message": "Ingen matchande regel hittades för $URL$",
+    "placeholders": {
+      "url": {
+        "content": "$1",
+        "example": "www.google.jpg"
+      }
+    }
+  },
+  "ruleMissingMatcher": {
+    "message": "Lägg till minst ett matchningsvillkor före into:"
+  },
+  "ruleCaptureMissingMatcher": {
+    "message": "Capture-satsen riktar sig inte mot en matchare"
+  },
+  "ruleCaptureAmbiguousMatcher": {
+    "message": "Äldre capture använder den första matchande satsen"
+  },
+  "ruleMissingCapture": {
+    "message": "Lägg till ett fångstvillkor för att använda fångstvariabler"
+  },
+  "ruleMultipleCapture": {
+    "message": "En regel kan bara innehålla en fångstsats"
+  },
+  "ruleMissingInto": {
+    "message": "Lägg till ett ifyllt mål med into:"
+  },
+  "ruleIntoConstantFilename": {
+    "message": "Byter namn på varje träff till samma namn. Avsluta med / för en mapp, eller med :filename: för att behålla nedladdningens namn"
+  },
+  "ruleExtraInto": {
+    "message": "En regel kan bara innehålla en i:-sats"
+  },
+  "ruleUnknownMatcher": {
+    "message": "Okänd matchare"
+  },
+  "ruleUnknownDestinationVariable": {
+    "message": "Sökvägsvariabeln stöds inte"
+  },
+  "ruleInvalidRegex": {
+    "message": "Ogiltigt reguljärt uttryck"
+  },
+  "ruleShadowed": {
+    "message": "Den här regeln körs aldrig eftersom en tidigare regel matchar samma eller flera nedladdningar"
+  },
+  "ruleBadClause": {
+    "message": "Använd syntaxen namn: värde"
+  },
+  "rulePathInvalidCharacter": {
+    "message": "Sökvägen innehåller ogiltiga tecken"
+  },
+  "rulePathStartsWithDot": {
+    "message": "Sökvägen kan inte börja med .. eller /"
+  },
+  "tabstripMenuSelectedTab": {
+    "message": "Spara vald flik"
+  },
+  "tabstripMenuMultipleSelectedTab": {
+    "message": "Spara markerade flikar"
+  },
+  "tabstripMenuSaveChildrenTabs": {
+    "message": "Spara flikar som öppnats från den här fliken"
+  },
+  "tabstripMenuSaveRightTabs": {
+    "message": "Spara den här fliken och alla flikar till höger om den"
+  },
+  "tabstripMenuSaveRightTabsMatched": {
+    "message": "Spara den här fliken och alla flikar till höger om den (ruttregel krävs)"
+  },
+  "o_sDownloads": {
+    "message": "Sparmeny"
+  },
+  "o_sDirectories": {
+    "message": "Mappar"
+  },
+  "o_sBehavior": {
+    "message": "Sparbeteende"
+  },
+  "o_sSaveDialog": {
+    "message": "Dialogrutan Spara"
+  },
+  "o_sExistingFiles": {
+    "message": "Befintliga filer"
+  },
+  "o_lContextMenuBehaviorHelp": {
+    "message": "Välj vilka Save In-åtgärder som ska visas i snabbmenyer."
+  },
+  "o_lAlsoAskWhen": {
+    "message": "Fråga också var filen ska sparas när:"
+  },
+  "o_sDynamicDownloads": {
+    "message": "Rutningsregler"
+  },
+  "o_sBrowserDownloads": {
+    "message": "Webbläsarroutning"
+  },
+  "o_lBrowserDownloadsHelp": {
+    "message": "Spåra eller dirigera eventuellt nedladdningar som startats av webbsidor eller webbläsaren. Nedladdningar som startas av Save In eller annat tillägg är uteslutna."
+  },
+  "o_cTrackBrowserDownloads": {
+    "message": "Lägg till webbläsarnedladdningar i Save In-historiken"
+  },
+  "o_cTrackBrowserDownloadsHelp": {
+    "message": "Registrerar matchande nedladdningar i Save In-historiken utan att ta över dem. Save In försöker inte ladda ner dem igen och visar inga uppmaningar eller aviseringar för dem."
+  },
+  "o_cRouteBrowserDownloads": {
+    "message": "Dirigera webbläsarnedladdningar med routningsregler"
+  },
+  "o_cRouteBrowserDownloadsHelp": {
+    "message": "När de stöds kan matchande regler byta namn på webbläsarnedladdningar eller placera dem i undermappar. Lägg till dem under Rutningsregler › + Lägg till regel. Omatchade nedladdningar är oförändrade."
+  },
+  "o_cRouteBrowserDownloadsFirefox": {
+    "message": "Omdirigera matchande webbläsarnedladdningar"
+  },
+  "o_cRouteBrowserDownloadsFirefoxHelp": {
+    "message": "Firefox saknar inbyggd filnamnsroutning, så Save In avbryter varje matchande nedladdning och startar en ersättningsnedladdning. Detta kan misslyckas för POST-begäranden, URL:er som löper ut, anpassade HTTP-huvuden eller autentiserade nedladdningar."
+  },
+  "o_lFirefoxFilenameApiBug": {
+    "message": "Mozilla bugg 1245652"
+  },
+  "o_cBrowserDownloadFilter": {
+    "message": "Inkludera endast matchande URL:er för nedladdningar (valfritt)"
+  },
+  "o_cBrowserDownloadFilterHelp": {
+    "message": "Lämna tomt för att hantera alla webbläsarnedladdningar, eller ange ett WebExtension-matchningsmönster per rad. Filtret gäller både historikspårning och routning."
+  },
+  "o_cBrowserDownloadExcludeFilter": {
+    "message": "Uteslut matchande URL:er för nedladdningar (valfritt)"
+  },
+  "o_cBrowserDownloadExcludeFilterHelp": {
+    "message": "Ange ett WebExtension-matchningsmönster per rad. Undantag åsidosätter de matchande URL:erna ovan och gäller både historikspårning och routning."
+  },
+  "o_lBrowserDownloadVariables": {
+    "message": "URL, föreslaget filnamn, MIME-typ, aktuell tid, räknare och UUID"
+  },
+  "o_sRenameAndRouteDownloads": {
+    "message": "Routning och namnbyte"
+  },
+  "o_sNotifications": {
+    "message": "Aviseringar"
+  },
+  "o_sSaveAsShortcuts": {
+    "message": "Genvägsfiler"
+  },
+  "o_lShortcutFilesHelp": {
+    "message": "Spara sidor, länkar och media som genvägsfiler som öppnar den ursprungliga adressen."
+  },
+  "o_sKeyboardShortcuts": {
+    "message": "Klicka för att spara"
+  },
+  "o_sContextMenu": {
+    "message": "Åtkomsttangenter för snabbmeny"
+  },
+  "o_sMoreOptions": {
+    "message": "Avancerat"
+  },
+  "o_sHistory": {
+    "message": "Historik"
+  },
+  "o_sPageSources": {
+    "message": "Sidresurser"
+  },
+  "o_sBrowsePageSources": {
+    "message": "Bläddra bland sidresurser"
+  },
+  "o_lPageSourcesHelp": {
+    "message": "Bläddra bland bilder, video, ljud, dokument och nedladdningsbara länkar på den aktuella sidan. Sparade objekt använder dina vanliga routnings- och namnbytesregler."
+  },
+  "o_lPageSourcesNetworkLimit": {
+    "message": "Vissa videospelare använder tillfälliga URL:er eller läser in media via skript, så Save In kanske inte hittar alla videor. Ibland hittas spellistor för strömmande video (HLS/DASH), men de innehåller bara separata videosegment; att spara en spellista laddar inte ner hela videon."
+  },
+  "o_cSourcePanelEnabled": {
+    "message": "Aktivera sidresurser"
+  },
+  "o_cSourcePanelBackgrounds": {
+    "message": "Inkludera CSS-bakgrundsbilder"
+  },
+  "o_cSourcePanelLive": {
+    "message": "Uppdatera när sidans media ändras"
+  },
+  "o_cSourcePanelPreviews": {
+    "message": "Visa förhandsvisningar av bilder och videor"
+  },
+  "o_cSourcePanelResourceHints": {
+    "message": "Sök efter spellistor för strömmande video när det är möjligt (HLS/DASH)"
+  },
+  "o_cSourcePanelLinks": {
+    "message": "Inkludera länkar, länkade media och PDF-dokument"
+  },
+  "o_lSourcePanelDiscovery": {
+    "message": "Källor och förhandsvisningar"
+  },
+  "o_lSourcePanelShortcut": {
+    "message": "Kortkommando"
+  },
+  "o_lSourcePanelShortcutHelp": {
+    "message": "Använd webbläsarens syntax för kortkommandon, till exempel Ctrl+Shift+Y eller Command+Shift+Y. Webbläsaren avvisar reserverade kortkommandon."
+  },
+  "o_lHistoryFilter": {
+    "message": "Filtrera efter fil, mapp, typ eller källa"
+  },
+  "o_lHistoryFacets": {
+    "message": "Historikfilter"
+  },
+  "o_lHistorySource": {
+    "message": "Källa"
+  },
+  "o_lHistoryStatus": {
+    "message": "Status"
+  },
+  "o_lHistoryType": {
+    "message": "Typ"
+  },
+  "o_lHistoryAllSources": {
+    "message": "Alla källor"
+  },
+  "o_lHistoryAllStatuses": {
+    "message": "Alla statusar"
+  },
+  "o_lHistoryAllTypes": {
+    "message": "Alla typer"
+  },
+  "o_lHistoryBrowser": {
+    "message": "Webbläsare"
+  },
+  "o_lHistorySaved": {
+    "message": "Sparad"
+  },
+  "o_lHistorySaving": {
+    "message": "Sparar"
+  },
+  "o_lHistoryFailed": {
+    "message": "Misslyckad"
+  },
+  "o_lHistoryDateSaved": {
+    "message": "Start"
+  },
+  "o_lHistoryAnyTime": {
+    "message": "När som helst"
+  },
+  "o_lHistoryToday": {
+    "message": "I dag"
+  },
+  "o_lHistoryLast7Days": {
+    "message": "Senaste 7 dagarna"
+  },
+  "o_lHistoryLast30Days": {
+    "message": "Senaste 30 dagarna"
+  },
+  "o_lHistoryCustomRange": {
+    "message": "Anpassat datumintervall"
+  },
+  "o_lHistoryStartDate": {
+    "message": "Startdatum"
+  },
+  "o_lHistoryEndDate": {
+    "message": "Slutdatum"
+  },
+  "o_cClearHistoryFilters": {
+    "message": "Rensa filter"
+  },
+  "o_cDeleteAllHistory": {
+    "message": "Radera all historik…"
+  },
+  "o_lSearchOptions": {
+    "message": "Sökalternativ"
+  },
+  "o_lVariableList": {
+    "message": "Variabellista"
+  },
+  "o_lMenuPreview": {
+    "message": "Menyförhandsgranskning"
+  },
+  "o_lLiveVariables": {
+    "message": "Aktuell variabellista"
+  },
+  "o_sVisualEditor": {
+    "message": "Visuell redigerare"
+  },
+  "o_bAddDirectory": {
+    "message": "Mapp"
+  },
+  "o_bAddSeparator": {
+    "message": "Avgränsare"
+  },
+  "o_lClauses": {
+    "message": "Klausuler"
+  },
+  "o_lEditorModeText": {
+    "message": "Text"
+  },
+  "o_bApply": {
+    "message": "Tillämpa"
+  },
+  "o_bDiscard": {
+    "message": "Kassera"
+  },
+  "o_lRuleTemplates": {
+    "message": "Mallbibliotek"
+  },
+  "o_lClauseList": {
+    "message": "Klausullista"
+  },
+  "o_lGithub": {
+    "message": "GitHub"
+  },
+  "o_lChangelog": {
+    "message": "Ändringslogg"
+  },
+  "o_lHelpResources": {
+    "message": "Hjälp & resurser"
+  },
+  "o_lLanguage": {
+    "message": "Språk"
+  },
+  "o_lLanguageChangeFailed": {
+    "message": "Det gick inte att ändra språket. Försök igen."
+  },
+  "o_lRoutingLastDownload": {
+    "message": "Senaste nedladdningen"
+  },
+  "o_lRoutingLastDownloadEmpty": {
+    "message": "ingen ännu"
+  },
+  "o_lRoutingRenamedTo": {
+    "message": "Bytt namn till"
+  },
+  "o_lRoutingNoMatches": {
+    "message": "inga träffar"
+  },
+  "o_lRoutingCaptureGroups": {
+    "message": "Fångstgrupper"
+  },
+  "o_lRoutingVariables": {
+    "message": "Variabler"
+  },
+  "o_lRoutingVariablesClickToSee": {
+    "message": "Klicka för att visa"
+  },
+  "o_lAccessKeysInstruction": {
+    "message": "Ange åtkomsttangenter för menyalternativen i Save In."
+  },
+  "o_cLastUsedMenu": {
+    "message": "Visa senast använda menyalternativ"
+  },
+  "o_cSaveLinks": {
+    "message": "Visa åtgärder för länkar"
+  },
+  "o_cPreferLinks": {
+    "message": "Spara länkmålet istället för inbäddade media"
+  },
+  "o_cSaveText": {
+    "message": "Visa en åtgärd för markerad text"
+  },
+  "o_cSavePage": {
+    "message": "Visa en åtgärd för den aktuella sidan"
+  },
+  "o_cSavePageHelp": {
+    "message": "Sparar endast siddokumentet; bilder, stilmallar och andra externa filer ingår inte."
+  },
+  "o_cSaveTabstrip": {
+    "message": "Visa Save In-åtgärder i flikmenyn"
+  },
+  "o_cSaveTabstripHelp": {
+    "message": "Sparar en flik, flikgrupp eller flikar till höger"
+  },
+  "o_cOpenDialog": {
+    "message": "Fråga alltid var du ska spara"
+  },
+  "o_cOpenDialogNoExt": {
+    "message": "Filnamnet har inget tillägg"
+  },
+  "o_cOpenDialogShift": {
+    "message": "Du håller ned Shift medan du väljer ett menyalternativ"
+  },
+  "o_cOpenDialogOnFailure": {
+    "message": "En nedladdning misslyckas"
+  },
+  "o_cDupeUniquify": {
+    "message": "Skapa ett unikt namn"
+  },
+  "o_cDupeOverwrite": {
+    "message": "Skriv över"
+  },
+  "o_cDupePrompt": {
+    "message": "Fråga varje gång"
+  },
+  "o_cDupeFilename": {
+    "message": "När en fil redan finns:"
+  },
+  "o_cOpenDialogIfNoRulesMatch": {
+    "message": "Fråga var du ska spara när inga ruttregler matchar"
+  },
+  "o_cExclusiveMode": {
+    "message": "Dölj mappval"
+  },
+  "o_cExclusiveModeHelp": {
+    "message": "Spara inte filen"
+  },
+  "o_cNotifySuccess": {
+    "message": "Meddela när en nedladdning lyckas"
+  },
+  "o_cNotifyFailure": {
+    "message": "Meddela när en nedladdning misslyckas"
+  },
+  "o_cNotifyMatch": {
+    "message": "Meddela när en routningsregel matchar"
+  },
+  "o_cSaveShortcutsAs": {
+    "message": "Filformat"
+  },
+  "o_cSaveShortcutsTypeHtml": {
+    "message": "HTML-omdirigering (.html)"
+  },
+  "o_lShortcutTypeFirefoxUnavailable": {
+    "message": "Firefox vägrar spara filer som slutar på .url eller .desktop, så de formaten är inte tillgängliga här. Sparningar använder HTML-omdirigeringen i stället."
+  },
+  "o_cSaveShortcutsTypeMac": {
+    "message": "Legacy macOS shortcut (.url)"
+  },
+  "o_cSaveShortcutsTypeMacWebloc": {
+    "message": "macOS internet location (.webloc)"
+  },
+  "o_cSaveShortcutsTypeWindows": {
+    "message": "Windows internet shortcut (.url)"
+  },
+  "o_cSaveShortcutsTypeFreedesktop": {
+    "message": "Linux desktop shortcut (.desktop)"
+  },
+  "o_cSaveShortcutsMediaInstead": {
+    "message": "Spara media som genvägsfiler"
+  },
+  "o_cSaveShortcutsLinksInstead": {
+    "message": "Spara länkar som genvägsfiler"
+  },
+  "o_cSaveShortcutsPagesInstead": {
+    "message": "Spara sidor som genvägsfiler"
+  },
+  "o_cSaveShortcutsTabsInstead": {
+    "message": "Spara flikar som genvägsfiler från flikens snabbmeny"
+  },
+  "o_cKeyboardShortcutSaveInMenu": {
+    "message": "Save In snabbmenyalternativ"
+  },
+  "o_cKeyboardShortcutSubmenu": {
+    "message": "Senast använda objektet i snabbundermenyn"
+  },
+  "o_cKeyboardShortcutNumbers": {
+    "message": "Lägg till sifferkortkommandon i snabbundermenyn"
+  },
+  "o_cKeyboardShortcutClickToSave": {
+    "message": "Aktivera klicka för att spara"
+  },
+  "o_cKeyboardShortcutClickToHelp": {
+    "message": "Håll ned Alt som standard och klicka på en bild eller ett mediaobjekt för att spara det i den senast använda mappen eller standardmappen för nedladdningar. Save In lägger till en klicklyssnare på sidor; vissa variabler är inte tillgängliga."
+  },
+  "o_cHostPermissionMissing": {
+    "message": "Save In kan inte komma åt sidans innehåll. Ge åtkomst till alla webbplatser för att använda klicka för att spara."
+  },
+  "o_cHostPermissionGrant": {
+    "message": "Bevilja åtkomst"
+  },
+  "o_cKeyboardShortcutModifierLeftClick": {
+    "message": "Vänsterklick"
+  },
+  "o_cKeyboardShortcutModifierMiddleClick": {
+    "message": "Mellanklick"
+  },
+  "o_cKeyboardShortcutModifierRightClick": {
+    "message": "Högerklick"
+  },
+  "o_cKeyboardShortcutModifierBackClick": {
+    "message": "Bakåtknapp (4)"
+  },
+  "o_cKeyboardShortcutModifierForwardClick": {
+    "message": "Framåtknapp (5)"
+  },
+  "o_cKeyboardShortcutModifierHelp": {
+    "message": "Håll ned de valda modifieringsknapparna medan du klickar på den valda musknappen. Välj None för båda modifierarna om du vill använda musknappen ensam. Ändringar gäller för befintliga sidor."
+  },
+  "o_cRestoreDefaults": {
+    "message": "Återställ standardinställningar"
+  },
+  "o_cTruncatePath": {
+    "message": "Maximalt antal UTF-8-byte per fil- eller mappnamn"
+  },
+  "o_cTruncatePathHelp": {
+    "message": "Standard: 240. Linux begränsar vanligtvis namn till 255 byte. Windows och macOS använder vanligtvis teckenbaserade gränser, så högre bytevärden kan fungera. Save In kan inte identifiera målfilsystemet. 0 betyder ingen gräns."
+  },
+  "o_cReplaceInvalidCharsWith": {
+    "message": "Ersätt ogiltiga tecken med"
+  },
+  "o_cReplaceInvalidCharsWithHelp": {
+    "message": "Lämna tomt för att radera. Ogiltiga ersättningstecken ignoreras."
+  },
+  "o_cAppendMimeExtension": {
+    "message": "Lägg till en filändelse när filnamnet saknar en"
+  },
+  "o_cAppendMimeExtensionHelp": {
+    "message": "För URL:er utan filändelse, härled en från serverns Content-Type. Detta medför en liten fördröjning endast när det behövs."
+  },
+  "o_cFallbackFetch": {
+    "message": "Försök misslyckade nedladdningar igen via Save In"
+  },
+  "o_cFallbackFetchHelp": {
+    "message": "Om en webbläsarnedladdning misslyckas på grund av ett nätverks- eller serverfel hämtar Save In filen och försöker en gång till."
+  },
+  "o_cFetchViaFetchAPI": {
+    "message": "Ladda alltid ner via Save In"
+  },
+  "o_cFetchViaFetchAPIHelp": {
+    "message": "Save In hämtar filen och skickar den till webbläsaren. Använd detta endast när normala nedladdningar misslyckas. Det är långsammare och Chrome håller filen i minnet medan den sparas, så undvik den för mycket stora filer."
+  },
+  "o_cIncludeFetchCredentials": {
+    "message": "Inkludera cookies för webbplatsinloggning"
+  },
+  "o_cIncludeFetchCredentialsHelp": {
+    "message": "Inkluderar tillämpliga cookies och webbläsarhanterad inloggning när Save In hämtar filer i bakgrunden, inklusive efter omdirigeringar. Förfrågningar om privata fönster förblir anonyma. Direkta webbläsarnedladdningar hanterar sina egna referenser."
+  },
+  "o_cSetRefererHeader": {
+    "message": "Använd sidans URL när Referer saknas"
+  },
+  "o_cSetRefererHeaderHelp": {
+    "message": "Aktivera detta om en fil kan öppnas från webbplatsen men Save In inte kan ladda ner den, rapporterar 403 eller Åtkomst nekad, eller sparar en felsida. Lägg bara till de berörda filvärdarna nedan. Sidans URL skickas då till dessa värdar; i Chrome håller Save In även varje matchande fil i minnet medan den sparas."
+  },
+  "o_cSetRefererHeaderFilter": {
+    "message": "Ange Referer för dessa webbplatser"
+  },
+  "o_cSetRefererHeaderFilterHelp": {
+    "message": "Ange URL-mönstret för filen som misslyckades, inte sidans URL. Använd ett matchningsmönster per rad, till exempel *://i.pximg.net/*."
+  },
+  "o_cImportSettings": {
+    "message": "Importera inställningar"
+  },
+  "o_cExportSettings": {
+    "message": "Exportera inställningar"
+  },
+  "o_cDebugMode": {
+    "message": "Aktivera utförlig utvecklarloggning"
+  },
+  "o_cLastSavedAt": {
+    "message": "Senast uppdaterad: "
+  },
+  "o_cLastSavedAtNever": {
+    "message": "Aldrig"
+  },
+  "optionsUnsavedChanges": {
+    "message": "Vill du slänga dina osparade ändringar eller fortsätta redigera?"
+  },
+  "optionsEditorUnsaved": {
+    "message": "Osparade ändringar"
+  },
+  "o_lDirectoryDefinitions": {
+    "message": "Mappmenydefinitioner"
+  },
+  "o_lSaving": {
+    "message": "Sparar…"
+  },
+  "o_lSaved": {
+    "message": "Sparad"
+  },
+  "o_lSaveFailed": {
+    "message": "Det gick inte att spara ändringarna"
+  },
+  "o_lValidationUnavailable": {
+    "message": "Validering är inte tillgänglig för tillfället. "
+  },
+  "o_bRetryValidation": {
+    "message": "Försök validering igen"
+  },
+  "o_lAutosaveFailed": {
+    "message": "Det gick inte att spara den här inställningen. "
+  },
+  "o_bRetrySave": {
+    "message": "Försök att spara igen"
+  },
+  "o_lNoValidationErrors": {
+    "message": "Inga valideringsfel"
+  },
+  "notificationLinkPreferred": {
+    "message": "Länkmålet laddades ner i stället"
+  },
+  "o_cPreferLinksFilterEnabled": {
+    "message": "Endast på matchande sidor"
+  },
+  "o_cPreferLinksFilter": {
+    "message": "Matchande URL:er för sidor"
+  },
+  "o_cPreferLinksFilterHelp": {
+    "message": "Ange ett reguljärt uttryck per rad. Mönster matchas mot sidans URL."
+  },
+  "notificationBadPreferLinksPattern": {
+    "message": "Ogiltigt reguljärt uttryck för föredragna länkar"
+  },
+  "o_cNotifyLinkPreferred": {
+    "message": "Meddela när ett länkmål laddas ner istället för inbäddad media"
+  },
+  "o_cCloseTabOnSave": {
+    "message": "Stäng varje flik när du har sparat den"
+  },
+  "o_lClickToSaveButton": {
+    "message": "Musknapp för Klicka för att spara"
+  },
+  "o_lDebugLog": {
+    "message": "Senaste fel"
+  },
+  "o_sAdvancedFilenames": {
+    "message": "Filnamn"
+  },
+  "o_sAdvancedDownloading": {
+    "message": "Nedladdningshantering"
+  },
+  "o_sAdvancedCounter": {
+    "message": "Nedladdningsräknare"
+  },
+  "o_sAdvancedBackupReset": {
+    "message": "Säkerhetskopiera och återställa"
+  },
+  "o_sAdvancedDiagnostics": {
+    "message": "Diagnostik"
+  },
+  "o_lExperimental": {
+    "message": "Experimentell"
+  },
+  "o_lFilterReference": {
+    "message": "Filtrera"
+  },
+  "html_aboutSaveIn": {
+    "message": "Om Save In"
+  },
+  "html_absolutePathsAndHiddenPathSegmentsSuchAs": {
+    "message": ", absoluta banor och dolda vägsegment som t.ex"
+  },
+  "html_add": {
+    "message": ". Lägg till"
+  },
+  "html_addACommentThatIsNotDisplayed": {
+    "message": "Lägg till en kommentar som inte visas"
+  },
+  "html_addDestinations": {
+    "message": "Lägg till destinationer"
+  },
+  "html_addsOneNestingLevel": {
+    "message": "lägger till en kapslingsnivå."
+  },
+  "html_areNotSupported": {
+    "message": "stöds inte."
+  },
+  "html_askAnAiAgentToDraftADownloadsMenu": {
+    "message": "Be en AI-agent att skapa en mappmeny"
+  },
+  "html_assignAnAccessKey": {
+    "message": "Tilldela en åtkomstnyckel"
+  },
+  "html_atTheEndForACommentStartWith": {
+    "message": "i slutet för en kommentar; börja med"
+  },
+  "html_browsersOnlyLetExtensionsSaveInsideTheDefault": {
+    "message": "Webbläsare tillåter bara tillägg att spara filer i webbläsarens förvalda"
+  },
+  "html_buildTheDestinationsAndSubmenusShownInSaveIn": {
+    "message": "Välj de mappar och undermenyer som visas i Save Ins snabbmeny."
+  },
+  "html_butShowsCatPictures": {
+    "message": ", men visar ”Kattbilder.”"
+  },
+  "html_changeADisplayedName": {
+    "message": "Ändra ett visat namn"
+  },
+  "html_changeTheDisplayedName": {
+    "message": "Ändra det visade namnet"
+  },
+  "html_copyThisPromptThenReplaceTheExampleDestinations": {
+    "message": "Kopiera denna prompt och ersätt sedan exempeldestinationerna."
+  },
+  "html_createASubmenu": {
+    "message": "Skapa en undermeny"
+  },
+  "html_createsTwoSelectableRowsInTheDownloadsMenu": {
+    "message": "Skapar två mappar i sparmenyn."
+  },
+  "html_defaultDownloadsDirectory": {
+    "message": "standardmappen Downloads"
+  },
+  "html_directoryEditorMode": {
+    "message": "Mappredigeringsläge"
+  },
+  "html_discussions": {
+    "message": "Diskussioner"
+  },
+  "html_downloadsFolder": {
+    "message": "nedladdningsmapp"
+  },
+  "html_each": {
+    "message": "Varje"
+  },
+  "html_eachLineAddsADestinationRelativeToYourBrowser": {
+    "message": "Varje rad lägger till en destination i förhållande till din webbläsares"
+  },
+  "html_forExample": {
+    "message": "Till exempel,"
+  },
+  "html_howToCreateDestinations": {
+    "message": "Så skapar du sparmål"
+  },
+  "html_insertionReferences": {
+    "message": "Insättningsreferenser"
+  },
+  "html_issues": {
+    "message": "Ärenden"
+  },
+  "html_itself": {
+    "message": "sig själv"
+  },
+  "html_moreMenuSyntax": {
+    "message": "Mer menysyntax"
+  },
+  "html_oneRelativeDirectoryOrMenuInstructionPerLineDownloads": {
+    "message": "Ange en relativ mapp eller menyinstruktion per rad. Filer sparas i förhållande till"
+  },
+  "html_openTheDefaultDownloadsDirectory": {
+    "message": "Öppna standardmappen Downloads"
+  },
+  "html_pathsContaining": {
+    "message": "Banor som innehåller"
+  },
+  "html_perLevel": {
+    "message": "för varje nivå."
+  },
+  "html_saveInWiki": {
+    "message": "Save In-wiki"
+  },
+  "html_savesTo": {
+    "message": "Sparar till"
+  },
+  "html_savingOutsideTheDownloadsFolder": {
+    "message": "Sparar utanför mappen Nedladdningar"
+  },
+  "html_separateGroups": {
+    "message": "Separata grupper"
+  },
+  "html_settingsSaveIn": {
+    "message": "Inställningar — Save In"
+  },
+  "html_templates": {
+    "message": "Mallar"
+  },
+  "html_the": {
+    "message": "Den"
+  },
+  "html_toCreateNestedSubmenusUsingOne": {
+    "message": "för att skapa nästlade undermenyer, med ett"
+  },
+  "html_toReachAnotherLocationCreateASymlinkInsideDownloads": {
+    "message": ". För att nå en annan plats, omdirigera en undermapp av den till målet och använd den relativa sökvägen som destination. Vad som fungerar beror på din webbläsare och ditt system, och vissa metoder är riskabla, så läs guiden nedan. Målmappen måste redan finnas."
+  },
+  "html_useAVariable": {
+    "message": "Använd en variabel"
+  },
+  "html_wiki": {
+    "message": "Wiki"
+  },
+  "html_advancedUseCaptureGroups": {
+    "message": "Avancerat: använd fångstgrupper"
+  },
+  "html_andItsSubdomainsUse": {
+    "message": "Matchar HTTPS-nedladdningar från example.com och dess underdomäner."
+  },
+  "html_andLaterGroupsIn": {
+    "message": ", och senare grupper i"
+  },
+  "html_askAnAiAgentToDraftRoutingRules": {
+    "message": "Be en AI-agent att utarbeta routningsregler"
+  },
+  "html_automaticallyMoveOrRenameDownloadsWhenTheirFilenameSource": {
+    "message": "Flytta eller byt namn på nedladdningar automatiskt när deras filnamn, källa, sida eller sammanhang matchar."
+  },
+  "o_lRouteBrowserDownloadsFromRules": {
+    "message": "Regler gäller sparningar du gör via Save In. Nedladdningar som webbläsaren startar själv omfattas först när du slår på det."
+  },
+  "o_lOpenBrowserDownloads": {
+    "message": "Öppna webbläsarnedladdningar"
+  },
+  "html_becomes": {
+    "message": "blir"
+  },
+  "html_clauseAndVariableReference": {
+    "message": "Klausul och variabelreferens"
+  },
+  "html_copyThisPromptIntoAnAgentOrUseWebmcp": {
+    "message": "Kopiera denna prompt till en agent eller använd WebMCP från externa integrationer."
+  },
+  "html_destination": {
+    "message": "mål."
+  },
+  "html_destinationsAreRelativeToTheDownloadsMenuDestinationYou": {
+    "message": "Destinationerna är relativa till mappen du väljer i menyn, men utgår från din nedladdningsmapp när du klickar för att spara och vid automatiska sparningar. Matchningsvärden är reguljära uttryck; se"
+  },
+  "html_intoDestinationsStartFromTheMenuFolder": {
+    "message": "Destinationerna är relativa till mappen du väljer i menyn, men utgår från din nedladdningsmapp när du klickar för att spara och vid automatiska sparningar."
+  },
+  "html_enterOneUrlLikeBrowserMatchPatternPerLine": {
+    "message": "Lägg till ett WebExtension-matchningsmönster per rad. De är inte reguljära uttryck. Varje mönster använder ett schema, en värd och en sökväg."
+  },
+  "html_everyMatcherInARuleMustMatch": {
+    "message": "Varje matchare i en regel måste matcha."
+  },
+  "html_everyRuleMustEndWithAn": {
+    "message": "Varje regel måste sluta med en"
+  },
+  "html_filterClauses": {
+    "message": "Filterklausuler"
+  },
+  "html_filterRoutingTemplates": {
+    "message": "Filtrera routningsmallar"
+  },
+  "html_forExample2": {
+    "message": "Mönsterformat"
+  },
+  "html_forHttpAndHttpsAndEndWith": {
+    "message": "Matchar HTTP och HTTPS."
+  },
+  "html_howDoDownloadUrlFiltersWork": {
+    "message": "Så matchar URL-filter nedladdningar"
+  },
+  "html_howRoutingRulesWork": {
+    "message": "Så fungerar routningsregler"
+  },
+  "html_matchesHttpsFileUrlsOn": {
+    "message": "Exempel"
+  },
+  "html_moveAndRenameMatchingFiles": {
+    "message": "Flytta och byt namn på matchande filer"
+  },
+  "html_moveMatchingFilesAndKeepTheirNames": {
+    "message": "Flytta matchande filer och behåll deras namn"
+  },
+  "html_optional": {
+    "message": "Valfritt"
+  },
+  "html_parenthesesCapturePartsOfAMatcherSelectTheMatcher": {
+    "message": "Parenteser fångar delar av en matchare. Välj matcharen med"
+  },
+  "html_regularExpressionGuide": {
+    "message": "guide för reguljära uttryck"
+  },
+  "html_separateRulesWithABlankLine": {
+    "message": "Separera regler med en tom rad."
+  },
+  "html_thenUse": {
+    "message": ", använd sedan"
+  },
+  "html_toIncludeEveryPathThisIsNotARegular": {
+    "message": "Matchar alla sökvägar. Frågeparametrar och explicita portar kan inte matchas."
+  },
+  "html_trackAndRouteBrowserDownloads": {
+    "message": "Webbläsarnedladdningar"
+  },
+  "html_writeOneClausePerLine": {
+    "message": "Skriv en sats per rad."
+  },
+  "html_all": {
+    "message": "Alla"
+  },
+  "html_altOption": {
+    "message": "Alt / Option"
+  },
+  "html_applyShortcut": {
+    "message": "Använd kortkommando"
+  },
+  "html_click": {
+    "message": "Klicka"
+  },
+  "html_clickToSaveShortcut": {
+    "message": "Utlösare"
+  },
+  "html_clickToSaveShortcutCombination": {
+    "message": "Kortkommando för att spara med ett klick"
+  },
+  "html_columns": {
+    "message": "Kolumner"
+  },
+  "html_command": {
+    "message": "Command"
+  },
+  "html_commandWindowsKey": {
+    "message": "Command / Windows key"
+  },
+  "html_copy0LeavesDismissalToTheBrowserOrOperatingSystem": {
+    "message": "0 använder webbläsarens eller operativsystemets standardinställning."
+  },
+  "html_ctrl": {
+    "message": "Ctrl"
+  },
+  "html_dismissEarlyAfter": {
+    "message": "Stäng efter"
+  },
+  "html_export": {
+    "message": "Exportera"
+  },
+  "html_filterSources": {
+    "message": "Filtrera resurser"
+  },
+  "html_historyTableTools": {
+    "message": "Verktyg för historiktabellen"
+  },
+  "html_image": {
+    "message": "Bild"
+  },
+  "html_image128Kb1": {
+    "message": "Bild · 128 KB · #1"
+  },
+  "html_images": {
+    "message": "Bilder"
+  },
+  "html_jsonCompleteData": {
+    "message": "JSON — fullständiga data"
+  },
+  "html_key": {
+    "message": "Nyckel"
+  },
+  "html_link": {
+    "message": "Länk"
+  },
+  "html_links": {
+    "message": "Länkar"
+  },
+  "html_macctrl": {
+    "message": "MacCtrl"
+  },
+  "html_more": {
+    "message": "Mer"
+  },
+  "html_mouseOnlyLeftClickWillReplaceNormalClicksOn": {
+    "message": "Vänsterklick med endast mus kommer att ersätta normala klick på media och länkar som kan sparas medan den här funktionen är aktiverad."
+  },
+  "html_ms": {
+    "message": "sekunder"
+  },
+  "html_none": {
+    "message": "None"
+  },
+  "html_notifyMeWhen": {
+    "message": "Aviseringshändelser"
+  },
+  "html_previewOfThePageSourcesDrawer": {
+    "message": "Förhandsgranskning av panelen Sidkällor"
+  },
+  "html_primaryModifier": {
+    "message": "Primär modifierare"
+  },
+  "html_saveTheseAsShortcutFiles": {
+    "message": "Använd genvägsfiler för"
+  },
+  "html_secondModifier": {
+    "message": "Andra modifierartangenten"
+  },
+  "html_selection": {
+    "message": "Markerad text"
+  },
+  "html_shift": {
+    "message": "Shift"
+  },
+  "html_shortcutFileBehavior": {
+    "message": "Inställningar för genvägsfiler"
+  },
+  "html_streamHls3": {
+    "message": "Ström · HLS · #3"
+  },
+  "html_tab": {
+    "message": "Tab"
+  },
+  "html_video": {
+    "message": "Video"
+  },
+  "html_video24Mb2": {
+    "message": "Video · 2,4 MB · #2"
+  },
+  "html_advancedEditIdsAsText": {
+    "message": "Avancerat: redigera ID som text"
+  },
+  "html_allow": {
+    "message": "Tillåt"
+  },
+  "html_allowedExtensionIds": {
+    "message": "Tillåtna tilläggs-ID:n"
+  },
+  "html_apiVersion": {
+    "message": "API-version"
+  },
+  "html_approvedExtensions": {
+    "message": "Godkända tillägg"
+  },
+  "html_capabilities": {
+    "message": "Funktioner"
+  },
+  "html_clickTheSnippetToCopyIt": {
+    "message": "Klicka på utdraget för att kopiera det."
+  },
+  "html_counterValue": {
+    "message": "Räknarvärde"
+  },
+  "html_current": {
+    "message": "Aktuell"
+  },
+  "html_currentValueOfThe": {
+    "message": "Aktuellt värde för variabeln"
+  },
+  "html_delete": {
+    "message": "ta bort"
+  },
+  "html_developerDetails": {
+    "message": "Utvecklarinformation"
+  },
+  "html_exampleNegotiateTheVersionThenSaveAUrl": {
+    "message": "Exempel: förhandla om versionen och spara sedan en URL"
+  },
+  "html_extensionId": {
+    "message": "Tilläggs-ID"
+  },
+  "html_externalDownloadAccess": {
+    "message": "Åtkomst till externa nedladdningar"
+  },
+  "html_externalIntegrations": {
+    "message": "Externa integrationer"
+  },
+  "html_integrationGuide": {
+    "message": "Integrationsguide"
+  },
+  "html_letTrustedExtensionsSendUrlsThroughSaveInS": {
+    "message": "Låt betrodda tillägg skicka URL:er genom Save In:s routnings- och namnbytesregler."
+  },
+  "html_mdnMatchPatterns": {
+    "message": "MDN: Matchningsmönster"
+  },
+  "html_noExtensionsAreApprovedExternalDownloadsAreBlockedBy": {
+    "message": "Inga tillägg är godkända. Externa nedladdningar blockeras som standard."
+  },
+  "html_noneApproved": {
+    "message": "Inga godkända tillägg"
+  },
+  "externalApprovedCountOne": {
+    "message": "$COUNT$ godkänt tillägg",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
+  },
+  "externalApprovedCountMany": {
+    "message": "$COUNT$ godkända tillägg",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "externalRemoveApproval": {
+    "message": "Ta bort"
+  },
+  "externalRemoveApprovalFor": {
+    "message": "Ta bort godkännandet för $ID$",
+    "placeholders": {
+      "id": {
+        "content": "$1",
+        "example": "abcdefghijklmnopabcdefghijklmnop"
+      }
+    }
+  },
+  "externalApprovalRemoved": {
+    "message": "$ID$ är inte längre godkänt.",
+    "placeholders": {
+      "id": {
+        "content": "$1",
+        "example": "abcdefghijklmnopabcdefghijklmnop"
+      }
+    }
+  },
+  "externalApprovalAdded": {
+    "message": "$ID$ är nu godkänt.",
+    "placeholders": {
+      "id": {
+        "content": "$1",
+        "example": "abcdefghijklmnopabcdefghijklmnop"
+      }
+    }
+  },
+  "html_oneExtensionIdPerLine": {
+    "message": "Ett tilläggs-ID per rad"
+  },
+  "html_onlyApprovedExtensionsCanStartDownloadsUseTheCalling": {
+    "message": "Endast godkända tillägg kan starta nedladdningar. Använd det anropande tilläggets ID – inte Save Ins ID."
+  },
+  "html_pasteAnExtensionId": {
+    "message": "Klistra in ett tilläggs-ID"
+  },
+  "html_pendingApproval": {
+    "message": "Väntar på godkännande"
+  },
+  "html_resetTo0": {
+    "message": "Återställ till 0"
+  },
+  "html_setValue": {
+    "message": "Ställ in värde"
+  },
+  "html_theseExtensionsTriedToStartADownloadAddOnly": {
+    "message": "Dessa tillägg försökte starta en nedladdning. Lägg bara till tillägg som du litar på. Begärda URL:er lagras aldrig."
+  },
+  "html_useOneExtensionIdPerLineForBulkChanges": {
+    "message": "Använd ett tilläggs-ID per rad för massändringar."
+  },
+  "html_variableItAdvancesOncePerSavedDownloadAndPersists": {
+    "message": "— värdet ökar efter varje sparad nedladdning och behålls efter omstarter."
+  },
+  "html_webextensionsSuchAsFoxyGesturesCanMessageSaveIn": {
+    "message": "WebExtensions som Foxy Gestures kan skicka meddelanden direkt till Save In. Ett Greasemonkey-, Tampermonkey- eller Violentmonkey-användarskript kan inte göra det på egen hand: användarskript har inte åtkomst till meddelanden mellan tillägg. Använd en liten kompletterande WebExtension som mellanhand eller låt användarskriptet lämna URL:en till ett tillägg som erbjuder funktionen."
+  },
+  "html_whereThisWorks": {
+    "message": "Var detta fungerar"
+  },
+  "html_askTheCommunity": {
+    "message": "Fråga communityn"
+  },
+  "html_aVeryDiligentOrganizer": {
+    "message": "En mycket flitig arrangör"
+  },
+  "html_aWatercolorLuckyCatCarefullyOrganizingDocumentsPhotographsFilm": {
+    "message": "En turkatt i akvarell som noggrant organiserar dokument, fotografier, film och böcker"
+  },
+  "html_buildInformation": {
+    "message": "Bygginformation"
+  },
+  "html_checking": {
+    "message": "kollar…"
+  },
+  "html_closeAboutSaveIn": {
+    "message": "Stäng Om Save In"
+  },
+  "html_closeReferences": {
+    "message": "Stäng referenser"
+  },
+  "html_contextMenus": {
+    "message": "Snabbmenyer"
+  },
+  "html_documentation": {
+    "message": "Dokumentation"
+  },
+  "html_downloads": {
+    "message": "Nedladdningar"
+  },
+  "html_filterCurrentReference": {
+    "message": "Filtrera aktuell referens"
+  },
+  "html_filterVariables": {
+    "message": "Filtrera variabler"
+  },
+  "html_findsAndSavesResourcesTheUserChoosesOnArbitrary": {
+    "message": "Hittar och sparar resurser som användaren väljer på godtyckliga webbplatser."
+  },
+  "html_saveInUses": {
+    "message": "Save In använder"
+  },
+  "html_keepsSettingsRoutingRulesLocalHistoryAndRestartSafe": {
+    "message": "Behåller inställningar, routningsregler, lokal historik och tillstånd som överlever omstarter."
+  },
+  "html_letsChromeConvertFetchedFileDataIntoTemporaryDownload": {
+    "message": "Låter Chrome konvertera hämtade fildata till tillfälliga URL:er för nedladdning."
+  },
+  "html_loadingClauses": {
+    "message": "Laddar klausuler…"
+  },
+  "html_loadingVariables": {
+    "message": "Laddar variabler…"
+  },
+  "html_luckyOrganizingCat": {
+    "message": "Organiserande lyckokatt"
+  },
+  "html_messageFirstOrASmallRelayExtensionMustDo": {
+    "message": " till Save In, eller så måste ett litet relätillägg göra det. Video DownloadHelper erbjuder inget stabilt integrations-API som Save In kan anropa direkt."
+  },
+  "html_offscreen": {
+    "message": "Offscreen"
+  },
+  "html_privacyPolicy": {
+    "message": "Integritetspolicy"
+  },
+  "html_references": {
+    "message": "Referenser"
+  },
+  "html_referenceType": {
+    "message": "Referenstyp"
+  },
+  "html_reportAnIssue": {
+    "message": "Rapportera ett problem"
+  },
+  "html_reportsCompletedSavesAndActionableFailuresWhenEnabled": {
+    "message": "Rapporterar slutförda sparningar och fel som går att åtgärda när funktionen är aktiverad."
+  },
+  "html_saveInDoesNotAdoptDownloadsThatAnotherExtension": {
+    "message": "Save In tar inte över nedladdningar som ett annat tillägg redan har startat, inklusive Video DownloadHelper. Nedladdningstillägget måste först skicka ett meddelande av typen"
+  },
+  "html_saveInHasNoAnalyticsAdvertisingDeveloperOperatedServer": {
+    "message": "Save In har ingen analys, reklam, utvecklarstyrd server eller fjärrkörbar kod. Inställningar och historik finns kvar i webbläsarhanterad tilläggslagring."
+  },
+  "html_saveInIsALocalFirstDownloadsHelperFor": {
+    "message": "Save In är en lokalt körd nedladdningshjälp som ordnar filer med mappar i snabbmenyn, routningsregler, namnbyte, sidresurser och nedladdningshistorik."
+  },
+  "html_whichOnlySomeBrowsersProvideItRegisters": {
+    "message": ", som bara vissa webbläsare har. Save In registrerar verktyg som en AI-agent kan anropa medan den här alternativsidan är öppen – för att ändra inställningar, bygga mappmenyer och skriva routningsregler."
+  },
+  "o_cWebmcpEnabled": {
+    "message": "Låt en AI-agent läsa och ändra inställningar i Save In"
+  },
+  "o_cWebmcpEnabledHelp": {
+    "message": "Verktygen kan starta nedladdningar och ändra alla inställningar, även vart webhookar skickas."
+  },
+  "webMcpStatusOff": {
+    "message": "Av"
+  },
+  "html_showsSaveInCommandsOnPagesLinksMediaAnd": {
+    "message": "Visar Save In-kommandon på sidor, länkar, media och flikar."
+  },
+  "html_startsSavesChoosesFilenamesMonitorsResultsAndSupportsRetries": {
+    "message": "Påbörjar sparningar, väljer filnamn, övervakar resultat och stöder nya försök."
+  },
+  "html_storage": {
+    "message": "Lagring"
+  },
+  "html_theSessionLogBelowAlwaysKeepsASmallLocal": {
+    "message": "De senaste felen lagras på den här enheten tills webbläsarsessionen avslutas. Utförlig loggning skriver även information om dirigering och nedladdningar till webbläsarens utvecklarkonsol och förblir aktiverad tills du stänger av den. Privat aktivitet undantas."
+  },
+  "html_toConnectOpenThisPageInABrowserThat": {
+    "message": "För att ansluta: öppna den här sidan i en webbläsare som stöder WebMCP, håll den öppen och peka din webbläsaragent på den här fliken. Fråga det i klartext — t.ex. ”Sortera mina nedladdningar i mappar efter webbplats och datum, numrera varje fil och meddela mig bara när en misslyckas.”"
+  },
+  "html_tools": {
+    "message": "Verktyg"
+  },
+  "html_version": {
+    "message": "Version"
+  },
+  "html_websiteAccess": {
+    "message": "Tillgång till webbplatsen"
+  },
+  "html_whyThesePermissionsAreNeeded": {
+    "message": "Varför dessa behörigheter behövs"
+  },
+  "html_alsoWorks": {
+    "message": "fungerar också)"
+  },
+  "html_amOrPmLocalTime": {
+    "message": "am eller pm (lokal tid)"
+  },
+  "html_currentDate": {
+    "message": "Aktuellt datum"
+  },
+  "html_currentDatetimeAsAUnixTimestamp": {
+    "message": "Aktuellt datum och tid som en Unix-tidsstämpel"
+  },
+  "html_currentDatetimeAsAUtcIso8601String": {
+    "message": "Aktuellt datum och tid som en UTC ISO 8601-sträng"
+  },
+  "html_currentDayOfMonth": {
+    "message": "Aktuell dag i månaden"
+  },
+  "html_currentDayOfWeekEnglish": {
+    "message": "Aktuell veckodag (engelska)"
+  },
+  "html_currentHour24Hour": {
+    "message": "Aktuell timme (24-timmarsformat)"
+  },
+  "html_currentMinute": {
+    "message": "Aktuell minut"
+  },
+  "html_currentMonth": {
+    "message": "Aktuell månad"
+  },
+  "html_currentMonthNameEnglish": {
+    "message": "Den aktuella månadens namn (engelska)"
+  },
+  "html_currentSecond": {
+    "message": "Aktuell sekund"
+  },
+  "html_currentYear": {
+    "message": "Innevarande år"
+  },
+  "html_iso8601WeekYear": {
+    "message": "ISO 8601-veckonumreringsår"
+  },
+  "html_hostnameOfThePage": {
+    "message": "Sidans värdnamn"
+  },
+  "html_hostnameOfTheSource": {
+    "message": "Värdnamn för källan"
+  },
+  "html_iso8601WeekNumber": {
+    "message": "ISO 8601 veckonummer ("
+  },
+  "html_lastLabelOfTheSourceHostname": {
+    "message": "Sista etiketten för källvärdnamnet"
+  },
+  "html_pageHostnameWithoutSubdomains": {
+    "message": "Sidans värdnamn utan underdomäner"
+  },
+  "html_pageTitleLowercasedAndDashed": {
+    "message": "Sidrubrik, med gemener och bindestreck"
+  },
+  "html_pageTitleLowercasedWithUnderscores": {
+    "message": "Sidrubrik, gemener med understreck"
+  },
+  "html_pathPartOfTheSourceUrlSeparatorsAreSanitized": {
+    "message": "Sökvägsdelen av källans URL (separatorer saneras)"
+  },
+  "html_sourceHostnameWithoutSubdomains": {
+    "message": "Källvärdnamn utan underdomäner"
+  },
+  "html_standard": {
+    "message": "Standard"
+  },
+  "html_linkTextVariableDescription": {
+    "message": "Länktext när webbläsaren tillhandahåller den; när flikar sparas används flikens titel."
+  },
+  "html_theCurrentlySelectedTextOnThePage": {
+    "message": "Den för närvarande markerade texten på sidan"
+  },
+  "html_theNaiveFilenameUrlBasedUseTheRoutingFeature": {
+    "message": "Filnamnet kommer från URL:en. Använd routningsregler om det blir fel."
+  },
+  "html_titleOfThePage": {
+    "message": "Sidans titel"
+  },
+  "html_urlOfThePage": {
+    "message": "URL till sidan"
+  },
+  "html_urlOfTheSource": {
+    "message": "URL till källan"
+  },
+  "html_usableEverywhere": {
+    "message": "Användbar överallt"
+  },
+  "html_variablesAreUsedInDirectoryAndPathPatterns": {
+    "message": "Variabler används i mapp- och filnamnsmönster."
+  },
+  "html_actualResolvedFilenameExtensionAlias": {
+    "message": "Faktiskt löst filnamnstillägg. Alias:"
+  },
+  "html_aRandomV4UuidUniquePerUse": {
+    "message": "Ett slumpmässigt UUID av version 4, unikt för varje användning"
+  },
+  "html_autoIncrementingNumberThatAdvancesOncePerSavedDownload": {
+    "message": "Antal som ökar efter varje sparad nedladdning och kvarstår vid omstarter. Visa eller återställ den under Nedladdningsräknare."
+  },
+  "html_blankIfTheServerDoesnTAnswer": {
+    "message": " och är tom när den inte är tillgänglig."
+  },
+  "html_captureGroupWhere": {
+    "message": "Text fångad av grupp"
+  },
+  "html_charactersForDeeperNesting": {
+    "message": "tecken för djupare nästling"
+  },
+  "html_createsASeparatorInTheContextMenu": {
+    "message": "Skapar en avgränsare i snabbmenyn"
+  },
+  "html_createsASubmenuItemAddMore": {
+    "message": "Skapar ett undermenyobjekt; lägg till mer"
+  },
+  "html_fileExtensionDerivedFromThe": {
+    "message": "Filändelsen härledd från"
+  },
+  "html_first12LowercaseHexCharactersOfTheDownloadedFile": {
+    "message": "De första 12 gemena hexadecimala tecknen i den nedladdade filens SHA-256. När värdet förbereds hämtas och hashas filen före sparandet, så värdet är tomt i förhandsgranskningar eller när det inte är tillgängligt. Nedladdningen fortsätter om hashningen misslyckas. Du kan avbryta en lång förberedelse från Historik."
+  },
+  "html_full64CharacterLowercaseSha256ItSharesThe": {
+    "message": "Fullständigt SHA-256 med 64 gemena tecken. Det beräknas tillsammans med"
+  },
+  "html_fullActualFilenameAfterContentDisposition": {
+    "message": "Löst filnamn, inklusive Content-Disposition"
+  },
+  "html_handyForExtensionlessOrQuerySuffixedUrls": {
+    "message": ". Användbar för URL:er utan filändelse eller med frågesuffix."
+  },
+  "html_menuStructure": {
+    "message": "Menystruktur"
+  },
+  "html_onlyUsableWhenRoutingAndRewritingFilenames": {
+    "message": "Endast tillgängligt när du dirigerar eller byter namn på filer"
+  },
+  "html_routingAndFilenamesOnly": {
+    "message": "Endast routning och filnamn"
+  },
+  "html_specialRowsUsedOnlyInTheDownloadsMenu": {
+    "message": "Specialrader används endast i sparmenyn"
+  },
+  "html_theN": {
+    "message": "; ersätt 1 med gruppnumret."
+  },
+  "html_theServerS": {
+    "message": "Serverns"
+  },
+  "html_theUrlAfterFollowingRedirectsViaTheSameHead": {
+    "message": "URL:en efter omdirigeringar. Den använder samma begäran som"
+  },
+  "html_urlDerivedExtensionAlias": {
+    "message": "URL-härlett tillägg. Alias:"
+  },
+  "html_viaAHeadRequestAddsASmallDelayAnd": {
+    "message": ". Detta lägger till en liten fördröjning och är tom när den inte är tillgänglig."
+  },
+  "html_whenBothVariablesAreUsed": {
+    "message": "när båda variablerna används."
+  },
+  "html_clausesAreOnlyUsedInRuleDefinitionsForRouting": {
+    "message": "Routningsregler använder villkor för att avgöra vilka nedladdningar som ska flyttas eller byta namn."
+  },
+  "html_templatesProvideReadyMadeRoutingRulesYouCanAddAndCustomize": {
+    "message": "Mallar innehåller färdiga regler som du kan anpassa. Save In använder den första träffen, så placera allmänna mallar efter specifika."
+  },
+  "html_forCaseInsensitiveMatching": {
+    "message": "för skiftlägesokänslig matchning."
+  },
+  "html_forExplicitNewRules": {
+    "message": "i nya regler."
+  },
+  "html_matcherClausesUse": {
+    "message": "Matchningssatser använder"
+  },
+  "html_matchers": {
+    "message": "Matchare"
+  },
+  "html_matchesTheCommentOfTheClickedMenuItem": {
+    "message": "Matchar det valda menyalternativets kommentar."
+  },
+  "html_matchesTheCurrentPageTitle": {
+    "message": "Matchar den aktuella sidtiteln."
+  },
+  "html_matchesTheCurrentPageUrl": {
+    "message": "Matchar den aktuella sidans URL."
+  },
+  "html_matchesTheFinalFilename": {
+    "message": "Matchar filnamnet som webbläsaren fastställer efter Content-Disposition."
+  },
+  "html_matchesTheResolvedFilenameBeforeBrowserNaming": {
+    "message": "Matchar filnamnet som Save In fastställer före webbläsarens slutliga namngivning."
+  },
+  "html_selectedMenuDirectoryPath": {
+    "message": "Mappsökväg som valts i Save In-menyn"
+  },
+  "html_linkTextMatcherDescription": {
+    "message": "Matchar länktexten när webbläsaren tillhandahåller den; när flikar sparas används flikens titel."
+  },
+  "html_matchesTheMediaType": {
+    "message": "Matchar mediatypen:"
+  },
+  "html_matchesTheMenuIndexOfTheClickedMenuItem": {
+    "message": "Matchar det valda menyalternativets index (1, 2, 3…)."
+  },
+  "html_directoryMatcherDescription": {
+    "message": "Matchar mappen du valde i Save In-menyn. Tom för sparningar som inte väljer någon mapp."
+  },
+  "html_matchesTheNaiveFilename": {
+    "message": "Matchar filnamnet som kommer från URL:en."
+  },
+  "html_matchesThePageHostname": {
+    "message": "Matchar sidans värdnamn."
+  },
+  "html_actualFileExtensionMatcherDescription": {
+    "message": "Matchar filändelsen som fastställts från filnamnet eller MIME-typen."
+  },
+  "html_matchesTheSelectionText": {
+    "message": "Matchar den markerade texten."
+  },
+  "html_sourceDomainMatcherDescription": {
+    "message": "Matchar den sparade källans värdnamn."
+  },
+  "html_sourceUrlMatcherDescription": {
+    "message": "Matchar den sparade källans URL."
+  },
+  "html_matchesTheUrlDerivedExtensionLegacyNameUse": {
+    "message": "Matchar det URL-härledda tillägget (äldre namn). Använd"
+  },
+  "html_matchesTheUrlOfTheCurrentFrame": {
+    "message": "Matchar den aktuella ramens URL."
+  },
+  "html_contextMatcherDescription": {
+    "message": "Matchar hur sparandet startades: media, link, selection, page, click, auto, browser eller tab. För att spara flikar krävs Firefox eller Chrome 150+."
+  },
+  "html_or": {
+    "message": ", eller"
+  },
+  "html_outputAndCapture": {
+    "message": "Utdata och fångst"
+  },
+  "html_regularExpression": {
+    "message": "reguljära uttryck"
+  },
+  "html_renamingTheFileKeepsItsOwnNameEG": {
+    "message": "byta namn på den; filen behåller sitt nuvarande namn (t.ex."
+  },
+  "html_required": {
+    "message": "Obligatoriskt"
+  },
+  "html_routesDownloadsToOrRewritesDownloadFilenamesIntoThe": {
+    "message": "Flyttar en nedladdning till den angivna sökvägen eller byter namn på den enligt det angivna mönstret. Avsluta mönstret med"
+  },
+  "html_selectsTheMatcherForRegexCaptureGroupVariables": {
+    "message": "Väljer matcharen vars fångstgrupper för reguljära uttryck är tillgängliga som"
+  },
+  "html_splitMultipleCaptureTargetsWithA": {
+    "message": ". Skilj flera fångstmål åt med"
+  },
+  "html_captureClauseCompatibility": {
+    "message": "Använd capturegroups: för löpande gruppnumrering mellan matchningssatser. capture: bevarar den äldre platta indexlayouten."
+  },
+  "html_stringsAddJavascriptRegexFlagsAfterTheMatcherName": {
+    "message": ". Lägg till JavaScript-flaggor efter matchningsnamnet; använd till exempel"
+  },
+  "html_toRouteIntoAFolder": {
+    "message": "för att flytta filen till en mapp"
+  },
+  "sourcePanelDockFloating": {
+    "message": "Flytande"
+  },
+  "sourcePanelNoMatchesFilter": {
+    "message": "Inga resurser matchar ”$FILTER$”.",
+    "placeholders": {
+      "filter": {
+        "content": "$1",
+        "example": "poster"
+      }
+    }
+  },
+  "sourcePanelClearFilters": {
+    "message": "Rensa filter"
+  },
+  "sourcePanelSourceCount": {
+    "message": "Hittade resurser: $COUNT$",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "12"
+      }
+    }
+  },
+  "sourcePanelEmbeddedSource": {
+    "message": "Inbäddad sidresurs"
+  },
+  "sourcePanelMoreActions": {
+    "message": "Fler åtgärder"
+  },
+  "html_webhooks": {
+    "message": "Webhooks"
+  },
+  "html_webhooksHelp": {
+    "message": "Rapportera Save In-nedladdningar till din egen slutpunkt som JSON."
+  },
+  "html_webhookDocumentation": {
+    "message": "Läs dokumentationen om webhooks"
+  },
+  "html_webhookEndpoint": {
+    "message": "Slutpunkter"
+  },
+  "html_webhookEvents": {
+    "message": "Händelser"
+  },
+  "html_webhookOnStart": {
+    "message": "Nedladdningen börjar"
+  },
+  "html_webhookOnComplete": {
+    "message": "Nedladdningen slutförs"
+  },
+  "html_webhookOnFailed": {
+    "message": "Nedladdningen misslyckas"
+  },
+  "html_webhookEventsHelp": {
+    "message": "Varje händelse innehåller samma nedladdnings-ID, så att en mottagare kan koppla ihop dem. Siddata nedan skickas när en nedladdning börjar; en slutförandehändelse innehåller i stället den sparade sökvägen, som är känd först när filen har skrivits."
+  },
+  "html_webhookAllowInsecure": {
+    "message": "Tillåt http://-slutpunkter"
+  },
+  "html_webhookAllowInsecureHelp": {
+    "message": "Begäranden till en http://-slutpunkt skickas okrypterade, inklusive de siddata du lägger till nedan. Använd bara detta i ett nätverk du litar på."
+  },
+  "html_webhookEndpointHelp": {
+    "message": "En per rad. Begäranden skickas direkt från webbläsaren till varje adress."
+  },
+  "html_testWebhook": {
+    "message": "Skicka test"
+  },
+  "html_webhookTestHelp": {
+    "message": "Testet innehåller bara en testhändelse och en tidsstämpel."
+  },
+  "html_webhookEnabled": {
+    "message": "Rapportera Save In-nedladdningar till en webhook"
+  },
+  "html_webhookAlwaysIncludes": {
+    "message": "Varje begäran innehåller resursens URL, vilken händelse det gäller, ett nedladdnings-ID och en ISO 8601-tidsstämpel."
+  },
+  "html_webhookAdditionalData": {
+    "message": "Ytterligare data"
+  },
+  "html_webhookIncludePageUrl": {
+    "message": "Sid-URL"
+  },
+  "html_webhookIncludePageTitle": {
+    "message": "Sidrubrik"
+  },
+  "html_webhookIncludeSelectionText": {
+    "message": "Markerad text"
+  },
+  "html_webhookPrivacy": {
+    "message": "Save In skickar inga kakor eller webbläsarautentiseringsuppgifter, följer inte omdirigeringar från slutpunkten och försöker inte skicka misslyckade begäranden igen. Inget skickas från privata fönster. Begäran skickas direkt från webbläsaren till slutpunkten."
+  },
+  "html_webhookPayloadPreview": {
+    "message": "Förhandsgranskning av nyttolast"
+  },
+  "webhookPreviewNoEvents": {
+    "message": "Inga händelser valda, så inget skickas."
+  },
+  "webhookPermissionDenied": {
+    "message": "Firefox-behörighet för valda webhookdata beviljades inte."
+  },
+  "webhookPermissionMissing": {
+    "message": "Firefox-behörigheten för dataöverföring är avstängd. Stäng av och slå på webhooks igen för att bevilja den."
+  },
+  "webhookPermissionCheckFailed": {
+    "message": "Det gick inte att kontrollera webbläsarens behörighet för dataöverföring."
+  },
+  "webhookSendingTest": {
+    "message": "Skickar test…"
+  },
+  "webhookTestDelivered": {
+    "message": "Slutpunkten godkände testet."
+  },
+  "webhookTestRejected": {
+    "message": "Slutpunkten avvisade testet."
+  },
+  "webhookTestFailed": {
+    "message": "Det gick inte att leverera testwebhooken."
+  },
+  "webhookEnabledSaved": {
+    "message": "Webhooks aktiverade."
+  },
+  "webhookDisabledSaved": {
+    "message": "Webhooks inaktiverade."
+  },
+  "webhookSaveFailed": {
+    "message": "Det gick inte att spara webhookinställningen."
+  },
+  "webhookFieldsSaved": {
+    "message": "Webhookdata uppdaterade."
+  },
+  "routeDebuggerFileData": {
+    "message": "Fil"
+  },
+  "routeDebuggerUrlData": {
+    "message": "URL:er"
+  },
+  "routeDebuggerPageData": {
+    "message": "Sidtext"
+  },
+  "routeDebuggerRoutingData": {
+    "message": "Routningskontext"
+  },
+  "routeDebuggerSourceKind": {
+    "message": "Källtyp"
+  },
+  "routeDebuggerAnySourceKind": {
+    "message": "Valfri källtyp"
+  },
+  "routeDebuggerMenuIndex": {
+    "message": "Menyindex"
+  },
+  "routeDebuggerMenuComment": {
+    "message": "Menykommentar"
+  },
+  "routeDebuggerRuntimeData": {
+    "message": "Körningsvärden"
+  },
+  "routeDebuggerDateTime": {
+    "message": "Datum och tid"
+  },
+  "routeDebuggerSha256": {
+    "message": "SHA-256"
+  },
+  "routeDebuggerRuleDestination": {
+    "message": "Sparar i $PATH$",
+    "placeholders": {
+      "path": {
+        "content": "$1",
+        "example": "images/:filename:"
+      }
+    }
+  },
+  "routeDebuggerEditRule": {
+    "message": "Redigera"
+  },
+  "routeDebuggerAttemptMatched": {
+    "message": "Testade ”$VALUE$” från $SOURCE$ — matchade.",
+    "placeholders": {
+      "value": {
+        "content": "$1",
+        "example": "pdf"
+      },
+      "source": {
+        "content": "$2",
+        "example": "Source URL"
+      }
+    }
+  },
+  "routeDebuggerAttemptDidNotMatch": {
+    "message": "Testade ”$VALUE$” från $SOURCE$ — matchade inte.",
+    "placeholders": {
+      "value": {
+        "content": "$1",
+        "example": "jpg"
+      },
+      "source": {
+        "content": "$2",
+        "example": "Source URL"
+      }
+    }
+  },
+  "routeDebuggerAttemptMissing": {
+    "message": "Inget värde var tillgängligt från $SOURCE$.",
+    "placeholders": {
+      "source": {
+        "content": "$1",
+        "example": "Page title"
+      }
+    }
+  },
+  "routeDebuggerAttemptInvalid": {
+    "message": "Kunde inte läsa ett giltigt värde från $SOURCE$: ”$VALUE$”.",
+    "placeholders": {
+      "source": {
+        "content": "$1",
+        "example": "Page URL"
+      },
+      "value": {
+        "content": "$2",
+        "example": "not a URL"
+      }
+    }
+  },
+  "routeDebuggerConditionMatched": {
+    "message": "$FIELD$ matchar $PATTERN$",
+    "placeholders": {
+      "field": {
+        "content": "$1",
+        "example": "fileext"
+      },
+      "pattern": {
+        "content": "$2",
+        "example": "pdf"
+      }
+    }
+  },
+  "routeDebuggerConditionDidNotMatch": {
+    "message": "$FIELD$ matchar inte $PATTERN$",
+    "placeholders": {
+      "field": {
+        "content": "$1",
+        "example": "fileext"
+      },
+      "pattern": {
+        "content": "$2",
+        "example": "png"
+      }
+    }
+  },
+  "html_without": {
+    "message": "utan att"
+  },
+  "o_lShortcutEnterOrReset": {
+    "message": "Ange ett kortkommando eller använd Återställ."
+  },
+  "o_lShortcutFormat": {
+    "message": "Använd ett format som Ctrl+Shift+G."
+  },
+  "o_lShortcutPrimaryModifier": {
+    "message": "Använd Ctrl, Alt, Command eller MacCtrl som modifieringstangent."
+  },
+  "o_lShortcutAddKey": {
+    "message": "Lägg till en tangent efter modifieringstangenten."
+  },
+  "o_lShortcutOneKey": {
+    "message": "Använd en tangent med modifieringstangenterna."
+  },
+  "o_lShortcutValidKey": {
+    "message": "Välj en giltig tangent, till exempel Y, 5, F12 eller PageDown."
+  },
+  "o_lShortcutNoRepeats": {
+    "message": "Upprepa inte tangenter eller modifierare."
+  },
+  "o_lShortcutReady": {
+    "message": "Redo att använda."
+  },
+  "o_lShortcutChangeUnsupported": {
+    "message": "Den här webbläsaren stöder inte ändring av kortkommandon här."
+  },
+  "o_lShortcutRejected": {
+    "message": "Webbläsaren accepterade inte kortkommandot. Det kan vara reserverat eller redan användas."
+  },
+  "o_lShortcutUpdated": {
+    "message": "Kortkommandot har uppdaterats."
+  },
+  "o_lShortcutResetUnsupported": {
+    "message": "Den här webbläsaren stöder inte återställning av kortkommandon här."
+  },
+  "o_lShortcutReset": {
+    "message": "Kortkommandot har återställts."
+  },
+  "o_lShortcutLegacyValue": {
+    "message": "Äldre värde: $VALUE$",
+    "placeholders": {
+      "value": {
+        "content": "$1",
+        "example": "Alt"
+      }
+    }
+  },
+  "o_lAccessKeyInvalid": {
+    "message": "Använd en bokstav eller siffra. Befintliga sparade värden stöds tills de ändras."
+  },
+  "o_lShortcutFormatAnyBrowser": {
+    "message": "Fungerar i vilken webbläsare som helst"
+  },
+  "o_lShortcutFormatLegacyInternet": {
+    "message": "Äldre internetgenväg"
+  },
+  "o_lShortcutFormatMac": {
+    "message": "Native macOS genväg"
+  },
+  "o_lShortcutFormatWindows": {
+    "message": "Windows Internetgenväg"
+  },
+  "o_lShortcutFormatLinux": {
+    "message": "Linux skrivbordsgenväg"
+  },
+  "html_closePrivacyPolicy": {
+    "message": "Stäng integritetspolicyn"
+  },
+  "historyColumnInitiated": {
+    "message": "Startad"
+  },
+  "historyColumnSource": {
+    "message": "Källa"
+  },
+  "historyColumnMethod": {
+    "message": "Metod"
+  },
+  "historyColumnStatus": {
+    "message": "Status"
+  },
+  "historyColumnSize": {
+    "message": "Storlek"
+  },
+  "historyColumnType": {
+    "message": "Typ"
+  },
+  "historyColumnRule": {
+    "message": "Routning"
+  },
+  "historyColumnFile": {
+    "message": "Fil"
+  },
+  "historyColumnFolder": {
+    "message": "Mapp"
+  },
+  "historyColumnUrl": {
+    "message": "URL"
+  },
+  "historyColumnFullPath": {
+    "message": "Fullständig sökväg"
+  },
+  "historyColumnDownloadId": {
+    "message": "Nedladdnings-ID"
+  },
+  "historyColumnMenuItem": {
+    "message": "Menyalternativ"
+  },
+  "historyColumnVariables": {
+    "message": "Variabler"
+  },
+  "o_lSourcePanelShortcutResetHelp": {
+    "message": "Med Återställ återställs webbläsarens föreslagna standardvärde."
+  },
+  "o_sAppearance": {
+    "message": "Utseende"
+  },
+  "o_lUiTheme": {
+    "message": "Tema"
+  },
+  "o_lUiThemeSystem": {
+    "message": "System"
+  },
+  "o_lUiThemeDark": {
+    "message": "Mörkt"
+  },
+  "o_lUiThemeLight": {
+    "message": "Ljust"
+  },
+  "o_lUiThemeGroupDefault": {
+    "message": "Standard"
+  },
+  "o_lUiThemeGroupAccessibility": {
+    "message": "Hög kontrast"
+  },
+  "o_lUiThemeGroupClassics": {
+    "message": "Klassiska teman"
+  },
+  "o_lUiThemeGroupSaveIn": {
+    "message": "Skräddarsytt"
+  },
+  "o_lUiThemeHighContrastDark": {
+    "message": "Hög kontrast – mörkt"
+  },
+  "o_lUiThemeHighContrastLight": {
+    "message": "Hög kontrast – ljust"
+  },
+  "o_lUiThemeHighContrastYellow": {
+    "message": "Hög kontrast – gult"
+  },
+  "o_lUiThemeSolarizedDark": {
+    "message": "Solarized Dark"
+  },
+  "o_lUiThemeSolarizedLight": {
+    "message": "Solarized Light"
+  },
+  "o_lUiThemeNord": {
+    "message": "Nord"
+  },
+  "o_lUiThemeDracula": {
+    "message": "Dracula"
+  },
+  "o_lUiThemeGruvbox": {
+    "message": "Gruvbox"
+  },
+  "o_lUiThemeMonokai": {
+    "message": "Monokai"
+  },
+  "o_lUiThemeOneDark": {
+    "message": "One Dark"
+  },
+  "o_lUiThemeTokyoNight": {
+    "message": "Tokyo Night"
+  },
+  "o_lUiThemeCatppuccin": {
+    "message": "Catppuccin"
+  },
+  "o_lUiThemeMidnight": {
+    "message": "Midnatt"
+  },
+  "o_lUiThemePastelPink": {
+    "message": "Rouge"
+  },
+  "o_lUiThemePaper": {
+    "message": "Papper"
+  },
+  "o_lUiThemeTerminal": {
+    "message": "Terminal"
+  },
+  "o_lUiThemeBerry": {
+    "message": "Bär"
+  },
+  "o_lUiThemeNebula": {
+    "message": "Nebula"
+  },
+  "o_lUiThemeGlacier": {
+    "message": "Glaciär"
+  },
+  "o_lUiThemeMatcha": {
+    "message": "Matcha"
+  },
+  "o_lUiThemeEmber": {
+    "message": "Glöd"
+  },
+  "o_lUiThemeHelp": {
+    "message": "Välj ett färgtema för inställningarna och Sidresurser."
+  },
+  "notificationExternalDownloadBlockedTitle": {
+    "message": "Extern nedladdning blockerad"
+  },
+  "notificationExternalDownloadBlockedMessage": {
+    "message": "En begäran från $SENDER_ID$ blockerades. Klicka för att granska den i Alternativ.",
+    "placeholders": {
+      "sender_id": {
+        "content": "$1",
+        "example": "abcdefghijklmnopabcdefghijklmnop"
+      }
+    }
+  },
+  "historyEmptyNoDownloads": {
+    "message": "Inga nedladdningar har sparats ännu."
+  },
+  "historyEmptyNoMatches": {
+    "message": "Ingen historik matchar dessa filter."
+  },
+  "webMcpStatusRegistering": {
+    "message": "Registrerar…"
+  },
+  "webMcpStatusActive": {
+    "message": "Aktiv — $COUNT$ verktyg registrerade",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "5"
+      }
+    }
+  },
+  "webMcpStatusLimited": {
+    "message": "Begränsad — $REGISTERED$ av $TOTAL$ verktyg registrerade",
+    "placeholders": {
+      "registered": {
+        "content": "$1",
+        "example": "4"
+      },
+      "total": {
+        "content": "$2",
+        "example": "5"
+      }
+    }
+  },
+  "webMcpStatusRegistrationFailed": {
+    "message": "Inte tillgänglig — verktygsregistreringen misslyckades"
+  },
+  "webMcpStatusUnavailableBrowser": {
+    "message": "Inte tillgänglig i den här webbläsaren"
+  },
+  "sourcePanelResizeLabel": {
+    "message": "Ändra storlek på panelen Sidresurser"
+  },
+  "sourcePanelClose": {
+    "message": "Stäng"
+  },
+  "sourcePanelCloseLabel": {
+    "message": "Stäng Sidresurser"
+  },
+  "sourcePanelDockPosition": {
+    "message": "Position: $POSITION$ — byt till nästa",
+    "placeholders": {
+      "position": {
+        "content": "$1",
+        "example": "Right"
+      }
+    }
+  },
+  "sourcePanelDockRight": {
+    "message": "Höger"
+  },
+  "sourcePanelDockBottom": {
+    "message": "Nederkant"
+  },
+  "sourcePanelDockLeft": {
+    "message": "Vänster"
+  },
+  "sourcePanelDockTop": {
+    "message": "Överkant"
+  },
+  "sourcePanelChangeDockLabel": {
+    "message": "Ändra panelens fästposition"
+  },
+  "sourcePanelDockPanel": {
+    "message": "Fäst Sidresurser"
+  },
+  "sourcePanelPopOutPanel": {
+    "message": "Visa Sidresurser som flytande panel"
+  },
+  "sourcePanelPopOutHelp": {
+    "message": "Visa som en flyttbar, flytande panel"
+  },
+  "sourcePanelCopyFilteredUrls": {
+    "message": "Kopiera URL:er för resurserna i det aktuella filtret"
+  },
+  "sourcePanelCopyFilteredUrlsLabel": {
+    "message": "Kopiera URL:er för filtrerade resurser"
+  },
+  "sourcePanelFilterLabel": {
+    "message": "Filtrera sidresurser"
+  },
+  "sourcePanelSortLabel": {
+    "message": "Sortera resurser"
+  },
+  "sourcePanelSortNewest": {
+    "message": "Nyaste först"
+  },
+  "sourcePanelSortRelevance": {
+    "message": "Relevans"
+  },
+  "sourcePanelSortOldest": {
+    "message": "Äldsta först"
+  },
+  "sourcePanelSortLargest": {
+    "message": "Största först"
+  },
+  "sourcePanelSortName": {
+    "message": "Namn"
+  },
+  "sourcePanelKindAudio": {
+    "message": "Ljud"
+  },
+  "sourcePanelKindDocument": {
+    "message": "Dokument"
+  },
+  "sourcePanelKindPlaylist": {
+    "message": "Spellista"
+  },
+  "sourcePanelNoMatches": {
+    "message": "Inga resurser matchar de aktuella filtren."
+  },
+  "sourcePanelNoSources": {
+    "message": "Inga medier eller spellistor för strömmande video har ännu upptäckts på sidan."
+  },
+  "sourcePanelSourceInstructions": {
+    "message": "$URL$. Högerklick: Save In; Alt-klick: spara direkt.",
+    "placeholders": {
+      "url": {
+        "content": "$1",
+        "example": "https://example.com/cat.jpg"
+      }
+    }
+  },
+  "sourcePanelSizeUnknown": {
+    "message": "okänd storlek"
+  },
+  "sourcePanelDetectedAt": {
+    "message": "Upptäckt: $TIME$",
+    "placeholders": {
+      "time": {
+        "content": "$1",
+        "example": "14:30"
+      }
+    }
+  },
+  "sourcePanelPreviewUnavailable": {
+    "message": "Ingen förhandsgranskning"
+  },
+  "sourcePanelLocate": {
+    "message": "Visa på sidan"
+  },
+  "sourcePanelSave": {
+    "message": "Spara"
+  },
+  "sourcePanelSavePlaylist": {
+    "message": "Spara spellistan"
+  },
+  "sourcePanelCopyYtDlp": {
+    "message": "Kopiera URL för yt-dlp"
+  },
+  "sourcePanelCopyYtDlpHelp": {
+    "message": "Kopiera videons URL för användning med yt-dlp"
+  },
+  "sourcePanelCopied": {
+    "message": "Kopierat"
+  },
+  "sourcePanelCopyFailed": {
+    "message": "Kopieringen misslyckades"
+  },
+  "sourcePanelRowInstructions": {
+    "message": "Alt-klick: spara; högerklick på resursens titel: Save In"
+  },
+  "sourcePanelCopiedUrls": {
+    "message": "$COUNT$ URL:er kopierade",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "o_lPathEditorDragHelp": {
+    "message": "Dra i det prickade handtaget. Släpp raden på en linje mellan rader för att flytta den dit, eller på en rad för att placera den under raden."
+  },
+  "routeDebuggerTitle": {
+    "message": "Testa routningsregler"
+  },
+  "routeDebuggerUseSource": {
+    "message": "Använd"
+  },
+  "routeDebuggerLatestDownload": {
+    "message": "Senaste"
+  },
+  "routeDebuggerUseSampleDownload": {
+    "message": "Exempel"
+  },
+  "routeDebuggerFilename": {
+    "message": "Filnamn"
+  },
+  "routeDebuggerSourceUrl": {
+    "message": "Käll-URL"
+  },
+  "routeDebuggerPageUrl": {
+    "message": "Sid-URL"
+  },
+  "routeDebuggerContentType": {
+    "message": "Innehållstyp"
+  },
+  "routeDebuggerContext": {
+    "message": "Sammanhang"
+  },
+  "routeDebuggerAnyContext": {
+    "message": "Alla sammanhang"
+  },
+  "routeDebuggerUnsavedNote": {
+    "message": "Testerna använder dina aktuella ändringar, även de som inte har tillämpats än."
+  },
+  "routeDebuggerRun": {
+    "message": "Testa regler"
+  },
+  "routeDebuggerNoMatch": {
+    "message": "Ingen routningsregel matchade."
+  },
+  "routeDebuggerOneRuleMatched": {
+    "message": "$COUNT$ regel matchade och användes.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
+  },
+  "routeDebuggerOneLaterRuleMatches": {
+    "message": "1 regel användes; $COUNT$ senare regel matchar också.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
+  },
+  "routeDebuggerLaterRulesMatch": {
+    "message": "1 regel användes; $COUNT$ senare regler matchar också.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "routeDebuggerExpanded": {
+    "message": "Expanderad sökväg"
+  },
+  "routeDebuggerPathBase": {
+    "message": "Att spara via menyn lägger den valda mappen framför den här sökvägen. Vid spara med klick och automatiska sparanden börjar sökvägen i din nedladdningsmapp."
+  },
+  "routeDebuggerFinalPath": {
+    "message": "Slutlig sökväg"
+  },
+  "routeDebuggerRule": {
+    "message": "Regel $NUMBER$",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "routeDebuggerSelected": {
+    "message": "Använd"
+  },
+  "routeDebuggerAlsoMatches": {
+    "message": "Matchade, användes inte"
+  },
+  "routeDebuggerDidNotMatch": {
+    "message": "Villkoren uppfylldes inte"
+  },
+  "routeDebuggerRunning": {
+    "message": "Testar routningsregler…"
+  },
+  "routeDebuggerFixErrors": {
+    "message": "Åtgärda de markerade routningsproblemen före testning. Antal: $COUNT$.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "routeDebuggerUnavailable": {
+    "message": "Det gick inte att testa routningsreglerna."
+  },
+  "routeDebuggerNoLastDownload": {
+    "message": "Ingen nyligen gjord nedladdning är tillgänglig."
+  },
+  "routeDebuggerClear": {
+    "message": "Rensa"
+  },
+  "routeDebuggerPageTitle": {
+    "message": "Sidrubrik"
+  },
+  "routeDebuggerReferrerUrl": {
+    "message": "Hänvisande URL"
+  },
+  "routeDebuggerFrameUrl": {
+    "message": "Ram-URL"
+  },
+  "routeDebuggerLinkText": {
+    "message": "Länktext"
+  },
+  "routeDebuggerSelectionText": {
+    "message": "Markerad text"
+  },
+  "routeDebuggerMediaType": {
+    "message": "Medietyp"
+  },
+  "routeDebuggerAnyMediaType": {
+    "message": "Alla medietyper"
+  },
+  "routeDebuggerMatcherCount": {
+    "message": "$MATCHED$ av $TOTAL$ villkor uppfyllda",
+    "placeholders": {
+      "matched": {
+        "content": "$1",
+        "example": "2"
+      },
+      "total": {
+        "content": "$2",
+        "example": "3"
+      }
+    }
+  },
+  "routeDebuggerGoToLine": {
+    "message": "Gå till rad $LINE$",
+    "placeholders": {
+      "line": {
+        "content": "$1",
+        "example": "8"
+      }
+    }
+  },
+  "routeVisualEditorMode": {
+    "message": "Läge för redigeraren av routningsregler"
+  },
+  "routeVisualAddRule": {
+    "message": "Lägg till regel"
+  },
+  "routingNoMatchBehavior": {
+    "message": "När ingen regel matchar"
+  },
+  "routeTextEmptyExample": {
+    "message": "// example\nfileext: pdf\ninto: documents/:filename:"
+  },
+  "routeVisualRuleEnabledAccessible": {
+    "message": "Regel $RULE$ aktiverad",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "routeVisualRuleActionsAccessible": {
+    "message": "Fler åtgärder för regel $RULE$",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "routeVisualMatcherAccessible": {
+    "message": "Regel $RULE$, villkor $CONDITION$: matchare",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      },
+      "condition": {
+        "content": "$2",
+        "example": "1"
+      }
+    }
+  },
+  "routeVisualPatternAccessible": {
+    "message": "Regel $RULE$, villkor $CONDITION$: mönster",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      },
+      "condition": {
+        "content": "$2",
+        "example": "1"
+      }
+    }
+  },
+  "routeVisualIgnoreCaseAccessible": {
+    "message": "Regel $RULE$, villkor $CONDITION$: ignorera skiftläge",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      },
+      "condition": {
+        "content": "$2",
+        "example": "1"
+      }
+    }
+  },
+  "routeVisualDeleteConditionAccessible": {
+    "message": "Ta bort villkor $CONDITION$ från regel $RULE$",
+    "placeholders": {
+      "condition": {
+        "content": "$2",
+        "example": "1"
+      },
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "routeVisualDestinationAccessible": {
+    "message": "Mål för regel $RULE$",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "routeVisualIgnoreCaseHelp": {
+    "message": "Behandla stora och små bokstäver som likadana"
+  },
+  "routeVisualDeleteCondition": {
+    "message": "Ta bort villkor"
+  },
+  "routeVisualUnsupported": {
+    "message": "Det visuella läget kan inte redigera den här regeln säkert nära rad $LINE$. Byt till textläget.",
+    "placeholders": {
+      "line": {
+        "content": "$1",
+        "example": "12"
+      }
+    }
+  },
+  "routeVisualEditText": {
+    "message": "Redigera som text"
+  },
+  "routeVisualMoveUp": {
+    "message": "Flytta regeln uppåt"
+  },
+  "routeVisualMoveDown": {
+    "message": "Flytta regeln nedåt"
+  },
+  "routeVisualDuplicate": {
+    "message": "Duplicera regeln"
+  },
+  "routeVisualDelete": {
+    "message": "Ta bort regeln"
+  },
+  "routeVisualAddCondition": {
+    "message": "Lägg till villkor"
+  },
+  "routeVisualEmpty": {
+    "message": "Det finns inga routningsregler än. Lägg till en regel för att komma igång."
+  },
+  "visualEditorEnabled": {
+    "message": "Aktiverad"
+  },
+  "html_disableThisDestinationAndItsChildren": {
+    "message": "Dölj det här målet och dess underordnade objekt i menyn"
+  },
+  "html_keepsARuleWithoutRunningIt": {
+    "message": "behåller regeln utan att köra den"
+  },
+  "autoDownloadHeading": {
+    "message": "Spara källor automatiskt"
+  },
+  "autoDownloadHelp": {
+    "message": "Spara nyupptäckta sidresurser endast när en aktiverad regel matchar både sidan och källan."
+  },
+  "autoDownloadEnabled": {
+    "message": "Spara träffar automatiskt"
+  },
+  "autoDownloadLive": {
+    "message": "Bevaka källor som läggs till efter att sidan har lästs in"
+  },
+  "autoDownloadPrivate": {
+    "message": "Tillåt automatiskt sparande i privata fönster"
+  },
+  "autoDownloadLinks": {
+    "message": "Inkludera länkad media"
+  },
+  "autoDownloadCoverageHeading": {
+    "message": "Omfattning för automatisk skanning"
+  },
+  "autoDownloadDocuments": {
+    "message": "Inkludera länkade dokument och strömmar"
+  },
+  "autoDownloadDocumentsHelp": {
+    "message": "Tar med länkade PDF- och HLS/DASH-manifestfiler, oavsett om länkad media är inkluderad."
+  },
+  "autoDownloadBackgrounds": {
+    "message": "Inkludera CSS-bakgrundsbilder"
+  },
+  "autoDownloadManifests": {
+    "message": "Sök efter spellistor för strömmande video när det är möjligt (HLS/DASH)"
+  },
+  "autoDownloadManifestsHelp": {
+    "message": "Sparar själva manifestfilen, inte den sammansatta strömmen."
+  },
+  "autoDownloadDataUrls": {
+    "message": "Inkludera inbäddade data:-bilder och media"
+  },
+  "autoDownloadDataUrlsHelp": {
+    "message": "Tar med fristående data:-URL:er, upp till 2 MB styck; större hoppas över."
+  },
+  "autoDownloadLimit": {
+    "message": "Maximalt antal sparningar per sidbesök"
+  },
+  "autoDownloadLimitHelp": {
+    "message": "Save In slutar köa nya träffar när gränsen nås. Läs in sidan igen för att starta ett nytt besök."
+  },
+  "autoDownloadRulesHeading": {
+    "message": "Automatiseringsregler"
+  },
+  "autoDownloadRulesHelp": {
+    "message": "Varje regel behöver ett sidvillkor, ett källvillkor och en destination. Den första träffen gäller."
+  },
+  "autoDownloadEditorMode": {
+    "message": "Läge för redigeraren av automatiseringsregler"
+  },
+  "autoDownloadVisual": {
+    "message": "Visuellt"
+  },
+  "autoDownloadText": {
+    "message": "Text"
+  },
+  "autoDownloadAddRule": {
+    "message": "Lägg till automatiseringsregel"
+  },
+  "autoDownloadGrammar": {
+    "message": "Regelsyntax"
+  },
+  "autoDownloadCondition": {
+    "message": "Villkor"
+  },
+  "autoDownloadPattern": {
+    "message": "Mönster"
+  },
+  "autoDownloadIgnoreCase": {
+    "message": "Ignorera skiftläge"
+  },
+  "autoDownloadIgnoreCaseHelp": {
+    "message": "Behandla stora och små bokstäver som likadana"
+  },
+  "autoDownloadDeleteCondition": {
+    "message": "Ta bort villkor"
+  },
+  "autoDownloadVisualInvalid": {
+    "message": "Åtgärda felen i textläget innan du byter till det visuella läget."
+  },
+  "autoDownloadEmpty": {
+    "message": "Det finns inga automatiseringsregler än. Lägg till en regel, välj webbplats och källor och aktivera sedan regeln."
+  },
+  "autoDownloadRule": {
+    "message": "Regel"
+  },
+  "autoDownloadMoveUp": {
+    "message": "Flytta regeln uppåt"
+  },
+  "autoDownloadMoveDown": {
+    "message": "Flytta regeln nedåt"
+  },
+  "autoDownloadDeleteRule": {
+    "message": "Ta bort regeln"
+  },
+  "autoDownloadRuleName": {
+    "message": "Regelnamn"
+  },
+  "autoDownloadAddCondition": {
+    "message": "Lägg till villkor"
+  },
+  "autoDownloadDestination": {
+    "message": "Spara i"
+  },
+  "autoDownloadNewRule": {
+    "message": "Ny regel"
+  },
+  "ruleAutomaticMissingPage": {
+    "message": "Automatiska källregler behöver ett sidvillkor"
+  },
+  "ruleAutomaticMissingSource": {
+    "message": "Automatiska källregler behöver ett källvillkor"
+  },
+  "ruleReachabilityAutomaticOff": {
+    "message": "Automatisk sparning är av; regeln vilar tills ”$OPTION$” är på.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Save matches automatically"
+      }
+    }
+  },
+  "ruleReachabilityChannelOff": {
+    "message": "Med nuvarande inställningar upptäcks inga källor som matchar regeln. Slå på ”$OPTION$” för att tillhandahålla dem.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      }
+    }
+  },
+  "ruleReachabilityChannelOffEither": {
+    "message": "Med nuvarande inställningar upptäcks inga källor som matchar regeln. Slå på ”$OPTION$” eller ”$OPTION2$” för att tillhandahålla dem.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      },
+      "option2": {
+        "content": "$2",
+        "example": "Look for streaming-video playlists (HLS/DASH; best effort)"
+      }
+    }
+  },
+  "ruleReachabilityNoKinds": {
+    "message": "Källtypsvillkoren matchar ingen av sidkällornas typer; regeln kan aldrig spara."
+  },
+  "ruleReachabilityLinkOnly": {
+    "message": "Regeln matchar bara vanliga länkar, som automatisk sparning aldrig tar med."
+  },
+  "ruleReachabilityEmptyVariable": {
+    "message": "Variabeln $VARIABLE$ är alltid tom vid automatisk sparning.",
+    "placeholders": {
+      "variable": {
+        "content": "$1",
+        "example": ":menupath:"
+      }
+    }
+  },
+  "routeDebuggerReachabilityOff": {
+    "message": "Med nuvarande inställningar skulle källan inte upptäckas automatiskt. Slå på ”$OPTION$” för att ta med den.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include inline data: images and media"
+      }
+    }
+  },
+  "routeDebuggerReachabilityOffEither": {
+    "message": "Med nuvarande inställningar skulle källan inte upptäckas automatiskt. Slå på ”$OPTION$” eller ”$OPTION2$” för att ta med den.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      },
+      "option2": {
+        "content": "$2",
+        "example": "Look for streaming-video playlists (HLS/DASH; best effort)"
+      }
+    }
+  },
+  "routeDebuggerReachabilityOffData": {
+    "message": "Med nuvarande inställningar skulle källan inte upptäckas automatiskt. Slå på ”$OPTION$” och ”$DATAOPTION$” för att ta med den.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      },
+      "dataoption": {
+        "content": "$2",
+        "example": "Include inline data: images and media"
+      }
+    }
+  },
+  "routeDebuggerReachabilityOffEitherData": {
+    "message": "Med nuvarande inställningar skulle källan inte upptäckas automatiskt. Slå på ”$OPTION$” eller ”$OPTION2$” samt ”$DATAOPTION$” för att ta med den.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      },
+      "option2": {
+        "content": "$2",
+        "example": "Look for streaming-video playlists (HLS/DASH; best effort)"
+      },
+      "dataoption": {
+        "content": "$3",
+        "example": "Include inline data: images and media"
+      }
+    }
+  },
+  "routeDebuggerReachabilityLink": {
+    "message": "Automatisk upptäckt tar aldrig med vanliga länkar, så källan skulle aldrig upptäckas."
+  },
+  "routeDebuggerReachabilityAutomaticOff": {
+    "message": "Automatisk sparning är av; källan sparas inte förrän ”$OPTION$” är på.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Save matches automatically"
+      }
+    }
+  },
+  "autoDownloadRoutingBadge": {
+    "message": "Automatisk källa"
+  },
+  "autoDownloadManageRules": {
+    "message": "Öppna routningsregler"
+  },
+  "autoDownloadRoutingHelp": {
+    "message": "Använd context: auto med sid- och källvillkor för att matcha automatiska nedladdningar. Den första matchande regeln anger var filerna sparas."
+  },
+  "html_openInFirefoxAddons": {
+    "message": "Öppna i Firefox Add-ons"
+  },
+  "html_openInChromeWebStore": {
+    "message": "Öppna i Chrome Web Store"
+  },
+  "html_downloadRequestHeaders": {
+    "message": "Huvuden för nedladdningsbegäranden"
+  },
+  "html_temporarilyAddsThePageUrlAsRefererForExactSaveInRequests": {
+    "message": "Sidans URL läggs till tillfälligt som Referer för exakta Save In-begäranden när en webbplats kräver det."
+  },
+  "matchPatternInvalid": {
+    "message": "Ogiltigt WebExtension-matchningsmönster"
+  },
+  "regularExpressionInvalid": {
+    "message": "Ogiltigt reguljärt uttryck"
+  },
+  "webhookEndpointMalformed": {
+    "message": "Ange en giltig HTTPS-URL"
+  },
+  "webhookEndpointNotHttps": {
+    "message": "Använd en https://-URL"
+  },
+  "webhookEndpointNotHttpOrHttps": {
+    "message": "Använd en https://- eller http://-URL"
+  },
+  "webhookEndpointCredentials": {
+    "message": "Lägg autentiseringen i frågesträngen, inte i URL:en"
+  },
+  "webhookEndpointFragment": {
+    "message": "Ta bort #-fragmentet"
+  },
+  "webhookEndpointOverLimit": {
+    "message": "Över slutpunktsgränsen, den här raden skickas inte"
+  },
+  "validationJumpToIssue": {
+    "message": "Gå till det här problemet"
+  },
+  "optionsKeepEditing": {
+    "message": "Fortsätt redigera"
+  },
+  "optionsDiscardChanges": {
+    "message": "Kassera ändringar"
+  },
+  "restoreDefaultsConfirm": {
+    "message": "Återställa alla inställningar till standardvärdena? Nedladdningshistoriken behålls."
+  },
+  "restoreDefaultsCancel": {
+    "message": "Behåll aktuella inställningar"
+  },
+  "restoreDefaultsSuccess": {
+    "message": "Standardinställningarna har återställts."
+  },
+  "restoreDefaultsFailure": {
+    "message": "Det gick inte att återställa standardinställningarna."
+  },
+  "referenceCaption": {
+    "message": "Referens"
+  },
+  "referenceColumnSyntax": {
+    "message": "Syntax"
+  },
+  "referenceColumnExample": {
+    "message": "Exempel"
+  },
+  "referenceColumnMeaning": {
+    "message": "Betydelse"
+  },
+  "referenceResult": {
+    "message": "$COUNT$ resultat",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
+  },
+  "referenceResults": {
+    "message": "$COUNT$ resultat",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "12"
+      }
+    }
+  },
+  "referenceCopyValue": {
+    "message": "Kopiera $VALUE$",
+    "placeholders": {
+      "value": {
+        "content": "$1",
+        "example": ":filename:"
+      }
+    }
+  },
+  "referenceCopiedValue": {
+    "message": "$VALUE$ har kopierats",
+    "placeholders": {
+      "value": {
+        "content": "$1",
+        "example": ":filename:"
+      }
+    }
+  },
+  "o_cBrowserDownloadFiltersEnabled": {
+    "message": "Hantera endast matchande nedladdnings-URL:er"
+  },
+  "o_cBrowserDownloadFiltersEnabledHelp": {
+    "message": "Gäller historikspårning och routning i Save In."
+  },
+  "o_cBrowserDownloadFilterInvalid": {
+    "message": "Ogiltigt mönster. När URL-filtrering är aktiverad matchar inga nedladdningar förrän detta har åtgärdats."
+  },
+  "o_cBrowserDownloadExcludeFilterInvalid": {
+    "message": "Ogiltigt mönster. När URL-filtrering är aktiverad ignoreras den här raden tills den har åtgärdats."
+  },
+  "o_lPerSiteDisableHeading": {
+    "message": "Inaktivera Save In på webbplatser"
+  },
+  "o_cPerSiteDisableList": {
+    "message": "Stäng av Save In på matchande webbplatser (valfritt)"
+  },
+  "o_cPerSiteDisableListHelp": {
+    "message": "Ange ett WebExtension-matchningsmönster per rad. Klicka för att spara, sidresurser och automatiska sparningar förblir avstängda på matchande sidor."
+  },
+  "o_cPerSiteDisableListInvalid": {
+    "message": "Ogiltigt mönster. Den här raden ignoreras tills den har åtgärdats."
+  },
+  "o_lBrowserDownloadVariablesHeading": {
+    "message": "Tillgängliga routningsdata"
+  },
+  "o_lBrowserDownloadVariablesUnavailable": {
+    "message": "Sidrubrik, sid-URL, länktext, markering, menymetadata och modifieringstangenter är inte tillgängliga."
+  },
+  "welcomeTitle": {
+    "message": "Välkommen till Save In"
+  },
+  "welcomeIntro": {
+    "message": "Save In är klart. Använd högerklicksmenyn för att spara bilder, länkar, markerad text, media och sidor i mappar du väljer."
+  },
+  "welcomeStepRightClick": {
+    "message": "Högerklicka på något du vill spara."
+  },
+  "welcomeStepChooseSaveIn": {
+    "message": "Välj Save In… i menyn."
+  },
+  "welcomeStepPickFolder": {
+    "message": "Välj en startmapp."
+  },
+  "welcomeStarterNote": {
+    "message": "Startmapparna är nu aktiva. Du kan anpassa dem när som helst."
+  },
+  "welcomeToolbarNote": {
+    "message": "Verktygsfältsknappen öppnar Sidresurser för att hitta media på den aktuella sidan."
+  },
+  "welcomePermissions": {
+    "message": "Varför behövs dessa behörigheter?"
+  },
+  "welcomeCustomizeFolders": {
+    "message": "Anpassa mappar"
+  },
+  "welcomeUseEmptyPreset": {
+    "message": "Använd endast mappen Nedladdningar"
+  },
+  "welcomeEmptyPresetFailed": {
+    "message": "Det gick inte att endast använda mappen Nedladdningar. Dina mappar har inte ändrats."
+  },
+  "welcomeEmptyConfirmTitle": {
+    "message": "Ersätta nuvarande mappar?"
+  },
+  "welcomeEmptyConfirmDescription": {
+    "message": "Detta ersätter din nuvarande mappkonfiguration och behåller endast webbläsarens mål för nedladdningar."
+  },
+  "welcomeKeepCurrentFolders": {
+    "message": "Behåll nuvarande mappar"
+  },
+  "welcomeUseStarterFolders": {
+    "message": "Behåll startmapparna"
+  },
+  "welcomeUsingStarterSettings": {
+    "message": "Nyss"
+  },
+  "html_showWelcomeGuide": {
+    "message": "Visa välkomstguiden"
+  },
+  "advancedFilesDownloads": {
+    "message": "Filer och nedladdningar"
+  },
+  "advancedMaintenanceDiagnostics": {
+    "message": "Underhåll och diagnostik"
+  },
+  "webhookStateOn": {
+    "message": "På"
+  },
+  "webhookStateOff": {
+    "message": "Av"
+  },
+  "pathTextEmptyExample": {
+    "message": "images\ndocuments/:year:/:month:"
+  },
+  "pathVisualUndoDelete": {
+    "message": "Ångra borttagning"
+  },
+  "pathVisualEmpty": {
+    "message": "Inga anpassade mappar. Save In använder endast webbläsarens mapp Nedladdningar."
+  },
+  "pathVisualReorderHelp": {
+    "message": "Dra för att ändra ordning. Släpp mitt på en rad för att placera den under raden."
+  },
+  "pathVisualReorderAccessible": {
+    "message": "Ändra ordning eller kapsling för $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualEnabledAccessible": {
+    "message": "Aktivera $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualNestUnder": {
+    "message": "Kapsla under ”$NAME$”",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualMoveHere": {
+    "message": "Flytta hit"
+  },
+  "pathVisualDirectoryPlaceholder": {
+    "message": "mapp/:variables:"
+  },
+  "pathVisualDirectoryAccessible": {
+    "message": "Mapp $NUMBER$",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "pathVisualAlias": {
+    "message": "Alias"
+  },
+  "pathVisualAliasPlaceholder": {
+    "message": "Visningsnamn"
+  },
+  "pathVisualAliasUnbalanced": {
+    "message": "Inte sparad: parenteserna måste vara balanserade."
+  },
+  "pathVisualAliasAccessible": {
+    "message": "Visningsnamn för mapp $NUMBER$",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "pathVisualAccessKeyAccessible": {
+    "message": "Tilldela en åtkomsttangent till $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualMoreActionsAccessible": {
+    "message": "Fler åtgärder för $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualOutdent": {
+    "message": "Minska indrag"
+  },
+  "pathVisualOutdentAccessible": {
+    "message": "Minska indrag för $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualIndent": {
+    "message": "Öka indrag"
+  },
+  "pathVisualIndentAccessible": {
+    "message": "Öka indrag för $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualMoveUp": {
+    "message": "Flytta upp"
+  },
+  "pathVisualMoveUpAccessible": {
+    "message": "Flytta upp $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualMoveDown": {
+    "message": "Flytta ned"
+  },
+  "pathVisualMoveDownAccessible": {
+    "message": "Flytta ned $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualDelete": {
+    "message": "Ta bort"
+  },
+  "pathVisualDeleteAccessible": {
+    "message": "Ta bort $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "contextMenuRecentLocations": {
+    "message": "Senaste platser"
+  },
+  "o_lRecentLocations": {
+    "message": "Senaste platser"
+  },
+  "o_lRecentLocationsHelp": {
+    "message": "Visa 0–5 nyligen använda mål."
+  },
+  "pathVisualAlwaysAsk": {
+    "message": "Fråga alltid var filen ska sparas"
+  },
+  "pathVisualAlwaysAskAccessible": {
+    "message": "Fråga alltid var $ROW$ ska sparas",
+    "placeholders": {
+      "row": {
+        "content": "$1",
+        "example": "Work"
+      }
+    }
+  },
+  "o_cSaveSourceSidecar": {
+    "message": "Spara en källänk bredvid nedladdade medier"
+  },
+  "o_cSaveSourceSidecarHelp": {
+    "message": "Använder det valda genvägsformatet och den nedladdade filens namn."
+  },
+  "historyCopyPath": {
+    "message": "Kopiera sparad sökväg"
+  },
+  "historyCopySource": {
+    "message": "Kopiera käll-URL"
+  },
+  "historyPathCopied": {
+    "message": "Sparad sökväg kopierad."
+  },
+  "historySourceCopied": {
+    "message": "Käll-URL kopierad."
+  },
+  "historyCopyFailed": {
+    "message": "Det gick inte att kopiera till urklipp."
+  },
+  "diagnosticsSummaryHelp": {
+    "message": "Bakgrundsprocessens status, livscykel och senaste fel"
+  },
+  "diagnosticsRefresh": {
+    "message": "Uppdatera"
+  },
+  "diagnosticsCopy": {
+    "message": "Kopiera diagnostik"
+  },
+  "diagnosticsBackground": {
+    "message": "Bakgrund"
+  },
+  "diagnosticsHost": {
+    "message": "Värd"
+  },
+  "diagnosticsExtension": {
+    "message": "Tillägg"
+  },
+  "diagnosticsBrowser": {
+    "message": "Webbläsare"
+  },
+  "diagnosticsWorkerStarted": {
+    "message": "Bakgrundsprocess startad"
+  },
+  "diagnosticsSessionStorage": {
+    "message": "Sessionslagring"
+  },
+  "diagnosticsVerboseLogging": {
+    "message": "Utförlig loggning"
+  },
+  "diagnosticsConfigurationIssues": {
+    "message": "Konfigurationsproblem"
+  },
+  "diagnosticsLifecycle": {
+    "message": "Livscykel"
+  },
+  "diagnosticsLifecycleHelp": {
+    "message": "Senaste starter av bakgrundsprocessen, omläsningar av konfigurationen och tilläggsuppdateringar. När Diagnostik öppnas väcks bakgrundsprocessen."
+  },
+  "diagnosticsFailuresHelp": {
+    "message": "Senaste lokala fel från den här webbläsarsessionen. Granska texten innan du delar den eftersom webbläsarfel kan innehålla information om webbplatser eller filer."
+  },
+  "diagnosticsClearFailures": {
+    "message": "Rensa fel"
+  },
+  "diagnosticsDeveloperLogging": {
+    "message": "Utvecklarloggning"
+  },
+  "diagnosticsDurationMs": {
+    "message": "$COUNT$ millisekunder",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "42"
+      }
+    }
+  },
+  "diagnosticsDurationSeconds": {
+    "message": "$COUNT$ sekunder",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "4"
+      }
+    }
+  },
+  "diagnosticsDurationMinutes": {
+    "message": "$COUNT$ minuter",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "diagnosticsLifecycleBackgroundReady": {
+    "message": "Bakgrundsprocessen blev klar på $DURATION$.",
+    "placeholders": {
+      "duration": {
+        "content": "$1",
+        "example": "120 ms"
+      }
+    }
+  },
+  "diagnosticsLifecycleBackgroundFailed": {
+    "message": "Det gick inte att starta bakgrundsprocessen."
+  },
+  "diagnosticsLifecycleConfigurationReloaded": {
+    "message": "Konfigurationen lästes in igen."
+  },
+  "diagnosticsLifecycleExtensionInstalled": {
+    "message": "Tillägget installerades."
+  },
+  "diagnosticsLifecycleExtensionUpdatedFrom": {
+    "message": "Tillägget uppdaterades från $VERSION$.",
+    "placeholders": {
+      "version": {
+        "content": "$1",
+        "example": "3.9.1"
+      }
+    }
+  },
+  "diagnosticsLifecycleExtensionUpdated": {
+    "message": "Tillägget uppdaterades."
+  },
+  "diagnosticsLifecycleFailuresCleared": {
+    "message": "De senaste felen rensades."
+  },
+  "diagnosticsLifecycleEmpty": {
+    "message": "Inga livscykelhändelser ännu."
+  },
+  "diagnosticsWorkerStarting": {
+    "message": "Startar"
+  },
+  "diagnosticsWorkerReady": {
+    "message": "Körs · klar"
+  },
+  "diagnosticsWorkerFailed": {
+    "message": "Starten misslyckades"
+  },
+  "diagnosticsHostServiceWorker": {
+    "message": "MV3-service worker"
+  },
+  "diagnosticsHostEventPage": {
+    "message": "MV3-händelsesida"
+  },
+  "diagnosticsBrowserUnknown": {
+    "message": "Okänd webbläsare"
+  },
+  "diagnosticsStartedWithUptime": {
+    "message": "$TIME$ · har körts i $UPTIME$",
+    "placeholders": {
+      "time": {
+        "content": "$1",
+        "example": "Jul 15, 2026, 4:10 PM"
+      },
+      "uptime": {
+        "content": "$2",
+        "example": "3 min"
+      }
+    }
+  },
+  "diagnosticsConfigurationIssueCount": {
+    "message": "$PATHS$ sökväg · $ROUTING$ dirigering",
+    "placeholders": {
+      "paths": {
+        "content": "$1",
+        "example": "0"
+      },
+      "routing": {
+        "content": "$2",
+        "example": "1"
+      }
+    }
+  },
+  "diagnosticsAvailable": {
+    "message": "Tillgängligt"
+  },
+  "diagnosticsUnavailable": {
+    "message": "Otillgängligt"
+  },
+  "diagnosticsOn": {
+    "message": "På"
+  },
+  "diagnosticsOff": {
+    "message": "Av"
+  },
+  "diagnosticsFailuresEmpty": {
+    "message": "Inga senaste fel."
+  },
+  "diagnosticsChecking": {
+    "message": "Kontrollerar bakgrundsprocessen…"
+  },
+  "diagnosticsCheckedAt": {
+    "message": "Kontrollerad $TIME$",
+    "placeholders": {
+      "time": {
+        "content": "$1",
+        "example": "Jul 15, 2026, 4:10 PM"
+      }
+    }
+  },
+  "diagnosticsLoadFailed": {
+    "message": "Det gick inte att läsa in diagnostiken."
+  },
+  "diagnosticsCopySuccess": {
+    "message": "Diagnostiken har kopierats."
+  },
+  "diagnosticsCopyFailed": {
+    "message": "Det gick inte att kopiera diagnostiken."
+  },
+  "diagnosticsClearSuccess": {
+    "message": "De senaste felen rensades."
+  },
+  "diagnosticsClearFailed": {
+    "message": "Det gick inte att rensa de senaste felen."
+  },
+  "sourcePanelSelectFiltered": {
+    "message": "Välj filtrerade källor"
+  },
+  "sourcePanelClearSelection": {
+    "message": "Rensa markering"
+  },
+  "sourcePanelSelectedCount": {
+    "message": "$COUNT$ markerade",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "sourcePanelHiddenSelectedCount": {
+    "message": "$COUNT$ dolda",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "sourcePanelSaveSelected": {
+    "message": "Spara markerade källor"
+  },
+  "sourcePanelBatchConfirm": {
+    "message": "Spara $COUNT$ markerade källor?",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "24"
+      }
+    }
+  },
+  "sourcePanelBatchContinue": {
+    "message": "Spara källor"
+  },
+  "sourcePanelBatchCancel": {
+    "message": "Avbryt"
+  },
+  "sourcePanelBatchSaving": {
+    "message": "Sparar $COUNT$ källor…",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "8"
+      }
+    }
+  },
+  "sourcePanelBatchSaved": {
+    "message": "$COUNT$ nedladdningar startades",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "8"
+      }
+    }
+  },
+  "sourcePanelCreateAutomaticRule": {
+    "message": "Skapa automatisk regel"
+  },
+  "savedSettingUpdated": {
+    "message": "Inställningen uppdaterad"
+  },
+  "savedSettingsUpdated": {
+    "message": "$COUNT$ inställningar uppdaterade",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "savedUndo": {
+    "message": "Ångra"
+  },
+  "savedUndoFailed": {
+    "message": "Det gick inte att ångra — välj för att försöka igen"
+  },
+  "savedUndoBlocked": {
+    "message": "Slutför eller kassera dina andra ändringar innan du ångrar."
+  },
+  "externalApiUnknown": {
+    "message": "Okänd"
+  },
+  "externalApiUnavailable": {
+    "message": "Otillgänglig"
+  },
+  "externalBlockedAttemptOne": {
+    "message": "$COUNT$ blockerat försök",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
+  },
+  "externalBlockedAttemptMany": {
+    "message": "$COUNT$ blockerade försök",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "externalRequestActiveTab": {
+    "message": "Begäran om aktiv flik"
+  },
+  "externalRequestUrl": {
+    "message": "URL-begäran"
+  },
+  "externalRequestDownload": {
+    "message": "Nedladdningsbegäran"
+  },
+  "externalApprove": {
+    "message": "Godkänn"
+  },
+  "externalApproving": {
+    "message": "Godkänner…"
+  },
+  "externalApprovalFailed": {
+    "message": "Det gick inte att godkänna $ID$.",
+    "placeholders": {
+      "id": {
+        "content": "$1",
+        "example": "abcdefghijklmnopabcdefghijklmnop"
+      }
+    }
+  },
+  "externalRejectionsLoadFailed": {
+    "message": "Det gick inte att läsa in avvisade begäranden."
+  },
+  "referenceInsertValue": {
+    "message": "Infoga $VALUE$",
+    "placeholders": {
+      "value": {
+        "content": "$1",
+        "example": ":filename:"
+      }
+    }
+  },
+  "versionViewReleases": {
+    "message": "Save In v$VERSION$ — visa versioner",
+    "placeholders": {
+      "version": {
+        "content": "$1",
+        "example": "4.0.0"
+      }
+    }
+  },
+  "html_advancedFetchADifferentUrl": {
+    "message": "Avancerat: hämta en annan URL"
+  },
+  "html_captureReferencesAndRoutingVariablesSubstituteVerbatim": {
+    "message": "; fångstreferenser och routningsvariabler ersätts ordagrant, utan sanering av filnamnet."
+  },
+  "html_downloadsFromAnExpandedUrlTemplateInsteadOfTheMatched": {
+    "message": "laddar ner från en expanderad URL-mall istället för den matchade källan;"
+  },
+  "html_downloadsFromThisUrlTemplateInsteadOfTheMatchedSource": {
+    "message": "Laddar ner från den här URL-mallen istället för den matchade källan;"
+  },
+  "html_downloadsTheOriginalResolutionImageInstead": {
+    "message": "Laddar ner bilden i originalupplösning istället för den lilla förhandsvisningen."
+  },
+  "html_fetchClauseCompatibility": {
+    "message": "Hoppas över av vanlig webbläsarnedladdningsroutning, som bara kan byta namn – inte byta ut URL:er. Meny, klicka för att spara och automatiska sparningar använder den fortfarande; sparningen misslyckas om expansionen inte ger en användbar HTTP(S)-URL."
+  },
+  "html_orLiteral": {
+    "message": "eller"
+  },
+  "html_stillControlsTheDestinationAndFilename": {
+    "message": "styr fortfarande målet och filnamnet."
+  },
+  "html_stillSetsTheDestinationAndFilenameMustStartWith": {
+    "message": "anger fortfarande målet och filnamnet. Måste börja med"
+  },
+  "routeDebuggerFetchTemplate": {
+    "message": "Omskrivningsmall"
+  },
+  "routeDebuggerRewrittenUrl": {
+    "message": "Omskriven URL"
+  },
+  "routeVisualFetchAccessible": {
+    "message": "Regel $RULE$: skriv om nedladdnings-URL",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "routeVisualFetchLabel": {
+    "message": "Skriv om nedladdnings-URL"
+  },
+  "ruleTemplateCategorySiteFiling": {
+    "message": "Sortering per webbplats"
+  },
+  "ruleTemplateCategorySiteOriginals": {
+    "message": "Original per webbplats"
+  },
+  "ruleTemplatePagePathNoSchemeDescription": {
+    "message": "Bygger mappar av sidans värdnamn och sökväg utan inloggningsuppgifter, portar, frågor eller fragment"
+  },
+  "ruleTemplatePagePathNoSchemeName": {
+    "message": "Sidsökväg utan schema"
+  },
+  "ruleTemplateRedditOriginalsDescription": {
+    "message": "Skriver om Reddits förhandsvisningsbildlänkar till originalfilen på i.redd.it"
+  },
+  "ruleTemplateRedditOriginalsName": {
+    "message": "Reddit-bildoriginal"
+  },
+  "ruleTemplateSluggedTitleRenameDescription": {
+    "message": "Ersätter filnamnet med sidtiteln i gemener och med bindestreck, och behåller den fastställda filändelsen"
+  },
+  "ruleTemplateSluggedTitleRenameName": {
+    "message": "Namnbyte med titel-slug"
+  },
+  "ruleTemplateTwitterHandlePrefixDescription": {
+    "message": "Lägger kontots användarnamn före filer som sparats från ett Twitter- eller X-inlägg"
+  },
+  "ruleTemplateTwitterHandlePrefixName": {
+    "message": "Twitter/X-användarnamn som prefix"
+  },
+  "ruleTemplateTwitterOriginalsDescription": {
+    "message": "Skriver om Twitter- och X-bildlänkar till originalfilen i full upplösning"
+  },
+  "ruleTemplateTwitterOriginalsName": {
+    "message": "Twitter/X-bildoriginal"
+  },
+  "ruleTemplateWikimediaOriginalDescription": {
+    "message": "Skriver om Wikimedia Commons miniatyrlänkar till originalfilen i full storlek"
+  },
+  "ruleTemplateWikimediaOriginalName": {
+    "message": "Wikimedia-bild i full storlek"
+  },
+  "ruleTemplateBlueskyFullsizeName": {
+    "message": "Bluesky-bild i full storlek"
+  },
+  "ruleTemplateBlueskyFullsizeDescription": {
+    "message": "Skriver om en miniatyrbild i Bluesky-flödet till versionen i full storlek"
+  },
+  "ruleTemplateArtStationHighestName": {
+    "message": "ArtStation-bild i högsta tillgängliga kvalitet"
+  },
+  "ruleTemplateArtStationHighestDescription": {
+    "message": "Skriver om en förhandsgranskningsbild från ArtStation till den högsta tillgängliga versionen"
+  },
+  "ruleTemplateMastodonFullsizeName": {
+    "message": "Mastodon-JPEG-bild i full storlek"
+  },
+  "ruleTemplateMastodonFullsizeDescription": {
+    "message": "Skriver om förhandsgranskningen av en Mastodon-JPEG-bild till JPEG-filen i full storlek"
+  },
+  "ruleTemplateGoogleOriginalName": {
+    "message": "Google-bild i originalstorlek"
+  },
+  "ruleTemplateGoogleOriginalDescription": {
+    "message": "Skriver om en förhandsgranskningsbild som Google är värd för till dess fullständiga originalstorlek"
+  },
+  "ruleTemplateGoogleImagesSourceName": {
+    "message": "Källbild från Google Bilder"
+  },
+  "ruleTemplateGoogleImagesSourceDescription": {
+    "message": "Sparar en bild som öppnats i Google Bilder från utgivarens webbplats i stället för sökminiatyren"
+  },
+  "ruleTemplateFlickrLargeName": {
+    "message": "Större Flickr-bild"
+  },
+  "ruleTemplateFlickrLargeDescription": {
+    "message": "Skriver om en Flickr-bildlänk till en större version på 1024 px"
+  },
+  "ruleExtraFetch": {
+    "message": "En regel kan bara innehålla en fetch:-sats"
+  },
+  "ruleFetchNotHttp": {
+    "message": "fetch:-adressen måste vara en användbar http://- eller https://-URL"
+  },
+  "ruleFetchUnsupportedVariable": {
+    "message": "Variabeln stöds inte i en fetch:-adress"
+  },
+  "savedValueOff": {
+    "message": "Av"
+  },
+  "savedValueOn": {
+    "message": "På"
+  },
+  "o_lUiThemeGildedMosaic": {
+    "message": "Förgylld mosaik"
+  },
+  "o_lUiThemeBlueHouse": {
+    "message": "Blå huset"
+  },
+  "o_lUiThemePrimaryGrid": {
+    "message": "Primärfärgsrutnät"
+  },
+  "ruleExtraRename": {
+    "message": "En regel kan bara innehålla en rename:-sats"
+  },
+  "ruleRenameMissingSeparator": {
+    "message": "Skilj mönstret och ersättningen åt med ' -> '"
+  },
+  "html_renameReplacesMatchesInTheFinalFilename": {
+    "message": "Ersätter träffar för ett reguljärt uttryck i det slutliga filnamnet med den literala texten efter"
+  },
+  "html_renameReplacementExpandsVariables": {
+    "message": "; en tom ersättning tar bort träffar, och i ersättningen expanderas routningsvariabler och fångstreferenser som"
+  },
+  "html_renameClauseCompatibility": {
+    "message": "Tillämpas efter att filnamnet är helt bestämt (inklusive fetch:-omskrivningar) och före längdgränser — mappar påverkas aldrig. Spårade vanliga webbläsarnedladdningar använder den bara när ersättningen inte behöver en innehållshash. Skriv ett literalt ' -> ' i mönstret med ett escapat mellanslag (\\x20->)."
+  },
+  "html_advancedRenameTheSavedFile": {
+    "message": "Avancerat: byt namn på den sparade filen"
+  },
+  "html_renameGuideDescription": {
+    "message": "redigerar det slutliga filnamnet: mönstret före ' -> ' är ett reguljärt uttryck, och den literala ersättningen efter det kan använda routningsvariabler och fångstreferenser. Mappar påverkas aldrig."
+  },
+  "routeVisualRenameLabel": {
+    "message": "Byt namn på filen"
+  },
+  "routeVisualRenameAccessible": {
+    "message": "Regel $RULE$: byt namn på filen",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "routeDebuggerRenameTemplate": {
+    "message": "Byt namn"
+  },
+  "routeDebuggerRenamedName": {
+    "message": "Nytt namn"
+  },
+  "promptAssistantTitle": {
+    "message": "Regelassistent på enheten"
+  },
+  "promptAssistantIntro": {
+    "message": "Beskriv var filer ska sparas och få en dirigeringsregel att granska."
+  },
+  "html_theAssistantNeedsTheBrowsersBuiltIn": {
+    "message": "Assistenten kräver den inbyggda"
+  },
+  "html_whichOnlySomeBrowsersAndDevicesProvide": {
+    "message": ", som bara vissa webbläsare och enheter har."
+  },
+  "promptAssistantDisclosure": {
+    "message": "Utkast till en regel"
+  },
+  "promptAssistantEnable": {
+    "message": "Aktivera assistenten på enheten"
+  },
+  "promptAssistantEnableHelp": {
+    "message": "När den är avstängd kontrollerar Save In inte modellen, skapar inga sessioner och skickar inga prompter."
+  },
+  "promptAssistantStatusLabel": {
+    "message": "Status"
+  },
+  "promptAssistantPromptLabel": {
+    "message": "Beskriv en dirigeringsregel"
+  },
+  "promptAssistantPromptPlaceholder": {
+    "message": "Spara PNG-filer från example.com i Images/example"
+  },
+  "promptAssistantPromptHelp": {
+    "message": "Begäran är global och sparas inte. Assistenten läser inte dina öppna flikar. Ange önskad webbplats, filtyp och mapp."
+  },
+  "promptAssistantSuggest": {
+    "message": "Föreslå regel"
+  },
+  "promptAssistantGeneratedDraft": {
+    "message": "Genererat utkast"
+  },
+  "promptAssistantAddToRules": {
+    "message": "Lägg till i regler"
+  },
+  "promptAssistantClearDraft": {
+    "message": "Rensa utkast"
+  },
+  "promptAssistantPrivacy": {
+    "message": "Webbläsaren kör modellen på den här enheten. Save In skickar inte prompten eller resultatet till en server. Genererade regler tillämpas aldrig automatiskt."
+  },
+  "promptAssistantStatusOff": {
+    "message": "Av — inga modellkontroller eller prompter"
+  },
+  "promptAssistantStatusChecking": {
+    "message": "Kontrollerar modellen på enheten…"
+  },
+  "promptAssistantStatusReady": {
+    "message": "Redo på den här enheten"
+  },
+  "promptAssistantStatusDownloadable": {
+    "message": "Modellen laddas ner när du föreslår din första regel"
+  },
+  "promptAssistantStatusDownloading": {
+    "message": "Webbläsaren laddar ner modellen till enheten"
+  },
+  "promptAssistantStatusUnavailable": {
+    "message": "Inte tillgänglig i den här webbläsaren eller på enheten"
+  },
+  "promptAssistantStatusUnusable": {
+    "message": "Modellen returnerade ingen användbar regel"
+  },
+  "promptAssistantStatusUnusableReview": {
+    "message": "Modellen slutförde inte kontrollen av utkastet"
+  },
+  "promptAssistantStatusWorking": {
+    "message": "Skapar och kontrollerar ett utkast…"
+  },
+  "promptAssistantStatusInvalid": {
+    "message": "Utkastet behöver ett nytt försök: $ERROR$",
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "The rule needs an into clause"
+      }
+    }
+  },
+  "promptAssistantStatusFailed": {
+    "message": "Det gick inte att skapa ett utkast: $ERROR$",
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "The model session ended"
+      }
+    }
+  },
+  "promptAssistantStatusDraftReady": {
+    "message": "Utkastet är klart — granska det innan du lägger till det"
+  },
+  "promptAssistantStatusAdded": {
+    "message": "Tillagt som ett osparat utkast i regelredigeraren"
+  },
+  "html_cssMatcherDescription": {
+    "message": "Matchar sidelementet som hittade källan. Tillgängligt för automatiska sidkällor, klickspara och sparningar från panelen Sidkällor."
+  },
+  "html_cssMatcherSyntax": {
+    "message": "Matcharen css: använder CSS-selektorsyntax i stället för ett reguljärt uttryck och accepterar inga flaggor."
+  },
+  "ruleInvalidCssSelector": {
+    "message": "Ogiltig CSS-selektor"
+  },
+  "ruleCssFlags": {
+    "message": "css: accepterar inte flaggor för reguljära uttryck"
+  },
+  "contextMenuQuickSave": {
+    "message": "Snabbspara"
+  },
+  "contextMenuQuickSaveOnly": {
+    "message": "Snabbspara (Save In)"
+  },
+  "contextMenuQuickSaveToDirectory": {
+    "message": "Spara i $DIRECTORY$",
+    "placeholders": {
+      "directory": {
+        "content": "$1",
+        "example": "Photos"
+      }
+    }
+  },
+  "manifestCommandQuickSave": {
+    "message": "Snabbspara den aktuella sidan"
+  },
+  "o_cQuickSave": {
+    "message": "Visa ett objekt för snabbspara"
+  },
+  "o_cQuickSaveHelp": {
+    "message": "Lägger till ett menyalternativ som sparar direkt i standardmappen och hoppar över mapplistan."
+  },
+  "o_lQuickSaveDirectory": {
+    "message": "Mapp för snabbspara"
+  },
+  "o_cQuickSaveUseDirectory": {
+    "message": "Spara i den här mappen i stället för Hämtade filer"
+  },
+  "o_cQuickSaveOnly": {
+    "message": "Visa bara Snabbspara i snabbmenyn"
+  },
+  "o_cQuickSaveOnlyHelp": {
+    "message": "Sparar med ett klick genom att ta bort undermenyn Save In. Mapplistan, Senast använda och övriga menyåtgärder försvinner med den, eftersom webbläsare bara hoppar över undermenyn när det finns ett enda objekt."
+  },
+  "o_cClickToSaveUseDefault": {
+    "message": "Spara alltid till standardmålet"
+  },
+  "o_cClickToSaveUseDefaultHelp": {
+    "message": "Annars återanvänder klicka för att spara den mapp du senast valde i menyn."
+  },
+  "historyMovePending": {
+    "message": "Laddar ner till den nya mappen. Originalfilen tas bort när nedladdningen är klar."
+  },
+  "promptAssistantSingleRule": {
+    "message": "Utkastet måste innehålla exakt en regel"
+  },
+  "ruleCssSyntaxUnverified": {
+    "message": "CSS-väljarsyntaxen verifieras inte vid bakgrundsvalidering"
+  },
+  "ruleRegexUnverifiedExternal": {
+    "message": "Det reguljära uttrycket är för komplext för att valideras här. Regeln hoppades över; förenkla mönstret eller kontrollera det på alternativsidan."
+  },
+  "ruleFetchFinalFilenameUnsupported": {
+    "message": "fetch: kan inte kombineras med finalfilename:"
+  },
+  "ruleTooManyCssSelectors": {
+    "message": "För många olika css:-väljare"
+  },
+  "ruleClauseFlags": {
+    "message": "Den här satsen accepterar inte flaggor för reguljära uttryck"
+  },
+  "ruleEmptyMatcher": {
+    "message": "Ett tomt villkor matchar allt; skriv .* uttryckligen"
+  },
+  "ruleSuspiciousWhitespace": {
+    "message": "Mönstret börjar eller slutar med blanksteg"
+  },
+  "ruleUnsafeRegex": {
+    "message": "Mönstret kan ta för lång tid med lång indata"
+  },
+  "ruleDestinationMustBeRelative": {
+    "message": "Målet måste vara relativt och får inte innehålla ..-sökvägskomponenter"
+  }
+}

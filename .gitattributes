@@ -2,8 +2,10 @@
 *.css text
 *.htm text
 *.html text
+*.avif binary
 *.jpg binary
 *.js text
 *.json text
 *.png binary
 *.svg text
+*.webp binary

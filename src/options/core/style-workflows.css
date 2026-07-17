@@ -1,0 +1,219 @@
+.click-to-save-option-body {
+  grid-column: 2;
+  min-inline-size: 0;
+}
+
+.click-to-save-option-body > label {
+  display: block;
+  justify-self: start;
+  inline-size: fit-content;
+  margin: 0;
+}
+
+fieldset.click-to-save-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-3);
+  max-inline-size: 20rem;
+}
+
+.click-to-save-controls > label {
+  display: grid;
+  gap: var(--space-1);
+  inline-size: 100%;
+  min-inline-size: 0;
+  margin: 0;
+}
+
+.click-to-save-controls > legend {
+  inline-size: 100%;
+  margin-block-end: var(--space-1);
+}
+
+.click-to-save-controls > button {
+  justify-self: start;
+}
+
+.click-to-save-controls select {
+  inline-size: 100%;
+  max-inline-size: 100%;
+  min-inline-size: 0;
+}
+
+.click-to-save-controls > .caption-line,
+.click-to-save-controls > #click-to-save-warning,
+.click-to-save-controls > #clickToSaveStatus {
+  max-inline-size: 100%;
+}
+
+.click-to-save-controls:has(> label select:disabled) > :is(legend, label) {
+  color: var(--disabled-control-color);
+}
+
+.shortcut-control-label {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+#clickToSaveStatus:empty {
+  display: none;
+}
+
+#clickToSaveStatus:not(:empty) {
+  max-inline-size: 100%;
+  overflow-wrap: anywhere;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.editor-dirty-status {
+  flex: 0 1 auto;
+  margin-inline-start: auto;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  line-height: 1.35;
+}
+
+.full-width {
+  inline-size: 100%;
+}
+
+.mono-input {
+  font-family: var(--font-mono);
+}
+
+.inline-guide {
+  max-inline-size: var(--content-max-width);
+  margin-block-start: var(--space-3);
+}
+
+.inline-guide > summary {
+  inline-size: fit-content;
+  padding: var(--space-1) 0;
+  color: var(--color-text);
+}
+
+.inline-guide > summary:hover {
+  color: var(--link-color);
+}
+
+.inline-guide summary,
+.inline-guide .caption {
+  font-size: var(--text-base);
+}
+
+.inline-guide > .guide-body {
+  margin-block-start: var(--space-1);
+  padding: var(--space-3);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  background: var(--page-bg);
+  font-size: var(--text-base);
+  line-height: var(--leading-copy);
+}
+
+.guide-body > :first-child {
+  margin-block-start: 0;
+}
+
+.guide-body > :last-child {
+  margin-block-end: 0;
+}
+
+.guide-steps {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 var(--space-4);
+  margin: var(--space-3) 0;
+}
+
+.guide-step {
+  min-inline-size: 0;
+  padding: var(--space-3) 0;
+  border-block-start: 1px solid var(--panel-border);
+}
+
+.guide-step strong {
+  display: block;
+  margin-block-end: var(--space-1);
+  font-size: var(--text-base);
+  font-weight: 600;
+}
+
+.guide-step pre,
+.guide-more pre,
+.agent-prompt-guide pre {
+  max-inline-size: 100%;
+  margin: var(--space-1) 0;
+  padding: var(--space-2);
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  border-radius: var(--radius-sm);
+  background: var(--panel-bg);
+  line-height: var(--leading-code);
+  white-space: pre;
+}
+
+.inline-guide .click-to-copy {
+  transition:
+    color var(--motion-duration-fast) ease,
+    background-color var(--motion-duration-fast) ease;
+}
+
+.inline-guide .click-to-copy.copied {
+  background: color-mix(in srgb, var(--color-success) 8%, var(--panel-bg));
+}
+
+.agent-prompt-guide pre {
+  font-family: var(--font-stack);
+  font-size: inherit;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.guide-more,
+.agent-prompt-guide {
+  margin: 0;
+  border-block-start: 1px solid var(--panel-border);
+}
+
+:is(.guide-more, .agent-prompt-guide) > summary {
+  inline-size: fit-content;
+  padding: var(--space-2) 0;
+  color: var(--link-color);
+  font-weight: 500;
+}
+
+.guide-syntax {
+  margin: var(--space-2) 0;
+}
+
+.guide-syntax > div {
+  display: grid;
+  grid-template-columns: minmax(8rem, auto) 1fr;
+  gap: var(--space-3);
+  padding: var(--space-1) 0;
+}
+
+.guide-syntax dt,
+.guide-syntax dd {
+  margin: 0;
+}
+
+.guide-rules {
+  padding-inline-start: var(--space-5);
+  margin: 0;
+}
+
+.edge-case-guide {
+  margin-block-end: var(--space-5);
+}
+
+@container options-panel (max-width: 640px) {
+  .guide-steps {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

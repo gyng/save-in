@@ -1,0 +1,4330 @@
+{
+  "ruleTemplatePdfsByContentTypeName": {
+    "message": "PDFs por tipo de contenido"
+  },
+  "ruleTemplatePdfsByContentTypeDescription": {
+    "message": "Detecta los PDF por el tipo de contenido indicado en lugar de por el nombre del archivo"
+  },
+  "ruleTemplateDownloadsFromSiteSectionName": {
+    "message": "Descargas de una sección del sitio"
+  },
+  "ruleTemplateDownloadsFromSiteSectionDescription": {
+    "message": "Envía las descargas asociadas a una sección de URL de página a su propia carpeta"
+  },
+  "html_matchesTheMimeContentType": {
+    "message": "Coincide con el MIME Content-Type determinado. Save In puede solicitar los encabezados del servidor."
+  },
+  "html_referrerDomainMatcherDescription": {
+    "message": "Coincide con el nombre de host de referencia; si falta, usa el nombre de host de la página."
+  },
+  "html_referrerUrlMatcherDescription": {
+    "message": "Coincide con la URL de referencia; si falta, usa la URL de la página."
+  },
+  "html_matchesTheRootHostname": {
+    "message": "Coincide con el nombre de host sin subdominios."
+  },
+  "extensionName": {
+    "message": "Save In"
+  },
+  "extensionDescription": {
+    "message": "Guarda imágenes, vídeos, audio, enlaces, texto seleccionado y páginas en carpetas dentro de la carpeta de descargas predeterminada."
+  },
+  "manifestActionListPageSources": {
+    "message": "Mostrar los recursos de la página"
+  },
+  "manifestCommandTogglePageSources": {
+    "message": "Mostrar u ocultar los recursos de la página"
+  },
+  "translationCredits": {
+    "message": "​"
+  },
+  "referenceRuntimeVariable": {
+    "message": "Variable de tiempo de ejecución"
+  },
+  "referenceRuntimeRuleMatcher": {
+    "message": "Comparador de reglas en tiempo de ejecución"
+  },
+  "ruleTemplateCategoryMedia": {
+    "message": "Medios"
+  },
+  "ruleTemplateCategoryFileTypes": {
+    "message": "Tipos de archivo"
+  },
+  "ruleTemplateCategoryDateAndSequence": {
+    "message": "Fecha y secuencia"
+  },
+  "ruleTemplateCategorySitesAndUrls": {
+    "message": "Sitios y URL"
+  },
+  "ruleTemplateCategorySaveContext": {
+    "message": "Contexto de guardado"
+  },
+  "ruleTemplateImagesPerSiteName": {
+    "message": "Imágenes en carpetas por sitio"
+  },
+  "ruleTemplateImagesPerSiteDescription": {
+    "message": "Clasifica las imágenes guardadas según el nombre de host de la página"
+  },
+  "ruleTemplateVideosPerSiteName": {
+    "message": "Vídeos en carpetas por sitio"
+  },
+  "ruleTemplateVideosPerSiteDescription": {
+    "message": "Clasifica los vídeos guardados según el nombre de host de la página"
+  },
+  "ruleTemplateAudioPerSiteName": {
+    "message": "Audio en carpetas por sitio"
+  },
+  "ruleTemplateAudioPerSiteDescription": {
+    "message": "Clasifica el audio guardado según el nombre de host de la página"
+  },
+  "ruleTemplateScreenshotsByMonthName": {
+    "message": "Capturas de pantalla por mes"
+  },
+  "ruleTemplateScreenshotsByMonthDescription": {
+    "message": "Guarda los nombres de archivo de capturas de pantalla en carpetas con fecha"
+  },
+  "ruleTemplatePdfsName": {
+    "message": "PDFs en una carpeta de documentos"
+  },
+  "ruleTemplatePdfsDescription": {
+    "message": "Reúne todos los PDF en un solo lugar"
+  },
+  "ruleTemplateArchivesName": {
+    "message": "Archivos comprimidos en una carpeta"
+  },
+  "ruleTemplateArchivesDescription": {
+    "message": "Reúne archivos zip, rar, 7z, tar y otros archivos comprimidos"
+  },
+  "ruleTemplateDocumentsName": {
+    "message": "Documentos en una carpeta"
+  },
+  "ruleTemplateDocumentsDescription": {
+    "message": "Reúne documentos comunes de oficina y texto"
+  },
+  "ruleTemplateEbooksName": {
+    "message": "Libros electrónicos y cómics"
+  },
+  "ruleTemplateEbooksDescription": {
+    "message": "Reúne formatos comunes de libros electrónicos y cómics digitales"
+  },
+  "ruleTemplateInstallersName": {
+    "message": "Aplicaciones e instaladores"
+  },
+  "ruleTemplateInstallersDescription": {
+    "message": "Mantiene juntos los paquetes de instalación para equipos de escritorio y dispositivos móviles"
+  },
+  "ruleTemplateFontsName": {
+    "message": "Fuentes en una carpeta"
+  },
+  "ruleTemplateFontsDescription": {
+    "message": "Reúne archivos de fuentes de escritorio y web"
+  },
+  "ruleTemplatePerExtensionName": {
+    "message": "Una carpeta por extensión de archivo"
+  },
+  "ruleTemplatePerExtensionDescription": {
+    "message": "Captura la extensión del archivo y la usa como nombre de carpeta"
+  },
+  "ruleTemplateDateStampName": {
+    "message": "Añadir la fecha a cada descarga"
+  },
+  "ruleTemplateDateStampDescription": {
+    "message": "Antepone la fecha de guardado al nombre del archivo guardado"
+  },
+  "ruleTemplateDailyInboxName": {
+    "message": "Bandeja diaria"
+  },
+  "ruleTemplateDailyInboxDescription": {
+    "message": "Crea una carpeta para cada día natural"
+  },
+  "ruleTemplateDownloadsByMonthName": {
+    "message": "Descargas por mes"
+  },
+  "ruleTemplateDownloadsByMonthDescription": {
+    "message": "Crea carpetas de año y mes conservando el nombre del archivo guardado"
+  },
+  "ruleTemplateWeeklyInboxName": {
+    "message": "Bandeja semanal"
+  },
+  "ruleTemplateWeeklyInboxDescription": {
+    "message": "Crea una carpeta de entrada para cada semana ISO"
+  },
+  "ruleTemplateSequentialArchiveName": {
+    "message": "Archivo secuencial"
+  },
+  "ruleTemplateSequentialArchiveDescription": {
+    "message": "Antepone a los archivos el contador persistente de descargas de Save In"
+  },
+  "ruleTemplateOneSiteName": {
+    "message": "Un sitio, una carpeta"
+  },
+  "ruleTemplateOneSiteDescription": {
+    "message": "Envía un sitio web elegido a su propia carpeta"
+  },
+  "ruleTemplatePerSourceSiteName": {
+    "message": "Una carpeta por sitio de origen"
+  },
+  "ruleTemplatePerSourceSiteDescription": {
+    "message": "Agrupa las descargas por el nombre de host que sirve el archivo"
+  },
+  "ruleTemplatePerPageSiteName": {
+    "message": "Una carpeta por sitio de la página"
+  },
+  "ruleTemplatePerPageSiteDescription": {
+    "message": "Agrupa los archivos por el sitio web visitado, no por el host del archivo"
+  },
+  "ruleTemplatePageTitlePrefixName": {
+    "message": "Prefijo con el título de la página"
+  },
+  "ruleTemplatePageTitlePrefixDescription": {
+    "message": "Añade un título de página seguro para el sistema de archivos antes del nombre guardado"
+  },
+  "ruleTemplateCaptureUrlName": {
+    "message": "Capturar parte de la URL"
+  },
+  "ruleTemplateCaptureUrlDescription": {
+    "message": "Usa un grupo de captura de expresión regular en el nombre de archivo guardado"
+  },
+  "ruleTemplateBrowserInboxName": {
+    "message": "Bandeja de descargas del navegador"
+  },
+  "ruleTemplateBrowserInboxDescription": {
+    "message": "Mantiene en una carpeta separada las descargas rastreadas que pertenecen al navegador"
+  },
+  "ruleTemplateLinkInboxName": {
+    "message": "Bandeja de descargas de enlaces"
+  },
+  "ruleTemplateLinkInboxDescription": {
+    "message": "Separa los archivos guardados desde enlaces del contenido multimedia incrustado"
+  },
+  "ruleTemplateSelectionInboxName": {
+    "message": "Bandeja de texto seleccionado"
+  },
+  "ruleTemplateSelectionInboxDescription": {
+    "message": "Mantiene juntos los archivos creados a partir del texto seleccionado de la página"
+  },
+  "ruleTemplateTabInboxName": {
+    "message": "Bandeja de guardados de pestañas"
+  },
+  "ruleTemplateTabInboxDescription": {
+    "message": "Mantiene juntos los archivos guardados mediante acciones de pestaña"
+  },
+  "ruleTemplateAdded": {
+    "message": "Añadida"
+  },
+  "ruleTemplateAdd": {
+    "message": "Añadir"
+  },
+  "ruleTemplateAddedFeedback": {
+    "message": "Añadida"
+  },
+  "ruleTemplateViewInEditor": {
+    "message": "Ver en el editor de reglas"
+  },
+  "historyActiveFilters": {
+    "message": "Filtros de historial activos"
+  },
+  "historyExportAll": {
+    "message": "Exportar todo"
+  },
+  "historyFilterSearch": {
+    "message": "Búsqueda: «$QUERY$»",
+    "placeholders": {
+      "query": {
+        "content": "$1",
+        "example": "invoice"
+      }
+    }
+  },
+  "historyFilterSince": {
+    "message": "Desde $DATE$",
+    "placeholders": {
+      "date": {
+        "content": "$1",
+        "example": "2026-07-01"
+      }
+    }
+  },
+  "historyFilterThrough": {
+    "message": "Hasta $DATE$",
+    "placeholders": {
+      "date": {
+        "content": "$1",
+        "example": "2026-07-31"
+      }
+    }
+  },
+  "historyDateRangeInvalid": {
+    "message": "La fecha de inicio debe ser igual o anterior a la fecha de finalización."
+  },
+  "historyShowFolderUnavailable": {
+    "message": "No se pudo abrir la carpeta. El navegador ya no reconoce esta descarga."
+  },
+  "historyShowFolderFailed": {
+    "message": "No se pudo abrir la carpeta. Es posible que el archivo se haya movido o eliminado."
+  },
+  "historyFilteredResultsCount": {
+    "message": "$MATCHES$ de $TOTAL$ resultados",
+    "placeholders": {
+      "matches": {
+        "content": "$1",
+        "example": "12"
+      },
+      "total": {
+        "content": "$2",
+        "example": "50"
+      }
+    }
+  },
+  "historyResultCountOne": {
+    "message": "$COUNT$ resultado",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
+  },
+  "historyResultCount": {
+    "message": "$COUNT$ resultados",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "24"
+      }
+    }
+  },
+  "historyStorageLimit": {
+    "message": "El historial permanece en este dispositivo, hasta 10.000 entradas."
+  },
+  "historyTableCaption": {
+    "message": "Historial de descargas guardadas"
+  },
+  "historyShowInFolder": {
+    "message": "Mostrar en la carpeta"
+  },
+  "historyCancelDownload": {
+    "message": "Cancelar"
+  },
+  "historyCancelDownloadTitle": {
+    "message": "Cancelar esta descarga"
+  },
+  "historyCancelDownloadNamed": {
+    "message": "Cancelar $FILE$",
+    "placeholders": {
+      "file": {
+        "content": "$1",
+        "example": "photo.jpg"
+      }
+    }
+  },
+  "historyCancelingDownload": {
+    "message": "Cancelando…"
+  },
+  "historyUndoSave": {
+    "message": "Deshacer guardado"
+  },
+  "historyUndoSaveNamed": {
+    "message": "Deshacer el guardado de $FILE$",
+    "placeholders": {
+      "file": {
+        "content": "$1",
+        "example": "photo.jpg"
+      }
+    }
+  },
+  "historyUndoDone": {
+    "message": "Guardado deshecho. El archivo se eliminó."
+  },
+  "historyUndoFileMissing": {
+    "message": "Guardado deshecho. El archivo ya se había movido o eliminado."
+  },
+  "historyUndoFailed": {
+    "message": "No se pudo deshacer este guardado."
+  },
+  "historyMoveSave": {
+    "message": "Mover guardado (vuelve a descargar el archivo en la carpeta elegida)"
+  },
+  "historyMoveSaveNamed": {
+    "message": "Mover el guardado de $FILE$",
+    "placeholders": {
+      "file": {
+        "content": "$1",
+        "example": "photo.jpg"
+      }
+    }
+  },
+  "historyMoveDestination": {
+    "message": "Carpeta de destino"
+  },
+  "historyMoveConfirm": {
+    "message": "Mover"
+  },
+  "historyMoveDownloadsRoot": {
+    "message": "Descargas"
+  },
+  "historyMoveDone": {
+    "message": "Guardado movido. El archivo se descargó en la nueva carpeta."
+  },
+  "historyMoveOriginalKept": {
+    "message": "Guardado en la nueva carpeta. No se pudo eliminar el archivo original."
+  },
+  "historyMoveFailed": {
+    "message": "No se pudo mover este guardado."
+  },
+  "historyRoutingApplied": {
+    "message": "Aplicado"
+  },
+  "historyRoutingAppliedTitle": {
+    "message": "Se aplicó una regla de enrutamiento o cambio de nombre."
+  },
+  "historyNewer": {
+    "message": "‹ Más recientes"
+  },
+  "historyPageCount": {
+    "message": "Página $PAGE$ de $TOTAL$",
+    "placeholders": {
+      "page": {
+        "content": "$1",
+        "example": "2"
+      },
+      "total": {
+        "content": "$2",
+        "example": "5"
+      }
+    }
+  },
+  "historyOlder": {
+    "message": "Más antiguos ›"
+  },
+  "historyLoadFailed": {
+    "message": "No se pudo cargar el historial."
+  },
+  "historyRetry": {
+    "message": "Reintentar"
+  },
+  "historyDeleteConfirmTitle": {
+    "message": "¿Eliminar todo el historial?"
+  },
+  "historyDeleteConfirmDescription": {
+    "message": "Esto elimina permanentemente todas las entradas guardadas del historial. No se puede deshacer."
+  },
+  "historyKeepHistory": {
+    "message": "Conservar el historial"
+  },
+  "historyDeleteAll": {
+    "message": "Eliminar todo el historial"
+  },
+  "historyClearing": {
+    "message": "Eliminando el historial…"
+  },
+  "historyClearFailed": {
+    "message": "No se pudo eliminar el historial."
+  },
+  "historyStatusSaving": {
+    "message": "Guardando…"
+  },
+  "historyStatusCanceled": {
+    "message": "Cancelado"
+  },
+  "historyStatusUndone": {
+    "message": "Deshecho"
+  },
+  "historyStatusMoved": {
+    "message": "Movido"
+  },
+  "historyStatusNetworkFailed": {
+    "message": "Error de red"
+  },
+  "historyStatusDownloadFailed": {
+    "message": "Error de descarga"
+  },
+  "historyStatusPreparationFailed": {
+    "message": "Error de preparación"
+  },
+  "historyStatusPreparationInterrupted": {
+    "message": "Interrumpido"
+  },
+  "historyStatusStateLost": {
+    "message": "Estado de descarga perdido"
+  },
+  "historyStatusRoutingFailed": {
+    "message": "Error de enrutamiento"
+  },
+  "historyStatusNoRuleMatch": {
+    "message": "Ninguna regla coincide"
+  },
+  "genericUnknownError": {
+    "message": "Error desconocido"
+  },
+  "contextMenuItemOptions": {
+    "message": "Opciones"
+  },
+  "contextMenuToggleSourcePanel": {
+    "message": "Mostrar u ocultar los recursos de la página"
+  },
+  "contextMenuExclusive": {
+    "message": "Guardar con una regla de enrutamiento…"
+  },
+  "contextMenuRoot": {
+    "message": "Save In…"
+  },
+  "contextMenuLastUsed": {
+    "message": "Último usado"
+  },
+  "contextMenuContextMedia": {
+    "message": "Contenido multimedia"
+  },
+  "contextMenuContextMediaOrLink": {
+    "message": "Medio o enlace"
+  },
+  "contextMenuContextSelection": {
+    "message": "Texto seleccionado"
+  },
+  "contextMenuContextPage": {
+    "message": "Página"
+  },
+  "contextMenuShowDefaultFolder": {
+    "message": "Abrir la carpeta de descarga predeterminada"
+  },
+  "notificationSuccessTitle": {
+    "message": "Guardado"
+  },
+  "notificationFailureTitle": {
+    "message": "No se pudo guardar $FILENAME$.",
+    "placeholders": {
+      "filename": {
+        "content": "$1",
+        "example": "my_filename.jpg"
+      }
+    }
+  },
+  "notificationUndoSave": {
+    "message": "Deshacer guardado"
+  },
+  "notificationRuleMatchedTitle": {
+    "message": "Save In: regla aplicada"
+  },
+  "notificationRuleMatchFailedExclusiveTitle": {
+    "message": "Save In: No se pudo enrutar o cambiar el nombre de la descarga"
+  },
+  "notificationRuleMatchFailedExclusiveMessage": {
+    "message": "No se encontró ninguna regla coincidente para $URL$",
+    "placeholders": {
+      "url": {
+        "content": "$1",
+        "example": "www.google.jpg"
+      }
+    }
+  },
+  "ruleMissingMatcher": {
+    "message": "Añada al menos una condición de coincidencia antes de into:"
+  },
+  "ruleCaptureMissingMatcher": {
+    "message": "El destino de captura no coincide con ninguna condición de esta regla"
+  },
+  "ruleCaptureAmbiguousMatcher": {
+    "message": "capture: usa la primera condición con este nombre"
+  },
+  "ruleMissingCapture": {
+    "message": "La referencia de captura no tiene ningún grupo de captura correspondiente"
+  },
+  "ruleMultipleCapture": {
+    "message": "Una regla solo puede contener una cláusula de captura"
+  },
+  "ruleMissingInto": {
+    "message": "Añada un único destino into: que no esté vacío"
+  },
+  "ruleIntoConstantFilename": {
+    "message": "Cambia el nombre de todas las coincidencias al mismo. Termine con / para una carpeta o con :filename: para conservar el nombre de la descarga"
+  },
+  "ruleExtraInto": {
+    "message": "Una regla solo puede contener una cláusula into:"
+  },
+  "ruleUnknownMatcher": {
+    "message": "No se admite el nombre del comparador"
+  },
+  "ruleUnknownDestinationVariable": {
+    "message": "La variable de ruta no es compatible"
+  },
+  "ruleInvalidRegex": {
+    "message": "El patrón o los indicadores no forman una expresión regular válida"
+  },
+  "ruleShadowed": {
+    "message": "Una regla anterior ya coincide con todas las descargas con las que puede coincidir esta regla"
+  },
+  "ruleBadClause": {
+    "message": "Use la sintaxis nombre: valor"
+  },
+  "rulePathInvalidCharacter": {
+    "message": "La ruta contiene caracteres no válidos"
+  },
+  "rulePathStartsWithDot": {
+    "message": "La ruta no puede comenzar con .. o /"
+  },
+  "tabstripMenuSelectedTab": {
+    "message": "Guardar pestaña seleccionada"
+  },
+  "tabstripMenuMultipleSelectedTab": {
+    "message": "Guardar pestañas resaltadas"
+  },
+  "tabstripMenuSaveChildrenTabs": {
+    "message": "Guardar pestañas abiertas desde esta pestaña"
+  },
+  "tabstripMenuSaveRightTabs": {
+    "message": "Guardar esta pestaña y todas las pestañas a su derecha"
+  },
+  "tabstripMenuSaveRightTabsMatched": {
+    "message": "Guardar esta pestaña y todas las pestañas a su derecha (se requiere una regla de enrutamiento)"
+  },
+  "o_sDownloads": {
+    "message": "Menú de guardado"
+  },
+  "o_sDirectories": {
+    "message": "Carpetas"
+  },
+  "o_sBehavior": {
+    "message": "Comportamiento de guardado"
+  },
+  "o_sSaveDialog": {
+    "message": "Cuadro de diálogo de guardado"
+  },
+  "o_sExistingFiles": {
+    "message": "Archivos existentes"
+  },
+  "o_lContextMenuBehaviorHelp": {
+    "message": "Elija qué acciones de Save In aparecen en los menús contextuales."
+  },
+  "o_lAlsoAskWhen": {
+    "message": "Preguntar también dónde guardar cuando:"
+  },
+  "o_sDynamicDownloads": {
+    "message": "Reglas de enrutamiento"
+  },
+  "o_sBrowserDownloads": {
+    "message": "Enrutamiento del navegador"
+  },
+  "o_lBrowserDownloadsHelp": {
+    "message": "Puede registrar o enrutar las descargas iniciadas por páginas web o por el navegador. Se excluyen las descargas iniciadas por Save In u otra extensión."
+  },
+  "o_cTrackBrowserDownloads": {
+    "message": "Añadir descargas del navegador al historial de Save In"
+  },
+  "o_cTrackBrowserDownloadsHelp": {
+    "message": "Registra las descargas coincidentes en el historial de Save In sin asumir su control. Save In no vuelve a intentarlas ni muestra avisos o notificaciones."
+  },
+  "o_cRouteBrowserDownloads": {
+    "message": "Enrutar descargas del navegador con reglas de enrutamiento"
+  },
+  "o_cRouteBrowserDownloadsHelp": {
+    "message": "Cuando sea compatible, las reglas coincidentes pueden cambiar el nombre de las descargas del navegador o colocarlas en subcarpetas. Añádalas en Reglas de enrutamiento › + Añadir regla. Las descargas sin coincidencia no se modifican."
+  },
+  "o_cRouteBrowserDownloadsFirefox": {
+    "message": "Redirigir descargas coincidentes del navegador"
+  },
+  "o_cRouteBrowserDownloadsFirefoxHelp": {
+    "message": "Firefox carece de enrutamiento de nombres de archivos nativo, por lo que Save In cancela cada descarga coincidente e inicia un reemplazo. Esto puede fallar en solicitudes POST, URL que caducan, encabezados personalizados o descargas autenticadas."
+  },
+  "o_lFirefoxFilenameApiBug": {
+    "message": "Error de Mozilla 1245652"
+  },
+  "o_cBrowserDownloadFilter": {
+    "message": "Incluir solo las URL de descarga coincidentes (opcional)"
+  },
+  "o_cBrowserDownloadFilterHelp": {
+    "message": "Déjelo en blanco para gestionar todas las descargas del navegador o introduzca un patrón de coincidencia de WebExtension por línea. Este filtro se aplica al registro en el historial y al enrutamiento."
+  },
+  "o_cBrowserDownloadExcludeFilter": {
+    "message": "Excluir URL de descarga coincidentes (opcional)"
+  },
+  "o_cBrowserDownloadExcludeFilterHelp": {
+    "message": "Introduzca un patrón de coincidencia de WebExtension por línea. Las exclusiones anulan las URL coincidentes anteriores y se aplican tanto al seguimiento del historial como al enrutamiento."
+  },
+  "o_lBrowserDownloadVariables": {
+    "message": "URL, nombre de archivo propuesto, tipo MIME, hora actual, contador y UUID"
+  },
+  "o_sRenameAndRouteDownloads": {
+    "message": "Enrutamiento y cambio de nombre"
+  },
+  "o_sNotifications": {
+    "message": "Notificaciones"
+  },
+  "o_sSaveAsShortcuts": {
+    "message": "Archivos de acceso directo"
+  },
+  "o_lShortcutFilesHelp": {
+    "message": "Guarda páginas, enlaces y contenido multimedia como archivos de acceso directo que abren la dirección original."
+  },
+  "o_sKeyboardShortcuts": {
+    "message": "Guardar con un clic"
+  },
+  "o_sContextMenu": {
+    "message": "Teclas de acceso al menú contextual"
+  },
+  "o_sMoreOptions": {
+    "message": "Avanzado"
+  },
+  "o_sHistory": {
+    "message": "Historial"
+  },
+  "o_sPageSources": {
+    "message": "Recursos de la página"
+  },
+  "o_sBrowsePageSources": {
+    "message": "Explorar recursos de la página"
+  },
+  "o_lPageSourcesHelp": {
+    "message": "Explore imágenes, videos, audio, documentos y enlaces descargables que se encuentran en la página actual. Los elementos guardados utilizan sus reglas normales de enrutamiento y cambio de nombre."
+  },
+  "o_lPageSourcesNetworkLimit": {
+    "message": "Algunos reproductores usan URL temporales o cargan contenido multimedia mediante scripts, por lo que Save In puede no detectar todos los vídeos. A veces encuentra listas de reproducción de vídeo en streaming (HLS/DASH), pero solo contienen segmentos individuales; guardar una lista no descarga el vídeo completo."
+  },
+  "o_cSourcePanelEnabled": {
+    "message": "Activar los recursos de la página"
+  },
+  "o_cSourcePanelBackgrounds": {
+    "message": "Incluir imágenes de fondo CSS"
+  },
+  "o_cSourcePanelLive": {
+    "message": "Actualizar cuando cambie el contenido multimedia de la página"
+  },
+  "o_cSourcePanelPreviews": {
+    "message": "Mostrar vistas previas de imágenes y vídeos"
+  },
+  "o_cSourcePanelResourceHints": {
+    "message": "Buscar listas de reproducción de vídeo en streaming cuando sea posible (HLS/DASH)"
+  },
+  "o_cSourcePanelLinks": {
+    "message": "Incluir enlaces, contenido multimedia enlazado y documentos PDF"
+  },
+  "o_lSourcePanelDiscovery": {
+    "message": "Fuentes y vistas previas"
+  },
+  "o_lSourcePanelShortcut": {
+    "message": "Atajo de teclado"
+  },
+  "o_lSourcePanelShortcutHelp": {
+    "message": "Use la sintaxis de atajos del navegador, por ejemplo Ctrl+Shift+Y o Command+Shift+Y. El navegador rechaza los atajos reservados."
+  },
+  "o_lHistoryFilter": {
+    "message": "Filtrar por archivo, carpeta, tipo o fuente"
+  },
+  "o_lHistoryFacets": {
+    "message": "Filtros de historial"
+  },
+  "o_lHistorySource": {
+    "message": "Fuente"
+  },
+  "o_lHistoryStatus": {
+    "message": "Estado"
+  },
+  "o_lHistoryType": {
+    "message": "Tipo"
+  },
+  "o_lHistoryAllSources": {
+    "message": "Todas las fuentes"
+  },
+  "o_lHistoryAllStatuses": {
+    "message": "Todos los estados"
+  },
+  "o_lHistoryAllTypes": {
+    "message": "Todos los tipos"
+  },
+  "o_lHistoryBrowser": {
+    "message": "Navegador"
+  },
+  "o_lHistorySaved": {
+    "message": "Guardado"
+  },
+  "o_lHistorySaving": {
+    "message": "Guardando"
+  },
+  "o_lHistoryFailed": {
+    "message": "Fallida"
+  },
+  "o_lHistoryDateSaved": {
+    "message": "Inicio"
+  },
+  "o_lHistoryAnyTime": {
+    "message": "En cualquier momento"
+  },
+  "o_lHistoryToday": {
+    "message": "Hoy"
+  },
+  "o_lHistoryLast7Days": {
+    "message": "Últimos 7 días"
+  },
+  "o_lHistoryLast30Days": {
+    "message": "Últimos 30 días"
+  },
+  "o_lHistoryCustomRange": {
+    "message": "Rango de fechas personalizado"
+  },
+  "o_lHistoryStartDate": {
+    "message": "Fecha de inicio"
+  },
+  "o_lHistoryEndDate": {
+    "message": "Fecha de finalización"
+  },
+  "o_cClearHistoryFilters": {
+    "message": "Limpiar filtros"
+  },
+  "o_cDeleteAllHistory": {
+    "message": "Eliminar todo el historial…"
+  },
+  "o_lSearchOptions": {
+    "message": "Opciones de búsqueda"
+  },
+  "o_lVariableList": {
+    "message": "Lista de variables"
+  },
+  "o_lMenuPreview": {
+    "message": "Vista previa del menú"
+  },
+  "o_lLiveVariables": {
+    "message": "Lista de variables en tiempo real"
+  },
+  "o_sVisualEditor": {
+    "message": "Editor visual"
+  },
+  "o_bAddDirectory": {
+    "message": "Carpeta"
+  },
+  "o_bAddSeparator": {
+    "message": "Separador"
+  },
+  "o_lClauses": {
+    "message": "Cláusulas"
+  },
+  "o_lEditorModeText": {
+    "message": "Texto"
+  },
+  "o_bApply": {
+    "message": "Aplicar"
+  },
+  "o_bDiscard": {
+    "message": "Desechar"
+  },
+  "o_lRuleTemplates": {
+    "message": "Biblioteca de plantillas"
+  },
+  "o_lClauseList": {
+    "message": "Lista de cláusulas"
+  },
+  "o_lGithub": {
+    "message": "GitHub"
+  },
+  "o_lChangelog": {
+    "message": "Registro de cambios"
+  },
+  "o_lHelpResources": {
+    "message": "Ayuda y recursos"
+  },
+  "o_lLanguage": {
+    "message": "Idioma"
+  },
+  "o_lLanguageChangeFailed": {
+    "message": "No se pudo cambiar el idioma. Inténtelo de nuevo."
+  },
+  "o_lRoutingLastDownload": {
+    "message": "Última descarga"
+  },
+  "o_lRoutingLastDownloadEmpty": {
+    "message": "ninguno todavía"
+  },
+  "o_lRoutingRenamedTo": {
+    "message": "Se cambió el nombre a"
+  },
+  "o_lRoutingNoMatches": {
+    "message": "no hay coincidencias"
+  },
+  "o_lRoutingCaptureGroups": {
+    "message": "Grupos de captura"
+  },
+  "o_lRoutingVariables": {
+    "message": "Variables"
+  },
+  "o_lRoutingVariablesClickToSee": {
+    "message": "Haga clic para mostrar"
+  },
+  "o_lAccessKeysInstruction": {
+    "message": "Configure las teclas de acceso de los elementos del menú de Save In."
+  },
+  "o_cLastUsedMenu": {
+    "message": "Mostrar el último elemento de menú utilizado"
+  },
+  "o_cSaveLinks": {
+    "message": "Mostrar acciones para enlaces"
+  },
+  "o_cPreferLinks": {
+    "message": "Guardar el destino del enlace en lugar del contenido multimedia incrustado"
+  },
+  "o_cSaveText": {
+    "message": "Mostrar una acción para el texto seleccionado"
+  },
+  "o_cSavePage": {
+    "message": "Mostrar una acción para la página actual"
+  },
+  "o_cSavePageHelp": {
+    "message": "Guarda solo el documento de la página; imágenes, hojas de estilo y otros archivos externos no están incluidos."
+  },
+  "o_cSaveTabstrip": {
+    "message": "Mostrar acciones Save In en el menú de pestañas"
+  },
+  "o_cSaveTabstripHelp": {
+    "message": "Guarda una pestaña, un grupo de pestañas o pestañas a la derecha"
+  },
+  "o_cOpenDialog": {
+    "message": "Preguntar siempre dónde guardar"
+  },
+  "o_cOpenDialogNoExt": {
+    "message": "El nombre del archivo no tiene extensión"
+  },
+  "o_cOpenDialogShift": {
+    "message": "Mantiene pulsada la tecla Shift mientras elige un elemento del menú"
+  },
+  "o_cOpenDialogOnFailure": {
+    "message": "Una descarga falla"
+  },
+  "o_cDupeUniquify": {
+    "message": "Crear un nombre único"
+  },
+  "o_cDupeOverwrite": {
+    "message": "Sobrescribir"
+  },
+  "o_cDupePrompt": {
+    "message": "Preguntar cada vez"
+  },
+  "o_cDupeFilename": {
+    "message": "Cuando ya existe un archivo:"
+  },
+  "o_cOpenDialogIfNoRulesMatch": {
+    "message": "Preguntar dónde guardar cuando no coincidan reglas de enrutamiento"
+  },
+  "o_cExclusiveMode": {
+    "message": "Ocultar opciones de carpeta"
+  },
+  "o_cExclusiveModeHelp": {
+    "message": "No guardar el archivo"
+  },
+  "o_cNotifySuccess": {
+    "message": "Notificar cuando una descarga se realice correctamente"
+  },
+  "o_cNotifyFailure": {
+    "message": "Notificar cuando falla una descarga"
+  },
+  "o_cNotifyMatch": {
+    "message": "Notificar cuando una regla de enrutamiento coincida"
+  },
+  "o_cSaveShortcutsAs": {
+    "message": "Formato de archivo"
+  },
+  "o_cSaveShortcutsTypeHtml": {
+    "message": "Redirección HTML (.html)"
+  },
+  "o_lShortcutTypeFirefoxUnavailable": {
+    "message": "Firefox se niega a guardar archivos terminados en .url o .desktop, así que esos formatos no están disponibles aquí. Los guardados usan la redirección HTML en su lugar."
+  },
+  "o_cSaveShortcutsTypeMac": {
+    "message": "Legacy macOS shortcut (.url)"
+  },
+  "o_cSaveShortcutsTypeMacWebloc": {
+    "message": "macOS internet location (.webloc)"
+  },
+  "o_cSaveShortcutsTypeWindows": {
+    "message": "Windows internet shortcut (.url)"
+  },
+  "o_cSaveShortcutsTypeFreedesktop": {
+    "message": "Linux desktop shortcut (.desktop)"
+  },
+  "o_cSaveShortcutsMediaInstead": {
+    "message": "Guardar medios como archivos de acceso directo"
+  },
+  "o_cSaveShortcutsLinksInstead": {
+    "message": "Guardar enlaces como archivos de acceso directo"
+  },
+  "o_cSaveShortcutsPagesInstead": {
+    "message": "Guardar páginas como archivos de acceso directo"
+  },
+  "o_cSaveShortcutsTabsInstead": {
+    "message": "Guardar pestañas como archivos de acceso directo desde el menú contextual de pestañas"
+  },
+  "o_cKeyboardShortcutSaveInMenu": {
+    "message": "Elemento del menú contextual de Save In"
+  },
+  "o_cKeyboardShortcutSubmenu": {
+    "message": "Elemento del submenú contextual utilizado por última vez"
+  },
+  "o_cKeyboardShortcutNumbers": {
+    "message": "Añadir atajos de teclas numéricas a los elementos del submenú contextual"
+  },
+  "o_cKeyboardShortcutClickToSave": {
+    "message": "Activar Guardar con un clic"
+  },
+  "o_cKeyboardShortcutClickToHelp": {
+    "message": "De forma predeterminada, mantenga pulsada la tecla Alt y haga clic en una imagen o elemento multimedia para guardarlo en la última carpeta utilizada o en la carpeta de descargas predeterminada. Save In añade un detector de clics a las páginas; algunas variables no están disponibles."
+  },
+  "o_cHostPermissionMissing": {
+    "message": "Save In no puede acceder al contenido de la página. Conceda acceso a todos los sitios para usar Guardar con un clic."
+  },
+  "o_cHostPermissionGrant": {
+    "message": "Conceder acceso"
+  },
+  "o_cKeyboardShortcutModifierLeftClick": {
+    "message": "Clic izquierdo"
+  },
+  "o_cKeyboardShortcutModifierMiddleClick": {
+    "message": "Clic central"
+  },
+  "o_cKeyboardShortcutModifierRightClick": {
+    "message": "Clic derecho"
+  },
+  "o_cKeyboardShortcutModifierBackClick": {
+    "message": "Botón Atrás (4)"
+  },
+  "o_cKeyboardShortcutModifierForwardClick": {
+    "message": "Botón de avance (5)"
+  },
+  "o_cKeyboardShortcutModifierHelp": {
+    "message": "Mantenga pulsadas las teclas modificadoras seleccionadas mientras hace clic con el botón del ratón elegido. Elija None para ambos modificadores si quiere usar solo el botón del ratón. Los cambios se aplican a las páginas que ya están abiertas."
+  },
+  "o_cRestoreDefaults": {
+    "message": "Restaurar valores predeterminados"
+  },
+  "o_cTruncatePath": {
+    "message": "Máximo de bytes UTF-8 por nombre de archivo o carpeta"
+  },
+  "o_cTruncatePathHelp": {
+    "message": "Valor predeterminado: 240. Linux suele limitar los nombres a 255 bytes. Windows y macOS suelen usar límites basados en caracteres, por lo que pueden funcionar valores de bytes mayores. Save In no puede detectar el sistema de archivos de destino. 0 significa sin límite."
+  },
+  "o_cReplaceInvalidCharsWith": {
+    "message": "Reemplazar caracteres no válidos con"
+  },
+  "o_cReplaceInvalidCharsWithHelp": {
+    "message": "Déjelo en blanco para eliminar los caracteres no válidos. Los caracteres de sustitución no válidos se ignoran."
+  },
+  "o_cAppendMimeExtension": {
+    "message": "Añadir una extensión si el nombre de archivo no tiene extensión"
+  },
+  "o_cAppendMimeExtensionHelp": {
+    "message": "Para las URL sin extensión, obtiene una del Content-Type del servidor. Esto añade un pequeño retraso solo cuando es necesario."
+  },
+  "o_cFallbackFetch": {
+    "message": "Reintentar las descargas fallidas mediante Save In"
+  },
+  "o_cFallbackFetchHelp": {
+    "message": "Si una descarga del navegador falla por un error de red o del servidor, Save In obtiene el archivo y lo intenta una vez más."
+  },
+  "o_cFetchViaFetchAPI": {
+    "message": "Descargar siempre mediante Save In"
+  },
+  "o_cFetchViaFetchAPIHelp": {
+    "message": "Save In busca el archivo y lo pasa al navegador. Úselo solo cuando fallen las descargas normales. Es más lento y Chrome mantiene el archivo en la memoria mientras se guarda, así que evítelo para archivos muy grandes."
+  },
+  "o_cIncludeFetchCredentials": {
+    "message": "Incluir cookies de inicio de sesión en el sitio web"
+  },
+  "o_cIncludeFetchCredentialsHelp": {
+    "message": "Incluye cookies aplicables e inicio de sesión administrado por el navegador cuando Save In recupera archivos en segundo plano, incluso después de redireccionamientos. Las solicitudes de ventana privada permanecen anónimas. Las descargas directas del navegador administran sus propias credenciales."
+  },
+  "o_cSetRefererHeader": {
+    "message": "Usar la URL de la página como Referer si falta"
+  },
+  "o_cSetRefererHeaderHelp": {
+    "message": "Active esta opción si un archivo se abre desde su sitio web, pero Save In no puede descargarlo, muestra 403 o Acceso denegado, o guarda una página de error. Añada abajo solo los hosts de archivo afectados. Esto envía la URL de la página a esos hosts; en Chrome, Save In también mantiene cada archivo coincidente en memoria mientras lo guarda."
+  },
+  "o_cSetRefererHeaderFilter": {
+    "message": "Establecer Referer para estos sitios"
+  },
+  "o_cSetRefererHeaderFilterHelp": {
+    "message": "Introduzca el patrón de URL del archivo que falló, no la URL de la página. Use un patrón de coincidencia por línea, por ejemplo *://i.pximg.net/*."
+  },
+  "o_cImportSettings": {
+    "message": "Importar configuración"
+  },
+  "o_cExportSettings": {
+    "message": "Exportar configuración"
+  },
+  "o_cDebugMode": {
+    "message": "Activar el registro detallado para desarrolladores"
+  },
+  "o_cLastSavedAt": {
+    "message": "Última actualización: "
+  },
+  "o_cLastSavedAtNever": {
+    "message": "Nunca"
+  },
+  "optionsUnsavedChanges": {
+    "message": "¿Descartar los cambios no guardados o seguir editando?"
+  },
+  "optionsEditorUnsaved": {
+    "message": "Cambios no guardados"
+  },
+  "o_lDirectoryDefinitions": {
+    "message": "Definiciones del menú de carpetas"
+  },
+  "o_lSaving": {
+    "message": "Guardando…"
+  },
+  "o_lSaved": {
+    "message": "Guardado"
+  },
+  "o_lSaveFailed": {
+    "message": "No se pudieron guardar los cambios"
+  },
+  "o_lValidationUnavailable": {
+    "message": "La validación no está disponible temporalmente. "
+  },
+  "o_bRetryValidation": {
+    "message": "Reintentar la validación"
+  },
+  "o_lAutosaveFailed": {
+    "message": "No se pudo guardar esta configuración. "
+  },
+  "o_bRetrySave": {
+    "message": "Reintentar guardar"
+  },
+  "o_lNoValidationErrors": {
+    "message": "Sin errores de validación"
+  },
+  "notificationLinkPreferred": {
+    "message": "Se descargó el destino del enlace"
+  },
+  "o_cPreferLinksFilterEnabled": {
+    "message": "Solo en páginas coincidentes"
+  },
+  "o_cPreferLinksFilter": {
+    "message": "URL de páginas coincidentes"
+  },
+  "o_cPreferLinksFilterHelp": {
+    "message": "Introduzca una expresión regular por línea. Los patrones se comparan con la URL de la página."
+  },
+  "notificationBadPreferLinksPattern": {
+    "message": "Expresión regular no válida para enlaces preferidos"
+  },
+  "o_cNotifyLinkPreferred": {
+    "message": "Notificar cuando se descarga el destino de un enlace en lugar del contenido multimedia incrustado"
+  },
+  "o_cCloseTabOnSave": {
+    "message": "Cerrar cada pestaña después de guardarla"
+  },
+  "o_lClickToSaveButton": {
+    "message": "Botón del ratón para Guardar con un clic"
+  },
+  "o_lDebugLog": {
+    "message": "Fallos recientes"
+  },
+  "o_sAdvancedFilenames": {
+    "message": "Nombres de archivos"
+  },
+  "o_sAdvancedDownloading": {
+    "message": "Gestión de descargas"
+  },
+  "o_sAdvancedCounter": {
+    "message": "Contador de descargas"
+  },
+  "o_sAdvancedBackupReset": {
+    "message": "Copia de seguridad y reinicio"
+  },
+  "o_sAdvancedDiagnostics": {
+    "message": "Diagnóstico"
+  },
+  "o_lExperimental": {
+    "message": "Experimental"
+  },
+  "o_lFilterReference": {
+    "message": "Filtrar"
+  },
+  "html_aboutSaveIn": {
+    "message": "Acerca de Save In"
+  },
+  "html_absolutePathsAndHiddenPathSegmentsSuchAs": {
+    "message": ", rutas absolutas y segmentos de ruta ocultos como"
+  },
+  "html_add": {
+    "message": ". Añada"
+  },
+  "html_addACommentThatIsNotDisplayed": {
+    "message": "Añadir un comentario que no se muestra"
+  },
+  "html_addDestinations": {
+    "message": "Añadir destinos"
+  },
+  "html_addsOneNestingLevel": {
+    "message": "añade un nivel de anidamiento."
+  },
+  "html_areNotSupported": {
+    "message": "no son compatibles."
+  },
+  "html_askAnAiAgentToDraftADownloadsMenu": {
+    "message": "Pídale a un agente de IA que redacte un menú de carpeta"
+  },
+  "html_assignAnAccessKey": {
+    "message": "Asignar una tecla de acceso"
+  },
+  "html_atTheEndForACommentStartWith": {
+    "message": "al final para añadir un comentario; empiece por"
+  },
+  "html_browsersOnlyLetExtensionsSaveInsideTheDefault": {
+    "message": "Los navegadores solo permiten que las extensiones guarden archivos dentro de la"
+  },
+  "html_buildTheDestinationsAndSubmenusShownInSaveIn": {
+    "message": "Elija las carpetas y submenús que se muestran en el menú contextual de Save In."
+  },
+  "html_butShowsCatPictures": {
+    "message": ", pero muestra «Imágenes de gatos»."
+  },
+  "html_changeADisplayedName": {
+    "message": "Cambiar un nombre mostrado"
+  },
+  "html_changeTheDisplayedName": {
+    "message": "Cambiar el nombre mostrado"
+  },
+  "html_copyThisPromptThenReplaceTheExampleDestinations": {
+    "message": "Copie este mensaje y luego reemplace los destinos de ejemplo."
+  },
+  "html_createASubmenu": {
+    "message": "Crear un submenú"
+  },
+  "html_createsTwoSelectableRowsInTheDownloadsMenu": {
+    "message": "Crea dos carpetas en el menú de guardado."
+  },
+  "html_defaultDownloadsDirectory": {
+    "message": "carpeta Descargas predeterminada"
+  },
+  "html_directoryEditorMode": {
+    "message": "Modo editor de carpetas"
+  },
+  "html_discussions": {
+    "message": "Discusiones"
+  },
+  "html_downloadsFolder": {
+    "message": "carpeta de descargas"
+  },
+  "html_each": {
+    "message": "Cada"
+  },
+  "html_eachLineAddsADestinationRelativeToYourBrowser": {
+    "message": "Cada línea añade un destino relativo a la"
+  },
+  "html_forExample": {
+    "message": "Por ejemplo,"
+  },
+  "html_howToCreateDestinations": {
+    "message": "Cómo crear destinos"
+  },
+  "html_insertionReferences": {
+    "message": "Referencias de inserción"
+  },
+  "html_issues": {
+    "message": "Problemas"
+  },
+  "html_itself": {
+    "message": "en sí"
+  },
+  "html_moreMenuSyntax": {
+    "message": "Más sintaxis de menú"
+  },
+  "html_oneRelativeDirectoryOrMenuInstructionPerLineDownloads": {
+    "message": "Introduzca una carpeta relativa o una instrucción de menú por línea. Los archivos se guardan dentro de la"
+  },
+  "html_openTheDefaultDownloadsDirectory": {
+    "message": "Abrir la carpeta Descargas predeterminada"
+  },
+  "html_pathsContaining": {
+    "message": "Rutas que contienen"
+  },
+  "html_perLevel": {
+    "message": "por cada nivel."
+  },
+  "html_saveInWiki": {
+    "message": "wiki de Save In"
+  },
+  "html_savesTo": {
+    "message": "Guarda en"
+  },
+  "html_savingOutsideTheDownloadsFolder": {
+    "message": "Guardar fuera de la carpeta Descargas"
+  },
+  "html_separateGroups": {
+    "message": "Separar grupos"
+  },
+  "html_settingsSaveIn": {
+    "message": "Configuración — Save In"
+  },
+  "html_templates": {
+    "message": "Plantillas"
+  },
+  "html_the": {
+    "message": "el"
+  },
+  "html_toCreateNestedSubmenusUsingOne": {
+    "message": "para crear submenús anidados; use un"
+  },
+  "html_toReachAnotherLocationCreateASymlinkInsideDownloads": {
+    "message": ". Para llegar a otra ubicación, redirige una de sus subcarpetas hacia la carpeta deseada y usa esa ruta relativa como destino. Lo que funciona depende de tu navegador y sistema, y algunos métodos son arriesgados, así que consulta la guía de abajo. La carpeta deseada ya debe existir."
+  },
+  "html_useAVariable": {
+    "message": "Usar una variable"
+  },
+  "html_wiki": {
+    "message": "wiki"
+  },
+  "html_advancedUseCaptureGroups": {
+    "message": "Avanzado: usar grupos de captura"
+  },
+  "html_andItsSubdomainsUse": {
+    "message": "Coincide con descargas HTTPS de example.com y sus subdominios."
+  },
+  "html_andLaterGroupsIn": {
+    "message": ", y grupos posteriores en"
+  },
+  "html_askAnAiAgentToDraftRoutingRules": {
+    "message": "Pídale a un agente de IA que redacte reglas de enrutamiento"
+  },
+  "html_automaticallyMoveOrRenameDownloadsWhenTheirFilenameSource": {
+    "message": "Mueva o cambie el nombre de las descargas automáticamente cuando coincida su nombre de archivo, fuente, página o contexto."
+  },
+  "o_lRouteBrowserDownloadsFromRules": {
+    "message": "Las reglas cubren los guardados que hace con Save In. Las descargas que inicia el propio navegador solo se cubren cuando lo activa."
+  },
+  "o_lOpenBrowserDownloads": {
+    "message": "Abrir descargas del navegador"
+  },
+  "html_becomes": {
+    "message": "se convierte"
+  },
+  "html_clauseAndVariableReference": {
+    "message": "Referencia de cláusulas y variables"
+  },
+  "html_copyThisPromptIntoAnAgentOrUseWebmcp": {
+    "message": "Copie este mensaje en un agente o use WebMCP desde integraciones externas."
+  },
+  "html_destination": {
+    "message": "destino."
+  },
+  "html_destinationsAreRelativeToTheDownloadsMenuDestinationYou": {
+    "message": "Los destinos son relativos a la carpeta que elija en el menú, pero empiezan en su carpeta de descargas al guardar con un clic y en los guardados automáticos. Los valores de los comparadores son expresiones regulares; consulte la"
+  },
+  "html_intoDestinationsStartFromTheMenuFolder": {
+    "message": "Los destinos son relativos a la carpeta que elija en el menú, pero empiezan en su carpeta de descargas al guardar con un clic y en los guardados automáticos."
+  },
+  "html_enterOneUrlLikeBrowserMatchPatternPerLine": {
+    "message": "Añada un patrón de coincidencia de WebExtension por línea. No son expresiones regulares. Cada patrón utiliza un esquema, un host y una ruta."
+  },
+  "html_everyMatcherInARuleMustMatch": {
+    "message": "Todos los comparadores de una regla deben coincidir."
+  },
+  "html_everyRuleMustEndWithAn": {
+    "message": "Toda regla debe terminar con una"
+  },
+  "html_filterClauses": {
+    "message": "Cláusulas de filtro"
+  },
+  "html_filterRoutingTemplates": {
+    "message": "Filtrar plantillas de enrutamiento"
+  },
+  "html_forExample2": {
+    "message": "Formato del patrón"
+  },
+  "html_forHttpAndHttpsAndEndWith": {
+    "message": "Coincide con HTTP y HTTPS."
+  },
+  "html_howDoDownloadUrlFiltersWork": {
+    "message": "Cómo coinciden los filtros de URL con las descargas"
+  },
+  "html_howRoutingRulesWork": {
+    "message": "Cómo funcionan las reglas de enrutamiento"
+  },
+  "html_matchesHttpsFileUrlsOn": {
+    "message": "Ejemplo"
+  },
+  "html_moveAndRenameMatchingFiles": {
+    "message": "Mover y cambiar el nombre de archivos coincidentes"
+  },
+  "html_moveMatchingFilesAndKeepTheirNames": {
+    "message": "Mover los archivos coincidentes y conservar sus nombres"
+  },
+  "html_optional": {
+    "message": "Opcional"
+  },
+  "html_parenthesesCapturePartsOfAMatcherSelectTheMatcher": {
+    "message": "Los paréntesis capturan partes de un comparador. Seleccione el comparador con"
+  },
+  "html_regularExpressionGuide": {
+    "message": "guía de expresiones regulares"
+  },
+  "html_separateRulesWithABlankLine": {
+    "message": "Separe las reglas con una línea en blanco."
+  },
+  "html_thenUse": {
+    "message": ", y use"
+  },
+  "html_toIncludeEveryPathThisIsNotARegular": {
+    "message": "Coincide con cualquier ruta. No se pueden hacer coincidir los parámetros de consulta ni los puertos explícitos."
+  },
+  "html_trackAndRouteBrowserDownloads": {
+    "message": "Descargas del navegador"
+  },
+  "html_writeOneClausePerLine": {
+    "message": "Escriba una cláusula por línea."
+  },
+  "html_all": {
+    "message": "Todos"
+  },
+  "html_altOption": {
+    "message": "Alt / Option"
+  },
+  "html_applyShortcut": {
+    "message": "Aplicar atajo"
+  },
+  "html_click": {
+    "message": "Haga clic"
+  },
+  "html_clickToSaveShortcut": {
+    "message": "Activador"
+  },
+  "html_clickToSaveShortcutCombination": {
+    "message": "Combinación del atajo para guardar con un clic"
+  },
+  "html_columns": {
+    "message": "Columnas"
+  },
+  "html_command": {
+    "message": "Command"
+  },
+  "html_commandWindowsKey": {
+    "message": "Command / Windows key"
+  },
+  "html_copy0LeavesDismissalToTheBrowserOrOperatingSystem": {
+    "message": "0 usa el valor predeterminado del navegador o del sistema operativo."
+  },
+  "html_ctrl": {
+    "message": "Ctrl"
+  },
+  "html_dismissEarlyAfter": {
+    "message": "Cerrar después de"
+  },
+  "html_export": {
+    "message": "Exportar"
+  },
+  "html_filterSources": {
+    "message": "Filtrar recursos"
+  },
+  "html_historyTableTools": {
+    "message": "Herramientas de la tabla de historial"
+  },
+  "html_image": {
+    "message": "Imagen"
+  },
+  "html_image128Kb1": {
+    "message": "Imagen · 128 KB · #1"
+  },
+  "html_images": {
+    "message": "Imágenes"
+  },
+  "html_jsonCompleteData": {
+    "message": "JSON — datos completos"
+  },
+  "html_key": {
+    "message": "Tecla"
+  },
+  "html_link": {
+    "message": "Enlace"
+  },
+  "html_links": {
+    "message": "Enlaces"
+  },
+  "html_macctrl": {
+    "message": "MacCtrl"
+  },
+  "html_more": {
+    "message": "Más"
+  },
+  "html_mouseOnlyLeftClickWillReplaceNormalClicksOn": {
+    "message": "Mientras esta función esté activada, el clic izquierdo sin modificadores sustituirá los clics normales en los enlaces y el contenido multimedia que se pueda guardar."
+  },
+  "html_ms": {
+    "message": "segundos"
+  },
+  "html_none": {
+    "message": "None"
+  },
+  "html_notifyMeWhen": {
+    "message": "Eventos de notificación"
+  },
+  "html_previewOfThePageSourcesDrawer": {
+    "message": "Vista previa del panel Recursos de la página"
+  },
+  "html_primaryModifier": {
+    "message": "Modificador principal"
+  },
+  "html_saveTheseAsShortcutFiles": {
+    "message": "Usar archivos de acceso directo para"
+  },
+  "html_secondModifier": {
+    "message": "Segundo modificador"
+  },
+  "html_selection": {
+    "message": "Selección"
+  },
+  "html_shift": {
+    "message": "Shift"
+  },
+  "html_shortcutFileBehavior": {
+    "message": "Configuración de archivos de acceso directo"
+  },
+  "html_streamHls3": {
+    "message": "Transmisión · HLS · #3"
+  },
+  "html_tab": {
+    "message": "Pestaña"
+  },
+  "html_video": {
+    "message": "Vídeo"
+  },
+  "html_video24Mb2": {
+    "message": "Vídeo · 2,4 MB · #2"
+  },
+  "html_advancedEditIdsAsText": {
+    "message": "Avanzado: editar los ID como texto"
+  },
+  "html_allow": {
+    "message": "Permitir"
+  },
+  "html_allowedExtensionIds": {
+    "message": "ID de las extensiones permitidas"
+  },
+  "html_apiVersion": {
+    "message": "Versión de la API"
+  },
+  "html_approvedExtensions": {
+    "message": "Extensiones aprobadas"
+  },
+  "html_capabilities": {
+    "message": "Capacidades"
+  },
+  "html_clickTheSnippetToCopyIt": {
+    "message": "Haga clic en el fragmento para copiarlo."
+  },
+  "html_counterValue": {
+    "message": "Valor del contador"
+  },
+  "html_current": {
+    "message": "Actual"
+  },
+  "html_currentValueOfThe": {
+    "message": "Valor actual de la variable"
+  },
+  "html_delete": {
+    "message": "eliminar"
+  },
+  "html_developerDetails": {
+    "message": "Detalles del desarrollador"
+  },
+  "html_exampleNegotiateTheVersionThenSaveAUrl": {
+    "message": "Ejemplo: negociar la versión y luego guardar una URL"
+  },
+  "html_extensionId": {
+    "message": "ID de extensión"
+  },
+  "html_externalDownloadAccess": {
+    "message": "Acceso a descargas externas"
+  },
+  "html_externalIntegrations": {
+    "message": "Integraciones externas"
+  },
+  "html_integrationGuide": {
+    "message": "Guía de integración"
+  },
+  "html_letTrustedExtensionsSendUrlsThroughSaveInS": {
+    "message": "Permite que las extensiones de confianza envíen URL mediante las reglas de enrutamiento y cambio de nombre de Save In."
+  },
+  "html_mdnMatchPatterns": {
+    "message": "MDN: Patrones de coincidencia"
+  },
+  "html_noExtensionsAreApprovedExternalDownloadsAreBlockedBy": {
+    "message": "No hay extensiones aprobadas. Las descargas externas están bloqueadas de forma predeterminada."
+  },
+  "html_noneApproved": {
+    "message": "Ninguna aprobada"
+  },
+  "externalApprovedCountOne": {
+    "message": "$COUNT$ extensión aprobada",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
+  },
+  "externalApprovedCountMany": {
+    "message": "$COUNT$ extensiones aprobadas",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "externalRemoveApproval": {
+    "message": "Quitar"
+  },
+  "externalRemoveApprovalFor": {
+    "message": "Quitar la aprobación de $ID$",
+    "placeholders": {
+      "id": {
+        "content": "$1",
+        "example": "abcdefghijklmnopabcdefghijklmnop"
+      }
+    }
+  },
+  "externalApprovalRemoved": {
+    "message": "$ID$ ya no está aprobada.",
+    "placeholders": {
+      "id": {
+        "content": "$1",
+        "example": "abcdefghijklmnopabcdefghijklmnop"
+      }
+    }
+  },
+  "externalApprovalAdded": {
+    "message": "$ID$ ahora está aprobada.",
+    "placeholders": {
+      "id": {
+        "content": "$1",
+        "example": "abcdefghijklmnopabcdefghijklmnop"
+      }
+    }
+  },
+  "html_oneExtensionIdPerLine": {
+    "message": "Un ID de extensión por línea"
+  },
+  "html_onlyApprovedExtensionsCanStartDownloadsUseTheCalling": {
+    "message": "Solo las extensiones aprobadas pueden iniciar descargas. Utilice el ID de la extensión solicitante, no el ID de Save In."
+  },
+  "html_pasteAnExtensionId": {
+    "message": "Pegar un ID de extensión"
+  },
+  "html_pendingApproval": {
+    "message": "Pendiente de aprobación"
+  },
+  "html_resetTo0": {
+    "message": "Restablecer a 0"
+  },
+  "html_setValue": {
+    "message": "Establecer valor"
+  },
+  "html_theseExtensionsTriedToStartADownloadAddOnly": {
+    "message": "Estas extensiones intentaron iniciar una descarga. Añada solo extensiones solicitantes en las que confíe. Las URL solicitadas nunca se almacenan."
+  },
+  "html_useOneExtensionIdPerLineForBulkChanges": {
+    "message": "Utilice un ID de extensión por línea para cambios masivos."
+  },
+  "html_variableItAdvancesOncePerSavedDownloadAndPersists": {
+    "message": "— aumenta con cada descarga guardada y se conserva tras reiniciar."
+  },
+  "html_webextensionsSuchAsFoxyGesturesCanMessageSaveIn": {
+    "message": "Las WebExtensions como Foxy Gestures pueden enviar mensajes directamente a Save In. Un script de usuario de Greasemonkey, Tampermonkey o Violentmonkey no puede hacerlo por sí solo: los scripts de usuario no tienen acceso a mensajes entre extensiones. Utilice una pequeña WebExtension complementaria como intermediaria o haga que el script de usuario pase la URL a una extensión que ofrezca esa función."
+  },
+  "html_whereThisWorks": {
+    "message": "Dónde funciona"
+  },
+  "html_askTheCommunity": {
+    "message": "Preguntar a la comunidad"
+  },
+  "html_aVeryDiligentOrganizer": {
+    "message": "Un organizador muy diligente."
+  },
+  "html_aWatercolorLuckyCatCarefullyOrganizingDocumentsPhotographsFilm": {
+    "message": "Un gato de la suerte en acuarela que organiza cuidadosamente documentos, fotografías, películas y libros."
+  },
+  "html_buildInformation": {
+    "message": "Información de compilación"
+  },
+  "html_checking": {
+    "message": "comprobando…"
+  },
+  "html_closeAboutSaveIn": {
+    "message": "Cerrar Acerca de Save In"
+  },
+  "html_closeReferences": {
+    "message": "Cerrar referencias"
+  },
+  "html_contextMenus": {
+    "message": "Menús contextuales"
+  },
+  "html_documentation": {
+    "message": "Documentación"
+  },
+  "html_downloads": {
+    "message": "Descargas"
+  },
+  "html_filterCurrentReference": {
+    "message": "Filtrar referencia actual"
+  },
+  "html_filterVariables": {
+    "message": "Filtrar variables"
+  },
+  "html_findsAndSavesResourcesTheUserChoosesOnArbitrary": {
+    "message": "Encuentra y guarda recursos que el usuario elige en sitios web arbitrarios."
+  },
+  "html_saveInUses": {
+    "message": "Save In usa"
+  },
+  "html_keepsSettingsRoutingRulesLocalHistoryAndRestartSafe": {
+    "message": "Conserva la configuración, las reglas de enrutamiento, el historial local y el estado necesario tras reiniciar."
+  },
+  "html_letsChromeConvertFetchedFileDataIntoTemporaryDownload": {
+    "message": "Permite que Chrome convierta los datos de los archivos obtenidos en URL de descarga temporales."
+  },
+  "html_loadingClauses": {
+    "message": "Cargando cláusulas…"
+  },
+  "html_loadingVariables": {
+    "message": "Cargando variables…"
+  },
+  "html_luckyOrganizingCat": {
+    "message": "Gato de la suerte organizador"
+  },
+  "html_messageFirstOrASmallRelayExtensionMustDo": {
+    "message": " a Save In, o bien debe hacerlo una pequeña extensión de retransmisión. Video DownloadHelper no ofrece una API de integración estable que Save In pueda llamar directamente."
+  },
+  "html_offscreen": {
+    "message": "Fuera de pantalla"
+  },
+  "html_privacyPolicy": {
+    "message": "Política de privacidad"
+  },
+  "html_references": {
+    "message": "Referencias"
+  },
+  "html_referenceType": {
+    "message": "Tipo de referencia"
+  },
+  "html_reportAnIssue": {
+    "message": "Informar de un problema"
+  },
+  "html_reportsCompletedSavesAndActionableFailuresWhenEnabled": {
+    "message": "Cuando están activadas, informa de los guardados completados y de los fallos que requieren intervención."
+  },
+  "html_saveInDoesNotAdoptDownloadsThatAnotherExtension": {
+    "message": "Save In no adopta descargas que ya haya iniciado otra extensión, incluido Video DownloadHelper. El descargador debe enviar primero un mensaje de tipo"
+  },
+  "html_saveInHasNoAnalyticsAdvertisingDeveloperOperatedServer": {
+    "message": "Save In no tiene análisis, publicidad, servidor operado por desarrolladores ni código ejecutable remoto. La configuración y el historial permanecen en el almacenamiento de extensión administrado por el navegador."
+  },
+  "html_saveInIsALocalFirstDownloadsHelperFor": {
+    "message": "Save In es un asistente de descargas que prioriza el procesamiento local y organiza archivos con carpetas del menú contextual, reglas de enrutamiento, cambio de nombre, recursos de la página e historial de descargas."
+  },
+  "html_whichOnlySomeBrowsersProvideItRegisters": {
+    "message": ", que solo algunos navegadores ofrecen. Registra herramientas que un agente de IA puede usar mientras esta página de opciones está abierta para cambiar ajustes, crear menús de carpetas y escribir reglas de enrutamiento."
+  },
+  "o_cWebmcpEnabled": {
+    "message": "Permitir que un agente de IA lea y cambie la configuración de Save In"
+  },
+  "o_cWebmcpEnabledHelp": {
+    "message": "Las herramientas incluyen iniciar descargas y cambiar toda la configuración, incluido el destino de los webhooks."
+  },
+  "webMcpStatusOff": {
+    "message": "Desactivado"
+  },
+  "html_showsSaveInCommandsOnPagesLinksMediaAnd": {
+    "message": "Muestra comandos de Save In en páginas, enlaces, contenido multimedia y pestañas."
+  },
+  "html_startsSavesChoosesFilenamesMonitorsResultsAndSupportsRetries": {
+    "message": "Inicia los guardados, elige nombres de archivo, supervisa los resultados y permite reintentos."
+  },
+  "html_storage": {
+    "message": "Almacenamiento"
+  },
+  "html_theSessionLogBelowAlwaysKeepsASmallLocal": {
+    "message": "Los fallos recientes permanecen en este dispositivo hasta que termina la sesión del navegador. El registro detallado también escribe datos de enrutamiento y descarga en la consola de desarrollo del navegador y permanece activado hasta que lo desactives. Se excluye la actividad privada."
+  },
+  "html_toConnectOpenThisPageInABrowserThat": {
+    "message": "Para conectarse, abra esta página en un navegador compatible con WebMCP, manténgala abierta y dirija su agente del navegador a esta pestaña. Pídaselo en lenguaje natural, por ejemplo: «ordene mis descargas en carpetas por sitio web y fecha, numere cada archivo y notifíqueme solo cuando uno falle»."
+  },
+  "html_tools": {
+    "message": "Herramientas"
+  },
+  "html_version": {
+    "message": "Versión"
+  },
+  "html_websiteAccess": {
+    "message": "Acceso al sitio web"
+  },
+  "html_whyThesePermissionsAreNeeded": {
+    "message": "Por qué se necesitan estos permisos"
+  },
+  "html_alsoWorks": {
+    "message": "también funciona)"
+  },
+  "html_amOrPmLocalTime": {
+    "message": "am o pm (hora local)"
+  },
+  "html_currentDate": {
+    "message": "fecha actual"
+  },
+  "html_currentDatetimeAsAUnixTimestamp": {
+    "message": "Fecha y hora actuales como marca de tiempo Unix"
+  },
+  "html_currentDatetimeAsAUtcIso8601String": {
+    "message": "Fecha y hora actuales como cadena UTC ISO 8601"
+  },
+  "html_currentDayOfMonth": {
+    "message": "Día actual del mes"
+  },
+  "html_currentDayOfWeekEnglish": {
+    "message": "Día actual de la semana (inglés)"
+  },
+  "html_currentHour24Hour": {
+    "message": "Hora actual (24 horas)"
+  },
+  "html_currentMinute": {
+    "message": "Minuto actual"
+  },
+  "html_currentMonth": {
+    "message": "Mes actual"
+  },
+  "html_currentMonthNameEnglish": {
+    "message": "Nombre del mes actual (inglés)"
+  },
+  "html_currentSecond": {
+    "message": "Segundo actual"
+  },
+  "html_currentYear": {
+    "message": "Año actual"
+  },
+  "html_iso8601WeekYear": {
+    "message": "Año de numeración semanal ISO 8601"
+  },
+  "html_hostnameOfThePage": {
+    "message": "Nombre de host de la página"
+  },
+  "html_hostnameOfTheSource": {
+    "message": "Nombre de host de la fuente"
+  },
+  "html_iso8601WeekNumber": {
+    "message": "Número de semana ISO 8601 ("
+  },
+  "html_lastLabelOfTheSourceHostname": {
+    "message": "Última etiqueta del nombre de host de origen"
+  },
+  "html_pageHostnameWithoutSubdomains": {
+    "message": "Nombre de host de la página sin subdominios"
+  },
+  "html_pageTitleLowercasedAndDashed": {
+    "message": "Título de la página, en minúsculas y con guiones"
+  },
+  "html_pageTitleLowercasedWithUnderscores": {
+    "message": "Título de la página, en minúsculas y con guiones bajos"
+  },
+  "html_pathPartOfTheSourceUrlSeparatorsAreSanitized": {
+    "message": "Parte de la ruta de la URL de origen (los separadores se adaptan)"
+  },
+  "html_sourceHostnameWithoutSubdomains": {
+    "message": "Nombre de host de origen sin subdominios"
+  },
+  "html_standard": {
+    "message": "Estándar"
+  },
+  "html_linkTextVariableDescription": {
+    "message": "Texto del enlace cuando el navegador lo proporciona; al guardar pestañas se usa el título de la pestaña."
+  },
+  "html_theCurrentlySelectedTextOnThePage": {
+    "message": "El texto seleccionado actualmente en la página"
+  },
+  "html_theNaiveFilenameUrlBasedUseTheRoutingFeature": {
+    "message": "Nombre de archivo derivado de la URL. Utilice reglas de enrutamiento si esto no es exacto."
+  },
+  "html_titleOfThePage": {
+    "message": "Título de la página"
+  },
+  "html_urlOfThePage": {
+    "message": "URL de la página"
+  },
+  "html_urlOfTheSource": {
+    "message": "URL de la fuente"
+  },
+  "html_usableEverywhere": {
+    "message": "Utilizable en todas partes"
+  },
+  "html_variablesAreUsedInDirectoryAndPathPatterns": {
+    "message": "Las variables se utilizan en patrones de carpetas y nombres de archivos."
+  },
+  "html_actualResolvedFilenameExtensionAlias": {
+    "message": "Extensión real del nombre de archivo resuelto. Alias:"
+  },
+  "html_aRandomV4UuidUniquePerUse": {
+    "message": "Un UUID v4 aleatorio, único por uso"
+  },
+  "html_autoIncrementingNumberThatAdvancesOncePerSavedDownload": {
+    "message": "Número que aumenta después de cada descarga guardada y se conserva tras reiniciar. Consúltelo o restablézcalo en Contador de descargas."
+  },
+  "html_blankIfTheServerDoesnTAnswer": {
+    "message": " y está en blanco cuando no está disponible."
+  },
+  "html_captureGroupWhere": {
+    "message": "Texto capturado por el grupo"
+  },
+  "html_charactersForDeeperNesting": {
+    "message": "caracteres para un anidamiento más profundo"
+  },
+  "html_createsASeparatorInTheContextMenu": {
+    "message": "Crea un separador en el menú contextual"
+  },
+  "html_createsASubmenuItemAddMore": {
+    "message": "Crea un elemento de submenú; añada más"
+  },
+  "html_fileExtensionDerivedFromThe": {
+    "message": "Extensión de archivo derivada de la"
+  },
+  "html_first12LowercaseHexCharactersOfTheDownloadedFile": {
+    "message": "Los primeros 12 caracteres hexadecimales en minúsculas del SHA-256 del archivo descargado. Al preparar este valor, se obtiene el archivo y se calcula su hash antes de guardarlo; por eso aparece vacío en las vistas previas o cuando no está disponible. La descarga continúa si falla el cálculo del hash. Puede cancelar una preparación larga desde el Historial."
+  },
+  "html_full64CharacterLowercaseSha256ItSharesThe": {
+    "message": "SHA-256 completo de 64 caracteres en minúsculas. Se calcula junto con"
+  },
+  "html_fullActualFilenameAfterContentDisposition": {
+    "message": "Nombre de archivo resuelto, incluido Content-Disposition"
+  },
+  "html_handyForExtensionlessOrQuerySuffixedUrls": {
+    "message": ". Útil para URL sin extensión o con sufijo de consulta."
+  },
+  "html_menuStructure": {
+    "message": "Estructura del menú"
+  },
+  "html_onlyUsableWhenRoutingAndRewritingFilenames": {
+    "message": "Disponible solo al enrutar o cambiar el nombre de archivos"
+  },
+  "html_routingAndFilenamesOnly": {
+    "message": "Solo enrutamiento y nombres de archivos"
+  },
+  "html_specialRowsUsedOnlyInTheDownloadsMenu": {
+    "message": "Filas especiales utilizadas solo en el menú de guardado"
+  },
+  "html_theN": {
+    "message": "; reemplace 1 con el número de grupo."
+  },
+  "html_theServerS": {
+    "message": "el servidor"
+  },
+  "html_theUrlAfterFollowingRedirectsViaTheSameHead": {
+    "message": "La URL después de seguir redirecciones. Utiliza la misma solicitud que"
+  },
+  "html_urlDerivedExtensionAlias": {
+    "message": "Extensión derivada de URL. Alias:"
+  },
+  "html_viaAHeadRequestAddsASmallDelayAnd": {
+    "message": ". Esto añade un pequeño retraso y queda en blanco cuando no está disponible."
+  },
+  "html_whenBothVariablesAreUsed": {
+    "message": "cuando se utilizan ambas variables."
+  },
+  "html_clausesAreOnlyUsedInRuleDefinitionsForRouting": {
+    "message": "Las reglas de enrutamiento utilizan cláusulas para decidir qué descargas mover o cambiar de nombre."
+  },
+  "html_templatesProvideReadyMadeRoutingRulesYouCanAddAndCustomize": {
+    "message": "Las plantillas ofrecen reglas listas para personalizar. Save In usa la primera coincidencia, así que coloque las plantillas generales después de las específicas."
+  },
+  "html_forCaseInsensitiveMatching": {
+    "message": "para coincidencias que no distinguen entre mayúsculas y minúsculas."
+  },
+  "html_forExplicitNewRules": {
+    "message": "en nuevas reglas."
+  },
+  "html_matcherClausesUse": {
+    "message": "Las cláusulas de comparación usan"
+  },
+  "html_matchers": {
+    "message": "Comparadores"
+  },
+  "html_matchesTheCommentOfTheClickedMenuItem": {
+    "message": "Coincide con el comentario del elemento de menú seleccionado."
+  },
+  "html_matchesTheCurrentPageTitle": {
+    "message": "Coincide con el título de la página actual."
+  },
+  "html_matchesTheCurrentPageUrl": {
+    "message": "Coincide con la URL de la página actual."
+  },
+  "html_matchesTheFinalFilename": {
+    "message": "Coincide con el nombre de archivo resuelto por el navegador después de Content-Disposition."
+  },
+  "html_matchesTheResolvedFilenameBeforeBrowserNaming": {
+    "message": "Coincide con el nombre de archivo resuelto por Save In antes del nombre final del navegador."
+  },
+  "html_selectedMenuDirectoryPath": {
+    "message": "Ruta de carpeta elegida en el menú de Save In"
+  },
+  "html_linkTextMatcherDescription": {
+    "message": "Coincide con el texto del enlace cuando el navegador lo proporciona; al guardar pestañas se usa el título de la pestaña."
+  },
+  "html_matchesTheMediaType": {
+    "message": "Coincide con el tipo de medio:"
+  },
+  "html_matchesTheMenuIndexOfTheClickedMenuItem": {
+    "message": "Coincide con el índice del elemento del menú seleccionado (1, 2, 3…)."
+  },
+  "html_directoryMatcherDescription": {
+    "message": "Coincide con la carpeta elegida en el menú de Save In. Vacío cuando el guardado no elige carpeta."
+  },
+  "html_matchesTheNaiveFilename": {
+    "message": "Coincide con el nombre de archivo derivado de la URL."
+  },
+  "html_matchesThePageHostname": {
+    "message": "Coincide con el nombre de host de la página."
+  },
+  "html_actualFileExtensionMatcherDescription": {
+    "message": "Coincide con la extensión resuelta a partir del nombre de archivo o del tipo MIME."
+  },
+  "html_matchesTheSelectionText": {
+    "message": "Coincide con el texto seleccionado."
+  },
+  "html_sourceDomainMatcherDescription": {
+    "message": "Coincide con el nombre de host de la fuente guardada."
+  },
+  "html_sourceUrlMatcherDescription": {
+    "message": "Coincide con la URL de la fuente guardada."
+  },
+  "html_matchesTheUrlDerivedExtensionLegacyNameUse": {
+    "message": "Coincide con la extensión derivada de la URL (nombre heredado). Use"
+  },
+  "html_matchesTheUrlOfTheCurrentFrame": {
+    "message": "Coincide con la URL del marco actual."
+  },
+  "html_contextMatcherDescription": {
+    "message": "Coincide con la forma en que se inició el guardado: media, link, selection, page, click, auto, browser o tab. Guardar pestañas requiere Firefox o Chrome 150+."
+  },
+  "html_or": {
+    "message": ", o"
+  },
+  "html_outputAndCapture": {
+    "message": "Salida y captura"
+  },
+  "html_regularExpression": {
+    "message": "expresiones regulares"
+  },
+  "html_renamingTheFileKeepsItsOwnNameEG": {
+    "message": "cambiarle el nombre; el archivo conserva su nombre actual (por ejemplo,"
+  },
+  "html_required": {
+    "message": "Requerido"
+  },
+  "html_routesDownloadsToOrRewritesDownloadFilenamesIntoThe": {
+    "message": "Mueve una descarga a la ruta indicada o la renombra con el patrón indicado. Termine el patrón con"
+  },
+  "html_selectsTheMatcherForRegexCaptureGroupVariables": {
+    "message": "Selecciona el comparador cuyos grupos de captura de expresiones regulares están disponibles como"
+  },
+  "html_splitMultipleCaptureTargetsWithA": {
+    "message": ". Separe múltiples objetivos de captura con"
+  },
+  "html_captureClauseCompatibility": {
+    "message": "Use capturegroups: para numerar grupos de forma continua entre cláusulas de comparación. capture: conserva el diseño heredado de índices aplanados."
+  },
+  "html_stringsAddJavascriptRegexFlagsAfterTheMatcherName": {
+    "message": ". Añada indicadores de JavaScript después del nombre del comparador; por ejemplo, use"
+  },
+  "html_toRouteIntoAFolder": {
+    "message": "para moverla a una carpeta"
+  },
+  "sourcePanelDockFloating": {
+    "message": "Flotante"
+  },
+  "sourcePanelNoMatchesFilter": {
+    "message": "Ningún recurso coincide con «$FILTER$».",
+    "placeholders": {
+      "filter": {
+        "content": "$1",
+        "example": "poster"
+      }
+    }
+  },
+  "sourcePanelClearFilters": {
+    "message": "Borrar filtros"
+  },
+  "sourcePanelSourceCount": {
+    "message": "Recursos encontrados: $COUNT$",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "12"
+      }
+    }
+  },
+  "sourcePanelEmbeddedSource": {
+    "message": "Recurso incrustado en la página"
+  },
+  "sourcePanelMoreActions": {
+    "message": "Más acciones"
+  },
+  "html_webhooks": {
+    "message": "Webhooks"
+  },
+  "html_webhooksHelp": {
+    "message": "Notifique las descargas de Save In a su propio punto de conexión en JSON."
+  },
+  "html_webhookDocumentation": {
+    "message": "Leer la documentación sobre webhooks"
+  },
+  "html_webhookEndpoint": {
+    "message": "Puntos de conexión"
+  },
+  "html_webhookEvents": {
+    "message": "Eventos"
+  },
+  "html_webhookOnStart": {
+    "message": "La descarga comienza"
+  },
+  "html_webhookOnComplete": {
+    "message": "La descarga se completa"
+  },
+  "html_webhookOnFailed": {
+    "message": "La descarga falla"
+  },
+  "html_webhookEventsHelp": {
+    "message": "Todos los eventos llevan el mismo ID de descarga, para que un receptor pueda relacionarlos. Los datos de la página de abajo se envían cuando comienza una descarga; un evento de finalización lleva en su lugar la ruta guardada, que solo se conoce una vez escrito el archivo."
+  },
+  "html_webhookAllowInsecure": {
+    "message": "Permitir puntos de conexión http://"
+  },
+  "html_webhookAllowInsecureHelp": {
+    "message": "Las solicitudes a un punto de conexión http:// se envían sin cifrar, incluidos los datos de la página que añada a continuación. Use esta opción solo en una red de confianza."
+  },
+  "html_webhookEndpointHelp": {
+    "message": "Uno por línea. Las solicitudes se envían directamente desde su navegador a cada dirección."
+  },
+  "html_testWebhook": {
+    "message": "Enviar una prueba"
+  },
+  "html_webhookTestHelp": {
+    "message": "La prueba solo contiene un evento de prueba y una marca de tiempo."
+  },
+  "html_webhookEnabled": {
+    "message": "Informar de las descargas de Save In a un webhook"
+  },
+  "html_webhookAlwaysIncludes": {
+    "message": "Todas las solicitudes incluyen la URL del recurso, de qué evento se trata, un ID de descarga y una marca de tiempo ISO 8601."
+  },
+  "html_webhookAdditionalData": {
+    "message": "Datos adicionales"
+  },
+  "html_webhookIncludePageUrl": {
+    "message": "URL de la página"
+  },
+  "html_webhookIncludePageTitle": {
+    "message": "Título de la página"
+  },
+  "html_webhookIncludeSelectionText": {
+    "message": "Texto seleccionado"
+  },
+  "html_webhookPrivacy": {
+    "message": "Save In no envía cookies ni credenciales del navegador, no sigue redirecciones del punto de conexión, no reintenta solicitudes fallidas y no envía nada desde ventanas privadas. La solicitud se envía directamente desde su navegador al punto de conexión."
+  },
+  "html_webhookPayloadPreview": {
+    "message": "Vista previa de los datos"
+  },
+  "webhookPreviewNoEvents": {
+    "message": "No hay eventos seleccionados, así que no se envía nada."
+  },
+  "webhookPermissionDenied": {
+    "message": "No se concedió el permiso de Firefox para enviar los datos seleccionados del webhook."
+  },
+  "webhookPermissionMissing": {
+    "message": "El permiso de datos de Firefox está desactivado. Desactive y vuelva a activar los webhooks para concederlo."
+  },
+  "webhookPermissionCheckFailed": {
+    "message": "No se pudo comprobar el permiso de datos del navegador."
+  },
+  "webhookSendingTest": {
+    "message": "Enviando prueba…"
+  },
+  "webhookTestDelivered": {
+    "message": "El punto de conexión aceptó la prueba."
+  },
+  "webhookTestRejected": {
+    "message": "El punto de conexión rechazó la prueba."
+  },
+  "webhookTestFailed": {
+    "message": "No se pudo entregar el webhook de prueba."
+  },
+  "webhookEnabledSaved": {
+    "message": "Webhooks activados."
+  },
+  "webhookDisabledSaved": {
+    "message": "Webhooks desactivados."
+  },
+  "webhookSaveFailed": {
+    "message": "No se pudo guardar la configuración del webhook."
+  },
+  "webhookFieldsSaved": {
+    "message": "Datos del webhook actualizados."
+  },
+  "routeDebuggerFileData": {
+    "message": "Archivo"
+  },
+  "routeDebuggerUrlData": {
+    "message": "URL"
+  },
+  "routeDebuggerPageData": {
+    "message": "Texto de la página"
+  },
+  "routeDebuggerRoutingData": {
+    "message": "Contexto de enrutamiento"
+  },
+  "routeDebuggerSourceKind": {
+    "message": "Tipo de fuente"
+  },
+  "routeDebuggerAnySourceKind": {
+    "message": "Cualquier tipo de fuente"
+  },
+  "routeDebuggerMenuIndex": {
+    "message": "Índice del menú"
+  },
+  "routeDebuggerMenuComment": {
+    "message": "Comentario del menú"
+  },
+  "routeDebuggerRuntimeData": {
+    "message": "Valores en tiempo de ejecución"
+  },
+  "routeDebuggerDateTime": {
+    "message": "Fecha y hora"
+  },
+  "routeDebuggerSha256": {
+    "message": "SHA-256"
+  },
+  "routeDebuggerRuleDestination": {
+    "message": "Guarda en $PATH$",
+    "placeholders": {
+      "path": {
+        "content": "$1",
+        "example": "images/:filename:"
+      }
+    }
+  },
+  "routeDebuggerEditRule": {
+    "message": "Editar"
+  },
+  "routeDebuggerAttemptMatched": {
+    "message": "Se probó «$VALUE$» de $SOURCE$: hubo coincidencia.",
+    "placeholders": {
+      "value": {
+        "content": "$1",
+        "example": "pdf"
+      },
+      "source": {
+        "content": "$2",
+        "example": "Source URL"
+      }
+    }
+  },
+  "routeDebuggerAttemptDidNotMatch": {
+    "message": "Se probó «$VALUE$» de $SOURCE$: no hubo coincidencia.",
+    "placeholders": {
+      "value": {
+        "content": "$1",
+        "example": "jpg"
+      },
+      "source": {
+        "content": "$2",
+        "example": "Source URL"
+      }
+    }
+  },
+  "routeDebuggerAttemptMissing": {
+    "message": "No había ningún valor disponible de $SOURCE$.",
+    "placeholders": {
+      "source": {
+        "content": "$1",
+        "example": "Page title"
+      }
+    }
+  },
+  "routeDebuggerAttemptInvalid": {
+    "message": "No se pudo leer un valor válido de $SOURCE$: «$VALUE$».",
+    "placeholders": {
+      "source": {
+        "content": "$1",
+        "example": "Page URL"
+      },
+      "value": {
+        "content": "$2",
+        "example": "not a URL"
+      }
+    }
+  },
+  "routeDebuggerConditionMatched": {
+    "message": "$FIELD$ coincide con $PATTERN$",
+    "placeholders": {
+      "field": {
+        "content": "$1",
+        "example": "fileext"
+      },
+      "pattern": {
+        "content": "$2",
+        "example": "pdf"
+      }
+    }
+  },
+  "routeDebuggerConditionDidNotMatch": {
+    "message": "$FIELD$ no coincide con $PATTERN$",
+    "placeholders": {
+      "field": {
+        "content": "$1",
+        "example": "fileext"
+      },
+      "pattern": {
+        "content": "$2",
+        "example": "png"
+      }
+    }
+  },
+  "html_without": {
+    "message": "sin"
+  },
+  "o_lShortcutEnterOrReset": {
+    "message": "Introduzca un atajo o use Restablecer."
+  },
+  "o_lShortcutFormat": {
+    "message": "Utilice un formato como Ctrl+Shift+G."
+  },
+  "o_lShortcutPrimaryModifier": {
+    "message": "Incluya Ctrl, Alt, Command o MacCtrl como modificador."
+  },
+  "o_lShortcutAddKey": {
+    "message": "Añada una tecla después del modificador."
+  },
+  "o_lShortcutOneKey": {
+    "message": "Utilice una tecla con sus modificadores."
+  },
+  "o_lShortcutValidKey": {
+    "message": "Elija una tecla válida, como Y, 5, F12 o PageDown."
+  },
+  "o_lShortcutNoRepeats": {
+    "message": "No repita teclas ni modificadores."
+  },
+  "o_lShortcutReady": {
+    "message": "Listo para aplicar."
+  },
+  "o_lShortcutChangeUnsupported": {
+    "message": "Este navegador no permite cambiar los atajos aquí."
+  },
+  "o_lShortcutRejected": {
+    "message": "El navegador no aceptó este atajo. Puede estar reservado o en uso."
+  },
+  "o_lShortcutUpdated": {
+    "message": "Atajo actualizado."
+  },
+  "o_lShortcutResetUnsupported": {
+    "message": "Este navegador no permite restablecer los atajos aquí."
+  },
+  "o_lShortcutReset": {
+    "message": "Atajo restablecido."
+  },
+  "o_lShortcutLegacyValue": {
+    "message": "Valor heredado: $VALUE$",
+    "placeholders": {
+      "value": {
+        "content": "$1",
+        "example": "Alt"
+      }
+    }
+  },
+  "o_lAccessKeyInvalid": {
+    "message": "Utilice una letra o un número. Los valores guardados existentes siguen siendo compatibles hasta que se modifiquen."
+  },
+  "o_lShortcutFormatAnyBrowser": {
+    "message": "Funciona en cualquier navegador"
+  },
+  "o_lShortcutFormatLegacyInternet": {
+    "message": "Acceso directo a Internet heredado"
+  },
+  "o_lShortcutFormatMac": {
+    "message": "Acceso directo nativo de macOS"
+  },
+  "o_lShortcutFormatWindows": {
+    "message": "Acceso directo de Internet de Windows"
+  },
+  "o_lShortcutFormatLinux": {
+    "message": "Acceso directo de escritorio de Linux"
+  },
+  "html_closePrivacyPolicy": {
+    "message": "Cerrar la política de privacidad"
+  },
+  "historyColumnInitiated": {
+    "message": "Iniciado"
+  },
+  "historyColumnSource": {
+    "message": "Origen"
+  },
+  "historyColumnMethod": {
+    "message": "Método"
+  },
+  "historyColumnStatus": {
+    "message": "Estado"
+  },
+  "historyColumnSize": {
+    "message": "Tamaño"
+  },
+  "historyColumnType": {
+    "message": "Tipo"
+  },
+  "historyColumnRule": {
+    "message": "Enrutamiento"
+  },
+  "historyColumnFile": {
+    "message": "Archivo"
+  },
+  "historyColumnFolder": {
+    "message": "Carpeta"
+  },
+  "historyColumnUrl": {
+    "message": "URL"
+  },
+  "historyColumnFullPath": {
+    "message": "Ruta completa"
+  },
+  "historyColumnDownloadId": {
+    "message": "ID de descarga"
+  },
+  "historyColumnMenuItem": {
+    "message": "Elemento del menú"
+  },
+  "historyColumnVariables": {
+    "message": "Variables"
+  },
+  "o_lSourcePanelShortcutResetHelp": {
+    "message": "Restablecer recupera el valor predeterminado sugerido por el navegador."
+  },
+  "o_sAppearance": {
+    "message": "Apariencia"
+  },
+  "o_lUiTheme": {
+    "message": "Tema"
+  },
+  "o_lUiThemeSystem": {
+    "message": "Sistema"
+  },
+  "o_lUiThemeDark": {
+    "message": "Oscuro"
+  },
+  "o_lUiThemeLight": {
+    "message": "Claro"
+  },
+  "o_lUiThemeGroupDefault": {
+    "message": "Estándar"
+  },
+  "o_lUiThemeGroupAccessibility": {
+    "message": "Alto contraste"
+  },
+  "o_lUiThemeGroupClassics": {
+    "message": "Temas clásicos"
+  },
+  "o_lUiThemeGroupSaveIn": {
+    "message": "A medida"
+  },
+  "o_lUiThemeHighContrastDark": {
+    "message": "Oscuro de alto contraste"
+  },
+  "o_lUiThemeHighContrastLight": {
+    "message": "Claro de alto contraste"
+  },
+  "o_lUiThemeHighContrastYellow": {
+    "message": "Amarillo de alto contraste"
+  },
+  "o_lUiThemeSolarizedDark": {
+    "message": "Solarized Dark"
+  },
+  "o_lUiThemeSolarizedLight": {
+    "message": "Solarized Light"
+  },
+  "o_lUiThemeNord": {
+    "message": "Nord"
+  },
+  "o_lUiThemeDracula": {
+    "message": "Dracula"
+  },
+  "o_lUiThemeGruvbox": {
+    "message": "Gruvbox"
+  },
+  "o_lUiThemeMonokai": {
+    "message": "Monokai"
+  },
+  "o_lUiThemeOneDark": {
+    "message": "One Dark"
+  },
+  "o_lUiThemeTokyoNight": {
+    "message": "Tokyo Night"
+  },
+  "o_lUiThemeCatppuccin": {
+    "message": "Catppuccin"
+  },
+  "o_lUiThemeMidnight": {
+    "message": "Medianoche"
+  },
+  "o_lUiThemePastelPink": {
+    "message": "Rubor"
+  },
+  "o_lUiThemePaper": {
+    "message": "Papel"
+  },
+  "o_lUiThemeTerminal": {
+    "message": "Terminal"
+  },
+  "o_lUiThemeBerry": {
+    "message": "Baya"
+  },
+  "o_lUiThemeNebula": {
+    "message": "Nebula"
+  },
+  "o_lUiThemeGlacier": {
+    "message": "Glaciar"
+  },
+  "o_lUiThemeMatcha": {
+    "message": "Matcha"
+  },
+  "o_lUiThemeEmber": {
+    "message": "Brasa"
+  },
+  "o_lUiThemeHelp": {
+    "message": "Elija un tema de color para la configuración y Recursos de la página."
+  },
+  "notificationExternalDownloadBlockedTitle": {
+    "message": "Descarga externa bloqueada"
+  },
+  "notificationExternalDownloadBlockedMessage": {
+    "message": "Se bloqueó una solicitud de $SENDER_ID$. Haz clic para revisarla en Opciones.",
+    "placeholders": {
+      "sender_id": {
+        "content": "$1",
+        "example": "abcdefghijklmnopabcdefghijklmnop"
+      }
+    }
+  },
+  "historyEmptyNoDownloads": {
+    "message": "Aún no hay descargas guardadas."
+  },
+  "historyEmptyNoMatches": {
+    "message": "Ningún elemento del historial coincide con estos filtros."
+  },
+  "webMcpStatusRegistering": {
+    "message": "Registrando…"
+  },
+  "webMcpStatusActive": {
+    "message": "Activo — $COUNT$ herramientas registradas",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "5"
+      }
+    }
+  },
+  "webMcpStatusLimited": {
+    "message": "Limitado — $REGISTERED$ de $TOTAL$ herramientas registradas",
+    "placeholders": {
+      "registered": {
+        "content": "$1",
+        "example": "4"
+      },
+      "total": {
+        "content": "$2",
+        "example": "5"
+      }
+    }
+  },
+  "webMcpStatusRegistrationFailed": {
+    "message": "No disponible — error al registrar las herramientas"
+  },
+  "webMcpStatusUnavailableBrowser": {
+    "message": "No disponible en este navegador"
+  },
+  "sourcePanelResizeLabel": {
+    "message": "Cambiar el tamaño de Recursos de la página"
+  },
+  "sourcePanelClose": {
+    "message": "Cerrar"
+  },
+  "sourcePanelCloseLabel": {
+    "message": "Cerrar el panel Recursos de la página"
+  },
+  "sourcePanelDockPosition": {
+    "message": "Acoplamiento: $POSITION$ — cambiar a la siguiente posición",
+    "placeholders": {
+      "position": {
+        "content": "$1",
+        "example": "Right"
+      }
+    }
+  },
+  "sourcePanelDockRight": {
+    "message": "Derecha"
+  },
+  "sourcePanelDockBottom": {
+    "message": "Abajo"
+  },
+  "sourcePanelDockLeft": {
+    "message": "Izquierda"
+  },
+  "sourcePanelDockTop": {
+    "message": "Arriba"
+  },
+  "sourcePanelChangeDockLabel": {
+    "message": "Cambiar la posición de acoplamiento del panel"
+  },
+  "sourcePanelDockPanel": {
+    "message": "Volver a acoplar Recursos de la página"
+  },
+  "sourcePanelPopOutPanel": {
+    "message": "Mostrar Recursos de la página como panel flotante"
+  },
+  "sourcePanelPopOutHelp": {
+    "message": "Mostrar como panel flotante y arrastrable"
+  },
+  "sourcePanelCopyFilteredUrls": {
+    "message": "Copiar las URL del filtro actual"
+  },
+  "sourcePanelCopyFilteredUrlsLabel": {
+    "message": "Copiar las URL de los recursos filtrados"
+  },
+  "sourcePanelFilterLabel": {
+    "message": "Filtrar los recursos de la página"
+  },
+  "sourcePanelSortLabel": {
+    "message": "Ordenar los recursos"
+  },
+  "sourcePanelSortNewest": {
+    "message": "Más recientes"
+  },
+  "sourcePanelSortRelevance": {
+    "message": "Relevancia"
+  },
+  "sourcePanelSortOldest": {
+    "message": "Más antiguos"
+  },
+  "sourcePanelSortLargest": {
+    "message": "Más grandes primero"
+  },
+  "sourcePanelSortName": {
+    "message": "Nombre"
+  },
+  "sourcePanelKindAudio": {
+    "message": "Audio"
+  },
+  "sourcePanelKindDocument": {
+    "message": "Documento"
+  },
+  "sourcePanelKindPlaylist": {
+    "message": "Lista de reproducción"
+  },
+  "sourcePanelNoMatches": {
+    "message": "Ningún recurso coincide con los filtros actuales."
+  },
+  "sourcePanelNoSources": {
+    "message": "Aún no se han detectado contenidos multimedia en la página ni listas de reproducción de vídeo en streaming."
+  },
+  "sourcePanelSourceInstructions": {
+    "message": "$URL$. Clic derecho: Save In; Alt+clic: guardar de inmediato.",
+    "placeholders": {
+      "url": {
+        "content": "$1",
+        "example": "https://example.com/cat.jpg"
+      }
+    }
+  },
+  "sourcePanelSizeUnknown": {
+    "message": "tamaño desconocido"
+  },
+  "sourcePanelDetectedAt": {
+    "message": "Detectado a las $TIME$",
+    "placeholders": {
+      "time": {
+        "content": "$1",
+        "example": "14:30"
+      }
+    }
+  },
+  "sourcePanelPreviewUnavailable": {
+    "message": "Vista previa no disponible"
+  },
+  "sourcePanelLocate": {
+    "message": "Mostrar en la página"
+  },
+  "sourcePanelSave": {
+    "message": "Guardar"
+  },
+  "sourcePanelSavePlaylist": {
+    "message": "Guardar la lista de reproducción"
+  },
+  "sourcePanelCopyYtDlp": {
+    "message": "Copiar URL para yt-dlp"
+  },
+  "sourcePanelCopyYtDlpHelp": {
+    "message": "Copiar la URL del vídeo para usarla con yt-dlp"
+  },
+  "sourcePanelCopied": {
+    "message": "Copiado"
+  },
+  "sourcePanelCopyFailed": {
+    "message": "No se pudo copiar"
+  },
+  "sourcePanelRowInstructions": {
+    "message": "Alt+clic: guardar; clic derecho en el título del recurso: Save In"
+  },
+  "sourcePanelCopiedUrls": {
+    "message": "Se copiaron $COUNT$ URL",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "o_lPathEditorDragHelp": {
+    "message": "Arrastre por el tirador de puntos. Suelte la fila en una línea entre filas para moverla allí, o sobre una fila para anidarla dentro."
+  },
+  "routeDebuggerTitle": {
+    "message": "Depurador de rutas"
+  },
+  "routeDebuggerUseSource": {
+    "message": "Usar"
+  },
+  "routeDebuggerLatestDownload": {
+    "message": "Más reciente"
+  },
+  "routeDebuggerUseSampleDownload": {
+    "message": "Ejemplo"
+  },
+  "routeDebuggerFilename": {
+    "message": "Nombre del archivo"
+  },
+  "routeDebuggerSourceUrl": {
+    "message": "URL de origen"
+  },
+  "routeDebuggerPageUrl": {
+    "message": "URL de la página"
+  },
+  "routeDebuggerContentType": {
+    "message": "Tipo de contenido"
+  },
+  "routeDebuggerContext": {
+    "message": "Contexto"
+  },
+  "routeDebuggerAnyContext": {
+    "message": "Cualquier contexto"
+  },
+  "routeDebuggerUnsavedNote": {
+    "message": "Las pruebas usan sus cambios actuales, aunque todavía no los haya aplicado."
+  },
+  "routeDebuggerRun": {
+    "message": "Probar reglas"
+  },
+  "routeDebuggerNoMatch": {
+    "message": "No coincidió ninguna regla de enrutamiento."
+  },
+  "routeDebuggerOneRuleMatched": {
+    "message": "$COUNT$ regla coincidió y se utilizó.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
+  },
+  "routeDebuggerOneLaterRuleMatches": {
+    "message": "Se usó 1 regla; $COUNT$ regla posterior también coincide.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
+  },
+  "routeDebuggerLaterRulesMatch": {
+    "message": "Se usó 1 regla; $COUNT$ reglas posteriores también coinciden.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "routeDebuggerExpanded": {
+    "message": "Ruta expandida"
+  },
+  "routeDebuggerPathBase": {
+    "message": "Al guardar desde el menú se antepone a esta ruta la carpeta que elija. Al guardar con un clic y en los guardados automáticos, la ruta empieza en su carpeta de descargas."
+  },
+  "routeDebuggerFinalPath": {
+    "message": "Ruta final"
+  },
+  "routeDebuggerRule": {
+    "message": "Regla $NUMBER$",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "routeDebuggerSelected": {
+    "message": "Usada"
+  },
+  "routeDebuggerAlsoMatches": {
+    "message": "Coincidió, pero no se usó"
+  },
+  "routeDebuggerDidNotMatch": {
+    "message": "No se cumplen las condiciones"
+  },
+  "routeDebuggerRunning": {
+    "message": "Probando rutas…"
+  },
+  "routeDebuggerFixErrors": {
+    "message": "Corrija los problemas de enrutamiento resaltados antes de probar. Total: $COUNT$.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "routeDebuggerUnavailable": {
+    "message": "No se pudieron probar las reglas de enrutamiento."
+  },
+  "routeDebuggerNoLastDownload": {
+    "message": "No hay ninguna descarga reciente disponible."
+  },
+  "routeDebuggerClear": {
+    "message": "Borrar"
+  },
+  "routeDebuggerPageTitle": {
+    "message": "Título de la página"
+  },
+  "routeDebuggerReferrerUrl": {
+    "message": "URL de referencia"
+  },
+  "routeDebuggerFrameUrl": {
+    "message": "URL del marco"
+  },
+  "routeDebuggerLinkText": {
+    "message": "Texto del enlace"
+  },
+  "routeDebuggerSelectionText": {
+    "message": "Texto seleccionado"
+  },
+  "routeDebuggerMediaType": {
+    "message": "Tipo de medio"
+  },
+  "routeDebuggerAnyMediaType": {
+    "message": "Cualquier tipo de medio"
+  },
+  "routeDebuggerMatcherCount": {
+    "message": "Se cumplen $MATCHED$ de $TOTAL$ condiciones",
+    "placeholders": {
+      "matched": {
+        "content": "$1",
+        "example": "2"
+      },
+      "total": {
+        "content": "$2",
+        "example": "3"
+      }
+    }
+  },
+  "routeDebuggerGoToLine": {
+    "message": "Ir a la línea $LINE$",
+    "placeholders": {
+      "line": {
+        "content": "$1",
+        "example": "8"
+      }
+    }
+  },
+  "routeVisualEditorMode": {
+    "message": "Modo del editor de reglas de enrutamiento"
+  },
+  "routeVisualAddRule": {
+    "message": "Añadir regla"
+  },
+  "routingNoMatchBehavior": {
+    "message": "Cuando ninguna regla coincide"
+  },
+  "routeTextEmptyExample": {
+    "message": "// example\nfileext: pdf\ninto: documents/:filename:"
+  },
+  "routeVisualRuleEnabledAccessible": {
+    "message": "Regla $RULE$ activada",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "routeVisualRuleActionsAccessible": {
+    "message": "Más acciones para la regla $RULE$",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "routeVisualMatcherAccessible": {
+    "message": "Regla $RULE$, condición $CONDITION$: comparador",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      },
+      "condition": {
+        "content": "$2",
+        "example": "1"
+      }
+    }
+  },
+  "routeVisualPatternAccessible": {
+    "message": "Regla $RULE$, condición $CONDITION$: patrón",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      },
+      "condition": {
+        "content": "$2",
+        "example": "1"
+      }
+    }
+  },
+  "routeVisualIgnoreCaseAccessible": {
+    "message": "Regla $RULE$, condición $CONDITION$: ignorar mayúsculas y minúsculas",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      },
+      "condition": {
+        "content": "$2",
+        "example": "1"
+      }
+    }
+  },
+  "routeVisualDeleteConditionAccessible": {
+    "message": "Eliminar la condición $CONDITION$ de la regla $RULE$",
+    "placeholders": {
+      "condition": {
+        "content": "$2",
+        "example": "1"
+      },
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "routeVisualDestinationAccessible": {
+    "message": "Destino de la regla $RULE$",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "routeVisualIgnoreCaseHelp": {
+    "message": "Tratar igual las letras mayúsculas y minúsculas"
+  },
+  "routeVisualDeleteCondition": {
+    "message": "Eliminar condición"
+  },
+  "routeVisualUnsupported": {
+    "message": "El modo Visual no puede editar esta regla de forma segura cerca de la línea $LINE$. Cambie al modo Texto.",
+    "placeholders": {
+      "line": {
+        "content": "$1",
+        "example": "12"
+      }
+    }
+  },
+  "routeVisualEditText": {
+    "message": "Editar como texto"
+  },
+  "routeVisualMoveUp": {
+    "message": "Subir regla"
+  },
+  "routeVisualMoveDown": {
+    "message": "Bajar regla"
+  },
+  "routeVisualDuplicate": {
+    "message": "Duplicar regla"
+  },
+  "routeVisualDelete": {
+    "message": "Eliminar regla"
+  },
+  "routeVisualAddCondition": {
+    "message": "Añadir condición"
+  },
+  "routeVisualEmpty": {
+    "message": "Aún no hay reglas de enrutamiento. Añada una para empezar."
+  },
+  "visualEditorEnabled": {
+    "message": "Activado"
+  },
+  "html_disableThisDestinationAndItsChildren": {
+    "message": "Ocultar este destino y sus elementos secundarios del menú"
+  },
+  "html_keepsARuleWithoutRunningIt": {
+    "message": "conserva la regla sin ejecutarla"
+  },
+  "autoDownloadHeading": {
+    "message": "Guardar recursos de la página automáticamente"
+  },
+  "autoDownloadHelp": {
+    "message": "Guarda los recursos de la página recién detectados cuando una regla activada coincide tanto con la página como con la fuente."
+  },
+  "autoDownloadEnabled": {
+    "message": "Guardar coincidencias automáticamente"
+  },
+  "autoDownloadLive": {
+    "message": "Incluir fuentes añadidas después de que se cargue la página"
+  },
+  "autoDownloadPrivate": {
+    "message": "Permitir en ventanas privadas"
+  },
+  "autoDownloadLinks": {
+    "message": "Incluir medios enlazados"
+  },
+  "autoDownloadCoverageHeading": {
+    "message": "Cobertura del escaneo automático"
+  },
+  "autoDownloadDocuments": {
+    "message": "Incluir documentos y transmisiones enlazados"
+  },
+  "autoDownloadDocumentsHelp": {
+    "message": "Adopta archivos PDF y manifiestos HLS/DASH enlazados, se incluyan o no los medios enlazados."
+  },
+  "autoDownloadBackgrounds": {
+    "message": "Incluir imágenes de fondo CSS"
+  },
+  "autoDownloadManifests": {
+    "message": "Buscar listas de reproducción de vídeo en streaming cuando sea posible (HLS/DASH)"
+  },
+  "autoDownloadManifestsHelp": {
+    "message": "Guarda el propio archivo de manifiesto, no la transmisión ensamblada."
+  },
+  "autoDownloadDataUrls": {
+    "message": "Incluir imágenes y medios data: incrustados"
+  },
+  "autoDownloadDataUrlsHelp": {
+    "message": "Adopta URL data: autónomas de hasta 2 MB cada una; las mayores se omiten."
+  },
+  "autoDownloadLimit": {
+    "message": "Máximo de guardados por visita a la página"
+  },
+  "autoDownloadLimitHelp": {
+    "message": "Save In deja de poner nuevas coincidencias en cola al alcanzar este límite. Recargue la página para iniciar una nueva visita."
+  },
+  "autoDownloadRulesHeading": {
+    "message": "Reglas de automatización"
+  },
+  "autoDownloadRulesHelp": {
+    "message": "Cada regla necesita una condición de página, una condición de fuente y un destino. Se ejecuta la primera regla que coincida."
+  },
+  "autoDownloadEditorMode": {
+    "message": "Modo del editor de reglas de automatización"
+  },
+  "autoDownloadVisual": {
+    "message": "Visual"
+  },
+  "autoDownloadText": {
+    "message": "Texto"
+  },
+  "autoDownloadAddRule": {
+    "message": "Añadir regla de automatización"
+  },
+  "autoDownloadGrammar": {
+    "message": "Sintaxis de las reglas"
+  },
+  "autoDownloadCondition": {
+    "message": "Condición"
+  },
+  "autoDownloadPattern": {
+    "message": "Patrón"
+  },
+  "autoDownloadIgnoreCase": {
+    "message": "Ignorar mayúsculas y minúsculas"
+  },
+  "autoDownloadIgnoreCaseHelp": {
+    "message": "Tratar igual las letras mayúsculas y minúsculas"
+  },
+  "autoDownloadDeleteCondition": {
+    "message": "Eliminar condición"
+  },
+  "autoDownloadVisualInvalid": {
+    "message": "Corrija los errores en el modo Texto antes de cambiar al modo Visual."
+  },
+  "autoDownloadEmpty": {
+    "message": "Aún no hay reglas de automatización. Añada una regla, elija el sitio y las fuentes y, después, actívela."
+  },
+  "autoDownloadRule": {
+    "message": "Regla"
+  },
+  "autoDownloadMoveUp": {
+    "message": "Subir regla"
+  },
+  "autoDownloadMoveDown": {
+    "message": "Bajar regla"
+  },
+  "autoDownloadDeleteRule": {
+    "message": "Eliminar regla"
+  },
+  "autoDownloadRuleName": {
+    "message": "Nombre de la regla"
+  },
+  "autoDownloadAddCondition": {
+    "message": "Añadir condición"
+  },
+  "autoDownloadDestination": {
+    "message": "Guardar en"
+  },
+  "autoDownloadNewRule": {
+    "message": "Nueva regla"
+  },
+  "ruleAutomaticMissingPage": {
+    "message": "Añada una condición pageurl:, pagedomain: o pagerootdomain:"
+  },
+  "ruleAutomaticMissingSource": {
+    "message": "Añada una condición de dirección, dominio, tipo o extensión de fuente"
+  },
+  "ruleReachabilityAutomaticOff": {
+    "message": "El guardado automático está desactivado; esta regla queda inactiva hasta activar «$OPTION$».",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Save matches automatically"
+      }
+    }
+  },
+  "ruleReachabilityChannelOff": {
+    "message": "Con la configuración actual nunca se descubren fuentes que coincidan con esta regla. Active «$OPTION$» para proporcionarlas.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      }
+    }
+  },
+  "ruleReachabilityChannelOffEither": {
+    "message": "Con la configuración actual nunca se descubren fuentes que coincidan con esta regla. Active «$OPTION$» u «$OPTION2$» para proporcionarlas.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      },
+      "option2": {
+        "content": "$2",
+        "example": "Look for streaming-video playlists (HLS/DASH; best effort)"
+      }
+    }
+  },
+  "ruleReachabilityNoKinds": {
+    "message": "Las condiciones de tipo de fuente no coinciden con ningún tipo de fuente de página; esta regla nunca podrá guardar."
+  },
+  "ruleReachabilityLinkOnly": {
+    "message": "Esta regla solo coincide con enlaces simples, que el guardado automático nunca adopta."
+  },
+  "ruleReachabilityEmptyVariable": {
+    "message": "La variable $VARIABLE$ siempre está vacía en los guardados automáticos.",
+    "placeholders": {
+      "variable": {
+        "content": "$1",
+        "example": ":menupath:"
+      }
+    }
+  },
+  "routeDebuggerReachabilityOff": {
+    "message": "Con la configuración actual esta fuente no se descubriría automáticamente. Active «$OPTION$» para incluirla.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include inline data: images and media"
+      }
+    }
+  },
+  "routeDebuggerReachabilityOffEither": {
+    "message": "Con la configuración actual esta fuente no se descubriría automáticamente. Active «$OPTION$» u «$OPTION2$» para incluirla.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      },
+      "option2": {
+        "content": "$2",
+        "example": "Look for streaming-video playlists (HLS/DASH; best effort)"
+      }
+    }
+  },
+  "routeDebuggerReachabilityOffData": {
+    "message": "Con la configuración actual esta fuente no se descubriría automáticamente. Active «$OPTION$» y «$DATAOPTION$» para incluirla.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      },
+      "dataoption": {
+        "content": "$2",
+        "example": "Include inline data: images and media"
+      }
+    }
+  },
+  "routeDebuggerReachabilityOffEitherData": {
+    "message": "Con la configuración actual esta fuente no se descubriría automáticamente. Active «$OPTION$» u «$OPTION2$», además de «$DATAOPTION$», para incluirla.",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Include linked documents and streams"
+      },
+      "option2": {
+        "content": "$2",
+        "example": "Look for streaming-video playlists (HLS/DASH; best effort)"
+      },
+      "dataoption": {
+        "content": "$3",
+        "example": "Include inline data: images and media"
+      }
+    }
+  },
+  "routeDebuggerReachabilityLink": {
+    "message": "El descubrimiento automático nunca adopta enlaces simples, por lo que esta fuente nunca se descubriría."
+  },
+  "routeDebuggerReachabilityAutomaticOff": {
+    "message": "El guardado automático está desactivado; esta fuente no se guardaría hasta activar «$OPTION$».",
+    "placeholders": {
+      "option": {
+        "content": "$1",
+        "example": "Save matches automatically"
+      }
+    }
+  },
+  "autoDownloadRoutingBadge": {
+    "message": "Fuente automática"
+  },
+  "autoDownloadManageRules": {
+    "message": "Abrir reglas de enrutamiento"
+  },
+  "autoDownloadRoutingHelp": {
+    "message": "Use context: auto con condiciones de página y de fuente para identificar descargas automáticas. La primera regla coincidente determina la ubicación de guardado."
+  },
+  "html_openInFirefoxAddons": {
+    "message": "Abrir en Complementos para Firefox"
+  },
+  "html_openInChromeWebStore": {
+    "message": "Abrir en Chrome Web Store"
+  },
+  "html_downloadRequestHeaders": {
+    "message": "Encabezados de las solicitudes de descarga"
+  },
+  "html_temporarilyAddsThePageUrlAsRefererForExactSaveInRequests": {
+    "message": "Añade temporalmente la URL de la página como Referer a las solicitudes exactas de Save In cuando un sitio lo requiere."
+  },
+  "matchPatternInvalid": {
+    "message": "Patrón de WebExtension no válido"
+  },
+  "regularExpressionInvalid": {
+    "message": "Expresión regular no válida"
+  },
+  "webhookEndpointMalformed": {
+    "message": "Introduzca una URL HTTPS válida"
+  },
+  "webhookEndpointNotHttps": {
+    "message": "Use una URL https://"
+  },
+  "webhookEndpointNotHttpOrHttps": {
+    "message": "Use una URL https:// o http://"
+  },
+  "webhookEndpointCredentials": {
+    "message": "Ponga la autenticación en la cadena de consulta, no en la URL"
+  },
+  "webhookEndpointFragment": {
+    "message": "Quite el fragmento #"
+  },
+  "webhookEndpointOverLimit": {
+    "message": "Supera el límite de puntos de conexión, esta línea no se envía"
+  },
+  "validationJumpToIssue": {
+    "message": "Ir a este problema"
+  },
+  "optionsKeepEditing": {
+    "message": "Seguir editando"
+  },
+  "optionsDiscardChanges": {
+    "message": "Descartar cambios"
+  },
+  "restoreDefaultsConfirm": {
+    "message": "¿Restaurar todos los ajustes a sus valores predeterminados? Se conservará el historial de descargas."
+  },
+  "restoreDefaultsCancel": {
+    "message": "Conservar los ajustes actuales"
+  },
+  "restoreDefaultsSuccess": {
+    "message": "Se restauraron los ajustes predeterminados."
+  },
+  "restoreDefaultsFailure": {
+    "message": "No se pudieron restaurar los ajustes predeterminados."
+  },
+  "referenceCaption": {
+    "message": "Referencia"
+  },
+  "referenceColumnSyntax": {
+    "message": "Sintaxis"
+  },
+  "referenceColumnExample": {
+    "message": "Ejemplo"
+  },
+  "referenceColumnMeaning": {
+    "message": "Significado"
+  },
+  "referenceResult": {
+    "message": "$COUNT$ resultado",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
+  },
+  "referenceResults": {
+    "message": "$COUNT$ resultados",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "12"
+      }
+    }
+  },
+  "referenceCopyValue": {
+    "message": "Copiar $VALUE$",
+    "placeholders": {
+      "value": {
+        "content": "$1",
+        "example": ":filename:"
+      }
+    }
+  },
+  "referenceCopiedValue": {
+    "message": "Se copió $VALUE$",
+    "placeholders": {
+      "value": {
+        "content": "$1",
+        "example": ":filename:"
+      }
+    }
+  },
+  "o_cBrowserDownloadFiltersEnabled": {
+    "message": "Gestionar solo URL de descarga coincidentes"
+  },
+  "o_cBrowserDownloadFiltersEnabledHelp": {
+    "message": "Se aplica al registro en el historial y al enrutamiento de Save In."
+  },
+  "o_cBrowserDownloadFilterInvalid": {
+    "message": "Patrón no válido. Cuando el filtro de URL está activado, ninguna descarga coincidirá hasta que se corrija."
+  },
+  "o_cBrowserDownloadExcludeFilterInvalid": {
+    "message": "Patrón no válido. Cuando el filtro de URL está activado, esta línea se ignora hasta que se corrija."
+  },
+  "o_lPerSiteDisableHeading": {
+    "message": "Desactivar Save In en sitios"
+  },
+  "o_cPerSiteDisableList": {
+    "message": "Desactivar Save In en los sitios coincidentes (opcional)"
+  },
+  "o_cPerSiteDisableListHelp": {
+    "message": "Introduzca un patrón de coincidencia de WebExtension por línea. Guardar con un clic, los recursos de la página y los guardados automáticos permanecen desactivados en las páginas coincidentes."
+  },
+  "o_cPerSiteDisableListInvalid": {
+    "message": "Patrón no válido. Esta línea se ignora hasta que se corrija."
+  },
+  "o_lBrowserDownloadVariablesHeading": {
+    "message": "Datos de enrutamiento disponibles"
+  },
+  "o_lBrowserDownloadVariablesUnavailable": {
+    "message": "El título de la página, la URL de la página, el texto del enlace, la selección, los metadatos del menú y las teclas modificadoras no están disponibles."
+  },
+  "welcomeTitle": {
+    "message": "Te damos la bienvenida a Save In"
+  },
+  "welcomeIntro": {
+    "message": "Save In está listo. Usa el menú contextual para guardar imágenes, enlaces, texto seleccionado, contenido multimedia y páginas en las carpetas que elijas."
+  },
+  "welcomeStepRightClick": {
+    "message": "Haz clic con el botón derecho en algo que quieras guardar."
+  },
+  "welcomeStepChooseSaveIn": {
+    "message": "Elija Save In… en el menú."
+  },
+  "welcomeStepPickFolder": {
+    "message": "Elija una carpeta inicial."
+  },
+  "welcomeStarterNote": {
+    "message": "Las carpetas iniciales ya están activas. Puede personalizarlas en cualquier momento."
+  },
+  "welcomeToolbarNote": {
+    "message": "El botón de la barra de herramientas abre Recursos de la página para buscar contenido multimedia en la página actual."
+  },
+  "welcomePermissions": {
+    "message": "¿Por qué se necesitan estos permisos?"
+  },
+  "welcomeCustomizeFolders": {
+    "message": "Personalizar carpetas"
+  },
+  "welcomeUseEmptyPreset": {
+    "message": "Usar solo la carpeta Descargas"
+  },
+  "welcomeEmptyPresetFailed": {
+    "message": "No se pudo cambiar a usar solo la carpeta Descargas. Sus carpetas no se han modificado."
+  },
+  "welcomeEmptyConfirmTitle": {
+    "message": "¿Reemplazar las carpetas actuales?"
+  },
+  "welcomeEmptyConfirmDescription": {
+    "message": "Esta acción sustituye la configuración actual de carpetas y conserva solo el destino Descargas del navegador."
+  },
+  "welcomeKeepCurrentFolders": {
+    "message": "Conservar carpetas actuales"
+  },
+  "welcomeUseStarterFolders": {
+    "message": "Conservar las carpetas iniciales"
+  },
+  "welcomeUsingStarterSettings": {
+    "message": "Ahora mismo"
+  },
+  "html_showWelcomeGuide": {
+    "message": "Mostrar la guía de bienvenida"
+  },
+  "advancedFilesDownloads": {
+    "message": "Archivos y descargas"
+  },
+  "advancedMaintenanceDiagnostics": {
+    "message": "Mantenimiento y diagnóstico"
+  },
+  "webhookStateOn": {
+    "message": "Activado"
+  },
+  "webhookStateOff": {
+    "message": "Desactivado"
+  },
+  "pathTextEmptyExample": {
+    "message": "images\ndocuments/:year:/:month:"
+  },
+  "pathVisualUndoDelete": {
+    "message": "Deshacer eliminación"
+  },
+  "pathVisualEmpty": {
+    "message": "No hay carpetas personalizadas. Save In usará solo la carpeta Descargas del navegador."
+  },
+  "pathVisualReorderHelp": {
+    "message": "Arrastra para reordenar. Suelta en el centro de una fila para anidarla debajo de ella."
+  },
+  "pathVisualReorderAccessible": {
+    "message": "Reordenar o cambiar el nivel de $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualEnabledAccessible": {
+    "message": "Activar $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualNestUnder": {
+    "message": "Anidar debajo de «$NAME$»",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualMoveHere": {
+    "message": "Mover aquí"
+  },
+  "pathVisualDirectoryPlaceholder": {
+    "message": "carpeta/:variables:"
+  },
+  "pathVisualDirectoryAccessible": {
+    "message": "Carpeta $NUMBER$",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "pathVisualAlias": {
+    "message": "Alias"
+  },
+  "pathVisualAliasPlaceholder": {
+    "message": "Nombre visible"
+  },
+  "pathVisualAliasUnbalanced": {
+    "message": "No se guardó: los paréntesis deben estar equilibrados."
+  },
+  "pathVisualAliasAccessible": {
+    "message": "Nombre visible de la carpeta $NUMBER$",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "pathVisualAccessKeyAccessible": {
+    "message": "Asignar una tecla de acceso a $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualMoreActionsAccessible": {
+    "message": "Más acciones para $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualOutdent": {
+    "message": "Reducir sangría"
+  },
+  "pathVisualOutdentAccessible": {
+    "message": "Reducir la sangría de $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualIndent": {
+    "message": "Aumentar sangría"
+  },
+  "pathVisualIndentAccessible": {
+    "message": "Aumentar la sangría de $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualMoveUp": {
+    "message": "Subir"
+  },
+  "pathVisualMoveUpAccessible": {
+    "message": "Mover $NAME$ hacia arriba",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualMoveDown": {
+    "message": "Bajar"
+  },
+  "pathVisualMoveDownAccessible": {
+    "message": "Mover $NAME$ hacia abajo",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "pathVisualDelete": {
+    "message": "Eliminar"
+  },
+  "pathVisualDeleteAccessible": {
+    "message": "Eliminar $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Images"
+      }
+    }
+  },
+  "contextMenuRecentLocations": {
+    "message": "Ubicaciones recientes"
+  },
+  "o_lRecentLocations": {
+    "message": "Ubicaciones recientes"
+  },
+  "o_lRecentLocationsHelp": {
+    "message": "Muestra entre 0 y 5 ubicaciones usadas recientemente."
+  },
+  "pathVisualAlwaysAsk": {
+    "message": "Preguntar siempre dónde guardar"
+  },
+  "pathVisualAlwaysAskAccessible": {
+    "message": "Preguntar siempre dónde guardar al usar $ROW$",
+    "placeholders": {
+      "row": {
+        "content": "$1",
+        "example": "Work"
+      }
+    }
+  },
+  "o_cSaveSourceSidecar": {
+    "message": "Guardar un enlace al origen junto al contenido multimedia descargado"
+  },
+  "o_cSaveSourceSidecarHelp": {
+    "message": "Usa el formato de acceso directo seleccionado y el nombre del archivo descargado."
+  },
+  "historyCopyPath": {
+    "message": "Copiar ruta guardada"
+  },
+  "historyCopySource": {
+    "message": "Copiar URL de origen"
+  },
+  "historyPathCopied": {
+    "message": "Ruta guardada copiada."
+  },
+  "historySourceCopied": {
+    "message": "URL de origen copiada."
+  },
+  "historyCopyFailed": {
+    "message": "No se pudo copiar al portapapeles."
+  },
+  "diagnosticsSummaryHelp": {
+    "message": "Estado del proceso, ciclo de vida y fallos recientes"
+  },
+  "diagnosticsRefresh": {
+    "message": "Actualizar"
+  },
+  "diagnosticsCopy": {
+    "message": "Copiar diagnóstico"
+  },
+  "diagnosticsBackground": {
+    "message": "Segundo plano"
+  },
+  "diagnosticsHost": {
+    "message": "Host"
+  },
+  "diagnosticsExtension": {
+    "message": "Extensión"
+  },
+  "diagnosticsBrowser": {
+    "message": "Navegador"
+  },
+  "diagnosticsWorkerStarted": {
+    "message": "Proceso iniciado"
+  },
+  "diagnosticsSessionStorage": {
+    "message": "Almacenamiento de sesión"
+  },
+  "diagnosticsVerboseLogging": {
+    "message": "Registro detallado"
+  },
+  "diagnosticsConfigurationIssues": {
+    "message": "Problemas de configuración"
+  },
+  "diagnosticsLifecycle": {
+    "message": "Ciclo de vida"
+  },
+  "diagnosticsLifecycleHelp": {
+    "message": "Inicios recientes del segundo plano, recargas de configuración y actualizaciones de la extensión. Al abrir Diagnóstico, se activa el segundo plano."
+  },
+  "diagnosticsFailuresHelp": {
+    "message": "Fallos locales recientes de esta sesión del navegador. Revisa el texto antes de compartirlo, ya que los errores del navegador pueden incluir datos de sitios o archivos."
+  },
+  "diagnosticsClearFailures": {
+    "message": "Borrar fallos"
+  },
+  "diagnosticsDeveloperLogging": {
+    "message": "Registro para desarrolladores"
+  },
+  "diagnosticsDurationMs": {
+    "message": "$COUNT$ milisegundos",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "42"
+      }
+    }
+  },
+  "diagnosticsDurationSeconds": {
+    "message": "$COUNT$ segundos",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "4"
+      }
+    }
+  },
+  "diagnosticsDurationMinutes": {
+    "message": "$COUNT$ minutos",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "diagnosticsLifecycleBackgroundReady": {
+    "message": "El segundo plano estuvo listo en $DURATION$.",
+    "placeholders": {
+      "duration": {
+        "content": "$1",
+        "example": "120 ms"
+      }
+    }
+  },
+  "diagnosticsLifecycleBackgroundFailed": {
+    "message": "Falló el inicio del segundo plano."
+  },
+  "diagnosticsLifecycleConfigurationReloaded": {
+    "message": "Se volvió a cargar la configuración."
+  },
+  "diagnosticsLifecycleExtensionInstalled": {
+    "message": "Se instaló la extensión."
+  },
+  "diagnosticsLifecycleExtensionUpdatedFrom": {
+    "message": "La extensión se actualizó desde $VERSION$.",
+    "placeholders": {
+      "version": {
+        "content": "$1",
+        "example": "3.9.1"
+      }
+    }
+  },
+  "diagnosticsLifecycleExtensionUpdated": {
+    "message": "Se actualizó la extensión."
+  },
+  "diagnosticsLifecycleFailuresCleared": {
+    "message": "Se borraron los fallos recientes."
+  },
+  "diagnosticsLifecycleEmpty": {
+    "message": "Aún no hay eventos del ciclo de vida."
+  },
+  "diagnosticsWorkerStarting": {
+    "message": "Iniciando"
+  },
+  "diagnosticsWorkerReady": {
+    "message": "En ejecución · listo"
+  },
+  "diagnosticsWorkerFailed": {
+    "message": "Error de inicio"
+  },
+  "diagnosticsHostServiceWorker": {
+    "message": "Proceso de servicio MV3"
+  },
+  "diagnosticsHostEventPage": {
+    "message": "Página de eventos MV3"
+  },
+  "diagnosticsBrowserUnknown": {
+    "message": "Navegador desconocido"
+  },
+  "diagnosticsStartedWithUptime": {
+    "message": "$TIME$ · activo durante $UPTIME$",
+    "placeholders": {
+      "time": {
+        "content": "$1",
+        "example": "Jul 15, 2026, 4:10 PM"
+      },
+      "uptime": {
+        "content": "$2",
+        "example": "3 min"
+      }
+    }
+  },
+  "diagnosticsConfigurationIssueCount": {
+    "message": "$PATHS$ ruta · $ROUTING$ enrutamiento",
+    "placeholders": {
+      "paths": {
+        "content": "$1",
+        "example": "0"
+      },
+      "routing": {
+        "content": "$2",
+        "example": "1"
+      }
+    }
+  },
+  "diagnosticsAvailable": {
+    "message": "Disponible"
+  },
+  "diagnosticsUnavailable": {
+    "message": "No disponible"
+  },
+  "diagnosticsOn": {
+    "message": "Activado"
+  },
+  "diagnosticsOff": {
+    "message": "Desactivado"
+  },
+  "diagnosticsFailuresEmpty": {
+    "message": "No hay fallos recientes."
+  },
+  "diagnosticsChecking": {
+    "message": "Comprobando el segundo plano…"
+  },
+  "diagnosticsCheckedAt": {
+    "message": "Comprobado: $TIME$",
+    "placeholders": {
+      "time": {
+        "content": "$1",
+        "example": "Jul 15, 2026, 4:10 PM"
+      }
+    }
+  },
+  "diagnosticsLoadFailed": {
+    "message": "No se pudo cargar el diagnóstico."
+  },
+  "diagnosticsCopySuccess": {
+    "message": "Diagnóstico copiado."
+  },
+  "diagnosticsCopyFailed": {
+    "message": "No se pudo copiar el diagnóstico."
+  },
+  "diagnosticsClearSuccess": {
+    "message": "Se borraron los fallos recientes."
+  },
+  "diagnosticsClearFailed": {
+    "message": "No se pudieron borrar los fallos recientes."
+  },
+  "sourcePanelSelectFiltered": {
+    "message": "Seleccionar fuentes filtradas"
+  },
+  "sourcePanelClearSelection": {
+    "message": "Anular selección"
+  },
+  "sourcePanelSelectedCount": {
+    "message": "$COUNT$ seleccionadas",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "sourcePanelHiddenSelectedCount": {
+    "message": "$COUNT$ ocultas",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "sourcePanelSaveSelected": {
+    "message": "Guardar fuentes seleccionadas"
+  },
+  "sourcePanelBatchConfirm": {
+    "message": "¿Guardar $COUNT$ fuentes seleccionadas?",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "24"
+      }
+    }
+  },
+  "sourcePanelBatchContinue": {
+    "message": "Guardar fuentes"
+  },
+  "sourcePanelBatchCancel": {
+    "message": "Cancelar"
+  },
+  "sourcePanelBatchSaving": {
+    "message": "Guardando $COUNT$ fuentes…",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "8"
+      }
+    }
+  },
+  "sourcePanelBatchSaved": {
+    "message": "Se iniciaron $COUNT$ descargas",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "8"
+      }
+    }
+  },
+  "sourcePanelCreateAutomaticRule": {
+    "message": "Crear regla automática"
+  },
+  "savedSettingUpdated": {
+    "message": "Configuración actualizada"
+  },
+  "savedSettingsUpdated": {
+    "message": "$COUNT$ configuraciones actualizadas",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "savedUndo": {
+    "message": "Deshacer"
+  },
+  "savedUndoFailed": {
+    "message": "No se pudo deshacer — seleccione para volver a intentarlo"
+  },
+  "savedUndoBlocked": {
+    "message": "Finaliza o descarta los demás cambios antes de deshacer."
+  },
+  "externalApiUnknown": {
+    "message": "Desconocido"
+  },
+  "externalApiUnavailable": {
+    "message": "No disponible"
+  },
+  "externalBlockedAttemptOne": {
+    "message": "$COUNT$ intento bloqueado",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
+  },
+  "externalBlockedAttemptMany": {
+    "message": "$COUNT$ intentos bloqueados",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "externalRequestActiveTab": {
+    "message": "Solicitud de pestaña activa"
+  },
+  "externalRequestUrl": {
+    "message": "Solicitud de URL"
+  },
+  "externalRequestDownload": {
+    "message": "Solicitud de descarga"
+  },
+  "externalApprove": {
+    "message": "Aprobar"
+  },
+  "externalApproving": {
+    "message": "Aprobando…"
+  },
+  "externalApprovalFailed": {
+    "message": "No se pudo aprobar $ID$.",
+    "placeholders": {
+      "id": {
+        "content": "$1",
+        "example": "abcdefghijklmnopabcdefghijklmnop"
+      }
+    }
+  },
+  "externalRejectionsLoadFailed": {
+    "message": "No se pudieron cargar las solicitudes rechazadas."
+  },
+  "referenceInsertValue": {
+    "message": "Insertar $VALUE$",
+    "placeholders": {
+      "value": {
+        "content": "$1",
+        "example": ":filename:"
+      }
+    }
+  },
+  "versionViewReleases": {
+    "message": "Save In v$VERSION$ — ver versiones",
+    "placeholders": {
+      "version": {
+        "content": "$1",
+        "example": "4.0.0"
+      }
+    }
+  },
+  "html_advancedFetchADifferentUrl": {
+    "message": "Avanzado: obtener una URL diferente"
+  },
+  "html_captureReferencesAndRoutingVariablesSubstituteVerbatim": {
+    "message": "; las referencias de captura y las variables de enrutamiento se sustituyen tal cual, sin depurar el nombre de archivo."
+  },
+  "html_downloadsFromAnExpandedUrlTemplateInsteadOfTheMatched": {
+    "message": "descarga desde una plantilla de URL expandida en lugar de la fuente coincidente;"
+  },
+  "html_downloadsFromThisUrlTemplateInsteadOfTheMatchedSource": {
+    "message": "Descarga desde esta plantilla de URL en lugar de la fuente coincidente;"
+  },
+  "html_downloadsTheOriginalResolutionImageInstead": {
+    "message": "Descarga la imagen en resolución original en lugar de la vista previa pequeña."
+  },
+  "html_fetchClauseCompatibility": {
+    "message": "El enrutamiento habitual de descargas del navegador la omite, ya que solo puede cambiar el nombre, no sustituir URLs. El menú, Guardar con un clic y el guardado automático siguen usándola; el guardado falla si la expansión no produce una URL HTTP(S) utilizable."
+  },
+  "html_orLiteral": {
+    "message": "o"
+  },
+  "html_stillControlsTheDestinationAndFilename": {
+    "message": "sigue controlando el destino y el nombre de archivo."
+  },
+  "html_stillSetsTheDestinationAndFilenameMustStartWith": {
+    "message": "sigue estableciendo el destino y el nombre de archivo. Debe comenzar con"
+  },
+  "routeDebuggerFetchTemplate": {
+    "message": "Plantilla de reescritura"
+  },
+  "routeDebuggerRewrittenUrl": {
+    "message": "URL reescrita"
+  },
+  "routeVisualFetchAccessible": {
+    "message": "Regla $RULE$: reescribir URL de descarga",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "routeVisualFetchLabel": {
+    "message": "Reescribir URL de descarga"
+  },
+  "ruleTemplateCategorySiteFiling": {
+    "message": "Organización por sitio"
+  },
+  "ruleTemplateCategorySiteOriginals": {
+    "message": "Originales por sitio"
+  },
+  "ruleTemplatePagePathNoSchemeDescription": {
+    "message": "Crea carpetas a partir del nombre de host y la ruta de la página, sin credenciales, puertos, consultas ni fragmentos"
+  },
+  "ruleTemplatePagePathNoSchemeName": {
+    "message": "Ruta de página sin el esquema"
+  },
+  "ruleTemplateRedditOriginalsDescription": {
+    "message": "Reescribe los enlaces de vista previa de imágenes de Reddit al archivo original en i.redd.it"
+  },
+  "ruleTemplateRedditOriginalsName": {
+    "message": "Originales de imágenes de Reddit"
+  },
+  "ruleTemplateSluggedTitleRenameDescription": {
+    "message": "Sustituye el nombre de archivo por el título de la página en minúsculas y con guiones, conservando la extensión resuelta"
+  },
+  "ruleTemplateSluggedTitleRenameName": {
+    "message": "Renombrado con slug del título"
+  },
+  "ruleTemplateTwitterHandlePrefixDescription": {
+    "message": "Antepone el identificador de la cuenta a los archivos guardados desde una publicación de Twitter o X"
+  },
+  "ruleTemplateTwitterHandlePrefixName": {
+    "message": "Prefijo con el identificador de Twitter/X"
+  },
+  "ruleTemplateTwitterOriginalsDescription": {
+    "message": "Reescribe los enlaces de imágenes de Twitter y X al archivo original de resolución completa"
+  },
+  "ruleTemplateTwitterOriginalsName": {
+    "message": "Originales de imágenes de Twitter/X"
+  },
+  "ruleTemplateWikimediaOriginalDescription": {
+    "message": "Reescribe los enlaces de miniaturas de Wikimedia Commons al archivo original de tamaño completo"
+  },
+  "ruleTemplateWikimediaOriginalName": {
+    "message": "Imagen de Wikimedia a tamaño completo"
+  },
+  "ruleTemplateBlueskyFullsizeName": {
+    "message": "Imagen de Bluesky a tamaño completo"
+  },
+  "ruleTemplateBlueskyFullsizeDescription": {
+    "message": "Reescribe una miniatura del feed de Bluesky a su versión de tamaño completo"
+  },
+  "ruleTemplateArtStationHighestName": {
+    "message": "Imagen de ArtStation con la máxima calidad disponible"
+  },
+  "ruleTemplateArtStationHighestDescription": {
+    "message": "Reescribe una imagen de vista previa de ArtStation a la versión de máxima calidad disponible"
+  },
+  "ruleTemplateMastodonFullsizeName": {
+    "message": "Imagen JPEG de Mastodon a tamaño completo"
+  },
+  "ruleTemplateMastodonFullsizeDescription": {
+    "message": "Reescribe la vista previa de una imagen JPEG de Mastodon a su archivo JPEG de tamaño completo"
+  },
+  "ruleTemplateGoogleOriginalName": {
+    "message": "Imagen de Google en tamaño original"
+  },
+  "ruleTemplateGoogleOriginalDescription": {
+    "message": "Reescribe una imagen de vista previa alojada en Google a su tamaño original completo"
+  },
+  "ruleTemplateGoogleImagesSourceName": {
+    "message": "Imagen de origen de Google Imágenes"
+  },
+  "ruleTemplateGoogleImagesSourceDescription": {
+    "message": "Guarda una imagen abierta en Google Imágenes desde el sitio del editor en lugar de la miniatura de búsqueda"
+  },
+  "ruleTemplateFlickrLargeName": {
+    "message": "Imagen de Flickr más grande"
+  },
+  "ruleTemplateFlickrLargeDescription": {
+    "message": "Reescribe un enlace de imagen de Flickr a una versión más grande de 1024 px"
+  },
+  "ruleExtraFetch": {
+    "message": "Una regla solo puede contener una cláusula fetch:"
+  },
+  "ruleFetchNotHttp": {
+    "message": "La dirección de fetch: debe ser una URL http:// o https:// utilizable"
+  },
+  "ruleFetchUnsupportedVariable": {
+    "message": "La variable no es compatible en una dirección fetch:"
+  },
+  "savedValueOff": {
+    "message": "Desactivado"
+  },
+  "savedValueOn": {
+    "message": "Activado"
+  },
+  "o_lUiThemeGildedMosaic": {
+    "message": "Mosaico dorado"
+  },
+  "o_lUiThemeBlueHouse": {
+    "message": "Casa azul"
+  },
+  "o_lUiThemePrimaryGrid": {
+    "message": "Cuadrícula primaria"
+  },
+  "ruleExtraRename": {
+    "message": "Una regla solo puede contener una cláusula rename:"
+  },
+  "ruleRenameMissingSeparator": {
+    "message": "Separa el patrón y el reemplazo con ' -> '"
+  },
+  "html_renameReplacesMatchesInTheFinalFilename": {
+    "message": "Reemplaza las coincidencias de una expresión regular en el nombre de archivo final por el texto literal después de"
+  },
+  "html_renameReplacementExpandsVariables": {
+    "message": "; un reemplazo vacío elimina las coincidencias, y el reemplazo expande variables de enrutamiento y referencias de captura como"
+  },
+  "html_renameClauseCompatibility": {
+    "message": "Se aplica después de que el nombre de archivo se resuelva por completo (incluidas las reescrituras de fetch:) y antes de los límites de longitud; las carpetas nunca se ven afectadas. Las descargas comunes del navegador registradas solo la usan cuando el reemplazo no necesita un hash del contenido. Escriba un ' -> ' literal en el patrón con un espacio escapado (\\x20->)."
+  },
+  "html_advancedRenameTheSavedFile": {
+    "message": "Avanzado: renombrar el archivo guardado"
+  },
+  "html_renameGuideDescription": {
+    "message": "edita el nombre de archivo final: el patrón antes de ' -> ' es una expresión regular, y el reemplazo literal posterior puede usar variables de enrutamiento y referencias de captura. Las carpetas nunca se ven afectadas."
+  },
+  "routeVisualRenameLabel": {
+    "message": "Renombrar el archivo"
+  },
+  "routeVisualRenameAccessible": {
+    "message": "Regla $RULE$: renombrar el archivo",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "routeDebuggerRenameTemplate": {
+    "message": "Renombrar"
+  },
+  "routeDebuggerRenamedName": {
+    "message": "Nombre renombrado"
+  },
+  "promptAssistantTitle": {
+    "message": "Asistente de reglas en el dispositivo"
+  },
+  "promptAssistantIntro": {
+    "message": "Describe dónde deben guardarse los archivos y obtén una regla de enrutamiento para revisarla."
+  },
+  "html_theAssistantNeedsTheBrowsersBuiltIn": {
+    "message": "El asistente necesita la"
+  },
+  "html_whichOnlySomeBrowsersAndDevicesProvide": {
+    "message": ", disponible solo en algunos navegadores y dispositivos."
+  },
+  "promptAssistantDisclosure": {
+    "message": "Redactar una regla"
+  },
+  "promptAssistantEnable": {
+    "message": "Activar el asistente en el dispositivo"
+  },
+  "promptAssistantEnableHelp": {
+    "message": "Cuando está desactivado, Save In no comprueba el modelo, no crea sesiones ni envía instrucciones."
+  },
+  "promptAssistantStatusLabel": {
+    "message": "Estado"
+  },
+  "promptAssistantPromptLabel": {
+    "message": "Describe una regla de enrutamiento"
+  },
+  "promptAssistantPromptPlaceholder": {
+    "message": "Guardar archivos PNG de example.com en Images/example"
+  },
+  "promptAssistantPromptHelp": {
+    "message": "Esta solicitud es global y no se guarda. El asistente no lee sus pestañas abiertas; incluya el sitio, el tipo de archivo y la carpeta que quiere."
+  },
+  "promptAssistantSuggest": {
+    "message": "Sugerir regla"
+  },
+  "promptAssistantGeneratedDraft": {
+    "message": "Borrador generado"
+  },
+  "promptAssistantAddToRules": {
+    "message": "Añadir a las reglas"
+  },
+  "promptAssistantClearDraft": {
+    "message": "Borrar borrador"
+  },
+  "promptAssistantPrivacy": {
+    "message": "El navegador ejecuta el modelo en este dispositivo. Save In no envía la instrucción ni el resultado a un servidor. Las reglas generadas nunca se aplican automáticamente."
+  },
+  "promptAssistantStatusOff": {
+    "message": "Desactivado — sin comprobaciones del modelo ni instrucciones"
+  },
+  "promptAssistantStatusChecking": {
+    "message": "Comprobando el modelo del dispositivo…"
+  },
+  "promptAssistantStatusReady": {
+    "message": "Listo en este dispositivo"
+  },
+  "promptAssistantStatusDownloadable": {
+    "message": "El modelo se descarga cuando sugiere su primera regla"
+  },
+  "promptAssistantStatusDownloading": {
+    "message": "El navegador está descargando el modelo en el dispositivo"
+  },
+  "promptAssistantStatusUnavailable": {
+    "message": "No disponible en este navegador o dispositivo"
+  },
+  "promptAssistantStatusUnusable": {
+    "message": "El modelo no devolvió una regla utilizable"
+  },
+  "promptAssistantStatusUnusableReview": {
+    "message": "El modelo no terminó de comprobar el borrador"
+  },
+  "promptAssistantStatusWorking": {
+    "message": "Creando y comprobando un borrador…"
+  },
+  "promptAssistantStatusInvalid": {
+    "message": "El borrador necesita otro intento: $ERROR$",
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "The rule needs an into clause"
+      }
+    }
+  },
+  "promptAssistantStatusFailed": {
+    "message": "No se pudo crear un borrador: $ERROR$",
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "The model session ended"
+      }
+    }
+  },
+  "promptAssistantStatusDraftReady": {
+    "message": "Borrador listo — revísalo antes de añadirlo"
+  },
+  "promptAssistantStatusAdded": {
+    "message": "Añadido como borrador sin guardar en el editor de reglas"
+  },
+  "html_cssMatcherDescription": {
+    "message": "Coincide con el elemento de la página que detectó la fuente. Disponible para Fuentes de página automáticas, guardar con clic y guardar desde el panel Fuentes de página."
+  },
+  "html_cssMatcherSyntax": {
+    "message": "El comparador css: usa sintaxis de selector CSS en lugar de una expresión regular y no admite indicadores."
+  },
+  "ruleInvalidCssSelector": {
+    "message": "Selector CSS no válido"
+  },
+  "ruleCssFlags": {
+    "message": "css: no admite indicadores de expresiones regulares"
+  },
+  "contextMenuQuickSave": {
+    "message": "Guardado rápido"
+  },
+  "contextMenuQuickSaveOnly": {
+    "message": "Guardado rápido (Save In)"
+  },
+  "contextMenuQuickSaveToDirectory": {
+    "message": "Guardar en $DIRECTORY$",
+    "placeholders": {
+      "directory": {
+        "content": "$1",
+        "example": "Photos"
+      }
+    }
+  },
+  "manifestCommandQuickSave": {
+    "message": "Guardar rápidamente la página actual"
+  },
+  "o_cQuickSave": {
+    "message": "Mostrar un elemento de guardado rápido"
+  },
+  "o_cQuickSaveHelp": {
+    "message": "Agrega un elemento de menú que guarda directamente en la carpeta predeterminada, omitiendo la lista de carpetas."
+  },
+  "o_lQuickSaveDirectory": {
+    "message": "Carpeta de guardado rápido"
+  },
+  "o_cQuickSaveUseDirectory": {
+    "message": "Guardar en esta carpeta en lugar de Descargas"
+  },
+  "o_cQuickSaveOnly": {
+    "message": "Mostrar solo Guardado rápido en el menú contextual"
+  },
+  "o_cQuickSaveOnlyHelp": {
+    "message": "Guarda con un clic al quitar el submenú de Save In. La lista de carpetas, Último usado y las demás acciones del menú desaparecen con él, porque los navegadores solo omiten el submenú cuando hay un único elemento."
+  },
+  "o_cClickToSaveUseDefault": {
+    "message": "Guardar siempre en el destino predeterminado"
+  },
+  "o_cClickToSaveUseDefaultHelp": {
+    "message": "De lo contrario, clic para guardar reutiliza la última carpeta que eligió en el menú."
+  },
+  "historyMovePending": {
+    "message": "Descargando en la nueva carpeta. El archivo original se eliminará cuando termine."
+  },
+  "promptAssistantSingleRule": {
+    "message": "El borrador debe contener exactamente una regla"
+  },
+  "ruleCssSyntaxUnverified": {
+    "message": "La sintaxis del selector CSS no se verifica en la validación en segundo plano"
+  },
+  "ruleRegexUnverifiedExternal": {
+    "message": "La expresión regular es demasiado compleja para validarla aquí. Se omitió esta regla; simplifique el patrón o compruébelo en la página de opciones."
+  },
+  "ruleFetchFinalFilenameUnsupported": {
+    "message": "fetch: no se puede combinar con finalfilename:"
+  },
+  "ruleTooManyCssSelectors": {
+    "message": "Demasiados selectores css: distintos"
+  },
+  "ruleClauseFlags": {
+    "message": "Esta cláusula no admite indicadores de expresiones regulares"
+  },
+  "ruleEmptyMatcher": {
+    "message": "Una condición vacía coincide con todo; escriba .* de forma explícita"
+  },
+  "ruleSuspiciousWhitespace": {
+    "message": "El patrón empieza o termina con espacios en blanco"
+  },
+  "ruleUnsafeRegex": {
+    "message": "El patrón puede tardar demasiado con entradas largas"
+  },
+  "ruleDestinationMustBeRelative": {
+    "message": "El destino debe ser relativo y no puede contener componentes de ruta .."
+  }
+}

@@ -1,0 +1,285 @@
+import { WEB_EXTENSION_CAPABILITIES } from "../platform/chrome-detector.ts";
+import { getDownloadHeaders, getFetchReferer } from "./headers.ts";
+import {
+  expandRenameTransform,
+  isRenameOnlyEligibleMatch,
+  isRenameOnlyEligibleRule,
+  matchRulesDetailed,
+  type RuleMatch,
+} from "../routing/router.ts";
+import { expandFetchUrl, isUsableFetchRewrite } from "../routing/fetch-url.ts";
+import { Path, ROUTES_TO_FOLDER_REGEX } from "../routing/path.ts";
+import { applyVariables, mimeToExtension, resolveMime } from "../routing/variable.ts";
+import { options } from "../config/options-data.ts";
+import { deriveUrlFilenames, EXTENSION_REGEX } from "../routing/filename.ts";
+import { DOWNLOAD_TYPES } from "../shared/constants.ts";
+import type { DownloadPipelineState, DownloadPlan } from "./download-types.ts";
+import { downloadRuntime } from "./download-runtime-instance.ts";
+import {
+  finalizeFullPath,
+  finalizeFullPathWithoutMimeExtension,
+  resolveDispositionFilename,
+} from "./download-disposition.ts";
+import { ensureHistoryEntry } from "./history-entry.ts";
+import {
+  addDownloadLog,
+  isHttpDownloadUrl,
+  releaseUnusedContent,
+  requireDownloadUrl,
+} from "./download-pipeline-state.ts";
+
+export const getRoutingMatch = (state: Pick<DownloadPipelineState, "info">): RuleMatch | null => {
+  if (state.info.routingDisabled) return null;
+  const filenamePatterns = Array.isArray(options.filenamePatterns) ? options.filenamePatterns : [];
+  if (filenamePatterns.length === 0) {
+    return null;
+  }
+
+  return matchRulesDetailed(filenamePatterns, state.info);
+};
+
+// Ordinary browser downloads and post-start filename re-evaluation can only
+// rename a download that is already in flight, so URL-rewriting rules are
+// skipped there instead of consuming the match. Rules whose destination or
+// rename replacement needs a content hash are skipped too; the winning plain
+// rename transform is stashed on scratch for the synchronous finalizeFullPath
+// call.
+export const getRoutingMatches = (
+  state: Pick<DownloadPipelineState, "info" | "scratch">,
+): string | null => {
+  delete state.scratch.renameTemplate;
+  delete state.scratch.renameResolved;
+  if (state.info.routingDisabled) return null;
+  const filenamePatterns = Array.isArray(options.filenamePatterns) ? options.filenamePatterns : [];
+  if (filenamePatterns.length === 0) {
+    return null;
+  }
+
+  const match = matchRulesDetailed(
+    filenamePatterns,
+    state.info,
+    isRenameOnlyEligibleRule,
+    isRenameOnlyEligibleMatch,
+  );
+  if (match?.rename) state.scratch.renameTemplate = match.rename;
+  return match?.destination ?? null;
+};
+
+// Expands the matched rule's rename replacement (variables may await
+// metadata) so finalizeFullPath can apply the transform synchronously.
+export const resolveRenameTransform = async (
+  state: Pick<DownloadPipelineState, "info" | "scratch">,
+): Promise<void> => {
+  const template = state.scratch.renameTemplate;
+  if (!template) {
+    delete state.scratch.renameResolved;
+    return;
+  }
+  state.scratch.renameResolved = await expandRenameTransform(template, state.info);
+};
+
+// Referer eligibility is scoped by a filter tested against the download URL, so
+// it is a URL-derived artifact like any other: it must be re-derived whenever
+// that URL changes. getDownloadHeaders and retryViaFetch already re-check the
+// live option and filter at their own call sites; caching a stale verdict here
+// would both carry the page URL to a host the filter excludes and withhold it
+// from one the filter covers.
+const resolveRefererState = (state: DownloadPipelineState): void => {
+  const downloadHeaders = getDownloadHeaders(state);
+  const protectedFetchReferer = getFetchReferer(state);
+  state.info.contentFetchDisabled = Boolean(downloadHeaders && !protectedFetchReferer);
+  if (protectedFetchReferer) state.info.protectedFetchReferer = protectedFetchReferer;
+  else delete state.info.protectedFetchReferer;
+};
+
+// A fetch: rewrite retargets the download, so every artifact derived from the
+// original URL — resolved head metadata, hash, prefetched content, the
+// MIME-derived extension, Referer eligibility, and URL-derived names — is stale
+// and must be recomputed against the rewritten URL.
+export const applyFetchRewrite = async (
+  state: DownloadPipelineState,
+  rewrittenUrl: string,
+): Promise<void> => {
+  await releaseUnusedContent(state);
+  delete state.info.headPromise;
+  delete state.info.resolvedHead;
+  delete state.info.sha256;
+  delete state.info.mime;
+  delete state.info.mimeExtension;
+  delete state.scratch.mimeExtension;
+  if (WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion) {
+    downloadRuntime.movePendingState(state, rewrittenUrl);
+  }
+  state.info.url = rewrittenUrl;
+  resolveRefererState(state);
+  const { naiveFilename, initialFilename } = deriveUrlFilenames(
+    rewrittenUrl,
+    state.info.suggestedFilename,
+  );
+  Object.assign(state.info, { naiveFilename, filename: initialFilename, initialFilename });
+};
+
+export const resolveDownloadPlan = async (
+  state: DownloadPipelineState,
+): Promise<DownloadPlan | null> => {
+  const url = requireDownloadUrl(state);
+  const { naiveFilename, initialFilename } = deriveUrlFilenames(url, state.info.suggestedFilename);
+  Object.assign(state.info, { naiveFilename, filename: initialFilename, initialFilename });
+  if (state.path instanceof Path && typeof state.path.raw === "string") {
+    state.scratch.pathTemplateRaw = state.path.raw;
+  }
+
+  // This must precede the first await so onDeterminingFilename can correlate
+  // a download even when variable interpolation yields control.
+  if (WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion) {
+    downloadRuntime.rememberPendingState(state);
+  }
+
+  // Firefox attaches Referer to a direct downloads.download request; both
+  // browsers use an exact DNR rule for extension-owned metadata/content.
+  resolveRefererState(state);
+
+  await resolveDispositionFilename(state);
+  /* v8 ignore next -- The initial filename assignment above always populates this field. */
+  const resolvedFilename = state.info.filename ?? initialFilename;
+  state.info.filename = resolvedFilename;
+
+  const filenamePatterns = Array.isArray(options.filenamePatterns) ? options.filenamePatterns : [];
+  const usesMime = filenamePatterns.some((rule) =>
+    rule.some((clause) => clause.name === "mime" || clause.name === "contenttype"),
+  );
+  if (usesMime) state.info.mime = await resolveMime(state.info);
+  const usesResolvedFilename = filenamePatterns.some((rule) =>
+    rule.some((clause) => ["filename", "finalfilename", "actualfileext"].includes(clause.name)),
+  );
+  const usesActualFileExtension = filenamePatterns.some((rule) =>
+    rule.some((clause) => clause.name === "actualfileext"),
+  );
+  if (
+    options.appendMimeExtension !== false &&
+    usesActualFileExtension &&
+    !EXTENSION_REGEX.test(resolvedFilename)
+  ) {
+    const extension = mimeToExtension(await resolveMime(state.info));
+    if (extension) {
+      state.info.mimeExtension = extension;
+      state.scratch.mimeExtension = extension;
+    }
+  }
+
+  let routeMatches: string | null = state.scratch.routeTemplateRaw ?? null;
+  let fetchTemplate: string | null = state.scratch.fetchTemplateRaw ?? null;
+  // A rule the late filename pass would skip cannot survive a re-match there,
+  // so the plan has to hand its winning template forward. Already-persisted
+  // templates were classified by the run that stored them.
+  let lateReMatchLosesRule = false;
+  if (routeMatches === null) {
+    const match = getRoutingMatch(state);
+    routeMatches = match?.destination ?? null;
+    fetchTemplate = match?.fetch ?? null;
+    lateReMatchLosesRule =
+      match !== null && (match.fetch !== null || !isRenameOnlyEligibleMatch(match));
+    if (match?.rename) state.scratch.renameTemplate = match.rename;
+    else delete state.scratch.renameTemplate;
+  }
+  if (routeMatches !== null && lateReMatchLosesRule) {
+    // Persist the raw template in every outcome the late pass cannot reproduce:
+    // it skips both fetch rules (a started download can no longer honor a URL
+    // rewrite) and content-hash rules (it will not re-fetch a download merely
+    // to name it). Re-expanding this template there keeps the plan's rule
+    // instead of re-matching and losing or replacing the route. Persisting it
+    // also preserves scratch.renameTemplate, which a re-match would clear.
+    state.scratch.routeTemplateRaw = routeMatches;
+  }
+  if (routeMatches !== null && fetchTemplate !== null) {
+    state.scratch.fetchTemplateRaw = fetchTemplate;
+    const rewrittenUrl = await expandFetchUrl(fetchTemplate, state.info);
+    if (isUsableFetchRewrite(rewrittenUrl)) {
+      if (rewrittenUrl !== requireDownloadUrl(state)) {
+        await applyFetchRewrite(state, rewrittenUrl);
+        await resolveDispositionFilename(state);
+      }
+    } else {
+      // A fetch rule promises a different resource. Applying its destination
+      // or rename to the original URL would silently mislabel a preview as an
+      // original, so an unusable expansion makes the whole plan fail closed.
+      addDownloadLog(state, "fetch rewrite skipped: expanded address is not usable HTTP(S)", {
+        template: fetchTemplate,
+        expanded: rewrittenUrl,
+      });
+      downloadRuntime.forgetPendingState(state);
+      return null;
+    }
+  }
+  // Click-to-save reuses the previous menu directory only as its unmatched
+  // fallback. A matched `into:` route is rooted at Downloads so an earlier
+  // folder choice cannot be prefixed onto every later dynamic route (#190).
+  if (
+    routeMatches &&
+    (state.info.context === DOWNLOAD_TYPES.CLICK || state.info.context === DOWNLOAD_TYPES.AUTO)
+  )
+    state.path = new Path(".");
+  state.path = await applyVariables(state.path, state.info);
+  if (routeMatches) {
+    state.routeIsFolder = ROUTES_TO_FOLDER_REGEX.test(routeMatches);
+    state.route = await applyVariables(new Path(routeMatches), state.info);
+  }
+  const routeRequired =
+    !state.info.routingDisabled && (state.needRouteMatch || options.routeSkipUnmatched);
+  // Re-read the URL: a fetch: rewrite above may have retargeted it.
+  const downloadUrl = requireDownloadUrl(state);
+  const deferRouteRequirement =
+    routeRequired &&
+    WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion &&
+    isHttpDownloadUrl(downloadUrl) &&
+    usesResolvedFilename;
+  const persistAutomaticRoute =
+    typeof state.scratch.routeTemplateRaw === "string" &&
+    WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion &&
+    isHttpDownloadUrl(downloadUrl);
+  if (deferRouteRequirement || persistAutomaticRoute) state.scratch.deferredRouteRequirement = true;
+  if (routeRequired && !routeMatches && !deferRouteRequirement) {
+    downloadRuntime.forgetPendingState(state);
+    return null;
+  }
+
+  // Expanded after the fetch: rewrite so replacement variables resolve
+  // against the URL actually being downloaded.
+  await resolveRenameTransform(state);
+
+  if (options.appendMimeExtension !== false) {
+    const tentative = finalizeFullPathWithoutMimeExtension(state);
+    if (tentative && !EXTENSION_REGEX.test(tentative)) {
+      const ext = mimeToExtension(await resolveMime(state.info));
+      if (ext) {
+        state.info.mimeExtension = ext;
+        state.scratch.mimeExtension = ext;
+      }
+    }
+  }
+
+  return createDownloadPlan(state);
+};
+
+export const createDownloadPlan = (state: DownloadPipelineState): DownloadPlan => {
+  const finalFullPath = finalizeFullPath(state);
+  state.scratch.hasExtension = finalFullPath && finalFullPath.match(EXTENSION_REGEX);
+  const noExtensionPrompt = options.promptIfNoExtension && !state.scratch.hasExtension;
+  const shiftHeldPrompt =
+    options.promptOnShift &&
+    state.info.modifiers &&
+    typeof state.info.modifiers.find((m) => m === "Shift") !== "undefined";
+  const noRuleMatchedPrompt = options.routeFailurePrompt && !state.route;
+  const prompt =
+    state.info.suppressPrompt === true
+      ? false
+      : state.info.forcePrompt === true ||
+        options.prompt ||
+        noExtensionPrompt ||
+        shiftHeldPrompt ||
+        noRuleMatchedPrompt;
+
+  const historyEntryId = ensureHistoryEntry(state, finalFullPath);
+
+  return { state, finalFullPath, prompt, historyEntryId };
+};

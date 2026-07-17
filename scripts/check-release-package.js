@@ -1,0 +1,327 @@
+// @ts-check
+
+const fs = require("fs");
+const path = require("path");
+const { pathToFileURL } = require("node:url");
+const { walkFiles } = require("./lib/walk-files.js");
+
+const root = path.resolve(__dirname, "..");
+/** @type {string[]} */
+const violations = [];
+
+/** @param {string} name */
+const read = (name) => fs.readFileSync(path.join(root, name), "utf8");
+/** @param {string} name */
+const readJson = (name) => JSON.parse(read(name).replace(/^\s*\/\/.*$/gm, ""));
+/** @param {boolean} condition @param {string} message */
+const check = (condition, message) => {
+  if (!condition) violations.push(message);
+};
+/** @param {string} name @param {string} required */
+const contains = (name, required) =>
+  check(read(name).includes(required), `${name}: missing ${JSON.stringify(required)}`);
+/** @param {string} name @param {string} forbidden */
+const excludes = (name, forbidden) =>
+  check(
+    !read(name).includes(forbidden),
+    `${name}: contains forbidden ${JSON.stringify(forbidden)}`,
+  );
+
+const manifest = readJson("manifest.json");
+const packageJson = readJson("package.json");
+check(manifest.version === packageJson.version, "manifest.json and package.json versions differ");
+check(manifest.minimum_chrome_version === "123", "manifest minimum Chrome version must be 123");
+check(manifest.incognito === "spanning", "manifest incognito mode must remain spanning");
+check(
+  !(manifest.permissions || []).includes("cookies") &&
+    !(manifest.optional_permissions || []).includes("cookies"),
+  "manifest must not request cookie access",
+);
+check(
+  (manifest.permissions || []).includes("declarativeNetRequestWithHostAccess"),
+  "manifest must request scoped request-header access for the Referer feature",
+);
+check(
+  JSON.stringify(manifest.commands?.["toggle-source-panel"]?.suggested_key) ===
+    JSON.stringify({ default: "Ctrl+Shift+Y", mac: "Command+Shift+Y" }),
+  "Page Sources must keep its cross-platform default shortcut",
+);
+check(
+  JSON.stringify(manifest.background) ===
+    JSON.stringify({ scripts: ["background.js"], service_worker: "background.sw.js" }),
+  "manifest background templates must target both bundled entry files",
+);
+check(
+  JSON.stringify(manifest.content_scripts?.[0]?.js) === JSON.stringify(["content.js"]),
+  "manifest content script template must target content.js",
+);
+
+const optionsHtml = read("src/options/options.html");
+check(
+  (optionsHtml.match(/<script[^>]+src=/g) || []).length === 1 &&
+    optionsHtml.includes('src="../../options.js"'),
+  "options HTML must load only the generated options bundle",
+);
+
+const typecheck = packageJson.scripts?.typecheck || "";
+for (const config of [
+  "config/typescript/browser.json",
+  "config/typescript/chrome.json",
+  "config/typescript/worker.json",
+  "config/typescript/tools.json",
+  "config/typescript/dev-tools.json",
+  "config/typescript/e2e.json",
+  "config/typescript/test.json",
+]) {
+  check(typecheck.includes(config), `package.json: typecheck must include ${config}`);
+}
+
+const baseOptions = readJson("tsconfig.json").compilerOptions || {};
+for (const [name, expected] of Object.entries({
+  strict: true,
+  skipLibCheck: false,
+  forceConsistentCasingInFileNames: true,
+  noFallthroughCasesInSwitch: true,
+  noImplicitReturns: true,
+  erasableSyntaxOnly: true,
+  noUncheckedSideEffectImports: true,
+  exactOptionalPropertyTypes: true,
+  noUncheckedIndexedAccess: true,
+  noImplicitOverride: true,
+  noUnusedLocals: true,
+  noUnusedParameters: true,
+  allowUnreachableCode: false,
+  allowUnusedLabels: false,
+})) {
+  check(
+    baseOptions[name] === expected,
+    `tsconfig.json: compilerOptions.${name} must be ${expected}`,
+  );
+}
+check(!("allowJs" in baseOptions), "tsconfig.json: allowJs belongs only in tooling/test configs");
+const worker = readJson("config/typescript/worker.json");
+check(
+  JSON.stringify(worker.compilerOptions?.lib) === JSON.stringify(["es2023", "webworker"]),
+  "worker config must remain DOM-free",
+);
+check(
+  worker.include?.includes("../../src/entries/background.ts"),
+  "worker config must check background entry",
+);
+check(
+  readJson("config/typescript/browser.json").exclude?.includes("../../types/host-chrome.d.ts"),
+  "Firefox host check must exclude Chrome declarations",
+);
+check(
+  readJson("config/typescript/chrome.json").exclude?.includes("../../types/host-firefox.d.ts"),
+  "Chrome host check must exclude Firefox declarations",
+);
+
+const tools = readJson("config/typescript/tools.json");
+check(
+  tools.compilerOptions?.allowJs === true &&
+    tools.compilerOptions?.checkJs === true &&
+    tools.compilerOptions?.noEmit === true &&
+    tools.compilerOptions?.strict === true &&
+    tools.compilerOptions?.exactOptionalPropertyTypes === true &&
+    tools.compilerOptions?.noUncheckedIndexedAccess === true &&
+    tools.compilerOptions?.noImplicitOverride === true &&
+    tools.compilerOptions?.noUnusedLocals === true &&
+    tools.compilerOptions?.noUnusedParameters === true &&
+    tools.compilerOptions?.erasableSyntaxOnly === true &&
+    tools.compilerOptions?.noUncheckedSideEffectImports === true &&
+    tools.compilerOptions?.allowUnreachableCode === false &&
+    tools.compilerOptions?.allowUnusedLabels === false,
+  "tooling config must strictly check JavaScript without emitting",
+);
+check(
+  tools.include?.includes("../../scripts/**/*.js"),
+  "tooling config must check every repository script",
+);
+for (const script of fs.globSync("scripts/**/*.js", { cwd: root })) {
+  check(read(script).startsWith("// @ts-check"), `${script}: missing // @ts-check`);
+}
+check(
+  readJson("config/typescript/dev-tools.json").extends === "./tools.json" &&
+    readJson("config/typescript/e2e.json").extends === "./tools.json",
+  "dev and E2E tooling configs must extend the strict tooling config",
+);
+check(
+  readJson("config/typescript/test.json").include?.includes("../../test/**/*.ts"),
+  "test config must include the complete TypeScript suite",
+);
+
+for (const browser of ["chrome", "firefox"]) {
+  const name = `e2e:${browser}`;
+  const command = packageJson.scripts?.[name] || "";
+  check(
+    command.includes("scripts/e2e-parallel.js") && command.includes(`--browser=${browser}`),
+    `package.json: ${name} must use the shared E2E runner`,
+  );
+}
+check(
+  packageJson.scripts?.["e2e:headed"]?.includes("--headed"),
+  "package.json: headed E2E must opt in explicitly",
+);
+contains("scripts/e2e-parallel.js", 'e2eEnv.HEADLESS = process.env.HEADLESS || "1"');
+contains("scripts/e2e-parallel.js", "EXT_DIR: path.relative(root, stagedRun)");
+
+contains("scripts/build-bundled.js", "assertPackageVersion(root)");
+contains("scripts/build-bundled.js", 'expectE2EControl ? "bundled-pkg-e2e" : "bundled-pkg"');
+contains("scripts/build-bundled.js", "parseBuildMode(process.argv.slice(2))");
+const runtimeBuild = read("scripts/build-bundled.js");
+const cleanupIndex = runtimeBuild.indexOf("fs.rmSync(bundleDir");
+const bundleIndex = runtimeBuild.indexOf("execFileSync(");
+check(
+  cleanupIndex >= 0 && bundleIndex >= 0 && cleanupIndex < bundleIndex,
+  "bundle output must be cleaned before bundling",
+);
+for (const contract of [
+  "const bundleFiles = [",
+  "for (const f of bundleFiles)",
+  "const runtimeAssetDirectories = [",
+  "const runtimeAssetFiles = [",
+  "for (const directory of runtimeAssetDirectories)",
+  "for (const file of runtimeAssetFiles)",
+]) {
+  check(runtimeBuild.includes(contract), `runtime staging is missing ${contract}`);
+}
+const bundleScript = read("scripts/bundle.js");
+check(
+  bundleScript.includes("for (const config of configs)") &&
+    bundleScript.includes("await build(config)") &&
+    !bundleScript.includes("build(configs)"),
+  "bundle targets must be written sequentially",
+);
+contains("scripts/package-runtime.js", "canonicalizeZip");
+contains("scripts/package-runtime.js", "assertPackageVersion(root)");
+contains("scripts/package-runtime.js", '"--no-config-discovery"');
+contains("scripts/package-runtime.js", '"save-in-{version}.zip"');
+contains("scripts/build-source-package.js", "assertPackageVersion(root)");
+contains("scripts/build-source-package.js", "verifyArchive");
+contains("scripts/build-source-package.js", "canonicalizeZip");
+contains("config/rolldown.config.mjs", 'process.env.SAVE_IN_BUILD_MODE === "e2e"');
+excludes("config/rolldown.config.mjs", "SAVE_IN_E2E");
+check(
+  packageJson.scripts?.["build:bundled"]?.includes("scripts/package-runtime.js"),
+  "package.json: bundled build must create the runtime archive",
+);
+
+const sourceBuild = read("scripts/build-source-package.js");
+for (const required of [
+  '"config"',
+  '"test"',
+  '"CHANGELOG.md"',
+  '"config/typescript/worker.json"',
+  '"config/typescript/tools.json"',
+  '"config/typescript/dev-tools.json"',
+  '"config/typescript/e2e.json"',
+  '"config/typescript/test.json"',
+  '"config/vitest/fuzz.mjs"',
+  '"!.gitignore"',
+  '"!.oxlintrc.json"',
+  '"!.oxfmtrc.json"',
+  '"!.github/**/*"',
+]) {
+  check(sourceBuild.includes(required), `source attachment is missing policy entry ${required}`);
+}
+check(!/^\s+"docs",$/m.test(sourceBuild), "source attachment must not include all documentation");
+for (const excluded of ['"docs/"']) {
+  check(sourceBuild.includes(excluded), `source attachment must exclude ${excluded}`);
+}
+contains(".github/workflows/ci.yml", "npm run build:source");
+
+const docs = `${read("README.md")}\n${read("docs/integrating/INTEGRATIONS.md")}`;
+for (const fact of [
+  "Chrome 123+",
+  "Firefox",
+  "downloads.download({ headers })",
+  "declarativeNetRequest",
+  "{72d92df5-2aa0-4b06-b807-aa21767545cd}",
+  "jpblofcpgfjikaapfedldfeilmpgkedf",
+  "platform-specific",
+]) {
+  check(docs.includes(fact), `documentation is missing release fact ${JSON.stringify(fact)}`);
+}
+check(
+  /temporary,\s+exact declarativeNetRequest rule/i.test(docs),
+  "documentation must describe the scoped cross-browser Referer path",
+);
+
+const stageRoot = path.join(root, "dist", "bundled-pkg");
+for (const name of [
+  "manifest.json",
+  "background.js",
+  "background.sw.js",
+  "content.js",
+  "options.js",
+  "offscreen.js",
+  "src/options/options.html",
+  "src/options/style.css",
+  "src/options/reference/style-reference.css",
+  "src/options/dialogs/style-welcome.css",
+  "src/options/dialogs/welcome-dialog.css",
+]) {
+  check(fs.existsSync(path.join(stageRoot, name)), `staged package is missing ${name}`);
+}
+const stagedOptionsRoot = path.join(stageRoot, "src/options");
+const stagedStyles = fs.existsSync(stagedOptionsRoot)
+  ? walkFiles(stagedOptionsRoot, (name) => name.endsWith(".css"))
+  : [];
+for (const styleFile of stagedStyles) {
+  const source = fs.readFileSync(styleFile, "utf8");
+  for (const match of source.matchAll(/@import url\("([^"]+\.css)"\)/g)) {
+    const importedStyle = match[1];
+    if (!importedStyle) continue;
+    check(
+      fs.existsSync(path.join(path.dirname(styleFile), importedStyle)),
+      `staged package is missing ${path.relative(stageRoot, styleFile)} import ${importedStyle}`,
+    );
+  }
+}
+const firefoxBackground = fs.existsSync(path.join(stageRoot, "background.js"))
+  ? fs.readFileSync(path.join(stageRoot, "background.js"), "utf8")
+  : "";
+check(
+  !/^(?:const|let|class|function) location\b/m.test(firefoxBackground),
+  "Firefox background bundle must not redeclare the non-configurable window.location global",
+);
+
+const finish = async () => {
+  const configUrl = pathToFileURL(path.join(root, "config", "vitest", "base.mjs")).href;
+  const { default: vitestConfig, resolveMaxWorkers } = await import(configUrl);
+  // resolveMaxWorkers defaults `ci` to process.env.CI, so the checks that
+  // assert local behavior must pin it or they inherit a runner's CI=true and
+  // assert the CI branch instead.
+  check(resolveMaxWorkers({ cores: 32, ci: "" }) === 28, "Vitest must reserve four local CPUs");
+  check(resolveMaxWorkers({ cores: 2, ci: "" }) === 1, "local Vitest workers need a floor");
+  check(resolveMaxWorkers({ ci: "true", cores: 8 }) === 8, "CI must use available CPUs");
+  check(
+    resolveMaxWorkers({ requested: "5", ci: "true", cores: 8 }) === 5 &&
+      resolveMaxWorkers({ requested: "0", cores: 8 }) === 1,
+    "explicit Vitest worker limits must override defaults with a floor",
+  );
+  const coverageExclude = vitestConfig.test?.coverage?.exclude || [];
+  for (const excluded of ["src/entries/**", "src/options/core/options.ts"]) {
+    check(coverageExclude.includes(excluded), `Vitest coverage must exclude ${excluded}`);
+  }
+  check(
+    !coverageExclude.includes("src/options/**"),
+    "pure options modules must remain in coverage",
+  );
+  check(!coverageExclude.includes("src/entry.*.ts"), "Vitest coverage uses a retired entry glob");
+
+  if (violations.length) {
+    for (const violation of violations.toSorted()) {
+      process.stderr.write(`Release package violation: ${violation}\n`);
+    }
+    process.exitCode = 1;
+  } else {
+    process.stdout.write("Release package policy and staged bundle checks passed.\n");
+  }
+};
+
+finish().catch((error) => {
+  process.stderr.write(`Release package check failed: ${String(error)}\n`);
+  process.exitCode = 1;
+});

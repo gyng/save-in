@@ -1,0 +1,57 @@
+:is(.unsaved-changes-dialog, .reset-settings-dialog, .history-clear-dialog) {
+  --dialog-inline-size: 420px;
+
+  padding: var(--space-5);
+}
+
+:is(.unsaved-changes-dialog, .reset-settings-dialog, .history-clear-dialog) h2 {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-lg);
+  font-weight: 600;
+}
+
+:is(.unsaved-changes-dialog, .reset-settings-dialog, .history-clear-dialog) p {
+  margin: 0 0 var(--space-5);
+}
+
+.unsaved-changes-dialog h2 {
+  margin-block-end: var(--space-3);
+}
+
+.unsaved-changes-dialog p {
+  margin: 0;
+  font-size: var(--text-base);
+  line-height: var(--leading-copy);
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.unsaved-changes-dialog .dialog-actions {
+  margin-block-start: var(--space-4);
+}
+
+.button-danger,
+.danger-button {
+  color: var(--color-on-accent);
+  border-color: var(--color-danger);
+  background: var(--color-danger);
+}
+
+.button-danger:hover,
+.button-danger:active,
+.danger-button:hover,
+.danger-button:active {
+  border-color: var(--color-danger-active);
+  background: var(--color-danger-active);
+}
+
+.button-danger:disabled,
+.danger-button:disabled {
+  border-color: var(--panel-border);
+  background: var(--panel-bg);
+}

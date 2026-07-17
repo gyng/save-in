@@ -1,0 +1,185 @@
+a {
+  cursor: pointer;
+  color: var(--link-color);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+a:active {
+  color: var(--link-color-active);
+}
+
+:where(p, .help-text, .section-lead, .privacy-content) a {
+  text-decoration: underline;
+  text-underline-offset: 0.12em;
+}
+
+/* The icon rides in the text rather than being positioned against the link's
+   box. A link that wraps has a box two lines tall, so an absolute icon centred
+   in it floated beside the middle of the link, nowhere near the end of it. As
+   inline content the icon simply follows the last word onto whichever line that
+   word lands on, and the empty ::after leaves no space beside it to break at,
+   so it cannot be orphaned onto a line of its own. */
+a.external::after {
+  display: inline-block;
+  inline-size: 16px;
+  block-size: 16px;
+  margin-inline-start: var(--space-1);
+  vertical-align: -0.2em;
+  background-color: currentColor;
+  content: "";
+  pointer-events: none;
+  mask: url(../i/open-in-new-16.svg) center / contain no-repeat;
+}
+
+html {
+  box-sizing: border-box;
+  font-family: var(--font-stack);
+  font-size: var(--text-base);
+  line-height: var(--leading-ui);
+  /* Always reserve the vertical scrollbar gutter so switching between
+     short and tall tabs does not shift the layout horizontally */
+  scrollbar-gutter: stable;
+  scroll-padding-block-start: var(--sticky-header-offset);
+  overflow-y: auto;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
+/* Chrome inserts this generated box between details and its disclosed children,
+   so it must carry the shared sizing model into menus containing links. */
+@supports selector(details::details-content) {
+  details::details-content {
+    box-sizing: inherit;
+  }
+}
+
+:root {
+  accent-color: var(--color-accent);
+}
+
+button,
+input,
+select,
+textarea {
+  box-sizing: border-box;
+  font: inherit;
+  color: var(--color-text);
+}
+
+/* The UA gives every fieldset a frame, padding, and a min-content floor that
+   refuses to shrink inside a grid or flex parent. Every fieldset here groups
+   controls for the accessibility tree and draws its own surface, so neutralize
+   the frame once here with the other native-control normalization rather than
+   restating it in each owner. A fieldset that does want a frame draws it in its
+   own layer, which outranks this one. */
+fieldset {
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+input:disabled,
+textarea:disabled,
+select:disabled,
+button:disabled {
+  color: var(--disabled-control-color);
+}
+
+button:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+/* Shared form-control atom. Feature sections only add layout and intent. */
+input[type="text"]:focus-visible,
+input[type="number"]:focus-visible,
+input[type="search"]:focus-visible,
+input[type="date"]:focus-visible,
+input[type="datetime-local"]:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+button:focus-visible {
+  outline: none;
+  border-color: var(--color-focus);
+  box-shadow: var(--focus-ring);
+}
+
+summary:focus-visible {
+  outline: none;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--focus-ring);
+}
+
+input[type="text"],
+input[type="number"],
+input[type="search"],
+input[type="date"],
+input[type="datetime-local"],
+select {
+  min-block-size: var(--control-height);
+  padding: var(--space-1) var(--space-2);
+  background-color: var(--input-background);
+  font-size: var(--text-base);
+}
+
+input[type="text"],
+input[type="number"],
+input[type="search"],
+input[type="date"],
+input[type="datetime-local"],
+textarea,
+select {
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius);
+  transition:
+    box-shadow var(--motion-duration-fast) ease,
+    border-color var(--motion-duration-fast) ease;
+}
+
+textarea {
+  margin: var(--space-2) 0;
+  padding: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-base);
+}
+
+td {
+  padding: 0 var(--space-2);
+  line-height: var(--leading-code);
+}
+
+/* Shared button atom. Compact and icon controls explicitly override this box. */
+button,
+.button {
+  min-block-size: var(--control-height);
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius);
+  background-color: transparent;
+  font-size: var(--text-base);
+  font-weight: 400;
+  cursor: pointer;
+  user-select: none;
+  transition:
+    background-color var(--motion-duration-fast) ease,
+    box-shadow var(--motion-duration-fast) ease;
+}
+
+button:not(:disabled):hover,
+.button:not(:disabled):hover {
+  background-color: var(--hover-bg);
+}
+
+button:not(:disabled):active,
+.button:not(:disabled):active {
+  background-color: var(--hover-bg-strong);
+}

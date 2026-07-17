@@ -1,0 +1,164 @@
+.error-notification {
+  display: none;
+  margin: 0;
+}
+
+.error-notification:has([data-error-channel]:not(:empty)) {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: var(--space-1) 0;
+}
+
+.editor-validation-summary [data-error-channel] {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.error-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  color: var(--error-fg);
+  border: 1px solid var(--error-border);
+  border-inline-start: 3px solid var(--color-validation);
+  border-radius: var(--radius);
+  background-color: var(--error-bg);
+  cursor: pointer;
+}
+
+.error-row::after {
+  align-self: center;
+  margin-inline-start: auto;
+  color: var(--error-fg);
+  content: "→";
+  opacity: 0.5;
+}
+
+.error-row:dir(rtl)::after {
+  content: "←";
+}
+
+.error-row:hover {
+  border-color: var(--color-validation);
+}
+
+.error-row:hover::after {
+  opacity: 1;
+}
+
+.error-row:focus-visible {
+  outline: 2px solid var(--color-validation);
+  outline-offset: 1px;
+}
+
+.error-row::before {
+  align-self: center;
+  flex: none;
+  inline-size: 15px;
+  block-size: 15px;
+  background-color: var(--color-validation);
+  content: "";
+  mask: url(../i/warning-16.svg) center / contain no-repeat;
+}
+
+.error-message {
+  font-weight: 600;
+}
+
+.error-location {
+  flex: none;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  white-space: nowrap;
+}
+
+.error-error {
+  padding: 1px 6px;
+  border-radius: 3px;
+  background-color: var(--chip-bg);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+}
+
+.info-row {
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  background-color: var(--panel-bg);
+}
+
+.feedback {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  line-height: 1.4;
+}
+
+.feedback-inline:not(:empty),
+.warning-text:not(:empty),
+#click-to-save-warning:not([hidden]) {
+  flex-basis: 100%;
+  margin: var(--space-1) 0 0;
+  padding: var(--space-2) var(--space-3);
+  border-inline-start: 3px solid currentColor;
+}
+
+.feedback-success {
+  color: var(--success-fg);
+  background: color-mix(in srgb, var(--color-success) 8%, transparent);
+}
+
+.feedback-warning,
+.warning-text:not(:empty),
+#click-to-save-warning:not([hidden]) {
+  color: var(--warning-fg);
+  background: color-mix(in srgb, var(--color-warning) 8%, transparent);
+}
+
+.feedback-error,
+.feedback.is-error,
+.feedback.error {
+  color: var(--error-fg);
+  background: var(--error-bg);
+}
+
+.feedback-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--error-border);
+  border-inline-start: 3px solid var(--color-validation);
+  border-radius: var(--radius);
+}
+
+.help-text {
+  margin: var(--space-2) 0 var(--space-4);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  background-color: var(--panel-bg);
+}
+
+.click-to-copy {
+  cursor: pointer;
+}
+
+.click-to-copy:hover {
+  outline: solid 2px var(--link-color);
+}
+
+.click-to-copy:focus-visible {
+  border-radius: var(--radius-sm);
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.click-to-copy.copied {
+  color: var(--success-fg);
+}
+
+.click-to-copy:active {
+  background-color: var(--hover-bg-strong);
+}

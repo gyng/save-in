@@ -1,0 +1,26 @@
+@container options-panel (max-width: 640px) {
+  .advanced-section-nav {
+    column-gap: var(--space-3);
+  }
+
+  .fetch-credentials-option {
+    margin-inline-start: var(--space-2);
+    padding-inline-start: var(--space-2);
+  }
+
+  .counter-control .dev-api-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .counter-control .dev-api-label {
+    grid-column: 1 / -1;
+  }
+
+  .tab-panel .counter-control #counter-value {
+    inline-size: 100%;
+    max-inline-size: none;
+  }
+}

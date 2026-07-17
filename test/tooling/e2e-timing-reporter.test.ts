@@ -1,0 +1,109 @@
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import type { TestModule } from "vitest/node";
+import E2ETimingReporter from "../../scripts/e2e-timing-reporter.mjs";
+
+const originalArtifactDirectory = process.env.E2E_ARTIFACT_DIR;
+const originalRunId = process.env.E2E_RUN_ID;
+
+afterEach(() => {
+  if (originalArtifactDirectory === undefined) delete process.env.E2E_ARTIFACT_DIR;
+  else process.env.E2E_ARTIFACT_DIR = originalArtifactDirectory;
+  if (originalRunId === undefined) delete process.env.E2E_RUN_ID;
+  else process.env.E2E_RUN_ID = originalRunId;
+});
+
+test("writes compact per-browser timing telemetry", () => {
+  const artifactDirectory = mkdtempSync(join(tmpdir(), "save-in-e2e-timings-"));
+  process.env.E2E_ARTIFACT_DIR = artifactDirectory;
+  process.env.E2E_RUN_ID = "run-123";
+  writeFileSync(
+    join(artifactDirectory, "chrome-environment.json"),
+    JSON.stringify({ browser: "chrome", version: "Google Chrome 123.0.0.0" }),
+  );
+  const testModule = {
+    moduleId: "/repo/test/e2e/chrome.e2e.mjs",
+    diagnostic: () => ({
+      environmentSetupDuration: 10,
+      prepareDuration: 20,
+      collectDuration: 30,
+      setupDuration: 40,
+      duration: 50,
+    }),
+    children: {
+      allTests: () => [
+        {
+          fullName: "Chrome E2E saves a download",
+          result: () => ({ state: "passed" }),
+          diagnostic: () => ({ duration: 123 }),
+        },
+      ],
+    },
+  } as unknown as TestModule;
+  const secondModule = {
+    moduleId: "/repo/test/e2e/cases/chrome.e2e-extra.mjs",
+    diagnostic: () => ({
+      environmentSetupDuration: 1,
+      prepareDuration: 2,
+      collectDuration: 3,
+      setupDuration: 4,
+      duration: 5,
+    }),
+    children: {
+      allTests: () => [
+        {
+          fullName: "Chrome E2E routes a download",
+          result: () => ({ state: "passed" }),
+          diagnostic: () => ({ duration: 45 }),
+        },
+      ],
+    },
+  } as unknown as TestModule;
+
+  try {
+    new E2ETimingReporter().onTestRunEnd([testModule, secondModule], [], "passed");
+
+    const report = JSON.parse(
+      readFileSync(join(artifactDirectory, "timings-chrome.json"), "utf8"),
+    ) as Record<string, unknown>;
+    expect(report).toMatchObject({
+      schemaVersion: 3,
+      runId: "run-123",
+      browser: "chrome",
+      browserVersion: "Google Chrome 123.0.0.0",
+      success: true,
+      unhandledErrors: 0,
+      phases: {
+        environmentSetupMs: 11,
+        prepareMs: 22,
+        collectMs: 33,
+        setupMs: 44,
+        testsMs: 55,
+      },
+      tests: [
+        {
+          moduleId: "test/e2e/chrome.e2e.mjs",
+          name: "Chrome E2E saves a download",
+          state: "passed",
+          durationMs: 123,
+        },
+        {
+          moduleId: "test/e2e/cases/chrome.e2e-extra.mjs",
+          name: "Chrome E2E routes a download",
+          state: "passed",
+          durationMs: 45,
+        },
+      ],
+    });
+    expect(report.capturedAt).toEqual(expect.any(String));
+  } finally {
+    rmSync(artifactDirectory, { recursive: true, force: true });
+  }
+});
+
+test("does nothing outside an E2E artifact run", () => {
+  delete process.env.E2E_ARTIFACT_DIR;
+
+  expect(() => new E2ETimingReporter().onTestRunEnd([], [], "passed")).not.toThrow();
+});

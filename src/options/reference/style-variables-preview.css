@@ -1,0 +1,163 @@
+/* Live variable values (current interpolation from the last download). */
+.variables-preview {
+  position: relative;
+  margin: 0;
+}
+
+.variables-preview-list {
+  position: absolute;
+  z-index: var(--z-menu);
+  top: 100%;
+  inset-inline-start: 0;
+  inline-size: 100%;
+  max-block-size: min(360px, 55dvh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  margin-block-start: var(--space-1);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  background: var(--floating-bg);
+  box-shadow: var(--floating-shadow);
+}
+
+.variables-preview-table {
+  inline-size: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+
+.variables-preview-table td {
+  overflow: hidden;
+  max-inline-size: 0;
+  block-size: var(--compact-row-height);
+  padding: var(--space-1) var(--space-3);
+  border-block-end: 1px solid var(--panel-border);
+  line-height: 1.5;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.variables-preview-group th {
+  padding: var(--space-2) var(--space-3) var(--space-1);
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-align: start;
+  text-transform: uppercase;
+}
+
+.variables-preview-table tr:last-child td {
+  border-block-end: none;
+}
+
+.variables-preview-table td:first-child {
+  inline-size: 45%;
+}
+
+.variables-preview-reference-row {
+  display: grid;
+  grid-template-columns: minmax(7rem, 45%) minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  gap: 1px var(--space-3);
+  inline-size: 100%;
+  padding: var(--space-2) var(--space-3);
+  border-block-end: 1px solid var(--panel-border);
+}
+
+.variables-preview-reference-row > td {
+  inline-size: auto;
+  max-inline-size: none;
+  block-size: auto;
+  padding: 0;
+  border-block-end: 0;
+}
+
+.variables-preview-reference-row > td:first-child {
+  grid-column: 1;
+  grid-row: 1;
+  inline-size: auto;
+}
+
+.variables-preview-reference-row > .variables-preview-value:not(.clause-preview-description) {
+  grid-column: 2;
+  grid-row: 1;
+  min-inline-size: 0;
+  text-align: end;
+}
+
+.variables-preview-description,
+.variables-preview-reference-row > .clause-preview-description {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  overflow-wrap: anywhere;
+  color: var(--color-text-muted);
+  font-family: var(--font-stack);
+  font-size: var(--text-sm);
+  white-space: normal;
+}
+
+.variables-preview-table tr:last-child.variables-preview-reference-row {
+  border-block-end: 0;
+}
+
+.variables-preview-table code {
+  padding: 0;
+  background: none;
+  font-size: inherit;
+}
+
+.variables-preview-value {
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+}
+
+.variables-preview-value.is-placeholder {
+  opacity: 0.58;
+  font-style: italic;
+}
+
+.variables-preview-insert {
+  display: block;
+  inline-size: 100%;
+  padding: 0;
+  border: 0;
+  color: inherit;
+  background: none;
+  text-align: start;
+  cursor: pointer;
+}
+
+.variables-preview-command > td {
+  block-size: auto;
+  padding: 0;
+}
+
+.variables-preview-command-insert {
+  display: grid;
+  grid-template-columns: minmax(7rem, 45%) minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  gap: 1px var(--space-3);
+  padding: var(--space-2) var(--space-3);
+}
+
+.variables-preview-command-label {
+  grid-column: 2;
+  grid-row: 1;
+  overflow: hidden;
+  color: var(--color-text-muted);
+  text-align: end;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.variables-preview-row.insertable:has(.variables-preview-insert:hover),
+.variables-preview-row.insertable:has(.variables-preview-insert:focus-visible) {
+  background-color: var(--hover-bg);
+}
+
+.variables-preview-insert:hover code,
+.variables-preview-insert:focus-visible code {
+  color: var(--link-color);
+}
