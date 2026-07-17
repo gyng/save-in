@@ -11,13 +11,19 @@ engine that decides where a file comes to rest — thinks exactly as it did in
 
 This is a for-fun retrospective on the `v4` branch: how much code was written,
 how much of it survived to the tip, and — more interestingly — how much of the
-*behavior* survived even where none of the *code* did. Numbers are from the
-branch as measured on 2026-07-16; regenerate with the commands at the bottom.
+*behavior* survived even where none of the *code* did. Numbers are measured at
+the `v4.0.0` tag on 2026-07-18; regenerate with the commands at the bottom.
 
 ## The shape of it
 
-**6 days · 1,134 commits · +170,084 / −15,299 · a full ManifestV2-JS → MV3-TS
-rewrite.**
+**9 days · 1,491 commits · +208,286 / −15,377 · a full ManifestV2-JS → MV3-TS
+rewrite, then shipped.**
+
+Two phases hide inside that span. Days 07-10 through 07-15 are the rewrite
+proper — the from-scratch TypeScript reimplementation. Days 07-16 through 07-18
+are release-hardening: the first green CI the branch ever had, the e2e flake
+hunt, store assets, the docs reorganization, and the release itself. The rewrite
+was six days; making it shippable took three more.
 
 At the merge base (`master`), the extension was the original MV2 codebase in
 plain JavaScript (`src/router.js`, `src/variable.js`, `src/path.js`, and
@@ -26,54 +32,60 @@ friends). `v4` is a ground-up TypeScript rebuild: the entire `src/routing/`,
 
 | Metric | Value |
 | --- | --- |
-| Commits since master | 1,134 (~189/day) |
-| Files changed | 716 (+634 new, −63 deleted, 19 modified) |
-| Raw diff | +170,084 / −15,299 |
-| Source files at tip | 279 `.ts`/`.css` under `src/` |
-| Most-churned file | `src/options/style.css` — touched 208 times |
-| Peak commit hour | 03:00 🦉 |
+| Commits since master | 1,491 (~166/day over 9 days) |
+| Files changed | 795 (+712 new, −63 deleted, 20 modified) |
+| Raw diff | +208,286 / −15,377 |
+| Source files at tip | 313 `.ts`/`.css` under `src/` |
+| Most-churned file | `src/options/style.css` — touched 211 times |
+| Peak commit hour | 03:00 🦉 (130 commits) |
 
 ### Cadence
 
 ```
-07-10  ▏  87   (day 1)
-07-11  ▏  75
-07-12  ██ 187
-07-13  █  140
-07-14  █  154
-07-15  ████████████ 449   ← peak: 39% of the branch in a single day
-07-16  ▏  42
+07-10  ██          87   (day 1)
+07-11  ██          75
+07-12  █████      187
+07-13  ████       140
+07-14  ████       154
+07-15  ███████████ 449   ← peak: 30% of the branch in a single day
+07-16  ███        112
+07-17  ███████    262   ← release-hardening begins
+07-18  ▏           25   (tag v4.0.0)
 ```
 
 ## Code survival — half didn't make it
 
-Roughly **90,400 lines** were written into `src/` over the branch; **45,366
+Roughly **103,500 lines** were written into `src/` over the branch; **~52,600
 survive** at the tip. Attributing each surviving line to the day it was *last*
 written (via `git blame`):
 
 | Day | Written | Surviving | Rate |
 | --- | ---: | ---: | ---: |
-| 07-11 | 9,070 | 798 | ~9% 💀 |
-| 07-12 | 15,620 | 5,180 | ~33% |
-| 07-13 | 10,034 | 5,204 | ~52% |
-| 07-14 | 13,562 | 7,030 | ~52% |
-| 07-15 | 33,516 | 18,855 | ~56% |
-| 07-16 | 7,239 | 6,546 | ~90% |
+| 07-10 | 1,370 | 1,271 | ~93% |
+| 07-11 | 9,070 | 586 | ~6% 💀 |
+| 07-12 | 15,620 | 4,763 | ~30% |
+| 07-13 | 10,034 | 4,956 | ~49% |
+| 07-14 | 13,562 | 6,703 | ~49% |
+| 07-15 | 33,516 | 17,574 | ~52% |
+| 07-16 | 12,410 | 9,991 | ~81% |
+| 07-17 | 7,948 | 6,432 | ~81% |
+| 07-18 | 7 | 7 | 100% |
 
 Blame credits a surviving line to its *most recent* edit, so early days are
 understated — a line written on the 11th and revised on the 15th counts as a
 15th survivor. That caveat aside, the pattern is plain: the further from the
 tip, the more of that day's work was later rewritten, and day 11 in particular
-was almost entirely superseded.
+was almost entirely superseded. The high survival of the last three days is the
+release tail — hardening rarely rewrites itself.
 
 ### The oldest survivors 🪦
 
-Not everything is new. Blame turned up **~400 lines that predate `v4`
+Not everything is new. Blame turned up **~355 lines that predate `v4`
 entirely**, the oldest dated **2017-04-21** — original Save In code that has
 outlived nine years and an entire MV3 rewrite:
 
 ```
-2017-12-05:   51 lines
+2017-12-05:   47 lines
 2018-01-28:  125 lines   ← largest ancient block
 2019-05-20:   37 lines
 2021-06-13:   19 lines
@@ -137,25 +149,32 @@ naivefilename pagedomain pagetitle pageurl selectiontext sourcedomain sourceurl
 
 ## The one-liner
 
-`v4` is a 6-day, ~90k-line rewrite where **half the code didn't survive its own
-branch** and **not one line of the router survived** — yet the router's
-*behavior* is the most-preserved thing in the whole project. Least-surviving
-code, most-surviving logic.
+`v4` is a 9-day branch — a 6-day, ~104k-line rewrite followed by 3 days of
+release-hardening — where **half the code didn't survive its own branch** and
+**not one line of the router survived** — yet the router's *behavior* is the
+most-preserved thing in the whole project. Least-surviving code, most-surviving
+logic.
 
 ## Reproducing these numbers
 
+`BASE` is the pre-v4 master (the v3.7.3-era tip, commit `4efb1cc2`, before the
+rewrite merged); `END` is the `v4.0.0` release tag.
+
 ```bash
+BASE=4efb1cc2
+END=v4.0.0
+
 # Branch shape
-git rev-list --count master..v4
-git diff --shortstat master v4
-git log master..v4 --format='%cd' --date=short | sort | uniq -c
+git rev-list --count "$BASE".."$END"
+git diff --shortstat "$BASE" "$END"
+git log "$BASE".."$END" --format='%cd' --date=short | sort | uniq -c
 
 # Surviving lines by authoring day (blame every current src line)
-git ls-tree -r v4 --name-only src | grep -E '\.(ts|css)$' | while read f; do
-  git blame -w --line-porcelain v4 -- "$f" | grep '^committer-time '
+git ls-tree -r "$END" --name-only src | grep -E '\.(ts|css)$' | while read f; do
+  git blame -w --line-porcelain "$END" -- "$f" | grep '^committer-time '
 done | awk '{print $2}'   # epoch seconds -> bucket by local date
 
 # Matcher vocabulary, then vs now
-git show master:src/router.js        | grep -oE '^    [a-z]+:'
-git show v4:src/routing/matchers.ts  | grep -oE '^  [a-z]+:'
+git show "$BASE":src/router.js        | grep -oE '^    [a-z]+:'
+git show "$END":src/routing/matchers.ts  | grep -oE '^  [a-z]+:'
 ```
