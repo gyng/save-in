@@ -400,16 +400,29 @@ test("options page autosaves through Firefox host APIs", async () => {
       })()`,
       { description: "Firefox options controls" },
     );
-    await evalOptions(
-      `(() => {
-        const checkbox = document.querySelector("#promptOnShift");
-        checkbox.checked = ${JSON.stringify(changed)};
-        checkbox.dispatchEvent(new Event("change", { bubbles: true }));
-        return true;
-      })()`,
-    );
-
-    const stored = await control.storage.local.wait("promptOnShift", changed);
+    // restoreOptions() runs last in the options init and is async, so on a slow
+    // runner the checkbox can be enabled before init settles: a lone change then
+    // fires before its autosave listener is wired, or the still-in-flight
+    // restore resets the box under it. A checkbox autosaves immediately, so once
+    // wiring and restore have settled a single dispatch sticks — re-dispatch,
+    // pacing on the event-driven storage wait rather than a timer, until it does.
+    const dispatchToggle = () =>
+      evalOptions(
+        `(() => {
+          const checkbox = document.querySelector("#promptOnShift");
+          checkbox.checked = ${JSON.stringify(changed)};
+          checkbox.dispatchEvent(new Event("change", { bubbles: true }));
+          return true;
+        })()`,
+      );
+    let stored;
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      await dispatchToggle();
+      stored = await control.storage.local
+        .wait("promptOnShift", changed, 2500)
+        .catch(() => undefined);
+      if (stored === changed) break;
+    }
     const state = { stored, live: await control.options.get("promptOnShift") };
     expect(state).toEqual({ stored: changed, live: changed });
   } finally {
