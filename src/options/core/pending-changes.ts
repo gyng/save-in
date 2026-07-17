@@ -56,6 +56,15 @@ export const createPendingChangesTracker = (ports: PendingChangesPorts) => {
 
   const setupAutosave = (el: Element): void => {
     if (el.hasAttribute("data-no-autosave")) return;
+    // An option is addressed by its schema name, which is its element id — that
+    // is how collectOptionConfig and setOptionFieldValue find it. A field with
+    // no id therefore cannot be one, and saving it scoped the save to "", which
+    // collectOptionConfig reads as no scope at all and answers with every
+    // option: a page widget like the clause-preview filter rewrote the whole
+    // configuration and rebuilt the menus on blur, and reported itself unsaved
+    // in between. The .rule-builder check below cannot cover this — it only
+    // reaches fields inside markup that carries that class.
+    if (!el.id) return;
     if (
       !(
         el instanceof HTMLInputElement ||

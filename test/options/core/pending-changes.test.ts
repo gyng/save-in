@@ -251,6 +251,24 @@ describe("field autosave", () => {
       .dispatchEvent(new Event("input"));
     expect(ports.saveOptions).not.toHaveBeenCalled();
   });
+
+  // An option is addressed by its schema name, which is its element id. The
+  // clause-preview filter is a UI widget with neither, and a save scoped to ""
+  // is the one collectOptionConfig reads as "no scope at all".
+  test("skips a page widget that carries no option id", () => {
+    const ports = makePorts();
+    const tracker = createPendingChangesTracker(ports);
+    document.body.innerHTML = `
+      <input type="search" class="clause-preview-filter" name="routing-clause-filter">`;
+
+    tracker.setupAllFieldsAutosave();
+    const filter = document.querySelector<HTMLInputElement>(".clause-preview-filter")!;
+    filter.value = "pagedomain";
+    filter.dispatchEvent(new Event("change"));
+
+    expect(ports.saveOptions).not.toHaveBeenCalled();
+    expect(tracker.hasUnsavedField()).toBe(false);
+  });
 });
 
 describe("beforeunload guard", () => {
