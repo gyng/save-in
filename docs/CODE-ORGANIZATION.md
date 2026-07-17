@@ -965,6 +965,45 @@ and its import-time call exactly, and the panel is options-page DOM covered by
    functions; `check-import-cycles.js`'s cross-feature allowlist was unaffected,
    since no import moved.
 
+6. **Sweep the remaining god functions.** With 4.5's bar established —
+   decompose the function, do not split a cohesive file — the tree was measured
+   for every function over 150 lines rather than trusting the earlier
+   impressions. Two more were the same defect, and both landed:
+   - `content/source-panel-row-render.ts`'s `render` (536 lines) was the largest
+     function in `src/`. Phase 2.3 extracted this file *as* a builder but left
+     everything inside one pass: kind facets, empty state, and per row the
+     selection checkbox, preview or glyph, source link, metadata, the "more"
+     menu, the hover tooltip, and the alt-click gestures. Twenty named builders;
+     `render` is 64 lines. The subtlety worth knowing: `render` destructured
+     `copy`/`formatters`/`panelOptions` from `ctx` at render time, and those are
+     mutable (`buildPanelUpdate` replaces them) while the row cache keeps rows
+     across renders — so each builder destructures at row-build time, the same
+     tick. Reading `ctx.*` lazily inside the update closures would have been a
+     real behavior change.
+   - `options/route-debugger/route-debugger.ts`'s `renderTrace` (347 lines) →
+     eleven builders, 13 lines. `TracedRule`/`TracedClause` are derived from
+     `RouteDebuggerTrace` rather than re-imported, so they cannot drift.
+
+   What was deliberately left, having been measured rather than assumed:
+   `rule-templates.ts`'s `localizeRuleTemplates` (369) and `webmcp.ts`'s
+   `buildTools` (356) are declaration tables — a translations map and a list of
+   self-contained tool definitions. Long, not tangled; splitting them buys
+   nothing. `setupRuleVisualEditor` (823), `setupRouteDebugger` (769),
+   `wirePanelRowRender` (733), and `wirePanelRefresh` (304) are the
+   decomposed-container shape this phase produces, which is the goal, not a
+   finding.
+
+   **`downloads/notification-events.ts`'s `onDownloadChanged` (287) is the one
+   real god function left, and it is not a sweep-up job.** The original problem
+   statement named it ("`onDownloadChanged` alone is ~280 lines") and Phase 2.6
+   moved it without decomposing. Every function above was straight-line DOM
+   building, where extraction is mechanical; this one is an async procedure with
+   5 early returns and 31 awaits over the download pipeline's own state. Its
+   sections cannot be lifted without threading handled/continue signals back to
+   the caller — a design change (a pipeline of steps, say), not a rename, in the
+   file where a subtle mistake silently breaks downloads. It needs its own step
+   with `npm run e2e`, not the end of a sweep.
+
 ## Non-goals
 
 - No behavior, message-payload, storage-shape, or manifest changes; all
