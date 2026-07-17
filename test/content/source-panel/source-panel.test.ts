@@ -931,6 +931,33 @@ describe("Page Sources panel interactions", () => {
     expect(rowFor("large.jpg").querySelector("img")).toBeNull();
   });
 
+  // A player writing style="width:…" on its progress bar every frame calls the
+  // observer faster than the debounce; a bound the stream cannot reset has to
+  // flush, or live discovery stops for as long as the page animates.
+  test("still discovers while the page mutates faster than the debounce", async () => {
+    vi.useFakeTimers();
+    document.body.innerHTML = `<div id="ticker"></div>`;
+    toggleSourcePanel(vi.fn(), { live: true });
+    const host = document.getElementById("save-in-source-panel")!;
+    const linkHrefs = () =>
+      [...host.shadowRoot!.querySelectorAll<HTMLAnchorElement>(".source-link")].map(
+        ({ href }) => href,
+      );
+
+    const added = document.createElement("img");
+    added.src = "brand-new.jpg";
+    document.body.append(added);
+
+    const ticker = document.getElementById("ticker")!;
+    for (let i = 0; i < 40; i += 1) {
+      ticker.style.width = `${i}px`;
+      await Promise.resolve();
+      vi.advanceTimersByTime(100);
+    }
+
+    expect(linkHrefs()).toContain("http://localhost/brand-new.jpg");
+  });
+
   test("ignores panel mutations and incrementally reconciles changed link targets", async () => {
     vi.useFakeTimers();
     document.body.innerHTML = `<a id="dynamic" href="first.html">first</a><a href="stable.html">stable</a>`;

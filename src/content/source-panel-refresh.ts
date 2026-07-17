@@ -11,6 +11,11 @@ import {
 import { PANEL_HOST_ID, cleanupPanelHost, panelOpenChanges } from "./source-panel-host.ts";
 import type { SourcePanelContext } from "./source-panel-context.ts";
 
+// Coalesce a burst of page mutations, but never postpone discovery past the
+// max wait, however long the page keeps mutating.
+const REFRESH_DEBOUNCE_MS = 200;
+const REFRESH_MAX_WAIT_MS = 1000;
+
 /** Source discovery: the initial scan, incremental DOM-mutation
  * reconciliation, background-element scanning, and resource-timing driven
  * byte-size updates. Owns ctx.allSources and the observers that keep it
@@ -149,6 +154,7 @@ export const wirePanelRefresh = (ctx: SourcePanelContext): void => {
   };
 
   let refreshTimer = 0;
+  let refreshMaxWaitTimer = 0;
   const pendingRoots = new Set<Element>();
   const removedRoots = new Set<Element>();
   let fullRefreshPending = false;
@@ -159,24 +165,38 @@ export const wirePanelRefresh = (ctx: SourcePanelContext): void => {
     }
     pendingRoots.add(root);
   };
+  const flushRefresh = () => {
+    window.clearTimeout(refreshTimer);
+    window.clearTimeout(refreshMaxWaitTimer);
+    refreshTimer = 0;
+    refreshMaxWaitTimer = 0;
+    if (fullRefreshPending) {
+      fullRefreshPending = false;
+      pendingRoots.clear();
+      removedRoots.clear();
+      refreshSources();
+      return;
+    }
+    removedRoots.forEach(removeSourcesUnder);
+    removedRoots.clear();
+    pendingRoots.forEach((root) => {
+      if (root.isConnected) reconcileRoot(root);
+    });
+    pendingRoots.clear();
+    commitSources();
+  };
   const scheduleRefresh = () => {
     window.clearTimeout(refreshTimer);
-    refreshTimer = window.setTimeout(() => {
-      if (fullRefreshPending) {
-        fullRefreshPending = false;
-        pendingRoots.clear();
-        removedRoots.clear();
-        refreshSources();
-        return;
-      }
-      removedRoots.forEach(removeSourcesUnder);
-      removedRoots.clear();
-      pendingRoots.forEach((root) => {
-        if (root.isConnected) reconcileRoot(root);
-      });
-      pendingRoots.clear();
-      commitSources();
-    }, 200);
+    refreshTimer = window.setTimeout(flushRefresh, REFRESH_DEBOUNCE_MS);
+    // The debounce above restarts on every batch, and the observer watches
+    // style/class across the whole subtree — a page animating anything (a
+    // player's progress bar, a carousel, a spinner) mutates faster than the
+    // debounce and would postpone discovery for as long as it runs. This bound
+    // is armed once per burst and never restarted, so a busy page costs latency
+    // instead of silence, and the queued roots cannot pin removed DOM forever.
+    if (!refreshMaxWaitTimer) {
+      refreshMaxWaitTimer = window.setTimeout(flushRefresh, REFRESH_MAX_WAIT_MS);
+    }
   };
   const scheduleResponsiveRefresh = () => {
     if (ctx.panelOptions.live === false) return;
@@ -298,6 +318,7 @@ export const wirePanelRefresh = (ctx: SourcePanelContext): void => {
     observer.disconnect();
     resourceObserver?.disconnect();
     window.clearTimeout(refreshTimer);
+    window.clearTimeout(refreshMaxWaitTimer);
     cancelBackgroundScan();
     window.removeEventListener("resize", scheduleResponsiveRefresh);
     window.visualViewport?.removeEventListener("resize", scheduleResponsiveRefresh);
