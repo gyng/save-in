@@ -87,9 +87,12 @@ export const onDownloadCreated = async (item: HostDownloadItem) => {
 
   // Never adopt a download another extension initiated — a leaked pending
   // count must not track it as ours and fire a spurious notification. Only a
-  // KNOWN-different byExtensionId is rejected: our own downloads may not have
-  // byExtensionId populated yet at onCreated (Chrome), so an absent id is left
-  // to the counters below.
+  // KNOWN-different byExtensionId is rejected, because an absent one proves
+  // nothing: Chrome omits the key from this event's item entirely, including
+  // for downloads we started ourselves (measured on 150 — downloads.search
+  // returns our own id for the same download moments later). So an absent id
+  // is left to the counters below, and this test only ever fires for a
+  // genuinely foreign extension — our own id would pass it either way.
   if (
     item.byExtensionId &&
     webExtensionApi.runtime &&
