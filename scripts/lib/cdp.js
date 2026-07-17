@@ -69,6 +69,38 @@
  * }} CdpCommandMap
  */
 
+// Live, append-only op trace. A hang cannot be captured after the fact: the
+// failure artifact is written once the test has already given up, by which time
+// the hung call still has not returned and so never appears. Tracing on ENTRY
+// means the last unpaired "start" line names the call that hung. Off unless
+// E2E_TRACE is set, so normal runs pay nothing.
+const TRACE_PATH = process.env.E2E_TRACE || "";
+let traceSeq = 0;
+/** @param {string} op @param {Record<string, unknown>} [detail] */
+const traceStart = (op, detail = {}) => {
+  if (!TRACE_PATH) return () => {};
+  const id = (traceSeq += 1);
+  const startedAt = Date.now();
+  const write = (/** @type {Record<string, unknown>} */ row) => {
+    try {
+      require("fs").appendFileSync(TRACE_PATH, `${JSON.stringify(row)}\n`);
+    } catch {
+      // Tracing must never change the outcome it is measuring.
+    }
+  };
+  write({ id, phase: "start", op, t: startedAt, ...detail });
+  return (/** @type {unknown} */ error) =>
+    write({
+      id,
+      phase: error === undefined ? "ok" : "error",
+      op,
+      ms: Date.now() - startedAt,
+      ...(error === undefined
+        ? {}
+        : { error: error instanceof Error ? error.message : String(error) }),
+    });
+};
+
 /** @param {unknown} value @returns {value is Record<string, unknown>} */
 const isRecord = (value) => value != null && typeof value === "object" && !Array.isArray(value);
 
@@ -155,6 +187,7 @@ class Cdp {
     const id = this.id;
     const message = JSON.stringify({ id, method, params: params ?? {} });
     if (process.env.CDP_DEBUG) console.error("CDP ->", message);
+    const traceEnd = traceStart(`send:${method}`, { timeoutMs });
     /** @type {Promise<CdpCommandMap[Method]["result"]>} */
     const command = new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
@@ -180,7 +213,16 @@ class Cdp {
         reject(error);
       }
     });
-    return command;
+    return command.then(
+      (value) => {
+        traceEnd(undefined);
+        return value;
+      },
+      (error) => {
+        traceEnd(error);
+        throw error;
+      },
+    );
   }
 
   close() {
@@ -328,6 +370,15 @@ const callFunctionInTarget = async (
   let lastError = null;
   for (let attempt = 0; attempt < 3; attempt += 1) {
     const targets = (await listTargets(port)).filter((target) => target.url.includes(urlSubstr));
+    // Worst case here is 3 attempts x (connect + evaluate + callFunctionOn),
+    // which outruns the 90s test timeout — so which attempt stalled, and how
+    // many targets it could see, is the whole question when one of these hangs.
+    traceStart(`callFunctionInTarget:attempt`, {
+      attempt,
+      urlSubstr,
+      targets: targets.length,
+      allTargets: (await listTargets(port)).map((t) => `${t.type}:${t.url.slice(0, 60)}`),
+    })(undefined);
     if (targets.length === 0) {
       lastError = Object.assign(new Error(`No target matching "${urlSubstr}"`), {
         code: "E2E_CONTROL_TARGET_MISSING",
