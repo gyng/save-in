@@ -214,3 +214,10 @@ needed — the verdict reads issue reports against those records.
   mid-cycle.
 - Chrome cannot assign extension-started downloads to its Incognito download
   context; unfixable platform limitation, documented in the store description.
+- `routeHideFolderChoices` also drops Options, Show default folder, and the
+  context hints, which its name does not promise (`menu-rebuild.ts`). The shape
+  predates the rename from `routeExclusive` and is long-standing, so it is not a
+  regression and is left alone. It is recorded rather than settled because the
+  branch is neither reading: it keeps Toggle Page Sources while dropping the
+  other three, which is what a mode meant to strip the menu to routing only
+  would also have removed. Decide the intent before anyone "fixes" it either way.
