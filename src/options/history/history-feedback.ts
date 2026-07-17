@@ -1,3 +1,6 @@
+export const historyFeedback = (): HTMLElement | null =>
+  document.querySelector<HTMLElement>("#history-feedback");
+
 export type HistoryFeedbackOptions = {
   message?: string;
   error?: boolean;

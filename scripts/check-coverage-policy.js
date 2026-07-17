@@ -15,7 +15,7 @@ const sourceRoot = path.join(root, "src");
 // their callers rather than deleted to satisfy a threshold.
 // New ignores require an explicit rationale and a deliberate ceiling update so
 // uncovered branches cannot accumulate silently.
-const ignoreCeiling = 76;
+const ignoreCeiling = 75;
 
 const errors = [];
 const config = fs.readFileSync(configPath, "utf8");
