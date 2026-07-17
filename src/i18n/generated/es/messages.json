@@ -2063,7 +2063,7 @@
     "message": "Webhooks"
   },
   "html_webhooksHelp": {
-    "message": "Informe de las descargas de Save In a su propio punto de conexión en JSON."
+    "message": "Notifique las descargas de Save In a su propio punto de conexión en JSON."
   },
   "html_webhookDocumentation": {
     "message": "Leer la documentación sobre webhooks"
@@ -2090,7 +2090,7 @@
     "message": "Permitir puntos de conexión http://"
   },
   "html_webhookAllowInsecureHelp": {
-    "message": "Las solicitudes a un punto de conexión http:// se envían sin cifrar, incluidos los datos de la página que agregue a continuación. Use esta opción solo en una red de confianza."
+    "message": "Las solicitudes a un punto de conexión http:// se envían sin cifrar, incluidos los datos de la página que añada a continuación. Use esta opción solo en una red de confianza."
   },
   "html_webhookEndpointHelp": {
     "message": "Uno por línea. Las solicitudes se envían directamente desde su navegador a cada dirección."

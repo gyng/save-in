@@ -2084,13 +2084,13 @@
     "message": "O download falha"
   },
   "html_webhookEventsHelp": {
-    "message": "Todos os eventos levam o mesmo ID de download, para que um receptor possa relacioná-los. Os dados da página abaixo são enviados quando um download começa; um evento de conclusão leva o caminho salvo, que só é conhecido depois que o arquivo é gravado."
+    "message": "Todos os eventos levam o mesmo ID de download, para que um receptor possa relacioná-los. Os dados da página abaixo são enviados quando um download começa; um evento de conclusão leva, em vez disso, o caminho salvo, que só é conhecido depois que o arquivo é gravado."
   },
   "html_webhookAllowInsecure": {
     "message": "Permitir endpoints http://"
   },
   "html_webhookAllowInsecureHelp": {
-    "message": "As solicitações para um endpoint http:// são enviadas sem criptografia, incluindo os dados da página que você adicionar abaixo. Use apenas em uma rede confiável."
+    "message": "As solicitações para um endpoint http:// são enviadas sem criptografia, incluindo os dados da página que você adicionar abaixo. Use esta opção apenas em uma rede confiável."
   },
   "html_webhookEndpointHelp": {
     "message": "Um por linha. As solicitações são enviadas diretamente do seu navegador para cada endereço."

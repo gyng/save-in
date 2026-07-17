@@ -2090,7 +2090,7 @@
     "message": "http://-Endpunkte zulassen"
   },
   "html_webhookAllowInsecureHelp": {
-    "message": "Anfragen an einen http://-Endpunkt werden unverschlüsselt gesendet, einschließlich der Seitendaten, die Sie unten hinzufügen. Verwenden Sie dies nur in einem Netzwerk, dem Sie vertrauen."
+    "message": "Anfragen an einen http://-Endpunkt werden unverschlüsselt gesendet, einschließlich aller Seitendaten, die Sie unten hinzufügen. Verwenden Sie dies nur in einem Netzwerk, dem Sie vertrauen."
   },
   "html_webhookEndpointHelp": {
     "message": "Einer pro Zeile. Anfragen werden direkt von Ihrem Browser an jede Adresse gesendet."

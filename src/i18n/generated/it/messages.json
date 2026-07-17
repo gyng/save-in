@@ -2505,7 +2505,7 @@
     "message": "Segnala i download di Save In a un webhook"
   },
   "html_webhookAlwaysIncludes": {
-    "message": "Ogni richiesta include l'URL della risorsa, di quale evento si tratta, un ID del download e una marca temporale ISO 8601."
+    "message": "Ogni richiesta include l'URL della risorsa, di quale evento si tratta, un ID del download e un timestamp ISO 8601."
   },
   "html_webhookAdditionalData": {
     "message": "Dati aggiuntivi"
