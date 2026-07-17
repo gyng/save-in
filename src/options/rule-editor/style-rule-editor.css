@@ -10,14 +10,6 @@
   max-inline-size: var(--content-max-width);
 }
 
-.rules-editor {
-  display: grid;
-  grid-template-columns: minmax(340px, 2fr) minmax(260px, 1fr);
-  gap: var(--space-5);
-  align-items: flex-start;
-  inline-size: 100%;
-}
-
 .rules-editor-main {
   min-inline-size: 340px;
 }

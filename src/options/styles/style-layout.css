@@ -236,7 +236,13 @@
   inline-size: 100%;
 }
 
-.paths-editor {
+/* Save menu and Routing rules are sibling editor workspaces: an editor column
+   beside a narrower reference column. UI.md requires them to share that
+   geometry, and this sheet owns options-form and panel geometry, so they read
+   it from one place instead of keeping two copies in step by hand. Each editor
+   layer still owns what is genuinely its own, and outranks this one. */
+.paths-editor,
+.rules-editor {
   display: grid;
   grid-template-columns: minmax(340px, 2fr) minmax(260px, 1fr);
   gap: var(--space-5);

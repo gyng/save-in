@@ -74,6 +74,19 @@ textarea {
   color: var(--color-text);
 }
 
+/* The UA gives every fieldset a frame, padding, and a min-content floor that
+   refuses to shrink inside a grid or flex parent. Every fieldset here groups
+   controls for the accessibility tree and draws its own surface, so neutralize
+   the frame once here with the other native-control normalization rather than
+   restating it in each owner. A fieldset that does want a frame draws it in its
+   own layer, which outranks this one. */
+fieldset {
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
 input:disabled,
 textarea:disabled,
 select:disabled,

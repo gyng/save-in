@@ -129,13 +129,6 @@ label:has(> input[type="checkbox"]) > .caption-line {
   background-color: var(--badge-bg);
 }
 
-fieldset.option-group {
-  min-inline-size: 0;
-  margin: 0;
-  padding: 0;
-  border: 0;
-}
-
 fieldset.option-group > legend {
   padding: 0;
 }

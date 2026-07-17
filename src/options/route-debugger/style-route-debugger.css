@@ -45,13 +45,6 @@
   gap: var(--space-3);
 }
 
-.route-debugger-field-group {
-  min-inline-size: 0;
-  margin: 0;
-  padding: 0;
-  border: 0;
-}
-
 .route-debugger-field-group > legend {
   margin-block-end: var(--space-2);
   padding: 0;

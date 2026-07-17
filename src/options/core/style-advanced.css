@@ -54,13 +54,6 @@
   margin: 0;
 }
 
-.theme-picker {
-  min-inline-size: 0;
-  margin: 0;
-  padding: 0;
-  border: 0;
-}
-
 .theme-picker.saved-base {
   --saved-check-offset: 0;
   --saved-check-y-rest: top 1px;
