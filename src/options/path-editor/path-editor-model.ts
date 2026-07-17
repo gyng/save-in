@@ -24,9 +24,7 @@ export const pathNodesToLines = (nodes: DirectoryLineNode[]): string[] =>
 
 export type PathDropPlacement = "before" | "after" | "inside";
 
-const normalizePathHierarchy = (
-  nodes: readonly DirectoryLineNode[],
-): DirectoryLineNode[] => {
+const normalizePathHierarchy = (nodes: readonly DirectoryLineNode[]): DirectoryLineNode[] => {
   const normalized: DirectoryLineNode[] = [];
   nodes.forEach((node, index) => {
     const previousDepth = normalized[index - 1]?.depth ?? 0;

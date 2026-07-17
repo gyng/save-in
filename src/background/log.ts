@@ -88,6 +88,9 @@ export const clearLog = () => {
   const cleared = queued.then(() => extensionSessionStorage.remove(LOG_STORAGE_KEY));
   // The queue only sequences turns, so it carries a settled promise; this
   // removal's own failure still reaches the caller through `cleared`.
-  sessionWriteState.queues.set(LOG_STORAGE_KEY, cleared.catch(() => {}));
+  sessionWriteState.queues.set(
+    LOG_STORAGE_KEY,
+    cleared.catch(() => {}),
+  );
   return cleared;
 };
