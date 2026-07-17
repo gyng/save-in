@@ -1,5 +1,6 @@
 import { RULE_TYPES } from "../shared/constants.ts";
 import { isStringKeyedRecord } from "../shared/util.ts";
+import { isCssMatcherClause } from "../routing/rule-types.ts";
 import type { RoutingRule } from "../routing/rule-types.ts";
 
 const MAX_RULE_CHARACTERS = 32_768;
@@ -206,9 +207,6 @@ export const isSafeExternalRegex = (regex: RegExp | string): boolean => {
   return true;
 };
 
-const regexSource = (value: RegExp | string): string =>
-  typeof value === "string" ? value : value.source;
-
 // An untrusted external VALIDATE compiles and executes two classes of
 // attacker-supplied regex: matcher clause patterns, and the rename: clause's
 // `find` pattern (applyRenameTransform runs it against an attacker-controlled
@@ -220,11 +218,20 @@ const regexSource = (value: RegExp | string): string =>
 // rule the response refuses to name.
 export const unsafeExternalRegexSources = (rule: RoutingRule): string[] =>
   rule.flatMap((clause) => {
-    if (clause.type === RULE_TYPES.MATCHER && !isSafeExternalRegex(clause.value)) {
-      return [regexSource(clause.value)];
+    // Only a compiled pattern can be named: a css: matcher's value is a
+    // selector, where `+` is a combinator and `*=` an attribute operator, and
+    // isSafeExternalRegex accepts every string outright rather than read those
+    // as quantifiers. Skipping css here says that in the type instead of
+    // relying on the string arm of a check that can never fail for one.
+    if (
+      clause.type === RULE_TYPES.MATCHER &&
+      !isCssMatcherClause(clause) &&
+      !isSafeExternalRegex(clause.value)
+    ) {
+      return [clause.value.source];
     }
     if (clause.type === RULE_TYPES.RENAME && !isSafeExternalRegex(clause.find)) {
-      return [regexSource(clause.find)];
+      return [clause.find.source];
     }
     return [];
   });

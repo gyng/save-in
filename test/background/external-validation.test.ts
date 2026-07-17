@@ -150,6 +150,25 @@ describe("external validation safeguards", () => {
     );
   });
 
+  test("does not read a css selector as a regex", () => {
+    // A css: matcher's value is a selector, not a pattern: there `+` is a
+    // sibling combinator and `*=` an attribute operator, neither of which can
+    // backtrack. Counting them as quantifiers refuses an ordinary selector as
+    // a catastrophic regex, and names it back to the caller as one.
+    expect(
+      unsafeExternalRegexSources([
+        { type: "MATCHER", name: "css", value: 'article > img + a[href*=".jpg"]' },
+      ] as never),
+    ).toEqual([]);
+    // Two sibling combinators are an ordinary selector, but two `+` read as
+    // regex are two repeating quantifiers — one over the ceiling.
+    expect(
+      unsafeExternalRegexSources([
+        { type: "MATCHER", name: "css", value: "h2 + p + img" },
+      ] as never),
+    ).toEqual([]);
+  });
+
   test("rejects an unsafe rename find pattern, not only matcher patterns", () => {
     // rename:'s find regex is compiled and executed against an attacker-supplied
     // filename during traceRules, so it must pass the same ReDoS gate as a
