@@ -43,6 +43,7 @@
     "lint:type-aware": "oxlint --type-aware -A all -D typescript/no-for-in-array -D typescript/no-implied-eval -D typescript/no-meaningless-void-operator",
     "review": "node scripts/review-demo.js",
     "screenshots:store": "node scripts/generate-store-screenshots.js",
+    "promo:store": "node scripts/generate-store-promo.js",
     "reload": "node scripts/reload.js",
     "test": "vitest run --config config/vitest/unit.mjs",
     "test:all": "vitest run --config config/vitest/base.mjs",
