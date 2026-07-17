@@ -428,8 +428,8 @@
     "description": "Checkbox that applies routing rules to browser downloads when native routing is supported. Used in src/options/options.html."
   },
   "o_cRouteBrowserDownloadsHelp": {
-    "message": "When supported, matching rules can rename browser downloads or place them in subfolders. Unmatched downloads are unchanged.",
-    "description": "Option control label or related help text. Used in src/options/options.html."
+    "message": "When supported, matching rules can rename browser downloads or place them in subfolders. Add them in Routing rules › + Add rule. Unmatched downloads are unchanged.",
+    "description": "Help text under the checkbox that routes browser downloads. \"Routing rules\" names the section (o_sDynamicDownloads) and \"Add rule\" names the button in it (routeVisualAddRule); translate both to match those, since the reader is being told what to look for on screen. The rule needs no automation clause — any routing rule can match a browser download. Used in src/options/options.html."
   },
   "o_cRouteBrowserDownloadsFirefox": {
     "message": "Reroute matching browser downloads",
@@ -1581,7 +1581,11 @@
   },
   "webhookEndpointNotHttps": {
     "message": "Use an https:// URL",
-    "description": "Inline editor diagnostic on a webhook endpoint line using a scheme other than HTTPS. Used in src/options/syntax-editor/syntax-editor.ts."
+    "description": "Inline editor diagnostic on a webhook endpoint line using a scheme other than HTTPS, while plain HTTP endpoints are not allowed. Used in src/options/syntax-editor/syntax-editor.ts."
+  },
+  "webhookEndpointNotHttpOrHttps": {
+    "message": "Use an https:// or http:// URL",
+    "description": "Inline editor diagnostic on a webhook endpoint line using a scheme that is neither, while plain HTTP endpoints are allowed. Allowing HTTP widens the accepted schemes by exactly one, so ftp: or file: is still rejected. Used in src/options/syntax-editor/syntax-editor.ts."
   },
   "webhookEndpointCredentials": {
     "message": "Put authentication in the query string, not the URL",
@@ -3676,8 +3680,16 @@
     "description": "Link from the Webhooks settings card to the public setup and payload guide. Used in src/options/options.html."
   },
   "html_webhookEndpoint": {
-    "message": "HTTPS endpoints",
-    "description": "Label for the user-provided webhook destination URLs, one per line. Used in src/options/options.html."
+    "message": "Endpoints",
+    "description": "Label for the user-provided webhook destination URLs, one per line. Deliberately does not name a scheme: HTTPS is required unless the user allows plain HTTP below, so a heading naming one would contradict the list under it. Used in src/options/options.html."
+  },
+  "html_webhookAllowInsecure": {
+    "message": "Allow http:// endpoints",
+    "description": "Checkbox under the webhook endpoint list that lets the list name plain HTTP endpoints as well as HTTPS ones. Off by default. Used in src/options/options.html."
+  },
+  "html_webhookAllowInsecureHelp": {
+    "message": "Requests to an http:// endpoint travel unencrypted, including any page data you add below. Use this only on a network you trust.",
+    "description": "Help text under the allow-HTTP checkbox, naming what the user gives up. \"below\" is the Additional data fieldset that follows it. Used in src/options/options.html."
   },
   "html_webhookEndpointHelp": {
     "message": "One per line. Requests go directly from your browser to each address.",
