@@ -705,6 +705,36 @@ describe("onDeterminingFilename listener (Chrome)", () => {
     );
   });
 
+  test("records that a rule applied so History can report the routing", async () => {
+    freshOptions.routeBrowserDownloads = true;
+    freshOptions.trackBrowserDownloads = true;
+    vi.spyOn(freshDownload, "getRoutingMatches").mockReturnValue("sorted/:filename:");
+    vi.spyOn(freshDownload, "finalizeFullPath").mockReturnValue("sorted/cat.jpg");
+    const suggest = vi.fn();
+
+    listener({ id: 91, filename: "cat.jpg", url: "https://cdn.example/cat.jpg" }, suggest);
+
+    const { getTrackedDownload } = await import("../../src/downloads/expected-downloads.ts");
+    await vi.waitFor(async () =>
+      expect(await getTrackedDownload(91)).toMatchObject({ browserDownloadRouted: true }),
+    );
+  });
+
+  test("leaves no record behind when routing runs without tracking", async () => {
+    // Nothing clears a record that no History row and no handler owns.
+    freshOptions.routeBrowserDownloads = true;
+    freshOptions.trackBrowserDownloads = false;
+    vi.spyOn(freshDownload, "getRoutingMatches").mockReturnValue("sorted/:filename:");
+    vi.spyOn(freshDownload, "finalizeFullPath").mockReturnValue("sorted/cat.jpg");
+    const suggest = vi.fn();
+
+    listener({ id: 92, filename: "cat.jpg", url: "https://cdn.example/cat.jpg" }, suggest);
+    await vi.waitFor(() => expect(suggest).toHaveBeenCalled());
+
+    const { getTrackedDownload } = await import("../../src/downloads/expected-downloads.ts");
+    expect(await getTrackedDownload(92)).toBeNull();
+  });
+
   test("keeps Chrome naming when an enabled ordinary route does not match", async () => {
     freshOptions.routeBrowserDownloads = true;
     vi.spyOn(freshDownload, "getRoutingMatches").mockReturnValue(null);

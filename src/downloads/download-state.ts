@@ -27,6 +27,12 @@ export type DownloadRecord = {
   observedBrowserDownload?: boolean | undefined;
   adopted?: boolean | undefined;
   sourceSidecar?: boolean | undefined;
+  // Whether Chrome's onDeterminingFilename actually applied a rule to this
+  // ordinary browser download. That answer only exists after onCreated has
+  // written the History row, so it rides the record until a later delta can
+  // put it on the row. Absent means no, which is what a record written before
+  // this existed should mean.
+  browserDownloadRouted?: boolean | undefined;
   // Whether this download's outcome may be reported to a webhook, decided when
   // it started and persisted as the decision rather than the privacy state it
   // came from: privateContext is deliberately not persisted, so a rehydrated
@@ -116,6 +122,7 @@ function normalizeDownloadRecord(value: unknown): PersistedDownloadRecord | null
     "adopted",
     "sourceSidecar",
     "webhookEligible",
+    "browserDownloadRouted",
   ] as const;
   strings.forEach((key) => {
     const item = value[key];

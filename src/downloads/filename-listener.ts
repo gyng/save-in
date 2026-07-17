@@ -292,6 +292,21 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
         }
         const filename = await routeBrowserDownload(Download, downloadItem);
         suggest(filename ? { filename, conflictAction: options.conflictAction } : undefined);
+        // Chrome is already answered, so this cannot delay the download. Record
+        // that a rule applied: onCreated wrote the History row before this
+        // listener ran and could only claim routed:false, and mergeDownload
+        // combines partials, so the flag survives whichever way the two events
+        // interleave. Only tracking creates a row worth correcting — without it
+        // this would strand a record no handler ever clears.
+        if (filename && options.trackBrowserDownloads) {
+          await mergeDownload(
+            downloadsState,
+            sessionWriteState,
+            extensionSessionStorage,
+            downloadItem.id,
+            { browserDownloadRouted: true },
+          );
+        }
       })().catch((error) => {
         logPort.add("browser download routing failed", String(error));
         suggest();

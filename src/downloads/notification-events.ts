@@ -423,6 +423,13 @@ const handleObservedBrowserDownload = async (
       // Completion remains valid when size lookup is unavailable.
     }
   }
+  // onCreated wrote this row before onDeterminingFilename had decided anything,
+  // so it could only claim routed:false. Chrome's answer reaches the record
+  // instead, and this delta is the first point where it has certainly landed —
+  // the Firefox path already knows its answer when it writes the row.
+  if (record.browserDownloadRouted === true) {
+    await historyPort.patch(record.historyEntryId, { routed: true });
+  }
   await historyPort.setStatus(
     record.historyEntryId,
     complete ? "complete" : downloadFailureReason(failed) || "failed",

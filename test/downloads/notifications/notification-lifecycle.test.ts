@@ -112,6 +112,29 @@ describe("download lifecycle notifications", () => {
     expect(global.browser.notifications.create).not.toHaveBeenCalled();
   });
 
+  test("marks an ordinary browser download that Chrome routed as routed", async () => {
+    options.trackBrowserDownloads = true;
+    const history = await import("../../../src/background/history.ts");
+    vi.spyOn(history, "addHistoryEntry").mockReturnValue("h-routed");
+    vi.spyOn(history, "setHistoryDownloadId").mockResolvedValue(undefined);
+    vi.spyOn(history, "setHistoryStatus").mockResolvedValue(undefined);
+    const patch = vi.spyOn(history, "patchHistoryEntry").mockResolvedValue(undefined);
+
+    await onCreated({
+      id: 45,
+      filename: "C:\\Downloads\\cat.jpg",
+      url: "https://cdn.example/cat.jpg",
+    });
+    // onDeterminingFilename decides the route only after onCreated has written
+    // the row, so the outcome reaches the record rather than the row itself.
+    const { mergeTrackedDownload } = await import("../../../src/downloads/expected-downloads.ts");
+    await mergeTrackedDownload(45, { browserDownloadRouted: true });
+
+    await onChanged({ id: 45, state: { current: "complete", previous: "in_progress" } });
+
+    expect(patch).toHaveBeenCalledWith("h-routed", { routed: true });
+  });
+
   test("does not retain ordinary downloads from private browsing", async () => {
     options.trackBrowserDownloads = true;
     const history = await import("../../../src/background/history.ts");
