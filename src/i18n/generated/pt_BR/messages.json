@@ -1720,6 +1720,15 @@
   "html_saveInRegistersToolsAnAiAgentCanCall": {
     "message": ", Save In registra ferramentas que um agente de IA pode chamar enquanto esta página de opções está aberta – para alterar configurações, criar menus de pastas e escrever regras de roteamento."
   },
+  "o_cWebmcpEnabled": {
+    "message": "Permitir que um agente de IA leia e altere as configurações do Save In"
+  },
+  "o_cWebmcpEnabledHelp": {
+    "message": "As ferramentas incluem iniciar downloads e alterar todas as configurações, inclusive o destino dos webhooks."
+  },
+  "webMcpStatusOff": {
+    "message": "Desativado"
+  },
   "html_showsSaveInCommandsOnPagesLinksMediaAnd": {
     "message": "Mostra comandos Save In em páginas, links, mídia e guias."
   },

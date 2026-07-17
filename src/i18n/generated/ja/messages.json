@@ -1310,6 +1310,15 @@
   "html_saveInRegistersToolsAnAiAgentCanCall": {
     "message": ", Save In は、このオプションページが開いているときに AI エージェントが呼び出せるツール（設定の変更、フォルダーメニューの構築、ルーティングルールの作成など）を登録します。"
   },
+  "o_cWebmcpEnabled": {
+    "message": "AI エージェントが Save In の設定を読み取り、変更できるようにする"
+  },
+  "o_cWebmcpEnabledHelp": {
+    "message": "ツールにはダウンロードの開始と、Webhook の送信先を含むすべての設定の変更が含まれます。"
+  },
+  "webMcpStatusOff": {
+    "message": "オフ"
+  },
   "html_showsSaveInCommandsOnPagesLinksMediaAnd": {
     "message": "ページ、リンク、メディア、タブに Save In コマンドを表示します。"
   },

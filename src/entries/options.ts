@@ -97,12 +97,15 @@ document.addEventListener(
       });
       setupOptionSearch();
       setupSourceShortcut();
-      setupWebMcpStatus(getMessage, syncOptionsPageAfterWebMcpApply);
       setupPrivacyDialog();
       setupAboutDialog(() => showWelcomeDialog(undefined, undefined, false, applyWelcomePreset));
       setupLanguageSelector();
       void setupWelcomeDialog(undefined, undefined, applyWelcomePreset);
       await optionsReady;
+      // Registration follows the stored switch, so it waits for the options to
+      // be in the page: reading the checkbox before then would find every
+      // browser opted out.
+      setupWebMcpStatus(getMessage, syncOptionsPageAfterWebMcpApply);
       setupPromptAssistantPanel(getMessage, { appendRule });
       setupSourceRuleDraft();
       await applySourceRuleDraft();

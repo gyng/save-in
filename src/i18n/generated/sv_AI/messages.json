@@ -1720,6 +1720,15 @@
   "html_saveInRegistersToolsAnAiAgentCanCall": {
     "message": ", Save In registrerar verktyg som en AI-agent kan anropa medan den här alternativsidan är öppen – för att ändra inställningar, bygga mappmenyer och skriva routningsregler."
   },
+  "o_cWebmcpEnabled": {
+    "message": "Låt en AI-agent läsa och ändra inställningar i Save In"
+  },
+  "o_cWebmcpEnabledHelp": {
+    "message": "Verktygen kan starta nedladdningar och ändra alla inställningar, även vart webhookar skickas."
+  },
+  "webMcpStatusOff": {
+    "message": "Av"
+  },
   "html_showsSaveInCommandsOnPagesLinksMediaAnd": {
     "message": "Visar Save In-kommandon på sidor, länkar, media och flikar."
   },

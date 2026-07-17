@@ -1720,6 +1720,15 @@
   "html_saveInRegistersToolsAnAiAgentCanCall": {
     "message": "-Unterstützung registriert Save In Werkzeuge, die ein KI-Agent aufrufen kann, solange diese Optionsseite geöffnet ist, um Einstellungen zu ändern, Ordnermenüs zu erstellen und Routing-Regeln zu schreiben."
   },
+  "o_cWebmcpEnabled": {
+    "message": "Einem KI-Agenten erlauben, Save In-Einstellungen zu lesen und zu ändern"
+  },
+  "o_cWebmcpEnabledHelp": {
+    "message": "Zu den Tools gehören das Starten von Downloads und das Ändern aller Einstellungen, auch der Webhook-Ziele."
+  },
+  "webMcpStatusOff": {
+    "message": "Aus"
+  },
   "html_showsSaveInCommandsOnPagesLinksMediaAnd": {
     "message": "Zeigt Save In-Befehle für Seiten, Links, Medien und Tabs an."
   },

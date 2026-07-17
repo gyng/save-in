@@ -539,6 +539,18 @@ export const setupWebMcpStatus = (
 ): void => {
   const ctx = getModelContext();
   const statusEl = document.getElementById("webmcp-status");
+  // The tools an agent can call read and change every setting, so a browser
+  // that supports WebMCP is not on its own a reason to hand them over: the
+  // switch is. An absent switch cannot say the user opted in, so it does not.
+  // Whether the browser supports WebMCP at all is reported either way — it is
+  // true regardless of the switch, and it is what a user who turns the switch
+  // on in the wrong browser needs to be told.
+  const enabled = document.querySelector<HTMLInputElement>("#webmcpEnabled")?.checked === true;
+
+  if (ctx && typeof ctx.registerTool === "function" && webExtensionApi && !enabled) {
+    if (statusEl) statusEl.textContent = localize("webMcpStatusOff") || "Off";
+    return;
+  }
 
   if (ctx && typeof ctx.registerTool === "function" && webExtensionApi) {
     const send = async (message: WebMcpMessage) => {

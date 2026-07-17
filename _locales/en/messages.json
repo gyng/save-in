@@ -683,6 +683,18 @@
     "message": ", Save In registers tools that an AI agent can call while this options page is open—to change settings, build folder menus, and write routing rules.",
     "description": "Text in the options page. Used in src/options/options.html."
   },
+  "o_cWebmcpEnabled": {
+    "message": "Let an AI agent read and change Save In settings",
+    "description": "Label for the switch that lets an AI agent call Save In tools. Used in src/options/options.html."
+  },
+  "o_cWebmcpEnabledHelp": {
+    "message": "The tools include starting downloads and changing every setting, including where webhooks are sent.",
+    "description": "Says what an agent can do once the WebMCP switch is on. Used in src/options/options.html."
+  },
+  "webMcpStatusOff": {
+    "message": "Off",
+    "description": "WebMCP status when the user has not turned the switch on. Used in src/options/integrations/webmcp.ts."
+  },
   "html_showsSaveInCommandsOnPagesLinksMediaAnd": {
     "message": "Shows Save In commands on pages, links, media, and tabs.",
     "description": "Text in the options page. Used in src/options/options.html."

@@ -1720,6 +1720,15 @@
   "html_saveInRegistersToolsAnAiAgentCanCall": {
     "message": ", registreert Save In tools die een AI-agent kan aanroepen terwijl deze optiepagina geopend is: om instellingen te wijzigen, mapmenu's samen te stellen en routeringsregels te schrijven."
   },
+  "o_cWebmcpEnabled": {
+    "message": "Een AI-agent Save In-instellingen laten lezen en wijzigen"
+  },
+  "o_cWebmcpEnabledHelp": {
+    "message": "De tools kunnen downloads starten en elke instelling wijzigen, ook waar webhooks naartoe gaan."
+  },
+  "webMcpStatusOff": {
+    "message": "Uit"
+  },
   "html_showsSaveInCommandsOnPagesLinksMediaAnd": {
     "message": "Toont Save In-opdrachten op pagina's, links, media en tabbladen."
   },

@@ -314,6 +314,11 @@ export const OPTION_KEYS = defineOptions([
     default: OPTION_DEFAULTS.externalDownloadAllowlist,
   },
   {
+    name: "webmcpEnabled",
+    type: OPTION_TYPES.BOOL,
+    default: OPTION_DEFAULTS.webmcpEnabled,
+  },
+  {
     name: "webhookEnabled",
     type: OPTION_TYPES.BOOL,
     default: OPTION_DEFAULTS.webhookEnabled,

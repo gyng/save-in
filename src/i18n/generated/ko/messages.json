@@ -1310,6 +1310,15 @@
   "html_saveInRegistersToolsAnAiAgentCanCall": {
     "message": ", Save In은 이 옵션 페이지가 열려 있는 동안 AI 에이전트가 호출할 수 있는 도구를 등록하여 설정 변경, 폴더 메뉴 구성, 라우팅 규칙 작성을 지원합니다."
   },
+  "o_cWebmcpEnabled": {
+    "message": "AI 에이전트가 Save In 설정을 읽고 변경하도록 허용"
+  },
+  "o_cWebmcpEnabledHelp": {
+    "message": "도구에는 다운로드 시작과 웹훅 전송 대상을 포함한 모든 설정 변경이 포함됩니다."
+  },
+  "webMcpStatusOff": {
+    "message": "꺼짐"
+  },
   "html_showsSaveInCommandsOnPagesLinksMediaAnd": {
     "message": "페이지, 링크, 미디어 및 탭에 Save In 명령을 표시합니다."
   },

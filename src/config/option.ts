@@ -115,8 +115,9 @@ export const OptionsManagement: OptionsManagementApi = {
       "Include applicable website cookies and browser-managed authentication in non-private extension fetches.",
     externalDownloadAllowlist:
       "Extension IDs allowed to start downloads through the external API, one per line.",
+    webmcpEnabled: "Register the WebMCP tools an AI agent can call on the options page.",
     webhookEnabled: "Send one HTTPS webhook after a non-private direct Save In save command.",
-    webhookUrl: "User-selected HTTPS endpoint for save webhooks.",
+    webhookUrl: "User-selected HTTPS endpoints for save webhooks, one per line.",
     webhookIncludePageUrl: "Include the containing page URL in save webhooks.",
     webhookIncludePageTitle: "Include the containing page title in save webhooks.",
     webhookIncludeSelectionText: "Include selected text in save webhooks when available.",

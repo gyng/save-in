@@ -1310,6 +1310,15 @@
   "html_saveInRegistersToolsAnAiAgentCanCall": {
     "message": "，Save In 会注册 AI 智能体可在此选项页面打开时调用的工具，用于更改设置、构建文件夹菜单和编写路由规则。"
   },
+  "o_cWebmcpEnabled": {
+    "message": "允许 AI 代理读取和更改 Save In 设置"
+  },
+  "o_cWebmcpEnabledHelp": {
+    "message": "这些工具可以启动下载并更改所有设置，包括 Webhook 的发送地址。"
+  },
+  "webMcpStatusOff": {
+    "message": "已关闭"
+  },
   "html_showsSaveInCommandsOnPagesLinksMediaAnd": {
     "message": "在页面、链接、媒体和选项卡上显示 Save In 命令。"
   },

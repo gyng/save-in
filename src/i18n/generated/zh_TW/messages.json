@@ -1310,6 +1310,15 @@
   "html_saveInRegistersToolsAnAiAgentCanCall": {
     "message": "，Save In 註冊 AI 代理程式在此選項頁面開啟時可以呼叫的工具，以變更設定、建立資料夾選單和編寫路由規則。"
   },
+  "o_cWebmcpEnabled": {
+    "message": "允許 AI 代理程式讀取及變更 Save In 設定"
+  },
+  "o_cWebmcpEnabledHelp": {
+    "message": "這些工具可以啟動下載並變更所有設定，包括 Webhook 的傳送位址。"
+  },
+  "webMcpStatusOff": {
+    "message": "已關閉"
+  },
   "html_showsSaveInCommandsOnPagesLinksMediaAnd": {
     "message": "在頁面、連結、媒體與分頁上顯示 Save In 指令。"
   },

@@ -624,8 +624,34 @@ describe("options-page registration", () => {
     document.body.innerHTML = "";
   });
 
+  // The tools let an agent read and change every setting, so registering them
+  // follows the user's choice rather than the browser merely supporting WebMCP.
+  test.each([
+    ['<span id="webmcp-status"></span><input type="checkbox" id="webmcpEnabled">', "unchecked"],
+    ['<span id="webmcp-status"></span>', "absent"],
+    // No status element to report into, and still nothing registered.
+    ['<input type="checkbox" id="webmcpEnabled">', "unchecked with nowhere to say so"],
+  ])("registers nothing while the switch is %s", async (markup) => {
+    document.body.innerHTML = markup;
+    const registerTool = vi.fn(() => Promise.resolve());
+    document.modelContext = { registerTool };
+    (global as any).browser = {
+      runtime: { sendMessage: vi.fn(() => Promise.resolve({ body: {} })) },
+    };
+
+    vi.resetModules();
+    const { setupWebMcpStatus } = await import("../../../src/options/integrations/webmcp.ts");
+    setupWebMcpStatus(() => "");
+
+    expect(registerTool).not.toHaveBeenCalled();
+    await vi.waitFor(() =>
+      expect(document.getElementById("webmcp-status")?.textContent ?? "Off").toBe("Off"),
+    );
+  });
+
   test("registers and reports status when document.modelContext is present", async () => {
-    document.body.innerHTML = '<span id="webmcp-status"></span>';
+    document.body.innerHTML =
+      '<span id="webmcp-status"></span><input type="checkbox" id="webmcpEnabled" checked>';
     const registerTool = vi.fn(() => Promise.resolve());
     document.modelContext = { registerTool };
     (global as any).browser = {
@@ -645,7 +671,8 @@ describe("options-page registration", () => {
   });
 
   test("reports partial registration instead of claiming full success", async () => {
-    document.body.innerHTML = '<span id="webmcp-status"></span>';
+    document.body.innerHTML =
+      '<span id="webmcp-status"></span><input type="checkbox" id="webmcpEnabled" checked>';
     document.modelContext = {
       registerTool: vi.fn((tool: { name: string }) =>
         tool.name === "save_in_download" ? Promise.reject(new Error("nope")) : Promise.resolve(),
@@ -667,7 +694,8 @@ describe("options-page registration", () => {
   });
 
   test("refreshes the open page after apply succeeds without changing the tool result", async () => {
-    document.body.innerHTML = '<span id="webmcp-status"></span>';
+    document.body.innerHTML =
+      '<span id="webmcp-status"></span><input type="checkbox" id="webmcpEnabled" checked>';
     let applyTool: SaveInTool | undefined;
     document.modelContext = {
       registerTool: vi.fn((tool: { name: string }) => {
@@ -719,7 +747,8 @@ describe("options-page registration", () => {
   });
 
   test("reports localized registration failure when every tool is rejected", async () => {
-    document.body.innerHTML = '<span id="webmcp-status"></span>';
+    document.body.innerHTML =
+      '<span id="webmcp-status"></span><input type="checkbox" id="webmcpEnabled" checked>';
     document.modelContext = { registerTool: vi.fn(() => Promise.reject(new Error("nope"))) };
     (global as any).browser = {
       runtime: { sendMessage: vi.fn(() => Promise.resolve({ body: {} })) },
@@ -741,7 +770,8 @@ describe("options-page registration", () => {
   });
 
   test("registers without a status element and tolerates an empty runtime response", async () => {
-    document.body.innerHTML = "";
+    // No status element, but the switch still has to be on for any of this.
+    document.body.innerHTML = '<input type="checkbox" id="webmcpEnabled" checked>';
     document.modelContext = {
       registerTool: vi.fn((tool: { name: string }) => (tool as SaveInTool).execute({})),
     };

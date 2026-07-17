@@ -54,6 +54,10 @@ export const OPTION_DEFAULTS = {
   fallbackFetch: true,
   includeFetchCredentials: true,
   externalDownloadAllowlist: "",
+  // The tools an agent can call include reading and changing every setting, so
+  // registering them is the user's decision to make rather than a consequence
+  // of opening this page in a browser that happens to support WebMCP.
+  webmcpEnabled: false,
   webhookEnabled: false,
   webhookUrl: "",
   webhookIncludePageUrl: false,
