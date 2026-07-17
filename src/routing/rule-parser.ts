@@ -426,7 +426,9 @@ const parseSemanticRule = (
   // A constant final component names every match identically, so they collapse
   // onto one file — usually a folder that was meant instead (#196). Legal, so
   // this warns rather than rejecting.
-  const finalDestinationComponent = destination.value.slice(destination.value.lastIndexOf("/") + 1);
+  // Split on the same separators the folder test below reads, or a variable in
+  // an earlier component makes a constant name look like it varies.
+  const finalDestinationComponent = destination.value.split(/[/\\]/).at(-1) ?? "";
   if (
     !ROUTES_TO_FOLDER.test(destination.value) &&
     finalDestinationComponent.trim() &&

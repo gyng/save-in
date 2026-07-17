@@ -133,6 +133,22 @@ describe("routing grammar hardening", () => {
     );
   });
 
+  // The name is the last component whichever separator precedes it: a variable
+  // in an earlier component does not make the filename vary per download.
+  test("warns for a constant name after a backslash-separated folder", () => {
+    const parsed = parseRulesCollecting("filename: .*\ninto: :pagedomain:\\report.pdf");
+    expect(parsed.errors).toContainEqual(
+      expect.objectContaining({ message: "ruleIntoConstantFilename", warning: true }),
+    );
+  });
+
+  test("does not warn when the name after a backslash expands per download", () => {
+    const parsed = parseRulesCollecting("filename: .*\ninto: photos\\:filename:");
+    expect(parsed.errors).not.toContainEqual(
+      expect.objectContaining({ message: "ruleIntoConstantFilename" }),
+    );
+  });
+
   test.each(["/absolute", "C:\\outside", "safe/../outside", "safe\\..\\outside"])(
     "skips a rule when capture expansion creates a non-relative destination: %s",
     (captured) => {
