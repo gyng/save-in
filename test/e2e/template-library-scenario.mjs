@@ -84,7 +84,16 @@ export const runTemplateLibraryScenario = async ({
           };
           const check = () => {
             if (document.documentElement.classList.contains("localization-pending")) return;
-            if (rules.closest(".tab-panel")?.hidden) return;
+            // The setup's section and text-mode clicks are fire-and-forget, and a
+            // re-render can put the editor back into Visual mode, which hides the
+            // panel holding this textarea. Re-assert them instead of returning:
+            // every later pass reads this panel, so giving up here just waits out
+            // the timeout with nothing clicked.
+            if (rules.closest(".tab-panel")?.hidden) {
+              document.querySelector("#tab-section-dynamic-downloads")?.click();
+              document.querySelector("#rules-mode-text")?.click();
+              return;
+            }
             const template = [...library.querySelectorAll(".rule-template")].find((candidate) =>
               candidate.querySelector(".rule-template-rule")?.textContent?.includes(
                 ${JSON.stringify(PDF_TEMPLATE_MATCHER)},
@@ -114,6 +123,17 @@ export const runTemplateLibraryScenario = async ({
             visibleTemplates: library.querySelectorAll(".rule-template:not([hidden])").length,
             applyDisabled: apply.disabled,
             applied,
+            added,
+            localizationPending:
+              document.documentElement.classList.contains("localization-pending"),
+            panelHidden: Boolean(rules.closest(".tab-panel")?.hidden),
+            templateFound: Boolean(
+              [...library.querySelectorAll(".rule-template")].find((candidate) =>
+                candidate.querySelector(".rule-template-rule")?.textContent?.includes(
+                  ${JSON.stringify(PDF_TEMPLATE_MATCHER)},
+                ),
+              ),
+            ),
             appliedValue,
             storedValue,
             rules: rules.value,
