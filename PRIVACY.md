@@ -46,19 +46,36 @@ prompt; the browser or agent controls tool access and confirmation. Close the
 options page to make the tools unavailable. Data received by an agent is
 subject to that agent's and browser's data-handling policies.
 
-Webhooks are off by default. If the user supplies an HTTPS endpoint and enables
-the feature, Save In sends one JSON request after a non-private download starts
-from a direct Save In save command. Automatic Page Sources saves,
-external-extension requests, and ordinary browser downloads are excluded. Every
-request contains the selected resource URL, a save event, and a timestamp. The
-user can separately include the containing page URL, page title, and selected
-text. The options page shows the resulting payload before the feature is
-enabled.
+Webhooks are off by default. If the user supplies at least one endpoint and
+enables the feature, Save In reports non-private downloads that came from a
+direct Save In save command. Automatic Page Sources saves, external-extension
+requests, and ordinary browser downloads are excluded. Endpoints are one per
+line, up to ten, and each is sent to independently. HTTPS is required unless the
+user separately allows http:// endpoints, which is off by default.
 
-Webhook requests go directly from the browser to the endpoint selected by the
+Which events report is a separate choice per event: when a download starts (off
+by default), when it completes (on by default), and when it fails (off by
+default). The options page's Test button also sends one test request on demand.
+
+Every request carries a schema version, the event name, and a timestamp. All
+except the test request also carry the browser's download id and the selected
+resource URL. A start request carries the containing page URL, page title, and
+selected text only where the user chose each. A completion request carries the
+folder path the file was saved to, and no page information. A failure request
+carries a failure reason. The options page previews each event before the
+feature is enabled.
+
+Webhook requests go directly from the browser to the endpoints selected by the
 user. They contain no cookies or browser credentials, do not follow endpoint
 redirects, are not retried, and never include private-window activity. Save In
 does not read response bodies or expose endpoint URLs in its diagnostic log.
+
+The rule assistant is off by default and is available only in Chrome, which is
+the only supported browser that offers a built-in on-device model. Turning it on
+can ask Chrome to download that model; Chrome performs and stores that download,
+and Save In neither hosts nor bundles model weights. Requests are then answered
+on the device: no prompt text, rule, or page content leaves the machine, and
+Save In operates no inference service.
 
 Chrome may show an Incognito save in its regular download manager; Save In does
 not retain it in its own history or log. Firefox keeps the download in its
@@ -70,7 +87,9 @@ Save In sends no user data to the developer, analytics providers, advertisers,
 data brokers, or other unrelated parties. Necessary download requests go only
 to hosts selected directly by the user or matched by their enabled automatic
 rules, and to those hosts' redirects. Optional webhook requests go only to the
-exact HTTPS endpoint configured by the user.
+exact endpoints configured by the user. The optional rule assistant sends
+nothing: Chrome downloads its model once, and every request after that is
+answered on the device.
 
 When the options page is open and WebMCP is available, configuration and tool
 results can also be shared with a compatible in-browser agent as described
