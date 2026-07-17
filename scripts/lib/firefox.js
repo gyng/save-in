@@ -314,7 +314,16 @@ const launch = async ({ extensionDir = ROOT } = {}) => {
       try {
         return await connectedRdp.evaluate(tabConsole, text, timeoutMs);
       } catch (error) {
-        if (!String(error).includes("noSuchActor")) throw error;
+        // A reload keeps the same tab actor but gives it a new console actor, so
+        // getTabConsoleActor can hand back a cached one that is stale. Firefox
+        // sometimes reports that as noSuchActor, but on a slow runner the stale
+        // actor instead accepts the request and never answers, surfacing as an
+        // RDP timeout. Treat both as "refresh the actor and retry"; reloadAddon
+        // already draws the same line. A caller that wants the timeout to be
+        // fatal keeps it fatal by not reloading the page under the evaluation.
+        if (!/noSuchActor|RDP (?:event )?timeout|Evaluation cancelled/.test(String(error))) {
+          throw error;
+        }
         let switchedConsole;
         try {
           switchedConsole = await connectedRdp.refreshTabConsoleActor(urlSubstr, tabConsole);

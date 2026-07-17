@@ -78,14 +78,20 @@ const recoverOptionsPage = async () => {
   await requestOptionsReload();
   await poll(
     async () =>
-      (await rawEvalOptions(`document.readyState === "complete" &&
+      (await rawEvalOptions(
+        `document.readyState === "complete" &&
         Boolean(browser.runtime?.id) &&
         Boolean(document.querySelector("#autocomplete-paths")) &&
         document.querySelector("#paths")?.getAttribute("aria-busy") === "false" &&
-        document.querySelector("#filenamePatterns")?.getAttribute("aria-busy") === "false"`))
+        document.querySelector("#filenamePatterns")?.getAttribute("aria-busy") === "false"`,
+        // Probe briefly: a stale console actor left by the reload has to fail
+        // fast enough to refresh and retry within the poll rather than burning
+        // the whole deadline on one 30s RDP timeout.
+        2500,
+      ))
         ? true
         : null,
-    { description: "reloaded Firefox options page", ignoreErrors: true },
+    { description: "reloaded Firefox options page", ignoreErrors: true, timeoutMs: 15000 },
   );
 };
 const control = createE2EControlClient({

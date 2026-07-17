@@ -65,7 +65,11 @@ let harness;
 const FIRST_INSTALL_TEST = "first install starts with a focused welcome";
 
 /** @param {string} expr @returns {Promise<unknown>} */
-const rawEvalOptions = (expr) => cdp.evalInTarget(PORT, "options.html", expr);
+// The optional timeout matches the Firefox evaluator's signature so shared
+// scenarios can pass one; evalInTarget bounds itself internally, so Chrome
+// ignores it.
+/** @param {string} expr @param {number} [_timeoutMs] */
+const rawEvalOptions = (expr, _timeoutMs) => cdp.evalInTarget(PORT, "options.html", expr);
 const reloadOptionsPage = async () => {
   const reloaded = await cdp.reloadTargets(PORT, "options.html");
   if (reloaded === 0) {

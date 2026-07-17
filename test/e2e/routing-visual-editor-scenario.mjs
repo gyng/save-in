@@ -33,7 +33,7 @@ const EDITED_RULE_SOURCE = VISUAL_RULE_SOURCE.replace("\\.jpg$", EDITED_MATCHER)
  *
  * @param {{
  *   control: ReturnType<typeof import("./control-client.mjs").createE2EControlClient>,
- *   evaluateOptions: (expression: string) => Promise<unknown>,
+ *   evaluateOptions: (expression: string, timeoutMs?: number) => Promise<unknown>,
  *   reloadOptions?: () => Promise<unknown>,
  * }} adapters
  */
@@ -52,12 +52,18 @@ export const runRoutingVisualEditorScenario = async ({
     await reloadOptions();
     await poll(
       async () =>
-        (await evaluateOptions(`(() => {
+        (await evaluateOptions(
+          `(() => {
           const source = document.querySelector("#filenamePatterns");
           return document.readyState === "complete" &&
             source?.value === ${JSON.stringify(VISUAL_RULE_SOURCE)};
-        })()`)) === true || null,
-      { description: "routing rules loaded in Options", ignoreErrors: true },
+        })()`,
+          // Short probe so a stale post-reload actor refreshes and retries
+          // within the poll instead of hanging a full RDP timeout (Firefox);
+          // ignored by the Chrome evaluator, which takes no timeout here.
+          2500,
+        )) === true || null,
+      { description: "routing rules loaded in Options", ignoreErrors: true, timeoutMs: 15000 },
     );
 
     const initial = await evaluateJson(
