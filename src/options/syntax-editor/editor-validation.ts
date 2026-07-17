@@ -49,7 +49,15 @@ export const clearValidationFields = (root: ParentNode): void => {
 export const markValidationField = (field: HTMLElement | null, summaryId: string): void => {
   if (!field) return;
   const previous = field.getAttribute("aria-describedby") || "";
-  field.dataset.validationDescribedBy = previous;
+  // Only the first mark of a pass records what to restore. One row can carry
+  // several fatal errors, so the same field is marked once per error, and a
+  // later mark would record the earlier mark's own summary as the baseline —
+  // clearValidationFields would then restore a description pointing at a
+  // summary the field is no longer part of. Cleared state is the absent
+  // dataset key, so the next pass records afresh.
+  if (field.dataset.validationDescribedBy === undefined) {
+    field.dataset.validationDescribedBy = previous;
+  }
   field.setAttribute("aria-invalid", "true");
   field.setAttribute(
     "aria-describedby",
