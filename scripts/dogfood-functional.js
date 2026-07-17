@@ -775,7 +775,12 @@ const main = async (args) => {
   await cdp.evalInTarget(
     session.port,
     OPTIONS_TARGET,
+    // webmcpEnabled is the user's opt-in and is off by default, so the round
+    // has to answer that switch before it can assert on registered tools. It
+    // rides the baseline because resetState restores it and reloads, and
+    // registration only reads the switch at page load.
     `chrome.storage.local.set({
+      webmcpEnabled: true,
       notifyOnSuccess: false,
       notifyOnFailure: false,
       notifyOnRuleMatch: false,
