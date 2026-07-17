@@ -25,7 +25,11 @@ export type AutomaticRoutingCandidate = {
   // The tab that declared the source. The background re-match sets it so this
   // match is evaluated against that tab — and, because routing suppresses debug
   // logging for a private tab, so a private automatic save does not print its
-  // page and source URLs. The content pre-match leaves it absent.
+  // page and source URLs. The content pre-match leaves it absent, because this
+  // candidate is the message payload and cannot carry a tab. That does not
+  // leave the scan blind to the title: it reaches pagetitle: through the
+  // routing port content/ports.ts configures, which answers with this page —
+  // in a content script, this page is the tab.
   currentTab?: RoutingInfo["currentTab"];
 };
 
