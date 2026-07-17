@@ -84,7 +84,7 @@ const DOWNLOAD_EXPR = `(async () => {
 
 /** Create the real + symlinked subdirectories inside the download directory.
  * @param {string} downloadDir
- * @returns {{ externalTarget: string, linkKind: "symlink" | "junction" } | null} */
+ * @returns {{ externalTarget: string, linkKind: "symlink" } | null} */
 const setUpLinks = (downloadDir) => {
   const externalTarget = path.join(path.dirname(downloadDir), `symlink-external-${Date.now()}`);
   fs.mkdirSync(externalTarget, { recursive: true });
@@ -94,15 +94,12 @@ const setUpLinks = (downloadDir) => {
     fs.symlinkSync(externalTarget, linkPath, "dir");
     return { externalTarget, linkKind: "symlink" };
   } catch (error) {
-    // Windows may deny directory symlinks without the create-symlink privilege.
-    if (process.platform === "win32") {
-      try {
-        fs.symlinkSync(externalTarget, linkPath, "junction");
-        return { externalTarget, linkKind: "junction" };
-      } catch {
-        return null;
-      }
-    }
+    // Creating a directory symlink on Windows needs the create-symlink
+    // privilege (admin or Developer Mode). Do NOT fall back to a junction: a
+    // junction is a different reparse type that Chrome ACCEPTS (verified), so
+    // it would test the wrong thing and break the symlink contract spuriously.
+    // Skip instead when a real symlink cannot be made.
+    if (process.platform === "win32") return null;
     throw error;
   }
 };
