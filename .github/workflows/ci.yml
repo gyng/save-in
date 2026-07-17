@@ -148,6 +148,11 @@ jobs:
           CHROME_PATH: /tmp/save-in-minimum-browsers/chrome-linux64/chrome
           FIREFOX_PATH: /tmp/save-in-minimum-browsers/firefox/firefox
           HEADLESS: "1"
+          # The packaged Chrome the e2e job uses ships an AppArmor profile that
+          # permits its sandbox. This unpacked Chrome for Testing has none, and
+          # the runner restricts unprivileged user namespaces, so it aborts with
+          # "No usable sandbox!" before ever opening its debugging port.
+          CHROME_E2E_NO_SANDBOX: "1"
         run: npm run e2e
       - name: Compare minimum-browser timing with successful master
         if: github.event_name == 'pull_request'
