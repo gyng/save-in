@@ -45,7 +45,8 @@ horizontal or vertical scroll container; `scripts/check-css.js` enforces this.
 Native nesting is allowed for short state/pseudo-element groups; do not build
 deeply nested selector trees or create catch-all override stylesheets.
 `@scope` is documented as a future migration in `docs/UI.md`; `scripts/check-css.js`
-rejects it outright while Firefox 121 remains supported.
+rejects it outright while Firefox below 146 remains supported (Chrome has it since
+118, so the declared Firefox minimum is what gates it).
 
 **Build, ship, and browser tests target the staged bundle** in
 `dist/bundled-pkg`. `npm run typecheck` covers source and the TypeScript test
@@ -100,7 +101,7 @@ filter limits both tracking and routing.
 ### Single MV3 manifest, two background models
 
 One `manifest.json` (MV3) carries dual `background` keys, both pointing at
-bundles: Firefox (≥ 121) uses `background.scripts: ["background.js"]`
+bundles: Firefox (≥ 140) uses `background.scripts: ["background.js"]`
 (an **event page**, real `window`) and ignores `service_worker`; Chrome (≥ 123)
 uses `background.service_worker: "background.sw.js"` (the same worker-safe
 modules, without a `window` shim) and ignores

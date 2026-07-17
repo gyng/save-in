@@ -56,7 +56,7 @@ A versioned external API plus configuration tools support scripts and compatible
 in-browser AI agents through WebMCP. See the source-controlled
 [integration contract](docs/INTEGRATIONS.md).
 
-Version 4 is a [Manifest V3](https://github.com/gyng/save-in/wiki/Manifest-V3) extension on Firefox 121+ and Chrome 123+.
+Version 4 is a [Manifest V3](https://github.com/gyng/save-in/wiki/Manifest-V3) extension on Firefox 140+ and Chrome 123+.
 
 The WebExtension API only allows saving into directories relative to the default
 download directory. Firefox can follow a symlink placed there to another

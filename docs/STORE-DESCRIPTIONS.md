@@ -66,7 +66,7 @@ Privacy and permissions
 
 Save In uses site access only to identify and fetch resources that you choose directly or configure site-scoped rules to save automatically. Settings, history, recovery state, and diagnostics remain on your device and are not sent to the developer. Save In contains no telemetry, advertising, remote code, or developer-operated service. Private Browsing activity is excluded from Save In history, diagnostics, and webhooks. Optional webhooks go directly to the HTTPS endpoint chosen by the user; automatic saves do not trigger them, and the options page states and previews the selected data before the feature is enabled. In a browser that provides WebMCP, a compatible in-browser agent can read the complete saved configuration and invoke Save In tools only while Options is open. Save In adds no separate consent prompt; the browser or agent controls access and confirmation.
 
-Requires Firefox 121 or later.
+Requires Firefox 140 or later.
 ```
 
 ## Chrome description
@@ -108,7 +108,7 @@ Use this as the store-facing release note. `CHANGELOG.md` remains the complete
 release history.
 
 ```text
-Version 4 is Save In's largest update. You no longer need to write every configuration from scratch: build destination menus visually, start routing rules from searchable templates or Quick add, use autocomplete for variables and clauses, preview results, and test unsaved rules against real download details in the route debugger. This release also adds Page Sources with guarded automatic saving, more routing variables, improved click-to-save, searchable local history, safer external integrations, and more reliable downloads across browser restarts. The extension now uses Manifest V3 and requires Firefox 121+ or Chrome 123+. Existing settings and routing rules remain supported, and valid settings from the earlier automation editor migrate into unified routing rules.
+Version 4 is Save In's largest update. You no longer need to write every configuration from scratch: build destination menus visually, start routing rules from searchable templates or Quick add, use autocomplete for variables and clauses, preview results, and test unsaved rules against real download details in the route debugger. This release also adds Page Sources with guarded automatic saving, more routing variables, improved click-to-save, searchable local history, safer external integrations, and more reliable downloads across browser restarts. The extension now uses Manifest V3 and requires Firefox 140+ or Chrome 123+. Existing settings and routing rules remain supported, and valid settings from the earlier automation editor migrate into unified routing rules.
 ```
 
 ## Firefox reviewer note: user-configured webhooks

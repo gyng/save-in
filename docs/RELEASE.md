@@ -122,7 +122,7 @@ with the corresponding current- and minimum-browser artifact from the latest
 successful master run and emits annotations above the 25% advisory threshold.
 CI runs the suites once with the
 host's current browsers and once with the declared minimum Chrome 123 and
-Firefox 121 releases. Those exact archives are SHA-256 verified before
+Firefox 140 releases. Those exact archives are SHA-256 verified before
 execution. The same artifact includes each browser's `*-environment.json`, and
 timing reports embed the browser version. Comparisons skip a browser when its
 version changed instead of presenting cross-version noise as a test regression.
