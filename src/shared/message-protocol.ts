@@ -428,9 +428,6 @@ const EXTERNAL_MESSAGE_TYPE_MAP = {
   [MESSAGE_TYPES.DOWNLOAD]: true,
 } as const satisfies Record<ExternalMessage["type"], true>;
 
-export const INTERNAL_MESSAGE_TYPES: ReadonlySet<string> = new Set(
-  Object.keys(INTERNAL_MESSAGE_TYPE_MAP),
-);
 export const EXTERNAL_MESSAGE_TYPES: ReadonlySet<string> = new Set(
   Object.keys(EXTERNAL_MESSAGE_TYPE_MAP),
 );

@@ -1,4 +1,5 @@
 import { toRootDomain } from "../shared/domain.ts";
+import { AUTOMATIC_CONTEXT_PATTERN } from "../routing/automatic-rule.ts";
 import type { PageSourceKind } from "../shared/page-source.ts";
 
 const escapeRegex = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -17,7 +18,7 @@ export const createSourceRuleDraft = (
     const sourceDomain = toRootDomain(source.hostname);
     return [
       `// Suggested automatic ${sourceKind} rule for ${pageDomain}`,
-      "context: ^auto$",
+      `context: ${AUTOMATIC_CONTEXT_PATTERN}`,
       `pagerootdomain: ^${escapeRegex(pageDomain)}$`,
       `sourcerootdomain: ^${escapeRegex(sourceDomain)}$`,
       `sourcekind: ^${escapeRegex(sourceKind)}$`,

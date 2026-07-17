@@ -1,4 +1,5 @@
 import { getFilenameFromUrl } from "../routing/filename.ts";
+import { AUTOMATIC_CONTEXT_PATTERN } from "../routing/automatic-rule.ts";
 import {
   parseRoutingRuleAst,
   type RoutingClauseNode,
@@ -309,7 +310,7 @@ export const migrateLegacyAutoDownloadRules = (
     .map((rule) =>
       [
         ...(rule.name ? [`// ${escapeControlValue(rule.name)}`] : []),
-        "context: ^auto$",
+        `context: ${AUTOMATIC_CONTEXT_PATTERN}`,
         ...rule.matchers.map((matcher) => {
           const name = MIGRATED_MATCHER_NAMES[matcher.name] ?? matcher.name;
           return `${name}${matcher.flags ? `/${matcher.flags}` : ""}: ${matcher.pattern}`;
