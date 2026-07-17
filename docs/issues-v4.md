@@ -277,6 +277,20 @@ hidden-file or traversal name past it). `test/routing/path.test.ts` pins that
 case explicitly, alongside the reporter's two failures, his two *working* cases
 (interior whitespace must survive), and other Unicode spaces.
 
+**Amended `e8b0acb5`: that ordering had a hole, and this section claimed the
+class was closed one instance early.** The leading-dot guard substitutes the
+*user's* `replacementChar`, which the options page accepts as a space — so the
+guard put a whitespace edge back immediately after the only trim that would have
+removed it, and the final leading-dot pass could not catch it because by then the
+component starts with the replacement, not a dot. Set the replacement to a space
+and `.hidden.txt` sanitized to `" hidden.txt"`; `a/.git/config` routed to
+`a/ git/config` — the reported failure, reached from the other side. Fixed by
+trimming again *after* the guard rather than forcing a known-safe replacement, so
+a replacement that is not whitespace still appears where the user asked. The
+lesson is the one this document already argues: "the silent half is fixed" is a
+claim about a class, and a class is not closed by fixing the instance that was
+reported.
+
 The close reason needs no retraction — the browser still owns the underlying
 limit. What changed is that Save In no longer produces a silent failure on the
 way there.
@@ -451,6 +465,18 @@ acts before the panel finishes wiring, rather than a lost event.
 This matters beyond the annoyance: a suite that fails ~25% of the time trains
 people to re-run until green, which is exactly how a real regression gets waved
 through. Worth fixing before the release gate leans on it.
+
+**Both since fixed; this section is kept for the diagnosis, not as an open
+item.** The template case was `b62591e5`, and the cause was the one guessed at
+here: its observer bailed out whenever the textarea's tab-panel was hidden, and a
+re-render could drop the editor back to Visual mode, so every later pass returned
+early and the case sat out its full wait against an empty textarea — a readiness
+race, not a lost event. Re-asserting the section and mode from inside the
+observer fixed it, and the timeout payload now reports why rather than only the
+symptom. Roughly ten full e2e runs across both browsers on 2026-07-17 saw neither
+case fail; the one Chrome failure observed in that window was a template-case
+timeout under ~148 stray browser processes, which is a resource signal rather
+than this race.
 
 ## #196 — a feature request, mis-shelved as a breakage report
 
