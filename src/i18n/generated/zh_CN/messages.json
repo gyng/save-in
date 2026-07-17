@@ -207,7 +207,7 @@
     "message": "使用路由规则处理浏览器下载"
   },
   "o_cRouteBrowserDownloadsHelp": {
-    "message": "如果浏览器支持，匹配规则可以重命名浏览器下载或将其放入子文件夹。可在路由规则 › + 添加规则中添加。不匹配的下载保持不变。"
+    "message": "如果浏览器支持，匹配规则可以重命名浏览器下载或将其放入子文件夹。可在路由规则 › + 添加规则中创建。不匹配的下载保持不变。"
   },
   "o_cRouteBrowserDownloadsFirefox": {
     "message": "重新路由匹配的浏览器下载"
