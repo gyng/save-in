@@ -230,6 +230,26 @@ export const dispatchControlRequest = async (
       void check().catch((error) => finish(() => reject(error)));
     });
 
+  // A tab finishing load does not mean its content script has registered its
+  // onMessage listener yet: on a slow runner the message can arrive first and
+  // reject with "Receiving end does not exist", which is what content.ts guards
+  // against in the other direction. Retry the send until it connects. Each
+  // failed send is a real message round-trip, so the loop paces itself without a
+  // timer (control-client.mjs holds no fixed delays), bounded by the deadline.
+  /** @param {number} id @param {Record<string, unknown>} message @param {number} timeoutMs */
+  const sendToTab = async (id, message, timeoutMs = 8000) => {
+    const timeout = AbortSignal.timeout(timeoutMs);
+    for (;;) {
+      try {
+        return await browserApi.tabs.sendMessage(id, message);
+      } catch (error) {
+        const reason = error instanceof Error ? error.message : String(error);
+        const notReady = /Receiving end does not exist|Could not establish connection/.test(reason);
+        if (!notReady || timeout.aborted) throw error;
+      }
+    }
+  };
+
   /** @param {"local" | "session"} area @param {string} key @param {unknown} expected @param {number} timeoutMs */
   const waitForStorage = (area, key, expected, timeoutMs) =>
     new Promise((resolve, reject) => {
@@ -655,7 +675,7 @@ export const dispatchControlRequest = async (
         );
         break;
       case "tabs.sendMessage":
-        result = await browserApi.tabs.sendMessage(request.id, request.message);
+        result = await sendToTab(request.id, request.message);
         break;
       case "windows.create":
         result = await browserApi.windows.create(request.properties);
