@@ -244,8 +244,16 @@ export const formatBytes = (n: number | null | undefined): string => {
 };
 
 // width is a percentage weight (table-layout: fixed)
+// Row fields that are never columns: an identity, a capability flag, and the
+// parsed form of the variables column. Excluding them makes the column key set
+// exactly the set the table can render, so a column without a cell builder is
+// a compile error rather than a silently missing cell.
+type NonColumnRowField = "historyId" | "reroutable" | "variableEntries";
+
+export type HistoryColumnKey = Exclude<keyof HistoryRow, NonColumnRowField> | "index";
+
 export type HistoryDisplayColumn = {
-  key: keyof HistoryRow | "index";
+  key: HistoryColumnKey;
   label: string;
   sortable: boolean;
   width: string;

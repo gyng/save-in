@@ -15,6 +15,7 @@ import { historyFeedback, renderHistoryFeedback } from "./history-feedback.ts";
 import { historyMessage } from "./history-messages.ts";
 import { historyState } from "./history-panel-state.ts";
 
+/* v8 ignore next -- Placeholder overwritten by history-panel.ts at import, before any call site can run. */
 let renderTable: () => void = () => {};
 
 export const setHistoryTableRenderer = (render: () => void): void => {

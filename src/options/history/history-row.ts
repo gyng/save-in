@@ -3,7 +3,7 @@
 // declared column order.
 
 import type { HistoryRow } from "../../shared/history-types.ts";
-import type { HistoryDisplayColumn } from "./history-view.ts";
+import type { HistoryColumnKey, HistoryDisplayColumn } from "./history-view.ts";
 import {
   formatBytes,
   formatHistoryDisplayTime,
@@ -24,9 +24,9 @@ const cell = (className: string, text = ""): HTMLTableCellElement => {
   return td;
 };
 
-const textCell = (className: string, text: string, title?: string): HTMLTableCellElement => {
+const textCell = (className: string, text: string, title: string): HTMLTableCellElement => {
   const td = cell(className, text);
-  if (title !== undefined) td.title = title;
+  td.title = title;
   return td;
 };
 
@@ -92,7 +92,7 @@ const variablesCell = (row: HistoryRow): HTMLTableCellElement => {
   return variables;
 };
 
-const CELL_BUILDERS: Partial<Record<HistoryDisplayColumn["key"], CellBuilder>> = {
+const CELL_BUILDERS: Record<HistoryColumnKey, CellBuilder> = {
   index: (_row, rowIndex) =>
     cell("history-index", String(historyState.page * HISTORY_PAGE_SIZE + rowIndex + 1)),
   time: (row) =>
@@ -129,9 +129,7 @@ export const buildHistoryRow = (
   const tr = document.createElement("tr");
   for (const { key, label } of columns) {
     if (!isHistoryColumnVisible(key)) continue;
-    const build = CELL_BUILDERS[key];
-    if (!build) continue;
-    const td = build(row, rowIndex);
+    const td = CELL_BUILDERS[key](row, rowIndex);
     td.dataset.column = key;
     td.dataset.label = label;
     tr.append(td);
