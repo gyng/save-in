@@ -82,7 +82,7 @@ Features
 - Search and filter local download history, with JSON and spreadsheet-safe CSV/TSV export.
 - Optionally record or route matching ordinary Chrome downloads before they are saved.
 
-Browsers only allow saving into directories relative to the default download directory. Chrome rejects symlinked destinations, so use real subfolders of the download directory — on Linux, bind-mount another folder onto one (sudo mount --bind /target ~/Downloads/sub); on macOS, an Automator Folder Action on the download folder can move files elsewhere after they land.
+Browsers only allow saving into directories relative to the default download directory. Chrome rejects symlinked destinations, so use real subfolders of the download directory — on Windows, point a junction at another folder (mklink /J %USERPROFILE%\Downloads\sub C:\target); on Linux, bind-mount one (sudo mount --bind /target ~/Downloads/sub); on macOS, an Automator Folder Action on the download folder can move files elsewhere after they land.
 
 Privacy and permissions
 
