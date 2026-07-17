@@ -85,6 +85,11 @@ const firstUnknownProperty = (
   return field ? { field, message: "Unknown property" } : null;
 };
 
+// The option the registration gate below reads. Named here because the tools
+// must refuse to write the one switch that decides whether they exist.
+const WEBMCP_ENABLED_OPTION = "webmcpEnabled";
+const WEBMCP_ENABLED_REFUSAL = "Only the user can turn agent access on or off.";
+
 const NO_PROPERTIES = new Set<string>();
 const VALIDATE_PROPERTIES = new Set(["paths", "filenamePatterns", "info", "automaticCandidate"]);
 const APPLY_PROPERTIES = new Set(["config"]);
@@ -412,27 +417,39 @@ export const buildTools = (send: WebMcpSend): WebMcpTool[] => {
         if (Object.keys(input.config).length === 0) {
           return inputError("config", "Provide at least one setting");
         }
+        // Two keys this layer refuses, for reasons the background cannot have:
+        // a css: selector is only checkable where there is a DOM, and the
+        // switch that decides whether these tools exist is not one of the
+        // settings they may set — an agent able to turn it back on would
+        // outlive the moment the user withdrew its access, and the checkbox
+        // would re-check itself saying so. Refusing the whole request would
+        // drop the caller's other valid settings without naming them, so
+        // reject just these the way the background rejects every other one.
         const patterns = input.config.filenamePatterns;
         const invalidCss =
           typeof patterns === "string" ? cssSelectorErrors(patterns)[0] : undefined;
-        if (!invalidCss) return send({ type: "APPLY_CONFIG", body: { config: input.config } });
+        const rejections = [
+          ...(invalidCss ? [{ name: "filenamePatterns", reason: invalidCss.message }] : []),
+          ...(Object.hasOwn(input.config, WEBMCP_ENABLED_OPTION)
+            ? [{ name: WEBMCP_ENABLED_OPTION, reason: WEBMCP_ENABLED_REFUSAL }]
+            : []),
+        ];
+        // Nothing refused is the ordinary case, and an empty list is the same
+        // thing as having no first entry — so let the narrowing say it once.
+        const [first] = rejections;
+        if (!first) return send({ type: "APPLY_CONFIG", body: { config: input.config } });
 
-        // A css: selector is only checkable where there is a DOM, so the
-        // background cannot reject one and this is the only place that can.
-        // Refusing the whole request would drop the caller's other valid
-        // settings without naming them; reject just this key the way the
-        // background rejects every other one.
+        const refused = new Set(rejections.map(({ name }) => name));
         const rest = Object.fromEntries(
-          Object.entries(input.config).filter(([name]) => name !== "filenamePatterns"),
+          Object.entries(input.config).filter(([name]) => !refused.has(name)),
         );
         if (Object.keys(rest).length === 0) {
-          return inputError("config.filenamePatterns", invalidCss.message);
+          return inputError(`config.${first.name}`, first.reason);
         }
-        const rejection = { name: "filenamePatterns", reason: invalidCss.message };
         return Promise.resolve(send({ type: "APPLY_CONFIG", body: { config: rest } })).then(
           (response) =>
             isStringKeyedRecord(response) && Array.isArray(response.rejected)
-              ? { ...response, rejected: [...response.rejected, rejection] }
+              ? { ...response, rejected: [...response.rejected, ...rejections] }
               : response,
         );
       },

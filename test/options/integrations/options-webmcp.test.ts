@@ -148,6 +148,44 @@ describe("buildTools", () => {
     });
   });
 
+  // The switch decides whether these tools exist at all, so it is the one
+  // setting they may not set: an agent that could turn it back on could outlive
+  // the moment the user withdrew its access.
+  test("refuses to let an agent switch its own access back on", async () => {
+    const { send, byName } = toolsByName();
+    await expect(
+      byName.save_in_apply_config.execute({ config: { webmcpEnabled: true } }),
+    ).resolves.toMatchObject({
+      status: "ERROR",
+      errors: [{ field: "config.webmcpEnabled" }],
+    });
+    expect(send).not.toHaveBeenCalled();
+  });
+
+  test("applies the other settings beside the switch an agent may not set", async () => {
+    const send = vi.fn(() =>
+      Promise.resolve({ version: 1, applied: { paths: "Keep" }, rejected: [] }),
+    );
+    const byName = Object.fromEntries(buildTools(send).map((tool) => [tool.name, tool])) as Record<
+      SaveInToolName,
+      SaveInTool
+    >;
+
+    const result = await byName.save_in_apply_config.execute({
+      config: { paths: "Keep", webmcpEnabled: false },
+    });
+
+    // Named rather than dropped, and the caller's real settings still land.
+    expect(send).toHaveBeenCalledWith({
+      type: "APPLY_CONFIG",
+      body: { config: { paths: "Keep" } },
+    });
+    expect(result).toMatchObject({
+      applied: { paths: "Keep" },
+      rejected: [{ name: "webmcpEnabled" }],
+    });
+  });
+
   test("blocks applying an invalid CSS matcher from an agent", async () => {
     const { send, byName } = toolsByName();
     await expect(
