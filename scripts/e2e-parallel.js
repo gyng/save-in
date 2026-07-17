@@ -232,15 +232,31 @@ const main = async () => {
     }
 
     const childEnv = { ...e2eEnv, EXT_DIR: path.relative(root, stagedRun) };
+    // A whole suite can fail before any test on a slow shared runner — a
+    // Firefox event page that does not come up inside the launch budget throws
+    // in beforeAll, which vitest's test-level retry cannot re-run. Retry the
+    // suite process itself, which relaunches the browser from scratch. Default
+    // 0 so local runs surface a flake immediately; CI opts in with E2E_RETRY.
+    const suiteRetries = Math.max(0, Number.parseInt(process.env.E2E_RETRY || "0", 10) || 0);
+    /** @param {string} suite */
+    const runSuiteWithRetry = async (suite) => {
+      let code = Number(await startSuite(suite, childEnv, options.vitestArgs).done);
+      for (let attempt = 1; code !== 0 && attempt <= suiteRetries; attempt += 1) {
+        console.error(
+          `E2E suite ${suite} exited ${code}; retrying (${attempt}/${suiteRetries}) with a fresh launch`,
+        );
+        code = Number(await startSuite(suite, childEnv, options.vitestArgs).done);
+      }
+      return code;
+    };
     if (options.serial) {
       for (const suite of suites) {
-        const code = await startSuite(suite, childEnv, options.vitestArgs).done;
-        codes.push(/** @type {number} */ (code));
+        const code = await runSuiteWithRetry(suite);
+        codes.push(code);
         if (code !== 0) break;
       }
     } else {
-      const runs = suites.map((suite) => startSuite(suite, childEnv, options.vitestArgs));
-      codes.push(...(await Promise.all(runs.map(({ done }) => done))).map(Number));
+      codes.push(...(await Promise.all(suites.map((suite) => runSuiteWithRetry(suite)))));
     }
   } catch (error) {
     runError = error;

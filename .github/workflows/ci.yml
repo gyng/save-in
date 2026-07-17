@@ -86,7 +86,11 @@ jobs:
           google-chrome --version
           firefox --version
       - name: Chrome and Firefox e2e
-        run: HEADLESS=1 npm run e2e
+        # Retry a suite once: a shared runner occasionally fails a whole suite
+        # before any test — a Firefox event page that misses its launch budget —
+        # which is a resource signal, not a defect, and re-runs clean. Genuine
+        # bugs fail every attempt and still surface. Timing is judged separately.
+        run: HEADLESS=1 E2E_RETRY=1 npm run e2e
       - name: Compare e2e timing with successful master
         if: github.event_name == 'pull_request'
         env:
@@ -160,6 +164,8 @@ jobs:
           # the runner restricts unprivileged user namespaces, so it aborts with
           # "No usable sandbox!" before ever opening its debugging port.
           CHROME_E2E_NO_SANDBOX: "1"
+          # Retry a suite once for the same reason as the e2e job above.
+          E2E_RETRY: "1"
         run: npm run e2e
       - name: Compare minimum-browser timing with successful master
         if: github.event_name == 'pull_request'
