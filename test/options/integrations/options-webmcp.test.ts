@@ -238,6 +238,19 @@ describe("buildTools", () => {
       status: "ERROR",
       errors: [{ field: "automaticCandidate.currentTab.url", message: "Unknown property" }],
     });
+
+    // An agent's tool input is untrusted, so currentTab has to be checked for
+    // being an object at all before its properties are read — a bare string
+    // would otherwise reach firstUnknownProperty as one.
+    await expect(
+      byName.save_in_validate_config.execute({
+        filenamePatterns: "context: ^auto$\ninto: x",
+        automaticCandidate: { ...candidate, currentTab: "Cat Gallery" },
+      }),
+    ).resolves.toEqual({
+      status: "ERROR",
+      errors: [{ field: "automaticCandidate.currentTab", message: "Expected an object" }],
+    });
   });
 
   test("passes every matcher input needed for a representative rule trace", async () => {
