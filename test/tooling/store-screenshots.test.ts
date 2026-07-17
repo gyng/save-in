@@ -54,24 +54,24 @@ describe("Chrome Web Store screenshot plan", () => {
   test("defines stable listing-ready output names", () => {
     expect(SCREENSHOTS).toEqual([
       {
-        filename: "01-downloads-menu.png",
+        filename: "01-right-click-save.png",
+        description: "Right-clicking an image to save it into a folder with the Save In menu",
+      },
+      {
+        filename: "02-page-sources.png",
+        description: "Page Sources docked open on a representative media page",
+      },
+      {
+        filename: "03-downloads-menu.png",
         description: "Configured directories and the live menu preview",
       },
       {
-        filename: "02-routing-rules.png",
+        filename: "04-routing-rules.png",
         description: "Pattern-based routing and renaming rules",
       },
       {
-        filename: "03-page-sources.png",
-        description: "Page Sources open on a representative media page",
-      },
-      {
-        filename: "04-browser-downloads.png",
+        filename: "05-browser-downloads.png",
         description: "Tracking and routing ordinary browser downloads with a match-pattern filter",
-      },
-      {
-        filename: "05-right-click-save.png",
-        description: "Right-clicking an image to save it into a folder with the Save In menu",
       },
     ]);
   });

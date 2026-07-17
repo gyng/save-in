@@ -232,14 +232,14 @@ npm run screenshots:store
 The command launches isolated headless Chrome, seeds the review configuration,
 and writes five 1280×800 PNGs to `docs/store-screenshots/` in listing order:
 
-- `01-downloads-menu.png`: configured directories with the live context-menu
+- `01-right-click-save.png`: the Save In context menu over a demo-page image,
+  showing the right-click save gesture;
+- `02-page-sources.png`: Page Sources docked open on the in-repo demo page;
+- `03-downloads-menu.png`: configured directories with the live context-menu
   preview;
-- `02-routing-rules.png`: routing and renaming rules;
-- `03-page-sources.png`: Page Sources on the in-repo demo page;
-- `04-browser-downloads.png`: tracking and routing ordinary browser downloads
-  with a match-pattern filter; and
-- `05-right-click-save.png`: the Save In context menu over a demo-page image,
-  showing the right-click save gesture.
+- `04-routing-rules.png`: routing and renaming rules; and
+- `05-browser-downloads.png`: tracking and routing ordinary browser downloads
+  with a match-pattern filter.
 
 It losslessly recompresses each PNG and validates its dimensions. To use another
 destination:

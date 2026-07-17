@@ -139,6 +139,15 @@ const seedShowcase = (port, optionsTarget) =>
       sourcePanelPreviews: true,
       sourcePanelResourceHints: true,
       sourcePanelLinks: true,
+      sourcePanelLayout: {
+        placement: "right",
+        sideWidth: 460,
+        dockHeight: 420,
+        floatingLeft: 80,
+        floatingTop: 80,
+        floatingWidth: 520,
+        floatingHeight: 620,
+      },
       "save-in-history": [
         {
           id: "showcase-1",
@@ -243,7 +252,12 @@ const main = async () => {
   let session;
 
   try {
-    session = await chrome.launch({ extensionDir, profileDir: PROFILE, fresh: true });
+    session = await chrome.launch({
+      extensionDir,
+      profileDir: PROFILE,
+      fresh: true,
+      extraArgs: ["--hide-scrollbars"],
+    });
     const { extensionId, port } = session;
     const optionsTarget = `${extensionId}/src/options/options.html`;
 
@@ -300,10 +314,10 @@ const main = async () => {
        scrollTo(0, 0);
        document.activeElement?.blur();`,
     );
-    await capture(port, optionsTarget, outputDir, SCREENSHOTS[0]);
+    await capture(port, optionsTarget, outputDir, SCREENSHOTS[2]);
 
     await activateOptionsTab(port, optionsTarget, "section-dynamic-downloads");
-    await capture(port, optionsTarget, outputDir, SCREENSHOTS[1]);
+    await capture(port, optionsTarget, outputDir, SCREENSHOTS[3]);
 
     // Browser downloads: the seeded options enable tracking, Chrome's routing,
     // and the match-pattern filter so the panel shows its active state with the
@@ -319,7 +333,7 @@ const main = async () => {
         ),
       "browser-download options seeded",
     );
-    await capture(port, optionsTarget, outputDir, SCREENSHOTS[3]);
+    await capture(port, optionsTarget, outputDir, SCREENSHOTS[4]);
 
     await cdp.openTab(port, `http://${demoTarget}/store-demo`);
     await waitFor(
@@ -360,7 +374,7 @@ const main = async () => {
     );
     await polishPageSourcesForListing(port, demoTarget);
     await cdp.evalInTarget(port, demoTarget, "scrollTo(0, 0); document.activeElement?.blur()");
-    await capture(port, demoTarget, outputDir, SCREENSHOTS[2]);
+    await capture(port, demoTarget, outputDir, SCREENSHOTS[1]);
 
     // Right-click save: close the Page Sources panel and float the Save In
     // context menu over Miso's photo to show the core gesture on a real page.
@@ -421,7 +435,7 @@ const main = async () => {
         ),
       "context-menu overlay",
     );
-    await capture(port, demoTarget, outputDir, SCREENSHOTS[4]);
+    await capture(port, demoTarget, outputDir, SCREENSHOTS[0]);
 
     process.stdout.write(
       `\nChrome Web Store screenshots are ready in ${path.relative(chrome.ROOT, outputDir)}\n`,

@@ -9,24 +9,24 @@ const SCREENSHOT_HEIGHT = 800;
 /** @type {readonly [Screenshot, Screenshot, Screenshot, Screenshot, Screenshot]} */
 const SCREENSHOTS = Object.freeze([
   Object.freeze({
-    filename: "01-downloads-menu.png",
+    filename: "01-right-click-save.png",
+    description: "Right-clicking an image to save it into a folder with the Save In menu",
+  }),
+  Object.freeze({
+    filename: "02-page-sources.png",
+    description: "Page Sources docked open on a representative media page",
+  }),
+  Object.freeze({
+    filename: "03-downloads-menu.png",
     description: "Configured directories and the live menu preview",
   }),
   Object.freeze({
-    filename: "02-routing-rules.png",
+    filename: "04-routing-rules.png",
     description: "Pattern-based routing and renaming rules",
   }),
   Object.freeze({
-    filename: "03-page-sources.png",
-    description: "Page Sources open on a representative media page",
-  }),
-  Object.freeze({
-    filename: "04-browser-downloads.png",
+    filename: "05-browser-downloads.png",
     description: "Tracking and routing ordinary browser downloads with a match-pattern filter",
-  }),
-  Object.freeze({
-    filename: "05-right-click-save.png",
-    description: "Right-clicking an image to save it into a folder with the Save In menu",
   }),
 ]);
 
