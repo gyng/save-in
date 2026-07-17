@@ -18,4 +18,8 @@ test("terminates an owned browser process", async () => {
   } finally {
     if (child.exitCode === null && child.signalCode === null) child.kill("SIGKILL");
   }
-});
+  // Windows maps SIGTERM to taskkill without /F, which only asks windowed
+  // processes to close. This console child cannot answer, so killTree always
+  // burns its full 5s grace before escalating -- longer than the default
+  // per-test timeout.
+}, 20_000);
