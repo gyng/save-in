@@ -161,6 +161,32 @@ describe("buildTools", () => {
     expect(send).not.toHaveBeenCalled();
   });
 
+  // A css: selector needs a DOM to validate, so the background cannot reject
+  // one. Refusing the whole request would drop the caller's other valid
+  // settings without ever naming them — apply_config promises the opposite.
+  test("applies the other settings beside rules with an invalid CSS matcher", async () => {
+    const send = vi.fn(() =>
+      Promise.resolve({ version: 1, applied: { paths: "Keep" }, rejected: [] }),
+    );
+    const byName = Object.fromEntries(buildTools(send).map((tool) => [tool.name, tool])) as Record<
+      SaveInToolName,
+      SaveInTool
+    >;
+
+    const result = await byName.save_in_apply_config.execute({
+      config: { paths: "Keep", filenamePatterns: "css: [\ninto: files/" },
+    });
+
+    expect(send).toHaveBeenCalledWith({
+      type: "APPLY_CONFIG",
+      body: { config: { paths: "Keep" } },
+    });
+    expect(result).toMatchObject({
+      applied: { paths: "Keep" },
+      rejected: [{ name: "filenamePatterns" }],
+    });
+  });
+
   test("validates and forwards automatic-source rules with a sample candidate", async () => {
     const { send, byName } = toolsByName();
     const automaticCandidate = {

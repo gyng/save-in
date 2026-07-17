@@ -413,13 +413,28 @@ export const buildTools = (send: WebMcpSend): WebMcpTool[] => {
           return inputError("config", "Provide at least one setting");
         }
         const patterns = input.config.filenamePatterns;
-        if (typeof patterns === "string") {
-          const invalidCss = cssSelectorErrors(patterns)[0];
-          if (invalidCss) {
-            return inputError("config.filenamePatterns", invalidCss.message);
-          }
+        const invalidCss =
+          typeof patterns === "string" ? cssSelectorErrors(patterns)[0] : undefined;
+        if (!invalidCss) return send({ type: "APPLY_CONFIG", body: { config: input.config } });
+
+        // A css: selector is only checkable where there is a DOM, so the
+        // background cannot reject one and this is the only place that can.
+        // Refusing the whole request would drop the caller's other valid
+        // settings without naming them; reject just this key the way the
+        // background rejects every other one.
+        const rest = Object.fromEntries(
+          Object.entries(input.config).filter(([name]) => name !== "filenamePatterns"),
+        );
+        if (Object.keys(rest).length === 0) {
+          return inputError("config.filenamePatterns", invalidCss.message);
         }
-        return send({ type: "APPLY_CONFIG", body: { config: input.config } });
+        const rejection = { name: "filenamePatterns", reason: invalidCss.message };
+        return Promise.resolve(send({ type: "APPLY_CONFIG", body: { config: rest } })).then(
+          (response) =>
+            isStringKeyedRecord(response) && Array.isArray(response.rejected)
+              ? { ...response, rejected: [...response.rejected, rejection] }
+              : response,
+        );
       },
     },
     {
