@@ -146,7 +146,7 @@ const evalSW = (expr) =>
     ? controlTarget.evaluate(inBackgroundContext(expr))
     : Promise.reject(new Error("Chrome E2E control target was not initialized"));
 /** @param {string} expr @returns {Promise<unknown>} */
-const evalWorker = (expr) => cdp.evalInServiceWorker(PORT, extensionId, expr);
+const evalWorker = (expr) => cdp.evalInServiceWorker(PORT, extensionId, expr, CONTROL_PAGE_PATH);
 /** @param {string} key @param {unknown} expected @param {number} [timeoutMs] */
 const localStorageValue = (key, expected, timeoutMs = 5000) => `new Promise((resolve, reject) => {
   const key = ${JSON.stringify(key)};

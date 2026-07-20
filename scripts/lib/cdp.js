@@ -637,11 +637,16 @@ const createPersistentTargetSession = (port, urlSubstr) => {
 
 // The MV3 service worker disappears from the target list when idle:
 // wake it via an extension page first, then attach quickly.
-/** @param {number} port @param {string} extensionId @param {string} expression @returns {Promise<any>} */
-const evalInServiceWorker = async (port, extensionId, expression) => {
+/** @param {number} port @param {string} extensionId @param {string} expression @param {string} [wakeResource] @returns {Promise<any>} */
+const evalInServiceWorker = async (
+  port,
+  extensionId,
+  expression,
+  wakeResource = "src/options/options.html",
+) => {
   await evalInTarget(
     port,
-    `${extensionId}/src/options/options.html`,
+    `${extensionId}/${wakeResource}`,
     "new Promise(res => chrome.runtime.sendMessage({type:'WAKE_WARM'}, () => res('ok')))",
   );
 
