@@ -1727,7 +1727,10 @@ test("removing option keys restores live defaults before reset acknowledgement",
       objectOf({ response: decodeRecord, stored: decodeRecord }),
     );
 
-    expect(result.response).toEqual({ type: "OK" });
+    expect(result.response).toEqual({
+      type: "OK",
+      body: { instanceId: expect.any(String), generation: expect.any(Number) },
+    });
     expect(result.stored).toEqual({});
     expect(await control.options.get("promptOnShift")).toBe(true);
   } finally {
@@ -1755,9 +1758,17 @@ test("alt+click on a real page saves the image through the content script", asyn
   const targetUrl = `127.0.0.1:${serverPort}`;
   const previousContentClickToSave = await control.options.get("contentClickToSave");
   const previousContentClickToSaveCombo = await control.options.get("contentClickToSaveCombo");
+  const previousContentClickToSaveBindings = await control.options.get(
+    "contentClickToSaveBindings",
+  );
+  const previousFilenamePatterns = await control.options.get("filenamePatterns");
 
   try {
-    await control.options.set({ contentClickToSave: true, contentClickToSaveCombo: 18 });
+    await control.options.set({
+      contentClickToSave: true,
+      contentClickToSaveBindings: "",
+      contentClickToSaveCombo: 18,
+    });
 
     await cdp.openTab(PORT, pageUrl);
     await poll(
@@ -1875,11 +1886,72 @@ test("alt+click on a real page saves the image through the content script", asyn
     const completed = requireValue(download[0], "Automatic Chrome download was not captured");
     expect(completed.state).toBe("complete");
     expect(fs.readFileSync(completed.filename)).toEqual(png);
+
+    await control.options.set({
+      contentClickToSaveBindings: JSON.stringify({
+        version: 1,
+        bindings: [{ gesture: "double-left-click", combo: "" }],
+      }),
+      filenamePatterns:
+        "context: ^click$\ngesture: ^double-left-click$\ninto: e2e/double-click/:filename:",
+    });
+    await cdp.dispatchInput(PORT, targetUrl, [
+      {
+        method: "Input.dispatchMouseEvent",
+        params: {
+          type: "mousePressed",
+          x: target.x,
+          y: target.y,
+          button: "left",
+          buttons: 1,
+          clickCount: 1,
+        },
+      },
+      {
+        method: "Input.dispatchMouseEvent",
+        params: {
+          type: "mouseReleased",
+          x: target.x,
+          y: target.y,
+          button: "left",
+          buttons: 0,
+          clickCount: 1,
+        },
+      },
+      {
+        method: "Input.dispatchMouseEvent",
+        params: {
+          type: "mousePressed",
+          x: target.x,
+          y: target.y,
+          button: "left",
+          buttons: 1,
+          clickCount: 2,
+        },
+      },
+      {
+        method: "Input.dispatchMouseEvent",
+        params: {
+          type: "mouseReleased",
+          x: target.x,
+          y: target.y,
+          button: "left",
+          buttons: 0,
+          clickCount: 2,
+        },
+      },
+    ]);
+    const doubleClickDownloads = await waitForDownloads("double-click");
+    expect(doubleClickDownloads).toHaveLength(1);
+    expect(doubleClickDownloads[0]?.state).toBe("complete");
+    expect(fs.readFileSync(requireValue(doubleClickDownloads[0]?.filename, "path"))).toEqual(png);
   } finally {
     try {
       await control.options.set({
         contentClickToSave: previousContentClickToSave,
+        contentClickToSaveBindings: previousContentClickToSaveBindings,
         contentClickToSaveCombo: previousContentClickToSaveCombo,
+        filenamePatterns: previousFilenamePatterns,
       });
       const fixtureIds = (await control.tabs.query())
         .filter((tab) => tab.url?.includes(targetUrl))
