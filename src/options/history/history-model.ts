@@ -132,6 +132,42 @@ export const historyType = (entry: HistoryEntry): string => {
 // Older entries predate status tracking; treat them as complete
 export const historyStatus = (entry: HistoryEntry): string => entry.status || "complete";
 
+const historySource = (entry: HistoryEntry, info: HistoryInfo = historyInfo(entry)): string => {
+  return entry.observedBrowserDownload || info.context === "browser" ? "Browser" : "Save In";
+};
+
+const historyMenuItem = (entry: HistoryEntry): string =>
+  entry.menu?.title || entry.menu?.path || entry.menu?.id || "";
+
+const historyVariableEntries = (entry: HistoryEntry): Array<[string, string]> =>
+  Object.entries(entry.variables || {}).filter(([, value]) => value !== "");
+
+const historyVariableText = (variableEntries: Array<[string, string]>): string =>
+  variableEntries.map(([key, value]) => `${key}=${value}`).join(" · ");
+
+const historyMatchesQuery = (entry: HistoryEntry, query: string): boolean => {
+  return (
+    historyStatus(entry).toLowerCase().includes(query) ||
+    historyType(entry).toLowerCase().includes(query) ||
+    historyFilename(entry.finalFullPath).toLowerCase().includes(query) ||
+    historyFolder(entry.finalFullPath).toLowerCase().includes(query) ||
+    historySource(entry).toLowerCase().includes(query) ||
+    historySourceUrl(entry).toLowerCase().includes(query) ||
+    historyMenuItem(entry).toLowerCase().includes(query) ||
+    historyVariableText(historyVariableEntries(entry)).toLowerCase().includes(query)
+  );
+};
+
+const historyMatchesStatus = (entry: HistoryEntry, statusFilter: string): boolean => {
+  const status = historyStatus(entry);
+  return statusFilter === "failed"
+    ? // Every non-terminal-success status except the deliberate user
+      // actions (undo, move): browser error names (SERVER_FORBIDDEN, …)
+      // have no enumerable list.
+      status !== "complete" && status !== "pending" && status !== "undone" && status !== "moved"
+    : status === statusFilter;
+};
+
 const HISTORY_MECHANISMS: Record<string, string> = {
   "downloads-api": "Downloads API",
   "fetch-downloads-api": "Fetch + downloads API",
@@ -191,7 +227,7 @@ export const statusClass = (status: string): string => {
 // Flatten an entry into the fields the table shows and sorts/filters on
 export const historyRow = (entry: HistoryEntry): HistoryRow => {
   const info = historyInfo(entry);
-  const variableEntries = Object.entries(entry.variables || {}).filter(([, value]) => value !== "");
+  const variableEntries = historyVariableEntries(entry);
   return {
     historyId: typeof entry.id === "string" ? entry.id : null,
     time: entry.initiatedAt || entry.timestamp || "",
@@ -201,7 +237,7 @@ export const historyRow = (entry: HistoryEntry): HistoryRow => {
     file: historyFilename(entry.finalFullPath),
     folder: historyFolder(entry.finalFullPath),
     fullPath: entry.finalFullPath || "",
-    source: entry.observedBrowserDownload || info.context === "browser" ? "Browser" : "Save In",
+    source: historySource(entry, info),
     mechanism:
       HISTORY_MECHANISMS[entry.mechanism || ""] ||
       (entry.observedBrowserDownload || info.context === "browser"
@@ -211,8 +247,8 @@ export const historyRow = (entry: HistoryEntry): HistoryRow => {
     reroutable: isReroutableHistoryEntry(entry),
     downloadId: typeof entry.downloadId === "number" ? entry.downloadId : null,
     size: typeof entry.fileSize === "number" ? entry.fileSize : null,
-    menuItem: entry.menu?.title || entry.menu?.path || entry.menu?.id || "",
-    variables: variableEntries.map(([key, value]) => `${key}=${value}`).join(" · "),
+    menuItem: historyMenuItem(entry),
+    variables: historyVariableText(variableEntries),
     variableEntries,
   };
 };
@@ -375,9 +411,9 @@ export const paginateHistory = (
   const total = entries.length;
   const unfiltered =
     !query && !sourceFilter && !statusFilter && !typeFilter && !dateFrom && !dateTo;
-  const defaultNewestFirst = unfiltered && sort.key === "time" && sort.dir === "desc";
-  let alreadyNewestFirst = defaultNewestFirst;
-  if (defaultNewestFirst) {
+  const defaultTimeSort = sort.key === "time" && sort.dir === "desc";
+  let alreadyNewestFirst = defaultTimeSort;
+  if (defaultTimeSort) {
     let previousTime: string | undefined;
     for (const entry of entries) {
       const time = entry.initiatedAt || entry.timestamp || "";
@@ -388,7 +424,7 @@ export const paginateHistory = (
       previousTime = time;
     }
   }
-  if (alreadyNewestFirst) {
+  if (unfiltered && alreadyNewestFirst) {
     // renderHistory stores entries newest-first, which is also the default
     // view. Page navigation therefore needs to flatten only the visible page;
     // rebuilding all 10,000 rows here made every pager click allocate them.
@@ -401,46 +437,44 @@ export const paginateHistory = (
     return { pageRows, matchCount, total, pageCount, page: clampedPage };
   }
 
-  let rows = entries.map(historyRow);
-
-  if (query) {
-    rows = rows.filter((r) =>
-      [r.status, r.type, r.file, r.folder, r.source, r.url, r.menuItem, r.variables].some((v) =>
-        String(v).toLowerCase().includes(query),
-      ),
-    );
-  }
+  let matchingEntries = entries;
 
   if (sourceFilter) {
-    rows = rows.filter((r) => r.source.toLowerCase().replaceAll(" ", "-") === sourceFilter);
-  }
-  if (statusFilter) {
-    rows = rows.filter((r) =>
-      statusFilter === "failed"
-        ? // Every non-terminal-success status except the deliberate user
-          // actions (undo, move): browser error names (SERVER_FORBIDDEN, …)
-          // have no enumerable list
-          r.status !== "complete" &&
-          r.status !== "pending" &&
-          r.status !== "undone" &&
-          r.status !== "moved"
-        : r.status === statusFilter,
+    matchingEntries = matchingEntries.filter(
+      (entry) => historySource(entry).toLowerCase().replaceAll(" ", "-") === sourceFilter,
     );
   }
-  if (typeFilter) rows = rows.filter((r) => r.type === typeFilter);
-  if (dateFrom) rows = rows.filter((r) => localHistoryDate(r.time) >= dateFrom);
-  if (dateTo) rows = rows.filter((r) => localHistoryDate(r.time) <= dateTo);
+  if (statusFilter) {
+    matchingEntries = matchingEntries.filter((entry) => historyMatchesStatus(entry, statusFilter));
+  }
+  if (typeFilter)
+    matchingEntries = matchingEntries.filter((entry) => historyType(entry) === typeFilter);
+  if (query) {
+    matchingEntries = matchingEntries.filter((entry) => historyMatchesQuery(entry, query));
+  }
+  if (dateFrom)
+    matchingEntries = matchingEntries.filter(
+      (entry) => localHistoryDate(entry.initiatedAt || entry.timestamp || "") >= dateFrom,
+    );
+  if (dateTo)
+    matchingEntries = matchingEntries.filter(
+      (entry) => localHistoryDate(entry.initiatedAt || entry.timestamp || "") <= dateTo,
+    );
 
-  rows.sort((a, b) => {
-    // String() so numeric columns (size) don't blow up localeCompare
-    const av = String(a[sort.key]);
-    const bv = String(b[sort.key]);
-    const cmp =
-      sort.key === "time"
-        ? av.localeCompare(bv)
-        : av.localeCompare(bv, undefined, { numeric: true });
-    return sort.dir === "asc" ? cmp : -cmp;
-  });
+  const rows = matchingEntries.map(historyRow);
+
+  if (!alreadyNewestFirst) {
+    rows.sort((a, b) => {
+      // String() so numeric columns (size) don't blow up localeCompare
+      const av = String(a[sort.key]);
+      const bv = String(b[sort.key]);
+      const cmp =
+        sort.key === "time"
+          ? av.localeCompare(bv)
+          : av.localeCompare(bv, undefined, { numeric: true });
+      return sort.dir === "asc" ? cmp : -cmp;
+    });
+  }
 
   const matchCount = rows.length;
   const pageCount = Math.max(1, Math.ceil(matchCount / pageSize));

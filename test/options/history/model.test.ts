@@ -481,11 +481,29 @@ describe("paginateHistory", () => {
   });
 
   test("sorts malformed legacy entries when stored order is not chronological", () => {
-    const rows = paginateHistory([
+    const malformed = [
       { finalFullPath: "missing-time.txt" },
       { initiatedAt: "2024-07-01T00:00:00.000Z", finalFullPath: "dated.txt" },
-    ]).pageRows;
+    ];
+    const rows = paginateHistory(malformed).pageRows;
 
     expect(rows.map(({ file }) => file)).toEqual(["dated.txt", "missing-time.txt"]);
+    expect(paginateHistory(malformed, { statusFilter: "complete" }).pageRows).toEqual(rows);
+  });
+
+  test("filters compact entries before flattening display-only fields", () => {
+    const excluded = {
+      status: "complete",
+      finalFullPath: "excluded.png",
+      get variables(): Record<string, string> {
+        throw new Error("excluded entry was flattened");
+      },
+    };
+
+    expect(
+      paginateHistory([excluded, { status: "NETWORK_FAILED", finalFullPath: "failed.png" }], {
+        statusFilter: "failed",
+      }).pageRows.map(({ file }) => file),
+    ).toEqual(["failed.png"]);
   });
 });
