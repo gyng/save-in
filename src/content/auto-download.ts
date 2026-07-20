@@ -1,4 +1,8 @@
-import { cssSelectorsForRules, matchedCssSelectorsByOrigin } from "./css-routing.ts";
+import {
+  cssSelectorsForRules,
+  matchedCssSelectorsByOrigin,
+  sourceOriginElements,
+} from "./css-routing.ts";
 import {
   isAdmittedAutomaticSource,
   matchAutomaticRoutingRule,
@@ -7,6 +11,7 @@ import {
 } from "../automation/automatic-routing.ts";
 import {
   collectPageSourceCandidates,
+  createPageSourcePayloadBudget,
   resourceTimingByUrl,
   type ResourceTimingByUrl,
 } from "./source-panel-model.ts";
@@ -15,8 +20,8 @@ import { isAutomaticRuleClauses } from "../routing/automatic-rule.ts";
 import { normalizeAutoDownloadLimit } from "../config/content-options.ts";
 import {
   automaticSeenKey,
+  DATA_URL_COLLECTION_CHARACTER_BUDGET,
   DATA_URL_DEDUP_THRESHOLD,
-  DATA_URL_MAX_LENGTH,
   isDataUrl,
 } from "../shared/data-url.ts";
 
@@ -92,7 +97,7 @@ export const setupAutoDownloadDiscovery = (
   const seenKeyCache = new Map<string, string>();
   // Bound both the memoized raw strings and queued/in-flight candidates by
   // characters, not entry count: a hostile page controls both size and count.
-  const AUTO_DATA_CHARACTER_BUDGET = DATA_URL_MAX_LENGTH * 2;
+  const AUTO_DATA_CHARACTER_BUDGET = DATA_URL_COLLECTION_CHARACTER_BUDGET;
   let seenKeyCacheCharacters = 0;
   const seenKeyFor = (url: string): string => {
     if (!(isDataUrl(url) && url.length > DATA_URL_DEDUP_THRESHOLD)) return automaticSeenKey(url);
@@ -198,6 +203,11 @@ export const setupAutoDownloadDiscovery = (
         includeLinks: options.includeLinks || options.includeDocuments,
       },
       timingByUrl,
+      createPageSourcePayloadBudget(
+        [],
+        AUTO_DATA_CHARACTER_BUDGET,
+        (url) => isDataUrl(url) && seen.has(seenKeyFor(url)),
+      ),
     );
     const admittedSources = [];
     for (const source of candidates) {
@@ -229,9 +239,7 @@ export const setupAutoDownloadDiscovery = (
       // megabyte string; http(s) and short data: URLs key on the string itself.
       const seenKey = seenKeyFor(sourceUrl);
       if (seen.has(seenKey)) continue;
-      const origins = sources.flatMap((source) =>
-        source.channel === "resource-hint" ? [] : [source.element],
-      );
+      const origins = sources.flatMap(sourceOriginElements);
       const cssAttestation =
         cssSelectors.length > 0 ? matchedCssSelectorsByOrigin(origins, automaticRules) : undefined;
       const candidatesForUrl = sources.map(

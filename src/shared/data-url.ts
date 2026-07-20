@@ -10,6 +10,11 @@ import { Sha256 } from "./sha256.ts";
 // so a page cannot push an unbounded string through the automatic-save message.
 export const DATA_URL_MAX_LENGTH = 2 * 1024 * 1024; // 2 MB
 
+// Discovery can encounter several different inline payloads at once. Bound
+// their aggregate too: Page Sources keeps candidates for live reconciliation,
+// while automatic saves can queue candidates and memoize their hashed keys.
+export const DATA_URL_COLLECTION_CHARACTER_BUDGET = DATA_URL_MAX_LENGTH * 2;
+
 // Above this the dedup set keys on a hash instead of the raw string, so the
 // `seen` set never holds a megabyte value. Short `data:` URLs keep using the
 // string, matching how http(s) URLs are keyed.

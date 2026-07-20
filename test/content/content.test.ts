@@ -4,6 +4,7 @@ import {
   DEFAULT_SOURCE_PANEL_COPY,
   isSourcePanelCopy,
 } from "../../src/shared/source-panel-copy.ts";
+import { DATA_URL_MAX_LENGTH } from "../../src/shared/data-url.ts";
 
 const ClickToSave = (await import("../../src/content/content.ts")).default;
 
@@ -152,6 +153,15 @@ describe("findSource", () => {
     document.body.innerHTML = '<img id="image" src="javascript:unsafe">';
 
     expect(ClickToSave.findSource(event(document.querySelector("img")), false)).toBeUndefined();
+  });
+
+  test("rejects an oversized inline payload before messaging the background", () => {
+    const image = document.createElement("img");
+    Object.defineProperty(image, "currentSrc", {
+      value: `data:image/png,${"a".repeat(DATA_URL_MAX_LENGTH)}`,
+    });
+
+    expect(ClickToSave.findSource(event(image), false)).toBeUndefined();
   });
 
   test("returns undefined for plain elements", () => {

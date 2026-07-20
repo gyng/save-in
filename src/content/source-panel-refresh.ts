@@ -1,9 +1,12 @@
 import {
-  collectBackgroundElements,
   collectBackgroundSourceCandidates,
   collectPageSourceCandidates,
+  compactPageSourceCandidates,
+  createPageSourceCandidateCollection,
   collectResourceHintSources,
+  createPageSourcePayloadBudget,
   isPerformanceResourceTiming,
+  iterateBackgroundElements,
   mergeResourceTimings,
   mergePageSourcesByUrl,
   resourceTimingByUrl,
@@ -74,7 +77,9 @@ export const wirePanelRefresh = (ctx: SourcePanelContext): void => {
     else window.clearTimeout(backgroundScanHandle);
     backgroundScanHandle = 0;
   };
-  const scheduleBackgroundRefresh = () => {
+  const scheduleBackgroundRefresh = (
+    payloadBudget = createPageSourcePayloadBudget(sourceCandidates),
+  ) => {
     cancelBackgroundScan();
     if (ctx.panelOptions.includeBackgrounds === false) {
       backgroundCandidates = [];
@@ -82,30 +87,29 @@ export const wirePanelRefresh = (ctx: SourcePanelContext): void => {
     }
     const generation = backgroundScanGeneration;
     backgroundScanActive = true;
-    const elements = collectBackgroundElements(document).filter((element) => element !== host);
-    const nextBackgroundCandidates: PageSource[] = [];
-    let index = 0;
+    const elements = iterateBackgroundElements(document);
+    const nextBackgroundCandidates = createPageSourceCandidateCollection();
     const runChunk = (deadline?: IdleDeadline) => {
       backgroundScanHandle = 0;
       let processed = 0;
-      while (index < elements.length) {
-        const element = elements[index++];
-        /* v8 ignore next -- The loop bound guarantees an element at the incremented index. */
-        if (!element) continue;
-        if (element.isConnected)
-          nextBackgroundCandidates.push(
-            ...collectBackgroundSourceCandidates([element], timingByUrl),
+      for (;;) {
+        const next = elements.next();
+        if (next.done) {
+          if (generation !== backgroundScanGeneration) return;
+          backgroundScanActive = false;
+          backgroundCandidates = nextBackgroundCandidates.values;
+          commitSources();
+          return;
+        }
+        const element = next.value;
+        if (element !== host && element.isConnected)
+          nextBackgroundCandidates.addAll(
+            collectBackgroundSourceCandidates([element], timingByUrl, payloadBudget),
           );
         processed += 1;
         if (processed >= 50 && (!deadline || deadline.timeRemaining() <= 1)) break;
       }
       if (generation !== backgroundScanGeneration) return;
-      if (index >= elements.length) {
-        backgroundScanActive = false;
-        backgroundCandidates = nextBackgroundCandidates;
-        commitSources();
-        return;
-      }
       queueChunk();
     };
     const queueChunk = () => {
@@ -120,25 +124,37 @@ export const wirePanelRefresh = (ctx: SourcePanelContext): void => {
     queueChunk();
   };
   const refreshSources = () => {
+    const payloadBudget = createPageSourcePayloadBudget();
     sourceCandidates = collectPageSourceCandidates(
       document,
       { ...ctx.panelOptions, includeBackgrounds: false, resourceHints: false },
       timingByUrl,
+      payloadBudget,
     );
     resourceHintSources =
       ctx.panelOptions.resourceHints === false
         ? []
         : collectResourceHintSources(timingByUrl, document.body);
-    scheduleBackgroundRefresh();
+    scheduleBackgroundRefresh(payloadBudget);
     commitSources();
   };
   const removeSourcesUnder = (root: Element) => {
-    sourceCandidates = sourceCandidates.filter(
-      ({ element }) => element !== root && !root.contains(element),
-    );
-    backgroundCandidates = backgroundCandidates.filter(
-      ({ element }) => element !== root && !root.contains(element),
-    );
+    const retainOutsideRoot = (sources: PageSource[]): PageSource[] =>
+      sources.flatMap((source) => {
+        const origins = source.collectorOriginElements ?? [source.element];
+        const retained = origins.filter((element) => element !== root && !root.contains(element));
+        if (retained.length === origins.length) return [source];
+        if (retained.length === 0) return [];
+        source.collectorOriginElements = retained;
+        if (!retained.includes(source.element)) {
+          const first = retained[0];
+          /* v8 ignore next -- A non-empty retained array always has a first element. */
+          if (first) source.element = first;
+        }
+        return [source];
+      });
+    sourceCandidates = retainOutsideRoot(sourceCandidates);
+    backgroundCandidates = retainOutsideRoot(backgroundCandidates);
   };
   const reconcileRoot = (changedRoot: Element) => {
     const mediaOwner = changedRoot.matches("source") ? changedRoot.closest("video, audio") : null;
@@ -147,19 +163,31 @@ export const wirePanelRefresh = (ctx: SourcePanelContext): void => {
       : null;
     const root = mediaOwner || pictureOwner || changedRoot;
     removeSourcesUnder(root);
-    sourceCandidates.push(
+    const payloadBudget = createPageSourcePayloadBudget([
+      ...sourceCandidates,
+      ...backgroundCandidates,
+      ...resourceHintSources,
+    ]);
+    sourceCandidates = compactPageSourceCandidates([
+      ...sourceCandidates,
       ...collectPageSourceCandidates(
         root,
         { ...ctx.panelOptions, includeBackgrounds: false, resourceHints: false },
         timingByUrl,
+        payloadBudget,
       ),
-    );
+    ]);
     if (ctx.panelOptions.includeBackgrounds !== false) {
       if (backgroundScanActive) scheduleBackgroundRefresh();
       else
-        backgroundCandidates.push(
-          ...collectBackgroundSourceCandidates(collectBackgroundElements(root), timingByUrl),
-        );
+        backgroundCandidates = compactPageSourceCandidates([
+          ...backgroundCandidates,
+          ...collectBackgroundSourceCandidates(
+            iterateBackgroundElements(root),
+            timingByUrl,
+            payloadBudget,
+          ),
+        ]);
     }
   };
 

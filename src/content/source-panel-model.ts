@@ -2,6 +2,11 @@ import type { UiTheme } from "../config/content-options.ts";
 import type { SourcePanelCopy } from "../shared/source-panel-copy.ts";
 import type { PageSourceChannel, PageSourceKind } from "../shared/page-source.ts";
 import { isStringMember } from "../shared/util.ts";
+import {
+  DATA_URL_COLLECTION_CHARACTER_BUDGET,
+  isDataUrl,
+  isDataUrlWithinCap,
+} from "../shared/data-url.ts";
 
 export type { PageSourceKind, PageSourceChannel } from "../shared/page-source.ts";
 export type PageSource = {
@@ -11,6 +16,10 @@ export type PageSource = {
   // URL-deduplicated panel rows retain every element that discovered the
   // source so DOM-aware routing does not depend on traversal order.
   originElements?: Element[] | undefined;
+  // Candidate compaction owns this list across incremental reconciliation.
+  // originElements above is derived afresh by mergePageSourcesByUrl, because
+  // cached row records reuse it and must not resurrect origins removed later.
+  collectorOriginElements?: Element[] | undefined;
   bytes?: number | undefined;
   previewable?: boolean | undefined;
   detectedAt?: number | undefined;
@@ -40,6 +49,32 @@ export type SourcePanelOptions = {
   onOpenChange?: (open: boolean) => void;
   onSaveIntent?: () => void;
   onCreateRule?: (source: PageSource) => void | Promise<void>;
+};
+
+export type PageSourcePayloadBudget = {
+  dataUrls: Set<string>;
+  dataUrlCharacters: number;
+  maximumDataUrlCharacters: number;
+  excludeUrl?: ((url: string) => boolean) | undefined;
+};
+
+export const createPageSourcePayloadBudget = (
+  sources: Iterable<Pick<PageSource, "url">> = [],
+  maximumDataUrlCharacters = DATA_URL_COLLECTION_CHARACTER_BUDGET,
+  excludeUrl?: (url: string) => boolean,
+): PageSourcePayloadBudget => {
+  const budget: PageSourcePayloadBudget = {
+    dataUrls: new Set(),
+    dataUrlCharacters: 0,
+    maximumDataUrlCharacters,
+    ...(excludeUrl ? { excludeUrl } : {}),
+  };
+  for (const { url } of sources) {
+    if (!isDataUrl(url) || budget.dataUrls.has(url)) continue;
+    budget.dataUrls.add(url);
+    budget.dataUrlCharacters += url.length;
+  }
+  return budget;
 };
 
 export type SourcePanelResourceTiming = Pick<
@@ -145,10 +180,14 @@ export const mergePageSourcesByUrl = (sources: PageSource[]): PageSource[] => {
   // controls. Rebuild their derived origin list on every commit so those
   // controls keep a live record without retaining removed duplicate elements.
   sources.forEach((source) => {
-    const sourceOrigin = source.channel === "resource-hint" ? undefined : source.element;
+    const sourceOrigins =
+      source.collectorOriginElements ??
+      (source.channel === "resource-hint" ? [] : [source.element]);
     const existing = merged.get(source.url);
     if (!existing) {
-      const origins = sourceOrigin ? [sourceOrigin] : [];
+      const origins = source.collectorOriginElements
+        ? source.collectorOriginElements
+        : [...new Set(sourceOrigins)];
       merged.set(source.url, {
         source,
         origins,
@@ -156,7 +195,11 @@ export const mergePageSourcesByUrl = (sources: PageSource[]): PageSource[] => {
       });
       return;
     }
-    if (sourceOrigin && !existing.originSet.has(sourceOrigin)) {
+    for (const sourceOrigin of sourceOrigins) {
+      if (existing.originSet.has(sourceOrigin)) continue;
+      if (existing.origins === existing.source.collectorOriginElements) {
+        existing.origins = [...existing.origins];
+      }
       existing.originSet.add(sourceOrigin);
       existing.origins.push(sourceOrigin);
     }
@@ -173,6 +216,112 @@ export const mergePageSourcesByUrl = (sources: PageSource[]): PageSource[] => {
   });
 };
 
+const createPageSourceCandidateAccumulator = (deduplicateOrigins = false) => {
+  type CandidateEntry = {
+    source: PageSource;
+    origins: Element[];
+    originSet?: Set<Element>;
+  };
+  const byUrl = new Map<string, CandidateEntry | Map<string, CandidateEntry>>();
+  const values: PageSource[] = [];
+  const variantKey = (kind: PageSourceKind, channel?: PageSource["channel"]): string =>
+    `${kind}\0${channel ?? ""}`;
+  const add = (
+    url: string,
+    kind: PageSourceKind,
+    element: Element,
+    bytes?: number,
+    previewable?: boolean,
+    responsive?: PageSource["responsive"],
+    channel?: PageSource["channel"],
+    suppliedOrigins?: readonly Element[],
+  ) => {
+    const stored = byUrl.get(url);
+    let existing: CandidateEntry | undefined;
+    let variants: Map<string, CandidateEntry> | undefined;
+    if (stored instanceof Map) {
+      variants = stored;
+      existing = stored.get(variantKey(kind, channel));
+    } else if (stored) {
+      if (stored.source.kind === kind && stored.source.channel === channel) existing = stored;
+      else {
+        variants = new Map([[variantKey(stored.source.kind, stored.source.channel), stored]]);
+        byUrl.set(url, variants);
+      }
+    }
+    const sourceOrigins = suppliedOrigins ?? (channel === "resource-hint" ? [] : [element]);
+    if (!existing) {
+      const origins = [...new Set(sourceOrigins)];
+      const source: PageSource = {
+        url,
+        kind,
+        element,
+        collectorOriginElements: origins,
+        ...(bytes !== undefined ? { bytes } : {}),
+        ...(previewable !== undefined ? { previewable } : {}),
+        ...(responsive ? { responsive } : {}),
+        ...(channel ? { channel } : {}),
+      };
+      const entry: CandidateEntry = {
+        source,
+        origins,
+        ...(deduplicateOrigins ? { originSet: new Set(origins) } : {}),
+      };
+      if (variants) variants.set(variantKey(kind, channel), entry);
+      else byUrl.set(url, entry);
+      values.push(source);
+      return;
+    }
+    for (const origin of sourceOrigins) {
+      if (existing.originSet?.has(origin) || existing.origins.at(-1) === origin) continue;
+      existing.originSet?.add(origin);
+      existing.origins.push(origin);
+    }
+    if (existing.source.previewable === false && previewable !== false) {
+      existing.source.previewable = previewable;
+    }
+    if (!existing.source.bytes && bytes) existing.source.bytes = bytes;
+    if (!existing.source.responsive && responsive) {
+      existing.source.responsive = responsive;
+    } else if (existing.source.responsive && responsive) {
+      existing.source.responsive.selected ||= responsive.selected;
+      existing.source.responsive.descriptor ||= responsive.descriptor;
+    }
+  };
+  return { add, values };
+};
+
+export const createPageSourceCandidateCollection = () => {
+  const compacted = createPageSourceCandidateAccumulator(true);
+  return {
+    values: compacted.values,
+    addAll: (sources: Iterable<PageSource>): void => {
+      for (const source of sources) {
+        compacted.add(
+          source.url,
+          source.kind,
+          source.element,
+          source.bytes,
+          source.previewable,
+          source.responsive,
+          source.channel,
+          source.collectorOriginElements ?? source.originElements,
+        );
+      }
+    },
+  };
+};
+
+// Discovery needs every origin element for CSS routing, but not a full source
+// object for every origin. Compact exact URL/kind/channel variants as they are
+// collected so a gallery that repeats one asset retains one element reference
+// per occurrence rather than one listener-facing record per occurrence.
+export const compactPageSourceCandidates = (sources: Iterable<PageSource>): PageSource[] => {
+  const collection = createPageSourceCandidateCollection();
+  collection.addAll(sources);
+  return collection.values;
+};
+
 const absoluteUrl = (value: string): string | null => {
   try {
     const url = new URL(value, document.baseURI);
@@ -180,6 +329,23 @@ const absoluteUrl = (value: string): string | null => {
   } catch {
     return null;
   }
+};
+
+const admittedPageSourceUrl = (
+  value: string | null | undefined,
+  budget: PageSourcePayloadBudget,
+): string | null => {
+  if (!value) return null;
+  if (isDataUrl(value)) {
+    if (!isDataUrlWithinCap(value) || budget.excludeUrl?.(value)) return null;
+    if (budget.dataUrls.has(value)) return value;
+    if (budget.dataUrlCharacters + value.length > budget.maximumDataUrlCharacters) return null;
+    budget.dataUrls.add(value);
+    budget.dataUrlCharacters += value.length;
+    return value;
+  }
+  const url = absoluteUrl(value);
+  return url && !budget.excludeUrl?.(url) ? url : null;
 };
 
 const resourceBytes = (...values: unknown[]): number | undefined =>
@@ -464,37 +630,59 @@ const queryIncludingRoot = <ElementType extends Element>(
   return elements;
 };
 
-export const collectBackgroundElements = (root: ParentNode = document): HTMLElement[] =>
-  queryIncludingRoot<HTMLElement>(root, "body, [style], [class], [id]");
+const isBackgroundCandidateElement = (element: Element): boolean =>
+  element.localName === "body" ||
+  element.hasAttribute("style") ||
+  element.hasAttribute("class") ||
+  element.hasAttribute("id");
+
+// Full background scans are chunked across idle callbacks. A TreeWalker keeps
+// only its current traversal position, while querySelectorAll plus array spread
+// retained a second reference to every classed/id'd element until the scan ended.
+export function* iterateBackgroundElements(root: ParentNode = document): IterableIterator<Element> {
+  if (root instanceof Element && isBackgroundCandidateElement(root)) yield root;
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT);
+  for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+    if (node instanceof Element && isBackgroundCandidateElement(node)) yield node;
+  }
+}
+
+export const collectBackgroundElements = (root: ParentNode = document): Element[] => [
+  ...iterateBackgroundElements(root),
+];
 
 export const collectBackgroundSourceCandidates = (
-  elements: Iterable<HTMLElement>,
+  elements: Iterable<Element>,
   timingByUrl: ResourceTimingByUrl = resourceTimingByUrl(),
+  payloadBudget: PageSourcePayloadBudget = createPageSourcePayloadBudget(),
 ): PageSource[] => {
-  const found: PageSource[] = [];
+  const found = createPageSourceCandidateAccumulator();
   for (const element of elements) {
     urlsFromCss(getComputedStyle(element).backgroundImage).forEach((value) => {
-      const url = absoluteUrl(value);
+      const url = admittedPageSourceUrl(value, payloadBudget);
       if (!url) return;
       const timing = timingByUrl.get(url);
-      found.push({
+      found.add(
         url,
-        kind: "image",
+        "image",
         element,
-        bytes: resourceBytes(timing?.encodedBodySize, timing?.transferSize),
-        channel: "background",
-      });
+        resourceBytes(timing?.encodedBodySize, timing?.transferSize),
+        undefined,
+        undefined,
+        "background",
+      );
     });
   }
-  return found;
+  return found.values;
 };
 
 export const collectPageSourceCandidates = (
   root: ParentNode = document,
   options: SourcePanelOptions = {},
   timingByUrl: ResourceTimingByUrl = resourceTimingByUrl(),
+  payloadBudget: PageSourcePayloadBudget = createPageSourcePayloadBudget(),
 ): PageSource[] => {
-  const found: PageSource[] = [];
+  const found = createPageSourceCandidateAccumulator();
   const add = (
     value: string | null | undefined,
     kind: PageSourceKind,
@@ -503,18 +691,18 @@ export const collectPageSourceCandidates = (
     responsive?: PageSource["responsive"],
     channel?: PageSource["channel"],
   ) => {
-    const url = value && absoluteUrl(value);
+    const url = admittedPageSourceUrl(value, payloadBudget);
     if (url) {
       const timing = timingByUrl.get(url);
-      found.push({
+      found.add(
         url,
         kind,
         element,
-        bytes: resourceBytes(timing?.encodedBodySize, timing?.transferSize),
+        resourceBytes(timing?.encodedBodySize, timing?.transferSize),
         previewable,
         responsive,
         channel,
-      });
+      );
     }
   };
 
@@ -597,13 +785,39 @@ export const collectPageSourceCandidates = (
     });
   }
   if (options.includeBackgrounds !== false) {
-    found.push(...collectBackgroundSourceCandidates(collectBackgroundElements(root), timingByUrl));
+    for (const source of collectBackgroundSourceCandidates(
+      iterateBackgroundElements(root),
+      timingByUrl,
+      payloadBudget,
+    )) {
+      found.add(
+        source.url,
+        source.kind,
+        source.element,
+        source.bytes,
+        source.previewable,
+        source.responsive,
+        source.channel,
+        source.collectorOriginElements ?? source.originElements,
+      );
+    }
   }
   if (options.resourceHints !== false) {
-    found.push(...collectResourceHintSources(timingByUrl));
+    for (const source of collectResourceHintSources(timingByUrl)) {
+      found.add(
+        source.url,
+        source.kind,
+        source.element,
+        source.bytes,
+        source.previewable,
+        source.responsive,
+        source.channel,
+        source.collectorOriginElements ?? source.originElements,
+      );
+    }
   }
 
-  return found;
+  return found.values;
 };
 
 export const collectPageSources = (

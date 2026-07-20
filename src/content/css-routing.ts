@@ -19,7 +19,9 @@ export const cssSelectorsForRules = (rules: readonly RoutingRule[]): string[] =>
 ];
 
 export const sourceOriginElements = (source: PageSource): Element[] =>
-  source.originElements ?? (source.channel === "resource-hint" ? [] : [source.element]);
+  source.originElements ??
+  source.collectorOriginElements ??
+  (source.channel === "resource-hint" ? [] : [source.element]);
 
 // Parsed rule arrays are immutable snapshots; weak keys let replacements release their analysis.
 const selectorGroupsByRules = new WeakMap<readonly RoutingRule[], string[][]>();
@@ -55,7 +57,10 @@ export const matchedCssSelectorsByOrigin = (
   if (selectorGroups.length === 0) return [];
   const groups: CssSelectorAttestation = [];
   let totalMatches = 0;
-  const uniqueElements = [...new Set(elements)];
+  // Collector origin lists are already unique. Reuse arrays directly so a
+  // repeated asset with thousands of origins does not get copied into both a
+  // temporary Set and another array before selector checks.
+  const originElements = Array.isArray(elements) ? elements : [...elements];
   for (const selectors of selectorGroups) {
     if (groups.length >= MAX_CSS_SELECTOR_ORIGINS || totalMatches >= MAX_CSS_SELECTOR_MATCHES)
       break;
@@ -64,7 +69,7 @@ export const matchedCssSelectorsByOrigin = (
       totalMatches + selectors.length > MAX_CSS_SELECTOR_MATCHES
     )
       break;
-    const matched = uniqueElements.some((element) => {
+    const matched = originElements.some((element) => {
       try {
         return selectors.every((selector) => element.matches(selector));
       } catch {

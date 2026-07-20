@@ -32,6 +32,7 @@ import { matchesAnyPatternOrUnreadable } from "../shared/match-pattern.ts";
 import type { AutomaticRoutingCandidate } from "../automation/automatic-routing.ts";
 import { parseRulesCollecting } from "../routing/rule-parser.ts";
 import type { RoutingRule } from "../routing/rule-types.ts";
+import { isDataUrl, isDataUrlWithinCap } from "../shared/data-url.ts";
 import { configureContentPorts } from "./ports.ts";
 import {
   cssSelectorsForRules,
@@ -106,7 +107,8 @@ const ClickToSave = {
       else if (element instanceof HTMLImageElement) kind = "image";
       else return undefined;
       const candidate = element.currentSrc || element.src;
-      return /^(https?|ftp|blob|data):/i.test(candidate)
+      return /^(https?|ftp|blob|data):/i.test(candidate) &&
+        (!isDataUrl(candidate) || isDataUrlWithinCap(candidate))
         ? withElement(candidate, kind, element)
         : undefined;
     };
@@ -139,7 +141,11 @@ const ClickToSave = {
         e.target instanceof Element ? e.target.closest<HTMLAnchorElement>("a[href]") : null;
       const anchor = pathAnchor ?? targetAnchor;
       const href = anchor?.href;
-      if (href && /^(https?|ftp|blob|data):/i.test(href)) {
+      if (
+        href &&
+        /^(https?|ftp|blob|data):/i.test(href) &&
+        (!isDataUrl(href) || isDataUrlWithinCap(href))
+      ) {
         source = withElement(href, "link", anchor);
       }
     }

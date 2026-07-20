@@ -3,6 +3,7 @@ import {
   collectBackgroundElements,
   collectBackgroundSourceCandidates,
   collectPageSourceCandidates,
+  createPageSourcePayloadBudget,
   collectPageSources,
   collectResourceHintSources,
   candidatesFromSrcset,
@@ -111,6 +112,25 @@ test("merges responsive metadata into an earlier plain source", () => {
   expect(merged[0]?.responsive).toEqual({ selected: true, descriptor: "2x" });
 });
 
+test("compacts repeated source origins during collection", () => {
+  document.body.innerHTML = Array.from(
+    { length: 1_000 },
+    (_, index) => `<img id="image-${index}" src="shared.jpg">`,
+  ).join("");
+
+  const candidates = collectPageSourceCandidates(
+    document,
+    { includeLinks: false, includeBackgrounds: false, resourceHints: false },
+    new Map(),
+  );
+
+  expect(candidates).toHaveLength(1);
+  expect(candidates[0]?.url).toBe("http://localhost/shared.jpg");
+  const merged = mergePageSourcesByUrl(candidates);
+  expect(merged[0]?.originElements).toHaveLength(1_000);
+  expect(new Set(merged[0]?.originElements).size).toBe(1_000);
+});
+
 test("keeps unique duplicate origins in discovery order", () => {
   const first = document.createElement("img");
   const second = document.createElement("img");
@@ -149,6 +169,31 @@ test("accepts legacy and resource timing entries but rejects unrelated performan
   expect(isPerformanceResourceTiming({ entryType: "" } as PerformanceEntry)).toBe(true);
   expect(isPerformanceResourceTiming({ entryType: "resource" } as PerformanceEntry)).toBe(true);
   expect(isPerformanceResourceTiming({ entryType: "navigation" } as PerformanceEntry)).toBe(false);
+});
+
+test("shares a bounded inline-payload budget across incremental source scans", () => {
+  const budget = createPageSourcePayloadBudget([], 50);
+  const first = document.createElement("img");
+  first.src = `data:image/png,${"a".repeat(20)}`;
+  const second = document.createElement("img");
+  second.src = `data:image/png,${"b".repeat(20)}`;
+
+  expect(
+    collectPageSourceCandidates(
+      first,
+      { includeBackgrounds: false, resourceHints: false },
+      new Map(),
+      budget,
+    ),
+  ).toHaveLength(1);
+  expect(
+    collectPageSourceCandidates(
+      second,
+      { includeBackgrounds: false, resourceHints: false },
+      new Map(),
+      budget,
+    ),
+  ).toHaveLength(0);
 });
 
 describe("page source collection", () => {
