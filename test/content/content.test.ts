@@ -1203,6 +1203,7 @@ describe("content.js initialisation", () => {
     (global.chrome.storage as any).onChanged = { addListener: vi.fn() };
     await import("../../src/content/content.ts");
 
+    pushContentOptions({});
     pushContentOptions({
       contentClickToSave: true,
       contentClickToSaveCombo: 89,

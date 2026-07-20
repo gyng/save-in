@@ -2,6 +2,7 @@ import * as SaveHistory from "../../../src/background/history.ts";
 import { HISTORY_LIMIT } from "../../../src/background/history.ts";
 import {
   HISTORY_ENTRY_STORAGE_PREFIX,
+  HISTORY_INDEX_CHUNK_STORAGE_PREFIX,
   HISTORY_INDEX_STORAGE_KEY,
 } from "../../../src/shared/storage-keys.ts";
 import { isStringKeyedRecord } from "../../../src/shared/util.ts";
@@ -323,6 +324,43 @@ describe("SaveHistory", () => {
     await expect(SaveHistory.getHistoryEntries()).resolves.toEqual([]);
   });
 
+  test("falls back from a malformed sharded index to legacy history", async () => {
+    store[HISTORY_INDEX_STORAGE_KEY] = {
+      version: 1,
+      firstChunk: 0,
+      nextChunk: 0,
+      length: 1,
+    };
+    store[HISTORY_KEY] = [{ url: "https://a/legacy" }];
+
+    await expect(SaveHistory.getHistoryEntries()).resolves.toEqual([{ url: "https://a/legacy" }]);
+  });
+
+  test("ignores malformed sharded chunks, locators, and entries", async () => {
+    store[HISTORY_INDEX_STORAGE_KEY] = {
+      version: 1,
+      firstChunk: 0,
+      nextChunk: 2,
+      length: 2,
+    };
+    store[`${HISTORY_INDEX_CHUNK_STORAGE_PREFIX}0`] = "not-an-array";
+    store[`${HISTORY_INDEX_CHUNK_STORAGE_PREFIX}1`] = ["bad-entry"];
+    store[`${HISTORY_ENTRY_STORAGE_PREFIX}bad-entry`] = null;
+
+    await expect(SaveHistory.getHistoryEntries()).resolves.toEqual([]);
+  });
+
+  test("keeps duplicate legacy ids under distinct shard keys", async () => {
+    store[HISTORY_KEY] = [
+      { id: "same", url: "https://a/1" },
+      { id: "same", url: "https://a/2" },
+    ];
+
+    await expect(SaveHistory.getHistoryEntries()).resolves.toHaveLength(2);
+    expect(store[`${HISTORY_ENTRY_STORAGE_PREFIX}same`]).toBeDefined();
+    expect(store[`${HISTORY_ENTRY_STORAGE_PREFIX}same-legacy-1`]).toBeDefined();
+  });
+
   test("clear is serialized after already queued writes", async () => {
     SaveHistory.addHistoryEntry({ url: "https://a/queued" });
 
@@ -349,6 +387,50 @@ describe("SaveHistory", () => {
     // The oldest entry was dropped; the newest is appended
     expect(history[0]).toEqual({ url: "1" });
     expect(history[limit - 1]).toMatchObject({ url: String(limit) });
+  });
+
+  test("starts a new index chunk after the current chunk fills", async () => {
+    for (let index = 0; index < 129; index += 1) {
+      SaveHistory.addHistoryEntry({ url: `https://a/${index}` });
+    }
+    await flushWrites();
+
+    expect(store[`${HISTORY_INDEX_CHUNK_STORAGE_PREFIX}0`]).toHaveLength(128);
+    expect(store[`${HISTORY_INDEX_CHUNK_STORAGE_PREFIX}1`]).toHaveLength(1);
+  });
+
+  test("removes a consumed one-entry first chunk at the history limit", async () => {
+    store[HISTORY_INDEX_STORAGE_KEY] = {
+      version: 1,
+      firstChunk: 0,
+      nextChunk: 2,
+      length: HISTORY_LIMIT,
+    };
+    store[`${HISTORY_INDEX_CHUNK_STORAGE_PREFIX}0`] = ["oldest"];
+    store[`${HISTORY_INDEX_CHUNK_STORAGE_PREFIX}1`] = [];
+    store[`${HISTORY_ENTRY_STORAGE_PREFIX}oldest`] = { id: "oldest", url: "https://a/old" };
+
+    SaveHistory.addHistoryEntry({ url: "https://a/new" });
+    await flushWrites();
+
+    expect(store[`${HISTORY_INDEX_CHUNK_STORAGE_PREFIX}0`]).toBeUndefined();
+    expect(store[`${HISTORY_ENTRY_STORAGE_PREFIX}oldest`]).toBeUndefined();
+    expect(store[HISTORY_INDEX_STORAGE_KEY]).toMatchObject({ firstChunk: 1 });
+  });
+
+  test("contains a capped append when the first chunk is malformed", async () => {
+    store[HISTORY_INDEX_STORAGE_KEY] = {
+      version: 1,
+      firstChunk: 0,
+      nextChunk: 2,
+      length: HISTORY_LIMIT,
+    };
+    store[`${HISTORY_INDEX_CHUNK_STORAGE_PREFIX}0`] = "not-an-array";
+    store[`${HISTORY_INDEX_CHUNK_STORAGE_PREFIX}1`] = [];
+
+    SaveHistory.addHistoryEntry({ url: "https://a/new" });
+    await expect(flushWrites()).resolves.toBeUndefined();
+    expect(store[HISTORY_INDEX_STORAGE_KEY]).toMatchObject({ firstChunk: 1 });
   });
 
   test("add tolerates a storage backend returning nothing", async () => {
@@ -492,6 +574,47 @@ describe("SaveHistory", () => {
     expect(JSON.stringify(payload).length).toBeLessThan(2_000);
   });
 
+  test("reloads a patch target omitted from the index snapshot", async () => {
+    const id = SaveHistory.addHistoryEntry({ url: "https://a/1" });
+    await flushWrites();
+    if (!id) throw new Error("history id was not created");
+    const entryKey = `${HISTORY_ENTRY_STORAGE_PREFIX}${id}`;
+    const baseGet = global.browser.storage.local.get;
+    let omitted = false;
+    global.browser.storage.local.get = vi.fn((keys: string | string[] | null) => {
+      if (!omitted && Array.isArray(keys) && keys.includes(entryKey)) {
+        omitted = true;
+        const snapshot = Reflect.apply(baseGet, global.browser.storage.local, [keys]);
+        return Promise.resolve(snapshot).then((resolved) => {
+          const withoutEntry = { ...resolved };
+          delete withoutEntry[entryKey];
+          return withoutEntry;
+        });
+      }
+      return Reflect.apply(baseGet, global.browser.storage.local, [keys]);
+    });
+
+    await SaveHistory.patchHistoryEntry(id, { status: "complete" });
+
+    expect(store[entryKey]).toMatchObject({ status: "complete" });
+  });
+
+  test("ignores a patch whose stored target is malformed", async () => {
+    store[HISTORY_INDEX_STORAGE_KEY] = {
+      version: 1,
+      firstChunk: 0,
+      nextChunk: 1,
+      length: 1,
+    };
+    store[`${HISTORY_INDEX_CHUNK_STORAGE_PREFIX}0`] = ["bad-entry"];
+    store[`${HISTORY_ENTRY_STORAGE_PREFIX}bad-entry`] = null;
+    vi.mocked(global.browser.storage.local.set).mockClear();
+
+    await SaveHistory.patchHistoryEntry("bad-entry", { status: "complete" });
+
+    expect(global.browser.storage.local.set).not.toHaveBeenCalled();
+  });
+
   test("a failing set does not break subsequent adds", async () => {
     global.browser.storage.local.set = vi
       .fn()
@@ -520,6 +643,25 @@ describe("SaveHistory", () => {
     global.browser.storage.local.get = vi.fn(() => Promise.reject(new Error("read denied")));
 
     await expect(SaveHistory.getHistoryEntries()).rejects.toThrow("read denied");
+    expect(getPersistenceDiagnostics()).toEqual([
+      expect.objectContaining({ operation: "read", key: HISTORY_KEY }),
+    ]);
+  });
+
+  test("reports and rethrows a sharded history read failure", async () => {
+    global.browser.storage.local.get = vi
+      .fn()
+      .mockResolvedValueOnce({
+        [HISTORY_INDEX_STORAGE_KEY]: {
+          version: 1,
+          firstChunk: 0,
+          nextChunk: 1,
+          length: 1,
+        },
+      })
+      .mockRejectedValueOnce(new Error("chunk read denied"));
+
+    await expect(SaveHistory.getHistoryEntries()).rejects.toThrow("chunk read denied");
     expect(getPersistenceDiagnostics()).toEqual([
       expect.objectContaining({ operation: "read", key: HISTORY_KEY }),
     ]);
@@ -575,5 +717,11 @@ describe("SaveHistory", () => {
     expect(global.browser.storage.local.remove).toHaveBeenCalledWith(
       expect.arrayContaining([HISTORY_KEY]),
     );
+  });
+
+  test("clear skips storage removal when history is already absent", async () => {
+    await expect(SaveHistory.clearHistory()).resolves.toBeUndefined();
+
+    expect(global.browser.storage.local.remove).not.toHaveBeenCalled();
   });
 });

@@ -827,10 +827,14 @@ describe("Page Sources panel interactions", () => {
     );
 
     Object.defineProperties(list, {
-      scrollTop: { configurable: true, value: 900 },
+      scrollTop: { configurable: true, writable: true, value: 0 },
       clientHeight: { configurable: true, value: 100 },
       scrollHeight: { configurable: true, value: 1000 },
     });
+    list.dispatchEvent(new Event("scroll"));
+    expect(shadow.querySelectorAll(".row")).toHaveLength(initialRows);
+
+    list.scrollTop = 900;
     list.dispatchEvent(new Event("scroll"));
 
     expect(shadow.querySelectorAll(".row").length).toBeGreaterThan(initialRows);

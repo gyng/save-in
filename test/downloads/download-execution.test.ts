@@ -362,6 +362,9 @@ describe("renameAndDownload: browserDownload", () => {
         url: `data:image/png;base64,${"a".repeat(16_384)}`,
         sourceUrl: `data:image/png;base64,${"b".repeat(16_384)}`,
         selectionText: "s".repeat(16_384),
+        currentTab: {
+          url: `https://page.example/${"u".repeat(16_384)}`,
+        },
         headPromise: Promise.resolve({ contentType: "image/png", finalUrl: "data:image/png" }),
         resolvedHead: {
           contentType: "image/png",
@@ -394,6 +397,10 @@ describe("renameAndDownload: browserDownload", () => {
       state.info.selectionText?.length ?? 0,
     );
     expect(backgroundRuntime.lastDownloadState?.info).not.toHaveProperty("headPromise");
+    expect(backgroundRuntime.lastDownloadState?.info.currentTab).not.toBe(state.info.currentTab);
+    expect(backgroundRuntime.lastDownloadState?.info.currentTab?.url?.length).toBeLessThan(
+      state.info.currentTab?.url?.length ?? 0,
+    );
     expect(backgroundRuntime.lastDownloadState?.info.resolvedHead?.finalUrl.length).toBeLessThan(
       state.info.resolvedHead?.finalUrl.length ?? 0,
     );

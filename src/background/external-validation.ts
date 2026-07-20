@@ -261,8 +261,10 @@ export const createExternalValidationRateLimiter = ({
     // called this API.
     requests.delete(senderId);
     if (recent.length === 0 && requests.size >= senderLimit) {
-      const oldest = requests.keys().next();
-      if (!oldest.done) requests.delete(oldest.value);
+      for (const oldest of requests.keys()) {
+        requests.delete(oldest);
+        break;
+      }
     }
     if (recent.length >= maxRequests) {
       requests.set(senderId, recent);

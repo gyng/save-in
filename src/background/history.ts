@@ -96,10 +96,8 @@ const readShardedHistory = async (index: HistoryIndex): Promise<HistoryEntry[]> 
 // so Chrome's storage quota never has to accommodate two complete copies.
 // The index is authoritative only after the transaction succeeds; a failed
 // migration leaves the legacy value readable and can be retried safely.
-const migrateLegacyHistory = async (legacyValue: unknown): Promise<HistoryIndex> => {
-  const legacy = Array.isArray(legacyValue)
-    ? migrateLegacyHistoryTimestamps(legacyValue).slice(-HISTORY_LIMIT)
-    : [];
+const migrateLegacyHistory = async (legacyValue: unknown[]): Promise<HistoryIndex> => {
+  const legacy = migrateLegacyHistoryTimestamps(legacyValue).slice(-HISTORY_LIMIT);
   const writes: Record<string, unknown> = { [HISTORY_STORAGE_KEY]: [] };
   const keys: string[] = [];
   const usedKeys = new Set<string>();

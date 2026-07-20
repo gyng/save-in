@@ -71,10 +71,11 @@ export const mergeResourceTimings = (
       transferSize: entry.transferSize,
     });
   }
-  while (target.size > SOURCE_PANEL_RESOURCE_TIMING_LIMIT) {
-    const oldest = target.keys().next();
-    if (oldest.done) break;
-    target.delete(oldest.value);
+  let excess = target.size - SOURCE_PANEL_RESOURCE_TIMING_LIMIT;
+  for (const name of target.keys()) {
+    if (excess <= 0) break;
+    target.delete(name);
+    excess -= 1;
   }
   return target;
 };

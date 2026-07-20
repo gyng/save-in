@@ -197,6 +197,8 @@ describe("external validation safeguards", () => {
     allow.reset();
     expect(allow("extension-a", 300)).toBe(true);
     expect(allow("extension-a", 1_101)).toBe(true);
+    expect(allow("extension-a", 1_301)).toBe(true);
+    expect(allow("extension-a", 2_302)).toBe(true);
   });
 
   test("bounds retained sender buckets and evicts the least recent sender", () => {
