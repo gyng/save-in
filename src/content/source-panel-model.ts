@@ -62,6 +62,10 @@ export const mergeResourceTimings = (
     // Refresh insertion order as well as metadata, so the cap retains the most
     // recently observed version of a URL rather than its first occurrence.
     target.delete(entry.name);
+    if (target.size >= SOURCE_PANEL_RESOURCE_TIMING_LIMIT) {
+      const oldest = target.keys().next().value;
+      if (oldest !== undefined) target.delete(oldest);
+    }
     // Only these scalar fields are consumed. Holding the browser-owned timing
     // object would also retain optional detail such as a large Server-Timing
     // array for no Page Sources behavior.
@@ -70,12 +74,6 @@ export const mergeResourceTimings = (
       encodedBodySize: entry.encodedBodySize,
       transferSize: entry.transferSize,
     });
-  }
-  let excess = target.size - SOURCE_PANEL_RESOURCE_TIMING_LIMIT;
-  for (const name of target.keys()) {
-    if (excess <= 0) break;
-    target.delete(name);
-    excess -= 1;
   }
   return target;
 };
@@ -139,22 +137,29 @@ export const urlsFromSrcset = (input: string): string[] =>
   candidatesFromSrcset(input).map(({ url }) => url);
 
 export const mergePageSourcesByUrl = (sources: PageSource[]): PageSource[] => {
-  const merged = new Map<string, { source: PageSource; origins: Element[] }>();
+  const merged = new Map<
+    string,
+    { source: PageSource; origins: Element[]; originSet: Set<Element> }
+  >();
   // Source records are reused by the live collector and captured by cached row
   // controls. Rebuild their derived origin list on every commit so those
   // controls keep a live record without retaining removed duplicate elements.
   sources.forEach((source) => {
-    const sourceOrigins = source.channel === "resource-hint" ? [] : [source.element];
-    source.originElements = sourceOrigins;
+    const sourceOrigin = source.channel === "resource-hint" ? undefined : source.element;
     const existing = merged.get(source.url);
     if (!existing) {
-      merged.set(source.url, { source, origins: sourceOrigins });
+      const origins = sourceOrigin ? [sourceOrigin] : [];
+      merged.set(source.url, {
+        source,
+        origins,
+        originSet: new Set(origins),
+      });
       return;
     }
-    for (const element of sourceOrigins) {
-      if (!existing.origins.includes(element)) existing.origins.push(element);
+    if (sourceOrigin && !existing.originSet.has(sourceOrigin)) {
+      existing.originSet.add(sourceOrigin);
+      existing.origins.push(sourceOrigin);
     }
-    existing.source.originElements = existing.origins;
     if (!existing.source.responsive && source.responsive)
       existing.source.responsive = source.responsive;
     else if (existing.source.responsive && source.responsive) {
@@ -162,7 +167,10 @@ export const mergePageSourcesByUrl = (sources: PageSource[]): PageSource[] => {
       existing.source.responsive.descriptor ||= source.responsive.descriptor;
     }
   });
-  return [...merged.values()].map(({ source }) => source);
+  return [...merged.values()].map(({ source, origins }) => {
+    source.originElements = origins;
+    return source;
+  });
 };
 
 const absoluteUrl = (value: string): string | null => {
@@ -392,10 +400,26 @@ export const positionSourceTooltip = (
 };
 
 export const resourceTimingByUrl = (
-  entries: PerformanceResourceTiming[] = performance
-    .getEntriesByType("resource")
-    .filter(isPerformanceResourceTiming),
-): Map<string, SourcePanelResourceTiming> => mergeResourceTimings(new Map(), entries);
+  entries: PerformanceEntry[] = performance.getEntriesByType("resource"),
+): Map<string, SourcePanelResourceTiming> => {
+  // A page can enlarge the browser's resource timing buffer. Walk backward
+  // only until the retained set is full, so an initial panel scan neither
+  // copies nor processes an arbitrarily large prefix of obsolete entries.
+  const newest: PerformanceResourceTiming[] = [];
+  const names = new Set<string>();
+  for (
+    let index = entries.length - 1;
+    index >= 0 && names.size < SOURCE_PANEL_RESOURCE_TIMING_LIMIT;
+    index -= 1
+  ) {
+    const entry = entries[index];
+    if (!entry || !isPerformanceResourceTiming(entry) || names.has(entry.name)) continue;
+    names.add(entry.name);
+    newest.push(entry);
+  }
+  newest.reverse();
+  return mergeResourceTimings(new Map(), newest);
+};
 
 export const collectResourceHintSources = (
   timingByUrl: ResourceTimingByUrl,

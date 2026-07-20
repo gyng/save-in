@@ -10,6 +10,7 @@ import {
   filterPageSources,
   formatSourceBytes,
   isPerformanceResourceTiming,
+  mergeResourceTimings,
   isSourceSort,
   mergePageSourcesByUrl,
   positionDraggedSourcePanel,
@@ -17,6 +18,7 @@ import {
   resourceTimingByUrl,
   SOURCE_PANEL_RESOURCE_TIMING_LIMIT,
   sortPageSources,
+  type SourcePanelResourceTiming,
   urlsFromCss,
   urlsFromSrcset,
 } from "../../../src/content/source-panel-model.ts";
@@ -55,6 +57,45 @@ test("bounds retained resource timing entries to the newest observations", () =>
   ).toBe(SOURCE_PANEL_RESOURCE_TIMING_LIMIT);
 });
 
+test("bounds the timing map while a large observation batch is merged", () => {
+  class PeakMap extends Map<string, SourcePanelResourceTiming> {
+    peakSize = 0;
+    override set(key: string, value: SourcePanelResourceTiming): this {
+      super.set(key, value);
+      this.peakSize = Math.max(this.peakSize, this.size);
+      return this;
+    }
+  }
+  const timing = new PeakMap();
+  const entries = Array.from(
+    { length: SOURCE_PANEL_RESOURCE_TIMING_LIMIT * 4 },
+    (_, index) => ({ name: `https://cdn.test/burst-${index}.js` }) as PerformanceResourceTiming,
+  );
+
+  mergeResourceTimings(timing, entries);
+
+  expect(timing.size).toBe(SOURCE_PANEL_RESOURCE_TIMING_LIMIT);
+  expect(timing.peakSize).toBe(SOURCE_PANEL_RESOURCE_TIMING_LIMIT);
+});
+
+test("skips an obsolete timing prefix once the newest unique set is full", () => {
+  const entries = Array.from(
+    { length: SOURCE_PANEL_RESOURCE_TIMING_LIMIT + 1 },
+    (_, index) => ({ name: `https://cdn.test/recent-${index}.js` }) as PerformanceResourceTiming,
+  );
+  Object.defineProperty(entries, 0, {
+    get: () => {
+      throw new Error("obsolete timing entry was inspected");
+    },
+  });
+
+  const timing = resourceTimingByUrl(entries);
+
+  expect(timing.size).toBe(SOURCE_PANEL_RESOURCE_TIMING_LIMIT);
+  expect(timing.has("https://cdn.test/recent-0.js")).toBe(false);
+  expect(timing.has(`https://cdn.test/recent-${SOURCE_PANEL_RESOURCE_TIMING_LIMIT}.js`)).toBe(true);
+});
+
 test("merges responsive metadata into an earlier plain source", () => {
   const element = document.createElement("img");
   const merged = mergePageSourcesByUrl([
@@ -68,6 +109,20 @@ test("merges responsive metadata into an earlier plain source", () => {
   ]);
 
   expect(merged[0]?.responsive).toEqual({ selected: true, descriptor: "2x" });
+});
+
+test("keeps unique duplicate origins in discovery order", () => {
+  const first = document.createElement("img");
+  const second = document.createElement("img");
+  const shared = { url: "https://example.com/shared.jpg", kind: "image" as const };
+
+  const merged = mergePageSourcesByUrl([
+    { ...shared, element: first },
+    { ...shared, element: second },
+    { ...shared, element: first },
+  ]);
+
+  expect(merged[0]?.originElements).toEqual([first, second]);
 });
 
 test("accepts legacy and resource timing entries but rejects unrelated performance entries", () => {
