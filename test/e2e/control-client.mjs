@@ -850,18 +850,15 @@ export const createRecoveringControlTransport = ({
         await restore();
         return callFunction(functionDeclaration, args, timeoutMs, retryMode);
       }
-      const safeToRetry =
-        retryMode === "read" ||
-        retryMode === "idempotent" ||
-        (retryMode === "one-shot" && (await canRetryOneShot(error)));
-      if (!safeToRetry) throw error;
-      try {
-        return await callFunction(functionDeclaration, args, timeoutMs, retryMode);
-      } catch (retryError) {
-        if (!isMissing(retryError)) throw retryError;
+      if (retryMode === "read" || retryMode === "idempotent") {
         await restore();
         return callFunction(functionDeclaration, args, timeoutMs, retryMode);
       }
+      if (!(await canRetryOneShot(error))) throw error;
+      // A one-shot replay is safe only while its original realm still owns the
+      // request-ID cache. Never recreate that realm after a second ambiguous
+      // failure: doing so would discard the deduplication record.
+      return callFunction(functionDeclaration, args, timeoutMs, retryMode);
     }
   };
 };

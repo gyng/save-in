@@ -235,9 +235,32 @@ describe("structured E2E control client", () => {
       .fn()
       .mockRejectedValueOnce(new Error("reply lost"))
       .mockResolvedValueOnce("ready");
-    const call = createRecoveringControlTransport({ callFunction, recover: vi.fn() });
+    const recover = vi.fn(async () => undefined);
+    const call = createRecoveringControlTransport({ callFunction, recover });
 
     await expect(call("function () {}", [], 100, "read")).resolves.toBe("ready");
+    expect(recover).toHaveBeenCalledOnce();
+    expect(callFunction).toHaveBeenCalledTimes(2);
+  });
+
+  test("never recreates a one-shot request cache after an ambiguous replay failure", async () => {
+    const firstFailure = new Error("reply lost");
+    const secondFailure = Object.assign(new Error("realm disappeared"), {
+      code: "E2E_CONTROL_TARGET_MISSING",
+    });
+    const callFunction = vi
+      .fn()
+      .mockRejectedValueOnce(firstFailure)
+      .mockRejectedValueOnce(secondFailure);
+    const recover = vi.fn(async () => undefined);
+    const call = createRecoveringControlTransport({
+      callFunction,
+      recover,
+      canRetryOneShot: async (error) => error === firstFailure,
+    });
+
+    await expect(call("function () {}", [], 100, "one-shot")).rejects.toBe(secondFailure);
+    expect(recover).not.toHaveBeenCalled();
     expect(callFunction).toHaveBeenCalledTimes(2);
   });
 

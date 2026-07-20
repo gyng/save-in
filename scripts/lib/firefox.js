@@ -374,15 +374,24 @@ const launch = async ({ extensionDir = ROOT } = {}) => {
         })()`,
       );
 
-    const reloadAddon = async () => {
-      await connectedRdp.reloadAddon(ADDON_ID);
+    const reconnectBackgroundConsole = async () => {
       connectedRdp.close();
       connectedRdp = await connectWithRetry(port);
       await retryUntil(
         async () => {
-          const candidateAddonActor = await connectedRdp.findAddonActor(ADDON_ID);
-          const candidateConsoleActor = await connectedRdp.getConsoleActor(candidateAddonActor);
-          consoleActor = candidateConsoleActor;
+          const refreshedAddon = await connectedRdp.findAddonActor(ADDON_ID);
+          consoleActor = await connectedRdp.getConsoleActor(refreshedAddon);
+        },
+        10000,
+        "Firefox did not expose a fresh background page",
+      );
+    };
+
+    const reloadAddon = async () => {
+      await connectedRdp.reloadAddon(ADDON_ID);
+      await reconnectBackgroundConsole();
+      await retryUntil(
+        async () => {
           await openOptionsAndWaitForReady();
         },
         10000,
@@ -403,6 +412,10 @@ const launch = async ({ extensionDir = ROOT } = {}) => {
         }`,
       );
       await waitForBackgroundReady("test/e2e/control.html", previousInstance);
+      // The event page owns the RDP console actor. Its replacement can leave
+      // the old actor addressable but detached from WebExtension globals, so a
+      // later recovery would otherwise evaluate indefinitely in a dead realm.
+      await reconnectBackgroundConsole();
       await reloadExtensionPage("src/options/options.html");
     };
 
