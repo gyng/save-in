@@ -22,8 +22,9 @@ export type DownloadPorts = {
       downloadId?: number,
       fileSize?: number,
     ): Promise<unknown>;
-    // Undo resolves a lost session record back to its entry by downloadId.
-    entries(): Promise<HistoryEntry[]>;
+    // Undo resolves a lost session record back to its entry by downloadId;
+    // the normal path supplies its exact id and reads one entry shard.
+    entries(onlyId?: string): Promise<HistoryEntry[]>;
     // Guarded late anchor: applies only while the entry still points at this
     // download and has no startTime, so it can never repoint an entry a
     // retry has since rebound.
@@ -79,7 +80,7 @@ export const createDownloadPortRegistry = (): DownloadPortRegistry => {
       patch: (...args) => requirePort("history").patch(...args),
       setDownloadId: (...args) => requirePort("history").setDownloadId(...args),
       setStatus: (...args) => requirePort("history").setStatus(...args),
-      entries: () => requirePort("history").entries(),
+      entries: (...args) => requirePort("history").entries(...args),
       anchorStartTime: (...args) => requirePort("history").anchorStartTime(...args),
     },
     log: { add: (...args) => requirePort("log").add(...args) },

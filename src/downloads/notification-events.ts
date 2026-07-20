@@ -269,7 +269,7 @@ const undoFromNotification = async (notId: string, downloadId: number) => {
   let entry: HistoryEntry | undefined;
   try {
     if (record?.historyEntryId) {
-      entry = (await historyPort.entries()).find(
+      entry = (await historyPort.entries(record.historyEntryId)).find(
         (candidate) => candidate.id === record.historyEntryId,
       );
     } else if (!record) {

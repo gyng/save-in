@@ -161,6 +161,7 @@ describe("undo on the success notification", () => {
   test("an empty created-event filename falls through to the routed name", async () => {
     const history = await import("../../../src/background/history.ts");
     vi.spyOn(history, "setHistoryStatus").mockResolvedValue(undefined);
+    vi.spyOn(history, "getHistoryEntries").mockResolvedValue([]);
     // Chrome's onDownloadCreated merges item.filename, which is "" at
     // creation; the routed record.filename must still count as evidence.
     sessionStore.siDownloads = {
@@ -173,6 +174,7 @@ describe("undo on the success notification", () => {
     await onButtonClicked("7", 0);
 
     expect(global.browser.downloads.removeFile).toHaveBeenCalledWith(7);
+    expect(history.getHistoryEntries).toHaveBeenCalledWith("h-undo");
     expect(history.setHistoryStatus).toHaveBeenCalledWith("h-undo", "undone", 7);
   });
 
