@@ -314,8 +314,14 @@ const waitForExtensionId = (port) =>
 
 // Evaluates an expression in the first live target whose URL contains
 // urlSubstr. Skips targets whose extension context has been invalidated.
-/** @param {number} port @param {string} urlSubstr @param {string} expression @returns {Promise<any>} */
-const evalInTarget = async (port, urlSubstr, expression) => {
+/**
+ * @param {number} port
+ * @param {string} urlSubstr
+ * @param {string} expression
+ * @param {number} [timeoutMs]
+ * @returns {Promise<any>}
+ */
+const evalInTarget = async (port, urlSubstr, expression, timeoutMs = 15000) => {
   let lastError = null;
   // A missing target or a dead endpoint is transient: the options page drops
   // out of the target list momentarily across a reload or a service-worker
@@ -333,11 +339,15 @@ const evalInTarget = async (port, urlSubstr, expression) => {
       let cdp;
       try {
         cdp = await Cdp.connect(target.webSocketDebuggerUrl);
-        const result = await cdp.send("Runtime.evaluate", {
-          expression,
-          awaitPromise: true,
-          returnByValue: true,
-        });
+        const result = await cdp.send(
+          "Runtime.evaluate",
+          {
+            expression,
+            awaitPromise: true,
+            returnByValue: true,
+          },
+          timeoutMs,
+        );
         if (!result.exceptionDetails) {
           return result.result.value;
         }
@@ -349,6 +359,10 @@ const evalInTarget = async (port, urlSubstr, expression) => {
         // A connect/transport failure is the dead-endpoint case, not the page's
         // own error; keep waiting for a fresh target rather than counting it.
         lastError = error;
+        // Runtime.evaluate may have completed a side effect before its reply
+        // was lost. Do not repeat an ambiguously timed-out expression; callers
+        // that use a pure readiness probe can retry it at their own boundary.
+        if (String(error).includes("CDP timeout: Runtime.evaluate")) throw error;
       } finally {
         cdp?.close();
       }

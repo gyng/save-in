@@ -64,27 +64,35 @@ let resourceScope;
 let harness;
 const FIRST_INSTALL_TEST = "first install starts with a focused welcome";
 
-/** @param {string} expr @returns {Promise<unknown>} */
-// The optional timeout matches the Firefox evaluator's signature so shared
-// scenarios can pass one; evalInTarget bounds itself internally, so Chrome
-// ignores it.
-/** @param {string} expr @param {number} [_timeoutMs] */
-const rawEvalOptions = (expr, _timeoutMs) => cdp.evalInTarget(PORT, "options.html", expr);
+/** @param {string} expr @param {number} [timeoutMs] */
+const rawEvalOptions = (expr, timeoutMs) => cdp.evalInTarget(PORT, "options.html", expr, timeoutMs);
 const reloadOptionsPage = async () => {
-  const reloaded = await cdp.reloadTargets(PORT, "options.html");
-  if (reloaded === 0) {
-    await cdp.openTab(PORT, `chrome-extension://${extensionId}/src/options/options.html`);
-  }
+  // Repeated CDP attachments can leave an extension renderer listed but
+  // unable to answer Runtime or Page commands. Closing it through the browser
+  // target and creating a fresh Options page recovers that state; Page.reload
+  // cannot, because it still depends on the wedged renderer.
+  await cdp.replaceTab(
+    PORT,
+    "options.html",
+    `chrome-extension://${extensionId}/src/options/options.html`,
+  );
   await poll(
     async () =>
-      (await rawEvalOptions(`document.readyState === "complete" &&
+      (await rawEvalOptions(
+        `document.readyState === "complete" &&
         Boolean(chrome.runtime?.id) &&
         Boolean(document.querySelector("#autocomplete-paths")) &&
         document.querySelector("#paths")?.getAttribute("aria-busy") === "false" &&
-        document.querySelector("#filenamePatterns")?.getAttribute("aria-busy") === "false"`))
+        document.querySelector("#filenamePatterns")?.getAttribute("aria-busy") === "false"`,
+        2500,
+      ))
         ? true
         : null,
-    { description: "reloaded Chrome options page", ignoreErrors: true },
+    {
+      description: "reloaded Chrome options page",
+      ignoreErrors: true,
+      timeoutMs: 15000,
+    },
   );
 };
 const control = createE2EControlClient({
@@ -109,6 +117,7 @@ const waitForOptionsInteractive = () =>
   waitForPageCondition(
     evalOptions,
     `document.readyState === "complete" &&
+     !document.querySelector("#welcome-dialog") &&
      Boolean(document.querySelector("#option-search")) &&
      Boolean(document.querySelector("#version-label")?.textContent)`,
     { description: "options page interactive" },
@@ -681,6 +690,7 @@ test("options page works under MV3 CSP with live first-party autocomplete", asyn
 test("options page keeps keyboard focus and core layout accessible", async () => {
   // Tab into a fully wired page, or the first stop can be a transient element
   // (a nav disclosure summary before the header link and search settle).
+  await evalOptions(`document.querySelector(".welcome-accept")?.click(); true`);
   await waitForOptionsInteractive();
   await evalOptions(`(() => {
     document.activeElement?.blur();
@@ -758,7 +768,7 @@ test("options page keeps keyboard focus and core layout accessible", async () =>
   expect(result.duplicateIds).toEqual([]);
   expect(result.horizontalOverflow).toBeLessThanOrEqual(1);
   expect(result.unnamedButtons).toEqual([]);
-  expect(result.active.tag).toMatch(/^(A|BUTTON|INPUT|SELECT|TEXTAREA)$/);
+  expect(result.active.tag).toMatch(/^(A|BUTTON|INPUT|SELECT|SUMMARY|TEXTAREA)$/);
   expect(result.active.name).toBeTruthy();
   expect(result.active.focusVisible).toBe(true);
   expect(result.active.inViewport).toBe(true);

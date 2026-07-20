@@ -1,29 +1,42 @@
 import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
-const { Cdp, callFunctionInTarget, extensionIdFromTargets, getJson, listTargets, waitForCdp } =
-  require("../../scripts/lib/cdp.js") as {
-    Cdp: new (socket: FakeSocket) => {
-      send: (method: string, params?: object, timeoutMs?: number) => Promise<unknown>;
-      close: () => void;
-    };
-    getJson: (port: number, path: string, timeoutMs?: number) => Promise<unknown>;
-    callFunctionInTarget: (
-      port: number,
-      urlSubstr: string,
-      functionDeclaration: string,
-      args?: unknown[],
-      timeoutMs?: number,
-    ) => Promise<unknown>;
-    listTargets: (
-      port: number,
-    ) => Promise<Array<{ id: string; type: string; url: string; webSocketDebuggerUrl: string }>>;
-    extensionIdFromTargets: (
-      targets: Array<{ type: string; url: string; webSocketDebuggerUrl: string }>,
-      expectedResource?: string,
-    ) => string | undefined;
-    waitForCdp: (port: number) => Promise<void>;
+const {
+  Cdp,
+  callFunctionInTarget,
+  evalInTarget,
+  extensionIdFromTargets,
+  getJson,
+  listTargets,
+  waitForCdp,
+} = require("../../scripts/lib/cdp.js") as {
+  Cdp: new (socket: FakeSocket) => {
+    send: (method: string, params?: object, timeoutMs?: number) => Promise<unknown>;
+    close: () => void;
   };
+  getJson: (port: number, path: string, timeoutMs?: number) => Promise<unknown>;
+  callFunctionInTarget: (
+    port: number,
+    urlSubstr: string,
+    functionDeclaration: string,
+    args?: unknown[],
+    timeoutMs?: number,
+  ) => Promise<unknown>;
+  evalInTarget: (
+    port: number,
+    urlSubstr: string,
+    expression: string,
+    timeoutMs?: number,
+  ) => Promise<unknown>;
+  listTargets: (
+    port: number,
+  ) => Promise<Array<{ id: string; type: string; url: string; webSocketDebuggerUrl: string }>>;
+  extensionIdFromTargets: (
+    targets: Array<{ type: string; url: string; webSocketDebuggerUrl: string }>,
+    expectedResource?: string,
+  ) => string | undefined;
+  waitForCdp: (port: number) => Promise<void>;
+};
 
 type SocketEvent = { data?: string };
 type SocketListener = (event: SocketEvent) => void;
@@ -155,6 +168,38 @@ describe("CDP transport", () => {
       callFunctionInTarget(9555, "options.html", "function () { return true; }", [], 100),
     ).rejects.toThrow("CDP connection closed");
     expect(dispatches).toBe(1);
+    expect(sockets).toBe(1);
+  });
+
+  test("bounds a target evaluation with the caller timeout and does not repeat it", async () => {
+    let sockets = 0;
+    class UnresponsiveSocket extends FakeSocket {
+      constructor() {
+        super();
+        sockets += 1;
+        queueMicrotask(() => this.emit("open"));
+      }
+    }
+    vi.stubGlobal("WebSocket", UnresponsiveSocket);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: () =>
+          Promise.resolve([
+            {
+              id: "options",
+              type: "page",
+              url: "chrome-extension://save-in/options.html",
+              webSocketDebuggerUrl: "ws://options",
+            },
+          ]),
+      }),
+    );
+
+    await expect(evalInTarget(9555, "options.html", "sideEffect()", 25)).rejects.toThrow(
+      "CDP timeout: Runtime.evaluate",
+    );
     expect(sockets).toBe(1);
   });
 });
