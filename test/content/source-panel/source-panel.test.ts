@@ -1275,6 +1275,30 @@ describe("Page Sources panel interactions", () => {
     ).toContain("http://localhost/new-64.jpg");
   });
 
+  test("skips per-node global checks for one oversized insertion batch", async () => {
+    vi.useFakeTimers();
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: true });
+    const globalQueries = vi.spyOn(Element.prototype, "querySelector");
+    const fragment = document.createDocumentFragment();
+    for (let index = 0; index < 65; index += 1) {
+      const container = document.createElement("div");
+      container.innerHTML = `<img src="source-${index}.jpg">`;
+      fragment.append(container);
+    }
+    globalQueries.mockClear();
+
+    document.body.append(fragment);
+    await Promise.resolve();
+    vi.advanceTimersByTime(200);
+
+    expect(
+      globalQueries.mock.calls.filter(
+        ([selector]) => selector === "style, link[rel~='stylesheet']" || selector === "base",
+      ),
+    ).toHaveLength(0);
+    expect(getSourcePanelHostForTesting()!.shadowRoot!.querySelectorAll(".row")).toHaveLength(65);
+  });
+
   test("falls back to one full scan for a large removal burst", async () => {
     vi.useFakeTimers();
     document.body.innerHTML = Array.from(

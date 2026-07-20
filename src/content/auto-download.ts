@@ -334,7 +334,18 @@ export const setupAutoDownloadDiscovery = (
     if (stopped) return;
     let relevant = false;
     for (const mutation of mutations) {
+      if (fullScanPending) break;
       const target = mutation.target instanceof Element ? mutation.target : null;
+      let addedElementCount = 0;
+      for (const node of mutation.addedNodes) {
+        if (node instanceof Element && ++addedElementCount > LIVE_SCAN_ROOT_LIMIT) break;
+      }
+      if (addedElementCount > LIVE_SCAN_ROOT_LIMIT) {
+        fullScanPending = true;
+        pendingRoots.clear();
+        relevant = true;
+        break;
+      }
       const changedElements = [...mutation.addedNodes].filter(
         (node): node is Element => node instanceof Element,
       );

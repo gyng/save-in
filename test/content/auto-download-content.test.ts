@@ -550,7 +550,9 @@ describe("automatic source discovery", () => {
     const controller = setupAutoDownloadDiscovery({ rules, live: true, maxPerPage: 100, send });
     await controller.idle();
     const documentQueries = vi.spyOn(Document.prototype, "querySelectorAll");
+    const elementQueries = vi.spyOn(Element.prototype, "querySelector");
     documentQueries.mockClear();
+    elementQueries.mockClear();
 
     const fragment = document.createDocumentFragment();
     for (let index = 0; index < 65; index += 1) {
@@ -563,6 +565,11 @@ describe("automatic source discovery", () => {
     await controller.idle();
 
     expect(documentQueries).toHaveBeenCalled();
+    expect(
+      elementQueries.mock.calls.filter(
+        ([selector]) => selector === "base, style, link[rel~='stylesheet']",
+      ),
+    ).toHaveLength(0);
     expect(send).toHaveBeenCalledTimes(65);
     controller.stop();
   });

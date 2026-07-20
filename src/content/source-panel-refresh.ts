@@ -256,6 +256,15 @@ export const wirePanelRefresh = (ctx: SourcePanelContext): void => {
   };
   window.addEventListener("resize", scheduleResponsiveRefresh);
   window.visualViewport?.addEventListener("resize", scheduleResponsiveRefresh);
+  const hasOversizedElementBatch = (mutation: MutationRecord): boolean => {
+    let elements = 0;
+    for (const nodes of [mutation.addedNodes, mutation.removedNodes]) {
+      for (const node of nodes) {
+        if (node instanceof Element && ++elements > INCREMENTAL_ROOT_LIMIT) return true;
+      }
+    }
+    return false;
+  };
   const observer = new MutationObserver((mutations) => {
     if (!host.isConnected) {
       panelOpenChanges.get(host)?.(false);
@@ -272,6 +281,13 @@ export const wirePanelRefresh = (ctx: SourcePanelContext): void => {
     )
       return;
     mutations.forEach((mutation) => {
+      if (fullRefreshPending) return;
+      if (mutation.type === "childList" && hasOversizedElementBatch(mutation)) {
+        fullRefreshPending = true;
+        pendingRoots.clear();
+        removedRoots.clear();
+        return;
+      }
       const target = mutation.target instanceof Element ? mutation.target : null;
       const affectsStylesheet =
         ctx.panelOptions.includeBackgrounds !== false &&
