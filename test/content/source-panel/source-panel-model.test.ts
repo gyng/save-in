@@ -125,6 +125,26 @@ test("keeps unique duplicate origins in discovery order", () => {
   expect(merged[0]?.originElements).toEqual([first, second]);
 });
 
+test("reuses static relevance work while keeping byte scoring live", () => {
+  const first = document.createElement("img");
+  const second = document.createElement("img");
+  const domMatches = vi.spyOn(Element.prototype, "matches");
+  const domClosest = vi.spyOn(Element.prototype, "closest");
+  const sources = [
+    { url: "https://example.com/a.jpg", kind: "image" as const, element: first, bytes: 1 },
+    { url: "https://example.com/b.jpg", kind: "image" as const, element: second, bytes: 1024 },
+  ];
+  const cache = new WeakMap();
+
+  expect(sortPageSources(sources, "relevance", cache)[0]?.url).toBe("https://example.com/b.jpg");
+  const firstReadCount = domMatches.mock.calls.length + domClosest.mock.calls.length;
+  sources[0]!.bytes = 1024 * 1024;
+  sources[1]!.bytes = 1;
+  expect(sortPageSources(sources, "relevance", cache)[0]?.url).toBe("https://example.com/a.jpg");
+
+  expect(domMatches.mock.calls.length + domClosest.mock.calls.length).toBe(firstReadCount);
+});
+
 test("accepts legacy and resource timing entries but rejects unrelated performance entries", () => {
   expect(isPerformanceResourceTiming({ entryType: "" } as PerformanceEntry)).toBe(true);
   expect(isPerformanceResourceTiming({ entryType: "resource" } as PerformanceEntry)).toBe(true);

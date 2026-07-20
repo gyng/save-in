@@ -41,6 +41,8 @@ export const wirePanelRowRender = (ctx: SourcePanelContext): void => {
   let renderedSourceLimit = SOURCE_RENDER_CHUNK_SIZE;
   let visibleSourceCount = 0;
   let resultViewKey = "";
+  // Reconciliation replaces sources whose DOM context changes; byte scoring stays dynamic.
+  const relevanceCache = new WeakMap<PageSource, number>();
   const highlightStates = new WeakMap<HTMLElement, { outline: string; owners: Set<object> }>();
   const acquireHighlight = (target: HTMLElement, owner: object) => {
     let state = highlightStates.get(target);
@@ -730,6 +732,7 @@ export const wirePanelRowRender = (ctx: SourcePanelContext): void => {
     const sources = sortPageSources(
       filterPageSources(ctx.allSources, ctx.filter.value, activeKind),
       sourceSort,
+      relevanceCache,
     );
     const nextResultViewKey = `${activeKind}\0${sourceSort}\0${ctx.filter.value}`;
     if (nextResultViewKey !== resultViewKey) {

@@ -243,7 +243,7 @@ const relevanceUrl = (value: string): string => {
   }
 };
 
-const sourceRelevance = (source: PageSource): number => {
+const sourceRelevanceBase = (source: PageSource): number => {
   let score = KIND_RELEVANCE[source.kind];
   if (source.element.matches("img, video, audio")) score += 32;
   else if (source.kind !== "link" && source.element.matches("a")) score += 12;
@@ -255,6 +255,15 @@ const sourceRelevance = (source: PageSource): number => {
   const url = relevanceUrl(source.url);
   if (HIGH_VALUE_URL_HINT.test(url)) score += 12;
   if (LOW_VALUE_URL_HINT.test(url)) score -= 32;
+  return score;
+};
+
+const sourceRelevance = (source: PageSource, cache?: WeakMap<PageSource, number>): number => {
+  let score = cache?.get(source);
+  if (score === undefined) {
+    score = sourceRelevanceBase(source);
+    cache?.set(source, score);
+  }
   if (source.bytes) score += Math.min(24, Math.log2(source.bytes + 1));
   return score;
 };
@@ -267,12 +276,16 @@ const compareRelevance = (a: ScoredSource, b: ScoredSource): number =>
   compareDetection(b.source, a.source) ||
   a.source.url.localeCompare(b.source.url);
 
-export const sortPageSources = (sources: PageSource[], sort: SourceSort): PageSource[] => {
+export const sortPageSources = (
+  sources: PageSource[],
+  sort: SourceSort,
+  relevanceCache?: WeakMap<PageSource, number>,
+): PageSource[] => {
   if (sort === "relevance") {
     // Relevance reads DOM context through matches()/closest(). Decorate once so
     // a large result set pays that cost per source, not per sort comparison.
     return sources
-      .map((source) => ({ source, relevance: sourceRelevance(source) }))
+      .map((source) => ({ source, relevance: sourceRelevance(source, relevanceCache) }))
       .toSorted(compareRelevance)
       .map(({ source }) => source);
   }
