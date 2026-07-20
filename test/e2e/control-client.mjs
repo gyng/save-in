@@ -717,11 +717,29 @@ const isMissingControlPage = (error) =>
 export const controlRetryMode = (request) => {
   if (request.operation === "runtime.send") {
     if (
-      ["WAKE_WARM", "OPTIONS", "HISTORY_GET", "SAVE_IN_E2E_INSPECT"].includes(request.message.type)
+      [
+        "WAKE_WARM",
+        "OPTIONS",
+        "HISTORY_GET",
+        "EXTERNAL_DOWNLOAD_REJECTIONS_GET",
+        "SAVE_IN_E2E_INSPECT",
+      ].includes(request.message.type) ||
+      (request.message.type === "SAVE_IN_E2E_NOTIFICATION_CALLS" &&
+        request.message.body.action !== "reset")
     ) {
       return "read";
     }
-    if (request.message.type === "OPTIONS_LOADED") return "idempotent";
+    if (
+      ["OPTIONS_LOADED", "EXTERNAL_DOWNLOAD_REJECTION_CLEAR", "SAVE_IN_E2E_RESET_STATE"].includes(
+        request.message.type,
+      ) ||
+      (request.message.type === "SAVE_IN_E2E_HISTORY_WRITE" &&
+        request.message.body.action === "clear") ||
+      (request.message.type === "SAVE_IN_E2E_NOTIFICATION_CALLS" &&
+        request.message.body.action === "reset")
+    ) {
+      return "idempotent";
+    }
     return "one-shot";
   }
   if (
@@ -837,6 +855,7 @@ export const createRecoveringControlTransport = ({
 export const createE2EControlClient = ({ callFunction }) => {
   let calls = 0;
   let requestSequence = 0;
+  const clientId = crypto.randomUUID();
   /** @type {string | undefined} */
   let acknowledgedInstance;
   let acknowledgedGeneration = 0;
@@ -849,13 +868,13 @@ export const createE2EControlClient = ({ callFunction }) => {
   const call = async (request, timeoutMs) => {
     calls += 1;
     requestSequence += 1;
-    const envelope = { requestId: `request-${requestSequence}`, request };
-    const serialized = await callFunction(
-      CONTROL_FUNCTION,
-      [envelope],
-      timeoutMs,
-      controlRetryMode(request),
-    );
+    const retryMode = controlRetryMode(request);
+    const envelope = {
+      requestId: `${clientId}:${requestSequence}`,
+      retryMode,
+      request,
+    };
+    const serialized = await callFunction(CONTROL_FUNCTION, [envelope], timeoutMs, retryMode);
     if (typeof serialized !== "string") {
       throw new Error(`E2E control returned a non-string response: ${typeof serialized}`);
     }

@@ -35,7 +35,8 @@ describe("structured E2E control client", () => {
     expect(calls[0]?.declaration).not.toContain(value);
     expect(calls[0]?.args).toEqual([
       {
-        requestId: "request-1",
+        requestId: expect.stringMatching(/^[0-9a-f-]+:1$/),
+        retryMode: "idempotent",
         request: { operation: "storage.set", area: "local", values: { paths: value } },
       },
     ]);
@@ -202,6 +203,7 @@ describe("structured E2E control client", () => {
     const dispatch = createControlPageDispatcher(operation);
     const envelope = JSON.stringify({
       requestId: "download-7",
+      retryMode: "one-shot",
       request: { operation: "runtime.download", content: "one" },
     });
 
@@ -213,6 +215,21 @@ describe("structured E2E control client", () => {
     expect(operation).toHaveBeenCalledOnce();
   });
 
+  test("releases settled safe operations and bounds one-shot deduplication", async () => {
+    const operation = vi.fn(async (request: string) => request);
+    const dispatch = createControlPageDispatcher(operation, { maxOneShotResults: 1 });
+    const envelope = (requestId: string, retryMode: "read" | "one-shot") =>
+      JSON.stringify({ requestId, retryMode, request: { operation: "inspect" } });
+
+    await dispatch(envelope("read-1", "read"));
+    await dispatch(envelope("read-1", "read"));
+    await dispatch(envelope("write-1", "one-shot"));
+    await dispatch(envelope("write-2", "one-shot"));
+    await dispatch(envelope("write-1", "one-shot"));
+
+    expect(operation).toHaveBeenCalledTimes(5);
+  });
+
   test("classifies retry safety at the operation boundary", () => {
     expect(controlRetryMode({ operation: "downloads.search", query: {} })).toBe("read");
     expect(
@@ -221,6 +238,34 @@ describe("structured E2E control client", () => {
     expect(controlRetryMode({ operation: "tabs.create", properties: { url: "about:blank" } })).toBe(
       "one-shot",
     );
+    expect(
+      controlRetryMode({
+        operation: "runtime.send",
+        message: { type: "SAVE_IN_E2E_NOTIFICATION_CALLS", body: { action: "wait", id: "7" } },
+      }),
+    ).toBe("read");
+    expect(
+      controlRetryMode({
+        operation: "runtime.send",
+        message: { type: "SAVE_IN_E2E_NOTIFICATION_CALLS", body: { action: "reset" } },
+      }),
+    ).toBe("idempotent");
+  });
+
+  test("latches a failed control-page recreation for the rest of the suite", async () => {
+    const missing = Object.assign(new Error("missing"), { code: "E2E_CONTROL_TARGET_MISSING" });
+    const callFunction = vi.fn().mockRejectedValue(missing);
+    const recover = vi.fn().mockRejectedValue(new Error("tab creation failed"));
+    const call = createRecoveringControlTransport({ callFunction, recover });
+
+    await expect(call("function () {}", [])).rejects.toThrow(
+      "E2E control plane could not be recreated",
+    );
+    await expect(call("function () {}", [])).rejects.toThrow(
+      "E2E control plane could not be recreated",
+    );
+    expect(callFunction).toHaveBeenCalledOnce();
+    expect(recover).toHaveBeenCalledOnce();
   });
 
   test("does not infer a missing control page from browser-thrown error text", async () => {

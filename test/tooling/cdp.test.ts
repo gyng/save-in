@@ -28,6 +28,7 @@ const {
     urlSubstr: string,
   ) => {
     state: () => "missing" | "starting" | "ready" | "stale";
+    invalidate: () => void;
     callFunction: (
       functionDeclaration: string,
       args?: unknown[],
@@ -232,6 +233,53 @@ describe("CDP transport", () => {
     expect(session.state()).toBe("ready");
     expect(fetchMock).toHaveBeenCalledOnce();
     expect(sockets).toBe(1);
+    session.close();
+  });
+
+  test("does not let a superseded startup replace the current control realm", async () => {
+    class ConnectableSocket extends FakeSocket {
+      constructor() {
+        super();
+        this.send.mockImplementation((message) => {
+          const packet = JSON.parse(message) as { id: number; method: string };
+          const result =
+            packet.method === "Runtime.evaluate"
+              ? { result: { objectId: "root", value: "current" } }
+              : { result: { value: "current" } };
+          this.emit("message", { data: JSON.stringify({ id: packet.id, result }) });
+        });
+        queueMicrotask(() => this.emit("open"));
+      }
+    }
+    let resolveFirst!: (response: object) => void;
+    const targetResponse = (id: string) => ({
+      ok: true,
+      json: () =>
+        Promise.resolve([
+          {
+            id,
+            type: "page",
+            url: "chrome-extension://save-in/test/e2e/control.html",
+            webSocketDebuggerUrl: `ws://${id}`,
+          },
+        ]),
+    });
+    const fetchMock = vi
+      .fn()
+      .mockReturnValueOnce(new Promise((resolve) => (resolveFirst = resolve)))
+      .mockResolvedValueOnce(targetResponse("current"));
+    vi.stubGlobal("WebSocket", ConnectableSocket);
+    vi.stubGlobal("fetch", fetchMock);
+    const session = createPersistentTargetSession(9555, "test/e2e/control.html");
+
+    const superseded = session.evaluate("location.href");
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledOnce());
+    session.invalidate();
+    await expect(session.evaluate("location.href")).resolves.toBe("current");
+    resolveFirst(targetResponse("old"));
+
+    await expect(superseded).rejects.toThrow("control target is unavailable");
+    expect(session.state()).toBe("ready");
     session.close();
   });
 

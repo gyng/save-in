@@ -500,8 +500,11 @@ const createPersistentTargetSession = (port, urlSubstr) => {
   let targetId;
   /** @type {Promise<void> | undefined} */
   let starting;
+  let revision = 0;
 
   const invalidate = () => {
+    revision += 1;
+    starting = undefined;
     state = state === "missing" ? "missing" : "stale";
     objectId = undefined;
     targetId = undefined;
@@ -515,7 +518,8 @@ const createPersistentTargetSession = (port, urlSubstr) => {
       code: "E2E_CONTROL_TARGET_MISSING",
     });
 
-  const start = async () => {
+  /** @param {number} expectedRevision */
+  const start = async (expectedRevision) => {
     state = "starting";
     /** @type {Cdp | undefined} */
     let nextClient;
@@ -528,12 +532,16 @@ const createPersistentTargetSession = (port, urlSubstr) => {
       const root = await nextClient.send("Runtime.evaluate", { expression: "globalThis" });
       const nextObjectId = root.result.objectId;
       if (!nextObjectId) throw new Error("CDP did not return the page global object");
+      if (revision !== expectedRevision) {
+        throw new Error("control target startup was superseded");
+      }
       client = nextClient;
       objectId = nextObjectId;
       targetId = target.id;
       state = "ready";
       nextClient.onClose(() => {
         if (client !== nextClient) return;
+        revision += 1;
         client = undefined;
         objectId = undefined;
         targetId = undefined;
@@ -541,19 +549,26 @@ const createPersistentTargetSession = (port, urlSubstr) => {
       });
     } catch (error) {
       nextClient?.close();
-      client = undefined;
-      objectId = undefined;
-      targetId = undefined;
-      state = "missing";
+      if (revision === expectedRevision) {
+        client = undefined;
+        objectId = undefined;
+        targetId = undefined;
+        state = "missing";
+      }
       throw unavailable(error);
     }
   };
 
   const ensureReady = async () => {
     if (state === "ready" && client && objectId) return;
-    starting ??= start().finally(() => {
-      starting = undefined;
-    });
+    if (!starting) {
+      const pending = start(revision);
+      starting = pending;
+      const clearStarting = () => {
+        if (starting === pending) starting = undefined;
+      };
+      void pending.then(clearStarting, clearStarting);
+    }
     await starting;
   };
 
@@ -637,18 +652,28 @@ const createPersistentTargetSession = (port, urlSubstr) => {
 
 // The MV3 service worker disappears from the target list when idle:
 // wake it via an extension page first, then attach quickly.
-/** @param {number} port @param {string} extensionId @param {string} expression @param {string} [wakeResource] @returns {Promise<any>} */
+/**
+ * @param {number} port
+ * @param {string} extensionId
+ * @param {string} expression
+ * @param {{wakeResource?: string, wake?: () => Promise<unknown>}} [options]
+ * @returns {Promise<any>}
+ */
 const evalInServiceWorker = async (
   port,
   extensionId,
   expression,
-  wakeResource = "src/options/options.html",
+  { wakeResource = "src/options/options.html", wake } = {},
 ) => {
-  await evalInTarget(
-    port,
-    `${extensionId}/${wakeResource}`,
-    "new Promise(res => chrome.runtime.sendMessage({type:'WAKE_WARM'}, () => res('ok')))",
-  );
+  if (wake) {
+    await wake();
+  } else {
+    await evalInTarget(
+      port,
+      `${extensionId}/${wakeResource}`,
+      "new Promise(res => chrome.runtime.sendMessage({type:'WAKE_WARM'}, () => res('ok')))",
+    );
+  }
 
   const sw = (await listTargets(port)).find(
     (t) => t.type === "service_worker" && t.url.includes(extensionId),
