@@ -70,6 +70,11 @@ export const runHistoryMemoryScenario = async ({ browserLabel, browserProcess, c
     (_, index) => `http://127.0.0.1:${port}/rss-${index}`,
   );
   const opened = await control.windows.create({ focused: false, url: urls });
+  /** @param {import("./control-protocol.mjs").HistoryWriteRequest["body"]} body */
+  const writeProductionHistory = async (body) => {
+    const response = await control.runtime.send({ type: "SAVE_IN_E2E_HISTORY_WRITE", body });
+    if (response.body.status === "ERROR") throw new Error(response.body.message);
+  };
 
   try {
     const tabs = await control.tabs.query({ windowId: opened.id });
@@ -105,11 +110,6 @@ export const runHistoryMemoryScenario = async ({ browserLabel, browserProcess, c
     /** @type {ReturnType<typeof historyEntry>[]} */
     const history = [];
 
-    /** @param {import("./control-protocol.mjs").HistoryWriteRequest["body"]} body */
-    const writeProductionHistory = async (body) => {
-      const response = await control.runtime.send({ type: "SAVE_IN_E2E_HISTORY_WRITE", body });
-      if (response.body.status === "ERROR") throw new Error(response.body.message);
-    };
     // Measure production first. Warming the browser allocator with the legacy
     // fan-out workload can otherwise hide a production regression behind an
     // already-raised heap high-water mark.
@@ -203,6 +203,10 @@ export const runHistoryMemoryScenario = async ({ browserLabel, browserProcess, c
       `${browserLabel} production-history RSS rose ${Math.round(production.maximumDrawupKb / 1024)} MiB from its sampled trough`,
     ).toBeLessThanOrEqual(MAX_PRODUCTION_STEADY_RSS_GROWTH_KB[browserLabel]);
   } finally {
-    await Promise.all([control.windows.remove(opened.id), closeLocal(server)]);
+    try {
+      await writeProductionHistory({ action: "clear" });
+    } finally {
+      await Promise.all([control.windows.remove(opened.id), closeLocal(server)]);
+    }
   }
 };
