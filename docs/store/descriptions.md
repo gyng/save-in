@@ -12,8 +12,8 @@ have it yet and is scanning search results, so it leads with the action and the
 outcome. Keep the manifest one aligned with `extensionDescription` in
 `_locales/en/messages.json`; the summary answers to the stores alone.
 
-- Version: 4.0.0
-- Last reviewed: 2026-07-18
+- Version: 4.0.1
+- Last reviewed: 2026-07-20
 - Listing name: Save In
 
 ## Manifest description
@@ -91,13 +91,13 @@ Save In does not collect or transmit any data. All data is stored and kept on de
 Requires Chrome 123 or later.
 ```
 
-## Version 4 release notes
+## Version 4.0.1 release notes
 
 Use this as the store-facing release note. `CHANGELOG.md` remains the complete
 release history.
 
 ```text
-Version 4 is Save In's largest update. You no longer need to write every configuration from scratch: build destination menus visually, start routing rules from searchable templates or Quick add, use autocomplete for variables and clauses, preview results, and test unsaved rules against real download details in the route debugger. This release also adds Page Sources with guarded automatic saving, more routing variables, improved click-to-save, searchable local history, safer external integrations, and more reliable downloads across browser restarts. The extension now uses Manifest V3 and requires Firefox 140+ or Chrome 123+. Existing settings and routing rules remain supported, and valid settings from the earlier automation editor migrate into unified routing rules.
+Version 4.0.1 fixes the slowdown and memory growth some users saw after upgrading to Version 4. History is now persisted entry by entry and no longer triggers a full settings reload in every open tab on each update. Page Sources renders large lists incrementally and bounds the metadata it retains. Long-lived validation and download-diagnostic state is bounded as well. Chrome and Firefox browser tests now gate memory growth under repeated history changes.
 ```
 
 ## Reviewer notes

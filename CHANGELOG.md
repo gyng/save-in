@@ -1,3 +1,18 @@
+# 4.0.1
+
+- Fixed severe slowdowns and memory growth after repeated saves. History
+  updates no longer make every open content script reload the full extension
+  configuration, and history is persisted entry by entry instead of rewriting
+  the complete list for each change (#233, #234). Existing history migrates
+  automatically.
+- Kept Page Sources responsive on pages with thousands of resources by
+  rendering rows in bounded batches, calculating relevance once per source,
+  and retaining only a capped set of compact resource-timing records.
+- Bounded other long-lived extension state, including external-caller rate
+  limits and the last-download diagnostic snapshot.
+- Added real Chrome and Firefox RSS regression gates for repeated history
+  creates and updates.
+
 # 4.0.0
 
 > _Rebuilt from the first character to the last for Manifest V3, and still
