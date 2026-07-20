@@ -131,6 +131,24 @@ test("compacts repeated source origins during collection", () => {
   expect(new Set(merged[0]?.originElements).size).toBe(1_000);
 });
 
+test("can discard duplicate origins when routing does not need CSS evidence", () => {
+  document.body.innerHTML = Array.from(
+    { length: 1_000 },
+    (_, index) => `<img id="image-${index}" src="shared.jpg">`,
+  ).join("");
+
+  const candidates = collectPageSourceCandidates(
+    document,
+    { includeLinks: false, includeBackgrounds: false, resourceHints: false },
+    new Map(),
+    createPageSourcePayloadBudget(),
+    false,
+  );
+
+  expect(candidates).toHaveLength(1);
+  expect(candidates[0]?.collectorOriginElements).toEqual([document.querySelector("img")]);
+});
+
 test("keeps unique duplicate origins in discovery order", () => {
   const first = document.createElement("img");
   const second = document.createElement("img");

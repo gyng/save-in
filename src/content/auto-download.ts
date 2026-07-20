@@ -208,6 +208,9 @@ export const setupAutoDownloadDiscovery = (
         AUTO_DATA_CHARACTER_BUDGET,
         (url) => isDataUrl(url) && seen.has(seenKeyFor(url)),
       ),
+      // Only CSS routing consumes per-origin DOM evidence. Other automatic
+      // rules can keep one representative instead of every duplicate node.
+      cssSelectors.length > 0,
     );
     const admittedSources = [];
     for (const source of candidates) {

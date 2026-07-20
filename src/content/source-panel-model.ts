@@ -216,7 +216,10 @@ export const mergePageSourcesByUrl = (sources: PageSource[]): PageSource[] => {
   });
 };
 
-const createPageSourceCandidateAccumulator = (deduplicateOrigins = false) => {
+const createPageSourceCandidateAccumulator = (
+  deduplicateOrigins = false,
+  preserveDuplicateOrigins = true,
+) => {
   type CandidateEntry = {
     source: PageSource;
     origins: Element[];
@@ -251,7 +254,9 @@ const createPageSourceCandidateAccumulator = (deduplicateOrigins = false) => {
     }
     const sourceOrigins = suppliedOrigins ?? (channel === "resource-hint" ? [] : [element]);
     if (!existing) {
-      const origins = [...new Set(sourceOrigins)];
+      const origins = preserveDuplicateOrigins
+        ? [...new Set(sourceOrigins)]
+        : sourceOrigins.slice(0, 1);
       const source: PageSource = {
         url,
         kind,
@@ -272,10 +277,12 @@ const createPageSourceCandidateAccumulator = (deduplicateOrigins = false) => {
       values.push(source);
       return;
     }
-    for (const origin of sourceOrigins) {
-      if (existing.originSet?.has(origin) || existing.origins.at(-1) === origin) continue;
-      existing.originSet?.add(origin);
-      existing.origins.push(origin);
+    if (preserveDuplicateOrigins) {
+      for (const origin of sourceOrigins) {
+        if (existing.originSet?.has(origin) || existing.origins.at(-1) === origin) continue;
+        existing.originSet?.add(origin);
+        existing.origins.push(origin);
+      }
     }
     if (existing.source.previewable === false && previewable !== false) {
       existing.source.previewable = previewable;
@@ -655,8 +662,9 @@ export const collectBackgroundSourceCandidates = (
   elements: Iterable<Element>,
   timingByUrl: ResourceTimingByUrl = resourceTimingByUrl(),
   payloadBudget: PageSourcePayloadBudget = createPageSourcePayloadBudget(),
+  preserveDuplicateOrigins = true,
 ): PageSource[] => {
-  const found = createPageSourceCandidateAccumulator();
+  const found = createPageSourceCandidateAccumulator(false, preserveDuplicateOrigins);
   for (const element of elements) {
     urlsFromCss(getComputedStyle(element).backgroundImage).forEach((value) => {
       const url = admittedPageSourceUrl(value, payloadBudget);
@@ -681,8 +689,9 @@ export const collectPageSourceCandidates = (
   options: SourcePanelOptions = {},
   timingByUrl: ResourceTimingByUrl = resourceTimingByUrl(),
   payloadBudget: PageSourcePayloadBudget = createPageSourcePayloadBudget(),
+  preserveDuplicateOrigins = true,
 ): PageSource[] => {
-  const found = createPageSourceCandidateAccumulator();
+  const found = createPageSourceCandidateAccumulator(false, preserveDuplicateOrigins);
   const add = (
     value: string | null | undefined,
     kind: PageSourceKind,
@@ -789,6 +798,7 @@ export const collectPageSourceCandidates = (
       iterateBackgroundElements(root),
       timingByUrl,
       payloadBudget,
+      preserveDuplicateOrigins,
     )) {
       found.add(
         source.url,

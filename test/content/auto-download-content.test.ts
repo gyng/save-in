@@ -647,6 +647,26 @@ into: automatic/`,
     controller.stop();
   });
 
+  test("keeps every duplicate origin when a later one supplies CSS evidence", async () => {
+    document.body.innerHTML = `
+      <img src="https://cdn.test/shared.png">
+      <img data-save src="https://cdn.test/shared.png">`;
+    const send = vi.fn(() => Promise.resolve("started" as const));
+    const controller = setupAutoDownloadDiscovery({
+      rules: `context: ^auto$
+pageurl: ^http://localhost/$
+css: img[data-save]
+into: automatic/`,
+      live: false,
+      maxPerPage: 20,
+      send,
+    });
+    await controller.idle();
+
+    expect(send).toHaveBeenCalledOnce();
+    controller.stop();
+  });
+
   test("does not observe later insertions when live discovery is off", async () => {
     vi.useFakeTimers();
     const send = vi.fn(() => Promise.resolve("started" as const));
