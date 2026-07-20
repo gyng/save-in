@@ -30,11 +30,16 @@ test("bounds retained resource timing entries to the newest observations", () =>
         encodedBodySize: index,
       }) as PerformanceResourceTiming,
   );
-  const refreshed = {
+  const timingFixture = entries[0];
+  if (!timingFixture) throw new Error("resource timing fixture is empty");
+  const refreshed: PerformanceResourceTiming = {
+    ...timingFixture,
     name: "https://cdn.test/resource-0.js",
     encodedBodySize: 999_999,
-    serverTiming: [{ name: "page-controlled-detail" }],
-  } as PerformanceResourceTiming;
+    serverTiming: [
+      { name: "page-controlled-detail", description: "", duration: 0, toJSON: () => ({}) },
+    ],
+  };
   entries.push(refreshed);
 
   const timing = resourceTimingByUrl(entries);

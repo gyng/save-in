@@ -11,6 +11,8 @@
   --color-kind: var(--color-kind-other);
   position: relative;
   display: grid;
+  content-visibility: auto;
+  contain-intrinsic-block-size: auto 45px;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   padding: 2px 0;

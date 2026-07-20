@@ -17,6 +17,9 @@ import { sourcePanelViewport } from "./source-panel-format.ts";
 import { createSourceKindIcon, setButtonIcon } from "./source-panel-icons.ts";
 import type { CachedRow, SourcePanelContext } from "./source-panel-context.ts";
 
+const SOURCE_RENDER_CHUNK_SIZE = 100;
+const SOURCE_RENDER_LOAD_THRESHOLD_PX = 300;
+
 const decodeSourcePart = (value: string): string => {
   try {
     return decodeURIComponent(value);
@@ -34,6 +37,9 @@ const decodeSourcePart = (value: string): string => {
  * the row cache that keeps unaffected rows stable across re-renders. */
 export const wirePanelRowRender = (ctx: SourcePanelContext): void => {
   let activeKind: "all" | PageSourceKind = "all";
+  let renderedSourceLimit = SOURCE_RENDER_CHUNK_SIZE;
+  let visibleSourceCount = 0;
+  let resultViewKey = "";
   const highlightStates = new WeakMap<HTMLElement, { outline: string; owners: Set<object> }>();
   const acquireHighlight = (target: HTMLElement, owner: object) => {
     let state = highlightStates.get(target);
@@ -84,12 +90,20 @@ export const wirePanelRowRender = (ctx: SourcePanelContext): void => {
   // filtered view, so a facet always says how much it would show.
   const renderFacets = () => {
     const { copy } = ctx;
+    const counts: Record<PageSourceKind, number> = {
+      image: 0,
+      video: 0,
+      audio: 0,
+      document: 0,
+      stream: 0,
+      link: 0,
+    };
+    ctx.allSources.forEach(({ kind }) => {
+      counts[kind] += 1;
+    });
     ctx.facets.replaceChildren();
     SOURCE_KINDS.forEach((kindName) => {
-      const count =
-        kindName === "all"
-          ? ctx.allSources.length
-          : ctx.allSources.filter(({ kind }) => kind === kindName).length;
+      const count = kindName === "all" ? ctx.allSources.length : counts[kindName];
       const facet = document.createElement("button");
       facet.className = "facet";
       const label = copy.kinds[kindName];
@@ -705,9 +719,19 @@ export const wirePanelRowRender = (ctx: SourcePanelContext): void => {
       filterPageSources(ctx.allSources, ctx.filter.value, activeKind),
       sourceSort,
     );
+    const nextResultViewKey = `${activeKind}\0${sourceSort}\0${ctx.filter.value}`;
+    if (nextResultViewKey !== resultViewKey) {
+      resultViewKey = nextResultViewKey;
+      renderedSourceLimit = SOURCE_RENDER_CHUNK_SIZE;
+      list.scrollTop = 0;
+    }
+    visibleSourceCount = sources.length;
+    // A row owns previews, menus, selection controls, and several listeners.
+    // Keep batch/filter semantics on the complete list while bounding the DOM
+    // work needed to open a page with thousands of distinct resource URLs.
+    const renderedSources = sources.slice(0, renderedSourceLimit);
     ctx.visibleSources = sources;
     ctx.updateSelectionUi();
-    ctx.updateAllSelectionRows();
     renderHeader();
     evictStaleRows();
     renderFacets();
@@ -731,12 +755,14 @@ export const wirePanelRowRender = (ctx: SourcePanelContext): void => {
       rowIndex += 1;
     };
 
-    sources.forEach((source) => {
+    renderedSources.forEach((source, sourceIndex) => {
       const cached = rowCache.get(source.url);
       if (cached && canReuseRow(cached, source)) {
         if (cached.source.bytes !== source.bytes) cached.updateBytes(source.bytes);
         cached.source = source;
         cached.updateSelection(ctx.selectedSourceUrls.has(source.url), ctx.batchSaving);
+        cached.row.setAttribute("aria-posinset", String(sourceIndex + 1));
+        cached.row.setAttribute("aria-setsize", String(sources.length));
         const preview = cached.row.querySelector<HTMLImageElement | HTMLMediaElement>("img, video");
         if (preview) ctx.observeExistingPreview(preview);
         placeRow(cached.row);
@@ -744,6 +770,8 @@ export const wirePanelRowRender = (ctx: SourcePanelContext): void => {
       }
       if (cached) deactivateAndRemove(cached);
       const cachedRow = buildRow(source);
+      cachedRow.row.setAttribute("aria-posinset", String(sourceIndex + 1));
+      cachedRow.row.setAttribute("aria-setsize", String(sources.length));
       rowCache.set(source.url, cachedRow);
       cachedRows.set(cachedRow.row, cachedRow);
       placeRow(cachedRow.row);
@@ -761,8 +789,24 @@ export const wirePanelRowRender = (ctx: SourcePanelContext): void => {
       else last.remove();
     }
   };
+  const renderMoreNearListEnd = () => {
+    if (
+      visibleSourceCount <= renderedSourceLimit ||
+      ctx.list.scrollTop + ctx.list.clientHeight <
+        ctx.list.scrollHeight - SOURCE_RENDER_LOAD_THRESHOLD_PX
+    ) {
+      return;
+    }
+    renderedSourceLimit = Math.min(
+      visibleSourceCount,
+      renderedSourceLimit + SOURCE_RENDER_CHUNK_SIZE,
+    );
+    render();
+  };
+  ctx.list.addEventListener("scroll", renderMoreNearListEnd, { passive: true });
   ctx.render = render;
   ctx.cleanupTasks.push(() => {
+    ctx.list.removeEventListener("scroll", renderMoreNearListEnd);
     ctx.rowCache.forEach(({ deactivate }) => deactivate());
   });
 };

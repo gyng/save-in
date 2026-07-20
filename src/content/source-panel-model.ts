@@ -250,20 +250,30 @@ const sourceRelevance = (source: PageSource): number => {
   return score;
 };
 
-const compareRelevance = (a: PageSource, b: PageSource): number =>
-  sourceRelevance(b) - sourceRelevance(a) ||
-  (b.bytes || 0) - (a.bytes || 0) ||
-  compareDetection(b, a) ||
-  a.url.localeCompare(b.url);
+type ScoredSource = { source: PageSource; relevance: number };
 
-export const sortPageSources = (sources: PageSource[], sort: SourceSort): PageSource[] =>
-  [...sources].toSorted((a, b) => {
+const compareRelevance = (a: ScoredSource, b: ScoredSource): number =>
+  b.relevance - a.relevance ||
+  (b.source.bytes || 0) - (a.source.bytes || 0) ||
+  compareDetection(b.source, a.source) ||
+  a.source.url.localeCompare(b.source.url);
+
+export const sortPageSources = (sources: PageSource[], sort: SourceSort): PageSource[] => {
+  if (sort === "relevance") {
+    // Relevance reads DOM context through matches()/closest(). Decorate once so
+    // a large result set pays that cost per source, not per sort comparison.
+    return sources
+      .map((source) => ({ source, relevance: sourceRelevance(source) }))
+      .toSorted(compareRelevance)
+      .map(({ source }) => source);
+  }
+  return [...sources].toSorted((a, b) => {
     if (sort === "detected-asc") return compareDetection(a, b);
-    if (sort === "relevance") return compareRelevance(a, b);
     if (sort === "size-desc") return (b.bytes || 0) - (a.bytes || 0);
     if (sort === "name-asc") return a.url.localeCompare(b.url);
     return compareDetection(b, a);
   });
+};
 
 export const createSourceTooltip = (source: PageSource): HTMLElement | null => {
   if (!["image", "video", "audio"].includes(source.kind)) return null;

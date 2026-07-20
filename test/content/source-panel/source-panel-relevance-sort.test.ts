@@ -104,4 +104,24 @@ describe("Page Sources relevance sorting", () => {
       alphabetical,
     ]);
   });
+
+  test("evaluates DOM relevance once per source rather than per sort comparison", () => {
+    const count = 128;
+    const sources = Array.from({ length: count }, (_, index) => {
+      const element = document.createElement("img");
+      document.body.append(element);
+      return source({
+        url: `https://cdn.test/${(index * 73) % count}.jpg`,
+        kind: "image",
+        element,
+      });
+    });
+    const matches = vi.spyOn(Element.prototype, "matches");
+    const closest = vi.spyOn(Element.prototype, "closest");
+
+    sortPageSources(sources, "relevance");
+
+    expect(matches).toHaveBeenCalledTimes(count);
+    expect(closest).toHaveBeenCalledTimes(count * 2);
+  });
 });

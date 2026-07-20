@@ -799,6 +799,44 @@ describe("Page Sources panel interactions", () => {
     vi.useRealTimers();
   });
 
+  test("renders large result sets in bounded chunks as the list is scrolled", () => {
+    const sourceCount = 250;
+    const fragment = document.createDocumentFragment();
+    for (let index = 0; index < sourceCount; index += 1) {
+      const link = document.createElement("a");
+      link.href = `https://cdn.test/resource-${index}.jpg`;
+      fragment.append(link);
+    }
+    document.body.append(fragment);
+
+    toggleSourcePanel(vi.fn(), {
+      includeBackgrounds: false,
+      live: false,
+      resourceHints: false,
+    });
+    const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
+    const list = shadow.querySelector<HTMLElement>(".list")!;
+    const initialRows = shadow.querySelectorAll(".row").length;
+
+    expect(initialRows).toBeGreaterThan(0);
+    expect(initialRows).toBeLessThan(sourceCount);
+    expect(shadow.querySelector(".source-count")?.textContent).toBe(String(sourceCount));
+    expect(shadow.querySelector(".row")?.getAttribute("aria-setsize")).toBe(String(sourceCount));
+    expect(shadow.querySelector(".row:last-child")?.getAttribute("aria-posinset")).toBe(
+      String(initialRows),
+    );
+
+    Object.defineProperties(list, {
+      scrollTop: { configurable: true, value: 900 },
+      clientHeight: { configurable: true, value: 100 },
+      scrollHeight: { configurable: true, value: 1000 },
+    });
+    list.dispatchEvent(new Event("scroll"));
+
+    expect(shadow.querySelectorAll(".row").length).toBeGreaterThan(initialRows);
+    expect(shadow.querySelectorAll(".row").length).toBeLessThan(sourceCount);
+  });
+
   test("shows one empty state and deactivates cached rows when nothing matches", () => {
     vi.useFakeTimers();
     document.body.innerHTML = `<img id="cat" src="cat.jpg"><img src="dog.jpg">`;
