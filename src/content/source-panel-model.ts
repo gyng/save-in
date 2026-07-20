@@ -42,7 +42,42 @@ export type SourcePanelOptions = {
   onCreateRule?: (source: PageSource) => void | Promise<void>;
 };
 
-export type ResourceTimingByUrl = ReadonlyMap<string, PerformanceResourceTiming>;
+export type SourcePanelResourceTiming = Pick<
+  PerformanceResourceTiming,
+  "name" | "encodedBodySize" | "transferSize"
+>;
+export type ResourceTimingByUrl = ReadonlyMap<string, SourcePanelResourceTiming>;
+
+// PerformanceObserver delivers every future resource even after the browser's
+// own performance-entry buffer rolls over. Page Sources can stay open for an
+// entire SPA visit, so retaining that unbounded stream would let unrelated,
+// cache-busted resources pin timing objects for the lifetime of the panel.
+export const SOURCE_PANEL_RESOURCE_TIMING_LIMIT = 512;
+
+export const mergeResourceTimings = (
+  target: Map<string, SourcePanelResourceTiming>,
+  entries: Iterable<SourcePanelResourceTiming>,
+): Map<string, SourcePanelResourceTiming> => {
+  for (const entry of entries) {
+    // Refresh insertion order as well as metadata, so the cap retains the most
+    // recently observed version of a URL rather than its first occurrence.
+    target.delete(entry.name);
+    // Only these scalar fields are consumed. Holding the browser-owned timing
+    // object would also retain optional detail such as a large Server-Timing
+    // array for no Page Sources behavior.
+    target.set(entry.name, {
+      name: entry.name,
+      encodedBodySize: entry.encodedBodySize,
+      transferSize: entry.transferSize,
+    });
+  }
+  while (target.size > SOURCE_PANEL_RESOURCE_TIMING_LIMIT) {
+    const oldest = target.keys().next();
+    if (oldest.done) break;
+    target.delete(oldest.value);
+  }
+  return target;
+};
 
 export const isPerformanceResourceTiming = (
   entry: PerformanceEntry,
@@ -349,7 +384,7 @@ export const resourceTimingByUrl = (
   entries: PerformanceResourceTiming[] = performance
     .getEntriesByType("resource")
     .filter(isPerformanceResourceTiming),
-): Map<string, PerformanceResourceTiming> => new Map(entries.map((entry) => [entry.name, entry]));
+): Map<string, SourcePanelResourceTiming> => mergeResourceTimings(new Map(), entries);
 
 export const collectResourceHintSources = (
   timingByUrl: ResourceTimingByUrl,

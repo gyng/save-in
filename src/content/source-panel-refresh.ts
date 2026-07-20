@@ -4,6 +4,7 @@ import {
   collectPageSourceCandidates,
   collectResourceHintSources,
   isPerformanceResourceTiming,
+  mergeResourceTimings,
   mergePageSourcesByUrl,
   resourceTimingByUrl,
   type PageSource,
@@ -261,7 +262,7 @@ export const wirePanelRefresh = (ctx: SourcePanelContext): void => {
     typeof PerformanceObserver === "function"
       ? new PerformanceObserver((entries) => {
           const observed = entries.getEntries().filter(isPerformanceResourceTiming);
-          observed.forEach((entry) => timingByUrl.set(entry.name, entry));
+          mergeResourceTimings(timingByUrl, observed);
           let changed = false;
           sourceCandidates = sourceCandidates.map((source) => {
             const timing = timingByUrl.get(source.url);
@@ -313,7 +314,7 @@ export const wirePanelRefresh = (ctx: SourcePanelContext): void => {
   ctx.refreshSources = refreshSources;
   ctx.configureLiveObservers = configureLiveObservers;
   ctx.resyncResourceTiming = () =>
-    resourceTimingByUrl().forEach((entry, url) => timingByUrl.set(url, entry));
+    mergeResourceTimings(timingByUrl, resourceTimingByUrl().values());
   ctx.cleanupTasks.push(() => {
     observer.disconnect();
     resourceObserver?.disconnect();

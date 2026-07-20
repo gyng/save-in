@@ -334,7 +334,12 @@ describe("renameAndDownload: browserDownload", () => {
     await Download.renameAndDownload(state);
 
     expect(downloaded).toHaveBeenCalledWith(state);
-    expect(backgroundRuntime.lastDownloadState).toBe(state);
+    expect(backgroundRuntime.lastDownloadState).not.toBe(state);
+    expect(backgroundRuntime.lastDownloadState).toMatchObject({
+      path: state.path,
+      scratch: {},
+      info: { url: state.info.url },
+    });
     expect(SaveHistory.addHistoryEntry).toHaveBeenCalledWith(
       expect.objectContaining({
         url: state.info.url,
@@ -347,6 +352,53 @@ describe("renameAndDownload: browserDownload", () => {
         }),
       }),
       { privateContext: false },
+    );
+  });
+
+  test("bounds page-controlled values in the retained last-download snapshot", async () => {
+    setCurrentBrowser("CHROME");
+    const state = makeState({
+      info: {
+        url: `data:image/png;base64,${"a".repeat(16_384)}`,
+        sourceUrl: `data:image/png;base64,${"b".repeat(16_384)}`,
+        selectionText: "s".repeat(16_384),
+        headPromise: Promise.resolve({ contentType: "image/png", finalUrl: "data:image/png" }),
+        resolvedHead: {
+          contentType: "image/png",
+          finalUrl: `https://example.com/${"f".repeat(16_384)}`,
+          contentDisposition: "c".repeat(16_384),
+        },
+      },
+      scratch: {
+        sourceSidecar: {
+          sourceUrl: "https://example.com/original.png",
+          title: "large live scratch state",
+        },
+      },
+    });
+
+    await Download.renameAndDownload(state);
+
+    expect(backgroundRuntime.lastDownloadState).toMatchObject({
+      path: state.path,
+      scratch: {},
+      info: {
+        url: "data:image/png;base64,…",
+        sourceUrl: "data:image/png;base64,…",
+      },
+    });
+    expect(backgroundRuntime.lastDownloadState?.info.filename?.length).toBeLessThan(
+      state.info.filename?.length ?? 0,
+    );
+    expect(backgroundRuntime.lastDownloadState?.info.selectionText?.length).toBeLessThan(
+      state.info.selectionText?.length ?? 0,
+    );
+    expect(backgroundRuntime.lastDownloadState?.info).not.toHaveProperty("headPromise");
+    expect(backgroundRuntime.lastDownloadState?.info.resolvedHead?.finalUrl.length).toBeLessThan(
+      state.info.resolvedHead?.finalUrl.length ?? 0,
+    );
+    expect(backgroundRuntime.lastDownloadState?.info.resolvedHead).not.toBe(
+      state.info.resolvedHead,
     );
   });
 

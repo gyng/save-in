@@ -15,10 +15,40 @@ import {
   positionDraggedSourcePanel,
   positionSourceTooltip,
   resourceTimingByUrl,
+  SOURCE_PANEL_RESOURCE_TIMING_LIMIT,
   sortPageSources,
   urlsFromCss,
   urlsFromSrcset,
 } from "../../../src/content/source-panel-model.ts";
+
+test("bounds retained resource timing entries to the newest observations", () => {
+  const entries = Array.from(
+    { length: SOURCE_PANEL_RESOURCE_TIMING_LIMIT + 1 },
+    (_, index) =>
+      ({
+        name: `https://cdn.test/resource-${index}.js`,
+        encodedBodySize: index,
+      }) as PerformanceResourceTiming,
+  );
+  const refreshed = {
+    name: "https://cdn.test/resource-0.js",
+    encodedBodySize: 999_999,
+    serverTiming: [{ name: "page-controlled-detail" }],
+  } as PerformanceResourceTiming;
+  entries.push(refreshed);
+
+  const timing = resourceTimingByUrl(entries);
+
+  expect(timing.size).toBe(SOURCE_PANEL_RESOURCE_TIMING_LIMIT);
+  expect(timing.get("https://cdn.test/resource-0.js")?.encodedBodySize).toBe(999_999);
+  expect(timing.get("https://cdn.test/resource-0.js")).not.toBe(refreshed);
+  expect(timing.get("https://cdn.test/resource-0.js")).not.toHaveProperty("serverTiming");
+  expect(timing.has("https://cdn.test/resource-1.js")).toBe(false);
+  expect(
+    timing.get(`https://cdn.test/resource-${SOURCE_PANEL_RESOURCE_TIMING_LIMIT}.js`)
+      ?.encodedBodySize,
+  ).toBe(SOURCE_PANEL_RESOURCE_TIMING_LIMIT);
+});
 
 test("merges responsive metadata into an earlier plain source", () => {
   const element = document.createElement("img");

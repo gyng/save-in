@@ -239,14 +239,31 @@ export const unsafeExternalRegexSources = (rule: RoutingRule): string[] =>
 export const createExternalValidationRateLimiter = ({
   maxRequests = 20,
   windowMs = 10_000,
+  maxSenders = 256,
 }: {
   maxRequests?: number;
   windowMs?: number;
+  maxSenders?: number;
 } = {}) => {
   const requests = new Map<string, number[]>();
+  const senderLimit = Math.max(1, Math.floor(maxSenders));
   const allow = (senderId: string, now = Date.now()): boolean => {
     const cutoff = now - windowMs;
-    const recent = (requests.get(senderId) || []).filter((timestamp) => timestamp > cutoff);
+    for (const [id, timestamps] of requests) {
+      const live = timestamps.filter((timestamp) => timestamp > cutoff);
+      if (live.length === 0) requests.delete(id);
+      else requests.set(id, live);
+    }
+    const recent = requests.get(senderId) || [];
+    // Map insertion order is the LRU order. A hard ceiling matters even though
+    // sender IDs are browser-authenticated: a long-lived Firefox event page can
+    // otherwise retain every extension installed and later removed that ever
+    // called this API.
+    requests.delete(senderId);
+    if (recent.length === 0 && requests.size >= senderLimit) {
+      const oldest = requests.keys().next();
+      if (!oldest.done) requests.delete(oldest.value);
+    }
     if (recent.length >= maxRequests) {
       requests.set(senderId, recent);
       return false;

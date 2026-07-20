@@ -69,6 +69,58 @@ const logPort = downloadPorts.log;
 const historyPort = downloadPorts.history;
 const backgroundRuntime = downloadPorts.runtime;
 
+const RETAINED_DOWNLOAD_STRING_LIMIT = 8_192;
+
+const compactRetainedString = (value: string): string => {
+  if (isDataUrl(value)) return truncateDataUrlForDisplay(value);
+  return value.length > RETAINED_DOWNLOAD_STRING_LIMIT
+    ? `${value.slice(0, RETAINED_DOWNLOAD_STRING_LIMIT)}…`
+    : value;
+};
+
+// The latest-download preview and click-to-save fallback need values, not the
+// live pipeline object. Snapshotting breaks references to promises, abort
+// controllers, callbacks, and selector attestations; string caps keep one
+// page-controlled selection or URL from becoming permanent background RSS.
+const retainedDownloadSnapshot = (state: DownloadPipelineState): DownloadPipelineState => {
+  const info = { ...state.info };
+  delete info.headPromise;
+  delete info.contentPromise;
+  delete info.counterPromise;
+  delete info.abortSignal;
+  delete info.onContentFetchStart;
+  delete info.matchedCssSelectorsByOrigin;
+  for (const [key, value] of Object.entries(info)) {
+    if (typeof value === "string") Reflect.set(info, key, compactRetainedString(value));
+  }
+  if (info.currentTab) {
+    info.currentTab = { ...info.currentTab };
+    if (typeof info.currentTab.title === "string") {
+      info.currentTab.title = compactRetainedString(info.currentTab.title);
+    }
+    if (typeof info.currentTab.url === "string") {
+      info.currentTab.url = compactRetainedString(info.currentTab.url);
+    }
+  }
+  if (info.resolvedHead) {
+    info.resolvedHead = {
+      contentType: compactRetainedString(info.resolvedHead.contentType),
+      finalUrl: compactRetainedString(info.resolvedHead.finalUrl),
+      ...(info.resolvedHead.contentDisposition
+        ? { contentDisposition: compactRetainedString(info.resolvedHead.contentDisposition) }
+        : {}),
+    };
+  }
+  if (info.modifiers) info.modifiers = info.modifiers.slice(0, 16);
+  return {
+    path: state.path,
+    scratch: {},
+    info,
+    ...(state.route ? { route: state.route } : {}),
+    ...(state.routeIsFolder !== undefined ? { routeIsFolder: state.routeIsFolder } : {}),
+  };
+};
+
 // The per-download record (retry + history info) lives in DownloadState, keyed
 // by downloadId, mirrored to storage.session so it survives an MV3 worker
 // restart. These stay as thin seams because notification.js and the tests use
@@ -115,7 +167,7 @@ const recordDownloadRequest = (plan: DownloadPlan): void => {
 
   if (!privateContext && !isSourceSidecar(state)) {
     emitDownloaded(state);
-    backgroundRuntime.lastDownloadState = state;
+    backgroundRuntime.lastDownloadState = retainedDownloadSnapshot(state);
   }
 };
 

@@ -198,4 +198,20 @@ describe("external validation safeguards", () => {
     expect(allow("extension-a", 300)).toBe(true);
     expect(allow("extension-a", 1_101)).toBe(true);
   });
+
+  test("bounds retained sender buckets and evicts the least recent sender", () => {
+    const allow = createExternalValidationRateLimiter({
+      maxRequests: 1,
+      windowMs: 10_000,
+      maxSenders: 2,
+    });
+    expect(allow("extension-a", 100)).toBe(true);
+    expect(allow("extension-b", 200)).toBe(true);
+    expect(allow("extension-c", 300)).toBe(true);
+
+    // Adding C evicts the oldest bucket. A is therefore admitted as a new
+    // sender instead of inheriting its still-live request at t=100.
+    expect(allow("extension-a", 400)).toBe(true);
+    expect(allow("extension-a", 500)).toBe(false);
+  });
 });
