@@ -4328,19 +4328,19 @@
     "message": "La destinazione deve essere relativa e non può contenere componenti di percorso .."
   },
   "html_gestureMatcherDescription": {
-    "message": "Corrisponde al gesto del mouse usato per salvare con un clic."
+    "message": "Corrisponde al gesto di clic usato per salvare."
   },
   "o_cKeyboardShortcutModifierDoubleLeftClick": {
     "message": "Doppio clic sinistro"
   },
   "o_bAddClickToSaveBinding": {
-    "message": "Aggiungi gesto"
+    "message": "Aggiungi gesto di clic"
   },
   "o_bRemoveClickToSaveBinding": {
-    "message": "Rimuovi gesto"
+    "message": "Rimuovi gesto di clic"
   },
   "o_lClickToSaveDoubleClickHelp": {
-    "message": "Il primo clic raggiunge comunque la pagina. Un’immagine con collegamento può aprirsi o cambiare pagina prima del secondo clic."
+    "message": "Il primo clic viene comunque trasmesso alla pagina. Un’immagine con un collegamento può aprirsi o portare a un’altra pagina prima del secondo clic."
   },
   "routeDebuggerGesture": {
     "message": "Gesto di clic"
@@ -4349,6 +4349,6 @@
     "message": "Qualsiasi gesto di clic"
   },
   "routeDebuggerClickContext": {
-    "message": "Salvataggio con clic"
+    "message": "Clic per salvare"
   }
 }

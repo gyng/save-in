@@ -576,7 +576,7 @@
     "message": "進むボタン(5)"
   },
   "o_cKeyboardShortcutModifierHelp": {
-    "message": "選択した修飾キーを押したまま、選択したクリック操作を行います。クリック操作のみを使用するには、両方の修飾キーに「None」を選択します。変更は既存のページに適用されます。"
+    "message": "選択した修飾キーを押したまま、選択したクリック操作を行います。クリック操作だけを使用するには、両方の修飾キーで「None」を選択します。変更は既に開いているページにも適用されます。"
   },
   "o_cRestoreDefaults": {
     "message": "デフォルトに戻す"
@@ -4328,27 +4328,27 @@
     "message": "保存先は相対パスにし、.. パス要素を含めないでください"
   },
   "html_gestureMatcherDescription": {
-    "message": "クリック保存で使用したマウス操作に一致します。"
+    "message": "クリックして保存で使われたクリック操作に一致します。"
   },
   "o_cKeyboardShortcutModifierDoubleLeftClick": {
-    "message": "左ダブルクリック"
+    "message": "左ボタンのダブルクリック"
   },
   "o_bAddClickToSaveBinding": {
-    "message": "ジェスチャーを追加"
+    "message": "クリック操作を追加"
   },
   "o_bRemoveClickToSaveBinding": {
-    "message": "ジェスチャーを削除"
+    "message": "クリック操作を削除"
   },
   "o_lClickToSaveDoubleClickHelp": {
-    "message": "最初のクリックはページにも届きます。リンク付き画像では、2 回目のクリック前に画像が開いたりページが移動したりする場合があります。"
+    "message": "最初のクリックはページにも届きます。リンク付き画像では、2 回目のクリック前に画像が開いたり別のページに移動したりする場合があります。"
   },
   "routeDebuggerGesture": {
     "message": "クリック操作"
   },
   "routeDebuggerAnyGesture": {
-    "message": "すべてのクリック操作"
+    "message": "任意のクリック操作"
   },
   "routeDebuggerClickContext": {
-    "message": "クリック保存"
+    "message": "クリックして保存"
   }
 }

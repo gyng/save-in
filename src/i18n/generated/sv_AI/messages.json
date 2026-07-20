@@ -986,7 +986,7 @@
     "message": "Framåtknapp (5)"
   },
   "o_cKeyboardShortcutModifierHelp": {
-    "message": "Håll ned de valda modifieringsknapparna medan du använder den valda klickgesten. Välj None för båda modifierarna om du vill använda endast gesten. Ändringar gäller för befintliga sidor."
+    "message": "Håll ned de valda modifierartangenterna medan du använder den valda klickgesten. Välj None för båda modifierarna om du bara vill använda gesten. Ändringarna gäller även sidor som redan är öppna."
   },
   "o_cRestoreDefaults": {
     "message": "Återställ standardinställningar"
@@ -1385,7 +1385,7 @@
     "message": "Utlösare"
   },
   "html_clickToSaveShortcutCombination": {
-    "message": "Kortkommando för att spara med ett klick"
+    "message": "Kortkommando för funktionen Klicka för att spara"
   },
   "html_columns": {
     "message": "Kolumner"
@@ -2753,7 +2753,7 @@
     "message": "Expanderad sökväg"
   },
   "routeDebuggerPathBase": {
-    "message": "Att spara via menyn lägger den valda mappen framför den här sökvägen. Vid spara med klick och automatiska sparanden börjar sökvägen i din nedladdningsmapp."
+    "message": "Att spara via menyn lägger den valda mappen framför den här sökvägen. När du klickar för att spara eller använder automatisk sparning börjar sökvägen i din nedladdningsmapp."
   },
   "routeDebuggerFinalPath": {
     "message": "Slutlig sökväg"
@@ -4241,7 +4241,7 @@
     "message": "Tillagt som ett osparat utkast i regelredigeraren"
   },
   "html_cssMatcherDescription": {
-    "message": "Matchar sidelementet som hittade källan. Tillgängligt för automatiska sidkällor, klickspara och sparningar från panelen Sidkällor."
+    "message": "Matchar sidelementet som hittade källan. Tillgängligt för automatiska sidkällor, klicka för att spara och sparningar från panelen Sidkällor."
   },
   "html_cssMatcherSyntax": {
     "message": "Matcharen css: använder CSS-selektorsyntax i stället för ett reguljärt uttryck och accepterar inga flaggor."
@@ -4328,19 +4328,19 @@
     "message": "Målet måste vara relativt och får inte innehålla ..-sökvägskomponenter"
   },
   "html_gestureMatcherDescription": {
-    "message": "Matchar musgesten som användes för att spara med ett klick."
+    "message": "Matchar klickgesten som användes för att spara."
   },
   "o_cKeyboardShortcutModifierDoubleLeftClick": {
     "message": "Dubbelklick med vänsterknappen"
   },
   "o_bAddClickToSaveBinding": {
-    "message": "Lägg till gest"
+    "message": "Lägg till klickgest"
   },
   "o_bRemoveClickToSaveBinding": {
-    "message": "Ta bort gest"
+    "message": "Ta bort klickgest"
   },
   "o_lClickToSaveDoubleClickHelp": {
-    "message": "Det första klicket når fortfarande sidan. En länkad bild kan öppnas eller navigera innan det andra klicket."
+    "message": "Det första klicket skickas fortfarande till sidan. En länkad bild kan öppnas eller leda till en annan sida före det andra klicket."
   },
   "routeDebuggerGesture": {
     "message": "Klickgest"
@@ -4349,6 +4349,6 @@
     "message": "Valfri klickgest"
   },
   "routeDebuggerClickContext": {
-    "message": "Spara med klick"
+    "message": "Klicka för att spara"
   }
 }

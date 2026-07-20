@@ -986,7 +986,7 @@
     "message": "Botão Avançar (5)"
   },
   "o_cKeyboardShortcutModifierHelp": {
-    "message": "Mantenha as teclas modificadoras selecionadas pressionadas enquanto usa o gesto de clique escolhido. Escolha None nos dois modificadores para usar apenas o gesto. As alterações se aplicam às páginas existentes."
+    "message": "Mantenha as teclas modificadoras selecionadas pressionadas enquanto usa o gesto de clique escolhido. Selecione None para os dois modificadores para usar apenas o gesto. As alterações também se aplicam às páginas já abertas."
   },
   "o_cRestoreDefaults": {
     "message": "Restaurar padrões"
@@ -1385,7 +1385,7 @@
     "message": "Acionador"
   },
   "html_clickToSaveShortcutCombination": {
-    "message": "Combinação de atalhos clique para salvar"
+    "message": "Combinação de teclas do recurso Clique para salvar"
   },
   "html_columns": {
     "message": "Colunas"
@@ -2753,7 +2753,7 @@
     "message": "Caminho expandido"
   },
   "routeDebuggerPathBase": {
-    "message": "Salvar pelo menu adiciona a pasta escolhida antes deste caminho. Ao salvar com um clique e nos salvamentos automáticos, o caminho começa na sua pasta de downloads."
+    "message": "Salvar pelo menu adiciona a pasta escolhida antes deste caminho. Ao clicar para salvar e nos salvamentos automáticos, o caminho começa na sua pasta de downloads."
   },
   "routeDebuggerFinalPath": {
     "message": "Caminho final"
@@ -4241,7 +4241,7 @@
     "message": "Adicionado como rascunho não salvo no editor de regras"
   },
   "html_cssMatcherDescription": {
-    "message": "Corresponde ao elemento da página que descobriu a fonte. Disponível para Fontes da página automáticas, salvar com clique e salvamentos pelo painel Fontes da página."
+    "message": "Corresponde ao elemento da página que descobriu a fonte. Disponível para Fontes da página automáticas, Clique para salvar e salvamentos pelo painel Fontes da página."
   },
   "html_cssMatcherSyntax": {
     "message": "O correspondente css: usa a sintaxe de seletor CSS em vez de uma expressão regular e não aceita sinalizadores."
@@ -4328,19 +4328,19 @@
     "message": "O destino deve ser relativo e não pode conter componentes de caminho .."
   },
   "html_gestureMatcherDescription": {
-    "message": "Corresponde ao gesto do mouse usado para salvar com um clique."
+    "message": "Corresponde ao gesto de clique usado para salvar."
   },
   "o_cKeyboardShortcutModifierDoubleLeftClick": {
     "message": "Clique duplo com o botão esquerdo"
   },
   "o_bAddClickToSaveBinding": {
-    "message": "Adicionar gesto"
+    "message": "Adicionar gesto de clique"
   },
   "o_bRemoveClickToSaveBinding": {
-    "message": "Remover gesto"
+    "message": "Remover gesto de clique"
   },
   "o_lClickToSaveDoubleClickHelp": {
-    "message": "O primeiro clique ainda chega à página. Uma imagem com link pode abrir ou navegar antes do segundo clique."
+    "message": "O primeiro clique ainda é enviado à página. Uma imagem com link pode ser aberta ou levar a outra página antes do segundo clique."
   },
   "routeDebuggerGesture": {
     "message": "Gesto de clique"
@@ -4349,6 +4349,6 @@
     "message": "Qualquer gesto de clique"
   },
   "routeDebuggerClickContext": {
-    "message": "Salvar com clique"
+    "message": "Clique para salvar"
   }
 }

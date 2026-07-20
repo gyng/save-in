@@ -656,7 +656,7 @@
     "message": "Guarda páginas, enlaces y contenido multimedia como archivos de acceso directo que abren la dirección original."
   },
   "o_sKeyboardShortcuts": {
-    "message": "Guardar con un clic"
+    "message": "Clic para guardar"
   },
   "o_sContextMenu": {
     "message": "Teclas de acceso al menú contextual"
@@ -959,13 +959,13 @@
     "message": "Añadir atajos de teclas numéricas a los elementos del submenú contextual"
   },
   "o_cKeyboardShortcutClickToSave": {
-    "message": "Activar Guardar con un clic"
+    "message": "Activar clic para guardar"
   },
   "o_cKeyboardShortcutClickToHelp": {
     "message": "De forma predeterminada, mantenga pulsada la tecla Alt y haga clic en una imagen o elemento multimedia para guardarlo en la última carpeta utilizada o en la carpeta de descargas predeterminada. Save In añade un detector de clics a las páginas; algunas variables no están disponibles."
   },
   "o_cHostPermissionMissing": {
-    "message": "Save In no puede acceder al contenido de la página. Conceda acceso a todos los sitios para usar Guardar con un clic."
+    "message": "Save In no puede acceder al contenido de la página. Conceda acceso a todos los sitios para usar Clic para guardar."
   },
   "o_cHostPermissionGrant": {
     "message": "Conceder acceso"
@@ -1304,10 +1304,10 @@
     "message": "destino."
   },
   "html_destinationsAreRelativeToTheDownloadsMenuDestinationYou": {
-    "message": "Los destinos son relativos a la carpeta que elija en el menú, pero empiezan en su carpeta de descargas al guardar con un clic y en los guardados automáticos. Los valores de los comparadores son expresiones regulares; consulte la"
+    "message": "Los destinos son relativos a la carpeta que elija en el menú, pero empiezan en su carpeta de descargas al usar Clic para guardar y en los guardados automáticos. Los valores de los comparadores son expresiones regulares; consulte la"
   },
   "html_intoDestinationsStartFromTheMenuFolder": {
-    "message": "Los destinos son relativos a la carpeta que elija en el menú, pero empiezan en su carpeta de descargas al guardar con un clic y en los guardados automáticos."
+    "message": "Los destinos son relativos a la carpeta que elija en el menú, pero empiezan en su carpeta de descargas al usar Clic para guardar y en los guardados automáticos."
   },
   "html_enterOneUrlLikeBrowserMatchPatternPerLine": {
     "message": "Añada un patrón de coincidencia de WebExtension por línea. No son expresiones regulares. Cada patrón utiliza un esquema, un host y una ruta."
@@ -1385,7 +1385,7 @@
     "message": "Activador"
   },
   "html_clickToSaveShortcutCombination": {
-    "message": "Combinación del atajo para guardar con un clic"
+    "message": "Combinación de teclas de Clic para guardar"
   },
   "html_columns": {
     "message": "Columnas"
@@ -2753,7 +2753,7 @@
     "message": "Ruta expandida"
   },
   "routeDebuggerPathBase": {
-    "message": "Al guardar desde el menú se antepone a esta ruta la carpeta que elija. Al guardar con un clic y en los guardados automáticos, la ruta empieza en su carpeta de descargas."
+    "message": "Al guardar desde el menú se antepone a esta ruta la carpeta que elija. Con Clic para guardar y los guardados automáticos, la ruta empieza en su carpeta de descargas."
   },
   "routeDebuggerFinalPath": {
     "message": "Ruta final"
@@ -3339,7 +3339,7 @@
     "message": "Desactivar Save In en los sitios coincidentes (opcional)"
   },
   "o_cPerSiteDisableListHelp": {
-    "message": "Introduzca un patrón de coincidencia de WebExtension por línea. Guardar con un clic, los recursos de la página y los guardados automáticos permanecen desactivados en las páginas coincidentes."
+    "message": "Introduzca un patrón de coincidencia de WebExtension por línea. Clic para guardar, los recursos de la página y los guardados automáticos permanecen desactivados en las páginas coincidentes."
   },
   "o_cPerSiteDisableListInvalid": {
     "message": "Patrón no válido. Esta línea se ignora hasta que se corrija."
@@ -3971,7 +3971,7 @@
     "message": "Descarga la imagen en resolución original en lugar de la vista previa pequeña."
   },
   "html_fetchClauseCompatibility": {
-    "message": "El enrutamiento habitual de descargas del navegador la omite, ya que solo puede cambiar el nombre, no sustituir URLs. El menú, Guardar con un clic y el guardado automático siguen usándola; el guardado falla si la expansión no produce una URL HTTP(S) utilizable."
+    "message": "El enrutamiento habitual de descargas del navegador la omite, ya que solo puede cambiar el nombre, no sustituir URLs. El menú, Clic para guardar y el guardado automático siguen usándola; el guardado falla si la expansión no produce una URL HTTP(S) utilizable."
   },
   "html_orLiteral": {
     "message": "o"
@@ -4241,7 +4241,7 @@
     "message": "Añadido como borrador sin guardar en el editor de reglas"
   },
   "html_cssMatcherDescription": {
-    "message": "Coincide con el elemento de la página que detectó la fuente. Disponible para Fuentes de página automáticas, guardar con clic y guardar desde el panel Fuentes de página."
+    "message": "Coincide con el elemento de la página que detectó la fuente. Disponible para Fuentes de página automáticas, Clic para guardar y guardar desde el panel Fuentes de página."
   },
   "html_cssMatcherSyntax": {
     "message": "El comparador css: usa sintaxis de selector CSS en lugar de una expresión regular y no admite indicadores."
@@ -4328,19 +4328,19 @@
     "message": "El destino debe ser relativo y no puede contener componentes de ruta .."
   },
   "html_gestureMatcherDescription": {
-    "message": "Coincide con el gesto del ratón usado para guardar con un clic."
+    "message": "Coincide con el gesto de clic usado para guardar."
   },
   "o_cKeyboardShortcutModifierDoubleLeftClick": {
     "message": "Doble clic izquierdo"
   },
   "o_bAddClickToSaveBinding": {
-    "message": "Añadir gesto"
+    "message": "Añadir gesto de clic"
   },
   "o_bRemoveClickToSaveBinding": {
-    "message": "Eliminar gesto"
+    "message": "Eliminar gesto de clic"
   },
   "o_lClickToSaveDoubleClickHelp": {
-    "message": "El primer clic sigue llegando a la página. Una imagen con enlace puede abrirse o navegar antes del segundo clic."
+    "message": "El primer clic se envía igualmente a la página. Una imagen con enlace puede abrirse o llevarle a otra página antes del segundo clic."
   },
   "routeDebuggerGesture": {
     "message": "Gesto de clic"
@@ -4349,6 +4349,6 @@
     "message": "Cualquier gesto de clic"
   },
   "routeDebuggerClickContext": {
-    "message": "Guardar con clic"
+    "message": "Clic para guardar"
   }
 }

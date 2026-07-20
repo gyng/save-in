@@ -656,7 +656,7 @@
     "message": "Sla pagina's, links en media op als snelkoppelingsbestanden die het oorspronkelijke adres openen."
   },
   "o_sKeyboardShortcuts": {
-    "message": "Opslaan met één klik"
+    "message": "Klikken om op te slaan"
   },
   "o_sContextMenu": {
     "message": "Toegangstoetsen voor contextmenu's"
@@ -959,13 +959,13 @@
     "message": "Voeg numerieke sneltoetsen toe aan contextsubmenu-items"
   },
   "o_cKeyboardShortcutClickToSave": {
-    "message": "Opslaan met één klik inschakelen"
+    "message": "Klikken om op te slaan inschakelen"
   },
   "o_cKeyboardShortcutClickToHelp": {
     "message": "Houd standaard Alt ingedrukt en klik op een afbeelding of media-item om het op te slaan in de laatst gebruikte map of de standaarddownloadmap. Save In voegt een klikluisteraar toe aan pagina's; sommige variabelen zijn niet beschikbaar."
   },
   "o_cHostPermissionMissing": {
-    "message": "Save In heeft geen toegang tot pagina-inhoud. Verleen toegang tot alle sites om opslaan met één klik te gebruiken."
+    "message": "Save In heeft geen toegang tot pagina-inhoud. Verleen toegang tot alle sites om klikken om op te slaan te gebruiken."
   },
   "o_cHostPermissionGrant": {
     "message": "Toegang verlenen"
@@ -986,7 +986,7 @@
     "message": "Vooruitknop (5)"
   },
   "o_cKeyboardShortcutModifierHelp": {
-    "message": "Houd de geselecteerde modificatietoetsen ingedrukt terwijl u het gekozen klikgebaar gebruikt. Kies None voor beide modificatietoetsen om alleen het gebaar te gebruiken. Wijzigingen zijn van toepassing op bestaande pagina's."
+    "message": "Houd de geselecteerde modificatietoetsen ingedrukt terwijl u het gekozen klikgebaar gebruikt. Kies None voor beide modificatietoetsen om alleen het gebaar te gebruiken. Wijzigingen gelden ook voor pagina's die al geopend zijn."
   },
   "o_cRestoreDefaults": {
     "message": "Standaardwaarden herstellen"
@@ -1304,10 +1304,10 @@
     "message": "bestemming."
   },
   "html_destinationsAreRelativeToTheDownloadsMenuDestinationYou": {
-    "message": "Bestemmingen zijn relatief ten opzichte van de map die u in het menu kiest, maar beginnen in de map Downloads bij opslaan met één klik en bij automatische opslagacties. Matcherwaarden zijn reguliere expressies; zie de"
+    "message": "Bestemmingen zijn relatief ten opzichte van de map die u in het menu kiest, maar beginnen in de map Downloads bij klikken om op te slaan en bij automatische opslagacties. Matcherwaarden zijn reguliere expressies; zie de"
   },
   "html_intoDestinationsStartFromTheMenuFolder": {
-    "message": "Bestemmingen zijn relatief ten opzichte van de map die u in het menu kiest, maar beginnen in de map Downloads bij opslaan met één klik en bij automatische opslagacties."
+    "message": "Bestemmingen zijn relatief ten opzichte van de map die u in het menu kiest, maar beginnen in de map Downloads bij klikken om op te slaan en bij automatische opslagacties."
   },
   "html_enterOneUrlLikeBrowserMatchPatternPerLine": {
     "message": "Voeg per regel één WebExtension-overeenkomstpatroon toe. Dit zijn geen reguliere expressies. Elk patroon gebruikt een schema, host en pad."
@@ -1385,7 +1385,7 @@
     "message": "Activering"
   },
   "html_clickToSaveShortcutCombination": {
-    "message": "Sneltoetscombinatie voor opslaan met een klik"
+    "message": "Sneltoetscombinatie voor klikken om op te slaan"
   },
   "html_columns": {
     "message": "Kolommen"
@@ -2753,7 +2753,7 @@
     "message": "Uitgevouwen pad"
   },
   "routeDebuggerPathBase": {
-    "message": "Bij opslaan via het menu wordt de gekozen map voor dit pad geplaatst. Bij opslaan met een klik en bij automatisch opslaan begint het pad in uw downloadmap."
+    "message": "Bij opslaan via het menu wordt de gekozen map voor dit pad geplaatst. Bij klikken om op te slaan en bij automatisch opslaan begint het pad in uw downloadmap."
   },
   "routeDebuggerFinalPath": {
     "message": "Definitief pad"
@@ -3339,7 +3339,7 @@
     "message": "Save In uitschakelen op overeenkomende sites (optioneel)"
   },
   "o_cPerSiteDisableListHelp": {
-    "message": "Voer één WebExtension-overeenkomstpatroon per regel in. Opslaan met één klik, paginabronnen en automatische opslag blijven uitgeschakeld op overeenkomende pagina's."
+    "message": "Voer één WebExtension-overeenkomstpatroon per regel in. Klikken om op te slaan, paginabronnen en automatische opslag blijven uitgeschakeld op overeenkomende pagina's."
   },
   "o_cPerSiteDisableListInvalid": {
     "message": "Ongeldig patroon. Deze regel wordt genegeerd totdat deze is gecorrigeerd."
@@ -3971,7 +3971,7 @@
     "message": "Downloadt de afbeelding op originele resolutie in plaats van de kleine voorvertoning."
   },
   "html_fetchClauseCompatibility": {
-    "message": "Wordt overgeslagen door gewone routering van browserdownloads, die alleen kan hernoemen, geen URL's kan vervangen. Menu, opslaan met één klik en automatisch opslaan gebruiken deze nog steeds; opslaan mislukt als de uitbreiding geen bruikbare HTTP(S)-URL oplevert."
+    "message": "Wordt overgeslagen door gewone routering van browserdownloads, die alleen kan hernoemen, geen URL's kan vervangen. Menu, klikken om op te slaan en automatisch opslaan gebruiken deze nog steeds; opslaan mislukt als de uitbreiding geen bruikbare HTTP(S)-URL oplevert."
   },
   "html_orLiteral": {
     "message": "of"
@@ -4241,7 +4241,7 @@
     "message": "Als niet-opgeslagen concept toegevoegd aan de regeleditor"
   },
   "html_cssMatcherDescription": {
-    "message": "Komt overeen met het pagina-element dat de bron heeft gevonden. Beschikbaar voor automatische paginabronnen, opslaan met klikken en opslaan via het paneel Paginabronnen."
+    "message": "Komt overeen met het pagina-element dat de bron heeft gevonden. Beschikbaar voor automatische paginabronnen, klikken om op te slaan en opslaan via het paneel Paginabronnen."
   },
   "html_cssMatcherSyntax": {
     "message": "De matcher css: gebruikt CSS-selectorsyntaxis in plaats van een reguliere expressie en accepteert geen vlaggen."
@@ -4328,19 +4328,19 @@
     "message": "De bestemming moet relatief zijn en mag geen ..-padcomponenten bevatten"
   },
   "html_gestureMatcherDescription": {
-    "message": "Komt overeen met het muisgebaar dat voor opslaan met klikken is gebruikt."
+    "message": "Komt overeen met het klikgebaar dat is gebruikt om op te slaan."
   },
   "o_cKeyboardShortcutModifierDoubleLeftClick": {
-    "message": "Dubbelklik met links"
+    "message": "Dubbelklik met de linkermuisknop"
   },
   "o_bAddClickToSaveBinding": {
-    "message": "Gebaar toevoegen"
+    "message": "Klikgebaar toevoegen"
   },
   "o_bRemoveClickToSaveBinding": {
-    "message": "Gebaar verwijderen"
+    "message": "Klikgebaar verwijderen"
   },
   "o_lClickToSaveDoubleClickHelp": {
-    "message": "De eerste klik bereikt de pagina nog steeds. Een gekoppelde afbeelding kan openen of navigeren voordat de tweede klik plaatsvindt."
+    "message": "De eerste klik wordt nog steeds aan de pagina doorgegeven. Een afbeelding met een koppeling kan vóór de tweede klik worden geopend of u naar een andere pagina brengen."
   },
   "routeDebuggerGesture": {
     "message": "Klikgebaar"
@@ -4349,6 +4349,6 @@
     "message": "Elk klikgebaar"
   },
   "routeDebuggerClickContext": {
-    "message": "Opslaan met klikken"
+    "message": "Klikken om op te slaan"
   }
 }

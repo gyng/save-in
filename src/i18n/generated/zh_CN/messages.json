@@ -576,7 +576,7 @@
     "message": "前进按钮 (5)"
   },
   "o_cKeyboardShortcutModifierHelp": {
-    "message": "按住所选修饰键，同时使用所选点击手势。若只使用手势，请将两个修饰键都设为“None”。更改会应用到已打开的页面。"
+    "message": "使用所选点击手势时，请按住所选修饰键。若不使用修饰键，请将两个修饰键都设为“None”。更改也会应用到已打开的页面。"
   },
   "o_cRestoreDefaults": {
     "message": "恢复默认设置"
@@ -4328,19 +4328,19 @@
     "message": "目标必须是相对路径，且不能包含 .. 路径组件"
   },
   "html_gestureMatcherDescription": {
-    "message": "匹配点击保存时使用的鼠标手势。"
+    "message": "匹配点击保存时使用的点击手势。"
   },
   "o_cKeyboardShortcutModifierDoubleLeftClick": {
     "message": "双击鼠标左键"
   },
   "o_bAddClickToSaveBinding": {
-    "message": "添加手势"
+    "message": "添加点击手势"
   },
   "o_bRemoveClickToSaveBinding": {
-    "message": "移除手势"
+    "message": "移除点击手势"
   },
   "o_lClickToSaveDoubleClickHelp": {
-    "message": "第一次点击仍会传递给页面。带链接的图片可能会在第二次点击前打开或跳转。"
+    "message": "第一次点击仍会传递给页面。带链接的图片可能会在第二次点击前打开或跳转到其他页面。"
   },
   "routeDebuggerGesture": {
     "message": "点击手势"

@@ -986,7 +986,7 @@
     "message": "Vorwärtstaste (5)"
   },
   "o_cKeyboardShortcutModifierHelp": {
-    "message": "Halten Sie die ausgewählten Zusatztasten gedrückt, während Sie die gewählte Klickgeste ausführen. Wählen Sie für beide Zusatztasten „None“, um nur die Geste zu verwenden. Änderungen gelten für bestehende Seiten."
+    "message": "Halten Sie die ausgewählten Modifikatortasten gedrückt, während Sie die gewählte Klickgeste ausführen. Wählen Sie für beide Modifikatoren „None“, um nur die Geste zu verwenden. Änderungen gelten auch für bereits geöffnete Seiten."
   },
   "o_cRestoreDefaults": {
     "message": "Standardeinstellungen wiederherstellen"
@@ -4328,19 +4328,19 @@
     "message": "Das Ziel muss relativ sein und darf keine ..-Pfadbestandteile enthalten"
   },
   "html_gestureMatcherDescription": {
-    "message": "Entspricht der Mausgeste, die für „Klick zum Speichern“ verwendet wurde."
+    "message": "Entspricht der Klickgeste, die für „Speichern per Klick“ verwendet wurde."
   },
   "o_cKeyboardShortcutModifierDoubleLeftClick": {
-    "message": "Doppelklick links"
+    "message": "Doppelklick mit der linken Maustaste"
   },
   "o_bAddClickToSaveBinding": {
-    "message": "Geste hinzufügen"
+    "message": "Klickgeste hinzufügen"
   },
   "o_bRemoveClickToSaveBinding": {
-    "message": "Geste entfernen"
+    "message": "Klickgeste entfernen"
   },
   "o_lClickToSaveDoubleClickHelp": {
-    "message": "Der erste Klick erreicht weiterhin die Seite. Ein verlinktes Bild kann sich öffnen oder die Seite wechseln, bevor der zweite Klick erfolgt."
+    "message": "Der erste Klick wird weiterhin an die Seite weitergegeben. Ein verlinktes Bild kann sich öffnen oder zu einer anderen Seite führen, bevor der zweite Klick erfolgt."
   },
   "routeDebuggerGesture": {
     "message": "Klickgeste"
@@ -4349,6 +4349,6 @@
     "message": "Beliebige Klickgeste"
   },
   "routeDebuggerClickContext": {
-    "message": "Klick zum Speichern"
+    "message": "Speichern per Klick"
   }
 }

@@ -555,7 +555,7 @@
     "message": "預設按住 Alt 並點選圖片或媒體項目，即可將其儲存到上次使用的資料夾或預設下載資料夾。Save In 會在頁面加入點選事件監聽器；部分變數無法使用。"
   },
   "o_cHostPermissionMissing": {
-    "message": "Save In 無法存取頁面內容。授予對所有網站的存取權限以使用「按一下儲存」。"
+    "message": "Save In 無法存取頁面內容。授予對所有網站的存取權限以使用「點選儲存」。"
   },
   "o_cHostPermissionGrant": {
     "message": "授予存取權限"
@@ -576,7 +576,7 @@
     "message": "前進按鈕 (5)"
   },
   "o_cKeyboardShortcutModifierHelp": {
-    "message": "按住選取的修飾鍵，同時使用選取的點擊手勢。若只使用手勢，請將兩個修飾鍵都設為「None」。變更會套用至已開啟的頁面。"
+    "message": "使用選取的點選手勢時，請按住選取的修飾鍵。若不使用修飾鍵，請將兩個修飾鍵都設為「None」。變更也會套用至已開啟的頁面。"
   },
   "o_cRestoreDefaults": {
     "message": "還原預設設定"
@@ -699,7 +699,7 @@
     "message": "儲存後關閉每個分頁"
   },
   "o_lClickToSaveButton": {
-    "message": "點擊手勢"
+    "message": "點選手勢"
   },
   "o_lDebugLog": {
     "message": "近期失敗"
@@ -2753,7 +2753,7 @@
     "message": "展開後的路徑"
   },
   "routeDebuggerPathBase": {
-    "message": "透過選單儲存時，會在此路徑前加上您選擇的資料夾。點擊儲存和自動儲存時，路徑會從下載資料夾開始。"
+    "message": "透過選單儲存時，會在此路徑前加上您選擇的資料夾。點選儲存和自動儲存時，路徑會從下載資料夾開始。"
   },
   "routeDebuggerFinalPath": {
     "message": "最終路徑"
@@ -4241,7 +4241,7 @@
     "message": "已作為未儲存的草稿加入規則編輯器"
   },
   "html_cssMatcherDescription": {
-    "message": "比對找到該來源的頁面元素。適用於自動頁面來源、點擊儲存，以及從「頁面來源」面板儲存。"
+    "message": "比對找到該來源的頁面元素。適用於自動頁面來源、點選儲存，以及從「頁面來源」面板儲存。"
   },
   "html_cssMatcherSyntax": {
     "message": "css: 比對器使用 CSS 選取器語法，而非規則運算式，且不接受旗標。"
@@ -4292,7 +4292,7 @@
     "message": "一律儲存到預設位置"
   },
   "o_cClickToSaveUseDefaultHelp": {
-    "message": "否則點擊儲存會沿用你上次在選單中選擇的資料夾。"
+    "message": "否則點選儲存會沿用你上次在選單中選擇的資料夾。"
   },
   "historyMovePending": {
     "message": "正在下載到新資料夾。完成後將刪除原始檔案。"
@@ -4328,27 +4328,27 @@
     "message": "目的地必須是相對路徑，且不能包含 .. 路徑元件"
   },
   "html_gestureMatcherDescription": {
-    "message": "比對點擊儲存時使用的滑鼠手勢。"
+    "message": "比對點選儲存時使用的點選手勢。"
   },
   "o_cKeyboardShortcutModifierDoubleLeftClick": {
     "message": "按兩下滑鼠左鍵"
   },
   "o_bAddClickToSaveBinding": {
-    "message": "新增手勢"
+    "message": "新增點選手勢"
   },
   "o_bRemoveClickToSaveBinding": {
-    "message": "移除手勢"
+    "message": "移除點選手勢"
   },
   "o_lClickToSaveDoubleClickHelp": {
-    "message": "第一次點擊仍會傳遞給頁面。含有連結的圖片可能會在第二次點擊前開啟或導向其他頁面。"
+    "message": "第一次點選仍會傳遞給頁面。附有連結的圖片可能會在第二次點選前開啟或導向其他頁面。"
   },
   "routeDebuggerGesture": {
-    "message": "點擊手勢"
+    "message": "點選手勢"
   },
   "routeDebuggerAnyGesture": {
-    "message": "任何點擊手勢"
+    "message": "任何點選手勢"
   },
   "routeDebuggerClickContext": {
-    "message": "點擊儲存"
+    "message": "點選儲存"
   }
 }

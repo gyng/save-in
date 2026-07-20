@@ -998,7 +998,7 @@
     "message": "Bouton Suivant (5)"
   },
   "o_cKeyboardShortcutModifierHelp": {
-    "message": "Maintenez les touches de modification sélectionnées pendant le geste de clic choisi. Choisissez None pour les deux modificateurs afin d’utiliser uniquement le geste. Les modifications s’appliquent aux pages déjà ouvertes."
+    "message": "Maintenez les touches de modification sélectionnées lorsque vous effectuez le geste de clic choisi. Choisissez None pour les deux touches de modification afin d’utiliser uniquement le geste. Les modifications s’appliquent aussi aux pages déjà ouvertes."
   },
   "o_cRestoreDefaults": {
     "message": "Restaurer les valeurs par défaut"
@@ -4328,19 +4328,19 @@
     "message": "La destination doit être relative et ne peut pas contenir de composants de chemin .."
   },
   "html_gestureMatcherDescription": {
-    "message": "Correspond au geste de souris utilisé pour l’enregistrement par clic."
+    "message": "Correspond au geste de clic utilisé pour l’enregistrement au clic."
   },
   "o_cKeyboardShortcutModifierDoubleLeftClick": {
     "message": "Double-clic gauche"
   },
   "o_bAddClickToSaveBinding": {
-    "message": "Ajouter un geste"
+    "message": "Ajouter un geste de clic"
   },
   "o_bRemoveClickToSaveBinding": {
-    "message": "Supprimer le geste"
+    "message": "Supprimer le geste de clic"
   },
   "o_lClickToSaveDoubleClickHelp": {
-    "message": "Le premier clic atteint toujours la page. Une image liée peut s’ouvrir ou changer de page avant le second clic."
+    "message": "Le premier clic est toujours transmis à la page. Une image associée à un lien peut s’ouvrir ou mener à une autre page avant le second clic."
   },
   "routeDebuggerGesture": {
     "message": "Geste de clic"
@@ -4349,6 +4349,6 @@
     "message": "Tout geste de clic"
   },
   "routeDebuggerClickContext": {
-    "message": "Enregistrement par clic"
+    "message": "Enregistrement au clic"
   }
 }
