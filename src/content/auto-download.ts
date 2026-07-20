@@ -242,9 +242,16 @@ export const setupAutoDownloadDiscovery = (
       // megabyte string; http(s) and short data: URLs key on the string itself.
       const seenKey = seenKeyFor(sourceUrl);
       if (seen.has(seenKey)) continue;
-      const origins = sources.flatMap(sourceOriginElements);
+      const firstSource = sources[0];
       const cssAttestation =
-        cssSelectors.length > 0 ? matchedCssSelectorsByOrigin(origins, automaticRules) : undefined;
+        cssSelectors.length > 0
+          ? matchedCssSelectorsByOrigin(
+              sources.length === 1 && firstSource
+                ? sourceOriginElements(firstSource)
+                : sources.flatMap(sourceOriginElements),
+              automaticRules,
+            )
+          : undefined;
       const candidatesForUrl = sources.map(
         (source): AutomaticRoutingCandidate => ({
           pageUrl,
