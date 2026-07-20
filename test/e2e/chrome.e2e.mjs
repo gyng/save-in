@@ -2205,15 +2205,20 @@ test("Page Sources discovers, updates live, and restores across tabs", async () 
       control.storage.session.set({ sourcePanelOpen: false }),
     ]);
     await control.runtime.reset();
-    await cdp.openTab(PORT, firstUrl);
+    const firstTab = await control.tabs.create({ url: firstUrl, active: true });
+    const firstReady = await control.tabs.wait(
+      firstTab.id === undefined ? { urlIncludes: firstPath } : { id: firstTab.id },
+    );
     await poll(
       async () =>
         (await evalPage(firstPath, "document.readyState === 'complete'")) === true ? true : null,
       { description: "first Page Sources fixture", ignoreErrors: true },
     );
-    const firstTab = (await control.tabs.query()).find((tab) => tab.url?.includes(firstPath));
-    if (firstTab?.id === undefined) throw new Error("Page Sources fixture tab missing");
-    await control.tabs.update(firstTab.id, { active: true });
+    const firstTabId = requireValue(
+      firstTab.id ?? firstReady.id,
+      "Page Sources fixture tab missing",
+    );
+    await control.tabs.update(firstTabId, { active: true });
     const [discoveryJson] = await Promise.all([
       evalPage(
         firstPath,
@@ -2240,15 +2245,20 @@ test("Page Sources discovers, updates live, and restores across tabs", async () 
     );
     expect(await waitForDownloadUrl(`http://127.0.0.1:${port}/first.png`)).toMatch(/first\.png$/);
 
-    await cdp.openTab(PORT, secondUrl);
+    const secondTab = await control.tabs.create({ url: secondUrl, active: true });
+    const secondReady = await control.tabs.wait(
+      secondTab.id === undefined ? { urlIncludes: secondPath } : { id: secondTab.id },
+    );
     await poll(
       async () =>
         (await evalPage(secondPath, "document.readyState === 'complete'")) === true ? true : null,
       { description: "second Page Sources fixture", ignoreErrors: true },
     );
-    const secondTab = (await control.tabs.query()).find((tab) => tab.url?.includes(secondPath));
-    if (secondTab?.id === undefined) throw new Error("second Page Sources fixture tab missing");
-    await control.tabs.update(secondTab.id, { active: true });
+    const secondTabId = requireValue(
+      secondTab.id ?? secondReady.id,
+      "second Page Sources fixture tab missing",
+    );
+    await control.tabs.update(secondTabId, { active: true });
     await poll(
       async () =>
         (await evalPage(
