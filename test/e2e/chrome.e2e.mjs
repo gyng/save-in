@@ -872,7 +872,10 @@ test("cold start recovers an interrupted in-flight fetch", async () => {
 });
 
 test("options-save reset message round-trips", async () => {
-  expect(await control.runtime.reset()).toEqual({ type: "OK" });
+  expect(await control.runtime.reset()).toEqual({
+    type: "OK",
+    body: { instanceId: expect.any(String), generation: expect.any(Number) },
+  });
 });
 
 test("download completes through the real pipeline with session tracking", async () => {

@@ -633,7 +633,10 @@ test("success notifications are created by the real download listener", async ()
 });
 
 test("options reset re-initialises", async () => {
-  expect(await control.runtime.reset()).toEqual({ type: "OK" });
+  expect(await control.runtime.reset()).toEqual({
+    type: "OK",
+    body: { instanceId: expect.any(String), generation: expect.any(Number) },
+  });
 });
 
 test("downloads receive the configured Referer header", async () => {
