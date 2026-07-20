@@ -733,6 +733,15 @@ describe("filename rewrite and routing", () => {
       expect(matcher({})).toBeNull();
     });
 
+    test("gesture matches the click-to-save mouse action", () => {
+      const matcher = router.matcherFunctions.gesture(/^double-left-click$/);
+      expect(expectMatch(matcher({ ...info, gesture: "double-left-click" }))[0]!).toBe(
+        "double-left-click",
+      );
+      expect(matcher({ ...info, gesture: "middle-click" })).toBeNull();
+      expect(matcher({})).toBeNull();
+    });
+
     test("menuindex", () => {
       const matcher = router.matcherFunctions.menuindex(new RegExp("^2$"));
       expect(expectMatch(matcher(info, { menuIndex: "2" }))[0]!).toBe("2");

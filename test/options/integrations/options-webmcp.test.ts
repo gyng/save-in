@@ -64,6 +64,7 @@ describe("buildTools", () => {
     expect(validationInfo.properties).toHaveProperty("url");
     expect(validationInfo.properties).toHaveProperty("mediaType");
     expect(validationInfo.properties).toHaveProperty("context");
+    expect(validationInfo.properties).toHaveProperty("gesture");
     expect(validationInfo.properties).toHaveProperty("menuIndex");
     expect(validationInfo.properties).toHaveProperty("resolvedFilename");
     expect(validationInfo.properties).toHaveProperty("sourceKind");
@@ -270,6 +271,24 @@ describe("buildTools", () => {
     });
   });
 
+  test("validates and forwards a click gesture in sample routing input", async () => {
+    const { send, byName } = toolsByName();
+
+    await byName.save_in_validate_config.execute({
+      filenamePatterns: "gesture: ^double-left-click$\ninto: Double clicks",
+      info: { context: "click", gesture: "double-left-click" },
+    });
+
+    expect(send).toHaveBeenCalledWith({
+      type: "VALIDATE",
+      body: {
+        filenamePatterns: "gesture: ^double-left-click$\ninto: Double clicks",
+        info: { context: "click", gesture: "double-left-click" },
+        validationSource: "webmcp",
+      },
+    });
+  });
+
   test("forwards a candidate page title so an automatic trace can model :pagetitle:", async () => {
     const { send, byName } = toolsByName();
     const automaticCandidate = {
@@ -417,6 +436,15 @@ describe("buildTools", () => {
     ).resolves.toEqual({
       status: "ERROR",
       errors: [{ field: "info.sourceKind", message: "Unknown source kind" }],
+    });
+    await expect(
+      byName.save_in_validate_config.execute({
+        filenamePatterns: "into: test",
+        info: { gesture: "double-right-click" },
+      }),
+    ).resolves.toEqual({
+      status: "ERROR",
+      errors: [{ field: "info.gesture", message: "Unknown click gesture" }],
     });
     await expect(
       byName.save_in_validate_config.execute({

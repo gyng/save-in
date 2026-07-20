@@ -852,7 +852,7 @@ Goal: [describe which downloads to match and where they should be saved]
 Save In syntax:
 - Write one clause per line and separate rules with a blank line.
 - Every matcher in one rule must match. Matcher values are JavaScript regular expressions except css:, which takes a CSS selector and no flags. Do not leave a regex matcher empty; write .* explicitly for a match-all condition. Use at most 64 css: matchers in one rule and 256 across the configuration.
-- Common matchers include filename:, finalfilename:, actualfileext:, mime:, sourceurl:, sourcedomain:, sourcerootdomain:, sourcekind:, css:, pageurl:, pagedomain:, pagerootdomain:, referrerurl:, referrerdomain:, pagetitle:, context:, and mediatype:.
+- Common matchers include filename:, finalfilename:, actualfileext:, mime:, sourceurl:, sourcedomain:, sourcerootdomain:, sourcekind:, gesture:, css:, pageurl:, pagedomain:, pagerootdomain:, referrerurl:, referrerdomain:, pagetitle:, context:, and mediatype:.
 - Add /i to a matcher name for case-insensitive matching, for example filename/i: \.pdf$. Regex flags are allowed only on matcher names and rename:.
 - Every rule must contain exactly one into: clause. Its value is a relative destination or filename template and cannot contain .. path components.
 - End into: with / to move the file while preserving its resolved filename.
@@ -1079,6 +1079,7 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                             <span>__MSG_routeDebuggerContext__</span>
                             <select id="route-debugger-context" data-no-autosave>
                               <option value="">__MSG_routeDebuggerAnyContext__</option>
+                              <option value="click">__MSG_routeDebuggerClickContext__</option>
                               <option value="link">__MSG_html_link__</option>
                               <option value="image">__MSG_html_image__</option>
                               <option value="video">__MSG_html_video__</option>
@@ -1183,6 +1184,30 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                       <fieldset class="route-debugger-field-group route-debugger-context-fields">
                         <legend>__MSG_routeDebuggerRoutingData__</legend>
                         <div class="route-debugger-field-grid">
+                          <label class="route-debugger-field">
+                            <span>__MSG_routeDebuggerGesture__</span>
+                            <select id="route-debugger-gesture" data-no-autosave>
+                              <option value="">__MSG_routeDebuggerAnyGesture__</option>
+                              <option value="left-click">
+                                __MSG_o_cKeyboardShortcutModifierLeftClick__
+                              </option>
+                              <option value="middle-click">
+                                __MSG_o_cKeyboardShortcutModifierMiddleClick__
+                              </option>
+                              <option value="right-click">
+                                __MSG_o_cKeyboardShortcutModifierRightClick__
+                              </option>
+                              <option value="back-click">
+                                __MSG_o_cKeyboardShortcutModifierBackClick__
+                              </option>
+                              <option value="forward-click">
+                                __MSG_o_cKeyboardShortcutModifierForwardClick__
+                              </option>
+                              <option value="double-left-click">
+                                __MSG_o_cKeyboardShortcutModifierDoubleLeftClick__
+                              </option>
+                            </select>
+                          </label>
                           <label class="route-debugger-field">
                             <span>__MSG_routeDebuggerSourceKind__</span>
                             <select id="route-debugger-source-kind" data-no-autosave>
@@ -1492,6 +1517,11 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
             <legend class="option-group-heading">__MSG_html_clickToSaveShortcut__</legend>
             <input
               type="hidden"
+              id="contentClickToSaveBindings"
+              aria-label="__MSG_html_clickToSaveShortcutCombination__"
+            />
+            <input
+              type="hidden"
               id="contentClickToSaveCombo"
               aria-label="__MSG_html_clickToSaveShortcutCombination__"
             />
@@ -1524,15 +1554,20 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
             <label>
               <span class="shortcut-control-label">__MSG_o_lClickToSaveButton__</span>
               <select id="clickToSaveButton" data-runtime-control="true">
-                <option value="LEFT_CLICK">__MSG_o_cKeyboardShortcutModifierLeftClick__</option>
-                <option value="MIDDLE_CLICK">__MSG_o_cKeyboardShortcutModifierMiddleClick__</option>
-                <option value="RIGHT_CLICK">__MSG_o_cKeyboardShortcutModifierRightClick__</option>
-                <option value="BACK_CLICK">__MSG_o_cKeyboardShortcutModifierBackClick__</option>
-                <option value="FORWARD_CLICK">
+                <option value="left-click">__MSG_o_cKeyboardShortcutModifierLeftClick__</option>
+                <option value="middle-click">__MSG_o_cKeyboardShortcutModifierMiddleClick__</option>
+                <option value="right-click">__MSG_o_cKeyboardShortcutModifierRightClick__</option>
+                <option value="back-click">__MSG_o_cKeyboardShortcutModifierBackClick__</option>
+                <option value="forward-click">
                   __MSG_o_cKeyboardShortcutModifierForwardClick__
+                </option>
+                <option value="double-left-click">
+                  __MSG_o_cKeyboardShortcutModifierDoubleLeftClick__
                 </option>
               </select>
             </label>
+            <div id="clickToSaveAdditionalBindings" class="click-to-save-additional"></div>
+            <button type="button" id="clickToSaveAdd">__MSG_ruleTemplateAdd__</button>
             <button type="button" class="button-primary" id="clickToSaveApply">
               __MSG_o_bApply__
             </button>
@@ -1546,6 +1581,14 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
               hidden
             >
               __MSG_html_mouseOnlyLeftClickWillReplaceNormalClicksOn__
+            </div>
+            <div
+              id="click-to-save-double-warning"
+              class="feedback feedback-warning feedback-inline warning notice"
+              role="status"
+              hidden
+            >
+              __MSG_o_lClickToSaveDoubleClickHelp__
             </div>
           </fieldset>
         </div>
@@ -3650,6 +3693,15 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                   <code>page</code>
                 </td>
                 <td>__MSG_html_contextMatcherDescription__</td>
+              </tr>
+              <tr>
+                <td>
+                  <code class="click-to-copy">gesture:</code>
+                </td>
+                <td>
+                  <code>double-left-click</code>
+                </td>
+                <td>__MSG_html_gestureMatcherDescription__</td>
               </tr>
               <tr>
                 <td>

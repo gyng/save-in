@@ -402,3 +402,16 @@ test("summarizes the grammar structure for the IDE status bar", () => {
   ).toEqual({ lines: 6, rules: 2, matchers: 3 });
   expect(summarizeRouteSource("")).toEqual({ lines: 0, rules: 0, matchers: 0 });
 });
+
+test("includes a selected click gesture in validation input", () => {
+  expect(
+    routeDebuggerInfo({
+      filename: "image.png",
+      sourceUrl: "https://x/image.png",
+      pageUrl: "https://x/",
+      mime: "image/png",
+      context: "click",
+      gesture: "double-left-click",
+    }).gesture,
+  ).toBe("double-left-click");
+});

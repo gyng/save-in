@@ -14,6 +14,7 @@ beforeEach(() => {
 describe("shortcut option guidance", () => {
   const clickShortcutMarkup = (combo = "Ctrl+Shift", storedButton = "RIGHT_CLICK") => `
     <input type="checkbox" id="contentClickToSave" checked>
+    <input id="contentClickToSaveBindings" value="">
     <input id="contentClickToSaveCombo" value="${combo}">
     <input id="contentClickToSaveButton" value="${storedButton}">
     <select id="clickToSaveModifier">
@@ -23,7 +24,7 @@ describe("shortcut option guidance", () => {
       <option value=""></option><option value="Shift">Shift</option>
     </select>
     <select id="clickToSaveButton">
-      <option value="LEFT_CLICK">left</option><option value="RIGHT_CLICK">right</option>
+      <option value="left-click">left</option><option value="right-click">right</option>
     </select>
     <button id="clickToSaveApply"></button><button id="clickToSaveReset"></button>
     <span id="clickToSaveStatus"></span><div id="click-to-save-warning" hidden></div>`;
@@ -36,11 +37,12 @@ describe("shortcut option guidance", () => {
       <select id="shortcutType"><option value="MAC_WEBLOC" selected>webloc</option></select>
       <span id="shortcut-format-preview"></span>
       <input type="checkbox" id="contentClickToSave" checked>
+      <input id="contentClickToSaveBindings" value="">
       <input id="contentClickToSaveCombo" value="Ctrl+Shift">
       <input id="contentClickToSaveButton" value="LEFT_CLICK">
       <select id="clickToSaveModifier"><option value=""></option><option value="Ctrl">Ctrl</option></select>
       <select id="clickToSaveModifier2"><option value=""></option><option value="Shift">Shift</option></select>
-      <select id="clickToSaveButton"><option value="LEFT_CLICK">left</option><option value="MIDDLE_CLICK">middle</option></select>
+      <select id="clickToSaveButton"><option value="left-click">left</option><option value="middle-click">middle</option></select>
       <button id="clickToSaveApply"></button><button id="clickToSaveReset"></button>
       <span id="clickToSaveStatus"></span>
       <div id="click-to-save-warning" hidden></div>`;
@@ -55,7 +57,7 @@ describe("shortcut option guidance", () => {
     expect(document.querySelector("#shortcut-format-preview")?.textContent).toContain(".webloc");
     expect((document.querySelector("#shortcutType") as HTMLSelectElement).disabled).toBe(false);
     const button = document.querySelector<HTMLSelectElement>("#clickToSaveButton")!;
-    button.value = "MIDDLE_CLICK";
+    button.value = "middle-click";
     button.dispatchEvent(new Event("change"));
     expect(document.querySelector<HTMLButtonElement>("#clickToSaveApply")!.disabled).toBe(false);
     document.querySelector<HTMLButtonElement>("#clickToSaveApply")!.click();
@@ -68,7 +70,8 @@ describe("shortcut option guidance", () => {
     document.body.innerHTML = `
       <input id="contentClickToSaveCombo" value="90">
       <select id="clickToSaveModifier"><option value=""></option><option value="Alt">Alt</option></select>
-      <select id="clickToSaveModifier2"><option value=""></option></select>`;
+      <select id="clickToSaveModifier2"><option value=""></option></select>
+      <select id="clickToSaveButton"><option value="left-click">left</option></select>`;
     setupShortcutOptions();
     const modifier = document.querySelector<HTMLSelectElement>("#clickToSaveModifier")!;
     expect(modifier.value).toBe("90");
@@ -87,7 +90,7 @@ describe("shortcut option guidance", () => {
     expect(document.querySelector<HTMLSelectElement>("#clickToSaveModifier")!.value).toBe("Ctrl");
     expect(document.querySelector<HTMLSelectElement>("#clickToSaveModifier2")!.value).toBe("Shift");
     expect(document.querySelector<HTMLSelectElement>("#clickToSaveButton")!.value).toBe(
-      "RIGHT_CLICK",
+      "right-click",
     );
     expect(document.querySelector<HTMLButtonElement>("#clickToSaveApply")!.disabled).toBe(true);
   });
@@ -193,6 +196,31 @@ describe("settings transfer", () => {
     await vi.waitFor(() => expect(alert).toHaveBeenCalledWith("Settings loaded."));
     expect(apply).toHaveBeenCalledWith({ enabled: true });
     expect(restoreSettings).toHaveBeenCalledOnce();
+  });
+
+  test("lets an older imported click shortcut replace existing gesture bindings", async () => {
+    importMarkup();
+    vi.spyOn(window, "prompt").mockReturnValue(
+      '{"contentClickToSaveCombo":18,"contentClickToSaveButton":"RIGHT_CLICK"}',
+    );
+    vi.spyOn(window, "alert").mockImplementation(() => {});
+    const apply = vi.fn().mockResolvedValue(applyResult());
+    setupSettingsTransfer({
+      getSchema: () => Promise.resolve({ keys: [] }),
+      getStored: vi.fn(),
+      apply,
+      restore: restore(),
+    });
+
+    document.querySelector<HTMLButtonElement>("#settings-import")!.click();
+
+    await vi.waitFor(() =>
+      expect(apply).toHaveBeenCalledWith({
+        contentClickToSaveBindings: "",
+        contentClickToSaveButton: "RIGHT_CLICK",
+        contentClickToSaveCombo: 18,
+      }),
+    );
   });
 
   test("cancels import without parsing or applying settings", async () => {

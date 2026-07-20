@@ -8,6 +8,7 @@ import {
 import { OPTION_KEYS } from "../../src/config/option-schema.ts";
 import { MAX_RECENT_DESTINATIONS } from "../../src/shared/constants.ts";
 import { CONTENT_FEATURE_OPTION_DEFINITIONS } from "../../src/config/content-option-schema.ts";
+import { CLICK_GESTURES, serializeClickToSaveBindings } from "../../src/shared/click-gesture.ts";
 
 test("content option definitions stay aligned with the background schema", () => {
   const schema = new Map(OPTION_KEYS.map((definition) => [definition.name, definition.default]));
@@ -158,6 +159,31 @@ test("falls back safely when a stored shortcut string contains unknown keys", ()
   const comboDefinition = OPTION_KEYS.find(({ name }) => name === "contentClickToSaveCombo")!;
   expect("validate" in comboDefinition && comboDefinition.validate("garbage")).toBe(false);
   expect("validate" in comboDefinition && comboDefinition.validate("Ctrl+Shift")).toBe(true);
+});
+
+test("accepts valid gesture bindings and rejects malformed or ambiguous lists", () => {
+  const stored = serializeClickToSaveBindings([
+    { gesture: CLICK_GESTURES.MIDDLE, combo: "Ctrl" },
+    { gesture: CLICK_GESTURES.DOUBLE_LEFT, combo: "Alt" },
+  ]);
+  expect(
+    resolveContentOptions({ contentClickToSaveBindings: stored }).contentClickToSaveBindings,
+  ).toBe(stored);
+  for (const value of [
+    "not json",
+    JSON.stringify({ version: 1, bindings: [] }),
+    JSON.stringify({
+      version: 1,
+      bindings: [
+        { gesture: "left-click", combo: "Alt" },
+        { gesture: "double-left-click", combo: "Ctrl" },
+      ],
+    }),
+  ]) {
+    expect(
+      resolveContentOptions({ contentClickToSaveBindings: value }).contentClickToSaveBindings,
+    ).toBe("");
+  }
 });
 
 test("validates the bounded recent-destination count", () => {

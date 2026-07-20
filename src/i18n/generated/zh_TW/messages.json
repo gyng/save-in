@@ -4326,5 +4326,23 @@
   },
   "ruleDestinationMustBeRelative": {
     "message": "目的地必須是相對路徑，且不能包含 .. 路徑元件"
+  },
+  "html_gestureMatcherDescription": {
+    "message": "比對點擊儲存時使用的滑鼠手勢。"
+  },
+  "o_cKeyboardShortcutModifierDoubleLeftClick": {
+    "message": "按兩下滑鼠左鍵"
+  },
+  "o_lClickToSaveDoubleClickHelp": {
+    "message": "第一次點擊仍會傳遞給頁面。含有連結的圖片可能會在第二次點擊前開啟或導向其他頁面。"
+  },
+  "routeDebuggerGesture": {
+    "message": "點擊手勢"
+  },
+  "routeDebuggerAnyGesture": {
+    "message": "任何點擊手勢"
+  },
+  "routeDebuggerClickContext": {
+    "message": "點擊儲存"
   }
 }

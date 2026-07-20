@@ -8,6 +8,7 @@ import {
   normalizeUiTheme,
   type UiTheme,
 } from "./content-options.ts";
+import { isStoredClickToSaveBindings } from "../shared/click-gesture.ts";
 import { parseAutoDownloadRules } from "../automation/auto-download-rules.ts";
 
 // Background-only schema metadata. The content bundle imports the shared
@@ -93,6 +94,12 @@ export const CONTENT_FEATURE_OPTION_DEFINITIONS = [
     onLoad: (value: UiTheme | "forest") => normalizeUiTheme(value),
     validate: isStoredUiTheme,
     default: CONTENT_OPTION_DEFAULTS.uiTheme,
+  },
+  {
+    name: "contentClickToSaveBindings",
+    type: "VALUE",
+    validate: isStoredClickToSaveBindings,
+    default: CONTENT_OPTION_DEFAULTS.contentClickToSaveBindings,
   },
   {
     name: "contentClickToSaveCombo",

@@ -1075,6 +1075,10 @@
     "message": "Matches how the save started: media, link, selection, page, click, auto, browser, or tab. Tab saves require Firefox or Chrome 150+.",
     "description": "Description of the cross-browser context routing matcher, its values, and tab-save browser requirement. Used in src/options/clauselist.html and src/options/options.html."
   },
+  "html_gestureMatcherDescription": {
+    "message": "Matches the mouse gesture used by click-to-save.",
+    "description": "Description of the click-to-save gesture routing matcher. Used in src/options/clauselist.html and src/options/options.html."
+  },
   "html_or": {
     "message": ", or",
     "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
@@ -1430,6 +1434,14 @@
   "o_cKeyboardShortcutModifierForwardClick": {
     "message": "Forward button (5)",
     "description": "Option control label or related help text. Used in src/options/options.html."
+  },
+  "o_cKeyboardShortcutModifierDoubleLeftClick": {
+    "message": "Double left click",
+    "description": "Click-to-save gesture label for two primary-button clicks on the same media item. Used in src/options/options.html and src/options/shortcut-options.ts."
+  },
+  "o_lClickToSaveDoubleClickHelp": {
+    "message": "The first click still reaches the page. A linked image may open or navigate before the second click.",
+    "description": "Warning shown when double-left-click saving is configured. Used in src/options/options.html."
   },
   "o_cKeyboardShortcutModifierHelp": {
     "message": "Hold the selected modifier keys while clicking the chosen mouse button. Choose None for both modifiers to use the mouse button alone. Changes apply to existing pages.",
@@ -4191,6 +4203,14 @@
     "message": "Source kind",
     "description": "Label for the route debugger page-source kind selector. Used in src/options/options.html."
   },
+  "routeDebuggerGesture": {
+    "message": "Click gesture",
+    "description": "Label for the click-to-save gesture selector in the route debugger. Used in src/options/options.html."
+  },
+  "routeDebuggerAnyGesture": {
+    "message": "Any click gesture",
+    "description": "Empty click-gesture choice in the route debugger. Used in src/options/options.html."
+  },
   "routeDebuggerAnySourceKind": {
     "message": "Any source kind",
     "description": "Empty source-kind choice in the route debugger. Used in src/options/options.html."
@@ -4250,6 +4270,10 @@
   "routeDebuggerAnyContext": {
     "message": "Any context",
     "description": "Empty context choice in the route debugger. Used in src/options/options.html."
+  },
+  "routeDebuggerClickContext": {
+    "message": "Click-to-save",
+    "description": "Click-to-save context choice in the route debugger. Used in src/options/options.html."
   },
   "routeDebuggerUnsavedNote": {
     "message": "Tests use your current edits, including unapplied changes.",

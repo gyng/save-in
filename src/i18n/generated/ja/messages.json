@@ -4326,5 +4326,23 @@
   },
   "ruleDestinationMustBeRelative": {
     "message": "保存先は相対パスにし、.. パス要素を含めないでください"
+  },
+  "html_gestureMatcherDescription": {
+    "message": "クリック保存で使用したマウス操作に一致します。"
+  },
+  "o_cKeyboardShortcutModifierDoubleLeftClick": {
+    "message": "左ダブルクリック"
+  },
+  "o_lClickToSaveDoubleClickHelp": {
+    "message": "最初のクリックはページにも届きます。リンク付き画像では、2 回目のクリック前に画像が開いたりページが移動したりする場合があります。"
+  },
+  "routeDebuggerGesture": {
+    "message": "クリック操作"
+  },
+  "routeDebuggerAnyGesture": {
+    "message": "すべてのクリック操作"
+  },
+  "routeDebuggerClickContext": {
+    "message": "クリック保存"
   }
 }

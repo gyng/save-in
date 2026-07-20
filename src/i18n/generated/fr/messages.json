@@ -4326,5 +4326,23 @@
   },
   "ruleDestinationMustBeRelative": {
     "message": "La destination doit être relative et ne peut pas contenir de composants de chemin .."
+  },
+  "html_gestureMatcherDescription": {
+    "message": "Correspond au geste de souris utilisé pour l’enregistrement par clic."
+  },
+  "o_cKeyboardShortcutModifierDoubleLeftClick": {
+    "message": "Double-clic gauche"
+  },
+  "o_lClickToSaveDoubleClickHelp": {
+    "message": "Le premier clic atteint toujours la page. Une image liée peut s’ouvrir ou changer de page avant le second clic."
+  },
+  "routeDebuggerGesture": {
+    "message": "Geste de clic"
+  },
+  "routeDebuggerAnyGesture": {
+    "message": "Tout geste de clic"
+  },
+  "routeDebuggerClickContext": {
+    "message": "Enregistrement par clic"
   }
 }

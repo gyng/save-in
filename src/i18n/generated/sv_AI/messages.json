@@ -4326,5 +4326,23 @@
   },
   "ruleDestinationMustBeRelative": {
     "message": "Målet måste vara relativt och får inte innehålla ..-sökvägskomponenter"
+  },
+  "html_gestureMatcherDescription": {
+    "message": "Matchar musgesten som användes för att spara med ett klick."
+  },
+  "o_cKeyboardShortcutModifierDoubleLeftClick": {
+    "message": "Dubbelklick med vänsterknappen"
+  },
+  "o_lClickToSaveDoubleClickHelp": {
+    "message": "Det första klicket når fortfarande sidan. En länkad bild kan öppnas eller navigera innan det andra klicket."
+  },
+  "routeDebuggerGesture": {
+    "message": "Klickgest"
+  },
+  "routeDebuggerAnyGesture": {
+    "message": "Valfri klickgest"
+  },
+  "routeDebuggerClickContext": {
+    "message": "Spara med klick"
   }
 }

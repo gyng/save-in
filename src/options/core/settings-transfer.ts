@@ -36,6 +36,15 @@ export const setupSettingsTransfer = (dependencies: SettingsTransferDependencies
       if (!json) return;
       const settings: unknown = JSON.parse(json);
       if (!isStringKeyedRecord(settings)) throw new TypeError("Settings must be a JSON object");
+      if (
+        typeof settings.contentClickToSaveBindings === "undefined" &&
+        (typeof settings.contentClickToSaveCombo !== "undefined" ||
+          typeof settings.contentClickToSaveButton !== "undefined")
+      ) {
+        // An older export must keep controlling click-to-save when imported
+        // over a profile that already has the versioned gesture option.
+        settings.contentClickToSaveBindings = "";
+      }
       if (typeof settings.filenamePatterns === "string") {
         const invalidCss = cssSelectorErrors(settings.filenamePatterns)[0];
         if (invalidCss) throw new TypeError(`${invalidCss.message}: ${invalidCss.error}`);

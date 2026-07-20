@@ -461,6 +461,7 @@ export const handleDownloadMessage = (
       mime: info.mime,
       mediaType: info.mediaType,
       sourceKind: info.sourceKind,
+      gesture: internal ? info.gesture : undefined,
       ...(internal && info.matchedCssSelectorsByOrigin
         ? { matchedCssSelectorsByOrigin: info.matchedCssSelectorsByOrigin }
         : {}),

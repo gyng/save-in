@@ -1,5 +1,15 @@
 import { SHORTCUT_EXTENSIONS, isShortcutType, type ShortcutType } from "../../shared/constants.ts";
 import { getMessage } from "../../platform/localization.ts";
+import { isClickType } from "../../config/content-options.ts";
+import {
+  CLICK_GESTURES,
+  gestureToClickType,
+  isClickGesture,
+  resolveClickToSaveBindings,
+  serializeClickToSaveBindings,
+  type ClickGesture,
+  type ClickToSaveBinding,
+} from "../../shared/click-gesture.ts";
 
 const EFFECTIVE_ACCESS_KEY = /^[a-z0-9]$/i;
 const FORMAT_GUIDANCE = {
@@ -83,6 +93,7 @@ export const setupShortcutOptions = () => {
   type?.addEventListener("change", syncFormat);
   syncFormat();
 
+  const bindingsField = document.querySelector<HTMLInputElement>("#contentClickToSaveBindings");
   const combo = document.querySelector<HTMLInputElement>("#contentClickToSaveCombo");
   const storedButton = document.querySelector<HTMLInputElement>("#contentClickToSaveButton");
   const modifier = document.querySelector<HTMLSelectElement>("#clickToSaveModifier");
@@ -93,69 +104,239 @@ export const setupShortcutOptions = () => {
   const status = document.querySelector<HTMLElement>("#clickToSaveStatus");
   const clickToSave = document.querySelector<HTMLInputElement>("#contentClickToSave");
   const warning = document.querySelector<HTMLElement>("#click-to-save-warning");
-  const showClickCombo = () => {
-    if (!combo || !modifier || !modifier2) return;
-    const parts = combo.value.split("+").filter(Boolean);
+  const doubleWarning = document.querySelector<HTMLElement>("#click-to-save-double-warning");
+  const additional = document.querySelector<HTMLElement>("#clickToSaveAdditionalBindings");
+  const add = document.querySelector<HTMLButtonElement>("#clickToSaveAdd");
+  type BindingControls = {
+    row: HTMLElement | null;
+    modifier: HTMLSelectElement;
+    modifier2: HTMLSelectElement;
+    gesture: HTMLSelectElement;
+    remove: HTMLButtonElement | null;
+  };
+  const extraControls: BindingControls[] = [];
+  const primaryControls =
+    modifier && modifier2 && button
+      ? { row: null, modifier, modifier2, gesture: button, remove: null }
+      : null;
+  const gestureLabelKeys: Record<ClickGesture, string> = {
+    [CLICK_GESTURES.LEFT]: "o_cKeyboardShortcutModifierLeftClick",
+    [CLICK_GESTURES.MIDDLE]: "o_cKeyboardShortcutModifierMiddleClick",
+    [CLICK_GESTURES.RIGHT]: "o_cKeyboardShortcutModifierRightClick",
+    [CLICK_GESTURES.BACK]: "o_cKeyboardShortcutModifierBackClick",
+    [CLICK_GESTURES.FORWARD]: "o_cKeyboardShortcutModifierForwardClick",
+    [CLICK_GESTURES.DOUBLE_LEFT]: "o_cKeyboardShortcutModifierDoubleLeftClick",
+  };
+  const modifierOptions = [
+    ["", "html_none"],
+    ["Alt", "html_altOption"],
+    ["Ctrl", "html_ctrl"],
+    ["Shift", "html_shift"],
+    ["Meta", "html_commandWindowsKey"],
+  ] as const;
+  const allControls = (): BindingControls[] =>
+    primaryControls ? [primaryControls, ...extraControls] : [];
+  const writeCombo = (controls: BindingControls, value: string | number): void => {
+    const text = String(value);
+    const parts = text.split("+").filter(Boolean);
     const known = new Set(["Alt", "Ctrl", "Shift", "Meta"]);
     const unknown = parts.find((part) => !known.has(part));
-    if (button) button.value = storedButton?.value || "LEFT_CLICK";
-    modifier.querySelector("[data-legacy]")?.remove();
+    controls.modifier.querySelector("[data-legacy]")?.remove();
     if (unknown) {
       const option = document.createElement("option");
-      option.value = combo.value;
-      option.textContent =
-        getMessage("o_lShortcutLegacyValue", combo.value) || `Legacy value: ${combo.value}`;
+      option.value = text;
+      option.textContent = getMessage("o_lShortcutLegacyValue", text) || `Legacy value: ${text}`;
       option.dataset.legacy = "true";
-      modifier.append(option);
-      modifier.value = combo.value;
-      modifier2.value = "";
+      controls.modifier.append(option);
+      controls.modifier.value = text;
+      controls.modifier2.value = "";
       return;
     }
-    modifier.value = parts[0] || "";
-    modifier2.value = parts[1] || "";
+    controls.modifier.value = parts[0] || "";
+    controls.modifier2.value = parts[1] || "";
   };
-  const draftCombo = () => {
-    if (!modifier || !modifier2) return "";
-    if (modifier2.value === modifier.value) modifier2.value = "";
-    return [modifier.value, modifier2.value].filter(Boolean).join("+");
+  const readBinding = (controls: BindingControls): ClickToSaveBinding => {
+    if (controls.modifier2.value === controls.modifier.value) controls.modifier2.value = "";
+    return {
+      gesture: isClickGesture(controls.gesture.value)
+        ? controls.gesture.value
+        : CLICK_GESTURES.LEFT,
+      combo: [controls.modifier.value, controls.modifier2.value].filter(Boolean).join("+"),
+    };
+  };
+  const selectedBindings = (): ClickToSaveBinding[] => allControls().map(readBinding);
+  let baselineSerialized = "";
+  const gestureConflicts = (gesture: ClickGesture, other: ClickGesture): boolean =>
+    gesture === other ||
+    (gesture === CLICK_GESTURES.LEFT && other === CLICK_GESTURES.DOUBLE_LEFT) ||
+    (gesture === CLICK_GESTURES.DOUBLE_LEFT && other === CLICK_GESTURES.LEFT);
+  const unusedGestures = (): ClickGesture[] => {
+    const used = selectedBindings().map(({ gesture }) => gesture);
+    return Object.values(CLICK_GESTURES).filter(
+      (gesture) => !used.some((selected) => gestureConflicts(gesture, selected)),
+    );
+  };
+  const syncGestureWarning = () => {
+    const bindings = selectedBindings();
+    if (warning) {
+      warning.hidden =
+        !clickToSave?.checked ||
+        !bindings.some(
+          ({ combo: selectedCombo, gesture }) =>
+            !String(selectedCombo) && gesture === CLICK_GESTURES.LEFT,
+        );
+    }
+    if (doubleWarning) {
+      doubleWarning.hidden =
+        !clickToSave?.checked ||
+        !bindings.some(({ gesture }) => gesture === CLICK_GESTURES.DOUBLE_LEFT);
+    }
   };
   const syncClickControls = () => {
-    const changed =
-      draftCombo() !== combo?.value || (button?.value || "") !== (storedButton?.value || "");
-    if (apply) apply.disabled = !changed;
+    if (!primaryControls) return;
+    const controls = allControls();
+    const bindings = selectedBindings();
+    controls.forEach((current) => {
+      [...current.gesture.options].forEach((option) => {
+        if (!isClickGesture(option.value) || option.value === current.gesture.value) {
+          option.disabled = false;
+          return;
+        }
+        const optionGesture = option.value;
+        option.disabled = controls.some((other) =>
+          gestureConflicts(optionGesture, readBinding(other).gesture),
+        );
+      });
+    });
+    const enabled = clickToSave?.checked === true;
+    controls.forEach((current) => {
+      current.modifier.disabled = !enabled;
+      current.modifier2.disabled = !enabled;
+      current.gesture.disabled = !enabled;
+      if (current.remove) current.remove.disabled = !enabled;
+    });
+    const serialized = serializeClickToSaveBindings(bindings);
+    const changed = serialized !== baselineSerialized;
+    if (apply) apply.disabled = !enabled || !changed;
+    if (reset) reset.disabled = !enabled;
+    if (add) add.disabled = !enabled || unusedGestures().length === 0;
     if (status)
       status.textContent = changed ? getMessage("o_lShortcutReady") || "Ready to apply." : "";
     syncGestureWarning();
   };
-  const syncGestureWarning = () => {
-    if (!warning || !combo || !button) return;
-    warning.hidden =
-      !clickToSave?.checked || Boolean(draftCombo()) || button.value !== "LEFT_CLICK";
+  const option = (value: string, labelKey: string): HTMLOptionElement => {
+    const result = document.createElement("option");
+    result.value = value;
+    result.textContent = getMessage(labelKey) || value || "None";
+    return result;
   };
-  button?.addEventListener("change", syncClickControls);
-  clickToSave?.addEventListener("change", syncGestureWarning);
-  modifier?.addEventListener("change", syncClickControls);
-  modifier2?.addEventListener("change", syncClickControls);
+  const labeledSelect = (
+    labelKey: string,
+    options: ReadonlyArray<readonly [string, string]>,
+  ): { label: HTMLLabelElement; select: HTMLSelectElement } => {
+    const label = document.createElement("label");
+    const caption = document.createElement("span");
+    caption.className = "shortcut-control-label";
+    caption.textContent = getMessage(labelKey) || labelKey;
+    const select = document.createElement("select");
+    select.dataset.runtimeControl = "true";
+    select.append(...options.map(([value, key]) => option(value, key)));
+    label.append(caption, select);
+    return { label, select };
+  };
+  const addBindingRow = (binding: ClickToSaveBinding): void => {
+    if (!additional) return;
+    const row = document.createElement("div");
+    row.className = "click-to-save-binding";
+    const first = labeledSelect("html_primaryModifier", modifierOptions);
+    const second = labeledSelect("html_secondModifier", modifierOptions);
+    const gesture = labeledSelect(
+      "o_lClickToSaveButton",
+      Object.values(CLICK_GESTURES).map((value) => [value, gestureLabelKeys[value]] as const),
+    );
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.textContent = getMessage("externalRemoveApproval") || "Remove";
+    const controls: BindingControls = {
+      row,
+      modifier: first.select,
+      modifier2: second.select,
+      gesture: gesture.select,
+      remove,
+    };
+    writeCombo(controls, binding.combo);
+    controls.gesture.value = binding.gesture;
+    [controls.modifier, controls.modifier2, controls.gesture].forEach((select) =>
+      select.addEventListener("change", syncClickControls),
+    );
+    remove.addEventListener("click", () => {
+      const index = extraControls.indexOf(controls);
+      if (index >= 0) extraControls.splice(index, 1);
+      row.remove();
+      syncClickControls();
+    });
+    row.append(first.label, second.label, gesture.label, remove);
+    additional.append(row);
+    extraControls.push(controls);
+  };
+  const clearAdditional = (): void => {
+    extraControls.splice(0);
+    additional?.replaceChildren();
+  };
+  const showClickCombo = () => {
+    if (!combo || !primaryControls) return;
+    const legacyButton =
+      storedButton && isClickType(storedButton.value) ? storedButton.value : "LEFT_CLICK";
+    const bindings = resolveClickToSaveBindings(bindingsField?.value, combo.value, legacyButton);
+    clearAdditional();
+    const first = bindings[0];
+    if (!first) return;
+    writeCombo(primaryControls, first.combo);
+    primaryControls.gesture.value = first.gesture;
+    bindings.slice(1).forEach(addBindingRow);
+    baselineSerialized = serializeClickToSaveBindings(bindings);
+    syncClickControls();
+  };
+  [button, modifier, modifier2].forEach((control) =>
+    control?.addEventListener("change", syncClickControls),
+  );
+  clickToSave?.addEventListener("change", syncClickControls);
   const applyGesture = () => {
-    if (!combo || !storedButton || !button) return;
-    combo.value = draftCombo();
-    storedButton.value = button.value;
-    combo.dispatchEvent(new Event("change", { bubbles: true }));
-    storedButton.dispatchEvent(new Event("change", { bubbles: true }));
+    if (!bindingsField || !combo || !storedButton) return;
+    const bindings = selectedBindings();
+    const serialized = serializeClickToSaveBindings(bindings);
+    bindingsField.value = serialized;
+    bindingsField.dispatchEvent(new Event("change", { bubbles: true }));
+    const legacy = bindings.find(({ gesture }) => gestureToClickType(gesture) !== null);
+    if (legacy) {
+      const legacyButton = gestureToClickType(legacy.gesture);
+      if (legacyButton) {
+        combo.value = String(legacy.combo);
+        storedButton.value = legacyButton;
+        combo.dispatchEvent(new Event("change", { bubbles: true }));
+        storedButton.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+    }
+    baselineSerialized = serialized;
     syncClickControls();
     if (status) status.textContent = getMessage("o_lShortcutUpdated") || "Shortcut updated.";
   };
   apply?.addEventListener("click", applyGesture);
+  add?.addEventListener("click", () => {
+    const gesture = unusedGestures()[0];
+    if (!gesture) return;
+    addBindingRow({ gesture, combo: "Alt" });
+    syncClickControls();
+  });
   reset?.addEventListener("click", () => {
-    if (!modifier || !modifier2 || !button) return;
-    modifier.value = "Alt";
-    modifier2.value = "";
-    button.value = "LEFT_CLICK";
+    if (!primaryControls) return;
+    clearAdditional();
+    writeCombo(primaryControls, "Alt");
+    primaryControls.gesture.value = CLICK_GESTURES.LEFT;
     applyGesture();
     if (status) status.textContent = getMessage("o_lShortcutReset") || "Shortcut reset.";
   });
   showClickCombo();
-  syncClickControls();
 
   const accessInputs = ["keyRoot", "keyLastUsed"]
     .map((id) => document.querySelector<HTMLInputElement>(`#${id}`))

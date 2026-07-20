@@ -187,7 +187,7 @@ test("preserves backward-compatible option defaults", () => {
   const document = documentForOptions();
   expect(document.querySelector<HTMLSelectElement>("#clickToSaveModifier")?.value).toBe("Alt");
   expect(document.querySelector<HTMLSelectElement>("#clickToSaveModifier2")?.value).toBe("");
-  expect(document.querySelector<HTMLSelectElement>("#clickToSaveButton")?.value).toBe("LEFT_CLICK");
+  expect(document.querySelector<HTMLSelectElement>("#clickToSaveButton")?.value).toBe("left-click");
   expect(document.querySelector<HTMLInputElement>("#notifyDuration")?.type).toBe("hidden");
   expect(document.querySelector<HTMLInputElement>("#notifyDurationSeconds")?.value).toBe("");
   expect(

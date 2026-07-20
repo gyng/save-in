@@ -86,6 +86,7 @@ describe("message protocol runtime validation", () => {
             counter: 2,
             now: "2026-01-02T03:04:05.000Z",
             context: "media",
+            gesture: "double-left-click",
             menuIndex: "2",
             currentTab: { title: "Quarterly report", incognito: false },
           },
@@ -106,6 +107,7 @@ describe("message protocol runtime validation", () => {
             pageUrl: "https://example.test/",
             sourceUrl: "https://cdn.test/a.png",
             sourceKind: "image",
+            gesture: "middle-click",
             suggestedFilename: "a-final.png",
           },
         },
@@ -143,6 +145,7 @@ describe("message protocol runtime validation", () => {
     { type: MESSAGE_TYPES.VALIDATE, body: { info: { filename: 42 } } },
     { type: MESSAGE_TYPES.VALIDATE, body: { info: { pageUrl: null } } },
     { type: MESSAGE_TYPES.VALIDATE, body: { info: { mediaType: 42 } } },
+    { type: MESSAGE_TYPES.VALIDATE, body: { info: { gesture: "double-right-click" } } },
     { type: MESSAGE_TYPES.VALIDATE, body: { info: { resolvedFilename: {} } } },
     { type: MESSAGE_TYPES.VALIDATE, body: { info: { mimeExtension: false } } },
     { type: MESSAGE_TYPES.VALIDATE, body: { info: { suggestedFilename: 42 } } },
@@ -368,6 +371,7 @@ describe("message protocol runtime validation", () => {
       isWireDownloadState({
         info: {
           sourceKind: "audio",
+          gesture: "double-left-click",
           suggestedFilename: null,
           menuIndex: null,
           comment: "menu",
@@ -390,6 +394,7 @@ describe("message protocol runtime validation", () => {
     null,
     { info: null },
     { info: { sourceKind: "script" } },
+    { info: { gesture: "long-left-press" } },
     { info: { suggestedFilename: 2 } },
     { info: { modifiers: "Alt" } },
     { info: { modifiers: [2] } },
@@ -414,6 +419,7 @@ describe("message protocol runtime validation", () => {
   test.each([
     { info: { srcUrl: 2 } },
     { info: { sourceKind: "script" } },
+    { info: { gesture: "left-right-chord" } },
     { info: { comment: 2 } },
     { info: { modifiers: "Shift" } },
     { info: { modifiers: [2] } },
@@ -427,6 +433,7 @@ describe("message protocol runtime validation", () => {
   test.each([
     { info: { suggestedFilename: null, menuIndex: null, comment: null } },
     { info: { modifiers: [] } },
+    { info: { gesture: "forward-click" } },
     { info: { currentTab: null } },
     { info: { currentTab: { id: 1, url: "https://x/", incognito: false } } },
   ])("accepts optional download request info %#", (body) => {

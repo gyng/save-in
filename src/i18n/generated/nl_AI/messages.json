@@ -4326,5 +4326,23 @@
   },
   "ruleDestinationMustBeRelative": {
     "message": "De bestemming moet relatief zijn en mag geen ..-padcomponenten bevatten"
+  },
+  "html_gestureMatcherDescription": {
+    "message": "Komt overeen met het muisgebaar dat voor opslaan met klikken is gebruikt."
+  },
+  "o_cKeyboardShortcutModifierDoubleLeftClick": {
+    "message": "Dubbelklik met links"
+  },
+  "o_lClickToSaveDoubleClickHelp": {
+    "message": "De eerste klik bereikt de pagina nog steeds. Een gekoppelde afbeelding kan openen of navigeren voordat de tweede klik plaatsvindt."
+  },
+  "routeDebuggerGesture": {
+    "message": "Klikgebaar"
+  },
+  "routeDebuggerAnyGesture": {
+    "message": "Elk klikgebaar"
+  },
+  "routeDebuggerClickContext": {
+    "message": "Opslaan met klikken"
   }
 }

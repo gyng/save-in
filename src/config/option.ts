@@ -40,6 +40,8 @@ export const OptionsManagement: OptionsManagementApi = {
   OPTION_DESCRIPTIONS: {
     conflictAction: "Filename-collision behaviour: uniquify, overwrite, or prompt (Chrome only).",
     contentClickToSave: "Enable click-to-save: hold the modifier and click media to save it.",
+    contentClickToSaveBindings:
+      "Versioned click-to-save gesture bindings; blank profiles use the legacy combo and button.",
     contentClickToSaveCombo:
       "Modifiers to hold for click-to-save; legacy raw keyCodes remain supported.",
     contentClickToSaveButton: "Mouse button for click-to-save.",

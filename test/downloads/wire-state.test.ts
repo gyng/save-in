@@ -54,6 +54,7 @@ describe("download wire-state marshalling", () => {
       scratch: {},
       info: {
         sourceKind: "video" as const,
+        gesture: "middle-click" as const,
         suggestedFilename: null,
         menuIndex: "2",
         comment: null,
@@ -69,6 +70,7 @@ describe("download wire-state marshalling", () => {
       routeIsFolder: true,
       info: {
         sourceKind: "video",
+        gesture: "middle-click",
         suggestedFilename: null,
         menuIndex: "2",
         comment: null,

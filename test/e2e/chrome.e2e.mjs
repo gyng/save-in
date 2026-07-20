@@ -1746,7 +1746,7 @@ test("removing option keys restores live defaults before reset acknowledgement",
   }
 });
 
-test("alt+click on a real page saves the image through the content script", async () => {
+test("click-to-save rejects synthetic input and handles trusted single and double clicks", async () => {
   // Serve a page with an image so the content script has something real
   const png = Buffer.from(
     "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
@@ -1766,9 +1766,18 @@ test("alt+click on a real page saves the image through the content script", asyn
   const targetUrl = `127.0.0.1:${serverPort}`;
   const previousContentClickToSave = await control.options.get("contentClickToSave");
   const previousContentClickToSaveCombo = await control.options.get("contentClickToSaveCombo");
+  const previousContentClickToSaveBindings = await control.options.get(
+    "contentClickToSaveBindings",
+  );
+  const previousFilenamePatterns = (await control.storage.local.get("filenamePatterns"))
+    .filenamePatterns;
 
   try {
-    await control.options.set({ contentClickToSave: true, contentClickToSaveCombo: 18 });
+    await control.options.set({
+      contentClickToSave: true,
+      contentClickToSaveBindings: "",
+      contentClickToSaveCombo: 18,
+    });
 
     await cdp.openTab(PORT, pageUrl);
     await poll(
@@ -1886,11 +1895,99 @@ test("alt+click on a real page saves the image through the content script", asyn
     const completed = requireValue(download[0], "Automatic Chrome download was not captured");
     expect(completed.state).toBe("complete");
     expect(fs.readFileSync(completed.filename)).toEqual(png);
+
+    const doubleClickConfig = {
+      contentClickToSaveBindings: JSON.stringify({
+        version: 1,
+        bindings: [{ gesture: "double-left-click", combo: "" }],
+      }),
+      filenamePatterns:
+        "context: ^click$\ngesture: ^double-left-click$\ninto: e2e/double-click/:filename:",
+    };
+    const appliedDoubleClick = await control.runtime.send({
+      type: "APPLY_CONFIG",
+      body: { config: doubleClickConfig },
+    });
+    expect(appliedDoubleClick.body.applied).toMatchObject(doubleClickConfig);
+    await cdp.evalInTarget(
+      PORT,
+      targetUrl,
+      `(() => {
+        window.__saveInDoubleClickEvents = [];
+        for (const type of ["mousedown", "click", "dblclick"]) {
+          window.addEventListener(type, (event) => {
+            window.__saveInDoubleClickEvents.push({ type, detail: event.detail, button: event.button });
+          }, true);
+        }
+        return true;
+      })()`,
+    );
+    await cdp.dispatchInput(PORT, targetUrl, [
+      {
+        method: "Input.dispatchMouseEvent",
+        params: {
+          type: "mousePressed",
+          x: target.x,
+          y: target.y,
+          button: "left",
+          buttons: 1,
+          clickCount: 1,
+        },
+      },
+      {
+        method: "Input.dispatchMouseEvent",
+        params: {
+          type: "mouseReleased",
+          x: target.x,
+          y: target.y,
+          button: "left",
+          buttons: 0,
+          clickCount: 1,
+        },
+      },
+      {
+        method: "Input.dispatchMouseEvent",
+        params: {
+          type: "mousePressed",
+          x: target.x,
+          y: target.y,
+          button: "left",
+          buttons: 1,
+          clickCount: 2,
+        },
+      },
+      {
+        method: "Input.dispatchMouseEvent",
+        params: {
+          type: "mouseReleased",
+          x: target.x,
+          y: target.y,
+          button: "left",
+          buttons: 0,
+          clickCount: 2,
+        },
+      },
+    ]);
+    const doubleClickEvents = parseJson(
+      await cdp.evalInTarget(PORT, targetUrl, "JSON.stringify(window.__saveInDoubleClickEvents)"),
+      arrayOf(objectOf({ type: decodeString, detail: decodeNumber, button: decodeNumber })),
+    );
+    expect(doubleClickEvents).toEqual([
+      { type: "mousedown", detail: 1, button: 0 },
+      { type: "click", detail: 1, button: 0 },
+    ]);
+    const doubleClickDownloads = await waitForDownloads("double-click");
+    expect(doubleClickDownloads).toHaveLength(1);
+    expect(doubleClickDownloads[0]?.state).toBe("complete");
+    expect(fs.readFileSync(requireValue(doubleClickDownloads[0]?.filename, "path"))).toEqual(png);
   } finally {
     try {
       await control.options.set({
         contentClickToSave: previousContentClickToSave,
+        contentClickToSaveBindings: previousContentClickToSaveBindings,
         contentClickToSaveCombo: previousContentClickToSaveCombo,
+        filenamePatterns:
+          typeof previousFilenamePatterns === "string" ? previousFilenamePatterns : "",
       });
       const fixtureIds = (await control.tabs.query())
         .filter((tab) => tab.url?.includes(targetUrl))

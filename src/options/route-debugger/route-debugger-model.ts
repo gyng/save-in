@@ -3,6 +3,7 @@ import { AUTOMATIC_CONTEXT } from "../../routing/automatic-rule.ts";
 import { parseRoutingRuleAst } from "../../routing/rule-syntax.ts";
 import { isDataUrl, parseDataUrlMediaType } from "../../shared/data-url.ts";
 import type { PageSourceKind } from "../../shared/page-source.ts";
+import type { ClickGesture } from "../../shared/click-gesture.ts";
 import type { ValidationInfo } from "../../shared/message-protocol.ts";
 import { isStringKeyedRecord } from "../../shared/message-protocol.ts";
 import { parseVisualRoutingRules } from "../rule-editor/rule-visual-editor-model.ts";
@@ -57,6 +58,7 @@ export type RouteDebuggerFields = {
   pageUrl: string;
   mime: string;
   context: string;
+  gesture?: ClickGesture | "" | undefined;
   pageTitle?: string | undefined;
   referrerUrl?: string | undefined;
   frameUrl?: string | undefined;
@@ -276,6 +278,7 @@ export const routeDebuggerInfo = (fields: RouteDebuggerFields): ValidationInfo =
     (automatic && isDataUrl(fields.sourceUrl) ? parseDataUrlMediaType(fields.sourceUrl) : "");
   if (mime) info.mime = mime;
   if (fields.context) info.context = fields.context;
+  if (fields.gesture) info.gesture = fields.gesture;
   // Name the tab even when the field is blank: an absent key makes pagetitle:
   // fall back to the tracked tab, which while the debugger is open is the
   // options page itself, so a blank title would match "Save In" and report a

@@ -307,14 +307,16 @@ export const createProtocolCodecs = () => {
   const isOptionValue = (name, value) =>
     name === "contentClickToSaveCombo"
       ? typeof value === "string" || typeof value === "number"
-      : name === "notifyDuration" || name === "autoDownloadMaxPerPage"
-        ? typeof value === "number"
-        : name === "paths" || name === "setRefererHeaderFilter" || name === "quickSaveDirectory"
-          ? typeof value === "string"
-          : name === "shortcutType"
-            ? typeof value === "string" &&
-              ["HTML_REDIRECT", "MAC", "MAC_WEBLOC", "FREEDESKTOP", "WINDOWS"].includes(value)
-            : typeof value === "boolean";
+      : name === "contentClickToSaveBindings"
+        ? typeof value === "string"
+        : name === "notifyDuration" || name === "autoDownloadMaxPerPage"
+          ? typeof value === "number"
+          : name === "paths" || name === "setRefererHeaderFilter" || name === "quickSaveDirectory"
+            ? typeof value === "string"
+            : name === "shortcutType"
+              ? typeof value === "string" &&
+                ["HTML_REDIRECT", "MAC", "MAC_WEBLOC", "FREEDESKTOP", "WINDOWS"].includes(value)
+              : typeof value === "boolean";
 
   return {
     isArrayOf,

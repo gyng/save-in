@@ -15,6 +15,7 @@ const renderWorkbench = (): void => {
       <input id="route-debugger-page-url" value="https://example.com/reports">
       <input id="route-debugger-mime" value="application/pdf">
       <select id="route-debugger-context"><option value=""></option><option value="link">Link</option></select>
+      <select id="route-debugger-gesture"><option value=""></option><option value="double-left-click">Double left click</option></select>
       <input id="route-debugger-page-title">
       <input id="route-debugger-referrer-url">
       <input id="route-debugger-frame-url">
@@ -80,6 +81,7 @@ test("shows production rule and clause decisions and jumps back to their source"
     "mime",
     "resolvedContentType",
     "context",
+    "gesture",
     "currentTabTitle",
     "linkText",
     "selectionText",
@@ -162,6 +164,7 @@ test("shows production rule and clause decisions and jumps back to their source"
     });
 
   setupRouteDebugger();
+  document.querySelector<HTMLSelectElement>("#route-debugger-gesture")!.value = "double-left-click";
   document.querySelector<HTMLButtonElement>("#route-debugger-run")?.click();
 
   const result = document.querySelector<HTMLElement>("#route-debugger-result")!;
@@ -246,7 +249,10 @@ test("shows production rule and clause decisions and jumps back to their source"
       type: MESSAGE_TYPES.VALIDATE,
       body: expect.objectContaining({
         filenamePatterns: source.value,
-        info: expect.objectContaining({ filename: "report.pdf" }),
+        info: expect.objectContaining({
+          filename: "report.pdf",
+          gesture: "double-left-click",
+        }),
       }),
     }),
   );
@@ -442,6 +448,7 @@ test("loads the last download into the test bench", async () => {
                 pageUrl: "https://example.com/gallery",
                 mime: "image/jpeg",
                 context: "link",
+                gesture: "double-left-click",
                 currentTab: { title: "Photo gallery" },
                 referrerUrl: "https://example.com/home",
                 mediaType: "image",
@@ -483,6 +490,9 @@ test("loads the last download into the test bench", async () => {
     "photo.jpg",
   );
   expect(document.querySelector<HTMLSelectElement>("#route-debugger-context")?.value).toBe("link");
+  expect(document.querySelector<HTMLSelectElement>("#route-debugger-gesture")?.value).toBe(
+    "double-left-click",
+  );
   expect(document.querySelector<HTMLInputElement>("#route-debugger-page-title")?.value).toBe(
     "Photo gallery",
   );
@@ -617,6 +627,7 @@ test("uses legacy last-download filename and URL fallbacks and normalizes unknow
             initialFilename: "legacy.jpg",
             url: "https://legacy.example/image.jpg",
             context: "unknown",
+            gesture: "long-press",
             mediaType: "unknown",
             sourceKind: "image",
             now: "2026-07-15T12:30:00",
@@ -644,6 +655,7 @@ test("uses legacy last-download filename and URL fallbacks and normalizes unknow
     "https://legacy.example/image.jpg",
   );
   expect(document.querySelector<HTMLSelectElement>("#route-debugger-context")!.value).toBe("");
+  expect(document.querySelector<HTMLSelectElement>("#route-debugger-gesture")!.value).toBe("");
   expect(document.querySelector<HTMLSelectElement>("#route-debugger-media-type")!.value).toBe("");
   expect(document.querySelector<HTMLSelectElement>("#route-debugger-source-kind")!.value).toBe(
     "image",

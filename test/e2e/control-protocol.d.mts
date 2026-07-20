@@ -13,6 +13,7 @@ export interface E2EStoredOptionValues {
   autoDownloadPrivate: boolean;
   browserDownloadFilter: string;
   contentClickToSave: boolean;
+  contentClickToSaveBindings: string;
   contentClickToSaveCombo: string | number;
   externalDownloadAllowlist: string;
   fallbackFetch: boolean;

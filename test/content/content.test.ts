@@ -5,6 +5,7 @@ import {
   isSourcePanelCopy,
 } from "../../src/shared/source-panel-copy.ts";
 import { DATA_URL_MAX_LENGTH } from "../../src/shared/data-url.ts";
+import { CLICK_GESTURES, serializeClickToSaveBindings } from "../../src/shared/click-gesture.ts";
 
 const ClickToSave = (await import("../../src/content/content.ts")).default;
 
@@ -640,6 +641,7 @@ describe("content.js initialisation", () => {
     const img = document.getElementById("disabled-img");
     mousedown!({
       isTrusted: true,
+      button: 2,
       buttons: 2,
       target: img,
       clientX: 0,
@@ -677,6 +679,7 @@ describe("content.js initialisation", () => {
     const click = () =>
       mousedown({
         isTrusted: true,
+        button: 0,
         buttons: 1,
         target: img,
         clientX: 0,
@@ -1188,6 +1191,30 @@ describe("content.js initialisation", () => {
     expect(listenerOptions?.signal?.aborted).toBe(true);
   });
 
+  test("remounts click-to-save when the versioned gesture bindings change", async () => {
+    const addEventListener = vi.spyOn(window, "addEventListener");
+    await importContentWithOptions({
+      contentClickToSave: true,
+      contentClickToSaveBindings: "",
+      contentClickToSaveCombo: "Alt",
+      contentClickToSaveButton: "LEFT_CLICK",
+    });
+    const initialMousedown = addEventListener.mock.calls.find(([type]) => type === "mousedown");
+    const initialOptions = initialMousedown?.[2] as AddEventListenerOptions | undefined;
+
+    pushContentOptions({
+      contentClickToSaveBindings: serializeClickToSaveBindings([
+        { gesture: CLICK_GESTURES.DOUBLE_LEFT, combo: "" },
+      ]),
+    });
+
+    const mousedownListeners = addEventListener.mock.calls.filter(([type]) => type === "mousedown");
+    const currentOptions = mousedownListeners.at(-1)?.[2] as AddEventListenerOptions | undefined;
+    expect(initialOptions?.signal?.aborted).toBe(true);
+    expect(currentOptions?.signal?.aborted).toBe(false);
+    expect(mousedownListeners).toHaveLength(2);
+  });
+
   test("ignores unrelated content messages", async () => {
     await importContentWithOptions({ contentClickToSave: false });
     const runtimeListener = vi.mocked(global.chrome.runtime.onMessage.addListener).mock
@@ -1490,8 +1517,16 @@ describe("setupClickToSave", () => {
 
   const holdCombo = () => window.dispatchEvent(keyEvent("keydown", 18));
 
-  const mousedown = (target: EventTarget | null, buttons = 1) => {
-    const e = new MouseEvent("mousedown", { buttons, bubbles: true, cancelable: true });
+  const mousedown = (target: EventTarget | null, buttons = 1, detail = 1) => {
+    const button =
+      buttons === 4 ? 1 : buttons === 2 ? 2 : buttons === 8 ? 3 : buttons === 16 ? 4 : 0;
+    const e = new MouseEvent("mousedown", {
+      button,
+      buttons,
+      detail,
+      bubbles: true,
+      cancelable: true,
+    });
     vi.spyOn(e, "preventDefault");
     vi.spyOn(e, "stopImmediatePropagation");
     target?.dispatchEvent(e);
@@ -1550,6 +1585,7 @@ describe("setupClickToSave", () => {
             pageUrl: `${window.location}`,
             srcUrl: "http://x.test/pic.png",
             sourceKind: "image",
+            gesture: "left-click",
           },
         },
       },
@@ -1648,6 +1684,95 @@ describe("setupClickToSave", () => {
     holdCombo();
     mousedown(document.getElementById("i"), 2);
     expect(downloadsSent()).toHaveLength(0);
+  });
+
+  test("supports multiple distinct mouse gestures", () => {
+    const remove = ClickToSave.setupClickToSave(
+      {
+        contentClickToSaveBindings: serializeClickToSaveBindings([
+          { gesture: CLICK_GESTURES.MIDDLE, combo: "Ctrl" },
+          { gesture: CLICK_GESTURES.BACK, combo: "Shift" },
+        ]),
+        contentClickToSaveCombo: "Alt",
+        contentClickToSaveButton: "LEFT_CLICK",
+        links: false,
+      },
+      acceptTestInput,
+    );
+    const img = document.getElementById("i");
+
+    window.dispatchEvent(keyEvent("keydown", 17));
+    mousedown(img, 4);
+    window.dispatchEvent(keyEvent("keyup", 17));
+    window.dispatchEvent(keyEvent("keydown", 16));
+    mousedown(img, 8);
+
+    expect(downloadsSent().map(([message]) => message.body.info.gesture)).toEqual([
+      "middle-click",
+      "back-click",
+    ]);
+    remove();
+  });
+
+  test("double-left saves once on the second press over the same source", () => {
+    const remove = ClickToSave.setupClickToSave(
+      {
+        contentClickToSaveBindings: serializeClickToSaveBindings([
+          { gesture: CLICK_GESTURES.DOUBLE_LEFT, combo: "Ctrl" },
+        ]),
+        contentClickToSaveCombo: "Alt",
+        contentClickToSaveButton: "LEFT_CLICK",
+        links: false,
+      },
+      acceptTestInput,
+    );
+    window.dispatchEvent(keyEvent("keydown", 17));
+    const img = document.getElementById("i");
+
+    const first = mousedown(img, 1, 1);
+    expect(first.preventDefault).not.toHaveBeenCalled();
+    expect(downloadsSent()).toHaveLength(0);
+    const second = mousedown(img, 1, 2);
+
+    expect(second.preventDefault).toHaveBeenCalled();
+    expect(downloadsSent()).toHaveLength(1);
+    expect(downloadsSent()[0]?.[0].body.info.gesture).toBe("double-left-click");
+
+    const click = new MouseEvent("click", { button: 0, bubbles: true, cancelable: true });
+    vi.spyOn(click, "preventDefault");
+    vi.spyOn(click, "stopImmediatePropagation");
+    img?.dispatchEvent(click);
+    expect(click.preventDefault).toHaveBeenCalled();
+    expect(click.stopImmediatePropagation).toHaveBeenCalled();
+
+    const dblclick = new MouseEvent("dblclick", { button: 0, bubbles: true, cancelable: true });
+    vi.spyOn(dblclick, "preventDefault");
+    img?.dispatchEvent(dblclick);
+    expect(dblclick.preventDefault).toHaveBeenCalled();
+    remove();
+  });
+
+  test("double-left does not combine presses from different sources", () => {
+    const remove = ClickToSave.setupClickToSave(
+      {
+        contentClickToSaveBindings: serializeClickToSaveBindings([
+          { gesture: CLICK_GESTURES.DOUBLE_LEFT, combo: "Ctrl" },
+        ]),
+        contentClickToSaveCombo: "Alt",
+        contentClickToSaveButton: "LEFT_CLICK",
+        links: false,
+      },
+      acceptTestInput,
+    );
+    document.body.innerHTML =
+      '<img id="first" src="http://x.test/first.png"><img id="second" src="http://x.test/second.png">';
+    window.dispatchEvent(keyEvent("keydown", 17));
+
+    mousedown(document.getElementById("first"), 1, 1);
+    mousedown(document.getElementById("second"), 1, 2);
+
+    expect(downloadsSent()).toHaveLength(0);
+    remove();
   });
 
   test("keyup releases the combo", () => {

@@ -12,6 +12,7 @@ beforeEach(() => {
     <input id="route-debugger-page-url" value="https://news.example.com/reports">
     <input id="route-debugger-mime" value="Image/JPEG; charset=utf-8">
     <select id="route-debugger-context"><option value="MEDIA" selected>Media</option></select>
+    <select id="route-debugger-gesture"><option value="double-left-click" selected>Double</option></select>
     <input id="route-debugger-page-title" value="Quarterly report">
     <input id="route-debugger-referrer-url">
     <input id="route-debugger-frame-url" value="https://frame.example/embed">
@@ -37,6 +38,7 @@ test("describes matcher help and falls back for custom matchers", () => {
 
 test.each([
   ["context", "media"],
+  ["gesture", "double-left-click"],
   ["menuindex", "documents"],
   ["comment", "work files"],
   ["linktext", "Download report"],

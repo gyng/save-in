@@ -33,6 +33,12 @@ import type { AutomaticRoutingCandidate } from "../automation/automatic-routing.
 import { parseRulesCollecting } from "../routing/rule-parser.ts";
 import type { RoutingRule } from "../routing/rule-types.ts";
 import { isDataUrl, isDataUrlWithinCap } from "../shared/data-url.ts";
+import {
+  CLICK_GESTURES,
+  resolveClickToSaveBindings,
+  type ClickGesture,
+} from "../shared/click-gesture.ts";
+import { createDoubleClickTracker, isSingleGestureButton } from "./click-gesture-model.ts";
 import { configureContentPorts } from "./ports.ts";
 import {
   cssSelectorsForRules,
@@ -177,6 +183,7 @@ type ContentDownloadRequest = {
     pageUrl: string;
     srcUrl: string;
     sourceKind?: PageSource["kind"];
+    gesture?: ClickGesture;
     matchedCssSelectorsByOrigin?: string[][];
   };
 };
@@ -213,7 +220,7 @@ const sendRuntimeDownload = (
 type ResolvedClickToSaveOptions = Pick<
   ResolvedContentOptions,
   "contentClickToSaveCombo" | "contentClickToSaveButton" | "links"
-> & { filenamePatterns?: string };
+> & { contentClickToSaveBindings?: string; filenamePatterns?: string };
 type ResolvedAutoDownloadOptions = Pick<
   ResolvedContentOptions,
   | "autoDownloadLive"
@@ -235,14 +242,21 @@ const setupClickToSave = (
   const cssSelectors = cssSelectorsForRules(routingRules);
   const controller = new AbortController();
   const listenerOptions = { capture: true, signal: controller.signal };
-  const shortcutOptions = {
-    combo: ClickToSave.comboToKeyCodes(options.contentClickToSaveCombo),
-    button: options.contentClickToSaveButton,
-  };
+  const shortcutOptions = resolveClickToSaveBindings(
+    options.contentClickToSaveBindings,
+    options.contentClickToSaveCombo,
+    options.contentClickToSaveButton,
+  ).map((binding) => ({ ...binding, keyCodes: contentClickComboToKeyCodes(binding.combo) }));
 
   let active: Record<number, boolean> = {};
   const retryTimers = new Set<number>();
   const downloadLifecycle = { signal: controller.signal, retryTimers };
+  type ClickSource = NonNullable<ReturnType<typeof ClickToSave.findSource>>;
+  const doubleClick = createDoubleClickTracker<ClickSource>(
+    (first, second) =>
+      first.element === second.element && first.url === second.url && first.kind === second.kind,
+  );
+  let suppressDoubleClickOn: Element | null = null;
 
   const eventKeyCode = (e: KeyboardEvent) => {
     const named: Record<string, number> = { Alt: 18, Control: 17, Shift: 16, Meta: 91 };
@@ -259,7 +273,7 @@ const setupClickToSave = (
 
       // Wake the MV3 service worker as soon as the combo key is held so
       // it is warm by the time the click arrives
-      if (!wasActive && shortcutOptions.combo.includes(code)) {
+      if (!wasActive && shortcutOptions.some(({ keyCodes }) => keyCodes.includes(code))) {
         warmBackground();
       }
     },
@@ -277,6 +291,8 @@ const setupClickToSave = (
 
   const resetActive = () => {
     active = {};
+    doubleClick.reset();
+    suppressDoubleClickOn = null;
   };
   window.addEventListener("focus", resetActive, { signal: controller.signal });
   window.addEventListener("blur", resetActive, { signal: controller.signal });
@@ -299,40 +315,71 @@ const setupClickToSave = (
       // Enforced at click time against the live URL so a single-page-app
       // navigation onto or off the disable list takes effect immediately.
       if (isDisabled()) return;
-      if (
-        ClickToSave.isMouseButtonActive(shortcutOptions.button, e.buttons) &&
-        ClickToSave.isKeyboardComboActive(shortcutOptions.combo, active)
-      ) {
-        const source = ClickToSave.findSource(e, options.links);
-
-        if (source) {
-          e.preventDefault();
-          e.stopImmediatePropagation();
-          void sendRuntimeDownload(
-            {
-              url: source.url,
-              info: {
-                pageUrl: `${window.location}`,
-                srcUrl: source.url,
-                sourceKind: source.kind,
-                ...(cssSelectors.length > 0
-                  ? {
-                      matchedCssSelectorsByOrigin: matchedCssSelectorsByOrigin(
-                        [source.element],
-                        routingRules,
-                      ),
-                    }
-                  : {}),
-              },
-            },
-            2,
-            downloadLifecycle,
-          );
-        }
+      suppressDoubleClickOn = null;
+      const binding = shortcutOptions.find(
+        ({ keyCodes, gesture }) =>
+          ClickToSave.isKeyboardComboActive(keyCodes, active) &&
+          (isSingleGestureButton(gesture, e.button) ||
+            (gesture === CLICK_GESTURES.DOUBLE_LEFT && e.button === 0)),
+      );
+      if (!binding) {
+        doubleClick.reset();
+        return;
       }
+      const source = ClickToSave.findSource(e, options.links);
+      if (!source) {
+        doubleClick.reset();
+        return;
+      }
+
+      if (binding.gesture === CLICK_GESTURES.DOUBLE_LEFT) {
+        if (e.detail === 1) warmBackground();
+        if (!doubleClick.press(e.detail, e.button, source)) return;
+        suppressDoubleClickOn = source.element;
+      } else {
+        doubleClick.reset();
+      }
+
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      void sendRuntimeDownload(
+        {
+          url: source.url,
+          info: {
+            pageUrl: `${window.location}`,
+            srcUrl: source.url,
+            sourceKind: source.kind,
+            gesture: binding.gesture,
+            ...(cssSelectors.length > 0
+              ? {
+                  matchedCssSelectorsByOrigin: matchedCssSelectorsByOrigin(
+                    [source.element],
+                    routingRules,
+                  ),
+                }
+              : {}),
+          },
+        },
+        2,
+        downloadLifecycle,
+      );
     },
     listenerOptions,
   );
+
+  const suppressCompletedDoubleClick = (e: MouseEvent) => {
+    if (
+      !suppressDoubleClickOn ||
+      e.button !== 0 ||
+      !e.composedPath().includes(suppressDoubleClickOn)
+    )
+      return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    if (e.type === "dblclick") suppressDoubleClickOn = null;
+  };
+  window.addEventListener("click", suppressCompletedDoubleClick, listenerOptions);
+  window.addEventListener("dblclick", suppressCompletedDoubleClick, listenerOptions);
 
   return () => {
     controller.abort();
@@ -459,6 +506,7 @@ const applyOptions = (next: ContentOptions) => {
   const clickOptionsChanged = (
     [
       "contentClickToSave",
+      "contentClickToSaveBindings",
       "contentClickToSaveCombo",
       "contentClickToSaveButton",
       "links",

@@ -1,4 +1,9 @@
 import { CLICK_TYPES, type ClickType } from "../shared/constants.ts";
+import {
+  contentClickComboToKeyCodes,
+  isContentClickCombo,
+  isStoredClickToSaveBindings,
+} from "../shared/click-gesture.ts";
 import { isSelectableLocale, type SelectableLocale } from "../shared/generated-locales.ts";
 import { isStringKeyedRecord, isStringMember } from "../shared/util.ts";
 
@@ -43,65 +48,8 @@ export const normalizeUiTheme = (value: unknown): UiTheme => {
   return isUiTheme(value) ? value : "system";
 };
 
-const CONTENT_CLICK_COMBO_KEY_CODES: Record<string, number> = {
-  alt: 18,
-  option: 18,
-  ctrl: 17,
-  control: 17,
-  shift: 16,
-  meta: 91,
-  cmd: 91,
-  command: 91,
-  win: 91,
-  windows: 91,
-  super: 91,
-};
 const DEFAULT_CONTENT_CLICK_COMBO = "Alt";
-const DEFAULT_CONTENT_CLICK_COMBO_KEY_CODE = 18;
-
-const isPositiveKeyCode = (value: string | number): boolean => {
-  const keyCode = Number(value);
-  return Number.isSafeInteger(keyCode) && keyCode > 0;
-};
-
-const contentClickComboParts = (value: string | number): string[] | null => {
-  if (typeof value === "number") return isPositiveKeyCode(value) ? [String(value)] : null;
-  const normalized = value.trim();
-  if (!normalized || normalized.toLocaleLowerCase() === "none") return [];
-  const parts = normalized.split("+").map((part) => part.trim().toLocaleLowerCase());
-  return parts.every(
-    (part) =>
-      Boolean(part) &&
-      (Object.hasOwn(CONTENT_CLICK_COMBO_KEY_CODES, part) || isPositiveKeyCode(part)),
-  )
-    ? parts
-    : null;
-};
-
-export const isContentClickCombo = (value: unknown): value is string | number =>
-  (typeof value === "string" || typeof value === "number") &&
-  contentClickComboParts(value) !== null;
-
-export const contentClickComboToKeyCodes = (
-  value: string | number | null | undefined,
-): number[] => {
-  if (value == null) return [];
-  const parts = contentClickComboParts(value);
-  // Invalid imported/profile values must not silently weaken the shortcut to
-  // button-only. The normalizer uses the same parser, but this also keeps the
-  // exported input helper safe when called directly.
-  if (parts === null) {
-    return [DEFAULT_CONTENT_CLICK_COMBO_KEY_CODE];
-  }
-  return parts
-    .map((part) => {
-      const namedKeyCode = CONTENT_CLICK_COMBO_KEY_CODES[part];
-      return Object.hasOwn(CONTENT_CLICK_COMBO_KEY_CODES, part) && typeof namedKeyCode === "number"
-        ? namedKeyCode
-        : Number(part);
-    })
-    .filter((keyCode) => keyCode > 0);
-};
+export { contentClickComboToKeyCodes, isContentClickCombo };
 
 // These defaults are the single source of truth for both the background schema
 // and the lightweight direct-storage content path.
@@ -125,6 +73,7 @@ export type ResolvedContentOptions = {
   sourcePanelLinks: boolean;
   uiLocale: "" | SelectableLocale;
   uiTheme: UiTheme;
+  contentClickToSaveBindings: string;
   contentClickToSaveCombo: string | number;
   contentClickToSaveButton: ClickType;
   contentClickToSaveUseDefault: boolean;
@@ -156,6 +105,9 @@ export const CONTENT_OPTION_DEFAULTS: ResolvedContentOptions = {
   sourcePanelLinks: true,
   uiLocale: "",
   uiTheme: "system",
+  // Empty means "synthesize the legacy combo/button pair". This sentinel is
+  // what preserves custom profiles created before multiple bindings existed.
+  contentClickToSaveBindings: "",
   contentClickToSaveCombo: DEFAULT_CONTENT_CLICK_COMBO,
   contentClickToSaveButton: CLICK_TYPES.LEFT_CLICK,
   // Click-to-save inherits the last save's folder, which is what #162 asked to
@@ -241,6 +193,10 @@ const CONTENT_OPTION_NORMALIZERS: ContentOptionNormalizers = {
   sourcePanelLinks: booleanOption(CONTENT_OPTION_DEFAULTS.sourcePanelLinks),
   uiLocale: (stored) => (isSelectableLocale(stored) ? stored : CONTENT_OPTION_DEFAULTS.uiLocale),
   uiTheme: normalizeUiTheme,
+  contentClickToSaveBindings: (stored) =>
+    isStoredClickToSaveBindings(stored)
+      ? stored
+      : CONTENT_OPTION_DEFAULTS.contentClickToSaveBindings,
   contentClickToSaveCombo: (stored) =>
     isContentClickCombo(stored) ? stored : CONTENT_OPTION_DEFAULTS.contentClickToSaveCombo,
   contentClickToSaveUseDefault: booleanOption(CONTENT_OPTION_DEFAULTS.contentClickToSaveUseDefault),

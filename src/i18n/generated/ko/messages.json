@@ -4326,5 +4326,23 @@
   },
   "ruleDestinationMustBeRelative": {
     "message": "대상은 상대 경로여야 하며 .. 경로 구성 요소를 포함할 수 없습니다"
+  },
+  "html_gestureMatcherDescription": {
+    "message": "클릭하여 저장할 때 사용한 마우스 제스처와 일치합니다."
+  },
+  "o_cKeyboardShortcutModifierDoubleLeftClick": {
+    "message": "왼쪽 버튼 두 번 클릭"
+  },
+  "o_lClickToSaveDoubleClickHelp": {
+    "message": "첫 번째 클릭은 페이지에도 전달됩니다. 링크가 있는 이미지는 두 번째 클릭 전에 열리거나 다른 페이지로 이동할 수 있습니다."
+  },
+  "routeDebuggerGesture": {
+    "message": "클릭 제스처"
+  },
+  "routeDebuggerAnyGesture": {
+    "message": "모든 클릭 제스처"
+  },
+  "routeDebuggerClickContext": {
+    "message": "클릭하여 저장"
   }
 }

@@ -378,6 +378,26 @@ describe("handleDownloadMessage", () => {
     ).toBeUndefined();
   });
 
+  test("accepts gesture provenance only from the trusted content channel", async () => {
+    const gestureRequest = request({
+      info: {
+        pageUrl: "https://x/",
+        srcUrl: "https://x/file.png",
+        gesture: "double-left-click",
+      },
+    });
+    onMessage(gestureRequest, { url: "https://x/", tab: { id: 8, url: "https://x/" } }, vi.fn());
+    expect(vi.mocked(Download.launchDownload).mock.calls[0]![0]!.info.gesture).toBe(
+      "double-left-click",
+    );
+
+    vi.mocked(Download.launchDownload).mockClear();
+    const response = vi.fn();
+    onMessageExternal(gestureRequest, { id: "trusted-extension", tab: { id: 9 } }, response);
+    await waitForCall(response);
+    expect(vi.mocked(Download.launchDownload).mock.calls[0]![0]!.info.gesture).toBeUndefined();
+  });
+
   test("rejects CSS attestations forged by another internal extension page", () => {
     onMessage(
       request({

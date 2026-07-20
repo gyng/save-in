@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { setupShortcutOptions } from "../../../src/options/core/shortcut-options.ts";
+import { CLICK_GESTURES, parseClickToSaveBindings } from "../../../src/shared/click-gesture.ts";
 
 const change = (element: Element) => element.dispatchEvent(new Event("change", { bubbles: true }));
 const input = (element: Element) =>
@@ -106,11 +107,12 @@ describe("shortcut option controller", () => {
   test("normalizes duplicate modifiers and applies and resets the gesture", () => {
     vi.mocked(browser.i18n.getMessage).mockReturnValue("");
     document.body.innerHTML = `<input type="checkbox" id="contentClickToSave" checked>
+      <input id="contentClickToSaveBindings" value="">
       <input id="contentClickToSaveCombo" value="Alt">
       <input id="contentClickToSaveButton" value="RIGHT_CLICK">
       <select id="clickToSaveModifier"><option></option><option selected>Alt</option><option>Ctrl</option></select>
       <select id="clickToSaveModifier2"><option></option><option selected>Alt</option><option>Shift</option></select>
-      <select id="clickToSaveButton"><option>LEFT_CLICK</option><option selected>RIGHT_CLICK</option></select>
+      <select id="clickToSaveButton"><option value="left-click">Left</option><option value="right-click">Right</option></select>
       <button id="clickToSaveApply"></button><button id="clickToSaveReset"></button>
       <span id="clickToSaveStatus"></span><div id="click-to-save-warning"></div>`;
     setupShortcutOptions();
@@ -123,7 +125,7 @@ describe("shortcut option controller", () => {
 
     modifier.value = "Ctrl";
     modifier2.value = "Shift";
-    button.value = "LEFT_CLICK";
+    button.value = "left-click";
     change(modifier);
     expect(apply.disabled).toBe(false);
     expect(status.textContent).toBe("Ready to apply.");
@@ -140,11 +142,12 @@ describe("shortcut option controller", () => {
 
   test("shows the unsafe left-click warning only for an enabled modifier-free gesture", () => {
     document.body.innerHTML = `<input type="checkbox" id="contentClickToSave" checked>
+      <input id="contentClickToSaveBindings" value="">
       <input id="contentClickToSaveCombo" value="">
       <input id="contentClickToSaveButton" value="LEFT_CLICK">
       <select id="clickToSaveModifier"><option></option><option>Alt</option></select>
       <select id="clickToSaveModifier2"><option></option></select>
-      <select id="clickToSaveButton"><option>LEFT_CLICK</option><option>RIGHT_CLICK</option></select>
+      <select id="clickToSaveButton"><option value="left-click">Left</option><option value="right-click">Right</option></select>
       <button id="clickToSaveApply"></button><button id="clickToSaveReset"></button>
       <div id="click-to-save-warning" hidden></div>`;
     setupShortcutOptions();
@@ -155,33 +158,82 @@ describe("shortcut option controller", () => {
     change(enabled);
     expect(warning.hidden).toBe(true);
     const button = document.querySelector<HTMLSelectElement>("#clickToSaveButton")!;
-    button.value = "RIGHT_CLICK";
+    button.value = "right-click";
     change(button);
     document.querySelector<HTMLButtonElement>("#clickToSaveApply")!.click();
     document.querySelector<HTMLButtonElement>("#clickToSaveReset")!.click();
   });
 
+  test("adds distinct gestures and prevents ambiguous single and double left bindings", () => {
+    document.body.innerHTML = `<input type="checkbox" id="contentClickToSave" checked>
+      <input id="contentClickToSaveBindings" value="">
+      <input id="contentClickToSaveCombo" value="Alt">
+      <input id="contentClickToSaveButton" value="LEFT_CLICK">
+      <select id="clickToSaveModifier"><option></option><option value="Alt">Alt</option></select>
+      <select id="clickToSaveModifier2"><option></option></select>
+      <select id="clickToSaveButton">
+        <option value="left-click">Left</option><option value="middle-click">Middle</option>
+        <option value="double-left-click">Double left</option>
+      </select>
+      <div id="clickToSaveAdditionalBindings"></div>
+      <button id="clickToSaveAdd"></button><button id="clickToSaveApply"></button>
+      <button id="clickToSaveReset"></button><span id="clickToSaveStatus"></span>
+      <div id="click-to-save-warning" hidden></div><div id="click-to-save-double-warning" hidden></div>`;
+    setupShortcutOptions();
+
+    const primary = document.querySelector<HTMLSelectElement>("#clickToSaveButton")!;
+    expect(
+      primary.querySelector<HTMLOptionElement>('option[value="double-left-click"]')?.disabled,
+    ).toBe(true);
+    document.querySelector<HTMLButtonElement>("#clickToSaveAdd")!.click();
+    expect(document.querySelectorAll(".click-to-save-binding")).toHaveLength(1);
+    document.querySelector<HTMLButtonElement>("#clickToSaveApply")!.click();
+
+    expect(
+      parseClickToSaveBindings(
+        document.querySelector<HTMLInputElement>("#contentClickToSaveBindings")!.value,
+      ),
+    ).toEqual([
+      { gesture: CLICK_GESTURES.LEFT, combo: "Alt" },
+      { gesture: CLICK_GESTURES.MIDDLE, combo: "Alt" },
+    ]);
+
+    document.querySelector<HTMLButtonElement>(".click-to-save-binding button")!.click();
+    document.querySelector<HTMLButtonElement>("#clickToSaveApply")!.click();
+    expect(document.querySelectorAll(".click-to-save-binding")).toHaveLength(0);
+    expect(
+      parseClickToSaveBindings(
+        document.querySelector<HTMLInputElement>("#contentClickToSaveBindings")!.value,
+      ),
+    ).toEqual([{ gesture: CLICK_GESTURES.LEFT, combo: "Alt" }]);
+  });
+
   test("preserves a legacy combo and falls back when the stored mouse button is absent", () => {
     vi.mocked(browser.i18n.getMessage).mockReturnValue("");
-    document.body.innerHTML = `<input id="contentClickToSaveCombo" value="LegacyKey">
+    document.body.innerHTML = `<input id="contentClickToSaveCombo" value="90">
       <select id="clickToSaveModifier"><option></option></select>
       <select id="clickToSaveModifier2"><option></option></select>
-      <select id="clickToSaveButton"><option>LEFT_CLICK</option></select>`;
+      <select id="clickToSaveButton"><option value="left-click">Left</option></select>`;
     setupShortcutOptions();
     const modifier = document.querySelector<HTMLSelectElement>("#clickToSaveModifier")!;
-    expect(modifier.value).toBe("LegacyKey");
-    expect(modifier.selectedOptions[0]!.textContent).toBe("Legacy value: LegacyKey");
+    expect(modifier.value).toBe("90");
+    expect(modifier.selectedOptions[0]!.textContent).toBe("Legacy value: 90");
     expect(document.querySelector<HTMLSelectElement>("#clickToSaveButton")!.value).toBe(
-      "LEFT_CLICK",
+      "left-click",
     );
+    document.querySelector<HTMLSelectElement>("#clickToSaveButton")!.value = "";
+    expect(() =>
+      change(document.querySelector<HTMLSelectElement>("#clickToSaveButton")!),
+    ).not.toThrow();
   });
 
   test("contains apply and reset actions when required controls are missing", () => {
     document.body.innerHTML = `<button id="clickToSaveApply"></button>
-      <button id="clickToSaveReset"></button>`;
+      <button id="clickToSaveReset"></button><button id="clickToSaveAdd"></button>`;
     setupShortcutOptions();
     document.querySelector<HTMLButtonElement>("#clickToSaveApply")!.click();
     document.querySelector<HTMLButtonElement>("#clickToSaveReset")!.click();
+    document.querySelector<HTMLButtonElement>("#clickToSaveAdd")!.click();
   });
 
   test("marks invalid access keys and clears the warning after correction", () => {

@@ -20,6 +20,7 @@ import {
   isCssSelectorAttestation,
   type CssSelectorAttestation,
 } from "./css-selector-attestation.ts";
+import { isClickGesture, type ClickGesture } from "./click-gesture.ts";
 
 export { isStringKeyedRecord } from "./util.ts";
 
@@ -48,6 +49,7 @@ export type WireDownloadInfo = {
   referrerUrl?: string | undefined;
   suggestedFilename?: string | null | undefined;
   context?: string | undefined;
+  gesture?: ClickGesture | undefined;
   menuIndex?: string | null | undefined;
   menuItemId?: string | undefined;
   menuItemTitle?: string | undefined;
@@ -293,6 +295,7 @@ export type DownloadRequestBody = {
         | "mime"
         | "mediaType"
         | "sourceKind"
+        | "gesture"
       > & {
         srcUrl?: string | undefined;
         matchedCssSelectorsByOrigin?: CssSelectorAttestation | undefined;
@@ -463,6 +466,7 @@ const isDownloadInfo = (value: unknown): boolean => {
       hasOptionalString(value, key),
     ) &&
     (typeof value.sourceKind === "undefined" || isPageSourceKind(value.sourceKind)) &&
+    (typeof value.gesture === "undefined" || isClickGesture(value.gesture)) &&
     (typeof value.matchedCssSelectorsByOrigin === "undefined" ||
       isCssSelectorAttestation(value.matchedCssSelectorsByOrigin)) &&
     ["suggestedFilename", "menuIndex", "comment"].every((key) =>
@@ -483,6 +487,7 @@ const isValidationInfo = (value: unknown): value is ValidationInfo =>
   isStringKeyedRecord(value) &&
   [...WIRE_INFO_STRING_FIELDS, "srcUrl", "linkUrl"].every((key) => hasOptionalString(value, key)) &&
   (typeof value.sourceKind === "undefined" || isPageSourceKind(value.sourceKind)) &&
+  (typeof value.gesture === "undefined" || isClickGesture(value.gesture)) &&
   ["suggestedFilename", "menuIndex", "comment"].every((key) =>
     hasOptionalNullableString(value, key),
   ) &&
@@ -520,6 +525,7 @@ const isWireDownloadInfo = (value: unknown): value is WireDownloadInfo =>
   isStringKeyedRecord(value) &&
   WIRE_INFO_STRING_FIELDS.every((key) => hasOptionalString(value, key)) &&
   (typeof value.sourceKind === "undefined" || isPageSourceKind(value.sourceKind)) &&
+  (typeof value.gesture === "undefined" || isClickGesture(value.gesture)) &&
   ["suggestedFilename", "menuIndex", "comment"].every((key) =>
     hasOptionalNullableString(value, key),
   ) &&

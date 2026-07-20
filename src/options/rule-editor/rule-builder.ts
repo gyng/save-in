@@ -43,6 +43,7 @@ const MATCHER_PATTERN_PLACEHOLDERS: Record<string, string> = {
   selectiontext: "invoice|receipt",
   sourceurl: "/images/|/media/",
   sourcekind: "image|video|audio|stream|document|link",
+  gesture: "left-click|middle-click|double-left-click",
 };
 
 const showTemplateFeedback = (

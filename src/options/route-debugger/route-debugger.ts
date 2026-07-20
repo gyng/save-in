@@ -11,6 +11,7 @@ import {
   type RouteDebuggerTrace,
 } from "./route-debugger-model.ts";
 import { isPageSourceKind } from "../../shared/page-source.ts";
+import { isClickGesture } from "../../shared/click-gesture.ts";
 import {
   inputDiscoveryDiagnostics,
   REACHABILITY_OPTION_IDS,
@@ -51,6 +52,7 @@ const fieldsFromInfo = (info: WireDownloadInfo): RouteDebuggerFields => ({
   pageUrl: info.pageUrl || "",
   mime: info.mime || "",
   context: info.context || "",
+  gesture: info.gesture || "",
   pageTitle: info.currentTab?.title || "",
   referrerUrl: info.referrerUrl || "",
   frameUrl: info.frameUrl || "",
@@ -71,6 +73,7 @@ const SAMPLE_DOWNLOAD: RouteDebuggerFields = {
   pageUrl: "https://example.com/reports",
   mime: "application/pdf",
   context: "",
+  gesture: "",
   pageTitle: "",
   referrerUrl: "",
   frameUrl: "",
@@ -148,6 +151,7 @@ export const setupRouteDebugger = (): void => {
   const pageUrl = element<HTMLInputElement>("#route-debugger-page-url");
   const mime = element<HTMLInputElement>("#route-debugger-mime");
   const context = element<HTMLSelectElement>("#route-debugger-context");
+  const gesture = element<HTMLSelectElement>("#route-debugger-gesture");
   const pageTitle = element<HTMLInputElement>("#route-debugger-page-title");
   const referrerUrl = element<HTMLInputElement>("#route-debugger-referrer-url");
   const frameUrl = element<HTMLInputElement>("#route-debugger-frame-url");
@@ -173,6 +177,7 @@ export const setupRouteDebugger = (): void => {
     !pageUrl ||
     !mime ||
     !context ||
+    !gesture ||
     !pageTitle ||
     !referrerUrl ||
     !frameUrl ||
@@ -195,6 +200,7 @@ export const setupRouteDebugger = (): void => {
     pageUrl,
     mime,
     context,
+    gesture,
     pageTitle,
     referrerUrl,
     frameUrl,
@@ -226,6 +232,7 @@ export const setupRouteDebugger = (): void => {
     pageUrl: pageUrl.value.trim(),
     mime: mime.value.trim(),
     context: context.value,
+    gesture: isClickGesture(gesture.value) ? gesture.value : "",
     pageTitle: pageTitle.value.trim(),
     referrerUrl: referrerUrl.value.trim(),
     frameUrl: frameUrl.value.trim(),
@@ -248,6 +255,7 @@ export const setupRouteDebugger = (): void => {
     context.value = [...context.options].some((option) => option.value === fields.context)
       ? fields.context
       : "";
+    gesture.value = isClickGesture(fields.gesture) ? fields.gesture : "";
     pageTitle.value = fields.pageTitle || "";
     referrerUrl.value = fields.referrerUrl || "";
     frameUrl.value = fields.frameUrl || "";

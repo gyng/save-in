@@ -14,6 +14,7 @@ const { FirefoxBidi, waitForSocketOpen } = require("../../scripts/lib/firefox-bi
       ): Promise<unknown>;
       close(): void;
     };
+    doubleClick(urlSubstr: string, x: number, y: number): Promise<unknown>;
     close(): void;
   };
   waitForSocketOpen: (socket: WebSocket, timeoutMs: number) => Promise<void>;
@@ -93,5 +94,44 @@ test("reuses a control realm and marks it stale from lifecycle events", async ()
     }),
   );
   expect(realm.state()).toBe("stale");
+  client.close();
+});
+
+test("sends two primary-button presses as one trusted pointer action", async () => {
+  const socket = new FakeSocket();
+  const packets: Array<{ id: number; method: string; params: Record<string, unknown> }> = [];
+  socket.send.mockImplementation((serialized) => {
+    const packet = JSON.parse(String(serialized)) as (typeof packets)[number];
+    packets.push(packet);
+    const result =
+      packet.method === "browsingContext.getTree"
+        ? { contexts: [{ context: "page", url: "https://example.test/image" }] }
+        : {};
+    socket.dispatchEvent(
+      new MessageEvent("message", {
+        data: JSON.stringify({ id: packet.id, type: "success", result }),
+      }),
+    );
+  });
+  const client = new FirefoxBidi(socket as unknown as WebSocket);
+
+  await client.doubleClick("example.test", 12, 34);
+
+  const action = packets.find(({ method }) => method === "input.performActions");
+  expect(action?.params).toMatchObject({
+    context: "page",
+    actions: [
+      {
+        type: "pointer",
+        actions: [
+          { type: "pointerMove", x: 12, y: 34 },
+          { type: "pointerDown", button: 0 },
+          { type: "pointerUp", button: 0 },
+          { type: "pointerDown", button: 0 },
+          { type: "pointerUp", button: 0 },
+        ],
+      },
+    ],
+  });
   client.close();
 });

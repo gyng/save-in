@@ -3,6 +3,7 @@
 // the pipeline state it serializes; the wire *shape* itself stays a shared
 // contract in shared/message-protocol.ts.
 import { isPageSourceKind } from "../shared/page-source.ts";
+import { isClickGesture } from "../shared/click-gesture.ts";
 import {
   isBrowserTabId,
   isRoutingCounter,
@@ -20,6 +21,7 @@ export const toWireDownloadState = (state: DownloadPipelineState): WireDownloadS
     if (typeof value === "string") info[key] = value;
   }
   if (isPageSourceKind(state.info.sourceKind)) info.sourceKind = state.info.sourceKind;
+  if (isClickGesture(state.info.gesture)) info.gesture = state.info.gesture;
   for (const key of ["suggestedFilename", "menuIndex", "comment"] as const) {
     const value = state.info[key];
     if (typeof value === "string" || value === null) info[key] = value;

@@ -35,11 +35,13 @@ export const setupOptionDependencies = () => {
       parent: "contentClickToSave",
       children: [
         "contentClickToSaveCombo",
+        "contentClickToSaveBindings",
         "clickToSaveModifier",
         "clickToSaveModifier2",
         "contentClickToSaveButton",
         "clickToSaveButton",
         "clickToSaveApply",
+        "clickToSaveAdd",
         "clickToSaveReset",
       ],
     },

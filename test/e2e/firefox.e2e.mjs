@@ -800,16 +800,25 @@ test("ordinary browser downloads can be tracked and experimentally rerouted on F
   }
 });
 
-test("click-to-save rejects synthetic input and accepts a trusted alt+click", async () => {
+test("click-to-save rejects synthetic input and handles trusted single and double clicks", async () => {
   const { server, port } = await startPageServer();
   const pageUrl = `http://127.0.0.1:${port}/`;
   const targetUrl = `127.0.0.1:${port}`;
   const previousContentClickToSave = await control.options.get("contentClickToSave");
   const previousContentClickToSaveCombo = await control.options.get("contentClickToSaveCombo");
+  const previousContentClickToSaveBindings = await control.options.get(
+    "contentClickToSaveBindings",
+  );
+  const previousFilenamePatterns = (await control.storage.local.get("filenamePatterns"))
+    .filenamePatterns;
 
   try {
     // Enable click-to-save and reinitialise so the content script picks it up
-    await control.options.set({ contentClickToSave: true, contentClickToSaveCombo: 18 });
+    await control.options.set({
+      contentClickToSave: true,
+      contentClickToSaveBindings: "",
+      contentClickToSaveCombo: 18,
+    });
 
     const created = await control.tabs.create({ url: pageUrl });
     if (created.id !== undefined) await control.tabs.wait({ id: created.id });
@@ -851,11 +860,53 @@ test("click-to-save rejects synthetic input and accepts a trusted alt+click", as
     expect(trustedDownloads.some((item) => item.state === "complete")).toBe(true);
     const trusted = requireValue(trustedDownloads.at(-1), "Trusted Firefox download was missing");
     expect(fs.readFileSync(trusted.filename)).toEqual(PNG);
+
+    const doubleClickConfig = {
+      contentClickToSaveBindings: JSON.stringify({
+        version: 1,
+        bindings: [{ gesture: "double-left-click", combo: "" }],
+      }),
+      filenamePatterns:
+        "context: ^click$\ngesture: ^double-left-click$\ninto: e2e/double-click/:filename:",
+    };
+    const appliedDoubleClick = await control.runtime.send({
+      type: "APPLY_CONFIG",
+      body: { config: doubleClickConfig },
+    });
+    expect(appliedDoubleClick.body.applied).toMatchObject(doubleClickConfig);
+    await session.evaluateInTab(
+      targetUrl,
+      `(() => {
+        window.__saveInDoubleClickEvents = [];
+        for (const type of ["mousedown", "click", "dblclick"]) {
+          window.addEventListener(type, (event) => {
+            window.__saveInDoubleClickEvents.push({ type, detail: event.detail, button: event.button });
+          }, true);
+        }
+        return true;
+      })()`,
+    );
+    await session.bidi.doubleClick(targetUrl, point.x, point.y);
+    const doubleClickEvents = parseJson(
+      await session.evaluateInTab(targetUrl, "JSON.stringify(window.__saveInDoubleClickEvents)"),
+      arrayOf(objectOf({ type: decodeString, detail: decodeNumber, button: decodeNumber })),
+    );
+    expect(doubleClickEvents).toEqual([
+      { type: "mousedown", detail: 1, button: 0 },
+      { type: "click", detail: 1, button: 0 },
+    ]);
+    const doubleClickDownloads = await waitForDownloads("double-click");
+    expect(doubleClickDownloads).toHaveLength(1);
+    expect(doubleClickDownloads[0]?.state).toBe("complete");
+    expect(fs.readFileSync(requireValue(doubleClickDownloads[0]?.filename, "path"))).toEqual(PNG);
   } finally {
     try {
       await control.options.set({
         contentClickToSave: previousContentClickToSave,
+        contentClickToSaveBindings: previousContentClickToSaveBindings,
         contentClickToSaveCombo: previousContentClickToSaveCombo,
+        filenamePatterns:
+          typeof previousFilenamePatterns === "string" ? previousFilenamePatterns : "",
       });
       const fixtureIds = (await control.tabs.query())
         .filter((tab) => tab.url?.includes(targetUrl))

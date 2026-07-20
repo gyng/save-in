@@ -4326,5 +4326,23 @@
   },
   "ruleDestinationMustBeRelative": {
     "message": "Das Ziel muss relativ sein und darf keine ..-Pfadbestandteile enthalten"
+  },
+  "html_gestureMatcherDescription": {
+    "message": "Entspricht der Mausgeste, die für „Klick zum Speichern“ verwendet wurde."
+  },
+  "o_cKeyboardShortcutModifierDoubleLeftClick": {
+    "message": "Doppelklick links"
+  },
+  "o_lClickToSaveDoubleClickHelp": {
+    "message": "Der erste Klick erreicht weiterhin die Seite. Ein verlinktes Bild kann sich öffnen oder die Seite wechseln, bevor der zweite Klick erfolgt."
+  },
+  "routeDebuggerGesture": {
+    "message": "Klickgeste"
+  },
+  "routeDebuggerAnyGesture": {
+    "message": "Beliebige Klickgeste"
+  },
+  "routeDebuggerClickContext": {
+    "message": "Klick zum Speichern"
   }
 }

@@ -4326,5 +4326,23 @@
   },
   "ruleDestinationMustBeRelative": {
     "message": "目标必须是相对路径，且不能包含 .. 路径组件"
+  },
+  "html_gestureMatcherDescription": {
+    "message": "匹配点击保存时使用的鼠标手势。"
+  },
+  "o_cKeyboardShortcutModifierDoubleLeftClick": {
+    "message": "双击鼠标左键"
+  },
+  "o_lClickToSaveDoubleClickHelp": {
+    "message": "第一次点击仍会传递给页面。带链接的图片可能会在第二次点击前打开或跳转。"
+  },
+  "routeDebuggerGesture": {
+    "message": "点击手势"
+  },
+  "routeDebuggerAnyGesture": {
+    "message": "任意点击手势"
+  },
+  "routeDebuggerClickContext": {
+    "message": "点击保存"
   }
 }

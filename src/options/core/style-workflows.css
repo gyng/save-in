@@ -43,8 +43,41 @@ fieldset.click-to-save-controls {
 
 .click-to-save-controls > .caption-line,
 .click-to-save-controls > #click-to-save-warning,
+.click-to-save-controls > #click-to-save-double-warning,
 .click-to-save-controls > #clickToSaveStatus {
   max-inline-size: 100%;
+}
+
+.click-to-save-additional {
+  display: grid;
+  gap: var(--space-2);
+  inline-size: 100%;
+}
+
+.click-to-save-binding {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+  align-items: end;
+  gap: var(--space-2);
+  inline-size: 100%;
+  padding-block-start: var(--space-2);
+  border-block-start: 1px solid var(--color-border);
+}
+
+.click-to-save-binding > label {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+@container options-panel (max-width: 42rem) {
+  .click-to-save-binding {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .click-to-save-binding > button {
+    justify-self: start;
+  }
 }
 
 .click-to-save-controls:has(> label select:disabled) > :is(legend, label) {

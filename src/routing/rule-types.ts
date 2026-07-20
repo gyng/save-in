@@ -2,6 +2,7 @@ import { RULE_TYPES } from "../shared/constants.ts";
 import type { ContentFetchResult } from "../shared/content-fetch-types.ts";
 import type { LazyDownloadMetadata } from "../shared/lazy-download-metadata.ts";
 import type { PageSourceKind } from "../shared/page-source.ts";
+import type { ClickGesture } from "../shared/click-gesture.ts";
 
 export type RoutingContent = ContentFetchResult;
 
@@ -26,6 +27,7 @@ export type RoutingDownloadInfo = LazyDownloadMetadata<RoutingContent> & {
   url?: string | undefined;
   suggestedFilename?: string | null | undefined;
   context?: string | undefined;
+  gesture?: ClickGesture | undefined;
   menuIndex?: string | null | undefined;
   menuItemId?: string | undefined;
   menuItemTitle?: string | undefined;

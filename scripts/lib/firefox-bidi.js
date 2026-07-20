@@ -411,6 +411,28 @@ class FirefoxBidi {
     });
   }
 
+  /** @param {string} urlSubstr @param {number} x @param {number} y */
+  async doubleClick(urlSubstr, x, y) {
+    const context = await this.findContext(urlSubstr);
+    return this.send("input.performActions", {
+      context,
+      actions: [
+        {
+          type: "pointer",
+          id: "mouse",
+          parameters: { pointerType: "mouse" },
+          actions: [
+            { type: "pointerMove", x, y, duration: 0, origin: "viewport" },
+            { type: "pointerDown", button: 0 },
+            { type: "pointerUp", button: 0 },
+            { type: "pointerDown", button: 0 },
+            { type: "pointerUp", button: 0 },
+          ],
+        },
+      ],
+    });
+  }
+
   /** @param {string} urlSubstr */
   async captureScreenshot(urlSubstr) {
     const context = await this.findContext(urlSubstr);

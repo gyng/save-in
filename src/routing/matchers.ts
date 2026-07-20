@@ -225,6 +225,12 @@ export const matcherFunctions = {
           )
         : missingEvaluation("context", null),
     ),
+  gesture: (regex) =>
+    explainableMatcher((info) =>
+      typeof info.gesture === "string"
+        ? evaluateCandidates(regex, info, [{ source: "gesture", value: info.gesture }], "gesture")
+        : missingEvaluation("gesture", null),
+    ),
   // Browser context-menu saves report mediaType, while content-originated
   // saves report the more precise sourceKind. Treat mediaType as the legacy
   // host-boundary fallback so one rule can describe the same image in both

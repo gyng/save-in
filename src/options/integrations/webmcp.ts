@@ -3,6 +3,7 @@ import { getMessage } from "../../platform/localization.ts";
 import { isStringKeyedRecord, withUrl } from "../../shared/util.ts";
 import { isPageSourceKind, PAGE_SOURCE_KINDS } from "../../shared/page-source.ts";
 import { cssSelectorErrors } from "../core/css-selector-validation.ts";
+import { CLICK_GESTURES, isClickGesture } from "../../shared/click-gesture.ts";
 
 type WebMcpMessage = { type: string; body?: unknown };
 type WebMcpSend = (message: WebMcpMessage) => unknown;
@@ -125,6 +126,7 @@ const TRACE_STRING_FIELDS = [
   "initialFilename",
   "resolvedFilename",
   "context",
+  "gesture",
   "menuIndex",
   "comment",
   "sha256",
@@ -265,6 +267,7 @@ export const buildTools = (send: WebMcpSend): WebMcpTool[] => {
               initialFilename: { type: "string" },
               resolvedFilename: { type: "string" },
               context: { type: "string" },
+              gesture: { type: "string", enum: Object.values(CLICK_GESTURES) },
               menuIndex: { type: "string" },
               comment: { type: "string" },
               sourceKind: { type: "string", enum: [...PAGE_SOURCE_KINDS] },
@@ -301,6 +304,9 @@ export const buildTools = (send: WebMcpSend): WebMcpTool[] => {
             !isPageSourceKind(input.info.sourceKind)
           ) {
             return inputError("info.sourceKind", "Unknown source kind");
+          }
+          if (typeof input.info.gesture !== "undefined" && !isClickGesture(input.info.gesture)) {
+            return inputError("info.gesture", "Unknown click gesture");
           }
           if (
             typeof input.info.counter !== "undefined" &&

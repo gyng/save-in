@@ -54,6 +54,7 @@ const historyEntry = (state: DownloadPipelineState, finalFullPath: string): Hist
         linktext: state.info.linkText,
         selection: state.info.selectionText,
         context: state.info.context,
+        gesture: state.info.gesture,
         comment: state.info.comment,
         menuindex: state.info.menuIndex,
         counter: state.info.counter,

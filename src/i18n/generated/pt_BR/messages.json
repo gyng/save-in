@@ -4326,5 +4326,23 @@
   },
   "ruleDestinationMustBeRelative": {
     "message": "O destino deve ser relativo e não pode conter componentes de caminho .."
+  },
+  "html_gestureMatcherDescription": {
+    "message": "Corresponde ao gesto do mouse usado para salvar com um clique."
+  },
+  "o_cKeyboardShortcutModifierDoubleLeftClick": {
+    "message": "Clique duplo com o botão esquerdo"
+  },
+  "o_lClickToSaveDoubleClickHelp": {
+    "message": "O primeiro clique ainda chega à página. Uma imagem com link pode abrir ou navegar antes do segundo clique."
+  },
+  "routeDebuggerGesture": {
+    "message": "Gesto de clique"
+  },
+  "routeDebuggerAnyGesture": {
+    "message": "Qualquer gesto de clique"
+  },
+  "routeDebuggerClickContext": {
+    "message": "Salvar com clique"
   }
 }
