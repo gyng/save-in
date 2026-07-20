@@ -146,6 +146,21 @@ test("resolves a repeated ordinary source once per collection", () => {
   expect(excludeUrl).toHaveBeenCalledOnce();
 });
 
+test("caches rejection of a repeated ordinary source", () => {
+  document.body.innerHTML = Array.from({ length: 1_000 }, () => '<img src="shared.jpg">').join("");
+  const excludeUrl = vi.fn((_url: string) => true);
+
+  const candidates = collectPageSourceCandidates(
+    document,
+    { includeLinks: false, includeBackgrounds: false, resourceHints: false },
+    new Map(),
+    createPageSourcePayloadBudget([], undefined, excludeUrl),
+  );
+
+  expect(candidates).toHaveLength(0);
+  expect(excludeUrl).toHaveBeenCalledOnce();
+});
+
 test("bounds the ordinary-source admission cache", () => {
   document.body.innerHTML = [
     '<img src="shared.jpg">',

@@ -368,8 +368,10 @@ const createPageSourceUrlAdmission = (
     if (cache.has(value)) return cache.get(value) ?? null;
     const admitted = admittedPageSourceUrl(value, budget);
     if (cache.size >= SOURCE_URL_ADMISSION_CACHE_LIMIT) {
-      const oldest = cache.keys().next().value;
-      if (oldest !== undefined) cache.delete(oldest);
+      for (const oldest of cache.keys()) {
+        cache.delete(oldest);
+        break;
+      }
     }
     cache.set(value, admitted);
     return admitted;
