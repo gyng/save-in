@@ -24,10 +24,12 @@ import { configWriteState, counterWriteState } from "./application-state.ts";
 import { resetMessagingTransientState } from "./messaging/index.ts";
 import { resetSourcePanelState } from "./source-panel-state.ts";
 import { resetRefererRules } from "../downloads/referer-rules.ts";
+import { addHistoryEntry, clearHistory, patchHistoryEntry } from "./history.ts";
 
 export const BACKGROUND_E2E_COMMAND = "SAVE_IN_E2E_START_DOWNLOAD";
 export const BACKGROUND_E2E_CONTEXT_MENU_COMMAND = "SAVE_IN_E2E_CONTEXT_MENU_CLICK";
 export const BACKGROUND_E2E_NOTIFICATION_COMMAND = "SAVE_IN_E2E_NOTIFICATION_CALLS";
+export const BACKGROUND_E2E_HISTORY_COMMAND = "SAVE_IN_E2E_HISTORY_WRITE";
 const BACKGROUND_E2E_TAB_MENU_COMMAND = "SAVE_IN_E2E_TAB_MENU_CLICK";
 export const BACKGROUND_E2E_RESET_COMMAND = "SAVE_IN_E2E_RESET_STATE";
 const BACKGROUND_E2E_INSPECT_COMMAND = "SAVE_IN_E2E_INSPECT";
@@ -61,6 +63,11 @@ export type BackgroundE2ENotificationRequest = {
     | { action: "get" }
     | { action: "reset" }
     | { action: "wait"; id: string; timeoutMs?: number };
+};
+
+export type BackgroundE2EHistoryRequest = {
+  type: typeof BACKGROUND_E2E_HISTORY_COMMAND;
+  body: { action: "clear" } | { action: "add-and-patch"; index: number; payload: string };
 };
 
 export type BackgroundE2ETabMenuRequest = {
@@ -110,6 +117,11 @@ export type BackgroundE2ENotificationResponse = {
   body:
     | { status: "OK"; calls: BackgroundE2ENotificationCall[] }
     | { status: "ERROR"; message: string };
+};
+
+export type BackgroundE2EHistoryResponse = {
+  type: typeof BACKGROUND_E2E_HISTORY_COMMAND;
+  body: { status: "OK" } | { status: "ERROR"; message: string };
 };
 
 export type BackgroundE2ETabMenuResponse = {
@@ -204,6 +216,19 @@ const isBackgroundE2ENotificationCommand = (
       typeof value.body.id === "string" &&
       value.body.id.length > 0 &&
       hasOptionalPositiveInteger(value.body, "timeoutMs")));
+
+const isBackgroundE2EHistoryCommand = (value: unknown): value is BackgroundE2EHistoryRequest =>
+  isRecord(value) &&
+  value.type === BACKGROUND_E2E_HISTORY_COMMAND &&
+  isRecord(value.body) &&
+  (value.body.action === "clear" ||
+    (value.body.action === "add-and-patch" &&
+      typeof value.body.index === "number" &&
+      Number.isSafeInteger(value.body.index) &&
+      value.body.index >= 0 &&
+      value.body.index <= 10_000 &&
+      typeof value.body.payload === "string" &&
+      value.body.payload.length <= 4096));
 
 const isBackgroundE2ETabMenuCommand = (value: unknown): value is BackgroundE2ETabMenuRequest =>
   isRecord(value) &&
@@ -366,6 +391,46 @@ export const handleBackgroundE2ENotificationCommand = (
   };
 };
 
+type BackgroundE2EHistoryOperations = {
+  add: typeof addHistoryEntry;
+  clear: typeof clearHistory;
+  patch: typeof patchHistoryEntry;
+};
+
+const historyOperations: BackgroundE2EHistoryOperations = {
+  add: addHistoryEntry,
+  clear: clearHistory,
+  patch: patchHistoryEntry,
+};
+
+export const handleBackgroundE2EHistoryCommand = async (
+  rawRequest: unknown,
+  operations: BackgroundE2EHistoryOperations = historyOperations,
+): Promise<BackgroundE2EHistoryResponse | null> => {
+  if (!isBackgroundE2EHistoryCommand(rawRequest)) return null;
+  try {
+    await (backgroundRuntime.ready ?? Promise.resolve());
+    if (rawRequest.body.action === "clear") {
+      await operations.clear();
+    } else {
+      const { index, payload } = rawRequest.body;
+      const id = operations.add({
+        url: `https://history-memory.invalid/${index}?payload=${payload}`,
+        finalFullPath: `rss-history/rss-history-${index}.bin`,
+        variables: { payload },
+      });
+      if (!id) throw new Error("E2E history write did not create an entry");
+      await operations.patch(id, { status: "complete" });
+    }
+    return { type: BACKGROUND_E2E_HISTORY_COMMAND, body: { status: "OK" } };
+  } catch (error) {
+    return {
+      type: BACKGROUND_E2E_HISTORY_COMMAND,
+      body: { status: "ERROR", message: error instanceof Error ? error.message : String(error) },
+    };
+  }
+};
+
 const handleBackgroundE2ETabMenuCommand = async (
   rawRequest: unknown,
   dispatch: typeof handleTabMenuClick = handleTabMenuClick,
@@ -476,6 +541,10 @@ export const registerBackgroundE2ECommand = (): void => {
     }
     if (isBackgroundE2ENotificationCommand(rawRequest)) {
       void Promise.resolve(handleBackgroundE2ENotificationCommand(rawRequest)).then(sendResponse);
+      return true;
+    }
+    if (isBackgroundE2EHistoryCommand(rawRequest)) {
+      void handleBackgroundE2EHistoryCommand(rawRequest).then(sendResponse);
       return true;
     }
     if (isBackgroundE2EContextMenuCommand(rawRequest)) {

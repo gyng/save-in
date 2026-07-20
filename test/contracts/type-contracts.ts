@@ -7,6 +7,8 @@ import type {
   BackgroundE2ECommandResponse,
   BackgroundE2EContextMenuRequest,
   BackgroundE2EContextMenuResponse,
+  BackgroundE2EHistoryRequest,
+  BackgroundE2EHistoryResponse,
   BackgroundE2ENotificationRequest,
   BackgroundE2ENotificationResponse,
   BackgroundE2ETabMenuRequest,
@@ -51,6 +53,8 @@ import type {
   DownloadMessageResponse,
   E2ERuntimeOptionValues,
   E2EStoredOptionValues,
+  HistoryWriteRequest,
+  HistoryWriteResponse,
   HistoryEntry as E2EHistoryEntry,
   NotificationRequest,
   NotificationResponse,
@@ -119,9 +123,11 @@ expectTypeOf<E2EStoredOptionValues>().toEqualTypeOf<
 expectTypeOf<StartDownloadRequest>().toEqualTypeOf<BackgroundE2ECommandRequest>();
 expectTypeOf<ContextMenuClickRequest>().toMatchTypeOf<BackgroundE2EContextMenuRequest>();
 expectTypeOf<BackgroundE2EContextMenuRequest>().toMatchTypeOf<ContextMenuClickRequest>();
+expectTypeOf<HistoryWriteRequest>().toEqualTypeOf<BackgroundE2EHistoryRequest>();
 expectTypeOf<NotificationRequest>().toEqualTypeOf<BackgroundE2ENotificationRequest>();
 expectTypeOf<StartDownloadResponse>().toEqualTypeOf<BackgroundE2ECommandResponse>();
 expectTypeOf<ContextMenuClickResponse>().toEqualTypeOf<BackgroundE2EContextMenuResponse>();
+expectTypeOf<HistoryWriteResponse>().toEqualTypeOf<BackgroundE2EHistoryResponse>();
 expectTypeOf<TabMenuClickResponse>().toEqualTypeOf<BackgroundE2ETabMenuResponse>();
 expectTypeOf<NotificationResponse>().toEqualTypeOf<BackgroundE2ENotificationResponse>();
 expectTypeOf<TabMenuClickRequest["type"]>().toEqualTypeOf<BackgroundE2ETabMenuRequest["type"]>();

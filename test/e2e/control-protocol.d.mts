@@ -128,6 +128,10 @@ export type RuntimeMessage =
   | { type: "SAVE_IN_E2E_START_DOWNLOAD"; body: StartDownloadBody }
   | { type: "SAVE_IN_E2E_CONTEXT_MENU_CLICK"; body: ContextMenuClickBody }
   | { type: "SAVE_IN_E2E_TAB_MENU_CLICK"; body: TabMenuClickBody }
+  | {
+      type: "SAVE_IN_E2E_HISTORY_WRITE";
+      body: { action: "clear" } | { action: "add-and-patch"; index: number; payload: string };
+    }
   | { type: "SAVE_IN_E2E_RESET_STATE" }
   | { type: "SAVE_IN_E2E_INSPECT" }
   | {
@@ -149,6 +153,7 @@ export type NotificationRequest = Extract<
   RuntimeMessage,
   { type: "SAVE_IN_E2E_NOTIFICATION_CALLS" }
 >;
+export type HistoryWriteRequest = Extract<RuntimeMessage, { type: "SAVE_IN_E2E_HISTORY_WRITE" }>;
 
 export type StartDownloadResponse = {
   type: "SAVE_IN_E2E_START_DOWNLOAD";
@@ -165,6 +170,10 @@ export type TabMenuClickResponse = {
 export type NotificationResponse = {
   type: "SAVE_IN_E2E_NOTIFICATION_CALLS";
   body: { status: "OK"; calls: NotificationCall[] } | { status: "ERROR"; message: string };
+};
+export type HistoryWriteResponse = {
+  type: "SAVE_IN_E2E_HISTORY_WRITE";
+  body: { status: "OK" } | { status: "ERROR"; message: string };
 };
 export type ResetStateResponse = {
   type: "SAVE_IN_E2E_RESET_STATE";
@@ -214,6 +223,7 @@ export interface RuntimeResponseMap {
   SAVE_IN_E2E_RESET_STATE: ResetStateResponse;
   SAVE_IN_E2E_INSPECT: InspectStateResponse;
   SAVE_IN_E2E_NOTIFICATION_CALLS: NotificationResponse;
+  SAVE_IN_E2E_HISTORY_WRITE: HistoryWriteResponse;
   APPLY_CONFIG: ApplyConfigResponse;
 }
 

@@ -11,12 +11,17 @@ const HISTORY_WRITE_COUNT = 100;
 const RSS_SAMPLE_INTERVAL = 5;
 
 // The original Firefox fan-out regression grew this workload by about 1.8 GiB.
-// Repeated fixed-path runs measured 337–447 MiB in Firefox 152 and 68–74 MiB in
+// Repeated fixed-path runs measured 337–505 MiB in Firefox 152 and 56–77 MiB in
 // Chrome 150. Leave browser-version and runner headroom without permitting the
-// old failure.
-const MAX_RSS_GROWTH_KB = {
+// old failure. The sharded production path measured 24–55 MiB in Firefox and
+// 1–6 MiB in Chrome, so its separate ceilings still leave over 4x headroom.
+const MAX_LEGACY_RSS_GROWTH_KB = {
   chrome: 512 * 1024,
   firefox: 1024 * 1024,
+};
+const MAX_PRODUCTION_RSS_GROWTH_KB = {
+  chrome: 128 * 1024,
+  firefox: 256 * 1024,
 };
 
 /** @param {number} index @param {string} payload */
@@ -72,31 +77,58 @@ export const runHistoryMemoryScenario = async ({ browserLabel, browserProcess, c
     await contentBarrier();
 
     const pid = requireValue(browserProcess()?.pid, `${browserLabel} process PID is unavailable`);
-    const baselineRssKb = processTree.processTreeRssKb(pid);
-    let peakRssKb = baselineRssKb;
-    const sampleRss = () => {
-      peakRssKb = Math.max(peakRssKb, processTree.processTreeRssKb(pid));
+    /** @param {(sampleRss: () => void) => Promise<void>} workload */
+    const measureRss = async (workload) => {
+      const baselineRssKb = processTree.processTreeRssKb(pid);
+      let peakRssKb = baselineRssKb;
+      const sampleRss = () => {
+        peakRssKb = Math.max(peakRssKb, processTree.processTreeRssKb(pid));
+      };
+      await workload(sampleRss);
+      sampleRss();
+      return { baselineRssKb, peakRssKb, rssGrowthKb: peakRssKb - baselineRssKb };
     };
     const payload = "x".repeat(2048);
+    /** @type {ReturnType<typeof historyEntry>[]} */
     const history = [];
 
-    for (let index = 0; index < HISTORY_WRITE_COUNT; index += 1) {
-      history.push(historyEntry(index, payload));
-      await control.storage.local.set({ [HISTORY_STORAGE_KEY]: history });
-      if ((index + 1) % RSS_SAMPLE_INTERVAL === 0) sampleRss();
-    }
+    const legacy = await measureRss(async (sampleRss) => {
+      for (let index = 0; index < HISTORY_WRITE_COUNT; index += 1) {
+        history.push(historyEntry(index, payload));
+        await control.storage.local.set({ [HISTORY_STORAGE_KEY]: history });
+        if ((index + 1) % RSS_SAMPLE_INTERVAL === 0) sampleRss();
+      }
+      await contentBarrier();
+    });
 
+    /** @param {import("./control-protocol.mjs").HistoryWriteRequest["body"]} body */
+    const writeProductionHistory = async (body) => {
+      const response = await control.runtime.send({ type: "SAVE_IN_E2E_HISTORY_WRITE", body });
+      if (response.body.status === "ERROR") throw new Error(response.body.message);
+    };
+    await writeProductionHistory({ action: "clear" });
     await contentBarrier();
-    sampleRss();
-    const rssGrowthKb = peakRssKb - baselineRssKb;
+
+    const production = await measureRss(async (sampleRss) => {
+      for (let index = 0; index < HISTORY_WRITE_COUNT; index += 1) {
+        await writeProductionHistory({ action: "add-and-patch", index, payload });
+        if ((index + 1) % RSS_SAMPLE_INTERVAL === 0) sampleRss();
+      }
+      await contentBarrier();
+    });
+
     process.stdout.write(
-      `${browserLabel} history RSS: baseline=${Math.round(baselineRssKb / 1024)} MiB, ` +
-        `peak=${Math.round(peakRssKb / 1024)} MiB, growth=${Math.round(rssGrowthKb / 1024)} MiB\n`,
+      `${browserLabel} history RSS: legacy-growth=${Math.round(legacy.rssGrowthKb / 1024)} MiB, ` +
+        `production-growth=${Math.round(production.rssGrowthKb / 1024)} MiB\n`,
     );
     expect(
-      rssGrowthKb,
-      `${browserLabel} process-tree RSS grew ${Math.round(rssGrowthKb / 1024)} MiB`,
-    ).toBeLessThanOrEqual(MAX_RSS_GROWTH_KB[browserLabel]);
+      legacy.rssGrowthKb,
+      `${browserLabel} legacy-write RSS grew ${Math.round(legacy.rssGrowthKb / 1024)} MiB`,
+    ).toBeLessThanOrEqual(MAX_LEGACY_RSS_GROWTH_KB[browserLabel]);
+    expect(
+      production.rssGrowthKb,
+      `${browserLabel} production-history RSS grew ${Math.round(production.rssGrowthKb / 1024)} MiB`,
+    ).toBeLessThanOrEqual(MAX_PRODUCTION_RSS_GROWTH_KB[browserLabel]);
   } finally {
     await Promise.all([control.windows.remove(opened.id), closeLocal(server)]);
   }

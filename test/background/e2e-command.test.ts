@@ -7,10 +7,12 @@ import { backgroundRuntime } from "../../src/background/runtime.ts";
 import {
   BACKGROUND_E2E_COMMAND,
   BACKGROUND_E2E_CONTEXT_MENU_COMMAND,
+  BACKGROUND_E2E_HISTORY_COMMAND,
   BACKGROUND_E2E_NOTIFICATION_COMMAND,
   BACKGROUND_E2E_RESET_COMMAND,
   handleBackgroundE2ECommand,
   handleBackgroundE2EContextMenuCommand,
+  handleBackgroundE2EHistoryCommand,
   handleBackgroundE2ENotificationCommand,
   handleBackgroundE2EResetCommand,
   installBackgroundE2ENotificationObserver,
@@ -51,6 +53,59 @@ test("rejects a malformed download command at the test bridge", async () => {
         path: 42,
         suggestedFilename: "bridge.txt",
       },
+    }),
+  ).resolves.toBeNull();
+});
+
+test("drives production history writes without starting browser downloads", async () => {
+  const operations = {
+    add: vi.fn(() => "history-7"),
+    clear: vi.fn(() => Promise.resolve()),
+    patch: vi.fn(() => Promise.resolve()),
+  };
+
+  await expect(
+    handleBackgroundE2EHistoryCommand(
+      { type: BACKGROUND_E2E_HISTORY_COMMAND, body: { action: "clear" } },
+      operations,
+    ),
+  ).resolves.toEqual({
+    type: BACKGROUND_E2E_HISTORY_COMMAND,
+    body: { status: "OK" },
+  });
+  await expect(
+    handleBackgroundE2EHistoryCommand(
+      {
+        type: BACKGROUND_E2E_HISTORY_COMMAND,
+        body: { action: "add-and-patch", index: 7, payload: "payload" },
+      },
+      operations,
+    ),
+  ).resolves.toEqual({
+    type: BACKGROUND_E2E_HISTORY_COMMAND,
+    body: { status: "OK" },
+  });
+
+  expect(operations.clear).toHaveBeenCalledOnce();
+  expect(operations.add).toHaveBeenCalledWith({
+    url: "https://history-memory.invalid/7?payload=payload",
+    finalFullPath: "rss-history/rss-history-7.bin",
+    variables: { payload: "payload" },
+  });
+  expect(operations.patch).toHaveBeenCalledWith("history-7", { status: "complete" });
+});
+
+test("rejects malformed history benchmark commands", async () => {
+  await expect(
+    handleBackgroundE2EHistoryCommand({
+      type: BACKGROUND_E2E_HISTORY_COMMAND,
+      body: { action: "add-and-patch", index: -1, payload: "payload" },
+    }),
+  ).resolves.toBeNull();
+  await expect(
+    handleBackgroundE2EHistoryCommand({
+      type: BACKGROUND_E2E_HISTORY_COMMAND,
+      body: { action: "add-and-patch", index: 1, payload: "x".repeat(4097) },
     }),
   ).resolves.toBeNull();
 });

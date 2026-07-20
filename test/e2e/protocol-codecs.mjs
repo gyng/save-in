@@ -98,6 +98,18 @@ export const createProtocolCodecs = () => {
         return isMenuBody(value.body, false);
       case "SAVE_IN_E2E_TAB_MENU_CLICK":
         return isMenuBody(value.body, true);
+      case "SAVE_IN_E2E_HISTORY_WRITE":
+        return (
+          isRecord(value.body) &&
+          (value.body.action === "clear" ||
+            (value.body.action === "add-and-patch" &&
+              typeof value.body.index === "number" &&
+              Number.isSafeInteger(value.body.index) &&
+              value.body.index >= 0 &&
+              value.body.index <= 10_000 &&
+              typeof value.body.payload === "string" &&
+              value.body.payload.length <= 4096))
+        );
       case "SAVE_IN_E2E_RESET_STATE":
         return value.body === undefined;
       case "SAVE_IN_E2E_NOTIFICATION_CALLS":
@@ -269,6 +281,7 @@ export const createProtocolCodecs = () => {
         );
       case "SAVE_IN_E2E_CONTEXT_MENU_CLICK":
       case "SAVE_IN_E2E_TAB_MENU_CLICK":
+      case "SAVE_IN_E2E_HISTORY_WRITE":
       case "SAVE_IN_E2E_RESET_STATE":
         return value.type === message.type && isCommandStatus(value.body);
       case "SAVE_IN_E2E_NOTIFICATION_CALLS":
