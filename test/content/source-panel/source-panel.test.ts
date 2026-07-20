@@ -884,8 +884,9 @@ describe("Page Sources panel interactions", () => {
 
   test("evicts detached rows after filtering a deeply-scrolled result set", () => {
     vi.useFakeTimers();
+    const sourceCount = 201;
     document.body.innerHTML = Array.from(
-      { length: 250 },
+      { length: sourceCount },
       (_, index) => `<a href="https://cdn.test/resource-${index}.jpg">${index}</a>`,
     ).join("");
     toggleSourcePanel(vi.fn(), {
@@ -902,7 +903,7 @@ describe("Page Sources panel interactions", () => {
     });
     list.dispatchEvent(new Event("scroll"));
     list.dispatchEvent(new Event("scroll"));
-    expect(shadow.querySelectorAll(".row")).toHaveLength(250);
+    expect(shadow.querySelectorAll(".row")).toHaveLength(sourceCount);
     const firstRow = shadow.querySelector<HTMLElement>(".row")!;
 
     const filter = shadow.querySelector<HTMLInputElement>('input[type="search"]')!;
