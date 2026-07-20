@@ -95,9 +95,10 @@ All browser commands use the same immutable per-run staged extension and diagnos
 
 ## Memory profiling
 
-`npm run test:memory` runs isolated, forced-GC heap comparisons for repeated Page Sources and
-resource-timing workloads. It gates retained-shape ratios and writes the complete per-process
-samples to `dist/memory-profile.json`; elapsed time and uncollected heap are diagnostic only.
+`npm run test:memory` runs isolated, forced-GC heap comparisons through the production Page
+Sources collector on a large repeated-resource DOM and through the resource-timing cache. It gates
+retained-shape ratios and writes the complete per-process samples to `dist/memory-profile.json`;
+elapsed time and uncollected heap are diagnostic only.
 Workers have a 30-second deadline, and malformed or non-finite samples fail the gate. The
 release-facing `npm run test:all` command includes this retained-shape gate.
 `npm run bench:memory` records the same report without enforcing ratio ceilings. `npm run e2e:rss`

@@ -355,6 +355,27 @@ const admittedPageSourceUrl = (
   return url && !budget.excludeUrl?.(url) ? url : null;
 };
 
+const SOURCE_URL_ADMISSION_CACHE_LIMIT = 512;
+
+const createPageSourceUrlAdmission = (
+  budget: PageSourcePayloadBudget,
+): ((value: string | null | undefined) => string | null) => {
+  const cache = new Map<string, string | null>();
+  return (value) => {
+    // Data URLs have their own character budget and deduplication set. Their
+    // admission can change as that budget fills, so only cache ordinary URLs.
+    if (!value || isDataUrl(value)) return admittedPageSourceUrl(value, budget);
+    if (cache.has(value)) return cache.get(value) ?? null;
+    const admitted = admittedPageSourceUrl(value, budget);
+    if (cache.size >= SOURCE_URL_ADMISSION_CACHE_LIMIT) {
+      const oldest = cache.keys().next().value;
+      if (oldest !== undefined) cache.delete(oldest);
+    }
+    cache.set(value, admitted);
+    return admitted;
+  };
+};
+
 const resourceBytes = (...values: unknown[]): number | undefined =>
   values.find(
     (value): value is number =>
@@ -665,9 +686,10 @@ export const collectBackgroundSourceCandidates = (
   preserveDuplicateOrigins = true,
 ): PageSource[] => {
   const found = createPageSourceCandidateAccumulator(false, preserveDuplicateOrigins);
+  const admitUrl = createPageSourceUrlAdmission(payloadBudget);
   for (const element of elements) {
     urlsFromCss(getComputedStyle(element).backgroundImage).forEach((value) => {
-      const url = admittedPageSourceUrl(value, payloadBudget);
+      const url = admitUrl(value);
       if (!url) return;
       const timing = timingByUrl.get(url);
       found.add(
@@ -692,6 +714,7 @@ export const collectPageSourceCandidates = (
   preserveDuplicateOrigins = true,
 ): PageSource[] => {
   const found = createPageSourceCandidateAccumulator(false, preserveDuplicateOrigins);
+  const admitUrl = createPageSourceUrlAdmission(payloadBudget);
   const add = (
     value: string | null | undefined,
     kind: PageSourceKind,
@@ -700,7 +723,7 @@ export const collectPageSourceCandidates = (
     responsive?: PageSource["responsive"],
     channel?: PageSource["channel"],
   ) => {
-    const url = admittedPageSourceUrl(value, payloadBudget);
+    const url = admitUrl(value);
     if (url) {
       const timing = timingByUrl.get(url);
       found.add(

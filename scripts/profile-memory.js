@@ -1,10 +1,13 @@
 // @ts-check
 
 const fs = require("node:fs");
+const { createRequire } = require("node:module");
 const path = require("node:path");
 const { performance } = require("node:perf_hooks");
 const { pathToFileURL } = require("node:url");
 const { spawnSync } = require("node:child_process");
+
+const loadDevelopmentModule = createRequire(__filename);
 
 const root = path.resolve(__dirname, "..");
 const output = path.resolve(
@@ -18,7 +21,13 @@ const scale = Number.isSafeInteger(requestedScale) ? Math.max(10_000, requestedS
 const reportOnly = process.argv.includes("--report-only");
 const WORKER_TIMEOUT_MS = 30_000;
 
-const scenarios = ["source-legacy", "source-compacted", "timing-legacy", "timing-bounded"];
+const scenarios = [
+  "source-legacy",
+  "source-compacted",
+  "source-automatic",
+  "timing-legacy",
+  "timing-bounded",
+];
 
 /**
  * @typedef {{
@@ -90,7 +99,8 @@ const mebibytes = (bytes) => `${(bytes / (1024 * 1024)).toFixed(2)} MiB`;
 /** @param {string} scenario */
 const runWorker = async (scenario) => {
   const sourceModelUrl = pathToFileURL(path.join(root, "src", "content", "source-panel-model.ts"));
-  const { compactPageSourceCandidates, mergeResourceTimings } = await import(sourceModelUrl.href);
+  const { collectPageSourceCandidates, createPageSourcePayloadBudget, mergeResourceTimings } =
+    await import(sourceModelUrl.href);
   let fixtureCount = scale;
   let retainedCount = 0;
   let retainedDetailCount = 0;
@@ -98,24 +108,51 @@ const runWorker = async (scenario) => {
   let retained;
 
   if (scenario.startsWith("source-")) {
-    const elements = Array.from({ length: scale }, (_, index) => ({ index }));
+    // The DOM itself dominates at larger scales. Twenty-five thousand repeated
+    // resources still gives the retained wrapper/origin arrays a stable signal
+    // while keeping one isolated CI worker comfortably below browser-like RSS.
+    fixtureCount = Math.min(scale, 25_000);
+    const { JSDOM } = loadDevelopmentModule(["js", "dom"].join(""));
+    const warmDom = new JSDOM('<img src="warm.jpg">', { url: "https://page.test/" });
+    Object.assign(globalThis, {
+      document: warmDom.window.document,
+      Element: warmDom.window.Element,
+    });
+    collectPageSourceCandidates(
+      warmDom.window.document,
+      { includeLinks: false, includeBackgrounds: false, resourceHints: false },
+      new Map(),
+      createPageSourcePayloadBudget(),
+    );
+    warmDom.window.close();
+    let markup = Array.from({ length: fixtureCount }, () => '<img src="shared.jpg">').join("");
+    const dom = new JSDOM(markup, { url: "https://page.test/" });
+    markup = "";
+    const document = dom.window.document;
+    Object.assign(globalThis, { document, Element: dom.window.Element });
+    const elements = [...document.querySelectorAll("img")];
     collectGarbage();
     const baselineHeapBytes = process.memoryUsage().heapUsed;
     const startedAt = performance.now();
+    const collected = collectPageSourceCandidates(
+      document,
+      { includeLinks: false, includeBackgrounds: false, resourceHints: false },
+      new Map(),
+      createPageSourcePayloadBudget(),
+      scenario !== "source-automatic",
+    );
     if (scenario === "source-legacy") {
+      // Run the production traversal in every source scenario so jsdom's lazy
+      // per-element URL state is a shared baseline, then model the old retained
+      // shape with one wrapper for every repeated DOM origin.
+      collected.length = 0;
       retained = elements.map((element) => ({
         url: "https://cdn.test/shared.jpg",
         kind: "image",
         element,
       }));
     } else {
-      retained = compactPageSourceCandidates(
-        elements.map((element) => ({
-          url: "https://cdn.test/shared.jpg",
-          kind: "image",
-          element,
-        })),
-      );
+      retained = collected;
     }
     const durationMs = performance.now() - startedAt;
     const uncollectedHeapBytes = process.memoryUsage().heapUsed;
@@ -201,6 +238,7 @@ const sampleScenario = (scenario) => {
         cwd: root,
         encoding: "utf8",
         env: { ...process.env, MEMORY_PROFILE_SCALE: String(scale) },
+        killSignal: "SIGKILL",
         maxBuffer: 1024 * 1024,
         timeout: WORKER_TIMEOUT_MS,
       },
@@ -254,31 +292,44 @@ const main = async () => {
   const byScenario = new Map(results.map((result) => [result.scenario, result]));
   const sourceLegacy = byScenario.get("source-legacy");
   const sourceCompacted = byScenario.get("source-compacted");
+  const sourceAutomatic = byScenario.get("source-automatic");
   const timingLegacy = byScenario.get("timing-legacy");
   const timingBounded = byScenario.get("timing-bounded");
-  if (!sourceLegacy || !sourceCompacted || !timingLegacy || !timingBounded) {
+  if (!sourceLegacy || !sourceCompacted || !sourceAutomatic || !timingLegacy || !timingBounded) {
     throw new Error("Memory profile is missing a scenario");
   }
-  if (sourceLegacy.retainedGrowthBytes <= 0 || timingLegacy.retainedGrowthBytes <= 0) {
+  const sourceLegacyExcessBytes =
+    sourceLegacy.retainedGrowthBytes - sourceAutomatic.retainedGrowthBytes;
+  const sourceCompactedExcessBytes = Math.max(
+    0,
+    sourceCompacted.retainedGrowthBytes - sourceAutomatic.retainedGrowthBytes,
+  );
+  if (sourceLegacyExcessBytes <= 0 || timingLegacy.retainedGrowthBytes <= 0) {
     throw new Error("Legacy memory controls did not produce a measurable retained signal");
   }
   const ratios = {
-    sourceRetained: sourceCompacted.retainedGrowthBytes / sourceLegacy.retainedGrowthBytes,
+    sourceRetained: sourceCompactedExcessBytes / sourceLegacyExcessBytes,
     timingRetained: timingBounded.retainedGrowthBytes / timingLegacy.retainedGrowthBytes,
   };
   if (!Number.isFinite(ratios.sourceRetained) || !Number.isFinite(ratios.timingRetained)) {
     throw new Error("Memory profile produced a non-finite retained ratio");
   }
   const report = {
-    schemaVersion: 1,
+    schemaVersion: 2,
     capturedAt: new Date().toISOString(),
     node: process.version,
     platform: `${process.platform}-${process.arch}`,
     repeats,
     scale,
     reportOnly,
+    workerTimeoutMs: WORKER_TIMEOUT_MS,
     thresholds: { sourceRetainedRatio: 0.4, timingRetainedRatio: 0.1 },
     ratios,
+    derived: {
+      sourceAutomaticBaselineBytes: sourceAutomatic.retainedGrowthBytes,
+      sourceLegacyExcessBytes,
+      sourceCompactedExcessBytes,
+    },
     scenarios: results,
   };
   fs.mkdirSync(path.dirname(output), { recursive: true });
@@ -298,8 +349,14 @@ const main = async () => {
       `Diagnostics: ${path.relative(root, output)}\n`,
   );
 
-  if (sourceCompacted.retainedCount !== 1 || sourceCompacted.retainedDetailCount !== scale) {
+  if (
+    sourceCompacted.retainedCount !== 1 ||
+    sourceCompacted.retainedDetailCount !== sourceCompacted.fixtureCount
+  ) {
     throw new Error("Source compaction did not retain one row with every CSS origin");
+  }
+  if (sourceAutomatic.retainedCount !== 1 || sourceAutomatic.retainedDetailCount !== 1) {
+    throw new Error("Automatic source collection retained duplicate non-CSS origins");
   }
   if (timingBounded.retainedCount !== 512 || timingBounded.retainedDetailCount !== 0) {
     throw new Error("Resource timing compaction did not retain 512 scalar-only records");

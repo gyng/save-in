@@ -131,6 +131,43 @@ test("compacts repeated source origins during collection", () => {
   expect(new Set(merged[0]?.originElements).size).toBe(1_000);
 });
 
+test("resolves a repeated ordinary source once per collection", () => {
+  document.body.innerHTML = Array.from({ length: 1_000 }, () => '<img src="shared.jpg">').join("");
+  const excludeUrl = vi.fn(() => false);
+
+  const candidates = collectPageSourceCandidates(
+    document,
+    { includeLinks: false, includeBackgrounds: false, resourceHints: false },
+    new Map(),
+    createPageSourcePayloadBudget([], undefined, excludeUrl),
+  );
+
+  expect(candidates).toHaveLength(1);
+  expect(excludeUrl).toHaveBeenCalledOnce();
+});
+
+test("bounds the ordinary-source admission cache", () => {
+  document.body.innerHTML = [
+    '<img src="shared.jpg">',
+    ...Array.from({ length: 512 }, (_, index) => `<img src="unique-${index}.jpg">`),
+    '<img src="shared.jpg">',
+  ].join("");
+  const excludeUrl = vi.fn(() => false);
+
+  const candidates = collectPageSourceCandidates(
+    document,
+    { includeLinks: false, includeBackgrounds: false, resourceHints: false },
+    new Map(),
+    createPageSourcePayloadBudget([], undefined, excludeUrl),
+  );
+
+  expect(candidates).toHaveLength(513);
+  expect(excludeUrl).toHaveBeenCalledTimes(514);
+  expect(
+    excludeUrl.mock.calls.filter(([url]) => url === "http://localhost/shared.jpg"),
+  ).toHaveLength(2);
+});
+
 test("can discard duplicate origins when routing does not need CSS evidence", () => {
   document.body.innerHTML = Array.from(
     { length: 1_000 },
