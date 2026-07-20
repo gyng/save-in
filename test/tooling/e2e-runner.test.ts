@@ -5,24 +5,26 @@ const { createE2ERunId, currentE2ERunId } = require("../../scripts/lib/e2e-run-i
   createE2ERunId: (pid?: number, now?: number, nonce?: string) => string;
   currentE2ERunId: () => string;
 };
-const { finalizeRunMetadata, parseArguments } = require("../../scripts/e2e-parallel.js") as {
-  finalizeRunMetadata: (
-    metadata: Record<string, unknown>,
-    outcome: {
-      codes: number[];
-      cleanupErrors: unknown[];
-      interruptedSignal?: NodeJS.Signals;
-      runError?: unknown;
-      finishedAt?: Date;
-    },
-  ) => Record<string, unknown>;
-  parseArguments: (argv: string[]) => {
-    browser: "all" | "chrome" | "firefox";
-    serial: boolean;
-    headed: boolean;
-    vitestArgs: string[];
+const { finalizeRunMetadata, parseArguments, suiteAttemptEnvironment } =
+  require("../../scripts/e2e-parallel.js") as {
+    finalizeRunMetadata: (
+      metadata: Record<string, unknown>,
+      outcome: {
+        codes: number[];
+        cleanupErrors: unknown[];
+        interruptedSignal?: NodeJS.Signals;
+        runError?: unknown;
+        finishedAt?: Date;
+      },
+    ) => Record<string, unknown>;
+    parseArguments: (argv: string[]) => {
+      browser: "all" | "chrome" | "firefox";
+      serial: boolean;
+      headed: boolean;
+      vitestArgs: string[];
+    };
+    suiteAttemptEnvironment: (env: NodeJS.ProcessEnv, attempt: number) => NodeJS.ProcessEnv;
   };
-};
 
 test("creates namespace-safe ownership IDs even when PID and time overlap", () => {
   expect(createE2ERunId(42, 1_700_000_000_000, "aaaaaaaaaaaaaaaa")).toBe(
@@ -65,6 +67,17 @@ test("parses harness options without swallowing Vitest arguments", () => {
   });
   expect(() => parseArguments(["--browser", "safari"])).toThrow("Unsupported E2E browser");
   expect(() => parseArguments(["--test-name"])).toThrow("requires a pattern");
+});
+
+test("names each suite retry without mutating the shared environment", () => {
+  const base = { E2E_RUN_ID: "run-1" };
+
+  expect(suiteAttemptEnvironment(base, 2)).toEqual({
+    E2E_RUN_ID: "run-1",
+    E2E_SUITE_ATTEMPT: "2",
+  });
+  expect(base).toEqual({ E2E_RUN_ID: "run-1" });
+  expect(() => suiteAttemptEnvironment(base, 0)).toThrow("positive integer");
 });
 
 test("records a terminal outcome for successful and failed runs", () => {

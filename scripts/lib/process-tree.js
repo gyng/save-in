@@ -81,12 +81,19 @@ const summarizeRssKb = (samplesKb) => {
     throw new Error("RSS samples are empty");
   }
   const peakRssKb = Math.max(...samplesKb);
+  let minimumSeenKb = baselineRssKb;
+  let maximumDrawupKb = 0;
+  for (const sample of samplesKb) {
+    minimumSeenKb = Math.min(minimumSeenKb, sample);
+    maximumDrawupKb = Math.max(maximumDrawupKb, sample - minimumSeenKb);
+  }
   return {
     baselineRssKb,
     peakRssKb,
     finalRssKb,
     peakGrowthKb: peakRssKb - baselineRssKb,
     retainedGrowthKb: finalRssKb - baselineRssKb,
+    maximumDrawupKb,
     samplesKb,
   };
 };

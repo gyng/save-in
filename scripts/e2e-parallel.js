@@ -160,6 +160,14 @@ const startSuite = (suite, env, vitestArgs) => {
   return { child, done };
 };
 
+/** @param {NodeJS.ProcessEnv} env @param {number} attempt */
+const suiteAttemptEnvironment = (env, attempt) => {
+  if (!Number.isSafeInteger(attempt) || attempt < 1) {
+    throw new Error("E2E suite attempt must be a positive integer");
+  }
+  return { ...env, E2E_SUITE_ATTEMPT: String(attempt) };
+};
+
 const main = async () => {
   const options = parseArguments(process.argv.slice(2));
   const suites =
@@ -249,7 +257,9 @@ const main = async () => {
     /** @param {string} suite */
     const runSuiteWithRetry = async (suite) => {
       const label = path.basename(suite);
-      let code = Number(await startSuite(suite, childEnv, options.vitestArgs).done);
+      let code = Number(
+        await startSuite(suite, suiteAttemptEnvironment(childEnv, 1), options.vitestArgs).done,
+      );
       const firstExitCode = code;
       let attempts = 0;
       for (let attempt = 1; code !== 0 && attempt <= suiteRetries; attempt += 1) {
@@ -258,7 +268,13 @@ const main = async () => {
         console.error(detail);
         // GitHub renders ::warning:: in the job summary and annotations list.
         console.log(`::warning title=E2E flake retry (${label})::${detail}`);
-        code = Number(await startSuite(suite, childEnv, options.vitestArgs).done);
+        code = Number(
+          await startSuite(
+            suite,
+            suiteAttemptEnvironment(childEnv, attempt + 1),
+            options.vitestArgs,
+          ).done,
+        );
       }
       if (attempts > 0) {
         retriedSuites.push({ suite: label, attempts, recovered: code === 0, firstExitCode });
@@ -337,4 +353,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { finalizeRunMetadata, parseArguments };
+module.exports = { finalizeRunMetadata, parseArguments, suiteAttemptEnvironment };

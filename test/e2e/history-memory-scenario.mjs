@@ -13,14 +13,12 @@ const HISTORY_WRITE_COUNT = 100;
 const HISTORY_WARMUP_WRITE_COUNT = 5;
 const RSS_SAMPLE_INTERVAL = 5;
 
-// Firefox can reserve over 200 MiB when the extension first writes its sharded
-// storage shape. Keep that cold first-use allocation visible under a separate
-// ceiling, then gate the repeated-write workload after five warm-up writes so
-// allocator high-water behavior cannot mask per-write growth. The direct
-// legacy-key writes run last as positive-control telemetry only: Firefox's
-// browser-owned storage fan-out and GC timing varied from 292 MiB to 1.25 GiB
-// across identical Firefox 140 runs.
-const MAX_PRODUCTION_COLD_START_RSS_GROWTH_KB = {
+// Firefox 140 can transiently reserve over 1 GiB when the extension first
+// writes its sharded storage shape, then release most of it at the event-queue
+// barrier. Gate what survives that barrier, while keeping the transient peak
+// in telemetry. For repeated writes, gate the largest rise from any observed
+// trough so an elevated post-startup baseline cannot hide warmed growth.
+const MAX_PRODUCTION_COLD_START_RETAINED_RSS_GROWTH_KB = {
   chrome: 128 * 1024,
   firefox: 384 * 1024,
 };
@@ -140,15 +138,21 @@ export const runHistoryMemoryScenario = async ({ browserLabel, browserProcess, c
 
     const artifactDirectory = process.env.E2E_ARTIFACT_DIR;
     if (artifactDirectory) {
-      const artifactPath = path.resolve(artifactDirectory, `memory-history-${browserLabel}.json`);
+      const configuredAttempt = process.env.E2E_SUITE_ATTEMPT || "1";
+      const suiteAttempt = /^\d+$/.test(configuredAttempt) ? configuredAttempt : "1";
+      const artifactPath = path.resolve(
+        artifactDirectory,
+        `memory-history-${browserLabel}-attempt-${suiteAttempt}.json`,
+      );
       fs.mkdirSync(path.dirname(artifactPath), { recursive: true });
       fs.writeFileSync(
         artifactPath,
         JSON.stringify(
           {
-            schemaVersion: 1,
+            schemaVersion: 2,
             capturedAt: new Date().toISOString(),
             browser: browserLabel,
+            suiteAttempt: Number(suiteAttempt),
             workload: {
               contentTabs: CONTENT_TAB_COUNT,
               historyWrites: HISTORY_WRITE_COUNT,
@@ -156,8 +160,9 @@ export const runHistoryMemoryScenario = async ({ browserLabel, browserProcess, c
               payloadCharacters: payload.length,
               sampleInterval: RSS_SAMPLE_INTERVAL,
             },
-            coldStartPeakGrowthCeilingKb: MAX_PRODUCTION_COLD_START_RSS_GROWTH_KB[browserLabel],
-            productionPeakGrowthCeilingKb: MAX_PRODUCTION_STEADY_RSS_GROWTH_KB[browserLabel],
+            coldStartRetainedGrowthCeilingKb:
+              MAX_PRODUCTION_COLD_START_RETAINED_RSS_GROWTH_KB[browserLabel],
+            productionMaximumDrawupCeilingKb: MAX_PRODUCTION_STEADY_RSS_GROWTH_KB[browserLabel],
             coldStart,
             production,
             legacy,
@@ -170,18 +175,19 @@ export const runHistoryMemoryScenario = async ({ browserLabel, browserProcess, c
 
     process.stdout.write(
       `${browserLabel} history RSS: cold-start-peak=${Math.round(coldStart.peakGrowthKb / 1024)} MiB, ` +
-        `production-peak=${Math.round(production.peakGrowthKb / 1024)} MiB, ` +
+        `cold-start-retained=${Math.round(coldStart.retainedGrowthKb / 1024)} MiB, ` +
+        `production-drawup=${Math.round(production.maximumDrawupKb / 1024)} MiB, ` +
         `production-retained=${Math.round(production.retainedGrowthKb / 1024)} MiB, ` +
         `legacy-peak=${Math.round(legacy.peakGrowthKb / 1024)} MiB, ` +
         `legacy-retained=${Math.round(legacy.retainedGrowthKb / 1024)} MiB\n`,
     );
     expect(
-      coldStart.peakGrowthKb,
-      `${browserLabel} production-history cold start peaked ${Math.round(coldStart.peakGrowthKb / 1024)} MiB above baseline`,
-    ).toBeLessThanOrEqual(MAX_PRODUCTION_COLD_START_RSS_GROWTH_KB[browserLabel]);
+      coldStart.retainedGrowthKb,
+      `${browserLabel} production-history cold start retained ${Math.round(coldStart.retainedGrowthKb / 1024)} MiB above baseline`,
+    ).toBeLessThanOrEqual(MAX_PRODUCTION_COLD_START_RETAINED_RSS_GROWTH_KB[browserLabel]);
     expect(
-      production.peakGrowthKb,
-      `${browserLabel} production-history RSS peaked ${Math.round(production.peakGrowthKb / 1024)} MiB above baseline`,
+      production.maximumDrawupKb,
+      `${browserLabel} production-history RSS rose ${Math.round(production.maximumDrawupKb / 1024)} MiB from its sampled trough`,
     ).toBeLessThanOrEqual(MAX_PRODUCTION_STEADY_RSS_GROWTH_KB[browserLabel]);
   } finally {
     await Promise.all([control.windows.remove(opened.id), closeLocal(server)]);

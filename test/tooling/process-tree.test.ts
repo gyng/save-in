@@ -18,6 +18,7 @@ const { parseProcessMemoryRows, sumProcessTreeRssKb, summarizeRssKb, waitForExit
       finalRssKb: number;
       peakGrowthKb: number;
       retainedGrowthKb: number;
+      maximumDrawupKb: number;
       samplesKb: number[];
     };
     waitForExit: (exited: Promise<unknown>, timeoutMs: number) => Promise<boolean>;
@@ -71,7 +72,16 @@ test("separates transient RSS peaks from retained growth", () => {
     finalRssKb: 115,
     peakGrowthKb: 30,
     retainedGrowthKb: 15,
+    maximumDrawupKb: 30,
     samplesKb: [100, 130, 115],
+  });
+});
+
+test("reports warmed growth even when an elevated baseline remains the peak", () => {
+  expect(summarizeRssKb([160, 100, 110, 125, 115])).toMatchObject({
+    peakGrowthKb: 0,
+    retainedGrowthKb: -45,
+    maximumDrawupKb: 25,
   });
 });
 
