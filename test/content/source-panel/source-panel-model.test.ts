@@ -133,7 +133,7 @@ test("compacts repeated source origins during collection", () => {
 
 test("resolves a repeated ordinary source once per collection", () => {
   document.body.innerHTML = Array.from({ length: 1_000 }, () => '<img src="shared.jpg">').join("");
-  const excludeUrl = vi.fn(() => false);
+  const excludeUrl = vi.fn((_url: string) => false);
 
   const candidates = collectPageSourceCandidates(
     document,
@@ -152,7 +152,7 @@ test("bounds the ordinary-source admission cache", () => {
     ...Array.from({ length: 512 }, (_, index) => `<img src="unique-${index}.jpg">`),
     '<img src="shared.jpg">',
   ].join("");
-  const excludeUrl = vi.fn(() => false);
+  const excludeUrl = vi.fn((_url: string) => false);
 
   const candidates = collectPageSourceCandidates(
     document,
