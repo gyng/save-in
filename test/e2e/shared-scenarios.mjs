@@ -18,6 +18,7 @@ import {
   listenLocal,
   objectOf,
   requireValue,
+  waitForPageCondition,
 } from "./helpers.mjs";
 /** @typedef {import("./control-protocol.mjs").DownloadSummary} DownloadSummary */
 /** @typedef {import("./control-protocol.mjs").LogEntry} LogEntry */
@@ -140,7 +141,7 @@ export const runPrivateContextScenario = async ({ control, waitForDownloads, fil
  * @param {{
  *   control: ReturnType<typeof import("./control-client.mjs").createE2EControlClient>,
  *   openPrivatePage: (url: string) => Promise<{tabId: number, target: string, close: () => Promise<void>}>,
- *   evaluatePrivatePage: (target: string, expression: string) => Promise<unknown>,
+ *   evaluatePrivatePage: (target: string, expression: string, timeoutMs?: number) => Promise<unknown>,
  *   waitForFile: (relativePath: string) => Promise<string>,
  *   filenamePrefix: string,
  * }} adapters
@@ -231,22 +232,21 @@ sourcekind: ^image$
 sourceurl: ${filenamePrefix}-(?:initial|late)\\.png$
 into: e2e/private-auto/:filename:`,
     });
+    // The content script announces readiness and the background immediately
+    // restores this session value. Make that restore agree with the explicit
+    // open below; otherwise its queued `open: false` can overtake the test's
+    // message on a slow Firefox launch and close a panel that was just opened.
+    await control.storage.session.set({ sourcePanelOpen: true });
     privatePage = await openPrivatePage(pageUrl);
     await control.tabs.sendMessage(privatePage.tabId, {
       type: "SET_SOURCE_PANEL",
       body: { open: true },
     });
-    await evaluatePrivatePage(
-      privatePage.target,
-      `new Promise((resolve, reject) => {
-        const timeout = AbortSignal.timeout(8000);
-        const check = () => {
-          if (document.querySelector("#save-in-source-panel")?.shadowRoot) resolve(true);
-          else if (timeout.aborted) reject(new Error("Private content script did not become ready"));
-          else requestAnimationFrame(check);
-        };
-        check();
-      })`,
+    const privateTarget = privatePage.target;
+    await waitForPageCondition(
+      (expression, timeoutMs) => evaluatePrivatePage(privateTarget, expression, timeoutMs),
+      `Boolean(document.querySelector("#save-in-source-panel")?.shadowRoot)`,
+      { description: "private content script" },
     );
     const beforeOptIn = (await control.downloads.search()).filter(
       (item) => item.url === `http://127.0.0.1:${port}/${initialName}`,
@@ -300,6 +300,7 @@ into: e2e/private-auto/:filename:`,
     try {
       await privatePage?.close();
       await Promise.all([
+        control.storage.session.set({ sourcePanelOpen: false }),
         control.storage.local.set(before.options),
         control.storage.local.remove(missingKeys),
       ]);

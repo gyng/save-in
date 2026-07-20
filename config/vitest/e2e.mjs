@@ -12,6 +12,10 @@ export default defineConfig({
     fileParallelism: false,
     testTimeout: 90_000,
     hookTimeout: 180_000,
-    retry: Math.max(0, Number.parseInt(process.env.E2E_RETRY || "0", 10) || 0),
+    // E2E_RETRY belongs to the outer runner, which records a fresh-browser
+    // suite retry in run.json. A hidden in-process retry would turn a flaky
+    // case green without setting the workflow's flaked output. Callers can
+    // still request an explicit diagnostic case retry with `--retry=1`.
+    retry: 0,
   },
 });

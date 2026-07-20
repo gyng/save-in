@@ -102,8 +102,13 @@ const control = createE2EControlClient({
   }),
 });
 const reloadOptionsPage = async () => {
-  await requestOptionsReload();
-  await control.options.waitReady();
+  // browser.tabs.reload resolves before Firefox replaces the page's BiDi
+  // realm. Dispatching waitReady immediately can therefore attach its
+  // observer to the document being destroyed; Firefox 140 leaves that call
+  // alive until its timeout even though the replacement page is ready. The
+  // RDP evaluator detects the stale console actor and follows the target
+  // switch, so use the same recovery path for deliberate reloads.
+  await recoverOptionsPage();
 };
 const optionsPage = createLazyPageEvaluator({
   evaluate: rawEvalOptions,
@@ -509,9 +514,12 @@ test("private context-menu saves leave no extension history or session state", a
       control,
       waitForDownloads: async (filename) => {
         const privatePath = path.join(session.downloadDir, "e2e", "private", `${filename}.txt`);
-        await poll(() => (fs.existsSync(privatePath) ? true : null), {
-          description: "Firefox private download file",
-        });
+        await poll(
+          () => (fs.existsSync(privatePath) && fs.statSync(privatePath).size > 0 ? true : null),
+          {
+            description: "Firefox private download file",
+          },
+        );
         return [{ state: "complete", filename: privatePath }];
       },
       filename: "private-firefox",
@@ -537,7 +545,8 @@ test("real Private Browsing activity stays out of routing, history, and automati
         },
       };
     },
-    evaluatePrivatePage: (target, expression) => session.evaluateInTab(target, expression),
+    evaluatePrivatePage: (target, expression, timeoutMs) =>
+      session.evaluateInTab(target, expression, timeoutMs),
     waitForFile: async (relativePath) => {
       const fullPath = path.join(session.downloadDir, relativePath);
       await poll(

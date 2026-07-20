@@ -89,5 +89,6 @@ All browser commands use the same immutable per-run staged extension and diagnos
 - `npm run e2e` runs Chrome and Firefox in parallel.
 - `npm run e2e:serial` runs both browsers sequentially.
 - `npm run e2e:chrome` and `npm run e2e:firefox` select one browser.
-- Add `-- -t "name"` to select cases, or set `E2E_RETRY=1` for an explicit diagnostic retry.
+- Add `-- -t "name"` to select cases. Set `E2E_RETRY=1` to retry a failed suite in a fresh
+  browser (and record the flake), or pass `-- --retry=1` for an explicit in-process case retry.
 - Use the corresponding `:headed` command for an interactive run.

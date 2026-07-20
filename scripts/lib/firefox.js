@@ -232,6 +232,41 @@ const launch = async ({ extensionDir = ROOT } = {}) => {
     );
     let consoleActor = await connectedRdp.getConsoleActor(addonActor);
 
+    // Evaluates in the content window of an open tab matching urlSubstr. The
+    // tab must already be open (e.g. via browser.tabs.create from evaluate()).
+    /** @param {string} urlSubstr @param {string} text @param {number} [timeoutMs] */
+    const evaluateInTab = async (urlSubstr, text, timeoutMs) => {
+      const tabConsole = await connectedRdp.getTabConsoleActor(urlSubstr);
+      try {
+        return await connectedRdp.evaluate(tabConsole, text, timeoutMs);
+      } catch (error) {
+        // A reload keeps the same tab actor but gives it a new console actor, so
+        // getTabConsoleActor can hand back a cached one that is stale. Firefox
+        // sometimes reports that as noSuchActor, but on a slow runner the stale
+        // actor instead accepts the request and never answers, surfacing as an
+        // RDP timeout. Treat both as "refresh the actor and retry".
+        if (!/noSuchActor|RDP (?:event )?timeout|Evaluation cancelled/.test(String(error))) {
+          throw error;
+        }
+        let switchedConsole;
+        try {
+          switchedConsole = await connectedRdp.refreshTabConsoleActor(urlSubstr, tabConsole);
+        } catch {
+          // Firefox 121-128 does not expose target-switch watcher events.
+          // Retain the full reconnect as the compatibility fallback.
+        }
+        if (switchedConsole) {
+          return connectedRdp.evaluate(switchedConsole, text, timeoutMs);
+        }
+        connectedRdp.close();
+        connectedRdp = await connectWithRetry(port);
+        const refreshedAddon = await connectedRdp.findAddonActor(ADDON_ID);
+        consoleActor = await connectedRdp.getConsoleActor(refreshedAddon);
+        const refreshedConsole = await connectedRdp.getTabConsoleActor(urlSubstr);
+        return connectedRdp.evaluate(refreshedConsole, text, timeoutMs);
+      }
+    };
+
     const openOptionsAndWaitForReady = async () => {
       await connectedRdp.evaluate(
         consoleActor,
@@ -258,20 +293,10 @@ const launch = async ({ extensionDir = ROOT } = {}) => {
       const PROBE_TIMEOUT_MS = 2000;
       await retryUntil(
         async () => {
-          let tabConsole = await connectedRdp.getTabConsoleActor("src/options/options.html");
           const probe = `browser.runtime.sendMessage({ type: "WAKE_WARM" })
               .then((response) => JSON.stringify({ response }))
               .catch((error) => JSON.stringify({ error: String(error) }))`;
-          try {
-            lastProbe = await connectedRdp.evaluate(tabConsole, probe, PROBE_TIMEOUT_MS);
-          } catch (error) {
-            if (!String(error).includes("noSuchActor")) throw error;
-            tabConsole = await connectedRdp.refreshTabConsoleActor(
-              "src/options/options.html",
-              tabConsole,
-            );
-            lastProbe = await connectedRdp.evaluate(tabConsole, probe, PROBE_TIMEOUT_MS);
-          }
+          lastProbe = await evaluateInTab("src/options/options.html", probe, PROBE_TIMEOUT_MS);
           const result = JSON.parse(lastProbe);
           if (result?.response?.type === "OK") return;
           throw new Error(`background readiness probe returned ${lastProbe}`);
@@ -305,43 +330,6 @@ const launch = async ({ extensionDir = ROOT } = {}) => {
 
     /** @param {string} text @param {number} [timeoutMs] */
     const evaluate = (text, timeoutMs) => connectedRdp.evaluate(consoleActor, text, timeoutMs);
-
-    // Evaluates in the content window of an open tab matching urlSubstr. The
-    // tab must already be open (e.g. via browser.tabs.create from evaluate()).
-    /** @param {string} urlSubstr @param {string} text @param {number} [timeoutMs] */
-    const evaluateInTab = async (urlSubstr, text, timeoutMs) => {
-      const tabConsole = await connectedRdp.getTabConsoleActor(urlSubstr);
-      try {
-        return await connectedRdp.evaluate(tabConsole, text, timeoutMs);
-      } catch (error) {
-        // A reload keeps the same tab actor but gives it a new console actor, so
-        // getTabConsoleActor can hand back a cached one that is stale. Firefox
-        // sometimes reports that as noSuchActor, but on a slow runner the stale
-        // actor instead accepts the request and never answers, surfacing as an
-        // RDP timeout. Treat both as "refresh the actor and retry"; reloadAddon
-        // already draws the same line. A caller that wants the timeout to be
-        // fatal keeps it fatal by not reloading the page under the evaluation.
-        if (!/noSuchActor|RDP (?:event )?timeout|Evaluation cancelled/.test(String(error))) {
-          throw error;
-        }
-        let switchedConsole;
-        try {
-          switchedConsole = await connectedRdp.refreshTabConsoleActor(urlSubstr, tabConsole);
-        } catch {
-          // Firefox 121-128 does not expose target-switch watcher events.
-          // Retain the full reconnect as the compatibility fallback.
-        }
-        if (switchedConsole) {
-          return connectedRdp.evaluate(switchedConsole, text, timeoutMs);
-        }
-        connectedRdp.close();
-        connectedRdp = await connectWithRetry(port);
-        const refreshedAddon = await connectedRdp.findAddonActor(ADDON_ID);
-        consoleActor = await connectedRdp.getConsoleActor(refreshedAddon);
-        const refreshedConsole = await connectedRdp.getTabConsoleActor(urlSubstr);
-        return connectedRdp.evaluate(refreshedConsole, text, timeoutMs);
-      }
-    };
 
     const reloadAddon = async () => {
       await connectedRdp.reloadAddon(ADDON_ID);
