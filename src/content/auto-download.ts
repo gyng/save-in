@@ -5,7 +5,11 @@ import {
   normalizeAutomaticSourceUrl,
   type AutomaticRoutingCandidate,
 } from "../automation/automatic-routing.ts";
-import { collectPageSourceCandidates } from "./source-panel-model.ts";
+import {
+  collectPageSourceCandidates,
+  resourceTimingByUrl,
+  type ResourceTimingByUrl,
+} from "./source-panel-model.ts";
 import { parseRulesCollecting } from "../routing/rule-parser.ts";
 import { isAutomaticRuleClauses } from "../routing/automatic-rule.ts";
 import { normalizeAutoDownloadLimit } from "../config/content-options.ts";
@@ -64,6 +68,10 @@ export type AutoDownloadDiscovery = {
   stop(): void;
 };
 
+const LIVE_SCAN_DEBOUNCE_MS = 200;
+const LIVE_SCAN_MAX_WAIT_MS = 1000;
+const LIVE_SCAN_ROOT_LIMIT = 64;
+
 export const setupAutoDownloadDiscovery = (
   options: AutoDownloadDiscoveryOptions,
 ): AutoDownloadDiscovery => {
@@ -73,6 +81,7 @@ export const setupAutoDownloadDiscovery = (
   const dedup = options.dedup ?? createAutoDownloadDedup();
   const seen = dedup.seen;
   const queue: AutomaticRoutingCandidate[] = [];
+  const noResourceTimings: ResourceTimingByUrl = new Map();
 
   // The pure-JS SHA-256 over a ≤2 MB data: URL is the one expensive step of a
   // scan, and a live page rescans on every DOM mutation. Memoize the hashed
@@ -117,6 +126,8 @@ export const setupAutoDownloadDiscovery = (
   let stopped = false;
   let draining = false;
   let refreshTimer = 0;
+  let refreshMaxWaitTimer = 0;
+  let lastScannedPageUrl: string | undefined;
   let outstandingDataCharacters = 0;
 
   const settleIdle = () => {
@@ -159,23 +170,35 @@ export const setupAutoDownloadDiscovery = (
     settleIdle();
   };
 
-  const scan = (root: ParentNode = document) => {
+  const scan = (
+    root: ParentNode = document,
+    includeResourceHints = options.resourceHints,
+    suppliedTimingByUrl?: ResourceTimingByUrl,
+  ) => {
     if (stopped || automaticRules.length === 0) return;
     // A disabled page must consume nothing: recording sources or per-page
     // budget here would block their adoption after the page leaves the list.
-    // Every relevant DOM mutation rescans the whole document, so discovery
-    // resumes on the next mutation after a pushState navigation off the list;
-    // a perfectly static page stays idle until an option change remounts
-    // discovery (content scripts get no navigation event for pushState).
+    // Live mutations scan their changed subtrees, while a changed page URL
+    // promotes the next mutation to a document scan. This makes discovery
+    // resume after a pushState navigation off the list; a perfectly static
+    // page stays idle until an option change remounts discovery (content
+    // scripts get no navigation event for pushState).
     if (options.isPageDisabled()) return;
     const pageUrl = `${window.location}`;
-    const candidates = collectPageSourceCandidates(root, {
-      includeBackgrounds: options.includeBackgrounds,
-      resourceHints: options.resourceHints,
-      // Documents/streams are anchor-classified, so their option turns on
-      // anchor collection by itself — it does not require includeLinks.
-      includeLinks: options.includeLinks || options.includeDocuments,
-    });
+    lastScannedPageUrl = pageUrl;
+    const timingByUrl =
+      suppliedTimingByUrl || (includeResourceHints ? resourceTimingByUrl() : noResourceTimings);
+    const candidates = collectPageSourceCandidates(
+      root,
+      {
+        includeBackgrounds: options.includeBackgrounds,
+        resourceHints: includeResourceHints,
+        // Documents/streams are anchor-classified, so their option turns on
+        // anchor collection by itself — it does not require includeLinks.
+        includeLinks: options.includeLinks || options.includeDocuments,
+      },
+      timingByUrl,
+    );
     const admittedSources = [];
     for (const source of candidates) {
       if (source.previewable === false) continue;
@@ -247,16 +270,90 @@ export const setupAutoDownloadDiscovery = (
     void drain();
   };
 
+  const pendingRoots = new Set<Element>();
+  let fullScanPending = false;
+  const mutationScanRoot = (element: Element): Element => {
+    if (!element.matches("source")) return element;
+    return (
+      element.closest("video, audio") || element.closest("picture")?.querySelector("img") || element
+    );
+  };
+  const queueRoot = (element: Element) => {
+    if (fullScanPending) return;
+    const root = mutationScanRoot(element);
+    for (const pending of pendingRoots) {
+      if (pending === root || pending.contains(root)) return;
+      if (root.contains(pending)) pendingRoots.delete(pending);
+    }
+    if (pendingRoots.size >= LIVE_SCAN_ROOT_LIMIT) {
+      pendingRoots.clear();
+      fullScanPending = true;
+      return;
+    }
+    pendingRoots.add(root);
+  };
+  const flushLiveScan = () => {
+    window.clearTimeout(refreshTimer);
+    window.clearTimeout(refreshMaxWaitTimer);
+    refreshTimer = 0;
+    refreshMaxWaitTimer = 0;
+    const pageChanged = lastScannedPageUrl !== `${window.location}`;
+    if (fullScanPending || pageChanged) {
+      fullScanPending = false;
+      pendingRoots.clear();
+      scan(document);
+      return;
+    }
+    let timingByUrl: ResourceTimingByUrl | undefined;
+    let includeResourceHints = options.resourceHints;
+    for (const root of pendingRoots) {
+      if (!root.isConnected) continue;
+      timingByUrl ||= includeResourceHints ? resourceTimingByUrl() : noResourceTimings;
+      scan(root, includeResourceHints, timingByUrl);
+      includeResourceHints = false;
+    }
+    pendingRoots.clear();
+  };
+  const scheduleLiveScan = () => {
+    window.clearTimeout(refreshTimer);
+    refreshTimer = window.setTimeout(flushLiveScan, LIVE_SCAN_DEBOUNCE_MS);
+    if (!refreshMaxWaitTimer) {
+      refreshMaxWaitTimer = window.setTimeout(flushLiveScan, LIVE_SCAN_MAX_WAIT_MS);
+    }
+  };
+
   const observer = new MutationObserver((mutations) => {
     if (stopped) return;
-    const relevant = mutations.some(
-      (mutation) =>
-        mutation.type === "attributes" ||
-        [...mutation.addedNodes].some((node) => node instanceof Element),
-    );
-    if (!relevant) return;
-    window.clearTimeout(refreshTimer);
-    refreshTimer = window.setTimeout(() => scan(document), 200);
+    let relevant = false;
+    for (const mutation of mutations) {
+      const target = mutation.target instanceof Element ? mutation.target : null;
+      const changedElements = [...mutation.addedNodes].filter(
+        (node): node is Element => node instanceof Element,
+      );
+      const affectsGlobalDiscovery =
+        target?.matches("base, style, link[rel~='stylesheet']") === true ||
+        Boolean(target?.closest("style")) ||
+        changedElements.some(
+          (element) =>
+            element.matches("base, style, link[rel~='stylesheet']") ||
+            Boolean(element.querySelector("base, style, link[rel~='stylesheet']")),
+        );
+      if (affectsGlobalDiscovery) {
+        fullScanPending = true;
+        pendingRoots.clear();
+        relevant = true;
+        continue;
+      }
+      if (mutation.type === "attributes" && target) {
+        queueRoot(target);
+        relevant = true;
+      }
+      for (const element of changedElements) {
+        queueRoot(element);
+        relevant = true;
+      }
+    }
+    if (relevant) scheduleLiveScan();
   });
 
   if (options.live && automaticRules.length > 0) {
@@ -280,6 +377,8 @@ export const setupAutoDownloadDiscovery = (
       stopped = true;
       observer.disconnect();
       window.clearTimeout(refreshTimer);
+      window.clearTimeout(refreshMaxWaitTimer);
+      pendingRoots.clear();
       // The dedup outlives this instance across a remount, so queued-but-
       // unsent candidates must return their slot and budget (symmetric with
       // the dispatch-time drop) or the remounted rescan would skip them

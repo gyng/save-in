@@ -451,6 +451,166 @@ describe("automatic source discovery", () => {
     controller.stop();
   });
 
+  test("scans a small live insertion without rescanning the document", async () => {
+    vi.useFakeTimers();
+    const send = vi.fn(() => Promise.resolve("started" as const));
+    const controller = setupAutoDownloadDiscovery({ rules, live: true, maxPerPage: 20, send });
+    await controller.idle();
+    const documentQueries = vi.spyOn(Document.prototype, "querySelectorAll");
+    documentQueries.mockClear();
+
+    const added = document.createElement("img");
+    added.src = "https://cdn.test/incremental.png";
+    document.body.append(added);
+    await flushLiveScan();
+    await controller.idle();
+
+    expect(documentQueries).not.toHaveBeenCalled();
+    expect(send).toHaveBeenCalledWith(
+      expect.objectContaining({ sourceUrl: "https://cdn.test/incremental.png" }),
+    );
+    controller.stop();
+  });
+
+  test("does not read resource timings when manifest discovery is disabled", async () => {
+    const resourceEntries = vi.spyOn(performance, "getEntriesByType").mockReturnValue([]);
+    const controller = setupAutoDownloadDiscovery({
+      rules,
+      live: false,
+      maxPerPage: 20,
+      resourceHints: false,
+      send: vi.fn(() => Promise.resolve("started" as const)),
+    });
+    await controller.idle();
+
+    expect(resourceEntries).not.toHaveBeenCalled();
+    controller.stop();
+  });
+
+  test("reads resource timings once for an incremental mutation batch", async () => {
+    vi.useFakeTimers();
+    const resourceEntries = vi.spyOn(performance, "getEntriesByType").mockReturnValue([]);
+    const controller = setupAutoDownloadDiscovery({
+      rules,
+      live: true,
+      maxPerPage: 20,
+      resourceHints: true,
+      send: vi.fn(() => Promise.resolve("started" as const)),
+    });
+    await controller.idle();
+    resourceEntries.mockClear();
+
+    const fragment = document.createDocumentFragment();
+    for (let index = 0; index < 3; index += 1) {
+      const image = document.createElement("img");
+      image.src = `https://cdn.test/timing-${index}.png`;
+      fragment.append(image);
+    }
+    document.body.append(fragment);
+    await flushLiveScan();
+    await controller.idle();
+
+    expect(resourceEntries).toHaveBeenCalledOnce();
+    controller.stop();
+  });
+
+  test("rescans the owning media element when a source changes", async () => {
+    vi.useFakeTimers();
+    document.body.innerHTML = `<video><source></video>`;
+    const video = document.querySelector("video")!;
+    const send = vi.fn(() => Promise.resolve("started" as const));
+    const controller = setupAutoDownloadDiscovery({
+      rules: anyKindRules,
+      live: true,
+      maxPerPage: 20,
+      send,
+    });
+    await controller.idle();
+    Object.defineProperty(video, "currentSrc", {
+      configurable: true,
+      value: "https://cdn.test/live.mp4",
+    });
+
+    document.querySelector("source")!.src = "https://cdn.test/live.mp4";
+    await flushLiveScan();
+    await controller.idle();
+
+    expect(send).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sourceUrl: "https://cdn.test/live.mp4",
+        sourceKind: "video",
+      }),
+    );
+    controller.stop();
+  });
+
+  test("falls back to one document scan for a large mutation burst", async () => {
+    vi.useFakeTimers();
+    const send = vi.fn(() => Promise.resolve("started" as const));
+    const controller = setupAutoDownloadDiscovery({ rules, live: true, maxPerPage: 100, send });
+    await controller.idle();
+    const documentQueries = vi.spyOn(Document.prototype, "querySelectorAll");
+    documentQueries.mockClear();
+
+    const fragment = document.createDocumentFragment();
+    for (let index = 0; index < 65; index += 1) {
+      const container = document.createElement("div");
+      container.innerHTML = `<img src="https://cdn.test/burst-${index}.png">`;
+      fragment.append(container);
+    }
+    document.body.append(fragment);
+    await flushLiveScan();
+    await controller.idle();
+
+    expect(documentQueries).toHaveBeenCalled();
+    expect(send).toHaveBeenCalledTimes(65);
+    controller.stop();
+  });
+
+  test("rescans the document after a single-page navigation", async () => {
+    vi.useFakeTimers();
+    document.body.innerHTML = `<div id="ticker"></div>`;
+    const send = vi.fn(() => Promise.resolve("started" as const));
+    const controller = setupAutoDownloadDiscovery({ rules, live: true, maxPerPage: 20, send });
+    await controller.idle();
+    const documentQueries = vi.spyOn(Document.prototype, "querySelectorAll");
+    documentQueries.mockClear();
+
+    history.pushState({}, "", "/next");
+    document.querySelector("#ticker")!.setAttribute("src", "tick");
+    await flushLiveScan();
+    await controller.idle();
+
+    const rescanned = documentQueries.mock.calls.length > 0;
+    controller.stop();
+    history.replaceState({}, "", "/");
+    expect(rescanned).toBe(true);
+  });
+
+  test("still scans while mutations keep resetting the live debounce", async () => {
+    vi.useFakeTimers();
+    document.body.innerHTML = `<div id="ticker"></div>`;
+    const send = vi.fn(() => Promise.resolve("started" as const));
+    const controller = setupAutoDownloadDiscovery({ rules, live: true, maxPerPage: 20, send });
+    await controller.idle();
+    const added = document.createElement("img");
+    added.src = "https://cdn.test/busy.png";
+    document.body.append(added);
+
+    const ticker = document.querySelector<HTMLElement>("#ticker")!;
+    for (let index = 0; index < 20; index += 1) {
+      ticker.style.width = `${index}px`;
+      await settle();
+      await vi.advanceTimersByTimeAsync(100);
+    }
+    await controller.idle();
+
+    expect(send).toHaveBeenCalledWith(
+      expect.objectContaining({ sourceUrl: "https://cdn.test/busy.png" }),
+    );
+    controller.stop();
+  });
+
   test("rescans when an arbitrary attribute change makes a CSS selector match", async () => {
     vi.useFakeTimers();
     document.body.innerHTML = '<img class="avatar" src="https://cdn.test/profile.png">';
