@@ -147,6 +147,10 @@ export type ProtocolErrorResponse<Type extends string> = Response<
 >;
 
 type OkResponse = Response<typeof MESSAGE_TYPES.OK>;
+type OptionsLoadedResponse = Response<
+  typeof MESSAGE_TYPES.OK,
+  { instanceId: string; generation: number }
+>;
 type DownloadResponse = Response<
   typeof MESSAGE_TYPES.DOWNLOAD,
   | { status: typeof MESSAGE_TYPES.OK; version: number; url: string }
@@ -200,7 +204,7 @@ export type InternalResponseMap = {
     { rejections: ExternalDownloadRejection[] }
   >;
   [MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTION_CLEAR]: OkResponse;
-  [MESSAGE_TYPES.OPTIONS_LOADED]: OkResponse;
+  [MESSAGE_TYPES.OPTIONS_LOADED]: OptionsLoadedResponse;
   [MESSAGE_TYPES.OPTIONS]: Response<typeof MESSAGE_TYPES.OPTIONS, Record<string, unknown>>;
   [MESSAGE_TYPES.OPTIONS_SCHEMA]: Response<
     typeof MESSAGE_TYPES.OPTIONS_SCHEMA,

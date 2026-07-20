@@ -95,17 +95,21 @@ backgroundRuntime.init = () =>
     .catch(reportInitFailure);
 
 backgroundRuntime.reset = () => {
+  const generation = (backgroundRuntime.generation += 1);
   // Serialize: overlapping inits interleave removeAll() with another
   // generation's create() calls, producing duplicate-id errors and
   // missing/duplicated menu items
-  backgroundRuntime.ready = (backgroundRuntime.ready ?? Promise.resolve())
+  const ready = (backgroundRuntime.ready ?? Promise.resolve())
     .catch(() => {})
     .then(() => reloadConfigurationAndMenus())
     .then(() => {
+      backgroundRuntime.readyGeneration = generation;
       void recordDiagnosticLifecycle("configuration_reloaded");
+      return generation;
     })
     .catch(reportInitFailure);
-  return backgroundRuntime.ready;
+  backgroundRuntime.ready = ready;
+  return ready;
 };
 
 // MV3: entry.background calls this synchronously at startup. Event listeners
@@ -158,8 +162,10 @@ export const start = () => {
       if (!currentTab && tab) setCurrentTab(tab);
     })
     .catch(() => {});
+  const generation = (backgroundRuntime.generation += 1);
   backgroundRuntime.ready = Promise.all([backgroundRuntime.init(), initialTab]).then(
     ([ready]) => {
+      backgroundRuntime.readyGeneration = generation;
       markBackgroundReady();
       return ready;
     },

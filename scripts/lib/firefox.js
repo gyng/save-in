@@ -331,6 +331,25 @@ const launch = async ({ extensionDir = ROOT } = {}) => {
     /** @param {string} text @param {number} [timeoutMs] */
     const evaluate = (text, timeoutMs) => connectedRdp.evaluate(consoleActor, text, timeoutMs);
 
+    /** @param {string} resource @param {{active?: boolean, reload?: boolean}} [options] */
+    const ensureExtensionPage = (resource, options = {}) =>
+      connectedRdp.evaluate(
+        consoleActor,
+        `(async () => {
+          const url = browser.runtime.getURL(${JSON.stringify(resource)});
+          const existing = (await browser.tabs.query({})).find((tab) => tab.url === url);
+          if (existing?.id && ${JSON.stringify(options.reload === true)}) {
+            await browser.tabs.reload(existing.id);
+          } else if (!existing) {
+            await browser.tabs.create({
+              url,
+              active: ${JSON.stringify(options.active === true)},
+            });
+          }
+          return true;
+        })()`,
+      );
+
     const reloadAddon = async () => {
       await connectedRdp.reloadAddon(ADDON_ID);
       connectedRdp.close();
@@ -392,6 +411,7 @@ const launch = async ({ extensionDir = ROOT } = {}) => {
       },
       evaluate,
       evaluateInTab,
+      ensureExtensionPage,
       reloadAddon,
       reloadBackgroundPage,
       bidi,

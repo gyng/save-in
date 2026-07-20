@@ -34,6 +34,7 @@ const bundleFiles = [
   "options.js.map",
   "reference-page.js",
   "reference-page.js.map",
+  ...(expectE2EControl ? ["e2e-control.js", "e2e-control.js.map"] : []),
 ];
 const optionStyleFiles = [
   "reference/reference.css",
@@ -95,6 +96,7 @@ const runtimeAssetFiles = [
   "src/options/favicon.png",
   "src/options/options.html",
   ...optionStyleFiles.map((file) => `src/options/${file}`),
+  ...(expectE2EControl ? ["test/e2e/control.html"] : []),
 ];
 
 const stageBundledPackage = () => {
@@ -177,6 +179,7 @@ const stageBundledPackage = () => {
   rewriteHtml("src/offscreen.html", "../offscreen.js");
   // The secondary clause help page uses the searchable/copyable reference controller.
   rewriteHtml("src/options/clauselist.html", "../../reference-page.js");
+  if (expectE2EControl) rewriteHtml("test/e2e/control.html", "../../e2e-control.js");
 
   process.stdout.write(`Staged bundled package in ${out}\n`);
 };

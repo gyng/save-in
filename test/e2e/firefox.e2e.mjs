@@ -12,6 +12,7 @@ import firefox from "../../scripts/lib/firefox.js";
 import { inBackgroundContext } from "./background-context.mjs";
 import { registerSharedBrowserCases } from "./cases/shared-browser.cases.mjs";
 import { createE2EControlClient, createRecoveringControlTransport } from "./control-client.mjs";
+import { CONTROL_PAGE_PATH, CONTROL_READY_EXPRESSION } from "./control-target.mjs";
 import {
   runContentDispositionScenario,
   runExternalExtensionScenario,
@@ -45,6 +46,8 @@ import {
 /** @type {Awaited<ReturnType<typeof firefox.launch>>} */
 let session;
 let suiteFailed = false;
+/** @type {{invalidate: () => void, close: () => void, isSameRealm: (error: unknown) => Promise<boolean>, callFunction: (declaration: string, args?: unknown[], timeoutMs?: number) => Promise<unknown>, waitForFunction: (declaration: string, expected: unknown, timeoutMs?: number) => Promise<unknown>} | undefined} */
+let controlRealm;
 /** @type {import("./helpers.mjs").E2EResourceScope | undefined} */
 let resourceScope;
 /** @type {ReturnType<typeof createHarnessSession> | undefined} */
@@ -94,11 +97,20 @@ const recoverOptionsPage = async () => {
     { description: "reloaded Firefox options page", ignoreErrors: true, timeoutMs: 15000 },
   );
 };
+const recoverControlPage = async () => {
+  controlRealm?.invalidate();
+  await session.ensureExtensionPage(CONTROL_PAGE_PATH, { active: false, reload: true });
+  if (!controlRealm) throw new Error("Firefox E2E control realm was not initialized");
+  await controlRealm.waitForFunction(`() => String(${CONTROL_READY_EXPRESSION})`, "true", 15000);
+};
 const control = createE2EControlClient({
   callFunction: createRecoveringControlTransport({
     callFunction: (functionDeclaration, args, timeoutMs) =>
-      session.bidi.callFunction("src/options/options.html", functionDeclaration, args, timeoutMs),
-    recover: recoverOptionsPage,
+      controlRealm
+        ? controlRealm.callFunction(functionDeclaration, args, timeoutMs)
+        : Promise.reject(new Error("Firefox E2E control realm was not initialized")),
+    recover: recoverControlPage,
+    canRetryOneShot: (error) => controlRealm?.isSameRealm(error) ?? false,
   }),
 });
 const reloadOptionsPage = async () => {
@@ -257,6 +269,8 @@ const startSourcePanelServer = async () => {
 beforeAll(async () => {
   try {
     session = await firefox.launch();
+    controlRealm = session.bidi.createPersistentRealm(CONTROL_PAGE_PATH);
+    await recoverControlPage();
     // Native notifications are exercised by one focused test below. Keep the
     // rest of the download-heavy suite from submitting Windows toasts.
     await control.options.set({
@@ -283,6 +297,7 @@ beforeEach(async ({ task }) => {
 });
 
 afterAll(async () => {
+  controlRealm?.close();
   if (session) {
     let cleanupError;
     try {
@@ -392,11 +407,13 @@ test("background event page initialises cleanly", async () => {
   expect((await control.logs.get()).some((entry) => entry.message === "init failed")).toBe(false);
 });
 
-test("structured control restores a missing Options target", async () => {
-  await session.bidi.closeContext("src/options/options.html");
+test("structured control restores its missing dedicated target", async () => {
+  await session.bidi.closeContext(CONTROL_PAGE_PATH);
 
   expect(await control.runtime.ready()).toEqual({ type: "OK" });
-  expect(await rawEvalOptions(`document.readyState`)).toBe("complete");
+  expect(await controlRealm?.callFunction(`() => String(${CONTROL_READY_EXPRESSION})`)).toBe(
+    "true",
+  );
 });
 
 test("options page autosaves through Firefox host APIs", async () => {

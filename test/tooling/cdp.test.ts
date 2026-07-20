@@ -4,6 +4,7 @@ const require = createRequire(import.meta.url);
 const {
   Cdp,
   callFunctionInTarget,
+  createPersistentTargetSession,
   evalInTarget,
   extensionIdFromTargets,
   getJson,
@@ -22,6 +23,18 @@ const {
     args?: unknown[],
     timeoutMs?: number,
   ) => Promise<unknown>;
+  createPersistentTargetSession: (
+    port: number,
+    urlSubstr: string,
+  ) => {
+    state: () => "missing" | "starting" | "ready" | "stale";
+    callFunction: (
+      functionDeclaration: string,
+      args?: unknown[],
+      timeoutMs?: number,
+    ) => Promise<unknown>;
+    close: () => void;
+  };
   evalInTarget: (
     port: number,
     urlSubstr: string,
@@ -169,6 +182,48 @@ describe("CDP transport", () => {
     ).rejects.toThrow("CDP connection closed");
     expect(dispatches).toBe(1);
     expect(sockets).toBe(1);
+  });
+
+  test("reuses one target discovery, socket, and realm across control calls", async () => {
+    let sockets = 0;
+    class ConnectableSocket extends FakeSocket {
+      constructor() {
+        super();
+        sockets += 1;
+        this.send.mockImplementation((message) => {
+          const packet = JSON.parse(message) as { id: number; method: string };
+          const result =
+            packet.method === "Runtime.evaluate"
+              ? { result: { objectId: "root" } }
+              : { result: { value: "ok" } };
+          this.emit("message", { data: JSON.stringify({ id: packet.id, result }) });
+        });
+        queueMicrotask(() => this.emit("open"));
+      }
+    }
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () =>
+        Promise.resolve([
+          {
+            id: "control",
+            type: "page",
+            url: "chrome-extension://save-in/test/e2e/control.html",
+            webSocketDebuggerUrl: "ws://control",
+          },
+        ]),
+    });
+    vi.stubGlobal("WebSocket", ConnectableSocket);
+    vi.stubGlobal("fetch", fetchMock);
+    const session = createPersistentTargetSession(9555, "test/e2e/control.html");
+
+    await expect(session.callFunction("function () {}")).resolves.toBe("ok");
+    await expect(session.callFunction("function () {}")).resolves.toBe("ok");
+
+    expect(session.state()).toBe("ready");
+    expect(fetchMock).toHaveBeenCalledOnce();
+    expect(sockets).toBe(1);
+    session.close();
   });
 
   test("bounds a target evaluation with the caller timeout and does not repeat it", async () => {

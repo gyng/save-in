@@ -9,6 +9,9 @@
 /**
  * @typedef {{
  *   "session.new": {params: Record<string, unknown>, result: Record<string, unknown>},
+ *   "session.subscribe": {
+ *     params: {events: string[]}, result: Record<string, unknown>
+ *   },
  *   "browsingContext.getTree": {
  *     params: {maxDepth: number}, result: {contexts: BidiContext[]}
  *   },
@@ -66,11 +69,20 @@ class FirefoxBidi {
   constructor(socket) {
     this.socket = socket;
     this.id = 0;
+    /** @type {Set<{handleEvent: (method: string, params: unknown) => void, close: () => void}>} */
+    this.realms = new Set();
+    /** @type {Promise<void> | undefined} */
+    this.lifecycleEventsReady = undefined;
     /** @type {Map<number, Pending>} */
     this.pending = new Map();
     socket.addEventListener("message", (event) => {
       const packet = /** @type {unknown} */ (JSON.parse(String(event.data)));
-      if (!isRecord(packet) || typeof packet.id !== "number") return;
+      if (!isRecord(packet)) return;
+      if (typeof packet.method === "string") {
+        for (const realm of this.realms) realm.handleEvent(packet.method, packet.params);
+        return;
+      }
+      if (typeof packet.id !== "number") return;
       const pending = this.pending.get(packet.id);
       if (!pending) return;
       this.pending.delete(packet.id);
@@ -169,6 +181,151 @@ class FirefoxBidi {
     });
   }
 
+  async ensureLifecycleEvents() {
+    this.lifecycleEventsReady ??= this.send("session.subscribe", {
+      events: ["browsingContext.contextCreated", "browsingContext.contextDestroyed"],
+    }).then(() => undefined);
+    await this.lifecycleEventsReady;
+  }
+
+  /**
+   * Caches one control context and follows its create/destroy lifecycle through
+   * BiDi events. Other page helpers keep using on-demand discovery.
+   *
+   * @param {string} urlSubstr
+   */
+  createPersistentRealm(urlSubstr) {
+    /** @type {"missing" | "starting" | "ready" | "stale"} */
+    let state = "missing";
+    /** @type {string | undefined} */
+    let context;
+    /** @type {Promise<void> | undefined} */
+    let starting;
+    const unavailable = (/** @type {unknown} */ cause) =>
+      Object.assign(new Error(`E2E control realm is unavailable: ${urlSubstr}`, { cause }), {
+        code: "E2E_CONTROL_TARGET_MISSING",
+      });
+    const invalidate = () => {
+      context = undefined;
+      state = state === "missing" ? "missing" : "stale";
+    };
+    const realm = {
+      state: () => state,
+      invalidate,
+      /** @param {unknown} error */
+      isSameRealm: async (error) => {
+        const dispatchedRealm =
+          error instanceof Error
+            ? /** @type {Error & {e2eControlRealmId?: string}} */ (error).e2eControlRealmId
+            : undefined;
+        if (!dispatchedRealm) return false;
+        try {
+          await this.ensureLifecycleEvents();
+          const discovered = await this.findContext(urlSubstr);
+          if (discovered !== dispatchedRealm) return false;
+          context = discovered;
+          state = "ready";
+          return true;
+        } catch {
+          return false;
+        }
+      },
+      /** @param {string} method @param {unknown} params */
+      handleEvent: (method, params) => {
+        if (!isRecord(params)) return;
+        const eventContext =
+          typeof params.context === "string"
+            ? params.context
+            : isRecord(params.context) && typeof params.context.context === "string"
+              ? params.context.context
+              : undefined;
+        if (method === "browsingContext.contextDestroyed" && eventContext === context) {
+          context = undefined;
+          state = "stale";
+          return;
+        }
+        const eventUrl =
+          isRecord(params.context) && typeof params.context.url === "string"
+            ? params.context.url
+            : undefined;
+        if (
+          method === "browsingContext.contextCreated" &&
+          eventContext &&
+          eventUrl?.includes(urlSubstr)
+        ) {
+          context = eventContext;
+          state = "ready";
+        }
+      },
+      /**
+       * @param {string} functionDeclaration
+       * @param {unknown[]} [args]
+       * @param {number} [timeoutMs]
+       */
+      callFunction: async (functionDeclaration, args = [], timeoutMs = 15000) => {
+        if (state !== "ready" || !context) {
+          starting ??= (async () => {
+            state = "starting";
+            try {
+              await this.ensureLifecycleEvents();
+              context = await this.findContext(urlSubstr);
+              state = "ready";
+            } catch (error) {
+              context = undefined;
+              state = "missing";
+              throw unavailable(error);
+            }
+          })().finally(() => {
+            starting = undefined;
+          });
+          await starting;
+        }
+        const activeContext = context;
+        if (!activeContext) throw unavailable("realm became stale");
+        try {
+          return await this.callFunctionInContext(
+            activeContext,
+            functionDeclaration,
+            args,
+            timeoutMs,
+          );
+        } catch (error) {
+          invalidate();
+          const failure = error instanceof Error ? error : new Error(String(error));
+          Object.assign(failure, { e2eControlRealmId: activeContext });
+          throw failure;
+        }
+      },
+      /** @param {string} functionDeclaration @param {unknown} expected @param {number} [timeoutMs] */
+      waitForFunction: async (functionDeclaration, expected, timeoutMs = 15000) => {
+        const deadline = Date.now() + timeoutMs;
+        let lastError;
+        while (Date.now() < deadline) {
+          try {
+            const value = await realm.callFunction(
+              functionDeclaration,
+              [],
+              Math.min(2500, Math.max(1, deadline - Date.now())),
+            );
+            if (Object.is(value, expected)) return value;
+            lastError = new Error(`Control realm returned ${String(value)}`);
+          } catch (error) {
+            lastError = error;
+          }
+          await new Promise((resolve) => setImmediate(resolve));
+        }
+        throw new Error(`Control realm did not become ready: ${urlSubstr}`, { cause: lastError });
+      },
+      close: () => {
+        invalidate();
+        state = "missing";
+        this.realms.delete(realm);
+      },
+    };
+    this.realms.add(realm);
+    return realm;
+  }
+
   /**
    * Calls a function in the page realm with JSON-compatible structured
    * arguments. This avoids building console-evaluation expressions from test
@@ -181,6 +338,16 @@ class FirefoxBidi {
    */
   async callFunction(urlSubstr, functionDeclaration, args = [], timeoutMs = 15000) {
     const context = await this.findContext(urlSubstr);
+    return this.callFunctionInContext(context, functionDeclaration, args, timeoutMs);
+  }
+
+  /**
+   * @param {string} context
+   * @param {string} functionDeclaration
+   * @param {unknown[]} [args]
+   * @param {number} [timeoutMs]
+   */
+  async callFunctionInContext(context, functionDeclaration, args = [], timeoutMs = 15000) {
     const result = await this.send(
       "script.callFunction",
       {
@@ -255,6 +422,7 @@ class FirefoxBidi {
   }
 
   close() {
+    for (const realm of this.realms) realm.close();
     this.failPending(new Error("WebDriver BiDi connection closed"));
     this.socket.close();
   }

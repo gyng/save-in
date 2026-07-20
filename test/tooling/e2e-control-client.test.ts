@@ -1,11 +1,25 @@
 import {
   createE2EControlClient,
   createRecoveringControlTransport,
+  controlRetryMode,
   dispatchControlRequest,
 } from "../e2e/control-client.mjs";
+import { createControlPageDispatcher } from "../e2e/control-page-runtime.mjs";
+import {
+  CONTROL_FUNCTION,
+  CONTROL_PAGE_PATH,
+  CONTROL_READY_EXPRESSION,
+} from "../e2e/control-target.mjs";
 import { arrayOf, decodeNumber, decodeString, evaluateJson, objectOf } from "../e2e/helpers.mjs";
 
 describe("structured E2E control client", () => {
+  test("uses a dedicated preloaded control page instead of serializing the dispatcher", () => {
+    expect(CONTROL_PAGE_PATH).toBe("test/e2e/control.html");
+    expect(CONTROL_FUNCTION).toContain("__saveInE2EControl");
+    expect(CONTROL_FUNCTION).not.toContain(dispatchControlRequest.toString());
+    expect(CONTROL_READY_EXPRESSION).toContain("__saveInE2EControl");
+  });
+
   test("passes data as arguments instead of interpolating executable expressions", async () => {
     const calls: Array<{ declaration: string; args: unknown[] | undefined }> = [];
     const callFunction = vi.fn(async (declaration: string, args?: unknown[]) => {
@@ -20,7 +34,10 @@ describe("structured E2E control client", () => {
     expect(callFunction).toHaveBeenCalledOnce();
     expect(calls[0]?.declaration).not.toContain(value);
     expect(calls[0]?.args).toEqual([
-      { operation: "storage.set", area: "local", values: { paths: value } },
+      {
+        requestId: "request-1",
+        request: { operation: "storage.set", area: "local", values: { paths: value } },
+      },
     ]);
     expect(client.metrics()).toEqual({ structuredCalls: 1 });
   });
@@ -41,11 +58,14 @@ describe("structured E2E control client", () => {
     const requests: unknown[] = [];
     const client = createE2EControlClient({
       callFunction: async (_declaration, args) => {
-        requests.push(args?.[0]);
-        const request = args?.[0] as { operation?: string } | undefined;
+        const request = (args?.[0] as { request?: { operation?: string } } | undefined)?.request;
+        requests.push(request);
         return JSON.stringify({
           ok: true,
-          value: request?.operation === "storage.set" ? true : { type: "OK" },
+          value:
+            request?.operation === "storage.set"
+              ? true
+              : { type: "OK", body: { instanceId: "background-1", generation: 1 } },
         });
       },
     });
@@ -65,11 +85,30 @@ describe("structured E2E control client", () => {
     ]);
   });
 
+  test("tracks reset generations within each background instance", async () => {
+    const acknowledgements = [
+      { type: "OK", body: { instanceId: "worker-a", generation: 4 } },
+      { type: "OK", body: { instanceId: "worker-a", generation: 4 } },
+      { type: "OK", body: { instanceId: "worker-b", generation: 1 } },
+    ];
+    const client = createE2EControlClient({
+      callFunction: async () => JSON.stringify({ ok: true, value: acknowledgements.shift() }),
+    });
+
+    await expect(client.runtime.reset()).resolves.toMatchObject({
+      body: { instanceId: "worker-a", generation: 4 },
+    });
+    await expect(client.runtime.reset()).rejects.toThrow("Stale background generation 4");
+    await expect(client.runtime.reset()).resolves.toMatchObject({
+      body: { instanceId: "worker-b", generation: 1 },
+    });
+  });
+
   test("sends event-driven wait criteria through the structured protocol", async () => {
     const requests: unknown[] = [];
     const client = createE2EControlClient({
       callFunction: async (_declaration, args) => {
-        const request = args?.[0] as { operation?: string } | undefined;
+        const request = (args?.[0] as { request?: { operation?: string } } | undefined)?.request;
         requests.push(request);
         return JSON.stringify({
           ok: true,
@@ -139,6 +178,49 @@ describe("structured E2E control client", () => {
     await expect(call("function () {}", [])).rejects.toBe(failure);
     expect(recover).not.toHaveBeenCalled();
     expect(callFunction).toHaveBeenCalledOnce();
+  });
+
+  test("retries reads after an ambiguous transport failure", async () => {
+    const callFunction = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("reply lost"))
+      .mockResolvedValueOnce("ready");
+    const call = createRecoveringControlTransport({ callFunction, recover: vi.fn() });
+
+    await expect(call("function () {}", [], 100, "read")).resolves.toBe("ready");
+    expect(callFunction).toHaveBeenCalledTimes(2);
+  });
+
+  test("deduplicates a repeated one-shot request in the control page realm", async () => {
+    let finish!: (value: string) => void;
+    const operation = vi.fn(
+      () =>
+        new Promise<string>((resolve) => {
+          finish = resolve;
+        }),
+    );
+    const dispatch = createControlPageDispatcher(operation);
+    const envelope = JSON.stringify({
+      requestId: "download-7",
+      request: { operation: "runtime.download", content: "one" },
+    });
+
+    const first = dispatch(envelope);
+    const repeated = dispatch(envelope);
+    finish("done");
+
+    await expect(Promise.all([first, repeated])).resolves.toEqual(["done", "done"]);
+    expect(operation).toHaveBeenCalledOnce();
+  });
+
+  test("classifies retry safety at the operation boundary", () => {
+    expect(controlRetryMode({ operation: "downloads.search", query: {} })).toBe("read");
+    expect(
+      controlRetryMode({ operation: "storage.set", area: "local", values: { enabled: true } }),
+    ).toBe("idempotent");
+    expect(controlRetryMode({ operation: "tabs.create", properties: { url: "about:blank" } })).toBe(
+      "one-shot",
+    );
   });
 
   test("does not infer a missing control page from browser-thrown error text", async () => {

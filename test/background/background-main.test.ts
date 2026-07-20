@@ -96,6 +96,8 @@ const setupGlobals = async ({
   const { setCurrentTab } = await import("../../src/platform/current-tab.ts");
   setCurrentTab(null);
   delete Runtime.ready;
+  Runtime.generation = 0;
+  Runtime.readyGeneration = 0;
   Runtime.debug = false;
   Runtime.optionErrors = { paths: [], filenamePatterns: [] };
 
@@ -263,7 +265,7 @@ describe("startup", () => {
 
     const p = Runtime.reset();
     expect(Runtime.ready).toBe(p);
-    await p;
+    await expect(p).resolves.toBe(2);
     expect(OptionsManagement.loadOptions).toHaveBeenCalledTimes(2);
   });
 
@@ -288,7 +290,7 @@ describe("startup", () => {
     await setupGlobals();
     await import("../../src/background/main.ts");
 
-    await expect(Runtime.reset()).resolves.toBeUndefined();
+    await expect(Runtime.reset()).resolves.toBe(1);
     expect(OptionsManagement.loadOptions).toHaveBeenCalledTimes(1);
   });
 
@@ -297,7 +299,7 @@ describe("startup", () => {
     await import("../../src/background/main.ts");
     Runtime.ready = Promise.reject(new Error("previous init"));
 
-    await expect(Runtime.reset()).resolves.toBeUndefined();
+    await expect(Runtime.reset()).resolves.toBe(1);
     expect(OptionsManagement.loadOptions).toHaveBeenCalledTimes(1);
   });
 

@@ -28,7 +28,9 @@
  *       exceptionDetails?: {exception?: {description?: string}}
  *     }
  *   },
- *   "Target.createTarget": {params: {url: string}, result: {targetId: string}},
+ *   "Target.createTarget": {
+ *     params: {url: string, background?: boolean}, result: {targetId: string}
+ *   },
  *   "Target.closeTarget": {params: {targetId: string}, result: {success?: boolean}},
  *   "Target.getTargets": {
  *     params: {filter?: Array<{type: string}>},
@@ -121,6 +123,9 @@ class Cdp {
   constructor(ws) {
     this.ws = ws;
     this.id = 0;
+    this.closed = false;
+    /** @type {Set<() => void>} */
+    this.closeListeners = new Set();
     /** @type {Map<number, PendingCommand>} */
     this.pending = new Map();
     ws.addEventListener("message", (ev) => {
@@ -143,8 +148,23 @@ class Cdp {
         }
       }
     });
-    ws.addEventListener("close", () => this.failPending(new Error("CDP connection closed")));
-    ws.addEventListener("error", () => this.failPending(new Error("CDP connection failed")));
+    ws.addEventListener("close", () => this.markClosed(new Error("CDP connection closed")));
+    ws.addEventListener("error", () => this.markClosed(new Error("CDP connection failed")));
+  }
+
+  /** @param {unknown} error */
+  markClosed(error) {
+    if (this.closed) return;
+    this.closed = true;
+    this.failPending(error);
+    for (const listener of this.closeListeners) listener();
+    this.closeListeners.clear();
+  }
+
+  /** @param {() => void} listener */
+  onClose(listener) {
+    if (this.closed) listener();
+    else this.closeListeners.add(listener);
   }
 
   /** @param {unknown} error */
@@ -227,7 +247,7 @@ class Cdp {
   }
 
   close() {
-    this.failPending(new Error("CDP connection closed"));
+    this.markClosed(new Error("CDP connection closed"));
     this.ws.close();
   }
 }
@@ -372,6 +392,18 @@ const evalInTarget = async (port, urlSubstr, expression, timeoutMs = 15000) => {
   }
 };
 
+/** @param {number} port @param {string} urlSubstr @param {string} expression @param {unknown} expected @param {number} [timeoutMs] */
+const waitForTargetExpression = (port, urlSubstr, expression, expected, timeoutMs = 15000) =>
+  retryUntil(
+    async () => {
+      const value = await evalInTarget(port, urlSubstr, expression, 2500);
+      if (!Object.is(value, expected)) throw new Error(`Target returned ${String(value)}`);
+      return value;
+    },
+    timeoutMs,
+    `Target did not become ready: ${urlSubstr}`,
+  );
+
 /**
  * Calls a function in a page target with structured arguments. The only
  * evaluated expression is the fixed global-object bootstrap required by CDP;
@@ -450,6 +482,141 @@ const callFunctionInTarget = async (
   throw lastError;
 };
 
+/**
+ * Keeps one CDP attachment and one page-global handle for a stable target.
+ * Discovery and bootstrap are repeated only after a lifecycle transition.
+ *
+ * @param {number} port
+ * @param {string} urlSubstr
+ */
+const createPersistentTargetSession = (port, urlSubstr) => {
+  /** @type {"missing" | "starting" | "ready" | "stale"} */
+  let state = "missing";
+  /** @type {Cdp | undefined} */
+  let client;
+  /** @type {string | undefined} */
+  let objectId;
+  /** @type {string | undefined} */
+  let targetId;
+  /** @type {Promise<void> | undefined} */
+  let starting;
+
+  const invalidate = () => {
+    state = state === "missing" ? "missing" : "stale";
+    objectId = undefined;
+    targetId = undefined;
+    const previous = client;
+    client = undefined;
+    previous?.close();
+  };
+
+  const unavailable = (/** @type {unknown} */ cause) =>
+    Object.assign(new Error(`E2E control target is unavailable: ${urlSubstr}`, { cause }), {
+      code: "E2E_CONTROL_TARGET_MISSING",
+    });
+
+  const start = async () => {
+    state = "starting";
+    /** @type {Cdp | undefined} */
+    let nextClient;
+    try {
+      const target = (await listTargets(port)).find(
+        (candidate) => candidate.type === "page" && candidate.url.includes(urlSubstr),
+      );
+      if (!target) throw new Error(`No target matching "${urlSubstr}"`);
+      nextClient = await Cdp.connect(target.webSocketDebuggerUrl);
+      const root = await nextClient.send("Runtime.evaluate", { expression: "globalThis" });
+      const nextObjectId = root.result.objectId;
+      if (!nextObjectId) throw new Error("CDP did not return the page global object");
+      client = nextClient;
+      objectId = nextObjectId;
+      targetId = target.id;
+      state = "ready";
+      nextClient.onClose(() => {
+        if (client !== nextClient) return;
+        client = undefined;
+        objectId = undefined;
+        targetId = undefined;
+        state = "stale";
+      });
+    } catch (error) {
+      nextClient?.close();
+      client = undefined;
+      objectId = undefined;
+      targetId = undefined;
+      state = "missing";
+      throw unavailable(error);
+    }
+  };
+
+  const ensureReady = async () => {
+    if (state === "ready" && client && objectId) return;
+    starting ??= start().finally(() => {
+      starting = undefined;
+    });
+    await starting;
+  };
+
+  return {
+    state: () => state,
+    invalidate,
+    /** @param {unknown} error */
+    isSameRealm: async (error) => {
+      const dispatchedRealm =
+        error instanceof Error
+          ? /** @type {Error & {e2eControlRealmId?: string}} */ (error).e2eControlRealmId
+          : undefined;
+      if (!dispatchedRealm) return false;
+      try {
+        await ensureReady();
+        return targetId === dispatchedRealm;
+      } catch {
+        return false;
+      }
+    },
+    close: () => {
+      invalidate();
+      state = "missing";
+    },
+    /**
+     * @param {string} functionDeclaration
+     * @param {unknown[]} [args]
+     * @param {number} [timeoutMs]
+     */
+    callFunction: async (functionDeclaration, args = [], timeoutMs = 15000) => {
+      await ensureReady();
+      const activeClient = client;
+      const activeObjectId = objectId;
+      const activeTargetId = targetId;
+      if (!activeClient || !activeObjectId || !activeTargetId) {
+        throw unavailable("target became stale");
+      }
+      try {
+        const result = await activeClient.send(
+          "Runtime.callFunctionOn",
+          {
+            functionDeclaration,
+            objectId: activeObjectId,
+            arguments: args.map((value) => ({ value: JSON.stringify(value) })),
+            awaitPromise: true,
+            returnByValue: true,
+          },
+          timeoutMs,
+        );
+        if (!result.exceptionDetails) return result.result.value;
+        throw new Error(result.exceptionDetails.exception?.description || "function call failed");
+      } catch (error) {
+        // Dispatch has started. Retrying here could duplicate a one-shot
+        // operation; mark the realm stale and leave retry policy to the caller.
+        invalidate();
+        const failure = error instanceof Error ? error : new Error(String(error));
+        Object.assign(failure, { e2eControlRealmId: activeTargetId });
+        throw failure;
+      }
+    },
+  };
+};
+
 // The MV3 service worker disappears from the target list when idle:
 // wake it via an extension page first, then attach quickly.
 /** @param {number} port @param {string} extensionId @param {string} expression @returns {Promise<any>} */
@@ -522,8 +689,8 @@ const openTab = async (port, url) => {
   }
 };
 
-/** @param {number} port @param {string} urlSubstr @param {string} url */
-const replaceTab = async (port, urlSubstr, url) => {
+/** @param {number} port @param {string} urlSubstr @param {string} url @param {{background?: boolean}} [options] */
+const replaceTab = async (port, urlSubstr, url, options = {}) => {
   const targets = (await listTargets(port)).filter(
     (target) => target.type === "page" && target.url.includes(urlSubstr),
   );
@@ -532,7 +699,7 @@ const replaceTab = async (port, urlSubstr, url) => {
     for (const target of targets) {
       await browser.send("Target.closeTarget", { targetId: target.id });
     }
-    return await browser.send("Target.createTarget", { url });
+    return await browser.send("Target.createTarget", { url, ...options });
   } finally {
     browser.close();
   }
@@ -724,7 +891,9 @@ module.exports = {
   extensionIdFromTargets,
   listTargets,
   callFunctionInTarget,
+  createPersistentTargetSession,
   evalInTarget,
+  waitForTargetExpression,
   evalInServiceWorker,
   dispatchInput,
   openTab,

@@ -1,5 +1,6 @@
 import { decodeControlResult, decodeOptionValue } from "./control-codecs.mjs";
 import { createProtocolCodecs } from "./protocol-codecs.mjs";
+import { CONTROL_FUNCTION, CONTROL_PAGE_PATH } from "./control-target.mjs";
 
 /** @typedef {import("./control-protocol.mjs").ControlOperation} ControlOperation */
 /** @typedef {import("./control-protocol.mjs").ControlRequest} ControlRequest */
@@ -14,8 +15,8 @@ import { createProtocolCodecs } from "./protocol-codecs.mjs";
 /** @typedef {import("./control-protocol.mjs").TabMenuClickBody} TabMenuClickBody */
 
 /**
- * Runs in the extension Options page. Keep this function self-contained: CDP
- * and BiDi serialize it into the target realm and pass only JSON arguments.
+ * Runs in the e2e-only extension control page. Keep it independent of page
+ * state so UI reloads cannot interrupt harness commands.
  *
  * @param {string} serializedRequest
  * @param {ReturnType<typeof createProtocolCodecs>} [codecs]
@@ -56,8 +57,6 @@ export const dispatchControlRequest = async (
           (value.info === undefined || isRecord(value.info)) &&
           hasOptionalString(value, "comment")
         );
-      case "options.waitReady":
-        return hasOptionalTimeout(value, "timeoutMs");
       case "storage.get":
         return (
           isArea &&
@@ -327,44 +326,6 @@ export const dispatchControlRequest = async (
       void check().catch((error) => finish(() => reject(error)));
     });
 
-  /** @param {number} timeoutMs */
-  const waitForOptionsReady = (timeoutMs) =>
-    new Promise((resolve, reject) => {
-      const timeout = AbortSignal.timeout(timeoutMs);
-      const root = document.documentElement;
-      let settled = false;
-      /** @type {MutationObserver | undefined} */
-      let observer;
-      /** @param {() => void} callback */
-      const finish = (callback) => {
-        if (settled) return;
-        settled = true;
-        observer?.disconnect();
-        document.removeEventListener("readystatechange", check);
-        timeout.removeEventListener("abort", onTimeout);
-        callback();
-      };
-      const check = () => {
-        if (
-          document.readyState === "complete" &&
-          Boolean(browserApi.runtime?.id) &&
-          Boolean(document.querySelector("#autocomplete-paths")) &&
-          document.querySelector("#paths")?.getAttribute("aria-busy") === "false" &&
-          document.querySelector("#filenamePatterns")?.getAttribute("aria-busy") === "false"
-        ) {
-          finish(() => resolve(true));
-        }
-      };
-      const onTimeout = () => finish(() => reject(new Error("Timed out waiting for Options UI")));
-      document.addEventListener("readystatechange", check);
-      timeout.addEventListener("abort", onTimeout, { once: true });
-      if (root) {
-        observer = new MutationObserver(check);
-        observer.observe(root, { attributes: true, childList: true, subtree: true });
-      }
-      check();
-    });
-
   const readLogs = async () => {
     const stored = await browserApi.storage.session.get("si-log");
     return Array.isArray(stored["si-log"]) ? /** @type {LogEntry[]} */ (stored["si-log"]) : [];
@@ -484,19 +445,24 @@ export const dispatchControlRequest = async (
         );
       }
     };
+    const controlUrl = browserApi.runtime.getURL(CONTROL_PAGE_PATH);
     const optionsUrl = browserApi.runtime.getURL("src/options/options.html");
-    /** @type {number | undefined} */
-    let retainedTabId;
+    /** @type {Set<number>} */
+    const retainedTabIds = new Set();
     await Promise.all([
       attempt("tabs", async () => {
         const [current, tabs] = await Promise.all([
           browserApi.tabs.getCurrent(),
           browserApi.tabs.query({}),
         ]);
-        const keep = current?.id ?? tabs.find((tab) => tab.url?.startsWith(optionsUrl))?.id;
-        retainedTabId = keep;
+        const keep = [
+          current?.id,
+          tabs.find((tab) => tab.url?.startsWith(controlUrl))?.id,
+          tabs.find((tab) => tab.url?.startsWith(optionsUrl))?.id,
+        ];
+        for (const id of keep) if (id !== undefined) retainedTabIds.add(id);
         const remove = tabs.flatMap((tab) =>
-          tab.id !== undefined && tab.id !== keep ? [tab.id] : [],
+          tab.id !== undefined && !retainedTabIds.has(tab.id) ? [tab.id] : [],
         );
         await Promise.all(remove.map((id) => browserApi.tabs.remove(id).catch(() => {})));
       }),
@@ -558,7 +524,9 @@ export const dispatchControlRequest = async (
           browserApi.declarativeNetRequest?.getSessionRules?.() ?? Promise.resolve([]),
           chromeApi.offscreen?.hasDocument?.() ?? Promise.resolve(false),
         ]);
-      const unexpectedTabs = tabs.filter((tab) => tab.id !== retainedTabId);
+      const unexpectedTabs = tabs.filter(
+        (tab) => tab.id !== undefined && !retainedTabIds.has(tab.id),
+      );
       const unexpectedSessionKeys = Object.keys(session).filter(
         (key) => key !== "siDiagnosticLifecycle",
       );
@@ -625,9 +593,6 @@ export const dispatchControlRequest = async (
         });
         break;
       }
-      case "options.waitReady":
-        result = await waitForOptionsReady(request.timeoutMs ?? 8000);
-        break;
       case "storage.get":
         result = await storageArea(request.area).get(request.keys ?? null);
         break;
@@ -740,11 +705,6 @@ export const dispatchControlRequest = async (
   }
 };
 
-const CONTROL_FUNCTION = `(async (serializedRequest) => {
-  const createProtocolCodecs = ${createProtocolCodecs.toString()};
-  return (${dispatchControlRequest.toString()})(serializedRequest, createProtocolCodecs());
-})`;
-
 /** @param {unknown} value @returns {value is Record<string, unknown>} */
 const isRecord = (value) => typeof value === "object" && value !== null && !Array.isArray(value);
 
@@ -752,6 +712,53 @@ const isRecord = (value) => typeof value === "object" && value !== null && !Arra
 const isMissingControlPage = (error) =>
   error instanceof Error &&
   /** @type {Error & {code?: string}} */ (error).code === "E2E_CONTROL_TARGET_MISSING";
+
+/** @param {ControlRequest} request @returns {"read" | "idempotent" | "one-shot"} */
+export const controlRetryMode = (request) => {
+  if (request.operation === "runtime.send") {
+    if (
+      ["WAKE_WARM", "OPTIONS", "HISTORY_GET", "SAVE_IN_E2E_INSPECT"].includes(request.message.type)
+    ) {
+      return "read";
+    }
+    if (request.message.type === "OPTIONS_LOADED") return "idempotent";
+    return "one-shot";
+  }
+  if (
+    [
+      "storage.get",
+      "storage.wait",
+      "downloads.search",
+      "downloads.wait",
+      "tabs.query",
+      "tabs.wait",
+      "notifications.getAll",
+      "dnr.getSessionRules",
+      "offscreen.hasDocument",
+      "logs.get",
+      "logs.wait",
+      "history.wait",
+      "inspect",
+    ].includes(request.operation)
+  ) {
+    return "read";
+  }
+  if (
+    [
+      "storage.set",
+      "storage.remove",
+      "storage.clear",
+      "downloads.cancel",
+      "downloads.erase",
+      "tabs.update",
+      "notifications.clear",
+      "harness.resetCase",
+    ].includes(request.operation)
+  ) {
+    return "idempotent";
+  }
+  return "one-shot";
+};
 
 /**
  * Restores the extension control page only when target discovery proved that
@@ -763,28 +770,56 @@ const isMissingControlPage = (error) =>
  *     functionDeclaration: string,
  *     args?: unknown[],
  *     timeoutMs?: number,
+ *     retryMode?: "read" | "idempotent" | "one-shot",
  *   ) => Promise<unknown>,
  *   recover: () => Promise<void>,
  *   isMissing?: (error: unknown) => boolean,
+ *   canRetryOneShot?: (error: unknown) => boolean | Promise<boolean>,
  * }} adapter
  */
 export const createRecoveringControlTransport = ({
   callFunction,
   recover,
   isMissing = isMissingControlPage,
+  canRetryOneShot = () => false,
 }) => {
+  /** @type {Error | undefined} */
+  let fatal;
+  const restore = async () => {
+    try {
+      await recover();
+    } catch (error) {
+      fatal = new Error("E2E control plane could not be recreated", { cause: error });
+      throw fatal;
+    }
+  };
   /**
    * @param {string} functionDeclaration
    * @param {unknown[]} [args]
    * @param {number} [timeoutMs]
+   * @param {"read" | "idempotent" | "one-shot"} [retryMode]
    */
-  return async (functionDeclaration, args, timeoutMs) => {
+  return async (functionDeclaration, args, timeoutMs, retryMode = "one-shot") => {
+    if (fatal) throw fatal;
     try {
-      return await callFunction(functionDeclaration, args, timeoutMs);
+      return await callFunction(functionDeclaration, args, timeoutMs, retryMode);
     } catch (error) {
-      if (!isMissing(error)) throw error;
-      await recover();
-      return callFunction(functionDeclaration, args, timeoutMs);
+      if (isMissing(error)) {
+        await restore();
+        return callFunction(functionDeclaration, args, timeoutMs, retryMode);
+      }
+      const safeToRetry =
+        retryMode === "read" ||
+        retryMode === "idempotent" ||
+        (retryMode === "one-shot" && (await canRetryOneShot(error)));
+      if (!safeToRetry) throw error;
+      try {
+        return await callFunction(functionDeclaration, args, timeoutMs, retryMode);
+      } catch (retryError) {
+        if (!isMissing(retryError)) throw retryError;
+        await restore();
+        return callFunction(functionDeclaration, args, timeoutMs, retryMode);
+      }
     }
   };
 };
@@ -795,11 +830,15 @@ export const createRecoveringControlTransport = ({
  *     functionDeclaration: string,
  *     args?: unknown[],
  *     timeoutMs?: number,
+ *     retryMode?: "read" | "idempotent" | "one-shot",
  *   ) => Promise<unknown>,
  * }} adapter
  */
 export const createE2EControlClient = ({ callFunction }) => {
   let calls = 0;
+  let requestSequence = 0;
+  let acknowledgedInstance;
+  let acknowledgedGeneration = 0;
   /**
    * @template {ControlRequest} Request
    * @param {Request} request
@@ -808,7 +847,14 @@ export const createE2EControlClient = ({ callFunction }) => {
    */
   const call = async (request, timeoutMs) => {
     calls += 1;
-    const serialized = await callFunction(CONTROL_FUNCTION, [request], timeoutMs);
+    requestSequence += 1;
+    const envelope = { requestId: `request-${requestSequence}`, request };
+    const serialized = await callFunction(
+      CONTROL_FUNCTION,
+      [envelope],
+      timeoutMs,
+      controlRetryMode(request),
+    );
     if (typeof serialized !== "string") {
       throw new Error(`E2E control returned a non-string response: ${typeof serialized}`);
     }
@@ -848,6 +894,21 @@ export const createE2EControlClient = ({ callFunction }) => {
     clear: () => call({ operation: "storage.clear", area: name }),
   });
 
+  const resetOptions = async () => {
+    const response = await call({ operation: "runtime.send", message: { type: "OPTIONS_LOADED" } });
+    if (
+      response.body.instanceId === acknowledgedInstance &&
+      response.body.generation <= acknowledgedGeneration
+    ) {
+      throw new Error(
+        `Stale background generation ${response.body.generation}; expected after ${acknowledgedGeneration}`,
+      );
+    }
+    acknowledgedInstance = response.body.instanceId;
+    acknowledgedGeneration = response.body.generation;
+    return response;
+  };
+
   return {
     call,
     metrics: () => ({ structuredCalls: calls }),
@@ -860,7 +921,7 @@ export const createE2EControlClient = ({ callFunction }) => {
        */
       send: (message, timeoutMs) => call({ operation: "runtime.send", message }, timeoutMs),
       ready: () => call({ operation: "runtime.send", message: { type: "WAKE_WARM" } }),
-      reset: () => call({ operation: "runtime.send", message: { type: "OPTIONS_LOADED" } }),
+      reset: resetOptions,
     },
     storage: { local: area("local"), session: area("session") },
     downloads: {
@@ -924,15 +985,6 @@ export const createE2EControlClient = ({ callFunction }) => {
         ),
     },
     options: {
-      /** @param {number} [timeoutMs] */
-      waitReady: (timeoutMs) =>
-        call(
-          {
-            operation: "options.waitReady",
-            ...(timeoutMs === undefined ? {} : { timeoutMs }),
-          },
-          (timeoutMs ?? 8000) + 2000,
-        ),
       all: async () => {
         const response = await call({ operation: "runtime.send", message: { type: "OPTIONS" } });
         return response.body;
@@ -945,7 +997,7 @@ export const createE2EControlClient = ({ callFunction }) => {
       /** @param {StoredOptionsPatch} values */
       set: async (values) => {
         await call({ operation: "storage.set", area: "local", values });
-        await call({ operation: "runtime.send", message: { type: "OPTIONS_LOADED" } });
+        await resetOptions();
       },
     },
     history: {

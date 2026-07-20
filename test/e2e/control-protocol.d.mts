@@ -202,7 +202,7 @@ export type DownloadMessageResponse = {
 
 export interface RuntimeResponseMap {
   WAKE_WARM: { type: "OK" };
-  OPTIONS_LOADED: { type: "OK" };
+  OPTIONS_LOADED: { type: "OK"; body: { instanceId: string; generation: number } };
   OPTIONS: { type: "OPTIONS"; body: Record<string, unknown> };
   HISTORY_GET: { type: "HISTORY_GET"; body: { entries: HistoryEntry[] } };
   HISTORY_CANCEL: { type: "HISTORY_CANCEL"; body: { canceled: boolean } };
@@ -324,7 +324,6 @@ export type ControlRequest =
       info?: Record<string, unknown>;
       comment?: string;
     }
-  | { operation: "options.waitReady"; timeoutMs?: number }
   | { operation: "storage.get"; area: StorageAreaName; keys?: StorageKeys }
   | { operation: "storage.set"; area: StorageAreaName; values: StorageRecord }
   | {
@@ -391,7 +390,6 @@ export type ControlOperation = ControlRequest["operation"];
 
 export interface ControlResultMap {
   "runtime.download": DownloadMessageResponse;
-  "options.waitReady": true;
   "storage.get": StorageRecord;
   "storage.set": true;
   "storage.wait": unknown;

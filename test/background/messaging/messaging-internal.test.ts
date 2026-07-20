@@ -1240,8 +1240,8 @@ describe("onMessage", () => {
     let finishReset!: () => void;
     backgroundRuntime.reset = vi.fn(
       () =>
-        new Promise<void>((resolve) => {
-          finishReset = resolve;
+        new Promise<number>((resolve) => {
+          finishReset = () => resolve(12);
         }),
     );
     const sendResponse = vi.fn();
@@ -1251,7 +1251,10 @@ describe("onMessage", () => {
 
     finishReset();
     await waitForCall(sendResponse);
-    expect(sendResponse).toHaveBeenCalledWith({ type: MESSAGE_TYPES.OK });
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.OK,
+      body: { instanceId: backgroundRuntime.instanceId, generation: 12 },
+    });
   });
 
   test("OPTIONS responds with the current options", () => {

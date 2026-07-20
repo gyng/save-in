@@ -5,6 +5,15 @@ const { FirefoxBidi, waitForSocketOpen } = require("../../scripts/lib/firefox-bi
   FirefoxBidi: new (socket: WebSocket) => {
     pending: Map<number, unknown>;
     send(method: string, params: object, timeoutMs?: number): Promise<unknown>;
+    createPersistentRealm(urlSubstr: string): {
+      state(): "missing" | "starting" | "ready" | "stale";
+      callFunction(
+        functionDeclaration: string,
+        args?: unknown[],
+        timeoutMs?: number,
+      ): Promise<unknown>;
+      close(): void;
+    };
     close(): void;
   };
   waitForSocketOpen: (socket: WebSocket, timeoutMs: number) => Promise<void>;
@@ -39,5 +48,50 @@ test("clears a command when WebSocket.send throws synchronously", async () => {
   await expect(client.send("session.new", {})).rejects.toThrow("socket is closed");
 
   expect(client.pending.size).toBe(0);
+  client.close();
+});
+
+test("reuses a control realm and marks it stale from lifecycle events", async () => {
+  const socket = new FakeSocket();
+  let treeReads = 0;
+  socket.send.mockImplementation((serialized) => {
+    const packet = JSON.parse(String(serialized)) as { id: number; method: string };
+    if (packet.method === "browsingContext.getTree") treeReads += 1;
+    const result =
+      packet.method === "browsingContext.getTree"
+        ? {
+            contexts: [
+              {
+                context: "control-context",
+                url: "moz-extension://save-in/test/e2e/control.html",
+              },
+            ],
+          }
+        : packet.method === "script.callFunction"
+          ? { type: "success", result: { type: "string", value: "ok" } }
+          : {};
+    socket.dispatchEvent(
+      new MessageEvent("message", {
+        data: JSON.stringify({ id: packet.id, type: "success", result }),
+      }),
+    );
+  });
+  const client = new FirefoxBidi(socket as unknown as WebSocket);
+  const realm = client.createPersistentRealm("test/e2e/control.html");
+
+  await expect(realm.callFunction("() => 'ok'")).resolves.toBe("ok");
+  await expect(realm.callFunction("() => 'ok'")).resolves.toBe("ok");
+
+  expect(treeReads).toBe(1);
+  expect(realm.state()).toBe("ready");
+  socket.dispatchEvent(
+    new MessageEvent("message", {
+      data: JSON.stringify({
+        method: "browsingContext.contextDestroyed",
+        params: { context: "control-context" },
+      }),
+    }),
+  );
+  expect(realm.state()).toBe("stale");
   client.close();
 });

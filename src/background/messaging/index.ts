@@ -344,8 +344,11 @@ const internalHandlers = {
     sendResponse({ type: MESSAGE_TYPES.OK });
   },
   [MESSAGE_TYPES.OPTIONS_LOADED]: async (_request, _sender, sendResponse) => {
-    await backgroundRuntime.reset();
-    sendResponse({ type: MESSAGE_TYPES.OK });
+    const generation = await backgroundRuntime.reset();
+    sendResponse({
+      type: MESSAGE_TYPES.OK,
+      body: { instanceId: backgroundRuntime.instanceId, generation },
+    });
   },
   [MESSAGE_TYPES.OPTIONS]: (_request, _sender, sendResponse) => {
     sendResponse({ type: MESSAGE_TYPES.OPTIONS, body: options });

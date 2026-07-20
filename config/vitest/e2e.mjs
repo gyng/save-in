@@ -12,6 +12,10 @@ export default defineConfig({
     fileParallelism: false,
     testTimeout: 90_000,
     hookTimeout: 180_000,
+    // A dead control realm makes every remaining case meaningless. Stop this
+    // browser process at the first failure; the outer runner records and runs
+    // the one supported recovery path, a fresh-browser whole-suite retry.
+    bail: 1,
     // E2E_RETRY belongs to the outer runner, which records a fresh-browser
     // suite retry in run.json. A hidden in-process retry would turn a flaky
     // case green without setting the workflow's flaked output. Callers can

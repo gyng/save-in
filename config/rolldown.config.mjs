@@ -3,6 +3,20 @@ import { defineConfig } from "rolldown";
 const e2eBuild = process.env.SAVE_IN_BUILD_MODE === "e2e";
 const backgroundEntry = e2eBuild ? "src/entries/background.e2e.ts" : "src/entries/background.ts";
 const bundleDir = e2eBuild ? "dist/bundled-e2e" : "dist/bundled";
+/** @type {import("rolldown").RolldownOptions[]} */
+const e2eControlConfig = e2eBuild
+  ? [
+      {
+        input: "test/e2e/control-page.mjs",
+        output: {
+          file: `${bundleDir}/e2e-control.js`,
+          format: "esm",
+          minify: false,
+          sourcemap: true,
+        },
+      },
+    ]
+  : [];
 
 // Store-submission bundler for the TypeScript/ESM codebase.
 // Each target has one module under src/entries; rolldown strips the types (oxc), resolves the imports and
@@ -89,4 +103,5 @@ export default defineConfig([
       sourcemap: true,
     },
   },
+  ...e2eControlConfig,
 ]);

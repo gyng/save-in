@@ -12,6 +12,7 @@ import chrome from "../../scripts/lib/chrome.js";
 import { inBackgroundContext } from "./background-context.mjs";
 import { registerSharedBrowserCases } from "./cases/shared-browser.cases.mjs";
 import { createE2EControlClient, createRecoveringControlTransport } from "./control-client.mjs";
+import { CONTROL_PAGE_PATH, CONTROL_READY_EXPRESSION } from "./control-target.mjs";
 import {
   runContentDispositionScenario,
   runExternalExtensionScenario,
@@ -58,6 +59,8 @@ let browserLogPath = "";
 let browserPath = "";
 let browserVersion = "";
 let suiteFailed = false;
+/** @type {ReturnType<typeof cdp.createPersistentTargetSession> | undefined} */
+let controlTarget;
 /** @type {import("./helpers.mjs").E2EResourceScope | undefined} */
 let resourceScope;
 /** @type {ReturnType<typeof createHarnessSession> | undefined} */
@@ -95,11 +98,24 @@ const reloadOptionsPage = async () => {
     },
   );
 };
+const recoverControlPage = async () => {
+  controlTarget?.invalidate();
+  await cdp.replaceTab(
+    PORT,
+    CONTROL_PAGE_PATH,
+    `chrome-extension://${extensionId}/${CONTROL_PAGE_PATH}`,
+    { background: true },
+  );
+  await cdp.waitForTargetExpression(PORT, CONTROL_PAGE_PATH, CONTROL_READY_EXPRESSION, true);
+};
 const control = createE2EControlClient({
   callFunction: createRecoveringControlTransport({
     callFunction: (functionDeclaration, args, timeoutMs) =>
-      cdp.callFunctionInTarget(PORT, "options.html", functionDeclaration, args, timeoutMs),
-    recover: reloadOptionsPage,
+      controlTarget
+        ? controlTarget.callFunction(functionDeclaration, args, timeoutMs)
+        : Promise.reject(new Error("Chrome E2E control target was not initialized")),
+    recover: recoverControlPage,
+    canRetryOneShot: (error) => controlTarget?.isSameRealm(error) ?? false,
   }),
 });
 const optionsPage = createLazyPageEvaluator({
@@ -303,6 +319,7 @@ beforeAll(async () => {
       browserVersion,
     } = launched);
     DOWNLOADS = launched.downloadDir || path.join(PROFILE_DIR, "downloads");
+    controlTarget = cdp.createPersistentTargetSession(PORT, CONTROL_PAGE_PATH);
     await poll(
       async () => {
         const state = await evaluateJson(
@@ -328,6 +345,7 @@ beforeAll(async () => {
       },
       { description: "options page and extension APIs", ignoreErrors: true },
     );
+    await recoverControlPage();
     // Native notifications are exercised by one focused test below. Keep the
     // rest of the download-heavy suite from submitting Windows toasts.
     await control.options.set({
@@ -356,6 +374,7 @@ beforeEach(async ({ task }) => {
 afterAll(async () => {
   /** @type {unknown[]} */
   const failures = [];
+  controlTarget?.close();
   try {
     await chrome.killTree(proc);
   } catch (error) {
@@ -553,11 +572,11 @@ test("service worker initialises cleanly", async () => {
   expect((await control.logs.get()).some((entry) => entry.message === "init failed")).toBe(false);
 });
 
-test("structured control restores a missing Options target", async () => {
-  await cdp.replaceTab(PORT, "options.html", "about:blank");
+test("structured control restores its missing dedicated target", async () => {
+  await cdp.replaceTab(PORT, CONTROL_PAGE_PATH, "about:blank");
 
   expect(await control.runtime.ready()).toEqual({ type: "OK" });
-  expect(await rawEvalOptions(`document.readyState`)).toBe("complete");
+  expect(await cdp.evalInTarget(PORT, CONTROL_PAGE_PATH, CONTROL_READY_EXPRESSION)).toBe(true);
 });
 
 test("options can select a generated locale and return to the browser default", async () => {
@@ -616,7 +635,7 @@ test("options can select a generated locale and return to the browser default", 
 });
 
 test("options page works under MV3 CSP with live first-party autocomplete", async () => {
-  await control.options.waitReady();
+  await waitForOptionsInteractive();
   await evalOptions(`document.querySelector("#paths-mode-text")?.click()`);
   await waitForPageCondition(
     evalOptions,

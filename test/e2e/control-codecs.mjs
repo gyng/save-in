@@ -88,9 +88,6 @@ export const decodeControlResult = (request, value) => {
     case "runtime.download":
       valid = isRuntimeResponseFor({ type: "DOWNLOAD" }, value);
       break;
-    case "options.waitReady":
-      valid = value === true;
-      break;
     case "storage.get":
     case "notifications.getAll":
       valid = isRecord(value);

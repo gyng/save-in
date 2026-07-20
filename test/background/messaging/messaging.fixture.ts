@@ -135,7 +135,9 @@ const setupGlobals = () => {
   vi.spyOn(SourcePanelState, "syncSourcePanelToTab").mockResolvedValue();
   vi.spyOn(SourcePanelState, "setSourcePanelOpenState").mockResolvedValue();
 
-  backgroundRuntime.reset = vi.fn();
+  backgroundRuntime.generation = 0;
+  backgroundRuntime.readyGeneration = 0;
+  backgroundRuntime.reset = vi.fn().mockResolvedValue(backgroundRuntime.readyGeneration);
   delete backgroundRuntime.ready;
   backgroundRuntime.optionErrors = { paths: [], filenamePatterns: [] };
   delete backgroundRuntime.lastDownloadState;

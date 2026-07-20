@@ -222,8 +222,14 @@ export const createProtocolCodecs = () => {
     if (!isRecord(message) || typeof message.type !== "string" || !isRecord(value)) return false;
     switch (message.type) {
       case "WAKE_WARM":
-      case "OPTIONS_LOADED":
         return value.type === "OK" && value.body === undefined;
+      case "OPTIONS_LOADED":
+        return (
+          value.type === "OK" &&
+          isRecord(value.body) &&
+          typeof value.body.instanceId === "string" &&
+          typeof value.body.generation === "number"
+        );
       case "OPTIONS":
         return value.type === "OPTIONS" && isRecord(value.body);
       case "HISTORY_GET":

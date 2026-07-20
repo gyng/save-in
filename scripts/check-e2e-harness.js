@@ -200,7 +200,11 @@ const evaluationTypingErrors = (file, source) => {
   if (/Promise\s*<\s*any\s*>/.test(source)) {
     errors.push(`${file}: raw evaluator results must use Promise<unknown>, not Promise<any>.`);
   }
-  const jsonBoundaryFiles = new Set(["test/e2e/control-client.mjs", "test/e2e/helpers.mjs"]);
+  const jsonBoundaryFiles = new Set([
+    "test/e2e/control-client.mjs",
+    "test/e2e/control-page-runtime.mjs",
+    "test/e2e/helpers.mjs",
+  ]);
   if (!jsonBoundaryFiles.has(file) && /\bJSON\.parse\s*\(/.test(source)) {
     errors.push(`${file}: decode runner JSON through evaluateJson or parseJson.`);
   }

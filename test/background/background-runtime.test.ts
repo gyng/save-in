@@ -26,7 +26,9 @@ describe("BackgroundRuntime", () => {
   test("starts with resolved lifecycle hooks", async () => {
     const runtime = createBackgroundRuntime();
 
+    expect(runtime.generation).toBe(0);
+    expect(runtime.readyGeneration).toBe(0);
     await expect(runtime.init()).resolves.toBeUndefined();
-    await expect(runtime.reset()).resolves.toBeUndefined();
+    await expect(runtime.reset()).resolves.toBe(0);
   });
 });
