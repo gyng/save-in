@@ -186,6 +186,9 @@ export const createProtocolCodecs = () => {
   // failed assertion naming the browser, not as an opaque decode error.
   const isInspectResult = (value) =>
     isRecord(value) &&
+    typeof value.instanceId === "string" &&
+    typeof value.generation === "number" &&
+    typeof value.readyGeneration === "number" &&
     (value.browser === "CHROME" || value.browser === "FIREFOX" || value.browser === "UNKNOWN") &&
     (value.browserVersion === undefined || typeof value.browserVersion === "number") &&
     isRecord(value.capabilities) &&

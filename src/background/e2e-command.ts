@@ -84,6 +84,9 @@ export type BackgroundE2EInspectRequest = {
 };
 
 export type BackgroundE2EInspectState = {
+  instanceId: string;
+  generation: number;
+  readyGeneration: number;
   browser: string;
   browserVersion?: number;
   capabilities: WebExtensionCapabilities;
@@ -255,7 +258,7 @@ const isBackgroundE2EInspectCommand = (value: unknown): value is BackgroundE2EIn
 // live bindings, so a detector that misfires on a host fails the suite.
 // `hasObjectUrl` is likewise resolved in the real background global, which is
 // the only place the Chrome service worker's missing DOM is observable.
-const handleBackgroundE2EInspectCommand = async (
+export const handleBackgroundE2EInspectCommand = async (
   rawRequest: unknown,
 ): Promise<BackgroundE2EInspectResponse | null> => {
   if (!isBackgroundE2EInspectCommand(rawRequest)) return null;
@@ -266,6 +269,9 @@ const handleBackgroundE2EInspectCommand = async (
       body: {
         status: "OK",
         state: {
+          instanceId: backgroundRuntime.instanceId,
+          generation: backgroundRuntime.generation,
+          readyGeneration: backgroundRuntime.readyGeneration,
           browser: CURRENT_BROWSER,
           ...(CURRENT_BROWSER_VERSION === undefined
             ? {}

@@ -13,10 +13,45 @@ import {
   handleBackgroundE2ECommand,
   handleBackgroundE2EContextMenuCommand,
   handleBackgroundE2EHistoryCommand,
+  handleBackgroundE2EInspectCommand,
   handleBackgroundE2ENotificationCommand,
   handleBackgroundE2EResetCommand,
   installBackgroundE2ENotificationObserver,
 } from "../../src/background/e2e-command.ts";
+
+test("reports the ready background instance and generation", async () => {
+  const previous = {
+    instanceId: backgroundRuntime.instanceId,
+    generation: backgroundRuntime.generation,
+    readyGeneration: backgroundRuntime.readyGeneration,
+    ready: backgroundRuntime.ready,
+  };
+  backgroundRuntime.instanceId = "background-test";
+  backgroundRuntime.generation = 7;
+  backgroundRuntime.readyGeneration = 7;
+  backgroundRuntime.ready = Promise.resolve();
+
+  try {
+    await expect(
+      handleBackgroundE2EInspectCommand({ type: "SAVE_IN_E2E_INSPECT" }),
+    ).resolves.toMatchObject({
+      body: {
+        status: "OK",
+        state: {
+          instanceId: "background-test",
+          generation: 7,
+          readyGeneration: 7,
+        },
+      },
+    });
+  } finally {
+    backgroundRuntime.instanceId = previous.instanceId;
+    backgroundRuntime.generation = previous.generation;
+    backgroundRuntime.readyGeneration = previous.readyGeneration;
+    if (previous.ready) backgroundRuntime.ready = previous.ready;
+    else delete backgroundRuntime.ready;
+  }
+});
 
 test("starts one pipeline download without registering a duplicate expectation", async () => {
   const launch = vi.spyOn(Download, "launchDownload").mockResolvedValue({

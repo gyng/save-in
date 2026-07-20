@@ -220,6 +220,8 @@ const launch = async ({ extensionDir = ROOT } = {}) => {
   let rdp;
   /** @type {InstanceType<typeof FirefoxBidi> | undefined} */
   let bidi;
+  /** @type {{callFunction: (functionDeclaration: string, args?: unknown[], timeoutMs?: number) => Promise<unknown>} | undefined} */
+  let backgroundControlRealm;
   try {
     rdp = await connectWithRetry(port);
     let connectedRdp = rdp;
@@ -267,8 +269,8 @@ const launch = async ({ extensionDir = ROOT } = {}) => {
       }
     };
 
-    /** @param {string} resource */
-    const waitForBackgroundReady = async (resource) => {
+    /** @param {string} resource @param {string | null} [previousInstance] */
+    const waitForBackgroundReady = async (resource, previousInstance) => {
       // Send the readiness probe from an extension page. A background context's
       // runtime.sendMessage does not loop back to its own onMessage listener.
       let lastProbe = "options target was not attachable";
@@ -281,19 +283,36 @@ const launch = async ({ extensionDir = ROOT } = {}) => {
       // deadline after an attempt, gave up. That is why a slow runner failed
       // here at ~30s against a 10s budget.
       const PROBE_TIMEOUT_MS = 2000;
+      /** @type {string | undefined} */
+      let readyInstance;
       await retryUntil(
         async () => {
-          const probe = `browser.runtime.sendMessage({ type: "WAKE_WARM" })
+          const probe = `browser.runtime.sendMessage({ type: ${JSON.stringify(
+            previousInstance === undefined ? "WAKE_WARM" : "SAVE_IN_E2E_INSPECT",
+          )} })
               .then((response) => JSON.stringify({ response }))
               .catch((error) => JSON.stringify({ error: String(error) }))`;
           lastProbe = await evaluateInTab(resource, probe, PROBE_TIMEOUT_MS);
           const result = JSON.parse(lastProbe);
-          if (result?.response?.type === "OK") return;
+          if (previousInstance === undefined && result?.response?.type === "OK") return;
+          const body = result?.response?.body;
+          const state = body?.state;
+          if (
+            result?.response?.type === "SAVE_IN_E2E_INSPECT" &&
+            body?.status === "OK" &&
+            typeof state?.instanceId === "string" &&
+            state.generation === state.readyGeneration &&
+            (previousInstance === null || state.instanceId !== previousInstance)
+          ) {
+            readyInstance = state.instanceId;
+            return;
+          }
           throw new Error(`background readiness probe returned ${lastProbe}`);
         },
         30000,
         "background page never became ready",
       );
+      return readyInstance;
     };
 
     const openOptionsAndWaitForReady = async () => {
@@ -312,6 +331,7 @@ const launch = async ({ extensionDir = ROOT } = {}) => {
 
     await openOptionsAndWaitForReady();
     bidi = await FirefoxBidi.connect(bidiPort);
+    backgroundControlRealm = bidi.createPersistentRealm("test/e2e/control.html");
     portLease.release();
     bidiLease.release();
     process.stdout.write(
@@ -371,39 +391,18 @@ const launch = async ({ extensionDir = ROOT } = {}) => {
     };
 
     const reloadBackgroundPage = async () => {
-      const staleConsoleActor = consoleActor;
-      const switchedConsole = connectedRdp.waitForBackgroundConsoleActor(
-        addonActor,
-        staleConsoleActor,
+      if (!backgroundControlRealm) throw new Error("Firefox control realm was not initialized");
+      const previousInstance = await waitForBackgroundReady("test/e2e/control.html", null);
+      if (!previousInstance) throw new Error("Firefox background instance is unavailable");
+      await backgroundControlRealm.callFunction(
+        `async function () {
+          const background = await browser.runtime.getBackgroundPage();
+          if (!background) throw new Error("Firefox background page is unavailable");
+          background.location.reload();
+          return "reload requested";
+        }`,
       );
-      try {
-        await connectedRdp.evaluate(
-          staleConsoleActor,
-          `(() => {
-            const channel = new MessageChannel();
-            channel.port1.onmessage = () => location.reload();
-            channel.port2.postMessage(null);
-            return true;
-          })()`,
-          5000,
-        );
-      } catch (error) {
-        const message = String(error);
-        if (!/RDP (?:event )?timeout|Evaluation cancelled|noSuchActor/.test(message)) throw error;
-      }
-      consoleActor = switchedConsole
-        ? await switchedConsole
-        : await retryUntil(
-            async () => {
-              const candidate = await connectedRdp.getConsoleActor(addonActor);
-              if (candidate === staleConsoleActor)
-                throw new Error("Background target is still stale");
-              return candidate;
-            },
-            10000,
-            "Firefox event-page reload did not expose a fresh background page",
-          );
-      await waitForBackgroundReady("test/e2e/control.html");
+      await waitForBackgroundReady("test/e2e/control.html", previousInstance);
     };
 
     const cleanup = async () => {

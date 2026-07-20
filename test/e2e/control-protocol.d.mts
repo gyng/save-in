@@ -302,6 +302,9 @@ export interface DnrRule {
 
 /** Reported by the bundle itself; mirrors src/platform/chrome-detector.ts. */
 export interface InspectResult {
+  instanceId: string;
+  generation: number;
+  readyGeneration: number;
   browser: "CHROME" | "FIREFOX" | "UNKNOWN";
   browserVersion?: number;
   capabilities: {

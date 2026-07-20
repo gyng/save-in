@@ -66,18 +66,14 @@ const evalBackground = (expr, timeoutMs) =>
     ? controlRealm.callFunction(`() => (${inBackgroundContext(expr)})`, [], timeoutMs)
     : Promise.reject(new Error("Firefox E2E control realm was not initialized"));
 const requestOptionsReload = async () => {
-  const tabId = optional(decodeNumber)(
-    await session.evaluate(
-      `browser.tabs.query({}).then((tabs) => tabs.find((tab) =>
-        tab.url?.startsWith(browser.runtime.getURL("src/options/options.html")))?.id)`,
-    ),
-  );
+  const tabs = await control.tabs.query();
+  const tabId = tabs.find((tab) => tab.url?.includes("src/options/options.html"))?.id;
   if (tabId === undefined) {
-    await session.evaluate(
-      `browser.tabs.create({ url: browser.runtime.getURL("src/options/options.html") })`,
-    );
+    const controlUrl = tabs.find((tab) => tab.url?.includes(CONTROL_PAGE_PATH))?.url;
+    if (!controlUrl) throw new Error("Firefox control page URL is unavailable");
+    await control.tabs.create({ url: new URL("/src/options/options.html", controlUrl).href });
   } else {
-    await session.evaluate(`browser.tabs.reload(${JSON.stringify(tabId)})`);
+    await control.tabs.reload(tabId);
   }
 };
 const recoverOptionsPage = async () => {
