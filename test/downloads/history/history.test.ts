@@ -1,13 +1,16 @@
 import * as SaveHistory from "../../../src/background/history.ts";
 import { HISTORY_LIMIT } from "../../../src/background/history.ts";
-import type { HistoryEntry } from "../../../src/shared/history-types.ts";
+import {
+  HISTORY_ENTRY_STORAGE_PREFIX,
+  HISTORY_INDEX_STORAGE_KEY,
+} from "../../../src/shared/storage-keys.ts";
+import { isStringKeyedRecord } from "../../../src/shared/util.ts";
 import {
   clearPersistenceDiagnostics,
   getPersistenceDiagnostics,
 } from "../../../src/shared/persistence-diagnostics.ts";
 
 const HISTORY_KEY = "save-in-history";
-type PersistedHistoryEntry = HistoryEntry & Record<string, unknown>;
 
 // add() returns the entry id synchronously; the write is queued, so tests
 // await SaveHistory.writeQueue to observe it
@@ -18,20 +21,25 @@ const returnRawStorageValueOnce = (value: unknown): void => {
 };
 
 describe("SaveHistory", () => {
-  let store: Record<string, PersistedHistoryEntry[]>;
+  let store: Record<string, unknown>;
+
+  const storedHistory = () => SaveHistory.getHistoryEntries();
 
   beforeEach(() => {
     clearPersistenceDiagnostics();
     store = {};
-    global.browser.storage.local.get = vi.fn((key: string) =>
-      Promise.resolve({ [key]: store[key] }),
-    );
-    global.browser.storage.local.set = vi.fn((obj: Record<string, PersistedHistoryEntry[]>) => {
+    global.browser.storage.local.get = vi.fn((keys: string | string[] | null) => {
+      if (keys === null) return Promise.resolve({ ...store });
+      const requested = typeof keys === "string" ? [keys] : keys;
+      return Promise.resolve(Object.fromEntries(requested.map((key) => [key, store[key]])));
+    });
+    global.browser.storage.local.set = vi.fn((obj: Record<string, unknown>) => {
       Object.assign(store, obj);
       return Promise.resolve();
     });
-    global.browser.storage.local.remove = vi.fn((key: string) => {
-      delete store[key];
+    global.browser.storage.local.remove = vi.fn((keys: string | string[]) => {
+      const removed = typeof keys === "string" ? [keys] : keys;
+      removed.forEach((key) => delete store[key]);
       return Promise.resolve();
     });
   });
@@ -42,7 +50,7 @@ describe("SaveHistory", () => {
     SaveHistory.addHistoryEntry({ url: "https://a/3" });
     await flushWrites();
 
-    expect(store[HISTORY_KEY]!.map((e) => e.url)).toEqual([
+    expect((await storedHistory()).map((entry) => entry.url)).toEqual([
       "https://a/1",
       "https://a/2",
       "https://a/3",
@@ -54,7 +62,11 @@ describe("SaveHistory", () => {
     await flushWrites();
 
     expect(typeof id).toBe("string");
-    expect(store[HISTORY_KEY]![0]!).toMatchObject({ id, url: "https://a/1", status: "pending" });
+    expect((await storedHistory())[0]).toMatchObject({
+      id,
+      url: "https://a/1",
+      status: "pending",
+    });
   });
 
   test("does not persist entries from private browsing contexts", async () => {
@@ -78,7 +90,9 @@ describe("SaveHistory", () => {
     SaveHistory.setHistoryStatus(id2, "complete");
     await flushWrites();
 
-    const byId = Object.fromEntries(store[HISTORY_KEY]!.map((e) => [e.id, e.status]));
+    const byId = Object.fromEntries(
+      (await storedHistory()).map((entry) => [entry.id, entry.status]),
+    );
     expect(byId[id1!]).toBe("pending");
     expect(byId[id2!]).toBe("complete");
   });
@@ -87,7 +101,7 @@ describe("SaveHistory", () => {
     SaveHistory.addHistoryEntry({ url: "https://a/1" });
     await flushWrites();
     await SaveHistory.setHistoryStatus(null, "complete");
-    expect(store[HISTORY_KEY]![0]!.status).toBe("pending");
+    expect((await storedHistory())[0]?.status).toBe("pending");
   });
 
   test("setStatus records the download id and file size", async () => {
@@ -97,7 +111,7 @@ describe("SaveHistory", () => {
     SaveHistory.setHistoryStatus(id, "complete", 42, 123456);
     await flushWrites();
 
-    expect(store[HISTORY_KEY]![0]!).toMatchObject({
+    expect((await storedHistory())[0]).toMatchObject({
       status: "complete",
       downloadId: 42,
       fileSize: 123456,
@@ -111,9 +125,10 @@ describe("SaveHistory", () => {
     SaveHistory.setHistoryDownloadId(id, 7);
     await flushWrites();
 
-    expect(store[HISTORY_KEY]![0]!).toMatchObject({ status: "pending", downloadId: 7 });
+    const [entry] = await storedHistory();
+    expect(entry).toMatchObject({ status: "pending", downloadId: 7 });
     // Without a startTime the undo-identity field must not be written at all.
-    expect(store[HISTORY_KEY]![0]!).not.toHaveProperty("downloadStartTime");
+    expect(entry).not.toHaveProperty("downloadStartTime");
   });
 
   test("setDownloadId persists the start time for the undo identity check", async () => {
@@ -123,7 +138,7 @@ describe("SaveHistory", () => {
     SaveHistory.setHistoryDownloadId(id, 7, "2026-07-17T01:02:03.000Z");
     await flushWrites();
 
-    expect(store[HISTORY_KEY]![0]!).toMatchObject({
+    expect((await storedHistory())[0]).toMatchObject({
       downloadId: 7,
       downloadStartTime: "2026-07-17T01:02:03.000Z",
     });
@@ -136,7 +151,7 @@ describe("SaveHistory", () => {
     SaveHistory.patchHistoryEntry(id, { fileSize: 4096 });
     await flushWrites();
 
-    expect(store[HISTORY_KEY]![0]!).toMatchObject({ url: "https://a/1", fileSize: 4096 });
+    expect((await storedHistory())[0]).toMatchObject({ url: "https://a/1", fileSize: 4096 });
   });
 
   test("setDownloadId keeps a captured start time on a same-id bind without one", async () => {
@@ -150,7 +165,7 @@ describe("SaveHistory", () => {
     SaveHistory.setHistoryDownloadId(id, 7);
     await flushWrites();
 
-    expect(store[HISTORY_KEY]![0]!).toMatchObject({
+    expect((await storedHistory())[0]).toMatchObject({
       downloadId: 7,
       downloadStartTime: "2026-07-17T01:02:03.000Z",
     });
@@ -166,8 +181,9 @@ describe("SaveHistory", () => {
     await flushWrites();
 
     // A stale time would refuse undo of the download the entry now points at.
-    expect(store[HISTORY_KEY]![0]!).toMatchObject({ downloadId: 8 });
-    expect(store[HISTORY_KEY]![0]!).not.toHaveProperty("downloadStartTime");
+    const [entry] = await storedHistory();
+    expect(entry).toMatchObject({ downloadId: 8 });
+    expect(entry).not.toHaveProperty("downloadStartTime");
   });
 
   test("setStatus rebinding a different id clears the stale start time", async () => {
@@ -180,8 +196,9 @@ describe("SaveHistory", () => {
     SaveHistory.setHistoryStatus(id, "complete", 8);
     await flushWrites();
 
-    expect(store[HISTORY_KEY]![0]!).toMatchObject({ status: "complete", downloadId: 8 });
-    expect(store[HISTORY_KEY]![0]!).not.toHaveProperty("downloadStartTime");
+    const [entry] = await storedHistory();
+    expect(entry).toMatchObject({ status: "complete", downloadId: 8 });
+    expect(entry).not.toHaveProperty("downloadStartTime");
   });
 
   test("setStatus with the same id keeps the captured start time", async () => {
@@ -193,7 +210,7 @@ describe("SaveHistory", () => {
     SaveHistory.setHistoryStatus(id, "complete", 7);
     await flushWrites();
 
-    expect(store[HISTORY_KEY]![0]!).toMatchObject({
+    expect((await storedHistory())[0]).toMatchObject({
       status: "complete",
       downloadId: 7,
       downloadStartTime: "2026-07-17T01:02:03.000Z",
@@ -209,7 +226,7 @@ describe("SaveHistory", () => {
     SaveHistory.anchorHistoryDownloadStartTime(id, 7, "2026-07-17T01:02:03.000Z");
     await flushWrites();
 
-    expect(store[HISTORY_KEY]![0]!).toMatchObject({
+    expect((await storedHistory())[0]).toMatchObject({
       downloadId: 7,
       downloadStartTime: "2026-07-17T01:02:03.000Z",
     });
@@ -226,7 +243,7 @@ describe("SaveHistory", () => {
     SaveHistory.anchorHistoryDownloadStartTime(id, 7, "2026-07-17T01:02:03.000Z");
     await flushWrites();
 
-    expect(store[HISTORY_KEY]![0]!).toMatchObject({
+    expect((await storedHistory())[0]).toMatchObject({
       downloadId: 8,
       downloadStartTime: "2026-07-18T09:08:07.000Z",
     });
@@ -244,7 +261,7 @@ describe("SaveHistory", () => {
 
     // The guarded no-op must also skip the storage write entirely: bulk
     // automatic saves would otherwise double history churn for nothing.
-    expect(store[HISTORY_KEY]![0]!).toMatchObject({
+    expect((await storedHistory())[0]).toMatchObject({
       downloadStartTime: "2026-07-17T01:02:03.000Z",
     });
     expect(vi.mocked(global.browser.storage.local.set).mock.calls.length).toBe(writes);
@@ -256,14 +273,15 @@ describe("SaveHistory", () => {
   });
 
   test("normalizes extended diagnostic metadata", async () => {
-    store[HISTORY_KEY] = [
+    const legacy = [
       {
         initiatedAt: "2024-01-01T00:00:00Z",
         menu: { id: "save-1", title: "Images", path: "images" },
         variables: { filename: "cat.png", counter: "4" },
       },
     ];
-    await expect(SaveHistory.getHistoryEntries()).resolves.toEqual(store[HISTORY_KEY]);
+    store[HISTORY_KEY] = legacy;
+    await expect(SaveHistory.getHistoryEntries()).resolves.toEqual(legacy);
   });
 
   test("migrates legacy local calendar dates to UTC once", async () => {
@@ -287,7 +305,10 @@ describe("SaveHistory", () => {
         mechanism: "downloads-api",
       },
     ]);
-    expect(store[HISTORY_KEY][0]!).toMatchObject({
+    const migratedRawEntry = Object.values(store).find(
+      (value) => isStringKeyedRecord(value) && "futureMetadata" in value,
+    );
+    expect(migratedRawEntry).toMatchObject({
       timestamp: expectedTimestamp,
       initiatedAt: expectedInitiatedAt,
       mechanism: "downloads-api",
@@ -308,7 +329,12 @@ describe("SaveHistory", () => {
     await SaveHistory.clearHistory();
 
     expect(store[HISTORY_KEY]).toBeUndefined();
-    expect(global.browser.storage.local.remove).toHaveBeenCalledWith(HISTORY_KEY);
+    expect(global.browser.storage.local.remove).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        HISTORY_INDEX_STORAGE_KEY,
+        expect.stringMatching(`^${HISTORY_ENTRY_STORAGE_PREFIX}`),
+      ]),
+    );
   });
 
   test("caps history length at HISTORY_LIMIT", async () => {
@@ -318,10 +344,11 @@ describe("SaveHistory", () => {
     SaveHistory.addHistoryEntry({ url: String(limit) });
     await flushWrites();
 
-    expect(store[HISTORY_KEY]).toHaveLength(limit);
+    const history = await storedHistory();
+    expect(history).toHaveLength(limit);
     // The oldest entry was dropped; the newest is appended
-    expect(store[HISTORY_KEY][0]!).toEqual({ url: "1" });
-    expect(store[HISTORY_KEY][limit - 1]).toMatchObject({ url: String(limit) });
+    expect(history[0]).toEqual({ url: "1" });
+    expect(history[limit - 1]).toMatchObject({ url: String(limit) });
   });
 
   test("add tolerates a storage backend returning nothing", async () => {
@@ -330,7 +357,7 @@ describe("SaveHistory", () => {
     SaveHistory.addHistoryEntry({ url: "https://a/1" });
     await flushWrites();
 
-    expect(store[HISTORY_KEY]![0]!).toMatchObject({ url: "https://a/1" });
+    expect((await storedHistory())[0]).toMatchObject({ url: "https://a/1" });
   });
 
   test("get tolerates a storage backend returning nothing", async () => {
@@ -402,10 +429,7 @@ describe("SaveHistory", () => {
   });
 
   test("concurrent adds do not clobber each other (write-queue serialization)", async () => {
-    global.browser.storage.local.get = vi.fn((key: string) =>
-      Promise.resolve().then(() => ({ [key]: store[key] })),
-    );
-    global.browser.storage.local.set = vi.fn((obj: Record<string, PersistedHistoryEntry[]>) =>
+    global.browser.storage.local.set = vi.fn((obj: Record<string, unknown>) =>
       Promise.resolve().then(() => {
         Object.assign(store, obj);
       }),
@@ -416,16 +440,63 @@ describe("SaveHistory", () => {
     SaveHistory.addHistoryEntry({ url: "https://a/3" });
     await flushWrites();
 
-    expect(new Set(store[HISTORY_KEY]!.map((entry) => entry.url))).toEqual(
+    expect(new Set((await storedHistory()).map((entry) => entry.url))).toEqual(
       new Set(["https://a/1", "https://a/2", "https://a/3"]),
     );
+  });
+
+  test("an add accepted during legacy migration is serialized after it", async () => {
+    store[HISTORY_KEY] = [{ url: "https://a/legacy" }];
+    const baseGet = global.browser.storage.local.get;
+    let releaseRead: (() => void) | undefined;
+    const readBlocked = new Promise<void>((resolve) => {
+      releaseRead = resolve;
+    });
+    let firstRead = true;
+    global.browser.storage.local.get = vi.fn(async (...args) => {
+      if (firstRead) {
+        firstRead = false;
+        await readBlocked;
+      }
+      return Reflect.apply(baseGet, global.browser.storage.local, args);
+    });
+
+    const legacyRead = SaveHistory.getHistoryEntries();
+    await vi.waitFor(() => expect(global.browser.storage.local.get).toHaveBeenCalled());
+    SaveHistory.addHistoryEntry({ url: "https://a/new" });
+    releaseRead?.();
+
+    await expect(legacyRead).resolves.toEqual([{ url: "https://a/legacy" }]);
+    await flushWrites();
+    expect((await storedHistory()).map((entry) => entry.url)).toEqual([
+      "https://a/legacy",
+      "https://a/new",
+    ]);
+  });
+
+  test("patching one entry does not rewrite the complete history", async () => {
+    for (let index = 0; index < 100; index += 1) {
+      SaveHistory.addHistoryEntry({
+        url: `https://example.test/${index}/${"payload".repeat(20)}`,
+      });
+    }
+    await flushWrites();
+    const id = (await storedHistory()).at(-1)?.id;
+    expect(id).toBeTypeOf("string");
+    vi.mocked(global.browser.storage.local.set).mockClear();
+
+    await SaveHistory.patchHistoryEntry(id, { status: "complete" });
+
+    expect(global.browser.storage.local.set).toHaveBeenCalledOnce();
+    const payload = vi.mocked(global.browser.storage.local.set).mock.calls[0]?.[0];
+    expect(JSON.stringify(payload).length).toBeLessThan(2_000);
   });
 
   test("a failing set does not break subsequent adds", async () => {
     global.browser.storage.local.set = vi
       .fn()
       .mockRejectedValueOnce(new Error("boom"))
-      .mockImplementation((obj: Record<string, PersistedHistoryEntry[]>) => {
+      .mockImplementation((obj: Record<string, unknown>) => {
         Object.assign(store, obj);
         return Promise.resolve();
       });
@@ -434,7 +505,7 @@ describe("SaveHistory", () => {
     SaveHistory.addHistoryEntry({ url: "https://a/2" });
     await flushWrites();
 
-    expect(store[HISTORY_KEY]!.map((e) => e.url)).toEqual(["https://a/2"]);
+    expect((await storedHistory()).map((entry) => entry.url)).toEqual(["https://a/2"]);
     expect(getPersistenceDiagnostics()).toEqual([
       expect.objectContaining({
         area: "local",
@@ -454,15 +525,16 @@ describe("SaveHistory", () => {
     ]);
   });
 
-  test("skips migration when a newer write already normalized the latest value", async () => {
-    const legacy = [{ timestamp: "2024-01-02", url: "https://old" }];
-    const normalized = [{ timestamp: "2024-01-02T00:00:00.000Z", url: "https://new" }];
-    global.browser.storage.local.get = vi
-      .fn()
-      .mockResolvedValueOnce({ [HISTORY_KEY]: legacy })
-      .mockResolvedValueOnce({ [HISTORY_KEY]: normalized });
+  test("prefers a completed sharded index over a leftover legacy value", async () => {
+    store[HISTORY_INDEX_STORAGE_KEY] = {
+      version: 1,
+      firstChunk: 0,
+      nextChunk: 0,
+      length: 0,
+    };
+    store[HISTORY_KEY] = [{ timestamp: "2024-01-02", url: "https://old" }];
 
-    await SaveHistory.getHistoryEntries();
+    await expect(SaveHistory.getHistoryEntries()).resolves.toEqual([]);
 
     expect(global.browser.storage.local.set).not.toHaveBeenCalled();
   });
@@ -480,6 +552,7 @@ describe("SaveHistory", () => {
   });
 
   test("clear rejects its caller but leaves the queue usable after remove fails", async () => {
+    store[HISTORY_KEY] = [];
     global.browser.storage.local.remove = vi
       .fn()
       .mockRejectedValueOnce(new Error("remove denied"))
@@ -494,10 +567,13 @@ describe("SaveHistory", () => {
   });
 
   test("clear recovers from an already rejected write queue", async () => {
+    store[HISTORY_KEY] = [];
     SaveHistory.seedHistoryWriteQueueForTest(Promise.reject(new Error("earlier write failed")));
 
     await expect(SaveHistory.clearHistory()).resolves.toBeUndefined();
 
-    expect(global.browser.storage.local.remove).toHaveBeenCalledWith(HISTORY_KEY);
+    expect(global.browser.storage.local.remove).toHaveBeenCalledWith(
+      expect.arrayContaining([HISTORY_KEY]),
+    );
   });
 });

@@ -2,17 +2,32 @@ import { webExtensionApi } from "../platform/web-extension-api.ts";
 import type { HistoryEntry, HistoryEntryInput } from "../shared/history-types.ts";
 import type { PrivateWriteOptions } from "../shared/persistence-context.ts";
 import { recordPersistenceFailure } from "../shared/persistence-diagnostics.ts";
-import { HISTORY_STORAGE_KEY } from "../shared/storage-keys.ts";
 import {
-  hasLegacyDateOnlyTimestamp,
+  HISTORY_ENTRY_STORAGE_PREFIX,
+  HISTORY_INDEX_CHUNK_STORAGE_PREFIX,
+  HISTORY_INDEX_STORAGE_KEY,
+  HISTORY_STORAGE_KEY,
+} from "../shared/storage-keys.ts";
+import {
   migrateLegacyHistoryTimestamps,
   normalizeHistory,
+  normalizeHistoryEntry,
 } from "../shared/history-normalization.ts";
 import { isStringKeyedRecord } from "../shared/util.ts";
 
 // Entries store the whole download state: cap the list so storage.local
-// does not grow without bound
+// does not grow without bound.
 export const HISTORY_LIMIT = 10000;
+
+const HISTORY_STORE_VERSION = 1;
+const HISTORY_INDEX_CHUNK_SIZE = 128;
+
+type HistoryIndex = {
+  version: typeof HISTORY_STORE_VERSION;
+  firstChunk: number;
+  nextChunk: number;
+  length: number;
+};
 
 const recordHistoryFailure = (
   operation: "read" | "write" | "remove" | "migrate",
@@ -21,18 +36,135 @@ const recordHistoryFailure = (
   recordPersistenceFailure({ area: "local", operation, key: HISTORY_STORAGE_KEY }, error);
 };
 
-// Serialise writes: concurrent read-modify-write would drop entries
+const historyEntryStorageKey = (key: string): string => `${HISTORY_ENTRY_STORAGE_PREFIX}${key}`;
+const historyIndexChunkStorageKey = (chunk: number): string =>
+  `${HISTORY_INDEX_CHUNK_STORAGE_PREFIX}${chunk}`;
+
+const isNonnegativeSafeInteger = (value: unknown): value is number =>
+  Number.isSafeInteger(value) && typeof value === "number" && value >= 0;
+
+const normalizeHistoryIndex = (value: unknown): HistoryIndex | null => {
+  if (!isStringKeyedRecord(value) || value.version !== HISTORY_STORE_VERSION) return null;
+  const { firstChunk, nextChunk, length } = value;
+  if (
+    !isNonnegativeSafeInteger(firstChunk) ||
+    !isNonnegativeSafeInteger(nextChunk) ||
+    !isNonnegativeSafeInteger(length) ||
+    firstChunk > nextChunk ||
+    (length > 0 && firstChunk === nextChunk) ||
+    length > HISTORY_LIMIT
+  ) {
+    return null;
+  }
+  return { version: HISTORY_STORE_VERSION, firstChunk, nextChunk, length };
+};
+
+const storageSnapshot = async (keys: string[] | null): Promise<Record<string, unknown>> => {
+  const stored = await webExtensionApi.storage.local.get(keys);
+  return isStringKeyedRecord(stored) ? stored : {};
+};
+
+const rootStorageSnapshot = (): Promise<Record<string, unknown>> =>
+  storageSnapshot([HISTORY_INDEX_STORAGE_KEY, HISTORY_STORAGE_KEY]);
+
+const readShardedHistory = async (index: HistoryIndex): Promise<HistoryEntry[]> => {
+  if (index.length === 0) return [];
+  const chunkKeys = Array.from({ length: index.nextChunk - index.firstChunk }, (_, offset) =>
+    historyIndexChunkStorageKey(index.firstChunk + offset),
+  );
+  const chunks = await storageSnapshot(chunkKeys);
+  const locators = chunkKeys
+    .flatMap((chunkKey) => {
+      const chunk = chunks[chunkKey];
+      return Array.isArray(chunk)
+        ? chunk.filter((key): key is string => typeof key === "string")
+        : [];
+    })
+    .slice(-index.length);
+  const entryKeys = locators.map(historyEntryStorageKey);
+  const stored = await storageSnapshot(entryKeys);
+  const history: HistoryEntry[] = [];
+  for (const entryKey of entryKeys) {
+    const entry = normalizeHistoryEntry(stored[entryKey]);
+    if (entry) history.push(entry);
+  }
+  return history;
+};
+
+// Convert the legacy monolithic array in one storage transaction. The same
+// set replaces that large value with an empty array while adding the shards,
+// so Chrome's storage quota never has to accommodate two complete copies.
+// The index is authoritative only after the transaction succeeds; a failed
+// migration leaves the legacy value readable and can be retried safely.
+const migrateLegacyHistory = async (legacyValue: unknown): Promise<HistoryIndex> => {
+  const legacy = Array.isArray(legacyValue)
+    ? migrateLegacyHistoryTimestamps(legacyValue).slice(-HISTORY_LIMIT)
+    : [];
+  const writes: Record<string, unknown> = { [HISTORY_STORAGE_KEY]: [] };
+  const keys: string[] = [];
+  const usedKeys = new Set<string>();
+
+  legacy.forEach((rawEntry, index) => {
+    const normalized = normalizeHistoryEntry(rawEntry);
+    if (!normalized) return;
+    const preferred = typeof normalized.id === "string" ? normalized.id : `legacy-${index}`;
+    let key = preferred;
+    if (usedKeys.has(key)) key = `${preferred}-legacy-${index}`;
+    usedKeys.add(key);
+    keys.push(key);
+    writes[historyEntryStorageKey(key)] = rawEntry;
+  });
+
+  const chunks = Math.ceil(keys.length / HISTORY_INDEX_CHUNK_SIZE);
+  for (let chunk = 0; chunk < chunks; chunk += 1) {
+    writes[historyIndexChunkStorageKey(chunk)] = keys.slice(
+      chunk * HISTORY_INDEX_CHUNK_SIZE,
+      (chunk + 1) * HISTORY_INDEX_CHUNK_SIZE,
+    );
+  }
+  const index: HistoryIndex = {
+    version: HISTORY_STORE_VERSION,
+    firstChunk: 0,
+    nextChunk: chunks,
+    length: keys.length,
+  };
+  writes[HISTORY_INDEX_STORAGE_KEY] = index;
+  await webExtensionApi.storage.local.set(writes);
+  await webExtensionApi.storage.local.remove(HISTORY_STORAGE_KEY);
+  return index;
+};
+
+const loadWritableIndex = async (
+  extraKeys: string[] = [],
+): Promise<{ index: HistoryIndex; snapshot: Record<string, unknown> }> => {
+  const snapshot = await storageSnapshot([
+    HISTORY_INDEX_STORAGE_KEY,
+    HISTORY_STORAGE_KEY,
+    ...extraKeys,
+  ]);
+  const current = normalizeHistoryIndex(snapshot[HISTORY_INDEX_STORAGE_KEY]);
+  if (current) return { index: current, snapshot };
+  if (Array.isArray(snapshot[HISTORY_STORAGE_KEY])) {
+    return { index: await migrateLegacyHistory(snapshot[HISTORY_STORAGE_KEY]), snapshot: {} };
+  }
+  return {
+    index: { version: HISTORY_STORE_VERSION, firstChunk: 0, nextChunk: 0, length: 0 },
+    snapshot,
+  };
+};
+
+// Serialise writes: concurrent index updates must not drop entries.
 let writeQueue: Promise<unknown> = Promise.resolve(undefined);
 let idCounter = 0;
 
-// A short, process-unique id so a later setHistoryStatus can find this entry
+// A short, process-unique id so a later setHistoryStatus can find this entry.
 const nextHistoryId = (): string => {
   idCounter += 1;
   return `h${Date.now()}-${idCounter}`;
 };
 
 // Returns the entry id synchronously (the write itself is queued) so the
-// caller can update the entry's status once the download resolves
+// caller can update the entry's status once the download resolves.
 export const addHistoryEntry = (
   entry: HistoryEntryInput,
   writeOptions: PrivateWriteOptions = {},
@@ -42,54 +174,102 @@ export const addHistoryEntry = (
   if (writeOptions.privateContext) return null;
 
   const id = nextHistoryId();
-  const withMeta = Object.assign({ id, status: "pending" }, entry);
+  const withMeta: HistoryEntry = Object.assign({ id, status: "pending" }, entry);
 
   writeQueue = writeQueue
-    .then(() => webExtensionApi.storage.local.get(HISTORY_STORAGE_KEY))
-    .then((res) => {
-      const history = normalizeHistory(res?.[HISTORY_STORAGE_KEY]);
-      return webExtensionApi.storage.local.set({
-        [HISTORY_STORAGE_KEY]: [...history, withMeta].slice(-HISTORY_LIMIT),
-      });
+    .then(async () => {
+      const { index } = await loadWritableIndex();
+      const lastChunk =
+        index.nextChunk === index.firstChunk ? index.nextChunk : index.nextChunk - 1;
+      const lastChunkKey = historyIndexChunkStorageKey(lastChunk);
+      const lastSnapshot = await storageSnapshot([lastChunkKey]);
+      const storedLastChunk = lastSnapshot[lastChunkKey];
+      let appendedChunk = Array.isArray(storedLastChunk)
+        ? storedLastChunk.filter((key): key is string => typeof key === "string")
+        : [];
+      let nextChunk = index.nextChunk;
+      let targetChunk = lastChunk;
+      if (appendedChunk.length >= HISTORY_INDEX_CHUNK_SIZE) {
+        appendedChunk = [];
+        targetChunk = index.nextChunk;
+        nextChunk = index.nextChunk + 1;
+      } else if (index.nextChunk === index.firstChunk) {
+        nextChunk = lastChunk + 1;
+      }
+      appendedChunk.push(id);
+
+      const writes: Record<string, unknown> = {
+        [historyEntryStorageKey(id)]: withMeta,
+        [historyIndexChunkStorageKey(targetChunk)]: appendedChunk,
+      };
+      const removeKeys: string[] = [];
+      let firstChunk = index.firstChunk;
+      let length = index.length + 1;
+      if (length > HISTORY_LIMIT) {
+        const firstChunkKey = historyIndexChunkStorageKey(firstChunk);
+        const firstSnapshot = await storageSnapshot([firstChunkKey]);
+        const storedFirstChunk = firstSnapshot[firstChunkKey];
+        const trimmedFirstChunk = Array.isArray(storedFirstChunk)
+          ? storedFirstChunk.filter((key): key is string => typeof key === "string")
+          : [];
+        const removed = trimmedFirstChunk.shift();
+        if (removed) removeKeys.push(historyEntryStorageKey(removed));
+        if (trimmedFirstChunk.length === 0) {
+          removeKeys.push(firstChunkKey);
+          firstChunk += 1;
+        } else {
+          writes[firstChunkKey] = trimmedFirstChunk;
+        }
+        length = HISTORY_LIMIT;
+      }
+      const nextIndex: HistoryIndex = {
+        version: HISTORY_STORE_VERSION,
+        firstChunk,
+        nextChunk,
+        length,
+      };
+      writes[HISTORY_INDEX_STORAGE_KEY] = nextIndex;
+      await webExtensionApi.storage.local.set(writes);
+      if (removeKeys.length > 0) await webExtensionApi.storage.local.remove(removeKeys);
     })
     .catch((error) => recordHistoryFailure("write", error));
 
   return id;
 };
 
-// Serialised patch of one entry by id (concurrent read-modify-write drops
-// entries, so it goes through the same queue as addHistoryEntry())
+// Serialised patch of one entry by id. Entries are persisted independently so
+// progress and completion updates never clone or rewrite unrelated history.
 export const patchHistoryEntry = (
   id: string | null | undefined,
   fields: Partial<HistoryEntry> | ((entry: HistoryEntry) => Partial<HistoryEntry>),
 ): Promise<unknown> => {
-  if (!id) {
-    return writeQueue;
-  }
+  if (!id) return writeQueue;
+
   writeQueue = writeQueue
-    .then(() => webExtensionApi.storage.local.get(HISTORY_STORAGE_KEY))
-    .then((res) => {
-      const history = normalizeHistory(res?.[HISTORY_STORAGE_KEY]);
-      let mutated = false;
-      const next = history.map((e) => {
-        if (e.id !== id) return e;
-        const resolved = typeof fields === "function" ? fields(e) : fields;
-        // An empty patch (a guarded write whose condition no longer holds)
-        // must not rewrite the whole history array for nothing.
-        if (Object.keys(resolved).length === 0) return e;
-        mutated = true;
-        const merged = Object.assign({}, e, resolved);
-        // An explicitly-undefined field means "remove": Firefox's structured
-        // clone would otherwise persist the key, and normalization must never
-        // see a stale value in its place.
-        const mergedRecord = merged as Record<string, unknown>;
-        for (const key of Object.keys(resolved)) {
-          if (mergedRecord[key] === undefined) delete mergedRecord[key];
-        }
-        return merged;
-      });
-      if (!mutated) return undefined;
-      return webExtensionApi.storage.local.set({ [HISTORY_STORAGE_KEY]: next });
+    .then(async () => {
+      const entryKey = historyEntryStorageKey(id);
+      const loaded = await loadWritableIndex([entryKey]);
+      if (loaded.index.length === 0) return;
+      let storedEntry = loaded.snapshot[entryKey];
+      if (storedEntry === undefined) {
+        const latest = await storageSnapshot([entryKey]);
+        storedEntry = latest[entryKey];
+      }
+      const entry = normalizeHistoryEntry(storedEntry);
+      if (!entry) return;
+      const resolved = typeof fields === "function" ? fields(entry) : fields;
+      // An empty patch (a guarded write whose condition no longer holds)
+      // must not rewrite the entry for nothing.
+      if (Object.keys(resolved).length === 0) return;
+      const merged = Object.assign({}, entry, resolved);
+      // An explicitly-undefined field means "remove": Firefox's structured
+      // clone would otherwise persist the key, and normalization must never
+      // see a stale value in its place.
+      const mergedRecord: Record<string, unknown> = merged;
+      for (const key of Object.keys(resolved)) {
+        if (mergedRecord[key] === undefined) delete mergedRecord[key];
+      }
+      await webExtensionApi.storage.local.set({ [entryKey]: merged });
     })
     .catch((error) => recordHistoryFailure("write", error));
 
@@ -97,8 +277,7 @@ export const patchHistoryEntry = (
 };
 
 // Records the final outcome ("complete" or a browser error name), the browser
-// download id (so the options page can open the file's folder or poll
-// progress), and the file size in bytes when known
+// download id, and the file size in bytes when known.
 export const setHistoryStatus = (
   id: string | null | undefined,
   status: string,
@@ -111,20 +290,17 @@ export const setHistoryStatus = (
       fields.downloadId = downloadId;
       // Rebinding to a different browser download (the fetch-retry
       // replacement) without a fresh startTime must clear the stored one — a
-      // stale time refuses undo of the very download the entry now points
-      // at, while no time still leaves the field fallback working.
+      // stale time refuses undo of the very download the entry now points at.
       if (entry.downloadId != null && entry.downloadId !== downloadId) {
         fields.downloadStartTime = undefined;
       }
     }
-    if (fileSize != null) {
-      fields.fileSize = fileSize;
-    }
+    if (fileSize != null) fields.fileSize = fileSize;
     return fields;
   });
 
 // Binds the browser download id to the entry as soon as the download starts,
-// so the options page can poll its progress while it is still in flight
+// so the options page can poll its progress while it is still in flight.
 export const setHistoryDownloadId = (
   id: string | null | undefined,
   downloadId: number,
@@ -132,10 +308,8 @@ export const setHistoryDownloadId = (
 ) =>
   patchHistoryEntry(id, (entry) => ({
     downloadId,
-    // A bind for the same download without a startTime must not clobber one
-    // already captured (the launch path binds the bare id; onDownloadCreated
-    // supplies the time). A different id without a time is a rebind — clear
-    // the stale time rather than let it refuse undo of the new download.
+    // A same-id bind without a time must not clobber one already captured.
+    // A different id without a time is a rebind and must clear the stale time.
     ...(startTime
       ? { downloadStartTime: startTime }
       : entry.downloadId != null && entry.downloadId !== downloadId
@@ -144,9 +318,8 @@ export const setHistoryDownloadId = (
   }));
 
 // Late anchor backfill: applies only while the entry still points at the
-// download it was scheduled for and no anchor was captured yet. A fetch
-// retry may have rebound the entry in the meantime, and rewriting the dead
-// original's id or time would misdirect undo and progress.
+// download it was scheduled for and no anchor was captured yet. A fetch retry
+// may have rebound it before the original download's delayed lookup returns.
 export const anchorHistoryDownloadStartTime = (
   id: string | null | undefined,
   downloadId: number,
@@ -158,46 +331,67 @@ export const anchorHistoryDownloadStartTime = (
       : {},
   );
 
-export const getHistoryEntries = async (): Promise<HistoryEntry[]> => {
-  // Reads requested by the options page must observe every write that was
-  // already accepted when the request arrived.
-  await writeQueue;
-  let current: unknown;
-  try {
-    current = await webExtensionApi.storage.local.get(HISTORY_STORAGE_KEY);
-  } catch (error) {
-    recordHistoryFailure("read", error);
-    throw error;
-  }
-  const stored = isStringKeyedRecord(current) ? current[HISTORY_STORAGE_KEY] : undefined;
-  const history = normalizeHistory(stored);
-  if (hasLegacyDateOnlyTimestamp(stored)) {
-    writeQueue = writeQueue
-      .then(() => webExtensionApi.storage.local.get(HISTORY_STORAGE_KEY))
-      .then((latest) => {
-        const latestStored = latest?.[HISTORY_STORAGE_KEY];
-        if (!hasLegacyDateOnlyTimestamp(latestStored)) return;
-        return webExtensionApi.storage.local.set({
-          [HISTORY_STORAGE_KEY]: migrateLegacyHistoryTimestamps(latestStored),
-        });
-      })
-      .catch((error) => recordHistoryFailure("migrate", error));
-    await writeQueue;
-  }
-  return history;
+export const getHistoryEntries = (): Promise<HistoryEntry[]> => {
+  // Queue the read itself, not just the wait before it: an add accepted while
+  // a legacy read was in flight must land after that migration, or the stale
+  // migration snapshot could replace the newly appended index.
+  const task = writeQueue.then(async () => {
+    let snapshot: Record<string, unknown>;
+    try {
+      snapshot = await rootStorageSnapshot();
+    } catch (error) {
+      recordHistoryFailure("read", error);
+      throw error;
+    }
+
+    const index = normalizeHistoryIndex(snapshot[HISTORY_INDEX_STORAGE_KEY]);
+    if (index) {
+      try {
+        return await readShardedHistory(index);
+      } catch (error) {
+        recordHistoryFailure("read", error);
+        throw error;
+      }
+    }
+
+    const legacy = snapshot[HISTORY_STORAGE_KEY];
+    const history = normalizeHistory(legacy);
+    if (Array.isArray(legacy)) {
+      try {
+        await migrateLegacyHistory(legacy);
+      } catch (error) {
+        recordHistoryFailure("migrate", error);
+      }
+    }
+    return history;
+  });
+  writeQueue = task.then(
+    () => undefined,
+    () => undefined,
+  );
+  return task;
 };
 
 export const clearHistory = (): Promise<void> => {
   const task = writeQueue
     .catch(() => {})
-    .then(() => webExtensionApi.storage.local.remove(HISTORY_STORAGE_KEY));
+    .then(async () => {
+      const stored = await storageSnapshot(null);
+      const keys = Object.keys(stored).filter(
+        (key) =>
+          key === HISTORY_STORAGE_KEY ||
+          key === HISTORY_INDEX_STORAGE_KEY ||
+          key.startsWith(HISTORY_INDEX_CHUNK_STORAGE_PREFIX) ||
+          key.startsWith(HISTORY_ENTRY_STORAGE_PREFIX),
+      );
+      if (keys.length > 0) await webExtensionApi.storage.local.remove(keys);
+    });
   writeQueue = task.catch((error) => recordHistoryFailure("remove", error));
   return task;
 };
 
 // Test seams: the write queue is module-private serialised state, so tests
-// await it and inject a pre-rejected queue through these helpers rather than
-// reaching into the internals.
+// await it and inject a pre-rejected queue through these helpers.
 export const flushHistoryWrites = (): Promise<unknown> => writeQueue;
 export const seedHistoryWriteQueueForTest = (queue: Promise<unknown>): void => {
   writeQueue = queue;

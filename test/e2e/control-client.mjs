@@ -411,7 +411,16 @@ export const dispatchControlRequest = async (
       };
       /** @param {Record<string, chrome.storage.StorageChange>} changes @param {string} area */
       const onChanged = (changes, area) => {
-        if (area === "local" && changes["save-in-history"]) {
+        if (
+          area === "local" &&
+          Object.keys(changes).some(
+            (key) =>
+              key === "save-in-history" ||
+              key === "save-in-history-index-v2" ||
+              key.startsWith("save-in-history-index-v2:") ||
+              key.startsWith("save-in-history-entry-v2:"),
+          )
+        ) {
           void check().catch((error) => finish(() => reject(error)));
         }
       };
