@@ -4,4 +4,5 @@ node_modules
 web-ext-artifacts
 coverage
 .playwright-mcp/
+.claude/
 .wiki-work/
