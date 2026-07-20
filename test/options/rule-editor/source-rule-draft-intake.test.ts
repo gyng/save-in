@@ -131,7 +131,7 @@ test("recovers the serialized apply queue after an editor failure", async () => 
   );
 });
 
-test("installs one change listener and reacts only to the draft key", async () => {
+test("installs one area-scoped listener and reacts only to the draft key", async () => {
   vi.mocked(browser.storage.session.get).mockResolvedValue({});
   vi.mocked(browser.storage.local.get).mockResolvedValue({});
   const { setupSourceRuleDraft } =
@@ -140,11 +140,23 @@ test("installs one change listener and reacts only to the draft key", async () =
   setupSourceRuleDraft();
   setupSourceRuleDraft();
 
-  expect(browser.storage.onChanged.addListener).toHaveBeenCalledOnce();
-  const listener = vi.mocked(browser.storage.onChanged.addListener).mock.calls[0]?.[0];
+  expect(browser.storage.onChanged.addListener).not.toHaveBeenCalled();
+  expect(browser.storage.session.onChanged.addListener).toHaveBeenCalledOnce();
+  const listener = vi.mocked(browser.storage.session.onChanged.addListener).mock.calls[0]?.[0];
   expect(listener).toBeTypeOf("function");
-  listener?.({}, "session");
+  listener?.({});
   expect(browser.storage.session.get).not.toHaveBeenCalled();
-  listener?.({ [SOURCE_RULE_DRAFT_SESSION_KEY]: {} }, "session");
+  listener?.({ [SOURCE_RULE_DRAFT_SESSION_KEY]: {} });
   await vi.waitFor(() => expect(browser.storage.session.get).toHaveBeenCalledOnce());
+});
+
+test("scopes the draft listener to local storage only when session storage is absent", async () => {
+  setSessionArea(undefined);
+  const { setupSourceRuleDraft } =
+    await import("../../../src/options/rule-editor/source-rule-draft-intake.ts");
+
+  setupSourceRuleDraft();
+
+  expect(browser.storage.onChanged.addListener).not.toHaveBeenCalled();
+  expect(browser.storage.local.onChanged.addListener).toHaveBeenCalledOnce();
 });

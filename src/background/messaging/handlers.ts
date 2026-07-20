@@ -18,6 +18,7 @@ import { backgroundRuntime } from "../runtime.ts";
 import { fromWireDownloadState, toWireDownloadState } from "../../downloads/wire-state.ts";
 import type { InternalEvent, MessageOf, ResponseFor } from "../../shared/message-protocol.ts";
 import { applyConfigSerialized } from "../config-apply.ts";
+import { broadcastContentOptions } from "../content-options.ts";
 import { configWriteState } from "../application-state.ts";
 import { getPersistenceDiagnostics } from "../../shared/persistence-diagnostics.ts";
 import { previewRoutes } from "../route-preview.ts";
@@ -360,6 +361,7 @@ export const handleApplyConfig = async (
     request.body?.expected,
     () => backgroundRuntime.reset(),
   );
+  await broadcastContentOptions(applied);
 
   sendResponse({
     type: MESSAGE_TYPES.APPLY_CONFIG_RESULT,

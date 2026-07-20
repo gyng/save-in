@@ -180,6 +180,12 @@ export const CONTENT_OPTION_DEFAULTS: ResolvedContentOptions = {
 export type ContentOptionName = keyof typeof CONTENT_OPTION_DEFAULTS;
 export type ContentOptions = Partial<ResolvedContentOptions> & { filenamePatterns?: string };
 
+// Background-to-content updates use a small explicit message instead of a
+// storage.onChanged listener in every tab. Firefox clones every changed value
+// for every listener, so a growing history array otherwise becomes an
+// extension-process memory multiplier even though content.ts ignores it.
+export const CONTENT_OPTIONS_CHANGED_MESSAGE = "CONTENT_OPTIONS_CHANGED";
+
 export const CONTENT_OPTION_KEYS = Object.keys(CONTENT_OPTION_DEFAULTS) as ContentOptionName[];
 export const CONTENT_STORAGE_KEYS = [...CONTENT_OPTION_KEYS, "filenamePatterns"] as const;
 
@@ -252,6 +258,22 @@ export const normalizeContentOption = <Name extends ContentOptionName>(
   name: Name,
   stored: unknown,
 ): ResolvedContentOptions[Name] => CONTENT_OPTION_NORMALIZERS[name](stored);
+
+export const normalizeContentOptionsPatch = (value: unknown): ContentOptions => {
+  if (!isStringKeyedRecord(value)) return {};
+  const normalized: ContentOptions = {};
+  const assign = <Name extends ContentOptionName>(name: Name): void => {
+    normalized[name] = normalizeContentOption(name, value[name]);
+  };
+  CONTENT_OPTION_KEYS.forEach((name) => {
+    if (Object.hasOwn(value, name)) assign(name);
+  });
+  if (Object.hasOwn(value, "filenamePatterns")) {
+    normalized.filenamePatterns =
+      typeof value.filenamePatterns === "string" ? value.filenamePatterns : "";
+  }
+  return normalized;
+};
 
 export const resolveContentOptions = (stored: unknown): ResolvedContentOptions => {
   const values = isStringKeyedRecord(stored) ? stored : {};

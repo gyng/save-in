@@ -549,6 +549,34 @@ describe("config API", () => {
     expect(body.rejected).toEqual([{ name: "bogus", reason: "unknown option" }]);
   });
 
+  test("APPLY_CONFIG pushes only applied content options to existing tabs", async () => {
+    (OptionsManagement.OPTION_KEYS as unknown as Array<Record<string, unknown>>).push({
+      name: "contentClickToSave",
+      type: "BOOL",
+      default: false,
+    });
+    const sendResponse = vi.fn();
+
+    onMessage(
+      {
+        type: MESSAGE_TYPES.APPLY_CONFIG,
+        body: { config: { contentClickToSave: true, prompt: true } },
+      },
+      {},
+      sendResponse,
+    );
+    await waitForCall(sendResponse);
+
+    expect(global.browser.tabs.sendMessage).toHaveBeenCalledWith(42, {
+      type: "CONTENT_OPTIONS_CHANGED",
+      body: { options: { contentClickToSave: true } },
+    });
+    expect(sendResponse.mock.calls[0]![0]!.body.applied).toEqual({
+      contentClickToSave: true,
+      prompt: true,
+    });
+  });
+
   test("APPLY_CONFIG atomically rejects a stale expected value", async () => {
     vi.mocked(global.browser.storage.local.get).mockResolvedValueOnce({ prompt: false });
     const sendResponse = vi.fn();

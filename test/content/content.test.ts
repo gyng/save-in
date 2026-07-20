@@ -211,6 +211,16 @@ const importContentWithOptions = async (optionsBody: Record<string, unknown>) =>
   await import("../../src/content/content.ts");
 };
 
+const pushContentOptions = (options: Record<string, unknown>): void => {
+  const listener = vi.mocked(global.chrome.runtime.onMessage.addListener).mock.calls[0]?.[0];
+  if (!listener) throw new Error("Content runtime listener was not registered");
+  Reflect.apply(listener, undefined, [
+    { type: "CONTENT_OPTIONS_CHANGED", body: { options } },
+    {},
+    vi.fn(),
+  ]);
+};
+
 describe("content.js initialisation", () => {
   test("gives routing this page's title, so an automatic pagetitle rule can match", async () => {
     // The scan pre-matches candidates and the background re-matches them against
@@ -371,7 +381,6 @@ describe("content.js initialisation", () => {
     vi.resetModules();
     document.body.innerHTML =
       '<img src="https://cdn.test/automatic.png"><img src="https://cdn.test/automatic-2.png">';
-    let storageListener: ((changes: Record<string, any>, area: string) => void) | undefined;
     global.chrome.runtime.sendMessage = vi.fn((message, callback) => {
       if (message.type !== "AUTO_DOWNLOAD_SOURCE") callback?.();
     }) as any;
@@ -384,11 +393,7 @@ describe("content.js initialisation", () => {
           "context: ^auto$\npageurl: ^http://localhost/\nsourceurl: automatic\\.png$\ninto: automatic/",
       }),
     ) as any;
-    (global.chrome.storage as any).onChanged = {
-      addListener: vi.fn((listener) => {
-        storageListener = listener;
-      }),
-    };
+    (global.chrome.storage as any).onChanged = { addListener: vi.fn() };
     await import("../../src/content/content.ts");
     await vi.waitFor(() =>
       expect(global.chrome.runtime.sendMessage).toHaveBeenCalledWith(
@@ -397,17 +402,16 @@ describe("content.js initialisation", () => {
       ),
     );
 
-    storageListener!({ autoDownloadEnabled: { newValue: false } }, "local");
+    pushContentOptions({ autoDownloadEnabled: false });
     await Promise.resolve();
 
-    expect(storageListener).toBeTypeOf("function");
+    expect((global.chrome.storage as any).onChanged.addListener).not.toHaveBeenCalled();
   });
 
   test("clears a scheduled automatic-save retry when disabled", async () => {
     vi.useFakeTimers();
     vi.resetModules();
     document.body.innerHTML = '<img src="https://cdn.test/automatic.png">';
-    let storageListener: ((changes: Record<string, any>, area: string) => void) | undefined;
     global.chrome.runtime.sendMessage = vi.fn((message, callback) => {
       if (message.type === "AUTO_DOWNLOAD_SOURCE") {
         (global.chrome.runtime as any).lastError = { message: "worker starting" };
@@ -424,15 +428,11 @@ describe("content.js initialisation", () => {
           "context: ^auto$\npageurl: ^http://localhost/\nsourceurl: automatic\\.png$\ninto: automatic/",
       }),
     ) as any;
-    (global.chrome.storage as any).onChanged = {
-      addListener: vi.fn((listener) => {
-        storageListener = listener;
-      }),
-    };
+    (global.chrome.storage as any).onChanged = { addListener: vi.fn() };
     await import("../../src/content/content.ts");
     await vi.runAllTicks();
 
-    storageListener!({ autoDownloadEnabled: { newValue: false } }, "local");
+    pushContentOptions({ autoDownloadEnabled: false });
     await vi.advanceTimersByTimeAsync(300);
 
     expect(
@@ -479,7 +479,6 @@ describe("content.js initialisation", () => {
         return { stop: vi.fn() };
       }),
     }));
-    let storageListener: ((changes: Record<string, any>, area: string) => void) | undefined;
     global.chrome.runtime.sendMessage = vi.fn((_message, callback) => callback?.()) as any;
     global.chrome.runtime.onMessage.addListener = vi.fn();
     global.chrome.storage.local.get = vi.fn((_keys, callback) =>
@@ -488,13 +487,9 @@ describe("content.js initialisation", () => {
         filenamePatterns: "context: ^auto$\npageurl: .\nsourceurl: .\ninto: automatic/",
       }),
     ) as any;
-    (global.chrome.storage as any).onChanged = {
-      addListener: vi.fn((listener) => {
-        storageListener = listener;
-      }),
-    };
+    (global.chrome.storage as any).onChanged = { addListener: vi.fn() };
     await import("../../src/content/content.ts");
-    storageListener!({ autoDownloadEnabled: { newValue: false } }, "local");
+    pushContentOptions({ autoDownloadEnabled: false });
 
     await expect(
       discoverySend!({
@@ -562,7 +557,6 @@ describe("content.js initialisation", () => {
   });
 
   test("removing the site from the disable list resumes automatic saves without a reload", async () => {
-    let storageListener: ((changes: Record<string, any>, area: string) => void) | undefined;
     vi.resetModules();
     document.body.innerHTML = '<img src="https://cdn.test/automatic.png">';
     global.chrome.runtime.sendMessage = vi.fn((message, callback) =>
@@ -582,11 +576,7 @@ describe("content.js initialisation", () => {
         perSiteDisableList: "*://localhost/*",
       }),
     ) as any;
-    (global.chrome.storage as any).onChanged = {
-      addListener: vi.fn((listener) => {
-        storageListener = listener;
-      }),
-    };
+    (global.chrome.storage as any).onChanged = { addListener: vi.fn() };
     await import("../../src/content/content.ts");
     await Promise.resolve();
     await Promise.resolve();
@@ -598,33 +588,22 @@ describe("content.js initialisation", () => {
 
     // The disabled scan consumed nothing, so the option change remounts
     // discovery and the already-present image is adopted immediately.
-    storageListener!(
-      { perSiteDisableList: { oldValue: "*://localhost/*", newValue: "" } },
-      "local",
-    );
+    pushContentOptions({ perSiteDisableList: "" });
     await vi.waitFor(() => expect(autoSends()).toHaveLength(1));
 
     // A later disable-list edit that does not touch this page remounts with
     // the page-owned dedup state: the already-saved image is not re-sent.
-    storageListener!(
-      { perSiteDisableList: { oldValue: "", newValue: "*://unrelated.example/*" } },
-      "local",
-    );
+    pushContentOptions({ perSiteDisableList: "*://unrelated.example/*" });
     await Promise.resolve();
     await Promise.resolve();
     expect(autoSends()).toHaveLength(1);
 
     // Editing the rules resets the dedup state (the 4.0 contract: edited
     // rules apply to media already on the page), so the image is re-sent.
-    storageListener!(
-      {
-        filenamePatterns: {
-          newValue:
-            "context: ^auto$\npageurl: ^http://localhost/\nsourceurl: automatic\\.png$\ninto: rescan/",
-        },
-      },
-      "local",
-    );
+    pushContentOptions({
+      filenamePatterns:
+        "context: ^auto$\npageurl: ^http://localhost/\nsourceurl: automatic\\.png$\ninto: rescan/",
+    });
     await vi.waitFor(() => expect(autoSends()).toHaveLength(2));
   });
 
@@ -781,7 +760,6 @@ describe("content.js initialisation", () => {
   test("closes an open Page Sources panel when the disable list newly matches", async () => {
     document.getElementById("save-in-source-panel")?.remove();
     let runtimeListener: ((message: any) => void) | undefined;
-    let storageListener: ((changes: Record<string, any>, area: string) => void) | undefined;
     vi.resetModules();
     document.body.innerHTML = '<img src="cat.jpg">';
     global.chrome.runtime.sendMessage = vi.fn((_message, callback) => callback?.()) as any;
@@ -791,27 +769,19 @@ describe("content.js initialisation", () => {
     global.chrome.storage.local.get = vi.fn((_keys, callback) =>
       callback({ sourcePanelEnabled: true, sourcePanelBackgrounds: false }),
     ) as any;
-    (global.chrome.storage as any).onChanged = {
-      addListener: vi.fn((listener) => {
-        storageListener = listener;
-      }),
-    };
+    (global.chrome.storage as any).onChanged = { addListener: vi.fn() };
     await import("../../src/content/content.ts");
 
     runtimeListener!({ type: "SET_SOURCE_PANEL", body: { open: true } });
     expect(document.getElementById("save-in-source-panel")).not.toBeNull();
 
-    storageListener!(
-      { perSiteDisableList: { oldValue: "", newValue: "*://localhost/*" } },
-      "local",
-    );
+    pushContentOptions({ perSiteDisableList: "*://localhost/*" });
 
     expect(document.getElementById("save-in-source-panel")?.classList).toContain("closing");
   });
 
   test("a force-opened panel on a disabled page survives unrelated option changes", async () => {
     let runtimeListener: ((message: any) => void) | undefined;
-    let storageListener: ((changes: Record<string, any>, area: string) => void) | undefined;
     vi.resetModules();
     document.body.innerHTML = '<img src="cat.jpg">';
     global.chrome.runtime.sendMessage = vi.fn((_message, callback) => callback?.()) as any;
@@ -821,11 +791,7 @@ describe("content.js initialisation", () => {
     global.chrome.storage.local.get = vi.fn((_keys, callback) =>
       callback({ sourcePanelEnabled: true, perSiteDisableList: "*://localhost/*" }),
     ) as any;
-    (global.chrome.storage as any).onChanged = {
-      addListener: vi.fn((listener) => {
-        storageListener = listener;
-      }),
-    };
+    (global.chrome.storage as any).onChanged = { addListener: vi.fn() };
     await import("../../src/content/content.ts");
 
     runtimeListener!({ type: "TOGGLE_SOURCE_PANEL", body: { force: true } });
@@ -834,16 +800,8 @@ describe("content.js initialisation", () => {
     // The page never transitioned onto the list (it was already on it when
     // the panel was deliberately opened), so unrelated option edits must not
     // revoke the explicit open.
-    storageListener!({ sourcePanelBackgrounds: { newValue: true } }, "local");
-    storageListener!(
-      {
-        perSiteDisableList: {
-          oldValue: "*://localhost/*",
-          newValue: "*://localhost/*\n*://other.example/*",
-        },
-      },
-      "local",
-    );
+    pushContentOptions({ sourcePanelBackgrounds: true });
+    pushContentOptions({ perSiteDisableList: "*://localhost/*\n*://other.example/*" });
 
     const panel = document.getElementById("save-in-source-panel");
     expect(panel).not.toBeNull();
@@ -852,7 +810,6 @@ describe("content.js initialisation", () => {
 
   test("lets an explicit user toggle open Page Sources while it is disabled", async () => {
     let runtimeListener: ((message: any) => void) | undefined;
-    let storageListener: ((changes: Record<string, any>, area: string) => void) | undefined;
     vi.resetModules();
     global.chrome.runtime.sendMessage = vi.fn((_message, callback) => callback?.()) as any;
     global.chrome.runtime.onMessage.addListener = vi.fn((listener) => {
@@ -861,15 +818,11 @@ describe("content.js initialisation", () => {
     global.chrome.storage.local.get = vi.fn((_keys, callback) =>
       callback({ sourcePanelEnabled: false }),
     ) as any;
-    (global.chrome.storage as any).onChanged = {
-      addListener: vi.fn((listener) => {
-        storageListener = listener;
-      }),
-    };
+    (global.chrome.storage as any).onChanged = { addListener: vi.fn() };
     await import("../../src/content/content.ts");
 
     runtimeListener!({ type: "TOGGLE_SOURCE_PANEL", body: { force: true } });
-    storageListener!({ sourcePanelLive: { oldValue: true, newValue: false } }, "local");
+    pushContentOptions({ sourcePanelLive: false });
 
     expect(document.getElementById("save-in-source-panel")).not.toBeNull();
   });
@@ -914,7 +867,6 @@ describe("content.js initialisation", () => {
 
   test("uses the latest locale when localization changes during a request", async () => {
     let runtimeListener: ((message: any) => void) | undefined;
-    let storageListener: ((changes: Record<string, any>, area: string) => void) | undefined;
     let copyCallback: ((response: unknown) => void) | undefined;
     vi.resetModules();
     global.chrome.runtime.sendMessage = vi.fn((message, callback) => {
@@ -927,15 +879,11 @@ describe("content.js initialisation", () => {
     global.chrome.storage.local.get = vi.fn((_keys, callback) =>
       callback({ sourcePanelEnabled: true, sourcePanelBackgrounds: false, uiLocale: "fr" }),
     ) as any;
-    (global.chrome.storage as any).onChanged = {
-      addListener: vi.fn((listener) => {
-        storageListener = listener;
-      }),
-    };
+    (global.chrome.storage as any).onChanged = { addListener: vi.fn() };
     await import("../../src/content/content.ts");
     runtimeListener!({ type: "SET_SOURCE_PANEL", body: { open: true } });
     await vi.waitFor(() => expect(copyCallback).toBeTypeOf("function"));
-    storageListener!({ uiLocale: { oldValue: "fr", newValue: "en" } }, "local");
+    pushContentOptions({ uiLocale: "en" });
 
     copyCallback!({
       type: "SOURCE_PANEL_COPY",
@@ -952,7 +900,6 @@ describe("content.js initialisation", () => {
 
   test("reuses native copy when a pending translation reverts to the default locale", async () => {
     let runtimeListener: ((message: any) => void) | undefined;
-    let storageListener: ((changes: Record<string, any>, area: string) => void) | undefined;
     let copyCallback: ((response: unknown) => void) | undefined;
     vi.resetModules();
     const getUILanguage = global.chrome.i18n.getUILanguage;
@@ -967,19 +914,15 @@ describe("content.js initialisation", () => {
     global.chrome.storage.local.get = vi.fn((_keys, callback) =>
       callback({ sourcePanelEnabled: true, sourcePanelBackgrounds: false, uiLocale: "" }),
     ) as any;
-    (global.chrome.storage as any).onChanged = {
-      addListener: vi.fn((listener) => {
-        storageListener = listener;
-      }),
-    };
+    (global.chrome.storage as any).onChanged = { addListener: vi.fn() };
     await import("../../src/content/content.ts");
     runtimeListener!({ type: "SET_SOURCE_PANEL", body: { open: true } });
     await Promise.resolve();
     runtimeListener!({ type: "SET_SOURCE_PANEL", body: { open: false } });
-    storageListener!({ uiLocale: { oldValue: "", newValue: "fr" } }, "local");
+    pushContentOptions({ uiLocale: "fr" });
     runtimeListener!({ type: "SET_SOURCE_PANEL", body: { open: true } });
     await vi.waitFor(() => expect(copyCallback).toBeTypeOf("function"));
-    storageListener!({ uiLocale: { oldValue: "fr", newValue: "" } }, "local");
+    pushContentOptions({ uiLocale: "" });
 
     copyCallback!({ type: "SOURCE_PANEL_COPY", body: DEFAULT_SOURCE_PANEL_COPY });
     await vi.waitFor(() =>
@@ -1166,7 +1109,6 @@ describe("content.js initialisation", () => {
   test("restores content option defaults when storage keys are removed", async () => {
     vi.resetModules();
     document.getElementById("save-in-source-panel")?.remove();
-    let storageListener: ((changes: Record<string, any>, area: string) => void) | undefined;
     let runtimeListener: ((message: any) => void) | undefined;
     global.chrome.runtime.sendMessage = vi.fn((_message, callback) => callback?.()) as any;
     global.chrome.storage.local.get = vi.fn((_keys, callback) =>
@@ -1175,14 +1117,10 @@ describe("content.js initialisation", () => {
     global.chrome.runtime.onMessage.addListener = vi.fn((listener) => {
       runtimeListener = listener;
     });
-    (global.chrome.storage as any).onChanged = {
-      addListener: vi.fn((listener) => {
-        storageListener = listener;
-      }),
-    };
+    (global.chrome.storage as any).onChanged = { addListener: vi.fn() };
     await import("../../src/content/content.ts");
 
-    storageListener!({ sourcePanelEnabled: { oldValue: true, newValue: undefined } }, "local");
+    pushContentOptions({ sourcePanelEnabled: undefined });
     runtimeListener!({ type: "SET_SOURCE_PANEL", body: { open: true } });
 
     expect(document.getElementById("save-in-source-panel")).toBeNull();
@@ -1212,22 +1150,17 @@ describe("content.js initialisation", () => {
     );
   });
 
-  test("updates an existing page when click-to-save storage settings change", async () => {
+  test("updates an existing page when click-to-save settings change", async () => {
     const addEventListener = vi.spyOn(window, "addEventListener");
     await importContentWithOptions({ contentClickToSave: false });
-    const storageListener = vi.mocked((global.chrome.storage as any).onChanged.addListener).mock
-      .calls[0][0] as (changes: Record<string, any>, area: string) => void;
-    expect(storageListener).toBeTypeOf("function");
+    expect((global.chrome.storage as any).onChanged.addListener).not.toHaveBeenCalled();
 
-    storageListener!(
-      {
-        contentClickToSave: { newValue: true },
-        contentClickToSaveCombo: { newValue: 90 },
-        contentClickToSaveButton: { newValue: "RIGHT_CLICK" },
-        links: { newValue: false },
-      },
-      "local",
-    );
+    pushContentOptions({
+      contentClickToSave: true,
+      contentClickToSaveCombo: 90,
+      contentClickToSaveButton: "RIGHT_CLICK",
+      links: false,
+    });
 
     vi.mocked(global.chrome.runtime.sendMessage).mockClear();
     const keydownCall = addEventListener.mock.calls.find(([type]) => type === "keydown");
@@ -1241,16 +1174,16 @@ describe("content.js initialisation", () => {
       expect.any(Function),
     );
 
-    storageListener!({ contentClickToSave: { oldValue: true, newValue: false } }, "local");
+    pushContentOptions({ contentClickToSave: false });
     expect(listenerOptions?.signal?.aborted).toBe(true);
   });
 
-  test("ignores option changes from non-local storage areas", async () => {
+  test("ignores unrelated content messages", async () => {
     await importContentWithOptions({ contentClickToSave: false });
-    const storageListener = vi.mocked((global.chrome.storage as any).onChanged.addListener).mock
-      .calls[0][0] as (changes: Record<string, any>, area: string) => void;
+    const runtimeListener = vi.mocked(global.chrome.runtime.onMessage.addListener).mock
+      .calls[0]?.[0];
 
-    storageListener({ contentClickToSave: { newValue: true } }, "sync");
+    runtimeListener?.({ type: "UNRELATED", body: { contentClickToSave: true } }, {}, vi.fn());
     vi.mocked(global.chrome.runtime.sendMessage).mockClear();
     const keydown = new Event("keydown");
     (keydown as any).keyCode = 89;
@@ -1258,32 +1191,24 @@ describe("content.js initialisation", () => {
     expect(global.chrome.runtime.sendMessage).not.toHaveBeenCalled();
   });
 
-  test("merges a late initial read with newer per-key storage settings", async () => {
+  test("merges a late initial read with newer pushed settings", async () => {
     vi.resetModules();
     const addEventListener = vi.spyOn(window, "addEventListener");
     let storageCallback: ((response: any) => void) | undefined;
-    let storageListener: ((changes: Record<string, any>, area: string) => void) | undefined;
     global.chrome.runtime.sendMessage = vi.fn((_message, callback) => callback?.()) as any;
     global.chrome.runtime.onMessage.addListener = vi.fn();
     global.chrome.storage.local.get = vi.fn((_keys, callback) => {
       storageCallback = callback;
     }) as any;
-    (global.chrome.storage as any).onChanged = {
-      addListener: vi.fn((listener) => {
-        storageListener = listener;
-      }),
-    };
+    (global.chrome.storage as any).onChanged = { addListener: vi.fn() };
     await import("../../src/content/content.ts");
 
-    storageListener!(
-      {
-        contentClickToSave: { newValue: true },
-        contentClickToSaveCombo: { newValue: 89 },
-        contentClickToSaveButton: { newValue: "RIGHT_CLICK" },
-        filenamePatterns: { newValue: "newer-rules" },
-      },
-      "local",
-    );
+    pushContentOptions({
+      contentClickToSave: true,
+      contentClickToSaveCombo: 89,
+      contentClickToSaveButton: "RIGHT_CLICK",
+      filenamePatterns: "newer-rules",
+    });
     storageCallback!({
       contentClickToSave: false,
       contentClickToSaveCombo: 18,
@@ -1316,25 +1241,16 @@ describe("content.js initialisation", () => {
     window.dispatchEvent(new KeyboardEvent("keydown", { key: "Alt" }));
     expect(global.chrome.runtime.sendMessage).not.toHaveBeenCalled();
 
-    storageListener!({ links: undefined, filenamePatterns: { newValue: 7 } }, "local");
-    storageListener!({ links: undefined }, "local");
+    pushContentOptions({ links: undefined, filenamePatterns: 7 });
+    pushContentOptions({ links: undefined });
   });
 
   test("announces once when Page Sources becomes enabled in an existing tab", async () => {
-    let storageListener: ((changes: Record<string, any>, area: string) => void) | undefined;
-    (global.chrome.storage as any).onChanged = {
-      addListener: vi.fn((listener) => {
-        storageListener = listener;
-      }),
-    };
     await importContentWithOptions({ sourcePanelEnabled: false });
-    // importContentWithOptions installs a fresh mock, so capture its listener.
-    storageListener = vi.mocked((global.chrome.storage as any).onChanged.addListener).mock
-      .calls[0][0];
 
-    storageListener!({ sourcePanelEnabled: { newValue: true } }, "local");
-    storageListener!({ sourcePanelEnabled: { oldValue: true, newValue: false } }, "local");
-    storageListener!({ sourcePanelEnabled: { oldValue: false, newValue: true } }, "local");
+    pushContentOptions({ sourcePanelEnabled: true });
+    pushContentOptions({ sourcePanelEnabled: false });
+    pushContentOptions({ sourcePanelEnabled: true });
 
     expect(global.chrome.runtime.sendMessage).toHaveBeenCalledTimes(1);
     expect(global.chrome.runtime.sendMessage).toHaveBeenCalledWith(
@@ -1345,7 +1261,6 @@ describe("content.js initialisation", () => {
 
   test("reconfigures an open Page Sources panel when its live options change", async () => {
     vi.useFakeTimers();
-    let storageListener: ((changes: Record<string, any>, area: string) => void) | undefined;
     let runtimeListener: ((message: any) => void) | undefined;
     vi.resetModules();
     document.body.innerHTML = '<img src="cat.jpg">';
@@ -1361,31 +1276,27 @@ describe("content.js initialisation", () => {
     global.chrome.runtime.onMessage.addListener = vi.fn((listener) => {
       runtimeListener = listener;
     });
-    (global.chrome.storage as any).onChanged = {
-      addListener: vi.fn((listener) => {
-        storageListener = listener;
-      }),
-    };
+    (global.chrome.storage as any).onChanged = { addListener: vi.fn() };
     await import("../../src/content/content.ts");
 
     runtimeListener!({ type: "SET_SOURCE_PANEL", body: { open: true } });
     const originalHost = document.getElementById("save-in-source-panel")!;
     expect(originalHost.shadowRoot!.querySelector(".source-link img")).not.toBeNull();
 
-    storageListener!({ sourcePanelLive: { oldValue: true, newValue: false } }, "local");
+    pushContentOptions({ sourcePanelLive: false });
     const liveReconfiguredHost = document.getElementById("save-in-source-panel")!;
     expect(liveReconfiguredHost).toBe(originalHost);
 
-    storageListener!({ sourcePanelPreviews: { oldValue: true, newValue: false } }, "local");
+    pushContentOptions({ sourcePanelPreviews: false });
     const reconfiguredHost = document.getElementById("save-in-source-panel")!;
     expect(reconfiguredHost).toBe(liveReconfiguredHost);
     expect(reconfiguredHost.shadowRoot!.querySelector(".source-link img")).toBeNull();
 
-    storageListener!({ uiTheme: { oldValue: "system", newValue: "dark" } }, "local");
+    pushContentOptions({ uiTheme: "dark" });
     expect(document.getElementById("save-in-source-panel")).toBe(reconfiguredHost);
     expect(reconfiguredHost.dataset.theme).toBe("dark");
 
-    storageListener!({ sourcePanelEnabled: { oldValue: true, newValue: false } }, "local");
+    pushContentOptions({ sourcePanelEnabled: false });
     vi.advanceTimersByTime(90);
     expect(document.getElementById("save-in-source-panel")).toBeNull();
   });
@@ -1487,20 +1398,15 @@ describe("content.js initialisation", () => {
   test("waits for a complete snapshot before announcing a concurrently enabled panel", async () => {
     vi.resetModules();
     let storageCallback: ((stored: Record<string, unknown>) => void) | undefined;
-    let storageListener: ((changes: Record<string, any>, area: string) => void) | undefined;
     global.chrome.runtime.sendMessage = vi.fn((_message, callback) => callback?.()) as any;
     global.chrome.runtime.onMessage.addListener = vi.fn();
     global.chrome.storage.local.get = vi.fn((_keys, callback) => {
       storageCallback = callback;
     }) as any;
-    (global.chrome.storage as any).onChanged = {
-      addListener: vi.fn((listener) => {
-        storageListener = listener;
-      }),
-    };
+    (global.chrome.storage as any).onChanged = { addListener: vi.fn() };
     await import("../../src/content/content.ts");
 
-    storageListener!({ sourcePanelEnabled: { oldValue: false, newValue: true } }, "local");
+    pushContentOptions({ sourcePanelEnabled: true });
     expect(global.chrome.runtime.sendMessage).not.toHaveBeenCalled();
 
     storageCallback!({ sourcePanelEnabled: false });

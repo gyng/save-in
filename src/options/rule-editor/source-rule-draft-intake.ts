@@ -44,7 +44,12 @@ let listenerInstalled = false;
 export const setupSourceRuleDraft = (): void => {
   if (listenerInstalled) return;
   listenerInstalled = true;
-  webExtensionApi.storage.onChanged.addListener((changes) => {
+  // Supported hosts put drafts in session storage. Scoping the listener to
+  // that area keeps the options page from receiving every large local-history
+  // update; the local area remains the capability fallback when session
+  // storage is absent.
+  const storage = webExtensionApi.storage.session ?? webExtensionApi.storage.local;
+  storage.onChanged.addListener((changes) => {
     if (!Object.hasOwn(changes, SOURCE_RULE_DRAFT_SESSION_KEY)) return;
     void applySourceRuleDraft();
   });

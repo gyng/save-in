@@ -2,6 +2,7 @@ import {
   CONTENT_OPTION_DEFAULTS,
   CONTENT_OPTION_KEYS,
   contentClickComboToKeyCodes,
+  normalizeContentOptionsPatch,
   resolveContentOptions,
 } from "../../src/config/content-options.ts";
 import { OPTION_KEYS } from "../../src/config/option-schema.ts";
@@ -93,6 +94,29 @@ test("normalizes malformed values and preserves legacy numeric shortcut keycodes
 
   const arraySnapshot = Object.assign([], { contentClickToSave: true });
   expect(resolveContentOptions(arraySnapshot)).toEqual(CONTENT_OPTION_DEFAULTS);
+});
+
+test("normalizes only named content options in an update patch", () => {
+  expect(
+    normalizeContentOptionsPatch({
+      contentClickToSave: true,
+      autoDownloadMaxPerPage: "40",
+      filenamePatterns: "sourceurl: image",
+      prompt: true,
+      "save-in-history": [{ id: "large-unrelated-value" }],
+    }),
+  ).toEqual({
+    contentClickToSave: true,
+    autoDownloadMaxPerPage: 40,
+    filenamePatterns: "sourceurl: image",
+  });
+  expect(
+    normalizeContentOptionsPatch({
+      contentClickToSave: "yes",
+      filenamePatterns: 7,
+    }),
+  ).toEqual({ contentClickToSave: false, filenamePatterns: "" });
+  expect(normalizeContentOptionsPatch(["contentClickToSave"])).toEqual({});
 });
 
 test.each([

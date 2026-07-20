@@ -6,10 +6,11 @@ import {
 } from "./source-panel.ts";
 import {
   CONTENT_OPTION_DEFAULTS,
+  CONTENT_OPTIONS_CHANGED_MESSAGE,
   CONTENT_OPTION_KEYS,
   CONTENT_STORAGE_KEYS,
   contentClickComboToKeyCodes,
-  normalizeContentOption,
+  normalizeContentOptionsPatch,
   resolveContentOptions,
   type ContentOptionName,
   type ContentOptions,
@@ -510,33 +511,13 @@ const applyOptions = (next: ContentOptions) => {
   announceSourcePanelReady();
 };
 
-try {
-  // Existing tabs outlive option-page changes and extension worker restarts.
-  // storage.onChanged is additive and works with old backgrounds because it
-  // does not require a new message type or atomic extension upgrade.
-  const changedDuringRead = new Set<string>();
-  chrome.storage?.onChanged?.addListener((changes, areaName) => {
-    if (areaName !== "local") {
-      return;
-    }
-    const changed: ContentOptions = {};
-    CONTENT_OPTION_KEYS.forEach((key) => {
-      if (key in changes) {
-        if (!receivedInitialOptions) changedDuringRead.add(key);
-        const change = changes[key];
-        if (change) setContentOption(changed, key, normalizeContentOption(key, change.newValue));
-      }
-    });
-    if ("filenamePatterns" in changes) {
-      if (!receivedInitialOptions) changedDuringRead.add("filenamePatterns");
-      const value = changes.filenamePatterns?.newValue;
-      changed.filenamePatterns = typeof value === "string" ? value : "";
-    }
-    if (Object.keys(changed).length > 0) {
-      applyOptions(changed);
-    }
-  });
+const changedDuringRead = new Set<string>();
 
+try {
+  // Existing tabs receive later option deltas explicitly from the background.
+  // Do not subscribe this every-page script to storage changes: Firefox sends
+  // the complete old/new history array to every listener on every history
+  // update, even though content options have no relationship to history.
   chrome.storage.local.get([...CONTENT_STORAGE_KEYS], (stored) => {
     // Reading lastError suppresses Chrome's unchecked-error log if an update
     // invalidated this long-lived content-script context during the read.
@@ -711,6 +692,14 @@ try {
     );
   };
   chrome.runtime.onMessage.addListener((message) => {
+    if (message?.type === CONTENT_OPTIONS_CHANGED_MESSAGE) {
+      const changed = normalizeContentOptionsPatch(message.body?.options);
+      if (!receivedInitialOptions) {
+        Object.keys(changed).forEach((key) => changedDuringRead.add(key));
+      }
+      if (Object.keys(changed).length > 0) applyOptions(changed);
+      return;
+    }
     if (!["TOGGLE_SOURCE_PANEL", "SET_SOURCE_PANEL"].includes(message?.type)) return;
     // An explicit close (SET_SOURCE_PANEL open:false) is always honored.
     if (message.type === "SET_SOURCE_PANEL" && !message.body?.open) {
