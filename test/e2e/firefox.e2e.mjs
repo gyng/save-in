@@ -61,7 +61,10 @@ const ARTIFACTS = process.env.E2E_ARTIFACT_DIR
 const rawEvalOptions = (expr, timeoutMs) =>
   session.evaluateInTab("src/options/options.html", expr, timeoutMs);
 /** @param {string} expr @param {number} [timeoutMs] @returns {Promise<unknown>} */
-const evalBackground = (expr, timeoutMs) => rawEvalOptions(inBackgroundContext(expr), timeoutMs);
+const evalBackground = (expr, timeoutMs) =>
+  controlRealm
+    ? controlRealm.callFunction(`() => (${inBackgroundContext(expr)})`, [], timeoutMs)
+    : Promise.reject(new Error("Firefox E2E control realm was not initialized"));
 const requestOptionsReload = async () => {
   const tabId = optional(decodeNumber)(
     await session.evaluate(

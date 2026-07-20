@@ -578,6 +578,24 @@ const createPersistentTargetSession = (port, urlSubstr) => {
       invalidate();
       state = "missing";
     },
+    /** @param {string} expression @param {number} [timeoutMs] */
+    evaluate: async (expression, timeoutMs = 15000) => {
+      await ensureReady();
+      const activeClient = client;
+      if (!activeClient) throw unavailable("target became stale");
+      try {
+        const result = await activeClient.send(
+          "Runtime.evaluate",
+          { expression, awaitPromise: true, returnByValue: true },
+          timeoutMs,
+        );
+        if (!result.exceptionDetails) return result.result.value;
+        throw new Error(result.exceptionDetails.exception?.description || "evaluation failed");
+      } catch (error) {
+        invalidate();
+        throw error;
+      }
+    },
     /**
      * @param {string} functionDeclaration
      * @param {unknown[]} [args]

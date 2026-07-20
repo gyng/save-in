@@ -33,6 +33,7 @@ const {
       args?: unknown[],
       timeoutMs?: number,
     ) => Promise<unknown>;
+    evaluate: (expression: string, timeoutMs?: number) => Promise<unknown>;
     close: () => void;
   };
   evalInTarget: (
@@ -191,10 +192,16 @@ describe("CDP transport", () => {
         super();
         sockets += 1;
         this.send.mockImplementation((message) => {
-          const packet = JSON.parse(message) as { id: number; method: string };
+          const packet = JSON.parse(message) as {
+            id: number;
+            method: string;
+            params?: { expression?: string };
+          };
           const result =
             packet.method === "Runtime.evaluate"
-              ? { result: { objectId: "root" } }
+              ? packet.params?.expression === "globalThis"
+                ? { result: { objectId: "root" } }
+                : { result: { value: "ok" } }
               : { result: { value: "ok" } };
           this.emit("message", { data: JSON.stringify({ id: packet.id, result }) });
         });
@@ -219,6 +226,8 @@ describe("CDP transport", () => {
 
     await expect(session.callFunction("function () {}")).resolves.toBe("ok");
     await expect(session.callFunction("function () {}")).resolves.toBe("ok");
+
+    await expect(session.evaluate("location.href")).resolves.toBe("ok");
 
     expect(session.state()).toBe("ready");
     expect(fetchMock).toHaveBeenCalledOnce();

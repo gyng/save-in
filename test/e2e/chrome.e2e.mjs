@@ -141,7 +141,10 @@ const waitForOptionsInteractive = () =>
 // App control travels through production runtime messages from an extension
 // page. Raw worker evaluation remains only for worker-specific assertions.
 /** @param {string} expr @returns {Promise<unknown>} */
-const evalSW = (expr) => rawEvalOptions(inBackgroundContext(expr));
+const evalSW = (expr) =>
+  controlTarget
+    ? controlTarget.evaluate(inBackgroundContext(expr))
+    : Promise.reject(new Error("Chrome E2E control target was not initialized"));
 /** @param {string} expr @returns {Promise<unknown>} */
 const evalWorker = (expr) => cdp.evalInServiceWorker(PORT, extensionId, expr);
 /** @param {string} key @param {unknown} expected @param {number} [timeoutMs] */
