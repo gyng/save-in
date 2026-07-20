@@ -267,18 +267,8 @@ const launch = async ({ extensionDir = ROOT } = {}) => {
       }
     };
 
-    const openOptionsAndWaitForReady = async () => {
-      await connectedRdp.evaluate(
-        consoleActor,
-        `(async () => {
-          const url = browser.runtime.getURL("src/options/options.html");
-          const existing = (await browser.tabs.query({})).find((tab) => tab.url === url);
-          if (existing?.id) await browser.tabs.reload(existing.id);
-          else await browser.tabs.create({ url });
-          return true;
-        })()`,
-      );
-
+    /** @param {string} resource */
+    const waitForBackgroundReady = async (resource) => {
       // Send the readiness probe from an extension page. A background context's
       // runtime.sendMessage does not loop back to its own onMessage listener.
       let lastProbe = "options target was not attachable";
@@ -296,7 +286,7 @@ const launch = async ({ extensionDir = ROOT } = {}) => {
           const probe = `browser.runtime.sendMessage({ type: "WAKE_WARM" })
               .then((response) => JSON.stringify({ response }))
               .catch((error) => JSON.stringify({ error: String(error) }))`;
-          lastProbe = await evaluateInTab("src/options/options.html", probe, PROBE_TIMEOUT_MS);
+          lastProbe = await evaluateInTab(resource, probe, PROBE_TIMEOUT_MS);
           const result = JSON.parse(lastProbe);
           if (result?.response?.type === "OK") return;
           throw new Error(`background readiness probe returned ${lastProbe}`);
@@ -304,6 +294,20 @@ const launch = async ({ extensionDir = ROOT } = {}) => {
         30000,
         "background page never became ready",
       );
+    };
+
+    const openOptionsAndWaitForReady = async () => {
+      await connectedRdp.evaluate(
+        consoleActor,
+        `(async () => {
+          const url = browser.runtime.getURL("src/options/options.html");
+          const existing = (await browser.tabs.query({})).find((tab) => tab.url === url);
+          if (existing?.id) await browser.tabs.reload(existing.id);
+          else await browser.tabs.create({ url });
+          return true;
+        })()`,
+      );
+      await waitForBackgroundReady("src/options/options.html");
     };
 
     await openOptionsAndWaitForReady();
@@ -375,7 +379,12 @@ const launch = async ({ extensionDir = ROOT } = {}) => {
       try {
         await connectedRdp.evaluate(
           staleConsoleActor,
-          `(() => { location.reload(); return true; })()`,
+          `(() => {
+            const channel = new MessageChannel();
+            channel.port1.onmessage = () => location.reload();
+            channel.port2.postMessage(null);
+            return true;
+          })()`,
           5000,
         );
       } catch (error) {
@@ -394,7 +403,7 @@ const launch = async ({ extensionDir = ROOT } = {}) => {
             10000,
             "Firefox event-page reload did not expose a fresh background page",
           );
-      await openOptionsAndWaitForReady();
+      await waitForBackgroundReady("test/e2e/control.html");
     };
 
     const cleanup = async () => {

@@ -430,8 +430,21 @@ export const runHistoryCancellationScenario = async ({ control, evaluate, filena
   const requestClosed = new Promise((resolve) => {
     requestClosedResolve = () => resolve();
   });
-  const server = http.createServer((_req, res) => {
+  const server = http.createServer((req, res) => {
+    if (req.method === "HEAD") {
+      res.writeHead(200, {
+        "Content-Type": "application/octet-stream",
+        "Content-Length": "1024",
+      });
+      res.end();
+      return;
+    }
     pendingResponse = res;
+    res.writeHead(200, {
+      "Content-Type": "application/octet-stream",
+      "Content-Length": "1024",
+    });
+    res.flushHeaders();
     res.once("close", () => requestClosedResolve?.());
     requestStartedResolve?.();
   });
@@ -562,8 +575,21 @@ export const runInterruptedTransferRecoveryScenario = async ({
   const requestStarted = new Promise((resolve) => {
     requestStartedResolve = () => resolve();
   });
-  const server = http.createServer((_req, res) => {
+  const server = http.createServer((req, res) => {
+    if (req.method === "HEAD") {
+      res.writeHead(200, {
+        "Content-Type": "application/octet-stream",
+        "Content-Length": "1024",
+      });
+      res.end();
+      return;
+    }
     pendingResponse = res;
+    res.writeHead(200, {
+      "Content-Type": "application/octet-stream",
+      "Content-Length": "1024",
+    });
+    res.flushHeaders();
     requestStartedResolve?.();
   });
   const port = await listenLocal(server);
