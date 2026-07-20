@@ -837,6 +837,7 @@ export const createRecoveringControlTransport = ({
 export const createE2EControlClient = ({ callFunction }) => {
   let calls = 0;
   let requestSequence = 0;
+  /** @type {string | undefined} */
   let acknowledgedInstance;
   let acknowledgedGeneration = 0;
   /**
