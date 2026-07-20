@@ -10,67 +10,92 @@ import { renderHistory } from "./history-refresh.ts";
 
 const POLL_INTERVAL_MS = 1000;
 
-let historyProgressTimer: ReturnType<typeof setInterval> | null = null;
+let historyProgressTimer: ReturnType<typeof setTimeout> | null = null;
+let historyProgressGeneration = 0;
 
 export const stopHistoryProgress = (): void => {
+  historyProgressGeneration += 1;
   if (historyProgressTimer) {
-    clearInterval(historyProgressTimer);
+    clearTimeout(historyProgressTimer);
     historyProgressTimer = null;
   }
 };
 
-const pollHistoryProgress = (): void => {
+const scheduleHistoryProgress = (generation: number): void => {
+  if (generation !== historyProgressGeneration) return;
+  historyProgressTimer = setTimeout(() => {
+    historyProgressTimer = null;
+    void pollHistoryProgress(generation);
+  }, POLL_INTERVAL_MS);
+};
+
+const pollHistoryProgress = async (generation: number): Promise<void> => {
+  if (generation !== historyProgressGeneration) return;
   const cells = document.querySelectorAll(".history-progress[data-download-id]");
   if (cells.length === 0) {
     if (document.querySelector(".history-cancel")) void renderHistory();
     else stopHistoryProgress();
     return;
   }
-  if (!webExtensionApi.downloads || !webExtensionApi.downloads.search) {
+  const downloads = webExtensionApi.downloads;
+  if (!downloads?.search) {
     stopHistoryProgress();
     return;
   }
-  webExtensionApi.downloads
-    .search({})
-    .then((items) => {
-      const byId: Record<number, DownloadProgress> = {};
-      items.forEach((it: DownloadProgress) => {
-        if (it.id != null) {
-          byId[it.id] = it;
-        }
-      });
-      let anyInProgress = false;
-      let anyFinished = false;
-      cells.forEach((cell) => {
-        const item = byId[Number(cell.getAttribute("data-download-id"))];
-        if (item && item.state === "in_progress") {
-          anyInProgress = true;
-          const { label, title } = progressCell(item);
-          cell.textContent = label;
-          cell.setAttribute("title", title);
-        } else if (item) {
-          // completed/interrupted -> re-render to pick up the stored status+size
-          anyFinished = true;
-        } else {
-          // the browser no longer knows this download: stop polling this cell
-          cell.textContent = "—";
-          cell.removeAttribute("data-download-id");
-        }
-      });
-      if (anyFinished) {
-        void renderHistory();
-      } else if (!anyInProgress) {
-        stopHistoryProgress();
+  const ids = [
+    ...new Set(
+      [...cells]
+        .map((cell) => Number(cell.getAttribute("data-download-id")))
+        .filter(Number.isSafeInteger),
+    ),
+  ];
+  try {
+    // downloads.search({}) returns the browser's complete download database.
+    // Ask only for the rows on this 50-entry page, and do not schedule another
+    // poll until these host calls settle, so a slow browser cannot build a
+    // queue of overlapping full-history snapshots.
+    const searches = await Promise.all(ids.map((id) => downloads.search({ id })));
+    if (generation !== historyProgressGeneration) return;
+    const byId = new Map<number, DownloadProgress>();
+    searches.flat().forEach((item: DownloadProgress) => {
+      if (item.id != null) byId.set(item.id, item);
+    });
+    let anyInProgress = false;
+    let anyFinished = false;
+    cells.forEach((cell) => {
+      const item = byId.get(Number(cell.getAttribute("data-download-id")));
+      if (item && item.state === "in_progress") {
+        anyInProgress = true;
+        const { label, title } = progressCell(item);
+        cell.textContent = label;
+        cell.setAttribute("title", title);
+      } else if (item) {
+        // completed/interrupted -> re-render to pick up the stored status+size
+        anyFinished = true;
+      } else {
+        // the browser no longer knows this download: stop polling this cell
+        cell.textContent = "—";
+        cell.removeAttribute("data-download-id");
       }
-    })
-    .catch(() => {});
+    });
+    if (anyFinished) {
+      void renderHistory();
+    } else if (anyInProgress) {
+      scheduleHistoryProgress(generation);
+    } else {
+      stopHistoryProgress();
+    }
+  } catch {
+    scheduleHistoryProgress(generation);
+  }
 };
 
 export const startHistoryProgress = (): void => {
   stopHistoryProgress();
+  const generation = historyProgressGeneration;
   const hasNativeProgress = document.querySelector(".history-progress[data-download-id]");
   if (hasNativeProgress || document.querySelector(".history-cancel")) {
-    historyProgressTimer = setInterval(pollHistoryProgress, POLL_INTERVAL_MS);
-    if (hasNativeProgress) pollHistoryProgress();
+    if (hasNativeProgress) void pollHistoryProgress(generation);
+    else scheduleHistoryProgress(generation);
   }
 };

@@ -941,6 +941,7 @@ describe("history filter controls", () => {
     const progress = document.querySelector<HTMLElement>(".history-progress")!;
     expect(progress.textContent).toBe("50%");
     expect(progress.getAttribute("data-download-id")).toBe("7");
+    expect(historyRuntime.search).toHaveBeenNthCalledWith(1, { id: 7 });
 
     historyRuntime.search.mockResolvedValueOnce([]);
     await vi.advanceTimersByTimeAsync(1000);
@@ -949,6 +950,34 @@ describe("history filter controls", () => {
 
     await vi.advanceTimersByTimeAsync(1000);
     expect(historyRuntime.search).toHaveBeenCalledTimes(callsAfterRemoval);
+  });
+
+  test("does not overlap a slow native progress poll", async () => {
+    vi.useFakeTimers();
+    historyRuntime.entries = [
+      { id: "h-pending", status: "pending", downloadId: 7, finalFullPath: "large.iso" },
+    ];
+    let resolveSearch: (items: Array<Record<string, unknown>>) => void = () => {};
+    historyRuntime.search.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveSearch = resolve;
+        }),
+    );
+
+    await historyPanel.renderHistory();
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(historyRuntime.search).toHaveBeenCalledOnce();
+
+    historyRuntime.search.mockResolvedValueOnce([
+      { id: 7, state: "in_progress", bytesReceived: 60, totalBytes: 100 },
+    ]);
+    resolveSearch([{ id: 7, state: "in_progress", bytesReceived: 50, totalBytes: 100 }]);
+    await vi.runAllTicks();
+    await vi.advanceTimersByTimeAsync(999);
+    expect(historyRuntime.search).toHaveBeenCalledOnce();
+    await vi.advanceTimersByTimeAsync(1);
+    expect(historyRuntime.search).toHaveBeenCalledTimes(2);
   });
 
   test("refreshes durable history when native progress finishes", async () => {
