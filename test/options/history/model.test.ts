@@ -480,6 +480,25 @@ describe("paginateHistory", () => {
     expect(result.pageRows).toHaveLength(2);
   });
 
+  test("flattens only the visible filtered page when filters preserve newest-first order", () => {
+    const outsidePage = {
+      timestamp: "2024-01-01",
+      finalFullPath: "outside.png",
+      get variables(): Record<string, string> {
+        throw new Error("off-page filtered entry was flattened");
+      },
+    };
+    const newestFirst = [entries[0]!, entries[1]!, outsidePage];
+    const result = paginateHistory(newestFirst, {
+      sourceFilter: "save-in",
+      pageSize: 2,
+      page: 0,
+    });
+
+    expect(result.matchCount).toBe(3);
+    expect(result.pageRows).toHaveLength(2);
+  });
+
   test("sorts malformed legacy entries when stored order is not chronological", () => {
     const malformed = [
       { finalFullPath: "missing-time.txt" },

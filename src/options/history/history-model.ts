@@ -409,8 +409,6 @@ export const paginateHistory = (
     .trim()
     .toLowerCase();
   const total = entries.length;
-  const unfiltered =
-    !query && !sourceFilter && !statusFilter && !typeFilter && !dateFrom && !dateTo;
   const defaultTimeSort = sort.key === "time" && sort.dir === "desc";
   let alreadyNewestFirst = defaultTimeSort;
   if (defaultTimeSort) {
@@ -424,19 +422,6 @@ export const paginateHistory = (
       previousTime = time;
     }
   }
-  if (unfiltered && alreadyNewestFirst) {
-    // renderHistory stores entries newest-first, which is also the default
-    // view. Page navigation therefore needs to flatten only the visible page;
-    // rebuilding all 10,000 rows here made every pager click allocate them.
-    const matchCount = total;
-    const pageCount = Math.max(1, Math.ceil(matchCount / pageSize));
-    const clampedPage = Math.min(Math.max(0, page), pageCount - 1);
-    const pageRows = entries
-      .slice(clampedPage * pageSize, (clampedPage + 1) * pageSize)
-      .map(historyRow);
-    return { pageRows, matchCount, total, pageCount, page: clampedPage };
-  }
-
   let matchingEntries = entries;
 
   if (sourceFilter) {
@@ -460,6 +445,19 @@ export const paginateHistory = (
     matchingEntries = matchingEntries.filter(
       (entry) => localHistoryDate(entry.initiatedAt || entry.timestamp || "") <= dateTo,
     );
+
+  if (alreadyNewestFirst) {
+    // Filters preserve storage order. The default view can therefore flatten
+    // only its visible page; rebuilding every matching row made both paging
+    // and broad searches allocate up to the complete 10,000-entry history.
+    const matchCount = matchingEntries.length;
+    const pageCount = Math.max(1, Math.ceil(matchCount / pageSize));
+    const clampedPage = Math.min(Math.max(0, page), pageCount - 1);
+    const pageRows = matchingEntries
+      .slice(clampedPage * pageSize, (clampedPage + 1) * pageSize)
+      .map(historyRow);
+    return { pageRows, matchCount, total, pageCount, page: clampedPage };
+  }
 
   const rows = matchingEntries.map(historyRow);
 
