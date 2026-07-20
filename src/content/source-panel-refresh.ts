@@ -16,6 +16,7 @@ import type { SourcePanelContext } from "./source-panel-context.ts";
 // max wait, however long the page keeps mutating.
 const REFRESH_DEBOUNCE_MS = 200;
 const REFRESH_MAX_WAIT_MS = 1000;
+const INCREMENTAL_ROOT_LIMIT = 64;
 
 /** Source discovery: the initial scan, incremental DOM-mutation
  * reconciliation, background-element scanning, and resource-timing driven
@@ -28,11 +29,18 @@ export const wirePanelRefresh = (ctx: SourcePanelContext): void => {
   let sourceCandidates: PageSource[] = [];
   let backgroundCandidates: PageSource[] = [];
   let resourceHintSources: PageSource[] = [];
+  let sourcesByUrl = new Map<string, PageSource>();
   const firstSeen = new Map<string, { at: number; order: number }>();
   const commitSources = () => {
-    ctx.allSources = mergePageSourcesByUrl(
-      [sourceCandidates, backgroundCandidates, resourceHintSources].flat(),
-    );
+    const candidates = [sourceCandidates, backgroundCandidates, resourceHintSources].flat();
+    // A candidate that becomes the representative only after its duplicate is
+    // removed still needs metadata observed since it was first collected.
+    candidates.forEach((source) => {
+      const timing = timingByUrl.get(source.url);
+      if (timing) source.bytes = timing.encodedBodySize || timing.transferSize || undefined;
+    });
+    ctx.allSources = mergePageSourcesByUrl(candidates);
+    sourcesByUrl = new Map(ctx.allSources.map((source) => [source.url, source]));
     const presentUrls = new Set(ctx.allSources.map(({ url }) => url));
     ctx.selectedSourceUrls.forEach((url) => {
       if (!presentUrls.has(url)) ctx.selectedSourceUrls.delete(url);
@@ -160,9 +168,20 @@ export const wirePanelRefresh = (ctx: SourcePanelContext): void => {
   const removedRoots = new Set<Element>();
   let fullRefreshPending = false;
   const queueRoot = (root: Element) => {
+    if (fullRefreshPending) return;
     for (const pending of pendingRoots) {
       if (pending === root || pending.contains(root)) return;
       if (root.contains(pending)) pendingRoots.delete(pending);
+    }
+    // Each incremental reconciliation filters the complete candidate arrays.
+    // Past this point one full scan is cheaper than a large burst multiplied
+    // by a large source list, and it avoids retaining every changed subtree
+    // until the debounce flushes.
+    if (pendingRoots.size >= INCREMENTAL_ROOT_LIMIT) {
+      fullRefreshPending = true;
+      pendingRoots.clear();
+      removedRoots.clear();
+      return;
     }
     pendingRoots.add(root);
   };
@@ -264,28 +283,26 @@ export const wirePanelRefresh = (ctx: SourcePanelContext): void => {
           const observed = entries.getEntries().filter(isPerformanceResourceTiming);
           mergeResourceTimings(timingByUrl, observed);
           let changed = false;
-          sourceCandidates = sourceCandidates.map((source) => {
-            const timing = timingByUrl.get(source.url);
+          observed.forEach((timing) => {
+            const source = sourcesByUrl.get(timing.name);
+            if (!source) return;
             const bytes = timing?.encodedBodySize || timing?.transferSize || undefined;
-            if (source.bytes === bytes) return source;
+            if (source.bytes === bytes) return;
+            source.bytes = bytes;
             changed = true;
-            return { ...source, bytes };
+            ctx.rowCache.get(timing.name)?.updateBytes(bytes);
           });
-          backgroundCandidates = backgroundCandidates.map((source) => {
-            const timing = timingByUrl.get(source.url);
-            const bytes = timing?.encodedBodySize || timing?.transferSize || undefined;
-            if (source.bytes === bytes) return source;
-            changed = true;
-            return { ...source, bytes };
-          });
-          if (
+          const resourceHintsChanged =
             ctx.panelOptions.resourceHints !== false &&
-            observed.some(({ name }) => /\.(?:m3u8|mpd)(?:$|[?#])/i.test(name))
-          ) {
+            observed.some(({ name }) => /\.(?:m3u8|mpd)(?:$|[?#])/i.test(name));
+          if (resourceHintsChanged) {
             resourceHintSources = collectResourceHintSources(timingByUrl, document.body);
-            changed = true;
+            commitSources();
+          } else if (changed) {
+            // The candidates consumed by mergePageSourcesByUrl are the live
+            // objects above, so only sorting and visible rows need refreshing.
+            ctx.render();
           }
-          if (changed) commitSources();
         })
       : null;
   const configureLiveObservers = () => {

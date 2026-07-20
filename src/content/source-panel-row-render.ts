@@ -19,6 +19,7 @@ import type { CachedRow, SourcePanelContext } from "./source-panel-context.ts";
 
 const SOURCE_RENDER_CHUNK_SIZE = 100;
 const SOURCE_RENDER_LOAD_THRESHOLD_PX = 300;
+const DETACHED_ROW_CACHE_LIMIT = SOURCE_RENDER_CHUNK_SIZE * 2;
 
 const decodeSourcePart = (value: string): string => {
   try {
@@ -81,6 +82,16 @@ export const wirePanelRowRender = (ctx: SourcePanelContext): void => {
   const deactivateAndRemove = ({ row, deactivate }: CachedRow) => {
     deactivate();
     row.remove();
+  };
+  const evictDetachedRows = () => {
+    let excess = ctx.rowCache.size - DETACHED_ROW_CACHE_LIMIT;
+    if (excess <= 0) return;
+    for (const [url, cached] of ctx.rowCache) {
+      if (excess <= 0) break;
+      if (cached.row.isConnected) continue;
+      ctx.rowCache.delete(url);
+      excess -= 1;
+    }
   };
   ctx.deactivateAndRemove = deactivateAndRemove;
 
@@ -155,6 +166,7 @@ export const wirePanelRowRender = (ctx: SourcePanelContext): void => {
       if (cached.row.isConnected) deactivateAndRemove(cached);
     });
     list.replaceChildren(empty);
+    evictDetachedRows();
     ctx.copyUrls.disabled = true;
     ctx.announce(message);
   };
@@ -788,6 +800,7 @@ export const wirePanelRowRender = (ctx: SourcePanelContext): void => {
       if (cached) deactivateAndRemove(cached);
       else last.remove();
     }
+    evictDetachedRows();
   };
   const renderMoreNearListEnd = () => {
     if (

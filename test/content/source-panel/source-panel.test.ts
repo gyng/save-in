@@ -841,6 +841,41 @@ describe("Page Sources panel interactions", () => {
     expect(shadow.querySelectorAll(".row").length).toBeLessThan(sourceCount);
   });
 
+  test("evicts detached rows after filtering a deeply-scrolled result set", () => {
+    vi.useFakeTimers();
+    document.body.innerHTML = Array.from(
+      { length: 250 },
+      (_, index) => `<a href="https://cdn.test/resource-${index}.jpg">${index}</a>`,
+    ).join("");
+    toggleSourcePanel(vi.fn(), {
+      includeBackgrounds: false,
+      live: false,
+      resourceHints: false,
+    });
+    const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
+    const list = shadow.querySelector<HTMLElement>(".list")!;
+    Object.defineProperties(list, {
+      scrollTop: { configurable: true, writable: true, value: 900 },
+      clientHeight: { configurable: true, value: 100 },
+      scrollHeight: { configurable: true, value: 1000 },
+    });
+    list.dispatchEvent(new Event("scroll"));
+    list.dispatchEvent(new Event("scroll"));
+    expect(shadow.querySelectorAll(".row")).toHaveLength(250);
+    const firstRow = shadow.querySelector<HTMLElement>(".row")!;
+
+    const filter = shadow.querySelector<HTMLInputElement>('input[type="search"]')!;
+    filter.value = "no-such-source";
+    filter.dispatchEvent(new Event("input"));
+    vi.advanceTimersByTime(80);
+    filter.value = "";
+    filter.dispatchEvent(new Event("input"));
+    vi.advanceTimersByTime(80);
+
+    expect(shadow.querySelector(".row")).not.toBe(firstRow);
+    expect(shadow.querySelectorAll(".row")).toHaveLength(100);
+  });
+
   test("shows one empty state and deactivates cached rows when nothing matches", () => {
     vi.useFakeTimers();
     document.body.innerHTML = `<img id="cat" src="cat.jpg"><img src="dog.jpg">`;
@@ -1136,6 +1171,34 @@ describe("Page Sources panel interactions", () => {
     expect(urls).toContain("http://localhost/nested-updated.jpg");
     expect(urls).toContain("http://localhost/moved.jpg");
     expect(urls).not.toContain("http://localhost/gone.jpg");
+  });
+
+  test("falls back to one full scan for a large live-mutation burst", async () => {
+    vi.useFakeTimers();
+    document.body.innerHTML = Array.from(
+      { length: 65 },
+      (_, index) => `<img id="source-${index}" src="old-${index}.jpg">`,
+    ).join("");
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: true });
+    const elementQueries = vi.spyOn(Element.prototype, "querySelectorAll");
+    elementQueries.mockClear();
+
+    for (let index = 0; index < 65; index += 1) {
+      document.querySelector<HTMLImageElement>(`#source-${index}`)!.src = `new-${index}.jpg`;
+    }
+    await Promise.resolve();
+    vi.advanceTimersByTime(200);
+
+    // Incremental reconciliation queries each changed root. Once the bounded
+    // queue overflows, the single document scan does not query those roots.
+    expect(elementQueries.mock.calls.map(([selector]) => selector)).toEqual([".empty"]);
+    expect(
+      [
+        ...getSourcePanelHostForTesting()!.shadowRoot!.querySelectorAll<HTMLAnchorElement>(
+          ".source-link",
+        ),
+      ].map(({ href }) => href),
+    ).toContain("http://localhost/new-64.jpg");
   });
 
   test("contains live mutations whose target is not an element", () => {
@@ -1474,6 +1537,42 @@ describe("Page Sources panel interactions", () => {
 
     expect(shadow.querySelector(".row")).toBe(row);
     expect(shadow.querySelector(".media-tooltip")).toBe(tooltip);
+  });
+
+  test("keeps late resource metadata when a duplicate source becomes representative", async () => {
+    vi.useFakeTimers();
+    let performanceCallback: PerformanceObserverCallback | undefined;
+    class PerformanceObserverStub {
+      constructor(callback: PerformanceObserverCallback) {
+        performanceCallback = callback;
+      }
+      observe = vi.fn();
+      disconnect = vi.fn();
+      takeRecords = vi.fn(() => []);
+    }
+    vi.stubGlobal("PerformanceObserver", PerformanceObserverStub);
+    document.body.innerHTML = `<img id="first" src="https://cdn.test/shared.jpg"><img src="https://cdn.test/shared.jpg">`;
+    toggleSourcePanel(vi.fn(), {
+      includeBackgrounds: false,
+      live: true,
+      resourceHints: false,
+    });
+
+    performanceCallback!(
+      {
+        getEntries: () => [
+          { name: "https://cdn.test/shared.jpg", encodedBodySize: 2048, transferSize: 2048 },
+        ],
+      } as unknown as PerformanceObserverEntryList,
+      {} as PerformanceObserver,
+    );
+    document.querySelector("#first")!.remove();
+    await Promise.resolve();
+    vi.advanceTimersByTime(200);
+
+    expect(
+      getSourcePanelHostForTesting()!.shadowRoot!.querySelector(".source-size")?.textContent,
+    ).toBe("2 KB");
   });
 
   test("updates background-source bytes and ignores unchanged resource metadata", () => {
