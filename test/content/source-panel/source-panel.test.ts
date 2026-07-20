@@ -1700,6 +1700,85 @@ describe("Page Sources panel interactions", () => {
     ).toBe("4 KB");
   });
 
+  test("coalesces a resource timing burst into one whole-list render", () => {
+    vi.useFakeTimers();
+    let performanceCallback: PerformanceObserverCallback | undefined;
+    class PerformanceObserverStub {
+      constructor(callback: PerformanceObserverCallback) {
+        performanceCallback = callback;
+      }
+      observe = vi.fn();
+      disconnect = vi.fn();
+      takeRecords = vi.fn(() => []);
+    }
+    vi.stubGlobal("PerformanceObserver", PerformanceObserverStub);
+    document.body.innerHTML = Array.from(
+      { length: 128 },
+      (_, index) => `<img src="https://cdn.test/resource-${index}.jpg">`,
+    ).join("");
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: true, resourceHints: false });
+    const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
+    const sort = shadow.querySelector<HTMLSelectElement>("select")!;
+    sort.value = "size-desc";
+    sort.dispatchEvent(new Event("change"));
+    const firstUrl = () => shadow.querySelector<HTMLAnchorElement>(".row .source-link")?.href;
+    expect(firstUrl()).toBe("https://cdn.test/resource-0.jpg");
+
+    for (let index = 0; index < 20; index += 1) {
+      performanceCallback!(
+        {
+          getEntries: () => [
+            { name: `https://cdn.test/resource-${index}.jpg`, encodedBodySize: index + 1 },
+          ],
+        } as unknown as PerformanceObserverEntryList,
+        {} as PerformanceObserver,
+      );
+    }
+    expect(firstUrl()).toBe("https://cdn.test/resource-0.jpg");
+    vi.advanceTimersByTime(100);
+    expect(firstUrl()).toBe("https://cdn.test/resource-19.jpg");
+
+    performanceCallback!(
+      {
+        getEntries: () => [{ name: "https://cdn.test/resource-20.jpg", encodedBodySize: 4096 }],
+      } as unknown as PerformanceObserverEntryList,
+      {} as PerformanceObserver,
+    );
+    expect(firstUrl()).toBe("https://cdn.test/resource-19.jpg");
+    vi.advanceTimersByTime(100);
+
+    expect(firstUrl()).toBe("https://cdn.test/resource-20.jpg");
+  });
+
+  test("patches resource sizes without rerendering the default sort", () => {
+    vi.useFakeTimers();
+    let performanceCallback: PerformanceObserverCallback | undefined;
+    class PerformanceObserverStub {
+      constructor(callback: PerformanceObserverCallback) {
+        performanceCallback = callback;
+      }
+      observe = vi.fn();
+      disconnect = vi.fn();
+      takeRecords = vi.fn(() => []);
+    }
+    vi.stubGlobal("PerformanceObserver", PerformanceObserverStub);
+    document.body.innerHTML = `<img src="https://cdn.test/resource.jpg">`;
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: true, resourceHints: false });
+    const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
+    const firstFacet = shadow.querySelector(".facets")!.firstElementChild;
+
+    performanceCallback!(
+      {
+        getEntries: () => [{ name: "https://cdn.test/resource.jpg", encodedBodySize: 4096 }],
+      } as unknown as PerformanceObserverEntryList,
+      {} as PerformanceObserver,
+    );
+    vi.advanceTimersByTime(100);
+
+    expect(shadow.querySelector(".facets")!.firstElementChild).toBe(firstFacet);
+    expect(shadow.querySelector(".source-size")?.textContent).toBe("4 KB");
+  });
+
   test("gives every header action an accessible name", () => {
     toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
     const shadow = document.getElementById("save-in-source-panel")!.shadowRoot!;

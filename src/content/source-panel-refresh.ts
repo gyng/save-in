@@ -17,6 +17,7 @@ import type { SourcePanelContext } from "./source-panel-context.ts";
 const REFRESH_DEBOUNCE_MS = 200;
 const REFRESH_MAX_WAIT_MS = 1000;
 const INCREMENTAL_ROOT_LIMIT = 64;
+const RESOURCE_RENDER_INTERVAL_MS = 100;
 
 /** Source discovery: the initial scan, incremental DOM-mutation
  * reconciliation, background-element scanning, and resource-timing driven
@@ -277,6 +278,27 @@ export const wirePanelRefresh = (ctx: SourcePanelContext): void => {
     });
     scheduleRefresh();
   });
+  let resourceRefreshTimer = 0;
+  let resourceHintsRefreshPending = false;
+  const cancelResourceRefresh = () => {
+    window.clearTimeout(resourceRefreshTimer);
+    resourceRefreshTimer = 0;
+    resourceHintsRefreshPending = false;
+  };
+  const scheduleResourceRefresh = (refreshResourceHints: boolean) => {
+    resourceHintsRefreshPending ||= refreshResourceHints;
+    if (resourceRefreshTimer) return;
+    resourceRefreshTimer = window.setTimeout(() => {
+      resourceRefreshTimer = 0;
+      if (resourceHintsRefreshPending) {
+        resourceHintsRefreshPending = false;
+        resourceHintSources = collectResourceHintSources(timingByUrl, document.body);
+        commitSources();
+      } else {
+        ctx.render();
+      }
+    }, RESOURCE_RENDER_INTERVAL_MS);
+  };
   const resourceObserver =
     typeof PerformanceObserver === "function"
       ? new PerformanceObserver((entries) => {
@@ -295,19 +317,18 @@ export const wirePanelRefresh = (ctx: SourcePanelContext): void => {
           const resourceHintsChanged =
             ctx.panelOptions.resourceHints !== false &&
             observed.some(({ name }) => /\.(?:m3u8|mpd)(?:$|[?#])/i.test(name));
-          if (resourceHintsChanged) {
-            resourceHintSources = collectResourceHintSources(timingByUrl, document.body);
-            commitSources();
-          } else if (changed) {
-            // The candidates consumed by mergePageSourcesByUrl are the live
-            // objects above, so only sorting and visible rows need refreshing.
-            ctx.render();
+          // Visible byte labels were patched above, and future rows read the
+          // updated source object. Only size sorting or a newly discovered
+          // manifest needs whole-list work; coalesce that work to at most 10 Hz.
+          if (resourceHintsChanged || (changed && ctx.sort.value === "size-desc")) {
+            scheduleResourceRefresh(resourceHintsChanged);
           }
         })
       : null;
   const configureLiveObservers = () => {
     observer.disconnect();
     resourceObserver?.disconnect();
+    cancelResourceRefresh();
     if (ctx.panelOptions.live === false) return;
     const attributeFilter = ["src", "srcset", "style", "href"];
     if (ctx.panelOptions.includeBackgrounds !== false) attributeFilter.push("class", "id");
@@ -337,6 +358,7 @@ export const wirePanelRefresh = (ctx: SourcePanelContext): void => {
     resourceObserver?.disconnect();
     window.clearTimeout(refreshTimer);
     window.clearTimeout(refreshMaxWaitTimer);
+    cancelResourceRefresh();
     cancelBackgroundScan();
     window.removeEventListener("resize", scheduleResponsiveRefresh);
     window.visualViewport?.removeEventListener("resize", scheduleResponsiveRefresh);
