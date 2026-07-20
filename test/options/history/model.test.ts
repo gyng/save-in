@@ -465,4 +465,27 @@ describe("paginateHistory", () => {
     expect(clamped.page).toBe(1);
     expect(clamped.pageRows).toHaveLength(1);
   });
+
+  test("flattens only the visible page for the default newest-first view", () => {
+    const outsidePage = {
+      timestamp: "2024-01-01",
+      finalFullPath: "outside.png",
+      get variables(): Record<string, string> {
+        throw new Error("off-page entry was flattened");
+      },
+    };
+    const newestFirst = [entries[0]!, entries[1]!, outsidePage];
+    const result = paginateHistory(newestFirst, { pageSize: 2, page: 0 });
+
+    expect(result.pageRows).toHaveLength(2);
+  });
+
+  test("sorts malformed legacy entries when stored order is not chronological", () => {
+    const rows = paginateHistory([
+      { finalFullPath: "missing-time.txt" },
+      { initiatedAt: "2024-07-01T00:00:00.000Z", finalFullPath: "dated.txt" },
+    ]).pageRows;
+
+    expect(rows.map(({ file }) => file)).toEqual(["dated.txt", "missing-time.txt"]);
+  });
 });

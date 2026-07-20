@@ -372,8 +372,36 @@ export const paginateHistory = (
   const query = String(filter || "")
     .trim()
     .toLowerCase();
+  const total = entries.length;
+  const unfiltered =
+    !query && !sourceFilter && !statusFilter && !typeFilter && !dateFrom && !dateTo;
+  const defaultNewestFirst = unfiltered && sort.key === "time" && sort.dir === "desc";
+  let alreadyNewestFirst = defaultNewestFirst;
+  if (defaultNewestFirst) {
+    let previousTime: string | undefined;
+    for (const entry of entries) {
+      const time = entry.initiatedAt || entry.timestamp || "";
+      if (previousTime !== undefined && previousTime.localeCompare(time) < 0) {
+        alreadyNewestFirst = false;
+        break;
+      }
+      previousTime = time;
+    }
+  }
+  if (alreadyNewestFirst) {
+    // renderHistory stores entries newest-first, which is also the default
+    // view. Page navigation therefore needs to flatten only the visible page;
+    // rebuilding all 10,000 rows here made every pager click allocate them.
+    const matchCount = total;
+    const pageCount = Math.max(1, Math.ceil(matchCount / pageSize));
+    const clampedPage = Math.min(Math.max(0, page), pageCount - 1);
+    const pageRows = entries
+      .slice(clampedPage * pageSize, (clampedPage + 1) * pageSize)
+      .map(historyRow);
+    return { pageRows, matchCount, total, pageCount, page: clampedPage };
+  }
+
   let rows = entries.map(historyRow);
-  const total = rows.length;
 
   if (query) {
     rows = rows.filter((r) =>
