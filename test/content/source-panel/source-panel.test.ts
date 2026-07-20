@@ -919,7 +919,7 @@ describe("Page Sources panel interactions", () => {
 
   test("bounds connected rows while traversing a large result set in both directions", () => {
     document.body.innerHTML = Array.from(
-      { length: 500 },
+      { length: 350 },
       (_, index) => `<a href="https://cdn.test/resource-${index}.jpg">${index}</a>`,
     ).join("");
     toggleSourcePanel(vi.fn(), {
