@@ -28,6 +28,7 @@
     "dogfood:functional:watch": "node scripts/dogfood-functional.js --watch",
     "e2e": "node scripts/e2e-parallel.js",
     "e2e:headed": "node scripts/e2e-parallel.js --headed",
+    "e2e:rss": "node scripts/e2e-parallel.js --test-name \"history rewrites keep browser RSS\"",
     "e2e:serial": "node scripts/e2e-parallel.js --serial",
     "e2e:chrome": "node scripts/e2e-parallel.js --browser=chrome",
     "e2e:chrome:headed": "node scripts/e2e-parallel.js --browser=chrome --headed",

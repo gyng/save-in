@@ -2140,6 +2140,7 @@ registerSharedBrowserCases({
   waitForLog,
   downloadDir: () => DOWNLOADS,
   browserLabel: "chrome",
+  browserProcess: () => proc,
   routingContent: "routed content",
   symlinkSupported: false,
   failedDownloadFilename: "si-unreachable.bin",

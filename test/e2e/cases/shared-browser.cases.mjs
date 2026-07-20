@@ -20,6 +20,7 @@ import {
 } from "../shared-scenarios.mjs";
 import { runTemplateLibraryScenario } from "../template-library-scenario.mjs";
 import { runRoutingVisualEditorScenario } from "../routing-visual-editor-scenario.mjs";
+import { runHistoryMemoryScenario } from "../history-memory-scenario.mjs";
 import { requireValue } from "../helpers.mjs";
 
 /** @typedef {import("../control-protocol.mjs").DownloadSummary} DownloadSummary */
@@ -39,6 +40,7 @@ import { requireValue } from "../helpers.mjs";
  *   waitForLog: (baseline: number, messages: string[], timeoutMs?: number) => Promise<LogEntry[]>,
  *   downloadDir: () => string,
  *   browserLabel: "chrome" | "firefox",
+ *   browserProcess: () => import("node:child_process").ChildProcess | undefined,
  *   routingContent: string,
  *   symlinkSupported: boolean,
  *   failedDownloadFilename?: string,
@@ -56,12 +58,17 @@ export const registerSharedBrowserCases = (adapters) => {
     waitForLog,
     downloadDir,
     browserLabel,
+    browserProcess,
     routingContent,
     symlinkSupported,
     failedDownloadFilename,
     afterFailedDownload,
     reloadOptions,
   } = adapters;
+
+  test("history rewrites keep browser RSS below the content-tab fan-out ceiling", async () => {
+    await runHistoryMemoryScenario({ browserLabel, browserProcess, control });
+  });
 
   test("History cancels an in-flight acquisition and clears durable state", async () => {
     await runHistoryCancellationScenario({

@@ -1143,6 +1143,7 @@ registerSharedBrowserCases({
   waitForLog,
   downloadDir: () => session.downloadDir,
   browserLabel: "firefox",
+  browserProcess: () => session?.proc,
   routingContent: "ff routed content",
   symlinkSupported: true,
   reloadOptions: reloadOptionsPage,
