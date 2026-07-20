@@ -13,6 +13,17 @@ const HISTORY_WRITE_COUNT = 100;
 const HISTORY_WARMUP_WRITE_COUNT = 5;
 const RSS_SAMPLE_INTERVAL = 5;
 
+/** @param {string} artifactDirectory @param {string} browserLabel @param {string} suiteAttempt */
+const nextMemoryArtifact = (artifactDirectory, browserLabel, suiteAttempt) => {
+  for (let sampleSequence = 1; ; sampleSequence += 1) {
+    const artifactPath = path.resolve(
+      artifactDirectory,
+      `memory-history-${browserLabel}-attempt-${suiteAttempt}-sample-${sampleSequence}.json`,
+    );
+    if (!fs.existsSync(artifactPath)) return { artifactPath, sampleSequence };
+  }
+};
+
 // Firefox 140 can transiently reserve over 1 GiB when the extension first
 // writes its sharded storage shape, then release most of it at the event-queue
 // barrier. Gate what survives that barrier, while keeping the transient peak
@@ -140,19 +151,21 @@ export const runHistoryMemoryScenario = async ({ browserLabel, browserProcess, c
     if (artifactDirectory) {
       const configuredAttempt = process.env.E2E_SUITE_ATTEMPT || "1";
       const suiteAttempt = /^\d+$/.test(configuredAttempt) ? configuredAttempt : "1";
-      const artifactPath = path.resolve(
+      const { artifactPath, sampleSequence } = nextMemoryArtifact(
         artifactDirectory,
-        `memory-history-${browserLabel}-attempt-${suiteAttempt}.json`,
+        browserLabel,
+        suiteAttempt,
       );
       fs.mkdirSync(path.dirname(artifactPath), { recursive: true });
       fs.writeFileSync(
         artifactPath,
         JSON.stringify(
           {
-            schemaVersion: 2,
+            schemaVersion: 3,
             capturedAt: new Date().toISOString(),
             browser: browserLabel,
             suiteAttempt: Number(suiteAttempt),
+            sampleSequence,
             workload: {
               contentTabs: CONTENT_TAB_COUNT,
               historyWrites: HISTORY_WRITE_COUNT,

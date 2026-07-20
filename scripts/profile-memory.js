@@ -16,8 +16,59 @@ const repeats = Number.isSafeInteger(requestedRepeats) ? Math.max(1, requestedRe
 const requestedScale = Number.parseInt(process.env.MEMORY_PROFILE_SCALE || "100000", 10);
 const scale = Number.isSafeInteger(requestedScale) ? Math.max(10_000, requestedScale) : 100_000;
 const reportOnly = process.argv.includes("--report-only");
+const WORKER_TIMEOUT_MS = 30_000;
 
 const scenarios = ["source-legacy", "source-compacted", "timing-legacy", "timing-bounded"];
+
+/**
+ * @typedef {{
+ *   scenario: string,
+ *   fixtureCount: number,
+ *   retainedCount: number,
+ *   retainedDetailCount: number,
+ *   baselineHeapBytes: number,
+ *   uncollectedGrowthBytes: number,
+ *   retainedGrowthBytes: number,
+ *   rssBytes: number,
+ *   durationMs: number,
+ * }} MemorySample
+ */
+
+/** @param {string} outputText @param {string} expectedScenario @returns {MemorySample} */
+const parseMemorySample = (outputText, expectedScenario) => {
+  /** @type {unknown} */
+  let value;
+  try {
+    value = JSON.parse(outputText);
+  } catch (error) {
+    throw new Error(`${expectedScenario} worker returned invalid JSON`, { cause: error });
+  }
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    throw new Error(`${expectedScenario} worker returned a non-object sample`);
+  }
+  if (Reflect.get(value, "scenario") !== expectedScenario) {
+    throw new Error(`${expectedScenario} worker returned the wrong scenario`);
+  }
+  for (const field of ["fixtureCount", "retainedCount", "retainedDetailCount"]) {
+    const fieldValue = Reflect.get(value, field);
+    if (typeof fieldValue !== "number" || !Number.isSafeInteger(fieldValue) || fieldValue < 0) {
+      throw new Error(`${expectedScenario} worker returned an invalid ${field}`);
+    }
+  }
+  for (const field of [
+    "baselineHeapBytes",
+    "uncollectedGrowthBytes",
+    "retainedGrowthBytes",
+    "rssBytes",
+    "durationMs",
+  ]) {
+    const fieldValue = Reflect.get(value, field);
+    if (typeof fieldValue !== "number" || !Number.isFinite(fieldValue) || fieldValue < 0) {
+      throw new Error(`${expectedScenario} worker returned an invalid ${field}`);
+    }
+  }
+  return /** @type {MemorySample} */ (value);
+};
 
 /** @param {number[]} values */
 const median = (values) => {
@@ -134,6 +185,7 @@ const runWorker = async (scenario) => {
 
 /** @param {string} scenario */
 const sampleScenario = (scenario) => {
+  /** @type {MemorySample[]} */
   const samples = [];
   for (let repeat = 0; repeat < repeats; repeat += 1) {
     const child = spawnSync(
@@ -149,14 +201,16 @@ const sampleScenario = (scenario) => {
         cwd: root,
         encoding: "utf8",
         env: { ...process.env, MEMORY_PROFILE_SCALE: String(scale) },
+        maxBuffer: 1024 * 1024,
+        timeout: WORKER_TIMEOUT_MS,
       },
     );
     if (child.error || child.status !== 0) {
       throw new Error(
-        `${scenario} memory worker failed (${child.status ?? "signal"}): ${child.error || child.stderr || child.stdout}`,
+        `${scenario} memory worker failed (${child.signal || child.status || "unknown"}): ${child.error || child.stderr || child.stdout}`,
       );
     }
-    samples.push(JSON.parse(child.stdout));
+    samples.push(parseMemorySample(child.stdout, scenario));
   }
   const first = samples[0];
   if (!first) throw new Error(`${scenario} produced no memory samples`);
@@ -205,10 +259,16 @@ const main = async () => {
   if (!sourceLegacy || !sourceCompacted || !timingLegacy || !timingBounded) {
     throw new Error("Memory profile is missing a scenario");
   }
+  if (sourceLegacy.retainedGrowthBytes <= 0 || timingLegacy.retainedGrowthBytes <= 0) {
+    throw new Error("Legacy memory controls did not produce a measurable retained signal");
+  }
   const ratios = {
     sourceRetained: sourceCompacted.retainedGrowthBytes / sourceLegacy.retainedGrowthBytes,
     timingRetained: timingBounded.retainedGrowthBytes / timingLegacy.retainedGrowthBytes,
   };
+  if (!Number.isFinite(ratios.sourceRetained) || !Number.isFinite(ratios.timingRetained)) {
+    throw new Error("Memory profile produced a non-finite retained ratio");
+  }
   const report = {
     schemaVersion: 1,
     capturedAt: new Date().toISOString(),
@@ -256,7 +316,11 @@ const main = async () => {
   }
 };
 
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+if (require.main === module) {
+  main().catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+  });
+}
+
+module.exports = { parseMemorySample };
