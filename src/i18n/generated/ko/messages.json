@@ -4333,6 +4333,12 @@
   "o_cKeyboardShortcutModifierDoubleLeftClick": {
     "message": "왼쪽 버튼 두 번 클릭"
   },
+  "o_bAddClickToSaveBinding": {
+    "message": "제스처 추가"
+  },
+  "o_bRemoveClickToSaveBinding": {
+    "message": "제스처 제거"
+  },
   "o_lClickToSaveDoubleClickHelp": {
     "message": "첫 번째 클릭은 페이지에도 전달됩니다. 링크가 있는 이미지는 두 번째 클릭 전에 열리거나 다른 페이지로 이동할 수 있습니다."
   },

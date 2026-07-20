@@ -4333,6 +4333,12 @@
   "o_cKeyboardShortcutModifierDoubleLeftClick": {
     "message": "按兩下滑鼠左鍵"
   },
+  "o_bAddClickToSaveBinding": {
+    "message": "新增手勢"
+  },
+  "o_bRemoveClickToSaveBinding": {
+    "message": "移除手勢"
+  },
   "o_lClickToSaveDoubleClickHelp": {
     "message": "第一次點擊仍會傳遞給頁面。含有連結的圖片可能會在第二次點擊前開啟或導向其他頁面。"
   },

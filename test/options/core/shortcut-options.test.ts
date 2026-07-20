@@ -1,6 +1,10 @@
 // @vitest-environment jsdom
 import { setupShortcutOptions } from "../../../src/options/core/shortcut-options.ts";
-import { CLICK_GESTURES, parseClickToSaveBindings } from "../../../src/shared/click-gesture.ts";
+import {
+  CLICK_GESTURES,
+  parseClickToSaveBindings,
+  serializeClickToSaveBindings,
+} from "../../../src/shared/click-gesture.ts";
 
 const change = (element: Element) => element.dispatchEvent(new Event("change", { bubbles: true }));
 const input = (element: Element) =>
@@ -164,7 +168,7 @@ describe("shortcut option controller", () => {
     document.querySelector<HTMLButtonElement>("#clickToSaveReset")!.click();
   });
 
-  test("adds distinct gestures and prevents ambiguous single and double left bindings", () => {
+  test("replaces the current left gesture while preventing conflicts with other bindings", () => {
     document.body.innerHTML = `<input type="checkbox" id="contentClickToSave" checked>
       <input id="contentClickToSaveBindings" value="">
       <input id="contentClickToSaveCombo" value="Alt">
@@ -184,9 +188,23 @@ describe("shortcut option controller", () => {
     const primary = document.querySelector<HTMLSelectElement>("#clickToSaveButton")!;
     expect(
       primary.querySelector<HTMLOptionElement>('option[value="double-left-click"]')?.disabled,
-    ).toBe(true);
+    ).toBe(false);
+    primary.value = "double-left-click";
+    change(primary);
+    expect(primary.value).toBe("double-left-click");
+    expect(primary.querySelector<HTMLOptionElement>('option[value="left-click"]')?.disabled).toBe(
+      false,
+    );
+
     document.querySelector<HTMLButtonElement>("#clickToSaveAdd")!.click();
     expect(document.querySelectorAll(".click-to-save-binding")).toHaveLength(1);
+    const additionalGesture = document.querySelectorAll<HTMLSelectElement>(
+      ".click-to-save-binding select",
+    )[2]!;
+    expect(additionalGesture.value).toBe("middle-click");
+    expect(
+      additionalGesture.querySelector<HTMLOptionElement>('option[value="left-click"]')?.disabled,
+    ).toBe(true);
     document.querySelector<HTMLButtonElement>("#clickToSaveApply")!.click();
 
     expect(
@@ -194,18 +212,53 @@ describe("shortcut option controller", () => {
         document.querySelector<HTMLInputElement>("#contentClickToSaveBindings")!.value,
       ),
     ).toEqual([
-      { gesture: CLICK_GESTURES.LEFT, combo: "Alt" },
+      { gesture: CLICK_GESTURES.DOUBLE_LEFT, combo: "Alt" },
       { gesture: CLICK_GESTURES.MIDDLE, combo: "Alt" },
     ]);
 
-    document.querySelector<HTMLButtonElement>(".click-to-save-binding button")!.click();
+    const remove = document.querySelector<HTMLButtonElement>(".click-to-save-binding button")!;
+    remove.click();
+    remove.dispatchEvent(new MouseEvent("click"));
     document.querySelector<HTMLButtonElement>("#clickToSaveApply")!.click();
     expect(document.querySelectorAll(".click-to-save-binding")).toHaveLength(0);
     expect(
       parseClickToSaveBindings(
         document.querySelector<HTMLInputElement>("#contentClickToSaveBindings")!.value,
       ),
-    ).toEqual([{ gesture: CLICK_GESTURES.LEFT, combo: "Alt" }]);
+    ).toEqual([{ gesture: CLICK_GESTURES.DOUBLE_LEFT, combo: "Alt" }]);
+  });
+
+  test("contains Add when every compatible gesture is already bound", () => {
+    document.body.innerHTML = `<input type="checkbox" id="contentClickToSave" checked>
+      <input id="contentClickToSaveBindings" value='${serializeClickToSaveBindings([
+        { gesture: CLICK_GESTURES.LEFT, combo: "Alt" },
+        { gesture: CLICK_GESTURES.MIDDLE, combo: "Alt" },
+        { gesture: CLICK_GESTURES.RIGHT, combo: "Alt" },
+        { gesture: CLICK_GESTURES.BACK, combo: "Alt" },
+        { gesture: CLICK_GESTURES.FORWARD, combo: "Alt" },
+      ])}'>
+      <input id="contentClickToSaveCombo" value="Alt"><input id="contentClickToSaveButton" value="LEFT_CLICK">
+      <select id="clickToSaveModifier"><option></option><option value="Alt">Alt</option></select>
+      <select id="clickToSaveModifier2"><option></option></select>
+      <select id="clickToSaveButton">
+        <option value="left-click">Left</option><option value="middle-click">Middle</option>
+        <option value="right-click">Right</option><option value="back-click">Back</option>
+        <option value="forward-click">Forward</option><option value="double-left-click">Double</option>
+      </select>
+      <div id="clickToSaveAdditionalBindings"></div><button id="clickToSaveAdd"></button>
+      <button id="clickToSaveApply"></button><button id="clickToSaveReset"></button>`;
+    setupShortcutOptions();
+
+    const add = document.querySelector<HTMLButtonElement>("#clickToSaveAdd")!;
+    expect(add.disabled).toBe(true);
+    add.dispatchEvent(new MouseEvent("click"));
+    expect(document.querySelectorAll(".click-to-save-binding")).toHaveLength(4);
+
+    const modifier = document.querySelector<HTMLSelectElement>("#clickToSaveModifier")!;
+    modifier.value = "";
+    change(modifier);
+    document.querySelector<HTMLButtonElement>("#clickToSaveApply")!.click();
+    document.querySelector<HTMLButtonElement>("#clickToSaveReset")!.click();
   });
 
   test("preserves a legacy combo and falls back when the stored mouse button is absent", () => {

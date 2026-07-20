@@ -4333,6 +4333,12 @@
   "o_cKeyboardShortcutModifierDoubleLeftClick": {
     "message": "左ダブルクリック"
   },
+  "o_bAddClickToSaveBinding": {
+    "message": "ジェスチャーを追加"
+  },
+  "o_bRemoveClickToSaveBinding": {
+    "message": "ジェスチャーを削除"
+  },
   "o_lClickToSaveDoubleClickHelp": {
     "message": "最初のクリックはページにも届きます。リンク付き画像では、2 回目のクリック前に画像が開いたりページが移動したりする場合があります。"
   },

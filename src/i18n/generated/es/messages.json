@@ -4333,6 +4333,12 @@
   "o_cKeyboardShortcutModifierDoubleLeftClick": {
     "message": "Doble clic izquierdo"
   },
+  "o_bAddClickToSaveBinding": {
+    "message": "Añadir gesto"
+  },
+  "o_bRemoveClickToSaveBinding": {
+    "message": "Eliminar gesto"
+  },
   "o_lClickToSaveDoubleClickHelp": {
     "message": "El primer clic sigue llegando a la página. Una imagen con enlace puede abrirse o navegar antes del segundo clic."
   },

@@ -203,8 +203,9 @@ export const setupShortcutOptions = () => {
           return;
         }
         const optionGesture = option.value;
-        option.disabled = controls.some((other) =>
-          gestureConflicts(optionGesture, readBinding(other).gesture),
+        option.disabled = controls.some(
+          (other) =>
+            other !== current && gestureConflicts(optionGesture, readBinding(other).gesture),
         );
       });
     });
@@ -256,7 +257,7 @@ export const setupShortcutOptions = () => {
     );
     const remove = document.createElement("button");
     remove.type = "button";
-    remove.textContent = getMessage("externalRemoveApproval") || "Remove";
+    remove.textContent = getMessage("o_bRemoveClickToSaveBinding") || "Remove gesture";
     const controls: BindingControls = {
       row,
       modifier: first.select,
@@ -289,11 +290,10 @@ export const setupShortcutOptions = () => {
       storedButton && isClickType(storedButton.value) ? storedButton.value : "LEFT_CLICK";
     const bindings = resolveClickToSaveBindings(bindingsField?.value, combo.value, legacyButton);
     clearAdditional();
-    const first = bindings[0];
-    if (!first) return;
+    const [first, ...remaining] = bindings;
     writeCombo(primaryControls, first.combo);
     primaryControls.gesture.value = first.gesture;
-    bindings.slice(1).forEach(addBindingRow);
+    remaining.forEach(addBindingRow);
     baselineSerialized = serializeClickToSaveBindings(bindings);
     syncClickControls();
   };
@@ -307,15 +307,14 @@ export const setupShortcutOptions = () => {
     const serialized = serializeClickToSaveBindings(bindings);
     bindingsField.value = serialized;
     bindingsField.dispatchEvent(new Event("change", { bubbles: true }));
-    const legacy = bindings.find(({ gesture }) => gestureToClickType(gesture) !== null);
-    if (legacy) {
-      const legacyButton = gestureToClickType(legacy.gesture);
-      if (legacyButton) {
-        combo.value = String(legacy.combo);
-        storedButton.value = legacyButton;
-        combo.dispatchEvent(new Event("change", { bubbles: true }));
-        storedButton.dispatchEvent(new Event("change", { bubbles: true }));
-      }
+    for (const binding of bindings) {
+      const legacyButton = gestureToClickType(binding.gesture);
+      if (legacyButton === null) continue;
+      combo.value = String(binding.combo);
+      storedButton.value = legacyButton;
+      combo.dispatchEvent(new Event("change", { bubbles: true }));
+      storedButton.dispatchEvent(new Event("change", { bubbles: true }));
+      break;
     }
     baselineSerialized = serialized;
     syncClickControls();

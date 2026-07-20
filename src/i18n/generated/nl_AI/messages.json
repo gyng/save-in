@@ -4333,6 +4333,12 @@
   "o_cKeyboardShortcutModifierDoubleLeftClick": {
     "message": "Dubbelklik met links"
   },
+  "o_bAddClickToSaveBinding": {
+    "message": "Gebaar toevoegen"
+  },
+  "o_bRemoveClickToSaveBinding": {
+    "message": "Gebaar verwijderen"
+  },
   "o_lClickToSaveDoubleClickHelp": {
     "message": "De eerste klik bereikt de pagina nog steeds. Een gekoppelde afbeelding kan openen of navigeren voordat de tweede klik plaatsvindt."
   },

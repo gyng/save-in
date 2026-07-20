@@ -4333,6 +4333,12 @@
   "o_cKeyboardShortcutModifierDoubleLeftClick": {
     "message": "双击鼠标左键"
   },
+  "o_bAddClickToSaveBinding": {
+    "message": "添加手势"
+  },
+  "o_bRemoveClickToSaveBinding": {
+    "message": "移除手势"
+  },
   "o_lClickToSaveDoubleClickHelp": {
     "message": "第一次点击仍会传递给页面。带链接的图片可能会在第二次点击前打开或跳转。"
   },

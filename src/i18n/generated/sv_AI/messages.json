@@ -4333,6 +4333,12 @@
   "o_cKeyboardShortcutModifierDoubleLeftClick": {
     "message": "Dubbelklick med vänsterknappen"
   },
+  "o_bAddClickToSaveBinding": {
+    "message": "Lägg till gest"
+  },
+  "o_bRemoveClickToSaveBinding": {
+    "message": "Ta bort gest"
+  },
   "o_lClickToSaveDoubleClickHelp": {
     "message": "Det första klicket når fortfarande sidan. En länkad bild kan öppnas eller navigera innan det andra klicket."
   },

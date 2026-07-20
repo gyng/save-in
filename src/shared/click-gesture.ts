@@ -20,6 +20,8 @@ export type ClickToSaveBinding = {
   combo: string | number;
 };
 
+export type ClickToSaveBindings = [ClickToSaveBinding, ...ClickToSaveBinding[]];
+
 const CLICK_TO_SAVE_BINDINGS_VERSION = 1;
 const MAX_CLICK_TO_SAVE_BINDINGS = Object.keys(CLICK_GESTURES).length;
 const DEFAULT_CONTENT_CLICK_COMBO = "Alt";
@@ -119,7 +121,7 @@ const hasBindingConflicts = (bindings: ClickToSaveBinding[]): boolean => {
   );
 };
 
-export const parseClickToSaveBindings = (value: unknown): ClickToSaveBinding[] | null => {
+export const parseClickToSaveBindings = (value: unknown): ClickToSaveBindings | null => {
   if (typeof value !== "string" || !value.trim()) return null;
   try {
     const parsed: unknown = JSON.parse(value);
@@ -143,7 +145,8 @@ export const parseClickToSaveBindings = (value: unknown): ClickToSaveBinding[] |
       }
       bindings.push({ gesture: candidate.gesture, combo: candidate.combo });
     }
-    return hasBindingConflicts(bindings) ? null : bindings;
+    // The length guard above proves this branded non-empty collection.
+    return hasBindingConflicts(bindings) ? null : (bindings as ClickToSaveBindings);
   } catch {
     return null;
   }
@@ -170,7 +173,7 @@ export const resolveClickToSaveBindings = (
   serialized: unknown,
   legacyCombo: unknown,
   legacyButton: ClickType,
-): ClickToSaveBinding[] =>
+): ClickToSaveBindings =>
   parseClickToSaveBindings(serialized) ?? [
     {
       gesture: clickTypeToGesture(legacyButton),
