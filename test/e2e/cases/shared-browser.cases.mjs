@@ -160,6 +160,7 @@ export const registerSharedBrowserCases = (adapters) => {
   );
 
   test("a template added in Options persists and routes a matching download", async () => {
+    await reloadOptions?.();
     await runTemplateLibraryScenario({
       control,
       evaluateOptions,
