@@ -88,7 +88,9 @@ export const wirePanelResize = (ctx: SourcePanelContext): void => {
   ctx.applyLayout = applyLayout;
   const commitLayout = () => saveSourcePanelLayout(ctx.layout);
   ctx.commitLayout = commitLayout;
+  let finishResize: (() => void) | null = null;
   resize.addEventListener("pointerdown", (event) => {
+    finishResize?.();
     resize.setPointerCapture(event.pointerId);
     const startX = event.clientX;
     const startY = event.clientY;
@@ -121,12 +123,17 @@ export const wirePanelResize = (ctx: SourcePanelContext): void => {
       applyLayout();
     };
     const finish = () => {
+      if (finishResize !== finish) return;
       resize.removeEventListener("pointermove", move);
+      resize.removeEventListener("pointerup", finish);
+      resize.removeEventListener("pointercancel", finish);
+      finishResize = null;
       commitLayout();
     };
+    finishResize = finish;
     resize.addEventListener("pointermove", move);
-    resize.addEventListener("pointerup", finish, { once: true });
-    resize.addEventListener("pointercancel", finish, { once: true });
+    resize.addEventListener("pointerup", finish);
+    resize.addEventListener("pointercancel", finish);
   });
   resize.addEventListener("keydown", (event) => {
     const step = event.shiftKey ? 32 : 12;
@@ -171,4 +178,5 @@ export const wirePanelResize = (ctx: SourcePanelContext): void => {
     applyLayout();
     commitLayout();
   });
+  ctx.cleanupTasks.push(() => finishResize?.());
 };

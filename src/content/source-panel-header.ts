@@ -90,9 +90,11 @@ export const wirePanelHeader = (ctx: SourcePanelContext): void => {
   titleGroup.append(dragGrip, title, sourceCount);
   headerActions.append(copyUrls, dockPicker, close);
   header.append(titleGroup, headerActions);
+  let finishDrag: (() => void) | null = null;
   header.addEventListener("pointerdown", (event) => {
     if (!host.classList.contains("floating") || event.button !== 0) return;
     if (event.target instanceof Element && event.target.closest("button, summary")) return;
+    finishDrag?.();
     header.setPointerCapture?.(event.pointerId);
     const startX = event.clientX;
     const startY = event.clientY;
@@ -109,17 +111,26 @@ export const wirePanelHeader = (ctx: SourcePanelContext): void => {
       ctx.applyLayout();
     };
     const finish = () => {
+      if (finishDrag !== finish) return;
       header.removeEventListener("pointermove", move);
+      header.removeEventListener("pointerup", finish);
+      header.removeEventListener("pointercancel", finish);
+      finishDrag = null;
       ctx.commitLayout();
     };
+    finishDrag = finish;
     header.addEventListener("pointermove", move);
-    header.addEventListener("pointerup", finish, { once: true });
-    header.addEventListener("pointercancel", finish, { once: true });
+    header.addEventListener("pointerup", finish);
+    header.addEventListener("pointercancel", finish);
   });
+  let copyResetTimer = 0;
+  let disposed = false;
   copyUrls.addEventListener("click", () => {
     void navigator.clipboard
       .writeText(ctx.visibleSources.map(({ url }) => url).join("\n"))
       .then(() => {
+        if (disposed) return;
+        window.clearTimeout(copyResetTimer);
         setButtonIcon(copyUrls, "check");
         const copiedMessage = formatSourcePanelCopy(
           ctx.copy.copiedUrlsTemplate,
@@ -129,13 +140,15 @@ export const wirePanelHeader = (ctx: SourcePanelContext): void => {
         copyUrls.title = copiedMessage;
         copyUrls.setAttribute("aria-label", copiedMessage);
         ctx.announce(copiedMessage);
-        window.setTimeout(() => {
+        copyResetTimer = window.setTimeout(() => {
+          copyResetTimer = 0;
           setButtonIcon(copyUrls, "copy");
           copyUrls.title = ctx.copy.copyFilteredUrls;
           copyUrls.setAttribute("aria-label", ctx.copy.copyFilteredUrlsLabel);
         }, 1200);
       })
       .catch(() => {
+        if (disposed) return;
         setButtonIcon(copyUrls, "error");
         copyUrls.title = ctx.copy.copyFailed;
         copyUrls.setAttribute("aria-label", ctx.copy.copyFailed);
@@ -150,4 +163,9 @@ export const wirePanelHeader = (ctx: SourcePanelContext): void => {
   ctx.copyUrls = copyUrls;
   ctx.sourceCount = sourceCount;
   ctx.placementButtons = placementButtons;
+  ctx.cleanupTasks.push(() => {
+    disposed = true;
+    finishDrag?.();
+    window.clearTimeout(copyResetTimer);
+  });
 };

@@ -182,6 +182,47 @@ describe("Page Sources panel interactions", () => {
     expect(getSourcePanelHostForTesting()).not.toBeNull();
   });
 
+  test("releases both terminal listeners after a resize gesture", () => {
+    const set = vi.spyOn(global.chrome.storage.local, "set");
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    const resize =
+      getSourcePanelHostForTesting()!.shadowRoot!.querySelector<HTMLElement>(".resize")!;
+    resize.setPointerCapture = vi.fn();
+    set.mockClear();
+    const pointer = (type: string) => {
+      const event = new Event(type, { bubbles: true });
+      Object.defineProperty(event, "pointerId", { value: 1 });
+      resize.dispatchEvent(event);
+    };
+
+    pointer("pointerdown");
+    pointer("pointerup");
+    pointer("pointercancel");
+
+    expect(set).toHaveBeenCalledOnce();
+  });
+
+  test("releases both terminal listeners after a floating-panel drag", () => {
+    const set = vi.spyOn(global.chrome.storage.local, "set");
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
+    shadow.querySelector<HTMLButtonElement>('[data-placement="floating"]')!.click();
+    const header = shadow.querySelector<HTMLElement>("header")!;
+    header.setPointerCapture = vi.fn();
+    set.mockClear();
+    const pointer = (type: string) => {
+      const event = new MouseEvent(type, { bubbles: true, button: 0 });
+      Object.defineProperty(event, "pointerId", { value: 1 });
+      header.dispatchEvent(event);
+    };
+
+    pointer("pointerdown");
+    pointer("pointerup");
+    pointer("pointercancel");
+
+    expect(set).toHaveBeenCalledOnce();
+  });
+
   test("moves dock boundaries in their visual direction and preserves unrelated dimensions", () => {
     const set = vi.spyOn(global.chrome.storage.local, "set");
     toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
@@ -874,6 +915,39 @@ describe("Page Sources panel interactions", () => {
 
     expect(shadow.querySelector(".row")).not.toBe(firstRow);
     expect(shadow.querySelectorAll(".row")).toHaveLength(100);
+  });
+
+  test("bounds connected rows while traversing a large result set in both directions", () => {
+    document.body.innerHTML = Array.from(
+      { length: 500 },
+      (_, index) => `<a href="https://cdn.test/resource-${index}.jpg">${index}</a>`,
+    ).join("");
+    toggleSourcePanel(vi.fn(), {
+      includeBackgrounds: false,
+      live: false,
+      resourceHints: false,
+    });
+    const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
+    const list = shadow.querySelector<HTMLElement>(".list")!;
+    Object.defineProperties(list, {
+      scrollTop: { configurable: true, writable: true, value: 900 },
+      clientHeight: { configurable: true, value: 100 },
+      scrollHeight: { configurable: true, value: 1000 },
+    });
+
+    for (let index = 0; index < 5; index += 1) list.dispatchEvent(new Event("scroll"));
+    const forwardPosition = Number(
+      shadow.querySelector<HTMLElement>(".row")!.getAttribute("aria-posinset"),
+    );
+    expect(forwardPosition).toBeGreaterThan(1);
+    expect(shadow.querySelectorAll(".row").length).toBeLessThanOrEqual(300);
+
+    list.scrollTop = 0;
+    list.dispatchEvent(new Event("scroll"));
+    expect(
+      Number(shadow.querySelector<HTMLElement>(".row")!.getAttribute("aria-posinset")),
+    ).toBeLessThan(forwardPosition);
+    expect(shadow.querySelectorAll(".row").length).toBeLessThanOrEqual(300);
   });
 
   test("shows one empty state and deactivates cached rows when nothing matches", () => {

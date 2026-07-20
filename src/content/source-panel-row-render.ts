@@ -19,6 +19,7 @@ import type { CachedRow, SourcePanelContext } from "./source-panel-context.ts";
 
 const SOURCE_RENDER_CHUNK_SIZE = 100;
 const SOURCE_RENDER_LOAD_THRESHOLD_PX = 300;
+const CONNECTED_ROW_LIMIT = SOURCE_RENDER_CHUNK_SIZE * 3;
 const DETACHED_ROW_CACHE_LIMIT = SOURCE_RENDER_CHUNK_SIZE * 2;
 
 const decodeSourcePart = (value: string): string => {
@@ -38,7 +39,8 @@ const decodeSourcePart = (value: string): string => {
  * the row cache that keeps unaffected rows stable across re-renders. */
 export const wirePanelRowRender = (ctx: SourcePanelContext): void => {
   let activeKind: "all" | PageSourceKind = "all";
-  let renderedSourceLimit = SOURCE_RENDER_CHUNK_SIZE;
+  let renderedSourceStart = 0;
+  let renderedSourceEnd = SOURCE_RENDER_CHUNK_SIZE;
   let visibleSourceCount = 0;
   let resultViewKey = "";
   // Reconciliation replaces sources whose DOM context changes; byte scoring stays dynamic.
@@ -737,14 +739,27 @@ export const wirePanelRowRender = (ctx: SourcePanelContext): void => {
     const nextResultViewKey = `${activeKind}\0${sourceSort}\0${ctx.filter.value}`;
     if (nextResultViewKey !== resultViewKey) {
       resultViewKey = nextResultViewKey;
-      renderedSourceLimit = SOURCE_RENDER_CHUNK_SIZE;
+      renderedSourceStart = 0;
+      renderedSourceEnd = SOURCE_RENDER_CHUNK_SIZE;
       list.scrollTop = 0;
     }
     visibleSourceCount = sources.length;
+    if (renderedSourceStart >= visibleSourceCount) {
+      renderedSourceStart = Math.max(0, visibleSourceCount - CONNECTED_ROW_LIMIT);
+    }
+    renderedSourceEnd = Math.min(
+      visibleSourceCount,
+      Math.max(renderedSourceEnd, renderedSourceStart + SOURCE_RENDER_CHUNK_SIZE),
+    );
+    if (renderedSourceEnd - renderedSourceStart > CONNECTED_ROW_LIMIT) {
+      renderedSourceStart = renderedSourceEnd - CONNECTED_ROW_LIMIT;
+    }
     // A row owns previews, menus, selection controls, and several listeners.
     // Keep batch/filter semantics on the complete list while bounding the DOM
-    // work needed to open a page with thousands of distinct resource URLs.
-    const renderedSources = sources.slice(0, renderedSourceLimit);
+    // work and retained nodes for a page with thousands of distinct URLs. The
+    // scroll handler moves this window in either direction without changing
+    // the complete selection/copy/filter result below.
+    const renderedSources = sources.slice(renderedSourceStart, renderedSourceEnd);
     ctx.visibleSources = sources;
     ctx.updateSelectionUi();
     renderHeader();
@@ -771,12 +786,13 @@ export const wirePanelRowRender = (ctx: SourcePanelContext): void => {
     };
 
     renderedSources.forEach((source, sourceIndex) => {
+      const resultIndex = renderedSourceStart + sourceIndex;
       const cached = rowCache.get(source.url);
       if (cached && canReuseRow(cached, source)) {
         if (cached.source.bytes !== source.bytes) cached.updateBytes(source.bytes);
         cached.source = source;
         cached.updateSelection(ctx.selectedSourceUrls.has(source.url), ctx.batchSaving);
-        cached.row.setAttribute("aria-posinset", String(sourceIndex + 1));
+        cached.row.setAttribute("aria-posinset", String(resultIndex + 1));
         cached.row.setAttribute("aria-setsize", String(sources.length));
         const preview = cached.row.querySelector<HTMLImageElement | HTMLMediaElement>("img, video");
         if (preview) ctx.observeExistingPreview(preview);
@@ -785,7 +801,7 @@ export const wirePanelRowRender = (ctx: SourcePanelContext): void => {
       }
       if (cached) deactivateAndRemove(cached);
       const cachedRow = buildRow(source);
-      cachedRow.row.setAttribute("aria-posinset", String(sourceIndex + 1));
+      cachedRow.row.setAttribute("aria-posinset", String(resultIndex + 1));
       cachedRow.row.setAttribute("aria-setsize", String(sources.length));
       rowCache.set(source.url, cachedRow);
       cachedRows.set(cachedRow.row, cachedRow);
@@ -805,24 +821,36 @@ export const wirePanelRowRender = (ctx: SourcePanelContext): void => {
     }
     evictDetachedRows();
   };
-  const renderMoreNearListEnd = () => {
-    if (
-      visibleSourceCount <= renderedSourceLimit ||
-      ctx.list.scrollTop + ctx.list.clientHeight <
-        ctx.list.scrollHeight - SOURCE_RENDER_LOAD_THRESHOLD_PX
-    ) {
+  const moveRenderedWindow = (nextStart: number, nextEnd: number, anchorIndex: number) => {
+    const anchor = ctx.visibleSources[anchorIndex];
+    const anchorRow = anchor ? ctx.rowCache.get(anchor.url)?.row : undefined;
+    const anchorOffset = anchorRow?.offsetTop;
+    const previousScrollTop = ctx.list.scrollTop;
+    renderedSourceStart = nextStart;
+    renderedSourceEnd = nextEnd;
+    render();
+    if (anchorOffset === undefined || !anchorRow?.isConnected) return;
+    ctx.list.scrollTop = previousScrollTop + anchorRow.offsetTop - anchorOffset;
+  };
+  const renderNearListEdge = () => {
+    const nearEnd =
+      ctx.list.scrollTop + ctx.list.clientHeight >=
+      ctx.list.scrollHeight - SOURCE_RENDER_LOAD_THRESHOLD_PX;
+    if (nearEnd && renderedSourceEnd < visibleSourceCount) {
+      const nextEnd = Math.min(visibleSourceCount, renderedSourceEnd + SOURCE_RENDER_CHUNK_SIZE);
+      const nextStart = Math.max(renderedSourceStart, nextEnd - CONNECTED_ROW_LIMIT);
+      moveRenderedWindow(nextStart, nextEnd, nextStart);
       return;
     }
-    renderedSourceLimit = Math.min(
-      visibleSourceCount,
-      renderedSourceLimit + SOURCE_RENDER_CHUNK_SIZE,
-    );
-    render();
+    if (ctx.list.scrollTop > SOURCE_RENDER_LOAD_THRESHOLD_PX || renderedSourceStart === 0) return;
+    const nextStart = Math.max(0, renderedSourceStart - SOURCE_RENDER_CHUNK_SIZE);
+    const nextEnd = Math.min(visibleSourceCount, nextStart + CONNECTED_ROW_LIMIT);
+    moveRenderedWindow(nextStart, nextEnd, renderedSourceStart);
   };
-  ctx.list.addEventListener("scroll", renderMoreNearListEnd, { passive: true });
+  ctx.list.addEventListener("scroll", renderNearListEdge, { passive: true });
   ctx.render = render;
   ctx.cleanupTasks.push(() => {
-    ctx.list.removeEventListener("scroll", renderMoreNearListEnd);
+    ctx.list.removeEventListener("scroll", renderNearListEdge);
     ctx.rowCache.forEach(({ deactivate }) => deactivate());
   });
 };
