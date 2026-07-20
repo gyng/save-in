@@ -1099,6 +1099,25 @@ describe("history filter controls", () => {
     expect(document.querySelector("#history-feedback")?.getAttribute("role")).toBe("alert");
   });
 
+  test("coalesces overlapping history refreshes to one follow-up read", async () => {
+    const releases: Array<(response: unknown) => void> = [];
+    historyRuntime.sendMessage.mockImplementation(
+      () => new Promise((resolve) => releases.push(resolve)),
+    );
+
+    const first = historyPanel.renderHistory();
+    const second = historyPanel.renderHistory();
+    const third = historyPanel.renderHistory();
+    expect(historyRuntime.sendMessage).toHaveBeenCalledOnce();
+
+    releases.shift()?.({ type: "HISTORY_GET", body: { entries: [] } });
+    await vi.waitFor(() => expect(historyRuntime.sendMessage).toHaveBeenCalledTimes(2));
+    releases.shift()?.({ type: "HISTORY_GET", body: { entries: [] } });
+    await Promise.all([first, second, third]);
+
+    expect(historyRuntime.sendMessage).toHaveBeenCalledTimes(2);
+  });
+
   test("discards malformed history elements without losing valid entries", async () => {
     historyRuntime.sendMessage.mockResolvedValueOnce({
       type: "HISTORY_GET",

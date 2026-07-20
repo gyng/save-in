@@ -22,7 +22,7 @@ export const setHistoryTableRenderer = (render: () => void): void => {
   renderTable = render;
 };
 
-export const renderHistory = async (): Promise<void> => {
+const renderHistoryOnce = async (): Promise<void> => {
   try {
     const response = await sendInternalMessage(webExtensionApi.runtime, {
       type: MESSAGE_TYPES.HISTORY_GET,
@@ -40,4 +40,23 @@ export const renderHistory = async (): Promise<void> => {
       onAction: () => void renderHistory(),
     });
   }
+};
+
+let activeHistoryRender: Promise<void> | null = null;
+let historyRenderQueued = false;
+
+export const renderHistory = (): Promise<void> => {
+  if (activeHistoryRender) {
+    historyRenderQueued = true;
+    return activeHistoryRender;
+  }
+  activeHistoryRender = (async () => {
+    do {
+      historyRenderQueued = false;
+      await renderHistoryOnce();
+    } while (historyRenderQueued);
+  })().finally(() => {
+    activeHistoryRender = null;
+  });
+  return activeHistoryRender;
 };
