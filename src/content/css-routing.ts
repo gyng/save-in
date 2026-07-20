@@ -21,11 +21,13 @@ export const cssSelectorsForRules = (rules: readonly RoutingRule[]): string[] =>
 export const sourceOriginElements = (source: PageSource): Element[] =>
   source.originElements ?? (source.channel === "resource-hint" ? [] : [source.element]);
 
-export const matchedCssSelectorsByOrigin = (
-  elements: Iterable<Element>,
-  rules: readonly RoutingRule[],
-): CssSelectorAttestation => {
-  const selectorGroups = [
+// Parsed rule arrays are immutable snapshots; weak keys let replacements release their analysis.
+const selectorGroupsByRules = new WeakMap<readonly RoutingRule[], string[][]>();
+
+const selectorGroupsForRules = (rules: readonly RoutingRule[]): string[][] => {
+  const cached = selectorGroupsByRules.get(rules);
+  if (cached) return cached;
+  const groups = [
     ...new Map(
       rules.flatMap((rule) => {
         const selectors = [
@@ -41,6 +43,15 @@ export const matchedCssSelectorsByOrigin = (
       }),
     ).values(),
   ];
+  selectorGroupsByRules.set(rules, groups);
+  return groups;
+};
+
+export const matchedCssSelectorsByOrigin = (
+  elements: Iterable<Element>,
+  rules: readonly RoutingRule[],
+): CssSelectorAttestation => {
+  const selectorGroups = selectorGroupsForRules(rules);
   if (selectorGroups.length === 0) return [];
   const groups: CssSelectorAttestation = [];
   let totalMatches = 0;

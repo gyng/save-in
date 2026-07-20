@@ -31,6 +31,7 @@ import {
 import { matchesAnyPatternOrUnreadable } from "../shared/match-pattern.ts";
 import type { AutomaticRoutingCandidate } from "../automation/automatic-routing.ts";
 import { parseRulesCollecting } from "../routing/rule-parser.ts";
+import type { RoutingRule } from "../routing/rule-types.ts";
 import { configureContentPorts } from "./ports.ts";
 import {
   cssSelectorsForRules,
@@ -541,20 +542,33 @@ try {
 }
 
 try {
+  let sourcePanelRoutingCache:
+    | { patterns: string; rules: RoutingRule[]; hasCssSelectors: boolean }
+    | undefined;
+  const sourcePanelRouting = () => {
+    const patterns = currentOptions.filenamePatterns;
+    if (sourcePanelRoutingCache?.patterns === patterns) return sourcePanelRoutingCache;
+    const rules = parseRulesCollecting(patterns).rules;
+    sourcePanelRoutingCache = {
+      patterns,
+      rules,
+      hasCssSelectors: cssSelectorsForRules(rules).length > 0,
+    };
+    return sourcePanelRoutingCache;
+  };
   const sendDownload = (source: PageSource) => {
-    const routingRules = parseRulesCollecting(currentOptions.filenamePatterns).rules;
-    const cssSelectors = cssSelectorsForRules(routingRules);
+    const { rules, hasCssSelectors } = sourcePanelRouting();
     return sendRuntimeDownload({
       url: source.url,
       info: {
         pageUrl: `${window.location}`,
         srcUrl: source.url,
         sourceKind: source.kind,
-        ...(cssSelectors.length > 0
+        ...(hasCssSelectors
           ? {
               matchedCssSelectorsByOrigin: matchedCssSelectorsByOrigin(
                 sourceOriginElements(source),
-                routingRules,
+                rules,
               ),
             }
           : {}),

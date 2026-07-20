@@ -1394,6 +1394,23 @@ describe("content.js initialisation", () => {
       }),
       expect.any(Function),
     );
+
+    pushContentOptions({ filenamePatterns: "css: body img\ninto: updated/" });
+    vi.mocked(global.chrome.runtime.sendMessage).mockClear();
+    document
+      .getElementById("save-in-source-panel")!
+      .shadowRoot!.querySelector<HTMLButtonElement>(".primary-action")!
+      .click();
+
+    expect(global.chrome.runtime.sendMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: "DOWNLOAD",
+        body: expect.objectContaining({
+          info: expect.objectContaining({ matchedCssSelectorsByOrigin: [["body img"]] }),
+        }),
+      }),
+      expect.any(Function),
+    );
   });
 
   test("waits for a complete snapshot before announcing a concurrently enabled panel", async () => {
