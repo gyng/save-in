@@ -1481,6 +1481,14 @@ describe("terminal browserDownload failure surfaces to the user", () => {
 });
 
 describe("owned object URL lifecycle", () => {
+  test("drops a late filename result when its browser download terminates", () => {
+    Download.downloadRuntime.finalFilenamesByDownloadId.set(403, "late/file.png");
+
+    capturedDownloadChangedListener({ id: 403, error: { current: "NETWORK_FAILED" } });
+
+    expect(Download.downloadRuntime.finalFilenamesByDownloadId.has(403)).toBe(false);
+  });
+
   test("revokes an owned object URL when its browser download terminates", () => {
     vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {});
     Download.downloadRuntime.ownedObjectUrls.set(404, "blob:owned-download");

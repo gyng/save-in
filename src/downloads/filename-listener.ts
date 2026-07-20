@@ -253,6 +253,10 @@ const rememberFilename = (downloadId: number, filename: string, privateContext: 
 export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload): void => {
   webExtensionApi.downloads?.onChanged?.addListener((delta) => {
     if (delta.state?.current !== "complete" && !delta.error) return;
+    // Usually executeBrowserDownload consumes this immediately after
+    // downloads.download resolves. A late onDeterminingFilename callback can
+    // lose that race; no terminal download can need the recovered name again.
+    Download.finalFilenamesByDownloadId.delete(delta.id);
     const objectUrl = Download.ownedObjectUrls.get(delta.id);
     if (!objectUrl) return;
     Download.ownedObjectUrls.delete(delta.id);
