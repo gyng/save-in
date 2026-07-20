@@ -46,7 +46,7 @@ const readProcessMemoryRows = () => {
  * @param {ProcessMemoryRow[]} rows
  * @param {number} rootPid
  */
-const sumProcessTreeRssKb = (rows, rootPid) => {
+const processTreeMemorySnapshotFromRows = (rows, rootPid) => {
   if (!rows.some(({ pid }) => pid === rootPid)) {
     throw new Error(`Process ${rootPid} is absent from the RSS snapshot`);
   }
@@ -61,11 +61,26 @@ const sumProcessTreeRssKb = (rows, rootPid) => {
       }
     }
   }
-  return rows.reduce((total, row) => total + (tree.has(row.pid) ? row.rssKb : 0), 0);
+  const processes = rows.filter((row) => tree.has(row.pid));
+  return {
+    rssKb: processes.reduce((total, row) => total + row.rssKb, 0),
+    processes,
+  };
 };
 
+/**
+ * @param {ProcessMemoryRow[]} rows
+ * @param {number} rootPid
+ */
+const sumProcessTreeRssKb = (rows, rootPid) =>
+  processTreeMemorySnapshotFromRows(rows, rootPid).rssKb;
+
 /** @param {number} rootPid */
-const processTreeRssKb = (rootPid) => sumProcessTreeRssKb(readProcessMemoryRows(), rootPid);
+const processTreeMemorySnapshot = (rootPid) =>
+  processTreeMemorySnapshotFromRows(readProcessMemoryRows(), rootPid);
+
+/** @param {number} rootPid */
+const processTreeRssKb = (rootPid) => processTreeMemorySnapshot(rootPid).rssKb;
 
 /** @param {number[]} samplesKb */
 const summarizeRssKb = (samplesKb) => {
@@ -93,6 +108,7 @@ const summarizeRssKb = (samplesKb) => {
     finalRssKb,
     peakGrowthKb: peakRssKb - baselineRssKb,
     retainedGrowthKb: finalRssKb - baselineRssKb,
+    retainedDrawupKb: finalRssKb - minimumSeenKb,
     maximumDrawupKb,
     samplesKb,
   };
@@ -166,6 +182,8 @@ const terminateProcessTree = async (child, { detached = false, graceMs = 5000 } 
 module.exports = {
   isRunning,
   parseProcessMemoryRows,
+  processTreeMemorySnapshot,
+  processTreeMemorySnapshotFromRows,
   processTreeRssKb,
   sumProcessTreeRssKb,
   summarizeRssKb,

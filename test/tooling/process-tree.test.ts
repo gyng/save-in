@@ -1,28 +1,41 @@
 import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
-const { parseProcessMemoryRows, sumProcessTreeRssKb, summarizeRssKb, waitForExit } =
-  require("../../scripts/lib/process-tree.js") as {
-    parseProcessMemoryRows: (output: string) => Array<{
-      pid: number;
-      parentPid: number;
-      rssKb: number;
-    }>;
-    sumProcessTreeRssKb: (
-      rows: Array<{ pid: number; parentPid: number; rssKb: number }>,
-      rootPid: number,
-    ) => number;
-    summarizeRssKb: (samplesKb: number[]) => {
-      baselineRssKb: number;
-      peakRssKb: number;
-      finalRssKb: number;
-      peakGrowthKb: number;
-      retainedGrowthKb: number;
-      maximumDrawupKb: number;
-      samplesKb: number[];
-    };
-    waitForExit: (exited: Promise<unknown>, timeoutMs: number) => Promise<boolean>;
+const {
+  parseProcessMemoryRows,
+  processTreeMemorySnapshotFromRows,
+  sumProcessTreeRssKb,
+  summarizeRssKb,
+  waitForExit,
+} = require("../../scripts/lib/process-tree.js") as {
+  parseProcessMemoryRows: (output: string) => Array<{
+    pid: number;
+    parentPid: number;
+    rssKb: number;
+  }>;
+  sumProcessTreeRssKb: (
+    rows: Array<{ pid: number; parentPid: number; rssKb: number }>,
+    rootPid: number,
+  ) => number;
+  processTreeMemorySnapshotFromRows: (
+    rows: Array<{ pid: number; parentPid: number; rssKb: number }>,
+    rootPid: number,
+  ) => {
+    rssKb: number;
+    processes: Array<{ pid: number; parentPid: number; rssKb: number }>;
   };
+  summarizeRssKb: (samplesKb: number[]) => {
+    baselineRssKb: number;
+    peakRssKb: number;
+    finalRssKb: number;
+    peakGrowthKb: number;
+    retainedGrowthKb: number;
+    retainedDrawupKb: number;
+    maximumDrawupKb: number;
+    samplesKb: number[];
+  };
+  waitForExit: (exited: Promise<unknown>, timeoutMs: number) => Promise<boolean>;
+};
 
 afterEach(() => vi.useRealTimers());
 
@@ -59,6 +72,14 @@ test("parses process RSS rows and sums only the selected process tree", () => {
     { pid: 20, parentPid: 1, rssKb: 900 },
   ]);
   expect(sumProcessTreeRssKb(rows, 10)).toBe(600);
+  expect(processTreeMemorySnapshotFromRows(rows, 10)).toEqual({
+    rssKb: 600,
+    processes: [
+      { pid: 10, parentPid: 1, rssKb: 100 },
+      { pid: 11, parentPid: 10, rssKb: 200 },
+      { pid: 12, parentPid: 11, rssKb: 300 },
+    ],
+  });
 });
 
 test("rejects an RSS snapshot taken after the root process exited", () => {
@@ -72,6 +93,7 @@ test("separates transient RSS peaks from retained growth", () => {
     finalRssKb: 115,
     peakGrowthKb: 30,
     retainedGrowthKb: 15,
+    retainedDrawupKb: 15,
     maximumDrawupKb: 30,
     samplesKb: [100, 130, 115],
   });
@@ -81,7 +103,15 @@ test("reports warmed growth even when an elevated baseline remains the peak", ()
   expect(summarizeRssKb([160, 100, 110, 125, 115])).toMatchObject({
     peakGrowthKb: 0,
     retainedGrowthKb: -45,
+    retainedDrawupKb: 15,
     maximumDrawupKb: 25,
+  });
+});
+
+test("separates a released mid-workload draw-up from retained growth", () => {
+  expect(summarizeRssKb([160, 100, 240, 115])).toMatchObject({
+    retainedDrawupKb: 15,
+    maximumDrawupKb: 140,
   });
 });
 

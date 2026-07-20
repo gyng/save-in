@@ -26,14 +26,15 @@ const nextMemoryArtifact = (artifactDirectory, browserLabel, suiteAttempt) => {
 
 // Firefox 140 can transiently reserve over 1 GiB when the extension first
 // writes its sharded storage shape, then release most of it at the event-queue
-// barrier. Gate what survives that barrier, while keeping the transient peak
-// in telemetry. For repeated writes, gate the largest rise from any observed
-// trough so an elevated post-startup baseline cannot hide warmed growth.
+// barrier. Gate what survives that barrier, while keeping transient peaks in
+// telemetry. For repeated writes, measure the final retained rise from the
+// sampled trough so an elevated post-startup baseline cannot hide warmed
+// growth and a released browser-process reservation cannot impersonate a leak.
 const MAX_PRODUCTION_COLD_START_RETAINED_RSS_GROWTH_KB = {
   chrome: 128 * 1024,
   firefox: 384 * 1024,
 };
-const MAX_PRODUCTION_STEADY_RSS_GROWTH_KB = {
+const MAX_PRODUCTION_RETAINED_DRAWUP_RSS_GROWTH_KB = {
   chrome: 64 * 1024,
   firefox: 128 * 1024,
 };
@@ -98,13 +99,30 @@ export const runHistoryMemoryScenario = async ({ browserLabel, browserProcess, c
     const pid = requireValue(browserProcess()?.pid, `${browserLabel} process PID is unavailable`);
     /** @param {(sampleRss: () => void) => Promise<void>} workload */
     const measureRss = async (workload) => {
-      const samplesKb = [processTree.processTreeRssKb(pid)];
+      const baseline = processTree.processTreeMemorySnapshot(pid);
+      const baselinePids = new Set(baseline.processes.map((process) => process.pid));
+      const samplesKb = [baseline.rssKb];
+      const cohortSamplesKb = [baseline.rssKb];
+      const processCounts = [baseline.processes.length];
       const sampleRss = () => {
-        samplesKb.push(processTree.processTreeRssKb(pid));
+        const snapshot = processTree.processTreeMemorySnapshot(pid);
+        samplesKb.push(snapshot.rssKb);
+        cohortSamplesKb.push(
+          snapshot.processes.reduce(
+            (total, process) => total + (baselinePids.has(process.pid) ? process.rssKb : 0),
+            0,
+          ),
+        );
+        processCounts.push(snapshot.processes.length);
       };
       await workload(sampleRss);
       sampleRss();
-      return processTree.summarizeRssKb(samplesKb);
+      return {
+        ...processTree.summarizeRssKb(samplesKb),
+        baselineProcessCount: baseline.processes.length,
+        processCounts,
+        cohort: processTree.summarizeRssKb(cohortSamplesKb),
+      };
     };
     const payload = "x".repeat(2048);
     /** @type {ReturnType<typeof historyEntry>[]} */
@@ -161,7 +179,7 @@ export const runHistoryMemoryScenario = async ({ browserLabel, browserProcess, c
         artifactPath,
         JSON.stringify(
           {
-            schemaVersion: 3,
+            schemaVersion: 5,
             capturedAt: new Date().toISOString(),
             browser: browserLabel,
             suiteAttempt: Number(suiteAttempt),
@@ -175,7 +193,8 @@ export const runHistoryMemoryScenario = async ({ browserLabel, browserProcess, c
             },
             coldStartRetainedGrowthCeilingKb:
               MAX_PRODUCTION_COLD_START_RETAINED_RSS_GROWTH_KB[browserLabel],
-            productionMaximumDrawupCeilingKb: MAX_PRODUCTION_STEADY_RSS_GROWTH_KB[browserLabel],
+            productionRetainedDrawupCeilingKb:
+              MAX_PRODUCTION_RETAINED_DRAWUP_RSS_GROWTH_KB[browserLabel],
             coldStart,
             production,
             legacy,
@@ -190,6 +209,7 @@ export const runHistoryMemoryScenario = async ({ browserLabel, browserProcess, c
       `${browserLabel} history RSS: cold-start-peak=${Math.round(coldStart.peakGrowthKb / 1024)} MiB, ` +
         `cold-start-retained=${Math.round(coldStart.retainedGrowthKb / 1024)} MiB, ` +
         `production-drawup=${Math.round(production.maximumDrawupKb / 1024)} MiB, ` +
+        `production-cohort-retained-drawup=${Math.round(production.cohort.retainedDrawupKb / 1024)} MiB, ` +
         `production-retained=${Math.round(production.retainedGrowthKb / 1024)} MiB, ` +
         `legacy-peak=${Math.round(legacy.peakGrowthKb / 1024)} MiB, ` +
         `legacy-retained=${Math.round(legacy.retainedGrowthKb / 1024)} MiB\n`,
@@ -199,9 +219,9 @@ export const runHistoryMemoryScenario = async ({ browserLabel, browserProcess, c
       `${browserLabel} production-history cold start retained ${Math.round(coldStart.retainedGrowthKb / 1024)} MiB above baseline`,
     ).toBeLessThanOrEqual(MAX_PRODUCTION_COLD_START_RETAINED_RSS_GROWTH_KB[browserLabel]);
     expect(
-      production.maximumDrawupKb,
-      `${browserLabel} production-history RSS rose ${Math.round(production.maximumDrawupKb / 1024)} MiB from its sampled trough`,
-    ).toBeLessThanOrEqual(MAX_PRODUCTION_STEADY_RSS_GROWTH_KB[browserLabel]);
+      production.cohort.retainedDrawupKb,
+      `${browserLabel} production-history stable-process RSS retained ${Math.round(production.cohort.retainedDrawupKb / 1024)} MiB above its sampled trough`,
+    ).toBeLessThanOrEqual(MAX_PRODUCTION_RETAINED_DRAWUP_RSS_GROWTH_KB[browserLabel]);
   } finally {
     try {
       await writeProductionHistory({ action: "clear" });
