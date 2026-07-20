@@ -576,7 +576,7 @@
     "message": "前进按钮 (5)"
   },
   "o_cKeyboardShortcutModifierHelp": {
-    "message": "按住所选修饰键，同时点击所选鼠标按钮。若只使用鼠标按钮，请将两个修饰键都设为“None”。更改会应用到已打开的页面。"
+    "message": "按住所选修饰键，同时使用所选点击手势。若只使用手势，请将两个修饰键都设为“None”。更改会应用到已打开的页面。"
   },
   "o_cRestoreDefaults": {
     "message": "恢复默认设置"
@@ -699,7 +699,7 @@
     "message": "保存后关闭每个选项卡"
   },
   "o_lClickToSaveButton": {
-    "message": "点击保存所用的鼠标按钮"
+    "message": "点击手势"
   },
   "o_lDebugLog": {
     "message": "近期失败"

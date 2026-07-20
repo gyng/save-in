@@ -62,6 +62,29 @@ describe("click-to-save gesture bindings", () => {
     expect(contentClickComboToKeyCodes(90)).toEqual([90]);
   });
 
+  test.each([
+    ["Alt", [18]],
+    ["Option", [18]],
+    ["ctrl", [17]],
+    ["Command", [91]],
+    ["Ctrl+Shift", [17, 16]],
+    [18, [18]],
+    ["18", [18]],
+    [90, [90]],
+    ["None", []],
+    ["", []],
+    [undefined, []],
+  ] as const)("converts the backward-compatible modifier value %j", (value, keyCodes) => {
+    expect(contentClickComboToKeyCodes(value)).toEqual(keyCodes);
+  });
+
+  test.each(["garbage", "Ctrl+garbage"])(
+    "does not weaken a malformed modifier value %j to mouse-only",
+    (value) => {
+      expect(contentClickComboToKeyCodes(value)).toEqual([18]);
+    },
+  );
+
   test("uses the safe default combo when a direct legacy caller is malformed", () => {
     expect(resolveClickToSaveBindings("", "bad", CLICK_TYPES.LEFT_CLICK)).toEqual([
       { gesture: CLICK_GESTURES.LEFT, combo: "Alt" },

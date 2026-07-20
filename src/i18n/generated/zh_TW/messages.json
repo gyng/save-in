@@ -576,7 +576,7 @@
     "message": "前進按鈕 (5)"
   },
   "o_cKeyboardShortcutModifierHelp": {
-    "message": "按住選取的修飾鍵，同時點選選取的滑鼠按鈕。若只使用滑鼠按鈕，請將兩個修飾鍵都設為「None」。變更會套用至已開啟的頁面。"
+    "message": "按住選取的修飾鍵，同時使用選取的點擊手勢。若只使用手勢，請將兩個修飾鍵都設為「None」。變更會套用至已開啟的頁面。"
   },
   "o_cRestoreDefaults": {
     "message": "還原預設設定"
@@ -699,7 +699,7 @@
     "message": "儲存後關閉每個分頁"
   },
   "o_lClickToSaveButton": {
-    "message": "點選儲存滑鼠按鈕"
+    "message": "點擊手勢"
   },
   "o_lDebugLog": {
     "message": "近期失敗"

@@ -576,7 +576,7 @@
     "message": "앞으로 버튼(5)"
   },
   "o_cKeyboardShortcutModifierHelp": {
-    "message": "선택한 마우스 버튼을 클릭하는 동안 선택한 보조 키를 누르세요. 마우스 버튼만 사용하려면 두 보조 키를 모두 None으로 선택하세요. 변경 사항은 이미 열린 페이지에도 적용됩니다."
+    "message": "선택한 클릭 제스처를 사용하는 동안 선택한 보조 키를 누르세요. 제스처만 사용하려면 두 보조 키를 모두 None으로 선택하세요. 변경 사항은 이미 열린 페이지에도 적용됩니다."
   },
   "o_cRestoreDefaults": {
     "message": "기본값 복원"
@@ -699,7 +699,7 @@
     "message": "저장한 후 각 탭을 닫으세요."
   },
   "o_lClickToSaveButton": {
-    "message": "클릭하여 저장하는 마우스 버튼"
+    "message": "클릭 제스처"
   },
   "o_lDebugLog": {
     "message": "최근 실패"

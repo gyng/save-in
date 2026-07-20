@@ -998,7 +998,7 @@
     "message": "Bouton Suivant (5)"
   },
   "o_cKeyboardShortcutModifierHelp": {
-    "message": "Maintenez les touches de modification sélectionnées tout en cliquant avec le bouton de souris choisi. Choisissez None pour les deux modificateurs afin d’utiliser uniquement le bouton de souris. Les modifications s’appliquent aux pages déjà ouvertes."
+    "message": "Maintenez les touches de modification sélectionnées pendant le geste de clic choisi. Choisissez None pour les deux modificateurs afin d’utiliser uniquement le geste. Les modifications s’appliquent aux pages déjà ouvertes."
   },
   "o_cRestoreDefaults": {
     "message": "Restaurer les valeurs par défaut"
@@ -1121,7 +1121,7 @@
     "message": "Fermer chaque onglet après son enregistrement"
   },
   "o_lClickToSaveButton": {
-    "message": "Bouton de souris pour l’enregistrement au clic"
+    "message": "Geste de clic"
   },
   "o_lDebugLog": {
     "message": "Échecs récents"

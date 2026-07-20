@@ -576,7 +576,7 @@
     "message": "進むボタン(5)"
   },
   "o_cKeyboardShortcutModifierHelp": {
-    "message": "選択した修飾キーを押したまま、選択したマウスボタンをクリックします。マウスボタンのみを使用するには、両方の修飾キーに「None」を選択します。変更は既存のページに適用されます。"
+    "message": "選択した修飾キーを押したまま、選択したクリック操作を行います。クリック操作のみを使用するには、両方の修飾キーに「None」を選択します。変更は既存のページに適用されます。"
   },
   "o_cRestoreDefaults": {
     "message": "デフォルトに戻す"
@@ -699,7 +699,7 @@
     "message": "保存したら各タブを閉じます"
   },
   "o_lClickToSaveButton": {
-    "message": "クリックして保存するマウスボタン"
+    "message": "クリック操作"
   },
   "o_lDebugLog": {
     "message": "最近の失敗"

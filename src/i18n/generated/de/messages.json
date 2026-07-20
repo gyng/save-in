@@ -986,7 +986,7 @@
     "message": "Vorwärtstaste (5)"
   },
   "o_cKeyboardShortcutModifierHelp": {
-    "message": "Halten Sie die ausgewählten Zusatztasten gedrückt, während Sie mit der gewählten Maustaste klicken. Wählen Sie für beide Zusatztasten „None“, um nur die Maustaste zu verwenden. Änderungen gelten für bestehende Seiten."
+    "message": "Halten Sie die ausgewählten Zusatztasten gedrückt, während Sie die gewählte Klickgeste ausführen. Wählen Sie für beide Zusatztasten „None“, um nur die Geste zu verwenden. Änderungen gelten für bestehende Seiten."
   },
   "o_cRestoreDefaults": {
     "message": "Standardeinstellungen wiederherstellen"
@@ -1109,7 +1109,7 @@
     "message": "Jeden Tab nach dem Speichern schließen"
   },
   "o_lClickToSaveButton": {
-    "message": "Maustaste für Speichern per Klick"
+    "message": "Klickgeste"
   },
   "o_lDebugLog": {
     "message": "Kürzlich aufgetretene Fehler"

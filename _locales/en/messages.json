@@ -1437,7 +1437,7 @@
   },
   "o_cKeyboardShortcutModifierDoubleLeftClick": {
     "message": "Double left click",
-    "description": "Click-to-save gesture label for two primary-button clicks on the same media item. Used in src/options/options.html and src/options/shortcut-options.ts."
+    "description": "Click-to-save gesture label for two primary-button clicks on the same media item. Used in src/options/options.html and src/options/core/shortcut-options.ts."
   },
   "o_bAddClickToSaveBinding": {
     "message": "Add gesture",
@@ -1445,15 +1445,15 @@
   },
   "o_bRemoveClickToSaveBinding": {
     "message": "Remove gesture",
-    "description": "Button that removes one click-to-save gesture binding. Used in src/options/shortcut-options.ts."
+    "description": "Button that removes one click-to-save gesture binding. Used in src/options/core/shortcut-options.ts."
   },
   "o_lClickToSaveDoubleClickHelp": {
     "message": "The first click still reaches the page. A linked image may open or navigate before the second click.",
     "description": "Warning shown when double-left-click saving is configured. Used in src/options/options.html."
   },
   "o_cKeyboardShortcutModifierHelp": {
-    "message": "Hold the selected modifier keys while clicking the chosen mouse button. Choose None for both modifiers to use the mouse button alone. Changes apply to existing pages.",
-    "description": "Option control label or related help text. Used in src/options/options.html."
+    "message": "Hold the selected modifier keys while using the chosen click gesture. Choose None for both modifiers to use the gesture alone. Changes apply to existing pages.",
+    "description": "Help text for the click-to-save modifier and gesture controls. Used in src/options/options.html."
   },
   "o_cRestoreDefaults": {
     "message": "Restore defaults",
@@ -1648,8 +1648,8 @@
     "description": "Option control label or related help text. Used in src/options/options.html."
   },
   "o_lClickToSaveButton": {
-    "message": "Click-to-save mouse button",
-    "description": "Label, status, or help text in the options interface. Used in src/options/options.html."
+    "message": "Click gesture",
+    "description": "Label for the mouse gesture selector in click-to-save settings. Used in src/options/options.html and src/options/core/shortcut-options.ts."
   },
   "o_lDebugLog": {
     "message": "Recent failures",

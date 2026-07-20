@@ -986,7 +986,7 @@
     "message": "Botón de avance (5)"
   },
   "o_cKeyboardShortcutModifierHelp": {
-    "message": "Mantenga pulsadas las teclas modificadoras seleccionadas mientras hace clic con el botón del ratón elegido. Elija None para ambos modificadores si quiere usar solo el botón del ratón. Los cambios se aplican a las páginas que ya están abiertas."
+    "message": "Mantenga pulsadas las teclas modificadoras seleccionadas mientras usa el gesto de clic elegido. Elija None para ambos modificadores si quiere usar solo el gesto. Los cambios se aplican a las páginas que ya están abiertas."
   },
   "o_cRestoreDefaults": {
     "message": "Restaurar valores predeterminados"
@@ -1109,7 +1109,7 @@
     "message": "Cerrar cada pestaña después de guardarla"
   },
   "o_lClickToSaveButton": {
-    "message": "Botón del ratón para Guardar con un clic"
+    "message": "Gesto de clic"
   },
   "o_lDebugLog": {
     "message": "Fallos recientes"

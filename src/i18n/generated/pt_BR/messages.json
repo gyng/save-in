@@ -986,7 +986,7 @@
     "message": "Botão Avançar (5)"
   },
   "o_cKeyboardShortcutModifierHelp": {
-    "message": "Mantenha as teclas modificadoras selecionadas pressionadas enquanto clica no botão escolhido do mouse. Escolha None nos dois modificadores para usar apenas o botão do mouse. As alterações se aplicam às páginas existentes."
+    "message": "Mantenha as teclas modificadoras selecionadas pressionadas enquanto usa o gesto de clique escolhido. Escolha None nos dois modificadores para usar apenas o gesto. As alterações se aplicam às páginas existentes."
   },
   "o_cRestoreDefaults": {
     "message": "Restaurar padrões"
@@ -1109,7 +1109,7 @@
     "message": "Fechar cada guia depois de salvá-la"
   },
   "o_lClickToSaveButton": {
-    "message": "Botão do mouse para clique para salvar"
+    "message": "Gesto de clique"
   },
   "o_lDebugLog": {
     "message": "Falhas recentes"

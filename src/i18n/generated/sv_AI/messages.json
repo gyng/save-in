@@ -986,7 +986,7 @@
     "message": "Framåtknapp (5)"
   },
   "o_cKeyboardShortcutModifierHelp": {
-    "message": "Håll ned de valda modifieringsknapparna medan du klickar på den valda musknappen. Välj None för båda modifierarna om du vill använda musknappen ensam. Ändringar gäller för befintliga sidor."
+    "message": "Håll ned de valda modifieringsknapparna medan du använder den valda klickgesten. Välj None för båda modifierarna om du vill använda endast gesten. Ändringar gäller för befintliga sidor."
   },
   "o_cRestoreDefaults": {
     "message": "Återställ standardinställningar"
@@ -1109,7 +1109,7 @@
     "message": "Stäng varje flik när du har sparat den"
   },
   "o_lClickToSaveButton": {
-    "message": "Musknapp för Klicka för att spara"
+    "message": "Klickgest"
   },
   "o_lDebugLog": {
     "message": "Senaste fel"

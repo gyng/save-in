@@ -59,25 +59,6 @@ const ClickToSave = {
   isKeyboardComboActive: (combo: number[], activeKeys: Record<number, boolean>) =>
     combo.map((code) => activeKeys[code]).every((code) => code === true),
 
-  // https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/buttons
-  // buttons is a bitmask of the buttons currently held; check the target's bit
-  isMouseButtonActive: (target: string, buttons: number) => {
-    const bit = {
-      LEFT_CLICK: 1, // bit 0
-      RIGHT_CLICK: 2, // bit 1
-      MIDDLE_CLICK: 4, // bit 2
-      BACK_CLICK: 8, // bit 3 (mouse button 4)
-      FORWARD_CLICK: 16, // bit 4 (mouse button 5)
-    }[target];
-    if (!bit) return false;
-    return (buttons & bit) === bit;
-  },
-
-  // Resolve the stored combo option to keyCodes. Raw keyCode numbers remain
-  // backward compatible, while malformed strings fall back to Alt instead of
-  // silently weakening the shortcut to mouse-button-only.
-  comboToKeyCodes: contentClickComboToKeyCodes,
-
   // Resolves what to download for a click: media under the cursor first
   // (e.target can be an overlay), then the enclosing link (#226)
   findSource: (

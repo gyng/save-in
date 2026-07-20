@@ -888,7 +888,7 @@
     "message": "Pulsante Avanti (5)"
   },
   "o_cKeyboardShortcutModifierHelp": {
-    "message": "Tieni premuti i modificatori selezionati mentre fai clic con il pulsante del mouse scelto. Seleziona None per entrambi i modificatori per usare soltanto il pulsante del mouse. Le modifiche si applicano anche alle pagine già aperte."
+    "message": "Tieni premuti i modificatori selezionati mentre esegui il gesto di clic scelto. Seleziona None per entrambi i modificatori per usare soltanto il gesto. Le modifiche si applicano anche alle pagine già aperte."
   },
   "o_cRestoreDefaults": {
     "message": "Ripristina le impostazioni predefinite"
@@ -1011,7 +1011,7 @@
     "message": "Chiudi ogni scheda dopo averla salvata"
   },
   "o_lClickToSaveButton": {
-    "message": "Pulsante del mouse per il salvataggio con clic"
+    "message": "Gesto di clic"
   },
   "o_lDebugLog": {
     "message": "Errori recenti"

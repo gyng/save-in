@@ -986,7 +986,7 @@
     "message": "Vooruitknop (5)"
   },
   "o_cKeyboardShortcutModifierHelp": {
-    "message": "Houd de geselecteerde modificatietoetsen ingedrukt terwijl u op de gekozen muisknop klikt. Kies None voor beide modificatietoetsen om alleen de muisknop te gebruiken. Wijzigingen zijn van toepassing op bestaande pagina's."
+    "message": "Houd de geselecteerde modificatietoetsen ingedrukt terwijl u het gekozen klikgebaar gebruikt. Kies None voor beide modificatietoetsen om alleen het gebaar te gebruiken. Wijzigingen zijn van toepassing op bestaande pagina's."
   },
   "o_cRestoreDefaults": {
     "message": "Standaardwaarden herstellen"
@@ -1109,7 +1109,7 @@
     "message": "Sluit elk tabblad nadat u het hebt opgeslagen"
   },
   "o_lClickToSaveButton": {
-    "message": "Muisknop voor opslaan met één klik"
+    "message": "Klikgebaar"
   },
   "o_lDebugLog": {
     "message": "Recente fouten"

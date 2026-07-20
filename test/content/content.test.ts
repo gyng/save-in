@@ -179,36 +179,6 @@ describe("input helpers", () => {
     // An empty combo ("No key") is always active — the mouse button alone saves
     expect(ClickToSave.isKeyboardComboActive([], {})).toBe(true);
   });
-
-  test("comboToKeyCodes accepts names, raw keyCodes, and none (backward compat)", () => {
-    expect(ClickToSave.comboToKeyCodes("Alt")).toEqual([18]);
-    expect(ClickToSave.comboToKeyCodes("Option")).toEqual([18]);
-    expect(ClickToSave.comboToKeyCodes("ctrl")).toEqual([17]);
-    expect(ClickToSave.comboToKeyCodes("Command")).toEqual([91]);
-    expect(ClickToSave.comboToKeyCodes("Ctrl+Shift")).toEqual([17, 16]);
-    expect(ClickToSave.comboToKeyCodes(18)).toEqual([18]); // old numeric option
-    expect(ClickToSave.comboToKeyCodes("18")).toEqual([18]);
-    expect(ClickToSave.comboToKeyCodes(90)).toEqual([90]); // arbitrary custom key kept
-    expect(ClickToSave.comboToKeyCodes("None")).toEqual([]);
-    expect(ClickToSave.comboToKeyCodes("")).toEqual([]);
-    expect(ClickToSave.comboToKeyCodes(undefined)).toEqual([]);
-  });
-
-  test("comboToKeyCodes fails safely instead of weakening malformed shortcuts", () => {
-    expect(ClickToSave.comboToKeyCodes("garbage")).toEqual([18]);
-    expect(ClickToSave.comboToKeyCodes("Ctrl+garbage")).toEqual([18]);
-  });
-
-  test("isMouseButtonActive maps buttons bitmask to configured button", () => {
-    expect(ClickToSave.isMouseButtonActive("LEFT_CLICK", 1)).toBe(true);
-    expect(ClickToSave.isMouseButtonActive("RIGHT_CLICK", 2)).toBe(true);
-    expect(ClickToSave.isMouseButtonActive("MIDDLE_CLICK", 4)).toBe(true);
-    expect(ClickToSave.isMouseButtonActive("BACK_CLICK", 8)).toBe(true);
-    expect(ClickToSave.isMouseButtonActive("FORWARD_CLICK", 16)).toBe(true);
-    expect(ClickToSave.isMouseButtonActive("LEFT_CLICK", 2)).toBe(false);
-    expect(ClickToSave.isMouseButtonActive("BACK_CLICK", 16)).toBe(false);
-    expect(ClickToSave.isMouseButtonActive("nonsense", 1)).toBe(false);
-  });
 });
 
 // Simulate the callback-style storage API used by both Chrome and Firefox
