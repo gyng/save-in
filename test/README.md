@@ -92,3 +92,14 @@ All browser commands use the same immutable per-run staged extension and diagnos
 - Add `-- -t "name"` to select cases. Set `E2E_RETRY=1` to retry a failed suite in a fresh
   browser (and record the flake), or pass `-- --retry=1` for an explicit in-process case retry.
 - Use the corresponding `:headed` command for an interactive run.
+
+## Memory profiling
+
+`npm run test:memory` runs isolated, forced-GC heap comparisons for repeated Page Sources and
+resource-timing workloads. It gates retained-shape ratios and writes the complete per-process
+samples to `dist/memory-profile.json`; elapsed time and uncollected heap are diagnostic only. The
+release-facing `npm run test:all` command includes this retained-shape gate.
+`npm run bench:memory` records the same report without enforcing ratio ceilings. `npm run e2e:rss`
+keeps separate browser-level History ceilings for cold first-use allocation and warmed repeated
+writes, then writes baseline, peak, final, and every RSS sample to each run's
+`memory-history-<browser>.json` artifact.

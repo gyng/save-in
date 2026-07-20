@@ -1,7 +1,7 @@
 import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
-const { parseProcessMemoryRows, sumProcessTreeRssKb, waitForExit } =
+const { parseProcessMemoryRows, sumProcessTreeRssKb, summarizeRssKb, waitForExit } =
   require("../../scripts/lib/process-tree.js") as {
     parseProcessMemoryRows: (output: string) => Array<{
       pid: number;
@@ -12,6 +12,14 @@ const { parseProcessMemoryRows, sumProcessTreeRssKb, waitForExit } =
       rows: Array<{ pid: number; parentPid: number; rssKb: number }>,
       rootPid: number,
     ) => number;
+    summarizeRssKb: (samplesKb: number[]) => {
+      baselineRssKb: number;
+      peakRssKb: number;
+      finalRssKb: number;
+      peakGrowthKb: number;
+      retainedGrowthKb: number;
+      samplesKb: number[];
+    };
     waitForExit: (exited: Promise<unknown>, timeoutMs: number) => Promise<boolean>;
   };
 
@@ -54,4 +62,19 @@ test("parses process RSS rows and sums only the selected process tree", () => {
 
 test("rejects an RSS snapshot taken after the root process exited", () => {
   expect(() => sumProcessTreeRssKb([], 10)).toThrow("Process 10 is absent");
+});
+
+test("separates transient RSS peaks from retained growth", () => {
+  expect(summarizeRssKb([100, 130, 115])).toEqual({
+    baselineRssKb: 100,
+    peakRssKb: 130,
+    finalRssKb: 115,
+    peakGrowthKb: 30,
+    retainedGrowthKb: 15,
+    samplesKb: [100, 130, 115],
+  });
+});
+
+test.each([[[]], [[-1]], [[100, Number.NaN]]])("rejects invalid RSS samples: %j", (samples) => {
+  expect(() => summarizeRssKb(samples)).toThrow("RSS samples must be non-empty");
 });

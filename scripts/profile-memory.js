@@ -1,0 +1,262 @@
+// @ts-check
+
+const fs = require("node:fs");
+const path = require("node:path");
+const { performance } = require("node:perf_hooks");
+const { pathToFileURL } = require("node:url");
+const { spawnSync } = require("node:child_process");
+
+const root = path.resolve(__dirname, "..");
+const output = path.resolve(
+  root,
+  process.env.MEMORY_PROFILE_OUTPUT || path.join("dist", "memory-profile.json"),
+);
+const requestedRepeats = Number.parseInt(process.env.MEMORY_PROFILE_REPEATS || "3", 10);
+const repeats = Number.isSafeInteger(requestedRepeats) ? Math.max(1, requestedRepeats) : 3;
+const requestedScale = Number.parseInt(process.env.MEMORY_PROFILE_SCALE || "100000", 10);
+const scale = Number.isSafeInteger(requestedScale) ? Math.max(10_000, requestedScale) : 100_000;
+const reportOnly = process.argv.includes("--report-only");
+
+const scenarios = ["source-legacy", "source-compacted", "timing-legacy", "timing-bounded"];
+
+/** @param {number[]} values */
+const median = (values) => {
+  const ordered = values.toSorted((left, right) => left - right);
+  const middle = Math.floor(ordered.length / 2);
+  const value = ordered[middle];
+  if (value === undefined) throw new Error("Cannot take the median of an empty sample");
+  return value;
+};
+
+const collectGarbage = () => {
+  if (!global.gc) throw new Error("Memory profiling requires Node --expose-gc");
+  for (let pass = 0; pass < 4; pass += 1) global.gc();
+};
+
+/** @param {number} bytes */
+const mebibytes = (bytes) => `${(bytes / (1024 * 1024)).toFixed(2)} MiB`;
+
+/** @param {string} scenario */
+const runWorker = async (scenario) => {
+  const sourceModelUrl = pathToFileURL(path.join(root, "src", "content", "source-panel-model.ts"));
+  const { compactPageSourceCandidates, mergeResourceTimings } = await import(sourceModelUrl.href);
+  let fixtureCount = scale;
+  let retainedCount = 0;
+  let retainedDetailCount = 0;
+  /** @type {unknown} */
+  let retained;
+
+  if (scenario.startsWith("source-")) {
+    const elements = Array.from({ length: scale }, (_, index) => ({ index }));
+    collectGarbage();
+    const baselineHeapBytes = process.memoryUsage().heapUsed;
+    const startedAt = performance.now();
+    if (scenario === "source-legacy") {
+      retained = elements.map((element) => ({
+        url: "https://cdn.test/shared.jpg",
+        kind: "image",
+        element,
+      }));
+    } else {
+      retained = compactPageSourceCandidates(
+        elements.map((element) => ({
+          url: "https://cdn.test/shared.jpg",
+          kind: "image",
+          element,
+        })),
+      );
+    }
+    const durationMs = performance.now() - startedAt;
+    const uncollectedHeapBytes = process.memoryUsage().heapUsed;
+    collectGarbage();
+    const retainedHeapBytes = process.memoryUsage().heapUsed;
+    if (!Array.isArray(retained)) throw new Error(`${scenario} did not retain an array`);
+    retainedCount = retained.length;
+    const first = retained[0];
+    retainedDetailCount =
+      first && typeof first === "object" && "collectorOriginElements" in first
+        ? Array.isArray(first.collectorOriginElements)
+          ? first.collectorOriginElements.length
+          : 0
+        : retained.length;
+    return {
+      scenario,
+      fixtureCount,
+      retainedCount,
+      retainedDetailCount,
+      baselineHeapBytes,
+      uncollectedGrowthBytes: Math.max(0, uncollectedHeapBytes - baselineHeapBytes),
+      retainedGrowthBytes: Math.max(0, retainedHeapBytes - baselineHeapBytes),
+      rssBytes: process.memoryUsage().rss,
+      durationMs,
+    };
+  }
+
+  fixtureCount = Math.max(10_000, Math.floor(scale / 2));
+  collectGarbage();
+  const baselineHeapBytes = process.memoryUsage().heapUsed;
+  const entries = function* () {
+    for (let index = 0; index < fixtureCount; index += 1) {
+      yield {
+        name: `https://cdn.test/resource-${index}.js`,
+        encodedBodySize: index + 1,
+        transferSize: index + 2,
+        serverTiming: [{ name: `controlled-${index}`, description: "x".repeat(512) }],
+      };
+    }
+  };
+  const startedAt = performance.now();
+  const timings = new Map();
+  if (scenario === "timing-legacy") {
+    for (const entry of entries()) timings.set(entry.name, entry);
+  } else {
+    mergeResourceTimings(timings, entries());
+  }
+  retained = timings;
+  const durationMs = performance.now() - startedAt;
+  const uncollectedHeapBytes = process.memoryUsage().heapUsed;
+  collectGarbage();
+  const retainedHeapBytes = process.memoryUsage().heapUsed;
+  retainedCount = timings.size;
+  retainedDetailCount = [...timings.values()].filter((entry) => "serverTiming" in entry).length;
+  return {
+    scenario,
+    fixtureCount,
+    retainedCount,
+    retainedDetailCount,
+    baselineHeapBytes,
+    uncollectedGrowthBytes: Math.max(0, uncollectedHeapBytes - baselineHeapBytes),
+    retainedGrowthBytes: Math.max(0, retainedHeapBytes - baselineHeapBytes),
+    rssBytes: process.memoryUsage().rss,
+    durationMs,
+  };
+};
+
+/** @param {string} scenario */
+const sampleScenario = (scenario) => {
+  const samples = [];
+  for (let repeat = 0; repeat < repeats; repeat += 1) {
+    const child = spawnSync(
+      process.execPath,
+      [
+        "--expose-gc",
+        "--disable-warning=MODULE_TYPELESS_PACKAGE_JSON",
+        __filename,
+        "--worker",
+        scenario,
+      ],
+      {
+        cwd: root,
+        encoding: "utf8",
+        env: { ...process.env, MEMORY_PROFILE_SCALE: String(scale) },
+      },
+    );
+    if (child.error || child.status !== 0) {
+      throw new Error(
+        `${scenario} memory worker failed (${child.status ?? "signal"}): ${child.error || child.stderr || child.stdout}`,
+      );
+    }
+    samples.push(JSON.parse(child.stdout));
+  }
+  const first = samples[0];
+  if (!first) throw new Error(`${scenario} produced no memory samples`);
+  for (const sample of samples) {
+    if (
+      sample.scenario !== first.scenario ||
+      sample.fixtureCount !== first.fixtureCount ||
+      sample.retainedCount !== first.retainedCount ||
+      sample.retainedDetailCount !== first.retainedDetailCount
+    ) {
+      throw new Error(`${scenario} produced inconsistent retained shapes across isolated samples`);
+    }
+  }
+  return {
+    scenario,
+    fixtureCount: first.fixtureCount,
+    retainedCount: first.retainedCount,
+    retainedDetailCount: first.retainedDetailCount,
+    retainedGrowthBytes: median(samples.map((sample) => sample.retainedGrowthBytes)),
+    retainedGrowthRangeBytes: {
+      minimum: Math.min(...samples.map((sample) => sample.retainedGrowthBytes)),
+      maximum: Math.max(...samples.map((sample) => sample.retainedGrowthBytes)),
+    },
+    uncollectedGrowthBytes: median(samples.map((sample) => sample.uncollectedGrowthBytes)),
+    rssBytes: median(samples.map((sample) => sample.rssBytes)),
+    durationMs: median(samples.map((sample) => sample.durationMs)),
+    samples,
+  };
+};
+
+const main = async () => {
+  const workerIndex = process.argv.indexOf("--worker");
+  if (workerIndex >= 0) {
+    const scenario = process.argv[workerIndex + 1];
+    if (!scenario || !scenarios.includes(scenario)) throw new Error("Unknown memory scenario");
+    process.stdout.write(JSON.stringify(await runWorker(scenario)));
+    return;
+  }
+
+  const results = scenarios.map(sampleScenario);
+  const byScenario = new Map(results.map((result) => [result.scenario, result]));
+  const sourceLegacy = byScenario.get("source-legacy");
+  const sourceCompacted = byScenario.get("source-compacted");
+  const timingLegacy = byScenario.get("timing-legacy");
+  const timingBounded = byScenario.get("timing-bounded");
+  if (!sourceLegacy || !sourceCompacted || !timingLegacy || !timingBounded) {
+    throw new Error("Memory profile is missing a scenario");
+  }
+  const ratios = {
+    sourceRetained: sourceCompacted.retainedGrowthBytes / sourceLegacy.retainedGrowthBytes,
+    timingRetained: timingBounded.retainedGrowthBytes / timingLegacy.retainedGrowthBytes,
+  };
+  const report = {
+    schemaVersion: 1,
+    capturedAt: new Date().toISOString(),
+    node: process.version,
+    platform: `${process.platform}-${process.arch}`,
+    repeats,
+    scale,
+    reportOnly,
+    thresholds: { sourceRetainedRatio: 0.4, timingRetainedRatio: 0.1 },
+    ratios,
+    scenarios: results,
+  };
+  fs.mkdirSync(path.dirname(output), { recursive: true });
+  fs.writeFileSync(output, JSON.stringify(report, null, 2));
+
+  process.stdout.write(`Memory profile (${repeats} isolated samples, scale ${scale})\n`);
+  for (const result of results) {
+    process.stdout.write(
+      `${result.scenario.padEnd(18)} retained=${mebibytes(result.retainedGrowthBytes).padStart(11)} ` +
+        `uncollected=${mebibytes(result.uncollectedGrowthBytes).padStart(11)} ` +
+        `objects=${String(result.retainedCount).padStart(7)} ${result.durationMs.toFixed(1).padStart(8)} ms\n`,
+    );
+  }
+  process.stdout.write(
+    `Retained ratios: sources ${(ratios.sourceRetained * 100).toFixed(1)}%, ` +
+      `resource timings ${(ratios.timingRetained * 100).toFixed(1)}%\n` +
+      `Diagnostics: ${path.relative(root, output)}\n`,
+  );
+
+  if (sourceCompacted.retainedCount !== 1 || sourceCompacted.retainedDetailCount !== scale) {
+    throw new Error("Source compaction did not retain one row with every CSS origin");
+  }
+  if (timingBounded.retainedCount !== 512 || timingBounded.retainedDetailCount !== 0) {
+    throw new Error("Resource timing compaction did not retain 512 scalar-only records");
+  }
+  if (!reportOnly && ratios.sourceRetained > report.thresholds.sourceRetainedRatio) {
+    throw new Error(
+      `Compacted source state retained ${(ratios.sourceRetained * 100).toFixed(1)}% of the legacy shape`,
+    );
+  }
+  if (!reportOnly && ratios.timingRetained > report.thresholds.timingRetainedRatio) {
+    throw new Error(
+      `Bounded timing state retained ${(ratios.timingRetained * 100).toFixed(1)}% of the legacy shape`,
+    );
+  }
+};
+
+main().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});

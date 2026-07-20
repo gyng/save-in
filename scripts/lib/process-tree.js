@@ -67,6 +67,30 @@ const sumProcessTreeRssKb = (rows, rootPid) => {
 /** @param {number} rootPid */
 const processTreeRssKb = (rootPid) => sumProcessTreeRssKb(readProcessMemoryRows(), rootPid);
 
+/** @param {number[]} samplesKb */
+const summarizeRssKb = (samplesKb) => {
+  if (
+    samplesKb.length === 0 ||
+    samplesKb.some((sample) => !Number.isSafeInteger(sample) || sample < 0)
+  ) {
+    throw new Error("RSS samples must be non-empty, non-negative integer KiB values");
+  }
+  const baselineRssKb = samplesKb[0];
+  const finalRssKb = samplesKb.at(-1);
+  if (baselineRssKb === undefined || finalRssKb === undefined) {
+    throw new Error("RSS samples are empty");
+  }
+  const peakRssKb = Math.max(...samplesKb);
+  return {
+    baselineRssKb,
+    peakRssKb,
+    finalRssKb,
+    peakGrowthKb: peakRssKb - baselineRssKb,
+    retainedGrowthKb: finalRssKb - baselineRssKb,
+    samplesKb,
+  };
+};
+
 /** @param {import("node:child_process").ChildProcess | null | undefined} child */
 const isRunning = (child) =>
   Boolean(child?.pid && child.exitCode === null && child.signalCode === null);
@@ -137,6 +161,7 @@ module.exports = {
   parseProcessMemoryRows,
   processTreeRssKb,
   sumProcessTreeRssKb,
+  summarizeRssKb,
   terminateProcessTree,
   waitForExit,
 };
