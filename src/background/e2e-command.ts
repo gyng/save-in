@@ -25,6 +25,7 @@ import { resetMessagingTransientState } from "./messaging/index.ts";
 import { resetSourcePanelState } from "./source-panel-state.ts";
 import { resetRefererRules } from "../downloads/referer-rules.ts";
 import { addHistoryEntry, clearHistory, patchHistoryEntry } from "./history.ts";
+import { applyConfigSerialized } from "./config-apply.ts";
 
 export const BACKGROUND_E2E_COMMAND = "SAVE_IN_E2E_START_DOWNLOAD";
 export const BACKGROUND_E2E_CONTEXT_MENU_COMMAND = "SAVE_IN_E2E_CONTEXT_MENU_CLICK";
@@ -42,6 +43,8 @@ export type BackgroundE2EDownload = {
   suggestedFilename: string;
   pageUrl?: string;
   modifiers?: string[];
+  config?: Record<string, unknown>;
+  expectedGeneration?: { instanceId: string; generation: number };
 };
 
 export type BackgroundE2ECommandRequest = {
@@ -107,7 +110,16 @@ export type BackgroundE2ENotificationCall = {
 
 export type BackgroundE2ECommandResponse = {
   type: typeof BACKGROUND_E2E_COMMAND;
-  body: { status: "OK"; result: DownloadLaunchResult } | { status: "ERROR"; message: string };
+  body:
+    | { status: "OK"; result: DownloadLaunchResult }
+    | { status: "ERROR"; message: string; code?: undefined }
+    | {
+        status: "ERROR";
+        code: "STALE_GENERATION";
+        message: string;
+        instanceId: string;
+        generation: number;
+      };
 };
 
 export type BackgroundE2EContextMenuResponse = {
@@ -178,7 +190,14 @@ const isBackgroundE2ECommand = (value: unknown): value is BackgroundE2ECommandRe
     ["path", "content", "url", "shortcutUrl", "pageUrl"].every((key) =>
       hasOptionalString(body, key),
     ) &&
-    hasOptionalStringArray(body, "modifiers")
+    hasOptionalStringArray(body, "modifiers") &&
+    (body.config === undefined || isRecord(body.config)) &&
+    (body.expectedGeneration === undefined ||
+      (isRecord(body.expectedGeneration) &&
+        typeof body.expectedGeneration.instanceId === "string" &&
+        typeof body.expectedGeneration.generation === "number" &&
+        Number.isSafeInteger(body.expectedGeneration.generation) &&
+        body.expectedGeneration.generation > 0))
   );
 };
 
@@ -310,6 +329,40 @@ export const handleBackgroundE2ECommand = async (
   try {
     await (backgroundRuntime.ready ?? Promise.resolve());
     const request = rawRequest.body;
+    if (
+      request.expectedGeneration &&
+      (request.expectedGeneration.instanceId !== backgroundRuntime.instanceId ||
+        request.expectedGeneration.generation !== backgroundRuntime.readyGeneration)
+    ) {
+      return {
+        type: BACKGROUND_E2E_COMMAND,
+        body: {
+          status: "ERROR",
+          code: "STALE_GENERATION",
+          message: "Background generation changed before the download command",
+          instanceId: backgroundRuntime.instanceId,
+          generation: backgroundRuntime.readyGeneration,
+        },
+      };
+    }
+    if (request.config) {
+      const { rejected } = await applyConfigSerialized(
+        configWriteState,
+        webExtensionApi.storage.local,
+        request.config,
+        undefined,
+        (appliedConfig) => backgroundRuntime.reset(appliedConfig),
+      );
+      if (rejected.length > 0) {
+        return {
+          type: BACKGROUND_E2E_COMMAND,
+          body: {
+            status: "ERROR",
+            message: rejected.map((item) => `${item.name}: ${item.reason}`).join(", "),
+          },
+        };
+      }
+    }
     const info: DownloadInfo = {
       url: resolveDownloadUrl(request),
       selectedUrl: request.shortcutUrl || request.url,

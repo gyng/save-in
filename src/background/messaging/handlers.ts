@@ -359,13 +359,19 @@ export const handleApplyConfig = async (
     webExtensionApi.storage.local,
     config,
     request.body?.expected,
-    () => backgroundRuntime.reset(),
+    (appliedConfig) => backgroundRuntime.reset(appliedConfig),
   );
   await broadcastContentOptions(applied);
 
   sendResponse({
     type: MESSAGE_TYPES.APPLY_CONFIG_RESULT,
-    body: { version: API_VERSION, applied, rejected },
+    body: {
+      version: API_VERSION,
+      instanceId: backgroundRuntime.instanceId,
+      generation: backgroundRuntime.readyGeneration,
+      applied,
+      rejected,
+    },
   });
 };
 

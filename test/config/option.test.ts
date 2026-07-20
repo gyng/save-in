@@ -149,6 +149,21 @@ describe("OptionsManagement", () => {
       });
     });
 
+    test("uses an acknowledged write over a stale storage read", async () => {
+      global.browser.storage.local.get = vi.fn(() =>
+        Promise.resolve({ filenamePatterns: "mime: stale" }),
+      );
+
+      const resolved = await OptionsManagement.loadOptions({
+        filenamePatterns: "mime: ^application/pdf$\ninto: documents/:filename:",
+      });
+
+      expect(mocks.router.parseRules).toHaveBeenCalledWith(
+        "mime: ^application/pdf$\ninto: documents/:filename:",
+      );
+      expect(resolved.filenamePatterns).toBe("mime: ^application/pdf$\ninto: documents/:filename:");
+    });
+
     test("disables Page Sources for new profiles", async () => {
       const resolved = await OptionsManagement.loadOptions();
       expect(resolved.sourcePanelEnabled).toBe(false);

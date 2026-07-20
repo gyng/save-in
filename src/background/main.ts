@@ -39,11 +39,11 @@ const seedCurrentTab = (candidate: CurrentTab): void => {
   setCurrentTab(candidate);
 };
 
-const reloadConfigurationAndMenus = async (): Promise<void> => {
+const reloadConfigurationAndMenus = async (overrides?: Record<string, unknown>): Promise<void> => {
   resetRuntimeDiagnostics();
 
   const [loaded, storedLastUsed] = await Promise.all([
-    OptionsManagement.loadOptions().then(async (loadedOptions) => {
+    OptionsManagement.loadOptions(overrides).then(async (loadedOptions) => {
       await initializeLocalization(loadedOptions.uiLocale);
       return loadedOptions;
     }),
@@ -94,14 +94,14 @@ backgroundRuntime.init = () =>
     .then(() => undefined)
     .catch(reportInitFailure);
 
-backgroundRuntime.reset = () => {
+backgroundRuntime.reset = (overrides) => {
   const generation = (backgroundRuntime.generation += 1);
   // Serialize: overlapping inits interleave removeAll() with another
   // generation's create() calls, producing duplicate-id errors and
   // missing/duplicated menu items
   const ready = (backgroundRuntime.ready ?? Promise.resolve())
     .catch(() => {})
-    .then(() => reloadConfigurationAndMenus())
+    .then(() => reloadConfigurationAndMenus(overrides))
     .then(() => {
       backgroundRuntime.readyGeneration = generation;
       void recordDiagnosticLifecycle("configuration_reloaded");

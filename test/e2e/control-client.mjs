@@ -70,6 +70,14 @@ export const dispatchControlRequest = async (
         return isArea && isRecord(value.values);
       case "storage.wait":
         return isArea && typeof value.key === "string" && hasOptionalTimeout(value, "timeoutMs");
+      case "storage.waitString":
+        return (
+          isArea &&
+          typeof value.key === "string" &&
+          typeof value.includes === "string" &&
+          value.includes.length > 0 &&
+          hasOptionalTimeout(value, "timeoutMs")
+        );
       case "storage.remove":
         return isArea && (typeof value.keys === "string" || isStringArray(value.keys));
       case "storage.clear":
@@ -249,8 +257,8 @@ export const dispatchControlRequest = async (
     }
   };
 
-  /** @param {"local" | "session"} area @param {string} key @param {unknown} expected @param {number} timeoutMs */
-  const waitForStorage = (area, key, expected, timeoutMs) =>
+  /** @param {"local" | "session"} area @param {string} key @param {unknown} expected @param {number} timeoutMs @param {string} [includes] */
+  const waitForStorage = (area, key, expected, timeoutMs, includes) =>
     new Promise((resolve, reject) => {
       const timeout = AbortSignal.timeout(timeoutMs);
       let settled = false;
@@ -262,13 +270,18 @@ export const dispatchControlRequest = async (
         timeout.removeEventListener("abort", onTimeout);
         callback();
       };
+      /** @param {unknown} value */
+      const matches = (value) =>
+        includes === undefined
+          ? Object.is(value, expected)
+          : typeof value === "string" && value.includes(includes);
       const check = async () => {
         const stored = await storageArea(area).get(key);
-        if (Object.is(stored[key], expected)) finish(() => resolve(stored[key]));
+        if (matches(stored[key])) finish(() => resolve(stored[key]));
       };
       /** @param {Record<string, chrome.storage.StorageChange>} changes @param {string} changedArea */
       const onChanged = (changes, changedArea) => {
-        if (changedArea === area && Object.is(changes[key]?.newValue, expected)) {
+        if (changedArea === area && matches(changes[key]?.newValue)) {
           finish(() => resolve(changes[key]?.newValue));
         }
       };
@@ -606,6 +619,16 @@ export const dispatchControlRequest = async (
           request.key,
           request.expected,
           request.timeoutMs ?? 8000,
+          undefined,
+        );
+        break;
+      case "storage.waitString":
+        result = await waitForStorage(
+          request.area,
+          request.key,
+          undefined,
+          request.timeoutMs ?? 8000,
+          request.includes,
         );
         break;
       case "storage.remove":
@@ -746,6 +769,7 @@ export const controlRetryMode = (request) => {
     [
       "storage.get",
       "storage.wait",
+      "storage.waitString",
       "downloads.search",
       "downloads.wait",
       "tabs.query",
@@ -909,6 +933,18 @@ export const createE2EControlClient = ({ callFunction }) => {
         },
         (timeoutMs ?? 8000) + 2000,
       ),
+    /** @param {string} key @param {string} includes @param {number} [timeoutMs] */
+    waitString: (key, includes, timeoutMs) =>
+      call(
+        {
+          operation: "storage.waitString",
+          area: name,
+          key,
+          includes,
+          ...(timeoutMs === undefined ? {} : { timeoutMs }),
+        },
+        (timeoutMs ?? 8000) + 2000,
+      ),
     /** @param {string | string[]} keys */
     remove: (keys) => call({ operation: "storage.remove", area: name, keys }),
     clear: () => call({ operation: "storage.clear", area: name }),
@@ -928,6 +964,15 @@ export const createE2EControlClient = ({ callFunction }) => {
     acknowledgedGeneration = response.body.generation;
     return response;
   };
+
+  /** @param {Record<string, unknown>} config */
+  const applyConfig = async (config) =>
+    (
+      await call({
+        operation: "runtime.send",
+        message: { type: "APPLY_CONFIG", body: { config } },
+      })
+    ).body;
 
   return {
     call,
@@ -1050,6 +1095,15 @@ export const createE2EControlClient = ({ callFunction }) => {
         if (response.body.status === "ERROR") throw new Error(response.body.message);
         return response.body.result;
       },
+      /** @param {StartDownloadBody} body @param {Record<string, unknown>} config */
+      startDownloadConfigured: async (body, config) => {
+        const response = await call({
+          operation: "runtime.send",
+          message: { type: "SAVE_IN_E2E_START_DOWNLOAD", body: { ...body, config } },
+        });
+        if (response.body.status === "ERROR") throw new Error(response.body.message);
+        return response.body.result;
+      },
       /** @param {ContextMenuClickBody} body */
       clickContextMenu: async (body) => {
         const response = await call({
@@ -1098,14 +1152,7 @@ export const createE2EControlClient = ({ callFunction }) => {
         if (!notification) throw new Error(`Notification wait completed without ${id}`);
         return notification;
       },
-      /** @param {Record<string, unknown>} config */
-      applyConfig: async (config) =>
-        (
-          await call({
-            operation: "runtime.send",
-            message: { type: "APPLY_CONFIG", body: { config } },
-          })
-        ).body,
+      applyConfig,
     },
   };
 };

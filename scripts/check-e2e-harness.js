@@ -153,7 +153,7 @@ const budgets = [
         source,
         (call) => isAstNode(call.callee) && calledPath(call.callee) === "session.evaluate",
       ),
-    maximum: 3,
+    maximum: 0,
   },
   {
     file: "test/e2e/shared-scenarios.mjs",

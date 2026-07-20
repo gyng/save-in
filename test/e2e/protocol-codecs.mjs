@@ -91,7 +91,14 @@ export const createProtocolCodecs = () => {
           ["content", "url", "shortcutUrl", "pageUrl", "path"].every((key) =>
             hasOptionalString(body, key),
           ) &&
-          (body.modifiers === undefined || isStringArray(body.modifiers))
+          (body.modifiers === undefined || isStringArray(body.modifiers)) &&
+          (body.config === undefined || isRecord(body.config)) &&
+          (body.expectedGeneration === undefined ||
+            (isRecord(body.expectedGeneration) &&
+              typeof body.expectedGeneration.instanceId === "string" &&
+              typeof body.expectedGeneration.generation === "number" &&
+              Number.isSafeInteger(body.expectedGeneration.generation) &&
+              body.expectedGeneration.generation > 0))
         );
       }
       case "SAVE_IN_E2E_CONTEXT_MENU_CLICK":
@@ -215,6 +222,8 @@ export const createProtocolCodecs = () => {
   const isApplyConfigBody = (value) =>
     isRecord(value) &&
     typeof value.version === "number" &&
+    typeof value.instanceId === "string" &&
+    typeof value.generation === "number" &&
     isRecord(value.applied) &&
     isArrayOf(
       value.rejected,
@@ -286,7 +295,11 @@ export const createProtocolCodecs = () => {
           value.type === message.type &&
           isRecord(value.body) &&
           isCommandStatus(value.body) &&
-          (value.body.status !== "OK" || isDownloadLaunchResult(value.body.result))
+          (value.body.status !== "OK" || isDownloadLaunchResult(value.body.result)) &&
+          (value.body.code === undefined ||
+            (value.body.code === "STALE_GENERATION" &&
+              typeof value.body.instanceId === "string" &&
+              typeof value.body.generation === "number"))
         );
       case "SAVE_IN_E2E_CONTEXT_MENU_CLICK":
       case "SAVE_IN_E2E_TAB_MENU_CLICK":

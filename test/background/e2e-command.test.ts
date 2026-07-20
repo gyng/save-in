@@ -76,6 +76,45 @@ test("starts one pipeline download without registering a duplicate expectation",
   expect(expectDownload).not.toHaveBeenCalled();
 });
 
+test("rejects a stale download generation before launching", async () => {
+  const launch = vi.spyOn(Download, "launchDownload");
+  launch.mockClear();
+  const previous = {
+    instanceId: backgroundRuntime.instanceId,
+    readyGeneration: backgroundRuntime.readyGeneration,
+    ready: backgroundRuntime.ready,
+  };
+  backgroundRuntime.instanceId = "current-background";
+  backgroundRuntime.readyGeneration = 9;
+  backgroundRuntime.ready = Promise.resolve();
+
+  try {
+    await expect(
+      handleBackgroundE2ECommand({
+        type: BACKGROUND_E2E_COMMAND,
+        body: {
+          content: "browser test",
+          suggestedFilename: "bridge.txt",
+          expectedGeneration: { instanceId: "stale-background", generation: 8 },
+        },
+      }),
+    ).resolves.toMatchObject({
+      body: {
+        status: "ERROR",
+        code: "STALE_GENERATION",
+        instanceId: "current-background",
+        generation: 9,
+      },
+    });
+    expect(launch).not.toHaveBeenCalled();
+  } finally {
+    backgroundRuntime.instanceId = previous.instanceId;
+    backgroundRuntime.readyGeneration = previous.readyGeneration;
+    if (previous.ready) backgroundRuntime.ready = previous.ready;
+    else delete backgroundRuntime.ready;
+  }
+});
+
 test("ignores messages outside the e2e command protocol", async () => {
   await expect(handleBackgroundE2ECommand({ type: "WAKE_WARM" })).resolves.toBeNull();
 });

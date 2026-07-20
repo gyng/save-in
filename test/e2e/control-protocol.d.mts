@@ -70,6 +70,8 @@ export interface StartDownloadBody {
   pageUrl?: string;
   path?: string;
   modifiers?: string[];
+  config?: Record<string, unknown>;
+  expectedGeneration?: { instanceId: string; generation: number };
 }
 
 export type DownloadLaunchResult =
@@ -158,7 +160,16 @@ export type HistoryWriteRequest = Extract<RuntimeMessage, { type: "SAVE_IN_E2E_H
 
 export type StartDownloadResponse = {
   type: "SAVE_IN_E2E_START_DOWNLOAD";
-  body: { status: "OK"; result: DownloadLaunchResult } | { status: "ERROR"; message: string };
+  body:
+    | { status: "OK"; result: DownloadLaunchResult }
+    | { status: "ERROR"; message: string; code?: undefined }
+    | {
+        status: "ERROR";
+        code: "STALE_GENERATION";
+        message: string;
+        instanceId: string;
+        generation: number;
+      };
 };
 export type ContextMenuClickResponse = {
   type: "SAVE_IN_E2E_CONTEXT_MENU_CLICK";
@@ -189,6 +200,8 @@ export type ApplyConfigResponse = {
   type: "APPLY_CONFIG_RESULT";
   body: {
     version: number;
+    instanceId: string;
+    generation: number;
     applied: Record<string, unknown>;
     rejected: Array<{ name: string; reason: string }>;
   };
@@ -337,6 +350,13 @@ export type ControlRequest =
       expected: unknown;
       timeoutMs?: number;
     }
+  | {
+      operation: "storage.waitString";
+      area: StorageAreaName;
+      key: string;
+      includes: string;
+      timeoutMs?: number;
+    }
   | { operation: "storage.remove"; area: StorageAreaName; keys: string | string[] }
   | { operation: "storage.clear"; area: StorageAreaName }
   | { operation: "downloads.search"; query?: chrome.downloads.DownloadQuery }
@@ -397,6 +417,7 @@ export interface ControlResultMap {
   "storage.get": StorageRecord;
   "storage.set": true;
   "storage.wait": unknown;
+  "storage.waitString": string;
   "storage.remove": true;
   "storage.clear": true;
   "downloads.search": DownloadEntry[];

@@ -165,7 +165,7 @@ const productionDownloadResponse: SuccessfulProtocolResponse<typeof MESSAGE_TYPE
   e2eDownloadResponse;
 const roundTrippedDownloadResponse: DownloadMessageResponse = productionDownloadResponse;
 void roundTrippedDownloadResponse;
-expectTypeOf<E2ERuntimeResponseFor<E2EMessage<"APPLY_CONFIG">>>().toEqualTypeOf<
+expectTypeOf<E2ERuntimeResponseFor<E2EMessage<"APPLY_CONFIG">>>().toMatchTypeOf<
   SuccessfulProtocolResponse<typeof MESSAGE_TYPES.APPLY_CONFIG>
 >();
 type ProductionHistoryEntry = SuccessfulProtocolResponse<

@@ -131,7 +131,7 @@ export const applyConfigSerialized = (
   storage: ConfigStorage,
   config: Record<string, unknown>,
   expected: Record<string, unknown> | undefined,
-  reset: () => Promise<unknown>,
+  reset: (applied: Record<string, unknown>) => Promise<unknown>,
 ): Promise<ConfigApplyResult> => {
   const task = state.queue
     .catch(() => {})
@@ -150,7 +150,7 @@ export const applyConfigSerialized = (
       }
       if (names.length) {
         await storage.set(applied);
-        await reset();
+        await reset(applied);
       }
       return { applied, rejected };
     });

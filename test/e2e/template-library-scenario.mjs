@@ -29,15 +29,6 @@ export const runTemplateLibraryScenario = async ({
   const previous = await control.storage.local.get("filenamePatterns");
 
   try {
-    await evaluateOptions(`(() => {
-      document.querySelector("#tab-section-dynamic-downloads")?.click();
-      document.querySelector("#rules-mode-text")?.click();
-      const rules = document.querySelector("#filenamePatterns");
-      if (!(rules instanceof HTMLTextAreaElement)) return false;
-      rules.focus();
-      document.querySelector('[data-reference-tab="options-reference-templates"]')?.click();
-      return true;
-    })()`);
     await evaluateOptions(`new Promise((resolve, reject) => {
           const dialog = document.querySelector("#reference-dialog");
           const library = document.querySelector("#rule-templates");
@@ -56,8 +47,19 @@ export const runTemplateLibraryScenario = async ({
           let appliedValue;
           let storedValue;
           let observer;
+          let checkFrame;
+          let navigationRequested = false;
+          let dialogRequested = false;
+          const scheduleCheck = () => {
+            if (checkFrame !== undefined) return;
+            checkFrame = requestAnimationFrame(() => {
+              checkFrame = undefined;
+              check();
+            });
+          };
           const finish = (callback) => {
             observer?.disconnect();
+            if (checkFrame !== undefined) cancelAnimationFrame(checkFrame);
             timeout.removeEventListener("abort", onTimeout);
             browser.storage.onChanged.removeListener(onStorage);
             rules.removeEventListener("options-value-applied", onApplied);
@@ -69,7 +71,7 @@ export const runTemplateLibraryScenario = async ({
             value.includes(${JSON.stringify(PDF_TEMPLATE_DESTINATION)});
           const finishWhenSaved = () => {
             if (matchesTemplate(appliedValue) && matchesTemplate(storedValue)) {
-              finish(() => resolve(storedValue));
+              finish(() => resolve(true));
             }
           };
           const onApplied = (event) => {
@@ -84,14 +86,22 @@ export const runTemplateLibraryScenario = async ({
           };
           const check = () => {
             if (document.documentElement.classList.contains("localization-pending")) return;
-            // The setup's section and text-mode clicks are fire-and-forget, and a
-            // re-render can put the editor back into Visual mode, which hides the
-            // panel holding this textarea. Re-assert them instead of returning:
-            // every later pass reads this panel, so giving up here just waits out
-            // the timeout with nothing clicked.
             if (rules.closest(".tab-panel")?.hidden) {
-              document.querySelector("#tab-section-dynamic-downloads")?.click();
-              document.querySelector("#rules-mode-text")?.click();
+              if (!navigationRequested) {
+                navigationRequested = true;
+                document.querySelector("#tab-section-dynamic-downloads")?.click();
+                scheduleCheck();
+              }
+              return;
+            }
+            if (!added && !dialog.open) {
+              if (!dialogRequested) {
+                dialogRequested = true;
+                document
+                  .querySelector('[data-reference-tab="options-reference-templates"]')
+                  ?.click();
+                scheduleCheck();
+              }
               return;
             }
             const template = [...library.querySelectorAll(".rule-template")].find((candidate) =>
@@ -100,9 +110,11 @@ export const runTemplateLibraryScenario = async ({
               ),
             );
             const add = template?.querySelector(".rule-template-add");
+            added = added || matchesTemplate(rules.value);
             if (!added && add instanceof HTMLButtonElement && !add.disabled) {
-              added = true;
               add.click();
+              added = matchesTemplate(rules.value);
+              if (!added) scheduleCheck();
             }
             if (added && dialog.open) {
               const view = dialog.querySelector(".template-feedback button");
@@ -139,18 +151,28 @@ export const runTemplateLibraryScenario = async ({
             rules: rules.value,
           }))));
           observer = new MutationObserver(check);
-          observer.observe(document.body, {
+          observer.observe(document.documentElement, {
             attributes: true,
             childList: true,
             subtree: true,
-            attributeFilter: ["class", "disabled", "hidden", "value"],
+            attributeFilter: ["class", "disabled", "hidden", "open", "value"],
           });
           timeout.addEventListener("abort", onTimeout, { once: true });
           browser.storage.onChanged.addListener(onStorage);
           rules.addEventListener("options-value-applied", onApplied);
           check();
         })`);
-    await control.runtime.reset();
+    const savedRules = await control.storage.local.waitString(
+      "filenamePatterns",
+      PDF_TEMPLATE_MATCHER,
+    );
+    if (
+      typeof savedRules !== "string" ||
+      !savedRules.includes(PDF_TEMPLATE_MATCHER) ||
+      !savedRules.includes(PDF_TEMPLATE_DESTINATION)
+    ) {
+      throw new Error("The saved template rules could not be read back from Options");
+    }
 
     const body = Buffer.from(content);
     const server = http.createServer((_request, response) => {
@@ -162,11 +184,14 @@ export const runTemplateLibraryScenario = async ({
     });
     const port = await listenLocal(server);
     try {
-      await control.background.startDownload({
-        url: `http://127.0.0.1:${port}/${filename}`,
-        suggestedFilename: filename,
-        pageUrl: `http://127.0.0.1:${port}/`,
-      });
+      await control.background.startDownloadConfigured(
+        {
+          url: `http://127.0.0.1:${port}/${filename}`,
+          suggestedFilename: filename,
+          pageUrl: `http://127.0.0.1:${port}/`,
+        },
+        { filenamePatterns: savedRules },
+      );
       const downloads = await waitForDownloads(filename);
       const completed = requireValue(
         downloads.find((entry) => entry.state === "complete"),

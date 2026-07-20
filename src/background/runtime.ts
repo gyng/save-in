@@ -15,7 +15,7 @@ export type BackgroundRuntime = {
   lastDownloadState?: DownloadPipelineState | null;
   debug: boolean;
   init: () => Promise<unknown>;
-  reset: () => Promise<number>;
+  reset: (overrides?: Record<string, unknown>) => Promise<number>;
 };
 
 export const createBackgroundRuntime = (): BackgroundRuntime => ({

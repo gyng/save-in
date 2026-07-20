@@ -270,6 +270,8 @@ export type InternalResponseMap = {
     typeof MESSAGE_TYPES.APPLY_CONFIG_RESULT,
     {
       version: number;
+      instanceId?: string;
+      generation?: number;
       applied: Record<string, unknown>;
       rejected: Array<{ name: string; reason: string }>;
     }

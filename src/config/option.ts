@@ -27,7 +27,7 @@ export interface OptionsManagementApi {
     name: Name,
     value: SaveInOptions[Name] | undefined,
   ): void;
-  loadOptions(): Promise<SaveInOptions>;
+  loadOptions(overrides?: Record<string, unknown>): Promise<SaveInOptions>;
 }
 
 export const OptionsManagement: OptionsManagementApi = {
@@ -165,7 +165,7 @@ export const OptionsManagement: OptionsManagementApi = {
     }
   },
 
-  loadOptions: () =>
+  loadOptions: (overrides = {}) =>
     webExtensionApi.storage.local
       .get([...OptionsManagement.getKeys(), PATH_TRUNCATION_MIGRATION_STORAGE_KEY])
       .then((loadedOptions) => {
@@ -173,6 +173,7 @@ export const OptionsManagement: OptionsManagementApi = {
           loadedOptions && typeof loadedOptions === "object" && !Array.isArray(loadedOptions)
             ? loadedOptions
             : {};
+        const effectiveOptions = { ...storedOptions, ...overrides };
         const callHook = (hook: unknown, value: unknown): unknown =>
           typeof hook === "function" ? Reflect.apply(hook, undefined, [value]) : value;
         const normalizeOption = (
@@ -209,29 +210,29 @@ export const OptionsManagement: OptionsManagementApi = {
         const nextOptions = Object.fromEntries(
           OptionsManagement.OPTION_KEYS.map((optionType) => [
             optionType.name,
-            normalizeOption(optionType, storedOptions[optionType.name]),
+            normalizeOption(optionType, effectiveOptions[optionType.name]),
           ]),
         ) as SaveInOptions;
-        const shouldMigrateExclusive = storedOptions.routeExclusive === true;
+        const shouldMigrateExclusive = effectiveOptions.routeExclusive === true;
         if (shouldMigrateExclusive) {
           nextOptions.routeExclusive = false;
-          if (typeof storedOptions.routeHideFolderChoices !== "boolean") {
+          if (typeof effectiveOptions.routeHideFolderChoices !== "boolean") {
             nextOptions.routeHideFolderChoices = true;
           }
-          if (typeof storedOptions.routeSkipUnmatched !== "boolean") {
+          if (typeof effectiveOptions.routeSkipUnmatched !== "boolean") {
             nextOptions.routeSkipUnmatched = true;
           }
         }
         const legacyAutomaticSource =
-          typeof storedOptions.autoDownloadRules === "string"
-            ? storedOptions.autoDownloadRules.trim()
+          typeof effectiveOptions.autoDownloadRules === "string"
+            ? effectiveOptions.autoDownloadRules.trim()
             : "";
         const migratedAutomatic = legacyAutomaticSource
           ? migrateLegacyAutoDownloadRules(legacyAutomaticSource)
           : { routingSource: "", errors: [] };
         const existingRoutingSource =
-          typeof storedOptions.filenamePatterns === "string"
-            ? storedOptions.filenamePatterns.trim()
+          typeof effectiveOptions.filenamePatterns === "string"
+            ? effectiveOptions.filenamePatterns.trim()
             : "";
         const migratedRoutingSource = [existingRoutingSource, migratedAutomatic.routingSource]
           .filter(Boolean)

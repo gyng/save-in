@@ -708,7 +708,13 @@ describe("config API", () => {
     await waitForCall(sendResponse);
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.APPLY_CONFIG_RESULT,
-      body: { version: 1, applied: {}, rejected: [] },
+      body: expect.objectContaining({
+        version: 1,
+        instanceId: expect.any(String),
+        generation: expect.any(Number),
+        applied: {},
+        rejected: [],
+      }),
     });
   });
 

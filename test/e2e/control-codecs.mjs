@@ -101,6 +101,9 @@ export const decodeControlResult = (request, value) => {
     case "storage.wait":
       valid = true;
       break;
+    case "storage.waitString":
+      valid = typeof value === "string";
+      break;
     case "downloads.search":
     case "downloads.wait":
       return /** @type {import("./control-protocol.mjs").ControlResult<Request>} */ (

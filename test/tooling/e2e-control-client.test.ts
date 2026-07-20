@@ -105,6 +105,44 @@ describe("structured E2E control client", () => {
     });
   });
 
+  test("keeps configured setup and a one-shot command in one control request", async () => {
+    const requests: Array<Record<string, unknown>> = [];
+    const client = createE2EControlClient({
+      callFunction: async (_declaration, args) => {
+        const request = (args?.[0] as { request?: Record<string, unknown> } | undefined)?.request;
+        if (!request) throw new Error("missing request");
+        requests.push(request);
+        return JSON.stringify({
+          ok: true,
+          value: {
+            type: "SAVE_IN_E2E_START_DOWNLOAD",
+            body: { status: "OK", result: { status: "skipped" } },
+          },
+        });
+      },
+    });
+
+    await expect(
+      client.background.startDownloadConfigured(
+        { content: "pdf", suggestedFilename: "report.pdf" },
+        { filenamePatterns: "mime: pdf" },
+      ),
+    ).resolves.toEqual({ status: "skipped" });
+    expect(requests).toEqual([
+      {
+        operation: "runtime.send",
+        message: {
+          type: "SAVE_IN_E2E_START_DOWNLOAD",
+          body: {
+            content: "pdf",
+            suggestedFilename: "report.pdf",
+            config: { filenamePatterns: "mime: pdf" },
+          },
+        },
+      },
+    ]);
+  });
+
   test("sends event-driven wait criteria through the structured protocol", async () => {
     const requests: unknown[] = [];
     const client = createE2EControlClient({
@@ -114,23 +152,34 @@ describe("structured E2E control client", () => {
         return JSON.stringify({
           ok: true,
           value:
-            request?.operation === "runtime.send"
-              ? {
-                  type: "SAVE_IN_E2E_NOTIFICATION_CALLS",
-                  body: { status: "OK", calls: [{ id: "7", message: "saved" }] },
-                }
-              : [],
+            request?.operation === "storage.waitString"
+              ? "mime: ^application/pdf$\ninto: documents/:filename:"
+              : request?.operation === "runtime.send"
+                ? {
+                    type: "SAVE_IN_E2E_NOTIFICATION_CALLS",
+                    body: { status: "OK", calls: [{ id: "7", message: "saved" }] },
+                  }
+                : [],
         });
       },
     });
 
     await client.downloads.wait({ filenameIncludes: "automatic", minimumComplete: 2 });
     await client.history.wait({ status: "complete", context: "browser" });
+    await expect(
+      client.storage.local.waitString("filenamePatterns", "application/pdf"),
+    ).resolves.toContain("documents/:filename:");
     await expect(client.background.waitForNotification("7")).resolves.toMatchObject({ id: "7" });
 
     expect(requests).toEqual([
       { operation: "downloads.wait", filenameIncludes: "automatic", minimumComplete: 2 },
       { operation: "history.wait", status: "complete", context: "browser" },
+      {
+        operation: "storage.waitString",
+        area: "local",
+        key: "filenamePatterns",
+        includes: "application/pdf",
+      },
       {
         operation: "runtime.send",
         message: {
@@ -250,6 +299,19 @@ describe("structured E2E control client", () => {
         message: { type: "SAVE_IN_E2E_NOTIFICATION_CALLS", body: { action: "reset" } },
       }),
     ).toBe("idempotent");
+    expect(
+      controlRetryMode({
+        operation: "runtime.send",
+        message: {
+          type: "SAVE_IN_E2E_START_DOWNLOAD",
+          body: {
+            content: "pdf",
+            suggestedFilename: "report.pdf",
+            config: { filenamePatterns: "mime: pdf" },
+          },
+        },
+      }),
+    ).toBe("one-shot");
   });
 
   test("latches a failed control-page recreation for the rest of the suite", async () => {

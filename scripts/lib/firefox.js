@@ -403,6 +403,36 @@ const launch = async ({ extensionDir = ROOT } = {}) => {
         }`,
       );
       await waitForBackgroundReady("test/e2e/control.html", previousInstance);
+      await reloadExtensionPage("src/options/options.html");
+    };
+
+    /** @param {string} resource */
+    const reloadExtensionPage = async (resource) => {
+      if (!backgroundControlRealm) throw new Error("Firefox control realm was not initialized");
+      const staleConsole = await connectedRdp.getTabConsoleActor(resource).catch(() => undefined);
+      await backgroundControlRealm.callFunction(
+        `async function (serializedResource) {
+          const resource = JSON.parse(serializedResource);
+          const url = browser.runtime.getURL(resource);
+          const existing = (await browser.tabs.query({})).find((tab) => tab.url === url);
+          if (existing?.id) await browser.tabs.reload(existing.id);
+          else await browser.tabs.create({ url });
+          return "extension page refreshed";
+        }`,
+        [resource],
+      );
+      if (staleConsole) {
+        try {
+          await connectedRdp.refreshTabConsoleActor(resource, staleConsole);
+        } catch {
+          connectedRdp.close();
+          connectedRdp = await connectWithRetry(port);
+          const refreshedAddon = await connectedRdp.findAddonActor(ADDON_ID);
+          consoleActor = await connectedRdp.getConsoleActor(refreshedAddon);
+          await connectedRdp.getTabConsoleActor(resource);
+        }
+      }
+      await waitForBackgroundReady(resource);
     };
 
     const cleanup = async () => {
@@ -419,6 +449,7 @@ const launch = async ({ extensionDir = ROOT } = {}) => {
       },
       evaluate,
       evaluateInTab,
+      reloadExtensionPage,
       ensureExtensionPage,
       reloadAddon,
       reloadBackgroundPage,
