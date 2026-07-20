@@ -1275,6 +1275,28 @@ describe("Page Sources panel interactions", () => {
     ).toContain("http://localhost/new-64.jpg");
   });
 
+  test("falls back to one full scan for a large removal burst", async () => {
+    vi.useFakeTimers();
+    document.body.innerHTML = Array.from(
+      { length: 65 },
+      (_, index) => `<img src="source-${index}.jpg">`,
+    ).join("");
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: true });
+    const documentQueries = vi.spyOn(document, "querySelectorAll");
+
+    document.querySelectorAll("img").forEach((image) => image.remove());
+    documentQueries.mockClear();
+    await Promise.resolve();
+    vi.advanceTimersByTime(200);
+
+    expect(documentQueries.mock.calls.map(([selector]) => selector)).toEqual([
+      "img",
+      "video, audio",
+      "a[href]",
+    ]);
+    expect(getSourcePanelHostForTesting()!.shadowRoot!.querySelectorAll(".row")).toHaveLength(0);
+  });
+
   test("contains live mutations whose target is not an element", () => {
     let mutationCallback: MutationCallback | undefined;
     class StubMutationObserver {
@@ -2237,6 +2259,32 @@ describe("Page Sources panel interactions", () => {
 
     expect(sendDownload).not.toHaveBeenCalled();
     expect(dialog.close).toHaveBeenCalledTimes(2);
+  });
+
+  test("cancels a pending large-batch confirmation when the panel closes", async () => {
+    vi.useFakeTimers();
+    document.body.innerHTML = Array.from(
+      { length: 21 },
+      (_, index) => `<img src="image-${index}.jpg">`,
+    ).join("");
+    const sendDownload = vi.fn();
+    toggleSourcePanel(sendDownload, { includeBackgrounds: false, live: false });
+    const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
+    [...shadow.querySelectorAll<HTMLButtonElement>(".selection-bar button")]
+      .find(({ textContent }) => textContent === "Select filtered")!
+      .click();
+    shadow.querySelector<HTMLButtonElement>(".batch-save")!.click();
+    const proceed = [...shadow.querySelectorAll<HTMLButtonElement>(".batch-dialog button")].find(
+      ({ textContent }) => textContent === "Save sources",
+    )!;
+
+    shadow.querySelector<HTMLButtonElement>(".close")!.click();
+    vi.advanceTimersByTime(90);
+    await Promise.resolve();
+    proceed.click();
+
+    expect(sendDownload).not.toHaveBeenCalled();
+    expect(shadow.querySelector(".batch-dialog")?.hasAttribute("open")).toBe(false);
   });
 
   test("handles empty, thrown, cleared, and vanished batch selections", async () => {

@@ -196,24 +196,26 @@ export const wirePanelRefresh = (ctx: SourcePanelContext): void => {
   const pendingRoots = new Set<Element>();
   const removedRoots = new Set<Element>();
   let fullRefreshPending = false;
-  const queueRoot = (root: Element) => {
+  const queueBoundedRoot = (roots: Set<Element>, root: Element) => {
     if (fullRefreshPending) return;
-    for (const pending of pendingRoots) {
+    for (const pending of roots) {
       if (pending === root || pending.contains(root)) return;
-      if (root.contains(pending)) pendingRoots.delete(pending);
+      if (root.contains(pending)) roots.delete(pending);
     }
     // Each incremental reconciliation filters the complete candidate arrays.
     // Past this point one full scan is cheaper than a large burst multiplied
     // by a large source list, and it avoids retaining every changed subtree
     // until the debounce flushes.
-    if (pendingRoots.size >= INCREMENTAL_ROOT_LIMIT) {
+    if (roots.size >= INCREMENTAL_ROOT_LIMIT) {
       fullRefreshPending = true;
       pendingRoots.clear();
       removedRoots.clear();
       return;
     }
-    pendingRoots.add(root);
+    roots.add(root);
   };
+  const queueRoot = (root: Element) => queueBoundedRoot(pendingRoots, root);
+  const queueRemovedRoot = (root: Element) => queueBoundedRoot(removedRoots, root);
   const flushRefresh = () => {
     window.clearTimeout(refreshTimer);
     window.clearTimeout(refreshMaxWaitTimer);
@@ -297,7 +299,7 @@ export const wirePanelRefresh = (ctx: SourcePanelContext): void => {
         return;
       }
       mutation.removedNodes.forEach((node) => {
-        if (node instanceof Element) removedRoots.add(node);
+        if (node instanceof Element) queueRemovedRoot(node);
       });
       mutation.addedNodes.forEach((node) => {
         if (node instanceof Element) queueRoot(node);

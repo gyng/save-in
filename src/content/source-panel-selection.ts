@@ -90,6 +90,7 @@ export const wirePanelSelection = (ctx: SourcePanelContext): void => {
     visited: Set<string>;
   };
   let selectionPaint: SelectionPaint | null = null;
+  let cancelBatchConfirmation: (() => void) | undefined;
   const clearSelectionPaint = () => {
     const origin = selectionPaint?.origin;
     selectionPaint = null;
@@ -160,6 +161,8 @@ export const wirePanelSelection = (ctx: SourcePanelContext): void => {
     );
     return new Promise((resolve) => {
       function finish(accepted: boolean) {
+        if (cancelBatchConfirmation !== cancel) return;
+        cancelBatchConfirmation = undefined;
         cancelBatch.removeEventListener("click", cancel);
         continueBatch.removeEventListener("click", proceed);
         batchDialog.removeEventListener("cancel", cancel);
@@ -173,6 +176,7 @@ export const wirePanelSelection = (ctx: SourcePanelContext): void => {
       function proceed() {
         finish(true);
       }
+      cancelBatchConfirmation = cancel;
       cancelBatch.addEventListener("click", cancel);
       continueBatch.addEventListener("click", proceed);
       batchDialog.addEventListener("cancel", cancel);
@@ -236,5 +240,8 @@ export const wirePanelSelection = (ctx: SourcePanelContext): void => {
   ctx.startSelectionPaint = startSelectionPaint;
   ctx.updateSelectionUi = updateSelectionUi;
   ctx.updateAllSelectionRows = updateAllSelectionRows;
-  ctx.cleanupTasks.push(clearSelectionPaint);
+  ctx.cleanupTasks.push(() => {
+    clearSelectionPaint();
+    cancelBatchConfirmation?.();
+  });
 };
