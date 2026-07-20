@@ -67,7 +67,10 @@ const storageSnapshot = async (keys: string[] | null): Promise<Record<string, un
 const rootStorageSnapshot = (): Promise<Record<string, unknown>> =>
   storageSnapshot([HISTORY_INDEX_STORAGE_KEY, HISTORY_STORAGE_KEY]);
 
-const readShardedHistory = async (index: HistoryIndex): Promise<HistoryEntry[]> => {
+const readShardedHistory = async (
+  index: HistoryIndex,
+  onlyId?: string,
+): Promise<HistoryEntry[]> => {
   if (index.length === 0) return [];
   const chunkKeys = Array.from({ length: index.nextChunk - index.firstChunk }, (_, offset) =>
     historyIndexChunkStorageKey(index.firstChunk + offset),
@@ -81,7 +84,10 @@ const readShardedHistory = async (index: HistoryIndex): Promise<HistoryEntry[]> 
         : [];
     })
     .slice(-index.length);
-  const entryKeys = locators.map(historyEntryStorageKey);
+  const selectedLocators =
+    onlyId === undefined ? locators : locators.includes(onlyId) ? [onlyId] : [];
+  if (selectedLocators.length === 0) return [];
+  const entryKeys = selectedLocators.map(historyEntryStorageKey);
   const stored = await storageSnapshot(entryKeys);
   const history: HistoryEntry[] = [];
   for (const entryKey of entryKeys) {
@@ -329,7 +335,7 @@ export const anchorHistoryDownloadStartTime = (
       : {},
   );
 
-export const getHistoryEntries = (): Promise<HistoryEntry[]> => {
+export const getHistoryEntries = (onlyId?: string): Promise<HistoryEntry[]> => {
   // Queue the read itself, not just the wait before it: an add accepted while
   // a legacy read was in flight must land after that migration, or the stale
   // migration snapshot could replace the newly appended index.
@@ -345,7 +351,7 @@ export const getHistoryEntries = (): Promise<HistoryEntry[]> => {
     const index = normalizeHistoryIndex(snapshot[HISTORY_INDEX_STORAGE_KEY]);
     if (index) {
       try {
-        return await readShardedHistory(index);
+        return await readShardedHistory(index, onlyId);
       } catch (error) {
         recordHistoryFailure("read", error);
         throw error;
@@ -361,7 +367,7 @@ export const getHistoryEntries = (): Promise<HistoryEntry[]> => {
         recordHistoryFailure("migrate", error);
       }
     }
-    return history;
+    return onlyId === undefined ? history : history.filter(({ id }) => id === onlyId);
   });
   writeQueue = task.then(
     () => undefined,

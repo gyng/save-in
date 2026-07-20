@@ -153,7 +153,7 @@ const internalHandlers = {
       await OffscreenClient.cancel(active.requestId).catch(() => {});
     }
     const entry = historyId
-      ? (await getHistoryEntries()).find((candidate) => candidate.id === historyId)
+      ? (await getHistoryEntries(historyId)).find((candidate) => candidate.id === historyId)
       : undefined;
     // A stored id outlives the session that issued it, and Firefox reassigns
     // download ids per session, so a row a restart left pending can name a
@@ -195,7 +195,9 @@ const internalHandlers = {
   },
   [MESSAGE_TYPES.HISTORY_UNDO]: async (request, _sender, sendResponse) => {
     const { historyId } = request.body;
-    const entry = (await getHistoryEntries()).find((candidate) => candidate.id === historyId);
+    const entry = (await getHistoryEntries(historyId)).find(
+      (candidate) => candidate.id === historyId,
+    );
     const downloadId = entry?.downloadId;
     if (entry === undefined || downloadId == null) {
       // Stale UI: the entry vanished or predates download-id tracking.
@@ -219,7 +221,9 @@ const internalHandlers = {
         type: MESSAGE_TYPES.HISTORY_REROUTE,
         body: { rerouted: false, oldRemoved: false },
       });
-    const entry = (await getHistoryEntries()).find((candidate) => candidate.id === historyId);
+    const entry = (await getHistoryEntries(historyId)).find(
+      (candidate) => candidate.id === historyId,
+    );
     if (entry === undefined || !isReroutableHistoryEntry(entry)) {
       refuse();
       return;

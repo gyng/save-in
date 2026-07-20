@@ -70,6 +70,31 @@ describe("SaveHistory", () => {
     });
   });
 
+  test("reads one sharded entry without loading unrelated entry records", async () => {
+    const first = SaveHistory.addHistoryEntry({ url: "https://a/1" });
+    const second = SaveHistory.addHistoryEntry({ url: "https://a/2" });
+    await flushWrites();
+    vi.mocked(global.browser.storage.local.get).mockClear();
+
+    await expect(SaveHistory.getHistoryEntries(second ?? undefined)).resolves.toEqual([
+      expect.objectContaining({ id: second, url: "https://a/2" }),
+    ]);
+
+    expect(global.browser.storage.local.get).toHaveBeenNthCalledWith(1, [
+      HISTORY_INDEX_STORAGE_KEY,
+      HISTORY_KEY,
+    ]);
+    expect(global.browser.storage.local.get).toHaveBeenNthCalledWith(2, [
+      `${HISTORY_INDEX_CHUNK_STORAGE_PREFIX}0`,
+    ]);
+    expect(global.browser.storage.local.get).toHaveBeenNthCalledWith(3, [
+      `${HISTORY_ENTRY_STORAGE_PREFIX}${second}`,
+    ]);
+    expect(global.browser.storage.local.get).not.toHaveBeenCalledWith([
+      `${HISTORY_ENTRY_STORAGE_PREFIX}${first}`,
+    ]);
+  });
+
   test("does not persist entries from private browsing contexts", async () => {
     const id = SaveHistory.addHistoryEntry(
       { url: "https://private.example/secret.png" },
@@ -271,6 +296,18 @@ describe("SaveHistory", () => {
   test("get returns the entry list", async () => {
     store[HISTORY_KEY] = [{ url: "https://a/1" }];
     await expect(SaveHistory.getHistoryEntries()).resolves.toEqual([{ url: "https://a/1" }]);
+  });
+
+  test("finds one legacy entry while migrating the monolithic store", async () => {
+    store[HISTORY_KEY] = [
+      { id: "first", url: "https://a/1" },
+      { id: "second", url: "https://a/2" },
+    ];
+
+    await expect(SaveHistory.getHistoryEntries("second")).resolves.toEqual([
+      { id: "second", url: "https://a/2" },
+    ]);
+    expect(store[HISTORY_INDEX_STORAGE_KEY]).toMatchObject({ length: 2 });
   });
 
   test("normalizes extended diagnostic metadata", async () => {
