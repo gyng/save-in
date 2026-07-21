@@ -263,6 +263,20 @@ export const mergeDownload = (
   });
 };
 
+export const removeDownload = (
+  state: DownloadsState,
+  sessionWrites: SessionWriteState,
+  storage: StorageWriter | undefined,
+  downloadId: number,
+) => {
+  state.records.delete(downloadId);
+  return updateSession<unknown>(sessionWrites, storage, DOWNLOADS_SESSION_KEY, (stored) => {
+    const records = normalizeDownloadRecords(stored);
+    delete records[downloadId];
+    return preserveDownloadStorageShape(stored, records);
+  });
+};
+
 export const getDownload = (
   state: DownloadsState,
   storage: StorageReader | undefined,

@@ -20,7 +20,7 @@ import {
 import { addLogEntry } from "./log.ts";
 import { backgroundRuntime } from "./runtime.ts";
 import { counterWriteState } from "./application-state.ts";
-import { setLastUsed, updateLastUsedMenu } from "./menu-build.ts";
+import { getLastUsed, setLastUsed, updateLastUsedMenu } from "./menu-build.ts";
 import { Path } from "../routing/path.ts";
 
 export const configureBackgroundPorts = () => {
@@ -39,6 +39,7 @@ export const configureBackgroundPorts = () => {
     sourceSidecar: launchSourceSidecar,
     updateBrowserLastUsed: async (path) => {
       if (!new Path(path).validate().valid) return false;
+      if (getLastUsed().path === path) return true;
       const meta = { title: path };
       await setLastUsed(path, meta);
       if (options.enableLastLocation) await updateLastUsedMenu();

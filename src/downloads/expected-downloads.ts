@@ -8,7 +8,7 @@
 // is kept dependency-free of those two files — neither has to import the other
 // to reach this one (the import graph must stay acyclic).
 import { downloadsState, sessionWriteState } from "./download-state-instances.ts";
-import { getDownload, mergeDownload } from "./download-state.ts";
+import { getDownload, mergeDownload, removeDownload } from "./download-state.ts";
 import type { DownloadRecord, DownloadRecordUpdate } from "./download-state.ts";
 import { extensionSessionStorage } from "../platform/storage-areas.ts";
 
@@ -31,6 +31,9 @@ export const mergeTrackedDownload = (downloadId: number, partial: DownloadRecord
 
 export const getTrackedDownload = (downloadId: number) =>
   getDownload(downloadsState, extensionSessionStorage, downloadId);
+
+export const removeTrackedDownload = (downloadId: number) =>
+  removeDownload(downloadsState, sessionWriteState, extensionSessionStorage, downloadId);
 
 // Call before webExtensionApi.downloads.download() so onDownloadCreated knows
 // the next created download is ours

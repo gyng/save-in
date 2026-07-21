@@ -198,7 +198,7 @@ describe("download lifecycle notifications", () => {
     await onChanged({ id: 44, state: { current: "complete", previous: "in_progress" } });
 
     expect(SaveHistory.setHistoryStatus).toHaveBeenCalledWith("h-browser", "complete", 44, 2048);
-    expect(sessionStore.siDownloads[44]!.observedBrowserDownload).toBe(false);
+    expect(sessionStore.siDownloads?.[44]).toBeUndefined();
     expect(retryHolder.retry).not.toHaveBeenCalled();
     expect(global.browser.notifications.create).not.toHaveBeenCalled();
   });
@@ -227,6 +227,34 @@ describe("download lifecycle notifications", () => {
 
     expect(browserLastUsedHolder.update).toHaveBeenCalledWith("Work");
     expect(await SaveHistory.getHistoryEntries()).toEqual([]);
+    expect(global.browser.downloads.search).not.toHaveBeenCalled();
+    expect(sessionStore.siDownloads?.[144]).toBeUndefined();
+  });
+
+  test("does not accumulate completed Last-used observer records", async () => {
+    options.browserDownloadsUpdateLastUsed = true;
+    sessionStore.siDownloadsRoot = "C:\\Downloads\\";
+
+    for (let id = 200; id < 300; id += 1) {
+      await onCreated({
+        id,
+        filename: `C:\\Downloads\\Work\\browser-${id}.zip`,
+        url: `https://example.com/browser-${id}.zip`,
+      });
+      await onChanged({ id, state: { current: "complete", previous: "in_progress" } });
+    }
+
+    expect(downloadState.records.size).toBe(0);
+    expect(Object.keys(sessionStore.siDownloads ?? {})).toEqual([]);
+  });
+
+  test("ignores an inactive non-observer download record", async () => {
+    const { mergeTrackedDownload } = await import("../../../src/downloads/expected-downloads.ts");
+    await mergeTrackedDownload(301, { adopted: false, observedBrowserDownload: false });
+    vi.mocked(global.browser.downloads.search).mockClear();
+
+    await onChanged({ id: 301, state: { current: "complete", previous: "in_progress" } });
+
     expect(global.browser.downloads.search).not.toHaveBeenCalled();
   });
 
@@ -319,7 +347,7 @@ describe("download lifecycle notifications", () => {
     );
   });
 
-  test("refreshes the Downloads root after every successful Save In download", async () => {
+  test("records a changed Downloads root after a successful Save In download", async () => {
     const { mergeTrackedDownload } = await import("../../../src/downloads/expected-downloads.ts");
     await mergeTrackedDownload(145, {
       adopted: true,
@@ -330,6 +358,23 @@ describe("download lifecycle notifications", () => {
     await onChanged({ id: 145, state: { current: "complete", previous: "in_progress" } });
 
     expect(sessionStore.siDownloadsRoot).toBe("D:\\New Downloads\\");
+  });
+
+  test("does not rewrite an unchanged Downloads root", async () => {
+    sessionStore.siDownloadsRoot = "D:\\Downloads\\";
+    const { mergeTrackedDownload } = await import("../../../src/downloads/expected-downloads.ts");
+    await mergeTrackedDownload(146, {
+      adopted: true,
+      filename: "Pictures/photo.jpg",
+      currentFilename: "D:\\Downloads\\Pictures\\photo (1).jpg",
+    });
+    vi.mocked(global.browser.storage.session.set).mockClear();
+
+    await onChanged({ id: 146, state: { current: "complete", previous: "in_progress" } });
+
+    expect(global.browser.storage.session.set).not.toHaveBeenCalledWith({
+      siDownloadsRoot: "D:\\Downloads\\",
+    });
   });
 
   test("does not infer the Downloads root from a prompted Save In download", async () => {

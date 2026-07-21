@@ -3,11 +3,17 @@ import { backgroundRuntime } from "../../src/background/runtime.ts";
 import { options } from "../../src/config/options-data.ts";
 import { routingPorts } from "../../src/routing/ports.ts";
 import { downloadPorts } from "../../src/downloads/ports.ts";
+import { menuState } from "../../src/background/menu-build.ts";
 
 beforeEach(() => {
   backgroundRuntime.debug = false;
   backgroundRuntime.optionErrors = { paths: [], filenamePatterns: [] };
   options.persistPrivateActivity = false;
+  options.enableLastLocation = false;
+  menuState.lastUsedPath = null;
+  menuState.lastUsedMeta = null;
+  vi.mocked(browser.storage.local.set).mockClear();
+  vi.mocked(browser.contextMenus.update).mockClear();
 });
 
 test("wires routing ports to background-owned services", async () => {
@@ -57,6 +63,19 @@ test("updates stored Last used without touching a hidden menu item", async () =>
   await expect(downloadPorts.updateBrowserLastUsed?.("Work")).resolves.toBe(true);
 
   expect(browser.storage.local.set).toHaveBeenCalled();
+  expect(browser.contextMenus.update).not.toHaveBeenCalled();
+});
+
+test("does not rewrite or rerender an unchanged browser Last used folder", async () => {
+  options.enableLastLocation = true;
+  configureBackgroundPorts();
+  await downloadPorts.updateBrowserLastUsed?.("Work");
+  vi.mocked(browser.storage.local.set).mockClear();
+  vi.mocked(browser.contextMenus.update).mockClear();
+
+  await expect(downloadPorts.updateBrowserLastUsed?.("Work")).resolves.toBe(true);
+
+  expect(browser.storage.local.set).not.toHaveBeenCalled();
   expect(browser.contextMenus.update).not.toHaveBeenCalled();
 });
 

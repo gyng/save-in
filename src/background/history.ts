@@ -22,6 +22,7 @@ export const HISTORY_LIMIT = 10000;
 
 const HISTORY_STORE_VERSION = 1;
 const HISTORY_INDEX_CHUNK_SIZE = 128;
+const HISTORY_ENTRY_READ_BATCH_SIZE = HISTORY_INDEX_CHUNK_SIZE;
 
 type HistoryIndex = {
   version: typeof HISTORY_STORE_VERSION;
@@ -201,44 +202,115 @@ const pruneTerminalHistory = async (index: HistoryIndex): Promise<HistoryIndex> 
     historyIndexChunkStorageKey(index.firstChunk + offset),
   );
   const chunks = await storageSnapshot(chunkKeys);
-  const locators = chunkKeys
-    .flatMap((chunkKey) => {
-      const chunk = chunks[chunkKey];
-      return Array.isArray(chunk)
-        ? chunk.filter((key): key is string => typeof key === "string")
-        : [];
-    })
-    .slice(-index.length);
-  const entries = await storageSnapshot(locators.map(historyEntryStorageKey));
-  const terminalLocators = locators.filter((locator) => {
-    const entry = normalizeHistoryEntry(entries[historyEntryStorageKey(locator)]);
-    return entry !== null && entry.status !== "pending";
+  let chunksAreNormalized = true;
+  const chunkLocators = chunkKeys.map((chunkKey) => {
+    const chunk = chunks[chunkKey];
+    if (chunk === undefined) return [];
+    if (
+      !Array.isArray(chunk) ||
+      chunk.length > HISTORY_INDEX_CHUNK_SIZE ||
+      chunk.some((key) => typeof key !== "string")
+    ) {
+      chunksAreNormalized = false;
+    }
+    return Array.isArray(chunk)
+      ? chunk.filter((key): key is string => typeof key === "string")
+      : [];
   });
-  if (terminalLocators.length <= limit) {
-    const countedIndex = { ...index, terminalCount: terminalLocators.length };
+  const allLocators = chunkLocators.flat();
+  const locators = allLocators.slice(-index.length);
+  const expectedRemovals =
+    index.terminalCount === undefined ? undefined : Math.max(0, index.terminalCount - limit);
+  const terminalLocators: string[] = [];
+  let scannedAllLocators = true;
+  for (let offset = 0; offset < locators.length; offset += HISTORY_ENTRY_READ_BATCH_SIZE) {
+    const batch = locators.slice(offset, offset + HISTORY_ENTRY_READ_BATCH_SIZE);
+    const entries = await storageSnapshot(batch.map(historyEntryStorageKey));
+    for (const [batchIndex, locator] of batch.entries()) {
+      const entry = normalizeHistoryEntry(entries[historyEntryStorageKey(locator)]);
+      if (entry !== null && entry.status !== "pending") terminalLocators.push(locator);
+      if (
+        expectedRemovals !== undefined &&
+        terminalLocators.length >= expectedRemovals &&
+        offset + batchIndex + 1 < locators.length
+      ) {
+        scannedAllLocators = false;
+        break;
+      }
+    }
+    if (!scannedAllLocators) break;
+  }
+  const terminalCount =
+    scannedAllLocators || index.terminalCount === undefined
+      ? terminalLocators.length
+      : index.terminalCount;
+  const removalCount = Math.max(0, terminalCount - limit);
+  if (removalCount === 0) {
+    const countedIndex = { ...index, terminalCount };
     await webExtensionApi.storage.local.set({ [HISTORY_INDEX_STORAGE_KEY]: countedIndex });
     return countedIndex;
   }
-  const removeIds = new Set(terminalLocators.slice(0, terminalLocators.length - limit));
+  const removeIds = new Set(terminalLocators.slice(0, removalCount));
   const retained = locators.filter((id) => !removeIds.has(id));
   const writes: Record<string, unknown> = {};
-  const chunkCount = Math.ceil(retained.length / HISTORY_INDEX_CHUNK_SIZE);
-  for (let offset = 0; offset < chunkCount; offset += 1) {
-    writes[historyIndexChunkStorageKey(index.firstChunk + offset)] = retained.slice(
-      offset * HISTORY_INDEX_CHUNK_SIZE,
-      (offset + 1) * HISTORY_INDEX_CHUNK_SIZE,
-    );
+  const obsoleteChunks: string[] = [];
+  const chunkUpdates = chunkLocators.map((previous) => ({
+    previous,
+    retained: previous.filter((id) => !removeIds.has(id)),
+  }));
+  const firstRetainedChunk = chunkUpdates.findIndex(({ retained: chunk }) => chunk.length > 0);
+  const lastRetainedChunk = chunkUpdates.findLastIndex(({ retained: chunk }) => chunk.length > 0);
+  const retainedChunkSpan =
+    firstRetainedChunk === -1 ? 0 : lastRetainedChunk - firstRetainedChunk + 1;
+  const minimumChunkCount = Math.ceil(retained.length / HISTORY_INDEX_CHUNK_SIZE);
+  // Sparse chunks make the common one-entry prune a one-key write. Compact
+  // only when holes would make reads exceed a bounded multiple of dense form.
+  const compact =
+    !chunksAreNormalized ||
+    allLocators.length !== index.length ||
+    retainedChunkSpan > Math.max(minimumChunkCount + 8, minimumChunkCount * 2);
+  let firstChunk: number;
+  let nextChunk: number;
+  if (compact) {
+    firstChunk = index.firstChunk;
+    nextChunk = firstChunk + minimumChunkCount;
+    for (let offset = 0; offset < minimumChunkCount; offset += 1) {
+      writes[historyIndexChunkStorageKey(firstChunk + offset)] = retained.slice(
+        offset * HISTORY_INDEX_CHUNK_SIZE,
+        (offset + 1) * HISTORY_INDEX_CHUNK_SIZE,
+      );
+    }
+    obsoleteChunks.push(...chunkKeys.slice(minimumChunkCount));
+  } else if (firstRetainedChunk === -1) {
+    firstChunk = index.nextChunk;
+    nextChunk = index.nextChunk;
+    obsoleteChunks.push(...chunkKeys);
+  } else {
+    firstChunk = index.firstChunk + firstRetainedChunk;
+    nextChunk = index.firstChunk + lastRetainedChunk + 1;
+    chunkUpdates.forEach(({ previous, retained: chunk }, offset) => {
+      const chunkKey = historyIndexChunkStorageKey(index.firstChunk + offset);
+      if (offset < firstRetainedChunk || offset > lastRetainedChunk || chunk.length === 0) {
+        if (previous.length) obsoleteChunks.push(chunkKey);
+        return;
+      }
+      if (
+        chunk.length !== previous.length ||
+        chunk.some((id, position) => id !== previous[position])
+      ) {
+        writes[chunkKey] = chunk;
+      }
+    });
   }
   const nextIndex: HistoryIndex = {
     version: HISTORY_STORE_VERSION,
-    firstChunk: index.firstChunk,
-    nextChunk: index.firstChunk + chunkCount,
+    firstChunk,
+    nextChunk,
     length: retained.length,
-    terminalCount: terminalLocators.length - removeIds.size,
+    terminalCount: terminalCount - removeIds.size,
   };
   writes[HISTORY_INDEX_STORAGE_KEY] = nextIndex;
   await webExtensionApi.storage.local.set(writes);
-  const obsoleteChunks = chunkKeys.slice(chunkCount);
   await webExtensionApi.storage.local.remove([
     ...Array.from(removeIds, historyEntryStorageKey),
     ...obsoleteChunks,

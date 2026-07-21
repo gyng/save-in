@@ -43,4 +43,33 @@ describe("browser Save As locations", () => {
   test("refuses a root deeper than the selected folder", () => {
     expect(relativeDirectoryWithinRoot("/tmp/file.txt", "/tmp/one/two/")).toBeNull();
   });
+
+  test("coalesces a root read and retries it after a storage failure", async () => {
+    vi.resetModules();
+    vi.mocked(browser.storage.session.get)
+      .mockRejectedValueOnce(new Error("session unavailable"))
+      .mockResolvedValueOnce({ siDownloadsRoot: "/home/user/Downloads/" });
+    const { getDownloadsRoot } = await import("../../src/downloads/browser-last-used.ts");
+
+    const first = getDownloadsRoot();
+    const concurrent = getDownloadsRoot();
+    expect(concurrent).toBe(first);
+    await expect(first).rejects.toThrow("session unavailable");
+    await expect(getDownloadsRoot()).resolves.toBe("/home/user/Downloads/");
+  });
+
+  test("continues root writes after a prior write fails", async () => {
+    vi.resetModules();
+    vi.mocked(browser.storage.session.get).mockResolvedValueOnce({});
+    vi.mocked(browser.storage.session.set)
+      .mockRejectedValueOnce(new Error("session unavailable"))
+      .mockResolvedValueOnce();
+    const { rememberDownloadsRoot } = await import("../../src/downloads/browser-last-used.ts");
+
+    await expect(rememberDownloadsRoot("/first/")).rejects.toThrow("session unavailable");
+    await expect(rememberDownloadsRoot("/second/")).resolves.toBeUndefined();
+    expect(browser.storage.session.set).toHaveBeenLastCalledWith({
+      siDownloadsRoot: "/second/",
+    });
+  });
 });

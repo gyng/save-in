@@ -248,6 +248,169 @@ describe("SaveHistory", () => {
     ]);
   });
 
+  test("bounds entry objects loaded at once while pruning a large History", async () => {
+    const ids = Array.from({ length: 384 }, (_, index) => `seed-${index}`);
+    store[HISTORY_INDEX_STORAGE_KEY] = {
+      version: 1,
+      firstChunk: 0,
+      nextChunk: 3,
+      length: ids.length,
+      terminalCount: ids.length,
+    };
+    for (let chunk = 0; chunk < 3; chunk += 1) {
+      store[`${HISTORY_INDEX_CHUNK_STORAGE_PREFIX}${chunk}`] = ids.slice(
+        chunk * 128,
+        (chunk + 1) * 128,
+      );
+    }
+    ids.forEach((id) => {
+      store[`${HISTORY_ENTRY_STORAGE_PREFIX}${id}`] = {
+        id,
+        status: "complete",
+        url: `https://a/${id}`,
+      };
+    });
+    options.historyRetentionLimit = 0;
+    vi.mocked(global.browser.storage.local.get).mockClear();
+
+    await SaveHistory.enforceHistoryRetention();
+
+    const entryReads = vi
+      .mocked(global.browser.storage.local.get)
+      .mock.calls.map(([keys]) => keys)
+      .filter(
+        (keys): keys is string[] =>
+          Array.isArray(keys) && keys.some((key) => key.startsWith(HISTORY_ENTRY_STORAGE_PREFIX)),
+      );
+    expect(entryReads).toHaveLength(3);
+    expect(Math.max(...entryReads.map((keys) => keys.length))).toBeLessThanOrEqual(128);
+  });
+
+  test("stops reading entries after finding the oldest excess terminal item", async () => {
+    const ids = Array.from({ length: 512 }, (_, index) => `mixed-${index}`);
+    store[HISTORY_INDEX_STORAGE_KEY] = {
+      version: 1,
+      firstChunk: 0,
+      nextChunk: 4,
+      length: ids.length,
+      terminalCount: 2,
+    };
+    for (let chunk = 0; chunk < 4; chunk += 1) {
+      store[`${HISTORY_INDEX_CHUNK_STORAGE_PREFIX}${chunk}`] = ids.slice(
+        chunk * 128,
+        (chunk + 1) * 128,
+      );
+    }
+    ids.forEach((id, index) => {
+      store[`${HISTORY_ENTRY_STORAGE_PREFIX}${id}`] = {
+        id,
+        status: index === 0 || index === ids.length - 1 ? "complete" : "pending",
+        url: `https://a/${id}`,
+      };
+    });
+    options.historyRetentionLimit = 1;
+    vi.mocked(global.browser.storage.local.get).mockClear();
+    vi.mocked(global.browser.storage.local.set).mockClear();
+
+    await SaveHistory.enforceHistoryRetention();
+
+    const entryReads = vi
+      .mocked(global.browser.storage.local.get)
+      .mock.calls.map(([keys]) => keys)
+      .filter(
+        (keys): keys is string[] =>
+          Array.isArray(keys) && keys.some((key) => key.startsWith(HISTORY_ENTRY_STORAGE_PREFIX)),
+      );
+    expect(entryReads).toHaveLength(1);
+    expect(entryReads[0]).toHaveLength(128);
+    const rewrittenChunks = vi
+      .mocked(global.browser.storage.local.set)
+      .mock.calls.flatMap(([writes]) => Object.keys(writes))
+      .filter((key) => key.startsWith(HISTORY_INDEX_CHUNK_STORAGE_PREFIX));
+    expect(rewrittenChunks).toEqual([`${HISTORY_INDEX_CHUNK_STORAGE_PREFIX}0`]);
+    expect(store[`${HISTORY_ENTRY_STORAGE_PREFIX}${ids[0]}`]).toBeUndefined();
+    expect(store[`${HISTORY_ENTRY_STORAGE_PREFIX}${ids.at(-1)}`]).toBeDefined();
+  });
+
+  test("compacts sparse locator shards before their read span can grow without bound", async () => {
+    const pendingIds = Array.from({ length: 20 }, (_, index) => `pending-${index}`);
+    const terminalIds = Array.from({ length: 20 }, (_, index) => `terminal-${index}`);
+    store[HISTORY_INDEX_STORAGE_KEY] = {
+      version: 1,
+      firstChunk: 0,
+      nextChunk: 20,
+      length: 40,
+      terminalCount: 20,
+    };
+    pendingIds.forEach((pendingId, index) => {
+      const terminalId = terminalIds[index];
+      store[`${HISTORY_INDEX_CHUNK_STORAGE_PREFIX}${index}`] = [pendingId, terminalId];
+      store[`${HISTORY_ENTRY_STORAGE_PREFIX}${pendingId}`] = {
+        id: pendingId,
+        status: "pending",
+        url: `https://a/${pendingId}`,
+      };
+      store[`${HISTORY_ENTRY_STORAGE_PREFIX}${terminalId}`] = {
+        id: terminalId,
+        status: "complete",
+        url: `https://a/${terminalId}`,
+      };
+    });
+    options.historyRetentionLimit = 0;
+
+    await SaveHistory.enforceHistoryRetention();
+
+    expect(store[HISTORY_INDEX_STORAGE_KEY]).toMatchObject({
+      firstChunk: 0,
+      nextChunk: 1,
+      length: 20,
+      terminalCount: 0,
+    });
+    expect(store[`${HISTORY_INDEX_CHUNK_STORAGE_PREFIX}0`]).toEqual(pendingIds);
+    expect(store[`${HISTORY_INDEX_CHUNK_STORAGE_PREFIX}1`]).toBeUndefined();
+  });
+
+  test("removes an emptied middle shard while preserving bounded sparse holes", async () => {
+    store[HISTORY_INDEX_STORAGE_KEY] = {
+      version: 1,
+      firstChunk: 0,
+      nextChunk: 4,
+      length: 3,
+      terminalCount: 1,
+    };
+    store[`${HISTORY_INDEX_CHUNK_STORAGE_PREFIX}0`] = ["pending-first"];
+    store[`${HISTORY_INDEX_CHUNK_STORAGE_PREFIX}2`] = ["terminal-middle"];
+    store[`${HISTORY_INDEX_CHUNK_STORAGE_PREFIX}3`] = ["pending-last"];
+    store[`${HISTORY_ENTRY_STORAGE_PREFIX}pending-first`] = {
+      id: "pending-first",
+      status: "pending",
+    };
+    store[`${HISTORY_ENTRY_STORAGE_PREFIX}terminal-middle`] = {
+      id: "terminal-middle",
+      status: "complete",
+    };
+    store[`${HISTORY_ENTRY_STORAGE_PREFIX}pending-last`] = {
+      id: "pending-last",
+      status: "pending",
+    };
+    options.historyRetentionLimit = 0;
+
+    await SaveHistory.enforceHistoryRetention();
+
+    expect(store[HISTORY_INDEX_STORAGE_KEY]).toMatchObject({
+      firstChunk: 0,
+      nextChunk: 4,
+      length: 2,
+      terminalCount: 0,
+    });
+    expect(store[`${HISTORY_INDEX_CHUNK_STORAGE_PREFIX}1`]).toBeUndefined();
+    expect(store[`${HISTORY_INDEX_CHUNK_STORAGE_PREFIX}2`]).toBeUndefined();
+    await expect(storedHistory()).resolves.toEqual([
+      expect.objectContaining({ id: "pending-first" }),
+      expect.objectContaining({ id: "pending-last" }),
+    ]);
+  });
+
   test("tolerates a malformed index chunk while enforcing retention", async () => {
     options.historyRetentionLimit = 0;
     store[HISTORY_INDEX_STORAGE_KEY] = {

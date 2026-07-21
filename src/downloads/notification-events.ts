@@ -9,6 +9,7 @@ import {
   findExpectedDownload,
   getTrackedDownload,
   mergeTrackedDownload,
+  removeTrackedDownload,
 } from "./expected-downloads.ts";
 import { isPrivateDownloadRecord } from "./download-state.ts";
 import type { DownloadRecord } from "./download-state.ts";
@@ -20,7 +21,6 @@ import { deliverDownloadOutcomeWebhook } from "./webhook-delivery.ts";
 import { BROWSER_DOWNLOAD_CONTEXT } from "../shared/constants.ts";
 import {
   BROWSER_LAST_USED_NOTICE_SESSION_KEY,
-  DOWNLOADS_ROOT_SESSION_KEY,
   PENDING_DOWNLOADS_SESSION_KEY,
   PRIVATE_PENDING_DOWNLOADS_SESSION_KEY,
 } from "../shared/storage-keys.ts";
@@ -58,7 +58,12 @@ import {
 } from "./undo-download.ts";
 import { isDataUrl } from "../shared/data-url.ts";
 import { abandonPendingHistoryMove, completePendingHistoryMove } from "./history-move.ts";
-import { deriveDownloadsRoot, relativeDirectoryWithinRoot } from "./browser-last-used.ts";
+import {
+  deriveDownloadsRoot,
+  getDownloadsRoot,
+  relativeDirectoryWithinRoot,
+  rememberDownloadsRoot,
+} from "./browser-last-used.ts";
 
 type HostDownloadItem = Parameters<
   Parameters<typeof webExtensionApi.downloads.onCreated.addListener>[0]
@@ -465,8 +470,7 @@ const handleObservedBrowserDownload = async (
     shouldPersistActivity(isPrivateDownloadRecord(record))
   ) {
     const finalFilename = currentFilename || record.currentFilename;
-    const rootValue = await extensionSessionStorage.get(DOWNLOADS_ROOT_SESSION_KEY);
-    const root = Reflect.get(rootValue, DOWNLOADS_ROOT_SESSION_KEY);
+    const root = await getDownloadsRoot();
     const relative =
       finalFilename && typeof root === "string"
         ? relativeDirectoryWithinRoot(finalFilename, root)
@@ -498,7 +502,7 @@ const handleObservedBrowserDownload = async (
       }
     }
   }
-  await mergeTrackedDownload(downloadDelta.id, { observedBrowserDownload: false });
+  await removeTrackedDownload(downloadDelta.id);
 };
 
 // CHROME
@@ -753,7 +757,7 @@ export const onDownloadChanged = async (downloadDelta: HostDownloadDelta) => {
       ? null
       : deriveDownloadsRoot(fullFilename, record.filename || "");
     if (root && shouldPersistActivity(isPrivateDownloadRecord(record))) {
-      await extensionSessionStorage.set({ [DOWNLOADS_ROOT_SESSION_KEY]: root });
+      await rememberDownloadsRoot(root);
     }
     await recordHistoryStatus(downloadDelta.id, "complete");
     await completePendingHistoryMove(downloadDelta.id);
