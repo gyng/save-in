@@ -61,27 +61,29 @@
     "typecheck": "tsc --noEmit -p config/typescript/browser.json && tsc --noEmit -p config/typescript/chrome.json && tsc --noEmit -p config/typescript/worker.json && tsc --noEmit -p config/typescript/tools.json && tsc --noEmit -p config/typescript/dev-tools.json && tsc --noEmit -p config/typescript/e2e.json && tsc --noEmit -p config/typescript/test.json"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.2",
+    "@biomejs/biome": "2.5.3",
     "@fast-check/vitest": "^0.4.1",
     "@types/chrome": "^0.2.2",
     "@types/firefox-webext-browser": "^143.0.0",
-    "@vitest/coverage-v8": "4.1.9",
+    "@vitest/coverage-v8": "4.1.10",
     "acorn": "8.17.0",
     "fast-check": "^4.8.0",
     "jsdom": "^29.1.1",
     "jszip": "3.10.1",
-    "oxfmt": "^0.58.0",
+    "oxfmt": "^0.59.0",
     "oxlint": "^1.73.0",
     "oxlint-tsgolint": "^0.24.0",
     "rolldown": "^1.1.5",
     "typescript": "^7.0.2",
-    "vitest": "4.1.9",
+    "vitest": "4.1.10",
     "web-ext": "^10.4.0"
   },
   "overrides": {
+    "adm-zip": "0.6.0",
     "minimatch@3.1.5": {
-      "brace-expansion": "1.1.15"
-    }
+      "brace-expansion": "1.1.16"
+    },
+    "shell-quote": "1.10.0"
   },
   "engines": {
     "node": ">=24"
