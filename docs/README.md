@@ -33,6 +33,9 @@ these documents assume.
   what governs this model is measured here, not guessed.
 - [Fuzzing](contributing/FUZZING.md) — running and replaying the bounded property suite, and
   the campaign record.
+- [Browser E2E harness](contributing/E2E.md) — the persistent control plane,
+  lifecycle and retry-safety contract, RSS measurement, CI-constrained stress
+  workflow, and artifact triage.
 
 ## Reviewing — [`reviewing/`](reviewing/)
 

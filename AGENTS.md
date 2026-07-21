@@ -333,6 +333,10 @@ shared foundation`.
 
 ## Testing practices
 
+Read [docs/contributing/E2E.md](docs/contributing/E2E.md) before changing the
+browser harness, lifecycle recovery, retry classification, RSS gates, or CI
+stress procedure.
+
 Test-first is a way to prove meaningful behavior, not a requirement to create
 a new test for every edit. Before writing one, identify the regression it would
 catch and choose the cheapest durable boundary:

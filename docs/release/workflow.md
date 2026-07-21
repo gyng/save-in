@@ -175,18 +175,24 @@ variables resolve, the file completes, and the temporary session rule is removed
 
 ## Browser run telemetry
 
+The control-plane, retry, memory, and local stress contracts are documented in
+the [browser E2E harness guide](../contributing/E2E.md).
+
 Every CI browser run uploads compact `timings-chrome.json` and
 `timings-firefox.json` reports. They include setup phases and individual case
 durations for the advisory regression thresholds in `AGENTS.md`; shared PR
 runners do not enforce wall-clock limits. Pull-request CI compares each case
-with the corresponding current- and minimum-browser artifact from the latest
+with the corresponding host- and pinned-browser artifact from the latest
 successful master run and emits annotations above the 25% advisory threshold.
-CI runs the suites once with the
-host's current browsers and once with the declared minimum Chrome 123 and
-Firefox 140 releases. Those exact archives are SHA-256 verified before
-execution. The same artifact includes each browser's `*-environment.json`, and
-timing reports embed the browser version. Comparisons skip a browser when its
-version changed instead of presenting cross-version noise as a test regression.
+CI runs the suites once with the host's current browsers and once with pinned
+Chrome 150 and minimum Firefox 140 releases. Those exact archives are SHA-256
+verified before execution. Chrome 123 remains the declared source/runtime
+minimum, but the harness cannot drive it: the required extension-debugging
+commands are unavailable there, so CI does not present Chrome 150 as a minimum
+compatibility check. The same artifact includes each browser's
+`*-environment.json`, and timing reports embed the browser version. Comparisons
+skip a browser when its version changed instead of presenting cross-version
+noise as a test regression.
 Compare two downloaded run directories with:
 
 ```sh
